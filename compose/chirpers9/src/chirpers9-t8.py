@@ -818,6 +818,52 @@ def orbit_pan(entry, cycle, sign, full=4, end=41):
     return pts
 
 
+# v48 (ROUND TYPE: whole song): THE DISK TURNS. v10 had each element 'sink into orbit' as the next arrived - but only
+# in level: from 41 to the jet every element stood still in space (v25's swings for E1 and E2 ended at 41). Now an
+# element that sinks into orbit ORBITS: from the bar it leaves its spotlight (e2 41, e3 53, e5 65, e6 81; E1, the
+# hook, a small circle from 41), each turns around its place in the stereo field on its own period - the outer
+# slower (e2 six bars a turn, e3 five, e5 four, e6 three, E1 eight) - with the far half of every turn 3 dB further
+# away (a gain lane in step with the pan: 'We were the far side'). And as matter does falling in, every orbit
+# speeds up (to a quarter of its period) and shrinks (radius to 0) toward the jet, where all of them reach the
+# centre at once: the cycles converge at the crest, in space. The element in its spotlight stays still - the newest
+# is the one in front - and so does E7, the axis (v24). Motion in space, not pitch (Harry: complexity in time and
+# texture).
+DISK = {"e1": (41, 8.0, 0.25), "e2": (41, 6.0, 0.55), "e3": (53, 5.0, 0.5), "e5": (65, 4.0, 0.5), "e6": (81, 3.0, 0.45)}
+DISK_KEPLER = 0.75                     # the period shrinks by this fraction by the jet
+FAR_DB = -3.0                          # the far half of a turn
+FAR_FX = "gain gain=0dB+auto.fs*1"
+
+
+def disk(name, amount=1.0):
+    """Pan (scaled for the track's mod amount) and far-side gain lanes for one element's orbit, from its start to the
+    jet: radius fading in over 4 bars and shrinking to 0 at the jet, period shrinking by DISK_KEPLER."""
+    import math as _m
+    start_bar, p0, r0 = DISK[name]
+    start, stop = b0(start_bar), b0(JET)
+    pn, fs, beat, ph = [], [], start, 0.0
+    while beat < stop - 1e-6:
+        u = (beat - start) / (stop - start)
+        r = r0 * min(1.0, (beat - start) / (4 * BPB)) * (1 - u) ** 0.6
+        pn.append([f"{beat:g}b", round(r * _m.sin(ph) / amount, 3)])
+        fs.append([f"{beat:g}b", round(FAR_DB * (r / r0) * (1 - _m.cos(ph)) / 2, 2)])
+        ph += 2 * _m.pi * 0.5 / (p0 * BPB * (1 - DISK_KEPLER * u))
+        beat += 0.5
+    pn.append([f"{stop:g}b", 0.0])
+    fs.append([f"{stop:g}b", 0.0])
+    return pn, fs
+
+
+def disk_auto(name, before=None, amount=1.0):
+    pn, fs = disk(name, amount)
+    start = b0(DISK[name][0])
+    head = [p for p in (before or [["0b", 0.0]]) if float(p[0][:-1]) < start - 1e-6]
+    return {"pn": {"points": head + pn}, "fs": {"points": [["0b", 0.0]] + fs}}
+
+
+def disk_pan(place):
+    return {"value": place, "mod": [{"src": "auto.pn", "amount": 1.0}]}
+
+
 # v17 (ROUND TYPE: whole song): HOME AT THE END. The horizon's held light sank 5 semitones on the redshift lane, so
 # the record's last chord was A major - the dominant, away from home (Harry: tone is home). Now the light redshifts a
 # full OCTAVE and lands on D again, an octave down: it falls all the way and arrives home - and the sub stays on D1
@@ -1035,14 +1081,14 @@ def main():
             tr("lights", "strings", gain="-14dB", sends={"hall": "-8dB"},
                fx=[{"type": "filter", "kind": "peak", "cutoff": 230, "q": 0.9, "gain": "-5dB"}]),
             tr("e1", "nes-pulse-lead", gain="-10dB", pan={"value": -0.25, "mod": [{"src": "auto.pn", "amount": 0.6}]},
-               sends={"dly": "-12dB"}, auto={"pn": {"points": orbit_pan(ENTRY["E1"], 5.0, 1.0)}}),   # v25
+               sends={"dly": "-12dB"}, fx=[FAR_FX], auto=disk_auto("e1", orbit_pan(ENTRY["E1"], 5.0, 1.0), 0.6)),   # v25, v48
             tr("e2", "modal-glock", gain="-16dB", pan={"value": 0.35, "mod": [{"src": "auto.pn", "amount": 0.6}]},
-               sends={"dly": "-14dB"}, fx=[ORBIT_FX],
-               auto={"orb": {"points": orbit_lane("e2")}, "pn": {"points": orbit_pan(ENTRY["E2"], 7.0, -1.0)}}),   # v25
-            tr("e3", "strings-synth", gain="-16dB", pan=-0.1, sends={"hall": "-8dB"}, fx=["lp cutoff=1800", ORBIT_FX],
-               auto={"orb": {"points": orbit_lane("e3")}}),
-            tr("e5", E5_PATCH, gain=E5_GAIN, pan=0.2, sends={"room": "-10dB"},
-               fx=[ORBIT_FX], auto={"orb": {"points": orbit_lane("e5")}}),
+               sends={"dly": "-14dB"}, fx=[ORBIT_FX, FAR_FX],
+               auto={"orb": {"points": orbit_lane("e2")}, **disk_auto("e2", orbit_pan(ENTRY["E2"], 7.0, -1.0), 0.6)}),   # v25, v48
+            tr("e3", "strings-synth", gain="-16dB", pan=disk_pan(-0.1), sends={"hall": "-8dB"}, fx=["lp cutoff=1800", ORBIT_FX, FAR_FX],
+               auto={"orb": {"points": orbit_lane("e3")}, **disk_auto("e3")}),
+            tr("e5", E5_PATCH, gain=E5_GAIN, pan=disk_pan(0.2), sends={"room": "-10dB"},
+               fx=[ORBIT_FX, FAR_FX], auto={"orb": {"points": orbit_lane("e5")}, **disk_auto("e5")}),
             tr("bass", "bass-pick-di", gain="1dB", fx=["lowshelf cutoff=110 gain=10dB", "lp cutoff=1500", "gain gain=0dB+auto.bm*1"],
                auto={"bm": {"points": [["0b", -4.5], [f"{b0(JET):g}b", -4.5], [f"{b0(JET) + 0.01:g}b", 0.0]]}}),
             tr("sub", "sub-saturated", gain="-12dB"),                       # v28: the staple sine -> saturated
@@ -1061,8 +1107,8 @@ def main():
              "auto": {"rs": {"points": horizon_lane(REDSHIFT)}}},
             tr("hold", HOLD, gain="-18dB", sends={"hall": "-4dB"},
                auto={"rs": {"points": horizon_lane(REDSHIFT)}, "cl": {"points": cl}}),
-            tr("e6", "organ", gain="-24dB", pan=-0.3, sends={"hall": "-8dB"}, fx=["lp cutoff=3500", ORBIT_FX],
-               auto={"orb": {"points": orbit_lane("e6")}}),
+            tr("e6", "organ", gain="-24dB", pan=disk_pan(-0.3), sends={"hall": "-8dB"}, fx=["lp cutoff=3500", ORBIT_FX, FAR_FX],
+               auto={"orb": {"points": orbit_lane("e6")}, **disk_auto("e6")}),
             tr("e7", "brass-synth", gain="-11dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"}),
             {"name": "jet", "patch": JET_SWARM, "gain": "-9dB", "sends": {"hall": "-6dB"}, "notes": JET_NOTES,
              "auto": {"cp": {"points": swarm_lane()}}},                                     # v34: the swarm locks
