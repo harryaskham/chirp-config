@@ -667,6 +667,42 @@ def lights_shimmer():
                       for s, ln, h, v in P["lights"].ev]                                          # ~2.6 dB under
 
 
+# v33 (ROUND TYPE: section, the crest 86-100, ~32 s - its lowest-change stretch for flatness.py on both seeds,
+# 3:12-3:28; rewritten): EVERYONE SINGS THE HOOK. Under lines 3-4 and the sung hook the band played one unchanging
+# full texture. Now:
+#   bar 91, in the gap after '...toward you', the kit, the sub and the bass STOP for one bar - the lights hold, her
+#        last word rings - and a brush fill swells over beats 3-4 into a swish that lands the hook at 92 (the crest's
+#        own stop-time, 81, in miniature);
+#   92-96 the floor sings it: the upright leaves its roots and doubles her E1 two octaves down, note for note
+#        (D A C G E), so voice, duet and bass converge on the hook - the album's cycles converging at the crest.
+CREST_STOP = 91
+HOOK_BASS = [("D2", 0.0, 0.5, 88), ("A2", 0.5, 0.75, 76), ("C3", 1.25, 0.25, 70), ("G2", 1.5, 1.0, 80),
+             ("E2", 2.5, 2.5, 84)]
+
+
+def everyone_sings():
+    lo, hi = b0(CREST_STOP), b0(CREST_STOP + 1)
+    for n in ("kick", "snare", "hat", "ride", "air", "bass", "sub"):
+        if n not in P:
+            continue
+        out = []
+        for s, ln, h, v in P[n].ev:
+            if lo - 1e-6 <= s < hi - 1e-6:
+                continue
+            if s < lo - 1e-6 < s + ln:
+                ln = lo - s
+            out.append((s, ln, h, v))
+        P[n].ev = out
+    for i in range(8):                                                   # the fill, beats 3-4 of bar 91
+        part("snare").add(lo + 2 + i * 0.25, 0.25, "s", 44 + i * 8)
+    part("snare").add(hi, 2.0, "sw", 96)                                 # the swish that lands the hook
+    a, z = SUNG_HOOK[0] * E1_CYCLE, (SUNG_HOOK[-1] + 1) * E1_CYCLE
+    P["bass"].ev = [e for e in P["bass"].ev if not (a - 1e-6 <= e[0] < z - 1e-6)]
+    for c in SUNG_HOOK:
+        for n, off, ln, v in HOOK_BASS:
+            part("bass").add(c * E1_CYCLE + off, ln, n, v)
+
+
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -807,6 +843,7 @@ def main():
     phrase_turns()
     breath_before_b()
     lights_shimmer()
+    everyone_sings()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v,
                    key=lambda d: d["at"])
