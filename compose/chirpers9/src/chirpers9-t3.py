@@ -253,6 +253,15 @@ R30 = os.environ.get("T3_R30", "breathe") != "none"
 # inside the crest at 105-108 did not break the crest's run and cost spectrum (78.6, s0 -0.7); keeping the sub floor low
 # in every lift changed v30's two as well and recurrence fell 99.6 -> 85.2.) T3_R31=none reproduces v30.
 R31 = os.environ.get("T3_R31", "lifts") != "none"
+# round 32 (palette, aimed at the crest's flat run 3:28-4:16; Harry 23:55 "subtle variation"): T3_R32=round (default)
+# - THE ANSWER ON A ROUND BASS. In the crest the storm's bass (a3-grit: a sine phase-modulated by itself, driven) is the
+# loudest thing in the mix (+0.4 vs the mix) - its grain IS the crest's texture, which is why 45 s of crest read as one
+# block. A new patch, a3-round: a warm sine + triangle with a quiet second harmonic through a 900 Hz low-pass and a
+# little drive - E3's undertow played round AND an octave up, a singing bass under the duet's answer and the open
+# chords (bars 101-108); the storm's grain comes back down under the last "everything comes round" at 109. (Round
+# alone, same octave, did not move flatness: the floor's fundamental is what the measure hears.)
+# T3_R32=none reproduces v31.
+R32 = os.environ.get("T3_R32", "round") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -807,6 +816,12 @@ def build():
                 T[k].ev = [(e[0], e[1], ",".join(mtok(int(float(p[1:])) + 12) if p.startswith("m") else p
                                                   for p in e[2].split(",")), e[3], e[4])
                            if b * 4.0 <= e[0] < (b + 4) * 4.0 and isinstance(e[2], str) else e for e in T[k].ev]
+    if R32:                                                 # the answer on a round bass (bars 101-108)
+        T["_round"] = Track("_round")
+        for e in T["bass"].ev:
+            if 100 * 4.0 <= e[0] < 108 * 4.0 and e[3] > 1:
+                T["_round"].add(e[0], e[1] * 1.1, mtok(int(float(e[2][1:])) + 12), e[3])
+        T["bass"].ev = [(e[0], e[1], e[2], 1, e[4]) if 100 * 4.0 <= e[0] < 108 * 4.0 else e for e in T["bass"].ev]
     if R28_MOVE and R27:                                    # the storm's E1 statements move from boc-lead to the dizi
         moved = [e for e in T["e1hi"].ev if e[0] < 88 * 4.0 and e[3] > 1]
         T["e1hi"].ev = [(e[0], e[1], e[2], 1, e[4]) if (e[0] < 88 * 4.0 and e[3] > 1) else e for e in T["e1hi"].ev]
@@ -1184,6 +1199,19 @@ def main():
                 dz.add(bar * 4.0 + off, ln, mtok(m), 84 if off == 0.0 else 80)
         tracks.append({"name": "dizi", "patch": "dizi", "gain": "-7dB", "pan": -0.2,
                        "fx": ["delay time=3/8 mix=0.15 feedback=0.3"], "sends": {"space": "-8dB"}, "score": dz.score()})
+    if R32:                                                 # a3-round: the answer's bass
+        patches["a3-round"] = {
+            "about": "chirper-two: a round bass - sine + triangle with a quiet second harmonic through a 900 Hz low-pass "
+                     "and a little drive; legato with a short glide. The crest's answer, after the storm's grain",
+            "synth": {"layers": [{"wave": "sine"}, {"wave": "triangle", "level": "-8dB"},
+                                 {"wave": "sine", "ratio": 2, "level": "-14dB"}],
+                      "filters": ["lp cutoff=900"],
+                      "amp": {"a": "4ms", "d": "500ms", "s": 0.75, "r": "140ms"},
+                      "drive": 0.2},
+            "play": {"mono": True, "legato": True, "glide": "40ms", "vel_sens": 0.4}}
+        spec_b = next(tr for tr in tracks if tr["name"] == "bass")
+        g_b = float(spec_b["gain"].replace("dB", "")) - 2.0
+        tracks.append({"name": "bassr", "patch": "a3-round", "gain": f"{g_b:g}dB", "score": T["_round"].score()})
     if R28 and R28_TOG:                                     # every stacked voice sings together
         for k in ("a3-duet", "a3-hum3", "a3-doo3", "a3-back"):
             if k in patches:
