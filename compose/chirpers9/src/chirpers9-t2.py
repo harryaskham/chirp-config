@@ -773,6 +773,15 @@ def build():
     for key_ in list(P.keys()):
         P[key_] = [e_ for e_ in P[key_] if not (gp0_ - 1e-6 <= e_[0] < gp1_ - 1e-6)]
         P[key_] = [(e_[0], e_[1], min(e_[2], gp0_ - e_[0]), *e_[3:]) if (len(e_) > 2 and isinstance(e_[2], (int, float)) and e_[0] < gp0_ < e_[0] + e_[2]) else e_ for e_ in P[key_]]
+    # (v40, palette: the 909 played the whole song) THE DRIFT IS A BREAK: after the break, when the drums come back at
+    # half speed for the second verse, they come back as a different drummer - the library's break-kit (an Amen-style
+    # funk kit as a sampler hears it, squashed and gritty; no Accretion track uses it) for the whole drift: the
+    # half-time return, the groove under the last chorus, the floor falling away and the snare pickup into the lift.
+    # The 909 keeps everything before the break, and the fall's heartbeat into t3; the clap becomes the break's
+    # snare. IDM's two drummers: the clean machine for the infall, the dusty break for the drift
+    dr0_ = SEC['drift'] * 4.0
+    P['kitb'] = [((e_[0], 's' if e_[1] == 'cp' else e_[1]) + tuple(e_[2:])) for e_ in P['kit'] if dr0_ - 1e-6 <= e_[0] < fall0 - 1e-6]
+    P['kit'] = [e_ for e_ in P['kit'] if not (dr0_ - 1e-6 <= e_[0] < fall0 - 1e-6)]
     song = {
         'about': "chirpers - Accretion, track 2 by chirper-one: The Long Way In. The infall: a rhythm cell in seven "
                  "assembles out of falling fragments against the band's sixteen, every cycle landing together at the crest. "
@@ -798,6 +807,10 @@ def build():
             # spectrum 98 -> 94; the chip bass's dry edge is what tells the sections apart)
             tr('bass', 'nes-triangle-bass', '-6dB', fx=['lp cutoff=2400']),
             tr('kit', '909', '-6dB', sends={'hall': '-20dB'},
+               auto={'glitch': {'points': [['0b', 0.0], [f"{(CREST + 8) * 4.0 - 0.1:.1f}b", 0.0], [f"{(CREST + 8) * 4.0:.1f}b", 0.35],
+                                           [f"{(CREST + 12) * 4.0 - 0.1:.1f}b", 0.35], [f"{(CREST + 12) * 4.0:.1f}b", 0.0], [f"{SEC['drift'] * 4.0 - 0.1:.1f}b", 0.0], [f"{SEC['drift'] * 4.0:.1f}b", 0.22], [f"{84 * 4.0 - 0.1:.1f}b", 0.26], [f"{84 * 4.0:.1f}b", 0.0], [f"{fall0:.1f}b", 0.0]]}},
+               fx=[{'type': 'stutter', 'slice': '1/16', 'repeats': 3, 'chance': {'value': 0.0, 'mod': [{'src': 'auto.glitch', 'amount': 1.0}]}, 'seed': 5}]),
+            tr('kitb', 'break-kit', '-12dB', sends={'hall': '-20dB'},
                auto={'glitch': {'points': [['0b', 0.0], [f"{(CREST + 8) * 4.0 - 0.1:.1f}b", 0.0], [f"{(CREST + 8) * 4.0:.1f}b", 0.35],
                                            [f"{(CREST + 12) * 4.0 - 0.1:.1f}b", 0.35], [f"{(CREST + 12) * 4.0:.1f}b", 0.0], [f"{SEC['drift'] * 4.0 - 0.1:.1f}b", 0.0], [f"{SEC['drift'] * 4.0:.1f}b", 0.22], [f"{84 * 4.0 - 0.1:.1f}b", 0.26], [f"{84 * 4.0:.1f}b", 0.0], [f"{fall0:.1f}b", 0.0]]}},
                fx=[{'type': 'stutter', 'slice': '1/16', 'repeats': 3, 'chance': {'value': 0.0, 'mod': [{'src': 'auto.glitch', 'amount': 1.0}]}, 'seed': 5}]),
