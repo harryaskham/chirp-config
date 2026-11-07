@@ -1004,6 +1004,29 @@ def clarinet_finds_the_verse():
     P["clar"].ev = out
 
 
+# v49 (ROUND TYPE: section, B's dialogue 49-56, ~17 s - the 1:44 block, 0.56; rewritten): THE HANDS LISTEN. v41 made
+# B's second quarter a dialogue - she hums E1 closed, the young duet answers open a third above, cycle by cycle - but
+# under it the ride (-5.6) and the handpan playing E1 itself (-6.4) led, and both voices sat at -11.8, heard a third
+# of the time: the conversation happened behind the band. Now for its first four bars (49-52) the handpan steps out
+# and LISTENS - the hook is the two voices' alone, traded over the ride, the lights, the sub and the air - and at 53
+# the hands come back in under them, as if answering too. (The sub stays: a floorless four bars cost spectrum in t4
+# v45; and the ride stays: without it too the voices came further forward but its air was missed, -0.035.)
+HANDS_LISTEN = (49, 52)
+
+
+def hands_listen():
+    lo, hi = b0(HANDS_LISTEN[0]), b0(HANDS_LISTEN[1] + 1)
+    for n in ("seed",):                                   # the ride stays: without it -0.035 (its air)
+        out = []
+        for s, ln, h, v in P[n].ev:
+            if lo - 1e-6 <= s < hi - 1e-6:
+                continue
+            if s < lo - 1e-6 < s + ln:
+                ln = lo - s
+            out.append((s, ln, h, v))
+        P[n].ev = out
+
+
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -1152,6 +1175,7 @@ def main():
     lights_climb()
     hands_rest_for_verse()
     clarinet_finds_the_verse()
+    hands_listen()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v + verse(),
                    key=lambda d: d["at"])
