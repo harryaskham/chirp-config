@@ -82,6 +82,7 @@ WARMP = os.environ.get("C9T1_WARMP", "hammond-b3@-20")   # PALETTE: the warm fif
 BREATHREG = os.environ.get("C9T1_BREATHREG", "1")   # PALETTE (register pinned, 0c5d29c5): the far little choir's breath moves into head voice (register 0..1): rounder and airier, a falsetto 'ah' rather than a chest one
 HOOKJOIN = os.environ.get("C9T1_HOOKJOIN", "-16")   # PALETTE (Harry 23:55: subtle variation, phrase by phrase): THE SCATTERED VOICES JOIN THE SEED - each time the whistle states E1 (the opening, A, the build, the crest, the farewell), more of the five scattered voices double it an octave up: at A the vibes, at the build the vibes and celesta, at the crest the vibes, celesta and kalimba; the opening and the farewell stay the whistle alone. Value: the doublings' gain in dB
 PHRASES = os.environ.get("C9T1_PHRASES", "rotate,breath,intro,halfkick")   # WHOLE (Harry 23:55: 'lots of contiguous music with very little change' - subtle variation every 8-16 bars, not schizo): THE SEED'S PULSE MOVES IN PHRASES - 'rotate': A's 5-in-16 shekere Euclid turns three sixteenths every 8 bars (the same rhythm, its accents walking round the bar: a process move); 'breath': the hats and kick rest on the last beat of every 8-bar phrase in A, the build and B (the last before the crest is a held breath); 'intro': a soft clave ticks E1's 5-beat cycle from intro bar 9 and stops at A, so the whistle lands alone, and the pad's open fifth opens up an octave (D3 A3 D4) at bar 9 and deepens (A2 D3 A3) at bar 13; 'halfkick': in B's second phrase the kick goes to every 4 beats, then back
+STRIP = os.environ.get("C9T1_STRIP", "256:288")   # SECTION (w6, 2:54-3:27, the lock after the crest: the least recently worked window, everything playing E1 at once): THE SEED ALONE - for the lock's second phrase ('A:B' beats) the five scattered voices step out (':bare' also rests the glock cell and the shekere), and over the cello, the pad, the organ, the bass and the half-time kick the whistle plays E1 twice, plainly, the seed heard on its own once the voices have made it; at B everything comes back, locked
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -424,6 +425,18 @@ def song():
                     else:
                         out.append(n)
                 tr["notes"] = out
+    if STRIP:
+        sa, sb, *sopt = STRIP.split(":")
+        sa, sb = float(sa), float(sb)
+        rest = {"seed-d", "seed-a", "seed-c", "seed-g", "seed-e"} | ({"cell", "hats"} if "bare" in sopt else set())
+        for tr in tracks:
+            if tr["name"] in rest:
+                tr["notes"] = [n for n in tr["notes"] if not (sa <= n["at"] < sb)]
+        hk = [tr for tr in tracks if tr["name"] == "hook"]
+        if hk:
+            ns = [note(sa + st + o, f"m{p}", ln, 0.55 if i == 0 else 0.5)
+                  for st in (4, 14) for i, (o, ln, p) in enumerate(zip(E1_OFF, E1_LEN, (62, 69, 72, 67, 64)))]
+            tracks.append(dict(hk[0], name="hook-mid", notes=ns))
     if PHRASES:
         ends = [ST["A"] + 8 * BAR * k for k in range(1, 5)] + [TC] + [TC + 8 * BAR * k for k in range(1, 4)]
         for tr in tracks:
