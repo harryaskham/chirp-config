@@ -352,6 +352,14 @@ R33 = os.environ.get("T7_R33", "answer") != "none"
 # and the Eb sub 5 dB up (presence -8.4 -> -4.1). Draft: chips +4 dB with a lighter floor cost s0 0.66 (spectrum
 # 92 -> 86: the mix tipped up). T7_R34=none reproduces v33.
 R34 = os.environ.get("T7_R34", "plain") != "none"
+# round 35 (palette): T7_R35=koto (default) - THE HOOK ON PLUCKED STRINGS. v34 raised the E1 ostinato and found the
+# limit: more gain tipped the mix. The loudest-masked of its three lines was the library dx-epiano (e1a and its wide
+# copy), a soft FM tine that melts into the organ and the choir. It moves to the library koto (no other Accretion
+# track has it): ivory picks near the bridge, a twang on every attack and a singing decay that carries E1's long notes -
+# so the hook reads by articulation, not level, and sits beside the erhu as the orbit's plucked-and-bowed pair.
+# (Also: the silent boom track - one velocity-1 event since v28 - leaves the album's 808 staple for the kettle.)
+# T7_R35=none reproduces v34.
+R35 = os.environ.get("T7_R35", "koto") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1253,6 +1261,13 @@ def main():
                 tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + 3.0:g}dB"
             if tr.get("patch") == "a7-choir2":
                 tr["gain"] = f"{float(str(tr.get('gain', '0dB')).replace('dB', '')) + 1.0:g}dB"
+    if R35:                                                 # the hook on plucked strings (dx-epiano -> koto)
+        for tr in tracks:
+            if tr.get("name") in ("e1a", "e1aw") and tr.get("patch") == "dx-epiano":
+                tr["patch"] = "koto"
+                tr["gain"] = f"{float(tr['gain'].replace('dB', '')) - 2.0:g}dB"
+            if tr.get("name") == "boom" and tr.get("patch") == "808":
+                tr["patch"] = "a7-timp"
     if R34:                                                 # the hook in plain sight; the floor under it
         for tr in tracks:
             if tr.get("name") in ("e1a", "e1b", "e1c", "e1aw", "e1bw", "e1cw"):
