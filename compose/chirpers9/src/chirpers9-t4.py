@@ -623,6 +623,42 @@ def crest_kit():
         P[n].ev = [(s, ln, h, min(127, v + 20)) if a <= s < z else (s, ln, h, v) for s, ln, h, v in P[n].ev]
 
 
+# v28 (ROUND TYPE: section, B 41-64, ~52 s - the longest flat run, 1:28-2:24; rewritten): B TURNS EVERY EIGHT BARS.
+# Harry (6 Nov 23:55, listening to t4): 'lots of contiguous music with very little change or dynamism... add subtle
+# variation so it doesnt get boring' - something should move every 8-16 bars, keeping groove, key and identity.
+# tools/flatness.py had B as one 56 s flat run (v21's call and answer and walking bass were too fine to register).
+# Now B turns at each eight-bar phrase: 41-48 as it was; 49-56 the handpan's E1 lifts an OCTAVE (a register shift,
+# sparkle over the hums and the duet's answers) and the hats give way to the ride on every eighth (the octave lift
+# alone did not register); 57-60 a DROP-OUT - kit, shaker, ride, sub and bass step away and
+# the lights, handpan, harp, steel and the two voices are left alone for four bars - and a brush roll swells back in
+# at the end of 60; 61-64 the lights are RE-VOICED, their two top notes an octave up, opening into the rise.
+B_LIFT, B_DROP, B_OPEN = (49, 57), (57, 61), (61, 65)
+
+
+def b_turns():
+    inside = lambda s, w: b0(w[0]) - 1e-6 <= s < b0(w[1]) - 1e-6
+    P["seed"].ev = [(s, ln, f"m{midi_of(h) + 12}" if inside(s, B_LIFT) and "," not in h else h, v)
+                    for s, ln, h, v in P["seed"].ev]
+    P["hat"].ev = [e for e in P["hat"].ev if not inside(e[0], B_LIFT)]          # 49-56: the hats give way to the
+    P["ride"].ev = [e for e in P["ride"].ev if not inside(e[0], B_LIFT)]        # ride on every eighth - a brighter
+    for bar in range(*B_LIFT):                                                  # wash, the same groove
+        for e in range(8):
+            part("ride").add(b0(bar) + e * 0.5, 0.75, RIDE, 70 if e % 2 == 0 else 54)
+    for n in ("kick", "snare", "hat", "ride", "air", "sub", "bass"):
+        if n in P:
+            P[n].ev = [e for e in P[n].ev if not inside(e[0], B_DROP)]
+    for i in range(8):                                                # the roll back in, end of bar 60
+        part("snare").add(b0(B_DROP[1]) - 2 + i * 0.25, 0.25, "s", 40 + i * 8)
+    ev = []
+    for s, ln, h, v in P["lights"].ev:
+        if inside(s, B_OPEN) and "," in h:
+            ns = sorted(h.split(","), key=midi_of)
+            ns = ns[:-2] + [f"m{midi_of(x) + 12}" for x in ns[-2:]]
+            h = ",".join(ns)
+        ev.append((s, ln, h, v))
+    P["lights"].ev = ev
+
+
 def crest_hook():
     voice, duet = [], []
     for j, c in enumerate(SUNG_HOOK):
@@ -658,6 +694,7 @@ def main():
     gather()
     hold_breath()
     crest_kit()
+    b_turns()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v,
                    key=lambda d: d["at"])
