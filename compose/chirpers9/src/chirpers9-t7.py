@@ -416,6 +416,13 @@ R41 = os.environ.get("T7_R41", "breath") != "none"
 # riff slowed to its own roots - then it drives again. With v41's breath at 125-130 the gesture comes four times,
 # once in each part of the orbit. T7_R42=none reproduces v41.
 R42 = os.environ.get("T7_R42", "breathe") != "none"
+# round 43 (section, w3 = bars 33-48 - the approach's second half, still flatness's rut at 1:04-1:12): T7_R43=open
+# (default) - SHE HUMS INTO AN OPEN FLOOR. v42's breath (bars 37-40) slowed the reese to its roots but the sub's
+# E-flat pedal held on underneath, so the floor barely changed. Now the sub lets go too for those four bars - only
+# the reese's held roots and the kick under the singer's echo - and the echo itself (v37: the horns' answer hummed
+# back, bars 37-38 and 45-46) becomes a true closed-mouth hum (wM's hum, pinned e3da830a: hum 1 at m, 3 dB up -
+# high hums are quieter): she hums the answer back, mouth shut, into the open floor. T7_R43=none reproduces v42.
+R43 = os.environ.get("T7_R43", "open") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1372,6 +1379,16 @@ def main():
                 at += ln
         tracks.append({"name": "echo", "patch": "a7-sung", "gain": "-4dB", "pan": 0.15,
                        "fx": ["delay time=3/8 mix=0.2 feedback=0.35"], "sends": {"space": "-4dB"}, "notes": echo})
+    if R43:                                                 # w3: she hums into an open floor
+        for tr in tracks:
+            if tr.get("name") == "sub":
+                T["sub"].ev = [(e[0], e[1], e[2], 1, e[4]) if 36 * 4.0 <= e[0] < 40 * 4.0 else e for e in T["sub"].ev]
+                tr["score"] = T["sub"].score()
+            if tr.get("name") == "echo" and tr.get("patch") == "a7-sung":
+                patches["a7-sung-hum"] = dict(patches["a7-sung"],
+                                              extends=patches["a7-sung"]["extends"] + " synth.layers.0.hum=1 synth.layers.0.hum_at=m")
+                tr["patch"] = "a7-sung-hum"
+                tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + 3.0:g}dB"
     if R36:                                                 # the low E1 on a log drum (scanned-mallet -> log-drum)
         for tr in tracks:
             if tr.get("name") in ("e1c", "e1cw") and tr.get("patch") == "scanned-mallet":
