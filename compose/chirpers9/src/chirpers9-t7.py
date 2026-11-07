@@ -360,6 +360,15 @@ R34 = os.environ.get("T7_R34", "plain") != "none"
 # (Also: the silent boom track - one velocity-1 event since v28 - leaves the album's 808 staple for the kettle.)
 # T7_R35=none reproduces v34.
 R35 = os.environ.get("T7_R35", "koto") != "none"
+# round 36 (palette): T7_R36=log (default) - THE LOW E1 ON A LOG DRUM. The E1 ostinato's low line (e1c and its wide copy:
+# D3-C#4, under the koto and the chip lead) ran on the library scanned-mallet, a soft woody blur. It moves to the
+# library log-drum (no other Accretion track has it): the Amapiano log drum - a short boomy pitched sine with a woody
+# click, a pitch drop and a slight glide, the bouncing bass-percussion of South African house. The hook bounces in
+# the bottom of the orbit, and the floor gets body where t7 was thin. It steps out (-24 dB on an automation lane) in
+# the five bars-wide holes the floor already leaves - the drop-outs at 25-28 and 137-140, the lifts at 45-48, 57-60
+# and 149-152 - so those still open up. (Draft without the lane: s0 99.167 but a new 32 s flat run 0:48-1:20 - the
+# log drum filled the approach's drop-out.) T7_R36=none reproduces v35.
+R36 = os.environ.get("T7_R36", "log") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1261,6 +1270,15 @@ def main():
                 tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + 3.0:g}dB"
             if tr.get("patch") == "a7-choir2":
                 tr["gain"] = f"{float(str(tr.get('gain', '0dB')).replace('dB', '')) + 1.0:g}dB"
+    if R36:                                                 # the low E1 on a log drum (scanned-mallet -> log-drum)
+        for tr in tracks:
+            if tr.get("name") in ("e1c", "e1cw") and tr.get("patch") == "scanned-mallet":
+                tr["patch"] = "log-drum"
+                pts = [["0b", 0.0]]
+                for b0, b1 in ((24, 28), (44, 48), (56, 60), (136, 140), (148, 152)):
+                    pts += [[f"{b0 * 4 - 0.02:g}b", 0.0], [f"{b0 * 4}b", -24.0], [f"{b1 * 4 - 0.02:g}b", -24.0], [f"{b1 * 4}b", 0.0]]
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.hole", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), hole={"points": pts})
     if R35:                                                 # the hook on plucked strings (dx-epiano -> koto)
         for tr in tracks:
             if tr.get("name") in ("e1a", "e1aw") and tr.get("patch") == "dx-epiano":
