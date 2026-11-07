@@ -7615,7 +7615,8 @@
        "join": true,
        "inhale": 0.45,
        "inhale_time": "350ms",
-       "even": 1.0
+       "even": 1.0,
+       "register": "expr.reg"
       }
      ],
      "lfo": {
@@ -7700,6 +7701,9 @@
      "ph": "AH0 N D",
      "pitch": "m62",
      "vel": 0.615,
+     "expr": {
+      "reg": 0.0
+     },
      "expr_path": {
       "f0": [
        -60.0,
@@ -7728,6 +7732,9 @@
      "ph": "IH1 T",
      "pitch": "m69",
      "vel": 0.69,
+     "expr": {
+      "reg": 0.25
+     },
      "expr_path": {
       "f0": [
        -4.0,
@@ -7755,7 +7762,10 @@
      "len": 1.98,
      "ph": "W AA1 Z",
      "pitch": "m66",
-     "vel": 0.698,
+     "vel": 0.738,
+     "expr": {
+      "reg": 0.5
+     },
      "expr_path": {
       "f0": [
        1.0,
@@ -7783,7 +7793,10 @@
      "len": 3.4,
      "ph": "AW1",
      "pitch": "m72",
-     "vel": 0.695,
+     "vel": 0.735,
+     "expr": {
+      "reg": 1.0
+     },
      "expr_path": {
       "f0": [
        3.0,
@@ -7829,7 +7842,10 @@
      "len": 1.7,
      "ph": "ER0 Z",
      "pitch": "m62",
-     "vel": 0.621,
+     "vel": 0.661,
+     "expr": {
+      "reg": 1.0
+     },
      "expr_path": {
       "f0": [
        -64.0,

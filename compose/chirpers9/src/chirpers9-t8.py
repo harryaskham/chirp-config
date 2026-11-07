@@ -532,13 +532,23 @@ def opening_voice():
             {"at": 29.5, "len": 14.0, "ph": "UW1", "pitch": m("E4"), "vel": 0.44}]
 
 
+# v30 (ROUND TYPE: palette - an engine feature the album has not used: wM's voice REGISTER, pinned 0c5d29c5): THE LAST
+# LINE LETS GO. The solo voice opens the song in chest voice (E, then E F E) and closes it with the choir's last line,
+# 'and it was ours', at half speed, sinking on the redshift lane. Now that line passes from CHEST INTO HEAD VOICE as it
+# recedes - register 0 on 'and', 0.25, 0.5, then falsetto (1) on 'ours' (C5, its peak) and the last D: rounder, airier,
+# the same singer letting go. The opening stays in chest voice (unset = 0), so the song's first and last voices differ.
+# Head voice is 2-4 dB softer (wM): the light notes get +0.04 so the album's last sung words recede, not vanish.
+LAST_REG = [0.0, 0.25, 0.5, 1.0, 1.0]
+
+
 def horizon_line():
     """The choir's last line at half speed, at bar 150 (the lead's redshift lane sinks it)."""
     tk, at = TAKES[3], b0(HORIZON + 9)
     out = []
-    for n in tk["notes"]:
+    for i, n in enumerate(tk["notes"]):
+        reg = LAST_REG[min(i, len(LAST_REG) - 1)]
         d = {"at": round(at + 2 * n["at"], 4), "len": 2 * n["len"], "ph": n["ph"], "pitch": n["pitch"],
-             "vel": round(n["vel"] * 0.8, 3)}
+             "vel": round(n["vel"] * 0.8 + (0.04 if reg >= 0.5 else 0.0), 3), "expr": {"reg": reg}}
         if n.get("expr_path"):
             d["expr_path"] = n["expr_path"]
         out.append(d)
@@ -664,6 +674,7 @@ def choir_patch(singers, tract=0.92, third=False):
 SOLO8 = json.loads(json.dumps(VOICE8))
 SOLO8["about"] = "t8's last voice: the choir's lead alone, even vowels - the horizon's last line"
 SOLO8["synth"]["layers"][0]["even"] = 1.0
+SOLO8["synth"]["layers"][0]["register"] = "expr.reg"                 # v30: chest -> head voice across the last line
 SOLO8["synth"]["lfo"]["vib"].update({"rate": "5.0hz", "delay": "280ms"})
 SOLO8["synth"]["pitch"]["mod"][-1]["amount"] = 0.2
 # v23 (ROUND TYPE: whole song): THE VOICES LET GO. t8's voices span the song - the solo voice opens it (her question,
