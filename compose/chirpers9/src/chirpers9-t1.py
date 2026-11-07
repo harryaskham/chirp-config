@@ -87,6 +87,7 @@ STRIP = os.environ.get("C9T1_STRIP", "256:288")   # SECTION (w6, 2:54-3:27, the 
 BOUNCE = os.environ.get("C9T1_BOUNCE", "0.72:short")   # SECTION (w5, 2:22-2:54, the build into the crest: little new vs A, the least recently worked window): THE VOICES FALL TOGETHER - in the build each of the five scattered voices stops keeping its own time and repeats its note faster and faster, like a dropped ball bouncing to rest, each joining in turn (kalimba first, music box last) and all landing on their places in E1 at the crest: the convergence the album is about, heard as it happens. Value = the bounce ratio (each gap this fraction of the last); 'R:short' starts later and stops before the fastest repeats
 BASSWALK = os.environ.get("C9T1_BASSWALK", "144:192:x4")   # SECTION (w4, 1:48-2:22, A's second half: little new vs w3; the bass had sat on D and A for all 32 bars of A): THE FLOOR WALKS THE SEED - for these bars the triangle bass leaves its D-A drone and walks E1 itself, D A C G E, slow ('A:B:x4': at the cello cantus's quarter speed, an octave under it, phased like it to meet the crest; 'x2' at half speed), over the D pedal: the harmony moves for the first time, inside the key, and the seed is in the bass before the build
 TURN = os.environ.get("C9T1_TURN", "lift")   # WHOLE (Harry 23:55: subtle variation every 8-16 bars; t5 v31's turning chords gave t5 +0.1): THE STACK TURNS - the quartal pad (E1's notes stacked, growing section by section) held one voicing for each section; now every other 8-bar phrase from A to the outro it turns (each section opens home, so the crest lands on the home voicing): 'lift' raises everything above the bottom D an octave (open, airy), 'drop' brings the top note down an octave (close, warm). Same notes, same key; the colour of the stack moves under the scattered voices
+LETGO = os.environ.get("C9T1_LETGO", "1.3")   # SECTION (w7, 3:27-3:59, the lock's last phrase into the fall: flagged static): THE VOICES LET GO - the mirror of v28's bounce into the crest: through the lock's last phrase each of the five voices stops keeping the cell's time and repeats its note slower and slower, each at its own rate (value = the slowest voice's stretch per repeat, the others between it and 1.1), so the seed comes apart as gently as it formed and the voices are scattered again by the fall
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -469,6 +470,26 @@ def song():
                             ns.append(note(t, f"m{mm}", min(ln * mul, wb - t) - 0.25, 0.7))
                     c += L
                 tr["notes"] = sorted(keep + ns, key=lambda n: n["at"])
+    if LETGO:
+        top = float(LETGO)
+        la, lb = ST["outro"] - 8 * BAR, ST["outro"]
+        for k, nm in enumerate(("seed-d", "seed-a", "seed-c", "seed-g", "seed-e")):
+            tr = [x for x in tracks if x["name"] == nm]
+            if not tr:
+                continue
+            tr = tr[0]
+            first = [n for n in tr["notes"] if la <= n["at"] < lb]
+            if not first:
+                continue
+            f0 = first[0]
+            ratio = 1.1 + (top - 1.1) * k / 4
+            keep = [n for n in tr["notes"] if not (la <= n["at"] < lb)]
+            t, gap, ns = f0["at"], E1_CYC, []
+            while t < lb:
+                ns.append(dict(f0, at=round(t, 4)))
+                gap *= ratio
+                t += gap
+            tr["notes"] = sorted(keep + ns, key=lambda n: n["at"])
     if BOUNCE:
         r, _, short = BOUNCE.partition(":")
         r, L0, dmin = float(r), (12 if short else 16), (0.3 if short else 0.2)
