@@ -214,6 +214,33 @@ T_DROP, T_LIFT = (73, 80), (81, 88)
 # hits - no Accretion track uses it), and it carries its own arc: through the stretto every note is PALM-MUTED (expr.pm
 # - shorter, darker, a knock of body: the D pedal's pulses and E3's line held down), and at the jet the hand lifts and
 # the string rings open under the supersaw - the bass, too, resolves into the jet. Same notes, same rhythm.
+# v37 (ROUND TYPE: section, E7's spotlight 81-96, ~26 s - the stretto's stillest stretch for flatness.py, 2:08-2:24;
+# rewritten): E7 TIGHTENS INTO THE JET. E7 - the jet's herald, whose stacked fifths become the jet's own chord - ran
+# its whole spotlight as one ostinato: the same rising five-note arpeggio every 2.75 beats under a slow crescendo.
+# Now each phrase has its own form of the same notes: 81-84 the rising arpeggio as it was; 85-88 the COLUMNS - all
+# five notes struck together and held, re-struck each cycle (the brass columns E7 is named for); 89-96 the arpeggio
+# at DOUBLE SPEED (sixteenths on a 1.375-beat cycle, still phased onto the jet's beat) - joining the spiral, where
+# the other orbits already halve their cycles (v24), and rushing through the vacuum into the jet. Pitches unchanged.
+E7_COLS, E7_FAST = (85, 88), (89, 96)
+
+
+def e7_tightens():
+    lo, hi = b0(E7_COLS[0]), JB
+    crescendo = lambda beat: 46 + int(54 * (beat - b0(81)) / (JB - b0(81)))
+    P["e7"].ev = [e for e in P["e7"].ev if not (lo - 1e-6 <= e[0] < hi - 1e-6)]
+    beat = JB - int((JB - b0(81)) // E7_CYCLE) * E7_CYCLE
+    while beat < b0(E7_COLS[1] + 1) - 0.01:                          # the columns: one held chord per cycle
+        if beat >= lo - 1e-6:                                          # one head: the part is a single line
+            part("e7").add(beat, E7_CYCLE - 0.25, chord([nm for nm, s, ln in E7]), crescendo(beat) - 14)
+        beat += E7_CYCLE
+    c = E7_CYCLE / 2                                                  # the spiral's pace
+    beat = JB - int((JB - b0(E7_FAST[0])) // c) * c
+    while beat < JB - 0.01:
+        for nm, s, ln in E7:
+            part("e7").add(beat + s * 0.125, ln * 0.125, nm, crescendo(beat))
+        beat += c
+
+
 def mute_until_the_jet():
     P["bass"].ev = [(s, ln, h + "^pm" if s < b0(JET) - 1e-6 and "^" not in h else h, v) for s, ln, h, v in P["bass"].ev]
 
@@ -816,6 +843,7 @@ def main():
     carve(["lights", "e1", "e2", "e3", "e5", "e6", "bass", "kick", "hat"], VACUUM, VACUUM)
     stretto_turns()
     mute_until_the_jet()
+    e7_tightens()
     lead, fifth, low = choir()
     solo = sorted(opening_voice() + sung_asks() + horizon_line(), key=lambda d: d["at"])   # v36: she asks                      # v12: the last line, one voice alone (v21: and the first)
     lead += [{"at": b0(HORIZON + 16), "len": b0(BARS + 1) - b0(HORIZON + 16) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'

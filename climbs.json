@@ -8537,14 +8537,15 @@
       "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers9-t8 OUT.wav",
       "best": {
-        "score": 99.54,
-        "version": "v36",
-        "commit": "see git log songs/chirpers9-t8.yaml"
+        "score": 99.53,
+        "version": "v37",
+        "commit": "see git log songs/chirpers9-t8.yaml",
+        "judged": true
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 36,
+      "rounds": 37,
       "priority": 1.0,
       "genre": "complex electronic",
       "mode": "compose",
@@ -8562,7 +8563,7 @@
         "note": "COMPOSE (jet and horizon (release), 240-360 s): The release: E1-E7 and the new E8 in stretto, resolving into one radiant theme (the jet), then the horizon: a held light that redshifts away. The payoff of the whole record. The voice sings full lines."
       },
       "last": {
-        "at": "2026-11-07T07:46:38Z",
+        "at": "2026-11-07T08:47:40Z",
         "who": "chirper-three"
       }
     }
