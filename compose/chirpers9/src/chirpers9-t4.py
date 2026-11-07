@@ -805,6 +805,30 @@ def lights_out():
     P["lights"].ev = out
 
 
+# v39 (ROUND TYPE: whole song): THE HOOK NEVER STAYS IN ONE HAND. The rule the song has grown into, now kept across
+# the whole of it: no instrument carries E1 for more than eight bars running. Audited per eight-bar phrase - lens and
+# A the handpan, 25-32 the clarinet (v29), 33-40 the handpan, B 49-56 the handpan an octave up (v28), 57-64 the drop,
+# the rise resting (v6), the crest sung, the relief hummed and answered by the reed (v34), the fall coming apart (v17)
+# - one gap was left: the handpan carried it for SIXTEEN bars, 33-48, straight across A into B, where it is the
+# loudest thing (and B's other turn, the cellos' tremolo, is invisible to the ear at that level - seed 11 read a 32 s
+# still run there, 1:28-2:00). So at B the reed takes it back: 41-48 the handpan rests and the clarinet sings E1
+# legato at pitch, as it did at 25-32 - and at 49 the handpan returns an octave up with the ride (v28): reed, then
+# struck bell - a contrast of touch as well as hand. (Tried first: the felt glockenspiel carrying E1 an octave up -
+# bells into bells, in the very register the handpan climbs to at 49: sixteen bars of bright bell E1, stiller than
+# before - seed 0 grew its own 32 s run.)
+B_HAND = (41, 48)
+
+
+def reed_takes_b():
+    lo, hi = b0(B_HAND[0]), b0(B_HAND[1] + 1)
+    inside = lambda s: lo - 1e-6 <= s < hi - 1e-6
+    taken = sorted(e for e in P["seed"].ev if inside(e[0]))
+    P["seed"].ev = [e for e in P["seed"].ev if not inside(e[0])]
+    for k, (s, ln, h, v) in enumerate(taken):
+        nxt = taken[k + 1][0] if k + 1 < len(taken) else min(hi, s + 2.5)
+        part("clar").add(s, max(ln, nxt - s), h, min(96, v + 4))
+
+
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -948,6 +972,7 @@ def main():
     everyone_sings()
     reed_answers()
     lights_out()
+    reed_takes_b()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v,
                    key=lambda d: d["at"])
