@@ -320,7 +320,7 @@ def age_her(notes):
 # last one open just as the choir sings the answer at the jet; the jet's choir sings wide open; and at the horizon
 # the held 'ah' CLOSES back into a hum as it redshifts away (from the sink, 161, to its end) - the light closing,
 # with the pitch falling, the tempo slowing and her voice grown old.
-ASK_HUM_LIFT = 0.5
+ASK_HUM_LIFT = 0.0                     # v50: hum_even holds the level now (was 0.5: a vel lift by hand)
 # v45 (ROUND TYPE: palette - a new part's patch): THE ANSWER FORMS, UNVOICED. The far choir (v38: E3's top line, F D
 # E, hummed far off at 46-51, the choir's first sound in the song) sang on the choir lead's open 'oo' - the one voice
 # in t8 left open before the jet since v43 began every voice closed. Now it is its own choir: four singers with their
@@ -1032,6 +1032,15 @@ SOLO8["synth"]["layers"][0]["even"] = 1.0
 SOLO8["synth"]["layers"][0]["register"] = "expr.reg"                 # v30: chest -> head voice across the last line
 SOLO8["synth"]["layers"][0]["age"] = "expr.age"                      # v40: she grows old across the song (age_her)
 SOLO8["synth"]["layers"][0].update({"hum": "expr.hum", "hum_at": "m"})   # v43: THE MOUTH OPENS (see below)
+# v50 (ROUND TYPE: whole song): ONE VOICE, OPEN OR CLOSED. Her mouth opens across the song (v43: the hummed opening
+# line, the six questions opening from hum 1 to 0, the open lines after) - but a closed hum is physically quieter,
+# by up to ~29 dB high (wM, E5), so the arc was also a level arc that v43 patched with a velocity lift by hand
+# (ASK_HUM_LIFT 0.5) and the opening line had none. wM's HUM_EVEN (pinned 1d916569, asked for this) holds the hum at
+# the open voice's loudness, tracking both (~20 ms), so now she is ONE voice at one presence whether her mouth is
+# open or closed - the opening line as present as the words that follow, the questions opening without swelling -
+# and the lift is gone. Only her: the far choir (hummed on 'n', meant far) and the closing choir (closing to a hum,
+# meant to recede) keep the physical hum. Her vowels are already even (even 1.0), as wM advises under a hum.
+SOLO8["synth"]["layers"][0]["hum_even"] = 1.0
 SOLO8["synth"]["lfo"]["vib"].update({"rate": "5.0hz", "delay": "280ms"})
 SOLO8["synth"]["pitch"]["mod"][-1]["amount"] = 0.2
 # v23 (ROUND TYPE: whole song): THE VOICES LET GO. t8's voices span the song - the solo voice opens it (her question,
