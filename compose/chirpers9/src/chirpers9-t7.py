@@ -475,6 +475,15 @@ R48 = os.environ.get("T7_R48", "collide") != "none"
 # hits silence: no hats, no ghosts, no shaker, nothing ringing; then bar 71 slams the groove back in. Two impacts,
 # twice: a collision you hear. No note is added or moved; the others let go. T7_R49=none reproduces v48.
 R49 = os.environ.get("T7_R49", "stop") != "none"
+# round 50 (palette): T7_R50=clap (default) - A CLAP ON THE BACKBEAT, AN EVEN HUM. (1) t7's backbeat is the dusty
+# kit's snare - a lo-fi break snare, all body and no crack - and outside the collision (v48 lifted it there) it is
+# masked almost everywhere (the crest: -16.8 dB vs the mix). Now every backbeat (its 206 hits and the crest's
+# half-time four) is doubled by the electro kit's 808-style clap (the album's first): the break keeps its dust, and
+# the 2 and 4 crack. Same glitch, grit and collision lanes as the snare. (2) The echo hum (v43: the singer humming
+# the horns' answer back, mouth shut) had 3 dB added by hand because closed hums fade on high notes; it now uses wM's
+# hum_even (pinned 1d916569), which holds a hum at the open voice's loudness note by note, and the hand gain goes.
+# T7_R50=none reproduces v49.
+R50 = os.environ.get("T7_R50", "clap") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1494,9 +1503,20 @@ def main():
         for tr in tracks:
             if tr["name"] == "bow":
                 tr["patch"] = "a7-erhu"
+    if R50:                                                 # palette: a clap on the backbeat, an even hum
+        for tr in list(tracks):
+            if tr.get("name") in ("snare", "snareh") and tr.get("score"):
+                sc = " ".join(re.sub(r"^s/", "cp/", tok) for tok in tr["score"].split())
+                tracks.append(dict(tr, name=tr["name"].replace("snare", "clap"), patch="electro-kit",
+                                   gain=f"{float(tr['gain'].replace('dB', '')) + 5.0:g}dB", score=sc))   # +5: masked below
+            if tr.get("name") == "echo" and tr.get("patch") == "a7-sung-hum":
+                patches["a7-sung-hum-even"] = dict(patches["a7-sung-hum"],
+                                                   extends=patches["a7-sung-hum"]["extends"] + " synth.layers.0.hum_even=1")
+                tr["patch"] = "a7-sung-hum-even"
+                tr["gain"] = f"{float(tr['gain'].replace('dB', '')) - 3.0:g}dB"
     if R48:                                                 # w4: the collision heard (bars 49-80)
         coll = [["0b", 0.0], ["191.75b", 0.0], ["192b", 1.0], ["319.75b", 1.0], ["320b", 0.0]]
-        amt = {"snare": 7.0, "jet": 9.0, "stabs": 5.0}
+        amt = {"snare": 7.0, "jet": 9.0, "stabs": 5.0, "clap": 7.0}   # (the clap exists from v50 on)
         for tr in tracks:
             if tr.get("name") in amt:
                 tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB", "mod": [
