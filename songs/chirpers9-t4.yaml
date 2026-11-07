@@ -3656,6 +3656,119 @@
    "sends": {
     "hall": "-10dB"
    }
+  },
+  {
+   "name": "hum1",
+   "patch": {
+    "about": "t4's voice: a warm, close, human singer - slightly larger tract, soft breath, covered vowels; joined lines, a real breath before each, a wandering vibrato (v10)",
+    "play": {
+     "mono": true,
+     "glide": "110ms",
+     "glide_smooth": true,
+     "scoop": 1.2,
+     "fall": 2.0,
+     "glide_overshoot": 0.07
+    },
+    "synth": {
+     "layers": [
+      {
+       "type": "voice",
+       "tract": 1.02,
+       "breath": 0.12,
+       "effort": {
+        "value": 0.3,
+        "mod": [
+         {
+          "src": "vel",
+          "amount": 0.45
+         }
+        ]
+       },
+       "formant_bw": 1.6,
+       "ph_soft": 0.35,
+       "consonant_level": "-4dB",
+       "pulse_rate": 5,
+       "join": true,
+       "inhale": 0.4,
+       "even": 1.0
+      }
+     ],
+     "lfo": {
+      "vib": {
+       "wave": "sine",
+       "rate": "5.2hz",
+       "delay": "300ms",
+       "fade": "500ms",
+       "retrig": true,
+       "wander": 0.7
+      }
+     },
+     "pitch": {
+      "value": 0,
+      "mod": [
+       {
+        "src": "expr.f0",
+        "amount": 0.01
+       },
+       {
+        "src": "lfo.vib",
+        "amount": 0.2
+       }
+      ]
+     },
+     "amp": {
+      "a": "40ms",
+      "d": "0s",
+      "s": 1,
+      "r": "250ms"
+     }
+    }
+   },
+   "gain": "-8dB",
+   "pan": 0.0,
+   "fx": [
+    "lp cutoff=4000"
+   ],
+   "sends": {
+    "hall": "-9dB"
+   },
+   "notes": [
+    {
+     "at": 64.0,
+     "len": 5.0,
+     "ph": "UW1",
+     "pitch": "m66",
+     "vel": 0.42
+    },
+    {
+     "at": 69.0,
+     "len": 5.0,
+     "ph": "UW1",
+     "pitch": "m64",
+     "vel": 0.46
+    },
+    {
+     "at": 74.0,
+     "len": 5.0,
+     "ph": "UW1",
+     "pitch": "m60",
+     "vel": 0.48
+    },
+    {
+     "at": 79.0,
+     "len": 5.0,
+     "ph": "UW1",
+     "pitch": "m59",
+     "vel": 0.46
+    },
+    {
+     "at": 84.0,
+     "len": 10.0,
+     "ph": "UW1",
+     "pitch": "m62",
+     "vel": 0.4
+    }
+   ]
   }
  ],
  "buses": {

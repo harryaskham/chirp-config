@@ -181,6 +181,29 @@ def write_felt():
 # at 750-877 Hz and 10-17 dB short above 7 kHz) becomes a GLOCKENSPIEL (unused on the album): the same E4 broken into
 # eighths an octave up, now a pure ringing ping above the band - the four lights glittering - 10 dB lower so the
 # constant eighths glitter rather than glare (presence in B about -15).
+# v35 (ROUND TYPE: section, A's first phrase 17-24 plus its hand-off, ~27 s; rewritten): THE FIRST HUM. The song's
+# voice - 'the voice at its most human so far' - was silent for its first 100 seconds (her first hum at bar 46), and
+# A's first phrase was the handpan's E1 over lights, sub and bass, a loop (flatness 0.54-0.64 there). Now, as A
+# begins (17), she enters very softly, humming one long note per light down the chords' thirds - F#4 over D9, E4
+# over Cmaj9, C4 over Am11, B3 over G6/9 - and comes home to D4 over the next D9, held and fading as the clarinet
+# takes the hook (96); then she is silent again until B. The human voice arrives under the hook in the first phrase.
+# On its own track (hum1), closed-mouthed: little breath and a 4 kHz low-pass - the open voice's air there read +28 dB
+# at 15 kHz against t3's body and cost the t3 -> t4 seam (flow 82.3 -> 76.3).
+FIRST_HUM = [(64, 5, "F#4", 0.42), (69, 5, "E4", 0.46), (74, 5, "C4", 0.48), (79, 5, "B3", 0.46), (84, 10, "D4", 0.40)]
+
+
+def hum1_patch():
+    """Her voice, closed-mouthed: little breath (the open voice's air read +28 dB at 15 kHz against t3's body)."""
+    p = json.loads(json.dumps(VOICE))
+    p["synth"]["layers"][0]["breath"] = 0.12
+    return p
+
+
+def first_hum():
+    return [{"at": float(at), "len": float(ln), "ph": "UW1", "pitch": f"m{midi_of(n)}", "vel": v}
+            for at, ln, n, v in FIRST_HUM]
+
+
 def hums():
     out = []
     beat = 0.0
@@ -913,7 +936,9 @@ def main():
             tr("e3hi", "pedal-steel", gain="-15dB", pan=0.35, sends={"hall": "-8dB"}),     # v8: E3 an octave up in the rise
             tr("steel", {"extends": "pedal-steel play.glide=700ms"}, gain="-13dB", pan=0.15,
                sends={"hall": "-6dB"}),                              # v11: the lens's bent third
-            tr("clar", "clarinet", gain="-5dB", pan=-0.3, sends={"hall": "-10dB"}),   # v29 (last: event_stable)
+            tr("clar", "clarinet", gain="-5dB", pan=-0.3, sends={"hall": "-10dB"}),   # v29
+            {"name": "hum1", "patch": hum1_patch(), "gain": "-8dB", "pan": 0.0, "fx": ["lp cutoff=4000"],
+             "sends": {"hall": "-9dB"}, "notes": first_hum()},                    # v35 (last: event_stable)
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=20ms", "hp cutoff=180"]},
