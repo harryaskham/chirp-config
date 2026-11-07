@@ -407,6 +407,21 @@ HOOK_REST = (81, 84)
 E7_LIGHT_DB = 3.0
 
 
+# v52 (ROUND TYPE: section, the stretto's drop-out 73-80 into E7, ~20 s - with the hook's rest the thin stretch at
+# 1:52, 0.35 / 0.29; rewritten): THE TIDE SURFACES. v29's drop-out (73-80: the lights and the bass pedal away, 'thin
+# and airy') was neither: the KICK was the loudest thing in it (-2.7) with the chip hook on top (-5.4), and E6 - whose
+# spotlight this is (65-80), the tide, D(add9) / C(add9) over the D pedal on the organ - sat at -11 to -12, unheard.
+# Now the drop really empties: the kick rests for four bars (73-76), leaving the chip, the glock, the marimba, the
+# hats and the organ's tide, 4 dB up through its whole spotlight (65-80, ORBIT_BOOST); at 77 the kick comes back and
+# builds into the snare roll and E7's arrival (81).
+KICK_REST = (73, 76)
+
+
+def tide_surfaces():
+    lo, hi = b0(KICK_REST[0]) - 1e-6, b0(KICK_REST[1] + 1) - 1e-6
+    P["kick"].ev = [e for e in P["kick"].ev if not lo <= e[0] < hi]
+
+
 def hook_breathes():
     lo, hi = b0(HOOK_REST[0]) - 1e-6, b0(HOOK_REST[1] + 1) - 1e-6
     P["e1"].ev = [e for e in P["e1"].ev if not lo <= e[0] < hi]
@@ -803,7 +818,7 @@ ORBIT_IN = {"e2": (29, 41, -5.0), "e3": (41, 53, -5.0), "e5": (53, 65, -5.0), "e
 # E3's harmony; the pedal returns with E5 at 53.
 E3_LIGHT = (b0(41), b0(53))
 ORBIT_EARLY = {"e2": 2}                # bars before the next entry that the sink starts (and ends at the entry)
-ORBIT_BOOST = {"e3": 4.0}              # dB in the element's own spotlight
+ORBIT_BOOST = {"e3": 4.0, "e6": 4.0}   # dB in the element's own spotlight (e6: v52)
 
 
 def orbit_lane(name):
@@ -1102,6 +1117,7 @@ def main():
     full_throttle()
     hook_sung_back()
     hook_breathes()
+    tide_surfaces()
     lead, fifth, low = choir()
     far = far_choir()                                             # v38: the answer forms far away (v45: own track)
     lead, fifth, low, hers = she_says_it(lead, fifth, low)       # v47: the break's second line is hers alone
