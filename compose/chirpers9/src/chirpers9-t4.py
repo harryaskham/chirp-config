@@ -659,6 +659,26 @@ def b_turns():
     P["lights"].ev = ev
 
 
+# v29 (ROUND TYPE: palette - a re-orchestration): THE HOOK CHANGES HANDS. Harry (6 Nov 23:55): something should move
+# every 8-16 bars, groove/key/identity kept; flatness.py still had section A as one 48 s flat run (0:40-1:28). A
+# clarinet counter-line under it was tried first and did not land (chord tones in the handpan's own band: the
+# texture did not change, at -12 or -7 dB). Instead, for bars 25-32 the HANDPAN RESTS and a CLARINET (a patch no
+# Accretion track uses: a reed on a cylindrical bore, dark and woody low down) PLAYS ITS E1 - the same notes at the
+# same times, D4 A4 C5 G4 E4 every five beats, but breathed and legato (each cycle's last E4 held to the next
+# downbeat) - and at 33, as E3's steel enters, the handpan takes the hook back. The hook never leaves; its surface
+# goes from struck metal to breath for one phrase.
+SWAP = (25, 32)
+
+
+def hook_changes_hands():
+    lo, hi = b0(SWAP[0]), b0(SWAP[1] + 1)
+    taken = sorted(e for e in P["seed"].ev if lo - 1e-6 <= e[0] < hi - 1e-6)
+    P["seed"].ev = [e for e in P["seed"].ev if not (lo - 1e-6 <= e[0] < hi - 1e-6)]
+    for k, (s, ln, h, v) in enumerate(taken):
+        nxt = taken[k + 1][0] if k + 1 < len(taken) else min(hi, s + 2.5)
+        part("clar").add(s, max(ln, nxt - s), h, min(96, v + 4))
+
+
 def crest_hook():
     voice, duet = [], []
     for j, c in enumerate(SUNG_HOOK):
@@ -695,6 +715,7 @@ def main():
     hold_breath()
     crest_kit()
     b_turns()
+    hook_changes_hands()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v,
                    key=lambda d: d["at"])
@@ -743,7 +764,8 @@ def main():
              "notes": breaths},
             tr("e3hi", "pedal-steel", gain="-15dB", pan=0.35, sends={"hall": "-8dB"}),     # v8: E3 an octave up in the rise
             tr("steel", {"extends": "pedal-steel play.glide=700ms"}, gain="-13dB", pan=0.15,
-               sends={"hall": "-6dB"}),                              # v11: the lens's bent third (last: event_stable)
+               sends={"hall": "-6dB"}),                              # v11: the lens's bent third
+            tr("clar", "clarinet", gain="-5dB", pan=-0.3, sends={"hall": "-10dB"}),   # v29 (last: event_stable)
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=20ms", "hp cutoff=180"]},
