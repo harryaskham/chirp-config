@@ -51,6 +51,7 @@ E2_STEPS = [0, 2, 3, 5]
 E2_PITCH = {0: 0, 2: 7, 3: 4, 5: -2}          # (v6) D A F# C: the cell in D Mixolydian
 E2_ON = {0: E2_PITCH, -2: {0: 0, 2: 7, 3: 4, 5: 2}, -4: {0: 0, 2: 7, 3: 4, 5: 2}}   # on C: C G E D; on Bb: Bb F D C
 E2_ON[-7] = {0: 0, 2: 7, 3: 4, 5: 2}                      # (v21) on G: G D B A
+E2_ON[-5] = {0: 0, 2: 7, 3: 3, 5: -2}                     # (v27) on A: A E C G
 # E5 (chirper-zero): A G# A . E . A G# A . D . - a 3-beat ostinato (sixteenths; None = rest), MIDI pitches
 E5 = [69, 67, 69, None, 76, None, 69, 67, 69, None, 74, None]     # (v6) E5 v2: the G# became G (chirper-zero, 6 Nov)
 # E4 (chirper-three): four lights, one chord per E1 cycle: D9, Bbmaj13#11, Am11, D9sus (MIDI voicings)
@@ -69,6 +70,7 @@ TIDE_Z = (-4, [0, 4, 7, 14])
 # squeeze's one-beat swings or the out-seam's ebb)
 TIDE_W = (-7, [0, 4, 7, 14])      # G(add9): G B D A, its D the tide's own
 W_SECS = ('pull', 'tide', 'cross', 'surge')
+TIDE_V = (-5, [0, 3, 7, 10])     # (v27) Am7: A C E G
 # (v5) THE LIFT: the crest goes up a whole tone, into E - the four lights, both E1 layers meeting, the hook, E5 and
 # the 303 all lifted - the payoff as a key change; the tear's look back at the crest stays home in D
 LIFT = {'crest': 2}
@@ -202,6 +204,11 @@ def build():
             pair_ = (TIDE_X, TIDE_Y)
             if nm_ in W_SECS and c % 4 == 3:
                 pair_ = (TIDE_X, TIDE_W)
+            if nm_ == 'pull' and c >= 4:
+                # (v27) the pull's second half turns the tide over: G(add9) and Am7 (IV and v of D Mixolydian, every
+                # note in the mode) instead of D and C - the same swing, the split still moving, on the far shore -
+                # and the tide section comes home to D. The harmony's first real move, eight bars in
+                pair_ = (TIDE_W, TIDE_V)
             if nm_ == 'out':
                 # the ebb into t7, whole steps down: D -> C for four cycles, C -> B-flat for two, then B-flat alone
                 pair_ = [(TIDE_X, TIDE_Y)] * 4 + [(TIDE_Y, TIDE_Z)] * 2 + [(TIDE_Z, TIDE_Z)] * 2
@@ -531,6 +538,32 @@ def build():
         wave_pts.append([f'{t_:.2f}b', -3.0 if c_ else 0.0])
         wave_pts.append([f'{t_ + sp_[c_]:.2f}b', 1.0])
     wave_pts.append([f'{ti0_ + 64.0:.2f}b', 0.0])
+    # (v27, section: the flat run 0:32-1:28 - Harry, 6 Nov 23:55: 'lots of contiguous music with very little change
+    # or dynamism ... add subtle variation so it doesnt get boring'; tools/flatness.py read t6 70% flat, this its
+    # longest run, 56 s) SOMETHING MOVES EVERY EIGHT BARS through the pull and the tide's first half, the groove, key
+    # and parts unchanged: bars 17-24 the harmonium sits an octave down and the hats play only eighths (dark, spare -
+    # the tide still far out); bars 25-32 the harmonium comes up into its own register and the sixteenths fill in
+    # with the whistle's hook (the tide arriving); bars 33-36 the marimba and the sequencer drop out (the water
+    # drawing back), and come back at bar 37 under the duet; bars 41-44 open hats on every off-beat lift the tide's
+    # second wave, and a snare fill in sixteenths throws it into bar 45
+    pv0_, pv1_, pv2_ = SEC['pull'] * 4.0, SEC['pull'] * 4.0 + 32.0, SEC['tide'] * 4.0
+    def down_(ch_):
+        tk_ = ch_.split(',')
+        return ','.join([tk_[0]] + [f"m{float(x_[1:]) - 12:.3f}" for x_ in tk_[1:]])
+    P['tide'] = [((e_[0], down_(e_[1])) + tuple(e_[2:])) if pv0_ - 1e-6 <= e_[0] < pv0_ + 32.0 - 1e-6 else e_ for e_ in P['tide']]
+    P['hats'] = [e_ for e_ in P['hats'] if not (pv0_ - 1e-6 <= e_[0] < pv0_ + 32.0 - 1e-6 and abs((e_[0] * 2) - round(e_[0] * 2)) > 1e-6)]
+    for key_ in ('near', 'acid'):
+        P[key_] = [e_ for e_ in P[key_] if not (pv2_ - 1e-6 <= e_[0] < pv2_ + 16.0 - 1e-6)]
+    for b_ in range(SEC['tide'] + 8, SEC['tide'] + 12):
+        for k_ in range(4):
+            P['hats'].append((b_ * 4.0 + k_ + 0.5, 'oh', 0.3, 64))
+    fl_ = (SEC['tide'] + 12) * 4.0
+    for q_ in range(8):
+        P['kit'].append((fl_ - 2.0 + q_ * 0.25, 's', 0.1, 60 + 7 * q_))
+    P['kit'].append((fl_, 'c', 2.0, 112))
+    for key_ in ('hats', 'kit'):
+        P[key_].sort(key=lambda e_: e_[0])
+
     stop_pts = [['0b', 0.0], [f'{void0:.2f}b', 0.0], [f'{void0 + 0.9:.2f}b', 1.0], [f'{void0 + 0.98:.2f}b', 1.0], [f'{void0 + 1.0:.2f}b', 0.0]]
 
     tempo = [{'at': '0b', 'bpm': 120.0}, {'at': f'{SEC["pull"] * 4.0:.1f}b', 'bpm': 120.0},
