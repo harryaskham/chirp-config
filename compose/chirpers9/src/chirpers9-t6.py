@@ -482,8 +482,17 @@ def build():
     # third, and when t7's Eb major 7 arrives over it, its seventh
     go_ = [n_ for n_ in SU['tracks'][0]['notes'] if n_['at'] >= 5.0]
     sh_ = (SEC['out'] + 12) * 4.0 - go_[-1]['at']
+    # (v38, section w9: the out-seam 'static') THE OLD MAN'S LAST WORD, AND THE FAR SIDE LETS GO: his last line is
+    # now sung by an OLDER voice - wM's age (0.8): the folds leaking air, a slow tremor shaking the held 'go' - the
+    # same man, the tide gone out of him; and as 'go' lands on the B-flat bar, the far side's trombone, silent since
+    # its held D, comes back once, softly, and SLIDES down D -> C -> B-flat - the ebb, and the words, played by the
+    # far side itself - holding B-flat (t7's V, under its Bbsus4 -> Bb7) to the end of the seam
+    lastnotes = []
     for n_ in go_:
-        snotes.append(dict(n_, at=round(sh_ + n_['at'], 4), len=(3.2 if n_ is go_[-1] else n_['len'])))
+        lastnotes.append(dict(n_, at=round(sh_ + n_['at'], 4), len=(3.2 if n_ is go_[-1] else n_['len'])))
+    lw_ = (SEC['out'] + 12) * 4.0
+    P['far'] = [e_ for e_ in P['far'] if e_[0] < lw_ - 1e-6]
+    P['far'] += [(lw_ + 0.5, m(KEY + 12), 0.9, 60), (lw_ + 1.5, m(KEY + 10), 0.9, 58), (lw_ + 2.5, m(KEY + 8), 5.0, 56)]
     sq0, sq1 = (SEC['crest'] - 8) * 4.0, SEC['crest'] * 4.0
     P['kit'] = [e_ for e_ in P['kit'] if not (sq0 - 1e-6 <= e_[0] < sq1 - 1e-6 and e_[1] == 's')]
 
@@ -826,6 +835,8 @@ def build():
              'notes': c2notes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
             # (v18) wM's singer's glide (glide_overshoot, pinned 14:27) on every sung line: on each leap the old voice and
             # the choir swing a little past the note and settle, as singers do, instead of landing dead on it (0.06: subtle)
+            {'name': 'lastword', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-old synth.layers.0.age=0.8 synth.lfo.vib.per_note=true', play={'glide_overshoot': 0.06, 'scoop': 1.5, 'fall': 2.5}),
+             'notes': lastnotes, 'gain': '-7dB', 'pan': 0.0, 'sends': {'hall': '-10dB', 'echo': '-20dB'}},
             {'name': 'sung', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-old synth.lfo.vib.per_note=true', play={'glide_overshoot': 0.06, 'scoop': 1.5, 'fall': 2.5}),
              'notes': sorted(snotes, key=lambda n_: n_['at']), 'gain': '-7dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
             # (v14) the second pass's company now sings a THIRD below in D Mixolydian (harmony_key), not a fixed fourth
