@@ -512,6 +512,18 @@ def build():
     for b_ in (CREST * 4.0, CREST * 4.0 + 10.0):
         for n_ in CS['tracks'][0]['notes']:
             csnotes.append(dict(n_, at=round(b_ + n_['at'] - 0.25, 4)))
+    # (v33, section w5: the crest's second half 'static, little new vs w4' - after the line and its echo, eight bars of
+    # the same lit groove with nothing new to sing) THE CHORUS GETS ITS SECOND LINE: the crest's line, which Harry
+    # stopped for, stays exactly as it is; then, over the crest's second G6/9 and C (bars 57-60), the same near voice
+    # answers it with a new phrase - 'round and round, the middle draws us in' (B A G, then G A C B A G: falling,
+    # rising, falling home to G) - and sings it again over C and Am7 (bars 61-64) as the light turns Dorian for the
+    # break, both times with its keyed third above. A chorus of two lines, call and answer, instead of one line and a
+    # vamp
+    CB = json.load(open(os.path.join(HERE, 'chirpers9-t2-crestb.json')))
+    cbnotes = []
+    for b_, g_ in (((CREST + 8) * 4.0, 1.0), ((CREST + 12) * 4.0, 0.9)):
+        for n_ in CB['tracks'][0]['notes']:
+            cbnotes.append(dict(n_, at=round(b_ + n_['at'] - 0.245, 4), vel=round(n_['vel'] * g_, 3)))
     # (v24, whole song) THE LAST CHORUS: Harry, 6 Nov 18:05, at the crest's words: 'woah this track is sick'. So the
     # line comes back to end the song: in the drift, where the ondes plays E1 plainly over the returning drums (bars
     # 85-96), the near voice sings 'nearer each time it comes round' with it four times - every other statement, the
@@ -768,6 +780,8 @@ def build():
              'notes': [dict(n_, pitch=f"m{int(str(n_['pitch'])[1:]) + 2}") for n_ in dsnotes2], 'gain': '-8dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
             {'name': 'crestsung', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06}),
              'notes': csnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
+            {'name': 'crestb', 'patch': dict(dict(CB['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1}),
+             'notes': cbnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
             {'name': 'sung', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-near synth.lfo.vib.per_note=true'),
              'notes': snotes, 'gain': '-11dB', 'pan': 0.05, 'sends': {'echo': '-16dB', 'hall': '-12dB'}},
         ]}
