@@ -266,6 +266,24 @@ def far_choir():
     return out
 
 
+# v39 (ROUND TYPE: section, the jet's last stretch 109-120, ~19 s - flatness.py's stillest block in the jet, 2:56;
+# rewritten): FULL THROTTLE. The jet's gears accelerate into the break (half time 97, full 105, four on the floor 113,
+# the roll at 120), but the floor gear held seven bars unchanged while the swarm's held chord let go at 113. Now a last
+# gear before the roll: 117-119 the picked bass leaves its two notes a bar for driving OCTAVE EIGHTHS (root and octave,
+# accented on the beat) - the engine opening up for the last three bars, then the roll throws it into the break.
+THROTTLE = (117, 119)
+
+
+def full_throttle():
+    lo, hi = b0(THROTTLE[0]), b0(THROTTLE[1] + 1)
+    P["bass"].ev = [e for e in P["bass"].ev if not (lo - 1e-6 <= e[0] < hi - 1e-6)]
+    for bar in range(THROTTLE[0], THROTTLE[1] + 1):
+        root = midi(E4M[(bar - JET) % 4][0])
+        for i in range(8):
+            part("bass").add(b0(bar) + i * 0.5, 0.45, name_of(root + 12 + (12 if i % 2 else 0)),   # its own register
+                             (100 if i % 2 == 0 else 84) + (4 if i == 0 else 0))
+
+
 def mute_until_the_jet():
     P["bass"].ev = [(s, ln, h + "^pm" if s < b0(JET) - 1e-6 and "^" not in h else h, v) for s, ln, h, v in P["bass"].ev]
 
@@ -869,6 +887,7 @@ def main():
     stretto_turns()
     mute_until_the_jet()
     e7_tightens()
+    full_throttle()
     lead, fifth, low = choir()
     lead += far_choir()                                           # v38: the answer forms far away
     solo = sorted(opening_voice() + sung_asks() + horizon_line(), key=lambda d: d["at"])   # v36: she asks                      # v12: the last line, one voice alone (v21: and the first)
