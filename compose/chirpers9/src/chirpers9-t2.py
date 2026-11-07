@@ -922,7 +922,12 @@ def build():
             # (an album staple, three tracks) 13 dB down - the song's through-line, barely there. Now it is a Wurlitzer,
             # reedy and warm, up front: the tune you follow upside down until the crest turns it over (and the ondes
             # sings it the right way up)
-            tr('gtrarp', 'cutting-guitar', '-6dB', pan=0.3, sends={'echo': '-8dB', 'hall': '-12dB'}),
+            # (v50, palette: the break's arpeggios were the cutting guitar - the same electric that skanks and funks
+            # through the groove) THE BREAK GOES UNPLUGGED: the floating arpeggios in the break are now fingerpicked on
+            # the library's acoustic (a steel-string dreadnought, close-miked: wound-string attack, body and air; no
+            # Accretion track uses it) - wood and steel in the one place the band falls away, the electric back for
+            # the drift
+            tr('gtrarp', 'acoustic', '-10dB', pan=0.3, sends={'echo': '-8dB', 'hall': '-12dB'}),
             tr('gtr', 'cutting-guitar', '-5dB', pan=-0.35, sends={'hall': '-18dB'}),
             # (v48, palette: the E1 keys were a wurli - another electric piano among the album's keys) THE ANSWERS ON
             # TAPE: E1's answers through the gather, the crest and the second verse now play on the library's
