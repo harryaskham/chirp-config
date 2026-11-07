@@ -397,6 +397,16 @@ R39 = os.environ.get("T7_R39", "age") != "none"
 # the shaker go, at 78 the snare, the ghosts and the perc, at 79 the E1 chips and E5's trill, at 80 the kick - so the
 # bass, the tide, the organ and the horns carry the collision down into the slack. T7_R40=none reproduces v39.
 R40 = os.environ.get("T7_R40", "decay") != "none"
+# round 41 (section, w8/w9 seam = bars 121-134 - the crest's first fifteen bars, flatness's deepest rut: three 8 s
+# blocks alike at 3:28-3:52, changes 0.31 and 0.18): T7_R41=breath (default) - THE FLOOR HOLDS ITS BREATH. The reese
+# drives its E7 riff (ten notes a bar) under the whole crest - the loudest thing in the mix - so the choir's "each lap a
+# little shorter" and the tidal lock ("every corner comes sooner", bar 131) sat on one unbroken floor. Now for bars
+# 125-130 - under the choir's line and up to the lock - the riff stops: the reese holds a D2 a bar at a time (its first
+# note of each bar, sustained) over the sub's D, the kick and the horns carry on - and at bar 131 the riff comes back
+# with the lock. (Drafts: 4 bars, 127-130, on D2 or D3 - the rut's changes 0.31/0.18 -> 0.6/0.25 only: four bars
+# straddle two of flatness's 8 s blocks.)
+# T7_R41=none reproduces v40.
+R41 = os.environ.get("T7_R41", "breath") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -834,6 +844,15 @@ def build():
                 for s in range(0, 16, 2):
                     v = (84 if s % 4 == 0 else 62) + r27.randint(0, 6)
                     T["ride"].add(bar * 4.0 + s / 4.0, 1.6, "m62", v)
+    if R41:                                                                   # the floor holds its breath (125-130)
+        firsts = {}
+        for i, e in enumerate(T["bass"].ev):
+            b = int(e[0] // 4)
+            if 124 <= b < 130 and e[3] > 1 and (b not in firsts or e[0] < T["bass"].ev[firsts[b]][0]):
+                firsts[b] = i
+        keep = set(firsts.values())
+        T["bass"].ev = [(e[0], round((int(e[0] // 4) + 1) * 4.0 - e[0] - 0.15, 4), mtok(38), e[3], e[4]) if i in keep else
+                        (e[0], e[1], e[2], 1, e[4]) if 124 * 4.0 <= e[0] < 130 * 4.0 else e for i, e in enumerate(T["bass"].ev)]
     if R40:                                                                   # w5: the orbit loses energy (77-80)
         for b0, ks in ((76, ("hats", "hatsw", "shaker")), (77, ("snare", "ghost", "ghostw", "perc")),
                        (78, ("e1a", "e1b", "e1c", "e1aw", "e1bw", "e1cw", "e5", "e5w")), (79, ("kick",))):
