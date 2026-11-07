@@ -69,5 +69,37 @@ class Flatness(unittest.TestCase):
         self.assertIn("flat 0:00-0:40 (40 s)", out)
 
 
+class Mix(unittest.TestCase):
+    def test_tracks_join_at_the_seam_and_spans_are_their_own(self):
+        import json
+        import shutil
+        import chirpers as CH
+        d = tempfile.mkdtemp()
+        try:
+            for n in (1, 2):
+                x = tone(CHORDS[0], 40) if n == 1 else np.concatenate([tone(CHORDS[i % 4], 8, 0.05 + 0.1 * (i % 3))
+                                                                      for i in range(5)])
+                p = write(x)
+                shutil.move(p, os.path.join(d, f"t{n:02d}.wav"))
+                os.rename(os.path.join(d, f"t{n:02d}.wav"), os.path.join(d, f"t{n:02d}.mp3"))   # ffmpeg sniffs content
+                open(os.path.join(d, f"t{n:02d}.song"), "w").write("tempo: 120\n")
+            json.dump({"album": "x", "pin": "/bin/true", "tracks": [{"n": 1, "title": "a"}, {"n": 2, "title": "b"}]},
+                      open(os.path.join(d, "snapshot.json"), "w"))
+            saved = CH.song_timeline, CH.seam_overlaps, CH.seam_start
+            CH.song_timeline = lambda pin, song: {"secs": 36.0, "times": [0.5 * i for i in range(80)], "end_beat": 72}
+            CH.seam_overlaps = lambda album, default=16: ({(1, 2): 4}, 16)
+            CH.seam_start = lambda tl, bars: 28.0                    # t2 enters 8 s before t1's musical end
+            try:
+                x, spans = FL.album_mix(d)
+            finally:
+                CH.song_timeline, CH.seam_overlaps, CH.seam_start = saved
+            self.assertEqual([s[0] for s in spans], [1, 2])
+            self.assertAlmostEqual(spans[1][2], 28.0, places=1)      # t2's entry
+            self.assertAlmostEqual(len(x) / FL.SR, 28.0 + 40.0, places=1)
+            self.assertAlmostEqual(spans[0][3], 28.0, places=1)      # t1's own span ends where t2 enters
+        finally:
+            shutil.rmtree(d)
+
+
 if __name__ == "__main__":
     unittest.main()

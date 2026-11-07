@@ -5,6 +5,14 @@ Harry, 6 Nov 23:55: "lots of contiguous music with very little change or dynamis
 but we should add subtle variation so it doesnt get boring".
 
   flatness.py FILE... [--block 8] [--threshold 0.691] [--json]     FILE: any audio ffmpeg reads (wav, mp3, opus)
+  flatness.py --mix SNAPSHOT_DIR [--json]                            the album as heard: a review-app snapshot's tracks
+                                                                     joined at the album's seams (mixplan overlaps, as
+                                                                     release --mix places them), runs in track time
+
+--mix (7 Nov, chirper-two: t3's "flat" head is the t2 overlap): a song's head plays under the previous song's tail on
+the album, so measuring tracks alone can call an overlap head flat when what the listener hears is moving. In --mix,
+each track's figures cover its own span of the mix (from its entry to the next track's entry). Blocks align to the
+mix, not the track, so a run can shift by a block (8 s) against the per-track view: read both as a flashlight.
 
 The song is cut into BLOCK-second blocks; each block is summarised by its 16-band log spectrum (shape, level removed),
 its chroma and its level; "change" is the distance from one block to the next. A change below THRESHOLD is flat.
@@ -29,6 +37,7 @@ here. And a floor drop-out that never returns reads as a new section to compscor
 """
 import argparse
 import json
+import os
 import subprocess
 import sys
 
@@ -92,17 +101,94 @@ def runs(ch, block=8, threshold=THRESHOLD, min_s=32):
     return pct, best, found
 
 
+def album_mix(snap_dir):
+    """(mono mix samples, [(n, title, start_s, own_end_s)]) for a listen.py snapshot: each track's tNN.mp3 cut at its
+    musical end (chirp plan on the snapshot's committed tNN.song, via a temporary copy beside its includes), entering
+    the album's seam overlap before it, crossfaded linearly (the release mix's bass swap only moves the lows)."""
+    import chirpers as CH
+    meta = json.load(open(os.path.join(snap_dir, "snapshot.json")))
+    pin = meta["pin"] if os.path.isabs(meta["pin"]) else os.path.join("/tmp/lt/pins", meta["pin"])
+    seams, default = CH.seam_overlaps(meta["album"], 16)
+    songs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "songs")
+    tracks = []
+    for t in meta["tracks"]:
+        n = t["n"]
+        tmp = os.path.join(songs_dir, f".flatmix-{os.getpid()}-{n}.yaml")
+        try:
+            with open(tmp, "w") as f:
+                f.write(open(os.path.join(snap_dir, f"t{n:02d}.song")).read())
+            tl = CH.song_timeline(pin, tmp)
+        finally:
+            os.path.exists(tmp) and os.unlink(tmp)
+        tracks.append((n, t.get("title", ""), load(os.path.join(snap_dir, f"t{n:02d}.mp3")), tl))
+    out, spans = np.zeros(0, np.float32), []
+    for i, (n, title, x, tl) in enumerate(tracks):
+        if i < len(tracks) - 1 and tl:
+            x = x[:int(tl["secs"] * SR)]
+        if i:
+            ptl = tracks[i - 1][3]
+            bars = seams.get((tracks[i - 1][0], n), default)
+            ov = (ptl["secs"] - CH.seam_start(ptl, bars)) if ptl else 0.0
+            k = int(max(0, min(ov * SR, len(out), len(x))))
+            start = (len(out) - k) / SR
+            if k:
+                w = np.linspace(0.0, 1.0, k, endpoint=False, dtype=np.float32)
+                out[-k:] = out[-k:] * (1 - w) + x[:k] * w
+            out = np.concatenate([out, x[k:]])
+        else:
+            start = 0.0
+            out = x.copy()
+        spans.append([n, title, start, None])
+    for i in range(len(spans)):
+        spans[i][3] = spans[i + 1][2] if i + 1 < len(spans) else len(out) / SR
+    return out, [tuple(sp) for sp in spans]
+
+
+def mix_report(snap_dir, block=8, threshold=THRESHOLD):
+    """Per track: flat % of the block changes inside its own span of the mix, and flat runs of 32 s or more clipped to
+    that span, in the track's own time."""
+    x, spans = album_mix(snap_dir)
+    ch = changes(features(x), block)
+    flat = ch < threshold
+    _, _, runs_all = runs(ch, block, threshold, min_s=1)
+    res = []
+    for n, title, a, b in spans:
+        idx = [i for i in range(len(ch)) if a <= (i + 1) * block < b]
+        pct = 100.0 * float(np.mean([flat[i] for i in idx])) if idx else 0.0
+        mine = [(max(ra, a) - a, min(rb, b) - a) for ra, rb in runs_all if rb > a and ra < b]
+        mine = [(round(u), round(v)) for u, v in mine if v - u >= 32]
+        res.append({"n": n, "title": title, "start_s": round(a, 1), "flat_pct": round(pct, 1),
+                    "longest_s": max([v - u for u, v in mine], default=0), "runs": mine})
+    allpct = 100.0 * float(flat.mean()) if len(flat) else 0.0
+    return {"album_flat_pct": round(allpct, 1), "tracks": res}
+
+
 def mmss(s):
     return f"{int(s // 60)}:{int(s % 60):02d}"
 
 
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    p.add_argument("files", nargs="+")
+    p.add_argument("files", nargs="*")
+    p.add_argument("--mix", metavar="SNAPSHOT_DIR", help="the album as heard: a listen.py snapshot joined at its seams")
     p.add_argument("--block", type=int, default=8)
     p.add_argument("--threshold", type=float, default=THRESHOLD)
     p.add_argument("--json", action="store_true")
     a = p.parse_args(argv)
+    if a.mix:
+        r = mix_report(a.mix, a.block, a.threshold)
+        if a.json:
+            json.dump(r, sys.stdout, indent=1)
+            print()
+            return
+        print(f"album as heard: {r['album_flat_pct']:.0f}% flat (Standby Amber {SA_FLAT}%)")
+        for t in r["tracks"]:
+            print(f"  t{t['n']} {t['title']}: {t['flat_pct']:.0f}% flat in its span, longest run {t['longest_s']} s")
+            for u, v in t["runs"]:
+                print(f"      flat {mmss(u)}-{mmss(v)} ({v - u} s, track time)")
+        return
+    if not a.files:
+        p.error("give FILEs or --mix SNAPSHOT_DIR")
     res = []
     for f in a.files:
         ch = changes(features(load(f)), a.block)
