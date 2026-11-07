@@ -92,6 +92,7 @@ LETGO = os.environ.get("C9T1_LETGO", "1.3")   # SECTION (w7, 3:27-3:59, the lock
 ANSWER = os.environ.get("C9T1_ANSWER", "harp")   # SECTION (w2, 0:36-1:13, the intro's end and A's first phrase: flagged level jump; after the whistle's two E1s at A the window was texture only): THE SEED IS ANSWERED - after a cycle's rest the whistle's two E1s are answered by E1 upside down (the inversion, D G E A C: the seed's mirror), twice: 'harp' on the ks-harp that plays the inversion after the crest (so the mirror is heard early, a call and its answer), 'whistle' by the whistle itself
 HUMSEED = os.environ.get("C9T1_HUMSEED", "open")   # SECTION w1 (0:00-0:36, the album's first seconds: flagged static): THE CHOIR HUMS THE SEED - the voice accretes from a breath in t1 to full lines in t8; before it has a mouth it hums: the far choir hums E1 four times slower (D A C G E over 16 beats, from beat 24) with closed lips (wM's hum, pin e3da830a), under the seeds' first notes. 'hum': hummed throughout; 'open': the last note (E) opens into 'ah', the mouth opening for the first time (value[@gaindB])
 HUMSIGH = os.environ.get("C9T1_HUMSIGH", "sigh,reprise")   # WHOLE (wM's hum): THE BREATHS BEGIN AS HUMS - since v35 the far choir hums before it ever opens its mouth (w1); now every breath it takes at a threshold (before A, before the build, the crest, the fall) begins as a hum on the same note, two beats with closed lips, and opens into the 'haa': mm-haa, a sigh. 'sigh'; 'sigh,reprise': and after the fall's breath the choir hums the slow E1 once more, lips closed, as t1 hands over (the hum that opened the album closes t1)
+KICKP = os.environ.get("C9T1_KICKP", "bodhran:b@-10")   # PALETTE: the lock's pulse (every two beats from the crest) leaves the 808 (the inner disk's drum: t5 and t6 are built on 808s and 909s) for a hand drum ('patch:piece[@gaindB]'): 'bodhran:b' (the frame drum's deep boom with its pitch drop) or 'cajon:cb' (the box's centre hit): the outer disk's pulse played by hand
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -391,6 +392,10 @@ def kick():
     while t < ST["outro"] + 4 * BAR:
         ns.append(note(t, "D1", 1, 0.8 if (t - TC) % (5 * BAR) == 0 else 0.6))
         t += 2
+    if KICKP:
+        kp, _, kg = KICKP.partition("@")
+        kpatch, _, piece = kp.partition(":")
+        return {"name": "kick", "patch": kpatch, "gain": f"{kg or -13}dB", "pan": 0.0, "notes": [dict(n, pitch=piece) for n in ns]}
     return {"name": "kick", "patch": "808-long", "gain": "-13dB", "pan": 0.0, "notes": ns}
 
 
