@@ -66,6 +66,7 @@ CRESTCHOIR = os.environ.get("C9T5_CRESTCHOIR", "accrete")   # SECTION w6 (2:47-3
 VOXREG = os.environ.get("C9T5_VOXREG", "A4")   # PALETTE (register pinned, 0c5d29c5): SHE LIGHTENS AT THE TOP - the close singer sang every note in chest voice, so the 'near-er' climb to D5 and the E5 peaks of the line pushed like the low notes. Now her voice has a break (passaggio, a pitch): above it a rising line turns to head voice over four semitones, rounder and airier, the way a young singer's voice flips. The harmony parts flip on their own pitch
 PHRASES = os.environ.get("C9T5_PHRASES", "fill,hats,loud")   # WHOLE (Harry 23:55: 'lots of contiguous music with very little change' - subtle variation every 8-16 bars, not schizo): THE GROOVE SPEAKS IN PHRASES - A, the build and C are cut into 8-bar phrases. 'fill': the last beat of each phrase is a quiet 909 snare run (two beats and a soft crash after, at a section's end); 'hats': every other phrase the hats thin to eighths and the next comes back in sixteenths; 'orbit': the orbit (E5) takes a breath, resting the last bar of every 16
 WARMTH = os.environ.get("C9T5_WARMTH", "top:-6,sub:-14")   # WHOLE: CLOSER MEANS WARMER - t5 was the album's brightest track by far (10-15 kHz +14..+17 dB against both neighbours' bodies, the worst bands at both seams) and had no sub under A (44 Hz -20 against t4). 'top:dB' puts a high shelf at 9 kHz on the drum machine (hats, ride) so the sizzle stops; 'sub:dB' doubles A's CZ bass with a sine sub an octave-true underneath, so the floor is felt from A (the 808 still arrives at the build)
+TURN = os.environ.get("C9T5_TURN", "close,lift")   # WHOLE (Harry 23:55: subtle variation every 8-16 bars; eco: 'a re-voiced chord, a register shift'): THE LIGHTS TURN - the CZ pad played E4's four chords in one close voicing for the whole song; now each pass of the cycle (10 bars) it turns to the next voicing in the list: 'close' (as before), 'drop' (the third leaves the bottom and sings on top), 'lift' (the root stays, everything above rises an octave: open and airy). Same chords, same key; the crest's pass is 'close', home
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -226,12 +227,26 @@ def lights():
     for i, t in enumerate((0.0, 4 * BAR * 2)):
         for p in E4[0 if SEAMHEAD else i % 2][1:]:
             ns.append(note(t, p, 8 * BAR, 0.55))
+    names = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
+    def midi(p):
+        return 12 * (int(p[-1]) + 1) + names[p[0]] + (1 if "#" in p else -1 if "b" in p[1:-1] else 0)
+    def voicing(ch, k):
+        if not TURN:
+            return ch[1:]
+        kind = TURN.split(",")[k % len(TURN.split(","))]
+        ms = [midi(p) for p in ch[1:]]
+        if kind == "drop":
+            ms = [ms[0]] + ms[2:] + [ms[1] + 12]
+        elif kind == "lift":
+            ms = [ms[0]] + [x + 12 for x in ms[1:]]
+        return [f"m{x}" for x in ms]
     for c in cyc(ST["A"], TOTAL - 4 * BAR, 4 * E4_LEN):
+        k = int(round((c - TC) / (4 * E4_LEN)))
         for i, ch in enumerate(E4):
             t = c + i * E4_LEN
             if t >= TOTAL - 4 * BAR:
                 break
-            for p in ch[1:]:
+            for p in voicing(ch, k):
                 ns.append(note(t, p, E4_LEN - 0.25, 0.6 if t < TC else 0.7))
     return {"name": "lights", "patch": "cz-pad", "gain": "-16dB", "pan": 0.0,
             "fx": [{"type": "chorus", "rate": 0.4, "depth": 0.25, "mix": 0.3},
