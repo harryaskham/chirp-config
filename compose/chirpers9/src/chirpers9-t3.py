@@ -366,6 +366,14 @@ R44 = os.environ.get("T3_R44", "wall") != "none"
 # last E held into the singer's entry). The hook in a human, slightly wobbly voice, heard plainly at last before the
 # storm hands over to t4. T3_R45=none reproduces v44.
 R45 = os.environ.get("T3_R45", "melodica") != "none"
+# round 46 (section, w8 = bars 85-96 - "little new vs w7"; the lock): T3_R46=lock (default) - THE LOCK, HEARD. The
+# whole song is built so that E1, E2 and E3 - cycles of 12, 7 and 28 sixteenths - meet on one downbeat at bar 89, and
+# the storm locks into a groove there. But at the lock only E3 (the undertow, the loudest thing) could be heard:
+# E1's farfisa sat at -16 dB and the ring at -20, E2's gangsa at -17, all masked. Now for the lock's eight bars the
+# three cycles step forward together so you hear them interlock: E1's farfisa +8 dB (the ring +4), E2's gangsa +6
+# and its chip +4, the undertow 3 dB back - in full for bars 89-90 and 93-94, half under the singer's two phrases
+# (91, 95), back to before at 97. Only levels move; the notes were always there. T3_R46=none reproduces v45.
+R46 = os.environ.get("T3_R46", "lock") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1437,6 +1445,15 @@ def main():
                 pt["extends"] = pt["extends"] + " synth.lfo.vib.per_note=true"
             elif k == "a3-back":
                 pt["extends"] = pt["extends"] + " synth.lfo.vib.per_note=true play.scoop=0.5 play.fall=1"
+    if R46:                                                 # w8: the lock, heard (bars 89-96)
+        lock = [["0b", 0.0], ["351.75b", 0.0], ["352b", 8.0], ["359.75b", 8.0], ["360b", 4.0], ["367.75b", 4.0],
+                ["368b", 8.0], ["375.75b", 8.0], ["376b", 4.0], ["383.75b", 4.0], ["384b", 0.0]]
+        amt = {"e1f": 1.0, "e1": 0.5, "e2g": 0.75, "e2s": 0.75, "e2": 0.5, "bass": -0.375}
+        for tr in tracks:
+            if tr.get("name") in amt:
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB", "mod": [
+                    {"src": "auto.lock", "amount": amt[tr["name"]]}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), lock={"points": lock})
     if R43:                                                 # the hum is a hum: closed mouth at bar 25, open at 33
         for tr in list(tracks):
             if tr.get("name") == "hum" and tr.get("notes"):
