@@ -566,6 +566,18 @@ def build():
             vsnotes.append(dict(n_, at=round(b_ + n_['at'] - 0.25, 4)))
         for n_ in V2['tracks'][0]['notes']:
             vsnotes.append(dict(n_, at=round(b_ + 4.0 + n_['at'] - 0.25, 4)))
+    # (v36, whole song) THE SECOND VERSE: the song had one verse and then only its chorus. Now, as the drums come back
+    # at half speed after the break (bars 81-85), the same near voice sings a SECOND verse on the first's tune (D A F,
+    # F A F C D D) with the next thought - 'all that turns / turns a little faster' (Kepler, what the pre-chorus
+    # promised: the nearer, the faster) - twice, the second time as the drift's own groove arrives; then the last
+    # chorus. The form is now verse -> pre-chorus -> chorus -> break -> verse -> chorus -> fall
+    V3 = json.load(open(os.path.join(HERE, 'chirpers9-t2-verse3.json')))
+    V4 = json.load(open(os.path.join(HERE, 'chirpers9-t2-verse4.json')))
+    for b_, g_ in ((322.0, 0.95), (336.0, 1.0)):
+        for n_ in V3['tracks'][0]['notes']:
+            vsnotes.append(dict(n_, at=round(b_ + n_['at'] - 0.245, 4), vel=round(n_['vel'] * g_, 3)))
+        for n_ in V4['tracks'][0]['notes']:
+            vsnotes.append(dict(n_, at=round(b_ + 4.0 + n_['at'] - 0.245, 4), vel=round(n_['vel'] * g_, 3)))
     dsnotes = []
     dsnotes2 = []
     for k_, b_ in enumerate((346.0, 356.0, 366.0, 376.0)):
