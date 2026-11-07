@@ -15,6 +15,7 @@ Writes songs/chirpers9-t3.yaml (or T3_OUT). Original music.
 """
 import json
 import math
+import re
 import os
 import random
 
@@ -382,6 +383,13 @@ R46 = os.environ.get("T3_R46", "lock") != "none"
 # wall slams back at 67. Complexity in time, not pitch: no note moves. The ramp still reaches 108 for t4's seam.
 # T3_R47=none reproduces v46.
 R47 = os.environ.get("T3_R47", "still") != "none"
+# round 48 (palette): T3_R48=sub (default) - THE UNDERTOW GETS A BODY. compscore --bands: t3 is 7-13 dB short of the
+# album from 38 to 97 Hz and 5-8 dB over it from 547 to 1404 Hz - the storm's floor is E3's undertow on the grit
+# bass, the loudest thing in the song, and its grit is all mids. Now a pure sine (the library sub-sine; no other
+# track has it) plays the undertow note for note an octave below - Bb0 to D2, the 29-73 Hz octave the song was
+# missing (at the grit's own pitch it cancelled the grit's fundamental: 50-100 Hz did not move) - with its breaths
+# (held roots) and lifts, and steps out from bar 113 so the fall into t4 and the seam stay as they were. T3_R48=none reproduces v47.
+R48 = os.environ.get("T3_R48", "sub") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1460,6 +1468,21 @@ def main():
                 pt["extends"] = pt["extends"] + " synth.lfo.vib.per_note=true"
             elif k == "a3-back":
                 pt["extends"] = pt["extends"] + " synth.lfo.vib.per_note=true play.scoop=0.5 play.fall=1"
+    if R48:                                                 # palette: the undertow gets a body (a sine an octave under)
+        for tr in list(tracks):
+            if tr.get("name") == "bass" and tr.get("score"):
+                pos, toks = 0.0, []
+                for tok in tr["score"].split():
+                    m = re.match(r"^(.+?)/([0-9.e+-]+)b(.*)$", tok)
+                    head, ln, rest = m.group(1), float(m.group(2)), m.group(3)
+                    if head != "R":
+                        head = ",".join(f"m{float(h[1:]) - 12:g}" if h.startswith("m") else h for h in head.split(","))
+                        if pos >= 448 - 1e-6:
+                            rest = re.sub(r"@\d+", "@1", rest, count=1)
+                    toks.append(f"{head}/{m.group(2)}b{rest}")
+                    pos += ln
+                tracks.append({"name": "bsub", "patch": "sub-sine", "gain": "-2dB", "pan": 0.0, "score": " ".join(toks)})
+                break
     if R46:                                                 # w8: the lock, heard (bars 89-96)
         lock = [["0b", 0.0], ["351.75b", 0.0], ["352b", 8.0], ["359.75b", 8.0], ["360b", 4.0], ["367.75b", 4.0],
                 ["368b", 8.0], ["375.75b", 8.0], ["376b", 4.0], ["383.75b", 4.0], ["384b", 0.0]]
