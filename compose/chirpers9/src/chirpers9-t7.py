@@ -369,6 +369,13 @@ R35 = os.environ.get("T7_R35", "koto") != "none"
 # and 149-152 - so those still open up. (Draft without the lane: s0 99.167 but a new 32 s flat run 0:48-1:20 - the
 # log drum filled the approach's drop-out.) T7_R36=none reproduces v35.
 R36 = os.environ.get("T7_R36", "log") != "none"
+# round 37 (section, w3 = bars 33-48 - the approach's second half, flagged static): T7_R37=echo (default) - SHE HUMS
+# THE ANSWER BACK. In the approach the singer has one bar ("every corner", bars 33 and 41), the horns answer
+# (35, 43), and then the groove runs alone for two bars each time. Now she hums the horns' answer back on "oo"
+# two bars later (Ab4 Bb4 Db5 Bb4 Ab4 F4 Eb4, bars 37-38), softly, behind a longer echo; and the second time it floats
+# over the lift (bars 45-46, the drums out). Call, answer, echo: the voice grows without giving away the words
+# (the line completes only at the crest). T7_R37=none reproduces v36.
+R37 = os.environ.get("T7_R37", "echo") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1270,6 +1277,16 @@ def main():
                 tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + 3.0:g}dB"
             if tr.get("patch") == "a7-choir2":
                 tr["gain"] = f"{float(str(tr.get('gain', '0dB')).replace('dB', '')) + 1.0:g}dB"
+    if R37 and "a7-sung" in patches:                        # w3: she hums the horns' answer back
+        echo = []
+        for b0 in (144.0, 176.0):
+            at = b0
+            for k, (m, ln) in enumerate(((68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0))):
+                echo.append({"at": at, "len": round(ln * (0.96 if k < 6 else 0.9), 3), "ph": "UW1" if k else "M UW1",
+                             "pitch": f"m{m}", "vel": round(0.62 + (0.06 if k == 2 else 0.0) - (0.04 if b0 == 144.0 else 0.0), 3)})
+                at += ln
+        tracks.append({"name": "echo", "patch": "a7-sung", "gain": "-4dB", "pan": 0.15,
+                       "fx": ["delay time=3/8 mix=0.2 feedback=0.35"], "sends": {"space": "-4dB"}, "notes": echo})
     if R36:                                                 # the low E1 on a log drum (scanned-mallet -> log-drum)
         for tr in tracks:
             if tr.get("name") in ("e1c", "e1cw") and tr.get("patch") == "scanned-mallet":
