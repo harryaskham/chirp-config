@@ -21,6 +21,11 @@ loop: per-phrase hat thinning and octave shifts register, a one-bar kick drop-ou
 within-block-spread features and 4 s blocks did not fix that without destabilising the album comparison). So don't
 chase the number with chord changes (tone is home): brief fills and drop-outs are real variation the ear hears even
 when this misses them. Use it to find the long ruts and to see a phrase-level move landed; let the ear judge the rest.
+Composers' findings, 7 Nov: the measure is dominated by the LOUDEST, LOWEST layer (chroma is power-weighted and the
+bass carries the level). Moves above a steady bass - hats to eighths, arps up an octave, all drums out, a clarinet
+counter-line at -7 to -12 dB - barely register (chirper-two t3, chirper-three t4); re-orchestrating the loudest element
+or moving the floor does. So a quiet counter-line can be exactly the subtle variation Harry asked for and still read flat
+here. And a floor drop-out that never returns reads as a new section to compscore's recurrence (t3: 91.8 -> ~50).
 """
 import argparse
 import json
