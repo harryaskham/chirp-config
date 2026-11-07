@@ -795,6 +795,13 @@ def build():
     # cross falling back, then the surge and the tearing hotter still, and the out-seam settling for t7
     EN = {'in': (-3.0, -2.0), 'pull': (-2.0, -1.0), 'tide': (-3.5, -2.5), 'squeeze': (-2.0, 0.5), 'crest': (1.5, 1.5),
           'cross': (-1.5, -0.5), 'surge': (-0.5, 1.0), 'torn': (1.0, 2.0), 'out': (0.0, -2.0)}
+    # (v46, whole song: compscore's variety read the song's level range at 4.8 dB - the tide breathed, but shallowly)
+    # A SPRING TIDE'S RANGE: a spring tide is the one with the greatest range, the lowest lows and the highest highs;
+    # now the song's own tide does too - the tide section and the cross ebb much further (the tide down to -8 dB,
+    # the cross falling back to -5.5), the in-seam and the pull sit lower, and the squeeze climbs from far down into
+    # the crest; the surge starts low in its low gear and the tear runs hottest (halfway, -6/-4, scored +0.24/-0.22)
+    EN = {'in': (-5.0, -4.0), 'pull': (-4.5, -3.5), 'tide': (-8.0, -6.0), 'squeeze': (-6.0, 0.5), 'crest': (1.5, 1.5),
+          'cross': (-5.5, -3.0), 'surge': (-3.5, 1.5), 'torn': (1.0, 2.0), 'out': (0.0, -2.0)}
     energy_pts = []
     for b_ in range(NBARS):
         s_, i_ = sec_of(b_)
