@@ -64,6 +64,7 @@ CATCHUP = os.environ.get("C9T1_CATCHUP", "288:320")   # SECTION (w7, 3:19-3:51, 
 SEEDUP = os.environ.get("C9T1_SEEDUP", "")   # WHOLE ROUND: THE SEED IN FRONT - the five voices that carry E1 (t1's subject, and the album's hook) sat 12-22 dB under their own bed after the crest; they come up across the song (dB, e.g. '4') and the triangle bass, the loudest part, steps back 3 dB
 BREATH = os.environ.get("C9T1_BREATH", "-13")   # WHOLE ROUND (the voice is pinned: voice-legato, with a real inhale): THE FIRST BREATH - the whispered 'ah' becomes a breath taken and a sung 'ah' on E1's first two notes, D rising to A, joined in one breath, a beat before the crest (and a faint D in the fall): the album's voice is born on the seed ('sung')
 BREATHP = os.environ.get("C9T1_BREATHP", "voice-backing")   # PALETTE (voice batch 2 pinned): the breath's voice - voice-legato becomes 'voice-backing' (soft, breathy, three singers under the band: the seed's first breath as a far little choir) or 'voice-near' (close, young, breathy)
+SEEDGP = os.environ.get("C9T1_SEEDGP", "mandolin")   # PALETTE: the seed's G (the fourth scattered voice, on the 6-beat cycle) leaves the glass pad, whose slow swell smeared a single repeated note into a wash, for a voice with an attack ('patch' or 'patch@gaindB'): 'kuramoto-flies' (a swarm of triangles pulling into phase, the convergence in miniature) or 'mandolin'
 SEEDEP = os.environ.get("C9T1_SEEDEP", "music-box")   # PALETTE: the seed's E (its loudest scattered voice, on the 5-beat cycle) leaves the Game Boy wave pad, which also plays t1's pad, for a plucked voice of its own: 'koto' (bright, twangy, in tune) or 'music-box'; value 'patch' or 'patch@gaindB'
 DECAY = os.environ.get("C9T1_DECAY", "0.3")   # WHOLE ROUND: THE ARC SETTLES - t1 is the calm one with one small crest, but after the crest it held its peak level through the whole lock and only fell at the outro (the body before the t1 -> t2 seam sat ~8 dB over t2's). Now, from four bars after the crest, everything eases down by DECAY (a velocity fraction) across the lock, and the fall carries on from there: the seed forms, rings, and settles into t2
 DEEP = os.environ.get("C9T1_DEEP", "partial@-18")   # WHOLE ROUND: THE DEEP - t1 had no sub: its lowest band (38 Hz) sat 10 dB under the album's and 30 dB under t2's after the crossfade. A D pedal at D1 (37 Hz, the seed's home) now sounds under everything from A to the end, a pure sine swelling with the arc (growing into the crest, settling with the lock); value 'patch' or 'patch@gaindB'
@@ -104,6 +105,9 @@ def fragments():
     """Each voice repeats its note on its own period, phased to land on TC + its offset in the cell."""
     tracks = []
     for i, (name, patch, pan, per, entry, gain) in enumerate(FRAG):
+        if SEEDGP and name == "seed-g":
+            patch, _, g2 = SEEDGP.partition("@")
+            gain = f"{g2}dB" if g2 else gain
         if SEEDEP and name == "seed-e":
             patch, _, g2 = SEEDEP.partition("@")
             gain = f"{g2}dB" if g2 else gain
