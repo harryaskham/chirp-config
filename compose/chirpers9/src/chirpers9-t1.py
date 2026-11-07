@@ -96,6 +96,7 @@ KICKP = os.environ.get("C9T1_KICKP", "bodhran:b@-10")   # PALETTE: the lock's pu
 BREATHDROP = os.environ.get("C9T1_BREATHDROP", "floor,seeds")   # SECTION w4 (1:48-2:22, A's last phrase into the build: 'little new vs w3'): THE FLOOR DROPS FOR THE BREATH - the two bars before the build (184-192) lose the shaker and the walking bass ('floor'), and with 'seeds' the five scattered voices too, so the choir's mm-haa before the build is heard over the pad and the cello alone; everything comes back on the build's downbeat. t5 makes the same move before its build, where its singer quotes this breath (t5 v36)
 MIRRORTURN = os.environ.get("C9T1_MIRRORTURN", "turns")   # SECTION w7 (3:27-3:59, the lock before the exhale: flagged static): THE MIRROR ANSWERS - after the crest the glock plays E1 an octave up and the ks-harp plays it upside down, together, every cycle; in the lock's last eight bars (288-320) ('turns') they take turns, a statement each: the glock, then the harp's inversion answering, then the glock (a half-cycle 'hocket' was tried: the harp already sits three beats behind, so it collided)
 SPARKLE = os.environ.get("C9T1_SPARKLE", "5")   # WHOLE (the spectrum's worst band was 7.9 kHz, -8.5: t1 was dull up top): THE DUST CATCHES THE LIGHT - a high shelf (+dB above 6 kHz) on the five scattered voices, the glock cell and the shaker: the seed's grains glint (v40: 5; tried with it, rejected: the ks-harp's inversion up an octave, around D4 - spectrum -1.4, the low harp is load-bearing)
+PADBACK = os.environ.get("C9T1_PADBACK", "pad:6,warmth:3")   # WHOLE (t5 v45 found its chords 4 dB too loud; t1's worst band was 213 Hz +8, the pad's and the organ's A3): THE PAD STEPS BACK - 'pad:dB[,warmth:dB]' trims the Game Boy wave pad (and the Hammond warmth) so the seed's grains and the far choir stand in front of the chords
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -512,6 +513,12 @@ def song():
         ns = [note(a0 + c * E1_CYC + o, f"m{mm}", ln, 0.5 if c == 0 else 0.45)
               for c in range(2) for o, ln, mm in zip(E1_OFF, E1_LEN, mids)]
         tracks.append({"name": "answer", "patch": patch, "gain": gain, "pan": pan, "sends": {"space": "-9dB"}, "notes": ns})
+    if PADBACK:
+        trims = dict((k, float(v)) for k, v in (x.split(":") for x in PADBACK.split(",")))
+        for tr in tracks:
+            if tr["name"] in trims:
+                g = float(str(tr.get("gain", "0dB")).replace("dB", ""))
+                tr["gain"] = f"{g - trims[tr['name']]:g}dB"
     if SPARKLE:
         for tr in tracks:
             if tr["name"] in ("seed-d", "seed-a", "seed-c", "seed-g", "seed-e", "cell", "hats"):
