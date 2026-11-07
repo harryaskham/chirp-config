@@ -829,16 +829,30 @@ def build():
             # words ('time', 'go', 'in') bloom and the quick ones stop wobbling
             {'name': 'chorus', 'patch': dict(dict(CHO['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=E:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': cnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
-            {'name': 'surgesung', 'patch': dict(dict(SG['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[-7] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+            # (v39) and the surge's choir gets REAL BASSES: its octave below was the same five singers transposed down
+            # (small people singing low, harmony [-7]); now the low octave is its own choir with a larger tract (wM:
+            # tract 1.25 scales every formant down - big men), a dB under the upper choir
+            {'name': 'surgesung', 'patch': dict(dict(SG['tracks'][0]['patch'], extends='voice-choir synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': sgnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
+            {'name': 'surgelow', 'patch': dict(dict(SG['tracks'][0]['patch'], extends='voice-choir synth.layers.0.tract=1.25 synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.04, 'scoop': 1}),
+             'notes': [dict(n_, pitch=f"m{int(str(n_['pitch'])[1:]) - 12}") for n_ in sgnotes], 'gain': '-10dB', 'pan': 0.0, 'sends': {'hall': '-10dB'}},
             {'name': 'chorus2', 'patch': dict(dict(CHD['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': c2notes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
             # (v18) wM's singer's glide (glide_overshoot, pinned 14:27) on every sung line: on each leap the old voice and
             # the choir swing a little past the note and settle, as singers do, instead of landing dead on it (0.06: subtle)
             {'name': 'lastword', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-old synth.layers.0.age=0.8 synth.lfo.vib.per_note=true', play={'glide_overshoot': 0.06, 'scoop': 1.5, 'fall': 2.5}),
              'notes': lastnotes, 'gain': '-7dB', 'pan': 0.0, 'sends': {'hall': '-10dB', 'echo': '-20dB'}},
-            {'name': 'sung', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-old synth.lfo.vib.per_note=true', play={'glide_overshoot': 0.06, 'scoop': 1.5, 'fall': 2.5}),
-             'notes': sorted(snotes, key=lambda n_: n_['at']), 'gain': '-7dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
+            # (v39, whole song) THE OLD MAN AGES WITH THE TIDE: wM's age (pinned 08:39), as a story across the song -
+            # his answers in the in-seam and his half of the tide's duet with only a grain of it (0.25), his line
+            # alone in the squeeze's clearing and the cross's duet worn (0.45: the tremor starts to show), the tear
+            # and the last chorus old (0.65), and the last word in the out-seam oldest of all (0.8, since v38): by the
+            # time he sings 'the far side lets it go' for the last time, he has let it go
+            {'name': 'sung', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-old synth.layers.0.age=0.25 synth.lfo.vib.per_note=true', play={'glide_overshoot': 0.06, 'scoop': 1.5, 'fall': 2.5}),
+             'notes': sorted([n_ for n_ in snotes if n_['at'] < SEC['squeeze'] * 4.0 - 1.0], key=lambda n_: n_['at']), 'gain': '-7dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
+            {'name': 'sungb', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-old synth.layers.0.age=0.45 synth.lfo.vib.per_note=true', play={'glide_overshoot': 0.06, 'scoop': 1.5, 'fall': 2.5}),
+             'notes': sorted([n_ for n_ in snotes if SEC['squeeze'] * 4.0 - 1.0 <= n_['at'] < SEC['torn'] * 4.0 - 1.0], key=lambda n_: n_['at']), 'gain': '-7dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
+            {'name': 'sungc', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-old synth.layers.0.age=0.65 synth.lfo.vib.per_note=true', play={'glide_overshoot': 0.06, 'scoop': 1.5, 'fall': 2.5}),
+             'notes': sorted([n_ for n_ in snotes if n_['at'] >= SEC['torn'] * 4.0 - 1.0], key=lambda n_: n_['at']), 'gain': '-7dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
             # (v14) the second pass's company now sings a THIRD below in D Mixolydian (harmony_key), not a fixed fourth
             {'name': 'sung2', 'patch': dict(dict(SU['tracks'][0]['patch'], extends='voice-old synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1.5, 'fall': 2.5}),
              'notes': snotes2, 'gain': '-8dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
