@@ -67,6 +67,24 @@ def line(events, total):
 def m(n): return f"m{n:.3f}"
 
 
+def swung(score, at0, at1, amt):
+    # (v44) put a 16th shuffle on a score between two beats: split the token that crosses each boundary (a rest) and
+    # put the engine's swing16= directive there
+    out, t, done_ = [], 0.0, set()
+    for tk in score.split(' '):
+        base, _, rest_ = tk.partition('/')
+        dur = float(rest_.split('b')[0])
+        for mark, tok in ((at0, f"swing16={amt}"), (at1, "swing16=0.5")):
+            if mark in done_:
+                continue
+            if t < mark - 1e-6 < t + dur - 1e-6 and base == 'R':
+                out.append(f"R/{mark - t:.4f}b"); out.append(tok); dur -= mark - t; t = mark; tk = f"R/{dur:.4f}b"; done_.add(mark)
+            elif t >= mark - 1e-6:
+                out.append(tok); done_.add(mark)
+        out.append(tk); t += dur
+    return ' '.join(out)
+
+
 def sec_of(bar):
     for nm_, n_ in FORM:
         if SEC[nm_] <= bar < SEC[nm_] + n_:
@@ -653,7 +671,13 @@ def build():
         P[key_] = [(a_, f"{p_}^px={spiral(a_, sc_):.2f}", d_, v_) for a_, p_, d_, v_ in P[key_]]
     PXF = {'type': 'pan', 'pan': {'value': 0, 'mod': [{'src': 'expr.px', 'amount': 1}]}}
 
-    tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
+    # (v44, whole song: t2 played dead straight from first bar to last - a machine's grid under a sung song) THE INFALL
+    # SHUFFLES: once t1's tail has gone (bar 17) and until the fall (bar 97), the groove's parts - both drummers, the
+    # lofi hats, the triangle bass, the cutting guitar and E2's log drum and chip debris - play a 16th shuffle (the
+    # engine's swing16, never used on the album): every off-beat sixteenth lands late, the lazy lean of a lofi/IDM
+    # drummer; the seams, the voices and the pads stay straight
+    SWUNG = ('kit', 'kitb', 'hat3', 'bass', 'gtr', 'e2body', 'e2m')
+    tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': swung(line(P[name], total), SEC['gather'] * 4.0, fall0, 0.62) if name in SWUNG else line(P[name], total)}, **kw)
     PAD = {'extends': 'kuramoto-choir',
            'synth': {'layers': [{'type': 'kuramoto', 'kuramoto': {'count': 10, 'spread': 12, 'wave': 'saw',
                                  'coupling': {'value': 0.0, 'mod': [{'src': 'auto.lock', 'amount': 1.0}]}}}]}}
