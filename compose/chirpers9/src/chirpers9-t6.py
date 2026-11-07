@@ -615,6 +615,32 @@ def build():
         t_ += 4.5
     P['e5b'].sort(key=lambda e_: e_[0])
 
+    # (v31, whole song) THE BASS STARTS TO WALK: under every section the analog bass held each chord's root for the
+    # chord's length - and eco measured what the ear hears too: moves above a steady bass barely register. Now the
+    # floor itself moves as the song heats up: through the in-seam, the pull, the tide and the squeeze it still holds
+    # (the tide's long breaths); in the cross it plays E2's cell on the roots - root, fifth, octave, root on the
+    # seven-sixteenth grid, so the bass syncopates against the bar with the kit; in the surge it drives straight
+    # eighths, root and octave, under the canon's convergence; the tear and the out-seam hold again. (The cross's
+    # four-bar drop-out keeps its silence)
+    cr0_, su1_ = SEC['cross'] * 4.0, (SEC['surge'] + 16) * 4.0
+    P['root'] = [e_ for e_ in P['root'] if not (cr0_ - 1e-6 <= e_[0] < su1_ - 1e-6)]
+    P['root'] = [(e_[0], e_[1], min(e_[2], cr0_ - e_[0]), *e_[3:]) if e_[0] < cr0_ < e_[0] + e_[2] else e_ for e_ in P['root']]
+    t_ = cr0_ + 16.0
+    while t_ < SEC['surge'] * 4.0 - 1e-6:
+        for st_, iv_, v_ in ((0, 0, 100), (2, 7, 80), (3, 12, 88), (5, 0, 76)):
+            at_ = t_ + st_ * 0.25
+            if at_ < SEC['surge'] * 4.0 - 1e-6:
+                rr_ = tide_root(at_)
+                P['root'].append((at_, m(KEY + rr_ + iv_), 0.22 if st_ != 0 else 0.4, v_))
+        t_ += 1.75
+    t_ = SEC['surge'] * 4.0
+    while t_ < su1_ - 1e-6:
+        rr_ = tide_root(t_)
+        k_ = int(round((t_ - SEC['surge'] * 4.0) * 2))
+        P['root'].append((t_, m(KEY + rr_ + (12 if k_ % 2 else 0)), 0.4, 96 if k_ % 4 == 0 else 78))
+        t_ += 0.5
+    P['root'].sort(key=lambda e_: e_[0])
+
     # (v30, whole song) THE DRUMMER BREATHES AT THE PHRASE ENDS: Harry, 6 Nov 23:55 ('subtle variation so it doesnt get
     # boring'); eco: the bar-level moves - a fill, a one-bar drop-out, a turnaround - are what he means, heard even
     # where flatness.py can't see them. The last bar of every eight in the pull, the tide, the cross and the surge now
