@@ -214,8 +214,11 @@ def hums():
             for i, (n, on, ln) in enumerate(E1):
                 last = i == len(E1) - 1
                 fuller = beat >= ANSWER_FROM - 1e-6                        # v26: alone over the lights, a little fuller
-                out.append({"at": round(beat + on, 4), "len": ln + (0.75 if last else 0.0), "ph": "UW1",
-                            "pitch": f"m{midi_of(n)}", "vel": (0.6 if on else 0.66) if fuller else (0.5 if on else 0.56)})
+                d = {"at": round(beat + on, 4), "len": ln + (0.75 if last else 0.0), "ph": "UW1",
+                     "pitch": f"m{midi_of(n)}", "vel": (0.6 if on else 0.66) if fuller else (0.5 if on else 0.56)}
+                if sec_of(bar) == "B":                                     # v41: B's hums with the mouth closed
+                    d.update(vel=B_HUM_VEL[1 if on else 0], expr={"hum": B_HUM})
+                out.append(d)
         beat += E1_CYCLE
     # v17 (ROUND TYPE: section, the fall 121-136, ~34 s; rewritten): WHAT FALLS IS KEPT. The t4 -> t5 seam sagged
     # 12.7 dB (t4's tail began at -12.3 dB, t5's head sits near -23, and the residue SWELLED as the orbit closed): now
@@ -599,6 +602,16 @@ VOICE = {"about": "t4's voice: a warm, close, human singer - slightly larger tra
 # apart - a warm, weathered lead and a lighter, cleaner second. A different voice from t8's bright choir and its
 # young solo.
 VOICE["synth"]["layers"][0]["age"] = 0.45
+# v41 (ROUND TYPE: section, B's hums 45-56, ~27 s; rewritten - wM's closed-mouth HUM, pinned e3da830a): HUMMED, AND
+# ANSWERED. Through B she hums the hook on the even cycles and her duet answers a third above on the odd ones - both
+# on an open 'oo', the air over them. Now she hums with her MOUTH CLOSED (hum 0.8, at m: the nasal murmur near 270 Hz,
+# no air), and the duet answers OPEN: closed and open trading every cycle, a call and its reply. Bound per note, so
+# her sung words elsewhere stay open (and hum1 and the relief's hums, whose air the t5 seam wants, are untouched).
+# High hums run ~7 dB quieter (wM), so hers come up (0.5/0.56 -> B_HUM_VEL).
+VOICE["synth"]["layers"][0].update({"hum": "expr.hum", "hum_at": "m"})
+B_HUM_VEL = (0.95, 0.9)                           # (the first note of each cycle, the rest)
+B_HUM = 0.8                                       # not quite sealed: fully closed (1.0) took B's air with it - t4's
+                                                  # 14.8 kHz band, already short of the album, fell 0.5 dB (-0.045)
 VOICE2 = {"about": "t4's second singer (v7): lighter and a little brighter, a third above in the duet; joined (v10)",
           "play": {"mono": True, "glide": "90ms", "glide_smooth": True, "scoop": 1.0, "fall": 1.5,
                    "glide_overshoot": 0.05},
@@ -778,7 +791,8 @@ def arc(song):
 # them); 69-72 E2's harp steps forward for those four bars only; 73-76 the LIGHTS GO OUT - the chords stop, and E3's
 # pedal-steel line and its octave double play alone over kick, sub and the swelling air; 77-80 the lights return at
 # full under the build, and the crest lands on all of it.
-LEADS = {"e2": [(69, 72, 7.0)], "e3": [(73, 76, 8.0)], "e3hi": [(73, 76, 8.0)]}
+LEADS = {"e2": [(69, 72, 7.0)], "e3": [(73, 76, 8.0)], "e3hi": [(73, 76, 8.0)],
+         "duet": [(49, 56, 7.0)]}                         # v41: the duet's open reply to her closed hum, heard
 LIGHTS_OUT = (73, 76)
 
 

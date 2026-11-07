@@ -619,7 +619,9 @@
        "join": true,
        "inhale": 0.4,
        "even": 1.0,
-       "age": 0.45
+       "age": 0.45,
+       "hum": "expr.hum",
+       "hum_at": "m"
       }
      ],
      "lfo": {
@@ -665,280 +667,400 @@
      "len": 0.5,
      "ph": "UW1",
      "pitch": "m62",
-     "vel": 0.56
+     "vel": 0.95,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 180.5,
      "len": 0.75,
      "ph": "UW1",
      "pitch": "m69",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 181.25,
      "len": 0.25,
      "ph": "UW1",
      "pitch": "m72",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 181.5,
      "len": 1.0,
      "ph": "UW1",
      "pitch": "m67",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 182.5,
      "len": 1.75,
      "ph": "UW1",
      "pitch": "m64",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 190.0,
      "len": 0.5,
      "ph": "UW1",
      "pitch": "m62",
-     "vel": 0.56
+     "vel": 0.95,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 190.5,
      "len": 0.75,
      "ph": "UW1",
      "pitch": "m69",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 191.25,
      "len": 0.25,
      "ph": "UW1",
      "pitch": "m72",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 191.5,
      "len": 1.0,
      "ph": "UW1",
      "pitch": "m67",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 192.5,
      "len": 1.75,
      "ph": "UW1",
      "pitch": "m64",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 200.0,
      "len": 0.5,
      "ph": "UW1",
      "pitch": "m62",
-     "vel": 0.56
+     "vel": 0.95,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 200.5,
      "len": 0.75,
      "ph": "UW1",
      "pitch": "m69",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 201.25,
      "len": 0.25,
      "ph": "UW1",
      "pitch": "m72",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 201.5,
      "len": 1.0,
      "ph": "UW1",
      "pitch": "m67",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 202.5,
      "len": 1.75,
      "ph": "UW1",
      "pitch": "m64",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 210.0,
      "len": 0.5,
      "ph": "UW1",
      "pitch": "m62",
-     "vel": 0.56
+     "vel": 0.95,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 210.5,
      "len": 0.75,
      "ph": "UW1",
      "pitch": "m69",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 211.25,
      "len": 0.25,
      "ph": "UW1",
      "pitch": "m72",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 211.5,
      "len": 1.0,
      "ph": "UW1",
      "pitch": "m67",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 212.5,
      "len": 1.75,
      "ph": "UW1",
      "pitch": "m64",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 220.0,
      "len": 0.5,
      "ph": "UW1",
      "pitch": "m62",
-     "vel": 0.56
+     "vel": 0.95,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 220.5,
      "len": 0.75,
      "ph": "UW1",
      "pitch": "m69",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 221.25,
      "len": 0.25,
      "ph": "UW1",
      "pitch": "m72",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 221.5,
      "len": 1.0,
      "ph": "UW1",
      "pitch": "m67",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 222.5,
      "len": 1.75,
      "ph": "UW1",
      "pitch": "m64",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 230.0,
      "len": 0.5,
      "ph": "UW1",
      "pitch": "m62",
-     "vel": 0.56
+     "vel": 0.95,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 230.5,
      "len": 0.75,
      "ph": "UW1",
      "pitch": "m69",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 231.25,
      "len": 0.25,
      "ph": "UW1",
      "pitch": "m72",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 231.5,
      "len": 1.0,
      "ph": "UW1",
      "pitch": "m67",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 232.5,
      "len": 1.75,
      "ph": "UW1",
      "pitch": "m64",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 240.0,
      "len": 0.5,
      "ph": "UW1",
      "pitch": "m62",
-     "vel": 0.56
+     "vel": 0.95,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 240.5,
      "len": 0.75,
      "ph": "UW1",
      "pitch": "m69",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 241.25,
      "len": 0.25,
      "ph": "UW1",
      "pitch": "m72",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 241.5,
      "len": 1.0,
      "ph": "UW1",
      "pitch": "m67",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 242.5,
      "len": 1.75,
      "ph": "UW1",
      "pitch": "m64",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 250.0,
      "len": 0.5,
      "ph": "UW1",
      "pitch": "m62",
-     "vel": 0.56
+     "vel": 0.95,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 250.5,
      "len": 0.75,
      "ph": "UW1",
      "pitch": "m69",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 251.25,
      "len": 0.25,
      "ph": "UW1",
      "pitch": "m72",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 251.5,
      "len": 1.0,
      "ph": "UW1",
      "pitch": "m67",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 252.5,
      "len": 1.75,
      "ph": "UW1",
      "pitch": "m64",
-     "vel": 0.5
+     "vel": 0.9,
+     "expr": {
+      "hum": 0.8
+     }
     },
     {
      "at": 320.256,
@@ -4148,9 +4270,34 @@
     }
    ],
    "fx": [
+    "gain gain=0dB+auto.ld*1",
     "gain gain=0dB+auto.ar*1"
    ],
    "auto": {
+    "ld": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "191b",
+       0.0
+      ],
+      [
+       "192b",
+       7.0
+      ],
+      [
+       "223b",
+       7.0
+      ],
+      [
+       "224b",
+       0.0
+      ]
+     ]
+    },
     "ar": {
      "points": [
       [
@@ -4455,7 +4602,9 @@
        "join": true,
        "inhale": 0.4,
        "even": 1.0,
-       "age": 0.45
+       "age": 0.45,
+       "hum": "expr.hum",
+       "hum_at": "m"
       }
      ],
      "lfo": {
