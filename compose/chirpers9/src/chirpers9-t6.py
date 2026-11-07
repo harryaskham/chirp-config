@@ -846,6 +846,23 @@ def build():
         (od0_ + 16.0 - 1e-6 <= e_[0] < od0_ + 32.0 - 1e-6 and abs(e_[0] * 2 - round(e_[0] * 2)) > 1e-6) or
         (e_[0] >= od0_ + 32.0 - 1e-6 and abs(e_[0] - round(e_[0])) > 1e-6))]
     P['acid'] = [e_ for e_ in P['acid'] if e_[0] < od0_ + 24.0 - 1e-6]
+    # (v52, section w5: the crest 'static' - sixteen bars of one locked groove, the E2 cell re-barred into eight
+    # under both statements of the chorus) THE CREST COMES DOWN TO FOUR: for the second chorus (bars 73-80) the
+    # convergence lands where every orbit in the album has been circling - the drummer leaves the seven for a plain
+    # FOUR ON THE FLOOR, a kick on every beat, the snare on two and four, open hats on every off-beat (the cell's
+    # rims still ticking inside it), and the whole crest lifts like a dance floor; at the cross it falls back into
+    # the seven, and the four is never heard again
+    cq0_, cq1_ = (SEC['crest'] + 8) * 4.0, SEC['cross'] * 4.0
+    P['kit'] = [e_ for e_ in P['kit'] if not (cq0_ - 1e-6 <= e_[0] < cq1_ - 1e-6 and e_[1] in ('k', 's'))]
+    for q_ in range(int(cq1_ - cq0_)):
+        P['kit'].append((cq0_ + q_, 'k', 0.25, 120 if q_ % 4 == 0 else 112))
+        if q_ % 2 == 1:
+            P['kit'].append((cq0_ + q_, 's', 0.25, 104))
+    P['kit'].sort(key=lambda e_: e_[0])
+    P['hats'] = [e_ for e_ in P['hats'] if not (cq0_ - 1e-6 <= e_[0] < cq1_ - 1e-6 and abs((e_[0] - cq0_) % 1.0 - 0.5) < 1e-6)]
+    for q_ in range(int(cq1_ - cq0_)):
+        P['hats'].append((cq0_ + q_ + 0.5, 'oh', 0.3, 84))
+    P['hats'].sort(key=lambda e_: e_[0])
     P['glass'] = [e_ for e_ in P['lights'] if SEC['crest'] * 4.0 - 1e-6 <= e_[0] < SEC['cross'] * 4.0 - 1e-6]
     P['farbow'] = [e_ for e_ in P['farbass'] if e_[0] >= SEC['cross'] * 4.0 - 1e-6]
     P['farbass'] = [e_ for e_ in P['farbass'] if e_[0] < SEC['cross'] * 4.0 - 1e-6]
