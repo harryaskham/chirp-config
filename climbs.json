@@ -8426,15 +8426,14 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers9-t5 OUT.wav",
       "best": {
-        "score": 98.151,
-        "version": "v33",
-        "commit": "see git log songs/chirpers9-t5.yaml",
-        "judged": true
+        "score": 98.218,
+        "version": "v34",
+        "commit": "see git log songs/chirpers9-t5.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 36,
+      "rounds": 37,
       "priority": 1.0,
       "genre": "complex electronic",
       "mode": "compose",
@@ -8452,7 +8451,7 @@
         "note": "COMPOSE (inner disk (calm, closer), 240-360 s): The inner disk: calm again but closer and hotter: faster, tighter, tense. Carries E1-E4 and introduces E5. The calm before the second storm, and the mirror of t1."
       },
       "last": {
-        "at": "2026-11-07T06:42:43Z",
+        "at": "2026-11-07T07:40:54Z",
         "who": "chirper-zero"
       }
     },
