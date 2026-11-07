@@ -78,6 +78,7 @@ E1ALONE = os.environ.get("C9T5_E1ALONE", "808")   # SECTION w7 (3:20-3:53, the e
 SWAPP = os.environ.get("C9T5_SWAPP", "seed-lo=mandolin")   # PALETTE (v39): voices change hands ('track=patch[@gaindB]', comma-separated): the seed's low voice (seed-lo, the E1 stretto an octave under the chip lead) leaves the plain pluck lead for t1's mandolin (t1 v33's G), so the mirror plays the seed's line on the seed's own strings. Tried and rejected: the air (the held D-A drone) on kuramoto-choir or gendy-drone (spectrum -8..-13: the plain drone's low mids are load-bearing), the lights on juno-pad (variety -10)
 HUMWORD = os.environ.get("C9T5_HUMWORD", "close:ng")   # WHOLE (wM's hum, pin e3da830a): THE MIDDLE HUMS - her line is 'near-er the mid-dle hums', and now the word does what it says: every sung 'hums' (A's chorus, the crest choir's three statements, the farewell) opens on 'huh' and then the lips close and the voice hums on 'mm' (synth.layers.0.hum bound per note), the choir humming with her. 'close': the hum held a beat longer than the word was; 'short': the word's own length; ':ng' / ':m' where the mouth closes (v40: close:ng, the brighter hum; close:m 98.178/98.043, darker, spectrum -0.4)
 FLOORWALK = os.environ.get("C9T5_FLOORWALK", "all")   # WHOLE (t1 v29's BASSWALK mirrored; the spectrum's worst band was 97 Hz, -8): THE FLOOR WALKS THE SEED - the analog floor held one long root per chord (D3 C3 A2 G2); now under every chord it walks E1 twice as slow (D2 A2 C3 G2 E2 in 8 beats of the chord's 10), the same five notes under all four chords (they are all in the key), so the seed is in the bass as well as on top. 'all' (from A) or 'C' (from the crest on)
+FAREAGE = os.environ.get("C9T5_FAREAGE", "0.6")   # SECTION w8 (3:53-4:19, the outro = the t5 -> t6 overlap: her farewell): SHE GROWS OLD AS SHE LEAVES - t5's near singer is young; t6 (chirper-one) begins with an old voice. Now her farewell ages note by note (wM's age, bound per note), from her own young voice to a shaking one by her last 'hums' (value = the last note's age), so the voice that leaves the inner disk hands over to the old voice of t6
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -720,6 +721,14 @@ def song():
                 else:
                     out.append(dict(n, expr={"hum": 0.0}))
             tr["notes"] = out
+    if FAREAGE:
+        for tr in tracks:
+            if tr["name"] == "hums-out":
+                pt = tr["patch"] if isinstance(tr["patch"], dict) else {"extends": tr["patch"]}
+                tr["patch"] = dict(pt, extends=pt["extends"] + " synth.layers.0.age=expr.age")
+                k = len(tr["notes"])
+                for j, n in enumerate(sorted(tr["notes"], key=lambda n: n["at"])):
+                    n["expr"] = dict(n.get("expr", {}), age=round(float(FAREAGE) * j / max(1, k - 1), 3))
     if VOXREG:
         for tr in tracks:
             pt = tr.get("patch")
