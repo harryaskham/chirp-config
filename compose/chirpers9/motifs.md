@@ -187,7 +187,7 @@ score: "D3/8 A3/8 E4/8 B4/16 F#5/16 C#6/16 G#6/8"   # 2 2 2 1 1 1 2 sixteenths =
 - **Cycle.** 11 sixteenths (prime). Against 4/4 it meets the bar every 11 bars; against E5's 3 beats every 33 beats;
   against E1's 5 beats every 55. Phase it on purpose.
 - **In t7 (Marginally Bound).** The storm is a semitone above home (Eb, t6's unresolved pull): the jet appears there
-  in fragments (2-4 notes: it tries to fire), more of it in the spiral, and from bar 120 - where every cycle in t7
+  in fragments (2-4 notes: it tries to fire; since v48 lifted 9 dB through the collision so the attempts are heard), more of it in the spiral, and from bar 120 - where every cycle in t7
   (E1 in a three-speed stretto, E2's seven, E3 squeezed, E4 at half harmonic rhythm (comped in 0.35-beat stabs on the organ, doubled since v47 by a clavinet), E5 squeezed, E6's tide squeezed,
   E7) lands on one downbeat and Eb resolves to D - it fires whole every cycle, doubled an octave up on a chip pulse.
   In the crest's middle (bars 129-136, the tidal lock) the break drops to half time and the jet fires in RETROGRADE
