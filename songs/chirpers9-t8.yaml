@@ -7905,8 +7905,61 @@
   },
   {
    "name": "jet",
-   "patch": "supersaw",
-   "gain": "-8dB",
+   "patch": {
+    "about": "t8's jet: a Kuramoto swarm whose coupling rises on auto.cp - a crowd that locks into one tone",
+    "play": {
+     "poly": 8
+    },
+    "synth": {
+     "amp": {
+      "a": "250ms",
+      "d": 0,
+      "r": "2s",
+      "s": 1
+     },
+     "filters": [
+      {
+       "kind": "lp",
+       "cutoff": {
+        "value": 900,
+        "mod": [
+         {
+          "src": "sync",
+          "amount": 2.5
+         }
+        ]
+       }
+      }
+     ],
+     "layers": [
+      {
+       "type": "kuramoto",
+       "kuramoto": {
+        "count": 12,
+        "spread": 40,
+        "coupling": {
+         "value": 0.0,
+         "mod": [
+          {
+           "src": "auto.cp",
+           "amount": 1.0
+          }
+         ]
+        }
+       }
+      }
+     ]
+    },
+    "fx": [
+     {
+      "type": "reverb",
+      "kind": "plate",
+      "decay": "2.2s",
+      "mix": 0.2
+     }
+    ]
+   },
+   "gain": "-9dB",
    "sends": {
     "hall": "-6dB"
    },
@@ -7971,7 +8024,49 @@
      "pitch": "F#5",
      "vel": 0.72
     }
-   ]
+   ],
+   "auto": {
+    "cp": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "383.99b",
+       0.0
+      ],
+      [
+       "386b",
+       0.0
+      ],
+      [
+       "396b",
+       3.0
+      ],
+      [
+       "400b",
+       3.0
+      ],
+      [
+       "400.01b",
+       0.0
+      ],
+      [
+       "511.99b",
+       0.0
+      ],
+      [
+       "513b",
+       0.0
+      ],
+      [
+       "519b",
+       3.0
+      ]
+     ]
+    }
+   }
   },
   {
    "name": "hook",

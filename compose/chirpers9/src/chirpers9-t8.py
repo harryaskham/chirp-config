@@ -675,6 +675,34 @@ def breathe(song):
             tr_["auto"] = dict(tr_.get("auto") or {}, br={"points": pts})
 
 
+# v34 (ROUND TYPE: palette - a song-own patch for the jet): THE JET LOCKS. The jet's two chords (E7's stacked fifths,
+# D3 A3 E4 B4 F#5: four bars at the jet, two at the slingshot) were a stock supersaw, the genre's most generic climax.
+# Now they are a KURAMOTO SWARM of t8's own - twelve detuned saws per note, pulled toward their mean phase - whose
+# coupling RISES on an auto lane across each chord: under the impact the jet is a crowd, a wide detuned roar; over the
+# next bars the saws fall into step and the chord LOCKS into pure tone, and as they agree the low-pass opens (sync):
+# the jet focuses. The album's 'cycles converging at the crest', heard inside the sound itself. (Tested: harmonic share
+# 0.63 as a crowd -> 1.00 locked as coupling rises 0 -> 3. t2 uses wM's kuramoto-choir, whose LFO rocks the coupling
+# back and forth; this one only converges.)
+JET_SWARM = {"about": "t8's jet: a Kuramoto swarm whose coupling rises on auto.cp - a crowd that locks into one tone",
+             "play": {"poly": 8},
+             "synth": {"amp": {"a": "250ms", "d": 0, "r": "2s", "s": 1},
+                       "filters": [{"kind": "lp", "cutoff": {"value": 900, "mod": [{"src": "sync", "amount": 2.5}]}}],
+                       "layers": [{"type": "kuramoto",
+                                   "kuramoto": {"count": 12, "spread": 40,
+                                                "coupling": {"value": 0.0, "mod": [{"src": "auto.cp", "amount": 1.0}]}}}]},
+             "fx": [{"type": "reverb", "kind": "plate", "decay": "2.2s", "mix": 0.2}]}
+
+
+def swarm_lane():
+    pts = [["0b", 0.0]]
+    for bar, rise in ((JET, 10.0), (BREAK[1] + 1, 6.0)):
+        a = b0(bar)
+        pts += [[f"{a - 0.01:g}b", 0.0], [f"{a + 2:g}b", 0.0], [f"{a + 2 + rise:g}b", 3.0], [f"{a + 2 + rise + 4:g}b", 3.0],
+                [f"{a + 2 + rise + 4.01:g}b", 0.0]] if bar == JET else \
+               [[f"{a - 0.01:g}b", 0.0], [f"{a + 1:g}b", 0.0], [f"{a + 1 + rise:g}b", 3.0]]
+    return pts
+
+
 def horizon_lane(drop):
     """Redshift: 0 until the horizon, then sinking to `drop` semitones by the end."""
     return [["0b", 0.0], [f"{b0(SINK):g}b", 0.0], [f"{b0(BARS + 1):g}b", drop]]
@@ -822,7 +850,8 @@ def main():
             tr("e6", "organ", gain="-24dB", pan=-0.3, sends={"hall": "-8dB"}, fx=["lp cutoff=3500", ORBIT_FX],
                auto={"orb": {"points": orbit_lane("e6")}}),
             tr("e7", "brass-synth", gain="-11dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"}),
-            {"name": "jet", "patch": "supersaw", "gain": "-8dB", "sends": {"hall": "-6dB"}, "notes": JET_NOTES},
+            {"name": "jet", "patch": JET_SWARM, "gain": "-9dB", "sends": {"hall": "-6dB"}, "notes": JET_NOTES,
+             "auto": {"cp": {"points": swarm_lane()}}},                                     # v34: the swarm locks
             tr("hook", "flute", gain="-6dB", pan=0.1, sends={"dly": "-14dB", "hall": "-12dB"}),   # v5
             {"name": "solo", "patch": SOLO8, "gain": "-7dB", "sends": {"hall": "-5dB", "dly": "-16dB"},   # v12 (last)
              "notes": solo, "auto": {"rs": {"points": horizon_lane(REDSHIFT)}}},
