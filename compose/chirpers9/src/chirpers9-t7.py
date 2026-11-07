@@ -484,6 +484,13 @@ R49 = os.environ.get("T7_R49", "stop") != "none"
 # hum_even (pinned 1d916569), which holds a hum at the open voice's loudness note by note, and the hand gain goes.
 # T7_R50=none reproduces v49.
 R50 = os.environ.get("T7_R50", "clap") != "none"
+# round 51 (section, w2 = bars 17-32, the approach's first half; focused least recently): T7_R51=call (default) - A
+# CALL BEFORE THE ANSWER. When the storm lands at bar 17 the horns state E1 once (two bars), and the muted trumpet
+# answers from bar 25 - but between them six bars passed with only E1's koto stretto, masked (-16 dB): the call was
+# heard once and the answer came out of nothing. Now the horns call AGAIN at bar 21, the same two bars - E1 plainly
+# twice, a riff you can expect - and bar 24 ends in a fill (the dusty kit's snare and tom in sixteenths, swelling,
+# an open hat on the trumpet's downbeat) that hands the trumpet its entrance. T7_R51=none reproduces v50.
+R51 = os.environ.get("T7_R51", "call") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1503,6 +1510,25 @@ def main():
         for tr in tracks:
             if tr["name"] == "bow":
                 tr["patch"] = "a7-erhu"
+    if R51:                                                 # w2: a call before the answer (bars 21-22, fill at 24)
+        for tr in list(tracks):
+            if tr.get("name") == "hook" and tr.get("score"):
+                pos, call = 0.0, Track("hook2")
+                for tok in tr["score"].split():
+                    m = re.match(r"^(.+?)/([0-9.e+-]+)b(?:@(\d+))?(.*)$", tok)
+                    head, ln, vel, art = m.group(1), float(m.group(2)), m.group(3), m.group(4)
+                    if head != "R" and 64 <= pos < 72 and int(vel or 0) > 1:
+                        g = re.search(r"\^gate=([0-9.]+)", art)
+                        call.add(pos + 16.0, ln * (float(g.group(1)) if g else 1.0), head, int(vel) - 4)
+                    pos += ln
+                tracks.append(dict(tr, name="hook2", gain=f"{float(tr['gain'].replace('dB', '')) + 3.0:g}dB",
+                                   pan=-0.15, score=call.score()))
+                break
+        fill = Track("fill24")
+        for i, piece in enumerate(("s", "s", "t", "t", "s", "s", "t", "s")):
+            fill.add(94.0 + 0.25 * i, 0.2, piece, 72 + 6 * i)
+        fill.add(96.0, 0.5, "oh", 112)
+        tracks.append({"name": "fill24", "patch": "dusty-kit", "gain": "-2dB", "pan": 0.0, "score": fill.score()})
     if R50:                                                 # palette: a clap on the backbeat, an even hum
         for tr in list(tracks):
             if tr.get("name") in ("snare", "snareh") and tr.get("score"):
