@@ -450,6 +450,16 @@ R45 = os.environ.get("T7_R45", "redshift") != "none"
 # the crest lands on D at 121, so the endless fall stops exactly where the orbit locks: t2's fall, landing at last. Patch a7-orbit =
 # shepard-pad with both layers down. T7_R46=none reproduces v45.
 R46 = os.environ.get("T7_R46", "orbit") != "none"
+# round 47 (palette): T7_R47=clav (default) - E4 ON A CLAVINET. E4 (the album's chords: D9, Bbmaj13#11, Am11, D9sus,
+# in t7 a semitone up in the storm) is comped all through the approach, collision, spiral and crest - 367 short stabs
+# of a five-note voicing on 0.35 beats, on and off the beat - on the hammond, whose sustained drawbar tone smeared into
+# the tide and the choir: presence put it at -13.6 dB in the crest, audibility 0. Now a clavinet (the album's only
+# one; the library's physical clav) doubles every stab: a string struck by a tangent and choked by its felt the moment
+# the key lifts, so each 0.35-beat stab gets a hard funky pluck on top of the organ's body, panned opposite it - the
+# harmony becomes rhythm, the groove of E4 heard. (Replacing the organ outright lost its 16' drawbar - t7's 97 Hz,
+# 10.7 dB short then - and cost 0.39.) The section variants (collision offbeats, spiral) are doubled too.
+# T7_R47=none reproduces v46.
+R47 = os.environ.get("T7_R47", "clav") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1455,6 +1465,12 @@ def main():
         for tr in tracks:
             if tr["name"] == "bow":
                 tr["patch"] = "a7-erhu"
+    if R47:                                                 # palette: E4's comping on a clavinet
+        for tr in list(tracks):                             # the organ keeps its body (its 16' drawbar is t7's
+            if tr.get("name") in ("e4", "e4w", "e4w5", "e4w7", "e4w8") and tr.get("patch") == "hammond-b3":   # 97 Hz)
+                tracks.append(dict(tr, name=tr["name"] + "c", patch="clav",
+                                   gain=f"{float(tr['gain'].replace('dB', '')) + 3.0:g}dB", pan=-float(tr.get("pan", 0.0)) or 0.2,
+                                   fx=list(tr.get("fx", [])) + [{"type": "filter", "kind": "hp", "cutoff": 250, "q": 0.707}]))
     if R46:                                                 # palette: the spiral falls forever (a falling Shepard pad)
         sh = {"center": "520hz", "cycle": "8s", "octaves": 9, "width": 1.3, "down": True}
         patches["a7-orbit"] = {"about": "chirper-two: the library shepard-pad gliding DOWN - an endless fall (t7's spiral)",
