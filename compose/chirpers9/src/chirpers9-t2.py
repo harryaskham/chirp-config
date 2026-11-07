@@ -755,7 +755,7 @@ def build():
                                   'lp cutoff=5000', 'hp cutoff=300'], 'returns': []}},
         # (v19) and air: t2 measured 20 dB darker than t1 at 15 kHz and 14 dB darker than t3 at 9 kHz - a second,
         # higher shelf opens the top so the song breathes like its neighbours
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'peak cutoff=300 q=0.8 gain=-2dB', 'highshelf cutoff=7000 gain=2dB', 'highshelf cutoff=11000 gain=3dB']},
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'peak cutoff=300 q=0.8 gain=-2dB', 'highshelf cutoff=7000 gain=2dB', 'highshelf cutoff=11000 gain=4.5dB']},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.0, 'attack': '20ms', 'release': '160ms', 'makeup': '1dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.E', 'amount': 1}]}},
                           {'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 1200, 'mod': [{'src': 'auto.open', 'amount': 4.0}]}},
@@ -774,7 +774,12 @@ def build():
                                            [f"{(CREST + 12) * 4.0 - 0.1:.1f}b", 0.35], [f"{(CREST + 12) * 4.0:.1f}b", 0.0], [f"{SEC['drift'] * 4.0 - 0.1:.1f}b", 0.0], [f"{SEC['drift'] * 4.0:.1f}b", 0.22], [f"{84 * 4.0 - 0.1:.1f}b", 0.26], [f"{84 * 4.0:.1f}b", 0.0], [f"{fall0:.1f}b", 0.0]]}},
                fx=[{'type': 'stutter', 'slice': '1/16', 'repeats': 3, 'chance': {'value': 0.0, 'mod': [{'src': 'auto.glitch', 'amount': 1.0}]}, 'seed': 5}]),
             # (v9) presence.py had the three-beat hats 33 dB under the mix - the polymeter you couldn't hear
-            tr('hat3', '909', '-1dB', pan=0.25, sends={'echo': '-20dB'}),
+            # (v37, palette: the 909's hats are the haake-hat, an album staple - t2, t3, t5 and t6 all tick on it) THE HATS
+            # GO DUSTY: the three-beat hat cycle (x.xx.x.xx.x. against the band's four) now plays on the library's
+            # lofi-kit - soft, rounded hats through a worn sampler, low-passed and saturated - which no Accretion track
+            # uses: the polymeter's top line warmer and grainier against the 909's clean kick and snare (the master's
+            # air shelf at 11 kHz up 1.5 dB to 4.5 dB: the low-passed hats took 1.5 dB of 15 kHz with them)
+            tr('hat3', 'lofi-kit', '-1dB', pan=0.25, sends={'echo': '-20dB'}),
             tr('infall', 'shepard-fall', '-20dB', sends={'hall': '-16dB'}),
             tr('hook', 'ondes', '-5dB', pan=-0.05, sends={'hall': '-12dB', 'echo': '-20dB'}),
             tr('dust', {'extends': 'chimes', 'synth': {'fx': [PXF]}}, '-17dB', auto={'shut': {'points': shut_pts}},
