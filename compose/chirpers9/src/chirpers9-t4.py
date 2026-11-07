@@ -910,6 +910,28 @@ def warm_third(voice):
             for n in voice if lo - 1e-6 <= n["at"] < hi - 1e-6 and n.get("ph") == "UW1"]
 
 
+# v45 (ROUND TYPE: section, the relief's last eight bars 113-120, the stillest block left at 4:08; rewritten): THE
+# TWO VOICES ALONE. v44 gave these bars the warm third (the duet humming a third above her), evenly over a band that
+# never moved. Now, two bars in, the band steps out - lights, bass, clarinet - and the two voices hum in thirds
+# over the handpan and the sub alone, bare and close (115-118), and the band comes back for the fall's door (119). Placed with
+# care: the t4 -> t5 seam measures the 3 s before the out-seam starts (bar 121 - about 119.6-121, compscore's
+# mix_tail); a first try cut 117-120 and swung that body's low end by 30 dB (refused, round 47).
+VOICES_ALONE = (115, 118)
+
+
+def voices_alone():
+    lo, hi = b0(VOICES_ALONE[0]), b0(VOICES_ALONE[1] + 1)
+    for n in ("lights", "bass", "clar"):                          # the sub stays under them (all four out: -0.085)
+        out = []
+        for s, ln, h, v in P[n].ev:
+            if lo - 1e-6 <= s < hi - 1e-6:
+                continue
+            if s < lo - 1e-6 < s + ln:
+                ln = lo - s
+            out.append((s, ln, h, v))
+        P[n].ev = out
+
+
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -1054,6 +1076,7 @@ def main():
     reed_answers()
     lights_out()
     reed_takes_b()
+    voices_alone()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v,
                    key=lambda d: d["at"])
