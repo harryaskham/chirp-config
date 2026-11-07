@@ -241,6 +241,13 @@ def build():
         t += L_
         if abs(t - 191.0) < 1e-6:
             t = 192.0                     # the crest's downbeat
+    for t0_, n_ in ((98.25, 3), (104.0, 5)):
+        at = t0_
+        for k, (semi, ln) in enumerate(E1[:n_] if n_ < 5 else E1):
+            if semi is not None:
+                P['e1p'].append((at, m(KEY + 31 - semi), ln * 0.8, (88 if k == 0 else 70) - (10 if t0_ < 100 else 0)))
+            at += ln
+    P['e1p'].sort(key=lambda e_: e_[0])
     # ---- in the drift E1 runs in RETROGRADE canon: the bell, augmented x2, against the pulse ----
     t = SEC['break'] * 4.0
     while t < fall0 + 32.0 - 1e-6:
@@ -367,6 +374,12 @@ def build():
     # and the gather land on at bar 9. The ooh comes back at the end of the break (bars 77-80): the song's two
     # thresholds share one breath
     oohin = [dict(OOH['tracks'][0]['notes'][0], at=16.0, len=7.6, vel=0.6), dict(OOH['tracks'][0]['notes'][0], at=24.0, len=7.9, vel=0.88)]
+    # (v30, section w3: 1:03-1:35, 'static' - the second verse sang into the same groove as the first, and the wurli
+    # entered on its own two bars later) THE SECOND VERSE IS ANSWERED: the backing voices hold 'ooh' (D4 and the open
+    # fifth above) under its second line, and the wurli ANSWERS the voice - three notes of E1 upside down (A D B)
+    # after 'all that falls', the whole upside-down phrase after 'falls a little nearer' - so the wurli's long
+    # upside-down E1 (from bar 29 to the crest) now begins as a reply to the singer instead of out of nowhere
+    oohin.append(dict(OOH['tracks'][0]['notes'][0], at=100.0, len=3.8, vel=0.55))
     snotes = [dict(n_, at=round((SEC['break'] + 12) * 4.0 + n_['at'], 4)) for n_ in SU['tracks'][0]['notes']]
 
     # ---- lanes ----
