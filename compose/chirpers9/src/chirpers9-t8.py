@@ -344,6 +344,12 @@ ASKS = (28, 40, 52, 64, 80, VACUUM)
 MIXO = [0, 2, 4, 5, 7, 9, 10]              # D mixolydian, semitones above D
 
 
+# v35 (ROUND TYPE: palette - a voice no Accretion track uses): SUNG BACK. After the break the hook was 'sung back in
+# thirds' (v16) - by a second flute: two flutes in thirds through the slingshot (129-140), on top of the flute that
+# carries the hook and the flute that asks. Now it is SUNG: wM's FOF SOPRANO (Rodet's CHANT voice, one grain per
+# formant per pitch period, an open 'a' with a 5.5 Hz vibrato) sings the hook a tenth below the flute - B4 F#5 A5 E5
+# C5, her sweet spot (the flute's third, two octaves up, sat at B5-A6, too high to sing). A third voice character in
+# t8 beside the bright choir and the warm solo: the hook, after the breath of the break, comes back with a singer.
 def third_below(m):
     """The diatonic third below m in D mixolydian (m in the scale; off-scale notes drop four semitones)."""
     pc = (m - 62) % 12
@@ -406,7 +412,7 @@ def write_jet():
             for n, on, ln in E1:                  # bars, loud - the album's tune heard clearly and often after the jet
                 part("hook").add(t + on * 1.6, ln * 1.6, name_of(midi(n) + HOOK_UP), 100)
                 if bar > BREAK[1]:                # v16: after the break the hook is sung back in thirds
-                    part("hook3").add(t + on * 1.6, ln * 1.6, name_of(third_below(midi(n) + HOOK_UP)), 86)
+                    part("hook3").add(t + on * 1.6, ln * 1.6, name_of(third_below(midi(n) + HOOK_UP) - 12), 86)
         # the groove: half time at 150 (75 felt) - v22: then it accelerates into the break (GEARS)
         gear = jet_gear(bar)
         if gear == 0:
@@ -856,7 +862,7 @@ def main():
             {"name": "solo", "patch": SOLO8, "gain": "-7dB", "sends": {"hall": "-5dB", "dly": "-16dB"},   # v12 (last)
              "notes": solo, "auto": {"rs": {"points": horizon_lane(REDSHIFT)}}},
             tr("ask", "flute", gain="-9dB", pan=-0.15, sends={"hall": "-6dB", "dly": "-12dB"}),   # v14
-            tr("hook3", "flute", gain="-11dB", pan=-0.2, sends={"dly": "-14dB", "hall": "-10dB"}),  # v16
+            tr("hook3", "fof-soprano", gain="-11dB", pan=-0.2, sends={"dly": "-14dB", "hall": "-10dB"}),  # v35
             tr("lift", SUB8, gain="-22dB"),                                 # v18 (last): the sub's octave you can hear
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
