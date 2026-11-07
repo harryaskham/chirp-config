@@ -979,6 +979,20 @@ def build():
             {'name': 'sung', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-near synth.lfo.vib.per_note=true'),
              'notes': snotes, 'gain': '-11dB', 'pan': 0.05, 'sends': {'echo': '-16dB', 'hall': '-12dB'}},
         ]}
+    # (v49, whole song: the near voice - the song's singer, the line Harry stopped for - sat under the triangle bass
+    # in every groove (presence: the bass the loudest thing in the mix, the verse 6-8 dB behind it)) THE SINGER STEPS
+    # FORWARD: every lead line (verse, pre-chorus, the crest's line and its answer, the last chorus and its lift, the
+    # line found at the break's end) gets a singer's presence - a lift at 3 kHz where the words live, a little air
+    # above 9 kHz, a little less boxiness at 350 Hz - and comes up 1.5 dB, while the triangle bass steps back 1.5 dB
+    # to make room; the backing voices, the far choir and the glimpse stay where they are (the voice alone, the bass
+    # unchanged, scored level: it is the room the bass gives that lets the line through)
+    LEAD = ('verse', 'prech', 'crestsung', 'crestb', 'driftsung', 'driftlift', 'sung')
+    for t_ in song['tracks']:
+        if t_['name'] in LEAD:
+            t_['gain'] = f"{float(t_['gain'][:-2]) + 1.5:g}dB"
+            t_['fx'] = list(t_.get('fx', [])) + [{'type': 'eq', 'bands': ['peak cutoff=3000 q=0.9 gain=3dB', 'highshelf cutoff=9000 gain=2dB', 'peak cutoff=350 q=1.0 gain=-2dB']}]
+        if t_['name'] == 'bass':
+            t_['gain'] = f"{float(t_['gain'][:-2]) - 1.5:g}dB"
     return song
 
 
