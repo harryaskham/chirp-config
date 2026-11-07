@@ -270,6 +270,12 @@ R32 = os.environ.get("T3_R32", "round") != "none"
 # 96.89, 6 dB 97.13 on s0 - the floor wanted its weight back). The
 # notes (E3's undertow, the lifts) are unchanged. T3_R33=none reproduces v32.
 R33 = os.environ.get("T3_R33", "deep") != "none"
+# round 34 (section, aimed at the last flat run 1:44-2:16 - the eyewall's first half, bars 49-56): T3_R34=assemble
+# (default) - THE EYEWALL ASSEMBLES. The eyewall used to arrive whole at bar 49: kit, bass, the counted "doo"s and the
+# glitch shards (the loudest thing after the bass) all at once, and ran unchanged until the lift at 57. Now it is built
+# in front of you: for bars 49-52 the shards hold back, so the eyewall opens on the voices counting in sevens over the
+# kit and the bass; the shards crash in at 53. T3_R34=none reproduces v33.
+R34 = os.environ.get("T3_R34", "assemble") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -824,6 +830,10 @@ def build():
                 T[k].ev = [(e[0], e[1], ",".join(mtok(int(float(p[1:])) + 12) if p.startswith("m") else p
                                                   for p in e[2].split(",")), e[3], e[4])
                            if b * 4.0 <= e[0] < (b + 4) * 4.0 and isinstance(e[2], str) else e for e in T[k].ev]
+    if R34:                                                 # the eyewall assembles: the shards hold back for 49-52
+        T["shard"].ev = [(e[0], e[1], e[2], 1, e[4]) if 48 * 4.0 <= e[0] < 52 * 4.0 else
+                         (e[0], max(0.03, round(48 * 4.0 - e[0] - 0.05, 4)), e[2], e[3], e[4]) if e[0] < 48 * 4.0 < e[0] + e[1]
+                         else e for e in T["shard"].ev]
     if R32:                                                 # the answer on a round bass (bars 101-108)
         T["_round"] = Track("_round")
         for e in T["bass"].ev:
