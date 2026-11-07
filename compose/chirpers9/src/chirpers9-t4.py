@@ -669,6 +669,44 @@ def b_turns():
 # goes from struck metal to breath for one phrase.
 SWAP = (25, 32)
 
+# v30 (ROUND TYPE: whole song): THE BAND TURNS EVERY PHRASE. Harry (6 Nov 23:55): no ~30 s where nothing changes -
+# something should move every 8-16 bars, groove/key/identity kept. flatness.py had three runs left after v28/v29:
+# the rise (2:24-2:56, bars 66-81), the crest's second half (3:12-3:44, 88-103) and the relief (3:44-4:24, 103-122).
+# Each now turns on its loud elements (presence.py: lights, sub, shaker, kick / voice, handpan, ride / voice, lights,
+# sub); the voice, the hook and the harmony are untouched:
+#   65-72 the rise starts from the heartbeat - hats and shaker out, the gathering kick pulse, snare, lights and bass;
+#   73-80 they return, the shaker filling every sixteenth and swelling, with the glock's octaves: a second step;
+#   92-96 under the sung hook the hats give way to a ride wash on every eighth;
+#   105-112 the floor lifts away - sub and bass out while she hums and the handpan answers; back at 113. The relief
+#   now breathes in stages: the kit out at 101, the floor away at 105, back at 113, the fall at 121. (Tried: the kit
+#   leaving four bars early, at 97 - it merged with the relief's own afterglow into one still stretch, 3:28-4:00.)
+RISE_THIN, RISE_FILL = (65, 72), (73, 80)
+CREST_WASH = (92, 96)
+FLOAT = (105, 112)
+
+
+def phrase_turns():
+    def span(r):
+        return b0(r[0]) - 1e-6, b0(r[1] + 1) - 1e-6
+
+    def drop(names, r, keep=lambda e: False):
+        lo, hi = span(r)
+        for n in names:
+            if n in P:
+                P[n].ev = [e for e in P[n].ev if keep(e) or not (lo <= e[0] < hi)]
+
+    drop(["hat", "air"], RISE_THIN)
+    for bar in range(RISE_FILL[0], RISE_FILL[1] + 1):
+        k = bar - RISE_FILL[0]
+        for i in range(16):
+            if i not in EUCLID_7_16:
+                part("air").add(b0(bar) + i * 0.25, 0.25, "sh", 34 + 2 * k)
+    drop(["hat", "ride"], CREST_WASH)
+    for bar in range(CREST_WASH[0], CREST_WASH[1] + 1):
+        for e in range(8):
+            part("ride").add(b0(bar) + e * 0.5, 0.75, RIDE, 68 if e % 2 == 0 else 54)
+    drop(["sub", "bass"], FLOAT)
+
 
 def hook_changes_hands():
     lo, hi = b0(SWAP[0]), b0(SWAP[1] + 1)
@@ -716,6 +754,7 @@ def main():
     crest_kit()
     b_turns()
     hook_changes_hands()
+    phrase_turns()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v,
                    key=lambda d: d["at"])
