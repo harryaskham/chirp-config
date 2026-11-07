@@ -384,6 +384,13 @@ R37 = os.environ.get("T7_R37", "echo") != "none"
 # gentler draft at -2 got 1.0-1.3). The head's start under t6 and the plunge and outfall into t8 are unchanged.
 # T7_R38=none reproduces v37.
 R38 = os.environ.get("T7_R38", "arc") != "none"
+# round 39 (palette): T7_R39=age (default) - THE CHOIR HAS AGED. wM's `age` (pinned 44372fb9): the folds leak air,
+# the line wavers and a slow 4.5-6.5 Hz tremor shakes it, each singer on their own phase. The crest choir sings
+# "each lap a little shorter" (bars 125 and 141) - the orbit decaying, time running out - with the same young voices
+# that sang "each lap" in the collision. Now the crest's three singers (vd0-vd2) sing on aged copies of their
+# patches (age 0.4): the same words, older - weathered by the laps between. The collision's choir stays young,
+# so the voice ages across the song (and meets t6's old voice, age 0.8, across the album). T7_R39=none reproduces v38.
+R39 = os.environ.get("T7_R39", "age") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1289,6 +1296,13 @@ def main():
                 tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + 3.0:g}dB"
             if tr.get("patch") == "a7-choir2":
                 tr["gain"] = f"{float(str(tr.get('gain', '0dB')).replace('dB', '')) + 1.0:g}dB"
+    if R39:                                                 # the crest choir has aged (wM's age 0.4)
+        for tr in tracks:
+            if tr.get("name") in ("vd0", "vd1", "vd2") and str(tr.get("patch", "")).startswith("a7-choir"):
+                old = tr["patch"] + "-old"
+                if old not in patches:
+                    patches[old] = dict(patches[tr["patch"]], extends=patches[tr["patch"]]["extends"] + " synth.layers.0.age=0.4")
+                tr["patch"] = old
     if R37 and "a7-sung" in patches:                        # w3: she hums the horns' answer back
         echo = []
         for b0 in (144.0, 176.0):
