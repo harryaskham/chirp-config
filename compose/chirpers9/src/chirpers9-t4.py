@@ -829,6 +829,32 @@ def reed_takes_b():
         part("clar").add(s, max(ln, nxt - s), h, min(96, v + 4))
 
 
+# v40 (ROUND TYPE: whole song): HUMAN TIME. 'The voice at its most human' - and Harry: complexity in TIME. t4's time
+# was a grid: 108, then one long ramp to 112 for t5. Now the band BREATHES the way players do into the boundaries that
+# matter, then picks the tempo up again: a ritardando across the last bar before B (6%, after the breath before B),
+# before the crest (8%) and before the relief (10%, the exhale), each landing a tempo on the downbeat. Every other
+# point stays on the old line, so both seams keep exactly the tempo t3 and t5 expect (108 in, 112 by bar 121).
+BREATHS = [(41, 0.06), (81, 0.08), (101, 0.10)]       # (the downbeat it breathes into, how much it broadens)
+
+
+def base_bpm(beat):
+    if beat <= b0(17):
+        return float(SEAM_IN)
+    return SEAM_IN + (SEAM_OUT - SEAM_IN) * min(1.0, (beat - b0(17)) / (b0(121) - b0(17)))
+
+
+def human_time():
+    pts = [{"at": "0b", "bpm": SEAM_IN}, {"at": f"{b0(17):g}b", "bpm": SEAM_IN}]
+    for bar, slow in BREATHS:
+        a, z = b0(bar) - BPB, b0(bar)
+        ramp = a > b0(17)
+        pts.append(dict({"at": f"{a:g}b", "bpm": round(base_bpm(a), 3)}, **({"ramp": True} if ramp else {})))
+        pts.append({"at": f"{z - 0.25:g}b", "bpm": round(base_bpm(z) * (1 - slow), 3), "ramp": True})
+        pts.append({"at": f"{z:g}b", "bpm": round(base_bpm(z), 3)})
+    pts.append({"at": f"{b0(121):g}b", "bpm": SEAM_OUT, "ramp": True})
+    return pts
+
+
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -982,8 +1008,7 @@ def main():
     duet.sort(key=lambda d: d["at"])
     breaths = [{"at": b0(CREST) - 0.85, "len": 0.85, "pitch": "C4", "vel": 0.55},
                {"at": b0(CREST) + 20 - 0.75, "len": 0.75, "pitch": "C4", "vel": 0.45}, hook_b]
-    tempo = [{"at": "0b", "bpm": SEAM_IN}, {"at": f"{b0(17):g}b", "bpm": SEAM_IN},
-             {"at": f"{b0(121):g}b", "bpm": SEAM_OUT, "ramp": True}]
+    tempo = human_time()
     tr = lambda n, patch, **kw: dict({"name": n, "patch": patch, "score": part(n).score()}, **kw)
     song = {
         "about": "chirpers - Accretion (chirpers IX), track 4 by chirper-three: the warm third. The storm's D minor "
