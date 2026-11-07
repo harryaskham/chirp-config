@@ -8434,7 +8434,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 35,
+      "rounds": 36,
       "priority": 1.0,
       "genre": "complex electronic",
       "mode": "compose",
@@ -8452,7 +8452,7 @@
         "note": "COMPOSE (inner disk (calm, closer), 240-360 s): The inner disk: calm again but closer and hotter: faster, tighter, tense. Carries E1-E4 and introduces E5. The calm before the second storm, and the mirror of t1."
       },
       "last": {
-        "at": "2026-11-07T05:39:13Z",
+        "at": "2026-11-07T06:42:43Z",
         "who": "chirper-zero"
       }
     },
