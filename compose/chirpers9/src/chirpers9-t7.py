@@ -17,6 +17,7 @@ import json
 import math
 import os
 import random
+import re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
@@ -431,6 +432,16 @@ R43 = os.environ.get("T7_R43", "open") != "none"
 # its body speaks, 2 dB over the dusty kick's own level (the reese and floor mask it below that), through the same glitch and grit lanes. The break keeps its dust on
 # top and gets a chest. T7_R44=none reproduces v43.
 R44 = os.environ.get("T7_R44", "thump") != "none"
+# round 45 (section, w10 = bars 145-160 - "static, little new vs w9"): T7_R45=redshift (default) - THE PLUNGE FALLS.
+# In the plunge's last four bars (157-160) the drums and the floor have already gone and E1's stretto (koto and chip)
+# and the jet (E7) carry on exactly as they did in the crest, so the plunge never plunged. Now those three lines fall:
+# for four bars they bend down a whole octave, slowly then faster (0, -3 by 159, -6 by 160, -12 at its end) - E1 and
+# E7 redshifted as they cross the horizon - while the modal bell alone holds its E above them, the note t8 lifts.
+# They come back at pitch with the outfall. The falling copies are new tracks (e1apl, e1bpl, jetpl) on new patches
+# (koto-pl, a7-gb-pl, a7-jet-pl: the same instruments with the lane on their pitch - the oscillators really bend; a
+# pitch-shifter fx left a 38 Hz grain rumble the t8 seam heard), while the originals just let go of those bars.
+# T7_R45=none reproduces v44.
+R45 = os.environ.get("T7_R45", "redshift") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1436,6 +1447,44 @@ def main():
         for tr in tracks:
             if tr["name"] == "bow":
                 tr["patch"] = "a7-erhu"
+    if R45:                                                 # w10: the plunge falls (bars 157-160), the bell holds E
+        lo, hi = 156 * 4.0, 160 * 4.0
+        lane = [["0b", 0.0], [f"{lo:g}b", 0.0], [f"{lo + 8:g}b", -3.0], [f"{lo + 12:g}b", -6.0], [f"{hi - 0.1:g}b", -12.0],
+                [f"{hi:g}b", 0.0]]
+        for tr in list(tracks):
+            if tr.get("name") not in ("e1a", "e1b", "jet") or not tr.get("score"):
+                continue
+            pos, orig, copy, start = 0.0, [], [], None
+            for tok in tr["score"].split():
+                m = re.match(r"^(.+?)/([0-9.e+-]+)b(?:@(\d+))?(.*)$", tok)
+                head, ln = m.group(1), float(m.group(2))
+                if lo - 1e-6 <= pos < hi - 1e-6:
+                    if start is None:
+                        start = pos
+                    if head != "R":
+                        orig.append(re.sub(r"@\d+", "@1", tok, count=1))
+                        g = re.search(r"\^gate=([0-9.]+)", tok)
+                        ring = ln * (float(g.group(1)) if g else 1.0)
+                        c = tok
+                        if pos + ln > hi - 0.05:
+                            c = c.replace(f"/{m.group(2)}b", f"/{max(0.03, hi - 0.05 - pos):.4g}b", 1)
+                            c = re.sub(r"\^gate=[0-9.]+", "", c)
+                        elif pos + ring > hi - 0.05:
+                            c = re.sub(r"\^gate=[0-9.]+", "", c)
+                        copy.append(c)
+                    else:
+                        orig.append(tok)
+                        copy.append(f"R/{min(ln, hi - pos):.4g}b" if pos + ln > hi else tok)
+                else:
+                    orig.append(tok)
+                pos += ln
+            if start is None:
+                continue
+            tr["score"] = " ".join(orig)
+            pl = tr["patch"] + "-pl"                        # the same instrument, its oscillators bent by the lane
+            patches[pl] = {"extends": tr["patch"], "synth": {"pitch": {"value": 0, "mod": [{"src": "auto.plunge", "amount": 1}]}}}
+            tracks.append(dict(tr, name=tr["name"] + "pl", patch=pl, score=f"R/{start:.6g}b " + " ".join(copy),
+                               auto=dict(tr.get("auto", {}), plunge={"points": lane})))
     if R44:                                                 # palette: a tuned body under the break's kick
         patches["a7-thump"] = {"extends": "909", "kit": {"k": {"pitch": "Bb1"}}}
         for tr in list(tracks):
