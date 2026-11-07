@@ -420,6 +420,23 @@ def build():
         while p_ < 48:
             p_ += 12
         breakhum.append(dict(OOH['tracks'][0]['notes'][0], at=round(b_ * 4.0, 4), len=7.7, vel=0.8, pitch=f"m{p_}"))
+    # (v46, whole song: the last chorus - the line Harry stopped for, four times, the last lifted to E - had less under
+    # it than the crest itself: no choir, the line, the ondes and the band) THE LAST CHORUS IS THE BIGGEST: the crest's
+    # backing voices come back for it, the same 'ooh' triads with their basses an octave below (part_size 1) on the
+    # drift's chords (A minor, D minor, F, C in D Dorian), and on the lift the whole choir rises with the line into
+    # B minor in E Dorian - so the song's last statement of its hook is its fullest, as a record's last chorus is
+    lastpad, lastpadE = [], []
+    for b_ in range(86, 96, 2):
+        r_ = chord(b_)[0]
+        p_ = KEY + 24 + r_
+        while p_ > 66:
+            p_ -= 12
+        while p_ < 55:
+            p_ += 12
+        if b_ >= 94:
+            lastpadE.append(dict(OOH['tracks'][0]['notes'][0], at=round(b_ * 4.0, 4), len=7.7, vel=0.8, pitch=f"m{p_ + 2}"))
+        else:
+            lastpad.append(dict(OOH['tracks'][0]['notes'][0], at=round(b_ * 4.0, 4), len=7.7, vel=0.72 + 0.03 * (b_ - 86) / 2, pitch=f"m{p_}"))
     oohin = [dict(OOH['tracks'][0]['notes'][0], at=16.0, len=7.6, vel=0.6), dict(OOH['tracks'][0]['notes'][0], at=24.0, len=7.9, vel=0.88)]
     # (v30, section w3: 1:03-1:35, 'static' - the second verse sang into the same groove as the first, and the wurli
     # entered on its own two bars later) THE SECOND VERSE IS ANSWERED: the backing voices hold 'ooh' (D4 and the open
@@ -920,6 +937,10 @@ def build():
             # BASSES: the ooh triads that back the crest gain a part an octave below the root, sung by voices 15%
             # larger (part_size 1: formants 13% lower) - real basses under the choir, not the same singers pitched
             # down - and the thirds and fifths above by slightly smaller voices: a SATB spread for the album's hook
+            {'name': 'lastpad', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-7,2,4] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true synth.layers.0.part_size=1'),
+             'notes': lastpad, 'gain': '-14dB', 'pan': 0.0, 'sends': {'hall': '-10dB'}},
+            {'name': 'lastpadE', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-7,2,4] synth.layers.0.harmony_key=E:dorian synth.layers.0.together=true synth.layers.0.part_size=1'),
+             'notes': lastpadE, 'gain': '-13dB', 'pan': 0.0, 'sends': {'hall': '-10dB'}},
             {'name': 'crestpad', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-7,2,4] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.layers.0.part_size=1'),
              'notes': crestpad, 'gain': '-14dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
             {'name': 'ooh', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true'),
