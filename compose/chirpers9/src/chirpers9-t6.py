@@ -204,6 +204,20 @@ def build():
             pair_ = (TIDE_X, TIDE_Y)
             if nm_ in W_SECS and c % 4 == 3:
                 pair_ = (TIDE_X, TIDE_W)
+            # (v28, whole song) THE TIDE TURNS OVER IN EVERY SECTION: Harry, 6 Nov 23:55 - 'very little change ... add
+            # subtle variation'; v27 found that what moves the ear (and flatness.py) over 30 s is the HARMONY, not the
+            # surface. So each vamping section now has a second chord pair for one of its halves, every chord in D
+            # Mixolydian or borrowed from its minor: the tide's second half swings Am7 -> G (v -> IV); the squeeze's
+            # first half and the cross's second half swing B-flat -> C - E3 itself, t3's D | B-flat | C, carried here
+            # (B-flat held, C a beat in the squeeze: the pressure before the sung clearing on D); the tear's D -> B-flat
+            # (the darkest colour, before the out-seam's ebb onto B-flat); the first halves (and the duet) stay on E6's
+            # D and C. (Am7/G there first: too close to D/C - the ear and flatness.py barely moved)
+            if nm_ == 'tide' and c >= 4:
+                pair_ = (TIDE_V, TIDE_W)
+            if (nm_ == 'squeeze' and c < 4) or (nm_ == 'cross' and c >= 4):
+                pair_ = (TIDE_Z, TIDE_Y)
+            if nm_ == 'torn':
+                pair_ = (TIDE_X, TIDE_Z)
             if nm_ == 'pull' and c >= 4:
                 # (v27) the pull's second half turns the tide over: G(add9) and Am7 (IV and v of D Mixolydian, every
                 # note in the mode) instead of D and C - the same swing, the split still moving, on the far shore -
@@ -563,6 +577,26 @@ def build():
     P['kit'].append((fl_, 'c', 2.0, 112))
     for key_ in ('hats', 'kit'):
         P[key_].sort(key=lambda e_: e_[0])
+
+    # (v28) and two drop-outs where the song held still longest: under the old voice's sung clearing (bars 57-60) the
+    # floor goes - bass, sub, fretless, hats and sequencer (with the sub kept the ear and flatness.py barely heard
+    # it) - so the line is sung over the harmonium, the marimba and
+    # the cello alone, and the floor returns for its second half and the climb into the crest; and after the crest
+    # (bars 81-84) the band falls away to the tide, the sine's D pedal and the voices, and comes back for the duet
+    # (dropping the sub there as well cost the low end: spectrum 87 -> 83)
+    for b0_, keys_ in (((SEC['squeeze'] + 8) * 4.0, ('root', 'sub', 'farbass', 'hats', 'acid')),
+                       (SEC['cross'] * 4.0, ('kit', 'hats', 'acid', 'root', 'farbass'))):
+        for key_ in keys_:
+            P[key_] = [e_ for e_ in P[key_] if not (b0_ - 1e-6 <= e_[0] < b0_ + 16.0 - 1e-6)]
+            P[key_] = [(e_[0], e_[1], min(e_[2], b0_ - e_[0]), *e_[3:]) if e_[0] < b0_ < e_[0] + e_[2] else e_ for e_ in P[key_]]
+    # (v28) and the crest breathes once: at its second half (bar 73) the drums, hats and sequencer drop out for two
+    # bars under the chorus's second statement - the choir and the lights alone, lifted in E - and land again with a
+    # crash on bar 75
+    cb0_ = (SEC['crest'] + 8) * 4.0
+    for key_ in ('kit', 'hats', 'acid'):
+        P[key_] = [e_ for e_ in P[key_] if not (cb0_ - 1e-6 <= e_[0] < cb0_ + 8.0 - 1e-6)]
+    P['kit'].append((cb0_ + 8.0, 'c', 2.0, 118))
+    P['kit'].sort(key=lambda e_: e_[0])
 
     stop_pts = [['0b', 0.0], [f'{void0:.2f}b', 0.0], [f'{void0 + 0.9:.2f}b', 1.0], [f'{void0 + 0.98:.2f}b', 1.0], [f'{void0 + 1.0:.2f}b', 0.0]]
 
