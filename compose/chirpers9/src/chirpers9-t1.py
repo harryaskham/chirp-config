@@ -88,6 +88,7 @@ BOUNCE = os.environ.get("C9T1_BOUNCE", "0.72:short")   # SECTION (w5, 2:22-2:54,
 BASSWALK = os.environ.get("C9T1_BASSWALK", "144:192:x4")   # SECTION (w4, 1:48-2:22, A's second half: little new vs w3; the bass had sat on D and A for all 32 bars of A): THE FLOOR WALKS THE SEED - for these bars the triangle bass leaves its D-A drone and walks E1 itself, D A C G E, slow ('A:B:x4': at the cello cantus's quarter speed, an octave under it, phased like it to meet the crest; 'x2' at half speed), over the D pedal: the harmony moves for the first time, inside the key, and the seed is in the bass before the build
 TURN = os.environ.get("C9T1_TURN", "lift")   # WHOLE (Harry 23:55: subtle variation every 8-16 bars; t5 v31's turning chords gave t5 +0.1): THE STACK TURNS - the quartal pad (E1's notes stacked, growing section by section) held one voicing for each section; now every other 8-bar phrase from A to the outro it turns (each section opens home, so the crest lands on the home voicing): 'lift' raises everything above the bottom D an octave (open, airy), 'drop' brings the top note down an octave (close, warm). Same notes, same key; the colour of the stack moves under the scattered voices
 LETGO = os.environ.get("C9T1_LETGO", "1.3")   # SECTION (w7, 3:27-3:59, the lock's last phrase into the fall: flagged static): THE VOICES LET GO - the mirror of v28's bounce into the crest: through the lock's last phrase each of the five voices stops keeping the cell's time and repeats its note slower and slower, each at its own rate (value = the slowest voice's stretch per repeat, the others between it and 1.1), so the seed comes apart as gently as it formed and the voices are scattered again by the fall
+ANSWER = os.environ.get("C9T1_ANSWER", "harp")   # SECTION (w2, 0:36-1:13, the intro's end and A's first phrase: flagged level jump; after the whistle's two E1s at A the window was texture only): THE SEED IS ANSWERED - after a cycle's rest the whistle's two E1s are answered by E1 upside down (the inversion, D G E A C: the seed's mirror), twice: 'harp' on the ks-harp that plays the inversion after the crest (so the mirror is heard early, a call and its answer), 'whistle' by the whistle itself
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -490,6 +491,13 @@ def song():
                 gap *= ratio
                 t += gap
             tr["notes"] = sorted(keep + ns, key=lambda n: n["at"])
+    if ANSWER:
+        a0 = ST["A"] + 3 * E1_CYC
+        mids, patch, gain, pan = (([50, 43, 40, 45, 48], "ks-harp", "-14dB", -0.2) if ANSWER == "harp"
+                                  else ([74, 67, 64, 69, 72], "low-whistle", "-15dB", 0.15))
+        ns = [note(a0 + c * E1_CYC + o, f"m{mm}", ln, 0.5 if c == 0 else 0.45)
+              for c in range(2) for o, ln, mm in zip(E1_OFF, E1_LEN, mids)]
+        tracks.append({"name": "answer", "patch": patch, "gain": gain, "pan": pan, "sends": {"space": "-9dB"}, "notes": ns})
     if BOUNCE:
         r, _, short = BOUNCE.partition(":")
         r, L0, dmin = float(r), (12 if short else 16), (0.3 if short else 0.2)
