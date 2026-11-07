@@ -199,6 +199,24 @@ LULL = (57, 64)               # v2: a false calm in the stretto - E2, the pedal 
 VACUUM = JET - 1              # v2: the bar before the jet - everything stops but the riser and E7's columns
 
 
+# v29 (ROUND TYPE: section, the last spotlights 65-88, ~38 s - t8's one flat run, 1:44-2:32; rewritten) for Harry's
+# direction (6 Nov 23:55: subtle variation, something moving every 8-16 bars, groove/key/identity kept): THE STRETTO
+# TURNS. 65-72 as it was (E6's organ spotlight, the drums gathering); 73-80 a DROP-OUT - the lights and the bass pedal
+# step away and the organ, the chip hook, the marimba and the hats are left thin and airy, until a snare roll at the
+# end of 80 brings everything back; 81-88, as E7's brass columns arrive, the chip hook LIFTS AN OCTAVE - until the
+# spiral (89) takes over. Pitch classes unchanged.
+T_DROP, T_LIFT = (73, 80), (81, 88)
+
+
+def stretto_turns():
+    carve(["lights", "bass"], *T_DROP)
+    for i in range(8):                                                   # the roll back in, end of bar 80
+        part("snare").add(b0(T_DROP[1]) + 2 + i * 0.25, 0.25, "s", 50 + i * 8)
+    lo, hi = b0(T_LIFT[0]), b0(T_LIFT[1] + 1)
+    P["e1"].ev = [(s, ln, name_of(midi(h) + 12) if lo - 1e-6 <= s < hi - 1e-6 and "," not in h else h, v)
+                  for s, ln, h, v in P["e1"].ev]
+
+
 def carve(names, a_bar, z_bar):
     lo, hi = b0(a_bar), b0(z_bar + 1)
     for n in names:
@@ -680,6 +698,7 @@ def main():
     write_tide_and_jet()
     carve(["e1", "e2", "bass"], *LULL)
     carve(["lights", "e1", "e2", "e3", "e5", "e6", "bass", "kick", "hat"], VACUUM, VACUUM)
+    stretto_turns()
     lead, fifth, low = choir()
     solo = opening_voice() + horizon_line()                      # v12: the last line, one voice alone (v21: and the first)
     lead += [{"at": b0(HORIZON + 16), "len": b0(BARS + 1) - b0(HORIZON + 16) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'
