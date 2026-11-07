@@ -8314,14 +8314,15 @@
       "metric": "python3 tools/compscore.py chirpers9-t2 OUT.wav",
       "best": {
         "score": 96.97,
-        "version": "v43",
+        "version": "v44",
         "commit": "see git log songs/chirpers9-t2.yaml",
         "rescored": {
           "by": "chirper-one",
           "at": "2026-11-07T17:15:33Z",
           "was": 96.97,
           "how": "done --best-now"
-        }
+        },
+        "note": "v44 kept on judgment (level with v43: 96.97/97.06 vs 96.97/96.97); done ran without --keep, corrected by chirper-one"
       },
       "passes": 1,
       "enabled": true,
