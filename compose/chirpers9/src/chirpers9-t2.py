@@ -623,6 +623,37 @@ def build():
             P['bass'].append((b0_ + 3.5, m(KEY + rn_ + 7 - (12 if rn_ + 7 > 5 else 0)), 0.45, 92))
     P['kit'].sort(key=lambda e_: e_[0]); P['bass'].sort(key=lambda e_: e_[0])
 
+    # (v32, palette: 'add the part the song lacks') A GUITAR COMPS: t2 had pads, bells, a wurli, chips and voices but
+    # nothing playing the chords in time - the thing a band's guitarist does. Now a clean, compressed, chorused Tele
+    # (the library's cutting-guitar, which no Accretion track uses) plays short chord stabs: in the gather's second
+    # half only the skank (the ands of 2 and 4), in the build and the crest a sixteenth-note funk figure (the a of 1,
+    # the and and a of 2, the and of 3, the and of 4), out for the break (bells and the far choir), the skank again
+    # as the drift comes back, the funk figure from the drift's own groove, silent where the floor falls away, and
+    # gone for the fall. Each chord voiced in G3-D5, the voicing nearest the last, so the comp moves by step
+    P['gtr'] = []
+    prev_ = 64.0
+    SKANK, FUNK = [6, 14], [3, 6, 7, 10, 14]
+    for bar_ in range(24, SEC['fall']):
+        s_, i_ = sec_of(bar_)
+        if s_ == 'break' or 91 <= bar_ < 94:
+            continue
+        pat_ = SKANK if (s_ == 'gather' or (s_ == 'drift' and i_ < 4)) else FUNK
+        rt_, iv_ = chord(bar_)
+        pcs_ = sorted({(KEY + rt_ + v_) % 12 for v_ in [0] + list(iv_)})
+        best_ = None
+        for lo_ in range(55, 64):
+            vo_ = sorted(lo_ + ((pc_ - lo_) % 12) for pc_ in pcs_)
+            vo_ = [n_ for n_ in vo_ if n_ <= 74][:4]
+            c_ = sum(vo_) / len(vo_)
+            if best_ is None or abs(c_ - prev_) < abs(best_[0] - prev_):
+                best_ = (c_, vo_)
+        prev_ = best_[0]
+        ch_ = ','.join(m(n_) for n_ in best_[1])
+        for q_ in pat_:
+            acc_ = q_ in (6, 14)
+            P['gtr'].append((bar_ * 4.0 + q_ * 0.25, ch_, 0.18, (84 if acc_ else 66) + (8 if s_ == 'crest' else 0)))
+    P['gtr'] = [e_ for e_ in P['gtr'] if not (91.0 * 4.0 - 1e-6 <= e_[0] < 94.0 * 4.0 - 1e-6)]
+
     # (v25, section w8: the drift 'static' - one groove under the last chorus to the end) THE FLOOR FALLS AWAY FOR THE
     # THIRD TIME: at the last chorus's third statement (bars 92-94) the band drops out - no kit, no hats, no debris,
     # no bass, no sub - and only the voice, the ondes, the pad and the bells are left, the line sung nearly alone;
@@ -713,6 +744,7 @@ def build():
             # (an album staple, three tracks) 13 dB down - the song's through-line, barely there. Now it is a Wurlitzer,
             # reedy and warm, up front: the tune you follow upside down until the crest turns it over (and the ondes
             # sings it the right way up)
+            tr('gtr', 'cutting-guitar', '-5dB', pan=-0.35, sends={'hall': '-18dB'}),
             tr('e1p', 'wurli', '-6dB', pan=0.2, sends={'echo': '-14dB', 'hall': '-14dB'}),
             tr('e1c', 'risset-bell', '-14dB', pan=-0.35, sends={'hall': '-8dB'}),
             # (v27) the whisper's track is now the far choir's echo, 'farchoir' (below)
