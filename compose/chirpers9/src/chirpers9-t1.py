@@ -83,6 +83,7 @@ BREATHREG = os.environ.get("C9T1_BREATHREG", "1")   # PALETTE (register pinned, 
 HOOKJOIN = os.environ.get("C9T1_HOOKJOIN", "-16")   # PALETTE (Harry 23:55: subtle variation, phrase by phrase): THE SCATTERED VOICES JOIN THE SEED - each time the whistle states E1 (the opening, A, the build, the crest, the farewell), more of the five scattered voices double it an octave up: at A the vibes, at the build the vibes and celesta, at the crest the vibes, celesta and kalimba; the opening and the farewell stay the whistle alone. Value: the doublings' gain in dB
 PHRASES = os.environ.get("C9T1_PHRASES", "rotate,breath,intro,halfkick")   # WHOLE (Harry 23:55: 'lots of contiguous music with very little change' - subtle variation every 8-16 bars, not schizo): THE SEED'S PULSE MOVES IN PHRASES - 'rotate': A's 5-in-16 shekere Euclid turns three sixteenths every 8 bars (the same rhythm, its accents walking round the bar: a process move); 'breath': the hats and kick rest on the last beat of every 8-bar phrase in A, the build and B (the last before the crest is a held breath); 'intro': a soft clave ticks E1's 5-beat cycle from intro bar 9 and stops at A, so the whistle lands alone, and the pad's open fifth opens up an octave (D3 A3 D4) at bar 9 and deepens (A2 D3 A3) at bar 13; 'halfkick': in B's second phrase the kick goes to every 4 beats, then back
 STRIP = os.environ.get("C9T1_STRIP", "256:288")   # SECTION (w6, 2:54-3:27, the lock after the crest: the least recently worked window, everything playing E1 at once): THE SEED ALONE - for the lock's second phrase ('A:B' beats) the five scattered voices step out (':bare' also rests the glock cell and the shekere), and over the cello, the pad, the organ, the bass and the half-time kick the whistle plays E1 twice, plainly, the seed heard on its own once the voices have made it; at B everything comes back, locked
+BOUNCE = os.environ.get("C9T1_BOUNCE", "0.72:short")   # SECTION (w5, 2:22-2:54, the build into the crest: little new vs A, the least recently worked window): THE VOICES FALL TOGETHER - in the build each of the five scattered voices stops keeping its own time and repeats its note faster and faster, like a dropped ball bouncing to rest, each joining in turn (kalimba first, music box last) and all landing on their places in E1 at the crest: the convergence the album is about, heard as it happens. Value = the bounce ratio (each gap this fraction of the last); 'R:short' starts later and stops before the fastest repeats
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -425,6 +426,25 @@ def song():
                     else:
                         out.append(n)
                 tr["notes"] = out
+    if BOUNCE:
+        r, _, short = BOUNCE.partition(":")
+        r, L0, dmin = float(r), (12 if short else 16), (0.3 if short else 0.2)
+        for k, nm in enumerate(("seed-d", "seed-a", "seed-c", "seed-g", "seed-e")):
+            tr = [x for x in tracks if x["name"] == nm]
+            if not tr:
+                continue
+            tr = tr[0]
+            ti = TC + E1_OFF[k]
+            L = L0 - (2 if short else 2.5) * k
+            land = [n for n in tr["notes"] if abs(n["at"] - ti) < 0.01]
+            ln0 = land[0]["len"] if land else 0.5
+            keep = [n for n in tr["notes"] if not (ti - L <= n["at"] < ti)]
+            d, ns = L, []
+            while d > dmin:
+                ns.append(note(ti - d, f"m{E1_MIDI[k]}" if "E1_MIDI" in globals() else land[0]["pitch"], min(ln0, d * (1 - r) * 0.9 + 0.1),
+                               0.4 + 0.35 * (1 - d / L)))
+                d *= r
+            tr["notes"] = sorted(keep + ns, key=lambda n: n["at"])
     if STRIP:
         sa, sb, *sopt = STRIP.split(":")
         sa, sb = float(sa), float(sb)
