@@ -770,6 +770,41 @@ def arc(song):
         tr_["auto"] = dict(tr_.get("auto") or {}, ar={"points": pts})
 
 
+# v38 (ROUND TYPE: section, the rise 65-80, ~35 s - with the crest's second half the stillest stretch left for
+# flatness.py, 2:24-2:48; rewritten): THE LEAD CHANGES HANDS, AND THE LIGHTS GO OUT. The rise was the lights' chords
+# climbing over sub, air and kick, the hook resting (v6), the elements that converge at the crest masked under it.
+# A first try raised E2 and E3 together as a steady layer through 69-80 and made the rise MORE uniform (a new 32 s
+# still run, refused); so now each phrase SWAPS who leads, and one cuts: 65-68 the lights alone (as v30 thinned
+# them); 69-72 E2's harp steps forward for those four bars only; 73-76 the LIGHTS GO OUT - the chords stop, and E3's
+# pedal-steel line and its octave double play alone over kick, sub and the swelling air; 77-80 the lights return at
+# full under the build, and the crest lands on all of it.
+LEADS = {"e2": [(69, 72, 7.0)], "e3": [(73, 76, 8.0)], "e3hi": [(73, 76, 8.0)]}
+LIGHTS_OUT = (73, 76)
+
+
+def lead_lanes(song):
+    for tr_ in song["tracks"]:
+        if tr_["name"] in LEADS:
+            pts = [["0b", 0.0]]
+            for a_, z_, db in LEADS[tr_["name"]]:
+                a, z = b0(a_), b0(z_ + 1)
+                pts += [[f"{a - 1:g}b", 0.0], [f"{a:g}b", db], [f"{z - 1:g}b", db], [f"{z:g}b", 0.0]]
+            tr_["fx"] = list(tr_.get("fx") or []) + ["gain gain=0dB+auto.ld*1"]
+            tr_["auto"] = dict(tr_.get("auto") or {}, ld={"points": pts})
+
+
+def lights_out():
+    lo, hi = b0(LIGHTS_OUT[0]), b0(LIGHTS_OUT[1] + 1)
+    out = []
+    for s, ln, h, v in P["lights"].ev:
+        if lo - 1e-6 <= s < hi - 1e-6:
+            continue
+        if s < lo - 1e-6 < s + ln:
+            ln = lo - s
+        out.append((s, ln, h, v))
+    P["lights"].ev = out
+
+
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -912,6 +947,7 @@ def main():
     lights_shimmer()
     everyone_sings()
     reed_answers()
+    lights_out()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v,
                    key=lambda d: d["at"])
@@ -980,6 +1016,7 @@ def main():
                           {"type": "compressor", "threshold": "-14dB", "ratio": 3, "attack": "8ms",
                            "release": "120ms", "makeup": "0dB"}]},
     }
+    lead_lanes(song)
     arc(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
