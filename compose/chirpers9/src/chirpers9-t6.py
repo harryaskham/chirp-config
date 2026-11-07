@@ -791,6 +791,8 @@ def build():
                'synth': {'layers': [{'type': 'chaos', 'chaos': {'system': 'duffing', 'axis': 'x',
                                      'amount': {'value': 0, 'mod': [{'src': 'auto.strain', 'amount': 1.0}]}}}]}}
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
+    P['glass'] = [e_ for e_ in P['lights'] if SEC['crest'] * 4.0 - 1e-6 <= e_[0] < SEC['cross'] * 4.0 - 1e-6]
+    P['lights'] = [e_ for e_ in P['lights'] if not (SEC['crest'] * 4.0 - 1e-6 <= e_[0] < SEC['cross'] * 4.0 - 1e-6)]
     song = {
         'about': "chirpers - Accretion, track 6 by chirper-one: Spring Tide. Tidal forces: E1 in two layers, one squeezed "
                  "and one stretched, meeting at the crest and tearing apart; E6, two chords a semitone apart, ebbing and flowing. "
@@ -821,6 +823,14 @@ def build():
             # far and near layers, the fretless, the pans and the kora) DUCKS under it - slow, 40 ms in, half a second
             # out - so whenever E1 is stated the band leans back and the tune stands in front; between statements the
             # process music fills back in
+            # (v42, palette: the tide and the lights were the same harmonium - E6's breathing reeds and E4's four
+            # chords at the crest and after the void, one instrument twice) THE LIGHTS ARE GLASS: E4's four lights (D9,
+            # Cmaj9, Am11, G6/9, one chord per E1 cycle) at the crest now play on the library's pad-glass - an FM
+            # bell-glass tone that blooms in slowly, chorused, in a long hall; no Accretion track uses it - so when the
+            # tide gives way to the lights at the crest, the sound turns from reeds to glass. After the void (near the
+            # out-seam) the lights stay on the harmonium: glass there brightened t6's tail against t7's head (out-flow
+            # 2.8 -> 3.9 dB spectral)
+            tr('glass', 'pad-glass', '-15dB', sends={'hall': '-10dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             tr('lights', 'harmonium', '-10dB', sends={'hall': '-8dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             tr('sub', 'sub', '-10dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '200ms', 'curve': 0.6}]),
             # (v15, whole song) THE 303 GOES: E2's cell ran the whole song on an acid squelch (resonant, driven - the
