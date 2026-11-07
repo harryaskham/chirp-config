@@ -81,6 +81,7 @@ FLOORWALK = os.environ.get("C9T5_FLOORWALK", "all")   # WHOLE (t1 v29's BASSWALK
 FAREAGE = os.environ.get("C9T5_FAREAGE", "0.6")   # SECTION w8 (3:53-4:19, the outro = the t5 -> t6 overlap: her farewell): SHE GROWS OLD AS SHE LEAVES - t5's near singer is young; t6 (chirper-one) begins with an old voice. Now her farewell ages note by note (wM's age, bound per note), from her own young voice to a shaking one by her last 'hums' (value = the last note's age), so the voice that leaves the inner disk hands over to the old voice of t6
 DRIFT = os.environ.get("C9T5_DRIFT", "0.97@-18")   # WHOLE (Harry: complexity in time and texture, the harmony at home): THE ORBIT COMES APART - every cycle met on one downbeat at the crest; after it the elements are pulled apart. Now, from two bars after the crest to the outro, a second orbit (the same NES pulse, panned the other way, quieter) plays E5 a little slow ('ratio[@gaindB]', e.g. 0.98) and slips behind the first, through a whole lap, Reich's phasing: the meeting undone in time while the notes stay the same
 UNDERTOW = os.environ.get("C9T5_UNDERTOW", "build,C")   # WHOLE (ACCRETION: track N carries E1..E(N-1); t5 carried E1, E2, E4 and E5 but never E3): THE UNDERTOW - t3's E3 (seven beats: D D D' | Bb Bb F | C C G C', v2) in the major, as t7's crest locks it (D | C | G: D D D' | C C G | G G D G'), on a marimba in the low middle, phased so a cycle lands on the crest's downbeat with every other cycle. 'build' (from the build to the crest) or 'build,C' (on through C to the outro) [@gaindB]
+HUMEVEN = os.environ.get("C9T5_HUMEVEN", "1")   # SECTION w6 (2:47-3:20, the line after the crest: 'little new vs w5'): THE CHOIR'S HUM HOLDS - since v40 every 'hums' closes into a hum, but the crest choir sings it on D5 and a real hum that high drops ~20-30 dB as the mouth closes, so the word vanished instead of humming; wM's hum_even (pin 1d916569) holds the crest choir's hum toward the open voice's level ('1' fully, '0.5' halfway)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -742,7 +743,8 @@ def song():
             if not tr["name"].startswith("hums") or not any(n.get("ph") == "HH AH1 M Z" for n in tr["notes"]):
                 continue
             pt = tr["patch"] if isinstance(tr["patch"], dict) else {"extends": tr["patch"]}
-            tr["patch"] = dict(pt, extends=pt["extends"] + f" synth.layers.0.hum=expr.hum synth.layers.0.hum_at={hat or 'm'}")
+            tr["patch"] = dict(pt, extends=pt["extends"] + f" synth.layers.0.hum=expr.hum synth.layers.0.hum_at={hat or 'm'}"
+                               + (f" synth.layers.0.hum_even={HUMEVEN}" if HUMEVEN and tr["name"] in ("hums-1", "hums-2", "hums-3") else ""))
             out = []
             for n in tr["notes"]:
                 if n.get("ph") == "HH AH1 M Z":
