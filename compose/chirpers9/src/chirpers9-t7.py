@@ -442,6 +442,14 @@ R44 = os.environ.get("T7_R44", "thump") != "none"
 # pitch-shifter fx left a 38 Hz grain rumble the t8 seam heard), while the originals just let go of those bars.
 # T7_R45=none reproduces v44.
 R45 = os.environ.get("T7_R45", "redshift") != "none"
+# round 46 (palette): T7_R46=orbit (default) - THE SPIRAL FALLS FOREVER. An orbit is falling that never arrives,
+# and the spiral (bars 89-120, the inspiral before the crest) had no sound for that: its pads were the tide's chords,
+# pulsing. Now under the whole spiral a Shepard-Risset pad - t2's endless fall come back (chirper-one's shepard-fall
+# on D under t2's infall, "the infall that never lands") - glides DOWN an octave every 8 seconds and never gets lower, on E-flat and B-flat (the pedal and its fifth: in every
+# chord the spiral moves through, Ebm9, Cbmaj7, Db add9). It enters with the spiral at 89 and lets go just before
+# the crest lands on D at 121, so the endless fall stops exactly where the orbit locks: t2's fall, landing at last. Patch a7-orbit =
+# shepard-pad with both layers down. T7_R46=none reproduces v45.
+R46 = os.environ.get("T7_R46", "orbit") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1447,6 +1455,19 @@ def main():
         for tr in tracks:
             if tr["name"] == "bow":
                 tr["patch"] = "a7-erhu"
+    if R46:                                                 # palette: the spiral falls forever (a falling Shepard pad)
+        sh = {"center": "520hz", "cycle": "8s", "octaves": 9, "width": 1.3, "down": True}
+        patches["a7-orbit"] = {"about": "chirper-two: the library shepard-pad gliding DOWN - an endless fall (t7's spiral)",
+                               "fx": ["chorus mix=0.3", "reverb kind=hall decay=5s mix=0.35"], "gain": "-6dB",
+                               "play": {"gate": 1.0, "vel_sens": 0.3},
+                               "synth": {"amp": {"a": "1.5s", "r": "2.5s", "s": 1},
+                                         "filters": [{"cutoff": "5k", "kind": "lp", "q": 0.6}],
+                                         "layers": [{"type": "shepard", "shepard": dict(sh)},
+                                                    {"type": "shepard", "cents": 7, "level": "-4dB", "shepard": dict(sh)}]}}
+        orb = Track("orbit")
+        orb.add(88 * 4.0, 32 * 4.0 - 0.75, ",".join(mtok(m) for m in (51, 58)), 90)
+        tracks.append({"name": "orbit", "patch": "a7-orbit", "gain": "-12dB", "pan": 0.0, "sends": {"space": "-12dB"},
+                       "score": orb.score()})
     if R45:                                                 # w10: the plunge falls (bars 157-160), the bell holds E
         lo, hi = 156 * 4.0, 160 * 4.0
         lane = [["0b", 0.0], [f"{lo:g}b", 0.0], [f"{lo + 8:g}b", -3.0], [f"{lo + 12:g}b", -6.0], [f"{hi - 0.1:g}b", -12.0],
