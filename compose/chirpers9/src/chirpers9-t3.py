@@ -228,6 +228,13 @@ R27 = os.environ.get("T3_R27", "flute") != "none"
 # stacked voice sing TOGETHER (wM, pinned 8083e37e) and =together does only that - both cost recurrence (-0.4: the
 # breathier, softer stacks), so they stay off. T3_R28=none reproduces v27.
 R28 = os.environ.get("T3_R28", "move") != "none"
+# round 29 (section, w7 = bars 73-84, the assembly before the lock, flagged 'static'): T3_R29=lands (default) - THE
+# FLUTE LANDS ON THE ONE. The song's idea is that every cycle meets one downbeat at bar 89; the dizi's 5-beat E1
+# crossed the bar all through the build (v27) and then vanished before the lock. Now it comes back in the assembly on
+# the same 5-beat cycle, phased to MEET bar 89: seven statements from bar 74, a rest under the spoken line (bar 83) and
+# the break, and then one last E1 exactly on the crest's downbeat - the flute that fought the bar arrives on the one
+# with everything else. Appended to the dizi track. T3_R29=none reproduces v28.
+R29 = os.environ.get("T3_R29", "lands") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1130,6 +1137,13 @@ def main():
             for j, (m, ln) in enumerate(((74, 0.5), (81, 0.75), (84, 0.25), (79, 1.0), (76, 1.0))):
                 dz.add(at, ln * (0.95 if j < 4 else 1.4), mtok(m), 76 + 3 * k + (6 if j == 0 else 0))
                 at += ln
+        if R29:                                             # w7: the 5-beat cycle phased to meet bar 89's downbeat
+            for k, at0 in enumerate([292.0 + 5.0 * i for i in range(7)] + [337.0, 352.0]):
+                at = at0
+                for j, (m, ln) in enumerate(((74, 0.5), (81, 0.75), (84, 0.25), (79, 1.0), (76, 1.0))):
+                    v = 100 if at0 == 352.0 else 70 + 3 * k
+                    dz.add(at, ln * (0.95 if j < 4 else (2.4 if at0 == 352.0 else 1.4)), mtok(m), v + (6 if j == 0 else 0))
+                    at += ln
         if "_dizi" in T:                                    # R28: the storm's own E1 statements (bars 17, 41, 65)
             for e in T["_dizi"].ev:
                 dz.add(e[0], e[1], e[2], e[3])
