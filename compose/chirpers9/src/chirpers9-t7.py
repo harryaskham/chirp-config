@@ -491,6 +491,15 @@ R50 = os.environ.get("T7_R50", "clap") != "none"
 # twice, a riff you can expect - and bar 24 ends in a fill (the dusty kit's snare and tom in sixteenths, swelling,
 # an open hat on the trumpet's downbeat) that hands the trumpet its entrance. T7_R51=none reproduces v50.
 R51 = os.environ.get("T7_R51", "call") != "none"
+# round 52 (section, w1 = bars 1-16, the infall, flagged 'static'; focused least recently): T7_R52=jet (default) -
+# THE JET SEEN FROM FAR OFF. For its first 29 s t7 was the tide's four-bar chords over a held sub and nothing else:
+# Harry's 30 s where nothing changes. Now E7, the jet (this track's own element: rising fifths on 2 2 2 2 3
+# sixteenths), is seen from far away before the storm lands: a glockenspiel, far back in the space, spells it from
+# B-flat (Bb F C G D - notes common to t6's D minor tail and t7's E-flat, so it is consonant on both sides of the
+# crossfade). Bar 5: its first three notes, a beat apart. Bar 9: all five, still a beat apart. Bar 13: at its real
+# speed, three times round its 11-sixteenth loop against the bar - the jet coming closer every four bars, until
+# the storm lands at 17. T7_R52=none reproduces v51.
+R52 = os.environ.get("T7_R52", "jet") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1510,6 +1519,18 @@ def main():
         for tr in tracks:
             if tr["name"] == "bow":
                 tr["patch"] = "a7-erhu"
+    if R52:                                                 # w1: the jet seen from far off (bars 5, 9, 13)
+        star, jet = Track("star"), (70, 77, 84, 91, 98)       # E7 from B-flat: Bb4 F5 C6 G6 D7
+        for i, m in enumerate(jet[:3]):
+            star.add(16.0 + i, 0.9, mtok(m), 64 + 4 * i)
+        for i, m in enumerate(jet):
+            star.add(32.0 + i, 0.9, mtok(m), 70 + 3 * i)
+        for k in range(3):
+            for i, m in enumerate(jet):
+                star.add(48.0 + 2.75 * k + 0.5 * i, 0.45 if i < 4 else 0.7, mtok(m), 76 + 4 * k + 2 * i)
+        tracks.append({"name": "star", "patch": "glock", "gain": "-9dB", "pan": 0.35,
+                       "fx": ["delay time=3/8 mix=0.25 feedback=0.35"], "sends": {"space": "-4dB"},
+                       "score": star.score()})
     if R51:                                                 # w2: a call before the answer (bars 21-22, fill at 24)
         for tr in list(tracks):
             if tr.get("name") == "hook" and tr.get("score"):
