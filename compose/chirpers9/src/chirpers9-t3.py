@@ -308,6 +308,15 @@ R37 = os.environ.get("T3_R37", "eye") != "none"
 # tom fill falls through E2's notes (D4 C4 A3 F3, twice, sixteenths, crescendo) under the chip roll, and a crash
 # lands the hum's entry. T3_R38=none reproduces v37.
 R38 = os.environ.get("T3_R38", "gust") != "none"
+# round 39 (whole): T3_R39=swing (default) - THE LOCK SWINGS. The machine ran dead straight sixteenths for five
+# minutes. Harry: put the complexity into time, a fun tune. The storm stays straight - a machine - but when every
+# cycle lands together on bar 89 and the band locks into its groove, it starts to SWING: every generated part's
+# off-sixteenths sit 0.025 beats late for bars 89-104 (swing 0.55, the light swing chirpers1's ninefold riff
+# settled on), the whole band in one pocket so nothing flams; the voices keep their own phrasing; it straightens
+# again before t4's overlap so the hand-off's sixteenths agree with t4's. Difficult ->
+# rewarding, in the feet. (Draft: swing on the whole song - s0 -0.02 but flatness 36% -> 39%, the storm smoothed.)
+# T3_R39=none reproduces v38.
+R39 = os.environ.get("T3_R39", "swing") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -892,6 +901,10 @@ def build():
 
 def main():
     T, whisper, robot = build()
+    if R39:                                                 # the lock swings: off-sixteenths late from bar 89
+        for trk in T.values():
+            trk.ev = [(round(e[0] + 0.025, 4),) + tuple(e[1:]) if CREST * 4.0 <= e[0] < 104 * 4.0 and abs(e[0] % 0.5 - 0.25) < 1e-3
+                      else e for e in trk.ev]
     tempo = [{"at": "0b", "bpm": SEAM_IN}, {"at": "64b", "bpm": SEAM_IN},
              {"at": "448b", "bpm": SEAM_OUT, "ramp": True}]
     dyn = [["0b", -5.0], ["64b", -2.5], ["159.99b", -2.0], ["160b", -0.5], ["247.99b", 0.0], ["248b", -3.0],
