@@ -374,6 +374,14 @@ R45 = os.environ.get("T3_R45", "melodica") != "none"
 # and its chip +4, the undertow 3 dB back - in full for bars 89-90 and 93-94, half under the singer's two phrases
 # (91, 95), back to before at 97. Only levels move; the notes were always there. T3_R46=none reproduces v45.
 R46 = os.environ.get("T3_R46", "lock") != "none"
+# round 47 (section, w6 = bars 61-72 - "little new vs w5"; the eye): T3_R47=still (default) - IN THE EYE, TIME SLOWS.
+# The eye (bars 63-66) took the storm away - dust chord, sub on D, the dizi's slow E1, the voices' held "oo" - but
+# kept the storm's clock: the accelerando (98 -> 108 bpm over the song) ran straight through it, so it read as a
+# thinner bit of the same storm. Now time itself stills there: from bar 62 the tempo eases down to 80 bpm, holds
+# for the dizi's long notes, and from bar 65 winds back up to exactly where the accelerando would have been as the
+# wall slams back at 67. Complexity in time, not pitch: no note moves. The ramp still reaches 108 for t4's seam.
+# T3_R47=none reproduces v46.
+R47 = os.environ.get("T3_R47", "still") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -993,6 +1001,13 @@ def main():
                       else e for e in trk.ev]
     tempo = [{"at": "0b", "bpm": SEAM_IN}, {"at": "64b", "bpm": SEAM_IN},
              {"at": "448b", "bpm": SEAM_OUT, "ramp": True}]
+    if R47:                                                 # w6: in the eye, time slows (bars 62-66)
+        def ramp_at(b):                                     # the old ramp's bpm at beat b (linear in beats),
+            return round(SEAM_IN + (SEAM_OUT - SEAM_IN) * (b - 64) / (448 - 64), 6)   # exact so nothing before drifts
+        tempo = [{"at": "0b", "bpm": SEAM_IN}, {"at": "64b", "bpm": SEAM_IN},
+                 {"at": "244b", "bpm": ramp_at(244), "ramp": True}, {"at": "252b", "bpm": 80, "ramp": True},
+                 {"at": "258b", "bpm": 80, "ramp": True}, {"at": "264b", "bpm": ramp_at(264), "ramp": True},
+                 {"at": "448b", "bpm": SEAM_OUT, "ramp": True}]
     dyn = [["0b", -5.0], ["64b", -2.5], ["159.99b", -2.0], ["160b", -0.5], ["247.99b", 0.0], ["248b", -3.0],
            ["263.99b", -3.0], ["264b", 0.0], ["343.99b", -1.0], ["344b", -2.0], ["351.99b", -2.0], ["352b", 1.0],
            ["448b", 0.5], ["512b", -3.0]]
