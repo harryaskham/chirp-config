@@ -376,6 +376,14 @@ R36 = os.environ.get("T7_R36", "log") != "none"
 # over the lift (bars 45-46, the drums out). Call, answer, echo: the voice grows without giving away the words
 # (the line completes only at the crest). T7_R37=none reproduces v36.
 R37 = os.environ.get("T7_R37", "echo") != "none"
+# round 38 (whole): T7_R38=arc (default) - ONE ARC TO THE HARDEST CREST. The master dyn lane had the collision at 0 dB
+# and the crest only 1 dB above it: by level the innermost orbit's crest - the album's hardest - was hardly higher
+# than the first storm, and the spiral sat level too. Redrawn as one climb (t3 v26's lesson): approach -4 -> -3.5 dB,
+# collision -3.5, the slack deeper (-6.5 -> -5.5), the spiral climbing -4 -> -1, the crest untouched at +1 (the glue
+# and limiter eat most of it: measured, the crest now sits 1.5-1.9 dB above the collision instead of 0.1-0.4; a
+# gentler draft at -2 got 1.0-1.3). The head's start under t6 and the plunge and outfall into t8 are unchanged.
+# T7_R38=none reproduces v37.
+R38 = os.environ.get("T7_R38", "arc") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -843,6 +851,10 @@ def main():
     dyn = [["0b", -4.0], ["64b", -2.0], ["191.99b", -1.5], ["192b", 0.0], ["319.99b", 0.0], ["320b", -4.0],
            ["351.99b", -3.0], ["352b", -1.0], ["479.99b", 0.0], ["480b", 1.0], ["607.99b", 1.0], ["608b", -1.0],
            ["640b", -2.0], ["704b", -4.0]]
+    if R38:                                                 # one arc to the hardest crest
+        dyn = [["0b", -4.0], ["64b", -4.0], ["191.99b", -3.5], ["192b", -3.5], ["319.99b", -3.5], ["320b", -6.5],
+               ["351.99b", -5.5], ["352b", -4.0], ["479.99b", -1.0], ["480b", 1.0], ["607.99b", 1.0], ["608b", -1.0],
+               ["640b", -2.0], ["704b", -4.0]]
     glitch = [["0b", 0.0], ["64b", 0.1], ["192b", 0.35], ["319b", 0.45], ["320b", 0.0], ["352b", 0.25], ["479b", 0.1],
               ["480b", 0.0], ["704b", 0.0]]
     grit = [["0b", 0.0], ["64b", 0.15], ["192b", 0.5], ["320b", 0.0], ["352b", 0.4], ["479b", 0.2], ["480b", 0.0],
