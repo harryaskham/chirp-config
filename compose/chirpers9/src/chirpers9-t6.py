@@ -747,7 +747,12 @@ def build():
         'buses': {'hall': {'fx': ['reverb kind=hall decay=3.2s mix=1 mono_below=200', 'hp cutoff=220'], 'returns': []},
                   'echo': {'fx': [{'type': 'delay', 'time': '3/16', 'feedback': 0.4, 'mix': 1, 'ping_pong': True},
                                   'lp cutoff=5000', 'hp cutoff=300'], 'returns': []}},
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'peak cutoff=300 q=0.8 gain=-2dB', 'highshelf cutoff=7000 gain=1.5dB']},
+        # (v36, whole song) THE TIDE GETS ITS WEIGHT: measured against the album, t6 was 6-14 dB thin from 44 to 114 Hz
+        # (61 Hz the worst, -14) and 7-8 dB heavy from 640 Hz to 1.4 kHz - boxy: the harmonium, the marimba, the
+        # trombone and the voices all piled into the low mids over a floor that never weighed anything. Now the master
+        # lifts the bottom (a 3 dB low shelf at 110 Hz) and scoops the box (-2.5 dB at 850 Hz), and the analog bass -
+        # the floor that walks and drives - comes up 3 dB
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'lowshelf cutoff=110 gain=3dB', 'peak cutoff=300 q=0.8 gain=-2dB', 'peak cutoff=850 q=0.7 gain=-2.5dB', 'highshelf cutoff=7000 gain=1.5dB']},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.2, 'attack': '15ms', 'release': '140ms', 'makeup': '1dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.E', 'amount': 1}]}},
                           'tapestop stop=auto.stop time=1b',
@@ -785,7 +790,7 @@ def build():
             # roots) was a second sine sub - felt, not heard, and the album's most shared patch. Now it is an analog
             # saw bass (Juno / SH-101), dark and round, held for the chord's length: the bass line D -> C -> G you
             # could only feel is now a line you can hum, and its harmonics fill the low-mids the sines left bare
-            tr('root', 'analog-bass play.gate=0.98', '-12dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-4dB', 'release': '200ms', 'curve': 0.6}]),
+            tr('root', 'analog-bass play.gate=0.98', '-9dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-4dB', 'release': '200ms', 'curve': 0.6}]),
             tr('farbass', 'fretless', '-6dB', pan=-0.1, fx=['lp cutoff=1800', 'hp cutoff=35', {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             tr('hook', 'low-whistle', '-6dB', pan=0.05, sends={'hall': '-12dB', 'echo': '-18dB'}),
             tr('near', 'modal-marimba', '-11dB', pan=0.3, auto={'shut': {'points': shut_pts}},
