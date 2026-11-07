@@ -597,6 +597,18 @@ def build():
     for key in ('e5', 'near', 'acid', 'hook', 'e5b'):
         P[key] = [e_ for e_ in P[key] if not (tr0 + 0.5 - 1e-6 <= e_[0] < void1 - 1e-6)]
         P[key] = [(e_[0], e_[1], min(e_[2], tr0 + 0.5 - e_[0]), *e_[3:]) if e_[0] < tr0 + 0.5 < e_[0] + e_[2] else e_ for e_ in P[key]]
+    # (v49, section w8: still 'static' - after the stopped tape the whole band snapped straight back with the last
+    # chorus, so the window ran full from the tear's end to the seam) THE LAST CHORUS STARTS ALONE: after the tape
+    # stops, the band does NOT come back at once - the choir (with its basses) sings the first line of the last
+    # chorus, 'the near side keeps the time / the far side lets it go', over nothing but the harmonium's lights and
+    # the sub, home in D; then on the second statement the band crashes back in, the crest's locked groove, and runs
+    # into the seam. The song's chorus heard bare once, at the moment everything has been torn away
+    ac0_, ac1_ = void1, void1 + 10.0
+    for key in ('kit', 'hats', 'acid', 'root', 'farbass', 'near', 'e5', 'e5b', 'hook', 'far'):
+        P[key] = [e_ for e_ in P[key] if not (ac0_ - 1e-6 <= e_[0] < ac1_ - 1e-6)]
+    P['kit'].append((ac1_ - 1.0, 's', 0.25, 70)); P['kit'].append((ac1_ - 0.5, 's', 0.25, 92))
+    P['kit'].append((ac1_, 'c', 2.0, 116)); P['kit'].append((ac1_, 'k', 0.25, 124))
+    P['kit'].sort(key=lambda e_: e_[0])
 
     # (tried in v18's round: each section leaving one colour out - the pan in the tide, the hats in the squeeze, more in
     # a bolder version - recurrence collapsed 100 -> 42..71: t6's sections are heard as returns BECAUSE they share
