@@ -262,6 +262,14 @@ R31 = os.environ.get("T3_R31", "lifts") != "none"
 # alone, same octave, did not move flatness: the floor's fundamental is what the measure hears.)
 # T3_R32=none reproduces v31.
 R32 = os.environ.get("T3_R32", "round") != "none"
+# round 33 (palette): T3_R33=deep (default) - THE STORM'S OWN FLOOR. The floor and the sub ran on the album's staple
+# `sub` (t2, t3, t6, t8) at an effective -21 dB, and every lift since v30 took the lowest octave away with it: the
+# spectrum's worst band sank to 44 Hz -14 dB (spectrum term 89.8 -> 77) and the seam into t4 asks for more at 38-44 Hz.
+# A new patch, a3-deep: a sine with a stronger second harmonic (-12 dB) and a little drive, so the floor speaks on small
+# speakers as well as in the chest, through a 200 Hz low-pass with a slower release; on both tracks, 6 dB up (3 dB read
+# 96.89, 6 dB 97.13 on s0 - the floor wanted its weight back). The
+# notes (E3's undertow, the lifts) are unchanged. T3_R33=none reproduces v32.
+R33 = os.environ.get("T3_R33", "deep") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1212,6 +1220,19 @@ def main():
         spec_b = next(tr for tr in tracks if tr["name"] == "bass")
         g_b = float(spec_b["gain"].replace("dB", "")) - 2.0
         tracks.append({"name": "bassr", "patch": "a3-round", "gain": f"{g_b:g}dB", "score": T["_round"].score()})
+    if R33:                                                 # the storm's own floor (staple `sub` -> a3-deep, +3 dB)
+        patches["a3-deep"] = {
+            "about": "chirper-two: t3's floor - a sine with a stronger second harmonic and a little drive through a 200 Hz "
+                     "low-pass, mono with a short glide; heard in the chest and on small speakers",
+            "synth": {"layers": [{"wave": "sine"}, {"wave": "sine", "ratio": 2, "level": "-12dB"}],
+                      "amp": {"a": "4ms", "d": 0, "s": 1, "r": "180ms"},
+                      "filters": ["lp cutoff=200 q=0.7"], "drive": 0.15},
+            "play": {"mono": True, "glide": "15ms", "gate": 0.95},
+            "gain": "-13dB"}
+        for tr in tracks:
+            if tr.get("name") in ("floor", "sub") and tr.get("patch") == "sub":
+                tr["patch"] = "a3-deep"
+                tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + 6.0:g}dB"
     if R28 and R28_TOG:                                     # every stacked voice sings together
         for k in ("a3-duet", "a3-hum3", "a3-doo3", "a3-back"):
             if k in patches:
