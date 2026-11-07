@@ -65,6 +65,7 @@ CRESTE1P = os.environ.get("C9T5_CRESTE1P", "dx-epiano")   # PALETTE: E1 in octav
 CRESTCHOIR = os.environ.get("C9T5_CRESTCHOIR", "accrete")   # SECTION w6 (2:47-3:20, the crest line, sung three times the same): THE CHOIR ACCRETES - the line after the crest ('near-er the mid-dle hums') came three times with the same third above. Now the first is her alone, the second adds the third above in the key, the third adds an octave below as well ('accrete'), so the voice grows inside the window the way the album grows track by track; every statement scoops in and falls off ('sing' alone: the gestures only)
 VOXREG = os.environ.get("C9T5_VOXREG", "A4")   # PALETTE (register pinned, 0c5d29c5): SHE LIGHTENS AT THE TOP - the close singer sang every note in chest voice, so the 'near-er' climb to D5 and the E5 peaks of the line pushed like the low notes. Now her voice has a break (passaggio, a pitch): above it a rising line turns to head voice over four semitones, rounder and airier, the way a young singer's voice flips. The harmony parts flip on their own pitch
 PHRASES = os.environ.get("C9T5_PHRASES", "fill,hats,loud")   # WHOLE (Harry 23:55: 'lots of contiguous music with very little change' - subtle variation every 8-16 bars, not schizo): THE GROOVE SPEAKS IN PHRASES - A, the build and C are cut into 8-bar phrases. 'fill': the last beat of each phrase is a quiet 909 snare run (two beats and a soft crash after, at a section's end); 'hats': every other phrase the hats thin to eighths and the next comes back in sixteenths; 'orbit': the orbit (E5) takes a breath, resting the last bar of every 16
+WARMTH = os.environ.get("C9T5_WARMTH", "top:-6,sub:-14")   # WHOLE: CLOSER MEANS WARMER - t5 was the album's brightest track by far (10-15 kHz +14..+17 dB against both neighbours' bodies, the worst bands at both seams) and had no sub under A (44 Hz -20 against t4). 'top:dB' puts a high shelf at 9 kHz on the drum machine (hats, ride) so the sizzle stops; 'sub:dB' doubles A's CZ bass with a sine sub an octave-true underneath, so the floor is felt from A (the 808 still arrives at the build)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -582,6 +583,16 @@ def song():
                 rests = [(ST[sec] + 16 * BAR * (k + 1) - BAR, ST[sec] + 16 * BAR * (k + 1)) for sec in ("A", "build", "C")
                          for k in range(4) if ST[sec] + 16 * BAR * (k + 1) <= END[sec]]
                 tr["notes"] = [n for n in tr["notes"] if not any(a <= n["at"] < b for a, b in rests)]
+    if WARMTH:
+        opts = dict(x.split(":") for x in WARMTH.split(","))
+        for tr in tracks:
+            if "top" in opts and tr["name"] in (("drums", "spin", "air") if "air" in opts else ("drums", "spin")):
+                tr["fx"] = list(tr.get("fx", [])) + [f"highshelf cutoff=9000 gain={opts['top']}dB"]
+        if "sub" in opts:
+            cz = [tr for tr in tracks if tr["name"] == "bass"]
+            if cz:
+                tracks.append({"name": "sub", "patch": "sub", "gain": f"{opts['sub']}dB", "pan": 0.0,
+                               "notes": [dict(n, len=max(n["len"], 0.45)) for n in cz[0]["notes"]]})
     if VOXREG:
         for tr in tracks:
             pt = tr.get("patch")
