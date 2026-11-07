@@ -284,6 +284,29 @@ def full_throttle():
                              (100 if i % 2 == 0 else 84) + (4 if i == 0 else 0))
 
 
+# v40 (ROUND TYPE: whole song): THE SINGER GROWS OLD. One voice runs through the whole of t8: she asks her question
+# through the stretto (28-96) and sings the last line alone at the horizon. Now she AGES across the song (wM's age,
+# pinned 44372fb9, bound per note): young and clear at her first note, 0.25 by the jet - a colour, not yet a sound -
+# 0.45 at the horizon, where the tremor begins to show, and 0.65 on her last note, an old voice singing in head voice
+# as the light redshifts away. The fall told as a life - 'stretched and reddened' - while the choir stays ageless.
+AGE_CURVE = [(0.0, 0.0), (b0(JET), 0.25), (b0(HORIZON), 0.45), (None, 0.65)]
+
+
+def age_her(notes):
+    last = notes[-1]["at"]
+    pts = [(last if b is None else b, a) for b, a in AGE_CURVE]
+    for n in notes:
+        at = n["at"]
+        for (b1, a1), (b2, a2) in zip(pts, pts[1:]):
+            if at <= b2:
+                a = a1 + (a2 - a1) * max(0.0, (at - b1)) / max(1e-6, b2 - b1)
+                break
+        else:
+            a = pts[-1][1]
+        n["expr"] = dict(n.get("expr") or {}, age=round(a, 3))
+    return notes
+
+
 def mute_until_the_jet():
     P["bass"].ev = [(s, ln, h + "^pm" if s < b0(JET) - 1e-6 and "^" not in h else h, v) for s, ln, h, v in P["bass"].ev]
 
@@ -850,6 +873,7 @@ SOLO8 = json.loads(json.dumps(VOICE8))
 SOLO8["about"] = "t8's last voice: the choir's lead alone, even vowels - the horizon's last line"
 SOLO8["synth"]["layers"][0]["even"] = 1.0
 SOLO8["synth"]["layers"][0]["register"] = "expr.reg"                 # v30: chest -> head voice across the last line
+SOLO8["synth"]["layers"][0]["age"] = "expr.age"                      # v40: she grows old across the song (age_her)
 SOLO8["synth"]["lfo"]["vib"].update({"rate": "5.0hz", "delay": "280ms"})
 SOLO8["synth"]["pitch"]["mod"][-1]["amount"] = 0.2
 # v23 (ROUND TYPE: whole song): THE VOICES LET GO. t8's voices span the song - the solo voice opens it (her question,
@@ -890,7 +914,7 @@ def main():
     full_throttle()
     lead, fifth, low = choir()
     lead += far_choir()                                           # v38: the answer forms far away
-    solo = sorted(opening_voice() + sung_asks() + horizon_line(), key=lambda d: d["at"])   # v36: she asks                      # v12: the last line, one voice alone (v21: and the first)
+    solo = age_her(sorted(opening_voice() + sung_asks() + horizon_line(), key=lambda d: d["at"]))   # v36: she asks                      # v12: the last line, one voice alone (v21: and the first)
     lead += [{"at": b0(HORIZON + 16), "len": b0(BARS + 1) - b0(HORIZON + 16) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'
     tempo = [{"at": "0b", "bpm": SEAM_IN},
              {"at": f"{b0(BREAK[0]):g}b", "bpm": SEAM_IN},                        # v11: time dilation in the
