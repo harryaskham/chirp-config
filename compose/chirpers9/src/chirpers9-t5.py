@@ -69,6 +69,7 @@ WARMTH = os.environ.get("C9T5_WARMTH", "top:-6,sub:-14")   # WHOLE: CLOSER MEANS
 TURN = os.environ.get("C9T5_TURN", "close,lift")   # WHOLE (Harry 23:55: subtle variation every 8-16 bars; eco: 'a re-voiced chord, a register shift'): THE LIGHTS TURN - the CZ pad played E4's four chords in one close voicing for the whole song; now each pass of the cycle (10 bars) it turns to the next voicing in the list: 'close' (as before), 'drop' (the third leaves the bottom and sings on top), 'lift' (the root stays, everything above rises an octave: open and airy). Same chords, same key; the crest's pass is 'close', home
 HUSH = os.environ.get("C9T5_HUSH", "")   # SECTION w3 (1:08-1:41, A's second half: flagged static, and the one 32 s flat run in the album as heard, 1:10-1:42): SHE SINGS OVER A HUSH - for four bars under her second chorus line ('A:B' beats) the machine steps back: 'deep' rests the drums, both E1 seeds and the orbit, leaving her, the Rhodes' answers, the pad and the bass; 'light' keeps the orbit and the kick. Everything comes back for the last phrase of A
 SHADOW = os.environ.get("C9T5_SHADOW", "128:192:-14")   # SECTION w3 (1:08-1:41, A's second half: flagged static): THE SEED'S SHADOW CROSSES OVER - t1's slow cello cantus (E1 at a quarter speed, D A C G E, an octave down) comes back in t5 under her chorus, the mirror of the outer disk, swelling in and out across the window ('A:B:gaindB'), so the second half of A has a long line moving under the machine
+MIRROR = os.environ.get("C9T5_MIRROR", "384:432")   # SECTION w7 (3:20-3:53, C's second half: little new vs w6): THE ORBIT TURNS INSIDE OUT - t5 is t1's mirror, and here the orbit mirrors itself: E5 inverted in the key around its A (A B A . D . A B A . E ., the flings falling an octave-ish down where they leapt up), over the spin ('A:B' beats; ':alt' alternates the orbit and its mirror cycle by cycle, call and answer); back to E5 itself for the outro and the t5 -> t6 seam
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -600,6 +601,15 @@ def song():
                 rests = [(ST[sec] + 16 * BAR * (k + 1) - BAR, ST[sec] + 16 * BAR * (k + 1)) for sec in ("A", "build", "C")
                          for k in range(4) if ST[sec] + 16 * BAR * (k + 1) <= END[sec]]
                 tr["notes"] = [n for n in tr["notes"] if not any(a <= n["at"] < b for a, b in rests)]
+    if MIRROR:
+        ma, mb, *mopt = MIRROR.split(":")
+        ma, mb = float(ma), float(mb)
+        inv = {"m69": "m69", "m67": "m71", "m68": "m71", "m76": "m62", "m74": "m64"}
+        for tr in tracks:
+            if tr["name"] == "orbit":
+                tr["notes"] = [dict(n, pitch=inv.get(n["pitch"], n["pitch"]))
+                               if ma <= n["at"] < mb and ("alt" not in mopt or int((n["at"] - ma) // 3) % 2 == 1) else n
+                               for n in tr["notes"]]
     if SHADOW:
         sa, sb, sg = SHADOW.split(":")
         sa, sb = float(sa), float(sb)
