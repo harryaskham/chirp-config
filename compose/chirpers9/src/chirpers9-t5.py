@@ -63,6 +63,7 @@ EQ1400 = os.environ.get("C9T5_EQ1400", "orbit+seed-hi+seed-lo:-6")   # PALETTE: 
 TOGETHER = os.environ.get("C9T5_TOGETHER", "1")   # PALETTE (together pinned, 8083e37e): the crest line's harmony part (the third above in the key) sang with a fresh voice's defaults while the lead was voice-near's breathy close singer (wM's 'together' bug); now both singers share the line's breath and effort, so the thirds sound like one person double-tracked, not a singer and a stranger
 CRESTE1P = os.environ.get("C9T5_CRESTE1P", "dx-epiano")   # PALETTE: E1 in octaves after the crest moves off the Rhodes the orbit's E5 line also uses ('patch' or 'patch@gaindB'), so the album's seed gets its own colour at the meeting
 CRESTCHOIR = os.environ.get("C9T5_CRESTCHOIR", "accrete")   # SECTION w6 (2:47-3:20, the crest line, sung three times the same): THE CHOIR ACCRETES - the line after the crest ('near-er the mid-dle hums') came three times with the same third above. Now the first is her alone, the second adds the third above in the key, the third adds an octave below as well ('accrete'), so the voice grows inside the window the way the album grows track by track; every statement scoops in and falls off ('sing' alone: the gestures only)
+VOXREG = os.environ.get("C9T5_VOXREG", "A4")   # PALETTE (register pinned, 0c5d29c5): SHE LIGHTENS AT THE TOP - the close singer sang every note in chest voice, so the 'near-er' climb to D5 and the E5 peaks of the line pushed like the low notes. Now her voice has a break (passaggio, a pitch): above it a rising line turns to head voice over four semitones, rounder and airier, the way a young singer's voice flips. The harmony parts flip on their own pitch
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -539,6 +540,11 @@ def song():
     if CRESTGAP and CRESTHIT:
         tracks.append({"name": "crest", "patch": "modal-crash", "gain": f"{CRESTHIT}dB", "pan": 0.0,
                        "sends": {"room": "-6dB"}, "notes": [note(TC, "C4", 8, 0.9)]})
+    if VOXREG:
+        for tr in tracks:
+            pt = tr.get("patch")
+            if isinstance(pt, dict) and pt.get("extends", "").startswith("voice-near"):
+                pt["extends"] += f" synth.layers.0.passaggio={VOXREG}"
     return {
         "about": "chirpers IX (Accretion), track 5 by chirper-zero: the inner disk - E1, E2 and E4 tight and fast, "
                  "and the new E5, 'the inner orbit', circling under them until every cycle meets at the crest. "
