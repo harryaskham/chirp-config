@@ -77,6 +77,7 @@ CRESTANS = os.environ.get("C9T5_CRESTANS", "dx")   # SECTION w6 (2:47-3:20, the 
 E1ALONE = os.environ.get("C9T5_E1ALONE", "808")   # SECTION w7 (3:20-3:53, the end of C: 'static, little new vs w6'): SHE SINGS E1 ALONE - her second sung E1 (418) loses the floor for two bars: the drums and the spin (and with '808' the 808) stop at 416 and come back with the lights' chord at 424, so the seed's line is heard over the orbit and the chords alone before the outro (a cut, not a layer: eco 11:01). Value 'kit' or '808'
 SWAPP = os.environ.get("C9T5_SWAPP", "seed-lo=mandolin")   # PALETTE (v39): voices change hands ('track=patch[@gaindB]', comma-separated): the seed's low voice (seed-lo, the E1 stretto an octave under the chip lead) leaves the plain pluck lead for t1's mandolin (t1 v33's G), so the mirror plays the seed's line on the seed's own strings. Tried and rejected: the air (the held D-A drone) on kuramoto-choir or gendy-drone (spectrum -8..-13: the plain drone's low mids are load-bearing), the lights on juno-pad (variety -10)
 HUMWORD = os.environ.get("C9T5_HUMWORD", "close:ng")   # WHOLE (wM's hum, pin e3da830a): THE MIDDLE HUMS - her line is 'near-er the mid-dle hums', and now the word does what it says: every sung 'hums' (A's chorus, the crest choir's three statements, the farewell) opens on 'huh' and then the lips close and the voice hums on 'mm' (synth.layers.0.hum bound per note), the choir humming with her. 'close': the hum held a beat longer than the word was; 'short': the word's own length; ':ng' / ':m' where the mouth closes (v40: close:ng, the brighter hum; close:m 98.178/98.043, darker, spectrum -0.4)
+FLOORWALK = os.environ.get("C9T5_FLOORWALK", "all")   # WHOLE (t1 v29's BASSWALK mirrored; the spectrum's worst band was 97 Hz, -8): THE FLOOR WALKS THE SEED - the analog floor held one long root per chord (D3 C3 A2 G2); now under every chord it walks E1 twice as slow (D2 A2 C3 G2 E2 in 8 beats of the chord's 10), the same five notes under all four chords (they are all in the key), so the seed is in the bass as well as on top. 'all' (from A) or 'C' (from the crest on)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -616,6 +617,19 @@ def song():
                 tr["patch"] = ap
                 if ag:
                     tr["gain"] = f"{ag}dB"
+    if FLOORWALK:
+        w0 = TC if FLOORWALK == "C" else 0
+        walk = [38, 45, 48, 43, 40]
+        for tr in tracks:
+            if tr["name"] == "floor":
+                out = []
+                for n in tr["notes"]:
+                    if n["at"] >= w0 and n["len"] >= 8:
+                        for j, (o, ln, mm) in enumerate(zip(E1_OFF, E1_LEN, walk)):
+                            out.append(note(n["at"] + 2 * o, f"m{mm}", 2 * ln - 0.1, n["vel"] * (1.0 if j == 0 else 0.85)))
+                    else:
+                        out.append(n)
+                tr["notes"] = out
     if E1ALONE:
         cut = {"drums", "spin"} | ({"bass808"} if E1ALONE == "808" else set())
         for tr in tracks:
