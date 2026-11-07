@@ -623,6 +623,15 @@ def build():
     P['hats'] = [e_ for e_ in P['hats'] if not (pv0_ - 1e-6 <= e_[0] < pv0_ + 32.0 - 1e-6 and abs((e_[0] * 2) - round(e_[0] * 2)) > 1e-6)]
     for key_ in ('near', 'acid'):
         P[key_] = [e_ for e_ in P[key_] if not (pv2_ - 1e-6 <= e_[0] < pv2_ + 16.0 - 1e-6)]
+    # (v41, section w2: the pull 'little new vs w1' - the in-seam's harmonium, marimba and kora ran straight on into
+    # it) THE SEA DRAWS BACK: before a wave the water pulls away from the shore. For the pull's first eight bars the
+    # tide itself goes - the harmonium, the lights, the marimba's trill and the kora step out - and what the water
+    # leaves is the floor: the drums assembling hit by hit, the bass and the sub, the sequencer's E2 cell, the
+    # trombone's long E1 and the whistle's hook, bare; at bar 25 the wave comes in - the harmonium in its own
+    # register on G and A minor 7, the marimba, the kora, the sixteenth hats - and the tide section rides it
+    for key_ in ('tide', 'lights', 'near', 'e5b'):
+        P[key_] = [e_ for e_ in P[key_] if not (pv0_ + 0.5 - 1e-6 <= e_[0] < pv0_ + 32.0 - 1e-6)]
+        P[key_] = [(e_[0], e_[1], min(e_[2], pv0_ + 0.5 - e_[0]), *e_[3:]) if e_[0] < pv0_ + 0.5 < e_[0] + e_[2] else e_ for e_ in P[key_]]
     for b_ in range(SEC['tide'] + 8, SEC['tide'] + 12):
         for k_ in range(4):
             P['hats'].append((b_ * 4.0 + k_ + 0.5, 'oh', 0.3, 64))
