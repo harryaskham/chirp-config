@@ -703,6 +703,25 @@ def everyone_sings():
             part("bass").add(c * E1_CYCLE + off, ln, n, v)
 
 
+# v34 (ROUND TYPE: section, the relief 101-120, ~40 s, its answers rewritten): THE REED ANSWERS HER. In the relief
+# she hums E1 and the handpan answers with its retrograde (E G C A D). Now, through the float (105-112: the sub and
+# the bass away), the CLARINET answers her instead - the reed that took the hook from the handpan for one phrase in A
+# (v29) comes back: breath answering breath, all air - legato, each note held at most a beat and a half longer so no
+# answer covers her next hum. At 113, when the floor returns, the handpan takes the answers back: the struck metal
+# returns with the gravity. (Tried: the reed through the whole relief to 120 - the relief's body went darker than
+# t5's head, flow 82.3 -> 79.6 at the t4 -> t5 seam.)
+REED_FROM = ANSWER_FROM
+
+
+def reed_answers():
+    lo, hi = REED_FROM, b0(FLOAT[1] + 1)
+    taken = sorted(e for e in P["seed"].ev if lo - 1e-6 <= e[0] < hi - 1e-6)
+    P["seed"].ev = [e for e in P["seed"].ev if not (lo - 1e-6 <= e[0] < hi - 1e-6)]
+    for k, (s, ln, h, v) in enumerate(taken):
+        nxt = taken[k + 1][0] if k + 1 < len(taken) else s + ln + 2.0
+        part("clar").add(s, max(ln, min(nxt - s, ln + 1.5)), h, min(96, v + 2))
+
+
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -844,6 +863,7 @@ def main():
     breath_before_b()
     lights_shimmer()
     everyone_sings()
+    reed_answers()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v,
                    key=lambda d: d["at"])
