@@ -357,6 +357,15 @@ R43 = os.environ.get("T3_R43", "mmm") != "none"
 # bar, so the lift at 45 (drums out, everything up an octave) bursts out bright, and the storm slams back at 49.
 # A DJ's filter, used once. T3_R44=none reproduces v43.
 R44 = os.environ.get("T3_R44", "wall") != "none"
+# round 45 (section, w9 = bars 97-108 - "static, little new vs w8", the window with the least groove motion; E1, the
+# album's hook, buried under the round bass there: the ring and its octave at audibility 0): T3_R45=melodica (default)
+# - A MELODICA ANSWERS. The two singers sing E1 at bars 97 and 101 ("nothing here is late", "everything comes round")
+# and then nothing sings for seven bars until the last "everything comes round" at 109. Now a melodica - the dub
+# lead, reedy and breathy, the album's first; no other track has one - answers in the gaps with E1 plainly, in the
+# voices' register: bar 99 (E1), 103 (E1), 105 (E1 backwards - E G C A D - so it comes home to D) and 107 (E1, its
+# last E held into the singer's entry). The hook in a human, slightly wobbly voice, heard plainly at last before the
+# storm hands over to t4. T3_R45=none reproduces v44.
+R45 = os.environ.get("T3_R45", "melodica") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1364,6 +1373,15 @@ def main():
             tracks.append({"name": "bassr2", "patch": "a3-round", "gain": f"{g_b:g}dB", "score": T["_round2"].score()})
     if R40 and "_partc" in T:                               # the storm crashes back at bar 105
         tracks.append({"name": "partc", "patch": "tight-kit", "gain": "-4dB", "pan": 0.15, "score": T["_partc"].score()})
+    if R45:                                                 # w9: a melodica answers the singers with E1
+        mel = Track("melod")
+        e1 = [(0.0, 62, 0.5), (0.5, 69, 0.75), (1.25, 72, 0.25), (1.5, 67, 1.0), (2.5, 64, 1.0)]
+        back = [(0.0, 64, 0.5), (0.5, 67, 0.75), (1.25, 72, 0.25), (1.5, 69, 1.0), (2.5, 62, 1.5)]
+        for bar, ph, last in ((98, e1, 1.5), (102, e1, 1.5), (104, back, 1.5), (106, e1, 5.0)):
+            for i, (o, p, ln) in enumerate(ph):
+                mel.add(bar * 4.0 + o, last if i == len(ph) - 1 else ln - 0.05, mtok(p), 92 if i == 0 else 84)
+        tracks.append({"name": "melod", "patch": "melodica", "gain": "7dB", "pan": -0.25,
+                       "fx": ["delay time=3/8 mix=0.12 feedback=0.25"], "sends": {"space": "-8dB"}, "score": mel.score()})
     if R38 and "_gust" in T:                                # the first gust's fill and crash
         tracks.append({"name": "gust", "patch": "ks-drum", "gain": "-4dB", "pan": 0.1, "sends": {"space": "-10dB"},
                        "score": T["_gust"].score()})
