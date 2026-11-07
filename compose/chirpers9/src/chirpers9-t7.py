@@ -344,6 +344,14 @@ R32 = os.environ.get("T7_R32", "kettle") != "none"
 # held Eb5 that carries the slack over the edge into the spiral (bars 87-88). Call and response, and the trumpet becomes
 # a recurring voice rather than a one-off. Appended to the trumpet track. T7_R33=none reproduces v32.
 R33 = os.environ.get("T7_R33", "answer") != "none"
+# round 34 (whole): T7_R34=plain (default) - THE HOOK IN PLAIN SIGHT, AND THE FLOOR UNDER IT. Harry: E1 is the album's
+# hook and should be heard plainly and often. In t7 the E1 ostinato runs through half the song on three chip lines
+# (epiano, the gameboy lead, the mallet), but presence.py heard them at -17..-20 dB against the mix, masked nearly
+# all the time: the hook was wallpaper. All three come up 2 dB (the wide copies too), so the figure you hum reads all
+# the way through, and the floor comes up under them so the balance holds: the reese's sine body from -3 dB to +3 dB
+# and the Eb sub 5 dB up (presence -8.4 -> -4.1). Draft: chips +4 dB with a lighter floor cost s0 0.66 (spectrum
+# 92 -> 86: the mix tipped up). T7_R34=none reproduces v33.
+R34 = os.environ.get("T7_R34", "plain") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1245,6 +1253,15 @@ def main():
                 tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + 3.0:g}dB"
             if tr.get("patch") == "a7-choir2":
                 tr["gain"] = f"{float(str(tr.get('gain', '0dB')).replace('dB', '')) + 1.0:g}dB"
+    if R34:                                                 # the hook in plain sight; the floor under it
+        for tr in tracks:
+            if tr.get("name") in ("e1a", "e1b", "e1c", "e1aw", "e1bw", "e1cw"):
+                tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + 2.0:g}dB"
+            if tr.get("name") in ("sub", "sub8"):
+                tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + 5.0:g}dB"
+        rl = patches["a7-reese"]["synth"]["layers"]
+        assert rl[2].get("wave") == "sine" and rl[2].get("level") == "-3dB", rl
+        rl[2] = dict(rl[2], level="3dB")
     if R24:
         for tr in tracks:
             if tr.get("patch") == "cz-pad":

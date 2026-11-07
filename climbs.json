@@ -8501,16 +8501,16 @@
       "owner": "chirper-two",
       "metric": "python3 tools/compscore.py chirpers9-t7 OUT.wav",
       "best": {
-        "score": 99.173,
-        "version": "v33",
+        "score": 99.164,
+        "version": "v34",
         "commit": "see git log songs/chirpers9-t7.yaml",
-        "engine": "07876a82",
+        "engine": "7319352b",
         "judged": true
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 33,
+      "rounds": 34,
       "priority": 1.0,
       "genre": "complex electronic",
       "mode": "compose",
@@ -8528,7 +8528,7 @@
         "note": "COMPOSE (innermost orbit (the big storm), 240-360 s): The innermost stable orbit: the album's hardest, fastest, densest track, everything colliding. Carries E1-E6 and introduces E7. The album's crest. The mirror of t3, and beyond it."
       },
       "last": {
-        "at": "2026-11-07T04:46:19Z",
+        "at": "2026-11-07T05:56:57Z",
         "who": "chirper-two"
       }
     },
