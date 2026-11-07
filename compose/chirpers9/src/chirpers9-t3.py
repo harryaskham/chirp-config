@@ -284,6 +284,16 @@ R34 = os.environ.get("T3_R34", "assemble") != "none"
 # ping-pongs across the stereo field. Written length is the damping hand: 0.3 beats (was 0.12) lets each key
 # ring a moment before the next. Same notes, same times. T3_R35=none reproduces v34.
 R35 = os.environ.get("T3_R35", "gangsa") != "none"
+# round 36 (palette): T3_R36=glass (default) - E1 ON A FARFISA. The storm's E1 (phased against the bar so it lands on
+# bar 88 with E2 and E3) rides my a3-ring - a saw ring-modulated at 1.414:1, inharmonic and metallic - at -21 dB
+# against the mix, 80% of the song: the album's hook, smeared and buried. Harry: E1 plain and often; consonant by
+# default. A phased ostinato on a reedy combo organ is the Philip Glass Ensemble's own sound, so the library farfisa
+# (no other Accretion track has it) doubles E1 note for note on its own track - same fall automation and delay, panned
+# opposite the ring - in every other 8-bar phrase (bars 9-16, 25-32, ... 97-104), so the hook steps forward with a
+# clear pitch and back again: something moves every 8 bars. The ring keeps the storm's metal edge (1 dB down).
+# (Draft: the farfisa on all the time read flatter - flatness 36% -> 39% - and s0 -0.11.)
+# T3_R36=none reproduces v35.
+R36 = os.environ.get("T3_R36", "glass") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1238,6 +1248,14 @@ def main():
         spec_b = next(tr for tr in tracks if tr["name"] == "bass")
         g_b = float(spec_b["gain"].replace("dB", "")) - 2.0
         tracks.append({"name": "bassr", "patch": "a3-round", "gain": f"{g_b:g}dB", "score": T["_round"].score()})
+    if R36:                                                 # E1 doubled on a farfisa (the Glass ensemble's organ)
+        for tr in tracks:
+            if tr.get("name") == "e1" and tr.get("patch") == "a3-ring":
+                far = Track("e1f")                          # every other 8-bar phrase, bars 9-104
+                far.ev = [e for e in T["e1"].ev if 8 <= int(e[0] // 4) < 104 and (int(e[0] // 4) // 8) % 2 == 1]
+                tracks.append(dict(tr, name="e1f", patch="farfisa", gain="-6dB", pan=-0.2, score=far.score()))
+                tr["gain"] = f"{float(tr['gain'].replace('dB', '')) - 1.0:g}dB"
+                break
     if R35:                                                 # E2 as kotekan on two gamelan tracks
         for tr in tracks:
             if tr.get("name") == "e2" and tr.get("patch") == "chip-metal":
