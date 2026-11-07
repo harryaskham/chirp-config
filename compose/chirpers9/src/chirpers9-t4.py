@@ -617,6 +617,38 @@ def crest_lane():
     return [["0b", 0.0], [f"{a - 0.5:g}b", 0.0], [f"{a:g}b", 6.0], [f"{z - 1:g}b", 6.0], [f"{z:g}b", 0.0]]
 
 
+# v31 (ROUND TYPE: section, bars 33-48, ~34 s - the as-heard flat run 1:09-2:05 (eco's --mix view) and seed 11's
+# 0:56-2:00; rewritten): THE BREATH BEFORE B. The sub (v27's floor, the loudest thing here at -4.8) ran unbroken
+# from A into B, and E3's arrival - the steel's first statement in the song - sat at -17, unheard. Now:
+#   33-40 E3 ARRIVES: the steel sings 8 dB up for its first eight bars (its own spotlight), then settles;
+#   37-40 A BREATH: the sub, the bass and the shaker's whispers step away - the handpan, the lights and the singing
+#         steel alone - and a brush swish swells into
+#   41    THE LANDING: kit, sub and bass arrive together on one downbeat, and B begins.
+STEEL_LIGHT = (33, 40)
+BREATH_B = (37, 40)
+
+
+def steel_lane():
+    a, z = b0(STEEL_LIGHT[0]), b0(STEEL_LIGHT[1] + 1)
+    return [["0b", 0.0], [f"{a - 0.5:g}b", 0.0], [f"{a:g}b", 8.0], [f"{z - 2:g}b", 8.0], [f"{z:g}b", 0.0]] \
+        + crest_lane()[1:]
+
+
+def breath_before_b():
+    lo, hi = b0(BREATH_B[0]), b0(BREATH_B[1] + 1)
+    for n in ("sub", "bass", "air"):
+        if n in P:
+            out = []
+            for s, ln, h, v in P[n].ev:
+                if lo - 1e-6 <= s < hi - 1e-6:
+                    continue
+                if s < lo - 1e-6 < s + ln:
+                    ln = lo - s
+                out.append((s, ln, h, v))
+            P[n].ev = out
+    part("snare").add(hi - 2.0, 2.0, "sw", 74)                   # the swish into 41
+
+
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -755,6 +787,7 @@ def main():
     b_turns()
     hook_changes_hands()
     phrase_turns()
+    breath_before_b()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v,
                    key=lambda d: d["at"])
@@ -797,7 +830,7 @@ def main():
             tr("e2", "harp", gain="-17dB", pan=0.4, sends={"hall": "-10dB", "dly": "-16dB"},     # v2: listed last
                fx=[CREST_FX], auto={"cr": {"points": crest_lane()}}),                         # v25
             tr("e3", "pedal-steel", gain="-11dB", pan=-0.35, sends={"hall": "-10dB"},
-               fx=[CREST_FX], auto={"cr": {"points": crest_lane()}}),
+               fx=[CREST_FX], auto={"cr": {"points": steel_lane()}}),
             {"name": "duet", "patch": VOICE2, "gain": "-15dB", "pan": 0.18, "sends": {"hall": "-8dB"}, "notes": duet},
             {"name": "breath", "patch": BREATH_AIR, "gain": "2dB", "pan": 0.0, "sends": {"room": "-12dB"},
              "notes": breaths},
