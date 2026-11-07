@@ -97,6 +97,7 @@ BREATHDROP = os.environ.get("C9T1_BREATHDROP", "floor,seeds")   # SECTION w4 (1:
 MIRRORTURN = os.environ.get("C9T1_MIRRORTURN", "turns")   # SECTION w7 (3:27-3:59, the lock before the exhale: flagged static): THE MIRROR ANSWERS - after the crest the glock plays E1 an octave up and the ks-harp plays it upside down, together, every cycle; in the lock's last eight bars (288-320) ('turns') they take turns, a statement each: the glock, then the harp's inversion answering, then the glock (a half-cycle 'hocket' was tried: the harp already sits three beats behind, so it collided)
 SPARKLE = os.environ.get("C9T1_SPARKLE", "5")   # WHOLE (the spectrum's worst band was 7.9 kHz, -8.5: t1 was dull up top): THE DUST CATCHES THE LIGHT - a high shelf (+dB above 6 kHz) on the five scattered voices, the glock cell and the shaker: the seed's grains glint (v40: 5; tried with it, rejected: the ks-harp's inversion up an octave, around D4 - spectrum -1.4, the low harp is load-bearing)
 PADBACK = os.environ.get("C9T1_PADBACK", "pad:6,warmth:3")   # WHOLE (t5 v45 found its chords 4 dB too loud; t1's worst band was 213 Hz +8, the pad's and the organ's A3): THE PAD STEPS BACK - 'pad:dB[,warmth:dB]' trims the Game Boy wave pad (and the Hammond warmth) so the seed's grains and the far choir stand in front of the chords
+HUMEVEN = os.environ.get("C9T1_HUMEVEN", "0.5")   # SECTION w1 (0:00-0:36, the album's first seconds; flagged static): THE HUM HOLDS - a real closed-mouth hum loses its top as it climbs (C5 hummed is far quieter than C5 sung), so the choir's opening E1 dipped away on its high notes; wM's hum_even (pin 1d916569) holds the hum at the open voice's level ('1' fully, '0.5' halfway), so the whole hummed seed is heard and the 'ah' it opens into doesn't jump
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -576,6 +577,8 @@ def song():
             if hk == "open":
                 n["expr"] = {"hum": 0.0 if j == 4 else 1.0}
             hn.append(n)
+        if HUMEVEN:
+            hp += f" synth.layers.0.hum_even={HUMEVEN}"
         tracks.append({"name": "hum", "patch": {"extends": hp}, "gain": f"{hg or -11}dB", "pan": 0.1, "fx": ["hp cutoff=120"], "notes": hn})
     if BOUNCE:
         r, _, short = BOUNCE.partition(":")
