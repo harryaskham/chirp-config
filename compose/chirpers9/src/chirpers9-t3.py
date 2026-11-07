@@ -333,6 +333,14 @@ R40 = os.environ.get("T3_R40", "parts") != "none"
 # 0.61/0.67, still under the 0.691 line, and s0 -0.08.)
 # T3_R41=none reproduces v40.
 R41 = os.environ.get("T3_R41", "foretell") != "none"
+# round 42 (whole): T3_R42=breathe (default) - THE UNDERTOW BREATHES. The storm's floor is E3's undertow riff, the
+# loudest thing in the mix, and it ran the same sixteenth figure under almost the whole song: flatness's ruts (0:48,
+# 1:28-1:36, 3:36-3:44) were all the riff unbroken. Now, three times - the storm's first phrase after t2's overlap (bars
+# 17-20), the middle of the storm (37-40) and under the sung hook at the crest (91-94) - the riff slows to its own
+# roots, two long notes a bar (the lowest note of each half bar held: D, Bb, C - E3 augmented), over the floor, the
+# kick and everything above; then the riff drives again. The same gesture each time, so it recurs.
+# T3_R42=none reproduces v41.
+R42 = os.environ.get("T3_R42", "breathe") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -906,6 +914,19 @@ def build():
         T["shard"].ev = [(e[0], e[1], e[2], 1, e[4]) if 48 * 4.0 <= e[0] < 52 * 4.0 else
                          (e[0], max(0.03, round(48 * 4.0 - e[0] - 0.05, 4)), e[2], e[3], e[4]) if e[0] < 48 * 4.0 < e[0] + e[1]
                          else e for e in T["shard"].ev]
+    if R42:                                                 # the undertow breathes: roots held, two a bar
+        for b0, b1 in ((16, 20), (36, 40), (90, 94)):
+            ev = T["bass"].ev
+            hold = {}
+            for i, e in enumerate(ev):
+                if b0 * 4.0 <= e[0] < b1 * 4.0 and e[3] > 1:
+                    h = int(e[0] // 2)
+                    j = hold.get(h)
+                    if j is None or int(float(e[2][1:])) < int(float(ev[j][2][1:])):
+                        hold[h] = i
+            keep = {i: h for h, i in hold.items()}
+            T["bass"].ev = [(e[0], round((keep[i] + 1) * 2.0 - e[0] - 0.1, 4), e[2], e[3], e[4]) if i in keep else
+                            (e[0], e[1], e[2], 1, e[4]) if b0 * 4.0 <= e[0] < b1 * 4.0 else e for i, e in enumerate(ev)]
     if R41 and R32:                                         # the answer foretold: the round bass for bars 71-74
         T["_round2"] = Track("_round2")
         for e in T["bass"].ev:
