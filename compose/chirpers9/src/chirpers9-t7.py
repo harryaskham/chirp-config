@@ -312,6 +312,15 @@ R28 = os.environ.get("T7_R28", "timp") != "none"
 # tide carry the pulse - and return at 29; when the strings enter (bars 137-140) the kick and bass drop out under the
 # hook, the horns and the ride, and come back at 141 for the climb into the tutti. T7_R29=none reproduces v28.
 R29 = os.environ.get("T7_R29", "lines") != "none"
+# round 30 (section, aimed at the flat runs 0:56-1:28 and 1:28-2:00 - the approach's second half and the collision;
+# Harry 23:55 "subtle variation"): T7_R30=lift (default) - THE FLOOR LIFTS. What t3 v30 taught: in a dense song the
+# bass dominates both the flatness measure and the sections, so it should MOVE, not vanish. Twice, 16 bars apart:
+# (1) bars 45-48, before the collision, the kick, snare, ghosts and perc step out, the hats thin to eighths and the
+# reese and the floor climb an octave over the timpani's roll - so the collision's drop at 49 lands from a height;
+# (2) bars 57-60, the middle of the collision (under the brass stabs), the same lift - drums out, hats in eighths,
+# the reese and the floor an octave up - coming down into the half-time breath at 61 - lift, breath, then the collision resumes at 65. (A first draft lifted
+# inside the half-time itself; flatness did not see it there.) T7_R30=none reproduces v29.
+R30 = os.environ.get("T7_R30", "lift") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -713,6 +722,21 @@ def build():
                 T["e4w8"].add(bar * 4.0 + off, 0.35, ",".join(mtok(m + 12) for m in ch[1:]), 82 if off == 1.5 else 74)
         for b0, b1, s in ((116, 118, 27), (118, 120, 33)):
             T["sub8"].add(b0 * 4.0, (b1 - b0) * 4.0 - 0.1, mtok(s), 70)
+    if R30:                                                                   # the floor lifts (45-48, 61-64)
+        def up(keys, lo, hi):
+            for k in keys:
+                if k in T:
+                    T[k].ev = [(e[0], e[1], ",".join(mtok(int(float(p[1:])) + 12) if p.startswith("m") else p
+                                                      for p in e[2].split(",")), e[3], e[4])
+                               if lo <= e[0] < hi and isinstance(e[2], str) else e for e in T[k].ev]
+        for b in (44, 56):
+            up(("bass", "sub", "bass5", "bass7"), b * 4.0, (b + 4) * 4.0)
+        for lo, hi in ((44 * 4.0, 48 * 4.0), (56 * 4.0, 60 * 4.0)):
+            for k in ("kick", "snare", "ghost", "perc"):
+                if k in T:
+                    T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if lo <= e[0] < hi else e for e in T[k].ev]
+            T["hats"].ev = [(e[0], e[1], e[2], 1, e[4]) if (lo <= e[0] < hi and round(e[0] * 4) % 2 == 1) else e
+                            for e in T["hats"].ev]
     if R29:                                                                   # the band makes room (25-28, 137-140)
         for lo, hi, ks in ((24 * 4.0, 28 * 4.0, ("kick", "snare", "ghost", "bass", "sub")),
                            (136 * 4.0, 140 * 4.0, ("kick", "bass", "sub"))):
