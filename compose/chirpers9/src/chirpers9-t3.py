@@ -294,6 +294,13 @@ R35 = os.environ.get("T3_R35", "gangsa") != "none"
 # (Draft: the farfisa on all the time read flatter - flatness 36% -> 39% - and s0 -0.11.)
 # T3_R36=none reproduces v35.
 R36 = os.environ.get("T3_R36", "glass") != "none"
+# round 37 (section, w6 = bars 61-72 - the eye of the storm, never focused): T3_R37=eye (default) - THE HOOK IN THE
+# EYE. The eye (bars 63-66) is four bars of stillness inside the storm - an E3 chord on the dust, the sub on D, the
+# backing voices holding an open D-A "oo", the hand drum - and nothing sang in it. Now the dizi plays the album's
+# hook whole and slow there, plainly, four times augmented: D5 (2 beats) A5 (3) C6 (1) G5 (4) E5 (4), softly, so
+# for nine seconds the storm's centre carries the tune every other track chops up; the wall comes back on its E.
+# T3_R37=none reproduces v36.
+R37 = os.environ.get("T3_R37", "eye") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1233,6 +1240,11 @@ def main():
         for bar in (90, 94, 108):                           # ...and sings with her at the crest (8va)
             for off, m, ln in ((0.0, 74, 0.49), (0.5, 81, 0.74), (1.245, 84, 0.25), (1.5, 79, 0.99), (2.5, 76, 1.27)):
                 dz.add(bar * 4.0 + off, ln, mtok(m), 84 if off == 0.0 else 80)
+        if R37:                                             # the hook in the eye: E1 x4 augmented, plain and soft
+            at = EYE[0] * 4.0 + 0.5
+            for m, ln, v in ((74, 2.0, 74), (81, 3.0, 70), (84, 1.0, 66), (79, 4.0, 70), (76, 4.0, 72)):
+                dz.add(at, ln * 0.95, mtok(m), v)
+                at += ln
         tracks.append({"name": "dizi", "patch": "dizi", "gain": "-7dB", "pan": -0.2,
                        "fx": ["delay time=3/8 mix=0.15 feedback=0.3"], "sends": {"space": "-8dB"}, "score": dz.score()})
     if R32:                                                 # a3-round: the answer's bass
