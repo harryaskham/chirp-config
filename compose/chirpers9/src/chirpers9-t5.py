@@ -74,6 +74,7 @@ KICKIN = os.environ.get("C9T5_KICKIN", "0.6")   # SECTION w2 (0:34-1:08, A's fir
 CRESTDROP = os.environ.get("C9T5_CRESTDROP", "-10")   # SECTION w5 (2:15-2:47, the build and the pull into the crest; Harry's brief: difficult -> rewarding, every cycle meeting on one downbeat): THE MEETING LANDS DEEP - on the crest's downbeat a sine D1 blooms for two bars under the crash (value = its gain in dB), so the moment everything meets is felt in the chest; ':bloom' also plays the D9 light full and long on that downbeat
 BREATHQ = os.environ.get("C9T5_BREATHQ", "-9")   # SECTION w4 (1:41-2:15, A's end, the four-bar drop and the build's start): SHE BREATHES THE SEED'S BREATH - in the drop before the build, where the drums and the quick bass stop, the near singer breathes t1's 'ah' (D rising to A, E1's first two notes, the album's first voice): the outer disk's breath quoted by the inner disk's singer, then the build lands (value = gain dB)
 CRESTANS = os.environ.get("C9T5_CRESTANS", "dx")   # SECTION w6 (2:47-3:20, the line after the crest: little new vs w5): THE CHORUS RETURNS WITH ITS ANSWER - in A the Rhodes answered her chorus in its gaps (CALLRESP); after the crest her line comes back three times, growing a choir, but nothing answered it. Now each statement is answered: two cycles of E5, an octave down, in the gap before the next ('rhodes', the A answer's own voice, or 'dx': the crest's glassy E1 piano)
+E1ALONE = os.environ.get("C9T5_E1ALONE", "808")   # SECTION w7 (3:20-3:53, the end of C: 'static, little new vs w6'): SHE SINGS E1 ALONE - her second sung E1 (418) loses the floor for two bars: the drums and the spin (and with '808' the 808) stop at 416 and come back with the lights' chord at 424, so the seed's line is heard over the orbit and the chords alone before the outro (a cut, not a layer: eco 11:01). Value 'kit' or '808'
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -605,6 +606,11 @@ def song():
                 rests = [(ST[sec] + 16 * BAR * (k + 1) - BAR, ST[sec] + 16 * BAR * (k + 1)) for sec in ("A", "build", "C")
                          for k in range(4) if ST[sec] + 16 * BAR * (k + 1) <= END[sec]]
                 tr["notes"] = [n for n in tr["notes"] if not any(a <= n["at"] < b for a, b in rests)]
+    if E1ALONE:
+        cut = {"drums", "spin"} | ({"bass808"} if E1ALONE == "808" else set())
+        for tr in tracks:
+            if tr["name"] in cut:
+                tr["notes"] = [n for n in tr["notes"] if not 416 <= n["at"] < 424]
     if MIRROR:
         ma, mb, *mopt = MIRROR.split(":")
         ma, mb = float(ma), float(mb)
