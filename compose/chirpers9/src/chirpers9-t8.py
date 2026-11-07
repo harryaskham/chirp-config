@@ -396,6 +396,27 @@ def hook_sung_back():
         part("hook3").add(s, ln, name_of(m - 12), min(100, v - 10))
 
 
+# v51 (ROUND TYPE: section, E7's spotlight 81-88, ~13 s - the stillest block left, 2:08 at 0.37; rewritten): THE
+# HOOK BREATHES. v10 gave every element a spotlight - the newest the one heard - except that E1, the hook, never
+# recedes; and at 81 the stretto's turn lifted E1 an octave (T_LIFT), so in E7's own spotlight the chip's hook sat ON
+# TOP of it (-6.0 against E7's -7.9): the jet's own motif arrived unheard, and 81-88 sounded like 89-92. Now, for the
+# first time since bar 17, the hook RESTS - four bars, 81-84 - and E7's rising fifths ring alone in front (+3 dB on a
+# lane through its eight bars); at 85 the hook comes back, an octave up (the lift now an entrance), as E7 tightens
+# into its columns; the spiral at 89.
+HOOK_REST = (81, 84)
+E7_LIGHT_DB = 3.0
+
+
+def hook_breathes():
+    lo, hi = b0(HOOK_REST[0]) - 1e-6, b0(HOOK_REST[1] + 1) - 1e-6
+    P["e1"].ev = [e for e in P["e1"].ev if not lo <= e[0] < hi]
+
+
+def e7_light_lane():
+    a, z = b0(T_LIFT[0]), b0(T_LIFT[1] + 1)
+    return [["0b", 0.0], [f"{a - 0.5:g}b", 0.0], [f"{a:g}b", E7_LIGHT_DB], [f"{z - 1:g}b", E7_LIGHT_DB], [f"{z:g}b", 0.0]]
+
+
 def mute_until_the_jet():
     P["bass"].ev = [(s, ln, h + "^pm" if s < b0(JET) - 1e-6 and "^" not in h else h, v) for s, ln, h, v in P["bass"].ev]
 
@@ -1080,6 +1101,7 @@ def main():
     e7_tightens()
     full_throttle()
     hook_sung_back()
+    hook_breathes()
     lead, fifth, low = choir()
     far = far_choir()                                             # v38: the answer forms far away (v45: own track)
     lead, fifth, low, hers = she_says_it(lead, fifth, low)       # v47: the break's second line is hers alone
@@ -1139,7 +1161,8 @@ def main():
                auto={"rs": {"points": horizon_lane(REDSHIFT)}, "cl": {"points": cl}}),
             tr("e6", "organ", gain="-24dB", pan=disk_pan(-0.3), sends={"hall": "-8dB"}, fx=["lp cutoff=3500", ORBIT_FX, FAR_FX, STRETCH_FX],
                auto={"orb": {"points": orbit_lane("e6")}, **disk_auto("e6"), "sp": {"points": stretch_lane()}}),
-            tr("e7", "brass-synth", gain="-11dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"}),
+            tr("e7", "brass-synth", gain="-11dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"},
+               fx=["gain gain=0dB+auto.sl*1"], auto={"sl": {"points": e7_light_lane()}}),   # v51
             {"name": "jet", "patch": JET_SWARM, "gain": "-9dB", "sends": {"hall": "-6dB"}, "notes": JET_NOTES,
              "auto": {"cp": {"points": swarm_lane()}}},                                     # v34: the swarm locks
             tr("hook", "flute", gain="-6dB", pan=0.1, sends={"dly": "-14dB", "hall": "-12dB"}),   # v5
