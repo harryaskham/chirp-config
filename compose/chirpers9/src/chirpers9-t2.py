@@ -579,6 +579,36 @@ def build():
     PAD = {'extends': 'kuramoto-choir',
            'synth': {'layers': [{'type': 'kuramoto', 'kuramoto': {'count': 10, 'spread': 12, 'wave': 'saw',
                                  'coupling': {'value': 0.0, 'mod': [{'src': 'auto.lock', 'amount': 1.0}]}}}]}}
+    # (v29, whole song) THE DRUMMER BREATHES AT EVERY PHRASE END: Harry, 6 Nov 23:55 - 'subtle variation so it
+    # doesnt get boring'; eco: brief fills, one-bar drop-outs and turnarounds are what he means. So the last bar of
+    # every eight in the gather, the build, the crest and the drift's first half now does one of three things, in
+    # turn: a FILL (beat 4 in rising 909 snare sixteenths, the kick out under it), a DROP (no kick for the bar, the
+    # hats and the bass carrying it, and a crash on the next downbeat), or a TURNAROUND (an open hat on the and of 4,
+    # a clap flam, and the NES bass stepping up to the next chord's fifth on the and of 4). Never the same twice in a
+    # row; the groove, the key and the parts are otherwise untouched
+    ph_ = 0
+    for bar_ in range(SEC['gather'], SEC['drift'] + 8):
+        s_, i_ = sec_of(bar_)
+        if i_ % 8 != 7 or s_ not in ('gather', 'build', 'crest', 'drift') or bar_ in (46, 47, 79):
+            continue
+        b0_, b1_ = bar_ * 4.0, (bar_ + 1) * 4.0
+        kind_ = ph_ % 3
+        ph_ += 1
+        if kind_ == 0:
+            P['kit'] = [e_ for e_ in P['kit'] if not (b0_ + 3.0 - 1e-6 <= e_[0] < b1_ - 1e-6 and e_[1] in ('k', 's', 'cp'))]
+            for q_ in range(4):
+                P['kit'].append((b0_ + 3.0 + q_ * 0.25, 's', 0.1, 70 + 12 * q_))
+        elif kind_ == 1:
+            P['kit'] = [e_ for e_ in P['kit'] if not (b0_ - 1e-6 <= e_[0] < b1_ - 1e-6 and e_[1] == 'k')]
+            P['kit'].append((b1_, 'c', 2.0, 104))
+        else:
+            P['kit'].append((b0_ + 3.5, 'oh', 0.3, 80))
+            P['kit'].append((b0_ + 3.0, 'cp', 0.2, 84))
+            P['kit'].append((b0_ + 3.06, 'cp', 0.2, 100))
+            rn_ = chord(bar_ + 1)[0]
+            P['bass'].append((b0_ + 3.5, m(KEY + rn_ + 7 - (12 if rn_ + 7 > 5 else 0)), 0.45, 92))
+    P['kit'].sort(key=lambda e_: e_[0]); P['bass'].sort(key=lambda e_: e_[0])
+
     # (v25, section w8: the drift 'static' - one groove under the last chorus to the end) THE FLOOR FALLS AWAY FOR THE
     # THIRD TIME: at the last chorus's third statement (bars 92-94) the band drops out - no kit, no hats, no debris,
     # no bass, no sub - and only the voice, the ondes, the pad and the bells are left, the line sung nearly alone;
