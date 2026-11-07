@@ -538,6 +538,19 @@ def build():
             c2notes.append(dict(n_, at=round(b_ + n_['at'] - 0.256, 4)))
     for n_ in SU['tracks'][0]['notes']:
         snotes.append(dict(n_, at=round(void1 + 10.0 + n_['at'] - 0.245, 4)))
+    # (v33, section w8: the tear 'static' - sixteen bars of the stretched kit and the 32nd hats with nothing sung over
+    # them, between the surge's unison and the last chorus) THE TEAR, SUNG: the duet comes back and is torn apart the
+    # way the tide tears the disk - the near voice sings 'the near side keeps the time' FASTER each time (x0.75 twice,
+    # then x0.6 three times, racing ahead, an octave up), while the old voice sings 'the far side lets it go' SLOWER
+    # (x1.5, then x2.2, dragging behind, low) - the same words pulled out of step, the song's whole idea in two
+    # voices - until the stopped tape and the void, and then the last chorus sings it together
+    for st_, f_ in ((tr0 + 2.0, 0.75), (tr0 + 6.0, 0.75), (tr0 + 10.0, 0.6), (tr0 + 13.25, 0.6), (tr0 + 16.5, 0.6)):
+        for n_ in L1_:
+            dnear.append(dict(n_, at=round(st_ + n_['at'] * f_, 4), len=round(n_['len'] * f_, 4),
+                              pitch=f"m{int(str(n_['pitch'])[1:]) + 12}", vel=round(n_['vel'] * 0.92, 3)))
+    for st_, f_ in ((tr0 + 2.5, 1.5), (tr0 + 12.0, 2.2)):
+        for n_ in L2_:
+            snotes.append(dict(n_, at=round(st_ + (n_['at'] - 5.0) * f_, 4), len=round(n_['len'] * f_, 4)))
     P['hats'] = [e_ for e_ in P['hats'] if not (tr0 - 1e-6 <= e_[0] < tr_end - 1e-6)]
     for q in range(int((void0 - tr0) / 0.25)):
         P['hats'].append((tr0 + q * 0.25, 'h^r=2', 0.25, 70 if q % 4 == 0 else 52))
