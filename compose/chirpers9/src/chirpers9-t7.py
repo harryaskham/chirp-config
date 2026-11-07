@@ -391,6 +391,12 @@ R38 = os.environ.get("T7_R38", "arc") != "none"
 # patches (age 0.4): the same words, older - weathered by the laps between. The collision's choir stays young,
 # so the voice ages across the song (and meets t6's old voice, age 0.8, across the album). T7_R39=none reproduces v38.
 R39 = os.environ.get("T7_R39", "age") != "none"
+# round 40 (section, w5 = bars 65-80 - the collision's second half, "little new vs w4"): T7_R40=decay (default) - THE
+# ORBIT LOSES ENERGY. The collision ran at full strength right up to the slack's frozen chord at bar 81 and then simply
+# stopped. Now its last four bars lose their parts one by one, the way an orbit sheds energy: at bar 77 the hats and
+# the shaker go, at 78 the snare, the ghosts and the perc, at 79 the E1 chips and E5's trill, at 80 the kick - so the
+# bass, the tide, the organ and the horns carry the collision down into the slack. T7_R40=none reproduces v39.
+R40 = os.environ.get("T7_R40", "decay") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -828,6 +834,15 @@ def build():
                 for s in range(0, 16, 2):
                     v = (84 if s % 4 == 0 else 62) + r27.randint(0, 6)
                     T["ride"].add(bar * 4.0 + s / 4.0, 1.6, "m62", v)
+    if R40:                                                                   # w5: the orbit loses energy (77-80)
+        for b0, ks in ((76, ("hats", "hatsw", "shaker")), (77, ("snare", "ghost", "ghostw", "perc")),
+                       (78, ("e1a", "e1b", "e1c", "e1aw", "e1bw", "e1cw", "e5", "e5w")), (79, ("kick",))):
+            lo, hi = b0 * 4.0, 80 * 4.0
+            for k in ks:
+                if k in T:
+                    T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if lo <= e[0] < hi else
+                               (e[0], max(0.03, round(lo - e[0] - 0.05, 4)), e[2], e[3], e[4]) if e[0] < lo < e[0] + e[1]
+                               else e for e in T[k].ev]
     return T
 
 
