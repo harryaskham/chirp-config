@@ -592,6 +592,13 @@ def build():
     # back down to her D4: 'nearer each time it comes round'
     PC = json.load(open(os.path.join(HERE, 'chirpers9-t2-prech.json')))
     pcnotes = [dict(n_, at=round(38 * 4.0 + n_['at'] - 0.245, 4)) for n_ in PC['tracks'][0]['notes']]
+    # (v47, whole song: after the first verse (bars 20-26) no voice sings for twelve bars - 1:09 to 1:40 - and the
+    # hook Harry stopped for is first heard at 2:06, more than two minutes in) THE HOOK, GLIMPSED: at the end of the
+    # gather the near voice sings the crest's line once, from far off - 'nearer each time it comes round', alone, no
+    # third above, low in level, darker and deep in the hall, as if heard from the other side of the disk - so the
+    # listener has it in their ear before the pre-chorus; when the crest sings it close, with its third and the
+    # ondes, it is a return, not a first meeting. The infall's whole idea: each time round, nearer
+    eh_ = [dict(n_, at=round(29 * 4.0 + n_['at'] - 0.25, 4), vel=round(n_.get('vel', 0.8) * 0.8, 3)) for n_ in CS['tracks'][0]['notes']]
     CB = json.load(open(os.path.join(HERE, 'chirpers9-t2-crestb.json')))
     cbnotes = []
     for b_, g_ in (((CREST + 8) * 4.0, 1.0), ((CREST + 12) * 4.0, 0.9)):
@@ -700,7 +707,9 @@ def build():
     # falls - the sub is all but gone in the gather (after the in-seam's agreed D1 pedal), comes in through the build,
     # is full at the crest, lifts away in the break (floating), and is heaviest in the drift and the fall, so t2 hands
     # t3 the depth t3 starts from. The same notes; only how much the floor weighs
-    GRAV = {'in': (0.0, 0.0), 'gather': (-12.0, -8.0), 'build': (-8.0, -1.0), 'crest': (0.0, 0.0), 'break': (-6.0, -3.0),
+    # (v47) chirper-zero: the gather at -12 dB cost t1's out-flow 74.5 -> 71.6 (t2's head 2.5 dB under t1's body), so
+    # the gather starts lighter but not empty
+    GRAV = {'in': (0.0, 0.0), 'gather': (-4.0, -5.0), 'build': (-5.0, -1.0), 'crest': (0.0, 0.0), 'break': (-6.0, -3.0),
             'drift': (1.0, 3.0), 'fall': (3.0, 3.0)}
     grav_pts = []
     for b_ in range(NBARS):
@@ -953,6 +962,8 @@ def build():
              'notes': dsnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
             {'name': 'driftlift', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=E:dorian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': [dict(n_, pitch=f"m{int(str(n_['pitch'])[1:]) + 2}") for n_ in dsnotes2], 'gain': '-8dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
+            {'name': 'earlyhook', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06}),
+             'notes': eh_, 'gain': '-13dB', 'pan': -0.15, 'fx': ['lp cutoff=2600', 'hp cutoff=200'], 'sends': {'echo': '-12dB', 'hall': '-4dB'}},
             {'name': 'crestsung', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06}),
              'notes': csnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
             {'name': 'prech', 'patch': dict(dict(PC['tracks'][0]['patch'], extends='voice-near synth.layers.0.passaggio=C5 synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1}),
