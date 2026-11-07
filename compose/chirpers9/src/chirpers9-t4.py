@@ -869,6 +869,31 @@ def human_time():
     return pts
 
 
+# v43 (ROUND TYPE: section, the crest's end 92-100 and its hand-off to the relief, ~25 s; rewritten): SHE HOLDS THE
+# LAST NOTE. The crest's sung hook (four E1 cycles, 92-97, her 'ah' with the duet a third above - the loudest thing in
+# the song) stopped at 97, and the crest's last bars ran on as band alone until the relief's first words at 101 ('I
+# kept your far side'). Now she HOLDS the hook's last note (E4, the duet G4 above it) through 97-100 - over the band,
+# into the breath of the ritardando (v40) - fading as she runs out (a diminuendo lane, -7 dB across the hold), then a
+# half-beat breath and the words. The climax ends on a held human note instead of a gap. (The band stays: v30 found
+# that thinning it at 97 merged into a 32 s still run.)
+HOLD_FROM, HOLD_FADE = 96, -7.0
+
+
+def hold_the_last(notes):
+    end = b0(101) - 0.5
+    last = max((n for n in notes if b0(HOLD_FROM) - 1e-6 <= n["at"] < b0(HOLD_FROM + 1) - 1e-6), key=lambda n: n["at"])
+    last["len"] = round(end - last["at"], 4)
+
+
+def hold_lanes(song):
+    a, z = b0(HOLD_FROM + 1), b0(101) - 0.5
+    pts = [["0b", 0.0], [f"{a:g}b", 0.0], [f"{z:g}b", HOLD_FADE], [f"{z + 0.25:g}b", 0.0]]
+    for tr_ in song["tracks"]:
+        if tr_["name"] in ("voice", "duet"):
+            tr_["fx"] = list(tr_.get("fx") or []) + ["gain gain=0dB+auto.hd*1"]
+            tr_["auto"] = dict(tr_.get("auto") or {}, hd={"points": pts})
+
+
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -1020,6 +1045,8 @@ def main():
             for n in sung_notes(b0(CREST) + 20, TAKES[2:]) + sung_notes(b0(101), TAKES[2:])] + hook_d + b2_duet()   # v7: lines 3-4 at
                                                                   # 86-90 and their return in the afterglow (101-105)
     duet.sort(key=lambda d: d["at"])
+    hold_the_last(voice)                                          # v43: she holds the hook's last note to the relief
+    hold_the_last(duet)
     breaths = [{"at": b0(CREST) - 0.85, "len": 0.85, "pitch": "C4", "vel": 0.55},
                {"at": b0(CREST) + 20 - 0.75, "len": 0.75, "pitch": "C4", "vel": 0.45}, hook_b]
     tempo = human_time()
@@ -1081,6 +1108,7 @@ def main():
                            "release": "120ms", "makeup": "0dB"}]},
     }
     lead_lanes(song)
+    hold_lanes(song)
     arc(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
