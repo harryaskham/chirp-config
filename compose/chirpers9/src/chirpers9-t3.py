@@ -324,6 +324,15 @@ R39 = os.environ.get("T3_R39", "swing") != "none"
 # kick, the backing voices, the doos and the rain - and at bar 105 the storm crashes back in under the second half.
 # T3_R40=none reproduces v39.
 R40 = os.environ.get("T3_R40", "parts") != "none"
+# round 41 (section, w6/w7 seam = bars 67-76 - the storm's return after the eye, flatness's longest rut left:
+# 2:40-3:04, three 8 s blocks alike): T3_R41=foretell (default) - THE ANSWER, FORETOLD. After the eye the wall comes
+# back and runs unchanged into the lift at 77. Now it returns in stages, as the eyewall first assembled (v34): bars 67-70
+# without the shards; then for bars 71-74 the storm's grainy bass hands its line to the round bass, an octave up - the
+# voice the crest's answer will be sung over (v32, bars 101-108), heard here first - and at 75 the grit and the shards
+# are both back. A promise the crest keeps. (Draft: the round bass alone moved the rut's two changes 0.49/0.36 ->
+# 0.61/0.67, still under the 0.691 line, and s0 -0.08.)
+# T3_R41=none reproduces v40.
+R41 = os.environ.get("T3_R41", "foretell") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -897,6 +906,15 @@ def build():
         T["shard"].ev = [(e[0], e[1], e[2], 1, e[4]) if 48 * 4.0 <= e[0] < 52 * 4.0 else
                          (e[0], max(0.03, round(48 * 4.0 - e[0] - 0.05, 4)), e[2], e[3], e[4]) if e[0] < 48 * 4.0 < e[0] + e[1]
                          else e for e in T["shard"].ev]
+    if R41 and R32:                                         # the answer foretold: the round bass for bars 71-74
+        T["_round2"] = Track("_round2")
+        for e in T["bass"].ev:
+            if 70 * 4.0 <= e[0] < 74 * 4.0 and e[3] > 1:
+                T["_round2"].add(e[0], e[1] * 1.1, mtok(int(float(e[2][1:])) + 12), e[3])
+        T["bass"].ev = [(e[0], e[1], e[2], 1, e[4]) if 70 * 4.0 <= e[0] < 74 * 4.0 else e for e in T["bass"].ev]
+        T["shard"].ev = [(e[0], e[1], e[2], 1, e[4]) if 66 * 4.0 <= e[0] < 70 * 4.0 else
+                         (e[0], max(0.03, round(66 * 4.0 - e[0] - 0.05, 4)), e[2], e[3], e[4]) if e[0] < 66 * 4.0 < e[0] + e[1]
+                         else e for e in T["shard"].ev]
     if R32:                                                 # the answer on a round bass (bars 101-108)
         T["_round"] = Track("_round")
         for e in T["bass"].ev:
@@ -1302,6 +1320,8 @@ def main():
         spec_b = next(tr for tr in tracks if tr["name"] == "bass")
         g_b = float(spec_b["gain"].replace("dB", "")) - 2.0
         tracks.append({"name": "bassr", "patch": "a3-round", "gain": f"{g_b:g}dB", "score": T["_round"].score()})
+        if R41 and "_round2" in T:                          # ...foretold at bars 71-74
+            tracks.append({"name": "bassr2", "patch": "a3-round", "gain": f"{g_b:g}dB", "score": T["_round2"].score()})
     if R40 and "_partc" in T:                               # the storm crashes back at bar 105
         tracks.append({"name": "partc", "patch": "tight-kit", "gain": "-4dB", "pan": 0.15, "score": T["_partc"].score()})
     if R38 and "_gust" in T:                                # the first gust's fill and crash
