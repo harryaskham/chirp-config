@@ -397,6 +397,14 @@ R48 = os.environ.get("T3_R48", "sub") != "none"
 # and lifts the chest (+3 dB at 55 Hz), so the storm is warmer and heavier and the limiter gives the low end and the
 # air the room the honk was taking. T3_R49=none reproduces v48.
 R49 = os.environ.get("T3_R49", "warm") != "none"
+# round 50 (section, w10 = bars 109-120 - the last voice before t4; focused least recently): T3_R50=round (default)
+# - EVERYTHING COMES ROUND, AS A ROUND. The storm's last sung line (bar 109) is "everything comes round", E1 whole,
+# one voice - and then nothing sang again. Now it goes round: a second singer takes it up a beat and a half later
+# (panned left, a slightly larger voice), a third a beat and a half after that (right, a slightly smaller one), so
+# the hook overlaps itself in a three-voice canon - mostly fifths, fourths, thirds and sixths, a passing second that
+# resolves as the next note comes - and the last "round" lands alone, two bars before t4 arrives. The voice accretes
+# again, in the words' own shape. T3_R50=none reproduces v49.
+R50 = os.environ.get("T3_R50", "round") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1475,6 +1483,17 @@ def main():
                 pt["extends"] = pt["extends"] + " synth.lfo.vib.per_note=true"
             elif k == "a3-back":
                 pt["extends"] = pt["extends"] + " synth.lfo.vib.per_note=true play.scoop=0.5 play.fall=1"
+    if R50:                                                 # w10: everything comes round, as a round (bar 109)
+        for tr in list(tracks):
+            if tr.get("name") == "sung" and tr.get("notes"):
+                line = [n for n in tr["notes"] if 431.9 <= n["at"] < 436.0]
+                base = patches[tr["patch"]]
+                for k, (off, pan, g, tract) in enumerate(((1.5, -0.35, -3.0, 1.1), (3.0, 0.35, -5.0, 0.92))):
+                    pn = f"a3-round{k + 2}"
+                    patches[pn] = dict(base, extends=base["extends"] + f" synth.layers.0.tract={tract}")
+                    tracks.append(dict(tr, name=f"round{k + 2}", patch=pn, pan=pan, gain=f"{g:g}dB",
+                                       notes=[dict(n, at=round(n["at"] + off, 4)) for n in line]))
+                break
     if R48:                                                 # palette: the undertow gets a body (a sine an octave under)
         for tr in list(tracks):
             if tr.get("name") == "bass" and tr.get("score"):
