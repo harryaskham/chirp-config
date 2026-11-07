@@ -1,5 +1,5 @@
-about: "Prefab (3D, use in a group; turn it with the group's face: to set its opponent): a figure dancing with a glowing blade held along its right forearm (a beam from its hand along the bone's direction) that swings with its arm and lights its surroundings; sparks fly off the tip on every snare. Params: phase (beats ahead), hue (the blade's colour along the elements palette, 0..1), energy (how hard it moves), blade (the blade's length)."
-params: {phase: 0, hue: 0.6, energy: 0.8, blade: 0.85}
+about: "Prefab (3D, use in a group; turn it with the group's face: to set its opponent): a figure dancing with a glowing blade held along its right forearm (a beam from its hand along the bone's direction) that swings with its arm and lights its surroundings; sparks fly off the tip on every snare. Params: phase (beats ahead), hue (the blade's colour along the elements palette, 0..1), energy (how hard it moves), blade (the blade's length), sparks (their brightness)."
+params: {phase: 0, hue: 0.6, energy: 0.8, blade: 0.85, sparks: 0.8}
 palette: elements
 env:
   clash: {on: track.snare, decay: 0.2}
@@ -7,4 +7,4 @@ layers:
   - {type: figure, name: me, rig: human, motion: dance, scale: 0.42, y: -0.42, phase: param.phase, energy: "param.energy*(1 + audio.level*1.5)", color: "#2c2f3c", light: 0.4, ambient: 0.04, rim: 0.8, shadow: 0.5, ground: -0.62}
   - {type: beam, pos: param.hue, from: [actor.me.forearm_r.x, actor.me.forearm_r.y, actor.me.forearm_r.z], to: ["actor.me.forearm_r.x + param.blade*actor.me.forearm_r.dx", "actor.me.forearm_r.y + param.blade*actor.me.forearm_r.dy", "actor.me.forearm_r.z + param.blade*actor.me.forearm_r.dz"], width: 0.014, glow: "2.2 + audio.level*1.5"}
   - {type: light, pos: param.hue, x: "actor.me.forearm_r.x + param.blade*actor.me.forearm_r.dx", y: "actor.me.forearm_r.y + param.blade*actor.me.forearm_r.dy", z: "actor.me.forearm_r.z + param.blade*actor.me.forearm_r.dz", power: "0.7 + audio.level", reach: 1.4}
-  - {type: motes, mode: emit, spawn: env.clash, count: 200, pos: param.hue, from: ["actor.me.forearm_r.x + param.blade*actor.me.forearm_r.dx", "actor.me.forearm_r.y + param.blade*actor.me.forearm_r.dy", "actor.me.forearm_r.z + param.blade*actor.me.forearm_r.dz"], wobble: 1.6, fall: 3, drag: 1.5, life: 0.5, streak: 0.08, size: 0.006, glow: 2.2, twinkle: 0.4, spread: 0.1, near: 0}
+  - {type: motes, mode: emit, spawn: env.clash, count: 120, pos: param.hue, from: ["actor.me.forearm_r.x + param.blade*actor.me.forearm_r.dx", "actor.me.forearm_r.y + param.blade*actor.me.forearm_r.dy", "actor.me.forearm_r.z + param.blade*actor.me.forearm_r.dz"], wobble: 1.6, fall: 3, drag: 1.5, life: 0.5, streak: 0.08, size: 0.005, glow: "param.sparks", twinkle: 0.4, spread: 0.1, near: 0}
