@@ -655,6 +655,26 @@ def recede(song):
         tr_["fx"], tr_["auto"] = fx, auto
 
 
+# v33 (ROUND TYPE: whole song): THE BREAK BREATHES. Measured (8 s loudness): the climax was one plateau from the jet
+# (2:40) to the horizon (3:44), and the break - meant as a hush ('the lens returns', time dilating) - was its LOUDEST
+# moment (the kit and the jet gone, but the sub, the choir and the lights held at full). Now the whole break draws
+# back together (-10 dB on the lane, ~-4 dB heard through the master compressor) - every track in it on one gain lane, so its colour is kept - while time dilates, and over its
+# last two bars it swells back with the riser into the slingshot's impact: the climax becomes a peak, a breath and a
+# second arrival, before the light recedes. (Tried first: gravity off - the sub, or sub and lift, out for the break:
+# a deeper breath, -6 dB, but a hole in the low end the album envelope punished: -0.43 to -0.46 over three seeds.)
+BREATHE_IN = ("sub", "lift", "choir", "choir5", "choir8", "lights", "e5", "e2", "hook", "hold")
+BREATHE_DB = -10.0                     # the master compressor gives back about half
+
+
+def breathe(song):
+    a, z = b0(BREAK[0]), b0(BREAK[1] + 1)
+    pts = [["0b", 0.0], [f"{a:g}b", 0.0], [f"{a + 2:g}b", BREATHE_DB], [f"{z - 8:g}b", BREATHE_DB], [f"{z:g}b", 0.0]]
+    for tr_ in song["tracks"]:
+        if tr_["name"] in BREATHE_IN:
+            tr_["fx"] = list(tr_.get("fx") or []) + ["gain gain=0dB+auto.br*1"]
+            tr_["auto"] = dict(tr_.get("auto") or {}, br={"points": pts})
+
+
 def horizon_lane(drop):
     """Redshift: 0 until the horizon, then sinking to `drop` semitones by the end."""
     return [["0b", 0.0], [f"{b0(SINK):g}b", 0.0], [f"{b0(BARS + 1):g}b", drop]]
@@ -819,6 +839,7 @@ def main():
                            "release": "120ms", "makeup": "0dB"}]},
     }
     recede(song)
+    breathe(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
