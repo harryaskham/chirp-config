@@ -407,6 +407,15 @@ R40 = os.environ.get("T7_R40", "decay") != "none"
 # straddle two of flatness's 8 s blocks.)
 # T7_R41=none reproduces v40.
 R41 = os.environ.get("T7_R41", "breath") != "none"
+# round 42 (whole): T7_R42=breathe (default) - THE ORBIT BREATHES. v41 let the floor hold its breath once, under the
+# crest choir, and it broke t7's deepest rut; t3 v42 found the same gesture works across a whole song. The reese riff
+# is the loudest thing in t7 and ran unbroken under its other ruts too (flatness: the approach's second half 1:04-1:12,
+# the spiral 2:48, the crest's end 4:00-4:08). Now the riff breathes there as well - bars 37-40 (under the singer's
+# second "every corner" and her hummed echo), 96-100 (the spiral, before her line at 105) and 141-144 (the crest's
+# end, between the band's drop-out and the lift): in each half bar its lowest note is held, the rest let go - the
+# riff slowed to its own roots - then it drives again. With v41's breath at 125-130 the gesture comes four times,
+# once in each part of the orbit. T7_R42=none reproduces v41.
+R42 = os.environ.get("T7_R42", "breathe") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -844,6 +853,22 @@ def build():
                 for s in range(0, 16, 2):
                     v = (84 if s % 4 == 0 else 62) + r27.randint(0, 6)
                     T["ride"].add(bar * 4.0 + s / 4.0, 1.6, "m62", v)
+    if R42:                                                                   # the orbit breathes (37-40, 96-100, 141-144)
+        for b0, b1 in ((36, 40), (95, 100), (140, 144)):
+            for k in ("bass", "bass5", "bass7", "bass8"):
+                if k not in T:
+                    continue
+                ev = T[k].ev
+                hold = {}
+                for i, e in enumerate(ev):
+                    if b0 * 4.0 <= e[0] < b1 * 4.0 and e[3] > 1 and str(e[2]).startswith("m"):
+                        h = int(e[0] // 2)
+                        j = hold.get(h)
+                        if j is None or int(float(e[2][1:])) < int(float(ev[j][2][1:])):
+                            hold[h] = i
+                keep = {i: h for h, i in hold.items()}
+                T[k].ev = [(e[0], round((keep[i] + 1) * 2.0 - e[0] - 0.1, 4), e[2], e[3], e[4]) if i in keep else
+                           (e[0], e[1], e[2], 1, e[4]) if b0 * 4.0 <= e[0] < b1 * 4.0 else e for i, e in enumerate(ev)]
     if R41:                                                                   # the floor holds its breath (125-130)
         firsts = {}
         for i, e in enumerate(T["bass"].ev):
