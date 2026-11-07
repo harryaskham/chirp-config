@@ -598,6 +598,23 @@ def build():
     P['kit'].append((cb0_ + 8.0, 'c', 2.0, 118))
     P['kit'].sort(key=lambda e_: e_[0])
 
+    # (v29, section w1: the in-seam, 0:00-0:32, t6's last flat run - and eco: 'subtle variation', phrase-long moves,
+    # not chord changes) THE TIDE COMES IN IN TWO WAVES: bars 1-8 the hats under t5's tail tick only eighths, the
+    # rest of the band as it was; at bar 9, as the C creeps into the tide, the hats fill in to sixteenths and the kora
+    # enters underneath playing E5 stretched x1.5 an octave down, growing from nothing - the counter-line the tide
+    # section will carry - all on D and C. (The marimba's trill lifting an octave at bar 9 as well was one move too
+    # many: compscore's structure found 20 sections on seed 0, past its 18 - the 'schizo' Harry warned against)
+    w0_, wm_, w1_ = 0.0, 32.0, 64.0
+    P['hats'] = [e_ for e_ in P['hats'] if not (w0_ - 1e-6 <= e_[0] < wm_ - 1e-6 and abs((e_[0] * 2) - round(e_[0] * 2)) > 1e-6)]
+    t_ = wm_
+    while t_ < w1_ - 1e-6:
+        for k_, p_ in enumerate(E5):
+            at_ = t_ + k_ * 0.375
+            if p_ is not None and at_ < w1_ - 1e-6:
+                P['e5b'].append((at_, m(p_ - 12), 0.34, int((88 if k_ in (0, 6) else 70) * (0.35 + 0.45 * (t_ - wm_) / 32.0))))
+        t_ += 4.5
+    P['e5b'].sort(key=lambda e_: e_[0])
+
     stop_pts = [['0b', 0.0], [f'{void0:.2f}b', 0.0], [f'{void0 + 0.9:.2f}b', 1.0], [f'{void0 + 0.98:.2f}b', 1.0], [f'{void0 + 1.0:.2f}b', 0.0]]
 
     tempo = [{'at': '0b', 'bpm': 120.0}, {'at': f'{SEC["pull"] * 4.0:.1f}b', 'bpm': 120.0},
