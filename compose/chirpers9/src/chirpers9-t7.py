@@ -300,6 +300,18 @@ R27 = os.environ.get("T7_R27", "air") != "none"
 # replacing the 808), a roll on A - D's dominant - through the key's turn and the crest landing on D (bar 120),
 # the tutti's two hits on D (bars 146-147), and the plunge (bar 153). T7_R28=none reproduces v27.
 R28 = os.environ.get("T7_R28", "timp") != "none"
+# round 29 (palette, aimed at the flat runs - Harry 23:55: "subtle variation so it doesn't get boring"; flatness.py
+# read t7 47% flat, 0:32-1:28 and 3:28-4:24 56 s each): T7_R29=lines (default) - TWO COUNTER-LINES THAT COME AND GO.
+# (1) A MUTED TRUMPET (trumpet-mute; no Accretion track has one) in the approach, bars 25-32 - the 12 bars between the
+# hook and the singer where only the groove ran: an E-flat minor line (Bb Db Eb, Ab Gb Ab Bb, Eb Gb Ab Bb ... F Eb),
+# twice, the second time climbing to Eb5 to hand over to her at bar 33. (2) MELLOTRON STRINGS (mellotron-strings;
+# none on the album) at the crest, bars 137-144 - the stretch where the hook just cycles: a half-note counter-melody
+# over D | C | G | G (F#5 E5 D5 B4 / A4 G4 B4 D5 / F#5 G5 B5 D5 / A5 G5 F#5 E5), holding D5 into the tutti. Both
+# enter and leave on 8-bar lines - and THE BAND MAKES ROOM for them (a quiet line alone did not move flatness.py at
+# all): under the trumpet's first phrase (bars 25-28) the kick, snare, ghosts and bass drop out - hats, shaker and the
+# tide carry the pulse - and return at 29; when the strings enter (bars 137-140) the kick and bass drop out under the
+# hook, the horns and the ride, and come back at 141 for the climb into the tutti. T7_R29=none reproduces v28.
+R29 = os.environ.get("T7_R29", "lines") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -701,6 +713,14 @@ def build():
                 T["e4w8"].add(bar * 4.0 + off, 0.35, ",".join(mtok(m + 12) for m in ch[1:]), 82 if off == 1.5 else 74)
         for b0, b1, s in ((116, 118, 27), (118, 120, 33)):
             T["sub8"].add(b0 * 4.0, (b1 - b0) * 4.0 - 0.1, mtok(s), 70)
+    if R29:                                                                   # the band makes room (25-28, 137-140)
+        for lo, hi, ks in ((24 * 4.0, 28 * 4.0, ("kick", "snare", "ghost", "bass", "sub")),
+                           (136 * 4.0, 140 * 4.0, ("kick", "bass", "sub"))):
+            for k in ks:
+                if k in T:
+                    T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if lo <= e[0] < hi else
+                               (e[0], max(0.03, round(lo - e[0] - 0.05, 4)), e[2], e[3], e[4]) if e[0] < lo < e[0] + e[1]
+                               else e for e in T[k].ev]
     if R27:                                                                   # air: shaker under storm/spiral, ride on the crest
         r27 = random.Random(27)
         hat_bars = {int(e[0] // 4) for e in T["hats"].ev if e[3] > 1}
@@ -1094,6 +1114,23 @@ def main():
                        "score": tut_h.score()})
         tracks.append({"name": "tuttib", "patch": "erhu", "gain": "-6dB", "pan": -0.15,
                        "fx": ["delay time=3/8 mix=0.12 feedback=0.25"], "sends": {"space": "-6dB"}, "score": tut_b.score()})
+    if R29:                                                 # counter-lines that come and go
+        tr_, st_ = Track("trumpet"), Track("strings")
+        A = [(1.0, "Bb4", .5), (1.5, "Db5", .5), (2.0, "Eb5", 1.0), (3.0, "Db5", .5), (3.5, "Bb4", 1.5), (5.0, "Ab4", 1.0),
+             (6.0, "Gb4", .5), (6.5, "Ab4", .5), (7.0, "Bb4", 1.0), (9.0, "Eb4", .5), (9.5, "Gb4", .5), (10.0, "Ab4", .5),
+             (10.5, "Bb4", 1.0), (11.5, "Ab4", .5)]
+        for base, tail in ((24 * 4.0, [(12.0, "Gb4", 1.0), (13.0, "F4", 1.0), (14.0, "Eb4", 2.0)]),
+                           (28 * 4.0, [(12.0, "Bb4", 1.0), (13.0, "Db5", 1.0), (14.0, "Eb5", 2.0)])):
+            for off, nt, ln in A + tail:
+                tr_.add(base + off, ln * 0.9, mtok(midi(nt)), 88 if off in (2.0, 14.0) else 78)
+        line = ["F#5", "E5", "D5", "B4", "A4", "G4", "B4", "D5", "F#5", "G5", "B5", "D5", "A5", "G5", "F#5", "E5"]
+        for i, nt in enumerate(line):
+            st_.add(136 * 4.0 + 2.0 * i, 1.95, mtok(midi(nt)), 70 + i)
+        st_.add(144 * 4.0, 8.0, mtok(midi("D5")), 84)
+        tracks.append({"name": "trumpet", "patch": "trumpet-mute", "gain": "-4dB", "pan": 0.25, "sends": {"space": "-8dB"},
+                       "score": tr_.score()})
+        tracks.append({"name": "strings", "patch": "mellotron-strings", "gain": "-4dB", "pan": -0.2, "sends": {"space": "-6dB"},
+                       "score": st_.score()})
     if R28:                                                 # timpani: the four arrivals
         patches["a7-timp"] = {
             "about": "chirper-two: a kettle drum - a membrane struck off-centre with a long ring, over a sine fundamental "
