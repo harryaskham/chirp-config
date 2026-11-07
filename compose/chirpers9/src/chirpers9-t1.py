@@ -98,6 +98,7 @@ MIRRORTURN = os.environ.get("C9T1_MIRRORTURN", "turns")   # SECTION w7 (3:27-3:5
 SPARKLE = os.environ.get("C9T1_SPARKLE", "5")   # WHOLE (the spectrum's worst band was 7.9 kHz, -8.5: t1 was dull up top): THE DUST CATCHES THE LIGHT - a high shelf (+dB above 6 kHz) on the five scattered voices, the glock cell and the shaker: the seed's grains glint (v40: 5; tried with it, rejected: the ks-harp's inversion up an octave, around D4 - spectrum -1.4, the low harp is load-bearing)
 PADBACK = os.environ.get("C9T1_PADBACK", "pad:6,warmth:3")   # WHOLE (t5 v45 found its chords 4 dB too loud; t1's worst band was 213 Hz +8, the pad's and the organ's A3): THE PAD STEPS BACK - 'pad:dB[,warmth:dB]' trims the Game Boy wave pad (and the Hammond warmth) so the seed's grains and the far choir stand in front of the chords
 HUMEVEN = os.environ.get("C9T1_HUMEVEN", "0.5")   # SECTION w1 (0:00-0:36, the album's first seconds; flagged static): THE HUM HOLDS - a real closed-mouth hum loses its top as it climbs (C5 hummed is far quieter than C5 sung), so the choir's opening E1 dipped away on its high notes; wM's hum_even (pin 1d916569) holds the hum at the open voice's level ('1' fully, '0.5' halfway), so the whole hummed seed is heard and the 'ah' it opens into doesn't jump
+CELLP = os.environ.get("C9T1_CELLP", "fb-crystal@-21")   # PALETTE: the cell (E1 whole, an octave up, from the crest: the seed once it has nucleated) leaves the modal glockenspiel for a struck crystal ('patch[@gaindB]'): 'fb-crystal' (an inharmonic crystal strike) - t1 is Nucleation, and at the crest the seed crystallises - or 'kuramoto-flies' (short notes from a coupled swarm that falls into step)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -514,6 +515,13 @@ def song():
         ns = [note(a0 + c * E1_CYC + o, f"m{mm}", ln, 0.5 if c == 0 else 0.45)
               for c in range(2) for o, ln, mm in zip(E1_OFF, E1_LEN, mids)]
         tracks.append({"name": "answer", "patch": patch, "gain": gain, "pan": pan, "sends": {"space": "-9dB"}, "notes": ns})
+    if CELLP:
+        cp, _, cg = CELLP.partition("@")
+        for tr in tracks:
+            if tr["name"] == "cell":
+                tr["patch"] = cp
+                if cg:
+                    tr["gain"] = f"{cg}dB"
     if PADBACK:
         trims = dict((k, float(v)) for k, v in (x.split(":") for x in PADBACK.split(",")))
         for tr in tracks:
