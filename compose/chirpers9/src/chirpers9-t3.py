@@ -349,6 +349,14 @@ R42 = os.environ.get("T3_R42", "breathe") != "none"
 # hums on "n" (2 dB under). Then at bar 33 the voices OPEN onto "oo" with their third: the song's first singing grows
 # from a hum into a vowel, the way a voice warms up. T3_R43=none reproduces v42.
 R43 = os.environ.get("T3_R43", "mmm") != "none"
+# round 44 (section, w4 = bars 37-48 - "little new vs w3", flatness's ruts at 1:28-1:52): T3_R44=wall (default) - THE
+# STORM BEHIND A WALL. After the undertow's breath (bars 37-40) the riff came back exactly as before and the lift at
+# 45 arrived out of nothing. Now when the riff returns at bar 41 the whole storm is heard through a wall: the master
+# low-pass (the outro's "close" lane, open at 20 kHz all song) drops 4.4 octaves to ~950 Hz - kick, riff and floor
+# pass, the hats, chips and farfisa go muffled - eases open a little over three bars, then gives way in the last half
+# bar, so the lift at 45 (drums out, everything up an octave) bursts out bright, and the storm slams back at 49.
+# A DJ's filter, used once. T3_R44=none reproduces v43.
+R44 = os.environ.get("T3_R44", "wall") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -975,6 +983,9 @@ def main():
     grit = [["0b", 0.0], ["64b", 0.2], ["160b", 0.55], ["288b", 0.6], ["352b", 0.0], ["512b", 0.0]]
     fall = [["0b", 0.0], ["448b", 0.0], ["512b", -7.0]]
     close = [["0b", 0.0], ["448b", 0.0], ["512b", -2.0]]
+    if R44:                                                 # w4: the storm behind a wall (bars 41-44)
+        close = [["0b", 0.0], ["159.99b", 0.0], ["160b", -4.4], ["172b", -3.4], ["175.5b", -1.2], ["176b", 0.0],
+                 ["448b", 0.0], ["512b", -2.0]]
     stop = [["0b", 0.0], ["223.99b", 0.0], ["224b", 1.0], ["225b", 1.0], ["225.01b", 0.0]]
     if R13:
         stut = [[p_, round(v * 0.6, 3)] for p_, v in stut]
