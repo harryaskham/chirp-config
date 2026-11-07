@@ -245,6 +245,14 @@ R29 = os.environ.get("T3_R29", "lands") != "none"
 # (91.8 -> 52 / 46) and spectrum: in t3 a floor-less bar is a new section that never returns. Subtle, as asked.)
 # T3_R30=none reproduces v29.
 R30 = os.environ.get("T3_R30", "breathe") != "none"
+# round 31 (section, aimed at the flat runs left after v30 - 1:44-2:32 the eyewall, 2:40-3:20 the assembly, 3:28-4:16
+# the crest; Harry 23:55 "subtle variation"): T3_R31=lifts (default) - THE LIFT RETURNS. v30's lift (drums out, hats in
+# eighths, bass / subs / arps / chips an octave up, then down on the next downbeat) comes back three more times so it
+# becomes the storm's way of breathing: bars 57-60 (the eyewall's second half, under the counted "doo"s) and bars
+# 77-80 (the assembly, before the kit pulls into sevens) - the same lift exactly, so it recurs. (Drafts: a third lift
+# inside the crest at 105-108 did not break the crest's run and cost spectrum (78.6, s0 -0.7); keeping the sub floor low
+# in every lift changed v30's two as well and recurrence fell 99.6 -> 85.2.) T3_R31=none reproduces v30.
+R31 = os.environ.get("T3_R31", "lifts") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -792,7 +800,7 @@ def build():
                     T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if (lo <= e[0] < hi and pred(e)) else
                                (e[0], max(0.03, round(lo - e[0] - 0.05, 4)), e[2], e[3], e[4])
                                if (e[0] < lo < e[0] + e[1] and pred(e)) else e for e in T[k].ev]
-        for b in (28, 44):                                  # the lift: arps and E1 chips up an octave, hats to eighths
+        for b in (28, 44) + ((56, 76) if R31 else ()):      # the lift: arps and E1 chips up an octave, hats to eighths
             mute(("hats",), b * 4.0, (b + 4) * 4.0, lambda e: round(e[0] * 4) % 2 == 1)
             mute(("kick", "snare", "chipsn"), b * 4.0, (b + 4) * 4.0)          # the drums step out; bass and subs stay
             for k in ("arp0", "arp1", "arp2", "e1", "bass", "floor", "sub"):
