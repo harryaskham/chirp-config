@@ -983,6 +983,27 @@ def hands_rest_for_verse():
     P["seed"].ev = [e for e in P["seed"].ev if not lo <= e[0] < hi]
 
 
+# v48 (ROUND TYPE: section, A's second phrase 25-32 and the turn into the verse, ~18 s - the 0:56 block, 0.49 / 0.28,
+# the stillest in A; rewritten): THE CLARINET FINDS THE VERSE. Here the clarinet held E1 alone (v31's swap), cycle
+# after identical cycle over the sub and the lights, and then her verse (v47) arrived on E1 INVERTED with nothing to
+# lead to it. Now the clarinet turns the hook over in its hands as it goes - its last cycles alternate the hook and
+# its MIRROR (115: A D B E G, 120: the hook again, 125: the mirror) - so when she sings 'four lights were turning' at
+# 130 she is taking up, with words, the tune the clarinet has just found: a transformation heard happening, as the
+# album does with every element. Same register as her verse (D4 -> A4, A4 -> D4, C5 -> B3, G4 -> E4, E4 -> G4).
+MIRROR_CYCLES = (115.0, 125.0)                       # beats where the clarinet's cycle plays the mirror
+
+
+def clarinet_finds_the_verse():
+    names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+    out = []
+    for s, ln, h, v in P["clar"].ev:
+        if any(c - 1e-6 <= s < c + E1_CYCLE - 1e-6 for c in MIRROR_CYCLES) and "," not in h:
+            m = 131 - midi_of(h)
+            h = f"{names[m % 12]}{m // 12 - 1}"
+        out.append((s, ln, h, v))
+    P["clar"].ev = out
+
+
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -1130,6 +1151,7 @@ def main():
     voices_alone()
     lights_climb()
     hands_rest_for_verse()
+    clarinet_finds_the_verse()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v + verse(),
                    key=lambda d: d["at"])
