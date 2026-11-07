@@ -874,7 +874,11 @@ def build():
             # in place of voice-legato pushed toward it
             {'name': 'breakhum', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.hum=1 synth.layers.0.hum_at=m synth.layers.0.harmony=[2,4] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true'),
              'notes': breakhum, 'gain': '-17dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
-            {'name': 'crestpad', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[2,4] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true'),
+            # (v42, palette: wM's part_size, pinned 14:43, which no Accretion track has used yet) THE CREST GETS ITS
+            # BASSES: the ooh triads that back the crest gain a part an octave below the root, sung by voices 15%
+            # larger (part_size 1: formants 13% lower) - real basses under the choir, not the same singers pitched
+            # down - and the thirds and fifths above by slightly smaller voices: a SATB spread for the album's hook
+            {'name': 'crestpad', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-7,2,4] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.layers.0.part_size=1'),
              'notes': crestpad, 'gain': '-14dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
             {'name': 'ooh', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true'),
              'notes': oohn, 'gain': '-17dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
