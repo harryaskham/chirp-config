@@ -329,6 +329,14 @@ R30 = os.environ.get("T7_R30", "lift") != "none"
 # 137-140 into a lift made the crest flat from 3:28 instead: there the missing floor is the stronger move.)
 # T7_R31=none reproduces v30.
 R31 = os.environ.get("T7_R31", "float") != "none"
+# round 32 (palette): T7_R32=kettle (default) - REAL KETTLES, AND VOICES THAT BREAK. Two engine features made for or
+# first used here: (1) wM's `modes: kettle` (pinned 07876a82, built for this song): v28's timpani were a membrane with a
+# helper sine that still read as a tom; now the modal head is a kettle - the (n,1) family pulled by the air to
+# 1 : 1.5 : 2 : 2.5, the principal tone singing over a short thump - struck where players strike (0.7), and the helper
+# sine is gone. (2) Registers (wM, pinned 0c5d29c5): the choir's alto and soprano now break into head voice above C5 and
+# the soloist above B4 - the top of every line turns rounder and airier, the way a singer's voice lifts (the soprano 1 dB
+# up for head voice's softness). T7_R32=none reproduces v31.
+R32 = os.environ.get("T7_R32", "kettle") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1207,6 +1215,24 @@ def main():
         for k, pt in patches.items():
             if k.startswith("a7-sung") or k.startswith("a7-choir"):
                 pt["extends"] = pt["extends"] + " synth.lfo.vib.per_note=true synth.lfo.vib.delay=180ms synth.lfo.vib.fade=300ms"
+    if R32:                                                 # real kettles; voices that break into head voice
+        if "a7-timp" in patches:
+            tp_ = patches["a7-timp"]
+            tp_["about"] = ("chirper-two: a kettle drum - wM's modes=kettle (the (n,1) family near 1 : 1.5 : 2 : 2.5 over a "
+                            "short thump) struck at 0.7 with a 3 s ring, and a felt-mallet touch; rolls are fast restrikes")
+            head = dict(tp_["synth"]["layers"][0], modes="kettle", strike={"value": 0.7, "mod": [{"src": "rand", "amount": 0.04}]})
+            mallet = tp_["synth"]["layers"][2]
+            tp_["synth"]["layers"] = [head, dict(mallet, level={"value": "-70dB", "mod": mallet["level"]["mod"]})]
+        for k, pt in patches.items():
+            if k in ("a7-choir1", "a7-choir2"):
+                pt["extends"] = pt["extends"] + " synth.layers.0.passaggio=C5"
+            elif k.startswith("a7-sung"):
+                pt["extends"] = pt["extends"] + " synth.layers.0.passaggio=B4"
+        for tr in tracks:
+            if tr.get("name") == "timp":                    # the helper sine's weight is gone: +3 dB
+                tr["gain"] = f"{float(tr['gain'].replace('dB', '')) + 3.0:g}dB"
+            if tr.get("patch") == "a7-choir2":
+                tr["gain"] = f"{float(str(tr.get('gain', '0dB')).replace('dB', '')) + 1.0:g}dB"
     if R24:
         for tr in tracks:
             if tr.get("patch") == "cz-pad":
