@@ -628,6 +628,33 @@ REDSHIFT = -12.0
 # D2 with it. (Moving the sub up instead emptied 38-44 Hz - spectrum 93.8 -> 83.9: the album wants both octaves.)
 
 
+# v32 (ROUND TYPE: whole song): THE LIGHT RECEDES. Measured (8 s loudness): the song builds well into the jet - and
+# then nothing falls away: the break is the loudest moment and the whole horizon, 70 s of 'a held light redshifting
+# away', sat 1.2-1.9 dB under the peak until the last block fell off a cliff (sustained hold, lift, hsub and the
+# choir's 'ah' pinned up by the master compressor). Only the lead's pitch redshifted. Now the light itself recedes:
+# after the solo's last line (from bar 153) the horizon's held tracks fade 9 dB to the end, and from the sink (161)
+# the bright ones darken - a low-pass falling from 16 kHz three and a half octaves (to ~1.4 kHz) as the pitch sinks:
+# redshift you hear in the colour, not only the pitch. The solo's line and everything before 153 are untouched.
+RECEDE_GAIN = ("choir", "choir5", "choir8", "hold", "lift", "hsub", "hook", "hook3")
+RECEDE_DARK = ("choir", "choir5", "choir8", "hold", "hook", "hook3")
+RECEDE_FROM, RECEDE_DB, DARK_OCT = 153, -6.0, -2.0
+
+
+def recede(song):
+    end = f"{b0(BARS + 1):g}b"
+    for tr_ in song["tracks"]:
+        n = tr_["name"]
+        if n not in RECEDE_GAIN:
+            continue
+        fx, auto = list(tr_.get("fx") or []), dict(tr_.get("auto") or {})
+        fx.append("gain gain=0dB+auto.rc*1")
+        auto["rc"] = {"points": [["0b", 0.0], [f"{b0(RECEDE_FROM):g}b", 0.0], [end, RECEDE_DB]]}
+        if n in RECEDE_DARK:
+            fx.append("lp cutoff=16000+auto.rd*1")
+            auto["rd"] = {"points": [["0b", 0.0], [f"{b0(SINK):g}b", 0.0], [end, DARK_OCT]]}
+        tr_["fx"], tr_["auto"] = fx, auto
+
+
 def horizon_lane(drop):
     """Redshift: 0 until the horizon, then sinking to `drop` semitones by the end."""
     return [["0b", 0.0], [f"{b0(SINK):g}b", 0.0], [f"{b0(BARS + 1):g}b", drop]]
@@ -791,6 +818,7 @@ def main():
                           {"type": "compressor", "threshold": "-14dB", "ratio": 3, "attack": "8ms",
                            "release": "120ms", "makeup": "0dB"}]},
     }
+    recede(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
