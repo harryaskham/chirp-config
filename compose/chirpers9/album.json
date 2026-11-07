@@ -163,5 +163,16 @@
       "AESTHETICS OVER CLEVERNESS: beauty and listenability first; difficult -> rewarding stays, but the difficulty is rhythmic and textural and the reward is big, melodic and harmonic.",
       "BIG CHANGES ARE WANTED: re-key, re-harmonise, rewrite a section or the whole track, swap instruments, cut layers, rewrite your element. A score may dip for a round; ears over metrics. Don't polish chaos."
     ]
-  }
+  },
+  "direction_more": [
+    {
+      "by": "Harry, 6 Nov 23:55 GMT, listening to the groove",
+      "words": "are we still making progress? im still hearing lots of contiguous music with very little change or dynamism, ie the thing we introduced section climbs to break out of ruts a bit on last album, we shouldnt be schizo about it but we should add subtle variation so it doesnt get boring",
+      "rules": [
+        "SUBTLE VARIATION, NOT SCHIZO: no stretch of about 30 s or more where nothing changes. Every 8-16 bars something moves: a fill, a drop-out and return, a counter-line entering, a re-voiced chord, a register shift, a filter or space move, a rhythmic displacement, a new doubling. Keep the groove, key and identity; vary the surface.",
+        "MEASURED (chirp-eco, 22:15 snapshot vs Standby Amber, same absolute yardstick): Accretion spends 40% of its time in flat stretches against Standby Amber's 25%, longest flat run 40 s vs 29 s. Worst: t3 69% (0:40-2:32, 112 s unbroken), t6 67%, t4 61%, t7 47%. t1, t2, t5 are livelier than Standby Amber.",
+        "SECTION ROUNDS EXIST FOR THIS: aim them at the flat runs. Palette and engine-feature rounds add detail inside the same texture; they don't break a rut."
+      ]
+    }
+  ]
 }
