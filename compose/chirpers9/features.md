@@ -38,7 +38,7 @@ released albums first). Ask wM for features; the voice has no ceiling.
 | radio, follow-noise | |
 | pitch | |
 | crush, drive, clip, amp, cab | |
-| dynamics: compressor, glue, ott, transient, gate, duck, pump, limiter, autolevel | |
+| dynamics: compressor, glue, ott, transient, gate, duck, pump, limiter, autolevel | pump: t2 and t6 (kit.k), t3 v52 (chirper-two: the grit bass, its sub and the deep floor dip -5/-6 dB under kick.k and the eyewall's kick7.k, 200 ms, curve 0.6 - the storm breathes) |
 
 ## Time
 | feature | featured by |
