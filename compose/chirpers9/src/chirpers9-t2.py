@@ -388,6 +388,20 @@ def build():
         while p_ < 55:
             p_ += 12
         crestpad.append(dict(OOH['tracks'][0]['notes'][0], at=round(b_ * 4.0, 4), len=7.7, vel=0.72, pitch=f"m{p_}"))
+    # (v41, palette: wM's closed-mouth hum, pinned 13:43, which t2 has not used) THE BREAK IS HUMMED: under the bells,
+    # the floating guitar and the far choir's echo, the backing voices that held the crest's chords now HUM the
+    # break's - mouths closed ('mmm': hum 1, hum_at m - a murmur near 270 Hz, no air), the chords in D Dorian (Dm9,
+    # Fmaj9, Cadd9, Am7, then the climb C F G A) - the crest remembered with the mouth shut: what people do with a
+    # tune they can't stop hearing. Quiet, low in the hall; it stops where the found voice sings at the break's end
+    breakhum = []
+    for b_ in range(SEC['break'], SEC['break'] + 12, 2):
+        r_ = chord(b_)[0]
+        p_ = KEY + 12 + r_
+        while p_ > 57:
+            p_ -= 12
+        while p_ < 48:
+            p_ += 12
+        breakhum.append(dict(OOH['tracks'][0]['notes'][0], at=round(b_ * 4.0, 4), len=7.7, vel=0.8, pitch=f"m{p_}"))
     oohin = [dict(OOH['tracks'][0]['notes'][0], at=16.0, len=7.6, vel=0.6), dict(OOH['tracks'][0]['notes'][0], at=24.0, len=7.9, vel=0.88)]
     # (v30, section w3: 1:03-1:35, 'static' - the second verse sang into the same groove as the first, and the wurli
     # entered on its own two bars later) THE SECOND VERSE IS ANSWERED: the backing voices hold 'ooh' (D4 and the open
@@ -858,6 +872,8 @@ def build():
              'notes': chnotes, 'gain': '-15dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
             # (v15) and the sung line is wM's voice-near - close, young, breathy, dry, even vowels - made for this track,
             # in place of voice-legato pushed toward it
+            {'name': 'breakhum', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.hum=1 synth.layers.0.hum_at=m synth.layers.0.harmony=[2,4] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true'),
+             'notes': breakhum, 'gain': '-17dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
             {'name': 'crestpad', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[2,4] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true'),
              'notes': crestpad, 'gain': '-14dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
             {'name': 'ooh', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true'),
