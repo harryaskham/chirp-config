@@ -235,6 +235,16 @@ R28 = os.environ.get("T3_R28", "move") != "none"
 # the break, and then one last E1 exactly on the crest's downbeat - the flute that fought the bar arrives on the one
 # with everything else. Appended to the dizi track. T3_R29=none reproduces v28.
 R29 = os.environ.get("T3_R29", "lands") != "none"
+# round 30 (section, aimed at the 112 s flat run 0:40-2:32 = bars 17-62, the storm - Harry 23:55: "subtle variation so
+# it doesn't get boring"; flatness.py read t3 67-69% flat, the worst on the album): T3_R30=breathe (default) - THE
+# STORM LIFTS - a phrase that recurs: 12 bars as they were, then 4 bars that LIFT, twice (bars 29-32, under the hum's
+# second half, running into v23's arps-up at 33-36; and bars 45-48, the end of the build): the arps and E1's chip line
+# go up an octave, the hats thin to eighths, the kick, snare and chip snare step out, and the bass and subs climb an
+# octave too (the floor lifts instead of vanishing; the harmony holds) - and it all comes down on the next downbeat. (Two earlier drafts broke the 112 s run with harder moves - four different ones: hats, the floor out, a
+# 2 kHz filter close, the shards out; then the floor out twice with a 5 kHz close - and both cratered recurrence
+# (91.8 -> 52 / 46) and spectrum: in t3 a floor-less bar is a new section that never returns. Subtle, as asked.)
+# T3_R30=none reproduces v29.
+R30 = os.environ.get("T3_R30", "breathe") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -775,6 +785,20 @@ def build():
         for n, ln in retro:
             T["glass"].add(at, ln * 4 * 0.95, mtok(midi(n)), 76)
             at += ln * 4
+    if R30:                                                 # the storm breathes: four phrase-long moves in bars 21-60
+        def mute(keys, lo, hi, pred=lambda e: True):
+            for k in keys:
+                if k in T:
+                    T[k].ev = [(e[0], e[1], e[2], 1, e[4]) if (lo <= e[0] < hi and pred(e)) else
+                               (e[0], max(0.03, round(lo - e[0] - 0.05, 4)), e[2], e[3], e[4])
+                               if (e[0] < lo < e[0] + e[1] and pred(e)) else e for e in T[k].ev]
+        for b in (28, 44):                                  # the lift: arps and E1 chips up an octave, hats to eighths
+            mute(("hats",), b * 4.0, (b + 4) * 4.0, lambda e: round(e[0] * 4) % 2 == 1)
+            mute(("kick", "snare", "chipsn"), b * 4.0, (b + 4) * 4.0)          # the drums step out; bass and subs stay
+            for k in ("arp0", "arp1", "arp2", "e1", "bass", "floor", "sub"):
+                T[k].ev = [(e[0], e[1], ",".join(mtok(int(float(p[1:])) + 12) if p.startswith("m") else p
+                                                  for p in e[2].split(",")), e[3], e[4])
+                           if b * 4.0 <= e[0] < (b + 4) * 4.0 and isinstance(e[2], str) else e for e in T[k].ev]
     if R28_MOVE and R27:                                    # the storm's E1 statements move from boc-lead to the dizi
         moved = [e for e in T["e1hi"].ev if e[0] < 88 * 4.0 and e[3] > 1]
         T["e1hi"].ev = [(e[0], e[1], e[2], 1, e[4]) if (e[0] < 88 * 4.0 and e[3] > 1) else e for e in T["e1hi"].ev]
