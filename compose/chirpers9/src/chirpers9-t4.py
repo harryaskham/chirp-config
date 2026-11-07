@@ -932,6 +932,34 @@ def voices_alone():
         P[n].ev = out
 
 
+# v46 (ROUND TYPE: section, the rise 65-80, ~35 s - its first half the stillest block left, 2:24 at 0.44;
+# rewritten): THE LIGHTS CLIMB. The rise was built on the sub and E4's lights (-5.3 / -6.2, the loudest things in
+# 65-72), and the lights held one voicing all the way: a section called the rise that never rose. Now the four lights
+# CLIMB through it - every two or three chords the lowest note above the root goes up over the top (an inversion, the
+# root kept on the floor), so the chords' top line rises D4 / E4 -> B4 -> E5 across the rise, the same harmony
+# lifting toward the crest - and the crest (81) opens back at home, the voicing falling into the arrival.
+CLIMB_STEPS = [0, 0, 0, 1, 1, 2, 2, 2, 3, 3]      # inversions per lights chord across the rise
+
+
+def lights_climb():
+    names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+    lo, hi = b0(RISE[0]), b0(RISE[1] + 1)
+    out, i = [], 0
+    for s, ln, h, v in P["lights"].ev:
+        if lo - 1e-6 <= s < hi - 1e-6 and "," in h:
+            ms = sorted(midi_of(x) for x in h.split(","))
+            root, rest = ms[0], ms[1:]
+            for _ in range(CLIMB_STEPS[min(i, len(CLIMB_STEPS) - 1)]):
+                m = rest.pop(0)
+                while m <= max(rest):
+                    m += 12
+                rest.append(m)
+            h = ",".join(f"{names[m % 12]}{m // 12 - 1}" for m in [root] + rest)
+            i += 1
+        out.append((s, ln, h, v))
+    P["lights"].ev = out
+
+
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -1077,6 +1105,7 @@ def main():
     lights_out()
     reed_takes_b()
     voices_alone()
+    lights_climb()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v,
                    key=lambda d: d["at"])
