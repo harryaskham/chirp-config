@@ -276,6 +276,14 @@ R33 = os.environ.get("T3_R33", "deep") != "none"
 # in front of you: for bars 49-52 the shards hold back, so the eyewall opens on the voices counting in sevens over the
 # kit and the bass; the shards crash in at 53. T3_R34=none reproduces v33.
 R34 = os.environ.get("T3_R34", "assemble") != "none"
+# round 35 (palette): T3_R35=gangsa (default) - E2 AS KOTEKAN. E2 (t2's figure: hits 0, 2, 3, 5 of 7 sixteenths,
+# D A F C) ran through 80% of the storm on the library's chip-metal at -18 dB against the mix, masked: grain nobody
+# heard. It moves to the library gamelan (gangsa: bronze keys in pairs a few cents apart, so every note beats -
+# ombak - with a mallet clang on the attack; no other Accretion track has it) and is split the way gamelan
+# splits a figure: kotekan, two interlocking parts - D and F on the left, A and C on the right - so the 7/16 figure
+# ping-pongs across the stereo field. Written length is the damping hand: 0.3 beats (was 0.12) lets each key
+# ring a moment before the next. Same notes, same times. T3_R35=none reproduces v34.
+R35 = os.environ.get("T3_R35", "gangsa") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1230,6 +1238,23 @@ def main():
         spec_b = next(tr for tr in tracks if tr["name"] == "bass")
         g_b = float(spec_b["gain"].replace("dB", "")) - 2.0
         tracks.append({"name": "bassr", "patch": "a3-round", "gain": f"{g_b:g}dB", "score": T["_round"].score()})
+    if R35:                                                 # E2 as kotekan on two gamelan tracks
+        for tr in tracks:
+            if tr.get("name") == "e2" and tr.get("patch") == "chip-metal":
+                chip, pol, san = Track("e2"), Track("e2g"), Track("e2s")
+                for e in T["e2"].ev:                        # the storm's body only: the seams keep the chip
+                    inside = 16 * 4.0 <= e[0] < 100 * 4.0
+                    chip.ev.append(e)                       # the chip keeps its air (9-15 kHz) underneath
+                    if inside:
+                        (pol if e[2][0] in "DF" else san).ev.append((e[0], 0.15, e[2], e[3], e[4]))
+                patches["a3-gangsa"] = {"extends": "gamelan", "fx": [],
+                                        "about": "chirper-two: the library gangsa, dry (the hall left to the song's space)"}
+                tr.update(score=chip.score())
+                tracks.append({"name": "e2g", "patch": "a3-gangsa", "gain": "-7dB", "pan": -0.4, "score": pol.score(),
+                               "sends": {"space": "-12dB"}})
+                tracks.append({"name": "e2s", "patch": "a3-gangsa", "gain": "-5dB", "pan": 0.4, "score": san.score(),
+                               "sends": {"space": "-12dB"}})
+                break
     if R33:                                                 # the storm's own floor (staple `sub` -> a3-deep, +3 dB)
         patches["a3-deep"] = {
             "about": "chirper-two: t3's floor - a sine with a stronger second harmonic and a little drive through a 200 Hz "
