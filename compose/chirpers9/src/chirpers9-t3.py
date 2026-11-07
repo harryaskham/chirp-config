@@ -301,6 +301,13 @@ R36 = os.environ.get("T3_R36", "glass") != "none"
 # for nine seconds the storm's centre carries the tune every other track chops up; the wall comes back on its E.
 # T3_R37=none reproduces v36.
 R37 = os.environ.get("T3_R37", "eye") != "none"
+# round 38 (section, w2 = bars 13-24 - the storm taking shape after t2's overlap, never focused): T3_R38=gust (default)
+# - THE FIRST GUST. The storm's broken machine ran its sixteenth kicks and hats straight through bars 17-24 into the
+# hum (bar 25) with only a chip roll to mark it. Now the storm takes its first breath: for bars 23-24 the hats stop
+# and the kick holds back to two hits (beats 3 and 1), the skin drum's three-against-four carrying on alone; then a
+# tom fill falls through E2's notes (D4 C4 A3 F3, twice, sixteenths, crescendo) under the chip roll, and a crash
+# lands the hum's entry. T3_R38=none reproduces v37.
+R38 = os.environ.get("T3_R38", "gust") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -855,6 +862,14 @@ def build():
                 T[k].ev = [(e[0], e[1], ",".join(mtok(int(float(p[1:])) + 12) if p.startswith("m") else p
                                                   for p in e[2].split(",")), e[3], e[4])
                            if b * 4.0 <= e[0] < (b + 4) * 4.0 and isinstance(e[2], str) else e for e in T[k].ev]
+    if R38:                                                 # w2: the first gust (bars 23-24 breathe, a fill, a crash)
+        T["kick"].ev = [(e[0], e[1], e[2], 1, e[4]) if 88.0 <= e[0] < 96.0 and not any(abs(e[0] - x) < 0.03 for x in (90.0, 92.0))
+                        else e for e in T["kick"].ev]
+        T["hats"].ev = [(e[0], e[1], e[2], 1, e[4]) if 88.0 <= e[0] < 96.0 else e for e in T["hats"].ev]
+        T["_gust"], T["_gustc"] = Track("gust"), Track("gustc")
+        for i, m in enumerate((62, 60, 57, 53) * 2):
+            T["_gust"].add(94.0 + i * 0.25, 0.24, mtok(m), 78 + 5 * i)
+        T["_gustc"].add(96.0, 2.0, "c", 112)
     if R34:                                                 # the eyewall assembles: the shards hold back for 49-52
         T["shard"].ev = [(e[0], e[1], e[2], 1, e[4]) if 48 * 4.0 <= e[0] < 52 * 4.0 else
                          (e[0], max(0.03, round(48 * 4.0 - e[0] - 0.05, 4)), e[2], e[3], e[4]) if e[0] < 48 * 4.0 < e[0] + e[1]
@@ -1260,6 +1275,10 @@ def main():
         spec_b = next(tr for tr in tracks if tr["name"] == "bass")
         g_b = float(spec_b["gain"].replace("dB", "")) - 2.0
         tracks.append({"name": "bassr", "patch": "a3-round", "gain": f"{g_b:g}dB", "score": T["_round"].score()})
+    if R38 and "_gust" in T:                                # the first gust's fill and crash
+        tracks.append({"name": "gust", "patch": "ks-drum", "gain": "-4dB", "pan": 0.1, "sends": {"space": "-10dB"},
+                       "score": T["_gust"].score()})
+        tracks.append({"name": "gustc", "patch": "tight-kit", "gain": "-4dB", "pan": -0.15, "score": T["_gustc"].score()})
     if R36:                                                 # E1 doubled on a farfisa (the Glass ensemble's organ)
         for tr in tracks:
             if tr.get("name") == "e1" and tr.get("patch") == "a3-ring":
