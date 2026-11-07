@@ -951,6 +951,27 @@ def build():
             {'name': 'sung2', 'patch': dict(dict(SU['tracks'][0]['patch'], extends='voice-old synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1.5, 'fall': 2.5}),
              'notes': snotes2, 'gain': '-8dB', 'pan': 0.0, 'sends': {'hall': '-12dB', 'echo': '-22dB'}},
         ]}
+    # (v48, whole song: the song is the near side and the far side, and they never moved in the room - the marimba
+    # held right, the trombone left, the voices in the middle) NEAR AND FAR IN SPACE: the two sides now travel the
+    # story across the stereo field. Through the in-seam, the pull and the tide they stand apart (the near side's
+    # marimba, kora and voice to the right, the far side's trombone, fretless and old voice to the left); the
+    # squeeze draws them in; at the crest they meet in the middle; through the CROSS they cross over, each passing
+    # the other to the opposite side; the surge pulls them back into one point for the unison; the tear rips them
+    # out to the edges, crossed; and the out-seam lets them drift a little back. Instruments travel up to 0.7 of
+    # the way, voices 0.4
+    SEP = {'in': (0.6, 0.6), 'pull': (0.6, 0.6), 'tide': (0.6, 0.5), 'squeeze': (0.5, 0.15), 'crest': (0.05, 0.05),
+           'cross': (0.05, -0.6), 'surge': (-0.6, 0.0), 'torn': (-0.2, -0.95), 'out': (-0.95, -0.6)}
+    sep_pts = []
+    for b_ in range(NBARS):
+        s_, i_ = sec_of(b_)
+        a_, z_ = SEP[s_]
+        sep_pts.append([f'{b_ * 4.0:.1f}b', round(a_ + (z_ - a_) * i_ / 15.0, 3)])
+    SIDE = {'near': 0.7, 'e5b': 0.7, 'duetnear': 0.4, 'descant': 0.4,
+            'far': -0.7, 'farbass': -0.5, 'sung': -0.4, 'sungb': -0.4, 'sungc': -0.4, 'lastword': -0.4}
+    for t_ in song['tracks']:
+        if t_['name'] in SIDE:
+            t_['pan'] = {'value': 0, 'mod': [{'src': 'auto.sep', 'amount': SIDE[t_['name']]}]}
+            t_['auto'] = dict(t_.get('auto', {}), sep={'points': sep_pts})
     return song
 
 
