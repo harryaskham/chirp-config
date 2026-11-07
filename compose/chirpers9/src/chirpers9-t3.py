@@ -341,6 +341,14 @@ R41 = os.environ.get("T3_R41", "foretell") != "none"
 # kick and everything above; then the riff drives again. The same gesture each time, so it recurs.
 # T3_R42=none reproduces v41.
 R42 = os.environ.get("T3_R42", "breathe") != "none"
+# round 43 (section, w3 = bars 25-36 - the voices' first entry, after the gust): T3_R43=mmm (default) - THE HUM IS A
+# HUM. The "hum" (bar 25, E1 whole, the album's first voice in t3) was always sung on an open "oo", and so was its
+# answer a third apart at bar 33: two open statements, nothing between them. wM's closed-mouth hum (pinned e3da830a,
+# chirper-three's request) makes it what it was called: the mouth shut, the voice through the nose - a murmur near
+# 270 Hz with the "m"'s dip at 1.1 kHz - 4 dB up (high hums are quieter), and an octave below it a second singer
+# hums on "n" (2 dB under). Then at bar 33 the voices OPEN onto "oo" with their third: the song's first singing grows
+# from a hum into a vowel, the way a voice warms up. T3_R43=none reproduces v42.
+R43 = os.environ.get("T3_R43", "mmm") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1400,6 +1408,17 @@ def main():
                 pt["extends"] = pt["extends"] + " synth.lfo.vib.per_note=true"
             elif k == "a3-back":
                 pt["extends"] = pt["extends"] + " synth.lfo.vib.per_note=true play.scoop=0.5 play.fall=1"
+    if R43:                                                 # the hum is a hum: closed mouth at bar 25, open at 33
+        for tr in list(tracks):
+            if tr.get("name") == "hum" and tr.get("notes"):
+                base = patches[tr["patch"]]
+                patches["a3-humm"] = dict(base, extends=base["extends"] + " synth.layers.0.hum=1 synth.layers.0.hum_at=m")
+                patches["a3-humn"] = dict(base, extends=base["extends"] + " synth.layers.0.hum=1 synth.layers.0.hum_at=n")
+                g = float(tr["gain"].replace("dB", ""))
+                lo = [dict(n, pitch=f"m{int(str(n['pitch'])[1:]) - 12}") for n in tr["notes"]]
+                tr.update(patch="a3-humm", gain=f"{g + 4:g}dB")
+                tracks.append(dict(tr, name="humlo", patch="a3-humn", gain=f"{g + 2:g}dB", pan=0.2, notes=lo))
+                break
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=100 gain=3dB q=1.0",
                                               "peak cutoff=320 gain=-2dB q=0.8",
                                               "highshelf cutoff=8000 gain=2dB"]},
