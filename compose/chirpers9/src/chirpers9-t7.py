@@ -337,6 +337,13 @@ R31 = os.environ.get("T7_R31", "float") != "none"
 # the soloist above B4 - the top of every line turns rounder and airier, the way a singer's voice lifts (the soprano 1 dB
 # up for head voice's softness). T7_R32=none reproduces v31.
 R32 = os.environ.get("T7_R32", "kettle") != "none"
+# round 33 (section, w6 = bars 81-96, the slack into the spiral, never focused): T7_R33=answer (default) - THE TRUMPET
+# ANSWERS THE CHOIR. In the slack the choir sings "each lap" twice over the frozen E-flat minor chord (bars 83 and 86)
+# and nothing answers it; the spiral then simply starts. The muted trumpet from the approach (v29) comes back to
+# answer: after the first line it falls Db5 Bb4 Ab4 Gb4 F4 (bar 84), after the second it climbs Gb4 Ab4 Bb4 Db5 to a
+# held Eb5 that carries the slack over the edge into the spiral (bars 87-88). Call and response, and the trumpet becomes
+# a recurring voice rather than a one-off. Appended to the trumpet track. T7_R33=none reproduces v32.
+R33 = os.environ.get("T7_R33", "answer") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1163,6 +1170,11 @@ def main():
                            (28 * 4.0, [(12.0, "Bb4", 1.0), (13.0, "Db5", 1.0), (14.0, "Eb5", 2.0)])):
             for off, nt, ln in A + tail:
                 tr_.add(base + off, ln * 0.9, mtok(midi(nt)), 88 if off in (2.0, 14.0) else 78)
+        if R33:                                             # w6: the trumpet answers the choir in the slack
+            for at, nt, ln, v in ((333.0, "Db5", .5, 80), (333.5, "Bb4", .5, 76), (334.0, "Ab4", 1.0, 80), (335.0, "Gb4", .5, 76),
+                                  (335.5, "F4", 2.0, 82), (345.0, "Gb4", .5, 78), (345.5, "Ab4", .5, 80), (346.0, "Bb4", 1.0, 84),
+                                  (347.0, "Db5", 1.0, 86), (348.0, "Eb5", 3.5, 90)):
+                tr_.add(at, ln * 0.92, mtok(midi(nt)), v)
         line = ["F#5", "E5", "D5", "B4", "A4", "G4", "B4", "D5", "F#5", "G5", "B5", "D5", "A5", "G5", "F#5", "E5"]
         for i, nt in enumerate(line):
             st_.add(136 * 4.0 + 2.0 * i, 1.95, mtok(midi(nt)), 70 + i)
