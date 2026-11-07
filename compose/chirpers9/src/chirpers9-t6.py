@@ -847,6 +847,8 @@ def build():
         (e_[0] >= od0_ + 32.0 - 1e-6 and abs(e_[0] - round(e_[0])) > 1e-6))]
     P['acid'] = [e_ for e_ in P['acid'] if e_[0] < od0_ + 24.0 - 1e-6]
     P['glass'] = [e_ for e_ in P['lights'] if SEC['crest'] * 4.0 - 1e-6 <= e_[0] < SEC['cross'] * 4.0 - 1e-6]
+    P['farbow'] = [e_ for e_ in P['farbass'] if e_[0] >= SEC['cross'] * 4.0 - 1e-6]
+    P['farbass'] = [e_ for e_ in P['farbass'] if e_[0] < SEC['cross'] * 4.0 - 1e-6]
     # (v47, section w3: the tide 'little new vs w2' - the pull's wave ran straight on into it, the same drummer on
     # the same rims) THE TIDE ON HANDS: while the tide is in - the song's lowest, quietest water - the drummer puts the
     # sticks down and plays the E2 cell on a CAJON (the library's cajon, which no Accretion track uses): the rim hits
@@ -924,7 +926,13 @@ def build():
             # saw bass (Juno / SH-101), dark and round, held for the chord's length: the bass line D -> C -> G you
             # could only feel is now a line you can hum, and its harmonics fill the low-mids the sines left bare
             tr('root', 'analog-bass play.gate=0.98', '-9dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-4dB', 'release': '200ms', 'curve': 0.6}]),
+            # (v51, palette: the far side's weight was a fretless all song - a plucked, singing electric under a
+            # trombone) THE FAR SIDE TAKES UP THE BOW: from the cross on - once the two sides have passed each other -
+            # the far side's octave-down E1 is the library's contrabass, arco (a bowed string on the largest body,
+            # physical: a deep, grainy stroke that speaks slowly, a slow narrow vibrato; no Accretion track uses it):
+            # the far side's weight drawn by a bow, not plucked - slower, older, more air - as its voice ages
             tr('farbass', 'fretless', '-6dB', pan=-0.1, fx=['lp cutoff=1800', 'hp cutoff=35', {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
+            tr('farbow', 'contrabass', '-6dB', pan=-0.1, fx=['lp cutoff=1800', 'hp cutoff=35', {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             tr('hook', 'low-whistle', '-6dB', pan=0.05, sends={'hall': '-12dB', 'echo': '-18dB'}),
             tr('near', 'modal-marimba', '-11dB', pan=0.3, auto={'shut': {'points': shut_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 700, 'mod': [{'src': 'auto.shut', 'amount': 4.0}]}}, {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}],
@@ -995,7 +1003,7 @@ def build():
         a_, z_ = SEP[s_]
         sep_pts.append([f'{b_ * 4.0:.1f}b', round(a_ + (z_ - a_) * i_ / 15.0, 3)])
     SIDE = {'near': 0.7, 'e5b': 0.7, 'duetnear': 0.4, 'descant': 0.4,
-            'far': -0.7, 'farbass': -0.5, 'sung': -0.4, 'sungb': -0.4, 'sungc': -0.4, 'lastword': -0.4}
+            'far': -0.7, 'farbass': -0.5, 'farbow': -0.5, 'sung': -0.4, 'sungb': -0.4, 'sungc': -0.4, 'lastword': -0.4}
     for t_ in song['tracks']:
         if t_['name'] in SIDE:
             t_['pan'] = {'value': 0, 'mod': [{'src': 'auto.sep', 'amount': SIDE[t_['name']]}]}
