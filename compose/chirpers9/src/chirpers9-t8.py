@@ -344,6 +344,24 @@ def far_patch():
 E5_PATCH, E5_GAIN = "gamelan", "-10dB"          # the bronze sat 3 dB under the marimba at -13: matched
 
 
+# v47 (ROUND TYPE: section, the break 121-128, ~15 s of dilated time - its block 3:04 still at 0.52; rewritten): SHE
+# SAYS IT HERSELF. In the break the hushed choir sang the jet's two lines again - 'We were the far side', 'And it was
+# ours' - while she, who had asked her question six times through the stretto, was silent. Now the choir sings the
+# first line and RESTS for the second, and SHE sings 'And it was ours' alone (125-128): the one who asked owns the
+# answer, in her voice as aged by then (~0.37 on her curve, v40), mouth open (v43), in the break's slowed time. Then
+# the jet returns (129).
+HERS = (125, 128)
+HERS_VEL = 0.62
+
+
+def she_says_it(lead, fifth, low):
+    lo, hi = b0(HERS[0]), b0(HERS[1] + 1)
+    inside = lambda n: lo - 1e-6 <= n["at"] < hi - 1e-6
+    hers = [dict(n, vel=HERS_VEL, expr={"reg": 0.4}) for n in lead if inside(n)]
+    keep = lambda part_: [n for n in part_ if not inside(n)]
+    return keep(lead), keep(fifth), keep(low), hers
+
+
 def closing_choir(patch):
     patch["synth"]["layers"][0].update({"hum": "auto.hm", "hum_at": "m"})
     return patch
@@ -989,7 +1007,8 @@ def main():
     hook_sung_back()
     lead, fifth, low = choir()
     far = far_choir()                                             # v38: the answer forms far away (v45: own track)
-    solo = age_her(sorted(hummed(opening_voice()) + sung_asks() + horizon_line(), key=lambda d: d["at"]))   # v36: she asks                      # v12: the last line, one voice alone (v21: and the first)
+    lead, fifth, low, hers = she_says_it(lead, fifth, low)       # v47: the break's second line is hers alone
+    solo = age_her(sorted(hummed(opening_voice()) + sung_asks() + hers + horizon_line(), key=lambda d: d["at"]))   # v36: she asks                      # v12: the last line, one voice alone (v21: and the first)
     lead += [{"at": b0(HORIZON + 16), "len": b0(BARS + 1) - b0(HORIZON + 16) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'
     tempo = [{"at": "0b", "bpm": SEAM_IN}, {"at": f"{b0(17):g}b", "bpm": SEAM_IN},    # v42: t7's overlap held flat
              {"at": f"{b0(VACUUM):g}b", "bpm": INFALL, "ramp": True},             # v42: the orbits quicken inward
