@@ -241,6 +241,31 @@ def e7_tightens():
         beat += c
 
 
+# v38 (ROUND TYPE: section, E3's spotlight 41-52, ~19 s plus its frame - the stretto's other still stretch,
+# 1:04-1:20; rewritten): THE ANSWER FORMS FAR AWAY. E3's arrival (D-minor add9 | Bb | C on a seven-beat cycle) sat
+# between two of the solo's questions (40 and 52) with nothing answering. Now, after E3's first four bars, a distant
+# CHOIR HUMS E3's top line - F, D, E on every cycle - softly under the stretto, swelling a little, and gives way as
+# she asks again at 52: the choir's first sound in the song, forty-five bars before it sings the answer (E F# D) at
+# the jet. E3's own top line is a cousin of her question; the many begin to gather far off.
+FAR_CHOIR = (45, 51)
+
+
+def far_choir():
+    out = []
+    beat = E3_LIGHT[0]
+    while beat < b0(FAR_CHOIR[1] + 1) - 0.01:
+        if beat >= b0(FAR_CHOIR[0]) - 1e-6:
+            k = (beat - b0(FAR_CHOIR[0])) / (b0(FAR_CHOIR[1] + 1) - b0(FAR_CHOIR[0]))
+            on = 0.0
+            for notes, ln in E3:
+                if beat + on < b0(FAR_CHOIR[1] + 1) - 0.01:
+                    out.append({"at": round(beat + on, 4), "len": min(ln, b0(FAR_CHOIR[1] + 1) - beat - on),
+                                "ph": "UW1", "pitch": notes[-1], "vel": round(0.2 + 0.1 * k, 3)})
+                on += ln
+        beat += sum(ln for _, ln in E3)
+    return out
+
+
 def mute_until_the_jet():
     P["bass"].ev = [(s, ln, h + "^pm" if s < b0(JET) - 1e-6 and "^" not in h else h, v) for s, ln, h, v in P["bass"].ev]
 
@@ -845,6 +870,7 @@ def main():
     mute_until_the_jet()
     e7_tightens()
     lead, fifth, low = choir()
+    lead += far_choir()                                           # v38: the answer forms far away
     solo = sorted(opening_voice() + sung_asks() + horizon_line(), key=lambda d: d["at"])   # v36: she asks                      # v12: the last line, one voice alone (v21: and the first)
     lead += [{"at": b0(HORIZON + 16), "len": b0(BARS + 1) - b0(HORIZON + 16) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'
     tempo = [{"at": "0b", "bpm": SEAM_IN},
