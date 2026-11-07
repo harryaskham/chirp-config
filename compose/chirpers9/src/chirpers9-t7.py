@@ -423,6 +423,14 @@ R42 = os.environ.get("T7_R42", "breathe") != "none"
 # back, bars 37-38 and 45-46) becomes a true closed-mouth hum (wM's hum, pinned e3da830a: hum 1 at m, 3 dB up -
 # high hums are quieter): she hums the answer back, mouth shut, into the open floor. T7_R43=none reproduces v42.
 R43 = os.environ.get("T7_R43", "open") != "none"
+# round 44 (palette): T7_R44=thump (default) - A BODY UNDER THE BREAK. t7's kick is the dusty kit's - a lo-fi
+# break kick, all knock and no chest - and compscore's spectrum has said for many rounds that t7 is 10 dB short at
+# 61 Hz, the band a dance kick lives in. Now a second kick sits under every hit of the break (and of the crest's
+# half-time): the album's first tuned kick, a7-thump - the 909's sine kick with its pitch moved from G1 to Bb1
+# (58 Hz: the fifth of the storm's Eb and E4's Bb colour in D, never against either), low-passed at 180 Hz so only
+# its body speaks, 2 dB over the dusty kick's own level (the reese and floor mask it below that), through the same glitch and grit lanes. The break keeps its dust on
+# top and gets a chest. T7_R44=none reproduces v43.
+R44 = os.environ.get("T7_R44", "thump") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1428,6 +1436,13 @@ def main():
         for tr in tracks:
             if tr["name"] == "bow":
                 tr["patch"] = "a7-erhu"
+    if R44:                                                 # palette: a tuned body under the break's kick
+        patches["a7-thump"] = {"extends": "909", "kit": {"k": {"pitch": "Bb1"}}}
+        for tr in list(tracks):
+            if tr.get("name") in ("kick", "kickh") and tr.get("score"):
+                g = float(tr["gain"].replace("dB", ""))
+                tracks.append(dict(tr, name=tr["name"] + "9", patch="a7-thump", gain=f"{g + 2:g}dB",
+                                   fx=list(tr.get("fx", [])) + [{"type": "filter", "kind": "lp", "cutoff": 180, "q": 0.707}]))
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "lowshelf cutoff=120 gain=5dB", "peak cutoff=160 gain=-2.5dB q=1.2",
                                               "peak cutoff=320 gain=-2dB q=0.8", "peak cutoff=1400 gain=-2.5dB q=0.7",
                                               "highshelf cutoff=8000 gain=" + ("2dB" if R27 else "1dB")]},
