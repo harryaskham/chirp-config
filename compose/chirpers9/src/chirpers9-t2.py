@@ -677,6 +677,19 @@ def build():
     # engine's swing16, never used on the album): every off-beat sixteenth lands late, the lazy lean of a lofi/IDM
     # drummer; the seams, the voices and the pads stay straight
     SWUNG = ('kit', 'kitb', 'hat3', 'bass', 'gtr', 'e2body', 'e2m')
+    # (v45, whole song: t2 sat between a light neighbour and a heavy one - t1's body has almost nothing at 38 Hz, t3's
+    # floor is a3-deep on D1 - and its own D1 sub held one weight from the gather to the fall; compscore heard it as
+    # the seams' worst band, +25 dB against t1 and -23 dB against t3) GRAVITY GROWS: the infall's pull deepens as it
+    # falls - the sub is all but gone in the gather (after the in-seam's agreed D1 pedal), comes in through the build,
+    # is full at the crest, lifts away in the break (floating), and is heaviest in the drift and the fall, so t2 hands
+    # t3 the depth t3 starts from. The same notes; only how much the floor weighs
+    GRAV = {'in': (0.0, 0.0), 'gather': (-12.0, -8.0), 'build': (-8.0, -1.0), 'crest': (0.0, 0.0), 'break': (-6.0, -3.0),
+            'drift': (1.0, 3.0), 'fall': (3.0, 3.0)}
+    grav_pts = []
+    for b_ in range(NBARS):
+        s_, i_ = sec_of(b_)
+        a_, z_ = GRAV[s_]
+        grav_pts.append([f'{b_ * 4.0:.1f}b', round(a_ + (z_ - a_) * i_ / 15.0, 2)])
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': swung(line(P[name], total), SEC['gather'] * 4.0, fall0, 0.62) if name in SWUNG else line(P[name], total)}, **kw)
     PAD = {'extends': 'kuramoto-choir',
            'synth': {'layers': [{'type': 'kuramoto', 'kuramoto': {'count': 10, 'spread': 12, 'wave': 'saw',
@@ -844,7 +857,8 @@ def build():
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 600, 'mod': [{'src': 'auto.shut', 'amount': 3.5}]}}],
                sends={'hall': '-8dB'}),
             # (v19) the D1 sub 4 dB down: the t1 -> t2 mix seam read t2 28 dB over t1's body at 38 Hz
-            tr('sub', 'sub', '-13dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '220ms', 'curve': 0.6}]),
+            tr('sub', 'sub', '-13dB', auto={'grav': {'points': grav_pts}}, fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '220ms', 'curve': 0.6},
+                                                 {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.grav', 'amount': 1}]}}]),
             # (tried in v15: moog-seq for the staple NES bass - the sections blurred into each other, structure 100 -> 84,
             # spectrum 98 -> 94; the chip bass's dry edge is what tells the sections apart)
             tr('bass', 'nes-triangle-bass', '-4dB', fx=['lp cutoff=2400']),
