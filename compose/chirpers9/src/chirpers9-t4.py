@@ -960,6 +960,29 @@ def lights_climb():
     P["lights"].ev = out
 
 
+# v47 (ROUND TYPE: whole song): A VERSE. In 136 bars she sang words only at the crest - the chorus, 'around the warm
+# stone / the cold half sleeping / I kept your far side / and turned toward you' - and for the eighty bars before it
+# only hummed (the filtered first hum in A, the closed hums in B): a chorus with no verse, the voice at its most human
+# saying nothing until the top. Now A's last phrase - the one place in A she was silent (33-40: handpan, sub, the
+# four lights, the steel) - has her FIRST WORDS, two lines: 'four lights were turning / I counted them home' (the
+# element t4 brings, named as the lights play; 'home' the key), sung on E1 INVERTED around A4 - A D B E G, the hook's
+# own rhythm and intervals upside down, all in key and consonant over the four lights - so the chorus keeps E1 itself
+# for its arrival. Softer than the chorus (x0.88); the handpan rests under her two lines (E1 against its inversion
+# would rub C against B), the hook changing hands again. Takes made with the chorus's own tool and settings
+# (chirpers9-t4-takes.json 'verse').
+VERSE = json.load(open(os.path.join(HERE, "chirpers9-t4-takes.json")))["verse"]
+VERSE_AT, VERSE_VEL = 130.0, 0.88                    # bar 33.5, on E1's grid; two lines of ten beats
+
+
+def verse():
+    return [dict(n, vel=round(n["vel"] * VERSE_VEL, 3)) for n in sung_notes(VERSE_AT, VERSE)]
+
+
+def hands_rest_for_verse():
+    lo, hi = VERSE_AT - 1e-6, VERSE_AT + 10.0 * len(VERSE) - 1e-6
+    P["seed"].ev = [e for e in P["seed"].ev if not lo <= e[0] < hi]
+
+
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -1106,8 +1129,9 @@ def main():
     reed_takes_b()
     voices_alone()
     lights_climb()
+    hands_rest_for_verse()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
-    voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v,
+    voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v + verse(),
                    key=lambda d: d["at"])
     duet = [dict(n, pitch=f"m{third_above(midi_of(n['pitch']))}", vel=round(n["vel"] * 0.8, 3))
             for n in sung_notes(b0(CREST) + 20, TAKES[2:]) + sung_notes(b0(101), TAKES[2:])] + hook_d + b2_duet()   # v7: lines 3-4 at
