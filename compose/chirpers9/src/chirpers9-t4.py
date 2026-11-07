@@ -792,7 +792,8 @@ def arc(song):
 # pedal-steel line and its octave double play alone over kick, sub and the swelling air; 77-80 the lights return at
 # full under the build, and the crest lands on all of it.
 LEADS = {"e2": [(69, 72, 7.0)], "e3": [(73, 76, 8.0)], "e3hi": [(73, 76, 8.0)],
-         "duet": [(49, 56, 7.0)]}                         # v41: the duet's open reply to her closed hum, heard
+         "duet": [(49, 56, 7.0), (113, 120, 10.0)]}        # v41: the duet's open reply to her closed hum, heard;
+                                                          # v44: and the warm third over her relief hums
 LIGHTS_OUT = (73, 76)
 
 
@@ -892,6 +893,21 @@ def hold_lanes(song):
         if tr_["name"] in ("voice", "duet"):
             tr_["fx"] = list(tr_.get("fx") or []) + ["gain gain=0dB+auto.hd*1"]
             tr_["auto"] = dict(tr_.get("auto") or {}, hd={"points": pts})
+
+
+# v44 (ROUND TYPE: section, the relief's last eight bars 113-120, ~18 s plus its approach - the stillest block
+# left for flatness.py, 4:08; rewritten): THE WARM THIRD. Through the relief's last bars she hums alone - the lights,
+# the handpan back, the clarinet's answers, no drums - and the duet that sang the crest with her had gone. Now it
+# hums WITH her, a third above in the key (the song's own name, sung at its exhale): one voice becomes two in thirds
+# for the relief's last eight bars, softly, before the fall. The duet's hum is open, so it also gives the t5 seam a
+# little of the air it wants (t4's relief runs short of t5's top end).
+WARM_THIRD = (113, 120)
+
+
+def warm_third(voice):
+    lo, hi = b0(WARM_THIRD[0]), b0(WARM_THIRD[1] + 1)
+    return [dict(n, pitch=f"m{third_above(midi_of(n['pitch']))}", vel=round(n["vel"] * 0.75, 3))
+            for n in voice if lo - 1e-6 <= n["at"] < hi - 1e-6 and n.get("ph") == "UW1"]
 
 
 def crest_kit():
@@ -1047,6 +1063,7 @@ def main():
     duet.sort(key=lambda d: d["at"])
     hold_the_last(voice)                                          # v43: she holds the hook's last note to the relief
     hold_the_last(duet)
+    duet = sorted(duet + warm_third(voice), key=lambda d: d["at"])   # v44: the duet hums with her, a third above
     breaths = [{"at": b0(CREST) - 0.85, "len": 0.85, "pitch": "C4", "vel": 0.55},
                {"at": b0(CREST) + 20 - 0.75, "len": 0.75, "pitch": "C4", "vel": 0.45}, hook_b]
     tempo = human_time()
