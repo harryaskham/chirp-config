@@ -123,7 +123,7 @@ score: "D2/8. D2/8. D3/8 Eb2/8 Eb2/8. Bb1/8. C2/8. C2/8. G2/8 C3/4"   # segments
 - **Cycle.** 7 beats (28 sixteenths) = E2 x4. Against 4/4 it meets the bar every 7 bars; against E1 (5 beats) every 35.
 - **In t3 (Phase Margin).** The storm runs E1 (20 sixteenths), E2 (7) and E3 (28) against the bar, each PHASED so all
   four land together on bar 88's downbeat. Before it they collide: E1 displaced, inverted and in fragments on a chip
-  pulse (since v36 doubled by a farfisa in every other 8-bar phrase, the hook stepping forward and back; since v37 played whole, slow and plain on the dizi in the eye, bars 63-66), E2 on chip noise (doubled through the storm's body, bars 17-100, by a pair of gamelan gangsa in kotekan: D and F left, A and C right; v35), E3 on a PM bass with dropped notes and octave throws, under a broken 909. At bar 88 the storm
+  pulse (since v36 doubled by a farfisa in every other 8-bar phrase, the hook stepping forward and back; since v37 played whole, slow and plain on the dizi in the eye, bars 63-66), E2 on chip noise (doubled through the storm's body, bars 17-100, by a pair of gamelan gangsa in kotekan: D and F left, A and C right; v35), E3 on a PM bass with dropped notes and octave throws (since v42 it breathes three times - bars 17-20, 37-40 and 91-94 - slowing to its own roots, two long notes a bar: E3 augmented), under a broken 909. At bar 88 the storm
   LOCKS: E3 re-barred 2+2+4 (its last C held a beat: 8 beats), E2 seven sixteenths and a rest (8), E1 without its
   rest (4 beats). A whispered "nothing here is late" arrives in pieces, whole at the lock, then sung by a pvoc robot on
   E1's notes.
