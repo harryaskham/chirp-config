@@ -518,6 +518,20 @@ def build():
     # just had it), and the second time the old voice sings with them. Then the out-seam, where
     # the old voice alone has the last word
     CHD = json.load(open(os.path.join(HERE, 'chirpers9-t6-chorus-d.json')))
+    # (v32, section w7: the surge 'static' - the canon converges into a three-octave unison, but only instruments
+    # carried it, the melody line unchanged for thirty seconds) THE CHOIR SINGS THE MEETING: where the far side joins
+    # the whistle (bar 108) the choir enters, softly, on E1 itself - 'near and far as one' - and as the near side
+    # joins too, for the surge's last four bars it sings with everything, an octave under itself: 'near and far as
+    # one, near and far as one, all of it at once' - the story of the song (the near side and the far side, crossing)
+    # sung at the one moment they are the same - and then the tear rips it apart
+    SG = json.load(open(os.path.join(HERE, 'chirpers9-t6-surge.json')))
+    sgn_ = SG['tracks'][0]['notes']
+    sgnotes = []
+    _sg0 = SEC['surge'] * 4.0
+    for n_ in sgn_[:5]:
+        sgnotes.append(dict(n_, at=round(_sg0 + 45.0 + n_['at'] - 0.245, 4), vel=round(n_['vel'] * 0.6, 3)))
+    for n_ in sgn_:
+        sgnotes.append(dict(n_, at=round(_sg0 + 50.0 + n_['at'] - 0.245, 4)))
     c2notes = []
     for b_ in (void1, void1 + 10.0):
         for n_ in CHD['tracks'][0]['notes']:
@@ -761,6 +775,8 @@ def build():
             # words ('time', 'go', 'in') bloom and the quick ones stop wobbling
             {'name': 'chorus', 'patch': dict(dict(CHO['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=E:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': cnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
+            {'name': 'surgesung', 'patch': dict(dict(SG['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[-7] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+             'notes': sgnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
             {'name': 'chorus2', 'patch': dict(dict(CHD['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': c2notes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
             # (v18) wM's singer's glide (glide_overshoot, pinned 14:27) on every sung line: on each leap the old voice and

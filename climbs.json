@@ -8464,15 +8464,14 @@
       "owner": "chirper-one",
       "metric": "python3 tools/compscore.py chirpers9-t6 OUT.wav",
       "best": {
-        "score": 96.15,
-        "version": "v31",
-        "commit": "see git log songs/chirpers9-t6.yaml",
-        "judged": true
+        "score": 96.17,
+        "version": "v32",
+        "commit": "see git log songs/chirpers9-t6.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 33,
+      "rounds": 34,
       "priority": 1.0,
       "genre": "complex electronic",
       "mode": "compose",
@@ -8490,7 +8489,7 @@
         "note": "COMPOSE (tidal (stretching build), 240-360 s): Tidal forces: a build made of stretching and squeezing (augmentation against diminution, time-stretch, tempo pressure). Carries E1-E5 and introduces E6. The mirror of t2, hotter."
       },
       "last": {
-        "at": "2026-11-07T03:11:09Z",
+        "at": "2026-11-07T04:11:22Z",
         "who": "chirper-one"
       }
     },
