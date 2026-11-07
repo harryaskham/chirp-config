@@ -81,6 +81,7 @@ BREATHALL = os.environ.get("C9T1_BREATHALL", "thresholds")   # WHOLE ROUND (toge
 WARMP = os.environ.get("C9T1_WARMP", "hammond-b3@-20")   # PALETTE: the warm fifth under the chip pad (D3 A3, from A on) leaves the Juno for a Hammond ('patch' or 'patch@gaindB'): its 16-foot drawbar sounds the fifth an octave down too, filling t1's thinnest band (97 Hz, -9 dB under the album) between the triangle bass and the D1 pedal - a church-quiet organ under the seed
 BREATHREG = os.environ.get("C9T1_BREATHREG", "1")   # PALETTE (register pinned, 0c5d29c5): the far little choir's breath moves into head voice (register 0..1): rounder and airier, a falsetto 'ah' rather than a chest one
 HOOKJOIN = os.environ.get("C9T1_HOOKJOIN", "-16")   # PALETTE (Harry 23:55: subtle variation, phrase by phrase): THE SCATTERED VOICES JOIN THE SEED - each time the whistle states E1 (the opening, A, the build, the crest, the farewell), more of the five scattered voices double it an octave up: at A the vibes, at the build the vibes and celesta, at the crest the vibes, celesta and kalimba; the opening and the farewell stay the whistle alone. Value: the doublings' gain in dB
+PHRASES = os.environ.get("C9T1_PHRASES", "rotate,breath,intro,halfkick")   # WHOLE (Harry 23:55: 'lots of contiguous music with very little change' - subtle variation every 8-16 bars, not schizo): THE SEED'S PULSE MOVES IN PHRASES - 'rotate': A's 5-in-16 shekere Euclid turns three sixteenths every 8 bars (the same rhythm, its accents walking round the bar: a process move); 'breath': the hats and kick rest on the last beat of every 8-bar phrase in A, the build and B (the last before the crest is a held breath); 'intro': a soft clave ticks E1's 5-beat cycle from intro bar 9 and stops at A, so the whistle lands alone, and the pad's open fifth opens up an octave (D3 A3 D4) at bar 9 and deepens (A2 D3 A3) at bar 13; 'halfkick': in B's second phrase the kick goes to every 4 beats, then back
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -279,7 +280,8 @@ def cantus():
 def pad():
     """The quartal stack of E1 grows note by note: the open fifth, then the ninth, then the seventh and fourth."""
     stacks = [
-        (0, ST["A"], ["D3", "A3"]),
+        *([(0, 8 * BAR, ["D3", "A3"]), (8 * BAR, 12 * BAR, ["D3", "A3", "D4"]), (12 * BAR, ST["A"], ["A2", "D3", "A3"])]
+          if "intro" in PHRASES else [(0, ST["A"], ["D3", "A3"])]),
         (ST["A"], ST["build"], ["D3", "A3", "E4"]),
         (ST["build"], ST["B"], ["D3", "A3", "C4", "E4"]),
         (ST["B"], ST["outro"], ["D3", "A3", "C4", "G4", "E5"]),
@@ -349,7 +351,8 @@ def hats():
         pat = euclid(k, nn)
         t, i = a, 0
         while t < b:
-            if pat[i % nn]:
+            r = 3 * int((t - a) // (8 * BAR)) if ("rotate" in PHRASES and sec == "A") else 0
+            if pat[(i + r) % nn]:
                 ns.append(note(t, "C7" if i % 4 else "A6", 0.25, 0.35 + 0.25 * ((t - a) / (b - a))))
             t += 0.25
             i += 1
@@ -421,6 +424,19 @@ def song():
                     else:
                         out.append(n)
                 tr["notes"] = out
+    if PHRASES:
+        ends = [ST["A"] + 8 * BAR * k for k in range(1, 5)] + [TC] + [TC + 8 * BAR * k for k in range(1, 4)]
+        for tr in tracks:
+            if tr["name"] in ("hats", "kick") and "breath" in PHRASES:
+                tr["notes"] = [n for n in tr["notes"] if not any(e - 1 <= n["at"] < e for e in ends)]
+            if tr["name"] == "kick" and "halfkick" in PHRASES:
+                tr["notes"] = [n for n in tr["notes"] if not (TC + 8 * BAR <= n["at"] < TC + 16 * BAR and (n["at"] - TC) % 4)]
+            if tr["name"] == "hats" and "intro" in PHRASES:
+                t = 8 * BAR
+                while t < ST["A"] - 1:
+                    tr["notes"].append(note(t, "cl" if HATP == "shekere" else "C7", 0.25, round(0.22 + 0.13 * (t - 8 * BAR) / (ST["A"] - 8 * BAR), 3)))
+                    t += E1_CYC
+                tr["notes"].sort(key=lambda n: (n["at"], n["pitch"]))
     if DECAY:
         d, d0, d1 = float(DECAY), TC + 4 * BAR, ST["outro"]
         for tr in tracks:
