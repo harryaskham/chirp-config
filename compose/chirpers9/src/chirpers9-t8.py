@@ -323,6 +323,14 @@ def age_her(notes):
 ASK_HUM_LIFT = 0.5
 
 
+# v44 (ROUND TYPE: palette): THE INNER ORBIT IN BRONZE. E5 - the inner orbit (A G A E A G A D in its own 3) - turned
+# on a marimba through the stretto; now it turns on a GAMELAN GANGSA (library 'gamelan', unused on the album): bronze
+# keys tuned in pairs that beat against each other on every note (ombak) - a shimmer that itself goes round, an orbit
+# inside each note. The same register as the marimba, so the low body is untouched (the lesson of v41's accordion),
+# and E5 is not the seam body (E2 is, at 17-32).
+E5_PATCH, E5_GAIN = "gamelan", "-10dB"          # the bronze sat 3 dB under the marimba at -13: matched
+
+
 def closing_choir(patch):
     patch["synth"]["layers"][0].update({"hum": "auto.hm", "hum_at": "m"})
     return patch
@@ -981,7 +989,7 @@ def main():
                auto={"orb": {"points": orbit_lane("e2")}, "pn": {"points": orbit_pan(ENTRY["E2"], 7.0, -1.0)}}),   # v25
             tr("e3", "strings-synth", gain="-16dB", pan=-0.1, sends={"hall": "-8dB"}, fx=["lp cutoff=1800", ORBIT_FX],
                auto={"orb": {"points": orbit_lane("e3")}}),
-            tr("e5", "marimba", gain="-13dB", pan=0.2, sends={"room": "-10dB"},
+            tr("e5", E5_PATCH, gain=E5_GAIN, pan=0.2, sends={"room": "-10dB"},
                fx=[ORBIT_FX], auto={"orb": {"points": orbit_lane("e5")}}),
             tr("bass", "bass-pick-di", gain="1dB", fx=["lowshelf cutoff=110 gain=10dB", "lp cutoff=1500", "gain gain=0dB+auto.bm*1"],
                auto={"bm": {"points": [["0b", -4.5], [f"{b0(JET):g}b", -4.5], [f"{b0(JET) + 0.01:g}b", 0.0]]}}),
