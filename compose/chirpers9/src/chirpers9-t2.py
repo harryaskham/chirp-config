@@ -806,7 +806,11 @@ def build():
                                   'lp cutoff=5000', 'hp cutoff=300'], 'returns': []}},
         # (v19) and air: t2 measured 20 dB darker than t1 at 15 kHz and 14 dB darker than t3 at 9 kHz - a second,
         # higher shelf opens the top so the song breathes like its neighbours
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'peak cutoff=300 q=0.8 gain=-2dB', 'highshelf cutoff=7000 gain=2dB', 'highshelf cutoff=11000 gain=4.5dB']},
+        # (v43, whole song: against the album, t2 was thin where a groove's weight lives - 44-133 Hz 4-8 dB under the
+        # album's envelope, 342-641 Hz 4 dB over: the NES bass's body lost under boxy mids) THE FLOOR GETS ITS WEIGHT:
+        # a low shelf (+3.5 dB below 120 Hz) and a second mid cut (520 Hz, -2 dB) on the master, the triangle bass 2 dB
+        # up - the same parts and the same line, but the bass now carries the groove instead of ticking under it
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'lowshelf cutoff=120 gain=3.5dB', 'peak cutoff=300 q=0.8 gain=-2dB', 'peak cutoff=520 q=0.8 gain=-2dB', 'highshelf cutoff=7000 gain=2dB', 'highshelf cutoff=11000 gain=4.5dB']},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.0, 'attack': '20ms', 'release': '160ms', 'makeup': '1dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.E', 'amount': 1}]}},
                           {'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 1200, 'mod': [{'src': 'auto.open', 'amount': 4.0}]}},
@@ -819,7 +823,7 @@ def build():
             tr('sub', 'sub', '-13dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '220ms', 'curve': 0.6}]),
             # (tried in v15: moog-seq for the staple NES bass - the sections blurred into each other, structure 100 -> 84,
             # spectrum 98 -> 94; the chip bass's dry edge is what tells the sections apart)
-            tr('bass', 'nes-triangle-bass', '-6dB', fx=['lp cutoff=2400']),
+            tr('bass', 'nes-triangle-bass', '-4dB', fx=['lp cutoff=2400']),
             tr('kit', '909', '-6dB', sends={'hall': '-20dB'},
                auto={'glitch': {'points': [['0b', 0.0], [f"{(CREST + 8) * 4.0 - 0.1:.1f}b", 0.0], [f"{(CREST + 8) * 4.0:.1f}b", 0.35],
                                            [f"{(CREST + 12) * 4.0 - 0.1:.1f}b", 0.35], [f"{(CREST + 12) * 4.0:.1f}b", 0.0], [f"{SEC['drift'] * 4.0 - 0.1:.1f}b", 0.0], [f"{SEC['drift'] * 4.0:.1f}b", 0.22], [f"{84 * 4.0 - 0.1:.1f}b", 0.26], [f"{84 * 4.0:.1f}b", 0.0], [f"{fall0:.1f}b", 0.0]]}},
