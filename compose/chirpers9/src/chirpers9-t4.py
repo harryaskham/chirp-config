@@ -73,7 +73,8 @@ class Part:
                 continue
             if s - pos > 1e-5:
                 toks.append(f"R/{s - pos:.5g}b")
-            toks.append(f"{head}/{ln:.5g}b@{vel}")
+            name, _, arts = head.partition("^")                         # v32: articulations go after @vel
+            toks.append(f"{name}/{ln:.5g}b@{vel}" + (f"^{arts}" if arts else ""))
             pos = s + ln
         if total - pos > 1e-5:
             toks.append(f"R/{total - pos:.5g}b")
@@ -649,6 +650,23 @@ def breath_before_b():
     part("snare").add(hi - 2.0, 2.0, "sw", 74)                   # the swish into 41
 
 
+# v32 (ROUND TYPE: section, bars 41-56, ~34 s - B's first half, still read flat on seed 11 (1:28-2:00); rewritten):
+# THE LIGHTS SHIMMER. B opened as a loop: the handpan's E1 over and over, the voice humming the same E1 from 46, the
+# lights holding their bowed chords under the newly landed kit. Now, as the kit, sub and bass land at 41, the four
+# lights take up BOWED TREMOLO (the cellos' ^trem) for eight bars - the same chords, but trembling with the energy of
+# the landing - and at 49 the bows settle back to long strokes as the hats give way to the ride (v28) and the duet
+# answers her (v21). Texture and time, not pitch. (Tried: tremolo sul ponticello - glassier, no better for the tools,
+# colder than this song; flatness.py cannot see a tremolo inside its 8 s blocks - this one is for the ear.)
+LIGHTS_TREM = (41, 48)
+
+
+def lights_shimmer():
+    lo, hi = b0(LIGHTS_TREM[0]), b0(LIGHTS_TREM[1] + 1)
+    inside = lambda s, h: lo - 1e-6 <= s < hi - 1e-6 and "^" not in h
+    P["lights"].ev = [(s, ln, h + "^trem", min(127, v + 16)) if inside(s, h) else (s, ln, h, v)   # tremolo plays
+                      for s, ln, h, v in P["lights"].ev]                                          # ~2.6 dB under
+
+
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -788,6 +806,7 @@ def main():
     hook_changes_hands()
     phrase_turns()
     breath_before_b()
+    lights_shimmer()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v,
                    key=lambda d: d["at"])
