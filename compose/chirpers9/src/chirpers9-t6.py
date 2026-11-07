@@ -632,6 +632,16 @@ def build():
     for key_ in ('tide', 'lights', 'near', 'e5b'):
         P[key_] = [e_ for e_ in P[key_] if not (pv0_ + 0.5 - 1e-6 <= e_[0] < pv0_ + 32.0 - 1e-6)]
         P[key_] = [(e_[0], e_[1], min(e_[2], pv0_ + 0.5 - e_[0]), *e_[3:]) if e_[0] < pv0_ + 0.5 < e_[0] + e_[2] else e_ for e_ in P[key_]]
+    # (v43, palette: a library drone no Accretion track uses - and chirper-zero's number: the bare pull took the
+    # 750-880 Hz band out from under t5's tail, t5's out-flow 81 -> 77) THE SHORE DRONES: while the tide is drawn
+    # back, a TANPURA holds the shore - Pa Sa Sa Sa on D (A3 D4 D4 D3, a string a beat, everything ringing on, its
+    # jawari overtones sweeping) - the one thing left when the water goes out: no chord, only the tonic and its
+    # fifth (in both of the pull's chords, D and C add9), filling the band the harmonium left, soft; it stops as
+    # the wave comes in
+    P['tanp'] = []
+    for b_ in range(SEC['pull'], SEC['pull'] + 8):
+        for k_, p_ in enumerate((57, 62, 62, 50)):
+            P['tanp'].append((b_ * 4.0 + k_, m(p_), 0.98, 82 if k_ == 0 else 70))
     for b_ in range(SEC['tide'] + 8, SEC['tide'] + 12):
         for k_ in range(4):
             P['hats'].append((b_ * 4.0 + k_ + 0.5, 'oh', 0.3, 64))
@@ -830,6 +840,7 @@ def build():
             # tide gives way to the lights at the crest, the sound turns from reeds to glass. After the void (near the
             # out-seam) the lights stay on the harmonium: glass there brightened t6's tail against t7's head (out-flow
             # 2.8 -> 3.9 dB spectral)
+            tr('tanp', 'tanpura', '-14dB', pan=-0.2, sends={'hall': '-12dB'}),
             tr('glass', 'pad-glass', '-15dB', sends={'hall': '-10dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             tr('lights', 'harmonium', '-10dB', sends={'hall': '-8dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             tr('sub', 'sub', '-10dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '200ms', 'curve': 0.6}]),
