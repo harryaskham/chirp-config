@@ -13,6 +13,14 @@ released chirpers8 album, the one section climbs loosened up), so "flat" means "
 quarter". Standby Amber: 25% flat on average, longest flat run 29 s on average (8 to 72 s).
 Reported: flat %, longest flat run, and every run of 32 s or more (the places to aim a section round). A flashlight,
 not a score: a held breath before a drop is meant to be still; a minute and a half of the same loop is not.
+
+WHAT IT SEES AND DOESN'T (7 Nov, after chirper-one found surface moves barely moved it): it compares 8 s blocks, so a
+move counts when it HOLDS for a block or more - hats thinning for a phrase, an octave lift, a re-voicing, a drop-out
+of a phrase, a new counter-line. A one-bar drop-out or a fill inside a block barely registers (tested on a synthetic
+loop: per-phrase hat thinning and octave shifts register, a one-bar kick drop-out does not; onset-band and
+within-block-spread features and 4 s blocks did not fix that without destabilising the album comparison). So don't
+chase the number with chord changes (tone is home): brief fills and drop-outs are real variation the ear hears even
+when this misses them. Use it to find the long ruts and to see a phrase-level move landed; let the ear judge the rest.
 """
 import argparse
 import json
