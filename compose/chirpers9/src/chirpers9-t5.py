@@ -73,6 +73,7 @@ MIRROR = os.environ.get("C9T5_MIRROR", "384:432")   # SECTION w7 (3:20-3:53, C's
 KICKIN = os.environ.get("C9T5_KICKIN", "0.6")   # SECTION w2 (0:34-1:08, A's first half: flagged level jump; the t4 -> t5 seam measures t5's body here, 4 dB under t4's): A ARRIVES WITH A PULSE - E2's kick (its cycle of seven sixteenths) starts at A instead of eight bars in, soft and alone (value = velocity), so the plain seed and the orbit land on a heartbeat; the rim, clap and hats still join eight bars later
 CRESTDROP = os.environ.get("C9T5_CRESTDROP", "-10")   # SECTION w5 (2:15-2:47, the build and the pull into the crest; Harry's brief: difficult -> rewarding, every cycle meeting on one downbeat): THE MEETING LANDS DEEP - on the crest's downbeat a sine D1 blooms for two bars under the crash (value = its gain in dB), so the moment everything meets is felt in the chest; ':bloom' also plays the D9 light full and long on that downbeat
 BREATHQ = os.environ.get("C9T5_BREATHQ", "-9")   # SECTION w4 (1:41-2:15, A's end, the four-bar drop and the build's start): SHE BREATHES THE SEED'S BREATH - in the drop before the build, where the drums and the quick bass stop, the near singer breathes t1's 'ah' (D rising to A, E1's first two notes, the album's first voice): the outer disk's breath quoted by the inner disk's singer, then the build lands (value = gain dB)
+CRESTANS = os.environ.get("C9T5_CRESTANS", "dx")   # SECTION w6 (2:47-3:20, the line after the crest: little new vs w5): THE CHORUS RETURNS WITH ITS ANSWER - in A the Rhodes answered her chorus in its gaps (CALLRESP); after the crest her line comes back three times, growing a choir, but nothing answered it. Now each statement is answered: two cycles of E5, an octave down, in the gap before the next ('rhodes', the A answer's own voice, or 'dx': the crest's glassy E1 piano)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -639,6 +640,18 @@ def song():
                        "gain": f"{BREATHQ}dB", "pan": -0.1, "sends": {"room": "-6dB"},
                        "notes": [{"at": b0 - 7.0, "len": 2.5, "ph": "HH AA1", "pitch": "D4", "vel": 0.45},
                                  {"at": b0 - 4.5, "len": 3.5, "ph": "AA1", "pitch": "A4", "vel": 0.55}]})
+    if CRESTANS:
+        low = {69: 57, 68: 55, 67: 55, 76: 64, 74: 62}
+        e5 = [(sx, low.get(p_ if not TONAL or p_ != 68 else 67, p_ - 12)) for sx, p_ in E5]
+        ns = []
+        for st_ in [float(x) for x in VOXLINE.split(",")]:
+            a = st_ + 7.0
+            for cyc_i in range(2):
+                for sx, mm in e5:
+                    t = a + cyc_i * 3 + sx / 4
+                    ns.append(note(t, f"m{mm}", 0.3, (0.55 + 0.1 * cyc_i) * (1.0 if sx in (4, 10) else 0.85)))
+        tracks.append({"name": "crest-answer", "patch": "rhodes" if CRESTANS == "rhodes" else "dx-epiano", "gain": "-12dB",
+                       "pan": -0.15, "sends": {"room": "-9dB"}, "notes": ns})
     if CRESTDROP:
         cg, _, copt = CRESTDROP.partition(":")
         tracks.append({"name": "crest-drop", "patch": "sub", "gain": f"{cg}dB", "pan": 0.0, "notes": [note(TC, "D1", 8.0, 1.0)]})
