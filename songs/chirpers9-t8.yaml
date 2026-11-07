@@ -3597,76 +3597,6 @@
      }
     },
     {
-     "at": 181.0,
-     "len": 2.0,
-     "ph": "UW1",
-     "pitch": "F4",
-     "vel": 0.218
-    },
-    {
-     "at": 183.0,
-     "len": 2.0,
-     "ph": "UW1",
-     "pitch": "D4",
-     "vel": 0.218
-    },
-    {
-     "at": 185.0,
-     "len": 3.0,
-     "ph": "UW1",
-     "pitch": "E4",
-     "vel": 0.218
-    },
-    {
-     "at": 188.0,
-     "len": 2.0,
-     "ph": "UW1",
-     "pitch": "F4",
-     "vel": 0.243
-    },
-    {
-     "at": 190.0,
-     "len": 2.0,
-     "ph": "UW1",
-     "pitch": "D4",
-     "vel": 0.243
-    },
-    {
-     "at": 192.0,
-     "len": 3.0,
-     "ph": "UW1",
-     "pitch": "E4",
-     "vel": 0.243
-    },
-    {
-     "at": 195.0,
-     "len": 2.0,
-     "ph": "UW1",
-     "pitch": "F4",
-     "vel": 0.268
-    },
-    {
-     "at": 197.0,
-     "len": 2.0,
-     "ph": "UW1",
-     "pitch": "D4",
-     "vel": 0.268
-    },
-    {
-     "at": 199.0,
-     "len": 3.0,
-     "ph": "UW1",
-     "pitch": "E4",
-     "vel": 0.268
-    },
-    {
-     "at": 202.0,
-     "len": 2.0,
-     "ph": "UW1",
-     "pitch": "F4",
-     "vel": 0.293
-    },
-    {
      "at": 624,
      "len": 76,
      "pitch": "D4",
@@ -8840,6 +8770,168 @@
       ],
       [
        "512b",
+       0.0
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "far",
+   "patch": {
+    "about": "t8's far choir: four singers far off, mouths shut on 'n' - the answer forming",
+    "play": {
+     "mono": true,
+     "glide": "90ms",
+     "glide_smooth": true,
+     "fall": 1.0,
+     "glide_overshoot": 0.05
+    },
+    "synth": {
+     "layers": [
+      {
+       "type": "voice",
+       "tract": 0.92,
+       "breath": {
+        "value": 0.34,
+        "mod": [
+         {
+          "src": "vel",
+          "amount": -0.2
+         }
+        ]
+       },
+       "ph_soft": 0.2,
+       "pulse_rate": 5,
+       "join": true,
+       "inhale": 0.45,
+       "inhale_time": "350ms",
+       "singers": 4,
+       "spread": 0.7,
+       "detune": 0.12,
+       "even": 1.0,
+       "together": true,
+       "hum": 1.0,
+       "hum_at": "n"
+      }
+     ],
+     "lfo": {
+      "vib": {
+       "wave": "sine",
+       "rate": "5.6hz",
+       "delay": "320ms",
+       "fade": "500ms",
+       "retrig": true,
+       "per_note": true
+      }
+     },
+     "pitch": {
+      "value": 0,
+      "mod": [
+       {
+        "src": "expr.f0",
+        "amount": 0.01
+       },
+       {
+        "src": "auto.rs",
+        "amount": 1
+       },
+       {
+        "src": "lfo.vib",
+        "amount": 0.14
+       }
+      ]
+     },
+     "amp": {
+      "a": "30ms",
+      "d": "0s",
+      "s": 1,
+      "r": "300ms"
+     }
+    }
+   },
+   "gain": "-5dB",
+   "pan": -0.1,
+   "sends": {
+    "hall": "-3dB"
+   },
+   "notes": [
+    {
+     "at": 181.0,
+     "len": 2.0,
+     "ph": "UW1",
+     "pitch": "F4",
+     "vel": 0.218
+    },
+    {
+     "at": 183.0,
+     "len": 2.0,
+     "ph": "UW1",
+     "pitch": "D4",
+     "vel": 0.218
+    },
+    {
+     "at": 185.0,
+     "len": 3.0,
+     "ph": "UW1",
+     "pitch": "E4",
+     "vel": 0.218
+    },
+    {
+     "at": 188.0,
+     "len": 2.0,
+     "ph": "UW1",
+     "pitch": "F4",
+     "vel": 0.243
+    },
+    {
+     "at": 190.0,
+     "len": 2.0,
+     "ph": "UW1",
+     "pitch": "D4",
+     "vel": 0.243
+    },
+    {
+     "at": 192.0,
+     "len": 3.0,
+     "ph": "UW1",
+     "pitch": "E4",
+     "vel": 0.243
+    },
+    {
+     "at": 195.0,
+     "len": 2.0,
+     "ph": "UW1",
+     "pitch": "F4",
+     "vel": 0.268
+    },
+    {
+     "at": 197.0,
+     "len": 2.0,
+     "ph": "UW1",
+     "pitch": "D4",
+     "vel": 0.268
+    },
+    {
+     "at": 199.0,
+     "len": 3.0,
+     "ph": "UW1",
+     "pitch": "E4",
+     "vel": 0.268
+    },
+    {
+     "at": 202.0,
+     "len": 2.0,
+     "ph": "UW1",
+     "pitch": "F4",
+     "vel": 0.293
+    }
+   ],
+   "auto": {
+    "rs": {
+     "points": [
+      [
+       "0b",
        0.0
       ]
      ]

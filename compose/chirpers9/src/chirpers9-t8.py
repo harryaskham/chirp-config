@@ -321,6 +321,19 @@ def age_her(notes):
 # the held 'ah' CLOSES back into a hum as it redshifts away (from the sink, 161, to its end) - the light closing,
 # with the pitch falling, the tempo slowing and her voice grown old.
 ASK_HUM_LIFT = 0.5
+# v45 (ROUND TYPE: palette - a new part's patch): THE ANSWER FORMS, UNVOICED. The far choir (v38: E3's top line, F D
+# E, hummed far off at 46-51, the choir's first sound in the song) sang on the choir lead's open 'oo' - the one voice
+# in t8 left open before the jet since v43 began every voice closed. Now it is its own choir: four singers with their
+# MOUTHS SHUT (wM's hum at n - the brighter dip, 1.8 kHz - so it still reads as voices), deeper in the hall: the
+# answer forming far off and unvoiced, opening only when the choir sings it at the jet.
+FAR_GAIN = "-5dB"                    # a shut-mouth murmur masks sooner than the open oo it replaced
+
+
+def far_patch():
+    pt = choir_patch(4)
+    pt["about"] = "t8's far choir: four singers far off, mouths shut on 'n' - the answer forming"
+    pt["synth"]["layers"][0].update({"hum": 1.0, "hum_at": "n"})
+    return pt
 
 
 # v44 (ROUND TYPE: palette): THE INNER ORBIT IN BRONZE. E5 - the inner orbit (A G A E A G A D in its own 3) - turned
@@ -955,7 +968,7 @@ def main():
     e7_tightens()
     full_throttle()
     lead, fifth, low = choir()
-    lead += far_choir()                                           # v38: the answer forms far away
+    far = far_choir()                                             # v38: the answer forms far away (v45: own track)
     solo = age_her(sorted(hummed(opening_voice()) + sung_asks() + horizon_line(), key=lambda d: d["at"]))   # v36: she asks                      # v12: the last line, one voice alone (v21: and the first)
     lead += [{"at": b0(HORIZON + 16), "len": b0(BARS + 1) - b0(HORIZON + 16) - 4, "pitch": "D4", "vel": 0.6}]   # the held 'ah'
     tempo = [{"at": "0b", "bpm": SEAM_IN}, {"at": f"{b0(17):g}b", "bpm": SEAM_IN},    # v42: t7's overlap held flat
@@ -1019,7 +1032,9 @@ def main():
              "notes": solo, "auto": {"rs": {"points": horizon_lane(REDSHIFT)}}},
             tr("ask", "flute", gain="-9dB", pan=-0.15, sends={"hall": "-6dB", "dly": "-12dB"}),   # v14
             tr("hook3", "fof-soprano", gain="-11dB", pan=-0.2, sends={"dly": "-14dB", "hall": "-10dB"}),  # v35
-            tr("lift", SUB8, gain="-22dB"),                                 # v18 (last): the sub's octave you can hear
+            tr("lift", SUB8, gain="-22dB"),                                 # v18: the sub's octave you can hear
+            {"name": "far", "patch": far_patch(), "gain": FAR_GAIN, "pan": -0.1, "sends": {"hall": "-3dB"},
+             "notes": far, "auto": {"rs": {"points": [["0b", 0.0]]}}},       # v45 (last): the far choir, hummed
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=4s mix=1 predelay=24ms", "hp cutoff=180"]},
