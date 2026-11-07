@@ -709,6 +709,8 @@ def build():
     # t3 the depth t3 starts from. The same notes; only how much the floor weighs
     # (v47) chirper-zero: the gather at -12 dB cost t1's out-flow 74.5 -> 71.6 (t2's head 2.5 dB under t1's body), so
     # the gather starts lighter but not empty
+    # (v48) chirper-zero: t1 v41 took its pad down 6 dB, so -4 might overshoot; measured from t2's side -8 read worse
+    # (in-flow level jump 0.9 dB against 0.6 at -4), so the gather stays at -4
     GRAV = {'in': (0.0, 0.0), 'gather': (-4.0, -5.0), 'build': (-5.0, -1.0), 'crest': (0.0, 0.0), 'break': (-6.0, -3.0),
             'drift': (1.0, 3.0), 'fall': (3.0, 3.0)}
     grav_pts = []
@@ -922,7 +924,11 @@ def build():
             # sings it the right way up)
             tr('gtrarp', 'cutting-guitar', '-6dB', pan=0.3, sends={'echo': '-8dB', 'hall': '-12dB'}),
             tr('gtr', 'cutting-guitar', '-5dB', pan=-0.35, sends={'hall': '-18dB'}),
-            tr('e1p', 'wurli', '-6dB', pan=0.2, sends={'echo': '-14dB', 'hall': '-14dB'}),
+            # (v48, palette: the E1 keys were a wurli - another electric piano among the album's keys) THE ANSWERS ON
+            # TAPE: E1's answers through the gather, the crest and the second verse now play on the library's
+            # mellotron-flute (a breathy tape flute, band-limited, with wow and a soft swell; no Accretion track uses
+            # it) - the lofi, Beatles/Radiohead tape colour, softer-edged than the wurli's tines, under the near voice
+            tr('e1p', 'mellotron-flute', '-1dB', pan=0.2, sends={'echo': '-14dB', 'hall': '-14dB'}),
             # (v39, palette: Risset's bell played E1 twice over - the in-seam's lensed tune and the drift's retrograde
             # canon - one colour for two jobs) THE MEMORY ON VIBES: from the break to the end of the drift the
             # retrograde canon of E1 (augmented x2, against the wurli) is now a VIBRAPHONE - chirper-two's modal-vibes,
