@@ -566,6 +566,14 @@ R69 = os.environ.get("T3_R69", "scatter") != "none"
 # climbs the D minor scale into the eye. The riff's own bars there are silenced with a lane, not edited.
 # T3_R70=none reproduces v69.
 R70 = os.environ.get("T3_R70", "undertow") != "none"
+# round 71 (section, w9 = bars 97-108, after the lock: the duet, the melodica's E1, the choirs; least recently focused
+# outside the seams and w3): T3_R71=halfbreath (default) - THE GROOVE HALVES, HOLDS ITS BREATH, SLAMS BACK. The
+# lock's groove ran straight through w9. Now for bars 103-104, while the melodica plays E1 and the counting voices
+# come in, the kit drops to half time (kick on one, snare on three, hats in quarters, the 808 with the kick), and on
+# the last beat of bar 104 the drums and the round bass stop dead - only the voices and the choir hang there - until
+# the crash at bar 105 brings the whole groove back under the melodica's E1 backwards. The kit's own bars there are
+# silenced with a lane, not edited. T3_R71=none reproduces v70.
+R71 = os.environ.get("T3_R71", "halfbreath") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1729,6 +1737,26 @@ def main():
         flock(404.5, 408.0, (1.0, 2.0))
         for nm, pan in (("birdl", -0.5), ("birdr", 0.5)):
             tracks.append({"name": nm, "patch": "birds", "gain": "9dB", "pan": pan, "score": flocks[nm].score()})
+    if R71:                                                 # w9: half time under the melodica (103-104), a held breath, a slam
+        half = {"kick": [(408.0, "k", 122), (412.0, "k", 116)],
+                "ksub": [(408.0, "D1", 118), (412.0, "D1", 112)],
+                "snare": [(410.0, "s", 120), (414.0, "s", 124), (414.5, "rs", 70)],
+                "hats": [(408.0 + i, "h", 84 if i % 2 == 0 else 72) for i in range(7)]}
+        for src, hits in half.items():
+            tr0 = next(tr for tr in tracks if tr.get("name") == src)
+            hx = Track(src + "half")
+            for at, tok, v in hits:
+                hx.add(at, 0.25 if src != "ksub" else 0.9, tok, v)
+            tracks.append(dict({k: v for k, v in tr0.items() if k not in ("score", "notes")}, name=src + "half",
+                               fx=list(tr0.get("fx", [])), auto=dict(tr0.get("auto", {})), score=hx.score()))
+        for tr in tracks:
+            nm = tr.get("name")
+            if nm in ("kick", "ksub", "snare", "hats", "bassr"):
+                lo = 415.0 if nm == "bassr" else 407.95            # the bass rides the half time, then stops too
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
+                                                      "mod": [{"src": "auto.halve", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), halve={"points": [["0b", 0], [f"{lo}b", 0], [f"{lo + 0.05}b", -60],
+                                                                         ["415.95b", -60], ["416b", 0], ["513b", 0]]})
     if R70:                                                 # w5: the bass sings E1 into the eye (bars 57-60)
         hookb, hooks = Track("bassh"), Track("bsubh")
         e1 = ((0.0, 0.5, 38), (0.5, 0.75, 45), (1.25, 0.25, 48), (1.5, 1.0, 43), (2.5, 1.5, 40))   # D2 A2 C3 G2 E2
