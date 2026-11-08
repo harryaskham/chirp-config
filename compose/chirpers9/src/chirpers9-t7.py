@@ -539,6 +539,14 @@ R55 = os.environ.get("T7_R55", "heart") != "none"
 # spiral's falling Shepard pad circles with it, and so does the tide (E6's chords, t7's main pad - opposite the
 # trill, so where the trill is masked the motion is still heard in the pad). T7_R56=none reproduces v55.
 R56 = os.environ.get("T7_R56", "inspiral") != "none"
+# round 57 (section, w7 = bars 97-112, the spiral's second half; focused least recently): T7_R57=sooner (default) -
+# EVERY CORNER COMES SOONER. The spiral's singer sings "every corner" (E1, in E-flat) at bar 105 and again, in
+# harmony, at bar 113 - and between them eight bars of nothing sung. Now the words do what they say: the phrase comes
+# round again eight beats later in another voice (left), then six, then four and a half (right, left), and then only
+# its first word, "every" (E-flat, B-flat, D-flat: one chord, so the overlaps stay sweet), sooner and sooner - two
+# and a half beats, two, one and a half, one and a quarter, one - an accelerando of voices that lands on the
+# harmonised statement at bar 113. T7_R57=none reproduces v56.
+R57 = os.environ.get("T7_R57", "sooner") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1705,6 +1713,22 @@ def main():
                 g = float(tr["gain"].replace("dB", ""))
                 tracks.append(dict(tr, name=tr["name"] + "9", patch="a7-thump", gain=f"{g + 2:g}dB",
                                    fx=list(tr.get("fx", [])) + [{"type": "filter", "kind": "lp", "cutoff": 180, "q": 0.707}]))
+    if R57:                                                 # w7: every corner comes sooner (bars 105-112)
+        spec = next(tr for tr in tracks if tr.get("name") == "sungs")
+        line = [n for n in spec["notes"] if 415.9 <= n["at"] < 420.0]
+        full, frag = line, line[:3]
+        plan = {"a": [(424.0, full), (434.5, full), (440.5, frag), (444.0, frag), (446.25, frag)],
+                "b": [(430.0, full), (438.0, frag), (442.5, frag), (445.25, frag)]}
+        for side, (tract, pan) in (("a", (1.12, -0.45)), ("b", (0.94, 0.45))):
+            pn = f"a7-sooner-{side}"
+            patches[pn] = dict(patches[spec["patch"]],
+                               extends=patches[spec["patch"]]["extends"] + f" synth.layers.0.tract={tract}")
+            notes = []
+            for k, (at0, ph) in enumerate(plan[side]):
+                for n in ph:
+                    v = min(0.85, n["vel"] * (0.8 + 0.06 * k))
+                    notes.append(dict(n, at=round(at0 + n["at"] - line[0]["at"], 4), vel=round(v, 3)))
+            tracks.append(dict(spec, name=f"sooner{side}", patch=pn, pan=pan, gain="-1dB", notes=notes))
     if R56:                                                 # whole: E5 orbits the listener and spirals in
         spin = [["0b", 0.25], ["192b", 0.25], ["200b", 0.5], ["320b", 0.5], ["336b", 0.25], ["352b", 0.75],
                 ["480b", 1.5], ["600b", 2.0], ["639.9b", 6.0], ["640b", 0.25]]
