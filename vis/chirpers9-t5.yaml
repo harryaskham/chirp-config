@@ -19,7 +19,7 @@ scenes:
         - {type: stars, count: 2000, speed: 0, twinkle: 0.3}
         - {type: light, color: "#fff4e0", power: "1.4 + 0.6*env.flare + 0.4*audio.level", reach: 30}
         # The star: its surface boiling.
-        - {type: mesh, shape: sphere, detail: 64, scale: "0.7 + 0.03*audio.low", color: "#ff8030", light: 0, ambient: 0, rim: 0, emit: 0.75, paint: "0.8*pow(clamp(fbm(vtx.x*5 + time.t*0.03, vtx.y*5, vtx.z*5 - time.t*0.02)*1.5 + 0.6, 0, 1), 2)", paint_color: "#fff0c0", rim_color: "#ffd090"}
+        - {type: mesh, shape: sphere, detail: 64, scale: "0.7 + 0.03*audio.low", color: "#ff7020", light: 0, ambient: 0, rim: "1.6 + 0.8*env.flare", rim_power: 3, emit: 0.95, paint: "1.0*pow(clamp(fbm(vtx.x*5 + time.t*0.03, vtx.y*5, vtx.z*5 - time.t*0.02)*1.5 + 0.6, 0, 1), 2)", paint_color: "#fff0c0", paint_fine: true, rim_color: "#ffe0a0"}
         # A flare of matter thrown off at each lift.
         - {type: motes, mode: emit, spawn: env.flare, count: 700, from: [0.5, 0.45, -0.2], wobble: 0.9, wind_x: 0.4, wind_y: 0.5, fall: 0.3, drag: 0.4, life: 4, streak: 0.06, size: 0.008, glow: 1.4, twinkle: 0.3, palette: ember, spread: 0.6, near: 0.3}
         # Three worlds whipping round on tightening orbits, each turning.
@@ -43,7 +43,7 @@ scenes:
         - {type: stars, count: 1800, speed: 0, twinkle: 0.3}
         # The star rising huge over the world's limb.
         - {type: light, x: 0, y: "0.4 + 0.5*smooth(130, 259, time.t)", z: 9, color: "#fff0d8", power: "1.6 + 1.2*env.flare", reach: 30}
-        - {type: mesh, shape: sphere, detail: 48, x: 0, y: "0.4 + 0.5*smooth(130, 259, time.t)", z: 9, scale: 1.8, color: "#ff8030", light: 0, ambient: 0, rim: 0, emit: 0.75, paint: "0.8*pow(clamp(fbm(vtx.x*5 + time.t*0.03, vtx.y*5, vtx.z*5 - time.t*0.02)*1.5 + 0.6, 0, 1), 2)", paint_color: "#fff0c0"}
+        - {type: mesh, shape: sphere, detail: 48, x: 0, y: "0.4 + 0.5*smooth(130, 259, time.t)", z: 9, scale: 1.8, color: "#ff7020", light: 0, ambient: 0, rim: "1.6 + 0.8*env.flare", rim_power: 3, rim_color: "#ffe0a0", emit: 0.95, paint: "1.0*pow(clamp(fbm(vtx.x*5 + time.t*0.03, vtx.y*5, vtx.z*5 - time.t*0.02)*1.5 + 0.6, 0, 1), 2)", paint_color: "#fff0c0", paint_fine: true}
         # The world beneath, its curve filling the bottom of the frame, turning fast.
         - {type: group, use: kit-world, y: -3.25, z: 1, scale: 3, params: {sea: 0.25, seed: 7, spin: 0.012, cities: 1.5, clouds: 1.2}}
         # The flare's wave of matter washing over.
