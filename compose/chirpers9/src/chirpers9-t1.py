@@ -113,6 +113,7 @@ FARCHOIR = os.environ.get("C9T1_FARCHOIR", "room")   # PALETTE (the far choir as
 CRESTBREATH = os.environ.get("C9T1_CRESTBREATH", "2")   # SECTION w5 (2:22-2:54, the build into the crest): THE HELD BREATH BEFORE THE MEETING - the five voices fall together through the build (v28) and meet the crest's downbeat; now for the last CRESTBREATH beats before it everything that moves stops - the seeds, the whistle and its joins, the cello, the bass, the shaker - leaving the pad, the organ, the air and the far choir's sigh holding, so the voices meet the crest out of a held breath (value = beats)
 SEEDTAP = os.environ.get("C9T1_SEEDTAP", "clave")   # SECTION w4 (1:48-2:22, A's second half: flagged 'little new vs w3' - the shaker's pattern unchanged since A began, the whistle's fragments trying to form the seed): 'clave' from beat 160 a quiet clave taps E1's rhythm without its notes (on the crest's grid), the seed's pulse forming before its tune does; 'drop' the shaker steps out for 176-184, so the breath before the build starts two bars early
 KICKSEED = os.environ.get("C9T1_KICKSEED", "seed")   # SECTION w7 (3:27-3:59, the lock's end, the exhale and the overlap's first bars: the bodhran's half-note pulse unchanged since the crest): 'seed' from the exhale (beat 304) the drum leaves the bar and beats on the seed's own cycle instead - once every five beats, on each E1's first note - so the last pulse of t1 is the seed's, five against the bar's four; 'gap' the drum steps out for the exhale (304-320) and returns with the overlap
+RETRO = os.environ.get("C9T1_RETRO", "shakuhachi")   # WHOLE (a counterpoint, Harry 11:37 on t7): A's middle (beats 96-144) had no line over the cello's slow seed once the harp's answer ended - a wind now sings E1 BACKWARDS (retrograde: E G C A D, its rhythm reversed, at half speed) three times there, right of centre, against the cello's seed going forwards on the left: the seed heard from both ends at once, before the whistle's tease ('patch[@gain]')
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -529,6 +530,22 @@ def song():
         ns = [note(a0 + c * E1_CYC + o, f"m{mm}", ln, 0.5 if c == 0 else 0.45)
               for c in range(2) for o, ln, mm in zip(E1_OFF, E1_LEN, mids)]
         tracks.append({"name": "answer", "patch": patch, "gain": gain, "pan": pan, "sends": {"space": "-9dB"}, "notes": ns})
+    if RETRO:
+        rp, _, rg = RETRO.partition("@")
+        rmode = os.environ.get("C9T1_RETROMODE", "grid")   # grid: on A's 16-beat phrase starts (98 tipped seed 0's novelty ensemble to 19 sections); ramp: quieter, emerging
+        starts = (96, 112, 128) if rmode == "grid" else (98, 114, 130)
+        v0, dv = (0.30, 0.06) if rmode == "ramp" else (0.42, 0.03)
+        r_mid = list(reversed(E1_MIDI))
+        r_len = list(reversed(E1_LEN))
+        r_off, t = [], 0.0
+        for ln in r_len:
+            r_off.append(t)
+            t += ln
+        rns = []
+        for k, st in enumerate(starts):
+            for i, (o, ln, mm) in enumerate(zip(r_off, r_len, r_mid)):
+                rns.append(note(st + 2 * o, f"m{mm}", 2 * ln + (1.0 if i == 4 else 0.0) - 0.05, v0 + dv * k))
+        tracks.append({"name": "retro", "patch": rp, "gain": f"{rg or -17}dB", "pan": 0.25, "sends": {"space": "-8dB"}, "notes": rns})
     if SEEDGATHER:
         ring = [["0b", 6.0], ["64b", 6.0], [f"{ST['build']}b", 3.0], [f"{TC}b", 0.0], ["384b", 0.0]]
         turn = [["0b", 0.12], [f"{ST['build']}b", 0.25], [f"{TC - 0.1}b", 0.25], [f"{TC}b", 0.0], ["384b", 0.0]] if SEEDGATHER == "slow" else [["0b", 0.0], ["384b", 0.0]]
