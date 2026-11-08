@@ -32,7 +32,7 @@ released albums first). Ask wM for features; the voice has no ceiling.
 | ring, formant, vocoder | t3 (chirper-two: E1 on a saw ring-modulated by an inharmonic sine - layer ringmod - its mix ridden by an auto lane, harsh in the storm, clean at the lock) |
 | cloud (grains), freeze | t3 (chirper-two: the infall and the eye, a cloud-shredded dust pad) |
 | chop, stutter, tapestop, tape, vinyl | t2 (chirper-one); t3 (chirper-two: stutter and crush lanes the storm deepens, a master tapestop) |
-| delay, reverb (room / plate / hall / chamber / spring), ir | |
+| delay, reverb (room / plate / hall / chamber / spring), ir | t7 v60 (chirper-two: the hall bus's depth on a lane - a gain fx on the `space` bus with `auto.near`: +3 dB in the infall, -4 dB at the crest (close and dry), +4 dB in the outfall) |
 | chorus, phaser, wah, tremolo, width, pan | t2 v56 (chirper-one: the master's `pan` fx width on a lane, 1.0 in the in-seam narrowing to 0.15 at the end of the fall - the field falls in); t3 v59 (chirper-two: a master `width` fx on a lane, mono_below off - 1.0 head, 1.45 storm, 0.55 eye, 1.8 at the lock, 1.0 into t4) |
 | barberpole, phantom, sympathetic | |
 | radio, follow-noise | |
