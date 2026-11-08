@@ -417,6 +417,50 @@ E7_LIGHT_DB = 3.0
 KICK_REST = (73, 76)
 
 
+# v56 (ROUND TYPE: whole song): EVERYTHING FALLS IN. The horizon - 35 bars, the album's last minute - was a held D
+# major light (D3 A3 D4 F#4), three sine floors and her last line, then the choir's 'ah': 'a held light redshifting
+# away', but held, as loud as the jet for its first half and pure drone for its last (flatness 3:52, 4:16). The
+# elements the whole album gathered - each track bringing one, every later track carrying them all - were gone. Now
+# the horizon is the album's farewell: over the light, the elements pass ONE LAST TIME, one every four bars, in the
+# REVERSE of their accretion - the last to arrive the first to fall in: E7 the jet (145, its fifths slowed to one a
+# beat, ringing), E6 the tide (149, one D(add9) -> C(add9) breath on the organ, the album's own E6 v3), E5 the inner
+# orbit (153, one turn), E2 'seven' (157, its cell turned MAJOR - D A F# C - by the light), and last E1, the seed
+# (161, augmented, alone, as the light darkens): the album began with E1 alone (t1) and ends with it. Each in the key
+# of the light; nothing after 165 but the light and the 'ah'.
+FALL_IN = {"e7": 145, "e6": 149, "e5": 153, "e2": 157, "e1": 161}
+FALL_IN_DB = {"e7": 7.0, "e6": 10.0, "e5": 7.0, "e2": 3.0}         # at their stretto gains the first three sat at -15/-16, unheard
+
+
+def fall_in_lanes(song):
+    for tr_ in song["tracks"]:
+        n = tr_["name"]
+        if n not in FALL_IN_DB:
+            continue
+        a, z = b0(FALL_IN[n]), b0(FALL_IN[n] + 4)
+        pts = [["0b", 0.0], [f"{a - 1:g}b", 0.0], [f"{a:g}b", FALL_IN_DB[n]], [f"{z + 4:g}b", FALL_IN_DB[n]], [f"{z + 6:g}b", 0.0]]
+        tr_["fx"] = list(tr_.get("fx") or []) + ["gain gain=0dB+auto.fw*1"]
+        tr_["auto"] = dict(tr_.get("auto") or {}, fw={"points": pts})
+
+
+def everything_falls_in():
+    b = b0(FALL_IN["e7"])
+    for i, (n, _, _) in enumerate(E7):
+        part("e7").add(b + i, 6.0 - i, n, 84)
+    b = b0(FALL_IN["e6"])
+    part("e6").add(b, 4.0, "m50,m54,m57,m64", 92)                      # D(add9): D F# A E
+    part("e6").add(b + 4, 4.0, "m48,m52,m55,m62", 84)                  # C(add9): C E G D
+    b = b0(FALL_IN["e5"])
+    for n, s in E5:
+        part("e5").add(b + s * 0.5, 0.5, n, 72 if s == 0 else 60)
+    b = b0(FALL_IN["e2"])
+    for rep in range(2):
+        for n, s, v in E2:
+            part("e2").add(b + rep * 1.75 + s * 0.25, 0.5, "F#4" if n == "F4" else n, v)
+    b = b0(FALL_IN["e1"])
+    for n, on, ln in E1:
+        part("e1").add(b + on * 2, ln * 2, n, 80)
+
+
 def tide_surfaces():
     lo, hi = b0(KICK_REST[0]) - 1e-6, b0(KICK_REST[1] + 1) - 1e-6
     P["kick"].ev = [e for e in P["kick"].ev if not lo <= e[0] < hi]
@@ -1152,6 +1196,7 @@ def main():
     hook_sung_back()
     hook_breathes()
     tide_surfaces()
+    everything_falls_in()
     lead, fifth, low = choir()
     far = far_choir()                                             # v38: the answer forms far away (v45: own track)
     lead, fifth, low, hers = she_says_it(lead, fifth, low)       # v47: the break's second line is hers alone
@@ -1234,6 +1279,7 @@ def main():
     }
     recede(song)
     breathe(song)
+    fall_in_lanes(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
