@@ -135,7 +135,14 @@ def build():
     t = E2_START * 4.0
     cyc = 0
     dust_rng = random.Random(SEED + 77)
+    snapped_ = False
     while t < total - 1e-6:
+        # (v68) once the flung-out break is over (the debris silent from bar 73), the cell falls back onto its old
+        # grid, so the drift's half-speed return lands exactly where it always did
+        if not snapped_ and t >= (SEC['break'] + 8) * 4.0 - 1e-6:
+            t0_ = E2_START * 4.0
+            t = t0_ + math.ceil((t - t0_) / 1.75 - 1e-9) * 1.75
+            snapped_ = True
         bar = int(t // 4)
         s_, i_ = sec_of(bar)
         prog_ = min(1.0, max(0.0, (t - E2_START * 4.0) / ((SEC['build'] - E2_START) * 4.0)))
@@ -150,6 +157,19 @@ def build():
             # first half home, the second half an octave down - the redshift as a drop in register, D A F C throughout
             # (all four in t3's chords as well)
             sink = 0.0 if f_ < 0.5 else -12.0
+        # (v68, section w6: 2:37-3:07, the crest's last bars and the break's first half - the debris ran on through
+        # the break at the crest's speed and pitch, the floating break and its clock at odds) FLUNG OUT: past the
+        # crest, its nearest pass, the cell is slung outward like a body past perihelion - Kepler: the farther out,
+        # the slower - so through the break's first eight bars each turn of E2 takes longer (7 sixteenths stretching
+        # to twice that), the chip-metal climbs an octave for the last four (thrown up and away), the log drum's
+        # body thins and the hits fade, until the debris stops for the room to clear at bar 73; it returns at half
+        # speed with the drums at bar 81 - the orbit coming back round
+        rise_, fade_ = 0.0, 1.0
+        if SEC['break'] * 4.0 - 1e-6 <= t < (SEC['break'] + 8) * 4.0 - 1e-6:
+            f_ = (t - SEC['break'] * 4.0) / 32.0
+            stretch = 1.0 + 1.0 * f_
+            rise_ = 0.0 if f_ < 0.5 else 12.0
+            fade_ = 1.0 - 0.4 * f_
         for st in E2_STEPS:
             need = {0: 0.0, 3: 0.25, 2: 0.5, 5: 0.7}[st]
             if prog_ < 1.0 and rng.random() > min(1.0, 0.15 + 1.3 * max(0.0, prog_ - need)):
@@ -160,12 +180,13 @@ def build():
             v = E2_VEL[st] * (0.75 + 0.25 * prog_)
             if s_ == 'crest' and abs(at - CREST * 4.0) < 1e-6:
                 v = 124
-            P['e2m'].append((at, m(KEY + 24 + E2_PITCH[st] + sink), 0.22 * stretch, v))
+            P['e2m'].append((at, m(KEY + 24 + E2_PITCH[st] + sink + rise_), 0.22 * stretch, v * fade_))
             # (v2) THE DEBRIS GETS A BODY: under each chip-metal hit a woody pitched drum (a log drum, an octave
             # down) that grows with the cell - silent while it is debris, a full body by the crest: matter accreting
             body_ = min(1.0, max(0.0, (t - E2_START * 4.0) / ((CREST - E2_START) * 4.0))) ** 1.5
             if t >= fall0:
                 body_ *= max(0.25, 1.0 - (t - fall0) / 80.0)
+            body_ *= fade_ ** 2
             if body_ > 0.04:
                 P['e2body'].append((at, m(KEY + 12 + E2_PITCH[st] + sink), 0.3 * stretch, 30 + 80 * body_ * (E2_VEL[st] / 112.0)))
             # (v4) DUST: some hits throw off a glint - a wind-chime three octaves up, the debris catching the light;
