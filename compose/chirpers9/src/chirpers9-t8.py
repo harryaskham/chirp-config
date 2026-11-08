@@ -552,6 +552,15 @@ def write_stretto():
 # from minor to major as the payoff of the whole stretto. E F is in D natural minor, so the question never rubs the
 # stretto; only in the vacuum does it touch E7's top E for a beat before the jet resolves it.
 ASKS = (28, 40, 52, 64, 80, VACUUM)
+# v53 (ROUND TYPE: whole song): THE QUESTION FINDS ITS WORDS. Her six questions - the rising half step E5 -> F5 that
+# the jet's E F# D answers - opened from a hum to an open mouth across the song (v43) but always on 'oo': she never
+# said anything, and the choir at the jet answered 'We were the far side' to a question nobody had spoken. Now, as
+# her mouth opens, the question finds its words: 'oo' while she hums (28, 40), 'ah' as the lips part (52), 'far...'
+# (64), 'far si-' broken off (80), and at the vacuum, mouth fully open, 'far side?' (96) - and the jet answers, and
+# the choir sings it back: 'We were the far side'. The thread t4's chorus started ('I kept your far side'), asked
+# aloud. Pitches, timing, levels (hum_even) unchanged.
+ASK_WORDS = [("UW1", "UW1"), ("UW1", "UW1"), ("AA1", "AA1"), ("F AA1 R", "AA1"), ("F AA1 R", "S AY1"),
+             ("F AA1 R", "S AY1 D")]
 
 # v16 (ROUND TYPE: whole song): THE HOOK'S LIFE. The hook was heard often but never grew: E1 on the chip in the
 # stretto, then the flute's plain statement every two bars through both jets, the same way about twenty times, then
@@ -596,8 +605,9 @@ def sung_asks():
         reg, v = round(0.3 + 0.4 * k, 3), round(0.34 + 0.16 * k, 3)       # placed where the flute sat
         hum = round(1.0 - k, 3)                                            # v43: closed at first, open by the jet
         v = round(min(1.0, v + ASK_HUM_LIFT * hum), 3)                    # a high closed hum loses ~15 dB (measured)
-        out.append({"at": float(b0(bar)), "len": 1.5, "ph": "UW1", "pitch": "E5", "vel": v, "expr": {"reg": reg, "hum": hum}})
-        out.append({"at": float(b0(bar) + 1.5), "len": 2.25 if bar != VACUUM else 2.4, "ph": "UW1", "pitch": "F5",
+        p1, p2 = ASK_WORDS[i]                                              # v53: the question finds its words
+        out.append({"at": float(b0(bar)), "len": 1.5, "ph": p1, "pitch": "E5", "vel": v, "expr": {"reg": reg, "hum": hum}})
+        out.append({"at": float(b0(bar) + 1.5), "len": 2.25 if bar != VACUUM else 2.4, "ph": p2, "pitch": "F5",
                     "vel": round(v + 0.03, 3), "expr": {"reg": reg, "hum": hum}})
     return out
 
