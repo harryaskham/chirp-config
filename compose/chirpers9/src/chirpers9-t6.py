@@ -810,6 +810,18 @@ def build():
     # turning to distant voices as it draws back, the far side's old voice singing over them - and the harmonium
     # stays out through the surge's bare low gear (v40), swelling back in with the high gear
     eb0_, eb1_ = (SEC['cross'] + 8) * 4.0, SEC['surge'] * 4.0
+    # (v64, section w6: 2:36-3:06, the cross - eco's still run starts here: its second half was one texture for
+    # eight bars, the full groove under the tape choir) THE LAST OF THE WATER DRAINS: for the cross's last four bars
+    # the band drains out from under the tape choir - the kit, the 303, the analog bass, the hats, the steel pan
+    # and the kora stop - leaving the choir's B-flat and C, the contrabass and the trombone's slow E1, the sub, and
+    # one open hat on each off-beat ticking like water dripping; then the surge's low gear lands on the downbeat
+    dr0_ = eb1_ - 16.0
+    for k_ in ('kit', 'acid', 'root', 'e5', 'e5b'):
+        P[k_] = [e_ for e_ in P[k_] if not (dr0_ - 1e-6 <= e_[0] < eb1_ - 1e-6)]
+    P['hats'] = [e_ for e_ in P['hats'] if not (dr0_ - 1e-6 <= e_[0] < eb1_ - 1e-6)]
+    for b_ in range(int(dr0_), int(eb1_)):
+        P['hats'].append((b_ + 0.5, 'oh', 0.2, 58))
+    P['hats'].sort(key=lambda e_: e_[0])
     P['ebb'] = [e_ for e_ in P['tide'] if eb0_ - 1e-6 <= e_[0] < eb1_ - 1e-6]
     P['tide'] = [e_ for e_ in P['tide'] if not (eb0_ - 1e-6 <= e_[0] < eb1_ - 1e-6)]
     P['tide'] = [(e_[0], e_[1], min(e_[2], eb0_ - e_[0]), *e_[3:]) if e_[0] < eb0_ < e_[0] + e_[2] else e_ for e_ in P['tide']]
