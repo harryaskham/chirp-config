@@ -689,7 +689,16 @@ AMEN_GAIN = os.environ.get("T7_AMEN_GAIN", "0dB")
 # with the centre still held. (2) The album envelope finds t7 4 dB heavy at 156 Hz (the reese's drive since v70 added
 # to it): a narrow master dip there, -2 dB at 165 Hz q 2.5, takes the box out of the low mids (a broad -2.5 dB q 1.2
 # at 156 pulled 114 Hz past tolerance, -6.5: 99.959). T7_R74=none reproduces v73.
-R74 = os.environ.get("T7_R74", "doubled") != "none"      # break-kit hats sit 7.5 dB under dusty-kit's
+R74 = os.environ.get("T7_R74", "doubled") != "none"
+# round 75 (section, w7 first half = bars 97-104, the approach's last instrumental bars before the spiral; least
+# recently focused outside the seams): T7_R75=chops (default) - A GUITAR CUTS THE FOUR LIGHTS. Bars 97-104 had the
+# reese, the kit and E1 in three buried disguises - nothing on top. Now a funk guitar (library cutting-guitar: a clean
+# Tele, compressed, chorused, short-gated; no Accretion song has a guitar) chops sixteenths on E4's chords - following
+# the house stabs' own changes, which turn every two and a half beats, so the chords slide under a steady strum - an
+# accented 16th pattern with ghosted mutes between, panned right of the stabs, for eight bars, gone as the spiral's
+# voices come in at bar 105. T7_R75=none reproduces v74.
+R75 = os.environ.get("T7_R75", "chops") != "none"
+CHOP_GAIN = os.environ.get("T7_CHOP_GAIN", "9dB")      # break-kit hats sit 7.5 dB under dusty-kit's
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -2148,6 +2157,28 @@ def main():
                                                    ["704b", 4.0]]}})
         master["fx"][0]["bands"] = list(master["fx"][0]["bands"]) + ["peak cutoff=61 gain=4dB q=1.2",
                                                                      "highshelf cutoff=10000 gain=3dB"]
+    if R75:                                                 # w7: a funk guitar chops E4's chords (bars 97-104)
+        e4tr = next(tr for tr in tracks if tr.get("name") == "e4")
+        changes, pos = [], 0.0
+        for tok in e4tr["score"].split():
+            m = re.match(r"^(.+?)/([0-9.e+-]+)b(?:@(\d+))?", tok)
+            if m.group(1) != "R" and int(m.group(3) or 0) > 1 and 370.0 <= pos < 416.0:
+                changes.append((pos, sorted(int(x[1:]) for x in m.group(1).split(","))[-4:]))
+            pos += float(m.group(2))
+        def chord_at(b):
+            c = [ch for at, ch in changes if at <= b + 1e-6]
+            return c[-1] if c else changes[0][1]
+        gt = Track("chops")
+        steps = {0: 104, 2: 88, 3: 96, 5: 110, 6: 84, 8: 100, 10: 90, 11: 98, 13: 112, 14: 86}   # accents off the beat
+        for bar in range(8):
+            for s in range(16):
+                at = 384.0 + bar * 4 + s * 0.25
+                if s in steps:
+                    gt.add(at, 0.12, ",".join(f"m{n}" for n in chord_at(at)), steps[s])
+                elif s % 2 == 1:
+                    gt.add(at, 0.06, ",".join(f"m{n}" for n in chord_at(at)[:2]), 52)   # a ghosted mute
+        tracks.append({"name": "chops", "patch": "cutting-guitar", "gain": CHOP_GAIN, "pan": 0.45,
+                       "sends": {"space": "-12dB"}, "score": gt.score()})
     if R74:                                                 # whole: the lead double-tracked, the 156 Hz box out
         for tr in tracks:
             if tr.get("name") in ("sung", "sung5", "sungc", "sungc5", "near", "near3"):
