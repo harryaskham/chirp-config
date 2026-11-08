@@ -559,6 +559,13 @@ R67 = os.environ.get("T3_R67", "shepard") != "none"
 # higher for a bar, then gone - and the dizi's E1 comes up 8 dB for those two bars, so the storm returns carrying
 # the tune. T3_R69=none reproduces v67.
 R69 = os.environ.get("T3_R69", "scatter") != "none"
+# round 70 (section, w5 = bars 49-60, the eyewall; least recently focused outside the t4 seam): T3_R70=undertow
+# (default) - THE BASS SINGS THE HOOK INTO THE EYE. All through the storm the reese (and the sub-sine an octave
+# under it) is the loudest thing, leaping about E3's riff. For the four bars before the eye (57-60) it now plays E1
+# itself, plainly, three times - D A C G E, low and huge, under the steel pan's E1 and the counting voices - then
+# climbs the D minor scale into the eye. The riff's own bars there are silenced with a lane, not edited.
+# T3_R70=none reproduces v69.
+R70 = os.environ.get("T3_R70", "undertow") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1722,6 +1729,25 @@ def main():
         flock(404.5, 408.0, (1.0, 2.0))
         for nm, pan in (("birdl", -0.5), ("birdr", 0.5)):
             tracks.append({"name": nm, "patch": "birds", "gain": "9dB", "pan": pan, "score": flocks[nm].score()})
+    if R70:                                                 # w5: the bass sings E1 into the eye (bars 57-60)
+        hookb, hooks = Track("bassh"), Track("bsubh")
+        e1 = ((0.0, 0.5, 38), (0.5, 0.75, 45), (1.25, 0.25, 48), (1.5, 1.0, 43), (2.5, 1.5, 40))   # D2 A2 C3 G2 E2
+        for k, at0 in enumerate((224.0, 228.0, 232.0)):
+            for off, ln, m in e1:
+                v = 104 + 4 * k + (6 if off == 0.0 else 0)
+                hookb.add(at0 + off, ln - 0.06, mtok(m), v)
+                hooks.add(at0 + off, ln - 0.06, mtok(m - 12), v)
+        for i, m in enumerate((38, 40, 41, 43, 45, 48, 50, 53)):            # D E F G A C D F, up into the eye
+            hookb.add(236.0 + 0.5 * i, 0.44, mtok(m), 100 + 2 * i)
+            hooks.add(236.0 + 0.5 * i, 0.44, mtok(m - 12), 100 + 2 * i)
+        for src, new, sc in (("bass", "bassh", hookb), ("bsub", "bsubh", hooks)):
+            tr0 = next(tr for tr in tracks if tr.get("name") == src)
+            tracks.append(dict({k: v for k, v in tr0.items() if k not in ("score", "notes")},
+                               name=new, fx=list(tr0.get("fx", [])), auto=dict(tr0.get("auto", {})), score=sc.score()))
+            tr0["fx"] = list(tr0.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
+                                                    "mod": [{"src": "auto.yield", "amount": 1}]}}]
+            tr0["auto"] = dict(tr0.get("auto", {}), **{"yield": {"points": [["0b", 0], ["223.9b", 0], ["224b", -60],
+                                                                             ["239.9b", -60], ["240b", 0], ["513b", 0]]}})
     if R69:                                                 # w6: the birds scatter as the second storm hits (bars 67-68)
         rng2 = random.Random(6909)
         pent2 = (86, 89, 91, 93, 96, 98, 101, 103, 105)     # D6 .. A7, the eye's pentatonic and higher
