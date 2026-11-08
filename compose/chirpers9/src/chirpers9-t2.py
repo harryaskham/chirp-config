@@ -940,7 +940,14 @@ def build():
             P['hook'].append((n_['at'], n_['pitch'], n_['len'] * 0.97, int(80 * n_.get('vel', 0.8) + 10)))
     P['hook'].sort(key=lambda e_: e_[0])
     answers = []
-    for src_, a0_, a1_, to_ in ((csnotes, 194.9, 197.0, 198.5), (cbnotes, 232.9, 235.0, 237.0), (cbnotes, 248.9, 251.0, 253.0)):
+    # (v63, section w8: 3:37-4:07, the drift's last chorus - three statements of the line over the ondes' E1 and the
+    # last choir, the same answer-less shape the crest had before v61) THE CHOIR ANSWERS AGAIN: in the last chorus
+    # the congregation answers each of the first three 'nearer each time it comes round' with 'comes round' - the
+    # third answer sung into the floor's falling away (bars 93-94), voices alone in the gap before the lift to E
+    ANS_ = [(csnotes, 194.9, 197.0, 198.5), (cbnotes, 232.9, 235.0, 237.0), (cbnotes, 248.9, 251.0, 253.0)]
+    ANS_ += [(dsnotes, b_ + 2.6, b_ + 4.9, b_ + 6.5) for b_ in (346.0, 356.0, 366.0)]
+    # (the drift is D Dorian - its F natural under the answers - so its answers sing on their own track, 'answer2')
+    for src_, a0_, a1_, to_ in ANS_:
         grp_ = [n_ for n_ in src_ if a0_ <= n_['at'] < a1_]
         if not grp_:
             continue
@@ -1094,7 +1101,9 @@ def build():
             # three parts (an octave below, the line, a third above), five singers each at their own depths: a
             # congregation answering the voice, call and response at the centre of the song
             {'name': 'answer', 'patch': dict(CS['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-7,2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.layers.0.part_size=1 synth.layers.0.singers=5 synth.layers.0.vowel_spread=1 synth.layers.0.f0_spread=1 synth.layers.0.depth_spread=1'),
-             'notes': answers, 'gain': '-6dB', 'pan': 0.0, 'sends': {'hall': '-6dB'}},
+             'notes': [n_ for n_ in answers if n_['at'] < SEC['drift'] * 4.0], 'gain': '-6dB', 'pan': 0.0, 'sends': {'hall': '-6dB'}},
+            {'name': 'answer2', 'patch': dict(CS['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-7,2] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true synth.layers.0.part_size=1 synth.layers.0.singers=5 synth.layers.0.vowel_spread=1 synth.layers.0.f0_spread=1 synth.layers.0.depth_spread=1'),
+             'notes': [n_ for n_ in answers if n_['at'] >= SEC['drift'] * 4.0], 'gain': '-6dB', 'pan': 0.0, 'sends': {'hall': '-6dB'}},
             {'name': 'sung', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-near synth.lfo.vib.per_note=true'),
              'notes': snotes, 'gain': '-11dB', 'pan': 0.05, 'sends': {'echo': '-16dB', 'hall': '-12dB'}},
         ]}
