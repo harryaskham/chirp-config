@@ -461,6 +461,46 @@ def everything_falls_in():
         part("e1").add(b + on * 2, ln * 2, n, 80)
 
 
+# v57 (ROUND TYPE: whole song): THE ARRANGER'S HAND. Harry (6 Nov): every 8-16 bars something should move - a fill, a
+# drop-out, a counter-line, a re-voicing - and no ~30 s may pass unchanged. t8 accretes (an element enters every few
+# phrases) and then holds: the measure finds ten still blocks across the whole song - the stretto's start (0:24-0:40),
+# E3's entry (1:04-1:20), the tide (1:52, 2:08) and the jet's middle (2:40-2:56). Now the last two bars of EVERY eight-
+# bar phrase move, one of three ways, chosen for what is playing: A the floor lifts (bass and snare out - the sub
+# stays, and the KICK keeps time: with the kick out too, the onset tempo estimate flipped 156 -> 87.9 bpm, exactly
+# t4's, and compscore's distinct term read t8 as a 0.965 copy of t4 - -2.3), B the orbits climb (the chip, the glock and the gamelan an OCTAVE UP for the two bars - E1, E2, E5: a register shift; cutting them
+# instead removed the song's sixteenth-note pulse and flipped the tempo estimate too), C the lights go out. Bars
+# already shaped by earlier rounds are left alone (the opening, the kick rest 73-80, the hook's rest 81-84, the
+# stretch and the vacuum 89-96, the jet's arrival, the hook sung back 109-112, the break, the horizon). Several land
+# under her questions (40, 64), which get the room.
+PHRASE_MOVES = {23: "B", 31: "C", 39: "A", 47: "B", 55: "C", 63: "A", 71: "B", 87: "C", 103: "A", 117: "B", 135: "A"}
+MOVE_TRACKS = {"A": ("bass", "snare"), "B": ("e1", "e2", "e5"), "C": ("lights",)}
+
+
+def up_octave(h):
+    out = []
+    for x in h.split(","):
+        out.append(f"m{int(x[1:]) + 12}" if x[:1] == "m" and x[1:].isdigit() else name_of(midi(x) + 12))
+    return ",".join(out)
+
+
+def arrangers_hand():
+    for bar, kind in PHRASE_MOVES.items():
+        lo, hi = b0(bar), b0(bar + 2)
+        if kind == "B":
+            for n in MOVE_TRACKS[kind]:
+                P[n].ev = [(s, ln, up_octave(h), v) if lo - 1e-6 <= s < hi - 1e-6 else (s, ln, h, v) for s, ln, h, v in P[n].ev]
+            continue
+        for n in MOVE_TRACKS[kind]:
+            out = []
+            for s, ln, h, v in P[n].ev:
+                if lo - 1e-6 <= s < hi - 1e-6:
+                    continue
+                if s < lo - 1e-6 < s + ln:
+                    ln = lo - s
+                out.append((s, ln, h, v))
+            P[n].ev = out
+
+
 def tide_surfaces():
     lo, hi = b0(KICK_REST[0]) - 1e-6, b0(KICK_REST[1] + 1) - 1e-6
     P["kick"].ev = [e for e in P["kick"].ev if not lo <= e[0] < hi]
@@ -1196,6 +1236,7 @@ def main():
     hook_sung_back()
     hook_breathes()
     tide_surfaces()
+    arrangers_hand()
     everything_falls_in()
     lead, fifth, low = choir()
     far = far_choir()                                             # v38: the answer forms far away (v45: own track)
