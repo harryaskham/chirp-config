@@ -923,6 +923,22 @@ def build():
     dr0_ = SEC['drift'] * 4.0
     P['kitb'] = [((e_[0], 's' if e_[1] == 'cp' else e_[1]) + tuple(e_[2:])) for e_ in P['kit'] if dr0_ - 1e-6 <= e_[0] < fall0 - 1e-6]
     P['kit'] = [e_ for e_ in P['kit'] if not (dr0_ - 1e-6 <= e_[0] < fall0 - 1e-6)]
+    # (v62, section w7: 3:07-3:37, the break climbing out into the drift - the bass alone carrying it (-1 dB), the
+    # line's return at bar 77 sung over a floating guitar and a hum, nothing in it from the crest it remembers) THE
+    # ONDES FINDS HER: the ondes Martenot that sang E1 with the voice at the crest comes back for the climb-out - first
+    # alone, softly, once through E1 at its own speed over the C and F (bars 73-74), like something remembered, then
+    # doubling the voice's line note for note when she sings 'nearer each time it comes round' at bar 77, as it did at
+    # the crest (Harry: the near voice with the ondes); it lets go as the drift's drums come back
+    t_ = (SEC['break'] + 8) * 4.0
+    at = t_
+    for k, (semi, ln) in enumerate(E1):
+        if semi is not None:
+            P['hook'].append((at, m(KEY + 24 + semi), ln * 0.97, 70 if k == 0 else 62))
+        at += ln
+    for n_ in snotes:
+        if (SEC['break'] + 12) * 4.0 - 0.5 <= n_['at'] < SEC['drift'] * 4.0:
+            P['hook'].append((n_['at'], n_['pitch'], n_['len'] * 0.97, int(80 * n_.get('vel', 0.8) + 10)))
+    P['hook'].sort(key=lambda e_: e_[0])
     answers = []
     for src_, a0_, a1_, to_ in ((csnotes, 194.9, 197.0, 198.5), (cbnotes, 232.9, 235.0, 237.0), (cbnotes, 248.9, 251.0, 253.0)):
         grp_ = [n_ for n_ in src_ if a0_ <= n_['at'] < a1_]
