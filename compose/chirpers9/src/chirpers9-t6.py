@@ -1228,7 +1228,17 @@ def build():
     up_ = lambda n_: dict(n_, pitch=f"m{int(float(str(n_['pitch'])[1:])) + 12}")
     song['tracks'].append(dict(dn_, name='squeezenear', notes=[up_(n_) for n_ in near_half_ + go_[:1]]))
     s2_['notes'] = [n_ for n_ in s2_['notes'] if not (q0_ - 0.5 <= n_['at'] < q1_)]
-    LEAD6 = ('sung', 'sungb', 'sungc', 'lastword', 'duetnear', 'nearwake', 'descant', 'squeezenear')
+    # (v73, section w5: 2:05-2:36, the crest - flagged static: the choir's couplet twice over a locked band, the two
+    # soloists who carry the song's story absent at its centre) AS ONE: the crest's second couplet (bar 73), where
+    # the drums, hats and sequencer drop out for two bars and the choir and the lights are alone, is sung by the
+    # two voices together for the first time - the young near voice and the old voice (at the age he has in the
+    # squeeze), in octaves, on the choir's own tune in E: after the squeeze split the line between them, the crest
+    # sings 'near and far as one' as one
+    ch_ = tk_['chorus']
+    c2_ = [n_ for n_ in ch_['notes'] if (SEC['crest'] + 8) * 4.0 - 0.5 <= n_['at'] < (SEC['crest'] + 12) * 4.0]
+    song['tracks'].append(dict(dn_, name='crestnear', gain='-11dB', notes=[up_(n_) for n_ in c2_]))
+    song['tracks'].append(dict(tk_['sungb'], name='crestold', gain='-9dB', notes=[dict(n_) for n_ in c2_]))
+    LEAD6 = ('sung', 'sungb', 'sungc', 'lastword', 'duetnear', 'nearwake', 'descant', 'squeezenear', 'crestnear', 'crestold')
     for t_ in song['tracks']:
         if t_['name'] in LEAD6:
             t_['gain'] = f"{float(t_['gain'][:-2]) + 1.0:g}dB"
