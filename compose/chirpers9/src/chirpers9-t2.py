@@ -954,6 +954,19 @@ def build():
         off_ = to_ - grp_[0]['at']
         for n_ in grp_:
             answers.append(dict(n_, at=round(n_['at'] + off_, 4), len=round(min(n_['len'], 1.9), 4), vel=round(n_.get('vel', 0.7) * 0.85, 3)))
+    # (v67, section w3: 1:03-1:35, the gather's second verse and the build's first four bars - the gather's groove
+    # simply ran on across the build's first bar line, the build only beginning with its arp at bar 37) THE BUILD
+    # STARTS FROM THE FLOOR: at bar 33 the drums, the hats and the comp drop away for three bars and a half, leaving
+    # the chip bass, the sub, the swarm pad, E2's debris and the flute's E1 - the song's matter without its engine;
+    # then the 909's snare rolls it back in, eighths and then sixteenths, rising from a whisper (bars 35.5-36), and
+    # the kit lands with the arp at bar 37
+    dp0_, dp1_ = SEC['build'] * 4.0, SEC['build'] * 4.0 + 16.0
+    for k_ in ('kit', 'hat3', 'gtr'):
+        P[k_] = [e_ for e_ in P[k_] if not (dp0_ - 1e-6 <= e_[0] < dp1_ - 1e-6)]
+    roll_ = [dp1_ - 6.0 + 0.5 * i_ for i_ in range(4)] + [dp1_ - 4.0 + 0.25 * i_ for i_ in range(16)]
+    for i_, at_ in enumerate(roll_):
+        P['kit'].append((at_, 's', 0.12, int(36 + 80 * (i_ / (len(roll_) - 1)) ** 1.4)))
+    P['kit'].sort(key=lambda e_: e_[0])
     song = {
         'about': "chirpers - Accretion, track 2 by chirper-one: The Long Way In. The infall: a rhythm cell in seven "
                  "assembles out of falling fragments against the band's sixteen, every cycle landing together at the crest. "
