@@ -110,6 +110,7 @@ A2LIFT = os.environ.get("C9T1_A2LIFT", "cello")   # SECTION w3 (1:13-1:48, A's m
 VIBESP = os.environ.get("C9T1_VIBESP", "modal-vibes@-2")   # PALETTE: the seed's A voice (and its double in the build, join-vibes) leaves the additive 'vibes' for wM's modal vibraphone (a struck bar's own modes, motor tremolo) - the same notes, a real bar ringing ('patch[@dB change]')
 FARCLOSE = os.environ.get("C9T1_FARCLOSE", "room")   # SECTION w8 (3:59-4:33, the fall and the hand-off to t2: never focused): THE LAST HUM STANDS BACK - the closing hum (v36) is built after CHOIRVIB/CHOIRVOWEL ran, so it never got them (v47/v49's notes said it did; only the sighs did): now it gets the far choir's full recipe - five singers, spread 0.8, each with its own vibrato and vowels - and wM's depth_spread (pinned 391d8713): each singer stands their own distance back, later, quieter and darker, so the last hum is a section receding as t2 arrives ('depth' or 'room' = depth plus a hall send)
 FARCHOIR = os.environ.get("C9T1_FARCHOIR", "room")   # PALETTE (the far choir as one sound): the opening hum is built after CHOIRVIB/CHOIRVOWEL ran and never got them - one voice tripled where the sighs and (since v53) the closing hum are a five-singer section; now it gets the section too (five singers, spread 0.8, its own vibrato and vowels) and, with the sighs, wM's depth_spread - each singer at its own distance behind, later, quieter, darker ('depth'; 'room' also sends the opening hum to the hall at -6 dB like the closing one)
+CRESTBREATH = os.environ.get("C9T1_CRESTBREATH", "2")   # SECTION w5 (2:22-2:54, the build into the crest): THE HELD BREATH BEFORE THE MEETING - the five voices fall together through the build (v28) and meet the crest's downbeat; now for the last CRESTBREATH beats before it everything that moves stops - the seeds, the whistle and its joins, the cello, the bass, the shaker - leaving the pad, the organ, the air and the far choir's sigh holding, so the voices meet the crest out of a held breath (value = beats)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -729,6 +730,12 @@ def song():
                 tr["patch"] = vp
                 if vg:
                     tr["gain"] = f"{float(str(tr['gain']).replace('dB', '')) + float(vg):g}dB"
+    if CRESTBREATH:
+        g0 = TC - float(CRESTBREATH)
+        movers = ("seed-d", "seed-a", "seed-c", "seed-g", "seed-e", "hook", "join-vibes", "join-celesta", "join-kalimba", "cantus", "bass", "hats", "tease", "hook-mid")
+        for tr in tracks:
+            if tr["name"] in movers and "notes" in tr:
+                tr["notes"] = [n for n in tr["notes"] if not (g0 <= n["at"] < TC)]
     if FARCHOIR:
         for tr in tracks:
             if tr["name"] == "hum" and isinstance(tr["patch"], dict):
