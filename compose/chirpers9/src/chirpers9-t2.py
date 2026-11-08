@@ -543,6 +543,16 @@ def build():
         wid_pts.append([f'{b_ * 4.0:.1f}b', round(a_ + (z_ - a_) * i_ / 15.0, 3)])
     tempo = [{'at': '0b', 'bpm': 90.0}, {'at': f'{SEC["gather"] * 4.0:.1f}b', 'bpm': 90.0},
              {'at': f'{fall0:.1f}b', 'bpm': 98.0, 'ramp': True}]
+    # (v73, whole song) KEPLER'S SECOND LAW: a body in orbit moves fastest at its nearest pass and slowest far out. The
+    # song's tempo climbed in one straight line from t1's 90 to t3's 98. Now it follows the orbit: it quickens
+    # through the gather and the build into the crest (90 -> 97 at the crest's downbeat, 98 at its height), slows as
+    # the break flings the debris outward (back to 94 by the break's end - with E2's own slowing), and quickens again
+    # through the drift to the fall's 98, so both seams keep their tempos
+    tempo = [{'at': '0b', 'bpm': 90.0}, {'at': f'{SEC["gather"] * 4.0:.1f}b', 'bpm': 90.0},
+             {'at': f'{CREST * 4.0:.1f}b', 'bpm': 97.0, 'ramp': True},
+             {'at': f'{(CREST + 8) * 4.0:.1f}b', 'bpm': 98.0, 'ramp': True},
+             {'at': f'{SEC["drift"] * 4.0:.1f}b', 'bpm': 94.0, 'ramp': True},
+             {'at': f'{fall0:.1f}b', 'bpm': 98.0, 'ramp': True}]
 
     # ---- (v5, section w5) THE CREST BLOOMS: the crest's first 12 bars sat locked and still (flagged static).
     # Now the lock is where things start to happen: bars 49-52 the lock as it was (every cycle on the downbeat, E1
