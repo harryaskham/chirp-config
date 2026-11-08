@@ -923,6 +923,14 @@ def build():
     dr0_ = SEC['drift'] * 4.0
     P['kitb'] = [((e_[0], 's' if e_[1] == 'cp' else e_[1]) + tuple(e_[2:])) for e_ in P['kit'] if dr0_ - 1e-6 <= e_[0] < fall0 - 1e-6]
     P['kit'] = [e_ for e_ in P['kit'] if not (dr0_ - 1e-6 <= e_[0] < fall0 - 1e-6)]
+    answers = []
+    for src_, a0_, a1_, to_ in ((csnotes, 194.9, 197.0, 198.5), (cbnotes, 232.9, 235.0, 237.0), (cbnotes, 248.9, 251.0, 253.0)):
+        grp_ = [n_ for n_ in src_ if a0_ <= n_['at'] < a1_]
+        if not grp_:
+            continue
+        off_ = to_ - grp_[0]['at']
+        for n_ in grp_:
+            answers.append(dict(n_, at=round(n_['at'] + off_, 4), len=round(min(n_['len'], 1.9), 4), vel=round(n_.get('vel', 0.7) * 0.85, 3)))
     song = {
         'about': "chirpers - Accretion, track 2 by chirper-one: The Long Way In. The infall: a rhythm cell in seven "
                  "assembles out of falling fragments against the band's sixteen, every cycle landing together at the crest. "
@@ -1063,6 +1071,14 @@ def build():
              'notes': pcnotes, 'gain': '-10dB', 'pan': 0.0, 'sends': {'echo': '-16dB', 'hall': '-12dB'}},
             {'name': 'crestb', 'patch': dict(dict(CB['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1}),
              'notes': cbnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'echo': '-18dB', 'hall': '-12dB'}},
+            # (v61, section w5: 2:06-2:37, the crest, 'static, little new vs w4' - the line and the band, the same
+            # density bar after bar; the line itself is untouched, Harry's 'woah this track is sick') THE CHOIR
+            # ANSWERS: in the gaps the line leaves, the backing choir sings its last words back - 'comes round' after
+            # the first 'nearer each time it comes round', 'draws us in' after each 'the middle draws us in' - in
+            # three parts (an octave below, the line, a third above), five singers each at their own depths: a
+            # congregation answering the voice, call and response at the centre of the song
+            {'name': 'answer', 'patch': dict(CS['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-7,2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.together=true synth.layers.0.part_size=1 synth.layers.0.singers=5 synth.layers.0.vowel_spread=1 synth.layers.0.f0_spread=1 synth.layers.0.depth_spread=1'),
+             'notes': answers, 'gain': '-6dB', 'pan': 0.0, 'sends': {'hall': '-6dB'}},
             {'name': 'sung', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-near synth.lfo.vib.per_note=true'),
              'notes': snotes, 'gain': '-11dB', 'pan': 0.05, 'sends': {'echo': '-16dB', 'hall': '-12dB'}},
         ]}
