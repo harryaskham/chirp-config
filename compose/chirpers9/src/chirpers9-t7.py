@@ -592,6 +592,14 @@ R61 = os.environ.get("T7_R61", "corners") != "none"
 # orbit as the pad (t7's spin and fall lanes), so the little guitar circles your head with it. T7_R62=none
 # reproduces v61.
 R62 = os.environ.get("T7_R62", "cavaco") != "none"
+# round 63 (section, w10 = bars 145-160, the crest's last lap and the plunge; "little new vs w9"): T7_R63=descant
+# (default) - A VOICE ABOVE THE LAST LAP. The crest's final eight bars repeated the bars before them, with the reese
+# and the floor so loud the hook, the choir and the erhu's E1 sat 12-16 dB under them. Now a soprano - the lead
+# singer's voice, a little smaller in the throat - sings a wordless "ah" descant above everything, one phrase per lap
+# of the crest's D - C - G: A G B / A B D / D C B / D E D, rising to the album's highest sung note (E6) on the last
+# lap and holding D into the plunge. (Stepping the reese and floor back 3 dB under it was tried and dropped: it
+# flattened the lap's entry - a 24 s flat run.) T7_R63=none reproduces v62.
+R63 = os.environ.get("T7_R63", "descant") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1758,6 +1766,16 @@ def main():
                 g = float(tr["gain"].replace("dB", ""))
                 tracks.append(dict(tr, name=tr["name"] + "9", patch="a7-thump", gain=f"{g + 2:g}dB",
                                    fx=list(tr.get("fx", [])) + [{"type": "filter", "kind": "lp", "cutoff": 180, "q": 0.707}]))
+    if R63:                                                 # w10: a voice above the last lap (bars 145-152)
+        patches["a7-descant"] = {"extends": patches["a7-sung"]["extends"] + " synth.layers.0.tract=0.9"}
+        lap = ((81, 2), (79, 2), (83, 4), (81, 2), (83, 2), (86, 4), (86, 2), (84, 2), (83, 4), (86, 2), (88, 2), (86, 6))
+        notes, at = [], 576.0
+        for i, (m, ln) in enumerate(lap):
+            notes.append({"at": at, "len": ln - (0.02 if i < len(lap) - 1 else 0.5), "ph": "AA1", "pitch": mtok(m),
+                          "vel": round(0.66 + 0.02 * (i // 3), 2)})
+            at += ln
+        tracks.append({"name": "descant", "patch": "a7-descant", "gain": "0dB", "pan": 0.0,
+                       "fx": ["delay time=3/8 mix=0.15 feedback=0.3"], "sends": {"space": "-6dB"}, "notes": notes})
     if R62:                                                 # w4: a small guitar in orbit (bars 49-64)
         cav, chop = Track("cavaco"), Track("cavchop")
         ebm, bmaj = "m63,m66,m70,m75", "m59,m63,m66,m71"        # Eb4 Gb4 Bb4 Eb5 / B3 Eb4 F#4 B4 (the tide's chords)
