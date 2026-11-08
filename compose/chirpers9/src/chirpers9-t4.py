@@ -142,6 +142,15 @@ def write_lens():
         part("steel").add(b0(bar), bars * BPB + tie, note, v)
 
 
+# v69 (ROUND TYPE: whole song): WARM AND OPEN. The brief's own words for t4 - relief: warm, open - and its sound was
+# neither at the edges: against the album the song read thin in the floor (44 Hz -6.1, 61 Hz -6.5, the only bands
+# beyond tolerance besides two others), honky at 1.4 kHz (+6.8, her presence band and the cellos' bite) and short of
+# air at the top (14.8 kHz -6.6). The master EQ (v-earlier: the 900 Hz scoop and the 6 kHz shelf) gains three moves:
+# a low shelf under 80 Hz (+3 dB, the warmth), a gentle dip at 1.45 kHz (-3 dB, Q 1 - the honk, not her voice's
+# body), and an air shelf above 12 kHz (+3 dB, the openness).
+WARM_OPEN = ["lowshelf cutoff=80 gain=3dB", "peak cutoff=1450 q=1.0 gain=-3dB", "highshelf cutoff=12000 gain=3dB"]
+
+
 # v67 (ROUND TYPE: whole song): THE LIGHTS ARE LIT ONE BY ONE. t4 INTRODUCES E4, 'four lights' - but after the lens's
 # single light (D9 alone, the lift to 17) all four chords were lit at once from bar 17, so the theme's introduction
 # was a switch, not an accretion. Now they come on one at a time, a section each, as the album accretes: A has two
@@ -1548,7 +1557,7 @@ def main():
         # 95.32 - the same structure cost, less spectrum.)
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=240 q=0.8 gain=-3dB",
                                                    "peak cutoff=900 q=0.6 gain=-4dB",
-                                                   "highshelf cutoff=6000 gain=8dB"]},
+                                                   "highshelf cutoff=6000 gain=8dB"] + WARM_OPEN},
                           {"type": "compressor", "threshold": "-14dB", "ratio": 3, "attack": "8ms",
                            "release": "120ms", "makeup": "0dB"}]},
     }
