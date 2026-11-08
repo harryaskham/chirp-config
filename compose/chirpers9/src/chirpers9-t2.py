@@ -940,7 +940,12 @@ def build():
             # soft mallet, long ring, no Accretion track using it - warm wood-and-metal under the far choir and the
             # floating guitar instead of a second set of bells; Risset's bell keeps the in-seam (t1's tune arriving)
             # and the fall (its octave-up bells into t3's head, as agreed at the seam)
-            tr('e1v', 'modal-vibes', '-16dB', pan=-0.35, sends={'hall': '-10dB', 'echo': '-20dB'}),
+            # (v51, palette: E1's bells in the break and its retrograde canon before the fall were modal vibes - a
+            # struck bar, like a dozen mallet parts on the album) THE BELLS RIPPLE: they now play on wM's
+            # scanned-mallet (scanned synthesis: a narrow strike on a ring with no hand, the sharp shape splitting
+            # into ripples that run round the ring and smooth away - a struck tone that mellows and shimmers as it
+            # dies; no Accretion track uses it) - each note an orbit settling, the song's idea in one sound
+            tr('e1v', 'scanned-mallet', '-9dB', pan=-0.35, sends={'hall': '-10dB', 'echo': '-20dB'}),
             tr('e1c', 'risset-bell', '-14dB', pan=-0.35, sends={'hall': '-8dB'}),
             # (v27) the whisper's track is now the far choir's echo, 'farchoir' (below)
             {'name': 'farchoir', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-backing synth.layers.0.together=true synth.layers.0.breath.value=0.55 synth.lfo.vib.per_note=true',
