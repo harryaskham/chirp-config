@@ -573,6 +573,16 @@ R59 = os.environ.get("T7_R59", "chorus") != "none"
 # lacked against the album: +4 dB at 61 Hz (7 dB short of the album there, and of t8's head) and a 10 kHz shelf
 # (+3 dB; 12.6-14.8 kHz sat 4-7 dB dark). T7_R60=none reproduces v59.
 R60 = os.environ.get("T7_R60", "near") != "none"
+# round 61 (whole song): T7_R61=corners (default) - THE KIT TURNS CORNERS. The hats played one figure, sixteenths
+# leaning on the beat, from bar 17 to the plunge - the same lean for 144 bars, which is where w4, w5 and w10 read
+# "little new". Now the hats turn a corner every eight bars, keeping every stroke where it was and moving only the
+# weight: on the beat (as before) / opened up on the off-beats (the disco lift, open hats on every "and") / on the
+# beat / E2's cell squared into eight (0 2 3 5) / ... and every fourth corner comes sooner - the accents step one
+# sixteenth EARLIER each bar for eight bars, the lyric played by the kit, until the next block snaps back to the beat.
+# Never more than one change per eight bars; the groove and its identity stay. And the crest's twelve-voice choir
+# stands in depth (depth_spread 1, pinned 391d8713): each singer at her own distance behind the line.
+# T7_R61=none reproduces v60.
+R61 = os.environ.get("T7_R61", "corners") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1739,6 +1749,32 @@ def main():
                 g = float(tr["gain"].replace("dB", ""))
                 tracks.append(dict(tr, name=tr["name"] + "9", patch="a7-thump", gain=f"{g + 2:g}dB",
                                    fx=list(tr.get("fx", [])) + [{"type": "filter", "kind": "lp", "cutoff": 180, "q": 0.707}]))
+    if R61:                                                 # whole: the kit turns corners (hat accents, 8-bar blocks)
+        cycle = ("beat", "off", "beat", "cell", "beat", "off", "beat", "sooner")
+        hats = next(tr for tr in tracks if tr.get("name") == "hats")
+        toks, pos, out = hats["score"].split(), 0.0, []
+        for tok in toks:
+            m = re.match(r"^(.+?)/([0-9.e+-]+)b(?:@(\d+))?(.*)$", tok)
+            head, ln, vel, rest = m.group(1), m.group(2), m.group(3), m.group(4)
+            bar, s16 = int(pos // 4) + 1, int(round((pos % 4) * 4)) % 16
+            if head in ("h", "oh") and vel is not None and int(vel) > 1 and 17 <= bar <= 160:
+                mode, k, v = cycle[((bar - 17) // 8) % 8], (bar - 17) % 8, int(vel)
+                quiet = min(v, 64)
+                if mode == "off":
+                    if s16 % 4 == 2:
+                        head, v = "oh", 90
+                    else:
+                        v = 72 if s16 % 4 == 0 else quiet
+                elif mode == "cell":
+                    v = 92 if s16 % 8 in (0, 2, 3, 5) else min(v, 56)
+                elif mode == "sooner":
+                    v = 92 if (s16 + k) % 4 == 0 else quiet
+                tok = f"{head}/{ln}b@{v}{rest}"
+            out.append(tok)
+            pos += float(ln)
+        hats["score"] = " ".join(out)
+        for pn in ("a7-choir0-old", "a7-choir1-old", "a7-choir2-old"):
+            patches[pn] = dict(patches[pn], extends=patches[pn]["extends"] + " synth.layers.0.depth_spread=1")
     if R59:                                                 # whole: the voice accretes (crest choir x4), air at the head
         spread = " synth.layers.0.vib_spread=1 synth.layers.0.vowel_spread=1 synth.layers.0.f0_spread=1"
         for pn in ("a7-choir0-old", "a7-choir1-old", "a7-choir2-old"):
