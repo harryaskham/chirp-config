@@ -500,6 +500,14 @@ R60 = os.environ.get("T3_R60", "weather") != "none"
 # rhythm, four to every chord of the lock's Dm - Bb - C - Dm, D-minor triads under the farfisa's E1 - and they answer
 # the voice: silent while she sings "nothing here is late", back in every gap. T3_R61=none reproduces v60.
 R61 = os.environ.get("T3_R61", "lock") != "none"
+# round 62 (palette): T3_R62=birds (default) - BIRDS IN THE EYE. In a hurricane's eye the air goes still, the sky can
+# clear, and birds caught up in the storm fly there. Since v60 t3's eye (bars 63-66) is a real lull, but nothing lived
+# in it. Now birds do (library birds, no other chirpers song uses it): two flocks, left and right, chirping in short
+# clusters on D minor's pentatonic (D F G A C, octaves 6-7: consonant, high above everything) through the eye - and
+# halfway through one bird whistles the hook, E1 (D A . C G E) at double speed, the album's tune in a bird's mouth.
+# After the lock, when the duet has finished singing (bars 102-103), a few birds come back: the storm has passed.
+# T3_R62=none reproduces v61.
+R62 = os.environ.get("T3_R62", "birds") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1642,6 +1650,27 @@ def main():
                 tr["fx"] = list(tr.get("fx", [])) + [
                     {"type": "pump", "on": f"{k}.k", "depth": depth[tr["name"]], "release": "200ms", "curve": 0.6}
                     for k in ("kick", "kick7")]
+    if R62:                                                 # palette: birds in the eye (bars 62-66), and after the storm
+        rng = random.Random(6202)
+        pent = (86, 89, 91, 93, 96, 98, 101)                # D6 F6 G6 A6 C7 D7 F7
+        flocks = {"birdl": Track("birdl"), "birdr": Track("birdr")}
+        def flock(lo, hi, gap):
+            at = lo
+            while at < hi:
+                tr = flocks["birdl" if rng.random() < 0.5 else "birdr"]
+                n, i, step = rng.randint(2, 6), rng.randrange(len(pent) - 1), rng.choice((0.08, 0.1, 0.125))
+                for j in range(n):                          # a cluster: a trill between two neighbours or a run
+                    pitch = pent[i + (j % 2)] if rng.random() < 0.6 else pent[min(len(pent) - 1, i + j // 2)]
+                    tr.add(at + j * step, step * 0.9, mtok(pitch), rng.randint(70, 110))
+                at += n * step + rng.uniform(*gap)
+        flock(244.5, 253.5, (0.8, 2.2))
+        for k, (dt, ln, m) in enumerate(((0, 0.25, 86), (0.25, 0.375, 93), (0.625, 0.125, 96), (0.75, 0.5, 91),
+                                         (1.25, 0.6, 88))):    # E1, whistled at double speed (D6 A6 C7 G6 E6)
+            flocks["birdl"].add(254.0 + dt, ln, mtok(m), 104 if k == 0 else 96)
+        flock(256.5, 264.5, (0.8, 2.0))
+        flock(404.5, 408.0, (1.0, 2.0))
+        for nm, pan in (("birdl", -0.5), ("birdr", 0.5)):
+            tracks.append({"name": nm, "patch": "birds", "gain": "9dB", "pan": pan, "score": flocks[nm].score()})
     if R61:                                                 # w8: the seven locks into eight (bars 89-96)
         lockb = Track("lockb")
         chords = ("m57,m62,m65", "m58,m62,m65", "m60,m64,m67", "m57,m62,m65")   # Dm, Bb, C, Dm (2 beats each)
