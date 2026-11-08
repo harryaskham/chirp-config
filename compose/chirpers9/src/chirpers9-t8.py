@@ -493,7 +493,7 @@ def everything_falls_in():
 # already shaped by earlier rounds are left alone (the opening, the kick rest 73-80, the hook's rest 81-84, the
 # stretch and the vacuum 89-96, the jet's arrival, the hook sung back 109-112, the break, the horizon). Several land
 # under her questions (40, 64), which get the room.
-PHRASE_MOVES = {23: "D", 31: "C", 39: "A", 47: "B", 55: "C", 63: "A", 71: "D", 87: "C", 103: "A", 117: "B", 135: "A"}
+PHRASE_MOVES = {23: "D", 31: "C", 39: "A", 47: "B", 55: "C", 63: "A", 71: "D", 87: "C", 103: "D", 117: "B", 135: "A"}   # v63: 103 A -> D (the stop follows)
 MOVE_TRACKS = {"A": ("bass", "kick", "snare"), "B": ("e1", "e2", "e5"), "C": ("lights",), "D": ("e1", "e2", "e5")}
 # v60 (ROUND TYPE: whole song): REAL DROP-OUTS. v57 had to soften its moves - cutting the ostinatos (and the kick)
 # flipped compscore's onset tempo onto t4's and 'distinct' called t8 a copy (-2.3) - so B became an octave climb and
@@ -536,6 +536,30 @@ def arrangers_hand():
 # the stretch's first bar (stretch_lane), and from 93 the stretto's own clocks run slow - the chip's, the glock's and
 # the gamelan's sixteenths (E1, E2, E5) at HALF SPEED while the kick keeps time, as a clock falling toward a horizon
 # runs slow to the one watching. The vacuum (96) and the jet are untouched.
+# v63 (ROUND TYPE: section, the jet 105-108, 2:42-2:49): THE JET STOPS FOR THE WORDS. The jet held one texture from
+# its arrival to the break - kit, bass, the stretto's remnants under the choir - and its middle was still on both
+# seeds (2:40 0.48 / 0.45, 2:48 0.57 / 0.58). There the choir sings the album's arrival in words - 'we were the far
+# side', E8 at last - and it was sung over the full band. Now the band STOPS for it: on the crash at 105 the kit, the
+# bass and the stretto's remnants (E2, E5) fall silent, and the arrival is sung over the floor, the lights, the horns'
+# column and the hook alone; at 109 everything slams back in with the hook sung back. (The arranger's 103 floor lift
+# became an octave climb so the stop is not doubled.) A texture contrast between windows - t4's lessons (v59, v59b).
+JET_STOP = (105, 108)
+STOP_TRACKS = ("kick", "snare", "hat", "bass", "e2", "e5")
+
+
+def the_jet_stops():
+    lo, hi = b0(JET_STOP[0]), b0(JET_STOP[1] + 1)
+    for n in STOP_TRACKS:
+        out = []
+        for s, ln, h, v in P[n].ev:
+            if lo - 1e-6 <= s < hi - 1e-6:
+                continue
+            if s < lo - 1e-6 < s + ln:
+                ln = lo - s
+            out.append((s, ln, h, v))
+        P[n].ev = out
+
+
 DILATE = (93, 95)                    # the material of 93-94 stretched over 93-95 (the vacuum bar 96 stays empty)
 DILATE_TRACKS = ("e1", "e2", "e5")
 
@@ -1310,6 +1334,7 @@ def main():
     tide_surfaces()
     arrangers_hand()
     time_dilates()
+    the_jet_stops()
     everything_falls_in()
     lead, fifth, low = choir()
     far = far_choir()                                             # v38: the answer forms far away (v45: own track)
