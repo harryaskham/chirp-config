@@ -1214,7 +1214,21 @@ def build():
     # same body as the instruments around them, the consonants soft. Now every solo voice (the old voice at all its
     # ages, the young near voice, the descant) is 1 dB up and shaped like t2's leads (v49): +3 dB of presence at 3 kHz
     # where the words live, a little air above 9 kHz, and 2 dB out of the boxy 350 Hz they shared with the harmonium
-    LEAD6 = ('sung', 'sungb', 'sungc', 'lastword', 'duetnear', 'nearwake', 'descant')
+    # (v71, section w4: 1:35-2:05, the squeeze - the old voice sang the whole couplet twice, alone and then
+    # harmonised, while the young near voice that duetted with it through the tide had gone quiet) THE LINE SPLITS
+    # BETWEEN THE TWO SIDES: the second time (bar 61) the couplet is shared as the tide shared it - the young near
+    # voice, an octave up and at its own side of the field, sings 'the near side keeps the time'; the old voice (still
+    # in its low harmony) answers 'the far side lets it go'; and on 'go', the last word before the crest, the near
+    # voice joins it an octave above - the two sides on one note, held into the crest's 'near and far as one'
+    tk_ = {t_['name']: t_ for t_ in song['tracks']}
+    s2_, dn_ = tk_['sung2'], tk_['duetnear']
+    q0_, q1_ = (SEC['squeeze'] + 12) * 4.0, (SEC['squeeze'] + 13) * 4.0 + 0.5
+    near_half_ = [n_ for n_ in s2_['notes'] if q0_ - 0.5 <= n_['at'] < q1_]
+    go_ = [n_ for n_ in s2_['notes'] if n_.get('ph') == 'G OW1' and n_['at'] >= q1_]
+    up_ = lambda n_: dict(n_, pitch=f"m{int(float(str(n_['pitch'])[1:])) + 12}")
+    song['tracks'].append(dict(dn_, name='squeezenear', notes=[up_(n_) for n_ in near_half_ + go_[:1]]))
+    s2_['notes'] = [n_ for n_ in s2_['notes'] if not (q0_ - 0.5 <= n_['at'] < q1_)]
+    LEAD6 = ('sung', 'sungb', 'sungc', 'lastword', 'duetnear', 'nearwake', 'descant', 'squeezenear')
     for t_ in song['tracks']:
         if t_['name'] in LEAD6:
             t_['gain'] = f"{float(t_['gain'][:-2]) + 1.0:g}dB"
