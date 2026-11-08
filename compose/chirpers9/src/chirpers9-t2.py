@@ -1052,6 +1052,18 @@ def build():
             t_['fx'] = list(t_.get('fx', [])) + [{'type': 'eq', 'bands': ['peak cutoff=3000 q=0.9 gain=3dB', 'highshelf cutoff=9000 gain=2dB', 'peak cutoff=350 q=1.0 gain=-2dB']}]
         if t_['name'] == 'bass':
             t_['gain'] = f"{float(t_['gain'][:-2]) - 1.5:g}dB"
+    # (v55, whole song: wM's vowel_spread, pinned 03:36) THE CHOIR ACCRETES: every backing choir in the song was the
+    # same trio - three singers, their vowels one voice's formants copied and scaled - from the in-seam's first
+    # 'ooh' to the fall. Now the backing voices gather as the song falls in, the way the cell does: a trio for the
+    # in-seam's breath and the far choir's echo, four for the verse's ooh and the break's hum, five for the crest's
+    # E1 choir, six for the crest's chord pad and the fall's hum, eight for the last chorus - and every singer
+    # shapes the vowels their own way (vowel_spread 1, F1/F2 apart by up to 8%), so each choir is a group of
+    # different people rather than one voice copied; the lines, parts and levels are untouched
+    GATHER = {'oohin': 3, 'farchoir': 3, 'ooh': 4, 'breakhum': 4, 'choir': 5, 'crestpad': 6, 'fallhum': 6,
+              'lastpad': 8, 'lastpadE': 8}
+    for t_ in song['tracks']:
+        if t_['name'] in GATHER:
+            t_['patch'] = dict(t_['patch'], extends=t_['patch']['extends'] + f" synth.layers.0.singers={GATHER[t_['name']]} synth.layers.0.vowel_spread=1")
     return song
 
 
