@@ -429,6 +429,15 @@ R52 = os.environ.get("T3_R52", "pump") != "none"
 # t4's head: E resolves to D, home, a breath instead of a thinning, gone before t3 ends. Agreed with chirper-three:
 # D only (no F or F#, t4's third is theirs), a few dB under their handpan. T3_R53=none reproduces v52.
 R53 = os.environ.get("T3_R53", "letgo") != "none"
+# round 54 (section, w1 = bars 1-16, the head under t2's tail, flagged 'static', never focused): T3_R54=horizon
+# (default) - THE STORM ON THE HORIZON. t3 is the album's first storm, yet its head was only dust, E2's chip cell
+# and (from bar 9) E1 on the ring and farfisa - nothing said a storm was coming. Now it is heard far off before it
+# arrives: wind (the album's first) gusts under the head, and thunder - timpani rolling on the home D, far back in
+# the hall - answers it: wind high, then a roll into bar 9 (where E1 enters, on its hit), wind high again, then a
+# longer, louder roll breaking into bar 17 - gust and thunder taking turns, so the head changes every few bars
+# instead of sitting in one wash. No pitch but D, so nothing in it touches t2's last
+# chords. T3_R54=none reproduces v53.
+R54 = os.environ.get("T3_R54", "horizon") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1571,6 +1580,20 @@ def main():
                 tr["fx"] = list(tr.get("fx", [])) + [
                     {"type": "pump", "on": f"{k}.k", "depth": depth[tr["name"]], "release": "200ms", "curve": 0.6}
                     for k in ("kick", "kick7")]
+    if R54:                                                 # w1: the storm on the horizon (bars 1-16)
+        tracks.append({"name": "wind", "patch": "wind", "gain": "-3dB", "pan": 0.15, "sends": {"space": "-6dB"},
+                       "notes": [{"at": 0.0, "len": 66.0, "pitch": "m62", "vel": 0.8}],
+                       "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.rise", "amount": 1}]}}],
+                       "auto": {"rise": {"points": [["0b", -14], ["13b", -4], ["22b", -4], ["26b", -24],     # gusts
+                                                    ["37b", -24], ["41b", -2], ["50b", -2], ["53b", -20],      # between
+                                                    ["60b", -14], ["64b", -6], ["72b", -40]]}}})             # rolls
+        thu = Track("thunder")
+        for k, (end, n16, v0, v1) in enumerate(((32.0, 12, 42, 70), (64.0, 20, 54, 100))):
+            for i in range(n16):
+                thu.add(end - 0.25 * (n16 - i), 0.24, mtok(38), int(v0 + (v1 - v0) * i / max(1, n16 - 1)))
+            thu.add(end, 1.5, mtok(38), min(112, v1 + 10))
+        tracks.append({"name": "thunder", "patch": "timpani", "gain": "-12dB", "pan": -0.25,
+                       "sends": {"space": "-2dB"}, "score": thu.score()})
     if R53:                                                 # whole: the storm lets go, on a breath
         for tr in tracks:
             if tr.get("name") in ("bass", "bsub", "floor"):
