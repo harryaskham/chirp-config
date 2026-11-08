@@ -112,6 +112,7 @@ FARCLOSE = os.environ.get("C9T1_FARCLOSE", "room")   # SECTION w8 (3:59-4:33, th
 FARCHOIR = os.environ.get("C9T1_FARCHOIR", "room")   # PALETTE (the far choir as one sound): the opening hum is built after CHOIRVIB/CHOIRVOWEL ran and never got them - one voice tripled where the sighs and (since v53) the closing hum are a five-singer section; now it gets the section too (five singers, spread 0.8, its own vibrato and vowels) and, with the sighs, wM's depth_spread - each singer at its own distance behind, later, quieter, darker ('depth'; 'room' also sends the opening hum to the hall at -6 dB like the closing one)
 CRESTBREATH = os.environ.get("C9T1_CRESTBREATH", "2")   # SECTION w5 (2:22-2:54, the build into the crest): THE HELD BREATH BEFORE THE MEETING - the five voices fall together through the build (v28) and meet the crest's downbeat; now for the last CRESTBREATH beats before it everything that moves stops - the seeds, the whistle and its joins, the cello, the bass, the shaker - leaving the pad, the organ, the air and the far choir's sigh holding, so the voices meet the crest out of a held breath (value = beats)
 SEEDTAP = os.environ.get("C9T1_SEEDTAP", "clave")   # SECTION w4 (1:48-2:22, A's second half: flagged 'little new vs w3' - the shaker's pattern unchanged since A began, the whistle's fragments trying to form the seed): 'clave' from beat 160 a quiet clave taps E1's rhythm without its notes (on the crest's grid), the seed's pulse forming before its tune does; 'drop' the shaker steps out for 176-184, so the breath before the build starts two bars early
+KICKSEED = os.environ.get("C9T1_KICKSEED", "seed")   # SECTION w7 (3:27-3:59, the lock's end, the exhale and the overlap's first bars: the bodhran's half-note pulse unchanged since the crest): 'seed' from the exhale (beat 304) the drum leaves the bar and beats on the seed's own cycle instead - once every five beats, on each E1's first note - so the last pulse of t1 is the seed's, five against the bar's four; 'gap' the drum steps out for the exhale (304-320) and returns with the overlap
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -731,6 +732,21 @@ def song():
                 tr["patch"] = vp
                 if vg:
                     tr["gain"] = f"{float(str(tr['gain']).replace('dB', '')) + float(vg):g}dB"
+    if KICKSEED:
+        for tr in tracks:
+            if tr["name"] == "kick":
+                tail = [n for n in tr["notes"] if n["at"] >= 304]
+                tr["notes"] = [n for n in tr["notes"] if n["at"] < 304]
+                if KICKSEED == "gap":
+                    tr["notes"] += [n for n in tail if n["at"] >= 320]
+                elif tail:
+                    proto = tail[0]
+                    end = max(n["at"] for n in tail) + 1
+                    c = 304.0
+                    while c < end:
+                        src = max((n for n in tail if n["at"] <= c), key=lambda n: n["at"], default=proto)
+                        tr["notes"].append(dict(src, at=c))
+                        c += E1_CYC
     if SEEDTAP:
         for tr in tracks:
             if tr["name"] == "hats":
