@@ -994,6 +994,29 @@ HANDS_LET_GO = (126.3, 133.0)
 FALL_FLOOR_REST = (126.3, 129.0)
 
 
+# v71 (ROUND TYPE: section, the rise 65-72, 2:21-2:38; rewritten): THE RISE CLIMBS FROM NOTHING BELOW. v53's pull-back
+# (65-68) rests the bass, snare, handpan, glock and hat - but never the floor: the sub stayed the loudest thing from 65
+# to 72 (-4.1, -4.5) under the lights, the kick and the bowed violin, so the 8 s window at 2:24 read flat (0.67). Now
+# the floor IS the rise: in the pull-back the sub rests too (the four lights, the kick and the violin alone, nothing
+# under them - affordable since v69's warm shelf), from 69 it returns an octave up, and at 73 it drops into its full
+# depth as the band fills toward the crest.
+RISE_FLOOR_OUT = (65, 69)
+RISE_FLOOR_HIGH = (69, 73)
+
+
+def rise_floor():
+    a, z = b0(RISE_FLOOR_OUT[0]), b0(RISE_FLOOR_OUT[1])
+    out = []
+    for s, ln, h, v in P["sub"].ev:
+        if a - 1e-6 <= s < z - 1e-6:
+            continue
+        if s < a - 1e-6 < s + ln:
+            ln = a - s
+        out.append((s, ln, h, v))
+    a, z = b0(RISE_FLOOR_HIGH[0]), b0(RISE_FLOOR_HIGH[1])
+    P["sub"].ev = [(s, ln, f"m{midi_of(h) + 12}" if a - 1e-6 <= s < z - 1e-6 else h, v) for s, ln, h, v in out]
+
+
 def hands_let_go():
     for n, (a_, z_) in (("seed", HANDS_LET_GO), ("bass", FALL_FLOOR_REST)):
         a, z = b0(a_), b0(z_)
@@ -1497,6 +1520,7 @@ def main():
     smaller_room()
     relief_hands_rest()
     hands_let_go()
+    rise_floor()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v + verse(),
                    key=lambda d: d["at"])
