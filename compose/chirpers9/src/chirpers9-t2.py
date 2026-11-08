@@ -499,6 +499,19 @@ def build():
     # D Dorian -> D Mixolydian, 'the light comes on') is prepared by twelve bars of the light being held back
     open_pts = [['0b', 1.0], [f'{36 * 4.0 - 0.05:.2f}b', 1.0], [f'{36 * 4.0:.1f}b', 0.4], [f'{CREST * 4.0 - 1.0:.1f}b', 0.72],
                 [f'{CREST * 4.0 - 0.05:.2f}b', 0.72], [f'{CREST * 4.0:.1f}b', 1.0]]   # (v31) the light comes ON at the crest
+    # (v56, whole song) THE FIELD FALLS IN: the song is an infall, but its space never moved - the debris, the band
+    # and the voices stood as wide at the end as at the start. Now the whole stereo field draws inward as the song
+    # falls: full width for the in-seam's debris arriving from everywhere, narrowing a little through the gather
+    # and the build, opening a touch as the light comes on at the crest, closing again through the break and the
+    # drift, and in the fall - the last sixteen bars, into t3 - collapsing towards a single point in the middle,
+    # everything converging where it falls (the master's width, 1.0 down to 0.15)
+    WID = {'in': (1.0, 1.0), 'gather': (1.0, 0.94), 'build': (0.94, 0.86), 'crest': (0.92, 0.86), 'break': (0.86, 0.78),
+           'drift': (0.78, 0.68), 'fall': (0.62, 0.15)}
+    wid_pts = []
+    for b_ in range(NBARS):
+        s_, i_ = sec_of(b_)
+        a_, z_ = WID[s_]
+        wid_pts.append([f'{b_ * 4.0:.1f}b', round(a_ + (z_ - a_) * i_ / 15.0, 3)])
     tempo = [{'at': '0b', 'bpm': 90.0}, {'at': f'{SEC["gather"] * 4.0:.1f}b', 'bpm': 90.0},
              {'at': f'{fall0:.1f}b', 'bpm': 98.0, 'ramp': True}]
 
@@ -920,7 +933,8 @@ def build():
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.0, 'attack': '20ms', 'release': '160ms', 'makeup': '1dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.E', 'amount': 1}]}},
                           {'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 1200, 'mod': [{'src': 'auto.open', 'amount': 4.0}]}},
-                          'limiter ceiling=-1dB'], 'auto': {'E': {'points': energy_pts}, 'open': {'points': open_pts}}},
+                          {'type': 'pan', 'width': {'value': 0, 'mod': [{'src': 'auto.WID', 'amount': 1}]}},
+                          'limiter ceiling=-1dB'], 'auto': {'E': {'points': energy_pts}, 'open': {'points': open_pts}, 'WID': {'points': wid_pts}}},
         'tracks': [
             tr('pad', PAD, '-15dB', auto={'lock': {'points': lock_pts}, 'shut': {'points': shut_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 600, 'mod': [{'src': 'auto.shut', 'amount': 3.5}]}}],
