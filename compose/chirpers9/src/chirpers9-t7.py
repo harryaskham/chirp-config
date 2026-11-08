@@ -547,6 +547,14 @@ R56 = os.environ.get("T7_R56", "inspiral") != "none"
 # and a half beats, two, one and a half, one and a quarter, one - an accelerando of voices that lands on the
 # harmonised statement at bar 113. T7_R57=none reproduces v56.
 R57 = os.environ.get("T7_R57", "sooner") != "none"
+# round 58 (section, w8 = bars 113-128, the spiral's end and the crest's landing; focused least recently):
+# T7_R58=gasp (default) - THE HELD BREATH, THEN THE LANDING. Everything in t7 is phased to land on bar 121, where the
+# storm's E-flat pull resolves to D - the album's hardest crest - and the two bars before it build well (the horns'
+# turnaround on A, the timpani rolling, a riser) but the band ran straight through into the downbeat. Now, for the
+# last beat before 121, everything stops - the riser and the roll cut off into silence, only the horns' pickup note
+# left - and bar 121 lands with a China cymbal (the album's first: a hard, bright, edge-struck crash) and a sub-bass
+# boom on D under it. The difficult part held for one beat; the reward is the downbeat. T7_R58=none reproduces v57.
+R58 = os.environ.get("T7_R58", "gasp") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1713,6 +1721,13 @@ def main():
                 g = float(tr["gain"].replace("dB", ""))
                 tracks.append(dict(tr, name=tr["name"] + "9", patch="a7-thump", gain=f"{g + 2:g}dB",
                                    fx=list(tr.get("fx", [])) + [{"type": "filter", "kind": "lp", "cutoff": 180, "q": 0.707}]))
+    if R58:                                                 # w8: the landing at bar 121 (a crash, a boom)
+        land, boom = Track("land"), Track("landboom")
+        land.add(480.0, 4.0, mtok(62), 118)
+        boom.add(480.0, 6.0, mtok(26), 112)
+        tracks.append({"name": "land", "patch": "modal-china", "gain": "-9dB", "pan": 0.15, "sends": {"space": "-6dB"},
+                       "score": land.score()})
+        tracks.append({"name": "landboom", "patch": "808", "gain": "-8dB", "pan": 0.0, "score": boom.score()})
     if R57:                                                 # w7: every corner comes sooner (bars 105-112)
         spec = next(tr for tr in tracks if tr.get("name") == "sungs")
         line = [n for n in spec["notes"] if 415.9 <= n["at"] < 420.0]
@@ -1779,6 +1794,11 @@ def main():
                       "time": "2b", "curve": 1.6},
                      {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}],
               "auto": {"dyn": {"points": dyn}, "close": {"points": close}, "stop": {"points": stop}}}
+    if R58:                                                 # w8: the held breath - the master drops out for the beat before 121
+        master["fx"].insert(len(master["fx"]) - 1, {"type": "gain", "gain": {"value": "0dB",
+                                                    "mod": [{"src": "auto.gasp", "amount": 1}]}})
+        master["auto"] = dict(master["auto"], gasp={"points": [["0b", 0], ["478.97b", 0], ["479b", -40],
+                                                              ["479.95b", -40], ["479.99b", 0]]})
     if R54:                                                 # whole: the body given back, the edge taken off
         master["fx"][0]["bands"] = list(master["fx"][0]["bands"]) + ["peak cutoff=95 gain=4dB q=0.8",
                                                                      "peak cutoff=2600 gain=-3dB q=0.6"]
