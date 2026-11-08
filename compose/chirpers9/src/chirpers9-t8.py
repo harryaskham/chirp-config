@@ -1195,6 +1195,34 @@ RECEDE_DARK = ("choir", "choir5", "choir8", "hold", "hook", "hook3")
 RECEDE_FROM, RECEDE_DB, DARK_OCT = 153, -6.0, -2.0
 
 
+# v70 (ROUND TYPE: whole song): THE LIGHT CHANGES COLOUR. The album is an accretion disk, and t8 its fall to the
+# horizon - but its light (E4's four lights on the strings, all song; the held light of the horizon) kept one colour
+# from first bar to last, and 'a held light redshifting away' was only the pitch sink after 161. Now the light's
+# COLOUR is the song's arc (one octave lane on a low-pass, as recede() darkens): it starts warm and dim (2.5 octaves
+# down, ~2.8 kHz), opens steadily as matter falls in - BLUESHIFT - to white at the jet (97), holds open through the
+# jet and the break, and through the horizon REDSHIFTS in four audible steps (145, 149, 153, 157: 0.75 octave each,
+# to ~2 kHz) before the pitch sink and recede take it the rest of the way.
+SHIFT_TRACKS = ("lights", "hold")
+SHIFT_START = -2.5
+SHIFT_STEPS = [(145, -0.75), (149, -1.5), (153, -2.25), (157, -3.0)]
+
+
+def light_shift_lane():
+    pts = [["0b", SHIFT_START], [f"{b0(JET):g}b", 0.0]]
+    prev = 0.0
+    for bar, oct_ in SHIFT_STEPS:
+        pts += [[f"{b0(bar) - 0.05:g}b", prev], [f"{b0(bar):g}b", oct_]]
+        prev = oct_
+    return pts
+
+
+def light_shifts(song):
+    for tr_ in song["tracks"]:
+        if tr_["name"] in SHIFT_TRACKS:
+            tr_["fx"] = list(tr_.get("fx") or []) + ["lp cutoff=16000+auto.zs*1"]
+            tr_["auto"] = dict(tr_.get("auto") or {}, zs={"points": light_shift_lane()})
+
+
 def recede(song):
     end = f"{b0(BARS + 1):g}b"
     for tr_ in song["tracks"]:
@@ -1504,6 +1532,7 @@ def main():
                            "release": "120ms", "makeup": "0dB"}]},
     }
     recede(song)
+    light_shifts(song)
     breathe(song)
     fall_in_lanes(song)
     answer_accretes(song)
