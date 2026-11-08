@@ -1,0 +1,56 @@
+# chirpers9 t5 "Periapsis": the inner disk. Calm again, but closer and hotter: faster,
+# tighter, tense; the mirror of t1. Two acts:
+#   I  (0:00) a hot star seen close, its surface boiling (granules painted from 3D noise),
+#      three worlds whipping round it on tightening orbits, each lit on its day side with
+#      cities on its night side; at the lifts the star throws out a flare of matter;
+#   II (2:10) riding one world: its curve fills the bottom of the frame, the star rising
+#      huge over its limb, clouds racing, night-side cities going out as the day line
+#      sweeps over them; at each crest a flare washes over everything.
+scenes:
+  - at: 0
+    look:
+      background: "#000000"
+      env:
+        flare: {on: audio.lift, decay: 2}
+      vars:
+        tight: {value: "smooth(0, 130, time.t)"}
+      camera: {x: "3.4*sin(time.t*0.012)", y: "0.7 - 0.3*var.tight", z: "0 - 3.4*cos(time.t*0.012)", look_at: [0, 0, 0]}
+      layers:
+        - {type: stars, count: 2000, speed: 0, twinkle: 0.3}
+        - {type: light, color: "#fff4e0", power: "1.4 + 0.6*env.flare + 0.4*audio.level", reach: 30}
+        # The star: its surface boiling.
+        - {type: mesh, shape: sphere, detail: 64, scale: "0.7 + 0.03*audio.low", color: "#ff8030", light: 0, ambient: 0, rim: 0, emit: 0.75, paint: "0.8*pow(clamp(fbm(vtx.x*5 + time.t*0.03, vtx.y*5, vtx.z*5 - time.t*0.02)*1.5 + 0.6, 0, 1), 2)", paint_color: "#fff0c0", rim_color: "#ffd090"}
+        # A flare of matter thrown off at each lift.
+        - {type: motes, mode: emit, spawn: env.flare, count: 700, from: [0.5, 0.45, -0.2], wobble: 0.9, wind_x: 0.4, wind_y: 0.5, fall: 0.3, drag: 0.4, life: 4, streak: 0.06, size: 0.008, glow: 1.4, twinkle: 0.3, palette: ember, spread: 0.6, near: 0.3}
+        # Three worlds whipping round on tightening orbits, each turning.
+        - {type: group, use: kit-world, x: "(1.6 - 0.35*var.tight)*cos(time.t*(0.045 + 0.03*var.tight))", z: "(1.6 - 0.35*var.tight)*sin(time.t*(0.045 + 0.03*var.tight))", scale: 0.22, params: {sea: 0.2, seed: 4, spin: 0.03, clouds: 0.8}}
+        - {type: group, use: kit-world, x: "(2.4 - 0.5*var.tight)*cos(time.t*(0.028 + 0.02*var.tight) + 0.35)", z: "(2.4 - 0.5*var.tight)*sin(time.t*(0.028 + 0.02*var.tight) + 0.35)", y: 0.1, scale: 0.3, params: {sea: 0.5, seed: 7, spin: 0.02, cities: 1.5}}
+        - {type: group, use: kit-world, x: "(3.2 - 0.6*var.tight)*cos(time.t*(0.019 + 0.012*var.tight) + 0.7)", z: "(3.2 - 0.6*var.tight)*sin(time.t*(0.019 + 0.012*var.tight) + 0.7)", y: -0.1, scale: 0.26, params: {sea: -0.1, seed: 9, spin: 0.025}}
+      filters:
+        - {type: flare, x: 0, y: 0, z: 0, amount: "0.2 + 0.8*env.flare", threshold: 0.95, streak: 0.35, length: 0.5, ghosts: 4, size: 0.05, glow: 0.5}
+        - {type: bloom, threshold: 0.7, amount: 0.6}
+        - {type: tonemap, knee: 0.75}
+        - {type: vignette, amount: 0.45}
+  - at: 130
+    transition: dissolve
+    xfade: 3
+    look:
+      background: "#000000"
+      env:
+        flare: {on: audio.lift, decay: 2.5}
+      camera: {x: 0, y: 0.15, z: -3.2, look_at: [0, 0.35, 2], roll: "0.02*sin(time.t*0.07)"}
+      layers:
+        - {type: stars, count: 1800, speed: 0, twinkle: 0.3}
+        # The star rising huge over the world's limb.
+        - {type: light, x: 0, y: "0.4 + 0.5*smooth(130, 259, time.t)", z: 9, color: "#fff0d8", power: "1.6 + 1.2*env.flare", reach: 30}
+        - {type: mesh, shape: sphere, detail: 48, x: 0, y: "0.4 + 0.5*smooth(130, 259, time.t)", z: 9, scale: 1.8, color: "#ff8030", light: 0, ambient: 0, rim: 0, emit: 0.75, paint: "0.8*pow(clamp(fbm(vtx.x*5 + time.t*0.03, vtx.y*5, vtx.z*5 - time.t*0.02)*1.5 + 0.6, 0, 1), 2)", paint_color: "#fff0c0"}
+        # The world beneath, its curve filling the bottom of the frame, turning fast.
+        - {type: group, use: kit-world, y: -3.25, z: 1, scale: 3, params: {sea: 0.25, seed: 7, spin: 0.012, cities: 1.5, clouds: 1.2}}
+        # The flare's wave of matter washing over.
+        - {type: motes, mode: emit, spawn: env.flare, count: 900, from: [0, 0.6, 8], wide: 3, wobble: 0.6, wind_z: -3, wind_y: -0.2, fall: 0, life: 3.5, streak: 0.1, size: 0.008, glow: 1.2, twinkle: 0.3, palette: ember, spread: 0.6, near: 0.4}
+      filters:
+        - {type: flare, x: 0, y: "0.4 + 0.5*smooth(130, 259, time.t)", z: 9, amount: "0.5 + 1.2*env.flare", threshold: 0.9, streak: 0.5, length: 0.6, ghosts: 5, size: 0.06, glow: 0.7}
+        - {type: warp, amount: 0.003}
+        - {type: bloom, threshold: 0.7, amount: 0.6}
+        - {type: tonemap, knee: 0.75}
+        - {type: vignette, amount: 0.45}
