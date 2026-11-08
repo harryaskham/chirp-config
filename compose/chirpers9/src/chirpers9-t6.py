@@ -973,6 +973,17 @@ def build():
                                               play={'glide_overshoot': 0.04, 'scoop': 1}),
              'notes': dsnotes, 'gain': '-14dB', 'pan': 0.1, 'sends': {'hall': '-7dB', 'echo': '-18dB'}},
             # (v26) the spoken voice's track is now the duet's near singer
+            # (v54, section w2: the pull 'little new vs w1' - when the wave comes in at bar 25 it brought back the
+            # in-seam's harmonium, marimba and kora, and nobody sang) THE NEAR SIDE WAKES: on the wave the young near
+            # voice is heard for the first time - it answers the old voice's in-seam line with the same words an
+            # octave up, 'the tide comes in' (A G E D), twice, in the gaps after the whistle's hook, the second softer; the
+            # call came from the far side across the seam, the response from the near side as the water arrives, and
+            # the two meet in the tide's duet eight bars later
+            {'name': 'nearwake', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-near synth.lfo.vib.per_note=true',
+                                               play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+             'notes': [dict(n_, at=round(b_ * 4.0 + n_['at'], 4), pitch=f"m{int(str(n_['pitch'])[1:]) + 12}", vel=round(n_['vel'] * g_, 3))
+                       for b_, g_ in ((SEC['pull'] + 10.5, 0.9), (SEC['pull'] + 13.5, 0.75)) for n_ in AN['tracks'][0]['notes']],
+             'gain': '-9dB', 'pan': 0.2, 'sends': {'echo': '-14dB', 'hall': '-10dB'}},
             {'name': 'duetnear', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-near synth.lfo.vib.per_note=true',
                                                play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': dnear, 'gain': '-9dB', 'pan': -0.12, 'sends': {'hall': '-12dB', 'echo': '-20dB'}},
@@ -1032,7 +1043,7 @@ def build():
         s_, i_ = sec_of(b_)
         a_, z_ = SEP[s_]
         sep_pts.append([f'{b_ * 4.0:.1f}b', round(a_ + (z_ - a_) * i_ / 15.0, 3)])
-    SIDE = {'near': 0.7, 'e5b': 0.7, 'duetnear': 0.4, 'descant': 0.4,
+    SIDE = {'near': 0.7, 'e5b': 0.7, 'duetnear': 0.4, 'nearwake': 0.4, 'descant': 0.4,
             'far': -0.7, 'farbass': -0.5, 'farbow': -0.5, 'sung': -0.4, 'sungb': -0.4, 'sungc': -0.4, 'lastword': -0.4}
     for t_ in song['tracks']:
         if t_['name'] in SIDE:
