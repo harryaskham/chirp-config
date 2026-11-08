@@ -1056,7 +1056,12 @@ def build():
         # album's envelope, 342-641 Hz 4 dB over: the NES bass's body lost under boxy mids) THE FLOOR GETS ITS WEIGHT:
         # a low shelf (+3.5 dB below 120 Hz) and a second mid cut (520 Hz, -2 dB) on the master, the triangle bass 2 dB
         # up - the same parts and the same line, but the bass now carries the groove instead of ticking under it
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'lowshelf cutoff=120 gain=3.5dB', 'peak cutoff=300 q=0.8 gain=-2dB', 'peak cutoff=520 q=0.8 gain=-2dB', 'highshelf cutoff=7000 gain=2dB', 'highshelf cutoff=11000 gain=4.5dB']},
+        # (v75, whole song) THE ROOM AROUND IT: measured against the album, t2 was a boxy, dark song with a thin floor -
+        # 60-115 Hz 4-6 dB under the others (since v64's quieter chip bass), 210-470 Hz 3-5 dB over (the voices, the
+        # comp and the choirs' chests all piling up there), and the air above 6 kHz 3-7 dB short. The master now
+        # gives the floor its weight back under the bass and the kick (+3 dB around 75 Hz), takes the box out
+        # (-3 dB around 340 Hz, -1.5 at 470) and opens the top (+3 dB above 13 kHz): the same mix, heard in a bigger room
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'lowshelf cutoff=120 gain=3.5dB', 'peak cutoff=75 q=0.9 gain=3dB', 'peak cutoff=300 q=0.8 gain=-2dB', 'peak cutoff=340 q=0.8 gain=-3dB', 'peak cutoff=520 q=0.8 gain=-2dB', 'peak cutoff=470 q=1.0 gain=-1.5dB', 'highshelf cutoff=7000 gain=2dB', 'highshelf cutoff=11000 gain=4.5dB', 'highshelf cutoff=13000 gain=3dB']},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.0, 'attack': '20ms', 'release': '160ms', 'makeup': '1dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.E', 'amount': 1}]}},
                           {'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 1200, 'mod': [{'src': 'auto.open', 'amount': 4.0}]}},
