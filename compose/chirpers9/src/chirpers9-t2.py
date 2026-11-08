@@ -1027,7 +1027,12 @@ def build():
             # Accretion track uses it) - wood and steel in the one place the band falls away, the electric back for
             # the drift
             tr('buildarp', 'arp-pluck', '+13dB', pan=-0.25, sends={'echo': '-14dB', 'hall': '-12dB'}),
-            tr('gtrarp', 'acoustic', '-10dB', pan=0.3, sends={'echo': '-8dB', 'hall': '-12dB'}),
+            # (v66, palette: the break's floating arp was the acoustic guitar - a plucked string like a dozen others on
+            # the album) FIREFLIES: the break's arp is now the library's kuramoto-flies (wM's chirpers8 swarm: every note
+            # starts as eight triangles at random phases and finds its pitch out of a shimmer in its first tenth of a
+            # second; no Accretion track uses it) - the swarm the pad locked into tune at the crest scattering into
+            # points of light, each note pulling itself together as it sounds, which is the song's whole idea in miniature
+            tr('gtrarp', 'kuramoto-flies', '-8dB', pan=0.3, sends={'echo': '-8dB', 'hall': '-12dB'}),
             # (v60, palette: the comp was a cutting guitar, buried under the band at -18 to -19 dB from the gather to
             # the drift) THE COMP ON TINES: the off-beat skank and the funk sixteenths are now stabs on the library's
             # epiano (a Rhodes-style tine piano: a soft hammer on a tine, a pure bell-like attack and a warm body; no
