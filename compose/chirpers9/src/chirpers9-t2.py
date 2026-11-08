@@ -907,7 +907,12 @@ def build():
             tr('hat3', 'lofi-kit', '-1dB', pan=0.25, sends={'echo': '-20dB'}),
             tr('infall', 'shepard-fall', '-20dB', sends={'hall': '-16dB'}),
             tr('hook', 'ondes', '-5dB', pan=-0.05, sends={'hall': '-12dB', 'echo': '-20dB'}),
-            tr('dust', {'extends': 'chimes', 'synth': {'fx': [PXF]}}, '-17dB', auto={'shut': {'points': shut_pts}},
+            # (v52, palette: the debris's glints were wind-chimes, buried under the groove at -20 to -26 dB) THE DUST
+            # CRYSTALLISES: the glints the E2 cell throws off now strike on the library's fb-crystal (chirper-three's
+            # Ferrous Bloom crystal: an inharmonic chime strike over a sustained near-harmonic body; no Accretion track
+            # uses it) - accretion's first step, dust becoming crystal, catching the light three octaves up, still
+            # spiralling round the stereo field; heard now, not buried
+            tr('dust', {'extends': 'fb-crystal', 'synth': {'fx': [PXF]}}, '-28dB', auto={'shut': {'points': shut_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 3000, 'mod': [{'src': 'auto.shut', 'amount': 3.0}]}}],
                sends={'echo': '-14dB'}),
             tr('e2m', {'extends': 'chip-metal', 'synth': {'fx': [PXF]}}, '-14dB', auto={'shut': {'points': shut_pts}},
