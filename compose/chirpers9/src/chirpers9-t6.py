@@ -1174,6 +1174,16 @@ def build():
         if t_['name'] in SIDE:
             t_['pan'] = {'value': 0, 'mod': [{'src': 'auto.sep', 'amount': SIDE[t_['name']]}]}
             t_['auto'] = dict(t_.get('auto', {}), sep={'points': sep_pts})
+    # (v66, whole song) THE WORDS COME FORWARD: t6 tells its story in words - 'the tide comes in', 'the near side keeps
+    # the time / the far side lets it go', the old voice's last word - but its solo voices sat in the band with the
+    # same body as the instruments around them, the consonants soft. Now every solo voice (the old voice at all its
+    # ages, the young near voice, the descant) is 1 dB up and shaped like t2's leads (v49): +3 dB of presence at 3 kHz
+    # where the words live, a little air above 9 kHz, and 2 dB out of the boxy 350 Hz they shared with the harmonium
+    LEAD6 = ('sung', 'sungb', 'sungc', 'lastword', 'duetnear', 'nearwake', 'descant')
+    for t_ in song['tracks']:
+        if t_['name'] in LEAD6:
+            t_['gain'] = f"{float(t_['gain'][:-2]) + 1.0:g}dB"
+            t_['fx'] = list(t_.get('fx', [])) + [{'type': 'eq', 'bands': ['peak cutoff=3000 q=0.9 gain=3dB', 'highshelf cutoff=9000 gain=1.5dB', 'peak cutoff=350 q=1.0 gain=-2dB']}]
     return song
 
 
