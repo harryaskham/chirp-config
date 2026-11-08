@@ -1070,11 +1070,23 @@ VOICE8 = {"about": "t8's choir lead: bright and open - a smaller tract, more air
 BREAK_HUSH = 0.6
 
 
+# v55 (ROUND TYPE: palette - an engine feature the album has not used: wM's VIB_SPREAD, pinned da77da08): EVERY SINGER
+# HER OWN. t8 has the album's biggest choirs - the jet's choir (four singers and the third above), its fifth and its
+# octave below (three each), the far choir humming on 'n' (four), the closing choir of the horizon - and every one of
+# their singers wobbled on the lead's vibrato in exact lockstep, the section moving as one voice (the synth-choir
+# tell). Now each singer reads the vibrato her own way (rate +-8%, any phase, depth +-30%): the section's vibratos
+# drift in and out of step and partly cancel, as a real choir's do (wM measured: the loudness wobble at the vibrato
+# rate halves, the held note's pitch swing narrows 39 -> 23 cents). The lead line keeps its vibrato; the soloist is
+# untouched. Most audible on the held notes: the jet's 'we were the far side', the break, the horizon's long 'ah'.
+VIB_SPREAD = 1.0
+
+
 def choir_patch(singers, tract=0.92, third=False):
     pt = json.loads(json.dumps(VOICE8))
     pt["about"] = f"t8's choir part: {singers} singers on one line, even vowels, joined, a breath before each phrase"
     pt["synth"]["layers"][0].update({"singers": singers, "spread": 0.7, "detune": 0.12, "even": 1.0, "tract": tract,
-                                     "together": True, "breath": {"value": 0.34, "mod": [{"src": "vel", "amount": -0.2}]}})
+                                     "together": True, "breath": {"value": 0.34, "mod": [{"src": "vel", "amount": -0.2}]},
+                                     "vib_spread": VIB_SPREAD})                     # v55
     if third:
         # v15 (ROUND TYPE: palette - an engine feature the album had not used: harmony in a key, pin 8e25c1a9): the
         # lead's line is sung again a THIRD above IN THE KEY (D Mixolydian, the jet's E4 v2 - D9 Cmaj9 Am11 G6/9),

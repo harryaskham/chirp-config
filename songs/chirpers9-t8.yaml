@@ -13963,6 +13963,7 @@
        "detune": 0.12,
        "even": 1.0,
        "together": true,
+       "vib_spread": 1.0,
        "harmony": [
         2
        ],
@@ -15850,7 +15851,8 @@
        "spread": 0.7,
        "detune": 0.12,
        "even": 1.0,
-       "together": true
+       "together": true,
+       "vib_spread": 1.0
       }
      ],
      "lfo": {
@@ -17710,7 +17712,8 @@
        "spread": 0.7,
        "detune": 0.12,
        "even": 1.0,
-       "together": true
+       "together": true,
+       "vib_spread": 1.0
       }
      ],
      "lfo": {
@@ -21906,6 +21909,7 @@
        "detune": 0.12,
        "even": 1.0,
        "together": true,
+       "vib_spread": 1.0,
        "hum": 1.0,
        "hum_at": "n"
       }
