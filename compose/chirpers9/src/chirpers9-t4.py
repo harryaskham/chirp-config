@@ -791,7 +791,7 @@ def arc(song):
 # them); 69-72 E2's harp steps forward for those four bars only; 73-76 the LIGHTS GO OUT - the chords stop, and E3's
 # pedal-steel line and its octave double play alone over kick, sub and the swelling air; 77-80 the lights return at
 # full under the build, and the crest lands on all of it.
-LEADS = {"e2": [(69, 72, 7.0)], "e3": [(73, 76, 8.0)], "e3hi": [(73, 76, 8.0)],
+LEADS = {"e2": [(69, 72, 7.0), (92, 96, 6.0)], "e3": [(73, 76, 8.0), (92, 96, 6.0)], "e3hi": [(73, 76, 8.0)],   # v52: 92-96
          "duet": [(49, 56, 7.0), (113, 120, 10.0)]}        # v41: the duet's open reply to her closed hum, heard;
                                                           # v44: and the warm third over her relief hums
 LIGHTS_OUT = (73, 76)
@@ -1113,6 +1113,14 @@ SWAP = (25, 32)
 #   leaving four bars early, at 97 - it merged with the relief's own afterglow into one still stretch, 3:28-4:00.)
 RISE_THIN, RISE_FILL = (65, 72), (73, 80)
 CREST_WASH = (92, 96)
+# v52 (ROUND TYPE: section, the crest's second half 92-100, ~15 s - the 3:20 block, 0.57; rewritten): ALL FOUR AT
+# ONCE. Here she sings E1 on 'ah' cycle after cycle - the sung hook - over E2's harp (D6 A6 F#6 C6, its seven
+# sixteenths) and E3's steel (the inverted undertow) and E4's lights: the album's first full statement of the
+# combined theme, the cycles converging. But measured, only she was there: the harp and the steel at -15, heard 0%,
+# under v30's ride wash (-7.0, the loudest thing after her) - even with v25's +6 dB crest lane. Now, for these five
+# bars, the harp and the steel come forward another 6 dB (LEADS) and the ride wash plays a third softer, so the four
+# elements are heard together once: her hook, the harp's sparkle above her, the steel's slide below, the lights.
+WASH_VEL = (46, 36)                  # +4 dB and (56, 44) cost half but left the harp and steel heard 24%
 FLOAT = (105, 112)
 
 
@@ -1135,7 +1143,7 @@ def phrase_turns():
     drop(["hat", "ride"], CREST_WASH)
     for bar in range(CREST_WASH[0], CREST_WASH[1] + 1):
         for e in range(8):
-            part("ride").add(b0(bar) + e * 0.5, 0.75, RIDE, 68 if e % 2 == 0 else 54)
+            part("ride").add(b0(bar) + e * 0.5, 0.75, RIDE, WASH_VEL[e % 2])          # v52: softer (was 68 / 54)
     drop(["sub", "bass"], FLOAT)
 
 
