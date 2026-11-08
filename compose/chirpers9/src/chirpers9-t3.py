@@ -456,6 +456,15 @@ R55 = os.environ.get("T3_R55", "choir") != "none"
 # 97. (wM's kuramoto layer with its coupling on a lane, as t2's crest pad and t8's jet chords use it; here the lock is
 # the song's own phase lock, a whole storm long.) T3_R56=none reproduces v55.
 R56 = os.environ.get("T3_R56", "swarm") != "none"
+# round 57 (section, w2 = bars 13-24, where the storm lands; focused least recently): T3_R57=drift (default) - THE HOOK
+# SLIPS. When the storm lands at bar 17 the dizi states E1 twice - and was buried under the arriving low end (-16 dB)
+# - and then the hook went on only as the ring's fragments, E1 restarting every 12 sixteenths so it slides against
+# the bar (the song's whole idea: phase), buried at -25 dB. Now the dizi's second statement comes forward (+6 dB:
+# the first stays inside the storm's landing, so the hook emerges from it, and t2's seam is untouched), and
+# the dizi stays: it plays the ring's drifting fragments through bars 19-24, so you hear the tune itself slip a beat
+# against the bar each time round - the phase the storm is built on, as a melody - until the hum takes over at 25.
+# T3_R57=none reproduces v56.
+R57 = os.environ.get("T3_R57", "drift") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1598,6 +1607,26 @@ def main():
                 tr["fx"] = list(tr.get("fx", [])) + [
                     {"type": "pump", "on": f"{k}.k", "depth": depth[tr["name"]], "release": "200ms", "curve": 0.6}
                     for k in ("kick", "kick7")]
+    if R57:                                                 # w2: the hook slips (bars 17-24, the dizi)
+        for tr in list(tracks):
+            if tr.get("name") == "dizi":
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
+                                                      "mod": [{"src": "auto.lift", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), lift={"points": [["0b", 0], ["67.9b", 0], ["68b", 6],
+                                                                         ["71.9b", 6], ["72b", 0]]})
+                spec = tr
+        for tr in list(tracks):
+            if tr.get("name") == "e1" and tr.get("score"):
+                pos, frag = 0.0, Track("dizi2")
+                for tok in tr["score"].split():
+                    m = re.match(r"^(.+?)/([0-9.e+-]+)b(?:@(\d+))?", tok)
+                    if m.group(1) != "R" and int(m.group(3) or 0) > 1 and 72.0 <= pos < 96.0:
+                        frag.add(pos, float(m.group(2)), m.group(1), min(110, int(m.group(3)) + 8))
+                    pos += float(m.group(2))
+                tracks.append(dict(spec, name="dizi2", gain=f"{float(spec['gain'].replace('dB', '')) + 7.0:g}dB",
+                                   pan=0.2, fx=[f for f in spec.get("fx", []) if not (isinstance(f, dict) and f.get("type") == "gain")],
+                                   auto={k: v for k, v in spec.get("auto", {}).items() if k != "lift"},
+                                   score=frag.score()))
     if R56:                                                 # palette: the swarm that locks (beats 264-384)
         def chords(name, lo, hi):
             out = []
