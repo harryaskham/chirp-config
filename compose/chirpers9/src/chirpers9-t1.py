@@ -101,6 +101,7 @@ HUMEVEN = os.environ.get("C9T1_HUMEVEN", "0.5")   # SECTION w1 (0:00-0:36, the a
 CELLP = os.environ.get("C9T1_CELLP", "fb-crystal@-21")   # PALETTE: the cell (E1 whole, an octave up, from the crest: the seed once it has nucleated) leaves the modal glockenspiel for a struck crystal ('patch[@gaindB]'): 'fb-crystal' (an inharmonic crystal strike) - t1 is Nucleation, and at the crest the seed crystallises - or 'kuramoto-flies' (short notes from a coupled swarm that falls into step)
 AIRFALL = os.environ.get("C9T1_AIRFALL", "a")   # with it: the air's fifth lets go as the lock exhales (beat 304): 'a' the A2 stops (the D2 holds on into the fall), 'ad' both stop - the held fifth was the 114 Hz the hand-off to t2 had too much of
 AIRP = os.environ.get("C9T1_AIRP", "")   # PALETTE: the air (D2 and A2 held under the whole song) leaves the plain sine shimmer for wM's gendy-drone (Xenakis's dynamic stochastic synthesis: a drone whose waveform wanders, so the held fifth breathes and grains; 'patch[@gaindB]'): the dust the seed nucleates in, alive (tried in the v45 round and rejected: spectrum -4, the sine's A2 at 110 Hz is load-bearing - what it showed instead is AIRFALL)
+EQ213 = os.environ.get("C9T1_EQ213", "warmth:-4")   # WHOLE (the spectrum's worst band was 213 Hz, +7: A3, which the cello cantus, the Hammond's held fifth and the pad all sound): a peak cut at 215 Hz on the named tracks ('track[+track]:dB') (v46: the Hammond alone; on the cello too it thinned 182 Hz - the cantus's A3 is body, the organ's held A3 was the excess)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -517,6 +518,11 @@ def song():
         ns = [note(a0 + c * E1_CYC + o, f"m{mm}", ln, 0.5 if c == 0 else 0.45)
               for c in range(2) for o, ln, mm in zip(E1_OFF, E1_LEN, mids)]
         tracks.append({"name": "answer", "patch": patch, "gain": gain, "pan": pan, "sends": {"space": "-9dB"}, "notes": ns})
+    if EQ213:
+        en, eg = EQ213.split(":")
+        for tr in tracks:
+            if tr["name"] in en.split("+"):
+                tr["fx"] = list(tr.get("fx", [])) + [f"peak cutoff=215 gain={eg}dB q=1.0"]
     if AIRFALL:
         for tr in tracks:
             if tr["name"] == "air":
