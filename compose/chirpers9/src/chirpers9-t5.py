@@ -101,6 +101,7 @@ ARRIVED = os.environ.get("C9T5_ARRIVED", "here")   # WHOLE (the hook's words dev
 BREATHSIZE = os.environ.get("C9T5_BREATHSIZE", "1")   # WHOLE (her breathing): wM's inhale_depth (pinned df7aaf1b) beside v54's inhale on every line she sings - each breath sized to the phrase it starts (and half the line before): a sip before her short two-note 'near-er' calls, a full breath before the long held D and the chorus lines, instead of every breath the same size (value 0..1)
 ANSACCRETE = os.environ.get("C9T5_ANSACCRETE", "rise")   # SECTION w6 (2:47-3:20, after the crest: flagged 'little new vs w5'): her three crest lines accrete (alone, + the third above, + the third and the octave below, v27), but the DX piano answered all three with the same E5 figure. Now the answers accrete with her: 'thirds' the second answer gains the third above (in D mixolydian), the third answer the third and the octave below - the choir's own harmony; 'rise' the second answer an octave up, the third in both octaves (t1 v60's rising mirror)
 TIDESWELL = os.environ.get("C9T5_TIDESWELL", "mel:0.25")   # WHOLE (the song's last rise, into the t5 -> t6 seam): C's second half sat lower than its first (-12.7 against -11.9 dB) and t5 handed t6 a body lighter than t6's (out-flow 2.4 dB). Now the band swells toward the tide: from bar 93 (beat 368) the orbit, the seeds, the lights, the marimba and the bass play gradually harder, up to the overlap (432), then ease back to where they were by bar 117 (464), as t6 takes the floor ('mel'), or the drums with them ('all'); value after ':' the peak (0.25 = a quarter harder)
+ORBITTIGHT = os.environ.get("C9T5_ORBITTIGHT", "six")   # SECTION w2 (0:34-1:08, A's first half: flagged 'level jump' - the arrival, which lands whole and stays as it is): at bar 25 (beat 96) the chip orbit switched from E5 at its own speed to E5 twice as fast, in one step. Now the inner orbit TIGHTENS: the faster orbit fades in underneath while the slow one thins, so the doubling arrives as an acceleration - 'six' from beat 90, 'three' from 93 (whole 3-beat cycles, so it stays in phase)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -843,6 +844,17 @@ def song():
             pt = tr.get("patch")
             if isinstance(pt, dict) and pt.get("extends", "").startswith("voice-near"):
                 pt["extends"] += f" synth.layers.0.passaggio={VOXREG}"
+    if ORBITTIGHT:
+        back = 6.0 if ORBITTIGHT == "six" else 3.0
+        for tr in tracks:
+            if tr["name"] == "orbit":
+                fast = [n for n in tr["notes"] if 96 <= n["at"] < 96 + back]
+                v1 = fast[0]["vel"] if fast else 0.22
+                pre = [dict(n, at=round(n["at"] - back, 4), vel=round(max(0.05, v1 * (0.25 + 0.75 * (n["at"] - 96) / back)), 3)) for n in fast]
+                for n in tr["notes"]:
+                    if 96 - back <= n["at"] < 96:
+                        n["vel"] = round(n["vel"] * (1 - 0.33 * (n["at"] - (96 - back)) / back), 3)
+                tr["notes"] = sorted(tr["notes"] + pre, key=lambda n: n["at"])
     if TIDESWELL:
         mode, _, amt = TIDESWELL.partition(":")
         amt = float(amt or 0.25)
