@@ -555,6 +555,16 @@ R57 = os.environ.get("T7_R57", "sooner") != "none"
 # left - and bar 121 lands with a China cymbal (the album's first: a hard, bright, edge-struck crash) and a sub-bass
 # boom on D under it. The difficult part held for one beat; the reward is the downbeat. T7_R58=none reproduces v57.
 R58 = os.environ.get("T7_R58", "gasp") != "none"
+# round 59 (whole song): T7_R59=chorus (default) - THE VOICE ACCRETES. The lap choir ("each lap a little ...") was
+# three singers - one voice per part - in the collision and still three at the crest, where everything else in the
+# album has gathered. Now the crest's choir is a section: each of its three parts sung by four (twelve voices), spread
+# across the field, every singer with her own vibrato, vowels and pitch-path wobble (wM's vib_spread, vowel_spread
+# and f0_spread, pinned 473b5266 - the lines are tts-sung, so f0_spread is the one that reaches their vibrato); the
+# sung harmony parts (bars 33, 113, 121) get the same, so each harmony is a second singer, not a copy. Three voices in
+# the approach, twelve at the crest: the voice accretes. And the head meets t6's air inside the crossfade (t6's tail
+# is ~10 dB brighter at 14.8 kHz since its v58): the infall pad and the far glock get a 7 kHz shelf (+5 dB) - heard
+# where the two songs overlap, not in the measured bodies either side. T7_R59=none reproduces v58.
+R59 = os.environ.get("T7_R59", "chorus") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1721,6 +1731,16 @@ def main():
                 g = float(tr["gain"].replace("dB", ""))
                 tracks.append(dict(tr, name=tr["name"] + "9", patch="a7-thump", gain=f"{g + 2:g}dB",
                                    fx=list(tr.get("fx", [])) + [{"type": "filter", "kind": "lp", "cutoff": 180, "q": 0.707}]))
+    if R59:                                                 # whole: the voice accretes (crest choir x4), air at the head
+        spread = " synth.layers.0.vib_spread=1 synth.layers.0.vowel_spread=1 synth.layers.0.f0_spread=1"
+        for pn in ("a7-choir0-old", "a7-choir1-old", "a7-choir2-old"):
+            patches[pn] = dict(patches[pn], extends=patches[pn]["extends"] +
+                               " synth.layers.0.singers=4 synth.layers.0.spread=0.7" + spread)
+        for pn in ("a7-sungc5", "a7-sung5", "a7-sung3"):
+            patches[pn] = dict(patches[pn], extends=patches[pn]["extends"] + spread)
+        for tr in tracks:
+            if tr.get("name") in ("tide1", "star"):
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "eq", "bands": ["highshelf cutoff=7000 gain=5dB"]}]
     if R58:                                                 # w8: the landing at bar 121 (a crash, a boom)
         land, boom = Track("land"), Track("landboom")
         land.add(480.0, 4.0, mtok(62), 118)
