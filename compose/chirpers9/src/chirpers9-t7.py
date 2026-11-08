@@ -698,7 +698,15 @@ R74 = os.environ.get("T7_R74", "doubled") != "none"
 # accented 16th pattern with ghosted mutes between, panned right of the stabs, for eight bars, gone as the spiral's
 # voices come in at bar 105. T7_R75=none reproduces v74.
 R75 = os.environ.get("T7_R75", "chops") != "none"
-CHOP_GAIN = os.environ.get("T7_CHOP_GAIN", "9dB")      # break-kit hats sit 7.5 dB under dusty-kit's
+CHOP_GAIN = os.environ.get("T7_CHOP_GAIN", "9dB")
+# round 76 (whole): T7_R76=lean (default) - THE BAND BREATHES, THE SINGER LEANS IN. (1) t7 was played dead on the grid
+# by every player. Now the song has a shared `feel` (no Accretion song had one): the whole band drifts ahead of and
+# behind the beat together, about 6 ms, a turn every four bars, and the kit sits in a pocket - snares 9 ms late,
+# claps 7 ms late, kicks 3 ms early: a breakbeat played, not programmed, over the tempo's climb. (2) The singer's
+# phrases now start the way she means them (wM's vocal attack, pinned 10254007): the verses' "every corner" and
+# "nearer every lap" bloom out of a little air (attack -0.4), the crest's chorus starts pressed and firm (+0.5).
+# T7_R76=none reproduces v75.
+R76 = os.environ.get("T7_R76", "lean") != "none"      # break-kit hats sit 7.5 dB under dusty-kit's
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -2179,6 +2187,11 @@ def main():
                     gt.add(at, 0.06, ",".join(f"m{n}" for n in chord_at(at)[:2]), 52)   # a ghosted mute
         tracks.append({"name": "chops", "patch": "cutting-guitar", "gain": CHOP_GAIN, "pan": 0.45,
                        "sends": {"space": "-12dB"}, "score": gt.score()})
+    if R76:                                                 # whole: the singer's attack by section (the feel is a song line)
+        for pn, atk in (("a7-sung", -0.4), ("a7-sung5", -0.4), ("a7-near", -0.4), ("a7-near3", -0.4),
+                        ("a7-sungc", 0.5), ("a7-sungc5", 0.5)):
+            if pn in patches:
+                patches[pn] = dict(patches[pn], extends=patches[pn]["extends"] + f" synth.layers.0.attack={atk}")
     if R74:                                                 # whole: the lead double-tracked, the 156 Hz box out
         for tr in tracks:
             if tr.get("name") in ("sung", "sung5", "sungc", "sungc5", "near", "near3"):
@@ -2202,6 +2215,8 @@ def main():
         "loudness: -11",
         "true_peak: true",
         "event_stable: true",
+    ] + (["feel: " + json.dumps({"drift": "6ms", "drift_bars": 4, "nudge": {"s": "9ms", "cp": "7ms", "k": "-3ms"}})]
+         if R76 else []) + [
         "patches: " + json.dumps(patches),
         "buses: " + json.dumps(dict({"space": space_bus}, **extra_buses)),
         "master: " + json.dumps(master),
