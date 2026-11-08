@@ -1188,6 +1188,14 @@ BREAK_HUSH = 0.6
 # rate halves, the held note's pitch swing narrows 39 -> 23 cents). The lead line keeps its vibrato; the soloist is
 # untouched. Most audible on the held notes: the jet's 'we were the far side', the break, the horizon's long 'ah'.
 VIB_SPREAD = 1.0
+# v59 (ROUND TYPE: palette - two changes). (1) wM's VOWEL_SPREAD (pinned a1f7f0ec), vib_spread's partner: each other
+# singer in every choir section shapes the vowel her own way (F1/F2 +-8%, F3 +-5%) instead of the lead's formants
+# scaled - with v55's own vibratos, a section rather than one voice copied. (2) E7 ON REAL HORNS: the jet's element is
+# a column of stacked fifths (D3 A3 E4 A4 E5) - a horn call - and it rang on a saw-and-pulse synth (brass-synth), the
+# loudest thing in the hook's rest (85-88, -4.4). Now a physical horn-and-trombone section (brass, unused on the album:
+# three players' lips on their bores, blooming), so the fifths sound as the call they are: E7 carried, transformed.
+VOWEL_SPREAD = 1.0
+E7_PATCH, E7_GAIN = "brass", "-11dB"
 
 
 def choir_patch(singers, tract=0.92, third=False):
@@ -1195,7 +1203,7 @@ def choir_patch(singers, tract=0.92, third=False):
     pt["about"] = f"t8's choir part: {singers} singers on one line, even vowels, joined, a breath before each phrase"
     pt["synth"]["layers"][0].update({"singers": singers, "spread": 0.7, "detune": 0.12, "even": 1.0, "tract": tract,
                                      "together": True, "breath": {"value": 0.34, "mod": [{"src": "vel", "amount": -0.2}]},
-                                     "vib_spread": VIB_SPREAD})                     # v55
+                                     "vib_spread": VIB_SPREAD, "vowel_spread": VOWEL_SPREAD})   # v55, v59
     if third:
         # v15 (ROUND TYPE: palette - an engine feature the album had not used: harmony in a key, pin 8e25c1a9): the
         # lead's line is sung again a THIRD above IN THE KEY (D Mixolydian, the jet's E4 v2 - D9 Cmaj9 Am11 G6/9),
@@ -1323,7 +1331,7 @@ def main():
                auto={"rs": {"points": horizon_lane(REDSHIFT)}, "cl": {"points": cl}}),
             tr("e6", "organ", gain="-24dB", pan=disk_pan(-0.3), sends={"hall": "-8dB"}, fx=["lp cutoff=3500", ORBIT_FX, FAR_FX, STRETCH_FX],
                auto={"orb": {"points": orbit_lane("e6")}, **disk_auto("e6"), "sp": {"points": stretch_lane()}}),
-            tr("e7", "brass-synth", gain="-11dB", pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"},
+            tr("e7", E7_PATCH, gain=E7_GAIN, pan=0.15, sends={"dly": "-12dB", "hall": "-10dB"},
                fx=["gain gain=0dB+auto.sl*1"], auto={"sl": {"points": e7_light_lane()}}),   # v51
             {"name": "jet", "patch": JET_SWARM, "gain": "-9dB", "sends": {"hall": "-6dB"}, "notes": JET_NOTES,
              "auto": {"cp": {"points": swarm_lane()}}},                                     # v34: the swarm locks
