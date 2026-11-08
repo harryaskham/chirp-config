@@ -427,8 +427,16 @@ KICK_REST = (73, 76)
 # orbit (153, one turn), E2 'seven' (157, its cell turned MAJOR - D A F# C - by the light), and last E1, the seed
 # (161, augmented, alone, as the light darkens): the album began with E1 alone (t1) and ends with it. Each in the key
 # of the light; nothing after 165 but the light and the 'ah'.
-FALL_IN = {"e7": 145, "e6": 149, "e5": 153, "e2": 157, "e1": 161}
-FALL_IN_DB = {"e7": 7.0, "e6": 10.0, "e5": 7.0, "e2": 3.0}         # at their stretto gains the first three sat at -15/-16, unheard
+FALL_IN = {"e7": 145, "e6": 149, "e5": 153, "e2": 157, "e1": 161, "e3": 155}
+FALL_IN_DB = {"e7": 7.0, "e6": 10.0, "e5": 7.0, "e2": 3.0, "e3": 10.0}
+# v64 (ROUND TYPE: section, the horizon 155-161, 3:58-4:16): THE UNDERTOW'S LAST BREATH, AND AMEN. Of the album's
+# elements only E3 had no image in the horizon (its Bb would rub the light). chirper-two gave it a form for the light
+# (8 Nov): D2 D2 D3 | A1 A1 E2 | G1 G1 D2 G2 - I V IV, the 3+3+4 notes, octave leaps and 2+2+3 rhythm kept. Now it
+# rises bowed and slow (half speed) from 155, under the lights' E4 and before E2's farewell, as an AFTERIMAGE like the
+# others (v19's echo, not v57's refused single pass): its last note, G2, holds into the convergence - and when every
+# image releases at 160 and the light sinks to D at 161, the album's last cadence is IV -> I, plagal: amen.
+E3_LIGHT_CELL = [("D2", 0.0, 0.66), ("D2", 0.66, 0.66), ("D3", 1.33, 0.67), ("A1", 2.0, 0.66), ("A1", 2.66, 0.66),
+                 ("E2", 3.33, 0.67), ("G1", 4.0, 0.75), ("G1", 4.75, 0.75), ("D2", 5.5, 0.75), ("G2", 6.25, 0.75)]         # at their stretto gains the first three sat at -15/-16, unheard
 
 
 # v62 (ROUND TYPE: whole song): THE ANSWER ACCRETES. Her six questions rise E -> F and stay open ('oo' ... 'far
@@ -933,6 +941,8 @@ def write_horizon():
     echo("e5", [(n, s * 0.25, 0.5) for n, s in E5], a + 3, 2, 0, 78)                   # quieter, darker; the
     echo("hook", E1, a + 6, 3, 0, 78, CONVERGE)  # v16: the hook's goodbye, on its own flute   # pitch sink waits for
     echo("e2", [(n, st * 0.25, 0.25) for n, st, v in E2], a + 11, 4, 0, 66)            # the light alone (161)
+    echo("e3", E3_LIGHT_CELL, a + 14, 2, 0, 88, CONVERGE)   # v64: E3 in the light, its last G held into the convergence
+    #                                                       (at 72 the held G - the IV of the amen - sat at -12, unheard)
     for i, k in enumerate((0, 1)):
         notes = [name_of(midi(n)) for n in E4M[k]]
         part("lights").add(b0(a + 14) + i * 10, 10.0, ",".join(notes), 60 - i * 6)
