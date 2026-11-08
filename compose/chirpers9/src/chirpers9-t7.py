@@ -672,7 +672,16 @@ BREAK_HAT_GAIN = os.environ.get("T7_BREAK_HAT_GAIN", "9dB")
 # drops in pitch as it goes: something on a closer orbit overtaking us, four times, before the verse.
 # T7_R72=none reproduces v71.
 R72 = os.environ.get("T7_R72", "flyby") != "none"
-FLYBY_GAIN = os.environ.get("T7_FLYBY_GAIN", "0dB")      # break-kit hats sit 7.5 dB under dusty-kit's
+FLYBY_GAIN = os.environ.get("T7_FLYBY_GAIN", "0dB")
+# round 73 (section, w9 = bars 129-144, the crest's middle; least recently focused outside the seams): T7_R73=amen
+# (default) - THE CREST BREAKS. Sixteen bars of the crest's kit ran straight through. Now the kit drops out for the
+# last bar of the first half (136) and a break plays instead - the library break-kit (its hats are t7's since v71,
+# its kick and snare are t2's) chopped like an Amen: two kicks, the crack, a ghost, the snare skipping, two kicks,
+# then a tuned-up snare rolling up into bar 137 - and at the end of bar 144 the kit stops again for a two-beat snare
+# roll that runs up into the descant. The bass keeps going under both; only the drums break.
+# T7_R73=none reproduces v72.
+R73 = os.environ.get("T7_R73", "amen") != "none"
+AMEN_GAIN = os.environ.get("T7_AMEN_GAIN", "0dB")      # break-kit hats sit 7.5 dB under dusty-kit's
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1925,6 +1934,30 @@ def main():
                    "a7-descant", "a7-choir0", "a7-choir1", "a7-choir2", "a7-choir0-old", "a7-choir1-old", "a7-choir2-old"):
             if pn in patches:
                 patches[pn] = dict(patches[pn], extends=patches[pn]["extends"] + " synth.layers.0.taper=0.6")
+    if R73:                                                 # w9 (after R66 routes the kit): the crest breaks at 136 and 144
+        am = Track("amen")
+        chop = ((0.0, "k", 118), (0.5, "k", 104), (1.0, "s", 124), (1.5, "g", 70), (1.75, "s", 98), (2.25, "s", 104),
+                (2.5, "k", 114), (2.75, "k", 100), (3.0, "s", 120), (3.25, "s2", 92), (3.5, "s2", 104),
+                (3.75, "s2", 116))
+        for off, tok, v in chop:
+            am.add(540.0 + off, 0.24, tok, v)
+        for i in range(4):                                  # off-beat hats under the chop
+            am.add(540.25 + i, 0.2, "h", 78)
+        for i in range(8):                                  # bar 144's last two beats: a rising roll
+            am.add(574.0 + 0.25 * i, 0.24, "s2" if i >= 4 else "s", 86 + 4 * i)
+        kit = [tr for tr in tracks if tr.get("patch") in ("dusty-kit", "electro-kit", "a7-thump", "break-kit")]
+        amen = {"name": "amen", "patch": "break-kit", "gain": AMEN_GAIN, "score": am.score()}
+        if R66:
+            amen["out"] = "drums"
+        tracks.append(amen)
+        for tr in kit:
+            if True:
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
+                                                      "mod": [{"src": "auto.brk", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), brk={"points": [["0b", 0], ["539.95b", 0], ["540b", -60],
+                                                                      ["543.95b", -60], ["544b", 0], ["573.95b", 0],
+                                                                      ["574b", -60], ["575.95b", -60], ["576b", 0],
+                                                                      ["704b", 0]]})
     if R65:                                                 # w6: the trumpet takes a chorus (bars 89-96)
         tp = Track("trumpet2")
         solo = ((352.5, 0.5, 70, 88), (353.0, 0.5, 73, 84), (353.5, 0.75, 75, 92), (354.25, 0.25, 73, 80),
