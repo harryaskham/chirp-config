@@ -963,7 +963,11 @@ def build():
             # the far side's weight drawn by a bow, not plucked - slower, older, more air - as its voice ages
             tr('farbass', 'fretless', '-6dB', pan=-0.1, fx=['lp cutoff=1800', 'hp cutoff=35', {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             tr('farbow', 'contrabass', '-6dB', pan=-0.1, fx=['lp cutoff=1800', 'hp cutoff=35', {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
-            tr('hook', 'low-whistle', '-6dB', pan=0.05, sends={'hall': '-12dB', 'echo': '-18dB'}),
+            # (v55, palette: E1's hook was a low whistle) THE HOOK ON BAMBOO: the hook - E1 at the pull, doubling the
+            # choir's chorus at the crest, the line the far side joins in the surge - is now the library's shakuhachi
+            # (end-blown bamboo: a strong breath on the attack, notes bending in and out; no Accretion track uses it):
+            # more air than the whistle, the tide's breath in the melody itself
+            tr('hook', 'shakuhachi', '-7dB', pan=0.05, sends={'hall': '-12dB', 'echo': '-18dB'}),
             tr('near', 'modal-marimba', '-11dB', pan=0.3, auto={'shut': {'points': shut_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 700, 'mod': [{'src': 'auto.shut', 'amount': 4.0}]}}, {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}],
                sends={'echo': '-14dB', 'hall': '-14dB'}),
