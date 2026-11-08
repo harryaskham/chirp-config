@@ -1072,6 +1072,18 @@ def rise_pulls_back():
         P[n].ev = out
 
 
+# v57 (ROUND TYPE: palette): THE RISE IS BOWED. E3 rode three pedal-steel tracks (e3, e3hi, steel) - one instrument
+# tripling one element - and in the rise (65-80) its line an octave up was the third copy. Now that line is BOWED: a
+# solo violin (violin, unused on the album: a waveguide string on a resonant body, delayed vibrato), and since a violin
+# starts at G3 the line climbs an octave higher (D4-F#5) - one human string singing E3 up into the crest, in the song
+# where the voice and everything near it is most human.
+E3HI_PATCH, E3HI_GAIN, E3HI_UP = "violin", "-8dB", 12      # the steel copy sat at -22 (unheard); at -15 the violin -14/-18
+
+
+def rise_bowed():
+    P["e3hi"].ev = [(s, ln, ",".join(f"m{midi_of(x) + E3HI_UP}" for x in h.split(",")), v) for s, ln, h, v in P["e3hi"].ev]
+
+
 def hands_listen():
     lo, hi = b0(HANDS_LISTEN[0]), b0(HANDS_LISTEN[1] + 1)
     for n in ("seed",):                                   # the ride stays: without it -0.035 (its air)
@@ -1292,6 +1304,7 @@ def main():
     hands_rest_for_verse()
     clarinet_finds_the_verse()
     hands_listen()
+    rise_bowed()
     rise_pulls_back()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v + verse(),
@@ -1341,7 +1354,7 @@ def main():
             {"name": "duet", "patch": VOICE2, "gain": "-15dB", "pan": 0.18, "sends": {"hall": "-8dB"}, "notes": duet},
             {"name": "breath", "patch": BREATH_AIR, "gain": "2dB", "pan": 0.0, "sends": {"room": "-12dB"},
              "notes": breaths},
-            tr("e3hi", "pedal-steel", gain="-15dB", pan=0.35, sends={"hall": "-8dB"}),     # v8: E3 an octave up in the rise
+            tr("e3hi", E3HI_PATCH, gain=E3HI_GAIN, pan=0.35, sends={"hall": "-8dB"}),     # v8: E3 up in the rise; v57 violin
             tr("steel", {"extends": "pedal-steel play.glide=700ms"}, gain="-13dB", pan=0.15,
                sends={"hall": "-6dB"}),                              # v11: the lens's bent third
             tr("clar", "clarinet", gain="-5dB", pan=-0.3, sends={"hall": "-10dB"}),   # v29
