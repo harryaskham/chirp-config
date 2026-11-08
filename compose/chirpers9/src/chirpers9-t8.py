@@ -332,7 +332,7 @@ FAR_GAIN = "-5dB"                    # a shut-mouth murmur masks sooner than the
 def far_patch():
     pt = choir_patch(4, depth=DEPTH_FAR)
     pt["about"] = "t8's far choir: four singers far off, mouths shut on 'n' - the answer forming"
-    pt["synth"]["layers"][0].update({"hum": 1.0, "hum_at": "n"})
+    pt["synth"]["layers"][0].update({"hum": 1.0, "hum_at": "n", "taper": FAR_TAPER})
     return pt
 
 
@@ -1302,13 +1302,23 @@ FAR_HALL = "-1dB"
 E7_PATCH, E7_GAIN = "brass", "-11dB"
 
 
+# v66 (ROUND TYPE: palette - the newest engine feature): THE CHOIRS BREATHE OUT. Every choir phrase in t8 ended at full
+# tone and stopped together, square - the section never ran out of air. wM's TAPER (pinned 251180c1): on a joined
+# line the phrase's LAST note keeps full tone for its first 30%, then lets go - quieter, darker, breathier, sagging a
+# few cents - and 'the whole section lets go together'. Now on the choirs: the jet's choir and its fifth and low
+# parts at 0.5, the far choir's hummed answers at 0.8 (far voices fade further). Not her questions (the solo): a
+# question rises and must not sag; her last line has its own full let-go (v65).
+CHOIR_TAPER, FAR_TAPER = 0.5, 0.8
+
+
 def choir_patch(singers, tract=0.92, third=False, depth=None):
     pt = json.loads(json.dumps(VOICE8))
     pt["about"] = f"t8's choir part: {singers} singers on one line, even vowels, joined, a breath before each phrase"
     pt["synth"]["layers"][0].update({"singers": singers, "spread": 0.7, "detune": 0.12, "even": 1.0, "tract": tract,
                                      "together": True, "breath": {"value": 0.34, "mod": [{"src": "vel", "amount": -0.2}]},
                                      "vib_spread": VIB_SPREAD, "vowel_spread": VOWEL_SPREAD,    # v55, v59
-                                     "depth_spread": DEPTH_NEAR if depth is None else depth, "cons_spread": CONS_SPREAD})  # v61
+                                     "depth_spread": DEPTH_NEAR if depth is None else depth, "cons_spread": CONS_SPREAD,  # v61
+                                     "taper": CHOIR_TAPER})                                     # v66
     if third:
         # v15 (ROUND TYPE: palette - an engine feature the album had not used: harmony in a key, pin 8e25c1a9): the
         # lead's line is sung again a THIRD above IN THE KEY (D Mixolydian, the jet's E4 v2 - D9 Cmaj9 Am11 G6/9),

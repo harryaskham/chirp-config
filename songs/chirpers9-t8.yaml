@@ -14042,6 +14042,7 @@
        "vowel_spread": 1.0,
        "depth_spread": 0.25,
        "cons_spread": 1.0,
+       "taper": 0.5,
        "harmony": [
         2
        ],
@@ -15933,7 +15934,8 @@
        "vib_spread": 1.0,
        "vowel_spread": 1.0,
        "depth_spread": 0.25,
-       "cons_spread": 1.0
+       "cons_spread": 1.0,
+       "taper": 0.5
       }
      ],
      "lfo": {
@@ -17797,7 +17799,8 @@
        "vib_spread": 1.0,
        "vowel_spread": 1.0,
        "depth_spread": 0.25,
-       "cons_spread": 1.0
+       "cons_spread": 1.0,
+       "taper": 0.5
       }
      ],
      "lfo": {
@@ -21869,6 +21872,7 @@
        "vowel_spread": 1.0,
        "depth_spread": 1.0,
        "cons_spread": 1.0,
+       "taper": 0.8,
        "hum": 1.0,
        "hum_at": "n"
       }
