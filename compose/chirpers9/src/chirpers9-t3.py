@@ -574,6 +574,15 @@ R70 = os.environ.get("T3_R70", "undertow") != "none"
 # the crash at bar 105 brings the whole groove back under the melodica's E1 backwards. The kit's own bars there are
 # silenced with a lane, not edited. T3_R71=none reproduces v70.
 R71 = os.environ.get("T3_R71", "halfbreath") != "none"
+# round 72 (section, w7 = bars 73-84, the second storm before the break; least recently focused outside the seams and
+# w3): T3_R72=phase (default) - THE PHASE MARGIN, HEARD. Here is the song's title: the dizi and the farfisa play E1
+# once every FIVE beats, so it slides against the four-beat bar - but both sat 18-22 dB under the reese, and nobody
+# could hear the slide. Now a vibraphone (library vibes, motor tremolo; no Accretion song has one) plays E1 on every
+# bar, D4 A4 C5 G4 E4, plain, and the dizi comes up 10 dB: two E1s, one on the bar and one a beat later each time,
+# drifting apart and back together every five bars (they meet at bars 74, 79, 84) - Reich's phasing, the storm's
+# margin, audible. T3_R72=none reproduces v71.
+R72 = os.environ.get("T3_R72", "phase") != "none"
+PHASE_GAIN = os.environ.get("T3_PHASE_GAIN", "0dB")
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1737,6 +1746,14 @@ def main():
         flock(404.5, 408.0, (1.0, 2.0))
         for nm, pan in (("birdl", -0.5), ("birdr", 0.5)):
             tracks.append({"name": nm, "patch": "birds", "gain": "9dB", "pan": pan, "score": flocks[nm].score()})
+    if R72:                                                 # w7: E1 on the bar against the dizi's E1 every five beats
+        vb = Track("phasev")
+        e1v = ((0.0, 0.5, 62), (0.5, 0.75, 69), (1.25, 0.25, 72), (1.5, 1.0, 67), (2.5, 1.5, 64))   # D4 A4 C5 G4 E4
+        for k, at0 in enumerate(range(288, 336, 4)):
+            for off, ln, m in e1v:
+                vb.add(at0 + off, ln - 0.05, mtok(m), (96 if off == 0.0 else 84) + (k // 4) * 3)
+        tracks.append({"name": "phasev", "patch": "vibes", "gain": PHASE_GAIN, "pan": -0.35,
+                       "sends": {"space": "-9dB"}, "score": vb.score()})
     if R71:                                                 # w9: half time under the melodica (103-104), a held breath, a slam
         half = {"kick": [(408.0, "k", 122), (412.0, "k", 116)],
                 "ksub": [(408.0, "D1", 118), (412.0, "D1", 112)],
@@ -2006,6 +2023,10 @@ def main():
         dz = next(tr for tr in tracks if tr.get("name") == "dizi")
         dz["auto"] = dict(dz.get("auto", {}), lift={"points": dz["auto"]["lift"]["points"] +
                                                     [["263.9b", 0], ["264b", 8], ["271.9b", 8], ["272b", 0]]})
+    if R72:                                                 # w7 (after R69 extends lift): the dizi's five-beat E1 up 10 dB
+        dz = next(tr for tr in tracks if tr.get("name") == "dizi")
+        dz["auto"] = dict(dz.get("auto", {}), lift={"points": dz["auto"]["lift"]["points"] +
+                                                    [["287.9b", 0], ["288b", 10], ["335.9b", 10], ["336b", 0]]})
     if R60:                                                 # whole: calm that is calm (dyn lane), f0_spread on sung harmony
         master["auto"] = dict(master["auto"], dyn={"points": [
             ["0b", -5.0], ["64b", -1.4 if R63 else -2.0], ["159.99b", -2.3], ["160b", -2.0], ["244b", -1.5], ["248b", -9.0],
