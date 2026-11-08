@@ -1027,6 +1027,21 @@ def hands_listen():
         P[n].ev = out
 
 
+# v50 (ROUND TYPE: palette - the part the song lacks): THE WARM STONE. The chorus begins 'around the warm stone', and
+# nothing in the song was a stone. Now a SINGING BOWL (unused on the album: a felt strike, then slow-beating bronze
+# partials ringing ~14 s - modes 1 : 2.71 : 5.15 : 8.2, about D G F# D over a D, all in key) is struck three times,
+# at the song's three thresholds: 81, the crest's downbeat where every cycle converges (D4, ringing through the held
+# breath); 101, the relief, as the kit steps out (A3); 121, the fall, the stone left ringing as t5 arrives (D3). A
+# palette that was all hands, strings and breath gets one sound that is struck and left. (Not the felt piano back on
+# the 'felt' track - v13 took it off for a +9 dB hot 750-877 Hz and a dull top.)
+BOWL_GAIN = "-5dB"                    # at -12 it sat at -19 to -21 under the mix, unheard
+BOWL = [(81, "D4", 0.62), (101, "A3", 0.5), (121, "D3", 0.45)]
+
+
+def warm_stone():
+    return [{"at": b0(bar), "len": 16.0, "pitch": f"m{midi(n)}", "vel": v} for bar, n, v in BOWL]
+
+
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -1230,6 +1245,7 @@ def main():
             tr("clar", "clarinet", gain="-5dB", pan=-0.3, sends={"hall": "-10dB"}),   # v29
             {"name": "hum1", "patch": hum1_patch(), "gain": "-8dB", "pan": 0.0, "fx": ["lp cutoff=4000"],
              "sends": {"hall": "-9dB"}, "notes": first_hum()},                    # v35 (last: event_stable)
+            {"name": "bowl", "patch": "singing-bowl", "gain": BOWL_GAIN, "pan": -0.15, "notes": warm_stone()},   # v50 (last)
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=20ms", "hp cutoff=180"]},
