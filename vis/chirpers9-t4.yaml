@@ -1,0 +1,50 @@
+# chirpers9 t4 "The Warm Third": relief: warm, open, melodic; the first full statement of
+# the combined theme; the voice at its most human. Two acts:
+#   I  (0:00) dusk on a beach: a fire on the sand, a few friends round it swaying, one of
+#      them singing (arms rising with the music), gulls wheeling over a calm sea, the sun
+#      going down;
+#   II (2:30) night: lanterns are let go and rise over the sea one after another, more and
+#      more of them as the theme gathers, mirrored in the water; the camera rises with
+#      them into the stars.
+scenes:
+  - at: 0
+    look:
+      background: "#000000"
+      camera: {x: "1.6*sin(time.t*0.008 + 0.15)", y: 0.35, z: "0 - 2.6*cos(time.t*0.008 + 0.15)", look_at: [0, -0.1, 0.6]}
+      layers:
+        - {type: sky, zenith: "#3a4a7a", horizon: "#ffa070", ground: "#3a3040", sun: "#ffe0b0", sun_yaw: 0.02, sun_height: "0.035 - time.t*0.00025", sun_size: 0.045, glow: 1.1, haze: 0.45}
+        - {type: group, use: kit-sea, y: -0.3, z: 6, params: {far: 1, swell: 0.6, light: 0.25}}
+        # The beach.
+        - {type: mesh, shape: plane, detail: 24, y: -0.62, z: -1, scale: 5, sz: 0.6, displace: "0.02*noise3(vtx.x*4, 0, vtx.z*4)", color: "#6a5844", light: 0.8, ambient: 0.06, rim: 0, lx: 0.2, ly: 0.4, cull: true}
+        - {type: group, use: kit-fire, y: -0.6, z: 0.3, params: {size: 0.7}}
+        # Friends round the fire, swaying; one stands and sings, arms rising with the music.
+        - {type: figure, count: 4, rig: human, motion: sway, x: "0.7*sin(inst.i/4 + 0.1)", z: "0.3 + 0.7*cos(inst.i/4 + 0.1)", y: -0.3, scale: 0.36, face: [0, 0, 0.3], phase: "inst.i*1.3", energy: "0.4 + 0.4*audio.level", color: "#2a2228", light: 1, ambient: 0.12, rim: 0.7, rim_color: "#ffb080"}
+        - {type: figure, rig: human, motion: sway, x: -0.15, z: -0.45, y: -0.22, scale: 0.42, face: [0, 0, 6], energy: "0.5 + 0.5*audio.level", pose: {arm_l: "0 - 0.12*smooth(0.1, 0.6, audio.level)", arm_r: "0 - 0.12*smooth(0.1, 0.6, audio.level)", head: -0.02}, color: "#2a2228", light: 1, ambient: 0.12, rim: 0.9, rim_color: "#ffc890"}
+        - {type: figure, rig: bird, count: 4, x: "(1.6 + 0.3*inst.i)*sin(time.t*0.05 + inst.i*0.25)", y: "0.9 + 0.2*sin(time.t*0.13 + inst.i)", z: "3 + (1.0 + 0.2*inst.i)*cos(time.t*0.05 + inst.i*0.25)", face: ["(1.6 + 0.3*inst.i)*sin(time.t*0.05 + 0.02 + inst.i*0.25)", "0.9 + 0.2*sin(time.t*0.13 + inst.i)", "3 + (1.0 + 0.2*inst.i)*cos(time.t*0.05 + 0.02 + inst.i*0.25)"], scale: 0.22, phase: "inst.i*0.37", color: "#e8e4e0", light: 1, ambient: 0.35, rim: 0.6, rim_color: "#ffd8b0"}
+      filters:
+        - {type: bloom, threshold: 0.65, amount: 0.6}
+        - {type: tonemap, knee: 0.75}
+        - {type: vignette, amount: 0.4}
+  - at: 150
+    transition: dissolve
+    xfade: 4
+    look:
+      background: "#000000"
+      env:
+        let: {on: bar, decay: 1}
+      camera: {x: "0.6*sin(time.t*0.01)", y: "0.2 + 1.2*smooth(150, 300, time.t)", z: -2.8, look_at: [0, "0.4 + 1.6*smooth(150, 300, time.t)", 4]}
+      layers:
+        - {type: sky, zenith: "#04061a", horizon: "#1a2040", ground: "#05060c", sun: "#e8ecf8", sun_yaw: -0.08, sun_height: 0.12, sun_size: 0.02, glow: 0.5, haze: 0.3}
+        - {type: stars, count: 2000, speed: 0, twinkle: 0.4}
+        - {type: group, use: kit-sea, y: -0.3, z: 6, params: {far: 1, swell: 0.4, light: 0.04}}
+        - {type: group, use: kit-fire, y: -0.6, z: 0.3, params: {size: 0.6, heat: 0.8}}
+        - {type: figure, count: 5, rig: human, motion: sway, x: "0.9*sin(inst.i/5 + 0.1)", z: "0.3 + 0.9*cos(inst.i/5 + 0.1)", y: -0.3, scale: 0.36, face: [0, 1.5, 5], energy: 0.3, color: "#1a1418", light: 1, ambient: 0.08, rim: 0.8, rim_color: "#ffb070"}
+        # The lanterns: released from the beach, drifting up and out over the sea, more as
+        # the theme gathers (warm glows, screened so a crowd of them keeps its colour).
+        - {type: light, x: 0, y: 2, z: 5, color: "#ffb060", power: "0.1 + 0.25*smooth(150, 260, time.t)", reach: 5}
+        - {type: motes, mode: emit, count: "60 + 340*smooth(150, 270, time.t)", from: [0, -0.4, 0.4], wide: 3, deep: 1.4, wind_x: 0.05, wind_z: 0.3, wind_y: 0.15, wobble: 0.04, fall: 0, life: 24, size: 0.028, glow: 0.95, twinkle: 0, puff: true, color: "#ffb050", near: 0.3}
+      filters:
+        - {type: reflect, y: -0.62, amount: 0.5, reach: 4, ripple: 0.006, ripples: 30}
+        - {type: bloom, threshold: 0.55, amount: 0.7}
+        - {type: tonemap, knee: 0.75}
+        - {type: vignette, amount: 0.45}
