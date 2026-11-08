@@ -1056,16 +1056,23 @@ def build():
             # line joins them, sung by voices 15% larger (part_size 1: formants 13% lower - basses, not the same
             # singers pitched down), the third above by slightly smaller voices: the surge's big-men floor (v39) at
             # both choruses, so all three sung peaks stand on the same low voices
-            {'name': 'chorus', 'patch': dict(dict(CHO['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[-7,2] synth.layers.0.harmony_key=E:mixolydian synth.layers.0.part_size=1 synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+            # (v59, palette: wM's f0_spread and vowel_spread, pinned 06:06 and 03:36) THE CHOIRS BREATHE APART: every
+            # choir in the song - the crest's chorus, the surge's unison and its big-men octave, the last chorus - sang
+            # with its five singers' vibratos in exact lockstep (their vibrato lives in each sung note's pitch path, which
+            # vib_spread can't reach) and with one voice's vowels copied and scaled; now each singer reads the pitch
+            # path's vibrato at their own rate, phase and depth (f0_spread 1: the slow scoops and glides stay shared,
+            # so the section still moves together) and shapes the vowels their own way (vowel_spread 1); the lines,
+            # parts and levels are untouched
+            {'name': 'chorus', 'patch': dict(dict(CHO['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[-7,2] synth.layers.0.harmony_key=E:mixolydian synth.layers.0.part_size=1 synth.layers.0.together=true synth.layers.0.f0_spread=1 synth.layers.0.vowel_spread=1 synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': cnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
             # (v39) and the surge's choir gets REAL BASSES: its octave below was the same five singers transposed down
             # (small people singing low, harmony [-7]); now the low octave is its own choir with a larger tract (wM:
             # tract 1.25 scales every formant down - big men), a dB under the upper choir
-            {'name': 'surgesung', 'patch': dict(dict(SG['tracks'][0]['patch'], extends='voice-choir synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+            {'name': 'surgesung', 'patch': dict(dict(SG['tracks'][0]['patch'], extends='voice-choir synth.layers.0.together=true synth.layers.0.f0_spread=1 synth.layers.0.vowel_spread=1 synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': sgnotes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
-            {'name': 'surgelow', 'patch': dict(dict(SG['tracks'][0]['patch'], extends='voice-choir synth.layers.0.tract=1.25 synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.04, 'scoop': 1}),
+            {'name': 'surgelow', 'patch': dict(dict(SG['tracks'][0]['patch'], extends='voice-choir synth.layers.0.tract=1.25 synth.layers.0.together=true synth.layers.0.f0_spread=1 synth.layers.0.vowel_spread=1 synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.04, 'scoop': 1}),
              'notes': [dict(n_, pitch=f"m{int(str(n_['pitch'])[1:]) - 12}") for n_ in sgnotes], 'gain': '-10dB', 'pan': 0.0, 'sends': {'hall': '-10dB'}},
-            {'name': 'chorus2', 'patch': dict(dict(CHD['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[-7,2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.part_size=1 synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
+            {'name': 'chorus2', 'patch': dict(dict(CHD['tracks'][0]['patch'], extends='voice-choir synth.layers.0.harmony=[-7,2] synth.layers.0.harmony_key=D:mixolydian synth.layers.0.part_size=1 synth.layers.0.together=true synth.layers.0.f0_spread=1 synth.layers.0.vowel_spread=1 synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': c2notes, 'gain': '-9dB', 'pan': 0.0, 'sends': {'hall': '-9dB'}},
             # (v18) wM's singer's glide (glide_overshoot, pinned 14:27) on every sung line: on each leap the old voice and
             # the choir swing a little past the note and settle, as singers do, instead of landing dead on it (0.06: subtle)
