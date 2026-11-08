@@ -104,6 +104,24 @@ def line(events, total):
 def m(n): return f"m{n:.3f}"
 
 
+def swung(score, at0, at1, amt):
+    # (v57, from t2's v44) put a 16th shuffle on a score between two beats: split the rest that crosses each boundary
+    # and put the engine's swing16= directive there
+    out, t, done_ = [], 0.0, set()
+    for tk in score.split(' '):
+        base, _, rest_ = tk.partition('/')
+        dur = float(rest_.split('b')[0])
+        for mark, tok in ((at0, f"swing16={amt}"), (at1, "swing16=0.5")):
+            if mark in done_:
+                continue
+            if t < mark - 1e-6 < t + dur - 1e-6 and base == 'R':
+                out.append(f"R/{mark - t:.4f}b"); out.append(tok); dur -= mark - t; t = mark; tk = f"R/{dur:.4f}b"; done_.add(mark)
+            elif t >= mark - 1e-6:
+                out.append(tok); done_.add(mark)
+        out.append(tk); t += dur
+    return ' '.join(out)
+
+
 def sec_of(bar):
     for nm_, n_ in FORM:
         if SEC[nm_] <= bar < SEC[nm_] + n_:
@@ -850,7 +868,15 @@ def build():
         if not in_cajon_ and not any(abs(e_[0] - a_) < 0.5 and e_[1] == 'c' for e_ in P['kit']):
             P['kit'].append((a_, 'c', 2.0, 104))
     P['kit'].sort(key=lambda e_: e_[0])
-    tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
+    # (v57, section w3: 1:03-1:35, the tide, 'little new vs w2' - the pull's straight sixteenths carried on under the
+    # duet) THE TIDE ROLLS: for the tide's sixteen bars the whole rhythm section - the cajon, the hats, the 303, the
+    # marimba, the steel pan and the kora - plays its sixteenths with a deep shuffle (swing16 0.65, close to
+    # triplets): every second sixteenth late, the groove rolling like a swell instead of ticking; the voices, the
+    # harmonium's waves and the bass stay where they are. At the squeeze it snaps straight again, as the water is
+    # pulled tight
+    TIDE_ROLL = {'acid', 'kit', 'cajon', 'hats', 'near', 'e5', 'e5b'}
+    tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain,
+                                               'score': swung(line(P[name], total), SEC['tide'] * 4.0, SEC['squeeze'] * 4.0, 0.65) if name in TIDE_ROLL else line(P[name], total)}, **kw)
     # (v50, section w9: the out-seam 'static, little new vs w8' - the last chorus's locked groove ran on, sixteenth
     # hats and the 303 at full speed, through the whole overlap into t7's drumless head) TIME DILATES AT THE EDGE: as
     # the near side's filter closes (its redshift), the band's own time slows with it - four bars in, the drummer's
