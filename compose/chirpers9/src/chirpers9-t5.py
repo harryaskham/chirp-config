@@ -87,6 +87,9 @@ EQ640 = os.environ.get("C9T5_EQ640", "")   # WHOLE (the spectrum's worst band wa
 LIGHTSEQ = os.environ.get("C9T5_LIGHTSEQ", "640:-4")   # with it: the lights (the kuramoto choir's chords, since v45) - a choir's open 'ah' formant sits at 600-900 Hz, the album's middle: a peak cut there ('cutoff:dB') (v48: 640:-4; the same cut on the orbits, EQ640, barely moved the band: it is the choir's)
 CHIPAIR = os.environ.get("C9T5_CHIPAIR", "-7")   # WHOLE (the seam in from t4: t5 is 18 dB brighter at 14.8 kHz than t4's tail): the chip parts' top - the seed-hi chip lead and both NES orbits - softened by a high shelf at 12 kHz (value dB), the inner disk's glitter kept but less glassy
 CHOIRBLOOM = os.environ.get("C9T5_CHOIRBLOOM", "bloom")   # SECTION w6 (2:47-3:20, the lock: her line three times, the crest choir accreting one voice, two, three): THE CHOIR BLOOMS - with wM's vib_spread (pinned da77da08) the harmony parts of the second and third statements each read the vibrato their own way instead of in lockstep; 'bloom' also gives the third statement three singers a part, spread wide, so the accretion goes one voice, two, a small choir ('spread' or 'bloom')
+ORBITFX = os.environ.get("C9T5_ORBITFX", "main")   # WHOLE (t5 is Periapsis - the closest point of an orbit): THE ORBIT COMES CLOSEST - the chip orbit that circles E5 all song now literally circles the listener (the engine's orbit fx, head-centred, no Doppler so the pitch stays in key): far and slow in the head (6 m, a lap every four bars), tightening through A and the build, closest and fastest at the crest (0.8 m, two laps a bar - Kepler: an orbit is quickest at periapsis), then receding through C and the outro ('main' the orbit alone; 'pair' the drifting second orbit too, on the opposite side of the circle)
+ORBITMIX = os.environ.get("C9T5_ORBITMIX", "")   # with ORBITFX: the orbit fx's wet mix (0..1)
+ORBITLIFT = os.environ.get("C9T5_ORBITLIFT", "6")   # with ORBITFX: a high shelf (dB at 7 kHz) after the orbit - the fx darkens a source behind the head, and the song's top lost it
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -687,6 +690,20 @@ def song():
         for tr in tracks:
             if tr["name"] in ("seed-hi", "orbit", "orbit-drift"):
                 tr["fx"] = list(tr.get("fx", [])) + [f"highshelf cutoff=12000 gain={CHIPAIR}dB"]
+    if ORBITFX:
+        peri_spin_pts = [["0b", 0.25], ["64b", 0.25], [f"{ST['build']}b", 0.5], [f"{TC}b", 2.0], [f"{TC + 32}b", 1.0], ["432b", 0.25], ["496b", 0.25]]
+        peri_near_pts = [["0b", 6.0], ["64b", 5.0], [f"{ST['build']}b", 3.5], [f"{TC}b", 0.8], [f"{TC + 32}b", 2.0], ["432b", 5.0], ["496b", 6.0]]
+        for tr in tracks:
+            if tr["name"] == "orbit" or (ORBITFX == "pair" and tr["name"] == "orbit-drift"):
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "orbit", "path": "circle", "distance": 0, "doppler": 0.0, "rate": "1/1",
+                    "speed": {"value": 0, "mod": [{"src": "auto.peri_spin", "amount": 1}]},
+                    "radius": {"value": 0, "mod": [{"src": "auto.peri_near", "amount": 1}]},
+                    "phase": 0.5 if tr["name"] == "orbit-drift" else 0.0}]
+                if ORBITMIX:
+                    tr["fx"][-1]["mix"] = float(ORBITMIX)
+                if ORBITLIFT:
+                    tr["fx"].append(f"highshelf cutoff=7000 gain={ORBITLIFT}dB")
+                tr["auto"] = dict(tr.get("auto", {}), peri_spin={"points": peri_spin_pts}, peri_near={"points": peri_near_pts})
     if CHOIRBLOOM:
         for tr in tracks:
             if tr["name"] in ("hums-2", "hums-3") and isinstance(tr["patch"], dict):
