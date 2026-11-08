@@ -1080,6 +1080,36 @@ def rise_pulls_back():
 E3HI_PATCH, E3HI_GAIN, E3HI_UP = "violin", "-8dB", 12      # the steel copy sat at -22 (unheard); at -15 the violin -14/-18
 
 
+# v58 (ROUND TYPE: section, A 29-32, 1:01-1:08): A OPENS UPWARD. A's middle was eight bars of one texture - the
+# lights, bass, sub, shaker, the harp's E2 and the clarinet finding the verse - the stillest block clear of both seams
+# (0:56, 0.48). Now the four bars before her verse lift away from the floor: the bass and the shaker rest (the sub
+# stays - the album's low end), the lights' two top notes rise an octave (B_OPEN's re-voicing, here as A's first
+# breath upward), and the clarinet's mirrored line is left in the open; at 33 the bass and shaker come back under her
+# verse - an arrival, where there was a continuation.
+A_OPEN = (29, 33)
+A_REST = ("bass", "air")
+
+
+def a_opens_upward():
+    lo, hi = b0(A_OPEN[0]), b0(A_OPEN[1])
+    for n in A_REST:
+        out = []
+        for s, ln, h, v in P[n].ev:
+            if lo - 1e-6 <= s < hi - 1e-6:
+                continue
+            if s < lo - 1e-6 < s + ln:
+                ln = lo - s
+            out.append((s, ln, h, v))
+        P[n].ev = out
+    ev = []
+    for s, ln, h, v in P["lights"].ev:
+        if lo - 1e-6 <= s < hi - 1e-6 and "," in h:
+            ns = sorted(h.split(","), key=midi_of)
+            h = ",".join(ns[:-2] + [f"m{midi_of(x) + 12}" for x in ns[-2:]])
+        ev.append((s, ln, h, v))
+    P["lights"].ev = ev
+
+
 def rise_bowed():
     P["e3hi"].ev = [(s, ln, ",".join(f"m{midi_of(x) + E3HI_UP}" for x in h.split(",")), v) for s, ln, h, v in P["e3hi"].ev]
 
@@ -1305,6 +1335,7 @@ def main():
     clarinet_finds_the_verse()
     hands_listen()
     rise_bowed()
+    a_opens_upward()
     rise_pulls_back()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v + verse(),
