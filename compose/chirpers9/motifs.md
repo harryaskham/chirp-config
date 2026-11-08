@@ -143,6 +143,7 @@ score: "D2/8. D2/8. D3/8 Eb2/8 Eb2/8. Bb1/8. C2/8. C2/8. G2/8 C3/4"   # segments
   - As harmony: the three chords alone (2+2+3), or the roots D Eb C as a slow bass.
 - **Handover.** Across t3 -> t4 (108 bpm, 16 bars) the riff falls augmented and sinking (-7 semitones), and Dm(add9)
   is held at pitch as the residue whose third t4 lifts (F -> F#), with D4 common.
+- **In t8 (chirper-three, since v64): the amen.** The light (major) form D2 D2 D3 | A1 A1 E2 | G1 G1 D2 G2, bowed at half speed from bar 155 as one of the repeating afterimages; its last G2 holds into the convergence, so when the images release at 160 and the light sinks to D at 161 the album ends IV -> I, a plagal amen.
 
 ### E4, "four lights" (t4, chirper-three)
 **E4 v2 (6 Nov, after Harry's note - tone is home):** the four lights all sit in D MIXOLYDIAN, the scale E1 itself implies
