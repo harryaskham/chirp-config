@@ -437,6 +437,21 @@ def build():
             lastpadE.append(dict(OOH['tracks'][0]['notes'][0], at=round(b_ * 4.0, 4), len=7.7, vel=0.8, pitch=f"m{p_ + 2}"))
         else:
             lastpad.append(dict(OOH['tracks'][0]['notes'][0], at=round(b_ * 4.0, 4), len=7.7, vel=0.72 + 0.03 * (b_ - 86) / 2, pitch=f"m{p_}"))
+    # (v53, section w9: the fall 'static' since the first day - forty seconds of instruments sinking, the song's
+    # people gone from it the moment the last chorus ended) THE VOICES GO UNDER: for the fall's first eight bars - the
+    # heartbeat half - the backing choir that held the crest and the last chorus holds the fall's own chords (D minor,
+    # B-flat major 7, C, D minor) with its mouths closed: a hum, basses and all (part_size), each singer on their own
+    # vibrato (wM's vib_spread, pinned tonight), each chord softer than the last; when the heartbeat stops at bar 105
+    # the voices have gone under, and t3's wind has the space
+    fallhum = []
+    for k_, b_ in enumerate(range(96, 104, 2)):
+        r_ = chord(b_)[0]
+        p_ = KEY + 24 + r_
+        while p_ > 64:
+            p_ -= 12
+        while p_ < 53:
+            p_ += 12
+        fallhum.append(dict(OOH['tracks'][0]['notes'][0], at=round(b_ * 4.0, 4), len=7.7, vel=round(0.82 - 0.1 * k_, 2), pitch=f"m{p_}"))
     oohin = [dict(OOH['tracks'][0]['notes'][0], at=16.0, len=7.6, vel=0.6), dict(OOH['tracks'][0]['notes'][0], at=24.0, len=7.9, vel=0.88)]
     # (v30, section w3: 1:03-1:35, 'static' - the second verse sang into the same groove as the first, and the wurli
     # entered on its own two bars later) THE SECOND VERSE IS ANSWERED: the backing voices hold 'ooh' (D4 and the open
@@ -967,6 +982,8 @@ def build():
             # BASSES: the ooh triads that back the crest gain a part an octave below the root, sung by voices 15%
             # larger (part_size 1: formants 13% lower) - real basses under the choir, not the same singers pitched
             # down - and the thirds and fifths above by slightly smaller voices: a SATB spread for the album's hook
+            {'name': 'fallhum', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.hum=1 synth.layers.0.hum_at=m synth.layers.0.harmony=[-7,2,4] synth.layers.0.harmony_key=D:minor synth.layers.0.together=true synth.layers.0.part_size=1 synth.layers.0.vib_spread=1'),
+             'notes': fallhum, 'gain': '-12dB', 'pan': 0.0, 'sends': {'hall': '-6dB'}},
             {'name': 'lastpad', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-7,2,4] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true synth.layers.0.part_size=1'),
              'notes': lastpad, 'gain': '-14dB', 'pan': 0.0, 'sends': {'hall': '-10dB'}},
             {'name': 'lastpadE', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-7,2,4] synth.layers.0.harmony_key=E:dorian synth.layers.0.together=true synth.layers.0.part_size=1'),
