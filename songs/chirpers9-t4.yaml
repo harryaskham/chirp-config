@@ -621,7 +621,8 @@
        "even": 1.0,
        "age": 0.45,
        "hum": "expr.hum",
-       "hum_at": "m"
+       "hum_at": "m",
+       "taper": 0.6
       }
      ],
      "lfo": {
@@ -3520,7 +3521,8 @@
        "consonant_level": "-6dB",
        "pulse_rate": 5,
        "join": true,
-       "inhale": 0.3
+       "inhale": 0.3,
+       "taper": 0.4
       }
      ],
      "lfo": {

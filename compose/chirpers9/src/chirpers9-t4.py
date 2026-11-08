@@ -196,6 +196,7 @@ def hum1_patch():
     """Her voice, closed-mouthed: little breath (the open voice's air read +28 dB at 15 kHz against t3's body)."""
     p = json.loads(json.dumps(VOICE))
     p["synth"]["layers"][0]["breath"] = 0.12
+    p["synth"]["layers"][0].pop("taper", None)            # v61: the t3 seam's stand-in keeps its square ends
     return p
 
 
@@ -612,11 +613,21 @@ VOICE["synth"]["layers"][0].update({"hum": "expr.hum", "hum_at": "m"})
 B_HUM_VEL = (0.95, 0.9)                           # (the first note of each cycle, the rest)
 B_HUM = 0.8                                       # not quite sealed: fully closed (1.0) took B's air with it - t4's
                                                   # 14.8 kHz band, already short of the album, fell 0.5 dB (-0.045)
+# v61 (ROUND TYPE: whole song): EVERY PHRASE LETS GO. 'The voice at its most human so far' - and a sung phrase that
+# ends at full tone and stops, as hers did, is the machine's tell: a singer runs out of air. wM's TAPER (pinned
+# 251180c1; the sag was chirper-three's ask): on a joined line the phrase's LAST note keeps full tone for its first 30%,
+# then lets go - quieter (-9 dB), darker, breathier, the pitch sagging up to 15 cents. Now on every line she sings -
+# the verse, the closed hums of B, the crest's words, the relief - at 0.6 (wM's recipe for a soloist), and on the
+# young duet at 0.4 (a younger singer holds a little longer). Notes inside a phrase are untouched; hum1 is excluded.
+VOICE["synth"]["layers"][0]["taper"] = 0.6
+VOICE2_TAPER = 0.4
+
 VOICE2 = {"about": "t4's second singer (v7): lighter and a little brighter, a third above in the duet; joined (v10)",
           "play": {"mono": True, "glide": "90ms", "glide_smooth": True, "scoop": 1.0, "fall": 1.5,
                    "glide_overshoot": 0.05},
           "synth": {"layers": [{"type": "voice", "tract": 0.95, "breath": BREATHES(0.46), "effort": EFFORT, "formant_bw": 1.4, "ph_soft": 0.35,
-                                "consonant_level": "-6dB", "pulse_rate": 5, "join": True, "inhale": 0.3}],
+                                "consonant_level": "-6dB", "pulse_rate": 5, "join": True, "inhale": 0.3,
+                                "taper": VOICE2_TAPER}],
                     "lfo": {"vib": {"wave": "sine", "rate": "5.6hz", "delay": "250ms", "fade": "400ms",
                                     "retrig": True, "wander": 0.6}},
                     "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}, {"src": "lfo.vib", "amount": 0.16}]},
