@@ -1062,6 +1062,35 @@ BOWL_GAIN = "-5dB"                    # at -12 it sat at -19 to -21 under the mi
 BOWL = [(81, "D4", 0.62), (101, "A3", 0.5), (121, "D3", 0.45)]
 
 
+# v54 (ROUND TYPE: palette - add the part the song lacks): A BREEZE. t4's brief is one word - relief - and after the
+# crest (all four elements at once) the relief had everything but air: compscore --bands puts the song 3-7 dB under
+# the album above 5 kHz (14.8 kHz -6.8) and 6.5 dB over it at 1.4 kHz. Now a breeze moves through the relief and
+# stirs a set of WIND CHIMES (chimes, unused on the album: thin metal tubes, bright inharmonic partials, a long
+# shimmer), tuned as real chimes are to a consonant pentatonic set in the key (D6 E6 F#6 A6 B6): a few strikes as the
+# crest lets go (99-100), two gusts through the relief - the second fuller - and stillness again by 116, clear of
+# the t5 seam (its 3 s window begins at 119.6).
+CHIME_GAIN = "-8dB"                     # at -12 the first gust sat under -15.6, the second -11.1 (heard 27%)
+CHIME_SET = ("D6", "E6", "F#6", "A6", "B6")
+GUSTS = [(99.0, 101.5, 0.6), (103.0, 107.0, 1.0), (109.0, 115.5, 1.5)]   # (from bar, to bar, strikes per beat at the peak)
+
+
+def breeze():
+    import random
+    rng, out = random.Random(41), []
+    for a, z, peak in GUSTS:
+        s, e = b0(a), b0(z)
+        t = s
+        while t < e:
+            x = (t - s) / (e - s)
+            dens = peak * math.sin(math.pi * x) ** 1.5 + 0.08
+            t += rng.expovariate(dens)
+            if t >= e:
+                break
+            v = round((30 + 50 * math.sin(math.pi * (t - s) / (e - s)) * rng.uniform(0.6, 1.0)) / 127, 3)
+            out.append({"at": round(t, 3), "len": 4.0, "pitch": f"m{midi(rng.choice(CHIME_SET))}", "vel": v})
+    return out
+
+
 def warm_stone():
     return [{"at": b0(bar), "len": 16.0, "pitch": f"m{midi(n)}", "vel": v} for bar, n, v in BOWL]
 
@@ -1284,7 +1313,8 @@ def main():
             tr("clar", "clarinet", gain="-5dB", pan=-0.3, sends={"hall": "-10dB"}),   # v29
             {"name": "hum1", "patch": hum1_patch(), "gain": "-8dB", "pan": 0.0, "fx": ["lp cutoff=4000"],
              "sends": {"hall": "-9dB"}, "notes": first_hum()},                    # v35 (last: event_stable)
-            {"name": "bowl", "patch": "singing-bowl", "gain": BOWL_GAIN, "pan": -0.15, "notes": warm_stone()},   # v50 (last)
+            {"name": "bowl", "patch": "singing-bowl", "gain": BOWL_GAIN, "pan": -0.15, "notes": warm_stone()},   # v50
+            {"name": "chimes", "patch": "chimes", "gain": CHIME_GAIN, "pan": 0.4, "notes": breeze()},             # v54 (last)
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=20ms", "hp cutoff=180"]},
