@@ -1,0 +1,7 @@
+about: "Prefab (3D, use in a group): a standing figure in a long cape (extra bones from the shoulders and chest with skin between), the cape billowing in the wind and lifting on the bass; the figure sways a little. It faces -z (turn the group, or give face: to the group). Params: billow (how far the cape lifts), wind (how fast it moves), sway (the figure's own motion), hue (its colour along the palette), rim (its outline's glow)."
+params: {billow: 1, wind: 1, sway: 0.2, hue: 0.0, rim: 1.2}
+layers:
+  - {type: figure, motion: sway, energy: param.sway, y: -0.62, scale: 0.75, pos: param.hue, spread: 0, light: 1, ambient: 0.08, rim: param.rim, rim_color: "#a8b8ff",
+     extra: [{name: cape_l, parent: shoulder_l, length: 0.95, dir: [-0.2, -1, 0.3], width: 0.02}, {name: cape_r, parent: shoulder_r, length: 0.95, dir: [0.2, -1, 0.3], width: 0.02}, {name: cape_m, parent: chest, length: 1.05, dir: [0, -1, 0.35], width: 0.02}],
+     pose: {cape_l: ["0 - param.billow*(0.02 + 0.02*sin(time.t*1.1*param.wind) + 0.015*noise(time.t*2.3*param.wind) + 0.02*audio.low)", 0, "0.02*sin(time.t*0.9*param.wind)"], cape_r: ["0 - param.billow*(0.02 + 0.02*sin(time.t*1.1*param.wind + 0.3) + 0.015*noise(time.t*2.3*param.wind + 5) + 0.02*audio.low)", 0, "0 - 0.02*sin(time.t*0.9*param.wind)"], cape_m: ["0 - param.billow*(0.025 + 0.025*sin(time.t*1.1*param.wind + 0.15) + 0.02*noise(time.t*2.1*param.wind + 2) + 0.025*audio.low)", 0, 0]},
+     skin: [[shoulder_l, cape_l, cape_m], [shoulder_l, cape_m, chest], [chest, cape_m, shoulder_r], [shoulder_r, cape_m, cape_r]]}
