@@ -1392,6 +1392,15 @@ E7_PATCH, E7_GAIN = "brass", "-11dB"
 # question rises and must not sag; her last line has its own full let-go (v65).
 CHOIR_TAPER, FAR_TAPER = 0.5, 0.8
 
+# v73 (ROUND TYPE: palette): THE UNDERTOW ON GUT AND HORSEHAIR. E3 - t3's storm undertow, here the stretto's low line
+# and (v64) the album's last cadence, its G held into the convergence for the plagal amen - played on a synthetic saw
+# section (strings-synth). Now it is BOWED: the library's physical contrabass, arco ('a deep, grainy bowed bass with a
+# slow-speaking stroke'), in its mix-ready opt-in form contrabass-tight (lows narrowed below 200 Hz; unused on the
+# album - t6's farbow has the plain one). The amen is now a real bow on a real body. (Refused at 17:58 as v69: the
+# slow bow ran the cell and its held G into one sustain and seed 11's 4:00 window - then 0.001 over the threshold -
+# joined a 32 s flat run; since v71's flicker the horizon around it moves, so the run cannot form.)
+E3_PATCH, E3_GAIN = "contrabass-tight", "-16dB"
+
 
 def choir_patch(singers, tract=0.92, third=False, depth=None):
     pt = json.loads(json.dumps(VOICE8))
@@ -1518,7 +1527,7 @@ def main():
             tr("e2", "modal-glock", gain="-16dB", pan={"value": 0.35, "mod": [{"src": "auto.pn", "amount": 0.6}]},
                sends={"dly": "-14dB"}, fx=[ORBIT_FX, FAR_FX],
                auto={"orb": {"points": orbit_lane("e2")}, **disk_auto("e2", orbit_pan(ENTRY["E2"], 7.0, -1.0), 0.6)}),   # v25, v48
-            tr("e3", "strings-synth", gain="-16dB", pan=disk_pan(-0.1), sends={"hall": "-8dB"}, fx=["lp cutoff=1800", ORBIT_FX, FAR_FX, STRETCH_FX],
+            tr("e3", E3_PATCH, gain=E3_GAIN, pan=disk_pan(-0.1), sends={"hall": "-8dB"}, fx=["lp cutoff=1800", ORBIT_FX, FAR_FX, STRETCH_FX],
                auto={"orb": {"points": orbit_lane("e3")}, **disk_auto("e3"), "sp": {"points": stretch_lane()}}),
             tr("e5", E5_PATCH, gain=E5_GAIN, pan=disk_pan(0.2), sends={"room": "-10dB"},
                fx=[ORBIT_FX, FAR_FX], auto={"orb": {"points": orbit_lane("e5")}, **disk_auto("e5")}),
