@@ -109,6 +109,7 @@ SEEDGATHER = os.environ.get("C9T1_SEEDGATHER", "slow")   # WHOLE (t1 is Nucleati
 A2LIFT = os.environ.get("C9T1_A2LIFT", "cello")   # SECTION w3 (1:13-1:48, A's middle: never focused - from the whistle's landing to the bass walk's start nothing new arrives: only the scattered seeds, the cello's slow E1 and the pads): 'whistle' the low whistle states E1 twice more (beats 124 and 134, on the crest's grid), remembering the landing, quieter; 'cello' the cello's slow E1 lifts an octave for the window's second half (120-144), the same line, higher
 VIBESP = os.environ.get("C9T1_VIBESP", "modal-vibes@-2")   # PALETTE: the seed's A voice (and its double in the build, join-vibes) leaves the additive 'vibes' for wM's modal vibraphone (a struck bar's own modes, motor tremolo) - the same notes, a real bar ringing ('patch[@dB change]')
 FARCLOSE = os.environ.get("C9T1_FARCLOSE", "room")   # SECTION w8 (3:59-4:33, the fall and the hand-off to t2: never focused): THE LAST HUM STANDS BACK - the closing hum (v36) is built after CHOIRVIB/CHOIRVOWEL ran, so it never got them (v47/v49's notes said it did; only the sighs did): now it gets the far choir's full recipe - five singers, spread 0.8, each with its own vibrato and vowels - and wM's depth_spread (pinned 391d8713): each singer stands their own distance back, later, quieter and darker, so the last hum is a section receding as t2 arrives ('depth' or 'room' = depth plus a hall send)
+FARCHOIR = os.environ.get("C9T1_FARCHOIR", "room")   # PALETTE (the far choir as one sound): the opening hum is built after CHOIRVIB/CHOIRVOWEL ran and never got them - one voice tripled where the sighs and (since v53) the closing hum are a five-singer section; now it gets the section too (five singers, spread 0.8, its own vibrato and vowels) and, with the sighs, wM's depth_spread - each singer at its own distance behind, later, quieter, darker ('depth'; 'room' also sends the opening hum to the hall at -6 dB like the closing one)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -728,6 +729,14 @@ def song():
                 tr["patch"] = vp
                 if vg:
                     tr["gain"] = f"{float(str(tr['gain']).replace('dB', '')) + float(vg):g}dB"
+    if FARCHOIR:
+        for tr in tracks:
+            if tr["name"] == "hum" and isinstance(tr["patch"], dict):
+                tr["patch"] = {"extends": tr["patch"]["extends"] + " synth.layers.0.singers=5 synth.layers.0.spread=0.8 synth.layers.0.vib_spread=1 synth.layers.0.vowel_spread=1 synth.layers.0.depth_spread=1"}
+                if FARCHOIR == "room":
+                    tr["sends"] = dict(tr.get("sends", {}), space="-6dB")
+            if tr["name"] == "breath" and isinstance(tr["patch"], dict):
+                tr["patch"] = {"extends": tr["patch"]["extends"] + " synth.layers.0.depth_spread=1"}
     if FARCLOSE:
         for tr in tracks:
             if tr["name"] == "hum-out" and isinstance(tr["patch"], dict):
