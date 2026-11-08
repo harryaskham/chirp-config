@@ -1,0 +1,14 @@
+about: "Prefab (3D, use in a group): a fire. Tongues of flame (glowing motes thrown up from the base, swelling and cooling from white-gold to red as they rise), a hot core, sparks streaking upward, smoke lit orange low down and dark above, and its own flickering light that lights everything near it. It flares on the beat and roars with the music. Params: size, heat (brightness), smoke (0 for none), sparks, flicker."
+params: {size: 1, heat: 1, smoke: 1, sparks: 1, flicker: 1}
+env:
+  flare: {on: beat, decay: 0.25}
+layers:
+  - {type: light, y: "0.15*param.size", color: "#ff9a40", power: "param.heat*(1.2 + 0.35*param.flicker*noise(time.t*7) + 0.25*env.flare + audio.level*0.8)", reach: "2.5*param.size"}
+  # The core: a hot glow at the base.
+  - {type: motes, mode: emit, count: 120, from: [0, 0, 0], wide: "0.12*param.size", deep: "0.12*param.size", wind_y: "0.25*param.size", wobble: "0.03*param.size", fall: 0, life: 0.5, size: "0.04*param.size", glow: "0.1*param.heat", twinkle: 0.4, color: "#fff0b0", near: 0}
+  # Tongues of flame: thrown up, swelling, cooling as they rise.
+  - {type: motes, mode: emit, count: 220, seed: 3, from: [0, 0, 0], wide: "0.2*param.size", deep: "0.2*param.size", wind_y: "(0.9 + 0.3*audio.level + 0.25*env.flare)*param.size", wobble: "0.08*param.size", fall: "-0.2*param.size", drag: 0.8, life: "0.7 + 0.2*audio.level", size: "0.025*param.size", grow: 0.2, stretch: 3.5, heading: true, glow: "0.14*param.heat*(1 + 0.3*env.flare)", twinkle: "0.5*param.flicker", palette: ember, pos: 0.85, spread: -0.7, near: 0}
+  # Sparks.
+  - {type: motes, mode: emit, count: 200, seed: 7, from: [0, "0.1*param.size", 0], wide: "0.15*param.size", deep: "0.15*param.size", wind_y: "1.1*param.size", wobble: "0.35*param.size", fall: "-0.15*param.size", drag: 0.5, life: 2.4, streak: 0.06, size: "0.006*param.size", glow: "1.6*param.sparks", twinkle: 0.7, palette: ember, spread: 0.8, near: 0}
+  # Smoke, lit by the fire low down.
+  - {type: motes, mode: emit, puff: true, lit: 0.4, count: 260, seed: 11, from: [0, "0.35*param.size", 0], wide: "0.08*param.size", deep: "0.08*param.size", wind_x: "0.04*param.size", wind_y: "0.3*param.size", wobble: "0.08*param.size", fall: "-0.03*param.size", drag: 0.5, life: 6, size: "0.05*param.size", grow: 0.9, glow: "0.22*param.smoke", twinkle: 0, color: "#2a2a2e", near: 0.2}
