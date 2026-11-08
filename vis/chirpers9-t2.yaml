@@ -16,8 +16,8 @@ scenes:
       layers:
         - {type: sky, zenith: "#2a3c6a", horizon: "#ffb880", ground: "#6a5a60", sun: "#fff0d0", sun_yaw: 0.0, sun_height: 0.04, sun_size: 0.04, glow: 1.2, haze: 0.4}
         - {type: group, use: kit-terrain, y: -0.4, z: 2, params: {height: 0.9, travel: "0.45 + 0.3*audio.level", seed: 2}}
-        - {type: figure, rig: bird, count: 5, x: "1.2*sin(time.t*0.07 + inst.i*0.2)", y: "0.9 + 0.15*sin(time.t*0.11 + inst.i)", z: "2.5 + 0.8*cos(time.t*0.07 + inst.i*0.2)", face: ["1.2*sin(time.t*0.07 + 0.02 + inst.i*0.2)", "0.9 + 0.15*sin(time.t*0.11 + inst.i)", "2.5 + 0.8*cos(time.t*0.07 + 0.02 + inst.i*0.2)"], scale: 0.18, phase: "inst.i*0.4", energy: "0.7 + 0.5*audio.level", color: "#2a2430", light: 1, ambient: 0.2, rim: 0.8, rim_color: "#ffd0a0"}
-        - {type: figure, rig: bird, count: 3, x: "-1.4*sin(time.t*0.045 + inst.i*0.3)", y: "1.2 + 0.1*inst.i", z: "3.4 + 1.1*cos(time.t*0.045 + inst.i*0.3)", face: ["-1.4*sin(time.t*0.045 + 0.02 + inst.i*0.3)", "1.2 + 0.1*inst.i", "3.4 + 1.1*cos(time.t*0.045 + 0.02 + inst.i*0.3)"], scale: 0.2, motion: glide, color: "#2a2430", light: 1, ambient: 0.2, rim: 0.8, rim_color: "#ffd0a0"}
+        - {type: figure, rig: bird, count: 5, x: "1.2*sin(time.t*0.07 + inst.i*0.2)", y: "0.9 + 0.15*sin(time.t*0.11 + inst.i)", z: "2.5 + 0.8*cos(time.t*0.07 + inst.i*0.2)", face: ["1.2*sin(time.t*0.07 + 0.02 + inst.i*0.2)", "0.9 + 0.15*sin(time.t*0.11 + inst.i)", "2.5 + 0.8*cos(time.t*0.07 + 0.02 + inst.i*0.2)"], scale: 0.26, phase: "inst.i*0.4", energy: "0.7 + 0.5*audio.level", color: "#2a2430", light: 1, ambient: 0.2, rim: 0.8, rim_color: "#ffd0a0"}
+        - {type: figure, rig: bird, count: 3, x: "-1.4*sin(time.t*0.045 + inst.i*0.3)", y: "1.2 + 0.1*inst.i", z: "3.4 + 1.1*cos(time.t*0.045 + inst.i*0.3)", face: ["-1.4*sin(time.t*0.045 + 0.02 + inst.i*0.3)", "1.2 + 0.1*inst.i", "3.4 + 1.1*cos(time.t*0.045 + 0.02 + inst.i*0.3)"], scale: 0.28, motion: glide, color: "#2a2430", light: 1, ambient: 0.2, rim: 0.8, rim_color: "#ffd0a0"}
         - {type: motes, mode: drift, puff: true, count: 400, y: -0.2, z: 3, w: 10, h: 0.3, d: 10, wind_z: -0.4, fall: 0, wobble: 0.05, size: 0.3, glow: 0.1, twinkle: 0, color: "#c8b8c0", near: 0.6}
       filters:
         - {type: fog, color: "#d8b8a8", density: 0.08}
@@ -31,7 +31,7 @@ scenes:
       background: "#000000"
       env:
         lamp: {on: bar, decay: 0.6}
-      camera: {x: "0.35 + 0.1*sin(time.t*0.05)", y: 0.35, z: -1.6, look_at: [0, 0.15, 6]}
+      camera: {x: "0.3 + 0.1*sin(time.t*0.05)", y: 0.3, z: -0.9, look_at: [0, 0.1, 6]}
       layers:
         - {type: sky, zenith: "#0a1028", horizon: "#c86a50", ground: "#14101a", sun: "#ffb080", sun_yaw: 0, sun_height: -0.01, sun_size: 0.03, glow: 0.8, haze: 0.4}
         - {type: stars, count: 1200, speed: 0, twinkle: 0.4}
@@ -45,7 +45,7 @@ scenes:
         - {type: mesh, shape: sphere, detail: 24, y: 0.25, z: 30, scale: "0.25 + 1.2*smooth(95, 190, time.t) + 0.4*audio.lift", color: "#fff0d0", light: 0, ambient: 0, rim: 0, emit: "3 + 4*audio.lift"}
         - {type: beam, from: [0, 0.3, 30], to: [0, 6, 30], width: 0.05, taper: -3, glow: "0.2 + 0.8*smooth(150, 190, time.t)*(0.5 + audio.level)", fade: 0.6, color: "#c8d8ff"}
         # The walker, seen from behind, walking in.
-        - {type: figure, rig: human, motion: walk, z: 0.4, y: -0.22, scale: 0.42, face: [0, 0, 30], energy: 0.9, color: "#1a1a20", light: 1, ambient: 0.1, rim: 1.4, rim_color: "#ffc890"}
+        - {type: figure, rig: human, motion: walk, z: 0.4, y: -0.12, scale: 0.55, face: [0, 0, 30], energy: 0.9, color: "#1a1a20", light: 1, ambient: 0.1, rim: 1.4, rim_color: "#ffc890"}
         # Fireflies in the grass.
         - {type: motes, mode: drift, count: 300, y: -0.4, z: 4, w: 6, h: 0.5, d: 10, wind_z: -0.25, fall: 0, wobble: 0.15, size: 0.004, glow: "1.2 + audio.level", twinkle: 0.8, color: "#e8ff90", near: 0.3}
       filters:
