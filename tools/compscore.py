@@ -30,7 +30,8 @@ compose/ALBUM/album.json "weights", defaults below):
   master     level, peak and crest factor in the album's ranges.
   length     duration within the slot's target range.
   cohesion   timbre close enough to the rest of the album (the other songs' saved features).
-  distinct   not a near-copy of another album song (pitch-class histogram, tempo, density).
+  distinct   not a near-copy of another album song (pitch-class histogram, tempo, density). Tempo is the declared
+             tempo when there is one (the onset estimate flips between near-equal peaks).
   flow       the bleed into and out of the neighbouring tracks: level and spectrum continuity at the joins.
 Agents can add terms: a file compose/measures/NAME.py defining measure(ctx) -> (score 0-100 or None, detail) joins
 the total with the album's weights[NAME] (default 0.05). ctx holds id, wav, x (stereo), F (likeness.Feat), dur,
@@ -535,15 +536,35 @@ def m_cohesion(ctx):
     return band(d, 0.0, 3.0, 3.0), {"from_album_db": round(d, 2), "songs": len(oth)}
 
 
+def distinct_tempo(cid, feats, bpm=None):
+    """A song's tempo for `distinct`: its declared tempo (BPM, a map's median) when it has one, else the onset
+    autocorrelation estimate. The estimate has near-equal peaks on these songs and a coarse lag grid: Accretion's t2 read
+    187.5 for a declared 90, and t8 flipped 156 -> 87.9 when its sixteenth-note ostinatos dropped out, landing on t4's
+    exact estimate, so distinct read t8 as a 0.956 copy of t4 (29.5) (chirper-three, 8 Nov). Others' declared tempos
+    are read from their song files at comparison time, so stale caches don't matter."""
+    if bpm:
+        return float(bpm)
+    if feats.get("bpm"):
+        return float(feats["bpm"])
+    for ext in ("yaml", "json"):
+        p = os.path.join(ROOT, "songs", f"{cid}.{ext}")
+        if os.path.exists(p):
+            t = declared_tempo(p)
+            if t:
+                return t
+    return float(feats["tempo"])
+
+
 def m_distinct(ctx):
     oth = ctx["others"]
     if not oth:
         return None, {}
     me = ctx["me"]
+    mt = distinct_tempo(ctx.get("id"), me, ctx.get("bpm"))
     worst, who = 0.0, None
     for k, v in oth.items():
         c = max(0.0, L._cos(np.array(me["chroma"]) - 1 / 12, np.array(v["chroma"]) - 1 / 12))
-        t = float(np.exp(-abs(np.log2(me["tempo"] / v["tempo"])) * 12))
+        t = float(np.exp(-abs(np.log2(mt / distinct_tempo(k, v))) * 12))
         d = float(np.exp(-abs(me["density"] - v["density"]) / 1.0))
         s = (c + t + d) / 3
         if s > worst:
@@ -758,6 +779,7 @@ def build_ctx(cid, wav, climb, album, song=None):
         sets = [section_feats(F, x, section_bounds(F, end, X, thr=t, nov=nov), X) for t in ths]
         secs = sets[len(sets) // 2]
     me = features(x, F, dur)
+    me["bpm"] = declared_tempo(song or os.path.join(ROOT, climb.get("song") or f"songs/{cid}.yaml"))
     mix_windows(me, x, F, album, slot, song or os.path.join(ROOT, climb.get("song") or f"songs/{cid}.yaml"))
     return {"id": cid, "wav": wav, "x": x, "F": F, "dur": dur, "album": album, "slot": slot, "sections": secs,
             "section_sets": sets, "novelty_thresholds": ths,
