@@ -117,6 +117,7 @@ RETRO = os.environ.get("C9T1_RETRO", "shakuhachi")   # WHOLE (a counterpoint, Ha
 FLOORLIFT = os.environ.get("C9T1_FLOORLIFT", "sub")   # WHOLE (the handover's floor): t1 ended on a D1 sub (37 Hz) under a bass walking 49-82 Hz, and t2 picks up with its chip bass around A2 (110 Hz) and no sub, so the floor jumped up an octave and a half at the seam (out-flow 38 Hz -19 dB, 114 Hz +16 dB). From the exhale (beat 288) the floor lifts to meet t2, with DEEPOUT's agreed step-down of the D1 through the overlap left exactly as it is: 'bassup' the triangle bass walks its last E1 an octave up; 'bassup2' and its exhale notes too (G1 A1 -> G2 A2, beside t2's A2); 'lift2' that, and the last D1 before the overlap a little softer, so the sub is already stepping down when DEEPOUT takes it (both measured worse: the out-flow's signs are t1 minus t2 - t1 has LESS 38-44 Hz and MORE 114 Hz than t2's body); 'sub' bassup and the last D1 before the overlap a little fuller; 'airearly' bassup and the air's A2 letting go at the exhale's start (288) rather than 304
 ARRIVEMOVE = os.environ.get("C9T1_ARRIVEMOVE", "up")   # SECTION w2 (0:36-1:13, the intro's end and A's arrival: the whistle's first plain E1s, then the harp's mirror twice the same): 'up' the harp's second mirror an octave higher - it rises as it answers again instead of repeating; 'hats' the shaker gathers - only every other stroke for A's first two bars after it enters, then all of them
 HANDS = os.environ.get("C9T1_HANDS", "all")   # WHOLE (players, not a grid - after chirper-one's t6 v68/v70): the seed's scattered voices, the cell and the chip parts stay machines (their cycles must meet exactly at the crest), but the acoustic players were on a perfect grid at fixed levels. A seeded hand (every render the same): 'drums' the shaker lands within a few ms of the beat, leans into each 4-bar phrase and varies by a few steps, the bodhran stays the anchor on the grid and only varies in level; 'all' and the harp's answers lean and land within a couple of ms too, and the cello, the whistle and the shakuhachi (bowed and blown - their timing is written) vary only in level
+CLOUD = os.environ.get("C9T1_CLOUD", "gendy-cloud@-32")   # PALETTE (adding the colour t1 lacked - everything was plucked, struck, blown, bowed or chip; nothing unstable): NUCLEATION'S CLOUD - wM's gendy-cloud (Xenakis's GENDY: each voice slides and wanders around its note) holds E1's five notes as one chord (D4 E4 G4 A4 C5) from A to the build, re-struck every 8 bars a little stronger: the unsettled solution the seed is still dissolved in. It lets go just before the crest - when the seed forms, the cloud is gone ('patch@gain')
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -533,6 +534,14 @@ def song():
         ns = [note(a0 + c * E1_CYC + o, f"m{mm}", ln, 0.5 if c == 0 else 0.45)
               for c in range(2) for o, ln, mm in zip(E1_OFF, E1_LEN, mids)]
         tracks.append({"name": "answer", "patch": patch, "gain": gain, "pan": pan, "sends": {"space": "-9dB"}, "notes": ns})
+    if CLOUD:
+        cp, _, cg = CLOUD.partition("@")
+        cns = []
+        for k, st in enumerate(range(ST["A"], TC, 32)):
+            ln = min(32, TC - 4 - st) - 0.1
+            for mm in (62, 64, 67, 69, 72):
+                cns.append(note(st, f"m{mm}", ln, 0.35 + 0.05 * k))
+        tracks.append({"name": "cloud", "patch": cp, "gain": f"{cg or -28}dB", "pan": 0.0, "sends": {"space": "-6dB"}, "notes": cns})
     if RETRO:
         rp, _, rg = RETRO.partition("@")
         rmode = os.environ.get("C9T1_RETROMODE", "grid")   # grid: on A's 16-beat phrase starts (98 tipped seed 0's novelty ensemble to 19 sections); ramp: quieter, emerging
