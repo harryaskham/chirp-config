@@ -1001,6 +1001,31 @@ def build():
     # and the rim sit a hair behind it (10 ms - the backbeat laid back); every hat lands within a few ms of the grid
     # (a seeded hand, so every render is the same), and each 4-bar phrase the hats lean in, from a little under their
     # old level to a little over it, then settle again at the phrase's top; every hit's level varies by a few steps
+    # (v74, whole song - Harry 6 Nov 23:55: 'subtle variation so it doesn't get boring', something moving every 8-16
+    # bars) THE DRUMMER MARKS THE PHRASES: the kit played its E2 cell straight through every eight-bar phrase, the
+    # turns only at the section changes. Now, wherever the kit is playing, the last beat of each eight-bar phrase is a
+    # fill - a sixteenth run down the toms (high, high, low, floor) one phrase, up the snare the next - the hats
+    # breathing out under it (with a crash on the next downbeat as well it scored -0.17/-0.13: too many arrivals; the
+    # fills alone, -0.11/+0.11/+0.07 on seeds 0/11/3). Where a section already turns
+    # with its own fill, a stop or a void (the tide's cajon, the crest's breath, the tear, the drain) it is left alone,
+    # and the seams (the first and last sixteen bars) are untouched
+    nfill_ = 0
+    for ph_ in range(2, NBARS // 8):
+        e1_ = ph_ * 32.0
+        if e1_ <= SEC['pull'] * 4.0 or e1_ >= SEC['out'] * 4.0 - 1e-6:
+            continue
+        bar_ev_ = [e_ for e_ in P['kit'] if e1_ - 4.0 - 1e-6 <= e_[0] < e1_ - 1e-6]
+        last_ = [e_ for e_ in P['kit'] if e1_ - 1.0 - 1e-6 <= e_[0] < e1_ + 0.5]
+        nxt_ = [e_ for e_ in P['kit'] if e1_ - 1e-6 <= e_[0] < e1_ + 4.0 - 1e-6]
+        if len(bar_ev_) < 3 or not nxt_ or any(str(e_[1]).startswith('c') for e_ in last_) or sum(1 for e_ in last_ if e_[1] == 's') >= 3:
+            continue
+        P['kit'] = [e_ for e_ in P['kit'] if not (e1_ - 1.0 - 1e-6 <= e_[0] < e1_ - 1e-6)]
+        run_ = ('t1', 't1', 't2', 'ft') if nfill_ % 2 == 0 else ('s', 's', 's', 's')
+        for q_, pc_ in enumerate(run_):
+            P['kit'].append((e1_ - 1.0 + 0.25 * q_, pc_, 0.25, 72 + 10 * q_))
+        P['hats'] = [e_ for e_ in P['hats'] if not (e1_ - 1.0 - 1e-6 <= e_[0] < e1_ - 1e-6)]
+        nfill_ += 1
+    P['kit'].sort(key=lambda e_: e_[0])
     import random as _r
     rng_ = _r.Random(68)
     for k_ in [k_ for k_ in ('kit', 'hats', 'cajon') if k_ in P]:
