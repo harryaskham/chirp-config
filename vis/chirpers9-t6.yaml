@@ -1,0 +1,54 @@
+# chirpers9 t6 "Spring Tide": tidal forces; a build made of stretching and squeezing,
+# tempo pressure; the mirror of t2, hotter. Two acts:
+#   I  (0:00) the evening sea under a huge rising moon; the tide breathes in and out, its
+#      breaths coming faster as the track builds; a murmuration overhead is stretched one
+#      way and squeezed the other on two cycles of their own (augmentation against
+#      diminution), churning harder as the pressure grows;
+#   II (2:20) night; the moon hangs enormous and close, and the sea beneath it is pulled
+#      up into a great swell that grows and grows; spray tears off its crest and streams
+#      up toward the moon, more and more of it, until the sea itself is rising into the
+#      sky as the track hands over.
+scenes:
+  - at: 0
+    look:
+      background: "#000000"
+      vars:
+        press: {value: "smooth(0, 140, time.t)"}
+      camera: {x: "0.3*sin(time.t*0.01)", y: "0.25 + 0.05*sin(time.t*(0.1 + 0.2*var.press))", z: -2.8, look_at: [0, 0.45, 2]}
+      layers:
+        - {type: sky, zenith: "#2a3a6a", horizon: "#e09878", ground: "#2a3040", sun: "#ffd8b0", sun_yaw: -0.1, sun_height: 0.01, sun_size: 0.04, glow: 0.9, haze: 0.4}
+        # The moon rising, huge.
+        - {type: light, x: 0.6, y: 1.8, z: 14, color: "#e8ecff", power: 0.8, reach: 30}
+        - {type: mesh, shape: sphere, detail: 40, x: 0.6, y: "0.4 + 1.4*smooth(0, 140, time.t)", z: 14, scale: 1.4, displace: "0.03*fbm(vtx.x*3, vtx.y*3, vtx.z*3)", color: "#d8d4cc", light: 0, ambient: 0, emit: 0.85, rim: 0.3, rim_color: "#e8ecff"}
+        # The tide breathing, faster and faster.
+        - {type: group, use: kit-sea, y: "-0.3 + 0.07*sin(time.t*(0.05 + 0.15*var.press))", z: 6, params: {far: 1, swell: "0.5 + 0.5*var.press", light: 0.1}}
+        # The murmuration, stretched and squeezed on two cycles of its own.
+        - {type: motes, mode: flock, puff: true, count: 7000, y: 1.5, z: 3.5, w: "3.4*(1 + 0.45*sin(time.t*0.07))", h: "1.0*(1 + 0.45*sin(time.t*0.11 + 0.3))", d: 1.6, spin: "1.2 + 2.5*var.press + 1.5*audio.level", wobble: 0.35, size: 0.0045, stretch: 2.5, heading: true, glow: 0.9, twinkle: 0, color: "#141018", near: 0.3}
+      filters:
+        - {type: bloom, threshold: 0.7, amount: 0.5}
+        - {type: tonemap, knee: 0.75}
+        - {type: vignette, amount: 0.4}
+  - at: 140
+    transition: dissolve
+    xfade: 4
+    look:
+      background: "#000000"
+      vars:
+        pull: {value: "smooth(140, 270, time.t)"}
+      env:
+        surge: {on: audio.lift, decay: 2}
+      camera: {x: "0.5*sin(time.t*0.012)", y: "0.2 + 0.4*var.pull", z: -3.2, look_at: [0, "0.6 + 0.8*var.pull", 3]}
+      layers:
+        - {type: sky, zenith: "#04061a", horizon: "#16203a", ground: "#05060c", sun: "#000000", sun_size: 0, glow: 0, haze: 0.3}
+        - {type: stars, count: 2000, speed: 0, twinkle: 0.4}
+        - {type: light, x: 0, y: 3, z: 9, color: "#dfe6ff", power: 1.4, reach: 30}
+        - {type: mesh, shape: sphere, detail: 48, x: 0, y: "2.6 - 0.4*var.pull", z: 10, scale: "2.4 + 0.6*var.pull", displace: "0.03*fbm(vtx.x*3, vtx.y*3, vtx.z*3)", color: "#d8d4cc", light: 0, ambient: 0, emit: 0.9, rim: 0.4, rim_color: "#e8ecff"}
+        - {type: group, use: kit-sea, y: -0.3, z: 6, params: {far: 1, swell: "0.7 + 0.6*var.pull + 0.5*env.surge", light: 0.12}}
+        # The great swell pulled up beneath the moon.
+        - {type: mesh, shape: plane, detail: 72, y: -0.97, z: 6, scale: 4, displace: "(0.2 + 1.6*var.pull + 0.3*env.surge)*pow(2.718, 0 - (vtx.x*vtx.x*6 + (vtx.z - 0.2)*(vtx.z - 0.2)*10))*(1 + 0.08*noise3(vtx.x*8, time.t*0.5, vtx.z*8))", palette: ocean, colour: height, spread: 0.5, light: 0.4, ambient: 0.05, rim: 0.3, spec: 1, shine: 40, cull: true}
+        # Spray torn off its crest, streaming up toward the moon.
+        - {type: motes, mode: emit, count: "200 + 1800*var.pull", from: [0, "-0.4 + 0.5*var.pull", 7], wide: "0.8 + 1.2*var.pull", deep: 0.8, wind_y: "0.6 + 1.2*var.pull", wind_z: 0.6, wobble: 0.2, fall: 0.1, drag: 0.2, life: 4, streak: 0.06, size: 0.005, glow: "0.7 + 0.5*env.surge", twinkle: 0.3, color: "#c8e0ff", near: 0.3}
+      filters:
+        - {type: bloom, threshold: 0.7, amount: 0.6}
+        - {type: tonemap, knee: 0.75}
+        - {type: vignette, amount: 0.45}
