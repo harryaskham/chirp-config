@@ -1351,7 +1351,18 @@ def choir_patch(singers, tract=0.92, third=False, depth=None):
     return pt
 
 
+# v68 (ROUND TYPE: whole song): EVERY BREATH THE SIZE OF ITS LINE. Every voice in t8 drew the same breath before every
+# phrase - her two-word questions and the jet's long choir lines alike. wM's INHALE_DEPTH (pinned df7aaf1b; chirper-
+# zero and chirper-three asked) sizes each breath to the phrase it starts (and half the line before): a short phrase
+# takes a sip (down to -6 dB, at least 80 ms), a long one a full breath (up to +3.5 dB, longer). Now on every voice -
+# the choirs (in VOICE8, so all of choir_patch and the far choir), her questions and lines (her inhale up 0.45 -> 0.6
+# so the sizing is heard), and her last line (inhale 0.7, v65). The song whose brief is 'the voice sings full lines'
+# now breathes for each one.
+VOICE8["synth"]["layers"][0]["inhale_depth"] = 1.0
+SOLO_INHALE = 0.6
+
 SOLO8 = json.loads(json.dumps(VOICE8))
+SOLO8["synth"]["layers"][0]["inhale"] = SOLO_INHALE
 SOLO8["about"] = "t8's last voice: the choir's lead alone, even vowels - the horizon's last line"
 SOLO8["synth"]["layers"][0]["even"] = 1.0
 SOLO8["synth"]["layers"][0]["register"] = "expr.reg"                 # v30: chest -> head voice across the last line
