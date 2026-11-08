@@ -508,6 +508,15 @@ R61 = os.environ.get("T3_R61", "lock") != "none"
 # After the lock, when the duet has finished singing (bars 102-103), a few birds come back: the storm has passed.
 # T3_R62=none reproduces v61.
 R62 = os.environ.get("T3_R62", "birds") != "none"
+# round 63 (whole song): T3_R63=ground (default) - THE GROUND ARRIVES; THE SINGERS BREATHE. (1) When the storm landed
+# at bar 17 every layer of sub came in at once - the floor's D1/C1, a sub-sine down to B-flat 0 and the 808 - a wall
+# of 30-45 Hz under the first beat (25 dB above t2's tail there, the album's biggest jump at a seam). Now the storm
+# lands with its kick, bass and 808 as before, and the deepest ground - the floor and the sub-sine - swells up under
+# it over eight bars (-12 dB -> full), so its full weight arrives at bar 25 with the hum: the storm getting heavier
+# as you go in. (2) The voices breathe: the solo lines (the sung "nothing here is late", the duet, the round's
+# voices) draw a breath before each phrase (wM's inhale, pinned), and the choirs stand in depth with their
+# consonants not quite together (depth_spread, cons_spread). T3_R63=none reproduces v62.
+R63 = os.environ.get("T3_R63", "ground") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1831,9 +1840,28 @@ def main():
                 e = patches[pn]["extends"]
                 add = ("" if "vib_spread" in e else " synth.layers.0.vib_spread=1") + " synth.layers.0.vowel_spread=1"
                 patches[pn] = dict(patches[pn], extends=e + add)
+    if R63:                                                 # whole: the ground arrives (floor/bsub swell 17-25), breaths
+        for tr in tracks:
+            if tr.get("name") in ("floor", "bsub"):
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
+                                                      "mod": [{"src": "auto.ground", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), ground={"points": [["0b", -12.0], ["64b", -12.0], ["96b", 0.0],
+                                                                          ["513b", 0.0]]})
+            if tr.get("name") == "ksub":                    # the 808's sub under the kick: half as far down (-6)
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
+                                                      "mod": [{"src": "auto.ground", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), ground={"points": [["0b", -6.0], ["64b", -6.0], ["96b", 0.0],
+                                                                          ["513b", 0.0]]})
+        for pn in ("a3-sung", "a3-duetv", "a3-round2", "a3-round3"):
+            if pn in patches:
+                patches[pn] = dict(patches[pn], extends=patches[pn]["extends"] + " synth.layers.0.inhale=0.9")
+        for pn in ("a3-choir", "a3-back"):
+            if pn in patches:
+                patches[pn] = dict(patches[pn], extends=patches[pn]["extends"] +
+                                   " synth.layers.0.depth_spread=1 synth.layers.0.cons_spread=1")
     if R60:                                                 # whole: calm that is calm (dyn lane), f0_spread on sung harmony
         master["auto"] = dict(master["auto"], dyn={"points": [
-            ["0b", -5.0], ["64b", -2.0], ["159.99b", -2.3], ["160b", -2.0], ["244b", -1.5], ["248b", -9.0],
+            ["0b", -5.0], ["64b", -1.4 if R63 else -2.0], ["159.99b", -2.3], ["160b", -2.0], ["244b", -1.5], ["248b", -9.0],
             ["262b", -8.0], ["263.99b", -8.0], ["264b", -1.0], ["343.99b", -1.0], ["344b", -3.5], ["351.99b", -3.0],
             ["352b", 1.5], ["384b", 1.0], ["448b", 0.5], ["512b", -3.0]]})   # the tail as it was (t4's seam)
         for pn in ("a3-duetv", "a3-hum3", "a3-doo3"):
