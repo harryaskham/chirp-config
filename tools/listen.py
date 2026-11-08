@@ -6,7 +6,8 @@ snapshot, not re-rendered), a track-by-track player, NOTES at timestamps that go
 best-effort 480p preview videos.
 
   listen.py cut ALBUM [--label TEXT]                 cut a snapshot (renders changed tracks at nice 15)
-  listen.py video ALBUM [SNAP] [--ids 1,8] [--look accretion]   480p previews (~1.3x real time each: an idle unit)
+  listen.py video ALBUM [SNAP] [--ids 1,8] [--look accretion | '{id}|accretion3d'] [--redo]
+                                                             480p previews (~1.3x real time each: an idle unit)
   listen.py serve [--host H] [--port 8791]           the app (notes notify the owner through caco)
   listen.py notes ALBUM [--track N] [--open]         read Harry's notes (composers)
   listen.py reply ALBUM NOTE_ID TEXT [--done]        answer a note; it shows under the note in the app
@@ -267,9 +268,29 @@ def snapshot_song(d, t):
     return None
 
 
-def videos(album_id, sid=None, ids=None, look=None, log=print, run=subprocess.run):
+def look_args(look, track_id, vis_dir=None):
+    """The engine arguments for LOOK on track TRACK_ID. A plain LOOK is passed as `--look LOOK`. A LOOK with `{id}` names
+    a programme per track: `{id}|FALLBACK` uses vis/<id>.yaml (or .yml/.json) as `--vis` when it exists, else
+    `--look FALLBACK` (none: the engine default), so tracks pick up their directed programmes as they appear
+    (chirp-video, 8 Nov, after Harry asked for varied, directed videos)."""
+    if not look:
+        return []
+    if "{id}" not in look:
+        return ["--look", look]
+    name, _, fallback = look.partition("|")
+    name = name.replace("{id}", track_id)
+    vis_dir = vis_dir or os.path.join(ROOT, "vis")
+    for ext in (".yaml", ".yml", ".json"):
+        p = os.path.join(vis_dir, name + ext)
+        if os.path.exists(p):
+            return ["--vis", p]
+    return ["--look", fallback] if fallback else []
+
+
+def videos(album_id, sid=None, ids=None, look=None, log=print, run=subprocess.run, redo=False):
     """480p previews (854x480, 24 fps, crf 30; LOOK, else the song's own programme or the engine default); one track
-    at a time, at nice 19 (about 1.3x real time on pocket4 under load)."""
+    at a time, at nice 19 (about 1.3x real time on pocket4 under load). LOOK may be `{id}|FALLBACK` (see look_args);
+    REDO re-renders previews that already exist (a track's programme changed)."""
     snaps = snapshots(album_id)
     snap = next((s for s in snaps if s["id"] == sid), None) if sid else (snaps or [None])[-1]
     if not snap:
@@ -278,7 +299,7 @@ def videos(album_id, sid=None, ids=None, look=None, log=print, run=subprocess.ru
     pin = read_text(os.path.join(HERE, "groove-pin")).strip()
     for t in snap["tracks"]:
         stem = f"t{t['n']:02d}"
-        if (ids and t["n"] not in ids) or os.path.exists(os.path.join(d, f"{stem}.mp4")):
+        if (ids and t["n"] not in ids) or (os.path.exists(os.path.join(d, f"{stem}.mp4")) and not redo):
             continue
         text = snapshot_song(d, t)
         if text is None:
@@ -290,7 +311,7 @@ def videos(album_id, sid=None, ids=None, look=None, log=print, run=subprocess.ru
         out = os.path.join(d, f".{stem}.tmp.mp4")
         t0 = time.time()
         cmd = ["nice", "-n", "19", pin, "video", "-f", song, "--seed", "0", "--size", "854x480", "--fps", "24",
-               "--crf", "30"] + (["--look", look] if look else []) + ["-o", out]
+               "--crf", "30"] + look_args(look, t["id"]) + ["-o", out]
         try:
             r = run(cmd, capture_output=True, text=True, cwd=os.path.dirname(song))
         finally:
@@ -462,7 +483,8 @@ def main(argv=None):
     p.add_argument("album")
     p.add_argument("snap", nargs="?")
     p.add_argument("--ids")
-    p.add_argument("--look")
+    p.add_argument("--look", help="a look name, or {id}|FALLBACK: vis/<track id>.yaml when it exists, else FALLBACK")
+    p.add_argument("--redo", action="store_true", help="re-render previews that already exist")
     p = sub.add_parser("serve")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8791)
@@ -481,7 +503,7 @@ def main(argv=None):
     if a.cmd == "cut":
         cut(a.album, a.label)
     elif a.cmd == "video":
-        videos(a.album, a.snap, {int(x) for x in a.ids.split(",")} if a.ids else None, a.look)
+        videos(a.album, a.snap, {int(x) for x in a.ids.split(",")} if a.ids else None, a.look, redo=a.redo)
     elif a.cmd == "serve":
         serve(a.host, a.port)
     elif a.cmd == "notes":

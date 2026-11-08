@@ -95,6 +95,15 @@ class Snapshots(unittest.TestCase):
         self.assertEqual([s["id"] for s in L.snapshots("chirpers9")], [a["id"], b["id"]])
         self.assertEqual(os.stat(p(a["id"])[:-3] + "song").st_ino, os.stat(p(b["id"])[:-3] + "song").st_ino)
 
+    def test_look_args_programme_per_track(self):
+        d = tempfile.mkdtemp()
+        open(os.path.join(d, "chirpers9-t2.yaml"), "w").write("scenes: []")
+        self.assertEqual(L.look_args(None, "chirpers9-t2", d), [])
+        self.assertEqual(L.look_args("accretion3d", "chirpers9-t2", d), ["--look", "accretion3d"])   # unchanged
+        self.assertEqual(L.look_args("{id}|accretion3d", "chirpers9-t2", d), ["--vis", os.path.join(d, "chirpers9-t2.yaml")])
+        self.assertEqual(L.look_args("{id}|accretion3d", "chirpers9-t3", d), ["--look", "accretion3d"])
+        self.assertEqual(L.look_args("{id}", "chirpers9-t3", d), [])                                 # engine default
+
     def test_video_renders_the_snapshots_own_song_text(self):
         a = L.cut("chirpers9", "", render=fake_render, canonical=lambda p, s: '{"tempo":1}', log=lambda *x: None)
         d = os.path.join(self.d, "chirpers9", "snapshots", a["id"])
@@ -111,6 +120,10 @@ class Snapshots(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(d, "t01.mp4")))
         self.assertTrue(L.snapshots("chirpers9")[-1]["tracks"][0]["video"])
         self.assertFalse([f for f in os.listdir(os.path.join(L.ROOT, "songs")) if f.startswith(f".listen-{os.getpid()}")])
+        L.videos("chirpers9", a["id"], {1}, "accretion", log=lambda *x: None, run=run)            # exists: skipped
+        self.assertEqual(len(seen), 1)
+        L.videos("chirpers9", a["id"], {1}, "accretion", log=lambda *x: None, run=run, redo=True)  # --redo
+        self.assertEqual(len(seen), 2)
 
 
 class Committed(unittest.TestCase):
