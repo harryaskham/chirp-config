@@ -996,6 +996,23 @@ def build():
             P['cajon'].append((e_[0], pc_) + tuple(e_[2:]))
     P['kit'] = [e_ for e_ in P['kit'] if not (cj0_ - 1e-6 <= e_[0] < cj1_ - 1e-6 and e_[1] in CJ)]
     P['lights'] = [e_ for e_ in P['lights'] if not (SEC['crest'] * 4.0 - 1e-6 <= e_[0] < SEC['cross'] * 4.0 - 1e-6)]
+    # (v68, whole song) A DRUMMER, NOT A GRID: every hit of the kit and the hats sat exactly on the grid at one of
+    # two velocities, the whole song through. Now they are played: the kick stays the anchor, on the grid; the snare
+    # and the rim sit a hair behind it (10 ms - the backbeat laid back); every hat lands within a few ms of the grid
+    # (a seeded hand, so every render is the same), and each 4-bar phrase the hats lean in, from a little under their
+    # old level to a little over it, then settle again at the phrase's top; every hit's level varies by a few steps
+    import random as _r
+    rng_ = _r.Random(68)
+    for k_ in [k_ for k_ in ('kit', 'hats', 'cajon') if k_ in P]:
+        ev_ = []
+        for at_, p_, d_, v_ in P[k_]:
+            pc_ = p_.partition('^')[0]
+            if pc_ == 'k':
+                ev_.append((at_, p_, d_, v_)); continue
+            dt_ = 0.02 if pc_ in ('s', 'cp', 'rs') else max(-0.012, min(0.012, rng_.gauss(0, 0.006)))
+            lean_ = (8.0 * ((at_ % 16.0) / 16.0) - 4.0) if k_ == 'hats' else 0.0
+            ev_.append((max(0.0, at_ + dt_), p_, d_, max(1, min(127, int(round(v_ + lean_ + rng_.gauss(0, 3)))))))
+        P[k_] = ev_
     rk0_ = SEC['crest'] * 4.0
     P['kitroom'] = [e_ for e_ in P['kit'] if e_[0] >= rk0_ - 1e-6]
     P['kit'] = [e_ for e_ in P['kit'] if e_[0] < rk0_ - 1e-6]
