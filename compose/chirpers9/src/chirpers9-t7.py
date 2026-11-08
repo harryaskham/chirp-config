@@ -657,6 +657,13 @@ R69 = os.environ.get("T7_R69", "nearer") != "none"
 # harmonics, 78-117 Hz), a dip at 38 and a lift at 110; and the kicks a transient shaper (attack +4 dB): they hit
 # in the chest, not just the floor. T7_R70=none reproduces v69.
 R70 = os.environ.get("T7_R70", "chest") != "none"
+# round 71 (palette): T7_R71=breakhats (default) - THE HATS FROM A BREAK. The album's staple is a hat: the haake-hat
+# voice inside dusty-kit (and a7-thump) rings in five of the eight songs, t7's 1,556 hats among them. Now t7's hats
+# (hats, hatsw, hatsh - the same notes, their orbit, lanes and drum bus) play the library's break-kit hats instead:
+# an Amen-era funk kit as a sampler hears it, crushed to 12 bits, taped and squashed - the jungle and IDM hat t7's
+# breakbeat always implied (t2 plays break-kit's kick and snare; no song plays its hats). T7_R71=none reproduces v70.
+R71 = os.environ.get("T7_R71", "breakhats") != "none"
+BREAK_HAT_GAIN = os.environ.get("T7_BREAK_HAT_GAIN", "9dB")      # break-kit hats sit 7.5 dB under dusty-kit's
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1843,6 +1850,11 @@ def main():
         rep0["auto"] = dict(rep0.get("auto", {}), speak={"points": [["0b", 0], ["135.9b", 0], ["136b", 6], ["142b", 6],
                                                                     ["142.5b", 0], ["167.9b", 0], ["168b", 6], ["174b", 6],
                                                                     ["174.5b", 0]]})
+    if R71:                                                 # palette: the hats from a break (dusty-kit -> break-kit)
+        for tr in tracks:
+            if tr.get("name") in ("hats", "hatsw", "hatsh") and tr.get("patch") == "dusty-kit":
+                tr["patch"] = "break-kit"
+                tr["gain"] = BREAK_HAT_GAIN
     if R70:                                                 # whole: the hats orbit (laps quicken), the low end gets a chest
         for tr in tracks:
             nm, pt = tr.get("name"), tr.get("patch")
