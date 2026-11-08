@@ -632,6 +632,14 @@ R66 = os.environ.get("T7_R66", "kitbus") != "none"
 # fifths E-flat B-flat F C G, on the cell's 2 2 2 2 3 sixteenths - twice upward, the second held into bar 41, where
 # the singer starts again: the column the crest will fire, glimpsed in the verse. T7_R67=none reproduces v66.
 R67 = os.environ.get("T7_R67", "conversation") != "none"
+# round 68 (palette): T7_R68=house (default) - THE FOUR LIGHTS AS HOUSE STABS. E4's comping - t4's "four lights", the
+# chord stabs that run under t7 from bar 17 to the crest's end (e4, and the w5/w7/w8 variants) - was on the Hammond
+# B3, which t1 also plays; under the reese it sat 13-15 dB down, an organ smear. Now those parts play on the library's
+# house-chord (detuned saws and a square through a short filter envelope, the stab of a house record; no other
+# Accretion song uses it): the same chords at the same places, with their stutter, crush and hush lanes, now snapping
+# off-beat like the dance music t7 is; the clav doubles stay. T7_R68=none reproduces v67.
+R68 = os.environ.get("T7_R68", "house") != "none"
+HOUSE_GAIN = os.environ.get("T7_HOUSE_GAIN", "4dB")
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1798,6 +1806,11 @@ def main():
                 g = float(tr["gain"].replace("dB", ""))
                 tracks.append(dict(tr, name=tr["name"] + "9", patch="a7-thump", gain=f"{g + 2:g}dB",
                                    fx=list(tr.get("fx", [])) + [{"type": "filter", "kind": "lp", "cutoff": 180, "q": 0.707}]))
+    if R68:                                                 # palette: the four lights as house stabs (hammond -> house-chord)
+        for tr in tracks:
+            if tr.get("name") in ("e4", "e4w", "e4w5", "e4w7", "e4w8") and tr.get("patch") == "hammond-b3":
+                tr["patch"] = "house-chord"
+                tr["gain"] = HOUSE_GAIN
     if R67:                                                 # w3: three voices answer (the reply up), the jet fires (39-40)
         rip = Track("jetrip")
         col = (51, 58, 65, 72, 79)                          # E7 a semitone up: Eb3 Bb3 F4 C5 G5
