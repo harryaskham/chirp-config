@@ -530,6 +530,15 @@ R54 = os.environ.get("T7_R54", "body") != "none"
 # 157-160) no longer drags its lowest notes into the sub: a 90 Hz high-pass on the falling copies takes out the
 # 38 Hz rumble that sat 12 dB over t8 at the seam. T7_R55=none reproduces v54.
 R55 = os.environ.get("T7_R55", "heart") != "none"
+# round 56 (whole song): T7_R56=inspiral (default) - THE ORBIT YOU CAN HEAR. t7 is the innermost orbit, the last stable
+# circle before the fall, and E5 is the album's orbit - yet in t7 it sat still, a glass trill parked left of centre
+# and mostly masked. Now it orbits the listener (Chowning's moving source: the engine's orbit fx, centred on the
+# head so there is no Doppler - nothing goes out of tune): a lap every four bars in the approach, faster through the
+# collision, easing in the slack, a lap a bar in the spiral, two a bar at the crest, and six a bar as the plunge
+# takes it in - while its radius shrinks from eight metres to half a metre: an inspiral, the whole song long. The
+# spiral's falling Shepard pad circles with it, and so does the tide (E6's chords, t7's main pad - opposite the
+# trill, so where the trill is masked the motion is still heard in the pad). T7_R56=none reproduces v55.
+R56 = os.environ.get("T7_R56", "inspiral") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1696,6 +1705,19 @@ def main():
                 g = float(tr["gain"].replace("dB", ""))
                 tracks.append(dict(tr, name=tr["name"] + "9", patch="a7-thump", gain=f"{g + 2:g}dB",
                                    fx=list(tr.get("fx", [])) + [{"type": "filter", "kind": "lp", "cutoff": 180, "q": 0.707}]))
+    if R56:                                                 # whole: E5 orbits the listener and spirals in
+        spin = [["0b", 0.25], ["192b", 0.25], ["200b", 0.5], ["320b", 0.5], ["336b", 0.25], ["352b", 0.75],
+                ["480b", 1.5], ["600b", 2.0], ["639.9b", 6.0], ["640b", 0.25]]
+        fall = [["0b", 8.0], ["192b", 6.0], ["320b", 5.0], ["352b", 5.0], ["480b", 3.0], ["600b", 2.5],
+                ["639.9b", 0.6], ["640b", 8.0]]
+        orb = {"type": "orbit", "path": "circle", "distance": 0, "doppler": 0.0, "rate": "1/1",
+               "speed": {"value": 0, "mod": [{"src": "auto.spin", "amount": 1}]},
+               "radius": {"value": 0, "mod": [{"src": "auto.fall", "amount": 1}]}}
+        for tr in tracks:
+            if tr.get("name") in ("e5", "e5w", "orbit") or str(tr.get("name", "")).startswith("tide"):
+                ph = 0.0 if tr["name"].startswith("e5") else 0.5     # the tide opposite the trill
+                tr["fx"] = list(tr.get("fx", [])) + [dict(orb, phase=ph)]
+                tr["auto"] = dict(tr.get("auto", {}), spin={"points": spin}, fall={"points": fall})
     if R55:                                                 # w11: the last heartbeat; the plunge out of the sub
         beats = [640.0, 642.0, 644.0, 646.5, 649.0, 651.5, 654.0, 659.0, 664.0, 669.0, 674.0, 679.0, 684.0, 689.0,
                  694.0]                                     # from 644 on t8's five-beat chord grid
