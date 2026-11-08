@@ -95,6 +95,7 @@ SEEDSOUT = os.environ.get("C9T5_SEEDSOUT", "all")   # SECTION w4 (1:41-2:15, A's
 INHALE = os.environ.get("C9T5_INHALE", "1")   # WHOLE (t5's voice is ONE NEAR singer - close, young, breathy - and she started every phrase out of silence, as if she never needed air): SHE DRAWS BREATH - wM's inhale (pinned): before each phrase, in the rest, a short in-breath (up to 0.35 s), so the closest voice on the album breathes before she sings to you (value 0..1; 1 sits ~12 dB under a sung vowel; the breath-quote, already a breath, is left alone) (corrected 8 Nov: voice-near inherits inhale=0.4 from voice-legato, so she already breathed; v54's 1 makes the breaths louder, not new)
 FAREHUM = os.environ.get("C9T5_FAREHUM", "last")   # SECTION w8 (3:53-4:19, the farewell in the overlap with t6: the least recently worked window): THE WORDS DISSOLVE - she sings her farewell ('near-er the mid-dle hum', on E5's turn) twice, ageing as she goes; now the second time the words close into a hum as t6 arrives ('all' the whole second farewell hummed; 'last' from its 'mid-' on)
 E1TAPER = os.environ.get("C9T5_E1TAPER", "0.6")   # SECTION w7 (3:20-3:53, C's second half: she sings the seed itself twice, 'clo-ser and clo-ser', v21; the second time alone over the dropped floor, v38): THE SEED LET GO - wM's taper (pinned 251180c1) on her sung E1: each line's last note (the long E) keeps its tone for a moment, then lets go - quieter, darker, breathier, sagging a few cents - as a singer's air runs out, instead of stopping square (value 0..1)
+CHORUSTAPER = os.environ.get("C9T5_CHORUSTAPER", "0.6")   # SECTION w3 (1:08-1:41, A's second half: flagged static - her chorus 'near-er the mid-dle hums' with the Rhodes answering in its gaps): THE HUM LETS GO - wM's taper on her chorus: each line's closing hum (the 'ng' of 'hums', v40) keeps its tone a moment, then lets go - quieter, darker, sagging a few cents - instead of stopping square (value 0..1; her chorus starts at beat 110, so its first line is in w2)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -837,6 +838,10 @@ def song():
             pt = tr.get("patch")
             if isinstance(pt, dict) and pt.get("extends", "").startswith("voice-near"):
                 pt["extends"] += f" synth.layers.0.passaggio={VOXREG}"
+    if CHORUSTAPER:
+        for tr in tracks:
+            if tr["name"] == "hums-a" and isinstance(tr["patch"], dict):
+                tr["patch"] = dict(tr["patch"], extends=tr["patch"]["extends"] + f" synth.layers.0.taper={CHORUSTAPER}")
     if E1TAPER:
         for tr in tracks:
             if tr["name"] == "hums-e1" and isinstance(tr["patch"], dict):
