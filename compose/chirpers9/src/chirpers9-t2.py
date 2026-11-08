@@ -824,6 +824,32 @@ def build():
             n_ = seq_[q_ % len(seq_)]
             P['gtrarp'].append((bar_ * 4.0 + q_ * 0.5, m(n_), 0.45, (70 if q_ == 0 else 56) - (6 if bar_ - SEC['break'] >= 12 else 0)))
 
+    # (v54, section w4: 1:35-2:06, the build, 'little new vs w3' - the same groove, flute and debris as the second
+    # verse, only the bass climbing) THE ORBIT TIGHTENS: as the build climbs (Dm9, Fmaj9, G6/9, A7sus4) a bright
+    # plucked synth arpeggiates each chord, up through it and round again, and it speeds up as the crest nears -
+    # eighths for the first four bars, triplets for the next four, sixteenths for the last four - each a little
+    # louder: 'the nearer, the faster' played rather than sung. The library's arp-pluck, which no Accretion track
+    # uses. The flute's E1 steps aside for the triplets and sixteenths (bars 41-48); it stops for the door like
+    # everything else
+    P['buildarp'] = []
+    prev_ = 70.0
+    for bar_ in range(36, 48):
+        rt_, iv_ = chord(bar_)
+        pcs_ = sorted({(KEY + rt_ + v_) % 12 for v_ in [0] + list(iv_)})
+        best_ = None
+        for lo_ in range(62, 70):
+            vo_ = sorted(lo_ + ((pc_ - lo_) % 12) for pc_ in pcs_)[:4]
+            c_ = sum(vo_) / len(vo_)
+            if best_ is None or abs(c_ - prev_) < abs(best_[0] - prev_):
+                best_ = (c_, vo_)
+        prev_ = best_[0]
+        vo_ = best_[1]
+        div_ = 2 if bar_ < 40 else (3 if bar_ < 44 else 4)
+        for q_ in range(4 * div_):
+            n_ = vo_[q_ % len(vo_)] + (12 if (q_ // len(vo_)) % 2 == 1 and div_ == 4 else 0)
+            P['buildarp'].append((bar_ * 4.0 + q_ / div_, m(n_), 0.8 / div_, int(52 + 2.2 * (bar_ - 36)) + (8 if q_ % div_ == 0 else 0)))
+    P['e1p'] = [e_ for e_ in P['e1p'] if not (160.0 - 1e-6 <= e_[0] < 192.0 - 1e-6)]
+
     # (v25, section w8: the drift 'static' - one groove under the last chorus to the end) THE FLOOR FALLS AWAY FOR THE
     # THIRD TIME: at the last chorus's third statement (bars 92-94) the band drops out - no kit, no hats, no debris,
     # no bass, no sub - and only the voice, the ondes, the pad and the bells are left, the line sung nearly alone;
@@ -947,6 +973,7 @@ def build():
             # the library's acoustic (a steel-string dreadnought, close-miked: wound-string attack, body and air; no
             # Accretion track uses it) - wood and steel in the one place the band falls away, the electric back for
             # the drift
+            tr('buildarp', 'arp-pluck', '+13dB', pan=-0.25, sends={'echo': '-14dB', 'hall': '-12dB'}),
             tr('gtrarp', 'acoustic', '-10dB', pan=0.3, sends={'echo': '-8dB', 'hall': '-12dB'}),
             tr('gtr', 'cutting-guitar', '-5dB', pan=-0.35, sends={'hall': '-18dB'}),
             # (v48, palette: the E1 keys were a wurli - another electric piano among the album's keys) THE ANSWERS ON
