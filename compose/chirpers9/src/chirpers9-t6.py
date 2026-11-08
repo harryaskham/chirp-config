@@ -793,6 +793,16 @@ def build():
     cx_ = (SEC['cross'] + 8) * 4.0
     P['hats'] = [((e_[0], 'oh') + tuple(e_[2:])) if (cx_ - 1e-6 <= e_[0] < SEC['surge'] * 4.0 - 1e-6 and abs((e_[0] % 1.0) - 0.5) < 1e-6 and e_[1] == 'h') else e_ for e_ in P['hats']]
     P['root'].sort(key=lambda e_: e_[0])
+    # (v62, palette: the cross's second half - B-flat and C under the open hats - kept the harmonium that had been
+    # the tide since the in-seam, and ran on unchanged into the surge: eco's 48 s still run, 2:48-3:36) THE TIDE GOES
+    # OUT ON TAPE: for those eight bars the tide's chords leave the harmonium for the library's mellotron-choir (a
+    # tape 'aah' choir, wobbly and band-limited, with a slow swell; no Accretion track uses it) - the water's sound
+    # turning to distant voices as it draws back, the far side's old voice singing over them - and the harmonium
+    # stays out through the surge's bare low gear (v40), swelling back in with the high gear
+    eb0_, eb1_ = (SEC['cross'] + 8) * 4.0, SEC['surge'] * 4.0
+    P['ebb'] = [e_ for e_ in P['tide'] if eb0_ - 1e-6 <= e_[0] < eb1_ - 1e-6]
+    P['tide'] = [e_ for e_ in P['tide'] if not (eb0_ - 1e-6 <= e_[0] < eb1_ - 1e-6)]
+    P['tide'] = [(e_[0], e_[1], min(e_[2], eb0_ - e_[0]), *e_[3:]) if e_[0] < eb0_ < e_[0] + e_[2] else e_ for e_ in P['tide']]
 
     # (v30, whole song) THE DRUMMER BREATHES AT THE PHRASE ENDS: Harry, 6 Nov 23:55 ('subtle variation so it doesnt get
     # boring'); eco: the bar-level moves - a fill, a one-bar drop-out, a turnaround - are what he means, heard even
@@ -986,6 +996,7 @@ def build():
         'tracks': [
             # (v9) and the harmonium is LENSED in: a low-pass that opens from 600 Hz over the in-seam's 16 bars, so t6's
             # own chord arrives from behind t5's tail rather than on top of it
+            tr('ebb', 'mellotron-choir', '-8dB', sends={'hall': '-8dB'}),
             tr('tide', 'harmonium', '-9dB', sends={'hall': '-10dB'}, auto={'lens': {'points': [['0b', 0.0], ['64b', 1.0]]}, 'W': {'points': wave_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 600, 'mod': [{'src': 'auto.lens', 'amount': 4.0}]}},
                    {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.W', 'amount': 1}]}}]),
