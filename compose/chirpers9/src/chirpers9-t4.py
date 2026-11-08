@@ -1121,6 +1121,39 @@ def a_opens_upward():
     P["lights"].ev = ev
 
 
+# v63 (ROUND TYPE: section, the crest's sung hook 92-98, 3:13-3:28; rewritten): THE HOOK IN THE CLEAR. The crest's
+# second half is where the singer sings the album's hook itself (v19: E1 on 'ah', four cycles, the duet a third above
+# on the last two) - over the same full band that had played the six bars before it, so the 8 s windows at 3:12 and
+# 3:20 read flat (0.65, 0.60) and the hook in two voices was one more layer in a wall. Now the hook is set apart:
+#   92    THE LIGHTS LIFT: as she begins it, the four lights' chords rise an octave (D9 Cmaj9 Am11 G6/9 up high);
+#   94.75 THE BAND STEPS OUT: when the duet joins, the kit, ride, shaker, sub and bass stop - the two voices sing the
+#         hook over the raised lights and E2/E3 alone, the combined theme with no floor under it;
+#   97    THE BAND RETURNS on the bar's downbeat with a brush swish and the lights' D9 back down, the handpan answering.
+HOOK_LIFT = (92.0, 97.0)
+HOOK_CLEAR = (94.75, 97.0)
+HOOK_CLEAR_BAND = ("kick", "snare", "hat", "ride", "air", "sub", "bass")   # with the sub kept (v63b) the crest went
+#                                    flatter still (seed 11: a 40 s run 3:12-3:52) - the floor going is the contrast
+
+
+def hook_in_the_clear():
+    lo, hi = b0(HOOK_LIFT[0]), b0(HOOK_LIFT[1])
+    P["lights"].ev = [(s, ln, ",".join(f"m{midi_of(x) + 12}" for x in h.split(",")) if lo - 1e-6 <= s < hi - 1e-6
+                       else h, v) for s, ln, h, v in P["lights"].ev]
+    a, z = b0(HOOK_CLEAR[0]), b0(HOOK_CLEAR[1])
+    for n in HOOK_CLEAR_BAND:
+        if n not in P:
+            continue
+        out = []
+        for s, ln, h, v in P[n].ev:
+            if a - 1e-6 <= s < z - 1e-6:
+                continue
+            if s < a - 1e-6 < s + ln:
+                ln = a - s
+            out.append((s, ln, h, v))
+        P[n].ev = out
+    part("snare").add(z, 2.0, "sw", 92)                 # the swish the band returns on (as at the crest's 81)
+
+
 def rise_bowed():
     P["e3hi"].ev = [(s, ln, ",".join(f"m{midi_of(x) + E3HI_UP}" for x in h.split(",")), v) for s, ln, h, v in P["e3hi"].ev]
 
@@ -1348,6 +1381,7 @@ def main():
     rise_bowed()
     a_opens_upward()
     rise_pulls_back()
+    hook_in_the_clear()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v + verse(),
                    key=lambda d: d["at"])
