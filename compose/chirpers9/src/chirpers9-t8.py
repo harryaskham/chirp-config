@@ -608,6 +608,26 @@ QUICKEN = {85: 1, 86: 1, 87: 2, 88: 2, 89: 4, 90: 4, 91: 8, 92: 8}
 QUICKEN_HAT_REST = (85, 89)
 
 
+# v72 (ROUND TYPE: section, the jet's middle 105-116, 2:42-3:00; rewritten): THE FLOOR FALLS AWAY, THEN LIFTS OFF.
+# The jet's middle stayed flat on both seeds (2:40 0.53 / 0.55, 2:48 0.59 / 0.61) through every move above it - v63
+# stopped the kit and bass for 'we were the far side', the choir falls silent after 'and it was ours' - because the
+# floor never moved: the sub (-4) and the lift (-7) walk E4's roots a bar at a time from the jet's arrival to the
+# break. Now the floor moves with the words: under 'we were the far side' (105-108) the sub falls away too - the
+# album's arrival in words sung nearly weightless, the lift alone below it; everything slams back at 109 (as before);
+# and after 'and it was ours' the jet LIFTS OFF (113-116): the sub and the lift rise an octave for four bars, the
+# floor itself climbing, before it settles for the jet's last bars into the break.
+FLOOR_FALLS = (105, 109)
+FLOOR_LIFTS = (113, 117)
+
+
+def jet_floor():
+    a, z = b0(FLOOR_FALLS[0]), b0(FLOOR_FALLS[1])
+    P["sub"].ev = [e for e in P["sub"].ev if not (a - 1e-6 <= e[0] < z - 1e-6)]
+    a, z = b0(FLOOR_LIFTS[0]), b0(FLOOR_LIFTS[1])
+    for n in ("sub", "lift"):
+        P[n].ev = [(s, ln, up_octave(h), v) if a - 1e-6 <= s < z - 1e-6 else (s, ln, h, v) for s, ln, h, v in P[n].ev]
+
+
 def approach_quickens():
     lo, hi = b0(min(QUICKEN)), b0(max(QUICKEN) + 1)
     P["kick"].ev = [e for e in P["kick"].ev if not (lo - 1e-6 <= e[0] < hi - 1e-6)]
@@ -1461,6 +1481,7 @@ def main():
     time_dilates()
     the_jet_stops()
     approach_quickens()
+    jet_floor()
     everything_falls_in()
     lead, fifth, low = choir()
     far = far_choir()                                             # v38: the answer forms far away (v45: own track)
