@@ -197,6 +197,8 @@ def hum1_patch():
     p = json.loads(json.dumps(VOICE))
     p["synth"]["layers"][0]["breath"] = 0.12
     p["synth"]["layers"][0].pop("taper", None)            # v61: the t3 seam's stand-in keeps its square ends
+    p["synth"]["layers"][0].pop("inhale_depth", None)     # v66: and its breath
+    p["synth"]["layers"][0]["inhale"] = HUM1_INHALE
     return p
 
 
@@ -622,12 +624,21 @@ B_HUM = 0.8                                       # not quite sealed: fully clos
 VOICE["synth"]["layers"][0]["taper"] = 0.6
 VOICE2_TAPER = 0.4
 
+# v66 (ROUND TYPE: whole song): HER BREATH, SIZED. The voice at its most human still drew one breath, the same size,
+# before every phrase - her long verse lines and a two-note hum alike. wM's INHALE_DEPTH (pinned df7aaf1b; chirper-
+# three asked) sizes each breath to the phrase it starts and half the line before: a sip (down to -6 dB, 80 ms) before
+# a short one, a full breath (up to +3.5 dB, longer) before a long one. Now on both singers - hers with her inhale up
+# 0.4 -> 0.6 so it is heard, the young duet 0.3 -> 0.45 - at depth 1. hum1 (the t3 seam's stand-in) keeps its own.
+VOICE["synth"]["layers"][0].update({"inhale": 0.6, "inhale_depth": 1.0})
+VOICE2_INHALE, VOICE2_DEPTH = 0.45, 1.0
+HUM1_INHALE = 0.4                       # hum1 keeps the breath it had
+
 VOICE2 = {"about": "t4's second singer (v7): lighter and a little brighter, a third above in the duet; joined (v10)",
           "play": {"mono": True, "glide": "90ms", "glide_smooth": True, "scoop": 1.0, "fall": 1.5,
                    "glide_overshoot": 0.05},
           "synth": {"layers": [{"type": "voice", "tract": 0.95, "breath": BREATHES(0.46), "effort": EFFORT, "formant_bw": 1.4, "ph_soft": 0.35,
-                                "consonant_level": "-6dB", "pulse_rate": 5, "join": True, "inhale": 0.3,
-                                "taper": VOICE2_TAPER}],
+                                "consonant_level": "-6dB", "pulse_rate": 5, "join": True, "inhale": VOICE2_INHALE,
+                                "taper": VOICE2_TAPER, "inhale_depth": VOICE2_DEPTH}],
                     "lfo": {"vib": {"wave": "sine", "rate": "5.6hz", "delay": "250ms", "fade": "400ms",
                                     "retrig": True, "wander": 0.6}},
                     "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}, {"src": "lfo.vib", "amount": 0.16}]},

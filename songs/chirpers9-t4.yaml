@@ -617,12 +617,13 @@
        "consonant_level": "-4dB",
        "pulse_rate": 5,
        "join": true,
-       "inhale": 0.4,
+       "inhale": 0.6,
        "even": 1.0,
        "age": 0.45,
        "hum": "expr.hum",
        "hum_at": "m",
-       "taper": 0.6
+       "taper": 0.6,
+       "inhale_depth": 1.0
       }
      ],
      "lfo": {
@@ -3333,8 +3334,9 @@
        "consonant_level": "-6dB",
        "pulse_rate": 5,
        "join": true,
-       "inhale": 0.3,
-       "taper": 0.4
+       "inhale": 0.45,
+       "taper": 0.4,
+       "inhale_depth": 1.0
       }
      ],
      "lfo": {
