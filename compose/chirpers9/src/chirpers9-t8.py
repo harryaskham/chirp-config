@@ -330,7 +330,7 @@ FAR_GAIN = "-5dB"                    # a shut-mouth murmur masks sooner than the
 
 
 def far_patch():
-    pt = choir_patch(4)
+    pt = choir_patch(4, depth=DEPTH_FAR)
     pt["about"] = "t8's far choir: four singers far off, mouths shut on 'n' - the answer forming"
     pt["synth"]["layers"][0].update({"hum": 1.0, "hum_at": "n"})
     return pt
@@ -1203,15 +1203,25 @@ VIB_SPREAD = 1.0
 # loudest thing in the hook's rest (85-88, -4.4). Now a physical horn-and-trombone section (brass, unused on the album:
 # three players' lips on their bores, blooming), so the fifths sound as the call they are: E7 carried, transformed.
 VOWEL_SPREAD = 1.0
+# v61 (ROUND TYPE: whole song): THE CHOIRS STAND IN A ROOM. With v55's own vibratos and v59's own vowels, t8's choirs
+# were sections of different singers - all standing on one line, every seam's consonant landing as one click (the
+# jet's 'we were the Far Side'). Now wM's last two section features (both pinned: DEPTH_SPREAD 391d8713, CONS_SPREAD
+# 935354c9): each other singer stands her own distance back (later up to 15 ms, quieter, darker the further back) and
+# takes each joined syllable a little after the lead (up to 30 ms). And the room is used: the jet's choirs stand NEAR
+# (depth 0.5 - size, rows behind the front), the far choir humming on 'n' stands FAR (depth 1, and 2 dB more hall) -
+# the answer forming at a distance, the arrival close.
+DEPTH_NEAR, DEPTH_FAR, CONS_SPREAD = 0.25, 1.0, 1.0      # near 0.5 darkened the jet choir's air: -0.020 / -0.016
+FAR_HALL = "-1dB"
 E7_PATCH, E7_GAIN = "brass", "-11dB"
 
 
-def choir_patch(singers, tract=0.92, third=False):
+def choir_patch(singers, tract=0.92, third=False, depth=None):
     pt = json.loads(json.dumps(VOICE8))
     pt["about"] = f"t8's choir part: {singers} singers on one line, even vowels, joined, a breath before each phrase"
     pt["synth"]["layers"][0].update({"singers": singers, "spread": 0.7, "detune": 0.12, "even": 1.0, "tract": tract,
                                      "together": True, "breath": {"value": 0.34, "mod": [{"src": "vel", "amount": -0.2}]},
-                                     "vib_spread": VIB_SPREAD, "vowel_spread": VOWEL_SPREAD})   # v55, v59
+                                     "vib_spread": VIB_SPREAD, "vowel_spread": VOWEL_SPREAD,    # v55, v59
+                                     "depth_spread": DEPTH_NEAR if depth is None else depth, "cons_spread": CONS_SPREAD})  # v61
     if third:
         # v15 (ROUND TYPE: palette - an engine feature the album had not used: harmony in a key, pin 8e25c1a9): the
         # lead's line is sung again a THIRD above IN THE KEY (D Mixolydian, the jet's E4 v2 - D9 Cmaj9 Am11 G6/9),
@@ -1349,7 +1359,7 @@ def main():
             tr("ask", "flute", gain="-9dB", pan=-0.15, sends={"hall": "-6dB", "dly": "-12dB"}),   # v14
             tr("hook3", "fof-soprano", gain="-11dB", pan=-0.2, sends={"dly": "-14dB", "hall": "-10dB"}),  # v35
             tr("lift", SUB8, gain="-22dB"),                                 # v18: the sub's octave you can hear
-            {"name": "far", "patch": far_patch(), "gain": FAR_GAIN, "pan": -0.1, "sends": {"hall": "-3dB"},
+            {"name": "far", "patch": far_patch(), "gain": FAR_GAIN, "pan": -0.1, "sends": {"hall": FAR_HALL},
              "notes": far, "auto": {"rs": {"points": [["0b", 0.0]]}}},       # v45 (last): the far choir, hummed
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},

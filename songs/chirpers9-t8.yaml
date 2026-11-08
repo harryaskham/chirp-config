@@ -14015,6 +14015,8 @@
        "together": true,
        "vib_spread": 1.0,
        "vowel_spread": 1.0,
+       "depth_spread": 0.25,
+       "cons_spread": 1.0,
        "harmony": [
         2
        ],
@@ -15904,7 +15906,9 @@
        "even": 1.0,
        "together": true,
        "vib_spread": 1.0,
-       "vowel_spread": 1.0
+       "vowel_spread": 1.0,
+       "depth_spread": 0.25,
+       "cons_spread": 1.0
       }
      ],
      "lfo": {
@@ -17766,7 +17770,9 @@
        "even": 1.0,
        "together": true,
        "vib_spread": 1.0,
-       "vowel_spread": 1.0
+       "vowel_spread": 1.0,
+       "depth_spread": 0.25,
+       "cons_spread": 1.0
       }
      ],
      "lfo": {
@@ -22014,6 +22020,8 @@
        "together": true,
        "vib_spread": 1.0,
        "vowel_spread": 1.0,
+       "depth_spread": 1.0,
+       "cons_spread": 1.0,
        "hum": 1.0,
        "hum_at": "n"
       }
@@ -22056,7 +22064,7 @@
    "gain": "-5dB",
    "pan": -0.1,
    "sends": {
-    "hall": "-3dB"
+    "hall": "-1dB"
    },
    "notes": [
     {
