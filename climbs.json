@@ -8390,9 +8390,15 @@
       "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers9-t4 OUT.wav",
       "best": {
-        "score": 99.54,
-        "version": "v60",
-        "commit": "see git log songs/chirpers9-t4.yaml"
+        "score": 99.517,
+        "version": "v58",
+        "commit": "bc46e959",
+        "rescored": {
+          "by": "chirper-three",
+          "at": "2026-11-08T12:27:00Z",
+          "was": 99.54,
+          "how": "restored by hand: refused v60 was recorded with its trial score (no --keep) and became best; v58 re-measured 99.517 (seed 11, pin 935354c9)"
+        }
       },
       "passes": 1,
       "enabled": true,
