@@ -616,6 +616,15 @@ R64 = os.environ.get("T7_R64", "swell") != "none"
 # itself at double speed from E-flat - quoted "sooner" (bar 92), then a climb that holds E-flat into w7, where the
 # voice sings "every corner comes sooner". T7_R65=none reproduces v64.
 R65 = os.environ.get("T7_R65", "trumpet") != "none"
+# round 66 (whole song): T7_R66=kitbus (default) - THE KIT HITS; THE VOICES LET GO. (1) t7's drummer - nineteen tracks
+# of dusty-kit, the electro claps and the thump kicks - went straight to the master piece by piece, each with its own
+# small compressor, so the kit sat polite under the reese for the whole fall. Now the whole kit plays into one drum
+# bus with New York parallel compression (the library's parallel-ny rack: heavy glue blended under the dry, loudness
+# matched), so the ghost notes and the room come up between the hits and the hits land harder - the kit as one
+# instrument, driving from bar 17 to the plunge. (2) Every joined sung line - the lead, its harmonies, "every corner
+# comes sooner", the descant and the lap choirs - gets wM's taper (0.6, pinned 251180c1): each phrase's last note lets
+# go as a singer runs out of air, instead of stopping square. T7_R66=none reproduces v65.
+R66 = os.environ.get("T7_R66", "kitbus") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1782,6 +1791,16 @@ def main():
                 g = float(tr["gain"].replace("dB", ""))
                 tracks.append(dict(tr, name=tr["name"] + "9", patch="a7-thump", gain=f"{g + 2:g}dB",
                                    fx=list(tr.get("fx", [])) + [{"type": "filter", "kind": "lp", "cutoff": 180, "q": 0.707}]))
+    extra_buses = {}
+    if R66:                                                 # whole: the kit hits (a parallel drum bus), the voices let go
+        for tr in tracks:
+            if tr.get("patch") in ("dusty-kit", "electro-kit", "a7-thump"):
+                tr["out"] = "drums"
+        extra_buses["drums"] = {"fx": ["rack:parallel-ny"]}
+        for pn in ("a7-sung", "a7-sung5", "a7-sung3", "a7-sungc", "a7-sungc5", "a7-sooner-a", "a7-sooner-b",
+                   "a7-descant", "a7-choir0", "a7-choir1", "a7-choir2", "a7-choir0-old", "a7-choir1-old", "a7-choir2-old"):
+            if pn in patches:
+                patches[pn] = dict(patches[pn], extends=patches[pn]["extends"] + " synth.layers.0.taper=0.6")
     if R65:                                                 # w6: the trumpet takes a chorus (bars 89-96)
         tp = Track("trumpet2")
         solo = ((352.5, 0.5, 70, 88), (353.0, 0.5, 73, 84), (353.5, 0.75, 75, 92), (354.25, 0.25, 73, 80),
@@ -1981,7 +2000,7 @@ def main():
         "true_peak: true",
         "event_stable: true",
         "patches: " + json.dumps(patches),
-        "buses: " + json.dumps({"space": space_bus}),
+        "buses: " + json.dumps(dict({"space": space_bus}, **extra_buses)),
         "master: " + json.dumps(master),
         "tracks:",
     ]
