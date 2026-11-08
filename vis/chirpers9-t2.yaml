@@ -20,6 +20,7 @@ scenes:
         - {type: figure, rig: bird, count: 3, x: "-1.4*sin(time.t*0.045 + inst.i*0.3)", y: "1.2 + 0.1*inst.i", z: "3.4 + 1.1*cos(time.t*0.045 + inst.i*0.3)", face: ["-1.4*sin(time.t*0.045 + 0.02 + inst.i*0.3)", "1.2 + 0.1*inst.i", "3.4 + 1.1*cos(time.t*0.045 + 0.02 + inst.i*0.3)"], scale: 0.28, motion: glide, color: "#2a2430", light: 1, ambient: 0.2, rim: 0.8, rim_color: "#ffd0a0"}
         - {type: motes, mode: drift, puff: true, count: 400, y: -0.2, z: 3, w: 10, h: 0.3, d: 10, wind_z: -0.4, fall: 0, wobble: 0.05, size: 0.3, glow: 0.1, twinkle: 0, color: "#c8b8c0", near: 0.6}
       filters:
+        - {type: shadowmap, amount: 0.75, soft: 2, size: 2048, bias: 0.05}
         - {type: fog, color: "#d8b8a8", density: 0.08}
         - {type: bloom, threshold: 0.7, amount: 0.5}
         - {type: tonemap, knee: 0.75}
