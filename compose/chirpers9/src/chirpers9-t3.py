@@ -542,6 +542,16 @@ R65 = os.environ.get("T3_R65", "passes") != "none"
 # storm as a whisper. (The dizi drops back for bar 48, so the eyewall's entry at 49 still turns a corner - lifted
 # through 48 it read flat there.) T3_R66=none reproduces v65.
 R66 = os.environ.get("T3_R66", "foretold") != "none"
+# round 67 (palette): T3_R67=shepard (default) - A RISE THAT NEVER ARRIVES, THEN THE LOCK. The held breath before the
+# lock (bars 85-88) had the library's noise riser - the one t7 used too - buried 17 dB down under the roll, and the
+# lock landed on an 808 boom alone. Now: an endless Shepard riser (library fx-riser-endless, no
+# Accretion or chirpers song has used it) runs through the four bars - a tone and a barber-pole filter climbing an
+# octave every two beats, forever, never getting there: the storm's phases sliding towards a meeting that keeps not
+# happening - and it is cut dead when they do meet, at the lock (a bar early was tried: no better on the flatness
+# read at the lock, and less of a cut); the lock now lands on tuned toms too (library
+# modal-tom), A1 picking up into a big D2 on top of the 808 (swapping the 808 out entirely took its long sub tail
+# from the lock, and the bars after it read flat). T3_R67=none reproduces v66.
+R67 = os.environ.get("T3_R67", "shepard") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1705,6 +1715,19 @@ def main():
         flock(404.5, 408.0, (1.0, 2.0))
         for nm, pan in (("birdl", -0.5), ("birdr", 0.5)):
             tracks.append({"name": nm, "patch": "birds", "gain": "9dB", "pan": pan, "score": flocks[nm].score()})
+    if R67:                                                 # palette: a rise that never arrives (bars 85-88), toms at the lock
+        sh, tom = Track("shepard"), Track("locktom")
+        sh.add(336.0, 15.98, "m62", 100)
+        tom.add(351.5, 0.5, mtok(33), 104)                  # A1, the pickup
+        tom.add(352.0, 4.0, mtok(38), 124)                  # D2 at the lock
+        for tr in tracks:
+            if tr.get("name") == "riser":
+                tr["mute"] = True
+        tracks.append({"name": "shepard", "patch": "fx-riser-endless", "gain": "-4dB", "pan": 0.0, "score": sh.score(),
+                       "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.cut", "amount": 1}]}}],
+                       "auto": {"cut": {"points": [["0b", 0], ["351.95b", 0], ["352b", -60], ["513b", -60]]}}})
+        tracks.append({"name": "locktom", "patch": "modal-tom", "gain": "-2dB", "pan": 0.0, "sends": {"space": "-8dB"},
+                       "score": tom.score()})
     if R66:                                                 # w4: the words before the song (bars 45-48)
         wh0 = next(tr for tr in tracks if tr.get("name") == "whisper")
         sylls = (("N AH1", 0.0, 0.45, 49.0), ("TH IH0 NG", 0.5, 0.7, 48.5), ("HH IY1 R", 1.25, 0.24, 48.0),
