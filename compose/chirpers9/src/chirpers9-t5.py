@@ -99,6 +99,7 @@ CHORUSTAPER = os.environ.get("C9T5_CHORUSTAPER", "0.6")   # SECTION w3 (1:08-1:4
 VOICEDONE = os.environ.get("C9T5_VOICEDONE", "choir")   # WHOLE (her voice, finished): wM's taper (0.6, as on the sung seed v57 and the chorus v58) on every line she still ended square - the build's 'near-er' calls and the held D into the crest, the three crest lines, the farewell - and with 'choir' the crest choir's harmony singers (hums-2, hums-3) get the rest of the section recipe: vowel_spread, depth_spread and cons_spread 1 ('taper' or 'choir')
 ARRIVED = os.environ.get("C9T5_ARRIVED", "here")   # WHOLE (the hook's words develop): she sang 'near-er the mid-dle' all eight times - three in A, three over the crest choir, twice in farewell. Now the words follow the album's arc: approaching in A ('near-er the mid-dle'), ARRIVED after the crest, where every cycle has converged ('here in the mid-dle' or 'now in the mid-dle', the three crest-choir lines), and leaving in the farewell ('near-er' again, closing into a hum) - same notes, same melody ('here' or 'now')
 BREATHSIZE = os.environ.get("C9T5_BREATHSIZE", "1")   # WHOLE (her breathing): wM's inhale_depth (pinned df7aaf1b) beside v54's inhale on every line she sings - each breath sized to the phrase it starts (and half the line before): a sip before her short two-note 'near-er' calls, a full breath before the long held D and the chorus lines, instead of every breath the same size (value 0..1)
+ANSACCRETE = os.environ.get("C9T5_ANSACCRETE", "rise")   # SECTION w6 (2:47-3:20, after the crest: flagged 'little new vs w5'): her three crest lines accrete (alone, + the third above, + the third and the octave below, v27), but the DX piano answered all three with the same E5 figure. Now the answers accrete with her: 'thirds' the second answer gains the third above (in D mixolydian), the third answer the third and the octave below - the choir's own harmony; 'rise' the second answer an octave up, the third in both octaves (t1 v60's rising mirror)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -841,6 +842,26 @@ def song():
             pt = tr.get("patch")
             if isinstance(pt, dict) and pt.get("extends", "").startswith("voice-near"):
                 pt["extends"] += f" synth.layers.0.passaggio={VOXREG}"
+    if ANSACCRETE:
+        third = {57: 60, 55: 59, 64: 67, 62: 66}
+        for tr in tracks:
+            if tr["name"] == "crest-answer":
+                add = []
+                for n in tr["notes"]:
+                    mm = int(n["pitch"][1:])
+                    k = 1 if 353 <= n["at"] < 363 else 2 if 373 <= n["at"] < 383 else 0
+                    if not k:
+                        continue
+                    if ANSACCRETE == "thirds":
+                        add.append(dict(n, pitch=f"m{third[mm]}", vel=round(n["vel"] * 0.85, 3)))
+                        if k == 2:
+                            add.append(dict(n, pitch=f"m{mm - 12}", vel=round(n["vel"] * 0.8, 3)))
+                    else:
+                        if k == 1:
+                            n["pitch"] = f"m{mm + 12}"
+                        else:
+                            add.append(dict(n, pitch=f"m{mm + 12}", vel=round(n["vel"] * 0.85, 3)))
+                tr["notes"] = sorted(tr["notes"] + add, key=lambda n: (n["at"], n["pitch"]))
     if ARRIVED:
         first = {"here": ["HH IY1 R", "IH0 N"], "now": ["N AW1", "IH0 N"]}[ARRIVED]
         for tr in tracks:
