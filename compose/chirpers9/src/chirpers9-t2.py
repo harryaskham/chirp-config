@@ -477,6 +477,14 @@ def build():
     lock_pts = [[f'{b * 4.0:.1f}b', round(lock(b), 3)] for b in range(NBARS)]
     # the fall's filter: the cell and the pad close as they fall into t3 (1 = open)
     shut_pts = [['0b', 1.0], [f'{fall0:.1f}b', 1.0], [f'{total:.1f}b', 0.0]]
+    # (v59, section w1: 0:00-0:32, the in-seam, 'static' since the first day - one quartal chord held eight bars at
+    # full brightness under t1's tail, the bell and the debris arriving through it) THE CHORD FALLS IN FROM DOWN THE
+    # WELL: the pad's chord - t1's own notes, D A C E - now arrives the way the bell does, from far below and behind:
+    # it starts dark (its low-pass near 700 Hz, the hall doing most of the talking) and opens over the eight bars to
+    # full light exactly as the harmony starts moving at bar 9; and the two 'ooh's in bars 5 and 7 are sung from deep
+    # in the well, the trio standing at its own depths (wM's depth_spread 1, pinned 07:40: later, quieter and darker
+    # the further back) with more hall
+    padshut_pts = [['0b', 0.15], ['32.0b', 1.0], [f'{fall0:.1f}b', 1.0], [f'{total:.1f}b', 0.0]]
     # E1's lens in the in-seam: opening from dark
     lens_pts = [['0b', 0.0], ['32.0b', 1.0]]
 
@@ -936,7 +944,7 @@ def build():
                           {'type': 'pan', 'width': {'value': 0, 'mod': [{'src': 'auto.WID', 'amount': 1}]}},
                           'limiter ceiling=-1dB'], 'auto': {'E': {'points': energy_pts}, 'open': {'points': open_pts}, 'WID': {'points': wid_pts}}},
         'tracks': [
-            tr('pad', PAD, '-15dB', auto={'lock': {'points': lock_pts}, 'shut': {'points': shut_pts}},
+            tr('pad', PAD, '-15dB', auto={'lock': {'points': lock_pts}, 'shut': {'points': padshut_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 600, 'mod': [{'src': 'auto.shut', 'amount': 3.5}]}}],
                sends={'hall': '-8dB'}),
             # (v19) the D1 sub 4 dB down: the t1 -> t2 mix seam read t2 28 dB over t1's body at 38 Hz
@@ -1033,8 +1041,8 @@ def build():
              'notes': crestpad, 'gain': '-14dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
             {'name': 'ooh', 'patch': dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[-2] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true'),
              'notes': oohn, 'gain': '-17dB', 'pan': 0.0, 'sends': {'hall': '-8dB'}},
-            {'name': 'oohin', 'patch': dict(dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[4] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true'), play={'scoop': 1}),
-             'notes': oohin, 'gain': '-15dB', 'pan': 0.0, 'sends': {'hall': '-7dB'}},
+            {'name': 'oohin', 'patch': dict(dict(OOH['tracks'][0]['patch'], extends='voice-backing synth.layers.0.harmony=[4] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true synth.layers.0.depth_spread=1'), play={'scoop': 1}),
+             'notes': oohin, 'gain': '-14dB', 'pan': 0.0, 'sends': {'hall': '-4dB'}},
             {'name': 'verse', 'patch': dict(V1['tracks'][0]['patch'], extends='voice-near synth.lfo.vib.per_note=true', play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
              'notes': vsnotes, 'gain': '-13dB', 'pan': -0.05, 'sends': {'echo': '-16dB', 'hall': '-12dB'}},
             {'name': 'driftsung', 'patch': dict(dict(CS['tracks'][0]['patch'], extends='voice-near synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true synth.lfo.vib.per_note=true'), play={'glide_overshoot': 0.06, 'scoop': 1, 'fall': 2}),
