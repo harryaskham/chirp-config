@@ -1073,11 +1073,15 @@ def build():
     # E1 choir, six for the crest's chord pad and the fall's hum, eight for the last chorus - and every singer
     # shapes the vowels their own way (vowel_spread 1, F1/F2 apart by up to 8%), so each choir is a group of
     # different people rather than one voice copied; the lines, parts and levels are untouched
+    # (v58, palette: wM's f0_spread, pinned 06:06) ...and each singer now has their own vibrato too: the backing
+    # voices sing tts lines whose vibrato lives in each note's pitch path, so every singer in a choir wobbled in
+    # exact lockstep (vib_spread could not reach it - v53's hum was byte-identical with it); f0_spread 1 reads the
+    # path's vibrato at each singer's own rate, phase and depth while the slow scoops and glides stay shared
     GATHER = {'oohin': 3, 'farchoir': 3, 'ooh': 4, 'breakhum': 4, 'choir': 5, 'crestpad': 6, 'fallhum': 6,
               'lastpad': 8, 'lastpadE': 8}
     for t_ in song['tracks']:
         if t_['name'] in GATHER:
-            t_['patch'] = dict(t_['patch'], extends=t_['patch']['extends'] + f" synth.layers.0.singers={GATHER[t_['name']]} synth.layers.0.vowel_spread=1")
+            t_['patch'] = dict(t_['patch'], extends=t_['patch']['extends'] + f" synth.layers.0.singers={GATHER[t_['name']]} synth.layers.0.vowel_spread=1 synth.layers.0.f0_spread=1")
     return song
 
 
