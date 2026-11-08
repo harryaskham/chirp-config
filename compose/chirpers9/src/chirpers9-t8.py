@@ -431,6 +431,27 @@ FALL_IN = {"e7": 145, "e6": 149, "e5": 153, "e2": 157, "e1": 161}
 FALL_IN_DB = {"e7": 7.0, "e6": 10.0, "e5": 7.0, "e2": 3.0}         # at their stretto gains the first three sat at -15/-16, unheard
 
 
+# v62 (ROUND TYPE: whole song): THE ANSWER ACCRETES. Her six questions rise E -> F and stay open ('oo' ... 'far
+# side?'); E8, the arrival (E F# D), answers them only at the jet. Between, the far choir - humming on 'n', standing
+# far back since v61, 'the answer forming' - sang once (45-52). Now it answers every question, a bar after it, and the
+# answer GROWS the way the album does, one piece at a time: after 28 only E; after 40 the frame, E and D; after 52 and
+# 64 the frame held longer; after 80 long and nearer, into the hook's rest (the still 2:08 block). Never the F#: the
+# stretto is D minor and E8's middle note is the major turn - the answer has a hole in it until the jet, where the
+# whole choir sings E F# D with words: the missing note IS the arrival.
+ANSWERS = [(29, (("E4", 2.0),), 0.20), (41, (("E4", 2.0), ("D4", 2.0)), 0.23), (53, (("E4", 2.0), ("D4", 3.0)), 0.26),
+           (65, (("E4", 2.5), ("D4", 4.0)), 0.29), (81, (("E4", 3.0), ("D4", 6.0)), 0.34)]
+
+
+def answer_accretes(song):
+    far = next(x for x in song["tracks"] if x["name"] == "far")
+    for bar, cell, vel in ANSWERS:
+        at = b0(bar)
+        for pitch, ln in cell:
+            far["notes"].append({"at": at, "len": ln, "ph": "UW1", "pitch": pitch, "vel": vel})
+            at += ln
+    far["notes"].sort(key=lambda n: n["at"])
+
+
 def fall_in_lanes(song):
     for tr_ in song["tracks"]:
         n = tr_["name"]
@@ -1373,6 +1394,7 @@ def main():
     recede(song)
     breathe(song)
     fall_in_lanes(song)
+    answer_accretes(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
