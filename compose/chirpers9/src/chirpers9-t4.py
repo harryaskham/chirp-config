@@ -1135,6 +1135,25 @@ HOOK_CLEAR_BAND = ("kick", "snare", "hat", "ride", "air", "sub", "bass")   # wit
 #                                    flatter still (seed 11: a 40 s run 3:12-3:52) - the floor going is the contrast
 
 
+# v64 (ROUND TYPE: section, B's first half 45-56, 1:38-2:03; rewritten): SHE HUMS IN A SMALLER ROOM. B moves every
+# four bars (41 the landing, 45 her closed hums, 49 the ride's lift, 53 the duet closing in, 57 the drop) - but under
+# every move the same floor ran on: the sub the loudest thing in B (-6.6 .. -8.8), the shaker and the kit steady, so
+# the 8 s windows at 1:28, 1:44 and 2:00 read alike (seed 5: a 32 s run 1:28-2:00). Now her two intimate moments
+# get a smaller room: at her first hum (45-48) and as the duet closes in (53-56) the sub rises an octave (into the
+# 71-97 Hz the song lacks, not out of it), the shaker steps out and the kick keeps only its downbeats - and the full
+# floor comes back with the ride's lift at 49 and the drop's turn at 57.
+SMALL_ROOM = [(45, 49), (53, 57)]
+
+
+def smaller_room():
+    for a_, z_ in SMALL_ROOM:
+        a, z = b0(a_), b0(z_)
+        inside = lambda s: a - 1e-6 <= s < z - 1e-6
+        P["sub"].ev = [(s, ln, f"m{midi_of(h) + 12}" if inside(s) else h, v) for s, ln, h, v in P["sub"].ev]
+        P["air"].ev = [e for e in P["air"].ev if not inside(e[0])]
+        P["kick"].ev = [e for e in P["kick"].ev if not inside(e[0]) or abs((e[0] - b0(1)) % 4.0) < 1e-6]
+
+
 def hook_in_the_clear():
     lo, hi = b0(HOOK_LIFT[0]), b0(HOOK_LIFT[1])
     P["lights"].ev = [(s, ln, ",".join(f"m{midi_of(x) + 12}" for x in h.split(",")) if lo - 1e-6 <= s < hi - 1e-6
@@ -1382,6 +1401,7 @@ def main():
     a_opens_upward()
     rise_pulls_back()
     hook_in_the_clear()
+    smaller_room()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v + verse(),
                    key=lambda d: d["at"])
