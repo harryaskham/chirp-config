@@ -108,6 +108,7 @@ CHOIRVOWEL = os.environ.get("C9T1_CHOIRVOWEL", "1:5:0.8")   # WHOLE (wM's vowel_
 SEEDGATHER = os.environ.get("C9T1_SEEDGATHER", "slow")   # WHOLE (t1 is Nucleation: five scattered voices, each on its own cycle, meet on one downbeat): THE VOICES GATHER - the engine's orbit fx puts the five seed voices on a ring around the listener (each at its own place on it, the ring centred 2 m ahead, 6 m wide - some beside you, some behind) and the ring shrinks through A and the build until at the crest it is a point in front of you: the scattered seed nucleates where you can hear it ('slow' the ring also turns, slower and slower, stopping at the crest; 'still' it only shrinks); a 6 dB shelf at 7 kHz after the fx puts back what it darkens behind the head
 A2LIFT = os.environ.get("C9T1_A2LIFT", "cello")   # SECTION w3 (1:13-1:48, A's middle: never focused - from the whistle's landing to the bass walk's start nothing new arrives: only the scattered seeds, the cello's slow E1 and the pads): 'whistle' the low whistle states E1 twice more (beats 124 and 134, on the crest's grid), remembering the landing, quieter; 'cello' the cello's slow E1 lifts an octave for the window's second half (120-144), the same line, higher
 VIBESP = os.environ.get("C9T1_VIBESP", "modal-vibes@-2")   # PALETTE: the seed's A voice (and its double in the build, join-vibes) leaves the additive 'vibes' for wM's modal vibraphone (a struck bar's own modes, motor tremolo) - the same notes, a real bar ringing ('patch[@dB change]')
+FARCLOSE = os.environ.get("C9T1_FARCLOSE", "room")   # SECTION w8 (3:59-4:33, the fall and the hand-off to t2: never focused): THE LAST HUM STANDS BACK - the closing hum (v36) is built after CHOIRVIB/CHOIRVOWEL ran, so it never got them (v47/v49's notes said it did; only the sighs did): now it gets the far choir's full recipe - five singers, spread 0.8, each with its own vibrato and vowels - and wM's depth_spread (pinned 391d8713): each singer stands their own distance back, later, quieter and darker, so the last hum is a section receding as t2 arrives ('depth' or 'room' = depth plus a hall send)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -727,6 +728,12 @@ def song():
                 tr["patch"] = vp
                 if vg:
                     tr["gain"] = f"{float(str(tr['gain']).replace('dB', '')) + float(vg):g}dB"
+    if FARCLOSE:
+        for tr in tracks:
+            if tr["name"] == "hum-out" and isinstance(tr["patch"], dict):
+                tr["patch"] = {"extends": tr["patch"]["extends"] + " synth.layers.0.singers=5 synth.layers.0.spread=0.8 synth.layers.0.vib_spread=1 synth.layers.0.vowel_spread=1 synth.layers.0.depth_spread=1"}
+                if FARCLOSE == "room":
+                    tr["sends"] = dict(tr.get("sends", {}), space="-6dB")
     if BREATHREG:
         for tr in tracks:
             if tr["name"] == "breath" and isinstance(tr["patch"], dict):
