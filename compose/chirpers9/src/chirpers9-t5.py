@@ -92,7 +92,8 @@ ORBITMIX = os.environ.get("C9T5_ORBITMIX", "")   # with ORBITFX: the orbit fx's 
 ORBITLIFT = os.environ.get("C9T5_ORBITLIFT", "6")   # with ORBITFX: a high shelf (dB at 7 kHz) after the orbit - the fx darkens a source behind the head, and the song's top lost it
 CLIMBLOW = os.environ.get("C9T5_CLIMBLOW", "two")   # SECTION w5 (2:15-2:47, the build into the crest): THE CLIMB STARTS LOWER - since v20 (ASCENT) her 'near-er' calls step up the scale into the crest, A G / B A / C B / D held, from beat 272; the build's first sixteen beats in this window had no voice at all. Now the climb starts lower and earlier, one step every eight beats all the way up: 'two' F#-E at 256 and G-F# at 264 before the A-G at 272; 'one' only the G-F# at 264
 SEEDSOUT = os.environ.get("C9T5_SEEDSOUT", "all")   # SECTION w4 (1:41-2:15, A's end, the four-bar drop and the build's start): THE DROP EMPTIES - in the drop before the build (beats 208-224) the drums and the quick bass stopped (v13 WEIGHT) and she breathes t1's breath (v36), but E1's two chip stretto voices kept going at full tilt over it; now they step out too, so the breath has the orbit, the chords and the floor around it, and the stretto comes back with the build ('all' 208-224; 'last' 216-224, the last two bars)
-INHALE = os.environ.get("C9T5_INHALE", "1")   # WHOLE (t5's voice is ONE NEAR singer - close, young, breathy - and she started every phrase out of silence, as if she never needed air): SHE DRAWS BREATH - wM's inhale (pinned): before each phrase, in the rest, a short in-breath (up to 0.35 s), so the closest voice on the album breathes before she sings to you (value 0..1; 1 sits ~12 dB under a sung vowel; the breath-quote, already a breath, is left alone)
+INHALE = os.environ.get("C9T5_INHALE", "1")   # WHOLE (t5's voice is ONE NEAR singer - close, young, breathy - and she started every phrase out of silence, as if she never needed air): SHE DRAWS BREATH - wM's inhale (pinned): before each phrase, in the rest, a short in-breath (up to 0.35 s), so the closest voice on the album breathes before she sings to you (value 0..1; 1 sits ~12 dB under a sung vowel; the breath-quote, already a breath, is left alone) (corrected 8 Nov: voice-near inherits inhale=0.4 from voice-legato, so she already breathed; v54's 1 makes the breaths louder, not new)
+FAREHUM = os.environ.get("C9T5_FAREHUM", "last")   # SECTION w8 (3:53-4:19, the farewell in the overlap with t6: the least recently worked window): THE WORDS DISSOLVE - she sings her farewell ('near-er the mid-dle hum', on E5's turn) twice, ageing as she goes; now the second time the words close into a hum as t6 arrives ('all' the whole second farewell hummed; 'last' from its 'mid-' on)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -835,6 +836,11 @@ def song():
             pt = tr.get("patch")
             if isinstance(pt, dict) and pt.get("extends", "").startswith("voice-near"):
                 pt["extends"] += f" synth.layers.0.passaggio={VOXREG}"
+    if FAREHUM:
+        h0 = 464 if FAREHUM == "all" else 466
+        for tr in tracks:
+            if tr["name"] == "hums-out":
+                tr["notes"] = [dict(n, expr=dict(n.get("expr", {}), hum=1.0)) if n["at"] >= h0 else n for n in tr["notes"]]
     if INHALE:
         for tr in tracks:
             if isinstance(tr.get("patch"), dict) and "voice-" in tr["patch"].get("extends", "") and tr["name"] != "breath-quote":
