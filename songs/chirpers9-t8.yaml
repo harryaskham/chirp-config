@@ -22062,7 +22062,9 @@
     "bands": [
      "highpass cutoff=28",
      "peak cutoff=240 q=0.8 gain=-2dB",
-     "highshelf cutoff=6000 gain=4dB"
+     "highshelf cutoff=6000 gain=5dB",
+     "lowshelf cutoff=100 gain=2dB",
+     "peak cutoff=850 q=0.6 gain=-1.5dB"
     ]
    },
    {

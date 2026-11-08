@@ -930,6 +930,18 @@ def stretch_lane():
             [f"{z:g}b", 0.0]]
 
 
+# v54 (ROUND TYPE: whole song): ROOM TO BREATHE. compscore --bands: the whole song ran 4-6 dB HOT from 468 to 1404 Hz
+# (the stretto's chip, organ, marimba, brass, choirs and her voice all live there) and 6-7 dB SHORT at 44-114 Hz and
+# 3-6 dB short above 6.7 kHz - a boxy middle on headphones and speakers alike, the floor and the air the album has
+# elsewhere missing. Now the master gives the mix room: a wide 3 dB dip centred at 850 Hz (q 0.6, the hump's span),
+# the floor up 3 dB below 100 Hz, the air shelf 4 -> 5 dB. Loudness is normalised to -11 LUFS after it, so nothing
+# gets louder - the balance moves. Every part is as it was; the song sounds less like it is played in a box.
+ROOM_BANDS = ["lowshelf cutoff=100 gain=2dB", "peak cutoff=850 q=0.6 gain=-1.5dB"]   # half: full strength split
+# the seeds (100.0 / 99.72: the t7 seam's spectral gap 2.6 -> 3.4) and read 31% / 28% flat (19% / 19%) - the song's
+# changes live in those mids
+MASTER_AIR = "5dB"
+
+
 # v17 (ROUND TYPE: whole song): HOME AT THE END. The horizon's held light sank 5 semitones on the redshift lane, so
 # the record's last chord was A major - the dominant, away from home (Harry: tone is home). Now the light redshifts a
 # full OCTAVE and lands on D again, an octave down: it falls all the way and arrives home - and the sub stays on D1
@@ -1204,7 +1216,7 @@ def main():
                   "hall": {"fx": ["reverb kind=hall decay=4s mix=1 predelay=24ms", "hp cutoff=180"]},
                   "dly": {"fx": ["delay time=3/8 mix=1 feedback=0.32", "hp cutoff=400", "lp cutoff=6000"]}},
         "master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "peak cutoff=240 q=0.8 gain=-2dB",
-                                                   "highshelf cutoff=6000 gain=4dB"]},
+                                                   "highshelf cutoff=6000 gain=" + MASTER_AIR] + ROOM_BANDS},
                           {"type": "compressor", "threshold": "-14dB", "ratio": 3, "attack": "8ms",
                            "release": "120ms", "makeup": "0dB"}]},
     }
