@@ -438,6 +438,14 @@ R53 = os.environ.get("T3_R53", "letgo") != "none"
 # instead of sitting in one wash. No pitch but D, so nothing in it touches t2's last
 # chords. T3_R54=none reproduces v53.
 R54 = os.environ.get("T3_R54", "horizon") != "none"
+# round 55 (section, w9 = bars 97-108, the duet after the lock, flagged 'static, little new vs w8'): T3_R55=choir
+# (default) - THE CHOIR ANSWERS. Here the duet sings both lines ("nothing here is late", "everything comes round")
+# over two backing "aa" pads that were buried (-14 and -18 dB) and moved in lockstep under everything - so the twelve
+# bars after the lock sounded like the lock continued. Now the pads become a choir (six singers a side, spread wide,
+# each with its own vibrato - wM's vib_spread, pinned da77da08) that steps back while the duet sings and swells
+# into the gaps, answering each line; and the duet's harmony singer gets her own vibrato too, so the two voices
+# breathe apart. T3_R55=none reproduces v54.
+R55 = os.environ.get("T3_R55", "choir") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1580,6 +1588,25 @@ def main():
                 tr["fx"] = list(tr.get("fx", [])) + [
                     {"type": "pump", "on": f"{k}.k", "depth": depth[tr["name"]], "release": "200ms", "curve": 0.6}
                     for k in ("kick", "kick7")]
+    if R55:                                                 # w9: the choir answers the duet (bars 97-108)
+        patches["a3-choir"] = {"extends": "voice-backing play.glide_overshoot=0.05 synth.lfo.vib.per_note=true "
+                                          "play.scoop=0.5 play.fall=1 synth.layers.0.singers=6 "
+                                          "synth.layers.0.spread=0.8 synth.layers.0.vib_spread=1"}
+        lane = [["0b", -4], ["388b", -4], ["390b", 3], ["398b", 3], ["399.9b", -4], ["404b", -4], ["406b", 3],
+                ["428b", 3], ["432b", -4]]
+        for tr in list(tracks):
+            if tr.get("name") in ("backlo", "backhi") and tr.get("notes"):
+                mine = [dict(n) for n in tr["notes"] if 384.0 <= n["at"] < 432.0 and n.get("vel", 1) > 0.02]
+                tr["notes"] = [dict(n, vel=0.01) if 384.0 <= n["at"] < 432.0 else n for n in tr["notes"]]
+                tracks.append(dict(tr, name=tr["name"].replace("back", "choir"), patch="a3-choir",
+                                   gain=f"{float(tr['gain'].replace('dB', '')) + (8.0 if 'hi' in tr['name'] else 5.0):g}dB", notes=mine,
+                                   fx=list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
+                                       "mod": [{"src": "auto.answer", "amount": 1}]}}],
+                                   auto=dict(tr.get("auto", {}), answer={"points": lane})))
+            if tr.get("name") == "duet" and tr.get("patch") == "a3-duet":
+                patches["a3-duetv"] = dict(patches["a3-duet"],
+                                           extends=patches["a3-duet"]["extends"] + " synth.layers.0.vib_spread=1")
+                tr["patch"] = "a3-duetv"
     if R54:                                                 # w1: the storm on the horizon (bars 1-16)
         tracks.append({"name": "wind", "patch": "wind", "gain": "-3dB", "pan": 0.15, "sends": {"space": "-6dB"},
                        "notes": [{"at": 0.0, "len": 66.0, "pitch": "m62", "vel": 0.8}],
