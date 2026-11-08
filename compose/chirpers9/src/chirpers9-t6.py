@@ -248,6 +248,16 @@ def build():
                 pair_ = (TIDE_Z, TIDE_Y)
             if nm_ == 'torn':
                 pair_ = (TIDE_X, TIDE_Z)
+            if nm_ == 'surge' and c in (2, 3):
+                # (v63, section w7: 3:06-3:36, the surge - eco: the 48 s still run, 2:48-3:36, back since v58; each
+                # 8-bar half of the surge sounded the same twice over, D and C under it all) THE SURGE CLIMBS IN FOUR-
+                # BAR STEPS: the harmony now turns every four bars - D/C for the low gear's first four, the cross's
+                # B-flat/C for its second (the water still drawn back), D/C again as the high gear lands, and G/A minor
+                # 7 (the pull's far shore) for the last four under the choir's 'near and far as one', the line's own
+                # notes; then the tear's D/B-flat. Every chord in D Mixolydian or borrowed from its minor
+                pair_ = (TIDE_Z, TIDE_Y)
+            if nm_ == 'surge' and c in (6, 7):
+                pair_ = (TIDE_W, TIDE_V)
             if nm_ == 'pull' and c >= 4:
                 # (v27) the pull's second half turns the tide over: G(add9) and Am7 (IV and v of D Mixolydian, every
                 # note in the mode) instead of D and C - the same swing, the split still moving, on the far shore -
