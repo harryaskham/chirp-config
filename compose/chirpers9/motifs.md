@@ -212,6 +212,8 @@ score: "D3/8 A3/8 E4/8 B4/16 F#5/16 C#6/16 G#6/8"   # 2 2 2 1 1 1 2 sixteenths =
   - Inverted: falling fifths, D G C F Bb Eb Ab (the flat side: the storm's darkness).
 - **Handover.** Across t7 -> t8 (150 bpm) the jet stops firing; E1, stretched x4, stops on its E and holds it over an
   open D-A-E (no third), for t8 to lift E -> F# -> D (E8).
+- **In t7's verse (since v67): glimpsed.** In bars 39-40, between the verse's call-and-answers, the horn section fires the column a semitone up (Eb3 Bb3 F4 C5 G5 on 2 2 2 2 3 sixteenths) twice, the second held into the singer's next line - the jet the crest will fire, seen early.
+- **In t8 (chirper-three, since v59): on real brass.** The stacked fifths (D3 A3 E4 A4 E5, no F#) as a horn call on the physical brass section.
 
 ### E8, "the arrival" (t8, chirper-three)
 ```yaml
