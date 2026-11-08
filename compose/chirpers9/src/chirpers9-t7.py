@@ -520,6 +520,16 @@ R53 = os.environ.get("T7_R53", "clear") != "none"
 # pump, as t2/t3/t6: -5/-6 dB, 200 ms, curve 0.6), so the innermost orbit hits and breathes instead of droning.
 # T7_R54=none reproduces v53.
 R54 = os.environ.get("T7_R54", "body") != "none"
+# round 55 (section, w11 = bars 161-176, the outfall under t8's head; flagged 'static, level jump', never worked;
+# agreed with chirper-three 8 Nov 01:40): T7_R55=heart (default) - THE LAST HEARTBEAT. After the plunge the
+# outfall was the tide's open fifths, the bell's held E and the break's kick thudding on in half notes - sixteen bars
+# of the same, under t8's opening. Now the kick becomes a heartbeat (a thump and its softer echo) that slows as the
+# orbit decays: every two beats, then every two and a half, then every five - and from t8's bar 2 its beats land on
+# t8's own chord changes (its strings move on a five-beat cycle), each fainter, gone by beat 694; t7's pulse hands
+# itself to t8's. No new pitch (t8 is D natural minor; nothing near E4-F4). And the plunge's octave bend (bars
+# 157-160) no longer drags its lowest notes into the sub: a 90 Hz high-pass on the falling copies takes out the
+# 38 Hz rumble that sat 12 dB over t8 at the seam. T7_R55=none reproduces v54.
+R55 = os.environ.get("T7_R55", "heart") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1018,6 +1028,8 @@ def build():
             return e
         for k in back:
             T[k].ev = [clear(k, e) for e in T[k].ev]
+    if R55:                                                 # w11: the kick gives way to the last heartbeat
+        T["kick"].ev = [(e[0], e[1], e[2], 1, e[4]) if 640.0 <= e[0] < 704.0 else e for e in T["kick"].ev]
     return T
 
 
@@ -1684,6 +1696,24 @@ def main():
                 g = float(tr["gain"].replace("dB", ""))
                 tracks.append(dict(tr, name=tr["name"] + "9", patch="a7-thump", gain=f"{g + 2:g}dB",
                                    fx=list(tr.get("fx", [])) + [{"type": "filter", "kind": "lp", "cutoff": 180, "q": 0.707}]))
+    if R55:                                                 # w11: the last heartbeat; the plunge out of the sub
+        beats = [640.0, 642.0, 644.0, 646.5, 649.0, 651.5, 654.0, 659.0, 664.0, 669.0, 674.0, 679.0, 684.0, 689.0,
+                 694.0]                                     # from 644 on t8's five-beat chord grid
+        heart = Track("heart")
+        for i, b in enumerate(beats):
+            v = int(round(104 - 60 * i / (len(beats) - 1)))
+            heart.add(b, 0.25, "k", v)
+            heart.add(b + 0.375, 0.25, "k", int(v * 0.55))
+        spec = {tr["name"]: tr for tr in tracks}
+        tracks.append(dict(spec["kick"], name="heart", score=heart.score()))
+        tracks.append(dict(spec["kick9"], name="heart9", score=heart.score()))
+        for tr in tracks:
+            if tr.get("name") == "kick":                    # the dusty kick still thuds at vel 1: close it by lane
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
+                                                      "mod": [{"src": "auto.rest", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), rest={"points": [["0b", 0], ["639.97b", 0], ["640b", -60]]})
+            if tr.get("name") in ("e1apl", "e1bpl", "jetpl"):
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "filter", "kind": "hp", "cutoff": 90, "q": 0.707}]
     if R54:                                                 # whole: the reese and floor breathe under the kick
         depth = {"bass": "-5dB", "bassup": "-5dB", "bass5": "-5dB", "bass7": "-5dB", "bass8": "-5dB",
                  "sub": "-6dB", "sub8": "-6dB"}
