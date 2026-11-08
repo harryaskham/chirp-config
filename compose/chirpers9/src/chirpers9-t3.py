@@ -420,6 +420,15 @@ R51 = os.environ.get("T3_R51", "pan") != "none"
 # -6 dB, 200 ms, curve 0.6) - so the storm moves in and out with its own heartbeat, the kick lands, and the low end
 # leaves room between hits. T3_R52=none reproduces v51.
 R52 = os.environ.get("T3_R52", "pump") != "none"
+# round 53 (whole song): T3_R53=letgo (default) - THE STORM LETS GO, ON A BREATH. Two ends of one arc. (1) Since v52
+# the storm's low end is heavier throughout, and it stayed heavy right up to the crossfade - so the last bars before
+# t4 (bar 113 on) pressed on t4's head at 61-83 Hz (chirper-three measured it). Now the grit bass, its sine and the
+# floor ease down 3 dB over bars 105-113: the storm thins as the round sings, and hands t4 a lighter floor. (2) The
+# storm's last word (bar 119, E1 sung slowly) ended on E and hung there; nothing answered. Now one closed hum - the
+# same mouth-shut voice that first sang at bar 25, held even by hum_even - takes D4 at bar 121 and holds it under
+# t4's head: E resolves to D, home, a breath instead of a thinning, gone before t3 ends. Agreed with chirper-three:
+# D only (no F or F#, t4's third is theirs), a few dB under their handpan. T3_R53=none reproduces v52.
+R53 = os.environ.get("T3_R53", "letgo") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1562,6 +1571,19 @@ def main():
                 tr["fx"] = list(tr.get("fx", [])) + [
                     {"type": "pump", "on": f"{k}.k", "depth": depth[tr["name"]], "release": "200ms", "curve": 0.6}
                     for k in ("kick", "kick7")]
+    if R53:                                                 # whole: the storm lets go, on a breath
+        for tr in tracks:
+            if tr.get("name") in ("bass", "bsub", "floor"):
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
+                                                      "mod": [{"src": "auto.ease", "amount": 1}]}}]
+                tr.setdefault("auto", {})["ease"] = {"points": [["0b", 0], ["416b", 0], ["448b", -3], ["513b", -3]]}
+        patches["a3-humd"] = dict(patches["a3-humm"],
+                                  extends=patches["a3-humm"]["extends"] + " synth.layers.0.hum_even=1")
+        tracks.append({"name": "humd", "patch": "a3-humd", "gain": "-13dB", "pan": 0.0, "sends": {"space": "-3dB"},
+                       "notes": [{"at": 480.0, "len": 30.0, "ph": "UW1", "pitch": "m62", "vel": 0.62}],
+                       "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.fade", "amount": 1}]}}],
+                       "auto": {"fade": {"points": [["0b", -40], ["479.9b", -40], ["484b", 0], ["500b", 0],
+                                                    ["510b", -40], ["513b", -40]]}}})
     master = {"fx": [{"type": "eq", "bands": ["hp cutoff=25", "peak cutoff=100 gain=3dB q=1.0",
                                               "peak cutoff=320 gain=-2dB q=0.8",
                                               "highshelf cutoff=8000 gain=2dB"]},

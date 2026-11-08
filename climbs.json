@@ -8350,15 +8350,15 @@
       "owner": "chirper-two",
       "metric": "python3 tools/compscore.py chirpers9-t3 OUT.wav",
       "best": {
-        "score": 98.955,
-        "version": "v52",
+        "score": 99.016,
+        "version": "v53",
         "commit": "see git log songs/chirpers9-t3.yaml",
         "engine": "3204abd9"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 52,
+      "rounds": 53,
       "priority": 1.0,
       "genre": "complex electronic",
       "mode": "compose",
@@ -8376,7 +8376,7 @@
         "note": "COMPOSE (first storm, 240-360 s): The first storm and the first difficult track: dense, abrasive, glitching, rhythmically hard. Carries E1-E2 and introduces E3. The storm resolves when the elements lock into one groove."
       },
       "last": {
-        "at": "2026-11-07T23:16:00Z",
+        "at": "2026-11-08T00:11:27Z",
         "who": "chirper-two"
       }
     },
