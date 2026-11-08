@@ -465,6 +465,13 @@ R56 = os.environ.get("T3_R56", "swarm") != "none"
 # against the bar each time round - the phase the storm is built on, as a melody - until the hum takes over at 25.
 # T3_R57=none reproduces v56.
 R57 = os.environ.get("T3_R57", "drift") != "none"
+# round 58 (section, w7 = bars 73-84, the second storm gathering; focused least recently): T3_R58=hands (default) - THE
+# HANDS TAKE OVER. In bars 77-80 the kick and snare already rest, but the hats ran on and the congas kept their
+# two-beat loop buried under everything (-18 dB, the same four strokes since bar 25). Now for those four bars the
+# hats and the old loop stop and the congas come forward with E2's own cell - slap, open, open, low on sixteenths
+# 0 2 3 5 of every seven, so the hand pattern turns over against the bar like the eyewall did - and the last bar is
+# a conga roll swelling into bar 81, where the kit comes back for the pull to the lock. T3_R58=none reproduces v57.
+R58 = os.environ.get("T3_R58", "hands") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1607,6 +1614,29 @@ def main():
                 tr["fx"] = list(tr.get("fx", [])) + [
                     {"type": "pump", "on": f"{k}.k", "depth": depth[tr["name"]], "release": "200ms", "curve": 0.6}
                     for k in ("kick", "kick7")]
+    if R58:                                                 # w7: the hands take over (bars 77-80)
+        lo, hi = 304.0, 320.0
+        for tr in tracks:
+            if tr.get("name") in ("hats", "perc", "hand"):
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
+                                                      "mod": [{"src": "auto.hands", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), hands={"points": [["0b", 0], [f"{lo - 0.03:g}b", 0],
+                                                                          [f"{lo:g}b", -60], [f"{hi - 0.03:g}b", -60],
+                                                                          [f"{hi:g}b", 0]]})
+        hands, piece = Track("hands"), {0: ("sl", 112), 2: ("o", 92), 3: ("o", 84), 5: ("lo", 100)}
+        s16 = 0
+        while lo + 0.25 * s16 < hi - 4.0:
+            k = s16 % 7
+            if k in piece:
+                hands.add(lo + 0.25 * s16, 0.24, piece[k][0], piece[k][1])
+            s16 += 1
+        for i in range(16):                                 # the last bar: a roll swelling into 81
+            hands.add(hi - 4.0 + 0.25 * i, 0.24, ("o", "lo", "sl", "o")[i % 4], 64 + 3 * i)
+        hand = next(tr for tr in tracks if tr.get("name") == "hand")
+        tracks.append(dict(hand, name="hands", gain="-1dB", pan=-0.1,
+                           fx=[f for f in hand.get("fx", []) if not (isinstance(f, dict) and f.get("type") == "gain")],
+                           auto={k: v for k, v in hand.get("auto", {}).items() if k != "hands"},
+                           score=hands.score()))
     if R57:                                                 # w2: the hook slips (bars 17-24, the dizi)
         for tr in list(tracks):
             if tr.get("name") == "dizi":
