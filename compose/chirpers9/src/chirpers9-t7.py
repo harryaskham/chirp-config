@@ -648,6 +648,15 @@ HOUSE_GAIN = os.environ.get("T7_HOUSE_GAIN", "4dB")
 # bar 75, then with the keyed third above at bar 77, the breaths sized to the phrase (inhale_depth, pinned df7aaf1b).
 # T7_R69=none reproduces v68.
 R69 = os.environ.get("T7_R69", "nearer") != "none"
+# round 70 (whole): T7_R70=chest (default) - EACH LAP A LITTLE SHORTER, AND A CHEST TO IT. Two whole-song moves.
+# (1) The hats orbit: a lap around the listener every two bars (orbit fx, 3 m, no Doppler), so as the tempo climbs
+# 132 -> 150 the laps quicken, and a speed lane quickens them further - x1.5 by the crest, x2 through it, easing back
+# for the outfall: the choir's "each lap a little shorter", in the room. (2) The low end gets a body: the album
+# envelope found t7 heavy at 38 Hz (+3.5) and hollow at 61-114 (-4 to -7), the reese's Eb1 fundamental and too
+# little above it - so the reeses get a tube-ish drive in parallel (bias 0.3, drive 0.3, mix 0.3: their 2nd and 3rd
+# harmonics, 78-117 Hz), a dip at 38 and a lift at 110; and the kicks a transient shaper (attack +4 dB): they hit
+# in the chest, not just the floor. T7_R70=none reproduces v69.
+R70 = os.environ.get("T7_R70", "chest") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1834,6 +1843,25 @@ def main():
         rep0["auto"] = dict(rep0.get("auto", {}), speak={"points": [["0b", 0], ["135.9b", 0], ["136b", 6], ["142b", 6],
                                                                     ["142.5b", 0], ["167.9b", 0], ["168b", 6], ["174b", 6],
                                                                     ["174.5b", 0]]})
+    if R70:                                                 # whole: the hats orbit (laps quicken), the low end gets a chest
+        for tr in tracks:
+            nm, pt = tr.get("name"), tr.get("patch")
+            if nm == "hats":
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "orbit", "path": "circle", "distance": 0, "doppler": 0.0,
+                                                      "rate": "2/1", "radius": 3,
+                                                      "speed": {"value": 1, "mod": [{"src": "auto.laps", "amount": 1}]},
+                                                      "phase": 0.25}]
+                tr["auto"] = dict(tr.get("auto", {}), laps={"points": [["0b", 0], ["64b", 0], ["320b", 0.25],
+                                                                       ["480b", 0.5], ["544b", 1.0], ["608b", 1.0],
+                                                                       ["640b", 0.0], ["704b", 0.0]]})
+            elif pt == "a7-reese":
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "drive", "shape": "tanh", "drive": 0.3, "bias": 0.3,
+                                                      "mix": 0.3},
+                                                     {"type": "eq", "bands": ["peak cutoff=38 gain=-3dB q=1.0",
+                                                                              "peak cutoff=110 gain=3.5dB q=0.9"]}]
+            elif nm in ("kick", "kickh", "kick9"):
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "transient", "attack": 4.0, "sustain": 0.0,
+                                                      "sensitivity": 0.5}]
     if R69:                                                 # w5: the hook up, and sung back - "nearer every lap" (75, 77)
         base = patches["a7-sung"]["extends"] + " synth.layers.0.taper=0.6 synth.layers.0.inhale_depth=1"
         patches["a7-near"] = dict(patches["a7-sung"], extends=base)
