@@ -114,6 +114,7 @@ CRESTBREATH = os.environ.get("C9T1_CRESTBREATH", "2")   # SECTION w5 (2:22-2:54,
 SEEDTAP = os.environ.get("C9T1_SEEDTAP", "clave")   # SECTION w4 (1:48-2:22, A's second half: flagged 'little new vs w3' - the shaker's pattern unchanged since A began, the whistle's fragments trying to form the seed): 'clave' from beat 160 a quiet clave taps E1's rhythm without its notes (on the crest's grid), the seed's pulse forming before its tune does; 'drop' the shaker steps out for 176-184, so the breath before the build starts two bars early
 KICKSEED = os.environ.get("C9T1_KICKSEED", "seed")   # SECTION w7 (3:27-3:59, the lock's end, the exhale and the overlap's first bars: the bodhran's half-note pulse unchanged since the crest): 'seed' from the exhale (beat 304) the drum leaves the bar and beats on the seed's own cycle instead - once every five beats, on each E1's first note - so the last pulse of t1 is the seed's, five against the bar's four; 'gap' the drum steps out for the exhale (304-320) and returns with the overlap
 RETRO = os.environ.get("C9T1_RETRO", "shakuhachi")   # WHOLE (a counterpoint, Harry 11:37 on t7): A's middle (beats 96-144) had no line over the cello's slow seed once the harp's answer ended - a wind now sings E1 BACKWARDS (retrograde: E G C A D, its rhythm reversed, at half speed) three times there, right of centre, against the cello's seed going forwards on the left: the seed heard from both ends at once, before the whistle's tease ('patch[@gain]')
+FLOORLIFT = os.environ.get("C9T1_FLOORLIFT", "sub")   # WHOLE (the handover's floor): t1 ended on a D1 sub (37 Hz) under a bass walking 49-82 Hz, and t2 picks up with its chip bass around A2 (110 Hz) and no sub, so the floor jumped up an octave and a half at the seam (out-flow 38 Hz -19 dB, 114 Hz +16 dB). From the exhale (beat 288) the floor lifts to meet t2, with DEEPOUT's agreed step-down of the D1 through the overlap left exactly as it is: 'bassup' the triangle bass walks its last E1 an octave up; 'bassup2' and its exhale notes too (G1 A1 -> G2 A2, beside t2's A2); 'lift2' that, and the last D1 before the overlap a little softer, so the sub is already stepping down when DEEPOUT takes it (both measured worse: the out-flow's signs are t1 minus t2 - t1 has LESS 38-44 Hz and MORE 114 Hz than t2's body); 'sub' bassup and the last D1 before the overlap a little fuller; 'airearly' bassup and the air's A2 letting go at the exhale's start (288) rather than 304
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -749,6 +750,20 @@ def song():
                 tr["patch"] = vp
                 if vg:
                     tr["gain"] = f"{float(str(tr['gain']).replace('dB', '')) + float(vg):g}dB"
+    if FLOORLIFT:
+        for tr in tracks:
+            if tr["name"] == "deep" and FLOORLIFT in ("lift2", "sub"):
+                for n in tr["notes"]:
+                    if n["at"] == 288:
+                        n["vel"] = round(n["vel"] * (0.7 if FLOORLIFT == "lift2" else 1.3), 3)
+            if tr["name"] == "air" and FLOORLIFT == "airearly":
+                tr["notes"] = [dict(n, len=min(n["len"], 288 - n["at"])) if n["pitch"] == "A2" else n for n in tr["notes"]]
+            if tr["name"] == "bass":
+                for n in tr["notes"]:
+                    if 288 <= n["at"] < 296 and n["pitch"].startswith("m"):
+                        n["pitch"] = f"m{int(n['pitch'][1:]) + 12}"
+                    elif FLOORLIFT in ("bassup2", "lift2") and n["at"] in (304, 312) and n["pitch"] in ("G1", "A1"):
+                        n["pitch"] = n["pitch"][0] + "2"
     if KICKSEED:
         for tr in tracks:
             if tr["name"] == "kick":
