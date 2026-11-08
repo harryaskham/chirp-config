@@ -493,6 +493,13 @@ R59 = os.environ.get("T3_R59", "space") != "none"
 # "doo"s) get f0_spread (pinned 473b5266), the spread that reaches their vibrato - vib_spread could not.
 # T3_R60=none reproduces v59.
 R60 = os.environ.get("T3_R60", "weather") != "none"
+# round 61 (section, w8 = bars 85-96, the held breath and the lock; "little new vs w7"): T3_R61=lock (default) -
+# THE SEVEN LOCKS INTO EIGHT. All storm long E2 ran in sevens (hits 0, 2, 3, 5 of 7 sixteenths), rolling over the beat;
+# at the lock (bar 89) the music squares up - but the only part playing E2 squared (0, 2, 3, 5 of 8) was the buried
+# conga loop. Now a brass section says it: punchy stabs (library brass-stab, the album's first) on E2's locked
+# rhythm, four to every chord of the lock's Dm - Bb - C - Dm, D-minor triads under the farfisa's E1 - and they answer
+# the voice: silent while she sings "nothing here is late", back in every gap. T3_R61=none reproduces v60.
+R61 = os.environ.get("T3_R61", "lock") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1635,6 +1642,18 @@ def main():
                 tr["fx"] = list(tr.get("fx", [])) + [
                     {"type": "pump", "on": f"{k}.k", "depth": depth[tr["name"]], "release": "200ms", "curve": 0.6}
                     for k in ("kick", "kick7")]
+    if R61:                                                 # w8: the seven locks into eight (bars 89-96)
+        lockb = Track("lockb")
+        chords = ("m57,m62,m65", "m58,m62,m65", "m60,m64,m67", "m57,m62,m65")   # Dm, Bb, C, Dm (2 beats each)
+        sungs = ((360.0, 364.0), (376.0, 380.0))                              # the voice: the brass rests
+        for k in range(16):
+            at = 352.0 + 2.0 * k
+            if any(a_ <= at < b_ for a_, b_ in sungs):
+                continue
+            for s16, vel in ((0, 112), (2, 92), (3, 98), (5, 104)):
+                lockb.add(at + 0.25 * s16, 0.22, chords[k % 4], vel)
+        tracks.append({"name": "lockb", "patch": "brass-stab", "gain": "-1dB", "pan": -0.2,
+                       "sends": {"space": "-8dB"}, "score": lockb.score()})
     if R58:                                                 # w7: the hands take over (bars 77-80)
         lo, hi = 304.0, 320.0
         for tr in tracks:
