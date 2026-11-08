@@ -85,6 +85,7 @@ HUMEVEN = os.environ.get("C9T5_HUMEVEN", "1")   # SECTION w6 (2:47-3:20, the lin
 UNDERA = os.environ.get("C9T5_UNDERA", "-18")   # SECTION w3 (1:08-1:41, A's second half, the chorus and the Rhodes' answers): THE UNDERTOW FIRST HEARD - E3 (v44) only came in at the build; now the marimba plays it under A's second half too (beats 128-192, quieter, phased to the same seven-beat grid that lands on the crest), so when the build brings it back it is a return, not a new part (value = gain dB)
 EQ640 = os.environ.get("C9T5_EQ640", "")   # WHOLE (the spectrum's worst band was 641 Hz +7: the orbit's D5 and E5, doubled after the crest by the drifting second orbit): a peak cut (value dB) at 640 Hz on both orbits
 LIGHTSEQ = os.environ.get("C9T5_LIGHTSEQ", "640:-4")   # with it: the lights (the kuramoto choir's chords, since v45) - a choir's open 'ah' formant sits at 600-900 Hz, the album's middle: a peak cut there ('cutoff:dB') (v48: 640:-4; the same cut on the orbits, EQ640, barely moved the band: it is the choir's)
+CHIPAIR = os.environ.get("C9T5_CHIPAIR", "-7")   # WHOLE (the seam in from t4: t5 is 18 dB brighter at 14.8 kHz than t4's tail): the chip parts' top - the seed-hi chip lead and both NES orbits - softened by a high shelf at 12 kHz (value dB), the inner disk's glitter kept but less glassy
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -681,6 +682,10 @@ def song():
                         if t < d1:
                             ns.append(dict(n, at=round(t, 4), vel=round(n["vel"] * 0.9, 3)))
                 tracks.append(dict(tr, name="orbit-drift", gain=f"{dg or -20}dB", pan=-0.55, notes=ns))
+    if CHIPAIR:
+        for tr in tracks:
+            if tr["name"] in ("seed-hi", "orbit", "orbit-drift"):
+                tr["fx"] = list(tr.get("fx", [])) + [f"highshelf cutoff=12000 gain={CHIPAIR}dB"]
     if LIGHTSEQ:
         lc, lg = LIGHTSEQ.split(":")
         for tr in tracks:
