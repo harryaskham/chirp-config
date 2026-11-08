@@ -1162,6 +1162,14 @@ def build():
         if t_['name'] in LEAD:
             t_['gain'] = f"{float(t_['gain'][:-2]) + 1.5:g}dB"
             t_['fx'] = list(t_.get('fx', [])) + [{'type': 'eq', 'bands': ['peak cutoff=3000 q=0.9 gain=3dB', 'highshelf cutoff=9000 gain=2dB', 'peak cutoff=350 q=1.0 gain=-2dB']}]
+        # (v69, palette: the engine's newest voice features, as on t6 v69) THE SINGER BREATHES AND LETS GO: the near
+        # voice's own lines around the chorus - the verses, the pre-chorus, the early glimpse of the hook and the line
+        # found at the break's end - draw a fuller breath before each phrase (inhale 0.4 -> 0.7), sized to the phrase
+        # (wM's inhale_depth: a sip before 'all that falls', a full breath before the pre-chorus's long climb), and
+        # let each phrase's last note go (wM's taper 0.6) instead of stopping square. The crest line itself - at the
+        # crest, its answer and in the last chorus - is untouched, as Harry heard it
+        if t_['name'] in ('verse', 'prech', 'earlyhook', 'sung') and isinstance(t_.get('patch'), dict) and 'extends' in t_['patch']:
+            t_['patch'] = dict(t_['patch'], extends=t_['patch']['extends'] + ' synth.layers.0.inhale=0.7 synth.layers.0.inhale_depth=1 synth.layers.0.taper=0.6')
         if t_['name'] == 'bass':
             # (v64, whole song) THE FLOOR STEPS BACK: the chip bass was the loudest thing in every window of the song
             # (presence -0.2 to -2.9 dB, everything else 4-15 dB under it) - the whole song heard through its floor.
