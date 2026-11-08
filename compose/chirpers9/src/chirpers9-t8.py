@@ -587,6 +587,29 @@ JET_STOP = (105, 108)
 STOP_TRACKS = ("kick", "snare", "hat", "bass", "e2", "e5")
 
 
+# v67 (ROUND TYPE: section, the run-in to the jet 85-92, 2:12-2:30; rewritten): THE APPROACH QUICKENS. The stretto's
+# last eight bars before the stretch were a drone in time - one kick a bar, the hat's dotted eighths, the bass's D2
+# pairs every seven sixteenths, no snare - so the 8 s window at 2:08 read the flattest in the song (0.39). Harry: the
+# complexity in TIME. Now the kick doubles every two bars into the jet - once a bar (85-86), half notes (87-88),
+# quarters (89-90), eighths (91-92), rising 80 -> 104 - before the time dilates (93-95) and the vacuum (96) holds
+# it; the hat steps out for 85-88 (E7's brass has the light) and returns at 89 as the pulse doubles.
+QUICKEN = {85: 1, 86: 1, 87: 2, 88: 2, 89: 4, 90: 4, 91: 8, 92: 8}
+QUICKEN_HAT_REST = (85, 89)
+
+
+def approach_quickens():
+    lo, hi = b0(min(QUICKEN)), b0(max(QUICKEN) + 1)
+    P["kick"].ev = [e for e in P["kick"].ev if not (lo - 1e-6 <= e[0] < hi - 1e-6)]
+    bars = sorted(QUICKEN)
+    for i, bar in enumerate(bars):
+        n = QUICKEN[bar]
+        for k in range(n):
+            v = int(round(80 + 24 * (i * n + k) / (len(bars) * n)))
+            part("kick").add(b0(bar) + k * 4.0 / n, 0.5, "k", v)
+    a, z = b0(QUICKEN_HAT_REST[0]), b0(QUICKEN_HAT_REST[1])
+    P["hat"].ev = [e for e in P["hat"].ev if not (a - 1e-6 <= e[0] < z - 1e-6)]
+
+
 def the_jet_stops():
     lo, hi = b0(JET_STOP[0]), b0(JET_STOP[1] + 1)
     for n in STOP_TRACKS:
@@ -1387,6 +1410,7 @@ def main():
     arrangers_hand()
     time_dilates()
     the_jet_stops()
+    approach_quickens()
     everything_falls_in()
     lead, fifth, low = choir()
     far = far_choir()                                             # v38: the answer forms far away (v45: own track)
