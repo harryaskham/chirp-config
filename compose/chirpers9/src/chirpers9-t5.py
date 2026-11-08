@@ -91,6 +91,7 @@ ORBITFX = os.environ.get("C9T5_ORBITFX", "main")   # WHOLE (t5 is Periapsis - th
 ORBITMIX = os.environ.get("C9T5_ORBITMIX", "")   # with ORBITFX: the orbit fx's wet mix (0..1)
 ORBITLIFT = os.environ.get("C9T5_ORBITLIFT", "6")   # with ORBITFX: a high shelf (dB at 7 kHz) after the orbit - the fx darkens a source behind the head, and the song's top lost it
 CLIMBLOW = os.environ.get("C9T5_CLIMBLOW", "two")   # SECTION w5 (2:15-2:47, the build into the crest): THE CLIMB STARTS LOWER - since v20 (ASCENT) her 'near-er' calls step up the scale into the crest, A G / B A / C B / D held, from beat 272; the build's first sixteen beats in this window had no voice at all. Now the climb starts lower and earlier, one step every eight beats all the way up: 'two' F#-E at 256 and G-F# at 264 before the A-G at 272; 'one' only the G-F# at 264
+SEEDSOUT = os.environ.get("C9T5_SEEDSOUT", "all")   # SECTION w4 (1:41-2:15, A's end, the four-bar drop and the build's start): THE DROP EMPTIES - in the drop before the build (beats 208-224) the drums and the quick bass stopped (v13 WEIGHT) and she breathes t1's breath (v36), but E1's two chip stretto voices kept going at full tilt over it; now they step out too, so the breath has the orbit, the chords and the floor around it, and the stretto comes back with the build ('all' 208-224; 'last' 216-224, the last two bars)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -705,6 +706,11 @@ def song():
                 if ORBITLIFT:
                     tr["fx"].append(f"highshelf cutoff=7000 gain={ORBITLIFT}dB")
                 tr["auto"] = dict(tr.get("auto", {}), peri_spin={"points": peri_spin_pts}, peri_near={"points": peri_near_pts})
+    if SEEDSOUT:
+        s0 = 208 if SEEDSOUT == "all" else 216
+        for tr in tracks:
+            if tr["name"] in ("seed-hi", "seed-lo"):
+                tr["notes"] = [n for n in tr["notes"] if not (s0 <= n["at"] < ST["build"])]
     if CLIMBLOW:
         steps = {"two": [(256, "F#4", "E4", 0.6), (264, "G4", "F#4", 0.65)], "one": [(264, "G4", "F#4", 0.65)]}[CLIMBLOW]
         for tr in tracks:
