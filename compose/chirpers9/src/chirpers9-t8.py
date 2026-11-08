@@ -450,6 +450,38 @@ ANSWERS = [(29, (("E4", 2.0),), 0.20), (41, (("E4", 2.0), ("D4", 2.0)), 0.23), (
            (65, (("E4", 2.5), ("D4", 4.0)), 0.29), (81, (("E4", 3.0), ("D4", 6.0)), 0.34)]
 
 
+# v65 (ROUND TYPE: section, her last line 150-156, 3:52-4:06): AND IT WAS OURS. The album's last sung words - 'and it
+# was ours', at half speed - ended like any phrase: 'ours' a 1.7-beat D4 cut square under the choir's rising 'ah'.
+# Now the song's threads close on it. Her last line moves to its own track (appended last) with the deepest breath
+# before it (inhale 0.7) and the fullest let-go (TAPER 1, pinned 251180c1): 'ours' holds four beats and runs out of
+# air into the choir's 'ah'. And the answer completes: all song the far choir hummed only E8's frame (E ... D) after
+# her questions, the F# withheld in the minor; now, in the D-major light, under 'ours' it hums the WHOLE arrival -
+# E F# D - far off, its D landing with her word.
+LAST_FROM = 149.5
+LAST_OURS_LEN = 4.0
+LAST_ANSWER = [(152.13, "E4", 2.0), (152.63, "F#4", 2.0), (153.13, "D4", 6.0)]
+LAST_ANSWER_VEL = 0.36
+
+
+def and_it_was_ours(song):
+    tr_ = {x["name"]: x for x in song["tracks"]}
+    solo = tr_["solo"]
+    cut = b0(LAST_FROM)
+    last = [dict(n) for n in solo["notes"] if n["at"] >= cut]
+    assert last, "her last line not found"
+    solo["notes"] = [n for n in solo["notes"] if n["at"] < cut]
+    last[-1]["len"] = LAST_OURS_LEN
+    patch = json.loads(json.dumps(solo["patch"]))
+    patch["about"] = "t8's last line: her voice with the deepest breath and the fullest let-go"
+    patch["synth"]["layers"][0].update({"inhale": 0.7, "taper": 1.0})
+    song["tracks"].append(dict({k: v for k, v in solo.items() if k not in ("notes", "patch", "name")},
+                               name="last", patch=patch, notes=last))
+    for bar, pitch, ln in LAST_ANSWER:
+        tr_["far"]["notes"].append({"at": round(b0(1) + (bar - 1) * 4, 3), "len": ln, "ph": "UW1", "pitch": pitch,
+                                    "vel": LAST_ANSWER_VEL})
+    tr_["far"]["notes"].sort(key=lambda n: n["at"])
+
+
 def answer_accretes(song):
     far = next(x for x in song["tracks"] if x["name"] == "far")
     for bar, cell, vel in ANSWERS:
@@ -1430,6 +1462,7 @@ def main():
     breathe(song)
     fall_in_lanes(song)
     answer_accretes(song)
+    and_it_was_ours(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
