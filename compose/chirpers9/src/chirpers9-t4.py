@@ -142,6 +142,16 @@ def write_lens():
         part("steel").add(b0(bar), bars * BPB + tie, note, v)
 
 
+# v67 (ROUND TYPE: whole song): THE LIGHTS ARE LIT ONE BY ONE. t4 INTRODUCES E4, 'four lights' - but after the lens's
+# single light (D9 alone, the lift to 17) all four chords were lit at once from bar 17, so the theme's introduction
+# was a switch, not an accretion. Now they come on one at a time, a section each, as the album accretes: A has two
+# lights (D9, Cmaj9, D9, Cmaj9), B three (D9, Cmaj9, Am11, D9), and from the rise all four - D9 Cmaj9 Am11 G6/9, the
+# first full statement of the combined theme arriving where the brief puts it, at the crest. The bass and the sub
+# still walk E4's roots (D C A G) under them - every chord of the mode sits over every root - so the harmony below is
+# the whole theme and the lights join it; the fall still holds the first light alone, the lens mirrored.
+LIT = {"A": 2, "B": 3}
+
+
 def write_lights():
     vel = {"A": 62, "B": 70, "rise": 76, "crest": 92, "relief": 82, "fall": 60}
     beat = b0(17)
@@ -152,6 +162,9 @@ def write_lights():
         if s == "fall":
             v = max(24, vel["fall"] - 6 - (bar - 121) * 2)
         k, name, notes = chord_at(beat)
+        lit = LIT.get(s, 4)                       # v67: the lights are lit one by one
+        if k >= lit:
+            notes = E4[k % lit][1]
         if s == "fall":
             notes = E4[0][1]                      # v6: the fall holds the first light alone (the lens mirrored; no
         part("lights").add(beat, E1_CYCLE, head(notes), v)   # second chord against t5's head)
