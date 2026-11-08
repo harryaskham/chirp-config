@@ -107,6 +107,7 @@ CRYSTALMOVE = os.environ.get("C9T1_CRYSTALMOVE", "octave")   # SECTION w6 (2:54-
 CHOIRVOWEL = os.environ.get("C9T1_CHOIRVOWEL", "1:5:0.8")   # WHOLE (wM's vowel_spread, pinned a1f7f0ec, with v47's vib_spread): the far choir's singers each shape the vowel their own way (F1/F2 +-8%, F3 +-5%) instead of one voice's formants copied and scaled - three people far off rather than one voice tripled ('V' or 'V:singers:spread' to widen the section too)
 SEEDGATHER = os.environ.get("C9T1_SEEDGATHER", "slow")   # WHOLE (t1 is Nucleation: five scattered voices, each on its own cycle, meet on one downbeat): THE VOICES GATHER - the engine's orbit fx puts the five seed voices on a ring around the listener (each at its own place on it, the ring centred 2 m ahead, 6 m wide - some beside you, some behind) and the ring shrinks through A and the build until at the crest it is a point in front of you: the scattered seed nucleates where you can hear it ('slow' the ring also turns, slower and slower, stopping at the crest; 'still' it only shrinks); a 6 dB shelf at 7 kHz after the fx puts back what it darkens behind the head
 A2LIFT = os.environ.get("C9T1_A2LIFT", "cello")   # SECTION w3 (1:13-1:48, A's middle: never focused - from the whistle's landing to the bass walk's start nothing new arrives: only the scattered seeds, the cello's slow E1 and the pads): 'whistle' the low whistle states E1 twice more (beats 124 and 134, on the crest's grid), remembering the landing, quieter; 'cello' the cello's slow E1 lifts an octave for the window's second half (120-144), the same line, higher
+VIBESP = os.environ.get("C9T1_VIBESP", "modal-vibes@-2")   # PALETTE: the seed's A voice (and its double in the build, join-vibes) leaves the additive 'vibes' for wM's modal vibraphone (a struck bar's own modes, motor tremolo) - the same notes, a real bar ringing ('patch[@dB change]')
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -719,6 +720,13 @@ def song():
                 if ns:
                     tracks.append({"name": f"join-{pt}", "patch": pt, "gain": f"{HOOKJOIN}dB", "pan": pan,
                                    "sends": {"space": "-8dB"}, "notes": ns})
+    if VIBESP:
+        vp, _, vg = VIBESP.partition("@")
+        for tr in tracks:
+            if tr["name"] in ("seed-a", "join-vibes"):
+                tr["patch"] = vp
+                if vg:
+                    tr["gain"] = f"{float(str(tr['gain']).replace('dB', '')) + float(vg):g}dB"
     if BREATHREG:
         for tr in tracks:
             if tr["name"] == "breath" and isinstance(tr["patch"], dict):
