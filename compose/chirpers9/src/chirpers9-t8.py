@@ -534,7 +534,16 @@ def everything_falls_in():
 # stretch and the vacuum 89-96, the jet's arrival, the hook sung back 109-112, the break, the horizon). Several land
 # under her questions (40, 64), which get the room.
 PHRASE_MOVES = {23: "D", 31: "C", 39: "A", 47: "B", 55: "C", 63: "A", 71: "D", 87: "C", 103: "D", 117: "B", 135: "A"}   # v63: 103 A -> D (the stop follows)
-MOVE_TRACKS = {"A": ("bass", "kick", "snare"), "B": ("e1", "e2", "e5"), "C": ("lights",), "D": ("e1", "e2", "e5")}
+MOVE_TRACKS = {"A": ("bass", "kick", "snare"), "B": ("e1", "e2", "e5"), "C": ("lights",), "D": ("e1", "e2", "e5"),
+               "L": ("hold", "lift", "hsub")}
+# v71 (ROUND TYPE: whole song): THE ARRANGER'S HAND, ALL THE WAY DOWN. The hand's moves stopped at 135 - and the two
+# places still flat were exactly where it never reached: the jet's second half (2:40-2:56: under the choir the sub, the
+# lift, the kit and the bass unbroken) and the horizon (3:44-4:00: the held light, its lift and the horizon sub
+# unbroken from 141 to the convergence). Now it reaches the horizon: at 147 a new move, L - THE
+# LIGHT FLICKERS: the held light, its lift and the horizon sub go out for two bars, the afterimages (the hook's
+# flute, E7's brass) alone in the dark, and the light comes back at 149 on v70's redshift step, a shade redder, just
+# before her last line.
+PHRASE_MOVES.update({147: "L"})       # (tried with 115 A too: the jet's 2:48 window went flatter, 0.59 -> 0.54)
 # v60 (ROUND TYPE: whole song): REAL DROP-OUTS. v57 had to soften its moves - cutting the ostinatos (and the kick)
 # flipped compscore's onset tempo onto t4's and 'distinct' called t8 a copy (-2.3) - so B became an octave climb and
 # the kick stayed. eco fixed distinct (declared tempos, 8 Nov 06:03); the cuts, which took flatness 28% -> 19% on both
@@ -565,9 +574,11 @@ def arrangers_hand():
                 if lo - 1e-6 <= s < hi - 1e-6:
                     continue
                 if s < lo - 1e-6 < s + ln:
+                    if kind == "L" and s + ln > hi + 1e-6:          # v71: the light comes BACK after its flicker
+                        out.append((hi, s + ln - hi, h, v))
                     ln = lo - s
                 out.append((s, ln, h, v))
-            P[n].ev = out
+            P[n].ev = sorted(out) if kind == "L" else out
 
 
 # v58 (ROUND TYPE: section, the stretch 89-96, 2:18-2:30): TIME STRETCHES. The 2:08 block was the stillest in the song
