@@ -14,7 +14,7 @@ scenes:
         flare: {on: audio.lift, decay: 2}
       vars:
         tight: {value: "smooth(0, 130, time.t)"}
-      camera: {x: "3.4*sin(time.t*0.012)", y: "0.7 - 0.3*var.tight", z: "0 - 3.4*cos(time.t*0.012)", look_at: [0, 0, 0]}
+      camera: {x: "3.4*sin(time.t*0.012)", y: "0.7 - 0.3*var.tight", z: "0 - 3.4*cos(time.t*0.012)", look_at: [0, 0.5, 0]}
       layers:
         - {type: stars, count: 2000, speed: 0, twinkle: 0.3}
         - {type: light, color: "#fff4e0", power: "1.4 + 0.6*env.flare + 0.4*audio.level", reach: 30}
