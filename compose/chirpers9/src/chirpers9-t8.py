@@ -620,6 +620,31 @@ FLOOR_FALLS = (105, 109)
 FLOOR_LIFTS = (113, 117)
 
 
+# v75 (ROUND TYPE: section, the opening body 17-28, 0:24-0:44; rewritten): THE FIRST FLOOR. After the t7 seam the
+# song states the album's hook alone - E1 on the chip over E4's lights, nothing else, for twelve bars - and the 8 s
+# windows at 0:24 and 0:32 read flat on seed 0 (0.56, 0.68: a 24 s run). Now the twelve bars accrete in fours: 17-20
+# as they were (t8's head at the seam - the in-seam window - untouched); 21-24 the lights go out, the chip's hook
+# bare (the arranger's octave climb at 23 inside it); 25-28 the lights return and t8's FLOOR arrives for the first
+# time - a soft D1 pedal on the jet's own sub, a pre-echo of the jet's floor - under her first question and E2's
+# entry at 29.
+FIRST_DARK = (21, 25)
+FIRST_FLOOR = (25, 29)
+FIRST_FLOOR_VEL = 12                  # at 70 the pedal (-0.1) buried the hook itself (E1 -12.9, unheard)
+
+
+def first_floor():
+    a, z = b0(FIRST_DARK[0]), b0(FIRST_DARK[1])
+    out = []
+    for s, ln, h, v in P["lights"].ev:
+        if a - 1e-6 <= s < z - 1e-6:
+            continue
+        if s < a - 1e-6 < s + ln:
+            ln = a - s
+        out.append((s, ln, h, v))
+    P["lights"].ev = out
+    part("sub").add(b0(FIRST_FLOOR[0]), b0(FIRST_FLOOR[1]) - b0(FIRST_FLOOR[0]), "D1", FIRST_FLOOR_VEL)
+
+
 def jet_floor():
     a, z = b0(FLOOR_FALLS[0]), b0(FLOOR_FALLS[1])
     P["sub"].ev = [e for e in P["sub"].ev if not (a - 1e-6 <= e[0] < z - 1e-6)]
@@ -1498,6 +1523,7 @@ def main():
     the_jet_stops()
     approach_quickens()
     jet_floor()
+    first_floor()
     everything_falls_in()
     lead, fifth, low = choir()
     far = far_choir()                                             # v38: the answer forms far away (v45: own track)
