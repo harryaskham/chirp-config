@@ -100,8 +100,9 @@ VOICEDONE = os.environ.get("C9T5_VOICEDONE", "choir")   # WHOLE (her voice, fini
 ARRIVED = os.environ.get("C9T5_ARRIVED", "here")   # WHOLE (the hook's words develop): she sang 'near-er the mid-dle' all eight times - three in A, three over the crest choir, twice in farewell. Now the words follow the album's arc: approaching in A ('near-er the mid-dle'), ARRIVED after the crest, where every cycle has converged ('here in the mid-dle' or 'now in the mid-dle', the three crest-choir lines), and leaving in the farewell ('near-er' again, closing into a hum) - same notes, same melody ('here' or 'now')
 BREATHSIZE = os.environ.get("C9T5_BREATHSIZE", "1")   # WHOLE (her breathing): wM's inhale_depth (pinned df7aaf1b) beside v54's inhale on every line she sings - each breath sized to the phrase it starts (and half the line before): a sip before her short two-note 'near-er' calls, a full breath before the long held D and the chorus lines, instead of every breath the same size (value 0..1)
 ANSACCRETE = os.environ.get("C9T5_ANSACCRETE", "rise")   # SECTION w6 (2:47-3:20, after the crest: flagged 'little new vs w5'): her three crest lines accrete (alone, + the third above, + the third and the octave below, v27), but the DX piano answered all three with the same E5 figure. Now the answers accrete with her: 'thirds' the second answer gains the third above (in D mixolydian), the third answer the third and the octave below - the choir's own harmony; 'rise' the second answer an octave up, the third in both octaves (t1 v60's rising mirror)
-TIDESWELL = os.environ.get("C9T5_TIDESWELL", "mel:0.25")   # WHOLE (the song's last rise, into the t5 -> t6 seam): C's second half sat lower than its first (-12.7 against -11.9 dB) and t5 handed t6 a body lighter than t6's (out-flow 2.4 dB). Now the band swells toward the tide: from bar 93 (beat 368) the orbit, the seeds, the lights, the marimba and the bass play gradually harder, up to the overlap (432), then ease back to where they were by bar 117 (464), as t6 takes the floor ('mel'), or the drums with them ('all'); value after ':' the peak (0.25 = a quarter harder)
+TIDESWELL = os.environ.get("C9T5_TIDESWELL", "mel:0.25")   # WHOLE (the song's last rise, into the t5 -> t6 seam): C's second half sat lower than its first (-12.7 against -11.9 dB) and t5 handed t6 a body lighter than t6's (out-flow 2.4 dB). Now the band swells toward the tide: from bar 93 (beat 368) the orbit, the seeds, the lights, the marimba and the bass play gradually harder, up to the overlap (432), then ease back to where they were by bar 117 (464), as t6 takes the floor ('mel'), or the drums with them ('all'); value after ':' the peak (0.25 = a quarter harder); 'recede:LO:HI' the tide draws back first (bar 93 that much softer, e.g. -0.12) and comes in to HI at the overlap - the same rise into t6 with less body (chirper-one asked for the seam's level step down)
 ORBITTIGHT = os.environ.get("C9T5_ORBITTIGHT", "six")   # SECTION w2 (0:34-1:08, A's first half: flagged 'level jump' - the arrival, which lands whole and stays as it is): at bar 25 (beat 96) the chip orbit switched from E5 at its own speed to E5 twice as fast, in one step. Now the inner orbit TIGHTENS: the faster orbit fades in underneath while the slow one thins, so the doubling arrives as an acceleration - 'six' from beat 90, 'three' from 93 (whole 3-beat cycles, so it stays in phase)
+TIDEDRUMS = os.environ.get("C9T5_TIDEDRUMS", "0.5")   # SECTION w7 (3:20-3:53, C's second half into the overlap; with chirper-one, the t5 -> t6 seam's level step): while the band swells into the tide (TIDESWELL), the drums draw back - from bar 93 the 909 and the spin play gradually softer, down to (1 - value) at the overlap, then come back as before by bar 117, so t5's body hands t6 less weight without losing the swell (value 0..1); 'hold:value' they stay drawn back through the overlap until they stop (bar 121), leaving the beat to t6
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -844,6 +845,16 @@ def song():
             pt = tr.get("patch")
             if isinstance(pt, dict) and pt.get("extends", "").startswith("voice-near"):
                 pt["extends"] += f" synth.layers.0.passaggio={VOXREG}"
+    if TIDEDRUMS:
+        hold = TIDEDRUMS.startswith("hold:")
+        dd = float(TIDEDRUMS.split(":")[-1])
+        for tr in tracks:
+            if tr["name"] in ("drums", "spin"):
+                for n in tr["notes"]:
+                    a = n["at"]
+                    g = dd * (a - 368) / 64 if 368 <= a < 432 else (dd if hold else dd * (464 - a) / 32) if 432 <= a < (500 if hold else 464) else 0.0
+                    if g > 0:
+                        n["vel"] = round(max(0.05, n["vel"] * (1 - g)), 3)
     if ORBITTIGHT:
         back = 6.0 if ORBITTIGHT == "six" else 3.0
         for tr in tracks:
@@ -857,6 +868,10 @@ def song():
                 tr["notes"] = sorted(tr["notes"] + pre, key=lambda n: n["at"])
     if TIDESWELL:
         mode, _, amt = TIDESWELL.partition(":")
+        lo = 0.0
+        if mode == "recede":
+            lo, _, amt = amt.partition(":")
+            lo = float(lo)
         amt = float(amt or 0.25)
         names = {"orbit", "orbit-drift", "seed-hi", "seed-lo", "lights", "undertow", "floor", "bass808"} | ({"drums", "spin"} if mode == "all" else set())
         for tr in tracks:
@@ -864,8 +879,8 @@ def song():
                 continue
             for n in tr["notes"]:
                 a = n["at"]
-                g = amt * (a - 368) / 64 if 368 <= a < 432 else amt * (464 - a) / 32 if 432 <= a < 464 else 0.0
-                if g > 0:
+                g = (lo + (amt - lo) * (a - 368) / 64 if 368 <= a < 432 else amt * (464 - a) / 32 if 432 <= a < 464 else 0.0)
+                if g != 0:
                     n["vel"] = round(min(1.0, n["vel"] * (1 + g)), 3)
     if ANSACCRETE:
         third = {57: 60, 55: 59, 64: 67, 62: 66}
