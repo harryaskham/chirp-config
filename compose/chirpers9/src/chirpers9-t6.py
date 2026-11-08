@@ -1105,7 +1105,11 @@ def build():
             # 2.8 -> 3.9 dB spectral)
             tr('tanp', 'tanpura', '-14dB', pan=-0.2, sends={'hall': '-12dB'}),
             tr('glass', 'pad-glass', '-15dB', sends={'hall': '-10dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
-            tr('lights', 'harmonium', '-10dB', sends={'hall': '-8dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
+            # (v75, palette: after the void the last chorus's lights - E4's four chords - were the same harmonium as the
+            # tide under them) THE HARBOUR LIGHTS: they are now the library's accordion, a musette - two reeds detuned
+            # against each other in the café shimmer - which no Accretion track uses: the same reeds as the tide, but
+            # lit and wavering, the lights of a harbour seen across the water as the band comes back for the last time
+            tr('lights', 'accordion', '-10.6dB', sends={'hall': '-8dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             tr('springgong', 'modal-gong', '-12dB', pan=0.0, sends={'hall': '-8dB'}),
             tr('sub', 'sub', '-10dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '200ms', 'curve': 0.6}, {'type': 'pump', 'on': 'kitroom.k', 'depth': '-6dB', 'release': '200ms', 'curve': 0.6}]),
             # (v15, whole song) THE 303 GOES: E2's cell ran the whole song on an acid squelch (resonant, driven - the
