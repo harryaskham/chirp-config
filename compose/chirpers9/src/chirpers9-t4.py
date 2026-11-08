@@ -1014,6 +1014,30 @@ def clarinet_finds_the_verse():
 HANDS_LISTEN = (49, 52)
 
 
+# v53 (ROUND TYPE: section, rise 65-68, 2:21-2:28): THE RISE PULLS BACK. The rise's first half was B's band carried
+# straight on - sub, lights, bass, kick, snare, handpan, glock - and the harp's E2 arriving at 69 slid in under it:
+# the stillest block in the song by the measure (2:24, 0.48) and a rise with no breath before it. Now the rise starts
+# from a held breath: for four bars only the lights (beginning their climb), the sub (the floor stays - without it the
+# album's low end goes) and the kick's gathering seven-sixteenth pulse - the time the rise is made of, heard alone for
+# once. The bass, the snare, the handpan and the glock rest; at 69 they all come back WITH the harp's E2: an arrival,
+# where there was a continuation. (Harry, 6 Nov: every 8-16 bars something moves - a drop-out among them.)
+RISE_BACK = (65, 68)
+RISE_REST = ("bass", "snare", "seed", "felt", "hat")
+
+
+def rise_pulls_back():
+    lo, hi = b0(RISE_BACK[0]), b0(RISE_BACK[1] + 1)
+    for n in RISE_REST:
+        out = []
+        for s, ln, h, v in P[n].ev:
+            if lo - 1e-6 <= s < hi - 1e-6:
+                continue
+            if s < lo - 1e-6 < s + ln:
+                ln = lo - s
+            out.append((s, ln, h, v))
+        P[n].ev = out
+
+
 def hands_listen():
     lo, hi = b0(HANDS_LISTEN[0]), b0(HANDS_LISTEN[1] + 1)
     for n in ("seed",):                                   # the ride stays: without it -0.035 (its air)
@@ -1205,6 +1229,7 @@ def main():
     hands_rest_for_verse()
     clarinet_finds_the_verse()
     hands_listen()
+    rise_pulls_back()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v + verse(),
                    key=lambda d: d["at"])
