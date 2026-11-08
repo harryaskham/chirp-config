@@ -104,6 +104,7 @@ TIDESWELL = os.environ.get("C9T5_TIDESWELL", "mel:0.25")   # WHOLE (the song's l
 ORBITTIGHT = os.environ.get("C9T5_ORBITTIGHT", "six")   # SECTION w2 (0:34-1:08, A's first half: flagged 'level jump' - the arrival, which lands whole and stays as it is): at bar 25 (beat 96) the chip orbit switched from E5 at its own speed to E5 twice as fast, in one step. Now the inner orbit TIGHTENS: the faster orbit fades in underneath while the slow one thins, so the doubling arrives as an acceleration - 'six' from beat 90, 'three' from 93 (whole 3-beat cycles, so it stays in phase)
 TIDEDRUMS = os.environ.get("C9T5_TIDEDRUMS", "0.5")   # SECTION w7 (3:20-3:53, C's second half into the overlap; with chirper-one, the t5 -> t6 seam's level step): while the band swells into the tide (TIDESWELL), the drums draw back - from bar 93 the 909 and the spin play gradually softer, down to (1 - value) at the overlap, then come back as before by bar 117, so t5's body hands t6 less weight without losing the swell (value 0..1); 'hold:value' they stay drawn back through the overlap until they stop (bar 121), leaving the beat to t6
 HEADROOM = os.environ.get("C9T5_HEADROOM", "late")   # SECTION w1 (0:00-0:34, the head under t4's fall; agreed with chirper-three): t4's singer hums her last notes over t4's first light - G4 (t5 beat ~21), C5 (~31), A4 (~40) - and t5's chip orbit came in at beat 16 on the same A4 and G4. Now the orbit leaves her room: 'late' it waits until her last hum has ended (beat 44) - t4's voice hands over to t5's orbit; 'gaps' it comes in as before but rests around each of her notes. (t5's lights already hold t4's D9, D F# A C E, as they enter.)
+CALLSQUICKEN = os.environ.get("C9T5_CALLSQUICKEN", "echo")   # SECTION w5 (2:15-2:47, the build's climb into the crest): her 'near-er' calls climb a step every 8 beats (F#-E, G-F#, A-G, B-A, C-B) to the held D, always 8 beats apart while the orbit doubles and the drums thicken under her. Now her calls QUICKEN as she nears: each of the last calls is echoed, softer, 4 beats later, so near the top she calls every 4 beats - 'echo' after the calls at 272, 280 and 288; 'echo2' after the last two only
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -846,6 +847,12 @@ def song():
             pt = tr.get("patch")
             if isinstance(pt, dict) and pt.get("extends", "").startswith("voice-near"):
                 pt["extends"] += f" synth.layers.0.passaggio={VOXREG}"
+    if CALLSQUICKEN:
+        srcs = (272, 280, 288) if CALLSQUICKEN == "echo" else (280, 288)
+        for tr in tracks:
+            if tr["name"] == "nearer":
+                add = [dict(n, at=round(n["at"] + 4, 4), vel=round(n["vel"] * 0.7, 3)) for n in tr["notes"] if any(st <= n["at"] < st + 2 for st in srcs)]
+                tr["notes"] = sorted(tr["notes"] + add, key=lambda n: n["at"])
     if HEADROOM:
         holes = [(0, 44)] if HEADROOM == "late" else [(19, 26), (29, 36), (38, 45)]
         for tr in tracks:
