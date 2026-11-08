@@ -552,6 +552,13 @@ R66 = os.environ.get("T3_R66", "foretold") != "none"
 # modal-tom), A1 picking up into a big D2 on top of the 808 (swapping the 808 out entirely took its long sub tail
 # from the lock, and the bars after it read flat). T3_R67=none reproduces v66.
 R67 = os.environ.get("T3_R67", "shepard") != "none"
+# round 69 (section, w6 = bars 61-72, the eye and the second storm's arrival; least recently focused):
+# T3_R69=scatter (default) - THE BIRDS SCATTER, THE TUNE COMES BACK. Since v62 birds sing in the eye; when the back
+# wall of the storm hit at bar 67 they just stopped, and the dizi, playing E1 into the returning storm, sat 17 dB
+# under the reese. Now as the storm hits, the birds scatter: a burst of rising runs, hard left and right, faster and
+# higher for a bar, then gone - and the dizi's E1 comes up 8 dB for those two bars, so the storm returns carrying
+# the tune. T3_R69=none reproduces v67.
+R69 = os.environ.get("T3_R69", "scatter") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1715,6 +1722,21 @@ def main():
         flock(404.5, 408.0, (1.0, 2.0))
         for nm, pan in (("birdl", -0.5), ("birdr", 0.5)):
             tracks.append({"name": nm, "patch": "birds", "gain": "9dB", "pan": pan, "score": flocks[nm].score()})
+    if R69:                                                 # w6: the birds scatter as the second storm hits (bars 67-68)
+        rng2 = random.Random(6909)
+        pent2 = (86, 89, 91, 93, 96, 98, 101, 103, 105)     # D6 .. A7, the eye's pentatonic and higher
+        fl, fr = Track("fleel"), Track("fleer")
+        at = 264.0
+        while at < 267.5:
+            tr_ = fl if rng2.random() < 0.5 else fr
+            n = rng2.randint(3, 6)
+            base = min(len(pent2) - n, int((at - 264.0) / 3.5 * (len(pent2) - 3)) + rng2.randrange(2))
+            step = rng2.choice((0.06, 0.08))
+            for j in range(n):                              # a rising run, higher as the burst goes on
+                tr_.add(at + j * step, step * 0.9, mtok(pent2[base + j]), rng2.randint(96, 120))
+            at += n * step + rng2.uniform(0.1, 0.35)
+        for nm, pan, tr_ in (("fleel", -0.85, fl), ("fleer", 0.85, fr)):
+            tracks.append({"name": nm, "patch": "birds", "gain": "9dB", "pan": pan, "score": tr_.score()})
     if R67:                                                 # palette: a rise that never arrives (bars 85-88), toms at the lock
         sh, tom = Track("shepard"), Track("locktom")
         sh.add(336.0, 15.98, "m62", 100)
@@ -1926,6 +1948,10 @@ def main():
         dz = next(tr for tr in tracks if tr.get("name") == "dizi")
         dz["auto"] = dict(dz.get("auto", {}), lift={"points": dz["auto"]["lift"]["points"] +
                                                     [["175.5b", 0], ["176b", 6], ["187.5b", 6], ["188b", 0]]})
+    if R69:                                                 # w6 (after v57's lift exists): the dizi's E1 back with the storm
+        dz = next(tr for tr in tracks if tr.get("name") == "dizi")
+        dz["auto"] = dict(dz.get("auto", {}), lift={"points": dz["auto"]["lift"]["points"] +
+                                                    [["263.9b", 0], ["264b", 8], ["271.9b", 8], ["272b", 0]]})
     if R60:                                                 # whole: calm that is calm (dyn lane), f0_spread on sung harmony
         master["auto"] = dict(master["auto"], dyn={"points": [
             ["0b", -5.0], ["64b", -1.4 if R63 else -2.0], ["159.99b", -2.3], ["160b", -2.0], ["244b", -1.5], ["248b", -9.0],
