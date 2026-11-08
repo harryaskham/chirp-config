@@ -472,8 +472,16 @@ def everything_falls_in():
 # already shaped by earlier rounds are left alone (the opening, the kick rest 73-80, the hook's rest 81-84, the
 # stretch and the vacuum 89-96, the jet's arrival, the hook sung back 109-112, the break, the horizon). Several land
 # under her questions (40, 64), which get the room.
-PHRASE_MOVES = {23: "B", 31: "C", 39: "A", 47: "B", 55: "C", 63: "A", 71: "B", 87: "C", 103: "A", 117: "B", 135: "A"}
-MOVE_TRACKS = {"A": ("bass", "snare"), "B": ("e1", "e2", "e5"), "C": ("lights",)}
+PHRASE_MOVES = {23: "D", 31: "C", 39: "A", 47: "B", 55: "C", 63: "A", 71: "D", 87: "C", 103: "A", 117: "B", 135: "A"}
+MOVE_TRACKS = {"A": ("bass", "kick", "snare"), "B": ("e1", "e2", "e5"), "C": ("lights",), "D": ("e1", "e2", "e5")}
+# v60 (ROUND TYPE: whole song): REAL DROP-OUTS. v57 had to soften its moves - cutting the ostinatos (and the kick)
+# flipped compscore's onset tempo onto t4's and 'distinct' called t8 a copy (-2.3) - so B became an octave climb and
+# the kick stayed. eco fixed distinct (declared tempos, 8 Nov 06:03); the cuts, which took flatness 28% -> 19% on both
+# seeds, are open again. Now four moves: A the floor lifts (bass, KICK and snare out - the sub stays), B the orbits
+# REST (E1, E2, E5 out), C the lights go out, and D the orbits climb (v57's octave, kept for variety); B and D
+# alternate (climbs at 23 and 71, rests at 47 and 117). The rest at 47-48 - the orbits falling silent as E3 enters -
+# is the move that matters: with a climb there instead, the 1:04-1:12 blocks stayed still (0.45 / 0.54) and the song
+# sat at 25% flat; with the rest they clear (1.07 / 0.94) and the song falls to 19% on both seeds.
 
 
 def up_octave(h):
@@ -486,7 +494,7 @@ def up_octave(h):
 def arrangers_hand():
     for bar, kind in PHRASE_MOVES.items():
         lo, hi = b0(bar), b0(bar + 2)
-        if kind == "B":
+        if kind == "D":
             for n in MOVE_TRACKS[kind]:
                 P[n].ev = [(s, ln, up_octave(h), v) if lo - 1e-6 <= s < hi - 1e-6 else (s, ln, h, v) for s, ln, h, v in P[n].ev]
             continue
