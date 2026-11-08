@@ -501,6 +501,30 @@ def arrangers_hand():
             P[n].ev = out
 
 
+# v58 (ROUND TYPE: section, the stretch 89-96, 2:18-2:30): TIME STRETCHES. The 2:08 block was the stillest in the song
+# (0.37): the stretch - v49's 'stretched thin', everything pulled toward the jet - was only heard in its last two bars
+# (the high-pass lane reached 20 Hz by the half). Now the fall is felt in TEXTURE and in TIME: the floor drains from
+# the stretch's first bar (stretch_lane), and from 93 the stretto's own clocks run slow - the chip's, the glock's and
+# the gamelan's sixteenths (E1, E2, E5) at HALF SPEED while the kick keeps time, as a clock falling toward a horizon
+# runs slow to the one watching. The vacuum (96) and the jet are untouched.
+DILATE = (93, 95)                    # the material of 93-94 stretched over 93-95 (the vacuum bar 96 stays empty)
+DILATE_TRACKS = ("e1", "e2", "e5")
+
+
+def time_dilates():
+    a, z, stop = b0(DILATE[0]), b0(DILATE[1] + 1), b0(VACUUM)
+    for n in DILATE_TRACKS:
+        keep, slow = [], []
+        for s, ln, h, v in P[n].ev:
+            if a - 1e-6 <= s < z - 1e-6:
+                ns = a + 2 * (s - a)
+                if ns < stop - 1e-6:
+                    slow.append((round(ns, 4), min(2 * ln, stop - ns), h, v))
+                continue
+            keep.append((s, ln, h, v))
+        P[n].ev = keep + slow
+
+
 def tide_surfaces():
     lo, hi = b0(KICK_REST[0]) - 1e-6, b0(KICK_REST[1] + 1) - 1e-6
     P["kick"].ev = [e for e in P["kick"].ev if not lo <= e[0] < hi]
@@ -1009,8 +1033,9 @@ STRETCH_FX = "hp cutoff=10+auto.sp*1"
 
 def stretch_lane():
     a, z = b0(STRETCH[0]), b0(STRETCH[1] + 1)
-    mid = (a + z) / 2                                             # the drain comes late: an octave by the half
-    return [["0b", 0.0], [f"{a:g}b", 0.0], [f"{mid:g}b", 1.0], [f"{z - 1:g}b", STRETCH_OCT], [f"{z - 0.01:g}b", STRETCH_OCT],
+    # v58: the drain starts AUDIBLY (v49's lane reached only an octave - 20 Hz - by the half: nothing heard until the
+    # last two bars); now an octave at once and evenly to STRETCH_OCT, ~67 Hz by the half, the floor thinning bar by bar
+    return [["0b", 0.0], [f"{a - 0.01:g}b", 0.0], [f"{a:g}b", 1.0], [f"{z - 1:g}b", STRETCH_OCT], [f"{z - 0.01:g}b", STRETCH_OCT],
             [f"{z:g}b", 0.0]]
 
 
@@ -1237,6 +1262,7 @@ def main():
     hook_breathes()
     tide_surfaces()
     arrangers_hand()
+    time_dilates()
     everything_falls_in()
     lead, fifth, low = choir()
     far = far_choir()                                             # v38: the answer forms far away (v45: own track)
