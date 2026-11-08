@@ -104,6 +104,18 @@ def line(events, total):
 def m(n): return f"m{n:.3f}"
 
 
+# (v60) the tempo map as (bar, bpm, ramp-from-the-previous-point)
+TEMPO_PTS = [(0, 120.0, False), (SEC['pull'], 120.0, False), (SEC['squeeze'], 123.0, True), (SEC['crest'], 127.0, True),
+             (SEC['cross'], 127.0, False), (SEC['surge'], 124.0, True), (SEC['torn'], 131.0, True), (SEC['out'], 132.0, True)]
+
+
+def tempo_at(bar):
+    for (b0, v0, _), (b1, v1, r1) in zip(TEMPO_PTS, TEMPO_PTS[1:]):
+        if b0 <= bar < b1:
+            return v0 + (v1 - v0) * (bar - b0) / (b1 - b0) if r1 else v0
+    return TEMPO_PTS[-1][1]
+
+
 def swung(score, at0, at1, amt):
     # (v57, from t2's v44) put a 16th shuffle on a score between two beats: split the rest that crosses each boundary
     # and put the engine's swing16= directive there
@@ -436,7 +448,7 @@ def build():
     VO = json.load(open(os.path.join(HERE, 'chirpers9-t6-voice.json')))
     vtr = VO['tracks'][0]
     vnotes = []
-    for b_, tempo_ in ((SEC['tide'] + 4, 124.0), (SEC['cross'] + 6, 128.0)):
+    for b_, tempo_ in ((SEC['tide'] + 4, tempo_at(SEC['tide'] + 4)), (SEC['cross'] + 6, tempo_at(SEC['cross'] + 6))):
         for n_ in vtr['notes']:
             vnotes.append(dict(n_, at=round(b_ * 4.0 + n_['at'] * tempo_ / 110.0, 4), len=round(n_['len'] * tempo_ / 110.0, 4)))
     # (v8, section w4: the squeeze before the crest was static) THE VOICE SINGS BEFORE THE LIFT: the same low voice
@@ -816,8 +828,14 @@ def build():
 
     stop_pts = [['0b', 0.0], [f'{void0:.2f}b', 0.0], [f'{void0 + 0.9:.2f}b', 1.0], [f'{void0 + 0.98:.2f}b', 1.0], [f'{void0 + 1.0:.2f}b', 0.0]]
 
-    tempo = [{'at': '0b', 'bpm': 120.0}, {'at': f'{SEC["pull"] * 4.0:.1f}b', 'bpm': 120.0},
-             {'at': f'{SEC["out"] * 4.0:.1f}b', 'bpm': 132.0, 'ramp': True}]
+    # (v60, whole song) THE TIDE IN TIME: the tempo climbed 120 -> 132 in one straight line from the pull to the
+    # out-seam - a pull no one could feel. Now time itself ebbs and flows like the water: the pull and the tide
+    # creep forward (120 -> 123), the squeeze is drawn tight and fast into the crest (127), the crest holds there at
+    # high water, the cross EBBS - slowing back to 124 as the tide goes out - and the surge comes in hard, seven bpm
+    # in sixteen bars, into the tear (131) and the out-seam's 132. The seams keep their agreed 120 and 132. (A deeper
+    # ebb - crest 128, cross down to 121 - scored -0.43/-0.28: compscore heard the tempo turns as extra sections)
+    tempo = [{'at': '0b', 'bpm': 120.0}] + [dict({'at': f'{b_ * 4.0:.1f}b', 'bpm': v_}, **({'ramp': True} if r_ else {}))
+                                            for b_, v_, r_ in TEMPO_PTS[1:]]
     # the near side's filter closes in the out-seam as it slows (redshift into t7)
     shut_pts = [['0b', 1.0], [f'{SEC["out"] * 4.0:.1f}b', 1.0], [f'{total:.1f}b', 0.0]]
 
