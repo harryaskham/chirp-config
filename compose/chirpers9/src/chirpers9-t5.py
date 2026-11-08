@@ -90,6 +90,7 @@ CHOIRBLOOM = os.environ.get("C9T5_CHOIRBLOOM", "bloom")   # SECTION w6 (2:47-3:2
 ORBITFX = os.environ.get("C9T5_ORBITFX", "main")   # WHOLE (t5 is Periapsis - the closest point of an orbit): THE ORBIT COMES CLOSEST - the chip orbit that circles E5 all song now literally circles the listener (the engine's orbit fx, head-centred, no Doppler so the pitch stays in key): far and slow in the head (6 m, a lap every four bars), tightening through A and the build, closest and fastest at the crest (0.8 m, two laps a bar - Kepler: an orbit is quickest at periapsis), then receding through C and the outro ('main' the orbit alone; 'pair' the drifting second orbit too, on the opposite side of the circle)
 ORBITMIX = os.environ.get("C9T5_ORBITMIX", "")   # with ORBITFX: the orbit fx's wet mix (0..1)
 ORBITLIFT = os.environ.get("C9T5_ORBITLIFT", "6")   # with ORBITFX: a high shelf (dB at 7 kHz) after the orbit - the fx darkens a source behind the head, and the song's top lost it
+CLIMBLOW = os.environ.get("C9T5_CLIMBLOW", "two")   # SECTION w5 (2:15-2:47, the build into the crest): THE CLIMB STARTS LOWER - since v20 (ASCENT) her 'near-er' calls step up the scale into the crest, A G / B A / C B / D held, from beat 272; the build's first sixteen beats in this window had no voice at all. Now the climb starts lower and earlier, one step every eight beats all the way up: 'two' F#-E at 256 and G-F# at 264 before the A-G at 272; 'one' only the G-F# at 264
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -704,6 +705,14 @@ def song():
                 if ORBITLIFT:
                     tr["fx"].append(f"highshelf cutoff=7000 gain={ORBITLIFT}dB")
                 tr["auto"] = dict(tr.get("auto", {}), peri_spin={"points": peri_spin_pts}, peri_near={"points": peri_near_pts})
+    if CLIMBLOW:
+        steps = {"two": [(256, "F#4", "E4", 0.6), (264, "G4", "F#4", 0.65)], "one": [(264, "G4", "F#4", 0.65)]}[CLIMBLOW]
+        for tr in tracks:
+            if tr["name"] == "nearer":
+                for at, p1, p2, v in steps:
+                    tr["notes"] += [{"at": float(at), "len": 0.5, "ph": "N IH1", "pitch": p1, "vel": v},
+                                    {"at": at + 0.5, "len": 1.25, "ph": "R ER0", "pitch": p2, "vel": v}]
+                tr["notes"].sort(key=lambda n: n["at"])
     if CHOIRBLOOM:
         for tr in tracks:
             if tr["name"] in ("hums-2", "hums-3") and isinstance(tr["patch"], dict):
