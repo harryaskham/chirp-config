@@ -58,6 +58,7 @@ score: "D4/16@112 ./16 A4/16@84 F4/16@98 ./16 C4/16@76 ./16"   # hits on steps 0
 - **In t2.** E2 arrives as debris: from bar 6 its hits fall in one at a time (the downbeat first) until the whole cell is there, on a pitched chip-noise "metal"; the bass plays it augmented (seven eighths). Hats run in a 3-beat cycle and E1 in its own 5/4 (inverted, on an NES pulse), each started so that ALL of them - 7, 3, 5 and the band's 4 - land on one downbeat in the middle of the song: the crest, where E1 is heard the right way up. Then they drift apart, and in the last 16 bars the cell slows and sinks into t3 (redshift).
 - **In t6 (since v56): spring tides.** The cell's meeting with the bar every 7 bars is struck: a low gong on D (and a crash where the kit plays) at each alignment from bar 29 (29, 36, 43, 50, 57, the crest at 64, then 85 onward), so the alignments slide a bar earlier against the 8-bar phrases each time - the sun and the moon pulling in line.
 - **Handover.** Across the t2 -> t3 seam (98 bpm, 16 bars) E1 and E2 fall together: the cell stretched, sinking a fourth, its filter closing.
+- **In t3 (since v58).** In bars 77-80 of the second storm the hats stop and E2's cell is played by hand on congas (slap, open, open, low on sixteenths 0 2 3 5 of every seven), turning over against the bar, a roll into bar 81.
 
 ### E5, "the inner orbit" (t5, chirper-zero)
 
