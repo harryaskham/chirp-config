@@ -600,6 +600,14 @@ R62 = os.environ.get("T7_R62", "cavaco") != "none"
 # lap and holding D into the plunge. (Stepping the reese and floor back 3 dB under it was tried and dropped: it
 # flattened the lap's entry - a 24 s flat run.) T7_R63=none reproduces v62.
 R63 = os.environ.get("T7_R63", "descant") != "none"
+# round 64 (palette): T7_R64=swell (default) - THE PULL, BACKWARDS. t7's two risers (into bar 25 and into the crest,
+# bar 121) were the library's noise riser, which t3 also uses - a hiss climbing in pitch, no harmony. Now both are a
+# reverse-reverb swell (library rev-swell; no other Accretion song has it): a chord and its hall tail played
+# backwards, sucked in towards the downbeat - transposed to E-flat minor 9, the storm's own chord, so the pull is the
+# key itself. Into bar 25 it lands on the beat; into the crest it is cut off by v58's held breath, so the E-flat storm
+# is drawn backwards into the silence and the band lands on D. Placed by the tempo map (the sample is ~4.1 s).
+# T7_R64=none reproduces v63.
+R64 = os.environ.get("T7_R64", "swell") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1766,6 +1774,20 @@ def main():
                 g = float(tr["gain"].replace("dB", ""))
                 tracks.append(dict(tr, name=tr["name"] + "9", patch="a7-thump", gain=f"{g + 2:g}dB",
                                    fx=list(tr.get("fx", [])) + [{"type": "filter", "kind": "lp", "cutoff": 180, "q": 0.707}]))
+    if R64:                                                 # palette: the pull, backwards (rev-swell for the noise risers)
+        def beat_secs(b):                                   # seconds per beat on t7's tempo map (132; 64b -> 640b ramp to 150)
+            return 60.0 / (132.0 + 18.0 * min(max(b - 64.0, 0.0), 576.0) / 576.0)
+        swell = Track("swell")
+        for target, vel in ((96.0, 96), (479.0, 104)):
+            start, secs = target, 0.0
+            while secs < 4.1:                               # walk back 4.1 s of the tempo map, in 1/64 beats
+                start -= 1 / 64
+                secs += beat_secs(start) / 64
+            swell.add(round(start, 3), round(target - start + 0.02, 3), "m63", vel)
+        for tr in tracks:
+            if tr.get("name") in ("riser", "drop"):
+                tr["mute"] = True
+        tracks.append({"name": "swell", "patch": "rev-swell", "gain": "0dB", "score": swell.score()})
     if R63:                                                 # w10: a voice above the last lap (bars 145-152)
         patches["a7-descant"] = {"extends": patches["a7-sung"]["extends"] + " synth.layers.0.tract=0.9"}
         lap = ((81, 2), (79, 2), (83, 4), (81, 2), (83, 2), (86, 4), (86, 2), (84, 2), (83, 4), (86, 2), (88, 2), (86, 6))
