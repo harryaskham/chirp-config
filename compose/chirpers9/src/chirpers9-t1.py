@@ -115,6 +115,7 @@ SEEDTAP = os.environ.get("C9T1_SEEDTAP", "clave")   # SECTION w4 (1:48-2:22, A's
 KICKSEED = os.environ.get("C9T1_KICKSEED", "seed")   # SECTION w7 (3:27-3:59, the lock's end, the exhale and the overlap's first bars: the bodhran's half-note pulse unchanged since the crest): 'seed' from the exhale (beat 304) the drum leaves the bar and beats on the seed's own cycle instead - once every five beats, on each E1's first note - so the last pulse of t1 is the seed's, five against the bar's four; 'gap' the drum steps out for the exhale (304-320) and returns with the overlap
 RETRO = os.environ.get("C9T1_RETRO", "shakuhachi")   # WHOLE (a counterpoint, Harry 11:37 on t7): A's middle (beats 96-144) had no line over the cello's slow seed once the harp's answer ended - a wind now sings E1 BACKWARDS (retrograde: E G C A D, its rhythm reversed, at half speed) three times there, right of centre, against the cello's seed going forwards on the left: the seed heard from both ends at once, before the whistle's tease ('patch[@gain]')
 FLOORLIFT = os.environ.get("C9T1_FLOORLIFT", "sub")   # WHOLE (the handover's floor): t1 ended on a D1 sub (37 Hz) under a bass walking 49-82 Hz, and t2 picks up with its chip bass around A2 (110 Hz) and no sub, so the floor jumped up an octave and a half at the seam (out-flow 38 Hz -19 dB, 114 Hz +16 dB). From the exhale (beat 288) the floor lifts to meet t2, with DEEPOUT's agreed step-down of the D1 through the overlap left exactly as it is: 'bassup' the triangle bass walks its last E1 an octave up; 'bassup2' and its exhale notes too (G1 A1 -> G2 A2, beside t2's A2); 'lift2' that, and the last D1 before the overlap a little softer, so the sub is already stepping down when DEEPOUT takes it (both measured worse: the out-flow's signs are t1 minus t2 - t1 has LESS 38-44 Hz and MORE 114 Hz than t2's body); 'sub' bassup and the last D1 before the overlap a little fuller; 'airearly' bassup and the air's A2 letting go at the exhale's start (288) rather than 304
+ARRIVEMOVE = os.environ.get("C9T1_ARRIVEMOVE", "up")   # SECTION w2 (0:36-1:13, the intro's end and A's arrival: the whistle's first plain E1s, then the harp's mirror twice the same): 'up' the harp's second mirror an octave higher - it rises as it answers again instead of repeating; 'hats' the shaker gathers - only every other stroke for A's first two bars after it enters, then all of them
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -764,6 +765,17 @@ def song():
                         n["pitch"] = f"m{int(n['pitch'][1:]) + 12}"
                     elif FLOORLIFT in ("bassup2", "lift2") and n["at"] in (304, 312) and n["pitch"] in ("G1", "A1"):
                         n["pitch"] = n["pitch"][0] + "2"
+    if ARRIVEMOVE:
+        for tr in tracks:
+            if tr["name"] == "answer" and ARRIVEMOVE == "up":
+                a0 = min(n["at"] for n in tr["notes"])
+                for n in tr["notes"]:
+                    if n["at"] >= a0 + E1_CYC - 0.01 and n["pitch"].startswith("m"):
+                        n["pitch"] = f"m{int(n['pitch'][1:]) + 12}"
+            if tr["name"] == "hats" and ARRIVEMOVE == "hats":
+                win = sorted((n for n in tr["notes"] if 72 <= n["at"] < 80), key=lambda n: n["at"])
+                drop = {id(n) for n in win[1::2]}
+                tr["notes"] = [n for n in tr["notes"] if id(n) not in drop]
     if KICKSEED:
         for tr in tracks:
             if tr["name"] == "kick":
