@@ -103,6 +103,7 @@ AIRFALL = os.environ.get("C9T1_AIRFALL", "a")   # with it: the air's fifth lets 
 AIRP = os.environ.get("C9T1_AIRP", "")   # PALETTE: the air (D2 and A2 held under the whole song) leaves the plain sine shimmer for wM's gendy-drone (Xenakis's dynamic stochastic synthesis: a drone whose waveform wanders, so the held fifth breathes and grains; 'patch[@gaindB]'): the dust the seed nucleates in, alive (tried in the v45 round and rejected: spectrum -4, the sine's A2 at 110 Hz is load-bearing - what it showed instead is AIRFALL)
 EQ213 = os.environ.get("C9T1_EQ213", "warmth:-4")   # WHOLE (the spectrum's worst band was 213 Hz, +7: A3, which the cello cantus, the Hammond's held fifth and the pad all sound): a peak cut at 215 Hz on the named tracks ('track[+track]:dB') (v46: the Hammond alone; on the cello too it thinned 182 Hz - the cantus's A3 is body, the organ's held A3 was the excess)
 CHOIRVIB = os.environ.get("C9T1_CHOIRVIB", "1")   # WHOLE (wM's vib_spread, pinned da77da08): the far choir (three singers on one line: the opening hum, the sighs, the closing hum) wobbled in exact lockstep - one vibrato copied to all three, a synth-choir tell; now each singer reads the vibrato its own way (rate, phase, depth), so the three drift in and out of step like people (value 0..1)
+CRYSTALMOVE = os.environ.get("C9T1_CRYSTALMOVE", "octave")   # SECTION w6 (2:54-3:27, the lock's first half: flagged static - the crystal cell plays E1 every cycle, 48 notes in 48 beats): in the lock's second phrase (beats 256-288, where the scattered voices step out) the crystal moves - 'octave' every other cycle it rings an octave lower, answering itself at two heights; 'shift' from beat 264 it slips half a beat late, a canon at the half beat against the whistle's E1
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -519,6 +520,17 @@ def song():
         ns = [note(a0 + c * E1_CYC + o, f"m{mm}", ln, 0.5 if c == 0 else 0.45)
               for c in range(2) for o, ln, mm in zip(E1_OFF, E1_LEN, mids)]
         tracks.append({"name": "answer", "patch": patch, "gain": gain, "pan": pan, "sends": {"space": "-9dB"}, "notes": ns})
+    if CRYSTALMOVE:
+        for tr in tracks:
+            if tr["name"] == "cell":
+                out = []
+                for n in tr["notes"]:
+                    if CRYSTALMOVE == "octave" and 256 <= n["at"] < 288 and int((n["at"] - TC) // E1_CYC) % 2 == 1:
+                        n = dict(n, pitch=f"m{int(str(n['pitch'])[1:]) - 12}")
+                    if CRYSTALMOVE == "shift" and 264 <= n["at"] < 288:
+                        n = dict(n, at=n["at"] + 0.5)
+                    out.append(n)
+                tr["notes"] = out
     if CHOIRVIB:
         for tr in tracks:
             if tr["name"] in ("hum", "breath", "hum-out") and isinstance(tr["patch"], dict):
