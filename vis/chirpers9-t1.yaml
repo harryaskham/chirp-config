@@ -1,0 +1,34 @@
+# chirpers9 t1 "Nucleation": the seed. Calm, sparse, wide, slow; one small crest; the
+# voice only a breath. One long shot:
+#   a single point of light in the dark; dust drifts in from all round and spirals onto
+#   it; it gathers into a first small body, warm, slowly brighter; each breath of the
+#   music sends a soft ring out from it; at the crest it flares (a lens flare, shafts of
+#   light) and the dust brightens; at the end the new body drifts away into the deep,
+#   toward a faint glimmer, handing over to the next track.
+scenes:
+  - look:
+      background: "#000000"
+      env:
+        breath: {on: audio.lift, decay: 3}
+        bar4: {on: bar, every: 4, decay: 2}
+      vars:
+        grow: {value: "smooth(5, 230, time.t)"}
+        away: {value: "smooth(0.89, 1, time.progress)"}
+      camera: {x: "3.2*sin(time.t*0.006)", y: "0.5 + 0.3*sin(time.t*0.004)", z: "0 - 3.2*cos(time.t*0.006)", look_at: [0, 0, "6*var.away"]}
+      layers:
+        - {type: stars, count: 1600, speed: 0, twinkle: 0.3}
+        # A faint glimmer far off: where everything is going.
+        - {type: mesh, shape: sphere, detail: 12, x: 0.6, y: 0.2, z: 40, scale: "0.08 + 0.12*var.away", color: "#c8b8ff", light: 0, ambient: 0, rim: 0, emit: "1 + 2*var.away"}
+        # Dust spiralling in from all round.
+        - {type: motes, mode: infall, count: 3500, radius: "2.6 - 0.8*var.grow", life: 14, spin: 0.5, flat: 0.35, size: 0.006, glow: "0.35 + 0.35*var.grow + 0.5*audio.level + 0.6*env.breath", twinkle: 0.4, palette: ice, spread: 0.6, z: "6*var.away", near: 0.2}
+        # The seed, gathering into a first small body.
+        - {type: light, z: "6*var.away", color: "#ffd8a0", power: "0.3 + 0.9*var.grow + 0.8*env.breath", reach: 2}
+        - {type: mesh, shape: sphere, detail: 32, z: "6*var.away", scale: "0.02 + 0.2*var.grow", ry: "time.t*0.02", displace: "0.08*noise3(vtx.x*3, vtx.y*3, vtx.z*3)*var.grow", color: "#3a2a20", light: 0.6, ambient: 0.05, rim: 0.6, rim_color: "#ffc890", paint: "(0.6 + 1.4*(1 - var.grow))*(1 + 0.8*audio.level + env.breath)*pow(clamp(1 - abs(noise3(vtx.x*4, vtx.y*4 + time.t*0.05, vtx.z*4))*3, 0, 1), 2)", paint_color: "#ffb060"}
+        # Each breath: a soft ring going out from it.
+        - {type: mesh, shape: torus, detail: 64, tube: 0.03, sy: 0.3, z: "6*var.away", scale: "0.1 + env.bar4.age*0.5", opacity: "0.5*clamp(1 - env.bar4.age/3, 0, 1)", color: "#ffd8b0", light: 0, ambient: 0, rim: 0, emit: 1.4}
+      filters:
+        - {type: flare, x: 0, y: 0, z: "6*var.away", amount: "0.25 + 1.2*env.breath*var.grow", threshold: 0.8, streak: 0.3, length: 0.4, ghosts: 4, size: 0.05, glow: 0.5}
+        - {type: rays, x: 0, y: 0, z: "6*var.away", amount: "0.6*env.breath", length: 0.6, threshold: 0.6, decay: 0.96, radius: 0.8}
+        - {type: bloom, threshold: 0.6, amount: 0.6}
+        - {type: tonemap, knee: 0.75}
+        - {type: vignette, amount: 0.5}
