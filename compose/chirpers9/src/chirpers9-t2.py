@@ -996,7 +996,10 @@ def build():
     # the verse, nothing to hum) THE HOOK ARRIVES WITH THE BAND: as the kit comes in, the ondes - the voice Harry
     # heard singing with the crest - plays E1 twice, softly, D A C G E in its five beats, the second time a little
     # quieter, and is gone before the verse begins; the crest's tune heard first as the song's own sign-on
-    for k0_, vel0_ in ((SEC['gather'] * 4.0, 46), (SEC['gather'] * 4.0 + 5.0, 40)):
+    # (v74, for chirper-zero: two statements cost t1's out-flow -0.18/-0.21 - the ondes' 342 Hz in t2's body just
+    # after the overlap, the 3 s the seam is measured on - so the ondes plays E1 once, entering a bar and a beat after
+    # the kit, where the second statement was: the kit lands first, then the tune)
+    for k0_, vel0_ in ((SEC['gather'] * 4.0 + 5.0, 46),):
         at_ = k0_
         for k, (semi, ln) in enumerate(E1):
             if semi is not None:
