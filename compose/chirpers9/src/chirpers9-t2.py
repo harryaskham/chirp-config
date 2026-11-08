@@ -982,6 +982,35 @@ def build():
     # then the 909's snare rolls it back in, eighths and then sixteenths, rising from a whisper (bars 35.5-36), and
     # the kit lands with the arp at bar 37
     dp0_, dp1_ = SEC['build'] * 4.0, SEC['build'] * 4.0 + 16.0
+    # (v70, whole song) THE MACHINES AND THE HANDS: every part of the song played at two or three fixed levels on a
+    # perfect grid. The song is about a mechanism - E2's clock, the 3-beat hats, E1's 5/4 and the band's 4 all landing
+    # on one downbeat at the crest - so the machines keep their time exactly: E2, the hats, the 909, the arp and the
+    # chip bass do not move by a sample. But the 909 and the hats get a drum machine's accents (each hit's level
+    # moves a few steps, and they lean into every 4-bar phrase), and the players get hands: the drift's break-kit
+    # (laid back: its snares 10 ms behind, everything else within a few ms), the electric piano's comp, the scanned
+    # mallet and the flute land within a couple of ms of the beat, their levels moving and leaning with the phrase;
+    # the ondes and the bells keep their written timing and only breathe in level. Seeded, so every render is the same
+    import random as _r
+    rh_ = _r.Random(70)
+    for k_, jit_, late_, lean_amt_, vsd_ in (('kit', 0.0, 0.0, 4.0, 3.0), ('hat3', 0.0, 0.0, 6.0, 3.0),
+                                             ('kitb', 0.005, 0.02, 4.0, 3.0), ('gtr', 0.004, 0.0, 4.0, 2.5),
+                                             ('e1v', 0.004, 0.0, 4.0, 2.5), ('e1p', 0.004, 0.0, 4.0, 2.5),
+                                             ('hook', 0.0, 0.0, 0.0, 2.0), ('e1c', 0.0, 0.0, 0.0, 2.0)):
+        if k_ not in P:
+            continue
+        ev_ = []
+        for e_ in P[k_]:
+            at_, p_, d_, v_ = e_[:4]
+            pc_ = str(p_).partition('^')[0]
+            if pc_ == 'k':
+                dt_ = 0.0
+            elif pc_ in ('s', 'cp', 'rs') and late_:
+                dt_ = late_
+            else:
+                dt_ = max(-2.5 * jit_, min(2.5 * jit_, rh_.gauss(0, jit_))) if jit_ else 0.0
+            ln_ = lean_amt_ * ((at_ % 16.0) / 16.0) * 2.0 - lean_amt_ if lean_amt_ else 0.0
+            ev_.append((max(0.0, at_ + dt_), p_, d_, max(1, min(127, int(round(v_ + ln_ + rh_.gauss(0, vsd_)))))) + tuple(e_[4:]))
+        P[k_] = ev_
     for k_ in ('kit', 'hat3', 'gtr'):
         P[k_] = [e_ for e_ in P[k_] if not (dp0_ - 1e-6 <= e_[0] < dp1_ - 1e-6)]
     roll_ = [dp1_ - 6.0 + 0.5 * i_ for i_ in range(4)] + [dp1_ - 4.0 + 0.25 * i_ for i_ in range(16)]
