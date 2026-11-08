@@ -446,6 +446,16 @@ R54 = os.environ.get("T3_R54", "horizon") != "none"
 # into the gaps, answering each line; and the duet's harmony singer gets her own vibrato too, so the two voices
 # breathe apart. T3_R55=none reproduces v54.
 R55 = os.environ.get("T3_R55", "choir") != "none"
+# round 56 (palette): T3_R56=swarm (default) - THE SWARM THAT LOCKS. The song's whole idea is phase: E1, E2 and E3
+# on cycles of 12, 5 and 28 sixteenths, drifting, meeting on one downbeat (beat 352) where the storm locks into a
+# groove - but no sound in it had ever been out of phase and found its phase. Now one does: the storm's chords from
+# the eye to the lock (the shards' changes, held, an octave up) on a Kuramoto swarm - ten triangles a note, each a
+# little off its pitch, pulled toward their common phase by a coupling the song turns up. After the eye it is a loose,
+# shimmering, out-of-tune chorus; it tightens through the second storm, passes the critical coupling near the end,
+# and at the lock snaps into one clean tone with everything else - then holds the lock's chords, focused, until bar
+# 97. (wM's kuramoto layer with its coupling on a lane, as t2's crest pad and t8's jet chords use it; here the lock is
+# the song's own phase lock, a whole storm long.) T3_R56=none reproduces v55.
+R56 = os.environ.get("T3_R56", "swarm") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1588,6 +1598,40 @@ def main():
                 tr["fx"] = list(tr.get("fx", [])) + [
                     {"type": "pump", "on": f"{k}.k", "depth": depth[tr["name"]], "release": "200ms", "curve": 0.6}
                     for k in ("kick", "kick7")]
+    if R56:                                                 # palette: the swarm that locks (beats 264-384)
+        def chords(name, lo, hi):
+            out = []
+            for tr in tracks:
+                if tr.get("name") == name and tr.get("score"):
+                    pos = 0.0
+                    for tok in tr["score"].split():
+                        m = re.match(r"^(.+?)/([0-9.e+-]+)b(?:@(\d+))?", tok)
+                        if m.group(1) != "R" and int(m.group(3) or 0) > 1 and lo <= pos < hi:
+                            if not out or out[-1][1] != m.group(1):
+                                out.append((pos, m.group(1)))
+                        pos += float(m.group(2))
+            return out
+        seq = chords("shard", 264.0, 352.0) + chords("hold", 352.0, 384.0)
+        sw = Track("swarm")
+        for i, (at, ch) in enumerate(seq):
+            end = seq[i + 1][0] if i + 1 < len(seq) else 384.0
+            up = 12 if at < 352.0 else 0
+            ms = [int(x[1:]) + up for x in ch.split(",") if x.startswith("m")]
+            if max(ms) > 84:                                # no shrill E6-F6 at the top
+                ms = [m - 12 for m in ms]
+            sw.add(at, max(0.1, end - at - 0.05), ",".join(mtok(m) for m in ms), 72)
+        patches["a3-swarm"] = {"about": "chirper-two: the storm's chords on a Kuramoto swarm whose coupling the song turns "
+                                        "up - a loose out-of-tune chorus that locks into one tone at t3's lock",
+                               "synth": {"layers": [{"type": "kuramoto", "kuramoto": {
+                                             "count": 10, "spread": 55, "wave": "triangle",
+                                             "coupling": {"value": 0, "mod": [{"src": "auto.sync", "amount": 1}]}}}],
+                                         "filters": ["lp cutoff=3000 q=0.5"],
+                                         "amp": {"a": "250ms", "d": "1s", "s": 0.9, "r": "900ms"}},
+                               "fx": ["chorus mix=0.2", "reverb kind=hall decay=3s mix=0.3"]}
+        tracks.append({"name": "swarm", "patch": "a3-swarm", "gain": "-7dB", "pan": 0.0, "sends": {"space": "-8dB"},
+                       "score": sw.score(),
+                       "auto": {"sync": {"points": [["0b", 0.15], ["264b", 0.15], ["320b", 0.8], ["344b", 1.4],
+                                                    ["351.9b", 1.8], ["352b", 4.0], ["384b", 4.0]]}}})
     if R55:                                                 # w9: the choir answers the duet (bars 97-108)
         patches["a3-choir"] = {"extends": "voice-backing play.glide_overshoot=0.05 synth.lfo.vib.per_note=true "
                                           "play.scoop=0.5 play.fall=1 synth.layers.0.singers=6 "
