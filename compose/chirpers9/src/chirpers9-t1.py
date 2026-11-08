@@ -118,6 +118,7 @@ FLOORLIFT = os.environ.get("C9T1_FLOORLIFT", "sub")   # WHOLE (the handover's fl
 ARRIVEMOVE = os.environ.get("C9T1_ARRIVEMOVE", "up")   # SECTION w2 (0:36-1:13, the intro's end and A's arrival: the whistle's first plain E1s, then the harp's mirror twice the same): 'up' the harp's second mirror an octave higher - it rises as it answers again instead of repeating; 'hats' the shaker gathers - only every other stroke for A's first two bars after it enters, then all of them
 HANDS = os.environ.get("C9T1_HANDS", "all")   # WHOLE (players, not a grid - after chirper-one's t6 v68/v70): the seed's scattered voices, the cell and the chip parts stay machines (their cycles must meet exactly at the crest), but the acoustic players were on a perfect grid at fixed levels. A seeded hand (every render the same): 'drums' the shaker lands within a few ms of the beat, leans into each 4-bar phrase and varies by a few steps, the bodhran stays the anchor on the grid and only varies in level; 'all' and the harp's answers lean and land within a couple of ms too, and the cello, the whistle and the shakuhachi (bowed and blown - their timing is written) vary only in level
 CLOUD = os.environ.get("C9T1_CLOUD", "gendy-cloud@-32")   # PALETTE (adding the colour t1 lacked - everything was plucked, struck, blown, bowed or chip; nothing unstable): NUCLEATION'S CLOUD - wM's gendy-cloud (Xenakis's GENDY: each voice slides and wanders around its note) holds E1's five notes as one chord (D4 E4 G4 A4 C5) from A to the build, re-struck every 8 bars a little stronger: the unsettled solution the seed is still dissolved in. It lets go just before the crest - when the seed forms, the cloud is gone ('patch@gain')
+RELIEF = os.environ.get("C9T1_RELIEF", "two")   # SECTION w6 (2:54-3:27, after the crest: flagged static - the seed locked and stripped bare, and no voice for 126 beats, from the crest's sigh to the outro's): THE CHOIR EXHALES - once the seed has formed and the whistle has sung it again (hook-mid), the far choir sighs its 'mm-haa', a hummed A falling to an open D, the relief after the crest ('one' at beat 267.5; 'two' and again just before the exhale, 283.5)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -818,6 +819,13 @@ def song():
         for tr in tracks:
             if tr["name"] in movers and "notes" in tr:
                 tr["notes"] = [n for n in tr["notes"] if not (g0 <= n["at"] < TC)]
+    if RELIEF:
+        for tr in tracks:
+            if tr["name"] == "breath":
+                for at in ((267.5,) if RELIEF == "one" else (267.5, 283.5)):
+                    tr["notes"].append({"at": at, "len": 2.0, "ph": "AA1", "pitch": "A4", "vel": 0.42, "expr": {"hum": 1.0}})
+                    tr["notes"].append({"at": at + 2.0, "len": 2.5, "ph": "HH AA1", "pitch": "D4", "vel": 0.32, "expr": {"hum": 0.0}})
+                tr["notes"].sort(key=lambda n: n["at"])
     if FARCHOIR:
         for tr in tracks:
             if tr["name"] == "hum" and isinstance(tr["patch"], dict):
