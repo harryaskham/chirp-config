@@ -904,6 +904,40 @@ def hold_lanes(song):
 WARM_THIRD = (113, 120)
 
 
+# v56 (ROUND TYPE: section, B 53-60, 1:53-2:10): THE ANSWER CLOSES IN. B's voices were one exchange said eight times
+# over twenty bars - every 2.5 bars she hums E1 (closed, 0.8) and five beats later the young duet answers it a third
+# above, open: lovely, and unchanged from 45 to 64 (the 1:44 and 2:00 blocks still; thinning the ride there, v55,
+# was refused - the motion had to come from the voices). Now the conversation moves toward the song's title: at 53.5
+# the duet answers after only 2.5 beats (the canon tightening), and from 56 it sings WITH her, a third above, while
+# her hum opens (0.8 -> 0.35) - into the band's drop at 57, two voices in open thirds alone: the warm third, glimpsed
+# an hour of music early (it arrives in full at 113).
+CLOSE_IN = [(53.5, 2.5), (56.0, 0.0), (58.5, 0.0)]       # (her cycle's first bar, the duet's delay in beats)
+OPEN_HUM = 0.6                     # 0.35 opened her too far: -3.7 in the drop, the third buried 10 dB under, spectrum -0.13
+TOGETHER_VEL = 1.5                 # the duet as a partner when it sings with her, not a shadow
+
+
+def answer_closes_in(song):
+    tr_ = {x["name"]: x for x in song["tracks"]}
+    voice, duet = tr_["voice"]["notes"], tr_["duet"]["notes"]
+    cyc = 10.0                                                         # E1's 5 beats... her cycle is 2.5 bars
+    lo, hi = b0(CLOSE_IN[0][0]), b0(CLOSE_IN[-1][0]) + cyc
+    answers = sorted([n for n in duet if b0(CLOSE_IN[0][0]) + 1 <= n["at"] < hi + 5], key=lambda n: n["at"])
+    first = [n for n in answers if abs(n["at"] - (b0(CLOSE_IN[0][0]) + 5.0)) < 1e-3]
+    assert first, "the duet's answer to the 53.5 cycle not found"
+    cell = [n for n in answers if first[0]["at"] - 1e-3 <= n["at"] < first[0]["at"] + 5.0]
+    cell = [dict(n, at=round(n["at"] - first[0]["at"], 4)) for n in cell]
+    keep = [n for n in duet if not (b0(CLOSE_IN[0][0]) + 1 <= n["at"] < hi + 5)]
+    for bar, delay in CLOSE_IN:
+        for n in cell:
+            v = n.get("vel", 0.7) * (TOGETHER_VEL if delay == 0.0 else 1.0)
+            keep.append(dict(n, at=round(b0(bar) + delay + n["at"], 4), vel=round(min(1.0, v), 3)))
+        if delay == 0.0:
+            for n in voice:
+                if b0(bar) - 1e-3 <= n["at"] < b0(bar) + 5.0 - 1e-3:
+                    n["expr"] = dict(n.get("expr") or {}, hum=OPEN_HUM)
+    tr_["duet"]["notes"] = sorted(keep, key=lambda n: n["at"])
+
+
 def warm_third(voice):
     lo, hi = b0(WARM_THIRD[0]), b0(WARM_THIRD[1] + 1)
     return [dict(n, pitch=f"m{third_above(midi_of(n['pitch']))}", vel=round(n["vel"] * 0.75, 3))
@@ -1334,6 +1368,7 @@ def main():
     lead_lanes(song)
     hold_lanes(song)
     arc(song)
+    answer_closes_in(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
