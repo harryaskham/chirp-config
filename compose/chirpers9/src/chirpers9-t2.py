@@ -816,7 +816,7 @@ def build():
         ch_ = ','.join(m(n_) for n_ in best_[1])
         for q_ in pat_:
             acc_ = q_ in (6, 14)
-            P['gtr'].append((bar_ * 4.0 + q_ * 0.25, ch_, 0.18, (84 if acc_ else 66) + (8 if s_ == 'crest' else 0)))
+            P['gtr'].append((bar_ * 4.0 + q_ * 0.25, ch_, 0.3, (84 if acc_ else 66) + (8 if s_ == 'crest' else 0)))
     P['gtr'] = [e_ for e_ in P['gtr'] if not (91.0 * 4.0 - 1e-6 <= e_[0] < 94.0 * 4.0 - 1e-6)]
     # (v38, section w6: 2:37-3:07, the break's first twelve bars - pad, bass, debris, the bells' retrograde and the
     # far choir, nothing in time above the debris) THE GUITAR FLOATS: the guitar that comped through the build and
@@ -997,7 +997,13 @@ def build():
             # the drift
             tr('buildarp', 'arp-pluck', '+13dB', pan=-0.25, sends={'echo': '-14dB', 'hall': '-12dB'}),
             tr('gtrarp', 'acoustic', '-10dB', pan=0.3, sends={'echo': '-8dB', 'hall': '-12dB'}),
-            tr('gtr', 'cutting-guitar', '-5dB', pan=-0.35, sends={'hall': '-18dB'}),
+            # (v60, palette: the comp was a cutting guitar, buried under the band at -18 to -19 dB from the gather to
+            # the drift) THE COMP ON TINES: the off-beat skank and the funk sixteenths are now stabs on the library's
+            # epiano (a Rhodes-style tine piano: a soft hammer on a tine, a pure bell-like attack and a warm body; no
+            # Accretion track uses it), a little longer so each chord blooms - the band's rhythm part, heard for the
+            # first time. (Through a Leslie, rhodes-rotary, it swirled each repeat differently: seed 11's recurrence
+            # fell to 92)
+            tr('gtr', 'epiano', '-10dB', pan=-0.35, sends={'hall': '-18dB'}),
             # (v48, palette: the E1 keys were a wurli - another electric piano among the album's keys) THE ANSWERS ON
             # TAPE: E1's answers through the gather, the crest and the second verse now play on the library's
             # mellotron-flute (a breathy tape flute, band-limited, with wow and a soft swell; no Accretion track uses
