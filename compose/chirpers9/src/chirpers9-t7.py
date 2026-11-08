@@ -663,7 +663,16 @@ R70 = os.environ.get("T7_R70", "chest") != "none"
 # an Amen-era funk kit as a sampler hears it, crushed to 12 bits, taped and squashed - the jungle and IDM hat t7's
 # breakbeat always implied (t2 plays break-kit's kick and snare; no song plays its hats). T7_R71=none reproduces v70.
 R71 = os.environ.get("T7_R71", "breakhats") != "none"
-BREAK_HAT_GAIN = os.environ.get("T7_BREAK_HAT_GAIN", "9dB")      # break-kit hats sit 7.5 dB under dusty-kit's
+BREAK_HAT_GAIN = os.environ.get("T7_BREAK_HAT_GAIN", "9dB")
+# round 72 (section, w2 = bars 17-32, the groove's arrival; least recently focused outside the seams): T7_R72=flyby
+# (default) - THE JET FLIES PAST. When the groove lands at bar 17 nothing yet says where we are. Now, at the end of
+# every fourth bar (20, 24, 28, 32), the jet - E7's column of fifths, Eb3 Bb3 F4 C5 (its G left out under the Ebm9
+# stabs) on its own a7-jet voice - flies past the listener left to right: an orbit fx on a straight line 3 m ahead,
+# 20 m out to each side, with full Doppler, a pass a bar - so each pass comes in sharp and loud, is overhead, and
+# drops in pitch as it goes: something on a closer orbit overtaking us, four times, before the verse.
+# T7_R72=none reproduces v71.
+R72 = os.environ.get("T7_R72", "flyby") != "none"
+FLYBY_GAIN = os.environ.get("T7_FLYBY_GAIN", "0dB")      # break-kit hats sit 7.5 dB under dusty-kit's
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1850,6 +1859,16 @@ def main():
         rep0["auto"] = dict(rep0.get("auto", {}), speak={"points": [["0b", 0], ["135.9b", 0], ["136b", 6], ["142b", 6],
                                                                     ["142.5b", 0], ["167.9b", 0], ["168b", 6], ["174b", 6],
                                                                     ["174.5b", 0]]})
+    if R72:                                                 # w2: the jet flies past (bars 20, 24, 28, 32), Doppler on a line
+        fb = Track("flyby")
+        for k, bar in enumerate((20, 24, 28, 32)):
+            at = (bar - 1) * 4.0
+            fb.add(at, 3.96, "m51,m58,m65,m72", 92 + 6 * k)
+        jt = next(tr for tr in tracks if tr.get("name") == "jet")
+        tracks.append({"name": "flyby", "patch": jt["patch"], "gain": FLYBY_GAIN,
+                       "fx": [{"type": "orbit", "path": "line", "distance": 3, "radius": 20, "doppler": 1.0,
+                               "rate": "1/1", "speed": 1, "phase": 0.0}],
+                       "sends": {"space": "-10dB"}, "score": fb.score()})
     if R71:                                                 # palette: the hats from a break (dusty-kit -> break-kit)
         for tr in tracks:
             if tr.get("name") in ("hats", "hatsw", "hatsh") and tr.get("patch") == "dusty-kit":
