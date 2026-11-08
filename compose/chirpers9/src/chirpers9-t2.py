@@ -1052,7 +1052,11 @@ def build():
             # into ripples that run round the ring and smooth away - a struck tone that mellows and shimmers as it
             # dies; no Accretion track uses it) - each note an orbit settling, the song's idea in one sound
             tr('e1v', 'scanned-mallet', '-9dB', pan=-0.35, sends={'hall': '-10dB', 'echo': '-20dB'}),
-            tr('e1c', 'risset-bell', '-14dB', pan=-0.35, sends={'hall': '-8dB'}),
+            # (v65, palette: the fall's E1 was the same Risset bell as the in-seam's - the song's bookends one sound)
+            # THE BELLS TOLL AS IT FALLS IN: in the fall E1 rings on the library's tubular-bells (struck brass tubes,
+            # clangorous, a long slowly beating tone; no Accretion track uses them) - the in-seam's lensed bell came
+            # in from far away, the fall's tolls the song down into t3's storm
+            tr('e1c', 'tubular-bells', '-19dB', pan=-0.35, sends={'hall': '-8dB'}),
             # (v27) the whisper's track is now the far choir's echo, 'farchoir' (below)
             {'name': 'farchoir', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-backing synth.layers.0.together=true synth.layers.0.breath.value=0.55 synth.lfo.vib.per_note=true',
                                            play={'scoop': 1, 'fall': 2.5}),
