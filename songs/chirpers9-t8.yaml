@@ -22482,7 +22482,9 @@
      "peak cutoff=240 q=0.8 gain=-2dB",
      "highshelf cutoff=6000 gain=5dB",
      "lowshelf cutoff=100 gain=2dB",
-     "peak cutoff=850 q=0.6 gain=-1.5dB"
+     "peak cutoff=850 q=0.6 gain=-1.5dB",
+     "peak cutoff=105 q=1.2 gain=2dB",
+     "highshelf cutoff=11000 gain=1.5dB"
     ]
    },
    {

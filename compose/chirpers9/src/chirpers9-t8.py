@@ -1195,6 +1195,13 @@ def stretch_lane():
 # the floor up 3 dB below 100 Hz, the air shelf 4 -> 5 dB. Loudness is normalised to -11 LUFS after it, so nothing
 # gets louder - the balance moves. Every part is as it was; the song sounds less like it is played in a box.
 ROOM_BANDS = ["lowshelf cutoff=100 gain=2dB", "peak cutoff=850 q=0.6 gain=-1.5dB"]   # half: full strength split
+# v74 (ROUND TYPE: whole song): FULL RANGE, NOT A SCOOP. After t4 v69 (warm and open: +0.37) t8's own bands read the
+# same shape milder - the floor short at 97-114 Hz (-4.6), the mids heavy (340 Hz-1.4 kHz +4..+5), the top short
+# (6-15 kHz -3..-6.6, 14.8 kHz beyond tolerance). v54's lesson (below) rules out a deeper mid dip - the song's changes
+# live in those mids. So only the edges move: a focused lift at 105 Hz (+2 dB, Q 1.2 - the band t8 lacks AND the
+# band t7's tail out-weighs t8's head in at the seam) and an air shelf above 11 kHz (+3 dB). The mids are left alone.
+ROOM_BANDS = ROOM_BANDS + ["peak cutoff=105 q=1.2 gain=2dB", "highshelf cutoff=11000 gain=1.5dB"]   # air at +3: seed 0's
+#   t7 seam 3.00 -> 3.09 dB (past flow's 3.0 edge, -0.015) while seed 11 rose +0.059 - half the air
 # the seeds (100.0 / 99.72: the t7 seam's spectral gap 2.6 -> 3.4) and read 31% / 28% flat (19% / 19%) - the song's
 # changes live in those mids
 MASTER_AIR = "5dB"
