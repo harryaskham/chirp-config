@@ -1,80 +1,286 @@
 <!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>chirpers - listen</title>
+<title>chirpers - studio</title><link rel=icon href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23e8c27a'/%3E%3C/svg%3E">
 <style>
-:root{--bg:#0b0d12;--panel:#12151d;--line:#262b38;--amber:#e8c27a;--hi:#ffd58a;--dim:#8f98aa;--note:#7fd1c3}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--amber);font:14px/1.4 system-ui,sans-serif}
-header{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line)}
-h1{font-size:16px;margin:0;color:var(--hi)}select,button,textarea{background:var(--panel);color:var(--amber);
-border:1px solid var(--line);border-radius:5px;font:inherit}select,button{padding:4px 8px}button{cursor:pointer}
-button:hover{border-color:var(--amber)}main{display:grid;grid-template-columns:minmax(220px,300px) 1fr;min-height:calc(100vh - 50px)}
-@media(max-width:760px){main{grid-template-columns:1fr}}
-#tracks{border-right:1px solid var(--line);overflow:auto}.tr{padding:7px 12px;border-bottom:1px solid var(--line);cursor:pointer}
-.tr:hover{background:#151a25}.tr.on{background:#1b2130;border-left:3px solid var(--hi)}.tr .m,.m{color:var(--dim);font-size:12px}
-.badge{background:#203a36;color:var(--note);border-radius:9px;padding:0 6px;font-size:11px;margin-left:4px}
-.new{color:#9fe3a0;font-size:11px;margin-left:4px}#pane{padding:12px 16px;min-width:0}
+:root{--bg:#0b0d12;--panel:#12151d;--panel2:#171b26;--line:#262b38;--amber:#e8c27a;--hi:#ffd58a;--dim:#8f98aa;--text:#d6dbe6;
+--note:#7fd1c3;--good:#9fe3a0;--bad:#e79a8f;--eng:#b9a3f0;--snap:#8fc3f0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--amber);font:14px/1.45 system-ui,sans-serif}
+header{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+h1{font-size:16px;margin:0 6px 0 0;color:var(--hi);white-space:nowrap}h2{font-size:16px;margin:0 0 6px;color:var(--hi)}h3{font-size:13px;margin:16px 0 6px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+select,button,textarea,input{background:var(--panel);color:var(--amber);border:1px solid var(--line);border-radius:5px;font:inherit}
+select,button,input{padding:4px 8px}button{cursor:pointer}button:hover{border-color:var(--amber)}textarea{padding:6px;width:100%}
+.tabs{display:flex;gap:2px}.tabs button{border-radius:5px 5px 0 0;border-bottom:none;color:var(--dim)}.tabs button.on{color:var(--hi);background:var(--panel2);border-color:var(--amber)}
+.views button.on{color:var(--bg);background:var(--amber)}.sp{flex:1}.m{color:var(--dim);font-size:12px}a{color:var(--hi)}
+kbd{border:1px solid var(--line);border-radius:3px;padding:0 4px;font-size:11px;color:var(--dim)}
+main{display:grid;grid-template-columns:minmax(220px,300px) 1fr;min-height:calc(100vh - 50px)}
+main.wide{grid-template-columns:1fr}@media(max-width:760px){main{grid-template-columns:1fr}}
+#side{border-right:1px solid var(--line);overflow:auto;max-height:calc(100vh - 50px);position:sticky;top:50px}#pane{padding:12px 18px;min-width:0;max-width:1100px}
+.tr{padding:7px 12px;border-bottom:1px solid var(--line);cursor:pointer}.tr:hover{background:#151a25}.tr.on{background:#1b2130;border-left:3px solid var(--hi)}
+.badge{background:#203a36;color:var(--note);border-radius:9px;padding:0 6px;font-size:11px;margin-left:4px}.new{color:var(--good);font-size:11px;margin-left:4px}
 audio,video{width:100%;max-width:960px;display:block;background:#000;border-radius:4px}
 #bar{position:relative;height:18px;max-width:960px;margin:4px 0 10px;background:var(--panel);border-radius:3px;cursor:pointer}
-#bar .pos{position:absolute;top:0;bottom:0;width:2px;background:var(--hi)}#bar .mk{position:absolute;top:2px;width:8px;
-height:14px;margin-left:-4px;background:var(--note);border-radius:2px}#bar .mk.old{opacity:.35}
-#noteRow{display:flex;gap:8px;max-width:960px;align-items:flex-start}#noteText{flex:1;min-height:38px;padding:6px}
-.note{border-left:2px solid var(--note);padding:4px 10px;margin:8px 0;max-width:960px}.note.done{opacity:.55}
-.note .t{color:var(--note);cursor:pointer;font-weight:600}.note .x{float:right;color:var(--dim);cursor:pointer}
-.reply{margin:3px 0 0 14px;color:#cdd3df}.compnote{white-space:pre-wrap;color:#cdd3df;max-width:960px;font-size:13px}
-a{color:var(--hi)}kbd{border:1px solid var(--line);border-radius:3px;padding:0 4px;font-size:11px;color:var(--dim)}
+#bar .pos{position:absolute;top:0;bottom:0;width:2px;background:var(--hi)}#bar .mk{position:absolute;top:2px;width:8px;height:14px;margin-left:-4px;background:var(--note);border-radius:2px}
+#bar .mk.old{opacity:.35}#bar .seg{position:absolute;top:0;bottom:0;background:rgba(255,213,138,.18);border-left:1px solid var(--hi);border-right:1px solid var(--hi)}
+.row{display:flex;gap:8px;max-width:960px;align-items:flex-start}.row textarea{flex:1;min-height:38px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:9px 12px;margin:8px 0;max-width:960px;color:var(--text)}
+.card.done{opacity:.6}.card .hd{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;color:var(--amber)}.card .hd b{color:var(--hi)}
+.who{font-weight:600;color:var(--note)}.who.h{color:var(--hi)}.t{color:var(--note);cursor:pointer;font-weight:600}
+.reply{margin:6px 0 0 14px;padding-left:8px;border-left:2px solid var(--line)}.reply .who{font-size:12px}
+.pill{border-radius:9px;padding:0 7px;font-size:11px;border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+.pill.kept{color:var(--good);border-color:#355c3a}.pill.refused{color:var(--bad);border-color:#5c3a35}.pill.type{color:var(--amber)}
+.delta.up{color:var(--good)}.delta.down{color:var(--bad)}.headline{font-weight:700;color:var(--hi);letter-spacing:.01em}
+.body{white-space:pre-wrap;color:var(--text);font-size:13px;margin-top:4px}.more{color:var(--hi);cursor:pointer;font-size:12px}
+.day{position:sticky;top:50px;background:var(--bg);padding:8px 0 4px;color:var(--dim);font-weight:600;border-bottom:1px solid var(--line);margin-top:14px;z-index:2}
+.ev{display:grid;grid-template-columns:52px 1fr;gap:10px;padding:6px 0;border-bottom:1px solid #191d28}.ev .tm{color:var(--dim);font-size:12px;padding-top:2px}
+.ev.eng .what{color:var(--eng)}.ev.snap .what{color:var(--snap)}.ev.sec .what{color:#cdd3df;font-size:13px}.ev.fb .what{color:var(--note)}
+.chips{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}.chip{border:1px solid var(--line);border-radius:12px;padding:1px 9px;cursor:pointer;font-size:12px;color:var(--dim);background:var(--panel)}
+.chip.on{color:var(--bg);background:var(--amber);border-color:var(--amber)}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:baseline}
+.ver{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:7px;margin:6px 0;background:var(--panel);max-width:960px}
+.ver.on{border-color:var(--hi);background:#1b2130}.between{margin:0 0 0 22px;padding:2px 0 2px 12px;border-left:2px dashed var(--line);max-width:940px;font-size:12px;color:var(--dim)}
+.between div{margin:2px 0}.between .eng{color:var(--eng)}.compnote{white-space:pre-wrap;color:var(--text);max-width:960px;font-size:13px}
+.secw{display:grid;grid-template-columns:44px 1fr;gap:8px;padding:5px 0;border-bottom:1px solid #191d28;max-width:960px}.secw b{color:var(--hi)}
+#gate{position:fixed;inset:0;background:rgba(5,6,10,.92);display:flex;align-items:center;justify-content:center;z-index:50}
+#gate form{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 24px;width:min(360px,92vw)}
+#gate input{width:100%;margin:6px 0 12px}#gate .err{color:var(--bad);font-size:12px;min-height:16px}
+.intro{color:var(--text);max-width:960px;font-size:13px}.toast{position:fixed;bottom:16px;right:16px;background:var(--panel2);border:1px solid var(--amber);padding:6px 12px;border-radius:6px;display:none}
 </style>
-<header><h1 id=title>chirpers</h1><select id=snap title="snapshot"></select><span id=snapinfo class=m></span>
-<label class=m><input type=checkbox id=cont checked> play on</label>
-<span class=m><kbd>space</kbd> play <kbd>N</kbd> note <kbd>&larr;</kbd><kbd>&rarr;</kbd> 5 s <kbd>J</kbd><kbd>K</kbd> track</span></header>
-<main><div id=tracks></div><div id=pane></div></main>
+<div id=gate style="display:none"><form id=gateForm><h2>chirpers studio</h2>
+<p class=m>Work in progress and past albums by the chirpers. Tell us who you are once; this browser remembers it.</p>
+<label class=m>Your name<input id=gName autocomplete=name required maxlength=40></label>
+<label class=m>Access code<input id=gCode type=password required></label>
+<div class=err id=gErr></div><button type=submit>Enter</button></form></div>
+<header><h1>chirpers</h1><div class=tabs id=albums></div>
+<div class="tabs views" id=views></div><span class=sp></span>
+<span id=hint class=m></span><span class=m id=me></span></header>
+<main id=main><div id=side></div><div id=pane></div></main>
+<div class=toast id=toast></div>
 <script>
-const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const mmss=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,"0")}`;
-let A,D,S,N,media,noteT=null;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const mmss=t=>{t=Math.max(0,+t||0);const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=Math.floor(t%60);return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(s).padStart(2,"0");};
+const secs=v=>{const p=String(v).trim().split(":").map(Number);return p.some(isNaN)?NaN:p.reduce((a,b)=>a*60+b,0);};
+const HUES=["#e8c27a","#7fd1c3","#e79a8f","#9fb7f0","#b9a3f0","#9fe3a0","#f0a3d0","#f0d38f","#8fe0f0","#c9b08f","#a3f0c4","#f0b38f"];
+const col=n=>HUES[((n||1)-1)%HUES.length];
+const dayOf=s=>new Date(s).toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"});
+const hhmm=s=>{const d=new Date(s);return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");};
+const toast=m=>{const t=$("#toast");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",2600);};
+const U=()=>localStorage.getItem("listen_user")||"",CODE=()=>localStorage.getItem("listen_code")||"";
+const HUMANS=new Set(["harry"]);
+let ALB=[],A,AI,D,W,view="listen",S,N,media,noteT=null,segA=null,segB=null,hist={n:null,i:null,seq:false};
 const q=()=>Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
-async function load(){const albums=await (await fetch("api/albums")).json();A=q().a||albums[albums.length-1];
- D=await (await fetch("api/"+A)).json();const sel=$("#snap");
- sel.innerHTML=D.snapshots.slice().reverse().map((s,i)=>`<option value="${s.id}">${i?"":"latest: "}${s.id}${s.label?" - "+esc(s.label):""} (${s.changed} new)</option>`).join("");
- const h=q();S=D.snapshots.find(s=>s.id===h.s)||D.snapshots[D.snapshots.length-1];sel.value=S.id;
- $("#title").textContent="chirpers - "+S.title;pick(+h.n||S.tracks[0].n,+h.t||0,false);}
-function notesFor(n){return D.notes.filter(x=>x.n===n);}
-function tracks(){$("#tracks").innerHTML=S.tracks.map(t=>{const c=notesFor(t.n).filter(x=>!x.done).length;
- return `<div class="tr${t.n===N?" on":""}" data-n=${t.n}><b>${t.n}. ${esc(t.title)}</b>${c?`<span class=badge>${c}</span>`:""}${t.changed&&S.prev?"<span class=new>new</span>":""}
- <div class=m>${esc(t.version)} &middot; ${t.score??""}${t.judged?" (judged)":""} &middot; ${mmss(t.dur||0)} &middot; ${esc(t.owner||"")}</div></div>`}).join("");
- document.querySelectorAll(".tr").forEach(e=>e.onclick=()=>pick(+e.dataset.n,0,true));}
-function pick(n,t,play){N=n;const tr=S.tracks.find(x=>x.n===n)||S.tracks[0];N=tr.n;tracks();
+function setHash(o){history.replaceState(null,"","#"+new URLSearchParams(Object.entries({a:A,v:view,...o}).filter(([k,v])=>v!==undefined&&v!==null&&v!=="")).toString());}
+
+// ── access ──
+function gate(msg){$("#gate").style.display="flex";$("#gName").value=U();$("#gErr").textContent=msg||"";($("#gName").value?$("#gCode"):$("#gName")).focus();}
+$("#gateForm").onsubmit=async e=>{e.preventDefault();const name=$("#gName").value.trim(),code=$("#gCode").value.trim();if(!name||!code)return;
+ localStorage.setItem("listen_user",name);localStorage.setItem("listen_code",code);
+ document.cookie="listen_code="+encodeURIComponent(code)+"; path=/; max-age=31536000; SameSite=Lax";
+ const r=await fetch("api/albums",{headers:{"X-Listen-Code":code}});if(r.status===401)return gate("That access code didn't work.");
+ $("#gate").style.display="none";boot();};
+async function api(path,opts={}){const r=await fetch(path,{...opts,headers:{...(opts.headers||{}),"X-Listen-Code":CODE()}});
+ if(r.status===401){gate("Please enter the access code.");throw new Error("401");}return r.json();}
+async function post(path,body){return api(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...body,by:U()})});}
+
+// ── boot, albums, views ──
+async function boot(){if(!U()||!CODE())return gate();
+ document.cookie="listen_code="+encodeURIComponent(CODE())+"; path=/; max-age=31536000; SameSite=Lax";
+ HUMANS.add(U().toLowerCase());$("#me").innerHTML=`as <b>${esc(U())}</b> <a href="#" id=swap>change</a>`;
+ $("#swap").onclick=e=>{e.preventDefault();localStorage.removeItem("listen_code");gate();};
+ ALB=await api("api/albums");const h=q();
+ $("#albums").innerHTML=ALB.map(a=>`<button data-a="${a.id}">${esc(a.title)} <span class=m>${a.status==="released"?"released":"in progress"}</span></button>`).join("");
+ $$("#albums button").forEach(b=>b.onclick=()=>openAlbum(b.dataset.a,view));
+ await openAlbum(ALB.find(a=>a.id===h.a)?h.a:ALB[0].id,h.v||"listen",h);}
+async function openAlbum(id,v,h={}){A=id;AI=ALB.find(a=>a.id===id);W=null;S=null;N=null;
+ $$("#albums button").forEach(b=>b.classList.toggle("on",b.dataset.a===id));
+ D=await api("api/"+A);D.notes.forEach(n=>HUMANS.add(String(n.by||"harry").toLowerCase()));
+ const vs=[["listen","Listen"],["feedback","Feedback"],["worklog","Worklog"],["history","History"]];
+ $("#views").innerHTML=vs.map(([k,l])=>`<button data-v="${k}">${l}</button>`).join("");
+ $$("#views button").forEach(b=>b.onclick=()=>show(b.dataset.v));show(v,h);}
+async function needW(){if(!W)W=await api(`api/${A}/log`);return W;}
+function show(v,h={}){view=v;$$("#views button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));if(media){media.pause();media=null;}$("#hmed")?.pause();
+ $("#hint").innerHTML=v==="listen"?"<kbd>space</kbd> play <kbd>N</kbd> note <kbd>&larr;</kbd><kbd>&rarr;</kbd> 5 s <kbd>J</kbd><kbd>K</kbd> track":"";
+ $("#main").classList.toggle("wide",v==="feedback"||v==="worklog");$("#side").innerHTML="";$("#pane").innerHTML="<p class=m>Loading&hellip;</p>";
+ ({listen:listenView,feedback:feedbackView,worklog:worklogView,history:historyView})[v](h);}
+const trackOf=n=>(AI.tracks||[]).find(t=>t.n===n)||{};
+const fbAuthor=n=>`<span class="who${HUMANS.has(String(n.by||"harry").toLowerCase())?" h":""}">${esc(n.by||"harry")}</span>`;
+
+// ── listen ──
+function listenView(h){if(AI.release&&!D.snapshots.length)return releaseView(h);
+ if(!D.snapshots.length){$("#pane").innerHTML="<p class=m>No snapshots yet.</p>";return;}
+ S=D.snapshots.find(s=>s.id===h.s)||D.snapshots[D.snapshots.length-1];
+ $("#side").innerHTML=`<div style="padding:8px 12px;border-bottom:1px solid var(--line)"><select id=snap style="width:100%">${D.snapshots.slice().reverse().map((s,i)=>`<option value="${s.id}">${i?"":"latest: "}${s.id}${s.label?" - "+esc(s.label.slice(0,60)):""}</option>`).join("")}</select>
+ <label class=m><input type=checkbox id=cont checked> play on</label></div><div id=tracks></div>`;
+ $("#snap").value=S.id;$("#snap").onchange=e=>{S=D.snapshots.find(s=>s.id===e.target.value);pick(N,0,false);};
+ pick(+h.n||S.tracks[0].n,+h.t||0,false);}
+const notesFor=n=>D.notes.filter(x=>x.n===n&&x.snap!=="release");
+function tracksList(){$("#tracks").innerHTML=S.tracks.map(t=>{const c=notesFor(t.n).filter(x=>!x.done).length;
+ return `<div class="tr${t.n===N?" on":""}" data-n=${t.n}><b><span class=dot style="background:${col(t.n)}"></span>${t.n}. ${esc(t.title)}</b>${c?`<span class=badge>${c}</span>`:""}${t.changed&&S.prev?"<span class=new>new</span>":""}
+ <div class=m>${esc(t.version)} &middot; ${t.score??""} &middot; ${mmss(t.dur||0)} &middot; ${esc(t.owner||"")}</div></div>`}).join("");
+ $$(".tr").forEach(e=>e.onclick=()=>pick(+e.dataset.n,0,true));}
+function pick(n,t,play){const tr=S.tracks.find(x=>x.n===n)||S.tracks[0];N=tr.n;tracksList();
  const src=`media/${A}/${S.id}/t${String(N).padStart(2,"0")}.${tr.video?"mp4":"mp3"}`;
- $("#pane").innerHTML=`<h2 style="margin:0 0 6px">${N}. ${esc(tr.title)} <span class=m>${esc(tr.version)} &middot; ${tr.score??""} &middot; rendered ${esc((tr.rendered||"").slice(0,16).replace("T"," "))} on ${esc(tr.pin||"")}</span></h2>
+ $("#pane").innerHTML=`<h2>${N}. ${esc(tr.title)} <span class=m>${esc(tr.version)} &middot; ${tr.score??""} &middot; ${esc(tr.owner||"")} &middot; rendered ${esc((tr.rendered||"").slice(0,16).replace("T"," "))}</span></h2>
  ${tr.video?`<video id=med controls preload=metadata src="${src}"></video>`:`<audio id=med controls preload=metadata src="${src}"></audio>`}
- <div id=bar></div>
- <div id=noteRow><textarea id=noteText placeholder="Note at the playhead (N). Enter saves, Shift+Enter for a new line."></textarea><button id=save>Note at 0:00</button></div>
- <p class=m><a href="web/${A}/${S.id}/${N}" target=_blank>open live in chirp web &#8599;</a> (rendered and drawn in your browser) &middot; <a href="${src}" download>download</a></p>
- <div id=nl></div><h3 class=m style="margin-top:18px">composer's note on this version</h3><div class=compnote>${esc(tr.note)}</div>`;
- media=$("#med");media.addEventListener("loadedmetadata",()=>{if(t)media.currentTime=t;if(play)media.play();bar();},{once:true});
- media.addEventListener("timeupdate",()=>{bar(true);if(noteT===null)$("#save").textContent="Note at "+mmss(media.currentTime);});
- media.addEventListener("ended",()=>{if($("#cont").checked){const i=S.tracks.findIndex(x=>x.n===N);if(S.tracks[i+1])pick(S.tracks[i+1].n,0,true);}});
- $("#bar").onclick=e=>{const r=e.currentTarget.getBoundingClientRect();media.currentTime=(e.clientX-r.left)/r.width*(media.duration||tr.dur);};
+ <div id=bar></div><div class=row><textarea id=noteText placeholder="Note at the playhead (N). Enter saves, Shift+Enter for a new line. It goes to ${esc(tr.owner||"the composer")}."></textarea><button id=save>Note at 0:00</button></div>
+ <p class=m><a href="web/${A}/${S.id}/${N}" target=_blank>open live in chirp web &#8599;</a> &middot; <a href="${src}" download>download</a> &middot; <a href="#" id=toHist>how this track developed &rarr;</a></p>
+ <div id=nl></div><h3>the composer's note on this version</h3><div class=compnote>${esc(tr.note)}</div>`;
+ $("#toHist").onclick=e=>{e.preventDefault();hist.n=N;show("history",{n:N});};
+ bindMedia(t,play,()=>(S.tracks.find(x=>x.n===N)||{}).dur);
+ media.addEventListener("ended",()=>{if($("#cont")?.checked){const i=S.tracks.findIndex(x=>x.n===N);if(S.tracks[i+1])pick(S.tracks[i+1].n,0,true);}});
+ $("#save").onclick=()=>saveNote({snap:S.id,n:N});notesList();setHash({s:S.id,n:N});}
+function bindMedia(t,play,durFn){media=$("#med");
+ media.addEventListener("loadedmetadata",()=>{if(t)media.currentTime=t;if(play)media.play();bar();},{once:true});
+ media.addEventListener("timeupdate",()=>{bar(true);if(noteT===null&&$("#save"))$("#save").textContent="Note at "+mmss(media.currentTime);if(view==="listen"&&AI.release&&!D.snapshots.length)relTick();});
+ $("#bar").onclick=e=>{const r=e.currentTarget.getBoundingClientRect();media.currentTime=(e.clientX-r.left)/r.width*(media.duration||durFn()||1);};
  $("#noteText").onfocus=()=>{if(noteT===null){noteT=media.currentTime;$("#save").textContent="Note at "+mmss(noteT);}};
- $("#noteText").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();save();}if(e.key==="Escape"){noteT=null;e.target.blur();}};
- $("#save").onclick=save;notesList();history.replaceState(null,"",`#a=${A}&s=${S.id}&n=${N}`);}
-function bar(posOnly){const b=$("#bar");if(!b||!media)return;const dur=media.duration||(S.tracks.find(x=>x.n===N)||{}).dur||1;
- if(!posOnly){const tr=S.tracks.find(x=>x.n===N);b.innerHTML=notesFor(N).map(x=>`<div class="mk${x.version===tr.version?"":" old"}" title="${esc(mmss(x.t)+" "+x.text)}" style="left:${x.t/dur*100}%"></div>`).join("")+"<div class=pos></div>";}
+ $("#noteText").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("#save").click();}if(e.key==="Escape"){noteT=null;e.target.blur();}};}
+function bar(posOnly){const b=$("#bar");if(!b||!media)return;const dur=media.duration||1;
+ if(!posOnly){const ns=AI.release&&!D.snapshots.length?D.notes.filter(x=>x.snap==="release"):notesFor(N);const tr=S&&S.tracks.find(x=>x.n===N);
+  b.innerHTML=ns.map(x=>`<div class="mk${!tr||x.version===tr.version?"":" old"}" title="${esc(mmss(x.t)+" "+(x.by||"")+": "+x.text)}" style="left:${x.t/dur*100}%"></div>`).join("")+"<div class=pos></div>";}
  const p=b.querySelector(".pos");if(p)p.style.left=(media.currentTime/dur*100)+"%";}
-function notesList(){const tr=S.tracks.find(x=>x.n===N);const ns=notesFor(N).slice().reverse();
- $("#nl").innerHTML=ns.length?ns.map(x=>`<div class="note${x.done?" done":""}"><span class=x data-id=${x.id} title="delete">&times;</span>
- <span class=t data-s=${x.snap} data-t=${x.t}>${mmss(x.t)}</span> <span class=m>${esc(x.version)}${x.version===tr.version?"":" (earlier version)"} &middot; ${esc(x.at.slice(5,16).replace("T"," "))}${x.done?" &middot; done":""}</span><div>${esc(x.text)}</div>
- ${x.replies.map(r=>`<div class=reply>&rarr; <b>${esc(r.by)}</b>: ${esc(r.text)}</div>`).join("")}</div>`).join(""):"<p class=m>No notes on this track yet.</p>";
- document.querySelectorAll(".note .t").forEach(e=>e.onclick=()=>{if(e.dataset.s===S.id){media.currentTime=+e.dataset.t;media.play();}else{S=D.snapshots.find(s=>s.id===e.dataset.s)||S;$("#snap").value=S.id;pick(N,+e.dataset.t,true);}});
- document.querySelectorAll(".note .x").forEach(e=>e.onclick=async()=>{if(!confirm("Delete this note?"))return;await fetch(`api/${A}/notes/${e.dataset.id}/delete`,{method:"POST",body:"{}"});await refresh();});
- bar();}
-async function refresh(){const d=await (await fetch("api/"+A)).json();D.notes=d.notes;tracks();notesList();}
-async function save(){const text=$("#noteText").value.trim();if(!text)return;const t=noteT??media.currentTime;
- const r=await fetch(`api/${A}/notes`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({snap:S.id,n:N,t,text})});
- if(r.ok){$("#noteText").value="";noteT=null;$("#noteText").blur();await refresh();$("#snapinfo").textContent="note sent to the composer";setTimeout(()=>$("#snapinfo").textContent="",3000);}}
-$("#snap").onchange=e=>{S=D.snapshots.find(s=>s.id===e.target.value);pick(N,0,false);};
-document.addEventListener("keydown",e=>{if(e.target.tagName==="TEXTAREA"||!media)return;
+function noteCard(x,{jump=true,cur=null}={}){const tr=trackOf(x.n);
+ const where=x.n?`<span class=dot style="background:${col(x.n)}"></span>${x.n}. ${esc(tr.title||x.track||"")}`:"<i>general</i>";
+ return `<div class="card${x.done?" done":""}" data-id="${x.id}"><div class=hd>${fbAuthor(x)} <span class=m>on</span> ${where}
+ ${x.n||x.snap==="release"?`<span class=t data-s="${esc(x.snap)}" data-n=${x.n} data-t=${x.t}>${mmss(x.t)}</span>`:""}
+ <span class=m>${esc(x.version||"")}${cur&&x.version&&x.version!==cur?" (earlier version)":""} &middot; ${esc(dayOf(x.at))} ${hhmm(x.at)}${x.done?" &middot; done":""}</span>
+ <span class=sp></span><span class="m x" data-id=${x.id} title="delete" style="cursor:pointer">&times;</span></div>
+ <div class=body>${esc(x.text)}</div>${x.replies.map(r=>`<div class=reply>${fbAuthor(r)} <span class=m>${esc(dayOf(r.at||""))} ${r.at?hhmm(r.at):""}</span><div class=body>${esc(r.text)}</div></div>`).join("")}
+ <div class=row style="margin-top:6px"><textarea class=rtext rows=1 placeholder="Reply as ${esc(U())}&hellip;"></textarea><button class=rbtn>Reply</button></div></div>`;}
+function bindCards(root){root.querySelectorAll(".t").forEach(e=>e.onclick=()=>{const s=e.dataset.s,n=+e.dataset.n,t=+e.dataset.t;
+  if(view==="listen"&&media&&((s==="release")||(S&&s===S.id&&n===N))){media.currentTime=t;media.play();return;}
+  show("listen",{s,n,t});});
+ root.querySelectorAll(".x").forEach(e=>e.onclick=async()=>{if(!confirm("Delete this note?"))return;await post(`api/${A}/notes/${e.dataset.id}/delete`,{});await refresh();});
+ root.querySelectorAll(".card").forEach(c=>{const b=c.querySelector(".rbtn"),ta=c.querySelector(".rtext");if(!b)return;
+  b.onclick=async()=>{const text=ta.value.trim();if(!text)return;await post(`api/${A}/notes/${c.dataset.id}/reply`,{text});toast("reply saved");await refresh();};
+  ta.onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();b.click();}};});}
+function notesList(){const el=$("#nl");if(!el)return;const tr=S&&S.tracks.find(x=>x.n===N);
+ const ns=(AI.release&&!D.snapshots.length?D.notes.filter(x=>x.snap==="release"&&x.n===N):notesFor(N)).slice().reverse();
+ el.innerHTML=ns.length?ns.map(x=>noteCard(x,{cur:tr&&tr.version})).join(""):"<p class=m>No notes on this track yet.</p>";bindCards(el);bar();}
+async function refresh(){const d=await api("api/"+A);D.notes=d.notes;if(view==="listen"){if($("#tracks"))tracksList();notesList();}else if(view==="feedback")feedbackView();}
+async function saveNote(where){const text=$("#noteText").value.trim();if(!text)return;const t=noteT??media.currentTime;
+ const r=await post(`api/${A}/notes`,{...where,t,text});if(r.ok){$("#noteText").value="";noteT=null;$("#noteText").blur();await refresh();toast("note sent to the composer");}}
+
+// ── a released album: the published video, chaptered by track ──
+let REL;function releaseView(h){REL=AI.release;const ch=REL.chapters;N=+h.n||(ch.length?1:0);
+ $("#side").innerHTML=`<div id=tracks></div>`;
+ $("#tracks").innerHTML=ch.map((c,i)=>{const tr=trackOf(i+1);const k=D.notes.filter(x=>x.snap==="release"&&x.n===i+1).length;
+  return `<div class=tr data-n=${i+1}><b><span class=dot style="background:${col(i+1)}"></span>${i+1}. ${esc(c.title)}</b>${k?`<span class=badge>${k}</span>`:""}
+  <div class=m>${mmss(c.t)} &middot; ${esc(tr.owner||"")} &middot; ${esc(tr.version||"")}</div></div>`;}).join("");
+ $("#pane").innerHTML=`<h2>${esc(AI.title)} <span class=m>released${REL.youtube?` &middot; <a href="${esc(REL.youtube)}" target=_blank>YouTube &#8599;</a>`:""} &middot; ${esc(REL.note||"")}</span></h2>
+ <video id=med controls preload=metadata src="${REL.video}"></video><div id=bar></div>
+ <div class=row><textarea id=noteText placeholder="Note at the playhead (N). Enter saves."></textarea><button id=save>Note at 0:00</button></div>
+ <h3 id=nowT></h3><div id=nl></div><h3>the composer's last word on this track</h3><div class=compnote id=lastnote>&hellip;</div>`;
+ bindMedia(+h.t||(ch[N-1]||{}).t||0,false,()=>0);
+ $("#save").onclick=()=>saveNote({snap:"release",n:N});
+ $$("#tracks .tr").forEach(e=>e.onclick=()=>{media.currentTime=ch[+e.dataset.n-1].t;media.play();});relTick(true);}
+function relTick(force){const ch=REL.chapters,t=media?media.currentTime:0;let n=1;ch.forEach((c,i)=>{if(t>=c.t)n=i+1;});
+ if(n===N&&!force)return;N=n;$$("#tracks .tr").forEach(e=>e.classList.toggle("on",+e.dataset.n===N));
+ $("#nowT").textContent=`notes on ${N}. ${ch[N-1]?.title||""}`;notesList();setHash({n:N});
+ needW().then(w=>{const tr=w.tracks.find(x=>x.n===N);const k=tr&&tr.log.filter(r=>r.kept).slice(-1)[0];
+  if($("#lastnote"))$("#lastnote").textContent=k?`${k.version} (${k.who}, ${dayOf(k.at)}): ${k.note}`:"";});}
+
+// ── feedback ──
+function feedbackView(){const latest=D.snapshots.length?D.snapshots[D.snapshots.length-1].id:"";
+ const ns=D.notes.slice().reverse();const open=ns.filter(x=>!x.done).length;
+ $("#pane").innerHTML=`<h2>Feedback on ${esc(AI.title)} <span class=m>${ns.length} notes, ${open} open</span></h2>
+ <p class=intro>Notes left while listening (in Listen, press <kbd>N</kbd> at a moment) arrive here with the composers' replies. Anything general about the album goes here:</p>
+ <div class=row><textarea id=gen rows=2 placeholder="General feedback on ${esc(AI.title)}, as ${esc(U())}&hellip;"></textarea><button id=genb>Send</button></div>
+ <div class=chips id=fbf><span class="chip on" data-f=all>all</span><span class=chip data-f=open>open</span><span class=chip data-f=mine>mine</span></div><div id=fbl></div>`;
+ const draw=f=>{const xs=ns.filter(x=>f==="open"?!x.done:f==="mine"?String(x.by||"harry").toLowerCase()===U().toLowerCase():true);
+  $("#fbl").innerHTML=xs.length?xs.map(x=>noteCard(x)).join(""):"<p class=m>Nothing here yet.</p>";bindCards($("#fbl"));};
+ $$("#fbf .chip").forEach(c=>c.onclick=()=>{$$("#fbf .chip").forEach(x=>x.classList.toggle("on",x===c));draw(c.dataset.f);});draw("all");
+ $("#genb").onclick=async()=>{const text=$("#gen").value.trim();if(!text)return;
+  await post(`api/${A}/notes`,{snap:AI.release&&!latest?"release":latest,n:0,t:0,text});toast("sent");await refresh();};setHash({});}
+
+// ── worklog ──
+// a round's headline: the composer's first ALL-CAPS phrase that is not a label, else its first sentence
+const LABELS=/^(LISTEN FOR|ROUND TYPE|PALETTE|SECTION|WHOLE SONG|WHOLE-SONG|MIX|NOT HEARD|TAKES|SEEDS|SPECTRUM|LUFS|NB|NOTE|WHY|HEARD|MEASURED|REFUSED|KEPT|NOT KEPT|NEW BEST|BEST|FINAL PASS|ARC|ROUND)$/;
+function headline(note){const s=String(note||"").slice(0,1200);
+ const lf=s.match(/^LISTEN FOR.{0,140}?:\s(.{8,}?)(?:[.;]\s| - |$)/);if(lf)return lf[1].length>130?lf[1].slice(0,130)+"…":lf[1];      // chirper-two: LISTEN FOR <where>: <what>
+ for(const m of s.matchAll(/(?<![\w-])([A-Z][A-Z'’&-]*(?:[ ,]+[A-Z][A-Z'’&-]*)*)(?![\w-])/g)){const c=m[1].replace(/[ ,]+$/,"").trim();
+  if(c.length>=6&&/[A-Z]{3}/.test(c)&&!LABELS.test(c)&&!(c.includes(",")&&c.split(/[ ,]+/).every(w=>w.length<=4)))return c;}
+ const t=s.replace(/^v\d+\S*\s*(\([^)]*\))?[:,]?\s*/,"").replace(/^[^:]{0,60}(LISTEN FOR|ROUND TYPE)[^:]*:\s*/,"");
+ const m=t.match(/^(.{8,120}?[.!?])(\s|$)/);return m?m[1]:t.slice(0,120)+(t.length>120?"…":"");}
+function rtype(note){const m=String(note||"").match(/ROUND TYPE:?\s*([a-z][a-z -]*?)(?=[,):])/i)||String(note||"").match(/\((palette|section|whole song|whole-song|mix|seam)\b/i)||String(note||"").match(/\b(PALETTE|SECTION|WHOLE SONG|MIX)\b/);return m?m[1].toLowerCase():"";}
+function withDeltas(t){let prev=null;return t.log.map(r=>{const d=prev!=null&&r.score!=null?r.score-prev:null;if(r.kept&&r.score!=null)prev=r.score;return {...r,delta:d};});}
+async function worklogView(h){const w=await needW();
+ const owners=[...new Set(w.tracks.map(t=>t.owner).filter(Boolean))];let tf=+h.n||0,of="",kept=false,qq="",lim=150;
+ $("#pane").innerHTML=`<h2>Worklog: ${esc(AI.title)} <span class=m>${w.tracks.reduce((a,t)=>a+t.log.length,0)} rounds by ${owners.length} composers, ${w.features.length} engine features, ${w.snapshots.length} snapshots</span></h2>
+ ${(AI.direction||[]).length?`<details class=intro><summary><b>Harry's direction</b> <span class=m>(${AI.direction.length} note${AI.direction.length>1?"s":""}, the brief the composers work to)</span></summary>${AI.direction.map(d=>typeof d==="string"?`<p>${esc(d)}</p>`:
+  `<p style="margin:8px 0 2px">&ldquo;${esc(d.words||"")}&rdquo; <span class=m>&mdash; ${esc(d.by||"")}</span></p>${(d.rules||[]).length?`<ul style="margin:2px 0">${d.rules.map(r=>`<li>${esc(r)}</li>`).join("")}</ul>`:""}`).join("")}</details>`:""}
+ <div class=chips id=wt><span class="chip on" data-n=0>all tracks</span>${w.tracks.map(t=>`<span class=chip data-n=${t.n}><span class=dot style="background:${col(t.n)}"></span>${t.n}. ${esc(t.title)}</span>`).join("")}</div>
+ <div class=row style="flex-wrap:wrap;align-items:center"><select id=wo><option value="">every composer</option>${owners.map(o=>`<option>${esc(o)}</option>`).join("")}</select>
+ <label class=m><input type=checkbox id=wk> kept rounds only</label><input id=wq placeholder="search notes" style="flex:1;min-width:160px"></div>
+ <div id=wsec></div><div id=wl></div>`;
+ const draw=()=>{const ev=[];const sel=w.tracks.filter(t=>!tf||t.n===tf);
+  sel.forEach(t=>{if(of&&t.owner!==of)return;withDeltas(t).forEach(r=>ev.push({k:"round",at:r.at,t,r}));t.sections.forEach(s=>ev.push({k:"sec",at:s.at,t,s}));});
+  if(!of){w.features.forEach(f=>f.at&&ev.push({k:"eng",at:f.at,f}));w.snapshots.forEach(s=>ev.push({k:"snap",at:s.at,s}));
+   D.notes.forEach(x=>(!tf||x.n===tf)&&ev.push({k:"fb",at:x.at,x}));}
+  const ql=qq.toLowerCase();let xs=ev.filter(e=>e.at&&(!kept||e.k!=="round"||e.r.kept)&&(!ql||JSON.stringify(e.r||e.s||e.f||e.x||e.s).toLowerCase().includes(ql)));
+  xs.sort((a,b)=>b.at.localeCompare(a.at));const total=xs.length;xs=xs.slice(0,lim);let day="",out="";
+  xs.forEach((e,i)=>{const d=dayOf(e.at);if(d!==day){day=d;out+=`<div class=day>${esc(d)}</div>`;}out+=evHtml(e,i);});
+  if(total>lim)out+=`<p><button id=wmore>show ${Math.min(150,total-lim)} more (${total-lim} left)</button></p>`;
+  $("#wl").innerHTML=out||"<p class=m>Nothing matches.</p>";$("#wmore")&&($("#wmore").onclick=()=>{lim+=150;draw();});
+  $$("#wl .more").forEach(m=>m.onclick=()=>{const b=m.previousElementSibling;b.textContent=b.dataset.full;m.remove();});
+  $$("#wl [data-go]").forEach(g=>g.onclick=()=>{const [s,n,t]=g.dataset.go.split("|");show("listen",{s,n,t});});
+  $("#wsec").innerHTML=tf?sectionsPanel(w.tracks.find(t=>t.n===tf)):"";};
+ $$("#wt .chip").forEach(c=>c.onclick=()=>{$$("#wt .chip").forEach(x=>x.classList.toggle("on",x===c));tf=+c.dataset.n;lim=150;draw();setHash({n:tf||""});});
+ if(tf)$$("#wt .chip").forEach(x=>x.classList.toggle("on",+x.dataset.n===tf));
+ $("#wo").onchange=e=>{of=e.target.value;draw();};$("#wk").onchange=e=>{kept=e.target.checked;draw();};
+ let tmo;$("#wq").oninput=e=>{clearTimeout(tmo);tmo=setTimeout(()=>{qq=e.target.value;lim=150;draw();},200);};draw();setHash({n:tf||""});}
+function clip(s,n=340){s=String(s||"");return s.length>n?`<div class=body data-full="${esc(s)}">${esc(s.slice(0,n))}&hellip;</div><span class=more>more</span>`:`<div class=body>${esc(s)}</div>`;}
+function evHtml(e){const tb=t=>`<span class=pill style="color:${col(t.n)};border-color:${col(t.n)}55">${t.n}. ${esc(t.title)}</span>`;
+ if(e.k==="round"){const r=e.r,ty=rtype(r.note),d=r.delta;
+  return `<div class=ev><div class=tm>${hhmm(r.at)}</div><div><div class=hd style="display:flex;gap:6px;flex-wrap:wrap;align-items:baseline">${tb(e.t)}
+  <span class=who>${esc(r.who||e.t.owner)}</span><b>${esc(r.version||"")}</b><span class="pill ${r.kept?"kept":"refused"}">${r.kept?"kept":"refused"}</span>${ty?`<span class="pill type">${esc(ty)}</span>`:""}
+  <span class=m>${r.score??""}${d!=null?` <span class="delta ${d>=0?"up":"down"}">${d>=0?"+":""}${d.toFixed(3)}</span>`:""} &middot; round ${r.round??""}</span></div>
+  <div class=headline>${esc(headline(r.note))}</div>${clip(r.note)}</div></div>`;}
+ if(e.k==="sec")return `<div class="ev sec"><div class=tm>${hhmm(e.s.at)}</div><div class=what>${tb(e.t)} <b>section w${e.s.window}</b> <span class=m>${esc(e.s.version||"")} &middot; ${esc(e.s.who||"")}</span> &mdash; ${esc(e.s.note)}</div></div>`;
+ if(e.k==="eng")return `<div class="ev eng"><div class=tm>${hhmm(e.f.at)}</div><div class=what>&#9881; <b>engine: ${esc(e.f.name)}</b> <span class=m>pin ${esc(e.f.pin)} &middot; ${esc(e.f.who)}</span>${clip(e.f.text,260)}${e.f.used_by?`<div class=m>used by: ${esc(e.f.used_by)}</div>`:""}</div></div>`;
+ if(e.k==="snap")return `<div class="ev snap"><div class=tm>${hhmm(e.s.at)}</div><div class=what>&#9673; <b>snapshot ${esc(e.s.id)}</b> <span class=m>${esc(e.s.label||"")} &middot; ${e.s.changed??""} changed</span> <a href="#" data-go="${esc(e.s.id)}||0">listen</a></div></div>`;
+ if(e.k==="fb"){const x=e.x;return `<div class="ev fb"><div class=tm>${hhmm(x.at)}</div><div class=what>&#128172; ${fbAuthor(x)} ${x.n?`on ${x.n}. ${esc(trackOf(x.n).title||"")} at <a href="#" data-go="${esc(x.snap)}|${x.n}|${x.t}">${mmss(x.t)}</a>`:"(general)"}: ${esc(x.text)}${x.replies.length?` <span class=m>(${x.replies.length} repl${x.replies.length>1?"ies":"y"})</span>`:""}</div></div>`;}
+ return "";}
+function sectionsPanel(t){if(!t||!t.sections.length)return "";const by={};t.sections.forEach(s=>(by[s.window]=by[s.window]||[]).push(s));
+ const ws=Object.keys(by).map(Number).sort((a,b)=>a-b);
+ return `<h3>${esc(t.title)}: the composer's intent, section by section (latest note per window)</h3>${ws.map(k=>{const xs=by[k],l=xs[xs.length-1];
+  return `<div class=secw><b>w${k}</b><div><span class=m>${esc(l.version||"")} &middot; ${esc(dayOf(l.at))} ${hhmm(l.at)}${xs.length>1?` &middot; ${xs.length-1} earlier`:""}</span><div class=body>${esc(l.note)}</div>
+  ${xs.length>1?`<details><summary class=m>earlier notes on w${k}</summary>${xs.slice(0,-1).reverse().map(s=>`<div class=m style="margin:3px 0">${esc(s.version||"")}: ${esc(s.note)}</div>`).join("")}</details>`:""}</div></div>`;}).join("")}`;}
+
+// ── history: a track's versions across snapshots, an A-B segment played version by version ──
+async function historyView(h){const w=await needW();const ts=(AI.tracks||[]);hist.n=+h.n||hist.n||(ts[0]||{}).n;
+ $("#side").innerHTML=`<div id=tracks></div>`;
+ $("#tracks").innerHTML=ts.map(t=>`<div class="tr${t.n===hist.n?" on":""}" data-n=${t.n}><b><span class=dot style="background:${col(t.n)}"></span>${t.n}. ${esc(t.title)}</b><div class=m>${esc(t.owner||"")} &middot; ${t.rounds??""} rounds &middot; now ${esc(t.version||"")}</div></div>`).join("");
+ $$("#tracks .tr").forEach(e=>e.onclick=()=>{hist.n=+e.dataset.n;historyView({n:hist.n});});
+ const t=w.tracks.find(x=>x.n===hist.n);setHash({n:hist.n});
+ if(!D.snapshots.length){const rs=t?t.log:[];
+  $("#pane").innerHTML=`<h2>${esc(t?.title||"")} <span class=m>how it developed</span></h2><p class=intro>Only the released render of ${esc(AI.title)} exists, so there is nothing to A/B here; this is the track's whole climb, round by round (the full notes are in Worklog).</p>
+  ${rs.map(r=>`<div class=between style="border-left-color:${r.kept?"#355c3a":"#5c3a35"}"><b style="color:var(--hi)">${esc(r.version||"")}</b> <span class=m>${esc(dayOf(r.at))} ${hhmm(r.at)} &middot; ${r.score??""} &middot; ${r.kept?"kept":"refused"}</span> ${esc(headline(r.note))}</div>`).join("")}`;return;}
+ const vs=[];D.snapshots.forEach(s=>{const x=s.tracks.find(y=>y.n===hist.n);if(!x)return;const last=vs[vs.length-1];
+  if(last&&last.x.sha===x.sha){last.also.push(s.id);return;}vs.push({s,x,also:[]});});
+ const rounds=t?t.log:[];const between=(a,b)=>{const lo=a?a.x.rendered||a.s.at:"",hi=b.x.rendered||b.s.at;
+  const rr=rounds.filter(r=>r.kept&&r.at>lo&&r.at<=hi),ff=w.features.filter(f=>f.at&&f.at>lo&&f.at<=hi);
+  return rr.length||ff.length?`<div class=between>${rr.map(r=>`<div><b style="color:var(--amber)">${esc(r.version)}</b> ${esc(headline(r.note))}</div>`).join("")}${ff.map(f=>`<div class=eng>&#9881; engine: ${esc(f.name)} (${esc(f.who)})</div>`).join("")}</div>`:"";};
+ $("#pane").innerHTML=`<h2>${esc(t?.title||"")} <span class=m>${vs.length} rendered versions across ${D.snapshots.length} snapshots</span></h2>
+ <p class=intro>Pick a segment, then play it version by version to hear how it developed. Between versions: the kept rounds and the engine features that landed. Times are seconds into each version, so a section can drift as a song grows.</p>
+ <audio id=hmed controls preload=none></audio>
+ <div class=row style="align-items:center;flex-wrap:wrap;margin:8px 0">segment <input id=sa size=6 value="${segA!=null?mmss(segA):"0:00"}"> to <input id=sb size=6 value="${segB!=null?mmss(segB):"0:30"}">
+ <button id=seta>A = playhead</button><button id=setb>B = playhead</button><button id=seq>&#9654; play the segment through every version</button><button id=stop>stop</button></div>
+ <div id=vl>${vs.map((v,i)=>between(vs[i-1],v)+`<div class=ver data-i=${i}><b style="color:var(--hi)">${esc(v.x.version)}</b>
+  <div><span class=m>${esc(v.s.id)}${v.also.length?` (+${v.also.length} unchanged)`:""} &middot; ${v.x.score??""} &middot; ${mmss(v.x.dur||0)} &middot; ${esc(v.s.label||"").slice(0,80)}</span></div>
+  <div style="display:flex;gap:4px"><button data-p=seg>&#9654; segment</button><button data-p=all>&#9654; from start</button></div></div>`).join("")}</div>`;
+ const au=$("#hmed");let stopAt=null,seqI=null;
+ const play=(i,from,to)=>{const v=vs[i];$$(".ver").forEach(e=>e.classList.toggle("on",+e.dataset.i===i));hist.i=i;
+  au.src=`media/${A}/${v.s.id}/t${String(hist.n).padStart(2,"0")}.mp3`;stopAt=to;au.addEventListener("loadedmetadata",()=>{au.currentTime=Math.min(from,(au.duration||from)-0.5);au.play();},{once:true});au.load();};
+ au.ontimeupdate=()=>{if(stopAt!=null&&au.currentTime>=stopAt){au.pause();if(seqI!=null&&seqI+1<vs.length){seqI++;play(seqI,secs($("#sa").value),secs($("#sb").value));}else seqI=null;}};
+ const ab=()=>{const a=secs($("#sa").value),b=secs($("#sb").value);if(isNaN(a)||isNaN(b)||b<=a){toast("set a segment: A before B");return null;}segA=a;segB=b;return [a,b];};
+ $("#seta").onclick=()=>{$("#sa").value=mmss(au.currentTime);};$("#setb").onclick=()=>{$("#sb").value=mmss(au.currentTime);};
+ $$(".ver button").forEach(b=>b.onclick=()=>{const i=+b.closest(".ver").dataset.i;seqI=null;if(b.dataset.p==="all"){play(i,0,null);return;}const s=ab();if(s)play(i,s[0],s[1]);});
+ $("#seq").onclick=()=>{const s=ab();if(!s)return;seqI=0;play(0,s[0],s[1]);};$("#stop").onclick=()=>{seqI=null;au.pause();};}
+
+// ── keys (Listen) ──
+document.addEventListener("keydown",e=>{if(["TEXTAREA","INPUT","SELECT"].includes(e.target.tagName)||view!=="listen"||!media)return;
  if(e.key===" "){e.preventDefault();media.paused?media.play():media.pause();}
  else if(e.key==="n"||e.key==="N"){e.preventDefault();noteT=media.currentTime;$("#save").textContent="Note at "+mmss(noteT);$("#noteText").focus();}
  else if(e.key==="ArrowLeft")media.currentTime=Math.max(0,media.currentTime-5);else if(e.key==="ArrowRight")media.currentTime+=5;
- else if(e.key==="j"||e.key==="k"){const i=S.tracks.findIndex(x=>x.n===N)+(e.key==="j"?1:-1);if(S.tracks[i])pick(S.tracks[i].n,0,true);}});
-load();
+ else if((e.key==="j"||e.key==="k")&&S){const i=S.tracks.findIndex(x=>x.n===N)+(e.key==="j"?1:-1);if(S.tracks[i])pick(S.tracks[i].n,0,true);}});
+boot();
 </script>

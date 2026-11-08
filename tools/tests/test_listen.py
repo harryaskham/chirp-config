@@ -150,7 +150,8 @@ class Server(unittest.TestCase):
         L.DATA = cls.d
         cls.snap = L.cut("chirpers9", "", render=fake_render, canonical=lambda p, s: '{"tempo":1}', log=lambda *x: None)
         cls.sent = []
-        L.notify = lambda album, note, track: cls.sent.append((note["n"], track["owner"]))
+        L.CODE = "solofury"
+        L.notify = lambda album, note, track: cls.sent.append((note["n"], (track or {}).get("owner")))
         cls.srv = L.http.server.ThreadingHTTPServer(("127.0.0.1", 0), L.Handler)
         threading.Thread(target=cls.srv.serve_forever, daemon=True).start()
         cls.base = f"http://127.0.0.1:{cls.srv.server_address[1]}/"
@@ -160,20 +161,26 @@ class Server(unittest.TestCase):
         cls.srv.shutdown()
         cls.srv.server_close()
 
-    def get(self, path, headers=None):
-        return urllib.request.urlopen(urllib.request.Request(self.base + path, headers=headers or {}))
+    def get(self, path, headers=None, code=True):
+        h = {**({"X-Listen-Code": "solofury"} if code else {}), **(headers or {})}
+        return urllib.request.urlopen(urllib.request.Request(self.base + path, headers=h))
+
+    def post(self, path, body):
+        req = urllib.request.Request(self.base + path, method="POST", data=json.dumps(body).encode(),
+                                     headers={"X-Listen-Code": "solofury"})
+        return json.load(urllib.request.urlopen(req))
 
     def test_app_api_notes_media_web(self):
-        self.assertIn(b"chirpers - listen", self.get("").read())
-        self.assertEqual(json.load(self.get("api/albums")), ["chirpers9"])
+        self.assertIn(b"chirpers studio", self.get("", code=False).read())          # the page itself needs no code
+        albums = json.load(self.get("api/albums"))
+        self.assertIn("chirpers9", [a["id"] for a in albums])
+        self.assertEqual(len(next(a for a in albums if a["id"] == "chirpers9")["tracks"]), 8)
         t = self.snap["tracks"][-1]
-        req = urllib.request.Request(self.base + "api/chirpers9/notes", method="POST",
-                                     data=json.dumps({"snap": self.snap["id"], "n": t["n"], "t": 12.34,
-                                                      "text": "the last chord"}).encode())
-        self.assertTrue(json.load(urllib.request.urlopen(req))["ok"])
+        self.assertTrue(self.post("api/chirpers9/notes", {"snap": self.snap["id"], "n": t["n"], "t": 12.34,
+                                                          "text": "the last chord", "by": "alex"})["ok"])
         d = json.load(self.get("api/chirpers9"))
-        self.assertEqual([(n["n"], n["t"], n["text"]) for n in d["notes"]], [(t["n"], 12.3, "the last chord")])
-        self.assertEqual(self.sent, [(t["n"], t["owner"])])
+        self.assertEqual([(n["n"], n["t"], n["text"], n["by"]) for n in d["notes"]], [(t["n"], 12.3, "the last chord", "alex")])
+        self.assertEqual(self.sent[0], (t["n"], t["owner"]))
         r = self.get(f"media/chirpers9/{self.snap['id']}/t01.mp3", {"Range": "bytes=0-9"})
         self.assertEqual((r.status, len(r.read()), r.headers["Accept-Ranges"]), (206, 10, "bytes"))
 
@@ -181,11 +188,37 @@ class Server(unittest.TestCase):
             def redirect_request(self, *a, **k):
                 return None
         try:
-            urllib.request.build_opener(NoRedirect).open(self.base + f"web/chirpers9/{self.snap['id']}/1")
+            urllib.request.build_opener(NoRedirect).open(urllib.request.Request(
+                self.base + f"web/chirpers9/{self.snap['id']}/1", headers={"X-Listen-Code": "solofury"}))
             self.fail("expected a redirect")
         except urllib.error.HTTPError as e:
             self.assertEqual(e.code, 302)
             self.assertEqual(L.from_hash(e.headers["Location"].split("#", 1)[1].join(["#", ""])), '{"tempo":1}')
+
+    def test_access_code(self):
+        for path in ("api/albums", "api/chirpers9", f"media/chirpers9/{self.snap['id']}/t01.mp3"):
+            with self.assertRaises(urllib.error.HTTPError) as e:
+                self.get(path, code=False)
+            self.assertEqual(e.exception.code, 401)
+        self.assertEqual(self.get("api/albums", {"Cookie": "a=b; listen_code=solofury"}, code=False).status, 200)
+        with self.assertRaises(urllib.error.HTTPError):
+            self.get("api/albums", {"Cookie": "listen_code=nope"}, code=False)
+
+    def test_general_feedback_and_a_web_reply(self):
+        r = self.post("api/chirpers9/notes", {"n": 0, "text": "the album breathes", "by": "Alex <b>"})
+        self.post(f"api/chirpers9/notes/{r['id']}/reply", {"text": "thank you", "by": "harry"})
+        n = next(x for x in json.load(self.get("api/chirpers9"))["notes"] if x["id"] == r["id"])
+        self.assertEqual((n["n"], n["track"], n["by"], [(x["by"], x["text"]) for x in n["replies"]]),
+                         (0, None, "Alex b", [("harry", "thank you")]))
+        with self.assertRaises(urllib.error.HTTPError):
+            self.post("api/chirpers9/notes/nonexistent/reply", {"text": "x"})
+
+    def test_worklog(self):
+        w = json.load(self.get("api/chirpers9/log"))
+        self.assertEqual(len(w["tracks"]), 8)
+        self.assertTrue(all(isinstance(t["log"], list) and isinstance(t["sections"], list) for t in w["tracks"]))
+        self.assertTrue(w["features"] and all(f["pin"] for f in w["features"]))
+        self.assertEqual([s["id"] for s in w["snapshots"]], [self.snap["id"]])
 
 
 if __name__ == "__main__":

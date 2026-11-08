@@ -8,7 +8,16 @@ best-effort 480p preview videos.
   listen.py cut ALBUM [--label TEXT]                 cut a snapshot (renders changed tracks at nice 15)
   listen.py video ALBUM [SNAP] [--ids 1,8] [--look accretion | '{id}|accretion3d'] [--redo]
                                                              480p previews (~1.3x real time each: an idle unit)
-  listen.py serve [--host H] [--port 8791]           the app (notes notify the owner through caco)
+  listen.py serve [--host H]... [--port 8791]        the app (notes notify the owner through caco); --host repeats
+                                                             (the tailnet address and 127.0.0.1 for a Tailscale funnel)
+
+The site (8 Nov, Harry: for him and a friend): a name and the access code once per browser ($CHIRP_LISTEN_CODE, default
+'solofury'; a light gate, not security: the page loads freely, data and media need the code as a cookie or an
+X-Listen-Code header); album tabs ($CHIRP_LISTEN_ALBUMS, default chirpers9,chirpers8); views Listen (snapshots, or a
+released album's video from DATA/ALBUM/release/album.mp4 + chapters.txt), Feedback (every note and reply, signed with
+the visitor's name, plus general album feedback), Worklog (every climb round and section note with the pinned engine
+features and snapshots, from climbs/ID.jsonl, compose/ALBUM/sections/ and features.md) and History (a track's
+renders across snapshots, an A-B segment played version by version, what changed between them).
   listen.py notes ALBUM [--track N] [--open]         read Harry's notes (composers)
   listen.py reply ALBUM NOTE_ID TEXT [--done]        answer a note; it shows under the note in the app
 
@@ -28,6 +37,7 @@ import sys
 import tempfile
 import threading
 import time
+import urllib.parse
 import uuid
 import wave
 import zlib
@@ -350,8 +360,10 @@ def notify(album, note, track):
     owner = (track or {}).get("owner")
     ids = [i for i in (agents().get(owner), agents().get("chirp-eco")) if i]
     link = f"{PUBLIC}#a={album}&s={note['snap']}&n={note['n']}&t={note['t']:.1f}"
-    body = (f"HARRY'S NOTE on t{note['n']} {track.get('title', '')} ({track.get('version')}, snapshot {note['snap']}) "
-            f"at {mmss(note['t'])}:\n\n{note['text']}\n\nListen at that moment: {link}\n"
+    who = (note.get("by") or "harry").upper()
+    where = (f"on t{note['n']} {track.get('title', '')} ({track.get('version')}, snapshot {note['snap']}) at {mmss(note['t'])}"
+             if track else f"on the album {album} (general feedback, relay as you see fit)")
+    body = (f"{who}'S NOTE {where}:\n\n{note['text']}\n\nListen at that moment: {link}\n"
             f"All notes: python3 ~/.config/chirp/tools/listen.py notes {album} --track {note['n']}\n"
             f"Answer (shows under the note in Harry's app): python3 ~/.config/chirp/tools/listen.py reply {album} "
             f"{note['id']} 'what you did' [--done]")
@@ -371,6 +383,128 @@ def notify(album, note, track):
     os.unlink(f.name)
 
 
+# ── the review site: albums, worklog, feature checkpoints (8 Nov: Harry, for him and a friend over a funnel) ─────
+
+CODE = os.environ.get("CHIRP_LISTEN_CODE", "solofury")      # a light access code, not security (Harry: "not load bearing")
+ALBUMS = [a for a in os.environ.get("CHIRP_LISTEN_ALBUMS", "chirpers9,chirpers8").split(",") if a]
+TOOLS_REPO = os.environ.get("CHIRP_TOOLS_REPO", "")              # optional: dates for pins not named in a commit
+
+
+def clean_name(s, default="harry"):
+    s = re.sub(r"[^\w .'-]", "", str(s or "")).strip()[:40]
+    return s or default
+
+
+def climb_tracks(album_id):
+    """The album's tracks from climbs.json (n, id, title, owner), in track order."""
+    try:
+        climbs = read_json(os.path.join(ROOT, "climbs.json"))
+    except (OSError, ValueError):
+        return []
+    items = climbs.get("climbs", []) if isinstance(climbs, dict) else climbs
+    out = []
+    for c in items:
+        if isinstance(c, dict) and c.get("album") == album_id:
+            m = c.get("meta") or {}
+            out.append({"n": m.get("track"), "id": c.get("id"), "title": m.get("title") or c.get("id"),
+                        "owner": c.get("owner"), "version": (c.get("best") or {}).get("version"),
+                        "score": (c.get("best") or {}).get("score"), "rounds": c.get("rounds")})
+    return sorted(out, key=lambda t: (t["n"] is None, t["n"] or 0))
+
+
+def release_info(album_id):
+    """DATA/ALBUM/release/: album.mp4 (the released continuous video), chapters.txt ('m:ss Title' per line) and an
+    optional meta.json ({youtube, note})."""
+    d = os.path.join(album_dir(album_id), "release")
+    if not os.path.exists(os.path.join(d, "album.mp4")):
+        return None
+    chapters = []
+    if os.path.exists(os.path.join(d, "chapters.txt")):
+        for ln in read_text(os.path.join(d, "chapters.txt")).splitlines():
+            m = re.match(r"\s*(?:(\d+):)?(\d+):(\d\d)\s+(.*)", ln)
+            if m:
+                h, mi, s, title = m.groups()
+                chapters.append({"t": int(h or 0) * 3600 + int(mi) * 60 + int(s), "title": title.strip()})
+    meta = read_json(os.path.join(d, "meta.json")) if os.path.exists(os.path.join(d, "meta.json")) else {}
+    return {"video": f"media/{album_id}/release/album.mp4", "chapters": chapters, **meta}
+
+
+def album_info(album_id):
+    p = os.path.join(ROOT, "compose", album_id, "album.json")
+    a = read_json(p) if os.path.exists(p) else {}
+    snaps = snapshots(album_id)
+    rel = release_info(album_id)
+    return {"id": album_id, "title": a.get("album") or album_id, "artist": a.get("artist"), "genre": a.get("genre"),
+            "brief": a.get("brief"), "direction": [d for d in [a.get("direction"), *(a.get("direction_more") or [])] if d],
+            "snapshots": len(snaps),
+            "status": "released" if rel else "in progress", "release": rel, "tracks": climb_tracks(album_id)}
+
+
+def read_jsonl(p):
+    out = []
+    if os.path.exists(p):
+        with open(p) as f:
+            for ln in f:
+                try:
+                    out.append(json.loads(ln))
+                except ValueError:
+                    pass
+    return out
+
+
+_CHECKPOINTS = {}
+
+
+def feature_checkpoints(album_id):
+    """Engine features pinned on the album's feature board: rows of compose/ALBUM/features.md with 'pin HASH', each
+    dated by the commit that first wrote that pin into the board (git log -S), cached on the file's mtime."""
+    p = os.path.join(ROOT, "compose", album_id, "features.md")
+    if not os.path.exists(p):
+        return []
+    key = (album_id, os.path.getmtime(p))
+    if key in _CHECKPOINTS:
+        return _CHECKPOINTS[key]
+    out = []
+    for ln in read_text(p).splitlines():
+        m = re.search(r"pin ([0-9a-f]{8})", ln)
+        if not ln.startswith("|") or not m:
+            continue
+        cells = [c.strip() for c in ln.strip().strip("|").split("|")]
+        name = (re.search(r"`([^`]+)`", cells[0]) or re.search(r"(\S+)", cells[0])).group(1)
+        who = re.search(r"\(([^;()]*);", cells[0])
+        at = subprocess.run(["git", "log", "--reverse", "--format=%cI", f"-Spin {m.group(1)}", "--",
+                             os.path.relpath(p, ROOT)], cwd=ROOT, capture_output=True, text=True).stdout.split()
+        if not at and TOOLS_REPO:
+            at = subprocess.run(["git", "log", "-1", "--format=%cI", m.group(1)], cwd=TOOLS_REPO, capture_output=True,
+                                text=True).stdout.split()
+        desc = cells[0].split("):", 1)[1].strip() if "):" in cells[0] else cells[0]
+        out.append({"name": name, "pin": m.group(1), "who": who.group(1).strip() if who else "",
+                    "at": at[0] if at else None, "text": desc[:600], "used_by": cells[1][:300] if len(cells) > 1 else ""})
+    out.sort(key=lambda c: c["at"] or "")
+    _CHECKPOINTS.clear()
+    _CHECKPOINTS[key] = out
+    return out
+
+
+def worklog(album_id):
+    """Every climb round (climbs/ID.jsonl: who, version, score, kept, the composer's note) and every section note
+    (compose/ALBUM/sections/ID.jsonl) per track, the pinned engine features and the snapshots, for the worklog and
+    history views."""
+    tracks = []
+    for t in climb_tracks(album_id):
+        rounds = [{k: r.get(k) for k in ("round", "at", "who", "score", "version", "kept")} | {"note": str(r.get("note") or "")[:6000]}
+                  for r in read_jsonl(os.path.join(ROOT, "climbs", f"{t['id']}.jsonl"))]
+        sections = [{k: s.get(k) for k in ("window", "at", "who", "version", "note")}
+                    for s in read_jsonl(os.path.join(ROOT, "compose", album_id, "sections", f"{t['id']}.jsonl"))]
+        tracks.append({**t, "log": rounds, "sections": sections})
+    snaps = [{k: s.get(k) for k in ("id", "at", "label", "pin", "changed")} for s in snapshots(album_id)]
+    feats = feature_checkpoints(album_id)
+    if release_info(album_id):                                  # a released album: only what landed while it was made
+        last = max((r["at"] or "" for t in tracks for r in t["log"]), default="")
+        feats = [f for f in feats if f["at"] and f["at"] <= last]
+    return {"album": album_id, "tracks": tracks, "features": feats, "snapshots": snaps}
+
+
 # ── server ─────────────────────────────────────────────────────────────────────────────────
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -388,6 +522,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b)
 
+    def authed(self):
+        """The access code, from the page's cookie (set once with the visitor's name) or an X-Listen-Code header."""
+        if not CODE:
+            return True
+        if self.headers.get("X-Listen-Code") == CODE:
+            return True
+        for part in (self.headers.get("Cookie") or "").split(";"):
+            k, _, v = part.strip().partition("=")
+            if k == "listen_code" and urllib.parse.unquote(v) == CODE:
+                return True
+        return False
+
     def do_GET(self):
         path = self.path.split("?")[0]
         parts = [p for p in path.split("/") if p]
@@ -397,13 +543,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(b)))
+            self.send_header("Cache-Control", "no-store")
             self.end_headers()
             return self.wfile.write(b)
+        if parts == ["favicon.ico"]:
+            return self.send_error(404)
+        if not self.authed():
+            return self.send_json({"error": "access code"}, 401)
         if parts == ["api", "albums"]:
-            d = DATA if os.path.isdir(DATA) else None
-            return self.send_json([a for a in sorted(os.listdir(d)) if snapshots(a)] if d else [])
+            return self.send_json([album_info(a) for a in ALBUMS
+                                   if os.path.exists(os.path.join(ROOT, "compose", a, "album.json")) or snapshots(a)])
         if len(parts) == 2 and parts[0] == "api":
             return self.send_json({"album": parts[1], "snapshots": snapshots(parts[1]), "notes": notes(parts[1])})
+        if len(parts) == 3 and parts[0] == "api" and parts[2] == "log" and re.fullmatch(r"[\w-]+", parts[1]):
+            return self.send_json(worklog(parts[1]))
+        if len(parts) == 4 and parts[0] == "media" and parts[2] == "release" and parts[3] == "album.mp4":
+            return self.send_media(os.path.join(album_dir(parts[1]), "release", "album.mp4"))
         if len(parts) == 4 and parts[0] == "media" and re.fullmatch(r"t\d\d\.(mp3|mp4)", parts[3]):
             return self.send_media(os.path.join(album_dir(parts[1]), "snapshots", parts[2], parts[3]))
         if len(parts) == 4 and parts[0] == "web" and parts[3].isdigit():
@@ -442,33 +597,62 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_POST(self):
         parts = [p for p in self.path.split("?")[0].split("/") if p]
+        if not self.authed():
+            return self.send_json({"error": "access code"}, 401)
         try:
             body = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")
         except ValueError:
             return self.send_json({"error": "bad json"}, 400)
         if len(parts) == 3 and parts[0] == "api" and parts[2] == "notes":
             album = parts[1]
+            text = str(body.get("text") or "").strip()
+            by = clean_name(body.get("by"))
+            if not text:
+                return self.send_json({"error": "text is required"}, 400)
+            if body.get("snap") == "release" or not body.get("n"):
+                # a note on a released album's video (snap 'release', n the chapter's track) or general feedback (n 0)
+                track = next((t for t in climb_tracks(album) if t["n"] == body.get("n")), None) if body.get("n") else None
+                note = {"op": "add", "id": uuid.uuid4().hex[:8], "at": now_iso(), "by": by,
+                        "snap": "release" if body.get("snap") == "release" else (body.get("snap") or ""),
+                        "n": track["n"] if track else 0, "track": track["id"] if track else None,
+                        "version": "release" if body.get("snap") == "release" else None,
+                        "t": round(float(body.get("t") or 0), 1), "text": text[:4000]}
+                append_event(album, note)
+                threading.Thread(target=notify, args=(album, note, track), daemon=True).start()
+                return self.send_json({"ok": True, "id": note["id"]})
             snap = next((s for s in snapshots(album) if s["id"] == body.get("snap")), None)
             track = next((t for t in (snap or {}).get("tracks", []) if t["n"] == body.get("n")), None)
-            text = str(body.get("text") or "").strip()
-            if not track or not text:
+            if not track:
                 return self.send_json({"error": "snap, n and text are required"}, 400)
-            note = {"op": "add", "id": uuid.uuid4().hex[:8], "at": now_iso(), "by": "harry", "snap": snap["id"],
+            note = {"op": "add", "id": uuid.uuid4().hex[:8], "at": now_iso(), "by": by, "snap": snap["id"],
                     "n": track["n"], "track": track["id"], "version": track.get("version"),
                     "t": round(float(body.get("t") or 0), 1), "text": text[:4000]}
             append_event(album, note)
             threading.Thread(target=notify, args=(album, note, track), daemon=True).start()
             return self.send_json({"ok": True, "id": note["id"]})
+        if len(parts) == 5 and parts[0] == "api" and parts[2] == "notes" and parts[4] == "reply":
+            text = str(body.get("text") or "").strip()
+            if not text or not any(n["id"] == parts[3] for n in notes(parts[1])):
+                return self.send_json({"error": "note and text are required"}, 400)
+            append_event(parts[1], {"op": "reply", "id": parts[3], "at": now_iso(), "by": clean_name(body.get("by")),
+                                    "text": text[:4000], "done": False})
+            return self.send_json({"ok": True})
         if len(parts) == 5 and parts[0] == "api" and parts[2] == "notes" and parts[4] == "delete":
             append_event(parts[1], {"op": "delete", "id": parts[3], "at": now_iso()})
             return self.send_json({"ok": True})
         self.send_error(404)
 
 
-def serve(host, port):
-    srv = http.server.ThreadingHTTPServer((host, port), Handler)
-    print(f"listen: serving {DATA} on http://{host}:{port}/", flush=True)
-    srv.serve_forever()
+def serve(hosts, port):
+    """One server per host (e.g. the tailnet address and 127.0.0.1, which a Tailscale funnel proxies to)."""
+    hosts = [hosts] if isinstance(hosts, str) else list(hosts)
+    srvs = [http.server.ThreadingHTTPServer((h, port), Handler) for h in hosts]
+    for h in hosts:
+        print(f"listen: serving {DATA} on http://{h}:{port}/ (albums {','.join(ALBUMS)}; access code {'on' if CODE else 'off'})",
+              flush=True)
+    for s in srvs[1:]:
+        threading.Thread(target=s.serve_forever, daemon=True).start()
+    srvs[0].serve_forever()
 
 
 # ── CLI ────────────────────────────────────────────────────────────────────────────────────
@@ -486,7 +670,7 @@ def main(argv=None):
     p.add_argument("--look", help="a look name, or {id}|FALLBACK: vis/<track id>.yaml when it exists, else FALLBACK")
     p.add_argument("--redo", action="store_true", help="re-render previews that already exist")
     p = sub.add_parser("serve")
-    p.add_argument("--host", default="127.0.0.1")
+    p.add_argument("--host", action="append", help="listen address (repeatable; default 127.0.0.1)")
     p.add_argument("--port", type=int, default=8791)
     p = sub.add_parser("notes")
     p.add_argument("album")
@@ -505,7 +689,7 @@ def main(argv=None):
     elif a.cmd == "video":
         videos(a.album, a.snap, {int(x) for x in a.ids.split(",")} if a.ids else None, a.look, redo=a.redo)
     elif a.cmd == "serve":
-        serve(a.host, a.port)
+        serve(a.host or ["127.0.0.1"], a.port)
     elif a.cmd == "notes":
         ns = [n for n in notes(a.album) if (a.track is None or n["n"] == a.track) and not (a.open and n["done"])]
         if a.json:
