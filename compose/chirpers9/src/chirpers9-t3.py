@@ -589,7 +589,17 @@ PHASE_GAIN = os.environ.get("T3_PHASE_GAIN", "0dB")
 # touched softly, brighter when hit (no Accretion song plays rock-kit): the same notes, lanes and fx, but a drummer's
 # hats, and air on the storm's top (t3's in-seam body reads 9 kHz -9.9 dB against t2's). T3_R75=none reproduces v72.
 R75 = os.environ.get("T3_R75", "roomhats") != "none"
-ROOMHAT_GAIN = os.environ.get("T3_ROOMHAT_GAIN", "10dB")   # rock-kit hats sit 7 dB under tight-kit's
+ROOMHAT_GAIN = os.environ.get("T3_ROOMHAT_GAIN", "10dB")
+# round 76 (section, w4 first part = bars 37-44, the first storm at full; least recently focused of w4-w7, the windows
+# clear of the flow bodies and recurrence anchors): T3_R76=risset (default) - THE TUNE SHIMMERS. Bars 37-44 had the
+# reese and the kit and every melody buried 18-23 dB down. Now E1 is held there, four times slower than itself - D A
+# C G E over four bars, then again an octave up - on a Risset arpeggio (library risset-arpeggio, forked here as
+# a3-risset: five copies of a ten-harmonic tone, each a few cents apart, so each held note beats into an arpeggio
+# across its own overtones). The fork spreads the copies four times wider than the library's (+-12.6 cents), so the
+# overtones ripple about once a second instead of once every few: phase made audible, the title's idea in a tone
+# (no Accretion song uses it). It rises into bar 45, where the whisper starts. T3_R76=none reproduces v75.
+R76 = os.environ.get("T3_R76", "risset") != "none"
+RISSET_GAIN = os.environ.get("T3_RISSET_GAIN", "0dB")   # rock-kit hats sit 7 dB under tight-kit's
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1753,6 +1763,16 @@ def main():
         flock(404.5, 408.0, (1.0, 2.0))
         for nm, pan in (("birdl", -0.5), ("birdr", 0.5)):
             tracks.append({"name": nm, "patch": "birds", "gain": "9dB", "pan": pan, "score": flocks[nm].score()})
+    if R76:                                                 # w4: E1 x4 slower on a Risset arpeggio (bars 37-44)
+        patches["a3-risset"] = {"extends": "risset-arpeggio synth.layers.0.cents=-12.56 synth.layers.1.cents=-6.28 "
+                                           "synth.layers.3.cents=6.28 synth.layers.4.cents=12.56 synth.amp.a=0.8s"}
+        rs = Track("risset")
+        e1x4 = ((0.0, 2.0, 62), (2.0, 3.0, 69), (5.0, 1.0, 72), (6.0, 4.0, 67), (10.0, 6.0, 64))  # D4 A4 C5 G4 E4
+        for k, at0 in enumerate((144.0, 160.0)):
+            for off, ln, m in e1x4:
+                rs.add(at0 + off, ln - 0.1, mtok(m + 12 * k), 92 + 8 * k)
+        tracks.append({"name": "risset", "patch": "a3-risset", "gain": RISSET_GAIN, "pan": -0.1,
+                       "sends": {"space": "-8dB"}, "score": rs.score()})
     if R75:                                                 # palette: the hats from a room (tight-kit -> rock-kit hats)
         for tr in tracks:
             if tr.get("name") in ("hats", "hats7", "hatshalf") and tr.get("patch") == "tight-kit":
