@@ -533,6 +533,15 @@ R64 = os.environ.get("T3_R64", "clear") != "none"
 # matched better but its spectrum and the song's did worse, 99.48.) The song's low end is now an arc: arriving 17-25, full through both storms and the
 # lock, leaving 101-113. T3_R65=none reproduces v64.
 R65 = os.environ.get("T3_R65", "passes") != "none"
+# round 66 (section, w4 = bars 37-48, the first storm's middle; "little new vs w3"): T3_R66=foretold (default) - THE
+# WORDS BEFORE THE SONG. From bar 41 the dizi and the farfisa play E1 over and over, but under the reese, the floor and
+# v44's wall they sat 17-22 dB down: the hook was there and nobody could hear it; and the whisper said only two words
+# of the lyric ("here", "late"). Now, as the wall opens at bar 45, the dizi's E1 comes up 6 dB, plain for three bars -
+# and a second whisper says the whole line, "nothing here is late", on E1's rhythm (its five syllables are E1's five
+# notes), twice, a breath behind the dizi: the words the voice will sing at the lock (bar 90), heard first in the
+# storm as a whisper. (The dizi drops back for bar 48, so the eyewall's entry at 49 still turns a corner - lifted
+# through 48 it read flat there.) T3_R66=none reproduces v65.
+R66 = os.environ.get("T3_R66", "foretold") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1696,6 +1705,17 @@ def main():
         flock(404.5, 408.0, (1.0, 2.0))
         for nm, pan in (("birdl", -0.5), ("birdr", 0.5)):
             tracks.append({"name": nm, "patch": "birds", "gain": "9dB", "pan": pan, "score": flocks[nm].score()})
+    if R66:                                                 # w4: the words before the song (bars 45-48)
+        wh0 = next(tr for tr in tracks if tr.get("name") == "whisper")
+        sylls = (("N AH1", 0.0, 0.45, 49.0), ("TH IH0 NG", 0.5, 0.7, 48.5), ("HH IY1 R", 1.25, 0.24, 48.0),
+                 ("IH1 Z", 1.5, 0.9, 47.0), ("L EY1 T", 2.5, 1.3, 45.0))           # on E1's rhythm
+        notes = []
+        for k, at0 in enumerate((176.75, 184.75)):          # a breath behind the dizi's E1 at 176 / 184
+            for ph, dt, ln, m in sylls:
+                notes.append({"at": at0 + dt, "len": ln, "ph": ph, "pitch": f"m{m:g}", "vel": 0.8 + 0.04 * k,
+                              "expr_path": {"f0": [0.0, 8.0, 16.0, 20.0, 16.0, 6.0, -8.0, -20.0]}})
+        tracks.append(dict({k: v for k, v in wh0.items() if k not in ("notes", "auto")}, name="whisper2",
+                           gain="2dB", pan=0.15, notes=notes))
     if R61:                                                 # w8: the seven locks into eight (bars 89-96)
         lockb = Track("lockb")
         chords = ("m57,m62,m65", "m58,m62,m65", "m60,m64,m67", "m57,m62,m65")   # Dm, Bb, C, Dm (2 beats each)
@@ -1879,6 +1899,10 @@ def main():
             if pn in patches:
                 patches[pn] = dict(patches[pn], extends=patches[pn]["extends"] +
                                    " synth.layers.0.depth_spread=1 synth.layers.0.cons_spread=1")
+    if R66:                                                 # w4 (after v57's lift exists): the dizi's E1 plain, bars 45-48
+        dz = next(tr for tr in tracks if tr.get("name") == "dizi")
+        dz["auto"] = dict(dz.get("auto", {}), lift={"points": dz["auto"]["lift"]["points"] +
+                                                    [["175.5b", 0], ["176b", 6], ["187.5b", 6], ["188b", 0]]})
     if R60:                                                 # whole: calm that is calm (dyn lane), f0_spread on sung harmony
         master["auto"] = dict(master["auto"], dyn={"points": [
             ["0b", -5.0], ["64b", -1.4 if R63 else -2.0], ["159.99b", -2.3], ["160b", -2.0], ["244b", -1.5], ["248b", -9.0],
