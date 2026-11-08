@@ -829,6 +829,27 @@ def build():
     FARBASS = {'extends': 'duffing-bass',
                'synth': {'layers': [{'type': 'chaos', 'chaos': {'system': 'duffing', 'axis': 'x',
                                      'amount': {'value': 0, 'mod': [{'src': 'auto.strain', 'amount': 1.0}]}}}]}}
+    # (v56, whole song) SPRING TIDES: a spring tide comes when the sun and the moon pull in line. Here the two pulls
+    # are E2's cell of seven sixteenths and the bar of sixteen: they line up every seven bars (bar 22, where the cell
+    # starts, then 29, 36, 43, 50, 57 and 64 - the crest, where it locks - and on through the second half), so the
+    # alignments slide one bar earlier against the eight-bar phrases each time round. Each one is now heard: a gong
+    # struck low, blooming and ringing on, and - where the kit is playing - a crash with it. The pull of the two
+    # pulses made audible, a slow cycle across the whole song that never lands where the phrases do; not inside the
+    # crest's lock, and not where the band has been cleared out
+    P['springgong'] = []
+    for b_ in range(22 + 7, NBARS, 7):
+        a_ = b_ * 4.0
+        s_, i_ = sec_of(b_)
+        if s_ == 'crest' and b_ != CREST:
+            continue
+        near_ = lambda k_: any(a_ - 2.0 <= e_[0] < a_ + 2.0 for e_ in P[k_])
+        if not near_('kit') or (void0 - 2.0 <= a_ < void1 + 10.0):
+            continue
+        P['springgong'].append((a_, m(KEY - 12), 12.0, 96 if b_ == CREST else 80))
+        in_cajon_ = SEC['tide'] * 4.0 <= a_ < (SEC['tide'] + 12) * 4.0
+        if not in_cajon_ and not any(abs(e_[0] - a_) < 0.5 and e_[1] == 'c' for e_ in P['kit']):
+            P['kit'].append((a_, 'c', 2.0, 104))
+    P['kit'].sort(key=lambda e_: e_[0])
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain, 'score': line(P[name], total)}, **kw)
     # (v50, section w9: the out-seam 'static, little new vs w8' - the last chorus's locked groove ran on, sixteenth
     # hats and the 303 at full speed, through the whole overlap into t7's drumless head) TIME DILATES AT THE EDGE: as
@@ -934,6 +955,7 @@ def build():
             tr('tanp', 'tanpura', '-14dB', pan=-0.2, sends={'hall': '-12dB'}),
             tr('glass', 'pad-glass', '-15dB', sends={'hall': '-10dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             tr('lights', 'harmonium', '-10dB', sends={'hall': '-8dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
+            tr('springgong', 'modal-gong', '-12dB', pan=0.0, sends={'hall': '-8dB'}),
             tr('sub', 'sub', '-10dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '200ms', 'curve': 0.6}]),
             # (v15, whole song) THE 303 GOES: E2's cell ran the whole song on an acid squelch (resonant, driven - the
             # most aggressive sound in t6, and Harry's 'ugly chaos' lives in sounds like it). Now the same cell, the
