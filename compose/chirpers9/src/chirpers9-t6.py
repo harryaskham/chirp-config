@@ -925,6 +925,11 @@ def build():
     # harmonium's waves and the bass stay where they are. At the squeeze it snaps straight again, as the water is
     # pulled tight
     TIDE_ROLL = {'acid', 'kit', 'cajon', 'hats', 'near', 'e5', 'e5b'}
+    # (v65, whole song) THE TIDE FILLS THE ROOM: the drummer played the whole song on the same close, dry prog kit -
+    # the in-seam's first hits and the tear's last were the same sound. Now, from the crest on - high water, the
+    # tide in - the same drummer, the same parts, is heard through room and overhead mics (the library's room-kit: a
+    # little less sub, a darker top, the kit's own air around every hit; no Accretion track uses it): the first half
+    # close and tight as the water gathers, the second half big and open as it fills the room
     tr = lambda name, patch, gain, **kw: dict({'name': name, 'patch': patch, 'gain': gain,
                                                'score': swung(line(P[name], total), SEC['tide'] * 4.0, SEC['squeeze'] * 4.0, 0.65) if name in TIDE_ROLL else line(P[name], total)}, **kw)
     # (v50, section w9: the out-seam 'static, little new vs w8' - the last chorus's locked groove ran on, sixteenth
@@ -991,6 +996,9 @@ def build():
             P['cajon'].append((e_[0], pc_) + tuple(e_[2:]))
     P['kit'] = [e_ for e_ in P['kit'] if not (cj0_ - 1e-6 <= e_[0] < cj1_ - 1e-6 and e_[1] in CJ)]
     P['lights'] = [e_ for e_ in P['lights'] if not (SEC['crest'] * 4.0 - 1e-6 <= e_[0] < SEC['cross'] * 4.0 - 1e-6)]
+    rk0_ = SEC['crest'] * 4.0
+    P['kitroom'] = [e_ for e_ in P['kit'] if e_[0] >= rk0_ - 1e-6]
+    P['kit'] = [e_ for e_ in P['kit'] if e_[0] < rk0_ - 1e-6]
     song = {
         'about': "chirpers - Accretion, track 6 by chirper-one: Spring Tide. Tidal forces: E1 in two layers, one squeezed "
                  "and one stretched, meeting at the crest and tearing apart; E6, two chords a semitone apart, ebbing and flowing. "
@@ -1039,7 +1047,7 @@ def build():
             tr('glass', 'pad-glass', '-15dB', sends={'hall': '-10dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             tr('lights', 'harmonium', '-10dB', sends={'hall': '-8dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             tr('springgong', 'modal-gong', '-12dB', pan=0.0, sends={'hall': '-8dB'}),
-            tr('sub', 'sub', '-10dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '200ms', 'curve': 0.6}]),
+            tr('sub', 'sub', '-10dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '200ms', 'curve': 0.6}, {'type': 'pump', 'on': 'kitroom.k', 'depth': '-6dB', 'release': '200ms', 'curve': 0.6}]),
             # (v15, whole song) THE 303 GOES: E2's cell ran the whole song on an acid squelch (resonant, driven - the
             # most aggressive sound in t6, and Harry's 'ugly chaos' lives in sounds like it). Now the same cell, the
             # same notes, plays on a Berlin-school sequencer voice (moog-seq: a saw over a square sub through a
@@ -1047,6 +1055,7 @@ def build():
             # murmurs under the hook instead of shouting over it; the track keeps its name for the lanes that read it
             tr('acid', 'moog-seq', '-12dB', fx=['hp cutoff=50', 'lp cutoff=3000', {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}], sends={'echo': '-20dB'}),
             tr('kit', 'prog-kit', '-6dB', sends={'hall': '-20dB'}),
+            tr('kitroom', 'room-kit', '-9.5dB', sends={'hall': '-20dB'}),
             tr('cajon', 'cajon', '-12dB', pan=0.1, sends={'hall': '-16dB'}),
             tr('hats', 'prog-kit', '-7dB', pan=0.2, fx=[{'type': 'eq', 'bands': ['highshelf cutoff=8000 gain=5dB']}]),
             # (v34, palette: the cello was an album staple - t1, t5 and t6) THE FAR SIDE IS A TROMBONE: E1 stretched on
@@ -1060,7 +1069,7 @@ def build():
             # roots) was a second sine sub - felt, not heard, and the album's most shared patch. Now it is an analog
             # saw bass (Juno / SH-101), dark and round, held for the chord's length: the bass line D -> C -> G you
             # could only feel is now a line you can hum, and its harmonics fill the low-mids the sines left bare
-            tr('root', 'analog-bass play.gate=0.98', '-9dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-4dB', 'release': '200ms', 'curve': 0.6}]),
+            tr('root', 'analog-bass play.gate=0.98', '-9dB', fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-4dB', 'release': '200ms', 'curve': 0.6}, {'type': 'pump', 'on': 'kitroom.k', 'depth': '-4dB', 'release': '200ms', 'curve': 0.6}]),
             # (v51, palette: the far side's weight was a fretless all song - a plucked, singing electric under a
             # trombone) THE FAR SIDE TAKES UP THE BOW: from the cross on - once the two sides have passed each other -
             # the far side's octave-down E1 is the library's contrabass, arco (a bowed string on the largest body,
