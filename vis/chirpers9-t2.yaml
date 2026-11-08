@@ -1,0 +1,59 @@
+# chirpers9 t2 "The Long Way In" (a pilot: Harry, 8 Nov: varied, directed, things
+# happening). Infall told as a journey in three acts:
+#   I   (0:00) a dawn flight low over endless mountains, two flocks of birds wheeling on
+#       their own cycles (the track's first polymeter, seen);
+#   II  (1:35) a lone walker on a long road at dusk toward a light on the horizon, lamps
+#       passing, the light growing as the music gathers; at the crest the light flares
+#       and bends the sky;
+#   III (3:15) arrival: the light was the hole. The camera rises over its disk of matter,
+#       the gas winding in, the song's title bent round the shadow, jets at the lifts,
+#       the camera spiralling down as the track hands over.
+scenes:
+  - at: 0
+    look:
+      background: "#000000"
+      camera: {x: "0.3*sin(time.t*0.01)", y: "0.75 + 0.08*audio.low", z: -2.8, look_at: [0, 0.35, 2], roll: "0.02*sin(time.t*0.02)"}
+      layers:
+        - {type: sky, zenith: "#2a3c6a", horizon: "#ffb880", ground: "#6a5a60", sun: "#fff0d0", sun_yaw: 0.0, sun_height: 0.04, sun_size: 0.04, glow: 1.2, haze: 0.4}
+        - {type: group, use: kit-terrain, y: -0.4, z: 2, params: {height: 0.9, travel: "0.45 + 0.3*audio.level", seed: 2}}
+        - {type: figure, rig: bird, count: 5, x: "1.2*sin(time.t*0.07 + inst.i*0.2)", y: "0.9 + 0.15*sin(time.t*0.11 + inst.i)", z: "2.5 + 0.8*cos(time.t*0.07 + inst.i*0.2)", face: ["1.2*sin(time.t*0.07 + 0.02 + inst.i*0.2)", "0.9 + 0.15*sin(time.t*0.11 + inst.i)", "2.5 + 0.8*cos(time.t*0.07 + 0.02 + inst.i*0.2)"], scale: 0.18, phase: "inst.i*0.4", energy: "0.7 + 0.5*audio.level", color: "#2a2430", light: 1, ambient: 0.2, rim: 0.8, rim_color: "#ffd0a0"}
+        - {type: figure, rig: bird, count: 3, x: "-1.4*sin(time.t*0.045 + inst.i*0.3)", y: "1.2 + 0.1*inst.i", z: "3.4 + 1.1*cos(time.t*0.045 + inst.i*0.3)", face: ["-1.4*sin(time.t*0.045 + 0.02 + inst.i*0.3)", "1.2 + 0.1*inst.i", "3.4 + 1.1*cos(time.t*0.045 + 0.02 + inst.i*0.3)"], scale: 0.2, motion: glide, color: "#2a2430", light: 1, ambient: 0.2, rim: 0.8, rim_color: "#ffd0a0"}
+        - {type: motes, mode: drift, puff: true, count: 400, y: -0.2, z: 3, w: 10, h: 0.3, d: 10, wind_z: -0.4, fall: 0, wobble: 0.05, size: 0.3, glow: 0.1, twinkle: 0, color: "#c8b8c0", near: 0.6}
+      filters:
+        - {type: fog, color: "#d8b8a8", density: 0.08}
+        - {type: bloom, threshold: 0.7, amount: 0.5}
+        - {type: tonemap, knee: 0.75}
+        - {type: vignette, amount: 0.4}
+  - at: 95
+    transition: dissolve
+    xfade: 3
+    look:
+      background: "#000000"
+      env:
+        lamp: {on: bar, decay: 0.6}
+      camera: {x: "0.35 + 0.1*sin(time.t*0.05)", y: 0.35, z: -1.6, look_at: [0, 0.15, 6]}
+      layers:
+        - {type: sky, zenith: "#0a1028", horizon: "#c86a50", ground: "#14101a", sun: "#ffb080", sun_yaw: 0, sun_height: -0.01, sun_size: 0.03, glow: 0.8, haze: 0.4}
+        - {type: stars, count: 1200, speed: 0, twinkle: 0.4}
+        # The plain and the road running to the horizon, its dashes flowing past.
+        - {type: mesh, shape: plane, detail: 12, y: -0.62, z: 10, scale: 14, color: "#1a1a1c", light: 0.5, ambient: 0.06, rim: 0, cull: true}
+        - {type: mesh, shape: plane, detail: 8, y: -0.615, z: 10, scale: 1, sx: 0.35, sz: 14, color: "#2a2a2e", light: 0.6, ambient: 0.08, rim: 0, spec: 0.6, shine: 20, paint: "step(abs(vtx.x), 0.06)*step(0.5, fract(vtx.z*14 - time.t*0.25))*0.6", paint_color: "#e8d8a0", paint_fine: true, cull: true}
+        # Lamps along the road, flowing past, each lit on its bar.
+        - {type: mesh, shape: cylinder, count: 8, detail: 8, x: 0.55, z: "fract((inst.i/8) - time.t*0.0083)*16 - 1", y: -0.25, scale: 0.012, sy: 30, color: "#202024", light: 0.5, ambient: 0.1, rim: 0.2}
+        - {type: mesh, shape: sphere, count: 8, detail: 8, x: 0.55, z: "fract((inst.i/8) - time.t*0.0083)*16 - 1", y: 0.12, scale: 0.03, color: "#ffd890", light: 0, ambient: 0, rim: 0, emit: "2 + 1.5*env.lamp"}
+        # The light on the horizon, growing as the track gathers, flaring at the crest.
+        - {type: mesh, shape: sphere, detail: 24, y: 0.25, z: 30, scale: "0.25 + 1.2*smooth(95, 190, time.t) + 0.4*audio.lift", color: "#fff0d0", light: 0, ambient: 0, rim: 0, emit: "3 + 4*audio.lift"}
+        - {type: beam, from: [0, 0.3, 30], to: [0, 6, 30], width: 0.05, taper: -3, glow: "0.2 + 0.8*smooth(150, 190, time.t)*(0.5 + audio.level)", fade: 0.6, color: "#c8d8ff"}
+        # The walker, seen from behind, walking in.
+        - {type: figure, rig: human, motion: walk, z: 0.4, y: -0.22, scale: 0.42, face: [0, 0, 30], energy: 0.9, color: "#1a1a20", light: 1, ambient: 0.1, rim: 1.4, rim_color: "#ffc890"}
+        # Fireflies in the grass.
+        - {type: motes, mode: drift, count: 300, y: -0.4, z: 4, w: 6, h: 0.5, d: 10, wind_z: -0.25, fall: 0, wobble: 0.15, size: 0.004, glow: "1.2 + audio.level", twinkle: 0.8, color: "#e8ff90", near: 0.3}
+      filters:
+        - {type: flare, x: 0, y: 0.25, z: 30, amount: "0.6 + 0.6*audio.lift", threshold: 0.9, streak: 0.4, length: 0.5, ghosts: 4, size: 0.05, glow: 0.6}
+        - {type: bloom, threshold: 0.6, amount: 0.6}
+        - {type: tonemap, knee: 0.75}
+        - {type: vignette, amount: 0.5}
+  - at: 195
+    transition: dissolve
+    xfade: 4
+    look: {extends: accretion3d, params: {gas: 0.5, debris: 10}}
