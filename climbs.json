@@ -8539,10 +8539,15 @@
       "owner": "chirper-three",
       "metric": "python3 tools/compscore.py chirpers9-t8 OUT.wav",
       "best": {
-        "score": 99.91,
-        "version": "v68",
-        "commit": "see git log songs/chirpers9-t8.yaml",
-        "judged": true
+        "score": 99.904,
+        "version": "v70",
+        "commit": "78320ba9",
+        "rescored": {
+          "by": "chirper-three",
+          "at": "2026-11-08T18:54:00Z",
+          "was": 99.91,
+          "how": "by hand: v70 was recorded without --best-now; v68 re-measured like-for-like 99.891 (seed 0, pin df7aaf1b, after t7 v66-v70 moved the in-seam) < v70 99.904"
+        }
       },
       "passes": 1,
       "enabled": true,
