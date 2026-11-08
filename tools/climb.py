@@ -1035,9 +1035,10 @@ def cmd_done(a):
     pos = positional(a, ("--note", "--score", "--version", "--next", "--engine", "--as", "--with", "--render",
                          "--best-now"))
     if not pos:
-        die("done ID --note TEXT [--score S --version vN [--keep] [--best-now S]] [--next TEXT] [--with FILE …]  (--keep: "
-            "a composition kept on musical judgment though it does not outscore the best; --best-now: the current best "
-            "re-measured like for like, after a rating made it stale)")
+        die("done ID --note TEXT [--score S --version vN [--keep | --refused] [--best-now S]] [--next TEXT] [--with FILE …]  "
+            "(--keep: a composition kept on musical judgment though it does not outscore the best; --refused: a trial "
+            "refused by ear, logged but never the best however it scored; --best-now: the current best re-measured like "
+            "for like, after a rating made it stale)")
     cid, note = pos[0], opt(a, "--note")
     if not note:
         die("done needs --note (what you tried and what happened — the next agent reads it)")
@@ -1066,10 +1067,22 @@ def cmd_done(a):
                 die(f"--best-now re-measures {cid}'s current best, and it has none yet")
             c["best"] = best = {**{k: v for k, v in best.items() if k != "stale"}, "score": round(float(opt(a, "--best-now")), 3),
                                 "rescored": {"by": me, "at": now_iso(), "was": best.get("score"), "how": "done --best-now"}}
-        kept = score is not None and version is not None and (best.get("score") is None or score > float(best["score"]))
+        refused = "--refused" in a
+        if refused and "--keep" in a:
+            die("--keep and --refused contradict: one round is either kept or refused")
+        kept = (not refused and score is not None and version is not None
+                and (best.get("score") is None or score > float(best["score"])))
         judged = "--keep" in a and not kept
+        if (kept and "--keep" not in a and c.get("mode") == "compose" and c.get("song") not in withs
+                and best.get("score") is not None and "--force" not in a):
+            # a refused trial that happens to outscore the best would silently become the best (chirper-three's t4 v60,
+            # 8 Nov). Kept rounds commit their song with --with (107 of 108 in chirpers9), refused ones never do.
+            die(f"{version} outscores {cid}'s best ({score} > {best['score']}, {best.get('version')}), so done would record "
+                f"it as KEPT and make it the best, but {c.get('song')} is not among --with. Kept: add --with {c.get('song')} "
+                f"(or --keep). Refused by ear: add --refused (logged; the best stays {best.get('version')}). Committed the "
+                f"song yourself: --force.")
         stale = best.get("stale")
-        if stale and score is not None and version is not None and not kept and not judged:
+        if stale and score is not None and version is not None and not kept and not judged and not refused:
             # a rating landed after the best was measured: its stored score predates the rating's term, so this is not
             # like for like (chirper-three's Hail on a Music Box v4, 29 Oct). Nothing is recorded; re-measure first.
             die(f"{cid}'s best {best['score']} ({best.get('version')}) was measured before {stale.get('who')} rated "
@@ -1086,7 +1099,8 @@ def cmd_done(a):
             kept = True  # kept on musical judgment though it does not outscore the best (chirper-three's Ingot v3)
         c["rounds"] += 1
         h = {"round": c["rounds"], "at": now_iso(), "who": me, "score": score, "version": version, "kept": kept,
-             "note": note, "next": opt(a, "--next"), "engine": opt(a, "--engine"), "judged": True if judged else None}
+             "note": note, "next": opt(a, "--next"), "engine": opt(a, "--engine"), "judged": True if judged else None,
+             "refused": True if refused else None}
         if kept:
             c["best"] = {**{k: v for k, v in best.items() if k not in ("judged", "rescored", "stale")}, "score": score,
                          "version": version, "commit": "see git log " + c["song"], **({"judged": True} if judged else {})}
