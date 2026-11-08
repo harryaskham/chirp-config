@@ -105,6 +105,7 @@ EQ213 = os.environ.get("C9T1_EQ213", "warmth:-4")   # WHOLE (the spectrum's wors
 CHOIRVIB = os.environ.get("C9T1_CHOIRVIB", "1")   # WHOLE (wM's vib_spread, pinned da77da08): the far choir (three singers on one line: the opening hum, the sighs, the closing hum) wobbled in exact lockstep - one vibrato copied to all three, a synth-choir tell; now each singer reads the vibrato its own way (rate, phase, depth), so the three drift in and out of step like people (value 0..1)
 CRYSTALMOVE = os.environ.get("C9T1_CRYSTALMOVE", "octave")   # SECTION w6 (2:54-3:27, the lock's first half: flagged static - the crystal cell plays E1 every cycle, 48 notes in 48 beats): in the lock's second phrase (beats 256-288, where the scattered voices step out) the crystal moves - 'octave' every other cycle it rings an octave lower, answering itself at two heights; 'shift' from beat 264 it slips half a beat late, a canon at the half beat against the whistle's E1
 CHOIRVOWEL = os.environ.get("C9T1_CHOIRVOWEL", "1:5:0.8")   # WHOLE (wM's vowel_spread, pinned a1f7f0ec, with v47's vib_spread): the far choir's singers each shape the vowel their own way (F1/F2 +-8%, F3 +-5%) instead of one voice's formants copied and scaled - three people far off rather than one voice tripled ('V' or 'V:singers:spread' to widen the section too)
+SEEDGATHER = os.environ.get("C9T1_SEEDGATHER", "slow")   # WHOLE (t1 is Nucleation: five scattered voices, each on its own cycle, meet on one downbeat): THE VOICES GATHER - the engine's orbit fx puts the five seed voices on a ring around the listener (each at its own place on it, the ring centred 2 m ahead, 6 m wide - some beside you, some behind) and the ring shrinks through A and the build until at the crest it is a point in front of you: the scattered seed nucleates where you can hear it ('slow' the ring also turns, slower and slower, stopping at the crest; 'still' it only shrinks); a 6 dB shelf at 7 kHz after the fx puts back what it darkens behind the head
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -521,6 +522,17 @@ def song():
         ns = [note(a0 + c * E1_CYC + o, f"m{mm}", ln, 0.5 if c == 0 else 0.45)
               for c in range(2) for o, ln, mm in zip(E1_OFF, E1_LEN, mids)]
         tracks.append({"name": "answer", "patch": patch, "gain": gain, "pan": pan, "sends": {"space": "-9dB"}, "notes": ns})
+    if SEEDGATHER:
+        ring = [["0b", 6.0], ["64b", 6.0], [f"{ST['build']}b", 3.0], [f"{TC}b", 0.0], ["384b", 0.0]]
+        turn = [["0b", 0.12], [f"{ST['build']}b", 0.25], [f"{TC - 0.1}b", 0.25], [f"{TC}b", 0.0], ["384b", 0.0]] if SEEDGATHER == "slow" else [["0b", 0.0], ["384b", 0.0]]
+        for k, nm in enumerate(["seed-d", "seed-a", "seed-c", "seed-g", "seed-e"]):
+            for tr in tracks:
+                if tr["name"] == nm:
+                    tr["fx"] = list(tr.get("fx", [])) + [{"type": "orbit", "path": "circle", "distance": 2.0, "doppler": 0.0, "rate": "1/1",
+                        "speed": {"value": 0, "mod": [{"src": "auto.gather_turn", "amount": 1}]},
+                        "radius": {"value": 0, "mod": [{"src": "auto.gather_ring", "amount": 1}]},
+                        "phase": round(k / 5, 3)}, "highshelf cutoff=7000 gain=6dB"]
+                    tr["auto"] = dict(tr.get("auto", {}), gather_turn={"points": turn}, gather_ring={"points": ring})
     if CRYSTALMOVE:
         for tr in tracks:
             if tr["name"] == "cell":
