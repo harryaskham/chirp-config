@@ -59,6 +59,7 @@ score: "D4/16@112 ./16 A4/16@84 F4/16@98 ./16 C4/16@76 ./16"   # hits on steps 0
 - **In t6 (since v56): spring tides.** The cell's meeting with the bar every 7 bars is struck: a low gong on D (and a crash where the kit plays) at each alignment from bar 29 (29, 36, 43, 50, 57, the crest at 64, then 85 onward), so the alignments slide a bar earlier against the 8-bar phrases each time - the sun and the moon pulling in line.
 - **Handover.** Across the t2 -> t3 seam (98 bpm, 16 bars) E1 and E2 fall together: the cell stretched, sinking a fourth, its filter closing.
 - **In t3 (since v58).** In bars 77-80 of the second storm the hats stop and E2's cell is played by hand on congas (slap, open, open, low on sixteenths 0 2 3 5 of every seven), turning over against the bar, a roll into bar 81.
+- **In t3 (since v61): the seven locks into eight.** At the lock (bars 89-96) E2's hits stay where they were - 0 2 3 5 - but the cycle is eight sixteenths, so the cell sits square on the beat: brass stabs (brass-stab) on Dm - Bb - C - Dm, four per chord, silent while the voice sings "nothing here is late" and answering in its gaps.
 
 ### E5, "the inner orbit" (t5, chirper-zero)
 
