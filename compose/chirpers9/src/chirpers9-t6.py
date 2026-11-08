@@ -1013,6 +1013,24 @@ def build():
             lean_ = (8.0 * ((at_ % 16.0) / 16.0) - 4.0) if k_ == 'hats' else 0.0
             ev_.append((max(0.0, at_ + dt_), p_, d_, max(1, min(127, int(round(v_ + lean_ + rng_.gauss(0, 3)))))))
         P[k_] = ev_
+    # (v70, whole song) THE BAND PLAYS TOO: after the drummer (v68), the players. The near side's marimba, the
+    # inner orbit's steel pan and kora, the far trombone, the fretless and the shakuhachi each played E1 and E5 at two
+    # or three fixed levels on a perfect grid. Now each is played by a hand: the mallets and the kora land within a
+    # couple of ms of the beat (a seeded hand, so every render is the same), every note's level moves by a few steps,
+    # and the mallets lean into each 4-bar phrase (a little under their old level at its start, a little over at its
+    # end) as the hats do. The horn, the bass and the flute keep their timing (their slides and breaths are
+    # written) and only vary in level. The sequencer stays a machine: exact
+    for k_, jit_, lean_amt_ in (('near', 0.004, 5.0), ('e5', 0.004, 5.0), ('e5b', 0.005, 4.0),
+                                ('far', 0.0, 0.0), ('farbass', 0.0, 0.0), ('hook', 0.0, 0.0)):
+        if k_ not in P:
+            continue
+        ev_ = []
+        for e_ in P[k_]:
+            at_, p_, d_, v_ = e_[:4]
+            dt_ = max(-2.5 * jit_, min(2.5 * jit_, rng_.gauss(0, jit_))) if jit_ else 0.0
+            ln_ = lean_amt_ * ((at_ % 16.0) / 16.0) * 2.0 - lean_amt_ if lean_amt_ else 0.0
+            ev_.append((max(0.0, at_ + dt_), p_, d_, max(1, min(127, int(round(v_ + ln_ + rng_.gauss(0, 2.5)))))) + tuple(e_[4:]))
+        P[k_] = ev_
     rk0_ = SEC['crest'] * 4.0
     P['kitroom'] = [e_ for e_ in P['kit'] if e_[0] >= rk0_ - 1e-6]
     P['kit'] = [e_ for e_ in P['kit'] if e_[0] < rk0_ - 1e-6]
