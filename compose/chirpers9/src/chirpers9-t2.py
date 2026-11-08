@@ -1120,7 +1120,11 @@ def build():
             t_['gain'] = f"{float(t_['gain'][:-2]) + 1.5:g}dB"
             t_['fx'] = list(t_.get('fx', [])) + [{'type': 'eq', 'bands': ['peak cutoff=3000 q=0.9 gain=3dB', 'highshelf cutoff=9000 gain=2dB', 'peak cutoff=350 q=1.0 gain=-2dB']}]
         if t_['name'] == 'bass':
-            t_['gain'] = f"{float(t_['gain'][:-2]) - 1.5:g}dB"
+            # (v64, whole song) THE FLOOR STEPS BACK: the chip bass was the loudest thing in every window of the song
+            # (presence -0.2 to -2.9 dB, everything else 4-15 dB under it) - the whole song heard through its floor.
+            # It comes down a further 3.5 dB, so the voice, the debris, the comp and the bells sit on it rather than
+            # behind it; the sub, the gravity lane and the master's low shelf are untouched (-2 alone scored worse)
+            t_['gain'] = f"{float(t_['gain'][:-2]) - 1.5 - 3.5:g}dB"
     # (v55, whole song: wM's vowel_spread, pinned 03:36) THE CHOIR ACCRETES: every backing choir in the song was the
     # same trio - three singers, their vowels one voice's formants copied and scaled - from the in-seam's first
     # 'ooh' to the fall. Now the backing voices gather as the song falls in, the way the cell does: a trio for the
