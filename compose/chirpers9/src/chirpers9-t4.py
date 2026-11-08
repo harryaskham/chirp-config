@@ -1184,6 +1184,12 @@ E3HI_PATCH, E3HI_GAIN, E3HI_UP = "violin", "-8dB", 12      # the steel copy sat 
 # verse - an arrival, where there was a continuation.
 A_OPEN = (29, 33)
 A_REST = ("bass", "air")
+# v70 (ROUND TYPE: section, A's middle 29-32, 1:01-1:09; rewritten): A OPENS UPWARD, FLOOR AND ALL. The 8 s window at
+# 0:56 was the flattest left in t4 (0.54): through A's middle the sub was the loudest thing (-3.6, then -1.9 when the
+# bass and the shaker rest here, then -4.6) - and v69's warm low shelf made it more so - so 'opening upward' happened
+# only in the lights' top notes while the floor stayed put. Now the floor lifts too: from 29 the sub rises an octave
+# with the lights, the whole of A's middle lifting off the ground, and lands back down at 33 under her verse.
+A_FLOOR_LIFTS = True
 
 
 def a_opens_upward():
@@ -1204,6 +1210,8 @@ def a_opens_upward():
             h = ",".join(ns[:-2] + [f"m{midi_of(x) + 12}" for x in ns[-2:]])
         ev.append((s, ln, h, v))
     P["lights"].ev = ev
+    if A_FLOOR_LIFTS:                                    # v70: the floor opens upward too
+        P["sub"].ev = [(s, ln, f"m{midi_of(h) + 12}" if lo - 1e-6 <= s < hi - 1e-6 else h, v) for s, ln, h, v in P["sub"].ev]
 
 
 # v63 (ROUND TYPE: section, the crest's sung hook 92-98, 3:13-3:28; rewritten): THE HOOK IN THE CLEAR. The crest's
