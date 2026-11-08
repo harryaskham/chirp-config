@@ -1,0 +1,59 @@
+# chirpers9 t3 "Phase Margin": the first storm (Harry, 8 Nov: varied, directed, things
+# happening). Two acts:
+#   I  (0:00) a city in a storm at night: rain streaming and splashing on the street,
+#      windows flickering, lightning on every lift and every eight bars, the picture
+#      glitching (colour split) on the hits;
+#   II (1:40) a crowd dancing on a wet plaza in the rain, every dancer out of step with
+#      the others, smearing (echo); as the storm resolves (3:20-3:52) they fall into one
+#      groove together, the rain stops, the lightning dies, warm light comes up and the
+#      camera rises over them moving as one.
+scenes:
+  - at: 0
+    look:
+      background: "#000000"
+      env:
+        flash: {on: audio.lift, decay: 0.35}
+        bar8: {on: bar, every: 8, decay: 0.3}
+        hit: {on: audio.onset, decay: 0.12}
+      camera: {x: 0.1, y: 0.15, z: "(time.t)*0.3 - 4", look_at: [0, -0.15, "(time.t)*0.3"]}
+      layers:
+        - {type: sky, zenith: "#05040e", horizon: "#2a1a3a", ground: "#050408", sun: "#000000", sun_size: 0, glow: 0, haze: 0.4}
+        - {type: mesh, shape: plane, detail: 8, y: -0.6, z: 20, scale: 30, color: "#0c0c12", light: 0.3, ambient: 0.05, rim: 0, spec: 1.5, shine: 30, cull: true}
+        - {type: mesh, shape: box, round: 0.04, detail: 12, count: 40, x: "(step(0.5, fract(inst.i/2))*2 - 1)*(1.15 + 0.5*hash(inst.i + 3))", z: "floor(inst.i/2)*1.4 - 3", y: "-0.6 + (2 + 4*hash(inst.i + 5))*0.4", scale: 0.4, sx: "1 + 0.5*hash(inst.i + 7)", sz: "1 + 0.5*hash(inst.i + 9)", sy: "2 + 4*hash(inst.i + 5)", color: "#14141c", light: 0.4, ambient: 0.05, rim: 0.1, paint: "step(abs(vtx.y), 0.97)*step(0.3, fract((vtx.x + vtx.z)*5))*step(fract((vtx.x + vtx.z)*5), 0.75)*step(0.3, fract(vtx.y*40))*step(fract(vtx.y*40), 0.8)*step(0.62 - 0.12*audio.level, hash(floor((vtx.x + vtx.z)*5)*13.1 + floor(vtx.y*40)*7.7 + inst.i*31.3))*1.6*(0.6 + 0.4*step(0.5, hash(floor(time.t*8) + inst.i)))", paint_color: "#ffd890", paint_fine: true}
+        - {type: light, x: 0, y: 6, z: 6, color: "#c8d8ff", power: "8*env.flash", reach: 20}
+        - {type: beam, count: 2, from: ["-3 + 6*hash(time.t - env.flash.age + inst.i*0.37)", 4, "8 + 3*hash(time.t - env.flash.age + 7)"], to: ["-3 + 6*hash(time.t - env.flash.age + inst.i*0.37) + 0.8*(hash(time.t - env.flash.age + 3) - 0.5) + inst.i*0.5", "0.2 + inst.i*1.2", "8 + 3*hash(time.t - env.flash.age + 7)"], samples: "20 - inst.i*8", jag: "0.45 - inst.i*0.2", bolt: "time.t - env.flash.age + inst.i*13", width: "0.02 - inst.i*0.008", glow: "env.flash*(6 - inst.i*3)", color: "#e8f0ff"}
+        - {type: motes, mode: emit, count: 3500, from: [0, 1.8, "(time.t)*0.3 + 1"], wide: 6, deep: 10, wind_y: -3.2, wind_x: -0.4, wobble: 0.05, fall: 0, life: 0.8, streak: 0.06, size: 0.003, glow: "0.5 + env.flash", twinkle: 0, color: "#9aa8c8", near: 0.3, ground: -0.6, splash: 0.035}
+      filters:
+        - {type: reflect, y: -0.6, amount: 0.65, reach: 3, ripple: 0.004, ripples: 50}
+        - {type: chroma, amount: "0.012*env.hit + 0.02*env.flash"}
+        - {type: bloom, threshold: 0.6, amount: 0.7}
+        - {type: tonemap, knee: 0.75}
+        - {type: vignette, amount: 0.45}
+  - at: 100
+    transition: iris
+    xfade: 2
+    look:
+      background: "#000000"
+      env:
+        flash: {on: audio.lift, decay: 0.35}
+        bar8: {on: bar, every: 8, decay: 0.3}
+        hit: {on: audio.onset, decay: 0.12}
+      vars:
+        lock: {value: "smooth(200, 232, time.t)"}
+      camera: {x: "2.2*sin(time.t*0.02)*(1 - 0.4*var.lock)", y: "0.5 + 1.6*var.lock", z: "0 - 2.2*cos(time.t*0.02)*(1 - 0.4*var.lock)", look_at: [0, -0.25, 0]}
+      layers:
+        - {type: sky, zenith: "#05040e", horizon: "#2a1a3a", ground: "#050408", sun: "#ffb070", sun_yaw: 0.25, sun_height: "0.08*var.lock - 0.02", sun_size: 0.04, glow: "0.7*var.lock", haze: 0.4}
+        - {type: mesh, shape: plane, detail: 8, y: -0.62, scale: 8, color: "#16161c", light: 0.4, ambient: 0.05, rim: 0, spec: 0.25, shine: 8, cull: true}
+        - {type: light, x: 1.5, y: 2.5, z: -3, color: "#ffc080", power: "0.15 + 0.6*var.lock", reach: 6}
+        - {type: light, x: 0, y: 6, z: 6, color: "#c8d8ff", power: "8*env.flash", reach: 20}
+        - {type: beam, count: 2, from: ["-3 + 6*hash(time.t - env.flash.age + inst.i*0.37)", 4, "8 + 3*hash(time.t - env.flash.age + 7)"], to: ["-3 + 6*hash(time.t - env.flash.age + inst.i*0.37) + 0.8*(hash(time.t - env.flash.age + 3) - 0.5) + inst.i*0.5", "0.2 + inst.i*1.2", "8 + 3*hash(time.t - env.flash.age + 7)"], samples: "20 - inst.i*8", jag: "0.45 - inst.i*0.2", bolt: "time.t - env.flash.age + inst.i*13", width: "0.02 - inst.i*0.008", glow: "env.flash*(6 - inst.i*3)*(1 - var.lock)", color: "#e8f0ff"}
+        # The crowd: out of step with each other (each its own phase), smearing in the
+        # storm, then locking into one groove as the storm resolves.
+        - {type: figure, count: 25, rig: human, motion: dance, x: "(fract(inst.i/5)*5 - 2)*0.42 + 0.06*(hash(inst.i) - 0.5)", z: "(floor(inst.i/5) - 2)*0.42 + 0.06*hash(inst.i + 50)", y: -0.42, scale: "0.32 + 0.05*hash(inst.i + 100)", face: [0, 0, -4], phase: "4*hash(inst.i + 200)*(1 - var.lock)", energy: "(0.6 + 0.5*hash(inst.i + 300)*(1 - var.lock))*(0.7 + audio.level*1.3)", echo: "floor(3.5*(1 - var.lock))", echo_gap: 0.08, color: "#2a2430", light: 1, ambient: 0.12, rim: "0.6 + 0.8*var.lock", rim_color: "#ffd0a0"}
+        - {type: motes, mode: emit, count: 2500, from: [0, 1.8, 0], wide: 5, deep: 5, wind_y: -3.2, wind_x: -0.4, wobble: 0.05, fall: 0, life: 0.8, streak: 0.06, size: 0.003, glow: "(0.5 + env.flash)*(1 - var.lock)", twinkle: 0, color: "#9aa8c8", near: 0.3, ground: -0.62, splash: 0.03}
+      filters:
+        - {type: reflect, y: -0.62, amount: "0.6 - 0.3*var.lock", reach: 2, ripple: 0.004, ripples: 40}
+        - {type: chroma, amount: "(0.012*env.hit + 0.02*env.flash)*(1 - var.lock)"}
+        - {type: bloom, threshold: 0.6, amount: 0.6}
+        - {type: tonemap, knee: 0.75}
+        - {type: vignette, amount: 0.45}
