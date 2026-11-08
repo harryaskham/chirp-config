@@ -974,6 +974,30 @@ def one_line_each(song):
             n["vel"] = round(min(1.0, n["vel"] * ONE_LINE_LIFT), 3)
 
 
+# v68 (ROUND TYPE: section, the fall 121-133, 4:23-4:50; rewritten): THE HANDS LET GO. The fall held one texture to
+# the end - the handpan's E1 turning (the loudest thing there, -3.7), the first light (D9), the bass walking, the
+# residue swelling - so the 8 s window at 4:24 read the flattest in the song (0.49): her last hummed notes (E4 G4 C5
+# A4, 124-133) were one more layer on a turning wheel. Now from her second note (126) THE HANDS LET GO: the handpan,
+# which has turned E1 under the whole song since the lens, rests until the last bars, and the bass rests for three
+# (126-128) - so her hum floats over the light and the residue alone, the voice outlasting the hands. The out-seam
+# window (before 121) is untouched; chirper-zero's t5 head (under this) was told (D9 is the colour it picks up).
+HANDS_LET_GO = (126.3, 133.0)
+FALL_FLOOR_REST = (126.3, 129.0)
+
+
+def hands_let_go():
+    for n, (a_, z_) in (("seed", HANDS_LET_GO), ("bass", FALL_FLOOR_REST)):
+        a, z = b0(a_), b0(z_)
+        out = []
+        for s, ln, h, v in P[n].ev:
+            if a - 1e-6 <= s < z - 1e-6:
+                continue
+            if s < a - 1e-6 < s + ln:
+                ln = a - s
+            out.append((s, ln, h, v))
+        P[n].ev = out
+
+
 def relief_hands_rest():
     a, z = b0(RELIEF_HANDS_REST[0]), b0(RELIEF_HANDS_REST[1])
     P["seed"].ev = [e for e in P["seed"].ev if not (a - 1e-6 <= e[0] < z - 1e-6)]
@@ -1455,6 +1479,7 @@ def main():
     hook_in_the_clear()
     smaller_room()
     relief_hands_rest()
+    hands_let_go()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v + verse(),
                    key=lambda d: d["at"])
