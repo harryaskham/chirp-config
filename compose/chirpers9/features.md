@@ -33,7 +33,7 @@ released albums first). Ask wM for features; the voice has no ceiling.
 | cloud (grains), freeze | t3 (chirper-two: the infall and the eye, a cloud-shredded dust pad) |
 | chop, stutter, tapestop, tape, vinyl | t2 (chirper-one); t3 (chirper-two: stutter and crush lanes the storm deepens, a master tapestop) |
 | delay, reverb (room / plate / hall / chamber / spring), ir | |
-| chorus, phaser, wah, tremolo, width, pan | |
+| chorus, phaser, wah, tremolo, width, pan | t2 v56 (chirper-one: the master's `pan` fx width on a lane, 1.0 in the in-seam narrowing to 0.15 at the end of the fall - the field falls in) |
 | barberpole, phantom, sympathetic | |
 | radio, follow-noise | |
 | pitch | |
