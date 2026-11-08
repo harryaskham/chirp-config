@@ -608,6 +608,14 @@ R63 = os.environ.get("T7_R63", "descant") != "none"
 # is drawn backwards into the silence and the band lands on D. Placed by the tempo map (the sample is ~4.1 s).
 # T7_R64=none reproduces v63.
 R64 = os.environ.get("T7_R64", "swell") != "none"
+# round 65 (section, w6 = bars 81-96, the collision's break and the groove's return; least recently focused):
+# T7_R65=trumpet (default) - THE TRUMPET TAKES A CHORUS. In the break the lap choir sings "each lap a little shorter"
+# and a muted trumpet answers it twice; then at bar 89 the groove comes back and the trumpet goes - eight bars of kick,
+# reese and floor with the melody buried under them. Now the trumpet stays and takes a short solo over the returning
+# groove, trading with the log drum's E1: two answering phrases on E-flat minor's pentatonic (bars 89-90), then E1
+# itself at double speed from E-flat - quoted "sooner" (bar 92), then a climb that holds E-flat into w7, where the
+# voice sings "every corner comes sooner". T7_R65=none reproduces v64.
+R65 = os.environ.get("T7_R65", "trumpet") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1774,6 +1782,21 @@ def main():
                 g = float(tr["gain"].replace("dB", ""))
                 tracks.append(dict(tr, name=tr["name"] + "9", patch="a7-thump", gain=f"{g + 2:g}dB",
                                    fx=list(tr.get("fx", [])) + [{"type": "filter", "kind": "lp", "cutoff": 180, "q": 0.707}]))
+    if R65:                                                 # w6: the trumpet takes a chorus (bars 89-96)
+        tp = Track("trumpet2")
+        solo = ((352.5, 0.5, 70, 88), (353.0, 0.5, 73, 84), (353.5, 0.75, 75, 92), (354.25, 0.25, 73, 80),
+                (354.5, 1.0, 70, 86),                                                   # Bb Db Eb Db Bb
+                (356.0, 0.5, 66, 84), (356.5, 0.5, 68, 86), (357.0, 0.5, 70, 90), (357.5, 0.25, 68, 82),
+                (357.75, 0.25, 66, 80), (358.0, 1.5, 65, 86),                           # Gb Ab Bb Ab Gb F
+                (366.0, 0.25, 63, 92), (366.25, 0.25, 70, 90), (366.5, 0.25, 73, 94), (366.75, 0.5, 68, 88),
+                (367.25, 1.5, 65, 86),                                                  # E1 from Eb, double speed
+                (376.0, 0.5, 66, 84), (376.5, 0.5, 68, 88), (377.0, 0.5, 70, 92), (377.5, 0.5, 73, 96),
+                (378.0, 2.5, 75, 100))                                                  # the climb, Eb held into w7
+        for at, ln, m, v in solo:
+            tp.add(at, ln - 0.04, mtok(m), v)
+        tr0 = next(tr for tr in tracks if tr.get("name") == "trumpet")
+        tracks.append(dict({k: v for k, v in tr0.items() if k not in ("score", "notes", "auto")},
+                           name="trumpet2", gain="4dB", score=tp.score()))
     if R64:                                                 # palette: the pull, backwards (rev-swell for the noise risers)
         def beat_secs(b):                                   # seconds per beat on t7's tempo map (132; 64b -> 640b ramp to 150)
             return 60.0 / (132.0 + 18.0 * min(max(b - 64.0, 0.0), 576.0) / 576.0)
