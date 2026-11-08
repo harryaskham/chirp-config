@@ -954,7 +954,13 @@ def build():
         # trombone and the voices all piled into the low mids over a floor that never weighed anything. Now the master
         # lifts the bottom (a 3 dB low shelf at 110 Hz) and scoops the box (-2.5 dB at 850 Hz), and the analog bass -
         # the floor that walks and drives - comes up 3 dB
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=28', 'lowshelf cutoff=110 gain=3dB', 'peak cutoff=300 q=0.8 gain=-2dB', 'peak cutoff=850 q=0.7 gain=-2.5dB', 'highshelf cutoff=7000 gain=1.5dB']},
+        # (v58, whole song) THE BOX OPENS: against the album's envelope t6 was still boxy and thin - +5 to +6.5 dB from
+        # 640 Hz to 1.4 kHz (the harmonium, the marimba, the trombone and the voices all piling into the same octave),
+        # 4 to 8 dB short from 44 to 114 Hz (61 Hz the worst, -8.4) and 2 to 4 dB dull from 5 to 8 kHz. Now the master
+        # scoops the box with one broad cut (-3.5 dB around 950 Hz, two octaves wide), gives the floor a body at 66 Hz
+        # (+3 dB) while the high-pass rises to 34 Hz so the sub-rumble under it doesn't grow, and opens the air above
+        # 5.5 kHz (+2.5 dB): the same band, heard with weight underneath and space on top instead of through a box
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=34', 'lowshelf cutoff=110 gain=3dB', 'peak cutoff=66 q=1.3 gain=3dB', 'peak cutoff=300 q=0.8 gain=-2dB', 'peak cutoff=950 q=0.5 gain=-3.5dB', 'highshelf cutoff=5500 gain=2.5dB']},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.2, 'attack': '15ms', 'release': '140ms', 'makeup': '1dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.E', 'amount': 1}]}},
                           'tapestop stop=auto.stop time=1b',
