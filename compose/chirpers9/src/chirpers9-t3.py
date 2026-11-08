@@ -524,6 +524,15 @@ R63 = os.environ.get("T3_R63", "ground") != "none"
 # the top (+2.5 dB shelf from 9 kHz): the storm sounds like weather outdoors rather than a band in a box.
 # T3_R64=none reproduces v63.
 R64 = os.environ.get("T3_R64", "clear") != "none"
+# round 65 (whole song): T3_R65=passes (default) - THE STORM PASSES. Since v63 the storm's ground swells up under its
+# first eight bars; but it never left - the floor, the sub-sine and the 808 sat at full weight through the duet and the
+# round to the end, so the relief carried the storm's whole weight and t3's tail stood 14.5 dB heavier at 61 Hz than
+# t4's head. Now the ground recedes as it arrived: from bar 101, while the duet sings, the floor and the sub-sine
+# sink (-6 dB by bar 109, -9 by 113) and the 808's sub with them (-6), so the relief gets lighter as the storm moves
+# off, and the tail floats into t4. (A shallower floor with the bass's E3 eased 4 dB was tried: the seam's level
+# matched better but its spectrum and the song's did worse, 99.48.) The song's low end is now an arc: arriving 17-25, full through both storms and the
+# lock, leaving 101-113. T3_R65=none reproduces v64.
+R65 = os.environ.get("T3_R65", "passes") != "none"
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1853,12 +1862,16 @@ def main():
                 tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
                                                       "mod": [{"src": "auto.ground", "amount": 1}]}}]
                 tr["auto"] = dict(tr.get("auto", {}), ground={"points": [["0b", -12.0], ["64b", -12.0], ["96b", 0.0],
-                                                                          ["513b", 0.0]]})
+                                                                          ["513b", 0.0]] if not R65 else
+                                                          [["0b", -12.0], ["64b", -12.0], ["96b", 0.0], ["400b", 0.0],
+                                                           ["432b", -6.0], ["448b", -9.0], ["513b", -9.0]]})
             if tr.get("name") == "ksub":                    # the 808's sub under the kick: half as far down (-6)
                 tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
                                                       "mod": [{"src": "auto.ground", "amount": 1}]}}]
                 tr["auto"] = dict(tr.get("auto", {}), ground={"points": [["0b", -6.0], ["64b", -6.0], ["96b", 0.0],
-                                                                          ["513b", 0.0]]})
+                                                                          ["513b", 0.0]] if not R65 else
+                                                          [["0b", -6.0], ["64b", -6.0], ["96b", 0.0], ["400b", 0.0],
+                                                           ["432b", -4.0], ["448b", -6.0], ["513b", -6.0]]})
         for pn in ("a3-sung", "a3-duetv", "a3-round2", "a3-round3"):
             if pn in patches:
                 patches[pn] = dict(patches[pn], extends=patches[pn]["extends"] + " synth.layers.0.inhale=0.9")
