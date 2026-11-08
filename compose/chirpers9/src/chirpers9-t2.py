@@ -1077,6 +1077,16 @@ def build():
                sends={'echo': '-12dB', 'hall': '-14dB'}),
             tr('e2body', {'extends': 'log-drum', 'play': {'legato': False, 'mono': False, 'glide': '0ms'}, 'synth': {'fx': [PXF]}}, '-9dB',
                sends={'hall': '-18dB'}),
+            # (v71, palette: the engine's Risset rhythm, which no Accretion track uses) THE APPROACH NEVER ARRIVES: under
+            # the build - from the floor's opening at bar 33 to the crest - E2's cell on the log drum plays as a Risset
+            # accelerando: three copies an octave of tempo apart, each doubling its speed every four bars while the
+            # fastest fades out and the slowest fades in, so the debris speeds up for sixteen bars and never gets
+            # faster; and each copy rises in pitch with its speed (an octave per doubling, so always D A F C), a
+            # blueshift - the approach heard as it is in the sky, quicker and higher - until the crest lands on it
+            {'name': 'approach', 'patch': {'extends': 'log-drum', 'play': {'legato': False, 'mono': False, 'glide': '0ms'}},
+             'gain': '-11dB', 'pan': 0.0, 'at': f"{SEC['build'] * 4.0:g}b",
+             'risset': {'cycle': '4bar', 'layers': 3, 'length': '16bar', 'pitch': True},
+             'sends': {'hall': '-14dB'}, 'score': f"{m(KEY + 12)}/0.5b@100 {m(KEY + 19)}/0.25b@70 {m(KEY + 15)}/0.5b@88 {m(KEY + 10)}/0.5b@72"},
             tr('e1in', 'risset-bell', '-12dB', pan=0.15, auto={'lens': {'points': lens_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 400, 'mod': [{'src': 'auto.lens', 'amount': 4.0}]}}],
                sends={'hall': '-6dB'}),
