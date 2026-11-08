@@ -863,6 +863,19 @@ def build():
     for q_ in range(int(cq1_ - cq0_)):
         P['hats'].append((cq0_ + q_ + 0.5, 'oh', 0.3, 84))
     P['hats'].sort(key=lambda e_: e_[0])
+    # (v53, section w1: the in-seam 'static' - from its first beat the near side's marimba trilled E1 at its fastest
+    # (x0.25), the loudest thing in our overlap, the same for sixteen bars under t5's farewell) THE NEAR SIDE SPINS
+    # UP: it comes into view the way an orbiting thing does, slowly then all at once - for the first four bars only
+    # every fourth note of its trill sounds (a slow, spaced E1 under t5's last hums), for the next four every second,
+    # and from bar 9, as the kora enters and the tide's chord turns D/C, the full trill; t5's farewell has the room
+    # it needs, and the in-seam moves
+    nr_ = sorted([e_ for e_ in P['near'] if e_[0] < 32.0 - 1e-6], key=lambda e_: e_[0])
+    keep_ = []
+    for k_, e_ in enumerate(nr_):
+        step_ = 4 if e_[0] < 16.0 - 1e-6 else 2
+        if k_ % step_ == 0:
+            keep_.append((e_[0], e_[1], e_[2] * step_ * 0.9, min(127, int(e_[3] * 1.1))) + tuple(e_[4:]))
+    P['near'] = keep_ + [e_ for e_ in P['near'] if e_[0] >= 32.0 - 1e-6]
     P['glass'] = [e_ for e_ in P['lights'] if SEC['crest'] * 4.0 - 1e-6 <= e_[0] < SEC['cross'] * 4.0 - 1e-6]
     P['farbow'] = [e_ for e_ in P['farbass'] if e_[0] >= SEC['cross'] * 4.0 - 1e-6]
     P['farbass'] = [e_ for e_ in P['farbass'] if e_[0] < SEC['cross'] * 4.0 - 1e-6]
