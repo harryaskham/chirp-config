@@ -625,6 +625,13 @@ R65 = os.environ.get("T7_R65", "trumpet") != "none"
 # comes sooner", the descant and the lap choirs - gets wM's taper (0.6, pinned 251180c1): each phrase's last note lets
 # go as a singer runs out of air, instead of stopping square. T7_R66=none reproduces v65.
 R66 = os.environ.get("T7_R66", "kitbus") != "none"
+# round 67 (section, w3 = bars 33-48, the approach's verse; least recently focused): T7_R67=conversation (default) -
+# THREE VOICES ANSWER, THE JET FIRES. The verse is a conversation - the singer's "every corner" (bars 33, 41), the
+# horns' reply (35, 43), the echo hummed (37, 45) - but the horns' reply sat 15 dB down, inaudible, and bars 39-40
+# were empty. Now the reply speaks up (+6 dB), and in the empty bars the horn section fires E7, the jet - the stacked
+# fifths E-flat B-flat F C G, on the cell's 2 2 2 2 3 sixteenths - twice upward, the second held into bar 41, where
+# the singer starts again: the column the crest will fire, glimpsed in the verse. T7_R67=none reproduces v66.
+R67 = os.environ.get("T7_R67", "conversation") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1791,6 +1798,21 @@ def main():
                 g = float(tr["gain"].replace("dB", ""))
                 tracks.append(dict(tr, name=tr["name"] + "9", patch="a7-thump", gain=f"{g + 2:g}dB",
                                    fx=list(tr.get("fx", [])) + [{"type": "filter", "kind": "lp", "cutoff": 180, "q": 0.707}]))
+    if R67:                                                 # w3: three voices answer (the reply up), the jet fires (39-40)
+        rip = Track("jetrip")
+        col = (51, 58, 65, 72, 79)                          # E7 a semitone up: Eb3 Bb3 F4 C5 G5
+        for k, (at0, hold, v0) in enumerate(((152.0, 1.5, 96), (156.0, 3.4, 108))):
+            for i, m in enumerate(col):
+                at = at0 + 0.5 * i
+                rip.add(at, (hold if i == 4 else 0.45), mtok(m), v0 + 4 * i)
+        rep0 = next(tr for tr in tracks if tr.get("name") == "reply")
+        tracks.append({"name": "jetrip", "patch": rep0["patch"], "gain": "-2dB", "pan": -0.2,
+                       "sends": {"space": "-8dB"}, "score": rip.score()})
+        rep0["fx"] = list(rep0.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
+                                                   "mod": [{"src": "auto.speak", "amount": 1}]}}]
+        rep0["auto"] = dict(rep0.get("auto", {}), speak={"points": [["0b", 0], ["135.9b", 0], ["136b", 6], ["142b", 6],
+                                                                    ["142.5b", 0], ["167.9b", 0], ["168b", 6], ["174b", 6],
+                                                                    ["174.5b", 0]]})
     extra_buses = {}
     if R66:                                                 # whole: the kit hits (a parallel drum bus), the voices let go
         for tr in tracks:
