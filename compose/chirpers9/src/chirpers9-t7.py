@@ -500,6 +500,18 @@ R51 = os.environ.get("T7_R51", "call") != "none"
 # speed, three times round its 11-sixteenth loop against the bar - the jet coming closer every four bars, until
 # the storm lands at 17. T7_R52=none reproduces v51.
 R52 = os.environ.get("T7_R52", "jet") != "none"
+# round 53 (section, w9 = bars 129-144, the crest's heart; focused least recently): T7_R53=clear (default) - THE
+# MACHINERY STOPS, THEN REASSEMBLES. Bars 137-140 were meant as the crest's lift (kick and bass drop out; the horns
+# play E1, strings and the high jet come in) but the machinery never stopped: E1's stretto on three instruments,
+# E5's trill, the organ and clavinet comping, the ride and the ghost notes all ran straight through every bar of the
+# crest, so the lift was a mush and the horns' E1 was half heard. Now for those four bars the machinery stops - the
+# horns' E1, the strings, the jet and the tide alone - and then it comes back one layer a bar under the snare rush:
+# ride and ghosts at 141, the organ and clav at 142, the log drum and koto at 143, the glass and E5 at 144, all of it
+# running again for the drop at 145. The organ barely follows velocity (vel_sens 0.25), so its "silenced" notes
+# still sounded - here and through v49's stop-time (bars 69-70), which never quite stopped: a gain lane now closes
+# the organ (and the clavinet copying it) for both, opening only for the stop-time's four stabs. T7_R53=none
+# reproduces v52.
+R53 = os.environ.get("T7_R53", "clear") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -985,6 +997,19 @@ def build():
             return e
         for k in T:
             T[k].ev = [stop(k, e) for e in T[k].ev]
+    if R53:                                                 # w9: the machinery stops (137-140), then reassembles
+        lo = 136 * 4.0
+        back = {"ride": 140, "ghost": 140, "e4": 141, "e4w5": 141, "e1c": 142, "e1a": 142, "e1b": 143, "e5": 143}
+
+        def clear(k, e):
+            hi = back[k] * 4.0
+            if lo <= e[0] < hi:
+                return (e[0], e[1], e[2], 1, e[4])
+            if e[0] < lo < e[0] + e[1] and e[3] > 1:
+                return (e[0], max(0.03, round(lo - e[0] - 0.05, 4)), e[2], e[3], e[4])
+            return e
+        for k in back:
+            T[k].ev = [clear(k, e) for e in T[k].ev]
     return T
 
 
@@ -1531,6 +1556,24 @@ def main():
         tracks.append({"name": "star", "patch": "glock", "gain": "-9dB", "pan": 0.35,
                        "fx": ["delay time=3/8 mix=0.25 feedback=0.35"], "sends": {"space": "-4dB"},
                        "score": star.score()})
+    if R53:                                                 # the organ ignores velocity: close it by lane (w5, w9)
+        f = 0.03
+        pts = [["0b", 0]]
+        edges = [(272.0, 272.4), (273.5, 273.9), (276.0, 276.4), (277.5, 277.9)]
+        prev = 272.0
+        pts += [[f"{272.0 - f:g}b", 0]]
+        for a, b in edges:
+            if a > prev:
+                pts += [[f"{prev:g}b", -60], [f"{a - f:g}b", -60], [f"{a:g}b", 0]]
+            pts += [[f"{b:g}b", 0]]
+            prev = b + f
+        pts += [[f"{prev:g}b", -60], [f"{280.0 - f:g}b", -60], ["280b", 0],
+                [f"{544.0 - f:g}b", 0], ["544b", -60], [f"{564.0 - f:g}b", -60], ["564b", 0]]
+        for tr in tracks:
+            if tr.get("patch") == "hammond-b3":
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
+                                                      "mod": [{"src": "auto.hush", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), hush={"points": pts})     # (auto dicts are shared)
     if R51:                                                 # w2: a call before the answer (bars 21-22, fill at 24)
         for tr in list(tracks):
             if tr.get("name") == "hook" and tr.get("score"):
