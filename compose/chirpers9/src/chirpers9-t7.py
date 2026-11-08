@@ -640,6 +640,14 @@ R67 = os.environ.get("T7_R67", "conversation") != "none"
 # off-beat like the dance music t7 is; the clav doubles stay. T7_R68=none reproduces v67.
 R68 = os.environ.get("T7_R68", "house") != "none"
 HOUSE_GAIN = os.environ.get("T7_HOUSE_GAIN", "4dB")
+# round 69 (section, w5 = bars 65-80, the approach's second verse; least recently focused): T7_R69=nearer (default) -
+# THE HOOK, SUNG BACK. Bars 65-80 are all instruments: E1 everywhere (log drum, gameboy, arps) but the horns' plain
+# E1 at bars 73-74 sat 15 dB under the kit and nobody sang. Now the horns' hook comes up 7 dB, and the voice answers
+# it - new words on E1 in E-flat, "nearer every lap" (src/t7/near.json: chirp tts --sing "Eb4/8 Bb4/8. Db5/16 Ab4/4
+# F4/4." --bpm 140 --seed 69; the sixth syllable, "lap", lands on the next downbeat on the home E-flat) - alone at
+# bar 75, then with the keyed third above at bar 77, the breaths sized to the phrase (inhale_depth, pinned df7aaf1b).
+# T7_R69=none reproduces v68.
+R69 = os.environ.get("T7_R69", "nearer") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1826,6 +1834,28 @@ def main():
         rep0["auto"] = dict(rep0.get("auto", {}), speak={"points": [["0b", 0], ["135.9b", 0], ["136b", 6], ["142b", 6],
                                                                     ["142.5b", 0], ["167.9b", 0], ["168b", 6], ["174b", 6],
                                                                     ["174.5b", 0]]})
+    if R69:                                                 # w5: the hook up, and sung back - "nearer every lap" (75, 77)
+        base = patches["a7-sung"]["extends"] + " synth.layers.0.taper=0.6 synth.layers.0.inhale_depth=1"
+        patches["a7-near"] = dict(patches["a7-sung"], extends=base)
+        patches["a7-near3"] = dict(patches["a7-sung"], extends=base + " synth.layers.0.harmony=[2] "
+                                                                    "synth.layers.0.harmony_key=Eb:minor")
+        src = json.load(open(os.path.join(HERE, "t7", "near.json")))["tracks"][0]
+        sg0 = next(tr for tr in tracks if tr.get("name") == "sung")
+        for name, patch, bar, gain in (("near", "a7-near", 74, "0dB"), ("near3", "a7-near3", 76, "-1dB")):
+            ns = []
+            for n in src["notes"]:
+                d = {"at": round(bar * 4.0 - 0.25 + n["at"], 4), "len": n["len"], "ph": n["ph"], "pitch": n["pitch"],
+                     "vel": n["vel"]}
+                if n.get("expr_path"):
+                    d["expr_path"] = n["expr_path"]
+                ns.append(d)
+            tracks.append({"name": name, "patch": patch, "gain": gain, "pan": 0.0, "fx": list(sg0.get("fx", [])),
+                           "sends": dict(sg0.get("sends", {})), "notes": ns})
+        hk = next(tr for tr in tracks if tr.get("name") == "hook")
+        hk["fx"] = list(hk.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
+                                              "mod": [{"src": "auto.call", "amount": 1}]}}]
+        hk["auto"] = dict(hk.get("auto", {}), call={"points": [["0b", 0], ["287.9b", 0], ["288b", 7], ["295.9b", 7],
+                                                               ["296.5b", 0]]})
     extra_buses = {}
     if R66:                                                 # whole: the kit hits (a parallel drum bus), the voices let go
         for tr in tracks:
