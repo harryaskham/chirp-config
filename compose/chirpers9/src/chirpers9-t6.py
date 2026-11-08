@@ -1201,6 +1201,13 @@ def build():
         if t_['name'] in LEAD6:
             t_['gain'] = f"{float(t_['gain'][:-2]) + 1.0:g}dB"
             t_['fx'] = list(t_.get('fx', [])) + [{'type': 'eq', 'bands': ['peak cutoff=3000 q=0.9 gain=3dB', 'highshelf cutoff=9000 gain=1.5dB', 'peak cutoff=350 q=1.0 gain=-2dB']}]
+            # (v69, palette: the engine's newest voice features, which no Accretion lead of mine used) THE SINGERS
+            # BREATHE AND LET GO: every solo voice draws a fuller breath before each phrase (inhale 0.4 -> 0.7), sized
+            # to the phrase it starts (wM's inhale_depth: a sip before a two-note answer, a full breath before a long
+            # line), and lets each phrase's last note go (wM's taper 0.6: full tone for its first third, then softer,
+            # darker and breathier, sagging a few cents) instead of stopping square
+            if isinstance(t_.get('patch'), dict) and 'extends' in t_['patch']:
+                t_['patch'] = dict(t_['patch'], extends=t_['patch']['extends'] + ' synth.layers.0.inhale=0.7 synth.layers.0.inhale_depth=1 synth.layers.0.taper=0.6')
     return song
 
 
