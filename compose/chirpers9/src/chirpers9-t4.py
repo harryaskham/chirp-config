@@ -927,6 +927,34 @@ OPEN_HUM = 0.6                     # 0.35 opened her too far: -3.7 in the drop, 
 TOGETHER_VEL = 1.5                 # the duet as a partner when it sings with her, not a shadow
 
 
+# v65 (ROUND TYPE: section, the relief's first lines 101-106, 3:40-3:52; rewritten): ONE LINE EACH, TOGETHER ON 'YOU'.
+# The relief opened with both voices singing both lines in parallel thirds - 'I kept your far side', 'and turned
+# toward you' - over the handpan's unbroken E1, the same texture twice, so the 8 s window at 3:36 read flat (0.62).
+# Now the lines are given out: she sings the first ALONE; the young voice answers with the second alone (a little
+# firmer, a third above, the handpan resting under it) - and on its last word, 'you', she joins: the two together in
+# the warm third, the title, as the relief opens. The handpan comes back at 107, where it leads.
+ONE_LINE_HERS = (101.0, 103.3)        # the duet rests
+ONE_LINE_THEIRS = (103.5, 105.0)      # she rests until 'you' (105.06)
+ONE_LINE_LIFT = 1.25                  # the young voice alone, a little firmer
+RELIEF_HANDS_REST = (103.5, 107.0)
+
+
+def one_line_each(song):
+    tr_ = {x["name"]: x for x in song["tracks"]}
+    a, z = b0(ONE_LINE_HERS[0]), b0(ONE_LINE_HERS[1])
+    tr_["duet"]["notes"] = [n for n in tr_["duet"]["notes"] if not (a - 1e-6 <= n["at"] < z)]
+    a, z = b0(ONE_LINE_THEIRS[0]), b0(ONE_LINE_THEIRS[1])
+    tr_["voice"]["notes"] = [n for n in tr_["voice"]["notes"] if not (a - 1e-6 <= n["at"] < z)]
+    for n in tr_["duet"]["notes"]:
+        if a - 1e-6 <= n["at"] < z:
+            n["vel"] = round(min(1.0, n["vel"] * ONE_LINE_LIFT), 3)
+
+
+def relief_hands_rest():
+    a, z = b0(RELIEF_HANDS_REST[0]), b0(RELIEF_HANDS_REST[1])
+    P["seed"].ev = [e for e in P["seed"].ev if not (a - 1e-6 <= e[0] < z - 1e-6)]
+
+
 def answer_closes_in(song):
     tr_ = {x["name"]: x for x in song["tracks"]}
     voice, duet = tr_["voice"]["notes"], tr_["duet"]["notes"]
@@ -1402,6 +1430,7 @@ def main():
     rise_pulls_back()
     hook_in_the_clear()
     smaller_room()
+    relief_hands_rest()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v + verse(),
                    key=lambda d: d["at"])
@@ -1478,6 +1507,7 @@ def main():
     hold_lanes(song)
     arc(song)
     answer_closes_in(song)
+    one_line_each(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
