@@ -583,6 +583,13 @@ R71 = os.environ.get("T3_R71", "halfbreath") != "none"
 # margin, audible. T3_R72=none reproduces v71.
 R72 = os.environ.get("T3_R72", "phase") != "none"
 PHASE_GAIN = os.environ.get("T3_PHASE_GAIN", "0dB")
+# round 75 (palette): T3_R75=roomhats (default) - THE STORM'S HATS FROM A ROOM. The album's staple is a hat: haake-hat,
+# inside tight-kit and dusty-kit, rings in five of the eight songs - t3's 1,200 hats among them (hats, hats7 and the
+# v71 half-time hatshalf). Now they play the library's rock-kit hats - a live kit's washy hats in a room, darker when
+# touched softly, brighter when hit (no Accretion song plays rock-kit): the same notes, lanes and fx, but a drummer's
+# hats, and air on the storm's top (t3's in-seam body reads 9 kHz -9.9 dB against t2's). T3_R75=none reproduces v72.
+R75 = os.environ.get("T3_R75", "roomhats") != "none"
+ROOMHAT_GAIN = os.environ.get("T3_ROOMHAT_GAIN", "10dB")   # rock-kit hats sit 7 dB under tight-kit's
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1746,6 +1753,12 @@ def main():
         flock(404.5, 408.0, (1.0, 2.0))
         for nm, pan in (("birdl", -0.5), ("birdr", 0.5)):
             tracks.append({"name": nm, "patch": "birds", "gain": "9dB", "pan": pan, "score": flocks[nm].score()})
+    if R75:                                                 # palette: the hats from a room (tight-kit -> rock-kit hats)
+        for tr in tracks:
+            if tr.get("name") in ("hats", "hats7", "hatshalf") and tr.get("patch") == "tight-kit":
+                tr["patch"] = "rock-kit"
+                g = float(str(tr.get("gain", "0dB")).replace("dB", ""))
+                tr["gain"] = f"{g + float(ROOMHAT_GAIN.replace('dB', '')):g}dB"
     if R72:                                                 # w7: E1 on the bar against the dizi's E1 every five beats
         vb = Track("phasev")
         e1v = ((0.0, 0.5, 62), (0.5, 0.75, 69), (1.25, 0.25, 72), (1.5, 1.0, 67), (2.5, 1.5, 64))   # D4 A4 C5 G4 E4
