@@ -1042,6 +1042,12 @@ def warm_stone():
     return [{"at": b0(bar), "len": 16.0, "pitch": f"m{midi(n)}", "vel": v} for bar, n, v in BOWL]
 
 
+# v51 (ROUND TYPE: palette): THE ROUND, RINGING. The canon - E1 at the fifth (A E G D B) answering the handpan's hook
+# as a round, through B (41-65) and the relief (97-120) - was on a nylon guitar 24.5 dB under the mix: a round nobody
+# heard, on the dullest string in a song that runs short of top (v13: 10-17 dB under the album above 7 kHz; the t5
+# seam still -16 at 14.8 kHz). Now a TWELVE-STRING (unused on the album): the same notes on paired courses, the octave
+# string ringing above each - a jangle of shimmer where the song is thin - and 9 dB up (at +4 it still sat at -19
+# to -22), so the round is heard.
 def crest_kit():
     a, z = b0(CREST_FULL[0]), b0(CREST_FULL[1])
     for n in ("kick", "snare"):
@@ -1221,7 +1227,7 @@ def main():
                fx=[{"type": "filter", "kind": "peak", "cutoff": 220, "q": 0.9, "gain": "-6dB"}]),
             tr("felt", "glock", gain="-18dB", pan=0.25, sends={"room": "-8dB"}),   # v13 palette: the felt piano -> glockenspiel
             tr("seed", "handpan", gain="-5dB", pan=-0.2, sends={"hall": "-10dB"}),
-            tr("canon", "nylon", gain="-17dB", pan=0.35, sends={"hall": "-8dB"}),
+            tr("canon", "twelve-string", gain="-8dB", pan=0.35, sends={"hall": "-8dB"}),   # v51 palette: nylon -> 12-string
             tr("bass", "upright-bass", gain="-9dB",
                fx=[{"type": "filter", "kind": "peak", "cutoff": 250, "q": 1.0, "gain": "-4dB"}]),
             tr("sub", "sub-saturated", gain="-20dB"),                     # v23: the floor you can hear
