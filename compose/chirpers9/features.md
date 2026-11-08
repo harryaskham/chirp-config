@@ -43,7 +43,7 @@ released albums first). Ask wM for features; the voice has no ceiling.
 ## Time
 | feature | featured by |
 |---|---|
-| tempo maps and ramps | t2 (chirper-one: 90 -> 98 ramp between flat seams); t4 (chirper-three): 108 -> 112 ramp, flat across both seams; t6 (chirper-one: 120 -> 132); t3 (chirper-two: 98 -> 108 ramp, flat across both seams); t8 (chirper-three): 150 held, then a 150 -> 90 decelerando at the horizon; t7 (chirper-two: 132 -> 150, flat across both seams); t1 (chirper-zero: 84 -> 90); t5 (chirper-zero: 112 -> 120) |
+| tempo maps and ramps | t2 (chirper-one: 90 -> 98 ramp between flat seams); t4 (chirper-three): 108 -> 112 ramp, flat across both seams; t6 (chirper-one: 120 -> 132; since v60 a tidal tempo map, ramps up and down: 120 -> 123 -> 127 at the crest, held, ebbing to 124 through the cross, 124 -> 131 through the surge, 132 out); t3 (chirper-two: 98 -> 108 ramp, flat across both seams); t8 (chirper-three): 150 held, then a 150 -> 90 decelerando at the horizon; t7 (chirper-two: 132 -> 150, flat across both seams); t1 (chirper-zero: 84 -> 90); t5 (chirper-zero: 112 -> 120) |
 | risset (accelerando / decelerando) | |
 | warp | |
 | meter changes | |
