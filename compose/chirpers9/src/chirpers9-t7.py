@@ -583,6 +583,15 @@ R60 = os.environ.get("T7_R60", "near") != "none"
 # stands in depth (depth_spread 1, pinned 391d8713): each singer at her own distance behind the line.
 # T7_R61=none reproduces v60.
 R61 = os.environ.get("T7_R61", "corners") != "none"
+# round 62 (section, w4 = bars 49-64, the approach; "static, little new vs w3"): T7_R62=cavaco (default) - A SMALL
+# GUITAR IN ORBIT. Sixteen bars of E1 in the horns and the voice over the same pad pulse and reese, with nothing that
+# moved quickly in the middle of the sound. Now, once the horns have called E1 (bars 49-50), a cavaquinho (library;
+# no other Accretion song has it) strums the pad's own chords - Ebm / Bmaj7, a chord a beat, voiced Eb4-Eb5 - in
+# sixteenths, accented 3-3-2 (a tresillo running against the kick), and when the beat halves at bar 57 it thins to
+# off-beat eighth chops. It rides the same
+# orbit as the pad (t7's spin and fall lanes), so the little guitar circles your head with it. T7_R62=none
+# reproduces v61.
+R62 = os.environ.get("T7_R62", "cavaco") != "none"
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -1749,6 +1758,23 @@ def main():
                 g = float(tr["gain"].replace("dB", ""))
                 tracks.append(dict(tr, name=tr["name"] + "9", patch="a7-thump", gain=f"{g + 2:g}dB",
                                    fx=list(tr.get("fx", [])) + [{"type": "filter", "kind": "lp", "cutoff": 180, "q": 0.707}]))
+    if R62:                                                 # w4: a small guitar in orbit (bars 49-64)
+        cav, chop = Track("cavaco"), Track("cavchop")
+        ebm, bmaj = "m63,m66,m70,m75", "m59,m63,m66,m71"        # Eb4 Gb4 Bb4 Eb5 / B3 Eb4 F#4 B4 (the tide's chords)
+        for b in range(200, 224):                           # bars 51-56 (after the horns' E1): sixteenths, 3-3-2
+            ch = ebm if b % 2 == 0 else bmaj
+            for s in range(4):
+                s8 = (b % 2) * 4 + s
+                cav.add(b + 0.25 * s, 0.2 if s8 in (0, 3, 6) else 0.12, ch, 104 if s8 in (0, 3, 6) else 58 + 6 * (s % 2))
+        for b in range(224, 256):                           # bars 57-64 (half-time): off-beat eighth chops
+            chop.add(b + 0.5, 0.18, ebm if b % 2 == 0 else bmaj, 124 if b % 4 == 1 else 114)
+        tide = next(tr for tr in tracks if tr.get("name") == "tide")
+        orbit = [f for f in tide.get("fx", []) if isinstance(f, dict) and f.get("type") == "orbit"]
+        for nm, g, tr_ in (("cavaco", "-3dB", cav), ("cavchop", "1dB", chop)):
+            tracks.append({"name": nm, "patch": "cavaquinho", "gain": g, "sends": {"space": "-10dB"},
+                           "fx": [dict(f, phase=0.0) for f in orbit],
+                           "auto": {k: v for k, v in tide.get("auto", {}).items() if k in ("spin", "fall")},
+                           "score": tr_.score()})
     if R61:                                                 # whole: the kit turns corners (hat accents, 8-bar blocks)
         cycle = ("beat", "off", "beat", "cell", "beat", "off", "beat", "sooner")
         hats = next(tr for tr in tracks if tr.get("name") == "hats")
