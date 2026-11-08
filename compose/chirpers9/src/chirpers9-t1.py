@@ -120,6 +120,7 @@ HANDS = os.environ.get("C9T1_HANDS", "all")   # WHOLE (players, not a grid - aft
 CLOUD = os.environ.get("C9T1_CLOUD", "gendy-cloud@-32")   # PALETTE (adding the colour t1 lacked - everything was plucked, struck, blown, bowed or chip; nothing unstable): NUCLEATION'S CLOUD - wM's gendy-cloud (Xenakis's GENDY: each voice slides and wanders around its note) holds E1's five notes as one chord (D4 E4 G4 A4 C5) from A to the build, re-struck every 8 bars a little stronger: the unsettled solution the seed is still dissolved in. It lets go just before the crest - when the seed forms, the cloud is gone ('patch@gain')
 RELIEF = os.environ.get("C9T1_RELIEF", "two")   # SECTION w6 (2:54-3:27, after the crest: flagged static - the seed locked and stripped bare, and no voice for 126 beats, from the crest's sigh to the outro's): THE CHOIR EXHALES - once the seed has formed and the whistle has sung it again (hook-mid), the far choir sighs its 'mm-haa', a hummed A falling to an open D, the relief after the crest ('one' at beat 267.5; 'two' and again just before the exhale, 283.5)
 CHOIRBREATHS = os.environ.get("C9T1_CHOIRBREATHS", "0.6")   # WHOLE (the far choir breathes like people, as t5's singer has since t5 v59/v61): wM's taper on the choir's sighs - each 'haa' lets go at its end, quieter, darker, sagging a few cents, instead of stopping - and inhale_depth, each breath before a phrase sized to it, a sip before a short sigh, a full breath before the long hummed E1s ('TAPER[:DEPTH]', e.g. '0.6' = taper 0.6 and inhale_depth 1, '0.6:0' taper only, '0:1' depth only)
+GLINT = os.environ.get("C9T1_GLINT", "9@7000")   # WHOLE (the crystals glint): the seed's five scattered voices, their joins and the cell are the crystal t1 is about, but the whole song sat dark at the top (spectrum's worst band 14.8 kHz, -6.5 dB). Now those crystal voices - only they; the bass, the pad, the choir, the drums and the cello stay as they are - get a high shelf from 9 kHz, so each struck note glints as it lands ('dB[@cutoff Hz]', cutoff 9000 by default)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -827,6 +828,11 @@ def song():
                     tr["notes"].append({"at": at, "len": 2.0, "ph": "AA1", "pitch": "A4", "vel": 0.42, "expr": {"hum": 1.0}})
                     tr["notes"].append({"at": at + 2.0, "len": 2.5, "ph": "HH AA1", "pitch": "D4", "vel": 0.32, "expr": {"hum": 0.0}})
                 tr["notes"].sort(key=lambda n: n["at"])
+    if GLINT:
+        for tr in tracks:
+            if tr["name"] in ("seed-d", "seed-a", "seed-c", "seed-g", "seed-e", "cell", "join-vibes", "join-celesta", "join-kalimba"):
+                gg, _, gc = GLINT.partition("@")
+                tr["fx"] = list(tr.get("fx", [])) + [f"highshelf cutoff={gc or 9000} gain={gg}dB"]
     if CHOIRBREATHS:
         for tr in tracks:
             if tr["name"] in ("breath", "hum", "hum-out") and isinstance(tr["patch"], dict):
