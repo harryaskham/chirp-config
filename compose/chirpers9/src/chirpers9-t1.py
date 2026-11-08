@@ -104,6 +104,7 @@ AIRP = os.environ.get("C9T1_AIRP", "")   # PALETTE: the air (D2 and A2 held unde
 EQ213 = os.environ.get("C9T1_EQ213", "warmth:-4")   # WHOLE (the spectrum's worst band was 213 Hz, +7: A3, which the cello cantus, the Hammond's held fifth and the pad all sound): a peak cut at 215 Hz on the named tracks ('track[+track]:dB') (v46: the Hammond alone; on the cello too it thinned 182 Hz - the cantus's A3 is body, the organ's held A3 was the excess)
 CHOIRVIB = os.environ.get("C9T1_CHOIRVIB", "1")   # WHOLE (wM's vib_spread, pinned da77da08): the far choir (three singers on one line: the opening hum, the sighs, the closing hum) wobbled in exact lockstep - one vibrato copied to all three, a synth-choir tell; now each singer reads the vibrato its own way (rate, phase, depth), so the three drift in and out of step like people (value 0..1)
 CRYSTALMOVE = os.environ.get("C9T1_CRYSTALMOVE", "octave")   # SECTION w6 (2:54-3:27, the lock's first half: flagged static - the crystal cell plays E1 every cycle, 48 notes in 48 beats): in the lock's second phrase (beats 256-288, where the scattered voices step out) the crystal moves - 'octave' every other cycle it rings an octave lower, answering itself at two heights; 'shift' from beat 264 it slips half a beat late, a canon at the half beat against the whistle's E1
+CHOIRVOWEL = os.environ.get("C9T1_CHOIRVOWEL", "1:5:0.8")   # WHOLE (wM's vowel_spread, pinned a1f7f0ec, with v47's vib_spread): the far choir's singers each shape the vowel their own way (F1/F2 +-8%, F3 +-5%) instead of one voice's formants copied and scaled - three people far off rather than one voice tripled ('V' or 'V:singers:spread' to widen the section too)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -531,6 +532,14 @@ def song():
                         n = dict(n, at=n["at"] + 0.5)
                     out.append(n)
                 tr["notes"] = out
+    if CHOIRVOWEL:
+        cv = CHOIRVOWEL.split(":")
+        for tr in tracks:
+            if tr["name"] in ("hum", "breath", "hum-out") and isinstance(tr["patch"], dict):
+                add = f" synth.layers.0.vowel_spread={cv[0]}"
+                if len(cv) == 3:
+                    add += f" synth.layers.0.singers={cv[1]} synth.layers.0.spread={cv[2]}"
+                tr["patch"] = dict(tr["patch"], extends=tr["patch"]["extends"] + add)
     if CHOIRVIB:
         for tr in tracks:
             if tr["name"] in ("hum", "breath", "hum-out") and isinstance(tr["patch"], dict):
