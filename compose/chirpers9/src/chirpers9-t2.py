@@ -981,6 +981,18 @@ def build():
     # the chip bass, the sub, the swarm pad, E2's debris and the flute's E1 - the song's matter without its engine;
     # then the 909's snare rolls it back in, eighths and then sixteenths, rising from a whisper (bars 35.5-36), and
     # the kit lands with the arp at bar 37
+    # (v72, section w2: 0:32-1:03, the end of the in-seam and the gather's first eight bars - never focused: when the
+    # overlap ends and the band arrives at bar 17 there was only the kit, the debris and the pad for four bars before
+    # the verse, nothing to hum) THE HOOK ARRIVES WITH THE BAND: as the kit comes in, the ondes - the voice Harry
+    # heard singing with the crest - plays E1 twice, softly, D A C G E in its five beats, the second time a little
+    # quieter, and is gone before the verse begins; the crest's tune heard first as the song's own sign-on
+    for k0_, vel0_ in ((SEC['gather'] * 4.0, 46), (SEC['gather'] * 4.0 + 5.0, 40)):
+        at_ = k0_
+        for k, (semi, ln) in enumerate(E1):
+            if semi is not None:
+                P['hook'].append((at_, m(KEY + 24 + semi), ln * 0.97, vel0_ + (8 if k == 0 else 0)))
+            at_ += ln
+    P['hook'].sort(key=lambda e_: e_[0])
     dp0_, dp1_ = SEC['build'] * 4.0, SEC['build'] * 4.0 + 16.0
     # (v70, whole song) THE MACHINES AND THE HANDS: every part of the song played at two or three fixed levels on a
     # perfect grid. The song is about a mechanism - E2's clock, the 3-beat hats, E1's 5/4 and the band's 4 all landing
