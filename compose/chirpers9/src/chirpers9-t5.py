@@ -96,6 +96,7 @@ INHALE = os.environ.get("C9T5_INHALE", "1")   # WHOLE (t5's voice is ONE NEAR si
 FAREHUM = os.environ.get("C9T5_FAREHUM", "last")   # SECTION w8 (3:53-4:19, the farewell in the overlap with t6: the least recently worked window): THE WORDS DISSOLVE - she sings her farewell ('near-er the mid-dle hum', on E5's turn) twice, ageing as she goes; now the second time the words close into a hum as t6 arrives ('all' the whole second farewell hummed; 'last' from its 'mid-' on)
 E1TAPER = os.environ.get("C9T5_E1TAPER", "0.6")   # SECTION w7 (3:20-3:53, C's second half: she sings the seed itself twice, 'clo-ser and clo-ser', v21; the second time alone over the dropped floor, v38): THE SEED LET GO - wM's taper (pinned 251180c1) on her sung E1: each line's last note (the long E) keeps its tone for a moment, then lets go - quieter, darker, breathier, sagging a few cents - as a singer's air runs out, instead of stopping square (value 0..1)
 CHORUSTAPER = os.environ.get("C9T5_CHORUSTAPER", "0.6")   # SECTION w3 (1:08-1:41, A's second half: flagged static - her chorus 'near-er the mid-dle hums' with the Rhodes answering in its gaps): THE HUM LETS GO - wM's taper on her chorus: each line's closing hum (the 'ng' of 'hums', v40) keeps its tone a moment, then lets go - quieter, darker, sagging a few cents - instead of stopping square (value 0..1; her chorus starts at beat 110, so its first line is in w2)
+VOICEDONE = os.environ.get("C9T5_VOICEDONE", "choir")   # WHOLE (her voice, finished): wM's taper (0.6, as on the sung seed v57 and the chorus v58) on every line she still ended square - the build's 'near-er' calls and the held D into the crest, the three crest lines, the farewell - and with 'choir' the crest choir's harmony singers (hums-2, hums-3) get the rest of the section recipe: vowel_spread, depth_spread and cons_spread 1 ('taper' or 'choir')
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -838,6 +839,13 @@ def song():
             pt = tr.get("patch")
             if isinstance(pt, dict) and pt.get("extends", "").startswith("voice-near"):
                 pt["extends"] += f" synth.layers.0.passaggio={VOXREG}"
+    if VOICEDONE:
+        for tr in tracks:
+            if tr["name"] in ("nearer", "hums-1", "hums-2", "hums-3", "hums-out") and isinstance(tr["patch"], dict):
+                add = " synth.layers.0.taper=0.6"
+                if VOICEDONE == "choir" and tr["name"] in ("hums-2", "hums-3"):
+                    add += " synth.layers.0.vowel_spread=1 synth.layers.0.depth_spread=1 synth.layers.0.cons_spread=1"
+                tr["patch"] = dict(tr["patch"], extends=tr["patch"]["extends"] + add)
     if CHORUSTAPER:
         for tr in tracks:
             if tr["name"] == "hums-a" and isinstance(tr["patch"], dict):
