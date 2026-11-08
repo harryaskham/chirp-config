@@ -105,6 +105,7 @@ ORBITTIGHT = os.environ.get("C9T5_ORBITTIGHT", "six")   # SECTION w2 (0:34-1:08,
 TIDEDRUMS = os.environ.get("C9T5_TIDEDRUMS", "0.5")   # SECTION w7 (3:20-3:53, C's second half into the overlap; with chirper-one, the t5 -> t6 seam's level step): while the band swells into the tide (TIDESWELL), the drums draw back - from bar 93 the 909 and the spin play gradually softer, down to (1 - value) at the overlap, then come back as before by bar 117, so t5's body hands t6 less weight without losing the swell (value 0..1); 'hold:value' they stay drawn back through the overlap until they stop (bar 121), leaving the beat to t6
 HEADROOM = os.environ.get("C9T5_HEADROOM", "late")   # SECTION w1 (0:00-0:34, the head under t4's fall; agreed with chirper-three): t4's singer hums her last notes over t4's first light - G4 (t5 beat ~21), C5 (~31), A4 (~40) - and t5's chip orbit came in at beat 16 on the same A4 and G4. Now the orbit leaves her room: 'late' it waits until her last hum has ended (beat 44) - t4's voice hands over to t5's orbit; 'gaps' it comes in as before but rests around each of her notes. (t5's lights already hold t4's D9, D F# A C E, as they enter.)
 CALLSQUICKEN = os.environ.get("C9T5_CALLSQUICKEN", "echo")   # SECTION w5 (2:15-2:47, the build's climb into the crest): her 'near-er' calls climb a step every 8 beats (F#-E, G-F#, A-G, B-A, C-B) to the held D, always 8 beats apart while the orbit doubles and the drums thicken under her. Now her calls QUICKEN as she nears: each of the last calls is echoed, softer, 4 beats later, so near the top she calls every 4 beats - 'echo' after the calls at 272, 280 and 288; 'echo2' after the last two only
+LATESWAP = os.environ.get("C9T5_LATESWAP", "sub=808@-17")   # PALETTE (late swaps, applied after every track exists - 'name=patch@gain,...'): e.g. A's plain sine sub (an album staple: t2, t5, t6) for the 808's punchier, saturated sine; or the crest's rising answers (dx-epiano, the same voice as the crest's E1) for t1's vibraphone, so t1's mirror answers in t1's own crystal
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -895,6 +896,14 @@ def song():
                 g = (lo + (amt - lo) * (a - 368) / 64 if 368 <= a < 432 else amt * (464 - a) / 32 if 432 <= a < 464 else 0.0)
                 if g != 0:
                     n["vel"] = round(min(1.0, n["vel"] * (1 + g)), 3)
+    for spec in [x for x in LATESWAP.split(",") if x]:
+        tn, _, rest = spec.partition("=")
+        lp, _, lg = rest.partition("@")
+        for tr in tracks:
+            if tr["name"] == tn:
+                tr["patch"] = lp
+                if lg:
+                    tr["gain"] = f"{lg}dB"
     if ANSACCRETE:
         third = {57: 60, 55: 59, 64: 67, 62: 66}
         for tr in tracks:
