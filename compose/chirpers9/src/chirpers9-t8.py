@@ -612,6 +612,32 @@ LIGHT_SPIN = [(141, 1.0), (145, 0.75), (149, 0.5), (153, 0.25), (157, 0.0)]
 LIGHT_ROTARY = "rotary speed=0.2+auto.lr*0.8 doppler=0.5"
 
 
+# v88 (ROUND TYPE: whole song - the newest engine feature, on her whole life across the song): SHE AGES FROM THE TOP.
+# Since v40 she grows old across t8 (expr.age: 0.003 at the opening, 0.07-0.25 through her high questions, 0.38 in the
+# break, 0.60-0.65 on her last line) - every note of a given age equally old at any height. wM's AGE_HIGH (pinned
+# 6ebea4d3) makes a voice's age tell more as it reaches up, as a real singer's does: now, as she ages, her TOP goes
+# first - the questions (E5/F5) barely touched while she is young, the break's C5 'ours' 0.38 -> 0.61, and on the
+# album's last line the high 'ours' shaking at the top of her range while its low D holds. Her remembered line (v79)
+# carried no age (0) by accident; now on purpose: she remembers in her YOUNGEST voice, clean - and then sings her last
+# line old. (Tried at t4's age, 0.45: the memory block (3:44) and the last-line block (3:52) then sounded like one
+# singer at one age, and both changes went flatter - 0.74 -> 0.70, 0.78 -> 0.71 on seed 0.)
+HER_AGE_HIGH = 0.6
+MEMORY_AGE = 0.0
+
+
+def she_ages_from_the_top(song):
+    tr_ = {x["name"]: x for x in song["tracks"]}
+    for n in ("solo", "last"):
+        p = json.loads(json.dumps(tr_[n]["patch"]))
+        p["synth"]["layers"][0]["age_high"] = HER_AGE_HIGH
+        tr_[n]["patch"] = p
+    lo = b0(MEMORY_AT) - 1e-6
+    hi = b0(MEMORY_AT + 4)
+    for n in tr_["solo"]["notes"]:
+        if lo <= n["at"] < hi and (n.get("expr") or {}).get("age") is None:
+            n["expr"] = dict(n.get("expr") or {}, age=MEMORY_AGE)
+
+
 def lights_doppler(song):
     hold = next(x for x in song["tracks"] if x["name"] == "hold")
     pts = [["0b", 1.0]]
@@ -1853,6 +1879,7 @@ def main():
     jet_lets_go(song)
     her_own_rate(song)
     lights_doppler(song)
+    she_ages_from_the_top(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
