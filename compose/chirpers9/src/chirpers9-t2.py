@@ -1066,6 +1066,14 @@ def build():
     P['kit'] = sorted([e_ for e_ in P['kit'] if not (lk0_ - 1e-6 <= e_[0] < fall0 - 1e-6)] +
                       [(round(e_[0] - CREST * 4.0 + lk0_, 4), *e_[1:]) for e_ in P['kit'] if CREST * 4.0 - 1e-6 <= e_[0] < CREST * 4.0 + (fall0 - lk0_) - 1e-6],
                       key=lambda e_: e_[0])
+    # (v92, palette: E1 on the scanned-synthesis mallet - wM's ring of masses and springs - plays the crest's second
+    # half and then, alone and slowed, through the break and the drift, where the song is farthest out) E1 ON A
+    # FELT PIANO: from the break on, that E1 is the library's piano-muted (the grand with felt pressed on its strings:
+    # short, dark, the hammer and soundboard knock forward, no halo; no Accretion track uses it), level-matched - the
+    # tune remembered on a muffled piano at the far point of the orbit, the build's concert grand (v80) heard again
+    # through felt. The crest keeps its scanned mallet
+    P['e1vb'] = [e_ for e_ in P['e1v'] if e_[0] >= SEC['break'] * 4.0 - 1e-6]
+    P['e1v'] = [e_ for e_ in P['e1v'] if e_[0] < SEC['break'] * 4.0 - 1e-6]
     P['gtrd'] = [e_ for e_ in P['gtr'] if SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6]
     P['gtr'] = [e_ for e_ in P['gtr'] if not (SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6)]
     SPD = {'in': (0.1, 0.1), 'gather': (0.1, 0.2), 'build': (0.25, 0.75), 'crest': (1.0, 1.0), 'break': (0.0, 0.0),
@@ -1220,6 +1228,7 @@ def build():
             # into ripples that run round the ring and smooth away - a struck tone that mellows and shimmers as it
             # dies; no Accretion track uses it) - each note an orbit settling, the song's idea in one sound
             tr('e1v', 'scanned-mallet', '-9dB', pan=-0.35, sends={'hall': '-10dB', 'echo': '-20dB'}),
+            tr('e1vb', 'piano-muted', '+1dB', pan=-0.35, sends={'hall': '-10dB', 'echo': '-20dB'}),
             # (v65, palette: the fall's E1 was the same Risset bell as the in-seam's - the song's bookends one sound)
             # THE BELLS TOLL AS IT FALLS IN: in the fall E1 rings on the library's tubular-bells (struck brass tubes,
             # clangorous, a long slowly beating tone; no Accretion track uses them) - the in-seam's lensed bell came
