@@ -221,6 +221,10 @@ def hum1_patch():
     p["synth"]["layers"][0].pop("taper", None)            # v61: the t3 seam's stand-in keeps its square ends
     p["synth"]["layers"][0].pop("inhale_depth", None)     # v66: and its breath
     p["synth"]["layers"][0].pop("attack", None)           # v72: and its onsets
+    p["synth"]["lfo"]["vib"].pop("bloom", None)            # v78: and its vibrato
+    for m in p["synth"]["pitch"]["mod"]:
+        if m["src"] == "lfo.vib":
+            m["amount"] = 0.2
     p["synth"]["layers"][0]["inhale"] = HUM1_INHALE
     return p
 
@@ -675,6 +679,18 @@ VOICE2 = {"about": "t4's second singer (v7): lighter and a little brighter, a th
                                     "retrig": True, "wander": 0.6}},
                     "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}, {"src": "lfo.vib", "amount": 0.16}]},
                     "amp": {"a": "50ms", "d": "0s", "s": 1, "r": "250ms"}}}
+# v78 (ROUND TYPE: palette - the newest engine feature, on the voices): SHE OPENS, THE YOUNG VOICE STAYS STRAIGHT.
+# wM's VIBRATO BLOOM (pinned 0119aae1) keeps a vibrato widening while a note is held. t4's two singers held their
+# notes with the same fixed vibrato, a shade apart in depth. Real voices differ most here: a warm, older singer's long
+# notes open into a wide vibrato; a young voice sings nearly straight. Now hers blooms (0.9, the vibrato 0.2 -> 0.25 so
+# it is heard - t8 v79 showed bloom on a shallow vibrato is inaudible) and the young duet's barely (0.3); hum1, the t3
+# seam's stand-in (hum1_patch copies VOICE when called), keeps exactly what it had.
+HER_BLOOM, HER_VIB, YOUNG_BLOOM = 0.9, 0.25, 0.3
+VOICE["synth"]["lfo"]["vib"]["bloom"] = HER_BLOOM
+for _m in VOICE["synth"]["pitch"]["mod"]:
+    if _m["src"] == "lfo.vib":
+        _m["amount"] = HER_VIB
+VOICE2["synth"]["lfo"]["vib"]["bloom"] = YOUNG_BLOOM
 BREATH_AIR = {"about": "t4's breath (v7): band-passed air swelling in, stopped at the phrase",
           "synth": {"layers": [{"color": "pink"}],
                     "filters": [{"kind": "bp", "cutoff": 1700, "q": 0.8}],

@@ -634,7 +634,8 @@
        "delay": "300ms",
        "fade": "500ms",
        "retrig": true,
-       "wander": 0.7
+       "wander": 0.7,
+       "bloom": 0.9
       }
      },
      "pitch": {
@@ -646,7 +647,7 @@
        },
        {
         "src": "lfo.vib",
-        "amount": 0.2
+        "amount": 0.25
        }
       ]
      },
@@ -3373,7 +3374,8 @@
        "delay": "250ms",
        "fade": "400ms",
        "retrig": true,
-       "wander": 0.6
+       "wander": 0.6,
+       "bloom": 0.3
       }
      },
      "pitch": {
