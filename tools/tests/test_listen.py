@@ -104,6 +104,59 @@ class Snapshots(unittest.TestCase):
         self.assertEqual(L.look_args("{id}|accretion3d", "chirpers9-t3", d), ["--look", "accretion3d"])
         self.assertEqual(L.look_args("{id}", "chirpers9-t3", d), [])                                 # engine default
 
+    def test_programme_mtime_follows_kits(self):
+        d = tempfile.mkdtemp()
+        for name, text, t in (("chirpers9-t2", "scenes: [{use: kit-a}]", 100), ("kit-a", "layers: [{use: 'kit-b'}]", 200),
+                              ("kit-b", "layers: []", 300), ("kit-c", "layers: []", 900)):
+            p = os.path.join(d, name + ".yaml")
+            open(p, "w").write(text)
+            os.utime(p, (t, t))
+        self.assertEqual(L.programme_mtime("{id}|accretion3d", "chirpers9-t2", d), 300)   # kit-b, not the unused kit-c
+        self.assertIsNone(L.programme_mtime("{id}|accretion3d", "chirpers9-t3", d))       # no programme file
+        self.assertIsNone(L.programme_mtime("accretion3d", "chirpers9-t2", d))
+
+    def test_stale_redoes_only_previews_older_than_their_programme(self):
+        a = L.cut("chirpers9", "", render=fake_render, canonical=lambda p, s: '{"tempo":1}', log=lambda *x: None)
+        d = os.path.join(self.d, "chirpers9", "snapshots", a["id"])
+        calls = []
+
+        def run(cmd, **kw):
+            calls.append(cmd)
+            open(cmd[-1], "wb").write(b"mp4")
+            return type("R", (), {"returncode": 0, "stderr": ""})()
+        quiet = lambda *x: None   # noqa: E731
+        L.videos("chirpers9", a["id"], {1}, "{id}|accretion3d", log=quiet, run=run)
+        made = os.path.getmtime(os.path.join(d, "t01.mp4"))
+        orig = L.programme_mtime
+        try:
+            L.programme_mtime = lambda look, tid: made - 100                                 # programme older: kept
+            L.videos("chirpers9", a["id"], {1}, "{id}|accretion3d", log=quiet, run=run, stale=True)
+            self.assertEqual(len(calls), 1)
+            L.programme_mtime = lambda look, tid: made + 100                                 # programme newer: redone
+            L.videos("chirpers9", a["id"], {1}, "{id}|accretion3d", log=quiet, run=run, stale=True)
+            self.assertEqual(len(calls), 2)
+            L.programme_mtime = lambda look, tid: None                                       # no programme: kept
+            L.videos("chirpers9", a["id"], {1}, "{id}|accretion3d", log=quiet, run=run, stale=True)
+            self.assertEqual(len(calls), 2)
+        finally:
+            L.programme_mtime = orig
+
+    def test_each_track_renders_on_the_pin_of_its_start(self):
+        a = L.cut("chirpers9", "", render=fake_render, canonical=lambda p, s: '{"tempo":1}', log=lambda *x: None)
+        pins = []
+
+        def run(cmd, **kw):
+            pins.append(cmd[3])
+            open(cmd[-1], "wb").write(b"mp4")
+            return type("R", (), {"returncode": 0, "stderr": ""})()
+        orig, n = L.read_text, iter(range(100))
+        try:
+            L.read_text = lambda p: f"/pins/chirp-{next(n)}" if p.endswith("groove-pin") else orig(p)  # adopted mid-run
+            L.videos("chirpers9", a["id"], {1, 2}, "accretion", log=lambda *x: None, run=run)
+        finally:
+            L.read_text = orig
+        self.assertEqual(pins, ["/pins/chirp-0", "/pins/chirp-1"])
+
     def test_video_renders_the_snapshots_own_song_text(self):
         a = L.cut("chirpers9", "", render=fake_render, canonical=lambda p, s: '{"tempo":1}', log=lambda *x: None)
         d = os.path.join(self.d, "chirpers9", "snapshots", a["id"])

@@ -6,7 +6,7 @@ snapshot, not re-rendered), a track-by-track player, NOTES at timestamps that go
 best-effort 480p preview videos.
 
   listen.py cut ALBUM [--label TEXT]                 cut a snapshot (renders changed tracks at nice 15)
-  listen.py video ALBUM [SNAP] [--ids 1,8] [--look accretion | '{id}|accretion3d'] [--redo]
+  listen.py video ALBUM [SNAP] [--ids 1,8] [--look accretion | '{id}|accretion3d'] [--redo | --stale]
                                                              480p previews (~1.3x real time each: an idle unit)
   listen.py serve [--host H]... [--port 8791]        the app (notes notify the owner through caco); --host repeats
                                                              (the tailnet address and 127.0.0.1 for a Tailscale funnel)
@@ -297,20 +297,52 @@ def look_args(look, track_id, vis_dir=None):
     return ["--look", fallback] if fallback else []
 
 
-def videos(album_id, sid=None, ids=None, look=None, log=print, run=subprocess.run, redo=False):
+def programme_mtime(look, track_id, vis_dir=None):
+    """The newest mtime of the programme LOOK gives TRACK_ID and of every kit it `use:`s (vis/<kit>.yaml, recursively),
+    or None when LOOK names no programme file - so --stale can tell a preview older than its programme."""
+    args = look_args(look, track_id, vis_dir)
+    if "--vis" not in args:
+        return None
+    vis_dir = vis_dir or os.path.join(ROOT, "vis")
+    seen, todo, newest = set(), [args[args.index("--vis") + 1]], 0.0
+    while todo:
+        p = todo.pop()
+        if p in seen or not os.path.exists(p):
+            continue
+        seen.add(p)
+        newest = max(newest, os.path.getmtime(p))
+        for kit in re.findall(r"\buse:\s*[\"']?([A-Za-z0-9_.-]+)", read_text(p) or ""):
+            for ext in (".yaml", ".yml", ".json"):
+                q = os.path.join(vis_dir, kit + ext)
+                if os.path.exists(q):
+                    todo.append(q)
+                    break
+    return newest
+
+
+def videos(album_id, sid=None, ids=None, look=None, log=print, run=subprocess.run, redo=False, stale=False):
     """480p previews (854x480, 24 fps, crf 30; LOOK, else the song's own programme or the engine default); one track
     at a time, at nice 19 (about 1.3x real time on pocket4 under load). LOOK may be `{id}|FALLBACK` (see look_args);
-    REDO re-renders previews that already exist (a track's programme changed)."""
+    REDO re-renders previews that already exist (a track's programme changed); STALE re-renders only those older than
+    their programme or a kit it uses (programme_mtime), plus missing ones.
+    Each track renders on the groove pin AS IT IS WHEN THAT TRACK STARTS (9 Nov: a run that began on 7f9c5782 failed
+    t4-t6 on programmes written for batch 44, adopted mid-run). Landings are gated byte-identical on the album, so a
+    newer pin draws the snapshot's own audio."""
     snaps = snapshots(album_id)
     snap = next((s for s in snaps if s["id"] == sid), None) if sid else (snaps or [None])[-1]
     if not snap:
         raise SystemExit("no snapshot")
     d = os.path.join(album_dir(album_id), "snapshots", snap["id"])
-    pin = read_text(os.path.join(HERE, "groove-pin")).strip()
     for t in snap["tracks"]:
         stem = f"t{t['n']:02d}"
-        if (ids and t["n"] not in ids) or (os.path.exists(os.path.join(d, f"{stem}.mp4")) and not redo):
+        mp4 = os.path.join(d, f"{stem}.mp4")
+        if ids and t["n"] not in ids:
             continue
+        if os.path.exists(mp4) and not redo:
+            pm = programme_mtime(look, t["id"]) if stale else None
+            if not (pm and pm > os.path.getmtime(mp4)):
+                continue
+        pin = read_text(os.path.join(HERE, "groove-pin")).strip()
         text = snapshot_song(d, t)
         if text is None:
             log(f"{t['id']}: this snapshot's song text is not recoverable; skipped")
@@ -669,6 +701,7 @@ def main(argv=None):
     p.add_argument("--ids")
     p.add_argument("--look", help="a look name, or {id}|FALLBACK: vis/<track id>.yaml when it exists, else FALLBACK")
     p.add_argument("--redo", action="store_true", help="re-render previews that already exist")
+    p.add_argument("--stale", action="store_true", help="re-render previews older than their programme or its kits")
     p = sub.add_parser("serve")
     p.add_argument("--host", action="append", help="listen address (repeatable; default 127.0.0.1)")
     p.add_argument("--port", type=int, default=8791)
@@ -687,7 +720,7 @@ def main(argv=None):
     if a.cmd == "cut":
         cut(a.album, a.label)
     elif a.cmd == "video":
-        videos(a.album, a.snap, {int(x) for x in a.ids.split(",")} if a.ids else None, a.look, redo=a.redo)
+        videos(a.album, a.snap, {int(x) for x in a.ids.split(",")} if a.ids else None, a.look, redo=a.redo, stale=a.stale)
     elif a.cmd == "serve":
         serve(a.host or ["127.0.0.1"], a.port)
     elif a.cmd == "notes":
