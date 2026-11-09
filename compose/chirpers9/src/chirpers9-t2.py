@@ -1261,6 +1261,17 @@ def build():
     for t_ in song['tracks']:
         if t_['name'] in GATHER:
             t_['patch'] = dict(t_['patch'], extends=t_['patch']['extends'] + f" synth.layers.0.singers={GATHER[t_['name']]} synth.layers.0.vowel_spread=1 synth.layers.0.f0_spread=1")
+    # (v76, palette: the engine's track double, which only t7's leads use) THE VERSES DOUBLED: the near voice's own
+    # lines around the chorus - both verses ('all that falls', 'all that turns'), the pre-chorus, the early glimpse
+    # of the hook and the line found at the break's end - are double-tracked: two takes, 30% left and right on
+    # their own seeds, so their breaths, drift and vibrato differ, each 3 dB down (the centre held). The crest's line
+    # stays one voice in the middle with its keyed third, exactly as Harry heard it - so the verses open wide and
+    # the chorus arrives as one voice stepping forward. (Tried first: wM's breathy vocal attack on the sustained
+    # oohs - it measured -35 to -55 dB, the choirs' own slow swell already hides it)
+    for t_ in song['tracks']:
+        if t_['name'] in ('verse', 'prech', 'earlyhook', 'sung'):
+            t_['double'] = {'pan': 30, 'seeds': [76, 67]}
+            t_['gain'] = f"{float(str(t_['gain'])[:-2]) - 3:g}dB"
     return song
 
 
