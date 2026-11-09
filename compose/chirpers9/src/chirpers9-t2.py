@@ -1057,6 +1057,15 @@ def build():
     # the fall the comping moves to the library's clean-dry (a dry, dark, close-miked clean electric through a Twin
     # barely breaking up; no Accretion track uses it), the same voicings and the same hands - a guitarist sitting in
     # for the second verse, so the drift is its own room; the gather and the crest keep the epiano
+    # (v85, section w8: 3:34-4:04, the last chorus - eco's flatness map puts t2's flattest change here, 3:44, bars
+    # 85-91: after the second verse the last chorus ran on the drift's light breakbeat, as the verse had) THE CREST'S
+    # BEAT COMES ROUND: halfway through the drift (bar 89), as the last chorus sings 'nearer each time it comes round'
+    # for the second time, the 909 that drove the crest comes back under the breakbeat - its first eight bars, the
+    # same hands - for the last eight bars before the fall: the groove itself coming round again, nearer
+    lk0_ = (SEC['drift'] + 8) * 4.0
+    P['kit'] = sorted([e_ for e_ in P['kit'] if not (lk0_ - 1e-6 <= e_[0] < fall0 - 1e-6)] +
+                      [(round(e_[0] - CREST * 4.0 + lk0_, 4), *e_[1:]) for e_ in P['kit'] if CREST * 4.0 - 1e-6 <= e_[0] < CREST * 4.0 + (fall0 - lk0_) - 1e-6],
+                      key=lambda e_: e_[0])
     P['gtrd'] = [e_ for e_ in P['gtr'] if SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6]
     P['gtr'] = [e_ for e_ in P['gtr'] if not (SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6)]
     song = {
