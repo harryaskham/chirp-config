@@ -119,6 +119,7 @@ LIGHTSLOCK = os.environ.get("C9T5_LIGHTSLOCK", "strong")   # WHOLE (the lights -
 RHODESLESLIE = os.environ.get("C9T5_RHODESLESLIE", "turn")   # SECTION w3 (1:08-1:41, A's second half, where the Rhodes answers her chorus with E5's figure): THE LESLIE TURNS - the Rhodes had a fixed tremolo; now (wM's rotary, pin bf2a7535) it plays through a Leslie (a fork of the library rhodes without its tremolo): 'turn' on the slow chorale speed through A's second half and switching to the fast tremolo for its last phrase (176), the rotors spinning up into A's end - the organ player's move at a section turn; 'chorale' slow all through
 TURNAROUND = os.environ.get("C9T5_TURNAROUND", "two")   # WHOLE (the bass under the four lights; something should move every 8-16 bars): THE WALK HOME - the bass sat on each chord's root, a bar and a half at a time, D C A G and back to D. Now each time the progression comes home (G back to D: A three times, the build and C three times) the bass walks up into it, as a bass player would at a turnaround: 'two' its last two G notes become A and C; 'three' A, B, C. On the bass and its sub in A and on the 808 from the build
 CHIPRIM = os.environ.get("C9T5_CHIPRIM", "nes-pulse-lead amp.d=25ms|A6|-10")   # PALETTE (the rimshot; with CHIPHATS and CHIPKIT): the 909's rimshot - the tick on the off-beats through A, the build and C, about one a beat - is 'blip', an album staple (t2, t5, t7), the last 909 piece t5 had not moved onto the console. Now it is a chip sound too: 'patch|pitch|gain', e.g. 'chip-metal amp.d=35ms|A6|-8' (the 2A03's short-mode noise, a metallic pitched tick) or 'nes-pulse-lead amp.d=25ms|A6|-10' (a pulse click, the orbit's own voice)
+MOTIFLIFT = os.environ.get("C9T5_MOTIFLIFT", "orbit:3,seed-hi:3,seed-lo:3~368")   # WHOLE (Harry: E1 heard plainly and often; t5's own hook is E5's orbit): THE TUNES UNDER THE VOICE - presence.py (17:35, pin 9f86896d) has the voice at -1..-3 dB against the mix and the bass at -5, but the two things t5 is made of sit low and are followable almost never while they sound: E5's orbit on the NES pulse -15.3 dB (near 0.14), E1 x2 on the chip lead -16.1 (0.07) and on the mandolin -17.8 (0.04). This brings them up under the voice. Value 'track:dB,...' (gain), or 'track:dB,...@BEAT' (velocity, only before BEAT - the tide into t6 left as it was), or 'track:dB,...~BEAT' (a gain lane: the lift held until BEAT, then easing back over 8 bars)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -1074,6 +1075,23 @@ def song():
             if tr["name"] == "hums-out" and tw and tw[0] == "sink":
                 last = max(tr["notes"], key=lambda n: n["at"])
                 last["pitch"] = "D4"
+    if MOTIFLIFT:
+        mspec, _, mtill = MOTIFLIFT.partition("@")
+        mspec, _, mramp = mspec.partition("~")
+        lift = {k: float(v) for k, v in (x.split(":") for x in mspec.split(","))}
+        for tr in tracks:
+            if tr["name"] in lift and mramp:
+                L = lift[tr["name"]]
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.mlift", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), mlift={"points": [["0b", L], [f"{mramp}b", L], [f"{float(mramp) + 32}b", 0.0], [f"{TOTAL}b", 0.0]]})
+            elif tr["name"] in lift and mtill:
+                f = 10 ** (lift[tr["name"]] / 20)
+                for n in tr["notes"]:
+                    if float(n["at"]) < float(mtill):
+                        n["vel"] = round(min(1.0, n["vel"] * f), 3)
+            elif tr["name"] in lift:
+                g = float(str(tr["gain"]).replace("dB", ""))
+                tr["gain"] = f"{g + lift[tr['name']]:g}dB"
     if VIBBLOOM:
         vb, *vd = VIBBLOOM.split(":")
         for tr in tracks:

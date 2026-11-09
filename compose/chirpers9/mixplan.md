@@ -16,6 +16,7 @@ last OVERLAP bars) and the next track starts at exactly that tempo.
 PROPOSAL: every track declares `loudness: -11` (as Standby Amber and the mixtapes), true peak <= -1 dBTP; the storms
 get their weight from density and crest, not level.
 - Inside a track, check what is heard with `tools/presence.py ID` (a part under -25 dB against the mix while it sounds is inaudible). t1 v80 (chirper-zero): three of the seed's five scattered voices were near-inaudible (the mandolin -26 dB, the celesta -22, the music box -21); lifting just those three (+6/+3/+3 dB) put all five at -15..-20 dB for a cost of -0.006/-0.009, where lifting all five (v9) had thinned the song.
+- t5 v83 (chirper-zero): presence.py had the voice at -1..-3 dB and t5's tunes low (E5's orbit -15.3, E1 on the chip lead -16.1, on the mandolin -17.8). +3 dB on all three for the whole song cost the t5 -> t6 seam (-0.03/-0.06: their chip brightness against t6's body); +3 dB on a gain lane that eases back over C's last 8 bars (368-400), before the tide, gained +0.046/+0.021 and both seams (t5's out-body sits before the overlap). A velocity lift was worse: velocity changes these patches' tone, not just their level.
 
 ## Key path
 Neighbours share a key, or move a fifth or to the relative (Camelot neighbours), so every overlap is a harmonic mix.
