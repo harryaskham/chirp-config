@@ -601,6 +601,26 @@ PATH_SUNG_S = {"AH0 N D": 1.0 * 60 / 158, "IH1 T": 0.997 * 60 / 158, "W AA1 Z": 
 HER_LINES = (124, 130)
 
 
+# v87 (ROUND TYPE: palette - the newest engine feature, a second use): THE LIGHT'S DOPPLER. The horizon's held light
+# (hold: a saw-and-sine chord, D3 A3 D4 F#4, struck at 141, 149 and 157) redshifts by sinking pitch and closing its
+# filter in steps (light_shifts: 145, 149, 153, 157) - but it shone perfectly still. Redshift IS a Doppler shift, and
+# a Leslie horn is a Doppler machine: now the light turns in wM's rotary - fast as the horizon opens (141), its spin
+# slowing at each redshift step (145 three-quarters, 149 half, 153 a quarter) to the slow chorale by 157 - the
+# shimmer of the receding light slowing as time does near the horizon. Doppler halved (0.5) so the light shimmers
+# rather than wails; the rotors glide between steps as a cabinet's do.
+LIGHT_SPIN = [(141, 1.0), (145, 0.75), (149, 0.5), (153, 0.25), (157, 0.0)]
+LIGHT_ROTARY = "rotary speed=0.2+auto.lr*0.8 doppler=0.5"
+
+
+def lights_doppler(song):
+    hold = next(x for x in song["tracks"] if x["name"] == "hold")
+    pts = [["0b", 1.0]]
+    for bar, v in LIGHT_SPIN:
+        pts += [[f"{b0(bar) - 0.01:g}b", pts[-1][1]], [f"{b0(bar):g}b", v]]
+    hold["fx"] = [LIGHT_ROTARY] + list(hold.get("fx") or [])
+    hold["auto"] = dict(hold.get("auto") or {}, lr={"points": pts})
+
+
 def her_own_rate(song):
     tr_ = {x["name"]: x for x in song["tracks"]}
     lo, hi = b0(HER_LINES[0]), b0(HER_LINES[1])
@@ -1832,6 +1852,7 @@ def main():
     she_remembers(song)
     jet_lets_go(song)
     her_own_rate(song)
+    lights_doppler(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
