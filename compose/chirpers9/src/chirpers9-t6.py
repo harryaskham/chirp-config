@@ -1073,6 +1073,13 @@ def build():
         if n_['at'] >= void1 + 10.0 - 0.5:
             P['hook'].append((n_['at'], m(int(str(n_['pitch'])[1:]) + 24), n_['len'] * 0.95, 88 if n_['ph'] != 'DH AH0' else 76))
     P['hook'].sort(key=lambda e_: e_[0])
+    # (v87, section w5: 2:05-2:36, the crest - flagged static, and eco's flatness map puts t6's flattest change at
+    # 2:24, bars 70-78: the crest's second half ran on exactly as its first; v86's slack water - the band stopping
+    # under the second couplet - split the song once too often) HIGH WATER: for the crest's second half (bars 73-80),
+    # under the second couplet, the acid line climbs an octave - the same squelching figure, brighter and higher,
+    # the water at its highest mark - and drops back as the cross begins to ebb
+    hw0_ = (SEC['crest'] + 8) * 4.0
+    P['acid'] = [(e_[0], m(float(str(e_[1])[1:]) + 12), *e_[2:]) if hw0_ - 1e-6 <= e_[0] < SEC['cross'] * 4.0 - 1e-6 else e_ for e_ in P['acid']]
     rk0_ = SEC['crest'] * 4.0
     P['kitroom'] = [e_ for e_ in P['kit'] if e_[0] >= rk0_ - 1e-6]
     P['kit'] = [e_ for e_ in P['kit'] if e_[0] < rk0_ - 1e-6]
