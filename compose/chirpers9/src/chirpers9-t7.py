@@ -818,6 +818,15 @@ R90 = os.environ.get("T7_R90", "leslie") != "none"
 # held Eb and just the hats, shakers and ghost notes for four bars - then at bar 45 the floor slams back with a china crash, and the
 # timpani and snare rolls build into the collision as before. T7_R91=none reproduces v90.
 R91 = os.environ.get("T7_R91", "float") != "none"
+# round 92 (section, w5 = bars 65-80, the collision's second half; least recently focused): T7_R92=strings (default) -
+# THE STRINGS SING E5 OVER THE COLLISION. Bars 65-80 were the reese's Eb pedal, the kicks and the nearer-voices with
+# E5 (t5's figure) only in the buried xylophone. Now the crest's tape strings (mellotron-strings) come in early and
+# sing E5 plainly at half speed, one phrase per chord - Bb Ab Bb, F, Bb Ab Bb, a held Eb - answering in the second
+# half of each eight bars: bars 69-72 in the middle, bars 77-80 an octave up and louder, so the collision climbs
+# towards the warp (bar 81). (All eight phrases smoothed the window flat: 11%, a 24 s run.) Above the bass;
+# every note sits in its chord (Ebm9, Ebm, Bbm7, Fm7/Eb). T7_R92=none reproduces v91.
+R92 = os.environ.get("T7_R92", "strings") != "none"
+STR5_GAIN = os.environ.get("T7_STR5_GAIN", "4dB")   # at 0 dB: -11.0 dB (0.30)
 CRESTSAX_GAIN = os.environ.get("T7_CRESTSAX_GAIN", "3dB")   # at ALTO_GAIN (7 dB) it led the crest at -3.9 dB
 AMENX_GAIN = os.environ.get("T7_AMENX_GAIN", "2dB")
 ALTO_GAIN = os.environ.get("T7_ALTO_GAIN", "7dB")   # at 0: -15.0 / -11.4 dB, unheard
@@ -2390,6 +2399,15 @@ def main():
                                               "mod": [{"src": "auto.crest", "amount": 1}]}}]
         hk["auto"] = dict(hk.get("auto", {}), crest={"points": [["0b", 0], ["479.8b", 0], ["479.95b", 6], ["511.9b", 6],
                                                                 ["512.4b", 0]]})
+    if R92:                                                 # w5: tape strings sing E5 at half speed over bars 65-80
+        st = Track("e5str")
+        ph = ((0.0, 0, .5), (0.5, -2, .5), (1.0, 0, 1.0), (2.0, -5, 1.0), (3.0, 0, .5), (3.5, -2, .5), (4.0, 0, 1.0), (5.0, -7, 2.9))
+        for k in (2, 3, 6, 7):                              # bars 69-72 and 77-80: all eight phrases made an 11% / 24 s flat stretch
+            base = 70 + (12 if k >= 4 else 0)               # Bb4, then Bb5
+            for off, iv, ln in ph:
+                st.add(256.0 + 8 * k + off, ln, f"m{base + iv}", 80 if k < 4 else 94)
+        tracks.append({"name": "e5str", "patch": "mellotron-strings", "gain": STR5_GAIN, "pan": -0.3,
+                       "sends": {"space": "-8dB"}, "score": st.score()})
     if R91:                                                 # w3: bars 41-44 without the floor, a china at 45
         fl = {"points": [["0b", 0], ["159.95b", 0], ["160b", -60], ["175.95b", -60], ["176b", 0]]}
         for tr in tracks:
