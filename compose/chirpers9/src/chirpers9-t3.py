@@ -683,6 +683,13 @@ R87 = os.environ.get("T3_R87", "punch") != "none"
 # rock-kit's toms, high to floor, under the whisper's "nothing here is late" - crossing into the eyewall's first bar
 # (to beat 196), where the seven-cycle kit picks it up. One block of drums on their own skin. T3_R88=none reproduces v87.
 R88 = os.environ.get("T3_R88", "toms") != "none"
+# round 89 (palette - add the part the song lacks): T3_R89=ebow (default) - AN E-BOW SOARS OVER THE RETURNING STORM. t3
+# had no guitar. Now, as the storm comes back after the eye (bars 65-72), an e-bow guitar (library ebow: an endlessly
+# sustaining, magnetically driven string swelling in like a bow - Fripp, Lanois; no Accretion song uses it) sings E1
+# at half speed (D A C G E), then climbs A C to the high D and glides back down to A as the storm strings take over
+# at bar 73 - the notes overlapping (gate 1.1) so it slides between them. T3_R89=none reproduces v88.
+R89 = os.environ.get("T3_R89", "ebow") != "none"
+EBOW_GAIN = os.environ.get("T3_EBOW_GAIN", "-3dB")   # at 0 it led at -5.2 dB and cost spectrum (99.927)
 TOMS_GAIN = os.environ.get("T3_TOMS_GAIN", "-5dB")   # at 0: -0.3 dB, louder than the reese
 RIDE_GAIN = os.environ.get("T3_RIDE_GAIN", "3dB")   # at 0: -14.8 dB (0.09) at bars 41-48; at 5 spectrum 99.2
 FILLS_GAIN = os.environ.get("T3_FILLS_GAIN", "-3dB")
@@ -2274,6 +2281,17 @@ def main():
                 tr["fx"] = list(tr.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB",
                                                          "mod": [{"src": "auto.toms", "amount": 1}]}}]
                 tr["auto"] = dict(tr.get("auto", {}), toms=toms)
+    if R89:                                                 # palette: an e-bow sings E1 and soars over bars 65-72
+        line = ((256.0, 62, 2.0), (258.0, 69, 3.0), (261.0, 72, 1.0), (262.0, 67, 4.0), (266.0, 64, 6.0),   # E1 x2
+                (272.0, 69, 4.0), (276.0, 72, 2.0), (278.0, 74, 6.0), (284.0, 72, 2.0), (286.0, 69, 2.0))   # soar, glide
+        toks, pos = [], 0.0
+        for at, m, ln in line:
+            if at > pos + 1e-9:
+                toks.append(f"R/{at - pos:g}b")
+            toks.append(f"m{m}/{ln:g}b@{96 if m >= 72 else 88}^gate=1.1")
+            pos = at + ln
+        tracks.append({"name": "ebow", "patch": "ebow", "gain": EBOW_GAIN, "pan": 0.25, "sends": {"space": "-8dB"},
+                       "score": " ".join(toks)})
     if R82:                                                 # whole: the storm's air circles the listener on one speed lane
         spin = {"points": [["0b", 0.25], ["64b", 0.3], ["144b", 1.0], ["232b", 2.0], ["239.5b", 2.0], ["240b", 0],
                            ["255.5b", 0], ["256b", 1.0], ["336b", 2.0], ["350b", 4.0], ["352b", 4.0], ["356b", 1.0],
