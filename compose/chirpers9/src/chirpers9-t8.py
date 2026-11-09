@@ -648,6 +648,27 @@ SPACE = [(0, 0.0), (65, 0.0), (93, 2.5), (96.75, 2.5), (97, -1.0), (120.75, -1.0
 VOWEL_DRIFT = {"choir": 0.6, "choir5": 0.6, "choir8": 0.6, "far": 0.4, "solo": 0.8, "last": 1.0}
 
 
+# v94 (ROUND TYPE: whole song): THE LINES LAND ON THE BEAT. The brief: the voice sings full lines - and every one of
+# t8's sung lines (the jet's choirs, the far choir, her lines, her memory, her last line) slides between its joined
+# notes on one fixed 90 ms glide that starts ON the new note: every slide lands late, its middle 56-70 ms after the
+# written change, and a step takes as long as a fifth. wM's SUNG GLIDES (pinned 2b4b6172): glide_semi makes a leap take
+# longer than a step (a voice's pitch only moves so fast), glide_lead sings a share of the slide before the new note so
+# it centres on the beat. By character: the jet's choirs, her lines and the far choir on wM's recipe (80 ms + 8 ms a
+# semitone, lead 0.5 / far 0.4) - the jet locks into 4/4 and its lines lock with it; her last line, the old voice,
+# slower and late-landing (90 ms + 10 ms a semitone, lead 0.3).
+SUNG_GLIDES = {"choir": ("80ms", "8ms", 0.5), "choir5": ("80ms", "8ms", 0.5), "choir8": ("80ms", "8ms", 0.5),
+               "solo": ("80ms", "8ms", 0.5), "far": ("80ms", "8ms", 0.4), "last": ("90ms", "10ms", 0.3)}
+
+
+def lines_land_on_the_beat(song):
+    for tr_ in song["tracks"]:
+        if tr_["name"] in SUNG_GLIDES and isinstance(tr_.get("patch"), dict):
+            g, semi, lead = SUNG_GLIDES[tr_["name"]]
+            p = json.loads(json.dumps(tr_["patch"]))
+            p["play"] = dict(p.get("play") or {}, glide=g, glide_semi=semi, glide_lead=lead)
+            tr_["patch"] = p
+
+
 def vowels_live(song):
     for tr_ in song["tracks"]:
         if tr_["name"] in VOWEL_DRIFT and isinstance(tr_.get("patch"), dict):
@@ -1959,6 +1980,7 @@ def main():
     she_ages_from_the_top(song)
     space_opens(song)
     vowels_live(song)
+    lines_land_on_the_beat(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")

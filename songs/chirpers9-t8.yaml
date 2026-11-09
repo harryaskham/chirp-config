@@ -14102,10 +14102,12 @@
     "about": "t8's choir part: 4 singers on one line, even vowels, joined, a breath before each phrase",
     "play": {
      "mono": true,
-     "glide": "90ms",
+     "glide": "80ms",
      "glide_smooth": true,
      "fall": 1.0,
-     "glide_overshoot": 0.05
+     "glide_overshoot": 0.05,
+     "glide_semi": "8ms",
+     "glide_lead": 0.5
     },
     "synth": {
      "layers": [
@@ -15999,10 +16001,12 @@
     "about": "t8's choir part: 3 singers on one line, even vowels, joined, a breath before each phrase",
     "play": {
      "mono": true,
-     "glide": "90ms",
+     "glide": "80ms",
      "glide_smooth": true,
      "fall": 1.0,
-     "glide_overshoot": 0.05
+     "glide_overshoot": 0.05,
+     "glide_semi": "8ms",
+     "glide_lead": 0.5
     },
     "synth": {
      "layers": [
@@ -17868,10 +17872,12 @@
     "about": "t8's choir part: 3 singers on one line, even vowels, joined, a breath before each phrase",
     "play": {
      "mono": true,
-     "glide": "90ms",
+     "glide": "80ms",
      "glide_smooth": true,
      "fall": 1.0,
-     "glide_overshoot": 0.05
+     "glide_overshoot": 0.05,
+     "glide_semi": "8ms",
+     "glide_lead": 0.5
     },
     "synth": {
      "layers": [
@@ -21521,11 +21527,13 @@
     "about": "t8's last voice: the choir's lead alone, even vowels - the horizon's last line",
     "play": {
      "mono": true,
-     "glide": "90ms",
+     "glide": "80ms",
      "glide_smooth": true,
      "fall": 3.0,
      "glide_overshoot": 0.06,
-     "scoop": 0.8
+     "scoop": 0.8,
+     "glide_semi": "8ms",
+     "glide_lead": 0.5
     },
     "synth": {
      "layers": [
@@ -22368,10 +22376,12 @@
     "about": "t8's far choir: four singers far off, mouths shut on 'n' - the answer forming",
     "play": {
      "mono": true,
-     "glide": "90ms",
+     "glide": "80ms",
      "glide_smooth": true,
      "fall": 1.0,
-     "glide_overshoot": 0.05
+     "glide_overshoot": 0.05,
+     "glide_semi": "8ms",
+     "glide_lead": 0.4
     },
     "synth": {
      "layers": [
@@ -22649,7 +22659,9 @@
      "glide_smooth": true,
      "fall": 3.0,
      "glide_overshoot": 0.06,
-     "scoop": 0.8
+     "scoop": 0.8,
+     "glide_semi": "10ms",
+     "glide_lead": 0.3
     },
     "synth": {
      "layers": [
