@@ -527,6 +527,20 @@ def the_tide_turns(song):
 # heard - wM: the voice patches' vibrato is shallow); her last word, 'ours', held four beats, opens fully (1.0); the
 # far choir stays straight (distance).
 BLOOM = {"choir": (0.6, None), "choir5": (0.6, None), "choir8": (0.6, None), "solo": (0.8, 0.24), "last": (1.0, 0.26)}
+# v82 (ROUND TYPE: whole song): THE PLAYERS LEAN INTO LONG NOTES. v79 tried vibrato bloom on t8's sustaining
+# instruments and was inaudible (-34.8 dB): bloom only reshapes the depth a patch already has, and theirs are a few
+# cents. wM's advice: deepen the vibrato about 1.4x with a gentler bloom (0.5 - strings and winds open less than
+# voices). Now the whole song's sustaining players do: the lights' strings (their long chords through the stretto and
+# the jet), the hook's flute, E7's brass and E3's contrabass - short notes about where they were, long ones opening.
+# extends REPLACES a patch's pitch.mod list (tested: an override with the vibrato at 0 removed it), so each list below
+# is the library patch's own (pin b160e3e5) with only its lfo.vib amount scaled x1.4.
+INSTR_BLOOM = 0.5
+INSTR_PITCH = {
+    "lights": ("strings", [{"amount": 0.18, "src": "lfo.vib"}, {"amount": 0.05, "src": "rand"}]),
+    "hook": ("flute", [{"amount": -0.3, "src": "env.slide"}, {"amount": 0.084, "src": "lfo.vib"}, {"amount": 0.03, "src": "rand"}]),
+    "e7": ("brass", [{"amount": -0.6, "src": "env.scoop"}, {"amount": 0.112, "src": "lfo.vib"}, {"amount": 0.04, "src": "rand"}]),
+    "e3": ("contrabass-tight", [{"amount": 0.14, "src": "lfo.vib"}]),
+}
 
 
 def held_notes_open(song):
@@ -541,6 +555,11 @@ def held_notes_open(song):
                 if m["src"] == "lfo.vib":
                     m["amount"] = amount
         tr_["patch"] = patch
+    for tr_ in song["tracks"]:                                     # v82: the players
+        if tr_["name"] in INSTR_PITCH and tr_["patch"] == INSTR_PITCH[tr_["name"]][0]:
+            base, mods = INSTR_PITCH[tr_["name"]]
+            tr_["patch"] = {"extends": base, "synth": {"lfo": {"vib": {"bloom": INSTR_BLOOM}},
+                                                       "pitch": {"value": 0, "mod": mods}}}
 
 
 # v79 (ROUND TYPE: whole song): SHE REMEMBERS. The brief: the voice sings full lines. Her questions accrete their
