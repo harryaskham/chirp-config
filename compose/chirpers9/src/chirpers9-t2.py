@@ -1493,6 +1493,20 @@ def build():
             for n_ in t_['notes']:
                 if abs(n_['at'] - ((SEC['crest'] - 1) * 4.0 - 4.0)) < 0.05 and n_.get('ph') == 'S T ER0':
                     n_['len'] = round(SEC['crest'] * 4.0 - 0.7 - n_['at'], 3)
+    # (v99, section w8: 3:34-4:04, the drift's last twelve bars - the backing choir answered the near voice three
+    # times with 'comes round' (bars 89, 91, 94), the same two notes, E D, each time, while the orbit swung back in
+    # and the near voice lifted a step for the fall) THE ANSWERS CLIMB: the second and third answers come round a
+    # minor third higher - E D, then G F, G F - louder each time, and the third holds its 'round' right up to the
+    # lift, so the choir rises with the orbit and hands the near voice its lifted line (a third answer higher still,
+    # A G, cost recurrence 4 points on both seeds)
+    for t_ in song['tracks']:
+        if t_['name'] == 'answer2':
+            ans_ = sorted(t_['notes'], key=lambda n_: n_['at'])
+            for k_, (up_, vm_) in enumerate(((0, 1.0), (3, 1.08), (3, 1.16))):
+                for n_ in ans_[2 * k_:2 * k_ + 2]:
+                    n_['pitch'] = f"m{int(str(n_['pitch'])[1:]) + up_}"
+                    n_['vel'] = round(min(0.9, n_['vel'] * vm_), 3)
+            ans_[5]['len'] = round(SEC['fall'] * 4.0 - 8.0 - 0.1 - ans_[5]['at'], 3)
     # (v87, palette: wM's path_len, pinned 7f9c5782 - an engine feature from chirper-one's finding) EVERY VOICE AT
     # ITS SUNG RATE: t2's lines were sung by chirp tts --sing (44 pitch points a second) at a quicker tempo than
     # t2's 90-98 bpm and then laid on t2's beats, so every sung note was stretched - the verse's by a third, the
