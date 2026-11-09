@@ -132,8 +132,9 @@ SHAKEIN = os.environ.get("C9T1_SHAKEIN", "57")   # SECTION w2's start (0:44-0:56
 LOCKHUM = os.environ.get("C9T1_LOCKHUM", "3")   # WHOLE (the far choir's arc): the choir hummed the seed slowly at the start (0:18-0:31) and again as t1 falls into t2 - but was silent at the lock after the crest (beat 240, about 2:58), when every voice of the band plays E1 at once. Now it hums E1 there too, the same slow figure, with everyone: the voice is at the seed's beginning, its fullest moment and its end. A copy of the opening hum (its patch: taper, bloom, creak) moved to the lock. Value: gain change in dB against the opening hum
 FIRSTANSWER = os.environ.get("C9T1_FIRSTANSWER", "once")   # WHOLE (the call and its answer through the song): the whistle states the seed and the harp answers it upside down (the inversion, D G E A C) at A (ANSWER) and through B (the inverse) - but the album's very first call, the whistle's two plain E1s in the intro, went unanswered. Now the harp answers it too, softly, on the next phrase (beat 16): so from the first seconds every call of the seed has its mirror. 'once' the low inversion; 'twice' and again an octave up (as at A)
 LASTANSWER = os.environ.get("C9T1_LASTANSWER", "once")   # WHOLE (the call and its answer, completed; with FIRSTANSWER): the whistle's last full call (beat 300, before the fall) went unanswered too. Now the harp answers it on the next cycle (305), low, as it answered the first - so every call in t1 has its mirror except the very last, the whistle's slow E1 into the overlap, which t2's bell answers. 'once' the low inversion; 'twice' and again an octave up (310)
-MIDP = os.environ.get("C9T1_MIDP", "mellotron-flute@-13")   # PALETTE (the hook's voices): every statement of the hook was the same low whistle - the intro, A, the tease, the build, the strip and the last call. Now the one in the strip after the crest (beats 256-276, 'the seed alone', when the scattered voices step out) is a different wind, so the seed sounds there as if remembered: 'mellotron-flute' (a tape-replayed flute, worn and swelling) or 'dizi' (a bamboo flute with a buzzing membrane). Value 'patch@gain'
+MIDP = os.environ.get("C9T1_MIDP", "mellotron-flute@-9")   # PALETTE (the hook's voices): every statement of the hook was the same low whistle - the intro, A, the tease, the build, the strip and the last call. Now the one in the strip after the crest (beats 256-276, 'the seed alone', when the scattered voices step out) is a different wind, so the seed sounds there as if remembered: 'mellotron-flute' (a tape-replayed flute, worn and swelling) or 'dizi' (a bamboo flute with a buzzing membrane). Value 'patch@gain'
 INTROCUTS = os.environ.get("C9T1_INTROCUTS", "two")   # SECTION w1 (0:00-0:36, the album's first half-minute: read static): THE PLAYER'S HAND - the intro's whistle states the seed twice, identically. The first stays plain (E1 heard as it is); the second is now ornamented as a Celtic air player would - the low whistle's grace notes (`^h`, expr h) flicking into its long notes - so the opening sounds played by a hand. 'two' cuts on A and G; 'three' and on the closing E
+SEEDLIFT = os.environ.get("C9T1_SEEDLIFT", "g:6,c:3,e:3")   # WHOLE (t1's subject is the five scattered voices that each play one note of E1 on its own cycle and meet at the crest): ALL FIVE HEARD - presence.py (17:06, pin 9f86896d) had three of the five almost inaudible while they sound: the mandolin's G at -26 dB against the mix (buried), the celesta's C -21.7, the music box's E -20.7, against the kalimba's D -16.8 and the vibes' A -15.1. Raising all five (v9) thinned the song; this lifts only the buried three so the scatter is five voices, not two. Value 'g:dB,c:dB,e:dB'
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -934,6 +935,12 @@ def song():
                         n = dict(n, at=round(float(n["at"]) + g, 3), len=round(float(n["len"]) - g, 3), expr=dict(n.get("expr", {}), h=1.0))
                     out.append(n)
                 tr["notes"] = out
+    if SEEDLIFT:
+        lift = {f"seed-{k}": float(v) for k, v in (x.split(":") for x in SEEDLIFT.split(","))}
+        for tr in tracks:
+            if tr["name"] in lift:
+                g = float(str(tr["gain"]).replace("dB", ""))
+                tr["gain"] = f"{g + lift[tr['name']]:g}dB"
     if SHAKEIN:
         s0 = float(SHAKEIN)
         offs = [0, 1, 1.75, 2.5, 3.25, 4.0]

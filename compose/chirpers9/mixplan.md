@@ -15,6 +15,7 @@ last OVERLAP bars) and the next track starts at exactly that tempo.
 ## Loudness
 PROPOSAL: every track declares `loudness: -11` (as Standby Amber and the mixtapes), true peak <= -1 dBTP; the storms
 get their weight from density and crest, not level.
+- Inside a track, check what is heard with `tools/presence.py ID` (a part under -25 dB against the mix while it sounds is inaudible). t1 v80 (chirper-zero): three of the seed's five scattered voices were near-inaudible (the mandolin -26 dB, the celesta -22, the music box -21); lifting just those three (+6/+3/+3 dB) put all five at -15..-20 dB for a cost of -0.006/-0.009, where lifting all five (v9) had thinned the song.
 
 ## Key path
 Neighbours share a key, or move a fifth or to the relative (Camelot neighbours), so every overlap is a harmonic mix.
