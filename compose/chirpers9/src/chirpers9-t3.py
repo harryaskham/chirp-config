@@ -625,7 +625,15 @@ R78 = os.environ.get("T3_R78", "breathe") != "none"
 # (bars 97-112) that t4 is measured against - which did not move it: the cost was v78's song feel (with it the tail's
 # 133 Hz read +1.5 dB against t4's head, spectral 2.96 -> 3.15; without it 2.96 again, and 99.877 against 99.83), so
 # v79 also takes the feel back out. T3_R79=none reproduces v78.
-R79 = os.environ.get("T3_R79", "eye") != "none"   # rock-kit hats sit 7 dB under tight-kit's
+R79 = os.environ.get("T3_R79", "eye") != "none"
+# round 80 (section, w5 = bars 49-60, the eyewall; least recently focused of w4-w7): T3_R80=eyewall (default) - THE
+# VOICES COME BACK, AND THE STORM FALLS INTO THE EYE. (1) v78's 340 Hz dip took the counting voices' phasing (v77)
+# back under the reese (doo / doop -14.5 dB, 0.06-0.11 audible): doo, doop and the harmony voices doo3 come up 5 dB.
+# (2) The eye (bar 61) arrived with no fall: now bar 60 is a fill on the rock kit - snare eighths climbing, then the
+# toms in sixteenths, high to floor - and one crash on the eye's first beat, ringing on over the stillness.
+# T3_R80=none reproduces v79.
+R80 = os.environ.get("T3_R80", "eyewall") != "none"
+FILL_GAIN = os.environ.get("T3_FILL_GAIN", "3dB")   # at 6 it read -2.9 dB, near the reese   # rock-kit hats sit 7 dB under tight-kit's
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1789,6 +1797,17 @@ def main():
         flock(404.5, 408.0, (1.0, 2.0))
         for nm, pan in (("birdl", -0.5), ("birdr", 0.5)):
             tracks.append({"name": nm, "patch": "birds", "gain": "9dB", "pan": pan, "score": flocks[nm].score()})
+    if R80:                                                 # w5: the voices back up 5 dB; a fill into the eye (bar 60)
+        for tr in tracks:
+            if tr.get("name") in ("doo", "doop", "doo3"):
+                tr["gain"] = f"{float(str(tr.get('gain', '0dB')).replace('dB', '')) + 5.0:g}dB"
+        fl = Track("eyefill")
+        for k in range(4):                                  # snare eighths, climbing
+            fl.add(236.0 + 0.5 * k, 0.25, "s", 70 + 7 * k)
+        for k, pc in enumerate(("t1", "t1", "t2", "t2", "t3", "t3", "ft", "ft")):   # toms in sixteenths, high to floor
+            fl.add(238.0 + 0.25 * k, 0.25, pc, 96 + 3 * k)
+        fl.add(240.0, 1.0, "c", 112)                        # one crash on the eye
+        tracks.append({"name": "eyefill", "patch": "rock-kit", "gain": FILL_GAIN, "pan": 0.05, "score": fl.score()})
     if R79:                                                 # w6: the eye goes still (bars 61-64): engine out, E1 up, a choir
         still = {"points": [["0b", 0], ["239.75b", 0], ["240b", -60], ["255.75b", -60], ["256b", 0]]}
         for tr in tracks:
