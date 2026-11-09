@@ -214,6 +214,9 @@ VACUUM = JET - 1              # v2: the bar before the jet - everything stops bu
 # end of 80 brings everything back; 81-88, as E7's brass columns arrive, the chip hook LIFTS AN OCTAVE - until the
 # spiral (89) takes over. Pitch classes unchanged.
 T_DROP, T_LIFT = (73, 80), (81, 88)
+T_DROP = (72, 80)          # v80 (below, THE TIDE GOES OUT AND COMES IN): the lights leave from 72
+BASS_DROP = (72, 80)       # v80: the bass with them, back at 81 (back at 77 with the kick, 77-82 read like E7's
+                           # arrival after it: the still window moved to 2:00, 1.03 -> 0.61)
 
 
 # v31 (ROUND TYPE: palette - swap an album staple): THE BASS OPENS AT THE JET. The bass was nes-triangle-bass, a staple
@@ -415,6 +418,15 @@ E7_LIGHT_DB = 3.0
 # hats and the organ's tide, 4 dB up through its whole spotlight (65-80, ORBIT_BOOST); at 77 the kick comes back and
 # builds into the snare roll and E7's arrival (81).
 KICK_REST = (73, 76)
+# v80 (ROUND TYPE: section, the tide 72-82, 1:52-2:08; rewritten): THE TIDE GOES OUT AND COMES IN. The tide's one
+# still window, 1:52 (0.59 / 0.60; tried twice from the orbits and the organ without moving it), compares bars 72-77
+# with 77-82 (the stretto's tempo ramps 150 -> 158, so 1:52 is bar ~72, 2:00 bar ~77) - and the tide's changes fell
+# inside both halves: bar 72 still full, the kick away 73-76, then the kick back at 77 but the floor only at 81. Now the
+# halves are the tide: from 72 everything low goes out at once - the kick, the bass pedal and the lights - the low
+# water: the chip, the glock, the marimba, the hats and the organ's tide alone; at 77 it starts to come in - the kick
+# first, the organ's rotor (v77) speeding up with it - and the bass and the lights flood back with E7 at 81, after the
+# snare roll, as before. (First tried in two stages from 71/76: the stages fell across the real windows - 1:52 0.59 -> 0.41.)
+KICK_REST = (72, 76)
 
 
 # v56 (ROUND TYPE: whole song): EVERYTHING FALLS IN. The horizon - 35 bars, the album's last minute - was a held D
@@ -798,7 +810,8 @@ def mute_until_the_jet():
 
 
 def stretto_turns():
-    carve(["lights", "bass"], *T_DROP)
+    carve(["lights"], *T_DROP)
+    carve(["bass"], *BASS_DROP)
     for i in range(8):                                                   # the roll back in, end of bar 80
         part("snare").add(b0(T_DROP[1]) + 2 + i * 0.25, 0.25, "s", 50 + i * 8)
     lo, hi = b0(T_LIFT[0]), b0(T_LIFT[1] + 1)
