@@ -776,7 +776,7 @@ def build():
     # lofi hats, the triangle bass, the cutting guitar and E2's log drum and chip debris - play a 16th shuffle (the
     # engine's swing16, never used on the album): every off-beat sixteenth lands late, the lazy lean of a lofi/IDM
     # drummer; the seams, the voices and the pads stay straight
-    SWUNG = ('kit', 'kitb', 'hat3', 'bass', 'gtr', 'e2body', 'e2m')
+    SWUNG = ('kit', 'kitb', 'hat3', 'bass', 'gtr', 'gtrd', 'e2body', 'e2m')
     # (v45, whole song: t2 sat between a light neighbour and a heavy one - t1's body has almost nothing at 38 Hz, t3's
     # floor is a3-deep on D1 - and its own D1 sub held one weight from the gather to the fall; compscore heard it as
     # the seams' worst band, +25 dB against t1 and -23 dB against t3) GRAVITY GROWS: the infall's pull deepens as it
@@ -1052,6 +1052,13 @@ def build():
     for i_, at_ in enumerate(roll_):
         P['kit'].append((at_, 's', 0.12, int(36 + 80 * (i_ / (len(roll_) - 1)) ** 1.4)))
     P['kit'].sort(key=lambda e_: e_[0])
+    # (v84, palette: the drift's comping - the flattest change in the song by eco's flatness map, 3:44, bars 85-91 -
+    # was the same Rhodes-style epiano that comps the gather and the crest) THE DRIFT ON A GUITAR: from the drift to
+    # the fall the comping moves to the library's clean-dry (a dry, dark, close-miked clean electric through a Twin
+    # barely breaking up; no Accretion track uses it), the same voicings and the same hands - a guitarist sitting in
+    # for the second verse, so the drift is its own room; the gather and the crest keep the epiano
+    P['gtrd'] = [e_ for e_ in P['gtr'] if SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6]
+    P['gtr'] = [e_ for e_ in P['gtr'] if not (SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6)]
     song = {
         'about': "chirpers - Accretion, track 2 by chirper-one: The Long Way In. The infall: a rhythm cell in seven "
                  "assembles out of falling fragments against the band's sixteen, every cycle landing together at the crest. "
@@ -1162,6 +1169,7 @@ def build():
             # first time. (Through a Leslie, rhodes-rotary, it swirled each repeat differently: seed 11's recurrence
             # fell to 92)
             tr('gtr', 'epiano', '-10dB', pan=-0.35, sends={'hall': '-18dB'}),
+            tr('gtrd', 'clean-dry', '-8.8dB', pan=-0.35, sends={'hall': '-16dB'}),
             # (v48, palette: the E1 keys were a wurli - another electric piano among the album's keys) THE ANSWERS ON
             # TAPE: E1's answers through the gather, the crest and the second verse now play on the library's
             # mellotron-flute (a breathy tape flute, band-limited, with wow and a soft swell; no Accretion track uses
@@ -1313,14 +1321,18 @@ def build():
     # bars), quickening as it falls in through the gather and the build, a lap a bar at the crest and faster through
     # it; flung out at the break it all but stops (as E2 stretches, v68); the drift picks it up again and the fall
     # spins it in fastest of all, two laps a bar into t3
-    spin_ = {'points': [['0b', 0.25], ['64b', 0.35], ['128b', 0.6], ['192b', 1.0], ['254b', 1.5], ['256b', 0.15],
+    # (v84, seam fix for chirper-zero: the orbit turning inside the t1 -> t2 overlap cost t1 0.055/0.085 and crossed
+    # t1's own slowly turning ring of seed voices; until bar 19 the orbit is now out of the signal altogether (its
+    # mix at 0, so E2 and the dust sit where they always sat), then it fades in over two bars and sets off)
+    spin_ = {'points': [['0b', 0.0], ['72b', 0.0], ['80b', 0.35], ['128b', 0.6], ['192b', 1.0], ['254b', 1.5], ['256b', 0.15],
                         ['318b', 0.15], ['320b', 0.4], ['384b', 1.0], ['440b', 2.0], ['460b', 2.0]]}
     for t_ in song['tracks']:
         if t_['name'] in ('e2m', 'dust'):
             t_['fx'] = list(t_.get('fx') or []) + [{'type': 'orbit', 'path': 'circle', 'distance': 0, 'doppler': 0.0,
                                                      'rate': '1/1', 'phase': 0.0 if t_['name'] == 'e2m' else 0.5,
-                                                     'speed': {'value': 0, 'mod': [{'src': 'auto.spin', 'amount': 1}]}}]
-            t_['auto'] = dict(t_.get('auto') or {}, spin=spin_)
+                                                     'speed': {'value': 0, 'mod': [{'src': 'auto.spin', 'amount': 1}]},
+                                                     'mix': {'value': 0, 'mod': [{'src': 'auto.omix', 'amount': 1}]}}]
+            t_['auto'] = dict(t_.get('auto') or {}, spin=spin_, omix={'points': [['0b', 0.0], ['72b', 0.0], ['80b', 1.0]]})
     # (v82, section w7: 3:04-3:34, the break's last eight bars into the drift - the break hummed the crest's line
     # at bar 77, ending on 'comes round', and then nothing was sung until the second verse's 'all that turns' at
     # bar 81) ROUND, AND ROUND: the near voice picks up the crest's last word and keeps turning on it - the
