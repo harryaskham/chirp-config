@@ -1342,6 +1342,13 @@ def build():
                                                      'speed': {'value': 0, 'mod': [{'src': 'auto.spin', 'amount': 1}]},
                                                      'mix': {'value': 0, 'mod': [{'src': 'auto.omix', 'amount': 1}]}}]
             t_['auto'] = dict(t_.get('auto') or {}, spin=spin_, omix={'points': [['0b', 0.0], ['72b', 0.0], ['80b', 1.0]]})
+    # (v86, whole song: the engine's song feel, as t6 v81, t7 v76 use it) THE BAND IN ORBIT TOGETHER: since v70 the
+    # machines play exact and the hands are humanised one by one, but nothing moved the whole band at once - every
+    # part leaned on its own. Now, from the gather's third bar to the edge of the fall (bars 21-96, both seams left
+    # on the grid), the whole band - machines and hands alike, so their relation is untouched - leans ahead of the
+    # beat and falls back behind it together, on one slow curve that turns every eight bars, up to 6 ms either way:
+    # the song's time itself on an orbit, near and far
+    song['feel'] = {'drift': '6ms', 'drift_bars': 8, 'from': f"{SEC['gather'] * 4.0 + 16.0:g}b", 'to': f"{fall0:g}b"}
     # (v82, section w7: 3:04-3:34, the break's last eight bars into the drift - the break hummed the crest's line
     # at bar 77, ending on 'comes round', and then nothing was sung until the second verse's 'all that turns' at
     # bar 81) ROUND, AND ROUND: the near voice picks up the crest's last word and keeps turning on it - the
