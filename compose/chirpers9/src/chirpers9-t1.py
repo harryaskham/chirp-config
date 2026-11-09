@@ -123,6 +123,7 @@ CHOIRBREATHS = os.environ.get("C9T1_CHOIRBREATHS", "0.6")   # WHOLE (the far cho
 GLINT = os.environ.get("C9T1_GLINT", "9@7000")   # WHOLE (the crystals glint): the seed's five scattered voices, their joins and the cell are the crystal t1 is about, but the whole song sat dark at the top (spectrum's worst band 14.8 kHz, -6.5 dB). Now those crystal voices - only they; the bass, the pad, the choir, the drums and the cello stay as they are - get a high shelf from 9 kHz, so each struck note glints as it lands ('dB[@cutoff Hz]', cutoff 9000 by default)
 RETROHOLD = os.environ.get("C9T1_RETROHOLD", "143")   # SECTION w3 (1:13-1:48, A's middle): the shakuhachi's backwards seed ends on D - and since v66 the whistle's forward hook begins on D (beat 143). Now the shakuhachi's last D holds on across the gap to where the whistle takes it ('value' = the beat it lets go, 143 to hand it straight over, 140 to leave a breath): the seed's end becomes its beginning
 CRESTBLOOM = os.environ.get("C9T1_CRESTBLOOM", "-20")   # SECTION w5 (2:22-2:54, the build and the crest): when the five scattered voices finally land on one downbeat and the seed forms (beat 224), nothing marked the moment but the hook itself. Now a tam-tam (the modal gong: a dense, low plate whose wash swells after the strike) is struck once, softly, far back, exactly at the crest - the convergence blooms and rings into B ('gain' dB)
+MASTEREQ = os.environ.get("C9T1_MASTEREQ", "lite3")   # WHOLE (the mix, against t2 and the album): t1 has no master EQ, while t2 (v75) warmed its own; against t2's body t1 read 19 dB light at 38 Hz and 14 at 44 (the D1 octave) and 14 dB heavy at 114 Hz (A2, where the air, the pad and the bass all sit), and its top was the album's shortest (-6.7 dB at 14.8 kHz). 'seam': a 25 Hz high-pass, +4 dB low shelf below 50 Hz, -3 dB at 114 Hz, +2 dB high shelf from 12 kHz; 'lite': +3 dB at 40 Hz, -2 at 114, the same top; 'lite2': that and +2.5 dB at 182 Hz (the cut uncovered a gap there); 'fill': +3 dB at 40 Hz and +2.5 at 182, the top, no cut; 'lite3': 'lite' with a narrow +1.2 dB at 182 and +3 dB of top
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -904,6 +905,13 @@ def song():
         "event_stable": True,
         "buses": {"space": {"fx": ["reverb kind=hall decay=5.5s mix=1 predelay=40ms", "hp cutoff=200"]}},
         "tracks": tracks,
+        **({"master": {"fx": [{"type": "eq", "bands": (["highpass cutoff=25", "lowshelf cutoff=50 gain=4dB", "peak cutoff=114 q=1.2 gain=-3dB"]
+                                                        if MASTEREQ == "seam" else
+                                                        ["peak cutoff=40 q=1.0 gain=3dB", "peak cutoff=114 q=1.4 gain=-2dB"] if MASTEREQ in ("lite", "lite3") else
+                                                        ["peak cutoff=40 q=1.0 gain=3dB", "peak cutoff=114 q=1.4 gain=-2dB", "peak cutoff=182 q=1.0 gain=2.5dB"] if MASTEREQ == "lite2" else
+                                                        ["peak cutoff=40 q=1.0 gain=3dB", "peak cutoff=182 q=1.0 gain=2.5dB"])
+                                                       + (["peak cutoff=182 q=1.6 gain=1.2dB", "highshelf cutoff=12000 gain=3dB"] if MASTEREQ == "lite3" else ["highshelf cutoff=12000 gain=2dB"])},
+                               "limiter ceiling=-1dB"]}} if MASTEREQ else {}),
     }
 
 
