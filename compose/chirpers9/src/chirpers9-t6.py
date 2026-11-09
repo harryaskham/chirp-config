@@ -1511,6 +1511,25 @@ def build():
     for at0_, vs_ in ((a1_, 0.8), (a2_, 0.95)):
         sg_['notes'] += [dict(n_, at=round(at0_ + n_['at'] - tc_[0]['at'], 4), vel=round(n_['vel'] * vs_, 3)) for n_ in tc_]
     sg_['notes'].sort(key=lambda n_: n_['at'])
+    # (v104, section w5: 2:05-2:36, the crest - the young voice and the old man sang the crest's line together, an
+    # octave apart, at bar 73, and then the crest's last five bars had no voice at all, only the band) EACH TAKES
+    # HIS SIDE: one E1 cycle later (bar 78) the line comes back split between them - the young voice alone sings
+    # 'the near side keeps the time', and the old man alone answers 'the far side lets it go', holding his 'go'
+    # into the cross: the two sides of the song's line given to the two sides of the song, on the same chords
+    cn_ = [t_ for t_ in song['tracks'] if t_['name'] == 'crestnear'][0]
+    co_ = [t_ for t_ in song['tracks'] if t_['name'] == 'crestold'][0]
+    cl0_ = (SEC['crest'] + 8) * 4.0
+    nh_ = sorted([n_ for n_ in cn_['notes'] if cl0_ - 0.1 <= n_['at'] < cl0_ + 4.5], key=lambda n_: n_['at'])
+    oh_ = sorted([n_ for n_ in co_['notes'] if cl0_ + 4.5 <= n_['at'] < cl0_ + 9.0], key=lambda n_: n_['at'])
+    assert len(nh_) == 6 and len(oh_) == 6
+    cn_['notes'] += [dict(n_, at=round(n_['at'] + 20.0, 4), vel=round(n_['vel'] * 0.9, 3)) for n_ in nh_]
+    co_['notes'] += [dict(n_, at=round(n_['at'] + 20.0, 4), vel=round(n_['vel'] * 0.9, 3)) for n_ in oh_]
+    co_['notes'][-1]['len'] = round(SEC['cross'] * 4.0 - 0.3 - co_['notes'][-1]['at'], 3)
+    f0_ = ((co_['notes'][-1].get('expr_path') or {}).get('f0') or [])
+    if 0 < len(f0_) < 96:
+        co_['notes'][-1]['path_len'] = f"{len(f0_) / 44.0:.3f}s"
+    cn_['notes'].sort(key=lambda n_: n_['at'])
+    co_['notes'].sort(key=lambda n_: n_['at'])
     # (v101, whole song: wM's vowel_drift, pinned 07ab00cd, from chirper-one's ask for long notes) THE VOWELS LIVE:
     # this song holds its vowels longer than any other on the album - the old man's long 'go's and 'side's, the
     # choirs' held chords, the near voice's last notes - and every one sat perfectly still, the formants fixed, which
