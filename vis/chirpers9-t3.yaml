@@ -43,17 +43,23 @@ scenes:
       camera: {x: "2.2*sin(time.t*0.02)*(1 - 0.4*var.lock)", y: "0.5 + 1.6*var.lock", z: "0 - 2.2*cos(time.t*0.02)*(1 - 0.4*var.lock)", look_at: [0, -0.25, 0]}
       layers:
         - {type: sky, zenith: "#05040e", horizon: "#2a1a3a", ground: "#050408", sun: "#ffb070", sun_yaw: 0.25, sun_height: "0.08*var.lock - 0.02", sun_size: 0.04, glow: "0.7*var.lock", haze: 0.4}
-        - {type: mesh, shape: plane, detail: 8, y: -0.62, scale: 8, color: "#16161c", light: 0.4, ambient: 0.05, rim: 0, spec: 0.25, shine: 8, cull: true}
+        - {type: mesh, shape: plane, detail: 12, y: -0.62, scale: 8, color: "#0e0e14", light: 0.8, ambient: 0.35, rim: 0, cull: true, material: pbr, rough: 0.22, shading: pixel}
+        # Neon round the plaza in the storm, pooling on the wet stone and rimming the dancers.
+        - {type: light, count: 4, x: "2.2*sin(inst.i/4 + 0.125)", y: 0.5, z: "2.2*cos(inst.i/4 + 0.125)", color: "#ff3cb4", power: "(1.6 + 0.8*env.hit)*(1 - var.lock)*step(0.5, fract(inst.i/2))", reach: 2.5}
+        - {type: light, count: 4, x: "2.2*sin(inst.i/4 + 0.125)", y: 0.5, z: "2.2*cos(inst.i/4 + 0.125)", color: "#3cc8ff", power: "(1.6 + 0.8*env.hit)*(1 - var.lock)*(1 - step(0.5, fract(inst.i/2)))", reach: 2.5}
         - {type: light, x: 1.5, y: 2.5, z: -3, color: "#ffc080", power: "0.15 + 0.6*var.lock", reach: 6}
         - {type: light, x: 0, y: 6, z: 6, color: "#c8d8ff", power: "8*env.flash", reach: 20}
         - {type: beam, count: 2, from: ["-3 + 6*hash(time.t - env.flash.age + inst.i*0.37)", 4, "8 + 3*hash(time.t - env.flash.age + 7)"], to: ["-3 + 6*hash(time.t - env.flash.age + inst.i*0.37) + 0.8*(hash(time.t - env.flash.age + 3) - 0.5) + inst.i*0.5", "0.2 + inst.i*1.2", "8 + 3*hash(time.t - env.flash.age + 7)"], samples: "20 - inst.i*8", jag: "0.45 - inst.i*0.2", bolt: "time.t - env.flash.age + inst.i*13", width: "0.02 - inst.i*0.008", glow: "env.flash*(6 - inst.i*3)*(1 - var.lock)", color: "#e8f0ff"}
         # The crowd: out of step with each other (each its own phase), smearing in the
         # storm, then locking into one groove as the storm resolves.
-        - {type: figure, count: 25, rig: human, motion: dance, x: "(fract(inst.i/5)*5 - 2)*0.42 + 0.06*(hash(inst.i) - 0.5)", z: "(floor(inst.i/5) - 2)*0.42 + 0.06*hash(inst.i + 50)", y: -0.42, scale: "0.32 + 0.05*hash(inst.i + 100)", face: [0, 0, -4], phase: "4*hash(inst.i + 200)*(1 - var.lock)", energy: "(0.6 + 0.5*hash(inst.i + 300)*(1 - var.lock))*(0.7 + audio.level*1.3)", echo: "floor(3.5*(1 - var.lock))", echo_gap: 0.08, color: "#2a2430", light: 1, ambient: 0.12, rim: "0.6 + 0.8*var.lock", rim_color: "#ffd0a0"}
+        - {type: figure, count: 25, rig: human, motion: dance, x: "(fract(inst.i/5)*5 - 2)*0.42 + 0.06*(hash(inst.i) - 0.5)", z: "(floor(inst.i/5) - 2)*0.42 + 0.06*hash(inst.i + 50)", y: -0.42, scale: "0.32 + 0.05*hash(inst.i + 100)", face: [0, 0, -4], phase: "4*hash(inst.i + 200)*(1 - var.lock)", energy: "(0.6 + 0.5*hash(inst.i + 300)*(1 - var.lock))*(0.7 + audio.level*1.3)", echo: "floor(3.5*(1 - var.lock))", echo_gap: 0.08, palette: sunset, pos: "hash(inst.i + 7)", spread: 0, light: 1, ambient: 0.15, rim: "0.4 + 0.8*var.lock", rim_color: "#ffd0a0", material: pbr, rough: 0.5, env_sky: "#2a2440", env_ground: "#08080c"}
         - {type: motes, mode: emit, count: 2500, from: [0, 1.8, 0], wide: 5, deep: 5, wind_y: -3.2, wind_x: -0.4, wobble: 0.05, fall: 0, life: 0.8, streak: 0.06, size: 0.003, glow: "(0.5 + env.flash)*(1 - var.lock)", twinkle: 0, color: "#9aa8c8", near: 0.3, ground: -0.62, splash: 0.03}
       filters:
         - {type: reflect, y: -0.62, amount: "0.6 - 0.3*var.lock", reach: 2, ripple: 0.004, ripples: 40}
+        - {type: shadowmap, amount: "0.65*var.lock", soft: 2, size: 2048}
+        - {type: ao, amount: 0.9, radius: 0.06}
         - {type: chroma, amount: "(0.012*env.hit + 0.02*env.flash)*(1 - var.lock)"}
         - {type: bloom, threshold: 0.6, amount: 0.6}
         - {type: tonemap, knee: 0.75}
         - {type: vignette, amount: 0.45}
+        - {type: aa}
