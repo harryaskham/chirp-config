@@ -113,6 +113,7 @@ VIBBLOOM = os.environ.get("C9T5_VIBBLOOM", "0.8:0.3")   # PALETTE (her voice; wM
 GROOVE = os.environ.get("C9T5_GROOVE", "0.56")   # WHOLE (the feel: t5's chip band played dead straight on the grid, its sixteenths all equal): A TRACKER'S GROOVE - the way a tracker swings, alternating long and short rows: every off-beat sixteenth of the band (orbit, seeds, drums, bass, marimba) lands a little late, so each pair leans long-short. It comes in over A's first 16 beats, holds through C and straightens again by the outro, so both overlaps stay on the grid; the voices, the chords and anything not on an off-beat sixteenth are untouched, and every shifted note is shortened by its delay. Value: the sixteenth-pair ratio (0.5 straight; 0.56 a light lean)
 TIRES = os.environ.get("C9T5_TIRES", "0.8:sink")   # WHOLE (her voice's arc: approaching in A and the build, arrived at the crest, leaving in the farewell - which ages note by note since v42): SHE TIRES AS SHE LEAVES - wM's creak (pin b160e3e5) on her lines, so a soft low phrase end sinks into a little vocal fry (the engine gives it only to quiet, low endings: her 'near-er' calls ending on E4-G4 in the build, the 'clo-ser' endings on E4 in the tide); 'sink': and the farewell's very last 'hums' falls an octave, D5 -> D4, low and soft enough to creak, handing her voice down to t6's old one. Value 'amount[:sink]'
 CELLOROOM = os.environ.get("C9T5_CELLOROOM", "336:352")   # SECTION w6 (2:47-3:20, C's first half: flagged static; eco's flatness map has t5's flattest change at bars 81-88): THE FLOOR GIVES WAY - the cello's slow orbit (v71) came in at 336 under a band that never moved; now the bass and the floor step out for a moment as it enters, so the low end opens around the cello and her second crest line floats on it, and they come back under the DX piano's answer (352). Value 'from:to' beats
+CHIPKIT = os.environ.get("C9T5_CHIPKIT", "kit:-19")   # PALETTE (the cymbals; with CHIPHATS): since v70 t5's 909 plays its hats on the NES's noise channel, but its crash and the spin's ride were still haake-hat - the album's most shared sound. 'kit': the crash and the ride join the console too - the noise channel let ring long (the crash at a darker rate, C5, the ride brighter, C6), so the whole kit is the chip's; 'ride': only the spin's ride. Value 'kit|ride[:ride dB]'
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -931,6 +932,18 @@ def song():
                 tr["patch"] = {"extends": "909", "kit": {
                     "h": {"patch": "nes-noise-hat", "pitch": "C7", "gain": f"{hg}dB", "choke": "hat"},
                     "oh": {"patch": "nes-noise-hat amp.d=260ms amp.r=60ms", "pitch": "C6", "gain": f"{og}dB", "choke": "hat"}}}
+    if CHIPKIT:
+        crash = {"patch": "nes-noise-hat amp.d=1400ms amp.r=300ms", "pitch": "C5", "gain": "-14dB"}
+        ck, *crg = CHIPKIT.split(":")
+        ride = {"patch": "nes-noise-hat amp.d=700ms amp.r=150ms", "pitch": "C6", "gain": f"{crg[0] if crg else -16}dB"}
+        for tr in tracks:
+            if tr["name"] == "drums" and ck == "kit":
+                pt = tr["patch"] if isinstance(tr["patch"], dict) else {"extends": tr["patch"], "kit": {}}
+                pt.setdefault("kit", {})["c"] = crash
+                pt["kit"]["rd"] = ride
+                tr["patch"] = pt
+            if tr["name"] == "spin":
+                tr["patch"] = {"extends": "909", "kit": {"rd": ride}}
     if ANSACCRETE:
         third = {57: 60, 55: 59, 64: 67, 62: 66}
         for tr in tracks:
