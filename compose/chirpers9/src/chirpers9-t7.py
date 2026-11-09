@@ -795,6 +795,15 @@ R87 = os.environ.get("T7_R87", "twang") != "none"
 # snare (slice 4) in sixteenths then thirty-seconds, pitched up a semitone a hit like an MPC pad - jungle's own move,
 # in the innermost orbit. The break-kit track is muted and replaced, not edited. T7_R88=none reproduces v87.
 R88 = os.environ.get("T7_R88", "amen") != "none"
+# round 89 (section, w9 = bars 129-144, the crest's middle; it holds t7's flattest change, 4:00 = bars 134-144, 0.43):
+# T7_R89=crestsax (default) - THE SAX TAKES THE CREST. Bars 139-144 were a crowd with no one in front (hook, horns,
+# strings, jet, bow all at -12..-15 dB). Now the alto sax from the verse (v86) comes back and takes them: E1 on D,
+# a climb up the D major scale to the top G (with a growl), E1 again from A, and a long fall home to D just before
+# the band stops for the tutti (bar 146). Also, for chirper-three: the plunge's 80-100 Hz eased 2.5 dB (a master peak
+# at 90 Hz on a lane, bars 149-160, back by 164), where t7's tail read 8-9 dB over t8's head (out-seam 3.02, past the
+# 3.0 edge since the koto's twang came back). T7_R89=none reproduces v88.
+R89 = os.environ.get("T7_R89", "crestsax") != "none"
+CRESTSAX_GAIN = os.environ.get("T7_CRESTSAX_GAIN", "3dB")   # at ALTO_GAIN (7 dB) it led the crest at -3.9 dB
 AMENX_GAIN = os.environ.get("T7_AMENX_GAIN", "2dB")
 ALTO_GAIN = os.environ.get("T7_ALTO_GAIN", "7dB")   # at 0: -15.0 / -11.4 dB, unheard
 XYLO_GAIN = os.environ.get("T7_XYLO_GAIN", "6dB")   # at 0 it matched the chip: -14.9 dB in the spiral, unheard
@@ -2240,6 +2249,12 @@ def main():
                       "time": "2b", "curve": 1.6},
                      {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}],
               "auto": {"dyn": {"points": dyn}, "close": {"points": close}, "stop": {"points": stop}}}
+    if R89:                                                 # the plunge's 80-100 Hz eased for the t8 seam (bars 149-160)
+        i = next(k for k, f in enumerate(master["fx"]) if isinstance(f, dict) and f.get("type") == "tapestop")
+        master["fx"] = master["fx"][:i] + [{"type": "filter", "kind": "peak", "cutoff": 90, "q": 1.2,
+                                            "gain": {"value": "0dB", "mod": [{"src": "auto.shave", "amount": 1}]}}] + master["fx"][i:]
+        master["auto"] = dict(master["auto"], shave={"points": [["0b", 0], ["592b", 0], ["600b", -2.5], ["640b", -2.5],
+                                                                ["656b", 0], ["704b", 0]]})
     if R85:                                                 # whole: four DJ filter sweeps into downbeats (master, octave lanes)
         i = next(k for k, f in enumerate(master["fx"]) if isinstance(f, dict) and f.get("type") == "tapestop")
         master["fx"] = master["fx"][:i] + [
@@ -2360,6 +2375,23 @@ def main():
                                               "mod": [{"src": "auto.crest", "amount": 1}]}}]
         hk["auto"] = dict(hk.get("auto", {}), crest={"points": [["0b", 0], ["479.8b", 0], ["479.95b", 6], ["511.9b", 6],
                                                                 ["512.4b", 0]]})
+    if R89:                                                 # w9: the alto sax takes the crest (bars 139-144)
+        sc = [(552.0, ((62, .5), (69, .75), (72, .25), (67, 1.0), (64, 1.5))),                  # E1 on D
+              (556.0, ((66, .5), (69, .5), (71, .5), (74, 1.0), (76, 1.5))),                    # climb F# A B D E
+              (560.0, ((78, 1.0), (76, .5), (74, .5), (79, 2.0))),                              # F# E D, the top G
+              (564.0, ((69, .5), (76, .75), (79, .25), (74, 1.0), (71, 1.5))),                  # E1 from A
+              (568.0, ((69, 1.0), (67, 1.0), (64, 1.0), (62, 4.5)))]                            # the fall home to D
+        toks, pos = [], 0.0
+        for at0, notes in sc:
+            at = at0
+            for k, (m, ln) in enumerate(notes):
+                if at > pos + 1e-9:
+                    toks.append(f"R/{at - pos:g}b")
+                toks.append(f"m{m}/{ln - 0.02:g}b@{100 if k == 0 else 90}" + ("^growl" if m == 79 and ln >= 2 else ""))
+                pos = at + ln - 0.02
+                at += ln
+        tracks.append({"name": "crestsax", "patch": "alto-sax", "gain": CRESTSAX_GAIN, "pan": 0.25,
+                       "fx": ["delay time=3/8 mix=0.12 feedback=0.25"], "sends": {"space": "-8dB"}, "score": " ".join(toks)})
     if R88:                                                 # palette: the real amen break (amen-chops) for the chop and the roll
         am = next(tr for tr in tracks if tr.get("name") == "amen")
         toks, pos = [], 0.0
