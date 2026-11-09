@@ -14089,6 +14089,7 @@
        "depth_spread": 0.25,
        "cons_spread": 1.0,
        "taper": 0.5,
+       "attack": 0.5,
        "harmony": [
         2
        ],
@@ -15982,7 +15983,8 @@
        "vowel_spread": 1.0,
        "depth_spread": 0.25,
        "cons_spread": 1.0,
-       "taper": 0.5
+       "taper": 0.5,
+       "attack": 0.5
       }
      ],
      "lfo": {
@@ -17848,7 +17850,8 @@
        "vowel_spread": 1.0,
        "depth_spread": 0.25,
        "cons_spread": 1.0,
-       "taper": 0.5
+       "taper": 0.5,
+       "attack": 0.5
       }
      ],
      "lfo": {
@@ -21351,6 +21354,7 @@
        "inhale": 0.6,
        "inhale_time": "350ms",
        "inhale_depth": 1.0,
+       "attack": -0.3,
        "even": 1.0,
        "register": "expr.reg",
        "age": "expr.age",
@@ -21968,6 +21972,7 @@
        "depth_spread": 1.0,
        "cons_spread": 1.0,
        "taper": 0.8,
+       "attack": -0.6,
        "hum": 1.0,
        "hum_at": "n"
       }
@@ -22226,6 +22231,7 @@
        "inhale": 0.7,
        "inhale_time": "350ms",
        "inhale_depth": 1.0,
+       "attack": -0.7,
        "even": 1.0,
        "register": "expr.reg",
        "age": "expr.age",

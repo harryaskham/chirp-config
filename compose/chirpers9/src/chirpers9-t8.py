@@ -332,7 +332,7 @@ FAR_GAIN = "-5dB"                    # a shut-mouth murmur masks sooner than the
 def far_patch():
     pt = choir_patch(4, depth=DEPTH_FAR)
     pt["about"] = "t8's far choir: four singers far off, mouths shut on 'n' - the answer forming"
-    pt["synth"]["layers"][0].update({"hum": 1.0, "hum_at": "n", "taper": FAR_TAPER})
+    pt["synth"]["layers"][0].update({"hum": 1.0, "hum_at": "n", "taper": FAR_TAPER, "attack": FAR_ATTACK})
     return pt
 
 
@@ -473,7 +473,7 @@ def and_it_was_ours(song):
     last[-1]["len"] = LAST_OURS_LEN
     patch = json.loads(json.dumps(solo["patch"]))
     patch["about"] = "t8's last line: her voice with the deepest breath and the fullest let-go"
-    patch["synth"]["layers"][0].update({"inhale": 0.7, "taper": 1.0})
+    patch["synth"]["layers"][0].update({"inhale": 0.7, "taper": 1.0, "attack": LAST_ATTACK})
     song["tracks"].append(dict({k: v for k, v in solo.items() if k not in ("notes", "patch", "name")},
                                name="last", patch=patch, notes=last))
     for bar, pitch, ln in LAST_ANSWER:
@@ -1423,6 +1423,12 @@ E7_PATCH, E7_GAIN = "brass", "-11dB"
 # parts at 0.5, the far choir's hummed answers at 0.8 (far voices fade further). Not her questions (the solo): a
 # question rises and must not sag; her last line has its own full let-go (v65).
 CHOIR_TAPER, FAR_TAPER = 0.5, 0.8
+# v76 (ROUND TYPE: whole song): HOW EACH VOICE ENTERS. wM's ATTACK (pinned 10254007) shapes how a sung phrase starts on
+# a vowel - breathy below 0, glottal above. Every voice in t8 began alike. Now each enters as what it is in the story:
+# the jet's choir (and its fifth and low parts) pressed and sure (+0.5: 'all of it falls into the light' lands with the
+# jet's force); the far choir's hummed answers out of air (-0.6: distance); her questions a little breathy (-0.3:
+# tentative); her last line, 'and it was ours', blooming out of the deep breath before it (-0.7).
+CHOIR_ATTACK, FAR_ATTACK, SOLO_ATTACK, LAST_ATTACK = 0.5, -0.6, -0.3, -0.7
 
 # v73 (ROUND TYPE: palette): THE UNDERTOW ON GUT AND HORSEHAIR. E3 - t3's storm undertow, here the stretto's low line
 # and (v64) the album's last cadence, its G held into the convergence for the plagal amen - played on a synthetic saw
@@ -1441,7 +1447,7 @@ def choir_patch(singers, tract=0.92, third=False, depth=None):
                                      "together": True, "breath": {"value": 0.34, "mod": [{"src": "vel", "amount": -0.2}]},
                                      "vib_spread": VIB_SPREAD, "vowel_spread": VOWEL_SPREAD,    # v55, v59
                                      "depth_spread": DEPTH_NEAR if depth is None else depth, "cons_spread": CONS_SPREAD,  # v61
-                                     "taper": CHOIR_TAPER})                                     # v66
+                                     "taper": CHOIR_TAPER, "attack": CHOIR_ATTACK})             # v66, v76
     if third:
         # v15 (ROUND TYPE: palette - an engine feature the album had not used: harmony in a key, pin 8e25c1a9): the
         # lead's line is sung again a THIRD above IN THE KEY (D Mixolydian, the jet's E4 v2 - D9 Cmaj9 Am11 G6/9),
@@ -1463,6 +1469,7 @@ SOLO_INHALE = 0.6
 
 SOLO8 = json.loads(json.dumps(VOICE8))
 SOLO8["synth"]["layers"][0]["inhale"] = SOLO_INHALE
+SOLO8["synth"]["layers"][0]["attack"] = SOLO_ATTACK                     # v76
 SOLO8["about"] = "t8's last voice: the choir's lead alone, even vowels - the horizon's last line"
 SOLO8["synth"]["layers"][0]["even"] = 1.0
 SOLO8["synth"]["layers"][0]["register"] = "expr.reg"                 # v30: chest -> head voice across the last line
