@@ -324,7 +324,8 @@ def videos(album_id, sid=None, ids=None, look=None, log=print, run=subprocess.ru
     """480p previews (854x480, 24 fps, crf 30; LOOK, else the song's own programme or the engine default); one track
     at a time, at nice 19 (about 1.3x real time on pocket4 under load). LOOK may be `{id}|FALLBACK` (see look_args);
     REDO re-renders previews that already exist (a track's programme changed); STALE re-renders only those older than
-    their programme or a kit it uses (programme_mtime), plus missing ones.
+    their programme or a kit it uses (programme_mtime), plus missing ones; a preview's mtime is when its render
+    started (a programme changed mid-render is newer than it).
     Each track renders on the groove pin AS IT IS WHEN THAT TRACK STARTS (9 Nov: a run that began on 7f9c5782 failed
     t4-t6 on programmes written for batch 44, adopted mid-run). Landings are gated byte-identical on the album, so a
     newer pin draws the snapshot's own audio."""
@@ -362,6 +363,7 @@ def videos(album_id, sid=None, ids=None, look=None, log=print, run=subprocess.ru
             log(f"{t['id']}: video failed: {r.stderr.strip()[-200:]}")
             continue
         os.rename(out, os.path.join(d, f"{stem}.mp4"))
+        os.utime(os.path.join(d, f"{stem}.mp4"), (t0, t0))   # stamped when its programme was read, for --stale
         t["video"] = True
         with open(os.path.join(d, "snapshot.json.tmp"), "w") as f:
             json.dump(snap, f, indent=1, ensure_ascii=False)

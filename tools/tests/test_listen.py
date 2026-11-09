@@ -9,6 +9,7 @@ import os
 import struct
 import sys
 import tempfile
+import time
 import threading
 import unittest
 import urllib.request
@@ -125,8 +126,10 @@ class Snapshots(unittest.TestCase):
             open(cmd[-1], "wb").write(b"mp4")
             return type("R", (), {"returncode": 0, "stderr": ""})()
         quiet = lambda *x: None   # noqa: E731
+        t0 = time.time()
         L.videos("chirpers9", a["id"], {1}, "{id}|accretion3d", log=quiet, run=run)
         made = os.path.getmtime(os.path.join(d, "t01.mp4"))
+        self.assertLessEqual(made, t0 + 1)                                                    # stamped at its start
         orig = L.programme_mtime
         try:
             L.programme_mtime = lambda look, tid: made - 100                                 # programme older: kept
