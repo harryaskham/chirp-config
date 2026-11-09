@@ -1155,6 +1155,28 @@ ENSEMBLE = {
 }
 
 
+# v84 (ROUND TYPE: whole song): THE SPACE BREATHES WITH THE SONG. One hall (3.2 s) at one level held every section;
+# Harry's list of what should move every 8-16 bars includes 'a filter or space move'. Now the hall's return rides the
+# song's arc (a lane on the bus, tested: a +6 dB ramp read +6.2): A and B's open room as they were; B's small rooms
+# (v80: 47.5-52.5, 55-57) literally smaller - the hall down 4 dB with them; through the rise the space opens with the
+# driving floor (0 -> +4 dB, 65-81); the crest - the stop, the breath, her hook in the clear - in the big hall (+4);
+# and from 97 it closes back for the relief (0 by 101): relief as warmth, close by. The lens, A and the relief (the
+# bodies the t3 and t5 crossfades are measured against) and both crossfades stay where they were.
+SPACE_DB = 4.0
+SPACE_SMALL_DB = -4.0
+
+
+def space_breathes(song):
+    pts = [[0.0, 0.0]]
+    for a_, z_ in SMALL_ROOM:
+        a, z = b0(a_), b0(z_)
+        pts += [[a - 0.5, 0.0], [a, SPACE_SMALL_DB], [z - 0.5, SPACE_SMALL_DB], [z, 0.0]]
+    pts += [[b0(65), 0.0], [b0(81), SPACE_DB], [b0(97), SPACE_DB], [b0(101), 0.0]]
+    hall = song["buses"]["hall"]
+    hall["fx"] = list(hall["fx"]) + ["gain gain=0dB+auto.hs*1"]
+    hall["auto"] = {"hs": {"points": [[f"{b:g}b", v] for b, v in pts]}}
+
+
 def ensemble_breathes(song):
     for tr_ in song["tracks"]:
         if tr_["name"] in ENSEMBLE and tr_["patch"] == ENSEMBLE[tr_["name"]][0]:
@@ -1849,6 +1871,7 @@ def main():
     one_line_each(song)
     harp_forward(song)
     ensemble_breathes(song)
+    space_breathes(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
