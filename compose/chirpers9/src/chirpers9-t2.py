@@ -1379,6 +1379,19 @@ def build():
                fx=list(vs_.get('fx', [])) + ['lp cutoff=2600'], sends={'hall': '-6dB', 'echo': '-12dB'})
     lv_.pop('double', None)
     song['tracks'].append(lv_)
+    # (v87, palette: wM's path_len, pinned 7f9c5782 - an engine feature from chirper-one's finding) EVERY VOICE AT
+    # ITS SUNG RATE: t2's lines were sung by chirp tts --sing (44 pitch points a second) at a quicker tempo than
+    # t2's 90-98 bpm and then laid on t2's beats, so every sung note was stretched - the verse's by a third, the
+    # hum pads' 7.7-beat notes two and a half times - and every vibrato in the song ran slow: about 4.8 Hz on the
+    # lines, a 2.5 Hz warble on the held pads, where a singer sits near 6. Every stretched sung note now carries its
+    # path_len in seconds (its point count over 44): the scoop, the line and the fall still span the note, the
+    # vibrato keeps the rate it was sung at. Paths at the tts cap (96+ points, where the count says nothing) and
+    # notes squeezed shorter than they were sung are left as they were
+    for t_ in song['tracks']:
+        for n_ in t_.get('notes') or []:
+            f0_ = (n_.get('expr_path') or {}).get('f0') or []
+            if f0_ and len(f0_) < 96 and len(f0_) / 44.0 < 0.95 * n_['len'] * 60.0 / 98.0:
+                n_['path_len'] = f"{len(f0_) / 44.0:.3f}s"
     return song
 
 
