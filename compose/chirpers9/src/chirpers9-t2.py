@@ -1384,6 +1384,18 @@ def build():
                fx=list(vs_.get('fx', [])) + ['lp cutoff=2600'], sends={'hall': '-6dB', 'echo': '-12dB'})
     lv_.pop('double', None)
     song['tracks'].append(lv_)
+    # (v89, section w3: 1:03-1:34, the gather's second half into the build - the verse sang 'all that falls, falls a
+    # little nearer' twice, alone both times, the second (bar 25) exactly as the first) THE VOICE ACCRETES: the song
+    # is about matter gathering, so the second time the verse comes round the near voice has gathered a second
+    # voice to itself - the same singer a third above in D dorian (F over D, C over A, A over F, E over C), sung
+    # together - the line literally accreting before the build; the first statement stays alone, and the drift's
+    # second verse is untouched
+    vt_ = [t_ for t_ in song['tracks'] if t_['name'] == 'verse'][0]
+    v2n_ = [n_ for n_ in vt_['notes'] if 95.5 <= n_['at'] < 104.0]
+    vt_['notes'] = [n_ for n_ in vt_['notes'] if not (95.5 <= n_['at'] < 104.0)]
+    vp_ = vt_['patch']
+    song['tracks'].append(dict(vt_, name='versegather', notes=v2n_, gain='-16dB',
+                               patch=dict(vp_, extends=vp_['extends'] + ' synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true')))
     # (v87, palette: wM's path_len, pinned 7f9c5782 - an engine feature from chirper-one's finding) EVERY VOICE AT
     # ITS SUNG RATE: t2's lines were sung by chirp tts --sing (44 pitch points a second) at a quicker tempo than
     # t2's 90-98 bpm and then laid on t2's beats, so every sung note was stretched - the verse's by a third, the
