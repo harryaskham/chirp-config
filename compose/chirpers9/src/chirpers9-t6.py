@@ -1420,6 +1420,17 @@ def build():
         hyn_.append(hn_)
     hp_ = dict(c2t_['patch'], extends='voice-choir synth.layers.0.hum=1 synth.layers.0.hum_at=m synth.layers.0.harmony=[-7,2] synth.layers.0.harmony_key=D:minor synth.layers.0.part_size=1 synth.layers.0.together=true synth.layers.0.f0_spread=1 synth.layers.0.vowel_spread=1 synth.lfo.vib.per_note=true')
     song['tracks'].append(dict(c2t_, name='hymn', patch=hp_, notes=hyn_, gain='-17dB', sends={'hall': '-6dB'}))
+    # (v95, section w8: 3:36-4:06, the tear, the void and the last chorus - the tear pulls the two voices apart, the
+    # young one racing and the old one dragging; then the void; then the last chorus, where the old voice sang the
+    # second couplet with the choir and the flute, and the young voice was gone) THEY SING AS ONE AGAIN: the second
+    # time the last chorus sings the couplet (bar 124), the young near voice is back, an octave above the old man,
+    # as they sang it together at the crest (v73) - after the tear tore them apart, the last chorus puts them back
+    # together, one line in two ages
+    cn_ = [t_ for t_ in song['tracks'] if t_['name'] == 'crestnear'][0]
+    c2s_ = [t_ for t_ in song['tracks'] if t_['name'] == 'chorus2'][0]
+    lc_ = sorted([n_ for n_ in c2s_['notes'] if n_['at'] >= void1 + 10.0 - 0.5], key=lambda n_: n_['at'])
+    cn_['notes'] = sorted(cn_['notes'] + [dict(n_, pitch=f"m{int(str(n_['pitch'])[1:]) + 12}", vel=round(n_['vel'] * 0.95, 3)) for n_ in lc_],
+                          key=lambda n_: n_['at'])
     # (v90, fix with wM's path_len, pinned 7f9c5782, which chirper-one asked for) THE HELD NOTES SING AT THEIR OWN
     # RATE: a sung note stretched past the length it was sung for stretched its f0 path, vibrato and all, so the
     # young voice's slowed farewell and the old man's held last 'go' wavered at about two-thirds and half rate - a
