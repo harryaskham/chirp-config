@@ -698,6 +698,15 @@ R89 = os.environ.get("T3_R89", "ebow") != "none"
 # up to tremolo (they take a second or so, the horn first, the drum after), and it whirls into the eye, where it
 # stops with the drums. T3_R90=none reproduces v89.
 R90 = os.environ.get("T3_R90", "leslie") != "none"
+# round 91 (section, w6 = bars 61-72, the eye and the storm's return; least recently focused of w4-w7):
+# T3_R91=halftime (default) - THE STORM DROPS TO HALF-TIME UNDER THE E-BOW. Bars 69-72 (the e-bow's climb to the
+# high D) ran the same kit as the bars around them, and 2:56 (bars 70-77) was one of t3's flattest changes. Now the
+# kit (kick, hats, 808, the karplus and chip snares) steps out for those four bars and a heavy half-time groove takes
+# over on the rock-kit - kick on one, the snare only on three, open hats into each bar - so the e-bow soars over a
+# storm that seems to slow; at bar 73 the full kit crashes back in with the strings and the ride. T3_R91=none
+# reproduces v90.
+R91 = os.environ.get("T3_R91", "halftime") != "none"
+HALF_GAIN = os.environ.get("T3_HALF_GAIN", "0dB")
 ORGAN_GAIN = os.environ.get("T3_ORGAN_GAIN", "-3dB")   # at 0 it read -5.6 dB, over the counting voices
 EBOW_GAIN = os.environ.get("T3_EBOW_GAIN", "-3dB")   # at 0 it led at -5.2 dB and cost spectrum (99.927)
 TOMS_GAIN = os.environ.get("T3_TOMS_GAIN", "-5dB")   # at 0: -0.3 dB, louder than the reese
@@ -2291,6 +2300,26 @@ def main():
                 tr["fx"] = list(tr.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB",
                                                          "mod": [{"src": "auto.toms", "amount": 1}]}}]
                 tr["auto"] = dict(tr.get("auto", {}), toms=toms)
+    if R91:                                                 # w6: bars 69-72 in half-time under the e-bow, crash back at 73
+        hz = Track("halftime")
+        for b0 in range(272, 288, 4):
+            hz.add(b0, 0.25, "k", 112)
+            hz.add(b0 + 2.75, 0.25, "k", 92)
+            hz.add(b0 + 2.0, 0.25, "s", 120)
+            for e in range(8):
+                if b0 + 0.5 * e >= 286:                     # the phrase-end fill takes 286-288
+                    break
+                hz.add(b0 + 0.5 * e, 0.25, "oh" if e == 7 else "h", 76 if e % 2 == 0 else 58)
+        hz.add(288.0, 0.25, "k", 116)
+        hz.add(288.0, 0.25, "c", 116)
+        tracks.append({"name": "halftime", "patch": "rock-kit", "gain": HALF_GAIN, "pan": 0.0,
+                       "sends": {"space": "-12dB"}, "score": hz.score()})
+        half = {"points": [["0b", 0], ["271.9b", 0], ["272b", -60], ["287.9b", -60], ["288b", 0]]}
+        for tr in tracks:
+            if tr.get("name") in ("kick", "hats", "ksub", "skin", "chipsn"):
+                tr["fx"] = list(tr.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB",
+                                                         "mod": [{"src": "auto.half", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), half=half)
     if R90:                                                 # w5: a rock organ on a rotary holds E3's chords, spins up into the eye
         patches["a3-organ"] = {"about": "chirper-two: organ-rock without its fixed fake Leslie (chorus + tremolo at 6.6 Hz); "
                                         "the track adds the real rotary cabinet on a speed lane",
