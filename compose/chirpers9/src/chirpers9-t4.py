@@ -1106,6 +1106,27 @@ STOP = (b0(CREST), b0(STOP_END))
 HARP_FORWARD_DB = 6.0                 # velocity alone left it at -14.5 (its notes already 88-112): a gain lane
 
 
+# v82 (ROUND TYPE: whole song): THE ENSEMBLE BREATHES WITH HER. Her voice opens on long notes (v78's bloom) and frays
+# at quiet ends (v79's creak); the players around her held every note with one fixed, shallow vibrato. t8 v82 found the
+# recipe that is heard (wM): deepen the vibrato as bloom is added. Now t4's bowed and sliding players lean into long
+# notes - warmer than t8's: the four lights' cellos (0.12 -> 0.18, bloom 0.6: E4's long chords swell as a section
+# does), E3's high violin (0.18 -> 0.23, 0.6) and E3's pedal steel (0.06 -> 0.09, 0.5: the slide's slow shimmer); the
+# clarinet stays straight, as a classical clarinet plays. extends replaces a patch's pitch.mod list, so each is the
+# library patch's own whole list (pin b160e3e5; extendslint clean) with only lfo.vib scaled.
+ENSEMBLE = {
+    "lights": ("cellos", 0.6, [{"amount": 0.18, "src": "lfo.vib"}, {"amount": 0.05, "src": "rand"}]),
+    "e3hi": ("violin", 0.6, [{"amount": 0.23, "src": "lfo.vib"}]),
+    "e3": ("pedal-steel", 0.5, [{"amount": 0.09, "src": "lfo.vib"}]),
+}
+
+
+def ensemble_breathes(song):
+    for tr_ in song["tracks"]:
+        if tr_["name"] in ENSEMBLE and tr_["patch"] == ENSEMBLE[tr_["name"]][0]:
+            base, bloom, mods = ENSEMBLE[tr_["name"]]
+            tr_["patch"] = {"extends": base, "synth": {"lfo": {"vib": {"bloom": bloom}}, "pitch": {"value": 0, "mod": mods}}}
+
+
 def harp_forward(song):
     tr_ = next(x for x in song["tracks"] if x["name"] == "e2")
     a, z = b0(HARP_FORWARD[0]), b0(HARP_FORWARD[1])
@@ -1792,6 +1813,7 @@ def main():
     answer_closes_in(song)
     one_line_each(song)
     harp_forward(song)
+    ensemble_breathes(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
