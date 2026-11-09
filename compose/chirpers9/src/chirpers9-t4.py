@@ -1027,6 +1027,37 @@ def rise_floor():
     P["sub"].ev = [(s, ln, f"m{midi_of(h) + 12}" if a - 1e-6 <= s < z - 1e-6 else h, v) for s, ln, h, v in out]
 
 
+# v75 (ROUND TYPE: palette - swap an instrument where it counts): STICKS FOR THE PEAK. t4's drummer plays brushes all
+# song - right for a song called relief, and the crest too was brushed: its middle (3:04 on seed 5, 0.57) and its hook
+# (3:20, 0.68 on seed 11) the stillest places left. A drummer's own move at a song's peak is to put the brushes down
+# and pick up sticks. Now at 89 - a crash, the hook's lift three bars away - the kick, snare and hat move to a dark
+# rock kit (rock-kit-dark, unused on the album; the brush swish becomes a ghost note, the foot hat a stick hat), the
+# band slams back after her hook's clear (97) on a second crash, and at the relief (101) the brushes come back.
+STICKS = (91, 101)                  # from 89 the switch fell inside 3:04's first half: both halves sticks
+STICK_MAP = {"k": "k", "s": "s", "sw": "g", "sl": "s", "sp": "g", "ss": "ss", "h": "h", "oh": "oh"}
+STICK_GAIN = {"kick": "-9dB", "snare": "-10dB", "hat": "-6dB"}   # kick -12 / hat -12: -15.5 and unheard
+STICK_CRASH = [(91.0, 92), (97.0, 100)]
+
+
+def sticks_for_the_peak():
+    lo, hi = b0(STICKS[0]), b0(STICKS[1])
+    for n in ("kick", "snare", "hat"):
+        keep = []
+        for s, ln, h, v in P[n].ev:
+            if lo - 1e-6 <= s < hi - 1e-6:
+                name = h.partition("^")[0]
+                part(n + "2").add(s, ln, STICK_MAP.get(name, "g"), v * (1.3 if n == "hat" else 1.0))
+            else:
+                keep.append((s, ln, h, v))
+        P[n].ev = keep
+    for bar, v in STICK_CRASH:                  # a Part is monophonic: the crash rides the kick as a chord
+        at = b0(bar)
+        k2 = part("kick2")
+        hit = [e for e in k2.ev if abs(e[0] - at) < 1e-6]
+        k2.ev = [e for e in k2.ev if abs(e[0] - at) >= 1e-6]
+        k2.add(at, max([e[1] for e in hit] + [2.0]), "k,c" if hit else "c", max([e[3] for e in hit] + [v]))
+
+
 def hands_let_go():
     for n, (a_, z_) in (("seed", HANDS_LET_GO), ("bass", FALL_FLOOR_REST)):
         a, z = b0(a_), b0(z_)
@@ -1562,6 +1593,7 @@ def main():
     relief_hands_rest()
     hands_let_go()
     rise_floor()
+    sticks_for_the_peak()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v + verse(),
                    key=lambda d: d["at"])
@@ -1619,7 +1651,10 @@ def main():
             {"name": "bowl", "patch": "singing-bowl", "gain": BOWL_GAIN, "pan": -0.15, "notes": warm_stone()},   # v50
             {"name": "chimes", "patch": "chimes", "gain": CHIME_GAIN, "pan": 0.4, "notes": breeze()},             # v54
             {"name": "keys", "patch": "piano-recorded", "gain": KEYS_GAIN, "pan": -0.2, "sends": {"hall": "-10dB"},
-             "notes": piano_in_the_clear()},                                                                    # v74 (last)
+             "notes": piano_in_the_clear()},                                                                    # v74
+            tr("kick2", "rock-kit-dark", gain=STICK_GAIN["kick"]),                                              # v75
+            tr("snare2", "rock-kit-dark", gain=STICK_GAIN["snare"], pan=0.05, sends={"room": "-12dB"}),        # v75
+            tr("hat2", "rock-kit-dark", gain=STICK_GAIN["hat"], pan=0.2),                                       # v75 (last)
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=20ms", "hp cutoff=180"]},
