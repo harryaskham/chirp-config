@@ -130,6 +130,7 @@ DISPERSE = os.environ.get("C9T1_DISPERSE", "320:368:6:0.08")   # WHOLE (with SEE
 CHOIRCREAK = os.environ.get("C9T1_CHOIRCREAK", "1:all")   # PALETTE (the far choir's voice; wM's creak, pin b160e3e5): the choir's soft low endings let go breathy and dark (taper) - and then simply stopped. Now, as a voice does at the bottom of a soft, tired phrase, the last note of each of its phrases creaks: pressed folds and a little vocal fry over its last 40% and release, the five singers together; the engine gives it only to quiet, low endings (full at A3 and below, none from C5), so the sighs falling to D4 creak most and the hums barely. Value 'amount[:sighs|all]'
 SHAKEIN = os.environ.get("C9T1_SHAKEIN", "57")   # SECTION w2's start (0:44-0:56, the intro's last phrase into A; w1 is flagged static since 7 Nov and eco's flatness map has t1's flattest change at bars 11-16, about 0:40): THE GROUND BEGINS TO MOVE - the shekere's groove (on E1's 5-beat cycle) used to start all at once at A's second phrase (beat 72); now it breathes in under the intro's clave taps, softly at first and swelling, from the clave stroke at 'from' (cycles of 5 beats) until the groove proper takes over at 72. Own track, built after HANDS, so nothing else's feel is redrawn. Value: the start beat
 LOCKHUM = os.environ.get("C9T1_LOCKHUM", "3")   # WHOLE (the far choir's arc): the choir hummed the seed slowly at the start (0:18-0:31) and again as t1 falls into t2 - but was silent at the lock after the crest (beat 240, about 2:58), when every voice of the band plays E1 at once. Now it hums E1 there too, the same slow figure, with everyone: the voice is at the seed's beginning, its fullest moment and its end. A copy of the opening hum (its patch: taper, bloom, creak) moved to the lock. Value: gain change in dB against the opening hum
+FIRSTANSWER = os.environ.get("C9T1_FIRSTANSWER", "once")   # WHOLE (the call and its answer through the song): the whistle states the seed and the harp answers it upside down (the inversion, D G E A C) at A (ANSWER) and through B (the inverse) - but the album's very first call, the whistle's two plain E1s in the intro, went unanswered. Now the harp answers it too, softly, on the next phrase (beat 16): so from the first seconds every call of the seed has its mirror. 'once' the low inversion; 'twice' and again an octave up (as at A)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -898,6 +899,12 @@ def song():
                 n["at"] = round(max(0.0, n["at"] + dt), 4)
                 n["vel"] = round(max(0.05, min(1.0, n["vel"] + ln + rng.gauss(0, sd))), 3)
             tr["notes"].sort(key=lambda n: n["at"])
+    if FIRSTANSWER:
+        inv = [50, 43, 40, 45, 48]
+        ns = [note(16 + o, f"m{m}", ln, 0.36) for o, ln, m in zip(E1_OFF, E1_LEN, inv)]
+        if FIRSTANSWER == "twice":
+            ns += [note(21 + o, f"m{m + 12}", ln, 0.32) for o, ln, m in zip(E1_OFF, E1_LEN, inv)]
+        tracks.append({"name": "answer0", "patch": "ks-harp", "gain": "-14dB", "pan": -0.2, "sends": {"space": "-9dB"}, "notes": ns})
     if SHAKEIN:
         s0 = float(SHAKEIN)
         offs = [0, 1, 1.75, 2.5, 3.25, 4.0]
