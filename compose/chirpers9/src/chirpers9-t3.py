@@ -647,6 +647,14 @@ R81 = os.environ.get("T3_R81", "samba") != "none"
 # winding up through the eyewall, STOPPED in the eye (bars 61-64), spun hard into the lock (bar 89), then winding
 # down to stillness for t4. T3_R82=none reproduces v81.
 R82 = os.environ.get("T3_R82", "vortex") != "none"
+# round 83 (palette - add the part the song lacks): T3_R83=strings (default) - STORM STRINGS. t3 had no strings. Now a
+# real section (library violins: four bowed players, physical strings; no Accretion song uses them) plays the storm's
+# old trick - a measured tremolo, sixteenths - as a halo over the run-up to the lock, bars 73-84: an open fifth on D
+# (D4 A4), up an octave at bar 77, the minor third (F5) joining at bar 81 and the top D at 83, swelling from almost
+# nothing to full and cut dead at bar 85, where the riser takes over. A pedal, so it sits over D, B-flat and C
+# alike (the E3 riff under it). T3_R83=none reproduces v82.
+R83 = os.environ.get("T3_R83", "strings") != "none"
+STRINGS_GAIN = os.environ.get("T3_STRINGS_GAIN", "14dB")   # at 0: -27 / -22 dB, buried
 SAMBA_GAIN = os.environ.get("T3_SAMBA_GAIN", "10dB")   # at 0 it read -20.5 dB (the chip it replaces: -31, buried)   # at 6 it read -2.9 dB, near the reese   # rock-kit hats sit 7 dB under tight-kit's
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
@@ -2172,6 +2180,15 @@ def main():
         master["fx"][0]["bands"] = list(master["fx"][0]["bands"]) + [
             "peak cutoff=660 gain=-3dB q=2.0", "peak cutoff=1400 gain=-3dB q=1.4", "peak cutoff=400 gain=3dB q=0.9",
             "highshelf cutoff=9000 gain=2.5dB"]
+    if R83:                                                 # palette: storm strings, a tremolo halo over bars 73-84
+        vs = Track("stormstr")
+        for k in range(48 * 4):
+            at = 288.0 + 0.25 * k
+            chord = (62, 69) if at < 304 else (74, 81) if at < 320 else (74, 77, 81) if at < 328 else (74, 77, 81, 86)
+            v = int(46 + 66 * (k / (48 * 4 - 1)) ** 1.5) + (6 if k % 4 == 0 else 0)
+            vs.add(at, 0.24, ",".join(mtok(m) for m in chord), min(v, 120))
+        tracks.append({"name": "stormstr", "patch": "violins", "gain": STRINGS_GAIN, "pan": 0.2,
+                       "sends": {"space": "-6dB"}, "score": vs.score()})
     if R82:                                                 # whole: the storm's air circles the listener on one speed lane
         spin = {"points": [["0b", 0.25], ["64b", 0.3], ["144b", 1.0], ["232b", 2.0], ["239.5b", 2.0], ["240b", 0],
                            ["255.5b", 0], ["256b", 1.0], ["336b", 2.0], ["350b", 4.0], ["352b", 4.0], ["356b", 1.0],
