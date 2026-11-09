@@ -21,7 +21,7 @@ scenes:
         - {type: light, x: 0.6, y: 1.8, z: 14, color: "#e8ecff", power: 0.8, reach: 30}
         - {type: mesh, shape: sphere, detail: 40, x: 0.6, y: "0.4 + 1.4*smooth(0, 140, time.t)", z: 14, scale: 1.4, displace: "0.03*fbm(vtx.x*3, vtx.y*3, vtx.z*3)", color: "#d8d4cc", light: 0, ambient: 0, emit: 0.85, rim: 0.3, rim_color: "#e8ecff"}
         # The tide breathing, faster and faster.
-        - {type: group, use: kit-sea, y: "-0.3 + 0.07*sin(time.t*(0.05 + 0.15*var.press))", z: 6, params: {far: 1, swell: "0.5 + 0.5*var.press", light: 0.1}}
+        - {type: group, use: kit-sea, y: "-0.3 + 0.07*sin(time.t*(0.05 + 0.15*var.press))", z: 6, params: {far: 1, swell: "0.5 + 0.5*var.press", light: 0.1, pbr: 1, rough: 0.15}}
         # The murmuration, stretched and squeezed on two cycles of its own.
         - {type: motes, mode: flock, puff: true, count: 7000, y: 1.5, z: 3.5, w: "3.4*(1 + 0.45*sin(time.t*0.07))", h: "1.0*(1 + 0.45*sin(time.t*0.11 + 0.3))", d: 1.6, spin: "1.2 + 2.5*var.press + 1.5*audio.level", wobble: 0.35, size: 0.0045, stretch: 2.5, heading: true, glow: 0.9, twinkle: 0, color: "#141018", near: 0.3}
       filters:
@@ -43,7 +43,7 @@ scenes:
         - {type: stars, count: 2000, speed: 0, twinkle: 0.4}
         - {type: light, x: 0, y: 3, z: 9, color: "#dfe6ff", power: 1.4, reach: 30}
         - {type: mesh, shape: sphere, detail: 48, x: 0, y: "2.6 - 0.4*var.pull", z: 10, scale: "2.4 + 0.6*var.pull", displace: "0.03*fbm(vtx.x*3, vtx.y*3, vtx.z*3)", color: "#d8d4cc", light: 0, ambient: 0, emit: 0.9, rim: 0.4, rim_color: "#e8ecff"}
-        - {type: group, use: kit-sea, y: -0.3, z: 6, params: {far: 1, swell: "0.7 + 0.6*var.pull + 0.5*env.surge", light: 0.12}}
+        - {type: group, use: kit-sea, y: -0.3, z: 6, params: {far: 1, swell: "0.7 + 0.6*var.pull + 0.5*env.surge", light: 0.12, pbr: 1, rough: 0.12}}
         # The great swell pulled up beneath the moon.
         - {type: mesh, shape: plane, detail: 72, y: -0.97, z: 6, scale: 4, displace: "(0.2 + 1.6*var.pull + 0.3*env.surge)*pow(2.718, 0 - (vtx.x*vtx.x*6 + (vtx.z - 0.2)*(vtx.z - 0.2)*10))*(1 + 0.08*noise3(vtx.x*8, time.t*0.5, vtx.z*8))", palette: ocean, colour: height, spread: 0.5, light: 0.4, ambient: 0.05, rim: 0.3, spec: 1, shine: 40, cull: true}
         # Spray torn off its crest, streaming up toward the moon.
