@@ -45,7 +45,7 @@ scenes:
         - {type: mesh, shape: sphere, detail: 48, x: 0, y: "2.6 - 0.4*var.pull", z: 10, scale: "2.4 + 0.6*var.pull", displace: "0.03*fbm(vtx.x*3, vtx.y*3, vtx.z*3)", color: "#d8d4cc", light: 0, ambient: 0, emit: 0.9, rim: 0.4, rim_color: "#e8ecff"}
         - {type: group, use: kit-sea, y: -0.3, z: 6, params: {far: 1, swell: "0.7 + 0.6*var.pull + 0.5*env.surge", light: 0.12, pbr: 1, rough: 0.12, size: 10, ripple: 0.8}}
         # The great swell pulled up beneath the moon.
-        - {type: mesh, shape: plane, detail: 72, y: -0.97, z: 6, scale: 4, displace: "(0.2 + 1.6*var.pull + 0.3*env.surge)*pow(2.718, 0 - (vtx.x*vtx.x*6 + (vtx.z - 0.2)*(vtx.z - 0.2)*10))*(1 + 0.08*noise3(vtx.x*8, time.t*0.5, vtx.z*8))", palette: ocean, colour: height, spread: 0.5, light: 0.4, ambient: 0.05, rim: 0.3, spec: 1, shine: 40, cull: true}
+        - {type: mesh, shape: plane, detail: 110, y: -0.95, z: 6, scale: 4, displace: "(0.1 + 0.55*var.pull + 0.15*env.surge)*pow(2.718, 0 - (vtx.x*vtx.x*2.2 + (vtx.z - 0.2)*(vtx.z - 0.2)*3.4))*(1 + 0.06*noise3(vtx.x*8, time.t*0.5, vtx.z*8))", color: "#15485a", light: 0.6, ambient: 0.32, rim: 0.2, rim_color: "#c8d8ff", cull: true, material: pbr, rough: 0.12, shading: pixel, ripple: 0.8, ripple_scale: 5, env_sky: "#3a4a7a", env_ground: "#05060c"}
         # Spray torn off its crest, streaming up toward the moon.
         - {type: motes, mode: emit, count: "200 + 1800*var.pull", from: [0, "-0.4 + 0.5*var.pull", 7], wide: "0.8 + 1.2*var.pull", deep: 0.8, wind_y: "0.6 + 1.2*var.pull", wind_z: 0.6, wobble: 0.2, fall: 0.1, drag: 0.2, life: 4, streak: 0.06, size: 0.005, glow: "0.7 + 0.5*env.surge", twinkle: 0.3, color: "#c8e0ff", near: 0.3}
       filters:
