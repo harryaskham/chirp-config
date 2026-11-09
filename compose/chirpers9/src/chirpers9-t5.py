@@ -117,6 +117,7 @@ CHIPKIT = os.environ.get("C9T5_CHIPKIT", "kit:-19")   # PALETTE (the cymbals; wi
 WORDSGROW = os.environ.get("C9T5_WORDSGROW", "on")   # WHOLE (her voice's arc; A's chorus came three times exactly alike - and harmony is the crest's to accrete, not A's): THE WORDS ACCRETE - in A she finds the line a few words at a time, on the same tune: the first time only 'near-er' is a word and the rest is hummed (closed lips on the tune), the second time 'near-er the mid-dle' and the 'hums' hummed, the third time the whole line; then at the crest every voice joins her. Value 'on' (or 'soft': the hummed notes a little quieter, x0.8)
 LIGHTSLOCK = os.environ.get("C9T5_LIGHTSLOCK", "strong")   # WHOLE (the lights - E4's four chords on the Kuramoto choir, twelve detuned saws pulled toward one phase - held one coupling all song, wobbling round the critical point; and C read static): THE LIGHTS FALL INTO STEP - the swarm's coupling now follows the orbit: a loose, shimmering crowd in the head and A, pulled toward step through the build, LOCKED at the crest (one pure, darker voice, as every cycle meets), then slowly letting go through C and scattering in the tide into t6. Its own slow wobble stays on top. 'on' 0.7 -> 2.6 -> 0.8; 'strong' 0.4 -> 3.0 -> 0.5
 RHODESLESLIE = os.environ.get("C9T5_RHODESLESLIE", "turn")   # SECTION w3 (1:08-1:41, A's second half, where the Rhodes answers her chorus with E5's figure): THE LESLIE TURNS - the Rhodes had a fixed tremolo; now (wM's rotary, pin bf2a7535) it plays through a Leslie (a fork of the library rhodes without its tremolo): 'turn' on the slow chorale speed through A's second half and switching to the fast tremolo for its last phrase (176), the rotors spinning up into A's end - the organ player's move at a section turn; 'chorale' slow all through
+TURNAROUND = os.environ.get("C9T5_TURNAROUND", "two")   # WHOLE (the bass under the four lights; something should move every 8-16 bars): THE WALK HOME - the bass sat on each chord's root, a bar and a half at a time, D C A G and back to D. Now each time the progression comes home (G back to D: A three times, the build and C three times) the bass walks up into it, as a bass player would at a turnaround: 'two' its last two G notes become A and C; 'three' A, B, C. On the bass and its sub in A and on the 808 from the build
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -963,6 +964,17 @@ def song():
                 tr["fx"] = list(tr.get("fx", [])) + [{"type": "rotary", "speed": {"value": 0, "mod": [{"src": "auto.spd", "amount": 1}]}, "mix": 1}]
                 pts = [["0b", 0.2], ["176b", 0.2], ["176.01b", 1.0], ["496b", 1.0]] if RHODESLESLIE == "turn" else [["0b", 0.2], ["496b", 0.2]]
                 tr["auto"] = dict(tr.get("auto", {}), spd={"points": pts})
+    if TURNAROUND:
+        walk = ["A1", "C2"] if TURNAROUND == "two" else ["A1", "B1", "C2"]
+        for tr in tracks:
+            if tr["name"] in ("bass", "sub", "bass808"):
+                ns = tr["notes"]
+                for i in range(len(ns) - 1):
+                    if ns[i]["pitch"] == "G1" and ns[i + 1]["pitch"] == "D2" and float(ns[i + 1]["at"]) - float(ns[i]["at"]) <= 1.5:
+                        k = len(walk)
+                        if i - k + 1 >= 0 and all(ns[j]["pitch"] == "G1" for j in range(i - k + 1, i + 1)):
+                            for j, wp in zip(range(i - k + 1, i + 1), walk):
+                                ns[j] = dict(ns[j], pitch=wp)
     if ANSACCRETE:
         third = {57: 60, 55: 59, 64: 67, 62: 66}
         for tr in tracks:
