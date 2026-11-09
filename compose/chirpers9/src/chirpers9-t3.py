@@ -676,6 +676,14 @@ R85 = os.environ.get("T3_R85", "ride") != "none"
 # Accretion song uses it), blended under the dry kit. The bus fades in after the in-seam body (by bar 37) and out
 # before the out-body (by bar 101), so neither seam moves. T3_R87=none reproduces v85.
 R87 = os.environ.get("T3_R87", "punch") != "none"
+# round 88 (section, w4 = bars 37-48, the whisper's bars before the eyewall; least recently focused of w4-w7):
+# T3_R88=toms (default) - THE DRUMS GO TO THE TOMS. Bars 43-50 were t3's flattest change since v87 (0.49): the same
+# kit ran from the ride phrase into the eyewall. Now for bars 47-48 the kit (kick, hats, ride, the karplus and chip
+# snares) stops, and a tom figure takes over - E2's rhythm (hits 0, 2, 3, 5 of seven sixteenths) walking down the
+# rock-kit's toms, high to floor, under the whisper's "nothing here is late" - crossing into the eyewall's first bar
+# (to beat 196), where the seven-cycle kit picks it up. One block of drums on their own skin. T3_R88=none reproduces v87.
+R88 = os.environ.get("T3_R88", "toms") != "none"
+TOMS_GAIN = os.environ.get("T3_TOMS_GAIN", "-5dB")   # at 0: -0.3 dB, louder than the reese
 RIDE_GAIN = os.environ.get("T3_RIDE_GAIN", "3dB")   # at 0: -14.8 dB (0.09) at bars 41-48; at 5 spectrum 99.2
 FILLS_GAIN = os.environ.get("T3_FILLS_GAIN", "-3dB")
 STRINGS_GAIN = os.environ.get("T3_STRINGS_GAIN", "14dB")   # at 0: -27 / -22 dB, buried
@@ -2250,6 +2258,22 @@ def main():
             vs.add(at, 0.24, ",".join(mtok(m) for m in chord), min(v, 120))
         tracks.append({"name": "stormstr", "patch": "violins", "gain": STRINGS_GAIN, "pan": 0.2,
                        "sends": {"space": "-6dB"}, "score": vs.score()})
+    if R88:                                                 # w4: bars 47-48 on the toms, E2's rhythm (to beat 196)
+        tz = Track("e2toms")
+        pcs = ("t1", "t2", "t3", "ft")
+        k = 0
+        for s in range(48):                                 # 48 sixteenths, 184-196
+            if s % 7 in (0, 2, 3, 5):
+                tz.add(184.0 + 0.25 * s, 0.25, pcs[(k // 2) % 4], 104 if s % 7 == 0 else 86)
+                k += 1
+        tracks.append({"name": "e2toms", "patch": "rock-kit", "gain": TOMS_GAIN, "pan": -0.1,
+                       "sends": {"space": "-10dB"}, "score": tz.score()})
+        toms = {"points": [["0b", 0], ["183.9b", 0], ["184b", -60], ["191.9b", -60], ["192b", 0]]}
+        for tr in tracks:
+            if tr.get("name") in ("kick", "hats", "ride", "skin", "chipsn"):
+                tr["fx"] = list(tr.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB",
+                                                         "mod": [{"src": "auto.toms", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), toms=toms)
     if R82:                                                 # whole: the storm's air circles the listener on one speed lane
         spin = {"points": [["0b", 0.25], ["64b", 0.3], ["144b", 1.0], ["232b", 2.0], ["239.5b", 2.0], ["240b", 0],
                            ["255.5b", 0], ["256b", 1.0], ["336b", 2.0], ["350b", 4.0], ["352b", 4.0], ["356b", 1.0],
