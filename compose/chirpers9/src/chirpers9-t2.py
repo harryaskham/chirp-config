@@ -1215,7 +1215,13 @@ def build():
             # flute - tape, the album's common colour) E1 ON A REED: it is now wM's shaper-reed (odd harmonics only, the
             # hollow clarinet of the 1979 waveshaping papers, its drive opening as a note is held; no Accretion track
             # uses it), level-matched - a woodwind breath under the voices, the hook in a warmer, woodier voice
-            tr('e1p', 'shaper-reed', '-5.7dB', pan=0.2, sends={'echo': '-14dB', 'hall': '-14dB'}),
+            # (v94, whole song: Harry, 6 Nov - E1 is the album's hook, 'heard clearly and often'; chirper-zero lifted
+            # t5's E1 lines 3 dB for the same reason in t5 v83) THE TUNE, PLAINLY: presence.py had E1's carriers 10-21
+            # dB under the mix - the reed's quick figure at -10.5 to -12, the mallet at -12, the felt piano buried at
+            # -21 in the drift, the fall's bells far back. Each now comes up - the reed, the mallet and the bells 2.5
+            # dB, the felt piano 4 - so wherever E1 runs under the voices it can be followed; the ondes, which sings
+            # it with the voice at the crest, and the voices themselves keep their levels
+            tr('e1p', 'shaper-reed', '-3.2dB', pan=0.2, sends={'echo': '-14dB', 'hall': '-14dB'}),
             # (v39, palette: Risset's bell played E1 twice over - the in-seam's lensed tune and the drift's retrograde
             # canon - one colour for two jobs) THE MEMORY ON VIBES: from the break to the end of the drift the
             # retrograde canon of E1 (augmented x2, against the wurli) is now a VIBRAPHONE - chirper-two's modal-vibes,
@@ -1227,13 +1233,13 @@ def build():
             # scanned-mallet (scanned synthesis: a narrow strike on a ring with no hand, the sharp shape splitting
             # into ripples that run round the ring and smooth away - a struck tone that mellows and shimmers as it
             # dies; no Accretion track uses it) - each note an orbit settling, the song's idea in one sound
-            tr('e1v', 'scanned-mallet', '-9dB', pan=-0.35, sends={'hall': '-10dB', 'echo': '-20dB'}),
-            tr('e1vb', 'piano-muted', '+1dB', pan=-0.35, sends={'hall': '-10dB', 'echo': '-20dB'}),
+            tr('e1v', 'scanned-mallet', '-6.5dB', pan=-0.35, sends={'hall': '-10dB', 'echo': '-20dB'}),
+            tr('e1vb', 'piano-muted', '+5dB', pan=-0.35, sends={'hall': '-10dB', 'echo': '-20dB'}),
             # (v65, palette: the fall's E1 was the same Risset bell as the in-seam's - the song's bookends one sound)
             # THE BELLS TOLL AS IT FALLS IN: in the fall E1 rings on the library's tubular-bells (struck brass tubes,
             # clangorous, a long slowly beating tone; no Accretion track uses them) - the in-seam's lensed bell came
             # in from far away, the fall's tolls the song down into t3's storm
-            tr('e1c', 'tubular-bells', '-19dB', pan=-0.35, sends={'hall': '-8dB'}),
+            tr('e1c', 'tubular-bells', '-16.5dB', pan=-0.35, sends={'hall': '-8dB'}),
             # (v27) the whisper's track is now the far choir's echo, 'farchoir' (below)
             {'name': 'farchoir', 'patch': dict(SU['tracks'][0]['patch'], extends='voice-backing synth.layers.0.together=true synth.layers.0.breath.value=0.55 synth.lfo.vib.per_note=true',
                                            play={'scoop': 1, 'fall': 2.5}),
