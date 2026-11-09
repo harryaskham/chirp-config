@@ -1270,6 +1270,21 @@ def build():
     for t_ in song['tracks']:
         if t_['name'] in GATHER:
             t_['patch'] = dict(t_['patch'], extends=t_['patch']['extends'] + f" synth.layers.0.singers={GATHER[t_['name']]} synth.layers.0.vowel_spread=1 synth.layers.0.f0_spread=1")
+    # (v78, section w4: 1:35-2:06, the build's last twelve bars - flagged 'static, little new vs w3': after the
+    # pre-chorus's 'round and round and round' the voice fell silent for the four bars of A sus before the crest,
+    # the band climbing alone) THE APPROACH SINGS: over the held dominant (bars 45-48) the near voice keeps going -
+    # 'the nearer' three times, each a step higher (B B A, D D B, E E D), then 'the faster' held high on E and D,
+    # letting go just before the crest's 'nearer each time it comes round' drops back to its low D: the pre-chorus's
+    # own words, climbing the last of the way in
+    pr_ = [t_ for t_ in song['tracks'] if t_['name'] == 'prech'][0]
+    tpl_ = sorted(pr_['notes'], key=lambda n_: n_['at'])[:6]
+    add_ = []
+    for f0_, pits_ in ((176.0, (71, 71, 69)), (178.0, (74, 74, 71)), (180.0, (76, 76, 74))):
+        for k_, n_ in enumerate(tpl_[:3]):
+            add_.append(dict(n_, at=round(f0_ + 0.5 * k_, 4), pitch=f"m{pits_[k_]}", vel=round(min(1.0, n_.get('vel', 0.8) * (1.0 + 0.04 * (f0_ - 176.0) / 2.0)), 3)))
+    for at_, n_, pit_, ln_ in ((182.0, tpl_[3], 74, 0.495), (182.5, tpl_[4], 76, 1.45), (184.0, tpl_[5], 74, 3.4)):
+        add_.append(dict(n_, at=at_, pitch=f"m{pit_}", len=ln_))
+    pr_['notes'] = sorted(pr_['notes'] + add_, key=lambda n_: n_['at'])
     # (v76, palette: the engine's track double, which only t7's leads use) THE VERSES DOUBLED: the near voice's own
     # lines around the chorus - both verses ('all that falls', 'all that turns'), the pre-chorus, the early glimpse
     # of the hook and the line found at the break's end - are double-tracked: two takes, 30% left and right on
