@@ -220,6 +220,7 @@ score: "D3/8 A3/8 E4/8 B4/16 F#5/16 C#6/16 G#6/8"   # 2 2 2 1 1 1 2 sixteenths =
 - **In t7 (since v78): on a bow, at half speed.** Over the half-time bars 57-64 the erhu sings E1 at half speed in E-flat, climbs to the octave, sings it again an octave up and comes home to Eb - slow over the fast.
 - **In t7 (since v79): on a Rhodes.** E1's high answer from bar 49 to the end (e1b, and its spiral double) moved from a Game Boy chip to a Rhodes through a rotary speaker (rhodes-rotary), up where the tines ring like bells, stepping back 8 dB whenever the singer sings.
 - **In t7 (since v80): alone, at the top.** In bars 146-147, at the top of the album's hardest crest, the band stops dead and the tutti (horns low, erhu two octaves up) plays E1 twice on D over only the timpani, strings and descant; the band crashes back in at bar 148.
+- **In t7 (since v86): answered by a sax.** In the approach's verse (bars 34-48) an alto saxophone answers each of the singer's lines in its gap: E1 echoed back after "every corner comes sooner", a bluesy fall, E1 a fifth up, and a long fall home to E-flat into the collision.
 - **Ready-made transforms.**
   - Retrograde (a fall from the top, redshift): `G#6/8 C#6/16 F#5/16 B4/16 E4/8 A3/8 D3/8`.
   - Augmented x4 (a slow ascent across a seam): 44 sixteenths, 11 beats.
