@@ -853,6 +853,14 @@ R95 = os.environ.get("T7_R95", "fall") != "none"
 # back to normal over the first bars of t8's overlap. Width only moves the side signal: the mono sum - and the
 # spectrum at both seams - stays put. T7_R96=none reproduces v95.
 R96 = os.environ.get("T7_R96", "field") != "none"
+# round 97 (section, w4 = bars 49-64, the collision's first half; least recently focused away from the seams):
+# T7_R97=fifths (default) - THE BRASS CALLS E7. t7's own element - stacked fifths, the jet's chord - sat inside the jet
+# at -13 dB, never said out loud. Now in the collision a horn section calls it as a fanfare, the fifths climbing in
+# eighths (Eb Bb F C, E7 without its G, which would rub the Gb chords) at the top of every other ten-beat chord cycle:
+# twice in the middle, the third an octave higher, so the collision climbs towards its second half. T7_R97=none
+# reproduces v96.
+R97 = os.environ.get("T7_R97", "fifths") != "none"
+FIFTHS_GAIN = os.environ.get("T7_FIFTHS_GAIN", "3dB")   # at 0: the first call -11.8 dB (0.25)
 FALL_GAIN = os.environ.get("T7_FALL_GAIN", "-4dB")   # at 0: -5.0 dB, over the singer
 BODY_DB = float(os.environ.get("T7_BODY_DB", "3"))
 EASE_DB = float(os.environ.get("T7_EASE_DB", "-2"))
@@ -2310,6 +2318,13 @@ def main():
                                          "synth.layers.0.shepard.cycle=4s synth.layers.1.shepard.cycle=4s synth.amp.r=0.8s"}
         tracks.append({"name": "fall", "patch": "a7-fall", "gain": FALL_GAIN, "pan": 0.0,
                        "sends": {"space": "-10dB"}, "score": "R/448b m63,m70/30b@90"})
+    if R97:                                                 # w4: horn-section E7 calls (Eb Bb F C) in the collision
+        fc = Track("fifths")
+        for at0, base, v in ((202.5, 51, 100), (222.5, 51, 108), (242.5, 63, 116)):
+            for k, iv in enumerate((0, 7, 14, 21)):
+                fc.add(at0 + 0.5 * k, 0.45 if k < 3 else 1.4, f"m{base + iv}", v - 8 + 4 * k)
+        tracks.append({"name": "fifths", "patch": "horn-section", "gain": FIFTHS_GAIN, "pan": -0.25,
+                       "sends": {"space": "-8dB"}, "score": fc.score()})
     if R96:                                                 # whole: the master's width follows the orbit; the plunge collapses it
         i = next(k for k, f in enumerate(master["fx"]) if (isinstance(f, dict) and f.get("type") == "limiter")
                  or (isinstance(f, str) and f.startswith("limiter")))
