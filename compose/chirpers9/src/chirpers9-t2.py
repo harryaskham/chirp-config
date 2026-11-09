@@ -1085,6 +1085,15 @@ def build():
     pbn_ = [(e_[0], m(float(str(e_[1])[1:].partition('^')[0]) - 12), min(e_[2], 0.24), int(58 + 34 * (e_[0] - pb0_) / 8.0))
             for e_ in P['e2body'] if pb0_ - 1e-6 <= e_[0] < pb1_ - 1e-6]
     P['bass'] = sorted([e_ for e_ in P['bass'] if not (pb0_ - 1e-6 <= e_[0] < pb1_ - 1e-6)] + pbn_, key=lambda e_: e_[0])
+    # (v97, section w4: 1:33-2:04, the build's second half - every part climbing and all of them still playing on
+    # the last beat before the crest: the kit, the chip bass, the samba kit, the piano's sixteenths, the e-piano and
+    # E2 ran straight into bar 49, so the crest arrived as more of the same) THE BREATH BEFORE: for the build's last
+    # bar (48) the band stops - only the pad, the sub and the near voice's held 'the faster' are left, hanging - and
+    # the crest lands into that held breath: the moment of falling in, heard as a drop
+    st0_, st1_ = (SEC['crest'] - 1) * 4.0, SEC['crest'] * 4.0
+    for k_ in ('kit', 'kitb', 'hat3', 'bass', 'buildarp', 'gtr', 'e2m', 'e2body', 'dust', 'e1p'):
+        if k_ in P:
+            P[k_] = [e_ for e_ in P[k_] if not (st0_ - 1e-6 <= e_[0] < st1_ - 1e-6)]
     P['gtrd'] = [e_ for e_ in P['gtr'] if SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6]
     P['gtr'] = [e_ for e_ in P['gtr'] if not (SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6)]
     SPD = {'in': (0.1, 0.1), 'gather': (0.1, 0.2), 'build': (0.25, 0.75), 'crest': (1.0, 1.0), 'break': (0.0, 0.0),
@@ -1465,6 +1474,13 @@ def build():
     for t_ in song['tracks']:
         if t_['name'] in ('verse', 'versegather', 'earlyhook', 'sung', 'gtr', 'gtrd'):
             t_['gain'] = f"{float(t_['gain'][:-2]) + 3.0:g}dB"
+    # (v97) the near voice's 'the faster' (held 3.4 beats from bar 47) now holds on through the stopped bar, to just
+    # before the crest's first word
+    for t_ in song['tracks']:
+        if t_['name'] == 'prech':
+            for n_ in t_['notes']:
+                if abs(n_['at'] - ((SEC['crest'] - 1) * 4.0 - 4.0)) < 0.05 and n_.get('ph') == 'S T ER0':
+                    n_['len'] = round(SEC['crest'] * 4.0 - 0.7 - n_['at'], 3)
     # (v87, palette: wM's path_len, pinned 7f9c5782 - an engine feature from chirper-one's finding) EVERY VOICE AT
     # ITS SUNG RATE: t2's lines were sung by chirp tts --sing (44 pitch points a second) at a quicker tempo than
     # t2's 90-98 bpm and then laid on t2's beats, so every sung note was stretched - the verse's by a third, the
