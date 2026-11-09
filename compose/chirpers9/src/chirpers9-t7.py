@@ -723,7 +723,14 @@ JETBRASS_GAIN = os.environ.get("T7_JETBRASS_GAIN", "0dB")
 # (Eb Bb Db Ab F), a climb to the octave (Gb Ab Bb Db Eb), E1 again an octave up, soaring, then down home to Eb as
 # the approach's second half begins - slow over the fast, the album's tune on a bow. T7_R78=none reproduces v77.
 R78 = os.environ.get("T7_R78", "erhu") != "none"
-ERHU_GAIN = os.environ.get("T7_ERHU_GAIN", "4dB")      # break-kit hats sit 7.5 dB under dusty-kit's
+ERHU_GAIN = os.environ.get("T7_ERHU_GAIN", "4dB")
+# round 79 (palette): T7_R79=rhodes (default) - E1'S HIGH VOICE ON A RHODES. From bar 49 to the end E1's high answer
+# (e1b, and its window double e1bw in the spiral) was a Game Boy chip (a7-gb): thin, and the album's chips are
+# everywhere. Now it is a Rhodes through a rotary speaker (library rhodes-rotary: the horn rotor's tremolo, the drum
+# rotor's swirl; no Accretion song uses it) - the same notes, the same delay, up high where the tines ring like bells,
+# swirling. The chip tracks are muted and copied, not edited. T7_R79=none reproduces v78.
+R79 = os.environ.get("T7_R79", "rhodes") != "none"
+RHODES_GAIN = os.environ.get("T7_RHODES_GAIN", "18dB")   # the chip sat 9 dB hotter and was unheard; ducked under the singer      # break-kit hats sit 7.5 dB under dusty-kit's
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -2204,6 +2211,21 @@ def main():
                     gt.add(at, 0.06, ",".join(f"m{n}" for n in chord_at(at)[:2]), 52)   # a ghosted mute
         tracks.append({"name": "chops", "patch": "cutting-guitar", "gain": CHOP_GAIN, "pan": 0.45,
                        "sends": {"space": "-12dB"}, "score": gt.score()})
+    if R79:                                                 # palette: E1's high answer on a Rhodes (e1b, e1bw muted and copied)
+        for nm in ("e1b", "e1bw"):
+            src = next(tr for tr in tracks if tr.get("name") == nm)
+            g = float(str(src.get("gain", "0dB")).replace("dB", "")) + float(RHODES_GAIN.replace("dB", ""))
+            g -= 4.0 if nm == "e1bw" else 0.0                  # the spiral's double was already the hotter: at +18 it led
+            # the singer's phrases in v78 (merged a7-sung*/a7-near* spans): the Rhodes steps back 8 dB under them
+            pts = [["0b", 0]]
+            for a, b in ((128, 132), (144, 150), (160, 164), (176, 182), (208, 212), (240, 244), (296, 300),
+                         (304, 308), (416, 420), (448, 452), (520, 528), (536, 544)):
+                pts += [[f"{a - 0.5:g}b", 0], [f"{a:g}b", -8], [f"{b:g}b", -8], [f"{b + 0.5:g}b", 0]]
+            tracks.append(dict(src, name=nm + "r", patch="rhodes-rotary", gain=f"{g:g}dB",
+                               fx=list(src.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB",
+                                   "mod": [{"src": "auto.sing", "amount": 1}]}}],
+                               auto=dict(src.get("auto", {}), sing={"points": pts})))
+            src["mute"] = True
     if R78:                                                 # w4: an erhu sings over the half time (bars 57-64)
         er = Track("erhu57")
         line = ((224.0, ((63, 1.0), (70, 1.5), (73, 0.5), (68, 2.0), (65, 3.0))),      # E1 x2 in Eb
