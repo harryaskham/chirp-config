@@ -71,6 +71,7 @@ score: "D4/16@112 ./16 A4/16@84 F4/16@98 ./16 C4/16@76 ./16"   # hits on steps 0
 - **In t3 (since v58).** In bars 77-80 of the second storm the hats stop and E2's cell is played by hand on congas (slap, open, open, low on sixteenths 0 2 3 5 of every seven), turning over against the bar, a roll into bar 81.
 - **In t3 (since v61): the seven locks into eight.** At the lock (bars 89-96) E2's hits stay where they were - 0 2 3 5 - but the cycle is eight sixteenths, so the cell sits square on the beat: brass stabs (brass-stab) on Dm - Bb - C - Dm, four per chord, silent while the voice sings "nothing here is late" and answering in its gaps.
 - **In t3 (since v81): debris on hand percussion.** The storm's scattered E2 ticks (bars 5-72, once an 8-bit noise hat) are pandeiro jingles on the accents and a ganza shaker on the rest (samba-kit, on no other Accretion song).
+- **In t3 (since v88): on the toms.** For bars 47-48 the kit stops and E2's rhythm (hits 0, 2, 3, 5 of seven sixteenths) walks down the rock-kit's toms, high to floor, under the whisper, into the eyewall's first bar.
 - **In t7 (since v61): the hats turn corners.** Every fourth eight-bar block of t7's hats (bars 41, 105, ... - every 32 bars from 41) leans on E2's squared cell (0 2 3 5 of eight), between blocks on the beat, open on the off-beat, and "sooner" (accents a sixteenth earlier each bar); the ghost snare still turns E2's seven over the bar underneath.
 
 ### E5, "the inner orbit" (t5, chirper-zero)
