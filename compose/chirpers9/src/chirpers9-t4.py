@@ -1079,12 +1079,20 @@ def warm_third(voice):
 # over the handpan and the sub alone, bare and close (115-118), and the band comes back for the fall's door (119). Placed with
 # care: the t4 -> t5 seam measures the 3 s before the out-seam starts (bar 121 - about 119.6-121, compscore's
 # mix_tail); a first try cut 117-120 and swung that body's low end by 30 dB (refused, round 47).
-VOICES_ALONE = (115, 118)
+VOICES_ALONE = (115, 117)       # v73: was (115, 118)
+# v73 (ROUND TYPE: section, the relief's last bars 113-120, 4:04-4:23; rewritten): TRULY ALONE, THEN HOME. v45's
+# voices-alone bars (115-118) straddled the 8 s window's boundary (4:16, bar 117.3), so both halves held the same mix,
+# and the sub stayed under them (the loudest thing, -4.6 / -3.9; v45 found it cost -0.085 to rest it, back when t4's
+# low end ran short - since v69's warm shelf, v71's floor rest cost nothing): the 4:08 window read flat (0.67). Now
+# the two voices in thirds are TRULY alone for three bars - the handpan and nothing under them, the floor out too -
+# and the band and the floor come home a bar earlier (118), for the fall's door; the out-seam's tail (119.6-121) is
+# unchanged.
+ALONE_FLOOR_OUT = True
 
 
 def voices_alone():
     lo, hi = b0(VOICES_ALONE[0]), b0(VOICES_ALONE[1] + 1)
-    for n in ("lights", "bass", "clar"):                          # the sub stays under them (all four out: -0.085)
+    for n in ("lights", "bass", "clar") + (("sub",) if ALONE_FLOOR_OUT else ()):   # v73: the sub too
         out = []
         for s, ln, h, v in P[n].ev:
             if lo - 1e-6 <= s < hi - 1e-6:
