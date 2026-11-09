@@ -1401,6 +1401,14 @@ HOOK_CLEAR_BAND = ("kick", "snare", "hat", "ride", "air", "sub", "bass")   # wit
 # 71-97 Hz the song lacks, not out of it), the shaker steps out and the kick keeps only its downbeats - and the full
 # floor comes back with the ride's lift at 49 and the drop's turn at 57.
 SMALL_ROOM = [(45, 49), (53, 57)]
+# v80 (ROUND TYPE: section, B 45-57, 1:37-2:04; rewritten): THE SMALL ROOM, HUM BY HUM. The flattest change left in
+# t4 (seed 5: 1:52, 0.55, bars 47-55 - eco's flatness --bars) sat between two 8 s blocks that each held half a small
+# room and half the open one: the rooms (45-49, 53-57) straddled the blocks' boundaries (bars 47.9, 51.5, 55.2 from
+# t4's tempo map) - the t8 tide's lesson again. Now the rooms follow her hums onto whole blocks: her first hum (45) in
+# B's open room; her second and third (47.5, 50) in the small one - the sub an octave up, the shaker out, the kick on
+# its downbeats; the floor back for 52.5-55 as the duet starts closing in (53.5); and her last hum (55) small again,
+# into the drop at 57. Open, small, open, small, the drop: each block unlike the one before.
+SMALL_ROOM = [(47.5, 52.5), (55, 57)]
 
 
 def smaller_room():
