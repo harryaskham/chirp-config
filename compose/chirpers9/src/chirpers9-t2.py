@@ -1203,7 +1203,11 @@ def build():
             # TAPE: E1's answers through the gather, the crest and the second verse now play on the library's
             # mellotron-flute (a breathy tape flute, band-limited, with wow and a soft swell; no Accretion track uses
             # it) - the lofi, Beatles/Radiohead tape colour, softer-edged than the wurli's tines, under the near voice
-            tr('e1p', 'mellotron-flute', '-1dB', pan=0.2, sends={'echo': '-14dB', 'hall': '-14dB'}),
+            # (v91, palette: E1's quick figure through the gather, the build, the crest and the drift was a mellotron
+            # flute - tape, the album's common colour) E1 ON A REED: it is now wM's shaper-reed (odd harmonics only, the
+            # hollow clarinet of the 1979 waveshaping papers, its drive opening as a note is held; no Accretion track
+            # uses it), level-matched - a woodwind breath under the voices, the hook in a warmer, woodier voice
+            tr('e1p', 'shaper-reed', '-5.7dB', pan=0.2, sends={'echo': '-14dB', 'hall': '-14dB'}),
             # (v39, palette: Risset's bell played E1 twice over - the in-seam's lensed tune and the drift's retrograde
             # canon - one colour for two jobs) THE MEMORY ON VIBES: from the break to the end of the drift the
             # retrograde canon of E1 (augmented x2, against the wurli) is now a VIBRAPHONE - chirper-two's modal-vibes,
