@@ -121,6 +121,7 @@ TURNAROUND = os.environ.get("C9T5_TURNAROUND", "two")   # WHOLE (the bass under 
 CHIPRIM = os.environ.get("C9T5_CHIPRIM", "nes-pulse-lead amp.d=25ms|A6|-10")   # PALETTE (the rimshot; with CHIPHATS and CHIPKIT): the 909's rimshot - the tick on the off-beats through A, the build and C, about one a beat - is 'blip', an album staple (t2, t5, t7), the last 909 piece t5 had not moved onto the console. Now it is a chip sound too: 'patch|pitch|gain', e.g. 'chip-metal amp.d=35ms|A6|-8' (the 2A03's short-mode noise, a metallic pitched tick) or 'nes-pulse-lead amp.d=25ms|A6|-10' (a pulse click, the orbit's own voice)
 MOTIFLIFT = os.environ.get("C9T5_MOTIFLIFT", "orbit:3,seed-hi:3,seed-lo:3~368")   # WHOLE (Harry: E1 heard plainly and often; t5's own hook is E5's orbit): THE TUNES UNDER THE VOICE - presence.py (17:35, pin 9f86896d) has the voice at -1..-3 dB against the mix and the bass at -5, but the two things t5 is made of sit low and are followable almost never while they sound: E5's orbit on the NES pulse -15.3 dB (near 0.14), E1 x2 on the chip lead -16.1 (0.07) and on the mandolin -17.8 (0.04). This brings them up under the voice. Value 'track:dB,...' (gain), or 'track:dB,...@BEAT' (velocity, only before BEAT - the tide into t6 left as it was), or 'track:dB,...~BEAT' (a gain lane: the lift held until BEAT, then easing back over 8 bars)
 BUILDSTAGE = os.environ.get("C9T5_BUILDSTAGE", "seeds232drums240")   # SECTION w4 (1:41-2:15, A's end into the build): THE BUILD ACCRETES - after A's breakdown (the bass, the seeds and the kit out for four bars while t1's first breath is quoted) everything came back at once on the build's downbeat (224), so the build began at full height. Now it gathers, the album's own way: the 808 and the marimba on the downbeat, then 'seeds232drums240' E1's seeds two bars later and the kit with the first 'nearer' call (240); 'both232' the seeds and the kit together two bars in
+VOWELDRIFT = os.environ.get("C9T5_VOWELDRIFT", "1")   # PALETTE (the voice; wM's vowel_drift, pin 07ab00cd): her held vowels sat perfectly still - the 'ah' of 'mid-dle', the long 'near-er's, the hums' open vowels - part of what reads as a machine. Now each held vowel lives: its formants wander slowly about the written vowel (growing in after 0.2 s, settling before the release, so consonants and joined seams stay exact), each note and each harmony part on its own curve. Value: the amount (1 free, 0.5 a steadier, trained singer)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -1076,6 +1077,11 @@ def song():
             if tr["name"] == "hums-out" and tw and tw[0] == "sink":
                 last = max(tr["notes"], key=lambda n: n["at"])
                 last["pitch"] = "D4"
+    if VOWELDRIFT:
+        for tr in tracks:
+            pt = tr.get("patch")
+            if tr["name"] in ("nearer", "hums-a", "hums-e1", "hums-1", "hums-2", "hums-3", "hums-out") and isinstance(pt, dict):
+                pt["extends"] += f" synth.layers.0.vowel_drift={VOWELDRIFT}"
     if MOTIFLIFT:
         mspec, _, mtill = MOTIFLIFT.partition("@")
         mspec, _, mramp = mspec.partition("~")
