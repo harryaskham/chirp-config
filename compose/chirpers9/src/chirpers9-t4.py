@@ -220,6 +220,7 @@ def hum1_patch():
     p["synth"]["layers"][0]["breath"] = 0.12
     p["synth"]["layers"][0].pop("taper", None)            # v61: the t3 seam's stand-in keeps its square ends
     p["synth"]["layers"][0].pop("inhale_depth", None)     # v66: and its breath
+    p["synth"]["layers"][0].pop("attack", None)           # v72: and its onsets
     p["synth"]["layers"][0]["inhale"] = HUM1_INHALE
     return p
 
@@ -655,12 +656,21 @@ VOICE["synth"]["layers"][0].update({"inhale": 0.6, "inhale_depth": 1.0})
 VOICE2_INHALE, VOICE2_DEPTH = 0.45, 1.0
 HUM1_INHALE = 0.4                       # hum1 keeps the breath it had
 
+# v72 (ROUND TYPE: palette - the newest engine feature): TWO WAYS OF BEGINNING. wM's ATTACK (pinned 10254007) shapes
+# how a sung phrase starts on a vowel - breathy below 0 (air first, the tone closing in over up to 120 ms), glottal
+# above (a faster, pressed start). t4's two singers began every vowel phrase the same way. Now they differ the way
+# their characters do: hers blooms out of a little air (-0.5: 'I kept...', 'and turned...', the hummed 'oo's - the
+# warm, older singer), the young duet's starts clean and firm (+0.3, a younger voice singing with intent). Only the
+# first note of each phrase changes; hum1 (the t3 seam's stand-in) is untouched.
+VOICE["synth"]["layers"][0]["attack"] = -0.5
+VOICE2_ATTACK = 0.3
+
 VOICE2 = {"about": "t4's second singer (v7): lighter and a little brighter, a third above in the duet; joined (v10)",
           "play": {"mono": True, "glide": "90ms", "glide_smooth": True, "scoop": 1.0, "fall": 1.5,
                    "glide_overshoot": 0.05},
           "synth": {"layers": [{"type": "voice", "tract": 0.95, "breath": BREATHES(0.46), "effort": EFFORT, "formant_bw": 1.4, "ph_soft": 0.35,
                                 "consonant_level": "-6dB", "pulse_rate": 5, "join": True, "inhale": VOICE2_INHALE,
-                                "taper": VOICE2_TAPER, "inhale_depth": VOICE2_DEPTH}],
+                                "taper": VOICE2_TAPER, "inhale_depth": VOICE2_DEPTH, "attack": VOICE2_ATTACK}],
                     "lfo": {"vib": {"wave": "sine", "rate": "5.6hz", "delay": "250ms", "fade": "400ms",
                                     "retrig": True, "wander": 0.6}},
                     "pitch": {"value": 0, "mod": [{"src": "expr.f0", "amount": 0.01}, {"src": "lfo.vib", "amount": 0.16}]},

@@ -623,7 +623,8 @@
        "hum": "expr.hum",
        "hum_at": "m",
        "taper": 0.6,
-       "inhale_depth": 1.0
+       "inhale_depth": 1.0,
+       "attack": -0.5
       }
      ],
      "lfo": {
@@ -3336,7 +3337,8 @@
        "join": true,
        "inhale": 0.45,
        "taper": 0.4,
-       "inhale_depth": 1.0
+       "inhale_depth": 1.0,
+       "attack": 0.3
       }
      ],
      "lfo": {
