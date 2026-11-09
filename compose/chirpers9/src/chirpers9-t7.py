@@ -866,6 +866,13 @@ R97 = os.environ.get("T7_R97", "fifths") != "none"
 # back alone and plays the album's tune plainly at half speed in Eb (Eb Bb Db Ab F) - then again an octave up, just
 # before the launch (bar 87), a small bright solo voice in the gap. T7_R98=none reproduces v97.
 R98 = os.environ.get("T7_R98", "cavaco") != "none"
+# round 99 (section, w9 = bars 129-144, the crest's middle; it still holds t7's flattest change, 4:00 = bars 134-144):
+# T7_R99=surge (default) - THE CREST'S LAST PUSH. The crest ran one broken-beat groove from bar 121 to the tutti stop
+# (bar 146), and 4:00 stayed t7's flattest change (0.48) even with the sax on top. Now for its last five bars (140-144)
+# the kick straightens into four-on-the-floor - every beat, hard - with open hats on every off-beat and a crash at the
+# turn, the house drive t7 started from, pushing the sax's last phrase into the stop. T7_R99=none reproduces v98.
+R99 = os.environ.get("T7_R99", "surge") != "none"
+SURGE_GAIN = os.environ.get("T7_SURGE_GAIN", "-3dB")   # at 0: the kick -2.1 dB (loudest), the open hats -6.1
 CAVSOLO_GAIN = os.environ.get("T7_CAVSOLO_GAIN", "7dB")   # at -3 dB: -18.3 dB, not heard
 FIFTHS_GAIN = os.environ.get("T7_FIFTHS_GAIN", "3dB")   # at 0: the first call -11.8 dB (0.25)
 FALL_GAIN = os.environ.get("T7_FALL_GAIN", "-4dB")   # at 0: -5.0 dB, over the singer
@@ -2325,6 +2332,21 @@ def main():
                                          "synth.layers.0.shepard.cycle=4s synth.layers.1.shepard.cycle=4s synth.amp.r=0.8s"}
         tracks.append({"name": "fall", "patch": "a7-fall", "gain": FALL_GAIN, "pan": 0.0,
                        "sends": {"space": "-10dB"}, "score": "R/448b m63,m70/30b@90"})
+    if R99:                                                 # w9: four-on-the-floor, off-beat open hats, a crash, bars 140-144
+        sk, so = Track("surgek"), Track("surgeoh")
+        for b in range(556, 576):
+            sk.add(float(b), 0.25, "k", 118 if b % 4 == 0 else 108)
+            so.add(b + 0.5, 0.25, "oh", 92)
+        so.add(556.0, 0.25, "c", 112)
+        tracks.append({"name": "surgek", "patch": "dusty-kit", "gain": SURGE_GAIN, "out": "drums", "score": sk.score()})
+        tracks.append({"name": "surgeoh", "patch": "break-kit", "gain": f"{float(SURGE_GAIN[:-2]) - 2:g}dB", "pan": 0.15, "out": "drums",
+                       "score": so.score()})
+        sg = {"points": [["0b", 0], ["555.95b", 0], ["556b", -60], ["575.95b", -60], ["576b", 0]]}
+        for tr in tracks:
+            if tr.get("name") in ("kick", "kick9"):
+                tr["fx"] = list(tr.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB",
+                                                         "mod": [{"src": "auto.surge", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), surge=sg)
     if R98:                                                 # w6: the cavaquinho plays E1 alone in the slack, twice
         cv = Track("cavsolo")
         for at0, base, v in ((320.0, 63, 92), (336.0, 75, 102)):
