@@ -1298,6 +1298,18 @@ def build():
             # darker and breathier, sagging a few cents) instead of stopping square
             if isinstance(t_.get('patch'), dict) and 'extends' in t_['patch']:
                 t_['patch'] = dict(t_['patch'], extends=t_['patch']['extends'] + ' synth.layers.0.inhale=0.7 synth.layers.0.inhale_depth=1 synth.layers.0.taper=0.6')
+    # (v80, section w9: 4:06-4:35, the out-seam - flagged static: the slowing groove ran eight bars with nothing new
+    # before the old man's last word) THE LAST EXCHANGE: as the band's time dilates, the young near voice sings its
+    # half of the couplet one last time - 'the near side keeps the time' - from far off (an octave up, darkened,
+    # well under the band) and slowed with everything else (half again as long), at bar 135; four bars later the old
+    # voice answers with his last word, 'the far side lets it go', as he always has. The duet the song began with
+    # ends as it began, in turns, and the young voice is the one that keeps going into t7
+    fw_ = [t_ for t_ in song['tracks'] if t_['name'] == 'duetnear'][0]
+    fw0_ = (SEC['out'] + 6) * 4.0
+    fwn_ = [dict(n_, at=round(fw0_ + n_['at'] * 1.5, 4), len=round(n_['len'] * 1.5, 4),
+                 pitch=f"m{int(str(n_['pitch'])[1:]) + 12}", vel=round(n_['vel'] * 0.8, 3)) for n_ in L1_]
+    song['tracks'].append(dict(fw_, name='farewell', notes=fwn_, gain='-14dB',
+                               fx=list(fw_.get('fx', [])) + ['lp cutoff=2400'], sends={'hall': '-6dB', 'echo': '-14dB'}))
     return song
 
 
