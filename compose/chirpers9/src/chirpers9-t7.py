@@ -788,6 +788,14 @@ R86 = os.environ.get("T7_R86", "alto") != "none"
 # (2) The crest's landing boom (landboom, one D1 at bar 121) was the 808 that t3 and t5 share; now it is the library
 # 808-long (a tuned 808 with a long boom and a pitch-punch thump; no Accretion song uses it). T7_R87=none reproduces v86.
 R87 = os.environ.get("T7_R87", "twang") != "none"
+# round 88 (palette): T7_R88=amen (default) - THE REAL AMEN. The crest's chop (bar 136) and the roll before the plunge
+# (bars 144) were the amen imitated on the break-kit's pieces (round 73) - a kit t2 shares. Now they are the break
+# itself: the library amen-chops (the four-bar amen break sliced into 32 sixteenths, resampled at the song's tempo;
+# no Accretion song uses it). The chop plays the break's first bar verbatim, slices 0-15; the roll hammers its first
+# snare (slice 4) in sixteenths then thirty-seconds, pitched up a semitone a hit like an MPC pad - jungle's own move,
+# in the innermost orbit. The break-kit track is muted and replaced, not edited. T7_R88=none reproduces v87.
+R88 = os.environ.get("T7_R88", "amen") != "none"
+AMENX_GAIN = os.environ.get("T7_AMENX_GAIN", "2dB")
 ALTO_GAIN = os.environ.get("T7_ALTO_GAIN", "7dB")   # at 0: -15.0 / -11.4 dB, unheard
 XYLO_GAIN = os.environ.get("T7_XYLO_GAIN", "6dB")   # at 0 it matched the chip: -14.9 dB in the spiral, unheard
 RHODES_GAIN = os.environ.get("T7_RHODES_GAIN", "18dB")   # the chip sat 9 dB hotter and was unheard; ducked under the singer      # break-kit hats sit 7.5 dB under dusty-kit's
@@ -2352,6 +2360,20 @@ def main():
                                               "mod": [{"src": "auto.crest", "amount": 1}]}}]
         hk["auto"] = dict(hk.get("auto", {}), crest={"points": [["0b", 0], ["479.8b", 0], ["479.95b", 6], ["511.9b", 6],
                                                                 ["512.4b", 0]]})
+    if R88:                                                 # palette: the real amen break (amen-chops) for the chop and the roll
+        am = next(tr for tr in tracks if tr.get("name") == "amen")
+        toks, pos = [], 0.0
+        ev = [(540.0 + 0.25 * i, 0.25, f"m{36 + i}", 112 if i % 4 == 0 else 100, "") for i in range(16)]
+        ev += [(574.0 + 0.25 * i, 0.25, "m40", 92 + 4 * i, "") for i in range(4)]
+        ev += [(575.0 + 0.125 * i, 0.125, "m40", 104 + 2 * i, f"^tune={i}") for i in range(8)]
+        for at, ln, pc, v, extra in ev:
+            if at > pos + 1e-9:
+                toks.append(f"R/{at - pos:.6g}b")
+            toks.append(f"{pc}/{ln:.6g}b@{v}{extra}")
+            pos = at + ln
+        tracks.append({"name": "amenx", "patch": "amen-chops", "gain": AMENX_GAIN, "out": am.get("out", "drums"),
+                       "score": " ".join(toks)})
+        am["mute"] = True
     if R87:                                                 # palette: koto-pl keeps koto's twang and drift; landboom on 808-long
         if "koto-pl" in patches:
             kp = patches["koto-pl"]
