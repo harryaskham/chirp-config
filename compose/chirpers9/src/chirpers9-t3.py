@@ -669,6 +669,13 @@ R84 = os.environ.get("T3_R84", "fills") != "none"
 # new shine) - the hats stepping back 6 dB for each, so the top of the kit changes colour phrase by phrase. (A fourth,
 # bars 105-112, sat in the out-body t4 is measured against: flow 97.6 -> 76.9.) T3_R85=none reproduces v84.
 R85 = os.environ.get("T3_R85", "ride") != "none"
+# round 87 (whole): T3_R87=punch (default) - THE STORM HITS HARDER. The storm's kit (tight-kit, the rock-kit's hats,
+# ride and fills, the karplus drums) went straight to the master, thin and boxy under the reese. Now it is sent in
+# parallel to a drum bus (library rack drum-bus-punch: slower-attack compression so the transients punch, light
+# saturation, +2.5 dB at 62 Hz and -3.5 at 420 - the weight t3 lacks and the box it has - and a tight room; no
+# Accretion song uses it), blended under the dry kit. The bus fades in after the in-seam body (by bar 37) and out
+# before the out-body (by bar 101), so neither seam moves. T3_R87=none reproduces v85.
+R87 = os.environ.get("T3_R87", "punch") != "none"
 RIDE_GAIN = os.environ.get("T3_RIDE_GAIN", "3dB")   # at 0: -14.8 dB (0.09) at bars 41-48; at 5 spectrum 99.2
 FILLS_GAIN = os.environ.get("T3_FILLS_GAIN", "-3dB")
 STRINGS_GAIN = os.environ.get("T3_STRINGS_GAIN", "14dB")   # at 0: -27 / -22 dB, buried
@@ -2197,6 +2204,10 @@ def main():
         master["fx"][0]["bands"] = list(master["fx"][0]["bands"]) + [
             "peak cutoff=660 gain=-3dB q=2.0", "peak cutoff=1400 gain=-3dB q=1.4", "peak cutoff=400 gain=3dB q=0.9",
             "highshelf cutoff=9000 gain=2.5dB"]
+    if R87:                                                 # whole: the kit sent in parallel to a punch bus
+        for tr in tracks:
+            if tr.get("patch") in ("tight-kit", "rock-kit", "ks-drum") and not tr.get("mute"):
+                tr["sends"] = dict(tr.get("sends") or {}, punch="-2dB")
     if R85:                                                 # whole: four phrases on the ride, the hats back 8 dB
         phrases = ((160, 192, "off"), (288, 320, "off"), (352, 384, "lock"))     # 105-112 is the out-body: flow 77
         rd = Track("ride")
@@ -2281,7 +2292,11 @@ def main():
     ] + (["feel: " + json.dumps({"drift": "5ms", "drift_bars": 4, "nudge": {"k": "-4ms", "s": "6ms", "cp": "6ms"}})]
          if R78 and not R79 else []) + [
         "patches: " + json.dumps(patches),
-        "buses: " + json.dumps({"space": {"gain": "-5dB", "fx": ["hp cutoff=250", "reverb kind=plate decay=2.2s mix=1"]}}),
+        "buses: " + json.dumps(dict({"space": {"gain": "-5dB", "fx": ["hp cutoff=250", "reverb kind=plate decay=2.2s mix=1"]}},
+                                    **({"punch": {"fx": ["rack:drum-bus-punch", {"type": "gain", "gain": {"value": "0dB",
+                                        "mod": [{"src": "auto.punch", "amount": 1}]}}],
+                                        "auto": {"punch": {"points": [["0b", -60], ["136b", -60], ["144b", 0], ["396b", 0],
+                                                                      ["404b", -60], ["513b", -60]]}}}} if R87 else {}))),
         "master: " + json.dumps(master),
         "tracks:",
     ]
