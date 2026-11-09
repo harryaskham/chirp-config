@@ -1124,6 +1124,24 @@ def build():
     # under t7's head: the church by the sea saying amen as the tide goes out
     am0_ = (SEC['out'] + 12) * 4.0
     P['ebb'] = sorted(P['ebb'] + [(am0_, ','.join(m(p_) for p_ in (46, 50, 53, 58)), 15.0, 62)], key=lambda e_: e_[0])
+    # (v98, section w3: 1:03-1:35, the tide - the shakuhachi played E1 twice at the tide's start (bars 33-34) and
+    # the same twice again at bar 41, where the tide's chords turn from D and C to A and G) THE TUNE TURNS WITH THE
+    # TIDE: at bar 41, as the harmony turns, the flute plays E1 backwards - E G C A D, its long note first and its
+    # quick ones last, the rhythm reversed with it - twice, the tune itself ebbing where the tide turns; the next time
+    # the flute plays it (the surge) it runs forwards again
+    tt0_, tt1_ = (SEC['tide'] + 8) * 4.0, (SEC['tide'] + 11) * 4.0
+    hk_ = [e_ for e_ in P['hook'] if tt0_ - 1e-6 <= e_[0] < tt1_ - 1e-6]
+    if len(hk_) == 10:
+        rest_ = [e_ for e_ in P['hook'] if not (tt0_ - 1e-6 <= e_[0] < tt1_ - 1e-6)]
+        rev_ = []
+        for g_ in (hk_[:5], hk_[5:]):
+            g_ = sorted(g_, key=lambda e_: e_[0])
+            slots_ = [g_[i_ + 1][0] - g_[i_][0] for i_ in range(4)] + [1.5]
+            at_ = g_[0][0]
+            for k_, i_ in enumerate(range(4, -1, -1)):
+                rev_.append((at_, g_[i_][1], slots_[i_] * 0.95, g_[0][3] if k_ == 0 else g_[1][3]))
+                at_ += slots_[i_]
+        P['hook'] = sorted(rest_ + rev_, key=lambda e_: e_[0])
     rk0_ = SEC['crest'] * 4.0
     P['kitroom'] = [e_ for e_ in P['kit'] if e_[0] >= rk0_ - 1e-6]
     P['kit'] = [e_ for e_ in P['kit'] if e_[0] < rk0_ - 1e-6]
