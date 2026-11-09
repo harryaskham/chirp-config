@@ -713,6 +713,14 @@ R91 = os.environ.get("T3_R91", "halftime") != "none"
 # so the chip hats, the shards and the reese's fizz stop glaring. Both flat over the seam bodies. T3_R93=none
 # reproduces v91 (v92 was refused).
 R93 = os.environ.get("T3_R93", "heft") != "none"
+# round 94 (palette - swap the one staple left, add the voice the eye lacked): T3_R94=theremin (default) - THE EYE GETS
+# AN UNEARTHLY VOICE, AND THE LOCK DIVES. (1) In the eye's calm (bars 61-64) a theremin (library theremin: a pure
+# singing sine with a slow, deep vibrato; no Accretion song uses it) sings E1 four times slower - D A C G E, the whole
+# eye long - under the dizi's high ornament, a slow duet in the still air. (2) The boom at the lock (bar 89) was the
+# 808 t5 also uses, one D1 at -14.5 dB, barely heard; now it is the library 808-slide (unused on chirpers9) diving from
+# D2 down to D1, 4 dB louder: the storm locks with a drop you feel. T3_R94=none reproduces v93.
+R94 = os.environ.get("T3_R94", "theremin") != "none"
+THEREMIN_GAIN = os.environ.get("T3_THEREMIN_GAIN", "0dB")
 HEFT_DB = float(os.environ.get("T3_HEFT_DB", "3"))
 SOFTEN_DB = float(os.environ.get("T3_SOFTEN_DB", "-2"))
 HALF_GAIN = os.environ.get("T3_HALF_GAIN", "0dB")
@@ -2388,6 +2396,18 @@ def main():
         mid = [["0b", 0], ["128b", 0], ["144b", 1], ["368b", 1], ["384b", 0], ["513b", 0]]
         master["auto"] = dict(master["auto"], weight={"points": [[b, 3.0 * v] for b, v in mid]},
                               unbox={"points": [[b, -3.5 * v] for b, v in mid]})
+    if R94:                                                 # palette: a theremin sings E1 x4 over the eye; the lock's boom dives
+        th = Track("theremin")
+        at = 240.0
+        for m, ln in ((62, 2.0), (69, 3.0), (72, 1.0), (67, 4.0), (64, 6.0)):
+            th.add(at, ln - 0.05, f"m{m}", 84)
+            at += ln
+        tracks.append({"name": "theremin", "patch": "theremin", "gain": THEREMIN_GAIN, "pan": 0.2,
+                       "sends": {"space": "-6dB"}, "score": th.score()})
+        bm = next(tr for tr in tracks if tr.get("name") == "boom")
+        bm["patch"] = "808-slide"
+        bm["gain"] = "-2dB"
+        bm["score"] = "R/352b m38/1b@110 m26/5b@104 R/154b"
     if R93:                                                 # whole: the sub and 808 up 3 dB, 3.2 kHz down 2 - between the seams
         mid = [["0b", 0], ["128b", 0], ["144b", 1], ["368b", 1], ["384b", 0], ["513b", 0]]
         for tr in tracks:
