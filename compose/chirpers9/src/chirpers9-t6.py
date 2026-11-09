@@ -1496,6 +1496,21 @@ def build():
                 f0_ = (n_.get('expr_path') or {}).get('f0') or []
                 if f0_ and len(f0_) / n_['len'] < 18.0:
                     n_['path_len'] = f"{len(f0_) / 44.0:.3f}s"   # (v93: in seconds - tts paths are 44 points a second; the beat figure ran ~10% fast at the out-seam's 132 bpm)
+    # (v102, section w2: 0:32-1:03, the pull - the old man sang 'the tide comes in' twice in the in, then the near
+    # voice took it twice at the pull's end (bars 27 and 30), each alone: two singers who never met on their own line)
+    # THE TIDE PASSES HAND TO HAND: now the pull's two statements become a canon - at bar 27 the near voice leads and
+    # the old man follows two beats behind, an octave under her, on her held 'in'; at bar 30 he leads, two beats
+    # ahead of her, and she follows - the line handed over and back, the two voices overlapping for the first time,
+    # as the pull draws them together before the tide
+    sg_ = [t_ for t_ in song['tracks'] if t_['name'] == 'sung'][0]
+    tc_ = sorted([n_ for n_ in sg_['notes'] if 24.0 <= n_['at'] < 28.0], key=lambda n_: n_['at'])
+    assert len(tc_) == 4
+    nw_ = [t_ for t_ in song['tracks'] if t_['name'] == 'nearwake'][0]
+    nw0_ = sorted(n_['at'] for n_ in nw_['notes'])
+    a1_, a2_ = nw0_[0] + 1.752, nw0_[4] - 2.248
+    for at0_, vs_ in ((a1_, 0.8), (a2_, 0.95)):
+        sg_['notes'] += [dict(n_, at=round(at0_ + n_['at'] - tc_[0]['at'], 4), vel=round(n_['vel'] * vs_, 3)) for n_ in tc_]
+    sg_['notes'].sort(key=lambda n_: n_['at'])
     # (v101, whole song: wM's vowel_drift, pinned 07ab00cd, from chirper-one's ask for long notes) THE VOWELS LIVE:
     # this song holds its vowels longer than any other on the album - the old man's long 'go's and 'side's, the
     # choirs' held chords, the near voice's last notes - and every one sat perfectly still, the formants fixed, which
