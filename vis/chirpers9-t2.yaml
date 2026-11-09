@@ -14,7 +14,7 @@ scenes:
       background: "#000000"
       camera: {x: "0.3*sin(time.t*0.01)", y: "0.75 + 0.08*audio.low", z: -2.8, look_at: [0, 0.35, 2], roll: "0.02*sin(time.t*0.02)"}
       layers:
-        - {type: sky, zenith: "#2a3c6a", horizon: "#ffb880", ground: "#6a5a60", sun: "#fff0d0", sun_yaw: 0.0, sun_height: 0.04, sun_size: 0.04, glow: 1.2, haze: 0.4}
+        - {type: sky, zenith: "#2a3c6a", horizon: "#ffb880", ground: "#6a5a60", sun: "#fff0d0", sun_yaw: 0.0, sun_height: 0.04, sun_size: 0.04, glow: 1.2, haze: 0.4, clouds: 0.45, cloud_height: 2.5, cloud_scale: 0.25, cloud_speed: 0.06}
         - {type: group, use: kit-terrain, y: -0.4, z: 2, params: {height: 0.9, travel: "0.45 + 0.3*audio.level", seed: 2, pbr: 1, trees: 1}}
         - {type: figure, rig: bird, count: 5, x: "1.2*sin(time.t*0.07 + inst.i*0.2)", y: "0.9 + 0.15*sin(time.t*0.11 + inst.i)", z: "2.5 + 0.8*cos(time.t*0.07 + inst.i*0.2)", face: ["1.2*sin(time.t*0.07 + 0.02 + inst.i*0.2)", "0.9 + 0.15*sin(time.t*0.11 + inst.i)", "2.5 + 0.8*cos(time.t*0.07 + 0.02 + inst.i*0.2)"], scale: 0.26, phase: "inst.i*0.4", energy: "0.7 + 0.5*audio.level", color: "#2a2430", light: 1, ambient: 0.2, rim: 0.8, rim_color: "#ffd0a0"}
         - {type: figure, rig: bird, count: 3, x: "-1.4*sin(time.t*0.045 + inst.i*0.3)", y: "1.2 + 0.1*inst.i", z: "3.4 + 1.1*cos(time.t*0.045 + inst.i*0.3)", face: ["-1.4*sin(time.t*0.045 + 0.02 + inst.i*0.3)", "1.2 + 0.1*inst.i", "3.4 + 1.1*cos(time.t*0.045 + 0.02 + inst.i*0.3)"], scale: 0.28, motion: glide, color: "#2a2430", light: 1, ambient: 0.2, rim: 0.8, rim_color: "#ffd0a0"}
@@ -34,7 +34,7 @@ scenes:
         lamp: {on: bar, decay: 0.6}
       camera: {x: "0.3 + 0.1*sin(time.t*0.05)", y: 0.3, z: -0.9, look_at: [0, 0.1, 6]}
       layers:
-        - {type: sky, zenith: "#0a1028", horizon: "#c86a50", ground: "#14101a", sun: "#ffb080", sun_yaw: 0, sun_height: -0.01, sun_size: 0.03, glow: 0.8, haze: 0.4}
+        - {type: sky, zenith: "#0a1028", horizon: "#c86a50", ground: "#14101a", sun: "#ffb080", sun_yaw: 0, sun_height: -0.01, sun_size: 0.03, glow: 0.8, haze: 0.4, clouds: 0.35, cloud_height: 3, cloud_scale: 0.2, cloud_light: 0.6}
         - {type: stars, count: 1200, speed: 0, twinkle: 0.4}
         # The plain and the road running to the horizon, its dashes flowing past.
         - {type: mesh, shape: plane, detail: 16, y: -0.62, z: 10, scale: 14, color: "#1a1a1c", light: 0.6, ambient: 0.12, rim: 0, cull: true, material: pbr, rough: 0.85, env_sky: "#6a3a30", env_ground: "#0a0a0c", shading: pixel}

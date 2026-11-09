@@ -16,7 +16,7 @@ scenes:
         press: {value: "smooth(0, 140, time.t)"}
       camera: {x: "0.3*sin(time.t*0.01)", y: "0.25 + 0.05*sin(time.t*(0.1 + 0.2*var.press))", z: -2.8, look_at: [0, 0.45, 2]}
       layers:
-        - {type: sky, zenith: "#2a3a6a", horizon: "#e09878", ground: "#2a3040", sun: "#ffd8b0", sun_yaw: -0.1, sun_height: 0.01, sun_size: 0.04, glow: 0.9, haze: 0.4}
+        - {type: sky, zenith: "#2a3a6a", horizon: "#e09878", ground: "#2a3040", sun: "#ffd8b0", sun_yaw: -0.1, sun_height: 0.01, sun_size: 0.04, glow: 0.9, haze: 0.4, clouds: 0.35, cloud_height: 3, cloud_scale: 0.22}
         # The moon rising, huge.
         - {type: light, x: 0.6, y: 1.8, z: 14, color: "#e8ecff", power: 0.8, reach: 30}
         - {type: mesh, shape: sphere, detail: 40, x: 0.6, y: "0.4 + 1.4*smooth(0, 140, time.t)", z: 14, scale: 1.4, displace: "0.03*fbm(vtx.x*3, vtx.y*3, vtx.z*3)", color: "#d8d4cc", light: 0, ambient: 0, emit: 0.85, rim: 0.3, rim_color: "#e8ecff"}
