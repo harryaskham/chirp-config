@@ -818,6 +818,26 @@ FIRST_FLOOR = (25, 29)
 FIRST_FLOOR_VEL = 12                  # at 70 the pedal (-0.1) buried the hook itself (E1 -12.9, unheard)
 
 
+# v86 (ROUND TYPE: section, the approach 82-97, 2:08-2:32; rewritten): THE WELL. t8's flattest change left (2:16,
+# 0.75 / 0.71, bars 82-92 by flatness --bars; blocks 82.4-87.6 and 87.6-92.9) - v85's rotor spin-down at 87.4 did not
+# move it: the organ sits at -18.5, and under both blocks ran one floor, the bass's D2 ostinato unbroken from the tide
+# to the jet. Now, AT 87.5, the floor sinks into the gravity well: the bass's ostinato drops an octave (D2 -> D1)
+# through the stretch, the slowing clocks (93) and the vacuum, the kick already doubling (87) - and at the jet (97)
+# it comes back up to D2 with the light. (Spectrum checked first: t8's lowest bands have room - 38 Hz -2.5, 44 Hz -4.5.)
+WELL = (87.5, 97)
+
+
+def octave_down(h):
+    base, _, art = h.partition("^")                         # keep the articulation (the palm mute, ^pm)
+    m = int(base[1:]) if base.startswith("m") else midi(base)
+    return name_of(m - 12) + ("^" + art if art else "")
+
+
+def the_well():
+    a, z = b0(WELL[0]), b0(WELL[1])
+    P["bass"].ev = [(s, ln, octave_down(h) if a - 1e-6 <= s < z - 1e-6 else h, v) for s, ln, h, v in P["bass"].ev]
+
+
 def first_floor():
     a, z = b0(FIRST_DARK[0]), b0(FIRST_DARK[1])
     out = []
@@ -1718,6 +1738,7 @@ def main():
     approach_quickens()
     jet_floor()
     first_floor()
+    the_well()
     everything_falls_in()
     light_out_for_the_amen()
     lead, fifth, low = choir()
