@@ -1306,6 +1306,21 @@ def build():
         if t_['name'] in ('verse', 'prech', 'earlyhook', 'sung'):
             t_['double'] = {'pan': 30, 'seeds': [76, 67]}
             t_['gain'] = f"{float(str(t_['gain'])[:-2]) - 3:g}dB"
+    # (v81, section w9: 4:04-4:45, the fall into t3 - flagged static: once the kit, the bass, the bells and the hum
+    # stop at bar 105, the fall's last eight bars were the pad, the sub and E2 sinking alone) THE FIRST WORDS, LAST:
+    # at bar 105 the near voice sings the song's first line once more - 'all that falls, falls a little nearer' -
+    # from far off (darkened, 3.5 dB under the verse and wetter, single-tracked) and slowed by half again, as if
+    # falling itself; its D minor sits in the fall's D | B-flat | C. The song that began with the line ends on it,
+    # and hands t3 a voice still falling
+    vs_ = [t_ for t_ in song['tracks'] if t_['name'] == 'verse'][0]
+    v1_ = sorted([n_ for n_ in vs_['notes'] if 79.0 <= n_['at'] < 88.0], key=lambda n_: n_['at'])
+    lv0_ = (fall0 + 32.0)
+    lvn_ = [dict(n_, at=round(lv0_ + (n_['at'] - v1_[0]['at']) * 1.5, 4), len=round(n_['len'] * 1.5, 4),
+                 vel=round(n_['vel'] * 0.85, 3)) for n_ in v1_]
+    lv_ = dict(vs_, name='lastverse', notes=lvn_, gain='-18dB',
+               fx=list(vs_.get('fx', [])) + ['lp cutoff=2600'], sends={'hall': '-6dB', 'echo': '-12dB'})
+    lv_.pop('double', None)
+    song['tracks'].append(lv_)
     return song
 
 
