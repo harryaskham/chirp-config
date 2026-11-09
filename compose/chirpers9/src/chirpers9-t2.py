@@ -1074,6 +1074,17 @@ def build():
     # through felt. The crest keeps its scanned mallet
     P['e1vb'] = [e_ for e_ in P['e1v'] if e_[0] >= SEC['break'] * 4.0 - 1e-6]
     P['e1v'] = [e_ for e_ in P['e1v'] if e_[0] < SEC['break'] * 4.0 - 1e-6]
+    # (v95, section w2: 0:32-1:03, the in-seam's end into the gather - when the kit arrives (bar 17) the NES bass
+    # fell silent for four bars, then started its riff at bar 21 under the verse: the gather's floor came in from
+    # nowhere) THE BASS IS PULLED IN: for the two bars before the verse (19-20) the bass picks up E2 - the notes of
+    # the seven-sixteenth cell that the gather's E2 plays, D A F D, an octave under E2's body, soft and growing, as
+    # if caught by the cycle; at bar 21 it lets go into its own riff. The floor gathers out of the song's own motif
+    # (the whole cell, every D A F C of every cycle, for both bars or only the second, cost recurrence 2-4 points
+    # on every seed: the gather stopped reading as the song's gather)
+    pb0_, pb1_ = (SEC['gather'] + 2) * 4.0, (SEC['gather'] + 4) * 4.0
+    pbn_ = [(e_[0], m(float(str(e_[1])[1:].partition('^')[0]) - 12), min(e_[2], 0.24), int(58 + 34 * (e_[0] - pb0_) / 8.0))
+            for e_ in P['e2body'] if pb0_ - 1e-6 <= e_[0] < pb1_ - 1e-6]
+    P['bass'] = sorted([e_ for e_ in P['bass'] if not (pb0_ - 1e-6 <= e_[0] < pb1_ - 1e-6)] + pbn_, key=lambda e_: e_[0])
     P['gtrd'] = [e_ for e_ in P['gtr'] if SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6]
     P['gtr'] = [e_ for e_ in P['gtr'] if not (SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6)]
     SPD = {'in': (0.1, 0.1), 'gather': (0.1, 0.2), 'build': (0.25, 0.75), 'crest': (1.0, 1.0), 'break': (0.0, 0.0),
