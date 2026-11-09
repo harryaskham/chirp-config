@@ -640,6 +640,13 @@ FILL_GAIN = os.environ.get("T3_FILL_GAIN", "3dB")
 # metal shaker) on the rest - the same hits, the same velocities. The chip track is muted and copied, not edited.
 # T3_R81=none reproduces v80.
 R81 = os.environ.get("T3_R81", "samba") != "none"
+# round 82 (whole): T3_R82=vortex (default) - THE STORM TURNS AROUND YOU. The storm's air stood still in the stereo
+# field. Now it circles the listener (orbit fx, Chowning's moving sources; distance 0 and no Doppler, so no pitch
+# bends and no level change - only where it is): the wind (dust, the whole song) a lap a bar, the glass shards on a
+# figure of eight two laps a bar, the swarm four laps a bar - all on one speed lane: barely turning in the calm head,
+# winding up through the eyewall, STOPPED in the eye (bars 61-64), spun hard into the lock (bar 89), then winding
+# down to stillness for t4. T3_R82=none reproduces v81.
+R82 = os.environ.get("T3_R82", "vortex") != "none"
 SAMBA_GAIN = os.environ.get("T3_SAMBA_GAIN", "10dB")   # at 0 it read -20.5 dB (the chip it replaces: -31, buried)   # at 6 it read -2.9 dB, near the reese   # rock-kit hats sit 7 dB under tight-kit's
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
@@ -2165,6 +2172,16 @@ def main():
         master["fx"][0]["bands"] = list(master["fx"][0]["bands"]) + [
             "peak cutoff=660 gain=-3dB q=2.0", "peak cutoff=1400 gain=-3dB q=1.4", "peak cutoff=400 gain=3dB q=0.9",
             "highshelf cutoff=9000 gain=2.5dB"]
+    if R82:                                                 # whole: the storm's air circles the listener on one speed lane
+        spin = {"points": [["0b", 0.25], ["64b", 0.3], ["144b", 1.0], ["232b", 2.0], ["239.5b", 2.0], ["240b", 0],
+                           ["255.5b", 0], ["256b", 1.0], ["336b", 2.0], ["350b", 4.0], ["352b", 4.0], ["356b", 1.0],
+                           ["416b", 1.0], ["448b", 0.3], ["480b", 0], ["513b", 0]]}
+        for nm, path, rate in (("dust", "circle", "1/1"), ("swarm", "circle", "1/4")):   # the shards' figure 8: a 32 s flat run
+            tr = next(x for x in tracks if x.get("name") == nm)
+            tr["fx"] = list(tr.get("fx") or []) + [{"type": "orbit", "path": path, "distance": 0, "doppler": 0.0,
+                                                    "rate": rate, "speed": {"value": 0, "mod": [{"src": "auto.spin",
+                                                                                                 "amount": 1}]}}]
+            tr["auto"] = dict(tr.get("auto", {}), spin=spin)
     if R78:                                                 # whole: weight at 50 Hz, the box at 340 out - between the seams
         mid = [["0b", 0], ["128b", 0], ["144b", 1], ["384b", 1], ["400b", 0], ["513b", 0]]
         master["fx"] = [master["fx"][0],
