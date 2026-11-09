@@ -112,6 +112,7 @@ ORBITSLOW = os.environ.get("C9T5_ORBITSLOW", "336:416:-20")   # WHOLE (C, the so
 VIBBLOOM = os.environ.get("C9T5_VIBBLOOM", "0.8:0.3")   # PALETTE (her voice; wM's vibrato bloom, pin 0119aae1, asked for by chirper-zero): her vibrato was one fixed width on every note - short and long alike. Now it blooms: each note starts nearly straight, the vibrato widening while it is held (about 0.8x of the width early, full after a second, 1.3x on the long holds), so quick words stay clean and long notes open up like a singer's. On all her sung lines (calls, hums, words, farewell); not the breathy quote of t1. Value 'bloom[:depth]' (depth: the vibrato's pitch swing, 0.22 by default)
 GROOVE = os.environ.get("C9T5_GROOVE", "0.56")   # WHOLE (the feel: t5's chip band played dead straight on the grid, its sixteenths all equal): A TRACKER'S GROOVE - the way a tracker swings, alternating long and short rows: every off-beat sixteenth of the band (orbit, seeds, drums, bass, marimba) lands a little late, so each pair leans long-short. It comes in over A's first 16 beats, holds through C and straightens again by the outro, so both overlaps stay on the grid; the voices, the chords and anything not on an off-beat sixteenth are untouched, and every shifted note is shortened by its delay. Value: the sixteenth-pair ratio (0.5 straight; 0.56 a light lean)
 TIRES = os.environ.get("C9T5_TIRES", "0.8:sink")   # WHOLE (her voice's arc: approaching in A and the build, arrived at the crest, leaving in the farewell - which ages note by note since v42): SHE TIRES AS SHE LEAVES - wM's creak (pin b160e3e5) on her lines, so a soft low phrase end sinks into a little vocal fry (the engine gives it only to quiet, low endings: her 'near-er' calls ending on E4-G4 in the build, the 'clo-ser' endings on E4 in the tide); 'sink': and the farewell's very last 'hums' falls an octave, D5 -> D4, low and soft enough to creak, handing her voice down to t6's old one. Value 'amount[:sink]'
+CELLOROOM = os.environ.get("C9T5_CELLOROOM", "336:352")   # SECTION w6 (2:47-3:20, C's first half: flagged static; eco's flatness map has t5's flattest change at bars 81-88): THE FLOOR GIVES WAY - the cello's slow orbit (v71) came in at 336 under a band that never moved; now the bass and the floor step out for a moment as it enters, so the low end opens around the cello and her second crest line floats on it, and they come back under the DX piano's answer (352). Value 'from:to' beats
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -996,6 +997,11 @@ def song():
                 off = round((gr - 0.5) * 0.5 * w, 4)
                 n["at"] = round(at + off, 4)
                 n["len"] = round(max(0.05, n["len"] - off), 4)
+    if CELLOROOM:
+        ra, rb = (float(x) for x in CELLOROOM.split(":"))
+        for tr in tracks:
+            if tr["name"] in ("bass808", "floor"):
+                tr["notes"] = [n for n in tr["notes"] if not (ra <= n["at"] < rb)]
     if TIRES:
         ta, *tw = TIRES.split(":")
         for tr in tracks:
