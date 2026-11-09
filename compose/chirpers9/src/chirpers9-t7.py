@@ -839,6 +839,14 @@ R93 = os.environ.get("T7_R93", "ratchet") != "none"
 # eases 2.2 kHz by 2 dB (q 0.8): the bass and the kicks have a body you feel, and the brass and chips stop shouting.
 # (t3 v93's move, on t7's own numbers.) T7_R94=none reproduces v93.
 R94 = os.environ.get("T7_R94", "body") != "none"
+# round 95 (section, w8 = bars 113-128, the pull into the crest; least recently focused away from the seams):
+# T7_R95=fall (default) - YOU HEAR THE PULL. Bars 113-120 are the pull that resolves the storm (Eb) to home (D) at bar
+# 121, and above the bass, kicks and timpani there was only the singer and the turn horns. Now an endless falling
+# Shepard-Risset tone (library shepard-pad, unused on chirpers9, forked to fall: shepard.down, an octave every 4 s)
+# holds Eb and Bb and falls the whole eight bars without ever arriving - the illusion of dropping forever, the inner
+# orbit's gravity made audible - and cuts away just before the crest lands. T7_R95=none reproduces v94.
+R95 = os.environ.get("T7_R95", "fall") != "none"
+FALL_GAIN = os.environ.get("T7_FALL_GAIN", "-4dB")   # at 0: -5.0 dB, over the singer
 BODY_DB = float(os.environ.get("T7_BODY_DB", "3"))
 EASE_DB = float(os.environ.get("T7_EASE_DB", "-2"))
 RATCHET_GAIN = os.environ.get("T7_RATCHET_GAIN", "11dB")   # at 0 dB: -19.5 dB, inaudible
@@ -2289,6 +2297,12 @@ def main():
                       "time": "2b", "curve": 1.6},
                      {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}],
               "auto": {"dyn": {"points": dyn}, "close": {"points": close}, "stop": {"points": stop}}}
+    if R95:                                                 # w8: an endless falling Shepard tone over the pull (bars 113-120)
+        patches["a7-fall"] = {"about": "chirper-two: shepard-pad falling (shepard.down) an octave every 4 s, short release",
+                              "extends": "shepard-pad synth.layers.0.shepard.down=true synth.layers.1.shepard.down=true "
+                                         "synth.layers.0.shepard.cycle=4s synth.layers.1.shepard.cycle=4s synth.amp.r=0.8s"}
+        tracks.append({"name": "fall", "patch": "a7-fall", "gain": FALL_GAIN, "pan": 0.0,
+                       "sends": {"space": "-10dB"}, "score": "R/448b m63,m70/30b@90"})
     if R94:                                                 # whole: 105 Hz +3, 2.2 kHz -2 on the master, between the seams
         mid = [["0b", 0], ["128b", 0], ["144b", 1], ["560b", 1], ["576b", 0], ["704b", 0]]
         i = next(k for k, f in enumerate(master["fx"]) if isinstance(f, dict) and f.get("type") == "tapestop")
