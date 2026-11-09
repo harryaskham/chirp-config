@@ -1298,6 +1298,13 @@ def build():
             # darker and breathier, sagging a few cents) instead of stopping square
             if isinstance(t_.get('patch'), dict) and 'extends' in t_['patch']:
                 t_['patch'] = dict(t_['patch'], extends=t_['patch']['extends'] + ' synth.layers.0.inhale=0.7 synth.layers.0.inhale_depth=1 synth.layers.0.taper=0.6')
+    # (v81, whole song: the engine's song feel, as t7 v76 and t3 v78 use it) THE TIDE IN THE TIME: each player was
+    # humanised on its own (v68, v70), but the band never moved together - the beat itself was a fixed shore. Now,
+    # from the pull to the edge of the out-seam, the whole band leans ahead of the beat and falls back behind it
+    # together, on one slow curve that turns every eight bars (up to 8 ms either way): the time itself rising and
+    # ebbing like water, the seams on the grid. (Tried first: wM's vibrato bloom on every voice - no change at all,
+    # -120 dB: the sung lines' vibrato is baked into their f0 paths, which already widen through each held note)
+    song['feel'] = {'drift': '8ms', 'drift_bars': 8, 'from': f"{SEC['pull'] * 4.0:g}b", 'to': f"{SEC['out'] * 4.0:g}b"}
     # (v80, section w9: 4:06-4:35, the out-seam - flagged static: the slowing groove ran eight bars with nothing new
     # before the old man's last word) THE LAST EXCHANGE: as the band's time dilates, the young near voice sings its
     # half of the couplet one last time - 'the near side keeps the time' - from far off (an octave up, darkened,
