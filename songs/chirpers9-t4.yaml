@@ -605,11 +605,13 @@
     "about": "t4's voice: a warm, close, human singer - slightly larger tract, soft breath, covered vowels; joined lines, a real breath before each, a wandering vibrato (v10)",
     "play": {
      "mono": true,
-     "glide": "110ms",
+     "glide": "90ms",
      "glide_smooth": true,
      "scoop": 1.2,
      "fall": 2.0,
-     "glide_overshoot": 0.07
+     "glide_overshoot": 0.07,
+     "glide_semi": "7ms",
+     "glide_lead": 0.4
     },
     "synth": {
      "layers": [
@@ -3371,11 +3373,13 @@
     "about": "t4's second singer (v7): lighter and a little brighter, a third above in the duet; joined (v10)",
     "play": {
      "mono": true,
-     "glide": "90ms",
+     "glide": "80ms",
      "glide_smooth": true,
      "scoop": 1.0,
      "fall": 1.5,
-     "glide_overshoot": 0.05
+     "glide_overshoot": 0.05,
+     "glide_semi": "8ms",
+     "glide_lead": 0.5
     },
     "synth": {
      "layers": [
@@ -4900,11 +4904,13 @@
     "about": "t4's voice: a warm, close, human singer - slightly larger tract, soft breath, covered vowels; joined lines, a real breath before each, a wandering vibrato (v10)",
     "play": {
      "mono": true,
-     "glide": "110ms",
+     "glide": "90ms",
      "glide_smooth": true,
      "scoop": 1.2,
      "fall": 2.0,
-     "glide_overshoot": 0.07
+     "glide_overshoot": 0.07,
+     "glide_semi": "7ms",
+     "glide_lead": 0.4
     },
     "synth": {
      "layers": [

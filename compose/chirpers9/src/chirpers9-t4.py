@@ -1238,6 +1238,26 @@ E1_PCS = [2, 9, 0, 7, 4]
 VOWEL_DRIFT = {"voice": 1.0, "hum1": 1.0, "duet": 0.5}
 
 
+# v92 (ROUND TYPE: palette - the newest engine feature): HER GLIDES, HER OWN WAY. Every slide between her joined notes
+# ran on one fixed glide starting ON the new note - so each landed late by a fixed amount, a step as slow as a fifth.
+# wM's SUNG GLIDES (pinned 2b4b6172): glide_semi makes a leap take longer than a step; glide_lead sings a share of the
+# slide before the new note. t8's lines land ON the beat (lead 0.5 - the jet locks into 4/4); t4 is the relief, and
+# her voice is the album's most human, warm and close: she eases into her notes a little late, a soul singer's lean
+# (wM: lead 0.2-0.3 for a lazier style; at 0.3 seed 5 lost a section boundary in recurrence, so 0.4): 90 ms + 7 ms a
+# semitone, lead 0.4. The duet - the younger,
+# steadier voice - on wM's recipe, on the beat beside her: 80 ms + 8 ms, lead 0.5.
+SUNG_GLIDES = {"voice": ("90ms", "7ms", 0.4), "hum1": ("90ms", "7ms", 0.4), "duet": ("80ms", "8ms", 0.5)}
+
+
+def her_glides(song):
+    for tr_ in song["tracks"]:
+        if tr_["name"] in SUNG_GLIDES and isinstance(tr_.get("patch"), dict):
+            g, semi, lead = SUNG_GLIDES[tr_["name"]]
+            p = json.loads(json.dumps(tr_["patch"]))
+            p["play"] = dict(p.get("play") or {}, glide=g, glide_semi=semi, glide_lead=lead)
+            tr_["patch"] = p
+
+
 def her_vowels_live(song):
     for tr_ in song["tracks"]:
         if tr_["name"] in VOWEL_DRIFT and isinstance(tr_.get("patch"), dict):
@@ -2025,6 +2045,7 @@ def main():
     she_turns(song)
     hook_sung_and_played(song)
     her_vowels_live(song)
+    her_glides(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
