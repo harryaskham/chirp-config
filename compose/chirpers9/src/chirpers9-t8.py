@@ -625,6 +625,24 @@ HER_AGE_HIGH = 0.6
 MEMORY_AGE = 0.0
 
 
+# v89 (ROUND TYPE: whole song): SPACE OPENS AS WE FALL. One 4 s hall at one level held the whole fall - the stretto,
+# the jet, the break and the horizon all in the same space. A fall toward a horizon is a fall through changing space
+# (and Harry's list of what should move every 8-16 bars includes 'a filter or space move'). Now the hall's return
+# rides the song (a gain lane on the bus): the opening as it was (the body the t7 crossfade is measured against);
+# through the stretto the space opens as the elements accrete (0 -> +2.5 dB by 93); the JET is close - the hall
+# pulled in at its hit (-1 dB: the jet is right here, dry and enormous); the break, where the lens returns, opens
+# again (+3); the jet's return close again; and from the horizon the space widens bar by bar (to +5 dB by the sink,
+# 161, held to the end) - the light receding into a vastness. t8 is the album's last track: no out-seam to keep.
+SPACE = [(0, 0.0), (65, 0.0), (93, 2.5), (96.75, 2.5), (97, -1.0), (120.75, -1.0), (121.25, 3.0), (128.75, 3.0),
+         (129, -1.0), (141, -1.0), (161, 5.0)]
+
+
+def space_opens(song):
+    hall = song["buses"]["hall"]
+    hall["fx"] = list(hall["fx"]) + ["gain gain=0dB+auto.sx*1"]
+    hall["auto"] = {"sx": {"points": [[f"{b0(bar) if bar else 0:g}b", v] for bar, v in SPACE]}}
+
+
 def she_ages_from_the_top(song):
     tr_ = {x["name"]: x for x in song["tracks"]}
     for n in ("solo", "last"):
@@ -1880,6 +1898,7 @@ def main():
     her_own_rate(song)
     lights_doppler(song)
     she_ages_from_the_top(song)
+    space_opens(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
