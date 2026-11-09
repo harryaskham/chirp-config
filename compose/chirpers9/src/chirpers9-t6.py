@@ -1304,7 +1304,9 @@ def build():
     # together, on one slow curve that turns every eight bars (up to 8 ms either way): the time itself rising and
     # ebbing like water, the seams on the grid. (Tried first: wM's vibrato bloom on every voice - no change at all,
     # -120 dB: the sung lines' vibrato is baked into their f0 paths, which already widen through each held note)
-    song['feel'] = {'drift': '8ms', 'drift_bars': 8, 'from': f"{SEC['pull'] * 4.0:g}b", 'to': f"{SEC['out'] * 4.0:g}b"}
+    # (v83, seam fix for chirper-zero: starting at bar 17 the drift's ease-in fell inside the 3 s of t6's body that
+    # the t5 -> t6 seam is measured on, spectral 3.74 -> 3.87 and t5 -0.04; it now starts two bars later)
+    song['feel'] = {'drift': '8ms', 'drift_bars': 8, 'from': f"{SEC['pull'] * 4.0 + 8.0:g}b", 'to': f"{SEC['out'] * 4.0:g}b"}
     # (v82, section w3: 1:03-1:35, the tide - flagged 'little new vs w2': the duet sang its one exchange at bar 37
     # and the tide's second half, under A and G, had only the descant's oohs) THE SIDES CHANGE PLACES: when the kit
     # arrives (bar 45) the duet comes back with its lines swapped - the old voice sings the young one's 'the near
