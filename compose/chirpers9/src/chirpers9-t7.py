@@ -860,6 +860,13 @@ R96 = os.environ.get("T7_R96", "field") != "none"
 # twice in the middle, the third an octave higher, so the collision climbs towards its second half. T7_R97=none
 # reproduces v96.
 R97 = os.environ.get("T7_R97", "fifths") != "none"
+# round 98 (section, w6 = bars 81-96, the slack and the launch; least recently focused away from the seams):
+# T7_R98=cavaco (default) - THE CAVAQUINHO SINGS E1 IN THE SLACK. In the slack the drums half drop and the choir holds
+# - and E1 was only the Rhodes under it, half the time, at -12 dB. Now the cavaquinho that comped the collision comes
+# back alone and plays the album's tune plainly at half speed in Eb (Eb Bb Db Ab F) - then again an octave up, just
+# before the launch (bar 87), a small bright solo voice in the gap. T7_R98=none reproduces v97.
+R98 = os.environ.get("T7_R98", "cavaco") != "none"
+CAVSOLO_GAIN = os.environ.get("T7_CAVSOLO_GAIN", "7dB")   # at -3 dB: -18.3 dB, not heard
 FIFTHS_GAIN = os.environ.get("T7_FIFTHS_GAIN", "3dB")   # at 0: the first call -11.8 dB (0.25)
 FALL_GAIN = os.environ.get("T7_FALL_GAIN", "-4dB")   # at 0: -5.0 dB, over the singer
 BODY_DB = float(os.environ.get("T7_BODY_DB", "3"))
@@ -2318,6 +2325,15 @@ def main():
                                          "synth.layers.0.shepard.cycle=4s synth.layers.1.shepard.cycle=4s synth.amp.r=0.8s"}
         tracks.append({"name": "fall", "patch": "a7-fall", "gain": FALL_GAIN, "pan": 0.0,
                        "sends": {"space": "-10dB"}, "score": "R/448b m63,m70/30b@90"})
+    if R98:                                                 # w6: the cavaquinho plays E1 alone in the slack, twice
+        cv = Track("cavsolo")
+        for at0, base, v in ((320.0, 63, 92), (336.0, 75, 102)):
+            at = at0
+            for iv, ln in ((0, 1.0), (7, 1.5), (10, 0.5), (5, 2.0), (2, 3.0)):
+                cv.add(at, ln - 0.05, f"m{base + iv}", v)
+                at += ln
+        tracks.append({"name": "cavsolo", "patch": "cavaquinho", "gain": CAVSOLO_GAIN, "pan": 0.3,
+                       "sends": {"space": "-8dB"}, "score": cv.score()})
     if R97:                                                 # w4: horn-section E7 calls (Eb Bb F C) in the collision
         fc = Track("fifths")
         for at0, base, v in ((202.5, 51, 100), (222.5, 51, 108), (242.5, 63, 116)):
