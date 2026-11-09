@@ -689,6 +689,16 @@ R88 = os.environ.get("T3_R88", "toms") != "none"
 # at half speed (D A C G E), then climbs A C to the high D and glides back down to A as the storm strings take over
 # at bar 73 - the notes overlapping (gate 1.1) so it slides between them. T3_R89=none reproduces v88.
 R89 = os.environ.get("T3_R89", "ebow") != "none"
+# round 90 (section, w5 = bars 49-60, the eyewall; least recently focused of w5-w7 bar the e-bow's w6):
+# T3_R90=leslie (default) - A ROCK ORGAN SPINS UP INTO THE EYE. The eyewall was bass, kit and the counting voices,
+# with nothing holding the chords. Now a driven tonewheel organ (library organ-rock, unused on chirpers9, its fixed
+# fake Leslie swapped for the engine's new rotary cabinet - wM's ROTARY, pin bf2a7535) holds E3's chords on the
+# floor's seven-beat cycle - Dm, Bb, C, the top voice climbing A Bb C and falling back - for the eyewall's second half
+# (bars 54-60; from bar 48 it made a 32 s flat run). Its Leslie turns slow (chorale) for a bar, then the rotors spin
+# up to tremolo (they take a second or so, the horn first, the drum after), and it whirls into the eye, where it
+# stops with the drums. T3_R90=none reproduces v89.
+R90 = os.environ.get("T3_R90", "leslie") != "none"
+ORGAN_GAIN = os.environ.get("T3_ORGAN_GAIN", "-3dB")   # at 0 it read -5.6 dB, over the counting voices
 EBOW_GAIN = os.environ.get("T3_EBOW_GAIN", "-3dB")   # at 0 it led at -5.2 dB and cost spectrum (99.927)
 TOMS_GAIN = os.environ.get("T3_TOMS_GAIN", "-5dB")   # at 0: -0.3 dB, louder than the reese
 RIDE_GAIN = os.environ.get("T3_RIDE_GAIN", "3dB")   # at 0: -14.8 dB (0.09) at bars 41-48; at 5 spectrum 99.2
@@ -2281,6 +2291,31 @@ def main():
                 tr["fx"] = list(tr.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB",
                                                          "mod": [{"src": "auto.toms", "amount": 1}]}}]
                 tr["auto"] = dict(tr.get("auto", {}), toms=toms)
+    if R90:                                                 # w5: a rock organ on a rotary holds E3's chords, spins up into the eye
+        patches["a3-organ"] = {"about": "chirper-two: organ-rock without its fixed fake Leslie (chorus + tremolo at 6.6 Hz); "
+                                        "the track adds the real rotary cabinet on a speed lane",
+                               "extends": "organ-rock",
+                               "fx": [{"type": "gain", "gain": {"value": "-20dB", "mod": [{"src": "param.swell", "amount": 20}]}},
+                                      {"type": "drive", "drive": {"value": 0.08, "mod": [{"src": "param.swell", "amount": 0.18}]},
+                                       "bias": 0.15, "mix": 0.8},
+                                      {"type": "eq", "bands": [{"kind": "peak", "cutoff": 900, "q": 0.8, "gain": "2dB"},
+                                                               {"kind": "lp", "cutoff": "7k", "q": 0.6}]},
+                                      "width width=1.3", "reverb kind=room decay=1.1s mix=0.14"]}
+        chords = ((0.0, 2.5, (62, 65, 69)), (2.5, 1.5, (62, 65, 70)), (4.0, 3.0, (64, 67, 72)))   # Dm, Bb/D, C/E
+        evs = []
+        for c0 in range(212, 240, 7):                       # from bar 54: from 191 it made a 32 s flat run (1:44-2:16)
+            for off, ln, ch in chords:
+                at = c0 + off
+                if at >= 240:
+                    continue
+                ln = min(ln, 240 - at)
+                for m in ch:
+                    evs.append((at, ln - 0.05, m))
+        notes = [{"at": a, "len": l, "pitch": f"m{m}", "vel": 0.66} for a, l, m in sorted(evs)]
+        tracks.append({"name": "leslie", "patch": "a3-organ", "gain": ORGAN_GAIN, "pan": -0.2,
+                       "fx": ["rotary speed=0.15+auto.spd*0.85"],
+                       "auto": {"spd": {"points": [["0b", 0], ["216b", 0], ["224b", 1], ["240b", 1]]}},
+                       "sends": {"space": "-12dB"}, "notes": notes})
     if R89:                                                 # palette: an e-bow sings E1 and soars over bars 65-72
         line = ((256.0, 62, 2.0), (258.0, 69, 3.0), (261.0, 72, 1.0), (262.0, 67, 4.0), (266.0, 64, 6.0),   # E1 x2
                 (272.0, 69, 4.0), (276.0, 72, 2.0), (278.0, 74, 6.0), (284.0, 72, 2.0), (286.0, 69, 2.0))   # soar, glide
