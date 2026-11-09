@@ -1254,6 +1254,23 @@ def hands_let_go():
         P[n].ev = out
 
 
+# v85 (ROUND TYPE: section, the fall 125-136, 4:32-4:57; rewritten): THE FLOOR COMES HOME. Seed 5's flattest change
+# (4:40, 0.64, bars 125-132 by flatness --bars; t4's tempo map: blocks 125.3-129.0 and 129.0-132.8): both blocks the
+# four lights' D9, the residue, her last hums - and no floor at all (the sub silent since the relief, the bass resting
+# 126-129). A first try took the lights away at 129 (refused, f057fbb1): t4's long-term spectrum sits ON the genre
+# envelope's tolerance at the very bottom (38 Hz -6.0 dB, 44 Hz -6.2), so any low energy taken away anywhere costs
+# heavily (spectrum 99.85 -> 99.09). So the fall ADDS instead: AT 129 a deep D1 pedal (36.7 Hz) comes into the sub and
+# holds under her last hummed notes to the end - the relief's last bars settling onto home, D, as the four lights fade
+# and the handpan returns (133); the first block (no floor) unlike the second (the floor home).
+FLOOR_HOME = 129
+FLOOR_HOME_VEL = 80
+
+
+def floor_comes_home():
+    a = b0(FLOOR_HOME)
+    part("sub").add(a, b0(BARS + 1) - a, "D1", FLOOR_HOME_VEL)
+
+
 def relief_hands_rest():
     a, z = b0(RELIEF_HANDS_REST[0]), b0(RELIEF_HANDS_REST[1])
     P["seed"].ev = [e for e in P["seed"].ev if not (a - 1e-6 <= e[0] < z - 1e-6)]
@@ -1783,6 +1800,7 @@ def main():
     smaller_room()
     relief_hands_rest()
     hands_let_go()
+    floor_comes_home()
     rise_floor()
     sticks_for_the_peak()
     arrangers_hand()
