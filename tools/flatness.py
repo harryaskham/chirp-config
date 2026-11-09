@@ -8,6 +8,13 @@ but we should add subtle variation so it doesnt get boring".
   flatness.py --mix SNAPSHOT_DIR [--json]                            the album as heard: a review-app snapshot's tracks
                                                                      joined at the album's seams (mixplan overlaps, as
                                                                      release --mix places them), runs in track time
+  ... --bars [--song SONG.yaml]                                      also name the BARS of each run and the 5 flattest
+                                                                     block changes (FILE mode needs --song; --mix uses
+                                                                     each track's snapshot song)
+
+--bars (9 Nov, chirper-three: t8's stretto ramps 150 -> 158, so a bar-to-time map drifts and section moves landed off the
+8 s blocks): bars come from the song's own tempo map (sectionmap.beat_clock: ramps included) and its starting meter.
+A block change sits at the boundary between two blocks; its bars are the two blocks' bars.
 
 --mix (7 Nov, chirper-two: t3's "flat" head is the t2 overlap): a song's head plays under the previous song's tail on
 the album, so measuring tracks alone can call an overlap head flat when what the listener hears is moving. In --mix,
@@ -144,7 +151,7 @@ def album_mix(snap_dir):
     return out, [tuple(sp) for sp in spans]
 
 
-def mix_report(snap_dir, block=8, threshold=THRESHOLD):
+def mix_report(snap_dir, block=8, threshold=THRESHOLD, bars=False):
     """Per track: flat % and flat runs of 32 s or more over its own span of the mix (its entry to the next track's
     entry), with blocks aligned to the track's own entry - so the block phase matches the single-track view and a short
     move (a 7 s drop-out) is caught the same way (chirper-one's t6, 7 Nov: mix-aligned blocks straddled it)."""
@@ -157,8 +164,39 @@ def mix_report(snap_dir, block=8, threshold=THRESHOLD):
         flat_all.extend(list(ch < threshold))
         res.append({"n": n, "title": title, "start_s": round(a, 1), "flat_pct": round(pct, 1), "longest_s": best,
                     "runs": [(int(u), int(v)) for u, v in found]})
+        clock = bar_clock(os.path.join(snap_dir, f"t{n:02d}.song")) if bars else None
+        if clock:
+            res[-1]["runs_bars"], res[-1]["flattest"] = with_bars(clock, ch, found, block)
     allpct = 100.0 * float(np.mean(flat_all)) if flat_all else 0.0
     return {"album_flat_pct": round(allpct, 1), "tracks": res}
+
+
+def bar_clock(song):
+    """seconds -> bar number (1-based, fractional) on SONG's tempo map (sectionmap.beat_clock: ramps included) and its
+    starting meter, or None when the song declares no tempo."""
+    import sectionmap as SM
+    f, _ = SM.beat_clock(song)
+    if f is None:
+        return None
+    per = SM.meter_beats(song)
+    beats = np.arange(0.0, 40000.0, 0.25)
+    secs = f(beats)
+    return lambda t: 1.0 + float(np.interp(t, secs, beats)) / per
+
+
+def bar_span(clock, a, b):
+    """[first, last] whole bars sounding in [a, b) seconds."""
+    lo = int(np.floor(clock(a) + 1e-6))
+    return [lo, max(lo, int(np.ceil(clock(b) - 1e-6)) - 1)]
+
+
+def with_bars(clock, ch, found, block=8, k=5):
+    """(runs with their bars, the K flattest block changes [{at, change, bars}]) for a --bars report."""
+    runs_b = [{"from_s": int(u), "to_s": int(v), "bars": bar_span(clock, u, v)} for u, v in found]
+    order = np.argsort(ch)[:k] if len(ch) else []
+    low = [{"at_s": int((i + 1) * block), "change": round(float(ch[i]), 3),
+            "bars": bar_span(clock, i * block, (i + 2) * block)} for i in order]
+    return runs_b, low
 
 
 def mmss(s):
@@ -172,9 +210,13 @@ def main(argv=None):
     p.add_argument("--block", type=int, default=8)
     p.add_argument("--threshold", type=float, default=THRESHOLD)
     p.add_argument("--json", action="store_true")
+    p.add_argument("--bars", action="store_true", help="name the bars of each run and the 5 flattest block changes")
+    p.add_argument("--song", help="with --bars on FILEs: the song (path or climb id) the render was made from")
     a = p.parse_args(argv)
+    if a.bars and not a.mix and not a.song:
+        p.error("--bars on FILEs needs --song SONG.yaml (or a climb id)")
     if a.mix:
-        r = mix_report(a.mix, a.block, a.threshold)
+        r = mix_report(a.mix, a.block, a.threshold, bars=a.bars)
         if a.json:
             json.dump(r, sys.stdout, indent=1)
             print()
@@ -182,8 +224,12 @@ def main(argv=None):
         print(f"album as heard: {r['album_flat_pct']:.0f}% flat (Standby Amber {SA_FLAT}%)")
         for t in r["tracks"]:
             print(f"  t{t['n']} {t['title']}: {t['flat_pct']:.0f}% flat in its span, longest run {t['longest_s']} s")
-            for u, v in t["runs"]:
-                print(f"      flat {mmss(u)}-{mmss(v)} ({v - u} s, track time)")
+            for i, (u, v) in enumerate(t["runs"]):
+                bb = f", bars {t['runs_bars'][i]['bars'][0]}-{t['runs_bars'][i]['bars'][1]}" if t.get("runs_bars") else ""
+                print(f"      flat {mmss(u)}-{mmss(v)} ({v - u} s, track time{bb})")
+            if t.get("flattest"):
+                print("      flattest changes: " + ", ".join(f"{mmss(b['at_s'])} {b['change']:.2f} (bars {b['bars'][0]}-{b['bars'][1]})"
+                                                       for b in t["flattest"]))
         return
     if not a.files:
         p.error("give FILEs or --mix SNAPSHOT_DIR")
@@ -193,6 +239,12 @@ def main(argv=None):
         pct, best, found = runs(ch, a.block, a.threshold)
         res.append({"file": f, "flat_pct": round(pct, 1), "longest_s": best, "runs": found,
                     "median_change": round(float(np.median(ch)), 3) if len(ch) else None})
+        if a.bars:
+            song = a.song if os.path.exists(a.song) else __import__("sectionmap").song_path(a.song)[0]
+            clock = bar_clock(song)
+            if clock is None:
+                p.error(f"--bars: {song} declares no tempo")
+            res[-1]["runs_bars"], res[-1]["flattest"] = with_bars(clock, ch, found, a.block)
     if a.json:
         json.dump(res, sys.stdout, indent=1)
         print()
@@ -200,8 +252,12 @@ def main(argv=None):
     for r in res:
         print(f"{r['file']}: {r['flat_pct']:.0f}% flat (Standby Amber {SA_FLAT}%), longest flat run {r['longest_s']} s "
               f"(SA {SA_RUN} s)")
-        for x, y in r["runs"]:
-            print(f"    flat {mmss(x)}-{mmss(y)} ({y - x} s)")
+        for i, (x, y) in enumerate(r["runs"]):
+            bb = f", bars {r['runs_bars'][i]['bars'][0]}-{r['runs_bars'][i]['bars'][1]}" if r.get("runs_bars") else ""
+            print(f"    flat {mmss(x)}-{mmss(y)} ({y - x} s{bb})")
+        if r.get("flattest"):
+            print("    flattest changes: " + ", ".join(f"{mmss(b['at_s'])} {b['change']:.2f} (bars {b['bars'][0]}-{b['bars'][1]})"
+                                                     for b in r["flattest"]))
 
 
 if __name__ == "__main__":

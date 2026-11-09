@@ -101,5 +101,48 @@ class Mix(unittest.TestCase):
             shutil.rmtree(d)
 
 
+class Bars(unittest.TestCase):
+    """--bars (9 Nov): bars on the song's own tempo map, so section moves line up with what the blocks see."""
+
+    def song(self, text):
+        d = tempfile.mkdtemp()
+        p = os.path.join(d, "s.yaml")
+        with open(p, "w") as f:
+            f.write(text)
+        return p
+
+    def test_constant_tempo_bars(self):
+        clock = FL.bar_clock(self.song("tempo: 120\nscore: C4\n"))
+        self.assertAlmostEqual(clock(0.0), 1.0)
+        self.assertAlmostEqual(clock(2.0), 2.0)
+        self.assertAlmostEqual(clock(10.0), 6.0)
+        self.assertEqual(FL.bar_span(clock, 0, 8), [1, 4])
+        self.assertEqual(FL.bar_span(clock, 8, 24), [5, 12])
+
+    def test_three_four_meter(self):
+        clock = FL.bar_clock(self.song("tempo: 120\nmeter: 3/4\nscore: C4\n"))
+        self.assertAlmostEqual(clock(3.0), 3.0)          # 6 beats = 2 bars of 3 -> bar 3
+
+    def test_runs_and_flattest_get_bars(self):
+        clock = FL.bar_clock(self.song("tempo: 120\nscore: C4\n"))
+        ch = np.array([0.9, 0.3, 0.5, 1.2])
+        runs_b, low = FL.with_bars(clock, ch, [(8, 40)], block=8, k=2)
+        self.assertEqual(runs_b, [{"from_s": 8, "to_s": 40, "bars": [5, 20]}])
+        self.assertEqual([(b["at_s"], b["change"], b["bars"]) for b in low], [(16, 0.3, [5, 12]), (24, 0.5, [9, 16])])
+
+    def test_no_tempo_is_none(self):
+        self.assertIsNone(FL.bar_clock(self.song("score: C4\n")))
+
+    def test_a_ramp_follows_the_song(self):
+        """t8's stretto ramps 150 -> 158: chirper-three's jet (bar 105) sits at about 2:42."""
+        p = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "songs",
+                         "chirpers9-t8.yaml")
+        if not os.path.exists(p):
+            self.skipTest("no chirpers9-t8")
+        clock = FL.bar_clock(p)
+        self.assertIsNotNone(clock)
+        self.assertLess(abs(clock(162.0) - 105.0), 1.5)
+
+
 if __name__ == "__main__":
     unittest.main()
