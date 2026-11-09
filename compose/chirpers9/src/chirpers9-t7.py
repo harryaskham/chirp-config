@@ -706,7 +706,16 @@ CHOP_GAIN = os.environ.get("T7_CHOP_GAIN", "9dB")
 # phrases now start the way she means them (wM's vocal attack, pinned 10254007): the verses' "every corner" and
 # "nearer every lap" bloom out of a little air (attack -0.4), the crest's chorus starts pressed and firm (+0.5).
 # T7_R76=none reproduces v75.
-R76 = os.environ.get("T7_R76", "lean") != "none"      # break-kit hats sit 7.5 dB under dusty-kit's
+R76 = os.environ.get("T7_R76", "lean") != "none"
+# round 77 (section, w8 second half = bars 121-128, the crest's first eight bars; least recently focused outside the
+# seams): T7_R77=jetbrass (default) - THE JET FIRES IN BRASS. The crest is where "E7, the jet, crests the album" -
+# and the jet (D3 A3 E4 B4 F#5, fired upward every 2.75 beats on its own a7-jet and a7-column voices) sat 15-17 dB
+# under the reese, with the horns' E1 13 dB down. Now for the crest's first eight bars a waveshaping brass (library
+# shaper-brass: a sine through a Chebyshev polynomial, brighter as each note swells, after Risset's trumpet; no
+# Accretion song uses it) fires every column with the jet, and the horns' E1 comes up 6 dB over them: the crest
+# arrives as a fanfare. T7_R77=none reproduces v76.
+R77 = os.environ.get("T7_R77", "jetbrass") != "none"
+JETBRASS_GAIN = os.environ.get("T7_JETBRASS_GAIN", "0dB")      # break-kit hats sit 7.5 dB under dusty-kit's
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -2187,6 +2196,22 @@ def main():
                     gt.add(at, 0.06, ",".join(f"m{n}" for n in chord_at(at)[:2]), 52)   # a ghosted mute
         tracks.append({"name": "chops", "patch": "cutting-guitar", "gain": CHOP_GAIN, "pan": 0.45,
                        "sends": {"space": "-12dB"}, "score": gt.score()})
+    if R77:                                                 # w8: the jet fires in brass, the horns' E1 up (bars 121-128)
+        jt = next(tr for tr in tracks if tr.get("name") == "jet")
+        jb, pos = Track("jetbrass"), 0.0
+        for tok in jt["score"].split():
+            m = re.match(r"^(.+?)/([0-9.e+-]+)b(?:@(\d+))?", tok)
+            ln = float(m.group(2))
+            if m.group(1) != "R" and int(m.group(3) or 0) > 1 and 480.0 <= pos < 512.0:
+                jb.add(pos, ln, m.group(1), min(127, int(m.group(3)) + 8))
+            pos += ln
+        tracks.append({"name": "jetbrass", "patch": "shaper-brass", "gain": JETBRASS_GAIN, "pan": 0.2,
+                       "sends": {"space": "-9dB"}, "score": jb.score()})
+        hk = next(tr for tr in tracks if tr.get("name") == "hook")
+        hk["fx"] = list(hk.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB",
+                                              "mod": [{"src": "auto.crest", "amount": 1}]}}]
+        hk["auto"] = dict(hk.get("auto", {}), crest={"points": [["0b", 0], ["479.8b", 0], ["479.95b", 6], ["511.9b", 6],
+                                                                ["512.4b", 0]]})
     if R76:                                                 # whole: the singer's attack by section (the feel is a song line)
         for pn, atk in (("a7-sung", -0.4), ("a7-sung5", -0.4), ("a7-near", -0.4), ("a7-near3", -0.4),
                         ("a7-sungc", 0.5), ("a7-sungc5", 0.5)):
