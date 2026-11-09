@@ -889,6 +889,19 @@ def build():
     # the crest; the surge starts low in its low gear and the tear runs hottest (halfway, -6/-4, scored +0.24/-0.22)
     EN = {'in': (-5.0, -4.0), 'pull': (-4.5, -3.5), 'tide': (-8.0, -6.0), 'squeeze': (-6.0, 0.5), 'crest': (1.5, 1.5),
           'cross': (-5.5, -3.0), 'surge': (-3.5, 1.5), 'torn': (1.0, 2.0), 'out': (0.0, -2.0)}
+    # (v99, whole song) THE TIDE IN THE STEREO FIELD: the band's space never moved with the water - the field was as
+    # wide at low tide as at the spring tide's crest. Now the master's width follows the height of the tide: the
+    # in-seam neutral; the pull drawn in narrow (the water drawn back, 0.8); spreading as the tide comes in and the
+    # squeeze presses; widest at the crest - high water, the field brimming (1.3); narrowing as the cross ebbs; a
+    # second flood through the surge (1.25); then the tear pulls the field in to its narrowest (0.65), and the
+    # out-seam opens back to neutral for t7
+    WD = {'in': (1.0, 1.0), 'pull': (0.95, 0.8), 'tide': (0.85, 1.0), 'squeeze': (1.05, 1.2), 'crest': (1.3, 1.3),
+          'cross': (1.15, 0.85), 'surge': (0.95, 1.25), 'torn': (1.1, 0.65), 'out': (0.75, 1.0)}
+    wd_pts = []
+    for b_ in range(NBARS):
+        s_, i_ = sec_of(b_)
+        a_, z_ = WD[s_]
+        wd_pts.append([f'{b_ * 4.0:.1f}b', round(a_ + (z_ - a_) * i_ / 15.0, 3)])
     energy_pts = []
     for b_ in range(NBARS):
         s_, i_ = sec_of(b_)
@@ -1173,7 +1186,8 @@ def build():
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.2, 'attack': '15ms', 'release': '140ms', 'makeup': '1dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.E', 'amount': 1}]}},
                           'tapestop stop=auto.stop time=1b',
-                          'limiter ceiling=-1dB'], 'auto': {'E': {'points': energy_pts}, 'stop': {'points': stop_pts}}},
+                          {'type': 'pan', 'width': {'value': 0, 'mod': [{'src': 'auto.WD', 'amount': 1}]}},
+                          'limiter ceiling=-1dB'], 'auto': {'E': {'points': energy_pts}, 'stop': {'points': stop_pts}, 'WD': {'points': wd_pts}}},
         'tracks': [
             # (v9) and the harmonium is LENSED in: a low-pass that opens from 600 Hz over the in-seam's 16 bars, so t6's
             # own chord arrives from behind t5's tail rather than on top of it
