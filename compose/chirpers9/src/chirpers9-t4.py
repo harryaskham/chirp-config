@@ -1215,6 +1215,40 @@ def she_turns(song):
             n["pitch"] = f"m{third_above(turned[n['at']])}"
 
 
+# v89 (ROUND TYPE: whole song): THE HOOK, SUNG AND PLAYED. Harry's rule: E1 is the album's hook - heard plainly and
+# often; and what he loved on t3 (18:05, 'woah this track is sick') was a voice singing words on E1's own notes WITH
+# an instrument doubling it. t4's singer states E1 plain (D4 A4 C5 G4 E4) nineteen times - hummed through B, WITH
+# WORDS at the crest ('around the warm stone / the cold half sleeping'), on 'ah' in the hook sung back (92-96), hummed
+# through the relief - always alone. Now, from the crest on, every E1-plain statement she sings is DOUBLED an octave
+# below by the clarinet (a new last track, clar2, the A section's clarinet): its dark chalumeau from D3 - the
+# instrument's lowest note - under her voice, at about 0.7 of her velocity. The first half hums the hook alone; the
+# second half sings it and plays it.
+DOUBLE_FROM = 80
+DOUBLE_VEL = 0.7
+DOUBLE_CREST_DB = 4.0               # at one level the crest's doubling sat at -13 under the band (the relief's -7.9)
+E1_PCS = [2, 9, 0, 7, 4]
+
+
+def hook_sung_and_played(song):
+    tr_ = {x["name"]: x for x in song["tracks"]}
+    v = sorted(tr_["voice"]["notes"], key=lambda n: n["at"])
+    out = []
+    for i in range(len(v) - 4):
+        run = v[i:i + 5]
+        if run[0]["at"] < b0(DOUBLE_FROM) or [midi_of(n["pitch"]) % 12 for n in run] != E1_PCS:
+            continue
+        for n in run:
+            out.append({"at": n["at"], "len": n["len"], "pitch": f"m{midi_of(n['pitch']) - 12}",
+                        "vel": round(min(1.0, n["vel"] * DOUBLE_VEL), 3)})
+    clar = tr_["clar"]
+    song["tracks"].append({"name": "clar2", "patch": clar["patch"], "gain": clar.get("gain", "0dB"),
+                           "pan": clar.get("pan", 0), "sends": dict(clar.get("sends") or {}),
+                           "fx": ["gain gain=0dB+auto.dc*1"],
+                           "auto": {"dc": {"points": [["0b", DOUBLE_CREST_DB], [f"{b0(100) - 1:g}b", DOUBLE_CREST_DB],
+                                                      [f"{b0(101):g}b", 0.0]]}},
+                           "notes": sorted(out, key=lambda n: n["at"])})
+
+
 def space_breathes(song):
     pts = [[0.0, 0.0]]
     for a_, z_ in SMALL_ROOM:
@@ -1948,6 +1982,7 @@ def main():
     ensemble_breathes(song)
     space_breathes(song)
     she_turns(song)
+    hook_sung_and_played(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
