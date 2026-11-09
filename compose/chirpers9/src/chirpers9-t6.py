@@ -1097,6 +1097,17 @@ def build():
     for k_ in ('hook', 'far', 'farbow'):
         keep_ = 0 if k_ == 'hook' else 1
         P[k_] = [e_ for e_ in P[k_] if not (hk0_ - 1e-6 <= e_[0] < hk0_ + 32.0 - 1e-6 and int((e_[0] - hk0_) // 8.0) % 2 != keep_)]
+    # (v93, section w4: 1:35-2:05, the squeeze - its first eight bars ran the band exactly as the tide had, nobody
+    # singing until the old voice at bar 57) THE SQUEEZE: for those eight bars the band is squeezed into the middle
+    # of the range - the marimba and the steel pans an octave down from above, the root and the fretless an octave
+    # up from below, the sub alone holding the floor - a crowd of parts pressed into one octave like water between
+    # the moon and the sun; when the old voice comes in at bar 57 they spring back out to where they were
+    sq0_, sq1_ = SEC['squeeze'] * 4.0, (SEC['squeeze'] + 8) * 4.0
+    def sq_(e_, d_):
+        ps_ = [m(float(x_[1:]) + d_) for x_ in str(e_[1]).split(',')]
+        return (e_[0], ','.join(ps_), *e_[2:])
+    for k_, d_ in (('near', -12), ('e5', -12), ('root', 12), ('farbass', 12)):
+        P[k_] = [sq_(e_, d_) if sq0_ - 1e-6 <= e_[0] < sq1_ - 1e-6 else e_ for e_ in P[k_]]
     rk0_ = SEC['crest'] * 4.0
     P['kitroom'] = [e_ for e_ in P['kit'] if e_[0] >= rk0_ - 1e-6]
     P['kit'] = [e_ for e_ in P['kit'] if e_[0] < rk0_ - 1e-6]
@@ -1412,7 +1423,7 @@ def build():
             for n_ in t_['notes']:
                 f0_ = (n_.get('expr_path') or {}).get('f0') or []
                 if f0_ and len(f0_) / n_['len'] < 18.0:
-                    n_['path_len'] = round(len(f0_) / 22.2, 3)
+                    n_['path_len'] = f"{len(f0_) / 44.0:.3f}s"   # (v93: in seconds - tts paths are 44 points a second; the beat figure ran ~10% fast at the out-seam's 132 bpm)
     return song
 
 
