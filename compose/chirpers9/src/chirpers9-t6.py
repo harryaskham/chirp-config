@@ -1305,6 +1305,20 @@ def build():
     # ebbing like water, the seams on the grid. (Tried first: wM's vibrato bloom on every voice - no change at all,
     # -120 dB: the sung lines' vibrato is baked into their f0 paths, which already widen through each held note)
     song['feel'] = {'drift': '8ms', 'drift_bars': 8, 'from': f"{SEC['pull'] * 4.0:g}b", 'to': f"{SEC['out'] * 4.0:g}b"}
+    # (v82, section w3: 1:03-1:35, the tide - flagged 'little new vs w2': the duet sang its one exchange at bar 37
+    # and the tide's second half, under A and G, had only the descant's oohs) THE SIDES CHANGE PLACES: when the kit
+    # arrives (bar 45) the duet comes back with its lines swapped - the old voice sings the young one's 'the near
+    # side keeps the time' (an octave down, in his register), and the young voice answers with the old man's 'the
+    # far side lets it go' (an octave up, in his) - the tide turning, each side trying the other's words; from the
+    # squeeze on they are back in their own
+    dn2_ = [t_ for t_ in song['tracks'] if t_['name'] == 'duetnear'][0]
+    sg2_ = [t_ for t_ in song['tracks'] if t_['name'] == 'sung'][0]
+    tw_ = SEC['tide'] * 4.0
+    nl_ = sorted([n_ for n_ in dn2_['notes'] if tw_ + 16.0 <= n_['at'] < tw_ + 20.5], key=lambda n_: n_['at'])
+    fl_ = sorted([n_ for n_ in sg2_['notes'] if tw_ + 21.0 <= n_['at'] < tw_ + 26.0], key=lambda n_: n_['at'])
+    assert len(nl_) == 6 and len(fl_) == 6
+    sg2_['notes'] = sorted(sg2_['notes'] + [dict(n_, at=round(n_['at'] + 32.0, 4), pitch=f"m{int(str(n_['pitch'])[1:]) - 12}") for n_ in nl_], key=lambda n_: n_['at'])
+    dn2_['notes'] = sorted(dn2_['notes'] + [dict(n_, at=round(n_['at'] + 32.0, 4), pitch=f"m{int(str(n_['pitch'])[1:]) + 12}") for n_ in fl_], key=lambda n_: n_['at'])
     # (v80, section w9: 4:06-4:35, the out-seam - flagged static: the slowing groove ran eight bars with nothing new
     # before the old man's last word) THE LAST EXCHANGE: as the band's time dilates, the young near voice sings its
     # half of the couplet one last time - 'the near side keeps the time' - from far off (an octave up, darkened,
