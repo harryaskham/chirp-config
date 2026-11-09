@@ -1068,6 +1068,13 @@ def build():
                       key=lambda e_: e_[0])
     P['gtrd'] = [e_ for e_ in P['gtr'] if SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6]
     P['gtr'] = [e_ for e_ in P['gtr'] if not (SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6)]
+    SPD = {'in': (0.1, 0.1), 'gather': (0.1, 0.2), 'build': (0.25, 0.75), 'crest': (1.0, 1.0), 'break': (0.0, 0.0),
+           'drift': (0.25, 0.9), 'fall': (0.3, 0.0)}
+    spd_pts = []
+    for b_ in range(NBARS):
+        s_, i_ = sec_of(b_)
+        a_, z_ = SPD[s_]
+        spd_pts.append([f'{b_ * 4.0:.1f}b', round(a_ + (z_ - a_) * i_ / 15.0, 3)])
     song = {
         'about': "chirpers - Accretion, track 2 by chirper-one: The Long Way In. The infall: a rhythm cell in seven "
                  "assembles out of falling fragments against the band's sixteen, every cycle landing together at the crest. "
@@ -1182,8 +1189,16 @@ def build():
             # Accretion track uses it), a little longer so each chord blooms - the band's rhythm part, heard for the
             # first time. (Through a Leslie, rhodes-rotary, it swirled each repeat differently: seed 11's recurrence
             # fell to 92)
-            tr('gtr', 'epiano', '-10dB', pan=-0.35, sends={'hall': '-18dB'}),
-            tr('gtrd', 'clean-dry', '-8.8dB', pan=-0.35, sends={'hall': '-16dB'}),
+            # (v90, whole song: wM's rotary, pinned bf2a7535) THE COMPING TURNS WITH THE ORBIT: the epiano (and the
+            # drift's guitar) now play through a Leslie cabinet - the epiano's own fixed tremolo taken out - whose
+            # rotors follow the song's orbit as E2's does (v83): a slow chorale through the gather, spinning up
+            # through the build, full tremolo at the crest and through it, all but stopped when the break flings
+            # everything out, turning slowly again in the drift and spinning up under the last chorus; the rotors'
+            # own inertia makes every change a glide. Everything in t2 that turns now turns together
+            tr('gtr', {'extends': 'epiano', 'fx': ['chorus mix=0.2', 'reverb kind=room decay=1.2s mix=0.14']}, '-10dB', pan=-0.35, sends={'hall': '-18dB'},
+               fx=[{'type': 'rotary', 'speed': {'value': 0, 'mod': [{'src': 'auto.spd', 'amount': 1}]}}], auto={'spd': {'points': spd_pts}}),
+            tr('gtrd', 'clean-dry', '-8.8dB', pan=-0.35, sends={'hall': '-16dB'},
+               fx=[{'type': 'rotary', 'speed': {'value': 0, 'mod': [{'src': 'auto.spd', 'amount': 1}]}}], auto={'spd': {'points': spd_pts}}),
             # (v48, palette: the E1 keys were a wurli - another electric piano among the album's keys) THE ANSWERS ON
             # TAPE: E1's answers through the gather, the crest and the second verse now play on the library's
             # mellotron-flute (a breathy tape flute, band-limited, with wow and a soft swell; no Accretion track uses
