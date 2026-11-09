@@ -82,6 +82,11 @@ excl=(); "$C" --help 2>/dev/null | grep -q -- --exclusive && excl=(--exclusive)
 # wM's --threads (7 Nov): the render's own pool, whose workers take the render thread's priority boost where RLIMIT_NICE
 # allows. Guarded: older binaries reject it (RAYON_NUM_THREADS below still caps them).
 "$C" --help 2>/dev/null | grep -q -- "--threads" && excl+=(--threads "${CHIRP_GROOVE_THREADS:-4}")
+# wM's --ahead (9 Nov): render up to N s ahead of what is heard, so a host storm drains the queue instead of underrunning
+# (his test: a 6 s CPU starvation, 38 dropouts without it, 0 at --ahead 20). The session's own playlist turns at the
+# render, so hand-overs stay seamless; live edits and `queue --now` are heard up to N s later. About 0.4 MB per second
+# queued. Guarded: older binaries reject it. CHIRP_GROOVE_AHEAD overrides (0 turns it off).
+[ "${CHIRP_GROOVE_AHEAD:-30}" != 0 ] && "$C" --help 2>/dev/null | grep -q -- "--ahead" && excl+=(--ahead "${CHIRP_GROOVE_AHEAD:-30}")
 # Render pool: 4 threads, not one per core. Every dependency level of every chunk waits for its slowest worker, so on a
 # busy 24-core host a 24-worker pool spins and stalls (wM, 6 Nov: t6 40 s of audio in 21-34 s wall / 66-70 s CPU at 24
 # threads vs 14-16 s / 20-22 s at 4, md5-identical; the hand-over underrun bursts). CHIRP_GROOVE_THREADS overrides.
