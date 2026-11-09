@@ -737,6 +737,12 @@ R79 = os.environ.get("T7_R79", "rhodes") != "none"
 # hooks, Rhodes: a lane at -60) and the tutti, 6 dB up, plays E1 alone over the timpani, the strings and the
 # descant - then everything crashes back in at bar 148. T7_R80=none reproduces v79.
 R80 = os.environ.get("T7_R80", "tutti") != "none"
+# round 81 (whole): T7_R81=bloom (default) - THE SINGER OPENS UP. wM's vibrato bloom (pinned 0119aae1): a held note's
+# vibrato keeps widening while it is held, so short notes stay nearly straight and long ones open out. On every sung
+# line (a7-sung*, a7-near*, the descant) bloom 0.8 with the vibrato a little deeper (0.22 -> 0.3), so the long notes
+# are heard to open; on the choirs a gentler 0.6; on the erhu (the half-time line, the crest's bow, the tutti) the
+# full 1.0. And the singer steps forward 2 dB everywhere she sings. T7_R81=none reproduces v80.
+R81 = os.environ.get("T7_R81", "bloom") != "none"
 RHODES_GAIN = os.environ.get("T7_RHODES_GAIN", "18dB")   # the chip sat 9 dB hotter and was unheard; ducked under the singer      # break-kit hats sit 7.5 dB under dusty-kit's
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
@@ -2273,6 +2279,21 @@ def main():
                                               "mod": [{"src": "auto.crest", "amount": 1}]}}]
         hk["auto"] = dict(hk.get("auto", {}), crest={"points": [["0b", 0], ["479.8b", 0], ["479.95b", 6], ["511.9b", 6],
                                                                 ["512.4b", 0]]})
+    if R81:                                                 # whole: vibrato bloom on the voices and the erhu; the singer +2 dB
+        for pn in list(patches):
+            ex = patches[pn].get("extends", "") if isinstance(patches[pn], dict) else ""
+            if pn.startswith(("a7-sung", "a7-near", "a7-descant")):
+                add = " synth.lfo.vib.bloom=0.8 synth.pitch.mod.0.amount=0.3"
+            elif pn.startswith("a7-choir"):
+                add = " synth.lfo.vib.bloom=0.6"
+            elif pn == "a7-erhu":
+                add = " synth.lfo.vib.bloom=1 synth.pitch.mod.0.amount=0.3"
+            else:
+                continue
+            patches[pn] = dict(patches[pn], extends=ex + add)
+        for tr in tracks:
+            if str(tr.get("patch", "")).startswith(("a7-sung", "a7-near", "a7-descant")) and not tr.get("mute"):
+                tr["gain"] = f"{float(str(tr.get('gain', '0dB')).replace('dB', '')) + 2.0:g}dB"
     if R76:                                                 # whole: the singer's attack by section (the feel is a song line)
         for pn, atk in (("a7-sung", -0.4), ("a7-sung5", -0.4), ("a7-near", -0.4), ("a7-near3", -0.4),
                         ("a7-sungc", 0.5), ("a7-sungc5", 0.5)):
