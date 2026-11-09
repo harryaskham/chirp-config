@@ -101,6 +101,7 @@ score: "A4/16 G4 A4 . E5 . A4 G4 A4 . D5 ."   # v2 (6 Nov 00:40); hits on sixtee
 - **The answers rise (t5 v62).** After the crest, each of her three crest lines is answered by the DX piano with E5's figure (A G A E A G A D). The first answer stays where it was (A3), the second is an octave up and the third sounds in both octaves, so the answers climb as her choir accretes beneath - t1's mirror rising the same way (t1 v60: the harp's second inverted E1 an octave up).
 - **The orbit, slow (t5 v71).** Through C (beats 336-416, about 2:55-3:37), under the chip orbit's E5 (a 3-beat cycle), the cello sings E5 itself in augmentation x4, an octave down (A3 G3 A3 . E4 . A3 G3 A3 . D4 ., a 12-beat cycle), swelling in and out: a canon in augmentation - the inner orbit and a far one at once.
 - **In t7 (since v82): on a xylophone, still circling.** t7's E5 trill (32nds orbiting the listener, spiralling in as the song falls) is a xylophone from bar 33 to bar 142 - the chip keeps the head and the tail, whose bright top the seams need.
+- **In t7 (since v92): sung by the strings.** In the collision's second half the crest's tape strings sing E5 plainly at half speed in Eb (Bb Ab Bb, F, Bb Ab Bb, a held Eb), one phrase per chord: bars 69-72 in the middle (2:01), bars 77-80 an octave up (2:15).
 - **Handover.** Across the t5 -> t6 seam (120 bpm, 16 bars) E5 stretches (augmented) while E1 squeezes (diminished): the tidal pull t6 lenses.
 
 ### E6, "the tide" (t6, chirper-one)
