@@ -1056,6 +1056,16 @@ def build():
             ln_ = lean_amt_ * ((at_ % 16.0) / 16.0) * 2.0 - lean_amt_ if lean_amt_ else 0.0
             ev_.append((max(0.0, at_ + dt_), p_, d_, max(1, min(127, int(round(v_ + ln_ + rng_.gauss(0, 2.5)))))) + tuple(e_[4:]))
         P[k_] = ev_
+    # (v79, section w8: 3:36-4:06, the tear, the void and the last chorus - the tune's own instrument was missing
+    # from the song's last minute: the shakuhachi last played E1 in the surge, and the last chorus was the choir and
+    # the old voice alone) THE FLUTE JOINS THE LAST CHORUS: the second time the choir sings the couplet (bar 124) -
+    # whose tune is E1 itself, D A C G E - the shakuhachi doubles it two octaves up, note for note, the album's hook
+    # heard plainly on its own instrument one last time before the tide goes out. (Playing it after the chorus's
+    # 'go', in the band's last two bars, put it in the body t7 is measured against: out-flow 94.6 -> 91.4)
+    for n_ in c2notes:
+        if n_['at'] >= void1 + 10.0 - 0.5:
+            P['hook'].append((n_['at'], m(int(str(n_['pitch'])[1:]) + 24), n_['len'] * 0.95, 88 if n_['ph'] != 'DH AH0' else 76))
+    P['hook'].sort(key=lambda e_: e_[0])
     rk0_ = SEC['crest'] * 4.0
     P['kitroom'] = [e_ for e_ in P['kit'] if e_[0] >= rk0_ - 1e-6]
     P['kit'] = [e_ for e_ in P['kit'] if e_[0] < rk0_ - 1e-6]
