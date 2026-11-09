@@ -781,6 +781,13 @@ R85 = os.environ.get("T7_R85", "djfilter") != "none"
 # after the second; E1 a fifth up, reaching for the top, after the third; and a long fall home to Eb into the
 # collision (bar 49). T7_R86=none reproduces v85.
 R86 = os.environ.get("T7_R86", "alto") != "none"
+# round 87 (palette - repair a patch, swap a staple): T7_R87=twang (default) - THE PLUNGE'S KOTO TWANGS AGAIN; THE CREST
+# LANDS ON A LONGER BOOM. (1) The plunge's redshifted koto (koto-pl, bars 157-160, since round 45) replaced the koto's
+# pitch routes with the plunge lane alone, so its pluck lost its twang (env.tw 0.22) and its per-note drift (rand
+# 0.05) - eco's extendslint caught it; both routes are back beside the lane, so the falling koto is a koto again.
+# (2) The crest's landing boom (landboom, one D1 at bar 121) was the 808 that t3 and t5 share; now it is the library
+# 808-long (a tuned 808 with a long boom and a pitch-punch thump; no Accretion song uses it). T7_R87=none reproduces v86.
+R87 = os.environ.get("T7_R87", "twang") != "none"
 ALTO_GAIN = os.environ.get("T7_ALTO_GAIN", "7dB")   # at 0: -15.0 / -11.4 dB, unheard
 XYLO_GAIN = os.environ.get("T7_XYLO_GAIN", "6dB")   # at 0 it matched the chip: -14.9 dB in the spiral, unheard
 RHODES_GAIN = os.environ.get("T7_RHODES_GAIN", "18dB")   # the chip sat 9 dB hotter and was unheard; ducked under the singer      # break-kit hats sit 7.5 dB under dusty-kit's
@@ -2345,6 +2352,13 @@ def main():
                                               "mod": [{"src": "auto.crest", "amount": 1}]}}]
         hk["auto"] = dict(hk.get("auto", {}), crest={"points": [["0b", 0], ["479.8b", 0], ["479.95b", 6], ["511.9b", 6],
                                                                 ["512.4b", 0]]})
+    if R87:                                                 # palette: koto-pl keeps koto's twang and drift; landboom on 808-long
+        if "koto-pl" in patches:
+            kp = patches["koto-pl"]
+            mods = list(kp["synth"]["pitch"]["mod"]) + [{"src": "env.tw", "amount": 0.22}, {"src": "rand", "amount": 0.05}]
+            patches["koto-pl"] = dict(kp, synth=dict(kp["synth"], pitch=dict(kp["synth"]["pitch"], mod=mods)))
+        lb = next(tr for tr in tracks if tr.get("name") == "landboom")
+        lb["patch"] = "808-long"
     if R86:                                                 # palette: an alto sax answers the singer (bars 34-48)
         sx = Track("altosax")
         lines = ((133.0, ((63, .5), (70, .75), (73, .25), (68, 1.0), (65, 1.5))),                       # E1 echoed
