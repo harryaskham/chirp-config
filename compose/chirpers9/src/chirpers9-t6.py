@@ -1328,6 +1328,25 @@ def build():
     assert len(nl_) == 6 and len(fl_) == 6
     sg2_['notes'] = sorted(sg2_['notes'] + [dict(n_, at=round(n_['at'] + 32.0, 4), pitch=f"m{int(str(n_['pitch'])[1:]) - 12}") for n_ in nl_], key=lambda n_: n_['at'])
     dn2_['notes'] = sorted(dn2_['notes'] + [dict(n_, at=round(n_['at'] + 32.0, 4), pitch=f"m{int(str(n_['pitch'])[1:]) + 12}") for n_ in fl_], key=lambda n_: n_['at'])
+    # (v85, whole song: wM's creak, pinned b160e3e5) THE OLD MAN'S VOICE CRACKS AS HE AGES: the old voice sings the
+    # far side all through the song, ageing as he goes (age 0.25 in the tide, 0.45 at the crest, 0.65 in the last
+    # chorus, 0.8 for the last word), but his phrase ends were as smooth at the start as at the end. Now each of his
+    # phrases ends in creak - pressed folds and vocal fry on the last note's tail, which wM's engine gives only to
+    # quiet, low endings (his D3s and A2s are both) - and it grows with his age: a touch at first, more at the crest,
+    # most in his last word. The young voice and the choirs stay clean
+    CREAK_ = {'sung': 0.4, 'sung2': 0.5, 'sungb': 0.6, 'crestold': 0.6, 'sungc': 0.8, 'lastword': 1.0}
+    for t_ in song['tracks']:
+        pt_ = t_.get('patch')
+        if t_['name'] in CREAK_ and isinstance(pt_, dict) and 'voice-old' in str(pt_.get('extends', '')):
+            t_['patch'] = dict(pt_, extends=pt_['extends'] + f" synth.layers.0.creak={CREAK_[t_['name']]:g}")
+            # the engine creaks only quiet endings (full at velocity 0.5, none from 0.9) and his were sung at 0.83-0.87,
+            # so each phrase's last note now falls away to 0.6 of the line's level as he lets it go
+            ns_ = sorted(t_['notes'], key=lambda n_: n_['at'])
+            for k_, n_ in enumerate(ns_):
+                nx_ = ns_[k_ + 1]['at'] if k_ + 1 < len(ns_) else 1e9
+                if nx_ - (n_['at'] + n_['len']) > 0.3:
+                    n_['vel'] = round(min(n_['vel'], 0.6), 3)
+            t_['notes'] = ns_
     # (v80, section w9: 4:06-4:35, the out-seam - flagged static: the slowing groove ran eight bars with nothing new
     # before the old man's last word) THE LAST EXCHANGE: as the band's time dilates, the young near voice sings its
     # half of the couplet one last time - 'the near side keeps the time' - from far off (an octave up, darkened,
