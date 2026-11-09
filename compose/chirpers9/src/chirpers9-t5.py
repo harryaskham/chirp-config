@@ -124,6 +124,7 @@ BUILDSTAGE = os.environ.get("C9T5_BUILDSTAGE", "seeds232drums240")   # SECTION w
 VOWELDRIFT = os.environ.get("C9T5_VOWELDRIFT", "1")   # PALETTE (the voice; wM's vowel_drift, pin 07ab00cd): her held vowels sat perfectly still - the 'ah' of 'mid-dle', the long 'near-er's, the hums' open vowels - part of what reads as a machine. Now each held vowel lives: its formants wander slowly about the written vowel (growing in after 0.2 s, settling before the release, so consonants and joined seams stay exact), each note and each harmony part on its own curve. Value: the amount (1 free, 0.5 a steadier, trained singer)
 KITRECEDE = os.environ.get("C9T5_KITRECEDE", "early")   # SECTION w8 (3:53-4:19, the farewell and the tide into t6): THE KIT RECEDES - under her two farewells the kit came back to full strength and then stopped dead mid-bar at 480, the whole kit at once. Now it leaves the way the build gathered it (v84), a piece at a time, handing the beat to t6's hats: 'recede' the kick and clap go at 472, the rim at 476, the hats close on one last open hat at 480; 'early' the kick at 464, the clap at 468, the rim at 472, the hats as before
 SUNGGLIDE = os.environ.get("C9T5_SUNGGLIDE", "0.3")   # PALETTE (the voice; wM's sung glides, pin 2b4b6172): her joined notes slid with a fixed 110 ms glide that started on the new note, so every slide landed late (its middle 56-70 ms after the written change) and a step took as long as a leap. Now her slides are sung: 80 ms plus 8 ms a semitone (a leap takes longer than a step) and a share of each slide sung before the new note, the last note bending into it, so the slide centres on the beat. Value: that share (0.5 on the beat; 0.3 lazier, landing a little late)
+CHORUSDROP = os.environ.get("C9T5_CHORUSDROP", "bar")   # SECTION w2 (0:34-1:08, A's arrival and her first chorus): THE FLOOR CLEARS FOR HER - the groove ran straight into her first 'near-er' (beat 110) without a breath, so she arrived on top of it. Now the kick and clap step out just before she sings (the hats keep time) and come back with her: 'bar' 106-110, 'half' 108-110
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -1119,6 +1120,11 @@ def song():
                 ns = [n for n in ns if not (n["pitch"] in ("h", "oh") and float(n["at"]) >= 479.4)]
                 ns.append({"at": 479.5, "pitch": "oh", "len": 0.5, "vel": 0.3})
                 tr["notes"] = sorted(ns, key=lambda n: float(n["at"]))
+    if CHORUSDROP:
+        d0 = 106 if CHORUSDROP == "bar" else 108
+        for tr in tracks:
+            if tr["name"] == "drums":
+                tr["notes"] = [n for n in tr["notes"] if not (d0 <= float(n["at"]) < 109.95 and n["pitch"] in ("k", "cp"))]
     if VIBBLOOM:
         vb, *vd = VIBBLOOM.split(":")
         for tr in tracks:
