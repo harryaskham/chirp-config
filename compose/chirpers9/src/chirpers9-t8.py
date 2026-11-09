@@ -531,6 +531,38 @@ def held_notes_open(song):
         tr_["patch"] = patch
 
 
+# v79 (ROUND TYPE: whole song): SHE REMEMBERS. The brief: the voice sings full lines. Her questions accrete their
+# words through the stretto ('oo' -> 'ah' -> 'far-' -> 'far side?'), the jet's choir answers ('we were the far side'),
+# and she owns 'and it was ours' - but the line the whole 'far side' thread started from is t4's chorus, 'I kept your
+# far side', and t8 never sings it. Now, in the horizon, after the light settles and before it flickers (147), she
+# sings it once more as a memory - t4's own notes, words and sung contours (E4 G4 C5 A4 D4, D Mixolydian, the album's
+# home: the C natural is the one her last line already sings), at t4's own pace (every note the same length in
+# seconds: 153 / 108 beats per t4 beat, so its vibrato keeps its rate), softly (x0.7) - and 'and it was ours' (149.5)
+# answers it. t4 and t8 are both mine: the album's first full line comes home at its end.
+MEMORY_LINE = [   # t4 v65's line, her voice alone (t4 bars 101-103.3, beats from its start at 108 bpm): onset, pitch, phonemes, len, vel, f0 path (cents)
+    (0.0, "m64", "AY1", 2.003, 0.72, [-60.0, -33.0, -14.0, -3.0, -0.0, -0.0, -2.0, -3.0, -1.0, 5.0, 11.0, 11.0, 3.0, -10.0, -20.0, -20.0, -7.0, 12.0, 24.0, 22.0, 8.0, -11.0, -24.0, -23.0, -10.0, 9.0, 23.0, 24.0, 11.0, -8.0, -22.0, -24.0, -13.0, 6.0, 21.0, 25.0, 14.0, -4.0, -20.0, -25.0, -16.0, 3.0, 19.0, 25.0, 17.0, -1.0, -18.0, -25.0]),
+    (2.003, "m67", "K EH1 P T", 1.988, 0.84, [-2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -3.0, -4.0, -1.0, 5.0, 10.0, 7.0, -3.0, -16.0, -23.0, -16.0, 2.0, 19.0, 24.0, 14.0, -6.0, -23.0, -27.0, -16.0, 4.0, 20.0, 24.0, 12.0, -8.0, -24.0, -26.0, -14.0, 6.0, 21.0, 23.0, 11.0, -9.0, -25.0, -26.0, -13.0, 7.0, 22.0, 23.0, 9.0, -11.0, -25.0, -25.0, -11.0]),
+    (3.991, "m72", "Y AO1 R", 0.518, 0.88, [-4.0, -4.0, -4.0, -4.0, -4.0, -4.0, -7.0, -6.0, 1.0, 8.0, 7.0, -4.0]),
+    (4.509, "m69", "F AA1 R", 1.473, 0.8, [-5.0, -5.0, -5.0, -5.0, -5.0, -5.0, -7.0, -8.0, -5.0, 3.0, 8.0, 6.0, -5.0, -20.0, -28.0, -23.0, -5.0, 15.0, 24.0, 15.0, -5.0, -25.0, -33.0, -25.0, -5.0, 15.0, 24.0, 15.0, -5.0, -25.0, -33.0, -25.0, -5.0, 15.0, 24.0, 15.0]),
+    (5.982, "m62", "S AY1 D", 0.85, 0.71, [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -4.0, -4.0, 0.0, 8.0, 13.0, 9.0, -4.0, -19.0, -25.0, -16.0, 6.0, 24.0, 28.0, 13.0, -10.0, -35.0, -52.0, -59.0]),
+]
+MEMORY_AT = 142.5
+MEMORY_PACE = 153.0 / 108.0
+MEMORY_SOFT = 0.7
+
+
+def she_remembers(song):
+    solo = next(x for x in song["tracks"] if x["name"] == "solo")
+    at0 = b0(MEMORY_AT)
+    for on, pitch, ph, ln, vel, f0 in MEMORY_LINE:
+        n = {"at": round(at0 + on * MEMORY_PACE, 3), "len": round(ln * MEMORY_PACE, 3), "pitch": pitch, "ph": ph,
+             "vel": round(vel * MEMORY_SOFT, 3)}
+        if f0:
+            n["expr_path"] = {"f0": f0}
+        solo["notes"].append(n)
+    solo["notes"].sort(key=lambda n: n["at"])
+
+
 def answer_accretes(song):
     far = next(x for x in song["tracks"] if x["name"] == "far")
     for bar, cell, vel in ANSWERS:
@@ -1669,6 +1701,7 @@ def main():
     and_it_was_ours(song)
     the_tide_turns(song)
     held_notes_open(song)
+    she_remembers(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
