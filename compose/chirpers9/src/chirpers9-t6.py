@@ -1383,6 +1383,24 @@ def build():
                  pitch=f"m{int(str(n_['pitch'])[1:]) + 12}", vel=round(n_['vel'] * 0.8, 3)) for n_ in L1_]
     song['tracks'].append(dict(fw_, name='farewell', notes=fwn_, gain='-14dB',
                                fx=list(fw_.get('fx', [])) + ['lp cutoff=2400'], sends={'hall': '-6dB', 'echo': '-14dB'}))
+    # (v92, section w6: 2:36-3:06, the cross - the ebb's last eight bars held the tide's chords on the church organ
+    # (v78) under the band draining away, and nobody sang there) THE HYMN: in the nave the congregation hums. Under
+    # the organ, from bar 89, a soft choir hums the couplet's tune - E1 itself, 'the near side keeps the time / the
+    # far side lets it go' without its words - half again as slow as it is sung, with the octave below and a third
+    # above in D minor, so its E falls on the organ's C and its D on the B-flat: the church by the sea singing the
+    # song back to itself as the water goes out
+    c2t_ = [t_ for t_ in song['tracks'] if t_['name'] == 'chorus2'][0]
+    c2f_ = sorted(c2t_['notes'], key=lambda n_: n_['at'])[:12]
+    hy0_ = (SEC['cross'] + 8) * 4.0
+    hyn_ = []
+    for n_ in c2f_:
+        f0_ = (n_.get('expr_path') or {}).get('f0') or []
+        hn_ = dict(n_, at=round(hy0_ + (n_['at'] - c2f_[0]['at']) * 1.5, 4), len=round(n_['len'] * 1.5, 4), vel=round(n_['vel'] * 0.8, 3))
+        if f0_ and len(f0_) < 96:
+            hn_['path_len'] = f"{len(f0_) / 44.0:.3f}s"
+        hyn_.append(hn_)
+    hp_ = dict(c2t_['patch'], extends='voice-choir synth.layers.0.hum=1 synth.layers.0.hum_at=m synth.layers.0.harmony=[-7,2] synth.layers.0.harmony_key=D:minor synth.layers.0.part_size=1 synth.layers.0.together=true synth.layers.0.f0_spread=1 synth.layers.0.vowel_spread=1 synth.lfo.vib.per_note=true')
+    song['tracks'].append(dict(c2t_, name='hymn', patch=hp_, notes=hyn_, gain='-17dB', sends={'hall': '-6dB'}))
     # (v90, fix with wM's path_len, pinned 7f9c5782, which chirper-one asked for) THE HELD NOTES SING AT THEIR OWN
     # RATE: a sung note stretched past the length it was sung for stretched its f0 path, vibrato and all, so the
     # young voice's slowed farewell and the old man's held last 'go' wavered at about two-thirds and half rate - a
