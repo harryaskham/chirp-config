@@ -122,6 +122,7 @@ RELIEF = os.environ.get("C9T1_RELIEF", "two")   # SECTION w6 (2:54-3:27, after t
 CHOIRBREATHS = os.environ.get("C9T1_CHOIRBREATHS", "0.6")   # WHOLE (the far choir breathes like people, as t5's singer has since t5 v59/v61): wM's taper on the choir's sighs - each 'haa' lets go at its end, quieter, darker, sagging a few cents, instead of stopping - and inhale_depth, each breath before a phrase sized to it, a sip before a short sigh, a full breath before the long hummed E1s ('TAPER[:DEPTH]', e.g. '0.6' = taper 0.6 and inhale_depth 1, '0.6:0' taper only, '0:1' depth only)
 GLINT = os.environ.get("C9T1_GLINT", "9@7000")   # WHOLE (the crystals glint): the seed's five scattered voices, their joins and the cell are the crystal t1 is about, but the whole song sat dark at the top (spectrum's worst band 14.8 kHz, -6.5 dB). Now those crystal voices - only they; the bass, the pad, the choir, the drums and the cello stay as they are - get a high shelf from 9 kHz, so each struck note glints as it lands ('dB[@cutoff Hz]', cutoff 9000 by default)
 RETROHOLD = os.environ.get("C9T1_RETROHOLD", "143")   # SECTION w3 (1:13-1:48, A's middle): the shakuhachi's backwards seed ends on D - and since v66 the whistle's forward hook begins on D (beat 143). Now the shakuhachi's last D holds on across the gap to where the whistle takes it ('value' = the beat it lets go, 143 to hand it straight over, 140 to leave a breath): the seed's end becomes its beginning
+CRESTBLOOM = os.environ.get("C9T1_CRESTBLOOM", "-20")   # SECTION w5 (2:22-2:54, the build and the crest): when the five scattered voices finally land on one downbeat and the seed forms (beat 224), nothing marked the moment but the hook itself. Now a tam-tam (the modal gong: a dense, low plate whose wash swells after the strike) is struck once, softly, far back, exactly at the crest - the convergence blooms and rings into B ('gain' dB)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -538,6 +539,9 @@ def song():
         ns = [note(a0 + c * E1_CYC + o, f"m{mm}", ln, 0.5 if c == 0 else 0.45)
               for c in range(2) for o, ln, mm in zip(E1_OFF, E1_LEN, mids)]
         tracks.append({"name": "answer", "patch": patch, "gain": gain, "pan": pan, "sends": {"space": "-9dB"}, "notes": ns})
+    if CRESTBLOOM:
+        tracks.append({"name": "crest-gong", "patch": "modal-gong", "gain": f"{CRESTBLOOM}dB", "pan": 0.0, "sends": {"space": "-4dB"},
+                       "notes": [note(TC, "D2", 16, 0.5)]})
     if CLOUD:
         cp, _, cg = CLOUD.partition("@")
         cns = []
