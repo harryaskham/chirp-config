@@ -14,12 +14,14 @@ scenes:
     look:
       background: "#000000"
       palette: elements
-      camera: {x: "3.2*sin(time.t*0.02)", y: 0.7, z: "0 - 3.2*cos(time.t*0.02)", look_at: [0, -0.1, 0]}
+      camera: {x: "2.7*sin(time.t*0.02)", y: 0.6, z: "0 - 2.7*cos(time.t*0.02)", look_at: [0, -0.1, 0]}
       layers:
         - {type: stars, count: 2000, speed: 0.003, streak: 1}
         - {type: motes, mode: orbit, tracks: auto, side: behind, count: 9000, inner: 0.55, radius: 1.9, bands: 8, spin: "1.0 + time.bpm*0.3", life: 6, flat: 0.96, size: 0.007, glow: "0.55 + audio.level*0.5", twinkle: 0.3, spread: 1}
-        # The album's people, spiralling in on long slow spirals, falling.
-        - {type: figure, count: 10, rig: human, motion: [float, fall], mix: "fract(time.t*0.02 + hash(inst.i + 10))", x: "(2.6 - 2.0*fract(time.t*0.02 + hash(inst.i + 10)))*cos(time.t*0.06 + inst.i*0.37 + 3*fract(time.t*0.02 + hash(inst.i + 10)))", z: "(2.6 - 2.0*fract(time.t*0.02 + hash(inst.i + 10)))*sin(time.t*0.06 + inst.i*0.37 + 3*fract(time.t*0.02 + hash(inst.i + 10)))", y: "0.2*(hash(inst.i + 40) - 0.5)", scale: "0.3*(0.35 + fract(1 - time.t*0.02 - hash(inst.i + 10)))", face: [0, 0, 0], color: "#e8d8c8", light: 1, ambient: 0.3, rim: 0.8, rim_color: "#ffd0a0"}
+        # The disk's light on everything near it.
+        - {type: light, x: 0, y: 0.1, z: 0, color: "#ffc890", power: "1.4 + 0.6*audio.level", reach: 2.2}
+        # The album's people, spiralling in on long slow spirals, falling, stretched as they near.
+        - {type: figure, count: 10, rig: human, motion: [float, fall], mix: "fract(time.t*0.02 + hash(inst.i + 10))", x: "(2.6 - 2.0*fract(time.t*0.02 + hash(inst.i + 10)))*cos(time.t*0.06 + inst.i*0.37 + 3*fract(time.t*0.02 + hash(inst.i + 10)))", z: "(2.6 - 2.0*fract(time.t*0.02 + hash(inst.i + 10)))*sin(time.t*0.06 + inst.i*0.37 + 3*fract(time.t*0.02 + hash(inst.i + 10)))", y: "0.2*(hash(inst.i + 40) - 0.5)", scale: "0.3*(0.35 + fract(1 - time.t*0.02 - hash(inst.i + 10)))", face: [0, 0, 0], sy: "1 + 1.6*pow(fract(time.t*0.02 + hash(inst.i + 10)), 3)", color: "#d8c8b8", light: 0.6, ambient: 0.35, rim: 0.9, rim_color: "#ffd0a0", material: pbr, rough: 0.5, env_sky: "#2a2440", env_ground: "#05040a", melt: 0.04}
         # Birds and lanterns, on spirals of their own.
         - {type: figure, count: 8, rig: bird, x: "(2.6 - 2.0*fract(time.t*0.03 + hash(inst.i + 30)))*cos(time.t*0.06 + inst.i*0.37 + 3*fract(time.t*0.03 + hash(inst.i + 30)))", z: "(2.6 - 2.0*fract(time.t*0.03 + hash(inst.i + 30)))*sin(time.t*0.06 + inst.i*0.37 + 3*fract(time.t*0.03 + hash(inst.i + 30)))", y: "0.3*(hash(inst.i + 60) - 0.5)", scale: "0.28*(0.35 + fract(1 - time.t*0.03 - hash(inst.i + 30)))", phase: "inst.i*0.4", color: "#f0ece8", light: 1, ambient: 0.4, rim: 0.6}
         - {type: motes, mode: infall, puff: true, count: 160, seed: 21, radius: 2.8, life: 40, spin: 1.2, flat: 0.8, size: 0.02, glow: 0.95, twinkle: 0, color: "#ffb050", near: 0.3}
