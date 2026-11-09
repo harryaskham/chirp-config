@@ -1116,6 +1116,14 @@ def build():
     # fills in behind it, not one that is all there at once
     for k_, b_ in (('e5', 2), ('hats', 4), ('near', 8)):
         P[k_] = [e_ for e_ in P[k_] if not (0.0 - 1e-6 <= e_[0] < b_ * 4.0 - 1e-6)]
+    # (v96, section w9: 4:06-4:35, the out-seam into t7 - the band dilates, the young voice sings its line from far
+    # off (v80), the trombone slides down to B-flat and the old man sings his last word, and the church organ that
+    # held the tide's chords in the pull's end (v84) and the cross (v78) - the church by the sea - was not there at
+    # the end) AMEN: under the old man's last word (bar 141), as the trombone lands on B-flat, the organ comes back
+    # one last time and holds a soft B-flat chord - B-flat, D, F, B-flat - for the song's last four bars, fading
+    # under t7's head: the church by the sea saying amen as the tide goes out
+    am0_ = (SEC['out'] + 12) * 4.0
+    P['ebb'] = sorted(P['ebb'] + [(am0_, ','.join(m(p_) for p_ in (46, 50, 53, 58)), 15.0, 62)], key=lambda e_: e_[0])
     rk0_ = SEC['crest'] * 4.0
     P['kitroom'] = [e_ for e_ in P['kit'] if e_[0] >= rk0_ - 1e-6]
     P['kit'] = [e_ for e_ in P['kit'] if e_[0] < rk0_ - 1e-6]
