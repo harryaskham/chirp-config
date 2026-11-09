@@ -1144,7 +1144,11 @@ def build():
             # the library's acoustic (a steel-string dreadnought, close-miked: wound-string attack, body and air; no
             # Accretion track uses it) - wood and steel in the one place the band falls away, the electric back for
             # the drift
-            tr('buildarp', 'arp-pluck', '+13dB', pan=-0.25, sends={'echo': '-14dB', 'hall': '-12dB'}),
+            # (v80, palette: the build's climbing arpeggio - eighths, then triplets, then sixteenths - was the library's
+            # arp-pluck, an EDM saw-and-square pluck) THE ARPEGGIO ON A PIANO: it is now the library's concert grand
+            # (felt hammers, stretched tuning, a sympathetic-string shimmer; no Accretion track uses a piano), the same
+            # notes quickening through the build - a player's hands speeding up as the crest nears
+            tr('buildarp', 'piano', '-4.2dB', pan=-0.25, sends={'echo': '-14dB', 'hall': '-12dB'}),
             # (v66, palette: the break's floating arp was the acoustic guitar - a plucked string like a dozen others on
             # the album) FIREFLIES: the break's arp is now the library's kuramoto-flies (wM's chirpers8 swarm: every note
             # starts as eight triangles at random phases and finds its pitch out of a shimmer in its first tenth of a
