@@ -898,6 +898,25 @@ def octave_down(h):
     return name_of(m - 12) + ("^" + art if art else "")
 
 
+# v91 (ROUND TYPE: section, the horizon's memory 143-153, 3:44-4:00; rewritten): THE MEMORY FLOATS. t8's least-moving
+# change (3:52, 0.76 / 0.74, bars 143-153 by flatness --bars; blocks 143.65-148.6 and 148.6-153.2): her remembered
+# line (young, 143.75) and the hook, then her last line (old, 149.5) - and under both the horizon's sub held D1 (struck
+# at 141 for six bars, again at 149). Now, when she starts remembering, the floor lets go: the horizon's D1 ends at
+# 143.75, so her young voice and the flute's hook float over the light alone - and the floor comes back at 149 with
+# her last line. (Spectrum checked: t8's 38 Hz band sits at -2.5 dB, room to spare.)
+MEMORY_FLOATS = 143.75
+
+
+def memory_floats():
+    a = b0(MEMORY_FLOATS)
+    out = []
+    for s, ln, h, v in P["hsub"].ev:
+        if s < a < s + ln - 1e-6:
+            ln = a - s
+        out.append((s, ln, h, v))
+    P["hsub"].ev = out
+
+
 def the_well():
     a, z = b0(WELL[0]), b0(WELL[1])
     P["bass"].ev = [(s, ln, octave_down(h) if a - 1e-6 <= s < z - 1e-6 else h, v) for s, ln, h, v in P["bass"].ev]
@@ -1808,6 +1827,7 @@ def main():
     jet_floor()
     first_floor()
     the_well()
+    memory_floats()
     everything_falls_in()
     light_out_for_the_amen()
     lead, fifth, low = choir()
