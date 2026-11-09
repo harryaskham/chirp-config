@@ -125,6 +125,7 @@ RETROHOLD = os.environ.get("C9T1_RETROHOLD", "143")   # SECTION w3 (1:13-1:48, A
 CRESTBLOOM = os.environ.get("C9T1_CRESTBLOOM", "-20")   # SECTION w5 (2:22-2:54, the build and the crest): when the five scattered voices finally land on one downbeat and the seed forms (beat 224), nothing marked the moment but the hook itself. Now a tam-tam (the modal gong: a dense, low plate whose wash swells after the strike) is struck once, softly, far back, exactly at the crest - the convergence blooms and rings into B ('gain' dB)
 MASTEREQ = os.environ.get("C9T1_MASTEREQ", "lite3")   # WHOLE (the mix, against t2 and the album): t1 has no master EQ, while t2 (v75) warmed its own; against t2's body t1 read 19 dB light at 38 Hz and 14 at 44 (the D1 octave) and 14 dB heavy at 114 Hz (A2, where the air, the pad and the bass all sit), and its top was the album's shortest (-6.7 dB at 14.8 kHz). 'seam': a 25 Hz high-pass, +4 dB low shelf below 50 Hz, -3 dB at 114 Hz, +2 dB high shelf from 12 kHz; 'lite': +3 dB at 40 Hz, -2 at 114, the same top; 'lite2': that and +2.5 dB at 182 Hz (the cut uncovered a gap there); 'fill': +3 dB at 40 Hz and +2.5 at 182, the top, no cut; 'lite3': 'lite' with a narrow +1.2 dB at 182 and +3 dB of top
 FILL = os.environ.get("C9T1_FILL", "end:8")   # SECTION w6 (2:54-3:27, the lock and the strip after the crest: flagged static): THE HAND ON THE DRUM - through the strip (256-288) the bodhran drops to half time and nothing calls the seeds back at 288. Now a player's ornament: a soft triplet roll on the drum's top-end tap (six taps rising, beats 286-288) leads into the boom where the seeds return; 'both' also taps a three-note triplet just before the harp's inverted seed enters (272). Built after HANDS, so it redraws no other part's feel. On its own track ('kick-fill', the bodhran's taps being far softer than its boom). Value 'end|both[:gain dB]'
+CHOIRBLOOM = os.environ.get("C9T1_CHOIRBLOOM", "0.8:0.28")   # PALETTE (the far choir's voice; wM's vibrato bloom, pin 0119aae1): the choir's vibrato was one fixed width on every note. Now it blooms - each note starts nearly straight and widens the longer it is held - so the short sighs stay plain and the long hums open up; each of the five singers keeps its own vibrato (CHOIRVIB). On the breath/sighs, the hum and the closing hum. Value 'bloom[:depth]' (depth: the vibrato's pitch swing, 0.22 by default)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -889,6 +890,12 @@ def song():
                 n["at"] = round(max(0.0, n["at"] + dt), 4)
                 n["vel"] = round(max(0.05, min(1.0, n["vel"] + ln + rng.gauss(0, sd))), 3)
             tr["notes"].sort(key=lambda n: n["at"])
+    if CHOIRBLOOM:
+        cb, *cd = CHOIRBLOOM.split(":")
+        for tr in tracks:
+            pt = tr.get("patch")
+            if tr["name"] in ("breath", "hum", "hum-out") and isinstance(pt, dict) and "synth.lfo.vib.per_note=true" in pt.get("extends", ""):
+                pt["extends"] += f" synth.lfo.vib.bloom={cb}" + (f" synth.pitch.mod.0.amount={cd[0]}" if cd else "")
     if FILL:
         fk, fg = (FILL + ":0").split(":")[:2]
         taps = [(286 + k / 3, 0.4 + 0.1 * k) for k in range(6)]
