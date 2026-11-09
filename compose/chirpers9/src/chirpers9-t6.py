@@ -1496,6 +1496,21 @@ def build():
                 f0_ = (n_.get('expr_path') or {}).get('f0') or []
                 if f0_ and len(f0_) / n_['len'] < 18.0:
                     n_['path_len'] = f"{len(f0_) / 44.0:.3f}s"   # (v93: in seconds - tts paths are 44 points a second; the beat figure ran ~10% fast at the out-seam's 132 bpm)
+    # (v101, whole song: wM's vowel_drift, pinned 07ab00cd, from chirper-one's ask for long notes) THE VOWELS LIVE:
+    # this song holds its vowels longer than any other on the album - the old man's long 'go's and 'side's, the
+    # choirs' held chords, the near voice's last notes - and every one sat perfectly still, the formants fixed, which
+    # is a large part of what reads as a machine. Now each held vowel wanders a little as a singer's jaw and tongue
+    # settle (only after 0.2 s, so short notes and consonants keep the exact vowel): the old man most (1 - an
+    # untrained voice, and an old one), the choirs a little less (0.7, each singer and harmony part on its own path),
+    # the near voice least (0.5 - the steadier, trained singer)
+    VD_ = {'voice-old': 1.0, 'voice-choir': 0.7, 'voice-near': 0.5}
+    for t_ in song['tracks']:
+        pt_ = t_.get('patch')
+        if isinstance(pt_, dict) and isinstance(pt_.get('extends'), str):
+            for k_, v_ in VD_.items():
+                if pt_['extends'].startswith(k_):
+                    t_['patch'] = dict(pt_, extends=pt_['extends'] + f' synth.layers.0.vowel_drift={v_:g}')
+                    break
     return song
 
 
