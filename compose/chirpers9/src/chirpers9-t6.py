@@ -1236,7 +1236,13 @@ def build():
             # between notes): the far side's long tones slide into each other, 'lets it go' heard in the instrument,
             # and as the far side speeds up through the cross, the surge and the tear its legato smears into a brass
             # blur; no other Accretion track has a trombone (t7 answers with a muted trumpet)
-            tr('far', 'trombone', '-8dB', pan=-0.25, sends={'hall': '-12dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
+            # (v100, whole song) THE TWO TIDES, HEARD: the song is E1 in two layers moving opposite ways in time - the far
+            # side squeezed faster, the near side stretched slower - but presence.py had both buried all through: the
+            # far trombone at -13 to -16 dB under the mix and audible 0-8% of the time, the near marimba -10.5 to -19
+            # (4% in the cross, 0 in the surge), covered by the voices and the low strings that double the far line.
+            # Both come up - the trombone 4 dB, the marimba 3 - so the counterpoint the song is built on can be
+            # followed: one E1 slowing while the other speeds, under the singers
+            tr('far', 'trombone', '-4dB', pan=-0.25, sends={'hall': '-12dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
             # (v10) the chord-root sub up 5 dB: compscore's one spectrum fault was a hole at 61 Hz, where the C root sits
             # (v22, palette) THE FLOOR GETS A VOICE: the moving floor under the tide (D2 -> C2 -> G1, the chords' own
             # roots) was a second sine sub - felt, not heard, and the album's most shared patch. Now it is an analog
@@ -1255,7 +1261,7 @@ def build():
             # (end-blown bamboo: a strong breath on the attack, notes bending in and out; no Accretion track uses it):
             # more air than the whistle, the tide's breath in the melody itself
             tr('hook', 'shakuhachi', '-7dB', pan=0.05, sends={'hall': '-12dB', 'echo': '-18dB'}),
-            tr('near', 'modal-marimba', '-11dB', pan=0.3, auto={'shut': {'points': shut_pts}},
+            tr('near', 'modal-marimba', '-8dB', pan=0.3, auto={'shut': {'points': shut_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 700, 'mod': [{'src': 'auto.shut', 'amount': 4.0}]}}, {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}],
                sends={'echo': '-14dB', 'hall': '-14dB'}),
             tr('e5', 'steel-pan', '-10dB', pan=-0.15, sends={'echo': '-16dB', 'hall': '-18dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
