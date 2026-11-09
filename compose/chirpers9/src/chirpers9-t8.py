@@ -940,6 +940,21 @@ def the_well():
     P["bass"].ev = [(s, ln, octave_down(h) if a - 1e-6 <= s < z - 1e-6 else h, v) for s, ln, h, v in P["bass"].ev]
 
 
+# v93 (ROUND TYPE: section, the jet's second half 109-121, 2:48-3:04; rewritten): THE WELL PULLS AGAIN. t8's least-
+# moving change (2:56, 0.77 / 0.82, bars 108-119 by flatness --bars; blocks 108.5-113.8 and 113.8-119.1): the jet at
+# full drive in both - the choirs' line and E7's brass in the first, the flute's hook and busier hats in the second,
+# over the same high floor (the bass in the D3 register). Now, from 114 to the break, the well pulls again: the bass
+# drops an octave as it did before the jet (v86, 87.5-97), so the jet's second half leans down into the break. And the
+# spectrum asked for it: t8's 61 Hz band sits on the album envelope's edge (-6.0 dB) with 97 and 114 low too, while
+# 156 Hz is +3.2 over - the octave moves the bass's weight from the full band into the starved one.
+WELL_AGAIN = (114, 121)
+
+
+def the_well_again():
+    a, z = b0(WELL_AGAIN[0]), b0(WELL_AGAIN[1])
+    P["bass"].ev = [(s, ln, octave_down(h) if a - 1e-6 <= s < z - 1e-6 else h, v) for s, ln, h, v in P["bass"].ev]
+
+
 def first_floor():
     a, z = b0(FIRST_DARK[0]), b0(FIRST_DARK[1])
     out = []
@@ -1846,6 +1861,7 @@ def main():
     first_floor()
     the_well()
     memory_floats()
+    the_well_again()
     everything_falls_in()
     light_out_for_the_amen()
     lead, fifth, low = choir()
