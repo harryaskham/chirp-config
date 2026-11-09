@@ -13,7 +13,7 @@ scenes:
       camera: {x: "(1.6 - 0.6*smooth(0, 150, time.t))*sin(time.t*0.008 + 0.15)", y: "0.35 - 0.15*smooth(0, 150, time.t)", z: "0 - (2.6 - 1.1*smooth(0, 150, time.t))*cos(time.t*0.008 + 0.15)", look_at: [0, -0.1, 0.6]}
       layers:
         - {type: sky, zenith: "#3a4a7a", horizon: "#ffa070", ground: "#3a3040", sun: "#ffe0b0", sun_yaw: 0.02, sun_height: "0.035 - time.t*0.00025", sun_size: 0.045, glow: 1.1, haze: 0.45, clouds: 0.4, cloud_height: 3, cloud_scale: 0.22}
-        - {type: group, use: kit-sea, y: -0.3, z: 6, params: {far: 1, swell: 0.6, light: 0.25}}
+        - {type: group, use: kit-sea, y: -0.3, z: 5.1, params: {far: 1, swell: 0.6, light: 0.25}}
         # The beach.
         - {type: mesh, shape: plane, detail: 48, y: -0.62, z: -1, scale: 5, sz: 0.6, displace: "0.02*noise3(vtx.x*4, 0, vtx.z*4) - 0.09*smooth(0.55, 1.0, vtx.z)", color: "#7a6450", light: 0.8, ambient: 0.06, rim: 0, lx: 0.2, ly: 0.4, cull: true, paint: "0.5*smooth(0.8, 0.86, vtx.z + 0.01*sin(time.t*0.4 + vtx.x*3))*(1 - smooth(0.87, 0.92, vtx.z + 0.01*sin(time.t*0.4 + vtx.x*3)))", paint_color: "#e8e0d8", paint_fine: true}
         - {type: group, use: kit-fire, y: -0.6, z: 0.3, params: {size: 0.7, heat: 0.65}}
@@ -39,7 +39,7 @@ scenes:
       layers:
         - {type: sky, zenith: "#04061a", horizon: "#1a2040", ground: "#05060c", sun: "#e8ecf8", sun_yaw: -0.08, sun_height: 0.12, sun_size: 0.02, glow: 0.5, haze: 0.3}
         - {type: stars, count: 2000, speed: 0, twinkle: 0.4}
-        - {type: group, use: kit-sea, y: -0.3, z: 6, params: {far: 1, swell: 0.4, light: 0.04}}
+        - {type: group, use: kit-sea, y: -0.3, z: 5.1, params: {far: 1, swell: 0.4, light: 0.04}}
         - {type: mesh, shape: plane, detail: 48, y: -0.62, z: -1, scale: 5, sz: 0.6, displace: "0.02*noise3(vtx.x*4, 0, vtx.z*4) - 0.09*smooth(0.55, 1.0, vtx.z)", color: "#3a3440", light: 0.5, ambient: 0.06, rim: 0, lx: 0.2, ly: 0.4, cull: true, paint: "0.5*smooth(0.8, 0.86, vtx.z + 0.01*sin(time.t*0.4 + vtx.x*3))*(1 - smooth(0.87, 0.92, vtx.z + 0.01*sin(time.t*0.4 + vtx.x*3)))", paint_color: "#e8e0d8", paint_fine: true}
         - {type: group, use: kit-fire, y: -0.6, z: 0.3, params: {size: 0.6, heat: 0.6}}
         - {type: figure, count: 5, rig: human, motion: sway, x: "0.9*sin(inst.i/5 + 0.1)", z: "0.3 + 0.9*cos(inst.i/5 + 0.1)", y: -0.3, scale: 0.36, face: [0, 1.5, 5], energy: 0.3, color: "#1a1418", light: 1, ambient: 0.08, rim: 0.8, rim_color: "#ffb070"}
