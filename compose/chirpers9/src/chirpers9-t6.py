@@ -1091,7 +1091,11 @@ def build():
         'tracks': [
             # (v9) and the harmonium is LENSED in: a low-pass that opens from 600 Hz over the in-seam's 16 bars, so t6's
             # own chord arrives from behind t5's tail rather than on top of it
-            tr('ebb', 'mellotron-choir', '-8dB', sends={'hall': '-8dB'}),
+            # (v78, palette: the cross's ebb - the tide's chords held after the crest - was a tape choir, the album's
+            # mellotron colour) THE EBB IN THE NAVE: it is now the library's organ-pipe (a principal chorus with chiff
+            # and wind, a 16' bourdon under 8' and 4' and a slightly mistuned mixture; no Accretion track uses it) -
+            # after high water the chords the tide carried are held on a pipe organ, as if in a church by the sea
+            tr('ebb', 'organ-pipe', '-14.7dB', sends={'hall': '-14dB'}),
             tr('tide', 'harmonium', '-9dB', sends={'hall': '-10dB'}, auto={'lens': {'points': [['0b', 0.0], ['64b', 1.0]]}, 'W': {'points': wave_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 600, 'mod': [{'src': 'auto.lens', 'amount': 4.0}]}},
                    {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.W', 'amount': 1}]}}]),
