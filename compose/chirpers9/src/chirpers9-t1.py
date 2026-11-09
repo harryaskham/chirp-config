@@ -126,6 +126,7 @@ CRESTBLOOM = os.environ.get("C9T1_CRESTBLOOM", "-20")   # SECTION w5 (2:22-2:54,
 MASTEREQ = os.environ.get("C9T1_MASTEREQ", "lite3")   # WHOLE (the mix, against t2 and the album): t1 has no master EQ, while t2 (v75) warmed its own; against t2's body t1 read 19 dB light at 38 Hz and 14 at 44 (the D1 octave) and 14 dB heavy at 114 Hz (A2, where the air, the pad and the bass all sit), and its top was the album's shortest (-6.7 dB at 14.8 kHz). 'seam': a 25 Hz high-pass, +4 dB low shelf below 50 Hz, -3 dB at 114 Hz, +2 dB high shelf from 12 kHz; 'lite': +3 dB at 40 Hz, -2 at 114, the same top; 'lite2': that and +2.5 dB at 182 Hz (the cut uncovered a gap there); 'fill': +3 dB at 40 Hz and +2.5 at 182, the top, no cut; 'lite3': 'lite' with a narrow +1.2 dB at 182 and +3 dB of top
 FILL = os.environ.get("C9T1_FILL", "end:8")   # SECTION w6 (2:54-3:27, the lock and the strip after the crest: flagged static): THE HAND ON THE DRUM - through the strip (256-288) the bodhran drops to half time and nothing calls the seeds back at 288. Now a player's ornament: a soft triplet roll on the drum's top-end tap (six taps rising, beats 286-288) leads into the boom where the seeds return; 'both' also taps a three-note triplet just before the harp's inverted seed enters (272). Built after HANDS, so it redraws no other part's feel. On its own track ('kick-fill', the bodhran's taps being far softer than its boom). Value 'end|both[:gain dB]'
 CHOIRBLOOM = os.environ.get("C9T1_CHOIRBLOOM", "0.8:0.28")   # PALETTE (the far choir's voice; wM's vibrato bloom, pin 0119aae1): the choir's vibrato was one fixed width on every note. Now it blooms - each note starts nearly straight and widens the longer it is held - so the short sighs stay plain and the long hums open up; each of the five singers keeps its own vibrato (CHOIRVIB). On the breath/sighs, the hum and the closing hum. Value 'bloom[:depth]' (depth: the vibrato's pitch swing, 0.22 by default)
+DISPERSE = os.environ.get("C9T1_DISPERSE", "320:368:6:0.08")   # WHOLE (with SEEDGATHER: the five seed voices ride a ring round the listener that shrinks to a point in front at the crest - and stayed that point to the very end): THE SEED LETS GO - once B is over (from the outro, as t2 arrives) the ring opens again and turns slowly, so the formed seed spreads back out round you while it falls into t2, leaving the front to t2's entering bell. Value 'from:to:radius m:laps per bar' (the ring opens from 'from' to 'to', then holds)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -578,6 +579,10 @@ def song():
     if SEEDGATHER:
         ring = [["0b", 6.0], ["64b", 6.0], [f"{ST['build']}b", 3.0], [f"{TC}b", 0.0], ["384b", 0.0]]
         turn = [["0b", 0.12], [f"{ST['build']}b", 0.25], [f"{TC - 0.1}b", 0.25], [f"{TC}b", 0.0], ["384b", 0.0]] if SEEDGATHER == "slow" else [["0b", 0.0], ["384b", 0.0]]
+        if DISPERSE:
+            da, db, dr, ds = (float(x) for x in DISPERSE.split(":"))
+            ring = [p for p in ring if float(p[0][:-1]) < da] + [[f"{da:g}b", 0.0], [f"{db:g}b", dr], ["384b", dr]]
+            turn = [p for p in turn if float(p[0][:-1]) < da] + [[f"{da:g}b", 0.0], [f"{db:g}b", ds], ["384b", ds]]
         for k, nm in enumerate(["seed-d", "seed-a", "seed-c", "seed-g", "seed-e"]):
             for tr in tracks:
                 if tr["name"] == nm:
