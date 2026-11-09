@@ -823,6 +823,13 @@ def build():
         P['hats'].append((b_ + 0.5, 'oh', 0.2, 58))
     P['hats'].sort(key=lambda e_: e_[0])
     P['ebb'] = [e_ for e_ in P['tide'] if eb0_ - 1e-6 <= e_[0] < eb1_ - 1e-6]
+    # (v84, section w2: 0:32-1:03, the pull - the tide's chords came in on the harmonium alone while the young voice
+    # sang 'the tide comes in', and the organ the cross holds them on (v78) was heard only after high water) THE
+    # NAVE FILLS: the pull's last four bars (29-32) take the tide's G and A chords onto the same pipe organ, softer
+    # than in the cross and swelling in under the second 'the tide comes in' - the church by the sea glimpsed once
+    # on the way in, so the cross's organ is a return, not a stranger
+    pw0_ = (SEC['tide'] - 4) * 4.0
+    P['ebb'] = sorted([(e_[0], e_[1], e_[2], round(e_[3] * (0.55 + 0.1 * (e_[0] - pw0_) / 16.0))) for e_ in P['tide'] if pw0_ - 1e-6 <= e_[0] < SEC['tide'] * 4.0 - 1e-6] + P['ebb'], key=lambda e_: e_[0])
     P['tide'] = [e_ for e_ in P['tide'] if not (eb0_ - 1e-6 <= e_[0] < eb1_ - 1e-6)]
     P['tide'] = [(e_[0], e_[1], min(e_[2], eb0_ - e_[0]), *e_[3:]) if e_[0] < eb0_ < e_[0] + e_[2] else e_ for e_ in P['tide']]
 
