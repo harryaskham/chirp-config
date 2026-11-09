@@ -1108,6 +1108,14 @@ def build():
         return (e_[0], ','.join(ps_), *e_[2:])
     for k_, d_ in (('near', -12), ('e5', -12), ('root', 12), ('farbass', 12)):
         P[k_] = [sq_(e_, d_) if sq0_ - 1e-6 <= e_[0] < sq1_ - 1e-6 else e_ for e_ in P[k_]]
+    # (v94, section w1: 0:00-0:32, the in-seam under t5's tail - every part of t6's head started on its first beat,
+    # the hats, the marimba's racing E1 and the pans all at once over t5's farewell) THE TIDE COMES IN BY STAGES:
+    # the water arrives as a tide does, a little further up the beach each time - the harmonium, the root and the
+    # sub from the first beat; the steel pans from bar 3; the hats from bar 5; the old voice's 'the tide comes in'
+    # at bar 7 as before; the marimba's E1 with the kora from bar 9 - so t5's farewell is heard over a head that
+    # fills in behind it, not one that is all there at once
+    for k_, b_ in (('e5', 2), ('hats', 4), ('near', 8)):
+        P[k_] = [e_ for e_ in P[k_] if not (0.0 - 1e-6 <= e_[0] < b_ * 4.0 - 1e-6)]
     rk0_ = SEC['crest'] * 4.0
     P['kitroom'] = [e_ for e_ in P['kit'] if e_[0] >= rk0_ - 1e-6]
     P['kit'] = [e_ for e_ in P['kit'] if e_[0] < rk0_ - 1e-6]
