@@ -1306,6 +1306,21 @@ def build():
         if t_['name'] in ('verse', 'prech', 'earlyhook', 'sung'):
             t_['double'] = {'pan': 30, 'seeds': [76, 67]}
             t_['gain'] = f"{float(str(t_['gain'])[:-2]) - 3:g}dB"
+    # (v83, whole song: the engine's orbit fx, as t3 v82 uses it) THE MOTIF IN ORBIT: E2 - the seven sixteenths
+    # whose cycle the whole song falls through - sat still in the stereo field. Now its bright metal voice (and the
+    # dust around it) circles the listener (distance 0, no Doppler, so only its position moves: no pitch or level
+    # change), and its laps follow the song's orbit as Kepler would: slow and wide at the start (a lap every four
+    # bars), quickening as it falls in through the gather and the build, a lap a bar at the crest and faster through
+    # it; flung out at the break it all but stops (as E2 stretches, v68); the drift picks it up again and the fall
+    # spins it in fastest of all, two laps a bar into t3
+    spin_ = {'points': [['0b', 0.25], ['64b', 0.35], ['128b', 0.6], ['192b', 1.0], ['254b', 1.5], ['256b', 0.15],
+                        ['318b', 0.15], ['320b', 0.4], ['384b', 1.0], ['440b', 2.0], ['460b', 2.0]]}
+    for t_ in song['tracks']:
+        if t_['name'] in ('e2m', 'dust'):
+            t_['fx'] = list(t_.get('fx') or []) + [{'type': 'orbit', 'path': 'circle', 'distance': 0, 'doppler': 0.0,
+                                                     'rate': '1/1', 'phase': 0.0 if t_['name'] == 'e2m' else 0.5,
+                                                     'speed': {'value': 0, 'mod': [{'src': 'auto.spin', 'amount': 1}]}}]
+            t_['auto'] = dict(t_.get('auto') or {}, spin=spin_)
     # (v82, section w7: 3:04-3:34, the break's last eight bars into the drift - the break hummed the crest's line
     # at bar 77, ending on 'comes round', and then nothing was sung until the second verse's 'all that turns' at
     # bar 81) ROUND, AND ROUND: the near voice picks up the crest's last word and keeps turning on it - the
