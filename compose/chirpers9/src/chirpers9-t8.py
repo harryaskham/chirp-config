@@ -582,6 +582,27 @@ MEMORY_PACE = 153.0 / 108.0
 MEMORY_SOFT = 0.7
 
 
+# v83 (ROUND TYPE: palette - the newest engine feature): HER VOICE AT ITS OWN RATE. 'And it was ours' was sung (tts
+# f0 paths) for the jet choir's line at 158 bpm (137.56-138.56). She sings it twice more: alone in the break (125, at
+# 116 bpm - its vibrato already at 0.73 of the sung rate) and as her last line (150, half speed at ~141 bpm, 'ours'
+# held four beats - about 0.45, a slow wobble on the album's last words). wM's PATH_LEN (pinned 7f9c5782) re-times a
+# stretched path: its shape spans the note, its vibrato keeps the sung rate. Each of her notes now says how long its
+# path was sung for - in SECONDS, so it holds across the tempo changes (the choir's beats at 158 bpm); the choir's own
+# line, at the tempo it was sung for, is untouched. Her memory line (t4's paths, kept in t4's seconds) needs none.
+PATH_SUNG_S = {"AH0 N D": 1.0 * 60 / 158, "IH1 T": 0.997 * 60 / 158, "W AA1 Z": 0.998 * 60 / 158,
+               "AW1": 1.7 * 60 / 158, "ER0 Z": 0.85 * 60 / 158}
+HER_LINES = (124, 130)
+
+
+def her_own_rate(song):
+    tr_ = {x["name"]: x for x in song["tracks"]}
+    lo, hi = b0(HER_LINES[0]), b0(HER_LINES[1])
+    notes = [n for n in tr_["solo"]["notes"] if lo <= n["at"] < hi] + tr_["last"]["notes"]
+    for n in notes:
+        if n.get("expr_path") and n.get("ph") in PATH_SUNG_S:
+            n["path_len"] = f"{PATH_SUNG_S[n['ph']]:.3f}s"
+
+
 def she_remembers(song):
     solo = next(x for x in song["tracks"] if x["name"] == "solo")
     at0 = b0(MEMORY_AT)
@@ -1762,6 +1783,7 @@ def main():
     the_tide_turns(song)
     held_notes_open(song)
     she_remembers(song)
+    her_own_rate(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
