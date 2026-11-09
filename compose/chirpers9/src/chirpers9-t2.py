@@ -1306,6 +1306,21 @@ def build():
         if t_['name'] in ('verse', 'prech', 'earlyhook', 'sung'):
             t_['double'] = {'pan': 30, 'seeds': [76, 67]}
             t_['gain'] = f"{float(str(t_['gain'])[:-2]) - 3:g}dB"
+    # (v82, section w7: 3:04-3:34, the break's last eight bars into the drift - the break hummed the crest's line
+    # at bar 77, ending on 'comes round', and then nothing was sung until the second verse's 'all that turns' at
+    # bar 81) ROUND, AND ROUND: the near voice picks up the crest's last word and keeps turning on it - the
+    # pre-chorus's 'round and round and round' (D D E D E, an octave down from the build's), soft and wet over the
+    # break's rising chords (bars 79-80) - so the break hands the drift its word: round -> round and round -> all
+    # that turns
+    pc_ = [t_ for t_ in song['tracks'] if t_['name'] == 'prech'][0]
+    rr_ = sorted([n_ for n_ in pc_['notes'] if 167.5 <= n_['at'] < 176.0], key=lambda n_: n_['at'])
+    assert len(rr_) == 5
+    rr0_ = SEC['break'] * 4.0 + 56.0
+    rrn_ = [dict(n_, at=round(rr0_ + (n_['at'] - rr_[0]['at']), 4), pitch=f"m{int(str(n_['pitch'])[1:]) - 12}",
+                 vel=round(n_['vel'] * 0.85, 3), len=(2.9 if k_ == 4 else n_['len'])) for k_, n_ in enumerate(rr_)]
+    rrt_ = dict(pc_, name='roundround', notes=rrn_, gain='-15dB', sends={'hall': '-6dB', 'echo': '-12dB'})
+    rrt_.pop('double', None)
+    song['tracks'].append(rrt_)
     # (v81, section w9: 4:04-4:45, the fall into t3 - flagged static: once the kit, the bass, the bells and the hum
     # stop at bar 105, the fall's last eight bars were the pad, the sub and E2 sinking alone) THE FIRST WORDS, LAST:
     # at bar 105 the near voice sings the song's first line once more - 'all that falls, falls a little nearer' -
