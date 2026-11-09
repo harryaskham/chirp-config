@@ -115,6 +115,7 @@ TIRES = os.environ.get("C9T5_TIRES", "0.8:sink")   # WHOLE (her voice's arc: app
 CELLOROOM = os.environ.get("C9T5_CELLOROOM", "336:352")   # SECTION w6 (2:47-3:20, C's first half: flagged static; eco's flatness map has t5's flattest change at bars 81-88): THE FLOOR GIVES WAY - the cello's slow orbit (v71) came in at 336 under a band that never moved; now the bass and the floor step out for a moment as it enters, so the low end opens around the cello and her second crest line floats on it, and they come back under the DX piano's answer (352). Value 'from:to' beats
 CHIPKIT = os.environ.get("C9T5_CHIPKIT", "kit:-19")   # PALETTE (the cymbals; with CHIPHATS): since v70 t5's 909 plays its hats on the NES's noise channel, but its crash and the spin's ride were still haake-hat - the album's most shared sound. 'kit': the crash and the ride join the console too - the noise channel let ring long (the crash at a darker rate, C5, the ride brighter, C6), so the whole kit is the chip's; 'ride': only the spin's ride. Value 'kit|ride[:ride dB]'
 WORDSGROW = os.environ.get("C9T5_WORDSGROW", "on")   # WHOLE (her voice's arc; A's chorus came three times exactly alike - and harmony is the crest's to accrete, not A's): THE WORDS ACCRETE - in A she finds the line a few words at a time, on the same tune: the first time only 'near-er' is a word and the rest is hummed (closed lips on the tune), the second time 'near-er the mid-dle' and the 'hums' hummed, the third time the whole line; then at the crest every voice joins her. Value 'on' (or 'soft': the hummed notes a little quieter, x0.8)
+LIGHTSLOCK = os.environ.get("C9T5_LIGHTSLOCK", "strong")   # WHOLE (the lights - E4's four chords on the Kuramoto choir, twelve detuned saws pulled toward one phase - held one coupling all song, wobbling round the critical point; and C read static): THE LIGHTS FALL INTO STEP - the swarm's coupling now follows the orbit: a loose, shimmering crowd in the head and A, pulled toward step through the build, LOCKED at the crest (one pure, darker voice, as every cycle meets), then slowly letting go through C and scattering in the tide into t6. Its own slow wobble stays on top. 'on' 0.7 -> 2.6 -> 0.8; 'strong' 0.4 -> 3.0 -> 0.5
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -945,6 +946,15 @@ def song():
                 tr["patch"] = pt
             if tr["name"] == "spin":
                 tr["patch"] = {"extends": "909", "kit": {"rd": ride}}
+    if LIGHTSLOCK:
+        lo, hi, out = (0.7, 2.6, 0.8) if LIGHTSLOCK == "on" else (0.4, 3.0, 0.5)
+        for tr in tracks:
+            if tr["name"] == "lights":
+                base = tr["patch"] if isinstance(tr["patch"], str) else "kuramoto-choir"
+                tr["patch"] = {"extends": base, "synth": {"layers": [{"type": "kuramoto", "kuramoto": {"count": 12, "spread": 30, "coupling": {
+                    "value": 0.0, "mod": [{"src": "lfo.agree", "amount": 0.8}, {"src": "auto.lock", "amount": 1}]}}}]}}
+                tr["auto"] = dict(tr.get("auto", {}), lock={"points": [["0b", lo], [f"{ST['A']}b", lo + 0.3], [f"{ST['build']}b", lo + 0.6],
+                                                                        [f"{TC}b", hi], [f"{TC + 32}b", hi], [f"{ST['outro']}b", (hi + out) / 2], [f"{TOTAL}b", out]]})
     if ANSACCRETE:
         third = {57: 60, 55: 59, 64: 67, 62: 66}
         for tr in tracks:
