@@ -482,6 +482,32 @@ def and_it_was_ours(song):
     tr_["far"]["notes"].sort(key=lambda n: n["at"])
 
 
+# v77 (ROUND TYPE: palette - design a new patch): THE TIDE TURNS. E6, the tide, plays on the library organ with a
+# fixed, light 6 Hz tremolo - the same flutter from its entry to the end - and the tide (73-80, the one stretch of the
+# stretto with no question and no answer) is t8's stillest place left (1:52: 0.59 / 0.60). An organ's own way to move
+# is its rotary speaker: CHORALE (slow) and TREMOLO (fast), and the change between them. chirp's tremolo rate cannot
+# ride a lane, so the rotary is two organs crossfaded on gain lanes: E6 slow (0.9 Hz, deep - the chorale's swell)
+# and a twin, e6f (a new last track), fast (6.5 Hz); over 76.5-78 the rotor speeds up - the tide surging as the kick
+# comes back - and over 89-93, where the stretch slows time toward the jet, it winds back down to the chorale.
+ROTOR_UP = (76.5, 78.0)
+ROTOR_DOWN = (89.0, 93.0)
+ROTOR_SLOW, ROTOR_FAST = "tremolo rate=0.9hz depth=0.35", "tremolo rate=6.5hz depth=0.3"
+
+
+def the_tide_turns(song):
+    e6 = next(x for x in song["tracks"] if x["name"] == "e6")
+    fast = json.loads(json.dumps(e6))
+    fast["name"] = "e6f"
+    u0, u1, d0, d1 = b0(ROTOR_UP[0]), b0(ROTOR_UP[1]), b0(ROTOR_DOWN[0]), b0(ROTOR_DOWN[1])
+    e6["fx"] = [ROTOR_SLOW] + list(e6.get("fx") or []) + ["gain gain=0dB+auto.rs*1"]
+    e6["auto"] = dict(e6.get("auto") or {}, rs={"points": [["0b", 0.0], [f"{u0:g}b", 0.0], [f"{u1:g}b", -40.0],
+                                                              [f"{d0:g}b", -40.0], [f"{d1:g}b", 0.0]]})
+    fast["fx"] = [ROTOR_FAST] + list(fast.get("fx") or []) + ["gain gain=0dB+auto.rf*1"]
+    fast["auto"] = dict(fast.get("auto") or {}, rf={"points": [["0b", -40.0], [f"{u0:g}b", -40.0], [f"{u1:g}b", 0.0],
+                                                                  [f"{d0:g}b", 0.0], [f"{d1:g}b", -40.0]]})
+    song["tracks"].append(fast)
+
+
 def answer_accretes(song):
     far = next(x for x in song["tracks"] if x["name"] == "far")
     for bar, cell, vel in ANSWERS:
@@ -1618,6 +1644,7 @@ def main():
     fall_in_lanes(song)
     answer_accretes(song)
     and_it_was_ours(song)
+    the_tide_turns(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
