@@ -1015,6 +1015,7 @@ def build():
                 P['hook'].append((at_, m(KEY + 24 + semi), ln * 0.97, vel0_ + (8 if k == 0 else 0)))
             at_ += ln
     P['hook'].sort(key=lambda e_: e_[0])
+    P['hat3'] = [(e_[0], 'gz' if str(e_[1]).partition('^')[0] == 'h' else 'pd', *e_[2:]) for e_ in P['hat3']]
     dp0_, dp1_ = SEC['build'] * 4.0, SEC['build'] * 4.0 + 16.0
     # (v70, whole song) THE MACHINES AND THE HANDS: every part of the song played at two or three fixed levels on a
     # perfect grid. The song is about a mechanism - E2's clock, the 3-beat hats, E1's 5/4 and the band's 4 all landing
@@ -1100,7 +1101,12 @@ def build():
             # lofi-kit - soft, rounded hats through a worn sampler, low-passed and saturated - which no Accretion track
             # uses: the polymeter's top line warmer and grainier against the 909's clean kick and snare (the master's
             # air shelf at 11 kHz up 1.5 dB to 4.5 dB: the low-passed hats took 1.5 dB of 15 kHz with them)
-            tr('hat3', 'lofi-kit', '-1dB', pan=0.25, sends={'echo': '-20dB'}),
+            # (v79, palette: the hats' three-beat orbit - one of the four cycles that meet at the crest - was a lo-fi
+            # drum machine's hat, buried at -12 to -20 dB under the 909) THE ORBIT ON A SHAKER: it is now the
+            # library's samba-kit, played by hand - a ganzá (the metal shaker) for every step, its accent on the
+            # cycle's open step a pandeiro's jingles - which no Accretion track uses: the three-against-four you could
+            # barely hear now shakes in the right of the room, organic against the 909's machine
+            tr('hat3', 'samba-kit', '-3dB', pan=0.25, sends={'echo': '-20dB'}),
             tr('infall', 'shepard-fall', '-20dB', sends={'hall': '-16dB'}),
             tr('hook', 'ondes', '-5dB', pan=-0.05, sends={'hall': '-12dB', 'echo': '-20dB'}),
             # (v52, palette: the debris's glints were wind-chimes, buried under the groove at -20 to -26 dB) THE DUST
