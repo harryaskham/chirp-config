@@ -8313,7 +8313,7 @@
       "metric": "python3 tools/compscore.py chirpers9-t2 OUT.wav",
       "best": {
         "score": 99.61,
-        "version": "v97",
+        "version": "v98",
         "commit": "see git log songs/chirpers9-t2.yaml",
         "note": "v44 kept on judgment (level with v43: 96.97/97.06 vs 96.97/96.97); done ran without --keep, corrected by chirper-one",
         "judged": true
@@ -8321,7 +8321,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 97,
+      "rounds": 98,
       "priority": 1.0,
       "genre": "complex electronic",
       "mode": "compose",
@@ -8339,7 +8339,7 @@
         "note": "COMPOSE (infall (gathering), 240-360 s): Infall. Carries E1 transformed and introduces E2 (a rhythm cell, ideally in a different cycle length so the first polymeter appears). Gathering energy; crest in the middle; a first taste of convergence."
       },
       "last": {
-        "at": "2026-11-09T21:10:34Z",
+        "at": "2026-11-09T22:08:13Z",
         "who": "chirper-one"
       }
     },

@@ -962,6 +962,18 @@ def build():
     # snare. IDM's two drummers: the clean machine for the infall, the dusty break for the drift
     dr0_ = SEC['drift'] * 4.0
     P['kitb'] = [((e_[0], 's' if e_[1] == 'cp' else e_[1]) + tuple(e_[2:])) for e_ in P['kit'] if dr0_ - 1e-6 <= e_[0] < fall0 - 1e-6]
+    # (v98, section w7: 3:04-3:34, the break's second half into the drift - sixteen bars with no drum at all, then
+    # the lofi kit and the samba kit back at full on bar 81's downbeat: the pulse switched back on) THE PULSE FINDS US
+    # AGAIN: through the break's last four bars, as the chords climb back, the lofi kit's kick returns like a
+    # heartbeat heard from far off - one soft beat in bar 77, two in bar 78, the kick's own pattern in bar 79 and,
+    # in bar 80, the backbeat too - each bar a little louder, so the drift's groove has been gathering before it lands
+    hb0_ = (SEC['break'] + 12) * 4.0
+    HB_ = [(0, [(0.0, 'k')], 0.45), (1, [(0.0, 'k'), (2.0, 'k')], 0.55), (2, [(0.0, 'k'), (1.75, 'k'), (2.5, 'k')], 0.65),
+           (3, [(0.0, 'k'), (1.0, 's'), (1.75, 'k'), (2.5, 'k'), (3.0, 's')], 0.78)]
+    for b_, hits_, g_ in HB_:
+        for o_, h_ in hits_:
+            P['kitb'].append((hb0_ + 4.0 * b_ + o_, h_, 0.25, int((112 if h_ == 'k' else 104) * g_)))
+    P['kitb'].sort(key=lambda e_: e_[0])
     P['kit'] = [e_ for e_ in P['kit'] if not (dr0_ - 1e-6 <= e_[0] < fall0 - 1e-6)]
     # (v62, section w7: 3:07-3:37, the break climbing out into the drift - the bass alone carrying it (-1 dB), the
     # line's return at bar 77 sung over a floating guitar and a hum, nothing in it from the crest it remembers) THE
