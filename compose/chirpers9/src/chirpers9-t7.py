@@ -774,6 +774,14 @@ LAUNCH_GAIN = os.environ.get("T7_LAUNCH_GAIN", "0dB")
 # again into the spiral's second phrase (bars 93-96 -> 97); and a high-pass in the crest (137-140 -> 141). Octave
 # lanes, so each sweep is even to the ear. T7_R85=none reproduces v84.
 R85 = os.environ.get("T7_R85", "djfilter") != "none"
+# round 86 (palette - add the part the song lacks): T7_R86=alto (default) - A SAX ANSWERS THE SINGER. Through the
+# approach's verse (bars 33-48) the singer's lines ("every corner comes sooner" on E1) had nothing answering them.
+# Now an alto saxophone (library alto-sax: a physical reed on a conical bore; no Accretion song uses a sax) answers
+# each line in its gap, in E-flat minor: E1 echoed back after the first; a bluesy fall (Bb Db Eb Db Bb Ab Gb F)
+# after the second; E1 a fifth up, reaching for the top, after the third; and a long fall home to Eb into the
+# collision (bar 49). T7_R86=none reproduces v85.
+R86 = os.environ.get("T7_R86", "alto") != "none"
+ALTO_GAIN = os.environ.get("T7_ALTO_GAIN", "7dB")   # at 0: -15.0 / -11.4 dB, unheard
 XYLO_GAIN = os.environ.get("T7_XYLO_GAIN", "6dB")   # at 0 it matched the chip: -14.9 dB in the spiral, unheard
 RHODES_GAIN = os.environ.get("T7_RHODES_GAIN", "18dB")   # the chip sat 9 dB hotter and was unheard; ducked under the singer      # break-kit hats sit 7.5 dB under dusty-kit's
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
@@ -2337,6 +2345,19 @@ def main():
                                               "mod": [{"src": "auto.crest", "amount": 1}]}}]
         hk["auto"] = dict(hk.get("auto", {}), crest={"points": [["0b", 0], ["479.8b", 0], ["479.95b", 6], ["511.9b", 6],
                                                                 ["512.4b", 0]]})
+    if R86:                                                 # palette: an alto sax answers the singer (bars 34-48)
+        sx = Track("altosax")
+        lines = ((133.0, ((63, .5), (70, .75), (73, .25), (68, 1.0), (65, 1.5))),                       # E1 echoed
+                 (151.0, ((70, .5), (73, .5), (75, 1.0), (73, .5), (70, .5), (68, 1.0), (66, .5), (65, 1.5))),
+                 (165.0, ((70, .5), (77, .75), (80, .25), (75, 1.0), (73, 1.5))),                      # E1 a fifth up
+                 (183.0, ((73, 1.0), (70, .5), (68, .5), (66, 1.0), (65, 1.0), (63, 4.0))))            # home to Eb
+        for at0, notes in lines:
+            at = at0
+            for k, (m, ln) in enumerate(notes):
+                sx.add(at, ln - 0.02, mtok(m), 92 if k == 0 else 84)
+                at += ln
+        tracks.append({"name": "altosax", "patch": "alto-sax", "gain": ALTO_GAIN, "pan": 0.3,
+                       "fx": ["delay time=3/8 mix=0.12 feedback=0.25"], "sends": {"space": "-8dB"}, "score": sx.score()})
     if R84:                                                 # w6: the slack winds up, the spiral launches (bars 87-89)
         lr = Track("launchroll")
         for k in range(8):                                  # bar 87, beats 3-4: sixteenths
