@@ -720,6 +720,15 @@ R93 = os.environ.get("T3_R93", "heft") != "none"
 # 808 t5 also uses, one D1 at -14.5 dB, barely heard; now it is the library 808-slide (unused on chirpers9) diving from
 # D2 down to D1, 4 dB louder: the storm locks with a drop you feel. T3_R94=none reproduces v93.
 R94 = os.environ.get("T3_R94", "theremin") != "none"
+# round 96 (section, w7 = bars 73-84 and on to the lock; refused at v86 and v92, both below or at the floor):
+# T3_R96=choir (default) - A TAPE CHOIR RISES WITH THE STRINGS INTO THE LOCK. Bars 81-88 had the strings' climb, the
+# roll and the lock toms over the riff, and 3:20 (bars 80-87) was one of t3's flattest changes. Above the bass this
+# time: a Mellotron tape choir (library mellotron-choir, unused on chirpers9: wobbly formant 'aah's with a slow swell)
+# comes in at bar 85 on D minor's second inversion and climbs to D F A an octave up - swelling with the strings, so the
+# voices lift the storm into the lock (bar 89). (From bar 81 it sat on both sides of 3:20 and made it flatter.) The riff below is untouched. T3_R96=none
+# reproduces v94 (v95 was refused).
+R96 = os.environ.get("T3_R96", "choir") != "none"
+CHOIR_GAIN = os.environ.get("T3_CHOIR_GAIN", "2dB")   # at 0: -12.0 dB (0.24); at 5: -6.5, buried the strings, s11 structure 99.64
 THEREMIN_GAIN = os.environ.get("T3_THEREMIN_GAIN", "0dB")
 HEFT_DB = float(os.environ.get("T3_HEFT_DB", "3"))
 SOFTEN_DB = float(os.environ.get("T3_SOFTEN_DB", "-2"))
@@ -2396,6 +2405,14 @@ def main():
         mid = [["0b", 0], ["128b", 0], ["144b", 1], ["368b", 1], ["384b", 0], ["513b", 0]]
         master["auto"] = dict(master["auto"], weight={"points": [[b, 3.0 * v] for b, v in mid]},
                               unbox={"points": [[b, -3.5 * v] for b, v in mid]})
+    if R96:                                                 # w7: a tape choir climbs D minor's inversions over bars 81-88
+        ch = Track("tapechoir")
+        for k, voic in enumerate(((62, 65, 69), (65, 69, 74), (69, 74, 77), (74, 77, 81))):
+            if k < 2:                                       # from bar 85: from bar 81 it sat on both sides of 3:20 (0.49 -> 0.43)
+                continue
+            ch.add(320.0 + 8 * k, 7.9, ",".join(f"m{m}" for m in voic), 70 + 12 * k)
+        tracks.append({"name": "tapechoir", "patch": "mellotron-choir", "gain": CHOIR_GAIN, "pan": -0.15,
+                       "sends": {"space": "-8dB"}, "score": ch.score()})
     if R94:                                                 # palette: a theremin sings E1 x4 over the eye; the lock's boom dives
         th = Track("theremin")
         at = 240.0
