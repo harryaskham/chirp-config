@@ -1454,6 +1454,17 @@ def build():
     song['tracks'].append(dict(cb_, name='middlecalls', notes=mdn_, gain='-16dB',
                                patch=dict(cb_['patch'], extends='voice-near synth.lfo.vib.per_note=true synth.layers.0.taper=0.6'),
                                fx=list(cb_.get('fx') or []) + ['lp cutoff=2400'], sends={'hall': '-5dB', 'echo': '-12dB'}))
+    # (v96, whole song) THE WORDS AND THE HANDS, FORWARD: presence.py over four windows had the bass the loudest
+    # thing in each (-1.6 to -3.5 dB against the mix) and the song's words under everything in the gather and the
+    # drift: the first verse at -12.7 dB and audible 17-22% of the time, its gathered second statement and the early
+    # glimpse of the hook at -16 to -17 (0-11%), the second verse in the drift at -14.8 (6%), the line at the break's
+    # end at -11.5 (27%); and the rotary e-piano and the clean guitar that comp under them at -15 to -31 (0-3%), never
+    # heard. All of them come up 3 dB: the verses can be followed word for word and the comping hands can be heard.
+    # The crest's lines, the ondes, the choir and the bass keep their levels (the crest as Harry heard it; the bass
+    # stepping back 1.5 dB as well was tried and widened the in-seam's level step 0.8 -> 1.4 dB)
+    for t_ in song['tracks']:
+        if t_['name'] in ('verse', 'versegather', 'earlyhook', 'sung', 'gtr', 'gtrd'):
+            t_['gain'] = f"{float(t_['gain'][:-2]) + 3.0:g}dB"
     # (v87, palette: wM's path_len, pinned 7f9c5782 - an engine feature from chirper-one's finding) EVERY VOICE AT
     # ITS SUNG RATE: t2's lines were sung by chirp tts --sing (44 pitch points a second) at a quicker tempo than
     # t2's 90-98 bpm and then laid on t2's beats, so every sung note was stretched - the verse's by a third, the
