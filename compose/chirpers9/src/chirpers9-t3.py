@@ -654,6 +654,15 @@ R82 = os.environ.get("T3_R82", "vortex") != "none"
 # nothing to full and cut dead at bar 85, where the riser takes over. A pedal, so it sits over D, B-flat and C
 # alike (the E3 riff under it). T3_R83=none reproduces v82.
 R83 = os.environ.get("T3_R83", "strings") != "none"
+# round 84 (whole): T3_R84=fills (default) - A DRUMMER AT THE PHRASE ENDS. Harry (6 Nov): subtle variation every 8-16
+# bars, no stretch where nothing changes - and the storm's kit ran its cycles without ever marking a phrase (flat
+# boundaries at 56, 112-120, 176, 200-248 s). Now a drummer (rock-kit, under the kit) closes the eight-bar phrases
+# (and a few four-bar ones where the flat boundaries were) with a one-beat fill - snare sixteenths, a run down the
+# toms, a snare-tom flam, a two-beat run into the bigger turns - each phrase a different one, so it never loops; at
+# the eye's end (bar 64) a two-beat fill and a crash bring the storm back in. Skipped where a fill or break already
+# is (eyefill 60, the lock roll 88, the fill at 100, the half-breath 103-104). T3_R84=none reproduces v83.
+R84 = os.environ.get("T3_R84", "fills") != "none"
+FILLS_GAIN = os.environ.get("T3_FILLS_GAIN", "-3dB")
 STRINGS_GAIN = os.environ.get("T3_STRINGS_GAIN", "14dB")   # at 0: -27 / -22 dB, buried
 SAMBA_GAIN = os.environ.get("T3_SAMBA_GAIN", "10dB")   # at 0 it read -20.5 dB (the chip it replaces: -31, buried)   # at 6 it read -2.9 dB, near the reese   # rock-kit hats sit 7 dB under tight-kit's
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
@@ -2180,6 +2189,20 @@ def main():
         master["fx"][0]["bands"] = list(master["fx"][0]["bands"]) + [
             "peak cutoff=660 gain=-3dB q=2.0", "peak cutoff=1400 gain=-3dB q=1.4", "peak cutoff=400 gain=3dB q=0.9",
             "highshelf cutoff=9000 gain=2.5dB"]
+    if R84:                                                 # whole: a drummer closes the phrases (one-beat fills, varied)
+        pats = ((("s", 0, 70), ("s", .25, 78), ("s", .5, 86), ("s", .75, 95)),                       # snare 16ths
+                (("t1", 0, 84), ("t2", .25, 88), ("t3", .5, 92), ("ft", .75, 98)),                    # down the toms
+                (("s", 0, 80), ("t1", .25, 76), ("s", .5, 88), ("ft", .75, 96)),                      # snare-tom flam
+                (("s", -1, 66), ("s", -.5, 74), ("s", -.25, 80), ("t1", 0, 86), ("t1", .25, 88),      # two beats
+                 ("t2", .5, 94), ("ft", .75, 102)))
+        ends = ((128, 0), (160, 1), (176, 2), (192, 3), (208, 0), (224, 1), (256, 3), (272, 2), (288, 0), (304, 1),
+                (320, 2), (336, 3), (368, 1), (384, 0), (432, 2), (448, 3))
+        fz = Track("fills")
+        for end, k in ends:
+            for pc, off, v in pats[k]:
+                fz.add(end - 1 + off, 0.25, pc, v)
+        fz.add(256.0, 1.0, "c", 104)                        # the storm back in after the eye
+        tracks.append({"name": "fills", "patch": "rock-kit", "gain": FILLS_GAIN, "pan": -0.05, "score": fz.score()})
     if R83:                                                 # palette: storm strings, a tremolo halo over bars 73-84
         vs = Track("stormstr")
         for k in range(48 * 4):
