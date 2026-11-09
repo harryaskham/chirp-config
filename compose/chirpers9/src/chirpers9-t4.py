@@ -1089,6 +1089,18 @@ T4_MOVE_TRACKS = {"A": ("bass", "kick", "snare", "hat"), "B": ("seed", "canon"),
 HARP_FORWARD = (85, 88)
 HARP_LIFT = 12
 CREST_INHALE = (88, 91)
+# v81 (ROUND TYPE: section, the crest 84-92, 3:04-3:20; rewritten): THE CREST HOLDS ITS BREATH. Seed 5's flattest
+# change (3:12, 0.60, bars 84-91 by flatness --bars; t4's tempo map puts the blocks at 84.5-88.2 and 88.2-91.9) sat
+# exactly on v77's two moves - but its breath took only the shimmer: v76's floor lift was two bars (89-90) and the SUB
+# played on, louder in the breath (-7.3) than before it (-10.4). Now the breath is whole: from 88 to the sticks' crash
+# at 91 the floor leaves entirely - the sub, the bass, the kick, the snare and the hat with the shaker and the ride -
+# and only her voice, the young voice, the lights and the harp's last notes hang there; the crash brings it all back.
+INHALE_TRACKS = ("air", "ride", "sub", "bass", "kick", "snare", "hat")
+# (first tried with v3's stop-time still running to 86: the block before the breath (84.5-88.2) was itself half
+#  stopped, so emptying the breath made the two blocks MORE alike - 3:12 0.60 -> 0.49. So the stop now ends at 85,
+#  a bar early - the band back for her second line - and the blocks alternate: stop, band, breath, sticks.)
+STOP_END = 85
+STOP = (b0(CREST), b0(STOP_END))
 
 
 HARP_FORWARD_DB = 6.0                 # velocity alone left it at -14.5 (its notes already 88-112): a gain lane
@@ -1107,7 +1119,7 @@ def crest_breathes_in():
     P["e2"].ev = [(s, ln, h, min(127, v + HARP_LIFT)) if lo - 1e-6 <= s < hi - 1e-6 else (s, ln, h, v)
                   for s, ln, h, v in P["e2"].ev]
     lo, hi = b0(CREST_INHALE[0]), b0(CREST_INHALE[1])
-    for n in ("air", "ride"):
+    for n in INHALE_TRACKS:
         out = []
         for s, ln, h, v in P[n].ev:
             if lo - 1e-6 <= s < hi - 1e-6:
