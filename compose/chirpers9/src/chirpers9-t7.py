@@ -752,6 +752,12 @@ R81 = os.environ.get("T7_R81", "bloom") != "none"
 # Rhodes for the plunge's chip answer, e1bpl, was dropped for the same reason: it sits in the out-body.)
 # T7_R82=none reproduces v81.
 R82 = os.environ.get("T7_R82", "mallets") != "none"
+# round 83 (whole): T7_R83=pump (default) - THE CHORDS BREATHE WITH THE KICK. The reese and the floor have ducked under
+# the kick since early on; the house chords (E4's four lights as house stabs, v68 - e4 and its window doubles) and the
+# tide's washes did not, so they sat flat across the beat. Now they pump on the kick (and the half-time kick): 7 dB
+# for the chords, released over 180 ms, 5 dB for the tide - the French-house breath, the whole band leaning on the one.
+# T7_R83=none reproduces v82.
+R83 = os.environ.get("T7_R83", "pump") != "none"
 XYLO_GAIN = os.environ.get("T7_XYLO_GAIN", "6dB")   # at 0 it matched the chip: -14.9 dB in the spiral, unheard
 RHODES_GAIN = os.environ.get("T7_RHODES_GAIN", "18dB")   # the chip sat 9 dB hotter and was unheard; ducked under the singer      # break-kit hats sit 7.5 dB under dusty-kit's
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
@@ -2302,6 +2308,18 @@ def main():
                                               "mod": [{"src": "auto.crest", "amount": 1}]}}]
         hk["auto"] = dict(hk.get("auto", {}), crest={"points": [["0b", 0], ["479.8b", 0], ["479.95b", 6], ["511.9b", 6],
                                                                 ["512.4b", 0]]})
+    if R83:                                                 # whole: the chords and the tide pump on the kick
+        for tr in tracks:
+            if tr.get("mute"):
+                continue
+            if tr.get("patch") == "house-chord":
+                depth, rel = "-7dB", "180ms"
+            elif tr.get("patch") == "a7-tide":
+                depth, rel = "-5dB", "220ms"
+            else:
+                continue
+            tr["fx"] = list(tr.get("fx") or []) + [{"type": "pump", "on": k, "depth": depth, "release": rel, "curve": 0.6}
+                                                   for k in ("kick.k", "kickh.k")]
     if R81:                                                 # whole: vibrato bloom on the voices and the erhu; the singer +2 dB
         for pn in list(patches):
             ex = patches[pn].get("extends", "") if isinstance(patches[pn], dict) else ""
