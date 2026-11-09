@@ -517,6 +517,15 @@ def build():
     # lifted 2.5 dB - t1 takes the end of its lock down ~2 dB to meet it
     EN = {'in': (-3.0, -1.5), 'gather': (0.0, 1.0), 'build': (-1.0, 1.0), 'crest': (1.5, 1.0), 'break': (-4.0, -3.0),
           'drift': (-1.5, 0.5), 'fall': (0.0, -3.0)}
+    # (v77, whole song) THE NEAREST PASS HITS: the crest sat only half a dB over the build (-10.7 against -11.3 dB),
+    # the break 3 dB under - an orbit drawn too round. The arc is wider now: the build starts lower and climbs
+    # further (-1.5 -> +1.5), the crest lands a dB higher (+2.5, easing to +1.5), the break falls further away
+    # (-5 -> -3.5), and the drift climbs from deeper (-2 -> +1) into the last chorus; the in-seam, the gather's
+    # first bars and the fall - the two seams - are as they were. (Measured: the limiter and the loudness target hold
+    # the crest, so it gains only 0.3 dB on the build; the arc widens mostly below - the break 0.8 dB deeper, the
+    # build's start 0.3 lower)
+    EN = dict(EN, gather=(0.0, 0.5), build=(-1.5, 1.5), crest=(2.5, 1.5), drift=(-2.0, 1.0))
+    EN['break'] = (-5.0, -3.5)
     energy_pts = []
     for b_ in range(NBARS):
         s_, i_ = sec_of(b_)
