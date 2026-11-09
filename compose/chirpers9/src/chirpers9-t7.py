@@ -743,6 +743,16 @@ R80 = os.environ.get("T7_R80", "tutti") != "none"
 # are heard to open; on the choirs a gentler 0.6; on the erhu (the half-time line, the crest's bow, the tutti) the
 # full 1.0. And the singer steps forward 2 dB everywhere she sings. T7_R81=none reproduces v80.
 R81 = os.environ.get("T7_R81", "bloom") != "none"
+# round 82 (palette): T7_R82=mallets (default) - E5'S SPIN ON A XYLOPHONE. (1) E5's spinning
+# trill (e5, and its spiral double e5w: 32nds orbiting the listener, spiralling in as the song falls) was the same
+# Game Boy chip as everything else small in t7. Now it is a xylophone (library xylophone: hard-mallet rosewood, dry
+# and cutting; no Accretion song uses it) - the same notes, the same orbit, spin and fall: a mallet player circling
+# you, faster and closer - between the seam bodies: the chip's top end carried both (all-xylophone cost the out-seam
+# 13 dB at 14.8 kHz, flow 92), so it keeps the head and the tail and hands over in two bars at 31-32 and 143-144. (A
+# Rhodes for the plunge's chip answer, e1bpl, was dropped for the same reason: it sits in the out-body.)
+# T7_R82=none reproduces v81.
+R82 = os.environ.get("T7_R82", "mallets") != "none"
+XYLO_GAIN = os.environ.get("T7_XYLO_GAIN", "6dB")   # at 0 it matched the chip: -14.9 dB in the spiral, unheard
 RHODES_GAIN = os.environ.get("T7_RHODES_GAIN", "18dB")   # the chip sat 9 dB hotter and was unheard; ducked under the singer      # break-kit hats sit 7.5 dB under dusty-kit's
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
@@ -2239,6 +2249,19 @@ def main():
                                    "mod": [{"src": "auto.sing", "amount": 1}]}}],
                                auto=dict(src.get("auto", {}), sing={"points": pts})))
             src["mute"] = True
+    if R82:                                                 # palette: E5 on a xylophone between the seam bodies
+        # the chip's top carried both seam bodies (all-xylophone: out-seam 14.8 kHz -13 dB, spectral 4.1, flow 92), so
+        # the chips keep the head and the tail and hand E5 to the xylophone over bars 33-142 (crossfaded in 2 bars)
+        mid = [["0b", 0], ["120b", 0], ["128b", 1], ["568b", 1], ["576b", 0], ["700b", 0]]
+        for nm in ("e5", "e5w"):
+            src = next(tr for tr in tracks if tr.get("name") == nm)
+            g = float(str(src.get("gain", "0dB")).replace("dB", "")) + float(XYLO_GAIN.replace("dB", ""))
+            lane = lambda k: {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto." + k, "amount": 1}]}}
+            tracks.append(dict(src, name=nm + "x", patch="xylophone", gain=f"{g:g}dB",
+                               fx=list(src.get("fx") or []) + [lane("xin")],
+                               auto=dict(src.get("auto", {}), xin={"points": [[b, -60 * (1 - v)] for b, v in mid]})))
+            src["fx"] = list(src.get("fx") or []) + [lane("xout")]
+            src["auto"] = dict(src.get("auto", {}), xout={"points": [[b, -60 * v] for b, v in mid]})
     if R80:                                                 # w10: the band stops for the tutti's E1 (bars 146-147)
         stop = {"points": [["0b", 0], ["579.75b", 0], ["580b", -60], ["587.75b", -60], ["588b", 0]]}
         for tr in tracks:
