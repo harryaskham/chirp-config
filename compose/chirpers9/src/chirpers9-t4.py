@@ -356,6 +356,25 @@ def b2_duet():
     return out
 
 
+# v83 (ROUND TYPE: whole song): THE BASS LEARNS TO WALK. The floor played one figure (root, fifth, root pickup) every
+# E1 cycle from bar 17 to 129 - A, the rise, the crest and the relief on the same floor; only B2 walked. Now the bass
+# accretes as the album does, a different role for each section, in time and texture: A and B1 the plain two-feel,
+# B2 the walk; the RISE drives on eighth-note roots (the pulse quickening toward the crest); the CREST walks at full
+# strength with a chromatic approach into each next chord (a semitone below its root: B1>C, G#1>A, F#1>G, C#2>D -
+# two of them leading tones, a beat of tension each); after the crest the relief and the fall go home to the plain
+# figure - the floor relaxes into what it knew. The later passes (the stop, the breath, the rise's floor-out, the small
+# room) still cut it. (First tried with the relief lying down - one long root per cycle: the relief is the body the
+# t4 -> t5 crossfade is measured against, and its held roots pushed the out-seam 3.43 -> 3.61 dB, flow -1.3.)
+BASS_RISE = (65, 81)
+BASS_CREST = (81, 101)
+BASS_RELIEF = None
+NOTE_NAMES = ("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
+
+
+def note_name(m):
+    return f"{NOTE_NAMES[m % 12]}{m // 12 - 1}"
+
+
 def write_bass():
     beat = b0(17)
     while beat < b0(129) - 0.01:
@@ -363,6 +382,22 @@ def write_bass():
         if b0(B2[0]) <= beat < b0(B2[1]):
             for i, (n, v) in enumerate(zip(WALK[name], (88, 76, 80, 72, 70))):
                 part("bass").add(beat + i, 1.0, n, v)
+            beat += E1_CYCLE
+            continue
+        if b0(BASS_RISE[0]) <= beat < b0(BASS_RISE[1]):
+            for i in range(10):
+                part("bass").add(beat + i * 0.5, 0.45, notes[0], 90 if i == 0 else (74 if i % 2 == 0 else 58))
+            beat += E1_CYCLE
+            continue
+        if b0(BASS_CREST[0]) <= beat < b0(BASS_CREST[1]):
+            nxt = chord_at(beat + E1_CYCLE)[2][0]
+            walk = list(WALK[name][:4]) + [note_name(midi(nxt) - 1)]
+            for i, (n, v) in enumerate(zip(walk, (94, 78, 82, 76, 74))):
+                part("bass").add(beat + i, 1.0, n, v)
+            beat += E1_CYCLE
+            continue
+        if BASS_RELIEF and b0(BASS_RELIEF[0]) <= beat < b0(BASS_RELIEF[1]):
+            part("bass").add(beat, 4.75, notes[0], 84)
             beat += E1_CYCLE
             continue
         root = notes[0]
