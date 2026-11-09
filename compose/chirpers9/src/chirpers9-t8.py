@@ -1587,6 +1587,15 @@ MASTER_AIR = "5dB"
 # underneath, the floor the light falls toward (it used to sink to A0 under everything). Also: E3's bass roots in its
 # spotlight softer (vel 92 -> 76; they were the loudest thing there, -2.1).
 REDSHIFT = -12.0
+# v95 (ROUND TYPE: section, the horizon's last bars 161-177, 4:24-4:56; rewritten): THE ARRIVAL, LAST. After E1's
+# farewell (161-162.75) the horizon is one held chord sinking for some 14 bars - the hold, the choir's 'ah', the lift,
+# the sub - and nothing new enters. E8, the arrival (E F# D), is the album's resolution; the far choir hums it once at
+# 152, answering her last line. Now it answers once more, from inside the sink: the same hum, twice as slow (time
+# dilating at the horizon) and softer, E (165) F# (166) and a D held under the dying chord - and SINKING WITH IT (the far
+# choir's patch already routes auto.rs to pitch; its lane now follows the hold's), so the arrival is the last thing
+# redshifting away with the light.
+ARRIVAL_LAST = [(656, 4, "E4"), (660, 4, "F#4"), (664, 24, "D4")]
+ARRIVAL_LAST_VEL = 0.3
 # v18 (ROUND TYPE: whole song): WEIGHT YOU CAN HEAR. compscore --bands: t8 was 7-9 dB short of the album at 61-114 Hz
 # while its sub sat an octave lower, on A0 C1 D1 G1 (27-49 Hz) through the jet and D1 (37 Hz) under the horizon -
 # mostly below what headphones and laptop speakers reproduce (Harry: every trick must work on both). Now the jet's
@@ -1955,7 +1964,9 @@ def main():
             tr("hook3", "fof-soprano", gain="-11dB", pan=-0.2, sends={"dly": "-14dB", "hall": "-10dB"}),  # v35
             tr("lift", SUB8, gain="-22dB"),                                 # v18: the sub's octave you can hear
             {"name": "far", "patch": far_patch(), "gain": FAR_GAIN, "pan": -0.1, "sends": {"hall": FAR_HALL},
-             "notes": far, "auto": {"rs": {"points": [["0b", 0.0]]}}},       # v45 (last): the far choir, hummed
+             "notes": far + [{"at": a, "len": ln, "ph": "UW1", "pitch": h, "vel": ARRIVAL_LAST_VEL}
+                             for a, ln, h in ARRIVAL_LAST],
+             "auto": {"rs": {"points": horizon_lane(REDSHIFT)}}},       # v45 (last): the far choir, hummed; v95 sinks
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=4s mix=1 predelay=24ms", "hp cutoff=180"]},
