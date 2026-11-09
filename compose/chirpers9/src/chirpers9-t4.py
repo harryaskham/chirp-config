@@ -1288,6 +1288,29 @@ def smaller_room():
         P["kick"].ev = [e for e in P["kick"].ev if not inside(e[0]) or abs((e[0] - b0(1)) % 4.0) < 1e-6]
 
 
+# v74 (ROUND TYPE: palette - add the part the song lacks): A PIANO IN THE CLEAR. The crest's own move (v63) is a
+# subtraction - the band clears (94.75-97) and her hook is sung in the open - and nothing ENTERS there: the 3:20 window
+# still read flat (0.67). The piano family is unused on the whole album. Now, only where the band clears, a piano
+# (piano-recorded, a new last track) breaks the four lights' chords under her into a soft rising-and-falling
+# arpeggio - Am11 from 94.75, G6/9 from 95.75 - letting each note ring, its last note sounding into the band's return
+# at 97, and is never heard again: the most human instrument, once, under the album's most human voice.
+KEYS_GAIN = "0dB"                   # at -9 dB the recorded piano sat at -20, unheard
+KEYS_LINE = [(94.75, ["E4", "G4", "B4", "C5", "D5", "E5", "D5", "B4"]),
+             (95.75, ["D4", "E4", "G4", "A4", "B4", "D5", "E5", "D5", "B4", "A4"])]
+KEYS_VEL = 0.6
+
+
+def piano_in_the_clear():
+    out = []
+    for bar, line in KEYS_LINE:
+        at = b0(bar)
+        for i, h in enumerate(line):
+            rise = 1.0 - abs(i - (len(line) - 1) / 2) / len(line)          # a little louder at the arc's top
+            out.append({"at": round(at + i * 0.5, 3), "len": 2.0 if i < len(line) - 1 else 4.0, "pitch": h,
+                        "vel": round(KEYS_VEL * (0.8 + 0.3 * rise), 3)})
+    return out
+
+
 def hook_in_the_clear():
     lo, hi = b0(HOOK_LIFT[0]), b0(HOOK_LIFT[1])
     P["lights"].ev = [(s, ln, ",".join(f"m{midi_of(x) + 12}" for x in h.split(",")) if lo - 1e-6 <= s < hi - 1e-6
@@ -1594,7 +1617,9 @@ def main():
             {"name": "hum1", "patch": hum1_patch(), "gain": "-8dB", "pan": 0.0, "fx": ["lp cutoff=4000"],
              "sends": {"hall": "-9dB"}, "notes": first_hum()},                    # v35 (last: event_stable)
             {"name": "bowl", "patch": "singing-bowl", "gain": BOWL_GAIN, "pan": -0.15, "notes": warm_stone()},   # v50
-            {"name": "chimes", "patch": "chimes", "gain": CHIME_GAIN, "pan": 0.4, "notes": breeze()},             # v54 (last)
+            {"name": "chimes", "patch": "chimes", "gain": CHIME_GAIN, "pan": 0.4, "notes": breeze()},             # v54
+            {"name": "keys", "patch": "piano-recorded", "gain": KEYS_GAIN, "pan": -0.2, "sends": {"hall": "-10dB"},
+             "notes": piano_in_the_clear()},                                                                    # v74 (last)
         ],
         "buses": {"room": {"fx": ["reverb kind=room decay=0.8s mix=1 predelay=6ms", "hp cutoff=200"]},
                   "hall": {"fx": ["reverb kind=hall decay=3.2s mix=1 predelay=20ms", "hp cutoff=180"]},
