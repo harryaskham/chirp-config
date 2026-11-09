@@ -649,7 +649,8 @@
        "attack": -0.5,
        "creak": 0.8,
        "age_high": 1.0,
-       "passaggio": "F5"
+       "passaggio": "F5",
+       "vowel_drift": 1.0
       }
      ],
      "lfo": {
@@ -3407,7 +3408,8 @@
        "inhale": 0.45,
        "taper": 0.4,
        "inhale_depth": 1.0,
-       "attack": 0.3
+       "attack": 0.3,
+       "vowel_drift": 0.5
       }
      ],
      "lfo": {
@@ -4928,7 +4930,8 @@
        "even": 1.0,
        "age": 0.45,
        "hum": "expr.hum",
-       "hum_at": "m"
+       "hum_at": "m",
+       "vowel_drift": 1.0
       }
      ],
      "lfo": {

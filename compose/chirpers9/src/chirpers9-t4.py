@@ -1229,6 +1229,23 @@ DOUBLE_CREST_DB = 4.0               # at one level the crest's doubling sat at -
 E1_PCS = [2, 9, 0, 7, 4]
 
 
+# v90 (ROUND TYPE: whole song): HER VOWELS LIVE. The brief: the voice at its most human so far - and she carries most
+# of t4 (B's closed hums, the crest's words, the hook sung back, the relief's hums, the fall). But a synthesized vowel
+# sits perfectly still on a held note, which is part of what reads as a machine, and t4's lines are made of held
+# hums. wM's VOWEL_DRIFT (pinned 07ab00cd): a held vowel's formants wander a little as the jaw and tongue settle (in
+# from 0.2 s, settled before the release, so consonants and joined notes keep their exact vowel). Her voice and her
+# first hums at 1.0 - the most human voice on the album so far; the duet (the younger voice) 0.5, steadier beside her.
+VOWEL_DRIFT = {"voice": 1.0, "hum1": 1.0, "duet": 0.5}
+
+
+def her_vowels_live(song):
+    for tr_ in song["tracks"]:
+        if tr_["name"] in VOWEL_DRIFT and isinstance(tr_.get("patch"), dict):
+            p = json.loads(json.dumps(tr_["patch"]))
+            p["synth"]["layers"][0]["vowel_drift"] = VOWEL_DRIFT[tr_["name"]]
+            tr_["patch"] = p
+
+
 def hook_sung_and_played(song):
     tr_ = {x["name"]: x for x in song["tracks"]}
     v = sorted(tr_["voice"]["notes"], key=lambda n: n["at"])
@@ -1983,6 +2000,7 @@ def main():
     space_breathes(song)
     she_turns(song)
     hook_sung_and_played(song)
+    her_vowels_live(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
