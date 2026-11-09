@@ -633,7 +633,14 @@ R79 = os.environ.get("T3_R79", "eye") != "none"
 # toms in sixteenths, high to floor - and one crash on the eye's first beat, ringing on over the stillness.
 # T3_R80=none reproduces v79.
 R80 = os.environ.get("T3_R80", "eyewall") != "none"
-FILL_GAIN = os.environ.get("T3_FILL_GAIN", "3dB")   # at 6 it read -2.9 dB, near the reese   # rock-kit hats sit 7 dB under tight-kit's
+FILL_GAIN = os.environ.get("T3_FILL_GAIN", "3dB")
+# round 81 (palette - swap an album staple): T3_R81=samba (default) - THE DEBRIS ON REAL METAL. The storm's debris
+# ticks (chiphat: E2's scatter on an 8-bit noise hat, bars 5-72; nes-noise-hat is a staple t5 and t8 share) move to
+# hand percussion no Accretion song has: the library samba-kit's pandeiro jingles on the accents and its ganza (a
+# metal shaker) on the rest - the same hits, the same velocities. The chip track is muted and copied, not edited.
+# T3_R81=none reproduces v80.
+R81 = os.environ.get("T3_R81", "samba") != "none"
+SAMBA_GAIN = os.environ.get("T3_SAMBA_GAIN", "10dB")   # at 0 it read -20.5 dB (the chip it replaces: -31, buried)   # at 6 it read -2.9 dB, near the reese   # rock-kit hats sit 7 dB under tight-kit's
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1797,6 +1804,19 @@ def main():
         flock(404.5, 408.0, (1.0, 2.0))
         for nm, pan in (("birdl", -0.5), ("birdr", 0.5)):
             tracks.append({"name": nm, "patch": "birds", "gain": "9dB", "pan": pan, "score": flocks[nm].score()})
+    if R81:                                                 # palette: chiphat's debris on pandeiro jingles and ganza
+        ch = next(tr for tr in tracks if tr.get("name") == "chiphat")
+        sm, pos = Track("debris"), 0.0
+        for tok in ch["score"].split():
+            m = re.match(r"^(.+?)/([0-9.e+-]+)b(?:@(\d+))?", tok)
+            ln = float(m.group(2))
+            if m.group(1) != "R":
+                v = int(m.group(3) or 64)
+                sm.add(pos, 0.25, "pd" if v >= 50 else "gz", v)
+            pos += ln
+        tracks.append({"name": "debris", "patch": "samba-kit", "gain": SAMBA_GAIN, "pan": ch.get("pan", 0.35),
+                       "score": sm.score()})
+        ch["mute"] = True
     if R80:                                                 # w5: the voices back up 5 dB; a fill into the eye (bar 60)
         for tr in tracks:
             if tr.get("name") in ("doo", "doop", "doo3"):
