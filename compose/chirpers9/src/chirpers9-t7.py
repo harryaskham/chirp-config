@@ -803,6 +803,14 @@ R88 = os.environ.get("T7_R88", "amen") != "none"
 # at 90 Hz on a lane, bars 149-160, back by 164), where t7's tail read 8-9 dB over t8's head (out-seam 3.02, past the
 # 3.0 edge since the koto's twang came back). T7_R89=none reproduces v88.
 R89 = os.environ.get("T7_R89", "crestsax") != "none"
+# round 90 (palette - design a patch with the engine's new effect): T7_R90=leslie (default) - THE RHODES GETS A REAL
+# LESLIE. The Rhodes that carries E1 through most of the song (e1br/e1bwr, round 79; 773 notes) was rhodes-rotary, a
+# Leslie faked with a fixed tremolo, phaser and chorus. Now it is a7-rhodes - the same Rhodes with those dropped -
+# through wM's rotary cabinet (pin bf2a7535), its speed on one lane across the song: chorale (slow) through the
+# approach, spinning up across the build (bars 93-96) to tremolo for the warp and the crest, then, as the song
+# plunges (bars 153-157), the rotors winding down - with inertia 2 the bass drum takes ~9 s to slow, so the swirl
+# sags under the fall like the redshift. T7_R90=none reproduces v89.
+R90 = os.environ.get("T7_R90", "leslie") != "none"
 CRESTSAX_GAIN = os.environ.get("T7_CRESTSAX_GAIN", "3dB")   # at ALTO_GAIN (7 dB) it led the crest at -3.9 dB
 AMENX_GAIN = os.environ.get("T7_AMENX_GAIN", "2dB")
 ALTO_GAIN = os.environ.get("T7_ALTO_GAIN", "7dB")   # at 0: -15.0 / -11.4 dB, unheard
@@ -2375,6 +2383,16 @@ def main():
                                               "mod": [{"src": "auto.crest", "amount": 1}]}}]
         hk["auto"] = dict(hk.get("auto", {}), crest={"points": [["0b", 0], ["479.8b", 0], ["479.95b", 6], ["511.9b", 6],
                                                                 ["512.4b", 0]]})
+    if R90:                                                 # palette: the Rhodes through the real rotary, one speed lane
+        patches["a7-rhodes"] = {"about": "chirper-two: rhodes-rotary without its fixed fake Leslie (tremolo, phaser, chorus); "
+                                         "the tracks add the engine's rotary on a speed lane",
+                                "extends": "rhodes-rotary", "fx": ["reverb kind=room decay=1.2s mix=0.16"]}
+        spd = {"points": [["0b", 0], ["368b", 0], ["384b", 1], ["608b", 1], ["628b", 0], ["704b", 0]]}
+        for tr in tracks:
+            if tr.get("name") in ("e1br", "e1bwr"):
+                tr["patch"] = "a7-rhodes"
+                tr["fx"] = ["rotary speed=0.15+auto.spd*0.85 inertia=2"] + list(tr.get("fx") or [])
+                tr["auto"] = dict(tr.get("auto", {}), spd=spd)
     if R89:                                                 # w9: the alto sax takes the crest (bars 139-144)
         sc = [(552.0, ((62, .5), (69, .75), (72, .25), (67, 1.0), (64, 1.5))),                  # E1 on D
               (556.0, ((66, .5), (69, .5), (71, .5), (74, 1.0), (76, 1.5))),                    # climb F# A B D E
