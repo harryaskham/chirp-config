@@ -121,6 +121,7 @@ CLOUD = os.environ.get("C9T1_CLOUD", "gendy-cloud@-32")   # PALETTE (adding the 
 RELIEF = os.environ.get("C9T1_RELIEF", "two")   # SECTION w6 (2:54-3:27, after the crest: flagged static - the seed locked and stripped bare, and no voice for 126 beats, from the crest's sigh to the outro's): THE CHOIR EXHALES - once the seed has formed and the whistle has sung it again (hook-mid), the far choir sighs its 'mm-haa', a hummed A falling to an open D, the relief after the crest ('one' at beat 267.5; 'two' and again just before the exhale, 283.5)
 CHOIRBREATHS = os.environ.get("C9T1_CHOIRBREATHS", "0.6")   # WHOLE (the far choir breathes like people, as t5's singer has since t5 v59/v61): wM's taper on the choir's sighs - each 'haa' lets go at its end, quieter, darker, sagging a few cents, instead of stopping - and inhale_depth, each breath before a phrase sized to it, a sip before a short sigh, a full breath before the long hummed E1s ('TAPER[:DEPTH]', e.g. '0.6' = taper 0.6 and inhale_depth 1, '0.6:0' taper only, '0:1' depth only)
 GLINT = os.environ.get("C9T1_GLINT", "9@7000")   # WHOLE (the crystals glint): the seed's five scattered voices, their joins and the cell are the crystal t1 is about, but the whole song sat dark at the top (spectrum's worst band 14.8 kHz, -6.5 dB). Now those crystal voices - only they; the bass, the pad, the choir, the drums and the cello stay as they are - get a high shelf from 9 kHz, so each struck note glints as it lands ('dB[@cutoff Hz]', cutoff 9000 by default)
+RETROHOLD = os.environ.get("C9T1_RETROHOLD", "143")   # SECTION w3 (1:13-1:48, A's middle): the shakuhachi's backwards seed ends on D - and since v66 the whistle's forward hook begins on D (beat 143). Now the shakuhachi's last D holds on across the gap to where the whistle takes it ('value' = the beat it lets go, 143 to hand it straight over, 140 to leave a breath): the seed's end becomes its beginning
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -561,6 +562,12 @@ def song():
             for i, (o, ln, mm) in enumerate(zip(r_off, r_len, r_mid)):
                 rns.append(note(st + 2 * o, f"m{mm}", 2 * ln + (1.0 if i == 4 else 0.0) - 0.05, v0 + dv * k))
         tracks.append({"name": "retro", "patch": rp, "gain": f"{rg or -17}dB", "pan": 0.25, "sends": {"space": "-8dB"}, "notes": rns})
+    if RETROHOLD:
+        hold_to = float(RETROHOLD)
+        for tr in tracks:
+            if tr["name"] == "retro":
+                last = max(tr["notes"], key=lambda n: n["at"])
+                last["len"] = round(hold_to - last["at"], 4)
     if SEEDGATHER:
         ring = [["0b", 6.0], ["64b", 6.0], [f"{ST['build']}b", 3.0], [f"{TC}b", 0.0], ["384b", 0.0]]
         turn = [["0b", 0.12], [f"{ST['build']}b", 0.25], [f"{TC - 0.1}b", 0.25], [f"{TC}b", 0.0], ["384b", 0.0]] if SEEDGATHER == "slow" else [["0b", 0.0], ["384b", 0.0]]
