@@ -1367,6 +1367,29 @@ FLOOR_HOME_END = 135                # v87: two bars before the end (chirper-zero
 FLOOR_HOME_VEL = 80
 
 
+# v91 (ROUND TYPE: section, B's first phrases 40-48, 1:28-1:44; rewritten): THE NOISE LOOSENS UNDER HER HUMS. t4's
+# least-moving change (1:36, 0.74 / 0.74, blocks 40.7-44.3 and 44.3-47.9). Two floor moves failed here (the walk
+# echoed her hum, d5464654; a held pedal changed nothing, c9ab34c8) - and presence says why: the bass sits at -9.4,
+# while the sub (-5.2) and the chip's noise channel (air, -6.8) lead both blocks. The sub can't move (t4's 38/44 Hz
+# bands sit on the envelope's edge), so the noise does: its 7-in-16 euclid of sixteenths, steady hiss from 41, falls
+# under her first closed hums (44.5-47.5) to a TRESILLO - three pulses a bar on sixteenths 0, 6, 12, a half-time
+# loosening under her - before v80's small room takes it out at 47.5: hiss, pulses, then none.
+NOISE_LOOSE = (44.5, 47.5)
+TRESILLO = (0, 6, 12)
+
+
+def noise_loosens():
+    a, z = b0(NOISE_LOOSE[0]), b0(NOISE_LOOSE[1])
+    keep = [e for e in P["air"].ev if not (a - 1e-6 <= e[0] < z - 1e-6)]
+    new = []
+    for bar in range(int(NOISE_LOOSE[0]), int(NOISE_LOOSE[1]) + 1):
+        for i in TRESILLO:
+            s = b0(bar) + i * 0.25
+            if a - 1e-6 <= s < z - 1e-6:
+                new.append((s, 0.25, "sh", 58 if i == 0 else 52))
+    P["air"].ev = sorted(keep + new, key=lambda e: e[0])
+
+
 def floor_comes_home():
     a = b0(FLOOR_HOME)
     part("sub").add(a, b0(FLOOR_HOME_END) - a, "D1", FLOOR_HOME_VEL)
@@ -1909,6 +1932,7 @@ def main():
     relief_hands_rest()
     hands_let_go()
     floor_comes_home()
+    noise_loosens()
     rise_floor()
     sticks_for_the_peak()
     arrangers_hand()
