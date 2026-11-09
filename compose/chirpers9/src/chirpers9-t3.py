@@ -662,6 +662,14 @@ R83 = os.environ.get("T3_R83", "strings") != "none"
 # the eye's end (bar 64) a two-beat fill and a crash bring the storm back in. Skipped where a fill or break already
 # is (eyefill 60, the lock roll 88, the fill at 100, the half-breath 103-104). T3_R84=none reproduces v83.
 R84 = os.environ.get("T3_R84", "fills") != "none"
+# round 85 (whole): T3_R85=ride (default) - THE DRUMMER MOVES TO THE RIDE. The kit's top was the same hats for 100
+# bars, and the flattest changes left (bars 70-77, 80-87, 94-101, 101-108) sit in long hat-led stretches. Now, as a
+# drummer would, four eight-bar phrases move off the hats onto the ride (rock-kit: ride eighths, the bell on the
+# off-beats): bars 41-48, 73-80 (under the storm strings) and the lock (89-96: the bell on every beat, the groove's
+# new shine) - the hats stepping back 6 dB for each, so the top of the kit changes colour phrase by phrase. (A fourth,
+# bars 105-112, sat in the out-body t4 is measured against: flow 97.6 -> 76.9.) T3_R85=none reproduces v84.
+R85 = os.environ.get("T3_R85", "ride") != "none"
+RIDE_GAIN = os.environ.get("T3_RIDE_GAIN", "3dB")   # at 0: -14.8 dB (0.09) at bars 41-48; at 5 spectrum 99.2
 FILLS_GAIN = os.environ.get("T3_FILLS_GAIN", "-3dB")
 STRINGS_GAIN = os.environ.get("T3_STRINGS_GAIN", "14dB")   # at 0: -27 / -22 dB, buried
 SAMBA_GAIN = os.environ.get("T3_SAMBA_GAIN", "10dB")   # at 0 it read -20.5 dB (the chip it replaces: -31, buried)   # at 6 it read -2.9 dB, near the reese   # rock-kit hats sit 7 dB under tight-kit's
@@ -2189,6 +2197,25 @@ def main():
         master["fx"][0]["bands"] = list(master["fx"][0]["bands"]) + [
             "peak cutoff=660 gain=-3dB q=2.0", "peak cutoff=1400 gain=-3dB q=1.4", "peak cutoff=400 gain=3dB q=0.9",
             "highshelf cutoff=9000 gain=2.5dB"]
+    if R85:                                                 # whole: four phrases on the ride, the hats back 8 dB
+        phrases = ((160, 192, "off"), (288, 320, "off"), (352, 384, "lock"))     # 105-112 is the out-body: flow 77
+        rd = Track("ride")
+        pts = [["0b", 0]]
+        for a0, b0, kind in phrases:
+            for k in range(int((b0 - a0) * 2)):
+                at = a0 + 0.5 * k
+                if kind == "lock" and k % 2 == 0:
+                    rd.add(at, 0.5, "rb", 92 if k % 8 == 0 else 84)          # the bell on every beat at the lock
+                elif kind == "off" and k % 2 == 1:
+                    rd.add(at, 0.5, "rb", 78)                                # the bell on the off-beats
+                else:
+                    rd.add(at, 0.5, "rd", 70 + (8 if k % 2 == 0 else 0))
+            pts += [[f"{a0 - 0.25:g}b", 0], [f"{a0:g}b", -6], [f"{b0 - 0.25:g}b", -6], [f"{b0:g}b", 0]]
+        tracks.append({"name": "ride", "patch": "rock-kit", "gain": RIDE_GAIN, "pan": 0.3, "score": rd.score()})
+        hs = next(tr for tr in tracks if tr.get("name") == "hats")
+        hs["fx"] = list(hs.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB",
+                                                 "mod": [{"src": "auto.toride", "amount": 1}]}}]
+        hs["auto"] = dict(hs.get("auto", {}), toride={"points": pts})
     if R84:                                                 # whole: a drummer closes the phrases (one-beat fills, varied)
         pats = ((("s", 0, 70), ("s", .25, 78), ("s", .5, 86), ("s", .75, 95)),                       # snare 16ths
                 (("t1", 0, 84), ("t2", .25, 88), ("t3", .5, 92), ("ft", .75, 98)),                    # down the toms
