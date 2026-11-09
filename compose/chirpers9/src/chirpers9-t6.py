@@ -1087,6 +1087,16 @@ def build():
     # the water at its highest mark - and drops back as the cross begins to ebb
     hw0_ = (SEC['crest'] + 8) * 4.0
     P['acid'] = [(e_[0], m(float(str(e_[1])[1:]) + 12), *e_[2:]) if hw0_ - 1e-6 <= e_[0] < SEC['cross'] * 4.0 - 1e-6 else e_ for e_ in P['acid']]
+    # (v91, section w7: 3:06-3:36, the surge - the shakuhachi's E1 and the far side's (trombone and bowed bass) ran
+    # on top of each other for all sixteen bars, the densest half-minute of the song, until the choir sings 'near and
+    # far as one' at bar 108) THEY TRADE THE TUNE FIRST: for the surge's first eight bars the near and the far take
+    # turns, two bars each - the shakuhachi calls (bars 97-98), the trombone and the bow answer (99-100), the flute
+    # again, the far side again - and only from bar 105 do they play over each other, so when the choir sings them
+    # as one, they have just become one
+    hk0_ = SEC['surge'] * 4.0
+    for k_ in ('hook', 'far', 'farbow'):
+        keep_ = 0 if k_ == 'hook' else 1
+        P[k_] = [e_ for e_ in P[k_] if not (hk0_ - 1e-6 <= e_[0] < hk0_ + 32.0 - 1e-6 and int((e_[0] - hk0_) // 8.0) % 2 != keep_)]
     rk0_ = SEC['crest'] * 4.0
     P['kitroom'] = [e_ for e_ in P['kit'] if e_[0] >= rk0_ - 1e-6]
     P['kit'] = [e_ for e_ in P['kit'] if e_[0] < rk0_ - 1e-6]
