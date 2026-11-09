@@ -728,6 +728,14 @@ R94 = os.environ.get("T3_R94", "theremin") != "none"
 # voices lift the storm into the lock (bar 89). (From bar 81 it sat on both sides of 3:20 and made it flatter.) The riff below is untouched. T3_R96=none
 # reproduces v94 (v95 was refused).
 R96 = os.environ.get("T3_R96", "choir") != "none"
+# round 97 (palette - swap the buried lead): T3_R97=pizz (default) - THE STORM'S E1 IS PLUCKED, AND HEARD. The storm's
+# lead, E1 on its 12-sixteenth cycle (e1, a3-ring: a ring-modulated saw), sounds 92% of the song and measured -25.7 dB
+# - buried under everything. Between the seams it now hands over to a pizzicato string section (library pizzicato:
+# short woody finger plucks, unused on chirpers9) playing the same phasing cycle, a Reich-like plucked ostinato that
+# cuts through the storm's growl; the ring lead keeps both seam bodies (in by bar 37, back from bar 99, the punch
+# bus's envelope). T3_R97=none reproduces v96.
+R97 = os.environ.get("T3_R97", "pizz") != "none"
+PIZZ_GAIN = os.environ.get("T3_PIZZ_GAIN", "14dB")   # at -4 dB (e1 is -16): -26.3 dB, buried; at 12: -11.6 (0.28)
 CHOIR_GAIN = os.environ.get("T3_CHOIR_GAIN", "2dB")   # at 0: -12.0 dB (0.24); at 5: -6.5, buried the strings, s11 structure 99.64
 THEREMIN_GAIN = os.environ.get("T3_THEREMIN_GAIN", "0dB")
 HEFT_DB = float(os.environ.get("T3_HEFT_DB", "3"))
@@ -2405,6 +2413,18 @@ def main():
         mid = [["0b", 0], ["128b", 0], ["144b", 1], ["368b", 1], ["384b", 0], ["513b", 0]]
         master["auto"] = dict(master["auto"], weight={"points": [[b, 3.0 * v] for b, v in mid]},
                               unbox={"points": [[b, -3.5 * v] for b, v in mid]})
+    if R97:                                                 # palette: e1 on pizzicato between the seams, the ring lead at the seams
+        import copy
+        e1 = next(tr for tr in tracks if tr.get("name") == "e1")
+        pz = copy.deepcopy(e1)
+        mid = [["0b", 0], ["136b", 0], ["144b", 1], ["396b", 1], ["404b", 0], ["513b", 0]]
+        e1["fx"] = list(e1.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.pizz", "amount": 1}]}}]
+        e1["auto"] = dict(e1.get("auto", {}), pizz={"points": [[b, -60.0 * v] for b, v in mid]})
+        pz.update(name="e1pz", patch="pizzicato", gain=PIZZ_GAIN)
+        pz["fx"] = list(pz.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.pizz", "amount": 1}]}},
+                                               {"type": "eq", "bands": ["peak cutoff=2500 gain=-5dB q=0.7"]}]   # the plucks' 1-3 kHz: 99.935 without
+        pz["auto"] = dict(pz.get("auto", {}), pizz={"points": [[b, -60.0 * (1 - v)] for b, v in mid]})
+        tracks.append(pz)
     if R96:                                                 # w7: a tape choir climbs D minor's inversions over bars 81-88
         ch = Track("tapechoir")
         for k, voic in enumerate(((62, 65, 69), (65, 69, 74), (69, 74, 77), (74, 77, 81))):
