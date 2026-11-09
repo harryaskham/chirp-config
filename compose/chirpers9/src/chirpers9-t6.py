@@ -1002,6 +1002,13 @@ def build():
             pc_ = 'cb' if (e_[1] == 'rs' and abs(e_[0] - round(e_[0])) < 1e-6) else CJ[e_[1]]
             P['cajon'].append((e_[0], pc_) + tuple(e_[2:]))
     P['kit'] = [e_ for e_ in P['kit'] if not (cj0_ - 1e-6 <= e_[0] < cj1_ - 1e-6 and e_[1] in CJ)]
+    # (v89, palette: the tide's hand drum was a flamenco cajón; the shore's drone before it is a tanpura, which a
+    # seam needs (v88)) THE DRONE'S OWN DRUM: the tide's hand-played rhythm moves to the library's tabla-kit (dayan
+    # tuned to D4, the key's tonic, and the wrist-bent bayan; no Accretion track uses it), bol for stroke - the
+    # cajón's bass to ge, its slap to te, its ghosts to re, the palmas to na and the downbeat to dha - so the
+    # tanpura's shore and the tide's first groove are one tradition, ringing in tune
+    TB_ = {'cb': 'ge', 'cs': 'te', 'cg': 're', 'pa': 'na'}
+    P['cajon'] = [(e_[0], 'dha' if (e_[1] == 'cb' and abs(e_[0] / 4.0 - round(e_[0] / 4.0)) < 1e-6) else TB_.get(e_[1], e_[1])) + tuple(e_[2:]) for e_ in P['cajon']]
     P['lights'] = [e_ for e_ in P['lights'] if not (SEC['crest'] * 4.0 - 1e-6 <= e_[0] < SEC['cross'] * 4.0 - 1e-6)]
     # (v68, whole song) A DRUMMER, NOT A GRID: every hit of the kit and the hats sat exactly on the grid at one of
     # two velocities, the whole song through. Now they are played: the kick stays the anchor, on the grid; the snare
@@ -1153,7 +1160,7 @@ def build():
             tr('acid', 'moog-seq', '-12dB', fx=['hp cutoff=50', 'lp cutoff=3000', {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}], sends={'echo': '-20dB'}),
             tr('kit', 'prog-kit', '-6dB', sends={'hall': '-20dB'}),
             tr('kitroom', 'room-kit', '-9.5dB', sends={'hall': '-20dB'}),
-            tr('cajon', 'cajon', '-12dB', pan=0.1, sends={'hall': '-16dB'}),
+            tr('cajon', 'tabla-kit', '-11.7dB', pan=0.1, sends={'hall': '-16dB'}),
             tr('hats', 'prog-kit', '-7dB', pan=0.2, fx=[{'type': 'eq', 'bands': ['highshelf cutoff=8000 gain=5dB']}]),
             # (v34, palette: the cello was an album staple - t1, t5 and t6) THE FAR SIDE IS A TROMBONE: E1 stretched on
             # the far side is now played by the library's trombone (warm, round, mono and legato, the slide gliding
