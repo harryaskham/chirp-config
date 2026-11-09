@@ -1526,6 +1526,20 @@ def build():
                 if pt_['extends'].startswith(k_):
                     t_['patch'] = dict(pt_, extends=pt_['extends'] + f' synth.layers.0.vowel_drift={v_:g}')
                     break
+    # (v103, whole song: wM's sung glides, pinned 2b4b6172) THE SLIDES LAND ON THE BEAT: every sung line slid
+    # between its joined notes with one fixed 110 ms glide that started on the new note - every slide landed late
+    # (its middle 56-70 ms after the written change) and a step took as long as a fifth. Now a slide takes 80 ms plus
+    # 8 ms a semitone (a step quick, a leap longer, as a real voice moves), and half of it is sung before the new
+    # note, so it centres on the beat; the old man starts his slides later (0.3 of each before the note: an older,
+    # lazier voice that lands a little behind), the near voice and the choirs on the beat (0.5)
+    GL_ = {'voice-old': 0.3, 'voice-choir': 0.5, 'voice-near': 0.5}
+    for t_ in song['tracks']:
+        pt_ = t_.get('patch')
+        if isinstance(pt_, dict) and isinstance(pt_.get('extends'), str):
+            for k_, v_ in GL_.items():
+                if pt_['extends'].startswith(k_):
+                    t_['patch'] = dict(pt_, play=dict(pt_.get('play') or {}, glide='80ms', glide_semi='8ms', glide_lead=v_))
+                    break
     return song
 
 
