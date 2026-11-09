@@ -872,6 +872,13 @@ R98 = os.environ.get("T7_R98", "cavaco") != "none"
 # the kick straightens into four-on-the-floor - every beat, hard - with open hats on every off-beat and a crash at the
 # turn, the house drive t7 started from, pushing the sax's last phrase into the stop. T7_R99=none reproduces v98.
 R99 = os.environ.get("T7_R99", "surge") != "none"
+# round 100 (whole): T7_R100=alive (default) - THE VOICES BREATHE (t3 v100's move, on t7's twenty voices). Every held
+# vowel in t7 - the three-part choir and its old guard, the hums - sat perfectly still, and every sung slide landed
+# late. With the engine's voice tier: the held voices get vowel_drift 0.6 (wM, pin 07ab00cd), the sung lines (the
+# singer, the crest's pair, the near voices, the descant, the spiral's "sooner") get glide_semi 8 ms + glide_lead 0.4
+# (pin 2b4b6172: steps slide quickly, leaps take longer, part of the slide sung before the note) and a lighter
+# vowel_drift 0.3 for their long notes. T7_R100=none reproduces v99.
+R100 = os.environ.get("T7_R100", "alive") != "none"
 SURGE_GAIN = os.environ.get("T7_SURGE_GAIN", "-3dB")   # at 0: the kick -2.1 dB (loudest), the open hats -6.1
 CAVSOLO_GAIN = os.environ.get("T7_CAVSOLO_GAIN", "7dB")   # at -3 dB: -18.3 dB, not heard
 FIFTHS_GAIN = os.environ.get("T7_FIFTHS_GAIN", "3dB")   # at 0: the first call -11.8 dB (0.25)
@@ -2332,6 +2339,16 @@ def main():
                                          "synth.layers.0.shepard.cycle=4s synth.layers.1.shepard.cycle=4s synth.amp.r=0.8s"}
         tracks.append({"name": "fall", "patch": "a7-fall", "gain": FALL_GAIN, "pan": 0.0,
                        "sends": {"space": "-10dB"}, "score": "R/448b m63,m70/30b@90"})
+    if R100:                                                # whole: vowel drift on the held voices, sung glides on the lines
+        held = ("a7-choir0", "a7-choir1", "a7-choir2", "a7-choir0-old", "a7-choir1-old", "a7-choir2-old",
+                "a7-sung-hum", "a7-sung-hum-even")
+        lines = ("a7-sungc", "a7-sungc5", "a7-sung5", "a7-sung", "a7-sung3", "a7-near", "a7-near3", "a7-descant",
+                 "a7-sooner-a", "a7-sooner-b")
+        for nm in held + lines:
+            if nm in patches and isinstance(patches[nm].get("extends"), str):
+                add = " synth.layers.0.vowel_drift=0.6" if nm in held else \
+                      " synth.layers.0.vowel_drift=0.3 play.glide_semi=8ms play.glide_lead=0.4"
+                patches[nm] = dict(patches[nm], extends=patches[nm]["extends"] + add)
     if R99:                                                 # w9: four-on-the-floor, off-beat open hats, a crash, bars 140-144
         sk, so = Track("surgek"), Track("surgeoh")
         for b in range(556, 576):
