@@ -508,6 +508,29 @@ def the_tide_turns(song):
     song["tracks"].append(fast)
 
 
+# v78 (ROUND TYPE: palette - the newest engine feature): THE HELD NOTES OPEN. wM's VIBRATO BLOOM (pinned 0119aae1)
+# keeps a vibrato's depth growing while a note is held - short notes nearly straight, long ones opening up, as a
+# singer's do. t8's voices end their lines on held words; every one had the same fixed-depth vibrato. Now, by voice:
+# the jet's choirs open a little on their held words (0.6); her lines more (0.8, the vibrato a shade deeper so it is
+# heard - wM: the voice patches' vibrato is shallow); her last word, 'ours', held four beats, opens fully (1.0); the
+# far choir stays straight (distance).
+BLOOM = {"choir": (0.6, None), "choir5": (0.6, None), "choir8": (0.6, None), "solo": (0.8, 0.24), "last": (1.0, 0.26)}
+
+
+def held_notes_open(song):
+    for tr_ in song["tracks"]:
+        if tr_["name"] not in BLOOM:
+            continue
+        bloom, amount = BLOOM[tr_["name"]]
+        patch = json.loads(json.dumps(tr_["patch"]))
+        patch["synth"]["lfo"]["vib"]["bloom"] = bloom
+        if amount is not None:
+            for m in patch["synth"]["pitch"]["mod"]:
+                if m["src"] == "lfo.vib":
+                    m["amount"] = amount
+        tr_["patch"] = patch
+
+
 def answer_accretes(song):
     far = next(x for x in song["tracks"] if x["name"] == "far")
     for bar, cell, vel in ANSWERS:
@@ -1645,6 +1668,7 @@ def main():
     answer_accretes(song)
     and_it_was_ours(song)
     the_tide_turns(song)
+    held_notes_open(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")

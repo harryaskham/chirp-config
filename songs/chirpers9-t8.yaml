@@ -14105,7 +14105,8 @@
        "delay": "320ms",
        "fade": "500ms",
        "retrig": true,
-       "per_note": true
+       "per_note": true,
+       "bloom": 0.6
       }
      },
      "pitch": {
@@ -15994,7 +15995,8 @@
        "delay": "320ms",
        "fade": "500ms",
        "retrig": true,
-       "per_note": true
+       "per_note": true,
+       "bloom": 0.6
       }
      },
      "pitch": {
@@ -17861,7 +17863,8 @@
        "delay": "320ms",
        "fade": "500ms",
        "retrig": true,
-       "per_note": true
+       "per_note": true,
+       "bloom": 0.6
       }
      },
      "pitch": {
@@ -21396,7 +21399,8 @@
        "delay": "280ms",
        "fade": "500ms",
        "retrig": true,
-       "per_note": true
+       "per_note": true,
+       "bloom": 0.8
       }
      },
      "pitch": {
@@ -21412,7 +21416,7 @@
        },
        {
         "src": "lfo.vib",
-        "amount": 0.2
+        "amount": 0.24
        }
       ]
      },
@@ -22274,7 +22278,8 @@
        "delay": "280ms",
        "fade": "500ms",
        "retrig": true,
-       "per_note": true
+       "per_note": true,
+       "bloom": 1.0
       }
      },
      "pitch": {
@@ -22290,7 +22295,7 @@
        },
        {
         "src": "lfo.vib",
-        "amount": 0.2
+        "amount": 0.26
        }
       ]
      },
