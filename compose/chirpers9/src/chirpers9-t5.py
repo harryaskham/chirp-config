@@ -122,6 +122,7 @@ CHIPRIM = os.environ.get("C9T5_CHIPRIM", "nes-pulse-lead amp.d=25ms|A6|-10")   #
 MOTIFLIFT = os.environ.get("C9T5_MOTIFLIFT", "orbit:3,seed-hi:3,seed-lo:3~368")   # WHOLE (Harry: E1 heard plainly and often; t5's own hook is E5's orbit): THE TUNES UNDER THE VOICE - presence.py (17:35, pin 9f86896d) has the voice at -1..-3 dB against the mix and the bass at -5, but the two things t5 is made of sit low and are followable almost never while they sound: E5's orbit on the NES pulse -15.3 dB (near 0.14), E1 x2 on the chip lead -16.1 (0.07) and on the mandolin -17.8 (0.04). This brings them up under the voice. Value 'track:dB,...' (gain), or 'track:dB,...@BEAT' (velocity, only before BEAT - the tide into t6 left as it was), or 'track:dB,...~BEAT' (a gain lane: the lift held until BEAT, then easing back over 8 bars)
 BUILDSTAGE = os.environ.get("C9T5_BUILDSTAGE", "seeds232drums240")   # SECTION w4 (1:41-2:15, A's end into the build): THE BUILD ACCRETES - after A's breakdown (the bass, the seeds and the kit out for four bars while t1's first breath is quoted) everything came back at once on the build's downbeat (224), so the build began at full height. Now it gathers, the album's own way: the 808 and the marimba on the downbeat, then 'seeds232drums240' E1's seeds two bars later and the kit with the first 'nearer' call (240); 'both232' the seeds and the kit together two bars in
 VOWELDRIFT = os.environ.get("C9T5_VOWELDRIFT", "1")   # PALETTE (the voice; wM's vowel_drift, pin 07ab00cd): her held vowels sat perfectly still - the 'ah' of 'mid-dle', the long 'near-er's, the hums' open vowels - part of what reads as a machine. Now each held vowel lives: its formants wander slowly about the written vowel (growing in after 0.2 s, settling before the release, so consonants and joined seams stay exact), each note and each harmony part on its own curve. Value: the amount (1 free, 0.5 a steadier, trained singer)
+KITRECEDE = os.environ.get("C9T5_KITRECEDE", "early")   # SECTION w8 (3:53-4:19, the farewell and the tide into t6): THE KIT RECEDES - under her two farewells the kit came back to full strength and then stopped dead mid-bar at 480, the whole kit at once. Now it leaves the way the build gathered it (v84), a piece at a time, handing the beat to t6's hats: 'recede' the kick and clap go at 472, the rim at 476, the hats close on one last open hat at 480; 'early' the kick at 464, the clap at 468, the rim at 472, the hats as before
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -1104,6 +1105,14 @@ def song():
         for tr in tracks:
             if tr["name"] in back:
                 tr["notes"] = [n for n in tr["notes"] if not (223.9 <= float(n["at"]) < back[tr["name"]] - 0.05)]
+    if KITRECEDE:
+        out = {"k": 472, "cp": 472, "rs": 476} if KITRECEDE == "recede" else {"k": 464, "cp": 468, "rs": 472}
+        for tr in tracks:
+            if tr["name"] == "drums":
+                ns = [n for n in tr["notes"] if not (n["pitch"] in out and float(n["at"]) >= out[n["pitch"]] - 0.01)]
+                ns = [n for n in ns if not (n["pitch"] in ("h", "oh") and float(n["at"]) >= 479.4)]
+                ns.append({"at": 479.5, "pitch": "oh", "len": 0.5, "vel": 0.3})
+                tr["notes"] = sorted(ns, key=lambda n: float(n["at"]))
     if VIBBLOOM:
         vb, *vd = VIBBLOOM.split(":")
         for tr in tracks:
