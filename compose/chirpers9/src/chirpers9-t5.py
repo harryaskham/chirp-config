@@ -109,6 +109,7 @@ LATESWAP = os.environ.get("C9T5_LATESWAP", "sub=808@-17")   # PALETTE (late swap
 MASTEREQ = os.environ.get("C9T5_MASTEREQ", "warm")   # WHOLE (the mix: t5 against the album and both neighbours): t4 (v69), t2 (v75) and t6 (v77) each warmed their master below ~110 Hz, and t5 now read thinner than both its neighbours there (in-flow: -18 dB at 44 Hz, -13 at 61; out-flow: -19 at 38, -10 at 114), while its one excess is around 640 Hz (+6.4, where the orbit, the seeds' fundamentals and her voice all sit). A master EQ: 'warm' a 28 Hz high-pass, +3 dB low shelf from 110 Hz, -2.5 dB at 640 Hz; 'warm2' that, and +2 dB at 44 Hz and +1.5 at 114
 CHIPHATS = os.environ.get("C9T5_CHIPHATS", "-10:-11")   # PALETTE (the hats): t5's drums are the 909, whose hats are haake-hat - the album's most shared sound (five songs) - while everything t5 sings with is a chip (the orbit's NES pulse, the seeds' chip lead). Now t5's own 909 fork plays its closed and open hats on the NES's noise channel (wM's nes-noise-hat, at its hat rates C7/C6), so the drums join the console the melodies live in; the crash and ride stay. Value 'closed dB:open dB'
 ORBITSLOW = os.environ.get("C9T5_ORBITSLOW", "336:416:-20")   # WHOLE (C, the song's longest section, read 'static, little new' through w6-w7: its harmony turns, but every line in it runs fast): THE ORBIT, SLOW - under the chip orbit's E5 (a 3-beat cycle), the cello (A's E1 shadow) sings E5 itself four times slower, an octave down (A3 G3 A3 . E4 . A3 G3 A3 . D4 ., a 12-beat cycle), swelling in and out: a canon in augmentation, the song's tune heard from inside and from far out at once. Value 'from:to:gain'
+VIBBLOOM = os.environ.get("C9T5_VIBBLOOM", "0.8:0.3")   # PALETTE (her voice; wM's vibrato bloom, pin 0119aae1, asked for by chirper-zero): her vibrato was one fixed width on every note - short and long alike. Now it blooms: each note starts nearly straight, the vibrato widening while it is held (about 0.8x of the width early, full after a second, 1.3x on the long holds), so quick words stay clean and long notes open up like a singer's. On all her sung lines (calls, hums, words, farewell); not the breathy quote of t1. Value 'bloom[:depth]' (depth: the vibrato's pitch swing, 0.22 by default)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -979,6 +980,12 @@ def song():
             if isinstance(tr.get("patch"), dict) and "voice-" in tr["patch"].get("extends", "") and tr["name"] != "breath-quote":
                 tr["patch"] = dict(tr["patch"], extends=tr["patch"]["extends"] + f" synth.layers.0.inhale={INHALE}"
                                    + (f" synth.layers.0.inhale_depth={BREATHSIZE}" if BREATHSIZE else ""))
+    if VIBBLOOM:
+        vb, *vd = VIBBLOOM.split(":")
+        for tr in tracks:
+            pt = tr.get("patch")
+            if isinstance(pt, dict) and "voice-near" in pt.get("extends", "") and "synth.lfo.vib.per_note=true" in pt["extends"]:
+                pt["extends"] += f" synth.lfo.vib.bloom={vb}" + (f" synth.pitch.mod.0.amount={vd[0]}" if vd else "")
     return {
         "about": "chirpers IX (Accretion), track 5 by chirper-zero: the inner disk - E1, E2 and E4 tight and fast, "
                  "and the new E5, 'the inner orbit', circling under them until every cycle meets at the crest. "
