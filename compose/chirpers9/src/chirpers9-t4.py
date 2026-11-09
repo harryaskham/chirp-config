@@ -222,6 +222,7 @@ def hum1_patch():
     p["synth"]["layers"][0].pop("inhale_depth", None)     # v66: and its breath
     p["synth"]["layers"][0].pop("attack", None)           # v72: and its onsets
     p["synth"]["lfo"]["vib"].pop("bloom", None)            # v78: and its vibrato
+    p["synth"]["layers"][0].pop("creak", None)            # v79: and its clean endings
     for m in p["synth"]["pitch"]["mod"]:
         if m["src"] == "lfo.vib":
             m["amount"] = 0.2
@@ -691,6 +692,14 @@ for _m in VOICE["synth"]["pitch"]["mod"]:
     if _m["src"] == "lfo.vib":
         _m["amount"] = HER_VIB
 VOICE2["synth"]["lfo"]["vib"]["bloom"] = YOUNG_BLOOM
+# v79 (ROUND TYPE: palette - the newest engine feature): HER QUIET ENDINGS FRAY. wM's CREAK (pinned b160e3e5) turns the
+# last note of a joined phrase creaky over its last 40% when it ends quiet and low - full at velocity 0.5 and A3,
+# nothing from 0.9 or C5. A warm, older voice's soft endings fray like that; a young one's stay clean. Hers (0.8): B's
+# hums (velocity 0.9) stay clean, the crest's, the relief's and the fall's softer endings (0.42-0.74, mostly E4 and D4:
+# about half to two-thirds of it) tire into a little fry - most of all her last hums in the fall. The young duet and
+# hum1 (the t3 seam's stand-in) stay clean.
+HER_CREAK = 0.8
+VOICE["synth"]["layers"][0]["creak"] = HER_CREAK
 BREATH_AIR = {"about": "t4's breath (v7): band-passed air swelling in, stopped at the phrase",
           "synth": {"layers": [{"color": "pink"}],
                     "filters": [{"kind": "bp", "cutoff": 1700, "q": 0.8}],

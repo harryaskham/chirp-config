@@ -624,7 +624,8 @@
        "hum_at": "m",
        "taper": 0.6,
        "inhale_depth": 1.0,
-       "attack": -0.5
+       "attack": -0.5,
+       "creak": 0.8
       }
      ],
      "lfo": {
