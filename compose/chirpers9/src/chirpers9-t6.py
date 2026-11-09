@@ -1078,7 +1078,12 @@ def build():
         # scoops the box with one broad cut (-3.5 dB around 950 Hz, two octaves wide), gives the floor a body at 66 Hz
         # (+3 dB) while the high-pass rises to 34 Hz so the sub-rumble under it doesn't grow, and opens the air above
         # 5.5 kHz (+2.5 dB): the same band, heard with weight underneath and space on top instead of through a box
-        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=34', 'lowshelf cutoff=110 gain=3dB', 'peak cutoff=66 q=1.3 gain=3dB', 'peak cutoff=300 q=0.8 gain=-2dB', 'peak cutoff=950 q=0.5 gain=-3.5dB', 'highshelf cutoff=5500 gain=2.5dB']},
+        # (v77, whole song) THE HONK OUT, THE FLOOR IN: against the album t6 still read nasal - 640 Hz-1.4 kHz 3.5-5 dB
+        # over (the harmonium's reeds, the trombone, the flute and the old voice all speak there; it is also what the
+        # t5 -> t6 seam reads as t6's excess) - and thin under it, 61 Hz and 97-133 Hz 3-6 dB short. The master takes
+        # a further 2.5 dB out around 800 Hz and 2 dB at 1.4 kHz, and puts weight back at 60 and 115 Hz under the
+        # bass and the kick: the band's middle steps back, its body comes forward
+        'master': {'fx': [{'type': 'eq', 'bands': ['highpass cutoff=34', 'lowshelf cutoff=110 gain=3dB', 'peak cutoff=66 q=1.3 gain=3dB', 'peak cutoff=60 q=1.0 gain=2dB', 'peak cutoff=115 q=1.0 gain=2dB', 'peak cutoff=300 q=0.8 gain=-2dB', 'peak cutoff=950 q=0.5 gain=-3.5dB', 'peak cutoff=800 q=0.8 gain=-2.5dB', 'peak cutoff=1400 q=1.2 gain=-2dB', 'highshelf cutoff=5500 gain=2.5dB']},
                           {'type': 'compressor', 'threshold': '-18dB', 'ratio': 2.2, 'attack': '15ms', 'release': '140ms', 'makeup': '1dB'},
                           {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.E', 'amount': 1}]}},
                           'tapestop stop=auto.stop time=1b',
