@@ -599,7 +599,15 @@ ROOMHAT_GAIN = os.environ.get("T3_ROOMHAT_GAIN", "10dB")
 # overtones ripple about once a second instead of once every few: phase made audible, the title's idea in a tone
 # (no Accretion song uses it). It rises into bar 45, where the whisper starts. T3_R76=none reproduces v75.
 R76 = os.environ.get("T3_R76", "risset") != "none"
-RISSET_GAIN = os.environ.get("T3_RISSET_GAIN", "0dB")   # rock-kit hats sit 7 dB under tight-kit's
+RISSET_GAIN = os.environ.get("T3_RISSET_GAIN", "0dB")
+# round 77 (palette - an engine feature the album has not used): T3_R77=phase (default) - THE VOICES PHASE. The
+# eyewall's counting voice (doo: D A F C on sixteenths, bars 49-56) is doubled, the copy panned against it, and the
+# copy's own clock is warped (track `warp`, unused on Accretion): over bars 49-52 it drifts steadily ahead until it
+# is a sixteenth early, holds there two bars - the one pattern against itself, a new tune in the gaps - then eases
+# back into step for bar 57, where the harmony voices take over in unison: Reich's Piano Phase on a voice, the
+# title's phase margin opened and closed. Each copy is 2 dB up (at -2 they sat 14.5 dB under the reese, unheard).
+# T3_R77=none reproduces v76.
+R77 = os.environ.get("T3_R77", "phase") != "none"   # rock-kit hats sit 7 dB under tight-kit's
 R28_MOVE = os.environ.get("T3_R28", "move") in ("voice", "move")
 R28_TOG = os.environ.get("T3_R28", "move") in ("voice", "together")
 R22_FLOOR = os.environ.get("T3_R22", "breath") == "grit"
@@ -1763,6 +1771,14 @@ def main():
         flock(404.5, 408.0, (1.0, 2.0))
         for nm, pan in (("birdl", -0.5), ("birdr", 0.5)):
             tracks.append({"name": nm, "patch": "birds", "gain": "9dB", "pan": pan, "score": flocks[nm].score()})
+    if R77:                                                 # palette (warp): the counting voice phases against itself, 49-56
+        d0 = next(tr for tr in tracks if tr.get("name") == "doo")
+        g = float(str(d0.get("gain", "0dB")).replace("dB", "")) + 2.0
+        tracks.append(dict(d0, name="doop", gain=f"{g:g}dB", pan=-0.55, notes=[dict(n) for n in d0.get("notes", [])],
+                           fx=list(d0.get("fx", [])),
+                           warp=[{"over": "48bar", "to": 0}, {"over": "4bar", "to": -0.25, "curve": "linear"},
+                                 {"over": "2bar", "to": -0.25}, {"over": "2bar", "to": 0, "curve": "smooth"}]))
+        d0["gain"], d0["pan"] = f"{g:g}dB", 0.55
     if R76:                                                 # w4: E1 x4 slower on a Risset arpeggio (bars 37-44)
         patches["a3-risset"] = {"extends": "risset-arpeggio synth.layers.0.cents=-12.56 synth.layers.1.cents=-6.28 "
                                            "synth.layers.3.cents=6.28 synth.layers.4.cents=12.56 synth.amp.a=0.8s"}
