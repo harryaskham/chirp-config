@@ -135,6 +135,7 @@ LASTANSWER = os.environ.get("C9T1_LASTANSWER", "once")   # WHOLE (the call and i
 MIDP = os.environ.get("C9T1_MIDP", "mellotron-flute@-9")   # PALETTE (the hook's voices): every statement of the hook was the same low whistle - the intro, A, the tease, the build, the strip and the last call. Now the one in the strip after the crest (beats 256-276, 'the seed alone', when the scattered voices step out) is a different wind, so the seed sounds there as if remembered: 'mellotron-flute' (a tape-replayed flute, worn and swelling) or 'dizi' (a bamboo flute with a buzzing membrane). Value 'patch@gain'
 INTROCUTS = os.environ.get("C9T1_INTROCUTS", "two")   # SECTION w1 (0:00-0:36, the album's first half-minute: read static): THE PLAYER'S HAND - the intro's whistle states the seed twice, identically. The first stays plain (E1 heard as it is); the second is now ornamented as a Celtic air player would - the low whistle's grace notes (`^h`, expr h) flicking into its long notes - so the opening sounds played by a hand. 'two' cuts on A and G; 'three' and on the closing E
 SEEDLIFT = os.environ.get("C9T1_SEEDLIFT", "g:6,c:3,e:3")   # WHOLE (t1's subject is the five scattered voices that each play one note of E1 on its own cycle and meet at the crest): ALL FIVE HEARD - presence.py (17:06, pin 9f86896d) had three of the five almost inaudible while they sound: the mandolin's G at -26 dB against the mix (buried), the celesta's C -21.7, the music box's E -20.7, against the kalimba's D -16.8 and the vibes' A -15.1. Raising all five (v9) thinned the song; this lifts only the buried three so the scatter is five voices, not two. Value 'g:dB,c:dB,e:dB'
+PULL = os.environ.get("C9T1_PULL", "pull")   # SECTION w5 (2:22-2:54, the build into the crest: read 'little new vs w4'): THE PULL - the bodhran waited silent until the crest's downbeat. Now it is heard first in the build, softly, on E1's own five-beat cycle, and its strokes come closer as the cycles converge (every 5 beats, then 2.5, then 1.25), a slow gravitational pull that lands on the crest with the drum's first full stroke. 'pull' from 199; 'late' from 209
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -941,6 +942,12 @@ def song():
             if tr["name"] in lift:
                 g = float(str(tr["gain"]).replace("dB", ""))
                 tr["gain"] = f"{g + lift[tr['name']]:g}dB"
+    if PULL:
+        hits = ([199, 204] if PULL == "pull" else []) + [209, 214, 216.5, 219, 221.5, 222.75]
+        n0 = len(hits)
+        ns = [note(a, "b", 0.5, round(0.28 + 0.32 * (k / max(1, n0 - 1)) ** 1.5, 3)) for k, a in enumerate(hits)]
+        kt = next(tr for tr in tracks if tr["name"] == "kick")
+        tracks.append({**{k: v for k, v in kt.items() if k != "notes"}, "name": "kick-pull", "notes": ns})
     if SHAKEIN:
         s0 = float(SHAKEIN)
         offs = [0, 1, 1.75, 2.5, 3.25, 4.0]
