@@ -826,6 +826,13 @@ R91 = os.environ.get("T7_R91", "float") != "none"
 # towards the warp (bar 81). (All eight phrases smoothed the window flat: 11%, a 24 s run.) Above the bass;
 # every note sits in its chord (Ebm9, Ebm, Bbm7, Fm7/Eb). T7_R92=none reproduces v91.
 R92 = os.environ.get("T7_R92", "strings") != "none"
+# round 93 (section, w7 = bars 97-112, the spiral; least recently focused away from the seams): T7_R93=ratchet
+# (default) - EVERY CORNER COMES SOONER, IN THE HATS. The spiral sings "every corner comes sooner" and the beat never
+# showed it. Now, over its last eight bars (105-112), a crisp 808 hat ratchets: two to a beat, then three, then four,
+# then six - each lap of the beat a little shorter - while an orbit swings it round the listener's head, slowly at
+# first, four times a bar by the end; then it stops dead at bar 113, where the pull begins. T7_R93=none reproduces v92.
+R93 = os.environ.get("T7_R93", "ratchet") != "none"
+RATCHET_GAIN = os.environ.get("T7_RATCHET_GAIN", "11dB")   # at 0 dB: -19.5 dB, inaudible
 STR5_GAIN = os.environ.get("T7_STR5_GAIN", "4dB")   # at 0 dB: -11.0 dB (0.30)
 CRESTSAX_GAIN = os.environ.get("T7_CRESTSAX_GAIN", "3dB")   # at ALTO_GAIN (7 dB) it led the crest at -3.9 dB
 AMENX_GAIN = os.environ.get("T7_AMENX_GAIN", "2dB")
@@ -2399,6 +2406,19 @@ def main():
                                               "mod": [{"src": "auto.crest", "amount": 1}]}}]
         hk["auto"] = dict(hk.get("auto", {}), crest={"points": [["0b", 0], ["479.8b", 0], ["479.95b", 6], ["511.9b", 6],
                                                                 ["512.4b", 0]]})
+    if R93:                                                 # w7: an 808 hat ratchets 2-3-4-6 a beat over bars 105-112, orbiting faster
+        rt = Track("ratchet")
+        n = 0
+        for b0, div in ((416, 2), (424, 3), (432, 4), (440, 6)):
+            for k in range(8 * div):
+                at = b0 + k / div
+                rt.add(round(at, 6), round(0.9 / div, 6), "h", (96 if k % div == 0 else 64) + n // 6)
+                n += 1
+        tracks.append({"name": "ratchet", "patch": "electro-kit", "gain": RATCHET_GAIN, "pan": 0.0,
+                       "fx": [{"type": "orbit", "path": "circle", "distance": 0, "doppler": 0.0, "rate": "1/1",
+                               "speed": {"value": 0, "mod": [{"src": "auto.whirl", "amount": 1}]}}],
+                       "auto": {"whirl": {"points": [["0b", 0.25], ["416b", 0.25], ["448b", 2.0], ["704b", 2.0]]}},
+                       "sends": {"space": "-12dB"}, "score": rt.score()})
     if R92:                                                 # w5: tape strings sing E5 at half speed over bars 65-80
         st = Track("e5str")
         ph = ((0.0, 0, .5), (0.5, -2, .5), (1.0, 0, 1.0), (2.0, -5, 1.0), (3.0, 0, .5), (3.5, -2, .5), (4.0, 0, 1.0), (5.0, -7, 2.9))
