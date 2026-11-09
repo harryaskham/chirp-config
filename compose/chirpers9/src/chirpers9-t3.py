@@ -748,6 +748,14 @@ R98 = os.environ.get("T3_R98", "thunder") != "none"
 # eye and the lock (bars 63-94) they are 12 dB louder, a held two-part choir behind the e-bow, the half-time and the
 # lock's singer, back to their old level by bar 96 so the tail into t4 is untouched. T3_R99=none reproduces v98.
 R99 = os.environ.get("T3_R99", "voices") != "none"
+# round 100 (whole): T3_R100=alive (default) - THE VOICES BREATHE. t3 sings in a dozen voices - the backing and eye
+# choirs (now forward since v99), the counting doo3, the hums, the lock's singer and her duet - and every held vowel
+# sat perfectly still, and every sung slide landed late (a fixed glide starting on the new note). With the engine's
+# new voice tier: the held voices get vowel_drift 0.6 (wM, pin 07ab00cd: F1-F3 wander slowly about the written vowel,
+# each singer its own way, so a long 'aah' lives), and the sung lines get glide_semi 8 ms + glide_lead 0.4 (pin
+# 2b4b6172: a step slides quickly, a leap takes longer, and part of the slide is sung before the new note, as a singer
+# does). T3_R100=none reproduces v99.
+R100 = os.environ.get("T3_R100", "alive") != "none"
 VOICES_DB = float(os.environ.get("T3_VOICES_DB", "12"))   # at 8: -14.9..-20.3 dB, still under
 THUNDER_GAIN = os.environ.get("T3_THUNDER_GAIN", "4dB")   # at 0: -10.4 / -13.0 dB
 PIZZ_GAIN = os.environ.get("T3_PIZZ_GAIN", "14dB")   # at -4 dB (e1 is -16): -26.3 dB, buried; at 12: -11.6 (0.28)
@@ -2428,6 +2436,13 @@ def main():
         mid = [["0b", 0], ["128b", 0], ["144b", 1], ["368b", 1], ["384b", 0], ["513b", 0]]
         master["auto"] = dict(master["auto"], weight={"points": [[b, 3.0 * v] for b, v in mid]},
                               unbox={"points": [[b, -3.5 * v] for b, v in mid]})
+    if R100:                                                # whole: vowel drift on the held voices, sung glides on the lines
+        for nm in ("a3-back", "a3-choir", "a3-doo3", "a3-humm", "a3-humn", "a3-hum3", "a3-humd"):
+            if nm in patches and isinstance(patches[nm].get("extends"), str):
+                patches[nm] = dict(patches[nm], extends=patches[nm]["extends"] + " synth.layers.0.vowel_drift=0.6")
+        for nm in ("a3-sung", "a3-duet", "a3-duetv", "a3-round2", "a3-round3"):
+            if nm in patches and isinstance(patches[nm].get("extends"), str):
+                patches[nm] = dict(patches[nm], extends=patches[nm]["extends"] + " play.glide_semi=8ms play.glide_lead=0.4")
     if R99:                                                 # whole: the backing voices up 8 dB from the eye to the lock
         up = {"points": [["0b", 0], ["244b", 0], ["248b", VOICES_DB], ["376b", VOICES_DB], ["384b", 0], ["513b", 0]]}
         for tr in tracks:
