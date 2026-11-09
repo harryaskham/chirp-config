@@ -742,6 +742,13 @@ R97 = os.environ.get("T3_R97", "pizz") != "none"
 # just before the whisper's "nothing here is late", each panned off-centre as if the storm were moving past.
 # T3_R98=none reproduces v97.
 R98 = os.environ.get("T3_R98", "thunder") != "none"
+# round 99 (whole): T3_R99=voices (default) - THE STORM'S CHOIR COMES FORWARD. The backing voices ('aah's in two parts,
+# G4-Bb4 and D5-F5: backhi/backlo from the eye to the tail, backhi8/backlo8 at the lock) sing for half the song and
+# measured -21.5 / -25.9 dB - buried. The album's voice accretes track by track; in t3 it should be heard. Between the
+# eye and the lock (bars 63-94) they are 12 dB louder, a held two-part choir behind the e-bow, the half-time and the
+# lock's singer, back to their old level by bar 96 so the tail into t4 is untouched. T3_R99=none reproduces v98.
+R99 = os.environ.get("T3_R99", "voices") != "none"
+VOICES_DB = float(os.environ.get("T3_VOICES_DB", "12"))   # at 8: -14.9..-20.3 dB, still under
 THUNDER_GAIN = os.environ.get("T3_THUNDER_GAIN", "4dB")   # at 0: -10.4 / -13.0 dB
 PIZZ_GAIN = os.environ.get("T3_PIZZ_GAIN", "14dB")   # at -4 dB (e1 is -16): -26.3 dB, buried; at 12: -11.6 (0.28)
 CHOIR_GAIN = os.environ.get("T3_CHOIR_GAIN", "2dB")   # at 0: -12.0 dB (0.24); at 5: -6.5, buried the strings, s11 structure 99.64
@@ -2421,6 +2428,13 @@ def main():
         mid = [["0b", 0], ["128b", 0], ["144b", 1], ["368b", 1], ["384b", 0], ["513b", 0]]
         master["auto"] = dict(master["auto"], weight={"points": [[b, 3.0 * v] for b, v in mid]},
                               unbox={"points": [[b, -3.5 * v] for b, v in mid]})
+    if R99:                                                 # whole: the backing voices up 8 dB from the eye to the lock
+        up = {"points": [["0b", 0], ["244b", 0], ["248b", VOICES_DB], ["376b", VOICES_DB], ["384b", 0], ["513b", 0]]}
+        for tr in tracks:
+            if tr.get("name") in ("backhi", "backlo", "backhi8", "backlo8"):
+                tr["fx"] = list(tr.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB",
+                                                         "mod": [{"src": "auto.chorus", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), chorus=up)
     if R98:                                                 # w4: two thunder rolls (downlifters) at bars 41 and 44
         for nm, at, v, pan in (("thunder1", 160.0, 112, -0.35), ("thunder2", 172.0, 80, 0.45)):
             th = Track(nm)
