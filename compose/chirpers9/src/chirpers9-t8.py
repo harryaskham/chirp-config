@@ -577,7 +577,7 @@ MEMORY_LINE = [   # t4 v65's line, her voice alone (t4 bars 101-103.3, beats fro
     (4.509, "m69", "F AA1 R", 1.473, 0.8, [-5.0, -5.0, -5.0, -5.0, -5.0, -5.0, -7.0, -8.0, -5.0, 3.0, 8.0, 6.0, -5.0, -20.0, -28.0, -23.0, -5.0, 15.0, 24.0, 15.0, -5.0, -25.0, -33.0, -25.0, -5.0, 15.0, 24.0, 15.0, -5.0, -25.0, -33.0, -25.0, -5.0, 15.0, 24.0, 15.0]),
     (5.982, "m62", "S AY1 D", 0.85, 0.71, [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -4.0, -4.0, 0.0, 8.0, 13.0, 9.0, -4.0, -19.0, -25.0, -16.0, 6.0, 24.0, 28.0, 13.0, -10.0, -35.0, -52.0, -59.0]),
 ]
-MEMORY_AT = 142.5
+MEMORY_AT = 143.75                          # v84: was 142.5 - see THE JET LETS GO, THEN SHE REMEMBERS
 MEMORY_PACE = 153.0 / 108.0
 MEMORY_SOFT = 0.7
 
@@ -601,6 +601,25 @@ def her_own_rate(song):
     for n in notes:
         if n.get("expr_path") and n.get("ph") in PATH_SUNG_S:
             n["path_len"] = f"{PATH_SUNG_S[n['ph']]:.3f}s"
+
+
+# v84 (ROUND TYPE: section, the horizon's start 138-149, 3:36-3:52; rewritten): THE JET LETS GO, THEN SHE REMEMBERS.
+# Seed 0's flattest change left (3:44, 0.68, bars 138-148 by flatness --bars: blocks 138.4-143.65 and 143.65-148.6),
+# with 3:52 (0.70) beside it. Her remembered line (v79) began at 142.5 and straddled the boundary, so both blocks were
+# 'her voice over the held light'; and the jet's sub, its last G1 at 140, rang on into the horizon at -3.4. Now the
+# jet lets go AT the horizon: the sub's tail fades in half a beat at 141 (its own lane; the horizon's quiet D1 carries
+# the floor); the held light hangs alone for two and three-quarter bars, no voice - the jet gone, the light left; and
+# she remembers from 143.75, the line whole inside the next block, then the hook, then her last line.
+JET_LETS_GO = 141
+
+
+def jet_lets_go(song):
+    sub = next(x for x in song["tracks"] if x["name"] == "sub")
+    a = b0(JET_LETS_GO)
+    # a NEW list: breathe() hands every BREATHE_IN track the same br points list (extending it in place faded the
+    # held light, the hook and the choirs too - caught by presence before rendering)
+    sub["auto"] = dict(sub["auto"], br={"points": [list(p) for p in sub["auto"]["br"]["points"]]
+                                         + [[f"{a - 0.25:g}b", 0.0], [f"{a + 0.5:g}b", -40.0]]})
 
 
 def she_remembers(song):
@@ -1783,6 +1802,7 @@ def main():
     the_tide_turns(song)
     held_notes_open(song)
     she_remembers(song)
+    jet_lets_go(song)
     her_own_rate(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
