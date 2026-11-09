@@ -1054,6 +1054,45 @@ T4_MOVES = {23: "C", 39: "B", 89: "A"}
 T4_MOVE_TRACKS = {"A": ("bass", "kick", "snare", "hat"), "B": ("seed", "canon"), "C": ("lights",)}
 
 
+# v77 (ROUND TYPE: section, the crest's first half 85-91, 3:05-3:16; rewritten): THE CREST BREATHES IN. Under her
+# lines from 81 to 91 the crest's shimmer never broke - the djembe's shaker and the ride (-8.4..-10.1) - and v76's
+# floor lift at 89 took out the kick, snare, hat and bass but left it running: the 8 s window at 3:04 stayed the
+# stillest in t4 on seed 5 (0.62). Now the window moves twice. At 85 the harp steps forward (E2's seven-sixteenth
+# cycle, buried at -16..-20 under her, +12): a counter-line against her retrograde lines, the cycle crossing the bar
+# at the crest. At 88 the crest breathes in - the shaker and the ride stop too, and with the floor lifted only her
+# voice, the young voice, the lights and the sub are left - so the sticks' crash at 91 lands in real space.
+HARP_FORWARD = (85, 88)
+HARP_LIFT = 12
+CREST_INHALE = (88, 91)
+
+
+HARP_FORWARD_DB = 6.0                 # velocity alone left it at -14.5 (its notes already 88-112): a gain lane
+
+
+def harp_forward(song):
+    tr_ = next(x for x in song["tracks"] if x["name"] == "e2")
+    a, z = b0(HARP_FORWARD[0]), b0(HARP_FORWARD[1])
+    tr_["fx"] = list(tr_.get("fx") or []) + ["gain gain=0dB+auto.hf*1"]
+    tr_["auto"] = dict(tr_.get("auto") or {}, hf={"points": [["0b", 0.0], [f"{a - 0.5:g}b", 0.0], [f"{a:g}b", HARP_FORWARD_DB],
+                                                              [f"{z - 0.5:g}b", HARP_FORWARD_DB], [f"{z:g}b", 0.0]]})
+
+
+def crest_breathes_in():
+    lo, hi = b0(HARP_FORWARD[0]), b0(HARP_FORWARD[1])
+    P["e2"].ev = [(s, ln, h, min(127, v + HARP_LIFT)) if lo - 1e-6 <= s < hi - 1e-6 else (s, ln, h, v)
+                  for s, ln, h, v in P["e2"].ev]
+    lo, hi = b0(CREST_INHALE[0]), b0(CREST_INHALE[1])
+    for n in ("air", "ride"):
+        out = []
+        for s, ln, h, v in P[n].ev:
+            if lo - 1e-6 <= s < hi - 1e-6:
+                continue
+            if s < lo - 1e-6 < s + ln:
+                ln = lo - s
+            out.append((s, ln, h, v))
+        P[n].ev = out
+
+
 def arrangers_hand():
     for bar, kind in T4_MOVES.items():
         lo, hi = b0(bar), b0(bar + 2)
@@ -1624,6 +1663,7 @@ def main():
     rise_floor()
     sticks_for_the_peak()
     arrangers_hand()
+    crest_breathes_in()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v + verse(),
                    key=lambda d: d["at"])
@@ -1706,6 +1746,7 @@ def main():
     arc(song)
     answer_closes_in(song)
     one_line_each(song)
+    harp_forward(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
