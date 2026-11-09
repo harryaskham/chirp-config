@@ -1702,6 +1702,13 @@ def crest_kit():
 # the lights, handpan, harp, steel and the two voices are left alone for four bars - and a brush roll swells back in
 # at the end of 60; 61-64 the lights are RE-VOICED, their two top notes an octave up, opening into the rise.
 B_LIFT, B_DROP, B_OPEN = (49, 57), (57, 61), (61, 65)
+# v88 (ROUND TYPE: section, B's end 57-66, 2:04-2:24; rewritten): THE DROP HOLDS ITS BREATH LONGER. t4's least-moving
+# change left (2:16, 0.71 / 0.72, bars 58-66 by flatness --bars; t4's tempo map: blocks 58.9-62.5 and 62.5-66.2): the
+# drop-out (57-61) ended inside the first block - the floor back at 61 - so both blocks were part floorless, part
+# floor. Now the drop holds two bars longer, to 63: 2:08-2:16 wholly without kit, shaker, sub or bass - the lights'
+# octave re-voicing (61) alone with the handpan, harp, steel and the two voices for its first two bars - the roll
+# swelling at the end of 62, and the band back at 63 for a two-bar run-up before the rise lifts the floor away (65).
+B_DROP = (57, 63)
 
 
 def b_turns():
