@@ -1039,6 +1039,35 @@ STICK_GAIN = {"kick": "-9dB", "snare": "-10dB", "hat": "-6dB"}   # kick -12 / ha
 STICK_CRASH = [(91.0, 92), (97.0, 100)]
 
 
+# v76 (ROUND TYPE: whole song): THE ARRANGER'S HAND. Harry (direction_more): every 8-16 bars something moves - a fill,
+# a drop-out and return, a re-voicing - and no ~30 s may pass unchanged. t4's changes were all made section by
+# section, so between them long stretches still read only just alive (0:48, 1:28, 1:44, 2:08 and the crest's 3:04, at
+# 0.57-0.81). t8's arranger's hand (its v57/v60) was its biggest single gain against stillness. Now t4 has one: on the
+# last two bars of eight-bar phrases no earlier round has shaped, one move, chosen for what is playing - C the lights
+# go out (23, A's first phrase end; 63, before the rise), B the hands rest (39: the handpan and the twelve-string out
+# as A turns into B), A the floor lifts (79: bass, kick, snare and hat out - a breath before the crest; 89: again, so
+# the sticks' crash at 91 lands out of a gap). Left alone: the seams, A's opening, the rise's floor, the hook's clear,
+# the small room, the relief and the fall.
+T4_MOVES = {23: "C", 39: "B", 89: "A"}
+# (tried 63 C and 79 A too: they ran into the rise's own pull-back and its sparse bars - 2:08 and 2:40 newly flat, seed
+#  11 3% -> 6%, seed 5 8% -> 11%)
+T4_MOVE_TRACKS = {"A": ("bass", "kick", "snare", "hat"), "B": ("seed", "canon"), "C": ("lights",)}
+
+
+def arrangers_hand():
+    for bar, kind in T4_MOVES.items():
+        lo, hi = b0(bar), b0(bar + 2)
+        for n in T4_MOVE_TRACKS[kind]:
+            out = []
+            for s, ln, h, v in P[n].ev:
+                if lo - 1e-6 <= s < hi - 1e-6:
+                    continue
+                if s < lo - 1e-6 < s + ln:
+                    ln = lo - s
+                out.append((s, ln, h, v))
+            P[n].ev = out
+
+
 def sticks_for_the_peak():
     lo, hi = b0(STICKS[0]), b0(STICKS[1])
     for n in ("kick", "snare", "hat"):
@@ -1594,6 +1623,7 @@ def main():
     hands_let_go()
     rise_floor()
     sticks_for_the_peak()
+    arrangers_hand()
     hook_v, hook_d, hook_b = crest_hook()                           # v19: the hook, sung back (91-100)
     voice = sorted(sung_notes(b0(CREST), TAKES) + sung_notes(b0(101), TAKES[2:]) + hums() + hook_v + verse(),
                    key=lambda d: d["at"])
