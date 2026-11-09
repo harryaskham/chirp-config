@@ -730,6 +730,13 @@ ERHU_GAIN = os.environ.get("T7_ERHU_GAIN", "4dB")
 # rotor's swirl; no Accretion song uses it) - the same notes, the same delay, up high where the tines ring like bells,
 # swirling. The chip tracks are muted and copied, not edited. T7_R79=none reproduces v78.
 R79 = os.environ.get("T7_R79", "rhodes") != "none"
+# round 80 (section, w10 = bars 145-160, the crest's last bars and the plunge; least recently focused outside the
+# seams): T7_R80=tutti (default) - THE BAND STOPS FOR THE TUNE. In bars 146-147 the tutti (horns low, erhu two octaves
+# up) plays E1 twice on D - the album's tune, whole, at the top of the album's hardest crest - and it was buried
+# (-16 dB) under the full band. Now the band stops dead for those two bars (kit, reese, floor, chords, chips, jet,
+# hooks, Rhodes: a lane at -60) and the tutti, 6 dB up, plays E1 alone over the timpani, the strings and the
+# descant - then everything crashes back in at bar 148. T7_R80=none reproduces v79.
+R80 = os.environ.get("T7_R80", "tutti") != "none"
 RHODES_GAIN = os.environ.get("T7_RHODES_GAIN", "18dB")   # the chip sat 9 dB hotter and was unheard; ducked under the singer      # break-kit hats sit 7.5 dB under dusty-kit's
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
@@ -2226,6 +2233,17 @@ def main():
                                    "mod": [{"src": "auto.sing", "amount": 1}]}}],
                                auto=dict(src.get("auto", {}), sing={"points": pts})))
             src["mute"] = True
+    if R80:                                                 # w10: the band stops for the tutti's E1 (bars 146-147)
+        stop = {"points": [["0b", 0], ["579.75b", 0], ["580b", -60], ["587.75b", -60], ["588b", 0]]}
+        for tr in tracks:
+            nm = tr.get("name")
+            if nm in ("kick", "kick9", "snare", "ghost", "hats", "ride", "clap", "bass", "sub", "e1a", "e1c", "e1br",
+                      "e4", "e4c", "e5", "tide", "jet", "jethi", "horns", "hook"):
+                tr["fx"] = list(tr.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB",
+                                                         "mod": [{"src": "auto.stop", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), stop=stop)
+            if nm in ("tutti", "tuttib"):
+                tr["gain"] = f"{float(str(tr.get('gain', '0dB')).replace('dB', '')) + 6.0:g}dB"
     if R78:                                                 # w4: an erhu sings over the half time (bars 57-64)
         er = Track("erhu57")
         line = ((224.0, ((63, 1.0), (70, 1.5), (73, 0.5), (68, 2.0), (65, 3.0))),      # E1 x2 in Eb
