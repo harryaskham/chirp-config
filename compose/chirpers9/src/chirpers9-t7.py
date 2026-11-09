@@ -766,6 +766,14 @@ R83 = os.environ.get("T7_R83", "pump") != "none"
 # thirty-seconds, climbing - and the spiral lands on a crash. T7_R84=none reproduces v83.
 R84 = os.environ.get("T7_R84", "launch") != "none"
 LAUNCH_GAIN = os.environ.get("T7_LAUNCH_GAIN", "0dB")
+# round 85 (whole): T7_R85=djfilter (default) - THE DJ'S HAND ON THE FILTER. Accretion is one DJ mix, and t7's flattest
+# changes (flatness --bars: bars 54-63 at 0.30, 134-144, 31-40, 91-100) were the stretches where nothing moved for a
+# block. Now the DJ reaches for the master filter four times, each into a downbeat and never under the singer: a
+# high-pass rising over bars 39-40 (the bass and the kick drain away) that snaps back full on bar 41; a low-pass
+# closing over bars 54-56 (the band going under water) that bursts open as the half-time lands on 57; the low-pass
+# again into the spiral's second phrase (bars 93-96 -> 97); and a high-pass in the crest (137-140 -> 141). Octave
+# lanes, so each sweep is even to the ear. T7_R85=none reproduces v84.
+R85 = os.environ.get("T7_R85", "djfilter") != "none"
 XYLO_GAIN = os.environ.get("T7_XYLO_GAIN", "6dB")   # at 0 it matched the chip: -14.9 dB in the spiral, unheard
 RHODES_GAIN = os.environ.get("T7_RHODES_GAIN", "18dB")   # the chip sat 9 dB hotter and was unheard; ducked under the singer      # break-kit hats sit 7.5 dB under dusty-kit's
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
@@ -2209,6 +2217,19 @@ def main():
                       "time": "2b", "curve": 1.6},
                      {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}],
               "auto": {"dyn": {"points": dyn}, "close": {"points": close}, "stop": {"points": stop}}}
+    if R85:                                                 # whole: four DJ filter sweeps into downbeats (master, octave lanes)
+        i = next(k for k, f in enumerate(master["fx"]) if isinstance(f, dict) and f.get("type") == "tapestop")
+        master["fx"] = master["fx"][:i] + [
+            {"type": "filter", "kind": "lp", "q": 0.9, "cutoff": {"value": 20000, "mod": [{"src": "auto.djlp", "amount": 1}]}},
+            {"type": "filter", "kind": "hp", "q": 0.9, "cutoff": {"value": 20, "mod": [{"src": "auto.djhp", "amount": 1}]}},
+        ] + master["fx"][i:]
+        def sweep(spans):
+            pts = [["0b", 0]]
+            for a0, b0, depth in spans:
+                pts += [[f"{a0:g}b", 0], [f"{b0 - 0.5:g}b", depth], [f"{b0 - 0.05:g}b", depth], [f"{b0:g}b", 0]]
+            return {"points": pts}
+        master["auto"] = dict(master["auto"], djlp=sweep(((212, 224, -4.5), (368, 384, -4.0))),
+                              djhp=sweep(((152, 160, 4.0), (544, 560, 3.5))))
     if R58:                                                 # w8: the held breath - the master drops out for the beat before 121
         master["fx"].insert(len(master["fx"]) - 1, {"type": "gain", "gain": {"value": "0dB",
                                                     "mod": [{"src": "auto.gasp", "amount": 1}]}})
