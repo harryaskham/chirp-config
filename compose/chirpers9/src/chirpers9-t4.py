@@ -1166,6 +1166,43 @@ SPACE_DB = 4.0
 SPACE_SMALL_DB = -4.0
 
 
+# v86 (ROUND TYPE: section, the crest's retrograde lines 84-92, 3:04-3:20; rewritten): SHE TURNS TOWARD YOU. Seed 5's
+# last flagged change (3:12, 0.69, blocks 84.5-88.2 and 88.2-91.9): v81 gave the two blocks different floors (the band
+# back, then the breath), but the strongest thing in both is one tune - 'I kept your far side' (86) and 'and turned
+# toward you' (88.5) are the same five notes, E4 G4 C5 A4 D4, the duet a third above both times. Now the second line
+# does what it says: it TURNS - E1's diatonic inversion about its first note (E4 C4 G3 B3 F#4), falling where the
+# first line rose, her voice dropping into its warm low register in the floorless breath and climbing back to F#4,
+# the duet a third above. Still E1, transformed (the accretion), and the sung paths travel with their notes.
+TURN_LINE = (88.5, 90.5)
+D_MIXO = [2, 4, 6, 7, 9, 11, 0]
+
+
+def mixo_index(m):
+    """Scale-step index of m in D Mixolydian, octaves counted from D (so C sits above B, below the next D)."""
+    return ((m - 2) // 12) * 7 + D_MIXO.index(m % 12) if m % 12 in D_MIXO else None
+
+
+def mixo_pitch(i):
+    return 2 + (i // 7) * 12 + (D_MIXO[i % 7] - 2) % 12
+
+
+def she_turns(song):
+    tr_ = {x["name"]: x for x in song["tracks"]}
+    lo, hi = b0(TURN_LINE[0]), b0(TURN_LINE[1])
+    line = [n for n in tr_["voice"]["notes"] if lo <= n["at"] < hi]
+    axis = mixo_index(midi_of(line[0]["pitch"]))
+    turned = {}
+    for n in line:
+        m = midi_of(n["pitch"])
+        i = mixo_index(m)
+        new = m if i is None else mixo_pitch(2 * axis - i)
+        turned[n["at"]] = new
+        n["pitch"] = f"m{new}"
+    for n in tr_["duet"]["notes"]:
+        if n["at"] in turned:
+            n["pitch"] = f"m{third_above(turned[n['at']])}"
+
+
 def space_breathes(song):
     pts = [[0.0, 0.0]]
     for a_, z_ in SMALL_ROOM:
@@ -1890,6 +1927,7 @@ def main():
     harp_forward(song)
     ensemble_breathes(song)
     space_breathes(song)
+    she_turns(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
