@@ -1,0 +1,56 @@
+about: "The video for Accretion (chirpers): one continuous mix drawn as it plays. Each track's own directed programme from ~/.config/chirp/vis/chirpers9-tN.yaml (a seed of light, a long way in, a storm and a dance, a fire on the shore, a star and its worlds, a tide and a moon, worlds torn apart, and everything falling in), joined at every seam by the infall: the outgoing picture falls into the incoming one as its music does. Over all of it, the album's master: a faint ring of light in the corner, the disk the record is named for."
+meta:
+  artist: chirpers
+  album: Accretion
+  year: 2026
+  # For the YouTube description (OUT.description.txt); edit freely.
+  description: "Eight songs as one continuous mix, an accretion disk: material falling inward, track to track, the tempo rising from 84 to 150 as the orbit tightens. Each is drawn as it plays: a seed of light gathering dust, a walker on the long way in, a storm city and a crowd falling into one groove, friends at a fire on the shore, a star and its worlds on tightening orbits, a spring tide under a huge moon, worlds torn apart at the edge, and all of it falling in."
+video: {size: 3840x2160, fps: 30}
+loudness: -11
+limit: true
+# One continuous mix: the mastered mix and the release's tracklist (starts and overlaps) from
+# `chirpers.py release chirpers9 --mix` then `chirpers.py master chirpers9`. Neither exists until
+# the album closes; `chirp vis check` warns until then.
+mix:
+  audio: "~/Music/Chirpers/Accretion/master/Accretion (continuous mix).wav"
+  release: ~/Music/Chirpers/Accretion/release.json
+  seam: {kind: infall, dilate: 0.7, redshift: 0.6}
+  pulse: bar
+master:
+  layers:
+    # The disk the record is named for: a faint ring in the corner, brightening with the music.
+    - {type: shape, sides: 0, radius: "0.012 + audio.level*0.003", fill: 0, width: 0.0025, glow: 1.6, x: 1.62, y: -0.86, color: "#ffb36a", opacity: 0.8}
+    - {type: shape, sides: 0, radius: 0.004, fill: 1, width: 0, glow: 0.6, x: 1.62, y: -0.86, color: "#000000", opacity: 1}
+    - type: captions
+      x: -1.64
+      y: -0.86
+      align: left
+      size: 0.055
+      color: "#ffd58a"
+      typing: 12
+      fade: 1.2
+      shadow: 0.9
+      lines: [[1, 7, "{track}  {title}"]]
+    - type: captions
+      x: -1.64
+      y: -0.93
+      align: left
+      size: 0.028
+      color: "#8fa9cc"
+      typing: 30
+      fade: 1.2
+      shadow: 0.9
+      # The band is always lower case: "chirpers".
+      case: as-is
+      lines: [[2, 6, "{artist} - {album}"]]
+  filters:
+    - {type: grain, amount: 0.015}
+songs:
+  - {file: ~/.config/chirp/songs/chirpers9-t1.yaml, vis: chirpers9-t1, title: Nucleation}
+  - {file: ~/.config/chirp/songs/chirpers9-t2.yaml, vis: chirpers9-t2, title: The Long Way In}
+  - {file: ~/.config/chirp/songs/chirpers9-t3.yaml, vis: chirpers9-t3, title: Phase Margin}
+  - {file: ~/.config/chirp/songs/chirpers9-t4.yaml, vis: chirpers9-t4, title: The Warm Third}
+  - {file: ~/.config/chirp/songs/chirpers9-t5.yaml, vis: chirpers9-t5, title: Periapsis}
+  - {file: ~/.config/chirp/songs/chirpers9-t6.yaml, vis: chirpers9-t6, title: Spring Tide}
+  - {file: ~/.config/chirp/songs/chirpers9-t7.yaml, vis: chirpers9-t7, title: Marginally Bound}
+  - {file: ~/.config/chirp/songs/chirpers9-t8.yaml, vis: chirpers9-t8, title: All of It Falls}
