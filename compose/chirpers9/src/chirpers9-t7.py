@@ -758,6 +758,14 @@ R82 = os.environ.get("T7_R82", "mallets") != "none"
 # for the chords, released over 180 ms, 5 dB for the tide - the French-house breath, the whole band leaning on the one.
 # T7_R83=none reproduces v82.
 R83 = os.environ.get("T7_R83", "pump") != "none"
+# round 84 (section, w6 = bars 81-96, the slack and the spiral's first bars; least recently focused outside the
+# seams): T7_R84=launch (default) - THE SLACK WINDS UP AND THE SPIRAL LAUNCHES. The slack (bars 81-88: the kit out, the
+# choir's "each lap a little", the muted trumpet climbing) fell into the spiral at bar 89 with nothing to throw it: now
+# its last two bars wind up - a reverse swell (library fx-reverse: a bell arpeggio in a long hall played backwards,
+# with a reverse-cymbal hiss; no Accretion song uses it) sucking in on E-flat, and a snare roll, sixteenths then
+# thirty-seconds, climbing - and the spiral lands on a crash. T7_R84=none reproduces v83.
+R84 = os.environ.get("T7_R84", "launch") != "none"
+LAUNCH_GAIN = os.environ.get("T7_LAUNCH_GAIN", "0dB")
 XYLO_GAIN = os.environ.get("T7_XYLO_GAIN", "6dB")   # at 0 it matched the chip: -14.9 dB in the spiral, unheard
 RHODES_GAIN = os.environ.get("T7_RHODES_GAIN", "18dB")   # the chip sat 9 dB hotter and was unheard; ducked under the singer      # break-kit hats sit 7.5 dB under dusty-kit's
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
@@ -2308,6 +2316,22 @@ def main():
                                               "mod": [{"src": "auto.crest", "amount": 1}]}}]
         hk["auto"] = dict(hk.get("auto", {}), crest={"points": [["0b", 0], ["479.8b", 0], ["479.95b", 6], ["511.9b", 6],
                                                                 ["512.4b", 0]]})
+    if R84:                                                 # w6: the slack winds up, the spiral launches (bars 87-89)
+        lr = Track("launchroll")
+        for k in range(8):                                  # bar 87, beats 3-4: sixteenths
+            lr.add(348.0 + 0.25 * k, 0.25, "s", 56 + 3 * k)
+        for k in range(16):                                 # bar 88, beats 3-4: thirty-seconds
+            lr.add(350.0 + 0.125 * k, 0.125, "s", 80 + 2 * k)
+        tracks.append({"name": "launchroll", "patch": "dusty-kit", "gain": LAUNCH_GAIN, "pan": 0.05,
+                       "score": lr.score()})
+        lc = Track("launchcrash")
+        lc.add(352.0, 2.0, "c", 110)
+        tracks.append({"name": "launchcrash", "patch": "rock-kit", "gain": LAUNCH_GAIN, "pan": -0.2, "score": lc.score()})
+        lv = Track("launchrev")
+        lv.add(344.0, 8.0, mtok(63), 110)                   # sucks in on E-flat, peaks on the spiral's downbeat
+        g = float(LAUNCH_GAIN.replace("dB", "")) + 4.0       # at +0 it read -10.4 dB (0.38) under the roll
+        tracks.append({"name": "launchrev", "patch": "fx-reverse", "gain": f"{g:g}dB", "pan": 0.0,
+                       "sends": {"space": "-10dB"}, "score": lv.score()})
     if R83:                                                 # whole: the chords and the tide pump on the kick
         for tr in tracks:
             if tr.get("mute"):
