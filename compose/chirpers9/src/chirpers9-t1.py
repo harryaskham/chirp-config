@@ -137,6 +137,7 @@ INTROCUTS = os.environ.get("C9T1_INTROCUTS", "two")   # SECTION w1 (0:00-0:36, t
 SEEDLIFT = os.environ.get("C9T1_SEEDLIFT", "g:6,c:3,e:3")   # WHOLE (t1's subject is the five scattered voices that each play one note of E1 on its own cycle and meet at the crest): ALL FIVE HEARD - presence.py (17:06, pin 9f86896d) had three of the five almost inaudible while they sound: the mandolin's G at -26 dB against the mix (buried), the celesta's C -21.7, the music box's E -20.7, against the kalimba's D -16.8 and the vibes' A -15.1. Raising all five (v9) thinned the song; this lifts only the buried three so the scatter is five voices, not two. Value 'g:dB,c:dB,e:dB'
 PULL = os.environ.get("C9T1_PULL", "pull")   # SECTION w5 (2:22-2:54, the build into the crest: read 'little new vs w4'): THE PULL - the bodhran waited silent until the crest's downbeat. Now it is heard first in the build, softly, on E1's own five-beat cycle, and its strokes come closer as the cycles converge (every 5 beats, then 2.5, then 1.25), a slow gravitational pull that lands on the crest with the drum's first full stroke. 'pull' from 199; 'late' from 209
 CRESTBELL = os.environ.get("C9T1_CRESTBELL", "tubular-bells@-16:D4")   # PALETTE (the crest's mark): since v68 a low gong (modal-gong, D2) marks the crest's downbeat, where the five scattered voices finally meet - but presence.py (17:06) has it at -19 dB against the mix and followable never: the meeting is unmarked. Now a bell rings it instead: 'patch@gaindB:pitch', e.g. 'tubular-bells@-16:D4' (a struck brass tube, clear and long, its tone slowly beating)
+SHAKEOUT = os.environ.get("C9T1_SHAKEOUT", "thin")   # SECTION w8 (3:59-4:33, the fall into t2): THE GROUND SETTLES - the shekere and clave (E1's five-beat cycle) ran at full strength into the overlap and stopped dead at its ninth bar (352), and the bodhran's last stroke (334) was as strong as its first. Now, as SHAKEIN let the ground begin to move into A (0:44-0:56), the hand percussion settles out of t1 the same way back: it fades over the overlap's fifth to ninth bars (336-352) to a quarter, the bodhran's last stroke softer; 'thin' and in the last two bars only each cycle's first stroke is left
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -959,6 +960,23 @@ def song():
                     tr["gain"] = f"{bg}dB"
                 for n in tr["notes"]:
                     n["pitch"] = bpitch or n["pitch"]
+    if SHAKEOUT:
+        for tr in tracks:
+            if tr["name"] == "hats":
+                out = []
+                for n in tr["notes"]:
+                    a = float(n["at"])
+                    if a >= 336:
+                        f = 1.0 - 0.75 * min(1.0, (a - 336) / 16)
+                        if SHAKEOUT == "thin" and a >= 344 and abs((a - 324) / 5 - round((a - 324) / 5)) > 0.02:
+                            continue
+                        n = dict(n, vel=round(max(0.05, n["vel"] * f), 3))
+                    out.append(n)
+                tr["notes"] = out
+            if tr["name"] == "kick":
+                for n in tr["notes"]:
+                    if 333.5 <= float(n["at"]) < 335:
+                        n["vel"] = round(n["vel"] * 0.6, 3)
     if SHAKEIN:
         s0 = float(SHAKEIN)
         offs = [0, 1, 1.75, 2.5, 3.25, 4.0]
