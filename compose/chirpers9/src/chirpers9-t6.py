@@ -1373,6 +1373,18 @@ def build():
                  pitch=f"m{int(str(n_['pitch'])[1:]) + 12}", vel=round(n_['vel'] * 0.8, 3)) for n_ in L1_]
     song['tracks'].append(dict(fw_, name='farewell', notes=fwn_, gain='-14dB',
                                fx=list(fw_.get('fx', [])) + ['lp cutoff=2400'], sends={'hall': '-6dB', 'echo': '-14dB'}))
+    # (v90, fix with wM's path_len, pinned 7f9c5782, which chirper-one asked for) THE HELD NOTES SING AT THEIR OWN
+    # RATE: a sung note stretched past the length it was sung for stretched its f0 path, vibrato and all, so the
+    # young voice's slowed farewell and the old man's held last 'go' wavered at about two-thirds and half rate - a
+    # wobble, not a singer. Their notes now carry path_len (the length the path was sung for, from its 22 samples a
+    # beat): the scoop and the line still span the note, the vibrato keeps its sung rate. The tear's two voices keep
+    # their re-timed paths on purpose - racing and dragging time is what the tear is
+    for t_ in song['tracks']:
+        if t_['name'] in ('farewell', 'lastword'):
+            for n_ in t_['notes']:
+                f0_ = (n_.get('expr_path') or {}).get('f0') or []
+                if f0_ and len(f0_) / n_['len'] < 18.0:
+                    n_['path_len'] = round(len(f0_) / 22.2, 3)
     return song
 
 
