@@ -108,6 +108,7 @@ CALLSQUICKEN = os.environ.get("C9T5_CALLSQUICKEN", "echo")   # SECTION w5 (2:15-
 LATESWAP = os.environ.get("C9T5_LATESWAP", "sub=808@-17")   # PALETTE (late swaps, applied after every track exists - 'name=patch@gain,...'): e.g. A's plain sine sub (an album staple: t2, t5, t6) for the 808's punchier, saturated sine; or the crest's rising answers (dx-epiano, the same voice as the crest's E1) for t1's vibraphone, so t1's mirror answers in t1's own crystal
 MASTEREQ = os.environ.get("C9T5_MASTEREQ", "warm")   # WHOLE (the mix: t5 against the album and both neighbours): t4 (v69), t2 (v75) and t6 (v77) each warmed their master below ~110 Hz, and t5 now read thinner than both its neighbours there (in-flow: -18 dB at 44 Hz, -13 at 61; out-flow: -19 at 38, -10 at 114), while its one excess is around 640 Hz (+6.4, where the orbit, the seeds' fundamentals and her voice all sit). A master EQ: 'warm' a 28 Hz high-pass, +3 dB low shelf from 110 Hz, -2.5 dB at 640 Hz; 'warm2' that, and +2 dB at 44 Hz and +1.5 at 114
 CHIPHATS = os.environ.get("C9T5_CHIPHATS", "-10:-11")   # PALETTE (the hats): t5's drums are the 909, whose hats are haake-hat - the album's most shared sound (five songs) - while everything t5 sings with is a chip (the orbit's NES pulse, the seeds' chip lead). Now t5's own 909 fork plays its closed and open hats on the NES's noise channel (wM's nes-noise-hat, at its hat rates C7/C6), so the drums join the console the melodies live in; the crash and ride stay. Value 'closed dB:open dB'
+ORBITSLOW = os.environ.get("C9T5_ORBITSLOW", "336:416:-20")   # WHOLE (C, the song's longest section, read 'static, little new' through w6-w7: its harmony turns, but every line in it runs fast): THE ORBIT, SLOW - under the chip orbit's E5 (a 3-beat cycle), the cello (A's E1 shadow) sings E5 itself four times slower, an octave down (A3 G3 A3 . E4 . A3 G3 A3 . D4 ., a 12-beat cycle), swelling in and out: a canon in augmentation, the song's tune heard from inside and from far out at once. Value 'from:to:gain'
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -773,6 +774,19 @@ def song():
                     ns.append(note(t, f"m{mm}", min(ln, sb - t) - 0.1, 0.45 + 0.35 * min(x / 0.3, 1.0, (1 - x) / 0.3)))
             c += 20
         tracks.append({"name": "shadow", "patch": "cello", "gain": f"{sg}dB", "pan": -0.2, "sends": {"room": "-8dB"}, "notes": ns})
+    if ORBITSLOW:
+        oa, ob, og = ORBITSLOW.split(":")
+        oa, ob = float(oa), float(ob)
+        offs, lens, mids = [0, 1, 2, 4, 6, 7, 8, 10], [1, 1, 2, 2, 1, 1, 2, 2], [57, 55, 57, 64, 57, 55, 57, 62]
+        ns, c = [], oa
+        while c < ob:
+            for o, ln, mm in zip(offs, lens, mids):
+                t = c + o
+                if t < ob:
+                    x = (t - oa) / (ob - oa)
+                    ns.append(note(t, f"m{mm}", min(ln, ob - t) - 0.08, 0.45 + 0.3 * min(x / 0.3, 1.0, (1 - x) / 0.3)))
+            c += 12
+        tracks.append({"name": "orbit-slow", "patch": "cello", "gain": f"{og}dB", "pan": 0.25, "sends": {"room": "-8dB"}, "notes": ns})
     if HUSH:
         ha, hb, kind = HUSH.split(":")
         ha, hb = float(ha), float(hb)
