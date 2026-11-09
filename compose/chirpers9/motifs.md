@@ -228,6 +228,7 @@ score: "D3/8 A3/8 E4/8 B4/16 F#5/16 C#6/16 G#6/8"   # 2 2 2 1 1 1 2 sixteenths =
 - **In t7 (since v80): alone, at the top.** In bars 146-147, at the top of the album's hardest crest, the band stops dead and the tutti (horns low, erhu two octaves up) plays E1 twice on D over only the timpani, strings and descant; the band crashes back in at bar 148.
 - **In t7 (since v86): answered by a sax.** In the approach's verse (bars 34-48) an alto saxophone answers each of the singer's lines in its gap: E1 echoed back after "every corner comes sooner", a bluesy fall, E1 a fifth up, and a long fall home to E-flat into the collision.
 - **In t7 (since v89): the sax takes the crest.** For bars 139-144 (3:59-4:09) the verse's alto sax leads the crowded crest: E1 on D, a climb up D major to a growled top G, E1 again from A, and a long fall home to D just before the band stops.
+- **In t7 (since v98): a cavaquinho alone in the slack.** In the slack (bars 81-86, 2:22 and 2:29) the collision's cavaquinho plays E1 plainly at half speed in Eb (Eb Bb Db Ab F), then an octave up, just before the launch.
 - **Ready-made transforms.**
   - Retrograde (a fall from the top, redshift): `G#6/8 C#6/16 F#5/16 B4/16 E4/8 A3/8 D3/8`.
   - Augmented x4 (a slow ascent across a seam): 44 sixteenths, 11 beats.
