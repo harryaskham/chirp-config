@@ -14,7 +14,7 @@ scenes:
       vars:
         grow: {value: "smooth(5, 230, time.t)"}
         away: {value: "smooth(0.89, 1, time.progress)"}
-      camera: {x: "3.2*sin(time.t*0.006)", y: "0.5 + 0.3*sin(time.t*0.004)", z: "0 - 3.2*cos(time.t*0.006)", look_at: [0, 0, "6*var.away"]}
+      camera: {x: "(3.2 - 1.6*var.grow)*sin(time.t*0.006)", y: "0.5 + 0.3*sin(time.t*0.004) - 0.2*var.grow", z: "0 - (3.2 - 1.6*var.grow)*cos(time.t*0.006)", look_at: [0, 0, "6*var.away"]}
       layers:
         - {type: stars, count: 1600, speed: 0, twinkle: 0.3}
         # A faint glimmer far off: where everything is going.
@@ -23,7 +23,7 @@ scenes:
         - {type: motes, mode: infall, count: 3500, radius: "2.6 - 0.8*var.grow", life: 14, spin: 0.5, flat: 0.35, size: 0.006, glow: "0.35 + 0.35*var.grow + 0.5*audio.level + 0.6*env.breath", twinkle: 0.4, palette: ice, spread: 0.6, z: "6*var.away", near: 0.2}
         # The seed, gathering into a first small body.
         - {type: light, z: "6*var.away", color: "#ffd8a0", power: "0.3 + 0.9*var.grow + 0.8*env.breath", reach: 2}
-        - {type: mesh, shape: sphere, detail: 32, z: "6*var.away", scale: "0.02 + 0.2*var.grow", ry: "time.t*0.02", displace: "0.08*noise3(vtx.x*3, vtx.y*3, vtx.z*3)*var.grow", color: "#3a2a20", light: 0.6, ambient: 0.05, rim: 0.6, rim_color: "#ffc890", paint: "(0.6 + 1.4*(1 - var.grow))*(1 + 0.8*audio.level + env.breath)*pow(clamp(1 - abs(noise3(vtx.x*4, vtx.y*4 + time.t*0.05, vtx.z*4))*3, 0, 1), 2)", paint_color: "#ffb060"}
+        - {type: mesh, shape: sphere, detail: 32, z: "6*var.away", scale: "0.02 + 0.2*var.grow", ry: "time.t*0.02", displace: "0.08*noise3(vtx.x*3, vtx.y*3, vtx.z*3)*var.grow", color: "#3a2a20", light: 0.6, ambient: 0.05, rim: 0.6, rim_color: "#ffc890", shading: pixel, material: pbr, rough: 0.75, env_sky: "#1a1630", env_ground: "#05040a", paint_fine: true, paint: "(0.6 + 1.4*(1 - var.grow))*(1 + 0.8*audio.level + env.breath)*pow(clamp(1 - abs(noise3(vtx.x*4, vtx.y*4 + time.t*0.05, vtx.z*4))*3, 0, 1), 2)", paint_color: "#ffb060"}
         # Each breath: a soft ring going out from it.
         - {type: mesh, shape: torus, detail: 64, tube: 0.03, sy: 0.3, z: "6*var.away", scale: "0.1 + env.bar4.age*0.5", opacity: "0.5*clamp(1 - env.bar4.age/3, 0, 1)", color: "#ffd8b0", light: 0, ambient: 0, rim: 0, emit: 1.4}
       filters:
