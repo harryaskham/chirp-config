@@ -715,7 +715,15 @@ R76 = os.environ.get("T7_R76", "lean") != "none"
 # Accretion song uses it) fires every column with the jet, and the horns' E1 comes up 6 dB over them: the crest
 # arrives as a fanfare. T7_R77=none reproduces v76.
 R77 = os.environ.get("T7_R77", "jetbrass") != "none"
-JETBRASS_GAIN = os.environ.get("T7_JETBRASS_GAIN", "0dB")      # break-kit hats sit 7.5 dB under dusty-kit's
+JETBRASS_GAIN = os.environ.get("T7_JETBRASS_GAIN", "0dB")
+# round 78 (section, w4 second half = bars 57-64, the half-time bars under the cavaquinho's chops; least recently
+# focused outside the seams): T7_R78=erhu (default) - AN ERHU SINGS OVER THE HALF TIME. The half-time bars had the
+# kit, the chops and the jet - nothing long. Now the erhu (a7-erhu: the library erhu with a scoop into each note and a
+# fall off it; until now it only bowed long notes in the crest) sings a line over them: E1 at half speed in E-flat
+# (Eb Bb Db Ab F), a climb to the octave (Gb Ab Bb Db Eb), E1 again an octave up, soaring, then down home to Eb as
+# the approach's second half begins - slow over the fast, the album's tune on a bow. T7_R78=none reproduces v77.
+R78 = os.environ.get("T7_R78", "erhu") != "none"
+ERHU_GAIN = os.environ.get("T7_ERHU_GAIN", "4dB")      # break-kit hats sit 7.5 dB under dusty-kit's
 TURN = [(116, 39, 27, (51, 55, 58, 63)), (118, 33, 33, (52, 55, 57, 62)), (119, 33, 33, (52, 55, 57, 61))]
 STAB_BARS = [48, 49, 50, 51, 54, 55, 56, 57, 58, 59]
 REPLY = [(68, 0.5), (70, 0.5), (73, 1.0), (70, 0.5), (68, 0.5), (65, 1.0), (63, 2.0)]
@@ -2196,6 +2204,19 @@ def main():
                     gt.add(at, 0.06, ",".join(f"m{n}" for n in chord_at(at)[:2]), 52)   # a ghosted mute
         tracks.append({"name": "chops", "patch": "cutting-guitar", "gain": CHOP_GAIN, "pan": 0.45,
                        "sends": {"space": "-12dB"}, "score": gt.score()})
+    if R78:                                                 # w4: an erhu sings over the half time (bars 57-64)
+        er = Track("erhu57")
+        line = ((224.0, ((63, 1.0), (70, 1.5), (73, 0.5), (68, 2.0), (65, 3.0))),      # E1 x2 in Eb
+                (232.0, ((66, 1.0), (68, 1.0), (70, 2.0), (73, 1.0), (75, 3.0))),      # the climb to the octave
+                (240.0, ((75, 1.0), (82, 1.5), (85, 0.5), (80, 2.0), (77, 3.0))),      # E1 an octave up
+                (248.0, ((73, 1.5), (70, 0.5), (68, 2.0), (66, 1.0), (65, 1.0), (63, 2.0))))   # home to Eb
+        for at0, notes in line:
+            at = at0
+            for m, ln in notes:
+                er.add(at, ln - 0.03, mtok(m), 96 if m >= 75 else 88)
+                at += ln
+        tracks.append({"name": "erhu57", "patch": "a7-erhu", "gain": ERHU_GAIN, "pan": 0.3,
+                       "fx": ["delay time=3/8 mix=0.14 feedback=0.3"], "sends": {"space": "-8dB"}, "score": er.score()})
     if R77:                                                 # w8: the jet fires in brass, the horns' E1 up (bars 121-128)
         jt = next(tr for tr in tracks if tr.get("name") == "jet")
         jb, pos = Track("jetbrass"), 0.0
