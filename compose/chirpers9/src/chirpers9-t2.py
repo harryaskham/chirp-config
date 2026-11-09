@@ -1424,6 +1424,19 @@ def build():
     vp_ = vt_['patch']
     song['tracks'].append(dict(vt_, name='versegather', notes=v2n_, gain='-16dB',
                                patch=dict(vp_, extends=vp_['extends'] + ' synth.layers.0.harmony=[2] synth.layers.0.harmony_key=D:dorian synth.layers.0.together=true')))
+    # (v93, section w6: 2:34-3:04, the crest's end into the break - flung out (v68), the break's first eight bars had
+    # the band, E2 stretched and rising and only a hum: no word sung out there) THE MIDDLE STILL CALLS: at bar 69,
+    # farthest out, the near voice sings the crest's 'the middle draws us in' once more - alone, far off (darkened,
+    # 8.5 dB under the crest's line, wet) and at half speed, as if the pull reaches her even here - its G A C B A G
+    # sitting on the break's C and A; four bars later the break begins to climb back in
+    cb_ = [t_ for t_ in song['tracks'] if t_['name'] == 'crestb'][0]
+    md_ = sorted([n_ for n_ in cb_['notes'] if 247.0 <= n_['at'] < 251.0], key=lambda n_: n_['at'])
+    assert len(md_) == 6
+    mc0_ = (SEC['break'] + 4) * 4.0
+    mdn_ = [dict(n_, at=round(mc0_ + (n_['at'] - md_[0]['at']) * 2.0, 4), len=round(n_['len'] * 2.0, 4), vel=round(n_['vel'] * 0.85, 3)) for n_ in md_]
+    song['tracks'].append(dict(cb_, name='middlecalls', notes=mdn_, gain='-16dB',
+                               patch=dict(cb_['patch'], extends='voice-near synth.lfo.vib.per_note=true synth.layers.0.taper=0.6'),
+                               fx=list(cb_.get('fx') or []) + ['lp cutoff=2400'], sends={'hall': '-5dB', 'echo': '-12dB'}))
     # (v87, palette: wM's path_len, pinned 7f9c5782 - an engine feature from chirper-one's finding) EVERY VOICE AT
     # ITS SUNG RATE: t2's lines were sung by chirp tts --sing (44 pitch points a second) at a quicker tempo than
     # t2's 90-98 bpm and then laid on t2's beats, so every sung note was stretched - the verse's by a third, the
