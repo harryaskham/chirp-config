@@ -1385,11 +1385,18 @@ def build():
     # phrases ends in creak - pressed folds and vocal fry on the last note's tail, which wM's engine gives only to
     # quiet, low endings (his D3s and A2s are both) - and it grows with his age: a touch at first, more at the crest,
     # most in his last word. The young voice and the choirs stay clean
+    # (v97, whole song: wM's age_high, pinned 6ebea4d3, which chirper-one asked for) AND HIS AGE SHOWS WHEN HE
+    # REACHES: the old man's age (0.25 in the tide to 0.8 for his last word) weighed the same on every note, so his
+    # A3s and Cs were as steady as his low Ds. Real old singers hold their low notes and give way at the top: now his
+    # age doubles towards the top of his range (age_high 1 with his break set at E4, as wM measured for voice-old -
+    # D3 x1.0, A3 x1.35, C4 x1.65, D4 x1.8): every 'far' and 'side' that climbs to A and C shakes, wavers and leaks
+    # air, while every 'go' on the low D holds - the same line, older where it reaches
     CREAK_ = {'sung': 0.4, 'sung2': 0.5, 'sungb': 0.6, 'crestold': 0.6, 'sungc': 0.8, 'lastword': 1.0}
     for t_ in song['tracks']:
         pt_ = t_.get('patch')
         if t_['name'] in CREAK_ and isinstance(pt_, dict) and 'voice-old' in str(pt_.get('extends', '')):
-            t_['patch'] = dict(pt_, extends=pt_['extends'] + f" synth.layers.0.creak={CREAK_[t_['name']]:g}")
+            ah_ = ' synth.layers.0.age_high=1 synth.layers.0.passaggio=E4' if 'age=' in pt_['extends'] else ''
+            t_['patch'] = dict(pt_, extends=pt_['extends'] + f" synth.layers.0.creak={CREAK_[t_['name']]:g}" + ah_)
             # the engine creaks only quiet endings (full at velocity 0.5, none from 0.9) and his were sung at 0.83-0.87,
             # so each phrase's last note now falls away to 0.6 of the line's level as he lets it go
             ns_ = sorted(t_['notes'], key=lambda n_: n_['at'])
