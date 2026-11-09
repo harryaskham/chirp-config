@@ -638,6 +638,24 @@ SPACE = [(0, 0.0), (65, 0.0), (93, 2.5), (96.75, 2.5), (97, -1.0), (120.75, -1.0
          (129, -1.0), (141, -1.0), (161, 5.0)]
 
 
+# v92 (ROUND TYPE: palette - the newest engine feature): THE VOWELS LIVE. A synthesized vowel sits perfectly still on
+# a held note - part of what reads as a machine - and t8's voices are made of held notes: the jet's choirs on their
+# held words, the far choir's long hums, her lines and her last 'ours', held four beats. wM's VOWEL_DRIFT (pinned
+# 07ab00cd) lets a held vowel's formants wander a little as a singer's jaw and tongue settle (in from 0.2 s, settled
+# before the release, so consonants and joined seams keep their exact vowel; every singer and part on its own curve).
+# By voice: the jet's choirs 0.6 (a crowd, adding to their spread), the far choir 0.4 (distant hums on closed
+# vowels), her lines 0.8 and her last line 1.0 - the oldest voice's held 'ours' moving most.
+VOWEL_DRIFT = {"choir": 0.6, "choir5": 0.6, "choir8": 0.6, "far": 0.4, "solo": 0.8, "last": 1.0}
+
+
+def vowels_live(song):
+    for tr_ in song["tracks"]:
+        if tr_["name"] in VOWEL_DRIFT and isinstance(tr_.get("patch"), dict):
+            p = json.loads(json.dumps(tr_["patch"]))
+            p["synth"]["layers"][0]["vowel_drift"] = VOWEL_DRIFT[tr_["name"]]
+            tr_["patch"] = p
+
+
 def space_opens(song):
     hall = song["buses"]["hall"]
     hall["fx"] = list(hall["fx"]) + ["gain gain=0dB+auto.sx*1"]
@@ -1924,6 +1942,7 @@ def main():
     lights_doppler(song)
     she_ages_from_the_top(song)
     space_opens(song)
+    vowels_live(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")

@@ -14143,7 +14143,8 @@
        ],
        "harmony_key": "D mixolydian",
        "hum": "auto.hm",
-       "hum_at": "m"
+       "hum_at": "m",
+       "vowel_drift": 0.6
       }
      ],
      "lfo": {
@@ -16033,7 +16034,8 @@
        "depth_spread": 0.25,
        "cons_spread": 1.0,
        "taper": 0.5,
-       "attack": 0.5
+       "attack": 0.5,
+       "vowel_drift": 0.6
       }
      ],
      "lfo": {
@@ -17901,7 +17903,8 @@
        "depth_spread": 0.25,
        "cons_spread": 1.0,
        "taper": 0.5,
-       "attack": 0.5
+       "attack": 0.5,
+       "vowel_drift": 0.6
       }
      ],
      "lfo": {
@@ -21543,7 +21546,8 @@
        "hum": "expr.hum",
        "hum_at": "m",
        "hum_even": 1.0,
-       "age_high": 0.6
+       "age_high": 0.6,
+       "vowel_drift": 0.8
       }
      ],
      "lfo": {
@@ -22401,7 +22405,8 @@
        "taper": 0.8,
        "attack": -0.6,
        "hum": 1.0,
-       "hum_at": "n"
+       "hum_at": "n",
+       "vowel_drift": 0.4
       }
      ],
      "lfo": {
@@ -22666,7 +22671,8 @@
        "hum_at": "m",
        "hum_even": 1.0,
        "taper": 1.0,
-       "age_high": 0.6
+       "age_high": 0.6,
+       "vowel_drift": 1.0
       }
      ],
      "lfo": {
