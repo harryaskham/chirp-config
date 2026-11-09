@@ -133,7 +133,8 @@ E4m = [("D2", "A2", "F3", "C4", "E4"), ("Bb1", "F2", "D3", "A3"), ("A1", "E2", "
 E4M = [("D2", "A2", "F#3", "C4", "E4"), ("C2", "G2", "E3", "B3", "D4"), ("A1", "E2", "C3", "G3", "B3", "D4"),
        ("G1", "D2", "B2", "E3", "A3")]
 CYCLE = {"E1": 5.0, "E2": 1.75, "E3": 7.0, "E4": 20.0, "E5": 3.0}
-ENTRY = {"E4": 1, "E1": 17, "E2": 29, "E3": 41, "E5": 53}          # the stretto's entries (bars)
+ENTRY = {"E4": 1, "E1": 17, "E2": 29, "E3": 41, "E5": 53}
+PEDAL_IN = 36                         # v90: the D pedal's entry (was 33) - see THE FLOOR ARRIVES ON THE TURN          # the stretto's entries (bars)
 
 
 def phase_start(el, entry_bar):
@@ -1069,8 +1070,12 @@ def write_stretto():
         for n, s in E5:
             part("e5").add(beat + s * 0.25 * f, 0.25 * f, n, 70 if s == 0 else 56)
         beat += 3.0 * f
-    # the D pedal everything shares (the triangle bass), in E2's rhythm, from 33
-    beat = phase_start("E2", 33)
+    # the D pedal everything shares (the triangle bass), in E2's rhythm, from 33 - v90 (ROUND TYPE: section, the stretto's
+    # first turn 31-41, 0:48-1:04; rewritten): THE FLOOR ARRIVES ON THE TURN. t8's least-moving change (0:56, 0.75 /
+    # 0.76, bars 31-41 by flatness --bars; blocks 31.1-36.1 and 36.1-41.2) held one texture: E1's chip and E2's glock
+    # turning over the lights, the pedal arriving at 33 inside the first block. Now the two clocks turn alone over the
+    # lights for a whole block, and the floor arrives ON the turn, at 36 (still on E2's phase) - then E3 at 41.
+    beat = phase_start("E2", PEDAL_IN)
     while beat < JB - 0.01:
         f = spiral(beat)
         for n, step, v in E2[:2]:
