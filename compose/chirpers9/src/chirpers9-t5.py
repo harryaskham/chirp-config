@@ -107,6 +107,7 @@ HEADROOM = os.environ.get("C9T5_HEADROOM", "late")   # SECTION w1 (0:00-0:34, th
 CALLSQUICKEN = os.environ.get("C9T5_CALLSQUICKEN", "echo")   # SECTION w5 (2:15-2:47, the build's climb into the crest): her 'near-er' calls climb a step every 8 beats (F#-E, G-F#, A-G, B-A, C-B) to the held D, always 8 beats apart while the orbit doubles and the drums thicken under her. Now her calls QUICKEN as she nears: each of the last calls is echoed, softer, 4 beats later, so near the top she calls every 4 beats - 'echo' after the calls at 272, 280 and 288; 'echo2' after the last two only
 LATESWAP = os.environ.get("C9T5_LATESWAP", "sub=808@-17")   # PALETTE (late swaps, applied after every track exists - 'name=patch@gain,...'): e.g. A's plain sine sub (an album staple: t2, t5, t6) for the 808's punchier, saturated sine; or the crest's rising answers (dx-epiano, the same voice as the crest's E1) for t1's vibraphone, so t1's mirror answers in t1's own crystal
 MASTEREQ = os.environ.get("C9T5_MASTEREQ", "warm")   # WHOLE (the mix: t5 against the album and both neighbours): t4 (v69), t2 (v75) and t6 (v77) each warmed their master below ~110 Hz, and t5 now read thinner than both its neighbours there (in-flow: -18 dB at 44 Hz, -13 at 61; out-flow: -19 at 38, -10 at 114), while its one excess is around 640 Hz (+6.4, where the orbit, the seeds' fundamentals and her voice all sit). A master EQ: 'warm' a 28 Hz high-pass, +3 dB low shelf from 110 Hz, -2.5 dB at 640 Hz; 'warm2' that, and +2 dB at 44 Hz and +1.5 at 114
+CHIPHATS = os.environ.get("C9T5_CHIPHATS", "-10:-11")   # PALETTE (the hats): t5's drums are the 909, whose hats are haake-hat - the album's most shared sound (five songs) - while everything t5 sings with is a chip (the orbit's NES pulse, the seeds' chip lead). Now t5's own 909 fork plays its closed and open hats on the NES's noise channel (wM's nes-noise-hat, at its hat rates C7/C6), so the drums join the console the melodies live in; the crash and ride stay. Value 'closed dB:open dB'
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -905,6 +906,13 @@ def song():
                 tr["patch"] = lp
                 if lg:
                     tr["gain"] = f"{lg}dB"
+    if CHIPHATS:
+        hg, og = CHIPHATS.split(":")
+        for tr in tracks:
+            if tr["name"] == "drums":
+                tr["patch"] = {"extends": "909", "kit": {
+                    "h": {"patch": "nes-noise-hat", "pitch": "C7", "gain": f"{hg}dB", "choke": "hat"},
+                    "oh": {"patch": "nes-noise-hat amp.d=260ms amp.r=60ms", "pitch": "C6", "gain": f"{og}dB", "choke": "hat"}}}
     if ANSACCRETE:
         third = {57: 60, 55: 59, 64: 67, 62: 66}
         for tr in tracks:
