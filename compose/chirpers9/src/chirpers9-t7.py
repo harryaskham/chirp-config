@@ -832,6 +832,15 @@ R92 = os.environ.get("T7_R92", "strings") != "none"
 # then six - each lap of the beat a little shorter - while an orbit swings it round the listener's head, slowly at
 # first, four times a bar by the end; then it stops dead at bar 113, where the pull begins. T7_R93=none reproduces v92.
 R93 = os.environ.get("T7_R93", "ratchet") != "none"
+# round 94 (whole): T7_R94=body (default) - THE ORBIT GETS ITS CHEST, AND LOSES ITS SHOUT. Against the album t7 sat
+# 5-6 dB light around 100 Hz (61, 97, 114 Hz: the reese is growl, the kicks are click and sub) and 2-3.5 dB loud from
+# 1.4 to 4.2 kHz (horns, chips, claps, the saw chords). Now, between the seams (in by bar 37, held through the crest,
+# out by bar 144 - before the plunge's own 90 Hz shave and t8's overlap), the master lifts 105 Hz by 3 dB (q 1.1) and
+# eases 2.2 kHz by 2 dB (q 0.8): the bass and the kicks have a body you feel, and the brass and chips stop shouting.
+# (t3 v93's move, on t7's own numbers.) T7_R94=none reproduces v93.
+R94 = os.environ.get("T7_R94", "body") != "none"
+BODY_DB = float(os.environ.get("T7_BODY_DB", "3"))
+EASE_DB = float(os.environ.get("T7_EASE_DB", "-2"))
 RATCHET_GAIN = os.environ.get("T7_RATCHET_GAIN", "11dB")   # at 0 dB: -19.5 dB, inaudible
 STR5_GAIN = os.environ.get("T7_STR5_GAIN", "4dB")   # at 0 dB: -11.0 dB (0.30)
 CRESTSAX_GAIN = os.environ.get("T7_CRESTSAX_GAIN", "3dB")   # at ALTO_GAIN (7 dB) it led the crest at -3.9 dB
@@ -2280,6 +2289,16 @@ def main():
                       "time": "2b", "curve": 1.6},
                      {"type": "limiter", "ceiling": "-1.2dB", "release": "80ms"}],
               "auto": {"dyn": {"points": dyn}, "close": {"points": close}, "stop": {"points": stop}}}
+    if R94:                                                 # whole: 105 Hz +3, 2.2 kHz -2 on the master, between the seams
+        mid = [["0b", 0], ["128b", 0], ["144b", 1], ["560b", 1], ["576b", 0], ["704b", 0]]
+        i = next(k for k, f in enumerate(master["fx"]) if isinstance(f, dict) and f.get("type") == "tapestop")
+        master["fx"] = master["fx"][:i] + [
+            {"type": "filter", "kind": "peak", "cutoff": 105, "q": 1.1,
+             "gain": {"value": "0dB", "mod": [{"src": "auto.body", "amount": 1}]}},
+            {"type": "filter", "kind": "peak", "cutoff": 2200, "q": 0.8,
+             "gain": {"value": "0dB", "mod": [{"src": "auto.ease", "amount": 1}]}}] + master["fx"][i:]
+        master["auto"] = dict(master["auto"], body={"points": [[b, BODY_DB * v] for b, v in mid]},
+                              ease={"points": [[b, EASE_DB * v] for b, v in mid]})
     if R89:                                                 # the plunge's 80-100 Hz eased for the t8 seam (bars 149-160)
         i = next(k for k, f in enumerate(master["fx"]) if isinstance(f, dict) and f.get("type") == "tapestop")
         master["fx"] = master["fx"][:i] + [{"type": "filter", "kind": "peak", "cutoff": 90, "q": 1.2,
