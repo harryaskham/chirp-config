@@ -811,6 +811,13 @@ R89 = os.environ.get("T7_R89", "crestsax") != "none"
 # plunges (bars 153-157), the rotors winding down - with inertia 2 the bass drum takes ~9 s to slow, so the swirl
 # sags under the fall like the redshift. T7_R90=none reproduces v89.
 R90 = os.environ.get("T7_R90", "leslie") != "none"
+# round 91 (section, w3 = bars 33-48, the approach's second half; least recently focused): T7_R91=float (default) -
+# THE FLOOR FALLS AWAY UNDER HER SECOND LINE. The approach ran its four-on-the-floor from bar 17 to the collision at
+# 49 without a break. Now, for bars 41-44, when the singer comes back with her second line, the kick, the thump, the
+# claps and the reese drop out: she, the koto's E1, the Rhodes, the sax's answer and the chords float over the sub's
+# held Eb and just the hats, shakers and ghost notes for four bars - then at bar 45 the floor slams back with a china crash, and the
+# timpani and snare rolls build into the collision as before. T7_R91=none reproduces v90.
+R91 = os.environ.get("T7_R91", "float") != "none"
 CRESTSAX_GAIN = os.environ.get("T7_CRESTSAX_GAIN", "3dB")   # at ALTO_GAIN (7 dB) it led the crest at -3.9 dB
 AMENX_GAIN = os.environ.get("T7_AMENX_GAIN", "2dB")
 ALTO_GAIN = os.environ.get("T7_ALTO_GAIN", "7dB")   # at 0: -15.0 / -11.4 dB, unheard
@@ -2383,6 +2390,15 @@ def main():
                                               "mod": [{"src": "auto.crest", "amount": 1}]}}]
         hk["auto"] = dict(hk.get("auto", {}), crest={"points": [["0b", 0], ["479.8b", 0], ["479.95b", 6], ["511.9b", 6],
                                                                 ["512.4b", 0]]})
+    if R91:                                                 # w3: bars 41-44 without the floor, a china at 45
+        fl = {"points": [["0b", 0], ["159.95b", 0], ["160b", -60], ["175.95b", -60], ["176b", 0]]}
+        for tr in tracks:
+            if tr.get("name") in ("kick", "kick9", "clap", "bass"):   # the sub's held Eb stays: with it out, 99.957
+                tr["fx"] = list(tr.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB",
+                                                         "mod": [{"src": "auto.float", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), float=fl)
+        tracks.append({"name": "floatchina", "patch": "modal-china", "gain": "-9dB", "pan": -0.15,
+                       "sends": {"space": "-6dB"}, "score": "R/176b m62/4b@112"})
     if R90:                                                 # palette: the Rhodes through the real rotary, one speed lane
         patches["a7-rhodes"] = {"about": "chirper-two: rhodes-rotary without its fixed fake Leslie (tremolo, phaser, chorus); "
                                          "the tracks add the engine's rotary on a speed lane",
