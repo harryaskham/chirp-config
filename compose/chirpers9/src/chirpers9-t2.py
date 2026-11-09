@@ -1107,7 +1107,12 @@ def build():
                auto={'glitch': {'points': [['0b', 0.0], [f"{(CREST + 8) * 4.0 - 0.1:.1f}b", 0.0], [f"{(CREST + 8) * 4.0:.1f}b", 0.35],
                                            [f"{(CREST + 12) * 4.0 - 0.1:.1f}b", 0.35], [f"{(CREST + 12) * 4.0:.1f}b", 0.0], [f"{SEC['drift'] * 4.0 - 0.1:.1f}b", 0.0], [f"{SEC['drift'] * 4.0:.1f}b", 0.22], [f"{84 * 4.0 - 0.1:.1f}b", 0.26], [f"{84 * 4.0:.1f}b", 0.0], [f"{fall0:.1f}b", 0.0]]}},
                fx=[{'type': 'stutter', 'slice': '1/16', 'repeats': 3, 'chance': {'value': 0.0, 'mod': [{'src': 'auto.glitch', 'amount': 1.0}]}, 'seed': 5}]),
-            tr('kitb', 'break-kit', '-12dB', sends={'hall': '-20dB'},
+            # (v88, palette: the drift's light breakbeat - the far point of the orbit, the second verse and the last
+            # chorus - was the library's break-kit, a bright sampled break) THE DRIFT ON A DUSTY KIT: it is now the
+            # library's lofi-kit (soft, rounded hits through a worn sampler; no Accretion track uses it now), the same
+            # kicks and snares, level-matched - the far side of the orbit heard through dust, the 909 that comes back
+            # at bar 89 (v85) all the brighter for it
+            tr('kitb', 'lofi-kit', '-12.3dB', sends={'hall': '-20dB'},
                auto={'glitch': {'points': [['0b', 0.0], [f"{(CREST + 8) * 4.0 - 0.1:.1f}b", 0.0], [f"{(CREST + 8) * 4.0:.1f}b", 0.35],
                                            [f"{(CREST + 12) * 4.0 - 0.1:.1f}b", 0.35], [f"{(CREST + 12) * 4.0:.1f}b", 0.0], [f"{SEC['drift'] * 4.0 - 0.1:.1f}b", 0.0], [f"{SEC['drift'] * 4.0:.1f}b", 0.22], [f"{84 * 4.0 - 0.1:.1f}b", 0.26], [f"{84 * 4.0:.1f}b", 0.0], [f"{fall0:.1f}b", 0.0]]}},
                fx=[{'type': 'stutter', 'slice': '1/16', 'repeats': 3, 'chance': {'value': 0.0, 'mod': [{'src': 'auto.glitch', 'amount': 1.0}]}, 'seed': 5}]),
@@ -1344,7 +1349,7 @@ def build():
             t_['auto'] = dict(t_.get('auto') or {}, spin=spin_, omix={'points': [['0b', 0.0], ['72b', 0.0], ['80b', 1.0]]})
     # (v86, whole song: the engine's song feel, as t6 v81, t7 v76 use it) THE BAND IN ORBIT TOGETHER: since v70 the
     # machines play exact and the hands are humanised one by one, but nothing moved the whole band at once - every
-    # part leaned on its own. Now, from the gather's third bar to the edge of the fall (bars 21-96, both seams left
+    # part leaned on its own. Now, from the gather's fifth bar to the edge of the fall (bars 21-96, both seams left
     # on the grid), the whole band - machines and hands alike, so their relation is untouched - leans ahead of the
     # beat and falls back behind it together, on one slow curve that turns every eight bars, up to 6 ms either way:
     # the song's time itself on an orbit, near and far
