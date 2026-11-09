@@ -223,6 +223,8 @@ def hum1_patch():
     p["synth"]["layers"][0].pop("attack", None)           # v72: and its onsets
     p["synth"]["lfo"]["vib"].pop("bloom", None)            # v78: and its vibrato
     p["synth"]["layers"][0].pop("creak", None)            # v79: and its clean endings
+    p["synth"]["layers"][0].pop("age_high", None)         # v87: and its even age
+    p["synth"]["layers"][0].pop("passaggio", None)
     for m in p["synth"]["pitch"]["mod"]:
         if m["src"] == "lfo.vib":
             m["amount"] = 0.2
@@ -735,6 +737,16 @@ VOICE2["synth"]["lfo"]["vib"]["bloom"] = YOUNG_BLOOM
 # hum1 (the t3 seam's stand-in) stay clean.
 HER_CREAK = 0.8
 VOICE["synth"]["layers"][0]["creak"] = HER_CREAK
+# v87 (ROUND TYPE: whole song - the newest engine feature, across every line she sings): SHE REACHES. A real singer's
+# voice tells more as it climbs - the top notes shake a little, waver and leak air while the low ones hold; hers was
+# the same at every height. wM's AGE_HIGH (pinned 6ebea4d3) scales a note's age as its key rises through a window set
+# by the PASSAGGIO: hers at F5 puts the window at E4-G5, so her D4/E4 lines and hums hold exactly, her A4s age x1.33
+# and her C5s x1.53 (0.45 -> 0.69: the crest's 'cold' and 'far', the relief's reach) - strain at the top, a human
+# voice. The young duet voice has no age and stays smooth: two people, one of whom reaches. hum1 keeps neither.
+HER_AGE_HIGH = 1.0
+HER_PASSAGGIO = "F5"
+VOICE["synth"]["layers"][0]["age_high"] = HER_AGE_HIGH
+VOICE["synth"]["layers"][0]["passaggio"] = HER_PASSAGGIO
 BREATH_AIR = {"about": "t4's breath (v7): band-passed air swelling in, stopped at the phrase",
           "synth": {"layers": [{"color": "pink"}],
                     "filters": [{"kind": "bp", "cutoff": 1700, "q": 0.8}],
@@ -1300,12 +1312,13 @@ def hands_let_go():
 # holds under her last hummed notes to the end - the relief's last bars settling onto home, D, as the four lights fade
 # and the handpan returns (133); the first block (no floor) unlike the second (the floor home).
 FLOOR_HOME = 129
+FLOOR_HOME_END = 135                # v87: two bars before the end (chirper-zero: t5's in-flow level step 3.5 -> 3.8 dB)
 FLOOR_HOME_VEL = 80
 
 
 def floor_comes_home():
     a = b0(FLOOR_HOME)
-    part("sub").add(a, b0(BARS + 1) - a, "D1", FLOOR_HOME_VEL)
+    part("sub").add(a, b0(FLOOR_HOME_END) - a, "D1", FLOOR_HOME_VEL)
 
 
 def relief_hands_rest():
