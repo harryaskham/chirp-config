@@ -735,6 +735,14 @@ R96 = os.environ.get("T3_R96", "choir") != "none"
 # cuts through the storm's growl; the ring lead keeps both seam bodies (in by bar 37, back from bar 99, the punch
 # bus's envelope). T3_R97=none reproduces v96.
 R97 = os.environ.get("T3_R97", "pizz") != "none"
+# round 98 (section, w4 = bars 37-48; least recently focused of w4-w7): T3_R98=thunder (default) - THE FIRST THUNDER.
+# The storm's middle had wind, rain-like hats and debris but its only thunder was the timpani roll in the intro. Now
+# thunder rolls through w4 as events, not a bed (v95's lesson): a big one at bar 41 - a bright noise wash and low tones
+# that fall away over four beats (library fx-downlifter, unused on chirpers9) - and a farther, softer one at bar 44,
+# just before the whisper's "nothing here is late", each panned off-centre as if the storm were moving past.
+# T3_R98=none reproduces v97.
+R98 = os.environ.get("T3_R98", "thunder") != "none"
+THUNDER_GAIN = os.environ.get("T3_THUNDER_GAIN", "4dB")   # at 0: -10.4 / -13.0 dB
 PIZZ_GAIN = os.environ.get("T3_PIZZ_GAIN", "14dB")   # at -4 dB (e1 is -16): -26.3 dB, buried; at 12: -11.6 (0.28)
 CHOIR_GAIN = os.environ.get("T3_CHOIR_GAIN", "2dB")   # at 0: -12.0 dB (0.24); at 5: -6.5, buried the strings, s11 structure 99.64
 THEREMIN_GAIN = os.environ.get("T3_THEREMIN_GAIN", "0dB")
@@ -2413,6 +2421,12 @@ def main():
         mid = [["0b", 0], ["128b", 0], ["144b", 1], ["368b", 1], ["384b", 0], ["513b", 0]]
         master["auto"] = dict(master["auto"], weight={"points": [[b, 3.0 * v] for b, v in mid]},
                               unbox={"points": [[b, -3.5 * v] for b, v in mid]})
+    if R98:                                                 # w4: two thunder rolls (downlifters) at bars 41 and 44
+        for nm, at, v, pan in (("thunder1", 160.0, 112, -0.35), ("thunder2", 172.0, 80, 0.45)):
+            th = Track(nm)
+            th.add(at, 1.0, "m50", v)
+            tracks.append({"name": nm, "patch": "fx-downlifter", "gain": THUNDER_GAIN, "pan": pan,
+                           "sends": {"space": "-6dB"}, "score": th.score()})
     if R97:                                                 # palette: e1 on pizzicato between the seams, the ring lead at the seams
         import copy
         e1 = next(tr for tr in tracks if tr.get("name") == "e1")
