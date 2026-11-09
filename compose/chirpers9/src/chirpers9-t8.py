@@ -596,6 +596,33 @@ def fall_in_lanes(song):
         tr_["auto"] = dict(tr_.get("auto") or {}, fw={"points": pts})
 
 
+# v81 (ROUND TYPE: section, the fall-in 153-161, 4:00-4:20; rewritten): THE LIGHT GOES OUT FOR THE AMEN. The
+# flattest change left in t8 (4:08, 0.64 / 0.70, bars 153-161 by flatness --bars: two 8 s blocks either side of bar
+# ~157) - the fall-in, where the light (the held chord, its lift, the horizon sub) shone on unbroken while the
+# afterimages fell in around it, so the two blocks layered the same things. Now the light goes out for four bars
+# (153-156) - a long echo of its flicker at 147 - and the far answer's last note, E3's amen (its G, the IV) and the
+# choir sound in the dark; at 157 the light comes back on its redshift step, redder, and holds into the sink, where
+# it sinks to D at 161 - the amen's I.
+LIGHT_OUT = (153, 157)
+
+
+def light_out_for_the_amen():
+    lo, hi = b0(LIGHT_OUT[0]), b0(LIGHT_OUT[1])
+    for n in MOVE_TRACKS["L"]:
+        out = []
+        for s, ln, h, v in P[n].ev:
+            if lo - 1e-6 <= s < hi - 1e-6:
+                if s + ln > hi + 1e-6:
+                    out.append((hi, s + ln - hi, h, v))
+                continue
+            if s < lo - 1e-6 < s + ln:
+                if s + ln > hi + 1e-6:
+                    out.append((hi, s + ln - hi, h, v))
+                ln = lo - s
+            out.append((s, ln, h, v))
+        P[n].ev = sorted(out)
+
+
 def everything_falls_in():
     b = b0(FALL_IN["e7"])
     for i, (n, _, _) in enumerate(E7):
@@ -1626,6 +1653,7 @@ def main():
     jet_floor()
     first_floor()
     everything_falls_in()
+    light_out_for_the_amen()
     lead, fifth, low = choir()
     far = far_choir()                                             # v38: the answer forms far away (v45: own track)
     lead, fifth, low, hers = she_says_it(lead, fifth, low)       # v47: the break's second line is hers alone
