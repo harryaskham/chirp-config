@@ -501,23 +501,30 @@ def and_it_was_ours(song):
 # ride a lane, so the rotary is two organs crossfaded on gain lanes: E6 slow (0.9 Hz, deep - the chorale's swell)
 # and a twin, e6f (a new last track), fast (6.5 Hz); over 76.5-78 the rotor speeds up - the tide surging as the kick
 # comes back - and over 89-93, where the stretch slows time toward the jet, it winds back down to the chorale.
-ROTOR_UP = (76.5, 78.0)
-ROTOR_DOWN = (89.0, 93.0)
-ROTOR_SLOW, ROTOR_FAST = "tremolo rate=0.9hz depth=0.35", "tremolo rate=6.5hz depth=0.3"
+V77_ROTOR_UP = (76.5, 78.0)                 # (v77's two-organ rotor - replaced by v85's rotary below)
+V77_ROTOR_DOWN = (89.0, 93.0)
+
+
+# v85 (ROUND TYPE: section, the tide 82-93, 2:08-2:24; rewritten around wM's ROTARY, pinned bf2a7535): ONE ORGAN, ITS
+# ROTOR ON THE TIDE. t8's flattest change left (2:16, 0.73 / 0.75, bars 82-92 by flatness --bars; blocks 82.4-87.6 and
+# 87.6-92.9) held the same fast organ on both sides: v77's two-organ crossfade surged at 76.5-78 and wound down only
+# from 89. Now E6 is ONE organ on a real Leslie (the library organ's own tremolo dropped, as wM advises; the twin e6f
+# gone): CHORALE through the tide going out, TREMOLO from 77.2 - the 2:00 boundary - as the tide comes in, and the
+# rotor winds down AT 87.4 - the 2:16 boundary: the horn in under a second, the heavy drum over four - the organ
+# feeling time slow before the clocks do (93). The rotary's doppler, brightness and two-mic swirl replace the plain
+# tremolo, and the speed changes glide as a cabinet's do.
+ROTOR_UP = 77.2
+ROTOR_DOWN = 87.4
+ROTARY = "rotary speed=0.2+auto.spd*0.8"
 
 
 def the_tide_turns(song):
     e6 = next(x for x in song["tracks"] if x["name"] == "e6")
-    fast = json.loads(json.dumps(e6))
-    fast["name"] = "e6f"
-    u0, u1, d0, d1 = b0(ROTOR_UP[0]), b0(ROTOR_UP[1]), b0(ROTOR_DOWN[0]), b0(ROTOR_DOWN[1])
-    e6["fx"] = [ROTOR_SLOW] + list(e6.get("fx") or []) + ["gain gain=0dB+auto.rs*1"]
-    e6["auto"] = dict(e6.get("auto") or {}, rs={"points": [["0b", 0.0], [f"{u0:g}b", 0.0], [f"{u1:g}b", -40.0],
-                                                              [f"{d0:g}b", -40.0], [f"{d1:g}b", 0.0]]})
-    fast["fx"] = [ROTOR_FAST] + list(fast.get("fx") or []) + ["gain gain=0dB+auto.rf*1"]
-    fast["auto"] = dict(fast.get("auto") or {}, rf={"points": [["0b", -40.0], [f"{u0:g}b", -40.0], [f"{u1:g}b", 0.0],
-                                                                  [f"{d0:g}b", 0.0], [f"{d1:g}b", -40.0]]})
-    song["tracks"].append(fast)
+    u, d = b0(ROTOR_UP), b0(ROTOR_DOWN)
+    e6["patch"] = {"extends": "organ", "fx": ["reverb mix=0.15"]}
+    e6["fx"] = [ROTARY] + list(e6.get("fx") or [])
+    e6["auto"] = dict(e6.get("auto") or {}, spd={"points": [["0b", 0.0], [f"{u - 0.01:g}b", 0.0], [f"{u:g}b", 1.0],
+                                                               [f"{d - 0.01:g}b", 1.0], [f"{d:g}b", 0.0]]})
 
 
 # v78 (ROUND TYPE: palette - the newest engine feature): THE HELD NOTES OPEN. wM's VIBRATO BLOOM (pinned 0119aae1)
