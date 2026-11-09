@@ -846,6 +846,13 @@ R94 = os.environ.get("T7_R94", "body") != "none"
 # holds Eb and Bb and falls the whole eight bars without ever arriving - the illusion of dropping forever, the inner
 # orbit's gravity made audible - and cuts away just before the crest lands. T7_R95=none reproduces v94.
 R95 = os.environ.get("T7_R95", "fall") != "none"
+# round 96 (whole): T7_R96=field (default) - THE ORBIT HAS A SHAPE IN SPACE. The stereo image sat at one width for five
+# minutes. Now the master's width follows the orbit: as it was through the head and the approach, opening as the storm
+# collides (1.15) and spirals (1.3), widest at the crest (1.45) - the climax wraps round you - then in the plunge
+# (bars 153-160) the whole image COLLAPSES towards the centre (0.35, nearly mono), falling into the point, and opens
+# back to normal over the first bars of t8's overlap. Width only moves the side signal: the mono sum - and the
+# spectrum at both seams - stays put. T7_R96=none reproduces v95.
+R96 = os.environ.get("T7_R96", "field") != "none"
 FALL_GAIN = os.environ.get("T7_FALL_GAIN", "-4dB")   # at 0: -5.0 dB, over the singer
 BODY_DB = float(os.environ.get("T7_BODY_DB", "3"))
 EASE_DB = float(os.environ.get("T7_EASE_DB", "-2"))
@@ -2303,6 +2310,14 @@ def main():
                                          "synth.layers.0.shepard.cycle=4s synth.layers.1.shepard.cycle=4s synth.amp.r=0.8s"}
         tracks.append({"name": "fall", "patch": "a7-fall", "gain": FALL_GAIN, "pan": 0.0,
                        "sends": {"space": "-10dB"}, "score": "R/448b m63,m70/30b@90"})
+    if R96:                                                 # whole: the master's width follows the orbit; the plunge collapses it
+        i = next(k for k, f in enumerate(master["fx"]) if (isinstance(f, dict) and f.get("type") == "limiter")
+                 or (isinstance(f, str) and f.startswith("limiter")))
+        master["fx"] = master["fx"][:i] + [{"type": "width", "mono_below": "off",   # the default narrows the bass even at width 1
+                                            "width": {"value": 0, "mod": [{"src": "auto.field", "amount": 1}]}}] + master["fx"][i:]
+        master["auto"] = dict(master["auto"], field={"points": [
+            ["0b", 1.0], ["128b", 1.0], ["192b", 1.0], ["208b", 1.15], ["352b", 1.15], ["384b", 1.3], ["472b", 1.3],
+            ["480b", 1.45], ["592b", 1.45], ["608b", 1.2], ["632b", 0.35], ["640b", 0.35], ["656b", 1.0], ["704b", 1.0]]})
     if R94:                                                 # whole: 105 Hz +3, 2.2 kHz -2 on the master, between the seams
         mid = [["0b", 0], ["128b", 0], ["144b", 1], ["560b", 1], ["576b", 0], ["704b", 0]]
         i = next(k for k, f in enumerate(master["fx"]) if isinstance(f, dict) and f.get("type") == "tapestop")
