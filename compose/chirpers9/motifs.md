@@ -223,6 +223,7 @@ score: "D3/8 A3/8 E4/8 B4/16 F#5/16 C#6/16 G#6/8"   # 2 2 2 1 1 1 2 sixteenths =
   open D-A-E (no third), for t8 to lift E -> F# -> D (E8).
 - **In t7's verse (since v67): glimpsed.** In bars 39-40, between the verse's call-and-answers, the horn section fires the column a semitone up (Eb3 Bb3 F4 C5 G5 on 2 2 2 2 3 sixteenths) twice, the second held into the singer's next line - the jet the crest will fire, seen early.
 - **In t7's arrival (since v72): flying past.** At bars 20, 24, 28 and 32 the column (Eb3 Bb3 F4 C5, its G left out under the Ebm9 stabs) on the jet's own voice passes the listener left to right on an orbit line with full Doppler - sharp coming in, dropping as it goes.
+- **In t7's crest (since v77): in brass.** For the crest's first eight bars (121-128) a waveshaping brass (shaper-brass) fires every column with the jet (D3 A3 E4 B4 F#5, every 2.75 beats), brighter as each note swells, with the horns' E1 up 6 dB under it: the crest arrives as a fanfare.
 - **In t8 (chirper-three, since v59): on real brass.** The stacked fifths (D3 A3 E4 A4 E5, no F#) as a horn call on the physical brass section.
 
 ### E8, "the arrival" (t8, chirper-three)
