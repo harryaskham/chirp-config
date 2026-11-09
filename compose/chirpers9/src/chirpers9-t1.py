@@ -129,6 +129,7 @@ CHOIRBLOOM = os.environ.get("C9T1_CHOIRBLOOM", "0.8:0.28")   # PALETTE (the far 
 DISPERSE = os.environ.get("C9T1_DISPERSE", "320:368:6:0.08")   # WHOLE (with SEEDGATHER: the five seed voices ride a ring round the listener that shrinks to a point in front at the crest - and stayed that point to the very end): THE SEED LETS GO - once B is over (from the outro, as t2 arrives) the ring opens again and turns slowly, so the formed seed spreads back out round you while it falls into t2, leaving the front to t2's entering bell. Value 'from:to:radius m:laps per bar' (the ring opens from 'from' to 'to', then holds)
 CHOIRCREAK = os.environ.get("C9T1_CHOIRCREAK", "1:all")   # PALETTE (the far choir's voice; wM's creak, pin b160e3e5): the choir's soft low endings let go breathy and dark (taper) - and then simply stopped. Now, as a voice does at the bottom of a soft, tired phrase, the last note of each of its phrases creaks: pressed folds and a little vocal fry over its last 40% and release, the five singers together; the engine gives it only to quiet, low endings (full at A3 and below, none from C5), so the sighs falling to D4 creak most and the hums barely. Value 'amount[:sighs|all]'
 SHAKEIN = os.environ.get("C9T1_SHAKEIN", "57")   # SECTION w2's start (0:44-0:56, the intro's last phrase into A; w1 is flagged static since 7 Nov and eco's flatness map has t1's flattest change at bars 11-16, about 0:40): THE GROUND BEGINS TO MOVE - the shekere's groove (on E1's 5-beat cycle) used to start all at once at A's second phrase (beat 72); now it breathes in under the intro's clave taps, softly at first and swelling, from the clave stroke at 'from' (cycles of 5 beats) until the groove proper takes over at 72. Own track, built after HANDS, so nothing else's feel is redrawn. Value: the start beat
+LOCKHUM = os.environ.get("C9T1_LOCKHUM", "3")   # WHOLE (the far choir's arc): the choir hummed the seed slowly at the start (0:18-0:31) and again as t1 falls into t2 - but was silent at the lock after the crest (beat 240, about 2:58), when every voice of the band plays E1 at once. Now it hums E1 there too, the same slow figure, with everyone: the voice is at the seed's beginning, its fullest moment and its end. A copy of the opening hum (its patch: taper, bloom, creak) moved to the lock. Value: gain change in dB against the opening hum
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -922,6 +923,12 @@ def song():
             pt = tr.get("patch")
             if tr["name"] in ("breath", "hum", "hum-out") and isinstance(pt, dict) and "synth.lfo.vib.per_note=true" in pt.get("extends", ""):
                 pt["extends"] += f" synth.lfo.vib.bloom={cb}" + (f" synth.pitch.mod.0.amount={cd[0]}" if cd else "")
+    if LOCKHUM:
+        for tr in list(tracks):
+            if tr["name"] == "hum":
+                g = float(str(tr["gain"]).replace("dB", "")) + float(LOCKHUM)
+                ns = [dict(n, at=round(n["at"] + 216, 4), vel=round(min(1.0, n["vel"] * 1.15), 3)) for n in tr["notes"]]
+                tracks.append(dict(tr, name="hum-lock", patch=dict(tr["patch"]), gain=f"{g:g}dB", notes=ns))
     if FILL:
         fk, fg = (FILL + ":0").split(":")[:2]
         taps = [(286 + k / 3, 0.4 + 0.1 * k) for k in range(6)]
