@@ -671,6 +671,72 @@ SLINGSHOT_MELISMA = [("m74", 0.64), ("m76", 0.66), ("m78", 0.7)]
 SLINGSHOT_AT = (502.257, 504.0, 507.0, 511.6)
 
 
+# v98 (ROUND TYPE: whole song - the first DEEP pass, Harry 10 Nov 02:25: 'go deep ... augmenting the feel and texture
+# and style of the album'): THE DISK IS WIDE. Looked at for the first time (tools/look.py: spectrogram, band levels,
+# side/mid by band) against the album's genre anchors (SAW 85-92: actium, ptolemy, pulsewidth, green calx), the record's
+# top end is MONO where theirs is the widest thing in the mix: at full groove their 2-6 kHz band reads side/mid -2 to
+# -3 dB and their air (6-16 kHz) +3 to +7 dB; t8's jet read -8.0 and -12.9, the stretto -12.3 and -15.4 (every
+# Accretion track reads -8 to -13 above 2 kHz). The cause, stem by stem (unnormalised solos): the jet's air band was
+# the SNARE (centred, +1.3 dB re the mix), the chip hat 8 dB under it and panned, not stereo; a doubled machine hat is
+# sample-identical left and right, and no reverb, chorus or Haas pair on a mono hat got past -6. What does: two
+# INDEPENDENT noise streams, hard left and right (side/mid 0.0 dB, L/R correlation 0.02). So:
+#   - DISK HATS (track hatw, last): every chip-hat hit also sounds on a stereo-noise kit - closed 'c', and at the jet the
+#     off-beats OPEN ('o', choked by the next closed): the half-time groove gets the off-beat lift it lacked;
+#   - the snare also feeds a PLATE (a new bus): the backbeat's air spreads;
+#   - the jet's fifth and octave choirs move out to +-0.62 (were +-0.3);
+#   - the delay bus is PING-PONG: E1's chip lead, the glock, the brass and the hook echo side to side;
+#   - the master gets a width stage on the highs only (lr4 crossover, mono_below off: 1.0 to 1.5 kHz, 1.3 at 3 kHz,
+#     1.5 at 7 kHz) - the low mids and the bass keep their image exactly.
+# Measured (window renders, seed 0): the jet 97-113 side/mid 2-6 kHz -8.0 -> -5.3, air -12.9 -> -0.6; stretto 65-81
+# -12.3 -> about -7, air -15.4 -> about -2; the lens and the horizon's mids untouched.
+DISK_HAT_GAIN = "-17dB"
+DISK_HATS = {"about": "t8's disk hats: two independent noise streams, hard left and right - air that is truly stereo",
+             "play": {"len": "/16", "vel_sens": 0.7},
+             "kit": {k: {"choke": "hat",
+                         "patch": {"synth": {"layers": [{"type": "noise", "color": col, "pan": -1},
+                                                        {"type": "noise", "color": col, "pan": 1}],
+                                             "filters": filt, "amp": amp}}}
+                     for k, col, filt, amp in (
+                         ("c", "white", ["hp cutoff=7000"], {"a": "0.3ms", "d": "34ms", "s": 0, "r": "20ms"}),
+                         ("o", "white", ["hp cutoff=6000"], {"a": "0.5ms", "d": "240ms", "s": 0, "r": "60ms"}))}}
+PLATE = {"fx": ["reverb kind=plate decay=0.9s mix=1 predelay=8ms width=1 spread=1", "hp cutoff=700"]}
+SNARE_PLATE = "-7dB"
+CHOIR_OUT = {"choir5": 0.62, "choir8": -0.62}
+WIDE_TOP = {"type": "width", "width": 1.0, "mono_below": "off", "crossover": "lr4",
+            "bands": [[200, 1.0], [1500, 1.0], [3000, 1.3], [7000, 1.5]]}
+
+
+def the_disk_is_wide(song):
+    by = {x["name"]: x for x in song["tracks"]}
+    pos, ev = 0.0, []
+    for tok in by["hat"]["score"].split():
+        head, _, rest = tok.partition("/")
+        ln = float(rest.split("b")[0])
+        if head != "R":
+            vel = int(rest.split("@")[1].split("^")[0]) if "@" in rest else 80
+            off = pos >= JB and abs((pos % 1.0) - 0.5) < 1e-6           # the jet's off-beats open
+            ev.append((pos, 0.5 if off else ln, "o" if off else "c", min(127, round(vel * 1.5))))
+        pos += ln
+    toks, at = [], 0.0
+    for i, (s, ln, h, v) in enumerate(ev):
+        ln = min(ln, (ev[i + 1][0] if i + 1 < len(ev) else TOTAL) - s)
+        if s - at > 1e-5:
+            toks.append(f"R/{s - at:.5g}b")
+        toks.append(f"{h}/{ln:.5g}b@{v}")
+        at = s + ln
+    if TOTAL - at > 1e-5:
+        toks.append(f"R/{TOTAL - at:.5g}b")
+    song["tracks"].append({"name": "hatw", "patch": DISK_HATS, "score": " ".join(toks), "gain": DISK_HAT_GAIN})
+    song["buses"]["plate"] = json.loads(json.dumps(PLATE))
+    by["snare"]["sends"] = dict(by["snare"].get("sends") or {}, plate=SNARE_PLATE)
+    for n, pan in CHOIR_OUT.items():
+        by[n]["pan"] = pan
+    dly = song["buses"]["dly"]["fx"]
+    assert dly[0].startswith("delay ") and "ping_pong" not in dly[0]
+    dly[0] += " ping_pong=true"
+    song["master"]["fx"].append(json.loads(json.dumps(WIDE_TOP)))
+
+
 def she_rides_the_slingshot(song):
     solo = [x for x in song["tracks"] if x["name"] == "solo"][0]
     ou = [n for n in solo["notes"] if n.get("ph") == "AW1" and b0(125.5) <= n["at"] < b0(126.2)]
@@ -2046,6 +2112,7 @@ def main():
     vowels_live(song)
     lines_land_on_the_beat(song)
     she_rides_the_slingshot(song)
+    the_disk_is_wide(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
