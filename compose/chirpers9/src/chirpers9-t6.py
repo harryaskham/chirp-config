@@ -1261,6 +1261,27 @@ def build():
             up_ = min(1.0, (e_[0] - kw0_) / 16.0)
             P['kw'].append((e_[0], 'k', 0.25, max(1, min(127, int(round(e_[3] * (0.6 + 0.4 * up_)))))))
         P['kw'].sort(key=lambda e_: e_[0])
+    # (v114, palette) THE HAND CYMBALS. A harmonium, a tabla, a tanpura, two voices answering each other and a
+    # chorus singing the line back: this band has been a kirtan in all but one instrument, the pair of small brass
+    # hand cymbals (manjira) that keeps its time beside the tabla. In the tide, where the tabla plays its Rupak,
+    # they now ring: on every open hat an open stroke (ting) - a patch of the song's own, two cymbals a hair apart
+    # in pitch, so the ring shimmers, each with a small cup cymbal's partials (1 : 2.41 : 4.18), tuned to a high A -
+    # on a track of its own, so it rings on over the hats until the next. Once a bar while the tabla sets out the
+    # tal, on every off-beat for bars 41-44 as the tide lifts.
+    # (Tried first as a full swap, every hat in the song a cymbal stroke - closed strokes a damped clack, open ones
+    # the ring: the song's top moved away from both neighbours' (the three seconds either side of each seam read
+    # 0.5 to 0.65 dB further apart: t5 and t7 tick on the hat t6 gave up) and the rings on the cross's off-beats
+    # made a nineteenth section of the cross's end - 98.76 / 99.62. And one pitched patch for both strokes fused
+    # the sixteenths into a steady beep. The hats stay; the cymbals are a guest, with the tabla)
+    MANJ_ = os.environ.get('MANJ', '1') == '1'
+    TING_PATCH = {'gain': '0dB', 'play': {'vel_sens': 0.6},
+                  'synth': {'amp': {'a': '0.5ms', 'd': '1.3s', 's': 0, 'r': '250ms'},
+                            'layers': [{'type': 'additive', 'damp': 0.8,
+                                        'partials': [[1.0, 0.8], [1.0045, 0.7], [2.41, 0.9], [2.423, 0.7], [4.18, 0.6], [4.215, 0.45]]}]}}
+    if MANJ_:
+        P['ting'] = sorted(((e_[0], m(105), 2.0, e_[3]) for e_ in P['hats']
+                            if str(e_[1]).partition('^')[0] == 'oh' and SEC['tide'] * 4.0 - 1e-6 <= e_[0] < SEC['squeeze'] * 4.0 - 1e-6),
+                           key=lambda e_: e_[0])
     song = {
         'about': "chirpers - Accretion, track 6 by chirper-one: Spring Tide. Tidal forces: E1 in two layers, one squeezed "
                  "and one stretched, meeting at the crest and tearing apart; E6, two chords a semitone apart, ebbing and flowing. "
@@ -1339,6 +1360,7 @@ def build():
             *([tr('kw', '909', '-6dB', fx=['lp cutoff=110', 'hp cutoff=28'])] if 'kw' in P else []),
             tr('cajon', 'tabla-kit', '-6.5dB' if os.environ.get('RUPAK', '1') == '1' else '-11.7dB', pan=0.1, sends={'hall': '-16dB'}),
             tr('hats', 'prog-kit', '-7dB', pan=0.2, fx=[{'type': 'eq', 'bands': ['highshelf cutoff=8000 gain=5dB']}]),
+            *([tr('ting', TING_PATCH, os.environ.get('TINGG', '-19dB'), pan=-0.25, sends={'hall': '-14dB'})] if MANJ_ else []),
             # (v34, palette: the cello was an album staple - t1, t5 and t6) THE FAR SIDE IS A TROMBONE: E1 stretched on
             # the far side is now played by the library's trombone (warm, round, mono and legato, the slide gliding
             # between notes): the far side's long tones slide into each other, 'lets it go' heard in the instrument,
