@@ -8,8 +8,11 @@ cuts keep their seconds and the picture is out of step, silently; the album film
   visdrift.py [ALBUM_ID] [--json] [--ids 4,8]        (default: the focus album)
 
 Per track, the song as it was when the programme was last committed (git) against the song as committed now:
-  * length, bar count and where each scene cut's BAR now falls in time (the engine's own beat clock, `chirp plan`):
-    DRIFT when the length moved 1 s or more, the bar count changed, or a cut's bar moved 0.5 s or more;
+  * the engine's own placement of the scenes on each (`chirp vis check -f SONG`: seconds, whether a scene is written
+    in seconds or in bars) and its beat clock (`chirp plan`): a scene placed on a BAR moves with the song and stays in
+    step; a scene placed in SECONDS stays put while its bar moves. DRIFT when a scene is 0.5 s or more off the bar it
+    sat on, the length moved 1 s or more, the bar count changed, or the engine has a new warning (a scene past the
+    song's end);
   * for landmarks that move inside an unchanged grid, the CONTRAST at each cut (flatness.py's distance between the 8 s
     before and after it) in the review-app snapshot nearest the programme's date against the latest snapshot: CHECK
     when a cut that sat on a clear change (1.0 or more) now sits on less than 60% of it.
@@ -49,18 +52,22 @@ def programme(cid):
     return None
 
 
-def cuts(text):
-    """Scene cut times (seconds, after 0) of a programme: its top-level scene items' `at:`."""
-    out = []
-    for m in re.finditer(r"^  - at:\s*([0-9]+(?:\.[0-9]+)?)\s*(?:#.*)?$", text, re.M):
-        t = float(m.group(1))
-        if t > 0:
-            out.append(t)
-    return sorted(set(out))
+def placed(pin, prog, song):
+    """The engine's placement of PROG's scenes on SONG: ([seconds of each scene], [warnings]); (None, [why]) when the
+    check fails."""
+    r = subprocess.run([pin, "vis", "check", prog, "-f", song, "--json"], capture_output=True, text=True, cwd=ROOT,
+                       stdin=subprocess.DEVNULL)
+    try:
+        d = json.loads(r.stdout)
+        x = d.get("data") or d
+        return [float(t) for t, _ in x["scenes"]], [str(w) for w in x.get("warnings") or []]
+    except (ValueError, KeyError, TypeError):
+        return None, [(r.stderr or r.stdout).strip()[-200:]]
 
 
-def clock(pin, text, tag):
-    """{secs, times (seconds of each whole beat), per (beats a bar), bars} of a song text, or None when it doesn't plan."""
+def clock(pin, text, tag, prog=None):
+    """{secs, times (seconds of each whole beat), per (beats a bar), bars, scenes, warnings} of a song text (the last
+    two: PROG placed on it), or None when it doesn't plan."""
     import chirpers as CH
     import sectionmap as SM
     tmp = os.path.join(ROOT, "songs", f".visdrift-{os.getpid()}-{tag}.yaml")      # beside its includes
@@ -69,25 +76,31 @@ def clock(pin, text, tag):
             f.write(text)
         tl = CH.song_timeline(pin, tmp)
         per = SM.meter_beats(tmp)
+        scenes, warns = placed(pin, prog, tmp) if prog else (None, [])
     finally:
         os.path.exists(tmp) and os.unlink(tmp)
     if not tl:
         return None
     times = np.asarray(tl["times"], float)
     end = float(np.interp(tl["secs"], times, np.arange(len(times))))
-    return {"secs": float(tl["secs"]), "times": times, "per": per, "bars": end / per}
+    return {"secs": float(tl["secs"]), "times": times, "per": per, "bars": end / per, "scenes": scenes,
+            "warnings": warns}
 
 
-def compare(then, now, cut_times):
-    """{length, bars, cuts: [{at, bar, now, shift}], drift} for two clocks."""
+def compare(then, now, cut_times, now_times=None):
+    """{length, bars, cuts: [{at, bar, now, starts, shift}], drift} for two clocks. CUT_TIMES: where the scenes
+    started then; NOW_TIMES: where the engine starts them now (default: the same seconds, scenes written in seconds).
+    `now` is where the scene's bar is now; `shift` is that minus where the scene starts (0 for a scene on bars)."""
     out = {"length": [round(then["secs"], 1), round(now["secs"], 1)], "bars": [round(then["bars"], 1), round(now["bars"], 1)],
            "cuts": []}
-    for t in cut_times:
+    for i, t in enumerate(cut_times):
         beat = float(np.interp(t, then["times"], np.arange(len(then["times"]))))
         bar = 1 + beat / then["per"]
         now_beat = (bar - 1) * now["per"]
-        t_now = float(np.interp(now_beat, np.arange(len(now["times"])), now["times"]))
-        out["cuts"].append({"at": t, "bar": round(bar, 1), "now": round(t_now, 1), "shift": round(t_now - t, 1)})
+        t_bar = float(np.interp(now_beat, np.arange(len(now["times"])), now["times"]))
+        starts = float(now_times[i]) if now_times is not None and i < len(now_times) else t
+        out["cuts"].append({"at": t, "bar": round(bar, 1), "now": round(t_bar, 1), "starts": round(starts, 1),
+                            "shift": round(t_bar - starts, 1)})
     out["drift"] = (abs(now["secs"] - then["secs"]) >= LENGTH_S or abs(now["bars"] - then["bars"]) >= 0.5
                     or any(abs(c["shift"]) >= CUT_S for c in out["cuts"]))
     return out
@@ -141,19 +154,26 @@ def track(cid, n, song, album_id, pin):
     res = {"id": cid, "n": n, "programme": time.strftime("%d %b %H:%M", time.gmtime(when)), "song_then": rev[:8]}
     if not then_text or not now_text:
         return {**res, "state": "unknown", "why": "the song is not in git at one of the two dates"}
-    with open(prog) as f:
-        cut_times = cuts(f.read())
+    now = clock(pin, now_text, f"{cid}-now", prog)
+    if not now or now["scenes"] is None:
+        return {**res, "state": "unknown", "why": "the song or its programme does not check on this pin: "
+                + "; ".join((now or {}).get("warnings") or ["the song does not plan"])[:160]}
     if then_text == now_text:
-        return {**res, "state": "in step", "cuts": [{"at": t} for t in cut_times], "same_text": True}
-    then, now = clock(pin, then_text, f"{cid}-then"), clock(pin, now_text, f"{cid}-now")
-    if not then or not now:
-        return {**res, "state": "unknown", "why": "the song does not plan on this pin at one of the two dates"}
-    res.update(compare(then, now, cut_times))
+        return {**res, "state": "CHECK" if now["warnings"] else "in step", "same_text": True, "warnings": now["warnings"],
+                "cuts": [{"at": t} for t in now["scenes"] if t > 0], "check": []}
+    then = clock(pin, then_text, f"{cid}-then", prog)
+    if not then or then["scenes"] is None:
+        return {**res, "state": "unknown", "why": "the song as it was then does not plan on this pin"}
+    idx = [i for i, t in enumerate(then["scenes"]) if t > 0]
+    res.update(compare(then, now, [then["scenes"][i] for i in idx],
+                       [now["scenes"][i] for i in idx if i < len(now["scenes"])]))
+    res["warnings"] = [w for w in now["warnings"] if w not in then["warnings"]]
+    res["drift"] = res["drift"] or bool(res["warnings"])
     a, b = snapshot_pair(album_id, when)
     checks = []
     if a and b and a != b:
         for c in res["cuts"]:
-            ca, cb = contrast(os.path.join(a, f"t{n:02d}.mp3"), c["at"]), contrast(os.path.join(b, f"t{n:02d}.mp3"), c["now"])
+            ca, cb = contrast(os.path.join(a, f"t{n:02d}.mp3"), c["at"]), contrast(os.path.join(b, f"t{n:02d}.mp3"), c["starts"])
             if ca is not None and cb is not None:
                 c["contrast"] = [round(ca, 2), round(cb, 2)]
                 if ca >= CLEAR and cb < FADED * ca:
@@ -173,7 +193,8 @@ def lines(r):
     if r["state"] == "unknown":
         return [head + f"unknown - {r['why']}"]
     if r.get("same_text"):
-        return [head + "in step (the song has not changed since)"]
+        return [head + ("in step (the song has not changed since)" if not r.get("warnings") else "CHECK")] \
+            + [f"      engine: {w}" for w in r.get("warnings") or []]
     le, ba = r["length"], r["bars"]
     out = [head + (f"{r['state']} length {mmss(le[0])} -> {mmss(le[1])} ({le[1] - le[0]:+.1f} s), bars {ba[0]:g} -> {ba[1]:g}"
                    if r["state"] == "DRIFT" else f"{r['state']} ({mmss(le[1])}, {ba[1]:g} bars)")]
@@ -184,12 +205,14 @@ def lines(r):
             continue
         s = f"      cut {mmss(c['at'])} (bar {c['bar']:g} then)"
         if moved:
-            s += f": that bar is now at {mmss(c['now'])} ({c['shift']:+.1f} s)"
+            s += (f": that bar is now at {mmss(c['now'])}, the scene still starts at {mmss(c['starts'])} "
+                  f"({abs(c['shift']):.1f} s {'early' if c['shift'] > 0 else 'late'})")
         if faded:
             s += f"; the change it sat on is weaker ({c['contrast'][0]} -> {c['contrast'][1]}): has the landmark moved?"
         out.append(s)
     if r["state"] == "DRIFT" and abs(ba[1] - ba[0]) >= 0.5:
-        out.append("      bars were added or removed: cuts after that point need re-timing by ear")
+        out.append("      bars were added or removed: scenes written in seconds after that point need re-timing by ear")
+    out += [f"      engine: {w}" for w in r.get("warnings") or []]
     return out
 
 

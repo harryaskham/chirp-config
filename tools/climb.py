@@ -382,6 +382,49 @@ def library_gate(paths, args, me=None, mine=()):
             "Tell their owners, then repeat with --library-ok (or use a new name; with --as/CLIMB_AS your own songs pass).", 5)
 
 
+def picture_notice(paths, args):
+    """Say at once when a song being committed breaks what its picture reads (10 Nov: the pictures are built on the
+    songs' bars, tracks and lanes - vis/<id>.yaml). `chirp vis check -f SONG` on the version being committed against
+    the committed one; engine warnings that are new are printed for the composer, who can fix it most cheaply (keep
+    the name, or tell chirp-video). Never blocks and never fails a commit."""
+    try:
+        if "--no-git" in args:
+            return
+        import chirpbin
+        import visdrift
+        pin = None
+        for p in paths:
+            rel = os.path.relpath(os.path.join(ROOT, p) if not os.path.isabs(p) else p, ROOT)
+            cid = os.path.splitext(os.path.basename(rel))[0]
+            prog = visdrift.programme(cid) if rel.startswith("songs" + os.sep) else None
+            full = os.path.join(ROOT, rel)
+            if not prog or not os.path.isfile(full):
+                continue
+            pin = pin or chirpbin.resolve("chirp")
+            scenes, warns = visdrift.placed(pin, prog, full)
+            head = git("show", f"HEAD:{rel}")
+            old = []
+            if head.returncode == 0:
+                tmp = os.path.join(ROOT, "songs", f".picture-{os.getpid()}-{cid}.yaml")
+                try:
+                    with open(tmp, "w") as f:
+                        f.write(head.stdout)
+                    old_scenes, old = visdrift.placed(pin, prog, tmp)
+                    old = old if old_scenes is not None else None        # the programme did not check before either
+                finally:
+                    os.path.exists(tmp) and os.unlink(tmp)
+            if old is None:
+                continue
+            fresh = [w for w in warns if w not in old] if scenes is not None else [f"it no longer checks: {'; '.join(warns)[:200]}"]
+            if fresh:
+                print(f"climb: NOTE for the picture ({os.path.relpath(prog, ROOT)}), not blocking - this version changes what "
+                      "it reads:\n" + "\n".join(f"  - {w}" for w in fresh[:8])
+                      + "\n  the picture is built on this song's bars, track and lane names: keep them, or tell chirp-video "
+                      "what moved", file=sys.stderr)
+    except Exception as e:                                               # a notice must never cost a commit
+        print(f"climb: (picture check skipped: {e})", file=sys.stderr)
+
+
 def commit_or_die(paths, msg, args):
     if not commit(paths, msg, args):
         die("NOT recorded in git (see 'not committed' above): the registry edit is only in the working tree "
@@ -1074,6 +1117,7 @@ def cmd_done(a):
     # Files others may have written: another agent on this climb since (or shortly before) you started it.
     withs = multi(a, "--with")
     library_gate(withs, a, me=me, mine=(cid,))      # before anything is recorded
+    picture_notice(withs, a)
     if withs and "--force" not in a:
         st = starts()
         mine = [s["t"] for s in st if s["id"] == cid and s.get("who") == me]
@@ -1336,6 +1380,7 @@ def cmd_commit(a):
     if not paths:
         die("climb.py commit: name the paths to commit")
     library_gate(paths, a, me=os.environ.get("CLIMB_AS"))
+    picture_notice(paths, a)
     commit_or_die(paths, msg, a)
 
 

@@ -19,13 +19,6 @@ def clock(bpm, bars, per=4.0):
     return {"secs": bars * per * 60.0 / bpm, "times": times, "per": per, "bars": float(bars)}
 
 
-class Cuts(unittest.TestCase):
-    def test_scene_cuts_are_the_top_level_ats(self):
-        text = ("scenes:\n  - at: 0\n    look:\n      layers:\n        - {type: x, at: 0.96}\n"
-                "  - at: 125\n    transition: dissolve\n  - at: 240.5   # the horizon\n      - at: 7\n")
-        self.assertEqual(V.cuts(text), [125.0, 240.5])
-
-
 class Compare(unittest.TestCase):
     def test_an_unchanged_song_is_in_step(self):
         r = V.compare(clock(120, 100), clock(120, 100), [60.0, 120.0])
@@ -48,6 +41,13 @@ class Compare(unittest.TestCase):
         self.assertEqual((r["cuts"][0]["bar"], r["cuts"][0]["now"]), (31.0, 45.0))
         self.assertTrue(r["drift"])
 
+    def test_a_scene_placed_on_bars_moves_with_the_song(self):
+        """The engine starts a bar-placed scene where its bar now is: in step however the tempo moved."""
+        r = V.compare(clock(120, 100), clock(100, 100), [60.0], now_times=[72.0])
+        self.assertEqual((r["cuts"][0]["now"], r["cuts"][0]["starts"], r["cuts"][0]["shift"]), (72.0, 72.0, 0.0))
+        r = V.compare(clock(120, 100), clock(120, 100), [60.0], now_times=[60.0])
+        self.assertFalse(r["drift"])
+
     def test_small_wobble_is_not_drift(self):
         now = clock(120, 100)
         now["secs"] += 0.4                                       # a longer tail, under a second
@@ -58,11 +58,13 @@ class Lines(unittest.TestCase):
     def test_a_drift_report_names_the_moved_cut_and_the_bars(self):
         r = {"id": "x-t8", "n": 8, "programme": "09 Nov 12:15", "song_then": "abcd1234", "state": "DRIFT",
              "length": [200.0, 216.0], "bars": [100.0, 108.0], "check": [125.0],
-             "cuts": [{"at": 60.0, "bar": 31.0, "now": 60.0, "shift": 0.0},
-                      {"at": 125.0, "bar": 63.5, "now": 141.0, "shift": 16.0, "contrast": [1.8, 0.5]}]}
+             "warnings": ["scene 2 (x) at 300.0 s starts after the song ends (216.0 s)"],
+             "cuts": [{"at": 60.0, "bar": 31.0, "now": 60.0, "starts": 60.0, "shift": 0.0},
+                      {"at": 125.0, "bar": 63.5, "now": 141.0, "starts": 125.0, "shift": 16.0, "contrast": [1.8, 0.5]}]}
         out = "\n".join(V.lines(r))
         self.assertIn("DRIFT length 3:20.0 -> 3:36.0 (+16.0 s), bars 100 -> 108", out)
-        self.assertIn("cut 2:05.0 (bar 63.5 then): that bar is now at 2:21.0 (+16.0 s)", out)
+        self.assertIn("cut 2:05.0 (bar 63.5 then): that bar is now at 2:21.0, the scene still starts at 2:05.0 (16.0 s early)", out)
+        self.assertIn("engine: scene 2 (x) at 300.0 s starts after the song ends", out)
         self.assertIn("weaker (1.8 -> 0.5)", out)
         self.assertNotIn("cut 1:00.0", out)                      # an unmoved cut is not listed
         self.assertIn("re-timing by ear", out)
