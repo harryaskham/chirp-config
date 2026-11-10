@@ -763,6 +763,14 @@ R100 = os.environ.get("T3_R100", "alive") != "none"
 # the reese's fizz no longer edging out in front - between the seams (applied to the whole song, the seams lost flow). T3_R101=none
 # reproduces v100.
 R101 = os.environ.get("T3_R101", "tilt") != "none"
+# round 102 (section, w9 = beats 384-432, bars 97-108, the lock's last chorus; it held t3's flattest change, 4:08 =
+# bars 101-108): T3_R102=stutter (default) - THE STORM STUTTERS IN SEVENS. The lock's last chorus ran one groove to
+# the tail. Now for bars 105-107 the whole rhythm section - drums, reese, sub, arps - is chopped to E2's own rhythm
+# (hits 0, 2, 3, 5 of every seven sixteenths, so the stutter rolls across the bar lines), kick stabs on the hits,
+# while the choirs, the melodica and the singer hold on over it; bar 108 is a tom fill down E2's seven, and the
+# groove lands back for the tail. T3_R102=none reproduces v101.
+R102 = os.environ.get("T3_R102", "stutter") != "none"
+STUT_GAIN = os.environ.get("T3_STUT_GAIN", "-6dB")   # at 0: stabs -1.2 dB, toms -1.1 (the kit -7)
 VOICES_DB = float(os.environ.get("T3_VOICES_DB", "12"))   # at 8: -14.9..-20.3 dB, still under
 THUNDER_GAIN = os.environ.get("T3_THUNDER_GAIN", "4dB")   # at 0: -10.4 / -13.0 dB
 PIZZ_GAIN = os.environ.get("T3_PIZZ_GAIN", "14dB")   # at -4 dB (e1 is -16): -26.3 dB, buried; at 12: -11.6 (0.28)
@@ -2443,6 +2451,29 @@ def main():
         mid = [["0b", 0], ["128b", 0], ["144b", 1], ["368b", 1], ["384b", 0], ["513b", 0]]
         master["auto"] = dict(master["auto"], weight={"points": [[b, 3.0 * v] for b, v in mid]},
                               unbox={"points": [[b, -3.5 * v] for b, v in mid]})
+    if R102:                                                # w9: E2's stutter over bars 105-107, a tom fill on bar 108
+        gate = [["0b", 0], ["415.98b", 0]]
+        sk = Track("stutk")
+        for s in range(48):                                 # 416-428: 48 sixteenths, E2's hits of every seven
+            pos, open_ = 416 + 0.25 * s, (s % 7) in (0, 2, 3, 5)
+            v = 0 if open_ else -60
+            gate += [[f"{pos:g}b", v], [f"{pos + 0.23:g}b", v]]
+            if open_:
+                sk.add(pos, 0.25, "k", 112 if (s % 7) in (0, 3) else 92)
+        gate += [["428b", 0], ["513b", 0]]
+        st = Track("stuttoms")
+        for k, tok in enumerate(["t1", "t1", "t2", "t2", "t3", "t3", "ft"] * 2 + ["ft", "ft"]):
+            st.add(428 + 0.25 * k, 0.25, tok, 110 if k % 7 == 0 else 88)
+        for tr in tracks:
+            if tr.get("name") in ("kick", "snare", "hats", "perc", "chipsn", "chiphat", "bass", "sub", "floor", "shard",
+                                  "e2", "skin", "ksub", "hand", "kick7", "hats7", "snare7", "glass7", "fill", "roll",
+                                  "bassr", "bassr2", "partc", "bsub", "bassh", "bsubh", "lockb", "hands", "ride",
+                                  "fills", "glass", "arp0", "arp1", "arp2"):
+                tr["fx"] = list(tr.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB",
+                                                         "mod": [{"src": "auto.stut", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), stut={"points": gate})
+        tracks.append({"name": "stutk", "patch": "rock-kit", "gain": STUT_GAIN, "score": sk.score()})
+        tracks.append({"name": "stuttoms", "patch": "rock-kit", "gain": STUT_GAIN, "pan": 0.1, "score": st.score()})
     if R101:                                                # whole: a static master tilt towards the album envelope
         # static (whole song): spectrum 100 but flow 99.34 (in 2.63 -> 2.82, out 3.0 -> 3.08) - the seams want t3's own tone;
         # so the tilt rides the weight envelope, between the seams only
