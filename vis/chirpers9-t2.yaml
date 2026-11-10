@@ -73,7 +73,7 @@ scenes:
       camera:
         # 0 behind the walker; 1 low beside the road; 2 from above and behind: the road ahead.
         - {x: "0.3 + 0.1*sin(time.t*0.05)", y: "0.3 + 0.5*var.wide", z: "-0.9 - 1.6*var.wide", look_at: [0, 0.1, 6]}
-        - {x: -0.9, y: -0.3, z: -0.2, look_at: [0.1, 0.05, 2.5]}
+        - {x: -0.9, y: -0.3, z: -0.2, look_at: [0.2, 0.0, 1.4]}
         - {x: 0.55, y: 0.75, z: -0.7, look_at: [0, -0.2, 2.2]}
       shot: {keys: [[36bar, 0], [44bar, 1], [48bar, 0], [56bar, 2], [60bar, 1], [64bar, 0], [72bar, 2]], ease: step}
       layers:
