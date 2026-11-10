@@ -688,7 +688,8 @@
        "age_high": 1.0,
        "passaggio": "F5",
        "vowel_drift": 1.0,
-       "diph_hold": 1.0
+       "diph_hold": 1.0,
+       "diction": 2
       }
      ],
      "lfo": {
@@ -3561,7 +3562,8 @@
        "inhale_depth": 1.0,
        "attack": 0.3,
        "vowel_drift": 0.5,
-       "diph_hold": 0.5
+       "diph_hold": 0.5,
+       "diction": 2
       }
      ],
      "lfo": {

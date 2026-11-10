@@ -1468,6 +1468,25 @@ def she_lifts_over_the_band(song):
                          sw={"points": [["0b", 0.0]] + [[f"{at + on:g}b", db] for on, db in LIFT_SWELL]})
 
 
+# v102 (ROUND TYPE: whole song - the words only; Harry, 10 Nov 18:22: 'lets DO DICTION ... add diction and then cut
+# it'): THE WORDS CARRY. wM's diction (pinned f074503d) on the two layers that sing words - her voice and the duet's.
+# Level 1: sung consonants shape F3 as spoken ones do (an /r/ no longer reads as an /l/); level 2: the consonants fit
+# their notes (at most 35% of a note, 40% of the gap before it), keep their energy when squeezed, and the weak
+# fricatives carry (/f/ /th/ six times as strong). No beat moves; a note with room is as it was. hum1 hums: nothing
+# for diction to do there, left unset. Set here, in the song's own patches - never in the library's.
+DICTION = {"voice": 2, "duet": 2}
+
+
+def the_words_carry(song):
+    for tr_ in song["tracks"]:
+        level = DICTION.get(tr_["name"])
+        if level:
+            tr_["patch"] = json.loads(json.dumps(tr_["patch"]))        # its own copy: no other track shares it
+            layer = tr_["patch"]["synth"]["layers"][0]
+            assert layer["type"] == "voice" and "diction" not in layer, tr_["name"]
+            layer["diction"] = level
+
+
 def kit_events(score):
     pos, ev = 0.0, []
     for tok in score.split():
@@ -2470,6 +2489,7 @@ def main():
     the_band_goes_to_tape(song)
     the_singer_gets_a_microphone(song)
     she_lifts_over_the_band(song)
+    the_words_carry(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
