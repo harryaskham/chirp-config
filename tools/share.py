@@ -75,6 +75,9 @@ def main():
     for w in a.windows.split(","):
         lo, hi = (float(x) for x in w.split("-"))
         mdb, mbp = frames(render(pin, a.song, lo, hi, out, a.seed, a.threads))
+        if not len(mdb):
+            print(f"== bars {lo:g}-{hi:g}: shorter than one {FRAME:g} s frame")
+            continue
         print(f"== bars {lo:g}-{hi:g}   {'track':<9}{'on%':>5}{'lvl':>7}{'best':>10}   " + " ".join(f"{n:>5}" for n in NAMES))
         for name in a.tracks.split(","):
             try:
