@@ -8275,15 +8275,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers9-t1 OUT.wav",
       "best": {
-        "score": 99.182,
-        "version": "v87",
+        "score": 99.159,
+        "version": "v88",
         "commit": "see git log songs/chirpers9-t1.yaml",
         "judged": true
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 103,
+      "rounds": 104,
       "priority": 1.0,
       "genre": "complex electronic",
       "mode": "compose",
@@ -8301,7 +8301,7 @@
         "note": "COMPOSE (seed (outer disk, calm), 240-360 s): The seed. Introduces E1: one short, memorable, endlessly transformable cell (at most 7 notes, a distinctive rhythm), stated sparsely and wide, slow (the album's lowest tempo). Calm, with one small crest. The voice is only a breath or a syllable. Ends by handing E1 into the first overlap."
       },
       "last": {
-        "at": "2026-11-10T02:07:04Z",
+        "at": "2026-11-10T03:26:26Z",
         "who": "chirper-zero"
       }
     },

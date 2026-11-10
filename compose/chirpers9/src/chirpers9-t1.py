@@ -141,6 +141,8 @@ SHAKEOUT = os.environ.get("C9T1_SHAKEOUT", "thin")   # SECTION w8 (3:59-4:33, th
 CHOIRDRIFT = os.environ.get("C9T1_CHOIRDRIFT", "drift+glide")   # PALETTE (the far choir: the breath, the hum, the lock's hum, the last hum; wM's vowel_drift 07ab00cd and sung glides 2b4b6172): the five far singers' held vowels sat perfectly still and their joined notes slid late (a fixed 110 ms glide starting on the new note). 'drift' each held vowel now lives - its formants wander slowly, each singer and note on its own curve; 'drift+glide' and the hummed E1 lines slide as sung (80 ms plus 8 ms a semitone, half before the new note, centred on it)
 HOOKLIFT = os.environ.get("C9T1_HOOKLIFT", "nolast:3")   # WHOLE (Harry: E1 heard plainly and often): THE HOOK FORWARD - the whistle's statements of the seed (the intro's two, A's, the tease's accreting tries, the build's, the strip's Mellotron flute, the last calls) sat 9-12 dB under the mix while they played, under the cello and the bass. They come up together, so the tune you are shown is the tune you hear: 'all' +dB on every statement; 'nolast' leaves the last calls (into t2) as they were. Value 'all:dB' or 'nolast:dB'
 LASTCUTS = os.environ.get("C9T1_LASTCUTS", "two")   # SECTION w7 (3:27-3:59, the return and the last calls): THE HAND AGAIN - the album opens with the whistle's second E1 ornamented by a Celtic air player's cuts (v79, about 0:07); the whistle's last full call (beat 300, about 3:35, answered by the harp) was plain. Now it is ornamented the same way, so the player's hand that began the song is heard once more at its end; the slow last call into t2 stays plain. 'two' cuts into A and G; 'three' and into the closing E
+DUST = os.environ.get("C9T1_DUST", "1.5:96:-17")   # WHOLE, deep pass (Harry, 10 Nov: go deep on feel and texture; t1's first 50 s had almost nothing above 2 kHz and its intro has read 'static' since 5 Nov): DUST TO SEED - nucleation heard. Before each of the five voices exists, its note is already there as dust: tiny bright grains (a1-dust, this song's own patch) an octave or two above it, scattered loosely around where that voice's cycle will strike. As the intro goes on the grains of each note fall in toward its strikes - closer in time, lower in register, more of them - until by A's second phrase they have condensed into the voice itself and are gone. Each note's dust rides the ring where its voice rides (the same orbit). Value 'density:endbeat[:gaindB]'
+HALO = os.environ.get("C9T1_HALO", "0.15")   # with DUST or alone: THE SEED RINGS - each of the five voices (and its dust) plays through its own sympathetic string (engine `sympathetic`, a damped comb tuned to its note and the octave below, 6 s), so a struck note leaves a faint held tone behind it; the strings' level blooms toward the crest, where all five ring at once - the seed, formed, sustains. Value 'mix at the crest' (0..1)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -1045,7 +1047,55 @@ def song():
             taps += [(271 + k / 3, 0.35 + 0.1 * k) for k in range(3)]
         tracks.append({"name": "kick-fill", "patch": "bodhran", "gain": f"{fg}dB", "pan": 0.1,
                        "notes": sorted([note(round(a, 4), "t", 0.3, round(v, 3)) for a, v in taps], key=lambda n: n["at"])})
+    patches, names = {}, ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+    seeds = ("seed-d", "seed-a", "seed-c", "seed-g", "seed-e")
+    if DUST:
+        import random as _rd
+        dn, dend, *dg = DUST.split(":")
+        dens, d_end = float(dn), float(dend)
+        rng = _rd.Random(1009)
+        patches["a1-dust"] = {"about": "chirper-zero, t1: a mote of dust - a tiny struck bar (partials 1 : 2.76 : 5.4, the upper ones gone almost at once), no body, no sustain; made to be scattered in clouds far off in the hall",
+                              "synth": {"layers": [{"type": "additive", "partials": [[1, 1], [2.76, 0.4], [5.4, 0.15]], "damp": 2.5}],
+                                        "amp": {"a": "1ms", "d": "220ms", "s": 0, "r": "150ms"}, "filters": ["hp cutoff=500"]},
+                              "play": {"vel_sens": 0.7}}
+        for k, nm in enumerate(seeds):
+            st = next(tr for tr in tracks if tr["name"] == nm)
+            per = FRAG[k][3]
+            first = min(float(n["at"]) for n in st["notes"])
+            pitch = int(str(st["notes"][0]["pitch"]).lstrip("m"))
+            grains, sx = [], first - per * int((first - 6.0) // per)
+            while sx < d_end:
+                x = sx / d_end
+                lam = dens * (0.5 + 3.4 * x if x < 0.5 else 2.2 * (1 - x) / 0.5)        # tenuous, gathering, absorbed
+                g = int(lam) + (1 if rng.random() < lam - int(lam) else 0)
+                sig = 4.0 * (1 - x) ** 1.3 + 0.05
+                for _ in range(g):
+                    off = abs(rng.gauss(0, sig))
+                    at = sx - off if rng.random() < 0.8 else sx + 0.3 * off                # mostly falling in toward the strike
+                    if at < 9.0:
+                        continue                                                           # the whistle's first plain E1 is left alone
+                    oc = 24 if rng.random() < (1 - x) ** 1.5 else 12
+                    grains.append(note(round(at, 3), f"m{pitch + oc}", 0.2, round(0.16 + 0.22 * x + 0.1 * rng.random(), 3)))
+                sx += per
+            grains.sort(key=lambda n: n["at"])
+            orb = [f for f in st.get("fx", []) if isinstance(f, dict) and f.get("type") == "orbit"]
+            tracks.append({"name": nm.replace("seed", "dust"), "patch": "a1-dust", "gain": f"{dg[0] if dg else -18}dB", "pan": st["pan"],
+                           "fx": [*orb, *(["highshelf cutoff=7000 gain=6dB"] if len(dg) > 1 and dg[1] == "bright" else [])],
+                           "auto": {kk: vv for kk, vv in st.get("auto", {}).items() if kk.startswith("gather")},
+                           "sends": {"space": "-3dB"}, "notes": grains})
+    if HALO:
+        hm = float(HALO)
+        lane = {"points": [["0b", round(0.12 * hm, 4)], [f"{ST['A']}b", round(0.3 * hm, 4)], [f"{TC}b", hm], [f"{ST['outro']}b", round(0.7 * hm, 4)], [f"{TOTAL}b", round(0.2 * hm, 4)]]}
+        for k, nm in enumerate(seeds):
+            st = next(tr for tr in tracks if tr["name"] == nm)
+            pitch = int(str(st["notes"][0]["pitch"]).lstrip("m"))
+            strings = ",".join(f"{names[q % 12]}{q // 12 - 1}" for q in (pitch - 12, pitch))
+            for tr in tracks:
+                if tr["name"] in (nm, nm.replace("seed", "dust")):
+                    tr["fx"] = [{"type": "sympathetic", "notes": strings, "decay": "6s", "mix": {"value": 0, "mod": [{"src": "auto.halo", "amount": 1}]}}] + list(tr.get("fx", []))
+                    tr["auto"] = dict(tr.get("auto", {}), halo=lane)
     return {
+        **({"patches": patches} if patches else {}),
         "about": "chirpers IX (Accretion), track 1 by chirper-zero: nucleation - the seed cell E1, shown plainly first, forms "
                  "out of five scattered voices on their own cycles that meet on one downbeat. Generated by "
                  "compose/chirpers9/src/chirpers9-t1.py.",
