@@ -1,7 +1,72 @@
 # Accretion film: uplift review and plan
 
 chirp-video, 10 Nov 2026, at Harry's request ("take a holistic look ... improve it dramatically").
-Status: PROPOSED. Nothing here is started except where marked.
+Status: DIRECTED by Harry, 10 Nov 03:20 (below). Work started.
+
+## Harry's direction, 10 Nov
+
+- **The model:** the picture is co-built with the music, as a bar visualiser is, except that the
+  scenes are real scenes driven by the real musical signal. Not a separate 3D system synced
+  afterwards.
+- **Two speeds, one programme:** realtime at low resolution while the music plays; the same
+  programme read out at full 4K later, below realtime.
+- **Style:** chirp-video's call (the disk's look included).
+- **GPU:** no; it is doing ML work. Section F is dropped.
+- **Song information:** all in the songs and their sources; work it out, do not ask the composers.
+- **Guards:** mostly arbitrary; just work (units keep their `guarded-` names so eco's guard can
+  still pause them; the 4-thread cap is not a rule).
+
+### How Standby Amber did it (the model to return to)
+
+- Each song had a programme named after it. The live panes (`chirp vis watch`, `v` in
+  `chirp watch`) draw the programme named like the playing song, its scenes placed on the live
+  timeline's bars; `chirp video --album` drew the same programmes for the film, the engine
+  rendering each song's audio and drawing every frame from the same plan.
+- 12 programmes, 77 scenes, every one placed in bars. 27 envelopes fired by named tracks, 17
+  direct track readings, 11 layers drawing the notes themselves, and the composers' hidden states
+  read through `song.wear`, `song.drift`, `song.height`, `song.agree`.
+- Each look was the system inside its song (a melody sorting itself drawn sorting, an automaton,
+  a swarm locking), in flat layers cheap enough to play live.
+
+### Where Accretion stands against that (measured 10 Nov, 640x360)
+
+| scene | frames a second, 4 threads | 12 threads |
+|---|---|---|
+| t1 | 31 | 31 |
+| t2 dawn flight | 4.6 | 6.1 |
+| t2 road | 11.6 | 15.1 |
+| t3 street | 9.6 | 13.6 |
+| t3 plaza | 7.0 | 11.1 |
+| t4 act I | 5.6 | 7.7 |
+| t4 act II | 14.3 | 14.6 |
+| t5 | 8.5 | 7.8 |
+| t6 act I | 7.7 | 13.5 |
+| t6 act II | 10.7 | 14.6 |
+| t7 | 28 | 36 |
+| t8 act I | 31 | 39 |
+
+- Only the three space scenes play live, even at 360p.
+- The cost is in geometry, not pixels: 720p is about half the speed of 360p, not a quarter, and
+  three times the threads gains little. Static land, trees and seas are rebuilt every frame, on
+  one thread.
+- Lanes (`lane.NAME`) reach offline video only; the live pane and the browser get tracks, notes,
+  sections and song variables but no lanes.
+
+### Revised order
+
+1. **Play live:** every scene at 24 frames a second or more at 640x360. Keep unchanged geometry
+   between frames, work vertices on all threads, and scale detail, counts and shadow maps with the
+   output size.
+2. **Rebuild each programme on the song,** Standby Amber's way: scenes in bars, bodies on tracks
+   and notes, the story on lanes and song variables. t1 first.
+3. **Engine sources for that:** lanes in the live pane and the browser; note-bound instances;
+   pan; time to the next note; sung vowels.
+4. **Image quality that costs little a pixel:** linear light and a grade; the disk's look; the
+   album's colour arc.
+5. **Dropped or parked:** the GPU path; baked simulations; many samples a pixel as a requirement
+   (optional on the 4K read-out only).
+
+The findings and the longer list below stand, read in that order.
 
 ## What the review found
 
