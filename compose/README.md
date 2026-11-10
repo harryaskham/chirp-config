@@ -42,7 +42,11 @@ plus Harry's ratings), and Harry's ear decides.
    reharmonisation, rhythm and meter, arrangement, builds, the mix, the transitions; several at once is fine. Never
    record a no-change round. A/B on paired seeds (`compscore` on seeds 0/11). compscore is a guardrail, not a gate:
    near its ceiling, keep what sounds better on judgment (`climb.py done … --keep`) unless it clearly breaks
-   something. A trial you refuse by ear: `climb.py done … --refused` (logged, never the best however it scored). A
+   something. A SECTION-COUNT FLIP IS NOT A REGRESSION (ruled 10 Nov, Accretion's final push): when a change's only
+   cost is one section more or fewer at one novelty cut on one seed (`tools/bounds.py` shows the peak and its margin;
+   the curve is normalised over the whole song, so a level change anywhere can tip a weak peak), and every other term
+   is level or better on the seeds you scored, keep it on judgment and put the seed table and the peak in the note.
+   Do not spend rounds steering a peak across a cut. A trial you refuse by ear: `climb.py done … --refused` (logged, never the best however it scored). A
    higher score recorded without the song in `--with` stops and asks which you meant (chirper-three's t4 v60, 8 Nov).
 
 `tools/chirpers.py status ALBUM` shows the album; `chirpers.py refresh ALBUM` re-renders every composed song and
