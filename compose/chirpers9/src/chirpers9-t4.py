@@ -1236,6 +1236,12 @@ E1_PCS = [2, 9, 0, 7, 4]
 # from 0.2 s, settled before the release, so consonants and joined notes keep their exact vowel). Her voice and her
 # first hums at 1.0 - the most human voice on the album so far; the duet (the younger voice) 0.5, steadier beside her.
 VOWEL_DRIFT = {"voice": 1.0, "hum1": 1.0, "duet": 0.5}
+# v95 (ROUND TYPE: whole song): SHE HOLDS HER VOWELS. Her diphthongs used speech's timing - the first vowel held only 45%
+# of the note, then a slow glide - so a held 'I' slid to 'ee', 'stone' to 'w', 'around' to 'oo' for most of the note.
+# wM's DIPH_HOLD (pinned 504891ac): at 1 the glide comes only in the vowel's last 180 ms, as a singer holds it. Every
+# held diphthong she sings - A's 'lights', 'I', 'count', 'home'; the crest's 'around', 'stone', 'cold', 'I', 'side';
+# the relief's 'I', 'side', 'light' - now holds its first vowel: her voice 1.0, the duet (younger, plainer) 0.5.
+DIPH_HOLD = {"voice": 1.0, "hum1": 1.0, "duet": 0.5}
 
 
 # v92 (ROUND TYPE: palette - the newest engine feature): HER GLIDES, HER OWN WAY. Every slide between her joined notes
@@ -1287,6 +1293,7 @@ def her_vowels_live(song):
         if tr_["name"] in VOWEL_DRIFT and isinstance(tr_.get("patch"), dict):
             p = json.loads(json.dumps(tr_["patch"]))
             p["synth"]["layers"][0]["vowel_drift"] = VOWEL_DRIFT[tr_["name"]]
+            p["synth"]["layers"][0]["diph_hold"] = DIPH_HOLD[tr_["name"]]
             tr_["patch"] = p
 
 
