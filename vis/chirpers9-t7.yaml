@@ -1,66 +1,76 @@
-# chirpers9 t7 "Marginally Bound": the album's crest; the hardest, fastest, densest
-# track, everything colliding. Two acts:
-#   I  (0:00) the hole's disk turning fast, the camera shaking on the hits; three worlds
-#      drift in one after another and are torn apart (0:32, 1:12, 1:52), each one's
-#      debris winding into the hole and bent round the shadow, with sparks and jets;
-#   II (2:30) two holes, each with its own disk and lens, spiral in faster and faster,
-#      a stream of matter between them; at 3:52 they merge in a flash, a shockwave
-#      ring goes out and the new hole's shadow rings as it settles; jets at the lifts.
+# chirpers9 t7 "Marginally Bound": the innermost stable orbit; the album's crest. Co-built with
+# the song (tools/songmap.py chirpers9-t7). Sections: infall (0bar), approach (16), collision
+# (48), slack (80), spiral (88), crest (120), plunge (152), outfall (160).
+#
+# What the song does, and so what the picture does:
+#   - TWO BODIES ON ONE ORBIT. In the sound the inner-orbit trill (e5) and the tide circle the
+#     listener opposite each other, and their composer spirals them in over the whole song:
+#     `lane.fall` is how wide the orbit is (8 at the start, 0.6 at the plunge) and `lane.spin`
+#     how fast it turns (a lap in four bars at first, six laps a bar at the end). Here they are
+#     two holes, each with its own disk and lens, opposite each other on that orbit: they close
+#     and whirl exactly as the sound does, and at 160bar, where the sound has nowhere left to
+#     fall, they merge: a flash, a shockwave ring, and one hole whose shadow rings as it settles.
+#   - Each hole's disk is its own voices: the trill's hole has rings for e5, e4, e1 and the hats;
+#     the tide's for the tide, the bass and the jet. A ring brightens with its part.
+#   - THE COLLISION (48 to 80bar, `lane.coll`): the stream of matter between the two blazes and
+#     throws sparks on every kick; the brass stabs flash it.
+#   - THE JET (E7, the element this track brings): each hole throws a jet as high as the jet line
+#     is playing; at the crest (120bar: the hook, the horns) both fire together.
+#   - The camera shakes on the kick and the snare; the colours split with the composer's glitch
+#     lane; where the composer cuts holes in the sound (`lane.hole`) the disks go dim.
+#   - OUTFALL (160bar): the new hole's jet pulses on the last kicks and the picture closes with
+#     the sound (`lane.close`).
+# Shots cut on bar lines.
+# Reads tracks: e5 e5w e4 e1a hats tide bass jet jethi kick snare stabs hook horns star hold.
+#   Lanes: fall spin coll glitch hole close.
 scenes:
-  - at: 0
-    look:
+  - look:
       background: "#000000"
-      palette: elements
       env:
-        w1: {at: [32], decay: 3}
-        w2: {at: [72], decay: 3}
-        w3: {at: [112], decay: 3}
-        crest: {on: audio.lift, decay: 2.5}
-        hit: {on: audio.onset, decay: 0.15}
-      camera: {x: "2.8*sin(time.t*0.03)", y: "0.6 + 0.2*sin(time.t*0.05)", z: "0 - 2.8*cos(time.t*0.03)", look_at: [0, 0, 0], roll: "0.03*env.hit*sin(time.t*30)"}
-      layers:
-        - {type: stars, count: 1800, speed: 0.004, streak: 1}
-        - {type: motes, mode: orbit, tracks: auto, side: behind, count: 9000, inner: 0.55, radius: 1.9, bands: 7, spin: "1.4 + time.bpm*0.4", life: 5, flat: 0.96, size: 0.007, glow: "0.6 + audio.level*0.6", twinkle: 0.3, spread: 1}
-        - {type: light, x: 0, y: 0.05, z: 0, color: "#ffd8a0", power: "1.6 + 0.8*audio.level", reach: 3}
-        - {type: mesh, shape: sphere, detail: 40, opacity: "clamp((time.t - 32 + 34)*0.25, 0, 1)", x: "(2.4*(0.62 + 0.45*clamp((32 - time.t)/30, 0, 1)))*cos((min(time.t, 32)*0.03 + 0.15))", y: "0.05", z: "(2.4*(0.62 + 0.45*clamp((32 - time.t)/30, 0, 1)))*sin((min(time.t, 32)*0.03 + 0.15))", scale: 0.26, ry: "time.t*0.03", displace: "0.05*clamp(fbm(vtx.x*1.8 + 3, vtx.y*1.8, vtx.z*1.8)*3 + 0.15, 0, 1)", colour: height, palette: ["#08205a", "#0e3a7a", "#2a5a2a", "#5a6a2a", "#8a7a5a", "#e8e8f0"], spread: 0.55, light: 0.3, ambient: 0.1, rim: 1.2, rim_color: "#5a9aff", rim_power: 4, material: pbr, shading: pixel, env_sky: "#1a1630", env_ground: "#020206", rough_map: "0.1 + 0.75*step(0.002, clamp(fbm(vtx.x*1.8 + 3, vtx.y*1.8, vtx.z*1.8)*3 + 0.15, 0, 1))", paint: "clamp(time.t - 32 + 5, 0, 5)*0.5*pow(clamp(1 - abs(noise3(vtx.x*5, vtx.y*5, vtx.z*5))*4, 0, 1), 2)", paint_color: "#ff7020", shatter: env.w1.age, burst: 0.08, drop: 0, tumble: 0.7, sink: [0, 0, 0], pull: 0.07, swirl: 0.12}
-        - {type: motes, mode: emit, spawn: env.w1, count: 600, from: ["2.4*0.62*cos((min(time.t, 32)*0.03 + 0.15))", 0.05, "2.4*0.62*sin((min(time.t, 32)*0.03 + 0.15))"], wobble: 0.9, fall: 0, drag: 0.6, life: 4, streak: 0.08, size: 0.006, glow: 1.6, twinkle: 0.4, palette: ember, spread: 0.6, near: 0.3}
-        - {type: mesh, shape: sphere, detail: 40, opacity: "clamp((time.t - 72 + 34)*0.25, 0, 1)", x: "(2.4*(0.62 + 0.45*clamp((72 - time.t)/30, 0, 1)))*cos((min(time.t, 72)*0.03 + 0.55))", y: "0.1", z: "(2.4*(0.62 + 0.45*clamp((72 - time.t)/30, 0, 1)))*sin((min(time.t, 72)*0.03 + 0.55))", scale: 0.26, ry: "time.t*0.03", displace: "0.05*clamp(fbm(vtx.x*1.8 + 11, vtx.y*1.8, vtx.z*1.8)*3 + 0.15, 0, 1)", colour: height, palette: ["#08205a", "#0e3a7a", "#2a5a2a", "#5a6a2a", "#8a7a5a", "#e8e8f0"], spread: 0.55, light: 0.3, ambient: 0.1, rim: 1.2, rim_color: "#5a9aff", rim_power: 4, material: pbr, shading: pixel, env_sky: "#1a1630", env_ground: "#020206", rough_map: "0.1 + 0.75*step(0.002, clamp(fbm(vtx.x*1.8 + 11, vtx.y*1.8, vtx.z*1.8)*3 + 0.15, 0, 1))", paint: "clamp(time.t - 72 + 5, 0, 5)*0.5*pow(clamp(1 - abs(noise3(vtx.x*5, vtx.y*5, vtx.z*5))*4, 0, 1), 2)", paint_color: "#ff7020", shatter: env.w2.age, burst: 0.08, drop: 0, tumble: 0.7, sink: [0, 0, 0], pull: 0.07, swirl: 0.12}
-        - {type: motes, mode: emit, spawn: env.w2, count: 600, from: ["2.4*0.62*cos((min(time.t, 72)*0.03 + 0.55))", 0.1, "2.4*0.62*sin((min(time.t, 72)*0.03 + 0.55))"], wobble: 0.9, fall: 0, drag: 0.6, life: 4, streak: 0.08, size: 0.006, glow: 1.6, twinkle: 0.4, palette: ember, spread: 0.6, near: 0.3}
-        - {type: mesh, shape: sphere, detail: 40, opacity: "clamp((time.t - 112 + 34)*0.25, 0, 1)", x: "(2.4*(0.62 + 0.45*clamp((112 - time.t)/30, 0, 1)))*cos((min(time.t, 112)*0.03 + 0.85))", y: "0.15000000000000002", z: "(2.4*(0.62 + 0.45*clamp((112 - time.t)/30, 0, 1)))*sin((min(time.t, 112)*0.03 + 0.85))", scale: 0.26, ry: "time.t*0.03", displace: "0.05*clamp(fbm(vtx.x*1.8 + 19, vtx.y*1.8, vtx.z*1.8)*3 + 0.15, 0, 1)", colour: height, palette: ["#08205a", "#0e3a7a", "#2a5a2a", "#5a6a2a", "#8a7a5a", "#e8e8f0"], spread: 0.55, light: 0.3, ambient: 0.1, rim: 1.2, rim_color: "#5a9aff", rim_power: 4, material: pbr, shading: pixel, env_sky: "#1a1630", env_ground: "#020206", rough_map: "0.1 + 0.75*step(0.002, clamp(fbm(vtx.x*1.8 + 19, vtx.y*1.8, vtx.z*1.8)*3 + 0.15, 0, 1))", paint: "clamp(time.t - 112 + 5, 0, 5)*0.5*pow(clamp(1 - abs(noise3(vtx.x*5, vtx.y*5, vtx.z*5))*4, 0, 1), 2)", paint_color: "#ff7020", shatter: env.w3.age, burst: 0.08, drop: 0, tumble: 0.7, sink: [0, 0, 0], pull: 0.07, swirl: 0.12}
-        - {type: motes, mode: emit, spawn: env.w3, count: 600, from: ["2.4*0.62*cos((min(time.t, 112)*0.03 + 0.85))", 0.15000000000000002, "2.4*0.62*sin((min(time.t, 112)*0.03 + 0.85))"], wobble: 0.9, fall: 0, drag: 0.6, life: 4, streak: 0.08, size: 0.006, glow: 1.6, twinkle: 0.4, palette: ember, spread: 0.6, near: 0.3}
-        - {type: lens, radius: "0.62 + audio.low*0.05", hole: 0.42, redshift: 0.45, ring: 0.6}
-        - {type: motes, mode: orbit, tracks: auto, side: front, count: 9000, inner: 0.55, radius: 1.9, bands: 7, spin: "1.4 + time.bpm*0.4", life: 5, flat: 0.96, size: 0.007, glow: "0.6 + audio.level*0.6", twinkle: 0.3, spread: 1}
-        - {type: beam, count: 2, from: [0, "(inst.i*2 - 1)*0.1", 0], to: [0, "(inst.i*2 - 1)*(0.6 + 2.6*max(env.crest, max(env.w1, max(env.w2, env.w3))))", 0], samples: 40, width: 0.02, taper: -2.5, glow: "0.6*max(env.crest, max(env.w1, max(env.w2, env.w3)))", fade: 0.7, color: "#bcd8ff"}
-      filters:
-        - {type: chroma, amount: "0.006*env.hit"}
-        - {type: bloom, threshold: 0.55, amount: 0.75}
-        - {type: tonemap, knee: 0.75}
-        - {type: vignette, amount: 0.45}
-  - at: 150
-    transition: dissolve
-    xfade: 3
-    look:
-      background: "#000000"
+        hit: {when: "3*max(track.kick.hit, track.snare.hit)", decay: 0.15}
+        kick: {on: track.kick, decay: 0.4}
+        stab: {on: track.stabs, decay: 0.3}
+        merge: {when: {keys: [[160bar, 0], [160bar, 1]], ease: step}, decay: 3}
       vars:
-        sep: {value: {keys: [[150, 1.2], [226, 0.35], [232, 0.0]], ease: in}}
-        ang: {integrate: "0.05*pow(1.25/(var.sep + 0.05), 1.5)"}
-        merged: {value: "step(232, time.t)"}
-      env:
-        crest: {on: audio.lift, decay: 2.5}
-      camera: {x: "2.5*sin(time.t*0.02)", y: 0.8, z: "0 - 2.5*cos(time.t*0.02)", look_at: [0, -0.35, 0]}
+        merged: {keys: [[160bar, 0], [160bar, 1]], ease: step}
+        # The orbit: how far apart the two are, and how far round they have gone (laps).
+        sep: {value: "0.16*lane.fall*(1 - var.merged)"}
+        ang: {integrate: "0.3*lane.spin*time.bpm*(1 - var.merged)"}
+        drive: {follow: "max(max(track.kick.level, track.snare.level), track.hats.level)", attack: 60ms, release: 900ms}
+        jet: {follow: "max(track.jet.level, track.jethi.level)", attack: 60ms, release: 600ms}
+        crest: {follow: "max(track.hook.level, track.horns.level)", attack: 100ms, release: 1500ms}
+        dim: {value: "1 + lane.hole/30"}
+        round: {integrate: "0.008 + 0.012*var.drive", wrap: 1}
+      camera:
+        # 0 wide, circling; 1 low, near the plane of the orbit; 2 from above: the orbit as a
+        # ring; 3 close on the pair.
+        - {x: "2.2*sin(var.round)", y: 0.75, z: "0 - 2.2*cos(var.round)", look_at: [0, -0.1, 0], roll: "0.03*env.hit*sin(time.t*30)"}
+        - {x: "2.2*sin(var.round + 0.3)", y: 0.22, z: "0 - 2.2*cos(var.round + 0.3)", look_at: [0, 0, 0], roll: "0.03*env.hit*sin(time.t*30)"}
+        - {x: "0.7*sin(var.round)", y: 2.5, z: "0 - 0.7*cos(var.round)", look_at: [0, 0, 0], roll: "0.02*env.hit*sin(time.t*30)"}
+        - {x: "(1.0 + 1.4*var.sep)*sin(var.round + 0.6)", y: "0.35 + 0.3*var.sep", z: "0 - (1.0 + 1.4*var.sep)*cos(var.round + 0.6)", look_at: [0, -0.05, 0], roll: "0.03*env.hit*sin(time.t*30)"}
+      shot: {keys: [[0bar, 0], [8bar, 2], [16bar, 0], [24bar, 1], [32bar, 0], [40bar, 2], [48bar, 3], [56bar, 0], [64bar, 1], [72bar, 3], [80bar, 2], [88bar, 0], [96bar, 1], [104bar, 2], [112bar, 3], [120bar, 0], [128bar, 2], [136bar, 1], [144bar, 3], [152bar, 2], [156bar, 3], [160bar, 0], [168bar, 1]], ease: step}
       layers:
-        - {type: stars, count: 2600, speed: 0.002, streak: 1}
-        - {type: motes, mode: orbit, tracks: auto, count: 5000, x: "var.sep*cos(var.ang)", z: "var.sep*sin(var.ang)", inner: 0.18, radius: "0.75 + 0.5*var.merged", bands: 4, spin: "0.8 + time.bpm*0.3", life: 4, flat: 0.96, size: 0.008, glow: "0.4 + audio.level*0.6", twinkle: 0.25, spread: 0.6, palette: elements}
-        - {type: motes, mode: orbit, count: 5000, seed: 9, x: "0 - var.sep*cos(var.ang)", z: "0 - var.sep*sin(var.ang)", inner: 0.18, radius: "0.6 + 0.6*var.merged", bands: 3, spin: "0.8 + time.bpm*0.3", life: 4, flat: 0.96, size: 0.008, glow: "0.4 + audio.level*0.6", twinkle: 0.25, spread: 0.6, palette: ember}
-        - {type: beam, opacity: "1 - var.merged", from: ["var.sep*cos(var.ang + 0.04)*0.6", 0, "var.sep*sin(var.ang + 0.04)*0.6"], to: ["0 - var.sep*cos(var.ang - 0.06)*0.75", 0, "0 - var.sep*sin(var.ang - 0.06)*0.75"], sag: -0.08, samples: 50, width: 0.012, glow: "0.6 + audio.low", palette: ember, spread: 0.6, pulses: 5, speed: 0.8}
+        - {type: stars, count: 2600, speed: "0.002 + 0.004*lane.spin", streak: 1, twinkle: "0.3 + 0.7*track.star.hit"}
+        # The trill's hole and its disk; the tide's hole and its disk, opposite.
+        - {type: motes, mode: orbit, tracks: [e5, e4, e1a, hats], count: 5000, x: "var.sep*cos(var.ang)", z: "var.sep*sin(var.ang)", inner: 0.18, radius: "0.75 + 0.5*var.merged", bands: 4, spin: "0.8 + time.bpm*0.3 + 0.3*lane.spin", life: 4, flat: 0.96, size: 0.008, glow: "(0.4 + 0.5*var.drive)*var.dim", twinkle: 0.25, spread: 0.6, palette: elements}
+        - {type: motes, mode: orbit, tracks: [tide, bass, jet], count: 5000, seed: 9, x: "0 - var.sep*cos(var.ang)", z: "0 - var.sep*sin(var.ang)", inner: 0.18, radius: "0.6 + 0.6*var.merged", bands: 3, spin: "0.8 + time.bpm*0.3 + 0.3*lane.spin", life: 4, flat: 0.96, size: 0.008, glow: "(0.4 + 0.5*var.drive)*var.dim", twinkle: 0.25, spread: 0.6, palette: ember}
+        # The stream of matter between them: blazing in the collision, flashing on the stabs.
+        - {type: beam, opacity: "1 - var.merged", from: ["var.sep*cos(var.ang + 0.04)*0.6", 0, "var.sep*sin(var.ang + 0.04)*0.6"], to: ["0 - var.sep*cos(var.ang - 0.06)*0.75", 0, "0 - var.sep*sin(var.ang - 0.06)*0.75"], sag: -0.08, samples: 50, width: "0.01 + 0.012*lane.coll", glow: "(0.35 + 1.0*lane.coll + 1.5*env.stab*lane.coll + 0.5*env.kick)*var.dim", palette: ember, spread: 0.6, pulses: 5, speed: "0.5 + 0.5*lane.spin"}
+        - {type: motes, mode: emit, spawn: env.kick, count: 400, from: [0, 0, 0], wobble: 0.9, fall: 0, drag: 0.6, life: 2.5, streak: 0.08, size: 0.006, glow: "1.6*lane.coll", twinkle: 0.4, palette: ember, spread: 0.6, near: 0.3}
         # Two lenses, then one: the merged hole's shadow rings as it settles.
         - {type: lens, opacity: "1 - var.merged", x: "var.sep*cos(var.ang)", y: 0, z: "var.sep*sin(var.ang)", radius: 0.32, hole: 0.42, redshift: 0.45, ring: 0.5}
         - {type: lens, opacity: "1 - var.merged", x: "0 - var.sep*cos(var.ang)", y: 0, z: "0 - var.sep*sin(var.ang)", radius: 0.26, hole: 0.42, redshift: 0.45, ring: 0.5}
-        - {type: lens, opacity: "var.merged", x: 0, y: 0, z: 0, radius: "0.42*(1 + 0.25*spring(time.t - 232, 2.2, 1.6))", hole: 0.42, redshift: 0.5, ring: 0.7}
-        - {type: beam, count: 2, opacity: "var.merged", from: [0, "(inst.i*2 - 1)*0.1", 0], to: [0, "(inst.i*2 - 1)*(0.8 + 2.4*env.crest)", 0], samples: 40, width: 0.025, taper: -2.5, glow: "0.7*env.crest", fade: 0.7, color: "#bcd8ff"}
-        - {type: mesh, shape: torus, detail: 64, tube: 0.03, sy: 0.3, opacity: "0.8*clamp(1 - (time.t - 232)/3, 0, 1)*step(232, time.t)", scale: "0.2 + 1.8*clamp(time.t - 232, 0, 3)", color: "#ffe0c0", light: 0, ambient: 0, rim: 0, emit: 2}
+        - {type: lens, opacity: var.merged, x: 0, y: 0, z: 0, radius: "0.42*(1 + 0.25*spring(env.merge.age, 2.2, 1.6))", hole: 0.42, redshift: 0.5, ring: 0.7}
+        # The jets: each hole's as high as the jet line plays; both at the crest; the new
+        # hole's on the last kicks.
+        - {type: beam, count: 2, opacity: "1 - var.merged", from: ["var.sep*cos(var.ang)", "(inst.i*2 - 1)*0.08", "var.sep*sin(var.ang)"], to: ["var.sep*cos(var.ang)", "(inst.i*2 - 1)*(0.3 + 1.6*var.jet + 1.4*var.crest)", "var.sep*sin(var.ang)"], samples: 40, width: 0.018, taper: -2.5, glow: "(0.55*var.jet + 0.6*var.crest)*var.dim", fade: 0.7, color: "#bcd8ff"}
+        - {type: beam, count: 2, opacity: "1 - var.merged", from: ["0 - var.sep*cos(var.ang)", "(inst.i*2 - 1)*0.08", "0 - var.sep*sin(var.ang)"], to: ["0 - var.sep*cos(var.ang)", "(inst.i*2 - 1)*(0.3 + 1.0*var.jet + 1.8*var.crest)", "0 - var.sep*sin(var.ang)"], samples: 40, width: 0.018, taper: -2.5, glow: "(0.35*var.jet + 0.7*var.crest)*var.dim", fade: 0.7, color: "#ffd8b0"}
+        - {type: beam, count: 2, opacity: var.merged, from: [0, "(inst.i*2 - 1)*0.1", 0], to: [0, "(inst.i*2 - 1)*(0.8 + 2.4*env.kick + 1.5*exp(0 - env.merge.age/3))", 0], samples: 40, width: 0.025, taper: -2.5, glow: "0.6*env.kick + 0.8*exp(0 - env.merge.age/3) + 0.3*track.hold.level", fade: 0.7, color: "#bcd8ff"}
+        # The merger's shockwave.
+        - {type: mesh, shape: torus, detail: 64, tube: 0.03, sy: 0.3, opacity: "0.8*clamp(1 - env.merge.age/3, 0, 1)*var.merged", scale: "0.2 + 1.8*clamp(env.merge.age, 0, 3)", color: "#ffe0c0", light: 0, ambient: 0, rim: 0, emit: 2}
       filters:
+        - {type: chroma, amount: "0.04*lane.glitch*(0.3 + env.hit) + 0.004*env.hit"}
         - {type: bloom, threshold: 0.55, amount: 0.75}
-        - {type: color, exposure: {keys: [[231.8, 1], [232.1, 5], [234, 1]], ease: out}}
+        - {type: color, exposure: "(1 + 4*var.merged*exp(0 - env.merge.age*2))*(1 + 0.3*lane.close)"}
         - {type: tonemap, knee: 0.75}
         - {type: vignette, amount: 0.45}
