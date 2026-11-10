@@ -1277,6 +1277,121 @@ WIDE_TOP = {"type": "width", "width": 1.0, "mono_below": "off", "crossover": "lr
             "bands": [[200, 1.0], [1500, 1.0], [3000, 1.2], [7000, 1.35]]}
 
 
+# v97 (ROUND TYPE: whole song - DEEP pass 2, FEEL): THE DRUMMER PLAYS. Read as a drummer would read it, t4's brush kit
+# was a loop: through B's sixteen bars the kick fell on 1 and the snare on 3 of every bar, identically; nothing led into
+# the ride's entry (49) or out into the drop (57); and the arrangement map (chirper-two's tools/amap.py) says the brush
+# hat's eighths - the right hand - were MASKED wherever they played (-20 to -25 dB against the mix). A person plays it:
+#   - THE BRUSHES ARRIVE BEFORE THE BEAT (track stir, the brush kit's held swish, two takes far left and right): from
+#     bar 37, under the end of her first verse, the left hand stirs - a slow circle on every half bar, swelling - and
+#     keeps stirring under the kit's first four bars; at 44.5, where the shaker thins (v91), the stir stops and the HAT
+#     RESTS too: both hands on the snare, taps alone, until the ride (49). The groove loosens as the noise does;
+#   - GHOST TAPS on the snare once the pattern has been stated (from bar 45, and through the rise): a soft tap before
+#     the backbeat in one bar, two after it in the next (velocities 32-38 against the backbeat's 78);
+#   - THE FOOT VARIES: a pickup on the and of 4 into each new phrase (44, 48, 52) and a second, softer kick on the and
+#     of 3 in between (46, 50, 54);
+#   - FILLS where the form turns: four rising taps into the ride (bar 48), into the rise (64) and into the crest's stop
+#     (80); one long brush SWEEP lifting off into the drop (56);
+#   - THE HAT IS HEARD (+6 dB), and the BACKBEAT SITS LATE (the kit's own nudge, 10 ms on the snare) - laid back, as
+#     the relief should be.
+# (The library's players already carry their own small timing and velocity scatter - brush kit 5 ms, bass 8, cellos 12
+# - so this is the part written like a person, not jitter added.)
+# Tried first, by eco's flatness on the two 8 s blocks either side of bar 44.3 (seed 5; v96 0.71, the flat line 0.691):
+# the stir FROM 44.5 with hat eighths throughout 0.66; hat upbeats only 0.67; hat resting 0.68. Taken apart: the stir
+# after 44.5 fills the very hole the thinning opens (-0.07), ghosts and kicks from bar 42 evened the two blocks' kick
+# counts (-0.04), the hat's level alone does nothing (0.71) and its rest is the move (+0.10). So the stir went BEFORE
+# the thinning, and the ornaments after the pattern's first four bars.
+KICK_AND_OF_3 = (46, 50, 54)
+KICK_PICKUP = (44, 48, 52)
+KICK_SOFT = (66, 58)                     # velocities: the and of 3, the pickup
+GHOST_BARS = tuple(range(45, 57)) + (63,) + tuple(range(69, 80))
+GHOST_ODD = ((1.5, 36),)                 # (beat in the bar from 0, velocity): the tap before the backbeat
+GHOST_EVEN = ((3.0, 32), (3.5, 38))      # two after it
+FILL_TAPS = {48: (46, 54, 62, 74), 64: (50, 58, 68, 80), 80: (60, 72, 86, 100)}   # bar: four sixteenths on beat 4
+FILL_SWEEP = (56, 3.0, 1.0, 76)          # bar, beat, length, velocity: the brush kit's one-stroke sweep (sp)
+HAT_HEARD_DB = 6.0
+HAT_RESTS = (44.5, 49)                   # bars: both hands on the snare
+STIR = (37, 44.5)                        # bars: from under her first verse's end to the shaker's thinning
+STIR_VELS = (30, 52)                     # swelling over its first four bars (37 to 41), then held
+STIR_SWELL_DB = -7.0                     # and in level: under her verse it starts 22 dB under the mix (measured; she
+#                                          is at -8), reaching -17 as the kit enters
+STIR_GAIN, STIR_PAN, STIR_ROOM = "-10dB", 85, "-10dB"
+STIR_FX = ["filter kind=lp cutoff=5500"]  # a shhh, not a ssss: the swish as patched is brightest at 4-16 kHz (centroid
+#                                           7.9 kHz), where the hat, the ride, the shaker and her sibilants live
+LAID_BACK = "10ms"
+
+
+def kit_events(score):
+    pos, ev = 0.0, []
+    for tok in score.split():
+        head, _, rest = tok.partition("/")
+        ln = float(rest.split("b")[0])
+        if head != "R":
+            ev.append([pos, ln, head, int(rest.split("@")[1])])
+        pos += ln
+    assert abs(pos - TOTAL) < 1e-6, pos
+    return ev
+
+
+def kit_score(ev):
+    toks, at = [], 0.0
+    ev = sorted(ev)
+    for i, (s, ln, h, v) in enumerate(ev):
+        ln = min(ln, (ev[i + 1][0] if i + 1 < len(ev) else TOTAL) - s)
+        assert ln > 1e-6, (s, h)
+        if s - at > 1e-6:
+            toks.append(f"R/{s - at:.9g}b")
+        toks.append(f"{h}/{ln:.9g}b@{v}")
+        at = s + ln
+    if TOTAL - at > 1e-6:
+        toks.append(f"R/{TOTAL - at:.9g}b")
+    return " ".join(toks)
+
+
+def the_drummer_plays(song):
+    by = {x["name"]: x for x in song["tracks"]}
+    kick = kit_events(by["kick"]["score"])
+    for bar in KICK_AND_OF_3:
+        kick.append([b0(bar) + 2.5, 0.5, "k", KICK_SOFT[0]])
+    for bar in KICK_PICKUP:
+        kick.append([b0(bar) + 3.5, 0.5, "k", KICK_SOFT[1]])
+    by["kick"]["score"] = kit_score(kick)
+    snare = kit_events(by["snare"]["score"])
+    taken = {round(e[0], 4) for e in snare}
+    for bar in GHOST_BARS:
+        for beat, vel in (GHOST_ODD if bar % 2 else GHOST_EVEN):
+            if bar in FILL_TAPS or (bar == FILL_SWEEP[0] and beat >= FILL_SWEEP[1]):
+                continue
+            assert round(b0(bar) + beat, 4) not in taken, (bar, beat)
+            snare.append([b0(bar) + beat, 0.25, "s", vel])
+    for bar, vels in FILL_TAPS.items():
+        for i, vel in enumerate(vels):
+            assert round(b0(bar) + 3 + i * 0.25, 4) not in taken, (bar, i)
+            snare.append([b0(bar) + 3 + i * 0.25, 0.25, "s", vel])
+    bar, beat, ln, vel = FILL_SWEEP
+    snare.append([b0(bar) + beat, ln, "sp", vel])
+    by["snare"]["score"] = kit_score(snare)
+    assert by["snare"]["patch"] == "brush-kit"
+    by["snare"]["patch"] = f"brush-kit play.humanize.nudge.s={LAID_BACK}"
+    hat = by["hat"]
+    hat["gain"] = f"{float(hat['gain'].replace('dB', '')) + HAT_HEARD_DB:g}dB"
+    lo, hi = b0(HAT_RESTS[0]), b0(HAT_RESTS[1])
+    strokes = kit_events(hat["score"])
+    keep = [e for e in strokes if not lo - 1e-6 <= e[0] < hi - 1e-6]
+    assert len(strokes) - len(keep) == round(2 * (hi - lo)), (len(strokes), len(keep))
+    hat["score"] = kit_score(keep)
+    stir, at = [], b0(STIR[0])
+    while at < b0(STIR[1]) - 1e-6:
+        ln = min(2.0, b0(STIR[1]) - at)
+        swell = min(1.0, (at - b0(STIR[0])) / 16.0)
+        stir.append([at, ln, "sw", round(STIR_VELS[0] + (STIR_VELS[1] - STIR_VELS[0]) * swell)])
+        at += ln
+    song["tracks"].append({"name": "stir", "patch": "brush-kit", "score": kit_score(stir), "gain": STIR_GAIN,
+                           "fx": list(STIR_FX) + ["gain gain=0dB+auto.sg*1"],
+                           "auto": {"sg": {"points": [["0b", STIR_SWELL_DB], [f"{b0(STIR[0]):g}b", STIR_SWELL_DB],
+                                                      [f"{b0(STIR[0]) + 16:g}b", 0.0]]}},
+                           "double": {"pan": STIR_PAN}, "sends": {"room": STIR_ROOM}})
+
+
 def split_score(score, a, z):
     """One score -> (inside, outside): the events starting in [a, z) beats and the rest, each a full-length score.
     The latching strum setting is carried into both."""
@@ -2202,6 +2317,7 @@ def main():
     her_glides(song)
     lights_move(song)
     the_band_sits_around_you(song)
+    the_drummer_plays(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
