@@ -1531,6 +1531,25 @@ def build():
             f0_ = (n_.get('expr_path') or {}).get('f0') or []
             if f0_ and len(f0_) < 96 and len(f0_) / 44.0 < 0.95 * n_['len'] * 60.0 / 98.0:
                 n_['path_len'] = f"{len(f0_) / 44.0:.3f}s"
+    # (v101, whole song: wM's vowel_drift and sung glides, pinned 07ab00cd and 2b4b6172, as on t6 v101/v103) THE
+    # SINGERS BREATHE LIKE SINGERS: every held vowel in the song sat perfectly still, and every slide between joined
+    # notes was one fixed 110 ms glide starting on the new note, so each landed late and a step took as long as a
+    # fifth. Now the near voice's and the choirs' held vowels move a little as a singer's jaw settles (0.5 for the
+    # trained near voice, 0.7 for the choirs, each singer on its own path), and their slides take 80 ms plus 8 ms a
+    # semitone with half sung before the new note, so they centre on the beat. The crest's lines - 'nearer each time
+    # it comes round', its answer, its pad and the far choir that echoes it, at the crest and in the last chorus - keep
+    # exactly the voice Harry heard (note 49572128): they are left out
+    KEEP_ = ('crestsung', 'crestb', 'answer', 'crestpad', 'farchoir')
+    VDT_ = {'voice-near': 0.5, 'voice-backing': 0.7}
+    for t_ in song['tracks']:
+        pt_ = t_.get('patch')
+        if t_['name'] in KEEP_ or not (isinstance(pt_, dict) and isinstance(pt_.get('extends'), str)):
+            continue
+        for k_, v_ in VDT_.items():
+            if pt_['extends'].startswith(k_):
+                t_['patch'] = dict(pt_, extends=pt_['extends'] + f' synth.layers.0.vowel_drift={v_:g}',
+                                   play=dict(pt_.get('play') or {}, glide='80ms', glide_semi='8ms', glide_lead=0.5))
+                break
     return song
 
 
