@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """amap: an arrangement map - which of a song's tracks can be HEARD, window by window (chirper-two, 10 Nov).
 
-  amap.py ID [--song FILE] [--win 32] [--seed 0] [-j 3] [--cache DIR] [--by entry] [--json]
+  amap.py ID [--song FILE] [--win 32] [--seed 0] [-j 3] [--cache DIR] [--by entry] [--strikes] [--json]
+  amap.py ID --track NAME [--strikes]      one part in detail: against the rest per octave, and who covers it
 
 After a hundred rounds of accretion a song has a hundred tracks, 30-45 of them sounding at once. presence.py answers
 "how loud is each track in THIS window" by rendering every track solo for the window; amap renders every track solo
@@ -21,6 +22,17 @@ What it is for: finding the parts nobody can hear (a signature arp at -28 dB, a 
 element's carrier masked through a whole section) and seeing a re-balance land. What it is not: a score, or an ear.
 A part masked 90% of the time can still be the right ghost; a part "heard" in a band can still be lost in a busy
 texture. Octave bands are wider than critical bands, so the estimate leans strict for narrow sounds.
+
+--strikes (chirper-zero, 10 Nov: t1's plucks and a tubular bell read 0-2 tenths however clear the strike, because
+every frame of their long ring counted): judge each part only in the frames within 12 dB of its own loudest frame in
+the window. Use it for mallets, plucks, bells, drums with a tail; the default suits held and sung parts.
+
+--track NAME (chirper-zero asked for "against the rest, per band, while it sounds"; chirper-three's stems.py is the
+same sum): for each window the part plays in, its level against EVERYTHING ELSE (the mix minus the part) in each of
+the nine octave bands over its sounding frames (or its strikes), its best band, and the three other parts with the
+most power in that band in those frames - who is covering it. +0 dB = it matches the rest of the mix there; the map's
+"heard" line is about -4.8 dB (a quarter of the mix). A voice can lead its own octave and still read 4-5 tenths on
+the map from its breaths and tails (chirper-zero, t5): this view shows where it leads and where it is covered.
 
 The cache (--cache DIR, default /tmp/lt/amap/<song sha1>-<pin>-s<seed>) holds one small .npz per track; a second run
 is instant. Rendering 100 solos of a 5-minute song takes 10-20 minutes at -j 3: run it in a guarded unit.
@@ -68,7 +80,10 @@ def stem(pin, song, cache, name, seed):
     return name
 
 
-def cells(live, cache, times, edges):
+STRIKE_DB = 12.0      # --strikes: frames within this of the part's loudest frame in the window
+
+
+def cells(live, cache, times, edges, strikes=False):
     """{track: [None | (heard share, level vs mix dB, active share)] per window}."""
     mix = np.load(os.path.join(cache, "__mix__.npz"))
     stems = {n: np.load(os.path.join(cache, n + ".npz")) for n in live}
@@ -89,10 +104,40 @@ def cells(live, cache, times, edges):
             if peak < -100.0 or not o.any():
                 row.append(None)
                 continue
+            act = float(o.mean())
+            if strikes:
+                o = o & (d[i0:i1] >= d[i0:i1][o].max() - STRIKE_DB)
             row.append((round(float(heard[i0:i1][o].mean()), 2), round(float(pw(d[i0:i1][o]) - pw(mdb[i0:i1][o])), 1),
-                        round(float(o.mean()), 2)))
+                        round(act, 2)))
         rows[n] = row
     return rows
+
+
+def detail(name, live, cache, times, edges, strikes=False):
+    """Per window NAME plays in: (window start beat, [its level vs the rest per band, dB], best band, [(coverer, dB vs it)])."""
+    mix = np.load(os.path.join(cache, "__mix__.npz"))
+    stems = {n: np.load(os.path.join(cache, n + ".npz")) for n in live}
+    k = min([len(mix["db"])] + [len(stems[n]["db"]) for n in live])
+    d, bp, mbp = stems[name]["db"][:k], stems[name]["bp"][:k], mix["bp"][:k]
+    peak = float(d.max())
+    on = d > max(peak - P.SOUNDS_DB, -100.0)
+    out = []
+    for a, b in zip(edges[:-1], edges[1:]):
+        i0, i1 = int(times[a] / P.FRAME), int(times[b] / P.FRAME)
+        o = on[i0:i1]
+        if peak < -100.0 or not o.any():
+            continue
+        if strikes:
+            o = o & (d[i0:i1] >= d[i0:i1][o].max() - STRIKE_DB)
+        mine, allp = bp[i0:i1][o].sum(0), mbp[i0:i1][o].sum(0)
+        rest = np.maximum(allp - mine, allp * 1e-3)
+        vs = 10 * np.log10((mine + 1e-20) / rest)
+        ok = mine >= mine.max() * 1e-2                      # bands within 20 dB of the part's own strongest band
+        best = int(np.argmax(np.where(ok, vs, -999.0)))
+        cov = sorted(((float(stems[n]["bp"][:k][i0:i1][o][:, best].sum()), n) for n in live if n != name), reverse=True)[:3]
+        out.append((a, [round(float(v), 1) for v in vs], best,
+                    [(n, round(float(10 * np.log10((pw + 1e-20) / (mine[best] + 1e-20))), 1)) for pw, n in cov]))
+    return out
 
 
 def main(argv=None):
@@ -105,6 +150,8 @@ def main(argv=None):
     ap.add_argument("--cache")
     ap.add_argument("--pin")
     ap.add_argument("--by", choices=["heard", "entry"], default="heard", help="row order (default: most heard first)")
+    ap.add_argument("--strikes", action="store_true", help="judge each part at its strikes (plucks, mallets, bells)")
+    ap.add_argument("--track", help="one part in detail: against the rest per octave band, and who covers it")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
     song = a.song or (os.path.join(ROOT, "songs", f"{a.id}.yaml") if a.id else None)
@@ -125,7 +172,22 @@ def main(argv=None):
     times = CH.song_timeline(pin, song)["times"]
     nb = len(times) - 1
     edges = list(range(0, nb, a.win)) + [nb]
-    rows = cells(live, cache, times, edges)
+    if a.track:
+        if a.track not in live:
+            raise SystemExit(f"amap: no live track {a.track!r} (tracks: {' '.join(live)})")
+        det = detail(a.track, live, cache, times, edges, a.strikes)
+        if a.json:
+            print(json.dumps({"song": song, "track": a.track, "bands_hz": EDGES, "windows": det}))
+            return
+        print(f"{a.track} in {os.path.basename(song)}: its level against everything else, dB, per octave band, "
+              f"{'at its strikes' if a.strikes else 'while it sounds'} (* = its best band; then who has most power there)")
+        print(f"{'beat':>5s} {'m:ss':>5s} " + " ".join(f"{(str(e) if e < 1000 else f'{e / 1000:g}k'):>6s}" for e in EDGES[:-1]))
+        for b0, vs, best, cov in det:
+            print(f"{b0:>5d} {int(times[b0] // 60)}:{int(times[b0] % 60):02d}  "
+                  + " ".join((f"{v:+5.1f}" if v > -60 else "    .") + ("*" if i == best else " ") for i, v in enumerate(vs))
+                  + "  " + ", ".join(f"{n} {v:+.0f}" for n, v in cov))
+        return
+    rows = cells(live, cache, times, edges, a.strikes)
     nw = len(edges) - 1
     if a.json:
         print(json.dumps({"song": song, "cache": cache, "win": a.win, "edges": edges,
@@ -137,8 +199,8 @@ def main(argv=None):
     else:
         order = sorted(live, key=lambda n: -sum(c[0] * c[2] for c in rows[n] if c))
     w = max(8, max(len(n) for n in live))
-    print(f"{os.path.basename(song)}: {len(live)} tracks, windows of {a.win} beats; digit = share of the track's sounding "
-          f"frames it is HEARD in (tenths), ! = also under -25 dB, . = silent")
+    print(f"{os.path.basename(song)}: {len(live)} tracks, windows of {a.win} beats; digit = share of the track's "
+          f"{'STRIKE' if a.strikes else 'sounding'} frames it is HEARD in (tenths), ! = also under -25 dB, . = silent")
     print(f"{'beat':{w}s} " + " ".join(f"{e:>4d}" for e in edges[:-1]))
     print(f"{'m:ss':{w}s} " + " ".join(f"{int(times[e] // 60)}:{int(times[e] % 60):02d}" for e in edges[:-1]))
     for n in order:
