@@ -143,6 +143,7 @@ HOOKLIFT = os.environ.get("C9T1_HOOKLIFT", "nolast:3")   # WHOLE (Harry: E1 hear
 LASTCUTS = os.environ.get("C9T1_LASTCUTS", "two")   # SECTION w7 (3:27-3:59, the return and the last calls): THE HAND AGAIN - the album opens with the whistle's second E1 ornamented by a Celtic air player's cuts (v79, about 0:07); the whistle's last full call (beat 300, about 3:35, answered by the harp) was plain. Now it is ornamented the same way, so the player's hand that began the song is heard once more at its end; the slow last call into t2 stays plain. 'two' cuts into A and G; 'three' and into the closing E
 DUST = os.environ.get("C9T1_DUST", "1.5:96:-17")   # WHOLE, deep pass (Harry, 10 Nov: go deep on feel and texture; t1's first 50 s had almost nothing above 2 kHz and its intro has read 'static' since 5 Nov): DUST TO SEED - nucleation heard. Before each of the five voices exists, its note is already there as dust: tiny bright grains (a1-dust, this song's own patch) an octave or two above it, scattered loosely around where that voice's cycle will strike. As the intro goes on the grains of each note fall in toward its strikes - closer in time, lower in register, more of them - until by A's second phrase they have condensed into the voice itself and are gone. Each note's dust rides the ring where its voice rides (the same orbit). Value 'density:endbeat[:gaindB]'
 HALO = os.environ.get("C9T1_HALO", "0.15")   # with DUST or alone: THE SEED RINGS - each of the five voices (and its dust) plays through its own sympathetic string (engine `sympathetic`, a damped comb tuned to its note and the octave below, 6 s), so a struck note leaves a faint held tone behind it; the strings' level blooms toward the crest, where all five ring at once - the seed, formed, sustains. Value 'mix at the crest' (0..1)
+FIELD = os.environ.get("C9T1_FIELD", "hall+arc+spray")   # WHOLE, deep pass 2 (chirper-three's and chirper-one's finding, 10 Nov: Accretion's top end is nearly mono - t1 read -10.5 dB side/mid at 2-16 kHz, -13.2 in the air; the genre anchors sit near 0 and above): THE FIELD - t1's own answer is its story, told by the stereo image. Scattered matter is wide; the seed forms at a point; formed, it shines. Options, '+'-joined: 'hall' the hall's tail lets the air through and spreads it (high_cut 16 kHz, spread 1); 'arc' a master width stage on the bands above 2.5 and 6 kHz, on one lane: wide through the intro and A (the scattered field), closing in through the build until at the last beat before the crest the top of the mix is almost a point - and at the crest's downbeat it snaps open, wider than anything before; it eases through B and is neutral from the outro on, so the overlap with t2 is as agreed; 'spray' at the crest the seed throws off dust: a burst of the intro's grains (a1-dust, E1's five notes two octaves up) flung hard left and right, independent each side, thick on the downbeat and thinning over four bars to a sparse sprinkle that lasts through B and is gone before the outro
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -1094,7 +1095,28 @@ def song():
                 if tr["name"] in (nm, nm.replace("seed", "dust")):
                     tr["fx"] = [{"type": "sympathetic", "notes": strings, "decay": "6s", "mix": {"value": 0, "mod": [{"src": "auto.halo", "amount": 1}]}}] + list(tr.get("fx", []))
                     tr["auto"] = dict(tr.get("auto", {}), halo=lane)
-    return {
+    if "spray" in FIELD:
+        import random as _rs
+        rs = _rs.Random(2027)
+        patches.setdefault("a1-dust", {"about": "chirper-zero, t1: a mote of dust - a tiny struck bar (partials 1 : 2.76 : 5.4, the upper ones gone almost at once), no body, no sustain; made to be scattered in clouds far off in the hall",
+                                       "synth": {"layers": [{"type": "additive", "partials": [[1, 1], [2.76, 0.4], [5.4, 0.15]], "damp": 2.5}],
+                                                 "amp": {"a": "1ms", "d": "220ms", "s": 0, "r": "150ms"}, "filters": ["hp cutoff=500"]},
+                                       "play": {"vel_sens": 0.7}})
+        sides = {"spray-l": [], "spray-r": []}
+        t = float(TC)
+        while t < ST["outro"] - 4:
+            x = t - TC
+            lam = 5.0 * 2.718281828 ** (-x / 5.0) + (0.8 if x < 64 else 0.8 * max(0.0, (ST["outro"] - 4 - t) / (ST["outro"] - 4 - TC - 64)))   # grains per beat
+            t += rs.expovariate(max(lam, 0.05))
+            if t >= ST["outro"] - 4:
+                break
+            x = t - TC
+            mm = rs.choice(E1_MIDI) + (24 if rs.random() < 0.7 else 12)
+            vel = round((0.42 * 2.718281828 ** (-x / 6.0) + 0.16) * (0.75 + 0.5 * rs.random()), 3)
+            sides[rs.choice(("spray-l", "spray-r"))].append(note(round(t, 3), f"m{mm}", 0.2, vel))
+        for nm, pan in (("spray-l", -0.9), ("spray-r", 0.9)):
+            tracks.append({"name": nm, "patch": "a1-dust", "gain": "-19dB", "pan": pan, "sends": {"space": "-3dB"}, "notes": sides[nm]})
+    doc = {
         **({"patches": patches} if patches else {}),
         "about": "chirpers IX (Accretion), track 1 by chirper-zero: nucleation - the seed cell E1, shown plainly first, forms "
                  "out of five scattered voices on their own cycles that meet on one downbeat. Generated by "
@@ -1120,6 +1142,14 @@ def song():
                                                        + (["peak cutoff=182 q=1.6 gain=1.2dB", "highshelf cutoff=12000 gain=3dB"] if MASTEREQ == "lite3" else ["highshelf cutoff=12000 gain=2dB"])},
                                "limiter ceiling=-1dB"]}} if MASTEREQ else {}),
     }
+    if "hall" in FIELD:
+        doc["buses"]["space"]["fx"][0] += " high_cut=16000 spread=1"
+    if "arc" in FIELD and "master" in doc:
+        doc["master"]["fx"].insert(-1, {"type": "width", "width": 1, "mono_below": 0, "crossover": "lr4",
+                                        "bands": [[2500, {"value": 1.0, "mod": [{"src": "auto.field", "amount": 0.5}]}], [6000, {"value": 1.0, "mod": [{"src": "auto.field", "amount": 1.0}]}]]})
+        doc["master"]["auto"] = dict(doc["master"].get("auto", {}), field={"points": [["0b", 1.0], [f"{ST['build']}b", 1.0], [f"{TC - 0.25}b", -0.6], [f"{TC}b", 1.2],
+                                                                                        [f"{TC + 32}b", 1.0], [f"{ST['outro'] - 16}b", 1.0], [f"{ST['outro']}b", 0.0], [f"{TOTAL}b", 0.0]]})
+    return doc
 
 
 if __name__ == "__main__":
