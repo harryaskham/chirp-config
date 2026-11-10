@@ -147,6 +147,7 @@ FIELD = os.environ.get("C9T1_FIELD", "hall+arc+spray")   # WHOLE, deep pass 2 (c
 FEED = os.environ.get("C9T1_FEED", "cantus:-5,pad:-4,warmth:-4,cloud:-4")   # WHOLE, deep pass 3 (chirper-two's arrangement map, tools/amap.py, run on v89: the five seed voices - the subject of the track - read 'masked in most of their windows'. At the moment of each strike they sit 3-8 dB under everything else in their own best octave, and the part over them is the bed: the cello cantus over the D and the E, the cello and the bass over the A and the C): THE SEED FEEDS ON THE DISK - each strike of a seed voice takes a little from the bed: the cello, the pad, the organ and the cloud dip under it and swell back in two thirds of a beat. Five cycles of 9, 7, 8, 6 and 5 beats strike at their own times, so the bed stirs with the polymeter, and where two or more strike together it dips for them together; at the crest, where all five meet, the whole bed breathes once. It stops at the outro, so the overlap with t2 is as agreed. Value 'track:dB,...'
 HEARD = os.environ.get("C9T1_HEARD", "seed-d:2,seed-c:2,seed-e:2,crest-gong:10,spray:8")   # with it, from the same map - three parts that were written, described in these notes, and not heard: the D, C and E seed voices up a little; the tubular bell on the crest's downbeat (v82: 17 dB under the band in its best octave); v89's burst of dust at the crest (11-14 dB under). Value 'track:+dB,...' (a name matches every track that starts with it)
 MASTERGLUE = os.environ.get("C9T1_MASTERGLUE", "-27:2.5")   # WHOLE, deep pass 4 (chirper-one's limiter finding, tools/limwork.py, run on t1 v90: the loudness stage adds 19 dB and the final limiter then does the mastering at the crest - for the first two and a half seconds after the downbeat it is pulling more than 6 dB, 12 at its deepest, in milliseconds: the moment the whole track is for, the five voices, the bell and the dust arriving together, was the most squashed in the song - and v90's louder bell and dust made it worse): THE CREST IS MASTERED, NOT CRUSHED - a master bus compressor whose threshold t1's own mix reaches ('threshold dB', before the loudness stage; 2:1, 30 / 300 ms, detector high-passed at 120 Hz) takes the crest slowly, and a soft clipper ahead of the limiter ('clip dB' over the ceiling) rounds what is left. Value 'threshold:clip[:ratio]'
+LOCKSUNG = os.environ.get("C9T1_LOCKSUNG", "rest3+lift:2")   # WHOLE, deep pass 5 (chirper-two's amap --track, run on v91: in B the crystal cell holds the 355-1400 Hz octaves 13 to 30 dB over EVERYTHING ELSE - B's middle is the crystal alone - and the one part it buries is the album's first voices: the choir's hummed E1 at the lock (v75, beats 240-252) sits 8 dB under the band in its own best octave, the crystal 9 dB over it. The voice accretes across the album from this hum): THE LOCK IS SUNG - while the choir hums E1 the crystal gives it the floor: 'rest3' it sits out its three statements under the hum (beats 239, 244 and 249) and comes back with the next, so for fifteen beats the lock is the five singers over the drum, the bass, the cello and the five seed voices ('rest': only the last two); 'duck:dB' it stays but drops by that much for the hum. '+lift:dB' raises the choir's hum
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -1133,6 +1134,16 @@ def song():
             for tr in tracks:
                 if tr["name"].startswith(nm):
                     tr["gain"] = f"{float(tr['gain'][:-2]) + float(d):g}dB"
+    if LOCKSUNG:
+        for opt in LOCKSUNG.split("+"):
+            for tr in tracks:
+                if tr["name"] == "cell" and opt in ("rest", "rest3"):
+                    tr["notes"] = [n for n in tr["notes"] if not ((238.9 if opt == "rest3" else 243.9) <= float(n["at"]) < 253.9)]
+                if tr["name"] == "cell" and opt.startswith("duck:"):
+                    tr["fx"] = list(tr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.floor", "amount": 1}]}}]
+                    tr["auto"] = dict(tr.get("auto", {}), floor={"points": [["0b", 0.0], ["239.5b", 0.0], ["240.5b", float(opt[5:])], ["252.5b", float(opt[5:])], ["254b", 0.0], [f"{TOTAL}b", 0.0]]})
+                if tr["name"] == "hum-lock" and opt.startswith("lift:"):
+                    tr["gain"] = f"{float(tr['gain'][:-2]) + float(opt[5:]):g}dB"
     doc = {
         **({"patches": patches} if patches else {}),
         "about": "chirpers IX (Accretion), track 1 by chirper-zero: nucleation - the seed cell E1, shown plainly first, forms "
