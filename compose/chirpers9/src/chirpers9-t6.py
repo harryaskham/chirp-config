@@ -1832,6 +1832,37 @@ def build():
         # the clipper alone (no glue) left the limiter 1.3 dB at the crest but made the crest 0.9 dB louder and the
         # quiet sections 0.9 dB quieter - a different song; with the glue ahead of it the shape is kept
         song['loudness_clip'] = '2.5dB'
+    # (v113, whole song - deep pass: wM's phrase_arc, pinned 897af8ca) EVERY LINE IS SHAPED. Until now every note of
+    # a sung line, of the trombone and of the shakuhachi came at the level it was written: a line was a row of
+    # equal beads. Now each phrase swells to its highest note and falls away after it, as a singer or a player
+    # breathes a line - the old man's lines and the near voice's, the choruses, the hymn, the trombone's E1 and the
+    # shakuhachi's. Most on the breath instrument (the full arc: 5 dB under at a phrase's start, 7 under at its end)
+    # and the two solo voices' last lines, less on the choirs. (Tried with the trombone at 0.5 and the shakuhachi at
+    # 0.7: the same by every measure; the fuller arcs kept. Tried without giving the lines their average back:
+    # the scorer liked it 0.03 better, for a quieter first three seconds after the t5 seam - not a reason)
+    ARC_ = {} if os.environ.get('ARC', '1') != '1' else {
+        'sung': 0.6, 'sungb': 0.6, 'sungc': 0.6, 'crestold': 0.6, 'sung2': 0.6, 'lastword': 0.8,
+        'nearwake': 0.6, 'duetnear': 0.6, 'squeezenear': 0.6, 'crestnear': 0.6, 'descant': 0.6, 'farewell': 0.8,
+        'chorus': 0.5, 'chorus2': 0.5, 'surgesung': 0.5, 'surgelow': 0.5, 'hymn': 0.6,
+        'far': float(os.environ.get('ARCFAR', '0.7')), 'hook': float(os.environ.get('ARCHOOK', '1.0'))}
+    for t_ in song['tracks']:
+        a_ = ARC_.get(t_['name'])
+        if not a_:
+            continue
+        if isinstance(t_['patch'], dict):
+            t_['patch'] = dict(t_['patch'], play=dict(t_['patch'].get('play') or {}, phrase_arc=a_))
+        else:
+            t_['patch'] = f"{t_['patch']} play.phrase_arc={a_}"
+        # the arc only takes level away (a phrase's ends sink, its top stays), so each shaped line lost 1 to 2 dB on
+        # average, measured on its solo - and the trombone and the shakuhachi were the lines v100 had to lift out
+        # of the mix. Each gets its average back, so a phrase's top now stands above where the line was and its
+        # ends below
+        if os.environ.get('ARCCOMP', '1') == '1':
+            c_ = {'far': 1.7 * a_ / 0.5, 'hook': 1.8 * a_ / 0.7, 'hymn': 1.2}.get(t_['name'])
+            if c_ is None:
+                ext_ = str(t_['patch'].get('extends', '')) if isinstance(t_['patch'], dict) else ''
+                c_ = (0.9 if 'voice-old' in ext_ else 1.3 if 'voice-near' in ext_ else 1.1) * a_ / (0.5 if 'voice-choir' in ext_ else 0.6)
+            t_['gain'] = '%gdB' % round(float(str(t_['gain'])[:-2]) + c_, 1)
     return song
 
 
