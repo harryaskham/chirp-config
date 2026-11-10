@@ -68,7 +68,7 @@ for n, pmax, col, orb, fall, ang in EL:
     spot = f'clamp(1 + {orb}/5, 0, 1.8)' if orb else '0.6'
     size = f'(0.75 + 0.7*{spot})*(1 - var.hz) + 0.9*var.hz'
     seen = f'var.on{k}*(1 - var.jet)*(1 - var.hz) + var.hz*clamp(env.in{k}.age*4, 0, 1)*clamp(1.15 - env.in{k}.age/7, 0, 1)'
-    bodies.append(f'        - {{type: group, use: kit-element, opacity: "step(0.02, {seen})", x: "{x}", y: 0.03, z: "{z}", scale: "clamp({seen}, 0, 1)", params: {{which: {col}, size: "{size}", hit: "track.{n}.hit", gate: "track.{n}.gate"}}}}')
+    bodies.append(f'        - {{type: group, use: kit-element, opacity: "step(0.02, {seen})", x: "{x}", y: 0.03, z: "{z}", scale: "clamp({seen}, 0, 1)", params: {{ripple: 0.4, which: {col}, size: "{size}", hit: "track.{n}.hit", gate: "track.{n}.gate"}}}}')
 gas = '''        - {type: mesh, shape: torus, detail: 128, cull: true, tube: 0.6, sy: 0.006, scale: 1.6, blend: add, opacity: "0.99*step(0.02, var.blaze)", palette: ember, colour: v, pos: 0.25, spread: 1.0, light: 0, ambient: 0, rim: 0, paint: "1.4*var.blaze*(0.25 + 0.75*clamp(fbm(cos(atan2(vtx.z, vtx.x) + var.wind*pow((len(vtx.x, vtx.z)/0.9), -1.5))*2.6*(len(vtx.x, vtx.z)/0.9), sin(atan2(vtx.z, vtx.x) + var.wind*pow((len(vtx.x, vtx.z)/0.9), -1.5))*2.6*(len(vtx.x, vtx.z)/0.9), (len(vtx.x, vtx.z)/0.9)*2)*1.8 + 0.35, 0, 1))*clamp((1.38 - (len(vtx.x, vtx.z)/0.9))*1.3, 0, 1.2)"}'''
 # The gas in two halves round the lens, as the rings of motes are.
 gas_far = gas[:-2] + '*step(0, 0 - vtx.x*camera.x - vtx.z*camera.z)"}'
@@ -119,9 +119,9 @@ body = f'''scenes:
         # the near half after it (crossing in front), as the rings of motes are.
 {gas_far}
         # The disk's light on everything near it.
-        - {{type: light, x: 0, y: 0.1, z: 0, color: "#ffc890", power: "(1.0 + 0.6*var.drive + 0.8*var.blaze)*(0.2 + 0.8*lane.lr)", reach: 2.2}}
+        - {{type: light, x: 0, y: 0.1, z: 0, color: "#ffc890", power: "(0.55 + 0.4*var.drive + 0.8*var.blaze)*(0.2 + 0.8*lane.lr)", reach: 2.2}}
         # The album's people, spiralling in on long slow spirals, falling, stretched as they near.
-        - {{type: figure, count: 10, rig: human, motion: [float, fall], opacity: "(1 - var.hz)*clamp(fract(var.fall + hash(inst.i + 10))*12, 0, 1)", mix: "fract(var.fall + hash(inst.i + 10))", x: "(1.75 - 1.3*fract(var.fall + hash(inst.i + 10)))*cos(var.swirl + inst.i*0.37 + 3*fract(var.fall + hash(inst.i + 10)))", z: "(1.75 - 1.3*fract(var.fall + hash(inst.i + 10)))*sin(var.swirl + inst.i*0.37 + 3*fract(var.fall + hash(inst.i + 10)))", y: "0.2*(hash(inst.i + 40) - 0.5)", scale: "0.19*(0.35 + fract(1 - var.fall - hash(inst.i + 10)))", face: [0, 0, 0], sy: "1 + (1.6 + 2*var.thin)*pow(fract(var.fall + hash(inst.i + 10)), 3)", color: "#a89888", light: 0.45, ambient: 0.22, rim: 0.5, rim_color: "#ffd0a0", material: pbr, rough: 0.6, env_sky: "#2a2440", env_ground: "#05040a", melt: 0.04}}
+        - {{type: figure, count: 10, rig: human, motion: [float, fall], opacity: "(1 - var.hz)*clamp(fract(var.fall + hash(inst.i + 10))*12, 0, 1)", mix: "fract(var.fall + hash(inst.i + 10))", x: "(1.75 - 1.3*fract(var.fall + hash(inst.i + 10)))*cos(var.swirl + inst.i*0.37 + 3*fract(var.fall + hash(inst.i + 10)))", z: "(1.75 - 1.3*fract(var.fall + hash(inst.i + 10)))*sin(var.swirl + inst.i*0.37 + 3*fract(var.fall + hash(inst.i + 10)))", y: "0.2*(hash(inst.i + 40) - 0.5)", scale: "0.19*(0.35 + fract(1 - var.fall - hash(inst.i + 10)))", face: [0, 0, 0], sy: "1 + (1.6 + 2*var.thin)*pow(fract(var.fall + hash(inst.i + 10)), 3)", color: "#a89888", light: 0.35, ambient: 0.16, rim: 0.4, rim_color: "#ffd0a0", material: pbr, rough: 0.6, env_sky: "#2a2440", env_ground: "#05040a", melt: 0.04}}
         # The elements, each on the orbit its own lanes give it (in the horizon: falling in from
         # the rim when its track plays it one last time).
 {chr(10).join(bodies)}

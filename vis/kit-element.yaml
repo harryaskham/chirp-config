@@ -1,5 +1,5 @@
-about: "Prefab (3D, use in a group): one of an album's elements as a body of light, in its own colour along the elements palette (which: 0..1). A bright core that flares on each of its notes and glows while one is held (a soft glow round it), a light on the world round it, and a ring that spreads from it on each note, flat like a ripple in a disk. Bind it to a track: params: {hit: 'track.NAME.hit', gate: 'track.NAME.gate'}; size scales it; rings: 0 for no ripples."
-params: {hit: 0, gate: 0, touch: 0, which: 0, size: 1, rings: 1}
+about: "Prefab (3D, use in a group): one of an album's elements as a body of light, in its own colour along the elements palette (which: 0..1). A bright core that flares on each of its notes and glows while one is held (a soft glow round it), a light on the world round it, and a ring that spreads from it on each note, flat like a ripple in a disk. Bind it to a track: params: {hit: 'track.NAME.hit', gate: 'track.NAME.gate'}; size scales it; rings: 0 for no ripples; ripple scales how far each one spreads."
+params: {hit: 0, gate: 0, touch: 0, which: 0, size: 1, rings: 1, ripple: 1}
 env:
   note: {when: "param.hit*3", decay: 2.5}
 layers:
@@ -9,4 +9,4 @@ layers:
   # Its glow: soft, brighter while a note is held.
   - {type: motes, mode: drift, count: 3, w: 0.001, h: 0.001, d: 0.001, fall: 0, wobble: 0, size: "0.05*param.size*(1 + 1.0*param.hit + 0.5*param.touch)", glow: "0.25 + 0.9*param.hit + 0.3*param.gate + 0.8*param.touch", twinkle: 0, palette: elements, pos: "param.which*0.99", spread: 0, near: 0.05}
   # Each note: a ripple spreading in the plane.
-  - {type: mesh, shape: torus, detail: 48, tube: 0.014, sy: 0.15, scale: "param.size*(0.06 + 0.42*env.note.age)", opacity: "param.rings*0.55*clamp(1 - env.note.age/2.4, 0, 1)", palette: elements, pos: "param.which*0.99", spread: 0, light: 0, ambient: 0, rim: 0, emit: 1.6, blend: add}
+  - {type: mesh, shape: torus, detail: 48, tube: 0.014, sy: 0.15, scale: "param.size*(0.06 + 0.42*param.ripple*env.note.age)", opacity: "param.rings*0.55*clamp(1 - env.note.age/2.4, 0, 1)", palette: elements, pos: "param.which*0.99", spread: 0, light: 0, ambient: 0, rim: 0, emit: 1.6, blend: add}
