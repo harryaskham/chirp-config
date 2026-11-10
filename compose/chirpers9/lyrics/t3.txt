@@ -1,0 +1,12 @@
+WORDS: yes  LANGUAGE: English
+here
+nothing here is late
+late
+nothing here is late
+nothing
+here is
+late
+nothing here
+nothing here is
+nothing here is late (x4)
+everything comes round (x4)
