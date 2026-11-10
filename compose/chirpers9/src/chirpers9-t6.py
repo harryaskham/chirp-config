@@ -1711,6 +1711,27 @@ def build():
                                             [5000, {'value': 1.0, 'mod': [{'src': 'auto.AIR', 'amount': 0.6}]}]]})
         song['master']['auto']['AIR'] = {'points': [['0b', 0.0], [f"{SEC['pull'] * 4.0:.1f}b", 0.3], [f"{(SEC['pull'] + 8) * 4.0:.1f}b", 1.0],
                                                     [f"{SEC['out'] * 4.0:.1f}b", 1.0], [f"{NBARS * 4.0:.1f}b", 0.3]]}
+    # (v109, whole song - deep pass) THE CREST IS MASTERED, NOT LIMITED. The master's compressor sat at -18 dB on a
+    # mix that reaches it at -25 dBFS RMS, so it never moved; the loudness stage then added 14.4 dB and the final
+    # limiter was left to do the whole master where the song is loudest - the crest held down 2.9 dB on average, over
+    # 3 dB for 45% of the time and 10 dB at its deepest, in dips of a tenth to a third of a second: the whole band
+    # ducking on every hit, the voices with it (tools/limwork.py). Now the work is done in three stages, each doing
+    # what it is good at: a mix-bus glue compressor that the mix actually reaches (RMS, slow, its detector
+    # high-passed so the kick and the bass do not pump it) rides the loud sections down gently; a soft clipper ahead
+    # of the limiter shaves the drums' peaks without moving anything else; and the limiter takes what is left - 1.1 dB
+    # at the crest on average, over 3 dB for 2% of the time
+    MS_ = os.environ.get('MST', 'GC')
+    if 'G' in MS_:
+        k_ = [i_ for i_, f_ in enumerate(song['master']['fx']) if isinstance(f_, str) and f_.startswith('tapestop')][0]
+        # at -26 dB the glue took 4.1 dB off the crest and flattened the song (the crest 4.1 dB over the tide where
+        # it stood 5.5 over); at -22 it takes 2.2 dB at the crest, 1.6 in the torn, 0.8 in the squeeze and the surge and
+        # nothing in the quiet sections, and every section's level lands within a quarter of a dB of where it was
+        song['master']['fx'].insert(k_, {'type': 'glue', 'threshold': '-22dB', 'ratio': 2.0,
+                                         'attack': '30ms', 'release': '300ms', 'knee': 6.0, 'sidechain': 120})
+    if 'C' in MS_:
+        # the clipper alone (no glue) left the limiter 1.3 dB at the crest but made the crest 0.9 dB louder and the
+        # quiet sections 0.9 dB quieter - a different song; with the glue ahead of it the shape is kept
+        song['loudness_clip'] = '2.5dB'
     return song
 
 
