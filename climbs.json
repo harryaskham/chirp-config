@@ -8429,7 +8429,7 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers9-t5 OUT.wav",
       "best": {
-        "score": 99.792,
+        "score": 99.749,
         "version": "v91",
         "commit": "see git log songs/chirpers9-t5.yaml"
       },
