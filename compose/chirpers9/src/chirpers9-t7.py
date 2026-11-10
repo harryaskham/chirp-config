@@ -879,6 +879,14 @@ R99 = os.environ.get("T7_R99", "surge") != "none"
 # (pin 2b4b6172: steps slide quickly, leaps take longer, part of the slide sung before the note) and a lighter
 # vowel_drift 0.3 for their long notes. T7_R100=none reproduces v99.
 R100 = os.environ.get("T7_R100", "alive") != "none"
+# round 101 (palette): T7_R101=sitar (default) - t6'S INDIA REACHES THE INNER ORBIT. (1) t6 breathes on a harmonium
+# over a tanpura and tabla; t7 carried its tide but none of its sound. Now as the spiral begins (bars 97-104) a sitar
+# (library sitar, unused on chirpers9: a buzzing jawari string with sympathetic strings blooming behind it) plays two
+# phrases in Eb minor over the spiral - a pulled meend up from Eb, a grace-noted F, sliding back down - the one
+# Indian voice in the storm. (2) The launch's crash (launchcrash, one hit at bar 89) was the rock-kit t3 shares;
+# now it is t7's own break-kit crash, so rock-kit is t3's alone. T7_R101=none reproduces v100.
+R101 = os.environ.get("T7_R101", "sitar") != "none"
+SITAR_GAIN = os.environ.get("T7_SITAR_GAIN", "12dB")   # at 0: -19.2 dB, audibility 0; at 10: -10.8 (0.33)
 SURGE_GAIN = os.environ.get("T7_SURGE_GAIN", "-3dB")   # at 0: the kick -2.1 dB (loudest), the open hats -6.1
 CAVSOLO_GAIN = os.environ.get("T7_CAVSOLO_GAIN", "7dB")   # at -3 dB: -18.3 dB, not heard
 FIFTHS_GAIN = os.environ.get("T7_FIFTHS_GAIN", "3dB")   # at 0: the first call -11.8 dB (0.25)
@@ -2632,6 +2640,12 @@ def main():
         g = float(LAUNCH_GAIN.replace("dB", "")) + 4.0       # at +0 it read -10.4 dB (0.38) under the roll
         tracks.append({"name": "launchrev", "patch": "fx-reverse", "gain": f"{g:g}dB", "pan": 0.0,
                        "sends": {"space": "-10dB"}, "score": lv.score()})
+    if R101:                                                # palette: a sitar opens the spiral; the launch crash on break-kit
+        tracks.append({"name": "sitar", "patch": "sitar", "gain": SITAR_GAIN, "pan": -0.3, "sends": {"space": "-8dB"},
+                       "score": "R/384b Eb4/2b _ bend=2 Bb4/2b F5/1b^h Eb5/3b Db5/2b Bb4/4b "
+                                "Gb4/2b Ab4/1b Bb4/3b _ bend=2 Ab4/2b Gb4/2b Eb4/4b"})
+        lc = next(tr for tr in tracks if tr.get("name") == "launchcrash")
+        lc["patch"] = "break-kit"
     if R83:                                                 # whole: the chords and the tide pump on the kick
         for tr in tracks:
             if tr.get("mute"):
