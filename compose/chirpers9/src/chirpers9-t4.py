@@ -1386,6 +1386,46 @@ def the_band_goes_to_tape(song):
     m["auto"] = dict(m.get("auto") or {}, fl={"points": [["0b", 0.0], [f"{b0(a):g}b", 0.0], [f"{b0(z):g}b", db]]})
 
 
+# v100 (ROUND TYPE: whole song - DEEP pass 5, the voice's tone): THE SINGER GETS A MICROPHONE. Looking for why her
+# 'ah' at the crest sat behind the band, the stems said it plainly: where she sings she IS the mix at 355-1400 Hz
+# (her share 0 dB), and above 1.4 kHz she is not there at all - 22 dB under the band at 1.4-2.8 kHz on the crest's
+# 'ah' runs, 21 dB at 2.8-5.6 kHz, 15-18 dB on the relief's words. A sung 'ah' has its first two formants under
+# 1.2 kHz and this voice has next to nothing above them: effort 1, ring 0.9, formant_bw 1 and no age together moved
+# 2.8-5.6 kHz by 1.5 dB, and a +5 dB presence eq cannot lift what is not there. A real voice reaches the listener
+# through a microphone and a valve preamp, which add what this one lacks: harmonics of the note itself. One voice
+# is one pitch, so everything a waveshaper adds lands on the note's own harmonic series - a brighter voice, not
+# 'distortion' - and it adds more the harder she sings: soft lines stay covered, the crest opens.
+#   - her track: `drive` 0.12 with bias 0.3 (asymmetric, valve-like: even harmonics too), then a high-pass at
+#     150 Hz (the asymmetry leaves a thump under 45 Hz at each syllable; her lowest note is B3), 5 dB less gain
+#     (at 4 dB less she sat 1 dB nearer in the quiet sections, and the loudness stage took that out of the floor:
+#     61 Hz -6.0 -> -6.2, over the spectrum band's edge);
+#   - the duet partner, lighter (drive 0.08, 2.5 dB less gain): the same room, a step further from the mic.
+# Her share of the mix above 1.4 kHz where she sings (1.4-2.8 / 2.8-5.6 kHz), before -> after: crest 'ah' runs
+# -22 / -21 -> -9 / -9 dB; crest words -11 / -11 -> -4 / -6; relief words -15 / -18 -> -9 / -13; A's words -8 / -3 ->
+# -5 / -2; the hums stay closed (-29 -> -23). The drive also evens a line: 'stone', 'third', 'turning' - the last
+# words, 4-8 dB under their line's peak - come up about 2 dB. Her level against the mix is as it was in the quiet
+# sections and 0.8 dB lower on the crest's words.
+# Not done: play.phrase_arc (pinned this morning) on her - her lines already fall 4-8 dB to their last word by
+# velocity and taper, and the arc at 0.6 took 'third' to 10.7 dB under its line's peak.
+MIC = {"voice": ("drive drive=0.12 bias=0.3", "-8dB", "-13dB"),
+       "duet": ("drive drive=0.08 bias=0.3", "-15dB", "-17.5dB")}       # track: drive, gain before, gain after
+MIC_HP = "hp cutoff=150"
+MIC_FLOOR = "peak cutoff=61 q=1.4 gain=0.6dB"   # her new harmonics are new energy above 1.4 kHz, and a spectrum is read
+#                                         against its own total: t4's floor, already at the light edge of the genre's
+#                                         band (61 Hz -6.0 dB), read -6.2. The master eq gives it 0.6 dB back there.
+
+
+def the_singer_gets_a_microphone(song):
+    for name, (drive, was, now) in MIC.items():
+        t = next(x for x in song["tracks"] if x["name"] == name)
+        assert t.get("gain") == was, (name, t.get("gain"))
+        t["fx"] = [drive, MIC_HP] + list(t.get("fx") or [])
+        t["gain"] = now
+    eq = song["master"]["fx"][0]
+    assert eq["type"] == "eq" and MIC_FLOOR not in eq["bands"]
+    eq["bands"] = list(eq["bands"]) + [MIC_FLOOR]
+
+
 def kit_events(score):
     pos, ev = 0.0, []
     for tok in score.split():
@@ -2386,6 +2426,7 @@ def main():
     the_drummer_plays(song)
     the_elements_take_turns(song)
     the_band_goes_to_tape(song)
+    the_singer_gets_a_microphone(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
