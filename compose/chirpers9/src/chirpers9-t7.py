@@ -893,6 +893,38 @@ R101 = os.environ.get("T7_R101", "sitar") != "none"
 # half (bars 17-24): with the horns where they play, alone between them - the album's hook, plain and often, as
 # the orbit is reached. T7_R102=none reproduces v101.
 R102 = os.environ.get("T7_R102", "pluck") != "none"
+# round 103 (WHOLE, a deep pass - Harry, 10 Nov: go deep on feel, texture and style): T7_R103=around (default) - THE
+# ORBIT IS ALL AROUND YOU. Looked at beside the album's genre anchors (chirper-three's look.py, eco's width.py), t7's
+# top end is a point, not a space: side/mid above 2 kHz reads -10.7 dB in the arrival and -12.5 in the verse (the
+# anchors -3 to +3), and the air band (6-16 kHz) -9.4 at the album's crest (the anchors +1 to +6). Stem by stem
+# (tools/amap.py's cache) the reason is the seating: a hundred rounds each parked their new part "a little right
+# of centre" - the shaker +0.3, the clavinet +0.2, the pluck +0.1, the trumpet +0.25, the saxes +0.3 and +0.25, the
+# Rhodes +0.35, the chops +0.45, the jet +0.15, the jet's brass +0.2 - so everything bright sat in one clump just
+# right of the middle and the left was nearly empty. And the hats, which have circled the listener since v61 (orbit
+# fx, a 3 m circle, a lap every two bars and faster later), measure +-3.8 dB between the ears and -15.9 dB side/mid
+# on their own: an orbit on paper, a point to the ear.
+# (0) THE ORBIT, WIDE. The hats' own orbit now also pans them (a pan lane in phase with the orbit fx, +-0.7), and
+#     the shaker rides the same orbit on its far side (the opposite pan): as the hats pass your left ear the shaker
+#     passes your right, a lap every two bars at first, every bar at the crest. Still in both seams (the depth
+#     fades in over bars 17-20 and out over 153-160).
+# (1) THE SEATING. The other bright parts are seated around the listener in facing pairs: the clavinet far left
+#     (E4's comping, all four of its tracks), the cavaquinho's chops left against its strums right,
+#     the trumpet and the verse's alto sax further right (facing the clavinet), the sitar and the
+#     jet's brass left, the crest's sax and the Rhodes right, the ride far left. Kick, bass, clap, snare, the hook
+#     and every voice stay where they stood.
+# (2) THE JET HAS TWO BEAMS. E7's high octave (jethi, a7-column at -17 dB, masked in four of its five windows on the
+#     arrangement map) becomes two plumes hard left and right in canon (the right six sixteenths behind the left), on
+#     a new patch a7-plume: the column's wavetable with an exhaust of white noise on every note - two independent
+#     noise sources, so the crest's air is wide, and E7 ripples upward from side to side through the whole crest.
+# T7_R103=none reproduces v102.
+R103 = os.environ.get("T7_R103", "around") != "none"
+PLUME_GAIN = os.environ.get("T7_PLUME_GAIN", "-4dB")   # at -12: -23.2 dB against the mix (the jet -15.8)
+PLUME_NOISE = os.environ.get("T7_PLUME_NOISE", "-10dB")
+ORB_DEPTH = float(os.environ.get("T7_ORB_DEPTH", "0.7"))
+# (first seating: clavinet -0.6 and the alto sax -0.4 - the verse leaned 3 dB left at 2-6 kHz; the sax stays right)
+SEATS = {"e4c": -0.45, "e4w5c": -0.45, "e4w7c": -0.45, "e4w8c": -0.45, "e4wc": -0.45, "cavchop": -0.5,
+         "cavaco": 0.5, "trumpet": 0.45, "trumpet2": 0.45, "altosax": 0.4, "sitar": -0.5, "jetbrass": -0.45,
+         "crestsax": 0.45, "e1br": 0.5, "e1bwr": 0.5, "ride": -0.65, "jet": 0.0, "surgeoh": -0.2}
 PLUCK_GAIN = os.environ.get("T7_PLUCK_GAIN", "0dB")
 SITAR_GAIN = os.environ.get("T7_SITAR_GAIN", "12dB")   # at 0: -19.2 dB, audibility 0; at 10: -10.8 (0.33)
 SURGE_GAIN = os.environ.get("T7_SURGE_GAIN", "-3dB")   # at 0: the kick -2.1 dB (loudest), the open hats -6.1
@@ -2701,6 +2733,61 @@ def main():
                 g = float(str(tr.get("gain", "0dB")).replace("dB", ""))
                 tr["gain"] = f"{g - 3:g}dB"
         master["fx"][0]["bands"] = list(master["fx"][0]["bands"]) + ["peak cutoff=165 gain=-2dB q=2.5"]
+    if R103:                                                # whole (deep): the top end orbits; the jet's two beams
+        hats = next(tr for tr in tracks if tr.get("name") == "hats")   # (0) the hats' orbit, made wide
+        orb = next(f for f in hats["fx"] if isinstance(f, dict) and f.get("type") == "orbit")
+        assert orb["rate"] == "2/1" and orb["phase"] == 0.25 and orb["speed"]["value"] == 1
+        lp = [(float(b[:-1]), v) for b, v in hats["auto"]["laps"]["points"]]
+
+        def laps(b):
+            for (b0, v0), (b1, v1) in zip(lp, lp[1:]):
+                if b0 <= b <= b1:
+                    return v0 + (v1 - v0) * (b - b0) / (b1 - b0) if b1 > b0 else v1
+            return lp[-1][1]
+        ph, pts, step = 0.25, [["0b", 0]], 0.125
+        for k in range(int(TOTAL / step)):
+            b = k * step
+            if abs(b - round(b)) < 1e-9 and 64 <= b <= 640:
+                depth = ORB_DEPTH * max(0.0, min(1.0, (b - 64) / 16.0, (640 - b) / 32.0))
+                pts.append([f"{int(round(b))}b", round(depth * math.sin(2 * math.pi * ph), 3)])
+            ph += (1 + laps(b)) / 8.0 * step            # the orbit fx: a lap every two bars, times its speed
+        pts.append([f"{TOTAL}b", 0])
+        for tr in tracks:
+            nm = tr.get("name")
+            if nm in ("hats", "hatsw", "hatsh", "shaker") and not tr.get("mute"):
+                sign = -1.0 if nm == "shaker" else 1.0
+                tr["pan"] = 0.0
+                tr["fx"] = list(tr.get("fx") or []) + [{"type": "pan", "pan": {"value": 0, "mod": [
+                    {"src": "auto.orbpan", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), orbpan={"points": [[b, round(sign * v, 3)] for b, v in pts]})
+        for tr in tracks:                                   # (1) the seating
+            if tr.get("name") in SEATS and not tr.get("mute") and not tr.get("double"):
+                tr["pan"] = SEATS[tr["name"]]
+        col = patches["a7-column"]["synth"]
+        patches["a7-plume"] = {
+            "about": "chirper-two: the jet's exhaust - a7-column's wavetable (harmonics 1, 3, 9, 27, 81, 243 scanned upward on "
+                     "every note) with a burst of white noise on the same envelope; two tracks of it hard left and right are "
+                     "two independent noise sources, so the air between them is wide",
+            "synth": {"layers": [dict(col["layers"][0]), {"type": "noise", "color": "white", "level": PLUME_NOISE}],
+                      "env": dict(col["env"]), "filters": ["hp cutoff=400", "lp cutoff=15000 q=0.5"],
+                      "amp": {"a": "2ms", "d": "180ms", "s": 0.4, "r": "140ms"}}}
+        jh = next(tr for tr in tracks if tr.get("name") == "jethi")
+        ev, pos = [], 0.0
+        for tok in jh["score"].split():
+            m = re.match(r"^(.+?)/([0-9.e+-]+)b(?:@(\d+))?(.*)$", tok)
+            if m.group(1) != "R":
+                ev.append((pos, float(m.group(2)), m.group(1), int(m.group(3) or 100)))
+            pos += float(m.group(2))
+        end = max(e[0] + e[1] for e in ev)
+        for nm, pan, lag in (("plumel", -0.85, 0.0), ("plumer", 0.85, 1.5)):
+            trk = Track(nm)
+            for at, ln, tk, v in ev:
+                if at + lag + ln <= end + 1e-6:
+                    trk.add(at + lag, ln, tk, v)
+            tracks.append({"name": nm, "patch": "a7-plume", "gain": PLUME_GAIN, "pan": pan, "sends": {"space": "-10dB"},
+                           "fx": [dict(f) if isinstance(f, dict) else f for f in (jh.get("fx") or [])],
+                           "auto": dict(jh.get("auto") or {}), "score": trk.score()})
+        jh["mute"] = True
     about = ("chirpers - Accretion, track 7. Original composition by chirper-two, generated by "
              "compose/chirpers9/src/chirpers9-t7.py. The innermost orbit: every element transformed in a storm a semitone "
              "above home (Eb), all cycles phased to land on bar 120 where the pull resolves to D and E7, the jet - the "
