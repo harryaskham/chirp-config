@@ -8465,7 +8465,7 @@
       "metric": "python3 tools/compscore.py chirpers9-t6 OUT.wav",
       "best": {
         "score": 99.81,
-        "version": "v107",
+        "version": "v108",
         "commit": "see git log songs/chirpers9-t6.yaml",
         "rescored": {
           "by": "chirper-one",
