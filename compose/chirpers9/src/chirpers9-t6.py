@@ -1204,12 +1204,40 @@ def build():
         # and the sequencer and the marimba, which came back in at full level at bar 37, now come in under the
         # tabla over two bars
         if os.environ.get('RRAMP', '1') == '1':
+            # (v110) and they come in three beats sooner, with the tide's chord change at beat 141 rather than on the
+            # bar line after it, and over three bars. (v108's two-bar ramp from bar 37 did not weaken that entrance as a
+            # boundary - 0.13 with or without it; the scorer simply merges two changes less than 8 s apart, and this
+            # one sat exactly 8 s after the tide's start, so it was counted or not by half a second's luck: 99.81 or
+            # 99.01 on the same song. At 6 s it belongs to the tide's arrival, as it does to the ear)
             for k_ in ('acid', 'near'):
-                P[k_] = [((e_[0], e_[1], e_[2], max(1, int(round(e_[3] * (0.55 + 0.45 * (e_[0] - tb0_ - 16.0) / 8.0))))) + tuple(e_[4:]))
-                         if tb0_ + 16.0 - 0.05 <= e_[0] < tb0_ + 24.0 else e_ for e_ in P[k_]]
+                pre_ = [(round(e_[0] - 4.0, 4),) + tuple(e_[1:]) for e_ in P[k_] if tb0_ + 17.0 - 0.05 <= e_[0] < tb0_ + 20.0 - 0.05]
+                P[k_] = sorted(P[k_] + pre_, key=lambda e_: e_[0])
+                P[k_] = [((e_[0], e_[1], e_[2], max(1, int(round(e_[3] * (0.45 + 0.55 * (e_[0] - tb0_ - 13.0) / 11.0))))) + tuple(e_[4:]))
+                         if tb0_ + 13.0 - 0.05 <= e_[0] < tb0_ + 24.0 else e_ for e_ in P[k_]]
     rk0_ = SEC['crest'] * 4.0
     P['kitroom'] = [e_ for e_ in P['kit'] if e_[0] >= rk0_ - 1e-6]
     P['kit'] = [e_ for e_ in P['kit'] if e_[0] < rk0_ - 1e-6]
+    # (v110, whole song - deep pass) THE KICK HAS WEIGHT. chirper-zero's test (take the kick out for a bar and read
+    # the band below 150 Hz) on t6: without the kick the low end fell 0.3 dB in the pull and 0.8 in the surge, and its
+    # swing did not change - the kick was a click on top of a floor of sub, fretless and pedal that never moved (the
+    # low band's swing 8-9 dB where records measure 13-21), so the two orbits, the seven-step cell against the bar,
+    # were heard in the rims and never felt. Only the crest's second half, four on the floor, had a kick. Now every
+    # kick of the cell carries a low thump under it (a 909's body below 110 Hz, layered under the kit's own beater),
+    # coming in over the pull's second four bars, and the fretless and the bow lean out of its way for a moment as the
+    # sub already did; the seams (the first twenty and the last twenty bars) and the crest's four on the floor are
+    # as they were
+    if os.environ.get('KW', '1') == '1':
+        # (it stops four bars before the out-seam: with it running to the seam, t6's last bars read 2 dB heavier at
+        # 38-44 Hz against t7's head, which is already 8 dB lighter there - out-seam 2.85 -> 2.92)
+        kw0_, kw1_ = (SEC['pull'] + 4) * 4.0, (SEC['out'] - 4) * 4.0
+        c2a_, c2b_ = (SEC['crest'] + 8) * 4.0, SEC['cross'] * 4.0
+        P['kw'] = []
+        for e_ in P['kit'] + P['kitroom']:
+            if str(e_[1]).partition('^')[0] != 'k' or not (kw0_ - 1e-6 <= e_[0] < kw1_ - 1e-6) or (c2a_ - 1e-6 <= e_[0] < c2b_ - 1e-6):
+                continue
+            up_ = min(1.0, (e_[0] - kw0_) / 16.0)
+            P['kw'].append((e_[0], 'k', 0.25, max(1, min(127, int(round(e_[3] * (0.6 + 0.4 * up_)))))))
+        P['kw'].sort(key=lambda e_: e_[0])
     song = {
         'about': "chirpers - Accretion, track 6 by chirper-one: Spring Tide. Tidal forces: E1 in two layers, one squeezed "
                  "and one stretched, meeting at the crest and tearing apart; E6, two chords a semitone apart, ebbing and flowing. "
@@ -1281,6 +1309,7 @@ def build():
             tr('acid', 'moog-seq', '-12dB', fx=['hp cutoff=50', 'lp cutoff=3000', {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}], sends={'echo': '-20dB'}),
             tr('kit', 'prog-kit', '-6dB', sends={'hall': '-20dB'}),
             tr('kitroom', 'room-kit', '-9.5dB', sends={'hall': '-20dB'}),
+            *([tr('kw', '909', '-6dB', fx=['lp cutoff=110', 'hp cutoff=28'])] if 'kw' in P else []),
             tr('cajon', 'tabla-kit', '-6.5dB' if os.environ.get('RUPAK', '1') == '1' else '-11.7dB', pan=0.1, sends={'hall': '-16dB'}),
             tr('hats', 'prog-kit', '-7dB', pan=0.2, fx=[{'type': 'eq', 'bands': ['highshelf cutoff=8000 gain=5dB']}]),
             # (v34, palette: the cello was an album staple - t1, t5 and t6) THE FAR SIDE IS A TROMBONE: E1 stretched on
@@ -1720,6 +1749,16 @@ def build():
     # high-passed so the kick and the bass do not pump it) rides the loud sections down gently; a soft clipper ahead
     # of the limiter shaves the drums' peaks without moving anything else; and the limiter takes what is left - 1.1 dB
     # at the crest on average, over 3 dB for 2% of the time
+    if os.environ.get('KW', '1') == '1':
+        # (v110) the floor leans out of the thump's way: the sub 3 dB further than it already ducked for the kit, the
+        # fretless and the bow by 3 dB for a sixth of a second - enough for the thump to read, not enough to chop
+        # the far side's tune. Keyed on the new layer, so nothing moves where it does not play (the seams, the
+        # crest's four on the floor)
+        for t_ in song['tracks']:
+            if t_['name'] == 'sub':
+                t_['fx'] = list(t_.get('fx') or []) + [{'type': 'pump', 'on': 'kw.k', 'depth': '-3dB', 'release': '260ms', 'curve': 0.6}]
+            elif t_['name'] in ('farbass', 'farbow'):
+                t_['fx'] = list(t_.get('fx') or []) + [{'type': 'pump', 'on': 'kw.k', 'depth': '-3dB', 'release': '170ms', 'curve': 0.6}]
     MS_ = os.environ.get('MST', 'GC')
     if 'G' in MS_:
         k_ = [i_ for i_, f_ in enumerate(song['master']['fx']) if isinstance(f_, str) and f_.startswith('tapestop')][0]
