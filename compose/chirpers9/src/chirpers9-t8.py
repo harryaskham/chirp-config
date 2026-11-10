@@ -846,6 +846,37 @@ def her_last_word_stays(song):
     solo["sends"] = dict(solo.get("sends") or {}, held=HELD_SEND)
 
 
+# v102 (ROUND TYPE: whole song - DEEP pass 5, the master): THE JET IS NOT HELD DOWN. chirp-eco's limiter table
+# (chirper-one's tools/limwork.py over the album) named t8 beside t4 as the two climaxes the final limiter was
+# mastering. By section (v101, seed 0; the loudness stage adds 11.1 dB): the jet held down 4.4 dB on average, more
+# than 3 dB for 84% of the time; the floor 4.1 dB / 69%; the second jet 4.3 dB / 75%; even the four drumless bars
+# 2.4 dB / 40% - so not drum hits ducking a mix but the jet's whole body pressed against the ceiling, every
+# millisecond, by a peak limiter. The lanes ask for a jet 14 LU above the opening; the limiter was quietly taking
+# 4.4 of that back, in the worst way. Now the same job is done by things made for it (t4 v99's chain, re-tuned on
+# tools/masterlab.py for a mix that sits 4 dB hotter):
+#   - TAPE on the master (drive 0.20): rounds the peaks - about 1% distortion on the jet's body;
+#   - a shelf after it gives back the top the tape takes (without it the top fell 1.2 dB at 16 kHz);
+#   - a GLUE compressor the mix reaches (-23 dB, 2:1, 30 / 300 ms, detector high-passed at 120 Hz): about 4.5 dB
+#     at the jet, slowly; 2 dB from the drums' entry on; next to nothing on the stretto.
+# The limiter is left to catch peaks (jet 0.5 dB on average, over 3 dB 1% of the time). From the drums on, the
+# sections land within 0.5 dB of where they were (the jets 0.4 up, the approach 0.5 down). The quiet end moves: the
+# opening comes up 1.1 dB and the stretto's entries 0.5 - the limiter had been making the jet 4.4 dB less loud than
+# written, and an honest compressor shares that out along the song instead of taking it all at the top.
+# NOT DONE, on purpose: a master lane holding the opening where it was (as t4's fall has). It cost the turn's
+# boundary (2:08) 0.001 of novelty where 0.002 is all the margin there is (0.1822 against the 0.18 threshold; this
+# version reads 0.182): that boundary needs strengthening in its own round before anything leans on it.
+JET_TAPE = {"type": "tape", "drive": 0.20, "warmth": 0.0}
+JET_TAPE_TOP = {"type": "eq", "bands": ["highshelf cutoff=10000 gain=1.8dB"]}
+JET_GLUE = {"type": "glue", "threshold": "-23dB", "ratio": 2.0, "attack": "30ms", "release": "300ms", "knee": 6.0,
+            "sidechain": 120}
+
+
+def the_jet_is_not_held_down(song):
+    m = song["master"]
+    assert [fx["type"] for fx in m["fx"]] == ["eq", "compressor", "width"], [fx["type"] for fx in m["fx"]]
+    m["fx"] = list(m["fx"]) + [dict(JET_TAPE), dict(JET_TAPE_TOP), dict(JET_GLUE)]
+
+
 def score_events(score):
     pos, ev = 0.0, []
     for tok in score.split():
@@ -2307,6 +2338,7 @@ def main():
     the_jet_breathes(song)
     the_stretto_is_heard(song)
     her_last_word_stays(song)
+    the_jet_is_not_held_down(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")

@@ -23291,6 +23291,26 @@
       1.5
      ]
     ]
+   },
+   {
+    "type": "tape",
+    "drive": 0.2,
+    "warmth": 0.0
+   },
+   {
+    "type": "eq",
+    "bands": [
+     "highshelf cutoff=10000 gain=1.8dB"
+    ]
+   },
+   {
+    "type": "glue",
+    "threshold": "-23dB",
+    "ratio": 2.0,
+    "attack": "30ms",
+    "release": "300ms",
+    "knee": 6.0,
+    "sidechain": 120
    }
   ]
  }
