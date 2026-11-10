@@ -1507,6 +1507,17 @@ def build():
                     n_['pitch'] = f"m{int(str(n_['pitch'])[1:]) + up_}"
                     n_['vel'] = round(min(0.9, n_['vel'] * vm_), 3)
             ans_[5]['len'] = round(SEC['fall'] * 4.0 - 8.0 - 0.1 - ans_[5]['at'], 3)
+    # (v100, section w9: 4:04-4:45, the fall into t3 - after the last verse (bar 107) the song's last eight bars had
+    # no word: E2 falling, the pad and the infall's endless descent) THE LAST WORD IS IN: at bar 109 the near voice
+    # sings one word, far off - 'in', the last word of the crest's 'the middle draws us in' - on the home D, held
+    # for three bars and let go as the song falls into t3's D minor: the title's last word, the infall arriving
+    lw_ = [n_ for n_ in cb_['notes'] if n_.get('ph') == 'IH0 N' and 249.0 <= n_['at'] < 251.0]
+    assert len(lw_) == 1
+    li0_ = (SEC['fall'] + 12) * 4.0
+    lwn_ = [dict(lw_[0], at=li0_, len=11.0, pitch=f"m{KEY + 24}", vel=round(lw_[0]['vel'] * 0.8, 3))]
+    song['tracks'].append(dict(cb_, name='lastin', notes=lwn_, gain='-19dB',
+                               patch=dict(cb_['patch'], extends='voice-near synth.lfo.vib.per_note=true synth.layers.0.taper=1'),
+                               fx=list(cb_.get('fx') or []) + ['lp cutoff=2200'], sends={'hall': '-4dB', 'echo': '-10dB'}))
     # (v87, palette: wM's path_len, pinned 7f9c5782 - an engine feature from chirper-one's finding) EVERY VOICE AT
     # ITS SUNG RATE: t2's lines were sung by chirp tts --sing (44 pitch points a second) at a quicker tempo than
     # t2's 90-98 bpm and then laid on t2's beats, so every sung note was stretched - the verse's by a third, the
