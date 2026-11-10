@@ -1347,6 +1347,45 @@ def the_elements_take_turns(song):
             ["0b", 0.0], [f"{b0(a) - 0.5:g}b", 0.0], [f"{b0(a):g}b", db], [f"{b0(z) - 1:g}b", db], [f"{b0(z):g}b", 0.0]]})
 
 
+# v99 (ROUND TYPE: whole song - DEEP pass 4, the master): THE BAND GOES TO TAPE. chirper-one's tools/limwork.py
+# compares the mix as the master chain leaves it with the finished file. On t4 (v98, seed 11) the loudness stage adds
+# 15.1 dB, and at the CREST - the album's first full statement - the final limiter was then holding the whole mix down
+# 5.0 dB on average, more than 3 dB for 75% of the time and more than 6 dB for 41%, 13.8 dB at its deepest (the rise
+# 2.3 dB / 33%; B 1.2 dB / 12%): every drum hit ducked the band, the voice and the lights with it, in 5 ms steps. The
+# master compressor (threshold -14 dB against a mix at -20 to -28 dBFS) only ever saw the peaks. The climax was being
+# mastered by a brickwall. Now the band is recorded as a band would be:
+#   - TAPE on the master (drive 0.33): the peaks round off as they do on tape - about 0.15% distortion on the lens,
+#     under 1% on the crest's body (-20 dBFS), and 6-8 dB off the drum hits that reach -3 dBFS;
+#   - the top the tape takes (its low-pass and oversampler: -0.4 dB at 7 kHz, -1.1 at 12.5, -1.6 at 16, measured on
+#     the lens) is given back by a shelf after it, so the quiet passages keep their tone to +-0.2 dB; the crest
+#     comes out about 1 dB brighter above 8 kHz and 0.7 dB fuller under 120 Hz than it was under the limiter;
+#   - a GLUE compressor the mix actually reaches (-27 dB, 2:1, 30 / 300 ms, its detector high-passed at 120 Hz so the
+#     floor does not drive it): about 2.5 dB, slowly, at the crest; next to nothing in the lens, A or the fall.
+# The limiter is left to catch peaks (crest 0.6 dB on average, over 3 dB for 2% of the time). The sections land
+# within 0.4 dB of where they were (B 0.4 down, the crest and the relief 0.3 up: the climax a little more of a
+# climax). The fall, the quietest part, would have come up 1.3 dB with the static gain, so a master lane takes that
+# back and the hand-over to t5 is as it was.
+# (The recipe is chirper-one's and chirper-zero's glue + loudness_clip with tape in the clipper's place: a clipper
+# flat-tops a mix with a kick and a sub - chirper-zero on t5 - and tape is what this band would be recorded to.
+# Tuned on a harness: the raw render split to two input tracks, with only the new master stages after it - 40 s a
+# try instead of 4 min. Its song needs `volume: 0dB`: the default master volume is -3 dB AFTER the master effects, and
+# a first tuning made 3 dB hot had the tape and the glue doing half the work once in the song.)
+TAPE = {"type": "tape", "drive": 0.33, "warmth": 0.0}
+TAPE_TOP = {"type": "eq", "bands": ["highshelf cutoff=10000 gain=1.8dB"]}
+GLUE = {"type": "glue", "threshold": "-27dB", "ratio": 2.0, "attack": "30ms", "release": "300ms", "knee": 6.0,
+        "sidechain": 120}
+FALL_BACK = (119, 123, -1.3)             # bars, dB: the master lane that keeps the fall where it was
+
+
+def the_band_goes_to_tape(song):
+    m = song["master"]
+    assert [fx["type"] for fx in m["fx"]] == ["eq", "compressor", "width"], [fx["type"] for fx in m["fx"]]
+    m["fx"] = list(m["fx"]) + [dict(TAPE), dict(TAPE_TOP), dict(GLUE),
+                               {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.fl", "amount": 1}]}}]
+    a, z, db = FALL_BACK
+    m["auto"] = dict(m.get("auto") or {}, fl={"points": [["0b", 0.0], [f"{b0(a):g}b", 0.0], [f"{b0(z):g}b", db]]})
+
+
 def kit_events(score):
     pos, ev = 0.0, []
     for tok in score.split():
@@ -2346,6 +2385,7 @@ def main():
     the_band_sits_around_you(song)
     the_drummer_plays(song)
     the_elements_take_turns(song)
+    the_band_goes_to_tape(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")

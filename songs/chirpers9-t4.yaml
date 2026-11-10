@@ -6574,7 +6574,57 @@
       1.35
      ]
     ]
+   },
+   {
+    "type": "tape",
+    "drive": 0.33,
+    "warmth": 0.0
+   },
+   {
+    "type": "eq",
+    "bands": [
+     "highshelf cutoff=10000 gain=1.8dB"
+    ]
+   },
+   {
+    "type": "glue",
+    "threshold": "-27dB",
+    "ratio": 2.0,
+    "attack": "30ms",
+    "release": "300ms",
+    "knee": 6.0,
+    "sidechain": 120
+   },
+   {
+    "type": "gain",
+    "gain": {
+     "value": "0dB",
+     "mod": [
+      {
+       "src": "auto.fl",
+       "amount": 1
+      }
+     ]
+    }
    }
-  ]
+  ],
+  "auto": {
+   "fl": {
+    "points": [
+     [
+      "0b",
+      0.0
+     ],
+     [
+      "472b",
+      0.0
+     ],
+     [
+      "488b",
+      -1.3
+     ]
+    ]
+   }
+  }
  }
 }
