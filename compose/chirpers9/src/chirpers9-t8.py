@@ -811,6 +811,41 @@ def the_stretto_is_heard(song):
         by[n]["gain"] = f"{float(str(by[n]['gain']).replace('dB', '')) + up:g}dB"
 
 
+# v101 (ROUND TYPE: section, the horizon's opening 143-161, 3:44-4:14 - DEEP pass 4, a new sound): HER LAST WORD STAYS.
+# The horizon is 'a held light redshifting away', and the light was a synth chord (two saws and a sine through a
+# rotary). What an outside observer sees at an event horizon is the last thing that fell in, FROZEN there - never
+# crossing, dimming, reddening. The last thing that falls in here is her line, 'I kept your far side' (143.75-146). So
+# her last word is frozen: a hall of its own (bus held) hears only the vowel of 'side', on D4, and at that instant
+# its `freeze` closes - the tail holds, nothing new gets in - and hangs through the horizon as part of the light, wide
+# (left/right correlation -0.1), alive (its level wanders +-3 dB), dims as the elements fall in and is gone before
+# the light starts to sink (161). What is frozen is a voice's harmonic series on D: D5 strongest, then D6, A5, D4,
+# F#6 - a D major chord, the track's home, made of her (a trace of C#, her scoop into the note, 15 dB under it).
+# Tried first: freezing the jet's last bars (choir, flute, strings) - the tail held A B D G F# C at once, the melody's
+# notes as a cluster, and bar 140's G chord against the light's F#: a held dissonance, against 'tone is home'.
+HELD_WORD = "S AY1 D"                    # the horizon line's last syllable
+HELD_OPEN, HELD_FREEZE = 0.35, 0.7       # beats after the note's start: past the s, before her voice falls away
+HELD_SEND = "3dB"
+HELD_HALL = "reverb kind=hall decay=12s mix=1 width=1 spread=1 freeze=0+auto.fz*1"
+HELD_FADE = ((153, 0.0), (157, -4.0), (160, -40.0), (160.5, -90.0))   # bars, dB: dimming as the elements fall in,
+#                                          gone a bar before the sink (held to the sink and cut there, it blurred
+#                                          the sink's own boundary as compscore reads it: 4:11 0.191 -> 0.155)
+
+
+def her_last_word_stays(song):
+    solo = next(x for x in song["tracks"] if x["name"] == "solo")
+    words = [e for e in solo["notes"] if e.get("ph") == HELD_WORD and e["at"] >= b0(HORIZON)]
+    assert len(words) == 1 and words[0]["len"] > HELD_FREEZE + 0.3, words
+    a, z = words[0]["at"] + HELD_OPEN, words[0]["at"] + HELD_FREEZE
+    assert "held" not in song["buses"]
+    song["buses"]["held"] = {
+        "fx": ["gain gain=0dB+auto.fi*1", HELD_HALL, "hp cutoff=200", "gain gain=0dB+auto.fo*1"],
+        "auto": {"fi": {"points": [["0b", -90.0], [f"{a - 0.05:g}b", -90.0], [f"{a:g}b", 0.0], [f"{z:g}b", 0.0],
+                                   [f"{z + 0.05:g}b", -90.0]]},
+                 "fz": {"points": [["0b", 0.0], [f"{z - 0.01:g}b", 0.0], [f"{z:g}b", 1.0]]},
+                 "fo": {"points": [["0b", 0.0]] + [[f"{b0(bar):g}b", db] for bar, db in HELD_FADE]}}}
+    solo["sends"] = dict(solo.get("sends") or {}, held=HELD_SEND)
+
+
 def score_events(score):
     pos, ev = 0.0, []
     for tok in score.split():
@@ -2271,6 +2306,7 @@ def main():
     the_disk_is_wide(song)
     the_jet_breathes(song)
     the_stretto_is_heard(song)
+    her_last_word_stays(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")

@@ -20154,7 +20154,8 @@
    "gain": "-7dB",
    "sends": {
     "hall": "-5dB",
-    "dly": "-16dB"
+    "dly": "-16dB",
+    "held": "3dB"
    },
    "notes": [
     {
@@ -23168,6 +23169,80 @@
     "reverb kind=plate decay=0.9s mix=1 predelay=8ms width=1 spread=1",
     "hp cutoff=700"
    ]
+  },
+  "held": {
+   "fx": [
+    "gain gain=0dB+auto.fi*1",
+    "reverb kind=hall decay=12s mix=1 width=1 spread=1 freeze=0+auto.fz*1",
+    "hp cutoff=200",
+    "gain gain=0dB+auto.fo*1"
+   ],
+   "auto": {
+    "fi": {
+     "points": [
+      [
+       "0b",
+       -90.0
+      ],
+      [
+       "579.775b",
+       -90.0
+      ],
+      [
+       "579.825b",
+       0.0
+      ],
+      [
+       "580.175b",
+       0.0
+      ],
+      [
+       "580.225b",
+       -90.0
+      ]
+     ]
+    },
+    "fz": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "580.165b",
+       0.0
+      ],
+      [
+       "580.175b",
+       1.0
+      ]
+     ]
+    },
+    "fo": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "608b",
+       0.0
+      ],
+      [
+       "624b",
+       -4.0
+      ],
+      [
+       "636b",
+       -40.0
+      ],
+      [
+       "638b",
+       -90.0
+      ]
+     ]
+    }
+   }
   }
  },
  "master": {
