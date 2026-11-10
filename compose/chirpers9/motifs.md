@@ -240,6 +240,7 @@ score: "D3/8 A3/8 E4/8 B4/16 F#5/16 C#6/16 G#6/8"   # 2 2 2 1 1 1 2 sixteenths =
 - **In t7's arrival (since v72): flying past.** At bars 20, 24, 28 and 32 the column (Eb3 Bb3 F4 C5, its G left out under the Ebm9 stabs) on the jet's own voice passes the listener left to right on an orbit line with full Doppler - sharp coming in, dropping as it goes.
 - **In t7's crest (since v77): in brass.** For the crest's first eight bars (121-128) a waveshaping brass (shaper-brass) fires every column with the jet (D3 A3 E4 B4 F#5, every 2.75 beats), brighter as each note swells, with the horns' E1 up 6 dB under it: the crest arrives as a fanfare.
 - **In t7's collision (since v97): called by the horns.** At 1:31, 1:40 and 1:48 (bars 51, 56, 61) the horn section calls E7 as a fanfare - Eb Bb F C climbing in eighths (the G left out against the Gb chords), the third an octave higher.
+- **In t7's spiral (since v101): pulled on a sitar.** As the spiral begins (bars 97-104, 2:49-3:03) a sitar - t6's India reaching the inner orbit - climbs the jet's first fifths, Eb (pulled up a tone in a meend) to Bb to a grace-noted F, then sinks back to Eb through Db; its second phrase walks Gb Ab Bb, pulls up again, and settles on Eb.
 - **In t8 (chirper-three, since v59): on real brass.** The stacked fifths (D3 A3 E4 A4 E5, no F#) as a horn call on the physical brass section.
 
 ### E8, "the arrival" (t8, chirper-three)
