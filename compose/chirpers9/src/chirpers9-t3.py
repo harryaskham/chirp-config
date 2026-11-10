@@ -756,6 +756,13 @@ R99 = os.environ.get("T3_R99", "voices") != "none"
 # 2b4b6172: a step slides quickly, a leap takes longer, and part of the slide is sung before the new note, as a singer
 # does). T3_R100=none reproduces v99.
 R100 = os.environ.get("T3_R100", "alive") != "none"
+# round 101 (whole): T3_R101=tilt (default) - THE WHOLE STORM SITS LOWER. Against the album t3 still tilts the wrong way
+# end to end (seam bodies included): 3-6 dB light from 44 to 114 Hz, 2-3 dB bright from 290 Hz to 12 kHz. v93 fixed
+# it partly. Now the master tilts the storm back towards the album: a low shelf +3 dB at 90 Hz,
+# the mids eased 2 dB at 650 Hz (q 0.8), the top 1.5 dB softer above 4 kHz - a darker, heavier storm, the hats and
+# the reese's fizz no longer edging out in front - between the seams (applied to the whole song, the seams lost flow). T3_R101=none
+# reproduces v100.
+R101 = os.environ.get("T3_R101", "tilt") != "none"
 VOICES_DB = float(os.environ.get("T3_VOICES_DB", "12"))   # at 8: -14.9..-20.3 dB, still under
 THUNDER_GAIN = os.environ.get("T3_THUNDER_GAIN", "4dB")   # at 0: -10.4 / -13.0 dB
 PIZZ_GAIN = os.environ.get("T3_PIZZ_GAIN", "14dB")   # at -4 dB (e1 is -16): -26.3 dB, buried; at 12: -11.6 (0.28)
@@ -2436,6 +2443,17 @@ def main():
         mid = [["0b", 0], ["128b", 0], ["144b", 1], ["368b", 1], ["384b", 0], ["513b", 0]]
         master["auto"] = dict(master["auto"], weight={"points": [[b, 3.0 * v] for b, v in mid]},
                               unbox={"points": [[b, -3.5 * v] for b, v in mid]})
+    if R101:                                                # whole: a static master tilt towards the album envelope
+        # static (whole song): spectrum 100 but flow 99.34 (in 2.63 -> 2.82, out 3.0 -> 3.08) - the seams want t3's own tone;
+        # so the tilt rides the weight envelope, between the seams only
+        mid = [["0b", 0], ["128b", 0], ["176b", 1], ["344b", 1], ["384b", 0], ["513b", 0]]   # slow ramps: 16-beat ones read as section edges (structure 99.65)
+        tilt = []
+        for kind, fc, q, db, lane in (("lowshelf", 90, 0.7, 3.0, "tiltlo"), ("peak", 650, 0.8, -2.0, "tiltmid"),
+                                      ("highshelf", 4000, 0.7, -1.5, "tilthi")):
+            tilt.append({"type": "filter", "kind": kind, "cutoff": fc, "q": q,
+                         "gain": {"value": "0dB", "mod": [{"src": f"auto.{lane}", "amount": 1}]}})
+            master["auto"] = dict(master["auto"], **{lane: {"points": [[b, db * v] for b, v in mid]}})
+        master["fx"] = [master["fx"][0]] + tilt + master["fx"][1:]
     if R100:                                                # whole: vowel drift on the held voices, sung glides on the lines
         for nm in ("a3-back", "a3-choir", "a3-doo3", "a3-humm", "a3-humn", "a3-hum3", "a3-humd"):
             if nm in patches and isinstance(patches[nm].get("extends"), str):
