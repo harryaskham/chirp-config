@@ -732,6 +732,85 @@ SHAKER_GAIN = "-21dB"
 SHAKER_VEL = (64, 36, 48, 36)
 
 
+# v100 (ROUND TYPE: whole song - DEEP pass 3, the ARRANGEMENT MAP): WHAT WAS WRITTEN IS HEARD. chirper-two's
+# tools/amap.py renders every track alone and asks, window by window, whether it holds a quarter of the mix's power in
+# any octave. For t8 it says that of the seven elements 'in stretto', three stop being heard the moment the drums
+# enter (bar 65): E3's contrabass chords (21 dB under the mix, 15 dB under its best octave), E5's gamelan and, from
+# 81, E6's organ - each was dropped 4-5 dB 'into orbit' after its entry to make room for the next, and the sum buried
+# them. And that v99's new parts were written but not heard: the shaker 32 dB under the mix (23 under its octave),
+# the clap 10 under its octave, and the two harmony choirs of the jet's chorus 10-12 under (she sang in unison).
+#   - E3 PLUCKS ITS CHANGES (track e3p, pizzicato strings): from the drums' entry to the jet, every chord of E3's
+#     2+2+3 is plucked as it changes - three plucks to seven beats, a limping pulse AGAINST the drums' four - so the
+#     cycle that 'lands on one downbeat at bar 97' can be heard walking toward it. The bowed chords stay under it.
+#     It rests while the tide goes out and turns (72-88: the lights leave, the brass arrives) and comes back for THE
+#     APPROACH, the last eight bars before the jet (89-96).
+#   - THE ORBITS COME IN FOR THE APPROACH: E5, E2 and E6 no longer sit 4-5 dB down until three bars before the jet -
+#     at bar 89 they step back up within a bar (to 0, -2 and 0 dB), with the plucks. (Tried on the way: closer from
+#     their entries on evened the tide's two blocks, flatness 0.78 -> 0.66; closing in at the turn (81), by ramp or
+#     by step, and the plucks returning there, weakened the turn itself as compscore reads it - its boundary at 2:08
+#     fell 0.181 -> 0.151 taken together, the plucks -0.023 and the orbits -0.012 apart, under two of the seven
+#     thresholds, 99.59 on seed 0. So the turn stays the brass's and the lights', and the approach gets its own stage.)
+#   - The jet's HARMONY is sung (choir5 +8 dB, choir8 +9), the CLAP claps (+5) and the SHAKER is a floor (+15) - and
+#     the jet ACCRETES as its gears do: half time is kick, snare and one voice; after the four drumless bars the
+#     full-time gear (109) returns with the clap and the last line sung in HARMONY; the floor gear (113) brings the
+#     sixteenths, hats and shaker together; the return (129) has all of it. (First try, all of it from bar 97 and
+#     the plucks straight through: louder parts common to neighbouring 8 s blocks made them more alike - eco's
+#     flatness 2:00 0.82 -> 0.70 and 2:48 0.74 -> 0.70, a section boundary lost on seed 0, 99.51.)
+#   - 61 Hz +0.8 dB on the master: the added mids and highs had tipped the lows 0.3 dB under the album's band.
+E3_PLUCK_FROM = 65
+E3_PLUCK_RESTS = (72, 89)                # bars: the tide's ebb and its turn
+CLAP_FROM = 105                          # = GEAR_FULL (defined further down)
+HARMONY_FROM = 109                       # in the first jet; the return keeps all its harmony
+SHAKER_FROM = 113                        # = GEAR_FLOOR: sixteenths arrive with the floor gear, in hats and shaker both
+LOW_BAND = "peak cutoff=61 q=1.4 gain=0.8dB"
+E3_PLUCK_VEL = (96, 80, 84)              # the cycle's three chords: D minor add9 (2 beats), Bb (2), C (3)
+E3_PLUCK_GAIN, E3_PLUCK_HALL = "-14dB", "-10dB"
+ORBITS_WERE = {"e5": [["0b", 0.0], ["256b", 0.0], ["272b", -5.0], ["364b", -5.0], ["380b", 0.0]],
+               "e2": [["0b", 0.0], ["152b", 0.0], ["160b", -5.0], ["364b", -5.0], ["380b", 0.0]],
+               "e6": [["0b", 4.0], ["320b", 4.0], ["336b", -4.0], ["364b", -4.0], ["380b", 0.0]]}
+ORBITS_IN = {"e5": [["0b", 0.0], ["256b", 0.0], ["272b", -5.0], ["352b", -5.0], ["356b", 0.0]],
+             "e2": [["0b", 0.0], ["152b", 0.0], ["160b", -5.0], ["352b", -5.0], ["356b", -2.0], ["364b", -2.0],
+                    ["380b", 0.0]],
+             "e6": [["0b", 4.0], ["320b", 4.0], ["336b", -4.0], ["352b", -4.0], ["356b", 0.0]]}
+HEARD_DB = {"choir5": 8.0, "choir8": 9.0, "clap": 5.0, "shaker": 15.0}
+
+
+def the_stretto_is_heard(song):
+    by = {x["name"]: x for x in song["tracks"]}
+    pos, plucks, k = 0.0, [], 0
+    for tok in by["e3"]["score"].split():
+        head, _, rest = tok.partition("/")
+        ln = float(rest.split("b")[0])
+        if head != "R" and b0(E3_PLUCK_FROM) - 1e-6 <= pos < JB - 1e-6:
+            assert ln in (2.0, 3.0), tok
+            if not b0(E3_PLUCK_RESTS[0]) - 1e-6 <= pos < b0(E3_PLUCK_RESTS[1]) - 1e-6:
+                plucks.append((pos, 1.0, head, E3_PLUCK_VEL[k % 3]))
+            k += 1
+        pos += ln
+    assert plucks and abs(plucks[0][0] % 7.0 - JB % 7.0) < 1e-6, plucks[:2]
+    claps = [e for e in score_events(by["clap"]["score"]) if e[0] >= b0(CLAP_FROM) - 1e-6]
+    by["clap"]["score"] = events_score(claps)
+    shakes = [e for e in score_events(by["shaker"]["score"]) if e[0] >= b0(SHAKER_FROM) - 1e-6]
+    by["shaker"]["score"] = events_score(shakes)
+    for n in ("choir5", "choir8"):
+        notes = by[n]["notes"]
+        keep = [e for e in notes if not JB - 1.0 <= e["at"] < b0(HARMONY_FROM) - 1.0]
+        assert 0 < len(keep) < len(notes), n
+        by[n]["notes"] = keep
+    eq = song["master"]["fx"][0]
+    assert eq["type"] == "eq"
+    eq["bands"] = list(eq["bands"]) + [LOW_BAND]
+    e3 = by["e3"]
+    song["tracks"].append({"name": "e3p", "patch": "pizzicato", "score": events_score(plucks), "gain": E3_PLUCK_GAIN,
+                           "pan": json.loads(json.dumps(e3["pan"])), "sends": {"hall": E3_PLUCK_HALL},
+                           "auto": {"pn": json.loads(json.dumps(e3["auto"]["pn"]))}})
+    for n, pts in ORBITS_IN.items():
+        assert by[n]["auto"]["orb"]["points"] == ORBITS_WERE[n], (n, by[n]["auto"]["orb"]["points"])
+        by[n]["auto"]["orb"]["points"] = [list(pt) for pt in pts]
+    for n, up in HEARD_DB.items():
+        by[n]["gain"] = f"{float(str(by[n]['gain']).replace('dB', '')) + up:g}dB"
+
+
 def score_events(score):
     pos, ev = 0.0, []
     for tok in score.split():
@@ -2191,6 +2270,7 @@ def main():
     she_rides_the_slingshot(song)
     the_disk_is_wide(song)
     the_jet_breathes(song)
+    the_stretto_is_heard(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
