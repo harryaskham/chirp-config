@@ -1106,6 +1106,21 @@ def build():
     for k_ in ('kit', 'kitb', 'hat3', 'bass', 'buildarp', 'gtr', 'e2m', 'e2body', 'dust', 'e1p'):
         if k_ in P:
             P[k_] = [e_ for e_ in P[k_] if not (st0_ - 1e-6 <= e_[0] < st1_ - 1e-6)]
+    # (v102, section w3: 1:03-1:33, the gather's second half into the build - the verse sang 'all that falls,
+    # falls a little nearer' (bars 21 and 25), the first glimpse of the hook came far off at bar 30, and between and
+    # after them the band only: the ondes, the crest's partner, was heard once at bar 18 and then not until the crest)
+    # THE ONDES ANSWERS: at bar 27 the ondes plays the verse's tune back to it, softly, an octave up - 'all that
+    # falls, falls a little nearer' with no words - and after the far glimpse at bar 30 it echoes the glimpse's last
+    # three notes, 'comes round', so the pairing Harry heard at the crest (the voice and its ondes) is set up here
+    va_ = sorted([n_ for n_ in vsnotes if n_['at'] < SEC['gather'] * 4.0 + 24.0], key=lambda n_: n_['at'])
+    oa0_ = (SEC['gather'] + 10) * 4.0
+    for n_ in va_:
+        P['hook'].append((round(oa0_ + n_['at'] - va_[0]['at'], 4), m(int(str(n_['pitch'])[1:]) + 12), min(n_['len'], 1.6) * 0.97,
+                          int(56 + 14 * n_.get('vel', 0.8))))
+    ec_ = sorted(eh_, key=lambda n_: n_['at'])[-3:]
+    for n_ in ec_:
+        P['hook'].append((round(n_['at'] + 4.0, 4), m(int(str(n_['pitch'])[1:]) + 12), min(n_['len'], 1.6) * 0.97, 58))
+    P['hook'].sort(key=lambda e_: e_[0])
     P['gtrd'] = [e_ for e_ in P['gtr'] if SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6]
     P['gtr'] = [e_ for e_ in P['gtr'] if not (SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6)]
     SPD = {'in': (0.1, 0.1), 'gather': (0.1, 0.2), 'build': (0.25, 0.75), 'crest': (1.0, 1.0), 'break': (0.0, 0.0),
