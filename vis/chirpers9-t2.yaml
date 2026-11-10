@@ -108,7 +108,9 @@ scenes:
     xfade: 4
     look:
       extends: accretion3d
-      params: {gas: 0.5, debris: 12}
+      # The gas is thin: its near half crosses in front of the hole (drawn after the lens),
+      # on top of the rings there, and any thicker it washes them out to white.
+      params: {gas: 0.3, debris: 12}
       vars:
         # The camera closes in as the stereo field narrows to a point; it circles at the
         # song's speed.
