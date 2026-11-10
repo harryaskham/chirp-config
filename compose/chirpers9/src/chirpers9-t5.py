@@ -136,6 +136,7 @@ LOWEND = os.environ.get("C9T5_LOWEND", "deep:1,sub:-13,csub:-13")   # WHOLE, dee
 MASTERCLIP = os.environ.get("C9T5_MASTERCLIP", "")   # with it (tools/limwork.py on v93: since the kick got its weight the final limiter ducks the whole mix on every hit - 6-12 dB for an instant, about 5% of A): a soft clipper ahead of the limiter rounds the kick's peak instead ('dB' over the ceiling; smaller clips more)
 KICKCLIP = os.environ.get("C9T5_KICKCLIP", "-28:3")   # WHOLE, deep pass 6 (tools/limwork.py on v94: since the kick got its weight the final limiter ducks the WHOLE MIX on every hit - 6 to 10 dB for an instant, over 3 dB for 4% of A and 10% of the crest - because the kick's first cycles are the tallest thing in the song; a soft clipper on the master fixed that on t1 but flat-topped t5's bass): THE KICK IS CLIPPED AT ITS OWN TRACK - the heart kick's peak is rounded off by a soft clipper on that track alone ('ceiling dB', then 'makeup dB' to give back its weight): the first cycles of its sine go squarer, which is the sound of a driven 909 - shorter in the peak, thicker in the body, with harmonics a small speaker can play - and the limiter stops turning everything else down for it. (Tried and dropped: the clipper's drive on a lane that follows the orbit, +6 dB at the crest - no measurable change in the kick's body, so either the lane did not reach it or the clipper was already doing all it can)
 VOICEARC = os.environ.get("C9T5_VOICEARC", "hums:0.6:1.5,solo:1:2.5,calls:0.4:1")   # WHOLE, deep pass 7 (wM's phrase_arc, pin 897af8ca: 'our sung lines are flat' - every syllable of a line at one level; t5's singer had a taper on each note but no shape across a line): SHE PHRASES - each sung line swells to the middle of its highest note and falls away after it, and its softer notes are sung lighter, as a singer shapes a line. 'hums:arc:makeup' for the chorus and the three hums; 'solo:arc:makeup' for the two lines she sings alone with room round them, 'clo-ser and clo-ser' (E1 itself) and the farewell - the full arc; 'calls:arc:makeup' for her 'near-er' calls (a gentler arc: the long D5 into the crest should not sink before it). Makeup dB keeps a line's average where it was, so its peak is a little above the old level and its ends below
+KITFORE = os.environ.get("C9T5_KITFORE", "rim:128:5,clap:178:5,later:2")   # WHOLE, deep pass 8 (read at their own strikes, 46 ms frames, v96: through A the clap and the rim sit 9-10 dB under everything else in their octaves (1.4-5.6 kHz), under the two seed motifs and the orbit that v83 lifted; in the build and C, 5-6 dB under. E2 - the cell of seven: kick, rim on 2 and 5, clap on 3 - is t5's inherited element, and since v93 only its kick was plain. And A is the song's flattest stretch (flatness.py: bars 27-46, three choruses over one unchanging band)): E2 ASSEMBLES THROUGH A - the rim and the clap move to their own tracks ('e2-rim', 'e2-clap': same kit, same effects) and step forward one at a time, 'rim:beat:dB,clap:beat:dB': the kick has the cell alone from beat 96, the rim joins it in front from its beat, the clap from its beat (178: the band's return after the held chorus). 'later:dB' is their lift from the build to beat 400; both are back at the old level by the tide, so the overlap with t6 is as agreed
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -1253,6 +1254,20 @@ def song():
         for tr in tracks:
             if tr["name"] in ("drums", "spin"):
                 tr["fx"] = list(tr.get("fx", [])) + [{"type": "transient", "attack": 3.0, "sustain": 0.0, "sensitivity": 0.5}]
+    if KITFORE:
+        spec = {p.split(":")[0]: [float(v) for v in p.split(":")[1:]] for p in KITFORE.split(",")}
+        later = spec.get("later", [0.0])[0]
+        dr = next(tr for tr in tracks if tr["name"] == "drums")
+        for nm, piece in (("rim", "rs"), ("clap", "cp")):
+            if nm not in spec:
+                continue
+            b0, up = spec[nm]
+            mine = [n for n in dr["notes"] if n["pitch"] == piece]
+            dr["notes"] = [n for n in dr["notes"] if n["pitch"] != piece]
+            tracks.append(dict({k: v for k, v in dr.items() if k not in ("notes", "name", "fx", "auto")}, name=f"e2-{nm}", notes=mine,
+                               fx=list(dr.get("fx", [])) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.fore", "amount": 1}]}}],
+                               auto=dict(dr.get("auto", {}), fore={"points": [["0b", 0.0], [f"{b0 - 0.2:g}b", 0.0], [f"{b0 - 0.05:g}b", up], [f"{ST['build'] - 16}b", up],
+                                                                              [f"{ST['build']}b", later], ["400b", later], [f"{ST['outro']}b", 0.0], [f"{TOTAL}b", 0.0]]})))
     if VIBBLOOM:
         vb, *vd = VIBBLOOM.split(":")
         for tr in tracks:
