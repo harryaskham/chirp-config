@@ -16,7 +16,8 @@ own plan (`chirp plan --json`) and note list (`chirp render -o x.mid`):
     python3 tools/songmap.py chirpers9-t1 --lanes         # only the lanes
     python3 tools/songmap.py chirpers9-t1 --json          # everything, for scripts
 
-Names here are what a programme reads: `track.NAME.hit|level|key|gate`, `lane.NAME`. Bars are
+Names here are what a programme reads: `track.NAME.hit|level|key|gate`, `lane.NAME` (the first
+lane of that name) and `lane.TRACK.NAME` (that track's own; printed for the ones a first hides). Bars are
 counted as a programme writes them (`at: 32bar` and keys `[[16bar, 0], [24bar, 1]]` are after
 that many bars, so the song starts at 0bar).
 """
@@ -241,13 +242,14 @@ def main():
             if t["sung"]:
                 print("      sung: " + " | ".join(t["sung"][:14]) + (" ..." if len(t["sung"]) > 14 else ""))
     if not a.tracks:
-        print(f"\nlanes ({len(m['lanes'])}): lane.NAME reads the first of a name; its corners (bar m:ss value), straight lines between")
+        print(f"\nlanes ({len(m['lanes'])}): lane.NAME reads the first of a name, lane.TRACK.NAME that track's own; its corners (bar m:ss value), straight lines between")
         for l in m["lanes"]:
             mv = l["moves"]
             shown = mv if len(mv) <= 10 else mv[:5] + [None] + mv[-4:]
             txt = "  ".join("..." if x is None else f"{x['bar']:g} {mmss(x['at'])} {x['value']:g}" for x in shown)
-            tag = "" if l["read"] else "  (shadowed: another lane of this name comes first)"
-            print(f"  {l['name']:<12} on {l['on']:<12} {l['lo']:g}..{l['hi']:g}, {len(mv)} corners{tag}\n      {txt}")
+            owner = l["on"][4:] if l["on"].startswith("bus ") else l["on"]
+            addr = f"lane.{l['name']}" if l["read"] else f"lane.{owner}.{l['name']}"
+            print(f"  {addr:<22} {l['lo']:g}..{l['hi']:g}, {len(mv)} corners\n      {txt}")
 
 
 if __name__ == "__main__":
