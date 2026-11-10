@@ -1752,6 +1752,28 @@ def build():
         if os.environ.get('ARCCOMP', '1') == '1':
             c_ = (1.3 * a_ / 0.6) if 'voice-near' in str(t_['patch'].get('extends', '')) else (1.1 * a_ / 0.5)
             t_['gain'] = '%gdB' % round(float(str(t_['gain'])[:-2]) + c_, 1)
+    # (v110, section w8: 3:34-4:04, the drift into the last chorus - deep pass. The second verse, 'all that turns /
+    # turns a little faster', is sung twice by the one voice exactly alike, bars 81 and 85) THE SECOND VERSE GATHERS
+    # A SECOND VOICE. The first time she sings it alone, over the half-speed heartbeat, as before; the second time
+    # (bar 85, where the ondes comes back) another near voice joins a third above her - F C A where she sings D A
+    # F, the cell's own shape one step up the scale, every note in D Dorian - so the verse arrives at the last
+    # chorus already in two parts: one voice, then two in thirds, then the chorus's line in its keyed thirds.
+    # Softer than the tune and a little to the right; the tune's own notes, phrasing and words
+    if os.environ.get('V2H', '1') == '1':
+        vt_ = [t_ for t_ in song['tracks'] if t_['name'] == 'verse'][0]
+        v0_ = (SEC['drift'] + 4) * 4.0
+        src_ = [n_ for n_ in vt_['notes'] if v0_ - 0.05 <= n_['at'] < v0_ + 7.5]
+        assert len(src_) == 9, len(src_)
+        dor_ = [0, 2, 3, 5, 7, 9, 10]
+        def third_up(p_):
+            o_, pc_ = divmod(p_ - KEY, 12)
+            k_ = min(range(7), key=lambda j_: abs(dor_[j_] - pc_))
+            assert dor_[k_] == pc_, p_
+            return KEY + 12 * (o_ + (k_ + 2) // 7) + dor_[(k_ + 2) % 7]
+        hn_ = [dict(n_, pitch='m%d' % third_up(int(float(str(n_['pitch'])[1:]))), vel=round(n_['vel'] * 0.94, 3)) for n_ in src_]
+        ht_ = dict(vt_, name='verseharm', notes=hn_, gain=os.environ.get('V2HG', '-13.5dB'), pan=0.25)
+        ht_.pop('double', None)
+        song['tracks'].append(ht_)
     return song
 
 
