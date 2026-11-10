@@ -1608,6 +1608,57 @@ def build():
                 if pt_['extends'].startswith(k_):
                     t_['patch'] = dict(pt_, play=dict(pt_.get('play') or {}, glide='80ms', glide_semi='8ms', glide_lead=v_))
                     break
+    # (v107, whole song - Harry, 10 Nov: 'go deep ... the feel and texture and style of the album ... from engine
+    # through library to song structure') AIR. Measured against the album's own genre references (Actium, Ptolemy,
+    # Hedphelym, Green Calx, Pulsewidth): their top two octaves are as wide as they are loud (side/mid -2 to +10 dB
+    # above 4 kHz: rooms, reverb, tape); every Accretion track sat 6-20 dB narrower there (t6: -11 / -14 dB), and
+    # t6's highs were dry ticks over digital silence (level above 5 kHz swinging 29 dB between a hat and the gap
+    # after it in the crest; the references 8-24). The top of the mix is rebuilt:
+    #  - a small bright ROOM of their own for the drums, the tabla, the marimba, the steel pan, the kora, the gong
+    #    and the flute's breath (a new 'room' bus: early reflections, its top decorrelated left from right)
+    #  - the HALL's tail keeps its top (damp 0.5 -> 0.35) and spreads it
+    #  - a high PLATE for the singers (an 'air' bus, only above 2.5 kHz): their breath and consonants trail wide
+    #  - the hi-hats SWAY across the field once every five sixteenths - E1's five, the squeeze's kick cycle
+    #  - on the master the bands above 2.5 kHz open (side x1.25, x1.6 above 5 kHz) once the in-seam is over, and
+    #    close again across the out-seam
+    # (also tried, dropped: the low strings, harmonium and organ ducking with the kick - no measurable change in the
+    # low end's motion, 10.8 dB before and after)
+    import os as os_
+    V107_ = os_.environ.get('V107', 'HRPSW')
+    if 'H' in V107_:
+        song['buses']['hall']['fx'][0] = 'reverb kind=hall decay=3.2s mix=1 mono_below=200 damp=0.35 spread=1'
+    if 'R' in V107_:
+        song['buses']['room'] = {'fx': ['reverb kind=room decay=0.5s mix=1 early=0.9 damp=0.15 spread=1 low_cut=500 high_cut=16000',
+                                        'hp cutoff=400'], 'returns': []}
+        ROOM_ = {'hats': '-6dB', 'kit': '-11dB', 'kitroom': '-13dB', 'cajon': '-9dB', 'near': '-11dB', 'e5': '-11dB',
+                 'e5b': '-11dB', 'hook': '-13dB', 'springgong': '-14dB'}
+        for t_ in song['tracks']:
+            if ROOM_.get(t_['name']):
+                t_['sends'] = dict(t_.get('sends') or {}, room=ROOM_[t_['name']])
+    if 'P' in V107_:
+        song['buses']['air'] = {'fx': ['reverb kind=plate decay=1.5s mix=1 damp=0.1 spread=1 low_cut=2500 high_cut=16000 predelay=0.03',
+                                       'hp cutoff=2500'], 'returns': []}
+        for t_ in song['tracks']:
+            pt_ = t_.get('patch')
+            ex_ = pt_.get('extends', '') if isinstance(pt_, dict) else str(pt_)
+            if ex_.startswith(('voice-near', 'voice-old')):
+                t_['sends'] = dict(t_.get('sends') or {}, air='-12dB')
+            elif ex_.startswith('voice-choir'):
+                t_['sends'] = dict(t_.get('sends') or {}, air='-15dB')
+    if 'S' in V107_:
+        for t_ in song['tracks']:
+            if t_['name'] == 'hats':
+                t_['lfo'] = dict(t_.get('lfo') or {}, sway={'wave': 'triangle', 'rate': '5/16'})
+                t_['pan'] = {'value': 0.1, 'mod': [{'src': 'lfo.sway', 'amount': 0.55}]}
+    if 'W' in V107_:
+        # the top's width opens after the in-seam (t5's tail is narrow up there) and closes again across the out-seam
+        mf_ = song['master']['fx']
+        assert mf_[-1] == 'limiter ceiling=-1dB'
+        mf_.insert(len(mf_) - 1, {'type': 'width', 'width': 1, 'mono_below': 0, 'crossover': 'lr4',
+                                  'bands': [[2500, {'value': 1.0, 'mod': [{'src': 'auto.AIR', 'amount': 0.25}]}],
+                                            [5000, {'value': 1.0, 'mod': [{'src': 'auto.AIR', 'amount': 0.6}]}]]})
+        song['master']['auto']['AIR'] = {'points': [['0b', 0.0], [f"{SEC['pull'] * 4.0:.1f}b", 0.3], [f"{(SEC['pull'] + 8) * 4.0:.1f}b", 1.0],
+                                                    [f"{SEC['out'] * 4.0:.1f}b", 1.0], [f"{NBARS * 4.0:.1f}b", 0.3]]}
     return song
 
 
