@@ -45,7 +45,11 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
                                                     queued climb; --off resumes what a focus paused
                                                     (marked, so --off resumes exactly those); the playlist
                                                     is unchanged
-  climb.py commit -m MSG PATH …                     commit those paths only and publish (below)
+  climb.py commit -m MSG PATH … [--library-ok]      commit those paths only and publish (below). Library files
+                                                    (patches/ racks/ styles/ irs/) go through libguard.py first:
+                                                    refused when a song outside the album in progress would change,
+                                                    held until --library-ok when another composer's song would
+                                                    (also for `done --with`); a file under a new name is free
   climb.py publish                                  push this tree's local commits (a retry: records nothing)
 Out of band: `add --oob` (or `set ID oob=true`) makes a test climb that `next` never picks and that never
 joins the playlist; agents can still climb it (and any paused climb) directly when asked.
@@ -354,6 +358,28 @@ def commit(paths, msg, args):
             print(f"climb: committed locally as {sha} but NOT pushed: {why}. The record is safe in git; retry with "
                   "`python3 tools/climb.py publish` - do not re-run this command (it would record it twice)", file=sys.stderr)
         return True
+
+
+def library_gate(paths, args, me=None, mine=()):
+    """A commit that carries library files (patches/, racks/, styles/, irs/) must not change songs it should not
+    (libguard.py, 10 Nov: the user library is live, so an edit to a shared patch changes every song that uses it at
+    once). Refused when a song outside the album in progress would change (a released album must keep rendering as it
+    was released); held, until --library-ok, when another composer's song of the album would. A new name is free."""
+    import libguard
+    lib = [p for p in paths if libguard.is_library(p, ROOT)]
+    if not lib or "--no-git" in args or libguard.git(ROOT, "rev-parse", "HEAD") is None:
+        return
+    res = libguard.check(lib, root=ROOT, me=me, mine=mine)
+    if not res["paths"]:
+        return
+    code, lines = libguard.verdict(res)
+    print("\n".join(lines), file=sys.stderr)
+    if code == 1:
+        die("library change REFUSED: it changes songs outside the album in progress. Nothing was committed or recorded. "
+            "Save the file under a new name, or keep the change in your song (extends + overrides).", 5)
+    if code == 2 and "--library-ok" not in args:
+        die("library change HELD: it changes other composers' songs of the album. Nothing was committed or recorded. "
+            "Tell their owners, then repeat with --library-ok (or use a new name; with --as/CLIMB_AS your own songs pass).", 5)
 
 
 def commit_or_die(paths, msg, args):
@@ -1047,6 +1073,7 @@ def cmd_done(a):
     version = opt(a, "--version")
     # Files others may have written: another agent on this climb since (or shortly before) you started it.
     withs = multi(a, "--with")
+    library_gate(withs, a, me=me, mine=(cid,))      # before anything is recorded
     if withs and "--force" not in a:
         st = starts()
         mine = [s["t"] for s in st if s["id"] == cid and s.get("who") == me]
@@ -1074,9 +1101,11 @@ def cmd_done(a):
                 and (best.get("score") is None or score > float(best["score"])))
         judged = "--keep" in a and not kept
         if (kept and "--keep" not in a and c.get("mode") == "compose" and c.get("song") not in withs
-                and best.get("score") is not None and "--force" not in a):
+                and best.get("score") is not None and "--force" not in a and "--no-git" not in a):
             # a refused trial that happens to outscore the best would silently become the best (chirper-three's t4 v60,
             # 8 Nov). Kept rounds commit their song with --with (107 of 108 in chirpers9), refused ones never do.
+            # Not under --no-git (nothing is committed there, so --with says nothing: test_compose's registry-only
+            # rounds; fixed 10 Nov, two days after this check broke them).
             die(f"{version} outscores {cid}'s best ({score} > {best['score']}, {best.get('version')}), so done would record "
                 f"it as KEPT and make it the best, but {c.get('song')} is not among --with. Kept: add --with {c.get('song')} "
                 f"(or --keep). Refused by ear: add --refused (logged; the best stays {best.get('version')}). Committed the "
@@ -1303,9 +1332,10 @@ def cmd_commit(a):
     if "-m" not in a or a.index("-m") + 1 >= len(a):
         die("usage: climb.py commit -m MSG PATH …")
     i = a.index("-m")
-    msg, paths = a[i + 1], [p for p in a[:i] + a[i + 2:] if p != "--no-git"]
+    msg, paths = a[i + 1], [p for p in a[:i] + a[i + 2:] if p not in ("--no-git", "--library-ok")]
     if not paths:
         die("climb.py commit: name the paths to commit")
+    library_gate(paths, a, me=os.environ.get("CLIMB_AS"))
     commit_or_die(paths, msg, a)
 
 

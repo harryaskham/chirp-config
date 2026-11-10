@@ -52,6 +52,12 @@ class DoneRefused(unittest.TestCase):
         self.assertIn("--refused", r.stderr)
         self.assertEqual((self.best()["version"], self.log()), ("v3", []))
 
+    def test_no_git_rounds_are_exempt(self):
+        """--no-git commits nothing, so --with says nothing: test_compose's registry-only rounds must keep working."""
+        r = self.done("--score", "99.6", "--version", "v4", "--no-git")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(self.best()["version"], "v4")
+
     def test_refused_logs_the_round_and_keeps_the_best(self):
         r = self.done("--score", "99.6", "--version", "v4", "--refused")
         self.assertEqual(r.returncode, 0, r.stderr)
