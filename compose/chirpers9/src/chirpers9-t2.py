@@ -124,6 +124,7 @@ def chord(bar):
 
 
 def build():
+    FAR_ = os.environ.get('FAR', '1') == '1'
     rng = random.Random(SEED)
     total = NBARS * 4.0
     P = {k: [] for k in ('e2m', 'bass', 'e1in', 'e1p', 'e1c', 'kit', 'hat3', 'pad', 'sub', 'voice_', 'e2body', 'infall', 'dust', 'hook')}
@@ -545,11 +546,19 @@ def build():
     # everything converging where it falls (the master's width, 1.0 down to 0.15)
     WID = {'in': (1.0, 1.0), 'gather': (1.0, 0.94), 'build': (0.94, 0.86), 'crest': (0.92, 0.86), 'break': (0.86, 0.78),
            'drift': (0.78, 0.68), 'fall': (0.62, 0.15)}
+    if FAR_:
+        # (v103) the break is the orbit's far point: the field opens there instead of closing, and swings back in
+        # through the drift to where the fall takes it (the fall, into t3, is as agreed)
+        WID = dict(WID, **{'break': (0.95, 1.15), 'drift': (1.15, 0.72)})
     wid_pts = []
     for b_ in range(NBARS):
         s_, i_ = sec_of(b_)
         a_, z_ = WID[s_]
         wid_pts.append([f'{b_ * 4.0:.1f}b', round(a_ + (z_ - a_) * i_ / 15.0, 3)])
+    if FAR_:
+        # the crest keeps its own width to its last beat
+        k_ = [i_ for i_, p_ in enumerate(wid_pts) if p_[0] == f"{SEC['break'] * 4.0:.1f}b"][0]
+        wid_pts.insert(k_, [f"{SEC['break'] * 4.0 - 0.05:.2f}b", WID['crest'][1]])
     tempo = [{'at': '0b', 'bpm': 90.0}, {'at': f'{SEC["gather"] * 4.0:.1f}b', 'bpm': 90.0},
              {'at': f'{fall0:.1f}b', 'bpm': 98.0, 'ramp': True}]
     # (v73, whole song) KEPLER'S SECOND LAW: a body in orbit moves fastest at its nearest pass and slowest far out. The
@@ -743,9 +752,9 @@ def build():
         if s_ == 'crest':
             return 1 / 8, 0.0
         if s_ == 'break':
-            return 1 / 32, 0.3
+            return 1 / 32, (0.3 + 0.6 * (b_ - SEC['break'] * 4.0) / 64.0) if FAR_ else 0.3   # (v103) flung out: the radius grows
         if s_ == 'drift':
-            return 1 / 16, 0.3 + 0.45 * i_ / 16.0
+            return 1 / 16, (0.9 - 0.15 * (b_ - SEC['drift'] * 4.0) / 64.0) if FAR_ else 0.3 + 0.45 * i_ / 16.0   # and swings back
         f_ = min(1.0, (b_ - fall0) / 64.0)
         return 1 / 16 + (1 / 2 - 1 / 16) * f_ * f_, 0.75 * (1.0 - f_) ** 0.8
     bb_ = 0.0
@@ -1565,6 +1574,39 @@ def build():
                 t_['patch'] = dict(pt_, extends=pt_['extends'] + f' synth.layers.0.vowel_drift={v_:g}',
                                    play=dict(pt_.get('play') or {}, glide='80ms', glide_semi='8ms', glide_lead=0.5))
                 break
+    # (v103, whole song - Harry, 10 Nov: go deep on feel, texture and style) DISTANCE. The song is an orbit - far out,
+    # the nearest pass at the crest, flung out again, falling in - and its tempo (v73) and E2's place in the field
+    # already follow that orbit, but its SPACE did not: every part stood in the same hall at the same depth from the
+    # first bar to the last, and the break - the far point - was the narrowest stretch before the fall. Now distance
+    # is heard. A second, far space (a long, wide, cool hall, its top spread left from right) takes the band and the
+    # verses, and its return rides the orbit: open through the gather (far out), closing bar by bar through the build
+    # (nearer), swelling in the stopped bar before the crest and then shut - the crest is as close and dry as it was,
+    # note for note as Harry heard it (no crest line feeds the far hall, and its return is closed there); thrown wide
+    # open at the break (the crest's last notes bloom into it: flung out), the field at its widest and E2's notes
+    # flung to the edges; still open under the second verse; closing for the last chorus; and shut before the fall, so
+    # both seams are as agreed
+    if FAR_:
+        g0_, bu0_, c0f_, br0_, d0_, f0f_ = (SEC[k_] * 4.0 for k_ in ('gather', 'build', 'crest', 'break', 'drift', 'fall'))
+        # the return, in dB. The verses are far and the choruses near: the second verse (the drift's first six bars)
+        # stands in the same far hall as the first, and the last chorus is as close as the crest
+        far_pts = [['0b', -60.0], [f'{g0_:.1f}b', -60.0], [f'{g0_ + 8.0:.1f}b', 6.0], [f'{bu0_:.1f}b', 4.0],
+                   [f'{c0f_ - 8.0:.1f}b', -6.0], [f'{c0f_ - 2.0:.1f}b', 5.0], [f'{c0f_ - 0.5:.1f}b', -2.0], [f'{c0f_:.1f}b', -60.0],
+                   [f'{br0_ - 0.05:.2f}b', -60.0], [f'{br0_ + 1.0:.1f}b', 5.0], [f'{br0_ + 48.0:.1f}b', 5.0], [f'{d0_:.1f}b', 5.0],
+                   [f'{d0_ + 20.0:.1f}b', 4.0], [f'{d0_ + 26.0:.1f}b', -10.0], [f'{f0f_ - 4.0:.1f}b', -10.0], [f'{f0f_:.1f}b', -60.0]]
+        song['buses']['far'] = {
+            'fx': ['reverb kind=hall decay=5.5s mix=1 damp=0.35 spread=1 predelay=0.045 mono_below=200 high_cut=12000',
+                   'hp cutoff=260',
+                   {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.far', 'amount': 1}]}}],
+            'auto': {'far': {'points': far_pts}}, 'returns': []}
+        FARS_ = {'verse': '-12dB', 'versegather': '-12dB', 'prech': '-13dB', 'earlyhook': '-7dB', 'roundround': '-7dB',
+                 'middlecalls': '-9dB', 'sung': '-9dB', 'e1p': '-11dB', 'gtr': '-11dB', 'gtrd': '-12dB', 'buildarp': '-11dB',
+                 'e1vb': '-9dB', 'gtrarp': '-9dB', 'hook': '-11dB', 'e2m': '-12dB', 'hat3': '-16dB', 'dust': '-9dB',
+                 'approach': '-13dB', 'breakhum': '-7dB', 'ooh': '-7dB', 'oohin': '-7dB', 'e2body': '-15dB'}
+        # the tunes and the voices go far; the drums and the bass stay near and dry, so the groove keeps its edge
+        for t_ in song['tracks']:
+            nm_ = t_['name'][:-2] if t_['name'].endswith(('-l', '-r')) else t_['name']
+            if nm_ in FARS_:
+                t_['sends'] = dict(t_.get('sends') or {}, far=FARS_[nm_])
     return song
 
 
