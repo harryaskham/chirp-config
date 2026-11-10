@@ -1422,6 +1422,55 @@ NOISE_LOOSE = (44.5, 47.5)
 TRESILLO = (0, 6, 12)
 
 
+# v94 (ROUND TYPE: whole song): THE LIGHTS MOVE. E4, the four lights, is what t4 introduces - the cellos' chords on
+# every E1 cycle, lit one more per section since v67 - but their touch never changed: every chord struck as a block and
+# held, lens to fall. Presence puts them at the top of the relief (-4.3), where t4 moves least (4:00). Now the lights
+# have an arc of their own: held in the lens and A; in B ROLLED - each chord's upper notes lit one by one, 3/4 of a beat
+# apart (v67's lights-one-by-one, inside each chord); held full through the rise and the crest; rolled again as the
+# relief opens; and from 110.5 (the 4:00 block boundary) RIPPLING - the upper notes turning in an up-and-down eighth
+# arpeggio, ringing over each other, the lights flickering - for one block, then held again into the fall and t5. The ROOT of
+# every chord always holds whole (t4's 44/61 Hz bands sit on the envelope's edge).
+LIGHTS_ROLL = [(41, 65), (101, 110.5)]
+LIGHTS_RIPPLE = (110.5, 114.5)        # to 121 it reached t4's out-seam body: t5 seam 3.07 -> 3.44 / 2.97 -> 3.40
+ROLL_SPREAD = "3b"                    # the chord's total spread: five notes 3/4 of a beat apart
+RIPPLE_ORDER = (1, 2, 3, 4, 3, 2)
+
+
+def lights_move(song):
+    # lights is a score: rolls are its latching strum setting (the chord's total spread, root first; ^trem kept);
+    # the ripple's overlapping notes go on lights2, a copy of the lights track, while lights keeps the root
+    tr_ = [x for x in song["tracks"] if x["name"] == "lights"][0]
+    toks, out, ripple, pos, strum = tr_["score"].split(), [], [], 0.0, False
+    for tok in toks:
+        head, _, rest = tok.partition("/")
+        ln = float(rest.split("b")[0])
+        if head != "R":
+            names = head.split(",")
+            vel = int(rest.split("@")[1].split("^")[0]) if "@" in rest else 80
+            arts = ("^" + rest.split("^", 1)[1]) if "^" in rest else ""
+            roll = len(names) >= 3 and any(b0(a) - 1e-6 <= pos < b0(z) - 1e-6 for a, z in LIGHTS_ROLL)
+            rip = len(names) >= 3 and b0(LIGHTS_RIPPLE[0]) - 1e-6 <= pos < b0(LIGHTS_RIPPLE[1]) - 1e-6
+            if roll != strum:
+                out.append(f"strum={ROLL_SPREAD}" if roll else "strum=")
+                strum = roll
+            if rip:
+                tok = f"{names[0]}/{rest}"
+                k, at = 0, pos
+                while at < pos + ln - 0.25:
+                    n = names[min(RIPPLE_ORDER[k % len(RIPPLE_ORDER)], len(names) - 1)]
+                    ripple.append({"at": round(at, 4), "len": round(min(1.0, pos + ln - at), 4), "pitch": n,
+                                   "vel": round((vel - 6) / 127, 4)})
+                    at += 0.5
+                    k += 1
+        out.append(tok)
+        pos += ln
+    tr_["score"] = " ".join(out)
+    if ripple:
+        tw = json.loads(json.dumps({k: v for k, v in tr_.items() if k != "score"}))
+        tw.update(name="lights2", notes=ripple)
+        song["tracks"].append(tw)
+
+
 def noise_loosens():
     a, z = b0(NOISE_LOOSE[0]), b0(NOISE_LOOSE[1])
     keep = [e for e in P["air"].ev if not (a - 1e-6 <= e[0] < z - 1e-6)]
@@ -2071,6 +2120,7 @@ def main():
     she_says_it(song)
     her_vowels_live(song)
     her_glides(song)
+    lights_move(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
