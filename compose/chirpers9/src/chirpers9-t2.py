@@ -1680,6 +1680,28 @@ def build():
                                              'bands': [[2500, {'value': 1.0, 'mod': [{'src': 'auto.TOP', 'amount': 0.35}]}],
                                                        [5000, {'value': 1.0, 'mod': [{'src': 'auto.TOP', 'amount': 0.9}]}]]})
             song['master']['auto']['TOP'] = {'points': [[f'{b_:.2f}b', v_] for b_, v_ in dist_]}
+    # (v107, section w9: 4:04-4:45, the fall into t3 - deep pass. The song's last word, 'in', was one held D, far off
+    # and 19 dB down: a full stop) THE LONG WAY IN. The last word takes the title's road: the near voice sings 'in'
+    # as one long melisma that TURNS WITH THE CELL - on each of E2's slowing hits it moves to the cell's own note
+    # (D, A, F, C, the debris an octave below it on the log drum), twice round, each turn a little slower as the
+    # cell is, and only then comes to rest on the home D and lets go as the song falls into t3. The voice that has
+    # sung about the orbit all song ends by joining it. One syllable, nine notes (wM's melisma), the steps sliding
+    # (the sung glides); 5 dB nearer than the single note was, still behind its low-pass, in the hall
+    if os.environ.get('ORBITIN', '1') == '1':
+        li_ = [t_ for t_ in song['tracks'] if t_['name'] == 'lastin'][0]
+        n0_ = li_['notes'][0]
+        hits_ = sorted((e_[0], float(str(e_[1])[1:].split('^')[0])) for e_ in P['e2m'] if e_[0] >= li0_ - 0.6)[:9]
+        assert [int(round(p_)) % 12 for _, p_ in hits_] == [2, 9, 5, 0, 2, 9, 5, 0, 2], hits_
+        notes_ = []
+        for k_, (at_, p_) in enumerate(hits_):
+            end_ = hits_[k_ + 1][0] if k_ + 1 < len(hits_) else total - 1.5
+            if k_ == 0:
+                notes_.append(dict(n0_, at=round(at_, 3), len=round(end_ - at_, 3), pitch='m%d' % (int(round(p_)) + 12)))
+            else:
+                notes_.append({'at': round(at_, 3), 'len': round(end_ - at_, 3), 'pitch': 'm%d' % (int(round(p_)) + 12), 'ph': '_',
+                               'vel': round(n0_['vel'] * (1.0 - 0.03 * k_), 3)})
+        li_['notes'] = notes_
+        li_['gain'] = os.environ.get('ORBITG', '-14dB')
     return song
 
 
