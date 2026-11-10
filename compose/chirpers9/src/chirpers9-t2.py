@@ -125,6 +125,7 @@ def chord(bar):
 
 def build():
     FAR_ = os.environ.get('FAR', '1') == '1'
+    TOP_ = os.environ.get('TOP', 'ARWD')       # (v104) the top follows the orbit: A air room, W top-band width, D two shakers
     rng = random.Random(SEED)
     total = NBARS * 4.0
     P = {k: [] for k in ('e2m', 'bass', 'e1in', 'e1p', 'e1c', 'kit', 'hat3', 'pad', 'sub', 'voice_', 'e2body', 'infall', 'dust', 'hook')}
@@ -1130,6 +1131,10 @@ def build():
     for n_ in ec_:
         P['hook'].append((round(n_['at'] + 4.0, 4), m(int(str(n_['pitch'])[1:]) + 12), min(n_['len'], 1.6) * 0.97, 58))
     P['hook'].sort(key=lambda e_: e_[0])
+    # (v104) the shaker outside the crest is a part of its own (two players, one each side); the crest keeps the one
+    if 'D' in TOP_:
+        P['hat3w'] = [e_ for e_ in P['hat3'] if not (CREST * 4.0 - 0.05 <= e_[0] < SEC['break'] * 4.0 - 0.05)]
+        P['hat3'] = [e_ for e_ in P['hat3'] if CREST * 4.0 - 0.05 <= e_[0] < SEC['break'] * 4.0 - 0.05]
     P['gtrd'] = [e_ for e_ in P['gtr'] if SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6]
     P['gtr'] = [e_ for e_ in P['gtr'] if not (SEC['drift'] * 4.0 - 1e-6 <= e_[0] < fall0 - 1e-6)]
     SPD = {'in': (0.1, 0.1), 'gather': (0.1, 0.2), 'build': (0.25, 0.75), 'crest': (1.0, 1.0), 'break': (0.0, 0.0),
@@ -1199,6 +1204,7 @@ def build():
             # cycle's open step a pandeiro's jingles - which no Accretion track uses: the three-against-four you could
             # barely hear now shakes in the right of the room, organic against the 909's machine
             tr('hat3', 'samba-kit', '-3dB', pan=0.25, sends={'echo': '-20dB'}),
+            *([tr('hat3w', 'samba-kit', '-2dB', sends={'echo': '-20dB'}, double={'pan': 80, 'seeds': [31, 47]})] if 'D' in TOP_ else []),
             tr('infall', 'shepard-fall', '-20dB', sends={'hall': '-16dB'}),
             tr('hook', 'ondes', '-5dB', pan=-0.05, sends={'hall': '-12dB', 'echo': '-20dB'}),
             # (v52, palette: the debris's glints were wind-chimes, buried under the groove at -20 to -26 dB) THE DUST
@@ -1600,13 +1606,48 @@ def build():
             'auto': {'far': {'points': far_pts}}, 'returns': []}
         FARS_ = {'verse': '-12dB', 'versegather': '-12dB', 'prech': '-13dB', 'earlyhook': '-7dB', 'roundround': '-7dB',
                  'middlecalls': '-9dB', 'sung': '-9dB', 'e1p': '-11dB', 'gtr': '-11dB', 'gtrd': '-12dB', 'buildarp': '-11dB',
-                 'e1vb': '-9dB', 'gtrarp': '-9dB', 'hook': '-11dB', 'e2m': '-12dB', 'hat3': '-16dB', 'dust': '-9dB',
+                 'e1vb': '-9dB', 'gtrarp': '-9dB', 'hook': '-11dB', 'e2m': '-12dB', 'hat3': '-16dB', 'hat3w': '-16dB', 'dust': '-9dB',
                  'approach': '-13dB', 'breakhum': '-7dB', 'ooh': '-7dB', 'oohin': '-7dB', 'e2body': '-15dB'}
         # the tunes and the voices go far; the drums and the bass stay near and dry, so the groove keeps its edge
         for t_ in song['tracks']:
             nm_ = t_['name'][:-2] if t_['name'].endswith(('-l', '-r')) else t_['name']
             if nm_ in FARS_:
                 t_['sends'] = dict(t_.get('sends') or {}, far=FARS_[nm_])
+    # (v104, whole song - deep pass 2) THE TOP FOLLOWS THE ORBIT. v103 gave the song distance in its mids, but its
+    # top stayed where it was: the narrowest on the album (side against mid above 2 kHz 12 dB down, where its
+    # neighbours t1 and t3 stand 7 down), and one voice - the seven-step figure's metal - owned everything above
+    # 3 kHz, a row of ticks in the middle with nothing between them; the shaker's three-beat orbit sat 9-15 dB under
+    # it. The idea of the song is that far is wide and near is a point, so now its top does that too:
+    #  - a bright PLATE of air around the figure's metal, the debris and the shaker (above 2.5 kHz only, left
+    #    and right independent), whose return rides the orbit's distance: open when the song is far out, closed to
+    #    nothing at the crest, where every cycle lands together in the middle;
+    #  - the master's top two bands (above 2.5 and 5 kHz) widen on the same lane, and stand at exactly x1 through
+    #    the crest and both seams;
+    #  - outside the crest the shaker is two players, one each side, a little up, so the three-beat orbit is heard
+    #    against the seven and the four; at the crest it is the one shaker in the middle, as it was
+    if TOP_.replace('D', ''):
+        g0_, bu0_, c0f_, br0_, d0_, f0f_ = (SEC[k_] * 4.0 for k_ in ('gather', 'build', 'crest', 'break', 'drift', 'fall'))
+        dist_ = [(0.0, 0.0), (g0_ + 8.0, 0.0), (g0_ + 16.0, 1.0), (bu0_, 1.0), (c0f_ - 16.0, 0.5), (c0f_ - 4.0, 0.2), (c0f_, 0.0),
+                 (br0_ - 0.05, 0.0), (br0_ + 1.0, 1.0), (d0_ + 20.0, 1.0), (d0_ + 26.0, 0.3), (f0f_ - 4.0, 0.2), (f0f_, 0.0)]
+        if 'A' in TOP_:
+            ag_ = 4.0     # a short bright room (0.45 s) widened the top but left it a row of ticks (its level swing above
+            # 5 kHz 28 dB in the gather); a plate of 1.4 s at +4 dB puts air between them (23.5 dB; records measure 8-24)
+            song['buses']['air'] = {
+                'fx': ['reverb kind=plate decay=1.4s mix=1 early=0.9 damp=0.1 spread=1 low_cut=2500 high_cut=16000',
+                       'hp cutoff=2500',
+                       {'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.air', 'amount': 1}]}}],
+                'auto': {'air': {'points': [[f'{b_:.2f}b', round(ag_ + 20.0 * math.log10(max(v_, 0.001)), 2)] for b_, v_ in dist_]}},
+                'returns': []}
+            AIRS_ = {'e2m': '-6dB', 'dust': '-6dB', 'hat3w': '-4dB', 'kitb': '-12dB'}
+            for t_ in song['tracks']:
+                if t_['name'] in AIRS_:
+                    t_['sends'] = dict(t_.get('sends') or {}, air=AIRS_[t_['name']])
+        if 'W' in TOP_:
+            k_ = [i_ for i_, f_ in enumerate(song['master']['fx']) if isinstance(f_, dict) and f_.get('type') == 'pan'][0]
+            song['master']['fx'].insert(k_, {'type': 'width', 'width': 1, 'mono_below': 0, 'crossover': 'lr4',
+                                             'bands': [[2500, {'value': 1.0, 'mod': [{'src': 'auto.TOP', 'amount': 0.35}]}],
+                                                       [5000, {'value': 1.0, 'mod': [{'src': 'auto.TOP', 'amount': 0.9}]}]]})
+            song['master']['auto']['TOP'] = {'points': [[f'{b_:.2f}b', v_] for b_, v_ in dist_]}
     return song
 
 
