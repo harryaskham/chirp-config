@@ -1435,9 +1435,10 @@ def the_singer_gets_a_microphone(song):
 # Now, as the band comes back in, she LIFTS: the held E4 leaps the octave on the downbeat of 97 - E5, the highest
 # note she sings in the song, a semitone under her break, so it comes out as she would sing it: lighter, half in head
 # voice, floating rather than belted (the patch's passaggio does this; nothing is forced). She holds it for two bars
-# over the hands' hook - the same unresolved E, now over D9 and Cmaj9 - swelling to the middle of bar 98; steps down
-# to D5 for bar 99 (Am11's eleventh); and in bar 100 comes down THROUGH THE HOOK, singing its last three notes
-# (C5 G4 E4) in unison with the handpan's third statement, in the hook's own rhythm - home on the E she left, with
+# over the hands' hook - the same unresolved E, the fifth of Am11 and then the sixth of G6/9 (the lights turn every
+# five beats: Am11 from 97, G6/9 from 98.25, D9 from 99.5) - swelling to the middle of bar 98; steps down to D5 for
+# bar 99 (G's fifth, then D9's root as the lights come home); and in bar 100 comes down THROUGH THE HOOK, singing its
+# last three notes (C5 G4 E4) in unison with the handpan's third statement, in its own rhythm - home on the E, with
 # the hands, and then the breath and 'I kept your far side'. The duet holds its G4 under her (a sixth, then a fifth)
 # and fades as before; the clarinet keeps the E an octave below. One level lane (sw) carries the whole shape and sits
 # BEFORE her microphone's drive, so the swell brightens as a voice does; v43's fade lane comes off her (the duet
