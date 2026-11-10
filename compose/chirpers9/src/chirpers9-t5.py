@@ -137,6 +137,7 @@ MASTERCLIP = os.environ.get("C9T5_MASTERCLIP", "")   # with it (tools/limwork.py
 KICKCLIP = os.environ.get("C9T5_KICKCLIP", "-28:3")   # WHOLE, deep pass 6 (tools/limwork.py on v94: since the kick got its weight the final limiter ducks the WHOLE MIX on every hit - 6 to 10 dB for an instant, over 3 dB for 4% of A and 10% of the crest - because the kick's first cycles are the tallest thing in the song; a soft clipper on the master fixed that on t1 but flat-topped t5's bass): THE KICK IS CLIPPED AT ITS OWN TRACK - the heart kick's peak is rounded off by a soft clipper on that track alone ('ceiling dB', then 'makeup dB' to give back its weight): the first cycles of its sine go squarer, which is the sound of a driven 909 - shorter in the peak, thicker in the body, with harmonics a small speaker can play - and the limiter stops turning everything else down for it. (Tried and dropped: the clipper's drive on a lane that follows the orbit, +6 dB at the crest - no measurable change in the kick's body, so either the lane did not reach it or the clipper was already doing all it can)
 VOICEARC = os.environ.get("C9T5_VOICEARC", "hums:0.6:1.5,solo:1:2.5,calls:0.4:1")   # WHOLE, deep pass 7 (wM's phrase_arc, pin 897af8ca: 'our sung lines are flat' - every syllable of a line at one level; t5's singer had a taper on each note but no shape across a line): SHE PHRASES - each sung line swells to the middle of its highest note and falls away after it, and its softer notes are sung lighter, as a singer shapes a line. 'hums:arc:makeup' for the chorus and the three hums; 'solo:arc:makeup' for the two lines she sings alone with room round them, 'clo-ser and clo-ser' (E1 itself) and the farewell - the full arc; 'calls:arc:makeup' for her 'near-er' calls (a gentler arc: the long D5 into the crest should not sink before it). Makeup dB keeps a line's average where it was, so its peak is a little above the old level and its ends below
 KITFORE = os.environ.get("C9T5_KITFORE", "rim:128:5,clap:178:5,later:2")   # WHOLE, deep pass 8 (read at their own strikes, 46 ms frames, v96: through A the clap and the rim sit 9-10 dB under everything else in their octaves (1.4-5.6 kHz), under the two seed motifs and the orbit that v83 lifted; in the build and C, 5-6 dB under. E2 - the cell of seven: kick, rim on 2 and 5, clap on 3 - is t5's inherited element, and since v93 only its kick was plain. And A is the song's flattest stretch (flatness.py: bars 27-46, three choruses over one unchanging band)): E2 ASSEMBLES THROUGH A - the rim and the clap move to their own tracks ('e2-rim', 'e2-clap': same kit, same effects) and step forward one at a time, 'rim:beat:dB,clap:beat:dB': the kick has the cell alone from beat 96, the rim joins it in front from its beat, the clap from its beat (178: the band's return after the held chorus). 'later:dB' is their lift from the build to beat 400; both are back at the old level by the tide, so the overlap with t6 is as agreed
+SEEDSPART = os.environ.get("C9T5_SEEDSPART", "0.15:90:100,464:480")   # WHOLE-song image, deep pass 10 (left minus right per band and per eight bars, v97: the upper half of the mix leans 3 dB RIGHT from 0:17 to 0:34 - the orbit alone, set at +0.2 - then 3 to 5 dB LEFT from 0:34 to 0:50 - seed-hi enters at -0.45 sixteen seconds before seed-lo answers it from +0.45 - and 4 to 5 dB left again for the last eight seconds, when seed-hi is the last motif standing. Everywhere else it is within 2 dB): THE SEEDS PART AND COME HOME - a part alone stands near the middle and moves aside when its partner arrives: 'near:a:b' the orbit holds the centre through the head and eases to its place (+0.2) from A's first bar to beat b; seed-hi stands at -near until beat a and steps aside to its place (-0.45) by beat b, as seed-lo answers it from the other side; ',c:d' seed-hi comes back to -near over beats c-d, when it is alone again at the end
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -1238,6 +1239,21 @@ def song():
                 if tr["name"] in groups[g] and isinstance(tr.get("patch"), dict):
                     tr["patch"]["extends"] += f" play.phrase_arc={float(arc):g}"
                     tr["gain"] = f"{float(tr['gain'][:-2]) + float(mk):g}dB"
+    if SEEDSPART:
+        sp = SEEDSPART.split(",")
+        near, pa, pb = (float(v) for v in sp[0].split(":"))
+        home = [float(v) for v in sp[1].split(":")] if len(sp) > 1 else None
+        for tr in tracks:
+            if tr["name"] in ("seed-hi", "orbit"):
+                place = float(tr.get("pan", 0.0))
+                start = -near if tr["name"] == "seed-hi" else 0.0
+                pts = [["0b", start], [f"{pa if tr['name'] == 'seed-hi' else ST['A']:g}b", start], [f"{pb:g}b", place]]
+                if home and tr["name"] == "seed-hi":
+                    pts += [[f"{home[0]:g}b", place], [f"{home[1]:g}b", start]]
+                pts.append([f"{TOTAL}b", pts[-1][1]])
+                tr["pan"] = 0.0
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "pan", "pan": {"value": 0, "mod": [{"src": "auto.part", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), part={"points": pts})
     if "pump" in SEVENBREATH:
         tight = {"bass": -5, "sub": -5, "bass808": -5, "floor": -4}                       # the low end makes room for the kick: a quick dip
         breath = {"lights": -5, "air": -4, "orbit-slow": -3, "shadow": -3}                 # the held sounds breathe: a slow swell back, two thirds of a beat
