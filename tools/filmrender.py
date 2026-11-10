@@ -17,6 +17,8 @@ of `chirp video --album FILE --only N` workers, the costliest tracks first, then
 (Apple's players do not open `hev1`), with the HEVC level its size and frame rate need (the
 GPU encoder marks 2160p60 as level 5.0, which is 2160p30's), and the index at the front. It
 checks the copy has the same frames and length before saying so, and leaves OUT as it is.
+It also writes the text to paste under the film (FINAL.description.txt: the album's line,
+meta.description from the album file, and the chapters).
 
 With --plan every track is drawn at once, each by its own process with its own number of
 threads (TRACK:THREADS, the dearest tracks the most), so they all finish at about the same
@@ -345,6 +347,33 @@ def probe(f):
     return st
 
 
+def describe(album, out, final, lg):
+    """The text to paste under the film: the album's line, its own words (meta.description
+    in the album file) and the chapters the join wrote (OUT.chapters.txt)."""
+    meta, inside = {}, False
+    for line in open(album):
+        if re.match(r"^meta:\s*$", line):
+            inside = True
+        elif inside and re.match(r"^\S", line):
+            inside = False
+        elif inside:
+            m = re.match(r"^\s+(\w+):\s*(.+?)\s*$", line)
+            if m:
+                v = m.group(2)
+                if len(v) > 1 and v[0] == v[-1] and v[0] in "\"'":
+                    v = v[1:-1].replace('\\"', '"')
+                meta[m.group(1)] = v
+    ch = os.path.splitext(out)[0] + ".chapters.txt"
+    chapters = [l.strip() for l in open(ch) if l.strip()] if os.path.exists(ch) else []
+    head = " - ".join(x for x in (meta.get("artist"), meta.get("album")) if x)
+    if head and meta.get("year"):
+        head += f" ({meta['year']})"
+    text = "\n\n".join(x for x in (head, meta.get("description"), "\n".join(chapters)) if x) + "\n"
+    f = os.path.splitext(final)[0] + ".description.txt"
+    open(f, "w").write(text)
+    log(lg, f"finish: {f}: {len(chapters)} chapters" + ("" if chapters else " (NONE: no chapters file beside the film)"))
+
+
 def finish(a):
     lg = os.path.splitext(a.out)[0] + ".log"
     if not os.path.exists(a.out):
@@ -352,9 +381,11 @@ def finish(a):
         return False
     st = probe(a.out)
     if st.get("codec_name") != "hevc":
+        describe(a.album, a.out, a.out, lg)
         log(lg, f"finish: {a.out} is {st.get('codec_name')}, not HEVC: nothing to do, publish it as it is")
         return True
     final = os.path.abspath(os.path.expanduser(a.final)) if a.final else os.path.splitext(a.out)[0] + "-final.mp4"
+    describe(a.album, a.out, final, lg)
     w, h, fps = int(st["width"]), int(st["height"]), st["fps"]
     need = next((l for l, ps, sr in HEVC_LEVELS if w * h <= ps and w * h * fps <= sr), 180)
     cmd = ["ffmpeg", "-loglevel", "error", "-y", "-i", a.out, "-map", "0:v:0", "-map", "0:a?", "-map_chapters", "0",
