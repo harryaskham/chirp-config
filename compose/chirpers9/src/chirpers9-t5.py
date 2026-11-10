@@ -130,6 +130,8 @@ SEVENBREATH = os.environ.get("C9T5_SEVENBREATH", "pump+glue+snap")   # WHOLE, de
 TOPOPEN = os.environ.get("C9T5_TOPOPEN", "bounce+corona+room+width+diph")   # WHOLE, deep pass 2 (chirper-three's and chirper-one's finding, 10 Nov: Accretion's top end is nearly mono - t5 read -8.8 dB side/mid at 2-16 kHz and -12.3 dB in the air, where the album's genre anchors sit around 0 and +2..+6): THE TOP OPENS, t5's own way - a chip answer and an orbital one. Options, '+'-joined: 'bounce' Amiga panning: every closed-hat stroke leans hard to one side, alternating left and right (the centre hat 6 dB down, a hard-panned NES noise voice carrying the lean; same level as before); it closes back to the centre before the tide. 'corona' the heat itself: a held hiss of two independent noise sources, hard left and hard right, 6-13 kHz, about as loud as the hats' own air - a floor under the ticks; it rises as the orbit closes, is hottest at the crest, gone before the tide, and breathes with the seven-cycle kick; 'room' the chamber's tail lets the air through (high_cut 16 kHz, spread 1); 'width' the image follows the orbit: a master width stage on the bands above 2.5 and 6 kHz, neutral in the head, opening through A and the build, widest at the crest (closest = biggest), closing again before the tide so the overlap with t6 is as agreed; 'diph' her 'clo-' of 'closer' holds its 'oh' and closes only at the end (wM's diph_hold, pin 504891ac)
 CALLROOM = os.environ.get("C9T5_CALLROOM", "undertow:-4,orbit:-3,seed-hi:-3,seed-lo:-3,lights:-3")   # WHOLE, deep pass 3 (chirper-two's arrangement map, tools/amap.py, 10 Nov: of everything in t5's build her 'near-er' calls were the LEAST heard - 4 and 5 tenths of the time at beats 224-288, under the marimba, the orbit, the two seed motifs and the lights, which v83 had lifted 3 dB; every other sung line reads 6-8): SHE CALLS, THE BAND LEANS BACK - those five parts duck under her voice while she sings a call and come straight back between calls (engine `duck`, keyed on her track): the motifs keep their lift in the gaps, and the call is what you hear when it comes. Value 'track:dB,...'
 HATSUP = os.environ.get("C9T5_HATSUP", "14")   # with it (the same map: v91's hard-panned hat voices read 'masked wherever they play, under -25 dB' - the bounce was on paper only): the two side hats up by this many dB, so the left-right lean is actually heard
+HELDFLOOR = os.environ.get("C9T5_HELDFLOOR", "168:178")   # WHOLE, deep pass 4 (chirp-eco's snapshot after v90/v91: t5's flat share went 4% -> 15%, one 32 s run at 1:12-1:44, bars 34-50 - A's second half, the same groove under her second and third chorus; the pump, glue and held hiss had evened out what the section rounds had loosened): HER LAST CHORUS OVER A HELD FLOOR - for her third chorus (beats 170-177) the kick, the clap, the bass and the sub step out (beats 'a:b'); the hats and the rim keep time, the slow floor line is left bare under her, and - with no kick to breathe on - the pads and the corona stop breathing and hold. On the next kick of the seven-cycle that lands on a beat (178), as her last note ends and the Leslie starts to spin up, the groove comes back. A's three choruses now each sit differently: the floor clears before the first, the second rides the groove, the third is sung over stillness
+KICKWEIGHT = os.environ.get("C9T5_KICKWEIGHT", "-4")   # with it (found while measuring the held floor: taking the kick, the bass and the sub out for ten beats moved the band below 150 Hz by 1 dB - t5's kick was nearly inaudible, so since v90 the pads had been breathing under a kick nobody could hear, and E2's seven-cycle was carried by the clap and the rim alone): THE SEVEN-CYCLE HAS A HEART - the kick doubled on its own track (the same 909 kick, so the two add: 'dB' is the second kick's level; -11 = as loud as the kit's own = +6 dB), from A's groove to the tide, easing out over beats 400-432 so the overlap with t6 is as agreed
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -1144,6 +1146,13 @@ def song():
         for tr in tracks:
             if tr["name"] == "drums":
                 tr["notes"] = [n for n in tr["notes"] if not (d0 <= float(n["at"]) < 109.95 and n["pitch"] in ("k", "cp"))]
+    if HELDFLOOR:
+        h0, h1 = (float(x) for x in HELDFLOOR.split(":"))
+        for tr in tracks:
+            if tr["name"] == "drums":
+                tr["notes"] = [n for n in tr["notes"] if not (h0 <= float(n["at"]) < h1 - 0.01 and n["pitch"] in ("k", "cp"))]
+            if tr["name"] in ("bass", "sub"):
+                tr["notes"] = [n for n in tr["notes"] if not (h0 - 0.01 <= float(n["at"]) < h1 - 0.01)]
     if "bounce" in TOPOPEN:
         # Amiga panning: every closed-hat stroke leans hard to one side, alternating; the kit's own (centre) hat drops 6 dB and a
         # side voice 3 dB under the old level carries the lean, so the hats' level is as before. Toward the tide the lean closes
@@ -1186,6 +1195,12 @@ def song():
         for tr in tracks:
             if tr["name"] in ("hats-l", "hats-r"):
                 tr["gain"] = f"{float(tr['gain'][:-2]) + float(HATSUP):g}dB"
+    if KICKWEIGHT:
+        dr = next(tr for tr in tracks if tr["name"] == "drums")
+        tracks.append({"name": "kick-heart", "patch": "909", "gain": f"{float(KICKWEIGHT):g}dB", "pan": 0.0,
+                       "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ease", "amount": 1}]}}],
+                       "auto": {"ease": {"points": [["0b", 0.0], ["400b", 0.0], [f"{ST['outro']}b", -40.0], [f"{TOTAL}b", -40.0]]}},
+                       "notes": [dict(n) for n in dr["notes"] if n["pitch"] == "k" and float(n["at"]) < ST["outro"]]})
     if "pump" in SEVENBREATH:
         tight = {"bass": -5, "sub": -5, "bass808": -5, "floor": -4}                       # the low end makes room for the kick: a quick dip
         breath = {"lights": -5, "air": -4, "orbit-slow": -3, "shadow": -3}                 # the held sounds breathe: a slow swell back, two thirds of a beat
