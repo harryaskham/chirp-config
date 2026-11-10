@@ -877,6 +877,38 @@ def the_jet_is_not_held_down(song):
     m["fx"] = list(m["fx"]) + [dict(JET_TAPE), dict(JET_TAPE_TOP), dict(JET_GLUE)]
 
 
+# v103 (ROUND TYPE: section, her third question and E5's entry, bars 49-56, 1:16-1:27): HER LIPS PART. Her six
+# questions (E5 -> F5 at 28, 40, 52, 64, 80, 96) open from a hum to 'far side?' - 'ah as the lips part' at 52 (v53).
+# But the third question was the one nobody heard: 13.8 dB under the stretto, where the others sit 3 to 8 under
+# (tools/share.py). Not the arrangement: the voice. Her mouth is a number per question (hum 1, 0.8, 0.6 ...), and
+# 0.6 - lips half parted, held still for four beats - is the weakest thing this voice can do: the closed hum is
+# levelled up (hum_even), the open 'ah' carries by itself, and halfway between is neither. Now her lips PART, in
+# time: the E is hummed, mouth shut (1 -> 0.9), and on the F the mouth opens in the first third of the note and the
+# 'ah' is out for the rest of it (0.9 -> 0.25 -> 0.05 -> 0). The first open sound she makes in the song is made in
+# front of you. And the disk parts for it: E1, the lights, E2 and E3 lean back for that one bar (4, 2.5, 2.5, 2.5
+# dB) and are back on the gamelan's entry at 53, where the far choir answers her (E . D) as it did.
+# Her level against the mix through the bar: the hummed E -6.2 dB, the opening -8.5, the open 'ah' -2.5 (the whole
+# bar -13.8 -> -4.4); her share at 5.6 kHz -24 -> -7 as the mouth opens. No level lane on her: the mouth does it.
+LIPS_AT = 52                              # the bar of the third question
+LIPS_PART = ([1.0, 0.9], [0.9, 0.25, 0.05, 0.0, 0.0])      # the hum expression across the E, then across the F
+DISK_PARTS = {"e1": -4.0, "lights": -2.5, "e2": -2.5, "e3": -2.5}
+
+
+def her_lips_part(song):
+    solo = next(x for x in song["tracks"] if x["name"] == "solo")
+    at = b0(LIPS_AT)
+    q = sorted((e for e in solo["notes"] if at - 0.01 <= e["at"] < at + 2), key=lambda e: e["at"])
+    assert [e["pitch"] for e in q] == ["E5", "F5"] and all(e["ph"] == "AA1" for e in q), q
+    for e, path in zip(q, LIPS_PART):
+        e["expr_path"] = dict(e.get("expr_path") or {}, hum=list(path))
+    for name, db in DISK_PARTS.items():
+        tr_ = next(x for x in song["tracks"] if x["name"] == name)
+        assert "pt" not in (tr_.get("auto") or {})
+        tr_["fx"] = list(tr_.get("fx") or []) + ["gain gain=0dB+auto.pt*1"]
+        tr_["auto"] = dict(tr_.get("auto") or {}, pt={"points": [["0b", 0.0], [f"{at - 1:g}b", 0.0], [f"{at:g}b", db],
+                                                                 [f"{at + 3.5:g}b", db], [f"{at + 4:g}b", 0.0]]})
+
+
 def score_events(score):
     pos, ev = 0.0, []
     for tok in score.split():
@@ -2339,6 +2371,7 @@ def main():
     the_stretto_is_heard(song)
     her_last_word_stays(song)
     the_jet_is_not_held_down(song)
+    her_lips_part(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
