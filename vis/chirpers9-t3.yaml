@@ -1,65 +1,95 @@
-# chirpers9 t3 "Phase Margin": the first storm (Harry, 8 Nov: varied, directed, things
-# happening). Two acts:
-#   I  (0:00) a city in a storm at night: rain streaming and splashing on the street,
-#      windows flickering, lightning on every lift and every eight bars, the picture
-#      glitching (colour split) on the hits;
-#   II (1:40) a crowd dancing on a wet plaza in the rain, every dancer out of step with
-#      the others, smearing (echo); as the storm resolves (3:20-3:52) they fall into one
-#      groove together, the rain stops, the lightning dies, warm light comes up and the
-#      camera rises over them moving as one.
+# chirpers9 t3 "Phase Margin": the first storm. Co-built with the song (tools/songmap.py chirpers9-t3).
+#
+# What the song does, and so what the picture does:
+#   - THE STORM (from 16bar): glitching, abrasive, rhythmically hard. A city street at night.
+#     The composer's `lane.glitch` is how hard it storms: how many windows are lit, how hard the
+#     picture splits its colours, how much rain falls (with the `rain` track itself). Lightning
+#     strikes on the thunder and on the drum fills that end each eight bars. The windows flicker
+#     on the sixteenth grid and flare on the glitch shards. The walk down the street goes as fast
+#     as the drums play.
+#   - THE CROWD (from 40bar, the thunder crack): a wet plaza, neon pulsing magenta on the kick and
+#     cyan on the hats, a crowd dancing on the beat, every dancer out of phase with the others.
+#   - THE TAPE STOP (56bar): the neon goes out for the stop.
+#   - THE EYE (60-64bar, `lane.still`): the drums stop, the rain stops, the dancers stand almost
+#     still, birds cross overhead (the bird tracks); then the birds flee and the storm returns.
+#   - PHASE (66-88bar): the song's swarm of oscillators is pulled together by `lane.sync`. The
+#     dancers' phases close up exactly as far as the swarm's coupling has risen.
+#   - THE LOCK (88bar, the crash): the coupling jumps and every dancer lands on the same beat.
+#     The camera cuts high over them moving as one; a flock rises (`lane.flock`); the rain has
+#     stopped; over the next sixteen bars dawn comes up.
+# Shots cut on bar lines.
+# Reads tracks: kick hats snare bass e2 hand kick7 shard chipsn rain wind thunder thunder1 thunder2
+#   fills crash birdl birdr fleel fleer. Lanes: glitch still sync stop flock.
 scenes:
   - at: 0
     look:
       background: "#000000"
       env:
-        flash: {on: audio.lift, decay: 0.35}
-        bar8: {on: bar, every: 8, decay: 0.3}
-        hit: {on: audio.onset, decay: 0.12}
-      camera: {x: 0.1, y: 0.15, z: "(time.t)*0.3 - 4", look_at: [0, -0.15, "(time.t)*0.3"]}
+        # Lightning: the thunder, and the fill that ends each eight bars.
+        flash: {when: "3*max(max(track.thunder.hit, track.thunder1.hit), max(track.thunder2.hit, track.fills.hit))", decay: 0.35}
+      vars:
+        drive: {follow: "max(max(track.kick.level, track.hats.level), max(track.bass.level, 0.6*track.e2.level))", attack: 60ms, release: 900ms}
+        storm: {follow: "clamp(max(track.rain.level, 4*lane.glitch) + 0.3*track.wind.level, 0, 1)", attack: 300ms, release: 2s}
+        walk: {integrate: "0.08 + 0.4*var.drive"}
+      camera: {x: 0.1, y: 0.15, z: "var.walk - 4", look_at: [0, -0.15, "var.walk"]}
       layers:
         - {type: sky, zenith: "#05040e", horizon: "#2a1a3a", ground: "#050408", sun: "#000000", sun_size: 0, glow: 0, haze: 0.4}
         - {type: mesh, shape: plane, detail: 8, y: -0.6, z: 20, scale: 30, color: "#0c0c12", light: 0.3, ambient: 0.05, rim: 0, spec: 1.5, shine: 30, cull: true}
-        - {type: mesh, shape: box, round: 0.04, detail: 12, count: 40, x: "(step(0.5, fract(inst.i/2))*2 - 1)*(1.15 + 0.5*hash(inst.i + 3))", z: "(time.t)*0.3 - 6 + fract((floor(inst.i/2)*1.4 - (time.t)*0.3)/28)*28", y: "-0.6 + (2 + 4*hash(inst.i + 5))*0.4", scale: 0.4, sx: "1 + 0.5*hash(inst.i + 7)", sz: "1 + 0.5*hash(inst.i + 9)", sy: "2 + 4*hash(inst.i + 5)", color: "#14141c", light: 0.4, ambient: 0.05, rim: 0.1, paint: "step(abs(vtx.y), 0.97)*step(0.3, fract((vtx.x + vtx.z)*5))*step(fract((vtx.x + vtx.z)*5), 0.75)*step(0.3, fract(vtx.y*40))*step(fract(vtx.y*40), 0.8)*step(0.62 - 0.12*audio.level, hash(floor((vtx.x + vtx.z)*5)*13.1 + floor(vtx.y*40)*7.7 + inst.i*31.3))*1.6*(0.6 + 0.4*step(0.5, hash(floor(time.t*8) + inst.i)))", paint_color: "#ffd890", paint_fine: true}
-        - {type: light, x: 0, y: 6, z: 6, color: "#c8d8ff", power: "8*env.flash", reach: 20}
-        - {type: beam, count: 2, from: ["-3 + 6*hash(time.t - env.flash.age + inst.i*0.37)", 4, "8 + 3*hash(time.t - env.flash.age + 7)"], to: ["-3 + 6*hash(time.t - env.flash.age + inst.i*0.37) + 0.8*(hash(time.t - env.flash.age + 3) - 0.5) + inst.i*0.5", "0.2 + inst.i*1.2", "8 + 3*hash(time.t - env.flash.age + 7)"], samples: "20 - inst.i*8", jag: "0.45 - inst.i*0.2", bolt: "time.t - env.flash.age + inst.i*13", width: "0.02 - inst.i*0.008", glow: "env.flash*(6 - inst.i*3)", color: "#e8f0ff"}
-        - {type: motes, mode: emit, count: 3500, from: [0, 1.8, "(time.t)*0.3 + 1"], wide: 6, deep: 10, wind_y: -3.2, wind_x: -0.4, wobble: 0.05, fall: 0, life: 0.8, streak: 0.06, size: 0.003, glow: "0.5 + env.flash", twinkle: 0, color: "#9aa8c8", near: 0.3, ground: -0.6, splash: 0.035}
+        - {type: mesh, shape: box, round: 0.04, detail: 12, count: 40, x: "(step(0.5, fract(inst.i/2))*2 - 1)*(1.15 + 0.5*hash(inst.i + 3))", z: "var.walk - 6 + fract((floor(inst.i/2)*1.4 - var.walk)/28)*28", y: "-0.6 + (2 + 4*hash(inst.i + 5))*0.4", scale: 0.4, sx: "1 + 0.5*hash(inst.i + 7)", sz: "1 + 0.5*hash(inst.i + 9)", sy: "2 + 4*hash(inst.i + 5)", color: "#14141c", light: 0.4, ambient: 0.05, rim: 0.1, paint: "step(abs(vtx.y), 0.97)*step(0.3, fract((vtx.x + vtx.z)*5))*step(fract((vtx.x + vtx.z)*5), 0.75)*step(0.3, fract(vtx.y*40))*step(fract(vtx.y*40), 0.8)*step(0.72 - 0.7*lane.glitch - 0.1*track.e2.hit, hash(floor((vtx.x + vtx.z)*5)*13.1 + floor(vtx.y*40)*7.7 + inst.i*31.3))*1.6*(0.5 + 0.5*step(0.5, hash(floor(time.beat*4) + inst.i)))*(0.7 + 0.9*track.shard.hit)", paint_color: "#ffd890", paint_fine: true}
+        - {type: light, x: 0, y: 6, z: "var.walk + 6", color: "#c8d8ff", power: "8*env.flash", reach: 20}
+        - {type: beam, count: 2, from: ["-3 + 6*hash(time.t - env.flash.age + inst.i*0.37)", 4, "var.walk + 8 + 3*hash(time.t - env.flash.age + 7)"], to: ["-3 + 6*hash(time.t - env.flash.age + inst.i*0.37) + 0.8*(hash(time.t - env.flash.age + 3) - 0.5) + inst.i*0.5", "0.2 + inst.i*1.2", "var.walk + 8 + 3*hash(time.t - env.flash.age + 7)"], samples: "20 - inst.i*8", jag: "0.45 - inst.i*0.2", bolt: "time.t - env.flash.age + inst.i*13", width: "0.02 - inst.i*0.008", glow: "env.flash*(6 - inst.i*3)", color: "#e8f0ff"}
+        - {type: motes, mode: emit, count: "150 + 3300*var.storm", from: [0, 1.8, "var.walk + 1"], wide: 6, deep: 10, wind_y: -3.2, wind_x: -0.4, wobble: 0.05, fall: 0, life: 0.8, streak: 0.06, size: 0.003, glow: "0.5 + env.flash", twinkle: 0, color: "#9aa8c8", near: 0.3, ground: -0.6, splash: 0.035}
       filters:
         - {type: reflect, y: -0.6, amount: 0.65, reach: 3, ripple: 0.004, ripples: 50}
-        - {type: chroma, amount: "0.012*env.hit + 0.02*env.flash"}
+        - {type: chroma, amount: "0.05*lane.glitch*(track.shard.hit + track.chipsn.hit) + 0.02*env.flash"}
         - {type: bloom, threshold: 0.6, amount: 0.7}
         - {type: tonemap, knee: 0.75}
         - {type: vignette, amount: 0.45}
-  - at: 100
+  - at: 40bar
     transition: iris
     xfade: 2
     look:
       background: "#000000"
       env:
-        flash: {on: audio.lift, decay: 0.35}
-        bar8: {on: bar, every: 8, decay: 0.3}
-        hit: {on: audio.onset, decay: 0.12}
+        flash: {when: "3*max(max(track.thunder1.hit, track.thunder2.hit), max(track.fills.hit, track.crash.hit))", decay: 0.35}
       vars:
-        lock: {value: "smooth(200, 232, time.t)"}
-      camera: {x: "2.2*sin(time.t*0.02)*(1 - 0.4*var.lock)", y: "0.5 + 1.6*var.lock", z: "0 - 2.2*cos(time.t*0.02)*(1 - 0.4*var.lock)", look_at: [0, -0.25, 0]}
+        drive: {follow: "max(max(track.kick.level, track.hats.level), max(track.kick7.level, track.hand.level))", attack: 60ms, release: 900ms}
+        storm: {follow: "clamp(max(track.rain.level, 4*lane.glitch), 0, 1)", attack: 300ms, release: 1s}
+        # How far the swarm's coupling has pulled the crowd together: 0 apart, 1 as one (88bar).
+        lock: {value: "clamp((lane.sync - 0.15)/3.85, 0, 1)"}
+        dawn: {keys: [[88bar, 0], [104bar, 1]], ease: smooth}
+        eye: {value: "clamp(0 - lane.still/60, 0, 1)"}
+        birds: {follow: "max(max(track.birdl.gate, track.birdr.gate), max(track.fleel.gate, track.fleer.gate))", attack: 300ms, release: 3s}
+        turn: {integrate: "0.008 + 0.022*var.drive", wrap: 1}
+      camera:
+        # 0 round the crowd; 1 close and low among them; 2 high over them; 3 from the front.
+        - {x: "2.2*sin(var.turn)", y: 0.5, z: "0 - 2.2*cos(var.turn)", look_at: [0, -0.25, 0]}
+        - {x: "1.8*sin(var.turn + 0.3)", y: -0.05, z: "0 - 1.8*cos(var.turn + 0.3)", look_at: [0, -0.2, 0]}
+        - {x: "2.1*sin(var.turn)", y: 1.6, z: "0 - 2.1*cos(var.turn)", look_at: [0, -0.35, 0]}
+        - {x: "0.4*sin(var.turn*2)", y: 0.15, z: -3.0, look_at: [0, -0.15, 0]}
+      shot: {keys: [[40bar, 0], [48bar, 1], [56bar, 3], [60bar, 2], [66bar, 1], [72bar, 0], [80bar, 3], [86bar, 1], [88bar, 3], [92bar, 2], [96bar, 0], [104bar, 1], [108bar, 3], [112bar, 2]], ease: step}
       layers:
-        - {type: sky, zenith: "#05040e", horizon: "#2a1a3a", ground: "#050408", sun: "#ffb070", sun_yaw: 0.25, sun_height: "0.08*var.lock - 0.02", sun_size: 0.04, glow: "0.7*var.lock", haze: 0.4}
-        - {type: sky, opacity: "var.lock", zenith: "#3a4a7a", horizon: "#ffa070", ground: "#2a2028", sun: "#ffd0a0", sun_yaw: 0.25, sun_height: "0.08*var.lock - 0.02", sun_size: 0.04, glow: "0.9*var.lock", haze: 0.35, clouds: 0.4, cloud_height: 2.5, cloud_scale: 0.3, cloud_light: 1}
-        - {type: mesh, shape: plane, detail: 12, y: -0.62, scale: 8, color: "#3a3638", light: 0.8, ambient: 0.35, rim: 0, cull: true, material: pbr, rough: 0.22, shading: pixel}
-        # Neon round the plaza in the storm, pooling on the wet stone and rimming the dancers.
-        - {type: light, count: 4, x: "2.2*sin(inst.i/4 + 0.125)", y: 0.5, z: "2.2*cos(inst.i/4 + 0.125)", color: "#ff3cb4", power: "(1.6 + 0.8*env.hit)*(1 - var.lock)*step(0.5, fract(inst.i/2))", reach: 2.5}
-        - {type: light, count: 4, x: "2.2*sin(inst.i/4 + 0.125)", y: 0.5, z: "2.2*cos(inst.i/4 + 0.125)", color: "#3cc8ff", power: "(1.6 + 0.8*env.hit)*(1 - var.lock)*(1 - step(0.5, fract(inst.i/2)))", reach: 2.5}
-        - {type: light, x: 1.5, y: 2.5, z: -3, color: "#ffc080", power: "0.15 + 0.6*var.lock", reach: 6}
+        - {type: sky, zenith: "#05040e", horizon: "#2a1a3a", ground: "#050408", sun: "#ffb070", sun_yaw: 0.25, sun_height: "0.08*var.dawn - 0.02", sun_size: 0.04, glow: "0.7*var.dawn", haze: 0.4}
+        - {type: sky, opacity: var.dawn, zenith: "#3a4a7a", horizon: "#ffa070", ground: "#2a2028", sun: "#ffd0a0", sun_yaw: 0.25, sun_height: "0.08*var.dawn - 0.02", sun_size: 0.04, glow: "0.9*var.dawn", haze: 0.35, clouds: 0.4, cloud_height: 2.5, cloud_scale: 0.3, cloud_light: 1}
+        - {type: mesh, shape: plane, detail: 48, y: -0.62, scale: 8, color: "#3a3638", light: 0.8, ambient: 0.35, rim: 0, cull: true, material: pbr, rough: 0.22, shading: pixel}
+        # Neon round the plaza: magenta on the kick, cyan on the hats, out for the tape stop.
+        - {type: light, count: 4, x: "2.2*sin(inst.i/4 + 0.125)", y: 0.5, z: "2.2*cos(inst.i/4 + 0.125)", color: "#ff3cb4", power: "(0.9 + 2.2*max(track.kick.hit, track.kick7.hit))*(1 - var.dawn)*(1 - lane.stop)*step(0.5, fract(inst.i/2))", reach: 2.5}
+        - {type: light, count: 4, x: "2.2*sin(inst.i/4 + 0.125)", y: 0.5, z: "2.2*cos(inst.i/4 + 0.125)", color: "#3cc8ff", power: "(0.9 + 2.2*max(track.hats.hit, track.snare.hit))*(1 - var.dawn)*(1 - lane.stop)*(1 - step(0.5, fract(inst.i/2)))", reach: 2.5}
+        - {type: light, x: 1.5, y: 2.5, z: -3, color: "#ffc080", power: "0.15 + 0.35*var.lock + 0.5*var.dawn", reach: 6}
         - {type: light, x: 0, y: 6, z: 6, color: "#c8d8ff", power: "8*env.flash", reach: 20}
         - {type: beam, count: 2, from: ["-3 + 6*hash(time.t - env.flash.age + inst.i*0.37)", 4, "8 + 3*hash(time.t - env.flash.age + 7)"], to: ["-3 + 6*hash(time.t - env.flash.age + inst.i*0.37) + 0.8*(hash(time.t - env.flash.age + 3) - 0.5) + inst.i*0.5", "0.2 + inst.i*1.2", "8 + 3*hash(time.t - env.flash.age + 7)"], samples: "20 - inst.i*8", jag: "0.45 - inst.i*0.2", bolt: "time.t - env.flash.age + inst.i*13", width: "0.02 - inst.i*0.008", glow: "env.flash*(6 - inst.i*3)*(1 - var.lock)", color: "#e8f0ff"}
-        # The crowd: out of step with each other (each its own phase), smearing in the
-        # storm, then locking into one groove as the storm resolves.
-        - {type: figure, count: 25, rig: human, motion: dance, x: "(fract(inst.i/5)*5 - 2)*0.42 + 0.06*(hash(inst.i) - 0.5)", z: "(floor(inst.i/5) - 2)*0.42 + 0.06*hash(inst.i + 50)", y: -0.42, scale: "0.32 + 0.05*hash(inst.i + 100)", face: [0, 0, -4], phase: "4*hash(inst.i + 200)*(1 - var.lock)", energy: "(0.6 + 0.5*hash(inst.i + 300)*(1 - var.lock))*(0.7 + audio.level*1.3)", echo: "floor(3.5*(1 - var.lock))", echo_gap: 0.08, palette: sunset, pos: "hash(inst.i + 7)", spread: 0, light: 1, ambient: 0.15, rim: "0.4 + 0.8*var.lock", rim_color: "#ffd0a0", material: pbr, rough: 0.5, env_sky: "#2a2440", env_ground: "#08080c"}
-        - {type: motes, mode: emit, count: 2500, from: [0, 1.8, 0], wide: 5, deep: 5, wind_y: -3.2, wind_x: -0.4, wobble: 0.05, fall: 0, life: 0.8, streak: 0.06, size: 0.003, glow: "(0.5 + env.flash)*(1 - var.lock)", twinkle: 0, color: "#9aa8c8", near: 0.3, ground: -0.62, splash: 0.03}
+        # The crowd: on the beat, each out of phase with the others by as much as the swarm
+        # is still apart; as one from the lock. They move as hard as the drums play.
+        - {type: figure, count: 25, rig: human, motion: dance, x: "(fract(inst.i/5)*5 - 2)*0.42 + 0.06*(hash(inst.i) - 0.5)", z: "(floor(inst.i/5) - 2)*0.42 + 0.06*hash(inst.i + 50)", y: -0.42, scale: "0.32 + 0.05*hash(inst.i + 100)", face: [0, 0, -4], phase: "4*hash(inst.i + 200)*(1 - var.lock)", energy: "(0.6 + 0.5*hash(inst.i + 300)*(1 - var.lock))*(0.25 + 1.6*var.drive)*(1 - 0.8*var.eye)", echo: "floor(3.5*(1 - var.lock))", echo_gap: 0.08, palette: sunset, pos: "hash(inst.i + 7)", spread: 0, light: 1, ambient: 0.15, rim: "0.4 + 0.8*var.dawn", rim_color: "#ffd0a0", material: pbr, rough: 0.5, env_sky: "#2a2440", env_ground: "#08080c"}
+        - {type: motes, mode: emit, count: "60 + 2400*var.storm*(1 - var.eye)", from: [0, 1.8, 0], wide: 5, deep: 5, wind_y: -3.2, wind_x: -0.4, wobble: 0.05, fall: 0, life: 0.8, streak: 0.06, size: 0.003, glow: "0.5 + env.flash", twinkle: 0, color: "#9aa8c8", near: 0.3, ground: -0.62, splash: 0.03}
+        # Birds: crossing in the eye, fleeing as the storm returns; the flock rising at the lock.
+        - {type: motes, mode: flock, count: 260, seed: 4, opacity: "clamp(var.birds + lane.flock/2.7, 0, 1)*(1 - var.dawn)", y: "0.9 + 0.5*lane.flock", z: 0.6, w: "2.2 + 1.2*lane.flock", h: 0.7, d: 2.2, spin: "0.8 + 2.5*max(track.fleel.gate, track.fleer.gate) + 0.5*lane.flock", wobble: 0.3, size: 0.006, stretch: 2.5, heading: true, glow: 0.35, twinkle: 0.1, color: "#cfd8e8", near: 0.3}
+        - {type: motes, mode: flock, puff: true, count: 260, seed: 4, opacity: "clamp(lane.flock/2.7, 0, 1)*var.dawn", y: "0.9 + 0.5*lane.flock", z: 0.6, w: "2.2 + 1.2*lane.flock", h: 0.7, d: 2.2, spin: "0.8 + 0.5*lane.flock", wobble: 0.3, size: 0.008, stretch: 2.5, heading: true, glow: 0.9, twinkle: 0, color: "#181420", near: 0.3}
       filters:
-        - {type: reflect, y: -0.62, amount: "0.6 - 0.3*var.lock", reach: 2, ripple: 0.004, ripples: 40}
-        - {type: shadowmap, amount: "0.65*var.lock", soft: 2, size: 2048}
+        - {type: reflect, y: -0.62, amount: "0.6 - 0.3*var.dawn", reach: 2, ripple: 0.004, ripples: 40}
+        - {type: shadowmap, amount: "0.65*var.dawn", soft: 2, size: 2048}
         - {type: ao, amount: 0.9, radius: 0.06}
-        - {type: chroma, amount: "(0.012*env.hit + 0.02*env.flash)*(1 - var.lock)"}
+        - {type: chroma, amount: "0.05*lane.glitch*(track.shard.hit + track.chipsn.hit) + 0.02*env.flash + 0.05*lane.stop"}
         - {type: bloom, threshold: 0.6, amount: 0.6}
         - {type: tonemap, knee: 0.75}
         - {type: vignette, amount: 0.45}
