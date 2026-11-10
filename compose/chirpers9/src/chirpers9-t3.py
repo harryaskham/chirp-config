@@ -806,6 +806,45 @@ R103 = os.environ.get("T3_R103", "flock") != "none"
 # (3) THE SINGER LEADS. "nothing here is late" sat level with the plucked lead (-7.0 dB both); she is 1.5 dB up.
 # T3_R104=none reproduces v103.
 R104 = os.environ.get("T3_R104", "lands") != "none"
+# round 105 (WHOLE, deep pass 3): T3_R105=cycles (default) - THE STORM'S CYCLES ARE HEARD. t3 is a storm of cycles
+# that drift against the bar and lock at bar 89, and two of its three kinds of cycle have never been heard:
+# (0) WHY: in the storms the low end IS the mix. presence, bars 73-80: the bass -2.0 dB against the whole mix, its
+#     sub -2.8, the kick's sub -4.3, and the next things down are the hats, shards and flute at -12 and the hook at
+#     -14; at the lock the band sits 6-8 dB under the bass, in the storms 10-12. Measured as energy, the band below
+#     90 Hz stands 14.5 dB (second storm) and 16.8 dB (first) over the 355 Hz - 5.6 kHz band where the tunes are; the
+#     lock 9.7; the album's other six tracks 3.8 to 5.8 over their whole length (t3 12.0, t7 9.9; the genre anchors
+#     -4.6 to +13.4, median 6.6). Loudness normalisation spends t3's level on the sub, so its tunes play about 6 dB
+#     under its neighbours'. Now, through both storms (bars 40-86): the grit bass's growl BASS_STORM dB, and the low
+#     bus (kicks, basses, subs) SUB_STORM dB below SUB_HZ Hz; the master gives the storms the level back (DYN_BACK
+#     on the dyn lane), so everything that is not the low end comes up about 3 dB there. The front (and the in-seam's
+#     body) is untouched, and at the lock the low end returns at full size on the downbeat: the drop has the most bass.
+#     And the storm LIFTS OFF before it locks: from bar 83 a high-pass on the master sweeps up from under the floor
+#     to 160 Hz over four bars (the DJ's filter before a drop) and the storm runs on its growl, its bronze and its
+#     riser alone - then the two-bar
+#     gasp, then the lock with all of its weight. (Making the storm clearer had made the lock's entrance read flatter
+#     on the 8 s block measure, 1.05 -> 0.69, and joined it to the flat stretch before it: a 24 s run.)
+# (1) E2 AS A KOTEKAN. Since v9 the cell of seven has been split between two gangsas, Balinese style - the left one
+#     plays its D and F, the right one its A and C, so the cell passes from side to side - and both sat 28 dB under the
+#     mix (12-14 dB under everything else in their own octave), beneath a chip that plays all four notes on the left.
+#     In the SECOND storm the pair now carries the cell (+KOT_DB from bar 67, seated at -0.6 / +0.6) and the chip steps
+#     back 6 dB there: storm one's cell is a chip, storm two's is bronze passing between your ears - and at the lock
+#     (bar 89) the same two instruments, heard, stop drifting and land on the grid.
+# (2) THE TRACKER ARPS. Each chord of E3 fires an NES pulse walking its own intervals every 32nd (a 1990s module's
+#     arpeggio command) - at -27..-30 dB against the mix. +ARP_LIFT dB, seated -0.6 / +0.6 / centre.
+# T3_R105=none reproduces v104.
+R105 = os.environ.get("T3_R105", "cycles") != "none"
+KOT_DB = float(os.environ.get("T3_KOT_DB", "9"))
+KOT_LOCK_DB = float(os.environ.get("T3_KOT_LOCK_DB", "4"))
+KOT_PAN = float(os.environ.get("T3_KOT_PAN", "0.6"))
+CHIP_YIELD = float(os.environ.get("T3_CHIP_YIELD", "-6"))
+ARP_LIFT = float(os.environ.get("T3_ARP_LIFT", "6"))
+BASS_STORM = float(os.environ.get("T3_BASS_STORM", "-4"))
+DYN_BACK = float(os.environ.get("T3_DYN_BACK", "2.1"))
+SUB_STORM = float(os.environ.get("T3_SUB_STORM", "-3"))        # at -4 the 44 and 61 Hz bands left the scorer's tolerance (spectrum 99.78)
+SUB_HZ = float(os.environ.get("T3_SUB_HZ", "100"))
+SUB_FROM = float(os.environ.get("T3_SUB_FROM", "156"))
+LIFT_OCT = float(os.environ.get("T3_LIFT_OCT", "4"))        # the master's high-pass, octaves above 10 Hz (4 = 160 Hz); 0 = no lift-off
+LIFT_AT = float(os.environ.get("T3_LIFT_AT", "328"))
 PUNCH_CLIP = os.environ.get("T3_PUNCH_CLIP", "-4dB")
 LOW_CLIP = os.environ.get("T3_LOW_CLIP", "0dB")
 LOWS = ("kick", "kick7", "kickhalf", "ksub", "ksubhalf", "bass", "bassr", "bassr2", "bassh", "bsub", "bsubh", "floor",
@@ -2661,6 +2700,48 @@ def main():
         ride["fx"] = list(ride.get("fx") or []) + [{"type": "pan", "pan": {"value": rp, "mod": [
             {"src": "auto.seat", "amount": -rp}]}}]
         ride["auto"] = dict(ride.get("auto", {}), seat={"points": seat})
+    if R105:                                                # deep 3: the storm's cycles are heard
+        kot = [["0b", 0], ["256b", 0], ["264b", KOT_DB], ["351.75b", KOT_DB], ["352b", KOT_LOCK_DB], ["384b", KOT_LOCK_DB],
+               ["399b", 0], ["513b", 0]]
+        for tr in tracks:
+            nm = tr.get("name")
+            if nm in ("e2g", "e2s"):                        # (1) the kotekan carries the cell in the second storm
+                tr["pan"] = -KOT_PAN if nm == "e2g" else KOT_PAN
+                if nm == "e2g":                             # the left one was 2 dB under its partner (heard 3-4 tenths to 5-6)
+                    tr["gain"] = f"{float(str(tr.get('gain', '0dB')).replace('dB', '')) + 2:g}dB"
+                tr["fx"] = list(tr.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [
+                    {"src": "auto.kot", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), kot={"points": kot})
+            elif nm == "e2":                                # ... and the chip steps back there
+                tr["fx"] = list(tr.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [
+                    {"src": "auto.kot", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), kot={"points": [
+                    ["0b", 0], ["256b", 0], ["264b", CHIP_YIELD], ["384b", CHIP_YIELD], ["399b", 0], ["513b", 0]]})
+            elif nm in ("arp0", "arp1", "arp2"):            # (2) the tracker arps
+                tr["gain"] = f"{float(str(tr.get('gain', '0dB')).replace('dB', '')) + ARP_LIFT:g}dB"
+                tr["pan"] = {"arp0": -0.6, "arp1": 0.6, "arp2": 0.0}[nm]
+            elif nm in ("bass", "bassr2", "bassh") and BASS_STORM:   # (0) the growl steps back in the storms
+                tr["fx"] = list(tr.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB", "mod": [
+                    {"src": "auto.stormb", "amount": 1}]}}]
+                tr["auto"] = dict(tr.get("auto", {}), stormb={"points": [
+                    ["0b", 0], ["156b", 0], ["160b", BASS_STORM], ["346b", BASS_STORM], ["352b", 0], ["513b", 0]]})
+        if LIFT_OCT:                                        # the lift-off: a high-pass sweep on the master, ahead of the glue
+            gi = next(k for k, f in enumerate(master["fx"]) if isinstance(f, str) and f.startswith("glue"))
+            master["fx"] = master["fx"][:gi] + [{"type": "filter", "kind": "hp", "q": 0.8, "cutoff": {
+                "value": 10, "mod": [{"src": "auto.liftoff", "amount": 1}]}}] + master["fx"][gi:]
+            master["auto"] = dict(master["auto"], liftoff={"points": [
+                ["0b", 0], [f"{LIFT_AT}b", 0], [f"{LIFT_AT + 4}b", 2.2], ["344b", LIFT_OCT], ["350.5b", LIFT_OCT],
+                ["351b", 0], ["513b", 0]]})                 # 10 Hz -> 46 Hz in a bar, then to 160 Hz over three
+        if DYN_BACK:
+            new = []
+            for b, v in master["auto"]["dyn"]["points"]:
+                bb = float(b[:-1])
+                if 160 <= bb <= 244:
+                    v = round(v + DYN_BACK * 2 / 3, 2)
+                elif 264 <= bb < 344:
+                    v = round(v + DYN_BACK, 2)
+                new.append([b, v])
+            master["auto"] = dict(master["auto"], dyn={"points": new})
     about = ("chirpers - Accretion, track 3. Original composition by chirper-two, generated by "
              "compose/chirpers9/src/chirpers9-t3.py. The first storm: E1, E2 and E3 (a 2+2+3 progression) on cycles of "
              "12, 5 and 28 sixteenths, phased to meet the bar on one downbeat (bar 88), where the storm locks into a "
@@ -2687,7 +2768,14 @@ def main():
                                             [{"type": "clip", "ceiling": PUNCH_CLIP, "knee": 0.6, "link": True}] if R104 else []),
                                         "auto": {"punch": {"points": [["0b", -60], ["136b", -60], ["144b", 0], ["396b", 0],
                                                                       ["404b", -60], ["513b", -60]]}}}} if R87 else {}),
-                                    **({"low": {"fx": [{"type": "clip", "ceiling": LOW_CLIP, "knee": 0.6, "link": True}]}}
+                                    **({"low": dict({"fx": ([{"type": "filter", "kind": "lowshelf", "cutoff": SUB_HZ, "q": 0.7,
+                                                               "gain": {"value": "0dB", "mod": [{"src": "auto.subtrim", "amount": 1}]}}]
+                                                             if R105 and SUB_STORM else []) + [
+                                                                {"type": "clip", "ceiling": LOW_CLIP, "knee": 0.6, "link": True}]},
+                                                    **({"auto": {"subtrim": {"points": [
+                                                        ["0b", 0], [f"{SUB_FROM}b", 0], [f"{SUB_FROM + 0.02}b", SUB_STORM],
+                                                        ["346b", SUB_STORM], ["352b", 0], ["513b", 0]]}}}
+                                                       if R105 and SUB_STORM else {}))}
                                        if R104 else {}))),
         "master: " + json.dumps(master),
         "tracks:",
