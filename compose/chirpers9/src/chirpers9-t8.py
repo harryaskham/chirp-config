@@ -660,6 +660,34 @@ SUNG_GLIDES = {"choir": ("80ms", "8ms", 0.5), "choir5": ("80ms", "8ms", 0.5), "c
                "solo": ("80ms", "8ms", 0.5), "far": ("80ms", "8ms", 0.4), "last": ("90ms", "10ms", 0.3)}
 
 
+# v96 (ROUND TYPE: section, the break's end and the slingshot 124-129, 3:16-3:32; rewritten): SHE RIDES THE SLINGSHOT.
+# In the dilated break her line 'and it was ours' ended at 126.8 - 'ou' on C5, then 'rs' re-sung on a low D4 - and the
+# slingshot (127-128, the accelerando 116 -> 158 back into the jet) was a riser alone. wM's MELISMA (pinned 3d5ce622)
+# carries one syllable across pitch changes with no new attack. Now 'ours' is ONE syllable that rides the slingshot:
+# the 'ou' leaves C5 and climbs D5 (126.6), E5 (127, as the accelerando starts), F#5 (127.75) - the third, the
+# arrival's note - and closes into its 'rs' only at the very end, just before the jet fires again at 129. Her take's
+# own pitch curve stays on the C5; the old voice (age_high 0.6) strains a little reaching the F#, as it should.
+SLINGSHOT_MELISMA = [("m74", 0.64), ("m76", 0.66), ("m78", 0.7)]
+SLINGSHOT_AT = (502.257, 504.0, 507.0, 511.6)
+
+
+def she_rides_the_slingshot(song):
+    solo = [x for x in song["tracks"] if x["name"] == "solo"][0]
+    ou = [n for n in solo["notes"] if n.get("ph") == "AW1" and b0(125.5) <= n["at"] < b0(126.2)]
+    rs = [n for n in solo["notes"] if n.get("ph") == "ER0 Z" and b0(126.4) <= n["at"] < b0(126.8)]
+    assert len(ou) == 1 and len(rs) == 1, (len(ou), len(rs))
+    ou = ou[0]
+    ou["ph"] = "AW1 ER0 Z"
+    ou["len"] = round(SLINGSHOT_AT[0] - ou["at"], 3)
+    notes = [n for n in solo["notes"] if n is not rs[0]]
+    for (h, v), a, z in zip(SLINGSHOT_MELISMA, SLINGSHOT_AT, SLINGSHOT_AT[1:]):
+        n = {"at": a, "len": round(z - a, 3), "pitch": h, "ph": "_", "vel": v}
+        if ou.get("expr"):
+            n["expr"] = dict(ou["expr"])
+        notes.append(n)
+    solo["notes"] = sorted(notes, key=lambda n: n["at"])
+
+
 def lines_land_on_the_beat(song):
     for tr_ in song["tracks"]:
         if tr_["name"] in SUNG_GLIDES and isinstance(tr_.get("patch"), dict):
@@ -1992,6 +2020,7 @@ def main():
     space_opens(song)
     vowels_live(song)
     lines_land_on_the_beat(song)
+    she_rides_the_slingshot(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
