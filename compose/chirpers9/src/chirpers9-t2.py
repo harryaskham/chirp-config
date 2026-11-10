@@ -1095,6 +1095,21 @@ def build():
     # tune remembered on a muffled piano at the far point of the orbit, the build's concert grand (v80) heard again
     # through felt. The crest keeps its scanned mallet
     P['e1vb'] = [e_ for e_ in P['e1v'] if e_[0] >= SEC['break'] * 4.0 - 1e-6]
+    # (v105, section w6: 2:34-3:04, the crest's end into the break - deep pass. The break is the orbit's far point,
+    # and since v103 it sounds far; but nothing in it had been heard before: the muted piano plays E1 upside down,
+    # voices call, the ondes answers - the song never came back to anything) THE FAR POINT IS WHERE WE CAME IN: the
+    # first sound of the song - Risset's bell playing E1 at half speed, D A C G E, as it did under t1's last bars -
+    # rings again out here, in the far hall. It answers the piano: the piano's mirror of the tune (bars 65-66), then
+    # the bell with the tune itself (67-68); the mirror again under the calls (69-70), then the bell once more,
+    # softer, further off (71-72), its last note ringing as the ondes comes in. The tune upside down and the right
+    # way up, in dialogue, the right way up in the voice we first met it in.
+    # (Tried first: the bell twice from the break's first bar with the piano waiting until bar 69 - it filled the
+    # silence the crest lets go into, and the crest's end read as a weaker boundary, 0.209 -> 0.166: -0.09 / -0.06)
+    if os.environ.get('BELL', '1') == '1':
+        bb0_ = SEC['break'] * 4.0
+        st_ = sorted([e_ for e_ in P['e1in'] if e_[0] < 16.0 - 1e-6], key=lambda e_: e_[0])
+        P['e1far'] = [(round(bb0_ + 6.0 + e_[0] + 16.0 * k_, 4), e_[1], e_[2], max(1, min(127, e_[3] + 6 - 18 * k_))) + tuple(e_[4:])
+                      for k_ in range(2) for e_ in st_]
     P['e1v'] = [e_ for e_ in P['e1v'] if e_[0] < SEC['break'] * 4.0 - 1e-6]
     # (v95, section w2: 0:32-1:03, the in-seam's end into the gather - when the kit arrives (bar 17) the NES bass
     # fell silent for four bars, then started its riff at bar 21 under the verse: the gather's floor came in from
@@ -1233,6 +1248,7 @@ def build():
             tr('e1in', 'risset-bell', '-12dB', pan=0.15, auto={'lens': {'points': lens_pts}},
                fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 400, 'mod': [{'src': 'auto.lens', 'amount': 4.0}]}}],
                sends={'hall': '-6dB'}),
+            *([tr('e1far', 'risset-bell', '-11dB', pan=-0.15, sends=dict({'hall': '-6dB'}, **({'far': '-5dB'} if FAR_ else {})))] if 'e1far' in P else []),
             # (v9) THE HOOK UPSIDE DOWN: E1 inverted, from bar 29 to the crest and through the drift, was a thin NES pulse
             # (an album staple, three tracks) 13 dB down - the song's through-line, barely there. Now it is a Wurlitzer,
             # reedy and warm, up front: the tune you follow upside down until the crest turns it over (and the ondes
