@@ -1258,6 +1258,30 @@ def her_glides(song):
             tr_["patch"] = p
 
 
+# v93 (ROUND TYPE: section, the relief's middle 106-114, 3:52-4:08; rewritten): SHE SAYS IT. t4's least-moving change
+# outside the lens (4:00, 0.73 seed 5, bars 106-114; blocks 106.7-110.4 and 110.4-114.1). Presence: the lights (-4.3 /
+# -5.6) and her voice (-5.4 / -5.8) lead both blocks - and she hums E1 on 'oo' in both. The lights can't thin (t4's
+# low bands sit on the envelope's edge; v85's lights-out cost 0.76 spectrum), so she changes: the relief's hum turns
+# into WORDS for the two statements in the second block (Harry's t3 note: words sung on E1's notes) - alone at 111,
+# the song's own title on the album's hook, 'you are the warm third'; with the duet a third above at 113.5, 'the light
+# between us' - and the hum returns at 116. Stress on the long notes: WARM (G), THIRD (E, held), LIGHT (A), -TWEEN (G).
+RELIEF_WORDS = {111: ["Y UW1", "AA1 R", "DH AH0", "W AO1 R M", "TH ER1 D"],
+                113.5: ["DH AH0", "L AY1 T", "B IH0", "T W IY1 N", "AH1 S"]}
+
+
+def she_says_it(song):
+    for tr_ in song["tracks"]:
+        if tr_["name"] not in ("voice", "duet"):
+            continue
+        notes = sorted(tr_["notes"], key=lambda n: n["at"])
+        for bar, words in RELIEF_WORDS.items():
+            a = b0(bar)
+            run = [n for n in notes if a - 1e-6 <= n["at"] < a + 4.5]
+            if len(run) == 5:
+                for n, ph in zip(run, words):
+                    n["ph"] = ph
+
+
 def her_vowels_live(song):
     for tr_ in song["tracks"]:
         if tr_["name"] in VOWEL_DRIFT and isinstance(tr_.get("patch"), dict):
@@ -2044,6 +2068,7 @@ def main():
     space_breathes(song)
     she_turns(song)
     hook_sung_and_played(song)
+    she_says_it(song)
     her_vowels_live(song)
     her_glides(song)
     with open(OUT, "w") as f:
