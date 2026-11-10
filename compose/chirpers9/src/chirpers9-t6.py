@@ -1775,6 +1775,32 @@ def build():
                 for n_ in t_['notes']:
                     if (SEC['crest'] + 8) * 4.0 - 0.05 <= n_['at'] < (SEC['crest'] + 8) * 4.0 + 10.5:
                         n_['pitch'] = 'm%d' % third_(int(float(str(n_['pitch'])[1:])), -2)
+    # (v112, section w9: 4:06-4:35, the out-seam into t7 - deep pass. eco measured the joins as the album plays them,
+    # 10 Nov: at bar 9 of every overlap everything below 120 Hz passes from the outgoing song to the incoming one,
+    # and at t6 -> t7 that was a hole - t6's floor (the D1 sub, the bass, the bow) ran at full level to the last bar,
+    # 7 dB over t7's quiet E-flat floor, so at the swap the low end fell 6.7 dB and the whole mix 5.7 dB in one bar)
+    # THE EBB. The tide goes out: through the out-seam's first eight bars t6's floor sinks, a little each bar, until
+    # at the swap it stands where t7's floor is waiting - the sub, the bass and the bow 14 dB down by bar 137 and
+    # still falling to the end - while the harmonium, the trombone's last D, the marimba and the slowing drummer
+    # carry on above it. The low end is handed over, not dropped
+    if os.environ.get('EBB', '1') == '1':
+        eb0_ = SEC['out'] * 4.0
+        ed_ = float(os.environ.get('EBBD', '14'))
+        ebb_pts = [['0b', 0.0], [f'{eb0_:.1f}b', 0.0], [f'{eb0_ + 32.0:.1f}b', -ed_], [f'{eb0_ + 64.0:.1f}b', -ed_ - 7.0]]
+        ebbf_pts = [['0b', 0.0], [f'{eb0_:.1f}b', 0.0], [f'{eb0_ + 32.0:.1f}b', 1.0], [f'{eb0_ + 64.0:.1f}b', 1.0]]
+        for t_ in song['tracks']:
+            if t_['name'] in ('sub', 'root', 'farbow'):
+                t_['auto'] = dict(t_.get('auto') or {}, ebb={'points': ebb_pts})
+                t_['fx'] = list(t_.get('fx') or []) + [{'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.ebb', 'amount': 1}]}}]
+            elif t_['name'] == 'springgong':
+                # the gong's last stroke (bar 135, a D1 under t7's E-flat) rings at half its weight
+                t_['auto'] = dict(t_.get('auto') or {}, ebb={'points': ebb_pts})
+                t_['fx'] = list(t_.get('fx') or []) + [{'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.ebb', 'amount': 0.45}]}}]
+            elif t_['name'] == 'tide':
+                # and the harmonium thins from below as the water leaves: its lowest notes' fundamentals (98-110 Hz)
+                # ease out under a high-pass that climbs from 40 to 140 Hz over the same eight bars
+                t_['auto'] = dict(t_.get('auto') or {}, ebbf={'points': ebbf_pts})
+                t_['fx'] = list(t_.get('fx') or []) + [{'type': 'filter', 'kind': 'hp', 'cutoff': {'value': 40, 'mod': [{'src': 'auto.ebbf', 'amount': 1.8}]}}]
     # (v109, whole song - deep pass) THE CREST IS MASTERED, NOT LIMITED. The master's compressor sat at -18 dB on a
     # mix that reaches it at -25 dBFS RMS, so it never moved; the loudness stage then added 14.4 dB and the final
     # limiter was left to do the whole master where the song is loudest - the crest held down 2.9 dB on average, over
