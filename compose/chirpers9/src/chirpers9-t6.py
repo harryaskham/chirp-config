@@ -1554,6 +1554,31 @@ def build():
                                  'vel': (0.8, 0.78, 0.74, 0.58)[k_ - 1]})
         at_ += ln_
     sb_['notes'].sort(key=lambda n_: n_['at'])
+    # (v106, section w7: 3:06-3:36, the surge - eleven bars of band, the tune traded between the flute and the
+    # strings, before the choir sings 'near and far as one' at bar 108; no singer of the song's own two was there)
+    # THEY CALL IT BEFORE THE CHOIR: at bar 101 the young voice sings 'near' alone and holds it, bending up a step on
+    # the one vowel (wM's melisma); two bars later the old man answers 'and far', his 'far' bending down - and five
+    # bars on the choir sings the whole line, 'near and far as one': the two singers name their sides, then everyone
+    # sings them as one
+    ss_ = [t_ for t_ in song['tracks'] if t_['name'] == 'surgesung'][0]
+    sl_ = [t_ for t_ in song['tracks'] if t_['name'] == 'surgelow'][0]
+    dn_ = [t_ for t_ in song['tracks'] if t_['name'] == 'duetnear'][0]
+    sb2_ = [t_ for t_ in song['tracks'] if t_['name'] == 'sungb'][0]
+    s0_ = sorted(ss_['notes'], key=lambda n_: n_['at'])
+    l0_ = sorted(sl_['notes'], key=lambda n_: n_['at'])
+    def pl_(n_):
+        k_ = len((n_.get('expr_path') or {}).get('f0') or [])
+        return {'path_len': f"{k_ / 44.0:.3f}s"} if k_ else {}
+    c0_ = (SEC['surge'] + 4) * 4.0
+    nr_ = s0_[0]
+    dn_['notes'] += [dict(nr_, at=c0_, len=2.0, vel=0.78, **pl_(nr_)),
+                     {'at': c0_ + 2.0, 'len': 1.5, 'pitch': f"m{int(str(nr_['pitch'])[1:]) + 2}", 'ph': '_', 'vel': 0.72}]
+    an_, fa_ = l0_[1], l0_[2]
+    sb2_['notes'] += [dict(an_, at=c0_ + 8.0, len=0.75, vel=0.8, **pl_(an_)),
+                      dict(fa_, at=c0_ + 8.75, len=2.0, vel=0.8, **pl_(fa_)),
+                      {'at': c0_ + 10.75, 'len': 1.25, 'pitch': f"m{int(str(fa_['pitch'])[1:]) - 3}", 'ph': '_', 'vel': 0.6}]
+    dn_['notes'].sort(key=lambda n_: n_['at'])
+    sb2_['notes'].sort(key=lambda n_: n_['at'])
     # (v101, whole song: wM's vowel_drift, pinned 07ab00cd, from chirper-one's ask for long notes) THE VOWELS LIVE:
     # this song holds its vowels longer than any other on the album - the old man's long 'go's and 'side's, the
     # choirs' held chords, the near voice's last notes - and every one sat perfectly still, the formants fixed, which
