@@ -1774,6 +1774,38 @@ def build():
         ht_ = dict(vt_, name='verseharm', notes=hn_, gain=os.environ.get('V2HG', '-13.5dB'), pan=0.25)
         ht_.pop('double', None)
         song['tracks'].append(ht_)
+    # (v111, the last round - Harry, 10 Nov 18:22: "lets DO DICTION!!! add diction and then cut it") THE WORDS. wM's
+    # diction, level 2, on every voice of t2 that sings words: a sung consonant shapes the third formant as a spoken
+    # one does (an r is an r: 'round' had been read as 'long'), and the consonants are fitted to short notes, keeping
+    # their energy, so the vowel has the note - the hook's top note, 'each', sounds about 55 ms where it had under
+    # 20. No beat moves. This includes the crest line: Harry heard the hook in the mix with and without it and
+    # chose it. Set here, in the song, never in the shared voice patches. The hums and the pure-vowel pads (ooh,
+    # aah) have no consonants and are left exactly as they were. 'round and round and round' alone at bar 79 reads
+    # a little better at level 1 in wM's benchmark (its r's are what level 1 fixed; level 2 adds nothing it needs),
+    # so that one track takes level 1
+    DIC_ = {} if os.environ.get('DIC', '2') == '0' else {n_: int(os.environ.get('DIC', '2')) for n_ in (
+        'farchoir', 'verse', 'versegather', 'verseharm', 'earlyhook', 'prech', 'crestsung', 'crestb', 'answer', 'answer2',
+        'sung', 'middlecalls', 'driftsung', 'driftlift', 'lastverse', 'lastin')}
+    if DIC_:
+        DIC_['roundround'] = min(1, int(os.environ.get('DIC', '2')))
+    seen_ = set()
+    for t_ in song['tracks']:
+        lv_ = DIC_.get(t_['name'])
+        if not lv_:
+            continue
+        assert isinstance(t_['patch'], dict) and str(t_['patch'].get('extends', '')).startswith('voice-'), t_['name']
+        assert 'diction' not in t_['patch']['extends'], t_['name']
+        t_['patch'] = dict(t_['patch'], extends=t_['patch']['extends'] + f' synth.layers.0.diction={lv_}')
+        seen_.add(t_['name'])
+    assert seen_ == set(DIC_), set(DIC_) - seen_
+    # each voice held where it sat: soloed at no diction and at level 2 on two seeds, most lines sit 0.2 to 0.5 dB up
+    # (the hook among them, which is the level Harry heard and called good); the ones both seeds put further up
+    # are taken back by that much
+    if DIC_ and os.environ.get('DICTRIM', '1') == '1':
+        for t_ in song['tracks']:
+            c_ = {'farchoir': -0.7, 'verseharm': -0.6}.get(t_['name'])
+            if c_:
+                t_['gain'] = '%gdB' % round(float(str(t_['gain'])[:-2]) + c_, 1)
     return song
 
 
