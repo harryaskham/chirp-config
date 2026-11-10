@@ -7,3 +7,8 @@ edits, each asserted to match exactly once, then writes `/tmp/cv/tNn/tN.yaml`.
 
 They are a record, not a build step: the programmes in `vis/` are the source of truth and may
 be edited by hand afterwards. `t1` and `t6` were written directly (no script).
+
+`t8.py` writes t8's programme afresh (its six elements' layers are generated, one orbit each).
+`t8-staged.yaml` is its output, waiting here until the engine it needs is pinned: it reads each
+element's own lanes as `lane.e3.orb` (`lane.TRACK.NAME`, chirp-video's batch 52). Once that is
+pinned it becomes `vis/chirpers9-t8.yaml` and this copy goes. `t7` was written directly.
