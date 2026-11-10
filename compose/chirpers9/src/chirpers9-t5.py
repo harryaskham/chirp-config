@@ -126,6 +126,7 @@ KITRECEDE = os.environ.get("C9T5_KITRECEDE", "early")   # SECTION w8 (3:53-4:19,
 SUNGGLIDE = os.environ.get("C9T5_SUNGGLIDE", "0.3")   # PALETTE (the voice; wM's sung glides, pin 2b4b6172): her joined notes slid with a fixed 110 ms glide that started on the new note, so every slide landed late (its middle 56-70 ms after the written change) and a step took as long as a leap. Now her slides are sung: 80 ms plus 8 ms a semitone (a leap takes longer than a step) and a share of each slide sung before the new note, the last note bending into it, so the slide centres on the beat. Value: that share (0.5 on the beat; 0.3 lazier, landing a little late)
 CHORUSDROP = os.environ.get("C9T5_CHORUSDROP", "bar")   # SECTION w2 (0:34-1:08, A's arrival and her first chorus): THE FLOOR CLEARS FOR HER - the groove ran straight into her first 'near-er' (beat 110) without a breath, so she arrived on top of it. Now the kick and clap step out just before she sings (the hats keep time) and come back with her: 'bar' 106-110, 'half' 108-110
 CLOSERHOME = os.environ.get("C9T5_CLOSERHOME", "second")   # SECTION w7 (3:20-3:53, C's second half: 'little new vs w6'): CLOSER, HOME - her E1 sung 'clo-ser and clo-ser' ends on E1's last note, E, held three beats, and stays there. Now its last syllable, held, bends down to D - the seed's home, the album's tonic - on one breath (wM's melisma: the '-ser' carried on, no new attack, sliding with her sung glides): 'second' only the second time (the last time she sings E1 in t5); 'both' both times
+SEVENBREATH = os.environ.get("C9T5_SEVENBREATH", "pump+glue+snap")   # WHOLE, deep pass (Harry, 10 Nov: go deep on feel and texture; t5 was the one groove track on Accretion with no sidechain and no bus dynamics - t2, t3, t6 and t7 all pump under their kicks and compress their masters): THE SEVEN BREATHES - the kick lands every seven sixteenths (E2's cycle) against the 4/4 chords; now the held sounds breathe with it: the basses, the floor, the Kuramoto lights and the air dip under every kick and swell back (engine `pump`, note-driven), so the seven-cycle is felt as a tide in the pad, not only heard in the drums. Options, '+'-joined: 'pump' (the breath), 'glue' (a master bus compressor, 2:1, 15 ms / 150 ms as t6's and t7's, its threshold set for t5's own mix level - -32 dB before loudness normalisation: about 2.4 dB at the crest, 1 dB in C, 0.5 dB in A - so the crest is held by a compressor instead of the final limiter and A sits closer to it), 'snap' (the kit's attacks lifted 3 dB)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -1140,6 +1141,22 @@ def song():
         for tr in tracks:
             if tr["name"] == "drums":
                 tr["notes"] = [n for n in tr["notes"] if not (d0 <= float(n["at"]) < 109.95 and n["pitch"] in ("k", "cp"))]
+    if "pump" in SEVENBREATH:
+        tight = {"bass": -5, "sub": -5, "bass808": -5, "floor": -4}                       # the low end makes room for the kick: a quick dip
+        breath = {"lights": -5, "air": -4, "orbit-slow": -3, "shadow": -3}                 # the held sounds breathe: a slow swell back, two thirds of a beat
+        for tr in tracks:
+            if tr["name"] in tight or tr["name"] in breath:
+                d = tight.get(tr["name"], breath.get(tr["name"]))
+                shape = {"release": "200ms", "curve": 0.6} if tr["name"] in tight else {"release": "1/6", "curve": 0.5}
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "pump", "on": "pump-key.k", "depth": f"{d}dB", **shape}]
+        # the key: every kick the two kits play up to the tide (the overlap with t6 keeps its agreed body, unpumped), on a muted ghost track
+        kicks = sorted({round(float(n["at"]), 4) for tr in tracks if tr["name"] in ("drums", "spin") for n in tr["notes"]
+                        if n["pitch"] == "k" and float(n["at"]) < ST["outro"]})
+        tracks.append({"name": "pump-key", "patch": "909", "mute": True, "gain": "-30dB", "notes": [{"at": a, "pitch": "k", "len": 0.25, "vel": 0.8} for a in kicks]})
+    if "snap" in SEVENBREATH:
+        for tr in tracks:
+            if tr["name"] in ("drums", "spin"):
+                tr["fx"] = list(tr.get("fx", [])) + [{"type": "transient", "attack": 3.0, "sustain": 0.0, "sensitivity": 0.5}]
     if VIBBLOOM:
         vb, *vd = VIBBLOOM.split(":")
         for tr in tracks:
@@ -1166,7 +1183,11 @@ def song():
         "tracks": tracks,
         **({"master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "lowshelf cutoff=110 gain=3dB", "peak cutoff=640 q=1.0 gain=-2.5dB"]
                                 + (["peak cutoff=44 q=1.2 gain=2dB", "peak cutoff=114 q=1.0 gain=1.5dB"] if MASTEREQ == "warm2" else [])},
-                               "limiter ceiling=-1dB"]}} if MASTEREQ else {}),
+                               *(["glue threshold=-32dB ratio=2 attack=15ms release=150ms makeup=0dB",
+                                   {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.hold", "amount": 1}]}}] if "glue" in SEVENBREATH else []),
+                               "limiter ceiling=-1dB"],
+                        # with the glue the quiet ends come up against the crest; the head (under t4's fall) and the tide (into t6) are held at their agreed levels
+                        **({"auto": {"hold": {"points": [["0b", -3.0], ["48b", -3.0], [f"{ST['A']}b", 0.0], ["400b", 0.0], [f"{ST['outro']}b", -1.3], [f"{TOTAL}b", -1.3]]}}} if "glue" in SEVENBREATH else {})}} if MASTEREQ else {}),
     }
 
 
