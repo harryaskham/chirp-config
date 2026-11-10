@@ -770,6 +770,17 @@ R101 = os.environ.get("T3_R101", "tilt") != "none"
 # while the choirs, the melodica and the singer hold on over it; bar 108 is a tom fill down E2's seven, and the
 # groove lands back for the tail. T3_R102=none reproduces v101.
 R102 = os.environ.get("T3_R102", "stutter") != "none"
+# round 103 (palette): T3_R103=flock (default) - THE PHASES LOCK, AUDIBLY. t3 is "Phase Margin": three cycles drift
+# against the bar until the lock (bar 89) pulls them into one. The sound made of exactly that was already here - the
+# swarm (a3-swarm, wM's Kuramoto oscillators, v60) - but as short chords well under the mix (-13 dB, audibility 0.24)
+# its locking was not something you could hear. Now a new patch, a3-flock (library kuramoto-choir's twelve detuned
+# saws, their coupling on a song lane instead of its LFO): ONE held D-A-D for the storm's last four bars (85-88), the
+# coupling under the critical point, so the twelve never agree - a wide, restless, beating crowd; through bar 88 the
+# lane crosses the critical point and the crowd collapses into one pure tone exactly on the lock's downbeat, then
+# holds the lock's chords (Dm Bb C Dm, bars 89-96) locked. The old swarm hands over to it at bar 85. T3_R103=none
+# reproduces v102.
+R103 = os.environ.get("T3_R103", "flock") != "none"
+KURA_GAIN = os.environ.get("T3_KURA_GAIN", "-2dB")   # two-patch trial at 0: crowd -8.7 dB (0.93), unison -3.2 over the singer's -7.2
 STUT_GAIN = os.environ.get("T3_STUT_GAIN", "-6dB")   # at 0: stabs -1.2 dB, toms -1.1 (the kit -7)
 VOICES_DB = float(os.environ.get("T3_VOICES_DB", "12"))   # at 8: -14.9..-20.3 dB, still under
 THUNDER_GAIN = os.environ.get("T3_THUNDER_GAIN", "4dB")   # at 0: -10.4 / -13.0 dB
@@ -2451,6 +2462,26 @@ def main():
         mid = [["0b", 0], ["128b", 0], ["144b", 1], ["368b", 1], ["384b", 0], ["513b", 0]]
         master["auto"] = dict(master["auto"], weight={"points": [[b, 3.0 * v] for b, v in mid]},
                               unbox={"points": [[b, -3.5 * v] for b, v in mid]})
+    if R103:                                                # palette: one Kuramoto flock, a crowd (85-88) that locks at bar 89
+        patches["a3-flock"] = {
+            "about": "chirper-two: library kuramoto-choir (wM's twelve detuned saws pulled toward their mean phase) with "
+                     "the coupling on a song lane (auto.flock) instead of its LFO: under the critical point a restless "
+                     "crowd, over it one pure tone - t3's phases locking, played by the song",
+            "gain": "-9.5dB",
+            "synth": {"layers": [{"type": "kuramoto", "kuramoto": {"count": 12, "spread": 30, "coupling": {
+                          "value": 0.3, "mod": [{"src": "auto.flock", "amount": 1}]}}}],
+                      "filters": [{"kind": "lp", "cutoff": {"value": 400, "mod": [{"src": "sync", "amount": 2.5}]}}],
+                      "amp": {"a": "1.2s", "d": 0, "s": 1, "r": "2.5s"}}}
+        tracks.append({"name": "flock", "patch": "a3-flock", "gain": KURA_GAIN, "pan": 0.0, "sends": {"space": "-10dB"},
+                       "score": "R/336b D3,A3,D4/24b Bb2,F3,D4/8b C3,G3,E4/8b D3,A3,D4/7b",
+                       "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.flockg", "amount": 1}]}}],
+                       "auto": {"flock": {"points": [["0b", 0], ["344b", 0], ["350b", 0.3], ["352b", 2.7], ["513b", 2.7]]},
+                                # locked, the twelve sum coherently: the two-patch trial needed the unison 6 dB down
+                                "flockg": {"points": [["0b", 0], ["350b", 0], ["352b", -6], ["513b", -6]]}}})
+        sw = next(tr for tr in tracks if tr.get("name") == "swarm")   # the old swarm hands over at bar 85
+        sw["fx"] = list(sw.get("fx") or []) + [{"type": "gain", "gain": {"value": "0dB",
+                                                 "mod": [{"src": "auto.handover", "amount": 1}]}}]
+        sw["auto"] = dict(sw.get("auto", {}), handover={"points": [["0b", 0], ["334b", 0], ["336b", -60], ["513b", -60]]})
     if R102:                                                # w9: E2's stutter over bars 105-107, a tom fill on bar 108
         gate = [["0b", 0], ["415.98b", 0]]
         sk = Track("stutk")
