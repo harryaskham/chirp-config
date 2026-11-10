@@ -706,6 +706,83 @@ WIDE_TOP = {"type": "width", "width": 1.0, "mono_below": "off", "crossover": "lr
             "bands": [[200, 1.0], [1500, 1.0], [3000, 1.3], [7000, 1.5]]}
 
 
+# v99 (ROUND TYPE: whole song - DEEP pass 2): THE JET BREATHES. The jet is where 'the band locks into 4/4' - but nothing
+# in it MOVED with the beat: the sub, the strings, the organ and the swarm pad held flat under the kick, the backbeat
+# was one dry machine snare, and (chirper-one's measurement, the album over) the highs were thin ticks over black
+# where the genre's are bursts with a tail over a floor. Four things, all from the jet's downbeat (bar 97) on:
+#   - PUMP: the sub and its octave, the lights' strings, the organ and the swarm pad duck under every kick and swell
+#     back (the engine's `pump`, keyed from the kick's notes; -5 / -3.5 / -3 dB, 230 ms) - a slow heave in the
+#     half-time gear, a throb when the kick goes four-on-the-floor (113). Checked solo: the sub dips 5.4 dB on each
+#     kick; the mix's level does not move, because the kick fills the hole it is given. A lane (pm) holds it off until
+#     bar 97, so the stretto stays still and the jet's first kick starts the breathing. The voices are not pumped.
+#   - A CLAP on every backbeat (the machine's wide clap), into the plate: the snare gets a body with width.
+#   - THE HATS RING: the disk hats feed the room, a tail under each tick.
+#   - A FLOOR OF SHAKER: from the full-time gear (105) and through the jet's return, stereo sixteenths (the disk hats'
+#     kit, a soft pink-noise piece) under the hats - the air stops being events over silence.
+PUMP = {"sub": "-5dB", "lift": "-5dB", "lights": "-3.5dB", "e6": "-3dB", "jet": "-3.5dB"}
+PUMP_RELEASE = "230ms"
+CLAP_GAIN, CLAP_PLATE = "-6dB", "-3dB"
+HAT_ROOM = "-8dB"
+SHAKER = {"choke": None,
+          "patch": {"synth": {"layers": [{"type": "noise", "color": "pink", "pan": -1},
+                                         {"type": "noise", "color": "pink", "pan": 1}],
+                              "filters": ["hp cutoff=3500", "lp cutoff=11000"],
+                              "amp": {"a": "7ms", "d": "60ms", "s": 0, "r": "30ms"}}}}
+SHAKER_GAIN = "-21dB"
+SHAKER_VEL = (64, 36, 48, 36)
+
+
+def score_events(score):
+    pos, ev = 0.0, []
+    for tok in score.split():
+        head, _, rest = tok.partition("/")
+        ln = float(rest.split("b")[0])
+        if head != "R":
+            ev.append((pos, ln, head, int(rest.split("@")[1].split("^")[0]) if "@" in rest else 80))
+        pos += ln
+    return ev
+
+
+def events_score(ev):
+    toks, at = [], 0.0
+    ev = sorted(ev)
+    for i, (s, ln, h, v) in enumerate(ev):
+        ln = min(ln, (ev[i + 1][0] if i + 1 < len(ev) else TOTAL) - s)
+        if ln <= 1e-6:
+            continue
+        if s - at > 1e-5:
+            toks.append(f"R/{s - at:.6g}b")
+        toks.append(f"{h}/{ln:.6g}b@{v}")
+        at = s + ln
+    if TOTAL - at > 1e-5:
+        toks.append(f"R/{TOTAL - at:.6g}b")
+    return " ".join(toks)
+
+
+def the_jet_breathes(song):
+    by = {x["name"]: x for x in song["tracks"]}
+    lane = [["0b", 0.0], [f"{JB - 0.05:g}b", 0.0], [f"{JB:g}b", 1.0]]
+    for n, depth in PUMP.items():
+        tr_ = by[n]
+        tr_["fx"] = list(tr_.get("fx") or []) + [{"type": "pump", "on": "kick", "depth": depth, "release": PUMP_RELEASE,
+                                                  "curve": 1.0, "mix": {"value": 0, "mod": [{"src": "auto.pm", "amount": 1}]}}]
+        tr_["auto"] = dict(tr_.get("auto") or {}, pm={"points": [list(p) for p in lane]})
+    # the clap: every backbeat the snare plays from the jet on (the loud hits on a beat), not its builds and ghosts
+    claps = [(s, 0.5, "cpw", 100) for s, ln, h, v in score_events(by["snare"]["score"])
+             if s >= JB - 1e-6 and v >= 100 and abs(s - round(s)) < 1e-6]
+    song["tracks"].append({"name": "clap", "patch": "machine-kit", "score": events_score(claps), "gain": CLAP_GAIN,
+                           "sends": {"plate": CLAP_PLATE}})
+    by["hatw"]["sends"] = dict(by["hatw"].get("sends") or {}, room=HAT_ROOM)
+    # the shaker: sixteenths in every bar from the full-time gear on in which the hats play
+    hat_bars = {int(s // BPB) + 1 for s, ln, h, v in score_events(by["hat"]["score"])}
+    shk = [(b0(bar) + i * 0.25, 0.25, "s", SHAKER_VEL[i % 4])
+           for bar in sorted(hat_bars) if bar >= GEAR_FULL for i in range(16)]
+    kit = json.loads(json.dumps(DISK_HATS))
+    kit["about"] = "t8's shaker: the disk hats' stereo noise, pink and soft - the floor under the hats"
+    kit["kit"] = {"s": {k: v for k, v in json.loads(json.dumps(SHAKER)).items() if v is not None}}
+    song["tracks"].append({"name": "shaker", "patch": kit, "score": events_score(shk), "gain": SHAKER_GAIN})
+
+
 def the_disk_is_wide(song):
     by = {x["name"]: x for x in song["tracks"]}
     pos, ev = 0.0, []
@@ -2113,6 +2190,7 @@ def main():
     lines_land_on_the_beat(song)
     she_rides_the_slingshot(song)
     the_disk_is_wide(song)
+    the_jet_breathes(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
