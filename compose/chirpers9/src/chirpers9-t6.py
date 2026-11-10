@@ -1908,6 +1908,34 @@ def build():
                 gn_.append(dict(n_, at=round(g0_ + 8.0 * k_ + 0.25 + gap_ + (n_['at'] - cn_[0]['at']), 4), vel=round(min(0.9, n_['vel'] * (0.95 + 0.05 * k_)), 3)))
         song['tracks'].append(dict(so_, name='gapold', notes=go_, gain=os.environ.get('GAPOG', '-4.5dB')))
         song['tracks'].append(dict(nw_, name='gapnear', notes=gn_, gain=os.environ.get('GAPNG', '-6dB')))
+    # (v116, the last round - Harry, 10 Nov 18:22: "lets DO DICTION!!! add diction and then cut it") THE WORDS. wM's
+    # diction, level 2, on every voice of t6 that sings words - the old man, the near voice, the choruses, the
+    # farewell: a sung consonant shapes the third formant as a spoken one does, and the consonants are fitted to
+    # short notes, keeping their energy, so the vowel has the note ('side', on the hook's 120 ms snap, gained most
+    # in wM's benchmark: 'the near side keeps the time' had been read as 'love is kings line'). No beat moves. Set
+    # here, in the song, never in the shared voice patches. The descant's ooh and the hummed hymn have no consonants
+    # to shape and are left exactly as they were
+    DIC_ = {} if os.environ.get('DIC', '2') == '0' else {n_: int(os.environ.get('DIC', '2')) for n_ in (
+        'sung', 'sungb', 'sungc', 'sung2', 'lastword', 'crestold', 'gapold', 'nearwake', 'duetnear', 'squeezenear', 'crestnear',
+        'gapnear', 'farewell', 'chorus', 'chorus2', 'surgesung', 'surgelow')}
+    seen_ = set()
+    for t_ in song['tracks']:
+        lv_ = DIC_.get(t_['name'])
+        if not lv_:
+            continue
+        assert isinstance(t_['patch'], dict) and str(t_['patch'].get('extends', '')).startswith('voice-'), t_['name']
+        assert 'diction' not in t_['patch']['extends'], t_['name']
+        t_['patch'] = dict(t_['patch'], extends=t_['patch']['extends'] + f' synth.layers.0.diction={lv_}')
+        seen_.add(t_['name'])
+    assert seen_ == set(DIC_), set(DIC_) - seen_
+    # each voice held where it sat: soloed at no diction and at level 2 on two seeds, most lines sit 0.2 to 0.5 dB up
+    # (the hook among them, which is the level Harry heard and called good); the ones both seeds put further up
+    # are taken back by that much
+    if DIC_ and os.environ.get('DICTRIM', '1') == '1':
+        for t_ in song['tracks']:
+            c_ = {'farewell': -1.0, 'duetnear': -0.5}.get(t_['name'])
+            if c_:
+                t_['gain'] = '%gdB' % round(float(str(t_['gain'])[:-2]) + c_, 1)
     return song
 
 
