@@ -30,7 +30,7 @@ class Width(unittest.TestCase):
     def test_identical_channels_are_mono(self):
         x = noise(1)
         w = W.measure(np.stack([x, x], axis=1))
-        self.assertTrue(all(v == W.MONO for v in w.values()))
+        self.assertTrue(all(w[name] == W.MONO for name, _, _ in W.BANDS))
         self.assertEqual(W.fmt(w["top"]), "mono")
 
     def test_a_one_channel_file_is_mono(self):
@@ -62,10 +62,39 @@ class Width(unittest.TestCase):
         w = W.measure(np.stack([0.65 * x, 0.35 * x], axis=1))
         self.assertLess(abs(w["top"] - 20 * np.log10(0.15 / 0.5)), 0.2)
 
+    def ticks(self, floor_db=None):
+        """A decaying noise tick every 250 ms above 5 kHz, over digital silence or over a noise floor."""
+        rng = np.random.default_rng(5)
+        n = W.SR * 20                                          # two and a half 8 s windows
+        x = np.zeros(n)
+        env = np.exp(-np.arange(int(0.06 * W.SR)) / (0.006 * W.SR))
+        for i in range(0, n - len(env), int(0.25 * W.SR)):
+            x[i:i + len(env)] += rng.standard_normal(len(env)) * env
+        if floor_db is not None:
+            x += rng.standard_normal(n) * 10 ** (floor_db / 20)
+        return x.astype(np.float32).reshape(-1, 1)
+
+    def test_highs_spread_tells_ticks_over_black_from_events_over_a_floor(self):
+        """chirper-one: the refs' hats are bursts over a floor; ours were thin ticks over black."""
+        black, floor = W.highs_spread(self.ticks()), W.highs_spread(self.ticks(floor_db=-20))
+        steady = W.highs_spread(np.random.default_rng(1).standard_normal(W.SR * 20).astype(np.float32).reshape(-1, 1))
+        self.assertGreater(black, 20)
+        self.assertLess(floor, black - 8)
+        self.assertLess(steady, 2)
+        self.assertIsNone(W.highs_spread(np.zeros((W.SR * 20, 1), np.float32)))
+        self.assertIsNone(W.highs_spread(noise(1).reshape(-1, 1)[:W.SR // 2]))      # under a second: no figure
+
+    def test_a_section_is_named_after_the_file(self):
+        self.assertEqual(W.section("/tmp/x/t6.wav@150+32"), ("/tmp/x/t6.wav", 150.0, 32.0))
+        self.assertEqual(W.section("/tmp/x/t6.wav@150"), ("/tmp/x/t6.wav", 150.0, None))
+        self.assertEqual(W.section("/tmp/x/t6.wav"), ("/tmp/x/t6.wav", None, None))
+
     def test_line(self):
-        s = W.line("t8", {"low": -16.1, "mid": -3.9, "high": -9.0, "air": -14.2, "top": -10.5})
+        s = W.line("t8", {"low": -16.1, "mid": -3.9, "high": -9.0, "air": -14.2, "top": -10.5, "spread": 27.3})
         self.assertIn("top (2-16 kHz) -10.5 dB", s)
         self.assertIn("air 6-16k -14.2", s)
+        self.assertIn("highs' spread 27.3 dB", s)
+        self.assertNotIn("spread", W.line("x", {"low": -1.0, "mid": -1.0, "high": -1.0, "air": -1.0, "top": -1.0}))
 
 
 if __name__ == "__main__":
