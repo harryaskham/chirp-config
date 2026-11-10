@@ -1,54 +1,93 @@
-# chirpers9 t6 "Spring Tide": tidal forces; a build made of stretching and squeezing,
-# tempo pressure; the mirror of t2, hotter. Two acts:
-#   I  (0:00) the evening sea under a huge rising moon; the tide breathes in and out, its
-#      breaths coming faster as the track builds; a murmuration overhead is stretched one
-#      way and squeezed the other on two cycles of their own (augmentation against
-#      diminution), churning harder as the pressure grows;
-#   II (2:20) night; the moon hangs enormous and close, and the sea beneath it is pulled
-#      up into a great swell that grows and grows; spray tears off its crest and streams
-#      up toward the moon, more and more of it, until the sea itself is rising into the
-#      sky as the track hands over.
+# chirpers9 t6 "Spring Tide": tidal forces. Co-built with the song (tools/songmap.py chirpers9-t6).
+#
+# What the song does, and so what the picture does. Nine sections of 16 bars:
+# in, pull, tide, squeeze, crest (64bar), cross, surge, torn (112bar), out (128bar).
+#   - THE TIDE (E6): two chords swinging over a bass that changes root with them. The sea rises
+#     on the higher root and falls on the lower (track.root's pitch against its own average), and
+#     its swell is as strong as the drums are playing. Each low gong sends a ring across the water.
+#   - NEAR AND FAR: E1 in two layers, the near side fast (marimba, `near`) and the far side slow
+#     (trombone, `far`). They are two flights of lights over the water, warm and near, cool and
+#     far: dark birds against the evening, lights once night comes. Each rises and falls with
+#     its own melody and flares on its notes. The composer moves the
+#     two sides across the room with `lane.sep`: apart, drawn in through the squeeze, one flock at
+#     the crest, crossing over in the cross, one point for the surge's unison, torn to the edges.
+#     The flights stand exactly where the sides sound. The young voice lights the near flight and
+#     the old voice the far one.
+#   - THE MOON rises through the first half (bars), and from the surge hangs huge and close, the
+#     sea pulled up under it into a great swell, spray tearing off toward it in the torn section.
+#   - E5's ostinato is the glitter on the water. The crest's chords (glass) each send a lantern up
+#     from the sea.
+#   - THE TAPE STOP (120bar): the drums stop and the sea goes flat and still until they return.
+#   - OUT: the near side closes (`lane.shut`), the far flight lets go and rises away.
+# Shots cut on bar lines, every eight bars.
+# Reads tracks: root near far e5 hats kit kitroom cajon springgong glass lights hook sung sungb
+#   sungc sung2 lastword duetnear nearwake descant squeezenear chorus chorus2 surgesung surgelow.
+#   Lanes: sep shut.
 scenes:
-  - at: 0
-    look:
+  - look:
       background: "#000000"
-      vars:
-        press: {value: "smooth(0, 140, time.t)"}
-      camera: {x: "0.3*sin(time.t*0.01)", y: "0.25 + 0.05*sin(time.t*(0.1 + 0.2*var.press))", z: -2.8, look_at: [0, 0.45, 2]}
-      layers:
-        - {type: sky, zenith: "#2a3a6a", horizon: "#e09878", ground: "#2a3040", sun: "#ffd8b0", sun_yaw: -0.1, sun_height: 0.01, sun_size: 0.04, glow: 0.9, haze: 0.4, clouds: 0.35, cloud_height: 3, cloud_scale: 0.22}
-        # The moon rising, huge.
-        - {type: light, x: 0.6, y: 1.8, z: 14, color: "#e8ecff", power: 0.8, reach: 30}
-        - {type: mesh, shape: sphere, detail: 40, x: 0.6, y: "0.4 + 1.4*smooth(0, 140, time.t)", z: 14, scale: 1.4, displace: "0.03*fbm(vtx.x*3, vtx.y*3, vtx.z*3)", color: "#d8d4cc", light: 0, ambient: 0, emit: 0.85, rim: 0.3, rim_color: "#e8ecff"}
-        # The tide breathing, faster and faster.
-        - {type: group, use: kit-sea, y: "-0.3 + 0.07*sin(time.t*(0.05 + 0.15*var.press))", z: 6, params: {far: 1, swell: "0.5 + 0.5*var.press", light: 0.1, pbr: 1, rough: 0.15, size: 10, ripple: 0.8}}
-        # The murmuration, stretched and squeezed on two cycles of its own.
-        - {type: motes, mode: flock, puff: true, count: 7000, y: 1.5, z: 3.5, w: "3.4*(1 + 0.45*sin(time.t*0.07))", h: "1.0*(1 + 0.45*sin(time.t*0.11 + 0.3))", d: 1.6, spin: "1.2 + 2.5*var.press + 1.5*audio.level", wobble: 0.35, size: 0.0045, stretch: 2.5, heading: true, glow: 0.9, twinkle: 0, color: "#141018", near: 0.3}
-      filters:
-        - {type: bloom, threshold: 0.7, amount: 0.5}
-        - {type: tonemap, knee: 0.75}
-        - {type: vignette, amount: 0.4}
-  - at: 140
-    transition: dissolve
-    xfade: 4
-    look:
-      background: "#000000"
-      vars:
-        pull: {value: "smooth(140, 270, time.t)"}
       env:
-        surge: {on: audio.lift, decay: 2}
-      camera: {x: "0.5*sin(time.t*0.012)", y: "0.2 + 0.4*var.pull", z: -3.2, look_at: [0, "0.6 + 0.8*var.pull", 3]}
+        gong: {on: track.springgong, decay: 6}
+        chord: {on: track.glass, decay: 3}
+        four: {on: track.lights, decay: 3}
+      vars:
+        # The band playing (0 in the tape stop's void).
+        drive: {follow: "max(max(track.kit.level, track.kitroom.level), max(track.cajon.level, track.hats.level))", attack: 40ms, release: 700ms}
+        # The tide: the bass root against its own slow average, eased.
+        rmean: {follow: "track.root.key", attack: 5s, release: 5s}
+        tide: {follow: "clamp((track.root.key - var.rmean)*45, -1, 1)", attack: 900ms, release: 900ms}
+        # The two sides: where they stand, their melodies, their voices.
+        sep: {value: "lane.sep"}
+        nk: {follow: "track.near.key", attack: 90ms, release: 500ms}
+        fk: {follow: "track.far.key", attack: 400ms, release: 1500ms}
+        young: {follow: "max(max(track.duetnear.level, track.nearwake.level), max(track.descant.level, track.squeezenear.level))", attack: 60ms, release: 600ms}
+        old: {follow: "max(max(track.sung.level, track.sungb.level), max(max(track.sungc.level, track.sung2.level), track.lastword.level))", attack: 60ms, release: 600ms}
+        choir: {follow: "max(max(track.chorus.level, track.chorus2.level), max(track.surgesung.level, track.surgelow.level))", attack: 60ms, release: 600ms}
+        # The day going: evening to night across the squeeze, the moon up through the first half.
+        night: {keys: [[40bar, 0], [64bar, 1]], ease: smooth}
+        rise: {keys: [[0bar, 0], [64bar, 1]], ease: smooth}
+        # The great swell from the surge; the tearing in the torn section; letting go at the end.
+        pull: {keys: [[92bar, 0], [112bar, 1], [128bar, 1], [144bar, 0.5]], ease: smooth}
+        torn: {keys: [[112bar, 0], [116bar, 1], [128bar, 1], [140bar, 0]], ease: smooth}
+        go: {keys: [[128bar, 0], [144bar, 1]], ease: smooth}
+        sway: {integrate: "0.004 + 0.008*var.drive", wrap: 1}
+      camera:
+        # 0 wide; 1 low over the water; 2 from the side, along the two flights; 3 high.
+        - {x: "0.4*sin(var.sway)", y: "0.25 + 0.4*var.pull", z: -3.0, look_at: [0, "0.5 + 0.8*var.pull", 3]}
+        - {x: "0.5*sin(var.sway + 0.3)", y: "-0.05 + 0.2*var.pull", z: -2.8, look_at: [0.2, "0.4 + 1.0*var.pull", 6]}
+        - {x: "3.4*cos(var.sway*0.5)", y: 0.7, z: 0.4, look_at: [-0.6, "0.9 + 0.5*var.pull", 5]}
+        - {x: "0.3*sin(var.sway)", y: "1.3 + 0.5*var.pull", z: -3.8, look_at: [0, "0.5 + 0.7*var.pull", 5]}
+      shot: {keys: [[0bar, 0], [8bar, 1], [16bar, 0], [24bar, 2], [32bar, 3], [40bar, 1], [48bar, 0], [56bar, 2], [64bar, 0], [72bar, 3], [80bar, 2], [88bar, 1], [96bar, 0], [104bar, 3], [112bar, 2], [120bar, 1], [124bar, 0], [128bar, 3], [136bar, 0]], ease: step}
       layers:
-        - {type: sky, zenith: "#04061a", horizon: "#16203a", ground: "#05060c", sun: "#000000", sun_size: 0, glow: 0, haze: 0.3}
-        - {type: stars, count: 2000, speed: 0, twinkle: 0.4}
-        - {type: light, x: 0, y: 3, z: 9, color: "#dfe6ff", power: 1.4, reach: 30}
-        - {type: mesh, shape: sphere, detail: 48, x: 0, y: "2.6 - 0.4*var.pull", z: 10, scale: "2.4 + 0.6*var.pull", displace: "0.03*fbm(vtx.x*3, vtx.y*3, vtx.z*3)", color: "#d8d4cc", light: 0, ambient: 0, emit: 0.9, rim: 0.4, rim_color: "#e8ecff"}
-        - {type: group, use: kit-sea, y: -0.3, z: 6, params: {far: 1, swell: "0.7 + 0.6*var.pull + 0.5*env.surge", light: 0.12, pbr: 1, rough: 0.12, size: 10, ripple: 0.8}}
+        # Evening, and the night that comes over it.
+        - {type: sky, zenith: "#2a3a6a", horizon: "#e09878", ground: "#2a3040", sun: "#ffd8b0", sun_yaw: -0.1, sun_height: 0.01, sun_size: 0.04, glow: 0.9, haze: 0.4, clouds: 0.35, cloud_height: 3, cloud_scale: 0.22}
+        - {type: sky, opacity: var.night, zenith: "#04061a", horizon: "#16203a", ground: "#05060c", sun: "#000000", sun_size: 0, glow: 0, haze: 0.3}
+        - {type: stars, count: 2000, speed: 0, twinkle: 0.4, opacity: var.night}
+        # The moon: rising, then huge and close. The whistle's hook lights its rim.
+        - {type: light, x: "2.1*(1 - var.pull)", y: "0.5 + 2.5*var.rise - 0.6*var.pull", z: 10, color: "#e8ecff", power: "0.7 + 0.5*var.night + 0.6*var.pull + 0.5*track.hook.gate", reach: 30}
+        - {type: mesh, shape: sphere, detail: 48, x: "3.0*(1 - var.pull)", y: "0.4 + 3.6*var.rise - 1.1*var.pull", z: "14 - 4*var.pull", scale: "1.4 + 1.4*var.pull", displace: "0.03*fbm(vtx.x*3, vtx.y*3, vtx.z*3)", color: "#d8d4cc", light: 0, ambient: 0, emit: "0.85 + 0.25*track.hook.gate + 0.3*env.gong", rim: "0.3 + 0.6*track.hook.gate", rim_color: "#e8ecff"}
+        # The sea: its level is the tide, its swell the drums.
+        - {type: group, use: kit-sea, y: "-0.3 + 0.07*var.tide", z: 6, params: {far: 1, swell: "0.15 + 0.6*var.drive + 0.25*abs(var.tide) + 0.3*var.pull*var.drive", light: 0.1, pbr: 1, rough: 0.13, size: 10, ripple: "0.15 + 0.3*var.drive"}}
         # The great swell pulled up beneath the moon.
-        - {type: mesh, shape: plane, detail: 110, y: -0.95, z: 6, scale: 4, displace: "(0.1 + 0.55*var.pull + 0.15*env.surge)*pow(2.718, 0 - (vtx.x*vtx.x*2.2 + (vtx.z - 0.2)*(vtx.z - 0.2)*3.4))*(1 + 0.06*noise3(vtx.x*8, time.t*0.5, vtx.z*8))", color: "#15485a", light: 0.6, ambient: 0.32, rim: 0.2, rim_color: "#c8d8ff", cull: true, material: pbr, rough: 0.12, shading: pixel, ripple: 0.8, ripple_scale: 5, env_sky: "#3a4a7a", env_ground: "#05060c"}
-        # Spray torn off its crest, streaming up toward the moon.
-        - {type: motes, mode: emit, count: "200 + 1800*var.pull", from: [0, "-0.4 + 0.5*var.pull", 7], wide: "0.8 + 1.2*var.pull", deep: 0.8, wind_y: "0.6 + 1.2*var.pull", wind_z: 0.6, wobble: 0.2, fall: 0.1, drag: 0.2, life: 4, streak: 0.06, size: 0.005, glow: "0.7 + 0.5*env.surge", twinkle: 0.3, color: "#c8e0ff", near: 0.3}
+        - {type: mesh, shape: plane, detail: 110, y: "-1.1 + 0.07*var.tide", z: 6, scale: 4, opacity: "step(0.01, var.pull)", displace: "var.pull*(0.25 + 0.5*var.drive + 0.1*abs(var.tide))*pow(2.718, 0 - (vtx.x*vtx.x*2.2 + (vtx.z - 0.2)*(vtx.z - 0.2)*3.4))*(1 + 0.06*noise3(vtx.x*8, time.t*0.5, vtx.z*8))", color: "#0d5868", light: 0.6, ambient: 0.34, rim: 0.2, rim_color: "#c8d8ff", cull: true, material: pbr, rough: 0.12, shading: pixel, ripple: "0.3 + 0.5*var.drive", ripple_scale: 5, env_sky: "#1f5670", env_ground: "#04080c"}
+        # Each low gong: a ring across the water.
+        - {type: mesh, shape: torus, detail: 96, tube: 0.004, sy: 0.05, y: "-0.9 + 0.07*var.tide", z: 5, scale: "0.3 + 0.9*env.gong.age", opacity: "0.5*clamp(1 - env.gong.age/6, 0, 1)", color: "#cfe0ff", light: 0, ambient: 0, rim: 0, emit: 1.5, blend: add}
+        # E5's ostinato: the glitter on the water.
+        - {type: motes, mode: drift, count: 900, seed: 5, y: "-0.86 + 0.07*var.tide", z: 5, w: 5, h: 0.05, d: 7, fall: 0, wobble: 0.02, size: 0.006, glow: "0.1 + 1.6*track.e5.hit + 0.5*track.hats.hit", twinkle: 0.9, color: "#e8f0ff", near: 0.3}
+        # The far side: a slow, wide flight, where the trombone sounds. Dark birds against the
+        # evening; as night comes they are cool lights.
+        - {type: motes, mode: flock, puff: true, count: 2400, seed: 2, opacity: "1 - 0.35*var.night", x: "0 - 2.6*var.sep", y: "1.5 + 3.0*(var.fk - 0.36) + 2.5*var.go", z: "6.5 + 3*var.go", w: "3.0*(1 + 0.8*var.torn)", h: "1.0*(1 - 0.5*var.torn)", d: 1.8, spin: "(0.4 + 1.6*track.far.level)*step(0.02, var.drive + track.far.level)", wobble: 0.3, size: 0.0055, stretch: 2.5, heading: true, glow: 0.9, twinkle: 0, color: "#10141c", near: 0.3}
+        - {type: motes, mode: flock, count: 2400, seed: 2, opacity: var.night, x: "0 - 2.6*var.sep", y: "1.5 + 3.0*(var.fk - 0.36) + 2.5*var.go", z: "6.5 + 3*var.go", w: "3.0*(1 + 0.8*var.torn)", h: "1.0*(1 - 0.5*var.torn)", d: 1.8, spin: "(0.4 + 1.6*track.far.level)*step(0.02, var.drive + track.far.level)", wobble: 0.3, size: 0.0045, stretch: 2.5, heading: true, glow: "(0.14 + 0.45*track.far.hit + 0.5*var.old + 0.35*var.choir)*(1 - 0.7*var.go)", twinkle: 0.2, color: "#9cc4ff", near: 0.3}
+        # The near side: a quick, tight flight, where the marimba sounds; warm lights by night.
+        - {type: motes, mode: flock, puff: true, count: 1800, seed: 9, opacity: "1 - 0.35*var.night", x: "2.6*var.sep", y: "0.5 + 2.6*(var.nk - 0.45)", z: 3.2, w: "1.5*(1 + 0.8*var.torn)", h: "0.55*(1 - 0.5*var.torn)", d: 1.0, spin: "(1.2 + 3.5*track.near.level)*step(0.02, var.drive + track.near.level)", wobble: 0.35, size: 0.004, stretch: 2.5, heading: true, glow: 0.9, twinkle: 0, color: "#22140c", near: 0.3}
+        - {type: motes, mode: flock, count: 1800, seed: 9, opacity: var.night, x: "2.6*var.sep", y: "0.5 + 2.6*(var.nk - 0.45)", z: 3.2, w: "1.5*(1 + 0.8*var.torn)", h: "0.55*(1 - 0.5*var.torn)", d: 1.0, spin: "(1.2 + 3.5*track.near.level)*step(0.02, var.drive + track.near.level)", wobble: 0.35, size: 0.0035, stretch: 2.5, heading: true, glow: "(0.16 + 0.55*track.near.hit + 0.5*var.young + 0.35*var.choir)*(0.25 + 0.75*lane.shut)", twinkle: 0.2, color: "#ffd9a0", near: 0.3}
+        # The crest's chords, and the four lights before the end: each sends a lantern up from the sea.
+        - {type: mesh, shape: sphere, detail: 10, count: 6, spawn: env.chord, x: "(hash(inst.i*1.7)*2 - 1)*1.6", y: "-0.85 + 0.28*inst.age", z: "3.5 + 3*hash(inst.i*3.1)", scale: 0.07, opacity: "clamp(1 - inst.age/9, 0, 1)", color: "#ffcf90", light: 0, ambient: 0, rim: 0, emit: 2.6}
+        - {type: light, count: 6, spawn: env.chord, x: "(hash(inst.i*1.7)*2 - 1)*1.6", y: "-0.85 + 0.28*inst.age", z: "3.5 + 3*hash(inst.i*3.1)", color: "#ffb870", power: "1.2*clamp(1 - inst.age/9, 0, 1)", reach: 1.6}
+        - {type: mesh, shape: sphere, detail: 10, count: 4, spawn: env.four, x: "(inst.i - 1.5)*0.9", y: "-0.85 + 0.3*inst.age", z: 4.5, scale: 0.08, opacity: "clamp(1 - inst.age/9, 0, 1)", color: "#fff0c8", light: 0, ambient: 0, rim: 0, emit: 2.4}
+        # Spray torn off the swell's crest, streaming up toward the moon.
+        - {type: motes, mode: emit, count: "1 + 1800*var.torn*var.drive", from: [0, "-0.5 + 0.4*var.pull", 7], wide: "0.8 + 1.2*var.pull", deep: 0.8, wind_y: "0.6 + 1.2*var.pull", wind_z: 0.6, wobble: 0.2, fall: 0.1, drag: 0.2, life: 4, streak: 0.06, size: 0.005, glow: "0.7 + 0.5*track.hats.hit", twinkle: 0.3, color: "#c8e0ff", near: 0.3}
       filters:
-        - {type: bloom, threshold: 0.7, amount: 0.6}
+        - {type: bloom, threshold: 0.7, amount: "0.5 + 0.2*var.night"}
         - {type: tonemap, knee: 0.75}
-        - {type: vignette, amount: 0.45}
+        - {type: vignette, amount: "0.4 + 0.1*var.night"}
