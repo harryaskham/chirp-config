@@ -9,7 +9,20 @@ of `chirp video --album FILE --only N` workers, the costliest tracks first, then
     filmrender.py prepare FILE --dir DIR [--songs SNAPSHOT_DIR]
     filmrender.py draw FILE -o OUT.mp4 [--size 3840x2160] [--workers 4] [--threads 5]
                   [--order 3,6,4,2,5,1,7,8] [--shutter 2] [--encoder hevc_vaapi] [--bin CHIRP]
+                  [--fps 60] [--plan 3:6,6:4,4:3,2:3,1:2,5:2,7:1,8:1]
     filmrender.py check FILE -o OUT.mp4
+    filmrender.py finish FILE -o OUT.mp4 [--final OUT-final.mp4]
+
+`finish` makes the file to publish from a joined HEVC film, without re-encoding: tagged `hvc1`
+(Apple's players do not open `hev1`), with the HEVC level its size and frame rate need (the
+GPU encoder marks 2160p60 as level 5.0, which is 2160p30's), and the index at the front. It
+checks the copy has the same frames and length before saying so, and leaves OUT as it is.
+
+With --plan every track is drawn at once, each by its own process with its own number of
+threads (TRACK:THREADS, the dearest tracks the most), so they all finish at about the same
+time and no core waits for a long track to end: the best use of the cores when the tracks'
+costs are known. Without it, --workers processes of --threads threads take the tracks in
+--order.
 
 `prepare` freezes what the film reads: it copies every song (from the album file, or tNN.song
 from a listen snapshot with --songs) and every programme into DIR, writes DIR/video.yaml that
@@ -170,6 +183,8 @@ def base_cmd(a):
         cmd += ["--size", a.size]
     if a.shutter and a.shutter > 1:
         cmd += ["--shutter", str(a.shutter)]
+    if a.fps:
+        cmd += ["--fps", str(a.fps)]
     return cmd
 
 
@@ -191,8 +206,16 @@ def draw(a):
     elif ch:
         log(lg, f"draw: NOT started: changed since prepare: {ch}")
         sys.exit(1)
-    log(lg, f"draw: {n} tracks, order {order}, {a.workers} workers x {a.threads} threads, size {a.size or 'as the file says'}, "
-            f"shutter {a.shutter}, encoder {a.encoder or 'x264'}, bin {a.bin}")
+    plan = {}
+    if a.plan:
+        for item in a.plan.split(","):
+            t, th = item.split(":")
+            plan[int(t)] = int(th)
+        if sorted(plan) != list(range(1, n + 1)):
+            sys.exit(f"filmrender: --plan must give each of the {n} tracks its threads")
+        order = sorted(plan, key=lambda t: -plan[t])
+    log(lg, f"draw: {n} tracks, " + (f"plan {plan} ({sum(plan.values())} threads)" if plan else f"order {order}, {a.workers} workers x {a.threads} threads")
+            + f", size {a.size or 'as the file says'}, fps {a.fps or 'as the file says'}, shutter {a.shutter}, encoder {a.encoder or 'x264'}, bin {a.bin}")
     q = queue.Queue()
     for t in order:
         q.put(t)
@@ -206,9 +229,10 @@ def draw(a):
             except queue.Empty:
                 return
             t0 = time.time()
-            log(lg, f"worker {k}: track {t} starts")
+            e = dict(env, RAYON_NUM_THREADS=str(plan[t])) if plan else env
+            log(lg, f"worker {k}: track {t} starts" + (f" on {plan[t]} threads" if plan else ""))
             with open(wl, "a") as f:
-                r = subprocess.run(base_cmd(a) + ["--only", str(t)], stdout=f, stderr=f, env=env)
+                r = subprocess.run(base_cmd(a) + ["--only", str(t)], stdout=f, stderr=f, env=e)
             if r.returncode != 0:
                 failed.append(t)
                 log(lg, f"worker {k}: track {t} FAILED (exit {r.returncode}); see {wl}")
@@ -216,7 +240,7 @@ def draw(a):
                 log(lg, f"worker {k}: track {t} drawn in {(time.time() - t0) / 60:.1f} min")
 
     t0 = time.time()
-    ws = [threading.Thread(target=worker, args=(k,)) for k in range(1, a.workers + 1)]
+    ws = [threading.Thread(target=worker, args=(k,)) for k in range(1, (n if plan else a.workers) + 1)]
     for w in ws:
         w.start()
     for w in ws:
@@ -265,11 +289,57 @@ def check(a, lg=None):
     return ok
 
 
+# HEVC levels: (level_idc, most luma samples a picture, most luma samples a second).
+HEVC_LEVELS = [(120, 2_228_224, 66_846_720), (123, 2_228_224, 133_693_440), (150, 8_912_896, 267_386_880),
+               (153, 8_912_896, 534_773_760), (156, 8_912_896, 1_069_547_520), (180, 35_651_584, 1_069_547_520)]
+
+
+def probe(f):
+    out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+                          "stream=codec_name,codec_tag_string,level,width,height,r_frame_rate,nb_frames", "-of", "json", f],
+                         capture_output=True, text=True).stdout
+    st = (json.loads(out or "{}").get("streams") or [{}])[0]
+    num, _, den = str(st.get("r_frame_rate", "0/1")).partition("/")
+    st["fps"] = float(num) / float(den or 1) if float(den or 1) else 0.0
+    return st
+
+
+def finish(a):
+    lg = os.path.splitext(a.out)[0] + ".log"
+    if not os.path.exists(a.out):
+        log(lg, f"finish: {a.out} is not there")
+        return False
+    st = probe(a.out)
+    if st.get("codec_name") != "hevc":
+        log(lg, f"finish: {a.out} is {st.get('codec_name')}, not HEVC: nothing to do, publish it as it is")
+        return True
+    final = os.path.abspath(os.path.expanduser(a.final)) if a.final else os.path.splitext(a.out)[0] + "-final.mp4"
+    w, h, fps = int(st["width"]), int(st["height"]), st["fps"]
+    need = next((l for l, ps, sr in HEVC_LEVELS if w * h <= ps and w * h * fps <= sr), 180)
+    cmd = ["ffmpeg", "-loglevel", "error", "-y", "-i", a.out, "-map", "0:v:0", "-map", "0:a?", "-map_chapters", "0",
+           "-c", "copy", "-tag:v", "hvc1"]
+    if int(st.get("level") or 0) < need:
+        cmd += ["-bsf:v", f"hevc_metadata=level={need / 30:g}"]
+    cmd += ["-movflags", "+faststart", final]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    if r.returncode != 0:
+        log(lg, f"finish: ffmpeg failed: {r.stderr.strip()[-300:]}")
+        return False
+    ft = probe(final)
+    same = ft.get("nb_frames") == st.get("nb_frames") and abs(dur(final) - dur(a.out)) < 0.05
+    ok = same and ft.get("codec_tag_string") == "hvc1" and int(ft.get("level") or 0) >= need
+    log(lg, f"finish: {final}: {w}x{h} at {fps:g} frames a second, tag {ft.get('codec_tag_string')}, level {int(ft.get('level') or 0) / 30:g} "
+            f"(was {st.get('codec_tag_string')}, {int(st.get('level') or 0) / 30:g}; needs {need / 30:g}), {ft.get('nb_frames')} frames, "
+            f"{dur(final):.3f} s, {os.path.getsize(final) / 1e9:.2f} GB: {'ok' if ok else 'NOT the same as the joined film: do not publish'}")
+    return ok
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("cmd", choices=["prepare", "draw", "check"])
+    ap.add_argument("cmd", choices=["prepare", "draw", "check", "finish"])
     ap.add_argument("album")
     ap.add_argument("-o", "--out")
+    ap.add_argument("--final", help="finish: the file to write (default OUT-final.mp4)")
     ap.add_argument("--dir", help="prepare: where the frozen copies go")
     ap.add_argument("--songs", help="prepare: a listen snapshot's directory (tNN.song) to take the songs from")
     ap.add_argument("--size")
@@ -277,6 +347,8 @@ def main():
     ap.add_argument("--threads", type=int, default=5)
     ap.add_argument("--order", help="track numbers, the costliest first (default: as listed)")
     ap.add_argument("--shutter", type=int, default=1)
+    ap.add_argument("--fps", type=float, help="frames a second (default: as the album file says)")
+    ap.add_argument("--plan", help="TRACK:THREADS,… every track at once, each on its own threads")
     ap.add_argument("--crf", type=int, default=18)
     ap.add_argument("--encoder", help="CHIRP_VIDEO_ENCODER (hevc_vaapi for 4K)")
     ap.add_argument("--bin", default="chirp")
@@ -291,6 +363,8 @@ def main():
     a.out = os.path.abspath(os.path.expanduser(a.out))
     if a.cmd == "draw":
         draw(a)
+    elif a.cmd == "finish":
+        sys.exit(0 if finish(a) else 1)
     else:
         sys.exit(0 if check(a) else 1)
 
