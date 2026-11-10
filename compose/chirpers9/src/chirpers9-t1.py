@@ -140,6 +140,7 @@ CRESTBELL = os.environ.get("C9T1_CRESTBELL", "tubular-bells@-16:D4")   # PALETTE
 SHAKEOUT = os.environ.get("C9T1_SHAKEOUT", "thin")   # SECTION w8 (3:59-4:33, the fall into t2): THE GROUND SETTLES - the shekere and clave (E1's five-beat cycle) ran at full strength into the overlap and stopped dead at its ninth bar (352), and the bodhran's last stroke (334) was as strong as its first. Now, as SHAKEIN let the ground begin to move into A (0:44-0:56), the hand percussion settles out of t1 the same way back: it fades over the overlap's fifth to ninth bars (336-352) to a quarter, the bodhran's last stroke softer; 'thin' and in the last two bars only each cycle's first stroke is left
 CHOIRDRIFT = os.environ.get("C9T1_CHOIRDRIFT", "drift+glide")   # PALETTE (the far choir: the breath, the hum, the lock's hum, the last hum; wM's vowel_drift 07ab00cd and sung glides 2b4b6172): the five far singers' held vowels sat perfectly still and their joined notes slid late (a fixed 110 ms glide starting on the new note). 'drift' each held vowel now lives - its formants wander slowly, each singer and note on its own curve; 'drift+glide' and the hummed E1 lines slide as sung (80 ms plus 8 ms a semitone, half before the new note, centred on it)
 HOOKLIFT = os.environ.get("C9T1_HOOKLIFT", "nolast:3")   # WHOLE (Harry: E1 heard plainly and often): THE HOOK FORWARD - the whistle's statements of the seed (the intro's two, A's, the tease's accreting tries, the build's, the strip's Mellotron flute, the last calls) sat 9-12 dB under the mix while they played, under the cello and the bass. They come up together, so the tune you are shown is the tune you hear: 'all' +dB on every statement; 'nolast' leaves the last calls (into t2) as they were. Value 'all:dB' or 'nolast:dB'
+LASTCUTS = os.environ.get("C9T1_LASTCUTS", "two")   # SECTION w7 (3:27-3:59, the return and the last calls): THE HAND AGAIN - the album opens with the whistle's second E1 ornamented by a Celtic air player's cuts (v79, about 0:07); the whistle's last full call (beat 300, about 3:35, answered by the harp) was plain. Now it is ornamented the same way, so the player's hand that began the song is heard once more at its end; the slow last call into t2 stays plain. 'two' cuts into A and G; 'three' and into the closing E
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -993,6 +994,19 @@ def song():
             if tr["name"] in names:
                 g = float(str(tr["gain"]).replace("dB", ""))
                 tr["gain"] = f"{g + float(hd):g}dB"
+    if LASTCUTS:
+        cut = {69: 71, 67: 69} if LASTCUTS == "two" else {69: 71, 67: 69, 64: 67}
+        for tr in tracks:
+            if tr["name"] == "hook-last":
+                out = []
+                for n in tr["notes"]:
+                    m_ = int(str(n["pitch"]).lstrip("m")) if str(n["pitch"]).startswith("m") else None
+                    if 299.5 <= float(n["at"]) < 305 and m_ in cut:
+                        g = 0.09
+                        out.append({"at": n["at"], "pitch": f"m{cut[m_]}", "len": g, "vel": round(n["vel"] * 0.85, 3)})
+                        n = dict(n, at=round(float(n["at"]) + g, 3), len=round(float(n["len"]) - g, 3), expr=dict(n.get("expr", {}), h=1.0))
+                    out.append(n)
+                tr["notes"] = out
     if SHAKEIN:
         s0 = float(SHAKEIN)
         offs = [0, 1, 1.75, 2.5, 3.25, 4.0]
