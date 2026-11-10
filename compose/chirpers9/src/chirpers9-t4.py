@@ -1320,6 +1320,33 @@ STIR_FX = ["filter kind=lp cutoff=5500"]  # a shhh, not a ssss: the swish as pat
 LAID_BACK = "10ms"
 
 
+# v98 (ROUND TYPE: section, B and its drop 41-63, the change in 49-63, 1:46-2:19 - DEEP pass 3, from the arrangement
+# map): THE ELEMENTS TAKE TURNS. t4 'carries E1-E3 transformed and introduces E4, the four lights'. In B they all run
+# at once for sixteen bars - the hook on clarinet and its canon, E2's harp turning in sevens, E3's pedal steel, the
+# lights' cellos and glock - and chirper-two's tools/amap.py says three of them are not heard there: the harp 20-24
+# dB under the mix (10 under its best octave), the steel 18-22 under (14-15), and the LIGHTS' cellos - this track's
+# own element - 16-17 under (11). What is heard is the clarinet, the voices, the handpan, and from bar 49 a ride
+# cymbal that with its v96 double sat 5 dB under the whole mix and owned every octave above 2.8 kHz. Each element
+# had a spotlight of its own in A and in the rise (the cr / ld lanes); B had none. Now B states them in order:
+#   - 41-48: E1 - the hook on the clarinet and its canon (as it was), over the kit's entry;
+#   - 49-56, under her verse and the duet: E2 COMES FORWARD - the harp's sevens up, and the ride down, so the harp
+#     and the twelve-strings are no longer under a cymbal;
+#   - 57-62, the drop, the bass away: E3 COMES FORWARD - the pedal steel's low line carries the floor;
+#   - and E4, the four LIGHTS, up through all of B: the bed is the lights again.
+# (Tried: the steel forward at 41-44 an octave up, answering the clarinet - its F#4 and B3 land a semitone under the
+# hook's G4 and C4 in the same octave; an octave apart, as written, they are colour.)
+TURNS = {"e2": (49, 57, 7.0), "e3": (57, 63, 6.0), "desks": (41, 57, 3.0), "ride": (49, 57, -4.0)}   # bars, dB
+
+
+def the_elements_take_turns(song):
+    by = {x["name"]: x for x in song["tracks"]}
+    for n, (a, z, db) in TURNS.items():
+        tr_ = by[n]
+        tr_["fx"] = list(tr_.get("fx") or []) + ["gain gain=0dB+auto.tn*1"]
+        tr_["auto"] = dict(tr_.get("auto") or {}, tn={"points": [
+            ["0b", 0.0], [f"{b0(a) - 0.5:g}b", 0.0], [f"{b0(a):g}b", db], [f"{b0(z) - 1:g}b", db], [f"{b0(z):g}b", 0.0]]})
+
+
 def kit_events(score):
     pos, ev = 0.0, []
     for tok in score.split():
@@ -2318,6 +2345,7 @@ def main():
     lights_move(song)
     the_band_sits_around_you(song)
     the_drummer_plays(song)
+    the_elements_take_turns(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")

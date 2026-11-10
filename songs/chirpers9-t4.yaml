@@ -573,7 +573,8 @@
     "room": "-12dB"
    },
    "fx": [
-    "gain gain=0dB+auto.ar*1"
+    "gain gain=0dB+auto.ar*1",
+    "gain gain=0dB+auto.tn*1"
    ],
    "auto": {
     "ar": {
@@ -601,6 +602,30 @@
       [
        "544b",
        -6.0
+      ]
+     ]
+    },
+    "tn": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "191.5b",
+       0.0
+      ],
+      [
+       "192b",
+       -4.0
+      ],
+      [
+       "223b",
+       -4.0
+      ],
+      [
+       "224b",
+       0.0
       ]
      ]
     }
@@ -3114,7 +3139,8 @@
     "gain gain=0dB+auto.cr*1",
     "gain gain=0dB+auto.ld*1",
     "gain gain=0dB+auto.ar*1",
-    "gain gain=0dB+auto.hf*1"
+    "gain gain=0dB+auto.hf*1",
+    "gain gain=0dB+auto.tn*1"
    ],
    "auto": {
     "cr": {
@@ -3232,6 +3258,30 @@
        0.0
       ]
      ]
+    },
+    "tn": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "191.5b",
+       0.0
+      ],
+      [
+       "192b",
+       7.0
+      ],
+      [
+       "223b",
+       7.0
+      ],
+      [
+       "224b",
+       0.0
+      ]
+     ]
     }
    }
   },
@@ -3265,7 +3315,8 @@
    "fx": [
     "gain gain=0dB+auto.cr*1",
     "gain gain=0dB+auto.ld*1",
-    "gain gain=0dB+auto.ar*1"
+    "gain gain=0dB+auto.ar*1",
+    "gain gain=0dB+auto.tn*1"
    ],
    "auto": {
     "cr": {
@@ -3373,6 +3424,30 @@
       [
        "544b",
        -6.0
+      ]
+     ]
+    },
+    "tn": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "223.5b",
+       0.0
+      ],
+      [
+       "224b",
+       6.0
+      ],
+      [
+       "247b",
+       6.0
+      ],
+      [
+       "248b",
+       0.0
       ]
      ]
     }
@@ -6278,7 +6353,8 @@
      "q": 0.9,
      "gain": "-6dB"
     },
-    "gain gain=0dB+auto.ar*1"
+    "gain gain=0dB+auto.ar*1",
+    "gain gain=0dB+auto.tn*1"
    ],
    "auto": {
     "ar": {
@@ -6306,6 +6382,30 @@
       [
        "544b",
        -6.0
+      ]
+     ]
+    },
+    "tn": {
+     "points": [
+      [
+       "0b",
+       0.0
+      ],
+      [
+       "159.5b",
+       0.0
+      ],
+      [
+       "160b",
+       3.0
+      ],
+      [
+       "223b",
+       3.0
+      ],
+      [
+       "224b",
+       0.0
       ]
      ]
     }
