@@ -886,6 +886,14 @@ R100 = os.environ.get("T7_R100", "alive") != "none"
 # Indian voice in the storm. (2) The launch's crash (launchcrash, one hit at bar 89) was the rock-kit t3 shares;
 # now it is t7's own break-kit crash, so rock-kit is t3's alone. T7_R101=none reproduces v100.
 R101 = os.environ.get("T7_R101", "sitar") != "none"
+# round 102 (section, w2 = bars 17-32, the arrival): T7_R102=pluck (default) - THE HOOK, PLAIN. The arrival states E1
+# on the horn section (hook, hook2: bars 17-18 and 21-22) but it read buried (audibility 0.00 and 0.19 under the bass
+# and the kicks). Now a house pluck lead (library pluck-lead, unused on chirpers9: detuned saws snapped open by a fast
+# filter, into a dotted-eighth ping-pong delay) plays E1 an octave above the horns every bar of the arrival's first
+# half (bars 17-24): with the horns where they play, alone between them - the album's hook, plain and often, as
+# the orbit is reached. T7_R102=none reproduces v101.
+R102 = os.environ.get("T7_R102", "pluck") != "none"
+PLUCK_GAIN = os.environ.get("T7_PLUCK_GAIN", "0dB")
 SITAR_GAIN = os.environ.get("T7_SITAR_GAIN", "12dB")   # at 0: -19.2 dB, audibility 0; at 10: -10.8 (0.33)
 SURGE_GAIN = os.environ.get("T7_SURGE_GAIN", "-3dB")   # at 0: the kick -2.1 dB (loudest), the open hats -6.1
 CAVSOLO_GAIN = os.environ.get("T7_CAVSOLO_GAIN", "7dB")   # at -3 dB: -18.3 dB, not heard
@@ -2640,6 +2648,14 @@ def main():
         g = float(LAUNCH_GAIN.replace("dB", "")) + 4.0       # at +0 it read -10.4 dB (0.38) under the roll
         tracks.append({"name": "launchrev", "patch": "fx-reverse", "gain": f"{g:g}dB", "pan": 0.0,
                        "sends": {"space": "-10dB"}, "score": lv.score()})
+    if R102:                                                # w2: E1 on a house pluck, every bar of bars 17-24
+        pl = Track("e1pluck")
+        cell = [(0.0, 0.5, 75), (0.5, 0.75, 82), (1.25, 0.25, 85), (1.5, 1.0, 80), (2.5, 1.0, 77)]   # E1, Eb, an octave up
+        for k in range(8):
+            for off, ln, m in cell:
+                pl.add(64 + 4 * k + off, ln, mtok(m), 104 if k % 2 == 0 else 92)
+        tracks.append({"name": "e1pluck", "patch": "pluck-lead", "gain": PLUCK_GAIN, "pan": 0.1,
+                       "sends": {"space": "-12dB"}, "score": pl.score()})
     if R101:                                                # palette: a sitar opens the spiral; the launch crash on break-kit
         tracks.append({"name": "sitar", "patch": "sitar", "gain": SITAR_GAIN, "pan": -0.3, "sends": {"space": "-8dB"},
                        "score": "R/384b Eb4/2b _ bend=2 Bb4/2b F5/1b^h Eb5/3b Db5/2b Bb4/4b "
