@@ -1426,6 +1426,47 @@ def the_singer_gets_a_microphone(song):
     eq["bands"] = list(eq["bands"]) + [MIC_FLOOR]
 
 
+# v101 (ROUND TYPE: section, the crest's last bars 96-100 and the hand-off to the relief, 3:29-3:39; her part
+# rewritten): SHE LIFTS OVER THE BAND. The song's loudest moment is the band's return at 97, after she and the duet
+# have sung the hook in the clear. What she did there (v43): held the hook's last note, E4, under the band for four
+# bars, fading as she ran out. Measured, the fade was most of it - the note fell 17 dB across the hold (the lane's 7
+# and the voice's own long-note decay), 6 dB under the mix in bars 97-98, 14.5 under in bar 99, 18 under in bar 100:
+# at the top of the song the singer left, and for its last two bars nobody could hear she had been there.
+# Now, as the band comes back in, she LIFTS: the held E4 leaps the octave on the downbeat of 97 - E5, the highest
+# note she sings in the song, a semitone under her break, so it comes out as she would sing it: lighter, half in head
+# voice, floating rather than belted (the patch's passaggio does this; nothing is forced). She holds it for two bars
+# over the hands' hook - the same unresolved E, now over D9 and Cmaj9 - swelling to the middle of bar 98; steps down
+# to D5 for bar 99 (Am11's eleventh); and in bar 100 comes down THROUGH THE HOOK, singing its last three notes
+# (C5 G4 E4) in unison with the handpan's third statement, in the hook's own rhythm - home on the E she left, with
+# the hands, and then the breath and 'I kept your far side'. The duet holds its G4 under her (a sixth, then a fifth)
+# and fades as before; the clarinet keeps the E an octave below. One level lane (sw) carries the whole shape and sits
+# BEFORE her microphone's drive, so the swell brightens as a voice does; v43's fade lane comes off her (the duet
+# keeps it).
+# Her level against the mix, bar by bar (tools/share.py, seed 11), before -> after:
+#   97 -6 -> about -4 | 98 -6 -> about -2.5 | 99 -14.5 -> -5 | 100 -18.2 -> -7 (with the hands, who are at -6)
+LIFT_AT = 97                              # the band's return
+LIFT_LINE = [(-1.5, 1.5, 64, 0.645), (0.0, 8.0, 76, 0.9), (8.0, 4.25, 74, 0.8),      # (beats from the downbeat of
+             (12.25, 0.25, 72, 0.76), (12.5, 1.0, 67, 0.7), (13.5, 2.0, 64, 0.64)]   # 97, beats, midi, velocity)
+LIFT_SWELL = [(-1.5, 0.0), (0.0, 0.5), (5.0, 3.2), (7.0, 3.2), (8.5, 0.0), (12.0, -3.0), (13.5, -6.0), (15.5, -7.0),
+              (15.75, 0.0)]               # (beats from the downbeat of 97, dB into her microphone)
+
+
+def she_lifts_over_the_band(song):
+    voice = next(x for x in song["tracks"] if x["name"] == "voice")
+    at = b0(LIFT_AT)
+    held = [n for n in voice["notes"] if abs(n["at"] - (at - 1.5)) < 1e-6]
+    assert len(held) == 1 and held[0]["len"] == 17.0 and held[0]["pitch"] == "m64", held
+    voice["notes"].remove(held[0])
+    for on, ln, m, vel in LIFT_LINE:
+        voice["notes"].append({"at": round(at + on, 4), "len": ln, "ph": "AA1", "pitch": f"m{m}", "vel": vel})
+    voice["notes"].sort(key=lambda n: n["at"])
+    fade = "gain gain=0dB+auto.hd*1"
+    assert voice["fx"][0].startswith("drive ") and voice["fx"].count(fade) == 1 and "sw" not in voice["auto"]
+    voice["fx"] = ["gain gain=0dB+auto.sw*1"] + [f for f in voice["fx"] if f != fade]
+    voice["auto"] = dict({k: v for k, v in voice["auto"].items() if k != "hd"},
+                         sw={"points": [["0b", 0.0]] + [[f"{at + on:g}b", db] for on, db in LIFT_SWELL]})
+
+
 def kit_events(score):
     pos, ev = 0.0, []
     for tok in score.split():
@@ -2427,6 +2468,7 @@ def main():
     the_elements_take_turns(song)
     the_band_goes_to_tape(song)
     the_singer_gets_a_microphone(song)
+    she_lifts_over_the_band(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
