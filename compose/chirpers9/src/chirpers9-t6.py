@@ -1155,6 +1155,58 @@ def build():
                 rev_.append((at_, g_[i_][1], slots_[i_] * 0.95, g_[0][3] if k_ == 0 else g_[1][3]))
                 at_ += slots_[i_]
         P['hook'] = sorted(rest_ + rev_, key=lambda e_: e_[0])
+    # (v108, section w3: 1:03-1:35, the tide - deep pass. The tide's hand drum played E2's cell bol for stroke from
+    # a cajon part (v47, v89): closed slaps and ghosts, te te re te, none of the tabla's ring or its bass, 12 dB down
+    # under sixteenth hats - chirper-two's arrangement map heard it in a fifth of its frames) THE TABLA PLAYS RUPAK.
+    # E2 is a cell of seven with strokes on 1, 3, 4 and 6 - and that is the skeleton of Rupak tal, the seven-beat
+    # cycle of Hindustani music (tin tin na | dhin na | dhin na: an open first beat, the bass drum answering on four
+    # and six). So the tide's drummer now plays E2 as what it always was: Rupak theka at half the cell's speed (seven
+    # eighths, E2 augmented), the ringing dayan on one and three, the bayan's bass on four and six, the fingers'
+    # ke te re between the beats, a tirakita run into every fourth cycle and the bayan's wrist-slide before the cycle
+    # comes round to a bar line (bar 40: eight cycles in seven bars). At bar 43 it plays a tihai - te re ke te dha,
+    # three times - whose last dha lands with the kit's roll on the crash at bar 45. The hats keep only the
+    # off-beats under the hands until the tihai; the tabla is 5 dB up
+    if os.environ.get('RUPAK', '1') == '1':
+        tb0_, tbh_, tb1_ = SEC['tide'] * 4.0, SEC['tide'] * 4.0 + 44.0, (SEC['tide'] + 12) * 4.0
+        rr_ = random.Random(108)
+        tab_ = []
+        THEKA_ = (('tin', 0.0, 100), ('tin', 0.5, 66), ('na', 1.0, 86), ('dhin', 1.5, 106), ('na', 2.0, 72), ('dhin', 2.5, 94), ('na', 3.0, 70))
+        c_ = 0
+        while tb0_ + 3.5 * c_ < tbh_ - 1e-6:
+            T_ = tb0_ + 3.5 * c_
+            run_ = (c_ % 4 == 3)
+            for bol_, o_, v_ in THEKA_:
+                if T_ + o_ >= tbh_ - 1e-6:
+                    break
+                if run_ and o_ >= 3.0:
+                    break
+                if bol_ == 'dhin' and o_ == 2.5 and c_ % 8 == 7:
+                    bol_ = 'gem'
+                tab_.append((T_ + o_, bol_, 0.5, v_))
+            fills_ = ((1.25, 'ke', 44), (3.25, 're', 46)) if c_ % 2 == 0 else ((2.25, 'te', 48),)
+            if run_:
+                fills_ = ((2.75, 'te', 58), (3.0, 're', 66), (3.25, 'ke', 74))
+            for o_, bol_, v_ in fills_:
+                if T_ + o_ < tbh_ - 1e-6:
+                    tab_.append((T_ + o_, bol_, 0.25, v_))
+            c_ += 1
+        for k_ in range(3):
+            D_ = tbh_ + 1.0 + 1.5 * k_
+            for q_, bol_ in enumerate(('te', 're', 'ke', 'te')):
+                tab_.append((D_ - 1.0 + 0.25 * q_, bol_, 0.25, 74 + 5 * q_ + 4 * k_))
+            tab_.append((D_, 'dha', 0.5, 102 + 6 * k_))
+        assert abs(tab_[-1][0] - tb1_) < 1e-6
+        P['cajon'] = sorted([(at_ + max(-0.008, min(0.008, rr_.gauss(0, 0.004))) if at_ > tb0_ else at_, b_, d_,
+                              max(1, min(127, int(round(v_ + rr_.gauss(0, 3)))))) for at_, b_, d_, v_ in tab_], key=lambda e_: e_[0])
+        # the hats keep only the off-beats under the hands (with the hats out for the first four bars, or out
+        # altogether, the song read as one section too many: -0.8 / -0.45 on seeds 0 / 11)
+        P['hats'] = [e_ for e_ in P['hats'] if not (tb0_ - 0.05 <= e_[0] < tbh_ - 0.05 and abs(((e_[0] + 0.05) % 1.0) - 0.55) > 0.07)]
+        # and the sequencer and the marimba, which came back in at full level at bar 37, now come in under the
+        # tabla over two bars
+        if os.environ.get('RRAMP', '1') == '1':
+            for k_ in ('acid', 'near'):
+                P[k_] = [((e_[0], e_[1], e_[2], max(1, int(round(e_[3] * (0.55 + 0.45 * (e_[0] - tb0_ - 16.0) / 8.0))))) + tuple(e_[4:]))
+                         if tb0_ + 16.0 - 0.05 <= e_[0] < tb0_ + 24.0 else e_ for e_ in P[k_]]
     rk0_ = SEC['crest'] * 4.0
     P['kitroom'] = [e_ for e_ in P['kit'] if e_[0] >= rk0_ - 1e-6]
     P['kit'] = [e_ for e_ in P['kit'] if e_[0] < rk0_ - 1e-6]
@@ -1229,7 +1281,7 @@ def build():
             tr('acid', 'moog-seq', '-12dB', fx=['hp cutoff=50', 'lp cutoff=3000', {'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}], sends={'echo': '-20dB'}),
             tr('kit', 'prog-kit', '-6dB', sends={'hall': '-20dB'}),
             tr('kitroom', 'room-kit', '-9.5dB', sends={'hall': '-20dB'}),
-            tr('cajon', 'tabla-kit', '-11.7dB', pan=0.1, sends={'hall': '-16dB'}),
+            tr('cajon', 'tabla-kit', '-6.5dB' if os.environ.get('RUPAK', '1') == '1' else '-11.7dB', pan=0.1, sends={'hall': '-16dB'}),
             tr('hats', 'prog-kit', '-7dB', pan=0.2, fx=[{'type': 'eq', 'bands': ['highshelf cutoff=8000 gain=5dB']}]),
             # (v34, palette: the cello was an album staple - t1, t5 and t6) THE FAR SIDE IS A TROMBONE: E1 stretched on
             # the far side is now played by the library's trombone (warm, round, mono and legato, the slide gliding
