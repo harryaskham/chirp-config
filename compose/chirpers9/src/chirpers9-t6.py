@@ -1530,6 +1530,30 @@ def build():
         co_['notes'][-1]['path_len'] = f"{len(f0_) / 44.0:.3f}s"
     cn_['notes'].sort(key=lambda n_: n_['at'])
     co_['notes'].sort(key=lambda n_: n_['at'])
+    # (v105, section w6: 2:36-3:06, the cross - the young voice and the old man trade the line at bar 87, she 'the
+    # near side keeps the time', he 'the far side lets it go', his 'go' one plain D) HE LETS IT GO ON THE TUNE: with
+    # wM's melisma (pinned 3d5ce622, from chirper-one's ask) the old man's 'go' at bar 89 is no longer one note - he
+    # carries the one vowel through E1 itself, D A C G E, the far side's tune sung out on 'go-o-o-o-o' without a new
+    # word, and lets its last E hang over the hymn: the line's meaning sung (the far side letting the tune go)
+    sb_ = [t_ for t_ in song['tracks'] if t_['name'] == 'sungb'][0]
+    gn_ = [n_ for n_ in sb_['notes'] if n_.get('ph') == 'G OW1' and abs(n_['at'] - ((SEC['cross'] + 8) * 4.0 + 0.238)) < 0.05]
+    assert len(gn_) == 1
+    g_ = gn_[0]
+    MEL_ = [(0, 0.75), (7, 0.75), (10, 0.5), (5, 1.0), (2, 2.2)]
+    p0_ = int(str(g_['pitch'])[1:])
+    f0n_ = len((g_.get('expr_path') or {}).get('f0') or [])
+    at_ = g_['at']
+    for k_, (semi_, ln_) in enumerate(MEL_):
+        if k_ == 0:
+            g_['len'] = ln_
+            g_['vel'] = 0.8
+            if f0n_:
+                g_['path_len'] = f"{f0n_ / 44.0:.3f}s"
+        else:
+            sb_['notes'].append({'at': round(at_, 4), 'len': ln_, 'pitch': f"m{p0_ + semi_}", 'ph': '_',
+                                 'vel': (0.8, 0.78, 0.74, 0.58)[k_ - 1]})
+        at_ += ln_
+    sb_['notes'].sort(key=lambda n_: n_['at'])
     # (v101, whole song: wM's vowel_drift, pinned 07ab00cd, from chirper-one's ask for long notes) THE VOWELS LIVE:
     # this song holds its vowels longer than any other on the album - the old man's long 'go's and 'side's, the
     # choirs' held chords, the near voice's last notes - and every one sat perfectly still, the formants fixed, which
