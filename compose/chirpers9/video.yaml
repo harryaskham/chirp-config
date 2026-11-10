@@ -5,7 +5,9 @@ meta:
   year: 2026
   # For the YouTube description (OUT.description.txt); edit freely.
   description: "Eight songs as one continuous mix, an accretion disk: material falling inward, track to track, the tempo rising from 84 to 150 as the orbit tightens. Each picture is drawn from its song as it plays, moved by that song's own instruments and notes: five lights on a ring that close into one body, a flight over mountains and a walker on the long way in, a storm city and a crowd falling into one groove, friends at a fire on the shore and a lantern let go on every sung note, a star and its worlds at their closest pass, two flights of birds over a spring tide, two holes spiralling into one, and at the end every theme of the record in orbit, the jet, and the horizon."
-video: {size: 3840x2160, fps: 30}
+# The flagship copy is 4K at 60 frames a second, no motion blur (at 60 the blur adds nothing the
+# eye finds and doubles the drawing); other copies are scaled from it.
+video: {size: 3840x2160, fps: 60}
 loudness: -11
 limit: true
 # One continuous mix: the mastered mix and the release's tracklist (starts and overlaps) from

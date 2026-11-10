@@ -146,19 +146,40 @@ def prepare(a):
         out.append(line)
     if n == 0:
         sys.exit(f"filmrender: no songs in {a.album}")
+    # The mix and its tracklist are frozen too: copies in DIR, so the film reads the same
+    # sound whatever happens to the originals, and its parts stay good if the originals move
+    # (a part is keyed by the mix's path). `check` says whether the original still matches.
+    sources = {}
+    for key, src, name in (("audio", mix_audio(a.album), "mix.wav"), ("release", release_of(a.album), "release.json")):
+        if not src:
+            continue
+        if not os.path.exists(src):
+            print(f"filmrender: {key} is not there yet: {src}")
+            continue
+        dst = f"{d}/{name}"
+        if not (os.path.exists(dst) and sha(dst) == sha(src)):
+            shutil.copyfile(src, dst)
+        inside = False
+        for i, line in enumerate(out):
+            if re.match(r"^mix:\s*$", line):
+                inside = True
+            elif inside and re.match(rf"^\s+{key}:", line):
+                out[i] = re.match(r"^\s+", line).group(0) + f'{key}: "{dst}"'
+                break
+            elif inside and re.match(r"^\S", line):
+                inside = False
+        files[dst] = "the mix" if key == "audio" else "the mix's tracklist"
+        sources[dst] = src
     open(f"{d}/video.yaml", "w").write("\n".join(out))
     man = {"album": a.album, "files": {}}
     for f, what in files.items():
         man["files"][f] = {"what": what, "sha": sha(f)}
+        if f in sources:
+            man["files"][f]["source"] = sources[f]
     # What the programmes use by name and cannot be copied: the prefab kits.
     for f in sorted(os.listdir(f"{cfg}/vis")):
         if f.startswith("kit-") and f.endswith(".yaml"):
             man["files"][f"{cfg}/vis/{f}"] = {"what": "prefab", "sha": sha(f"{cfg}/vis/{f}")}
-    for f, what in ((mix_audio(a.album), "the mix"), (release_of(a.album), "the mix's tracklist")):
-        if f and os.path.exists(f):
-            man["files"][f] = {"what": what, "sha": sha(f)}
-        elif f:
-            print(f"filmrender: {what} is not there yet: {f}")
     json.dump(man, open(f"{d}/manifest.json", "w"), indent=1)
     print(f"prepared {n} songs in {d}: draw {d}/video.yaml ({len(man['files'])} files in the manifest)")
 
@@ -175,6 +196,22 @@ def changed(album):
         elif sha(f) != e["sha"]:
             bad.append(f"{f} ({e['what']})")
     return bad
+
+
+def sources(album):
+    """(frozen copy, where it came from, whether that is still the same) for a prepared album."""
+    mf = os.path.join(os.path.dirname(album), "manifest.json")
+    if not os.path.exists(mf):
+        return []
+    out = []
+    for f, e in json.load(open(mf))["files"].items():
+        src = e.get("source")
+        if not src:
+            m = re.match(r"^(?:song|programme) \d+ from (.+)$", e.get("what", ""))
+            src = m.group(1) if m else None
+        if src:
+            out.append((f, src, os.path.exists(src) and sha(src) == e["sha"]))
+    return out
 
 
 def base_cmd(a):
@@ -283,6 +320,10 @@ def check(a, lg=None):
         log(lg, f"check: CHANGED since prepare (the film may mix old and new): {moved}")
     elif moved is not None:
         log(lg, "check: nothing in the manifest has changed since prepare")
+    # Where a frozen copy came from (the songs, the mix): is the original still the same?
+    for f, src, same in sources(a.album):
+        log(lg, f"check: {os.path.basename(f)} is {'the same as' if same else 'NOT what is now at'} {src}"
+                + ("" if same else " (the film was drawn on the frozen copy; redraw from a new prepare if the new one is wanted)"))
     ch = os.path.splitext(a.out)[0] + ".chapters.txt"
     if os.path.exists(ch):
         log(lg, "check: chapters: " + " | ".join(l.strip() for l in open(ch) if l.strip()))
