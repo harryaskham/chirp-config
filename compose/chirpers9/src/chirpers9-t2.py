@@ -907,6 +907,7 @@ def build():
         for q_ in range(8):
             n_ = seq_[q_ % len(seq_)]
             P['gtrarp'].append((bar_ * 4.0 + q_ * 0.5, m(n_), 0.45, (70 if q_ == 0 else 56) - (6 if bar_ - SEC['break'] >= 12 else 0)))
+    P['orbarp'] = list(P['gtrarp'])        # (v108) the same broken chords, on the wave-terrain keys
 
     # (v54, section w4: 1:35-2:06, the build, 'little new vs w3' - the same groove, flute and debris as the second
     # verse, only the bass climbing) THE ORBIT TIGHTENS: as the build climbs (Dm9, Fmaj9, G6/9, A7sus4) a bright
@@ -1283,6 +1284,33 @@ def build():
             # second; no Accretion track uses it) - the swarm the pad locked into tune at the crest scattering into
             # points of light, each note pulling itself together as it sounds, which is the song's whole idea in miniature
             tr('gtrarp', 'kuramoto-flies', '-8dB', pan=0.3, sends={'echo': '-8dB', 'hall': '-12dB'}),
+            # (v108, palette: the break's floating broken chords - v38's THE GUITAR FLOATS, since v77 on a swarm of
+            # fireflies - sit 8 dB down and are not heard as a line at all: chirper-two's arrangement map gave them 0
+            # tenths) THE BROKEN CHORDS RIDE AN ORBIT: the same notes on a second instrument, wave-terrain keys (the
+            # library's terrain-keys, which no Accretion track uses; Bischoff, Gold and Horton, 1978) - a sound that
+            # IS an orbit: each note is the height read off a surface of hills as a point circles over it, so a wider
+            # orbit crosses more hills and rings brighter. The orbit's radius follows the break: nothing as it leaves
+            # the crest (a point: silent), opening from bar 66, flung widest at bar 73, the far point, as the debris
+            # is (0.6: glassy, level with the room between 700 Hz and 3 kHz), and drawing in again under the ondes as
+            # the break climbs out - the timbre doing what the cell's period does. One more of the computer-music
+            # instruments this song collects (Risset's bell, Shepard's fall, the Kuramoto swarm, the scanned mallet).
+            # High-passed at 180 Hz: a terrain's height has a mean, so every note began with a low thump.
+            # (Tried as a swap, the fireflies out: the crest's last bar into the break read weaker on one seed -
+            # 0.179 -> 0.166 against the 0.17 line - because the fireflies are part of what makes the break's first
+            # second new; so they stay, exactly as they were, and the orbit rises over them)
+            *([tr('orbarp', {'gain': '-2dB', 'fx': ['hp cutoff=180', 'chorus mix=0.2'],
+                             'synth': {'amp': {'a': '15ms', 'd': '1.5s', 's': 0.75, 'r': '500ms'},
+                                       'layers': [{'type': 'terrain', 'terrain': {
+                                           'cx': {'value': 0, 'mod': [{'src': 'lfo.drift', 'amount': 0.35}]},
+                                           'cy': {'value': 0.1, 'mod': [{'src': 'lfo.wobble', 'amount': 0.2}]},
+                                           'k': 1.7, 'surface': 'sines',
+                                           'rx': {'value': float(os.environ.get('TERR0', '0.04')), 'mod': [{'src': 'auto.orb', 'amount': float(os.environ.get('TERR1', '0.56'))}]},
+                                           'ry': {'value': float(os.environ.get('TERR0', '0.04')), 'mod': [{'src': 'auto.orb', 'amount': float(os.environ.get('TERR1', '0.56'))}]}}}],
+                                       'lfo': {'drift': {'rate': '0.12hz', 'wave': 'sine'}, 'wobble': {'rate': '0.3hz', 'wave': 'triangle'}}}},
+                  os.environ.get('TERRG', '-12dB'), pan=-0.3, sends={'echo': '-8dB', 'hall': '-12dB'},
+                  auto={'orb': {'points': [['0b', 0.0], [f"{SEC['break'] * 4.0 + 4.0:.1f}b", 0.0], [f"{(SEC['break'] + 4) * 4.0:.1f}b", 0.5],
+                                           [f"{(SEC['break'] + 8) * 4.0:.1f}b", 1.0], [f"{SEC['drift'] * 4.0:.1f}b", 0.5]]}})]
+              if os.environ.get('TERRAIN', '1') == '1' else []),
             # (v60, palette: the comp was a cutting guitar, buried under the band at -18 to -19 dB from the gather to
             # the drift) THE COMP ON TINES: the off-beat skank and the funk sixteenths are now stabs on the library's
             # epiano (a Rhodes-style tine piano: a soft hammer on a tine, a pure bell-like attack and a warm body; no
@@ -1636,7 +1664,7 @@ def build():
             'auto': {'far': {'points': far_pts}}, 'returns': []}
         FARS_ = {'verse': '-12dB', 'versegather': '-12dB', 'prech': '-13dB', 'earlyhook': '-7dB', 'roundround': '-7dB',
                  'middlecalls': '-9dB', 'sung': '-9dB', 'e1p': '-11dB', 'gtr': '-11dB', 'gtrd': '-12dB', 'buildarp': '-11dB',
-                 'e1vb': '-9dB', 'gtrarp': '-9dB', 'hook': '-11dB', 'e2m': '-12dB', 'hat3': '-16dB', 'hat3w': '-16dB', 'dust': '-9dB',
+                 'e1vb': '-9dB', 'gtrarp': '-9dB', 'orbarp': '-9dB', 'hook': '-11dB', 'e2m': '-12dB', 'hat3': '-16dB', 'hat3w': '-16dB', 'dust': '-9dB',
                  'approach': '-13dB', 'breakhum': '-7dB', 'ooh': '-7dB', 'oohin': '-7dB', 'e2body': '-15dB'}
         if SWARM_:
             FARS_['pad'] = '-6dB'
