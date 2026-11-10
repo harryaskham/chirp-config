@@ -71,7 +71,7 @@ scenes:
       layers:
         - {type: sky, zenith: "#05040e", horizon: "#2a1a3a", ground: "#050408", sun: "#ffb070", sun_yaw: 0.25, sun_height: "0.08*var.dawn - 0.02", sun_size: 0.04, glow: "0.7*var.dawn", haze: 0.4}
         - {type: sky, opacity: var.dawn, zenith: "#3a4a7a", horizon: "#ffa070", ground: "#2a2028", sun: "#ffd0a0", sun_yaw: 0.25, sun_height: "0.08*var.dawn - 0.02", sun_size: 0.04, glow: "0.9*var.dawn", haze: 0.35, clouds: 0.4, cloud_height: 2.5, cloud_scale: 0.3, cloud_light: 1}
-        - {type: mesh, shape: plane, detail: 48, y: -0.62, scale: 8, color: "#3a3638", light: 0.8, ambient: 0.35, rim: 0, cull: true, material: pbr, rough: 0.22, shading: pixel}
+        - {type: mesh, shape: plane, detail: 64, y: -0.62, scale: 14, color: "#3a3638", light: 0.8, ambient: 0.35, rim: 0, cull: true, material: pbr, rough: 0.22, shading: pixel}
         # Neon round the plaza: magenta on the kick, cyan on the hats, out for the tape stop.
         - {type: light, count: 4, x: "2.2*sin(inst.i/4 + 0.125)", y: 0.5, z: "2.2*cos(inst.i/4 + 0.125)", color: "#ff3cb4", power: "(0.9 + 2.2*max(track.kick.hit, track.kick7.hit))*(1 - var.dawn)*(1 - lane.stop)*step(0.5, fract(inst.i/2))", reach: 2.5}
         - {type: light, count: 4, x: "2.2*sin(inst.i/4 + 0.125)", y: 0.5, z: "2.2*cos(inst.i/4 + 0.125)", color: "#3cc8ff", power: "(0.9 + 2.2*max(track.hats.hit, track.snare.hit))*(1 - var.dawn)*(1 - lane.stop)*(1 - step(0.5, fract(inst.i/2)))", reach: 2.5}

@@ -60,12 +60,12 @@ scenes:
       shot: {keys: [[0bar, 0], [8bar, 1], [16bar, 0], [24bar, 2], [32bar, 3], [40bar, 1], [48bar, 0], [56bar, 2], [64bar, 0], [72bar, 3], [80bar, 2], [88bar, 1], [96bar, 0], [104bar, 3], [112bar, 2], [120bar, 1], [124bar, 0], [128bar, 3], [136bar, 0]], ease: step}
       layers:
         # Evening, and the night that comes over it.
-        - {type: sky, zenith: "#2a3a6a", horizon: "#e09878", ground: "#2a3040", sun: "#ffd8b0", sun_yaw: -0.1, sun_height: 0.01, sun_size: 0.04, glow: 0.9, haze: 0.4, clouds: 0.35, cloud_height: 3, cloud_scale: 0.22}
+        - {type: sky, zenith: "#2a3a6a", horizon: "#e09878", ground: "#2a3040", sun: "#ffd8b0", sun_yaw: -0.1, sun_height: "0.01 - 0.05*var.night", sun_size: 0.04, glow: "0.9 - 0.5*var.night", haze: 0.4, clouds: 0.35, cloud_height: 3, cloud_scale: 0.22}
         - {type: sky, opacity: var.night, zenith: "#04061a", horizon: "#16203a", ground: "#05060c", sun: "#000000", sun_size: 0, glow: 0, haze: 0.3}
         - {type: stars, count: 2000, speed: 0, twinkle: 0.4, opacity: var.night}
         # The moon: rising, then huge and close. The whistle's hook lights its rim.
         - {type: light, x: "2.1*(1 - var.pull)", y: "0.5 + 2.5*var.rise - 0.6*var.pull", z: 10, color: "#e8ecff", power: "0.7 + 0.5*var.night + 0.6*var.pull + 0.5*track.hook.gate", reach: 30}
-        - {type: mesh, shape: sphere, detail: 48, x: "3.0*(1 - var.pull)", y: "0.4 + 3.6*var.rise - 1.1*var.pull", z: "14 - 4*var.pull", scale: "1.4 + 1.4*var.pull", displace: "0.03*fbm(vtx.x*3, vtx.y*3, vtx.z*3)", color: "#d8d4cc", light: 0, ambient: 0, emit: "0.85 + 0.25*track.hook.gate + 0.3*env.gong", rim: "0.3 + 0.6*track.hook.gate", rim_color: "#e8ecff"}
+        - {type: mesh, shape: sphere, detail: 48, x: "3.0*(1 - var.pull)", y: "0.4 + 3.6*var.rise - 1.1*var.pull", z: "14 - 4*var.pull", scale: "1.4 + 1.4*var.pull", displace: "0.03*fbm(vtx.x*3, vtx.y*3, vtx.z*3)", color: "#c4cce0", light: 0, ambient: 0, emit: "0.42 + 0.43*var.night + 0.25*track.hook.gate + 0.3*env.gong", rim: "0.3 + 0.6*track.hook.gate", rim_color: "#e8ecff"}
         # The sea: its level is the tide, its swell the drums.
         - {type: group, use: kit-sea, y: "-0.3 + 0.07*var.tide", z: 6, params: {far: 1, swell: "0.15 + 0.6*var.drive + 0.25*abs(var.tide) + 0.3*var.pull*var.drive", light: 0.1, pbr: 1, rough: 0.13, size: 10, ripple: "0.15 + 0.3*var.drive"}}
         # The great swell pulled up beneath the moon.
