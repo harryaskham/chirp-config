@@ -16,8 +16,9 @@ own plan (`chirp plan --json`) and note list (`chirp render -o x.mid`):
     python3 tools/songmap.py chirpers9-t1 --lanes         # only the lanes
     python3 tools/songmap.py chirpers9-t1 --json          # everything, for scripts
 
-Names here are what a programme reads: `track.NAME.hit|level|key|gate`, `lane.NAME`, and
-bars for `at: 32bar` and keys `[[16bar, 0], [24bar, 1]]`.
+Names here are what a programme reads: `track.NAME.hit|level|key|gate`, `lane.NAME`. Bars are
+counted as a programme writes them (`at: 32bar` and keys `[[16bar, 0], [24bar, 1]]` are after
+that many bars, so the song starts at 0bar).
 """
 import argparse, collections, glob, json, os, struct, subprocess, sys, tempfile
 
@@ -114,7 +115,8 @@ class Clock:
         return t0 + (beat - b0) * spb
 
     def bar(self, beat):
-        return beat / self.bar_beats + 1  # bar 1 is the first
+        # As a programme writes positions: `8bar` is after eight bars, so the song starts at 0.
+        return beat / self.bar_beats
 
 
 def mmss(s):
@@ -224,7 +226,8 @@ def main():
     print(f"{m['song']}: {mmss(m['seconds'])}, {m['bar_beats']:g} beats a bar")
     print("tempo: " + ", ".join(f"{p['bpm']:g} from {mmss(p['at'])}" for p in m["tempo"]))
     last_bar = int(max(max(s["bars"][1] for s in t["spans"]) for t in m["tracks"]))
-    print("bars:  " + "  ".join(f"{b}={mmss(clk.sec((b - 1) * m['bar_beats']))}" for b in range(1, last_bar + 1, 8)))
+    print("bars (as a programme writes them: `8bar` is after eight bars):")
+    print("  " + "  ".join(f"{b}bar={mmss(clk.sec(b * m['bar_beats']))}" for b in range(0, last_bar + 1, 8)))
     if not a.lanes:
         print(f"\ntracks ({len(m['tracks'])}): name, notes, keys, cycle (beats), pan, then when it plays (bars, m:ss)")
         for t in m["tracks"]:
