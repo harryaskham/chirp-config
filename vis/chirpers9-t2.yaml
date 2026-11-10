@@ -1,64 +1,126 @@
-# chirpers9 t2 "The Long Way In" (a pilot: Harry, 8 Nov: varied, directed, things
-# happening). Infall told as a journey in three acts:
-#   I   (0:00) a dawn flight low over endless mountains, two flocks of birds wheeling on
-#       their own cycles (the track's first polymeter, seen);
-#   II  (1:35) a lone walker on a long road at dusk toward a light on the horizon, lamps
-#       passing, the light growing as the music gathers; at the crest the light flares
-#       and bends the sky;
-#   III (3:15) arrival: the light was the hole. The camera rises over its disk of matter,
-#       the gas winding in, the song's title bent round the shadow, jets at the lifts,
-#       the camera spiralling down as the track hands over.
+# chirpers9 t2 "The Long Way In": infall as a journey. Co-built with the song
+# (tools/songmap.py chirpers9-t2). Seven sections of 16 bars: in, gather, build, crest (48bar),
+# break (64bar), drift (80bar), fall (96bar).
+#
+# What the song does, and so what the picture does:
+#   - HOW FAST IT TRAVELS is the composer's `lane.spd` (slow through the in and the gather,
+#     quickening through the build, full at the crest, stopped in the break, picking up again in
+#     the drift, dying away in the fall). It is the speed of the flight over the land, the
+#     walker's pace on the road, and how fast the camera circles the hole.
+#   - I (0bar) THE FLIGHT, at dawn over mountains. The mist lifts as the pad's filter opens
+#     (`lane.shut`). Two flocks wheel on the song's two cycles: five birds once every five bars
+#     (E1's five beats), three once every seven (E2's seven), so they cross and part as the
+#     polymeter does. The song's pad is a swarm of oscillators its composer couples with
+#     `lane.lock`: the birds close up into formation as far as the swarm has locked. The camera
+#     flies higher as the bass lifts away (`lane.grav`).
+#   - II (36bar, where the composer shuts the master filter down, `lane.open`) THE ROAD at dusk:
+#     a lone walker toward a light on the horizon. The lamps flare on the drums. The light
+#     grows as the swarm locks and flares when the hook is sung. In the break (64bar) the walker
+#     stops and stands; the fireflies rise and glitter with the guitar arpeggio; the stereo
+#     field opens (`lane.WID`) and the camera draws back.
+#   - III (76bar, the second kit's pickup) THE HOLE: the light was the hole. Its rings are the
+#     song's parts. Clumps are thrown in on the drums and on each low note of the fall; jets
+#     fire as the swarm locks under the hook (84bar), as the kit returns (88bar) and as the
+#     fall begins (96bar). The camera closes in as the composer narrows the stereo field to a
+#     point (`lane.WID`).
+# Reads tracks: kit kitb hat3 hook infall gtrarp dust crestsung. Lanes: spd lock grav shut open
+#   WID glitch.
 scenes:
   - at: 0
     look:
       background: "#000000"
-      camera: {x: "0.3*sin(time.t*0.01)", y: "0.75 + 0.08*audio.low", z: -2.8, look_at: [0, 0.35, 2], roll: "0.02*sin(time.t*0.02)"}
+      vars:
+        # The distance flown: the land goes by at the song's own speed.
+        dist: {integrate: "0.3 + 1.6*lane.spd"}
+        # How far the swarm has locked (0 free, 1 as one).
+        lock: {value: "clamp((lane.lock - 0.3)/2.7, 0, 1)"}
+        # The two flocks' laps: once in five bars, once in seven.
+        five: {value: "time.bar/5"}
+        seven: {value: "time.bar/7"}
+        high: {follow: "0 - lane.grav", attack: 2s, release: 2s}
+      camera:
+        # 0 the flight; 1 beside the first flock; 2 high, looking down the valley.
+        - {x: "0.3*sin(time.t*0.01)", y: "0.75 + 0.05*var.high", z: -2.8, look_at: [0, 0.35, 2], roll: "0.02*sin(time.t*0.02)"}
+        - {x: "3.3*sin(var.five + 0.1)", y: 0.8, z: "2.5 + 2.4*cos(var.five + 0.1)", look_at: ["1.2*sin(var.five + 0.06)", 0.95, "2.5 + 0.8*cos(var.five + 0.06)"]}
+        - {x: -0.4, y: "1.5 + 0.05*var.high", z: -3.2, look_at: [0.2, 0.1, 3]}
+      shot: {keys: [[0bar, 0], [12bar, 2], [16bar, 0], [20bar, 1], [24bar, 0], [28bar, 2], [32bar, 0]], ease: step}
       layers:
         - {type: sky, zenith: "#2a3c6a", horizon: "#ffb880", ground: "#6a5a60", sun: "#fff0d0", sun_yaw: 0.0, sun_height: 0.04, sun_size: 0.04, glow: 1.2, haze: 0.4, clouds: 0.45, cloud_height: 2.5, cloud_scale: 0.25, cloud_speed: 0.06}
-        - {type: group, use: kit-terrain, y: -0.4, z: 2, params: {height: 0.9, travel: "0.45 + 0.3*audio.level", seed: 2, pbr: 1, trees: 1}}
-        - {type: figure, rig: bird, count: 5, x: "1.2*sin(time.t*0.07 + inst.i*0.2)", y: "0.9 + 0.15*sin(time.t*0.11 + inst.i)", z: "2.5 + 0.8*cos(time.t*0.07 + inst.i*0.2)", face: ["1.2*sin(time.t*0.07 + 0.02 + inst.i*0.2)", "0.9 + 0.15*sin(time.t*0.11 + inst.i)", "2.5 + 0.8*cos(time.t*0.07 + 0.02 + inst.i*0.2)"], scale: 0.26, phase: "inst.i*0.4", energy: "0.7 + 0.5*audio.level", color: "#2a2430", light: 1, ambient: 0.2, rim: 0.8, rim_color: "#ffd0a0"}
-        - {type: figure, rig: bird, count: 3, x: "-1.4*sin(time.t*0.045 + inst.i*0.3)", y: "1.2 + 0.1*inst.i", z: "3.4 + 1.1*cos(time.t*0.045 + inst.i*0.3)", face: ["-1.4*sin(time.t*0.045 + 0.02 + inst.i*0.3)", "1.2 + 0.1*inst.i", "3.4 + 1.1*cos(time.t*0.045 + 0.02 + inst.i*0.3)"], scale: 0.28, motion: glide, color: "#2a2430", light: 1, ambient: 0.2, rim: 0.8, rim_color: "#ffd0a0"}
+        - {type: group, use: kit-terrain, y: -0.4, z: 2, params: {height: 0.9, travel: 0, shift: var.dist, seed: 2, pbr: 1, trees: 1}}
+        - {type: figure, rig: bird, count: 5, x: "1.2*sin(var.five + inst.i*(0.2 - 0.16*var.lock))", y: "0.9 + 0.15*(1 - var.lock)*sin(time.t*0.11 + inst.i) + 0.04*inst.i*var.lock", z: "2.5 + 0.8*cos(var.five + inst.i*(0.2 - 0.16*var.lock))", face: ["1.2*sin(var.five + 0.02 + inst.i*(0.2 - 0.16*var.lock))", "0.9 + 0.15*(1 - var.lock)*sin(time.t*0.11 + inst.i) + 0.04*inst.i*var.lock", "2.5 + 0.8*cos(var.five + 0.02 + inst.i*(0.2 - 0.16*var.lock))"], scale: 0.26, phase: "inst.i*0.4*(1 - var.lock)", energy: "0.6 + 0.5*track.hook.gate + 0.4*track.kit.hit", color: "#2a2430", light: 1, ambient: 0.2, rim: 0.8, rim_color: "#ffd0a0"}
+        - {type: figure, rig: bird, count: 3, x: "-1.4*sin(var.seven + inst.i*(0.3 - 0.24*var.lock))", y: "1.2 + 0.1*inst.i", z: "3.4 + 1.1*cos(var.seven + inst.i*(0.3 - 0.24*var.lock))", face: ["-1.4*sin(var.seven + 0.02 + inst.i*(0.3 - 0.24*var.lock))", "1.2 + 0.1*inst.i", "3.4 + 1.1*cos(var.seven + 0.02 + inst.i*(0.3 - 0.24*var.lock))"], scale: 0.28, motion: glide, color: "#2a2430", light: 1, ambient: 0.2, rim: 0.8, rim_color: "#ffd0a0"}
         - {type: motes, mode: drift, puff: true, count: 400, y: -0.2, z: 3, w: 10, h: 0.3, d: 10, wind_z: -0.4, fall: 0, wobble: 0.05, size: 0.3, glow: 0.1, twinkle: 0, color: "#c8b8c0", near: 0.6}
       filters:
         - {type: shadowmap, amount: 0.75, soft: 2, size: 2048, bias: 0.05}
-        - {type: fog, color: "#d8b8a8", density: 0.08}
+        - {type: fog, color: "#d8b8a8", density: "0.2 - 0.13*lane.shut"}
         - {type: bloom, threshold: 0.7, amount: 0.5}
         - {type: tonemap, knee: 0.75}
         - {type: vignette, amount: 0.4}
-  - at: 95
+  - at: 36bar
     transition: dissolve
     xfade: 3
     look:
       background: "#000000"
       env:
-        lamp: {on: bar, decay: 0.6}
-      camera: {x: "0.3 + 0.1*sin(time.t*0.05)", y: 0.3, z: -0.9, look_at: [0, 0.1, 6]}
+        lamp: {on: track.kit, decay: 0.3}
+      vars:
+        # The distance walked, and the pace (0 in the break: he stands).
+        pace: {follow: "lane.spd", attack: 400ms, release: 1200ms}
+        walk: {integrate: "0.8*lane.spd"}
+        lock: {value: "clamp((lane.lock - 0.3)/2.7, 0, 1)"}
+        sung: {follow: "max(track.hook.gate, track.crestsung.gate)", attack: 80ms, release: 900ms}
+        wide: {follow: "clamp((lane.WID - 0.86)/0.29, 0, 1)", attack: 2s, release: 2s}
+      camera:
+        # 0 behind the walker; 1 low beside the road; 2 from above and behind: the road ahead.
+        - {x: "0.3 + 0.1*sin(time.t*0.05)", y: "0.3 + 0.5*var.wide", z: "-0.9 - 1.6*var.wide", look_at: [0, 0.1, 6]}
+        - {x: -0.9, y: -0.3, z: -0.2, look_at: [0.1, 0.05, 2.5]}
+        - {x: 0.55, y: 0.75, z: -0.7, look_at: [0, -0.2, 2.2]}
+      shot: {keys: [[36bar, 0], [44bar, 1], [48bar, 0], [56bar, 2], [60bar, 1], [64bar, 0], [72bar, 2]], ease: step}
       layers:
         - {type: sky, zenith: "#0a1028", horizon: "#c86a50", ground: "#14101a", sun: "#ffb080", sun_yaw: 0, sun_height: -0.01, sun_size: 0.03, glow: 0.8, haze: 0.4, clouds: 0.35, cloud_height: 3, cloud_scale: 0.2, cloud_light: 0.6}
         - {type: stars, count: 1200, speed: 0, twinkle: 0.4}
         # The plain and the road running to the horizon, its dashes flowing past.
-        - {type: mesh, shape: plane, detail: 16, y: -0.62, z: 10, scale: 14, color: "#1a1a1c", light: 0.6, ambient: 0.12, rim: 0, cull: true, material: pbr, rough: 0.85, env_sky: "#6a3a30", env_ground: "#0a0a0c", shading: pixel}
-        - {type: mesh, shape: plane, detail: 8, y: -0.615, z: 10, scale: 1, sx: 0.35, sz: 14, color: "#202024", light: 0.7, ambient: 0.15, rim: 0, material: pbr, rough: 0.22, env_sky: "#6a3a30", env_ground: "#0a0a0c", shading: pixel, paint: "step(abs(vtx.x), 0.06)*step(0.5, fract(vtx.z*14 - time.t*0.25))*0.6", paint_color: "#e8d8a0", paint_fine: true, cull: true}
+        - {type: mesh, shape: plane, detail: 96, y: -0.62, z: 6, scale: 18, color: "#1a1a1c", light: 0.6, ambient: 0.12, rim: 0, cull: true, material: pbr, rough: 0.85, env_sky: "#6a3a30", env_ground: "#0a0a0c", shading: pixel}
+        - {type: mesh, shape: plane, detail: 48, y: -0.615, z: 6, scale: 1, sx: 0.35, sz: 18, color: "#202024", light: 0.7, ambient: 0.15, rim: 0, material: pbr, rough: 0.22, env_sky: "#6a3a30", env_ground: "#0a0a0c", shading: pixel, paint: "step(abs(vtx.x), 0.06)*step(0.5, fract(vtx.z*18 - var.walk))*0.6", paint_color: "#e8d8a0", paint_fine: true, cull: true}
         # Lamps along the road, flowing past, each lit on its bar.
-        - {type: mesh, shape: cylinder, count: 8, detail: 8, x: 0.55, z: "fract((inst.i/8) - time.t*0.0083)*16 - 1", y: -0.25, scale: 0.012, sy: 30, color: "#606068", light: 0.8, ambient: 0.2, rim: 0, material: pbr, metal: 1, rough: 0.35, env_sky: "#6a3a30", env_ground: "#0a0a0c"}
-        - {type: mesh, shape: sphere, count: 8, detail: 8, x: 0.55, z: "fract((inst.i/8) - time.t*0.0083)*16 - 1", y: 0.12, scale: 0.03, color: "#ffd890", light: 0, ambient: 0, rim: 0, emit: "2 + 1.5*env.lamp"}
+        - {type: mesh, shape: cylinder, count: 8, detail: 8, x: 0.55, z: "fract((inst.i/8) - var.walk/16)*16 - 1", y: -0.25, scale: 0.012, sy: 30, color: "#606068", light: 0.8, ambient: 0.2, rim: 0, material: pbr, metal: 1, rough: 0.35, env_sky: "#6a3a30", env_ground: "#0a0a0c"}
+        - {type: mesh, shape: sphere, count: 8, detail: 8, x: 0.55, z: "fract((inst.i/8) - var.walk/16)*16 - 1", y: 0.12, scale: 0.03, color: "#ffd890", light: 0, ambient: 0, rim: 0, emit: "2 + 1.5*env.lamp"}
         # The lamps' light, pooling on the wet road and catching the walker.
-        - {type: light, count: 8, x: 0.5, z: "fract((inst.i/8) - time.t*0.0083)*16 - 1", y: 0.1, color: "#ffc070", power: "1.0 + 1.0*env.lamp", reach: 0.9}
+        - {type: light, count: 8, x: 0.5, z: "fract((inst.i/8) - var.walk/16)*16 - 1", y: 0.1, color: "#ffc070", power: "1.0 + 1.0*env.lamp", reach: 0.9}
         # The light on the horizon, growing as the track gathers, flaring at the crest.
-        - {type: mesh, shape: sphere, detail: 24, y: 0.25, z: 30, scale: "0.25 + 1.2*smooth(95, 190, time.t) + 0.4*audio.lift", color: "#fff0d0", light: 0, ambient: 0, rim: 0, emit: "3 + 4*audio.lift"}
-        - {type: beam, from: [0, 0.3, 30], to: [0, 6, 30], width: 0.05, taper: -3, glow: "0.2 + 0.8*smooth(150, 190, time.t)*(0.5 + audio.level)", fade: 0.6, color: "#c8d8ff"}
-        # The walker, seen from behind, walking in.
-        - {type: figure, rig: human, motion: walk, z: 0.4, y: -0.12, scale: 0.55, face: [0, 0, 30], energy: 0.9, color: "#1a1a20", light: 0.8, ambient: 0.08, rim: 1.3, rim_color: "#ffc890", material: pbr, rough: 0.5, env_sky: "#6a3a30", env_ground: "#0a0a0c", melt: 0.04}
+        - {type: mesh, shape: sphere, detail: 24, y: 0.25, z: 30, scale: "0.3 + 1.1*var.lock + 0.35*var.sung", color: "#fff0d0", light: 0, ambient: 0, rim: 0, emit: "3 + 4*var.sung"}
+        - {type: beam, from: [0, 0.3, 30], to: [0, 6, 30], width: 0.05, taper: -3, glow: "0.15 + 0.7*var.lock + 0.5*var.sung", fade: 0.6, color: "#c8d8ff"}
+        - {type: light, x: 0, y: 1.2, z: 22, color: "#ffe8c8", power: "0.4 + 1.1*var.lock + 1.4*var.sung", reach: 30}
+        # The walker, walking in.
+        - {type: figure, rig: human, motion: walk, z: 0.4, y: -0.12, scale: 0.55, face: [0, 0, 30], energy: "1.1*clamp(var.pace*2.5, 0, 1)", color: "#1a1a20", light: 0.8, ambient: 0.08, rim: 1.3, rim_color: "#ffc890", material: pbr, rough: 0.5, env_sky: "#6a3a30", env_ground: "#0a0a0c", melt: 0.04}
         # Fireflies in the grass.
-        - {type: motes, mode: drift, count: 300, y: -0.4, z: 4, w: 6, h: 0.5, d: 10, wind_z: -0.25, fall: 0, wobble: 0.15, size: 0.004, glow: "1.2 + audio.level", twinkle: 0.8, color: "#e8ff90", near: 0.3}
+        - {type: motes, mode: drift, count: 300, y: -0.4, z: 4, w: 6, h: 0.5, d: 10, wind_z: "0 - 0.5*var.pace", fall: "0 - 0.12*(1 - clamp(var.pace*3, 0, 1))", wobble: 0.15, size: 0.004, glow: "1.0 + 1.6*track.gtrarp.hit + 0.8*track.dust.hit", twinkle: 0.8, color: "#e8ff90", near: 0.3}
       filters:
         - {type: ao, amount: 1.0, radius: 0.12}
-        - {type: flare, x: 0, y: 0.25, z: 30, amount: "0.6 + 0.6*audio.lift", threshold: 0.9, streak: 0.4, length: 0.5, ghosts: 4, size: 0.05, glow: 0.6}
+        - {type: flare, x: 0, y: 0.25, z: 30, amount: "0.4 + 0.3*var.lock + 0.6*var.sung", threshold: 0.9, streak: 0.4, length: 0.5, ghosts: 4, size: 0.05, glow: 0.6}
+        - {type: chroma, amount: "0.06*lane.glitch*(0.4 + track.kit.hit)"}
         - {type: bloom, threshold: 0.7, amount: 0.55}
         - {type: tonemap, knee: 0.75}
         - {type: vignette, amount: 0.5}
         - {type: aa}
-  - at: 195
+  - at: 76bar
     transition: dissolve
     xfade: 4
-    look: {extends: accretion3d, params: {gas: 0.5, debris: 10}}
+    look:
+      extends: accretion3d
+      params: {gas: 0.5, debris: 12}
+      vars:
+        # The camera closes in as the stereo field narrows to a point; it circles at the
+        # song's speed.
+        dist: {value: "(1.5 + 1.9*clamp(lane.WID, 0.15, 1.15)/1.15)*(0.3 + 0.7*mix.in)*(1 - 0.7*mix.out)"}
+        orbit: {integrate: "0.02 + 0.07*lane.spd", wrap: 1}
+      env:
+        hit: {when: "3*max(max(track.kitb.hit, track.kit.hit), track.infall.hit)", decay: 0.3}
+        # Jets: as the swarm locks under the hook, as the kit returns, as the fall begins.
+        crest: {when: {keys: [[76bar, 0], [84bar, 1], [84.5bar, 0], [88bar, 1], [88.5bar, 0], [96bar, 1], [96.5bar, 0]], ease: step}, decay: 4}
+        victim: {when: "step(param.victim, time.t)*step(0.001, param.victim)", decay: 3}
+      camera:
+        x: "var.dist*sin(var.orbit)"
+        z: "0 - var.dist*cos(var.orbit)"
+        y: "0.32*var.dist*(0.35 + 0.25*sin(var.orbit*0.7))"
+        look_at: [0, 0, 0]
