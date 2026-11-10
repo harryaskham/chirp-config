@@ -1214,6 +1214,29 @@ def build():
                 P[k_] = sorted(P[k_] + pre_, key=lambda e_: e_[0])
                 P[k_] = [((e_[0], e_[1], e_[2], max(1, int(round(e_[3] * (0.45 + 0.55 * (e_[0] - tb0_ - 13.0) / 11.0))))) + tuple(e_[4:]))
                          if tb0_ + 13.0 - 0.05 <= e_[0] < tb0_ + 24.0 else e_ for e_ in P[k_]]
+    # (v111, section w5: 2:05-2:36, the crest - deep pass. eco's flatness map, 10 Nov: t6 is the stillest track on
+    # the album, a third of it flat, and its two flattest changes are inside the crest, bars 66-78: sixteen bars of
+    # everything - both voices, the trombone, the fretless, the marimba, the shakuhachi - playing E1 in one unison,
+    # and the second chorus the same unison again an octave fuller) THE CONVERGENCE FLOWERS. The two sides have met;
+    # for the second chorus they sing TOGETHER rather than the same: the far side (the old voice, the trombone, the
+    # fretless, the shakuhachi) keeps the tune, and the near side takes the harmony - the near voice enters a sixth
+    # above the old one instead of at its octave, and the marimba rings a third above the shakuhachi - so the unison
+    # opens into three-part chords in the key (E Mixolydian: every note of the tune with its third), and at the
+    # cross it closes to the bare tune again. Same words, same rhythm, same players
+    HARM_ = os.environ.get('HARM', '1') == '1'
+    def third_(p_, steps_):
+        sc_ = [4, 6, 8, 9, 11, 13, 14]                 # E Mixolydian from E: E F# G# A B C# D
+        o_, pc_ = divmod(p_ - 4, 12)
+        full_ = [x_ - 4 for x_ in sc_]                 # 0 2 4 5 7 9 10
+        i_ = min(range(7), key=lambda k_: abs(full_[k_] - pc_))
+        j_ = i_ + steps_
+        return 4 + 12 * (o_ + j_ // 7) + full_[j_ % 7]
+    if HARM_:
+        h0_, h1_ = (SEC['crest'] + 8) * 4.0, SEC['cross'] * 4.0
+        P['near'] = [((e_[0], m(third_(int(float(str(e_[1])[1:])), 2))) + tuple(e_[2:])) if h0_ - 0.05 <= e_[0] < h1_ - 0.05 else e_ for e_ in P['near']]
+        # and the four lights' chords, which the harmony now spells out, come forward under it: a second glass pad
+        # on the same chords from bar 73, closing with the cross
+        P['glassb'] = [e_ for e_ in P['glass'] if h0_ - 0.05 <= e_[0] < h1_ - 0.05]
     rk0_ = SEC['crest'] * 4.0
     P['kitroom'] = [e_ for e_ in P['kit'] if e_[0] >= rk0_ - 1e-6]
     P['kit'] = [e_ for e_ in P['kit'] if e_[0] < rk0_ - 1e-6]
@@ -1294,6 +1317,10 @@ def build():
             # 2.8 -> 3.9 dB spectral)
             tr('tanp', 'tanpura', '-14dB', pan=-0.2, sends={'hall': '-12dB'}),
             tr('glass', 'pad-glass', '-15dB', sends={'hall': '-10dB'}, fx=[{'type': 'duck', 'by': 'hook', 'depth': 0.45, 'attack': '40ms', 'release': '500ms'}]),
+            # (tried high-passed at 320 Hz and 2 dB lower, so it added the chords' light and not their weight: the
+            # second chorus then read as flat against the first as before, 0.26 where the full pad reads over 0.56 on
+            # eco's map. The full pad puts 3.2 dB more into 250-500 Hz for those eight bars - for the ear to judge)
+            *([tr('glassb', 'pad-glass', '-12dB', pan=0.2, sends={'hall': '-10dB', 'air': '-12dB'})] if 'glassb' in P else []),
             # (v75, palette: after the void the last chorus's lights - E4's four chords - were the same harmonium as the
             # tide under them) THE HARBOUR LIGHTS: they are now the library's accordion, a musette - two reeds detuned
             # against each other in the café shimmer - which no Accretion track uses: the same reeds as the tide, but
@@ -1740,6 +1767,14 @@ def build():
                                             [5000, {'value': 1.0, 'mod': [{'src': 'auto.AIR', 'amount': 0.6}]}]]})
         song['master']['auto']['AIR'] = {'points': [['0b', 0.0], [f"{SEC['pull'] * 4.0:.1f}b", 0.3], [f"{(SEC['pull'] + 8) * 4.0:.1f}b", 1.0],
                                                     [f"{SEC['out'] * 4.0:.1f}b", 1.0], [f"{NBARS * 4.0:.1f}b", 0.3]]}
+    if HARM_:
+        # (v111) the near voice's couplet with the old voice (beats 288-298): a sixth above the old voice's tune, i.e.
+        # a third under its own octave line. Its call at bar 78, sung alone, keeps the tune
+        for t_ in song['tracks']:
+            if t_['name'] == 'crestnear':
+                for n_ in t_['notes']:
+                    if (SEC['crest'] + 8) * 4.0 - 0.05 <= n_['at'] < (SEC['crest'] + 8) * 4.0 + 10.5:
+                        n_['pitch'] = 'm%d' % third_(int(float(str(n_['pitch'])[1:])), -2)
     # (v109, whole song - deep pass) THE CREST IS MASTERED, NOT LIMITED. The master's compressor sat at -18 dB on a
     # mix that reaches it at -25 dBFS RMS, so it never moved; the loudness stage then added 14.4 dB and the final
     # limiter was left to do the whole master where the song is loudest - the crest held down 2.9 dB on average, over
