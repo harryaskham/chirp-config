@@ -498,6 +498,19 @@ def build():
         if s_ == 'drift': return 1.2 if bar < 84 else 3.0      # (v6, w8) the swarm locks in tune under the hook
         return 0.6
     lock_pts = [[f'{b * 4.0:.1f}b', round(lock(b), 3)] for b in range(NBARS)]
+    # (v106, whole song - deep pass) THE SWARM IS HEARD. The pad is the song's oldest idea - a swarm of ten voices,
+    # loose far out, pulled into one as the song falls in, loose again when it is flung out, locked for the last
+    # chorus (the lane above) - and since the band grew around it nobody could hear it: 20 dB under the mix from the
+    # gather on, 9-12 dB under the comp and the log drum in its own octave (chirper-two's arrangement map: heard
+    # one or two tenths of the time). It stays the bed it is where the band is full. But where the song is far out and
+    # there is room - the break - it comes forward, loose and wide in the far hall, so the far point has the swarm
+    # drifting in it; and it stays forward into the drift, so that when it locks at bar 84, under the second verse,
+    # the chorus of ten is heard drawing into one voice before the last chorus; then it sinks back under the band
+    SWARM_ = os.environ.get('SWARM', '1') == '1'
+    sg_ = 6.0      # dB: the swarm 12 dB under the break's mix, behind the bass, the calls and the log drum
+    swarm_pts = [['0b', 0.0], [f"{SEC['break'] * 4.0 - 0.05:.2f}b", 0.0], [f"{SEC['break'] * 4.0 + 4.0:.1f}b", sg_],
+                 [f"{SEC['drift'] * 4.0:.1f}b", sg_], [f"{(SEC['drift'] + 4) * 4.0:.1f}b", sg_ - 1.0],
+                 [f"{(SEC['drift'] + 8) * 4.0:.1f}b", 0.0]]
     # the fall's filter: the cell and the pad close as they fall into t3 (1 = open)
     shut_pts = [['0b', 1.0], [f'{fall0:.1f}b', 1.0], [f'{total:.1f}b', 0.0]]
     # (v59, section w1: 0:00-0:32, the in-seam, 'static' since the first day - one quartal chord held eight bars at
@@ -1185,8 +1198,9 @@ def build():
                           {'type': 'pan', 'width': {'value': 0, 'mod': [{'src': 'auto.WID', 'amount': 1}]}},
                           'limiter ceiling=-1dB'], 'auto': {'E': {'points': energy_pts}, 'open': {'points': open_pts}, 'WID': {'points': wid_pts}}},
         'tracks': [
-            tr('pad', PAD, '-15dB', auto={'lock': {'points': lock_pts}, 'shut': {'points': padshut_pts}},
-               fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 600, 'mod': [{'src': 'auto.shut', 'amount': 3.5}]}}],
+            tr('pad', PAD, '-15dB', auto=dict({'lock': {'points': lock_pts}, 'shut': {'points': padshut_pts}}, **({'sw': {'points': swarm_pts}} if SWARM_ else {})),
+               fx=[{'type': 'filter', 'kind': 'lp', 'cutoff': {'value': 600, 'mod': [{'src': 'auto.shut', 'amount': 3.5}]}}] +
+                  ([{'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.sw', 'amount': 1}]}}] if SWARM_ else []),
                sends={'hall': '-8dB'}),
             # (v19) the D1 sub 4 dB down: the t1 -> t2 mix seam read t2 28 dB over t1's body at 38 Hz
             tr('sub', 'sub', '-13dB', auto={'grav': {'points': grav_pts}}, fx=[{'type': 'pump', 'on': 'kit.k', 'depth': '-6dB', 'release': '220ms', 'curve': 0.6},
@@ -1624,6 +1638,8 @@ def build():
                  'middlecalls': '-9dB', 'sung': '-9dB', 'e1p': '-11dB', 'gtr': '-11dB', 'gtrd': '-12dB', 'buildarp': '-11dB',
                  'e1vb': '-9dB', 'gtrarp': '-9dB', 'hook': '-11dB', 'e2m': '-12dB', 'hat3': '-16dB', 'hat3w': '-16dB', 'dust': '-9dB',
                  'approach': '-13dB', 'breakhum': '-7dB', 'ooh': '-7dB', 'oohin': '-7dB', 'e2body': '-15dB'}
+        if SWARM_:
+            FARS_['pad'] = '-6dB'
         # the tunes and the voices go far; the drums and the bass stay near and dry, so the groove keeps its edge
         for t_ in song['tracks']:
             nm_ = t_['name'][:-2] if t_['name'].endswith(('-l', '-r')) else t_['name']
