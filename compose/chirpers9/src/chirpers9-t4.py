@@ -1255,6 +1255,79 @@ DIPH_HOLD = {"voice": 1.0, "hum1": 1.0, "duet": 0.5}
 SUNG_GLIDES = {"voice": ("90ms", "7ms", 0.4), "hum1": ("90ms", "7ms", 0.4), "duet": ("80ms", "8ms", 0.5)}
 
 
+# v96 (ROUND TYPE: whole song - a DEEP pass, Harry 10 Nov 02:25: 'go deep ... the feel and texture and style of the
+# album'): THE BAND SITS AROUND YOU. Looked at (tools/look.py) beside the album's genre anchors, t4's top end is mono:
+# side/mid at 2-6 kHz / 6-16 kHz read -9.5 / -14.9 dB in B, -5.8 / -13.8 at the crest, -7.5 / -12.6 in the relief
+# (the anchors: -2 to -3 / +3 to +7). Stem by stem the air band is the shaker, the ride and the brushes - each ONE
+# player, panned: a point, not a space. t4 is an acoustic band, so the cure is not a widener but PLAYERS: chirp's
+# `double:` records a part twice on its own seed, and for these physical models the two takes are different
+# performances (L/R correlation: shaker 0.99 -> 0.20, brush hat 0.97 -> 0.19, twelve-string 0.86 -> 0.19, cellos
+# 0.63 -> 0.21, ride 1.00 -> 0.24). So from A (17) to the end of the relief (121) the band is seated - the lens stays one
+# centred light and the fall closes to it again (first try, seated throughout: the lens read flatter, 0.70 -> 0.69 on
+# seed 5, and the t5 seam 3.06 -> 3.18): the four lights' cellos become TWO DESKS (track desks), left and right
+# (+-0.7); two twelve-strings (+-0.75); two shakers (+-0.8); the brushes as a stereo pair (hat +-0.6, snare +-0.35);
+# the ride +-0.5 - soloists (harp, steel, violin, clarinet, handpan, piano) stay where they stood, and she stays in
+# the middle. Every doubled part is trimmed back to its old level (measured solo: +1.1 to +2.1 dB), so the balance
+# and the spectrum hold. The delay bus goes ping-pong; the master widens the highs only, gently (lr4 bands 1.2 at
+# 3 kHz, 1.35 at 7 kHz; low mids and bass exact).
+SEATED = (17, 121)                    # bars: A to the end of the relief
+SEATING = {"desks": (70, -0.6), "lights2": (70, -0.6), "canon": (75, -0.9), "air": (80, -1.5), "hat": (60, -1.9),
+           "hat2": (60, -1.9), "ride": (50, -2.1), "snare": (35, -1.8)}       # track: (double pan %, level trim dB)
+WIDE_TOP = {"type": "width", "width": 1.0, "mono_below": "off", "crossover": "lr4",
+            "bands": [[200, 1.0], [1500, 1.0], [3000, 1.2], [7000, 1.35]]}
+
+
+def split_score(score, a, z):
+    """One score -> (inside, outside): the events starting in [a, z) beats and the rest, each a full-length score.
+    The latching strum setting is carried into both."""
+    pos, strum = 0.0, ""
+    out = {True: [], False: []}
+    st, at = {True: "", False: ""}, {True: 0.0, False: 0.0}
+    for tok in score.split():
+        if "/" not in tok:
+            key, _, val = tok.partition("=")
+            assert key == "strum", tok
+            strum = val
+            continue
+        head, _, rest = tok.partition("/")
+        ln = float(rest.split("b")[0])
+        if head != "R":
+            k = a - 1e-6 <= pos < z - 1e-6
+            if pos - at[k] > 1e-6:
+                out[k].append(f"R/{pos - at[k]:.9g}b")
+            if st[k] != strum:
+                out[k].append(f"strum={strum}")
+                st[k] = strum
+            out[k].append(tok)
+            at[k] = pos + ln
+        pos += ln
+    for k in (True, False):
+        if pos - at[k] > 1e-6:
+            out[k].append(f"R/{pos - at[k]:.9g}b")
+    return " ".join(out[True]), " ".join(out[False])
+
+
+def the_band_sits_around_you(song):
+    by = {x["name"]: x for x in song["tracks"]}
+    # the lens (one light, a point) and the fall (the hand-over to t5) keep the single centred cellos: the image
+    # OPENS at A (bar 17) and closes again at the fall (121) - and the seams' bodies stay as their neighbours know them
+    inside, outside = split_score(by["lights"]["score"], b0(SEATED[0]), b0(SEATED[1]))
+    desks = json.loads(json.dumps(by["lights"]))
+    desks.update(name="desks", score=inside)
+    by["lights"]["score"] = outside
+    song["tracks"].append(desks)
+    by["desks"] = desks
+    for n, (pan, trim) in SEATING.items():
+        tr_ = by[n]
+        tr_["double"] = {"pan": pan}
+        tr_.pop("pan", None)
+        tr_["gain"] = f"{float(str(tr_.get('gain', '0dB')).replace('dB', '')) + trim:g}dB"
+    dly = song["buses"]["dly"]["fx"]
+    assert dly[0].startswith("delay ") and "ping_pong" not in dly[0]
+    dly[0] += " ping_pong=true"
+    song["master"]["fx"].append(json.loads(json.dumps(WIDE_TOP)))
+
+
 def her_glides(song):
     for tr_ in song["tracks"]:
         if tr_["name"] in SUNG_GLIDES and isinstance(tr_.get("patch"), dict):
@@ -2128,6 +2201,7 @@ def main():
     her_vowels_live(song)
     her_glides(song)
     lights_move(song)
+    the_band_sits_around_you(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} crest {CREST} voice notes {len(voice)}")
