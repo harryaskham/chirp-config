@@ -14319,7 +14319,8 @@
        "harmony_key": "D mixolydian",
        "hum": "auto.hm",
        "hum_at": "m",
-       "vowel_drift": 0.6
+       "vowel_drift": 0.6,
+       "diction": 2
       }
      ],
      "lfo": {
@@ -16212,7 +16213,8 @@
        "cons_spread": 1.0,
        "taper": 0.5,
        "attack": 0.5,
-       "vowel_drift": 0.6
+       "vowel_drift": 0.6,
+       "diction": 2
       }
      ],
      "lfo": {
@@ -17292,7 +17294,8 @@
        "cons_spread": 1.0,
        "taper": 0.5,
        "attack": 0.5,
-       "vowel_drift": 0.6
+       "vowel_drift": 0.6,
+       "diction": 2
       }
      ],
      "lfo": {
@@ -20212,7 +20215,8 @@
        "hum_at": "m",
        "hum_even": 1.0,
        "age_high": 0.6,
-       "vowel_drift": 0.8
+       "vowel_drift": 0.8,
+       "diction": 2
       }
      ],
      "lfo": {
@@ -21418,7 +21422,8 @@
        "hum_even": 1.0,
        "taper": 1.0,
        "age_high": 0.6,
-       "vowel_drift": 1.0
+       "vowel_drift": 1.0,
+       "diction": 2
       }
      ],
      "lfo": {

@@ -909,6 +909,25 @@ def her_lips_part(song):
                                                                  [f"{at + 3.5:g}b", db], [f"{at + 4:g}b", 0.0]]})
 
 
+# v104 (ROUND TYPE: whole song - the words only; Harry, 10 Nov 18:22: 'lets DO DICTION ... add diction and then cut
+# it'): THE WORDS CARRY. wM's diction (pinned f074503d) on the layers that sing words: the choir and its two harmony
+# choirs, the solo voice, her last line. Level 1: sung consonants shape F3 as spoken ones do; level 2: the consonants
+# fit their notes, keep their energy when squeezed, and the weak fricatives carry. No beat moves; a note with room is
+# as it was. The far choir hums on 'n' throughout: nothing for diction to do, left unset. Set here, in the song's
+# own patches - never in the library's.
+DICTION = {"choir": 2, "choir5": 2, "choir8": 2, "solo": 2, "last": 2}
+
+
+def the_words_carry(song):
+    for tr_ in song["tracks"]:
+        level = DICTION.get(tr_["name"])
+        if level:
+            tr_["patch"] = json.loads(json.dumps(tr_["patch"]))        # its own copy: no other track shares it
+            layer = tr_["patch"]["synth"]["layers"][0]
+            assert layer["type"] == "voice" and "diction" not in layer, tr_["name"]
+            layer["diction"] = level
+
+
 def score_events(score):
     pos, ev = 0.0, []
     for tok in score.split():
@@ -2372,6 +2391,7 @@ def main():
     her_last_word_stays(song)
     the_jet_is_not_held_down(song)
     her_lips_part(song)
+    the_words_carry(song)
     with open(OUT, "w") as f:
         json.dump(song, f, indent=1)
     print(f"wrote {OUT} bars {BARS} jet {JET} (beat {JB}) choir notes {len(lead)}")
