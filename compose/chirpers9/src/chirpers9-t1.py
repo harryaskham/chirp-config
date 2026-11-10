@@ -148,6 +148,7 @@ FEED = os.environ.get("C9T1_FEED", "cantus:-5,pad:-4,warmth:-4,cloud:-4")   # WH
 HEARD = os.environ.get("C9T1_HEARD", "seed-d:2,seed-c:2,seed-e:2,crest-gong:10,spray:8")   # with it, from the same map - three parts that were written, described in these notes, and not heard: the D, C and E seed voices up a little; the tubular bell on the crest's downbeat (v82: 17 dB under the band in its best octave); v89's burst of dust at the crest (11-14 dB under). Value 'track:+dB,...' (a name matches every track that starts with it)
 MASTERGLUE = os.environ.get("C9T1_MASTERGLUE", "-27:2.5")   # WHOLE, deep pass 4 (chirper-one's limiter finding, tools/limwork.py, run on t1 v90: the loudness stage adds 19 dB and the final limiter then does the mastering at the crest - for the first two and a half seconds after the downbeat it is pulling more than 6 dB, 12 at its deepest, in milliseconds: the moment the whole track is for, the five voices, the bell and the dust arriving together, was the most squashed in the song - and v90's louder bell and dust made it worse): THE CREST IS MASTERED, NOT CRUSHED - a master bus compressor whose threshold t1's own mix reaches ('threshold dB', before the loudness stage; 2:1, 30 / 300 ms, detector high-passed at 120 Hz) takes the crest slowly, and a soft clipper ahead of the limiter ('clip dB' over the ceiling) rounds what is left. Value 'threshold:clip[:ratio]'
 LOCKSUNG = os.environ.get("C9T1_LOCKSUNG", "rest3+lift:2")   # WHOLE, deep pass 5 (chirper-two's amap --track, run on v91: in B the crystal cell holds the 355-1400 Hz octaves 13 to 30 dB over EVERYTHING ELSE - B's middle is the crystal alone - and the one part it buries is the album's first voices: the choir's hummed E1 at the lock (v75, beats 240-252) sits 8 dB under the band in its own best octave, the crystal 9 dB over it. The voice accretes across the album from this hum): THE LOCK IS SUNG - while the choir hums E1 the crystal gives it the floor: 'rest3' it sits out its three statements under the hum (beats 239, 244 and 249) and comes back with the next, so for fifteen beats the lock is the five singers over the drum, the bass, the cello and the five seed voices ('rest': only the last two); 'duck:dB' it stays but drops by that much for the hum. '+lift:dB' raises the choir's hum
+PHRASEARC = os.environ.get("C9T1_PHRASEARC", "")   # WHOLE, deep pass 6 (wM's phrase_arc, pin 897af8ca: a line's own dynamics. t1's sustained lines were level from first note to last, and the cello - the most-heard part in the song - restarted every four bars in an audible block): THE LINES BREATHE - each phrase swells to the middle of its highest note and falls away after it. 'track:arc:makeup,...': the cello cantus (its four-bar phrases - E1 augmented - now rise to the C and fall to the long E, so each restart is a bow change, not a block), the whistle's and the flute's E1 calls, the shakuhachi's retrograde, and the far choir's three hums. Makeup dB keeps each line's average where it was
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -1144,6 +1145,23 @@ def song():
                     tr["auto"] = dict(tr.get("auto", {}), floor={"points": [["0b", 0.0], ["239.5b", 0.0], ["240.5b", float(opt[5:])], ["252.5b", float(opt[5:])], ["254b", 0.0], [f"{TOTAL}b", 0.0]]})
                 if tr["name"] == "hum-lock" and opt.startswith("lift:"):
                     tr["gain"] = f"{float(tr['gain'][:-2]) + float(opt[5:]):g}dB"
+    if PHRASEARC:
+        for part in PHRASEARC.split(","):
+            nm, arc, mk, *skip = part.split(":")
+            if skip:
+                # some phrases keep their level (given as 'from-to' beats): they go to a twin track without the arc
+                k0, k1 = (float(v) for v in skip[0].split("-"))
+                src = next(tr for tr in tracks if tr["name"] == nm)
+                plain = [n for n in src["notes"] if k0 <= float(n["at"]) < k1]
+                src["notes"] = [n for n in src["notes"] if not (k0 <= float(n["at"]) < k1)]
+                tracks.append(dict(src, name=nm + "-plain", notes=plain))   # appended, so no other track's place (and per-track randomness) moves
+            for tr in tracks:
+                if tr["name"] == nm:
+                    if isinstance(tr["patch"], dict):
+                        tr["patch"] = dict(tr["patch"], extends=tr["patch"]["extends"] + f" play.phrase_arc={float(arc):g}")
+                    else:
+                        tr["patch"] = f"{tr['patch']} play.phrase_arc={float(arc):g}"
+                    tr["gain"] = f"{float(tr['gain'][:-2]) + float(mk):g}dB"
     doc = {
         **({"patches": patches} if patches else {}),
         "about": "chirpers IX (Accretion), track 1 by chirper-zero: nucleation - the seed cell E1, shown plainly first, forms "
