@@ -160,8 +160,9 @@ class Snapshots(unittest.TestCase):
             L.read_text = orig
         self.assertEqual(pins, ["/pins/chirp-0", "/pins/chirp-1"])
 
-    def test_previews_use_lod_when_the_pin_has_it(self):
-        """chirp-video's batch 49: `chirp video --lod` draws a 480p preview at 480p detail. Probed on the pin's help."""
+    def test_lod_is_opt_in_and_probed_on_the_pin(self):
+        """chirp-video's batch 49: `chirp video --lod` draws a 480p preview at 480p detail (not the film's look), so
+        previews ask for it only with videos(lod=True) / --lod, and only when the pin's help has it."""
         d = tempfile.mkdtemp()
         for name, text in (("old", "Usage: chirp video [OPTIONS]\n      --size <WxH>\n"),
                            ("new", "Usage: chirp video [OPTIONS]\n      --lod   Detail follows the picture's size\n")):
@@ -173,6 +174,21 @@ class Snapshots(unittest.TestCase):
         self.assertEqual(L.lod_args(os.path.join(d, "old")), [])
         self.assertEqual(L.lod_args(os.path.join(d, "new")), ["--lod"])
         self.assertEqual(L.lod_args(os.path.join(d, "missing")), [])
+        snap = L.cut("chirpers9", "", render=fake_render, canonical=lambda p, s: '{"tempo":1}', log=lambda *x: None)
+        calls = []
+
+        def run(cmd, **kw):
+            calls.append(cmd)
+            open(cmd[-1], "wb").write(b"mp4")
+            return type("R", (), {"returncode": 0, "stderr": ""})()
+        orig = L.read_text
+        try:
+            L.read_text = lambda p: os.path.join(d, "new") if p.endswith("groove-pin") else orig(p)
+            L.videos("chirpers9", snap["id"], {1}, "accretion", log=lambda *x: None, run=run)             # the film's detail
+            L.videos("chirpers9", snap["id"], {1}, "accretion", log=lambda *x: None, run=run, redo=True, lod=True)
+        finally:
+            L.read_text = orig
+        self.assertEqual(["--lod" in c for c in calls], [False, True])
 
     def test_video_renders_the_snapshots_own_song_text(self):
         a = L.cut("chirpers9", "", render=fake_render, canonical=lambda p, s: '{"tempo":1}', log=lambda *x: None)

@@ -302,8 +302,8 @@ _LOD = {}
 
 def lod_args(pin):
     """["--lod"] when PIN's `chirp video` has it (chirp-video's batch 49, 10 Nov: detail follows the picture's size, as
-    in the live panes - a 480p preview draws about 480/1080 of each mesh and shadowmap and renders much faster; films
-    stay at full detail), else []."""
+    in the live panes - a 480p preview draws about 480/1080 of each mesh and shadowmap; films stay at full detail),
+    else []. Opt-in (videos' LOD): see there for what it saves and costs."""
     if pin not in _LOD:
         try:
             h = subprocess.run([pin, "video", "--help"], capture_output=True, text=True, stdin=subprocess.DEVNULL)
@@ -336,7 +336,7 @@ def programme_mtime(look, track_id, vis_dir=None):
     return newest
 
 
-def videos(album_id, sid=None, ids=None, look=None, log=print, run=subprocess.run, redo=False, stale=False):
+def videos(album_id, sid=None, ids=None, look=None, log=print, run=subprocess.run, redo=False, stale=False, lod=False):
     """480p previews (854x480, 24 fps, crf 30; LOOK, else the song's own programme or the engine default); one track
     at a time, at nice 19 (about 1.3x real time on pocket4 under load). LOOK may be `{id}|FALLBACK` (see look_args);
     REDO re-renders previews that already exist (a track's programme changed); STALE re-renders only those older than
@@ -344,7 +344,11 @@ def videos(album_id, sid=None, ids=None, look=None, log=print, run=subprocess.ru
     started (a programme changed mid-render is newer than it).
     Each track renders on the groove pin AS IT IS WHEN THAT TRACK STARTS (9 Nov: a run that began on 7f9c5782 failed
     t4-t6 on programmes written for batch 44, adopted mid-run). Landings are gated byte-identical on the album, so a
-    newer pin draws the snapshot's own audio."""
+    newer pin draws the snapshot's own audio.
+    A preview is THE FILM at 480p (full detail). LOD passes `chirp video --lod` when the pin has it: detail follows
+    the picture's size as in the live views, which is not how the film will look (chirp-video, 10 Nov) and saves
+    about a quarter of the CPU (measured on fa300974 at 480p, cached audio: t1 bars 41-49 162 -> 119 CPU-s, t6 bars
+    65-73 410 -> 296) - for a saturated host only."""
     snaps = snapshots(album_id)
     snap = next((s for s in snaps if s["id"] == sid), None) if sid else (snaps or [None])[-1]
     if not snap:
@@ -370,7 +374,7 @@ def videos(album_id, sid=None, ids=None, look=None, log=print, run=subprocess.ru
         out = os.path.join(d, f".{stem}.tmp.mp4")
         t0 = time.time()
         cmd = ["nice", "-n", "19", pin, "video", "-f", song, "--seed", "0", "--size", "854x480", "--fps", "24",
-               "--crf", "30"] + lod_args(pin) + look_args(look, t["id"]) + ["-o", out]
+               "--crf", "30"] + (lod_args(pin) if lod else []) + look_args(look, t["id"]) + ["-o", out]
         try:
             r = run(cmd, capture_output=True, text=True, cwd=os.path.dirname(song))
         finally:
@@ -720,6 +724,7 @@ def main(argv=None):
     p.add_argument("--look", help="a look name, or {id}|FALLBACK: vis/<track id>.yaml when it exists, else FALLBACK")
     p.add_argument("--redo", action="store_true", help="re-render previews that already exist")
     p.add_argument("--stale", action="store_true", help="re-render previews older than their programme or its kits")
+    p.add_argument("--lod", action="store_true", help="draw at preview detail (about a quarter less CPU; not the film's look)")
     p = sub.add_parser("serve")
     p.add_argument("--host", action="append", help="listen address (repeatable; default 127.0.0.1)")
     p.add_argument("--port", type=int, default=8791)
@@ -738,7 +743,7 @@ def main(argv=None):
     if a.cmd == "cut":
         cut(a.album, a.label)
     elif a.cmd == "video":
-        videos(a.album, a.snap, {int(x) for x in a.ids.split(",")} if a.ids else None, a.look, redo=a.redo, stale=a.stale)
+        videos(a.album, a.snap, {int(x) for x in a.ids.split(",")} if a.ids else None, a.look, redo=a.redo, stale=a.stale, lod=a.lod)
     elif a.cmd == "serve":
         serve(a.host or ["127.0.0.1"], a.port)
     elif a.cmd == "notes":
