@@ -144,6 +144,8 @@ LASTCUTS = os.environ.get("C9T1_LASTCUTS", "two")   # SECTION w7 (3:27-3:59, the
 DUST = os.environ.get("C9T1_DUST", "1.5:96:-17")   # WHOLE, deep pass (Harry, 10 Nov: go deep on feel and texture; t1's first 50 s had almost nothing above 2 kHz and its intro has read 'static' since 5 Nov): DUST TO SEED - nucleation heard. Before each of the five voices exists, its note is already there as dust: tiny bright grains (a1-dust, this song's own patch) an octave or two above it, scattered loosely around where that voice's cycle will strike. As the intro goes on the grains of each note fall in toward its strikes - closer in time, lower in register, more of them - until by A's second phrase they have condensed into the voice itself and are gone. Each note's dust rides the ring where its voice rides (the same orbit). Value 'density:endbeat[:gaindB]'
 HALO = os.environ.get("C9T1_HALO", "0.15")   # with DUST or alone: THE SEED RINGS - each of the five voices (and its dust) plays through its own sympathetic string (engine `sympathetic`, a damped comb tuned to its note and the octave below, 6 s), so a struck note leaves a faint held tone behind it; the strings' level blooms toward the crest, where all five ring at once - the seed, formed, sustains. Value 'mix at the crest' (0..1)
 FIELD = os.environ.get("C9T1_FIELD", "hall+arc+spray")   # WHOLE, deep pass 2 (chirper-three's and chirper-one's finding, 10 Nov: Accretion's top end is nearly mono - t1 read -10.5 dB side/mid at 2-16 kHz, -13.2 in the air; the genre anchors sit near 0 and above): THE FIELD - t1's own answer is its story, told by the stereo image. Scattered matter is wide; the seed forms at a point; formed, it shines. Options, '+'-joined: 'hall' the hall's tail lets the air through and spreads it (high_cut 16 kHz, spread 1); 'arc' a master width stage on the bands above 2.5 and 6 kHz, on one lane: wide through the intro and A (the scattered field), closing in through the build until at the last beat before the crest the top of the mix is almost a point - and at the crest's downbeat it snaps open, wider than anything before; it eases through B and is neutral from the outro on, so the overlap with t2 is as agreed; 'spray' at the crest the seed throws off dust: a burst of the intro's grains (a1-dust, E1's five notes two octaves up) flung hard left and right, independent each side, thick on the downbeat and thinning over four bars to a sparse sprinkle that lasts through B and is gone before the outro
+FEED = os.environ.get("C9T1_FEED", "cantus:-5,pad:-4,warmth:-4,cloud:-4")   # WHOLE, deep pass 3 (chirper-two's arrangement map, tools/amap.py, run on v89: the five seed voices - the subject of the track - read 'masked in most of their windows'. At the moment of each strike they sit 3-8 dB under everything else in their own best octave, and the part over them is the bed: the cello cantus over the D and the E, the cello and the bass over the A and the C): THE SEED FEEDS ON THE DISK - each strike of a seed voice takes a little from the bed: the cello, the pad, the organ and the cloud dip under it and swell back in two thirds of a beat. Five cycles of 9, 7, 8, 6 and 5 beats strike at their own times, so the bed stirs with the polymeter, and where two or more strike together it dips for them together; at the crest, where all five meet, the whole bed breathes once. It stops at the outro, so the overlap with t2 is as agreed. Value 'track:dB,...'
+HEARD = os.environ.get("C9T1_HEARD", "seed-d:2,seed-c:2,seed-e:2,crest-gong:10,spray:8")   # with it, from the same map - three parts that were written, described in these notes, and not heard: the D, C and E seed voices up a little; the tubular bell on the crest's downbeat (v82: 17 dB under the band in its best octave); v89's burst of dust at the crest (11-14 dB under). Value 'track:+dB,...' (a name matches every track that starts with it)
 HATP = os.environ.get("C9T1_HATP", "shekere")   # PALETTE: the dust - the NES noise hat (an album staple, 4 songs) becomes a shekere ('shekere': afro-perc sk, with a clave on each cell's downbeat after the crest): beads around a gourd, the debris orbiting the seed made of something you can hold
 
 
@@ -1116,6 +1118,20 @@ def song():
             sides[rs.choice(("spray-l", "spray-r"))].append(note(round(t, 3), f"m{mm}", 0.2, vel))
         for nm, pan in (("spray-l", -0.9), ("spray-r", 0.9)):
             tracks.append({"name": nm, "patch": "a1-dust", "gain": "-19dB", "pan": pan, "sends": {"space": "-3dB"}, "notes": sides[nm]})
+    if FEED:
+        strikes = sorted({round(float(n["at"]), 4) for tr in tracks if tr["name"] in seeds for n in tr["notes"] if float(n["at"]) < ST["outro"]})
+        tracks.append({"name": "feed-key", "patch": "909", "mute": True, "gain": "-30dB", "notes": [{"at": a, "pitch": "k", "len": 0.25, "vel": 0.8} for a in strikes]})
+        for part in FEED.split(","):
+            nm, d = part.split(":")
+            for tr in tracks:
+                if tr["name"] == nm:
+                    tr["fx"] = list(tr.get("fx", [])) + [{"type": "pump", "on": "feed-key.k", "depth": f"{d}dB", "attack": "25ms", "release": "1/6", "curve": 0.6}]
+    if HEARD:
+        for part in HEARD.split(","):
+            nm, d = part.split(":")
+            for tr in tracks:
+                if tr["name"].startswith(nm):
+                    tr["gain"] = f"{float(tr['gain'][:-2]) + float(d):g}dB"
     doc = {
         **({"patches": patches} if patches else {}),
         "about": "chirpers IX (Accretion), track 1 by chirper-zero: nucleation - the seed cell E1, shown plainly first, forms "
