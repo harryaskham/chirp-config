@@ -999,6 +999,30 @@ def the_well():
 WELL_AGAIN = (114, 121)
 
 
+# v97 (ROUND TYPE: section, the jet's second half 114-121, 2:56-3:10; rewritten): THE JET RUNS OUT OF ROAD. t8's
+# least-moving change is still 2:56 (0.81 / 0.81; blocks 108.5-113.8 and 113.8-119.1). Presence: the sub (-2.7 / -1.4)
+# and the drums lead both; the first block has the choirs' line (-3.7), the second NO voice - the jet running on its
+# engine alone into the break, the snare on its backbeat to the last half-bar fill. Now the jet runs out of road: from
+# 114 the snare builds - every beat, then eighths (117), then sixteenths (119), then a thirty-second roll (120.5) -
+# rising into the break, where time dilates. A build adds snare-band energy and takes nothing from t8's starved
+# 60-115 Hz (compscore --bands: 61 Hz on the envelope's edge).
+ROAD = [(114, 117, 1.0, (78, 78)), (117, 119, 0.5, (74, 100)), (119, 120.5, 0.25, (66, 104)), (120.5, 121, 0.125, (84, 120))]
+
+
+def out_of_road():
+    a, z = b0(ROAD[0][0]), b0(ROAD[-1][1])
+    keep = [e for e in P["snare"].ev if not (a - 1e-6 <= e[0] < z - 1e-6)]
+    new = []
+    for lo, hi, step, (v0, v1) in ROAD:
+        s, e = b0(lo), b0(hi)
+        n = int(round((e - s) / step))
+        for i in range(n):
+            at = s + i * step
+            v = 104 if (step >= 0.5 and abs((at % 4) - 1) < 1e-6 or abs((at % 4) - 3) < 1e-6) else round(v0 + (v1 - v0) * i / max(1, n - 1))
+            new.append((at, step, "s", v))
+    P["snare"].ev = sorted(keep + new, key=lambda e: e[0])
+
+
 def the_well_again():
     a, z = b0(WELL_AGAIN[0]), b0(WELL_AGAIN[1])
     P["bass"].ev = [(s, ln, octave_down(h) if a - 1e-6 <= s < z - 1e-6 else h, v) for s, ln, h, v in P["bass"].ev]
@@ -1920,6 +1944,7 @@ def main():
     the_well()
     memory_floats()
     the_well_again()
+    out_of_road()
     everything_falls_in()
     light_out_for_the_amen()
     lead, fifth, low = choir()
