@@ -190,11 +190,13 @@ def build(song):
                 continue
             first = lname not in {k[0] for k in seen}
             seen.add(key)
-            moves, last = [], None
-            for b, v in pts:
-                if last is None or abs(v - last) > 1e-6:
+            # Every corner of the lane: a point is dropped only inside a run of equal values
+            # (the run's first and last are kept, so a hold and the ramp after it both show).
+            moves = []
+            for i, (b, v) in enumerate(pts):
+                inside = 0 < i < len(pts) - 1 and abs(pts[i - 1][1] - v) < 1e-6 and abs(pts[i + 1][1] - v) < 1e-6
+                if not inside:
                     moves.append({"bar": round(clk.bar(b), 1), "at": round(clk.sec(b), 1), "value": round(v, 3)})
-                last = v
             out["lanes"].append({"name": lname, "on": owner, "read": first, "lo": min(v for _, v in pts),
                                  "hi": max(v for _, v in pts), "moves": moves})
 
@@ -236,13 +238,13 @@ def main():
             if t["sung"]:
                 print("      sung: " + " | ".join(t["sung"][:14]) + (" ..." if len(t["sung"]) > 14 else ""))
     if not a.tracks:
-        print(f"\nlanes ({len(m['lanes'])}): lane.NAME reads the first of a name; where each moves (bar m:ss value)")
+        print(f"\nlanes ({len(m['lanes'])}): lane.NAME reads the first of a name; its corners (bar m:ss value), straight lines between")
         for l in m["lanes"]:
             mv = l["moves"]
             shown = mv if len(mv) <= 10 else mv[:5] + [None] + mv[-4:]
             txt = "  ".join("..." if x is None else f"{x['bar']:g} {mmss(x['at'])} {x['value']:g}" for x in shown)
             tag = "" if l["read"] else "  (shadowed: another lane of this name comes first)"
-            print(f"  {l['name']:<12} on {l['on']:<12} {l['lo']:g}..{l['hi']:g}, {len(mv)} moves{tag}\n      {txt}")
+            print(f"  {l['name']:<12} on {l['on']:<12} {l['lo']:g}..{l['hi']:g}, {len(mv)} corners{tag}\n      {txt}")
 
 
 if __name__ == "__main__":
