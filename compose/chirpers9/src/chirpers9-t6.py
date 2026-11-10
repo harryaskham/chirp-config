@@ -1885,6 +1885,29 @@ def build():
                 ext_ = str(t_['patch'].get('extends', '')) if isinstance(t_['patch'], dict) else ''
                 c_ = (0.9 if 'voice-old' in ext_ else 1.3 if 'voice-near' in ext_ else 1.1) * a_ / (0.5 if 'voice-choir' in ext_ else 0.6)
             t_['gain'] = '%gdB' % round(float(str(t_['gain'])[:-2]) + c_, 1)
+    # (v115, section w4: 1:35-2:06, the squeeze - deep pass. Its first eight bars, 49-56, were the one stretch of the
+    # song's middle with nobody singing: every instrument turning the hook at its own speed, and eco's map reads
+    # the change across them among the song's flattest) THE GAP CLOSES. The squeeze is where the two sides draw
+    # level - the far layer speeding to 1.6, the near slowing to 0.8, one bar from meeting - and now the two voices
+    # do it in the open: the old man sings 'the tide comes in' every two bars and the near voice answers him, as she
+    # did in the pull, but each time sooner - a whole bar behind him, then half a bar, then one beat, and the fourth
+    # time WITH him, in octaves, on the downbeat of bar 55 - a canon whose gap closes to nothing, two bars before he
+    # sings 'the near side keeps the time'. The same four notes (A G E D), each statement a little fuller
+    if os.environ.get('GAP', '1') == '1':
+        so_ = [t_ for t_ in song['tracks'] if t_['name'] == 'sung'][0]
+        nw_ = [t_ for t_ in song['tracks'] if t_['name'] == 'nearwake'][0]
+        co_ = [n_ for n_ in so_['notes'] if 115.9 <= n_['at'] < 119.0]
+        cn_ = [n_ for n_ in nw_['notes'] if 106.0 <= n_['at'] < 109.0]
+        assert len(co_) == 4 and len(cn_) == 4
+        g0_ = SEC['squeeze'] * 4.0
+        go_, gn_ = [], []
+        for k_, gap_ in enumerate((4.0, 2.0, 1.0, 0.0)):
+            for n_ in co_:
+                go_.append(dict(n_, at=round(g0_ + 8.0 * k_ + 0.25 + (n_['at'] - co_[0]['at']), 4), vel=round(min(0.9, n_['vel'] * (0.92 + 0.05 * k_)), 3)))
+            for n_ in cn_:
+                gn_.append(dict(n_, at=round(g0_ + 8.0 * k_ + 0.25 + gap_ + (n_['at'] - cn_[0]['at']), 4), vel=round(min(0.9, n_['vel'] * (0.95 + 0.05 * k_)), 3)))
+        song['tracks'].append(dict(so_, name='gapold', notes=go_, gain=os.environ.get('GAPOG', '-4.5dB')))
+        song['tracks'].append(dict(nw_, name='gapnear', notes=gn_, gain=os.environ.get('GAPNG', '-6dB')))
     return song
 
 
