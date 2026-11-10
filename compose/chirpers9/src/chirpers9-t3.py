@@ -780,6 +780,40 @@ R102 = os.environ.get("T3_R102", "stutter") != "none"
 # holds the lock's chords (Dm Bb C Dm, bars 89-96) locked. The old swarm hands over to it at bar 85. T3_R103=none
 # reproduces v102.
 R103 = os.environ.get("T3_R103", "flock") != "none"
+# round 104 (a DEEP pass on the lock - Harry, 10 Nov: go deep on feel, texture and style; the draw was section):
+# T3_R104=lands (default) - THE LOCK LANDS. t3's whole shape is difficult -> rewarding: two storms, then every cycle
+# meets one downbeat and the band locks into one groove. Measured on the master (K-weighted, by section) the reward
+# arrived SMALLER than the chaos before it: second storm -12.1 dB, the lock -13.2; narrower too (side/mid above
+# 2 kHz -4.8 -> -7.9), its whole top end one hi-hat parked at +0.15; and the final limiter worked hardest exactly
+# there (chirper-one's limwork: 1.3 dB mean, over 1 dB 56% of the time; the storm 0.9 / 37%).
+# (0) THE SNARE STOPS PUNCHING HOLES IN THE MIX. Why the limiter worked there: rendered without the master, the
+#     lock's mix peaks at +13.0 dBFS against the storm's +8.6, and one track owns it - the played snare, which only
+#     enters at the lock: +13.0 dBFS peak over a -17.7 dB body (30 dB of crest), most of it the punch bus (v87), whose
+#     9 ms attack passes the stick's first millisecond with 4 dB of makeup. The limiters had to pull 14 dB on every
+#     backbeat, ducking everything else with it. Now a soft clipper ends the punch bus (-4 dB) and the snare's own
+#     strip (-4 dB): snare peak +13.0 -> +4.9, body -1.2 dB; kick +2.3 -> +1.0; and the plucked lead's spikes
+#     (+8.2 over a -19.8 dB body) are shaved the same way (-13 dB ahead of its +14 dB fader). And the low end gets
+#     ONE bus: the kicks, the 808s, the basses and the three sub layers (fifteen tracks whose sum peaked at +5.6 dBFS
+#     over a -11.8 dB body) now leave through one soft clipper (0 dBFS, knee 0.6) - the sub is held, not ducked.
+# (1) THE LEVEL IS EARNED. The storms sit lower under the master (dyn lane: eyewall -2.0/-1.5 -> -3.2/-2.7, second
+#     storm -1.0 -> -2.8) and the lock keeps its +1.5; `loudness_clip: 2.5dB` (chirper-one's t6 recipe) shaves what
+#     peaks remain ahead of the limiter instead of ducking the whole mix on every hit.
+# (2) THE TWO KITS LOCK, ONE IN EACH EAR. Through the storm t3 has two kits that never agree - the played kit and
+#     the NES noise kit (which falls silent at bar 72). At the lock the played hats move hard left and the NES hat
+#     comes back hard right playing the SAME sixteenths, stroke for stroke (lockchip): two machines, one pattern -
+#     the lock heard as a stereo image, from bar 89 to the end of the crest (bar 112). The played hat 1 dB down,
+#     the NES hat level with it; the ride comes to the centre.
+# (3) THE SINGER LEADS. "nothing here is late" sat level with the plucked lead (-7.0 dB both); she is 1.5 dB up.
+# T3_R104=none reproduces v103.
+R104 = os.environ.get("T3_R104", "lands") != "none"
+PUNCH_CLIP = os.environ.get("T3_PUNCH_CLIP", "-4dB")
+LOW_CLIP = os.environ.get("T3_LOW_CLIP", "0dB")
+LOWS = ("kick", "kick7", "kickhalf", "ksub", "ksubhalf", "bass", "bassr", "bassr2", "bassh", "bsub", "bsubh", "floor",
+        "sub", "boom", "stutk")
+LOCKCHIP_GAIN = os.environ.get("T3_LOCKCHIP_GAIN", "4.5dB")   # at -6: -18.3 dB against the mix; at 3: -10.4 beside the hats' -8.4
+LOCK_HAT_TRIM = float(os.environ.get("T3_LOCK_HAT_TRIM", "-1.0"))
+STORM_DYN = float(os.environ.get("T3_STORM_DYN", "-1.8"))   # at -1.2 the lock still read 0.3 dB under the second storm
+SUNG_LIFT = float(os.environ.get("T3_SUNG_LIFT", "1.5"))
 KURA_GAIN = os.environ.get("T3_KURA_GAIN", "-2dB")   # two-patch trial at 0: crowd -8.7 dB (0.93), unison -3.2 over the singer's -7.2
 STUT_GAIN = os.environ.get("T3_STUT_GAIN", "-6dB")   # at 0: stabs -1.2 dB, toms -1.1 (the kit -7)
 VOICES_DB = float(os.environ.get("T3_VOICES_DB", "12"))   # at 8: -14.9..-20.3 dB, still under
@@ -2579,6 +2613,54 @@ def main():
         master["fx"] = master["fx"][:i] + [{"type": "filter", "kind": "peak", "cutoff": 3200, "q": 0.7,
                                             "gain": {"value": "0dB", "mod": [{"src": "auto.soften", "amount": 1}]}}] + master["fx"][i:]
         master["auto"] = dict(master["auto"], soften={"points": [[b, SOFTEN_DB * v] for b, v in mid]})
+    if R104:                                                # deep (the lock): the level is earned; two kits in two ears
+        for tr in tracks:                                   # (0) the spikes shaved at their source
+            if tr.get("name") in LOWS and not tr.get("out"):
+                tr["out"] = "low"                           # one low bus: kicks, 808s, basses and subs through one clipper
+            if tr.get("name") in ("snare", "snarehalf"):
+                tr["fx"] = list(tr.get("fx") or []) + [{"type": "clip", "ceiling": PUNCH_CLIP, "knee": 0.6, "link": True}]
+            elif tr.get("name") == "e1pz":
+                tr["fx"] = list(tr.get("fx") or []) + [{"type": "clip", "ceiling": "-13dB", "knee": 0.7, "link": True}]
+        dyn = master["auto"]["dyn"]["points"]
+        new = []
+        for b, v in dyn:                                    # (1) the storms lower under the master, the lock as it was
+            bb = float(b[:-1])
+            if 160 <= bb <= 244:
+                v = round(v + STORM_DYN * 2 / 3, 2)
+            elif 264 <= bb < 344:
+                v = round(v + STORM_DYN, 2)
+            new.append([b, v])
+        master["auto"] = dict(master["auto"], dyn={"points": new})
+        hats = next(tr for tr in tracks if tr.get("name") == "hats")   # (2) the played hats left, the NES hat right
+        ev, pos = [], 0.0
+        for tok in hats["score"].split():
+            m = re.match(r"^(.+?)/([0-9.e+-]+)b(?:@(\d+))?(.*)$", tok)
+            if m.group(1) != "R" and 352 <= pos < 448:
+                ev.append((pos, m.group(1), int(m.group(3) or 100)))
+            pos += float(m.group(2))
+        lc = Track("lockchip")
+        for at, tk, v in ev:
+            lc.add(at, 0.12 if tk == "oh" else 0.05, "A#6" if tk == "oh" else "C7", v)
+        seat = [["0b", 0], ["351.9b", 0], ["352b", 1], ["440b", 1], ["448b", 0], ["513b", 0]]
+        pan0 = float(hats.get("pan") or 0.0)
+        hats["pan"] = 0.0
+        hats["fx"] = list(hats.get("fx") or []) + [
+            {"type": "pan", "pan": {"value": pan0, "mod": [{"src": "auto.seat", "amount": -0.55 - pan0}]}},
+            {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.seat", "amount": LOCK_HAT_TRIM}]}}]
+        hats["auto"] = dict(hats.get("auto", {}), seat={"points": seat})
+        tracks.append({"name": "lockchip", "patch": "nes-noise-hat", "gain": LOCKCHIP_GAIN, "pan": 0.55,
+                       "fx": [dict(f) for f in hats["fx"] if isinstance(f, dict) and f.get("type") == "gain"
+                              and any(mm.get("src") in ("auto.stut", "auto.half", "auto.halve") for mm in f["gain"].get("mod", []))],
+                       "auto": {k: v for k, v in hats["auto"].items() if k in ("stut", "half", "halve")},
+                       "score": lc.score()})
+        sung = next(tr for tr in tracks if tr.get("name") == "sung")   # (3) the singer leads
+        sung["gain"] = f"{float(str(sung.get('gain', '0dB')).replace('dB', '')) + SUNG_LIFT:g}dB"
+        ride = next(tr for tr in tracks if tr.get("name") == "ride")
+        rp = float(ride.get("pan") or 0.0)
+        ride["pan"] = 0.0
+        ride["fx"] = list(ride.get("fx") or []) + [{"type": "pan", "pan": {"value": rp, "mod": [
+            {"src": "auto.seat", "amount": -rp}]}}]
+        ride["auto"] = dict(ride.get("auto", {}), seat={"points": seat})
     about = ("chirpers - Accretion, track 3. Original composition by chirper-two, generated by "
              "compose/chirpers9/src/chirpers9-t3.py. The first storm: E1, E2 and E3 (a 2+2+3 progression) on cycles of "
              "12, 5 and 28 sixteenths, phased to meet the bar on one downbeat (bar 88), where the storm locks into a "
@@ -2593,6 +2675,7 @@ def main():
         'ceiling: "-1dB"',
         'volume: "0dB"',
         "loudness: -11",
+    ] + (['loudness_clip: "2.5dB"'] if R104 else []) + [
         "true_peak: true",
         "event_stable: true",
     ] + (["feel: " + json.dumps({"drift": "5ms", "drift_bars": 4, "nudge": {"k": "-4ms", "s": "6ms", "cp": "6ms"}})]
@@ -2600,9 +2683,12 @@ def main():
         "patches: " + json.dumps(patches),
         "buses: " + json.dumps(dict({"space": {"gain": "-5dB", "fx": ["hp cutoff=250", "reverb kind=plate decay=2.2s mix=1"]}},
                                     **({"punch": {"fx": ["rack:drum-bus-punch", {"type": "gain", "gain": {"value": "0dB",
-                                        "mod": [{"src": "auto.punch", "amount": 1}]}}],
+                                        "mod": [{"src": "auto.punch", "amount": 1}]}}] + (
+                                            [{"type": "clip", "ceiling": PUNCH_CLIP, "knee": 0.6, "link": True}] if R104 else []),
                                         "auto": {"punch": {"points": [["0b", -60], ["136b", -60], ["144b", 0], ["396b", 0],
-                                                                      ["404b", -60], ["513b", -60]]}}}} if R87 else {}))),
+                                                                      ["404b", -60], ["513b", -60]]}}}} if R87 else {}),
+                                    **({"low": {"fx": [{"type": "clip", "ceiling": LOW_CLIP, "knee": 0.6, "link": True}]}}
+                                       if R104 else {}))),
         "master: " + json.dumps(master),
         "tracks:",
     ]
