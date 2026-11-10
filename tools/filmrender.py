@@ -6,9 +6,16 @@ cores well. The tracks' parts are independent (also in a continuous mix), so thi
 of `chirp video --album FILE --only N` workers, the costliest tracks first, then one run without
 `--only`, which reuses every part and joins them, and then checks the result.
 
+    filmrender.py prepare FILE --dir DIR [--songs SNAPSHOT_DIR]
     filmrender.py draw FILE -o OUT.mp4 [--size 3840x2160] [--workers 4] [--threads 5]
                   [--order 3,6,4,2,5,1,7,8] [--shutter 2] [--encoder hevc_vaapi] [--bin CHIRP]
     filmrender.py check FILE -o OUT.mp4
+
+`prepare` freezes what the film reads: it copies every song (from the album file, or tNN.song
+from a listen snapshot with --songs) and every programme into DIR, writes DIR/video.yaml that
+points at the copies, and DIR/manifest.json with a hash of each (and of the prefab kits, the mix
+and its release.json). Draw DIR/video.yaml; `draw` and `check` say if anything in the manifest
+has changed since.
 
 Rules (docs/vis.md, "Album finals"):
   - Run it as its own guarded user unit, never from a shell (a runtime restart kills what a shell
@@ -66,6 +73,97 @@ def mix_audio(album):
     return None
 
 
+def sha(path):
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()[:16]
+
+
+def release_of(album):
+    inside = False
+    for line in open(album):
+        if re.match(r"^mix:\s*$", line):
+            inside = True
+        elif inside:
+            m = re.match(r"^\s+release:\s*(.+?)\s*$", line)
+            if m:
+                return os.path.expanduser(m.group(1).strip().strip('"').strip("'"))
+            if re.match(r"^\S", line):
+                inside = False
+    return None
+
+
+def prepare(a):
+    import shutil
+    cfg = os.path.expanduser("~/.config/chirp")
+    d = os.path.abspath(os.path.expanduser(a.dir))
+    os.makedirs(f"{d}/songs", exist_ok=True)
+    os.makedirs(f"{d}/vis", exist_ok=True)
+    out, n, inside, files = [], 0, False, {}
+    for line in open(a.album).read().split("\n"):
+        if re.match(r"^songs:\s*$", line):
+            inside = True
+        elif inside and re.match(r"^\s+-\s*\{", line):
+            n += 1
+            mf = re.search(r"file:\s*([^,}]+)", line)
+            mv = re.search(r"vis:\s*([^,}]+)", line)
+            if not mf or not mv:
+                sys.exit(f"filmrender: song {n} needs file: and vis: on its line")
+            src = os.path.join(a.songs, f"t{n:02d}.song") if a.songs else os.path.expanduser(mf.group(1).strip())
+            if not os.path.isabs(src):
+                src = os.path.join(os.path.dirname(a.album), src)
+            song = f"{d}/songs/{n:02d}.yaml"
+            shutil.copyfile(src, song)
+            v = mv.group(1).strip()
+            vsrc = os.path.expanduser(v) if v.endswith((".yaml", ".yml")) else f"{cfg}/vis/{v}.yaml"
+            if not os.path.exists(vsrc):
+                sys.exit(f"filmrender: song {n}: no programme at {vsrc} (a built-in look cannot be frozen)")
+            vis = f"{d}/vis/{n:02d}-{os.path.basename(vsrc)}"
+            shutil.copyfile(vsrc, vis)
+            line = line[:mf.start(1)] + song + line[mf.end(1):]
+            mv = re.search(r"vis:\s*([^,}]+)", line)
+            line = line[:mv.start(1)] + vis + line[mv.end(1):]
+            files[song] = f"song {n} from {src}"
+            files[vis] = f"programme {n} from {vsrc}"
+        elif inside and re.match(r"^\S", line):
+            inside = False
+        out.append(line)
+    if n == 0:
+        sys.exit(f"filmrender: no songs in {a.album}")
+    open(f"{d}/video.yaml", "w").write("\n".join(out))
+    man = {"album": a.album, "files": {}}
+    for f, what in files.items():
+        man["files"][f] = {"what": what, "sha": sha(f)}
+    # What the programmes use by name and cannot be copied: the prefab kits.
+    for f in sorted(os.listdir(f"{cfg}/vis")):
+        if f.startswith("kit-") and f.endswith(".yaml"):
+            man["files"][f"{cfg}/vis/{f}"] = {"what": "prefab", "sha": sha(f"{cfg}/vis/{f}")}
+    for f, what in ((mix_audio(a.album), "the mix"), (release_of(a.album), "the mix's tracklist")):
+        if f and os.path.exists(f):
+            man["files"][f] = {"what": what, "sha": sha(f)}
+        elif f:
+            print(f"filmrender: {what} is not there yet: {f}")
+    json.dump(man, open(f"{d}/manifest.json", "w"), indent=1)
+    print(f"prepared {n} songs in {d}: draw {d}/video.yaml ({len(man['files'])} files in the manifest)")
+
+
+def changed(album):
+    """Files of the manifest beside the album file (if it was prepared) that differ now."""
+    mf = os.path.join(os.path.dirname(album), "manifest.json")
+    if not os.path.exists(mf):
+        return None
+    bad = []
+    for f, e in json.load(open(mf))["files"].items():
+        if not os.path.exists(f):
+            bad.append(f"{f} (gone)")
+        elif sha(f) != e["sha"]:
+            bad.append(f"{f} ({e['what']})")
+    return bad
+
+
 def base_cmd(a):
     cmd = [a.bin, "video", "--album", a.album, "-o", a.out, "--crf", str(a.crf)]
     if a.size:
@@ -87,6 +185,12 @@ def draw(a):
     env = dict(os.environ, RAYON_NUM_THREADS=str(a.threads))
     if a.encoder:
         env["CHIRP_VIDEO_ENCODER"] = a.encoder
+    ch = changed(a.album)
+    if ch is None:
+        log(lg, "draw: this album file was not prepared (no manifest beside it): nothing guards its songs and programmes")
+    elif ch:
+        log(lg, f"draw: NOT started: changed since prepare: {ch}")
+        sys.exit(1)
     log(lg, f"draw: {n} tracks, order {order}, {a.workers} workers x {a.threads} threads, size {a.size or 'as the file says'}, "
             f"shutter {a.shutter}, encoder {a.encoder or 'x264'}, bin {a.bin}")
     q = queue.Queue()
@@ -149,6 +253,12 @@ def check(a, lg=None):
         good = abs(v - m) < 0.1
         ok = ok and good
         log(lg, f"check: the mix is {m:.3f} s; the film differs by {v - m:+.3f} s ({'ok' if good else 'WRONG LENGTH'})")
+    moved = changed(a.album)
+    if moved:
+        ok = False
+        log(lg, f"check: CHANGED since prepare (the film may mix old and new): {moved}")
+    elif moved is not None:
+        log(lg, "check: nothing in the manifest has changed since prepare")
     ch = os.path.splitext(a.out)[0] + ".chapters.txt"
     if os.path.exists(ch):
         log(lg, "check: chapters: " + " | ".join(l.strip() for l in open(ch) if l.strip()))
@@ -157,9 +267,11 @@ def check(a, lg=None):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("cmd", choices=["draw", "check"])
+    ap.add_argument("cmd", choices=["prepare", "draw", "check"])
     ap.add_argument("album")
-    ap.add_argument("-o", "--out", required=True)
+    ap.add_argument("-o", "--out")
+    ap.add_argument("--dir", help="prepare: where the frozen copies go")
+    ap.add_argument("--songs", help="prepare: a listen snapshot's directory (tNN.song) to take the songs from")
     ap.add_argument("--size")
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--threads", type=int, default=5)
@@ -169,7 +281,14 @@ def main():
     ap.add_argument("--encoder", help="CHIRP_VIDEO_ENCODER (hevc_vaapi for 4K)")
     ap.add_argument("--bin", default="chirp")
     a = ap.parse_args()
-    a.album, a.out = os.path.abspath(os.path.expanduser(a.album)), os.path.abspath(os.path.expanduser(a.out))
+    a.album = os.path.abspath(os.path.expanduser(a.album))
+    if a.cmd == "prepare":
+        if not a.dir:
+            sys.exit("filmrender: prepare needs --dir")
+        return prepare(a)
+    if not a.out:
+        sys.exit("filmrender: draw and check need -o OUT.mp4")
+    a.out = os.path.abspath(os.path.expanduser(a.out))
     if a.cmd == "draw":
         draw(a)
     else:
