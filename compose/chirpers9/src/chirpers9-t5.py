@@ -132,6 +132,8 @@ CALLROOM = os.environ.get("C9T5_CALLROOM", "undertow:-4,orbit:-3,seed-hi:-3,seed
 HATSUP = os.environ.get("C9T5_HATSUP", "14")   # with it (the same map: v91's hard-panned hat voices read 'masked wherever they play, under -25 dB' - the bounce was on paper only): the two side hats up by this many dB, so the left-right lean is actually heard
 HELDFLOOR = os.environ.get("C9T5_HELDFLOOR", "168:178")   # WHOLE, deep pass 4 (chirp-eco's snapshot after v90/v91: t5's flat share went 4% -> 15%, one 32 s run at 1:12-1:44, bars 34-50 - A's second half, the same groove under her second and third chorus; the pump, glue and held hiss had evened out what the section rounds had loosened): HER LAST CHORUS OVER A HELD FLOOR - for her third chorus (beats 170-177) the kick, the clap, the bass and the sub step out (beats 'a:b'); the hats and the rim keep time, the slow floor line is left bare under her, and - with no kick to breathe on - the pads and the corona stop breathing and hold. On the next kick of the seven-cycle that lands on a beat (178), as her last note ends and the Leslie starts to spin up, the groove comes back. A's three choruses now each sit differently: the floor clears before the first, the second rides the groove, the third is sung over stillness
 KICKWEIGHT = os.environ.get("C9T5_KICKWEIGHT", "-4")   # with it (found while measuring the held floor: taking the kick, the bass and the sub out for ten beats moved the band below 150 Hz by 1 dB - t5's kick was nearly inaudible, so since v90 the pads had been breathing under a kick nobody could hear, and E2's seven-cycle was carried by the clap and the rim alone): THE SEVEN-CYCLE HAS A HEART - the kick doubled on its own track (the same 909 kick, so the two add: 'dB' is the second kick's level; -11 = as loud as the kit's own = +6 dB), from A's groove to the tide, easing out over beats 400-432 so the overlap with t6 is as agreed
+LOWEND = os.environ.get("C9T5_LOWEND", "deep:1,sub:-13,csub:-13")   # WHOLE, deep pass 5 (the take-it-out test again, after v93's kick: muting ALL THREE basses moved the band below 150 Hz by 0.1 dB in A and 1 dB in the build and C - t5 had no bass. A's 'bass' and 'sub' were quarter-second pulses 27 dB down; the low end was the kick, a floor line, a cello and a drone. Both seams said so for days: t5 lighter than t4 at 44 and 61 Hz, lighter than t6 at 38 Hz): THE BASS HAS WEIGHT - 'sub:G' A's 808 sub holds each note until the next (a line, not ticks) at G dB; 'csub:G' the same 808, held, under the build and C on the 808 bass's roots (beats 224-432, out before the tide: t6 brings its own); 'b808:G' the build's and C's bass up by G dB. All three still dip under each kick, so the low end is kick, then bass, in turn
+MASTERCLIP = os.environ.get("C9T5_MASTERCLIP", "")   # with it (tools/limwork.py on v93: since the kick got its weight the final limiter ducks the whole mix on every hit - 6-12 dB for an instant, about 5% of A): a soft clipper ahead of the limiter rounds the kick's peak instead ('dB' over the ceiling; smaller clips more)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -1195,6 +1197,29 @@ def song():
         for tr in tracks:
             if tr["name"] in ("hats-l", "hats-r"):
                 tr["gain"] = f"{float(tr['gain'][:-2]) + float(HATSUP):g}dB"
+    if LOWEND:
+        opts = dict(o.split(":") for o in LOWEND.split(","))
+        def held(ns, end):
+            ns = sorted(ns, key=lambda n: float(n["at"]))
+            out = []
+            for a, b in zip(ns, ns[1:] + [None]):
+                nxt = float(b["at"]) if b else end
+                out.append(dict(a, len=round(max(float(a["len"]), min(nxt - float(a["at"]), 4.0) * 0.97), 4),
+                                pitch="D1" if (a["pitch"] == "D2" and "deep" in opts) else a["pitch"]))
+            return out
+        pumpfx = [{"type": "pump", "on": "pump-key.k", "depth": "-5dB", "release": "200ms", "curve": 0.6}] if "pump" in SEVENBREATH else []
+        for tr in tracks:
+            if tr["name"] == "sub" and "sub" in opts:
+                tr["gain"] = f"{float(opts['sub']):g}dB"
+                tr["notes"] = held(tr["notes"], 208.0)
+            if tr["name"] == "bass808" and "b808" in opts:
+                tr["gain"] = f"{float(tr['gain'][:-2]) + float(opts['b808']):g}dB"
+        if "csub" in opts:
+            b8 = next(tr for tr in tracks if tr["name"] == "bass808")
+            tracks.append({"name": "sub-c", "patch": "808", "gain": f"{float(opts['csub']):g}dB", "pan": 0.0,
+                           "fx": pumpfx + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ease", "amount": 1}]}}],
+                           "auto": {"ease": {"points": [["0b", 0.0], ["424b", 0.0], [f"{ST['outro']}b", -40.0], [f"{TOTAL}b", -40.0]]}},
+                           "notes": held([dict(n, vel=0.8) for n in b8["notes"] if float(n["at"]) < ST["outro"]], float(ST["outro"]))})
     if KICKWEIGHT:
         dr = next(tr for tr in tracks if tr["name"] == "drums")
         tracks.append({"name": "kick-heart", "patch": "909", "gain": f"{float(KICKWEIGHT):g}dB", "pan": 0.0,
@@ -1252,6 +1277,7 @@ def song():
                         **({"auto": {**({"hold": {"points": [["0b", -3.0], ["48b", -3.0], [f"{ST['A']}b", 0.0], ["400b", 0.0], [f"{ST['outro']}b", -1.3], [f"{TOTAL}b", -1.3]]}} if "glue" in SEVENBREATH else {}),
                                      **({"open": {"points": [["0b", 0.0], ["48b", 0.0], [f"{ST['A']}b", 0.4], [f"{ST['build']}b", 0.6], [f"{TC}b", 1.0], [f"{TC + 32}b", 0.8], ["400b", 0.4], [f"{ST['outro']}b", 0.0], [f"{TOTAL}b", 0.0]]}} if "width" in TOPOPEN else {})}}
                            if ("glue" in SEVENBREATH or "width" in TOPOPEN) else {})}} if MASTEREQ else {}),
+        **({"loudness_clip": f"{float(MASTERCLIP):g}dB"} if MASTERCLIP else {}),
     }
 
 
