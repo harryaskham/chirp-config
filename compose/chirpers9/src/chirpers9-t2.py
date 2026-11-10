@@ -1730,6 +1730,28 @@ def build():
                                'vel': round(n0_['vel'] * (1.0 - 0.03 * k_), 3)})
         li_['notes'] = notes_
         li_['gain'] = os.environ.get('ORBITG', '-14dB')
+    # (v109, whole song - deep pass: wM's phrase_arc, pinned 897af8ca) THE LINES BREATHE. Every sung line outside
+    # the crest's own - the verses, the early hook, the pre-chorus, the calls in the break, the last verse and the
+    # last word - and the hummed pads under them now swell to the top note of each phrase and fall away after it,
+    # where every note used to arrive at its written level. The crest line is untouched, in the crest and in the last
+    # chorus (crestsung, crestb, answer, crestpad, farchoir, the crest's choir, driftsung, driftlift, answer2): what
+    # Harry heard there stays as he heard it. The arc only takes level away, so each line gets its average back
+    # (measured on t6's solos: about 1.3 dB at 0.6 for the near voice, 1.1 at 0.5 for the backing choirs)
+    ARC2_ = {} if os.environ.get('ARC', '1') != '1' else {
+        'verse': 0.6, 'versegather': 0.6, 'earlyhook': 0.6, 'prech': 0.6, 'sung': 0.6, 'roundround': 0.6, 'middlecalls': 0.6,
+        'lastverse': 0.8, 'lastin': 0.5,
+        'breakhum': 0.6, 'fallhum': 0.6, 'ooh': 0.6, 'oohin': 0.6, 'lastpad': 0.6, 'lastpadE': 0.6}
+    for t_ in song['tracks']:
+        a_ = ARC2_.get(t_['name'])
+        if not a_:
+            continue
+        assert isinstance(t_['patch'], dict), t_['name']
+        t_['patch'] = dict(t_['patch'], play=dict(t_['patch'].get('play') or {}, phrase_arc=a_))
+        if isinstance(t_.get('double'), dict) and isinstance(t_['double'].get('patch'), dict):
+            t_['double'] = dict(t_['double'], patch=dict(t_['double']['patch'], play=dict(t_['double']['patch'].get('play') or {}, phrase_arc=a_)))
+        if os.environ.get('ARCCOMP', '1') == '1':
+            c_ = (1.3 * a_ / 0.6) if 'voice-near' in str(t_['patch'].get('extends', '')) else (1.1 * a_ / 0.5)
+            t_['gain'] = '%gdB' % round(float(str(t_['gain'])[:-2]) + c_, 1)
     return song
 
 
