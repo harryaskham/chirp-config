@@ -127,6 +127,7 @@ SUNGGLIDE = os.environ.get("C9T5_SUNGGLIDE", "0.3")   # PALETTE (the voice; wM's
 CHORUSDROP = os.environ.get("C9T5_CHORUSDROP", "bar")   # SECTION w2 (0:34-1:08, A's arrival and her first chorus): THE FLOOR CLEARS FOR HER - the groove ran straight into her first 'near-er' (beat 110) without a breath, so she arrived on top of it. Now the kick and clap step out just before she sings (the hats keep time) and come back with her: 'bar' 106-110, 'half' 108-110
 CLOSERHOME = os.environ.get("C9T5_CLOSERHOME", "second")   # SECTION w7 (3:20-3:53, C's second half: 'little new vs w6'): CLOSER, HOME - her E1 sung 'clo-ser and clo-ser' ends on E1's last note, E, held three beats, and stays there. Now its last syllable, held, bends down to D - the seed's home, the album's tonic - on one breath (wM's melisma: the '-ser' carried on, no new attack, sliding with her sung glides): 'second' only the second time (the last time she sings E1 in t5); 'both' both times
 SEVENBREATH = os.environ.get("C9T5_SEVENBREATH", "pump+glue+snap")   # WHOLE, deep pass (Harry, 10 Nov: go deep on feel and texture; t5 was the one groove track on Accretion with no sidechain and no bus dynamics - t2, t3, t6 and t7 all pump under their kicks and compress their masters): THE SEVEN BREATHES - the kick lands every seven sixteenths (E2's cycle) against the 4/4 chords; now the held sounds breathe with it: the basses, the floor, the Kuramoto lights and the air dip under every kick and swell back (engine `pump`, note-driven), so the seven-cycle is felt as a tide in the pad, not only heard in the drums. Options, '+'-joined: 'pump' (the breath), 'glue' (a master bus compressor, 2:1, 15 ms / 150 ms as t6's and t7's, its threshold set for t5's own mix level - -32 dB before loudness normalisation: about 2.4 dB at the crest, 1 dB in C, 0.5 dB in A - so the crest is held by a compressor instead of the final limiter and A sits closer to it), 'snap' (the kit's attacks lifted 3 dB)
+TOPOPEN = os.environ.get("C9T5_TOPOPEN", "bounce+corona+room+width+diph")   # WHOLE, deep pass 2 (chirper-three's and chirper-one's finding, 10 Nov: Accretion's top end is nearly mono - t5 read -8.8 dB side/mid at 2-16 kHz and -12.3 dB in the air, where the album's genre anchors sit around 0 and +2..+6): THE TOP OPENS, t5's own way - a chip answer and an orbital one. Options, '+'-joined: 'bounce' Amiga panning: every closed-hat stroke leans hard to one side, alternating left and right (the centre hat 6 dB down, a hard-panned NES noise voice carrying the lean; same level as before); it closes back to the centre before the tide. 'corona' the heat itself: a held hiss of two independent noise sources, hard left and hard right, 6-13 kHz, about as loud as the hats' own air - a floor under the ticks; it rises as the orbit closes, is hottest at the crest, gone before the tide, and breathes with the seven-cycle kick; 'room' the chamber's tail lets the air through (high_cut 16 kHz, spread 1); 'width' the image follows the orbit: a master width stage on the bands above 2.5 and 6 kHz, neutral in the head, opening through A and the build, widest at the crest (closest = biggest), closing again before the tide so the overlap with t6 is as agreed; 'diph' her 'clo-' of 'closer' holds its 'oh' and closes only at the end (wM's diph_hold, pin 504891ac)
 TONALAIR = os.environ.get("C9T5_TONALAIR", "shimmer")   # with TONAL: keep the air ('keep'), or swap the GENDYN cloud for a pitched drone-shimmer on D2+A2 ('shimmer')
 PLAINE1 = os.environ.get("C9T5_PLAINE1", "8")   # with TONAL: E1 stated plainly first - A opens with the seed at its own speed (5 beats, the high voice alone, the hook as t1 left it) for PLAINE1 bars before the stretto begins
 if TONAL:
@@ -1141,6 +1142,38 @@ def song():
         for tr in tracks:
             if tr["name"] == "drums":
                 tr["notes"] = [n for n in tr["notes"] if not (d0 <= float(n["at"]) < 109.95 and n["pitch"] in ("k", "cp"))]
+    if "bounce" in TOPOPEN:
+        # Amiga panning: every closed-hat stroke leans hard to one side, alternating; the kit's own (centre) hat drops 6 dB and a
+        # side voice 3 dB under the old level carries the lean, so the hats' level is as before. Toward the tide the lean closes
+        # onto a centre voice, so the overlap with t6 has its hats where they were.
+        dr = next(tr for tr in tracks if tr["name"] == "drums")
+        dr["patch"]["kit"]["h"] = dict(dr["patch"]["kit"]["h"], gain=f"{float(CHIPHATS.split(':')[0]) - 6:g}dB")
+        hh = sorted((n for n in dr["notes"] if n["pitch"] == "h"), key=lambda n: float(n["at"]))
+        side = {"points": [["0b", 0.0], ["400b", 0.0], [f"{ST['outro']}b", -60.0], [f"{TOTAL}b", -60.0]]}
+        mid = {"points": [["0b", -60.0], ["400b", -60.0], ["416b", -6.0], [f"{ST['outro']}b", 0.0], [f"{TOTAL}b", 0.0]]}
+        for nm, pan, lane, g, pick in (("hats-l", -1.0, side, -24, lambda k, n: k % 2 == 0), ("hats-r", 1.0, side, -24, lambda k, n: k % 2 == 1),
+                                       ("hats-c", 0.0, mid, -27, lambda k, n: float(n["at"]) >= 398)):
+            tracks.append({"name": nm, "patch": "nes-noise-hat", "gain": f"{g}dB", "pan": pan, "sends": {"room": "-14dB"},
+                           "fx": ["highshelf cutoff=9000 gain=-6dB", {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.lean", "amount": 1}]}}],
+                           "auto": {"lean": lane},
+                           "notes": [{"at": n["at"], "pitch": "C7", "len": 0.1, "vel": n["vel"]} for k, n in enumerate(hh) if pick(k, n)]})
+    if "corona" in TOPOPEN:
+        # the corona: a held hiss of two independent noise sources, one hard each side, 6-13 kHz - the heat itself, and a floor
+        # under the hats' ticks. It rises as the orbit closes, is widest and hottest at the crest, is gone before the tide, and
+        # it breathes with the seven-cycle kick (deeper and slower than the pads).
+        tracks.append({"name": "corona", "gain": "-35dB", "pan": 0.0, "sends": {"room": "-10dB"},
+                       "patch": {"about": "chirper-zero, t5: the corona - independent white noise hard left and hard right, 6-13 kHz, slow to rise and fall",
+                                 "synth": {"layers": [{"type": "noise", "color": "white", "pan": -1}, {"type": "noise", "color": "white", "pan": 1}],
+                                           "filters": ["hp cutoff=6000", "lp cutoff=13000"], "amp": {"a": "2s", "d": "1s", "s": 1, "r": "3s"}}},
+                       "fx": [*([{"type": "pump", "on": "pump-key.k", "depth": "-9dB", "release": "1/4", "curve": 0.5}] if "pump" in SEVENBREATH else []),
+                              {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.heat", "amount": 1}]}}],
+                       "auto": {"heat": {"points": [["0b", -60.0], [f"{ST['A']}b", -60.0], [f"{ST['A'] + 32}b", -7.0], ["204b", -7.0], ["210b", -11.0], ["220b", -11.0],
+                                                    [f"{ST['build']}b", -4.0], [f"{TC}b", 0.0], [f"{TC + 32}b", -1.0], ["400b", -7.0], [f"{ST['outro']}b", -60.0], [f"{TOTAL}b", -60.0]]}},
+                       "notes": [{"at": ST["A"], "pitch": "C5", "len": ST["outro"] - ST["A"], "vel": 0.5}]})
+    if "diph" in TOPOPEN:
+        for tr in tracks:
+            if tr["name"] == "hums-e1" and isinstance(tr.get("patch"), dict):
+                tr["patch"]["extends"] += " synth.layers.0.diph_hold=1"
     if "pump" in SEVENBREATH:
         tight = {"bass": -5, "sub": -5, "bass808": -5, "floor": -4}                       # the low end makes room for the kick: a quick dip
         breath = {"lights": -5, "air": -4, "orbit-slow": -3, "shadow": -3}                 # the held sounds breathe: a slow swell back, two thirds of a beat
@@ -1179,15 +1212,19 @@ def song():
         "tail": "2s",
         "length": f"{TOTAL}b",
         "event_stable": True,
-        "buses": {"room": {"fx": ["reverb kind=chamber decay=1.8s mix=1 predelay=20ms", "hp cutoff=250"]}},
+        "buses": {"room": {"fx": ["reverb kind=chamber decay=1.8s mix=1 predelay=20ms" + (" high_cut=16000 spread=1" if "room" in TOPOPEN else ""), "hp cutoff=250"]}},
         "tracks": tracks,
         **({"master": {"fx": [{"type": "eq", "bands": ["highpass cutoff=28", "lowshelf cutoff=110 gain=3dB", "peak cutoff=640 q=1.0 gain=-2.5dB"]
                                 + (["peak cutoff=44 q=1.2 gain=2dB", "peak cutoff=114 q=1.0 gain=1.5dB"] if MASTEREQ == "warm2" else [])},
                                *(["glue threshold=-32dB ratio=2 attack=15ms release=150ms makeup=0dB",
                                    {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.hold", "amount": 1}]}}] if "glue" in SEVENBREATH else []),
+                               *([{"type": "width", "width": 1, "mono_below": 0, "crossover": "lr4",
+                                   "bands": [[2500, {"value": 1.0, "mod": [{"src": "auto.open", "amount": 0.4}]}], [6000, {"value": 1.0, "mod": [{"src": "auto.open", "amount": 0.9}]}]]}] if "width" in TOPOPEN else []),
                                "limiter ceiling=-1dB"],
                         # with the glue the quiet ends come up against the crest; the head (under t4's fall) and the tide (into t6) are held at their agreed levels
-                        **({"auto": {"hold": {"points": [["0b", -3.0], ["48b", -3.0], [f"{ST['A']}b", 0.0], ["400b", 0.0], [f"{ST['outro']}b", -1.3], [f"{TOTAL}b", -1.3]]}}} if "glue" in SEVENBREATH else {})}} if MASTEREQ else {}),
+                        **({"auto": {**({"hold": {"points": [["0b", -3.0], ["48b", -3.0], [f"{ST['A']}b", 0.0], ["400b", 0.0], [f"{ST['outro']}b", -1.3], [f"{TOTAL}b", -1.3]]}} if "glue" in SEVENBREATH else {}),
+                                     **({"open": {"points": [["0b", 0.0], ["48b", 0.0], [f"{ST['A']}b", 0.4], [f"{ST['build']}b", 0.6], [f"{TC}b", 1.0], [f"{TC + 32}b", 0.8], ["400b", 0.4], [f"{ST['outro']}b", 0.0], [f"{TOTAL}b", 0.0]]}} if "width" in TOPOPEN else {})}}
+                           if ("glue" in SEVENBREATH or "width" in TOPOPEN) else {})}} if MASTEREQ else {}),
     }
 
 
