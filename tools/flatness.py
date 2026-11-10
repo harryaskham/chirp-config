@@ -41,6 +41,13 @@ bass carries the level). Moves above a steady bass - hats to eighths, arps up an
 counter-line at -7 to -12 dB - barely register (chirper-two t3, chirper-three t4); re-orchestrating the loudest element
 or moving the floor does. So a quiet counter-line can be exactly the subtle variation Harry asked for and still read flat
 here. And a floor drop-out that never returns reads as a new section to compscore's recurrence (t3: 91.8 -> ~50).
+
+One change taken apart (chirper-three, t4's 1:36 at 0.71, 10 Nov), what each move did to it:
+  a part made LOUDER in both blocks                       0.00   (level alone is removed; both blocks moved together)
+  a part RESTING for the second block                    +0.10   (the blocks now differ)
+  a new bed entering just where another part thins       -0.07   (it fills the hole the thinning had opened)
+  ornaments that evened the two blocks' kick counts      -0.04
+So what lifts a change is one block having something the other lacks, not more of the same in both.
 """
 import argparse
 import json

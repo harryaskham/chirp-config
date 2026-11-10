@@ -297,6 +297,22 @@ def look_args(look, track_id, vis_dir=None):
     return ["--look", fallback] if fallback else []
 
 
+_LOD = {}
+
+
+def lod_args(pin):
+    """["--lod"] when PIN's `chirp video` has it (chirp-video's batch 49, 10 Nov: detail follows the picture's size, as
+    in the live panes - a 480p preview draws about 480/1080 of each mesh and shadowmap and renders much faster; films
+    stay at full detail), else []."""
+    if pin not in _LOD:
+        try:
+            h = subprocess.run([pin, "video", "--help"], capture_output=True, text=True, stdin=subprocess.DEVNULL)
+            _LOD[pin] = "--lod" in (h.stdout or "") + (h.stderr or "")
+        except OSError:
+            _LOD[pin] = False
+    return ["--lod"] if _LOD[pin] else []
+
+
 def programme_mtime(look, track_id, vis_dir=None):
     """The newest mtime of the programme LOOK gives TRACK_ID and of every kit it `use:`s (vis/<kit>.yaml, recursively),
     or None when LOOK names no programme file - so --stale can tell a preview older than its programme."""
@@ -354,7 +370,7 @@ def videos(album_id, sid=None, ids=None, look=None, log=print, run=subprocess.ru
         out = os.path.join(d, f".{stem}.tmp.mp4")
         t0 = time.time()
         cmd = ["nice", "-n", "19", pin, "video", "-f", song, "--seed", "0", "--size", "854x480", "--fps", "24",
-               "--crf", "30"] + look_args(look, t["id"]) + ["-o", out]
+               "--crf", "30"] + lod_args(pin) + look_args(look, t["id"]) + ["-o", out]
         try:
             r = run(cmd, capture_output=True, text=True, cwd=os.path.dirname(song))
         finally:

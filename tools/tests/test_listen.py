@@ -160,6 +160,20 @@ class Snapshots(unittest.TestCase):
             L.read_text = orig
         self.assertEqual(pins, ["/pins/chirp-0", "/pins/chirp-1"])
 
+    def test_previews_use_lod_when_the_pin_has_it(self):
+        """chirp-video's batch 49: `chirp video --lod` draws a 480p preview at 480p detail. Probed on the pin's help."""
+        d = tempfile.mkdtemp()
+        for name, text in (("old", "Usage: chirp video [OPTIONS]\n      --size <WxH>\n"),
+                           ("new", "Usage: chirp video [OPTIONS]\n      --lod   Detail follows the picture's size\n")):
+            p = os.path.join(d, name)
+            with open(p, "w") as f:
+                f.write("#!/bin/sh\ncat <<'X'\n" + text + "X\n")
+            os.chmod(p, 0o755)
+        L._LOD.clear()
+        self.assertEqual(L.lod_args(os.path.join(d, "old")), [])
+        self.assertEqual(L.lod_args(os.path.join(d, "new")), ["--lod"])
+        self.assertEqual(L.lod_args(os.path.join(d, "missing")), [])
+
     def test_video_renders_the_snapshots_own_song_text(self):
         a = L.cut("chirpers9", "", render=fake_render, canonical=lambda p, s: '{"tempo":1}', log=lambda *x: None)
         d = os.path.join(self.d, "chirpers9", "snapshots", a["id"])
