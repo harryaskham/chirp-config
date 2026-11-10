@@ -918,6 +918,37 @@ R102 = os.environ.get("T7_R102", "pluck") != "none"
 #     noise sources, so the crest's air is wide, and E7 ripples upward from side to side through the whole crest.
 # T7_R103=none reproduces v102.
 R103 = os.environ.get("T7_R103", "around") != "none"
+# round 104 (WHOLE, deep pass 2 - feel): T7_R104=played (default) - t7 IS PLAYED.
+# (1) THE BACKBEAT LEANS BACK. Since v76 t7's song-level feel has carried `nudge: {s: 9ms, cp: 7ms, k: -3ms}` - a
+#     late snare and clap against a kick that pushes - and it never happened: the engine reads only drift from a
+#     song's feel (chirper-three found it, 10 Nov). The nudge now sits where it works, on the kit patches (a7-dusty =
+#     dusty-kit with k -3 ms / s +9 ms for the kick and snare tracks; a7-thump's k -3 ms with it; a7-electro =
+#     electro-kit with cp +7 ms): the groove t7 was written with, heard for the first time. The dead keys leave the
+#     song's feel.
+#     And the hats get a hand: the three hat tracks (a7-break = break-kit) drift their off-beat eighths a little per
+#     bar (swing_drift 0.02, about +-9 ms here) with 2 ms of scatter, against a kick and backbeat that now lean.
+# (2) THE LINES BREATHE. wM's phrase_arc (pin 897af8ca) at 0.6 on every sung line and on the erhu, the saxes and the
+#     muted trumpet: each phrase swells to its highest note and falls away (-3 dB at its start, -4 at its end)
+#     instead of sitting at one level. The arcs take 0.6-2.2 dB off a line's average (presence: the verse singer
+#     -8.8 -> -9.4 dB, the alto -10.1 -> -11.8, the crest choir -11.4 -> -12.6), so every arced line is 1.5 dB up - the
+#     phrase's peak now stands above where the flat line sat - and the crest's choir 1.5 dB more (it was heard in a
+#     third of its frames).
+# (3) THE KIT STOPS DUCKING THE BAND. Before the master, t7's mix peaks 18-20 dB over its body, and the owners are
+#     the clap (+8.9 dBFS over a -25.9 dB body in the collision), the snare (+7.1) and the kick (+5.3): the parallel
+#     drum bus (parallel-ny: a 3 ms attack and 10 dB of makeup) passes each stick and adds it again. A soft clipper
+#     now ends the drum bus (the recipe from t3 v104): clap +8.9 -> +2, snare +7.1 -> +2, kick +5.3 -> +2 dBFS; the
+#     mix's peaks 2-3 dB lower in every section at the same body. And song `loudness_clip: 2.5dB` (chirper-one's
+#     recipe) rounds what is left ahead of the final limiter: at the crest it was pulling 1.8 dB on average and over
+#     3 dB for 11% of the time; now 1.1 dB and never over 3. The crest lands 0.3 dB louder and everything before it
+#     0.3 dB lower: 1.6 dB over the spiral where it stood 1.3 (levels.py run 2, no flat-topping).
+# T7_R104=none reproduces v103.
+R104 = os.environ.get("T7_R104", "played") != "none"
+DRUMS_CLIP = os.environ.get("T7_DRUMS_CLIP", "2dB")   # at 0: clap +8.9 -> 0.0, snare +7.1 -> 0.0, kick +5.3 -> 0.0 for 0.7 dB of its body
+ARC = os.environ.get("T7_ARC", "0.6")
+ARC_LIFT = float(os.environ.get("T7_ARC_LIFT", "1.5"))
+CRESTVOX_LIFT = float(os.environ.get("T7_CRESTVOX_LIFT", "1.5"))
+HAT_SWING = os.environ.get("T7_HAT_SWING", "0.02")
+LOUD_CLIP = os.environ.get("T7_LOUD_CLIP", "2.5dB")
 PLUME_GAIN = os.environ.get("T7_PLUME_GAIN", "-4dB")   # at -12: -23.2 dB against the mix (the jet -15.8)
 PLUME_NOISE = os.environ.get("T7_PLUME_NOISE", "-10dB")
 ORB_DEPTH = float(os.environ.get("T7_ORB_DEPTH", "0.7"))
@@ -2788,6 +2819,40 @@ def main():
                            "fx": [dict(f) if isinstance(f, dict) else f for f in (jh.get("fx") or [])],
                            "auto": dict(jh.get("auto") or {}), "score": trk.score()})
         jh["mute"] = True
+    if R104:                                                # whole (deep, feel): the nudge where it works, phrase arcs, the bus clip
+        patches["a7-dusty"] = {"extends": "dusty-kit play.humanize.nudge.k=-3ms play.humanize.nudge.s=9ms"}
+        patches["a7-electro"] = {"extends": "electro-kit play.humanize.nudge.cp=7ms"}
+        patches["a7-thump-e"] = dict(patches["a7-thump"], play={"humanize": {"nudge": {"k": "-3ms"}}})
+        patches["a7-break"] = {"extends": f"break-kit play.humanize.swing_drift={HAT_SWING} play.humanize.time=2ms"}
+        for tr in tracks:
+            nm, pt = tr.get("name"), tr.get("patch")
+            if nm in ("kick", "kickh", "snare", "snareh", "surgek") and pt == "dusty-kit":
+                tr["patch"] = "a7-dusty"
+            elif nm in ("clap", "claph") and pt == "electro-kit":
+                tr["patch"] = "a7-electro"
+            elif nm in ("kick9", "kickh9") and pt == "a7-thump":
+                tr["patch"] = "a7-thump-e"
+            elif nm in ("hats", "hatsw", "hatsh") and pt == "break-kit":
+                tr["patch"] = "a7-break"
+        for pn in ("a7-sung", "a7-sung3", "a7-sung5", "a7-sungc", "a7-sungc5", "a7-near", "a7-near3", "a7-descant",
+                   "a7-sooner-a", "a7-sooner-b", "a7-erhu"):
+            if pn in patches and isinstance(patches[pn].get("extends"), str):
+                patches[pn] = dict(patches[pn], extends=patches[pn]["extends"] + f" play.phrase_arc={ARC}")
+        patches["a7-alto"] = {"extends": f"alto-sax play.phrase_arc={ARC}"}
+        patches["a7-trumpet"] = {"extends": f"trumpet-mute play.phrase_arc={ARC}"}
+        for tr in tracks:
+            if tr.get("patch") == "alto-sax":
+                tr["patch"] = "a7-alto"
+            elif tr.get("patch") == "trumpet-mute":
+                tr["patch"] = "a7-trumpet"
+            if ARC_LIFT and isinstance(tr.get("patch"), str) and tr["patch"] in (
+                    "a7-sung", "a7-sung3", "a7-sung5", "a7-sungc", "a7-sungc5", "a7-near", "a7-near3", "a7-descant",
+                    "a7-sooner-a", "a7-sooner-b", "a7-erhu", "a7-alto", "a7-trumpet"):
+                tr["gain"] = f"{float(str(tr.get('gain', '0dB')).replace('dB', '')) + ARC_LIFT:g}dB"
+            if CRESTVOX_LIFT and tr.get("patch") in ("a7-sungc", "a7-sungc5"):
+                tr["gain"] = f"{float(str(tr.get('gain', '0dB')).replace('dB', '')) + CRESTVOX_LIFT:g}dB"
+        extra_buses["drums"] = dict(extra_buses["drums"], fx=list(extra_buses["drums"]["fx"]) + [
+            {"type": "clip", "ceiling": DRUMS_CLIP, "knee": 0.6, "link": True}])
     about = ("chirpers - Accretion, track 7. Original composition by chirper-two, generated by "
              "compose/chirpers9/src/chirpers9-t7.py. The innermost orbit: every element transformed in a storm a semitone "
              "above home (Eb), all cycles phased to land on bar 120 where the pull resolves to D and E7, the jet - the "
@@ -2802,9 +2867,11 @@ def main():
         'ceiling: "-1dB"',
         'volume: "0dB"',
         "loudness: -11",
+    ] + (['loudness_clip: "%s"' % LOUD_CLIP] if R104 and LOUD_CLIP != "off" else []) + [
         "true_peak: true",
         "event_stable: true",
-    ] + (["feel: " + json.dumps({"drift": "6ms", "drift_bars": 4, "nudge": {"s": "9ms", "cp": "7ms", "k": "-3ms"}})]
+    ] + (["feel: " + json.dumps({"drift": "6ms", "drift_bars": 4} if R104 else
+                                {"drift": "6ms", "drift_bars": 4, "nudge": {"s": "9ms", "cp": "7ms", "k": "-3ms"}})]
          if R76 else []) + [
         "patches: " + json.dumps(patches),
         "buses: " + json.dumps(dict({"space": space_bus}, **extra_buses)),
