@@ -176,5 +176,10 @@
     }
   ],
   "named_by": "harry",
-  "named_at": "2026-11-11T03:29:47Z"
+  "named_at": "2026-11-11T03:29:47Z",
+  "art": {
+    "file": "ref/albums/accretion/cover-file.png",
+    "source": "/home/harry/.local/state/chirp-video/film/accretion/cover/accretion-cover-3000.png",
+    "at": "2026-11-11T03:29:51Z"
+  }
 }
