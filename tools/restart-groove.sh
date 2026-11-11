@@ -28,6 +28,9 @@ done
 # CHIRP_PIN_BYPASS=1 ignores the pin for one restart.
 pin=$(head -1 "$here/groove-pin" 2>/dev/null)
 if [ -n "$pin" ] && [ -z "${CHIRP_PIN_BYPASS:-}" ]; then
+  # The pin lives in /tmp, where the system deletes what nobody used for ten days: a groove that played untouched
+  # for that long would have nothing to restart on. pinstore.py holds a checked copy outside /tmp and puts it back.
+  [ -x "$pin" ] || python3 "$here/pinstore.py" restore "$pin" 2>&1 | tail -1
   if [ -x "$pin" ]; then
     [ "$src" != "$pin" ] && echo "restart-groove: tools/groove-pin holds the engine at $pin (not $src)"
     src=$pin
