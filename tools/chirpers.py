@@ -7,6 +7,10 @@ climbing them on tools/compscore.py (no record to match) and Harry's ratings (to
   chirpers.py name ALBUM_ID "Album Name" [--force]   the first agent to get there names the album (once)
   chirpers.py title ID "Song Title" [--force]        the song's composer names it
   chirpers.py art ALBUM_ID [--prompt TEXT]           cover art with the tti CLI, pixelated for the player
+  chirpers.py art ALBUM_ID --file IMAGE              ...or an existing image (e.g. a still drawn by chirp) as the cover
+  chirpers.py cover ALBUM_ID [--art IMAGE]           put the cover into an EXISTING release without re-rendering: MP3 tags
+                                                     (audio stream copied, checked bit-identical), master/cover-3000.jpg,
+                                                     metadata.json and UPLOAD.md. For a cover chosen after the cut.
   chirpers.py status [ALBUM_ID]                      tracks, composers, lengths, best scores, latest ratings
   chirpers.py refresh ALBUM_ID [--ids a,b]           render each composed song (seed 0, groove pin) and save its
                                                      features for the album terms (cohesion, distinct, flow)
@@ -188,6 +192,20 @@ def cmd_art(a, args):
     album = load_album(a.album_id)
     keep = os.path.join(ROOT, "ref", "albums", C.slug(album["album"]))
     os.makedirs(keep, exist_ok=True)
+    if getattr(a, "file", None):
+        # An existing image (a still drawn by chirp, say) instead of a generated one: kept beside the generated covers.
+        src = os.path.expanduser(a.file)
+        if not os.path.isfile(src):
+            raise SystemExit(f"chirpers: no image {src}")
+        out = os.path.join(keep, "cover-file" + (os.path.splitext(src)[1].lower() or ".png"))
+        shutil.copyfile(src, out)
+        album["art"] = {"file": os.path.relpath(out, ROOT), "source": src, "at": C.now_iso()}
+        save_album(album)
+        rc = subprocess.run([sys.executable, os.path.join(HERE, "climb.py"), "art", album["album"], "--file", out,
+                             "--artist", album["artist"], *(["--no-git"] if "--no-git" in args else [])], cwd=ROOT)
+        C.commit_or_die([os.path.relpath(album_path(album["id"]), ROOT)], f"compose: {album['id']} cover (from a file)", args)
+        print(f"{album['id']}: cover {os.path.relpath(out, ROOT)}" + ("" if rc.returncode == 0 else " (pixel art failed)"))
+        return
     out = os.path.join(keep, "cover-tti.png")
     prompt = art_prompt(album, a.prompt)
     r = subprocess.run(["tti", prompt, "-o", out, "-s", "1024x1024"], capture_output=True, text=True)
@@ -683,6 +701,91 @@ def upload_sheet(meta, pub, lyrics=None):
     return "\n".join(lines) + "\n" + (lyrics_section(meta, lyrics) if lyrics else "")
 
 
+def write_cover_3000(art, out):
+    """The store cover from an album's art file: cover-3000.jpg in OUT (upscaled when smaller), or None without art."""
+    if not os.path.isfile(art):
+        return None
+    from PIL import Image, ImageFilter
+    im = Image.open(art).convert("RGB")
+    if im.width < 3000:
+        im = im.resize((3000, 3000), Image.LANCZOS).filter(ImageFilter.UnsharpMask(radius=2, percent=40, threshold=2))
+    cover = os.path.join(out, "cover-3000.jpg")
+    im.save(cover, quality=95)
+    return cover
+
+
+def install_cover(art, rdir, pub=None, lyrics=None, tag_px=1024):
+    """Put a cover into an EXISTING release in RDIR without rendering or encoding any audio (a cover chosen after the
+    cut, when a re-release would cost the album's whole render again):
+      - every MP3 in RDIR is rewritten with the picture attached, its audio stream COPIED; each is checked to carry
+        the same audio packets before it replaces the original (a file that fails the check is left as it was);
+      - the picture in the tags is at most TAG_PX wide (players; the earlier albums carry 1024);
+      - RDIR/master (if the album is mastered): cover-3000.jpg, metadata.json's "cover", UPLOAD.md.
+    Returns {"mp3": tagged, "failed": [names], "master": bool}."""
+    from PIL import Image
+
+    def audio_md5(path):
+        r = subprocess.run(["ffmpeg", "-nostats", "-loglevel", "error", "-i", path, "-map", "0:a", "-c", "copy", "-f", "md5", "-"],
+                           capture_output=True, text=True)
+        return r.stdout.strip()
+
+    res = {"mp3": 0, "failed": [], "master": False}
+    work = tempfile.mkdtemp(prefix="cover-")
+    try:
+        im = Image.open(art).convert("RGB")
+        if im.width > tag_px:
+            im = im.resize((tag_px, round(im.height * tag_px / im.width)), Image.LANCZOS)
+        tag = os.path.join(work, "tag.png")
+        im.save(tag)
+        for mp3 in sorted(glob.glob(os.path.join(glob.escape(rdir), "*.mp3"))):
+            tmp = os.path.join(work, "out.mp3")
+            ok = subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", mp3, "-i", tag, "-map", "0:a", "-map", "1:v",
+                                 "-c:a", "copy", "-c:v", "png", "-disposition:v", "attached_pic", "-map_metadata", "0",
+                                 "-id3v2_version", "3", tmp], capture_output=True, text=True).returncode == 0
+            before = audio_md5(mp3)
+            if ok and before and audio_md5(tmp) == before:
+                shutil.copymode(mp3, tmp)
+                shutil.move(tmp, mp3)
+                res["mp3"] += 1
+            else:
+                res["failed"].append(os.path.basename(mp3))
+        out = os.path.join(rdir, "master")
+        mp = os.path.join(out, "metadata.json")
+        if os.path.exists(mp):
+            cover = write_cover_3000(art, out)
+            with open(mp) as f:
+                meta = json.load(f)
+            meta["cover"] = os.path.basename(cover)
+            with open(mp, "w") as f:
+                json.dump(meta, f, indent=1)
+            with open(os.path.join(out, "UPLOAD.md"), "w") as f:
+                f.write(upload_sheet(meta, pub or {}, lyrics))
+            res["master"] = True
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    return res
+
+
+def cmd_cover(a, args):
+    """Install the album's cover (album.json's art, or --art IMAGE for this run only) into its existing release."""
+    album = load_album(a.album_id)
+    art = os.path.expanduser(a.art) if a.art else os.path.join(ROOT, (album.get("art") or {}).get("file", ""))
+    if not os.path.isfile(art):
+        sys.exit(f"cover: {a.album_id} has no cover yet; chirpers.py art {a.album_id} [--file IMAGE] first, or pass --art IMAGE")
+    rdir = os.path.expanduser(os.path.join(a.out, "".join(ch for ch in album["album"] if ch not in '/\\:*?"<>|')))
+    if not os.path.exists(os.path.join(rdir, "release.json")):
+        sys.exit(f"cover: {album['album']} has no release in {rdir}; a release puts the cover in by itself")
+    pp = os.path.join(ROOT, "compose", "publishing.json")
+    pub = json.load(open(pp)) if os.path.exists(pp) else {}
+    res = install_cover(art, rdir, pub, album_lyrics(a.album_id))
+    print(f"{album['album']}: cover in {res['mp3']} MP3(s), audio unchanged"
+          + (f"; NOT changed (check failed): {', '.join(res['failed'])}" if res["failed"] else "")
+          + ("; master/cover-3000.jpg, metadata.json and UPLOAD.md updated" if res["master"] else "; not mastered yet")
+          + f" -> {rdir}")
+    if res["failed"]:
+        sys.exit(1)
+
+
 def cmd_upload_sheet(a, args):
     """Rewrite a mastered album's UPLOAD.md from its master/metadata.json (no re-mastering), e.g. once lyrics land."""
     album = load_album(a.album_id)
@@ -1035,14 +1138,7 @@ def cmd_master(a, args):
     pp = os.path.join(ROOT, "compose", "publishing.json")
     pub = json.load(open(pp)) if os.path.exists(pp) else {}
     art = os.path.join(ROOT, (album.get("art") or {}).get("file", ""))
-    cover = None
-    if os.path.isfile(art):
-        from PIL import Image, ImageFilter
-        im = Image.open(art).convert("RGB")
-        if im.width < 3000:
-            im = im.resize((3000, 3000), Image.LANCZOS).filter(ImageFilter.UnsharpMask(radius=2, percent=40, threshold=2))
-        cover = os.path.join(out, "cover-3000.jpg")
-        im.save(cover, quality=95)
+    cover = write_cover_3000(art, out)
     meta = {"artist": album.get("artist", "chirpers").lower(), "album": name, "year": album.get("year"),
             "genre": album.get("genre"), "release": os.path.basename(rdir), "pin": rel["pin"], "seed": rel.get("seed", 0),
             "target_lufs": rel.get("target_lufs"), "cover": os.path.basename(cover) if cover else None,
@@ -1419,6 +1515,11 @@ def main(argv=None):
     p = sub.add_parser("art")
     p.add_argument("album_id")
     p.add_argument("--prompt")
+    p.add_argument("--file", help="use this image as the cover instead of generating one")
+    p = sub.add_parser("cover", help="put the cover into an existing release without re-rendering")
+    p.add_argument("album_id")
+    p.add_argument("--art", help="an image to install for this run (default: the album's art)")
+    p.add_argument("--out", default="~/Music/Chirpers")
     p = sub.add_parser("status")
     p.add_argument("album_id", nargs="?")
     p = sub.add_parser("refresh")
@@ -1502,7 +1603,7 @@ def main(argv=None):
     {"new": cmd_new, "name": cmd_name, "title": cmd_title, "art": cmd_art, "status": cmd_status,
      "refresh": cmd_refresh, "rebaseline": cmd_rebaseline, "release": cmd_release, "seams": cmd_seams, "seam": cmd_seam,
      "illusion": cmd_illusion, "master": cmd_master, "coverage": cmd_coverage,
-     "upload-sheet": cmd_upload_sheet}[a.cmd](a, argv)
+     "upload-sheet": cmd_upload_sheet, "cover": cmd_cover}[a.cmd](a, argv)
 
 
 if __name__ == "__main__":
