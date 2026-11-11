@@ -85,8 +85,12 @@ excl=(); "$C" --help 2>/dev/null | grep -q -- --exclusive && excl=(--exclusive)
 # wM's --ahead (9 Nov): render up to N s ahead of what is heard, so a host storm drains the queue instead of underrunning
 # (his test: a 6 s CPU starvation, 38 dropouts without it, 0 at --ahead 20). The session's own playlist turns at the
 # render, so hand-overs stay seamless; live edits and `queue --now` are heard up to N s later. About 0.4 MB per second
-# queued. Guarded: older binaries reject it. CHIRP_GROOVE_AHEAD overrides (0 turns it off).
-[ "${CHIRP_GROOVE_AHEAD:-30}" != 0 ] && "$C" --help 2>/dev/null | grep -q -- "--ahead" && excl+=(--ahead "${CHIRP_GROOVE_AHEAD:-30}")
+# queued. Guarded: older binaries reject it. CHIRP_GROOVE_AHEAD overrides (0 turns it off); otherwise tools/groove-ahead
+# (runtime state, one number, like groove-pin: every restart uses it, the watchdog's too), else 30. The depth is the
+# longest host storm the groove rides out: 11 Nov, another user's hourly build drained 31-62 s three times in a row.
+ahead=${CHIRP_GROOVE_AHEAD:-$(head -1 "$here/groove-ahead" 2>/dev/null)}
+case "$ahead" in ''|*[!0-9.]*) ahead=30;; esac
+[ "$ahead" != 0 ] && "$C" --help 2>/dev/null | grep -q -- "--ahead" && excl+=(--ahead "$ahead")
 # Render pool: 4 threads, not one per core. Every dependency level of every chunk waits for its slowest worker, so on a
 # busy 24-core host a 24-worker pool spins and stalls (wM, 6 Nov: t6 40 s of audio in 21-34 s wall / 66-70 s CPU at 24
 # threads vs 14-16 s / 20-22 s at 4, md5-identical; the hand-over underrun bursts). CHIRP_GROOVE_THREADS overrides.
