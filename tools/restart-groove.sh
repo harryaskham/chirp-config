@@ -9,6 +9,13 @@ exec 9>"${TMPDIR:-/tmp}/chirp-restart-v2.lock"
 flock -w 60 9 || { echo "restart-groove: another restart holds the lock"; exit 0; }
 here=$(cd "$(dirname "$0")" && pwd)
 . "$here/proc.sh"   # safe_pgrep (never hangs on a stuck process), launch (its own systemd user unit)
+# tools/groove-hold (runtime state, a line saying why): while it exists nothing restarts the groove - not the
+# watchdog, not sync.sh, not an adoption - so a deliberate stop stays stopped (11 Nov: Harry stopped it so the film
+# could have every CPU). Remove the file to resume; the watchdog then starts it within a minute. CHIRP_HOLD_BYPASS=1
+# restarts once anyway.
+if [ -e "$here/groove-hold" ] && [ -z "${CHIRP_HOLD_BYPASS:-}" ]; then
+  echo "restart-groove: held ($(head -1 "$here/groove-hold" | cut -c1-120)); remove tools/groove-hold to resume"; exit 0
+fi
 # Never fall back to an installed (Nix) chirp: it can be far older than the library needs.
 src=${CHIRP_SRC:-}
 for c in "${CHIRP_MAIN:-/tmp/lt/chirp-main}/cli/chirp/target/release/chirp" "$HOME/.herdr/worktrees/tools/chirp/cli/chirp/target/release/chirp"; do
