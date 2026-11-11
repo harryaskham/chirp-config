@@ -14,9 +14,9 @@ of `chirp video --album FILE --only N` workers, the costliest tracks first, then
     filmrender.py finish FILE -o OUT.mp4 [--final OUT-final.mp4]
 
 `finish` makes the file to publish from a joined HEVC film, without re-encoding: tagged `hvc1`
-(Apple's players do not open `hev1`), with the HEVC level its size and frame rate need (the
-GPU encoder marks 2160p60 as level 5.0, which is 2160p30's), and the index at the front. It
-checks the copy has the same frames and length before saying so, and leaves OUT as it is.
+(Apple's players do not open `hev1`), the index at the front, the stream itself untouched. It
+checks the copy has the same frames and length AND that 16 pictures decoded from it are identical
+to the joined film's before saying ok, and leaves OUT as it is.
 It also writes the text to paste under the film (FINAL.description.txt: the album's line,
 meta.description from the album file, and the chapters).
 
@@ -374,6 +374,27 @@ def describe(album, out, final, lg):
     log(lg, f"finish: {f}: {len(chapters)} chapters" + ("" if chapters else " (NONE: no chapters file beside the film)"))
 
 
+def frame_md5(f, t):
+    """The md5 of the picture decoded at `t` seconds (the first frame at or after it)."""
+    r = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{t:.3f}", "-i", f, "-map", "0:v:0", "-frames:v", "1",
+                        "-f", "md5", "-"], capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 and not r.stderr.strip() else f"FAILED {r.stderr.strip()[-120:]}"
+
+
+def same_pictures(src, final, n=16):
+    """Decode `n` frames spread over both files and compare them: a copy must show the pictures of
+    its source. Numbers alone (frames, length, tag) said a film was good whose every frame decoded
+    to garbage (11 Nov 2026: a bitstream filter had rewritten the encoder's headers)."""
+    d = dur(src)
+    bad = []
+    for k in range(n):
+        t = 0.0 if k == 0 else d * k / n + 0.37
+        a, b = frame_md5(src, t), frame_md5(final, t)
+        if a != b or a.startswith("FAILED"):
+            bad.append(f"{t:.1f} s ({a[:24]} / {b[:24]})")
+    return bad
+
+
 def finish(a):
     lg = os.path.splitext(a.out)[0] + ".log"
     if not os.path.exists(a.out):
@@ -388,21 +409,26 @@ def finish(a):
     describe(a.album, a.out, final, lg)
     w, h, fps = int(st["width"]), int(st["height"]), st["fps"]
     need = next((l for l, ps, sr in HEVC_LEVELS if w * h <= ps and w * h * fps <= sr), 180)
+    # The stream is copied untouched: only the container's tag changes. (The level a GPU encoder wrote
+    # is left as it is, even when it is too low for the size and rate: relabelling it means rewriting
+    # the stream's headers with `hevc_metadata`, which garbles this encoder's pictures.)
     cmd = ["ffmpeg", "-loglevel", "error", "-y", "-i", a.out, "-map", "0:v:0", "-map", "0:a?", "-map_chapters", "0",
-           "-c", "copy", "-tag:v", "hvc1"]
-    if int(st.get("level") or 0) < need:
-        cmd += ["-bsf:v", f"hevc_metadata=level={need / 30:g}"]
-    cmd += ["-movflags", "+faststart", final]
+           "-c", "copy", "-tag:v", "hvc1", "-movflags", "+faststart", final]
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0:
         log(lg, f"finish: ffmpeg failed: {r.stderr.strip()[-300:]}")
         return False
     ft = probe(final)
     same = ft.get("nb_frames") == st.get("nb_frames") and abs(dur(final) - dur(a.out)) < 0.05
-    ok = same and ft.get("codec_tag_string") == "hvc1" and int(ft.get("level") or 0) >= need
-    log(lg, f"finish: {final}: {w}x{h} at {fps:g} frames a second, tag {ft.get('codec_tag_string')}, level {int(ft.get('level') or 0) / 30:g} "
-            f"(was {st.get('codec_tag_string')}, {int(st.get('level') or 0) / 30:g}; needs {need / 30:g}), {ft.get('nb_frames')} frames, "
-            f"{dur(final):.3f} s, {os.path.getsize(final) / 1e9:.2f} GB: {'ok' if ok else 'NOT the same as the joined film: do not publish'}")
+    bad = same_pictures(a.out, final)
+    if bad:
+        log(lg, f"finish: PICTURES DIFFER from the joined film at {len(bad)} of 16 places: {'; '.join(bad[:4])}")
+    ok = same and not bad and ft.get("codec_tag_string") == "hvc1"
+    lv = int(ft.get("level") or 0)
+    log(lg, f"finish: {final}: {w}x{h} at {fps:g} frames a second, tag {ft.get('codec_tag_string')} (was {st.get('codec_tag_string')}), "
+            f"level {lv / 30:g}" + ("" if lv >= need else f" (the encoder's label; the size and rate want {need / 30:g}; left as it is)")
+            + f", {ft.get('nb_frames')} frames, {dur(final):.3f} s, {os.path.getsize(final) / 1e9:.2f} GB, "
+            f"16 decoded pictures {'identical to the joined film' if not bad else 'DIFFERENT'}: {'ok' if ok else 'NOT the same as the joined film: do not publish'}")
     return ok
 
 
