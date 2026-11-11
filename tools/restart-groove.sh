@@ -71,6 +71,13 @@ c = [x for x in json.load(open("climbs.json"))["climbs"] if x.get("enabled", Tru
 ids = [l.strip() for l in open("tools/playlist-ids")] if os.path.exists("tools/playlist-ids") else []
 by = {x["id"]: x for x in c}
 now = os.environ.get("GROOVE_NOW", "")
+# an album playlist (tools/playlist-album, as playlist.py reads it): that album, in track order. Without it a start
+# with no session to resume (after tools/groove-hold) opened with the registry'"'"'s first climb, whatever it was, for
+# one whole pass before the driver turned to the album (11 Nov 11:03: three minutes of "shadows" before Accretion).
+if not ids and os.path.exists("tools/playlist-album"):
+    album = open("tools/playlist-album").read().strip().casefold()
+    mine = [x for x in c if album and str((x.get("meta") or {}).get("album", "")).casefold() == album and os.path.exists(x["song"])]
+    ids = [x["id"] for x in sorted(mine, key=lambda x: ((x.get("meta") or {}).get("track") or 999, x["id"]))]
 # resume the track that was playing when it belongs to the rotation and has a song; else the first
 if now in by and (not ids or now in ids) and os.path.exists(by[now]["song"]):
     print(by[now]["song"])
