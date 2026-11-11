@@ -10,7 +10,11 @@ DJ mix when the release has one), with YouTube chapters for the tracks, an hones
     ytpub.py list                    original albums, release and upload state
     ytpub.py kit ALBUM [--tracks]    build ~/Music/Chirpers/<album>/youtube/ (video.mp4, description.txt, thumb.jpg)
     ytpub.py kit ALBUM --video FILE  the same with a ready-made album video (chirp video) in place of the cover still
+    ytpub.py kit ALBUM --thumb IMAGE the same with a ready-made thumbnail (a wide still) in place of the cover's
     ytpub.py upload ALBUM [--privacy private|unlisted|public] [--dry-run]
+                                     a big upload survives an hour-long token, network errors and a restart: run it
+                                     again and it resumes the same session where YouTube says it stopped
+    ytpub.py status ALBUM            the uploaded video's upload, processing and privacy state
     ytpub.py publish ALBUM [--privacy public]
     ytpub.py update ALBUM [--dry-run]  re-push an uploaded video's title, description and tags
     ytpub.py channel [--description-file F] [--keywords K] [--banner IMG]   the channel's About text, keywords, banner
@@ -22,6 +26,7 @@ token.json written by `auth`, both mode 600); only plain HTTPS is used, no Googl
 import argparse
 import base64
 import hashlib
+import http.client
 import http.server
 import json
 import os
@@ -226,6 +231,17 @@ def frame_and_thumb(cover, out_dir):
     return paths
 
 
+def ready_thumb(src, out):
+    """A ready-made thumbnail (a wide still drawn for the album) in place of the cover on its blurred field: it must be
+    16:9, and is written as a 1280x720 JPEG (YouTube's limit is 2 MB)."""
+    from PIL import Image
+    im = Image.open(src).convert("RGB")
+    if abs(im.width / im.height - 16 / 9) > 0.01:
+        sys.exit(f"ytpub: {src} is {im.width}x{im.height}, not 16:9")
+    (im if im.size == (1280, 720) else im.resize((1280, 720), Image.LANCZOS)).save(out, quality=92)
+    return out
+
+
 def program(rel, rdir, force_tracks=False):
     """(audio files, chapter lines, is_mix) for a release: its continuous mix when it has one, else the tracks back to
     back. Shared by kit (the video) and update (the text of an uploaded video), so the chapters always agree."""
@@ -244,7 +260,7 @@ def program(rel, rdir, force_tracks=False):
     return audio, chapters(starts), False
 
 
-def build_kit(aid, meta, rdir, force_tracks=False, video_file=None):
+def build_kit(aid, meta, rdir, force_tracks=False, video_file=None, thumb_file=None):
     rel = release_of(rdir)
     if not rel:
         sys.exit(f"ytpub: {meta['album']} has no release in {rdir}; run chirpers.py release {aid} first")
@@ -254,6 +270,8 @@ def build_kit(aid, meta, rdir, force_tracks=False, video_file=None):
     if not os.path.isfile(cover):
         sys.exit(f"ytpub: {aid} has no cover art (album.json art.file)")
     frame, thumb = frame_and_thumb(cover, out)
+    if thumb_file:
+        ready_thumb(thumb_file, thumb)
     audio, chaps, is_mix = program(rel, rdir, force_tracks)
     video = os.path.join(out, "video.mov")
     listfile = os.path.join(out, "audio.txt")
@@ -314,9 +332,11 @@ def build_kit(aid, meta, rdir, force_tracks=False, video_file=None):
     state_p = os.path.join(out, "meta.json")
     state = json.load(open(state_p)) if os.path.exists(state_p) else {}
     state.pop("video_source", None)
+    state.pop("thumbnail_source", None)
     state.update({"album_id": aid, "album": meta["album"], "title": video_title(meta, is_mix), "mix": is_mix,
                   "tags": tags(meta), "video": "video.mov", "thumbnail": "thumb.jpg", "duration": round(ffprobe_dur(video), 2),
                   **({"video_source": os.path.abspath(video_file)} if video_file else {}),
+                  **({"thumbnail_source": os.path.abspath(thumb_file)} if thumb_file else {}),
                   "audio_peak_dbfs": round(peak, 2), "release_peak_dbfs": round(src, 2),
                   "built_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
     json.dump(state, open(state_p, "w"), indent=1)
@@ -482,36 +502,79 @@ def next_offset(headers):
     return int(rng.rsplit("-", 1)[1]) + 1 if rng else 0
 
 
-def resumable_upload(token, path, body, log=print):
+TOKEN_LIFE = 40 * 60            # refresh the bearer before Google's hour is up (a 4K album uploads for hours)
+NET_ERRORS = (urllib.error.URLError, OSError, http.client.HTTPException)
+
+
+def resumable_upload(token, path, body, log=print, session=None, on_session=None, fresh=None):
+    """Upload PATH in CHUNKs through one resumable session and return the created video.
+    Made for uploads that last hours (11 Nov: a 4K60 album): the bearer is renewed with FRESH() every TOKEN_LIFE seconds
+    and after a 401; a network error or a 5xx waits, asks the session how far it got and goes on from there (up to 12
+    in a row); SESSION ({"location", "size"}, as ON_SESSION was given it) resumes an earlier run's session instead of
+    starting again, unless it is gone or for another file size."""
     size = os.path.getsize(path)
-    st, h, d = call("POST", f"{UPLOAD}/videos?uploadType=resumable&part=snippet,status", token, body,
-                    ctype="application/json; charset=UTF-8",
-                    headers={"X-Upload-Content-Type": video_type(path), "X-Upload-Content-Length": str(size)})
-    loc = {k.lower(): v for k, v in h.items()}.get("location")
-    if st != 200 or not loc:
-        sys.exit(f"ytpub: upload session {st}: {json.dumps(d)[:500]}")
-    off, tries = 0, 0
+    tok = {"v": token, "at": time.time()}
+
+    def bearer(force=False):
+        if fresh and (force or time.time() - tok["at"] > TOKEN_LIFE):
+            tok["v"], tok["at"] = fresh(), time.time()
+        return tok["v"]
+
+    def put(data, rng):
+        try:
+            return call("PUT", loc, bearer(), data, ctype=video_type(path), headers={"Content-Range": rng})
+        except NET_ERRORS as e:
+            return 599, {}, str(e)[:200]
+
+    loc, off = None, 0
+    if session and session.get("location") and session.get("size") == size:
+        loc = session["location"]
+        st, h, d = put(b"", f"bytes */{size}")
+        if st in (200, 201):
+            return d
+        if st == 308:
+            off = next_offset(h)
+            log(f"  resuming the earlier session at {off / size:6.1%} of {size / 1e6:.0f} MB")
+        else:
+            log(f"  the earlier session is gone ({st}); starting again")
+            loc = None
+    if not loc:
+        st, h, d = call("POST", f"{UPLOAD}/videos?uploadType=resumable&part=snippet,status", bearer(), body,
+                        ctype="application/json; charset=UTF-8",
+                        headers={"X-Upload-Content-Type": video_type(path), "X-Upload-Content-Length": str(size)})
+        loc = {k.lower(): v for k, v in h.items()}.get("location")
+        if st != 200 or not loc:
+            sys.exit(f"ytpub: upload session {st}: {json.dumps(d)[:500]}")
+        if on_session:
+            on_session({"location": loc, "size": size})
+    tries, t0, off0 = 0, time.time(), off
     with open(path, "rb") as f:
         while True:
             f.seek(off)
             chunk = f.read(CHUNK)
             end = off + len(chunk) - 1
-            st, h, d = call("PUT", loc, token, chunk, ctype=video_type(path), headers={"Content-Range": f"bytes {off}-{end}/{size}"})
+            st, h, d = put(chunk, f"bytes {off}-{end}/{size}")
             if st in (200, 201):
                 return d
             if st == 308:
                 off, tries = next_offset(h), 0
-                log(f"  {off / size:6.1%} of {size / 1e6:.0f} MB")
+                rate = (off - off0) / max(1.0, time.time() - t0)
+                log(f"  {off / size:6.1%} of {size / 1e6:.0f} MB" + (f", {rate * 8 / 1e6:.1f} Mbit/s, "
+                    f"{(size - off) / rate / 60:.0f} min left" if rate > 0 else ""))
                 continue
-            if st >= 500 and tries < 6:
+            if (st >= 500 or st == 401) and tries < 12:
                 tries += 1
-                time.sleep(2 ** tries)
-                st, h, d = call("PUT", loc, token, b"", ctype=video_type(path), headers={"Content-Range": f"bytes */{size}"})
+                if st == 401:
+                    bearer(force=True)
+                else:
+                    time.sleep(min(60, 2 ** tries))
+                st, h, d = put(b"", f"bytes */{size}")
                 if st in (200, 201):
                     return d
                 off = next_offset(h) if st == 308 else off
                 continue
-            sys.exit(f"ytpub: upload failed {st}: {json.dumps(d)[:500] if not isinstance(d, bytes) else d[:300]}")
+            sys.exit(f"ytpub: upload failed {st}: {json.dumps(d)[:500] if not isinstance(d, bytes) else d[:300]}"
+                     f" (run the upload again to resume)")
 
 
 def cmd_upload(a):
@@ -535,7 +598,21 @@ def cmd_upload(a):
     if not same_channel(ch["title"]):
         sys.exit(f"ytpub: authorised channel is {ch['title']!r}, not {CHANNEL_TITLE!r}; refusing to upload")
     print(f"uploading {state['title']} to {ch['title']} {ch['handle'] or ''} as {a.privacy}")
-    v = resumable_upload(token, os.path.join(out, state["video"]), body)
+
+    def remember(sess):
+        # the session's address, so a run that dies resumes it (YouTube keeps a session for days) instead of sending
+        # tens of GB again; it is dropped once the video exists
+        state["upload_session"] = {**sess, "privacy": a.privacy, "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+        with open(state_p, "w") as f:
+            json.dump(state, f, indent=1)
+        os.chmod(state_p, 0o600)        # the session's address lets anyone who has it continue the upload
+
+    prev = state.get("upload_session") if not a.again else None
+    if prev and prev.get("privacy") != a.privacy:
+        sys.exit(f"ytpub: an unfinished upload of this kit was started as {prev.get('privacy')}; upload with --privacy "
+                 f"{prev.get('privacy')} to resume it (publish changes it afterwards), or --again to start over")
+    v = resumable_upload(token, os.path.join(out, state["video"]), body, session=prev, on_session=remember, fresh=access_token)
+    state.pop("upload_session", None)
     state.update({"video_id": v["id"], "channel_id": ch["id"], "privacy": a.privacy,
                   "uploaded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
     json.dump(state, open(state_p, "w"), indent=1)
@@ -565,6 +642,38 @@ def cmd_publish(a):
     state["privacy"] = a.privacy
     json.dump(state, open(state_p, "w"), indent=1)
     print(f"https://youtu.be/{state['video_id']} is now {a.privacy}")
+
+
+def video_state(video_id, token):
+    """{upload, processing, privacy, definition, parts: (done, total) or None} of an uploaded video (1 quota unit)."""
+    st, _, d = call("GET", f"{API}/videos?part=status,processingDetails,contentDetails&id={video_id}", token)
+    items = (d or {}).get("items") if isinstance(d, dict) else None
+    if st != 200 or not items:
+        sys.exit(f"ytpub: videos.list {st}: {json.dumps(d)[:300]}")
+    it = items[0]
+    pd = it.get("processingDetails") or {}
+    pr = pd.get("processingProgress") or {}
+    return {"upload": (it.get("status") or {}).get("uploadStatus"), "processing": pd.get("processingStatus"),
+            "privacy": (it.get("status") or {}).get("privacyStatus"),
+            "definition": (it.get("contentDetails") or {}).get("definition"),
+            "parts": (int(pr["partsProcessed"]), int(pr["partsTotal"])) if pr.get("partsTotal") else None,
+            "failure": (it.get("status") or {}).get("failureReason") or (it.get("status") or {}).get("rejectionReason")}
+
+
+def cmd_status(a):
+    aid, meta, rdir = resolve(a.album)
+    state_p = os.path.join(rdir, "youtube", "meta.json")
+    state = json.load(open(state_p)) if os.path.exists(state_p) else {}
+    if not state.get("video_id"):
+        sess = state.get("upload_session")
+        sys.exit(f"ytpub: {meta['album']} is not uploaded yet" + (" (an upload is unfinished: run upload again)" if sess else ""))
+    v = video_state(state["video_id"], access_token())
+    if a.json:
+        print(json.dumps({"video_id": state["video_id"], **v}))
+    else:
+        parts = f", {v['parts'][0]}/{v['parts'][1]} parts" if v["parts"] else ""
+        print(f"https://youtu.be/{state['video_id']}: upload {v['upload']}, processing {v['processing']}{parts}, "
+              f"{v['definition']}, {v['privacy']}" + (f", FAILED: {v['failure']}" if v["failure"] else ""))
 
 
 def banner_jpeg(path, out):
@@ -659,7 +768,7 @@ def cmd_list(a):
 
 def cmd_kit(a):
     aid, meta, rdir = resolve(a.album)
-    build_kit(aid, meta, rdir, force_tracks=a.tracks, video_file=a.video)
+    build_kit(aid, meta, rdir, force_tracks=a.tracks, video_file=a.video, thumb_file=a.thumb)
 
 
 def main(argv=None):
@@ -677,6 +786,7 @@ def main(argv=None):
     s.add_argument("--tracks", action="store_true", help="the album's tracks back to back even when it has a mix")
     s.add_argument("--video", metavar="FILE", help="a ready-made album video (chirp video --album) instead of the cover "
                    "still: its picture is kept, the release audio laid under it; it must last as long as the album")
+    s.add_argument("--thumb", metavar="IMAGE", help="a ready-made 16:9 thumbnail instead of the cover on a blurred field")
     s.set_defaults(fn=cmd_kit)
     s = sub.add_parser("upload")
     s.add_argument("album")
@@ -685,6 +795,10 @@ def main(argv=None):
     s.add_argument("--again", action="store_true")
     s.add_argument("--dry-run", action="store_true")
     s.set_defaults(fn=cmd_upload)
+    s = sub.add_parser("status")
+    s.add_argument("album")
+    s.add_argument("--json", action="store_true")
+    s.set_defaults(fn=cmd_status)
     s = sub.add_parser("publish")
     s.add_argument("album")
     s.add_argument("--privacy", choices=["private", "unlisted", "public"], default="public")
