@@ -342,6 +342,34 @@ def chime_all(t, vel=0.7):
         add("chime", t, 16, n, vel)
 
 
+# ---- A TRIAL, off unless C10T1_VOX is set (not in the song): a barked voice over the hardest stretch. It keeps the
+# bar's own time, eighth-notes from the first beat of every second bar, while the band turns the seven wheel under it.
+VOX_LINES = [
+    ("W EY1 T", [4]),
+    ("N AA1 T|Y EH1 T", [2, 4]),
+    ("IY1 CH|W AH1 N|K IY1 P S|IH1 T S|OW1 N|K AW1 N T", [2, 2, 2, 2, 2, 4]),
+    ("N AH1 N|AH0 V|DH EH1 M|R AO1 NG", [2, 2, 2, 6]),
+    ("W EY1 T", [4]),
+    ("N AA1 T|Y EH1 T", [2, 4]),
+    ("DH EY1|D UW1|N AA1 T|N OW1|IY1 CH|AH1|DH ER0", [2, 2, 2, 2, 2, 2, 4]),
+    ("S AH1 M|W EH1 R|AH0|HH EH1 D", [2, 2, 2, 6]),          # the ground has moved up a semitone
+    ("W AH1 N|AW1|ER0", [4, 3, 3]),
+    ("HH OW1 L D Z|DH EH1 M|AO1 L", [4, 4, 8]),
+    ("K IY1 P|K AW1 N T", [2, 4]),
+    ("K IY1 P|K AW1 N T", [2, 4]),
+    ("K IY1 P|K AW1 N T", [2, 4]),
+]
+
+
+def vox(b0, pitch=65):
+    for i, (line, lens) in enumerate(VOX_LINES):
+        t = (b0 + 2 * i) * 16
+        up = 1 if 14 <= 2 * i < 21 else 0
+        for ph, ln in zip(line.split("|"), lens):
+            T.setdefault("vox", []).append({"at": round(t / 4, 4), "len": round(ln * 0.9 / 4, 4), "pitch": nm(pitch + up), "vel": 0.9, "ph": ph})
+            t += ln
+
+
 def hit(t, ln=32, vel=1.0):
     for tr in ("gl", "gr", "gl2", "gr2", "wl", "wr"):
         add(tr, t, ln, "F1,C2,F2,C3", vel)
@@ -566,6 +594,8 @@ def compose():
     kick(7, SEVEN_B, a, z, fill16=True)
     kit(a, a + 21, "x", 2, "back", None, cvel=0.58)
     kit(a + 21, z, "x", 4, "blast", "roll16", cvel=0.66, crash_at_start=False)
+    if VOX:
+        vox(a)
 
     # 18. 308-315  seven meets eleven: seven bars for the bass, on eleven, under one held chord; on Ab, like the first break
     a, z = B[17], B[18]
@@ -665,6 +695,7 @@ DEQ = os.environ.get("C10T1_DEQ", "400:0.8:-6,5500:0.9:4")                      
 DSHELF = os.environ.get("C10T1_DSHELF", "9000:1")
 TUNE_DB = float(os.environ.get("C10T1_TUNE", "-2.5"))
 MASTER_DB = os.environ.get("C10T1_MASTER", "1")                              # the raw mix (what the groove plays) kept where v6's was
+VOX = os.environ.get("C10T1_VOX", "")                                        # a trial: the track gain of a barked voice, e.g. "0dB"
 BCOMP = os.environ.get("C10T1_BCOMP", "-26:8:2.5")                                    # threshold:ratio:makeup on the bass's bus, after its eq                         # and a high shelf there, hz:dB
 
 
@@ -711,6 +742,7 @@ def song():
         ("fifth", "cellos", "-15dB", 0.4, {"sends": {"hall": "-8dB"}}),
         ("air", "juno-pad", "-17dB", 0.15, {"sends": {"hall": "-8dB"}}),
         ("chime", "modal-glock", CHIME_GAIN, -0.2, {"sends": {"hall": "-6dB", "dly": "-14dB"}}),
+        ("vox", "kidman", VOX or "0dB", 0, {"sends": {"hall": "-18dB"}}),
         ("rise", "ct-swell", "-9dB", 0, {"sends": {"hall": "-10dB"}}),
         ("drop", "ct-drop", "-8dB", 0, {}),
     ]
