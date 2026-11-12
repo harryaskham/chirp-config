@@ -65,6 +65,9 @@ EIGHT = [(0, 2, "c"), (2, 1, "c"), (3, 1, "c"), (4, 2, "h"), (6, 2, "c")]   # th
 H1 = [3, 1, 6, 7]
 H2 = [6, 5, 3, 1]
 H3 = [1, 3, 1, 8]
+GROW = ([3], [3, 1], [3, 1, 6], H1)      # the hook is learnt a note at a time: Ab; Ab Gb; Ab Gb B; Ab Gb B C
+HX = [3, 1, 6, 7, 10, 8, 6]              # and in the last third it has grown to seven: Ab Gb B C Eb Db B
+H8 = [3, 1, 6, 7, 10, 8, 6, 1]           # at the landing, eight: two to a bar, a four-bar phrase
 
 
 def strikes(p, cell, s0, s1):
@@ -114,12 +117,13 @@ def gtr(trs, p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None):
                 add(tr, t, ln, ",".join(nm(root + i) for i in (24, 37, 42)), v)
 
 
-def harm(trs, p, cell, b0, b1, interval=12, root=F1, hook=H1, vel=0.8):
-    """A second guitar that plays only the wheel's hook notes, `interval` semitones up."""
+def harm(trs, p, cell, b0, b1, interval=12, root=F1, hook=H1, vel=0.8, power=False):
+    """A second guitar that plays only the wheel's hook notes, `interval` semitones up (power: each as a power chord)."""
     for t, ln, kind, j, hi in strikes(p, cell, s16(b0), s16(b1)):
         if kind == "h":
+            n = root + hook[hi % len(hook)] + interval
             for tr in trs:
-                add(tr, t, ln, root + hook[hi % len(hook)] + interval, vel)
+                add(tr, t, ln, ",".join(nm(n + i) for i in (0, 7, 12)) if power else n, vel)
 
 
 def bass(p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None):
@@ -199,7 +203,9 @@ def kit(a, z, piece="x", step=4, mode="half", fl="run", cvel=0.62, ghost=False, 
         if ghost:
             for o in ([5, 7, 11, 14] if mode == "half" else [7, 9, 15]):
                 if b * 16 + o < z * 16 - skip:
-                    add("snare", b * 16 + o, 1, "g", 0.38)
+                    add("snare", b * 16 + o, 1, "s", 0.3)       # the same drum struck softly: 7-10 dB under the backbeat
+                    # after the drums bus's clip (at 0.42 it was only 3 dB under). v4 and v5 used the kit's ghost
+                    # piece `g`, which is the old kit's snare
     if fl:
         fill(z, fl)
 
@@ -286,22 +292,48 @@ def deg(d, base=65):
     return base + 12 * (d // 8) + MODE[d % 8]
 
 
+SOLO_SCALE = [61, 63, 65, 68, 70, 72]     # Db Eb F Ab Bb C: the ground's major six, no fourth
+#  turns of seven, flurry notes, the sixteenths they take, first note (index in the scale), steps between the notes
+SOLO = [(2, 5, 4, 2, (2, -1, 2, -1, 2)), (2, 5, 4, 4, (2, -1, 2, -1, 2)), (3, 7, 6, 5, (2, -1, 2, -1, 2, -1, 2)),
+        (2, 5, 4, 12, (-2, 1, -2, 1, -2)), (2, 5, 4, 6, (2, -1, 2, -1, 2)), (3, 7, 6, 7, (2, -1, 2, -1, 2, -1, 2)),
+        (2, 10, 8, 13, (-1, -1, 2, -1, -1, 2, -1, -1, -1, -1)), (2, 10, 8, 6, (1, 1, -2, 1, 1, -2, 1, 1, 1, 1)),
+        (3, 14, 12, 2, (1, 2, -1, 1, 2, -1, 1, 2, -1, 1, 2, -1, 1, 1)),
+        (4, 21, 18, 1, (2, 1, -1, 2, 1, -1, 2, 1, -1, 2, 1, -1, 2, 1, -1, 2, -1, 1, -1, 1, -2))]
+assert all(len(st) == n for _, n, _, _, st in SOLO)
+
+
 def solo(b0, b1, vel=0.82):
-    """The lead runs on the seven wheel: a four-note figure climbing the mode a step each turn, six strikes to a turn;
-    every fourth turn is one held note instead."""
-    arch = [4, 5, 6, 7, 9, 10, 11, 12, 11, 12, 13, 14, 13, 11, 10, 9, 10, 11, 12, 14, 15, 14, 12, 11, 9, 8]
-    fig = [0, 2, 1, 3, 2, 4]
-    cell = [(0, 1, "c"), (1, 1, "c"), (2, 1, "c"), (3, 1, "c"), (4, 1, "c"), (5, 2, "h")]
+    """The lead floats over the riff. Each phrase starts on a turn of the seven wheel: a flurry of five, seven, ten or
+    more notes in the time of four, six, eight sixteenths (so off the grid the band is on), joined, landing on one
+    long held note. The flurries lengthen; the last climbs for four turns."""
     s0, s1 = s16(b0), s16(b1)
-    k0 = s0 // 7
-    for t, ln, kind, j, hi in strikes(7, cell, s0, s1):
-        k = t // 7 - k0
-        base = arch[k % len(arch)]
-        if k % 4 == 3:
-            if j == 0:
-                add("lead", t, min(7, s1 - t), deg(base + 7), vel)
-            continue
-        add("lead", t, ln, deg(base + fig[j]), vel * (1.0 if kind == "h" else 0.88))
+    t = s0 + (-s0) % 7
+    for turns, n, span, i0, steps in SOLO:
+        idx = i0
+        for k in range(n):
+            if t + k * span / n < s1:
+                add("lead", t + k * span / n, span / n * 1.05, SOLO_SCALE[idx % 6] + 12 * (idx // 6), vel * 0.86)
+            idx += steps[k]
+        if t + span < s1:
+            add("lead", t + span, min(turns * 7 - span - 0.3, s1 - t - span), SOLO_SCALE[idx % 6] + 12 * (idx // 6), vel)
+        t += turns * 7
+
+
+def chimes(b0, b1, pairs=((5, 7), (5, 11), (7, 11)), vel=0.5):
+    """Coincidences: wherever two wheels begin a turn on the same sixteenth, a struck bar sounds, one pitch to each
+    pair (five and seven C, five and eleven Ab, seven and eleven F). All three coincide only at the first bar line
+    and at the landing."""
+    pitch = {(5, 7): 84, (5, 11): 80, (7, 11): 89}
+    s0, s1 = s16(b0), s16(b1)
+    for p, q in pairs:
+        for t in range(s0 + (-s0) % (p * q), s1, p * q):
+            if t % 385:
+                add("chime", t, 8, pitch[(p, q)], vel)
+
+
+def chime_all(t, vel=0.7):
+    for n in (77, 80, 84, 89):
+        add("chime", t, 16, n, vel)
 
 
 def hit(t, ln=32, vel=1.0):
@@ -330,19 +362,24 @@ def compose():
     tick("cl11", 11, TICK11, CL11, 22, 35, vel=0.36)                # and eleven where it does
     for t in range(16 * 16, 35 * 16 - 8, 4):
         add("cym", t, 4, "rb", 0.3 * (1.12 if t % 16 == 0 else 1.0))
-    kick(4, [(0, 1, "c")], 27, 35, vel=0.6)                         # a heartbeat on the quarter
-    gtr(G, 5, FIVE_A, 30, 35, vel=0.8, ramp=(0.45, 0.9))            # the machine, approaching
-    bass(5, FIVE_A, 30, 35, vel=0.8, ramp=(0.45, 0.9))
+    kick(4, [(0, 1, "c")], 27, 35, vel=0.45)                         # a heartbeat on the quarter
+    gtr(G, 5, FIVE_A, 30, 35, hook=GROW[0], vel=0.8, ramp=(0.45, 0.9))   # the machine, approaching, with one note of its hook
+    bass(5, FIVE_A, 30, 35, hook=GROW[0], vel=0.8, ramp=(0.45, 0.9))
+    chime_all(0)
+    chimes(14, 35, pairs=((5, 7),))                                 # coincidences sound once both wheels are ticking
+    chimes(22, 35, pairs=((5, 11), (7, 11)))
     fill(35, "roll")
     rise(35, 2)
 
-    # 2. 35-55  five and seven have met: RIFF A, the five wheel. Every five bars it lands on a bar line and something joins
+    # 2. 35-55  five and seven have met: RIFF A, the five wheel. Every five bars it lands on a bar line, its hook gains a
+    #    note (Ab; Ab Gb; Ab Gb B; Ab Gb B C) and something joins
     a, z = B[1], B[2]
-    gtr(G, 5, FIVE_A, a, z, hook=H1)
+    for i, hk in enumerate(GROW):                                    # the hook gains a note at each landing
+        gtr(G, 5, FIVE_A, a + 5 * i, a + 5 * i + 5, hook=hk)
+        bass(5, FIVE_A, a + 5 * i, a + 5 * i + 5, hook=hk)
     kick(5, FIVE_A, a, z)
-    bass(5, FIVE_A, a, z, hook=H1)
-    harm(("gl2",), 5, FIVE_A, a + 5, a + 10, 12, hook=H1)            # second landing: the hook an octave up, on the left
-    harm(G2, 5, FIVE_A, a + 10, a + 15, 12, hook=H1)                 # third: on both sides
+    harm(("gl2",), 5, FIVE_A, a + 5, a + 10, 12, hook=GROW[1])       # second landing: the hook an octave up, on the left
+    harm(G2, 5, FIVE_A, a + 10, a + 15, 12, hook=GROW[2])            # third: on both sides
     harm(G2, 5, FIVE_A, a + 15, z, 19, hook=H1)                      # fourth: an octave and a fifth up
     kit(a, z, "x", 4, "half", "roll")
     for t in landings(5, a * 16 + 1, z * 16):
@@ -441,13 +478,15 @@ def compose():
     tick("cl5", 5, TICK5, CL5, a, z, harmony=eye)
     tick("cl7", 7, TICK7, CL7, a, z, harmony=eye)
     tick("cl11", 11, TICK11, CL11_OPEN, a + 12, z, vel=0.36, harmony=eye)
+    chimes(a, z - 2, pairs=((5, 7),))
+    chimes(a + 12, z - 2, pairs=((5, 11), (7, 11)))
     for t in range((a + 8) * 16, z * 16 - 8, 4):
         add("cym", t, 4, "rb", 0.3 * (1.12 if t % 16 == 0 else 1.0))
     long_wait(a, 176 + 231 / 16, vel=0.7, up=-12, start=t0)
     long_wait(a, 176 + 462 / 16, vel=0.7, up=0, start=t0 + 231)
     for t, ln, kind, j, hi in strikes(5, FIVE_A, (z - 10) * 16, z * 16 - 12):
-        add("toms", t, 1, ["ft", "t2", "t1"][j], 0.45 + 0.35 * (t - (z - 10) * 16) / 160)
-    kick(4, [(0, 1, "c")], z - 6, z, vel=0.6)
+        add("toms", t, 1, ["ft", "t2", "t1"][j], 0.32 + 0.33 * (t - (z - 10) * 16) / 160)
+    kick(4, [(0, 1, "c")], z - 6, z, vel=0.45)
     fill(z, "toms")
     rise(z, 2)
 
@@ -535,9 +574,10 @@ def compose():
 
     # 20. 330-350  five meets eleven: RIFF A comes home, with eleven's chords and the tune
     a, z = B[19], B[20]
-    gtr(G, 5, FIVE_A, a, z, hook=H1, vel=0.92)
+    gtr(G, 5, FIVE_A, a, z, hook=HX, vel=0.92)                       # the hook has grown to seven notes
+    harm(G2, 5, FIVE_A, a, z, 12, hook=HX, vel=0.85, power=True)     # and is struck as power chords above the riff
     gtr(WL, 11, ELEVEN_W, a, z, vel=0.92)
-    bass(5, FIVE_A, a, z, hook=H1, vel=0.92)
+    bass(5, FIVE_A, a, z, hook=HX, vel=0.92)
     kick(5, FIVE_B, a, z)
     kit(a, z, "x", 4, "half", "run")
     long_wait(a, z, vel=0.8)
@@ -556,14 +596,16 @@ def compose():
     tick("cl5", 5, TICK5, CL5, a, z, vel=0.5)
     tick("cl7", 7, TICK7, CL7, a, z, vel=0.5)
     tick("cl11", 11, TICK11, CL11, a, z, vel=0.46)
+    chimes(a, 363)
+    chimes(383, z)
     for t in range(a * 16, 363 * 16, 4):
         add("cym", t, 4, "rb", 0.34 * (1.12 if t % 16 == 0 else 1.0))
     kick(4, [(0, 1, "c")], 354, 363, vel=0.5)                        # the heartbeat, from the fifth bar
     bass(11, ELEVEN_A, 357, 363, hook=H1, vel=0.75)                  # the bass comes in with the first guitar
     gtr(("gr",), 7, SEVEN_B, 357, 363, hook=H2, vel=0.9, ramp=(0.6, 1.0))
-    gtr(("gl",), 5, FIVE_B, 360, 363, hook=H1, vel=0.9, ramp=(0.7, 1.0))
+    gtr(("gl",), 5, FIVE_B, 360, 363, hook=HX, vel=0.9, ramp=(0.7, 1.0))
     fill(363, "toms")
-    gtr(("gl",), 5, FIVE_B, 363, 383, hook=H1, vel=0.92, ramp=(0.92, 1.05))
+    gtr(("gl",), 5, FIVE_B, 363, 383, hook=HX, vel=0.92, ramp=(0.92, 1.05))
     gtr(("gr",), 7, SEVEN_B, 363, 383, hook=H2, vel=0.92, ramp=(0.92, 1.05))
     gtr(WL, 11, ELEVEN_W, 363, 383, vel=0.92)
     bass(11, ELEVEN_A, 363, 383, hook=H1, vel=0.92)
@@ -589,8 +631,9 @@ def compose():
         for o in ((0, 10) if b > a else (10,)):
             add("kick", b * 16 + o, 1, "k", 0.92)
     kit(a, a + 4, "x", 4, "back", None, crash_at_start=False)
-    gtr(G + G2, 8, EIGHT, a + 4, a + 16, hook=H1, vel=0.95)
-    bass(8, EIGHT, a + 4, a + 16, hook=H1, vel=0.95)
+    gtr(G + G2, 8, EIGHT, a + 4, a + 16, hook=H8, vel=0.95)
+    bass(8, EIGHT, a + 4, a + 16, hook=H8, vel=0.95)
+    chime_all(a * 16)
     kick(8, EIGHT, a + 4, a + 16)
     kit(a + 4, a + 16, "x", 4, "back", "roll")
     for b in range(a + 6, a + 16, 2):
@@ -599,8 +642,10 @@ def compose():
     bed([((a + 16) * 16, 0)], NB * 16)
     tick("cl5", 5, TICK5, CL5, a + 17, NB - 1, ramp=(1.0, 0.4))
     tick("cl7", 7, TICK7, CL7, a + 17, NB - 1, ramp=(1.0, 0.4))
+    chimes(a + 17, NB - 1, pairs=((5, 7),), vel=0.4)
 
 
+CHIME_GAIN = os.environ.get("C10T1_CHIME", "-19dB")
 CL_SENDS = {"dly": "-14dB", "hall": "-12dB"} if CLEAN == "m8-clean" else {"dly": "-9dB", "hall": "-7dB"}   # ct-clean is dry: the song gives it its space
 
 
@@ -630,6 +675,7 @@ def song():
         ("home", "contrabass-tight", "-12dB", 0.3, {"sends": {"hall": "-12dB"}}),
         ("fifth", "cellos", "-15dB", 0.4, {"sends": {"hall": "-8dB"}}),
         ("air", "juno-pad", "-17dB", 0.15, {"sends": {"hall": "-8dB"}}),
+        ("chime", "modal-glock", CHIME_GAIN, -0.2, {"sends": {"hall": "-6dB", "dly": "-14dB"}}),
         ("rise", "ct-swell", "-9dB", 0, {"sends": {"hall": "-10dB"}}),
         ("drop", "ct-drop", "-8dB", 0, {}),
     ]
