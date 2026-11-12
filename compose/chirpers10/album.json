@@ -69,8 +69,19 @@
       "THE NAME IS THE IRONY: common time is 4/4, and the piece will use mad time signatures.",
       "THE SOUND FIRST: a new family of guitars, amps, basses and kits built ON the old ones with today's engine (sounds.md). New names, never an edit.",
       "ANY VERSION AT ALL IS ON THE GROOVE: the playlist is this one song; keep finessing it, round after round.",
-      "ROOM TO EXPERIMENT: every engine patch, segment and idea can be tried and finessed inside it."
+      "ROOM TO EXPERIMENT: every engine patch, segment and idea can be tried and finessed inside it.",
+      "VOICES, AND DIFFERENT ONES IN DIFFERENT PARTS (12 Nov 13:35): not one voice or none; try options section by section, on the groove.",
+      "MANY GUITARS: lots of different guitars, layered synths and tones, different amps, and string variants on the DI, across the piece.",
+      "A SHOWCASE OF ALL FEATURES: the piece shows what chirp can do (tools/showcase.py lists what it uses and what it does not).",
+      "NEW ENGINE FEATURES ARE WANTED where the amp simulation or the DI falls short: chirp-native (built in chirp's own engine, nothing outside it in the sound), opt-in with exact defaults, landed through chirp-eco's gate."
     ],
-    "note": "Names are provisional (Harry: we can always change it later). Typing slips in his messages are corrected; the words are his."
+    "note": "Names are provisional (Harry: we can always change it later). Typing slips in his messages are corrected; the words are his.",
+    "later": [
+      {
+        "at": "12 Nov 13:35 GMT",
+        "about": "his answer when chirper-zero asked whether the piece should have a voice (a barked trial over the hardest stretch)",
+        "words": "try different options in different parts. same with guitars - lets try lots of different guitars and layered synths / tones, amps and string variants for DI, etc - make it a showcase of all features, add new ones if we need better amp sim or DI features, all chirp native of course"
+      }
+    ]
   }
 }
