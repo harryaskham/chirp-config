@@ -20,6 +20,9 @@ RIG_R = os.environ.get("C10T1_RIGR", "ct-chug-r")
 BITE_L = os.environ.get("C10T1_BITEL", "ct-bite-l")      # the seven wheel's rig ("" = the seven wheel stays on the tight rig)
 BITE_R = os.environ.get("C10T1_BITER", "ct-bite-r")
 BITE_DB = os.environ.get("C10T1_BITEDB", "4.3dB")     # as loud as the tight rig on the same riff (LUFS, the pair alone)
+CRUNCH_L = os.environ.get("C10T1_CRUNCHL", "ct-crunch-l")    # the low-gain rig that answers the pick: the first break and the approach's first guitars ("" = off)
+CRUNCH_R = os.environ.get("C10T1_CRUNCHR", "ct-crunch-r")
+CRUNCH_DB = os.environ.get("C10T1_CRUNCHDB", "2dB")
 WALL_L = os.environ.get("C10T1_WALLL", "ct-wall-l")
 WALL_R = os.environ.get("C10T1_WALLR", "ct-wall-r")
 CLEAN = os.environ.get("C10T1_CLEAN", "ct-clean")
@@ -101,23 +104,27 @@ def s16(b):
 
 
 SEVEN_RIG = {"gl": "sl", "gr": "sr"}
+CRUNCH = {"gl": "kl", "gr": "kr"} if CRUNCH_L else None     # pass as rig=: the part goes to the crunch rig
+SOFT = (0.6, 1.25)        # dyn= for the crunch rig, which answers the pick: the chugs soft, the hook notes hard
 
 
-def gtr(trs, p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None):
+def gtr(trs, p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None, rig=None, dyn=(1.0, 1.05)):
     s0, s1 = s16(b0), s16(b1)
     for t, ln, kind, j, hi in strikes(p, cell, s0, s1):
         v = vel * (1.0 if j == 0 else 0.9)
         if ramp:
             v *= ramp[0] + (ramp[1] - ramp[0]) * (t - s0) / max(1, s1 - s0)
         for tr in trs:
-            if p == 7 and BITE_L:
+            if rig:
+                tr = rig.get(tr, tr)
+            elif p == 7 and BITE_L:
                 tr = SEVEN_RIG.get(tr, tr)        # a wheel is known by its rig: five ct-chug, seven ct-bite, eleven ct-wall
             if kind == "c":
-                add(tr, t, ln, root, v, pm=1)
+                add(tr, t, ln, root, v * (dyn[0] if rig else 1.0), pm=1)
             elif kind == "o":
                 add(tr, t, ln, root, v)
             elif kind == "h":
-                add(tr, t, ln, root + hook[hi % len(hook)], v * 1.05)
+                add(tr, t, ln, root + hook[hi % len(hook)], v * (dyn[1] if rig else 1.05))
             elif kind == "x":
                 add(tr, t, ln, root, v * 0.8, dead=1)
             elif kind == "p":
@@ -465,8 +472,8 @@ def compose():
 
     # 4. 70-77  five and seven meet: seven bars of the seven wheel, nearly alone (one guitar, bass, kick, ghosted snare), up on Ab
     a, z = B[3], B[4]
-    gtr(("gl",), 7, SEVEN_A, a, z, root=AB, hook=H2, vel=0.8)
-    gtr(("gr",), 7, SEVEN_A, a + 4, z, root=AB, hook=H2, vel=0.8)
+    gtr(("gl",), 7, SEVEN_A, a, z, root=AB, hook=H2, vel=0.8, rig=CRUNCH, dyn=SOFT)       # on the low-gain rig: the chugs soft, the hook hard
+    gtr(("gr",), 7, SEVEN_A, a + 4, z, root=AB, hook=H2, vel=0.8, rig=CRUNCH, dyn=SOFT)
     bass(7, SEVEN_A, a, z, root=AB, hook=H2)
     kick(7, SEVEN_A, a, z)
     kit(a, z, "h", 2, "half", "kicks", cvel=0.5, ghost=True, crash_at_start=False)
@@ -684,8 +691,8 @@ def compose():
         add("cym", t, 4, "rb", 0.34 * (1.12 if t % 16 == 0 else 1.0))
     kick(4, [(0, 1, "c")], 354, 363, vel=0.5)                        # the heartbeat, from the fifth bar
     bass(11, ELEVEN_A, 357, 363, hook=OCT, vel=0.75)                  # the bass comes in with the first guitar
-    gtr(("gr",), 7, SEVEN_B, 357, 363, hook=H2, vel=0.9, ramp=(0.6, 1.0))
-    gtr(("gl",), 5, FIVE_B, 360, 363, hook=HX, vel=0.9, ramp=(0.7, 1.0))
+    gtr(("gr",), 7, SEVEN_B, 357, 363, hook=H2, vel=0.9, ramp=(0.6, 1.0), rig=CRUNCH, dyn=SOFT)    # the first guitars back are the low-gain rig;
+    gtr(("gl",), 5, FIVE_B, 360, 363, hook=HX, vel=0.9, ramp=(0.7, 1.0), rig=CRUNCH, dyn=SOFT)     # the high-gain ones come with the band at 363
     fill(363, "toms")
     gtr(("gl",), 5, FIVE_B, 363, 383, hook=HX, vel=0.92, ramp=(0.92, 1.05))
     gtr(("gr",), 7, SEVEN_B, 363, 383, hook=H2, vel=0.92, ramp=(0.92, 1.05))
@@ -793,6 +800,7 @@ def song():
         ("gl", RIG_L, "0dB", -1, GOUT), ("gr", RIG_R, "0dB", 1, GOUT),
         ("gl2", RIG_L, "-3dB", -0.8, GOUT), ("gr2", RIG_R, "-3dB", 0.8, GOUT),
         ("sl", BITE_L, BITE_DB, -1, GOUT), ("sr", BITE_R, BITE_DB, 1, GOUT),
+        ("kl", CRUNCH_L, CRUNCH_DB, -0.8, {}), ("kr", CRUNCH_R, CRUNCH_DB, 0.8, {}),          # not through the guitars' bus: its eq scoops the mids this rig is made of
         ("wl", WALL_L, "-2dB", -0.9, GOUT), ("wr", WALL_R, "-2dB", 0.9, GOUT),
         ("bass", BASS, "0.5dB", 0, BOUT),
         ("kick", KIT, "2dB", None, {"out": "drums"}), ("snare", KIT, "8dB", None, {"out": "drums", **OHS}),

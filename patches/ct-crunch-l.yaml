@@ -1,0 +1,61 @@
+{
+ "about": "Common Time crunch rig, left of a pair (chirper-zero, 12 Nov; pair with ct-crunch-r): A DIFFERENT GUITAR INTO A DIFFERENT KIND OF AMP, the low-gain one that answers the pick (Harry: \"lots of different guitars ... amps and string variants for DI\"; chirp-eco's `showcase.py --diff` showed ct-bite was ct-chug's guitar through another amp). THE STRING: a single coil at the bridge (pickup 0.06, no second coil, its resonance at 5.2 kHz where the humbucker's is 3.2), a thin pick near the bridge (pick 0.09, pick_hard 0.25). THE AMP: the `crunch` voicing through the JCM800 tone stack (`stack: marshall`, mid full up) on triode stages with 8 dB of feedback, at gain 0.13, no screamer, no compressor in front; the engine's 4x12; a mid lift after it (700 Hz +7 dB). WHY 0.13: measured on open Ab1, a soft stroke (vel 0.35) against a hard one (1.0) differs by 5.8 dB at gain 0.05, 4.0 at 0.12, 1.9 at 0.2, 0.5 at 0.3 and 0.0 at 0.5; ct-chug gives 0.1. So at 0.13 the playing's dynamics come through the amp (about 4 dB), and from 0.3 up this amp is as saturated as the high-gain rigs. Write the part with dynamics. THE VOICING was set at gain 0.5 against Tool's Pneuma (the record's guitar stem, tools/riffpunch.py's measures, two 30 s windows): 400 Hz-1 kHz against 1-4 kHz went from -13 (the first try; the record -3.6 and -5.1) to -5.1 and -4.6. At 0.13 it is not Pneuma's saturated tone and is not meant to be. Alone on a muted low riff, level-matched, against ct-chug: 5-8 dB less under 160 Hz, 6 dB less at 800 Hz, 4 dB more at 1.6 kHz. Still off, as on every rig here and on Pneuma as on Bleed: the low end of a note (100-250 Hz) falls 2-7 dB in its first 80 ms where the records' holds.",
+ "extends": "m8 layers.0.pick=0.143 layers.0.pickup=0.085 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6 synth.layers.0.bright.mod.0.amount=-0.2 synth.pitch.mod.0.amount=0.4 synth.env.bite.d=80ms layers.0.planes=0.3 layers.0.beat=1.5 synth.pitch.mod.0.amount=0.6 synth.env.bite.d=110ms layers.0.scrape=0.2 layers.0.thump=expr.pm*0.4 synth.layers.0.decay.mod.0.amount=-3.4 layers.0.pickup=0.06 layers.0.coil=0 synth.filters.1.cutoff=5200 synth.filters.1.q=2 synth.filters.1.gain=4dB synth.filters.2.cutoff=10k layers.0.pick=0.09 layers.0.pick_hard=0.25",
+ "fx": [
+  {
+   "type": "sympathetic",
+   "decay": "1.2s",
+   "mix": 0.1
+  },
+  {
+   "type": "compressor",
+   "threshold": "-16dB",
+   "ratio": 1,
+   "attack": "5ms",
+   "release": "80ms",
+   "makeup": "2dB"
+  },
+  {
+   "type": "amp",
+   "model": "crunch",
+   "stack": "marshall",
+   "triode": true,
+   "nfb": 8,
+   "gain": 0.13,
+   "ts": 0.0,
+   "tight": 60,
+   "bass": 0.5,
+   "mid": 1.0,
+   "treble": 0.5,
+   "presence": 0.45,
+   "resonance": 0.6,
+   "sag": 0.1,
+   "bloom": 0.15
+  },
+  {
+   "type": "cab",
+   "model": "4x12",
+   "mic": 0.35,
+   "distance": 0.15
+  },
+  {
+   "type": "eq",
+   "bands": [
+    "hp cutoff=70",
+    "lowshelf cutoff=200 gain=3dB",
+    "peak cutoff=700 q=0.8 gain=7dB",
+    "peak cutoff=3300 q=1 gain=2dB",
+    "highshelf cutoff=6000 gain=-6dB"
+   ]
+  },
+  {
+   "type": "gate",
+   "threshold": "-52dB",
+   "attack": "0.5ms",
+   "hold": "12ms",
+   "release": "40ms"
+  },
+  "reverb kind=plate decay=1s mix=0.1 predelay=12ms"
+ ],
+ "gain": "-20dB"
+}
