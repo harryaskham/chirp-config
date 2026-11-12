@@ -1376,10 +1376,18 @@ def cmd_commit(a):
     if "-m" not in a or a.index("-m") + 1 >= len(a):
         die("usage: climb.py commit -m MSG PATH …")
     i = a.index("-m")
-    msg, paths = a[i + 1], [p for p in a[:i] + a[i + 2:] if p not in ("--no-git", "--library-ok")]
+    msg, rest = a[i + 1], a[:i] + a[i + 2:]
+    # --as NAME: who is committing, as `done` reads it (12 Nov: commit read $CLIMB_AS only, so a composer who passed
+    # --as had a new patch of their own song HELD as if the song were somebody else's, and "--as" and the name were
+    # then taken for paths)
+    who = opt(rest, "--as")
+    if "--as" in rest:
+        j = rest.index("--as")
+        del rest[j:j + 2]
+    paths = [p for p in rest if p not in ("--no-git", "--library-ok")]
     if not paths:
         die("climb.py commit: name the paths to commit")
-    library_gate(paths, a, me=os.environ.get("CLIMB_AS"))
+    library_gate(paths, a, me=who or os.environ.get("CLIMB_AS"))
     picture_notice(paths, a)
     commit_or_die(paths, msg, a)
 

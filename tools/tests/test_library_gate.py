@@ -125,6 +125,22 @@ class LibraryGate(unittest.TestCase):
         reg = self.registry()
         self.assertEqual(reg["climbs"][1]["rounds"], 4)
 
+    def test_commit_reads_as_like_done_does(self):
+        """12 Nov: `commit` took the owner from $CLIMB_AS only. With --as, a new patch used by the committer's own
+        song was held as another composer's, and "--as" and the name were treated as paths."""
+        self.w("patches/solo.yaml", "solo v1\n")
+        self.w("songs/a.yaml", "lead solo\n")
+        r = self.climb("commit", "-m", "a solo patch", "patches/solo.yaml", "songs/a.yaml", "--as", "ann")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(self.commits(), 2)
+        self.assertEqual(sorted(self.git("show", "--name-only", "--format=", "HEAD").split()),
+                         ["patches/solo.yaml", "songs/a.yaml"])
+        self.w("patches/lead.yaml", "lead v2\n")                # bob's song uses it too: still held for ann
+        r = self.climb("commit", "--as", "ann", "-m", "brighter lead", "patches/lead.yaml")
+        self.assertEqual(r.returncode, 5, r.stderr)
+        self.assertIn("b (bob)", r.stderr)
+        self.assertNotIn("a (ann)", r.stderr)
+
     def test_paths_without_library_files_never_run_the_guard(self):
         self.w("songs/a.yaml", "lead lead\n")
         os.chmod(self.engine, 0)                               # an engine that cannot run: the guard is not consulted
