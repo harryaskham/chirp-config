@@ -32,6 +32,7 @@ NB = 385 + CODA
 NOTE = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
 F1 = 29
 AB, BB, DB, EB = 32, 34, 37, 39      # other grounds: Ab1, Bb1 (the seventh string), Db2, Eb2 (the sixth string)
+GB = 30
 
 
 def nm(m):
@@ -59,6 +60,7 @@ SEVEN_B = [(0, 1, "c"), (1, 1, "c"), (2, 2, "h"), (4, 1, "c"), (5, 2, "h")]
 ELEVEN_A = [(0, 3, "o"), (3, 2, "c"), (5, 3, "h"), (8, 1, "c"), (9, 2, "h")]
 ELEVEN_B = [(0, 1, "c"), (1, 1, "c"), (2, 1, "c"), (3, 2, "h"), (5, 1, "c"), (6, 2, "h"), (8, 1, "c"), (9, 1, "c"), (10, 1, "x")]
 ELEVEN_W = [(0, 8, "P")]
+ELEVEN_D = [(0, 11, "P")]                 # one chord to a turn, ringing into the next
 EIGHT = [(0, 2, "c"), (2, 1, "c"), (3, 1, "c"), (4, 2, "h"), (6, 2, "c")]   # the coda: a cell that fits the bar
 
 # the hook: the notes the wheels turn through, in semitones above the root (F: Ab Gb B C)
@@ -455,16 +457,22 @@ def compose():
     kit(a, z, "rd", 4, "half", "run", cvel=0.6)
     solo(a, z)
 
-    # 10. 165-175  five meets eleven: the weight comes off
+    # 10. 165-175  five meets eleven: the weight comes off, slowly. No riff: one chord to each turn of the eleven wheel,
+    #     left to ring, on the wall rig, the drums in half time. The chords are the eye's, heard heavy before they are
+    #     heard clean: Db (where the lead's run stood), Ab, Gb, home
     a, z = B[9], B[10]
-    crash(a * 16)
-    gtr(G, 5, FIVE_A, a, z, hook=H1, vel=0.75, ramp=(1.0, 0.4))
-    bass(11, ELEVEN_W, a, z, vel=0.8)
-    kick(5, FIVE_A, a, a + 5, only_first=True, vel=0.8)
-    kit(a, a + 5, "h", 4, "half", None, cvel=0.5, crash_at_start=False)
+    doom = [(a * 16, DB), (a * 16 + 44, AB), (a * 16 + 88, GB), (a * 16 + 121, F1)]
+    for i, (t0, root) in enumerate(doom):
+        t1 = doom[i + 1][0] if i + 1 < len(doom) else z * 16
+        fade = 1.0 - 0.45 * (t0 - a * 16) / 160
+        gtr(WL, 11, ELEVEN_D, t0 / 16, t1 / 16, root=root, vel=0.95 * fade)
+        bass(11, ELEVEN_D, t0 / 16, t1 / 16, root=root, vel=0.9 * fade)
+        crash(t0, 0.9 * fade, "c" if i % 2 == 0 else "x")
+    kick(11, [(0, 1, "c")], a, a + 7, vel=0.85)                      # a kick under each chord, for seven bars
+    kit(a, a + 5, "x", 8, "half", None, cvel=0.6, crash_at_start=False)
     kit(a + 5, z, "h", 4, "none", None, cvel=0.42, crash_at_start=False)
     tick("cl5", 5, TICK5, CL5, a + 5, z, ramp=(0.5, 1.0))
-    bed([((a + 4) * 16, 0)], z * 16, vel=0.5, fifth=False, pad_vel=0)
+    bed([(a * 16 + 121, 0)], z * 16, vel=0.5, fifth=False, pad_vel=0)
 
     # 11. 175-210  five and seven meet: THE EYE. The ticks as at the start, but the ground moves under them, on the eleven
     #     wheel: Db, Ab, Gb and home, one chord to each phrase of the tune; the tune twice, low then high
@@ -677,6 +685,9 @@ def song():
     LEAD_LANE = [["0b", TUNE_DB]]
     for b0, b1, v in ((154, 165, 0), (175, 210, -10)):
         LEAD_LANE += [[f"{(b0 - 1) * 4}b", TUNE_DB], [f"{b0 * 4}b", v], [f"{b1 * 4}b", v], [f"{(b1 + 1) * 4}b", TUNE_DB]]
+    # the bass's fader, after its compressor (which levels every note, so velocity and the track's gain do nothing):
+    # down 2.5 dB under the slow chords at 5:14, where its long notes read 1.5-2 dB over the guitars
+    BASS_RIDE = [["0b", 0], [f"{164.75 * 4}b", 0], [f"{165 * 4}b", -2.5], [f"{174.75 * 4}b", -2.5], [f"{175 * 4}b", 0]]
     GOUT = {"out": "gtrs"} if GEQ else {}
     BOUT = {"out": "low"} if BEQ else {}
     spec = [
@@ -726,7 +737,9 @@ def song():
                             + ([{"type": "eq", "bands": peaks(DEQ) + ([f"highshelf cutoff={DSHELF.split(':')[0]} gain={DSHELF.split(':')[1]}dB"] if DSHELF else [])}] if DEQ or DSHELF else [])},
                   **({"gtrs": {"fx": [{"type": "eq", "bands": peaks(GEQ)}]}} if GEQ else {}),
                   **({"low": {"fx": [{"type": "eq", "bands": peaks(BEQ)}]
-                              + ([{"type": "compressor", "threshold": BCOMP.split(":")[0] + "dB", "ratio": float(BCOMP.split(":")[1]), "attack": "12ms", "release": "120ms", "makeup": BCOMP.split(":")[2] + "dB"}] if BCOMP else [])}} if BEQ else {})},
+                              + ([{"type": "compressor", "threshold": BCOMP.split(":")[0] + "dB", "ratio": float(BCOMP.split(":")[1]), "attack": "12ms", "release": "120ms", "makeup": BCOMP.split(":")[2] + "dB"}] if BCOMP else [])
+                              + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}}],
+                              "auto": {"ride": {"points": BASS_RIDE}}}} if BEQ else {})},
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}] + ([{"type": "gain", "gain": f"{MASTER_DB}dB"}] if MASTER_DB else [])
                    + ([{"type": "gain", "gain": f"{MGAIN.split(':')[0]}dB"}, "limiter ceiling=-1dB", {"type": "gain", "gain": f"-{MGAIN.split(':')[1]}dB"}] if MGAIN else [])},
         "tracks": tracks,

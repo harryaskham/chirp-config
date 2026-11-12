@@ -36,6 +36,8 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 
 **Other grounds (v4).** F is home; some sections stand elsewhere and come back. The two seven-bar breaks are on Ab (2:13 and 9:46). The lead runs over Db (4:53). After the eye the weight returns by fourths: F (6:40), Bb (6:59), Eb (7:20), and F again when all three wheels sound (7:46). Riff C visits Bb for eleven bars and the hardest stretch Gb for seven, as before.
 
+**The slow chords (5:14, v8).** The ten bars before the eye have no riff: one open chord to each turn of the eleven wheel, left to ring, on the wall rig, the drums in half time and then gone. The chords are the eye's, heard heavy before they are heard clean: Db (where the lead's run stood, four turns), Ab (four), Gb (three), then home, which rings into the eye's first bar.
+
 **The eye's chords (5:33).** The ground moves under the ticks on the eleven wheel: Db, Ab, Gb, F, one chord to each phrase of the tune, so each phrase's held note is a chord tone (F the third of Db; C the third of Ab; Gb the root; F home). The tune twice: low, then an octave up. The ticks move with the chords; the eleven tick is open there (root, fifth, second, sixth: no third).
 
 **The lead's run (4:53, rewritten in v6).** The lead floats over the riff. Ten phrases, each starting on a turn of the seven wheel: a joined flurry of five, seven, ten, fourteen or twenty-one notes in the time of four, six, eight, twelve or eighteen sixteenths (so off the grid the band is on), landing on one long held note (Db5 F5 Bb5 F5 Bb5 Db6 Ab5 Bb5 Db6, and last C6, the fifth of the F that follows). The notes are the ground's major six, Db Eb F Ab Bb C, up to Eb6, the top fret.
