@@ -400,6 +400,22 @@ def say(tr, t, syllables, pitch=45, vel=0.8):
         t += ln
 
 
+# two lines of the bark's text, SPOKEN first, calmly, as the band comes back after the eye (6:42); the bark screams them at 9:01.
+# Syllables, lengths and the falling speaking pitch are `chirp tts --voice voice-talk --key F2 --speed 0.9 --print`'s
+# (beats at 110 bpm: start, length, phonemes, pitch).
+SPOKEN = [(211, [(0.25, 0.612, "IY1 CH", "m45.5"), (0.862, 0.794, "W AH1 N", "m44.9"), (1.657, 0.977, "K IY1 P S", "m44.3"),
+                 (2.633, 0.794, "IH1 T S", "m43.7"), (3.428, 0.612, "OW1 N", "m43.1"), (4.04, 1.416, "K AW1 N T", "m40.5")]),     # Each one keeps its own count.
+          (213, [(0.25, 0.794, "N AH1 N", "m45.5"), (1.044, 0.612, "AH1 V", "m44.5"), (1.657, 0.794, "DH EH1 M", "m43.5"),
+                 (2.451, 1.152, "R AO1 NG", "m40.5")])]                                                                        # None of them wrong.
+
+
+def speak(tr, lines, vel=0.8):
+    k = 126 / 110 * 4          # a beat at 110 bpm, in this piece's sixteenths
+    for bar, notes in lines:
+        for at, ln, ph, pitch in notes:
+            T.setdefault(tr, []).append({"at": round((bar * 16 + (at - 0.25) * k) / 4, 4), "len": round(ln * k / 4, 4), "pitch": pitch, "vel": vel, "ph": ph})
+
+
 def vox(b0, pitch=65):
     for i, (line, lens) in enumerate(VOX_LINES):
         t = (b0 + 2 * i) * 16
@@ -590,6 +606,8 @@ def compose():
     crash(a * 16, 0.7)
     kit(a + 5, z, "x", 4, "half", "roll")
     rise(z, 1)
+    if SPEAK:
+        speak("speak", SPOKEN)
 
     # 13. 220-231  five meets eleven: the splayed riff again, filled in, its hook doubled above; on Bb
     a, z = B[12], B[13]
@@ -734,6 +752,10 @@ def compose():
     for b in range(a + 6, a + 16, 2):
         crash(b * 16, 0.85)
     hit((a + 16) * 16, ln=8 * 16)
+    if WORD:                                                        # the answer to "wait" and "not yet": one word, on each of the four chords and on the last
+        for b in range(a, a + 4):
+            T.setdefault("word", []).append({"at": b * 4, "len": 3.5, "pitch": "F3", "vel": 0.9, "ph": WORD_PH})
+        T.setdefault("word", []).append({"at": (a + 16) * 4, "len": 20, "pitch": "F3", "vel": 0.9, "ph": WORD_PH})
     bed([((a + 16) * 16, 0)], NB * 16)
     tick("cl5", 5, TICK5, CL5, a + 17, NB - 1, ramp=(1.0, 0.4))
     tick("cl7", 7, TICK7, CL7, a + 17, NB - 1, ramp=(1.0, 0.4))
@@ -786,6 +808,13 @@ HATPAN = os.environ.get("C10T1_HATPAN", "")
 KPANS = os.environ.get("C10T1_KPANS", "x:0.35,rde:0.4,rb:0.35,h:-0.45")          # the kit's cymbals re-placed, piece:pan,piece:pan (a song-local kit over ct-kit)
 MASTER_DB = os.environ.get("C10T1_MASTER", "1")                              # the raw mix (what the groove plays) kept where v6's was
 # voices, each its track's gain ("" = off): the bark (8:53), three soft singers on the tune in the eye (6:03), a whisper in the opening
+DUCK = os.environ.get("C10T1_DUCK", "6:5")        # while the spoken voice speaks, the guitars' bus and the drums' bus give way by this many dB (guitars:drums)
+SPEAK = os.environ.get("C10T1_SPEAK", "-3dB")      # a spoken voice in the rebuild (6:42)
+WORD = os.environ.get("C10T1_WORD", "-12dB")       # a choir of fifteen on the landing's chords, singing one word
+# the word: "yes" (the answer to "not yet", and nearly its sound). "now" was the first choice, but the larger of two speech
+# recognisers heard the choir's "now" as "no", the opposite word, in all three renders tried (the smaller heard "now");
+# "yes" both read right in all three
+WORD_PH = os.environ.get("C10T1_WORDPH", "Y EH1 S")
 VOX = os.environ.get("C10T1_VOX", "7dB")
 CHOIR = os.environ.get("C10T1_CHOIR", "-27dB")
 WHISPER = os.environ.get("C10T1_WHISPER", "-8dB")
@@ -851,6 +880,8 @@ def song():
         ("chime", "modal-glock", CHIME_GAIN, -0.2, {"sends": {"hall": "-6dB", "dly": "-14dB"}}),
         ("vox", "kidman", VOX or "0dB", 0, {"sends": {"hall": "-18dB"}, "fx": [{"type": "eq", "bands": ["hp cutoff=300"] + ([f"highshelf cutoff={VOX_SHELF.split(':')[0]} gain={VOX_SHELF.split(':')[1]}dB"] if VOX_SHELF else [])}]}),
         ("choir", "voice-backing", CHOIR or "0dB", 0, {"sends": {"hall": "-8dB"}}),
+        ("speak", "voice-talk", SPEAK or "0dB", 0, {"fx": [{"type": "eq", "bands": ["hp cutoff=120", "peak cutoff=300 q=1 gain=" + os.environ.get("C10T1_SPEAKDIP", "-2.5") + "dB"]}]}),      # dry: with the hall a recogniser lost "its own count"; the dip: it put the rebuild 3.9 dB over the records at 250-500 Hz
+        ("word", "ct-word", WORD or "0dB", 0, {"sends": {"hall": "-8dB"}, "fx": [{"type": "eq", "bands": ["hp cutoff=350"]}]}),      # its notes are C3 F3 C4, on top of the guitars' chord: 250-500 Hz read 3.8 dB over with them in
         ("whisper", "ct-whisper", WHISPER or "0dB", 0, {"sends": {"hall": "-8dB"}}),
         ("swarm", "ct-swarm", {"value": SWARM or "0dB", "mod": [{"src": "auto.lvl", "amount": 1}]}, 0,
          {"sends": {"hall": "-8dB"}, "auto": {"sync": {"points": [[f"{b * 4}b", c] for b, c in SWARM_LANE]}, "lvl": {"points": [[f"{b * 4}b", c] for b, c in SWARM_LVL]}}}),
@@ -898,6 +929,8 @@ def song():
                                    {"type": "cab", "model": "4x12", "mic": 0.3, "distance": 0.15},
                                    {"type": "eq", "bands": ["peak cutoff=1.7k q=1.2 gain=-2.5dB", "peak cutoff=340 q=1 gain=2dB"]},
                                    "delay time=3/16 mix=0.25 feedback=0.4 ping_pong=true tone=3k", "reverb mix=0.3 size=0.85"]},
+            "ct-word": {"about": "chirper-zero: the landing's choir - the library's voice-choir (five singers on a line) as a three-part open stack, a fourth below and a fifth above the note (fifteen voices), with a slightly smaller tract (0.95: a little brighter)",
+                       "extends": "voice-choir synth.layers.0.harmony=[-5,7] synth.layers.0.tract=0.95"},
             "ct-drop": {"about": "chirper-zero: the floor dropping on a landing - a sine that falls an octave to the note in 0.35 s and dies in 1.5 s",
                         "synth": {"layers": [{"wave": "sine"}], "pitch": {"value": 0, "mod": [{"src": "env.fall", "amount": 12}]},
                                   "env": {"fall": {"a": "1ms", "d": "350ms", "s": 0}}, "amp": {"a": "3ms", "d": "1.5s", "s": 0, "r": "200ms"}}}},
@@ -907,10 +940,12 @@ def song():
                                    {"type": "glue", "threshold": "-24dB", "ratio": 2.5, "attack": "20ms", "release": "140ms", "knee": 6.0}]
                             + ([f"clip drive=0dB ceiling={DCLIP}dB"] if DCLIP else [])
                             + ([{"type": "eq", "bands": peaks(DEQ) + ([f"highshelf cutoff={DSHELF.split(':')[0]} gain={DSHELF.split(':')[1]}dB"] if DSHELF else [])}] if DEQ or DSHELF else [])
-                            + ([{"type": "width", "width": 1, "mono_below": 0, "bands": [[float(x.split(":")[0]), float(x.split(":")[1])] for x in DWIDTH.split(",")]}] if DWIDTH else [])},
+                            + ([{"type": "width", "width": 1, "mono_below": 0, "bands": [[float(x.split(":")[0]), float(x.split(":")[1])] for x in DWIDTH.split(",")]}] if DWIDTH else [])
+                            + ([{"type": "duck", "by": "speak", "depth": f"-{DUCK.split(':')[1]}dB", "attack": "20ms", "release": "250ms"}] if DUCK and SPEAK else [])},
                   **({"oh": {"fx": [f"reverb kind=room decay={(DROOM.split(':') + ['0.4'])[3]}s mix=1 predelay=4ms low_cut={DROOM.split(':')[0]} high_cut=12000 spread=0.6"]}} if DROOM else {}),
                   **({"gtrs": {"fx": [{"type": "eq", "bands": peaks(GEQ)}, {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}}]
-                               + ([{"type": "rotary", "mix": {"value": 0, "mod": [{"src": "auto.rot", "amount": 1}]}, "speed": {"value": 0, "mod": [{"src": "auto.spin", "amount": 1}]}}] if ROTARY else []),
+                               + ([{"type": "rotary", "mix": {"value": 0, "mod": [{"src": "auto.rot", "amount": 1}]}, "speed": {"value": 0, "mod": [{"src": "auto.spin", "amount": 1}]}}] if ROTARY else [])
+                               + ([{"type": "duck", "by": "speak", "depth": f"-{DUCK.split(':')[0]}dB", "attack": "20ms", "release": "250ms"}] if DUCK and SPEAK else []),
                                "auto": {"ride": {"points": GTR_RIDE}, **({"rot": {"points": ROT_MIX}, "spin": {"points": ROT_SPIN}} if ROTARY else {})}}} if GEQ else {}),
                   **({"low": {"fx": [{"type": "eq", "bands": peaks(BEQ)}]
                               + ([{"type": "compressor", "threshold": BCOMP.split(":")[0] + "dB", "ratio": float(BCOMP.split(":")[1]), "attack": "12ms", "release": "120ms", "makeup": BCOMP.split(":")[2] + "dB"}] if BCOMP else [])
