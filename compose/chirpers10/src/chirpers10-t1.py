@@ -642,8 +642,8 @@ def compose():
         gtr(G + G2, 7, SEVEN_B, x, y, root=root, hook=H2, vel=0.92)
         bass(7, SEVEN_B, x, y, root=root, hook=H2, vel=0.92)
     kick(7, SEVEN_B, a, z, fill16=True)
-    kit(a, a + 21, "x", 2, "back", None, cvel=0.58)
-    kit(a + 21, z, "x", 4, "blast", "roll16", cvel=0.66, crash_at_start=False)
+    kit(a, a + 21, "x", 2, "back", None, cvel=HCYM[0])           # the china on every eighth: the piece's densest cymbal
+    kit(a + 21, z, "x", 4, "blast", "roll16", cvel=HCYM[1], crash_at_start=False)
     if VOX:
         vox(a)
 
@@ -744,6 +744,19 @@ def compose():
 # THE SWARM: sixteen oscillators to a note, each at its own pitch, pulled toward their common phase by a coupling that a lane
 # rides (the engine's Kuramoto model of synchrony). At bar 1 they are in step; over the wait they drift into a crowd; from
 # the approach they are pulled back, and lock as the three wheels land.
+# THE MIX BY SECTION (v16). Measured against the eleven records section by section, not only in the three windows of v7
+# (tools/stembal.py), and against how far the records themselves move between their own loud passages
+# (~/.local/state/chirper-zero/c10/refspread.py: std 0.6-1.0 dB a band, but 2.2 at 500 Hz-1 kHz and 1.3 at 8-16 kHz).
+# Track faders by section, (first bar, last bar, dB); "" = off. High-gain rigs are saturated, so velocity cannot do this.
+SECMIX = os.environ.get("C10T1_SECMIX", "1")
+SECTION_FADERS = {"gl2": [(280, 308, -2.5)], "gr2": [(280, 308, -2.5)]} if SECMIX else {}   # the doubling guitars in the hardest stretch: 2-4 kHz read 1.8 dB over
+# the wall rig's tracks: a dip at 350 Hz. It is the thick rig (4-5 dB more than the tight one at 160-315 Hz), and every section
+# it plays chords in read over the records at 250-500 Hz (riff C with its chords 2.4, the approach 3.2, section 13 1.3)
+WALL_EQ = os.environ.get("C10T1_WALLEQ", "350:1:-2.5") if SECMIX else ""
+# the bark's top: without the voice the hardest stretch read 0.8 dB over the records at 8-16 kHz, with it 2.4 (its scream is noise up there)
+VOX_SHELF = os.environ.get("C10T1_VOXSHELF", "7000:-6") if SECMIX else ""
+# the china's velocity in the hardest stretch (eighths : quarters); it read 2.9 dB over at 8-16 kHz with 0.58:0.66
+HCYM = [float(x) for x in os.environ.get("C10T1_HCYM", "0.48:0.58").split(":")]
 # effects where the music asks for them (Harry: "a showcase of all features"), each with a switch ("" = off)
 WAH = os.environ.get("C10T1_WAH", "1")          # a wah on the lead's run (4:53): the pedal opens through each flurry and closes on the held note
 ROTARY = os.environ.get("C10T1_ROTARY", "1")    # a rotary speaker on the slow chords (5:14): it comes in over the first chord and spins up as they fade
@@ -751,6 +764,8 @@ TSTOP = os.environ.get("C10T1_TSTOP", "1")      # a tape stop on the last stab b
 SWARM = os.environ.get("C10T1_SWARM", "-18dB")
 # its fader (bar, dB): a crowd is about 3 dB quieter than the same swarm in step, and the approach is busier than the opening
 SWARM_LVL = [(0, 0), (12, 0), (24, 4), (30, 4), (350, 5), (383, 5), (385, 3), (389, 0), (NB, 0)]
+if os.environ.get("C10T1_SECMIX", "1"):      # under the full band (363-383) it cannot be heard and only thickens 250-500 Hz (its notes are F3 and C4): down 11 dB there, back for the stop
+    SWARM_LVL = [(0, 0), (12, 0), (24, 4), (30, 4), (350, 5), (362.5, 5), (364, -6), (382.5, -6), (383, 5), (385, 3), (389, 0), (NB, 0)]
 SWARM_NOTES = (53, 60)                                  # F3 and C4
 SWARM_LANE = [(0, 3), (2, 2), (24, 1), (30, 0.3), (350, 0.3), (363, 1.0), (383, 1.1), (384, 1.4), (385, 3), (NB, 3)]   # (bar, coupling: 0 a crowd, 1 the critical point, 3 locked)
 CZ = os.environ.get("C10T1_CZ", "-12dB")                 # a phase-distortion synth (the library's cz-bass) doubling riff C
@@ -819,7 +834,8 @@ def song():
         ("gl2", RIG_L, "-3dB", -0.8, GOUT), ("gr2", RIG_R, "-3dB", 0.8, GOUT),
         ("sl", BITE_L, BITE_DB, -1, GOUT), ("sr", BITE_R, BITE_DB, 1, GOUT),
         ("kl", CRUNCH_L, CRUNCH_DB, -0.8, {}), ("kr", CRUNCH_R, CRUNCH_DB, 0.8, {}),          # not through the guitars' bus: its eq scoops the mids this rig is made of
-        ("wl", WALL_L, "-2dB", -0.9, GOUT), ("wr", WALL_R, "-2dB", 0.9, GOUT),
+        ("wl", WALL_L, "-2dB", -0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
+        ("wr", WALL_R, "-2dB", 0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
         ("bass", BASS, "0.5dB", 0, BOUT),
         ("kick", KIT, "2dB", None, {"out": "drums"}), ("snare", KIT, "8dB", None, {"out": "drums", **OHS}),
         ("cym", KIT, "-3dB", None, {"out": "drums", **OHC}), ("toms", KIT, "4dB", None, {"out": "drums", **OHS}),
@@ -833,7 +849,7 @@ def song():
         ("fifth", "cellos", "-15dB", 0.4, {"sends": {"hall": "-8dB"}}),
         ("air", "juno-pad", "-17dB", 0.15, {"sends": {"hall": "-8dB"}}),
         ("chime", "modal-glock", CHIME_GAIN, -0.2, {"sends": {"hall": "-6dB", "dly": "-14dB"}}),
-        ("vox", "kidman", VOX or "0dB", 0, {"sends": {"hall": "-18dB"}, "fx": [{"type": "eq", "bands": ["hp cutoff=300"]}]}),
+        ("vox", "kidman", VOX or "0dB", 0, {"sends": {"hall": "-18dB"}, "fx": [{"type": "eq", "bands": ["hp cutoff=300"] + ([f"highshelf cutoff={VOX_SHELF.split(':')[0]} gain={VOX_SHELF.split(':')[1]}dB"] if VOX_SHELF else [])}]}),
         ("choir", "voice-backing", CHOIR or "0dB", 0, {"sends": {"hall": "-8dB"}}),
         ("whisper", "ct-whisper", WHISPER or "0dB", 0, {"sends": {"hall": "-8dB"}}),
         ("swarm", "ct-swarm", {"value": SWARM or "0dB", "mod": [{"src": "auto.lvl", "amount": 1}]}, 0,
@@ -852,6 +868,12 @@ def song():
         if pan is not None:
             t["pan"] = pan
         t.update(extra)
+        if name in SECTION_FADERS:
+            pts = [["0b", 0]]
+            for b0, b1, db in SECTION_FADERS[name]:
+                pts += [[f"{(b0 - 0.5) * 4}b", 0], [f"{b0 * 4}b", db], [f"{b1 * 4}b", db], [f"{(b1 + 0.5) * 4}b", 0]]
+            t["gain"] = {"value": gain, "mod": [{"src": "auto.sec", "amount": 1}]}
+            t["auto"] = {**t.get("auto", {}), "sec": {"points": pts}}
         t["notes"] = T[name]
         tracks.append(t)
     return {
