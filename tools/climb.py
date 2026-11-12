@@ -360,6 +360,15 @@ def commit(paths, msg, args):
         return True
 
 
+def song_differs_from_head(rel):
+    """True when the working copy of a song differs from the committed one (or is not committed yet)."""
+    r = subprocess.run(["git", "-C", ROOT, "diff", "--quiet", "HEAD", "--", rel], capture_output=True)
+    if r.returncode == 0:
+        tracked = subprocess.run(["git", "-C", ROOT, "ls-files", "--error-unmatch", rel], capture_output=True)
+        return tracked.returncode != 0 and os.path.exists(os.path.join(ROOT, rel))
+    return r.returncode == 1
+
+
 def library_gate(paths, args, me=None, mine=()):
     """A commit that carries library files (patches/, racks/, styles/, irs/) must not change songs it should not
     (libguard.py, 10 Nov: the user library is live, so an edit to a shared patch changes every song that uses it at
@@ -1163,6 +1172,17 @@ def cmd_done(a):
                 f"total (human .30, peer .05), so {score} vs {best['score']} is not like for like. Score "
                 f"{best.get('version')} again now and re-run with --best-now S (it records that as the best's score), "
                 f"or --keep on judgment")
+        if (not kept and not judged and score is not None and version is not None and c.get("mode") == "compose"
+                and c.get("song") in withs and best.get("score") is not None and "--force" not in a
+                and "--no-git" not in a and song_differs_from_head(c["song"])):
+            # the mirror of the check above (12 Nov, Common Time v7: a tie at the ceiling, 100.0 against 100.0, with
+            # the song in --with and no --keep): the round was logged as NOT kept and the song was committed anyway,
+            # so songs/ID.yaml, which the groove plays, was no longer the registry's best. At a score's ceiling every
+            # round ties, so this is the ordinary case there.
+            die(f"{version} does not outscore {cid}'s best ({score} against {best['score']}, {best.get('version')}), but "
+                f"{c['song']} is among --with and differs from the committed file: done would commit it while the best "
+                f"stays {best.get('version')}. Kept on judgment: add --keep. Not keeping it: leave {c['song']} out of "
+                f"--with{'' if refused else ' (add --refused if you refuse it by ear)'}. Nothing was recorded.")
         if "--keep" in a and c.get("mode") != "compose":
             die("--keep is for compositions (mode: compose), where Harry's ear outranks compscore; a reproduction keeps "
                 "a version only when it scores higher")

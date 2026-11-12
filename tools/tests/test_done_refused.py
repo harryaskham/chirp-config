@@ -78,6 +78,45 @@ class DoneRefused(unittest.TestCase):
         self.assertEqual(self.best()["version"], "v3")
         self.assertEqual([x["kept"] for x in self.log()], [False])
 
+    def edit(self, text="# v4\n"):
+        with open(os.path.join(self.root, "songs", "a.yaml"), "a") as f:
+            f.write(text)
+
+    def commits(self):
+        return int(subprocess.run(["git", "-C", self.root, "rev-list", "--count", "HEAD"], capture_output=True,
+                                  text=True).stdout.strip())
+
+    def test_a_tie_with_the_song_stops_and_asks(self):
+        """12 Nov, Common Time v7: 100.0 against 100.0 with the song in --with and no --keep was logged as not kept
+        while the song was committed, so the song the groove plays was not the registry's best."""
+        self.edit()
+        r = self.done("--score", "99.5", "--version", "v4", "--with", "songs/a.yaml")
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("--keep", r.stderr)
+        self.assertEqual((self.best()["version"], self.log(), self.commits()), ("v3", [], 1))
+        r = self.done("--score", "99.5", "--version", "v4", "--with", "songs/a.yaml", "--keep")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual((self.best()["version"], self.commits()), ("v4", 2))
+        self.assertEqual([(x["version"], x["kept"], x.get("judged")) for x in self.log()], [("v4", True, True)])
+
+    def test_a_lower_score_with_the_song_stops_too(self):
+        self.edit()
+        r = self.done("--score", "99.1", "--version", "v4", "--with", "songs/a.yaml")
+        self.assertNotEqual(r.returncode, 0)
+        self.assertEqual((self.best()["version"], self.log(), self.commits()), ("v3", [], 1))
+
+    def test_a_refused_trial_cannot_commit_its_song(self):
+        self.edit()
+        r = self.done("--score", "99.1", "--version", "v4", "--refused", "--with", "songs/a.yaml")
+        self.assertNotEqual(r.returncode, 0)
+        self.assertEqual((self.best()["version"], self.log(), self.commits()), ("v3", [], 1))
+
+    def test_an_unchanged_song_among_the_files_is_harmless(self):
+        r = self.done("--score", "99.1", "--version", "v4", "--with", "songs/a.yaml")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual([x["kept"] for x in self.log()], [False])
+        self.assertEqual(self.best()["version"], "v3")
+
     def test_keep_and_refused_contradict(self):
         r = self.done("--score", "99.6", "--version", "v4", "--keep", "--refused")
         self.assertNotEqual(r.returncode, 0)

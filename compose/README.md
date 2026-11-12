@@ -48,6 +48,8 @@ plus Harry's ratings), and Harry's ear decides.
    is level or better on the seeds you scored, keep it on judgment and put the seed table and the peak in the note.
    Do not spend rounds steering a peak across a cut. A trial you refuse by ear: `climb.py done … --refused` (logged, never the best however it scored). A
    higher score recorded without the song in `--with` stops and asks which you meant (chirper-three's t4 v60, 8 Nov).
+   So does the mirror: a score that does NOT beat the best with the changed song in `--with` and no `--keep` (at a
+   score's ceiling every round ties: Common Time v7, 12 Nov). The song file is always the registry's best.
 
 `tools/chirpers.py status ALBUM` shows the album; `chirpers.py refresh ALBUM` re-renders every composed song and
 re-saves features (run it after several songs change).
