@@ -13,7 +13,7 @@ best-effort 480p preview videos.
 
 The site (8 Nov, Harry: for him and a friend): a name and the access code once per browser ($CHIRP_LISTEN_CODE, default
 'solofury'; a light gate, not security: the page loads freely, data and media need the code as a cookie or an
-X-Listen-Code header); album tabs ($CHIRP_LISTEN_ALBUMS, default chirpers9,chirpers8); views Listen (snapshots, or a
+X-Listen-Code header); album tabs ($CHIRP_LISTEN_ALBUMS, default chirpers10,chirpers9,chirpers8); views Listen (snapshots, or a
 released album's video from DATA/ALBUM/release/album.mp4 + chapters.txt), Feedback (every note and reply, signed with
 the visitor's name, plus general album feedback), Worklog (every climb round and section note with the pinned engine
 features and snapshots, from climbs/ID.jsonl, compose/ALBUM/sections/ and features.md) and History (a track's
@@ -440,7 +440,7 @@ def notify(album, note, track):
 # ── the review site: albums, worklog, feature checkpoints (8 Nov: Harry, for him and a friend over a funnel) ─────
 
 CODE = os.environ.get("CHIRP_LISTEN_CODE", "solofury")      # a light access code, not security (Harry: "not load bearing")
-ALBUMS = [a for a in os.environ.get("CHIRP_LISTEN_ALBUMS", "chirpers9,chirpers8").split(",") if a]
+ALBUMS = [a for a in os.environ.get("CHIRP_LISTEN_ALBUMS", "chirpers10,chirpers9,chirpers8").split(",") if a]
 TOOLS_REPO = os.environ.get("CHIRP_TOOLS_REPO", "")              # optional: dates for pins not named in a commit
 
 

@@ -42,17 +42,17 @@
   "named_by": "harry",
   "named_at": "2026-11-12T02:32:47Z",
   "direction": {
-    "by": "Harry, 12 Nov 00:20-02:30 GMT, to chirp-eco, setting the project up",
-    "words": [
-      "before bringing back just one chirper at first to write and finesse a single, super rich, djent / meshuggah style track like 10 minutes long epic with different sections, styles and a growing motif / rhythm that get splayed with like meshuggah's longest tracks, which when we have made repeated one-chirper progress on i might expand or make a track on a new album",
-      "the old djent album was way before we improved things a lot, i want to hear what we can do with our new improved engine and tooling. we came a long way since then",
-      "We don't need to throw all that out, we can just build upon it and enhance it or adapt our newer features and patches to produce new better guitars, amps, kits, etc etc. but yes probably a new family of patches is the first thing",
-      "We should start a new groove playlist which for now just has this song",
-      "We will grow it to an album so the first task is to pick a kind of theme and provisional album and track name, we can always change it later",
-      "maybe something that implies long cycles of polyrhythms that line up like meshuggah's broken cog. something like primes, chinese remainder theorem etc but not as on the nose and maybe related to like time crystals and synchronicity",
-      "no all too obvious. no numbers in titles",
-      "I like Common Time (ironic cos we will use mad time signatures) as album name and lets just make this first track called Common Time too and make it like 13 minutes long so there is room to experiment and finesse all our engine patches, segments and ideas in it. give it to chirper zero now and open up groove to this one new song when it has any version at all so that chirper zero just keeps finessing the song"
+    "by": "Harry, 12 Nov 00:20-02:40 GMT, setting the record up with chirp-eco",
+    "words": "before bringing back just one chirper at first to write and finesse a single, super rich, djent / meshuggah style track like 10 minutes long epic with different sections, styles and a growing motif / rhythm that get splayed with like meshuggah's longest tracks, which when we have made repeated one-chirper progress on i might expand or make a track on a new album … the old djent album was way before we improved things a lot, i want to hear what we can do with our new improved engine and tooling. we came a long way since then … We don't need to throw all that out, we can just build upon it and enhance it or adapt our newer features and patches to produce new better guitars, amps, kits, etc etc. but yes probably a new family of patches is the first thing … We should start a new groove playlist which for now just has this song … We will grow it to an album so the first task is to pick a kind of theme and provisional album and track name, we can always change it later … maybe something that implies long cycles of polyrhythms that line up like meshuggah's broken cog. something like primes, chinese remainder theorem etc but not as on the nose and maybe related to like time crystals and synchronicity … no all too obvious. no numbers in titles … I like Common Time (ironic cos we will use mad time signatures) as album name and lets just make this first track called Common Time too and make it like 13 minutes long so there is room to experiment and finesse all our engine patches, segments and ideas in it. give it to chirper zero now and open up groove to this one new song when it has any version at all so that chirper zero just keeps finessing the song",
+    "rules": [
+      "ONE TRACK, ONE COMPOSER, FOR NOW: \"Common Time\", about thirteen minutes, chirper-zero alone; the album grows from it later.",
+      "A DJENT EPIC: different sections and styles, one motif and rhythm that grows and gets splayed, as in Meshuggah's longest tracks; original music, never a copy.",
+      "LONG CYCLES THAT LINE UP, TAKEN SIDEWAYS: cycles of different lengths over one steady pulse, landing together after a long wait (time crystals and synchronicity were his examples). Nothing on the nose; no numbers in titles.",
+      "THE NAME IS THE IRONY: common time is 4/4, and the piece will use mad time signatures.",
+      "THE SOUND FIRST: a new family of guitars, amps, basses and kits built ON the old ones with today's engine (sounds.md). New names, never an edit.",
+      "ANY VERSION AT ALL IS ON THE GROOVE: the playlist is this one song; keep finessing it, round after round.",
+      "ROOM TO EXPERIMENT: every engine patch, segment and idea can be tried and finessed inside it."
     ],
-    "note": "Names are provisional (Harry: we can always change it later). Typing slips in his messages are corrected here; the words are his."
+    "note": "Names are provisional (Harry: we can always change it later). Typing slips in his messages are corrected; the words are his."
   }
 }
