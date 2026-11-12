@@ -60,6 +60,38 @@ class Ids(unittest.TestCase):
         self.assertEqual(self.ids(), ["v3", "v1"])
 
 
+    def test_the_rotation_follows_its_own_playlist_to_a_wholly_different_one(self):
+        """12 Nov: the album A was playing as the rotation's own repeating playlist; then playlist-ids named one new
+        climb whose first version had just been kept. Nothing of the old playlist is wanted any more, and the driver
+        took its own entries for somebody else's album and waited for ever. It must drop them and add the new song."""
+        self.put("playlist-album", "A\n")
+        self.put("playlist-ids", "v1\n")
+        open(os.path.join(self.root, "songs", "v1.yaml"), "w").close()
+        sent = []
+        entries = [{"label": i, "source": os.path.join(self.root, "songs", i + ".yaml"), "passes": 1} for i in ("a1", "a2")]
+        st = {"label": "a2", "queue": [], "playlist": {"entries": entries, "current": 1, "repeat": True, "finished": False}}
+        P.YIELDED["on"] = False
+        with unittest.mock.patch.object(P, "request", lambda msg: sent.append(msg)), unittest.mock.patch.object(P, "MIX", False):
+            P.sync(st)
+        self.assertFalse(P.YIELDED["on"], "the driver yielded to its own playlist")
+        self.assertEqual([m["op"] for m in sent], ["playlist-remove", "playlist-remove", "playlist-add"])
+        self.assertEqual([e["label"] for e in sent[-1]["entries"]], ["v1"])
+
+    def test_somebody_elses_album_is_still_left_alone(self):
+        self.put("playlist-ids", "v1\n")
+        open(os.path.join(self.root, "songs", "v1.yaml"), "w").close()
+        sent = []
+        entries = [{"label": "x" + str(i), "source": "/elsewhere/x%d.yaml" % i, "passes": 1} for i in range(3)]
+        st = {"label": "x0", "queue": [], "playlist": {"entries": entries, "current": 0, "repeat": False, "finished": False}}
+        P.YIELDED["on"] = False
+        with unittest.mock.patch.object(P, "request", lambda msg: sent.append(msg)), unittest.mock.patch.object(P, "MIX", False):
+            P.sync(st)
+        self.assertTrue(P.YIELDED["on"])
+        self.assertEqual(sent, [])
+        P.YIELDED["on"] = False
+
+
+
 class Socket(unittest.TestCase):
     """The driver finds the groove's socket where chirp does, even without XDG_RUNTIME_DIR (the watchdog started one
     without it, and every playlist change failed: [Errno 2])."""

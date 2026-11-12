@@ -222,7 +222,9 @@ def sync(st):
     # The rotation's own playlist (repeating, every entry an enabled climb) is never "another playlist", even when
     # the album/solo filter now wants far fewer entries: apply the change (a repeating rotation never finishes).
     # (compared without seam overlaps: an entry is ours whatever its seam)
-    mine = {key(e["label"], e["song"], e.get("passes")) for e in (entry(c) for c in enabled())}
+    # ([:3]: key() grew the seam fields on 31 Oct and this set kept all five, so `h[:3] in mine` was never true and a
+    # rotation that changed completely - Accretion to the one song of Common Time, 12 Nov - waited on itself for ever)
+    mine = {key(e["label"], e["song"], e.get("passes"))[:3] for e in (entry(c) for c in enabled())}
     base = {w[:3] for w in wanted}
     ours = bool(have) and bool(pl.get("repeat")) and all(h[:3] in mine for h in have)
     if have and not pl.get("finished") and not ours and sum(h[:3] in base for h in have) * 2 < len(have):
