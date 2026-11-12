@@ -48,6 +48,7 @@ sys.path.insert(0, HERE)
 os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
 import drumpunch as D  # noqa: E402
 import likeness as L  # noqa: E402
+import stemfile  # noqa: E402
 
 SR = L.SR
 GTR = re.compile(r"m8|guitar|gtr|emg|rig|chug|thrash|les-paul|fluence|bkp|obzen-l|obzen-r", re.I)
@@ -152,13 +153,11 @@ def compare(ref, ours, ts, shift):
 def ref_audio(song, stems):
     xs = []
     for part in stems.split("+"):
-        for sep in ("bs_roformer_sw", "htdemucs_6s"):
-            p = os.path.join(ROOT, "ref", "stems", sep, song, f"{part}.wav")
-            if os.path.exists(p):
-                xs.append(L.load(p))
-                break
-        else:
+        # a WAV under either separator first (as before), else a packed stem (stemfile.py: the htdemucs_6s stems are Opus)
+        p = stemfile.find(ROOT, song, part, ("bs_roformer_sw", "htdemucs_6s"))
+        if p is None:
             raise SystemExit(f"riffpunch: no {part} stem for {song}")
+        xs.append(stemfile.load(p))
     n = min(len(x) for x in xs)
     return sum(x[:n] for x in xs)
 

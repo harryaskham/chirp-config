@@ -247,10 +247,10 @@ def compare(pairs):
 # ── rendering ours, finding the ref ─────────────────────────────────────────────────────────
 
 def ref_stem(song):
-    for sep in ("bs_roformer_sw", "htdemucs_6s", "htdemucs"):
-        p = os.path.join(ROOT, "ref", "stems", sep, song, "drums.wav")
-        if os.path.exists(p):
-            return p
+    import stemfile                     # a WAV under any separator first (as before), else a packed (Opus) stem
+    p = stemfile.find(ROOT, song, "drums", ("bs_roformer_sw", "htdemucs_6s", "htdemucs"))
+    if p:
+        return p
     raise SystemExit(f"drumpunch: no drum stem for {song} under ref/stems/")
 
 
@@ -291,7 +291,8 @@ def main(argv=None):
     evs, auto_tracks = events(song_file)
     tracks = a.tracks.split(",") if a.tracks else auto_tracks
     stem = a.ref or ref_stem(song)
-    full = L.load(stem)
+    import stemfile
+    full = stemfile.load(stem)
     t0 = t0 or 0.0
     t1 = t1 or len(full) / SR
     ref_x = full[int(t0 * SR):int(t1 * SR)]

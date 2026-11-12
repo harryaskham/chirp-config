@@ -78,8 +78,17 @@ def stem_dir(model):
     return os.path.join(ROOT, "ref", "stems", model)
 
 
+def stem_file(model, song, part):
+    """The stem's file in whatever format it is stored (WAV first; the htdemucs_6s stems are packed to Opus), or None."""
+    for ext in (".wav", ".flac", ".opus", ".ogg", ".m4a", ".mp3"):
+        p = os.path.join(stem_dir(model), song, part + ext)
+        if os.path.isfile(p):
+            return p
+    return None
+
+
 def ref_ids(a):
-    have = sorted(d for d in os.listdir(stem_dir(a.model)) if os.path.exists(os.path.join(stem_dir(a.model), d, "drums.wav")))
+    have = sorted(d for d in os.listdir(stem_dir(a.model)) if stem_file(a.model, d, "drums"))
     if not a.refs:
         sys.exit("stembal: --refs ID,ID,... (or --refs all). Records with stems: " + ", ".join(have))
     ids = have if a.refs == "all" else a.refs.split(",")
@@ -99,8 +108,7 @@ def refs(a):
             return json.load(f)
     out = {}
     for s in ids:
-        d = os.path.join(stem_dir(a.model), s)
-        st = {n: bands(load(os.path.join(d, n + ".wav"), a.start, a.dur)) for n in STEMS if os.path.exists(os.path.join(d, n + ".wav"))}
+        st = {n: bands(load(stem_file(a.model, s, n), a.start, a.dur)) for n in STEMS if stem_file(a.model, s, n)}
         tot = sum(v.sum() for v in st.values())
         out[s] = {n: db(v / tot).tolist() + [float(db(v.sum() / tot))] for n, v in st.items()}
         out[s]["mix"] = db(sum(st.values()) / tot).tolist()
