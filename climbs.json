@@ -8596,7 +8596,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 6,
+      "rounds": 7,
       "priority": 1.0,
       "genre": "polymetric djent",
       "mode": "compose",
@@ -8614,7 +8614,7 @@
         "note": "COMPOSE (the epic (the whole record, for now), 720-840 s): About thirteen minutes: distinct sections and styles, one motif and rhythm that grows and gets splayed across cycles of different lengths over a steady pulse, and lands. First the sound (a new patch family), then the form. Any version at all opens the groove to it; then keep finessing."
       },
       "last": {
-        "at": "2026-11-12T10:15:16Z",
+        "at": "2026-11-12T11:32:06Z",
         "who": "chirper-zero"
       }
     }

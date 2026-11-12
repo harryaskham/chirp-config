@@ -646,6 +646,18 @@ def compose():
 
 
 CHIME_GAIN = os.environ.get("C10T1_CHIME", "-19dB")
+# the mix against eleven records (stembal.py; compose/chirpers10/sounds.md): peaks as hz:q:dB, comma-separated
+GEQ = os.environ.get("C10T1_GEQ", "350:1:-5,750:1.2:-2.5")                  # the rhythm guitars' bus
+BEQ = os.environ.get("C10T1_BEQ", "44:1.5:-7,90:1:7.5,350:1:-8,1500:1:4")     # the bass's bus
+DEQ = os.environ.get("C10T1_DEQ", "400:0.8:-6,5500:0.9:4")                             # the drums' bus, after its clip
+DSHELF = os.environ.get("C10T1_DSHELF", "9000:1")
+TUNE_DB = float(os.environ.get("C10T1_TUNE", "-2.5"))
+MASTER_DB = os.environ.get("C10T1_MASTER", "1")                              # the raw mix (what the groove plays) kept where v6's was
+BCOMP = os.environ.get("C10T1_BCOMP", "-26:8:2.5")                                    # threshold:ratio:makeup on the bass's bus, after its eq                         # and a high shelf there, hz:dB
+
+
+def peaks(spec):
+    return ["peak cutoff=%s q=%s gain=%sdB" % tuple(x.split(":")) for x in spec.split(",") if x]
 CL_SENDS = {"dly": "-14dB", "hall": "-12dB"} if CLEAN == "m8-clean" else {"dly": "-9dB", "hall": "-7dB"}   # ct-clean is dry: the song gives it its space
 
 
@@ -660,15 +672,22 @@ def song():
             T["cym"] = [n for n in T["cym"] if n["pitch"] not in piece_set]
     for v in T.values():
         v.sort(key=lambda x: x["at"])
+    # the lead's fader: full in its run (4:53); the tune over the riffs TUNE_DB lower (it read as the loudest part there,
+    # and the mix 2 dB over the records at 500 Hz-1 kHz); 10 dB down in the eye, where it is nearly alone
+    LEAD_LANE = [["0b", TUNE_DB]]
+    for b0, b1, v in ((154, 165, 0), (175, 210, -10)):
+        LEAD_LANE += [[f"{(b0 - 1) * 4}b", TUNE_DB], [f"{b0 * 4}b", v], [f"{b1 * 4}b", v], [f"{(b1 + 1) * 4}b", TUNE_DB]]
+    GOUT = {"out": "gtrs"} if GEQ else {}
+    BOUT = {"out": "low"} if BEQ else {}
     spec = [
-        ("gl", RIG_L, "0dB", -1, {}), ("gr", RIG_R, "0dB", 1, {}),
-        ("gl2", RIG_L, "-3dB", -0.8, {}), ("gr2", RIG_R, "-3dB", 0.8, {}),
-        ("wl", WALL_L, "-2dB", -0.9, {}), ("wr", WALL_R, "-2dB", 0.9, {}),
-        ("bass", BASS, "0.5dB", 0, {}),
+        ("gl", RIG_L, "0dB", -1, GOUT), ("gr", RIG_R, "0dB", 1, GOUT),
+        ("gl2", RIG_L, "-3dB", -0.8, GOUT), ("gr2", RIG_R, "-3dB", 0.8, GOUT),
+        ("wl", WALL_L, "-2dB", -0.9, GOUT), ("wr", WALL_R, "-2dB", 0.9, GOUT),
+        ("bass", BASS, "0.5dB", 0, BOUT),
         ("kick", KIT, "2dB", None, {"out": "drums"}), ("snare", KIT, "8dB", None, {"out": "drums"}),
         ("cym", KIT, "-3dB", None, {"out": "drums"}), ("toms", KIT, "4dB", None, {"out": "drums"}),
         ("hat", KIT, "14dB", None, {"out": "drums"}), ("ride", KIT, "6dB", None, {"out": "drums"}),
-        ("lead", "m8-lead-guitar", {"value": "-3dB", "mod": [{"src": "auto.eye", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"eye": {"points": [["0b", 0], [f"{174 * 4}b", 0], [f"{175 * 4}b", -10], [f"{210 * 4}b", -10], [f"{211 * 4}b", 0]]}}}),
+        ("lead", "m8-lead-guitar", {"value": "-3dB", "mod": [{"src": "auto.eye", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"eye": {"points": LEAD_LANE}}}),
         ("cl5", CLEAN, "-4dB", -0.45, {"sends": CL_SENDS}),
         ("cl7", CLEAN, "-3dB", 0.45, {"sends": CL_SENDS}),
         ("cl11", CLEAN, "-3dB", 0, {"sends": CL_SENDS}),
@@ -703,8 +722,12 @@ def song():
                   "dly": {"fx": ["delay time=3/16 feedback=0.35 mix=1 ping_pong=true", "reverb kind=hall decay=3s mix=0.3"]},
                   "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
                                    {"type": "glue", "threshold": "-24dB", "ratio": 2.5, "attack": "20ms", "release": "140ms", "knee": 6.0}]
-                            + ([f"clip drive=0dB ceiling={DCLIP}dB"] if DCLIP else [])}},
-        "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}]
+                            + ([f"clip drive=0dB ceiling={DCLIP}dB"] if DCLIP else [])
+                            + ([{"type": "eq", "bands": peaks(DEQ) + ([f"highshelf cutoff={DSHELF.split(':')[0]} gain={DSHELF.split(':')[1]}dB"] if DSHELF else [])}] if DEQ or DSHELF else [])},
+                  **({"gtrs": {"fx": [{"type": "eq", "bands": peaks(GEQ)}]}} if GEQ else {}),
+                  **({"low": {"fx": [{"type": "eq", "bands": peaks(BEQ)}]
+                              + ([{"type": "compressor", "threshold": BCOMP.split(":")[0] + "dB", "ratio": float(BCOMP.split(":")[1]), "attack": "12ms", "release": "120ms", "makeup": BCOMP.split(":")[2] + "dB"}] if BCOMP else [])}} if BEQ else {})},
+        "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}] + ([{"type": "gain", "gain": f"{MASTER_DB}dB"}] if MASTER_DB else [])
                    + ([{"type": "gain", "gain": f"{MGAIN.split(':')[0]}dB"}, "limiter ceiling=-1dB", {"type": "gain", "gain": f"-{MGAIN.split(':')[1]}dB"}] if MGAIN else [])},
         "tracks": tracks,
     }
