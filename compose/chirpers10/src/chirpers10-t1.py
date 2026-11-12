@@ -17,6 +17,9 @@ import json, os, random
 OUT = os.environ.get("C10T1_OUT", os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../songs/chirpers10-t1.yaml"))
 RIG_L = os.environ.get("C10T1_RIGL", "ct-chug-l")
 RIG_R = os.environ.get("C10T1_RIGR", "ct-chug-r")
+BITE_L = os.environ.get("C10T1_BITEL", "ct-bite-l")      # the seven wheel's rig ("" = the seven wheel stays on the tight rig)
+BITE_R = os.environ.get("C10T1_BITER", "ct-bite-r")
+BITE_DB = os.environ.get("C10T1_BITEDB", "4.3dB")     # as loud as the tight rig on the same riff (LUFS, the pair alone)
 WALL_L = os.environ.get("C10T1_WALLL", "ct-wall-l")
 WALL_R = os.environ.get("C10T1_WALLR", "ct-wall-r")
 CLEAN = os.environ.get("C10T1_CLEAN", "ct-clean")
@@ -97,6 +100,9 @@ def s16(b):
     return int(round(b * 16))
 
 
+SEVEN_RIG = {"gl": "sl", "gr": "sr"}
+
+
 def gtr(trs, p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None):
     s0, s1 = s16(b0), s16(b1)
     for t, ln, kind, j, hi in strikes(p, cell, s0, s1):
@@ -104,6 +110,8 @@ def gtr(trs, p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None):
         if ramp:
             v *= ramp[0] + (ramp[1] - ramp[0]) * (t - s0) / max(1, s1 - s0)
         for tr in trs:
+            if p == 7 and BITE_L:
+                tr = SEVEN_RIG.get(tr, tr)        # a wheel is known by its rig: five ct-chug, seven ct-bite, eleven ct-wall
             if kind == "c":
                 add(tr, t, ln, root, v, pm=1)
             elif kind == "o":
@@ -379,7 +387,7 @@ def vox(b0, pitch=65):
 
 
 def hit(t, ln=32, vel=1.0):
-    for tr in ("gl", "gr", "gl2", "gr2", "wl", "wr"):
+    for tr in ("gl", "gr", "gl2", "gr2", "wl", "wr") + (("sl", "sr") if BITE_L else ()):
         add(tr, t, ln, "F1,C2,F2,C3", vel)
     add("bass", t, ln, "F1", vel)
     add("kick", t, 1, "k", 1.0)
@@ -756,6 +764,7 @@ def song():
     spec = [
         ("gl", RIG_L, "0dB", -1, GOUT), ("gr", RIG_R, "0dB", 1, GOUT),
         ("gl2", RIG_L, "-3dB", -0.8, GOUT), ("gr2", RIG_R, "-3dB", 0.8, GOUT),
+        ("sl", BITE_L, BITE_DB, -1, GOUT), ("sr", BITE_R, BITE_DB, 1, GOUT),
         ("wl", WALL_L, "-2dB", -0.9, GOUT), ("wr", WALL_R, "-2dB", 0.9, GOUT),
         ("bass", BASS, "0.5dB", 0, BOUT),
         ("kick", KIT, "2dB", None, {"out": "drums"}), ("snare", KIT, "8dB", None, {"out": "drums", **OHS}),

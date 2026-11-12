@@ -1,0 +1,70 @@
+{
+ "about": "Common Time bite rig, right of a pair (chirper-zero, 12 Nov; pair with ct-bite-l): the SEVEN wheel's guitar, so that a wheel is known by its rig (five: ct-chug, eleven: ct-wall). ct-chug's string and amp chain with three things changed, after Harry's \"lots of different guitars ... amps and string variants\": the amp is the engine's `nolly` voicing (a modern, scooped rhythm tone) in place of mark / 5150; the cabinet is the ENGINE'S OWN (`cab` 2x12, the microphone near the cone's centre), no cabinet file; and every note is a down-stroke (`play.pick: down`). ct-chug's eq after the cabinet, without its cut at 230-250 Hz. Alone on the same riff it is the lean, biting one of the three rigs: against ct-chug -3 to -5 dB at 125-500 Hz and +2 to +4 dB at 1.6 and 3.15 kHz (ct-wall is the thick one, +4 to +5 dB at 160-315 Hz). Measured against two records' guitar stems as ct-chug was (tools/riffpunch.py; ct-chug first, the measure's noise is about 3): Bleed 0-30 s 67.0 -> 66.8, The Faultless 30-60 s 69.1 -> 64.4. The engine's cabinet with ct-chug's amp, string and eq unchanged read 55.5 / 56.9 on `cab` 4x12 (cone breakup 0.3 made no difference: 55.4 / 56.8) and 60.0 / 56.8 with the gojira voicing; that eq was fitted with the cabinet files in place, so this is no verdict on the cabinet, only the reason this rig is nolly on 2x12, the best of those tried. Still off, as on every rig here: the palm mute's low end dies faster than Bleed's (100-250 Hz falls 4.6 dB in the first 80 ms against the record's 1.2), and there is less noise between the harmonics than on the record (0.32 against 0.41). The string's physical palm mute (`mute`) was tried and is NOT used: alone at full depth (the old muting off) Bleed fell from 67 to 34, and to 48 at 0.6, on one measure: 400 Hz-1 kHz against 1-4 kHz reads -25 where the record's palm mutes read -12 and the old muting -11, with half the noise between the harmonics (0.15 against 0.27; the record 0.41). At 0.3 on top of the old muting it was level on ct-chug (68.8) and cost this rig 6. The Faultless's reading says nothing about mutes (it did not move with any of them: those 30 s have none), and its top-end measure is not the rig's (it stayed at -23 when the rig's top was cut 6 dB; the bench does not swap that song's lead guitar).",
+ "extends": "m8 layers.0.pick=0.143 layers.0.pickup=0.1 layers.0.coil=0.36 layers.0.stiff=0.3 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6 synth.layers.0.bright.mod.0.amount=-0.2 synth.pitch.mod.0.amount=0.4 synth.env.bite.d=80ms layers.0.planes=0.3 layers.0.beat=1.5 synth.pitch.mod.0.amount=0.8 synth.env.bite.d=110ms layers.0.scrape=0.2 layers.0.thump=expr.pm*0.4 synth.layers.0.decay.mod.0.amount=-3.8",
+ "fx": [
+  {
+   "type": "sympathetic",
+   "decay": "1.2s",
+   "mix": 0.12
+  },
+  {
+   "type": "compressor",
+   "threshold": "-20dB",
+   "ratio": 4,
+   "attack": "3ms",
+   "release": "70ms",
+   "makeup": "3dB"
+  },
+  {
+   "type": "amp",
+   "model": "nolly",
+   "gain": 0.84,
+   "ts": 0.7,
+   "tight": 80,
+   "boost": "6dB",
+   "bass": 0.52,
+   "mid": 0.62,
+   "treble": 0.5,
+   "presence": 0.35,
+   "resonance": 0.7,
+   "sag": 0.22,
+   "bloom": 0.5,
+   "nfb": 20,
+   "triode": true
+  },
+  {
+   "type": "cab",
+   "model": "2x12",
+   "mic": 0.2,
+   "distance": 0.14
+  },
+  {
+   "type": "eq",
+   "bands": [
+    "peak cutoff=115 q=1.1 gain=2dB",
+    "peak cutoff=230 q=1.2 gain=0dB",
+    "peak cutoff=2900 q=1.2 gain=-2.5dB",
+    "highshelf cutoff=7000 gain=-3dB",
+    "lowshelf cutoff=120 gain=7dB",
+    "peak cutoff=3300 q=1 gain=4dB",
+    "highshelf cutoff=5000 gain=-15dB"
+   ]
+  },
+  {
+   "type": "gate",
+   "threshold": "-48dB",
+   "attack": "0.3ms",
+   "hold": "8ms",
+   "release": "25ms"
+  },
+  "reverb kind=plate decay=1s mix=0.1 predelay=16ms"
+ ],
+ "gain": "-23dB",
+ "play": {
+  "humanize": {
+   "time": "9ms",
+   "vel": 0.09
+  },
+  "pick": "down"
+ }
+}
