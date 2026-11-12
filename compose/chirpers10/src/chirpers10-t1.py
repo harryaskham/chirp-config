@@ -333,20 +333,26 @@ SOLO = [(2, 5, 4, 2, (2, -1, 2, -1, 2)), (2, 5, 4, 4, (2, -1, 2, -1, 2)), (3, 7,
 assert all(len(st) == n for _, n, _, _, st in SOLO)
 
 
+WAH_PTS = []        # the wah pedal over the lead's run: (sixteenth, position 0 heel .. 1 toe)
+
+
 def solo(b0, b1, vel=0.82):
     """The lead floats over the riff. Each phrase starts on a turn of the seven wheel: a flurry of five, seven, ten or
     more notes in the time of four, six, eight sixteenths (so off the grid the band is on), joined, landing on one
     long held note. The flurries lengthen; the last climbs for four turns."""
     s0, s1 = s16(b0), s16(b1)
     t = s0 + (-s0) % 7
+    tr = "leadw" if WAH else "lead"
     for turns, n, span, i0, steps in SOLO:
         idx = i0
         for k in range(n):
             if t + k * span / n < s1:
-                add("lead", t + k * span / n, span / n * 1.05, SOLO_SCALE[idx % 6] + 12 * (idx // 6), vel * 0.86)
+                add(tr, t + k * span / n, span / n * 1.05, SOLO_SCALE[idx % 6] + 12 * (idx // 6), vel * 0.86)
             idx += steps[k]
         if t + span < s1:
-            add("lead", t + span, min(turns * 7 - span - 0.3, s1 - t - span), SOLO_SCALE[idx % 6] + 12 * (idx // 6), vel)
+            add(tr, t + span, min(turns * 7 - span - 0.3, s1 - t - span), SOLO_SCALE[idx % 6] + 12 * (idx // 6), vel)
+        if t < s1:          # the pedal opens through each flurry and closes slowly over the note it lands on
+            WAH_PTS.extend([(t, 0.1), (min(t + span, s1), 1.0), (min(t + turns * 7 - 0.5, s1), 0.25)])
         t += turns * 7
 
 
@@ -738,6 +744,10 @@ def compose():
 # THE SWARM: sixteen oscillators to a note, each at its own pitch, pulled toward their common phase by a coupling that a lane
 # rides (the engine's Kuramoto model of synchrony). At bar 1 they are in step; over the wait they drift into a crowd; from
 # the approach they are pulled back, and lock as the three wheels land.
+# effects where the music asks for them (Harry: "a showcase of all features"), each with a switch ("" = off)
+WAH = os.environ.get("C10T1_WAH", "1")          # a wah on the lead's run (4:53): the pedal opens through each flurry and closes on the held note
+ROTARY = os.environ.get("C10T1_ROTARY", "1")    # a rotary speaker on the slow chords (5:14): it comes in over the first chord and spins up as they fade
+TSTOP = os.environ.get("C10T1_TSTOP", "1")      # a tape stop on the last stab before the hardest stretch (8:52): the whole mix winds down, and the band lands on the bar line
 SWARM = os.environ.get("C10T1_SWARM", "-18dB")
 # its fader (bar, dB): a crowd is about 3 dB quieter than the same swarm in step, and the approach is busier than the opening
 SWARM_LVL = [(0, 0), (12, 0), (24, 4), (30, 4), (350, 5), (383, 5), (385, 3), (389, 0), (NB, 0)]
@@ -792,6 +802,14 @@ def song():
     # down 2.5 dB under the slow chords at 5:14, where its long notes read 1.5-2 dB over the guitars, then dying away
     BASS_RIDE = [["0b", 0], [f"{164.75 * 4}b", 0], [f"{165 * 4}b", -2.5], [f"{170 * 4}b", -2.5], [f"{175 * 4}b", -7.5], [f"{176 * 4}b", 0]]
     GTR_RIDE = [["0b", 0], [f"{170 * 4}b", 0], [f"{175 * 4}b", -5], [f"{176 * 4}b", 0]]      # and the chords die away into the eye
+    # the rotary speaker on those chords: in over the first chord, slow (chorale) for two, spinning up to fast as they fade; out after their tails
+    ROT_MIX = [["0b", 0], [f"{165 * 4}b", 0], [f"{166 * 4}b", 1], [f"{177 * 4}b", 1], [f"{178 * 4}b", 0]]
+    if ROTARY:        # the cabinet's two microphones give 2.7 dB less than the dry guitars: made up on the same fader
+        GTR_RIDE = [["0b", 0], [f"{165 * 4}b", 0], [f"{166 * 4}b", 2.7], [f"{170 * 4}b", 2.7], [f"{175 * 4}b", -2.3], [f"{176 * 4}b", 2.7], [f"{177 * 4}b", 2.7], [f"{178 * 4}b", 0]]
+    ROT_SPIN = [["0b", 0], [f"{169.5 * 4}b", 0], [f"{170 * 4}b", 1], [f"{178 * 4}b", 1], [f"{178.5 * 4}b", 0]]
+    # the tape stop: from the last stab of the second stop-time (bar 279, the twelfth sixteenth) to the bar line
+    t0 = (279 + 11 / 16) * 4
+    TSTOP_LANE = [["0b", 0], [f"{t0 - 0.01}b", 0], [f"{t0}b", 1], [f"{280 * 4 - 0.01}b", 1], [f"{280 * 4}b", 0]]
     OHC = {"sends": {"oh": DROOM.split(":")[1] + "dB"}} if DROOM else {}
     OHS = {"sends": {"oh": DROOM.split(":")[2] + "dB"}} if DROOM else {}
     GOUT = {"out": "gtrs"} if GEQ else {}
@@ -807,6 +825,7 @@ def song():
         ("cym", KIT, "-3dB", None, {"out": "drums", **OHC}), ("toms", KIT, "4dB", None, {"out": "drums", **OHS}),
         ("hat", KIT, "14dB", float(HATPAN) if HATPAN else None, {"out": "drums", **OHC}), ("ride", KIT, "6dB", None, {"out": "drums", **OHC}),
         ("lead", "m8-lead-guitar", {"value": "-3dB", "mod": [{"src": "auto.eye", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"eye": {"points": LEAD_LANE}}}),
+        ("leadw", "ct-lead-wah", "-3dB", 0, {"sends": {"hall": "-10dB"}, "auto": {"wah": {"points": [[f"{round(t / 4, 3)}b", v] for t, v in WAH_PTS]}}}),
         ("cl5", CLEAN, "-4dB", -0.45, {"sends": CL_SENDS}),
         ("cl7", CLEAN, "-3dB", 0.45, {"sends": CL_SENDS}),
         ("cl11", CLEAN, "-3dB", 0, {"sends": CL_SENDS}),
@@ -849,6 +868,14 @@ def song():
                          "synth": {"layers": [{"type": "kuramoto", "kuramoto": {"count": 16, "spread": int(os.environ.get("C10T1_SPREAD", "60")), "coupling": {"value": 0, "mod": [{"src": "auto.sync", "amount": 1}]}}}],
                                    "filters": [{"kind": "lp", "cutoff": {"value": 350, "mod": [{"src": "sync", "amount": 2.6}]}}],
                                    "amp": {"a": "1.5s", "d": 0, "s": 1, "r": "3s"}}, "gain": "-9.5dB"},
+            "ct-lead-wah": {"about": "chirper-zero: the library's m8-lead-guitar with a wah pedal between its compressor and its amp (the rest of the chain restated as it is there); the pedal follows the track's `wah` lane, and the playing opens it a little further",
+                            "extends": "m8-lead-guitar",
+                            "fx": [{"type": "compressor", "threshold": "-24dB", "ratio": 4, "attack": "5ms", "release": "120ms", "makeup": "6dB"},
+                                   {"type": "wah", "pos": {"value": 0, "mod": [{"src": "auto.wah", "amount": 1}]}, "env": 0.3, "low": 450, "high": 2400, "q": 3.5, "mix": float(os.environ.get("C10T1_WAHMIX", "1"))},
+                                   {"type": "amp", "model": "mark", "gain": 0.9, "boost": "6dB", "bass": 0.45, "mid": 0.7, "treble": 0.55, "presence": 0.55, "resonance": 0.6, "sag": 0.3, "bloom": 0.4, "tight": 100},
+                                   {"type": "cab", "model": "4x12", "mic": 0.3, "distance": 0.15},
+                                   {"type": "eq", "bands": ["peak cutoff=1.7k q=1.2 gain=-2.5dB", "peak cutoff=340 q=1 gain=2dB"]},
+                                   "delay time=3/16 mix=0.25 feedback=0.4 ping_pong=true tone=3k", "reverb mix=0.3 size=0.85"]},
             "ct-drop": {"about": "chirper-zero: the floor dropping on a landing - a sine that falls an octave to the note in 0.35 s and dies in 1.5 s",
                         "synth": {"layers": [{"wave": "sine"}], "pitch": {"value": 0, "mod": [{"src": "env.fall", "amount": 12}]},
                                   "env": {"fall": {"a": "1ms", "d": "350ms", "s": 0}}, "amp": {"a": "3ms", "d": "1.5s", "s": 0, "r": "200ms"}}}},
@@ -860,14 +887,17 @@ def song():
                             + ([{"type": "eq", "bands": peaks(DEQ) + ([f"highshelf cutoff={DSHELF.split(':')[0]} gain={DSHELF.split(':')[1]}dB"] if DSHELF else [])}] if DEQ or DSHELF else [])
                             + ([{"type": "width", "width": 1, "mono_below": 0, "bands": [[float(x.split(":")[0]), float(x.split(":")[1])] for x in DWIDTH.split(",")]}] if DWIDTH else [])},
                   **({"oh": {"fx": [f"reverb kind=room decay={(DROOM.split(':') + ['0.4'])[3]}s mix=1 predelay=4ms low_cut={DROOM.split(':')[0]} high_cut=12000 spread=0.6"]}} if DROOM else {}),
-                  **({"gtrs": {"fx": [{"type": "eq", "bands": peaks(GEQ)}, {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}}],
-                               "auto": {"ride": {"points": GTR_RIDE}}}} if GEQ else {}),
+                  **({"gtrs": {"fx": [{"type": "eq", "bands": peaks(GEQ)}, {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}}]
+                               + ([{"type": "rotary", "mix": {"value": 0, "mod": [{"src": "auto.rot", "amount": 1}]}, "speed": {"value": 0, "mod": [{"src": "auto.spin", "amount": 1}]}}] if ROTARY else []),
+                               "auto": {"ride": {"points": GTR_RIDE}, **({"rot": {"points": ROT_MIX}, "spin": {"points": ROT_SPIN}} if ROTARY else {})}}} if GEQ else {}),
                   **({"low": {"fx": [{"type": "eq", "bands": peaks(BEQ)}]
                               + ([{"type": "compressor", "threshold": BCOMP.split(":")[0] + "dB", "ratio": float(BCOMP.split(":")[1]), "attack": "12ms", "release": "120ms", "makeup": BCOMP.split(":")[2] + "dB"}] if BCOMP else [])
                               + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}}],
                               "auto": {"ride": {"points": BASS_RIDE}}}} if BEQ else {})},
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}] + ([{"type": "gain", "gain": f"{MASTER_DB}dB"}] if MASTER_DB else [])
-                   + ([{"type": "gain", "gain": f"{MGAIN.split(':')[0]}dB"}, "limiter ceiling=-1dB", {"type": "gain", "gain": f"-{MGAIN.split(':')[1]}dB"}] if MGAIN else [])},
+                   + ([{"type": "gain", "gain": f"{MGAIN.split(':')[0]}dB"}, "limiter ceiling=-1dB", {"type": "gain", "gain": f"-{MGAIN.split(':')[1]}dB"}] if MGAIN else [])
+                   + ([{"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.stop", "amount": 1}]}, "time": "1.25b"}] if TSTOP else []),
+                   **({"auto": {"stop": {"points": TSTOP_LANE}}} if TSTOP else {})},
         "tracks": tracks,
     }
 
