@@ -279,14 +279,14 @@ LONG_WAIT = [(C5, 1), (C5 - 1, 1), (C5 - 4, 1), (C5 - 7, 2), (C5 - 6, 1), (C5 - 
 LONG_WAIT_TURNS = sum(n for _, n in LONG_WAIT)     # 21 turns of eleven = 231 sixteenths
 
 
-def long_wait(b0, b1, vel=0.75, up=0, start=None):
+def long_wait(b0, b1, vel=0.75, up=0, start=None, tr="lead"):
     """The lead's tune: one note to each turn of the eleven wheel (some held for two or three turns)."""
     s0, s1 = s16(b0), s16(b1)
     t = s0 + (-s0) % 11 if start is None else start
     i = 0
     while t < s1:
         pitch, turns = LONG_WAIT[i % len(LONG_WAIT)]
-        add("lead", t, min(turns * 11, s1 - t), pitch + up, vel)
+        add(tr, t, min(turns * 11, s1 - t), pitch + up, vel)
         t += turns * 11
         i += 1
 
@@ -342,8 +342,8 @@ def chime_all(t, vel=0.7):
         add("chime", t, 16, n, vel)
 
 
-# ---- A TRIAL, off unless C10T1_VOX is set (not in the song): a barked voice over the hardest stretch. It keeps the
-# bar's own time, eighth-notes from the first beat of every second bar, while the band turns the seven wheel under it.
+# ---- VOICES (Harry, 12 Nov: "try different options in different parts"). The bark, over the hardest stretch: it keeps
+# the bar's own time, eighth-notes from the first beat of every second bar, while the band turns the seven wheel under it.
 VOX_LINES = [
     ("W EY1 T", [4]),
     ("N AA1 T|Y EH1 T", [2, 4]),
@@ -359,6 +359,14 @@ VOX_LINES = [
     ("K IY1 P|K AW1 N T", [2, 4]),
     ("K IY1 P|K AW1 N T", [2, 4]),
 ]
+
+
+def say(tr, t, syllables, pitch=45, vel=0.8):
+    """Spoken or whispered syllables from sixteenth t: (phonemes, length in sixteenths) each, end to end. The lengths are
+    `chirp tts`'s for natural speech (a syllable about 0.4-0.57 s)."""
+    for ph, ln in syllables:
+        T.setdefault(tr, []).append({"at": round(t / 4, 4), "len": round(ln / 4, 4), "pitch": nm(pitch), "vel": vel, "ph": ph})
+        t += ln
 
 
 def vox(b0, pitch=65):
@@ -399,6 +407,10 @@ def compose():
     kick(4, [(0, 1, "c")], 27, 35, vel=0.45)                         # a heartbeat on the quarter
     gtr(G, 5, FIVE_A, 30, 35, hook=GROW[0], vel=0.8, ramp=(0.45, 0.9))   # the machine, approaching, with one note of its hook
     bass(5, FIVE_A, 30, 35, hook=GROW[0], vel=0.8, ramp=(0.45, 0.9))
+    if WHISPER:                                                     # a whisper before each new part comes in
+        say("whisper", 13 * 16 + 8, [("W EY1 T", 4.75)])
+        say("whisper", 21 * 16 + 8, [("W EY1 T", 4.75)])
+        say("whisper", 29 * 16 + 6, [("N AA1 T", 3.3), ("Y EH1 T", 4.75)])
     chime_all(0)
     chimes(14, 35, pairs=((5, 7),))                                 # coincidences sound once both wheels are ticking
     chimes(22, 35, pairs=((5, 11), (7, 11)))
@@ -524,6 +536,8 @@ def compose():
         add("cym", t, 4, "rb", 0.3 * (1.12 if t % 16 == 0 else 1.0))
     long_wait(a, 176 + 231 / 16, vel=0.7, up=-12, start=t0)
     long_wait(a, 176 + 462 / 16, vel=0.7, up=0, start=t0 + 231)
+    if CHOIR:
+        long_wait(a, 176 + 462 / 16, vel=0.6, up=0, start=t0 + 231, tr="choir")    # three soft singers on the tune's second pass
     for t, ln, kind, j, hi in strikes(5, FIVE_A, (z - 10) * 16, z * 16 - 12):
         add("toms", t, 1, ["ft", "t2", "t1"][j], 0.32 + 0.33 * (t - (z - 10) * 16) / 160)
     kick(4, [(0, 1, "c")], z - 6, z, vel=0.45)
@@ -703,7 +717,10 @@ DROOM = os.environ.get("C10T1_DROOM", "5000:4.5:-1.5:0.7")
 HATPAN = os.environ.get("C10T1_HATPAN", "")
 KPANS = os.environ.get("C10T1_KPANS", "x:0.35,rde:0.4,rb:0.35,h:-0.45")          # the kit's cymbals re-placed, piece:pan,piece:pan (a song-local kit over ct-kit)
 MASTER_DB = os.environ.get("C10T1_MASTER", "1")                              # the raw mix (what the groove plays) kept where v6's was
-VOX = os.environ.get("C10T1_VOX", "")                                        # a trial: the track gain of a barked voice, e.g. "0dB"
+# voices, each its track's gain ("" = off): the bark (8:53), three soft singers on the tune in the eye (6:01), a whisper in the opening
+VOX = os.environ.get("C10T1_VOX", "7dB")
+CHOIR = os.environ.get("C10T1_CHOIR", "-27dB")
+WHISPER = os.environ.get("C10T1_WHISPER", "-8dB")
 BCOMP = os.environ.get("C10T1_BCOMP", "-26:8:2.5")                                    # threshold:ratio:makeup on the bass's bus, after its eq                         # and a high shelf there, hz:dB
 
 
@@ -752,7 +769,9 @@ def song():
         ("fifth", "cellos", "-15dB", 0.4, {"sends": {"hall": "-8dB"}}),
         ("air", "juno-pad", "-17dB", 0.15, {"sends": {"hall": "-8dB"}}),
         ("chime", "modal-glock", CHIME_GAIN, -0.2, {"sends": {"hall": "-6dB", "dly": "-14dB"}}),
-        ("vox", "kidman", VOX or "0dB", 0, {"sends": {"hall": "-18dB"}}),
+        ("vox", "kidman", VOX or "0dB", 0, {"sends": {"hall": "-18dB"}, "fx": [{"type": "eq", "bands": ["hp cutoff=300"]}]}),
+        ("choir", "voice-backing", CHOIR or "0dB", 0, {"sends": {"hall": "-8dB"}}),
+        ("whisper", "ct-whisper", WHISPER or "0dB", 0, {"sends": {"hall": "-8dB"}}),
         ("rise", "ct-swell", "-9dB", 0, {"sends": {"hall": "-10dB"}}),
         ("drop", "ct-drop", "-8dB", 0, {}),
     ]
@@ -773,6 +792,8 @@ def song():
         "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "4s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {
             **({"ct-kit-here": {"extends": KIT, "kit": {x.split(":")[0]: {"pan": float(x.split(":")[1])} for x in KPANS.split(",")}}} if KPANS else {}),
+            "ct-whisper": {"about": "chirper-zero: a whisper - the speaking voice with nearly all breath and no effort (what `chirp tts --mode whisper` builds)",
+                           "extends": "voice-speech", "synth": {"layers": [{"type": "voice", "speech": 1, "breath": 0.95, "effort": 0.05, "ring": 0.2, "vary": 0.5, "vowel": 0.5, "onset": "expr.on", "coda": "expr.off"}]}},
             "ct-swell": {"about": "chirper-zero: a breath in before a landing - band-passed noise that swells for as long as the note is held (a slow attack), its band rising two octaves, cut off on the bar line",
                          "synth": {"layers": [{"type": "noise"}], "filters": [{"kind": "bp", "cutoff": {"value": 500, "mod": [{"src": "env.up", "amount": 2.5}]}, "q": 0.9}, "hp cutoff=250"],
                                    "env": {"up": {"a": "3.6s", "d": "10ms", "s": 1}}, "amp": {"a": "3.6s", "d": "10ms", "s": 1, "r": "40ms", "curve": 3}}},
