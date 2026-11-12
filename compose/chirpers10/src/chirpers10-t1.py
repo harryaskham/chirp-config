@@ -28,6 +28,7 @@ NB = 385 + CODA
 
 NOTE = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
 F1 = 29
+AB, BB, DB, EB = 32, 34, 37, 39      # other grounds: Ab1, Bb1 (the seventh string), Db2, Eb2 (the sixth string)
 
 
 def nm(m):
@@ -64,7 +65,7 @@ H3 = [1, 3, 1, 8]
 
 
 def strikes(p, cell, s0, s1):
-    """The strikes of global wheel `p` that fall in [s0, s1): (s16, length, kind, instance, hook index)."""
+    """The strikes of global wheel `p` that fall in [s0, s1): (s16, length, kind, index in the cell, hook index)."""
     nh = sum(1 for c in cell if c[2] == "h")
     k = s0 // p
     while k * p < s1:
@@ -83,8 +84,12 @@ def landings(p, s0, s1):
     return [t for t in range(s0 - s0 % 16 + (16 if s0 % 16 else 0), s1, 16) if t % p == 0]
 
 
+def s16(b):
+    return int(round(b * 16))
+
+
 def gtr(trs, p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None):
-    s0, s1 = b0 * 16, b1 * 16
+    s0, s1 = s16(b0), s16(b1)
     for t, ln, kind, j, hi in strikes(p, cell, s0, s1):
         v = vel * (1.0 if j == 0 else 0.9)
         if ramp:
@@ -106,8 +111,16 @@ def gtr(trs, p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None):
                 add(tr, t, ln, ",".join(nm(root + i) for i in (24, 37, 42)), v)
 
 
+def harm(trs, p, cell, b0, b1, interval=12, root=F1, hook=H1, vel=0.8):
+    """A second guitar that plays only the wheel's hook notes, `interval` semitones up."""
+    for t, ln, kind, j, hi in strikes(p, cell, s16(b0), s16(b1)):
+        if kind == "h":
+            for tr in trs:
+                add(tr, t, ln, root + hook[hi % len(hook)] + interval, vel)
+
+
 def bass(p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None):
-    s0, s1 = b0 * 16, b1 * 16
+    s0, s1 = s16(b0), s16(b1)
     for t, ln, kind, j, hi in strikes(p, cell, s0, s1):
         v = vel * (1.0 if j == 0 else 0.9)
         if ramp:
@@ -121,185 +134,247 @@ def bass(p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None):
 
 
 def kick(p, cell, b0, b1, vel=0.9, only_first=False, fill16=False):
-    s0, s1 = b0 * 16, b1 * 16
-    hit = set()
+    s0, s1 = s16(b0), s16(b1)
+    hit_at = set()
     for t, ln, kind, j, hi in strikes(p, cell, s0, s1):
         if only_first and j:
             continue
-        if t not in hit:
+        if t not in hit_at:
             add("kick", t, 1, "k", vel * (1.0 if j == 0 else 0.86))
-            hit.add(t)
+            hit_at.add(t)
     if fill16:   # double kick: the sixteenths between the wheel's strikes, softer
         for t in range(s0, s1):
-            if t not in hit:
+            if t not in hit_at:
                 add("kick", t, 1, "k", vel * 0.62)
 
 
-def cym(piece, b0, b1, step=4, vel=0.62, skip_last=0):
-    for t in range(b0 * 16, b1 * 16 - skip_last, step):
-        add("cym", t, step, piece, vel * (1.12 if t % 16 == 0 else 1.0 if t % 8 == 0 else 0.9))
+FILL_LEN = {None: 0, "run": 8, "run16": 16, "roll": 8, "roll16": 16, "toms": 12, "kicks": 8, "stop": 8}
 
 
-def snare(mode, b0, b1, vel=0.9, skip_last=0):
-    offs = {"half": [8], "back": [4, 12], "none": []}[mode]
-    for b in range(b0, b1):
+def fill(b1, kind="run", vel=0.85):
+    """Into bar line b1. run: snare then down the toms; roll: a snare crescendo; toms: the five cell on the toms;
+    kicks: thirty-second-note kicks under two snares; stop: nothing but one choked stab."""
+    e = b1 * 16
+    if kind in ("run", "run16"):
+        n = FILL_LEN[kind]
+        seq = ["s", "s", "t1", "t1", "t2", "t2", "ft", "ft"]
+        for i in range(n):
+            piece = seq[i * len(seq) // n]
+            add("snare" if piece == "s" else "toms", e - n + i, 1, piece, vel * (0.7 + 0.3 * i / (n - 1)))
+    elif kind in ("roll", "roll16"):
+        n = FILL_LEN[kind]
+        for i in range(n):
+            add("snare", e - n + i, 1, "s", vel * (0.45 + 0.55 * i / (n - 1)))
+    elif kind == "toms":
+        for i, (off, piece) in enumerate([(0, "t1"), (2, "t1"), (3, "t2"), (5, "t2"), (7, "t3"), (8, "ft"), (10, "ft"), (11, "ft2")]):
+            add("toms", e - 12 + off, 1, piece, vel * (0.75 + 0.25 * i / 7))
+    elif kind == "kicks":
+        for i in range(16):
+            add("kick", e - 8 + i * 0.5, 0.5, "k", vel * (0.6 + 0.4 * i / 15))
+        add("snare", e - 2, 1, "s", vel)
+        add("snare", e - 1, 1, "s", vel)
+    elif kind == "stop":
+        for tr in ("gl", "gr"):
+            add(tr, e - 4, 2, "F1,C2,F2", vel)
+        add("bass", e - 4, 2, "F1", vel)
+        add("kick", e - 4, 1, "k", vel)
+        add("cym", e - 4, 2, "cch", vel * 0.9)
+
+
+def kit(a, z, piece="x", step=4, mode="half", fl="run", cvel=0.62, ghost=False, crash_at_start=True, svel=0.9):
+    """A section's pulse: the cymbal on its step, the snare, a crash on the first bar line and a fill into the last."""
+    skip = FILL_LEN[fl]
+    if crash_at_start:
+        crash(a * 16)
+    for t in range(a * 16, z * 16 - skip, step):
+        add("toms" if piece in ("ft", "ft2", "t1", "t2", "t3") else "cym", t, step, piece, cvel * (1.12 if t % 16 == 0 else 1.0 if t % 8 == 0 else 0.9))
+    offs = {"half": [8], "back": [4, 12], "blast": [2, 6, 10, 14], "none": []}[mode]
+    for b in range(a, z):
         for o in offs:
-            t = b * 16 + o
-            if t < b1 * 16 - skip_last:
-                add("snare", t, 2, "s", vel)
+            if b * 16 + o < z * 16 - skip:
+                add("snare", b * 16 + o, 2, "s", svel)
+        if ghost:
+            for o in ([5, 7, 11, 14] if mode == "half" else [7, 9, 15]):
+                if b * 16 + o < z * 16 - skip:
+                    add("snare", b * 16 + o, 1, "g", 0.38)
+    if fl:
+        fill(z, fl)
 
 
-def crash(s16, vel=0.85, piece="c"):
-    add("cym", s16, 8, piece, vel)
+def crash(t, vel=0.85, piece="c"):
+    add("cym", t, 8, piece, vel)
 
 
-def fill(b1, n=8, vel=0.8):
-    """A run into bar line b1 over its last n sixteenths: snare, then down the toms."""
-    seq = ["s", "s", "t1", "t1", "t2", "t2", "ft", "ft"]
-    for i in range(n):
-        t = b1 * 16 - n + i
-        piece = seq[(len(seq) - n + i) % len(seq)] if n <= len(seq) else seq[i * len(seq) // n]
-        add("snare" if piece == "s" else "toms", t, 1, piece, vel * (0.7 + 0.3 * i / max(1, n - 1)))
+def rise(b1, bars=1, vel=0.8):
+    """A noise swell into bar line b1, and a low drop on it."""
+    add("rise", (b1 - bars) * 16, bars * 16 - 0.3, "C5", vel)
+    add("drop", b1 * 16, 12, "F1", vel)
 
 
-def tick(tr, p, cell, pitches, b0, b1, vel=0.42, ramp=None):
-    s0, s1 = b0 * 16, b1 * 16
-    for t, ln, kind, j, hi in strikes(p, cell, s0, s1):
-        v = vel + (0.18 if j == 0 else 0)
-        if ramp:
-            v *= ramp[0] + (ramp[1] - ramp[0]) * (t - s0) / max(1, s1 - s0)
-        add(tr, t, 1.8, pitches[j % len(pitches)], v)
-
-
-C5 = 72
-LONG_WAIT = [(C5, 1), (C5 - 1, 1), (C5 - 4, 1), (C5 - 7, 2), (C5 - 6, 1), (C5 - 4, 1), (C5 - 1, 1), (C5, 2),
-             (C5 + 1, 1), (C5, 1), (C5 - 4, 1), (C5 - 6, 2), (C5 - 7, 1), (C5 - 4, 1), (C5 - 6, 1), (C5 - 7, 3)]
-
-
-def long_wait(b0, b1, vel=0.75, up=0):
-    """The lead's tune: one note to each turn of the eleven wheel (some held for two or three turns)."""
-    s0, s1 = b0 * 16, b1 * 16
-    t = s0 + (-s0) % 11
-    i = 0
-    while t < s1:
-        pitch, turns = LONG_WAIT[i % len(LONG_WAIT)]
-        ln = min(turns * 11, s1 - t)
-        add("lead", t, ln, pitch + up, vel)
-        t += turns * 11
-        i += 1
-
-
-def solo(b0, b1, seed=9, vel=0.82):
-    """A run on the seven wheel's strikes: a walk through the mode with leaps."""
-    rng = random.Random(seed)
-    scale = [0, 1, 3, 5, 6, 7, 8, 10]
-    deg = 10
-    for t, ln, kind, j, hi in strikes(7, [(0, 1, "c"), (1, 1, "c"), (2, 1, "c"), (3, 1, "c"), (4, 1, "c"), (5, 2, "h")], b0 * 16, b1 * 16):
-        step = rng.choice([-2, -1, -1, 1, 1, 2, 3, -3]) if kind == "c" else rng.choice([4, -4, 5])
-        deg = max(4, min(22, deg + step))
-        add("lead", t, ln, 53 + 12 * (deg // 8) + scale[deg % 8], vel * (1.0 if kind == "h" else 0.88))
-
-
-def drone(b0, b1, vel=0.6, fifth=True):
-    for b in range(b0, b1, 4):
-        ln = min(4, b1 - b) * 16 + 0.8
-        add("home", b * 16, ln, "F1", vel)
-        if fifth:
-            for p in ("C2", "F2"):
-                add("fifth", b * 16, ln, p, vel * 0.8)
-
-
-def pad(b0, b1, vel=0.5):
-    for b in range(b0, b1, 8):
-        ln = min(8, b1 - b) * 16 + 0.8
-        for p in ("F2", "C3", "G3", "C4"):
-            add("air", b * 16, ln, p, vel)
-
-
-def hit(s16, ln=32, vel=1.0):
-    for tr in ("gl", "gr", "gl2", "gr2"):
-        add(tr, s16, ln, "F1,C2,F2,C3", vel)
-    add("bass", s16, ln, "F1", vel)
-    add("kick", s16, 1, "k", 1.0)
-    crash(s16, 1.0)
-    crash(s16, 0.9, "x")
-
-
-G = ("gl", "gr")
-G2 = ("gl2", "gr2")
-CL5 = ["F3", "C4", "F4"]
-CL7 = ["C4", "G4", "F4", "Bb4"]
-CL11 = ["F4", "C5", "Ab4", "Eb5", "Db5"]
+CL5 = [0, 7, 12]            # the ticks' notes, in semitones above the root's F3
+CL7 = [7, 14, 12, 17]
+CL11 = [12, 19, 15, 22, 20]   # dark: with the minor third, seventh and sixth (the opening)
+CL11_OPEN = [12, 19, 14, 24, 21]   # open: second and sixth, no third (the eye)
 TICK5 = [(0, 1, "c"), (2, 1, "c"), (3, 1, "c")]
 TICK7 = [(0, 1, "c"), (2, 1, "c"), (4, 1, "c"), (5, 1, "c")]
 TICK11 = [(0, 1, "c"), (3, 1, "c"), (5, 1, "c"), (8, 1, "c"), (9, 1, "c")]
 
 
+def tick(tr, p, cell, notes, b0, b1, vel=0.42, ramp=None, harmony=None):
+    s0, s1 = s16(b0), s16(b1)
+    for t, ln, kind, j, hi in strikes(p, cell, s0, s1):
+        v = vel + (0.18 if j == 0 else 0)
+        if ramp:
+            v *= ramp[0] + (ramp[1] - ramp[0]) * (t - s0) / max(1, s1 - s0)
+        root = 53 + (root_at(harmony, t) if harmony else 0)
+        add(tr, t, 1.8, root + notes[j % len(notes)], v)
+
+
+def root_at(harmony, t):
+    r = 0
+    for start, off in harmony:
+        if t >= start:
+            r = off
+    return r
+
+
+def bed(harmony, end, vel=0.6, fifth=True, pad_vel=0.5):
+    """The drone, its fifth and the open chord over a list of (s16 start, semitones from F), each held to the next."""
+    for i, (start, off) in enumerate(harmony):
+        stop = harmony[i + 1][0] if i + 1 < len(harmony) else end
+        t = start
+        while t < stop:
+            ln = min(64, stop - t) + 0.8
+            low = 29 + off if off <= 3 else 29 + off - 12        # keep the drone between Gb1 and Ab1... or just above
+            if low < 29:
+                low += 12
+            add("home", t, ln, low, vel)
+            if fifth:
+                add("fifth", t, ln, low + 7, vel * 0.8)
+                add("fifth", t, ln, low + 12, vel * 0.8)
+            if pad_vel:
+                for iv in (0, 7, 14, 19):
+                    add("air", t, ln, 41 + off + iv, pad_vel)
+            t += 64
+
+
+C5 = 72
+LONG_WAIT = [(C5, 1), (C5 - 1, 1), (C5 - 4, 1), (C5 - 7, 2), (C5 - 6, 1), (C5 - 4, 1), (C5 - 1, 1), (C5, 2),
+             (C5 + 1, 1), (C5, 1), (C5 - 4, 1), (C5 - 6, 2), (C5 - 7, 1), (C5 - 4, 1), (C5 - 6, 1), (C5 - 7, 3)]
+LONG_WAIT_TURNS = sum(n for _, n in LONG_WAIT)     # 21 turns of eleven = 231 sixteenths
+
+
+def long_wait(b0, b1, vel=0.75, up=0, start=None):
+    """The lead's tune: one note to each turn of the eleven wheel (some held for two or three turns)."""
+    s0, s1 = s16(b0), s16(b1)
+    t = s0 + (-s0) % 11 if start is None else start
+    i = 0
+    while t < s1:
+        pitch, turns = LONG_WAIT[i % len(LONG_WAIT)]
+        add("lead", t, min(turns * 11, s1 - t), pitch + up, vel)
+        t += turns * 11
+        i += 1
+
+
+MODE = [0, 1, 3, 5, 6, 7, 8, 10]     # F Gb Ab Bb B C Db Eb
+
+
+def deg(d, base=65):
+    return base + 12 * (d // 8) + MODE[d % 8]
+
+
+def solo(b0, b1, vel=0.82):
+    """The lead runs on the seven wheel: a four-note figure climbing the mode a step each turn, six strikes to a turn;
+    every fourth turn is one held note instead."""
+    arch = [4, 5, 6, 7, 9, 10, 11, 12, 11, 12, 13, 14, 13, 11, 10, 9, 10, 11, 12, 14, 15, 14, 12, 11, 9, 8]
+    fig = [0, 2, 1, 3, 2, 4]
+    cell = [(0, 1, "c"), (1, 1, "c"), (2, 1, "c"), (3, 1, "c"), (4, 1, "c"), (5, 2, "h")]
+    s0, s1 = s16(b0), s16(b1)
+    k0 = s0 // 7
+    for t, ln, kind, j, hi in strikes(7, cell, s0, s1):
+        k = t // 7 - k0
+        base = arch[k % len(arch)]
+        if k % 4 == 3:
+            if j == 0:
+                add("lead", t, min(7, s1 - t), deg(base + 7), vel)
+            continue
+        add("lead", t, ln, deg(base + fig[j]), vel * (1.0 if kind == "h" else 0.88))
+
+
+def hit(t, ln=32, vel=1.0):
+    for tr in ("gl", "gr", "gl2", "gr2"):
+        add(tr, t, ln, "F1,C2,F2,C3", vel)
+    add("bass", t, ln, "F1", vel)
+    add("kick", t, 1, "k", 1.0)
+    crash(t, 1.0)
+    crash(t, 0.9, "x")
+
+
+G = ("gl", "gr")
+G2 = ("gl2", "gr2")
+
+
 def compose():
     B = BOUNDS
+    F_ONLY = [(0, 0)]
+
     # 1. 0-35  THE WAIT BEGINS: everything strikes once, together; then only the wheels, ticking, one by one
     hit(0)
-    drone(0, 35)
-    pad(4, 35)
+    bed(F_ONLY, 35 * 16)
     tick("cl5", 5, TICK5, CL5, 2, 35)
-    tick("cl7", 7, TICK7, CL7, 12, 35)
-    tick("cl11", 11, TICK11, CL11, 22, 35, vel=0.36)
-    cym("rb", 16, 35, vel=0.3, skip_last=8)
-    kick(4, [(0, 1, "c")], 27, 35, vel=0.6)                      # a heartbeat on the quarter
-    gtr(G, 5, FIVE_A, 30, 35, vel=0.8, ramp=(0.45, 0.9))           # the machine, approaching
+    tick("cl7", 7, TICK7, CL7, 14, 35)                              # enters where seven meets a bar line
+    tick("cl11", 11, TICK11, CL11, 22, 35, vel=0.36)                # and eleven where it does
+    for t in range(16 * 16, 35 * 16 - 8, 4):
+        add("cym", t, 4, "rb", 0.3 * (1.12 if t % 16 == 0 else 1.0))
+    kick(4, [(0, 1, "c")], 27, 35, vel=0.6)                         # a heartbeat on the quarter
+    gtr(G, 5, FIVE_A, 30, 35, vel=0.8, ramp=(0.45, 0.9))            # the machine, approaching
     bass(5, FIVE_A, 30, 35, vel=0.8, ramp=(0.45, 0.9))
-    fill(35, 8)
+    fill(35, "roll")
+    rise(35, 2)
 
-    # 2. 35-55  five and seven have met: RIFF A, the five wheel in full
+    # 2. 35-55  five and seven have met: RIFF A, the five wheel. Every five bars it lands on a bar line and something joins
     a, z = B[1], B[2]
-    crash(a * 16)
     gtr(G, 5, FIVE_A, a, z, hook=H1)
-    bass(5, FIVE_A, a, z, hook=H1)
     kick(5, FIVE_A, a, z)
-    cym("x", a, z, skip_last=8)
-    snare("half", a, z, skip_last=8)
+    bass(5, FIVE_A, a, z, hook=H1)
+    harm(("gl2",), 5, FIVE_A, a + 5, a + 10, 12, hook=H1)            # second landing: the hook an octave up, on the left
+    harm(G2, 5, FIVE_A, a + 10, a + 15, 12, hook=H1)                 # third: on both sides
+    harm(G2, 5, FIVE_A, a + 15, z, 19, hook=H1)                      # fourth: an octave and a fifth up
+    kit(a, z, "x", 4, "half", "roll")
     for t in landings(5, a * 16 + 1, z * 16):
         crash(t, 0.8)
-    fill(z, 8)
 
     # 3. 55-70  five meets eleven: the five wheel thickens, and eleven arrives as open chords left to ring
     a, z = B[2], B[3]
-    crash(a * 16)
     gtr(G, 5, FIVE_B, a, z, hook=H1)
-    gtr(G2, 11, ELEVEN_W, a, z, vel=0.9)
+    gtr(G2, 11, ELEVEN_W, a, a + 11, vel=0.9)
+    gtr(G2, 11, [(0, 8, "P"), (8, 2, "d")], a + 11, z, vel=0.9)       # after eleven lands, each chord is answered by a stab
     bass(5, FIVE_A, a, z, hook=H1)
     kick(5, FIVE_B, a, z)
-    cym("x", a, z, skip_last=4)
-    snare("half", a, z, skip_last=4)
+    kit(a, z, "x", 4, "half", "toms")
     for t in landings(11, a * 16 + 1, z * 16):
         crash(t, 0.85)
-    fill(z, 4)
 
-    # 4. 70-77  five and seven meet: seven bars of the seven wheel, nearly alone (one guitar, bass, kick)
+    # 4. 70-77  five and seven meet: seven bars of the seven wheel, nearly alone (one guitar, bass, kick, ghosted snare), up on Ab
     a, z = B[3], B[4]
-    crash(a * 16, 0.7, "sp")
-    gtr(("gl",), 7, SEVEN_A, a, z, hook=H2, vel=0.8)
-    gtr(("gr",), 7, SEVEN_A, a + 4, z, hook=H2, vel=0.8)
-    bass(7, SEVEN_A, a, z, hook=H2)
+    gtr(("gl",), 7, SEVEN_A, a, z, root=AB, hook=H2, vel=0.8)
+    gtr(("gr",), 7, SEVEN_A, a + 4, z, root=AB, hook=H2, vel=0.8)
+    bass(7, SEVEN_A, a, z, root=AB, hook=H2)
     kick(7, SEVEN_A, a, z)
-    cym("h", a, z, vel=0.55, skip_last=8)
-    snare("half", a, z, skip_last=8)
-    fill(z, 8)
+    kit(a, z, "h", 2, "half", "kicks", cvel=0.5, ghost=True, crash_at_start=False)
+    crash(a * 16, 0.7, "sp")
 
     # 5. 77-105  seven meets eleven: RIFF B, guitars on seven, the bass on eleven; the lead's tune arrives halfway
     a, z = B[4], B[5]
-    crash(a * 16)
     gtr(G, 7, SEVEN_B, a, z, hook=H2)
     bass(11, ELEVEN_A, a, z, hook=H1)
     kick(7, SEVEN_B, a, z)
-    cym("rb", a, a + 14, vel=0.6)
-    cym("x", a + 14, z, skip_last=8)
-    crash((a + 14) * 16)
-    snare("half", a, z, skip_last=8)
+    kit(a, a + 14, "rb", 4, "half", None, cvel=0.6)
+    kit(a + 14, z, "x", 4, "half", "run")
     long_wait(a + 14, z)
+    harm(G2, 7, SEVEN_B, a + 21, z, 12, hook=H2, vel=0.75)            # the last seven bars: the hook doubled an octave up
     for t in landings(7, a * 16 + 1, z * 16):
         crash(t, 0.8)
-    fill(z, 8)
 
     # 6. 105-110  five and seven meet: stop-time. Sixteen stabs on the five wheel, silence between
     a, z = B[5], B[6]
@@ -308,41 +383,35 @@ def compose():
     kick(5, FIVE_S, a, z, vel=0.95)
     for t, ln, kind, j, hi in strikes(5, FIVE_S, a * 16, z * 16):
         add("cym", t, 2, "cch", 0.75)
+    rise(z, 1)
 
-    # 7. 110-140  five meets eleven: RIFF C, the splayed one. Eleven on guitars and bass, slow and wide; five under it in the kick
+    # 7. 110-140  five meets eleven: RIFF C, the splayed one. Eleven everywhere for eleven bars; then the kick slips onto five
     a, z = B[6], B[7]
-    crash(a * 16)
     for (x, y, root, hook) in ((a, a + 11, F1, H1), (a + 11, a + 22, F1 + 5, H3), (a + 22, z, F1, H1)):
         gtr(G, 11, ELEVEN_A, x, y, root=root, hook=hook)
         gtr(G2, 11, ELEVEN_W, x, y, root=root, vel=0.9)
         bass(11, ELEVEN_A, x, y, root=root, hook=hook)
-        crash(x * 16, 0.9)
-    kick(5, FIVE_A, a, z)
-    cym("x", a, z, step=8, vel=0.7, skip_last=8)
-    snare("half", a, z, skip_last=8)
-    fill(z, 8)
+        if x > a:
+            crash(x * 16, 0.9)
+    kick(11, ELEVEN_A, a, a + 11)
+    kick(5, FIVE_A, a + 11, z)
+    kit(a, z, "x", 8, "half", "run16", cvel=0.7)
 
-    # 8. 140-154  five meets seven: both at once. Five in the left guitar, seven in the right; double time
+    # 8. 140-154  five meets seven: both at once. Five in the left guitar, seven in the right, an octave up; double time
     a, z = B[7], B[8]
-    crash(a * 16)
-    gtr(("gl",), 5, FIVE_B, a, z, hook=H1)
-    gtr(("gr",), 7, SEVEN_B, a, z, hook=H2)
-    bass(7, SEVEN_A, a, z, hook=H2)
-    kick(5, FIVE_B, a, z)
-    cym("h", a, z, step=2, vel=0.5, skip_last=4)
-    snare("back", a, z, skip_last=4)
-    fill(z, 4)
+    gtr(("gl",), 5, FIVE_B, a, z - 0.5, root=F1 + 12, hook=H1)
+    gtr(("gr",), 7, SEVEN_B, a, z - 0.5, root=F1 + 12, hook=H2)
+    bass(7, SEVEN_A, a, z - 0.5, hook=H2)
+    kick(5, FIVE_B, a, z - 0.5)
+    kit(a, z, "h", 2, "back", "stop", cvel=0.5, ghost=True)
 
-    # 9. 154-165  seven meets eleven: the lead runs on the seven wheel while the bass turns eleven
+    # 9. 154-165  seven meets eleven: the lead runs on the seven wheel while the bass turns eleven; the ground moves to Db
     a, z = B[8], B[9]
-    crash(a * 16)
-    gtr(G, 7, SEVEN_A, a, z, hook=H2)
-    bass(11, ELEVEN_A, a, z, hook=H1)
+    gtr(G, 7, SEVEN_A, a, z, root=DB, hook=H2)
+    bass(11, ELEVEN_A, a, z, root=DB, hook=H1)
     kick(7, SEVEN_A, a, z)
-    cym("rd", a, z, vel=0.6, skip_last=8)
-    snare("half", a, z, skip_last=8)
+    kit(a, z, "rd", 4, "half", "run", cvel=0.6)
     solo(a, z)
-    fill(z, 8)
 
     # 10. 165-175  five meets eleven: the weight comes off
     a, z = B[9], B[10]
@@ -350,72 +419,73 @@ def compose():
     gtr(G, 5, FIVE_A, a, z, hook=H1, vel=0.75, ramp=(1.0, 0.4))
     bass(11, ELEVEN_W, a, z, vel=0.8)
     kick(5, FIVE_A, a, a + 5, only_first=True, vel=0.8)
-    cym("h", a, z, vel=0.5)
-    snare("half", a, a + 5)
+    kit(a, a + 5, "h", 4, "half", None, cvel=0.5, crash_at_start=False)
+    kit(a + 5, z, "h", 4, "none", None, cvel=0.42, crash_at_start=False)
     tick("cl5", 5, TICK5, CL5, a + 5, z, ramp=(0.5, 1.0))
-    drone(a + 4, z, vel=0.5, fifth=False)
+    bed([((a + 4) * 16, 0)], z * 16, vel=0.5, fifth=False, pad_vel=0)
 
-    # 11. 175-210  five and seven meet: THE EYE. The wheels tick as they did at the start; the tune, slowly
+    # 11. 175-210  five and seven meet: THE EYE. The ticks as at the start, but the ground moves under them, on the eleven
+    #     wheel: Db, Ab, Gb and home, one chord to each phrase of the tune; the tune twice, low then high
     a, z = B[10], B[11]
-    drone(a, z)
-    pad(a, z)
-    tick("cl5", 5, TICK5, CL5, a, z)
-    tick("cl7", 7, TICK7, CL7, a, z)
-    tick("cl11", 11, TICK11, CL11, a + 12, z, vel=0.36)
-    cym("rb", a + 8, z, vel=0.3, skip_last=8)
-    long_wait(a + 8, a + 30, vel=0.7, up=-12)
-    for t, ln, kind, j, hi in strikes(5, FIVE_A, (z - 10) * 16, z * 16 - 8):
+    t0 = 176 * 16                                                    # eleven meets the bar line one bar in
+    eye = [(a * 16, 0)]
+    for rep in range(2):
+        for i, off in enumerate((-4, 3, 1, 0)):
+            eye.append((t0 + rep * 231 + [0, 55, 110, 165][i], off))
+    bed(eye, z * 16)
+    tick("cl5", 5, TICK5, CL5, a, z, harmony=eye)
+    tick("cl7", 7, TICK7, CL7, a, z, harmony=eye)
+    tick("cl11", 11, TICK11, CL11_OPEN, a + 12, z, vel=0.36, harmony=eye)
+    for t in range((a + 8) * 16, z * 16 - 8, 4):
+        add("cym", t, 4, "rb", 0.3 * (1.12 if t % 16 == 0 else 1.0))
+    long_wait(a, 176 + 231 / 16, vel=0.7, up=-12, start=t0)
+    long_wait(a, 176 + 462 / 16, vel=0.7, up=0, start=t0 + 231)
+    for t, ln, kind, j, hi in strikes(5, FIVE_A, (z - 10) * 16, z * 16 - 12):
         add("toms", t, 1, ["ft", "t2", "t1"][j], 0.45 + 0.35 * (t - (z - 10) * 16) / 160)
     kick(4, [(0, 1, "c")], z - 6, z, vel=0.6)
-    fill(z, 8)
+    fill(z, "toms")
+    rise(z, 2)
 
-    # 12. 210-220  five and seven meet: the weight comes back. Muted five on the guitars, seven under it
+    # 12. 210-220  five and seven meet: the weight comes back. Muted five on the guitars, seven under it, toms on five
     a, z = B[11], B[12]
-    crash(a * 16, 0.7)
     gtr(G, 5, FIVE_B, a, z, hook=H1, vel=0.85, ramp=(0.6, 1.0))
     bass(7, SEVEN_A, a, z, hook=H2)
     kick(7, SEVEN_A, a, z)
     for t, ln, kind, j, hi in strikes(5, FIVE_A, a * 16, (a + 5) * 16):
         add("toms", t, 1, ["ft", "t2", "t1"][j], 0.7)
-    cym("x", a + 5, z, skip_last=8)
-    snare("half", a + 4, z, skip_last=8)
-    fill(z, 8)
+    crash(a * 16, 0.7)
+    kit(a + 5, z, "x", 4, "half", "roll")
+    rise(z, 1)
 
-    # 13. 220-231  five meets eleven: the splayed riff again, filled in
+    # 13. 220-231  five meets eleven: the splayed riff again, filled in, its hook doubled above; on Bb
     a, z = B[12], B[13]
-    crash(a * 16)
-    gtr(G, 11, ELEVEN_B, a, z, hook=H1)
-    gtr(G2, 11, ELEVEN_W, a, z, vel=0.9)
-    bass(11, ELEVEN_A, a, z, hook=H1)
+    gtr(G, 11, ELEVEN_B, a, z, root=BB, hook=H1)
+    gtr(G2, 11, ELEVEN_W, a, a + 5, root=BB, vel=0.9)
+    harm(G2, 11, ELEVEN_B, a + 5, z, 12, root=BB, hook=H1)
+    bass(11, ELEVEN_A, a, z, root=BB, hook=H1)
     kick(11, ELEVEN_B, a, z)
-    cym("x", a, z, skip_last=8)
-    snare("half", a, z, skip_last=8)
-    fill(z, 8)
+    kit(a, z, "x", 4, "half", "kicks")
 
-    # 14. 231-245  seven meets eleven: seven on the guitars over eleven's chords; double time
+    # 14. 231-245  seven meets eleven: seven on the guitars over eleven's chords; double time; on Eb (F, Bb, Eb: up by fourths, then home)
     a, z = B[13], B[14]
-    crash(a * 16)
-    gtr(G, 7, SEVEN_B, a, z, hook=H3)
-    gtr(G2, 11, ELEVEN_W, a, z, vel=0.9)
-    bass(7, SEVEN_B, a, z, hook=H3)
+    gtr(G, 7, SEVEN_B, a, z, root=EB, hook=H3)
+    gtr(G2, 11, [(0, 8, "P"), (8, 2, "d")], a, z, root=EB, vel=0.9)
+    bass(7, SEVEN_B, a, z, root=EB, hook=H3)
     kick(7, SEVEN_B, a, z)
-    cym("x", a, z, step=2, vel=0.55, skip_last=4)
-    snare("back", a, z, skip_last=4)
-    fill(z, 4)
+    kit(a, z, "x", 2, "back", "run", cvel=0.55)
 
     # 15. 245-275  five meets seven: all three. Five left, seven right, eleven in the bass, and the tune over them
     a, z = B[14], B[15]
-    crash(a * 16)
     gtr(("gl",), 5, FIVE_B, a, z, hook=H1)
     gtr(("gr",), 7, SEVEN_B, a, z, hook=H2)
     bass(11, ELEVEN_A, a, z, hook=H1)
     kick(5, FIVE_B, a, z)
-    cym("rde", a, z, vel=0.6, skip_last=8)
-    snare("half", a, z, skip_last=8)
+    kit(a, a + 15, "rde", 4, "half", None, cvel=0.6)
+    kit(a + 15, z, "x", 4, "half", "run16", crash_at_start=False)
     long_wait(a, z, vel=0.8)
+    harm(G2, 5, FIVE_B, a + 15, z, 12, hook=H1, vel=0.72)
     for t in landings(5, a * 16 + 1, z * 16):
         crash(t, 0.8)
-    fill(z, 8)
 
     # 16. 275-280  five meets eleven: stop-time again, with a dissonant chord and the toms in the gaps
     a, z = B[15], B[16]
@@ -429,92 +499,112 @@ def compose():
         else:
             add("toms", t, 1, ["t1", "t2", "ft"][j - 1], 0.7)
 
-    # 17. 280-308  five meets seven: the hardest stretch. Seven everywhere, the kick running sixteenths; up a semitone, and back
+    # 17. 280-308  five meets seven: the hardest stretch. Seven everywhere, the kick running sixteenths; up a semitone
+    #     and back; the last seven bars the snare goes to the off-beats
     a, z = B[16], B[17]
     for (x, y, root) in ((a, a + 14, F1), (a + 14, a + 21, F1 + 1), (a + 21, z, F1)):
-        crash(x * 16, 0.9)
+        if x > a:
+            crash(x * 16, 0.9)
         gtr(G + G2, 7, SEVEN_B, x, y, root=root, hook=H2, vel=0.92)
         bass(7, SEVEN_B, x, y, root=root, hook=H2, vel=0.92)
     kick(7, SEVEN_B, a, z, fill16=True)
-    cym("x", a, z, step=2, vel=0.58, skip_last=8)
-    snare("back", a, z, skip_last=8)
-    fill(z, 8)
+    kit(a, a + 21, "x", 2, "back", None, cvel=0.58)
+    kit(a + 21, z, "x", 4, "blast", "roll16", cvel=0.66, crash_at_start=False)
 
-    # 18. 308-315  seven meets eleven: seven bars for the bass, on eleven, under one held chord
+    # 18. 308-315  seven meets eleven: seven bars for the bass, on eleven, under one held chord; on Ab, like the first break
     a, z = B[17], B[18]
-    crash(a * 16)
     for tr in G2:
-        add(tr, a * 16, 7 * 16 - 8, "F1,C2,F2,C3", 0.9)
-    bass(11, ELEVEN_B, a, z, hook=H1, vel=0.95)
+        add(tr, a * 16, 7 * 16 - 12, "Ab1,Eb2,Ab2,Eb3", 0.9)
+    bass(11, ELEVEN_B, a, z, root=AB, hook=H1, vel=0.95)
     kick(11, ELEVEN_A, a, z)
-    cym("h", a, z, vel=0.55, skip_last=8)
-    snare("half", a, z, skip_last=8)
-    fill(z, 8)
+    kit(a, z, "h", 2, "half", "toms", cvel=0.5, ghost=True)
 
-    # 19. 315-330  five meets seven: the two guitars swap wheels
+    # 19. 315-330  five meets seven: the two guitars swap wheels (seven left, five right) over a floor-tom pulse
     a, z = B[18], B[19]
-    crash(a * 16)
-    gtr(("gl",), 7, SEVEN_A, a, z, hook=H2)
-    gtr(("gr",), 5, FIVE_A, a, z, hook=H1)
-    bass(5, FIVE_A, a, z, hook=H1)
-    kick(5, FIVE_A, a, z)
-    kick(7, SEVEN_A, a, z, only_first=True)
-    cym("x", a, z, skip_last=4)
-    snare("half", a, z, skip_last=4)
-    fill(z, 4)
+    gtr(("gl",), 7, SEVEN_A, a, z - 0.5, hook=H2)
+    gtr(("gr",), 5, FIVE_A, a, z - 0.5, hook=H1)
+    bass(5, FIVE_A, a, z - 0.5, hook=H1)
+    kick(5, FIVE_A, a, z - 0.5)
+    kick(7, SEVEN_A, a, z - 0.5, only_first=True)
+    kit(a, z, "ft", 4, "half", "stop", cvel=0.72, ghost=True)                 # no cymbals: the pulse is on the floor tom
 
     # 20. 330-350  five meets eleven: RIFF A comes home, with eleven's chords and the tune
     a, z = B[19], B[20]
-    crash(a * 16)
     gtr(G, 5, FIVE_A, a, z, hook=H1, vel=0.92)
     gtr(G2, 11, ELEVEN_W, a, z, vel=0.92)
     bass(5, FIVE_A, a, z, hook=H1, vel=0.92)
     kick(5, FIVE_B, a, z)
-    cym("x", a, z, skip_last=8)
-    snare("half", a, z, skip_last=8)
+    kit(a, z, "x", 4, "half", "run")
     long_wait(a, z, vel=0.8)
     for t in landings(5, a * 16 + 1, z * 16):
         crash(t, 0.8)
-    fill(z, 8)
 
-    # 21. 350-385  five and seven meet for the last time before the landing: THE APPROACH, all three wheels
+    # 21. 350-385  five and seven meet for the last time before the landing: THE APPROACH. It starts from nothing, as the
+    #     piece did: the ticks, then a heartbeat. Each wheel's guitar comes in where that wheel next meets
+    #     a bar line (seven at 357, five at 360, eleven at 363); double time from 371; at 383 the band stops and the
+    #     three wheels tick alone into the bar line they have been turning towards since bar 1
     a, z = B[20], B[21]
     crash(a * 16)
-    gtr(("gl",), 5, FIVE_B, a, z, hook=H1, vel=0.92, ramp=(0.9, 1.05))
-    gtr(("gr",), 7, SEVEN_B, a, z, hook=H2, vel=0.92, ramp=(0.9, 1.05))
-    gtr(G2, 11, ELEVEN_W, a, z, vel=0.92)
-    bass(11, ELEVEN_A, a, z, hook=H1, vel=0.92)
-    kick(5, FIVE_B, a, z - 14)
-    kick(5, FIVE_B, z - 14, z, fill16=True)
-    cym("x", a, z - 14, skip_last=0)
-    cym("x", z - 14, z, step=2, vel=0.6, skip_last=16)
-    snare("half", a, z - 14)
-    snare("back", z - 14, z, skip_last=16)
-    long_wait(a + 7, z - 1, vel=0.85)
-    for t in landings(7, a * 16 + 1, z * 16):
+    for tr in G2:
+        add(tr, a * 16, 60, "F1,C2,F2,C3", 0.9)
+    bed([(a * 16, 0)], z * 16, vel=0.55, pad_vel=0.4)
+    tick("cl5", 5, TICK5, CL5, a, z, vel=0.5)
+    tick("cl7", 7, TICK7, CL7, a, z, vel=0.5)
+    tick("cl11", 11, TICK11, CL11, a, z, vel=0.46)
+    for t in range(a * 16, 363 * 16, 4):
+        add("cym", t, 4, "rb", 0.34 * (1.12 if t % 16 == 0 else 1.0))
+    kick(4, [(0, 1, "c")], 354, 363, vel=0.5)                        # the heartbeat, from the fifth bar
+    bass(11, ELEVEN_A, 357, 363, hook=H1, vel=0.75)                  # the bass comes in with the first guitar
+    gtr(("gr",), 7, SEVEN_B, 357, 363, hook=H2, vel=0.9, ramp=(0.6, 1.0))
+    gtr(("gl",), 5, FIVE_B, 360, 363, hook=H1, vel=0.9, ramp=(0.7, 1.0))
+    fill(363, "toms")
+    gtr(("gl",), 5, FIVE_B, 363, 383, hook=H1, vel=0.92, ramp=(0.92, 1.05))
+    gtr(("gr",), 7, SEVEN_B, 363, 383, hook=H2, vel=0.92, ramp=(0.92, 1.05))
+    gtr(G2, 11, ELEVEN_W, 363, 383, vel=0.92)
+    bass(11, ELEVEN_A, 363, 383, hook=H1, vel=0.92)
+    kick(5, FIVE_B, 363, 371)
+    kick(5, FIVE_B, 371, 383, fill16=True)
+    kit(363, 371, "x", 4, "half", None)
+    kit(371, 383, "x", 2, "back", "run16", cvel=0.6, crash_at_start=False)
+    long_wait(363, 383, vel=0.85)
+    for t in landings(7, 363 * 16 + 1, 383 * 16):
         crash(t, 0.85)
-    fill(z, 16, vel=0.9)
+    rise(z, 2)
 
-    # THE LANDING, 385-409: all three wheels and the bar line, together for the first time since bar 1.
-    # Then common time, plainly: a cell eight sixteenths long, everyone on it
+    # THE LANDING, 385-409: all three wheels and the bar line, together for the first time since bar 1. Four bars of one
+    # chord on every bar line over the plainest beat there is; then common time as a riff: a cell eight sixteenths long
     a = 385
     hit(a * 16, ln=14)
-    gtr(G + G2, 8, EIGHT, a + 1, a + 16, hook=H1, vel=0.95)
-    bass(8, EIGHT, a + 1, a + 16, hook=H1, vel=0.95)
-    kick(8, EIGHT, a + 1, a + 16)
-    cym("x", a + 1, a + 16)
-    snare("back", a + 1, a + 16)
-    for b in range(a + 1, a + 16, 2):
+    for b in range(a + 1, a + 4):
+        for tr in G + G2:
+            add(tr, b * 16, 14, "F1,C2,F2,C3", 0.95)
+        add("bass", b * 16, 14, "F1", 0.95)
+        crash(b * 16, 0.85)
+    for b in range(a, a + 4):
+        for o in ((0, 10) if b > a else (10,)):
+            add("kick", b * 16 + o, 1, "k", 0.92)
+    kit(a, a + 4, "x", 4, "back", None, crash_at_start=False)
+    gtr(G + G2, 8, EIGHT, a + 4, a + 16, hook=H1, vel=0.95)
+    bass(8, EIGHT, a + 4, a + 16, hook=H1, vel=0.95)
+    kick(8, EIGHT, a + 4, a + 16)
+    kit(a + 4, a + 16, "x", 4, "back", "roll")
+    for b in range(a + 6, a + 16, 2):
         crash(b * 16, 0.85)
     hit((a + 16) * 16, ln=8 * 16)
-    drone(a + 16, NB)
-    pad(a + 16, NB)
+    bed([((a + 16) * 16, 0)], NB * 16)
     tick("cl5", 5, TICK5, CL5, a + 17, NB - 1, ramp=(1.0, 0.4))
     tick("cl7", 7, TICK7, CL7, a + 17, NB - 1, ramp=(1.0, 0.4))
 
 
 def song():
     compose()
+    # the hats and the ride have their own faders: at the cymbals' level a closed hat read 27-29 dB under the mix
+    # and the ride 23 under (tools/presence.py); the bell stays with the cymbals (it is right in the quiet sections)
+    for piece_set, name in ((("h", "hs", "oh", "hf", "h1", "h2", "h3"), "hat"), (("rd", "rde", "rds"), "ride")):
+        moved = [n for n in T.get("cym", []) if n["pitch"] in piece_set]
+        if moved:
+            T[name] = moved
+            T["cym"] = [n for n in T["cym"] if n["pitch"] not in piece_set]
     for v in T.values():
         v.sort(key=lambda x: x["at"])
     spec = [
@@ -523,6 +613,7 @@ def song():
         ("bass", BASS, "0.5dB", 0, {}),
         ("kick", KIT, "2dB", None, {"out": "drums"}), ("snare", KIT, "8dB", None, {"out": "drums"}),
         ("cym", KIT, "-3dB", None, {"out": "drums"}), ("toms", KIT, "4dB", None, {"out": "drums"}),
+        ("hat", KIT, "14dB", None, {"out": "drums"}), ("ride", KIT, "6dB", None, {"out": "drums"}),
         ("lead", "m8-lead-guitar", {"value": "-3dB", "mod": [{"src": "auto.eye", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"eye": {"points": [["0b", 0], [f"{174 * 4}b", 0], [f"{175 * 4}b", -10], [f"{210 * 4}b", -10], [f"{211 * 4}b", 0]]}}}),
         ("cl5", "m8-clean", "-4dB", -0.45, {"sends": {"dly": "-14dB", "hall": "-12dB"}}),
         ("cl7", "m8-clean", "-3dB", 0.45, {"sends": {"dly": "-14dB", "hall": "-12dB"}}),
@@ -530,6 +621,8 @@ def song():
         ("home", "contrabass-tight", "-12dB", 0.3, {"sends": {"hall": "-12dB"}}),
         ("fifth", "cellos", "-15dB", 0.4, {"sends": {"hall": "-8dB"}}),
         ("air", "juno-pad", "-17dB", 0.15, {"sends": {"hall": "-8dB"}}),
+        ("rise", "ct-swell", "-9dB", 0, {"sends": {"hall": "-10dB"}}),
+        ("drop", "ct-drop", "-8dB", 0, {}),
     ]
     tracks = []
     for name, patch, gain, pan, extra in spec:
@@ -544,6 +637,13 @@ def song():
     return {
         "about": "chirpers X (Common Time), track 1 by chirper-zero: one steady pulse in 4/4 and three wheels (cells five, seven and eleven sixteenths long) that turn under it for the whole piece and meet, all three on a bar line, only at bar 1 and at the landing 385 bars later. Generated by compose/chirpers10/src/chirpers10-t1.py.",
         "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "4s", "length": f"{NB * 4}b", "event_stable": True,
+        "patches": {
+            "ct-swell": {"about": "chirper-zero: a breath in before a landing - band-passed noise that swells for as long as the note is held (a slow attack), its band rising two octaves, cut off on the bar line",
+                         "synth": {"layers": [{"type": "noise"}], "filters": [{"kind": "bp", "cutoff": {"value": 500, "mod": [{"src": "env.up", "amount": 2.5}]}, "q": 0.9}, "hp cutoff=250"],
+                                   "env": {"up": {"a": "3.6s", "d": "10ms", "s": 1}}, "amp": {"a": "3.6s", "d": "10ms", "s": 1, "r": "40ms", "curve": 3}}},
+            "ct-drop": {"about": "chirper-zero: the floor dropping on a landing - a sine that falls an octave to the note in 0.35 s and dies in 1.5 s",
+                        "synth": {"layers": [{"wave": "sine"}], "pitch": {"value": 0, "mod": [{"src": "env.fall", "amount": 12}]},
+                                  "env": {"fall": {"a": "1ms", "d": "350ms", "s": 0}}, "amp": {"a": "3ms", "d": "1.5s", "s": 0, "r": "200ms"}}}},
         "buses": {"hall": {"fx": ["reverb kind=hall decay=4.5s mix=1 predelay=30ms low_cut=150"]},
                   "dly": {"fx": ["delay time=3/16 feedback=0.35 mix=1 ping_pong=true", "reverb kind=hall decay=3s mix=0.3"]},
                   "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",

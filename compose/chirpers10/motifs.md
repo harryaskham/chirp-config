@@ -22,6 +22,18 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 
 **When the wheels meet.** All three and the bar line coincide at bar 1 and not again until bar 386 (5 x 7 x 11 = 385 bars, 12:13): the piece is that wait. Two at a time meet on a bar line more often (five and seven every 35 bars, five and eleven every 55, seven and eleven every 77), and those meetings are the section boundaries. The two wheels that have just met are what the next section is made of. Section lengths in bars, a palindrome nobody chose: 35 20 15 7 28 5 30 14 11 10 | 35 | 10 11 14 30 5 28 7 15 20 35, then the landing (24 bars).
 
-**The landing.** At bar 386 everything strikes together, and the band plays a cell EIGHT sixteenths long (`c . c c h . c .`), which fits the bar: common time, plainly, for the first and only time, with the snare on 2 and 4.
+**The landing.** At bar 386 everything strikes together. Four bars of one chord on every bar line over the plainest beat there is (snare on 2 and 4), then a cell EIGHT sixteenths long (`c . c c h . c .`), which fits the bar: common time, plainly, for the first and only time.
 
-**Landings inside a section.** Where a sounding wheel starts a turn exactly on a bar line (every 5, 7 or 11 bars), a crash marks it.
+**Landings inside a section.** Where a sounding wheel starts a turn exactly on a bar line (every 5, 7 or 11 bars), a crash marks it, and since v4 something joins or changes there. Riff A (1:06) is the plain case: every five bars a second guitar adds the hook notes above the riff (an octave up on the left, then on both sides, then an octave and a fifth up).
+
+**The second guitar (`harm`).** Tracks gl2 / gr2 play only a wheel's `h` strikes, 12 or 19 semitones up: riff A from its second landing, riff B's last seven bars, the filled eleven riff (6:59), the second half of "all three" (8:15).
+
+**Other grounds (v4).** F is home; some sections stand elsewhere and come back. The two seven-bar breaks are on Ab (2:13 and 9:46). The lead runs over Db (4:53). After the eye the weight returns by fourths: F (6:40), Bb (6:59), Eb (7:20), and F again when all three wheels sound (7:46). Riff C visits Bb for eleven bars and the hardest stretch Gb for seven, as before.
+
+**The eye's chords (5:33).** The ground moves under the ticks on the eleven wheel: Db, Ab, Gb, F, one chord to each phrase of the tune, so each phrase's held note is a chord tone (F the third of Db; C the third of Ab; Gb the root; F home). The tune twice: low, then an octave up. The ticks move with the chords; the eleven tick is open there (root, fifth, second, sixth: no third).
+
+**The lead's run (4:53).** A figure of six notes to each turn of the seven wheel (steps 0 2 1 3 2 4 of the mode F Gb Ab Bb B C Db Eb), climbing a step each turn; every fourth turn is one held note instead.
+
+**The approach (11:06).** It starts from nothing, as the piece did: the three ticks, then a heartbeat. Each wheel's guitar enters where that wheel next meets a bar line: seven at bar 358, five at 361, eleven (the chords, the full band, the tune) at 364. Double time from bar 372. At bar 384 the band stops, and for two bars the three ticks run alone into the bar line.
+
+**Fills.** Six kinds: a run down the toms (8 or 16 sixteenths), a snare crescendo, the five cell on the toms, thirty-second-note kicks under two snares, and a stop (silence with one choked stab). Ghost notes on the snare in the breaks, the split and the swap. In the hardest stretch's last seven bars the snare goes to the off-beats.
