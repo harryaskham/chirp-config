@@ -67,6 +67,7 @@ EIGHT = [(0, 2, "c"), (2, 1, "c"), (3, 1, "c"), (4, 2, "h"), (6, 2, "c")]   # th
 H1 = [3, 1, 6, 7]
 H2 = [6, 5, 3, 1]
 H3 = [1, 3, 1, 8]
+OCT = None
 GROW = ([3], [3, 1], [3, 1, 6], H1)      # the hook is learnt a note at a time: Ab; Ab Gb; Ab Gb B; Ab Gb B C
 HX = [3, 1, 6, 7, 10, 8, 6]              # and in the last third it has grown to seven: Ab Gb B C Eb Db B
 H8 = [3, 1, 6, 7, 10, 8, 6, 1]           # at the landing, eight: two to a bar, a four-bar phrase
@@ -129,13 +130,16 @@ def harm(trs, p, cell, b0, b1, interval=12, root=F1, hook=H1, vel=0.8, power=Fal
 
 
 def bass(p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None):
+    """hook=OCT: the bass is on a wheel of its own, under guitars on another, so it keeps to the ground and marks its
+    hook strikes with the octave. With the hook's own notes it spent about a third of its time a semitone or a tritone
+    from the guitars, down where that is mud (clash.py; v9)."""
     s0, s1 = s16(b0), s16(b1)
     for t, ln, kind, j, hi in strikes(p, cell, s0, s1):
         v = vel * (1.0 if j == 0 else 0.9)
         if ramp:
             v *= ramp[0] + (ramp[1] - ramp[0]) * (t - s0) / max(1, s1 - s0)
         if kind == "h":
-            add("bass", t, ln, root + hook[hi % len(hook)], v)
+            add("bass", t, ln, root + (hook[hi % len(hook)] if hook else 12), v)
         elif kind == "x":
             add("bass", t, ln * 0.5, root, v * 0.7)
         else:
@@ -410,7 +414,7 @@ def compose():
     # 5. 77-105  seven meets eleven: RIFF B, guitars on seven, the bass on eleven; the lead's tune arrives halfway
     a, z = B[4], B[5]
     gtr(G, 7, SEVEN_B, a, z, hook=H2)
-    bass(11, ELEVEN_A, a, z, hook=H1)
+    bass(11, ELEVEN_A, a, z, hook=OCT)
     kick(7, SEVEN_B, a, z)
     kit(a, a + 14, "rb", 4, "half", None, cvel=0.6)
     kit(a + 14, z, "x", 4, "half", "run")
@@ -445,14 +449,14 @@ def compose():
     a, z = B[7], B[8]
     gtr(("gl",), 5, FIVE_B, a, z - 0.5, root=F1 + 12, hook=H1)
     gtr(("gr",), 7, SEVEN_B, a, z - 0.5, root=F1 + 12, hook=H2)
-    bass(7, SEVEN_A, a, z - 0.5, hook=H2)
+    bass(7, SEVEN_B, a, z - 0.5, hook=H2)                             # with the right guitar, an octave below it
     kick(5, FIVE_B, a, z - 0.5)
     kit(a, z, "h", 2, "back", "stop", cvel=0.5, ghost=True)
 
     # 9. 154-165  seven meets eleven: the lead runs on the seven wheel while the bass turns eleven; the ground moves to Db
     a, z = B[8], B[9]
     gtr(G, 7, SEVEN_A, a, z, root=DB, hook=H2)
-    bass(11, ELEVEN_A, a, z, root=DB, hook=H1)
+    bass(11, ELEVEN_A, a, z, root=DB, hook=OCT)
     kick(7, SEVEN_A, a, z)
     kit(a, z, "rd", 4, "half", "run", cvel=0.6)
     solo(a, z)
@@ -501,7 +505,7 @@ def compose():
     # 12. 210-220  five and seven meet: the weight comes back. Muted five on the guitars, seven under it, toms on five
     a, z = B[11], B[12]
     gtr(G, 5, FIVE_B, a, z, hook=H1, vel=0.85, ramp=(0.6, 1.0))
-    bass(7, SEVEN_A, a, z, hook=H2)
+    bass(7, SEVEN_A, a, z, hook=OCT)
     kick(7, SEVEN_A, a, z)
     for t, ln, kind, j, hi in strikes(5, FIVE_A, a * 16, (a + 5) * 16):
         add("toms", t, 1, ["ft", "t2", "t1"][j], 0.7)
@@ -514,7 +518,7 @@ def compose():
     gtr(WL, 11, ELEVEN_B, a, z, root=BB, hook=H1)
     gtr(G2, 11, ELEVEN_W, a, a + 5, root=BB, vel=0.9)
     harm(G2, 11, ELEVEN_B, a + 5, z, 12, root=BB, hook=H1)
-    bass(11, ELEVEN_A, a, z, root=BB, hook=H1)
+    bass(11, ELEVEN_B, a, z, root=BB, hook=H1)
     kick(11, ELEVEN_B, a, z)
     kit(a, z, "x", 4, "half", "kicks")
 
@@ -530,7 +534,7 @@ def compose():
     a, z = B[14], B[15]
     gtr(("gl",), 5, FIVE_B, a, z, hook=H1)
     gtr(("gr",), 7, SEVEN_B, a, z, hook=H2)
-    bass(11, ELEVEN_A, a, z, hook=H1)
+    bass(11, ELEVEN_A, a, z, hook=OCT)
     kick(5, FIVE_B, a, z)
     kit(a, a + 15, "rde", 4, "half", None, cvel=0.6)
     kit(a + 15, z, "x", 4, "half", "run16", crash_at_start=False)
@@ -609,14 +613,14 @@ def compose():
     for t in range(a * 16, 363 * 16, 4):
         add("cym", t, 4, "rb", 0.34 * (1.12 if t % 16 == 0 else 1.0))
     kick(4, [(0, 1, "c")], 354, 363, vel=0.5)                        # the heartbeat, from the fifth bar
-    bass(11, ELEVEN_A, 357, 363, hook=H1, vel=0.75)                  # the bass comes in with the first guitar
+    bass(11, ELEVEN_A, 357, 363, hook=OCT, vel=0.75)                  # the bass comes in with the first guitar
     gtr(("gr",), 7, SEVEN_B, 357, 363, hook=H2, vel=0.9, ramp=(0.6, 1.0))
     gtr(("gl",), 5, FIVE_B, 360, 363, hook=HX, vel=0.9, ramp=(0.7, 1.0))
     fill(363, "toms")
     gtr(("gl",), 5, FIVE_B, 363, 383, hook=HX, vel=0.92, ramp=(0.92, 1.05))
     gtr(("gr",), 7, SEVEN_B, 363, 383, hook=H2, vel=0.92, ramp=(0.92, 1.05))
     gtr(WL, 11, ELEVEN_W, 363, 383, vel=0.92)
-    bass(11, ELEVEN_A, 363, 383, hook=H1, vel=0.92)
+    bass(11, ELEVEN_A, 363, 383, hook=OCT, vel=0.92)
     kick(5, FIVE_B, 363, 371)
     kick(5, FIVE_B, 371, 383, fill16=True)
     kit(363, 371, "x", 4, "half", None)
@@ -686,8 +690,9 @@ def song():
     for b0, b1, v in ((154, 165, 0), (175, 210, -10)):
         LEAD_LANE += [[f"{(b0 - 1) * 4}b", TUNE_DB], [f"{b0 * 4}b", v], [f"{b1 * 4}b", v], [f"{(b1 + 1) * 4}b", TUNE_DB]]
     # the bass's fader, after its compressor (which levels every note, so velocity and the track's gain do nothing):
-    # down 2.5 dB under the slow chords at 5:14, where its long notes read 1.5-2 dB over the guitars
-    BASS_RIDE = [["0b", 0], [f"{164.75 * 4}b", 0], [f"{165 * 4}b", -2.5], [f"{174.75 * 4}b", -2.5], [f"{175 * 4}b", 0]]
+    # down 2.5 dB under the slow chords at 5:14, where its long notes read 1.5-2 dB over the guitars, then dying away
+    BASS_RIDE = [["0b", 0], [f"{164.75 * 4}b", 0], [f"{165 * 4}b", -2.5], [f"{170 * 4}b", -2.5], [f"{175 * 4}b", -7.5], [f"{176 * 4}b", 0]]
+    GTR_RIDE = [["0b", 0], [f"{170 * 4}b", 0], [f"{175 * 4}b", -5], [f"{176 * 4}b", 0]]      # and the chords die away into the eye
     GOUT = {"out": "gtrs"} if GEQ else {}
     BOUT = {"out": "low"} if BEQ else {}
     spec = [
@@ -735,7 +740,8 @@ def song():
                                    {"type": "glue", "threshold": "-24dB", "ratio": 2.5, "attack": "20ms", "release": "140ms", "knee": 6.0}]
                             + ([f"clip drive=0dB ceiling={DCLIP}dB"] if DCLIP else [])
                             + ([{"type": "eq", "bands": peaks(DEQ) + ([f"highshelf cutoff={DSHELF.split(':')[0]} gain={DSHELF.split(':')[1]}dB"] if DSHELF else [])}] if DEQ or DSHELF else [])},
-                  **({"gtrs": {"fx": [{"type": "eq", "bands": peaks(GEQ)}]}} if GEQ else {}),
+                  **({"gtrs": {"fx": [{"type": "eq", "bands": peaks(GEQ)}, {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}}],
+                               "auto": {"ride": {"points": GTR_RIDE}}}} if GEQ else {}),
                   **({"low": {"fx": [{"type": "eq", "bands": peaks(BEQ)}]
                               + ([{"type": "compressor", "threshold": BCOMP.split(":")[0] + "dB", "ratio": float(BCOMP.split(":")[1]), "attack": "12ms", "release": "120ms", "makeup": BCOMP.split(":")[2] + "dB"}] if BCOMP else [])
                               + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}}],
