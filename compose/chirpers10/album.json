@@ -2,7 +2,7 @@
   "id": "chirpers10",
   "artist": "chirpers",
   "album": "Common Time",
-  "named": false,
+  "named": true,
   "year": 2026,
   "genre": "polymetric djent",
   "bleed": false,
@@ -38,5 +38,21 @@
       "brief": "About thirteen minutes: distinct sections and styles, one motif and rhythm that grows and gets splayed across cycles of different lengths over a steady pulse, and lands. First the sound (a new patch family), then the form. Any version at all opens the groove to it; then keep finessing.",
       "id": "chirpers10-t1"
     }
-  ]
+  ],
+  "named_by": "harry",
+  "named_at": "2026-11-12T02:32:47Z",
+  "direction": {
+    "by": "Harry, 12 Nov 00:20-02:30 GMT, to chirp-eco, setting the project up",
+    "words": [
+      "before bringing back just one chirper at first to write and finesse a single, super rich, djent / meshuggah style track like 10 minutes long epic with different sections, styles and a growing motif / rhythm that get splayed with like meshuggah's longest tracks, which when we have made repeated one-chirper progress on i might expand or make a track on a new album",
+      "the old djent album was way before we improved things a lot, i want to hear what we can do with our new improved engine and tooling. we came a long way since then",
+      "We don't need to throw all that out, we can just build upon it and enhance it or adapt our newer features and patches to produce new better guitars, amps, kits, etc etc. but yes probably a new family of patches is the first thing",
+      "We should start a new groove playlist which for now just has this song",
+      "We will grow it to an album so the first task is to pick a kind of theme and provisional album and track name, we can always change it later",
+      "maybe something that implies long cycles of polyrhythms that line up like meshuggah's broken cog. something like primes, chinese remainder theorem etc but not as on the nose and maybe related to like time crystals and synchronicity",
+      "no all too obvious. no numbers in titles",
+      "I like Common Time (ironic cos we will use mad time signatures) as album name and lets just make this first track called Common Time too and make it like 13 minutes long so there is room to experiment and finesse all our engine patches, segments and ideas in it. give it to chirper zero now and open up groove to this one new song when it has any version at all so that chirper zero just keeps finessing the song"
+    ],
+    "note": "Names are provisional (Harry: we can always change it later). Typing slips in his messages are corrected here; the words are his."
+  }
 }
