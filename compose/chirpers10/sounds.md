@@ -60,3 +60,4 @@ Reference records for the genre envelope (`ref/ID.wav`, the reproductions' sourc
 
 | sound | patch / recipe | built from | what is new in it | lives in |
 |---|---|---|---|---|
+| rhythm guitars, a left/right pair | `ct-chug-l`, `ct-chug-r` | `m8-obzen-l` / `-r` (string, compressor, cab blend, EQ, gate, plate kept) | the amp is the engine's white-box one: triode preamp stages into a push-pull power amp inside a feedback loop (18 / 20 dB) driving a speaker's impedance; the low string settles from 0.8 semitones sharp over 110 ms; more scrape, twice the sympathetic ring, a palm mute that lasts twice as long. Against two records' guitar stems (tools/riffpunch.py, old pair -> this): Bleed 41.4 -> 67.0, The Faultless 37.8 -> 69.1 (separator floor 67-86). What each part gave on its own is in the patch's `about` and in ~/.local/state/chirper-zero/c10 (cands.py: 30 candidates) | `patches/ct-chug-l.yaml`, `patches/ct-chug-r.yaml`; t1 tracks gl, gr, gl2, gr2 |
