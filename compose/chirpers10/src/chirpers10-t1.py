@@ -17,6 +17,9 @@ import json, os, random
 OUT = os.environ.get("C10T1_OUT", os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../songs/chirpers10-t1.yaml"))
 RIG_L = os.environ.get("C10T1_RIGL", "ct-chug-l")
 RIG_R = os.environ.get("C10T1_RIGR", "ct-chug-r")
+WALL_L = os.environ.get("C10T1_WALLL", "ct-wall-l")
+WALL_R = os.environ.get("C10T1_WALLR", "ct-wall-r")
+CLEAN = os.environ.get("C10T1_CLEAN", "ct-clean")
 BASS = os.environ.get("C10T1_BASS", "ct-bass")
 KIT = os.environ.get("C10T1_KIT", "ct-kit")
 DCLIP = os.environ.get("C10T1_DCLIP", "-13")       # drums bus: soft clip ceiling, dBFS ("" = off)
@@ -302,7 +305,7 @@ def solo(b0, b1, vel=0.82):
 
 
 def hit(t, ln=32, vel=1.0):
-    for tr in ("gl", "gr", "gl2", "gr2"):
+    for tr in ("gl", "gr", "gl2", "gr2", "wl", "wr"):
         add(tr, t, ln, "F1,C2,F2,C3", vel)
     add("bass", t, ln, "F1", vel)
     add("kick", t, 1, "k", 1.0)
@@ -312,6 +315,7 @@ def hit(t, ln=32, vel=1.0):
 
 G = ("gl", "gr")
 G2 = ("gl2", "gr2")
+WL = ("wl", "wr")      # the wall rig: eleven's open chords, riff C, every chord that is left to ring
 
 
 def compose():
@@ -347,8 +351,8 @@ def compose():
     # 3. 55-70  five meets eleven: the five wheel thickens, and eleven arrives as open chords left to ring
     a, z = B[2], B[3]
     gtr(G, 5, FIVE_B, a, z, hook=H1)
-    gtr(G2, 11, ELEVEN_W, a, a + 11, vel=0.9)
-    gtr(G2, 11, [(0, 8, "P"), (8, 2, "d")], a + 11, z, vel=0.9)       # after eleven lands, each chord is answered by a stab
+    gtr(WL, 11, ELEVEN_W, a, a + 11, vel=0.9)
+    gtr(WL, 11, [(0, 8, "P"), (8, 2, "d")], a + 11, z, vel=0.9)       # after eleven lands, each chord is answered by a stab
     bass(5, FIVE_A, a, z, hook=H1)
     kick(5, FIVE_B, a, z)
     kit(a, z, "x", 4, "half", "toms")
@@ -388,8 +392,9 @@ def compose():
     # 7. 110-140  five meets eleven: RIFF C, the splayed one. Eleven everywhere for eleven bars; then the kick slips onto five
     a, z = B[6], B[7]
     for (x, y, root, hook) in ((a, a + 11, F1, H1), (a + 11, a + 22, F1 + 5, H3), (a + 22, z, F1, H1)):
-        gtr(G, 11, ELEVEN_A, x, y, root=root, hook=hook)
-        gtr(G2, 11, ELEVEN_W, x, y, root=root, vel=0.9)
+        gtr(WL, 11, ELEVEN_A, x, y, root=root, hook=hook)               # the riff itself on the wall rig, alone at first
+        if x > a:
+            gtr(G2, 11, ELEVEN_W, x, y, root=root, vel=0.9)             # the open chords join when the ground moves
         bass(11, ELEVEN_A, x, y, root=root, hook=hook)
         if x > a:
             crash(x * 16, 0.9)
@@ -459,7 +464,7 @@ def compose():
 
     # 13. 220-231  five meets eleven: the splayed riff again, filled in, its hook doubled above; on Bb
     a, z = B[12], B[13]
-    gtr(G, 11, ELEVEN_B, a, z, root=BB, hook=H1)
+    gtr(WL, 11, ELEVEN_B, a, z, root=BB, hook=H1)
     gtr(G2, 11, ELEVEN_W, a, a + 5, root=BB, vel=0.9)
     harm(G2, 11, ELEVEN_B, a + 5, z, 12, root=BB, hook=H1)
     bass(11, ELEVEN_A, a, z, root=BB, hook=H1)
@@ -469,7 +474,7 @@ def compose():
     # 14. 231-245  seven meets eleven: seven on the guitars over eleven's chords; double time; on Eb (F, Bb, Eb: up by fourths, then home)
     a, z = B[13], B[14]
     gtr(G, 7, SEVEN_B, a, z, root=EB, hook=H3)
-    gtr(G2, 11, [(0, 8, "P"), (8, 2, "d")], a, z, root=EB, vel=0.9)
+    gtr(WL, 11, [(0, 8, "P"), (8, 2, "d")], a, z, root=EB, vel=0.9)
     bass(7, SEVEN_B, a, z, root=EB, hook=H3)
     kick(7, SEVEN_B, a, z)
     kit(a, z, "x", 2, "back", "run", cvel=0.55)
@@ -513,7 +518,7 @@ def compose():
 
     # 18. 308-315  seven meets eleven: seven bars for the bass, on eleven, under one held chord; on Ab, like the first break
     a, z = B[17], B[18]
-    for tr in G2:
+    for tr in WL:
         add(tr, a * 16, 7 * 16 - 12, "Ab1,Eb2,Ab2,Eb3", 0.9)
     bass(11, ELEVEN_B, a, z, root=AB, hook=H1, vel=0.95)
     kick(11, ELEVEN_A, a, z)
@@ -526,12 +531,12 @@ def compose():
     bass(5, FIVE_A, a, z - 0.5, hook=H1)
     kick(5, FIVE_A, a, z - 0.5)
     kick(7, SEVEN_A, a, z - 0.5, only_first=True)
-    kit(a, z, "ft", 4, "half", "stop", cvel=0.72, ghost=True)                 # no cymbals: the pulse is on the floor tom
+    kit(a, z, "ft", 4, "half", "stop", cvel=0.58, ghost=True)                 # no cymbals: the pulse is on the floor tom
 
     # 20. 330-350  five meets eleven: RIFF A comes home, with eleven's chords and the tune
     a, z = B[19], B[20]
     gtr(G, 5, FIVE_A, a, z, hook=H1, vel=0.92)
-    gtr(G2, 11, ELEVEN_W, a, z, vel=0.92)
+    gtr(WL, 11, ELEVEN_W, a, z, vel=0.92)
     bass(5, FIVE_A, a, z, hook=H1, vel=0.92)
     kick(5, FIVE_B, a, z)
     kit(a, z, "x", 4, "half", "run")
@@ -545,7 +550,7 @@ def compose():
     #     three wheels tick alone into the bar line they have been turning towards since bar 1
     a, z = B[20], B[21]
     crash(a * 16)
-    for tr in G2:
+    for tr in WL:
         add(tr, a * 16, 60, "F1,C2,F2,C3", 0.9)
     bed([(a * 16, 0)], z * 16, vel=0.55, pad_vel=0.4)
     tick("cl5", 5, TICK5, CL5, a, z, vel=0.5)
@@ -560,7 +565,7 @@ def compose():
     fill(363, "toms")
     gtr(("gl",), 5, FIVE_B, 363, 383, hook=H1, vel=0.92, ramp=(0.92, 1.05))
     gtr(("gr",), 7, SEVEN_B, 363, 383, hook=H2, vel=0.92, ramp=(0.92, 1.05))
-    gtr(G2, 11, ELEVEN_W, 363, 383, vel=0.92)
+    gtr(WL, 11, ELEVEN_W, 363, 383, vel=0.92)
     bass(11, ELEVEN_A, 363, 383, hook=H1, vel=0.92)
     kick(5, FIVE_B, 363, 371)
     kick(5, FIVE_B, 371, 383, fill16=True)
@@ -576,7 +581,7 @@ def compose():
     a = 385
     hit(a * 16, ln=14)
     for b in range(a + 1, a + 4):
-        for tr in G + G2:
+        for tr in G + G2 + WL:
             add(tr, b * 16, 14, "F1,C2,F2,C3", 0.95)
         add("bass", b * 16, 14, "F1", 0.95)
         crash(b * 16, 0.85)
@@ -596,6 +601,9 @@ def compose():
     tick("cl7", 7, TICK7, CL7, a + 17, NB - 1, ramp=(1.0, 0.4))
 
 
+CL_SENDS = {"dly": "-14dB", "hall": "-12dB"} if CLEAN == "m8-clean" else {"dly": "-9dB", "hall": "-7dB"}   # ct-clean is dry: the song gives it its space
+
+
 def song():
     compose()
     # the hats and the ride have their own faders: at the cymbals' level a closed hat read 27-29 dB under the mix
@@ -610,14 +618,15 @@ def song():
     spec = [
         ("gl", RIG_L, "0dB", -1, {}), ("gr", RIG_R, "0dB", 1, {}),
         ("gl2", RIG_L, "-3dB", -0.8, {}), ("gr2", RIG_R, "-3dB", 0.8, {}),
+        ("wl", WALL_L, "-2dB", -0.9, {}), ("wr", WALL_R, "-2dB", 0.9, {}),
         ("bass", BASS, "0.5dB", 0, {}),
         ("kick", KIT, "2dB", None, {"out": "drums"}), ("snare", KIT, "8dB", None, {"out": "drums"}),
         ("cym", KIT, "-3dB", None, {"out": "drums"}), ("toms", KIT, "4dB", None, {"out": "drums"}),
         ("hat", KIT, "14dB", None, {"out": "drums"}), ("ride", KIT, "6dB", None, {"out": "drums"}),
         ("lead", "m8-lead-guitar", {"value": "-3dB", "mod": [{"src": "auto.eye", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"eye": {"points": [["0b", 0], [f"{174 * 4}b", 0], [f"{175 * 4}b", -10], [f"{210 * 4}b", -10], [f"{211 * 4}b", 0]]}}}),
-        ("cl5", "m8-clean", "-4dB", -0.45, {"sends": {"dly": "-14dB", "hall": "-12dB"}}),
-        ("cl7", "m8-clean", "-3dB", 0.45, {"sends": {"dly": "-14dB", "hall": "-12dB"}}),
-        ("cl11", "m8-clean", "-3dB", 0, {"sends": {"dly": "-12dB", "hall": "-10dB"}}),
+        ("cl5", CLEAN, "-4dB", -0.45, {"sends": CL_SENDS}),
+        ("cl7", CLEAN, "-3dB", 0.45, {"sends": CL_SENDS}),
+        ("cl11", CLEAN, "-3dB", 0, {"sends": CL_SENDS}),
         ("home", "contrabass-tight", "-12dB", 0.3, {"sends": {"hall": "-12dB"}}),
         ("fifth", "cellos", "-15dB", 0.4, {"sends": {"hall": "-8dB"}}),
         ("air", "juno-pad", "-17dB", 0.15, {"sends": {"hall": "-8dB"}}),

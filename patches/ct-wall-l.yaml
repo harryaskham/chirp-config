@@ -1,0 +1,64 @@
+{
+ "about": "Common Time wall rig, left of a pair (chirper-zero, 12 Nov; pair with ct-wall-r): for open chords and slow riffs that are left to ring, where ct-chug is for tight palm-muted riffs. The same 8-string with a stiffer, more beating string (stiff 0.45, planes 0.4), a slower pitch settle, more sympathetic ring; a Rectifier-style amp on the white-box parts (modern voicing, the recto tone stack, triode stages, a push-pull power amp in only 8 dB of feedback, so it follows the speaker: looser and bigger at the bottom), more sag and bloom, the input high-pass down at 65 Hz; a thicker cab pair with more room and speaker breakup; a slow gate; a longer plate. A tone choice, not a fitted one: there is no bench for ringing chords. Measured only against ct-chug on the same chords (level matched; where its energy sits).",
+ "extends": "m8 layers.0.pick=0.143 layers.0.pickup=0.085 layers.0.click=0.15 layers.0.scrape=0.15 layers.0.stiff=0.45 layers.0.planes=0.4 layers.0.beat=2 layers.0.thump=expr.pm*0.5 layers.0.squeak=expr.move*0.6 synth.pitch.mod.0.amount=0.6 synth.env.bite.d=140ms",
+ "fx": [
+  {
+   "type": "sympathetic",
+   "decay": "1.8s",
+   "mix": 0.15
+  },
+  {
+   "type": "compressor",
+   "threshold": "-22dB",
+   "ratio": 3,
+   "attack": "8ms",
+   "release": "120ms",
+   "makeup": "3dB"
+  },
+  {
+   "type": "amp",
+   "model": "modern",
+   "stack": "recto",
+   "triode": true,
+   "nfb": 8,
+   "gain": 0.78,
+   "ts": 0.35,
+   "tight": 65,
+   "boost": "4dB",
+   "bass": 0.55,
+   "mid": 0.55,
+   "treble": 0.5,
+   "presence": 0.45,
+   "resonance": 0.75,
+   "sag": 0.35,
+   "bloom": 0.6
+  },
+  {
+   "type": "ir",
+   "file": "jester/kitten-slayer",
+   "blend_file": "jester/kaiju-tamer",
+   "blend": 0.4,
+   "length": "160ms",
+   "breakup": 0.4,
+   "room": 0.22
+  },
+  {
+   "type": "eq",
+   "bands": [
+    "peak cutoff=120 q=1 gain=2dB",
+    "peak cutoff=300 q=0.9 gain=2dB",
+    "peak cutoff=3300 q=1.2 gain=-2dB",
+    "highshelf cutoff=5000 gain=-10dB"
+   ]
+  },
+  {
+   "type": "gate",
+   "threshold": "-56dB",
+   "attack": "0.5ms",
+   "hold": "40ms",
+   "release": "90ms"
+  },
+  "reverb kind=plate decay=1.4s mix=0.14 predelay=14ms"
+ ],
+ "gain": "-22dB"
+}

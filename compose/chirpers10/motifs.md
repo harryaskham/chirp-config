@@ -26,6 +26,8 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 
 **Landings inside a section.** Where a sounding wheel starts a turn exactly on a bar line (every 5, 7 or 11 bars), a crash marks it, and since v4 something joins or changes there. Riff A (1:06) is the plain case: every five bars a second guitar adds the hook notes above the riff (an octave up on the left, then on both sides, then an octave and a fifth up).
 
+**Two rigs (v5).** The tight rig (`ct-chug`, tracks gl / gr and gl2 / gr2) plays the muted riffs. The wall rig (`ct-wall`, tracks wl / wr) plays what is left to ring: eleven's open chords wherever they sound, the chord over the bass's break, every big hit, and riff C itself (3:29) and its filled return (6:59), so the eleven wheel has its own sound. Riff C grows: eleven bars of the riff alone on the wall rig, then the open chords join on the tight rig when the ground moves to Bb.
+
 **The second guitar (`harm`).** Tracks gl2 / gr2 play only a wheel's `h` strikes, 12 or 19 semitones up: riff A from its second landing, riff B's last seven bars, the filled eleven riff (6:59), the second half of "all three" (8:15).
 
 **Other grounds (v4).** F is home; some sections stand elsewhere and come back. The two seven-bar breaks are on Ab (2:13 and 9:46). The lead runs over Db (4:53). After the eye the weight returns by fourths: F (6:40), Bb (6:59), Eb (7:20), and F again when all three wheels sound (7:46). Riff C visits Bb for eleven bars and the hardest stretch Gb for seven, as before.

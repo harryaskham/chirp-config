@@ -1,0 +1,115 @@
+{
+ "about": "Common Time clean guitar (chirper-zero, 12 Nov): m8-clean's ringing string given a guitar's direct signal. The string moves in two planes a cent and a half apart (it drops fast, rings on and beats slowly); a neck-position single coil with its resonance at 6 kHz (so, like a real pickup, little above it), an aperture and a little magnetic nonlinearity; a soft compressor; a Twin-style clean amp blended half and half with the direct signal, no cabinet (a studio clean); then m8-clean's chorus. No delay or hall of its own (the song sends it). Not fitted to a record. Measured only against m8-clean on the same notes (level matched; where its energy sits): less at 180-700 Hz, more at 0.7-2.8 kHz, about 8 dB less above 5.6 kHz.",
+ "synth": {
+  "layers": [
+   {
+    "type": "pluck",
+    "decay": {
+     "value": "5s",
+     "mod": [
+      {
+       "src": "vel",
+       "amount": 1
+      }
+     ]
+    },
+    "pick": 0.18,
+    "body": 0.25,
+    "bright": {
+     "value": 0.6,
+     "mod": [
+      {
+       "src": "vel",
+       "amount": 0.25
+      },
+      {
+       "src": "rand",
+       "amount": 0.05
+      }
+     ]
+    },
+    "planes": 0.3,
+    "beat": 1.5,
+    "pickup": 0.22,
+    "pickup_hz": 6000,
+    "pickup_q": 1.2,
+    "aperture": 0.03,
+    "pickup_nl": 0.15,
+    "click": 0.1
+   }
+  ],
+  "pitch": {
+   "value": 0,
+   "mod": [
+    {
+     "src": "rand",
+     "amount": 0.04
+    },
+    {
+     "src": "lfo.vib",
+     "amount": 0.08
+    }
+   ]
+  },
+  "lfo": {
+   "vib": {
+    "wave": "sine",
+    "rate": "4.8hz",
+    "delay": "600ms",
+    "fade": "800ms",
+    "retrig": true
+   }
+  },
+  "filters": [
+   "lp cutoff=10k",
+   "hp cutoff=90"
+  ],
+  "amp": {
+   "a": "2ms",
+   "s": 1,
+   "r": "400ms"
+  }
+ },
+ "play": {
+  "voicing": "guitar",
+  "tuning": "F1 Bb1 Eb2 Ab2 Db3 Gb3 Bb3 Eb4",
+  "frets": 24,
+  "gate": 1.6,
+  "humanize": {
+   "time": "8ms",
+   "vel": 0.08
+  },
+  "vel_sens": 0.6
+ },
+ "fx": [
+  {
+   "type": "compressor",
+   "threshold": "-22dB",
+   "ratio": 2.5,
+   "attack": "12ms",
+   "release": "150ms",
+   "makeup": "2dB"
+  },
+  {
+   "type": "amp",
+   "model": "twin",
+   "gain": 0.3,
+   "bass": 0.6,
+   "mid": 0.7,
+   "treble": 0.55,
+   "presence": 0.5,
+   "sag": 0.2,
+   "mix": 0.5
+  },
+  {
+   "type": "eq",
+   "bands": [
+    "peak cutoff=250 q=0.8 gain=-2dB",
+    "peak cutoff=3000 q=0.8 gain=2dB",
+    "lowpass cutoff=11000"
+   ]
+  },
+  "chorus mix=0.25 depth=0.4 rate=0.6"
+ ],
+ "gain": "-13dB"
+}
