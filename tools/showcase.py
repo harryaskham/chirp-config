@@ -16,9 +16,12 @@ adopts it.
   showcase.py SONG.yaml --json          the same as data
   --pin BIN                             another engine (default: $CHIRP, else the groove's pin, tools/groove-pin)
 
-Read it as a map, not a score: "used" means SET in the song or in a patch it plays (a default left alone does not count,
-so a filter with no `kind` does not mark `lp`). A feature left out because it does not serve the piece is a choice; a
-feature nobody knew was there is what this is for. (chirp-eco, 12 Nov; tests: tools/tests/test_showcase.py.)"""
+Read it as a map, not a score. A KIND is used when the song or a patch it plays names it, or gets it by default from
+something it does use (a reverb with no `kind` is a hall, an amp with no `model` is `modern`: listed as "by default").
+An OPTION is "set" when it is given a value other than the engine's default somewhere; the plan drops values equal to
+the default, so "default" means nowhere moved, written or not. A feature left out because it does not serve the piece
+is a choice; a feature nobody knew was there is what this is for.
+(chirp-eco, 12 Nov; tests: tools/tests/test_showcase.py.)"""
 import argparse
 import json
 import os
@@ -89,6 +92,7 @@ class Catalogue:
         self.kinds, self.opts = {}, {}
         self.layer_group = {}
         self._layer_kinds = set()
+        self.default_kind = (((self.defs.get("Layer") or {}).get("properties") or {}).get("type") or {}).get("default") or "osc"
         lk = self.defs.get("LayerKind") or {}
         for node in [lk] + (lk.get("oneOf") or []) + (lk.get("anyOf") or []):
             self._layer_kinds |= {v for v, _ in self._values(node)}
@@ -241,11 +245,30 @@ class Usage:
                     self.walk(v, props[k], f"{lab}.{k}", ctx)
                 elif isinstance(ap, dict):
                     self.walk(v, ap, label + ".*", ctx)
+            self._defaults(inst, props, lab, ctx)
         elif isinstance(inst, list):
             items = sch.get("items")
             pre = sch.get("prefixItems") or []
             for i, x in enumerate(inst):
                 self.walk(x, pre[i] if i < len(pre) else items, label, ctx)
+
+    def _defaults(self, inst, props, lab, ctx):
+        """The kinds this object gets by default: the plan leaves out what equals the engine's default, so a reverb with
+        no `kind` is still a hall. A layer only takes the defaults of its own kind's options."""
+        mine = None
+        if lab == "Layer":
+            t = props.get("type") if isinstance(props.get("type"), dict) else {}
+            mine = f"Layer {inst.get('type', t.get('default'))}"
+        for k, ps in props.items():
+            if k in inst or not isinstance(ps, dict) or not isinstance(ps.get("default"), str):
+                continue
+            if mine and self.cat.group(lab, k, ps) not in ("Layer", mine):
+                continue
+            refs = [x for x in [ps] + (ps.get("anyOf") or []) + (ps.get("oneOf") or []) if isinstance(x, dict) and "$ref" in x]
+            for target in [self.cat.ref(x) for x in refs] + [f"{lab}.{k}"]:
+                if ps["default"] in self.cat.kinds.get(target, {}):
+                    self._mark(self.kinds, target, ps["default"], ctx + " by default")
+                    break
 
     def song(self, canon):
         props = self.cat.root.get("properties") or {}
@@ -296,7 +319,7 @@ def parse_fx(text):
     return out
 
 
-def rigs(canon):
+def rigs(canon, default_kind="osc"):
     """One line a patch the song plays: its sound sources, then its effects in order (an amp with its model, a cabinet
     or reverb with its kind). Kit pieces are counted, not listed."""
     patches = canon.get("patches") or {}
@@ -311,7 +334,7 @@ def rigs(canon):
         if not isinstance(p, dict):
             continue
         pieces = sum(1 for n in patches if n.startswith(name + "."))
-        layers = [str(ly.get("type") or ly.get("kind") or "osc") for ly in ((p.get("synth") or {}).get("layers") or [])
+        layers = [str(ly.get("type") or default_kind) for ly in ((p.get("synth") or {}).get("layers") or [])
                   if isinstance(ly, dict)]
         src = " + ".join(f"{k}×{layers.count(k)}" if layers.count(k) > 1 else k for k in dict.fromkeys(layers))
         chain = []
@@ -364,11 +387,11 @@ def report(cat, use, canon, a):
     out = []
     if not pat:
         out.append("RIGS (each patch the song plays: its sources -> its effects, in order)")
-        for r in rigs(canon):
+        for r in rigs(canon, cat.default_kind):
             tr = f" [{where(r['tracks'], 4)}]" if r["tracks"] else ""
             out += wrap(f"  {r['patch']}{tr}: {r['sources']}{' ->' if r['fx'] else ''}", r["fx"])
         out.append("")
-    out.append("KINDS (what the engine offers / what this song sets)")
+    out.append("KINDS (what the engine offers / what this song uses, and where)")
     for label in kind_order(cat.kinds):
         vals = cat.kinds[label]
         if len(vals) < 2 or not keep(label):
@@ -383,7 +406,8 @@ def report(cat, use, canon, a):
         if len(used) < len(vals):
             out += wrap("      not used: ", [v for v in vals if v not in used])
     out.append("")
-    out.append("OPTIONS of what is used (set somewhere / never set)" + ("" if not (a.all or pat) else ", and of what is not"))
+    out.append("OPTIONS of what is used (set: moved from the engine's default somewhere; default: nowhere)"
+               + ("" if not (a.all or pat) else ", and of what is not used"))
     used_fx = set(use.kinds.get("Effect", {}))
     used_layers = set(use.kinds.get("LayerKind", {}))
     full = []
@@ -401,9 +425,9 @@ def report(cat, use, canon, a):
             continue
         out.append(f"  {nice(label)}: {len(got)} of {len(opts)}")
         if got:
-            out += wrap("      set:   ", [k for k in opts if k in got])
+            out += wrap("      set:     ", [k for k in opts if k in got])
         if len(got) < len(opts):
-            out += wrap("      never: ", [k for k in opts if k not in got])
+            out += wrap("      default: ", [k for k in opts if k not in got])
     if full:
         out += wrap("  every option set of: ", full)
     return out
@@ -422,7 +446,9 @@ def why(cat, use, names):
         if not hits:
             out.append(f"{n}: the engine's schema has nothing of that name")
         for _, what, desc, ctxs in hits:
-            out.append(f"{n}: {what}; {'used in ' + where(ctxs, 6) if ctxs else 'NOT used in this song'}")
+            out.append(f"{n}: {what}; {'used in ' + where(ctxs, 6) if ctxs else 'NOT used in this song'}"
+                       if what.startswith("a kind") else
+                       f"{n}: {what}; {'set in ' + where(ctxs, 6) if ctxs else 'at its default everywhere in this song'}")
             out += textwrap.wrap(desc or "(the engine gives no description)", 118, initial_indent="    ", subsequent_indent="    ")
     return out
 
@@ -444,7 +470,7 @@ def main():
     canon = load_plan(pin, a.song)
     use = Usage(cat).song(canon)
     if a.json:
-        print(json.dumps({"song": a.song, "engine": os.path.basename(pin), "rigs": rigs(canon),
+        print(json.dumps({"song": a.song, "engine": os.path.basename(pin), "rigs": rigs(canon, cat.default_kind),
                           "kinds": {k: {"offered": list(v), "used": use.kinds.get(k, {})} for k, v in cat.kinds.items()},
                           "options": {k: {"offered": list(v), "used": use.opts.get(k, {})} for k, v in cat.opts.items()
                                       if "." not in k}}, ensure_ascii=False))

@@ -26,19 +26,21 @@ SCHEMA = {
     "$defs": {
         "AmpModel": {"oneOf": [{"const": "mark", "description": "Mark-style."}, {"const": "nolly", "description": "Tightest input."}]},
         "LayerKind": {"oneOf": [{"enum": ["noise"], "type": "string"}, {"const": "pluck", "description": "Plucked string."},
-                                {"const": "voice"}]},
+                                {"const": "voice"}, {"const": "drum"}]},
+        "Beater": {"type": "string", "enum": ["stick", "brush"]},
         "ReverbKind": {"type": "string", "enum": ["room", "hall"]},
         "Effect": {"oneOf": [
             {"type": "object", "description": "A guitar amp.", "properties": {
                 "type": {"const": "amp"}, "model": {"$ref": "#/$defs/AmpModel"},
                 "gain": {"type": "number", "description": "Drive."}, "bloom": {"type": "number", "description": "Power-tube bloom."}}},
-            {"type": "object", "properties": {"type": {"const": "reverb"}, "kind": {"$ref": "#/$defs/ReverbKind"},
+            {"type": "object", "properties": {"type": {"const": "reverb"}, "kind": {"$ref": "#/$defs/ReverbKind", "default": "hall"},
                                               "mix": {"type": "number"}}},
             {"type": "object", "description": "A wah pedal.", "properties": {"type": {"const": "wah"}, "pos": {"type": "number"}}}]},
         "Param": {"anyOf": [{"type": "number"}, {"type": "string"},
                             {"type": "object", "properties": {"value": {}, "mod": {"type": "array"}}}]},
         "Layer": {"type": "object", "properties": {
-            "type": {"$ref": "#/$defs/LayerKind"},
+            "type": {"$ref": "#/$defs/LayerKind", "default": "noise"},
+            "beater": {"$ref": "#/$defs/Beater", "default": "stick", "description": "drum: what strikes the head."},
             "level": {"anyOf": [{"$ref": "#/$defs/Param"}, {"type": "null"}], "description": "The layer's level."},
             "pick": {"type": "number", "description": "pluck: pick position."},
             "mute": {"type": "number", "description": "pluck: a palm on the strings."},
@@ -70,11 +72,11 @@ PLAN = {"data": {"canonical": {
                 "play": {"gate": 0.9},
                 "fx": [{"type": "amp", "model": "mark", "gain": 0.8}, "reverb kind=hall mix=0.2"]},
         "kit": {"kit": {"k": {}}},
-        "kit.k": {"synth": {"layers": [{"type": "noise"}]}},
+        "kit.k": {"synth": {"layers": [{"level": 0.5}]}},
     },
     "tracks": [{"name": "gl", "patch": "rig", "notes": []}, {"name": "gr", "patch": "rig", "notes": []},
                {"name": "kick", "patch": "kit", "notes": []}],
-    "buses": {"hall": {"fx": [{"type": "reverb", "kind": "room"}]}},
+    "buses": {"hall": {"fx": [{"type": "reverb", "kind": "room"}]}, "dly": {"fx": [{"type": "reverb", "mix": 0.3}]}},
 }}}
 ENGINE = '''#!/usr/bin/env python3
 import json, sys
@@ -121,20 +123,24 @@ class Showcase(unittest.TestCase):
         cat, _ = self.both()
         self.assertEqual(list(cat.kinds["Effect"]), ["amp", "reverb", "wah"])
         self.assertEqual(cat.kinds["AmpModel"], {"mark": "Mark-style.", "nolly": "Tightest input."})
-        self.assertEqual(list(cat.kinds["LayerKind"]), ["noise", "pluck", "voice"])
+        self.assertEqual(list(cat.kinds["LayerKind"]), ["noise", "pluck", "voice", "drum"])
         self.assertEqual(list(cat.kinds["ReverbKind"]), ["room", "hall"])
         self.assertEqual(list(cat.opts["fx amp"]), ["model", "gain", "bloom"])          # not its `type`
         self.assertEqual(list(cat.opts["Layer pluck"]), ["pick", "mute"])              # by the description's "pluck:"
         self.assertEqual(list(cat.opts["Layer voice"]), ["nasal"])
         self.assertEqual(list(cat.opts["Layer"]), ["type", "level"])
+        self.assertEqual(list(cat.opts["Layer drum"]), ["beater"])
         self.assertIn("songs", cat.opts["Song"])                                       # "$ref": "#" does not loop
 
     def test_what_the_song_sets_and_where(self):
         _, use = self.both()
-        self.assertEqual(use.kinds["Effect"], {"amp": ["rig"], "reverb": ["rig", "bus hall"]})
+        self.assertEqual(use.kinds["Effect"], {"amp": ["rig"], "reverb": ["rig", "bus hall", "bus dly"]})
         self.assertEqual(use.kinds["AmpModel"], {"mark": ["rig"]})
-        self.assertEqual(use.kinds["ReverbKind"], {"hall": ["rig"], "room": ["bus hall"]})   # hall from the string form
-        self.assertEqual(use.kinds["LayerKind"], {"pluck": ["rig"], "noise": ["rig", "kit"]})  # a kit's piece is its kit
+        # hall: named in the string form on the rig, and what a reverb with no kind is (the plan drops defaults)
+        self.assertEqual(use.kinds["ReverbKind"], {"hall": ["rig", "bus dly by default"], "room": ["bus hall"]})
+        # a kit's piece is its kit; a layer with no type is the default kind
+        self.assertEqual(use.kinds["LayerKind"], {"pluck": ["rig"], "noise": ["rig", "kit by default"]})
+        self.assertNotIn("Beater", use.kinds)                 # a drum's default beater is not a pluck's or a noise's
         self.assertEqual(sorted(use.opts["fx amp"]), ["gain", "model"])
         self.assertEqual(sorted(use.opts["Layer pluck"]), ["pick"])
         self.assertEqual(sorted(use.opts["Play"]), ["gate"])
@@ -142,7 +148,7 @@ class Showcase(unittest.TestCase):
 
     def test_the_report_names_what_is_not_used(self):
         text = self.run_tool()
-        self.assertIn("3 tracks, 2 patches, 1 buses", text)
+        self.assertIn("3 tracks, 2 patches, 2 buses", text)
         self.assertIn("rig [gl, gr]: pluck + noise -> amp(mark), reverb(hall)", text)
         self.assertIn("kit [kick]: kit of 1 pieces", text)
         lines = text.splitlines()
@@ -151,9 +157,10 @@ class Showcase(unittest.TestCase):
         i = lines.index("  effects: 2 of 3")
         self.assertIn("not used: wah", lines[i + 2])
         i = lines.index("  amp (effect): 2 of 3")
-        self.assertEqual(lines[i + 1:i + 3], ["      set:   model, gain", "      never: bloom"])
+        self.assertEqual(lines[i + 1:i + 3], ["      set:     model, gain", "      default: bloom"])
         i = lines.index("  pluck (source): 1 of 2")
-        self.assertEqual(lines[i + 2], "      never: mute")
+        self.assertEqual(lines[i + 2], "      default: mute")
+        self.assertIn("  reverbs: 2 of 2", lines)
         self.assertNotIn("voice (source)", text)             # a source the song does not use: its options are not listed
         self.assertNotIn("wah (effect)", text)
 
@@ -168,14 +175,14 @@ class Showcase(unittest.TestCase):
     def test_why_gives_the_engines_own_words(self):
         text = self.run_tool("--why", "nolly", "bloom", "pick", "nosuch")
         self.assertIn("nolly: a kind of amp models; NOT used in this song\n    Tightest input.", text)
-        self.assertIn("bloom: an option of amp (effect); NOT used in this song\n    Power-tube bloom.", text)
-        self.assertIn("pick: an option of pluck (source); used in rig", text)
+        self.assertIn("bloom: an option of amp (effect); at its default everywhere in this song\n    Power-tube bloom.", text)
+        self.assertIn("pick: an option of pluck (source); set in rig", text)
         self.assertIn("nosuch: the engine's schema has nothing of that name", text)
 
     def test_json(self):
         d = json.loads(self.run_tool("--json"))
         self.assertEqual(d["kinds"]["Effect"], {"offered": ["amp", "reverb", "wah"],
-                                                "used": {"amp": ["rig"], "reverb": ["rig", "bus hall"]}})
+                                                "used": {"amp": ["rig"], "reverb": ["rig", "bus hall", "bus dly"]}})
         self.assertEqual(d["options"]["fx amp"]["offered"], ["model", "gain", "bloom"])
         self.assertEqual(d["rigs"][0]["fx"], ["amp(mark)", "reverb(hall)"])
 
