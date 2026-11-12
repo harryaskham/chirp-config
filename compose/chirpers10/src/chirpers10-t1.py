@@ -17,8 +17,10 @@ import json, os, random
 OUT = os.environ.get("C10T1_OUT", os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../songs/chirpers10-t1.yaml"))
 RIG_L = os.environ.get("C10T1_RIGL", "ct-chug-l")
 RIG_R = os.environ.get("C10T1_RIGR", "ct-chug-r")
-BASS = os.environ.get("C10T1_BASS", "bass-fat")
-KIT = os.environ.get("C10T1_KIT", "obzen-kit-dry")
+BASS = os.environ.get("C10T1_BASS", "ct-bass")
+KIT = os.environ.get("C10T1_KIT", "ct-kit")
+DCLIP = os.environ.get("C10T1_DCLIP", "-13")       # drums bus: soft clip ceiling, dBFS ("" = off)
+MGAIN = os.environ.get("C10T1_MGAIN", "")       # master: gain into the limiter, then back down ("" = off): the stream gets the release's dynamics
 BPM = 126
 BOUNDS = [0, 35, 55, 70, 77, 105, 110, 140, 154, 165, 175, 210, 220, 231, 245, 275, 280, 308, 315, 330, 350, 385]
 CODA = 24
@@ -518,10 +520,10 @@ def song():
     spec = [
         ("gl", RIG_L, "0dB", -1, {}), ("gr", RIG_R, "0dB", 1, {}),
         ("gl2", RIG_L, "-3dB", -0.8, {}), ("gr2", RIG_R, "-3dB", 0.8, {}),
-        ("bass", BASS, "3.5dB", 0, {}),
-        ("kick", KIT, "0dB", None, {"out": "drums"}), ("snare", KIT, "2dB", None, {"out": "drums"}),
-        ("cym", KIT, "-9dB", None, {"out": "drums"}), ("toms", KIT, "0dB", None, {"out": "drums"}),
-        ("lead", "m8-lead-guitar", {"value": "-3dB", "mod": [{"src": "auto.eye", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"eye": {"points": [["0b", 0], [f"{174 * 4}b", 0], [f"{175 * 4}b", -6], [f"{210 * 4}b", -6], [f"{211 * 4}b", 0]]}}}),
+        ("bass", BASS, "0.5dB", 0, {}),
+        ("kick", KIT, "2dB", None, {"out": "drums"}), ("snare", KIT, "8dB", None, {"out": "drums"}),
+        ("cym", KIT, "-3dB", None, {"out": "drums"}), ("toms", KIT, "4dB", None, {"out": "drums"}),
+        ("lead", "m8-lead-guitar", {"value": "-3dB", "mod": [{"src": "auto.eye", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"eye": {"points": [["0b", 0], [f"{174 * 4}b", 0], [f"{175 * 4}b", -10], [f"{210 * 4}b", -10], [f"{211 * 4}b", 0]]}}}),
         ("cl5", "m8-clean", "-4dB", -0.45, {"sends": {"dly": "-14dB", "hall": "-12dB"}}),
         ("cl7", "m8-clean", "-3dB", 0.45, {"sends": {"dly": "-14dB", "hall": "-12dB"}}),
         ("cl11", "m8-clean", "-3dB", 0, {"sends": {"dly": "-12dB", "hall": "-10dB"}}),
@@ -544,8 +546,11 @@ def song():
         "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "4s", "length": f"{NB * 4}b", "event_stable": True,
         "buses": {"hall": {"fx": ["reverb kind=hall decay=4.5s mix=1 predelay=30ms low_cut=150"]},
                   "dly": {"fx": ["delay time=3/16 feedback=0.35 mix=1 ping_pong=true", "reverb kind=hall decay=3s mix=0.3"]},
-                  "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.12 predelay=8ms"]}},
-        "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}]},
+                  "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
+                                   {"type": "glue", "threshold": "-24dB", "ratio": 2.5, "attack": "20ms", "release": "140ms", "knee": 6.0}]
+                            + ([f"clip drive=0dB ceiling={DCLIP}dB"] if DCLIP else [])}},
+        "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}]
+                   + ([{"type": "gain", "gain": f"{MGAIN.split(':')[0]}dB"}, "limiter ceiling=-1dB", {"type": "gain", "gain": f"-{MGAIN.split(':')[1]}dB"}] if MGAIN else [])},
         "tracks": tracks,
     }
 

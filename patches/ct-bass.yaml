@@ -1,0 +1,53 @@
+{
+ "about": "Common Time bass (chirper-zero, 12 Nov): bass-fat re-voiced against two records' bass stems. Their bass lives at 80-1300 Hz (the 2nd to 10th harmonics: body and growl) with little above 2.5 kHz; bass-fat was sub and hiss beside them. Here: the sine sub 6 dB lower, more of the string through a hotter amp (gain 0.7, mix 0.6), +6 / +8 dB at 110 / 220 Hz, +5 dB at 900 Hz, -10 dB above 1.5 kHz and a 4 kHz low-pass. 1/3-octave envelope against the stem, mean error (bbench.py in ~/.local/state/chirper-zero/c10; bass-fat first): Bleed 0-40 s 9.4 -> 4.7 dB, The Faultless 30-70 s 8.4 -> 3.8 dB. The white-box amp parts (triode, feedback power amp, 5150 voicing) all measured worse on a bass and are not used. The two records disagree about the lowest octave (this has 10 dB more than Bleed's and 7 dB less than The Faultless's).",
+ "extends": "m8-bass layers.0.decay.value=5s layers.0.bright.value=0.52 layers.0.buzz=0.24 layers.1.level=-9dB",
+ "fx": [
+  {
+   "type": "amp",
+   "model": "crunch",
+   "gain": 0.7,
+   "tight": 30,
+   "boost": "3dB",
+   "bass": 0.7,
+   "mid": 0.5,
+   "treble": 0.4,
+   "presence": 0.3,
+   "resonance": 0.75,
+   "sag": 0.4,
+   "mix": 0.6
+  },
+  {
+   "type": "cab",
+   "model": "4x10",
+   "mic": 0.4,
+   "distance": 0.12
+  },
+  {
+   "type": "eq",
+   "bands": [
+    "peak cutoff=110 q=0.7 gain=6dB",
+    "peak cutoff=220 q=0.7 gain=8dB",
+    "peak cutoff=450 q=0.9 gain=2dB",
+    "peak cutoff=900 q=0.8 gain=5dB",
+    "highshelf cutoff=1500 gain=-10dB",
+    "lp cutoff=4000"
+   ]
+  },
+  {
+   "type": "compressor",
+   "threshold": "-24dB",
+   "ratio": 5,
+   "attack": "10ms",
+   "release": "140ms",
+   "makeup": "3dB"
+  },
+  "tape drive=0.3 warmth=0.6",
+  {
+   "type": "gate",
+   "threshold": "-58dB",
+   "hold": "30ms",
+   "release": "80ms"
+  }
+ ],
+ "gain": "-11dB"
+}
