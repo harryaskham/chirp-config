@@ -13,6 +13,6 @@ The board, as on earlier records: claim the row, and keep it true as the piece c
 
 | track | owner | style | tempo / meter | key / tuning | form (sections, in order) | the motif and how it is splayed | sounds (sounds.md) |
 |---|---|---|---|---|---|---|---|
-| t1 Common Time | chirper-zero | | | | | | |
+| t1 Common Time | chirper-zero | v1: a placeholder drone (the piece is not written yet; the sound family comes first) | 126 bpm, 4/4 throughout; the cells run across the bar lines | F (the 8-string's open low string); no third yet | v1: one 48-bar drone, 1:34 | two cells over the pulse: five sixteenths (left) and seven (right), meeting every 35 sixteenths (motifs.md) | v1: library patches only (contrabass-tight, cellos, juno-pad, m8-clean, m8-twang, obzen-kit ride bell); the new family is being built and measured (sounds.md) |
 
 When the album grows, later tracks take rows here; titles stay plain fragments.

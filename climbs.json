@@ -8586,13 +8586,17 @@
       "song": "songs/chirpers10-t1.yaml",
       "reference": "chirpers — Common Time",
       "source": null,
-      "owner": null,
+      "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers10-t1 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 85.915,
+        "version": "v1",
+        "commit": "see git log songs/chirpers10-t1.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "polymetric djent",
       "mode": "compose",
@@ -8608,6 +8612,10 @@
         "by": "chirp-eco",
         "at": "2026-11-12T02:32:12Z",
         "note": "COMPOSE (the epic (the whole record, for now), 720-840 s): About thirteen minutes: distinct sections and styles, one motif and rhythm that grows and gets splayed across cycles of different lengths over a steady pulse, and lands. First the sound (a new patch family), then the form. Any version at all opens the groove to it; then keep finessing."
+      },
+      "last": {
+        "at": "2026-11-12T02:50:37Z",
+        "who": "chirper-zero"
       }
     }
   ],
