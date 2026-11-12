@@ -198,6 +198,32 @@ class Showcase(unittest.TestCase):
             self.run_tool(song=os.path.join(self.root, "absent.yaml"))
         self.assertIn("no song at", str(e.exception))
 
+    def test_diff_sets_two_patches_side_by_side(self):
+        """Two rigs that share the string and differ in the amp and the cabinet: the diff says exactly that."""
+        string = {"layers": [{"type": "pluck", "pick": 0.2, "decay": {"value": "4s", "mod": [{"src": "vel", "amount": 0.3}]}},
+                             {"type": "noise", "level": 0.1}]}
+        canon = {"patches": {
+            "chug": {"about": "left", "gain": "-3dB", "synth": string, "play": {"gate": 0.9},
+                     "fx": [{"type": "amp", "model": "mark", "gain": 0.8}, {"type": "ir", "file": "j/cookie"}, "reverb kind=plate"]},
+            "bite": {"about": "right", "gain": "-3dB", "synth": string, "play": {"gate": 0.9},
+                     "fx": [{"type": "amp", "model": "nolly", "gain": 0.8}, {"type": "cab", "model": "2x12"}, "reverb kind=plate"]}}}
+        lines = S.diff(canon, "chug", "bite")
+        self.assertEqual(lines[0], "chug against bite: 5 of 18 settings differ")
+        self.assertIn("the same in both: gain (1), synth.layers (7), play (1), fx.3:reverb (2)", lines[1])
+        body = "\n".join(lines[2:])
+        self.assertRegex(body, r"fx\.1:amp\.model\s+mark\s+\| nolly")
+        self.assertRegex(body, r"fx\.2:ir\.file\s+j/cookie\s+\| -")
+        self.assertRegex(body, r"fx\.2:cab\.model\s+-\s+\| 2x12")
+        self.assertNotIn("about", body)                       # the description is not a setting
+        self.assertNotIn("fx.1:amp.gain", body)               # the same on both sides
+        self.assertEqual(S.diff(canon, "chug", "chug")[0], "chug against chug: 0 of 16 settings differ")
+
+    def test_diff_names_the_patches_when_one_is_not_in_the_song(self):
+        self.assertTrue(self.run_tool("--diff", "rig", "kit").startswith("rig against kit: "))
+        with self.assertRaises(SystemExit) as e:
+            self.run_tool("--diff", "rig", "nosuch")
+        self.assertIn("no patch named nosuch. It has: kit, rig", str(e.exception))
+
     def test_a_schema_without_effects_is_refused_not_reported_as_empty(self):
         with self.assertRaises(SystemExit) as e:
             S.check_shape(S.Catalogue({"type": "object", "properties": {"tempo": {"type": "number"}}}), "x")

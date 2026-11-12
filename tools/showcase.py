@@ -13,6 +13,9 @@ adopts it.
   showcase.py SONG.yaml --all           also the options of sound sources and effects the song does not use
   showcase.py SONG.yaml --why nolly bloom pickup_nl
                                         what the engine says each of these is (its own description), and where it lives
+  showcase.py SONG.yaml --diff ct-chug-l ct-bite-l
+                                        how two of the song's patches really differ, setting by setting, once resolved
+                                        (two rigs that differ only in the amp are one guitar through two amps)
   showcase.py SONG.yaml --json          the same as data
   --pin BIN                             another engine (default: $CHIRP, else the groove's pin, tools/groove-pin)
 
@@ -433,6 +436,54 @@ def report(cat, use, canon, a):
     return out
 
 
+def flatten(x, path="", out=None):
+    """A resolved patch as {path: value}. Effects (and layers, when each names its type) are numbered with their type,
+    "fx.3:amp.model", so the same effect in the same place lines up and a different one shows as only on one side."""
+    out = {} if out is None else out
+    if isinstance(x, dict):
+        for k, v in x.items():
+            if k != "about":
+                flatten(v, f"{path}.{k}" if path else k, out)
+    elif isinstance(x, list):
+        if path.rsplit(".", 1)[-1] == "fx":
+            x = [parse_fx(v) if isinstance(v, str) else v for v in x]
+        typed = bool(x) and all(isinstance(v, dict) and isinstance(v.get("type"), str) for v in x)
+        for i, v in enumerate(x, 1):
+            if typed:
+                out[f"{path}.{i}:{v['type']}"] = "(on)"
+                flatten({k: w for k, w in v.items() if k != "type"}, f"{path}.{i}:{v['type']}", out)
+            else:
+                flatten(v, f"{path}.{i}", out)
+    else:
+        out[path] = x
+    return out
+
+
+def diff(canon, a, b):
+    patches = canon.get("patches") or {}
+    for n in (a, b):
+        if not isinstance(patches.get(n), dict):
+            die(f"the song plays no patch named {n}. It has: {', '.join(sorted(k for k in patches if '.' not in k))}")
+    fa, fb = flatten(patches[a]), flatten(patches[b])
+    keys = list(dict.fromkeys(list(fa) + list(fb)))
+    group = lambda k: ".".join(k.split(".")[:2]) if k.startswith(("fx.", "synth.")) else k.split(".")[0]   # noqa: E731
+    differ = [k for k in keys if fa.get(k) != fb.get(k)]
+    out = [f"{a} against {b}: {len(differ)} of {len(keys)} settings differ"]
+    same = {}
+    for k in keys:
+        same.setdefault(group(k), [0, 0])[k in differ] += 1
+    whole = [f"{g} ({n[0]})" for g, n in same.items() if not n[1]]
+    if whole:
+        out += wrap("  the same in both: ", whole)
+    if differ:
+        wk = min(44, max(len(k) for k in differ))
+        wa = min(34, max(len(str(fa.get(k, "-"))) for k in differ))
+        out.append(f"  {'setting':{wk}s}  {a[:wa]:{wa}s} | {b}")
+        for k in differ:
+            out.append(f"  {k[:wk]:{wk}s}  {str(fa.get(k, '-'))[:wa]:{wa}s} | {fb.get(k, '-')}")
+    return out
+
+
 def why(cat, use, names):
     out = []
     for n in names:
@@ -460,6 +511,7 @@ def main():
     ap.add_argument("--only")
     ap.add_argument("--all", action="store_true")
     ap.add_argument("--why", nargs="+")
+    ap.add_argument("--diff", nargs=2, metavar=("PATCH_A", "PATCH_B"))
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args()
     if not os.path.isfile(a.song):
@@ -468,6 +520,9 @@ def main():
     cat = Catalogue(load_schema(pin))
     check_shape(cat, pin)
     canon = load_plan(pin, a.song)
+    if a.diff:
+        print("\n".join(diff(canon, *a.diff)))
+        return
     use = Usage(cat).song(canon)
     if a.json:
         print(json.dumps({"song": a.song, "engine": os.path.basename(pin), "rigs": rigs(canon, cat.default_kind),
