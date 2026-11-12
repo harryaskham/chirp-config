@@ -21,7 +21,7 @@ The album is out, the songs are whole, and nobody says a main idea failed. What 
 
 ## Engine and library: open at the close
 
-- **Built, tested, not landed** (tools branch `wm-voice-next`, 000cb09f, not gated): `effort_tilt`, `play.phrase_gap`, `diction` 3. wM's ablation on the last day: the shipped voice patches cost words (`even: 1` the most), and `diction` 3 removes that cost.
+- **Built and tested during the album, landed after it** (12 Nov 04:40, by wM at Harry's word, on tools main: 52a91bfd `effort_tilt`, fc5b0ca9 `play.phrase_gap`, 45a33b89 `diction` 3; opt-in, gated identical over the 109 released songs; not on this record). wM's ablation on the last day: the shipped voice patches cost words (`even: 1` the most), and `diction` 3 removes that cost.
 - **Silent failures.** A song-level `feel.nudge` is ignored without a message: t7's groove, written at v76, first sounded at v104. The plan warning was promised and not built (bd-d0e254). `tools/look.py --song` cannot read our song files. `features.md` says t6 uses a Duffing layer; it does not.
 - **Master chain.** Master effects run before the loudness stage, and the master `volume` sits after them, so thresholds are set against raw levels up to 20 dB apart and a chain tuned on a raw render is 3 dB off (three composers; bd-43e0bd).
 - **Racks that will bite the next song.** `rack:drum-bus-punch` and `rack:parallel-ny` on a parallel send add each stick a second time (t3's snare reached +13 dBFS before the master). The songs clip their own buses; the racks are unchanged (bd-e0185e; the metal kit uses them).
