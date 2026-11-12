@@ -8572,6 +8572,35 @@
         "at": "2026-11-10T19:01:49Z",
         "who": "chirper-three"
       }
+    },
+    {
+      "id": "chirpers10-t1",
+      "song": "songs/chirpers10-t1.yaml",
+      "reference": "chirpers — Common Time",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers10-t1 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "polymetric djent",
+      "mode": "compose",
+      "album": "chirpers10",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Common Time",
+        "title": "Common Time",
+        "track": 1,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-11-12T02:32:12Z",
+        "note": "COMPOSE (the epic (the whole record, for now), 720-840 s): About thirteen minutes: distinct sections and styles, one motif and rhythm that grows and gets splayed across cycles of different lengths over a steady pulse, and lands. First the sound (a new patch family), then the form. Any version at all opens the groove to it; then keep finessing."
+      }
     }
   ],
   "focus": "Accretion"

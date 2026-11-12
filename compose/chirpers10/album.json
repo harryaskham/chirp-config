@@ -1,0 +1,42 @@
+{
+  "id": "chirpers10",
+  "artist": "chirpers",
+  "album": "Common Time",
+  "named": false,
+  "year": 2026,
+  "genre": "polymetric djent",
+  "bleed": false,
+  "genre_refs": [
+    "broken-cog",
+    "dancers-to-a-discordant-system",
+    "in-death-is-death",
+    "they-move-below",
+    "bleed",
+    "the-faultless",
+    "ligature-marks",
+    "pravus"
+  ],
+  "params": {
+    "rounds": {
+      "whole": 0.3,
+      "section": 0.4,
+      "palette": 0.3
+    }
+  },
+  "brief": "ONE TRACK FOR NOW, AND IT IS THE WHOLE RECORD: \"Common Time\", about thirteen minutes, by chirper-zero alone (Harry, 12 Nov). The album will grow from it later. Harry's words: \"a single, super rich, djent / meshuggah style track ... epic with different sections, styles and a growing motif / rhythm that get splayed like meshuggah's longest tracks\"; \"make it like 13 minutes long so there is room to experiment and finesse all our engine patches, segments and ideas in it\"; \"chirper zero just keeps finessing the song\". THE NAME: Common Time is 4/4's proper name, and Harry chose it for the irony (\"we will use mad time signatures\"). He asked for something that \"implies long cycles of polyrhythms that line up like meshuggah's broken cog ... primes, chinese remainder theorem etc but not as on the nose and maybe related to like time crystals and synchronicity\". Take those sideways: cycles of different lengths laid over one steady pulse, drifting apart and landing together after a long wait. Titles are plain fragments: no numbers in titles, nothing that explains itself. WE CAME A LONG WAY: \"the old djent album was way before we improved things a lot, i want to hear what we can do with our new improved engine and tooling\". And: \"we don't need to throw all that out, we can just build upon it and enhance it or adapt our newer features and patches to produce new better guitars, amps, kits ... a new family of patches is the first thing\". So THE FIRST JOB IS THE SOUND: a new family of patches (8-string guitars, amps and cabinets, bass, kits, and whatever else the piece wants) built on the existing family (compose/chirpers10/sounds.md lists it) with the engine as it is now. New names, never an edit: six released albums render through the library, and tools/libguard.py refuses a change that moves them. Write each new sound into sounds.md. THE MUSIC IS ITS OWN: original, in the tradition of extended-range polymetric metal, never copying or closely imitating an existing song, including the Meshuggah records we reproduce. Harry's standing direction holds: tone is home, complexity goes into time and texture; there is a hook; aesthetics over cleverness; big changes are wanted at any round; flatness is a guard and not a target; ears beat the metric. HOW IT RUNS: the groove's playlist is this one song from its first kept version, any version at all, so record v1 early and keep finessing; Harry listens to it live. The slot's length (12 to 14 minutes) is where it is going, not where v1 must be. What Accretion's close-out taught (compose/chirpers9/CLOSEOUT.md): measure what is HEARD from the first rounds, not the hundredth (amap, share, presence, bandprof, masterlab, the limiter); put a clip of every exposed change in front of Harry the day it lands (~/.local/state/chirp-eco/review/clips, served at http://pocket4:8790/clips/); do not climb the score once it is at its ceiling; commit the round, then investigate. KNOWN TRAPS: rack:drum-bus-punch and rack:parallel-ny on a parallel send add every hit a second time, and metal-kit-dry uses them (bd-e0185e); a song-level feel.nudge is ignored without a message, so put it on the kit patch (bd-d0e254); master effects see the raw level, before loudness, and the master volume sits after them (bd-43e0bd). ENGINE: the groove runs pin 97a13ae6. wM and chirp-video are closed out; an engine or picture need goes to chirp-eco, who takes it to Harry. Public text: the band is chirpers, lowercase.",
+  "palette": "Start from the djent family already in the library (compose/chirpers10/sounds.md): the m8-* 8-string guitars and basses, the metal-kit* kits, bass-fat, kidman, the lib-meshuggah parts. Build the new family beside them under new names. Everything chirp has is open to it: amp and cab stages, ir, sympathetic, physical models (pluck, modal, membrane), additive and noise layers, drive, gate, compressor, glue, eq, width, rooms; polymeter by step length, Euclidean patterns, feel and humanize, lanes, vars and expr; the voice if the piece wants one. `python3 tools/chirpers.py palette chirpers10-t1` shows the song's instruments beside unused library patches and engine features. Master with a top-level ceiling.",
+  "tracks": [
+    {
+      "n": 1,
+      "title": "Common Time",
+      "role": "the epic (the whole record, for now)",
+      "length": [
+        720,
+        840
+      ],
+      "owner_suggested": "chirper-zero",
+      "brief": "About thirteen minutes: distinct sections and styles, one motif and rhythm that grows and gets splayed across cycles of different lengths over a steady pulse, and lands. First the sound (a new patch family), then the form. Any version at all opens the groove to it; then keep finessing.",
+      "id": "chirpers10-t1"
+    }
+  ]
+}
