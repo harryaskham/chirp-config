@@ -20,6 +20,14 @@ Two measures, both in nine bands (20-60-120-250-500-1k-2k-4k-8k-16k Hz), both in
         --groups left out: drums, bass and guitar are guessed from track and patch names, and printed.
         --mix-only: only the whole-mix rows (one render per window: for iterating on an equaliser).
 
+  --spread (on refs or song): the yardstick for "how far is too far". Each reference's own band shares are taken in
+        consecutive --win second windows (default 20) of its loud passages (within --within dB, default 3, of its loud
+        level), and the spread across them printed: per record and the median with `refs`, one row under OURS - REFS
+        with `song`. Eleven Meshuggah records move 0.6-1.0 dB (std) between their own loud passages in most bands, but
+        2.2 dB at 500 Hz-1 kHz (the voice coming and going) and 1.3 at 8-16 kHz: so "within 1 dB of the median" is too
+        strict there and too loose at 2-8 kHz. Read a section's difference against this row, not against a flat 1 dB.
+        (chirper-zero's refspread.py, Common Time v16.) It reads the record itself (ref/ID.wav), else the sum of its stems.
+
   --refs all = every record that has stems. What Common Time used (chirpers10, v7):
   --refs bleed,combustion,dancers-to-a-discordant-system,electric-red,lethargica,obzen,pineal-gland-optics,pravus,
          the-abysmal-eye,the-faultless,this-spiteful-snake      (one argument, no spaces)
@@ -130,6 +138,52 @@ def stats(R, g):
     return np.median(A, 0), np.percentile(A, 25, 0), np.percentile(A, 75, 0)
 
 
+def record_audio(model, song):
+    """The record itself (ref/ID.wav, or another format), else the sum of its stems."""
+    for ext in (".wav", ".flac", ".opus", ".ogg", ".m4a", ".mp3"):
+        p = os.path.join(ROOT, "ref", song + ext)
+        if os.path.isfile(p):
+            return load(p)
+    xs = [load(stem_file(model, song, n)) for n in STEMS if stem_file(model, song, n)]
+    n = min(len(x) for x in xs)
+    return sum(x[:n] for x in xs)
+
+
+def spread(a):
+    """{record: {"n": loud windows, "sd": nine bands, "range": nine bands (10th-90th percentile)}}, cached: how far each
+    reference's band shares move between its own loud passages."""
+    ids = ref_ids(a)
+    key = hashlib.sha1(json.dumps(["spread", ids, a.model, a.win, a.within]).encode()).hexdigest()[:12]
+    cache = os.path.join(ROOT, "ref", "stembal", f"spread-{key}.json")
+    if os.path.exists(cache):
+        with open(cache) as f:
+            return json.load(f)
+    out = {}
+    win = int(a.win * 44100)
+    for s in ids:
+        x = record_audio(a.model, s)
+        shares, level = [], []
+        for i in range(0, len(x) - win + 1, win):
+            b = bands(x[i:i + win])
+            shares.append(db(b / max(b.sum(), 1e-30)))
+            level.append(float(db((x[i:i + win] ** 2).mean())))
+        shares, level = np.array(shares), np.array(level)
+        keep = level > np.percentile(level, 90) - a.within if len(level) else np.array([], dtype=bool)
+        if keep.sum() < 2:
+            continue                                  # one loud window says nothing about a spread
+        loud = shares[keep]
+        out[s] = {"n": int(keep.sum()), "sd": loud.std(0).tolist(),
+                  "range": (np.percentile(loud, 90, axis=0) - np.percentile(loud, 10, axis=0)).tolist()}
+    os.makedirs(os.path.dirname(cache), exist_ok=True)
+    with open(cache, "w") as f:
+        json.dump(out, f)
+    return out
+
+
+def spread_medians(S):
+    return np.median([S[s]["sd"] for s in S], 0), np.median([S[s]["range"] for s in S], 0)
+
+
 def cmd_refs(a):
     R = refs(a)
     med, lo, hi = stats(R, "mix")
@@ -141,6 +195,15 @@ def cmd_refs(a):
             med, lo, hi = stats(R, g)
             show(f"references, {g} stem (dB re the sum of stems)",
                  [("median", med), ("p25", lo), ("p75", hi)] + [(s, R[s][g]) for s in R if g in R[s]])
+    if a.spread:
+        S = spread(a)
+        if not S:
+            sys.exit("stembal: no reference has two loud windows of that length; try a shorter --win")
+        sd, rng = spread_medians(S)
+        show(f"references, each band's spread between a record's own loud passages ({a.win:g} s windows within "
+             f"{a.within:g} dB of its loud level; std in dB; n = windows)",
+             [("MEDIAN spread (std)", sd), ("MEDIAN 10-90% range", rng)] + [(f"{s[:16]} n={S[s]['n']}", S[s]["sd"]) for s in S],
+             whole=False)
 
 
 def guess_groups(pin, song, env):
@@ -202,6 +265,11 @@ def cmd_song(a):
             show(f"== ours, {label or span} ({span}; dB re the whole mix)", rows)
     print(f"{'refs mix median':22s}" + "".join(f"{x:7.1f}" for x in M))
     print(f"{'OURS - REFS (mean)':22s}" + "".join(f"{x:7.1f}" for x in np.mean(mixes, axis=0) - M))
+    if a.spread:
+        S = spread(a)
+        if S:
+            print(f"{'refs own spread (std)':22s}" + "".join(f"{x:7.1f}" for x in spread_medians(S)[0])
+                  + "   | what the records move between their own loud passages")
     for g in groups:
         if not any(g in R[s] for s in R):
             continue
@@ -222,6 +290,9 @@ def main():
     ap.add_argument("--windows", nargs="+")
     ap.add_argument("--groups", nargs="+")
     ap.add_argument("--mix-only", action="store_true")
+    ap.add_argument("--spread", action="store_true")
+    ap.add_argument("--win", type=float, default=20.0)
+    ap.add_argument("--within", type=float, default=3.0)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--threads", type=int, default=2)
     ap.add_argument("--out")

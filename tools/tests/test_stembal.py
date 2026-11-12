@@ -152,6 +152,46 @@ class Stembal(unittest.TestCase):
         self.assertIn("render failed for bass", str(e.exception))
         self.assertIn("no track named nosuch", str(e.exception))
 
+    def record(self, name, parts):
+        """ref/NAME.wav: one second a part, each a list of (frequency, amplitude)."""
+        path = os.path.join(self.root, "ref", name + ".wav")
+        with wave.open(path, "wb") as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(44100)
+            for part in parts:
+                w.writeframes(b"".join(struct.pack("<h", int(sum(a * math.sin(2 * math.pi * f * i / 44100) for f, a in part)))
+                                       for i in range(44100)))
+
+    def test_spread_is_what_a_record_moves_between_its_own_loud_passages(self):
+        """Two loud seconds, the second with its 1.5 kHz part at half the amplitude, then a quiet one that does not count:
+        60-120 Hz moves between -3.0 and -1.0 dB of the whole (std 1.0), 1-2 kHz between -3.0 and -7.0 (std 2.0)."""
+        loud, thin, quiet = [(100, 8000), (1500, 8000)], [(100, 8000), (1500, 4000)], [(100, 80), (1500, 80)]
+        for rec in ("recA", "recB"):
+            self.record(rec, [loud, thin, quiet])
+        text = self.run_tool("refs", "--refs", "recA,recB", "--from", "0", "--dur", "2", "--spread", "--win", "1")
+        sd = self.row(text, "MEDIAN spread (std)")
+        self.assertAlmostEqual(sd[1], 1.0, delta=0.1)
+        self.assertAlmostEqual(sd[5], 2.0, delta=0.1)
+        rng = self.row(text, "MEDIAN 10-90% range")
+        self.assertAlmostEqual(rng[5], 0.8 * 4.0, delta=0.2)
+        self.assertIn("recA n=2", text)                              # the quiet second is not a loud passage
+        plain = self.run_tool("refs", "--refs", "recA,recB", "--from", "0", "--dur", "2")
+        self.assertNotIn("spread", plain)                            # only when asked for
+        self.assertTrue(text.startswith(plain))                      # ... and it only adds to the table
+        song = self.run_tool("song", self.song, "--refs", "recA,recB", "--from", "0", "--dur", "2", "--windows", "1-4",
+                             "--mix-only", "--spread", "--win", "1", "--out", self.root)
+        self.assertAlmostEqual(self.row(song, "refs own spread (std)")[5], 2.0, delta=0.1)
+        self.assertLess(song.index("OURS - REFS (mean)"), song.index("refs own spread (std)"))
+
+    def test_spread_without_the_record_reads_the_sum_of_its_stems(self):
+        text = self.run_tool("refs", "--refs", "recA,recB", "--from", "0", "--dur", "2", "--spread", "--win", "1")
+        sd = self.row(text, "MEDIAN spread (std)")                   # steady sines: nothing moves
+        self.assertLess(max(sd[b] for b in (0, 1, 5)), 0.05)
+        with self.assertRaises(SystemExit) as e:                     # three seconds of stems hold no two 20 s windows
+            self.run_tool("refs", "--refs", "recA,recB", "--from", "0", "--dur", "2", "--spread")
+        self.assertIn("shorter --win", str(e.exception))
+
     def test_windows_are_required(self):
         with self.assertRaises(SystemExit) as e:
             self.run_tool("song", self.song, "--refs", "recA", "--from", "0", "--dur", "2")
