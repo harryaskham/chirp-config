@@ -15,7 +15,10 @@ adopts it.
                                         what the engine says each of these is (its own description), and where it lives
   showcase.py SONG.yaml --diff ct-chug-l ct-bite-l
                                         how two of the song's patches really differ, setting by setting, once resolved
-                                        (two rigs that differ only in the amp are one guitar through two amps)
+                                        (two rigs that differ only in the amp are one guitar through two amps).
+                                        It counts settings; it cannot know which are heard: through a saturated amp
+                                        (gain 0.3 and up on these models) a different string moved the spectrum by
+                                        about 2 dB at most (chirper-zero, Common Time v14); measure before trusting it
   showcase.py SONG.yaml --json          the same as data
   --pin BIN                             another engine (default: $CHIRP, else the groove's pin, tools/groove-pin)
 
