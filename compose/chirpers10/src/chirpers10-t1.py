@@ -128,6 +128,16 @@ def gtr(trs, p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None):
                 add(tr, t, ln, ",".join(nm(root + i) for i in (24, 37, 42)), v)
 
 
+def layer(tr, p, cell, b0, b1, root=F1, hook=H1, vel=0.8, up=24):
+    """A synth doubling a riff: one note to each strike of the wheel, `up` semitones above the guitars (dead notes left out;
+    chugs short, the rest full length)."""
+    for t, ln, kind, j, hi in strikes(p, cell, s16(b0), s16(b1)):
+        if kind == "x":
+            continue
+        n = root + (hook[hi % len(hook)] if kind == "h" else 0) + up
+        add(tr, t, ln * (0.6 if kind == "c" else 0.95), n, vel * (1.0 if j == 0 else 0.9))
+
+
 def harm(trs, p, cell, b0, b1, interval=12, root=F1, hook=H1, vel=0.8, power=False):
     """A second guitar that plays only the wheel's hook notes, `interval` semitones up (power: each as a power chord)."""
     for t, ln, kind, j, hi in strikes(p, cell, s16(b0), s16(b1)):
@@ -415,6 +425,9 @@ def compose():
     kick(4, [(0, 1, "c")], 27, 35, vel=0.45)                         # a heartbeat on the quarter
     gtr(G, 5, FIVE_A, 30, 35, hook=GROW[0], vel=0.8, ramp=(0.45, 0.9))   # the machine, approaching, with one note of its hook
     bass(5, FIVE_A, 30, 35, hook=GROW[0], vel=0.8, ramp=(0.45, 0.9))
+    if SWARM:                                                       # the swarm: in step at bar 1, then drifting apart
+        for n in SWARM_NOTES:
+            add("swarm", 0, 30 * 16, n, 0.7)
     if WHISPER:                                                     # a whisper before each new part comes in
         say("whisper", 13 * 16 + 8, [("W EY1 T", 4.75)])
         say("whisper", 21 * 16 + 8, [("W EY1 T", 4.75)])
@@ -487,6 +500,8 @@ def compose():
         if x > a:
             gtr(G2, 11, ELEVEN_W, x, y, root=root, vel=0.9)             # the open chords join when the ground moves
         bass(11, ELEVEN_A, x, y, root=root, hook=hook)
+        if CZ:
+            layer("cz", 11, ELEVEN_A, x, y, root=root, hook=hook)      # a phase-distortion synth doubles riff C two octaves up
         if x > a:
             crash(x * 16, 0.9)
     kick(11, ELEVEN_A, a, a + 11)
@@ -657,6 +672,9 @@ def compose():
     for tr in WL:
         add(tr, a * 16, 60, "F1,C2,F2,C3", 0.9)
     bed([(a * 16, 0)], z * 16, vel=0.55, pad_vel=0.4)
+    if SWARM:                                                       # the swarm again: a crowd, pulled into step by the landing
+        for n in SWARM_NOTES:
+            add("swarm", a * 16, (NB - 2 - a) * 16, n, 0.7)
     tick("cl5", 5, TICK5, CL5, a, z, vel=0.5)
     tick("cl7", 7, TICK7, CL7, a, z, vel=0.5)
     tick("cl11", 11, TICK11, CL11, a, z, vel=0.46)
@@ -709,6 +727,16 @@ def compose():
     chimes(a + 17, NB - 1, pairs=((5, 7),), vel=0.4)
 
 
+# synth layers (Harry, 12 Nov: "layered synths / tones ... a showcase of all features"), each its track's gain ("" = off)
+# THE SWARM: sixteen oscillators to a note, each at its own pitch, pulled toward their common phase by a coupling that a lane
+# rides (the engine's Kuramoto model of synchrony). At bar 1 they are in step; over the wait they drift into a crowd; from
+# the approach they are pulled back, and lock as the three wheels land.
+SWARM = os.environ.get("C10T1_SWARM", "-18dB")
+# its fader (bar, dB): a crowd is about 3 dB quieter than the same swarm in step, and the approach is busier than the opening
+SWARM_LVL = [(0, 0), (12, 0), (24, 4), (30, 4), (350, 5), (383, 5), (385, 3), (389, 0), (NB, 0)]
+SWARM_NOTES = (53, 60)                                  # F3 and C4
+SWARM_LANE = [(0, 3), (2, 2), (24, 1), (30, 0.3), (350, 0.3), (363, 1.0), (383, 1.1), (384, 1.4), (385, 3), (NB, 3)]   # (bar, coupling: 0 a crowd, 1 the critical point, 3 locked)
+CZ = os.environ.get("C10T1_CZ", "-12dB")                 # a phase-distortion synth (the library's cz-bass) doubling riff C
 CHIME_GAIN = os.environ.get("C10T1_CHIME", "-19dB")
 # the mix against eleven records (stembal.py; compose/chirpers10/sounds.md): peaks as hz:q:dB, comma-separated
 GEQ = os.environ.get("C10T1_GEQ", "350:1:-5,750:1.2:-2.5")                  # the rhythm guitars' bus
@@ -781,6 +809,9 @@ def song():
         ("vox", "kidman", VOX or "0dB", 0, {"sends": {"hall": "-18dB"}, "fx": [{"type": "eq", "bands": ["hp cutoff=300"]}]}),
         ("choir", "voice-backing", CHOIR or "0dB", 0, {"sends": {"hall": "-8dB"}}),
         ("whisper", "ct-whisper", WHISPER or "0dB", 0, {"sends": {"hall": "-8dB"}}),
+        ("swarm", "ct-swarm", {"value": SWARM or "0dB", "mod": [{"src": "auto.lvl", "amount": 1}]}, 0,
+         {"sends": {"hall": "-8dB"}, "auto": {"sync": {"points": [[f"{b * 4}b", c] for b, c in SWARM_LANE]}, "lvl": {"points": [[f"{b * 4}b", c] for b, c in SWARM_LVL]}}}),
+        ("cz", "cz-bass", CZ or "0dB", 0, {"fx": [{"type": "eq", "bands": ["hp cutoff=420"]}]}),     # its sweep, not its body: the wall rig is thick enough at 250-500 Hz
         ("rise", "ct-swell", "-9dB", 0, {"sends": {"hall": "-10dB"}}),
         ("drop", "ct-drop", "-8dB", 0, {}),
     ]
@@ -806,6 +837,10 @@ def song():
             "ct-swell": {"about": "chirper-zero: a breath in before a landing - band-passed noise that swells for as long as the note is held (a slow attack), its band rising two octaves, cut off on the bar line",
                          "synth": {"layers": [{"type": "noise"}], "filters": [{"kind": "bp", "cutoff": {"value": 500, "mod": [{"src": "env.up", "amount": 2.5}]}, "q": 0.9}, "hp cutoff=250"],
                                    "env": {"up": {"a": "3.6s", "d": "10ms", "s": 1}}, "amp": {"a": "3.6s", "d": "10ms", "s": 1, "r": "40ms", "curve": 3}}},
+            "ct-swarm": {"about": "chirper-zero: the swarm - sixteen saws to a note, each at its own pitch (60 cents' spread), pulled toward their common phase by a coupling the track's `sync` lane sets (0 a crowd, 1 the critical point, 3 locked); a low-pass opens as they agree. After the library's kuramoto-choir, with the lane in place of its LFO.",
+                         "synth": {"layers": [{"type": "kuramoto", "kuramoto": {"count": 16, "spread": int(os.environ.get("C10T1_SPREAD", "60")), "coupling": {"value": 0, "mod": [{"src": "auto.sync", "amount": 1}]}}}],
+                                   "filters": [{"kind": "lp", "cutoff": {"value": 350, "mod": [{"src": "sync", "amount": 2.6}]}}],
+                                   "amp": {"a": "1.5s", "d": 0, "s": 1, "r": "3s"}}, "gain": "-9.5dB"},
             "ct-drop": {"about": "chirper-zero: the floor dropping on a landing - a sine that falls an octave to the note in 0.35 s and dies in 1.5 s",
                         "synth": {"layers": [{"wave": "sine"}], "pitch": {"value": 0, "mod": [{"src": "env.fall", "amount": 12}]},
                                   "env": {"fall": {"a": "1ms", "d": "350ms", "s": 0}}, "amp": {"a": "3ms", "d": "1.5s", "s": 0, "r": "200ms"}}}},
