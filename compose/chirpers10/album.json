@@ -74,7 +74,7 @@
       "MANY GUITARS: lots of different guitars, layered synths and tones, different amps, and string variants on the DI, across the piece.",
       "A SHOWCASE OF ALL FEATURES: the piece shows what chirp can do (tools/showcase.py lists what it uses and what it does not).",
       "NEW ENGINE FEATURES ARE WANTED where the amp simulation or the DI falls short: chirp-native (built in chirp's own engine), opt-in with exact defaults, landed through chirp-eco's gate.",
-      "CABINET IMPULSE RESPONSES ARE ALLOWED (Harry, 13 Nov 18:04): captured cabinet files through the `ir` effect are within \"chirp native\". The engine's own `cab` is a choice a rig may make on its merits, not a requirement."
+      "CABINET IMPULSE RESPONSES ARE ALLOWED (Harry, 13 Nov 18:04-18:06): captured cabinet files through the `ir` effect may stay. EVEN BETTER, and not required: a wholly owned cabinet that sounds better, or the response built into the song or the engine so it counts as chirp (bd-af781d)."
     ],
     "note": "Names are provisional (Harry: we can always change it later). Typing slips in his messages are corrected; the words are his.",
     "later": [
@@ -87,6 +87,11 @@
         "at": "13 Nov 18:04 GMT",
         "about": "his answer when chirp-eco asked whether \"chirp native\" rules out the captured cabinet files (irs/jester/...) that the tight and wall rigs end in; chirper-zero had just measured them against a record's guitar alone (a hump at 5 kHz, a hole at 8-10 kHz) beside the engine's own cabinet",
         "words": "cab IR is allowed"
+      },
+      {
+        "at": "13 Nov 18:06 GMT",
+        "about": "two minutes after \"cab IR is allowed\", adding to it",
+        "words": "we could theoretically build cab IR into the songs / engine so it can count as chirp. if we can get a wholly owned better sounding version then even better but this is allowed i think"
       }
     ]
   }
