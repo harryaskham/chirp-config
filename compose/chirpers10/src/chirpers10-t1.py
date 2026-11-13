@@ -1047,6 +1047,49 @@ BEQ = os.environ.get("C10T1_BEQ", "44:1.5:-7,90:1:7.5,350:1:-8,1500:1:4")     # 
 # whole mix said otherwise: at -4 the nine guard windows' 500 Hz-1 kHz went from 1.0 dB off the records on average to 1.3
 # (the sections with a voice fell under); at -2.75 it is 1.0 again, centred.
 BODY = os.environ.get("C10T1_BODY", "87:3.5:5:5:7")
+# v33: A CABINET OF CHIRP'S OWN (Harry, 13 Nov 18:06: "we could theoretically build cab IR into the songs / engine so it can
+# count as chirp. if we can get a wholly owned better sounding version then even better"; bead bd-af781d).
+# The three heavy rigs stop at their amps (the cabinet files and seven's modelled 2x12 are bypassed, fx.3.mix=0; the patches'
+# own eq is flattened, every fx.4 band to 0 dB) and ONE response, the same for all three, follows on the track: a low cut,
+# seven peaks and two low-passes, the parts the engine's `cab` is made of. Nothing else: v25's, v31's and v32's track peaks,
+# the wall's eq and the guitars' bus eq all go.
+# How it was voiced (cabbench.py, cabfit.py, cabfit2.py), from each rig's AMP OUTPUT:
+#  - A first fit put the amp outputs straight onto the records' guitar alone (obZen 3:03, Combustion 0:44, Bleed 6:27):
+#    1.0 / 1.1 / 1.2 dB from it on average with no other eq. In the mix it was wrong: 2.3 dB over the records at 120-250 Hz,
+#    1.4 under at 500 Hz-1 kHz and at 4-8 kHz, and the records' stereo said the same of the low end (too much guitar at
+#    110-300 Hz, too little at 70-110). Three short passages on other notes cannot place a low end; eleven records' mixes can.
+#  - So: under 315 Hz the target is each rig's low end as v32 had it (set by the records' stereo, tools/lowwide.py), 1 dB
+#    fuller at 200-250 Hz; from 315 Hz up, HALFWAY from v32's tone to the record's guitar alone; then 0.8 dB less at 183 Hz
+#    and a 2 dB lift at 5.6 kHz, which the mix asked for.
+# "" = v32 (the files, and every eq back).
+OWNCAB = os.environ.get("C10T1_OWNCAB", "hp cutoff=55 q=1.10|peak cutoff=80 q=1.05 gain=5.0dB|peak cutoff=114 q=2.50 gain=8.1dB|peak cutoff=183 q=1.88 gain=3.4dB|peak cutoff=641 q=2.55 gain=-4.8dB|peak cutoff=2203 q=2.90 gain=2.7dB|peak cutoff=3824 q=1.77 gain=3.4dB|peak cutoff=5600 q=1.40 gain=2.2dB|lp cutoff=2800 q=1.09|lp cutoff=16000 q=0.90")
+OWNTRIM = os.environ.get("C10T1_OWNTRIM", "2.2:-1.4:1.4")     # track gain, dB: tight rig : seven's : wall (each as loud alone as it was)
+# THE CONE: a smooth response is not a cabinet. In twelfth-octave bands the records' guitar ripples 1.6-2.9 dB about its own
+# average at 0.4-1.6 kHz, 1.1-1.8 at 1.6-3.2 kHz and 2.4-3.1 at 3.2-6.4 kHz (a cone breaking up, a microphone near it); the
+# rigs on the cabinet files had the same (2.4 / 1.6 / 1.8 and 4.0 / 1.2 / 2.6), the smooth response a third of it
+# (0.9 / 0.6 / 0.9). So each rig, and each side of it, gets its own fixed set of narrow peaks and dips on top:
+# seed ; then for each stretch of the range  lowest Hz : highest Hz : how many : depth dB : q from : q to.  They alternate up and
+# down, one in each slice of its stretch, so they sum to nothing on average. "" = the smooth response alone.
+OWNGRIT = os.environ.get("C10T1_OWNGRIT", "7;450:1600:6:5:5:10;1600:3200:4:5:5:10;3200:7000:10:7:8:14")
+def grit(kind, right):
+    if not OWNGRIT:
+        return []
+    parts = OWNGRIT.split(";")
+    r = random.Random(int(parts[0]) * 100 + kind * 10 + right)
+    out = []
+    k = 0
+    for part in parts[1:]:
+        lo, hi, n, depth, q0, q1 = (float(x) for x in part.split(":"))
+        for i in range(int(n)):
+            f = lo * (hi / lo) ** ((i + 0.15 + 0.7 * r.random()) / n)
+            g = depth * (0.55 + 0.45 * r.random()) * (1 if k % 2 == 0 else -1)
+            out.append("peak cutoff=%.0f q=%.1f gain=%.1fdB" % (f, q0 + (q1 - q0) * r.random(), g))
+            k += 1
+    return out
+OWNBITE = os.environ.get("C10T1_OWNBITE", "3000:1.2:-2")       # seven's rig keeps v31's cut at 3 kHz (the hardest stretch's 2-4 kHz)
+OWNREAL = os.environ.get("C10T1_OWNREAL", "")                  # peaks for the real string's rig: none needed (it is within 0.5 dB of the first half's)
+if OWNCAB:
+    TOP = BODY = ""
 SCOOP = os.environ.get("C10T1_SCOOP", "730:1:-2.75")     # half of what the guitars alone asked for: see the note below
 if SCOOP and GEQ == "350:1:-4,750:1.2:-1.5":
     GEQ = "350:1:-4," + SCOOP
@@ -1229,6 +1272,12 @@ def song():
         if pan is not None:
             t["pan"] = pan
         t.update(extra)
+        if OWNCAB and name in TOP_OF:
+            kind = TOP_OF[name]
+            t["patch"] = t["patch"] + " fx.3.mix=0" + "".join(f" fx.4.bands.{i}.gain=0dB" for i in range(4 if kind == 2 else 7))
+            t["fx"] = [{"type": "eq", "bands": OWNCAB.split("|") + grit(kind, int(name.rstrip("2").endswith("r"))) + (peaks(OWNBITE) if kind == 1 else []) + (peaks(OWNREAL) if OWNREAL and name in ("rl", "rr", "rl2", "rr2") else [])}]
+            # the squeal (Ab5, 830 Hz) sits in the new cabinet's scoop: half a dB more to be as loud as it was
+            gain = t["gain"] = f"{float(gain[:-2]) + float(OWNTRIM.split(':')[kind]) + (0.5 if name in ('ql', 'qr') else 0):g}dB"
         if TOP and name in TOP_OF:
             kind = TOP_OF[name]
             t["patch"] = t["patch"] + " fx.4.bands.3.gain=0dB" + ("" if kind == 2 else " fx.4.bands.6.gain=0dB")
@@ -1293,7 +1342,7 @@ def song():
                                        {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.lvl", "amount": 1}]}}],
                                 "auto": {"lvl": {"points": GRIND_LVL, "curve": 0}, "teeth": {"points": GRIND_TEETH, "curve": 0}}}} if GRIND and BEQ else {}),
                   **({"oh": {"fx": [f"reverb kind=room decay={(DROOM.split(':') + ['0.4'])[3]}s mix=1 predelay=4ms low_cut={DROOM.split(':')[0]} high_cut=12000 spread=0.6"]}} if DROOM else {}),
-                  **({"gtrs": {"fx": [{"type": "eq", "bands": peaks(GEQ)}, {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}] + ([{"src": "auto.ring", "amount": 1}] if RINGS else [])}}]
+                  **({"gtrs": {"fx": ([] if OWNCAB else [{"type": "eq", "bands": peaks(GEQ)}]) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}] + ([{"src": "auto.ring", "amount": 1}] if RINGS else [])}}]
                                + ([{"type": "rotary", "mix": {"value": 0, "mod": [{"src": "auto.rot", "amount": 1}]}, "speed": {"value": 0, "mod": [{"src": "auto.spin", "amount": 1}]}}] if ROTARY else [])
                                + ([{"type": "duck", "by": "speak", "depth": f"-{DUCK.split(':')[0]}dB", "attack": "20ms", "release": "250ms"}] if DUCK and SPEAK else []),
                                "auto": {"ride": {"points": GTR_RIDE}, **({"ring": {"points": GTR_RING, "curve": 0}} if RINGS else {}), **({"rot": {"points": ROT_MIX}, "spin": {"points": ROT_SPIN}} if ROTARY else {})}}} if GEQ else {}),
