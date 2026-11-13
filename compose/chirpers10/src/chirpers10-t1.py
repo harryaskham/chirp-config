@@ -815,7 +815,17 @@ WORD = os.environ.get("C10T1_WORD", "-12dB")       # a choir of fifteen on the l
 # recognisers heard the choir's "now" as "no", the opposite word, in all three renders tried (the smaller heard "now");
 # "yes" both read right in all three
 WORD_PH = os.environ.get("C10T1_WORDPH", "Y EH1 S")
-VOX = os.environ.get("C10T1_VOX", "7dB")
+BARK = os.environ.get("C10T1_BARK", "1")           # v18: the bark's words, tone and level ("" = the bark as it was in v11-v17)
+# its level: while it sings, the voice on eleven records is 9.2 dB under the whole record and 7.1 dB under it at 1-4 kHz
+# (their vocal stems against the records); ours was 6.8 and 6.9, and with the new tone at 4 dB it is 8.4 and 7.1
+VOX = os.environ.get("C10T1_VOX", "4dB" if BARK else "7dB")
+# its words: the patch with sung diction and the speaking voice's articulation (the scream and the false folds stay, and
+# its noise, roughness and tilt measure the same). A speech recogniser reads 26-28 of the 35 words from the voice alone; 16 before
+VOX_WORDS = os.environ.get("C10T1_VOXWORDS", " synth.layers.0.diction=2 synth.layers.0.speech=1" if BARK else "")
+# its tone, against the same eleven voices: ours was 3-5 dB heavy at 250-500 Hz, 3.5 dB short at 1-2 kHz (where words are told
+# apart) and 4 dB over at 4-8 kHz; with this it is within 1 dB of them in every band from 120 Hz up
+VOX_HP = os.environ.get("C10T1_VOXHP", "440" if BARK else "300")
+VOX_EQ = os.environ.get("C10T1_VOXEQ", "1400:0.8:4.5,5500:1.2:-4" if BARK else "")
 CHOIR = os.environ.get("C10T1_CHOIR", "-27dB")
 WHISPER = os.environ.get("C10T1_WHISPER", "-8dB")
 BCOMP = os.environ.get("C10T1_BCOMP", "-26:8:2.5")                                    # threshold:ratio:makeup on the bass's bus, after its eq                         # and a high shelf there, hz:dB
@@ -878,7 +888,7 @@ def song():
         ("fifth", "cellos", "-15dB", 0.4, {"sends": {"hall": "-8dB"}}),
         ("air", "juno-pad", "-17dB", 0.15, {"sends": {"hall": "-8dB"}}),
         ("chime", "modal-glock", CHIME_GAIN, -0.2, {"sends": {"hall": "-6dB", "dly": "-14dB"}}),
-        ("vox", "kidman", VOX or "0dB", 0, {"sends": {"hall": "-18dB"}, "fx": [{"type": "eq", "bands": ["hp cutoff=300"] + ([f"highshelf cutoff={VOX_SHELF.split(':')[0]} gain={VOX_SHELF.split(':')[1]}dB"] if VOX_SHELF else [])}]}),
+        ("vox", "kidman" + VOX_WORDS, VOX or "0dB", 0, {"sends": {"hall": "-18dB"}, "fx": [{"type": "eq", "bands": [f"hp cutoff={VOX_HP}"] + peaks(VOX_EQ) + ([f"highshelf cutoff={VOX_SHELF.split(':')[0]} gain={VOX_SHELF.split(':')[1]}dB"] if VOX_SHELF else [])}]}),
         ("choir", "voice-backing", CHOIR or "0dB", 0, {"sends": {"hall": "-8dB"}}),
         ("speak", "voice-talk", SPEAK or "0dB", 0, {"fx": [{"type": "eq", "bands": ["hp cutoff=120", "peak cutoff=300 q=1 gain=" + os.environ.get("C10T1_SPEAKDIP", "-2.5") + "dB"]}]}),      # dry: with the hall a recogniser lost "its own count"; the dip: it put the rebuild 3.9 dB over the records at 250-500 Hz
         ("word", "ct-word", WORD or "0dB", 0, {"sends": {"hall": "-8dB"}, "fx": [{"type": "eq", "bands": ["hp cutoff=350"]}]}),      # its notes are C3 F3 C4, on top of the guitars' chord: 250-500 Hz read 3.8 dB over with them in
