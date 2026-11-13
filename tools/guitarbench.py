@@ -16,11 +16,13 @@ Prints the 1/6-octave envelope error grouped by region, the harmonic-line contra
 partial irregularity. Contrast = 90th − 10th percentile of the fine spectrum per octave, median over events: a
 clean synthetic harmonic series reads high (deep valleys), a real rig fills the valleys.
 
-CAVEAT on the top band ("fizz 4200-8500"): the target leans on a separated guitar stem, and the correction does not
-take the separator out of it there. Read from the records themselves where the guitar plays ALONE (obZen 3:03, Bleed
-6:27; find such passages with galone.py, read them with gspec.py), our heavy rigs have nothing above 6.3 kHz (-18 dB
-at 8 kHz, -23 at 10 kHz) and 13 dB less at 80 Hz: they are dull on top and thin underneath, not fizzy. So do not
-chase this band's number down; judge the top against a record's own guitar. (chirper-zero, Common Time v30.)"""
+CAVEAT on the top band ("fizz 4200-8500"): the target leans on a separated guitar stem, and the separator moves a
+guitar's top (above about 6 kHz) out of the guitar stem; the correction does not undo that. Read from the records
+themselves where the guitar plays ALONE (obZen 3:03, Bleed 6:27; find such passages with galone.py, read them with
+gspec.py), rigs tuned to this band's number had nothing above 6.3 kHz (-18 dB at 8 kHz, -23 at 10 kHz): dull on top,
+not fizzy. A record's guitar alone falls, against its own 2-3.15 kHz, -3.6 dB at 4 kHz, -9.9 at 5, -16.4 at 6.3,
+-22.4 at 8, -26.7 at 10 and -34.8 at 12.5 (three Meshuggah records agree to 0.7-1.6 dB). So do not chase this
+band's number down; judge the top against a record's own guitar. (chirper-zero, Common Time v30 and v31.)"""
 import json
 import os as _os, sys as _sys  # noqa: E401
 _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
