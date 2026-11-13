@@ -1,0 +1,4 @@
+{
+ "about": "Common Time the tight rig with rests that are rests (chirper-zero, 13 Nov): ct-chug-l without its `sympathetic` effect. That effect lets the other strings ring along, and its ring, however small, keeps a saturated amp at full output through every rest (the rig's own gate sits after the amp, where the level never falls): a half-beat stab sounded for 0.8 s. Without it a stab is 17 dB down within a sixteenth and 35 dB within three; riffs measure the same (on the Bleed and Faultless benches the attack measures move 0.5 dB at most), held chords ring as long (that is the string), and the guitar loses 2-3 dB at 315-500 Hz, which was the ring. Use this, not ct-chug-l, for anything with stops. (bd-42e146; tools/stops.py measures it.)",
+ "extends": "ct-chug-l fx.0.mix=0"
+}

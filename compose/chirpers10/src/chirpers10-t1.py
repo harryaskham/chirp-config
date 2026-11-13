@@ -349,11 +349,11 @@ LONG_WAIT = [(C5, 1), (C5 - 1, 1), (C5 - 4, 1), (C5 - 7, 2), (C5 - 6, 1), (C5 - 
 LONG_WAIT_TURNS = sum(n for _, n in LONG_WAIT)     # 21 turns of eleven = 231 sixteenths
 
 
-def long_wait(b0, b1, vel=0.75, up=0, start=None, tr="lead"):
+def long_wait(b0, b1, vel=0.75, up=0, start=None, tr="lead", i0=0):
     """The lead's tune: one note to each turn of the eleven wheel (some held for two or three turns)."""
     s0, s1 = s16(b0), s16(b1)
     t = s0 + (-s0) % 11 if start is None else start
-    i = 0
+    i = i0
     while t < s1:
         pitch, turns = LONG_WAIT[i % len(LONG_WAIT)]
         add(tr, t, min(turns * 11, s1 - t), pitch + up, vel)
@@ -778,6 +778,12 @@ def compose():
     kit(363, 371, "x", 4, "half", None)
     kit(371, 383, "x", 2, "back", "run16", cvel=0.6, crash_at_start=False)
     long_wait(363, 383, vel=0.85)
+    if ATT:        # the tune's ghost: an attractor plays the END of the tune over the approach's ticks, settling from five cycles
+        #            to one, and hands it to the lead, who begins it again from the top when the band comes in (bar 363, where
+        #            the eleven wheel meets the bar line). So the ghost enters three turns into the tune, on its fourth note
+        t_att = 350 * 16 + (-350 * 16) % 11
+        assert (363 * 16 - t_att) % 11 == 0 and (363 * 16 - t_att) // 11 == LONG_WAIT_TURNS - 3 and sum(n for _, n in LONG_WAIT[:3]) == 3
+        long_wait(350, 363, vel=0.8, tr="att", start=t_att, i0=3)
     for t in landings(7, 363 * 16 + 1, 383 * 16):
         crash(t, 0.85)
     rise(z, 2)
@@ -857,6 +863,17 @@ if os.environ.get("C10T1_SECMIX", "1"):      # under the full band (363-383) it 
     SWARM_LVL = [(0, 0), (12, 0), (24, 4), (30, 4), (350, 5), (362.5, 5), (364, -6), (382.5, -6), (383, 5), (385, 3), (389, 0), (NB, 0)]
 SWARM_NOTES = (53, 60)                                  # F3 and C4
 SWARM_LANE = [(0, 3), (2, 2), (24, 1), (30, 0.3), (350, 0.3), (363, 1.0), (383, 1.1), (384, 1.4), (385, 3), (NB, 3)]   # (bar, coupling: 0 a crowd, 1 the critical point, 3 locked)
+# v22, THE ATTRACTOR (the engine's `chaos` layer, a Roessler system looping at the note's pitch). Its one control walks the
+# route to chaos, and on the way the tone's period multiplies: measured on a held C5, at 1.0 it repeats every FIVE cycles
+# (partials at 3/5, 4/5, 6/5, 7/5 of the note), at 0.85 every THREE (2/3, 4/3, 5/3: a fifth below), at 0.4 every TWO (an
+# octave below), under 0.2 it is one clean tone. Over the approach's ticks it plays the tune and walks that road backwards:
+# five cycles, then three, then (as the seven wheel's guitars come in) two, then (with the five's) one: cycles inside
+# cycles folding into one as the wheels close on the landing. It stops where the band and the lead take the tune up
+# (kept through the band it put 250-500 Hz 5.2 dB over the records: a pure tone has all its energy in one band). "" = none
+ATT = os.environ.get("C10T1_ATT", "-20dB")
+ATT_STEPS = [(350, 1.0), (353.5, 0.85), (357, 0.46), (360, 0.1)]
+ATT_LVL = [["0b", 0], [f"{356 * 4}b", 0], [f"{358 * 4}b", 3], [f"{NB * 4}b", 3]]        # up 3 dB once the first guitars are in
+ATT_LANE = [["0b", 1.0]] + [x for i, (b, v) in enumerate(ATT_STEPS) for x in ([[f"{b * 4 - 2}b", ATT_STEPS[i - 1][1]], [f"{b * 4}b", v]] if i else [[f"{b * 4}b", v]])] + [[f"{NB * 4}b", 0.1]]
 CZ = os.environ.get("C10T1_CZ", "-12dB")                 # a phase-distortion synth (the library's cz-bass) doubling riff C
 CHIME_GAIN = os.environ.get("C10T1_CHIME", "-19dB")
 # the mix against eleven records (stembal.py; compose/chirpers10/sounds.md): peaks as hz:q:dB, comma-separated
@@ -975,6 +992,7 @@ def song():
         ("speak", "voice-talk", SPEAK or "0dB", 0, {"fx": [{"type": "eq", "bands": ["hp cutoff=" + os.environ.get("C10T1_SPEAKHP", "120"), "peak cutoff=300 q=1 gain=" + os.environ.get("C10T1_SPEAKDIP", "-6" if TIDY else "-2.5") + "dB"]}]}),      # dry: with the hall a recogniser lost "its own count"; the dip: it put the rebuild 3.9 dB over the records at 250-500 Hz
         ("word", "ct-word", WORD or "0dB", 0, {"sends": {"hall": "-8dB"}, "fx": [{"type": "eq", "bands": ["hp cutoff=350"]}]}),      # its notes are C3 F3 C4, on top of the guitars' chord: 250-500 Hz read 3.8 dB over with them in
         ("whisper", "ct-whisper", WHISPER or "0dB", 0, {"sends": {"hall": "-8dB"}}),
+        ("att", "ct-attractor", {"value": ATT or "0dB", "mod": [{"src": "auto.lvl", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"lock": {"points": ATT_LANE}, "lvl": {"points": ATT_LVL}}}),
         ("swarm", "ct-swarm", {"value": SWARM or "0dB", "mod": [{"src": "auto.lvl", "amount": 1}]}, 0,
          {"sends": {"hall": "-8dB"}, "auto": {"sync": {"points": [[f"{b * 4}b", c] for b, c in SWARM_LANE]}, "lvl": {"points": [[f"{b * 4}b", c] for b, c in SWARM_LVL]}}}),
         ("cz", "cz-bass", CZ or "0dB", 0, {"fx": [{"type": "eq", "bands": ["hp cutoff=420"]}]}),     # its sweep, not its body: the wall rig is thick enough at 250-500 Hz
@@ -1009,6 +1027,9 @@ def song():
             "ct-swell": {"about": "chirper-zero: a breath in before a landing - band-passed noise that swells for as long as the note is held (a slow attack), its band rising two octaves, cut off on the bar line",
                          "synth": {"layers": [{"type": "noise"}], "filters": [{"kind": "bp", "cutoff": {"value": 500, "mod": [{"src": "env.up", "amount": 2.5}]}, "q": 0.9}, "hp cutoff=250"],
                                    "env": {"up": {"a": "3.6s", "d": "10ms", "s": 1}}, "amp": {"a": "3.6s", "d": "10ms", "s": 1, "r": "40ms", "curve": 3}}},
+            "ct-attractor": {"about": "chirper-zero: the tune's shadow in the approach - a Roessler attractor at the note's pitch whose `amount` (lane auto.lock) walks back from chaos: its period goes five, three, two, one",
+                             "synth": {"layers": [{"type": "chaos", "chaos": {"system": "rossler", "axis": "x", "amount": {"value": 0, "mod": [{"src": "auto.lock", "amount": 1}]}}}],
+                                       "amp": {"a": "40ms", "d": 0, "s": 1, "r": "400ms"}}, "gain": "-5.5dB"},
             "ct-swarm": {"about": "chirper-zero: the swarm - sixteen saws to a note, each at its own pitch (60 cents' spread), pulled toward their common phase by a coupling the track's `sync` lane sets (0 a crowd, 1 the critical point, 3 locked); a low-pass opens as they agree. After the library's kuramoto-choir, with the lane in place of its LFO.",
                          "synth": {"layers": [{"type": "kuramoto", "kuramoto": {"count": 16, "spread": int(os.environ.get("C10T1_SPREAD", "60")), "coupling": {"value": 0, "mod": [{"src": "auto.sync", "amount": 1}]}}}],
                                    "filters": [{"kind": "lp", "cutoff": {"value": 350, "mod": [{"src": "sync", "amount": 2.6}]}}],
