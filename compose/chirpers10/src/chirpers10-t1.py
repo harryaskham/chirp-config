@@ -1028,11 +1028,28 @@ ATT = os.environ.get("C10T1_ATT", "-20dB")
 ATT_STEPS = [(350, 1.0), (353.5, 0.85), (357, 0.46), (360, 0.1)]
 ATT_LVL = [["0b", 0], [f"{356 * 4}b", 0], [f"{358 * 4}b", 3], [f"{NB * 4}b", 3]]        # up 3 dB once the first guitars are in
 ATT_LANE = [["0b", 1.0]] + [x for i, (b, v) in enumerate(ATT_STEPS) for x in ([[f"{b * 4 - 2}b", ATT_STEPS[i - 1][1]], [f"{b * 4}b", v]] if i else [[f"{b * 4}b", v]])] + [[f"{NB * 4}b", 0.1]]
-CZ = os.environ.get("C10T1_CZ", "-12dB")                 # a phase-distortion synth (the library's cz-bass) doubling riff C
+CZ = os.environ.get("C10T1_CZ", "-14.5dB")               # a phase-distortion synth (the library's cz-bass) doubling riff C
+# (v32: 2.5 dB down from -12dB. At -12 it was louder than the guitars at 500 Hz-1 kHz and cost the mix 2.7 dB there, which is
+#  the whole of riff C's reading of 2.4 over the records' instrumental passages; now it is level with the guitars in that band.)
 CHIME_GAIN = os.environ.get("C10T1_CHIME", "-19dB")
 # the mix against eleven records (stembal.py; compose/chirpers10/sounds.md): peaks as hz:q:dB, comma-separated
 GEQ = os.environ.get("C10T1_GEQ", "350:1:-4,750:1.2:-1.5" if STOPS else "350:1:-5,750:1.2:-2.5")   # the rhythm guitars' bus (v20: 1 dB back where the ring was)
 BEQ = os.environ.get("C10T1_BEQ", "44:1.5:-7,90:1:7.5,350:1:-8,1500:1:4")     # the bass's bus
+# v32: THE GUITARS' WEIGHT AND SCOOP, from the same yardstick as v31 (a guitar heard alone on the record) and from the records'
+# own stereo (lowwide.py: how much of a band is side, with no stems). Alone, our rigs had the low F's second harmonic (87 Hz)
+# 13 dB under its third, where obZen's and Combustion's guitars have the two level; and in the full mix our 70-110 Hz was
+# 12.5 dB more mid than side where eleven records' median is 9.3: the bass was carrying what their guitars carry. And at
+# 630-800 Hz our rigs stood 3.7-7.8 dB over all three records' guitars.
+# BODY: a peak after each rig, like a cabinet's resonance: Hz : q : tight rig dB : seven's rig : wall rig. It sits on the low
+# F's second harmonic and still gives 2-3 dB at Eb's and Ab's. The bass is left as it was (taking its 90 Hz down 1.2 dB put
+# it 2 dB under the records' bass stems).  SCOOP: the guitars' bus eq's second band (v31: 750:1.2:-1.5).  "" for each = v31.
+# The scoop is HALF what the lone guitars asked for (-4 dB put them within 2-3 dB of the records' at 560-900 Hz), because the
+# whole mix said otherwise: at -4 the nine guard windows' 500 Hz-1 kHz went from 1.0 dB off the records on average to 1.3
+# (the sections with a voice fell under); at -2.75 it is 1.0 again, centred.
+BODY = os.environ.get("C10T1_BODY", "87:3.5:5:5:7")
+SCOOP = os.environ.get("C10T1_SCOOP", "730:1:-2.75")     # half of what the guitars alone asked for: see the note below
+if SCOOP and GEQ == "350:1:-4,750:1.2:-1.5":
+    GEQ = "350:1:-4," + SCOOP
 DEQ = os.environ.get("C10T1_DEQ", "400:0.8:-6,5500:0.9:1")                             # the drums' bus, after its clip
 DSHELF = os.environ.get("C10T1_DSHELF", "9000:-2")
 TUNE_DB = float(os.environ.get("C10T1_TUNE", "-2.5"))
@@ -1220,6 +1237,8 @@ def song():
                 fx[0] = {**fx[0], "bands": list(fx[0]["bands"]) + peaks(TOP.split(";")[kind])}
             else:
                 fx = [{"type": "eq", "bands": peaks(TOP.split(";")[kind])}] + fx
+            if BODY and float(BODY.split(":")[2 + kind]):
+                fx[0] = {**fx[0], "bands": list(fx[0]["bands"]) + peaks(":".join(BODY.split(":")[:2] + [BODY.split(":")[2 + kind]]))}
             t["fx"] = fx
         if name in SECTION_FADERS:
             pts = [["0b", 0]]
