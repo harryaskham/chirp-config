@@ -14,6 +14,11 @@ bars 49, beats 12b, seconds 30s), all unmastered (loudness=null) with the groove
 and flags BURIED (vs mix below --buried, default -25 dB) and LOUDEST. Levels are K-weighted (BS.1770, as LUFS:
 the sub does not swamp the measure and hats are judged as heard); --rms for plain RMS. Tracks silent in the window
 are listed as such, not as buried. Muted tracks are skipped. Read-only.
+
+What it cannot see (chirper-zero, Common Time v22): a pure tone has all its energy in one band. A sine-like part read
+-12 to -14 dB here ("buried", 5 dB under the lead) while it put its section's 250-500 Hz 3.8 dB further over the
+reference records (tools/stembal.py). Both readings were right. A level under the mix is not a share of a band: for a
+part with a narrow spectrum run stembal on the section as well.
 """
 import argparse
 import json
