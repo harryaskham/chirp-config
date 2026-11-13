@@ -938,6 +938,20 @@ LANDMIX = os.environ.get("C10T1_LANDMIX", "1.5:1:-2.5:-1.5")
 # read 1.3-1.6 dB over at 120-250 Hz (the landing riff 2.2), and by groups it is the bass: 3.7 dB more there than the
 # records' bass stems, where the guitars have 2.3 less and the drums 1.0 more. "" = no second eq (v29).
 BEQ2 = os.environ.get("C10T1_BEQ2", "170:1.2:-3")
+# v31: THE GUITARS GET THEIR TOP BACK. Where a guitar plays ALONE on the records (obZen 3:03-3:11, Bleed 6:27, This Spiteful
+# Snake 4:46; found with galone.py, read from the record itself with gspec.py) its top, against its own 2-3.15 kHz, is
+# -3.6 at 4 kHz, -9.9 at 5, -16.4 at 6.3, -22.4 at 8, -26.7 at 10, -34.8 at 12.5 kHz, and three records from two albums agree
+# to 0.7-1.6 dB. Our three heavy rigs matched that to 5 kHz and then stopped: 11-17 dB under at 8 kHz, 18-22 under at 10 kHz.
+# The cause was mine: a high shelf of -10 to -15 dB at 5 kHz on every rig (and -3 at 7.5 kHz), put there against the bench's
+# "fizz +8", which was the stem separator's doing and not the record's. Here the shelves are taken off (overrides at the song;
+# no library patch is touched) and two peaks per rig put the top where the record's is, less a third: a cut at the cabinet's
+# 5 kHz hump, and for the two rigs on cabinet files a lift into the hole those files have at 8-10 kHz. Predicted against the
+# record at 8 / 10 kHz: tight rig -5.4 / -5.0, seven's rig -4.2 / -8.5, wall rig -3.2 / -5.4 (held back because our top
+# moves less with the playing than the record's: 6-7 dB against 11-13). Seven's rig also loses 2 dB at 3 kHz: it stood
+# 1.5 dB over the record's guitar there, and the hardest stretch, which it leads, has read 1.7 over at 2-4 kHz since v16.
+# the tight rig's peaks ; seven's rig's ; the wall rig's. "" = v30.
+TOP = os.environ.get("C10T1_TOP", "5300:2:-10,9100:1.8:7.5;3000:1.2:-2,5500:1.6:-6.7,9000:1.2:-4;5272:2.4:-9.7,9613:1.1:5")
+TOP_OF = {**{t: 0 for t in ("gl", "gr", "gl2", "gr2", "rl", "rr", "rl2", "rr2", "ql", "qr")}, "sl": 1, "sr": 1, "wl": 2, "wr": 2}
 CYMINST = os.environ.get("C10T1_CYMINST", "-1.5")
 if SECMIX and (LANDMIX or CYMINST):
     cymf = [(35, 70, float(CYMINST)), (110, 121, float(CYMINST))] if CYMINST else []
@@ -1198,6 +1212,15 @@ def song():
         if pan is not None:
             t["pan"] = pan
         t.update(extra)
+        if TOP and name in TOP_OF:
+            kind = TOP_OF[name]
+            t["patch"] = t["patch"] + " fx.4.bands.3.gain=0dB" + ("" if kind == 2 else " fx.4.bands.6.gain=0dB")
+            fx = [dict(f) if isinstance(f, dict) else f for f in t.get("fx", [])]
+            if fx and isinstance(fx[0], dict) and fx[0].get("type") == "eq":
+                fx[0] = {**fx[0], "bands": list(fx[0]["bands"]) + peaks(TOP.split(";")[kind])}
+            else:
+                fx = [{"type": "eq", "bands": peaks(TOP.split(";")[kind])}] + fx
+            t["fx"] = fx
         if name in SECTION_FADERS:
             pts = [["0b", 0]]
             for b0, b1, db in SECTION_FADERS[name]:
