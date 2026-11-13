@@ -870,6 +870,16 @@ STUTTER = os.environ.get("C10T1_STUTTER", "1:1:0" if os.environ.get("C10T1_TIDY"
 # "dB the last chord has fallen by the end : dB the approach's chord has fallen by its end : the coda's drone, its
 # velocity : and its pad's"; "" = as it was (v22)
 ENDING = os.environ.get("C10T1_ENDING", "30:14:0.45:0.35")
+# "dB the piece's first chord has fallen by the end of its two bars : dB the bass break's chord has fallen by its end"; "" = held flat (v23)
+# A LANE'S FALL IS NOT A STRAIGHT LINE unless it is told to be. A lane is an envelope, and an envelope's falling segments
+# take its `curve` (default 3: fast, then slow); rising ones are straight. Measured on a sine, a lane from 0 to -20 dB
+# over eight beats reads -3.0 -8.8 -12.6 -15.3 -17.1 -18.3 -19.2 -19.8 at the beats' middles: half the fall in the first
+# fifth. With "curve": 0 on the lane it reads -1.2 -3.7 -6.2 -8.7 -11.2 -13.7 -16.2 -18.7, the line as written.
+# On a chord that should die away the default gives a quick drop and then a plateau (struck loud, then held soft), so these
+# two fades have a lane of their own with "curve": 0. Every earlier fade in the piece (the slow chords at 5:14, the
+# approach's chord, the ending) keeps the default: each was measured as it sounds, and is described as measured.
+RINGS = os.environ.get("C10T1_RINGS", "13:12")
+ENDLINE = os.environ.get("C10T1_ENDLINE", "")      # "1" = the last chord's fade as a straight line too (an alternative, not kept)
 TSTOP = os.environ.get("C10T1_TSTOP", "1")      # a tape stop on the last stab before the hardest stretch (8:52): the whole mix winds down, and the band lands on the bar line
 SWARM = os.environ.get("C10T1_SWARM", "-18dB")
 # its fader (bar, dB): a crowd is about 3 dB quieter than the same swarm in step, and the approach is busier than the opening
@@ -969,13 +979,25 @@ def song():
     if ROTARY:        # the cabinet's two microphones give 2.7 dB less than the dry guitars: made up on the same fader
         GTR_RIDE = [["0b", 0], [f"{165 * 4}b", 0], [f"{166 * 4}b", 2.7], [f"{170 * 4}b", 2.7], [f"{175 * 4}b", -2.3], [f"{176 * 4}b", 2.7], [f"{177 * 4}b", 2.7], [f"{178 * 4}b", 0]]
     ROT_SPIN = [["0b", 0], [f"{169.5 * 4}b", 0], [f"{170 * 4}b", 1], [f"{178 * 4}b", 1], [f"{178.5 * 4}b", 0]]
+    if RINGS:
+        # v24: the other two chords that are struck and left. The piece's first (everything strikes once, together, and is held
+        # two bars) and the one held under the bass break (bars 308-314): each sat flat at its full level and then cut off
+        # They go on a second fader lane of their own with "curve": 0, which falls in a straight line of dB (see RINGS)
+        o, k = (float(x) for x in RINGS.split(":"))
+        BASS_RING = [["0b", 0], [f"{0.5 * 4}b", 0], [f"{2 * 4}b", -o], [f"{2.5 * 4}b", -o], [f"{3 * 4}b", 0]]
+        GTR_RING = BASS_RING + [[f"{308.5 * 4}b", 0], [f"{314.25 * 4}b", -k], [f"{314.6 * 4}b", -k], [f"{314.9 * 4}b", 0]]
     if ENDING:
         # the chord struck where the approach begins (bar 350, the wall rig alone) dies away over its four bars, and the faders
         # are back up before the first guitars of the approach
         GTR_RIDE += [[f"{350.25 * 4}b", 0], [f"{353.75 * 4}b", -float(ENDING.split(":")[1])], [f"{354.5 * 4}b", -float(ENDING.split(":")[1])], [f"{355.5 * 4}b", 0]]
         # the last chord: held a bar, then dying away to the end of the piece, guitars and bass alike
-        GTR_RIDE += [[f"{401.5 * 4}b", 0], [f"{402.5 * 4}b", -1], [f"{NB * 4}b", -float(ENDING.split(":")[0])]]
-        BASS_RIDE += [[f"{401.5 * 4}b", 0], [f"{402.5 * 4}b", -1], [f"{NB * 4}b", -float(ENDING.split(":")[0])]]
+        last = [[f"{401.5 * 4}b", 0], [f"{402.5 * 4}b", -1], [f"{NB * 4}b", -float(ENDING.split(":")[0])]]
+        if ENDLINE and RINGS:       # the alternative: the same fade as a straight line (not the kept ending; for a clip to compare)
+            GTR_RING += last
+            BASS_RING += last
+        else:
+            GTR_RIDE += last
+            BASS_RIDE += last
     # the tape stop: from the last stab of the second stop-time (bar 279, the twelfth sixteenth) to the bar line
     t0 = (279 + 11 / 16) * 4
     TSTOP_LANE = [["0b", 0], [f"{t0 - 0.01}b", 0], [f"{t0}b", 1], [f"{280 * 4 - 0.01}b", 1], [f"{280 * 4}b", 0]]
@@ -1082,14 +1104,14 @@ def song():
                             + ([{"type": "width", "width": 1, "mono_below": 0, "bands": [[float(x.split(":")[0]), float(x.split(":")[1])] for x in DWIDTH.split(",")]}] if DWIDTH else [])
                             + ([{"type": "duck", "by": "speak", "depth": f"-{DUCK.split(':')[1]}dB", "attack": "20ms", "release": "250ms"}] if DUCK and SPEAK else [])},
                   **({"oh": {"fx": [f"reverb kind=room decay={(DROOM.split(':') + ['0.4'])[3]}s mix=1 predelay=4ms low_cut={DROOM.split(':')[0]} high_cut=12000 spread=0.6"]}} if DROOM else {}),
-                  **({"gtrs": {"fx": [{"type": "eq", "bands": peaks(GEQ)}, {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}}]
+                  **({"gtrs": {"fx": [{"type": "eq", "bands": peaks(GEQ)}, {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}] + ([{"src": "auto.ring", "amount": 1}] if RINGS else [])}}]
                                + ([{"type": "rotary", "mix": {"value": 0, "mod": [{"src": "auto.rot", "amount": 1}]}, "speed": {"value": 0, "mod": [{"src": "auto.spin", "amount": 1}]}}] if ROTARY else [])
                                + ([{"type": "duck", "by": "speak", "depth": f"-{DUCK.split(':')[0]}dB", "attack": "20ms", "release": "250ms"}] if DUCK and SPEAK else []),
-                               "auto": {"ride": {"points": GTR_RIDE}, **({"rot": {"points": ROT_MIX}, "spin": {"points": ROT_SPIN}} if ROTARY else {})}}} if GEQ else {}),
+                               "auto": {"ride": {"points": GTR_RIDE}, **({"ring": {"points": GTR_RING, "curve": 0}} if RINGS else {}), **({"rot": {"points": ROT_MIX}, "spin": {"points": ROT_SPIN}} if ROTARY else {})}}} if GEQ else {}),
                   **({"low": {"fx": [{"type": "eq", "bands": peaks(BEQ)}]
                               + ([{"type": "compressor", "threshold": BCOMP.split(":")[0] + "dB", "ratio": float(BCOMP.split(":")[1]), "attack": "12ms", "release": "120ms", "makeup": BCOMP.split(":")[2] + "dB"}] if BCOMP else [])
-                              + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}}],
-                              "auto": {"ride": {"points": BASS_RIDE}}}} if BEQ else {})},
+                              + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}] + ([{"src": "auto.ring", "amount": 1}] if RINGS else [])}}],
+                              "auto": {"ride": {"points": BASS_RIDE}, **({"ring": {"points": BASS_RING, "curve": 0}} if RINGS else {})}}} if BEQ else {})},
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}] + ([{"type": "gain", "gain": f"{MASTER_DB}dB"}] if MASTER_DB else [])
                    + ([{"type": "gain", "gain": f"{MGAIN.split(':')[0]}dB"}, "limiter ceiling=-1dB", {"type": "gain", "gain": f"-{MGAIN.split(':')[1]}dB"}] if MGAIN else [])
                    + ([{"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.stop", "amount": 1}]}, "time": "1.25b"}] if TSTOP else [])
