@@ -136,7 +136,8 @@ def words(path, model):
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", path, "-ac", "1", "-ar", "16000", wav], check=True,
                    stdin=subprocess.DEVNULL)
     try:
-        pin = ["taskset", "-c", "0-3"] if shutil.which("taskset") else []   # a hard CPU limit (see tools/asr.py)
+        import asr                          # a hard CPU limit, off the groove's four CPUs (see tools/asr.py)
+        pin = ["taskset", "-c", os.environ.get("ASR_CORES") or asr.default_cores()] if shutil.which("taskset") else []
         subprocess.run(pin + ["nice", "-n", "10", "whisper", wav, "--model", model, "--language", "en", "--output_dir", d,
                         "--output_format", "json", "--fp16", "False", "--verbose", "False",
                         # bounded and loop-free: a separated stem's silences sent tiny.en into temperature-fallback

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """asr: windowed Whisper transcription that cannot take over the host.
 
-  asr.py AUDIO [--from S] [--to S] [--window 30] [--model base.en] [--words] [--cores 0-3] [-o OUT.json] [--work DIR]
+  asr.py AUDIO [--from S] [--to S] [--window 30] [--model base.en] [--words] [--norm] [--cores LIST] [-o OUT.json]
+         [--work DIR]
 
 Splits [--from, --to] (default: all of AUDIO) into --window second pieces, transcribes each with openai-whisper and
 merges them into one JSON: {"text", "segments": [{"start", "end", "text", "words"?}]}, times on AUDIO's timeline.
@@ -11,6 +12,16 @@ whisper over every core — three host-wide runaways on 2026-10-21/22, all with 
 per audio second (at least 5 min). --words adds word timestamps (the heavy part; safe under taskset, just slower).
 Finished windows are kept in --work (default: a temp dir, removed unless given) and reused, so an interrupted run
 resumes. Prints the JSON to stdout unless -o.
+
+--cores (or $ASR_CORES): the CPUs whisper is held to. The default is the machine's LAST four (20-23 on pocket4), not
+0-3 as it was until 13 Nov: CPUs 0-3 are the groove's render threads' (chirp-eco's cpu-reserve), which moved whisper
+off them and, until the same day, onto all twenty others, so the hard limit was not one.
+
+--norm: bring each window to a standard loudness (ffmpeg loudnorm, -16 LUFS) before it is recognised. USE THIS, OR
+LOUDNORM OF YOUR OWN, WHEN THE VOICE IS QUIET; NEVER A FIXED GAIN. A fixed +12 dB clipped the input, and the damage
+read as the voice's own fault (chirper-zero, Common Time v17, where this tool decided a choir's word: small.en heard
+"no" for a sung "now" three seeds in three). Off by default: the output without it is what it always was. Compare
+models and seeds before trusting one reading; a recogniser is an ear for words, not for tone.
 """
 import argparse
 import json
@@ -25,6 +36,13 @@ def duration(path):
     r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path],
                        capture_output=True, text=True, stdin=subprocess.DEVNULL)
     return float(r.stdout.strip())
+
+
+def default_cores():
+    """The machine's last four CPUs ("20-23" of 24; all of them on a machine with four or fewer): away from 0-3, which
+    are kept for the groove's render threads."""
+    n = os.cpu_count() or 4
+    return f"{max(0, n - 4)}-{n - 1}"
 
 
 def whisper_cmd(wav, outdir, model, words, cores):
@@ -42,16 +60,17 @@ def env():
     return e
 
 
-def window(audio, start, length, work, model, words, cores):
+def window(audio, start, length, work, model, words, cores, norm=False):
     """One window's segments shifted to AUDIO's timeline ([] on failure, with a note on stderr)."""
-    tag = f"w{start:09.3f}-{length:g}{'-words' if words else ''}-{model}"
+    tag = f"w{start:09.3f}-{length:g}{'-words' if words else ''}{'-norm' if norm else ''}-{model}"
     done = os.path.join(work, tag + ".json")
     if not os.path.exists(done):
         wav = os.path.join(work, tag + ".wav")
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", str(start), "-t", str(length), "-i", audio, "-ac", "1",
-                        "-ar", "16000", wav], check=True, stdin=subprocess.DEVNULL)
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", str(start), "-t", str(length), "-i", audio, "-ac", "1"]
+                       + (["-af", "loudnorm=I=-16:TP=-1.5:LRA=11"] if norm else [])
+                       + ["-ar", "16000", wav], check=True, stdin=subprocess.DEVNULL)
         try:
-            r = subprocess.run(whisper_cmd(wav, work, model, words, os.environ.get("ASR_CORES") or "0-3"),
+            r = subprocess.run(whisper_cmd(wav, work, model, words, cores),
                                capture_output=True, text=True, stdin=subprocess.DEVNULL, env=env(),
                                timeout=max(300, 15 * length))
         except subprocess.TimeoutExpired:
@@ -82,7 +101,9 @@ def main(argv=None):
     ap.add_argument("--window", type=float, default=30.0)
     ap.add_argument("--model", default="base.en")
     ap.add_argument("--words", action="store_true")
-    ap.add_argument("--cores", default="0-3", help="CPU list for taskset (default 0-3)")
+    ap.add_argument("--norm", action="store_true", help="loudness-normalise each window first (never use a fixed gain)")
+    ap.add_argument("--cores", default=os.environ.get("ASR_CORES") or default_cores(),
+                    help="CPU list for taskset (default: $ASR_CORES, else the machine's last four)")
     ap.add_argument("-o", dest="out")
     ap.add_argument("--work")
     a = ap.parse_args(argv)
@@ -97,7 +118,7 @@ def main(argv=None):
         t = a.t0
         while t < t1 - 0.05:
             n = min(a.window, t1 - t)
-            segs += window(a.audio, round(t, 3), round(n, 3), work, a.model, a.words, a.cores)
+            segs += window(a.audio, round(t, 3), round(n, 3), work, a.model, a.words, a.cores, a.norm)
             t += a.window
         res = {"audio": os.path.abspath(a.audio), "from": a.t0, "to": t1, "model": a.model,
                "text": " ".join(s["text"] for s in segs), "segments": segs}

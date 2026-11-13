@@ -23,6 +23,12 @@ with open(log, "a") as f:
     f.write(json.dumps({"argv": a, "omp": os.environ.get("OMP_NUM_THREADS"),
                         "openblas": os.environ.get("OPENBLAS_NUM_THREADS")}) + "\n")
 wav = a[0]
+import wave, struct
+with wave.open(wav, "rb") as w:
+    raw = w.readframes(w.getnframes())
+peak = max((abs(v[0]) for v in struct.iter_unpack("<h", raw)), default=0)
+with open(log, "a") as f:
+    f.write(json.dumps({"peak": peak, "affinity": sorted(os.sched_getaffinity(0))}) + "\n")
 out = a[a.index("--output_dir") + 1]
 words = "--word_timestamps" in a
 seg = {"start": 1.0, "end": 2.5, "text": " hello world"}
@@ -55,9 +61,9 @@ class Asr(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         return json.loads(r.stdout)
 
-    def calls(self):
+    def calls(self, key="argv"):
         with open(self.log) as f:
-            return [json.loads(x) for x in f]
+            return [x for x in (json.loads(ln) for ln in f) if key in x]
 
     def test_windows_tile_the_range_and_shift_times(self):
         out = self.run_asr("--from", "10", "--to", "70", "--window", "25")
@@ -81,6 +87,38 @@ class Asr(unittest.TestCase):
         cmd = asr.whisper_cmd("x.wav", "/tmp", "base.en", True, "2-5")
         self.assertEqual(cmd[:6], ["taskset", "-c", "2-5", "nice", "-n", "15"])
         self.assertIn("--word_timestamps", cmd)
+
+    def test_the_default_cores_are_the_last_four_not_the_grooves(self):
+        sys.path.insert(0, TOOLS)
+        import asr
+        real = os.cpu_count
+        self.addCleanup(lambda: setattr(os, "cpu_count", real))
+        for n, want in ((24, "20-23"), (8, "4-7"), (4, "0-3"), (2, "0-1")):
+            os.cpu_count = lambda n=n: n
+            self.assertEqual(asr.default_cores(), want)
+        os.cpu_count = real
+        n = os.cpu_count()
+        self.run_asr("--to", "20")
+        self.assertEqual(self.calls("affinity")[0]["affinity"], list(range(max(0, n - 4), n)))   # whisper really ran there
+        self.run_asr("--to", "20", "--cores", "0")
+        self.assertEqual(self.calls("affinity")[1]["affinity"], [0])
+        self.env["ASR_CORES"] = "1"
+        self.run_asr("--to", "20")
+        self.assertEqual(self.calls("affinity")[2]["affinity"], [1])
+
+    def test_norm_brings_a_quiet_voice_up_and_is_off_by_default(self):
+        import math
+        import struct
+        with wave.open(self.audio, "wb") as f:                       # a quiet tone: peak 300 of 32768
+            f.setnchannels(1), f.setsampwidth(2), f.setframerate(16000)
+            f.writeframes(b"".join(struct.pack("<h", int(300 * math.sin(2 * math.pi * 220 * i / 16000))) for i in range(16000 * 20)))
+        work = os.path.join(self.d, "work")
+        self.run_asr("--to", "20", "--work", work)
+        self.run_asr("--to", "20", "--norm", "--work", work)         # not the plain run's cached window
+        plain, norm = [c["peak"] for c in self.calls("peak")]
+        self.assertLess(plain, 320)
+        self.assertGreater(norm, 10 * plain)
+        self.assertLess(norm, 32767)                                 # brought up, not clipped
 
     def test_words_are_shifted_too(self):
         out = self.run_asr("--from", "30", "--to", "40", "--words")
