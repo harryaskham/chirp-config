@@ -55,6 +55,9 @@ import wave
 
 import numpy as np
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wincut import cut, position, window_seconds  # noqa: E402,F401  (position: for the tests and callers)
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 while not os.path.isdir(os.path.join(ROOT, "ref")) and ROOT != "/":
     ROOT = os.path.dirname(ROOT)
@@ -219,50 +222,6 @@ def canonical(pin, song, env):
         return json.loads(r.stdout)["data"]["canonical"]
     except (ValueError, KeyError, TypeError):
         return {}
-
-
-def position(tok, tempo):
-    """A `chirp render --from/--to` position in seconds: a bar (49, 1-indexed, in 4/4), beats (12b) or seconds (30s)."""
-    m = re.fullmatch(r"(\d+(?:\.\d+)?)([bs]?)", tok.strip())
-    if not m:
-        return None
-    v = float(m.group(1))
-    if m.group(2) == "s":
-        return v
-    beats = v if m.group(2) == "b" else (v - 1) * 4
-    return beats * 60.0 / tempo if beats >= 0 else None
-
-
-def window_seconds(canon, windows):
-    """[(start, end)] in seconds for --windows, or None when they cannot be worked out here (a tempo that changes, a
-    meter other than 4/4, embedded songs, a position in another form): then each window is rendered by itself."""
-    tempo = canon.get("tempo")
-    if not isinstance(tempo, (int, float)) or isinstance(tempo, bool) or tempo <= 0:
-        return None
-    if str(canon.get("meter") or "4/4").replace(" ", "") != "4/4" or canon.get("songs"):
-        return None
-    out = []
-    for win in windows:
-        b0, _, b1 = win.partition(":")[0].partition("-")
-        s0, s1 = position(b0, tempo), position(b1, tempo)
-        if s0 is None or s1 is None or s1 <= s0:
-            return None
-        out.append((s0, s1))
-    return out
-
-
-def cut(src, dst, s0, s1):
-    """Seconds s0..s1 of a render, as a window render gives them: frames round(s0 * rate) to round(s1 * rate)."""
-    with wave.open(src, "rb") as w:
-        sr = w.getframerate()
-        f0, f1 = int(round(s0 * sr)), int(round(s1 * sr))
-        w.setpos(min(f0, w.getnframes()))
-        data = w.readframes(max(0, f1 - f0))
-        params = w.getparams()
-    with wave.open(dst, "wb") as o:
-        o.setparams(params)
-        o.writeframes(data)
-    return dst
 
 
 def guess_groups(pin, song, env):

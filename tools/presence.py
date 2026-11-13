@@ -3,6 +3,7 @@
 30-50 dB under the mix in two Accretion songs by soloing them one at a time: parts nobody can hear).
 
   presence.py ID [--from POS --to POS] [--seed 0] [-j 3] [--buried -25] [--rms] [--json]
+  presence.py ID --windows 3-10:wait 41-56:riffA 309-311 ...    (several windows in ONE run: a table for each)
   presence.py --song FILE ...                       (any song file; default songs/ID.yaml)
 
 Renders the mix and every top-level track solo over the window (whole song by default; POS as chirp render takes it:
@@ -14,6 +15,11 @@ bars 49, beats 12b, seconds 30s), all unmastered (loudness=null) with the groove
 and flags BURIED (vs mix below --buried, default -25 dB) and LOUDEST. Levels are K-weighted (BS.1770, as LUFS:
 the sub does not swamp the measure and hats are judged as heard); --rms for plain RMS. Tracks silent in the window
 are listed as such, not as buried. Muted tracks are skipped. Read-only.
+
+--windows FROM-TO[:label] ... is for auditing a song section by section. A window render starts from the top, so a
+window by itself costs a part-render of every track; with --windows the mix and every track are rendered ONCE, to the
+end of the last window, and each window is cut from that (the same samples: tools/wincut.py), so twenty sections cost
+what one costs. A song wincut cannot place (a tempo that changes, a meter other than 4/4) is rendered window by window.
 
 What it cannot see (chirper-zero, Common Time v22): a pure tone has all its energy in one band. A sine-like part read
 -12 to -14 dB here ("buried", 5 dB under the lead) while it put its section's 250-500 Hz 3.8 dB further over the
@@ -34,6 +40,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import levels  # noqa: E402
 import likeness as L  # noqa: E402
+import wincut  # noqa: E402
 
 ROOT = os.environ.get("CLIMB_ROOT") or os.path.dirname(HERE)
 FRAME = 0.4          # seconds
@@ -70,13 +77,18 @@ def presence(mix_db, solo_db, buried=-25.0):
             "buried": bool(vs < buried), "silent": False}
 
 
-def plan_tracks(pin, song):
-    """[(name, muted)] of the song's top-level tracks, from chirp plan --json."""
+def plan_canonical(pin, song):
+    """The song as chirp plan --json resolves it."""
     r = subprocess.run([pin, "plan", "-f", song, "--json"], capture_output=True, text=True)
     d = json.loads(r.stdout)
     d = d.get("data") or d
+    return d.get("canonical") or {}
+
+
+def plan_tracks(pin, song, canon=None):
+    """[(name, muted)] of the song's top-level tracks, from chirp plan --json."""
     out = []
-    for t in (d.get("canonical") or {}).get("tracks") or []:
+    for t in (plan_canonical(pin, song) if canon is None else canon).get("tracks") or []:
         if t.get("name"):
             out.append((t["name"], bool(t.get("mute"))))
     return out
@@ -98,45 +110,47 @@ def render(pin, song, out, seed, win, solo=None):
     return out
 
 
-def main(argv=None):
-    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("id", nargs="?")
-    ap.add_argument("--song")
-    ap.add_argument("--from", dest="frm")
-    ap.add_argument("--to")
-    ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("-j", type=int, default=3)
-    ap.add_argument("--buried", type=float, default=-25.0)
-    ap.add_argument("--pin")
-    ap.add_argument("--rms", action="store_true", help="plain RMS instead of K-weighted levels")
-    ap.add_argument("--json", action="store_true")
-    a = ap.parse_args(argv)
-    song = a.song or (os.path.join(ROOT, "songs", f"{a.id}.yaml") if a.id else None)
-    if not song or not os.path.exists(song):
-        raise SystemExit("presence: give a climb ID (songs/ID.yaml) or --song FILE")
-    pin = a.pin or open(os.path.join(HERE, "groove-pin")).read().strip()
-    tracks = plan_tracks(pin, song)
-    live = [n for n, muted in tracks if not muted]
-    win = (a.frm, a.to)
-    work = tempfile.mkdtemp(prefix="presence-", dir="/tmp/lt" if os.path.isdir("/tmp/lt") else None)
-    try:
-        jobs = [("__mix__", None)] + [(n, n) for n in live]
-        with ThreadPoolExecutor(max(1, a.j)) as ex:
-            wavs = dict(zip([j[0] for j in jobs], ex.map(
-                lambda j: render(pin, song, os.path.join(work, f"{len(j[0])}-{abs(hash(j[0]))}.wav"), a.seed, win, j[1]),
-                jobs)))
-        kw = not a.rms
-        mix = frames_db(L.load(wavs["__mix__"]), L.SR, kweight=kw)
-        rows = {n: presence(mix, frames_db(L.load(wavs[n]), L.SR, kweight=kw), a.buried) for n in live}
-    finally:
-        for f in os.listdir(work):
-            os.remove(os.path.join(work, f))
-        os.rmdir(work)
+def one_window(pin, song, live, win, a, work):
+    """{track: presence} for one window: the mix and every live track rendered over it."""
+    jobs = [("__mix__", None)] + [(n, n) for n in live]
+    with ThreadPoolExecutor(max(1, a.j)) as ex:
+        wavs = dict(zip([j[0] for j in jobs], ex.map(
+            lambda j: render(pin, song, os.path.join(work, f"{len(j[0])}-{abs(hash(j[0]))}.wav"), a.seed, win, j[1]),
+            jobs)))
+    kw = not a.rms
+    mix = frames_db(L.load(wavs["__mix__"]), L.SR, kweight=kw)
+    rows = {n: presence(mix, frames_db(L.load(wavs[n]), L.SR, kweight=kw), a.buried) for n in live}
+    for f in wavs.values():
+        os.remove(f)
+    return rows
+
+
+def many_windows(pin, song, live, windows, secs, a, work):
+    """[{track: presence}] a window: the mix and every live track rendered ONCE, to the end of the last window, and
+    each window cut from that (tools/wincut.py: the same samples a window render gives)."""
+    last = max(range(len(secs)), key=lambda i: secs[i][1])
+    to = windows[last].partition(":")[0].partition("-")[2]
+    kw = not a.rms
+
+    def one(job):
+        name, solo = job
+        wav = render(pin, song, os.path.join(work, f"{len(name)}-{abs(hash(name))}.wav"), a.seed, (None, to), solo)
+        x = L.load(wav)
+        os.remove(wav)
+        out = []
+        for s0, s1 in secs:
+            f0, f1 = wincut.frames(s0, s1, L.SR)
+            out.append(frames_db(x[f0:f1], L.SR, kweight=kw))
+        return out
+
+    jobs = [("__mix__", None)] + [(n, n) for n in live]
+    with ThreadPoolExecutor(max(1, a.j)) as ex:
+        db = dict(zip([j[0] for j in jobs], ex.map(one, jobs)))
+    return [{n: presence(db["__mix__"][i], db[n][i], a.buried) for n in live} for i in range(len(secs))]
+
+
+def report(song, span, a, tracks, live, rows):
     order = sorted(rows, key=lambda n: (rows[n]["vs_mix_db"] is None, -(rows[n]["vs_mix_db"] or -999)))
-    if a.json:
-        print(json.dumps({"song": song, "window": win, "muted": [n for n, m in tracks if m], "tracks": rows}))
-        return
-    span = f"{a.frm or 'start'} -> {a.to or 'end'}"
     print(f"{os.path.basename(song)} ({span}; seed {a.seed}; unmastered, {'RMS' if a.rms else 'K-weighted'}): {len(live)} tracks"
           + (f", {len(tracks) - len(live)} muted skipped" if len(tracks) > len(live) else ""))
     print(f"  {'track':16s} {'vs mix':>8s} {'near':>6s} {'active':>7s}")
@@ -151,6 +165,61 @@ def main(argv=None):
     nb = sum(1 for r in rows.values() if r["buried"] and not r["silent"])
     if nb:
         print(f"  {nb} track(s) under {a.buried:g} dB while they sound: inaudible in the mix (raise, cut, or let them go)")
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("id", nargs="?")
+    ap.add_argument("--song")
+    ap.add_argument("--from", dest="frm")
+    ap.add_argument("--to")
+    ap.add_argument("--windows", nargs="+", help="FROM-TO[:label] ...: several windows in one run, every track rendered once")
+    ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("-j", type=int, default=3)
+    ap.add_argument("--buried", type=float, default=-25.0)
+    ap.add_argument("--pin")
+    ap.add_argument("--rms", action="store_true", help="plain RMS instead of K-weighted levels")
+    ap.add_argument("--json", action="store_true")
+    a = ap.parse_args(argv)
+    song = a.song or (os.path.join(ROOT, "songs", f"{a.id}.yaml") if a.id else None)
+    if not song or not os.path.exists(song):
+        raise SystemExit("presence: give a climb ID (songs/ID.yaml) or --song FILE")
+    if a.windows and (a.frm or a.to):
+        raise SystemExit("presence: --windows or --from/--to, not both")
+    for w in a.windows or []:
+        if "-" not in w.partition(":")[0]:
+            raise SystemExit(f"presence: --windows takes FROM-TO[:label], not {w!r}")
+    pin = a.pin or open(os.path.join(HERE, "groove-pin")).read().strip()
+    canon = plan_canonical(pin, song)
+    tracks = plan_tracks(pin, song, canon)
+    live = [n for n, muted in tracks if not muted]
+    win = (a.frm, a.to)
+    work = tempfile.mkdtemp(prefix="presence-", dir="/tmp/lt" if os.path.isdir("/tmp/lt") else None)
+    try:
+        if a.windows:
+            spans = [tuple(w.partition(":")[0].split("-", 1)) for w in a.windows]
+            secs = wincut.window_seconds(canon, a.windows)
+            many = many_windows(pin, song, live, a.windows, secs, a, work) if secs \
+                else [one_window(pin, song, live, sp, a, work) for sp in spans]
+        else:
+            rows = one_window(pin, song, live, win, a, work)
+    finally:
+        for f in os.listdir(work):
+            os.remove(os.path.join(work, f))
+        os.rmdir(work)
+    if a.windows:
+        labels = [w.partition(":")[2] for w in a.windows]
+        if a.json:
+            print(json.dumps({"song": song, "muted": [n for n, m in tracks if m], "windows": [
+                {"window": list(sp), "label": lb, "tracks": r} for sp, lb, r in zip(spans, labels, many)]}))
+            return
+        for sp, lb, r in zip(spans, labels, many):
+            report(song, (f"{lb}: " if lb else "") + f"{sp[0]} -> {sp[1]}", a, tracks, live, r)
+        return
+    if a.json:
+        print(json.dumps({"song": song, "window": win, "muted": [n for n, m in tracks if m], "tracks": rows}))
+        return
+    report(song, f"{a.frm or 'start'} -> {a.to or 'end'}", a, tracks, live, rows)
 
 
 if __name__ == "__main__":
