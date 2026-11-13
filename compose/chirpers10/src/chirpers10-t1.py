@@ -312,7 +312,7 @@ def tick(tr, p, cell, notes, b0, b1, vel=0.42, ramp=None, harmony=None):
         if ramp:
             v *= ramp[0] + (ramp[1] - ramp[0]) * (t - s0) / max(1, s1 - s0)
         root = 53 + (root_at(harmony, t) if harmony else 0)
-        add(tr, t, 1.8, root + notes[j % len(notes)] - (12 if tr == "cl11" and CLEAN11 else 0), v)   # the bell is played in harmonics: written an octave low
+        add(tr, t, 1.8, root + notes[j % len(notes)] - (12 if tr in ("cl11", "e11") and CLEAN11 else 0), v)   # the bell is played in harmonics: written an octave low
 
 
 def root_at(harmony, t):
@@ -624,9 +624,9 @@ def compose():
         for i, off in enumerate((-4, 3, 1, 0)):
             eye.append((t0 + rep * 231 + [0, 55, 110, 165][i], off))
     bed(eye, z * 16)
-    tick("cl5", 5, TICK5, CL5, a, z, harmony=eye)
-    tick("cl7", 7, TICK7, CL7, a, z, harmony=eye)
-    tick("cl11", 11, TICK11, CL11_OPEN, a + 12, z, vel=0.36, harmony=eye)
+    tick(EYE_TR[0], 5, TICK5, CL5, a, z, harmony=eye)                # in the eye each wheel's guitar moves to another wheel's count (EYEFX)
+    tick(EYE_TR[1], 7, TICK7, CL7, a, z, harmony=eye)
+    tick(EYE_TR[2], 11, TICK11, CL11_OPEN, a + 12, z, vel=0.36, harmony=eye)
     chimes(a, z - 2, pairs=((5, 7),))
     chimes(a + 12, z - 2, pairs=((5, 11), (7, 11)))
     for t in range((a + 8) * 16, z * 16 - 8, 4):
@@ -904,6 +904,17 @@ ENDLINE = os.environ.get("C10T1_ENDLINE", "")      # "1" = the last chord's fade
 # "soft's source ; the amp's tight in Hz ; that eq's peaks"; "" = the noise pick (v24)
 PICK = os.environ.get("C10T1_PICK", "expr.pm;220;100:1.2:2.2,280:1.5:-3")
 PICKED = f" synth.layers.0.soft={PICK.split(';')[0]} fx.2.tight={PICK.split(';')[1]}" if PICK else ""
+# v26, THE EYE: THE WHEELS LOOK AT EACH OTHER. In the quiet centre (5:33-6:40) each wheel's clean guitar is moved by another
+# wheel's count, on the song's clock, so the two stay locked:
+#   five's guitar (left) swells and sinks every SEVEN sixteenths (a `tremolo`), loudest where five and seven meet;
+#   seven's guitar (right) changes colour every ELEVEN sixteenths (a `phaser`);
+#   eleven's bell (middle) circles the listener once every FIVE eighths (an `orbit`).
+# The eye's ticks are on tracks of their own (e5, e7, e11: the same guitars, with the effect), so the ticks everywhere else are
+# untouched. "the tremolo's depth : dB made up on that guitar : the phaser's mix : its feedback : dB made up : the orbit's radius
+# in metres : dB made up"; "" = v25
+EYEFX = os.environ.get("C10T1_EYEFX", "0.85:3:0.5:0.6:2.5:2:1.7")
+EYE = [float(x) for x in EYEFX.split(":")] if EYEFX else []
+EYE_TR = ("e5", "e7", "e11") if EYEFX else ("cl5", "cl7", "cl11")
 TSTOP = os.environ.get("C10T1_TSTOP", "1")      # a tape stop on the last stab before the hardest stretch (8:52): the whole mix winds down, and the band lands on the bar line
 SWARM = os.environ.get("C10T1_SWARM", "-18dB")
 # its fader (bar, dB): a crowd is about 3 dB quieter than the same swarm in step, and the approach is busier than the opening
@@ -1054,6 +1065,12 @@ def song():
         ("cl5", CLEAN, "-4dB", -0.45, {"sends": CL_SENDS}),
         ("cl7", CLEAN7 or CLEAN, CLEAN7_DB if CLEAN7 else "-3dB", 0.45, {"sends": CL_SENDS}),
         ("cl11", CLEAN11 or CLEAN, CLEAN11_DB if CLEAN11 else "-3dB", 0, {"sends": CL_SENDS}),
+        *([("e5", CLEAN, f"{-4 + EYE[1]}dB", -0.45,
+            {"sends": CL_SENDS, "fx": [{"type": "tremolo", "rate": "1.75b", "depth": EYE[0]}]}),
+           ("e7", CLEAN7 or CLEAN, f"{float((CLEAN7_DB if CLEAN7 else '-3dB')[:-2]) + EYE[4]}dB", 0.45,
+            {"sends": CL_SENDS, "fx": [{"type": "phaser", "rate": "2.75b", "depth": 0.7, "feedback": EYE[3], "stages": 6, "mix": EYE[2]}]}),
+           ("e11", CLEAN11 or CLEAN, f"{float((CLEAN11_DB if CLEAN11 else '-3dB')[:-2]) + EYE[6]}dB", 0,
+            {"sends": CL_SENDS, "fx": [{"type": "orbit", "rate": "2.5b", "radius": EYE[5]}]})] if EYEFX else []),
         ("home", "contrabass-tight", "-12dB", 0.3, {"sends": {"hall": "-12dB"}}),
         ("fifth", "cellos", "-15dB", 0.4, {"sends": {"hall": "-8dB"}}),
         ("air", "juno-pad", "-17dB", 0.15, {"sends": {"hall": "-8dB"}}),
