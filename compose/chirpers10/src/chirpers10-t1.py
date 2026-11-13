@@ -929,6 +929,16 @@ GRIND = os.environ.get("C10T1_GRIND", "300:30:50:4500:-26")
 # and then dies under the hand (its level falls 5 dB inside the note; the old one held to 1.7 dB), where a saturated amp would
 # hide it. Depth of the mute (times the note's pm) : the hand's width as a fraction of the string. "" = v26.
 HAND = os.environ.get("C10T1_HAND", "0.6:0.1")
+# v28: THE POLE. The pad under the wait (0:00-1:08) goes through the engine's `barberpole`, a bank of band-passes an octave
+# apart that climb for ever (each fades in at the bottom and out at the top): the wait is heard rising and never arriving.
+# After the landing, under the ring-out's ticks (12:43), the same pole FALLS. The eye's pad and the approach's are left alone
+# (under the approach's first bars the pole measured 0.7 dB deep in the mix: not there to be heard, so it is not there).
+# The piece is a palindrome, and on a loop the fall at the end runs straight into the rise at the start.
+# q 2 (the effect's default) moved nothing that could be measured on this pad: the bands overlap; at q 8 the comb is 13.5 dB deep.
+# bars per octave : q : mix : right-channel offset (width) : the pad's make-up dB under the rising pole : under the falling one
+# (the pole costs the pad +3.5 dB, so -3.5 holds its level; the ring-out's pad is struck softer than the wait's and gets 3 dB
+# back, to stand beside its ticks as the wait's does). "" = v27.
+POLE = os.environ.get("C10T1_POLE", "5:8:1:0.3:-3.5:-0.5")
 HANDED = (f" synth.layers.0.mute=expr.pm*{HAND.split(':')[0]} synth.layers.0.mute_width={HAND.split(':')[1]}"
           " synth.layers.0.decay.mod.0.amount=0 synth.filters.0.cutoff.mod.0.amount=0 synth.layers.0.bright.mod.0.amount=0") if HAND else ""
 EYE = [float(x) for x in EYEFX.split(":")] if EYEFX else []
@@ -1066,6 +1076,15 @@ def song():
     GOUT = {"out": "gtrs"} if GEQ else {}
     PICK_FX = {"fx": [{"type": "eq", "bands": peaks(PICK.split(";")[2])}]} if PICK and len(PICK.split(";")) > 2 and PICK.split(";")[2] else {}
     BOUT = {"out": "low"} if BEQ else {}
+    POLE_FX = {}
+    if POLE:
+        pc, pq, pm, ps, pmk, pmk2 = [float(x) for x in POLE.split(":")]
+        pole = lambda down, lane: {"type": "barberpole", "bands": 5, "low": 100, "spacing": 1.0, "cycle": f"{pc * 4:g}b", "q": pq, "spread": ps, "down": down,
+                                   "mix": {"value": 0, "mod": [{"src": f"auto.{lane}", "amount": 1}]}}
+        up = [["0b", pm], [f"{36 * 4}b", pm], [f"{37 * 4}b", 0]]
+        dn = [["0b", 0], [f"{400 * 4}b", 0], [f"{401 * 4}b", pm], [f"{NB * 4}b", pm]]
+        POLE_FX = {"fx": [pole(False, "up"), pole(True, "dn")] + ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.up", "amount": pmk / pm}, {"src": "auto.dn", "amount": pmk2 / pm}]}}] if pmk or pmk2 else []),
+                   "auto": {"up": {"points": up, "curve": 0}, "dn": {"points": dn, "curve": 0}}}
     if GRIND and BEQ:
         BOUT = {**BOUT, "sends": {"grind": "0dB"}}
         gh, gd0, gd1, glp, gdb = [float(x) for x in GRIND.split(":")]
@@ -1096,7 +1115,7 @@ def song():
             {"sends": CL_SENDS, "fx": [{"type": "orbit", "rate": "2.5b", "radius": EYE[5]}]})] if EYEFX else []),
         ("home", "contrabass-tight", "-12dB", 0.3, {"sends": {"hall": "-12dB"}}),
         ("fifth", "cellos", "-15dB", 0.4, {"sends": {"hall": "-8dB"}}),
-        ("air", "juno-pad", "-17dB", 0.15, {"sends": {"hall": "-8dB"}}),
+        ("air", "juno-pad", "-17dB", 0.15, {"sends": {"hall": "-8dB"}, **POLE_FX}),
         ("chime", "modal-glock", CHIME_GAIN, -0.2, {"sends": {"hall": "-6dB", "dly": "-14dB"}}),
         ("vox", "kidman" + VOX_WORDS, VOX or "0dB", 0, {"sends": {"hall": "-18dB"}, "fx": [{"type": "eq", "bands": [f"hp cutoff={VOX_HP}"] + peaks(VOX_EQ) + ([f"highshelf cutoff={VOX_SHELF.split(':')[0]} gain={VOX_SHELF.split(':')[1]}dB"] if VOX_SHELF else [])}]}),
         ("choir", "voice-backing", CHOIR or "0dB", 0, {"sends": {"hall": "-8dB"}}),
