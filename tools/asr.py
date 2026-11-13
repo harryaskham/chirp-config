@@ -22,6 +22,11 @@ LOUDNORM OF YOUR OWN, WHEN THE VOICE IS QUIET; NEVER A FIXED GAIN. A fixed +12 d
 read as the voice's own fault (chirper-zero, Common Time v17, where this tool decided a choir's word: small.en heard
 "no" for a sung "now" three seeds in three). Off by default: the output without it is what it always was. Compare
 models and seeds before trusting one reading; a recogniser is an ear for words, not for tone.
+
+Judging a harsh voice (the same round's controls): use small.en, not base.en (base.en gave 5 and 18 words of 35 for
+one scream at two levels 0.5 dB apart, and loops a made-up sentence); and judge the voice ALONE, never in the mix (on
+five records a recogniser read 0-24 of the 49-65 words it read from their own vocal stems). Tone and level against
+records' voices are tools/voxref.py's job.
 """
 import argparse
 import json
