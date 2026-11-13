@@ -28,8 +28,39 @@ The groove's pin is in `tools/groove-pin`; render with that binary (`$(cat tools
 | high-gain rigs whose rests are silent: the library's rigs with `sympathetic` ahead of a saturated amp hold full level through a rest (28 patches, 81 songs) | chirper-zero, v19-v20 | bd-42e146, library; in a song: `PATCH fx.0.mix=0` on the track. No engine change needed: a smaller ring is no fix, and the riffs do not miss it. Library names since v22: `ct-chug-stop-l/r`, `ct-bite-stop-l/r`, `ct-wall-stop-l/r` (17-19 dB down a sixteenth after a stab at 120 BPM; the wall 15). The older `m8-*` rigs are as they were |
 | a late window that renders fast with a `rotary` on a bus: any rotary makes its bus and every track routed to it render from the top for a `--from POS --preroll` window (16 s of the full mix at 12:44: 108-129 s; 13 s with the rotary off the guitars' bus) | chirp-eco, 13 Nov | bd-e11da9: the rotors' angle follows from `speed` alone, so the engine could advance it without the audio. Until then: the rotary on a bus of its own fed only by the tracks that play through it, or render once and cut windows from the file |
 
-Add a row when you need something the engine lacks: say exactly what and why, and tell chirp-eco, who takes it to Harry
-(wM works when Harry gives him a turn).
+Add a row when you need something the engine lacks: say exactly what and why, and tell chirp-eco.
+
+## Who builds them (Harry, 13 Nov 09:27)
+
+Asked "who should build the engine features the song has shown are missing?" (chirp-eco, wM, chirper-zero, or not
+now), Harry chose: **"chirper-zero builds them"**. His words of 12 Nov still frame it: "add new ones if we need better
+amp sim or DI features. All chirp-native of course."
+
+How a feature gets from the composer to the groove (chirp-eco gates, lands and adopts; the composer never pushes to
+tools main and never moves `tools/groove-pin`):
+
+1. **A worktree of your own at tools main**, outside `/tmp` (it is aged at ten days):
+   `git -C ~/tools fetch -q origin && git -C ~/tools worktree add -b chirp-zero-engine ~/.local/state/chirper-zero/engine origin/main`.
+   Main's engine is the groove's pin, so you start from what is playing. Read the source there, never in an old checkout.
+2. **One bead a feature, one feature a landing, small.** Opt-in, and its default exact: with the option unset every
+   existing song renders bit for bit as before. Released albums are frozen; the gate checks all 109 of their songs.
+3. **Build in a guarded unit** so the groove's guard can freeze it, with a target directory of your own:
+   `systemd-run --user --collect --unit=guarded-zero-build-$(date +%H%M) -p CPUSchedulingPolicy=batch -p Nice=12 --setenv=PATH="$PATH" --setenv=HOME="$HOME" --working-directory=$HOME/.local/state/chirper-zero/engine/cli/chirp -- bash -c 'nix develop -c bash -c "CARGO_BUILD_JOBS=4 CARGO_TARGET_DIR=/tmp/lt/target-zero cargo build --release -p chirp-cli" > /tmp/lt/zero-build.log 2>&1; echo EXIT $? >> /tmp/lt/zero-build.log'`.
+   The binary is `/tmp/lt/target-zero/release/chirp`; bench with it by path. CPU only.
+4. **Before handing over**, in the same shell: `cargo test --workspace && cargo clippy --workspace --all-targets -- -D warnings`
+   (the README's own line), a test for the feature beside the code, and a line for it in `cli/chirp/README.md`.
+5. **Hand over by message to chirp-eco**: the commit hashes on your branch, the bead, what you measured, and a PROBE: a
+   small song or patch string that uses the feature, which your build plans and the groove's pin refuses.
+6. **chirp-eco then** builds it afresh, runs the probe both ways, runs the gate (109 released songs identical, and this
+   record's song identical), lands it on tools main, puts the groove on the new pin at the song's wrap, and adds the row
+   above. About an hour and a half from hand-over when nothing differs.
+7. **The song may not use a new feature until chirp-eco says the groove is on the new pin**: the groove renders with
+   `tools/groove-pin`, and a song the pin cannot plan stops the record playing. Bench it in a copy until then.
+
+Candidates, in no order (which, whether and when are the composer's call; the song comes first): the physical palm mute's
+low mids (bd-bc17f7), the AW diphthong (bd-3b52e9), a rotary that does not force a from-the-top render (bd-e11da9), and
+whatever the amp or the DI next turns out to lack. Two README notes wait for the first landing: the `stutter` `chance`
+rule and the `chaos` `amount` map, both in the table below.
 
 ## Learned in use (how the engine behaves; none of these is a fault)
 
