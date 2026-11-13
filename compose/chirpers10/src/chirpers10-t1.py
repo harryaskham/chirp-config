@@ -1063,7 +1063,15 @@ BODY = os.environ.get("C10T1_BODY", "87:3.5:5:5:7")
 #    and a 2 dB lift at 5.6 kHz, which the mix asked for.
 # "" = v32 (the files, and every eq back).
 OWNCAB = os.environ.get("C10T1_OWNCAB", "hp cutoff=55 q=1.10|peak cutoff=80 q=1.05 gain=5.0dB|peak cutoff=114 q=2.50 gain=8.1dB|peak cutoff=183 q=1.88 gain=3.4dB|peak cutoff=641 q=2.55 gain=-4.8dB|peak cutoff=2203 q=2.90 gain=2.7dB|peak cutoff=3824 q=1.77 gain=3.4dB|peak cutoff=5600 q=1.40 gain=2.2dB|lp cutoff=2800 q=1.09|lp cutoff=16000 q=0.90")
-OWNTRIM = os.environ.get("C10T1_OWNTRIM", "2.2:-1.4:1.4")     # track gain, dB: tight rig : seven's : wall (each as loud alone as it was)
+# v34: THE CABINET IN THE ENGINE (bd-af781d, engine commit f977570f): the same voice and a cone of the same kind as a `cab`
+# model, `4x12-modern`, so each track carries one effect in place of thirty eq bands.
+# model : distance ; then for the tight rig ; seven's ; the wall:  mic , the left side's cone , the right side's.
+# The cones were CHOSEN, as a speaker is: of eight pairs tried on each rig, a pair's 4-8 kHz stood anywhere from level with
+# v33's to 1.9 dB under it (twenty peaks and dips do not sum to nothing in every band). These three pairs are the nearest to
+# v33's cabinet in four bands from 500 Hz to 8 kHz, each rig on a pair of its own; the tight rig's microphone sits a little
+# nearer the cone's centre (0.25) to bring its top level.  "" = v33 (the eq bands).
+ENGCAB = os.environ.get("C10T1_ENGCAB", "4x12-modern:0.15;0.25,12,13;0.3,2,3;0.3,14,15")
+OWNTRIM = os.environ.get("C10T1_OWNTRIM", "1.8:-1.6:0.7" if ENGCAB else "2.2:-1.4:1.4")     # track gain, dB: tight rig : seven's : wall (each as loud alone as it was)
 # THE CONE: a smooth response is not a cabinet. In twelfth-octave bands the records' guitar ripples 1.6-2.9 dB about its own
 # average at 0.4-1.6 kHz, 1.1-1.8 at 1.6-3.2 kHz and 2.4-3.1 at 3.2-6.4 kHz (a cone breaking up, a microphone near it); the
 # rigs on the cabinet files had the same (2.4 / 1.6 / 1.8 and 4.0 / 1.2 / 2.6), the smooth response a third of it
@@ -1275,9 +1283,18 @@ def song():
         if OWNCAB and name in TOP_OF:
             kind = TOP_OF[name]
             t["patch"] = t["patch"] + " fx.3.mix=0" + "".join(f" fx.4.bands.{i}.gain=0dB" for i in range(4 if kind == 2 else 7))
-            t["fx"] = [{"type": "eq", "bands": OWNCAB.split("|") + grit(kind, int(name.rstrip("2").endswith("r"))) + (peaks(OWNBITE) if kind == 1 else []) + (peaks(OWNREAL) if OWNREAL and name in ("rl", "rr", "rl2", "rr2") else [])}]
-            # the squeal (Ab5, 830 Hz) sits in the new cabinet's scoop: half a dB more to be as loud as it was
-            gain = t["gain"] = f"{float(gain[:-2]) + float(OWNTRIM.split(':')[kind]) + (0.5 if name in ('ql', 'qr') else 0):g}dB"
+            right = int(name.rstrip("2").endswith("r"))
+            if ENGCAB:
+                m, dist = ENGCAB.split(";")[0].split(":")
+                mic, *cones = ENGCAB.split(";")[1 + kind].split(",")
+                cab = {"type": "cab", "model": m, "mic": float(mic), "distance": float(dist)}
+                if int(cones[right]):
+                    cab["cone"] = int(cones[right])
+                t["fx"] = [cab] + ([{"type": "eq", "bands": peaks(OWNBITE)}] if kind == 1 and OWNBITE else [])
+            else:
+                t["fx"] = [{"type": "eq", "bands": OWNCAB.split("|") + grit(kind, right) + (peaks(OWNBITE) if kind == 1 else []) + (peaks(OWNREAL) if OWNREAL and name in ("rl", "rr", "rl2", "rr2") else [])}]
+            # the squeal (Ab5, 830 Hz) has its own trim, so it is as loud as it was (it sits in the cabinet's scoop and on its cone's detail)
+            gain = t["gain"] = f"{float(gain[:-2]) + float(OWNTRIM.split(':')[kind]) + ((-0.6 if ENGCAB else 0.5) if name in ('ql', 'qr') else 0):g}dB"
         if TOP and name in TOP_OF:
             kind = TOP_OF[name]
             t["patch"] = t["patch"] + " fx.4.bands.3.gain=0dB" + ("" if kind == 2 else " fx.4.bands.6.gain=0dB")
