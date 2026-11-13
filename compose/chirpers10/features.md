@@ -14,6 +14,7 @@ The groove's pin is in `tools/groove-pin`; render with that binary (`$(cat tools
 | voice layer `effort_tilt: 0..1` (wM, bd-7d9b6e) | a louder voice is brighter: a shelf on the voiced source centred on 1.7 kHz, 24 dB per unit of `effort` around 0.5 at 1; default 0, exact | 52a91bfd | 45a33b89 (12 Nov 06:09) | |
 | `play.phrase_gap` (wM, bd-c26c45) | the longest rest inside one `phrase_arc` phrase (a time, 0..5 s; unset = 0.3 s as before): shorter gives each short phrase its own arc, longer runs one arc across a line's breaths | fc5b0ca9 | 45a33b89 | |
 | voice layer `diction: 3` (wM, bd-db3c56) | `even` holds the vowels level and leaves the consonants; on Accretion's 29 sung lines the word error rate went 0.425 (level 2) to 0.356; levels 0-2 unchanged | 45a33b89 | 45a33b89 | |
+| pluck layer `mute_width: 0..0.3` (chirper-zero, bd-bc17f7) | the palm has a width: the physical `mute` reads the string's mean under a hand instead of one point, so no harmonic keeps ringing (a fully muted low F, 120-250 ms after the pick: 400 Hz-1 kHz -46 dB to -75, 1-4 kHz -39 to -69) and the note plays in tune (the point contact is 76 cents flat at a full mute; the hand within 1.2). About 0.08-0.12. Needs `mute`; unset or 0 is the point contact, bit for bit | 0d15b47e | 0d15b47e (13 Nov 13:19) | |
 
 ## Asked for, not built
 
@@ -23,7 +24,7 @@ The groove's pin is in `tools/groove-pin`; render with that binary (`$(cat tools
 | send-safe drum racks (`rack:drum-bus-punch` and `rack:parallel-ny` add the dry twice on a parallel send) | Accretion's close-out | bd-e0185e, library; new names only |
 | master effects that see the normalised level (opt-in) | Accretion's close-out | bd-43e0bd |
 | live playback at the file's level: the groove ignores `loudness` and plays the raw mix (v1 sat 19 dB under its file) | found 12 Nov | no bead yet: the song carries its own level for now |
-| the physical palm mute (pluck `mute`) keeps a muted low string's low mids: it takes about 13 dB too much out at 400 Hz-1 kHz after the amp (riffpunch on Bleed 34 against the older muting's 67) | chirper-zero, v12 | bd-bc17f7; the song uses the older muting (decay, brightness and a filter riding `expr.pm`) |
+| the physical palm mute (pluck `mute`) keeps a muted low string's low mids: it takes about 13 dB too much out at 400 Hz-1 kHz after the amp (riffpunch on Bleed 34 against the older muting's 67) | chirper-zero, v12 | bd-bc17f7: `mute_width` landed 13 Nov (above). It halves the point contact's faults on the Bleed bench (scoop -25.2 to -14.7, grain 0.15 to 0.33; the record -11.9, 0.41) but does not by itself beat the older muting (scoop -11.0, grain 0.27), so the bead stays open with chirper-zero: fixed in mechanism, not finished |
 | the diphthong AW ends apart from OW: a sung "now" is heard as "no" (AW ends 420/900, OW 380/800) | chirper-zero, v17-v18 | bd-3b52e9; respell N AA1 UH0, or choose another word |
 | high-gain rigs whose rests are silent: the library's rigs with `sympathetic` ahead of a saturated amp hold full level through a rest (28 patches, 81 songs) | chirper-zero, v19-v20 | bd-42e146, library; in a song: `PATCH fx.0.mix=0` on the track. No engine change needed: a smaller ring is no fix, and the riffs do not miss it. Library names since v22: `ct-chug-stop-l/r`, `ct-bite-stop-l/r`, `ct-wall-stop-l/r` (17-19 dB down a sixteenth after a stab at 120 BPM; the wall 15). The older `m8-*` rigs are as they were |
 | a late window that renders fast with a `rotary` on a bus: any rotary makes its bus and every track routed to it render from the top for a `--from POS --preroll` window (16 s of the full mix at 12:44: 108-129 s; 13 s with the rotary off the guitars' bus) | chirp-eco, 13 Nov | bd-e11da9: the rotors' angle follows from `speed` alone, so the engine could advance it without the audio. Until then: the rotary on a bus of its own fed only by the tracks that play through it, or render once and cut windows from the file |
@@ -59,8 +60,8 @@ tools main and never moves `tools/groove-pin`):
 
 Candidates, in no order (which, whether and when are the composer's call; the song comes first): the physical palm mute's
 low mids (bd-bc17f7), the AW diphthong (bd-3b52e9), a rotary that does not force a from-the-top render (bd-e11da9), and
-whatever the amp or the DI next turns out to lack. Three README notes wait for the first landing: the `stutter` `chance`
-rule, the `chaos` `amount` map and the curve of an `auto` lane's falls, all in the table below.
+whatever the amp or the DI next turns out to lack. The three README notes that were waiting (the `stutter` `chance` rule, the `chaos` `amount` windows and the curve
+of an `auto` lane's falls) went into the engine's README with 0d15b47e.
 
 ## Learned in use (how the engine behaves; none of these is a fault)
 
