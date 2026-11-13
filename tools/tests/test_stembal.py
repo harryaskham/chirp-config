@@ -76,6 +76,36 @@ with wave.open(a[a.index("-o") + 1], "wb") as w:
 '''
 
 
+# A third stand-in: three instruments throughout and a voice (700 Hz) that sings only from eight seconds on; tempo 120.
+VOXED = r'''#!/usr/bin/env python3
+import json, math, os, struct, sys, wave
+a = sys.argv[1:]
+if "plan" in a:
+    print(json.dumps({"data": {"canonical": {"tempo": 120.0, "tracks": [{"name": "kick", "patch": "metal-kit"},
+                                                                        {"name": "bass", "patch": "ct-bass"},
+                                                                        {"name": "gl", "patch": "ct-chug-l"},
+                                                                        {"name": "vox", "patch": "kidman"}]}}}))
+    sys.exit(0)
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "calls.log"), "a") as f:
+    f.write(" ".join(a) + "\n")
+def secs(tok):
+    if tok.endswith("s"): return float(tok[:-1])
+    if tok.endswith("b"): return float(tok[:-1]) * 0.5
+    return (float(tok) - 1) * 4 * 0.5
+sr = 44100
+f0 = round(secs(a[a.index("--from") + 1]) * sr) if "--from" in a else 0
+f1 = round(secs(a[a.index("--to") + 1]) * sr)
+solo = [a[i + 1] for i, x in enumerate(a) if x == "--solo"] or ["kick", "bass", "gl", "vox"]
+FREQ = {"kick": 50.0, "bass": 100.0, "gl": 1500.0, "vox": 700.0}
+def part(p, i):
+    if p == "vox" and i < 8 * sr: return 0.0
+    return math.sin(2 * math.pi * FREQ[p] * i / sr)
+with wave.open(a[a.index("-o") + 1], "wb") as w:
+    w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr)
+    w.writeframes(b"".join(struct.pack("<h", int(6000 * sum(part(p, i) for p in solo))) for i in range(f0, f1)))
+'''
+
+
 def sine(path, freq, seconds=3.0, amp=8000):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with wave.open(path, "wb") as w:
@@ -215,6 +245,58 @@ class Stembal(unittest.TestCase):
         refs = self.run_tool("refs", "--refs", "recV,recW", "--from", "0", "--dur", "20", "--voice")
         self.assertIn("references, their loud passages with the voice and without it", refs)
         self.assertIn("WITHOUT minus ALL", refs)
+
+    def test_voice_tracks_blend_a_window_by_the_share_of_it_the_voice_fills(self):
+        """Ours: three instruments, and a voice from eight seconds on. A window before it reads as its "no voice" row, one
+        after it as its "voice" row, and one across the entry halfway between the two; the voice's tracks cost one more
+        render, and nothing else in the output moves."""
+        import numpy as np
+        for rec in ("recV", "recW"):
+            for stem, f, until in (("drums", 50.0, 24.0), ("bass", 100.0, 24.0), ("guitar", 1500.0, 24.0), ("vocals", 700.0, 12.0)):
+                path = os.path.join(self.root, "ref", "stems", "bs_roformer_sw", rec, stem + ".wav")
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                t = np.arange(24 * 44100) / 44100
+                with wave.open(path, "wb") as w:
+                    w.setnchannels(1)
+                    w.setsampwidth(2)
+                    w.setframerate(44100)
+                    w.writeframes((6000 * np.sin(2 * np.pi * f * t) * (t < until)).astype("<i2").tobytes())
+        with open(self.engine, "w") as f:
+            f.write(VOXED)
+        log = os.path.join(self.root, "calls.log")
+        args = ("song", self.song, "--refs", "recV,recW", "--from", "0", "--dur", "20", "--windows", "0s-8s:inst", "8s-16s:sung",
+                "4s-12s:half", "--mix-only", "--voice", "--out", self.root)
+        plain = self.run_tool(*args)
+        with open(log) as f:
+            self.assertEqual(len(f.read().splitlines()), 1)                # the mix, once
+        os.remove(log)
+        text = self.run_tool(*args, "--voice-tracks", "vox")
+        with open(log) as f:
+            calls = f.read().splitlines()
+        self.assertEqual(len(calls), 2)                                    # ... and the voice's tracks alone, once
+        self.assertTrue(any("--solo vox" in c for c in calls))
+        kept = [ln for ln in text.splitlines() if "blend" not in ln]
+        self.assertEqual(kept, plain.splitlines())                         # nothing else moved
+        self.assertIn("inst, blend 0%", text)
+        self.assertIn("sung, blend 100%", text)
+        self.assertIn("half, blend 50%", text)
+        for band in (0, 1, 4, 5):
+            self.assertAlmostEqual(self.row(text, "inst, blend")[band], self.row(text, "inst, no voice")[band], delta=0.11)
+            self.assertAlmostEqual(self.row(text, "sung, blend")[band], self.row(text, "sung, voice")[band], delta=0.11)
+            self.assertAlmostEqual(self.row(text, "half, blend")[band],
+                                   (self.row(text, "half, no voice")[band] + self.row(text, "half, voice")[band]) / 2, delta=0.11)
+        self.assertEqual([f for f in os.listdir(self.root) if f.startswith("sb-")], [])
+        self.assertNotIn("blend", self.run_tool(*[x for x in args if x != "--voice"], "--voice-tracks", "vox"))   # only with --voice
+
+    def test_the_voices_share_of_a_window(self):
+        import numpy as np
+        mix = np.array([-10.0, -10.0, -10.0, -10.0])
+        # the records' voices are 9 dB under their mixes: as loud counts whole, louder no more, 3 dB less half, silence nothing
+        self.assertAlmostEqual(S.voice_share(mix, np.array([-19.0, -15.0, -22.0, -120.0]), 9.0), (1 + 1 + 0.501 + 0) / 4, places=3)
+        self.assertAlmostEqual(S.voice_share(mix, np.array([-25.0, -25.0, -25.0, -25.0]), 9.0), 0.251, places=3)   # 6 dB less: a quarter
+        self.assertEqual(S.voice_share(mix, np.array([]), 9.0), 0.0)
+        self.assertEqual(len(S.frame_levels(np.ones(44100 * 9))), 2)       # whole 4 s frames only
+        self.assertEqual(len(S.frame_levels(np.ones(44100))), 1)           # a window shorter than a frame is one frame
 
     def test_voice_needs_a_vocals_stem(self):
         with self.assertRaises(SystemExit) as e:

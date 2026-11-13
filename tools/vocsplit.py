@@ -40,8 +40,9 @@ def load(p):
         return np.frombuffer(w.readframes(w.getnframes()), "<i2").astype(np.float32).reshape(-1, w.getnchannels()).mean(1) / 32768, sr
 
 
-def split(ids, frame=4.0, w_with=12.0, w_without=25.0, model="bs_roformer_sw", say=None):
-    """{class: [nine band shares in dB, one row a record that has two such frames]}; `say` gets each record's lines."""
+def split(ids, frame=4.0, w_with=12.0, w_without=25.0, model="bs_roformer_sw", say=None, gaps=None):
+    """{class: [nine band shares in dB, one row a record that has two such frames]}; `say` gets each record's lines;
+    `gaps` (a list) gets, a record, how far under the mix its voice is in its loud frames WITH the voice (median dB)."""
     R = os.path.join(ROOT, "ref", "stems", model, "")
     rows = {c: [] for c in CLASSES}
     for sid in ids:
@@ -59,6 +60,10 @@ def split(ids, frame=4.0, w_with=12.0, w_without=25.0, model="bs_roformer_sw", s
             raise SystemExit(f"vocsplit: {sid} is shorter than two frames of {frame:g} s")
         loud = np.percentile([x[1] for x in fr], 90)
         f = np.fft.rfftfreq(L, 1 / sr)
+        if gaps is not None:
+            sung = [lm - lv for _, lm, lv in fr if lm >= loud - 3 and lm - lv < w_with]
+            if len(sung) >= 2:
+                gaps.append(float(np.median(sung)))
         out = {}
         for cls in CLASSES:
             P = 0
@@ -93,17 +98,22 @@ def cache_file(ids, frame, w_with, w_without, model):
 
 
 def cached(ids, frame=4.0, w_with=12.0, w_without=25.0, model="bs_roformer_sw"):
-    """{"with": nine bands, "without": ..., "all": ..., "n": {class: records}}, from ref/stembal/ when it is there."""
+    """{"with": nine bands, "without": ..., "all": ..., "n": {class: records}, "gap": how far under the mix the
+    records' voice is in their frames with it (median of the records' medians, dB)}, from ref/stembal/ when it is there."""
     path = cache_file(ids, frame, w_with, w_without, model)
     if os.path.exists(path):
         with open(path) as f:
-            return json.load(f)
-    return store(path, split(ids, frame, w_with, w_without, model))
+            got = json.load(f)
+        if "gap" in got:                              # a file from before the gap was kept is made again
+            return got
+    gaps = []
+    return store(path, split(ids, frame, w_with, w_without, model, gaps=gaps), gaps)
 
 
-def store(path, rows):
+def store(path, rows, gaps=None):
     out = {c: v.tolist() for c, v in medians(rows).items()}
     out["n"] = {c: len(rows[c]) for c in rows}
+    out["gap"] = float(np.median(gaps)) if gaps else None
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         json.dump(out, f)
@@ -111,7 +121,8 @@ def store(path, rows):
 
 
 def report(ids, frame=4.0, w_with=12.0, w_without=25.0, model="bs_roformer_sw"):
-    rows = split(ids, frame, w_with, w_without, model, say=print)
+    gaps = []
+    rows = split(ids, frame, w_with, w_without, model, say=print, gaps=gaps)
     print("%-56s" % "bands: <60 -120 -250 -500 -1k -2k -4k -8k -16k")
     m = medians(rows)
     for c in m:
@@ -120,7 +131,7 @@ def report(ids, frame=4.0, w_with=12.0, w_without=25.0, model="bs_roformer_sw"):
         print("%-32s %-21s" % ("WITHOUT minus WITH", "") + " ".join("%+6.1f" % v for v in m["without"] - m["with"]))
         print("%-32s %-21s" % ("WITHOUT minus ALL", "") + " ".join("%+6.1f" % v for v in m["without"] - m["all"]))
         print("%-32s %-21s" % ("WITH minus ALL", "") + " ".join("%+6.1f" % v for v in m["with"] - m["all"]))
-    store(cache_file(ids, frame, w_with, w_without, model), rows)
+    store(cache_file(ids, frame, w_with, w_without, model), rows, gaps)
 
 
 def main(argv=None):

@@ -41,6 +41,14 @@ Two measures, both in nine bands (20-60-120-250-500-1k-2k-4k-8k-16k Hz), both in
         where nobody sings, so an instrumental section read against the one median looks 2 dB short of mids and
         level in the air when it is on target and too bright. Read an instrumental window's "no voice" row and a
         sung one's (or one with a tune on the lead) "voice" row. (chirper-zero's vocsplit.py, Common Time v30.)
+  --voice-tracks T,T,... (with `song --voice`): the tracks that are the voice. They are rendered alone once more, and
+        a third row is printed for each window, "label, blend 40%": ours against the median shifted by that share
+        of the voice's row and the rest of the other. For a section a voice fills only part of, where neither row
+        is right (chirper-zero's thought, v33: the bark sings part of the hardest stretch).
+        The share is the voice's POWER against the mix in the window's 4 s frames, beside what the records' voices
+        have in their frames with a voice (their median gap under the mix, about 8 dB on eleven Meshuggah
+        records): a frame where ours is that loud counts whole, 3 dB less half, 6 dB less a quarter. So a voice as
+        loud as theirs that sings a quarter of the time reads 25%, and one that sings throughout 100%.
 
   --refs all = every record that has stems. What Common Time used (chirpers10, v7):
   --refs bleed,combustion,dancers-to-a-discordant-system,electric-red,lethargica,obzen,pineal-gland-optics,pravus,
@@ -210,7 +218,22 @@ def voice(a):
     V = vocsplit.cached(ref_ids(a), model=a.model)
     if not all(c in V for c in vocsplit.CLASSES):
         return None
-    return {c: np.array(V[c]) - np.array(V["all"]) for c in ("without", "with")}, V["n"]
+    return {c: np.array(V[c]) - np.array(V["all"]) for c in ("without", "with")}, V["n"], V.get("gap")
+
+
+def frame_levels(x, seconds=4.0):
+    """The level in dB of each whole frame of x (44.1 kHz mono); one frame when x is shorter than a frame."""
+    n = int(seconds * 44100)
+    frames = [x[i:i + n] for i in range(0, len(x) - n + 1, n)] or [x]
+    return np.array([float(db((f ** 2).mean() if len(f) else 0.0)) for f in frames])
+
+
+def voice_share(mix, vox, gap):
+    """How much of a window the voice fills, 0..1: the mean over its 4 s frames of the voice's power against the mix,
+    as a fraction of what the records' voices have in their frames with a voice (`gap` dB under the mix), at most 1."""
+    n = min(len(mix), len(vox))
+    d = mix[:n] - vox[:n]
+    return float(np.clip(10 ** ((gap - d) / 10), 0.0, 1.0).mean()) if n else 0.0
 
 
 def cmd_refs(a):
@@ -278,6 +301,12 @@ def cmd_song(a):
     outdir = a.out or tempfile.mkdtemp(prefix="stembal-", dir="/tmp/lt" if os.path.isdir("/tmp/lt") else None)
     M = stats(R, "mix")[0]
     mixes, names, acc = [], [], {g: [] for g in groups}
+    V = voice(a) if a.voice else None
+    vt = [t for t in (a.voice_tracks or "").split(",") if t] if V and V[2] is not None else []
+    if vt and "voice-tracks" in groups:
+        sys.exit("stembal: a group may not be called voice-tracks when --voice-tracks is given")
+    extra = [("voice-tracks", vt)] if vt else []
+    shares = []
 
     def render(g, trs, out, win, frm, to):
         cmd = ["nice", "-n", "7", pin, "--json", "render", "--threads", str(a.threads), "-f", a.song, "--seed", str(a.seed)] \
@@ -295,7 +324,7 @@ def cmd_song(a):
     if secs:
         last = max(range(len(secs)), key=lambda i: secs[i][1])
         to = a.windows[last].partition(":")[0].partition("-")[2]
-        for g, trs in list(groups.items()) + [("mix", [])]:
+        for g, trs in list(groups.items()) + [("mix", [])] + extra:
             whole[g] = render(g, trs, os.path.join(outdir, f"sb-{g}-whole.wav"), a.windows[last], None, to)
         try:
             with wave.open(whole["mix"], "rb"):
@@ -308,14 +337,20 @@ def cmd_song(a):
         span, _, label = win.partition(":")
         b0, b1 = span.split("-")
         w = {}
-        for g, trs in list(groups.items()) + [("mix", [])]:
+        lv = {}
+        for g, trs in list(groups.items()) + [("mix", [])] + extra:
             out = os.path.join(outdir, f"sb-{g}-{b0}.wav")
             if secs:
                 cut(whole[g], out, *secs[i])
             else:
                 render(g, trs, out, win, b0, b1)
-            w[g] = bands(load(out))
+            if g != "voice-tracks":
+                w[g] = bands(load(out))
+            if vt and g in ("mix", "voice-tracks"):
+                lv[g] = frame_levels(load(out))
             os.remove(out)
+        if vt:
+            shares.append(voice_share(lv["mix"], lv["voice-tracks"], V[2]))
         tot = w["mix"].sum()
         mixes.append(db(w["mix"] / tot))
         names.append(label or span)
@@ -338,12 +373,14 @@ def cmd_song(a):
             print(f"{'refs own spread (std)':22s}" + "".join(f"{x:7.1f}" for x in spread_medians(S)[0])
                   + "   | what the records move between their own loud passages")
     if a.voice:
-        V = voice(a)
         if V:
-            off, n = V
+            off, n, _ = V
             rows = [("no voice - all", off["without"]), ("voice - all", off["with"])]
-            for name, m in zip(names, mixes):
+            for i, (name, m) in enumerate(zip(names, mixes)):
                 rows += [(f"{name[:11]}, no voice", m - (M + off["without"])), (f"{name[:11]}, voice", m - (M + off["with"]))]
+                if vt:
+                    sh = shares[i]
+                    rows.append((f"{name[:8]}, blend {sh:.0%}", m - (M + sh * off["with"] + (1 - sh) * off["without"])))
             show(f"== each window against the records' passages WITHOUT a voice and WITH one (ours minus the median shifted by "
                  f"the first two rows; {n['without']} and {n['with']} records; tools/vocsplit.py)", rows, whole=False)
         else:
@@ -371,6 +408,7 @@ def main():
     ap.add_argument("--per-window", action="store_true", help="render every window by itself, as before 13 Nov")
     ap.add_argument("--spread", action="store_true")
     ap.add_argument("--voice", action="store_true", help="read every window against the records' passages without a voice and with one")
+    ap.add_argument("--voice-tracks", help="with --voice: the voice's tracks; adds a row blended by the share of the window they fill")
     ap.add_argument("--win", type=float, default=20.0)
     ap.add_argument("--within", type=float, default=3.0)
     ap.add_argument("--seed", type=int, default=0)

@@ -8,6 +8,7 @@ twelve seconds of twenty-four), so every share is known: three equal parts are -
 """
 import contextlib
 import io
+import json
 import os
 import shutil
 import sys
@@ -111,6 +112,21 @@ class Vocsplit(unittest.TestCase):
         self.assertTrue(os.path.exists(V.cache_file(["recA"], 4.0, 12.0, 25.0, "bs_roformer_sw")))
         shutil.rmtree(os.path.join(self.root, "ref", "stems"))
         self.assertEqual(V.cached(["recA"]), first)
+
+    def test_the_gap_is_how_far_under_the_mix_the_records_voice_sings(self):
+        """The voice is one of four equal parts where it sings: 6.0 dB under the mix. stembal's blend is measured against it."""
+        record(self.root, "recA")
+        first = V.cached(["recA"])
+        self.assertAlmostEqual(first["gap"], 6.02, delta=0.05)
+        path = V.cache_file(["recA"], 4.0, 12.0, 25.0, "bs_roformer_sw")
+        with open(path) as f:
+            old = json.load(f)
+        del old["gap"]                                                     # a file from before the gap was kept
+        with open(path, "w") as f:
+            json.dump(old, f)
+        self.assertAlmostEqual(V.cached(["recA"])["gap"], 6.02, delta=0.05)   # ... is made again
+        record(self.root, "recQ", voice=(16.0, 24.0), quiet_after=16.0)   # no loud frame with the voice
+        self.assertIsNone(V.cached(["recQ"])["gap"])
 
     def test_a_record_without_a_vocals_stem_is_named_and_no_arguments_is_the_help(self):
         record(self.root, "recN", voice=None)
