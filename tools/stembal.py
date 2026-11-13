@@ -18,7 +18,12 @@ Two measures, both in nine bands (20-60-120-250-500-1k-2k-4k-8k-16k Hz), both in
         the references' median, ours minus theirs, and the width of their middle half.
         --windows takes what `chirp render --from/--to` takes: bars (1-indexed) or seconds (30s-90s).
         --groups left out: drums, bass and guitar are guessed from track and patch names, and printed.
-        --mix-only: only the whole-mix rows (one render per window: for iterating on an equaliser).
+        --mix-only: only the whole-mix rows (for iterating on an equaliser).
+        The song is rendered ONCE per group, to the end of the last window, and the windows are cut from that: a
+        window render starts from the top anyway, so sixteen windows cost sixteen part-renders a group before (nine
+        took 28 minutes on Common Time). The cut is the same samples a window render gives (checked bit for bit), so
+        the numbers are the same. A song whose tempo changes, whose meter is not 4/4 or that embeds other songs is
+        rendered window by window as before; --per-window forces that.
 
   --spread (on refs or song): the yardstick for "how far is too far". Each reference's own band shares are taken in
         consecutive --win second windows (default 20) of its loud passages (within --within dB, default 3, of its loud
@@ -46,6 +51,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import wave
 
 import numpy as np
 
@@ -206,11 +212,63 @@ def cmd_refs(a):
              whole=False)
 
 
-def guess_groups(pin, song, env):
+def canonical(pin, song, env):
+    """The song as `chirp plan` resolves it, or {} when it cannot be read."""
     r = subprocess.run([pin, "--json", "plan", "-f", song, "--set", "seed=0"], capture_output=True, text=True, env=env)
     try:
-        tracks = json.loads(r.stdout)["data"]["canonical"]["tracks"]
-    except (ValueError, KeyError):
+        return json.loads(r.stdout)["data"]["canonical"]
+    except (ValueError, KeyError, TypeError):
+        return {}
+
+
+def position(tok, tempo):
+    """A `chirp render --from/--to` position in seconds: a bar (49, 1-indexed, in 4/4), beats (12b) or seconds (30s)."""
+    m = re.fullmatch(r"(\d+(?:\.\d+)?)([bs]?)", tok.strip())
+    if not m:
+        return None
+    v = float(m.group(1))
+    if m.group(2) == "s":
+        return v
+    beats = v if m.group(2) == "b" else (v - 1) * 4
+    return beats * 60.0 / tempo if beats >= 0 else None
+
+
+def window_seconds(canon, windows):
+    """[(start, end)] in seconds for --windows, or None when they cannot be worked out here (a tempo that changes, a
+    meter other than 4/4, embedded songs, a position in another form): then each window is rendered by itself."""
+    tempo = canon.get("tempo")
+    if not isinstance(tempo, (int, float)) or isinstance(tempo, bool) or tempo <= 0:
+        return None
+    if str(canon.get("meter") or "4/4").replace(" ", "") != "4/4" or canon.get("songs"):
+        return None
+    out = []
+    for win in windows:
+        b0, _, b1 = win.partition(":")[0].partition("-")
+        s0, s1 = position(b0, tempo), position(b1, tempo)
+        if s0 is None or s1 is None or s1 <= s0:
+            return None
+        out.append((s0, s1))
+    return out
+
+
+def cut(src, dst, s0, s1):
+    """Seconds s0..s1 of a render, as a window render gives them: frames round(s0 * rate) to round(s1 * rate)."""
+    with wave.open(src, "rb") as w:
+        sr = w.getframerate()
+        f0, f1 = int(round(s0 * sr)), int(round(s1 * sr))
+        w.setpos(min(f0, w.getnframes()))
+        data = w.readframes(max(0, f1 - f0))
+        params = w.getparams()
+    with wave.open(dst, "wb") as o:
+        o.setparams(params)
+        o.writeframes(data)
+    return dst
+
+
+def guess_groups(pin, song, env):
+    try:
+        tracks = canonical(pin, song, env)["tracks"]
+    except KeyError:
         sys.exit("stembal: could not read the song's tracks to guess groups; give --groups name=track,track ...")
     out = {}
     for t in tracks:
@@ -237,19 +295,42 @@ def cmd_song(a):
     outdir = a.out or tempfile.mkdtemp(prefix="stembal-", dir="/tmp/lt" if os.path.isdir("/tmp/lt") else None)
     M = stats(R, "mix")[0]
     mixes, acc = [], {g: [] for g in groups}
-    for win in a.windows:
+
+    def render(g, trs, out, win, frm, to):
+        cmd = ["nice", "-n", "7", pin, "--json", "render", "--threads", str(a.threads), "-f", a.song, "--seed", str(a.seed)] \
+            + (["--from", frm] if frm else []) + ["--to", to, "--set", "loudness=null", "-o", out]
+        for t in trs:
+            cmd += ["--solo", t]
+        r = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=1800)
+        if not os.path.exists(out):
+            sys.exit(f"stembal: render failed for {g} {win}: {(r.stdout or r.stderr)[-300:]}")
+        return out
+
+    # One render a group, to the end of the last window; the windows are cut from it (see the notes above).
+    secs = None if a.per_window else window_seconds(canonical(pin, a.song, env), a.windows)
+    whole = {}
+    if secs:
+        last = max(range(len(secs)), key=lambda i: secs[i][1])
+        to = a.windows[last].partition(":")[0].partition("-")[2]
+        for g, trs in list(groups.items()) + [("mix", [])]:
+            whole[g] = render(g, trs, os.path.join(outdir, f"sb-{g}-whole.wav"), a.windows[last], None, to)
+        try:
+            with wave.open(whole["mix"], "rb"):
+                pass
+        except (wave.Error, EOFError):                # not a PCM file the cutter reads: window by window after all
+            for f in whole.values():
+                os.remove(f)
+            secs, whole = None, {}
+    for i, win in enumerate(a.windows):
         span, _, label = win.partition(":")
         b0, b1 = span.split("-")
         w = {}
         for g, trs in list(groups.items()) + [("mix", [])]:
             out = os.path.join(outdir, f"sb-{g}-{b0}.wav")
-            cmd = ["nice", "-n", "7", pin, "--json", "render", "--threads", str(a.threads), "-f", a.song, "--seed", str(a.seed),
-                   "--from", b0, "--to", b1, "--set", "loudness=null", "-o", out]
-            for t in trs:
-                cmd += ["--solo", t]
-            r = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=1800)
-            if not os.path.exists(out):
-                sys.exit(f"stembal: render failed for {g} {win}: {(r.stdout or r.stderr)[-300:]}")
+            if secs:
+                cut(whole[g], out, *secs[i])
+            else:
+                render(g, trs, out, win, b0, b1)
             w[g] = bands(load(out))
             os.remove(out)
         tot = w["mix"].sum()
@@ -263,6 +344,8 @@ def cmd_song(a):
                 acc[g].append(v)
                 rows.append((g, v))
             show(f"== ours, {label or span} ({span}; dB re the whole mix)", rows)
+    for f in whole.values():
+        os.remove(f)
     print(f"{'refs mix median':22s}" + "".join(f"{x:7.1f}" for x in M))
     print(f"{'OURS - REFS (mean)':22s}" + "".join(f"{x:7.1f}" for x in np.mean(mixes, axis=0) - M))
     if a.spread:
@@ -290,6 +373,7 @@ def main():
     ap.add_argument("--windows", nargs="+")
     ap.add_argument("--groups", nargs="+")
     ap.add_argument("--mix-only", action="store_true")
+    ap.add_argument("--per-window", action="store_true", help="render every window by itself, as before 13 Nov")
     ap.add_argument("--spread", action="store_true")
     ap.add_argument("--win", type=float, default=20.0)
     ap.add_argument("--within", type=float, default=3.0)

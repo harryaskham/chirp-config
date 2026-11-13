@@ -45,6 +45,37 @@ with wave.open(a[a.index("-o") + 1], "wb") as w:
 ''' % (FREQ,)
 
 
+# A second stand-in that keeps time: tempo 120 in 4/4, --from/--to honoured (bars, beats, seconds), a bass that changes
+# band at six seconds and a level that rises, so windows differ; every sample depends only on its place in the song, as
+# the engine's do, so a window render and a cut from a longer render are the same samples. It logs every render.
+TIMED = r'''#!/usr/bin/env python3
+import json, math, os, struct, sys, wave
+a = sys.argv[1:]
+META = %s
+if "plan" in a:
+    print(json.dumps({"data": {"canonical": dict(META, tracks=[{"name": "kick", "patch": "metal-kit"},
+                                                                {"name": "bass", "patch": "ct-bass"},
+                                                                {"name": "gl", "patch": "ct-chug-l"}])}}))
+    sys.exit(0)
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "calls.log"), "a") as f:
+    f.write(" ".join(a) + "\n")
+def secs(tok):
+    if tok.endswith("s"): return float(tok[:-1])
+    if tok.endswith("b"): return float(tok[:-1]) * 0.5
+    return (float(tok) - 1) * 4 * 0.5
+sr = 48000
+f0 = round(secs(a[a.index("--from") + 1]) * sr) if "--from" in a else 0
+f1 = round(secs(a[a.index("--to") + 1]) * sr)
+solo = [a[i + 1] for i, x in enumerate(a) if x == "--solo"] or ["kick", "bass", "gl"]
+def freq(p, t):
+    return {"kick": 50.0, "gl": 1500.0, "bass": 100.0 if t < 6 else 200.0}[p]
+with wave.open(a[a.index("-o") + 1], "wb") as w:
+    w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr)
+    w.writeframes(b"".join(struct.pack("<h", int(3000 * (1 + i / sr / 10) * sum(math.sin(2 * math.pi * freq(p, i / sr) * i / sr)
+                                                                                  for p in solo))) for i in range(f0, f1)))
+'''
+
+
 def sine(path, freq, seconds=3.0, amp=8000):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with wave.open(path, "wb") as w:
@@ -191,6 +222,70 @@ class Stembal(unittest.TestCase):
         with self.assertRaises(SystemExit) as e:                     # three seconds of stems hold no two 20 s windows
             self.run_tool("refs", "--refs", "recA,recB", "--from", "0", "--dur", "2", "--spread")
         self.assertIn("shorter --win", str(e.exception))
+
+    def timed(self, meta='{"tempo": 120.0}'):
+        with open(self.engine, "w") as f:
+            f.write(TIMED % meta)
+        log = os.path.join(self.root, "calls.log")
+        if os.path.exists(log):
+            os.remove(log)
+        return log
+
+    def test_one_render_a_group_gives_the_same_numbers_as_a_render_a_window(self):
+        log = self.timed()
+        args = ("song", self.song, "--refs", "recA,recB", "--from", "0", "--dur", "2", "--windows", "1-3:early", "5b-11b",
+                "7s-10.5s:late", "--out", self.root)
+        once = self.run_tool(*args)
+        with open(log) as f:
+            calls = f.read().splitlines()
+        self.assertEqual(len(calls), 4)                                    # three groups and the mix, once each
+        self.assertTrue(all("--from" not in c and "--to 10.5s" in c for c in calls))   # to the end of the last window
+        os.remove(log)
+        each = self.run_tool(*args, "--per-window")
+        with open(log) as f:
+            self.assertEqual(len(f.read().splitlines()), 12)               # as before: every window, every group
+        self.assertEqual(once, each)                                       # the same text, digit for digit
+        self.assertIn("== ours, late (7s-10.5s; dB re the whole mix)", once)
+        early = [ln for ln in once.splitlines() if ln.startswith("bass")][0]
+        late = [ln for ln in once.splitlines() if ln.startswith("bass")][2]
+        self.assertNotEqual(early, late)                                   # the bass moved band: the windows are not one
+        self.assertEqual([f for f in os.listdir(self.root) if f.startswith("sb-")], [])
+
+    def test_a_song_the_cutter_cannot_place_is_rendered_window_by_window(self):
+        for meta in ('{"tempo": [[0, 120], [8, 90]]}', '{"tempo": 120.0, "meter": "7/8"}', '{"tempo": 120.0, "songs": {"a": {}}}'):
+            log = self.timed(meta)
+            self.run_tool("song", self.song, "--refs", "recA", "--from", "0", "--dur", "2", "--windows", "1-3", "3-5",
+                          "--mix-only", "--out", self.root)
+            with open(log) as f:
+                calls = f.read().splitlines()
+            self.assertEqual(len(calls), 2, meta)
+            self.assertTrue(all("--from" in c for c in calls), meta)
+
+    def test_positions_as_the_engine_reads_them(self):
+        self.assertAlmostEqual(S.position("41", 126.0), 40 * 4 * 60 / 126.0)       # a bar, 1-indexed, in four
+        self.assertAlmostEqual(S.position("12b", 120.0), 6.0)
+        self.assertEqual(S.position("30s", 97.0), 30.0)
+        self.assertEqual(S.position("1", 120.0), 0.0)
+        for bad in ("0", "1:30", "riffA", "-4", "", "12bars"):
+            self.assertIsNone(S.position(bad, 120.0), bad)
+        self.assertEqual(S.window_seconds({"tempo": 120.0}, ["1-3:a", "5b-11b"]), [(0.0, 4.0), (2.5, 5.5)])
+        self.assertIsNone(S.window_seconds({"tempo": 120.0}, ["3-1"]))             # backwards
+        self.assertIsNone(S.window_seconds({}, ["1-3"]))                           # no tempo read: do not guess
+
+    def test_a_cut_is_the_frames_a_window_render_gives(self):
+        src, dst = os.path.join(self.root, "ramp.wav"), os.path.join(self.root, "cut.wav")
+        with wave.open(src, "wb") as w:
+            w.setnchannels(2)
+            w.setsampwidth(2)
+            w.setframerate(48000)
+            w.writeframes(b"".join(struct.pack("<hh", i % 30000, -(i % 30000)) for i in range(48000 * 3)))
+        s0, s1 = 40 * 4 * 60 / 126.0 / 100, 55 * 4 * 60 / 126.0 / 100              # 0.7619... to 1.0476... s: between frames
+        S.cut(src, dst, s0, s1)
+        with wave.open(dst, "rb") as w:
+            self.assertEqual((w.getnchannels(), w.getsampwidth(), w.getframerate()), (2, 2, 48000))
+            self.assertEqual(w.getnframes(), round(s1 * 48000) - round(s0 * 48000))
+            first = struct.unpack("<hh", w.readframes(1))
+        self.assertEqual(first, (round(s0 * 48000) % 30000, -(round(s0 * 48000) % 30000)))
 
     def test_windows_are_required(self):
         with self.assertRaises(SystemExit) as e:
