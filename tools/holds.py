@@ -117,9 +117,9 @@ def plan(pin, song):
 
 
 def render(pin, song, out, seed, solo, to):
-    """The track solo from the top to `to` beats. From the top on purpose: a late window (--from with --preroll) took
-    longer than the whole track on Common Time (47 s against 30; bd-e11da9), and this is the song's own audio, not an
-    approximation."""
+    """The track solo from the top to `to` beats. From the top on purpose: this is the song's own audio, not an
+    approximation, and a late window (--from with --preroll) is not always quicker: an effect that remembers its start
+    on the track's bus (a rotary on Common Time's guitars) makes the engine render from the top anyway (bd-e11da9)."""
     cmd = ["nice", "-n", "12", pin, "render", "-f", song, "--seed", str(seed), "--set", "loudness=null", "-o", out,
            "--solo", solo, "--to", f"{to:g}b"]
     env = dict(os.environ, RAYON_NUM_THREADS="2")
