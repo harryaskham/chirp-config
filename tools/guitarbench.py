@@ -14,7 +14,13 @@ Defaults reproduce the Bleed numbers in bd-6ccdf9:
            (first 40 s), O = our soloed guitar render — the separation's own bias removed.
 Prints the 1/6-octave envelope error grouped by region, the harmonic-line contrast per octave (ours, target) and
 partial irregularity. Contrast = 90th − 10th percentile of the fine spectrum per octave, median over events: a
-clean synthetic harmonic series reads high (deep valleys), a real rig fills the valleys."""
+clean synthetic harmonic series reads high (deep valleys), a real rig fills the valleys.
+
+CAVEAT on the top band ("fizz 4200-8500"): the target leans on a separated guitar stem, and the correction does not
+take the separator out of it there. Read from the records themselves where the guitar plays ALONE (obZen 3:03, Bleed
+6:27; find such passages with galone.py, read them with gspec.py), our heavy rigs have nothing above 6.3 kHz (-18 dB
+at 8 kHz, -23 at 10 kHz) and 13 dB less at 80 Hz: they are dull on top and thin underneath, not fizzy. So do not
+chase this band's number down; judge the top against a record's own guitar. (chirper-zero, Common Time v30.)"""
 import json
 import os as _os, sys as _sys  # noqa: E401
 _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
