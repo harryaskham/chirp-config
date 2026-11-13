@@ -914,13 +914,41 @@ PICKED = f" synth.layers.0.soft={PICK.split(';')[0]} fx.2.tight={PICK.split(';')
 # the amp's `tight` at 190 and an eq after it that holds the tone (guitars alone within 0.5 dB of v24's in third-octaves).
 # Before the eye the five wheel keeps v25's pick, so the piece has both: riff A at 1:06 on the one, riff A's return at 10:28 on
 # the other. B ; the pick ; the amp's tight ; the eq's peaks ; from which bar. "" = v28 (one string throughout).
-REAL5 = os.environ.get("C10T1_REAL5", "0.00005;expr.pm*0.7;190;99:3:5.1,231:1.2:-4.1,735:1.8:2;210")
+# v30: the eq after it is refitted so this rig's tone is the FIRST HALF's rig's (within 0.4 dB in third-octaves), not the old
+# noise pick's: v29's fit had put 2 dB back at 735 Hz, where our guitars already stand 2-4 dB over a guitar heard alone on the
+# records (obZen 3:03, Bleed 6:27; gspec.py), and where the records' passages WITHOUT a voice hold 3.6 dB less than those with
+# one (vocsplit.py). The two strings now differ in the string and nothing else. v29's eq: 99:3:5.1,231:1.2:-4.1,735:1.8:2.
+REAL5 = os.environ.get("C10T1_REAL5", "0.00005;expr.pm*0.7;190;92:4:3.2,262:1.3:-2.6;210")
 REAL_MAP = {"gl": "rl", "gr": "rr", "gl2": "rl2", "gr2": "rr2"} if REAL5 else {}
 REAL_FROM = float(REAL5.split(";")[4]) if REAL5 else None
 REAL_RIG = (f" synth.layers.0.soft={REAL5.split(';')[1]} fx.2.tight={REAL5.split(';')[2]} synth.layers.0.inharm={REAL5.split(';')[0]}"
             " synth.layers.0.grain.mod.0.amount=0 synth.layers.0.grain.value=0") if REAL5 else ""
 if REAL5 and "gl2" in SECTION_FADERS:      # the hardest stretch's doubling guitars are on the real string now: their fader goes with them
-    SECTION_FADERS["rl2"], SECTION_FADERS["rr2"] = SECTION_FADERS["gl2"], SECTION_FADERS["gr2"]
+    SECTION_FADERS["rl2"], SECTION_FADERS["rr2"] = list(SECTION_FADERS["gl2"]), list(SECTION_FADERS["gr2"])
+# v30: THE MIX READ AGAINST THE RIGHT PASSAGES. The records' loud passages WITHOUT a voice differ from those with one (eleven
+# records, vocsplit.py): 2.3 dB less at 500 Hz-1 kHz and 1.4 less at 8-16 kHz than all their loud passages together (the
+# yardstick used until now), 0.4 more under 120 Hz. Read that way our instrumental sections are on target at 500 Hz-1 kHz
+# (they had read 1-2.5 "under") and 1.4-2.2 dB bright at 8-16 kHz, which the cymbals carry alone. And THE LANDING's riff,
+# with four guitars on it, read 1.0-1.4 dB light under 120 Hz and 2.2 over at 120-250 Hz.
+# LANDMIX: the landing riff (bars 389-401): bass dB : kick dB : the two doubling guitars dB : cymbals dB.
+# CYMINST: the cymbals' fader in the instrumental sections that read 1.4 dB or more over at 8-16 kHz (riff A and the section
+# after it, riff C before its chords). "" = v29's faders.
+LANDMIX = os.environ.get("C10T1_LANDMIX", "1.5:1:-2.5:-1.5")
+# BEQ2: an eq on the bass's bus AFTER its compressor (ahead of it the compressor gives a cut back). Every instrumental section
+# read 1.3-1.6 dB over at 120-250 Hz (the landing riff 2.2), and by groups it is the bass: 3.7 dB more there than the
+# records' bass stems, where the guitars have 2.3 less and the drums 1.0 more. "" = no second eq (v29).
+BEQ2 = os.environ.get("C10T1_BEQ2", "170:1.2:-3")
+CYMINST = os.environ.get("C10T1_CYMINST", "-1.5")
+if SECMIX and (LANDMIX or CYMINST):
+    cymf = [(35, 70, float(CYMINST)), (110, 121, float(CYMINST))] if CYMINST else []
+    if LANDMIX:
+        lb, lk, ld, lc = [float(x) for x in LANDMIX.split(":")]
+        cymf.append((389, 400.5, lc))        # back to the old balance by bar 401: the last chord and its crash are as they were
+        SECTION_FADERS["kick"] = SECTION_FADERS.get("kick", []) + [(389, 400.5, lk)]
+        for tr in ("rl2", "rr2") if REAL5 else ("gl2", "gr2"):
+            SECTION_FADERS[tr] = SECTION_FADERS.get(tr, []) + [(389, 400.5, ld)]
+    if cymf:
+        SECTION_FADERS["cym"] = cymf
 # v26, THE EYE: THE WHEELS LOOK AT EACH OTHER. In the quiet centre (5:33-6:40) each wheel's clean guitar is moved by another
 # wheel's count, on the song's clock, so the two stay locked:
 #   five's guitar (left) swells and sinks every SEVEN sixteenths (a `tremolo`), loudest where five and seven meet;
@@ -1084,6 +1112,8 @@ def song():
             BASS_RING += last
         else:
             GTR_RIDE += last
+            if LANDMIX and SECMIX:      # the landing riff's bass (v30), ahead of the last chord's fade
+                BASS_RIDE += [[f"{388.5 * 4}b", 0], [f"{389 * 4}b", float(LANDMIX.split(":")[0])], [f"{400.5 * 4}b", float(LANDMIX.split(":")[0])], [f"{401 * 4}b", 0]]
             BASS_RIDE += last
     # the tape stop: from the last stab of the second stop-time (bar 279, the twelfth sixteenth) to the bar line
     t0 = (279 + 11 / 16) * 4
@@ -1227,6 +1257,7 @@ def song():
                                "auto": {"ride": {"points": GTR_RIDE}, **({"ring": {"points": GTR_RING, "curve": 0}} if RINGS else {}), **({"rot": {"points": ROT_MIX}, "spin": {"points": ROT_SPIN}} if ROTARY else {})}}} if GEQ else {}),
                   **({"low": {"fx": [{"type": "eq", "bands": peaks(BEQ)}]
                               + ([{"type": "compressor", "threshold": BCOMP.split(":")[0] + "dB", "ratio": float(BCOMP.split(":")[1]), "attack": "12ms", "release": "120ms", "makeup": BCOMP.split(":")[2] + "dB"}] if BCOMP else [])
+                              + ([{"type": "eq", "bands": peaks(BEQ2)}] if BEQ2 else [])
                               + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}] + ([{"src": "auto.ring", "amount": 1}] if RINGS else [])}}],
                               "auto": {"ride": {"points": BASS_RIDE}, **({"ring": {"points": BASS_RING, "curve": 0}} if RINGS else {})}}} if BEQ else {})},
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}] + ([{"type": "gain", "gain": f"{MASTER_DB}dB"}] if MASTER_DB else [])
