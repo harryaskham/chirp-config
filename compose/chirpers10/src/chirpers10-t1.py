@@ -823,6 +823,13 @@ def compose():
 # Track faders by section, (first bar, last bar, dB); "" = off. High-gain rigs are saturated, so velocity cannot do this.
 SECMIX = os.environ.get("C10T1_SECMIX", "1")
 SECTION_FADERS = {"gl2": [(280, 308, -2.5)], "gr2": [(280, 308, -2.5)]} if SECMIX else {}   # the doubling guitars in the hardest stretch: 2-4 kHz read 1.8 dB over
+# v21, a tidy of three things the guard windows showed. (1) Under 60 Hz the eleven-wheel sections read 1.4-2.3 dB over the
+# records. It is the KICK, not the bass (the kick is 70-100% of that band everywhere): on the wall rig it stood 2-3 dB over
+# the guitars where in riff A it is level with them. So the kick's fader comes down through riff C and the split, and in the
+# Bb section, where the mids were also 2-3 dB under, the wall guitars come up. (2) the spoken voice's body, see SPEAK.
+TIDY = os.environ.get("C10T1_TIDY", "1")
+if TIDY:
+    SECTION_FADERS.update({"kick": [(110, 154, -1.0), (220, 231, -1.2)], "wl": [(220, 231, 1.5)], "wr": [(220, 231, 1.5)]})
 # the wall rig's tracks: a dip at 350 Hz. It is the thick rig (4-5 dB more than the tight one at 160-315 Hz), and every section
 # it plays chords in read over the records at 250-500 Hz (riff C with its chords 2.4, the approach 3.2, section 13 1.3)
 WALL_EQ = os.environ.get("C10T1_WALLEQ", "350:1:-2.5") if SECMIX else ""
@@ -837,6 +844,11 @@ ROTARY = os.environ.get("C10T1_ROTARY", "1")    # a rotary speaker on the slow c
 # 1.5-5 dB in their own bands, because the guitars never fell silent between the stabs. Now that they do (v20, STOPS below),
 # the squeal stands 5-12 dB clear of the gap from 1.25 to 4 kHz. "" = none
 SQUEAL = os.environ.get("C10T1_SQUEAL", "-6dB" if os.environ.get("C10T1_STOPS", "x") else "")
+# v21: the first stop-time's last stab STUTTERS into riff C: five sixteenths, each re-read a semitone higher (3:29). The form
+# is a palindrome and its two stop-times mirror each other: the second ends in the tape stop (time drags, the pitch falls),
+# the first in this (time splinters, the pitch climbs). The stutter's slot is five sixteenths long, the five wheel's own
+# turn, so it falls on the wheel's stab by itself. "semitones per repeat : roll : decay"; "" = none
+STUTTER = os.environ.get("C10T1_STUTTER", "1:1:0" if os.environ.get("C10T1_TIDY", "1") else "")
 TSTOP = os.environ.get("C10T1_TSTOP", "1")      # a tape stop on the last stab before the hardest stretch (8:52): the whole mix winds down, and the band lands on the bar line
 SWARM = os.environ.get("C10T1_SWARM", "-18dB")
 # its fader (bar, dB): a crowd is about 3 dB quieter than the same swarm in step, and the approach is busier than the opening
@@ -928,6 +940,11 @@ def song():
     # the tape stop: from the last stab of the second stop-time (bar 279, the twelfth sixteenth) to the bar line
     t0 = (279 + 11 / 16) * 4
     TSTOP_LANE = [["0b", 0], [f"{t0 - 0.01}b", 0], [f"{t0}b", 1], [f"{280 * 4 - 0.01}b", 1], [f"{280 * 4}b", 0]]
+    # the stutter: the mirror of the tape stop, at the first stop-time's last stab (bar 109, the twelfth sixteenth, to the bar line)
+    t1 = (109 + 11 / 16) * 4
+    # (the lane is up half a beat before the slot and down half a beat before the next: the effect reads it smoothed, and a
+    #  lane that rose 5 ms before the slot stuttered the NEXT slot, riff C's first note, instead)
+    STUT_LANE = [["0b", 0], [f"{t1 - 0.6}b", 0], [f"{t1 - 0.5}b", 1], [f"{t1 + 0.6}b", 1], [f"{t1 + 0.7}b", 0]]
     OHC = {"sends": {"oh": DROOM.split(":")[1] + "dB"}} if DROOM else {}
     OHS = {"sends": {"oh": DROOM.split(":")[2] + "dB"}} if DROOM else {}
     GOUT = {"out": "gtrs"} if GEQ else {}
@@ -955,7 +972,7 @@ def song():
         ("chime", "modal-glock", CHIME_GAIN, -0.2, {"sends": {"hall": "-6dB", "dly": "-14dB"}}),
         ("vox", "kidman" + VOX_WORDS, VOX or "0dB", 0, {"sends": {"hall": "-18dB"}, "fx": [{"type": "eq", "bands": [f"hp cutoff={VOX_HP}"] + peaks(VOX_EQ) + ([f"highshelf cutoff={VOX_SHELF.split(':')[0]} gain={VOX_SHELF.split(':')[1]}dB"] if VOX_SHELF else [])}]}),
         ("choir", "voice-backing", CHOIR or "0dB", 0, {"sends": {"hall": "-8dB"}}),
-        ("speak", "voice-talk", SPEAK or "0dB", 0, {"fx": [{"type": "eq", "bands": ["hp cutoff=120", "peak cutoff=300 q=1 gain=" + os.environ.get("C10T1_SPEAKDIP", "-2.5") + "dB"]}]}),      # dry: with the hall a recogniser lost "its own count"; the dip: it put the rebuild 3.9 dB over the records at 250-500 Hz
+        ("speak", "voice-talk", SPEAK or "0dB", 0, {"fx": [{"type": "eq", "bands": ["hp cutoff=" + os.environ.get("C10T1_SPEAKHP", "120"), "peak cutoff=300 q=1 gain=" + os.environ.get("C10T1_SPEAKDIP", "-6" if TIDY else "-2.5") + "dB"]}]}),      # dry: with the hall a recogniser lost "its own count"; the dip: it put the rebuild 3.9 dB over the records at 250-500 Hz
         ("word", "ct-word", WORD or "0dB", 0, {"sends": {"hall": "-8dB"}, "fx": [{"type": "eq", "bands": ["hp cutoff=350"]}]}),      # its notes are C3 F3 C4, on top of the guitars' chord: 250-500 Hz read 3.8 dB over with them in
         ("whisper", "ct-whisper", WHISPER or "0dB", 0, {"sends": {"hall": "-8dB"}}),
         ("swarm", "ct-swarm", {"value": SWARM or "0dB", "mod": [{"src": "auto.lvl", "amount": 1}]}, 0,
@@ -1028,8 +1045,10 @@ def song():
                               "auto": {"ride": {"points": BASS_RIDE}}}} if BEQ else {})},
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}] + ([{"type": "gain", "gain": f"{MASTER_DB}dB"}] if MASTER_DB else [])
                    + ([{"type": "gain", "gain": f"{MGAIN.split(':')[0]}dB"}, "limiter ceiling=-1dB", {"type": "gain", "gain": f"-{MGAIN.split(':')[1]}dB"}] if MGAIN else [])
-                   + ([{"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.stop", "amount": 1}]}, "time": "1.25b"}] if TSTOP else []),
-                   **({"auto": {"stop": {"points": TSTOP_LANE}}} if TSTOP else {})},
+                   + ([{"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.stop", "amount": 1}]}, "time": "1.25b"}] if TSTOP else [])
+                   + ([{"type": "stutter", "slice": "1/16", "repeats": 5, "pitch": float(STUTTER.split(":")[0]), "roll": float(STUTTER.split(":")[1]), "decay": float(STUTTER.split(":")[2]),
+                        "chance": {"value": 0, "mod": [{"src": "auto.stut", "amount": 1}]}}] if STUTTER else []),
+                   **({"auto": {**({"stop": {"points": TSTOP_LANE}} if TSTOP else {}), **({"stut": {"points": STUT_LANE}} if STUTTER else {})}} if TSTOP or STUTTER else {})},
         "tracks": tracks,
     }
 

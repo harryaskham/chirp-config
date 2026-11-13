@@ -54,6 +54,8 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 
 **A synth on riff C (v13).** A phase-distortion synth doubles the eleven wheel's riff two octaves up, a resonant sweep on every strike: riff C is the wall rig and this.
 
+**The two hinges (v21).** The form is a palindrome, and its two stop-times are mirror images. Each now ends in an effect on the whole band, and the two effects are mirror images too: the first (3:29) in a STUTTER, the last stab splintered into five that climb a semitone each into riff C; the second (8:52) in the TAPE STOP, the last stab and its squeal dragged down into the hardest stretch. Time splinters going in, and drags going out.
+
 **The stops (v20).** The two stop-time sections (3:20, sixteen stabs on the five wheel; 8:43, stabs with a dissonant chord and toms between) and the cut before the landing are now what they were written as: the guitars fall silent between the stabs. Until v19 they did not (their rigs rang on through every rest). The last gap before the hardest stretch carries a squeal, two pinched harmonics a fifth apart (Ab and Eb, the hook's first note and its fifth), and the tape stop takes it down.
 
 **And in the quiet (v19).** The three ticking guitars of the wait, the eye and the approach are three guitars too: five on `ct-clean` (warm, a neck coil), seven on `ct-glass` (thin and forward, the bridge and middle coils through a small miked amp), eleven on `ct-bell` (played in harmonics: round, ringing).
