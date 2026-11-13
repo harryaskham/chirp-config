@@ -93,6 +93,28 @@ class Gspec(unittest.TestCase):
         self.assertTrue(plain.splitlines()[2].startswith("ours  "))
         self.assertAlmostEqual(self.values(plain.splitlines()[2])[self.band(2000)], -3.0, delta=0.1)
 
+    def test_a_band_of_ones_own_is_added_under_the_table(self):
+        """A harmonic on a third-octave's edge: 89 Hz is where the 80 and 100 Hz bands meet, so a sine just under it is all in
+        one and a sine just over all in the other; a band across both reads the same for the two."""
+        save(self.path("under.wav"), [sine(88.0) + sine(1000.0)])
+        save(self.path("over.wav"), [sine(90.0) + sine(1000.0)])
+        args = ("under=" + self.path("under.wav"), "over=" + self.path("over.wav"), "--diff")
+        _, plain = self.run_tool(*args)
+        code, text = self.run_tool(*args, "--band", "71-112", "--band", "560-1120")
+        self.assertEqual(code, 0)
+        self.assertTrue(text.startswith(plain))                            # the table above is as it was
+        thirds = self.values(text.splitlines()[2])
+        self.assertLess(thirds[self.band(80)], -40.0)                      # one third-octave says the low end is gone
+        extra = text[len(plain):].splitlines()
+        self.assertEqual(extra[0].split(), ["band,", "Hz", "71-112", "560-1120"])
+        self.assertEqual([float(v) for v in extra[1][22:].split()], [-3.0, -3.0])   # two equal sines: half the total each
+        self.assertTrue(extra[2].startswith("over -1st"))
+        for v in extra[2][22:].split():
+            self.assertAlmostEqual(float(v), 0.0, delta=0.1)               # ... the band across the edge says nothing moved
+        with self.assertRaises(SystemExit) as e:
+            self.run_tool(*args, "--band", "low")
+        self.assertIn("--band LO-HI", str(e.exception))
+
     def test_no_file_is_the_help(self):
         code, text = self.run_tool("--diff")
         self.assertEqual(code, 2)
