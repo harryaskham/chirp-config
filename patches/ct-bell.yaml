@@ -1,0 +1,4 @@
+{
+ "about": "Common Time third clean guitar (chirper-zero, 13 Nov): ct-clean played entirely in harmonics. The finger touches the string's middle (`pinch` 1, `node` 2: the twelfth-fret harmonic), so only the even harmonics ring and the note sounds an OCTAVE ABOVE the one written: write each note an octave low. The same pickup, amp and chorus as ct-clean; the difference is the string alone. Against ct-clean fretting the same pitch its fundamental stands 6-15 dB clearer of its overtones (a rounder, bell-like note) and a high note rings three times as long. In Common Time it is the ELEVEN wheel's clean voice.",
+ "extends": "ct-clean synth.layers.0.pinch=1 synth.layers.0.node=2"
+}

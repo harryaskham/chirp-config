@@ -267,7 +267,7 @@ def tick(tr, p, cell, notes, b0, b1, vel=0.42, ramp=None, harmony=None):
         if ramp:
             v *= ramp[0] + (ramp[1] - ramp[0]) * (t - s0) / max(1, s1 - s0)
         root = 53 + (root_at(harmony, t) if harmony else 0)
-        add(tr, t, 1.8, root + notes[j % len(notes)], v)
+        add(tr, t, 1.8, root + notes[j % len(notes)] - (12 if tr == "cl11" and CLEAN11 else 0), v)   # the bell is played in harmonics: written an octave low
 
 
 def root_at(harmony, t):
@@ -651,6 +651,12 @@ def compose():
         else:
             add("toms", t, 1, ["t1", "t2", "ft"][j - 1], 0.7)
 
+    if SQUEAL:      # the stab before the last squeals: two pinched harmonics a fifth apart ring through the gap, and with
+        #             the last stab the tape stop drags them down with everything else. They sound Ab5 and Eb6, the hook's
+        #             first note and its fifth: F5 and C6 were tried first and vanished into the F chord's own overtones
+        add("ql", 279 * 16 + 6, 10, 56, 1.0, ph=1)         # Ab3 touched at its quarter: sounds Ab5
+        add("qr", 279 * 16 + 6, 10, 63, 1.0, ph=1)         # Eb4: sounds Eb6
+
     # 17. 280-308  five meets seven: the hardest stretch. Seven everywhere, the kick running sixteenths; up a semitone
     #     and back; the last seven bars the snare goes to the off-beats
     a, z = B[16], B[17]
@@ -782,6 +788,10 @@ HCYM = [float(x) for x in os.environ.get("C10T1_HCYM", "0.48:0.58").split(":")]
 # effects where the music asks for them (Harry: "a showcase of all features"), each with a switch ("" = off)
 WAH = os.environ.get("C10T1_WAH", "1")          # a wah on the lead's run (4:53): the pedal opens through each flurry and closes on the held note
 ROTARY = os.environ.get("C10T1_ROTARY", "1")    # a rotary speaker on the slow chords (5:14): it comes in over the first chord and spins up as they fade
+# two pinch harmonics over the last two stabs before the tape stop (8:52), on the tight rig. OFF: tried in round 20 at -6 and
+# -3 dB, they added only 1.5-5 dB in their own bands, because the guitars never fall silent between the stabs (see STATE.md,
+# "the stops do not stop"). To be tried again once they do. C10T1_SQUEAL=-3dB turns them on
+SQUEAL = os.environ.get("C10T1_SQUEAL", "")
 TSTOP = os.environ.get("C10T1_TSTOP", "1")      # a tape stop on the last stab before the hardest stretch (8:52): the whole mix winds down, and the band lands on the bar line
 SWARM = os.environ.get("C10T1_SWARM", "-18dB")
 # its fader (bar, dB): a crowd is about 3 dB quieter than the same swarm in step, and the approach is busier than the opening
@@ -831,6 +841,15 @@ WHISPER = os.environ.get("C10T1_WHISPER", "-8dB")
 BCOMP = os.environ.get("C10T1_BCOMP", "-26:8:2.5")                                    # threshold:ratio:makeup on the bass's bus, after its eq                         # and a high shelf there, hz:dB
 
 
+# v19: a wheel is known by its guitar in the quiet too. The five's ticks stay on ct-clean (a neck single coil, a studio clean);
+# the seven's go to ct-glass (bridge and middle coils together, a small miked amp); the eleven's to ct-bell (ct-clean
+# played in harmonics, written an octave low). "" puts a wheel back on ct-clean
+CLEAN7 = os.environ.get("C10T1_CLEAN7", "ct-glass")
+CLEAN7_DB = os.environ.get("C10T1_CLEAN7DB", "-3dB")
+CLEAN11 = os.environ.get("C10T1_CLEAN11", "ct-bell")
+CLEAN11_DB = os.environ.get("C10T1_CLEAN11DB", "-4dB")
+
+
 def peaks(spec):
     return ["peak cutoff=%s q=%s gain=%sdB" % tuple(x.split(":")) for x in spec.split(",") if x]
 CL_SENDS = {"dly": "-14dB", "hall": "-12dB"} if CLEAN == "m8-clean" else {"dly": "-9dB", "hall": "-7dB"}   # ct-clean is dry: the song gives it its space
@@ -871,6 +890,7 @@ def song():
     spec = [
         ("gl", RIG_L, "0dB", -1, GOUT), ("gr", RIG_R, "0dB", 1, GOUT),
         ("gl2", RIG_L, "-3dB", -0.8, GOUT), ("gr2", RIG_R, "-3dB", 0.8, GOUT),
+        *([("ql", RIG_L + " synth.layers.0.node=4", SQUEAL, -0.5, GOUT), ("qr", RIG_R + " synth.layers.0.node=4", SQUEAL, 0.5, GOUT)] if SQUEAL else []),
         ("sl", BITE_L, BITE_DB, -1, GOUT), ("sr", BITE_R, BITE_DB, 1, GOUT),
         ("kl", CRUNCH_L, CRUNCH_DB, -0.8, {}), ("kr", CRUNCH_R, CRUNCH_DB, 0.8, {}),          # not through the guitars' bus: its eq scoops the mids this rig is made of
         ("wl", WALL_L, "-2dB", -0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
@@ -882,8 +902,8 @@ def song():
         ("lead", "m8-lead-guitar", {"value": "-3dB", "mod": [{"src": "auto.eye", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"eye": {"points": LEAD_LANE}}}),
         ("leadw", "ct-lead-wah", "-3dB", 0, {"sends": {"hall": "-10dB"}, "auto": {"wah": {"points": [[f"{round(t / 4, 3)}b", v] for t, v in WAH_PTS]}}}),
         ("cl5", CLEAN, "-4dB", -0.45, {"sends": CL_SENDS}),
-        ("cl7", CLEAN, "-3dB", 0.45, {"sends": CL_SENDS}),
-        ("cl11", CLEAN, "-3dB", 0, {"sends": CL_SENDS}),
+        ("cl7", CLEAN7 or CLEAN, CLEAN7_DB if CLEAN7 else "-3dB", 0.45, {"sends": CL_SENDS}),
+        ("cl11", CLEAN11 or CLEAN, CLEAN11_DB if CLEAN11 else "-3dB", 0, {"sends": CL_SENDS}),
         ("home", "contrabass-tight", "-12dB", 0.3, {"sends": {"hall": "-12dB"}}),
         ("fifth", "cellos", "-15dB", 0.4, {"sends": {"hall": "-8dB"}}),
         ("air", "juno-pad", "-17dB", 0.15, {"sends": {"hall": "-8dB"}}),

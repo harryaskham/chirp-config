@@ -54,6 +54,8 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 
 **A synth on riff C (v13).** A phase-distortion synth doubles the eleven wheel's riff two octaves up, a resonant sweep on every strike: riff C is the wall rig and this.
 
+**And in the quiet (v19).** The three ticking guitars of the wait, the eye and the approach are three guitars too: five on `ct-clean` (warm, a neck coil), seven on `ct-glass` (thin and forward, the bridge and middle coils through a small miked amp), eleven on `ct-bell` (played in harmonics: round, ringing).
+
 **A wheel is known by its rig (v12; Harry, 12 Nov: "lots of different guitars ... amps and string variants").** Each wheel has its own guitar sound wherever it turns: FIVE on the tight rig (`ct-chug`: mark and 5150 amps, cabinet files), SEVEN on the bite rig (`ct-bite`: the nolly amp, the engine's own 2x12 cabinet, all down-strokes; leaner below 500 Hz, more at 1.6-3 kHz), ELEVEN on the wall rig (`ct-wall`: recto stack, thick, ringing). Where two wheels play at once on the two sides (4:26, 7:46, 10:00) the sides are two different guitars, and when they swap wheels at 10:00 the rigs swap sides with them.
 
 **The words, across the piece (v17).** Five voices now say one thing in order. The WHISPER in the opening: "wait", "wait", "not yet". A SPOKEN voice as the band comes back after the eye (6:42): "Each one keeps its own count. None of them wrong." The BARK over the hardest stretch (8:53) screams the same lines and ends "Somewhere ahead one hour holds them all. Keep count." And when the three wheels land (12:13) a CHOIR answers with one word, "yes" (the sound of "yet", turned), on each of the four chords, and once more under the last. (The three soft singers in the eye have no words.)

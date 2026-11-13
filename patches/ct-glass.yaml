@@ -1,0 +1,121 @@
+{
+ "about": "Common Time second clean guitar (chirper-zero, 13 Nov): ct-clean's string heard through the bridge and middle single coils together (a Strat's fourth position: `pickup` 0.07 with `coil` 1.7, resonance 7.5 kHz), picked nearer the bridge with a harder pick, into a clean amp with a Bassman tone stack and a miked 4x10 cabinet. No chorus, no delay or hall of its own (the song sends it). In Common Time it is the SEVEN wheel's clean voice, as ct-clean is the five's and ct-bell the eleven's. Not fitted to a record.",
+ "synth": {
+  "layers": [
+   {
+    "type": "pluck",
+    "decay": {
+     "value": "5s",
+     "mod": [
+      {
+       "src": "vel",
+       "amount": 1
+      }
+     ]
+    },
+    "pick": 0.1,
+    "body": 0.25,
+    "bright": {
+     "value": 0.7,
+     "mod": [
+      {
+       "src": "vel",
+       "amount": 0.25
+      },
+      {
+       "src": "rand",
+       "amount": 0.05
+      }
+     ]
+    },
+    "planes": 0.3,
+    "beat": 1.5,
+    "pickup": 0.07,
+    "pickup_hz": 7500,
+    "pickup_q": 1.6,
+    "aperture": 0.03,
+    "pickup_nl": 0.15,
+    "click": 0.1,
+    "coil": 1.7,
+    "pick_hard": 0.5
+   }
+  ],
+  "pitch": {
+   "value": 0,
+   "mod": [
+    {
+     "src": "rand",
+     "amount": 0.04
+    },
+    {
+     "src": "lfo.vib",
+     "amount": 0.08
+    }
+   ]
+  },
+  "lfo": {
+   "vib": {
+    "wave": "sine",
+    "rate": "4.8hz",
+    "delay": "600ms",
+    "fade": "800ms",
+    "retrig": true
+   }
+  },
+  "filters": [
+   "lp cutoff=10k",
+   "hp cutoff=90"
+  ],
+  "amp": {
+   "a": "2ms",
+   "s": 1,
+   "r": "400ms"
+  }
+ },
+ "play": {
+  "voicing": "guitar",
+  "tuning": "F1 Bb1 Eb2 Ab2 Db3 Gb3 Bb3 Eb4",
+  "frets": 24,
+  "gate": 1.6,
+  "humanize": {
+   "time": "8ms",
+   "vel": 0.08
+  },
+  "vel_sens": 0.6
+ },
+ "fx": [
+  {
+   "type": "compressor",
+   "threshold": "-22dB",
+   "ratio": 2.5,
+   "attack": "12ms",
+   "release": "150ms",
+   "makeup": "2dB"
+  },
+  {
+   "type": "amp",
+   "model": "clean",
+   "stack": "bassman",
+   "gain": 0.3,
+   "bass": 0.45,
+   "mid": 0.6,
+   "treble": 0.6,
+   "presence": 0.55,
+   "sag": 0.3
+  },
+  {
+   "type": "cab",
+   "model": "4x10",
+   "mic": 0.3,
+   "distance": 0.2
+  },
+  {
+   "type": "eq",
+   "bands": [
+    "peak cutoff=250 q=0.8 gain=-2dB",
+    "lowpass cutoff=11000"
+   ]
+  }
+ ],
+ "gain": "-20dB"
+}
