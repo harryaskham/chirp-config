@@ -118,7 +118,8 @@ def plan(pin, song):
 
 def render(pin, song, out, seed, solo, to):
     """The track solo from the top to `to` beats. From the top on purpose: a late window (--from with --preroll) took
-    longer than the whole track on Common Time (47 s against 30), and this is the song's own audio, not an approximation."""
+    longer than the whole track on Common Time (47 s against 30; bd-e11da9), and this is the song's own audio, not an
+    approximation."""
     cmd = ["nice", "-n", "12", pin, "render", "-f", song, "--seed", str(seed), "--set", "loudness=null", "-o", out,
            "--solo", solo, "--to", f"{to:g}b"]
     env = dict(os.environ, RAYON_NUM_THREADS="2")
