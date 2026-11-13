@@ -164,6 +164,8 @@ def gtr(trs, p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None, rig=None, d
                 tr = rig.get(tr, tr)
             elif p == 7 and BITE_L:
                 tr = SEVEN_RIG.get(tr, tr)        # a wheel is known by its rig: five ct-chug, seven ct-bite, eleven ct-wall
+            if REAL_FROM is not None and b0 >= REAL_FROM:
+                tr = REAL_MAP.get(tr, tr)         # after the eye the tight rig's string is a real one (v29)
             if kind == "c":
                 add(tr, t, ln, root, v * (dyn[0] if rig else 1.0), pm=1)
             elif kind == "o":
@@ -196,6 +198,8 @@ def harm(trs, p, cell, b0, b1, interval=12, root=F1, hook=H1, vel=0.8, power=Fal
         if kind == "h":
             n = root + hook[hi % len(hook)] + interval
             for tr in trs:
+                if REAL_FROM is not None and b0 >= REAL_FROM:
+                    tr = REAL_MAP.get(tr, tr)     # after the eye the tight rig's string is a real one (v29)
                 add(tr, t, ln, ",".join(nm(n + i) for i in (0, 7, 12)) if power else n, vel)
 
 
@@ -904,6 +908,19 @@ ENDLINE = os.environ.get("C10T1_ENDLINE", "")      # "1" = the last chord's fade
 # "soft's source ; the amp's tight in Hz ; that eq's peaks"; "" = the noise pick (v24)
 PICK = os.environ.get("C10T1_PICK", "expr.pm;220;100:1.2:2.2,280:1.5:-3")
 PICKED = f" synth.layers.0.soft={PICK.split(';')[0]} fx.2.tight={PICK.split(';')[1]}" if PICK else ""
+# v29: AFTER THE EYE the five wheel's string is a real one too (see REAL below). From bar 210 on, the five wheel's riffs go to
+# four tracks of their own (rl, rr, rl2, rr2): the same rig with `inharm` (B 5e-5), the white noise that stood in for a real
+# string's roughness (`grain`) turned OFF, the pick 0.7 of the way from a noise burst to a released string (v25's is all the way),
+# the amp's `tight` at 190 and an eq after it that holds the tone (guitars alone within 0.5 dB of v24's in third-octaves).
+# Before the eye the five wheel keeps v25's pick, so the piece has both: riff A at 1:06 on the one, riff A's return at 10:28 on
+# the other. B ; the pick ; the amp's tight ; the eq's peaks ; from which bar. "" = v28 (one string throughout).
+REAL5 = os.environ.get("C10T1_REAL5", "0.00005;expr.pm*0.7;190;99:3:5.1,231:1.2:-4.1,735:1.8:2;210")
+REAL_MAP = {"gl": "rl", "gr": "rr", "gl2": "rl2", "gr2": "rr2"} if REAL5 else {}
+REAL_FROM = float(REAL5.split(";")[4]) if REAL5 else None
+REAL_RIG = (f" synth.layers.0.soft={REAL5.split(';')[1]} fx.2.tight={REAL5.split(';')[2]} synth.layers.0.inharm={REAL5.split(';')[0]}"
+            " synth.layers.0.grain.mod.0.amount=0 synth.layers.0.grain.value=0") if REAL5 else ""
+if REAL5 and "gl2" in SECTION_FADERS:      # the hardest stretch's doubling guitars are on the real string now: their fader goes with them
+    SECTION_FADERS["rl2"], SECTION_FADERS["rr2"] = SECTION_FADERS["gl2"], SECTION_FADERS["gr2"]
 # v26, THE EYE: THE WHEELS LOOK AT EACH OTHER. In the quiet centre (5:33-6:40) each wheel's clean guitar is moved by another
 # wheel's count, on the song's clock, so the two stay locked:
 #   five's guitar (left) swells and sinks every SEVEN sixteenths (a `tremolo`), loudest where five and seven meet;
@@ -939,6 +956,13 @@ HAND = os.environ.get("C10T1_HAND", "0.6:0.1")
 # (the pole costs the pad +3.5 dB, so -3.5 holds its level; the ring-out's pad is struck softer than the wait's and gets 3 dB
 # back, to stand beside its ticks as the wait's does). "" = v27.
 POLE = os.environ.get("C10T1_POLE", "5:8:1:0.3:-3.5:-0.5")
+# v29: THE REAL STRING. A stiff string's overtones are not exact multiples: partial n sounds at n f1 sqrt(1 + B n^2), and on a
+# guitar B is about 1e-4 on a wound low string (partial 20 a third of a semitone sharp). The engine's strings had next to none of
+# this (B 2e-7 at the heavy rigs' `stiff`, 0 on the clean guitars); `inharm` is B itself (engine feature of this album, bd-783db0,
+# live in the groove's engine since 15:03 on 13 Nov). Here: the three clean guitars (the ticks of the wait, the eye, the approach
+# and the ring-out), where a string is heard bare. B for the three clean guitars. "" = v28.
+REAL = os.environ.get("C10T1_REAL", "0.00008")
+REALS = f" synth.layers.0.inharm={REAL}" if REAL else ""
 HANDED = (f" synth.layers.0.mute=expr.pm*{HAND.split(':')[0]} synth.layers.0.mute_width={HAND.split(':')[1]}"
           " synth.layers.0.decay.mod.0.amount=0 synth.filters.0.cutoff.mod.0.amount=0 synth.layers.0.bright.mod.0.amount=0") if HAND else ""
 EYE = [float(x) for x in EYEFX.split(":")] if EYEFX else []
@@ -1076,6 +1100,7 @@ def song():
     GOUT = {"out": "gtrs"} if GEQ else {}
     PICK_FX = {"fx": [{"type": "eq", "bands": peaks(PICK.split(";")[2])}]} if PICK and len(PICK.split(";")) > 2 and PICK.split(";")[2] else {}
     BOUT = {"out": "low"} if BEQ else {}
+    REAL_FX = {"fx": [{"type": "eq", "bands": peaks(REAL5.split(";")[3])}]} if REAL5 and REAL5.split(";")[3] else {}
     POLE_FX = {}
     if POLE:
         pc, pq, pm, ps, pmk, pmk2 = [float(x) for x in POLE.split(":")]
@@ -1093,6 +1118,8 @@ def song():
     spec = [
         ("gl", RIG_L + PICKED, "0dB", -1, {**GOUT, **PICK_FX}), ("gr", RIG_R + PICKED, "0dB", 1, {**GOUT, **PICK_FX}),
         ("gl2", RIG_L + PICKED, "-3dB", -0.8, {**GOUT, **PICK_FX}), ("gr2", RIG_R + PICKED, "-3dB", 0.8, {**GOUT, **PICK_FX}),
+        *([("rl", RIG_L + REAL_RIG, "0dB", -1, {**GOUT, **REAL_FX}), ("rr", RIG_R + REAL_RIG, "0dB", 1, {**GOUT, **REAL_FX}),
+           ("rl2", RIG_L + REAL_RIG, "-3dB", -0.8, {**GOUT, **REAL_FX}), ("rr2", RIG_R + REAL_RIG, "-3dB", 0.8, {**GOUT, **REAL_FX})] if REAL5 else []),
         *([("ql", RIG_L + " synth.layers.0.node=4", SQUEAL, -0.5, GOUT), ("qr", RIG_R + " synth.layers.0.node=4", SQUEAL, 0.5, GOUT)] if SQUEAL else []),
         ("sl", BITE_L, BITE_DB, -1, GOUT), ("sr", BITE_R, BITE_DB, 1, GOUT),
         ("kl", CRUNCH_L + HANDED, CRUNCH_DB, -0.8, {}), ("kr", CRUNCH_R + HANDED, CRUNCH_DB, 0.8, {}),          # not through the guitars' bus: its eq scoops the mids this rig is made of
@@ -1104,14 +1131,14 @@ def song():
         ("hat", KIT, "14dB", float(HATPAN) if HATPAN else None, {"out": "drums", **OHC}), ("ride", KIT, "6dB", None, {"out": "drums", **OHC}),
         ("lead", "m8-lead-guitar", {"value": "-3dB", "mod": [{"src": "auto.eye", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"eye": {"points": LEAD_LANE}}}),
         ("leadw", "ct-lead-wah", "-3dB", 0, {"sends": {"hall": "-10dB"}, "auto": {"wah": {"points": [[f"{round(t / 4, 3)}b", v] for t, v in WAH_PTS]}}}),
-        ("cl5", CLEAN, "-4dB", -0.45, {"sends": CL_SENDS}),
-        ("cl7", CLEAN7 or CLEAN, CLEAN7_DB if CLEAN7 else "-3dB", 0.45, {"sends": CL_SENDS}),
-        ("cl11", CLEAN11 or CLEAN, CLEAN11_DB if CLEAN11 else "-3dB", 0, {"sends": CL_SENDS}),
-        *([("e5", CLEAN, f"{-4 + EYE[1]}dB", -0.45,
+        ("cl5", CLEAN + REALS, "-4dB", -0.45, {"sends": CL_SENDS}),
+        ("cl7", (CLEAN7 or CLEAN) + REALS, CLEAN7_DB if CLEAN7 else "-3dB", 0.45, {"sends": CL_SENDS}),
+        ("cl11", (CLEAN11 or CLEAN) + REALS, CLEAN11_DB if CLEAN11 else "-3dB", 0, {"sends": CL_SENDS}),
+        *([("e5", CLEAN + REALS, f"{-4 + EYE[1]}dB", -0.45,
             {"sends": CL_SENDS, "fx": [{"type": "tremolo", "rate": "1.75b", "depth": EYE[0]}]}),
-           ("e7", CLEAN7 or CLEAN, f"{float((CLEAN7_DB if CLEAN7 else '-3dB')[:-2]) + EYE[4]}dB", 0.45,
+           ("e7", (CLEAN7 or CLEAN) + REALS, f"{float((CLEAN7_DB if CLEAN7 else '-3dB')[:-2]) + EYE[4]}dB", 0.45,
             {"sends": CL_SENDS, "fx": [{"type": "phaser", "rate": "2.75b", "depth": 0.7, "feedback": EYE[3], "stages": 6, "mix": EYE[2]}]}),
-           ("e11", CLEAN11 or CLEAN, f"{float((CLEAN11_DB if CLEAN11 else '-3dB')[:-2]) + EYE[6]}dB", 0,
+           ("e11", (CLEAN11 or CLEAN) + REALS, f"{float((CLEAN11_DB if CLEAN11 else '-3dB')[:-2]) + EYE[6]}dB", 0,
             {"sends": CL_SENDS, "fx": [{"type": "orbit", "rate": "2.5b", "radius": EYE[5]}]})] if EYEFX else []),
         ("home", "contrabass-tight", "-12dB", 0.3, {"sends": {"hall": "-12dB"}}),
         ("fifth", "cellos", "-15dB", 0.4, {"sends": {"hall": "-8dB"}}),
