@@ -22,7 +22,7 @@ def words(t): return re.findall(r"[a-z']+", t.lower())
 def asr(wav, model):
     x = f"{W}/bt16.wav"
     subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", wav, "-af", "loudnorm=I=-20:TP=-3", "-ar", "16000", "-ac", "1", x], env=env)
-    subprocess.run(["python3", "tools/asr.py", x, "--model", model, "--cores", "0-1", "-o", f"{W}/bt.json"], capture_output=True, env=env, cwd=ROOT)
+    subprocess.run(["python3", "tools/asr.py", x, "--model", model, "-o", f"{W}/bt.json"], capture_output=True, env=env, cwd=ROOT)
     d = json.load(open(f"{W}/bt.json")); return d.get("text") or " ".join(s.get("text", "") for s in d.get("segments", []))
 print("%-22s %s" % ("", "base.en: lyric words / different words | small.en: lyric words / different words"))
 def score(name, w):

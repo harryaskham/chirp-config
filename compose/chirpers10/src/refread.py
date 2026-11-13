@@ -16,7 +16,7 @@ def words(t): return re.findall(r"[a-z']+", t.lower())
 def asr(src, ss, model="small.en"):
     x = f"{W}/rr16.wav"
     subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-ss", str(ss), "-t", str(LEN), "-i", src, "-af", "loudnorm=I=-20:TP=-3", "-ar", "16000", "-ac", "1", x], env=env)
-    subprocess.run(["python3", "tools/asr.py", x, "--model", model, "--cores", "0-1", "-o", f"{W}/rr.json"], capture_output=True, env=env, cwd=ROOT)
+    subprocess.run(["python3", "tools/asr.py", x, "--model", model, "-o", f"{W}/rr.json"], capture_output=True, env=env, cwd=ROOT)
     d = json.load(open(f"{W}/rr.json")); return words(d.get("text") or " ".join(s.get("text", "") for s in d.get("segments", [])))
 print("%-34s %8s %12s %12s %10s" % ("record", "from s", "stem words", "mix words", "in common"))
 for a in sys.argv[1:]:
