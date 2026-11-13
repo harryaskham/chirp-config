@@ -880,6 +880,30 @@ ENDING = os.environ.get("C10T1_ENDING", "30:14:0.45:0.35")
 # approach's chord, the ending) keeps the default: each was measured as it sounds, and is described as measured.
 RINGS = os.environ.get("C10T1_RINGS", "13:12")
 ENDLINE = os.environ.get("C10T1_ENDLINE", "")      # "1" = the last chord's fade as a straight line too (an alternative, not kept)
+# v25, THE PICK. The engine plucks a string with a burst of noise (an even, bright spectrum, its phases at random). A string
+# let go by a pick is a triangle that springs back: one kink going round the string, a pulse a period. The engine has that
+# shape too (`soft`: 0 the noise, 1 the triangle), described as a finger's. Here it is bound to the palm mute
+# (soft = expr.pm) on the five wheel's rig.
+# WHAT IT DOES IN THE SONG (riff A, the left guitar alone, 98 muted notes): with the noise pick a muted low F is flat to 1 dB
+# from its start to the next note, a hiss held by the amp. With the triangle it pulses at the string's own rate (43.65 Hz,
+# every 23 ms): 2 dB in the whole band and 6-7 dB at 100-250 Hz. A growl, not a hiss.
+# AGAINST THE RECORD (tools/riffpunch.py, Bleed 0-30 s, 302 muted notes, this exact rig; the record in brackets):
+#   rise 20.2 -> 15.5 ms (14.2); low end, first 20 ms against 40-80 ms: 3.7 -> 1.4 dB (1.2); noise between the harmonics at
+#   1-4 kHz 0.26 -> 0.40 (0.41); punch 4.1 -> 4.0 (3.6); 400 Hz-1 kHz against 1-4 kHz -11.2 -> -9.9 (-11.9); fizz the same
+# On EVERY note it is wrong (The Faultless's open notes: punch 5.8 against the record's 4.0), so it rides the mute only.
+# ONE MEASURE READS AGAINST IT: tools/guitarbench.py's low-mid "contrast" (how far the harmonics stand above the valleys
+# between them, the 400 Hz octave) 18 dB against the record's 27; v24's rig reads 27. Not the pick noise, the grain, the
+# ring or the buzz (each taken out in turn). So this is a judgment for an ear: five measures for, one against.
+# THE TONE IS HELD WHERE IT WAS. A muted note's direct signal is now fundamental-heavy (+8 dB at 80 Hz after the amp), so
+# the high-pass ahead of the amp (`tight`) goes from 80 to 220 Hz, and
+# the tighter amp then leaves the rig 2-3 dB down at 80-125 Hz and 2.5-3.8 up at 250-315 Hz; an eq on the four tracks, after the
+# rig, takes that back: riff A's and the landing's guitars are within 0.5 dB of v24 on average over the third-octaves (1.9 at the worst, 630 Hz), and
+# no band of any guard window moves more than 0.6 dB against the records.
+# ONLY THE FIVE WHEEL'S RIG (ct-chug): it is the rig the bench is built on. Seven's and eleven's keep the noise pick, so
+# where five is on the left and seven on the right (4:26, 7:46) the two attacks are side by side.
+# "soft's source ; the amp's tight in Hz ; that eq's peaks"; "" = the noise pick (v24)
+PICK = os.environ.get("C10T1_PICK", "expr.pm;220;100:1.2:2.2,280:1.5:-3")
+PICKED = f" synth.layers.0.soft={PICK.split(';')[0]} fx.2.tight={PICK.split(';')[1]}" if PICK else ""
 TSTOP = os.environ.get("C10T1_TSTOP", "1")      # a tape stop on the last stab before the hardest stretch (8:52): the whole mix winds down, and the band lands on the bar line
 SWARM = os.environ.get("C10T1_SWARM", "-18dB")
 # its fader (bar, dB): a crowd is about 3 dB quieter than the same swarm in step, and the approach is busier than the opening
@@ -1011,10 +1035,11 @@ def song():
     OHC = {"sends": {"oh": DROOM.split(":")[1] + "dB"}} if DROOM else {}
     OHS = {"sends": {"oh": DROOM.split(":")[2] + "dB"}} if DROOM else {}
     GOUT = {"out": "gtrs"} if GEQ else {}
+    PICK_FX = {"fx": [{"type": "eq", "bands": peaks(PICK.split(";")[2])}]} if PICK and len(PICK.split(";")) > 2 and PICK.split(";")[2] else {}
     BOUT = {"out": "low"} if BEQ else {}
     spec = [
-        ("gl", RIG_L, "0dB", -1, GOUT), ("gr", RIG_R, "0dB", 1, GOUT),
-        ("gl2", RIG_L, "-3dB", -0.8, GOUT), ("gr2", RIG_R, "-3dB", 0.8, GOUT),
+        ("gl", RIG_L + PICKED, "0dB", -1, {**GOUT, **PICK_FX}), ("gr", RIG_R + PICKED, "0dB", 1, {**GOUT, **PICK_FX}),
+        ("gl2", RIG_L + PICKED, "-3dB", -0.8, {**GOUT, **PICK_FX}), ("gr2", RIG_R + PICKED, "-3dB", 0.8, {**GOUT, **PICK_FX}),
         *([("ql", RIG_L + " synth.layers.0.node=4", SQUEAL, -0.5, GOUT), ("qr", RIG_R + " synth.layers.0.node=4", SQUEAL, 0.5, GOUT)] if SQUEAL else []),
         ("sl", BITE_L, BITE_DB, -1, GOUT), ("sr", BITE_R, BITE_DB, 1, GOUT),
         ("kl", CRUNCH_L, CRUNCH_DB, -0.8, {}), ("kr", CRUNCH_R, CRUNCH_DB, 0.8, {}),          # not through the guitars' bus: its eq scoops the mids this rig is made of
