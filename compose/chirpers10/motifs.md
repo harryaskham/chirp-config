@@ -54,6 +54,8 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 
 **A synth on riff C (v13).** A phase-distortion synth doubles the eleven wheel's riff two octaves up, a resonant sweep on every strike: riff C is the wall rig and this.
 
+**The stops (v20).** The two stop-time sections (3:20, sixteen stabs on the five wheel; 8:43, stabs with a dissonant chord and toms between) and the cut before the landing are now what they were written as: the guitars fall silent between the stabs. Until v19 they did not (their rigs rang on through every rest). The last gap before the hardest stretch carries a squeal, two pinched harmonics a fifth apart (Ab and Eb, the hook's first note and its fifth), and the tape stop takes it down.
+
 **And in the quiet (v19).** The three ticking guitars of the wait, the eye and the approach are three guitars too: five on `ct-clean` (warm, a neck coil), seven on `ct-glass` (thin and forward, the bridge and middle coils through a small miked amp), eleven on `ct-bell` (played in harmonics: round, ringing).
 
 **A wheel is known by its rig (v12; Harry, 12 Nov: "lots of different guitars ... amps and string variants").** Each wheel has its own guitar sound wherever it turns: FIVE on the tight rig (`ct-chug`: mark and 5150 amps, cabinet files), SEVEN on the bite rig (`ct-bite`: the nolly amp, the engine's own 2x12 cabinet, all down-strokes; leaner below 500 Hz, more at 1.6-3 kHz), ELEVEN on the wall rig (`ct-wall`: recto stack, thick, ringing). Where two wheels play at once on the two sides (4:26, 7:46, 10:00) the sides are two different guitars, and when they swap wheels at 10:00 the rigs swap sides with them.

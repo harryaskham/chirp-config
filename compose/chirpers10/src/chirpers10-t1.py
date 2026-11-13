@@ -25,6 +25,51 @@ CRUNCH_R = os.environ.get("C10T1_CRUNCHR", "ct-crunch-r")
 CRUNCH_DB = os.environ.get("C10T1_CRUNCHDB", "2dB")
 WALL_L = os.environ.get("C10T1_WALLL", "ct-wall-l")
 WALL_R = os.environ.get("C10T1_WALLR", "ct-wall-r")
+# v20, THE STOPS STOP. Every heavy rig opens with a `sympathetic` effect (the other strings ringing along). Its ring, small as
+# it is, keeps a saturated amp at full output through every rest, and the rig's gate sits after the amp where the level never
+# falls: a half-beat stab sounded for 0.8 s. C10T1_STOPS names, per rig, what is done about it in a song-local copy of the
+# patch: "nosym" (no ring), "gate:-28" (a gate between the compressor and the amp, where a real rig's sits), "decay:0.3s"
+# (a shorter ring); several joined with "+". "" = the rigs as they were (v19).
+# Kept: no ring on the three heavy rigs (ct-chug, ct-bite, ct-wall). Guitars alone in the stop-times: the quieter quarter of
+# the time sat 2 dB under the loud level, now 23 dB, and a third of the time is more than 20 dB down. The riffs hardly change
+# (their notes follow each other without rests), and on the Bleed and Faultless benches the attack measures move by 0.5 dB at
+# most. The wall rig's chords still ring as long (that is the string); what goes is the second it hung on after a cut, so
+# the stop before the landing is a stop. The ring was also 2-3 dB of the guitars' 315-500 Hz: the bus eq gives 1 dB back.
+STOPS = dict(x.split("=") for x in os.environ.get("C10T1_STOPS", "chug=nosym,bite=nosym,wall=nosym").split(",") if x)
+LIB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "patches")
+STOP_PATCHES = {}
+
+
+def stopped(name, how):
+    """A song-local copy of library rig `name` whose rests are rests. Returns the local patch's name."""
+    if not how or not name:
+        return name
+    if how == "nosym":
+        return name + " fx.0.mix=0"         # the plain case needs no copy: an override on the library patch
+    fx = json.load(open(os.path.join(LIB, name + ".yaml")))["fx"]
+    assert fx[0]["type"] == "sympathetic" and fx[1]["type"] == "compressor" and fx[2]["type"] == "amp", name
+    fx = [dict(f) if isinstance(f, dict) else f for f in fx]
+    gate = None
+    for h in how.split("+"):
+        if h == "nosym":
+            fx[0]["mix"] = 0
+        elif h.startswith("decay:"):
+            fx[0]["decay"] = h[6:]
+        elif h.startswith("gate:"):
+            gate = {"type": "gate", "threshold": h[5:] + "dB", "attack": "0.3ms", "hold": "10ms", "release": "30ms"}
+    if fx[0].get("mix") == 0:
+        fx = fx[1:]
+    if gate:
+        i = [j for j, f in enumerate(fx) if isinstance(f, dict) and f["type"] == "amp"][0]
+        fx.insert(i, gate)
+    local = name + "-stop"
+    STOP_PATCHES[local] = {"about": f"chirper-zero: {name} with its rests made rests ({how}): see the generator, v20", "extends": name, "fx": fx}
+    return local
+
+
+for _rig, _names in (("chug", ("RIG_L", "RIG_R")), ("bite", ("BITE_L", "BITE_R")), ("wall", ("WALL_L", "WALL_R"))):
+    for _n in _names:
+        globals()[_n] = stopped(globals()[_n], STOPS.get(_rig, ""))
 CLEAN = os.environ.get("C10T1_CLEAN", "ct-clean")
 BASS = os.environ.get("C10T1_BASS", "ct-bass")
 KIT = os.environ.get("C10T1_KIT", "ct-kit")
@@ -788,10 +833,10 @@ HCYM = [float(x) for x in os.environ.get("C10T1_HCYM", "0.48:0.58").split(":")]
 # effects where the music asks for them (Harry: "a showcase of all features"), each with a switch ("" = off)
 WAH = os.environ.get("C10T1_WAH", "1")          # a wah on the lead's run (4:53): the pedal opens through each flurry and closes on the held note
 ROTARY = os.environ.get("C10T1_ROTARY", "1")    # a rotary speaker on the slow chords (5:14): it comes in over the first chord and spins up as they fade
-# two pinch harmonics over the last two stabs before the tape stop (8:52), on the tight rig. OFF: tried in round 20 at -6 and
-# -3 dB, they added only 1.5-5 dB in their own bands, because the guitars never fall silent between the stabs (see STATE.md,
-# "the stops do not stop"). To be tried again once they do. C10T1_SQUEAL=-3dB turns them on
-SQUEAL = os.environ.get("C10T1_SQUEAL", "")
+# two pinch harmonics over the last two stabs before the tape stop (8:52), on the tight rig. Tried in round 20 they added only
+# 1.5-5 dB in their own bands, because the guitars never fell silent between the stabs. Now that they do (v20, STOPS below),
+# the squeal stands 5-12 dB clear of the gap from 1.25 to 4 kHz. "" = none
+SQUEAL = os.environ.get("C10T1_SQUEAL", "-6dB" if os.environ.get("C10T1_STOPS", "x") else "")
 TSTOP = os.environ.get("C10T1_TSTOP", "1")      # a tape stop on the last stab before the hardest stretch (8:52): the whole mix winds down, and the band lands on the bar line
 SWARM = os.environ.get("C10T1_SWARM", "-18dB")
 # its fader (bar, dB): a crowd is about 3 dB quieter than the same swarm in step, and the approach is busier than the opening
@@ -803,7 +848,7 @@ SWARM_LANE = [(0, 3), (2, 2), (24, 1), (30, 0.3), (350, 0.3), (363, 1.0), (383, 
 CZ = os.environ.get("C10T1_CZ", "-12dB")                 # a phase-distortion synth (the library's cz-bass) doubling riff C
 CHIME_GAIN = os.environ.get("C10T1_CHIME", "-19dB")
 # the mix against eleven records (stembal.py; compose/chirpers10/sounds.md): peaks as hz:q:dB, comma-separated
-GEQ = os.environ.get("C10T1_GEQ", "350:1:-5,750:1.2:-2.5")                  # the rhythm guitars' bus
+GEQ = os.environ.get("C10T1_GEQ", "350:1:-4,750:1.2:-1.5" if STOPS else "350:1:-5,750:1.2:-2.5")   # the rhythm guitars' bus (v20: 1 dB back where the ring was)
 BEQ = os.environ.get("C10T1_BEQ", "44:1.5:-7,90:1:7.5,350:1:-8,1500:1:4")     # the bass's bus
 DEQ = os.environ.get("C10T1_DEQ", "400:0.8:-6,5500:0.9:1")                             # the drums' bus, after its clip
 DSHELF = os.environ.get("C10T1_DSHELF", "9000:-2")
@@ -940,7 +985,7 @@ def song():
     return {
         "about": "chirpers X (Common Time), track 1 by chirper-zero: one steady pulse in 4/4 and three wheels (cells five, seven and eleven sixteenths long) that turn under it for the whole piece and meet, all three on a bar line, only at bar 1 and at the landing 385 bars later. Generated by compose/chirpers10/src/chirpers10-t1.py.",
         "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "4s", "length": f"{NB * 4}b", "event_stable": True,
-        "patches": {
+        "patches": {**STOP_PATCHES,
             **({"ct-kit-here": {"extends": KIT, "kit": {x.split(":")[0]: {"pan": float(x.split(":")[1])} for x in KPANS.split(",")}}} if KPANS else {}),
             "ct-whisper": {"about": "chirper-zero: a whisper - the speaking voice with nearly all breath and no effort (what `chirp tts --mode whisper` builds)",
                            "extends": "voice-speech", "synth": {"layers": [{"type": "voice", "speech": 1, "breath": 0.95, "effort": 0.05, "ring": 0.2, "vary": 0.5, "vowel": 0.5, "onset": "expr.on", "coda": "expr.off"}]}},
