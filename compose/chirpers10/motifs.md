@@ -54,6 +54,8 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 
 **A synth on riff C (v13).** A phase-distortion synth doubles the eleven wheel's riff two octaves up, a resonant sweep on every strike: riff C is the wall rig and this.
 
+**The ending (v23).** After the landing's riff the last chord is struck (12:43) and dies away, the choir's "yes" with it, and what is left is what the piece began with: the three wheels ticking over a low drone, the chimes sounding where two of them meet. They do not stop; the record does. (Until v22 the chord was held at full level to the end and the ticks under it could not be heard.)
+
 **The ghost (v22).** When the approach begins and the three clean guitars tick alone (11:07), a fourth thing plays the end of the tune over them: an attractor, a tone whose own cycle is splintered. At first it repeats only every five cycles of its note, then every three, then (as the seven wheel's guitars enter) every two, then (as the five's enter) every one: a clean tone. Where the band comes in (11:31) it stops and the lead takes the tune from the top. It is the piece's idea inside a single note: cycles within cycles, folding into one as the wheels close on the landing. (The swarm does the same with sixteen pitches; this does it with one.)
 
 **The two hinges (v21).** The form is a palindrome, and its two stop-times are mirror images. Each now ends in an effect on the whole band, and the two effects are mirror images too: the first (3:29) in a STUTTER, the last stab splintered into five that climb a semitone each into riff C; the second (8:52) in the TAPE STOP, the last stab and its squeal dragged down into the hardest stretch. Time splinters going in, and drags going out.

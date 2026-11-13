@@ -813,10 +813,17 @@ def compose():
         for b in range(a, a + 4):
             T.setdefault("word", []).append({"at": b * 4, "len": 3.5, "pitch": "F3", "vel": 0.9, "ph": WORD_PH})
         T.setdefault("word", []).append({"at": (a + 16) * 4, "len": 20, "pitch": "F3", "vel": 0.9, "ph": WORD_PH})
-    bed([((a + 16) * 16, 0)], NB * 16)
-    tick("cl5", 5, TICK5, CL5, a + 17, NB - 1, ramp=(1.0, 0.4))
-    tick("cl7", 7, TICK7, CL7, a + 17, NB - 1, ramp=(1.0, 0.4))
-    chimes(a + 17, NB - 1, pairs=((5, 7),), vel=0.4)
+    if ENDING:      # all three wheels tick on, as at the start, and are heard: the chord under them dies away (see ENDING)
+        bed([((a + 16) * 16, 0)], NB * 16, vel=float(ENDING.split(":")[2]), pad_vel=float(ENDING.split(":")[3]))
+        tick("cl5", 5, TICK5, CL5, a + 17, NB - 1, vel=0.5, ramp=(1.0, 0.8))
+        tick("cl7", 7, TICK7, CL7, a + 17, NB - 1, vel=0.5, ramp=(1.0, 0.8))
+        tick("cl11", 11, TICK11, CL11_OPEN, a + 17, NB - 1, vel=0.44, ramp=(1.0, 0.8))
+        chimes(a + 17, NB - 1, vel=0.45)
+    else:
+        bed([((a + 16) * 16, 0)], NB * 16)
+        tick("cl5", 5, TICK5, CL5, a + 17, NB - 1, ramp=(1.0, 0.4))
+        tick("cl7", 7, TICK7, CL7, a + 17, NB - 1, ramp=(1.0, 0.4))
+        chimes(a + 17, NB - 1, pairs=((5, 7),), vel=0.4)
 
 
 # synth layers (Harry, 12 Nov: "layered synths / tones ... a showcase of all features"), each its track's gain ("" = off)
@@ -855,6 +862,14 @@ SQUEAL = os.environ.get("C10T1_SQUEAL", "-6dB" if os.environ.get("C10T1_STOPS", 
 # the first in this (time splinters, the pitch climbs). The stutter's slot is five sixteenths long, the five wheel's own
 # turn, so it falls on the wheel's stab by itself. "semitones per repeat : roll : decay"; "" = none
 STUTTER = os.environ.get("C10T1_STUTTER", "1:1:0" if os.environ.get("C10T1_TIDY", "1") else "")
+# v23, THE ENDING. The last chord was held by eight guitars and the bass at the landing riff's full level for eight bars, and
+# then stopped; the ticking guitars and the chimes written over it ("the wheels turn on") sat 24-30 dB down and were never
+# heard. A chord that rings out dies away. Now it does: the guitars' and the bass's faders fall from the chord's second bar
+# to the end, the choir's held word eases off as a breath does, and all three wheels tick on over it as they did at the
+# start (the eleven's bell was missing from the coda). The chord struck at the approach's first bar dies away too.
+# "dB the last chord has fallen by the end : dB the approach's chord has fallen by its end : the coda's drone, its
+# velocity : and its pad's"; "" = as it was (v22)
+ENDING = os.environ.get("C10T1_ENDING", "30:14:0.45:0.35")
 TSTOP = os.environ.get("C10T1_TSTOP", "1")      # a tape stop on the last stab before the hardest stretch (8:52): the whole mix winds down, and the band lands on the bar line
 SWARM = os.environ.get("C10T1_SWARM", "-18dB")
 # its fader (bar, dB): a crowd is about 3 dB quieter than the same swarm in step, and the approach is busier than the opening
@@ -954,13 +969,22 @@ def song():
     if ROTARY:        # the cabinet's two microphones give 2.7 dB less than the dry guitars: made up on the same fader
         GTR_RIDE = [["0b", 0], [f"{165 * 4}b", 0], [f"{166 * 4}b", 2.7], [f"{170 * 4}b", 2.7], [f"{175 * 4}b", -2.3], [f"{176 * 4}b", 2.7], [f"{177 * 4}b", 2.7], [f"{178 * 4}b", 0]]
     ROT_SPIN = [["0b", 0], [f"{169.5 * 4}b", 0], [f"{170 * 4}b", 1], [f"{178 * 4}b", 1], [f"{178.5 * 4}b", 0]]
+    if ENDING:
+        # the chord struck where the approach begins (bar 350, the wall rig alone) dies away over its four bars, and the faders
+        # are back up before the first guitars of the approach
+        GTR_RIDE += [[f"{350.25 * 4}b", 0], [f"{353.75 * 4}b", -float(ENDING.split(":")[1])], [f"{354.5 * 4}b", -float(ENDING.split(":")[1])], [f"{355.5 * 4}b", 0]]
+        # the last chord: held a bar, then dying away to the end of the piece, guitars and bass alike
+        GTR_RIDE += [[f"{401.5 * 4}b", 0], [f"{402.5 * 4}b", -1], [f"{NB * 4}b", -float(ENDING.split(":")[0])]]
+        BASS_RIDE += [[f"{401.5 * 4}b", 0], [f"{402.5 * 4}b", -1], [f"{NB * 4}b", -float(ENDING.split(":")[0])]]
     # the tape stop: from the last stab of the second stop-time (bar 279, the twelfth sixteenth) to the bar line
     t0 = (279 + 11 / 16) * 4
     TSTOP_LANE = [["0b", 0], [f"{t0 - 0.01}b", 0], [f"{t0}b", 1], [f"{280 * 4 - 0.01}b", 1], [f"{280 * 4}b", 0]]
     # the stutter: the mirror of the tape stop, at the first stop-time's last stab (bar 109, the twelfth sixteenth, to the bar line)
     t1 = (109 + 11 / 16) * 4
-    # (the lane is up half a beat before the slot and down half a beat before the next: the effect reads it smoothed, and a
-    #  lane that rose 5 ms before the slot stuttered the NEXT slot, riff C's first note, instead)
+    # (the lane is up half a beat before the slot and down half a beat before the next. The effect reads `chance` once a block
+    #  of about 5 ms and decides a slot at its first frame, and a lane moves in a straight line between its points: a lane
+    #  that rose 5 ms before the slot was read while still near 0, and its fall was read near 1 at the NEXT slot, so riff C's
+    #  first note stuttered instead. chirp-eco read this in the engine; I had called it smoothing.)
     STUT_LANE = [["0b", 0], [f"{t1 - 0.6}b", 0], [f"{t1 - 0.5}b", 1], [f"{t1 + 0.6}b", 1], [f"{t1 + 0.7}b", 0]]
     OHC = {"sends": {"oh": DROOM.split(":")[1] + "dB"}} if DROOM else {}
     OHS = {"sends": {"oh": DROOM.split(":")[2] + "dB"}} if DROOM else {}
@@ -990,7 +1014,9 @@ def song():
         ("vox", "kidman" + VOX_WORDS, VOX or "0dB", 0, {"sends": {"hall": "-18dB"}, "fx": [{"type": "eq", "bands": [f"hp cutoff={VOX_HP}"] + peaks(VOX_EQ) + ([f"highshelf cutoff={VOX_SHELF.split(':')[0]} gain={VOX_SHELF.split(':')[1]}dB"] if VOX_SHELF else [])}]}),
         ("choir", "voice-backing", CHOIR or "0dB", 0, {"sends": {"hall": "-8dB"}}),
         ("speak", "voice-talk", SPEAK or "0dB", 0, {"fx": [{"type": "eq", "bands": ["hp cutoff=" + os.environ.get("C10T1_SPEAKHP", "120"), "peak cutoff=300 q=1 gain=" + os.environ.get("C10T1_SPEAKDIP", "-6" if TIDY else "-2.5") + "dB"]}]}),      # dry: with the hall a recogniser lost "its own count"; the dip: it put the rebuild 3.9 dB over the records at 250-500 Hz
-        ("word", "ct-word", WORD or "0dB", 0, {"sends": {"hall": "-8dB"}, "fx": [{"type": "eq", "bands": ["hp cutoff=350"]}]}),      # its notes are C3 F3 C4, on top of the guitars' chord: 250-500 Hz read 3.8 dB over with them in
+        ("word", "ct-word", {"value": WORD or "0dB", "mod": [{"src": "auto.breath", "amount": 1}]} if ENDING else (WORD or "0dB"), 0,
+         {"sends": {"hall": "-8dB"}, "fx": [{"type": "eq", "bands": ["hp cutoff=350"]}],
+          **({"auto": {"breath": {"points": [["0b", 0], [f"{402.5 * 4}b", 0], [f"{406 * 4}b", -19], [f"{NB * 4}b", -19]]}}} if ENDING else {})}),      # its notes are C3 F3 C4, on top of the guitars' chord: 250-500 Hz read 3.8 dB over with them in
         ("whisper", "ct-whisper", WHISPER or "0dB", 0, {"sends": {"hall": "-8dB"}}),
         ("att", "ct-attractor", {"value": ATT or "0dB", "mod": [{"src": "auto.lvl", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"lock": {"points": ATT_LANE}, "lvl": {"points": ATT_LVL}}}),
         ("swarm", "ct-swarm", {"value": SWARM or "0dB", "mod": [{"src": "auto.lvl", "amount": 1}]}, 0,
