@@ -59,8 +59,8 @@ tools main and never moves `tools/groove-pin`):
 
 Candidates, in no order (which, whether and when are the composer's call; the song comes first): the physical palm mute's
 low mids (bd-bc17f7), the AW diphthong (bd-3b52e9), a rotary that does not force a from-the-top render (bd-e11da9), and
-whatever the amp or the DI next turns out to lack. Two README notes wait for the first landing: the `stutter` `chance`
-rule and the `chaos` `amount` map, both in the table below.
+whatever the amp or the DI next turns out to lack. Three README notes wait for the first landing: the `stutter` `chance`
+rule, the `chaos` `amount` map and the curve of an `auto` lane's falls, all in the table below.
 
 ## Learned in use (how the engine behaves; none of these is a fault)
 
@@ -75,7 +75,8 @@ Each cost a round to find. They go into the engine's README with the next landin
 | a reverb inside a bus chain at a high `mix` turns the dry down with it (it cross-fades) | put the room on a send beside the bus, not in its chain | v10 |
 | the `rotary` costs 2.7 dB of level at `mix` 1 | make it up on the fader | v15 |
 | a track's name seeds its `humanize` | a null test across two track names is invalid; keep the name and change the patch | v15 |
-| `stutter` reads `chance` at the start of each 256-frame block (about 5 ms) and decides a slot at its first frame; a lane moves in a straight line between its points | raise the lane half a beat before the slot and bring it down half a beat before the next: one raised 5 ms early missed its slot and caught the next. `tapestop`'s `stop` is a threshold (0.5) and is not touchy | v21 |
+| `stutter` reads `chance` at the start of each 256-frame block (about 5 ms) and decides a slot at its first frame; a lane rises in a straight line between its points and falls on a curve (the row below) | raise the lane half a beat before the slot and bring it down half a beat before the next: one raised 5 ms early missed its slot and caught the next. `tapestop`'s `stop` is a threshold (0.5) and is not touchy | v21 |
+| an `auto` lane is an envelope: between two points a RISE is a straight line, a FALL takes the envelope's `curve` (default 3, exponential; `plan.rs` `points_at`). A gain lane from 0 to -20 dB over eight beats reads -3.0 -8.8 -12.6 -15.3 -17.1 -18.3 -19.2 -19.8 at the beats' middles; with `"curve": 0` in the lane's dict, -1.2 -3.7 -6.2 ... -18.7, the line | every fade-out, duck-by-lane or sweep down drawn as two points is a quick drop and a plateau (half the fall in the first 21% of the time) unless the lane says `"curve": 0`; fade-ins are lines either way. `tools/lanes.py ID` lists every lane, what it drives and each fall that is not a line | v24 |
 | `sympathetic` rings on after the playing stops (its `decay`), and ANY ring ahead of a saturated amp holds the amp at full level | no `sympathetic` on a high-gain rig that must stop (bd-42e146) | v19-v20 |
 | a held note through a saturated amp has no decay: the string dies, the amp's output does not until the string is 30-40 dB down. An 8 s chord falls 1-2 dB through `ct-chug`, `ct-wall` or `m8`, 37 dB through the low-gain `ct-crunch`, 48 through `ct-clean` | a chord written to ring out sits flat and then cuts. A ring-out is a fader move after the amp (an `auto` lane on the bus), not a property of the note. `tools/holds.py ID` lists every long note that sits flat with a rest after it | v9, v23 |
 | a `rotary` remembers its start (so do `radio`, `vinyl`, `cloud`, `crush`, `ring`, `vocoder`, `autolevel`, a `tape` with a deck, `lpc`, `waveset`, `pvoc`): a windowed render (`--from POS --preroll N`) renders that effect's bus and every track routed to it from the top, so the take is the same | one such effect on a big bus makes every late window cost most of a full render: a solo guitar track at 12:44 took 38 s with the rotary on the guitars' bus, 2-6 s without. Keep such an effect on a bus of its own | v15, found 13 Nov |

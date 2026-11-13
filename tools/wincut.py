@@ -34,7 +34,9 @@ def position(tok, tempo):
 def window_seconds(canon, windows):
     """[(start, end)] in seconds for --windows, or None when they cannot be worked out here (a tempo that changes, a
     meter other than 4/4, embedded songs, a position in another form): then each window is rendered by itself."""
-    tempo = canon.get("tempo")
+    if "tracks" not in canon:                  # not a plan (it could not be read): do not guess
+        return None
+    tempo = canon.get("tempo", 120.0)          # the plan leaves out a tempo of 120, the engine's default
     if not isinstance(tempo, (int, float)) or isinstance(tempo, bool) or tempo <= 0:
         return None
     if str(canon.get("meter") or "4/4").replace(" ", "") != "4/4" or canon.get("songs"):

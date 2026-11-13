@@ -268,9 +268,11 @@ class Stembal(unittest.TestCase):
         self.assertEqual(S.position("1", 120.0), 0.0)
         for bad in ("0", "1:30", "riffA", "-4", "", "12bars"):
             self.assertIsNone(S.position(bad, 120.0), bad)
-        self.assertEqual(S.window_seconds({"tempo": 120.0}, ["1-3:a", "5b-11b"]), [(0.0, 4.0), (2.5, 5.5)])
-        self.assertIsNone(S.window_seconds({"tempo": 120.0}, ["3-1"]))             # backwards
-        self.assertIsNone(S.window_seconds({}, ["1-3"]))                           # no tempo read: do not guess
+        self.assertEqual(S.window_seconds({"tracks": [], "tempo": 120.0}, ["1-3:a", "5b-11b"]), [(0.0, 4.0), (2.5, 5.5)])
+        self.assertIsNone(S.window_seconds({"tracks": [], "tempo": 120.0}, ["3-1"]))   # backwards
+        self.assertIsNone(S.window_seconds({}, ["1-3"]))                           # no plan read: do not guess
+        self.assertEqual(S.window_seconds({"tracks": []}, ["1-3"]), [(0.0, 4.0)])  # the plan leaves out a tempo of 120
+        self.assertIsNone(S.window_seconds({"tracks": [], "tempo": [[0, 120]]}, ["1-3"]))
 
     def test_a_cut_is_the_frames_a_window_render_gives(self):
         src, dst = os.path.join(self.root, "ramp.wav"), os.path.join(self.root, "cut.wav")

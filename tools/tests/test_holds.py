@@ -161,6 +161,15 @@ class Tool(unittest.TestCase):
         d = json.loads(self.run_tool("--json", "--flat", "100"))
         self.assertTrue(all(h["flat"] for r in d["tracks"] for h in r["holds"]))
 
+    def test_a_plan_without_a_tempo_is_at_120(self):
+        with open(self.pin) as f:
+            src = f.read()
+        with open(self.pin, "w") as f:
+            f.write(src.replace('"tempo": 120.0, ', ''))                    # the plan leaves out a tempo of 120
+        d = json.loads(self.run_tool("--json"))
+        self.assertEqual(d["tempo"], 120.0)
+        self.assertEqual({r["track"]: r["holds"][0]["seconds"] for r in d["tracks"]}["wall"], 4.0)
+
     def test_a_song_whose_tempo_changes_is_refused(self):
         with open(self.pin) as f:
             src = f.read()

@@ -152,7 +152,7 @@ def main(argv=None):
         raise SystemExit("holds: give a climb ID (songs/ID.yaml) or --song FILE")
     pin = a.pin or open(os.path.join(HERE, "groove-pin")).read().strip()
     canon = plan(pin, song)
-    tempo = canon.get("tempo")
+    tempo = canon.get("tempo", 120.0)          # the plan leaves out a tempo of 120, the engine's default
     if not isinstance(tempo, (int, float)) or tempo <= 0:
         raise SystemExit("holds: this song's tempo changes; holds.py reads fixed-tempo songs only")
     spb = 60.0 / tempo
