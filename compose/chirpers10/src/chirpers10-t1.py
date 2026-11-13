@@ -913,6 +913,24 @@ PICKED = f" synth.layers.0.soft={PICK.split(';')[0]} fx.2.tight={PICK.split(';')
 # untouched. "the tremolo's depth : dB made up on that guitar : the phaser's mix : its feedback : dB made up : the orbit's radius
 # in metres : dB made up"; "" = v25
 EYEFX = os.environ.get("C10T1_EYEFX", "0.85:3:0.5:0.6:2.5:2:1.7")
+# v27: THE BASS GROWS TEETH. The bass break (bars 308-315, 9:46) was seven bars of the same round bass under a chord that fades:
+# nothing in it moved but the fade. Now the bass is also sent to a bus of its own ("grind": a high-pass, the `drive` effect as a
+# WAVEFOLDER, a low-pass) whose level and fold depth rise as the chord dies, so the bass turns from round to snarling and takes the
+# place the guitars leave; it is cut where the band comes back at bar 315. A send, not a second bass track: the two layers are the
+# same performance to the sample (a second track would be humanized apart and comb against the first). Outside the break the bus
+# sits at -120 dB. The fold's depth is the level going INTO the folder (a gain ahead of it, on a lane), with the folder's own
+# `drive` left at 0: a fold's output is scaled by 1 / |sin(pi k / 2)|, k = 1 + 19 drive + 80 drive^3, which has a pole at every
+# even k, so a swept `drive` throws spikes up to 60 dB (measured: the bus peaked at the master's ceiling while adding 0.5 dB).
+# high-pass Hz : gain into the folder at the start, dB : at the end : low-pass Hz : the bus's level at full, dB. "" = v26.
+GRIND = os.environ.get("C10T1_GRIND", "300:30:50:4500:-26")
+# v27: THE HAND. The low-gain rig's muted notes (the first break, 2:13, and the approach's first guitars, 11:20) are muted by a
+# HAND on the string, the engine's physical palm mute with a width (`mute` + `mute_width`, live in the groove's engine since 13:19
+# on 13 Nov), in place of the filter-and-shorter-decay every other rig uses. A low-gain amp shows it: the muted note is struck
+# and then dies under the hand (its level falls 5 dB inside the note; the old one held to 1.7 dB), where a saturated amp would
+# hide it. Depth of the mute (times the note's pm) : the hand's width as a fraction of the string. "" = v26.
+HAND = os.environ.get("C10T1_HAND", "0.6:0.1")
+HANDED = (f" synth.layers.0.mute=expr.pm*{HAND.split(':')[0]} synth.layers.0.mute_width={HAND.split(':')[1]}"
+          " synth.layers.0.decay.mod.0.amount=0 synth.filters.0.cutoff.mod.0.amount=0 synth.layers.0.bright.mod.0.amount=0") if HAND else ""
 EYE = [float(x) for x in EYEFX.split(":")] if EYEFX else []
 EYE_TR = ("e5", "e7", "e11") if EYEFX else ("cl5", "cl7", "cl11")
 TSTOP = os.environ.get("C10T1_TSTOP", "1")      # a tape stop on the last stab before the hardest stretch (8:52): the whole mix winds down, and the band lands on the bar line
@@ -1048,12 +1066,17 @@ def song():
     GOUT = {"out": "gtrs"} if GEQ else {}
     PICK_FX = {"fx": [{"type": "eq", "bands": peaks(PICK.split(";")[2])}]} if PICK and len(PICK.split(";")) > 2 and PICK.split(";")[2] else {}
     BOUT = {"out": "low"} if BEQ else {}
+    if GRIND and BEQ:
+        BOUT = {**BOUT, "sends": {"grind": "0dB"}}
+        gh, gd0, gd1, glp, gdb = [float(x) for x in GRIND.split(":")]
+        GRIND_LVL = [["0b", -120], [f"{308.5 * 4}b", -120], [f"{308.6 * 4}b", gdb - 8], [f"{312.5 * 4}b", gdb], [f"{314.9 * 4}b", gdb], [f"{315 * 4}b", -120]]
+        GRIND_TEETH = [["0b", gd0], [f"{308.5 * 4}b", gd0], [f"{314 * 4}b", gd1], [f"{315 * 4}b", gd1], [f"{315.1 * 4}b", gd0]]
     spec = [
         ("gl", RIG_L + PICKED, "0dB", -1, {**GOUT, **PICK_FX}), ("gr", RIG_R + PICKED, "0dB", 1, {**GOUT, **PICK_FX}),
         ("gl2", RIG_L + PICKED, "-3dB", -0.8, {**GOUT, **PICK_FX}), ("gr2", RIG_R + PICKED, "-3dB", 0.8, {**GOUT, **PICK_FX}),
         *([("ql", RIG_L + " synth.layers.0.node=4", SQUEAL, -0.5, GOUT), ("qr", RIG_R + " synth.layers.0.node=4", SQUEAL, 0.5, GOUT)] if SQUEAL else []),
         ("sl", BITE_L, BITE_DB, -1, GOUT), ("sr", BITE_R, BITE_DB, 1, GOUT),
-        ("kl", CRUNCH_L, CRUNCH_DB, -0.8, {}), ("kr", CRUNCH_R, CRUNCH_DB, 0.8, {}),          # not through the guitars' bus: its eq scoops the mids this rig is made of
+        ("kl", CRUNCH_L + HANDED, CRUNCH_DB, -0.8, {}), ("kr", CRUNCH_R + HANDED, CRUNCH_DB, 0.8, {}),          # not through the guitars' bus: its eq scoops the mids this rig is made of
         ("wl", WALL_L, "-2dB", -0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
         ("wr", WALL_R, "-2dB", 0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
         ("bass", BASS, "0.5dB", 0, BOUT),
@@ -1145,6 +1168,12 @@ def song():
                             + ([{"type": "eq", "bands": peaks(DEQ) + ([f"highshelf cutoff={DSHELF.split(':')[0]} gain={DSHELF.split(':')[1]}dB"] if DSHELF else [])}] if DEQ or DSHELF else [])
                             + ([{"type": "width", "width": 1, "mono_below": 0, "bands": [[float(x.split(":")[0]), float(x.split(":")[1])] for x in DWIDTH.split(",")]}] if DWIDTH else [])
                             + ([{"type": "duck", "by": "speak", "depth": f"-{DUCK.split(':')[1]}dB", "attack": "20ms", "release": "250ms"}] if DUCK and SPEAK else [])},
+                  **({"grind": {"fx": [{"type": "eq", "bands": [f"hp cutoff={gh:g}"]},
+                                       {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.teeth", "amount": 1}]}},
+                                       {"type": "drive", "shape": "fold", "drive": 0, "mix": 1},
+                                       {"type": "eq", "bands": [f"hp cutoff={gh:g}", f"lp cutoff={glp:g}"]},
+                                       {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.lvl", "amount": 1}]}}],
+                                "auto": {"lvl": {"points": GRIND_LVL, "curve": 0}, "teeth": {"points": GRIND_TEETH, "curve": 0}}}} if GRIND and BEQ else {}),
                   **({"oh": {"fx": [f"reverb kind=room decay={(DROOM.split(':') + ['0.4'])[3]}s mix=1 predelay=4ms low_cut={DROOM.split(':')[0]} high_cut=12000 spread=0.6"]}} if DROOM else {}),
                   **({"gtrs": {"fx": [{"type": "eq", "bands": peaks(GEQ)}, {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}] + ([{"src": "auto.ring", "amount": 1}] if RINGS else [])}}]
                                + ([{"type": "rotary", "mix": {"value": 0, "mod": [{"src": "auto.rot", "amount": 1}]}, "speed": {"value": 0, "mod": [{"src": "auto.spin", "amount": 1}]}}] if ROTARY else [])
