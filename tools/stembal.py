@@ -33,6 +33,15 @@ Two measures, both in nine bands (20-60-120-250-500-1k-2k-4k-8k-16k Hz), both in
         strict there and too loose at 2-8 kHz. Read a section's difference against this row, not against a flat 1 dB.
         (chirper-zero's refspread.py, Common Time v16.) It reads the record itself (ref/ID.wav), else the sum of its stems.
 
+  --voice (on refs or song): the records' loud passages sorted by whether the VOICE is there (tools/vocsplit.py; the
+        vocals stem only sorts the frames, the spectra are the mixes' own). With `refs` it prints vocsplit's table.
+        With `song` it adds a block under OURS - REFS: what the records' passages without a voice, and with one, hold
+        beside all their loud passages, and then EVERY window read both ways (ours minus the references' median
+        shifted by that row). Eleven Meshuggah records hold 2.3 dB less at 500 Hz-1 kHz and 1.4 dB less at 8-16 kHz
+        where nobody sings, so an instrumental section read against the one median looks 2 dB short of mids and
+        level in the air when it is on target and too bright. Read an instrumental window's "no voice" row and a
+        sung one's (or one with a tune on the lead) "voice" row. (chirper-zero's vocsplit.py, Common Time v30.)
+
   --refs all = every record that has stems. What Common Time used (chirpers10, v7):
   --refs bleed,combustion,dancers-to-a-discordant-system,electric-red,lethargica,obzen,pineal-gland-optics,pravus,
          the-abysmal-eye,the-faultless,this-spiteful-snake      (one argument, no spaces)
@@ -56,6 +65,7 @@ import wave
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import vocsplit  # noqa: E402
 from wincut import cut, position, window_seconds  # noqa: E402,F401  (position: for the tests and callers)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -193,6 +203,16 @@ def spread_medians(S):
     return np.median([S[s]["sd"] for s in S], 0), np.median([S[s]["range"] for s in S], 0)
 
 
+def voice(a):
+    """What the records' loud passages without a voice, and with one, hold beside all of them: ({"without": nine bands,
+    "with": nine bands}, records), or None when too few records have both kinds."""
+    vocsplit.ROOT = ROOT
+    V = vocsplit.cached(ref_ids(a), model=a.model)
+    if not all(c in V for c in vocsplit.CLASSES):
+        return None
+    return {c: np.array(V[c]) - np.array(V["all"]) for c in ("without", "with")}, V["n"]
+
+
 def cmd_refs(a):
     R = refs(a)
     med, lo, hi = stats(R, "mix")
@@ -213,6 +233,10 @@ def cmd_refs(a):
              f"{a.within:g} dB of its loud level; std in dB; n = windows)",
              [("MEDIAN spread (std)", sd), ("MEDIAN 10-90% range", rng)] + [(f"{s[:16]} n={S[s]['n']}", S[s]["sd"]) for s in S],
              whole=False)
+    if a.voice:
+        vocsplit.ROOT = ROOT
+        print("references, their loud passages with the voice and without it (4 s frames; tools/vocsplit.py)")
+        vocsplit.report(ref_ids(a), model=a.model)
 
 
 def canonical(pin, song, env):
@@ -253,7 +277,7 @@ def cmd_song(a):
         print("groups: " + "; ".join(f"{g} = {', '.join(t)}" for g, t in groups.items()))
     outdir = a.out or tempfile.mkdtemp(prefix="stembal-", dir="/tmp/lt" if os.path.isdir("/tmp/lt") else None)
     M = stats(R, "mix")[0]
-    mixes, acc = [], {g: [] for g in groups}
+    mixes, names, acc = [], [], {g: [] for g in groups}
 
     def render(g, trs, out, win, frm, to):
         cmd = ["nice", "-n", "7", pin, "--json", "render", "--threads", str(a.threads), "-f", a.song, "--seed", str(a.seed)] \
@@ -294,6 +318,7 @@ def cmd_song(a):
             os.remove(out)
         tot = w["mix"].sum()
         mixes.append(db(w["mix"] / tot))
+        names.append(label or span)
         print(f"mix, {(label or span)[:16]:16s}" + "".join(f"{x:7.1f}" for x in mixes[-1]) + "   | ours - refs: "
               + "".join(f"{x:6.1f}" for x in mixes[-1] - M))
         if groups:
@@ -312,6 +337,17 @@ def cmd_song(a):
         if S:
             print(f"{'refs own spread (std)':22s}" + "".join(f"{x:7.1f}" for x in spread_medians(S)[0])
                   + "   | what the records move between their own loud passages")
+    if a.voice:
+        V = voice(a)
+        if V:
+            off, n = V
+            rows = [("no voice - all", off["without"]), ("voice - all", off["with"])]
+            for name, m in zip(names, mixes):
+                rows += [(f"{name[:11]}, no voice", m - (M + off["without"])), (f"{name[:11]}, voice", m - (M + off["with"]))]
+            show(f"== each window against the records' passages WITHOUT a voice and WITH one (ours minus the median shifted by "
+                 f"the first two rows; {n['without']} and {n['with']} records; tools/vocsplit.py)", rows, whole=False)
+        else:
+            print("stembal: --voice: too few of these records have loud passages both with and without a voice")
     for g in groups:
         if not any(g in R[s] for s in R):
             continue
@@ -334,6 +370,7 @@ def main():
     ap.add_argument("--mix-only", action="store_true")
     ap.add_argument("--per-window", action="store_true", help="render every window by itself, as before 13 Nov")
     ap.add_argument("--spread", action="store_true")
+    ap.add_argument("--voice", action="store_true", help="read every window against the records' passages without a voice and with one")
     ap.add_argument("--win", type=float, default=20.0)
     ap.add_argument("--within", type=float, default=3.0)
     ap.add_argument("--seed", type=int, default=0)

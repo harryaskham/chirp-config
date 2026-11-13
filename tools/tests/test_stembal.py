@@ -183,6 +183,45 @@ class Stembal(unittest.TestCase):
         self.assertIn("render failed for bass", str(e.exception))
         self.assertIn("no track named nosuch", str(e.exception))
 
+    def test_voice_reads_every_window_against_passages_without_a_voice_and_with_one(self):
+        """Two records whose fourth stem, a voice at 700 Hz, sings for twelve of their twenty-four seconds. Ours is their
+        three instruments and no voice: level with their passages WITHOUT a voice, and 1.25 dB over each band of those
+        WITH one (three parts against four)."""
+        import numpy as np
+        for rec in ("recV", "recW"):
+            for stem, f, until in (("drums", 50.0, 24.0), ("bass", 100.0, 24.0), ("guitar", 1500.0, 24.0), ("vocals", 700.0, 12.0)):
+                path = os.path.join(self.root, "ref", "stems", "bs_roformer_sw", rec, stem + ".wav")
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                t = np.arange(24 * 44100) / 44100
+                with wave.open(path, "wb") as w:
+                    w.setnchannels(1)
+                    w.setsampwidth(2)
+                    w.setframerate(44100)
+                    w.writeframes((6000 * np.sin(2 * np.pi * f * t) * (t < until)).astype("<i2").tobytes())
+        args = ("song", self.song, "--refs", "recV,recW", "--from", "0", "--dur", "20", "--windows", "1-4:all", "--mix-only",
+                "--out", self.root)
+        plain = self.run_tool(*args)
+        self.assertNotIn("voice", plain)
+        text = self.run_tool(*args, "--voice")
+        self.assertTrue(text.startswith(plain))                            # the block is added under what was there
+        self.assertIn("== each window against the records' passages WITHOUT a voice and WITH one", text)
+        self.assertIn("2 and 2 records", text)
+        self.assertAlmostEqual(self.row(text, "voice - all")[4], 1.76, delta=0.1)      # the voice's band, 500 Hz-1 kHz
+        self.assertLess(self.row(text, "no voice - all")[4], -50.0)
+        for band in (0, 1, 5):
+            self.assertAlmostEqual(self.row(text, "no voice - all")[band], 0.79, delta=0.1)
+            self.assertAlmostEqual(self.row(text, "all, no voice")[band], 0.0, delta=0.15)
+            self.assertAlmostEqual(self.row(text, "all, voice")[band], 1.25, delta=0.15)
+        refs = self.run_tool("refs", "--refs", "recV,recW", "--from", "0", "--dur", "20", "--voice")
+        self.assertIn("references, their loud passages with the voice and without it", refs)
+        self.assertIn("WITHOUT minus ALL", refs)
+
+    def test_voice_needs_a_vocals_stem(self):
+        with self.assertRaises(SystemExit) as e:
+            self.run_tool("song", self.song, "--refs", "recA,recB", "--from", "0", "--dur", "2", "--windows", "1-4:all",
+                          "--mix-only", "--voice", "--out", self.root)
+        self.assertIn("no vocals stem (WAV) for recA", str(e.exception))
+
     def record(self, name, parts):
         """ref/NAME.wav: one second a part, each a list of (frequency, amplitude)."""
         path = os.path.join(self.root, "ref", name + ".wav")
