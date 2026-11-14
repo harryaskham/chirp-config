@@ -561,6 +561,15 @@ SNARE = os.environ.get("C10T1_SNARE", "shelf:7000:-2;-12;7dB;dry:-10")
 # the guitars sat 16 to 23 dB under the ticks for the first three bars: not an approach anyone would hear).
 # first bar : last bar : dB at the start : dB just before the landing. "" = v41.
 APPROACH = os.environ.get("C10T1_APPROACH", "30:35:-12:-4")
+# v43: THE WEIGHT COMES BACK (6:40-6:59). The rebuild after the eye was written the same way: "the weight comes back",
+# the five wheel's velocity rising 0.6 -> 1.0 over its ten bars. It did nothing either: the guitars alone read -24.9 dB
+# in the first bar and -24.7 in the last (and 6 dB less under the spoken voice, which is the duck). So the band came
+# back at full weight on the first bar line. The form is a palindrome and this section's mirror is the slow chords
+# that die away into the eye (5:14); now the rebuild rises out of it: the guitars' and the bass's buses come in this
+# many dB down and reach full at the section's end, where eleven lands on Bb. The toms and the kick stay as they
+# were, so the rebuild is led by the toms, as its plan always said.
+# first bar : last bar : dB at the start. "" = v42.
+REBUILD = os.environ.get("C10T1_REBUILD", "210:220:-8")
 # the dry path's eq. Without one it carried the snare's body past the drums' bus's own 400 Hz cut, and every section read
 # 0.5 to 1.4 dB more at 250-500 Hz against the records (the split +1.9 -> +2.8, the landing +1.1 -> +1.9). With this cut
 # (and the send 2 dB up) the snare alone carries as much at 250-500 Hz as it did at v40, and 1.1 dB more at 120-250 Hz.
@@ -1342,6 +1351,12 @@ def song():
         assert GTR_RIDE[0] == ["0b", 0] and BASS_RIDE[0] == ["0b", 0]
         GTR_RIDE[1:1] = pts
         BASS_RIDE[1:1] = [list(x) for x in pts]
+    if REBUILD:       # v43: the weight comes back (see REBUILD): the guitars' and the bass's faders rise through the rebuild
+        r0, r1, rdb = [float(x) for x in REBUILD.split(":")]
+        pts = [[f"{r0 * 4 - 2:g}b", 0], [f"{r0 * 4 - 0.5:g}b", rdb], [f"{r0 * 4:g}b", rdb], [f"{r1 * 4:g}b", 0]]
+        for ride in (GTR_RIDE, BASS_RIDE):
+            ride.extend([list(x) for x in pts])
+            ride.sort(key=lambda q: float(q[0][:-1]))
     # the tape stop: from the last stab of the second stop-time (bar 279, the twelfth sixteenth) to the bar line
     t0 = (279 + 11 / 16) * 4
     TSTOP_LANE = [["0b", 0], [f"{t0 - 0.01}b", 0], [f"{t0}b", 1], [f"{280 * 4 - 0.01}b", 1], [f"{280 * 4}b", 0]]
