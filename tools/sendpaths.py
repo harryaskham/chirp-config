@@ -12,6 +12,10 @@ From the plan alone (`chirp plan`), for each SONG (an id, or a file): every send
 bus, that bus's bus, a parent track's strip) holds a clip or a limiter, to a bus that does not lead back through it,
 with the send's level. Sends over --over dB (default -10) are marked LOUD: those are the ones to look at. A room
 that cymbals are meant to live in will be listed too; whether a path is a fault is for the ear and --measure.
+AND THE EAR MAY SAY THE PATH IS THE SOUND: that snare's send was taken out of two songs as a fault (punch 7 -> 13 dB,
+decay 190 -> 50 ms, level with two records), and Harry's ear said of both "Too dry: it lost its air" (14 Nov). It
+went back at its old level with the dry crack kept beside it ("Now: the air is back"). A send marked here is a
+question to put to an ear before it is a mend; keeping a share of it is an answer too.
 --soft counts compressors and their kin (compressor, glue, ott, autolevel) as well as clip and limiter.
 --measure FROM-TO (positions as `chirp render` takes them: 41-49) is the tell: each LOUD track is rendered alone with
 the send and without it, and the peak and loudness of each are printed with the difference. A few seconds a track.
