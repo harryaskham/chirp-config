@@ -40,6 +40,19 @@ class Flow(unittest.TestCase):
         self.assertNotIn("measured", d["in"])
         self.assertNotIn("measured", d["out"])
 
+    def test_an_album_that_does_not_bleed_has_no_flow_term(self):
+        me = {"head": feat(-20), "tail": feat(-60)}
+        oth = {"t1": {"head": feat(-10), "tail": feat(-55)}, "t3": {"head": feat(-18), "tail": feat(-12)}}
+        c = ctx(me, oth)
+        loud, d = CS.m_flow(c)
+        self.assertAlmostEqual(d["in"]["level_jump_db"], 35.0)   # no "bleed" key: scored, as it always was
+        c["album"]["bleed"] = True
+        self.assertEqual(CS.m_flow(c)[0], loud)
+        c["album"]["bleed"] = False                              # the songs stand apart: a cold start is not a fault
+        s, d = CS.m_flow(c)
+        self.assertIsNone(s)
+        self.assertEqual(d, {"skipped": 'the album says "bleed": false'})
+
     def test_mix_windows_used_when_both_sides_have_them(self):
         me = {"head": feat(-40), "tail": feat(-40), "mix_head": feat(-12, bars=16), "mix_tail": feat(-11, bars=16)}
         oth = {"t1": {"head": feat(-10), "tail": feat(-45), "mix_tail": feat(-11, bars=16)},

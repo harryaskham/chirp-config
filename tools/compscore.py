@@ -32,7 +32,9 @@ compose/ALBUM/album.json "weights", defaults below):
   cohesion   timbre close enough to the rest of the album (the other songs' saved features).
   distinct   not a near-copy of another album song (pitch-class histogram, tempo, density). Tempo is the declared
              tempo when there is one (the onset estimate flips between near-equal peaks).
-  flow       the bleed into and out of the neighbouring tracks: level and spectrum continuity at the joins.
+  flow       the bleed into and out of the neighbouring tracks: level and spectrum continuity at the joins. It does
+             not apply to an album whose album.json says "bleed": false (its songs stand apart: a cold start after
+             the last song's ring-out is not a fault).
 Agents can add terms: a file compose/measures/NAME.py defining measure(ctx) -> (score 0-100 or None, detail) joins
 the total with the album's weights[NAME] (default 0.05). ctx holds id, wav, x (stereo), F (likeness.Feat), dur,
 album (album.json), slot, others ({id: features}), ratings, and helpers. Keep terms deterministic for a given render.
@@ -573,6 +575,12 @@ def m_distinct(ctx):
 
 
 def m_flow(ctx):
+    if ctx["album"].get("bleed") is False:
+        # The album says its songs do not bleed into one another, so there is no join to keep level across. (14 Nov:
+        # Common Time's second song starts at once after the epic's quiet ending, 35 dB up, as written; the term read
+        # 11.4 for BOTH songs and took 4.0 points off the epic, 100.00 to 96.03 on the same audio, the moment the
+        # second song existed.)
+        return None, {"skipped": 'the album says "bleed": false'}
     oth, slot, tracks = ctx["others"], ctx["slot"] or {}, ctx["album"].get("tracks", [])
     n = slot.get("n")
     joins, scores = {}, []
