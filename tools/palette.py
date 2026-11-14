@@ -3,6 +3,8 @@
 instruments / adding new ones").
 
   palette.py ID [--all] [--grep WORD] [--roles] [--pin BIN]
+  palette.py ID --bench TRACK FROM-TO PATCH[@DB] ... [--layer]     (swap or layer? tools/swapbench.py: the same notes
+                                                                    on another patch, alone through the track's routing)
 
 Prints the song's instruments (track -> patch, and what each patch is made of), the album's staples (library patches
 three or more of its songs share), library patches no song on the album uses yet (with their `about` lines), the
@@ -244,6 +246,11 @@ def unused_features(album_id):
 
 
 def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if "--bench" in argv:                               # swap or layer: the bench, not the brief
+        import swapbench
+        i = argv.index("--bench")
+        return swapbench.main(argv[:i] + argv[i + 1:])
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("id")
     ap.add_argument("--all", action="store_true", help="list every unused library patch (default: 40)")
@@ -329,6 +336,9 @@ def main(argv=None):
         print(f"engine features the album has not used yet (compose/{album_id}/features.md): {uf}")
     print("a palette round: change one or two instruments (swap a staple for something no other track uses, design a new "
           "patch, or add the part the song lacks), measured on full-length renders; note the swap in the round note.")
+    print(f"swap or layer? before the full render: `chirpers.py palette {a.id} --bench TRACK FROM-TO PATCH[@DB] [--layer]` "
+          "(the same notes on the new patch, alone through the track's own routing: the bands a swap LOSES, whether a "
+          "layer is THERE).")
 
 
 if __name__ == "__main__":
