@@ -36,6 +36,10 @@ plus Harry's ratings), and Harry's ear decides.
    round. Every section's start, every lane's point and every landing computed from a few weights (how long a row
    is, how many rows a section has), never typed as bar numbers. Plain Hunt's v5 (14 Nov) changed tempo, the riff's
    length and the song's length in ONE flag because of it, and the flag off still gave v4 byte for byte.
+   A NEW SONG'S FIRST ROUNDS: read its first full section AGAINST THE ALBUM'S REFERENCE RECORDS, and by part
+   (`tools/stembal.py song … --refs … --windows … --voice --parts …`), as soon as it has one. The scorer's spectrum
+   term will not say it (it reads the whole song against a wide envelope). Plain Hunt was first read at v8, seven
+   versions in, and its last stretch stood +2.9 dB at 250-500 Hz and -2.6 at 120-250.
 4. **Render, listen, score**: `python3 tools/compscore.py ALBUM-tN OUT.wav --text [--song CANDIDATE.yaml]` shows the
    terms and where it is weak (pass `--song` when the render came from a candidate file: its `tempo` sets the rhythm grid).
 5. **Record**: `climb.py done ALBUM-tN --version v1 --score S --note … --next … --with songs/ALBUM-tN.yaml

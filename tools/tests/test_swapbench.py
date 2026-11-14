@@ -79,6 +79,15 @@ class Pieces(unittest.TestCase):
         self.assertEqual([t["name"] for t in nested["tracks"][1]["tracks"]], ["pad", "pad+layer"])
         self.assertEqual(SONG["tracks"][0]["patch"], "deep")                      # the song given is not touched
 
+    def test_a_long_patch_keeps_its_gain_in_the_label(self):
+        long = "ct-twin fx.1.model=gojira fx.2.model=1x12 fx.2.mic=0.5 fx.2.cone=16"
+        self.assertEqual(S.label({"how": "swap", "patch": "teeth", "db": 0.0}, 44), "teeth")
+        self.assertEqual(S.label({"how": "layer", "patch": "teeth", "db": 4.0}, 44), "+ teeth@+4")
+        a, b = S.label({"how": "swap", "patch": long, "db": 0.0}, 44), S.label({"how": "swap", "patch": long, "db": 2.5}, 44)
+        self.assertEqual((len(a), len(b)), (44, 44))
+        self.assertTrue(a.endswith("…") and b.endswith("…@+2.5"))
+        self.assertTrue(S.label({"how": "layer", "patch": long, "db": -6.0}, 44).startswith("+ ct-twin fx.1.model=gojira"))
+
     def test_what_a_row_says(self):
         own = [-0.1, -20.0, -30.0, -70.0, -70.0, -70.0, -70.0, -70.0, -70.0]
         swap = {"how": "swap", "bands": [-7.3, -4.0, -9.0, +30.0, 0, 0, 0, 0, 0]}
@@ -133,6 +142,18 @@ class Bench(unittest.TestCase):
         beside = self.calls()[2]
         self.assertEqual(beside[:2], [["bass", "deep", 4, ["eq bands=[]"]], ["bass+layer", "teeth", 4, ["eq bands=[]"]]])
         self.assertEqual(self.calls()[-1][1], ["bass+layer", "teeth", 4, ["eq bands=[]", "gain gain=-60dB"]])
+
+    def test_the_gain_for_equal_loudness(self):
+        d = json.loads(self.run_tool("bass", "3-5", "thin", "thin@+12", "teeth", "--layer", "--json")[1])
+        rows = {(r["patch"], r["db"], r["how"]): r for r in d["rows"]}
+        self.assertAlmostEqual(rows[("thin", 0.0, "swap")]["match_db"], 12.0, delta=0.2)     # the same sound 12 dB down
+        self.assertAlmostEqual(rows[("thin", 12.0, "swap")]["match_db"], 0.0, delta=0.2)     # ... and with it: level
+        self.assertNotIn("match_db", rows[("thin", 0.0, "layer")])                            # a layer is not levelled
+        self.assertNotIn("match_db", d["rows"][0])
+        self.assertIn("match_db", rows[("teeth", 0.0, "swap")])
+        _, text = self.run_tool("bass", "3-5", "thin")
+        self.assertTrue(text.splitlines()[1].rstrip().endswith("all  = LUFS"))
+        self.assertRegex(text.splitlines()[3], r"-12\.\d +@\+1[12]\.\d")                     # all, then the gain to add
 
     def test_the_table_and_the_palette_door(self):
         code, text = self.run_tool("bass", "3-5", "teeth@+6", "--layer")
