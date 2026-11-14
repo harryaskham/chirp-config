@@ -25,6 +25,12 @@ Two measures, both in nine bands (20-60-120-250-500-1k-2k-4k-8k-16k Hz), both in
         the numbers are the same. A song whose tempo changes, whose meter is not 4/4 or that embeds other songs is
         rendered window by window as before; --per-window forces that.
 
+  --id ID (with `song`): the climb this file is a version of (SONG is often a candidate file, which says nothing about
+        whose it is). It stamps the read in ref/stembal/reads.json (the id, the climb's kept version, the time, the
+        windows), and `climb.py next` then says in the song's brief when it was last read against the records, or
+        that no read is on record. A new song's first full section should be read in its first rounds: Plain Hunt
+        was first read at v8, seven versions in (chirper-zero, 14 Nov).
+
   --spread (on refs or song): the yardstick for "how far is too far". Each reference's own band shares are taken in
         consecutive --win second windows (default 20) of its loud passages (within --within dB, default 3, of its loud
         level), and the spread across them printed: per record and the median with `refs`, one row under OURS - REFS
@@ -109,6 +115,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 import wave
 
 import numpy as np
@@ -354,6 +361,34 @@ def guess_groups(pin, song, env):
     return out
 
 
+def stamp_read(cid, windows, root=None, now=None):
+    """Record that the climb `cid` was read against the records: {id: {"at", "version", "windows"}} in
+    ref/stembal/reads.json (local). The version is the climb's kept one in climbs.json (None when it has none)."""
+    root = root or ROOT
+    version = None
+    try:
+        with open(os.path.join(root, "climbs.json")) as f:
+            reg = json.load(f)
+        items = reg.get("climbs", reg) if isinstance(reg, dict) else reg
+        items = items.values() if isinstance(items, dict) else items
+        version = next(((c.get("best") or {}).get("version") for c in items if c.get("id") == cid), None)
+    except (OSError, ValueError):
+        pass
+    path = os.path.join(root, "ref", "stembal", "reads.json")
+    try:
+        with open(path) as f:
+            reads = json.load(f)
+    except (OSError, ValueError):
+        reads = {}
+    reads[cid] = {"at": now or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "version": version, "windows": list(windows)}
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(reads, f, indent=1, sort_keys=True)
+    os.replace(tmp, path)
+    return reads[cid]
+
+
 def cmd_song(a):
     R = refs(a)
     with open(os.path.join(ROOT, "tools", "groove-pin")) as f:
@@ -495,6 +530,7 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--threads", type=int, default=2)
     ap.add_argument("--out")
+    ap.add_argument("--id", help="with song: the climb this file is a version of; stamps the read for `climb.py next`")
     a = ap.parse_args()
     if a.cmd == "refs":
         cmd_refs(a)
@@ -502,6 +538,10 @@ def main():
         if not a.song:
             ap.error("song SONG.yaml")
         cmd_song(a)
+        if a.id:                                   # the read is on record for the song's next brief
+            got = stamp_read(a.id, a.windows or [])
+            print(f"read stamped: {a.id} at {got['version'] or 'no kept version'} ({len(got['windows'])} window(s)); "
+                  "`climb.py next` will say so in its brief")
 
 
 if __name__ == "__main__":

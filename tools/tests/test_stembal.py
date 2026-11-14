@@ -8,6 +8,7 @@ are known: three parts of equal level, one in each of three bands.
 """
 import contextlib
 import io
+import json
 import math
 import os
 import shutil
@@ -151,6 +152,22 @@ class Stembal(unittest.TestCase):
     def row(self, text, name):
         line = next(ln for ln in text.splitlines() if ln.startswith(name))
         return [float(x) for x in line[22:].split()[:9]]
+
+    def test_a_read_is_stamped_with_the_climbs_kept_version(self):
+        root = tempfile.mkdtemp(prefix="stembal-stamp-")
+        self.addCleanup(shutil.rmtree, root, True)
+        with open(os.path.join(root, "climbs.json"), "w") as f:
+            json.dump({"climbs": [{"id": "alb-t3", "best": {"version": "v8"}}, {"id": "alb-t1"}]}, f)
+        got = S.stamp_read("alb-t3", ["41-56:riffA", "390-401"], root=root, now="2026-11-14T22:40:00Z")
+        self.assertEqual(got, {"at": "2026-11-14T22:40:00Z", "version": "v8", "windows": ["41-56:riffA", "390-401"]})
+        S.stamp_read("alb-t1", [], root=root, now="2026-11-14T23:00:00Z")        # a song with no kept version yet
+        with open(os.path.join(root, "ref", "stembal", "reads.json")) as f:
+            reads = json.load(f)
+        self.assertEqual(sorted(reads), ["alb-t1", "alb-t3"])                     # the earlier stamp is kept
+        self.assertIsNone(reads["alb-t1"]["version"])
+        S.stamp_read("alb-t3", ["1-2"], root=root, now="2026-11-15T00:00:00Z")   # a later read replaces the song's own
+        with open(os.path.join(root, "ref", "stembal", "reads.json")) as f:
+            self.assertEqual(json.load(f)["alb-t3"]["windows"], ["1-2"])
 
     def test_a_sine_lands_in_its_band(self):
         for freq, band in ((50.0, 0), (100.0, 1), (1500.0, 5), (3000.0, 6)):

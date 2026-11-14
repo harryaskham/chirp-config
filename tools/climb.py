@@ -884,6 +884,33 @@ def cmd_type(a):
     print(f"{c['id']} round {n}: {rt}\n{ROUND_TYPES[rt].format(id=c['id'])}")
 
 
+def records_read(cid):
+    """When the climb was last read against the album's reference records ({"at", "version", "windows"}: stamped by
+    `tools/stembal.py song … --id ID` in ref/stembal/reads.json), or None when no read is on record."""
+    try:
+        with open(os.path.join(ROOT, "ref", "stembal", "reads.json")) as f:
+            return json.load(f).get(cid)
+    except (OSError, ValueError, AttributeError):
+        return None
+
+
+def records_line(c, stale=4):
+    """The brief's line about reading a composed song against the records: when none is on record, or when the last
+    was `stale` or more kept versions ago; None when it is fresh (or the versions are not vN numbers)."""
+    def num(v):
+        return int(v[1:]) if isinstance(v, str) and v[:1] == "v" and v[1:].isdigit() else None
+    rd, now = records_read(c["id"]), num((c.get("best") or {}).get("version"))
+    how = f"`tools/stembal.py song FILE --refs … --windows … --voice --id {c['id']}` (--id puts the read on record)"
+    if rd is None:
+        return (f"  AGAINST THE RECORDS: no read of this song is on record. Read its sections beside the album's reference "
+                f"records, and by part (--parts): {how}. Plain Hunt was first read at v8, seven versions in.")
+    then = num(rd.get("version"))
+    if now is None or then is None or now - then < stale:
+        return None
+    return (f"  AGAINST THE RECORDS: last read at {rd['version']} ({str(rd.get('at'))[:16]}), {now - then} kept versions ago: "
+            f"{how}.")
+
+
 def compose_brief(c):
     """A composition climb's brief (compose/README.md): its slot, the album, its neighbours and the latest ratings."""
     out = []
@@ -947,6 +974,10 @@ def compose_brief(c):
                    "Harry likes a moment in one song, that moment is good THERE. It is not a template for every song. Ask what "
                    "THIS song wants, and if another song already has a move, find this song's own version or a different idea. "
                    "Singing, choirs, new engine layers: where they serve the song, not everywhere and not nowhere.")
+    if c["status"] != "requested" and album.get("genre_refs"):      # an album with reference records, a song with a version
+        line = records_line(c)
+        if line:
+            out.append(line)
     rp = os.path.join(ROOT, "compose", album["id"], "ratings.jsonl")
     if os.path.exists(rp):
         with open(rp) as f:

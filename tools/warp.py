@@ -4,16 +4,26 @@ table of how far it has slipped. (chirp-eco, 14 Nov, for Common Time's second so
 a warped clock: the tools that read a part's notes from the plan put every one of them on the song's grid.)
 
   warp.py SONG [TRACK ...] [--at POS ...] [--pin CHIRP]
+  warp.py SONG TRACK ... --bars 55-56          (the notes that SOUND in those bars, and where each is WRITTEN)
 
 SONG is a climb ID (songs/ID.yaml) or a song file. For each warped track (or the ones named): every stretch of its
 warp, the bars it runs over, and the shift it ends on, in beats, in sixteenths and in milliseconds (minus = ahead of
 the song). Tracks with the same warp share one table. --at POS (a bar, 41; beats, 160b; seconds, 76.2s; repeatable):
 the shift of each warped track for a note written there.
 
+--bars FROM-TO (as `chirp render --from/--to` takes positions: 55-56 is bar 55): A WARPED PART'S BAR IS NOT WRITTEN
+IN THAT BAR. For each warped track, every note that sounds in the range, with where it sounds and where it is
+written (bar:sixteenth, both counted from 1 and 0 as the song does), its pitch and the shift; a note written
+OUTSIDE the range is marked, and the notes written inside it that sound elsewhere are listed after. To change what
+a warped part plays "in bar 55", choose its notes from this table, not by the bar they are written in (chirper-zero,
+Odd Sympathy v20: the right guitar's last stab of bar 55 is written in bar 56, in the next section and its key).
+
 As a module, for tools that read notes from `chirp plan`'s canonical song:
   segments(warp, tempo)   the stretches as (start, end, shift at start, shift at end, curve), in beats
   shift(segs, beat)       the shift in beats for a note written at `beat` (from the track's start)
   moved(notes, warp, tempo)   the notes with `at` and `len` as they sound (copies; the same list when there is no warp)
+  sounding(notes, warp, tempo, b0, b1)   (the notes that sound in beats b0..b1 with their written place, those written
+                              there that sound elsewhere)
 It follows the engine (crates/chirp-core/src/lower.rs, `Warp`): stretches run in turn from the track's start; each
 moves the shift to `to` (beats, `1bar`, seconds) or holds a `tempo` ratio, over `over`, along `curve` (linear,
 smooth, in, out); after the last the shift holds; a note written at b sounds at b + shift(b) and ends at
@@ -111,6 +121,44 @@ def moved(notes, warp, tempo):
     return out
 
 
+def sounding(notes, warp, tempo, b0, b1):
+    """(inside, strays) for the beats b0..b1: `inside` the notes that SOUND there, in the order they sound, each
+    {"sounds", "written" (beats), "shift" (beats), "pitch", "out" (True when it is written outside b0..b1)}; `strays`
+    the notes written there that sound elsewhere, in the same form."""
+    segs = segments(warp, tempo) if warp else []
+    rows = []
+    for n in notes:
+        at = float(n.get("at") or 0)
+        d = shift(segs, at) if segs else 0.0
+        rows.append({"sounds": at + d, "written": at, "shift": d, "pitch": n.get("pitch")})
+    eps = 1e-6
+    inside = sorted((dict(r, out=not b0 - eps <= r["written"] < b1 - eps) for r in rows if b0 - eps <= r["sounds"] < b1 - eps),
+                    key=lambda r: (r["sounds"], str(r["pitch"])))
+    strays = sorted((r for r in rows if b0 - eps <= r["written"] < b1 - eps and not b0 - eps <= r["sounds"] < b1 - eps),
+                    key=lambda r: (r["sounds"], str(r["pitch"])))
+    return inside, strays
+
+
+def place(beat):
+    """A beat as bar:sixteenth, "55:13.00" (bars from 1, sixteenths from 0, in 4/4)."""
+    beat = round(beat, 6)
+    return f"{int(beat // 4) + 1}:{(beat % 4) * 4:05.2f}"
+
+
+def notes_of(canon, name):
+    """A track's notes as written, at any depth ([] when it has none)."""
+    def walk(ts):
+        for t in ts or []:
+            if isinstance(t, dict):
+                if t.get("name") == name:
+                    return [n for n in t.get("notes") or [] if isinstance(n, dict)]
+                got = walk(t.get("tracks"))
+                if got is not None:
+                    return got
+        return None
+    return walk(canon.get("tracks")) or []
+
+
 def warped_tracks(canon):
     """[(name, warp)] for every track that has one, at any depth."""
     out = []
@@ -140,7 +188,11 @@ def main(argv=None):
     if not a or "-h" in a or "--help" in a:
         print(__doc__)
         return 0 if a else 2
-    pin, ats = None, []
+    pin, ats, bars = None, [], None
+    if "--bars" in a:
+        i = a.index("--bars")
+        bars = a[i + 1] if i + 1 < len(a) else ""
+        del a[i:i + 2]
     while "--pin" in a:
         i = a.index("--pin")
         pin = a[i + 1]
@@ -177,6 +229,26 @@ def main(argv=None):
         print("no track has a warp")
         return 0
     ms = 60000.0 / tempo
+    if bars is not None:                                      # the notes that sound in a range, and where each is written
+        lo, _, hi = bars.partition("-")
+        try:
+            b0, b1 = position(lo, tempo), position(hi, tempo)
+        except ValueError:
+            b0 = b1 = 0.0
+        if not hi or b1 <= b0:
+            raise SystemExit(f"warp: --bars {bars}: FROM-TO as chirp render takes positions (55-56 is bar 55)")
+        for name, w in tracks:
+            inside, strays = sounding(notes_of(canon, name), w, tempo, b0, b1)
+            out = sum(1 for r in inside if r["out"])
+            print(f"{name}: {len(inside)} note(s) SOUND in {bars} (bar:sixteenth); {out} of them written outside it")
+            print(f"  {'sounds':>10s}  {'written':>10s}  {'pitch':10s} {'shift':>12s}")
+            for r in inside:
+                print(f"  {place(r['sounds']):>10s}  {place(r['written']):>10s}  {str(r['pitch']):10s} {r['shift'] * 4:+7.2f} 16ths"
+                      + (f"   WRITTEN IN BAR {int(r['written'] // 4) + 1}" if r["out"] else ""))
+            if strays:
+                print(f"  written in {bars} but sounding elsewhere: "
+                      + ", ".join(f"{r['pitch']} written {place(r['written'])} sounds {place(r['sounds'])}" for r in strays))
+        return 0
     groups = {}
     for name, w in tracks:
         groups.setdefault(json.dumps(w, sort_keys=True), (w, []))[1].append(name)

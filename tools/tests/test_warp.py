@@ -153,6 +153,31 @@ class Table(unittest.TestCase):
             self.run_tool(self.song, "gl")
         self.assertEqual(str(e.exception), "warp: no warped track gl (warped: gr, cr, pad)")
 
+    def test_bars_lists_the_notes_that_sound_there_and_where_each_is_written(self):
+        # a track a sixteenth AHEAD from beat 0: a note written on a bar line sounds in the bar before
+        warp = [{"over": "1b", "to": -0.25}, {"over": "400b", "to": -0.25}]
+        notes = [{"at": 15.0, "pitch": "A1"}, {"at": 16.0, "pitch": "B1"}, {"at": 16.75, "pitch": "C2"}, {"at": 19.75, "pitch": "D2"},
+                 {"at": 20.0, "pitch": "E2"}, {"at": 20.25, "pitch": "F2"}]
+        inside, strays = W.sounding(notes, warp, 120, 16.0, 20.0)                # bar 5
+        self.assertEqual([(r["pitch"], r["sounds"], r["written"], r["out"]) for r in inside],
+                         [("C2", 16.5, 16.75, False), ("D2", 19.5, 19.75, False), ("E2", 19.75, 20.0, True)])
+        self.assertEqual([(r["pitch"], r["sounds"]) for r in strays], [("B1", 15.75)])   # written in bar 5, sounds in bar 4
+        self.assertEqual(W.sounding(notes, None, 120, 16.0, 20.0)[1], [])        # no warp: nothing strays
+        self.assertEqual((W.place(16.5), W.place(19.75), W.place(0)), ("5:02.00", "5:15.00", "1:00.00"))
+        self.assertEqual(W.notes_of({"tracks": [{"name": "g", "tracks": [{"name": "x", "notes": notes}]}]}, "x"), notes)
+        self.assertEqual(W.notes_of({"tracks": []}, "x"), [])
+
+    def test_bars_on_the_command_line(self):
+        code, text = self.run_tool(self.song, "gr", "--bars", "1-2")
+        self.assertEqual(code, 0)
+        lines = text.splitlines()
+        self.assertEqual(lines[0], "gr: 1 note(s) SOUND in 1-2 (bar:sixteenth); 0 of them written outside it")
+        self.assertEqual(lines[2].split(), ["1:00.00", "1:00.00", "None", "+0.00", "16ths"])
+        for bad in ("5", "5-5", "7-3"):
+            with self.assertRaises(SystemExit) as e:
+                self.run_tool(self.song, "gr", "--bars", bad)
+            self.assertIn("FROM-TO as chirp render takes positions", str(e.exception))
+
     def test_a_song_with_no_warp_says_so(self):
         with open(self.song, "w") as f:
             f.write("bare\n")

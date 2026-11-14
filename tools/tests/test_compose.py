@@ -94,6 +94,40 @@ class Album(unittest.TestCase):
         self.assertIn("neighbours: 2 alb-t2", text)
 
 
+class RecordsRead(unittest.TestCase):
+    """The brief says when a composed song was last read against the album's reference records (stembal --id)."""
+    def setUp(self):
+        self.path = os.path.join(TMP, "ref", "stembal", "reads.json")
+        os.makedirs(os.path.dirname(self.path), exist_ok=True)
+        self.addCleanup(lambda: os.path.exists(self.path) and os.remove(self.path))
+
+    def stamp(self, reads):
+        with open(self.path, "w") as f:
+            json.dump(reads, f)
+
+    def test_no_read_on_record_a_fresh_one_and_a_stale_one(self):
+        C = CH.C
+        c = {"id": "alb-t9", "status": "active", "best": {"version": "v8"}}
+        self.assertIsNone(C.records_read("alb-t9"))
+        line = C.records_line(c)
+        self.assertTrue(line.startswith("  AGAINST THE RECORDS: no read of this song is on record."))
+        self.assertIn("--id alb-t9", line)
+        self.stamp({"alb-t9": {"at": "2026-11-14T22:40:00Z", "version": "v8", "windows": ["41-56"]}, "other": {"version": "v1"}})
+        self.assertEqual(C.records_read("alb-t9")["version"], "v8")
+        self.assertIsNone(C.records_line(c))                                     # read at this version: nothing to say
+        self.assertIsNone(C.records_line(dict(c, best={"version": "v11"})))      # three versions on: still fresh
+        line = C.records_line(dict(c, best={"version": "v12"}))
+        self.assertEqual(line.split(": `")[0], "  AGAINST THE RECORDS: last read at v8 (2026-11-14T22:40), 4 kept versions ago")
+        self.assertIsNone(C.records_line(dict(c, best={"version": "final"})))    # not a vN: no arithmetic, no line
+        self.stamp({"alb-t9": {"at": "x", "version": None}})
+        self.assertIsNone(C.records_line(c))                                     # stamped before any kept version
+
+    def test_the_line_is_only_for_an_album_with_reference_records(self):
+        c = CH.C.find(CH.C.load(), "alb-t1")
+        text = "\n".join(CH.C.compose_brief(dict(c, status="active", best={"version": "v2"})))
+        self.assertNotIn("AGAINST THE RECORDS", text)                            # the test album names no genre_refs
+
+
 class Done(unittest.TestCase):
     def test_first_kept_version_makes_the_composer_owner(self):
         with open(os.path.join(TMP, "songs", "alb-t3.yaml"), "w") as f:
