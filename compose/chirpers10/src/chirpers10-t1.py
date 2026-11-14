@@ -397,12 +397,29 @@ def solo(b0, b1, vel=0.82):
         for k in range(n):
             if t + k * span / n < s1:
                 add(tr, t + k * span / n, span / n * 1.05, SOLO_SCALE[idx % 6] + 12 * (idx // 6), vel * 0.86)
+                RUN.append((t + k * span / n, span / n * 1.05, SOLO_SCALE[idx % 6] + 12 * (idx // 6), vel * 0.86))
             idx += steps[k]
         if t + span < s1:
             add(tr, t + span, min(turns * 7 - span - 0.3, s1 - t - span), SOLO_SCALE[idx % 6] + 12 * (idx // 6), vel)
+            RUN.append((t + span, min(turns * 7 - span - 0.3, s1 - t - span), SOLO_SCALE[idx % 6] + 12 * (idx // 6), vel))
         if t < s1:          # the pedal opens through each flurry and closes slowly over the note it lands on
             WAH_PTS.extend([(t, 0.1), (min(t + span, s1), 1.0), (min(t + turns * 7 - 0.5, s1), 0.25)])
         t += turns * 7
+
+
+RUN = []            # the run's notes as played (sixteenth, length, pitch, velocity), for its mirror (v45)
+
+
+def solo_back(b0, src1, shift, vscale):
+    """The run again, BACKWARDS, from bar b0: every note keeps its length and takes the place it would have in a mirror
+    set at the run's end (so each flurry now falls away from its long note into the next), `shift` semitones away. The
+    pedal's moves are mirrored with it."""
+    tr = "leadw" if WAH else "lead"
+    for t, ln, pitch, v in sorted(RUN, key=lambda q: -(q[0] + q[1])):
+        add(tr, s16(b0) + (s16(src1) - (t + ln)), ln, pitch + shift, v * vscale)
+    if WAH:
+        src0 = min(t for t, _, _, _ in RUN)
+        WAH_PTS.extend(sorted((s16(b0) + (s16(src1) - t), v) for t, v in list(WAH_PTS) if src0 <= t <= s16(src1)))
 
 
 def chimes(b0, b1, pairs=((5, 7), (5, 11), (7, 11)), vel=0.5):
@@ -577,6 +594,16 @@ REBUILD = os.environ.get("C10T1_REBUILD", "210:220:-8")
 # The pulse is not broken (the kick is the pulse); a rest is a rest.
 # the bar : the sixteenth from which everything but the kick rests. "" = v43.
 HOLE = os.environ.get("C10T1_HOLE", "293:8")
+# v45: THE RUN, BACKWARDS (6:59-7:20). The form is a palindrome: 35 20 15 7 28 5 30 14 11 10 | the eye | 10 11 14 30 ...
+# and each section has a mirror. The lead's run (4:53-5:14, eleven bars, on Db) is the one melody of the first half, and
+# its mirror, eleven bars on Bb, had no lead at all. Now the run comes back there BACKWARDS, note for note: the same
+# notes with the same lengths, set in a mirror, a minor third lower (Db to Bb), with the wah pedal's moves mirrored too.
+# Forwards each flurry climbs to a long held note; backwards each long note comes first and the flurry falls away from
+# it into the next. It is the one place in the piece where the palindrome is heard in a tune.
+# At the run's own level the mirror was a second solo: the lead 3 dB over everything and the section 1.5 dB louder on
+# the groove. It sits 3 dB lower than the run (a fader on the lead's track): a thing remembered, not a second solo.
+# semitones the mirror is moved by ; its velocity against the run's ; its level against the run's, dB. "" = v44.
+RETRO = os.environ.get("C10T1_RETRO", "-3;1.0;-3")
 # the dry path's eq. Without one it carried the snare's body past the drums' bus's own 400 Hz cut, and every section read
 # 0.5 to 1.4 dB more at 250-500 Hz against the records (the split +1.9 -> +2.8, the landing +1.1 -> +1.9). With this cut
 # (and the send 2 dB up) the snare alone carries as much at 250-500 Hz as it did at v40, and 1.1 dB more at 120-250 Hz.
@@ -780,6 +807,8 @@ def compose():
     bass(11, ELEVEN_B, a, z, root=BB, hook=H1)
     kick(11, ELEVEN_B, a, z)
     kit(a, z, "x", 4, "half", "kicks")
+    if RETRO:                                                         # v45: the lead's run of 4:53, backwards, in its mirror
+        solo_back(a, B[9], int(RETRO.split(";")[0]), float(RETRO.split(";")[1]))
 
     # 14. 231-245  seven meets eleven: seven on the guitars over eleven's chords; double time; on Eb (F, Bb, Eb: up by fourths, then home)
     a, z = B[13], B[14]
@@ -1439,7 +1468,10 @@ def song():
         ("cym", KIT, "-3dB", None, {"out": "drums", **OHC, **AIRFX}), ("toms", KIT, "4dB", None, {"out": "drums", **OHS}),
         ("hat", KIT, "14dB", float(HATPAN) if HATPAN else None, {"out": "drums", **OHC, **AIRFX}), ("ride", KIT, "6dB", None, {"out": "drums", **OHC, **AIRFX}),
         ("lead", "m8-lead-guitar", {"value": "-3dB", "mod": [{"src": "auto.eye", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"eye": {"points": LEAD_LANE}}}),
-        ("leadw", "ct-lead-wah", "-3dB", 0, {"sends": {"hall": "-10dB"}, "auto": {"wah": {"points": [[f"{round(t / 4, 3)}b", v] for t, v in WAH_PTS]}}}),
+        ("leadw", "ct-lead-wah", {"value": "-3dB", "mod": [{"src": "auto.back", "amount": 1}]} if RETRO and float(RETRO.split(";")[2]) else "-3dB", 0,
+         {"sends": {"hall": "-10dB"}, "auto": {"wah": {"points": [[f"{round(t / 4, 3)}b", v] for t, v in WAH_PTS]},
+                                              **({"back": {"points": [["0b", 0], [f"{BOUNDS[12] * 4 - 1}b", 0], [f"{BOUNDS[12] * 4}b", float(RETRO.split(";")[2])], [f"{BOUNDS[13] * 4}b", float(RETRO.split(";")[2])],
+                                                                      [f"{BOUNDS[13] * 4 + 1}b", 0]], "curve": 0}} if RETRO and float(RETRO.split(";")[2]) else {})}}),
         ("cl5", CLEAN + REALS, "-4dB", -0.45, {"sends": CL_SENDS}),
         ("cl7", (CLEAN7 or CLEAN) + REALS, CLEAN7_DB if CLEAN7 else "-3dB", 0.45, {"sends": CL_SENDS}),
         ("cl11", (CLEAN11 or CLEAN) + REALS, CLEAN11_DB if CLEAN11 else "-3dB", 0, {"sends": CL_SENDS}),
