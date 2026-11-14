@@ -149,7 +149,19 @@ DTOP = os.environ.get("C10T2_DTOP", "14250;0.8")     # v7: Common Time's fit (v5
 #      written time, so that its vowel lands on the beat, and the pump falls with that start. A 90 ms hold had the
 #      guitars back up 120 ms after the beat with the syllable sounding for another 120; the hold is now 250 ms.)
 HEARD = os.environ.get("C10T2_HEARD", "-6.8dB;-4.5dB;0.8;5:250ms:100ms;2.5")
-TALKEQ = os.environ.get("C10T2_TALKEQ", "hp cutoff=500|hp cutoff=500|peak cutoff=2500 q=0.8 gain=8dB" if HEARD else TALKEQ_V5)
+# v13: THE MIX AGAINST THE RECORDS, BY PART (whole-song round). Three of the four holds read against the eleven records
+# were 1.5 to 1.9 dB over at 2-4 kHz and 0.9 to 1.6 over at 4-8 kHz, since v3, and the two with the china 1.1 and 1.5
+# over at 8-16 kHz. Read part by part (each part alone against the mix, band by band, in step with no voice): the
+# GUITARS are 78% of the mix's 2-4 kHz; the CYMBALS are 47% of 4-8 kHz and 85% of 8-16 kHz (the guitars 21% of 4-8).
+#   1. The guitars' cabinet microphone moves off the cone's centre (mic 0.4 -> this). Benched on the two guitars alone:
+#      nothing changes under 1 kHz, -0.1 dB at 1-2 kHz, -1.2 at 2-4 kHz, -1.9 at 4-8 kHz (0.6 gives -2.7 and -3.8: too
+#      much for the hold an eighth apart, which is not over).
+#   2. The cymbals' track comes down by this many dB (the china and the crashes).
+#   3. The spoken voice's lift at 2.5 kHz is this many dB (was 8): it sits on the same band.
+#   4. The master makes up what the guitars' loudness loses.
+# the cabinet's mic ; the cymbals' trim, dB ; the voice's lift at 2.5 kHz, dB ; the master's make-up, dB. "" = v12.
+MIX = os.environ.get("C10T2_MIX", "0.5;-1.5;6;0.55")
+TALKEQ = os.environ.get("C10T2_TALKEQ", f"hp cutoff=500|hp cutoff=500|peak cutoff=2500 q=0.8 gain={MIX.split(';')[2] if MIX else 8}dB" if HEARD else TALKEQ_V5)
 # Tried in the same round and NOT taken: the speech moved into the riff's holes (the same rhythm half a bar late falls
 # exactly in the riff's gaps, C10T2_HOLES=8). It should have been easier to hear; nothing I can measure says so: the
 # recogniser on the full mix read 10 and 8 words on the attacks against 7 and 11 in the holes (two seeds; base.en 5 and 7
@@ -579,10 +591,11 @@ def song():
             for tr in ("tc", "tl", "tr")] if VOICE and HEARD and float(hd[3].split(":")[0]) else []
     dtop = [f"lp cutoff={DTOP.split(';')[0]} q={DTOP.split(';')[1]}"] if DTOP else []
     tw = TWIN.split(";")[0].split(":") if TWIN else None
+    mic = f" fx.2.mic={MIX.split(';')[0]}" if MIX else ""
     beam = TWIN.split(";")[1].split(":") if TWIN else None
     spec = [
-        *([{"name": "gl", "patch": f"{tw[0]} fx.2.cone={tw[1]}", "gain": f"{tw[3]}dB", "pan": -1, "out": "gtrs"},
-           {"name": "gr", "patch": f"{tw[0]} fx.2.cone={tw[2]}", "gain": f"{tw[3]}dB", "pan": 1, "out": "gtrs", "warp": WARP}] if TWIN else
+        *([{"name": "gl", "patch": f"{tw[0]}{mic} fx.2.cone={tw[1]}", "gain": f"{tw[3]}dB", "pan": -1, "out": "gtrs"},
+           {"name": "gr", "patch": f"{tw[0]}{mic} fx.2.cone={tw[2]}", "gain": f"{tw[3]}dB", "pan": 1, "out": "gtrs", "warp": WARP}] if TWIN else
           [{"name": "gl", "patch": "ct-chug-l" + HEAVY, "gain": "3.3dB", "pan": -1, "out": "gtrs", "fx": cab(12)},
            {"name": "gr", "patch": "ct-chug-r" + HEAVY, "gain": "3.3dB", "pan": 1, "out": "gtrs", "fx": cab(13), "warp": WARP}]),
         {"name": "cl", "patch": CLEAN, "gain": "1dB", "pan": -0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP]},
@@ -601,7 +614,7 @@ def song():
           "fx": [{"type": "eq", "bands": [f"highshelf cutoff={sn[0].split(':')[1]} gain={sn[0].split(':')[2]}dB"]}]} if SNARE else
          {"name": "snare", "patch": kit, "gain": "8dB", "out": "drums", "sends": {"oh": "-1.5dB"}}),
         {"name": "toms", "patch": kit, "gain": "4dB", "out": "drums", "sends": {"oh": "-1.5dB"}},
-        {"name": "cym", "patch": kit, "gain": "-3dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
+        {"name": "cym", "patch": kit, "gain": f"{-3 + (float(MIX.split(';')[1]) if MIX else 0):g}dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
         {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"},
          "fx": [{"type": "eq", "bands": air[0]["bands"] + [f"lp cutoff={hlp:g} q=0.7"]}] if EIGHTH and hlp else air},
         {"name": "ride", "patch": kit, "gain": "6dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
@@ -649,7 +662,7 @@ def song():
                            + ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}}] if lowride else []),
                     **({"auto": {"ride": {"points": lowride, "curve": 0}}} if lowride else {})},
         },
-        "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": f"{1.6 + (float(TWIN.split(';')[2]) if TWIN else 0) + (float(SNARE.split(';')[4]) if SNARE and SNARE.split(';')[4:] else 0):g}dB"}]},
+        "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": f"{1.6 + (float(TWIN.split(';')[2]) if TWIN else 0) + (float(SNARE.split(';')[4]) if SNARE and SNARE.split(';')[4:] else 0) + (float(MIX.split(';')[3]) if MIX else 0):g}dB"}]},
         "tracks": tracks,
     }
 
