@@ -8628,9 +8628,18 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers10-t2 OUT.wav",
       "best": {
-        "score": 95.63,
+        "score": 99.575,
         "version": "v2",
-        "commit": "see git log songs/chirpers10-t2.yaml"
+        "commit": "see git log songs/chirpers10-t2.yaml",
+        "rescored": {
+          "compscore": "6d000e43",
+          "seeds": {
+            "0": 99.575,
+            "11": 99.503
+          },
+          "at": "2026-11-14T04:09:15Z",
+          "was": 95.63
+        }
       },
       "passes": 1,
       "enabled": true,
