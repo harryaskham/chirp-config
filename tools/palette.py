@@ -2,13 +2,22 @@
 """palette: a PALETTE round's brief for a composed song (Harry, 2 Nov: "specific climb types like considering used
 instruments / adding new ones").
 
-  palette.py ID [--all] [--grep WORD] [--pin BIN]
+  palette.py ID [--all] [--grep WORD] [--roles] [--pin BIN]
 
 Prints the song's instruments (track -> patch, and what each patch is made of), the album's staples (library patches
 three or more of its songs share), library patches no song on the album uses yet (with their `about` lines), the
 song's own inline patches (candidates for the library), and the engine features the album has not used
 (compose/<album>/features.md). A palette round changes one or two instruments: swap a staple for something no other
 track uses, design a new patch, or add the part the song lacks, measured on full-length renders.
+
+WHAT A STAPLE DOES HERE (14 Nov, chirper-zero's ask after Plain Hunt v2: a bowed bass swapped for a voice with no
+fundamental took the low end out of three passages, and only the scorer said so). Under each staple, a "here:" line
+for each of this song's tracks that plays it, read from the plan's notes with no render: its register as written,
+how many bars it sounds in, in how many it is the lowest written part, and in which bars it is THE FLOOR: an
+octave or more under every other pitched part, or the only pitched part there is. Those bars are what a swap must
+go on holding. --roles prints the line for every track, not only the staples'. "As written": a patch's own octave,
+its filters and how loud it is are not read (a part written low that has no fundamental still counts as low), and
+drums count only as hits; for what a part really holds in a band, tools/stembal.py --parts.
 """
 import argparse
 import json
@@ -20,6 +29,8 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import compscore as CS  # noqa: E402
+import notechk  # noqa: E402
+import pitchbench  # noqa: E402
 
 ROOT = CS.ROOT
 
@@ -106,6 +117,101 @@ def summary(p):
     return s + (f" | fx {','.join(dict.fromkeys(fx))}" if fx else "")
 
 
+FLATS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
+
+
+def note_name(m):
+    """A MIDI number as the album writes pitches: 29 -> "F1" (C4 = 60)."""
+    m = int(round(m))
+    return f"{FLATS[m % 12]}{m // 12 - 1}"
+
+
+def spans(bars):
+    """Bars (0-indexed) as ranges the way `chirp render` counts them: [0, 1, 2, 7] -> "1-3, 8"."""
+    out, run = [], []
+    for b in sorted(set(bars)):
+        if run and b == run[-1] + 1:
+            run.append(b)
+        else:
+            if run:
+                out.append(run)
+            run = [b]
+    if run:
+        out.append(run)
+    return ", ".join(f"{r[0] + 1}" if len(r) == 1 else f"{r[0] + 1}-{r[-1] + 1}" for r in out)
+
+
+def roles(canon):
+    """{track: role} for the song's top-level tracks that have notes, from the plan alone (as written; a warped
+    track where it sounds). A pitched track: {"lo", "hi" (pitch names), "lo_hz", "hi_hz", "bars" (it sounds in),
+    "lowest" (bars where it is the lowest written part), "floor" (bars, 0-indexed, where it is an octave or more
+    under every other pitched part, or the only one), "of" (the song's bars)}. A kit's track: {"kit": True, "hits",
+    "bars", "of"}. Bars are read in 4/4; a song whose tempo changes or whose meter is
+    another gets registers and hits only ("of" is None)."""
+    pats = canon.get("patches") or {}
+    tempo = canon.get("tempo", 120.0)
+    barred = (isinstance(tempo, (int, float)) and not isinstance(tempo, bool)
+              and str(canon.get("meter") or "4/4").replace(" ", "") == "4/4")
+    got, sounding, total = {}, {}, 0
+    for t in canon.get("tracks") or []:
+        name, pk = t.get("name"), t.get("patch")
+        try:
+            notes = notechk.track_notes(canon, name) or []
+        except SystemExit:
+            notes = [n for n in t.get("notes") or [] if isinstance(n, dict)]
+        if not name or not notes:
+            continue
+        p = pats.get(pk) if isinstance(pk, str) else pk
+        is_kit = isinstance(p, dict) and bool(p.get("kit") or p.get("voices"))
+        rows = []
+        for n in notes:
+            at, ln = float(n.get("at") or 0), float(n.get("len") or 0)
+            try:
+                m = None if is_kit else pitchbench.midi(n.get("pitch"))
+            except ValueError:
+                m = None
+            b0, b1 = int(at // 4), int(max(at, at + ln - 1e-6) // 4)
+            rows.append((m, range(b0, b1 + 1)))
+            total = max(total, b1 + 1)
+        bars = sorted({b for _, r in rows for b in r})
+        pitched = [m for m, _ in rows if m is not None]
+        if not pitched:
+            got[name] = {"kit": True, "hits": len(rows), "bars": len(bars)}
+            continue
+        low = {}
+        for m, r in rows:
+            if m is not None:
+                for b in r:
+                    low[b] = min(low.get(b, m), m)
+        sounding[name] = low
+        lo, hi = min(pitched), max(pitched)
+        got[name] = {"lo": note_name(lo), "hi": note_name(hi), "lo_hz": round(pitchbench.hz(lo), 1),
+                     "hi_hz": round(pitchbench.hz(hi), 1), "bars": len(low)}
+    for name, r in got.items():
+        r["of"] = total if barred else None
+        if r.get("kit") or not barred:
+            continue
+        mine = sounding[name]
+        others = [v for k, v in sounding.items() if k != name]
+        r["lowest"] = sum(1 for b, m in mine.items() if all(o.get(b, 999) >= m for o in others))
+        r["floor"] = sorted(b for b, m in mine.items() if all(o.get(b, 999) >= m + 12 for o in others))
+    return got
+
+
+def role_line(name, r):
+    """One track's role as a line of the brief."""
+    if r.get("kit"):
+        return f"{name}: a kit's part, {r['hits']} hits" + (f" in {r['bars']} of {r['of']} bars" if r.get("of") else "")
+    reg = r["lo"] if r["lo"] == r["hi"] else f"{r['lo']}-{r['hi']}"
+    hz = f"{r['lo_hz']:g} Hz" if r["lo"] == r["hi"] else f"{r['lo_hz']:g}-{r['hi_hz']:g} Hz"
+    s = f"{name}: {reg} ({hz}) as written"
+    if r.get("of"):
+        s += f"; sounds in {r['bars']} of {r['of']} bars; the lowest written part in {r['lowest']}"
+        if r["floor"]:
+            s += f"; THE FLOOR (an octave or more under every other pitched part) in {len(r['floor'])}: bars {spans(r['floor'])}"
+    return s
+
+
 def plan(song, pin):
     r = subprocess.run([pin, "--json", "plan", "-f", song], cwd=ROOT, capture_output=True, text=True)
     try:
@@ -142,6 +248,7 @@ def main(argv=None):
     ap.add_argument("id")
     ap.add_argument("--all", action="store_true", help="list every unused library patch (default: 40)")
     ap.add_argument("--grep", help="only unused library patches whose name or about matches")
+    ap.add_argument("--roles", action="store_true", help="what EVERY track does in the song (from the plan), not only the staples'")
     ap.add_argument("--pin", help="chirp binary (default: tools/groove-pin)")
     ap.add_argument("--as", dest="as_", help=argparse.SUPPRESS)
     ap.add_argument("--no-git", action="store_true", help=argparse.SUPPRESS)
@@ -163,6 +270,12 @@ def main(argv=None):
         p = pats.get(pk) if isinstance(pk, str) else pk
         src = f"library {base(pk, lib)}" if isinstance(pk, str) and base(pk, lib) else "song's own"
         print(f"  {t.get('name', '?'):<14} {name[:28]:<28} {src:<22} {summary(p)}")
+    role = roles(canon)
+    if a.roles:
+        print("what each track does here (from the plan's notes, as written; no render):")
+        for t in canon.get("tracks") or []:
+            if t.get("name") in role:
+                print("  " + role_line(t["name"], role[t["name"]]))
     own = [k for k in pats if not base(k, lib) and "." not in k.split()[0]]
     if own:
         print(f"this song's own patches (library candidates if they are good): {', '.join(own)}")
@@ -180,6 +293,9 @@ def main(argv=None):
         print("album staples (library patches 3+ songs share; a swap here adds variety):")
         for b, s in staples:
             print(f"  {b:<16} {len(s)} songs ({', '.join(sorted(s, key=lambda x: int(x[1:]) if x[1:].isdigit() else 0))})")
+            for t in canon.get("tracks") or []:                 # what the staple does in THIS song, before it is swapped
+                if isinstance(t.get("patch"), str) and base(t["patch"], lib) == b and t.get("name") in role:
+                    print("      here: " + role_line(t["name"], role[t["name"]]))
     shared = sorted(((k, s) for k, s in voices.items() if len(s) >= 3), key=lambda t: (-len(t[1]), t[0]))
     if shared:
         print("kit voices 3+ songs play (the staple inside a kit: another kit's voice or a drum of the song's own steps away):")
