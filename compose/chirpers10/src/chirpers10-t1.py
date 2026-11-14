@@ -153,12 +153,26 @@ CRUNCH = {"gl": "kl", "gr": "kr"} if CRUNCH_L else None     # pass as rig=: the 
 SOFT = (0.6, 1.25)        # dyn= for the crunch rig, which answers the pick: the chugs soft, the hook notes hard
 
 
-def gtr(trs, p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None, rig=None, dyn=(1.0, 1.05)):
+def gtr(trs, p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None, rig=None, dyn=(1.0, 1.05), grow=None):
+    """`grow`: the riff assembles itself. A list of (turns, the cell's notes that sound for that many turns of the wheel);
+    after the list, the whole cell."""
     s0, s1 = s16(b0), s16(b1)
     for t, ln, kind, j, hi in strikes(p, cell, s0, s1):
+        if grow:
+            turn, only = (t - cell[j][0]) // p - s0 // p, None
+            for n, idx in grow:
+                if turn < n:
+                    only = idx
+                    break
+                turn -= n
+            if only is not None and j not in only:
+                continue
+            lone = only is not None and len(only) == 1
         v = vel * (1.0 if j == 0 else 0.9)
         if ramp:
             v *= ramp[0] + (ramp[1] - ramp[0]) * (t - s0) / max(1, s1 - s0)
+        if grow and lone:
+            v *= LONE                    # a note alone is struck firmly: it is what the spring answers
         for tr in trs:
             if rig:
                 tr = rig.get(tr, tr)
@@ -594,6 +608,21 @@ REBUILD = os.environ.get("C10T1_REBUILD", "210:220:-8")
 # except the kick: eight sixteenths of the kick alone, the machine with its cover off, and then the crash and the lift.
 # The pulse is not broken (the kick is the pulse); a rest is a rest.
 # the bar : the sixteenth from which everything but the kick rests. "" = v43.
+# v47: THE RIFF ASSEMBLES ITSELF, AND THE SPRING IS HEARD (section round, 11:19-11:30). Harry, on the Questions page,
+# of the spring's drip on the low-gain guitars: "I cannot hear it in the piece". It could not be: a spring drips after
+# a short note with nothing after it, and both places it played were riffs with no rest in them. Now the approach's
+# first guitar (the seven wheel's, on the right, at 11:19) does not come in as a riff. It comes in as ONE muted note to
+# each turn of its wheel, three times, alone over the ticks and the heartbeat, with two thirds of a second between
+# them for the spring to answer; then two notes a turn, then three, then four, then the whole riff. The five wheel's
+# guitar on the left does the same from 11:25, faster. The approach was already things arriving one at a time; now
+# the riffs themselves arrive a note at a time.
+# And they arrive from inside the spring: while a guitar's notes come alone its spring is far wetter (the last field;
+# 0.2 everywhere else), and it dries to what it was as the riff fills in: the guitar comes nearer. The bass, which
+# came in with the first guitar, waits two bars, so the first lone notes have only the ticks and the heartbeat by them.
+# for the seven wheel's guitar: turns : which of its cell's notes sound ; ... (then the whole cell) | the same for the
+# five wheel's guitar | the spring's mix while the notes come alone. "" = v46.
+ASSEMBLE = os.environ.get("C10T1_ASSEMBLE", "3:0;2:0,2;2:0,1,2;2:0,1,2,4|2:0;2:0,3|0.7")
+LONE = float(os.environ.get("C10T1_LONE", "1.8"))        # how much harder a note alone is struck
 HOLE = os.environ.get("C10T1_HOLE", "293:8:all")        # v44-v45: 293:8 (the kick went on alone)
 # v46: HARRY'S ANSWERS (whole piece). On 14 Nov, 16:12-17:40 GMT, Harry answered the Questions page. Four of his answers
 # on this piece say what to do, and each is done (his words in quotes):
@@ -947,9 +976,11 @@ def compose():
     for t in range(a * 16, 363 * 16, 4):
         add("cym", t, 4, "rb", 0.34 * (1.12 if t % 16 == 0 else 1.0))
     kick(4, [(0, 1, "c")], 354, 363, vel=0.5)                        # the heartbeat, from the fifth bar
-    bass(11, ELEVEN_A, 357, 363, hook=OCT, vel=0.75)                  # the bass comes in with the first guitar
-    gtr(("gr",), 7, SEVEN_B, 357, 363, hook=H2, vel=0.9, ramp=(0.6, 1.0), rig=CRUNCH, dyn=SOFT)    # the first guitars back are the low-gain rig;
-    gtr(("gl",), 5, FIVE_B, 360, 363, hook=HX, vel=0.9, ramp=(0.7, 1.0), rig=CRUNCH, dyn=SOFT)     # the high-gain ones come with the band at 363
+    bass(11, ELEVEN_A, 359 if ASSEMBLE else 357, 363, hook=OCT, vel=0.75)                  # the bass comes in with the first guitar (v47: two bars after it)
+    grow7, grow5 = ([[(int(g.split(":")[0]), {int(i) for i in g.split(":")[1].split(",")}) for g in part.split(";")] for part in ASSEMBLE.split("|")[:2]]
+                    if ASSEMBLE else (None, None))
+    gtr(("gr",), 7, SEVEN_B, 357, 363, hook=H2, vel=0.9, ramp=(0.6, 1.0), rig=CRUNCH, dyn=SOFT, grow=grow7)    # the first guitars back are the low-gain rig;
+    gtr(("gl",), 5, FIVE_B, 360, 363, hook=HX, vel=0.9, ramp=(0.7, 1.0), rig=CRUNCH, dyn=SOFT, grow=grow5)     # the high-gain ones come with the band at 363
     fill(363, "toms")
     gtr(("gl",), 5, FIVE_B, 363, 383, hook=HX, vel=0.92, ramp=(0.92, 1.05))
     gtr(("gr",), 7, SEVEN_B, 363, 383, hook=H2, vel=0.92, ramp=(0.92, 1.05))
@@ -1223,7 +1254,8 @@ HANDED = (f" synth.layers.0.mute=expr.pm*{HAND.split(':')[0]} synth.layers.0.mut
 # 3.5 dB; at 0.25 with the drip the earlier bench read 2.5). "0.25:1.6s:0.5" = v37 (the flutter).
 SPRING = os.environ.get("C10T1_SPRING", "0.2:1.6s:0.5:1")
 if SPRING:
-    HANDED += f" fx.6.kind=spring fx.6.mix={SPRING.split(':')[0]} fx.6.decay={SPRING.split(':')[1]}" + (f" fx.6.drip={SPRING.split(':')[3]}" if len(SPRING.split(':')) > 3 else "")
+    HANDED += (f" fx.6.kind=spring fx.6.mix={'auto.wet' if ASSEMBLE else SPRING.split(':')[0]} fx.6.decay={SPRING.split(':')[1]}"
+               + (f" fx.6.drip={SPRING.split(':')[3]}" if len(SPRING.split(':')) > 3 else ""))
     if CRUNCH_DB == "2dB":
         CRUNCH_DB = f"{2 + float(SPRING.split(':')[2]):g}dB"
 EYE = [float(x) for x in EYEFX.split(":")] if EYEFX else []
@@ -1370,6 +1402,14 @@ def peaks(spec):
 CL_SENDS = {"dly": "-14dB", "hall": "-12dB"} if CLEAN == "m8-clean" else {"dly": "-9dB", "hall": "-7dB"}   # ct-clean is dry: the song gives it its space
 
 
+def wet_lane(b0, b1, b2):
+    """The low-gain guitars' spring: its usual mix, but from bar b0 to b1 the wetter one, drying by bar b2 (v47)."""
+    if not (ASSEMBLE and SPRING):
+        return {}
+    dry, wet = float(SPRING.split(":")[0]), float(ASSEMBLE.split("|")[2])
+    return {"auto": {"wet": {"points": [["0b", dry], [f"{b0 * 4 - 0.5:g}b", dry], [f"{b0 * 4:g}b", wet], [f"{b1 * 4:g}b", wet], [f"{b2 * 4:g}b", dry]], "curve": 0}}}
+
+
 def song():
     compose()
     # the hats and the ride have their own faders: at the cymbals' level a closed hat read 27-29 dB under the mix
@@ -1483,7 +1523,7 @@ def song():
              [("el2", RIG_L + REAL_RIG + LAND_AMP, "-3dB", -0.8, {**GOUT, **REAL_FX}), ("er2", RIG_R + REAL_RIG + LAND_AMP, "-3dB", 0.8, {**GOUT, **REAL_FX})])] if LAND_MAP else []),
         *([("ql", RIG_L + " synth.layers.0.node=4", SQUEAL, -0.5, GOUT), ("qr", RIG_R + " synth.layers.0.node=4", SQUEAL, 0.5, GOUT)] if SQUEAL else []),
         ("sl", BITE_L, BITE_DB, -1, GOUT), ("sr", BITE_R, BITE_DB, 1, GOUT),
-        ("kl", CRUNCH_L + HANDED, CRUNCH_DB, -0.8, {}), ("kr", CRUNCH_R + HANDED, CRUNCH_DB, 0.8, {}),          # not through the guitars' bus: its eq scoops the mids this rig is made of
+        ("kl", CRUNCH_L + HANDED, CRUNCH_DB, -0.8, wet_lane(360, 360.7, 362.5)), ("kr", CRUNCH_R + HANDED, CRUNCH_DB, 0.8, wet_lane(357, 358.4, 361)),          # not through the guitars' bus: its eq scoops the mids this rig is made of
         ("wl", WALL_L, "-2dB", -0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
         ("wr", WALL_R, "-2dB", 0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
         ("bass", BASS, "0.5dB", 0, BOUT),
