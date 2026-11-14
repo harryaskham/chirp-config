@@ -185,3 +185,70 @@ def test_a_new_groove_is_never_little_new():
     SM.flag(rows)
     assert not any(f.startswith("little new") for f in rows[3]["flags"])
     assert "static" in rows[3]["flags"]                     # the window's own motion still reads as it did
+
+
+# ── a ledger mark is found again after the song is reshaped (14 Nov: Plain Hunt v5, 96 bpm / 483 beats -> 120 / 648) ──
+def _grid(total, w=64):
+    """Today's map as rows: windows of W beats up to TOTAL, with what print_map reads."""
+    edges = list(range(0, int(total), w)) + [total]
+    if len(edges) > 2 and edges[-1] - edges[-2] < w / 2:
+        edges.pop(-2)
+    return [{"n": i + 1, "beats": [float(a), float(b)], "time": [a / 2.0, b / 2.0], "level": -13.0, "bright_hz": 600, "density": 6.0,
+             "motion": 0.04} for i, (a, b) in enumerate(zip(edges[:-1], edges[1:]))]
+
+
+def test_the_window_width_is_the_one_the_map_uses():
+    for tempo, dur in ((120, 120.0), (96, 301.0), (126, 783.0), (108, 299.0)):
+        song = _song({"tempo": tempo})
+        w = SM.window_beats(song, tempo)
+        assert all(b - a == w for a, b, _, _ in SM.windows(song, dur)[:-1])
+    assert SM.window_beats(_song({"tempo": 96}), 96) == 48 and SM.window_beats(_song({"tempo": 120}), 120) == 64
+
+
+def test_a_mark_carries_the_shape_it_was_made_on():
+    song = _song({"tempo": 120, "length": "648b"})
+    assert SM.declared_beats(song) == 648.0
+    assert SM.shape(song) == {"tempo": 120.0, "of": 648.0}
+    assert SM.shape(song, 9) == {"tempo": 120.0, "of": 648.0, "beats": [512.0, 576.0]}
+    assert SM.shape(song, 11)["beats"] == [640.0, 648.0]                     # the last window stops where the song does
+    assert SM.shape(_song({"tempo": 96}), 2) == {"tempo": 96.0, "beats": [48.0, 96.0]}   # no declared length
+    d = tempfile.mkdtemp()
+    with open(os.path.join(d, "s.yaml"), "w") as f:
+        f.write('about: "x"\ntempo: 108\nlength: "532b"\ntracks: []\n')
+    assert SM.shape(os.path.join(d, "s.yaml"), 1) == {"tempo": 108.0, "of": 532.0, "beats": [0.0, 64.0]}
+    assert SM.shape(_song({"tempo": [{"at": 0, "bpm": 120}, {"at": 64, "bpm": 90}]}), 3) == {}   # a tempo map: by number
+    assert SM.shape(_song({}), 3) == {}
+
+
+def test_a_mark_is_placed_on_todays_window():
+    now = {"tempo": 120.0, "of": 648.0}
+    rows = _grid(653)                                                        # ten windows of 64 beats, the last to 653
+    assert len(rows) == 10
+    assert SM.place({"window": 9}, rows, now) == (9, False)                  # marked before 14 Nov: by its number
+    same = {"window": 9, "beats": [512.0, 576.0], "tempo": 120.0, "of": 648.0}
+    assert SM.place(same, rows, now) == (9, False)
+    assert SM.place(same, _grid(653, 32), now) == (17, False)                # the same song mapped on shorter windows
+    # Plain Hunt: marked on v4 (96 bpm, 480 beats, windows of 48) as w9 = beats 384-432, the climb; v5 is 120 bpm and 648
+    v4 = {"window": 9, "version": "v4", "beats": [384.0, 432.0], "tempo": 96.0, "of": 480.0}
+    assert SM.place(v4, rows, now) == (9, True)                              # 518-583 of today's beats: still w9, a guess
+    early = {"window": 2, "beats": [48.0, 96.0], "tempo": 96.0, "of": 480.0}
+    assert SM.place(early, _grid(960), {"tempo": 96.0, "of": 960.0}) == (3, True)   # the song doubled: it is w3's music now
+    assert SM.place(dict(v4, of=None), rows, now) == (9, True)               # no length to scale by: its number, as a guess
+    assert SM.place(v4, [{"n": 1, "beats": [None, None]}], now) == (9, False)   # a map without beats: by number
+
+
+def test_the_placed_ledger_feeds_the_focus_order_and_the_map_says_so(capsys):
+    song = _song({"tempo": 96, "length": "960b"})
+    rows = _grid(960)
+    ledger = SM.placed_ledger([{"window": 2, "version": "v4", "at": "2026-11-14T19:31:39Z", "who": "zero", "beats": [48.0, 96.0],
+                                "tempo": 96.0, "of": 480.0},
+                               {"window": 5, "at": "2026-11-14T20:00:00Z", "who": "zero"}], rows, song)
+    assert [(e["window"], e.get("marked_as"), e.get("reshaped")) for e in ledger] == [(3, 2, True), (5, None, None)]
+    order = SM.focus_order(rows, ledger)
+    assert 3 not in order and 5 not in order and 2 in order                  # w3 rests (it holds the marked music), w2 does not
+    SM.print_map("x", song, rows, 480.0, ledger)
+    out = capsys.readouterr().out
+    line3 = next(ln for ln in out.splitlines() if ln.startswith("  3 "))
+    assert "focused 2026-11-14T19:31 by zero (about here: marked on v4 as w2, and the song's tempo or length has changed since)" in line3
+    line5 = next(ln for ln in out.splitlines() if ln.startswith("  5 "))
+    assert line5.rstrip().endswith("focused 2026-11-14T20:00 by zero")

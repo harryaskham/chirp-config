@@ -16,6 +16,12 @@ Windows are whole bars on the song's own tempo map (beats, so they stay put when
 seconds each; a short last window joins the one before. Without --wav the song is rendered with the groove's pin
 (seed 0, idle CPU priority). The numbers are a flashlight for where to look, not a score to climb.
 
+A MARK STAYS WITH ITS MUSIC (14 Nov): a mark records the window's beats and the song's tempo and length, so when the
+map is drawn on other windows (--window) it sits on the window that holds most of those beats, and when the song is
+RESHAPED (a new tempo, a longer form: Plain Hunt v5 went from 96 bpm and 483 beats to 120 and 648 in one round) it is
+put where that music is now, scaled along the song, and shown as "about here: marked on vN as wM". Marks made before
+then carry no beats and stay with their window number, right or not: after a reshape read those by their notes.
+
 Reading the flags: "static" and "little new vs wN" are relative to the song's own quartiles, so about a quarter of
 every song's windows carry them, however good it is. "little new vs wN" only says the window continues the one before.
 A sung return (the chorus or hook coming back, a crest's later lines) is MEANT to repeat; hear it before rewriting.
@@ -77,6 +83,84 @@ def beat_clock(song):
     return None, None
 
 
+def window_beats(song, bpm, window_s=30.0):
+    """How many beats a window is: whole bars of the song's meter about WINDOW_S long, whole 4-bar phrases when the
+    window holds at least one."""
+    bpb = meter_beats(song)
+    w = round(window_s * float(bpm or 120) / 60.0 / bpb) * bpb
+    phrase = 4 * bpb
+    return max(2 * bpb, round(w / phrase) * phrase if w >= phrase else w)
+
+
+def declared_beats(song):
+    """The song's own `length` in beats ("648b"), or None when it declares none in beats."""
+    try:
+        with open(song) as f:
+            text = f.read()
+        if text.lstrip().startswith("{"):
+            v = str(json.loads(text).get("length") or "")
+        else:
+            import re
+            m = re.search(r"^length:\s*[\"']?([0-9.]+b)\b", text, re.M)
+            v = m.group(1) if m else ""
+        return float(v[:-1]) if v.endswith("b") else None
+    except (OSError, ValueError, AttributeError):
+        return None
+
+
+def shape(song, n=None, window_s=30.0):
+    """What lets a ledger mark be found again after the song is reshaped (a new tempo, a longer form: Plain Hunt v5
+    went from 96 bpm and 483 beats to 120 and 648 in one round, and every window moved): {"tempo", "of" (its declared
+    length in beats, when it has one), "beats" ([a, b] of window N on today's grid, when N is given)}. {} for a song
+    with no fixed tempo, whose marks stay with their window number."""
+    bpm = CS.declared_tempo(song)
+    if not bpm or CS.tempo_points(song):
+        return {}
+    out = {"tempo": float(bpm)}
+    of = declared_beats(song)
+    if of:
+        out["of"] = of
+    if n:
+        w = window_beats(song, bpm, window_s)
+        out["beats"] = [float((n - 1) * w), float(min(n * w, of) if of and (n - 1) * w < of else n * w)]
+    return out
+
+
+def place(e, rows, now):
+    """(the window of today's map a ledger entry belongs to, whether that is a guess). An entry that carries its beats
+    is placed by them: on the window that holds most of them while the song has the tempo and length it had; when the
+    song has been reshaped since, by its place along the song (its beats scaled to today's length), as a guess. An
+    entry without them (marked before 14 Nov), or one that cannot be scaled, stays with its window number."""
+    b = e.get("beats")
+    if not b or not rows or rows[0]["beats"][0] is None:
+        return e.get("window"), False
+    same = e.get("tempo") == now.get("tempo") and e.get("of") == now.get("of")
+    if not same:
+        if not e.get("of") or not now.get("of"):
+            return e.get("window"), True
+        k = now["of"] / e["of"]
+        b = [b[0] * k, b[1] * k]
+    held = [(min(b[1], r["beats"][1]) - max(b[0], r["beats"][0]), -r["n"]) for r in rows]
+    best = max(held)
+    return (-best[1] if best[0] > 0 else e.get("window")), not same
+
+
+def placed_ledger(ledger, rows, song):
+    """The ledger with every entry on the window it belongs to TODAY (place): `window` is today's, `marked_as` the
+    number it was marked with when that differs, `reshaped` set when the song has changed tempo or length since."""
+    now = shape(song)
+    out = []
+    for e in ledger:
+        n, guess = place(e, rows, now)
+        e2 = dict(e, window=n)
+        if n != e.get("window"):
+            e2["marked_as"] = e.get("window")
+        if guess:
+            e2["reshaped"] = True
+        out.append(e2)
+    return out
+
+
 def windows(song, dur, window_s=30.0):
     """[(beat_a, beat_b, t_a, t_b)] covering 0..DUR seconds: whole bars of the song's tempo (its map's segments when it
     has one) about WINDOW_S long. Beats are None when the song declares no tempo (plain WINDOW_S time windows)."""
@@ -88,10 +172,7 @@ def windows(song, dur, window_s=30.0):
     pts = CS.tempo_points(song)
     total = CS.map_beats(CS.tempo_segments(pts), dur) if pts else dur * bpm / 60.0
     to_s = lambda b: float(clock(b)[0])  # noqa: E731
-    bpb = meter_beats(song)
-    w = round(window_s * float(bpm or 120) / 60.0 / bpb) * bpb
-    phrase = 4 * bpb                                    # whole 4-bar phrases when the window holds at least one
-    w = max(2 * bpb, round(w / phrase) * phrase if w >= phrase else w)
+    w = window_beats(song, bpm, window_s)
     edges = list(np.arange(0, total, w)) + [total]
     if len(edges) > 2 and edges[-1] - edges[-2] < w / 2:
         edges.pop(-2)
@@ -409,6 +490,11 @@ def print_map(cid, song, rows, dur, ledger):
             tail += ("; " if tail else "") + "(new groove)"
         if lf:
             tail += (" | " if tail else "") + f"focused {lf.get('at', '')[:16]} by {lf.get('who')}"
+            if lf.get("reshaped"):
+                tail += (f" (about here: marked on {lf.get('version') or 'an older version'} as w{lf.get('marked_as', r['n'])}, "
+                         "and the song's tempo or length has changed since)")
+            elif lf.get("marked_as"):
+                tail += f" (marked as w{lf['marked_as']} on another window length)"
         print(f"{r['n']:>3} {fmt_t(r['time'][0]):>5}-{fmt_t(r['time'][1]):<5} {b:>11} {r['level']:>7.1f} "
               f"{r['bright_hz']:>7} {r['density']:>5.2f} {r['motion']:>7.4f} {ch:>7} {gv:>6}  {like:<14} {tail}")
     order = focus_order(rows, ledger)[:3]
@@ -456,7 +542,7 @@ def main(argv=None):
         xn = L.load(wav) if a.against else None
         info = {}
         rows, dur = analyse(wav, song, a.window, x=xn, info=info)
-        ledger = read_ledger(a.id)
+        ledger = placed_ledger(read_ledger(a.id), rows, song)
         if a.against:
             xo = L.load(a.against)
             g = match_gain(xn, xo, [r["time"] for r in rows], L.SR)
@@ -522,6 +608,7 @@ def mark(a, song, climb, argv):
         who = str(climb["owner"]).split()[0]           # no identity set: the song's owner (section rounds are theirs)
     e = {"id": a.id, "window": a.mark, "at": C.now_iso(), "who": who,
          "version": (climb.get("best") or {}).get("version"), "note": a.note}
+    e.update(shape(song, a.mark, a.window))            # its beats, the tempo and the length: found again after a reshape
     with open(path, "a") as f:
         f.write(json.dumps(e) + "\n")
     print(f"{a.id}: section round on w{a.mark} recorded ({e['who']})")

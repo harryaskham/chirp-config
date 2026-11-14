@@ -32,6 +32,10 @@ plus Harry's ratings), and Harry's ear decides.
    `tools/chirpers.py art ALBUM` (cover via the `tti` CLI, pixelated for the player).
 3. **Compose** `songs/ALBUM-tN.yaml` from scratch: tempo, form, motifs, parts, arrangement, mix and master (with a
    top-level `ceiling`). Title it: `tools/chirpers.py title ALBUM-tN "Title"`. Add its motifs to `motifs.md`.
+   A song written by a generator (`compose/ALBUM/src/ALBUM-tN.py`): WRITE THE FORM AS ARITHMETIC from the first
+   round. Every section's start, every lane's point and every landing computed from a few weights (how long a row
+   is, how many rows a section has), never typed as bar numbers. Plain Hunt's v5 (14 Nov) changed tempo, the riff's
+   length and the song's length in ONE flag because of it, and the flag off still gave v4 byte for byte.
 4. **Render, listen, score**: `python3 tools/compscore.py ALBUM-tN OUT.wav --text [--song CANDIDATE.yaml]` shows the
    terms and where it is weak (pass `--song` when the render came from a candidate file: its `tempo` sets the rhythm grid).
 5. **Record**: `climb.py done ALBUM-tN --version v1 --score S --note … --next … --with songs/ALBUM-tN.yaml
