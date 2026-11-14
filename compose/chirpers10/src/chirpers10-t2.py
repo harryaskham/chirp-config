@@ -268,6 +268,12 @@ LOCK_BAR = int(LOCK.split(";")[0]) if LOCK else 96
 BOX = os.environ.get("C10T2_BOX", "music-box;48;-11dB;0.7;-9dB;0.22")
 TICKS = ("ml", "mr") if BOX else ("cl", "cr")
 TICK_UP = int(BOX.split(";")[1]) if BOX else 24
+# v16: THE ECHO, HEARD NAKED (section round, 1:33-1:38; the window 1:11-1:46, "static"). The hold an eighth apart is
+# the longest of the odd holds, twelve bars of one beat, and what only this distance has is the echo: every note of the
+# right guitar is answered by the left an eighth later. For two bars in its middle the bass and the drums stop and the
+# two dry guitars are alone, hard left and right, so the echo is heard as an echo; then a crash and the beat again.
+# first bar : the bar the band comes back. "" = v15.
+NAKED = os.environ.get("C10T2_NAKED", "42:44")
 T = {}
 
 
@@ -449,6 +455,11 @@ def compose():
             riff("gr", b0, b1, root=int(root))
             bass(b0, b1, lead, root=int(root), union=True)
             groove_eighth(b0, b1, lead, ghost, china)
+            if NAKED:                    # v16: two bars of the hold with the two guitars alone: the echo, heard naked
+                n0, n1 = [int(v) for v in NAKED.split(":")]
+                for tr in ("bass", "kick", "snare", "cym", "toms", "hat"):
+                    T[tr] = [n for n in T.get(tr, []) if not (n0 * 4 <= n["at"] < n1 * 4)]
+                drum("c", n1 * 16, 0.9)
             continue
         if THREE and (lead == 3 or (b0, b1) == (48, 50)):     # the hold three sixteenths apart and the slip into it, on B (v6)
             root, tick = int(THREE.split(";")[0]), float(THREE.split(";")[1])
