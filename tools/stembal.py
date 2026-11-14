@@ -90,6 +90,13 @@ Figures read before that date on a short window of a song near 65, 81, 108, 129,
 whole number of frames, or half of one) are worth reading again; whole songs and long windows were never far out.
 (Found when --parts did not reproduce chirper-zero's own by-part table.)
 
+THE BAND EDGES ARE SOFT BY ABOUT 10 Hz EITHER WAY (a frame is 186 ms), which only matters at the bottom: a note
+within a few Hz of 60 Hz is shared between the two lowest bands. Checked against one FFT of the whole window (exact
+edges): from 250 Hz up the two agree within 0.04 dB; on the eleven records "<60" reads 0.2 dB high (median) and
+60-120 Hz 0.1 low; on Odd Sympathy's hold on B (B1 is 61.7 Hz) "<60" reads 1.3 dB high and 60-120 Hz 0.6 low, so
+against the records 1.2 too high and 0.5 too low. For a passage whose ground is A1 to C2 (55 to 65 Hz) read the two
+lowest bands together, not one against the other.
+
 Read it as: a band where the whole mix is more than about 1 dB from the references' median is worth a look; the group
 rows say which instrument carries it. A compressed bass or a clipped drums bus changes level with what is played, so
 re-run after every change (compose/chirpers10/sounds.md, "the mix against eleven records", has a worked case).
