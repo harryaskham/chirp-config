@@ -21,6 +21,12 @@ window by itself costs a part-render of every track; with --windows the mix and 
 end of the last window, and each window is cut from that (the same samples: tools/wincut.py), so twenty sections cost
 what one costs. A song wincut cannot place (a tempo that changes, a meter other than 4/4) is rendered window by window.
 
+A yardstick for a VOICE (14 Nov, for chirper-zero's question on Odd Sympathy v5, "what does `near` predict for an
+ear"): the same measure taken on eleven Meshuggah records, the vocals stem against the record, reads vs mix -9.1 dB
+(-6.8 to -9.9) and near 69% (52% to 82%). Those are voices a listener follows through a full band. A voice at -11 to
+-12 dB and near 14-37% sits under every one of them; a recogniser read 5 of its 24 words in the mix and 14 alone
+(tools/wordread.py: for a clean voice the mix is a fair test, for a harsh one it is not).
+
 What it cannot see (chirper-zero, Common Time v22): a pure tone has all its energy in one band. A sine-like part read
 -12 to -14 dB here ("buried", 5 dB under the lead) while it put its section's 250-500 Hz 3.8 dB further over the
 reference records (tools/stembal.py). Both readings were right. A level under the mix is not a share of a band: for a
