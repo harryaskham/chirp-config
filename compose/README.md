@@ -193,6 +193,11 @@ only in a message:
   so he is never asked about a superseded clip. `listen.py retire ALBUM ID` takes one off by hand.
 - The page keeps its own copy of each clip. His answers come back verbatim in ONE caco message two minutes after he
   stops (`listen.py questions ALBUM` shows them all). Keep the question in your round note as well.
+- A card's clips are from the version it was asked on. At every snapshot the page measures, for each card, the same
+  seconds of the song then and now (the mean difference of the band envelopes, in dB), and a card whose passage has
+  moved says so: "the mix has moved a little since" (0.15 dB or more) or "this passage has changed since" (0.6 or
+  more), with the song's current version. `listen.py questions ALBUM --moved` lists them, the furthest first: those
+  are the ones worth asking again with the same `--key`. A card with no tag still sounds like the song.
 
 ## Working on each other's songs
 

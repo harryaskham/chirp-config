@@ -6,6 +6,7 @@ re-rendered) and the server's API (notes, ranged media, the chirp web redirect).
 """
 import json
 import os
+import shutil
 import struct
 import sys
 import tempfile
@@ -179,6 +180,82 @@ class Questions(unittest.TestCase):
             json.dump({"chirper-zero": "broken"}, f)
         self.assertEqual(L.send_digest("chirpers9", send), 0)                         # the asker's message failed: it stays owed
         self.assertEqual([(q["id"], x["choice"]) for q, x in L.untold(L.questions("chirpers9"))], [(a["id"], "No")])
+
+
+class Moved(unittest.TestCase):
+    """Has the passage a question is about moved since its clips were cut?"""
+
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+        old, L.DATA = L.DATA, self.d
+        self.addCleanup(setattr, L, "DATA", old)
+        self.addCleanup(shutil.rmtree, self.d, True)
+
+    def snap(self, sid, tracks):
+        d = os.path.join(self.d, "chirpers9", "snapshots", sid)
+        os.makedirs(d)
+        with open(os.path.join(d, "snapshot.json"), "w") as f:
+            json.dump({"id": sid, "tracks": [{"n": n, "version": v, "sha": sha} for n, v, sha in tracks]}, f)
+        for n, _, _ in tracks:
+            open(os.path.join(d, f"t{n:02d}.mp3"), "wb").close()
+
+    def test_the_measure(self):
+        try:
+            import numpy as np
+        except ImportError:
+            self.skipTest("numpy")
+        sr = 22050
+        t = np.arange(8 * sr) / sr
+        hits = (np.sin(2 * np.pi * 2 * t) > 0.95) * np.sin(2 * np.pi * 3000 * t)             # a tick twice a second
+        a = 0.3 * np.sin(2 * np.pi * 110 * t) + 0.1 * np.sin(2 * np.pi * 900 * t) + 0.2 * hits
+        self.assertEqual(L.envelope_diff(a, a), 0.0)
+        self.assertEqual(L.envelope_diff(a, 0.5 * a), 0.0)                                   # the same audio, turned down
+        trim = 0.3 * np.sin(2 * np.pi * 110 * t) + 0.1 * np.sin(2 * np.pi * 900 * t) + 0.2 * 10 ** (-1.25 / 20) * hits
+        little = L.envelope_diff(a, trim)                                                    # the tick 1.25 dB down: a mix move
+        self.assertTrue(L.MOVED_LITTLE <= little < L.MOVED, little)
+        other = 0.3 * np.sin(2 * np.pi * 110 * t) + 0.1 * np.sin(2 * np.pi * 2500 * t)        # a part swapped, the tick gone
+        self.assertGreaterEqual(L.envelope_diff(a, other), L.MOVED)
+        self.assertIsNone(L.envelope_diff(a[:100], a[:100]))                                 # too short to say
+        self.assertIsNone(L.envelope_diff(a, np.zeros(len(a))))
+
+    def test_only_what_is_due_is_measured_and_the_page_gets_it(self):
+        q1 = L.ask("chirpers9", 1, "The break?", version="v3", at=30.0, by="chirper-zero")
+        q2 = L.ask("chirpers9", 2, "The words?", version="v5", at=10.0, by="chirper-zero")
+        q3 = L.ask("chirpers9", 2, "No place in the song", version="v5", by="chirper-zero")
+        q4 = L.ask("chirpers9", 3, "A version never cut", version="v9", at=5.0, by="chirper-zero")
+        gone = L.ask("chirpers9", 1, "Retired", version="v3", at=30.0, by="chirper-zero")
+        L.question_event("chirpers9", {"op": "retire", "id": gone["id"], "at": L.now_iso(), "reason": "moot"})
+        self.snap("s1", [(1, "v3", "aaa"), (2, "v5", "bbb"), (3, "v1", "ccc")])
+        self.snap("s2", [(1, "v4", "ddd"), (2, "v5", "bbb"), (3, "v2", "eee")])
+        calls = []
+
+        def decode(path, t, dur):
+            calls.append((os.path.relpath(path, self.d), t, dur))
+            return [0.0]
+        old = L.envelope_diff
+        L.envelope_diff = lambda a, b: 0.8
+        self.addCleanup(setattr, L, "envelope_diff", old)
+        self.assertEqual(L.refresh_moved("chirpers9", decode=decode), 2)
+        self.assertEqual(calls, [("chirpers9/snapshots/s1/t01.mp3", 30.0, 12.0), ("chirpers9/snapshots/s2/t01.mp3", 30.0, 12.0)])
+        self.assertEqual(L.read_moved("chirpers9"), {f"{q1['id']}|aaa|ddd": 0.8, f"{q2['id']}|bbb|bbb": 0.0})   # same text: no decode
+        self.assertEqual(L.refresh_moved("chirpers9", decode=decode), 0)                     # nothing is due
+        self.snap("s3", [(1, "v4", "ddd"), (2, "v6", "fff"), (3, "v2", "eee")])
+        self.assertEqual(L.refresh_moved("chirpers9", decode=decode), 1)                     # only track 2 moved: only its
+        self.assertEqual(calls[2:], [("chirpers9/snapshots/s1/t02.mp3", 10.0, 12.0),         # question is measured again
+                                     ("chirpers9/snapshots/s3/t02.mp3", 10.0, 12.0)])
+        got = {q["id"]: q for q in L.with_now(L.questions("chirpers9"), {1: "v4", 2: "v6", 3: "v2"}, L.snapshots("chirpers9"),
+                                              L.read_moved("chirpers9"))}
+        self.assertEqual([(got[q["id"]]["now"], got[q["id"]]["behind"], got[q["id"]]["moved"]) for q in (q1, q2, q3, q4)],
+                         [("v4", 1, 0.8), ("v6", 1, 0.8), ("v6", 1, None), ("v2", 0, None)])
+        self.assertEqual(sorted(L.read_moved("chirpers9")), sorted([f"{q1['id']}|aaa|ddd", f"{q2['id']}|bbb|fff"]))   # old keys go
+
+    def test_the_window_is_the_first_cut_clips_length(self):
+        self.assertEqual(L.passage_window({"t": 53, "media": []}), (53.0, 12.0))
+        self.assertEqual(L.passage_window({"t": 5, "media": [{"items": [{"label": "A", "secs": 17.5}, {"label": "B", "secs": 17.5}]}]}),
+                         (5.0, 17.5))
+        self.assertEqual(L.passage_window({"t": 5, "media": [{"items": [{"secs": 2.0}]}]})[1], 6.0)
+        self.assertEqual(L.passage_window({"t": 5, "media": [{"items": [{"secs": 80}]}]})[1], 30.0)
+        self.assertIsNone(L.moved_key({"id": "q", "n": 1, "version": "v3", "t": None}, []))
 
 
 class Who(unittest.TestCase):
@@ -460,6 +537,7 @@ class Server(unittest.TestCase):
         self.assertEqual({k: (v["choice"], v["text"]) for k, v in got[q["id"]]["answers"].items()},
                          {"harry": ("A hole", "it drops out"), "alex": ("", "a breath for me")})
         self.assertEqual(got[gone["id"]]["retired"]["reason"], "moot")
+        self.assertEqual((got[q["id"]]["now"], got[q["id"]]["moved"]), (L.current_versions("chirpers9").get(1), None))
         for path, body in ((f"api/chirpers9/questions/{q['id']}/answer", {"choice": "Neither"}),
                            (f"api/chirpers9/questions/{q['id']}/answer", {"choice": "", "text": " "}),
                            (f"api/chirpers9/questions/{gone['id']}/answer", {"text": "x"}),

@@ -26,7 +26,7 @@ audio,video{width:100%;max-width:960px;display:block;background:#000;border-radi
 .who{font-weight:600;color:var(--note)}.who.h{color:var(--hi)}.t{color:var(--note);cursor:pointer;font-weight:600}
 .reply{margin:6px 0 0 14px;padding-left:8px;border-left:2px solid var(--line)}.reply .who{font-size:12px}
 .pill{border-radius:9px;padding:0 7px;font-size:11px;border:1px solid var(--line);color:var(--dim);white-space:nowrap}
-.pill.kept{color:var(--good);border-color:#355c3a}.pill.refused{color:var(--bad);border-color:#5c3a35}.pill.type{color:var(--amber)}
+.pill.kept{color:var(--good);border-color:#355c3a}.pill.refused{color:var(--bad);border-color:#5c3a35}.pill.type{color:var(--amber)}.pill.moved{border-style:dashed;cursor:help}.pill.moved.big{color:var(--amber);border-color:var(--amber)}
 .delta.up{color:var(--good)}.delta.down{color:var(--bad)}.headline{font-weight:700;color:var(--hi);letter-spacing:.01em}
 .body{white-space:pre-wrap;color:var(--text);font-size:13px;margin-top:4px}.more{color:var(--hi);cursor:pointer;font-size:12px}
 .day{position:sticky;top:50px;background:var(--bg);padding:8px 0 4px;color:var(--dim);font-weight:600;border-bottom:1px solid var(--line);margin-top:14px;z-index:2}
@@ -212,10 +212,14 @@ function qStatus(x){const a=myAns(x),oth=Object.values(x.answers||{}).filter(o=>
  const said=o=>[o.choice?`&ldquo;${esc(o.choice)}&rdquo;`:"",o.text?esc(o.text):""].filter(Boolean).join(" &mdash; ");
  return (a?`<b>&#10003; saved</b> ${said(a)} <span class=m>&middot; ${hhmm(a.at)}; change it any time</span>`:"not answered yet")+
   oth.map(o=>`<div class=oth>${esc(o.by)}: ${said(o)}</div>`).join("");}
+// has the passage moved since the card's clips were cut? (x.moved: dB between the song then and now over those seconds)
+function qMoved(x){if(x.moved==null||x.moved<0.15)return "";const big=x.moved>=0.6;
+ const tip=`The clips on this card were cut on ${x.version}. The same seconds of the song as it is now (${x.now}) differ from then by ${x.moved.toFixed(1)} dB across the bands (under 0.15 is the same sound). The question still stands; "in the song" plays it as it is now.`;
+ return `<span class="pill moved${big?" big":""}" title="${esc(tip)}">${big?"this passage has changed since":"the mix has moved a little since"} &middot; now ${esc(x.now||"")}</span>`;}
 function qCard(x){let k=0,hinted=false;const a=myAns(x)||{};const latest=D.snapshots.length?D.snapshots[D.snapshots.length-1].id:"";
  const med=(x.media||[]).map((g,gi)=>`<div class=cmp>${g.items.map((it,ii)=>{const L=String.fromCharCode(65+k++);
    return `<div class=pl data-g="${gi}" data-sync="${g.sync?1:0}"><div class=lbl title="play ${L}"><span class=k>${L}</span><span>${esc(it.label)}</span></div><audio controls preload=none src="media/${A}/q/${esc(it.src)}"></audio></div>`;}).join("")}${g.sync&&g.items.length>1&&!hinted&&(hinted=true)?"<div class=sync>The two sides are the same length: switching keeps your place.</div>":""}</div>`).join("");
- return `<div class="card q${myAns(x)?" ans":""}" id="q-${x.id}" data-q="${x.id}"><div class=hd>${x.n?`<span class=pill style="color:${col(x.n)};border-color:${col(x.n)}55">${x.n}. ${esc(x.track_title||trackOf(x.n).title||"")}</span>`:""}${x.version?`<span class="pill type">${esc(x.version)}</span>`:""}
+ return `<div class="card q${myAns(x)?" ans":""}" id="q-${x.id}" data-q="${x.id}"><div class=hd>${x.n?`<span class=pill style="color:${col(x.n)};border-color:${col(x.n)}55">${x.n}. ${esc(x.track_title||trackOf(x.n).title||"")}</span>`:""}${x.version?`<span class="pill type">${esc(x.version)}</span>`:""}${qMoved(x)}
   <span class=m>asked by ${esc(x.by)} &middot; ${dayOf(x.at)} ${hhmm(x.at)}</span>${x.t!=null&&latest&&x.n?`<a href="#" class="m golisten" data-n="${x.n}" data-t="${x.t}">in the song at ${mmss(x.t)}</a>`:""}</div>
   <div class=headline>${esc(x.title)}</div>${x.context?`<div class=body>${esc(x.context)}</div>`:""}${med}
   <div class=qa>${(x.choices||[]).map((c,i)=>`<span class="chip${a.choice===c?" on":""}" data-c="${esc(c)}"><span class=kn>${i+1}</span>${esc(c)}</span>`).join("")}</div>

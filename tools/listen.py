@@ -34,6 +34,10 @@ asker verbatim as ONE caco message once he has been quiet for two minutes (cc ch
             "open in Listen" link. --key: a later question with the same key REPLACES this one (a new version of
             the same passage), so the page never asks about a superseded clip.
   listen.py questions ALBUM [--open] [--track N] [--json]     the questions and every answer
+  listen.py questions ALBUM --moved      the live ones whose passage of the song has moved since their clips were cut,
+      the furthest first. Measured from the snapshots' audio (the same seconds on the question's version and now:
+      the mean difference of the band envelopes in dB; under 0.15 it sounds as it did, from 0.6 it has changed),
+      at every cut, and shown on the page's cards. Ask again with the same --key to replace a card's clips.
   listen.py retire ALBUM QUESTION_ID [--reason TEXT]          take a question off the page
 
 The page is tools/listen.html (read per request). Data: $CHIRP_LISTEN_DIR or ~/.local/state/chirp-eco/listen/ALBUM/
@@ -240,6 +244,145 @@ def questions(album):
         return []
     with open(p) as f:
         return reduce_questions(json.loads(ln) for ln in f if ln.strip())
+
+
+# ── has the passage a question is about moved since its clips were cut? ──
+MOVED_LITTLE, MOVED = 0.15, 0.6      # dB (see envelope_diff): under the first the passage sounds as it did; from the
+#                                      second on it has changed. On Common Time and Odd Sympathy (14 Nov): passages no
+#                                      later version touched read 0.02-0.07; a snare re-routed or a mix trim 0.3-0.5;
+#                                      a part swapped, rested or re-voiced 0.6-2.8.
+
+
+def envelope_diff(a, b, sr=22050):
+    """How differently two takes of the same seconds sound, in dB: the mean difference between their band envelopes
+    (eight bands from 60 Hz to 11 kHz, 46 ms steps), the overall level difference taken out, over the steps and
+    bands where either take sounds. Robust to the mp3 coder; 0 for the same audio at another gain. Needs numpy."""
+    import numpy as np
+    m = min(len(a), len(b))
+    a, b = np.asarray(a[:m], float), np.asarray(b[:m], float)
+    n, hop, edges = 2048, 1024, [60, 120, 250, 500, 1000, 2000, 4000, 8000, 11000]
+    if m < n or not a.any() or not b.any():
+        return None
+    win, fr = np.hanning(n), np.fft.rfftfreq(n, 1 / sr)
+    sel = [(fr >= lo) & (fr < hi) for lo, hi in zip(edges[:-1], edges[1:])]
+
+    def env(x):
+        rows = []
+        for i in range(0, m - n + 1, hop):
+            sp = np.abs(np.fft.rfft(x[i:i + n] * win)) ** 2
+            rows.append([sp[k].sum() for k in sel])
+        e = 10 * np.log10(np.array(rows) + 1e-12)
+        return np.maximum(e, e.max() - 50.0), e > e.max() - 40.0
+    (ea, la), (eb, lb) = env(a), env(b)
+    level = 10 * np.log10(float(np.dot(b, b)) / float(np.dot(a, a)))
+    live = la | lb
+    return round(float(np.abs(eb - ea - level)[live].mean()), 2) if live.any() else 0.0
+
+
+def decode_passage(path, t, dur, sr=22050):
+    """dur seconds of an audio file from t, mono at sr, as a numpy array."""
+    import numpy as np
+    raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-ss", f"{t:.3f}", "-t", f"{dur:.3f}", "-i", path, "-ac", "1",
+                          "-ar", str(sr), "-f", "f32le", "-"], capture_output=True).stdout
+    return np.frombuffer(raw, dtype=np.float32).astype(float)
+
+
+def passage_window(q):
+    """(start, length) in seconds of the stretch of the song a question is about: from its --at, as long as its first
+    cut clip (6 to 30 s; 12 when it has none)."""
+    secs = next((it.get("secs") for g in q.get("media") or [] for it in g.get("items") or [] if it.get("secs")), None)
+    return float(q["t"]), min(max(float(secs or 12.0), 6.0), 30.0)
+
+
+def moved_key(q, snaps):
+    """(cache key, the first snapshot of the question's version, the newest snapshot, same song text?) or None when
+    the question has no place in the song or its version was never in a snapshot."""
+    if q.get("t") is None or not q.get("n") or not q.get("version"):
+        return None
+    mine = [(s["id"], t) for s in snaps for t in s.get("tracks") or [] if t.get("n") == q["n"]]
+    then = next(((sid, t) for sid, t in mine if t.get("version") == q["version"]), None)
+    if not then or not mine:
+        return None
+    now = mine[-1]
+    a, b = then[1].get("sha") or then[0], now[1].get("sha") or now[0]      # by the song's text: a snapshot in which only
+    return f"{q['id']}|{a}|{b}", then[0], now[0], a == b                   # another track moved makes nothing due
+
+
+def moved_file(album):
+    return os.path.join(album_dir(album), "questions-moved.json")
+
+
+def read_moved(album):
+    try:
+        return read_json(moved_file(album))
+    except (OSError, ValueError):
+        return {}
+
+
+def refresh_moved(album, decode=decode_passage, log=print):
+    """Measure, for every live question with a place in the song, how far that passage of the song as it is now is
+    from the passage as it was on the question's version (envelope_diff of the two snapshots' audio), and keep it in
+    DATA/ALBUM/questions-moved.json for the server and the page. Only what is not measured yet is measured (a new
+    snapshot of a track makes its questions due). Run by `cut`, `ask` and `questions --moved`; the server only
+    reads the file. Returns how many were measured."""
+    snaps, old, new, done = snapshots(album), read_moved(album), {}, 0
+    for q in questions(album):
+        k = None if q["retired"] else moved_key(q, snaps)
+        if not k:
+            continue
+        key, then, now, same = k
+        if key in old:
+            new[key] = old[key]
+            continue
+        if same:
+            new[key] = 0.0
+        else:
+            t, dur = passage_window(q)
+            f = [os.path.join(album_dir(album), "snapshots", s, f"t{q['n']:02d}.mp3") for s in (then, now)]
+            try:
+                new[key] = envelope_diff(decode(f[0], t, dur), decode(f[1], t, dur)) if all(map(os.path.exists, f)) else None
+            except Exception as e:                      # numpy or ffmpeg missing, a broken file: say so and go on
+                log(f"listen: {q['id']}: the passage could not be compared ({e})")
+                new[key] = None
+        done += 1
+    if new != old:
+        tmp = moved_file(album) + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(new, f, indent=0, sort_keys=True)
+        os.replace(tmp, moved_file(album))
+    return done
+
+
+def quiet_refresh_moved(album):
+    """refresh_moved for the commands whose own work must never fail or grow a line because of it."""
+    try:
+        refresh_moved(album, log=lambda *x: None)
+    except Exception as e:
+        print(f"listen: the questions' passages were not compared ({e})", file=sys.stderr)
+
+
+def with_now(qs, current, snaps=(), moved=None):
+    """The questions, each with `now` (its track's current kept version, from {track number: version}), `behind`
+    (how many kept versions on the song is; None when either is not vN) and `moved` (dB, see envelope_diff: how far
+    the passage the question is about has moved since its clips were cut; None when not measured). A question's
+    clips are its own copies, so it can always be answered; this says whether the song still sounds like them
+    (chirper-zero's ask, 14 Nov: so Harry "could see that for himself")."""
+    def num(v):
+        m = re.fullmatch(r"v(\d+)", str(v or "").strip())
+        return int(m.group(1)) if m else None
+    out = []
+    for q in qs:
+        now = current.get(q.get("n"))
+        a, b = num(q.get("version")), num(now)
+        k = moved_key(q, snaps) if moved else None
+        out.append({**q, "now": now, "behind": None if a is None or b is None else max(0, b - a),
+                    "moved": (moved or {}).get(k[0]) if k else None})
+    return out
+
+
+def current_versions(album):
+    """{track number: its current kept version} for an album, from climbs.json."""
+    return {t["n"]: t["version"] for t in climb_tracks(album) if t.get("n") is not None and t.get("version")}
 
 
 def probe_silences(path):
@@ -846,8 +989,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return self.send_json([album_info(a) for a in ALBUMS
                                    if os.path.exists(os.path.join(ROOT, "compose", a, "album.json")) or snapshots(a)])
         if len(parts) == 2 and parts[0] == "api":
-            return self.send_json({"album": parts[1], "snapshots": snapshots(parts[1]), "notes": notes(parts[1]),
-                                   "questions": questions(parts[1])})
+            snaps = snapshots(parts[1])
+            return self.send_json({"album": parts[1], "snapshots": snaps, "notes": notes(parts[1]),
+                                   "questions": with_now(questions(parts[1]), current_versions(parts[1]), snaps,
+                                                         read_moved(parts[1]))})
         if len(parts) == 3 and parts[0] == "api" and parts[2] == "log" and re.fullmatch(r"[\w-]+", parts[1]):
             return self.send_json(worklog(parts[1]))
         if len(parts) == 4 and parts[0] == "media" and parts[2] == "release" and parts[3] == "album.mp4":
@@ -1014,6 +1159,8 @@ def main(argv=None):
     p.add_argument("--open", action="store_true", help="only questions nobody has answered")
     p.add_argument("--track", type=int)
     p.add_argument("--json", action="store_true")
+    p.add_argument("--moved", action="store_true",
+                   help="only live questions whose passage of the song has moved since their clips were cut, the furthest first")
     p = sub.add_parser("retire", help="take a question off the page")
     p.add_argument("album")
     p.add_argument("id")
@@ -1021,6 +1168,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.cmd == "cut":
         cut(a.album, a.label)
+        quiet_refresh_moved(a.album)
     elif a.cmd == "video":
         videos(a.album, a.snap, {int(x) for x in a.ids.split(",")} if a.ids else None, a.look, redo=a.redo, stale=a.stale, lod=a.lod)
     elif a.cmd == "serve":
@@ -1052,9 +1200,23 @@ def main(argv=None):
                     [pair(t, "--clip") for t in a.clip], a.choice, a.at, a.by)
         except ValueError as e:
             raise SystemExit(f"listen: {e}") from None
+        quiet_refresh_moved(a.album)
         print(f"listen: question {q['id']} is on the page: {PUBLIC}#a={a.album}&v=questions&q={q['id']}")
     elif a.cmd == "questions":
         qs = [q for q in questions(a.album) if (a.track is None or q["n"] == a.track) and not (a.open and (q["answers"] or q["retired"]))]
+        if a.moved:
+            refresh_moved(a.album)
+            qs = [q for q in with_now(qs, current_versions(a.album), snapshots(a.album), read_moved(a.album))
+                  if not q["retired"] and (q["moved"] or 0) >= MOVED_LITTLE]
+            qs.sort(key=lambda q: (q["n"] or 0, -q["moved"]))
+            if a.json:
+                return print(json.dumps(qs, ensure_ascii=False, indent=1))
+            for q in qs:
+                how = "CHANGED" if q["moved"] >= MOVED else "the mix moved a little"
+                print(f"[{q['id']}] t{q['n']} {q['version']} -> now {q['now']}  {q['moved']:.2f} dB  {how}  key {q.get('key') or '-'}"
+                      f"  {'answered' if q['answers'] else 'OPEN'}\n    {q['title']}")
+            return print(f"listen: {len(qs)} live question(s) whose passage has moved since their clips were cut "
+                         f"({sum(1 for q in qs if q['moved'] >= MOVED)} changed; ask again with the same --key to replace a card's clips)")
         if a.json:
             return print(json.dumps(qs, ensure_ascii=False, indent=1))
         for q in qs:

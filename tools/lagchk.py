@@ -12,6 +12,9 @@ level envelopes (2 ms peaks, in dB, floored 30 dB under the file's peak, zero-me
 --reach sixteenths either way (default 9). Prints the best two leads: plus = the right channel is EARLY. A part that
 repeats every bar reads +8 and -8 alike (half a bar either way is the same place), which is why two are printed.
 tools/warp.py prints what the lead should be (a shift of -1 beat is a lead of +4 sixteenths).
+The corr it prints says how alike the two envelopes are at that lead, not whether the lead is right: on a part that
+rings (a music box through a spring) it falls to 3-8 where two dry guitars read 90 and over, and the leads are still
+the warp's (chirper-zero, Odd Sympathy v15). Judge a lead against tools/warp.py, not by a threshold on corr.
 Read-only. Tests: tools/tests/test_lagchk.py.
 """
 import sys
