@@ -212,6 +212,14 @@ SNARE_EQ = os.environ.get("C10T2_SNAREEQ", "300:0.7:-12")        # the dry bus's
 # The sound is a drum machine's rim-shot circuit (`machine`, part rim; the album's first use of that source).
 # gain ; pan ; tick's velocity : tock's ; hall send. "" = v9 (the ride-bell pendulum).
 CLOCKS = os.environ.get("C10T2_CLOCKS", "-6dB;0.7;0.8:0.7;-12dB")
+# v11: THE LETTING GO (section round, 2:40-2:53). At 2:44 the band simply stopped and the clean guitars began: the
+# song's one hinge had no gesture. Now the hold a beat apart ends on a tom fill, and on the bar line the band strikes
+# once more (a crash, the kick) and the guitars and the bass HOLD the open low F and let it die over the first bars
+# of the drift, under the clean guitars' first ticks. Each guitar's last note is written on the bar line; the right one
+# is on its own clock, a beat ahead, so it lets go a beat before the left: the last thing the canon does.
+# how long the last note is written, in beats ; dB the guitars' bus has fallen ; over how many bars ; the bass's fall, dB.
+# "" = v10.
+LETGO = os.environ.get("C10T2_LETGO", "12;30;3.5;24")
 T = {}
 
 
@@ -427,6 +435,14 @@ def compose():
             fill(b1, "snare" if b1 - b0 < 4 else "toms")
         else:
             groove(b0, b1, lead, snare=(4, 12) if lead in (2, 4) else (8,), cym="h" if lead == 2 else "rd" if lead == 4 else "x")
+    if LETGO:                            # v11: the band's last hit, and the guitars and bass hold the open F and let it die
+        hold = float(LETGO.split(";")[0])
+        fill(74, "toms")
+        drum("c", 74 * 16, 0.9)
+        drum("k", 74 * 16, 0.95)
+        for tr in ("gl", "gr"):
+            add(tr, 74 * 16, hold * 4, F1, 0.9)
+        add("bass", 74 * 16, 8 * 4, F1, 0.9)
     # let go: the heavy guitars stop; two clean guitars tick the riff, the right one drifting from a quarter to half a bar
     # ahead; the swarm (sixteen oscillators finding a common phase) locks as they arrive
     if DRIFT:
@@ -538,6 +554,8 @@ def song():
     for seg in (LOWRIDE.split(",") if LOWRIDE else []):
         b0, b1, db = [float(x) for x in seg.split(":")]
         lowride += [[f"{b0 * 4 - 1:g}b", 0], [f"{b0 * 4:g}b", db], [f"{b1 * 4 - 1:g}b", db], [f"{b1 * 4:g}b", 0]]
+    if LETGO:                                # the bass's held F dies with the guitars'
+        lowride += [[f"{74 * 4}b", 0], [f"{76 * 4}b", -float(LETGO.split(";")[3])], [f"{88 * 4}b", -float(LETGO.split(";")[3])], [f"{90 * 4}b", 0]]
     lowride = lowride if len(lowride) > 1 else None
     talkfx = ([TALKFX] if TALKFX else []) + ([{"type": "eq", "bands": TALKEQ.split("|")}] if TALKEQ else [])
     pump = [{"type": "pump", "on": tr, "depth": f"-{hd[3].split(':')[0] if tr == 'tc' else hd[4]}dB", "attack": "4ms", "hold": hd[3].split(":")[1], "release": hd[3].split(":")[2]}
@@ -602,7 +620,9 @@ def song():
                              {"type": "eq", "bands": ["peak cutoff=400 q=0.8 gain=-6dB", "peak cutoff=5500 q=0.9 gain=1dB", "highshelf cutoff=9000 gain=-2dB"] + dtop}]},
             "oh": {"fx": ["reverb kind=room decay=0.7s mix=1 predelay=4ms low_cut=5000 high_cut=12000 spread=0.6"] + ([{"type": "eq", "bands": dtop}] if DTOP else [])},
             **({"snr": {"fx": [{"type": "eq", "bands": [f"peak cutoff={SNARE_EQ.split(':')[0]} q={SNARE_EQ.split(':')[1]} gain={SNARE_EQ.split(':')[2]}dB"]}]}} if SNARE else {}),
-            "gtrs": {"fx": [{"type": "gain", "gain": "0dB"}] + ([f"reverb kind={beam[0]} decay={beam[1]} mix={beam[2]} predelay=6ms"] if TWIN else [])
+            "gtrs": {**({"auto": {"go": {"points": [["0b", 0], [f"{74 * 4}b", 0], [f"{(74 + float(LETGO.split(';')[2])) * 4:g}b", -float(LETGO.split(";")[1])],
+                                                    [f"{96 * 4}b", -float(LETGO.split(";")[1])], [f"{97 * 4}b", 0]], "curve": 0}}} if LETGO else {}),
+                     "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.go", "amount": 1}]} if LETGO else "0dB"}] + ([f"reverb kind={beam[0]} decay={beam[1]} mix={beam[2]} predelay=6ms"] if TWIN else [])
                      + (pump if HEARD else [{"type": "duck", "by": "tl", "depth": f"-{vo[4]}dB", "attack": "20ms", "release": "250ms"}] if VOICE and float(vo[4]) else [])},
             "low": {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
