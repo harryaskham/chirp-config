@@ -165,7 +165,7 @@ def gtr(trs, p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None, rig=None, d
             elif p == 7 and BITE_L:
                 tr = SEVEN_RIG.get(tr, tr)        # a wheel is known by its rig: five ct-chug, seven ct-bite, eleven ct-wall
             if REAL_FROM is not None and b0 >= REAL_FROM:
-                tr = REAL_MAP.get(tr, tr)         # after the eye the tight rig's string is a real one (v29)
+                tr = LAND_MAP.get(tr) if p == 8 and tr in LAND_MAP else REAL_MAP.get(tr, tr)   # after the eye the tight rig's string is a real one (v29); the landing riff has a rig of its own (v37)
             if kind == "c":
                 add(tr, t, ln, root, v * (dyn[0] if rig else 1.0), pm=1)
             elif kind == "o":
@@ -923,6 +923,18 @@ REAL_MAP = {"gl": "rl", "gr": "rr", "gl2": "rl2", "gr2": "rr2"} if REAL5 else {}
 REAL_FROM = float(REAL5.split(";")[4]) if REAL5 else None
 REAL_RIG = (f" synth.layers.0.soft={REAL5.split(';')[1]} fx.2.tight={REAL5.split(';')[2]} synth.layers.0.inharm={REAL5.split(';')[0]}"
             " synth.layers.0.grain.mod.0.amount=0 synth.layers.0.grain.value=0") if REAL5 else ""
+# v37: THE LANDING RIFF'S OWN RIG. A wheel is known by its rig (five the tight one, seven ct-bite, eleven ct-wall), and the
+# riff at the landing is no wheel: its cell is eight sixteenths long, common time itself, the thing the three wheels were
+# all counting towards. Until now it played on the five wheel's rig. It has its own now, heard nowhere else in the piece:
+# the real string into the engine's `gojira` amp (its mids forward, `mid` raised), the same cabinet, a cone of its own.
+# model : mid ; mic , left cone , right cone ; trim dB over the tight rig's, left , right. "" = v36 (the five wheel's rig).
+# The trims make each side as loud (LUFS, alone) as the five wheel's rig was there: with one amp model on both sides the
+# right guitar, whose patch sets its own bass and presence, came out 0.9 dB under the left.
+# Measured alone (the four guitars, bars 389-395) against the five wheel's rig: 141-282 Hz 2.8 dB less, 282 Hz-2.2 kHz
+# about 1 dB more; the landing riff stood furthest from the records in the mix at 120-250 Hz (+2.0 over).
+LANDRIG = os.environ.get("C10T1_LANDRIG", "gojira:0.76;0.25,6,7;0.5,1.5")
+LAND_MAP = {"gl": "el", "gr": "er", "gl2": "el2", "gr2": "er2"} if LANDRIG and REAL5 else {}
+LAND_AMP = (f" fx.2.model={LANDRIG.split(';')[0].split(':')[0]}" + (f" fx.2.mid={LANDRIG.split(';')[0].split(':')[1]}" if LANDRIG.split(';')[0].split(':')[1] else "")) if LAND_MAP else ""
 if REAL5 and "gl2" in SECTION_FADERS:      # the hardest stretch's doubling guitars are on the real string now: their fader goes with them
     SECTION_FADERS["rl2"], SECTION_FADERS["rr2"] = list(SECTION_FADERS["gl2"]), list(SECTION_FADERS["gr2"])
 # v30: THE MIX READ AGAINST THE RIGHT PASSAGES. The records' loud passages WITHOUT a voice differ from those with one (eleven
@@ -951,7 +963,7 @@ BEQ2 = os.environ.get("C10T1_BEQ2", "170:1.2:-3")
 # 1.5 dB over the record's guitar there, and the hardest stretch, which it leads, has read 1.7 over at 2-4 kHz since v16.
 # the tight rig's peaks ; seven's rig's ; the wall rig's. "" = v30.
 TOP = os.environ.get("C10T1_TOP", "5300:2:-10,9100:1.8:7.5;3000:1.2:-2,5500:1.6:-6.7,9000:1.2:-4;5272:2.4:-9.7,9613:1.1:5")
-TOP_OF = {**{t: 0 for t in ("gl", "gr", "gl2", "gr2", "rl", "rr", "rl2", "rr2", "ql", "qr")}, "sl": 1, "sr": 1, "wl": 2, "wr": 2}
+TOP_OF = {**{t: 0 for t in ("gl", "gr", "gl2", "gr2", "rl", "rr", "rl2", "rr2", "ql", "qr", "el", "er", "el2", "er2")}, "sl": 1, "sr": 1, "wl": 2, "wr": 2}
 CYMINST = os.environ.get("C10T1_CYMINST", "-1.5")
 # v35: THE CYMBALS' AIR. Read window by window against the records' passages with as much voice as the window has
 # (stembal --voice-tracks), 8-16 kHz was the worst band left: +1.0 to +2.2 dB in the six windows with little or no voice
@@ -965,7 +977,7 @@ if SECMIX and (LANDMIX or CYMINST):
         lb, lk, ld, lc = [float(x) for x in LANDMIX.split(":")]
         cymf.append((389, 400.5, lc))        # back to the old balance by bar 401: the last chord and its crash are as they were
         SECTION_FADERS["kick"] = SECTION_FADERS.get("kick", []) + [(389, 400.5, lk)]
-        for tr in ("rl2", "rr2") if REAL5 else ("gl2", "gr2"):
+        for tr in ("el2", "er2") if LAND_MAP else ("rl2", "rr2") if REAL5 else ("gl2", "gr2"):
             SECTION_FADERS[tr] = SECTION_FADERS.get(tr, []) + [(389, 400.5, ld)]
     if cymf:
         if CYMAIR and len(CYMAIR.split(";")) > 1 and float(CYMAIR.split(";")[1]):
@@ -1264,6 +1276,8 @@ def song():
         ("gl2", RIG_L + PICKED, "-3dB", -0.8, {**GOUT, **PICK_FX}), ("gr2", RIG_R + PICKED, "-3dB", 0.8, {**GOUT, **PICK_FX}),
         *([("rl", RIG_L + REAL_RIG, "0dB", -1, {**GOUT, **REAL_FX}), ("rr", RIG_R + REAL_RIG, "0dB", 1, {**GOUT, **REAL_FX}),
            ("rl2", RIG_L + REAL_RIG, "-3dB", -0.8, {**GOUT, **REAL_FX}), ("rr2", RIG_R + REAL_RIG, "-3dB", 0.8, {**GOUT, **REAL_FX})] if REAL5 else []),
+        *([("el", RIG_L + REAL_RIG + LAND_AMP, "0dB", -1, {**GOUT, **REAL_FX}), ("er", RIG_R + REAL_RIG + LAND_AMP, "0dB", 1, {**GOUT, **REAL_FX}),
+           ("el2", RIG_L + REAL_RIG + LAND_AMP, "-3dB", -0.8, {**GOUT, **REAL_FX}), ("er2", RIG_R + REAL_RIG + LAND_AMP, "-3dB", 0.8, {**GOUT, **REAL_FX})] if LAND_MAP else []),
         *([("ql", RIG_L + " synth.layers.0.node=4", SQUEAL, -0.5, GOUT), ("qr", RIG_R + " synth.layers.0.node=4", SQUEAL, 0.5, GOUT)] if SQUEAL else []),
         ("sl", BITE_L, BITE_DB, -1, GOUT), ("sr", BITE_R, BITE_DB, 1, GOUT),
         ("kl", CRUNCH_L + HANDED, CRUNCH_DB, -0.8, {}), ("kr", CRUNCH_R + HANDED, CRUNCH_DB, 0.8, {}),          # not through the guitars' bus: its eq scoops the mids this rig is made of
@@ -1319,6 +1333,8 @@ def song():
             if ENGCAB:
                 m, dist = ENGCAB.split(";")[0].split(":")
                 mic, *cones = ENGCAB.split(";")[1 + kind].split(",")
+                if name in LAND_MAP.values():        # the landing riff's rig has its own microphone and cones
+                    mic, *cones = LANDRIG.split(";")[1].split(",")
                 cab = {"type": "cab", "model": m, "mic": float(mic), "distance": float(dist)}
                 if int(cones[right]):
                     cab["cone"] = int(cones[right])
@@ -1326,7 +1342,7 @@ def song():
             else:
                 t["fx"] = [{"type": "eq", "bands": OWNCAB.split("|") + grit(kind, right) + (peaks(OWNBITE) if kind == 1 else []) + (peaks(OWNREAL) if OWNREAL and name in ("rl", "rr", "rl2", "rr2") else [])}]
             # the squeal (Ab5, 830 Hz) has its own trim, so it is as loud as it was (it sits in the cabinet's scoop and on its cone's detail)
-            gain = t["gain"] = f"{float(gain[:-2]) + float(OWNTRIM.split(':')[kind]) + ((-0.6 if ENGCAB else 0.5) if name in ('ql', 'qr') else 0):g}dB"
+            gain = t["gain"] = f"{float(gain[:-2]) + float(OWNTRIM.split(':')[kind]) + ((-0.6 if ENGCAB else 0.5) if name in ('ql', 'qr') else 0) + (float(LANDRIG.split(';')[2].split(',')[right]) if name in LAND_MAP.values() else 0):g}dB"
         if TOP and name in TOP_OF:
             kind = TOP_OF[name]
             t["patch"] = t["patch"] + " fx.4.bands.3.gain=0dB" + ("" if kind == 2 else " fx.4.bands.6.gain=0dB")
