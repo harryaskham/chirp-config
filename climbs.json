@@ -8623,7 +8623,7 @@
     {
       "id": "chirpers10-t2",
       "song": "songs/chirpers10-t2.yaml",
-      "reference": "chirpers — Track 2 (untitled)",
+      "reference": "chirpers — Odd Sympathy",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers10-t2 OUT.wav",
@@ -8639,7 +8639,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Common Time",
-        "title": "Track 2 (untitled)",
+        "title": "Odd Sympathy",
         "track": 2,
         "year": 2026
       },

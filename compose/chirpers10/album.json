@@ -65,7 +65,8 @@
       ],
       "owner_suggested": "chirper-zero",
       "brief": "Opened by Harry on 14 Nov, about 03:02 GMT, in his words: \"okay lets open up one more song in the album. zero's song name choice\" and, a minute later, \"should skeleton it and then climb both as the tooling selects\". So: the FIRST ROUND IS A SKELETON (the whole shape standing, however bare; any version at all goes on the groove beside Common Time), and from then on `climb.py next` draws between the two songs. THE NAME IS YOURS: `tools/chirpers.py title chirpers10-t2 \"...\"` (a plain fragment, nothing on the nose, no numbers in titles). What the song is, how long, and how it stands beside the epic are yours too: Harry said nothing more than the words above. It starts from the same home: the album's direction (album.json direction.rules), its patch family (sounds.md, the ct-* rigs and kit) and everything landed in the engine since (features.md). The slot's length (3 to 8 minutes) is chirp-eco's placeholder, not a direction: set it to what the song wants.",
-      "id": "chirpers10-t2"
+      "id": "chirpers10-t2",
+      "title": "Odd Sympathy"
     }
   ],
   "named_by": "harry",
