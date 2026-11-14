@@ -8661,7 +8661,7 @@
     {
       "id": "chirpers10-t3",
       "song": "songs/chirpers10-t3.yaml",
-      "reference": "chirpers — Track 3 (untitled)",
+      "reference": "chirpers — Plain Hunt",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers10-t3 OUT.wav",
@@ -8677,7 +8677,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Common Time",
-        "title": "Track 3 (untitled)",
+        "title": "Plain Hunt",
         "track": 3,
         "year": 2026
       },
