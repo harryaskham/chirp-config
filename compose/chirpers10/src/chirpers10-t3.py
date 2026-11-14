@@ -182,6 +182,17 @@ if CLIMB:                # the bar the lead starts: it leaves room for six notes
 # the two cymbals at home ; the velocity of a call's notes ; the rows of each extent laid bare (from:to) ; the kit's
 # beat in each third of the second extent. "" = v5.
 FORM = os.environ.get("C10T3_FORM", "c,c;1.0;40:50;bac")
+# v7: THE RIFF IN HARMONY (section round, 3:47-4:12: the second half of the second cycle's stretch on A flat, which the
+# section map called static and "little new"). After the break at 3:44 the riff comes back with a SECOND VOICE: two
+# more guitars, one a side inside the four, play the riff an octave up and a third above (two steps up the riff's own
+# six-note scale: F takes A flat, G flat takes B, A flat takes C, B takes E flat, C takes F, E flat takes G flat), in
+# the riff's own rhythm: the long note long, the chugs chugged. They are on a third amp (`mark`, the four are on a
+# 5150 and a `nolly`), their own cones. At the break at 4:09 they join the unison an octave up, and when the key
+# moves to C (4:12) they stop: the high register is the lead's from there.
+# the patch string ({} = the cone) ; the gain ; the pan ; the rows of the second extent in harmony (from:to; the call
+# after them is played in unison) ; scale steps up ; semitones up ; the two cones ; the guitars' bus under them, dB
+# (six guitars for four: without it the stretch was as loud as the stretch on C it leads to). "" = v6.
+HARM = os.environ.get("C10T3_HARM", "ct-twin fx.1.model=mark fx.2.mic=0.55 fx.2.cone={};-3dB;0.45;60:78;2;12;18,19;-0.7")
 CALLS_1 = [L for L, c in enumerate("pppb" * 3) if c != "p"]
 CALLS_2 = [L for L, c in enumerate("pbpbps" * 2) if c != "p"]
 BREAKS, BREAK_HITS = [], []          # the calls' spans (sixteenths) and the kit's notes in them
@@ -339,6 +350,23 @@ def compose():
     for i, kind in enumerate(FORM.split(";")[3] if FORM else "bac"):
         beat(PART2 + T2 * i, PART2 + T2 * (i + 1), kind, 10 ** 6 if FORM else meet(L2))
         fill(PART2 + T2 * (i + 1))
+    if HARM:                             # v7: the riff in harmony, on two more guitars
+        r0, r1 = (int(x) for x in HARM.split(";")[3].split(":"))
+        steps, up, scale = int(HARM.split(";")[4]), int(HARM.split(";")[5]), sorted(PITCH.values())
+        for k in range(r0, r1 + 2):
+            t, root, call = PART2 * 16 + k * L2, KEYS_2[k // 40], lead_mode(k, CALLS_2).startswith("call")
+            assert call == (k >= r1), "the harmony must end on a call"
+            for b in tuple(EXTENT_2[k]) + (6,):
+                n = W2[0] if b == 1 else W2[1] if b == 6 else 1
+                i = scale.index(PITCH[b]) + (0 if call else steps)
+                pitch = F1 + root + up + scale[i % 6] + 12 * (i // 6)
+                for j in range(n if b == 6 else 1):
+                    for tr in ("hl", "hr"):
+                        if b == 1 or call:
+                            add(tr, t + j, n if b == 1 else 1, pitch, 1.0)
+                        else:
+                            add(tr, t + j, 1, pitch, (0.95 if j == 0 else 0.9) if b == 6 else 0.85, pm=1)
+                t += n
     if CLIMB:                            # v4: the lead climbs the row, slowly, over the last third; the snare on every beat at the end
         base, per, sv = int(CLIMB.split(";")[2]), float(CLIMB.split(";")[3]), float(CLIMB.split(";")[4])
         b0 = CLIMB_B0
@@ -373,6 +401,10 @@ def compose():
 
 def song():
     compose()
+    HARM_DIP = []
+    if HARM and CLIMB:        # the guitars' bus comes down a little while six guitars play (the lane is the climb's)
+        h0, h1 = (PART2 * 4 + int(x) * L2 / 4 for x in HARM.split(";")[3].split(":"))
+        HARM_DIP = [[f"{h0 - 0.5:g}b", 0], [f"{h0:g}b", float(HARM.split(";")[7])], [f"{h1 + 2 * L2 / 4 - 0.25:g}b", float(HARM.split(";")[7])], [f"{h1 + 2 * L2 / 4:g}b", 0]]
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     dtop = ["lp cutoff=14250 q=0.8"]
@@ -384,6 +416,8 @@ def song():
         {"name": "gr", "patch": main.format(11), "gain": GM, "pan": 1, "out": "gtrs"},
         {"name": "gl2", "patch": dbl.format(16), "gain": GD, "pan": -0.75, "out": "gtrs"},
         {"name": "gr2", "patch": dbl.format(17), "gain": GD, "pan": 0.75, "out": "gtrs"},
+        *([{"name": tr, "patch": HARM.split(";")[0].format(HARM.split(";")[6].split(",")[i]), "gain": HARM.split(";")[1],
+            "pan": (-1, 1)[i] * float(HARM.split(";")[2]), "out": "gtrs"} for i, tr in enumerate(("hl", "hr"))] if HARM else []),
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
         # the kick's fader: down where it plays every sixteenth (the last third of each extent)
         *([{"name": "fuzz", "patch": FUZZ.split(";")[0], "gain": {"value": FUZZ.split(";")[1], "mod": [{"src": "auto.open", "amount": 1}]}, "pan": 0,
@@ -430,7 +464,7 @@ def song():
             "snr": {"fx": [{"type": "eq", "bands": ["peak cutoff=300 q=0.7 gain=-12dB"]}]},
             "gtrs": {"fx": ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.under", "amount": 1}]}}] if CLIMB else [])
                            + [{"type": "eq", "bands": ["peak cutoff=330 q=1.2 gain=-2dB"]}, "reverb kind=room decay=0.35s mix=0.06 predelay=6ms"],
-                     **({"auto": {"under": {"points": [["0b", 0], [f"{CLIMB_B0 * 4 - 0.5}b", 0], [f"{CLIMB_B0 * 4}b", float(CLIMB.split(";")[5])],
+                     **({"auto": {"under": {"points": [["0b", 0]] + HARM_DIP + [[f"{CLIMB_B0 * 4 - 0.5}b", 0], [f"{CLIMB_B0 * 4}b", float(CLIMB.split(";")[5])],
                                                        [f"{LAND * 4 - 0.5}b", float(CLIMB.split(";")[5])], [f"{LAND * 4}b", 0]], "curve": 0}}} if CLIMB else {})},
             "low": {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
