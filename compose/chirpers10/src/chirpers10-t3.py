@@ -84,6 +84,19 @@ G4 = ("gl", "gr", "gl2", "gr2")
 BELL_LAND = float(os.environ.get("C10T3_BELLLAND", "-5"))
 KICK_ALL = float(os.environ.get("C10T3_KICKALL", "-3"))
 CYM_BUSY = float(os.environ.get("C10T3_CYMBUSY", "-3"))
+# v2: THE TOWER GETS ITS VOICES AND A GONG (palette round). Where the bells ring alone (the opening, the middle, the
+# end) they rang over a bowed drone and a synth pad: `contrabass-tight` and `juno-pad`, which all three songs of the
+# album use. Both leave this song. Under the bells there is now a CHANT: two low men's voices a fifth apart (F and C),
+# the library's `fof-chant` (Rodet's CHANT bass, one grain per formant per period, no filters, the mouth moving slowly
+# between "o" and "u"), which no other track on the album uses and whose source (`fof`) the album had not used. And a
+# GONG (`modal-gong`, a tam-tam on the modal layer) is struck twice: when the first extent comes round (2:17) and on
+# the last chord (4:52).
+# The CHANT voice has no weight of its own (its sound is its mouth's resonance, 250-500 Hz; nothing under 120 Hz), so
+# a floor goes under it where the bowed bass was: a BASS TAGELHARPA (`tagelharpa-bass`, a bowed horsehair lyre, coarse
+# and beating), on the low F. It too is new to the album.
+# the chant's patch ; its gain ; its hall send ; the gong's patch ; its gain ; its note ; the floor's patch ; its gain.
+# "" = v1 (the drone and the pad).
+TOWER = os.environ.get("C10T3_TOWER", "fof-chant;-15.5dB;-6dB;modal-gong;-13dB;F1;tagelharpa-bass;-21dB")
 
 
 def add(tr, s16, len16, pitch, vel, **expr):
@@ -123,6 +136,17 @@ def slow_rounds(b0, rows, root=0, vel=0.8):
             T.setdefault("bell", []).append({"at": b0 * 4 + (r * 6 + i) * 0.5, "len": 3.0, "pitch": nm(F1 + root + PITCH[i + 1] + 36), "vel": round(min(1.0, vel * (1.12 if i == 5 else 1.0)), 3)})
 
 
+def chant(at, beats):
+    """Two low voices a fifth apart, held."""
+    for p, v in (("F2", 0.6), ("C3", 0.5)):
+        T.setdefault("chant", []).append({"at": at, "len": beats, "pitch": p, "vel": v})
+    T.setdefault("drone", []).append({"at": at, "len": beats, "pitch": "F1", "vel": 0.5})
+
+
+def gong(at, vel):
+    T.setdefault("gong", []).append({"at": at, "len": 12.0, "pitch": TOWER.split(";")[5], "vel": vel})
+
+
 def beat(b0, b1, kind):
     """The kit over a stretch (the kick is written with the rows). a: half time, the snare on three, china on the
     quarters. b: the backbeat, the hat in eighths. c: the backbeat, china in eighths."""
@@ -157,7 +181,10 @@ def hit(b, beats, root=0):
 def compose():
     # the bells alone: rounds, slowly, five times; a drone under them. No band.
     slow_rounds(INTRO, 5)
-    T.setdefault("home", []).append({"at": 0, "len": 15.5, "pitch": "F1", "vel": 0.5})
+    if TOWER:
+        chant(0, 15.5)
+    else:
+        T.setdefault("home", []).append({"at": 0, "len": 15.5, "pitch": "F1", "vel": 0.5})
     # the band takes the row up at twice the speed: rounds, sixteen times, the row turning against the bar
     for r in range(16):
         row_notes(ROUNDS, BAND * 16 + r * 6, 0)
@@ -172,9 +199,13 @@ def compose():
     # it has come round. One chord, and the bells alone again: rounds, slowly, over a drone and a pad
     hit(MIDDLE, 6)
     slow_rounds(MIDDLE + 1, 9)
-    T.setdefault("home", []).append({"at": MIDDLE * 4, "len": 31.5, "pitch": "F1", "vel": 0.5})
-    for p in ("F2", "C3"):
-        T.setdefault("air", []).append({"at": (MIDDLE + 1) * 4, "len": 27.5, "pitch": p, "vel": 0.45})
+    if TOWER:
+        gong(MIDDLE * 4, 0.9)
+        chant(MIDDLE * 4 + 2, 29.5)
+    else:
+        T.setdefault("home", []).append({"at": MIDDLE * 4, "len": 31.5, "pitch": "F1", "vel": 0.5})
+        for p in ("F2", "C3"):
+            T.setdefault("air", []).append({"at": (MIDDLE + 1) * 4, "len": 27.5, "pitch": p, "vel": 0.45})
     fill(PART2)
     # the second extent: Grandsire Doubles, on F, Ab and C
     for k, row in enumerate(EXTENT_2):
@@ -189,6 +220,9 @@ def compose():
     slow_rounds(LAND, 12, vel=0.9)
     # the end: one chord, and the tenor tolls
     hit(END, 10)
+    if TOWER:
+        gong(END * 4, 1.0)
+        chant(END * 4 + 2, 9.5)
     for i, v in enumerate((0.9, 0.7, 0.5)):
         T.setdefault("bell", []).append({"at": (END + i) * 4, "len": 4.0, "pitch": nm(F1 + 36), "vel": v})
 
@@ -220,8 +254,11 @@ def song():
         # the bells' fader: down in the landing, where twelve slow rows of six ring into one another over the full band
         {"name": "bell", "patch": "modal-bell", "gain": {"value": os.environ.get("C10T3_BELL", "-18dB"), "mod": [{"src": "auto.lvl", "amount": 1}]}, "pan": 0.1, "sends": {"hall": "-8dB"},
          "auto": {"lvl": {"points": [["0b", 0], [f"{LAND * 4 - 1}b", 0], [f"{LAND * 4}b", BELL_LAND], [f"{END * 4 - 1}b", BELL_LAND], [f"{END * 4}b", 0]], "curve": 0}}},
-        {"name": "home", "patch": "contrabass-tight", "gain": "-9dB", "pan": 0.3, "sends": {"hall": "-12dB"}},
-        {"name": "air", "patch": "juno-pad", "gain": "-13dB", "pan": 0.15, "sends": {"hall": "-8dB"}},
+        *([{"name": "chant", "patch": TOWER.split(";")[0], "gain": TOWER.split(";")[1], "pan": -0.1, "sends": {"hall": TOWER.split(";")[2]}},
+           {"name": "gong", "patch": TOWER.split(";")[3], "gain": TOWER.split(";")[4], "pan": 0.2, "sends": {"hall": "-8dB"}},
+           {"name": "drone", "patch": TOWER.split(";")[6], "gain": TOWER.split(";")[7], "pan": 0.2, "sends": {"hall": "-12dB"}}] if TOWER else
+          [{"name": "home", "patch": "contrabass-tight", "gain": "-9dB", "pan": 0.3, "sends": {"hall": "-12dB"}},
+           {"name": "air", "patch": "juno-pad", "gain": "-13dB", "pan": 0.15, "sends": {"hall": "-8dB"}}]),
     ]
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])

@@ -8667,13 +8667,14 @@
       "metric": "python3 tools/compscore.py chirpers10-t3 OUT.wav",
       "best": {
         "score": 100.0,
-        "version": "v1",
-        "commit": "see git log songs/chirpers10-t3.yaml"
+        "version": "v2",
+        "commit": "see git log songs/chirpers10-t3.yaml",
+        "judged": true
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "polymetric djent",
       "mode": "compose",
@@ -8691,7 +8692,7 @@
         "note": "COMPOSE (the third song (its name and its shape are chirper-zero's), 180-480 s): Opened by Harry on 14 Nov, about 16:36 GMT, in his words: \"answered clips. unlock a third track slot!\". He said it on finishing his first batch of answers on the review page's Questions view (29 cards on Common Time and Odd Sympathy: `python3 tools/listen.py questions chirpers10`); read those first, they are the freshest account of what he hears. THAT SENTENCE IS ALL HE SAID about this song. The rest here is chirp-eco's reading, carried over from how he opened track 2 (\"zero's song name choice\"; \"should skeleton it and then climb both as the tooling selects\"), and is his or yours to overrule: the song is chirper-zero's; THE NAME IS YOURS (`tools/chirpers.py title chirpers10-t3 \"...\"`: a plain fragment, nothing on the nose, no numbers in titles); the FIRST ROUND IS A SKELETON (the whole shape standing, however bare; any version at all goes on the groove beside the other two), and from then on `climb.py next` draws among the three. What the song is, how long, and how it stands beside the epic and Odd Sympathy are yours. It starts from the same home: the album's direction (album.json direction.rules), its patch family (sounds.md, the ct-* rigs and kit) and everything landed in the engine since (features.md). The slot's length (3 to 8 minutes) is chirp-eco's placeholder so the scorer has a range: set it to what the song is."
       },
       "last": {
-        "at": "2026-11-14T17:41:32Z",
+        "at": "2026-11-14T18:34:15Z",
         "who": "chirper-zero"
       }
     }

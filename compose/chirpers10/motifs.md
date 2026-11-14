@@ -173,3 +173,5 @@ Rounds is the bells in order: Eb C B Ab Gb F, the album's hook notes running dow
 | 117-120 | 4:52 | one chord; the tenor tolls three times |
 
 v1 is the skeleton: the whole shape standing, bare. No voice yet.
+
+**The tower (v2).** Where the bells ring alone (0:00, 2:17, the end) they ring over a chant: two low men's voices a fifth apart, F and C, the mouth moving slowly between "o" and "u", with a bowed horsehair drone on the low F as their floor. A gong is struck twice: when the first extent comes round (2:17) and on the last chord (4:52). The bowed bass and the synth pad the album's other two songs use have left this one.
