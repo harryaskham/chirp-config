@@ -220,6 +220,19 @@ CLOCKS = os.environ.get("C10T2_CLOCKS", "-6dB;0.7;0.8:0.7;-12dB")
 # how long the last note is written, in beats ; dB the guitars' bus has fallen ; over how many bars ; the bass's fall, dB.
 # "" = v10.
 LETGO = os.environ.get("C10T2_LETGO", "12;30;3.5;24")
+# v12: THE LOCK IS HEARD BEFORE IT LANDS (section round, 3:29-3:38; the window 3:33-4:08). Two things in the build
+# to the arrival against each other:
+#   1. The right guitar's clock reaches half a bar ahead at bar 96, two bars before the band lands. From there the two
+#      HEAVY guitars come back playing the riff's chugs only (as the right one did in the opening): half a bar apart
+#      there is a chug pair on every beat, the sides taking turns in twos (left on one, right on two and three, left
+#      on four). The skeleton locks first, rising; at the bar line the whole riff, the bass on F and the drums land,
+#      and the hook's notes fill what was left.
+#   2. The bass's pedal on C under the build was written to swell (its notes harder bar by bar) and its compressor had
+#      all of it: alone it read -26.8 dB in every bar. Now the bass's bus rises under it.
+# This needs the letting go's lanes (LETGO).
+# the bar the chugs come in ; the guitars' bus there, dB : just before the landing ; the bass's bus at bar 92, dB. "" = v11.
+LOCK = os.environ.get("C10T2_LOCK", "96;-9:-3;-10") if os.environ.get("C10T2_LETGO", "x") else ""
+LOCK_BAR = int(LOCK.split(";")[0]) if LOCK else 96
 T = {}
 
 
@@ -477,6 +490,9 @@ def compose():
             T.setdefault("air", []).append({"at": 74 * 4, "len": 96.2, "pitch": n, "vel": 0.45})
     for n in ("F3", "C4"):
         T.setdefault("swarm", []).append({"at": 74 * 4, "len": 96.0, "pitch": n, "vel": 0.7})
+    if LOCK:                             # v12: the lock is heard before it lands: both heavy guitars, chugs only, half a bar apart
+        riff("gl", LOCK_BAR, 98, vel=0.85, only=CHUGS)
+        riff("gr", LOCK_BAR, 98, vel=0.85, only=CHUGS)
     fill(98)
     # against: half a bar apart. Every sixteenth has one guitar on it
     riff("gl", 98, 122, vel=0.9)
@@ -555,7 +571,8 @@ def song():
         b0, b1, db = [float(x) for x in seg.split(":")]
         lowride += [[f"{b0 * 4 - 1:g}b", 0], [f"{b0 * 4:g}b", db], [f"{b1 * 4 - 1:g}b", db], [f"{b1 * 4:g}b", 0]]
     if LETGO:                                # the bass's held F dies with the guitars'
-        lowride += [[f"{74 * 4}b", 0], [f"{76 * 4}b", -float(LETGO.split(";")[3])], [f"{88 * 4}b", -float(LETGO.split(";")[3])], [f"{90 * 4}b", 0]]
+        lowride += [[f"{74 * 4}b", 0], [f"{76 * 4}b", -float(LETGO.split(";")[3])], [f"{88 * 4}b", -float(LETGO.split(";")[3])]]
+        lowride += [[f"{92 * 4}b", float(LOCK.split(";")[2])], [f"{98 * 4}b", 0]] if LOCK else [[f"{90 * 4}b", 0]]      # v12: the bass's pedal swells into the lock
     lowride = lowride if len(lowride) > 1 else None
     talkfx = ([TALKFX] if TALKFX else []) + ([{"type": "eq", "bands": TALKEQ.split("|")}] if TALKEQ else [])
     pump = [{"type": "pump", "on": tr, "depth": f"-{hd[3].split(':')[0] if tr == 'tc' else hd[4]}dB", "attack": "4ms", "hold": hd[3].split(":")[1], "release": hd[3].split(":")[2]}
@@ -621,7 +638,9 @@ def song():
             "oh": {"fx": ["reverb kind=room decay=0.7s mix=1 predelay=4ms low_cut=5000 high_cut=12000 spread=0.6"] + ([{"type": "eq", "bands": dtop}] if DTOP else [])},
             **({"snr": {"fx": [{"type": "eq", "bands": [f"peak cutoff={SNARE_EQ.split(':')[0]} q={SNARE_EQ.split(':')[1]} gain={SNARE_EQ.split(':')[2]}dB"]}]}} if SNARE else {}),
             "gtrs": {**({"auto": {"go": {"points": [["0b", 0], [f"{74 * 4}b", 0], [f"{(74 + float(LETGO.split(';')[2])) * 4:g}b", -float(LETGO.split(";")[1])],
-                                                    [f"{96 * 4}b", -float(LETGO.split(";")[1])], [f"{97 * 4}b", 0]], "curve": 0}}} if LETGO else {}),
+                                                    *([[f"{(LOCK_BAR - 0.75) * 4:g}b", -float(LETGO.split(";")[1])], [f"{(LOCK_BAR - 0.5) * 4:g}b", float(LOCK.split(";")[1].split(":")[0])],
+                                                       [f"{98 * 4 - 0.125:g}b", float(LOCK.split(";")[1].split(":")[1])], [f"{98 * 4}b", 0]] if LOCK else
+                                                      [[f"{96 * 4}b", -float(LETGO.split(";")[1])], [f"{97 * 4}b", 0]])], "curve": 0}}} if LETGO else {}),
                      "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.go", "amount": 1}]} if LETGO else "0dB"}] + ([f"reverb kind={beam[0]} decay={beam[1]} mix={beam[2]} predelay=6ms"] if TWIN else [])
                      + (pump if HEARD else [{"type": "duck", "by": "tl", "depth": f"-{vo[4]}dB", "attack": "20ms", "release": "250ms"}] if VOICE and float(vo[4]) else [])},
             "low": {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
