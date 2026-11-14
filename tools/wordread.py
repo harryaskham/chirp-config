@@ -17,6 +17,12 @@ Why both (chirper-zero, Common Time v17-v18, whose barktest.py and refread.py th
   * A harsh voice is judged ALONE. In a full mix the recogniser read none of our bark; on five records it read 0, 9,
     12, 14 and 24 of the 49-65 words it read from their own vocal stems. So a mix reading of zero is no fault, and
     `control` gives the number to hold ours against.
+  * A CLEAN voice in a full metal mix (chirper-zero, Odd Sympathy v7): the recogniser has a low ceiling and moves in
+    steps. Everything rendered read 5 to 11 of 24 words; one setting read 10 and 8 on two seeds; the voice with only
+    the bass under it read as the voice alone (14), with only the drums 9, with only the guitars 6. It could not
+    rank three eqs at matched loudness (6, 7, 6) or where the words sat in the bar. Use a mix reading as a FLOOR
+    ("5 or fewer of 24 is covered"), not as something to climb; rank with tools/presence.py (its help has the
+    records' voices as a yardstick) and a band table (tools/stembal.py --voice).
   * small.en is the judge, not base.en: base.en gave 5 and 18 words of 35 for one scream at two levels 0.5 dB apart.
   * The stem's "words" are what the recogniser wrote, not checked against the record's lyric.
 Tone and level against records' voices: tools/voxref.py. (chirp-eco, 13 Nov; tests: tools/tests/test_wordread.py.)"""

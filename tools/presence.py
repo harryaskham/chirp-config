@@ -24,8 +24,9 @@ what one costs. A song wincut cannot place (a tempo that changes, a meter other 
 A yardstick for a VOICE (14 Nov, for chirper-zero's question on Odd Sympathy v5, "what does `near` predict for an
 ear"): the same measure taken on eleven Meshuggah records, the vocals stem against the record, reads vs mix -9.1 dB
 (-6.8 to -9.9) and near 69% (52% to 82%). Those are voices a listener follows through a full band. A voice at -11 to
--12 dB and near 14-37% sits under every one of them; a recogniser read 5 of its 24 words in the mix and 14 alone
-(tools/wordread.py: for a clean voice the mix is a fair test, for a harsh one it is not).
+-12 dB and near 14-37% sits under every one of them; a recogniser read 5 of its 24 words in the mix and 14 alone.
+Brought to -6.0 dB and near 70% (v7) it read 10 and 8 on two seeds. So this measure ranks what was tried and the
+recogniser does not: in a full metal mix it is a floor, not a scale (tools/wordread.py says how far it can be trusted).
 
 What it cannot see (chirper-zero, Common Time v22): a pure tone has all its energy in one band. A sine-like part read
 -12 to -14 dB here ("buried", 5 dB under the lead) while it put its section's 250-500 Hz 3.8 dB further over the
