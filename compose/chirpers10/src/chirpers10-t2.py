@@ -290,6 +290,24 @@ PEND = os.environ.get("C10T2_PEND", "")
 END = os.environ.get("C10T2_END", "2;2.0;0.45;532")
 if END:
     CLOCKS = ""
+# v18: A PULSE UNDER THE DRIFT, AND THE LOCK IS SHAKEN (two more of Harry's answers; his words in quotes).
+#   1. THE DRIFT, "It wants a pulse there" (after v17 took the pendulum out). Two bars after the band lets go, a
+#      HEARTBEAT comes in under the two music boxes and stays to the landing: the bass in soft eighths on the ground
+#      as it steps down (F, E flat, D flat, C), a closed hat on the quarters (eighths from 3:11) and a soft kick on
+#      the bar line. It keeps the LEFT box's time, so the right box is heard to slide against something. The bass's
+#      swell into the landing is this pulse rising (it was held notes).
+#      the bar the pulse comes in ; the bass's bus there, dB ; at bar 92, dB ; the kick's velocity ; the hat's. "" = v17.
+#   2. THE SLIP, "A thrill" and "add". One more, where the song had none: in the last section, with the two guitars
+#      locked half a bar apart, the right one is SHAKEN: it runs two sixteenths further ahead over two bars and falls
+#      back over the next two (the engine's `warp` again; nothing moved by hand), the beat thinned to a kick and a hat
+#      as in the other slips, and the lock holds: a crash, and the last barks. Huygens's clocks did this when he
+#      disturbed them.
+#      the bar it starts ; bars out (and as many back) ; the right clock's shift at its furthest, beats. "" = v17.
+PULSE = os.environ.get("C10T2_PULSE", "78;-13;-10;0.28;0.55") if DRIFT and os.environ.get("C10T2_LETGO", "x") else ""
+SHAKE = os.environ.get("C10T2_SHAKE", "106;2;-2.5")
+if SHAKE:
+    _sb, _sn, _far = int(SHAKE.split(";")[0]), int(SHAKE.split(";")[1]), float(SHAKE.split(";")[2])
+    WARP = WARP + [{"over": f"{(_sb - 96) * 4}b", "to": -2.0}, {"over": f"{_sn * 4}b", "to": _far, "curve": "smooth"}, {"over": f"{_sn * 4}b", "to": -2.0, "curve": "smooth"}]
 TICKS = ("ml", "mr") if BOX else ("cl", "cr")
 TICK_UP = int(BOX.split(";")[1]) if BOX else 24
 # v16: THE ECHO, HEARD NAKED (section round, 1:33-1:38; the window 1:11-1:46, "static"). The hold an eighth apart is
@@ -525,7 +543,7 @@ def compose():
         drum("k", 74 * 16, 0.95)
         for tr in ("gl", "gr"):
             add(tr, 74 * 16, hold * 4, F1, 0.9)
-        add("bass", 74 * 16, 8 * 4, F1, 0.9)
+        add("bass", 74 * 16, (2.5 if PULSE else 8) * 4, F1, 0.9)
     # let go: the heavy guitars stop; two clean guitars tick the riff, the right one drifting from a quarter to half a bar
     # ahead; the swarm (sixteen oscillators finding a common phase) locks as they arrive
     if DRIFT:
@@ -547,7 +565,18 @@ def compose():
             drum("k", b * 16, 0.4 + 0.03 * (b - 86))
             if b >= 92:
                 drum("k", b * 16 + 8, 0.35 + 0.03 * (b - 86))
-                T.setdefault("bass", []).append({"at": b * 4, "len": 3.9, "pitch": nm(F1 + 7), "vel": round(pv + 0.04 * (b - 92), 3)})
+                if not PULSE:
+                    T.setdefault("bass", []).append({"at": b * 4, "len": 3.9, "pitch": nm(F1 + 7), "vel": round(pv + 0.04 * (b - 92), 3)})
+        if PULSE:                            # v18: the heartbeat under the drift
+            p0, kv, hv = int(PULSE.split(";")[0]), float(PULSE.split(";")[3]), float(PULSE.split(";")[4])
+            for r, b0, b1 in zip(roots, edges, edges[1:]):
+                for b in range(max(b0, p0), b1):
+                    for e in range(8):
+                        add("bass", b * 16 + e * 2, 1.3, F1 + 12 + r, 0.6 if e % 2 == 0 else 0.5)
+                    for e in range(0, 8, 2 if b < 86 else 1):
+                        drum("h", b * 16 + e * 2, hv if e % 2 == 0 else hv * 0.8)
+                    if b < 86:
+                        drum("k", b * 16, kv)
         for i, t in enumerate(range(96 * 16, 98 * 16 - 8, 4)):
             drum("ft", t, 0.4 + 0.05 * i)
     else:
@@ -572,6 +601,16 @@ def compose():
     groove(98, 122, 8, snare=(4, 12), cym="x")
     for b in range(102, 122, 4):
         drum("c", b * 16, 0.85)
+    if SHAKE:                            # v18: the lock is shaken and holds: the beat thins as in the other slips, the bass keeps the left guitar
+        s0, s1 = _sb, _sb + 2 * _sn
+        for tr in ("kick", "snare", "cym", "hat", "ride", "toms", "bass"):
+            T[tr] = [n for n in T.get(tr, []) if not (s0 * 4 <= n["at"] < s1 * 4)]
+        bass(s0, s1)
+        for b in range(s0, s1):
+            drum("k", b * 16, 0.85)
+            for q in range(0, 16, 4):
+                drum("h", b * 16 + q, 0.45)
+        fill(s1, "toms")                 # (the crash on the bar it holds is the section's own)
     if VOICE:
         for i in range(4):                       # in step: the four lines, together
             say(i, 16 + 2 * i, one=bool(HEARD))
@@ -656,8 +695,12 @@ def song():
         b0, b1, db = [float(x) for x in seg.split(":")]
         lowride += [[f"{b0 * 4 - 1:g}b", 0], [f"{b0 * 4:g}b", db], [f"{b1 * 4 - 1:g}b", db], [f"{b1 * 4:g}b", 0]]
     if LETGO:                                # the bass's held F dies with the guitars'
-        lowride += [[f"{74 * 4}b", 0], [f"{76 * 4}b", -float(LETGO.split(";")[3])], [f"{88 * 4}b", -float(LETGO.split(";")[3])]]
-        lowride += [[f"{92 * 4}b", float(LOCK.split(";")[2])], [f"{98 * 4}b", 0]] if LOCK else [[f"{90 * 4}b", 0]]      # v12: the bass's pedal swells into the lock
+        if PULSE:                            # v18: the bass comes back as the heartbeat, low, and rises into the landing
+            lowride += [[f"{74 * 4}b", 0], [f"{76 * 4}b", -float(LETGO.split(";")[3])], [f"{int(PULSE.split(';')[0]) * 4 - 1}b", -float(LETGO.split(";")[3])],
+                        [f"{int(PULSE.split(';')[0]) * 4}b", float(PULSE.split(";")[1])], [f"{92 * 4}b", float(PULSE.split(";")[2])], [f"{98 * 4}b", 0]]
+        else:
+            lowride += [[f"{74 * 4}b", 0], [f"{76 * 4}b", -float(LETGO.split(";")[3])], [f"{88 * 4}b", -float(LETGO.split(";")[3])]]
+            lowride += [[f"{92 * 4}b", float(LOCK.split(";")[2])], [f"{98 * 4}b", 0]] if LOCK else [[f"{90 * 4}b", 0]]      # v12: the bass's pedal swells into the lock
     lowride = lowride if len(lowride) > 1 else None
     talkfx = ([TALKFX] if TALKFX else []) + ([{"type": "eq", "bands": TALKEQ.split("|")}] if TALKEQ else [])
     pump = [{"type": "pump", "on": tr, "depth": f"-{hd[3].split(':')[0] if tr == 'tc' else hd[4]}dB", "attack": "4ms", "hold": hd[3].split(":")[1], "release": hd[3].split(":")[2]}
