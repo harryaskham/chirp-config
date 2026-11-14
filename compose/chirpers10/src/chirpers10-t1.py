@@ -494,6 +494,30 @@ WL = ("wl", "wr")      # the wall rig: eleven's open chords, riff C, every chord
 BREAK_ALONE = int(os.environ.get("C10T1_BREAK", "2") or 0)
 
 
+# v39: WHEN ELEVEN ARRIVES, THE CYMBAL GOES WITH IT (1:44-2:13). From 1:06 to 2:13 the kit played one pattern for 35 bars
+# (china on every quarter, snare on three) while the guitars changed under it. In the section where eleven first arrives
+# as chords, the china now strikes WITH each chord, every eleven sixteenths, as a drummer hits a cymbal with a big chord;
+# the ride's edge keeps the quarters under it and the snare stays on three. So the kit itself carries three clocks
+# there: the kick on five, the china on eleven, the ride and snare on the bar. The ride's edge is the cymbal of this
+# section's mirror (the swap, 10:00), so the two now share it. A closed hat was tried first as the pulse (0.55): it read
+# 20.6 dB under the mix and never near it, and the one steady pulse must not go missing.
+# the pulse's piece : velocity ; the china's velocity on each chord. "" = v38.
+ELEVCYM = os.environ.get("C10T1_ELEVCYM", "rde:0.5;0.8")
+# Tried in the same round and not taken: the snare on two and four for riff A's last five bars (C10T1_RIFFA=15). It
+# spends the piece's first backbeat, which belongs to the split at 4:26.
+RIFFA_BACK = int(os.environ.get("C10T1_RIFFA", "") or 0)
+# v39: THE KIT'S TOP FALLS AS THE RECORDS' DOES (chirp-eco's reading by thirds on both songs: level with eight records to
+# 11.6 kHz, then ours stayed flat where theirs fall, +1.6 dB at 11.6-13.7 kHz, +4.7 at 13.7-16, +7.4 at 16-20; every piece
+# of the kit carried it, and the bark's hiss). One second-order low-pass on the drums' bus, the overheads' bus and the
+# bark. Fitted by the records read the same way as the piece (gspec, each band against its own 2-8 kHz; eleven records'
+# median -15.9 -20.2 -23.1 -27.5 -32.5 for 8-10 / 10-11.6 / 11.6-13.7 / 13.7-16 / 16-20 kHz; v38 -18.0 -22.0 -23.0 -24.4
+# -24.2): the wanted change is 0 0 0 -3.1 -8.3 dB. A fourth-order low-pass at 14.5 kHz was too steep (16-20 kHz ended
+# 5.8 dB UNDER the records); Odd Sympathy's 14.5 kHz q 0.7 takes 1.4 dB from 11.6-13.7 kHz that is not owed; this one
+# (a little resonant) takes 0.6 there. Hz ; q. "" = v38.
+DTOP = os.environ.get("C10T1_DTOP", "14250;0.8")
+DTOP_BANDS = [f"lp cutoff={DTOP.split(';')[0]} q={DTOP.split(';')[1]}"] if DTOP else []
+
+
 def compose():
     B = BOUNDS
     F_ONLY = [(0, 0)]
@@ -532,7 +556,11 @@ def compose():
     harm(("gl2",), 5, FIVE_A, a + 5, a + 10, 12, hook=GROW[1])       # second landing: the hook an octave up, on the left
     harm(G2, 5, FIVE_A, a + 10, a + 15, 12, hook=GROW[2])            # third: on both sides
     harm(G2, 5, FIVE_A, a + 15, z, 19, hook=H1)                      # fourth: an octave and a fifth up
-    kit(a, z, "x", 4, "half", "roll")
+    if RIFFA_BACK:                                                  # v39: at the fourth landing, the hook complete, the beat opens: snare on two and four
+        kit(a, a + RIFFA_BACK, "x", 4, "half", None)
+        kit(a + RIFFA_BACK, z, "x", 4, "back", "roll", crash_at_start=False)
+    else:
+        kit(a, z, "x", 4, "half", "roll")
     for t in landings(5, a * 16 + 1, z * 16):
         crash(t, 0.8)
 
@@ -543,7 +571,14 @@ def compose():
     gtr(WL, 11, [(0, 8, "P"), (8, 2, "d")], a + 11, z, vel=0.9)       # after eleven lands, each chord is answered by a stab
     bass(5, FIVE_A, a, z, hook=H1)
     kick(5, FIVE_B, a, z)
-    kit(a, z, "x", 4, "half", "toms")
+    if ELEVCYM:                                                       # v39: the china strikes with each of eleven's chords; a hat keeps the quarters
+        (piece, pv), cv = ELEVCYM.split(";")[0].split(":"), float(ELEVCYM.split(";")[1])
+        kit(a, z, piece, 4, "half", "toms", cvel=float(pv))
+        for t, ln, kind, j, hi in strikes(11, ELEVEN_W, s16(a), s16(z) - FILL_LEN["toms"]):
+            if t % 16 and t != s16(a):                                # (where a chord meets a bar line the crash below has it)
+                add("cym", t, 8, "x", cv)
+    else:
+        kit(a, z, "x", 4, "half", "toms")
     for t in landings(11, a * 16 + 1, z * 16):
         crash(t, 0.85)
 
@@ -1315,7 +1350,7 @@ def song():
         ("fifth", "cellos", "-15dB", 0.4, {"sends": {"hall": "-8dB"}}),
         ("air", "juno-pad", "-17dB", 0.15, {"sends": {"hall": "-8dB"}, **POLE_FX}),
         ("chime", "modal-glock", CHIME_GAIN, -0.2, {"sends": {"hall": "-6dB", "dly": "-14dB"}}),
-        ("vox", "kidman" + VOX_WORDS, VOX or "0dB", 0, {"sends": {"hall": "-18dB"}, "fx": [{"type": "eq", "bands": [f"hp cutoff={VOX_HP}"] + peaks(VOX_EQ) + ([f"highshelf cutoff={VOX_SHELF.split(':')[0]} gain={VOX_SHELF.split(':')[1]}dB"] if VOX_SHELF else [])}]}),
+        ("vox", "kidman" + VOX_WORDS, VOX or "0dB", 0, {"sends": {"hall": "-18dB"}, "fx": [{"type": "eq", "bands": [f"hp cutoff={VOX_HP}"] + peaks(VOX_EQ) + DTOP_BANDS + ([f"highshelf cutoff={VOX_SHELF.split(':')[0]} gain={VOX_SHELF.split(':')[1]}dB"] if VOX_SHELF else [])}]}),
         ("choir", "voice-backing", CHOIR or "0dB", 0, {"sends": {"hall": "-8dB"}}),
         ("speak", "voice-talk", SPEAK or "0dB", 0, {"fx": [{"type": "eq", "bands": ["hp cutoff=" + os.environ.get("C10T1_SPEAKHP", "120"), "peak cutoff=300 q=1 gain=" + os.environ.get("C10T1_SPEAKDIP", "-6" if TIDY else "-2.5") + "dB"]}]}),      # dry: with the hall a recogniser lost "its own count"; the dip: it put the rebuild 3.9 dB over the records at 250-500 Hz
         ("word", "ct-word", {"value": WORD or "0dB", "mod": [{"src": "auto.breath", "amount": 1}]} if ENDING else (WORD or "0dB"), 0,
@@ -1410,7 +1445,7 @@ def song():
                   "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
                                    {"type": "glue", "threshold": "-24dB", "ratio": 2.5, "attack": "20ms", "release": "140ms", "knee": 6.0}]
                             + ([f"clip drive=0dB ceiling={DCLIP}dB"] if DCLIP else [])
-                            + ([{"type": "eq", "bands": peaks(DEQ) + ([f"highshelf cutoff={DSHELF.split(':')[0]} gain={DSHELF.split(':')[1]}dB"] if DSHELF else [])}] if DEQ or DSHELF else [])
+                            + ([{"type": "eq", "bands": peaks(DEQ) + ([f"highshelf cutoff={DSHELF.split(':')[0]} gain={DSHELF.split(':')[1]}dB"] if DSHELF else []) + DTOP_BANDS}] if DEQ or DSHELF else [])
                             + ([{"type": "width", "width": 1, "mono_below": 0, "bands": [[float(x.split(":")[0]), float(x.split(":")[1])] for x in DWIDTH.split(",")]}] if DWIDTH else [])
                             + ([{"type": "duck", "by": "speak", "depth": f"-{DUCK.split(':')[1]}dB", "attack": "20ms", "release": "250ms"}] if DUCK and SPEAK else [])},
                   **({"grind": {"fx": [{"type": "eq", "bands": [f"hp cutoff={gh:g}"]},
@@ -1419,7 +1454,7 @@ def song():
                                        {"type": "eq", "bands": [f"hp cutoff={gh:g}", f"lp cutoff={glp:g}"]},
                                        {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.lvl", "amount": 1}]}}],
                                 "auto": {"lvl": {"points": GRIND_LVL, "curve": 0}, "teeth": {"points": GRIND_TEETH, "curve": 0}}}} if GRIND and BEQ else {}),
-                  **({"oh": {"fx": [f"reverb kind=room decay={(DROOM.split(':') + ['0.4'])[3]}s mix=1 predelay=4ms low_cut={DROOM.split(':')[0]} high_cut=12000 spread=0.6"]}} if DROOM else {}),
+                  **({"oh": {"fx": [f"reverb kind=room decay={(DROOM.split(':') + ['0.4'])[3]}s mix=1 predelay=4ms low_cut={DROOM.split(':')[0]} high_cut=12000 spread=0.6"] + ([{"type": "eq", "bands": DTOP_BANDS}] if DTOP else [])}} if DROOM else {}),
                   **({"gtrs": {"fx": ([] if OWNCAB else [{"type": "eq", "bands": peaks(GEQ)}]) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}] + ([{"src": "auto.ring", "amount": 1}] if RINGS else [])}}]
                                + ([{"type": "rotary", "mix": {"value": 0, "mod": [{"src": "auto.rot", "amount": 1}]}, "speed": {"value": 0, "mod": [{"src": "auto.spin", "amount": 1}]}}] if ROTARY else [])
                                + ([{"type": "duck", "by": "speak", "depth": f"-{DUCK.split(':')[0]}dB", "attack": "20ms", "release": "250ms"}] if DUCK and SPEAK else []),
