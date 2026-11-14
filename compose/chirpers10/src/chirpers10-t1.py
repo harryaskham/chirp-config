@@ -488,6 +488,12 @@ G2 = ("gl2", "gr2")
 WL = ("wl", "wr")      # the wall rig: eleven's open chords, riff C, every chord that is left to ring
 
 
+# v38: THE BREAK OPENS ON ONE GUITAR. For this many bars at the top of the seven break (2:13) the bass, the kick and the
+# snare's backbeat stay out: the low-gain guitar, its hand and its spring, alone with the hat and the snare's ghost
+# strokes. Then bass, kick and backbeat; then the second guitar. "" or 0 = v37 (everything from the first bar).
+BREAK_ALONE = int(os.environ.get("C10T1_BREAK", "2") or 0)
+
+
 def compose():
     B = BOUNDS
     F_ONLY = [(0, 0)]
@@ -545,9 +551,11 @@ def compose():
     a, z = B[3], B[4]
     gtr(("gl",), 7, SEVEN_A, a, z, root=AB, hook=H2, vel=0.8, rig=CRUNCH, dyn=SOFT)       # on the low-gain rig: the chugs soft, the hook hard
     gtr(("gr",), 7, SEVEN_A, a + 4, z, root=AB, hook=H2, vel=0.8, rig=CRUNCH, dyn=SOFT)
-    bass(7, SEVEN_A, a, z, root=AB, hook=H2)
-    kick(7, SEVEN_A, a, z)
+    bass(7, SEVEN_A, a + BREAK_ALONE, z, root=AB, hook=H2)          # v38: the break opens on the guitar and its spring alone (BREAK)
+    kick(7, SEVEN_A, a + BREAK_ALONE, z)
     kit(a, z, "h", 2, "half", "kicks", cvel=0.5, ghost=True, crash_at_start=False)
+    if BREAK_ALONE:                                                 # ... and the snare only ghosts there: its backbeat comes in with the bass and kick
+        T["snare"] = [n for n in T["snare"] if not (a * 4 <= n["at"] < (a + BREAK_ALONE) * 4 and n["vel"] > 0.5)]
     crash(a * 16, 0.7, "sp")
 
     # 5. 77-105  seven meets eleven: RIFF B, guitars on seven, the bass on eleven; the lead's tune arrives halfway
@@ -1032,9 +1040,14 @@ HANDED = (f" synth.layers.0.mute=expr.pm*{HAND.split(':')[0]} synth.layers.0.mut
 # frequencies arrive after their low ones, so a muted note leaves a short falling splash behind it. mix : decay : track dB.
 # At 0.25 the splash is 3 dB up in the gaps (the quiet quarter of the time -21.2 -> -18.2 dB) and the hand's mute still
 # shows (a muted note falls 3.7 dB inside itself; 4.9 before); at 0.35 the mute is washed out (1.9). "" = v34 (the plate).
-SPRING = os.environ.get("C10T1_SPRING", "0.25:1.6s:0.5")
+# MY SLIP, mended in v38: that spring did NOT have highs arriving after lows (chirp-eco's dispersion.py: every band
+# together; three short loops, a flutter). The engine's spring now has `drip` (engine feature 5, bd-7becc2), and a fourth
+# field here sets it: at drip 1 each echo is a rising chirp (2.8 kHz 3.6 ms and 4 kHz 8.4 ms after 500 Hz). It is denser,
+# so the mix comes down to 0.2 to leave the gaps and the mute where they were (quiet quarter -18.9 dB, the mute's fall
+# 3.5 dB; at 0.25 with the drip the earlier bench read 2.5). "0.25:1.6s:0.5" = v37 (the flutter).
+SPRING = os.environ.get("C10T1_SPRING", "0.2:1.6s:0.5:1")
 if SPRING:
-    HANDED += f" fx.6.kind=spring fx.6.mix={SPRING.split(':')[0]} fx.6.decay={SPRING.split(':')[1]}"
+    HANDED += f" fx.6.kind=spring fx.6.mix={SPRING.split(':')[0]} fx.6.decay={SPRING.split(':')[1]}" + (f" fx.6.drip={SPRING.split(':')[3]}" if len(SPRING.split(':')) > 3 else "")
     if CRUNCH_DB == "2dB":
         CRUNCH_DB = f"{2 + float(SPRING.split(':')[2]):g}dB"
 EYE = [float(x) for x in EYEFX.split(":")] if EYEFX else []
