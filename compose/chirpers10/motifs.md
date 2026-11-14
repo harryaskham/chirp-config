@@ -139,3 +139,35 @@ Heard three ways, as the riff is: SPOKEN TOGETHER in step (bars 16-23, a line ev
 **The echo, heard naked (v16).** Bars 42-44, in the middle of the hold an eighth apart: the bass and the drums rest and the two dry guitars are alone, hard left and right, the right one an eighth ahead. What this distance has is the echo; here it is heard as one. A crash, and the beat comes back for the hold's last four bars.
 
 **The music boxes run down (v17).** The ending. After the two guitars' last four bars against each other, the two music boxes play the riff for two bars in time, half a bar apart, and then run down as a music box does when its spring is spent: every note later than the last (the last is three times as slow as the first), softer, and one last F from each, the right box's first. The two wooden clocks have left the song (Harry: "Sounds like a click track"). The drift is the boxes' alone too: the ride bell's pendulum is out of it (Harry: "doesnt work at this tempo on this kit piece"), and the heavy guitars no longer come back early (Harry: "It gives the landing away").
+
+## t3 Plain Hunt (chirper-zero)
+
+**The idea.** A third kind of long cycle. Common Time: three cells of different lengths under one pulse. Odd Sympathy: one riff against itself on two clocks. Here the cycle is an ORDER. English church bells cannot play tunes (a bell swings full circle and can only strike a little sooner or later), so ringers ring changes: the bells strike once each, in a row, and from one row to the next a bell may only swap places with its neighbour. A method is a rule for the swaps that visits every possible order exactly once and comes back to where it began. On five bells that is 120 rows, an extent, and until the last row nothing is heard twice.
+
+**The pulse.** 96 bpm, 4/4. The row is six sixteenths long, so the row and the bar line meet every third bar (eight rows).
+
+**The row.** Five notes that change places, and a low F that always comes last (the tenor behind):
+
+| bell | 1 (the treble) | 2 | 3 | 4 | 5 | 6 (the tenor) |
+|---|---|---|---|---|---|---|
+| note | Eb | C | B | Ab | Gb | F |
+
+Rounds is the bells in order: Eb C B Ab Gb F, the album's hook notes running down. Every note is a muted chug on the low string except the treble, which is open and loud.
+
+**The hunt.** In both methods the treble plain hunts: its place in the row walks 2 3 4 5 5 4 3 2 1 1 and round again, the whole piece long. The kick goes with it (and with the tenor) and a church bell doubles it three octaves up: an accent that slides later and later through the riff, then earlier and earlier.
+
+**The methods.** Plain Bob Doubles, called plain plain plain bob three times (place notation 5.1.5.1.5.1.5.1.5.125, bob 145), and Grandsire Doubles, called plain bob plain bob plain single twice (3.1.5.1.5.1.5.1.5.1, bob 3.1 at the end, single 3.123). The generator rings both and asserts each is a true extent: 120 rows, all different, the last one rounds.
+
+**The form** (bars, 0-indexed; 2.5 s a bar):
+
+| bars | time | what |
+|---|---|---|
+| 0-4 | 0:00 | the bells alone ring rounds, slowly (a row every three beats), over a drone |
+| 4-10 | 0:10 | the band takes the row up at twice the speed: rounds, sixteen times |
+| 10-55 | 0:25 | the first extent, Plain Bob: forty rows on F, forty on Ab (1:02), forty on B (1:40); half time, then the backbeat, then the kick on every note |
+| 55-63 | 2:17 | it has come round: one chord, and the bells alone again, rounds, slowly |
+| 63-108 | 2:37 | the second extent, Grandsire: on F, on Ab (3:15), on C (3:52) |
+| 108-117 | 4:30 | the landing: rounds on F (down a fifth from C), twenty-four times, and the bells ring rounds over the band at half its speed |
+| 117-120 | 4:52 | one chord; the tenor tolls three times |
+
+v1 is the skeleton: the whole shape standing, bare. No voice yet.
