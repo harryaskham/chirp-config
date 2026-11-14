@@ -59,9 +59,10 @@ Two measures, both in nine bands (20-60-120-250-500-1k-2k-4k-8k-16k Hz), both in
 EVERY ROW IS READ FROM THE MONO SUM (left + right) of the file, ours and the records' alike. A part that is wide and
 decorrelated (a room, a hard-panned pair playing different things) counts up to 3 dB less than the same part in the
 centre, so a part moved out of a room into the centre rises in its bands here while the stereo power spectrum
-(tools/gspec.py sums the two channels' power) does not move. chirper-zero, Common Time v41: a snare taken out of the
-cymbals' room read 0.4-0.8 dB more at 8-16 kHz in this table and unchanged (-20.0 against -20.1) by gspec. Both are
-right; they answer different questions: read both before moving a band by less than a dB.
+(tools/gspec.py sums the two channels' power) moves less or not at all. chirper-zero, Common Time v41, measured on
+riff A: a snare taken out of the cymbals' room raised 8-16 kHz by 0.27 dB in the two channels' power and by 0.54 dB
+in the mono sum (this table read +0.6). Half of the rise was real; half was the wide room counting short in mono.
+Both readings are right; they answer different questions: read both before moving a band by less than a dB.
 
 Read it as: a band where the whole mix is more than about 1 dB from the references' median is worth a look; the group
 rows say which instrument carries it. A compressed bass or a clipped drums bus changes level with what is played, so
