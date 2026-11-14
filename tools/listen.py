@@ -167,6 +167,18 @@ def committed_text(rel):
         return f.read()
 
 
+def at_head(rel):
+    """Whether git HEAD holds this path."""
+    return subprocess.run(["git", "cat-file", "-e", f"HEAD:{rel}"], cwd=ROOT, capture_output=True).returncode == 0
+
+
+def first_version_pending(rel, kept, tracked=None):
+    """A track whose FIRST version is still being written: no kept round yet and its song file not in git HEAD. A cut
+    leaves it out: committed_text would take the working file, half written (14 Nov: Common Time's second song was
+    opened while snapshots of the first were being cut on every kept version)."""
+    return not kept and not (at_head(rel) if tracked is None else tracked)
+
+
 def default_render(pin, song, wav_out):
     sys.path.insert(0, HERE)
     import chirpers as CH
@@ -206,6 +218,9 @@ def cut(album_id, label="", render=default_render, canonical=default_canonical, 
             continue
         best = c.get("best") or {}
         kept = [h for h in C.history(cid) if h.get("kept") and h.get("version")]
+        if first_version_pending(rel, kept):
+            log(f"{cid}: no kept version and its song is not committed (a first version being written): left out")
+            continue
         text = committed_text(rel)
         sha = hashlib.sha256(text).hexdigest()[:16]
         stem = f"t{n:02d}"

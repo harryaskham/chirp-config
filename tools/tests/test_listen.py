@@ -229,6 +229,18 @@ class Committed(unittest.TestCase):
         self.assertFalse([f for f in os.listdir(os.path.join(L.ROOT, "songs")) if f.startswith(f".listen-{os.getpid()}")])
 
 
+class FirstVersion(unittest.TestCase):
+    def test_a_first_version_still_being_written_is_left_out_of_a_cut(self):
+        self.assertTrue(L.at_head("songs/chirpers9-t1.yaml"))
+        self.assertFalse(L.at_head("songs/no-such-song-in-head.yaml"))
+        kept = [{"kept": True, "version": "v1"}]
+        self.assertTrue(L.first_version_pending("songs/no-such-song-in-head.yaml", []))      # untracked, never kept
+        self.assertFalse(L.first_version_pending("songs/no-such-song-in-head.yaml", kept))   # kept once: its text is cut
+        self.assertFalse(L.first_version_pending("songs/chirpers9-t1.yaml", []))             # committed: HEAD's text is cut
+        self.assertTrue(L.first_version_pending("x", [], tracked=False))
+        self.assertFalse(L.first_version_pending("x", [], tracked=True))
+
+
 class Server(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
