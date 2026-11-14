@@ -367,6 +367,31 @@ def bass(b0, b1, lead=0, vel=0.9, root=0, union=False, only=None):
                     add("bass", b * 16 + q, 1, root + (F1 if kind in "co" else HOOK[int(kind[1])]), vel * 0.85)
 
 
+# v19: THE VOICE IN TUNE, AND IN THE BAND (section round, 0:36-0:53: the four lines where the two clocks are in step).
+# Harry, on the Questions page, of the spoken words: "yes but needs to be more realistic and in some kindof tune", and
+# of how they sit: "On top, like a voice-over". Both were true by construction: the voice SPOKE on one pitch (a
+# speaking pitch, not a note of the song), thinned to a telephone band, dry, with the guitars pumped 5 dB out of its
+# way at every syllable. Here, in the first of its two passages:
+#   1. IN TUNE. Each syllable already falls on an attack of the riff; now it is SUNG on that attack's note, two octaves
+#      above the guitars: F F F B A-flat F F C, the riff itself (the three lines that start before the bar start on
+#      the riff's last note, C). Benched alone, the same voice sung on these notes read as many words as spoken
+#      (20 of 24 for 19).
+#   2. IN THE BAND. It goes through the guitars' own room and a little of the hall; the guitars duck 2 dB under it,
+#      not 5; and its level is set by presence against the band to where the eleven records' voices sit (-9.1 dB),
+#      not over it (it was -6.3, the second loudest thing after the snare).
+#      (Tried and not kept: opening its telephone band, a high-pass at 300 Hz for the two at 500. This voice's weight
+#      is all at 250-1000 Hz, and sung at F3-C4 it put the voiced bars' 250-500 Hz 6.3 dB over the records, from 1.1.
+#      So the band stays as v7 fitted it.)
+#   3. DOUBLED. A second singer (`voice-hook`, another of the library's voices) sings the same line quietly on each
+#      side: a voice with others behind it, as a band's singer has.
+# The second spoken passage (2:13, the two voices a beat apart) is left as it was, on purpose, so the two can be heard
+# against each other in the song until Harry says which.
+# the MIDI note the riff's F is sung on ; the voice's gain ; the pump under it, dB ; its room (kind:decay:mix) ; its hall
+# send ; the doubles (patch:gain:pan, or "") ; its eq. "" = v18.
+SUNG = os.environ.get("C10T2_SUNG", "53;-10dB;2;room:0.35s:0.15;-16dB;voice-hook:-9.5dB:0.6;hp cutoff=500|hp cutoff=500|peak cutoff=2500 q=0.8 gain=6dB")
+RIFF_NOTE = {0: 0, 1: 0, 3: 0, 6: 6, 10: 3, 12: 0, 13: 0, 15: 7, -1: 7}      # the riff's note at each of its attacks, semitones over F
+
+
 def say(line, bar, kind="talk", ring=True, one=False):
     """One line on both voices of a kind (spoken `tl`/`tr`, barked `vl`/`vr`): a syllable to each attack of the riff,
     none longer than two sixteenths and a bit (short syllables read better, and take turns better)."""
@@ -376,7 +401,10 @@ def say(line, bar, kind="talk", ring=True, one=False):
         ln = (pos[i + 1] - pos[i]) if i < 7 else (6 if ring else (1 if how == "down" else 2))
         ln = min(ln, 2.2) if not (i == 7 and ring) else ln
         pitch = nm(65) if kind == "bark" else ("m41.5" if i == 7 else "m45.5")       # the talk falls at the end of a line
-        for tr in (("vl", "vr") if kind == "bark" else ("tc",) if one else ("tl", "tr")):
+        sung = SUNG and one and kind == "talk"
+        if sung:
+            pitch = nm(int(SUNG.split(";")[0]) + RIFF_NOTE[pos[i]])
+        for tr in (("vl", "vr") if kind == "bark" else (("tc",) + (("sl", "sr") if sung and SUNG.split(";")[5] else ())) if one else ("tl", "tr")):
             T.setdefault(tr, []).append({"at": round((bar * 16 + pos[i] + (HOLES if kind == "talk" else 0)) / 4, 4), "len": round(ln * 0.9 / 4, 4), "pitch": pitch, "vel": 0.9, "ph": ph})
 
 
@@ -703,7 +731,8 @@ def song():
             lowride += [[f"{92 * 4}b", float(LOCK.split(";")[2])], [f"{98 * 4}b", 0]] if LOCK else [[f"{90 * 4}b", 0]]      # v12: the bass's pedal swells into the lock
     lowride = lowride if len(lowride) > 1 else None
     talkfx = ([TALKFX] if TALKFX else []) + ([{"type": "eq", "bands": TALKEQ.split("|")}] if TALKEQ else [])
-    pump = [{"type": "pump", "on": tr, "depth": f"-{hd[3].split(':')[0] if tr == 'tc' else hd[4]}dB", "attack": "4ms", "hold": hd[3].split(":")[1], "release": hd[3].split(":")[2]}
+    sg = SUNG.split(";") if SUNG and HEARD and VOICE else None
+    pump = [{"type": "pump", "on": tr, "depth": f"-{(sg[2] if sg else hd[3].split(':')[0]) if tr == 'tc' else hd[4]}dB", "attack": "4ms", "hold": hd[3].split(":")[1], "release": hd[3].split(":")[2]}
             for tr in ("tc", "tl", "tr")] if VOICE and HEARD and float(hd[3].split(":")[0]) else []
     dtop = [f"lp cutoff={DTOP.split(';')[0]} q={DTOP.split(';')[1]}"] if DTOP else []
     tw = TWIN.split(";")[0].split(":") if TWIN else None
@@ -719,7 +748,12 @@ def song():
            for tr, sgn in (("ml", -1), ("mr", 1))] if BOX else
           [{"name": "cl", "patch": CLEAN, "gain": "1dB", "pan": -0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP]},
            {"name": "cr", "patch": CLEAN, "gain": "1dB", "pan": 0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP], "warp": WARP}]),
-        *([{"name": "tc", "patch": "voice-talk", "gain": hd[0], "pan": 0, "fx": talkfx}] if VOICE and HEARD else []),
+        *([{"name": "tc", "patch": "voice-talk", "gain": sg[1], "pan": 0, "sends": {"hall": sg[4]},
+            "fx": [{"type": "eq", "bands": sg[6].split("|")}, "reverb kind={} decay={} mix={} predelay=6ms".format(*sg[3].split(":"))]}]
+          + ([{"name": tr, "patch": sg[5].split(":")[0], "gain": sg[5].split(":")[1], "pan": sgn * float(sg[5].split(":")[2]), "sends": {"hall": sg[4]},
+               "fx": [{"type": "eq", "bands": sg[6].split("|")}, "reverb kind={} decay={} mix={} predelay=6ms".format(*sg[3].split(":"))]}
+              for tr, sgn in (("sl", -1), ("sr", 1))] if sg[5] else []) if sg else
+          [{"name": "tc", "patch": "voice-talk", "gain": hd[0], "pan": 0, "fx": talkfx}] if VOICE and HEARD else []),
         *([{"name": tr, "patch": "voice-talk", "gain": hd[1] if HEARD else vo[0], "pan": sgn * float(hd[2] if HEARD else vo[2]),
             "fx": talkfx,
             **({"warp": WARP} if tr == "tr" else {})} for tr, sgn in (("tl", -1), ("tr", 1))] if VOICE else []),
