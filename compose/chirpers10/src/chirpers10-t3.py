@@ -106,6 +106,17 @@ TOWER = os.environ.get("C10T3_TOWER", "fof-chant;-15.5dB;-6dB;modal-gong;-13dB;F
 # the row; then the four guitars come in on the crash.
 # the patch string ; its gain ; its high-pass, Hz ; rows the guitars rest at the start ; its gain in those rows, dB over. "" = v2.
 FUZZ = os.environ.get("C10T3_FUZZ", "bass-fuzz fx.0.shape=wavefold;4dB;180;8;4")
+# v4: THE CLIMB (section round, 3:52-4:30: the last third of the second extent, which the section map called static:
+# fifteen bars of the row with the kick on every note). Over it a LEAD GUITAR now plays the row's own notes the other
+# way and sixteen times slower than the band's eighths would be: from the ground up, C D-flat E-flat G-flat G B-flat,
+# two bars to a note, and then the octave C held for the last three bars. The band's row falls and falls; the lead
+# climbs once, slowly, and arrives at the top as the extent comes round and the band lands on F. It is the song's
+# first lead, on the library's `lead-monster` (a sustaining 8-string through a 5150 with a delay and a big room),
+# which no other track on the album uses. For the last four bars the snare is on every beat.
+# The four guitars' bus comes down a little under the lead, so the climb is not louder than the landing it leads to.
+# the patch ; its gain ; its lowest note (MIDI) ; bars to a note ; the snare's velocity on the added beats ; the
+# guitars' bus under the lead, dB. "" = v3.
+CLIMB = os.environ.get("C10T3_CLIMB", "lead-monster;-12dB;72;2;0.85;-1.5")
 
 
 def add(tr, s16, len16, pitch, vel, **expr):
@@ -224,6 +235,16 @@ def compose():
     for i, kind in enumerate("bac"):
         beat(PART2 + 15 * i, PART2 + 15 * (i + 1), kind)
         fill(PART2 + 15 * (i + 1))
+    if CLIMB:                            # v4: the lead climbs the row, slowly, over the last third; the snare on every beat at the end
+        base, per, sv = int(CLIMB.split(";")[2]), float(CLIMB.split(";")[3]), float(CLIMB.split(";")[4])
+        b0 = PART2 + 30
+        for i, iv in enumerate(sorted(PITCH.values())):
+            T.setdefault("lead", []).append({"at": (b0 + i * per) * 4, "len": round(per * 4 - 0.06, 4), "pitch": nm(base + iv), "vel": 0.85})
+        top = b0 + 6 * per
+        T.setdefault("lead", []).append({"at": top * 4, "len": round((LAND - top) * 4 - 0.25, 4), "pitch": nm(base + 12), "vel": 0.95})
+        for b in range(LAND - 4, LAND):
+            for q in (0, 8):
+                drum("s", b * 16 + q, sv)
     # the landing: rounds on F, twenty-four times, and the bells ring rounds over the band at half its speed
     for r in range(24):
         row_notes(ROUNDS, LAND * 16 + r * 6, 0, bell=False)
@@ -266,6 +287,7 @@ def song():
         {"name": "cym", "patch": kit, "gain": {"value": "-4.5dB", "mod": [{"src": "auto.busy", "amount": 1}]}, "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air,
          "auto": {"busy": {"points": [["0b", 0]] + [pt for b0, b1 in ((PART1 + 30, PART1 + 45), (PART2 + 30, END)) for pt in ([f"{b0 * 4 - 0.5}b", 0], [f"{b0 * 4}b", CYM_BUSY], [f"{b1 * 4 - 0.5}b", CYM_BUSY], [f"{b1 * 4}b", 0])], "curve": 0}}},
         {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
+        *([{"name": "lead", "patch": CLIMB.split(";")[0], "gain": CLIMB.split(";")[1], "pan": 0, "sends": {"hall": "-12dB"}}] if CLIMB else []),
         # the bells' fader: down in the landing, where twelve slow rows of six ring into one another over the full band
         {"name": "bell", "patch": "modal-bell", "gain": {"value": os.environ.get("C10T3_BELL", "-18dB"), "mod": [{"src": "auto.lvl", "amount": 1}]}, "pan": 0.1, "sends": {"hall": "-8dB"},
          "auto": {"lvl": {"points": [["0b", 0], [f"{LAND * 4 - 1}b", 0], [f"{LAND * 4}b", BELL_LAND], [f"{END * 4 - 1}b", BELL_LAND], [f"{END * 4}b", 0]], "curve": 0}}},
@@ -292,7 +314,10 @@ def song():
                              {"type": "eq", "bands": ["peak cutoff=400 q=0.8 gain=-6dB", "peak cutoff=5500 q=0.9 gain=1dB", "highshelf cutoff=9000 gain=-2dB"] + dtop}]},
             "oh": {"fx": ["reverb kind=room decay=0.7s mix=1 predelay=4ms low_cut=5000 high_cut=12000 spread=0.6", {"type": "eq", "bands": dtop}]},
             "snr": {"fx": [{"type": "eq", "bands": ["peak cutoff=300 q=0.7 gain=-12dB"]}]},
-            "gtrs": {"fx": [{"type": "eq", "bands": ["peak cutoff=330 q=1.2 gain=-2dB"]}, "reverb kind=room decay=0.35s mix=0.06 predelay=6ms"]},
+            "gtrs": {"fx": ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.under", "amount": 1}]}}] if CLIMB else [])
+                           + [{"type": "eq", "bands": ["peak cutoff=330 q=1.2 gain=-2dB"]}, "reverb kind=room decay=0.35s mix=0.06 predelay=6ms"],
+                     **({"auto": {"under": {"points": [["0b", 0], [f"{(PART2 + 30) * 4 - 0.5}b", 0], [f"{(PART2 + 30) * 4}b", float(CLIMB.split(";")[5])],
+                                                       [f"{LAND * 4 - 0.5}b", float(CLIMB.split(";")[5])], [f"{LAND * 4}b", 0]], "curve": 0}}} if CLIMB else {})},
             "low": {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
                            {"type": "eq", "bands": ["peak cutoff=170 q=1.2 gain=-3dB"]}]},
