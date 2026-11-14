@@ -100,11 +100,15 @@ class Asr(unittest.TestCase):
         n = os.cpu_count()
         self.run_asr("--to", "20")
         self.assertEqual(self.calls("affinity")[0]["affinity"], list(range(max(0, n - 4), n)))   # whisper really ran there
-        self.run_asr("--to", "20", "--cores", "0")
-        self.assertEqual(self.calls("affinity")[1]["affinity"], [0])
-        self.env["ASR_CORES"] = "1"
+        # the overrides are tried on the machine's LAST CPUs, never 0 or 1: on the groove's host those are reserved for
+        # its render threads and the reservation moves a busy stranger off them, so "[0]" read as 4-23 about one run
+        # in sixteen (found by tools/tests/run.py, 14 Nov)
+        one, other = n - 1, max(0, n - 2)
+        self.run_asr("--to", "20", "--cores", str(one))
+        self.assertEqual(self.calls("affinity")[1]["affinity"], [one])
+        self.env["ASR_CORES"] = str(other)
         self.run_asr("--to", "20")
-        self.assertEqual(self.calls("affinity")[2]["affinity"], [1])
+        self.assertEqual(self.calls("affinity")[2]["affinity"], [other])
 
     def test_norm_brings_a_quiet_voice_up_and_is_off_by_default(self):
         import math

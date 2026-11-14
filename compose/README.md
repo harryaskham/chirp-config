@@ -55,6 +55,11 @@ plus Harry's ratings), and Harry's ear decides.
    So does the mirror: a score that does NOT beat the best with the changed song in `--with` and no `--keep` (at a
    score's ceiling every round ties: Common Time v7, 12 Nov). The song file is always the registry's best.
 
+**The tools' tests** (14 Nov): `python3 tools/tests/run.py [WORD …]` runs every test file, each in its own process
+(about two and a half minutes for all 132; `run.py stembal presence` for a few). Run it after changing a module
+other tools import. Do not use `pytest tools/tests` in one process: a few test files set their own scratch root as
+they are imported, and it reports thirty failures that are not there.
+
 `tools/chirpers.py status ALBUM` shows the album; `chirpers.py refresh ALBUM` re-renders every composed song and
 re-saves features (run it after several songs change).
 
