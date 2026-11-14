@@ -193,6 +193,25 @@ FORM = os.environ.get("C10T3_FORM", "c,c;1.0;40:50;bac")
 # after them is played in unison) ; scale steps up ; semitones up ; the two cones ; the guitars' bus under them, dB
 # (six guitars for four: without it the stretch was as loud as the stretch on C it leads to). "" = v6.
 HARM = os.environ.get("C10T3_HARM", "ct-twin fx.1.model=mark fx.2.mic=0.55 fx.2.cone={};-3dB;0.45;60:78;2;12;18,19;-0.7")
+# v8: THE LAST STRETCH HAS ITS OWN RIG (palette round). Both cycles were played on the same four guitars: a 5150 take
+# and a `nolly` take a side, all through the engine's modern 4x12. Now, from where the key moves to C and the lead
+# begins to climb (4:12) until the landing, the SECOND pair is another rig:
+# a `gojira` amp through the engine's 1x12 cabinet (which no song on the album had used: all five cabinets are in use
+# now). Alone on the same notes and as loud as the pair it replaces: 3 to 8 dB less under 250 Hz, 1.6 dB more at
+# 500-1000 Hz (a small box honks: 5 dB before the one eq band here), 5.8 dB more at 4-8 kHz and 9.4 more above. So the
+# first pair keeps the weight and the second pair is all bite. At the landing the four come back: the return is a
+# return of the rig too.
+# (Tried first: the new pair through the WHOLE second cycle. The scorer heard the second cycle as less of a return of
+# the first: its two matching stretches fell from 0.82 and 0.71 to 0.73 and 0.53, the share of returning sections from
+# 0.34 to 0.25, the total to 98.79 / 99.36. So the new colour goes where the music is new, the stretch on C, which
+# matched nothing before.)
+# And the FUZZ over the bass, which was meant as teeth only, is cut to its teeth: read against the eleven records the
+# second cycle was 2.2 dB over at 250-500 Hz where the first is 1.2, and part by part the fuzz held a fifth of that
+# band. Its high-pass goes from 180 Hz to the last field here.
+# the patch string ({} = the cone) ; its gain ; the two cones ; one eq band on it ; the fuzz's high-pass, Hz ; the
+# row of the second extent it starts at. "" = v7.
+RIG2 = os.environ.get("C10T3_RIG2", "ct-twin fx.1.model=gojira fx.2.model=1x12 fx.2.mic=0.5 fx.2.cone={};1dB;16,17;700:1:-4;500;80")
+G4B = ("gl", "gr", "jl", "jr") if RIG2 else ("gl", "gr", "gl2", "gr2")
 CALLS_1 = [L for L, c in enumerate("pppb" * 3) if c != "p"]
 CALLS_2 = [L for L, c in enumerate("pbpbps" * 2) if c != "p"]
 BREAKS, BREAK_HITS = [], []          # the calls' spans (sixteenths) and the kit's notes in them
@@ -217,7 +236,7 @@ def drum(piece, s16, vel):
     T.setdefault(tr, []).append({"at": round(s16 / 4, 4), "len": 2.0 if piece in ("c", "x") else 0.5 if piece in ("h", "rb", "rd") else 0.25, "pitch": piece, "vel": round(vel, 3)})
 
 
-def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teeth=False, mode=""):
+def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teeth=False, mode="", trs=None):
     """One row on the band from `s16`: the five bells in the row's order, then the tenor. The treble is open and loud
     and w[0] sixteenths long; the tenor is w[1] muted chugs; every other bell one muted sixteenth. The kick goes with
     the treble and each of the tenor's chugs (`all`: on every sixteenth); a church bell doubles the treble three
@@ -232,7 +251,7 @@ def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teet
             v = 1.0 if b == 1 else (0.95 if j == 0 else 0.9) if b == 6 else 0.85
             if call:
                 v = float(FORM.split(";")[1])
-            for tr in (G4 if gtrs else ()):
+            for tr in ((trs or G4) if gtrs else ()):
                 if bare and b not in (1, 6):
                     continue
                 if b == 1 or call:
@@ -346,7 +365,8 @@ def compose():
     for k, row in enumerate(EXTENT_2):
         row_notes(row, PART2 * 16 + k * L2, KEYS_2[k // 40], W2, kicks="all" if k >= 80 else "hunt",
                   gtrs=not FUZZ or k >= int(FUZZ.split(";")[3]), teeth=bool(FUZZ),
-                  mode=lead_mode(k, CALLS_2) or ("bare" if bare[0] <= k < bare[1] else ""))
+                  mode=lead_mode(k, CALLS_2) or ("bare" if bare[0] <= k < bare[1] else ""),
+                  trs=G4B if RIG2 and k >= int(RIG2.split(";")[5]) else G4)
     for i, kind in enumerate(FORM.split(";")[3] if FORM else "bac"):
         beat(PART2 + T2 * i, PART2 + T2 * (i + 1), kind, 10 ** 6 if FORM else meet(L2))
         fill(PART2 + T2 * (i + 1))
@@ -416,12 +436,14 @@ def song():
         {"name": "gr", "patch": main.format(11), "gain": GM, "pan": 1, "out": "gtrs"},
         {"name": "gl2", "patch": dbl.format(16), "gain": GD, "pan": -0.75, "out": "gtrs"},
         {"name": "gr2", "patch": dbl.format(17), "gain": GD, "pan": 0.75, "out": "gtrs"},
+        *([{"name": tr, "patch": RIG2.split(";")[0].format(RIG2.split(";")[2].split(",")[i]), "gain": RIG2.split(";")[1], "pan": (-0.75, 0.75)[i], "out": "gtrs",
+            "fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*RIG2.split(";")[3].split(":"))]}]} for i, tr in enumerate(("jl", "jr"))] if RIG2 else []),
         *([{"name": tr, "patch": HARM.split(";")[0].format(HARM.split(";")[6].split(",")[i]), "gain": HARM.split(";")[1],
             "pan": (-1, 1)[i] * float(HARM.split(";")[2]), "out": "gtrs"} for i, tr in enumerate(("hl", "hr"))] if HARM else []),
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
         # the kick's fader: down where it plays every sixteenth (the last third of each extent)
         *([{"name": "fuzz", "patch": FUZZ.split(";")[0], "gain": {"value": FUZZ.split(";")[1], "mod": [{"src": "auto.open", "amount": 1}]}, "pan": 0,
-            "fx": [{"type": "eq", "bands": [f"hp cutoff={FUZZ.split(';')[2]}"]}],
+            "fx": [{"type": "eq", "bands": [f"hp cutoff={RIG2.split(';')[4] if RIG2 else FUZZ.split(';')[2]}"]}],
             "auto": {"open": {"points": [["0b", float(FUZZ.split(";")[4])], [f"{PART2 * 4 + int(FUZZ.split(';')[3]) * L2 / 4 - 0.5:g}b", float(FUZZ.split(";")[4])],
                                          [f"{PART2 * 4 + int(FUZZ.split(';')[3]) * L2 / 4:g}b", 0]], "curve": 0}}}] if FUZZ else []),
         {"name": "kick", "patch": kit, "gain": {"value": "2dB", "mod": [{"src": "auto.all", "amount": 1}]}, "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}],
