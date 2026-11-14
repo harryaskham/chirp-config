@@ -1227,6 +1227,18 @@ def song():
     STUT_LANE = [["0b", 0], [f"{t1 - 0.6}b", 0], [f"{t1 - 0.5}b", 1], [f"{t1 + 0.6}b", 1], [f"{t1 + 0.7}b", 0]]
     OHC = {"sends": {"oh": DROOM.split(":")[1] + "dB"}} if DROOM else {}
     OHS = {"sends": {"oh": DROOM.split(":")[2] + "dB"}} if DROOM else {}
+    # v36: THE KICK'S CLICK. Against two records' drum stems (kbench.py: this kit in the Bleed and The Faultless
+    # reproductions, tools/drumpunch.py) the kick was the kit's furthest part from the record: its sub stood 13 and 19 dB over
+    # its click (35-120 Hz against 2-6 kHz in the first milliseconds) where the records' stand 0 and 9. A peak on the kick's
+    # track (Hz:q:dB): on that bench, dry, +6 dB gives 9 and 11 and +10 dB gives 6 and 7 (the kick's score 46 -> 54, 69 -> 71).
+    # IN THIS SONG the drums' bus clips the kick's peak and the click rides on that peak, so less of it survives: measured
+    # on the drums alone through their bus (riff A, 53 clean hits; drumpunch against v35) the kick stood at 14.4 dB, and
+    # reads 11.9 at +6 dB and 9.3 at +10 dB, The Faultless's own figure, with its rise (11 ms) and its peak level unchanged.
+    # (A copy of the click sent round the clip reached 8.7 and 6.2, and raised the drums' peaks 1 and 3 dB: not taken.)
+    # The kick is where the wheels are heard in the drums, so its click is what tells one wheel from another under the
+    # guitars. "" = v35.
+    KCLICK = os.environ.get("C10T1_KCLICK", "4500:0.8:10")
+    KCLICK_FX = {"fx": [{"type": "eq", "bands": peaks(KCLICK)}]} if KCLICK else {}
     AIRFX = ({"fx": [{"type": "eq", "bands": ["highshelf cutoff=%s gain=%sdB" % tuple(CYMAIR.split(";")[0].split(":"))]}]}
              if CYMAIR and CYMAIR.split(";")[0] else {})
     GOUT = {"out": "gtrs"} if GEQ else {}
@@ -1258,7 +1270,7 @@ def song():
         ("wl", WALL_L, "-2dB", -0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
         ("wr", WALL_R, "-2dB", 0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
         ("bass", BASS, "0.5dB", 0, BOUT),
-        ("kick", KIT, "2dB", None, {"out": "drums"}), ("snare", KIT, "8dB", None, {"out": "drums", **OHS}),
+        ("kick", KIT, "2dB", None, {"out": "drums", **KCLICK_FX}), ("snare", KIT, "8dB", None, {"out": "drums", **OHS}),
         ("cym", KIT, "-3dB", None, {"out": "drums", **OHC, **AIRFX}), ("toms", KIT, "4dB", None, {"out": "drums", **OHS}),
         ("hat", KIT, "14dB", float(HATPAN) if HATPAN else None, {"out": "drums", **OHC, **AIRFX}), ("ride", KIT, "6dB", None, {"out": "drums", **OHC, **AIRFX}),
         ("lead", "m8-lead-guitar", {"value": "-3dB", "mod": [{"src": "auto.eye", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"eye": {"points": LEAD_LANE}}}),
