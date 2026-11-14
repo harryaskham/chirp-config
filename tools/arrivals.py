@@ -5,6 +5,7 @@ against its old self". A lead at a sensible level made a climb 0.7 dB louder tha
 read against the last version would have passed a song whose arrival is the quieter of the two.)
 
   arrivals.py SONG MARK [MARK ...] [--edge 4] [--flag 0.5] [--to POS] [--wav FILE] [--mastered] [--pin CHIRP] [--json]
+  arrivals.py SONG 114:harmony 127!:call 131!:on-C --to 139        (ONE STRETCH: a short render, seconds not minutes)
 
 SONG is an id (songs/ID.yaml) or a file. Each MARK is where a section starts, as `chirp render --from` takes
 positions, with a label if wanted: 94:climb, 372b:climb, 232s. A `!` after the position says the section is an
@@ -19,6 +20,11 @@ next is heard as written), and prints for each section:
   vs before  its level against the section before's                     (how it SITS after it)
 and at every `!` mark flags QUIETER THAN ITS APPROACH when the step in, or the section against the one before, is
 down by --flag dB or more (default 0.5). Marks without a `!` are never flagged: a break is meant to fall.
+ONE STRETCH OF THE SONG (the bench before the full render: chirper-zero, Plain Hunt v7, where six guitars for four
+put a stretch level with the one it leads to): give the marks of that stretch and --to where it ends. The render
+starts --preroll seconds (default 8) before the FIRST mark, not at the top, and stops at --to, so eighteen bars
+cost seconds. The levels are the same as the whole render's (the engine warms its effects over the preroll; checked
+on Plain Hunt: every figure within 0.1 dB). --preroll 0 renders from the top.
 --mastered renders with the song's own loudness and limiter instead (what the released file will do: a limiter
 flattens steps the raw mix has). --wav FILE reads a render already made in place of rendering (raw or mastered is
 then what that file is; the positions still come from the song's tempo).
@@ -54,16 +60,17 @@ def lufs(x, sr):
     return round(levels.loudness(x, sr)[0], 1) if len(x) else None
 
 
-def sections(x, sr, marks, end, edge_s):
+def sections(x, sr, marks, end, edge_s, base=0.0):
     """[{label, pos, at, to, arrival, level, opens, closes, step, vs_before}] for the stretches between the marks
-    (seconds; the last runs to `end`). The edges are edge_s seconds, or the whole section when it is shorter."""
+    (seconds; the last runs to `end`). The edges are edge_s seconds, or the whole section when it is shorter. `base`
+    is where x starts in the song (a render of one stretch), in seconds."""
     rows = []
     for m, nxt in zip(marks, marks[1:] + [{"at": end}]):
         s0, s1 = m["at"], min(nxt["at"], end)
         if s1 <= s0:
             continue
-        f0, f1 = wincut.frames(s0, s1, sr)
-        seg = x[f0:f1]
+        f0, f1 = wincut.frames(s0 - base, s1 - base, sr)
+        seg = x[max(f0, 0):f1]
         e = min(len(seg), int(round(edge_s * sr)))
         rows.append({"label": m["label"], "pos": m["pos"], "at": round(s0, 2), "to": round(s1, 2), "arrival": m["arrival"],
                      "level": lufs(seg, sr), "opens": lufs(seg[:e], sr), "closes": lufs(seg[len(seg) - e:], sr),
@@ -86,9 +93,10 @@ def flagged(r, flag):
     return "QUIETER THAN ITS APPROACH: " + " and ".join(why) if why else ""
 
 
-def render(pin, song, out, mastered, to=None):
+def render(pin, song, out, mastered, to=None, frm=None, preroll=0.0):
     cmd = ["nice", "-n", "12", pin, "render", "-f", song, "--seed", "0", "--threads", "4", "-o", out]
     cmd += [] if mastered else ["--set", "loudness=null"]
+    cmd += ["--from", frm, "--preroll", f"{preroll:g}"] if frm and preroll else []
     cmd += ["--to", to] if to else []
     env = {k: v for k, v in os.environ.items() if k != "LD_LIBRARY_PATH"}
     r = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT, env=env)
@@ -103,7 +111,7 @@ def clock(s):
 
 def main(argv=None):
     a = list(sys.argv[1:] if argv is None else argv)
-    opt = {"--pin": None, "--wav": None, "--edge": "4", "--flag": "0.5", "--to": None}
+    opt = {"--pin": None, "--wav": None, "--edge": "4", "--flag": "0.5", "--to": None, "--preroll": "8"}
     for k in list(opt):
         if k in a and a.index(k) + 1 < len(a):
             i = a.index(k)
@@ -129,9 +137,9 @@ def main(argv=None):
             or str(canon.get("meter") or "4/4").replace(" ", "") != "4/4"):
         raise SystemExit("arrivals: only songs in one tempo and 4/4 are read")
     try:
-        edge, flag = float(opt["--edge"]), float(opt["--flag"])
+        edge, flag, preroll = float(opt["--edge"]), float(opt["--flag"]), float(opt["--preroll"])
     except ValueError:
-        raise SystemExit("arrivals: --edge takes bars and --flag dB, as in --edge 4 --flag 0.5") from None
+        raise SystemExit("arrivals: --edge takes bars, --flag dB and --preroll seconds, as in --edge 4 --flag 0.5") from None
     marks = [mark(t, tempo) for t in a[1:]]
     if None in marks:
         raise SystemExit(f"arrivals: {a[1:][marks.index(None)]}: a MARK is POS[!][:label], POS as chirp render takes one "
@@ -140,20 +148,24 @@ def main(argv=None):
     to = wincut.position(opt["--to"], tempo) if opt["--to"] else None
     if opt["--to"] and to is None:
         raise SystemExit(f"arrivals: --to {opt['--to']}: a position as chirp render takes one")
-    work = None
+    work, base = None, 0.0                              # base: where the render starts in the song, in seconds
     try:
         wav = opt["--wav"]
         if not wav:
             work = tempfile.mkdtemp(prefix="arrivals-", dir="/tmp/lt" if os.path.isdir("/tmp/lt") else None)
-            wav = render(pin, song, os.path.join(work, "mix.wav"), flags["--mastered"], opt["--to"])
+            first = marks[0]
+            short = preroll > 0 and first["at"] > preroll      # a stretch: start just before its first mark
+            base = first["at"] if short else 0.0
+            wav = render(pin, song, os.path.join(work, "mix.wav"), flags["--mastered"], opt["--to"],
+                         first["pos"] if short else None, preroll)
         x = L.load(wav)
     finally:
         if work:
             for f in os.listdir(work):
                 os.remove(os.path.join(work, f))
             os.rmdir(work)
-    end = min(len(x) / L.SR, to) if to else len(x) / L.SR
-    rows = sections(x, L.SR, marks, end, edge * 240.0 / tempo)
+    end = min(base + len(x) / L.SR, to) if to else base + len(x) / L.SR
+    rows = sections(x, L.SR, marks, end, edge * 240.0 / tempo, base)
     for r in rows:
         r["flag"] = flagged(r, flag)
     what = "a render given" if opt["--wav"] else ("mastered" if flags["--mastered"] else "raw")

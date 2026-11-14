@@ -145,6 +145,19 @@ class Windows(unittest.TestCase):
         text = self.run_tool("--from", "3", "--to", "5", "--stereo")
         self.assertIn("(3 -> 5; seed 0; unmastered, K-weighted, both channels): 3 tracks", text)
 
+    def test_an_empty_window_is_refused_with_the_way_to_write_one_bar(self):
+        for argv in (("--windows", "1-2", "3-3:one bar"), ("--from", "3", "--to", "3")):
+            with self.assertRaises(SystemExit) as e:
+                self.run_tool(*argv)
+            self.assertIn("3-3 is an empty window: TO is where it stops, so bar 3 alone is 3-4", str(e.exception))
+        with self.assertRaises(SystemExit) as e:
+            self.run_tool("--windows", "5-3")
+        self.assertIn("5-3 runs backwards", str(e.exception))
+        with self.assertRaises(SystemExit) as e:
+            self.run_tool("--windows", "8b-8b")
+        self.assertIn("8b-8b is an empty window", str(e.exception))
+        self.assertFalse(os.path.exists(self.log))                         # nothing was rendered
+
     def test_windows_and_from_do_not_mix_and_a_window_needs_two_ends(self):
         for argv in (("--windows", "1-2", "--from", "3"), ("--windows", "riffA")):
             with self.assertRaises(SystemExit):

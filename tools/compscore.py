@@ -470,6 +470,35 @@ def m_recurrence(ctx):
                                                     "share": round(frac, 3), "best_matches": [round(b, 2) for b in best]}
 
 
+EDGE = 0.02               # a share this close to its band's end, inside it, is ON THE EDGE
+
+
+def recurrence_band(album):
+    """The album's recurrence band (lo, hi), as m_recurrence reads it."""
+    lo, hi = (((album or {}).get("params") or {}).get("recurrence") or {}).get("band", (0.25, 0.7))
+    return float(lo), float(hi)
+
+
+def on_edge(share, lo, hi, margin=EDGE):
+    """"floor" or "ceiling" when a share is INSIDE the band and within margin of that end; "" otherwise."""
+    if share is None or not lo <= share <= hi:
+        return ""
+    return "floor" if share - lo <= margin + 1e-9 else ("ceiling" if hi - share <= margin + 1e-9 else "")
+
+
+def edge_note(shares, lo, hi, margin=EDGE):
+    """One line saying which of the novelty cuts' recurrence shares sit on the band's edge, or "" when none does. A term
+    at its edge reads 100 and says nothing until the next change tips it (chirper-zero, Plain Hunt v5: 0.252 against a
+    floor of 0.25 on seed 0; v6's first candidate fell to 97.9)."""
+    near = [(s, on_edge(s, lo, hi, margin)) for s in shares]
+    near = [(s, e) for s, e in near if e]
+    if not near:
+        return ""
+    said = ", ".join(f"{s:.3f} (the {e}, {lo if e == 'floor' else hi:g})" for s, e in near)
+    return (f"ON THE EDGE: recurrence share {said} on {len(near)} of {len(shares)} cut(s): the term reads 100 there and says "
+            "nothing until the next change tips it")
+
+
 def fine_onset(x, hop):
     """Spectral-flux onsets (40 log bands, 30 Hz-16 kHz) at HOP samples: the rhythm term's opt-in finer grid."""
     from scipy import signal
@@ -855,6 +884,11 @@ def main(argv=None):
         for k, d in sorted(res["detail"].items()):   # detail-only terms (a plugin awaiting a weight): shown, not counted
             if k not in res["terms"] and d and d.get("score") is not None:
                 print(f"  {k:10s} {float(d['score']):6.1f}  (detail only)  {json.dumps(d, default=float)[:110]}")
+        # only when it is so: a recurrence share sitting on its band's end, on any of the album's novelty cuts
+        shares = [m_recurrence({**ctx, "sections": secs})[1].get("share") for secs in ctx.get("section_sets") or [ctx["sections"]]]
+        note = edge_note(shares, *recurrence_band(ctx.get("album")))
+        if note:
+            print(f"  {note} (tools/secsim.py shows which sections return)")
         return
     print(json.dumps(res, default=float))
 

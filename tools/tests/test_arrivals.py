@@ -34,6 +34,7 @@ with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "calls.log"),
     f.write(" ".join(a) + "\n")
 raw = "loudness=null" in a
 bars = song["bars"][: int(a[a.index("--to") + 1]) - 1] if "--to" in a else song["bars"]
+bars = bars[int(a[a.index("--from") + 1]) - 1:] if "--from" in a else bars
 t = np.arange(2 * 48000) / 48000
 x = np.concatenate([10 ** ((db if raw else -20.0) / 20) * np.sin(2 * np.pi * 1000 * t) for db in bars])
 with wave.open(a[a.index("-o") + 1], "wb") as w:
@@ -141,6 +142,17 @@ class Song(unittest.TestCase):
         self.assertNotIn("loudness=null", self.calls()[-1])
         _, none = self.run_tool("1:quiet", "5:verse", "17:landing")
         self.assertIn("no mark has a `!`", none.splitlines()[-1])
+
+    def test_one_stretch_is_a_short_render_and_reads_as_the_whole_does(self):
+        marks = ["13:climb", "17!:landing", "25:break"]
+        _, whole = self.run_tool(*marks, "--to", "29", "--edge", "2", "--preroll", "0", "--json")
+        self.assertNotIn("--from", self.calls()[-1])                              # from the top, as asked
+        _, short = self.run_tool(*marks, "--to", "29", "--edge", "2", "--json")
+        self.assertIn("--from 13 --preroll 8 --to 29", self.calls()[-1])          # from just before the first mark
+        self.assertEqual(json.loads(short)["sections"], json.loads(whole)["sections"])
+        self.assertEqual([r["at"] for r in json.loads(short)["sections"]], [24.0, 32.0, 48.0])   # the song's clock
+        self.run_tool("1:quiet", "5!:verse", "--to", "13")
+        self.assertNotIn("--from", self.calls()[-1])                              # the first mark is at the top anyway
 
     def test_a_render_given_a_stop_and_what_it_refuses(self):
         raw = os.path.join(self.root, "raw.wav")

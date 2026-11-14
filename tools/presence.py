@@ -231,6 +231,17 @@ def main(argv=None):
             raise SystemExit(f"presence: --windows takes FROM-TO[:label], not {w!r}")
     pin = a.pin or open(os.path.join(HERE, "groove-pin")).read().strip()
     canon = plan_canonical(pin, song)
+    tempo = canon.get("tempo", 120.0)
+    if isinstance(tempo, (int, float)) and not isinstance(tempo, bool) and tempo > 0:
+        # a window's TO is where it STOPS: one bar is 28-29, and 28-28 is no window (it printed a header and no rows)
+        for w in (a.windows or []) + ([f"{a.frm}-{a.to}"] if a.frm and a.to else []):
+            lo, _, hi = w.partition(":")[0].partition("-")
+            s0, s1 = wincut.position(lo, tempo), wincut.position(hi, tempo)
+            if s0 is not None and s1 is not None and s1 < s0:
+                raise SystemExit(f"presence: {lo}-{hi} runs backwards (TO is where it stops)")
+            if s0 is not None and s1 == s0:
+                one = f", so bar {lo} alone is {lo}-{int(lo) + 1}" if lo.isdigit() else ""
+                raise SystemExit(f"presence: {lo}-{hi} is an empty window: TO is where it stops{one}")
     tracks = plan_tracks(pin, song, canon)
     live = [n for n, muted in tracks if not muted]
     win = (a.frm, a.to)

@@ -23,7 +23,12 @@ put where that music is now, scaled along the song, and shown as "about here: ma
 then carry no beats and stay with their window number, right or not: after a reshape read those by their notes.
 
 Reading the flags: "static" and "little new vs wN" are relative to the song's own quartiles, so about a quarter of
-every song's windows carry them, however good it is. "little new vs wN" only says the window continues the one before.
+every song's windows carry them, however good it is. The map prints the two lines under its table. "static" keys on
+MOTION: the scorer's novelty curve inside the window (compscore.novelty: frames of spectral shape, chroma and level,
+half a second each, against their neighbours eight seconds either way), so it is change WITHIN the window, not
+onsets: a harmony that joins near the window's start and stays (Plain Hunt v7, w8) is one change and then none, and
+the window is still static. "little new" keys on CHANGE: the window's mean frame against the window before's.
+"little new vs wN" only says the window continues the one before.
 A sung return (the chorus or hook coming back, a crest's later lines) is MEANT to repeat; hear it before rewriting.
 chirper-three, t4 v24 (6 Nov): rewriting a flagged chorus return cost recurrence 96.2 -> 91.7 and the round was refused.
 """
@@ -497,6 +502,13 @@ def print_map(cid, song, rows, dur, ledger):
                 tail += f" (marked as w{lf['marked_as']} on another window length)"
         print(f"{r['n']:>3} {fmt_t(r['time'][0]):>5}-{fmt_t(r['time'][1]):<5} {b:>11} {r['level']:>7.1f} "
               f"{r['bright_hz']:>7} {r['density']:>5.2f} {r['motion']:>7.4f} {ch:>7} {gv:>6}  {like:<14} {tail}")
+    if len(rows) >= 3:                                   # what the two commonest flags key on, with this song's own lines
+        m25 = float(np.percentile([r["motion"] for r in rows], 25))
+        c25 = float(np.nanpercentile([r.get("change", np.nan) for r in rows], 25))
+        print(f"  static = motion at or under {m25:.4f}, this song's lowest quarter: how much the texture (spectral shape, harmony, "
+              "level, half a second at a time) changes WITHIN the window. A part that joins and stays is one change, then none.")
+        print(f"  little new = change at or under {c25:.3f}, its lowest quarter: 1 - likeness to the window before, + the level "
+              "step / 20. A quarter of the windows carry each flag, however good the song.")
     order = focus_order(rows, ledger)[:3]
     if order:
         print("focus next (flagged and least recently focused first):")
