@@ -7,6 +7,7 @@ hand with an FFT; this is that as one command.)
 
   swapbench.py SONG TRACK FROM-TO PATCH[@DB] [PATCH[@DB] ...] [--layer] [--pin CHIRP] [--keep DIR] [--json]
   chirpers.py palette ID --bench TRACK FROM-TO PATCH[@DB] ... [--layer]        (the same, from the palette brief)
+  swapbench.py SONG TRACK[,TRACK...] FROM-TO                    (no patch: THE PART ALONE BY BAND, as it is, in seconds)
 
 SONG is an id (songs/ID.yaml) or a file; TRACK the part; FROM-TO the bars it plays, as `chirp render --from/--to`
 take positions (63-66, 248b-264b); each PATCH a patch as a song names one (a library name, with overrides if
@@ -18,7 +19,12 @@ Prints the nine bands tools/stembal.py reads (under 60 Hz to 8-16 kHz) and the w
   as it is        the part on its present patch, each band against its own total
   PATCH           that patch IN ITS PLACE, in dB against as it is (same notes, same routing, same fader)
   + PATCH         with --layer: that patch OVER the present one (a second track beside it), against as it is
-and what the rows say:
+then EACH PATCH'S OWN SHAPE: every swap's nine bands against its own total, under the present part's, so where a
+new sound's weight sits is read off the bench and not found on the full render (chirper-zero, Odd Sympathy v19: a
+voice benched by loudness, presence and words, not by band, put its passage 6.3 dB over the records at 250-500 Hz;
+"a band table of the voice alone would have said it in ten seconds").
+With no PATCH it is that table for the part as it is; several tracks (tc,sl,sr) are read together as one part.
+What the rows say:
   LOSES ...       a swap takes 3 dB or more out of a band the part holds (within 15 dB of its own total): what a
                   layer would keep
   NOT THERE       a layer moves no band by 0.5 dB: it is under its own part (raise it, PATCH@+4, and read again)
@@ -102,19 +108,26 @@ def reading(row, base):
 
 
 def table(song, track, b0, b1, cands, layer, pin, where):
-    """[{patch, db, how ("as it is" | "swap" | "layer"), bands, all, says}] for the track's notes in beats b0..b1."""
+    """[{patch, db, how ("as it is" | "swap" | "layer"), bands, all, own, says}] for the track's notes in beats
+    b0..b1: `bands` in dB against the part as it is (the first row's against its own total), `own` each row's bands
+    against ITS OWN total. `track` may be several ("tc,sl,sr": one part) when there are no candidates."""
     doc = songfmt.load(song)
+    tracks = track.split(",")
+    if len(tracks) > 1 and cands:
+        raise SystemExit("swapbench: several tracks are read together only with no PATCH (the part as it is); a swap is one track's")
     try:
-        bench = keybench.bench(doc, [track], b0, b1, 0)
+        bench = keybench.bench(doc, tracks, b0, b1, 0)
     except KeyError as e:
         raise SystemExit(f"swapbench: {os.path.basename(song)} has no track {e.args[0]}") from None
-    spot = find(doc.get("tracks"), track)
-    now = spot[0][spot[1]].get("patch")
-    if not isinstance(now, str):
-        now = "(its own inline patch)"
+    now = []
+    for t in tracks:
+        spot = find(doc.get("tracks"), t)
+        p = spot[0][spot[1]].get("patch")
+        now.append(p if isinstance(p, str) else "(its own inline patch)")
+    now = " + ".join(dict.fromkeys(now))
     base = keybench.band_levels(keybench.render(bench, pin, where, "", b0, b1))
     own = [round(v - base[-1], 1) for v in base[:-1]]
-    rows = [{"patch": now, "db": 0.0, "how": "as it is", "bands": own, "all": 0.0, "says": ""}]
+    rows = [{"patch": now, "db": 0.0, "how": "as it is", "bands": own, "all": 0.0, "own": own, "says": ""}]
     n = 0
     for patch, db in cands:
         for how in ("swap", "layer") if layer else ("swap",):
@@ -125,7 +138,7 @@ def table(song, track, b0, b1, cands, layer, pin, where):
             except SystemExit as e:
                 raise SystemExit(str(e).replace("keybench:", f"swapbench: {patch}:")) from None
             row = {"patch": patch, "db": db, "how": how, "bands": [round(v - b, 1) for v, b in zip(got[:-1], base[:-1])],
-                   "all": round(got[-1] - base[-1], 1)}
+                   "all": round(got[-1] - base[-1], 1), "own": [round(v - got[-1], 1) for v in got[:-1]]}
             row["says"] = reading(row, own)
             rows.append(row)
     return rows
@@ -141,7 +154,7 @@ def main(argv=None):
             del a[i:i + 2]
     flags = {k: k in a for k in ("--json", "--layer")}
     a = [x for x in a if x not in flags]
-    if len(a) < 4 or "-h" in a or "--help" in a:
+    if len(a) < 3 or "-h" in a or "--help" in a:
         print(__doc__)
         return 0 if ("-h" in a or "--help" in a) else 2
     song, track, window = a[0], a[1], a[2]
@@ -167,6 +180,12 @@ def main(argv=None):
     if flags["--json"]:
         print(json.dumps({"song": os.path.basename(path), "track": track, "window": window, "bands": LABELS, "rows": rows}))
         return 0
+    if not cands:
+        print(f"{os.path.basename(path)} {track} at {window}: the part alone, as it is, through its own effects, bus and master")
+        print(f"  {'':16s}" + "".join(s.rjust(8) for s in LABELS))
+        print(f"  {'its own shape':16s}" + "".join(f"{v:+8.1f}" for v in rows[0]["own"]) + f"   {rows[0]['patch']}")
+        print("  (each band against the part's own total, in dB)")
+        return 0
     print(f"{os.path.basename(path)} {track} at {window}: the same notes on other patches, alone through the track's own effects, "
           "bus and master")
     names = [("+ " if r["how"] == "layer" else "") + r["patch"] + (f"@{r['db']:+g}" if r["db"] else "") for r in rows]
@@ -180,6 +199,10 @@ def main(argv=None):
               + ("   as it is" if first else ("   " + r["says"] if r["says"] else "")))
     print("  (as it is: each band against the part's own total; a patch: in its place, dB against as it is; + a patch: "
           "layered over it)")
+    print("  each patch's own shape (each band against ITS OWN total: where its weight sits):")
+    for r, n in zip(rows, names):
+        if r["how"] != "layer":
+            print(f"  {(n if len(n) <= width else n[:width - 1] + '…'):{width}s}" + "".join(f"{v:+8.1f}" for v in r["own"]))
     return 0
 
 

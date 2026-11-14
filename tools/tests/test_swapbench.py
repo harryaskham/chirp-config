@@ -146,6 +146,32 @@ class Bench(unittest.TestCase):
         _, by_palette = self.run_tool("--bench", "bass", "3-5", "teeth@+6", "--layer", tool=palette)
         self.assertEqual(by_palette, text)
 
+    def test_each_patchs_own_shape_and_the_part_alone(self):
+        code, text = self.run_tool("bass", "3-5", "teeth", "--layer")
+        lines = text.splitlines()
+        i = lines.index("  each patch's own shape (each band against ITS OWN total: where its weight sits):")
+        own = [ln.split() for ln in lines[i + 1:]]
+        self.assertEqual([r[0] for r in own], ["deep", "teeth"])                  # the swaps, not the layers
+        self.assertAlmostEqual(float(own[0][1]), 0.0, delta=0.1)                  # deep: all of it under 60 Hz
+        self.assertLess(float(own[1][1]), -30)                                    # teeth: nothing there ...
+        self.assertGreater(max(float(own[1][4]), float(own[1][5])), -4)           # ... its weight at 250 Hz-1 kHz
+        d = json.loads(self.run_tool("bass", "3-5", "teeth", "--json")[1])
+        self.assertEqual([len(r["own"]) for r in d["rows"]], [9, 9])
+        self.assertEqual(d["rows"][0]["own"], d["rows"][0]["bands"])
+        os.remove(os.path.join(self.root, "calls.log"))
+        code, alone = self.run_tool("bass", "3-5")                                # no patch: the part as it is, by band
+        self.assertEqual(code, 0)
+        self.assertEqual(alone.splitlines()[0], "song.json bass at 3-5: the part alone, as it is, through its own effects, bus and master")
+        self.assertTrue(alone.splitlines()[2].lstrip().startswith("its own shape"))
+        self.assertTrue(alone.splitlines()[2].rstrip().endswith("deep"))
+        self.assertEqual(len(self.calls()), 1)                                    # one render
+        _, both = self.run_tool("bass,lead", "3-5")                               # two tracks read as one part
+        self.assertTrue(both.splitlines()[2].rstrip().endswith("deep + teeth"))
+        self.assertEqual([t[2] for t in self.calls()[-1]], [4, 0, 1])             # bass's four notes and the lead's one; the pad out
+        with self.assertRaises(SystemExit) as e:
+            self.run_tool("bass,lead", "3-5", "teeth")
+        self.assertIn("several tracks are read together only with no PATCH", str(e.exception))
+
     def test_what_it_refuses(self):
         for argv, said in ((("nosuch", "3-5", "teeth"), "no track nosuch"), (("bass", "20-22", "teeth"), "no notes there"),
                            (("bass", "5-3", "teeth"), "FROM-TO"), (("bass", "3-5", "broken"), "swapbench: broken:")):
@@ -158,7 +184,7 @@ class Bench(unittest.TestCase):
             self.run_tool("bass", "3-5", "teeth")
         self.assertIn("tempo changes", str(e.exception))
         with contextlib.redirect_stdout(io.StringIO()) as usage:
-            self.assertEqual(S.main(["only", "three", "args"]), 2)
+            self.assertEqual(S.main(["only", "two"]), 2)
         self.assertIn("swapbench.py SONG TRACK FROM-TO PATCH", usage.getvalue())
 
 
