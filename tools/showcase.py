@@ -20,6 +20,10 @@ adopts it.
                                         (gain 0.3 and up on these models) a different string moved the spectrum by
                                         about 2 dB at most (chirper-zero, Common Time v14); measure before trusting it
   showcase.py SONG.yaml --json          the same as data
+  showcase.py A.yaml B.yaml ...         an ALBUM: what the songs use between them. Each kind and option is marked with the
+                                        songs that use it (short names: the file names less what they share), each group
+                                        with a count for every song, and "not used" means by none of them. No rigs;
+                                        --only, --all, --why and --json work as for one song; --diff needs one song.
   --pin BIN                             another engine (default: $CHIRP, else the groove's pin, tools/groove-pin)
 
 Read it as a map, not a score. A KIND is used when the song or a patch it plays names it, or gets it by default from
@@ -387,17 +391,38 @@ def wrap(prefix, words, width=132):
     return lines + [cur]
 
 
-def report(cat, use, canon, a):
+def tags(paths):
+    """A short name for each song of an album: its file's name, less what they all begin with up to the last "-"."""
+    names = [os.path.splitext(os.path.basename(p))[0] for p in paths]
+    cut = os.path.commonprefix(names).rfind("-") + 1
+    short = [n[cut:] for n in names]
+    return short if all(short) and len(set(short)) == len(short) else names
+
+
+def merged(cat, per):
+    """One Usage for several songs ({short name: its Usage}, in order): every kind and option marked with the songs
+    that use it, where a song's own Usage has the patch, track or bus."""
+    out = Usage(cat)
+    for tag, use in per.items():
+        for src, dst in ((use.kinds, out.kinds), (use.opts, out.opts)):
+            for label, vals in src.items():
+                for v in vals:
+                    out._mark(dst, label, v, tag)
+    return out
+
+
+def report(cat, use, canon, a, per=None):
     pat = re.compile(a.only, re.I) if a.only else None
     keep = lambda label: not pat or pat.search(label) or pat.search(nice(label))   # noqa: E731
     out = []
-    if not pat:
+    if not pat and not per:
         out.append("RIGS (each patch the song plays: its sources -> its effects, in order)")
         for r in rigs(canon, cat.default_kind):
             tr = f" [{where(r['tracks'], 4)}]" if r["tracks"] else ""
             out += wrap(f"  {r['patch']}{tr}: {r['sources']}{' ->' if r['fx'] else ''}", r["fx"])
         out.append("")
-    out.append("KINDS (what the engine offers / what this song uses, and where)")
+    out.append("KINDS (what the engine offers / what the songs use between them, and which song)" if per else
+               "KINDS (what the engine offers / what this song uses, and where)")
     for label in kind_order(cat.kinds):
         vals = cat.kinds[label]
         if len(vals) < 2 or not keep(label):
@@ -406,7 +431,8 @@ def report(cat, use, canon, a):
         if not used and label not in FIRST and not pat:
             out += wrap(f"  {nice(label)}: 0 of {len(vals)}: ", list(vals))
             continue
-        out.append(f"  {nice(label)}: {len(used)} of {len(vals)}")
+        each = "  (" + ", ".join(f"{t} {len(u.kinds.get(label, {}))}" for t, u in per.items()) + ")" if per else ""
+        out.append(f"  {nice(label)}: {len(used)} of {len(vals)}{each}")
         if used:
             out += wrap("      used:     ", [f"{v} ({where(used[v])})" for v in vals if v in used])
         if len(used) < len(vals):
@@ -487,7 +513,7 @@ def diff(canon, a, b):
     return out
 
 
-def why(cat, use, names):
+def why(cat, use, names, scope="this song"):
     out = []
     for n in names:
         hits = []
@@ -500,28 +526,33 @@ def why(cat, use, names):
         if not hits:
             out.append(f"{n}: the engine's schema has nothing of that name")
         for _, what, desc, ctxs in hits:
-            out.append(f"{n}: {what}; {'used in ' + where(ctxs, 6) if ctxs else 'NOT used in this song'}"
+            out.append(f"{n}: {what}; {'used in ' + where(ctxs, 6) if ctxs else 'NOT used in ' + scope}"
                        if what.startswith("a kind") else
-                       f"{n}: {what}; {'set in ' + where(ctxs, 6) if ctxs else 'at its default everywhere in this song'}")
+                       f"{n}: {what}; {'set in ' + where(ctxs, 6) if ctxs else 'at its default everywhere in ' + scope}")
             out += textwrap.wrap(desc or "(the engine gives no description)", 118, initial_indent="    ", subsequent_indent="    ")
     return out
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("song")
+    ap.add_argument("song", nargs="+")
     ap.add_argument("--pin")
     ap.add_argument("--only")
     ap.add_argument("--all", action="store_true")
     ap.add_argument("--why", nargs="+")
     ap.add_argument("--diff", nargs=2, metavar=("PATCH_A", "PATCH_B"))
     ap.add_argument("--json", action="store_true")
-    a = ap.parse_args()
-    if not os.path.isfile(a.song):
-        die(f"no song at {a.song}")
+    a = ap.parse_intermixed_args()                       # the songs may stand either side of an option
+    songs = a.song
+    for song in songs:
+        if not os.path.isfile(song):
+            die(f"no song at {song}")
     pin = a.pin or chirpbin.resolve("chirp")
     cat = Catalogue(load_schema(pin))
     check_shape(cat, pin)
+    if len(songs) > 1:
+        return album(cat, pin, songs, a)
+    a.song = songs[0]
     canon = load_plan(pin, a.song)
     if a.diff:
         print("\n".join(diff(canon, *a.diff)))
@@ -540,6 +571,29 @@ def main():
     n_patch = len([n for n in (canon.get("patches") or {}) if "." not in n])
     print(f"showcase: {a.song} on {os.path.basename(pin)}: {n_tracks} tracks, {n_patch} patches, {len(canon.get('buses') or {})} buses")
     print("\n".join(report(cat, use, canon, a)))
+
+
+def album(cat, pin, songs, a):
+    """Several songs: what they use between them (see the docstring)."""
+    if a.diff:
+        die("--diff sets two patches of ONE song side by side: give one song")
+    names = tags(songs)
+    canons = [load_plan(pin, song) for song in songs]
+    per = {name: Usage(cat).song(canon) for name, canon in zip(names, canons)}
+    use = merged(cat, per)
+    if a.json:
+        print(json.dumps({"songs": dict(zip(names, songs)), "engine": os.path.basename(pin),
+                          "kinds": {k: {"offered": list(v), "used": use.kinds.get(k, {})} for k, v in cat.kinds.items()},
+                          "options": {k: {"offered": list(v), "used": use.opts.get(k, {})} for k, v in cat.opts.items()
+                                      if "." not in k}}, ensure_ascii=False))
+        return
+    if a.why:
+        print("\n".join(why(cat, use, a.why, "these songs")))
+        return
+    sizes = "; ".join(f"{name} ({len(c.get('tracks') or [])} tracks, {len([n for n in (c.get('patches') or {}) if '.' not in n])} patches, "
+                      f"{len(c.get('buses') or {})} buses)" for name, c in zip(names, canons))
+    print(f"showcase: {len(songs)} songs on {os.path.basename(pin)}: {sizes}")
+    print("\n".join(report(cat, use, None, a, per)))
 
 
 if __name__ == "__main__":

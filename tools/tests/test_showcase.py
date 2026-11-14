@@ -78,19 +78,25 @@ PLAN = {"data": {"canonical": {
                {"name": "kick", "patch": "kit", "notes": []}],
     "buses": {"hall": {"fx": [{"type": "reverb", "kind": "room"}]}, "dly": {"fx": [{"type": "reverb", "mix": 0.3}]}},
 }}}
+PLAN2 = {"data": {"canonical": {                       # an album's second song: another amp, a wah, a voice; no reverb
+    "patches": {"lead": {"synth": {"layers": [{"type": "pluck", "mute": 0.5}, {"type": "voice", "nasal": 0.3}]},
+                         "fx": [{"type": "amp", "model": "nolly", "bloom": 0.4}, {"type": "wah", "pos": 0.5}]}},
+    "tracks": [{"name": "lead", "patch": "lead", "notes": []}],
+}}}
 ENGINE = '''#!/usr/bin/env python3
 import json, sys
 a = sys.argv[1:]
 if a[:2] == ["schema", "song"]:
     print(json.dumps(%r))
 elif "plan" in a:
-    if "BAD" in open(a[a.index("-f") + 1]).read():
+    text = open(a[a.index("-f") + 1]).read()
+    if "BAD" in text:
         print(json.dumps({"status": "error", "error": "no patch named nosuch"}))
         sys.exit(2)
-    print(json.dumps(%r))
+    print(json.dumps(%r if "SECOND" in text else %r))
 else:
     sys.exit(64)
-''' % (SCHEMA, PLAN)
+''' % (SCHEMA, PLAN2, PLAN)
 
 
 class Showcase(unittest.TestCase):
@@ -223,6 +229,47 @@ class Showcase(unittest.TestCase):
         with self.assertRaises(SystemExit) as e:
             self.run_tool("--diff", "rig", "nosuch")
         self.assertIn("no patch named nosuch. It has: kit, rig", str(e.exception))
+
+    def second(self, name="album-t2.yaml"):
+        path = os.path.join(self.root, name)
+        with open(path, "w") as f:
+            f.write("SECOND\n")
+        return path
+
+    def test_an_album_is_what_its_songs_use_between_them(self):
+        first = os.path.join(self.root, "album-t1.yaml")
+        shutil.copy(self.song, first)
+        out = self.run_tool(self.second(), song=first)
+        lines = out.splitlines()
+        self.assertEqual(lines[0], "showcase: 2 songs on fake-chirp: t1 (3 tracks, 2 patches, 2 buses); t2 (1 tracks, 1 patches, 0 buses)")
+        self.assertEqual(lines[1], "KINDS (what the engine offers / what the songs use between them, and which song)")
+        self.assertNotIn("RIGS", out)                                       # an album has no one rig list
+        at = lines.index("  effects: 3 of 3  (t1 2, t2 2)")
+        self.assertEqual(lines[at + 1], "      used:     amp (t1, t2), reverb (t1), wah (t2)")
+        at = lines.index("  amp models: 2 of 2  (t1 1, t2 1)")
+        self.assertEqual(lines[at + 1], "      used:     mark (t1), nolly (t2)")
+        at = lines.index("  sound sources (layer kinds): 3 of 4  (t1 2, t2 2)")
+        self.assertEqual(lines[at + 1], "      used:     noise (t1), pluck (t1, t2), voice (t2)")
+        self.assertEqual(lines[at + 2], "      not used: drum")                # by neither song
+        self.assertIn("  every option set of: amp (effect)", out)              # gain and model in one song, bloom in the other
+
+    def test_an_album_why_json_and_names(self):
+        first = os.path.join(self.root, "album-t1.yaml")
+        shutil.copy(self.song, first)
+        why = self.run_tool(self.second(), "--why", "wah", "bloom", "brush", song=first)
+        self.assertIn("wah: a kind of effects; used in t2", why)
+        self.assertIn("bloom: an option of amp (effect); set in t2", why)
+        self.assertIn("brush: a kind of drum beaters; NOT used in these songs", why)
+        d = json.loads(self.run_tool(self.second(), "--json", song=first))
+        self.assertEqual(sorted(d["songs"]), ["t1", "t2"])
+        self.assertEqual(d["kinds"]["AmpModel"]["used"], {"mark": ["t1"], "nolly": ["t2"]})
+        self.assertEqual(d["options"]["fx amp"]["used"]["model"], ["t1", "t2"])
+        self.assertEqual(S.tags(["songs/chirpers10-t1.yaml", "songs/chirpers10-t2.yaml"]), ["t1", "t2"])
+        self.assertEqual(S.tags(["a/one.yaml", "b/two.yaml"]), ["one", "two"])       # nothing shared: the names
+        self.assertEqual(S.tags(["x/same-a.yaml", "y/same-a.yaml"]), ["same-a", "same-a"])
+        with self.assertRaises(SystemExit) as e:
+            self.run_tool(self.second(), "--diff", "rig", "lead", song=first)
+        self.assertIn("give one song", str(e.exception))
 
     def test_a_schema_without_effects_is_refused_not_reported_as_empty(self):
         with self.assertRaises(SystemExit) as e:
