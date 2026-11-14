@@ -195,6 +195,23 @@ LOWRIDE = os.environ.get("C10T2_LOWRIDE", "28:32:-1.5" if ONE else "")
 #      band comes back on "cannot". The first word of the song is heard alone.
 # the bar the right guitar's chugs join ; the first silent sixteenth of the bar before the voice. "" = v8.
 OPEN = os.environ.get("C10T2_OPEN", "4;12")
+# v10: THE SNARE'S CRACK (whole song; Common Time's v41 mend, the same fault). The snare went to the drums' bus, which is
+# clipped, AND into the cymbals' room at -1.5 dB, which is not: its peak and half its loudness reached the mix through
+# a bright 0.7 s room. Now it is nearly out of that room and a dry, unclipped bus beside the drums carries its crack.
+# Here the snare was already the loudest track, and without its room the full sections read 0.3 to 0.5 dB quieter on the
+# groove: so its track is at 6.5 dB (Common Time's is 7) and the master makes up 0.3 dB.
+# the track's shelf (shelf:Hz:dB) ; its send to the cymbals' room, dB ; its gain ; dry : the send to the dry bus, dB ;
+# the master's make-up, dB. "" = v9.
+SNARE = os.environ.get("C10T2_SNARE", "shelf:7000:-2;-12;6.5dB;dry:-10;0.3")
+SNARE_EQ = os.environ.get("C10T2_SNAREEQ", "300:0.7:-12")        # the dry bus's eq (Hz : q : dB)
+# v10: TWO CLOCKS AT THE END (section round, 4:31-4:50). The song is named after two pendulum clocks that settled in
+# opposition, and it ended with the guitars against each other but ONE pendulum (a ride bell). Now there are two clocks,
+# left and right, one tick-tock each to the bar (a wooden tick on C, a tock on F a fifth below: the song's two poles),
+# and they are in opposition: the left clock's tick is the right clock's tock. They start under the two guitars' last
+# four bars and are left ticking with the clean guitars; the last sound of the song is one more swing.
+# The sound is a drum machine's rim-shot circuit (`machine`, part rim; the album's first use of that source).
+# gain ; pan ; tick's velocity : tock's ; hall send. "" = v9 (the ride-bell pendulum).
+CLOCKS = os.environ.get("C10T2_CLOCKS", "-6dB;0.7;0.8:0.7;-12dB")
 T = {}
 
 
@@ -466,7 +483,18 @@ def compose():
     riff("gl", 122, 126, vel=0.85)
     riff("gr", 122, 126, vel=0.85)
     drum("c", 122 * 16, 0.9)
-    pendulum(122, 130)
+    if CLOCKS:
+        tv, kv = [float(v) for v in CLOCKS.split(";")[2].split(":")]
+        # both clocks are WRITTEN alike (tick on one, tock on three); the right one is on the right guitar's clock (`warp`),
+        # half a bar ahead by now, so its tock falls where the left one ticks: nothing is placed by hand. The last
+        # instant of the song (bar 130's first beat) is the left clock's tick and the right clock's tock, together.
+        for b in range(122, 131):
+            for tr in ("pl", "pr"):
+                T.setdefault(tr, []).append({"at": b * 4, "len": 0.5, "pitch": "C5", "vel": tv})
+                if b < 130 or tr == "pr":
+                    T.setdefault(tr, []).append({"at": b * 4 + 2, "len": 0.5, "pitch": "F4", "vel": kv})
+    else:
+        pendulum(122, 130)
     for tr in ("cl", "cr"):
         riff(tr, 126, 130, vel=0.45, up=24, clean=True, ramp=(1.0, 0.6))
     T.setdefault("home", []).append({"at": 126 * 4, "len": 16.0, "pitch": "F1", "vel": 0.5})
@@ -505,6 +533,7 @@ def song():
     eb, hlp = ([float(x) for x in EIGHTH.split(";")[3:5]] if EIGHTH and len(EIGHTH.split(";")) > 4 else (0, 0))
     vo = VOICE.split(";") if VOICE else None
     hd = HEARD.split(";") if HEARD else None
+    sn = SNARE.split(";") if SNARE else None
     lowride = [["0b", 0]]                    # the bass bus's fader by section, after its compressor (a key moves the low end)
     for seg in (LOWRIDE.split(",") if LOWRIDE else []):
         b0, b1, db = [float(x) for x in seg.split(":")]
@@ -533,7 +562,9 @@ def song():
         {"name": "bass", "patch": "ct-bass", "gain": {"value": "0.5dB", "mod": [{"src": "auto.hold", "amount": 1}]} if EIGHTH and eb else "0.5dB", "pan": 0, "out": "low",
          **({"auto": {"hold": {"points": [["0b", 0], [b(35.9), 0], [b(36), eb], [b(48), eb], [b(48.1), 0]], "curve": 0}}} if EIGHTH and eb else {})},
         {"name": "kick", "patch": kit, "gain": "2dB", "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]},
-        {"name": "snare", "patch": kit, "gain": "8dB", "out": "drums", "sends": {"oh": "-1.5dB"}},
+        ({"name": "snare", "patch": kit, "gain": sn[2], "out": "drums", "sends": {"oh": sn[1] + "dB", "snr": sn[3].split(":")[1] + "dB"},
+          "fx": [{"type": "eq", "bands": [f"highshelf cutoff={sn[0].split(':')[1]} gain={sn[0].split(':')[2]}dB"]}]} if SNARE else
+         {"name": "snare", "patch": kit, "gain": "8dB", "out": "drums", "sends": {"oh": "-1.5dB"}}),
         {"name": "toms", "patch": kit, "gain": "4dB", "out": "drums", "sends": {"oh": "-1.5dB"}},
         {"name": "cym", "patch": kit, "gain": "-3dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
         {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"},
@@ -542,6 +573,8 @@ def song():
         *([{"name": "tick", "patch": kit, "gain": "6dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air, **risset_tick()}] if DRIFT else []),
         {"name": "home", "patch": "contrabass-tight", "gain": "-9dB", "pan": 0.3, "sends": {"hall": "-12dB"}},
         {"name": "air", "patch": "juno-pad", "gain": "-13dB", "pan": 0.15, "sends": {"hall": "-8dB"}},
+        *([{"name": tr, "patch": "ot-clock", "gain": CLOCKS.split(";")[0], "pan": sgn * float(CLOCKS.split(";")[1]), "sends": {"hall": CLOCKS.split(";")[3]},
+            **({"warp": WARP} if tr == "pr" else {})} for tr, sgn in (("pl", -1), ("pr", 1))] if CLOCKS else []),
         {"name": "swarm", "patch": "ot-swarm", "gain": {"value": "-14dB", "mod": [{"src": "auto.lvl", "amount": 1}]}, "pan": 0, "sends": {"hall": "-8dB"},
          "auto": {"sync": {"points": [["0b", 0.3], [b(74), 0.3], [b(90), 1.0], [b(95), 1.4], [b(96), 3], [b(NB), 3]]},
                   "lvl": {"points": [["0b", 0], [b(74), -6], [b(80), 2], [b(96), 4], [b(98), -6], [b(NB), -6]]}}},
@@ -556,9 +589,11 @@ def song():
                   "engine's track warp), holding at each distance, until it is half a bar ahead, exactly against the left, and "
                   "there the riff's two halves fit: every sixteenth has one guitar on it and never both. After Huygens's two "
                   "pendulum clocks on one beam (1665), which always ended swinging against each other. v1: the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "4s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "4s", "length": f"{NB * 4 + (4 if CLOCKS else 0)}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
-                    "ot-swarm": SWARM},
+                    "ot-swarm": SWARM,
+                    **({"ot-clock": {"about": "chirper-zero: a clock's tick - a drum machine's rim-shot circuit (the `machine` layer, part rim), 16-20 ms long; it follows the note's pitch (C5 the tick, F4 the tock)",
+                                     "synth": {"amp": {"a": "0.1ms", "d": "0s", "r": "300ms"}, "layers": [{"type": "machine", "machine": {"part": "rim"}}]}}} if CLOCKS else {})},
         "buses": {
             "hall": {"fx": ["reverb kind=hall decay=4.5s mix=1 predelay=30ms low_cut=150"]},
             "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
@@ -566,6 +601,7 @@ def song():
                              "clip drive=0dB ceiling=-13dB",
                              {"type": "eq", "bands": ["peak cutoff=400 q=0.8 gain=-6dB", "peak cutoff=5500 q=0.9 gain=1dB", "highshelf cutoff=9000 gain=-2dB"] + dtop}]},
             "oh": {"fx": ["reverb kind=room decay=0.7s mix=1 predelay=4ms low_cut=5000 high_cut=12000 spread=0.6"] + ([{"type": "eq", "bands": dtop}] if DTOP else [])},
+            **({"snr": {"fx": [{"type": "eq", "bands": [f"peak cutoff={SNARE_EQ.split(':')[0]} q={SNARE_EQ.split(':')[1]} gain={SNARE_EQ.split(':')[2]}dB"]}]}} if SNARE else {}),
             "gtrs": {"fx": [{"type": "gain", "gain": "0dB"}] + ([f"reverb kind={beam[0]} decay={beam[1]} mix={beam[2]} predelay=6ms"] if TWIN else [])
                      + (pump if HEARD else [{"type": "duck", "by": "tl", "depth": f"-{vo[4]}dB", "attack": "20ms", "release": "250ms"}] if VOICE and float(vo[4]) else [])},
             "low": {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
@@ -574,7 +610,7 @@ def song():
                            + ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}}] if lowride else []),
                     **({"auto": {"ride": {"points": lowride, "curve": 0}}} if lowride else {})},
         },
-        "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": f"{1.6 + (float(TWIN.split(';')[2]) if TWIN else 0):g}dB"}]},
+        "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": f"{1.6 + (float(TWIN.split(';')[2]) if TWIN else 0) + (float(SNARE.split(';')[4]) if SNARE and SNARE.split(';')[4:] else 0):g}dB"}]},
         "tracks": tracks,
     }
 
