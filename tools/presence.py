@@ -5,6 +5,8 @@
   presence.py ID [--from POS --to POS] [--seed 0] [-j 3] [--buried -25] [--rms] [--json]
   presence.py ID --windows 3-10:wait 41-56:riffA 309-311 ...    (several windows in ONE run: a table for each)
   presence.py --song FILE ...                       (any song file; default songs/ID.yaml)
+  presence.py ... --preroll 8                       (a late window of a long song, several times faster: see below)
+  presence.py ... --stereo                          (both channels' power, not the mono sum: see below)
 
 Renders the mix and every top-level track solo over the window (whole song by default; POS as chirp render takes it:
 bars 49, beats 12b, seconds 30s), all unmastered (loudness=null) with the groove pin at nice 12, and prints per track:
@@ -20,6 +22,22 @@ are listed as such, not as buried. Muted tracks are skipped. Read-only.
 window by itself costs a part-render of every track; with --windows the mix and every track are rendered ONCE, to the
 end of the last window, and each window is cut from that (the same samples: tools/wincut.py), so twenty sections cost
 what one costs. A song wincut cannot place (a tempo that changes, a meter other than 4/4) is rendered window by window.
+
+--preroll SECS: start each render SECS seconds before the (first) window instead of at the top of the song
+(`chirp render --preroll`: the engine warms its effects over those seconds). For a window late in a long song that is
+the difference between rendering thirteen minutes of every track and rendering twenty seconds: on Common Time's bars
+390-397 a drum alone took 4.6 s for 18.9, the bass 4.6 s for 36.3, and the samples were the SAME (kick, bass, a
+guitar: bit for bit at 8 s; the whole mix within -105 dB). A part on a bus with a `rotary` still renders from the top
+(bd-e11da9), so the mix of such a song gains less (180 s for 256). Tails longer than SECS are cut short: 8 is plenty
+for levels. With --windows the renders start SECS before the EARLIEST window, so it pays when the windows sit
+together late in the song and costs nothing otherwise. (chirper-zero, Common Time v46: 49 tracks to bar 397 took
+about ten minutes.)
+
+--stereo: EVERY LEVEL HERE IS READ FROM THE MONO SUM (left + right) unless you ask for --stereo, which reads both
+channels' power as a loudness meter does. In the mono sum a hard-panned part reads about 1.5 dB lower than the same
+part at pan 0.75, and 3 dB lower than at the centre, though alone it is as loud by LUFS: two takes a side at pans 1
+and 0.75 look unequal here when they are not (chirper-zero, Common Time v46). Use --stereo to compare parts at
+different pans; the yardstick below and every figure quoted before 14 Nov are mono-sum readings.
 
 A yardstick for a VOICE (14 Nov, for chirper-zero's question on Odd Sympathy v5, "what does `near` predict for an
 ear"): the same measure taken on eleven Meshuggah records, the vocals stem against the record, reads vs mix -9.1 dB
@@ -55,17 +73,20 @@ SOUNDS_DB = 50.0     # a frame "sounds" within this many dB of the track's loude
 NEAR_DB = 10.0
 
 
-def frames_db(x, sr, frame=FRAME, kweight=False):
-    """Per-frame level in dB (mono sum): RMS, or K-weighted (BS.1770's filter, LUFS-like) with KWEIGHT."""
-    m = x.mean(axis=1) if x.ndim > 1 else x
-    if kweight:
-        m = levels.k_weight(m.astype(np.float64), sr)
+def frames_db(x, sr, frame=FRAME, kweight=False, stereo=False):
+    """Per-frame level in dB: RMS, or K-weighted (BS.1770's filter, LUFS-like) with KWEIGHT. Of the mono sum; with
+    STEREO, of both channels' power (the sum of each channel's mean square, as a loudness meter counts)."""
+    chans = [x[:, c] for c in range(x.shape[1])] if stereo and x.ndim > 1 else [x.mean(axis=1) if x.ndim > 1 else x]
     n = max(1, int(frame * sr))
-    k = len(m) // n
+    k = len(chans[0]) // n
     if k == 0:
         return np.array([-120.0])
-    r = np.sqrt((m[:k * n].astype(np.float64).reshape(k, n) ** 2).mean(1))
-    return 20 * np.log10(r + 1e-9)
+    power = np.zeros(k)
+    for m in chans:
+        if kweight:
+            m = levels.k_weight(m.astype(np.float64), sr)
+        power += (m[:k * n].astype(np.float64).reshape(k, n) ** 2).mean(1)
+    return 20 * np.log10(np.sqrt(power) + 1e-9)
 
 
 def presence(mix_db, solo_db, buried=-25.0):
@@ -101,10 +122,10 @@ def plan_tracks(pin, song, canon=None):
     return out
 
 
-def render(pin, song, out, seed, win, solo=None):
+def render(pin, song, out, seed, win, solo=None, preroll=None):
     cmd = ["nice", "-n", "12", pin, "render", "-f", song, "--seed", str(seed), "--set", "loudness=null", "-o", out]
     if win[0]:
-        cmd += ["--from", win[0]]
+        cmd += ["--from", win[0]] + (["--preroll", f"{preroll:g}"] if preroll else [])
     if win[1]:
         cmd += ["--to", win[1]]
     if solo:
@@ -122,11 +143,12 @@ def one_window(pin, song, live, win, a, work):
     jobs = [("__mix__", None)] + [(n, n) for n in live]
     with ThreadPoolExecutor(max(1, a.j)) as ex:
         wavs = dict(zip([j[0] for j in jobs], ex.map(
-            lambda j: render(pin, song, os.path.join(work, f"{len(j[0])}-{abs(hash(j[0]))}.wav"), a.seed, win, j[1]),
+            lambda j: render(pin, song, os.path.join(work, f"{len(j[0])}-{abs(hash(j[0]))}.wav"), a.seed, win, j[1],
+                             a.preroll),
             jobs)))
     kw = not a.rms
-    mix = frames_db(L.load(wavs["__mix__"]), L.SR, kweight=kw)
-    rows = {n: presence(mix, frames_db(L.load(wavs[n]), L.SR, kweight=kw), a.buried) for n in live}
+    mix = frames_db(L.load(wavs["__mix__"]), L.SR, kweight=kw, stereo=a.stereo)
+    rows = {n: presence(mix, frames_db(L.load(wavs[n]), L.SR, kweight=kw, stereo=a.stereo), a.buried) for n in live}
     for f in wavs.values():
         os.remove(f)
     return rows
@@ -134,20 +156,26 @@ def one_window(pin, song, live, win, a, work):
 
 def many_windows(pin, song, live, windows, secs, a, work):
     """[{track: presence}] a window: the mix and every live track rendered ONCE, to the end of the last window, and
-    each window cut from that (tools/wincut.py: the same samples a window render gives)."""
+    each window cut from that (tools/wincut.py: the same samples a window render gives). With --preroll the one
+    render starts that many seconds before the earliest window instead of at the top."""
     last = max(range(len(secs)), key=lambda i: secs[i][1])
     to = windows[last].partition(":")[0].partition("-")[2]
     kw = not a.rms
+    frm, base = None, 0
+    if a.preroll:
+        first = min(range(len(secs)), key=lambda i: secs[i][0])
+        frm = windows[first].partition(":")[0].partition("-")[0]
+        base = wincut.frames(secs[first][0], secs[first][0], L.SR)[0]      # the render's first frame, counted from the top
 
     def one(job):
         name, solo = job
-        wav = render(pin, song, os.path.join(work, f"{len(name)}-{abs(hash(name))}.wav"), a.seed, (None, to), solo)
+        wav = render(pin, song, os.path.join(work, f"{len(name)}-{abs(hash(name))}.wav"), a.seed, (frm, to), solo, a.preroll)
         x = L.load(wav)
         os.remove(wav)
         out = []
         for s0, s1 in secs:
             f0, f1 = wincut.frames(s0, s1, L.SR)
-            out.append(frames_db(x[f0:f1], L.SR, kweight=kw))
+            out.append(frames_db(x[f0 - base:f1 - base], L.SR, kweight=kw, stereo=a.stereo))
         return out
 
     jobs = [("__mix__", None)] + [(n, n) for n in live]
@@ -158,7 +186,8 @@ def many_windows(pin, song, live, windows, secs, a, work):
 
 def report(song, span, a, tracks, live, rows):
     order = sorted(rows, key=lambda n: (rows[n]["vs_mix_db"] is None, -(rows[n]["vs_mix_db"] or -999)))
-    print(f"{os.path.basename(song)} ({span}; seed {a.seed}; unmastered, {'RMS' if a.rms else 'K-weighted'}): {len(live)} tracks"
+    print(f"{os.path.basename(song)} ({span}; seed {a.seed}; unmastered, {'RMS' if a.rms else 'K-weighted'}"
+          f"{', both channels' if a.stereo else ''}): {len(live)} tracks"
           + (f", {len(tracks) - len(live)} muted skipped" if len(tracks) > len(live) else ""))
     print(f"  {'track':16s} {'vs mix':>8s} {'near':>6s} {'active':>7s}")
     loud = order[0] if order else None
@@ -186,6 +215,8 @@ def main(argv=None):
     ap.add_argument("--buried", type=float, default=-25.0)
     ap.add_argument("--pin")
     ap.add_argument("--rms", action="store_true", help="plain RMS instead of K-weighted levels")
+    ap.add_argument("--preroll", type=float, help="start each render this many seconds before the (first) window, not at the top")
+    ap.add_argument("--stereo", action="store_true", help="read both channels' power (as a loudness meter), not the mono sum")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
     song = a.song or (os.path.join(ROOT, "songs", f"{a.id}.yaml") if a.id else None)
@@ -193,6 +224,8 @@ def main(argv=None):
         raise SystemExit("presence: give a climb ID (songs/ID.yaml) or --song FILE")
     if a.windows and (a.frm or a.to):
         raise SystemExit("presence: --windows or --from/--to, not both")
+    if a.preroll is not None and a.preroll <= 0:
+        raise SystemExit("presence: --preroll takes seconds, more than none")
     for w in a.windows or []:
         if "-" not in w.partition(":")[0]:
             raise SystemExit(f"presence: --windows takes FROM-TO[:label], not {w!r}")

@@ -114,6 +114,37 @@ class Windows(unittest.TestCase):
         self.assertEqual(len(self.calls()), 8)
         self.assertTrue(all("--from" in c for c in self.calls()))
 
+    def test_preroll_starts_before_the_first_window_and_reads_the_same(self):
+        plain = json.loads(self.run_tool("--windows", "5-6:late", "3-4:earlier", "--json"))
+        os.remove(self.log)
+        fast = json.loads(self.run_tool("--windows", "5-6:late", "3-4:earlier", "--preroll", "8", "--json"))
+        self.assertEqual(len(self.calls()), 4)                             # still one render a track
+        self.assertTrue(all("--from 3 --preroll 8 --to 6" in c for c in self.calls()))   # from the EARLIEST window on
+        self.assertEqual(fast["windows"], plain["windows"])               # the same numbers, to the last digit
+        os.remove(self.log)
+        one = json.loads(self.run_tool("--from", "5", "--to", "6", "--preroll", "2.5", "--json"))
+        self.assertTrue(all("--from 5 --preroll 2.5 --to 6" in c for c in self.calls()))
+        self.assertEqual(one["tracks"], plain["windows"][0]["tracks"])
+        os.remove(self.log)
+        self.run_tool("--to", "3", "--preroll", "8")                      # nothing to start before: the top it is
+        self.assertTrue(all("--preroll" not in c for c in self.calls()))
+        with self.assertRaises(SystemExit):
+            self.run_tool("--from", "5", "--to", "6", "--preroll", "0")
+
+    def test_stereo_reads_both_channels_power(self):
+        sr = P.L.SR
+        t = np.arange(sr) / sr
+        tone = 0.5 * np.sin(2 * np.pi * 1000 * t)
+        centre = np.stack([tone * np.sqrt(0.5), tone * np.sqrt(0.5)], axis=1)      # constant-power pan: the centre
+        hard = np.stack([np.zeros_like(tone), tone], axis=1)                       # ... and hard right: as loud alone
+        mono = [float(P.frames_db(x, sr).mean()) for x in (centre, hard)]
+        both = [float(P.frames_db(x, sr, stereo=True).mean()) for x in (centre, hard)]
+        self.assertAlmostEqual(mono[0] - mono[1], 3.0, delta=0.05)                 # the mono sum reads the hard one 3 dB low
+        self.assertAlmostEqual(both[0] - both[1], 0.0, delta=0.01)                 # both channels' power: level
+        self.assertAlmostEqual(float(P.frames_db(tone, sr, stereo=True).mean()), float(P.frames_db(tone, sr).mean()), places=6)
+        text = self.run_tool("--from", "3", "--to", "5", "--stereo")
+        self.assertIn("(3 -> 5; seed 0; unmastered, K-weighted, both channels): 3 tracks", text)
+
     def test_windows_and_from_do_not_mix_and_a_window_needs_two_ends(self):
         for argv in (("--windows", "1-2", "--from", "3"), ("--windows", "riffA")):
             with self.assertRaises(SystemExit):

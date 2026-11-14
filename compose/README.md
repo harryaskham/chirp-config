@@ -189,6 +189,9 @@ only in a message:
   side; when the sides are the same length he can switch between them mid-phrase. `--clip` is one player.
 - `--choice` are buttons; he can always write instead, or as well. One question a card: ask two things as two cards
   unless one answer covers both.
+- When a change is being taken back or softened, ask THREE WAYS in one `--ab` ("as it first was|as I made it|a
+  middle=FILE": three takes with a silence between). On 14 Nov the snare asked so got one clear answer ("Now: the
+  air is back") where an A/B would have had to be asked twice.
 - `--key`: a name for the PASSAGE. Ask again with the same key after a new version and the old card leaves the page,
   so he is never asked about a superseded clip. `listen.py retire ALBUM ID` takes one off by hand.
 - The page keeps its own copy of each clip. His answers come back verbatim in ONE caco message two minutes after he
