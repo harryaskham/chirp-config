@@ -183,6 +183,19 @@ QROOT = int(os.environ.get("C10T2_QUARTER", "") or 0)
 # of the hook's notes to become a ground (Ab at an eighth, B here).
 # the root's semitones above F ; the pendulum's velocity. "" = v5.
 THREE = os.environ.get("C10T2_THREE", "6;0.42")
+# v20: THE HOLD ON B ENDS IN PLAIN AGREEMENT (section round, 1:51-2:04). Harry on this hold: "The band agreeing; it
+# builds". It did not yet build: its six bars were six times the same bar. Now it has a shape:
+#   bars 50-52  as it was: the band strikes only the five places a bar where the two guitars strike together, and the
+#               guitars play the whole riff through the gaps;
+#   bars 52-55  the china joins the snare on the two places where the guitars make a chord with each other;
+#   bar 55      the last bar: the GUITARS TOO play only where they agree. Five stabs from the whole band and silence
+#               between them: a unison, a tritone, a minor third, a fifth (the chords the riff makes with itself
+#               three sixteenths apart, heard with nothing else) and a last one where the right guitar, being ahead,
+#               is already on the F the song goes to next; the china on every one. Then the right guitar starts to
+#               slide again.
+# So the hold says what it is about in its last bar, plainly.
+# the bar the china joins the snare ; its velocity ; the bar of plain agreement ; the china's velocity in it. "" = v19.
+AGREE = os.environ.get("C10T2_AGREE", "52;0.6;55;0.7") if THREE else ""
 # v8: THE HOLD A SIXTEENTH APART (bars 28-32, 1:02-1:11) gets what only that distance has, and the last of the hook's
 # notes as its ground. A sixteenth apart is as close as the two guitars come without being together: every note has a
 # shadow a sixteenth before it, and between them they strike thirteen of the bar's sixteen sixteenths (only 4, 7 and 8
@@ -518,6 +531,7 @@ def compose():
         for tr in ("gl", "gr", "bass", "kick", "snare", "cym", "hat", "ride", "toms"):
             T[tr] = [n for n in T.get(tr, []) if not (g0 <= n["at"] < 64)]
         drum("c", 16 * 16, 0.9)
+    agree_cut = None
     for name, b0, b1, lead in FORM[2:10]:
         if lead == 2 and EIGHTH:         # the hold an eighth apart: its own ground and its own beat (v4)
             root, ghost, china = [float(x) for x in EIGHTH.split(";")[:3]]
@@ -536,7 +550,21 @@ def compose():
             riff("gl", b0, b1, root=root)
             riff("gr", b0, b1, root=root)
             if lead == 3:
-                bass(b0, b1, root=root, only=groove_three(b0, b1, tick))
+                hits = groove_three(b0, b1, tick)
+                bass(b0, b1, root=root, only=hits)
+                if AGREE:
+                    c0, cv, sb, sv = int(AGREE.split(";")[0]), float(AGREE.split(";")[1]), int(AGREE.split(";")[2]), float(AGREE.split(";")[3])
+                    for b in range(c0, b1):                  # the china joins the snare on the two chords
+                        if b != sb:
+                            for q in (3, 10):
+                                drum("x", b * 16 + q, cv)
+                    for q in hits:                           # the last bar: the china on every hit
+                        if q:
+                            drum("x", sb * 16 + q, sv)
+                    # and the guitars play only where they agree (the right guitar's turn comes after the loop: some
+                    # of what it sounds in this bar is written in the next section)
+                    T["gl"] = [n for n in T["gl"] if not (sb * 16 <= round(n["at"] * 4) < (sb + 1) * 16) or round(n["at"] * 4) % 16 in hits]
+                    agree_cut = (sb, hits)
             else:
                 bass(b0, b1, root=root)
                 for b in range(b0, b1):
@@ -564,6 +592,9 @@ def compose():
             fill(b1, "snare" if b1 - b0 < 4 else "toms")
         else:
             groove(b0, b1, lead, snare=(4, 12) if lead in (2, 4) else (8,), cym="h" if lead == 2 else "rd" if lead == 4 else "x")
+    if agree_cut:                        # v20: the right guitar is written three sixteenths later than it sounds in that bar
+        sb, hits = agree_cut             # (its clock), so its notes are chosen by where they SOUND
+        T["gr"] = [n for n in T["gr"] if not (sb * 16 + 3 <= round(n["at"] * 4) < (sb + 1) * 16 + 3) or (round(n["at"] * 4) - 3) % 16 in hits]
     if LETGO:                            # v11: the band's last hit, and the guitars and bass hold the open F and let it die
         hold = float(LETGO.split(";")[0])
         fill(74, "toms")
