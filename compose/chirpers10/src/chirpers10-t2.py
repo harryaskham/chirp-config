@@ -124,6 +124,15 @@ VOICE_LINES = [      # syllables (ARPAbet, from `chirp tts --print`); "up" = the
 # then ours stayed flat where theirs fall: +1.6 dB at 11.6-13.7 kHz, +4.7 at 13.7-16, +7.4 at 16-20; every piece of the
 # kit carried it). A low-pass on the drums' bus and the overheads': Hz ; q. "" = v4.
 DTOP = os.environ.get("C10T2_DTOP", "14500;0.7")
+# v6: THE HOLD THREE SIXTEENTHS APART (bars 50-56, and the slip into it from bar 48). At this distance the two guitars
+# strike TOGETHER five times a bar, more than at any other (sixteenths 0, 3, 10, 12, 13), and three of those are two
+# different notes: the riff makes chords with itself (a tritone, a minor third, a fifth). So this hold is built on the
+# hits: the band stops keeping time and strikes only where the guitars strike together (kick on all five, snare on the
+# two chords at 3 and 10, china on the bar line, the bass on the five and resting between), while the two dry guitars
+# play the whole riff through the gaps and the pendulum ticks under them. It stands on B, the hook's tritone: the second
+# of the hook's notes to become a ground (Ab at an eighth, B here).
+# the root's semitones above F ; the pendulum's velocity. "" = v5.
+THREE = os.environ.get("C10T2_THREE", "6;0.42")
 T = {}
 
 
@@ -153,14 +162,19 @@ def riff(tr, b0, b1, vel=0.85, up=0, clean=False, ramp=None, root=0):
                 add(tr, t, 2 if clean else ln, HOOK[int(kind[1])] + up, v * 1.05)
 
 
-def bass(b0, b1, lead=0, vel=0.9, root=0, union=False):
+def bass(b0, b1, lead=0, vel=0.9, root=0, union=False, only=None):
     """The bass keeps the LEFT clock; where the right guitar is locked `lead` sixteenths ahead it takes its chugs too
-    (`union`: every note of the right guitar's that the left has not, so the bass plays the two guitars' one line)."""
+    (`union`: every note of the right guitar's that the left has not, so the bass plays the two guitars' one line;
+    `only`: just the left guitar's notes at these sixteenths)."""
     for b in range(b0, b1):
         seen = set()
         for p, ln, kind in RIFF:
+            if only is not None and p not in only:
+                continue
             add("bass", b * 16 + p, ln, root + (F1 if kind in "co" else HOOK[int(kind[1])]), vel)
             seen.add(p)
+        if only is not None:
+            continue
         if lead:
             for p, ln, kind in RIFF:
                 q = (p - lead) % 16
@@ -216,6 +230,23 @@ def groove_eighth(b0, b1, lead, ghost, china):
     drum("c", b0 * 16, 0.9)
 
 
+def groove_three(b0, b1, tick):
+    """The beat of the hold three sixteenths apart: no time-keeping, only the five places the two guitars strike
+    together. The pendulum ticks under it."""
+    hits = sorted(set(ATTACKS) & {(p - 3) % 16 for p in ATTACKS})
+    assert hits == [0, 3, 10, 12, 13]
+    for b in range(b0, b1):
+        for p in hits:
+            drum("k", b * 16 + p, 0.95)
+        for p in (3, 10):
+            drum("s", b * 16 + p, 0.95)
+        drum("x", b * 16, 0.7)
+        drum("rb", b * 16, tick * 1.12)
+        drum("rb", b * 16 + 8, tick)
+    drum("c", b0 * 16, 0.9)
+    return hits
+
+
 def fill(b, kind="toms"):
     """The last half bar before bar `b`."""
     if kind == "toms":
@@ -257,6 +288,20 @@ def compose():
             riff("gr", b0, b1, root=int(root))
             bass(b0, b1, lead, root=int(root), union=True)
             groove_eighth(b0, b1, lead, ghost, china)
+            continue
+        if THREE and (lead == 3 or (b0, b1) == (48, 50)):     # the hold three sixteenths apart and the slip into it, on B (v6)
+            root, tick = int(THREE.split(";")[0]), float(THREE.split(";")[1])
+            riff("gl", b0, b1, root=root)
+            riff("gr", b0, b1, root=root)
+            if lead == 3:
+                bass(b0, b1, root=root, only=groove_three(b0, b1, tick))
+            else:
+                bass(b0, b1, root=root)
+                for b in range(b0, b1):
+                    drum("k", b * 16, 0.85)
+                    for p in range(0, 16, 4):
+                        drum("h", b * 16 + p, 0.45)
+                fill(b1, "snare")
             continue
         riff("gl", b0, b1)
         riff("gr", b0, b1)
