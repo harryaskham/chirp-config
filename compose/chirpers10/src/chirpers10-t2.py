@@ -186,6 +186,15 @@ ONE = os.environ.get("C10T2_ONE", "7;0.8;0.8")
 # (the bass's C2 is 65 Hz; on F its fundamental is under 60). The bass bus's fader comes down there, after its
 # compressor (a gain on the bass track is taken back by the compressor). bar:bar:dB, ... "" = no ride.
 LOWRIDE = os.environ.get("C10T2_LOWRIDE", "28:32:-1.5" if ONE else "")
+# v9: THE OPENING (0:00-0:35) gets two things of its own.
+#   1. For the first eight bars the right side was empty: one guitar hard left for eighteen seconds. From the bar the
+#      bass and the kick come in, the right guitar plays the riff's CHUGS only (the same four sixteenths the kick is on):
+#      the riff's skeleton arrives on the right, and the whole riff, with its hook, at 0:18. One clock; then the other
+#      is heard starting.
+#   2. The band STOPS for the last beat before the voice (0:35), and the voice's first word, "I", falls in the gap; the
+#      band comes back on "cannot". The first word of the song is heard alone.
+# the bar the right guitar's chugs join ; the first silent sixteenth of the bar before the voice. "" = v8.
+OPEN = os.environ.get("C10T2_OPEN", "4;12")
 T = {}
 
 
@@ -196,13 +205,15 @@ def add(tr, s16, len16, pitch, vel, **expr):
     T.setdefault(tr, []).append(n)
 
 
-def riff(tr, b0, b1, vel=0.85, up=0, clean=False, ramp=None, root=0):
+def riff(tr, b0, b1, vel=0.85, up=0, clean=False, ramp=None, root=0, only=None):
     """The riff on a track, bars b0..b1. Heavy: chugs muted (`root` semitones above F). Clean (`up` semitones higher):
-    every note a short tick."""
+    every note a short tick. `only`: just the notes at these sixteenths."""
     up = up + root
     for b in range(b0, b1):
         v = vel * (ramp[0] + (ramp[1] - ramp[0]) * (b - b0) / max(1, b1 - b0 - 1)) if ramp else vel
         for p, ln, kind in RIFF:
+            if only is not None and p not in only:
+                continue
             t = b * 16 + p
             if kind == "c":
                 if clean:
@@ -339,6 +350,8 @@ def compose():
     pendulum(0, 8)
     T.setdefault("home", []).append({"at": 0, "len": 32.2, "pitch": "F1", "vel": 0.55})
     riff("gl", 0, 8, vel=0.85)
+    if OPEN:                             # v9: the other guitar's chugs join with the bass and the kick: the riff's skeleton, on the right
+        riff("gr", int(OPEN.split(";")[0]), 8, vel=0.85, only=CHUGS)
     bass(4, 8)
     for b in range(4, 8):
         for p in CHUGS:
@@ -351,6 +364,11 @@ def compose():
     riff("gr", 8, 24)
     bass(8, 24)
     groove(8, 24, 0, snare=(8,), cym="x")
+    if OPEN:                             # v9: the band stops for the last beat before the voice, and its first word falls in the gap
+        g0 = 15 * 4 + int(OPEN.split(";")[1]) / 4
+        for tr in ("gl", "gr", "bass", "kick", "snare", "cym", "hat", "ride", "toms"):
+            T[tr] = [n for n in T.get(tr, []) if not (g0 <= n["at"] < 64)]
+        drum("c", 16 * 16, 0.9)
     for name, b0, b1, lead in FORM[2:10]:
         if lead == 2 and EIGHTH:         # the hold an eighth apart: its own ground and its own beat (v4)
             root, ghost, china = [float(x) for x in EIGHTH.split(";")[:3]]
