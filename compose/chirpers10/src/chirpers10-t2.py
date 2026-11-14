@@ -214,7 +214,19 @@ OPEN = os.environ.get("C10T2_OPEN", "4;12")
 # groove: so its track is at 6.5 dB (Common Time's is 7) and the master makes up 0.3 dB.
 # the track's shelf (shelf:Hz:dB) ; its send to the cymbals' room, dB ; its gain ; dry : the send to the dry bus, dB ;
 # the master's make-up, dB. "" = v9.
-SNARE = os.environ.get("C10T2_SNARE", "shelf:7000:-2;-12;6.5dB;dry:-10;0.3")
+# v14: THE SNARE STEPS BACK (whole song), from the first true reading of this song's mix. Until today the reader
+# (stembal) had frames that sat on this song's beat (108 bpm is 2.99 frames a beat) and misread its short holds by up
+# to 2.6 dB; chirp-eco found and mended it, and read every hold part by part. The snare, the loudest track in every
+# hold, holds most of 8-16 kHz in four of the six holds (58 to 72%) and most of 4-8 kHz in four; those bands read up
+# to 2.7 and 1.3 dB over the records. Its track comes down 1.25 dB (6.5 -> 5.25) and its shelf above 7 kHz goes from
+# 2 to 3 dB. (v10 to v13: "shelf:7000:-2;-12;6.5dB;dry:-10;0.3".)
+SNARE = os.environ.get("C10T2_SNARE", "shelf:7000:-3;-12;5.25dB;dry:-10;0.3")
+# v14: and the guitars hold most of 250-500 Hz, which reads 1.1 to 2.2 dB over the records in ALL six holds: one narrow
+# cut on the guitars' bus (Hz : q : dB). Predicted on the two guitars alone (eqpred.py): about -1.7 dB at 250-500 Hz,
+# -0.5 at 120-250 Hz and -0.4 at 500 Hz-1 kHz. "" = none (v13).
+GBODY = os.environ.get("C10T2_GBODY", "330:1.2:-2")
+# the master's make-up for the two, dB
+V14_MAKEUP = float(os.environ.get("C10T2_V14MAKEUP", "0.15") or 0) if (GBODY or SNARE.split(";")[2:3] == ["5.25dB"]) else 0.0
 SNARE_EQ = os.environ.get("C10T2_SNAREEQ", "300:0.7:-12")        # the dry bus's eq (Hz : q : dB)
 # v10: TWO CLOCKS AT THE END (section round, 4:31-4:50). The song is named after two pendulum clocks that settled in
 # opposition, and it ended with the guitars against each other but ONE pendulum (a ride bell). Now there are two clocks,
@@ -654,7 +666,8 @@ def song():
                                                     *([[f"{(LOCK_BAR - 0.75) * 4:g}b", -float(LETGO.split(";")[1])], [f"{(LOCK_BAR - 0.5) * 4:g}b", float(LOCK.split(";")[1].split(":")[0])],
                                                        [f"{98 * 4 - 0.125:g}b", float(LOCK.split(";")[1].split(":")[1])], [f"{98 * 4}b", 0]] if LOCK else
                                                       [[f"{96 * 4}b", -float(LETGO.split(";")[1])], [f"{97 * 4}b", 0]])], "curve": 0}}} if LETGO else {}),
-                     "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.go", "amount": 1}]} if LETGO else "0dB"}] + ([f"reverb kind={beam[0]} decay={beam[1]} mix={beam[2]} predelay=6ms"] if TWIN else [])
+                     "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.go", "amount": 1}]} if LETGO else "0dB"}]
+                           + ([{"type": "eq", "bands": [f"peak cutoff={GBODY.split(':')[0]} q={GBODY.split(':')[1]} gain={GBODY.split(':')[2]}dB"]}] if GBODY else []) + ([f"reverb kind={beam[0]} decay={beam[1]} mix={beam[2]} predelay=6ms"] if TWIN else [])
                      + (pump if HEARD else [{"type": "duck", "by": "tl", "depth": f"-{vo[4]}dB", "attack": "20ms", "release": "250ms"}] if VOICE and float(vo[4]) else [])},
             "low": {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
@@ -662,7 +675,7 @@ def song():
                            + ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}}] if lowride else []),
                     **({"auto": {"ride": {"points": lowride, "curve": 0}}} if lowride else {})},
         },
-        "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": f"{1.6 + (float(TWIN.split(';')[2]) if TWIN else 0) + (float(SNARE.split(';')[4]) if SNARE and SNARE.split(';')[4:] else 0) + (float(MIX.split(';')[3]) if MIX else 0):g}dB"}]},
+        "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": f"{1.6 + (float(TWIN.split(';')[2]) if TWIN else 0) + (float(SNARE.split(';')[4]) if SNARE and SNARE.split(';')[4:] else 0) + (float(MIX.split(';')[3]) if MIX else 0) + V14_MAKEUP:g}dB"}]},
         "tracks": tracks,
     }
 
