@@ -953,6 +953,12 @@ BEQ2 = os.environ.get("C10T1_BEQ2", "170:1.2:-3")
 TOP = os.environ.get("C10T1_TOP", "5300:2:-10,9100:1.8:7.5;3000:1.2:-2,5500:1.6:-6.7,9000:1.2:-4;5272:2.4:-9.7,9613:1.1:5")
 TOP_OF = {**{t: 0 for t in ("gl", "gr", "gl2", "gr2", "rl", "rr", "rl2", "rr2", "ql", "qr")}, "sl": 1, "sr": 1, "wl": 2, "wr": 2}
 CYMINST = os.environ.get("C10T1_CYMINST", "-1.5")
+# v35: THE CYMBALS' AIR. Read window by window against the records' passages with as much voice as the window has
+# (stembal --voice-tracks), 8-16 kHz was the worst band left: +1.0 to +2.2 dB in the six windows with little or no voice
+# (riff A, the section after it, riff C, the split, the hardest stretch, the landing riff), level or under in the three
+# with a tune. The cymbals carry that band alone, so: a high shelf on the cymbals', hats' and ride's tracks (Hz:dB), which
+# leaves their 4-8 kHz where it is, and the cymbals' fader down in the hardest stretch (bars 280-308), the worst. "" = v34.
+CYMAIR = os.environ.get("C10T1_CYMAIR", "9000:-2;-1.5")
 if SECMIX and (LANDMIX or CYMINST):
     cymf = [(35, 70, float(CYMINST)), (110, 121, float(CYMINST))] if CYMINST else []
     if LANDMIX:
@@ -962,6 +968,8 @@ if SECMIX and (LANDMIX or CYMINST):
         for tr in ("rl2", "rr2") if REAL5 else ("gl2", "gr2"):
             SECTION_FADERS[tr] = SECTION_FADERS.get(tr, []) + [(389, 400.5, ld)]
     if cymf:
+        if CYMAIR and len(CYMAIR.split(";")) > 1 and float(CYMAIR.split(";")[1]):
+            cymf = sorted(cymf + [(280, 308, float(CYMAIR.split(";")[1]))])
         SECTION_FADERS["cym"] = cymf
 # v26, THE EYE: THE WHEELS LOOK AT EACH OTHER. In the quiet centre (5:33-6:40) each wheel's clean guitar is moved by another
 # wheel's count, on the song's clock, so the two stay locked:
@@ -1007,6 +1015,16 @@ REAL = os.environ.get("C10T1_REAL", "0.00008")
 REALS = f" synth.layers.0.inharm={REAL}" if REAL else ""
 HANDED = (f" synth.layers.0.mute=expr.pm*{HAND.split(':')[0]} synth.layers.0.mute_width={HAND.split(':')[1]}"
           " synth.layers.0.decay.mod.0.amount=0 synth.filters.0.cutoff.mod.0.amount=0 synth.layers.0.bright.mod.0.amount=0") if HAND else ""
+# v35: THE SPRING. The low-gain rig (the seven break at 2:13, the approach's first guitars at 11:19) gets what a low-gain
+# amp has in its chassis: a spring tank, in place of the patch's plate (`fx.6.kind=spring`): three springs whose high
+# frequencies arrive after their low ones, so a muted note leaves a short falling splash behind it. mix : decay : track dB.
+# At 0.25 the splash is 3 dB up in the gaps (the quiet quarter of the time -21.2 -> -18.2 dB) and the hand's mute still
+# shows (a muted note falls 3.7 dB inside itself; 4.9 before); at 0.35 the mute is washed out (1.9). "" = v34 (the plate).
+SPRING = os.environ.get("C10T1_SPRING", "0.25:1.6s:0.5")
+if SPRING:
+    HANDED += f" fx.6.kind=spring fx.6.mix={SPRING.split(':')[0]} fx.6.decay={SPRING.split(':')[1]}"
+    if CRUNCH_DB == "2dB":
+        CRUNCH_DB = f"{2 + float(SPRING.split(':')[2]):g}dB"
 EYE = [float(x) for x in EYEFX.split(":")] if EYEFX else []
 EYE_TR = ("e5", "e7", "e11") if EYEFX else ("cl5", "cl7", "cl11")
 TSTOP = os.environ.get("C10T1_TSTOP", "1")      # a tape stop on the last stab before the hardest stretch (8:52): the whole mix winds down, and the band lands on the bar line
@@ -1209,6 +1227,8 @@ def song():
     STUT_LANE = [["0b", 0], [f"{t1 - 0.6}b", 0], [f"{t1 - 0.5}b", 1], [f"{t1 + 0.6}b", 1], [f"{t1 + 0.7}b", 0]]
     OHC = {"sends": {"oh": DROOM.split(":")[1] + "dB"}} if DROOM else {}
     OHS = {"sends": {"oh": DROOM.split(":")[2] + "dB"}} if DROOM else {}
+    AIRFX = ({"fx": [{"type": "eq", "bands": ["highshelf cutoff=%s gain=%sdB" % tuple(CYMAIR.split(";")[0].split(":"))]}]}
+             if CYMAIR and CYMAIR.split(";")[0] else {})
     GOUT = {"out": "gtrs"} if GEQ else {}
     PICK_FX = {"fx": [{"type": "eq", "bands": peaks(PICK.split(";")[2])}]} if PICK and len(PICK.split(";")) > 2 and PICK.split(";")[2] else {}
     BOUT = {"out": "low"} if BEQ else {}
@@ -1239,8 +1259,8 @@ def song():
         ("wr", WALL_R, "-2dB", 0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
         ("bass", BASS, "0.5dB", 0, BOUT),
         ("kick", KIT, "2dB", None, {"out": "drums"}), ("snare", KIT, "8dB", None, {"out": "drums", **OHS}),
-        ("cym", KIT, "-3dB", None, {"out": "drums", **OHC}), ("toms", KIT, "4dB", None, {"out": "drums", **OHS}),
-        ("hat", KIT, "14dB", float(HATPAN) if HATPAN else None, {"out": "drums", **OHC}), ("ride", KIT, "6dB", None, {"out": "drums", **OHC}),
+        ("cym", KIT, "-3dB", None, {"out": "drums", **OHC, **AIRFX}), ("toms", KIT, "4dB", None, {"out": "drums", **OHS}),
+        ("hat", KIT, "14dB", float(HATPAN) if HATPAN else None, {"out": "drums", **OHC, **AIRFX}), ("ride", KIT, "6dB", None, {"out": "drums", **OHC, **AIRFX}),
         ("lead", "m8-lead-guitar", {"value": "-3dB", "mod": [{"src": "auto.eye", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"eye": {"points": LEAD_LANE}}}),
         ("leadw", "ct-lead-wah", "-3dB", 0, {"sends": {"hall": "-10dB"}, "auto": {"wah": {"points": [[f"{round(t / 4, 3)}b", v] for t, v in WAH_PTS]}}}),
         ("cl5", CLEAN + REALS, "-4dB", -0.45, {"sends": CL_SENDS}),
