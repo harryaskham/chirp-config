@@ -82,6 +82,20 @@ DRIFT = os.environ.get("C10T2_DRIFT", "0,-2,-4,-5;16:2;0.5")       # the roots' 
 # Time's tight rig). The guitars sit 0.8 dB lower than v2's (alone, LUFS): the mix read 2 to 3 dB over the records at
 # 2-4 kHz in every heavy window, and that band is the guitars'. The master makes up what the mix lost.
 TWIN = os.environ.get("C10T2_TWIN", "ct-twin:4:5:3.2;room:0.35s:0.06;0.5")
+# v4: THE HOLD AN EIGHTH APART (bars 36-48; the section map's "static" window). Until now every hold was the same riff
+# on F with a different kick. At an eighth apart the canon does something no other distance does: the right guitar plays
+# each hook note and the left answers it an eighth later (4 and 6, 8 and 10, 13 and 15). So this hold is built on the
+# eighth, and on a ground of its own:
+# (1) it moves to Ab, the hook's minor third: the first time the ground moves under the heavy guitars. The right guitar,
+#     being ahead, gets there an eighth before the bar line.
+# (2) the snare answers itself an eighth later too (a ghost stroke after each backbeat), the hat plays eighths, a china
+#     marks the bar line.
+# (3) the bass plays BOTH guitars' notes: the one line the two make at this distance.
+# Two mix tries were measured and NOT taken (fields four and five, off by default): the bass track up 1.2 dB over the
+# hold (on Ab the mix reads 1.6 dB under the records at 120-250 Hz) moved nothing, because the bass's bus compressor
+# takes it back; and a 13 kHz low-pass on the hat cost the top it had just gained (8-16 kHz -0.1 -> -0.8).
+# the root's semitones above F ; the ghost's velocity ; the china's velocity [; the bass's dB there ; the hat's low-pass Hz]. "" = v3.
+EIGHTH = os.environ.get("C10T2_EIGHTH", "3;0.45;0.5")
 T = {}
 
 
@@ -92,8 +106,10 @@ def add(tr, s16, len16, pitch, vel, **expr):
     T.setdefault(tr, []).append(n)
 
 
-def riff(tr, b0, b1, vel=0.85, up=0, clean=False, ramp=None):
-    """The riff on a track, bars b0..b1. Heavy: chugs muted. Clean (`up` semitones higher): every note a short tick."""
+def riff(tr, b0, b1, vel=0.85, up=0, clean=False, ramp=None, root=0):
+    """The riff on a track, bars b0..b1. Heavy: chugs muted (`root` semitones above F). Clean (`up` semitones higher):
+    every note a short tick."""
+    up = up + root
     for b in range(b0, b1):
         v = vel * (ramp[0] + (ramp[1] - ramp[0]) * (b - b0) / max(1, b1 - b0 - 1)) if ramp else vel
         for p, ln, kind in RIFF:
@@ -102,25 +118,26 @@ def riff(tr, b0, b1, vel=0.85, up=0, clean=False, ramp=None):
                 if clean:
                     add(tr, t, 1, F1 + up, v * 0.8)
                 else:
-                    add(tr, t, ln, F1, v * (1.0 if p in (0, 12) else 0.9), pm=1)
+                    add(tr, t, ln, F1 + root, v * (1.0 if p in (0, 12) else 0.9), pm=1)
             elif kind == "o":
                 add(tr, t, 1 if clean else ln, F1 + up + (12 if clean else 0), v)
             else:
                 add(tr, t, 2 if clean else ln, HOOK[int(kind[1])] + up, v * 1.05)
 
 
-def bass(b0, b1, lead=0, vel=0.9):
-    """The bass keeps the LEFT clock; where the right guitar is locked `lead` sixteenths ahead it takes its chugs too."""
+def bass(b0, b1, lead=0, vel=0.9, root=0, union=False):
+    """The bass keeps the LEFT clock; where the right guitar is locked `lead` sixteenths ahead it takes its chugs too
+    (`union`: every note of the right guitar's that the left has not, so the bass plays the two guitars' one line)."""
     for b in range(b0, b1):
         seen = set()
         for p, ln, kind in RIFF:
-            add("bass", b * 16 + p, ln, F1 if kind in "co" else HOOK[int(kind[1])], vel)
+            add("bass", b * 16 + p, ln, root + (F1 if kind in "co" else HOOK[int(kind[1])]), vel)
             seen.add(p)
         if lead:
-            for p in CHUGS:
+            for p, ln, kind in RIFF:
                 q = (p - lead) % 16
-                if q not in seen:
-                    add("bass", b * 16 + q, 1, F1, vel * 0.85)
+                if q not in seen and (kind == "c" or union):
+                    add("bass", b * 16 + q, 1, root + (F1 if kind in "co" else HOOK[int(kind[1])]), vel * 0.85)
 
 
 def drum(piece, s16, vel):
@@ -139,6 +156,22 @@ def groove(b0, b1, lead, snare, cym, kvel=0.92):
             drum("s", b * 16 + p, 0.95)
         for p in range(0, 16, 4):
             drum(cym, b * 16 + p, 0.6 if p == 0 else 0.5)
+    drum("c", b0 * 16, 0.9)
+
+
+def groove_eighth(b0, b1, lead, ghost, china):
+    """The beat of the hold an eighth apart: built on the eighth. The kick as everywhere (every chug of either guitar);
+    the snare on two and four, each answered a ghost stroke an eighth later, as each hook note is; the hat in eighths."""
+    kicks = sorted(set(CHUGS + [3]) | {(p - lead) % 16 for p in CHUGS})
+    for b in range(b0, b1):
+        for p in kicks:
+            drum("k", b * 16 + p, 0.92 * (1.0 if p % 4 == 0 else 0.9))
+        for p in (4, 12):
+            drum("s", b * 16 + p, 0.95)
+            drum("g", b * 16 + p + 2, ghost)
+        for p in range(0, 16, 2):
+            drum("h", b * 16 + p, 0.62 if p % 4 == 0 else 0.48)
+        drum("x", b * 16, china)
     drum("c", b0 * 16, 0.9)
 
 
@@ -177,6 +210,13 @@ def compose():
     bass(8, 24)
     groove(8, 24, 0, snare=(8,), cym="x")
     for name, b0, b1, lead in FORM[2:10]:
+        if lead == 2 and EIGHTH:         # the hold an eighth apart: its own ground and its own beat (v4)
+            root, ghost, china = [float(x) for x in EIGHTH.split(";")[:3]]
+            riff("gl", b0, b1, root=int(root))
+            riff("gr", b0, b1, root=int(root))
+            bass(b0, b1, lead, root=int(root), union=True)
+            groove_eighth(b0, b1, lead, ghost, china)
+            continue
         riff("gl", b0, b1)
         riff("gr", b0, b1)
         bass(b0, b1, lead or 0)
@@ -270,6 +310,7 @@ def song():
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     b = lambda bar: f"{bar * 4}b"
+    eb, hlp = ([float(x) for x in EIGHTH.split(";")[3:5]] if EIGHTH and len(EIGHTH.split(";")) > 4 else (0, 0))
     tw = TWIN.split(";")[0].split(":") if TWIN else None
     beam = TWIN.split(";")[1].split(":") if TWIN else None
     spec = [
@@ -279,12 +320,14 @@ def song():
            {"name": "gr", "patch": "ct-chug-r" + HEAVY, "gain": "3.3dB", "pan": 1, "out": "gtrs", "fx": cab(13), "warp": WARP}]),
         {"name": "cl", "patch": CLEAN, "gain": "1dB", "pan": -0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP]},
         {"name": "cr", "patch": CLEAN, "gain": "1dB", "pan": 0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP], "warp": WARP},
-        {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
+        {"name": "bass", "patch": "ct-bass", "gain": {"value": "0.5dB", "mod": [{"src": "auto.hold", "amount": 1}]} if EIGHTH and eb else "0.5dB", "pan": 0, "out": "low",
+         **({"auto": {"hold": {"points": [["0b", 0], [b(35.9), 0], [b(36), eb], [b(48), eb], [b(48.1), 0]], "curve": 0}}} if EIGHTH and eb else {})},
         {"name": "kick", "patch": kit, "gain": "2dB", "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]},
         {"name": "snare", "patch": kit, "gain": "8dB", "out": "drums", "sends": {"oh": "-1.5dB"}},
         {"name": "toms", "patch": kit, "gain": "4dB", "out": "drums", "sends": {"oh": "-1.5dB"}},
         {"name": "cym", "patch": kit, "gain": "-3dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
-        {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
+        {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"},
+         "fx": [{"type": "eq", "bands": air[0]["bands"] + [f"lp cutoff={hlp:g} q=0.7"]}] if EIGHTH and hlp else air},
         {"name": "ride", "patch": kit, "gain": "6dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
         *([{"name": "tick", "patch": kit, "gain": "6dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air, **risset_tick()}] if DRIFT else []),
         {"name": "home", "patch": "contrabass-tight", "gain": "-9dB", "pan": 0.3, "sends": {"hall": "-12dB"}},
