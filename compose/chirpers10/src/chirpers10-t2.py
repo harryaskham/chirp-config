@@ -197,7 +197,7 @@ ONE = os.environ.get("C10T2_ONE", "7;0.8;0.8")
 # On C, with the kick and the bass on thirteen sixteenths of a bar, the hold read 1.4 dB over the records at 60-120 Hz
 # (the bass's C2 is 65 Hz; on F its fundamental is under 60). The bass bus's fader comes down there, after its
 # compressor (a gain on the bass track is taken back by the compressor). bar:bar:dB, ... "" = no ride.
-LOWRIDE = os.environ.get("C10T2_LOWRIDE", "28:32:-1.5" if ONE else "")
+LOWRIDE = os.environ.get("C10T2_LOWRIDE", "28:32:1.5" if ONE else "")        # v8-v16: 28:32:-1.5
 # v9: THE OPENING (0:00-0:35) gets two things of its own.
 #   1. For the first eight bars the right side was empty: one guitar hard left for eighteen seconds. From the bar the
 #      bass and the kick come in, the right guitar plays the riff's CHUGS only (the same four sixteenths the kick is on):
@@ -220,7 +220,7 @@ OPEN = os.environ.get("C10T2_OPEN", "4;12")
 # hold, holds most of 8-16 kHz in four of the six holds (58 to 72%) and most of 4-8 kHz in four; those bands read up
 # to 2.7 and 1.3 dB over the records. Its track comes down 1.25 dB (6.5 -> 5.25) and its shelf above 7 kHz goes from
 # 2 to 3 dB. (v10 to v13: "shelf:7000:-2;-12;6.5dB;dry:-10;0.3".)
-SNARE = os.environ.get("C10T2_SNARE", "shelf:7000:-3;-12;5.25dB;dry:-10;0.3")
+SNARE = os.environ.get("C10T2_SNARE", "shelf:7000:-3;-1.5;3.5dB;dry:-10;0.3")      # v14-v16: shelf:7000:-3;-12;5.25dB;dry:-10;0.3
 # v14: and the guitars hold most of 250-500 Hz, which reads 1.1 to 2.2 dB over the records in ALL six holds: one narrow
 # cut on the guitars' bus (Hz : q : dB). Predicted on the two guitars alone (eqpred.py): about -1.7 dB at 250-500 Hz,
 # -0.5 at 120-250 Hz and -0.4 at 500 Hz-1 kHz. "" = none (v13).
@@ -265,7 +265,31 @@ LOCK_BAR = int(LOCK.split(";")[0]) if LOCK else 96
 # (a music box has no low notes), through the same dripping spring. They are also what is left at the very end, with
 # the two clocks. The clean guitars leave the song.
 # the patch ; semitones above the heavy riff ; gain ; pan ; hall send ; the dripping spring's mix (0 = none). "" = v14.
-BOX = os.environ.get("C10T2_BOX", "music-box;48;-11dB;0.7;-9dB;0.22")
+BOX = os.environ.get("C10T2_BOX", "music-box;48;-9dB;0.7;-9dB;0.22")        # v15-v16: -11dB
+# v17: HARRY'S ANSWERS (whole song). On 14 Nov, 16:12-16:34 GMT, Harry answered the Questions page; five of his answers
+# say something here is wrong, and each is acted on (his words in quotes):
+#   1. THE SNARE, "Too dry": v10 took the snare out of the cymbals' room (its send to `oh` -1.5 -> -12 dB) because that
+#      send is a path round the drums' clip. His ear says that path was the snare's air. The send is back at -1.5 dB;
+#      the dry path beside it (the crack) stays, and the track comes down to keep the snare where v14 put it
+#      (C10T2_SNARE's second and third fields).
+#   2. THE HOLD ON C, "more bass": the bass's bus was 1.5 dB DOWN there (v8, a reading of the low end against the
+#      records). It is 1.5 dB up now: 3 dB more bass (C10T2_LOWRIDE).
+#   3. THE BUILD TO THE LANDING, "It gives the landing away": v12 brought the heavy guitars' chugs back two bars early.
+#      They are out again: the guitars stay silent until the band lands at 3:38. The bass's swell under the build
+#      stays (C10T2_EARLY: "1" = the early chugs).
+#   4. THE PENDULUM IN THE DRIFT, "doesnt work at this tempo on this kit piece": the ride bell's ever-speeding tick is
+#      out of the drift. It was also the loudest thing there, 5 dB over the two music boxes he kept ("Music boxes:
+#      keep them"); the drift is theirs now, 2 dB up (C10T2_PEND: "1" = the pendulum; the boxes' gain is BOX's third).
+#   5. THE ENDING, "Sounds like a click track": the two wooden clocks are gone. The song ends on the two music boxes,
+#      half a bar apart, RUNNING DOWN as a music box does when its spring is spent: two bars in time, then every note
+#      later than the last, and one last F from each, the right box's first (C10T2_END: bars in time ; how many times
+#      slower the last note is than the first, less one ; the boxes' velocity ; the song's length in beats).
+# Each "" (or the older value) gives v16.
+EARLY = os.environ.get("C10T2_EARLY", "")
+PEND = os.environ.get("C10T2_PEND", "")
+END = os.environ.get("C10T2_END", "2;2.0;0.45;532")
+if END:
+    CLOCKS = ""
 TICKS = ("ml", "mr") if BOX else ("cl", "cr")
 TICK_UP = int(BOX.split(";")[1]) if BOX else 24
 # v16: THE ECHO, HEARD NAKED (section round, 1:33-1:38; the window 1:11-1:46, "static"). The hold an eighth apart is
@@ -514,9 +538,10 @@ def compose():
             T.setdefault("home", []).append({"at": b0 * 4, "len": (b1 - b0) * 4 + 0.2, "pitch": nm(F1 + r), "vel": 0.55})
             for iv in (12, 19):
                 T.setdefault("air", []).append({"at": b0 * 4, "len": (b1 - b0) * 4 + 0.2, "pitch": nm(F1 + r + iv), "vel": 0.45})
-        pendulum(74, 80)
-        T["tick"] = [{"at": 0, "len": 2.0, "pitch": "rb", "vel": 0.47}, {"at": 2, "len": 2.0, "pitch": "rb", "vel": 0.42}]   # one tick-tock: the pattern the Risset rhythm turns
-        pendulum(96, 98)
+        if PEND:
+            pendulum(74, 80)
+            T["tick"] = [{"at": 0, "len": 2.0, "pitch": "rb", "vel": 0.47}, {"at": 2, "len": 2.0, "pitch": "rb", "vel": 0.42}]   # one tick-tock: the pattern the Risset rhythm turns
+            pendulum(96, 98)
         pv = float(DRIFT.split(";")[2])
         for b in range(86, 98):
             drum("k", b * 16, 0.4 + 0.03 * (b - 86))
@@ -536,7 +561,7 @@ def compose():
             T.setdefault("air", []).append({"at": 74 * 4, "len": 96.2, "pitch": n, "vel": 0.45})
     for n in ("F3", "C4"):
         T.setdefault("swarm", []).append({"at": 74 * 4, "len": 96.0, "pitch": n, "vel": 0.7})
-    if LOCK:                             # v12: the lock is heard before it lands: both heavy guitars, chugs only, half a bar apart
+    if LOCK and EARLY:                   # v12: the lock is heard before it lands: both heavy guitars, chugs only, half a bar apart
         riff("gl", LOCK_BAR, 98, vel=0.85, only=CHUGS)
         riff("gr", LOCK_BAR, 98, vel=0.85, only=CHUGS)
     fill(98)
@@ -571,11 +596,25 @@ def compose():
                 T.setdefault(tr, []).append({"at": b * 4, "len": 0.5, "pitch": "C5", "vel": tv})
                 if b < 130 or tr == "pr":
                     T.setdefault(tr, []).append({"at": b * 4 + 2, "len": 0.5, "pitch": "F4", "vel": kv})
-    else:
+    elif not END:
         pendulum(122, 130)
-    for tr in TICKS:
-        riff(tr, 126, 130, vel=0.32 if BOX else 0.45, up=TICK_UP, clean=True, ramp=(1.0, 0.6))     # (the boxes softer at the end: the two clocks are the point there)
-    T.setdefault("home", []).append({"at": 126 * 4, "len": 16.0, "pitch": "F1", "vel": 0.5})
+    if END:                              # v17: the two music boxes run down
+        nt, slow, bv, total = [float(v) for v in END.split(";")]
+        t0, x0, span = 126 * 4, nt * 4, 16 - nt * 4
+        late = lambda x: x if x <= x0 else x + slow * (x - x0) ** 3 / (3 * span ** 2)       # a beat's place once the spring runs down
+        for tr in TICKS:
+            k = len(T.get(tr, []))
+            riff(tr, 126, 130, vel=bv, up=TICK_UP, clean=True, ramp=(1.0, 0.6))
+            add(tr, 130 * 16, 16, F1 + TICK_UP, bv * 0.6)                               # one last F, on what would have been the bar line
+            for n in T[tr][k:]:
+                x = n["at"] - t0
+                n["len"] = round(n["len"] * (1 + slow * (max(0.0, x - x0) / span) ** 2), 4)
+                n["at"] = round(t0 + late(x), 4)
+        T.setdefault("home", []).append({"at": 126 * 4, "len": total - 126 * 4 - 2, "pitch": "F1", "vel": 0.5})
+    else:
+        for tr in TICKS:
+            riff(tr, 126, 130, vel=0.32 if BOX else 0.45, up=TICK_UP, clean=True, ramp=(1.0, 0.6))     # (the boxes softer at the end: the two clocks are the point there)
+        T.setdefault("home", []).append({"at": 126 * 4, "len": 16.0, "pitch": "F1", "vel": 0.5})
 
 
 # the heavy rig: Common Time's tight rig on the engine's own cabinet (sounds.md), one a side
@@ -655,7 +694,7 @@ def song():
         {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"},
          "fx": [{"type": "eq", "bands": air[0]["bands"] + [f"lp cutoff={hlp:g} q=0.7"]}] if EIGHTH and hlp else air},
         {"name": "ride", "patch": kit, "gain": "6dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
-        *([{"name": "tick", "patch": kit, "gain": "6dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air, **risset_tick()}] if DRIFT else []),
+        *([{"name": "tick", "patch": kit, "gain": "6dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air, **risset_tick()}] if DRIFT and PEND else []),
         {"name": "home", "patch": "contrabass-tight", "gain": "-9dB", "pan": 0.3, "sends": {"hall": "-12dB"}},
         {"name": "air", "patch": "juno-pad", "gain": "-13dB", "pan": 0.15, "sends": {"hall": "-8dB"}},
         *([{"name": tr, "patch": "ot-clock", "gain": CLOCKS.split(";")[0], "pan": sgn * float(CLOCKS.split(";")[1]), "sends": {"hall": CLOCKS.split(";")[3]},
@@ -674,7 +713,7 @@ def song():
                   "engine's track warp), holding at each distance, until it is half a bar ahead, exactly against the left, and "
                   "there the riff's two halves fit: every sixteenth has one guitar on it and never both. After Huygens's two "
                   "pendulum clocks on one beam (1665), which always ended swinging against each other. v1: the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "4s", "length": f"{NB * 4 + (4 if CLOCKS else 0)}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "4s", "length": f"{int(float(END.split(';')[3])) if END else NB * 4 + (4 if CLOCKS else 0)}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
                     "ot-swarm": SWARM,
                     **({"ot-clock": {"about": "chirper-zero: a clock's tick - a drum machine's rim-shot circuit (the `machine` layer, part rim), 16-20 ms long; it follows the note's pitch (C5 the tick, F4 the tock)",
@@ -689,7 +728,7 @@ def song():
             **({"snr": {"fx": [{"type": "eq", "bands": [f"peak cutoff={SNARE_EQ.split(':')[0]} q={SNARE_EQ.split(':')[1]} gain={SNARE_EQ.split(':')[2]}dB"]}]}} if SNARE else {}),
             "gtrs": {**({"auto": {"go": {"points": [["0b", 0], [f"{74 * 4}b", 0], [f"{(74 + float(LETGO.split(';')[2])) * 4:g}b", -float(LETGO.split(";")[1])],
                                                     *([[f"{(LOCK_BAR - 0.75) * 4:g}b", -float(LETGO.split(";")[1])], [f"{(LOCK_BAR - 0.5) * 4:g}b", float(LOCK.split(";")[1].split(":")[0])],
-                                                       [f"{98 * 4 - 0.125:g}b", float(LOCK.split(";")[1].split(":")[1])], [f"{98 * 4}b", 0]] if LOCK else
+                                                       [f"{98 * 4 - 0.125:g}b", float(LOCK.split(";")[1].split(":")[1])], [f"{98 * 4}b", 0]] if LOCK and EARLY else
                                                       [[f"{96 * 4}b", -float(LETGO.split(";")[1])], [f"{97 * 4}b", 0]])], "curve": 0}}} if LETGO else {}),
                      "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.go", "amount": 1}]} if LETGO else "0dB"}]
                            + ([{"type": "eq", "bands": [f"peak cutoff={GBODY.split(':')[0]} q={GBODY.split(':')[1]} gain={GBODY.split(':')[2]}dB"]}] if GBODY else []) + ([f"reverb kind={beam[0]} decay={beam[1]} mix={beam[2]} predelay=6ms"] if TWIN else [])
