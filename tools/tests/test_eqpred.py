@@ -110,6 +110,23 @@ class OnAFile(unittest.TestCase):
         _, cut = self.run_tool(self.tone + ":1:2", "peak:3000:1:-6", "--band", "2000-4000")
         self.assertAlmostEqual(float(cut.splitlines()[1].split()[1]), -6.0, delta=0.1)
 
+    def test_a_hit_counts_the_same_wherever_it_falls_in_a_frame(self):
+        # 20 ms bursts of 3 kHz every frame and a half (a beat at 108 bpm), under a steady low tone. In frames that do
+        # not overlap, bursts on the frames' edges all but vanished, so a low-pass was predicted to cost nothing.
+        size, length = 16384, 960
+        t = np.arange(40 * size) / SR
+        tone = 0.4 * np.sin(2 * np.pi * 3000 * np.arange(length) / SR)
+        got = []
+        for offset in (0, size // 2, size // 3):
+            x = 0.05 * np.sin(2 * np.pi * 100 * t)
+            for k in range(1, 26):
+                i = k * (size + size // 2) + offset - length // 2
+                x[i:i + length] += tone
+            power, freqs, _ = E.spectrum(save(os.path.join(self.root, f"hits{offset}.wav"), x))
+            got.append(E.changes(power, freqs, E.response(E.parse("lp:1000"), freqs, SR) ** 2, [])[-1])
+        self.assertLess(max(got) - min(got), 0.1)                 # the same file, the same prediction: wherever they fall
+        self.assertLess(max(got), -3.0)                           # ... and the bursts are most of the file's power
+
     def test_what_cannot_be_read_is_said(self):
         with self.assertRaises(SystemExit) as e:
             self.run_tool(self.tone, "ladder:800")

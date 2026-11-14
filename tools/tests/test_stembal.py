@@ -410,6 +410,58 @@ class Stembal(unittest.TestCase):
             first = struct.unpack("<hh", w.readframes(1))
         self.assertEqual(first, (round(s0 * 48000) % 30000, -(round(s0 * 48000) % 30000)))
 
+    def test_a_hit_counts_the_same_wherever_it_falls_in_a_frame(self):
+        # 20 ms bursts of 3 kHz every three frames exactly (108 bpm is 2.99): once on the frames' edges, once on their
+        # middles. Read in frames that do not overlap, the first all but vanished and the second counted 2.7 times.
+        import numpy as np
+        n, every, length = 8192, 3 * 8192, 882
+        tone = np.sin(2 * np.pi * 3000 * np.arange(length) / 44100)
+        got = []
+        for offset in (0, n // 2, n // 3):
+            x = np.zeros(40 * every)
+            for k in range(1, 39):
+                x[k * every + offset - length // 2:k * every + offset - length // 2 + length] = tone
+            got.append(S.bands(x)[6])
+        steady = S.bands(math.sqrt(length / every) * np.sin(2 * np.pi * 3000 * np.arange(40 * every) / 44100))[6]
+        for g in got:                                             # the same mean power as a steady tone of that power
+            self.assertAlmostEqual(10 * math.log10(g / steady), 10 * math.log10(38 / 40), delta=0.15)
+        self.assertEqual(S.bands(np.zeros(100)).tolist(), [0.0] * 9)
+
+    def test_parts_say_whose_band_it_is(self):
+        text = self.run_tool("song", self.song, "--refs", "recA,recB", "--from", "0", "--dur", "2", "--windows", "1-4:all",
+                             "--mix-only", "--parts", "low=kick,bass", "gtr=gl", "--out", self.root)
+        lines = text.splitlines()
+        i = next(k for k, ln in enumerate(lines) if ln.startswith("== whose band is it, all (1-4)"))
+        self.assertIn("dB under the mix's OWN band", lines[i])
+        cells = {ln[:22].strip(): ln[22:].split() for ln in lines[i + 2:i + 7]}
+        self.assertEqual(cells["low"][:2], ["0.0", "0.0"])        # the kick's and the bass's bands are theirs alone
+        self.assertEqual(cells["low"][5], "-")                    # ... and they hold nothing of the guitar's
+        self.assertEqual((cells["gtr"][0], cells["gtr"][5]), ("-", "0.0"))
+        self.assertEqual([cells["the parts together"][b] for b in (0, 1, 5)], ["0.0", "0.0", "0.0"])
+        self.assertEqual([cells["most of it is"][b] for b in (0, 1, 5)], ["low", "low", "gtr"])
+        self.assertEqual([cells["its share"][b] for b in (0, 1, 5)], ["100%", "100%", "100%"])
+        self.assertEqual(cells["most of it is"][8], "-")          # a band the mix has nothing in is nobody's
+        self.assertNotIn("groups:", text)
+        self.assertEqual([f for f in os.listdir(self.root) if f.startswith("sb-")], [])
+        for bad, said in ((["--parts", "gtr"], "--parts NAME=track,track"), (["--parts", "x=nosuch"], "render failed for part-x")):
+            with self.assertRaises(SystemExit) as e:
+                self.run_tool("song", self.song, "--refs", "recA", "--from", "0", "--dur", "2", "--windows", "1-4", "--mix-only",
+                              *bad, "--out", self.root)
+            self.assertIn(said, str(e.exception))
+
+    def test_whose_reads_each_part_under_the_mixes_own_band(self):
+        import numpy as np
+        mix = np.array([4.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1e-9])
+        a = np.array([2.0, 0.2, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1e-9])
+        b = np.array([2.0, 1.8, 0.25, 1.0, 1.0, 1.0, 1.0, 1.0, 1e-12])
+        rows = {ln[:22].strip(): ln[22:].split() for ln in S.whose(mix, [("kick", a), ("guitars-left", b)])}
+        self.assertEqual(rows["kick"][:4], ["-3.0", "-10.0", "-3.0", "-"])
+        self.assertEqual(rows["guitars-left"][:3], ["-3.0", "-0.5", "-6.0"])
+        self.assertEqual(rows["the parts together"][:3], ["0.0", "0.0", "-1.2"])
+        self.assertEqual(rows["most of it is"][:4], ["kick", "guitar", "kick", "guitar"])     # a tie goes to the first named
+        self.assertEqual(rows["its share"][:4], ["50%", "90%", "50%", "100%"])
+        self.assertEqual({r[8] for r in rows.values() if len(r) == 9 and r[0] != "<60"}, {"-"})   # 96 dB under the mix: nobody's
+
     def test_windows_are_required(self):
         with self.assertRaises(SystemExit) as e:
             self.run_tool("song", self.song, "--refs", "recA", "--from", "0", "--dur", "2")

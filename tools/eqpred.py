@@ -127,13 +127,18 @@ def spectrum(spec):
             w.setpos(int(float(p[1]) * sr))
         n = int(float(p[2]) * sr) if len(p) > 2 else w.getnframes() - w.tell()
         x = np.frombuffer(w.readframes(n), dtype={2: np.int16, 4: np.int32}[sw]).reshape(-1, ch).astype(float)
-    size = 16384
-    m = len(x) // size
-    if m == 0:
+    size, hop = 16384, 4096
+    if len(x) < size:
         raise SystemExit(f"eqpred: {p[0]}: the passage is shorter than {size} samples")
+    # Frames a quarter of a frame apart, so every sample counts alike (Hann squares that far apart add to a constant).
+    # Until 14 Nov the frames did not overlap: a hit at a frame's edge hardly counted, and at 108 bpm (a beat is 1.5
+    # of these frames) the hits on the beat stayed at one place in the frame through a short passage.
     win = np.hanning(size)[:, None]
-    power = (np.abs(np.fft.rfft(x[:m * size].reshape(m, size, ch) * win, axis=1)) ** 2).mean(axis=(0, 2))
-    return power, np.fft.rfftfreq(size, 1 / sr), sr
+    power, k = np.zeros(size // 2 + 1), 0
+    for i in range(0, len(x) - size + 1, hop):
+        power += (np.abs(np.fft.rfft(x[i:i + size] * win, axis=0)) ** 2).mean(axis=1)
+        k += 1
+    return power / k, np.fft.rfftfreq(size, 1 / sr), sr
 
 
 def changes(power, freqs, gain2, bands):

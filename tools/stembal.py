@@ -50,6 +50,20 @@ Two measures, both in nine bands (20-60-120-250-500-1k-2k-4k-8k-16k Hz), both in
         records): a frame where ours is that loud counts whole, 3 dB less half, 6 dB less a quarter. So a voice as
         loud as theirs that sings a quarter of the time reads 25%, and one that sings throughout 100%.
 
+  --parts NAME=T,T ... (with `song`): WHOSE BAND IS IT. Each part is rendered alone once more (as a group is), and
+        under each window's row a table is printed: every part's nine bands in dB under the mix's OWN band (0 = the
+        part is the whole band), the parts together, and for each band the part that holds most of it with its share
+        of the mix's band. So a band that reads over the records comes with its owner: on Odd Sympathy v12, in step,
+        2-4 kHz was the guitars' (-1.1 dB: 78% of it) and 8-16 kHz the cymbals' (-0.7: 85%), which ended a question
+        carried for ten versions. Works with --mix-only (then only the mix and the parts are rendered).
+        A part more than 30 dB under a band is shown as "-". A part alone still goes through its own bus and the
+        master, so a clipped or compressed bus treats it differently alone than in the band, and parts that share a
+        band add in power only when they are unrelated: read "the parts together" for how far the parts add up to
+        the mix (near 0: they do; well under: a part is missing from the list; over: the bus holds them down
+        together, or they cancel). The shares are of the MIX's band, so they need not add to 100%.
+        (chirper-zero's six solo renders and a table, Odd Sympathy v13.)
+        --parts guitars=gl,gr bass=bass kick=kick snare=snare cymbals=cym,hat,ride
+
   --refs all = every record that has stems. What Common Time used (chirpers10, v7):
   --refs bleed,combustion,dancers-to-a-discordant-system,electric-red,lethargica,obzen,pineal-gland-optics,pravus,
          the-abysmal-eye,the-faultless,this-spiteful-snake      (one argument, no spaces)
@@ -63,6 +77,18 @@ centre, so a part moved out of a room into the centre rises in its bands here wh
 riff A: a snare taken out of the cymbals' room raised 8-16 kHz by 0.27 dB in the two channels' power and by 0.54 dB
 in the mono sum (this table read +0.6). Half of the rise was real; half was the wide room counting short in mono.
 Both readings are right; they answer different questions: read both before moving a band by less than a dB.
+
+EVERY SAMPLE IS COUNTED ALIKE (since 14 Nov). Before, the spectrum was read in frames of 8192 samples (186 ms) that did
+not overlap, each faded in and out, so a drum hit at a frame's edge hardly counted and one at its middle counted 2.7
+times over. On a record, or a song whose beat does not sit on that grid, it evens out (the eleven records' median
+moved by under 0.1 dB in every band; Common Time at 126 bpm by 0.5 dB at worst in its eight windows, under 0.3 in
+seven of them). But at 108 bpm a beat is 2.99 frames: in Odd Sympathy every hit on the beat stayed at one place in
+the frame through a whole short window. Its six windows had read up to 2.6 dB wrong at 8-16 kHz and 1.7 at 4-8 kHz
+(the hold an eighth apart read that much too DULL, the hold three sixteenths apart 1.4 dB too bright and 1.3 dB
+short under 60 Hz; the longest window, 23 bars, was within 0.2), and its snare alone read 12 dB under what it is.
+Figures read before that date on a short window of a song near 65, 81, 108, 129, 161 or 215 bpm (a beat that is a
+whole number of frames, or half of one) are worth reading again; whole songs and long windows were never far out.
+(Found when --parts did not reproduce chirper-zero's own by-part table.)
 
 Read it as: a band where the whole mix is more than about 1 dB from the references' median is worth a look; the group
 rows say which instrument carries it. A compressed bass or a clipped drums bus changes level with what is played, so
@@ -101,14 +127,20 @@ def load(path, ss=None, t=None):
 
 
 def bands(x):
-    n = 8192
-    k = max(1, len(x) // n)
+    """The power of x (44.1 kHz mono) in the nine bands, EVERY SAMPLE COUNTED ALIKE: Hann frames a quarter of a frame
+    apart (their squares add to a constant; only the first and last 0.14 s of x fade). Until 14 Nov the frames did
+    not overlap, so a hit at a frame's edge hardly counted and one at its middle counted 2.7 times: nothing on a
+    record, but at 108 bpm a beat is 2.99 frames, so every hit ON the beat stayed at one place in the frame for a
+    whole short window (see the notes at the top)."""
+    n, hop = 8192, 2048
+    if len(x) < n:
+        return np.zeros(len(EDGES) - 1)
     sp = np.zeros(n // 2 + 1)
     w = np.hanning(n)
-    for i in range(k):
-        seg = x[i * n:(i + 1) * n]
-        if len(seg) == n:
-            sp += np.abs(np.fft.rfft(seg * w)) ** 2
+    k = 0
+    for i in range(0, len(x) - n + 1, hop):
+        sp += np.abs(np.fft.rfft(x[i:i + n] * w)) ** 2
+        k += 1
     fr = np.fft.rfftfreq(n, 1 / 44100)
     return np.array([sp[(fr >= lo) & (fr < hi)].sum() for lo, hi in zip(EDGES[:-1], EDGES[1:])]) / k
 
@@ -144,7 +176,7 @@ def ref_ids(a):
 def refs(a):
     """{record: {stem: nine bands + whole, dB re the sum of stems}, "mix": nine bands} for every reference, cached."""
     ids = ref_ids(a)
-    key = hashlib.sha1(json.dumps([ids, a.model, a.start, a.dur]).encode()).hexdigest()[:12]
+    key = hashlib.sha1(json.dumps(["alike", ids, a.model, a.start, a.dur]).encode()).hexdigest()[:12]
     cache = os.path.join(ROOT, "ref", "stembal", key + ".json")
     if os.path.exists(cache):
         with open(cache) as f:
@@ -188,7 +220,7 @@ def spread(a):
     """{record: {"n": loud windows, "sd": nine bands, "range": nine bands (10th-90th percentile)}}, cached: how far each
     reference's band shares move between its own loud passages."""
     ids = ref_ids(a)
-    key = hashlib.sha1(json.dumps(["spread", ids, a.model, a.win, a.within]).encode()).hexdigest()[:12]
+    key = hashlib.sha1(json.dumps(["spread", "alike", ids, a.model, a.win, a.within]).encode()).hexdigest()[:12]
     cache = os.path.join(ROOT, "ref", "stembal", f"spread-{key}.json")
     if os.path.exists(cache):
         with open(cache) as f:
@@ -270,6 +302,27 @@ def cmd_refs(a):
         vocsplit.report(ref_ids(a), model=a.model)
 
 
+def whose(mix, parts, floor=30.0):
+    """The lines of the "whose band is it" table. mix: the mix's nine band powers; parts: [(name, its nine band
+    powers alone)]. Each part in dB under the mix's own band, the parts together, the part holding most of each
+    band and that part's share of the mix's band. A band the mix has next to nothing in (60 dB under its total)
+    is left out of every row."""
+    live = mix > mix.sum() * 1e-6
+    safe = np.where(live, mix, 1.0)
+
+    def cells(v):
+        d = db(v / safe)
+        return "".join(f"{round(x, 1) + 0.0:7.1f}" if ok and x > -floor else f"{'-':>7s}" for x, ok in zip(d, live))
+    out = [f"{'':22s}" + "".join(f"{n:>7s}" for n in NAMES)]
+    out += [f"{name[:21]:22s}" + cells(v) for name, v in parts]
+    out.append(f"{'the parts together':22s}" + cells(np.sum([v for _, v in parts], axis=0)))
+    top = [max(parts, key=lambda p: p[1][b]) for b in range(len(NAMES))]
+    out.append(f"{'most of it is':22s}" + "".join(f"{t[0][:6]:>7s}" if ok else f"{'-':>7s}" for t, ok in zip(top, live)))
+    out.append(f"{'  its share':22s}" + "".join(f"{100 * t[1][b] / safe[b]:6.0f}%" if live[b] else f"{'-':>7s}"
+                                               for b, t in enumerate(top)))
+    return out
+
+
 def canonical(pin, song, env):
     """The song as `chirp plan` resolves it, or {} when it cannot be read."""
     r = subprocess.run([pin, "--json", "plan", "-f", song, "--set", "seed=0"], capture_output=True, text=True, env=env)
@@ -314,6 +367,15 @@ def cmd_song(a):
     if vt and "voice-tracks" in groups:
         sys.exit("stembal: a group may not be called voice-tracks when --voice-tracks is given")
     extra = [("voice-tracks", vt)] if vt else []
+    parts = {}
+    for p in a.parts or []:
+        name, _, trs = p.partition("=")
+        if not name or not [t for t in trs.split(",") if t]:
+            sys.exit("stembal: --parts NAME=track,track ... (each part's tracks are rendered alone)")
+        parts[name] = [t for t in trs.split(",") if t]
+    if any("part-" + n in groups for n in parts):
+        sys.exit("stembal: a group may not be called part-NAME when --parts has NAME")
+    extra += [("part-" + n, trs) for n, trs in parts.items()]
     shares = []
 
     def render(g, trs, out, win, frm, to):
@@ -371,6 +433,9 @@ def cmd_song(a):
                 acc[g].append(v)
                 rows.append((g, v))
             show(f"== ours, {label or span} ({span}; dB re the whole mix)", rows)
+        if parts:
+            print(f"== whose band is it, {label or span} ({span}): each part alone, dB under the mix's OWN band (0 = it is the band)")
+            print("\n".join(whose(w["mix"], [(n, w["part-" + n]) for n in parts])))
     for f in whole.values():
         os.remove(f)
     print(f"{'refs mix median':22s}" + "".join(f"{x:7.1f}" for x in M))
@@ -413,6 +478,7 @@ def main():
     ap.add_argument("--windows", nargs="+")
     ap.add_argument("--groups", nargs="+")
     ap.add_argument("--mix-only", action="store_true")
+    ap.add_argument("--parts", nargs="+", help="NAME=track,track ...: each part alone against the mix's own band, and who holds it")
     ap.add_argument("--per-window", action="store_true", help="render every window by itself, as before 13 Nov")
     ap.add_argument("--spread", action="store_true")
     ap.add_argument("--voice", action="store_true", help="read every window against the records' passages without a voice and with one")
