@@ -58,6 +58,129 @@ class Pure(unittest.TestCase):
         self.assertEqual(ns[0]["replies"][0]["by"], "chirper-three")
 
 
+class Questions(unittest.TestCase):
+    ASK = {"op": "ask", "id": "q1", "at": "2026-11-14T09:00:00Z", "by": "chirper-zero", "n": 2, "track_title": "Odd Sympathy",
+           "version": "v5", "key": "words", "title": "Can you make out the words?", "choices": ["Yes", "Some", "No"], "media": []}
+
+    def test_the_event_log_folds_into_questions(self):
+        ev = [self.ASK,
+              {"op": "answer", "id": "q1", "at": "2026-11-14T10:00:00Z", "by": "Harry", "choice": "Some", "text": ""},
+              {"op": "answer", "id": "q1", "at": "2026-11-14T10:01:00Z", "by": "alex", "choice": "", "text": "only the first line"},
+              {"op": "answer", "id": "q1", "at": "2026-11-14T10:02:00Z", "by": "harry", "choice": "No", "text": "the band covers them"},
+              {"op": "answer", "id": "nope", "at": "2026-11-14T10:03:00Z", "by": "harry", "choice": "Yes"},
+              {"op": "told", "at": "2026-11-14T10:04:00Z", "answers": [["q1", "alex", "2026-11-14T10:01:00Z"],
+                                                                         ["q1", "harry", "2026-11-14T10:00:00Z"]]}]
+        (q,) = L.reduce_questions(ev)
+        self.assertEqual(sorted(q["answers"]), ["alex", "harry"])                     # each person's latest, whatever the case
+        self.assertEqual((q["answers"]["harry"]["choice"], q["answers"]["harry"]["text"]), ("No", "the band covers them"))
+        self.assertTrue(q["answers"]["alex"]["told"])
+        self.assertFalse(q["answers"]["harry"]["told"])                               # he changed it after that one was sent
+        self.assertEqual([(x["id"], a["by"]) for x, a in L.untold([q])], [("q1", "harry")])
+        self.assertIsNone(q["retired"])
+
+    def test_a_new_version_of_the_same_passage_replaces_the_question(self):
+        newer = {**self.ASK, "id": "q2", "at": "2026-11-14T11:00:00Z", "version": "v7"}
+        other = {**self.ASK, "id": "q3", "at": "2026-11-14T11:30:00Z", "key": "", "title": "Another"}
+        qs = L.reduce_questions([self.ASK, newer, other, {"op": "retire", "id": "q3", "at": "2026-11-14T12:00:00Z", "reason": "moot"}])
+        self.assertEqual([(q["id"], (q["retired"] or {}).get("reason")) for q in qs],
+                         [("q1", "replaced by q2"), ("q2", None), ("q3", "moot")])
+
+    def test_the_digest_carries_every_answer_verbatim(self):
+        q = L.reduce_questions([self.ASK, {"op": "answer", "id": "q1", "at": "2026-11-14T10:00:00Z", "by": "harry", "choice": "Some",
+                                           "text": "first line yes; \"between us moves\" is lost"}])[0]
+        text = L.digest_text("chirpers10", L.untold([q]), public="http://x/")
+        self.assertIn("HARRY ANSWERED 1 QUESTION on the review page (chirpers10)", text)
+        self.assertIn("1. [Odd Sympathy v5] Can you make out the words?   (asked by chirper-zero, id q1)", text)
+        self.assertIn("   harry chose: Some", text)
+        self.assertIn('   harry wrote: first line yes; "between us moves" is lost', text)
+        self.assertIn("http://x/#a=chirpers10&v=questions", text)
+
+    def test_where_a_file_of_takes_is_cut(self):
+        # two takes of 18.9 s with 0.8 s between; a breath inside the first take is not the boundary
+        self.assertEqual(L.split_points([(7.0, 7.4), (18.9, 19.7)], 38.6, 2), [(0.0, 18.9), (19.7, 38.6)])
+        self.assertEqual(L.split_points([(6.5, 7.2), (13.7, 14.4)], 20.9, 3), [(0.0, 6.5), (7.2, 13.7), (14.4, 20.9)])
+        # the silence a file closes (or opens) with is no take's: "record, then ours" with 0.7 s after each
+        self.assertEqual(L.split_points([(6.5, 7.2), (13.7, 14.4)], 14.4, 2), [(0.0, 6.5), (7.2, 13.7)])
+        self.assertEqual(L.split_points([(0.0, 1.0), (9.0, 9.8), (17.8, 18.6)], 18.6, 2), [(1.0, 9.0), (9.8, 17.8)])
+        self.assertIsNone(L.split_points([(3.0, 4.4), (7.6, 8.6), (30.0, 31.0)], 49.7, 2))    # nothing near the middle
+        self.assertIsNone(L.split_points([], 30.0, 2))
+        made = []
+
+        def run(cmd, check):
+            made.append((cmd[cmd.index("-ss") + 1], cmd[cmd.index("-t") + 1], cmd[-1]))
+        lens = L.cut_parts("ab.mp3", ["a.mp3", "b.mp3"], probe=lambda p: (38.6, [(18.9, 19.7)]), run=run)
+        self.assertEqual(lens, [18.9, 18.9])
+        self.assertEqual(made, [("0.000", "18.900", "a.mp3"), ("19.700", "18.900", "b.mp3")])
+        self.assertIsNone(L.cut_parts("x.mp3", ["a.mp3", "b.mp3"], probe=lambda p: (30.0, []), run=run))
+
+    def test_ask_keeps_its_own_copies_of_the_clips(self):
+        d = tempfile.mkdtemp()
+        old, L.DATA = L.DATA, d
+        self.addCleanup(setattr, L, "DATA", old)
+        clip = os.path.join(d, "voice alone.mp3")
+        with open(clip, "wb") as f:
+            f.write(b"ID3clip")
+
+        def cut(path, outs):
+            for o in outs:
+                with open(o, "wb") as f:
+                    f.write(b"part")
+            return [18.9, 18.95]
+        q = L.ask("chirpers9", 2, " Does it lift? ", "the key change", "v4", "lift", [("v3 | v4", clip)], [("the voice alone", clip)],
+                  ["Yes", "", "No"], 61.24, by="chirper-zero", cut=cut)
+        self.assertEqual((q["title"], q["n"], q["track"], q["choices"], q["t"], q["by"]),
+                         ("Does it lift?", 2, "chirpers9-t2", ["Yes", "No"], 61.2, "chirper-zero"))
+        self.assertTrue(q["track_title"])
+        pair, single = q["media"]
+        self.assertEqual((pair["sync"], [i["label"] for i in pair["items"]], [i["secs"] for i in pair["items"]]),
+                         (True, ["v3", "v4"], [18.9, 18.95]))
+        self.assertEqual((single["sync"], single["items"][0]["label"]), (False, "the voice alone"))
+        for g in q["media"]:
+            for it in g["items"]:
+                self.assertRegex(it["src"], r"^q[0-9a-f]{7}-\w+\.mp3$")
+                self.assertTrue(os.path.exists(os.path.join(d, "chirpers9", "questions", it["src"])))
+        self.assertEqual([x["id"] for x in L.questions("chirpers9")], [q["id"]])
+        uneven = L.ask("chirpers9", 0, "And the album?", abs_=[("a|b", clip)], cut=lambda p, o: [10.0, 14.0], by="chirp-eco")
+        self.assertEqual((uneven["n"], uneven["track"], uneven["media"][0]["sync"]), (0, None, False))
+        for kw, said in (({"title": " "}, "needs a title"), ({"n": 99}, "has no track 99"),
+                         ({"clips": [("x", "/nonexistent.mp3")]}, "no clip"), ({"abs_": [("only one", clip)]}, "--ab wants"),
+                         ({"abs_": [("a|b", clip)], "cut": lambda p, o: None}, "no silence where 2 takes")):
+            with self.assertRaises(ValueError) as e:
+                L.ask(**{"album": "chirpers9", "n": 1, "title": "t", **kw})
+            self.assertIn(said, str(e.exception))
+
+    def test_answers_go_out_once_as_one_message_each(self):
+        d = tempfile.mkdtemp()
+        old, L.DATA = L.DATA, d
+        self.addCleanup(setattr, L, "DATA", old)
+        a = L.ask("chirpers9", 1, "First?", by="chirper-zero", choices=["Yes", "No"])
+        b = L.ask("chirpers9", 2, "Second?", by="chirper-zero")
+        c = L.ask("chirpers9", 3, "Third?", by="chirp-eco")
+        for q, choice, text in ((a, "Yes", ""), (b, "", "a hole"), (c, "", "fine")):
+            L.question_event("chirpers9", {"op": "answer", "id": q["id"], "at": L.now_iso(), "by": "harry", "choice": choice,
+                                           "text": text})
+        sent = []
+
+        def send(target, body):
+            sent.append((target, body))
+            return target != "broken", "ok"
+        self.assertEqual(L.send_digest("chirpers9", send), 3)
+        zero, eco = L.AGENTS["chirper-zero"], L.AGENTS["chirp-eco"]
+        self.assertEqual([t for t, _ in sent], [zero, eco])                           # one each; eco's own question rides in its copy
+        self.assertIn("ANSWERED 2 QUESTIONS", sent[0][1])
+        self.assertIn("harry wrote: a hole", sent[0][1])
+        self.assertNotIn("Third?", sent[0][1])
+        self.assertIn("ANSWERED 3 QUESTIONS", sent[1][1])
+        self.assertEqual(L.send_digest("chirpers9", send), 0)                         # nothing is sent twice
+        self.assertEqual(len(sent), 2)
+        L.question_event("chirpers9", {"op": "answer", "id": a["id"], "at": "2026-11-14T23:59:59Z", "by": "harry", "choice": "No",
+                                       "text": ""})
+        with open(os.path.join(d, "agents.json"), "w") as f:
+            json.dump({"chirper-zero": "broken"}, f)
+        self.assertEqual(L.send_digest("chirpers9", send), 0)                         # the asker's message failed: it stays owed
+        self.assertEqual([(q["id"], x["choice"]) for q, x in L.untold(L.questions("chirpers9"))], [(a["id"], "No")])
+
+
 class Who(unittest.TestCase):
     def test_reply_is_signed_by_the_caco_agent_not_the_unix_user(self):
         env = dict(os.environ)
@@ -310,6 +433,70 @@ class Server(unittest.TestCase):
                          (0, None, "Alex b", [("harry", "thank you")]))
         with self.assertRaises(urllib.error.HTTPError):
             self.post("api/chirpers9/notes/nonexistent/reply", {"text": "x"})
+
+    def test_questions_are_asked_answered_and_served(self):
+        clip = os.path.join(self.d, "c.mp3")
+        with open(clip, "wb") as f:
+            f.write(b"0123456789abcdef")
+        scheduled = []
+        old = L.schedule_digest
+        L.schedule_digest = lambda album, quiet=None: scheduled.append(album)
+        self.addCleanup(setattr, L, "schedule_digest", old)
+        q = L.ask("chirpers9", 1, "A breath or a hole?", clips=[("the break", clip)], choices=["A breath", "A hole"], by="chirper-zero")
+        gone = L.ask("chirpers9", 1, "Old one", by="chirper-zero")
+        L.question_event("chirpers9", {"op": "retire", "id": gone["id"], "at": L.now_iso(), "reason": "moot"})
+        src = q["media"][0]["items"][0]["src"]
+        r = self.get(f"media/chirpers9/q/{src}", {"Range": "bytes=4-7"})
+        self.assertEqual((r.status, r.read(), r.headers["Content-Type"]), (206, b"4567", "audio/mpeg"))
+        with self.assertRaises(urllib.error.HTTPError) as e:
+            self.get(f"media/chirpers9/q/{src}", code=False)
+        self.assertEqual(e.exception.code, 401)
+        self.assertTrue(self.post(f"api/chirpers9/questions/{q['id']}/answer", {"choice": "A breath", "by": "Harry"})["ok"])
+        self.assertTrue(self.post(f"api/chirpers9/questions/{q['id']}/answer",
+                                  {"choice": "A hole", "text": "it drops out", "by": "Harry"})["ok"])
+        self.assertTrue(self.post(f"api/chirpers9/questions/{q['id']}/answer", {"text": "a breath for me", "by": "Alex"})["ok"])
+        self.assertEqual(scheduled, ["chirpers9"] * 3)
+        got = {x["id"]: x for x in json.load(self.get("api/chirpers9"))["questions"]}
+        self.assertEqual({k: (v["choice"], v["text"]) for k, v in got[q["id"]]["answers"].items()},
+                         {"harry": ("A hole", "it drops out"), "alex": ("", "a breath for me")})
+        self.assertEqual(got[gone["id"]]["retired"]["reason"], "moot")
+        for path, body in ((f"api/chirpers9/questions/{q['id']}/answer", {"choice": "Neither"}),
+                           (f"api/chirpers9/questions/{q['id']}/answer", {"choice": "", "text": " "}),
+                           (f"api/chirpers9/questions/{gone['id']}/answer", {"text": "x"}),
+                           ("api/chirpers9/questions/qnone/answer", {"text": "x"})):
+            with self.assertRaises(urllib.error.HTTPError) as e:
+                self.post(path, body)
+            self.assertEqual(e.exception.code, 400)
+
+    def test_the_question_commands(self):
+        import contextlib
+        import io
+        clip = os.path.join(self.d, "k.mp3")
+        with open(clip, "wb") as f:
+            f.write(b"x")
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            L.main(["ask", "chirpers9", "--track", "3", "--title", "Thrill or mistake?", "--version", "v8", "--key", "slip", "--at", "53",
+                    "--clip", f"the slip={clip}", "--choice", "A thrill", "--choice", "A mistake", "--by", "chirper-zero"])
+        qid = out.getvalue().split("question ")[1].split()[0]
+        self.assertIn(f"#a=chirpers9&v=questions&q={qid}", out.getvalue())
+        q = next(x for x in L.questions("chirpers9") if x["id"] == qid)
+        self.assertEqual((q["n"], q["version"], q["key"], q["t"], q["choices"], q["media"][0]["items"][0]["label"]),
+                         (3, "v8", "slip", 53.0, ["A thrill", "A mistake"], "the slip"))
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            L.main(["questions", "chirpers9", "--track", "3", "--open"])
+        self.assertIn(f"[{qid}] t3 v8 (chirper-zero,", out.getvalue())
+        self.assertIn("OPEN\n    Thrill or mistake?", out.getvalue())
+        with contextlib.redirect_stdout(io.StringIO()):
+            L.main(["retire", "chirpers9", qid, "--reason", "rewritten"])
+        self.assertEqual(next(x for x in L.questions("chirpers9") if x["id"] == qid)["retired"]["reason"], "rewritten")
+        for argv, said in ((["retire", "chirpers9", qid], "no open question"),
+                           (["ask", "chirpers9", "--title", "t", "--clip", "nolabel"], "wants LABEL=FILE"),
+                           (["ask", "chirpers9", "--title", "t", "--track", "77"], "has no track 77")):
+            with self.assertRaises(SystemExit) as e:
+                L.main(argv)
+            self.assertIn(said, str(e.exception))
 
     def test_worklog(self):
         w = json.load(self.get("api/chirpers9/log"))

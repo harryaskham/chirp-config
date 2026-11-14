@@ -174,6 +174,26 @@ Harry: `tools/rate.py ID 7.5 --note "the bridge drags"`, or `tools/rate.py now 8
 `tools/rate.py note ID "text"`. Agents can rate other agents' songs (`--who` defaults to your climb name in an agent
 session); those feed `peer`. `climb.py next` shows a song's latest ratings and notes, so read them first.
 
+### Questions for Harry's ear (the review page, 14 Nov)
+
+Harry, 14 Nov: "hard to answer qs in chat - if you put them on the review site as side by side comparisons with a way
+to give feedback as an answer I can review in batch." So a question a measurement cannot settle goes ON THE PAGE, not
+only in a message:
+
+    python3 tools/listen.py ask ALBUM --track N --version v7 --key os-words --at 33 \
+        --title "Can you make out the spoken words now?" --context "what changed, what to listen for" \
+        --ab "v6|v7=/path/to/clip-ab.mp3" --clip "the voice alone=/path/to/clip.mp3" \
+        --choice "Yes, clearly" --choice "Some of them" --choice "No, the band still covers them"
+
+- `--ab "A|B=FILE"`: the usual A-then-B clip (a silence between the takes) is cut into its sides and shown side by
+  side; when the sides are the same length he can switch between them mid-phrase. `--clip` is one player.
+- `--choice` are buttons; he can always write instead, or as well. One question a card: ask two things as two cards
+  unless one answer covers both.
+- `--key`: a name for the PASSAGE. Ask again with the same key after a new version and the old card leaves the page,
+  so he is never asked about a superseded clip. `listen.py retire ALBUM ID` takes one off by hand.
+- The page keeps its own copy of each clip. His answers come back verbatim in ONE caco message two minutes after he
+  stops (`listen.py questions ALBUM` shows them all). Keep the question in your round note as well.
+
 ## Working on each other's songs
 
 Each track has an owner once composed. To improve someone else's song, or to align a motif or style across tracks,

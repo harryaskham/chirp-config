@@ -21,9 +21,25 @@ renders across snapshots, an A-B segment played version by version, what changed
   listen.py notes ALBUM [--track N] [--open]         read Harry's notes (composers)
   listen.py reply ALBUM NOTE_ID TEXT [--done]        answer a note; it shows under the note in the app
 
+QUESTIONS (14 Nov, Harry: "hard to answer qs in chat - if you put them on the review site as side by side comparisons
+with a way to give feedback as an answer I can review in batch"). A composer puts a by-ear question on the page with
+its clips; Harry answers there (a choice, a line of text, or both), many in one sitting; the answers come back to the
+asker verbatim as ONE caco message once he has been quiet for two minutes (cc chirp-eco).
+  listen.py ask ALBUM --track N --title "the question" [--context TEXT] [--version v7] [--key NAME]
+            [--ab "v6|v7=CLIP-ab.mp3"]... [--clip "the voice alone=CLIP.mp3"]... [--choice TEXT]... [--at SECONDS]
+      --ab: ONE file holding the versions one after another with a silence between (the usual -ab clip) is cut at
+            the silences into its parts, shown side by side; parts of equal length can be switched mid-phrase.
+      --clip: one file, one player. Both may repeat; a question may have neither.
+      --choice: the answers offered as buttons (he can always write instead). --at: where it is in the song, for an
+            "open in Listen" link. --key: a later question with the same key REPLACES this one (a new version of
+            the same passage), so the page never asks about a superseded clip.
+  listen.py questions ALBUM [--open] [--track N] [--json]     the questions and every answer
+  listen.py retire ALBUM QUESTION_ID [--reason TEXT]          take a question off the page
+
 The page is tools/listen.html (read per request). Data: $CHIRP_LISTEN_DIR or ~/.local/state/chirp-eco/listen/ALBUM/
 {snapshots/ID/snapshot.json + tNN.mp3/.mp4/.web,
-notes.jsonl}. notes.jsonl is an append-only event log (add / reply / delete), so concurrent writers never clobber.
+notes.jsonl, questions.jsonl, questions/*.mp3}. notes.jsonl and questions.jsonl are append-only event logs (add /
+reply / delete; ask / answer / retire / told), so concurrent writers never clobber.
 """
 import argparse
 import base64
@@ -32,6 +48,7 @@ import http.server
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -97,6 +114,76 @@ def reduce_notes(events):
     return sorted(notes.values(), key=lambda n: n.get("at", ""))
 
 
+def reduce_questions(events):
+    """Fold the questions.jsonl event log into questions (oldest first). ask creates (and retires an earlier open
+    question with the same key: a new version of the same passage); answer keeps each person's latest; retire takes
+    one off the page; told marks the answers already sent to the asker."""
+    qs = {}
+    for e in events:
+        op, qid = e.get("op"), e.get("id")
+        if op == "ask":
+            if e.get("key"):
+                for old in qs.values():
+                    if old.get("key") == e["key"] and not old["retired"]:
+                        old["retired"] = {"at": e.get("at"), "reason": f"replaced by {qid}"}
+            qs[qid] = {**{k: v for k, v in e.items() if k != "op"}, "answers": {}, "retired": None}
+        elif qid in qs and op == "answer":
+            who = str(e.get("by") or "harry")
+            qs[qid]["answers"][who.lower()] = {"by": who, "at": e.get("at"), "choice": e.get("choice") or "",
+                                               "text": e.get("text") or "", "told": False}
+        elif qid in qs and op == "retire":
+            qs[qid]["retired"] = {"at": e.get("at"), "reason": e.get("reason") or ""}
+        elif op == "told":
+            for qid2, who, at in e.get("answers") or []:
+                a = (qs.get(qid2) or {"answers": {}})["answers"].get(str(who).lower())
+                if a and a["at"] == at:
+                    a["told"] = True
+    return sorted(qs.values(), key=lambda q: q.get("at", ""))
+
+
+def untold(qs):
+    """[(question, answer)] not yet sent to the asker, oldest answer first (retired questions' answers still go)."""
+    out = [(q, a) for q in qs for a in q["answers"].values() if not a["told"]]
+    return sorted(out, key=lambda qa: qa[1]["at"] or "")
+
+
+def digest_text(album, pairs, public=None):
+    """One message for a batch of answers: every answer verbatim under its question."""
+    who = sorted({a["by"] for _, a in pairs})
+    lines = [f"{' and '.join(w.upper() for w in who)} ANSWERED {len(pairs)} QUESTION{'S' if len(pairs) != 1 else ''} "
+             f"on the review page ({album}). Verbatim:", ""]
+    for i, (q, a) in enumerate(pairs, 1):
+        where = " ".join(x for x in (q.get("track_title") or "", q.get("version") or "") if x)
+        lines.append(f"{i}. [{where or album}] {q.get('title')}   (asked by {q.get('by')}, id {q['id']})")
+        if a["choice"]:
+            lines.append(f"   {a['by']} chose: {a['choice']}")
+        if a["text"]:
+            lines.append(f"   {a['by']} wrote: {a['text']}")
+        lines.append("")
+    lines.append(f"The page: {public or PUBLIC}#a={album}&v=questions")
+    lines.append(f"All of them: python3 ~/.config/chirp/tools/listen.py questions {album}")
+    return "\n".join(lines)
+
+
+def split_points(silences, duration, parts):
+    """Where to cut a file of `parts` takes laid end to end, as [(start, end)] of each take, or None. The silence the
+    file opens or closes with is left off; for each inner boundary k/parts of the way through what remains, the
+    silence whose middle is nearest it (and within a sixth of a take) is the gap between two takes."""
+    lead = max([e for s, e in silences if s <= 0.05], default=0.0)
+    tail = min([s for s, e in silences if e >= duration - 0.05 and s > lead], default=duration)
+    inner = [(s, e) for s, e in silences if s > lead and e < tail]
+    take = (tail - lead) / parts
+    edges = [lead]
+    for k in range(1, parts):
+        want = lead + take * k
+        near = [g for g in inner if abs((g[0] + g[1]) / 2 - want) <= take / 6 and g[0] >= edges[-1]]
+        if not near:
+            return None
+        edges += min(near, key=lambda g: abs((g[0] + g[1]) / 2 - want))
+    edges.append(tail)
+    return [(edges[2 * i], edges[2 * i + 1]) for i in range(parts)]
+
+
 def mmss(t):
     t = float(t or 0)
     return f"{int(t // 60)}:{int(t % 60):02d}"
@@ -138,6 +225,84 @@ def notes(album):
 
 def now_iso():
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
+def question_event(album, ev):
+    os.makedirs(album_dir(album), exist_ok=True)
+    line = json.dumps(ev, ensure_ascii=False) + "\n"
+    with _LOCK, open(os.path.join(album_dir(album), "questions.jsonl"), "a") as f:
+        f.write(line)
+
+
+def questions(album):
+    p = os.path.join(album_dir(album), "questions.jsonl")
+    if not os.path.exists(p):
+        return []
+    with open(p) as f:
+        return reduce_questions(json.loads(ln) for ln in f if ln.strip())
+
+
+def probe_silences(path):
+    """(duration, [(start, end)]) of an audio file: its silences of a quarter second or more (ffmpeg)."""
+    dur = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path],
+                               capture_output=True, text=True, check=True).stdout.strip())
+    err = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", path, "-af", "silencedetect=noise=-50dB:d=0.25",
+                          "-f", "null", "-"], capture_output=True, text=True).stderr
+    starts = [float(x) for x in re.findall(r"silence_start: (-?[0-9.]+)", err)]
+    ends = [float(x) for x in re.findall(r"silence_end: ([0-9.]+)", err)]
+    return dur, list(zip(starts, ends + [dur] * (len(starts) - len(ends))))
+
+
+def cut_parts(path, outs, probe=probe_silences, run=subprocess.run):
+    """Cut a file of len(outs) takes laid end to end (silence between) into outs. Returns each part's length in
+    seconds, or None when the silences are not where takes of equal length would leave them."""
+    dur, sil = probe(path)
+    spans = split_points(sil, dur, len(outs))
+    if spans is None:
+        return None
+    for (a, b), out in zip(spans, outs):
+        run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-ss", f"{a:.3f}", "-i", path, "-t", f"{b - a:.3f}",
+             "-c:a", "libmp3lame", "-q:a", "2", out], check=True)
+    return [round(b - a, 2) for a, b in spans]
+
+
+def ask(album, n, title, context="", version="", key="", abs_=(), clips=(), choices=(), at=None, by=None, cut=cut_parts):
+    """Put a question on the page. abs_: [("v6|v7", FILE)] cut into side-by-side parts; clips: [(label, FILE)].
+    The media is copied into DATA/ALBUM/questions/ (the clips folder is cleared after a week). Returns the question."""
+    title = str(title or "").strip()
+    if not title:
+        raise ValueError("a question needs a title")
+    track = next((t for t in climb_tracks(album) if t["n"] == n), None) if n else None
+    if n and not track:
+        raise ValueError(f"{album} has no track {n}")
+    qid = "q" + uuid.uuid4().hex[:7]
+    d = os.path.join(album_dir(album), "questions")
+    os.makedirs(d, exist_ok=True)
+    media = []
+    for gi, (labels, path) in enumerate(abs_):
+        names = [x.strip() for x in labels.split("|") if x.strip()]
+        if len(names) < 2 or not os.path.exists(path):
+            raise ValueError(f"--ab wants 'A|B=FILE' with a file that exists: {labels}={path}")
+        outs = [os.path.join(d, f"{qid}-{gi}{chr(97 + i)}.mp3") for i in range(len(names))]
+        lens = cut(path, outs)
+        if lens is None:
+            raise ValueError(f"{os.path.basename(path)}: no silence where {len(names)} takes of equal length would meet; "
+                             "give the takes as separate files with --clip")
+        media.append({"sync": max(lens) - min(lens) <= 0.25,
+                      "items": [{"label": nm, "src": os.path.basename(o), "secs": ln} for nm, o, ln in zip(names, outs, lens)]})
+    for ci, (label, path) in enumerate(clips):
+        if not os.path.exists(path):
+            raise ValueError(f"no clip {path}")
+        out = os.path.join(d, f"{qid}-c{ci}{os.path.splitext(path)[1].lower() or '.mp3'}")
+        shutil.copyfile(path, out)
+        media.append({"sync": False, "items": [{"label": label.strip(), "src": os.path.basename(out)}]})
+    q = {"op": "ask", "id": qid, "at": now_iso(), "by": by or whoami(), "n": track["n"] if track else 0,
+         "track": track["id"] if track else None, "track_title": track["title"] if track else "",
+         "version": str(version or ""), "key": str(key or ""), "title": title[:400], "context": str(context or "")[:4000],
+         "media": media, "choices": [str(c)[:200] for c in choices if str(c).strip()],
+         "t": None if at is None else round(float(at), 1)}
+    question_event(album, q)
+    return q
 
 
 # ── cutting snapshots ──────────────────────────────────────────────────────────────────────
@@ -452,6 +617,64 @@ def notify(album, note, track):
     os.unlink(f.name)
 
 
+def caco_send(target, body):
+    env = {k: v for k, v in os.environ.items() if k not in ("CACO_AGENT_ID", "CACOPHONY_AGENT")}
+    env["CACOPHONY_ACTOR"] = AGENTS["chirp-eco"]
+    with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as f:
+        f.write(body)
+    try:
+        r = subprocess.run(["caco", "msg", "send", "--project", "tools", "--target", target, "--no-tts", "--body-file", f.name],
+                           env=env, capture_output=True, text=True, timeout=90)
+        return r.returncode == 0, (r.stderr or r.stdout).strip()[-160:]
+    except (OSError, subprocess.SubprocessError) as e:
+        return False, repr(e)
+    finally:
+        os.unlink(f.name)
+
+
+DIGEST_QUIET = float(os.environ.get("CHIRP_LISTEN_DIGEST_S", "120"))
+_TIMERS = {}
+
+
+def send_digest(album, send=None):
+    """Send every answer not yet sent: one message to each asker with the answers to their questions, one to
+    chirp-eco with all of them. An answer is marked told only when its asker's message went (or has no agent)."""
+    send = send or caco_send
+    pairs = untold(questions(album))
+    if not pairs:
+        return 0
+    known = agents()
+    by_asker = {}
+    for q, a in pairs:
+        by_asker.setdefault(q.get("by") or "", []).append((q, a))
+    told = []
+    with open(os.path.join(album_dir(album), "notify.log"), "a") as logf:
+        for asker, group in by_asker.items():
+            target = known.get(asker)
+            ok, res = send(target, digest_text(album, group)) if target and target != known.get("chirp-eco") else (True, "no agent")
+            logf.write(f"{now_iso()} answers x{len(group)} -> {asker or '?'}: {'ok' if ok else 'FAILED'} {res}\n")
+            if ok:
+                told += [[q["id"], a["by"], a["at"]] for q, a in group]
+        if known.get("chirp-eco"):
+            ok, res = send(known["chirp-eco"], digest_text(album, pairs))
+            logf.write(f"{now_iso()} answers x{len(pairs)} -> chirp-eco: {'ok' if ok else 'FAILED'} {res}\n")
+    if told:
+        question_event(album, {"op": "told", "at": now_iso(), "answers": told})
+    return len(told)
+
+
+def schedule_digest(album, quiet=None):
+    """(Re)start the album's quiet timer: the answers go as one message once nobody has answered for `quiet` s."""
+    with _LOCK:
+        t = _TIMERS.pop(album, None)
+        if t:
+            t.cancel()
+        t = threading.Timer(DIGEST_QUIET if quiet is None else quiet, send_digest, [album])
+        t.daemon = True
+        _TIMERS[album] = t
+        t.start()
+
+
 # ── the review site: albums, worklog, feature checkpoints (8 Nov: Harry, for him and a friend over a funnel) ─────
 
 CODE = os.environ.get("CHIRP_LISTEN_CODE", "solofury")      # a light access code, not security (Harry: "not load bearing")
@@ -623,11 +846,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return self.send_json([album_info(a) for a in ALBUMS
                                    if os.path.exists(os.path.join(ROOT, "compose", a, "album.json")) or snapshots(a)])
         if len(parts) == 2 and parts[0] == "api":
-            return self.send_json({"album": parts[1], "snapshots": snapshots(parts[1]), "notes": notes(parts[1])})
+            return self.send_json({"album": parts[1], "snapshots": snapshots(parts[1]), "notes": notes(parts[1]),
+                                   "questions": questions(parts[1])})
         if len(parts) == 3 and parts[0] == "api" and parts[2] == "log" and re.fullmatch(r"[\w-]+", parts[1]):
             return self.send_json(worklog(parts[1]))
         if len(parts) == 4 and parts[0] == "media" and parts[2] == "release" and parts[3] == "album.mp4":
             return self.send_media(os.path.join(album_dir(parts[1]), "release", "album.mp4"))
+        if len(parts) == 4 and parts[0] == "media" and parts[2] == "q" and re.fullmatch(r"q[0-9a-f]+-[\w]+\.(mp3|opus|ogg|wav)", parts[3]):
+            return self.send_media(os.path.join(album_dir(parts[1]), "questions", parts[3]))
         if len(parts) == 4 and parts[0] == "media" and re.fullmatch(r"t\d\d\.(mp3|mp4)", parts[3]):
             return self.send_media(os.path.join(album_dir(parts[1]), "snapshots", parts[2], parts[3]))
         if len(parts) == 4 and parts[0] == "web" and parts[3].isdigit():
@@ -645,7 +871,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         rng = byte_range(self.headers.get("Range"), size)
         a, b = rng or (0, size - 1)
         self.send_response(206 if rng else 200)
-        self.send_header("Content-Type", "audio/mpeg" if p.endswith(".mp3") else "video/mp4")
+        kinds = {".mp3": "audio/mpeg", ".opus": "audio/ogg", ".ogg": "audio/ogg", ".wav": "audio/wav"}
+        self.send_header("Content-Type", kinds.get(os.path.splitext(p)[1], "video/mp4"))
         self.send_header("Accept-Ranges", "bytes")
         self.send_header("Content-Length", str(b - a + 1))
         if rng:
@@ -706,6 +933,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
             append_event(parts[1], {"op": "reply", "id": parts[3], "at": now_iso(), "by": clean_name(body.get("by")),
                                     "text": text[:4000], "done": False})
             return self.send_json({"ok": True})
+        if len(parts) == 5 and parts[0] == "api" and parts[2] == "questions" and parts[4] == "answer":
+            q = next((x for x in questions(parts[1]) if x["id"] == parts[3]), None)
+            choice, text = str(body.get("choice") or "").strip(), str(body.get("text") or "").strip()
+            if not q or q["retired"]:
+                return self.send_json({"error": "no such open question"}, 400)
+            if choice and choice not in q["choices"]:
+                return self.send_json({"error": "that is not one of the choices"}, 400)
+            if not choice and not text:
+                return self.send_json({"error": "a choice or some text is required"}, 400)
+            question_event(parts[1], {"op": "answer", "id": q["id"], "at": now_iso(), "by": clean_name(body.get("by")),
+                                      "choice": choice, "text": text[:4000]})
+            schedule_digest(parts[1])
+            return self.send_json({"ok": True})
         if len(parts) == 5 and parts[0] == "api" and parts[2] == "notes" and parts[4] == "delete":
             append_event(parts[1], {"op": "delete", "id": parts[3], "at": now_iso()})
             return self.send_json({"ok": True})
@@ -721,6 +961,9 @@ def serve(hosts, port):
               flush=True)
     for s in srvs[1:]:
         threading.Thread(target=s.serve_forever, daemon=True).start()
+    for a in ALBUMS:                                  # answers given just before a restart still go to their askers
+        if untold(questions(a)):
+            schedule_digest(a)
     srvs[0].serve_forever()
 
 
@@ -754,6 +997,27 @@ def main(argv=None):
     p.add_argument("text")
     p.add_argument("--done", action="store_true")
     p.add_argument("--by", help="who is replying (default: this shell's caco agent)")
+    p = sub.add_parser("ask", help="put a by-ear question on the page, with its clips side by side")
+    p.add_argument("album")
+    p.add_argument("--track", type=int, default=0, help="the track's number on the album (0: the album)")
+    p.add_argument("--title", required=True, help="the question, one line")
+    p.add_argument("--context", default="", help="what changed, what to listen for (a few lines)")
+    p.add_argument("--version", default="", help="the version it is about, as in v7")
+    p.add_argument("--key", default="", help="a later question with the same key replaces this one")
+    p.add_argument("--ab", action="append", default=[], metavar="'A|B=FILE'", help="one file of takes end to end, cut at its silences")
+    p.add_argument("--clip", action="append", default=[], metavar="'LABEL=FILE'", help="one clip")
+    p.add_argument("--choice", action="append", default=[], help="an answer offered as a button (repeatable)")
+    p.add_argument("--at", type=float, help="where it is in the song, in seconds (an 'open in Listen' link)")
+    p.add_argument("--by", help="who is asking (default: this shell's caco agent)")
+    p = sub.add_parser("questions", help="the questions and every answer")
+    p.add_argument("album")
+    p.add_argument("--open", action="store_true", help="only questions nobody has answered")
+    p.add_argument("--track", type=int)
+    p.add_argument("--json", action="store_true")
+    p = sub.add_parser("retire", help="take a question off the page")
+    p.add_argument("album")
+    p.add_argument("id")
+    p.add_argument("--reason", default="")
     a = ap.parse_args(argv)
     if a.cmd == "cut":
         cut(a.album, a.label)
@@ -777,6 +1041,34 @@ def main(argv=None):
         append_event(a.album, {"op": "reply", "id": a.id, "at": now_iso(), "by": a.by or whoami(), "text": a.text,
                                "done": a.done})
         print("listen: reply recorded")
+    elif a.cmd == "ask":
+        def pair(tok, flag):
+            label, sep, path = tok.rpartition("=")
+            if not sep or not label.strip():
+                raise SystemExit(f"listen: {flag} wants LABEL=FILE, as in {flag} 'v6|v7=clip-ab.mp3'")
+            return label, os.path.expanduser(path)
+        try:
+            q = ask(a.album, a.track, a.title, a.context, a.version, a.key, [pair(t, "--ab") for t in a.ab],
+                    [pair(t, "--clip") for t in a.clip], a.choice, a.at, a.by)
+        except ValueError as e:
+            raise SystemExit(f"listen: {e}") from None
+        print(f"listen: question {q['id']} is on the page: {PUBLIC}#a={a.album}&v=questions&q={q['id']}")
+    elif a.cmd == "questions":
+        qs = [q for q in questions(a.album) if (a.track is None or q["n"] == a.track) and not (a.open and (q["answers"] or q["retired"]))]
+        if a.json:
+            return print(json.dumps(qs, ensure_ascii=False, indent=1))
+        for q in qs:
+            state = "RETIRED " + q["retired"]["reason"] if q["retired"] else ("answered" if q["answers"] else "OPEN")
+            print(f"[{q['id']}] t{q['n']} {q.get('version') or ''} ({q['by']}, {q['at']})  {state}\n    {q['title']}")
+            for ans in q["answers"].values():
+                said = " | ".join(x for x in (ans["choice"], ans["text"]) if x)
+                print(f"    -> {ans['by']} ({ans['at']}): {said}")
+        print(f"listen: {len(qs)} question(s), {sum(1 for q in qs if not q['answers'] and not q['retired'])} open")
+    elif a.cmd == "retire":
+        if not any(q["id"] == a.id and not q["retired"] for q in questions(a.album)):
+            raise SystemExit(f"no open question {a.id}")
+        question_event(a.album, {"op": "retire", "id": a.id, "at": now_iso(), "reason": a.reason})
+        print("listen: question retired")
 
 
 
