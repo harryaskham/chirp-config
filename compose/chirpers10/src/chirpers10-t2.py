@@ -74,6 +74,14 @@ WARP = [
 #     tick is back on the bar, at the speed it started; at bar 96, where the guitars lock, the plain pendulum has it again.
 # (3) the last six bars build: a dominant pedal on the bass, the kick on one and three, floor tom into the fill.
 DRIFT = os.environ.get("C10T2_DRIFT", "0,-2,-4,-5;16:2;0.5")       # the roots' semitones ; risset cycle beats : layers ; pedal velocity
+# v3: THE TWINS (palette round). The piece is one riff on two clocks, so the two guitars are ONE guitar twice: the library
+# patch `ct-twin` on both sides (Common Time's rigs are a different amp a side), each with its own cone. It is dry: no
+# plate, no eq after the cabinet, a gate; a rest is silence, so a canon of the riff with itself takes turns. What the two
+# share is a small room on their bus, the beam the two clocks hang from.
+# patch : left cone : right cone : track gain dB ; the room's kind : decay : mix ; master make-up dB. "" = v2 (Common
+# Time's tight rig). The guitars sit 0.8 dB lower than v2's (alone, LUFS): the mix read 2 to 3 dB over the records at
+# 2-4 kHz in every heavy window, and that band is the guitars'. The master makes up what the mix lost.
+TWIN = os.environ.get("C10T2_TWIN", "ct-twin:4:5:3.2;room:0.35s:0.06;0.5")
 T = {}
 
 
@@ -262,9 +270,13 @@ def song():
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     b = lambda bar: f"{bar * 4}b"
+    tw = TWIN.split(";")[0].split(":") if TWIN else None
+    beam = TWIN.split(";")[1].split(":") if TWIN else None
     spec = [
-        {"name": "gl", "patch": "ct-chug-l" + HEAVY, "gain": "3.3dB", "pan": -1, "out": "gtrs", "fx": cab(12)},
-        {"name": "gr", "patch": "ct-chug-r" + HEAVY, "gain": "3.3dB", "pan": 1, "out": "gtrs", "fx": cab(13), "warp": WARP},
+        *([{"name": "gl", "patch": f"{tw[0]} fx.2.cone={tw[1]}", "gain": f"{tw[3]}dB", "pan": -1, "out": "gtrs"},
+           {"name": "gr", "patch": f"{tw[0]} fx.2.cone={tw[2]}", "gain": f"{tw[3]}dB", "pan": 1, "out": "gtrs", "warp": WARP}] if TWIN else
+          [{"name": "gl", "patch": "ct-chug-l" + HEAVY, "gain": "3.3dB", "pan": -1, "out": "gtrs", "fx": cab(12)},
+           {"name": "gr", "patch": "ct-chug-r" + HEAVY, "gain": "3.3dB", "pan": 1, "out": "gtrs", "fx": cab(13), "warp": WARP}]),
         {"name": "cl", "patch": CLEAN, "gain": "1dB", "pan": -0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP]},
         {"name": "cr", "patch": CLEAN, "gain": "1dB", "pan": 0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP], "warp": WARP},
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
@@ -301,12 +313,12 @@ def song():
                              "clip drive=0dB ceiling=-13dB",
                              {"type": "eq", "bands": ["peak cutoff=400 q=0.8 gain=-6dB", "peak cutoff=5500 q=0.9 gain=1dB", "highshelf cutoff=9000 gain=-2dB"]}]},
             "oh": {"fx": ["reverb kind=room decay=0.7s mix=1 predelay=4ms low_cut=5000 high_cut=12000 spread=0.6"]},
-            "gtrs": {"fx": [{"type": "gain", "gain": "0dB"}]},
+            "gtrs": {"fx": [{"type": "gain", "gain": "0dB"}] + ([f"reverb kind={beam[0]} decay={beam[1]} mix={beam[2]} predelay=6ms"] if TWIN else [])},
             "low": {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
                            {"type": "eq", "bands": ["peak cutoff=170 q=1.2 gain=-3dB"]}]},
         },
-        "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": "1.6dB"}]},
+        "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": f"{1.6 + (float(TWIN.split(';')[2]) if TWIN else 0):g}dB"}]},
         "tracks": tracks,
     }
 

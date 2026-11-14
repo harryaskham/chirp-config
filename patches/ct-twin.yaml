@@ -1,0 +1,45 @@
+{
+ "about": "Odd Sympathy's guitar (chirper-zero, 14 Nov): ONE patch for both sides, because the piece is one riff on two clocks and the two guitars are twins (give each side its own cone: `ct-twin fx.2.cone=4` left, `ct-twin fx.2.cone=5` right). ct-chug's string and pick (the string pick: `soft` follows the palm mute) into the engine's `modern` amp, tight at 220 Hz, a screamer in front, triode stages and an 18 dB feedback loop as on ct-chug; then the engine's own cabinet `4x12-modern` and a gate. NOTHING after the gate: no plate, no sympathetic strings, no eq. It is dry on purpose: a rest is silence (the quietest twentieth of a riff with rests reads below -90 dB where ct-chug reads -22), so two of them a canon apart take turns instead of smearing (one side alone 44% of the time half a bar apart, 18% on ct-chug). Give it a room on a bus if it wants one. The first library patch on the engine cabinet. The amp's mids are raised (0.74) and the microphone sits off the cap (0.4): in Odd Sympathy's mix the first voicing read 2 to 3 dB over the records at 2-4 kHz. Against a record's guitar heard alone (cabspec): 1.95 dB mean (ct-chug on the same cabinet 2.45).",
+ "extends": "m8 layers.0.pick=0.143 layers.0.pickup=0.085 layers.0.click=0.2 layers.0.scrape=0.12 layers.0.thump=expr.pm*0.7 layers.0.squeak=expr.move*0.6 synth.layers.0.bright.mod.0.amount=-0.2 synth.pitch.mod.0.amount=0.4 synth.env.bite.d=80ms layers.0.planes=0.3 layers.0.beat=1.5 synth.pitch.mod.0.amount=0.8 synth.env.bite.d=110ms layers.0.scrape=0.2 layers.0.thump=expr.pm*0.4 synth.layers.0.decay.mod.0.amount=-3.8 synth.layers.0.soft=expr.pm",
+ "fx": [
+  {
+   "type": "compressor",
+   "threshold": "-20dB",
+   "ratio": 4,
+   "attack": "2ms",
+   "release": "60ms",
+   "makeup": "3dB"
+  },
+  {
+   "type": "amp",
+   "model": "modern",
+   "gain": 0.85,
+   "ts": 0.75,
+   "tight": 220,
+   "boost": "6dB",
+   "bass": 0.5,
+   "mid": 0.74,
+   "treble": 0.5,
+   "presence": 0.5,
+   "resonance": 0.72,
+   "sag": 0.2,
+   "bloom": 0.5,
+   "nfb": 18,
+   "triode": true
+  },
+  {
+   "type": "cab",
+   "model": "4x12-modern",
+   "mic": 0.4,
+   "distance": 0.15
+  },
+  {
+   "type": "gate",
+   "threshold": "-42dB",
+   "attack": "0.3ms",
+   "hold": "5ms",
+   "release": "12ms"
+  }
+ ],
+ "gain": "-23dB"
+}
