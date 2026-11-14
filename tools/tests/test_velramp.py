@@ -82,6 +82,25 @@ class Finding(unittest.TestCase):
         self.assertEqual(V.ramps(V.bar_tops(notes)), [])
         self.assertEqual(V.bar_tops([{"at": 0, "len": 1}, {"at": 4.0, "len": 1, "vel": 0.5}], default=0.7), [(0, 0.7), (1, 0.5)])
 
+    def test_a_kits_track_is_read_piece_by_piece(self):
+        # one cymbal track: a china at 0.5, a crash at 0.8, a crash at 0.95 in three bars is three cymbals, not a ramp;
+        # the ride on the same track really does rise over four bars
+        cym = [{"at": 0, "pitch": "x", "vel": 0.5}, {"at": 4, "pitch": "c", "vel": 0.8}, {"at": 8, "pitch": "c", "vel": 0.95},
+               {"at": 12, "pitch": "x", "vel": 0.5}]
+        ride = [{"at": 16 + 4 * i, "pitch": "rd", "vel": v} for i, v in enumerate([0.3, 0.5, 0.7, 0.9])]
+        self.assertEqual(sorted(V.pieces(cym + ride)), ["c", "rd", "x"])
+        self.assertEqual(list(V.pieces(ride)), [None])                          # one piece: the track is the instrument
+        self.assertEqual(list(V.pieces([{"at": 0, "pitch": "F1", "vel": 0.3}, {"at": 4, "pitch": "C2"}])), [None])   # pitched
+        self.assertEqual(list(V.pieces([{"at": 0, "pitch": 41}, {"at": 4, "pitch": "k"}])), [None])
+        canon = {"tracks": [{"name": "cym", "notes": cym + ride + [{"at": 28, "pitch": "x", "vel": 0.5}]},
+                            {"name": "kick", "notes": [{"at": 4 * i, "pitch": "k", "vel": v} for i, v in enumerate([0.3, 0.5, 0.9])]}]}
+        rows = V.find(canon)
+        self.assertEqual([(r["track"], r.get("piece"), r["from"], r["to"]) for r in rows], [("cym", "rd", 5, 8), ("kick", None, 1, 3)])
+        self.assertIs(rows[0]["alone"], False)                                  # the china sounds in the ride's last bar
+        self.assertNotIn("alone", rows[1])
+        canon["tracks"][0]["notes"].pop()                                       # without it the ride's two ends are its own
+        self.assertIs(V.find(canon)[0]["alone"], True)
+
     def test_the_song_is_read_track_by_track(self):
         song = {"tempo": 126, "tracks": [
             {"name": "gl", "notes": bars(APPROACH, start=26)},

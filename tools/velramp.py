@@ -18,6 +18,11 @@ where it sounds. --track keeps it to some tracks.
 the level of the ramp's first bar and its last: "written +6.0 dB, sounds +0.1". A ramp that sounds less than a
 quarter of what is written is marked NOT THERE; write that one as a gain lane (`auto`) on the track or its bus.
 On drums and clean parts a velocity ramp is real, and the same table shows it.
+A KIT'S TRACK IS READ PIECE BY PIECE (14 Nov): a track that plays several of a kit's pieces (a crash, a china and
+a ride on one `cym` track) is not one instrument, and the loudest note of each bar going 0.52, 0.80, 0.95 is three
+cymbals, not a crescendo. Plain Hunt v7's cymbals read as five ramps that way, four of them "NOT THERE". Each piece
+is now its own row ("cym (x)"), and --measure does not read one where the track's other pieces sound in the ramp's
+first or last bar (the track alone is all its pieces): it says so instead of a figure.
 What it cannot see: a ramp shorter than a bar, or one under a steady accent (it reads each bar's loudest note). The
 level read is the bar's, so it also moves with how many notes the bar holds, and with any lane that rides the part
 (the two add in the reading). Songs whose tempo changes or whose meter is not 4/4 are refused. Read-only.
@@ -38,6 +43,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.environ.get("CLIMB_ROOT") or os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import chirpbin  # noqa: E402
+import pitchbench  # noqa: E402
 import notechk  # noqa: E402
 
 TOL = 0.03          # a bar may step this far against the ramp (an accent pattern that does not fit the bar)
@@ -84,6 +90,20 @@ def ramps(means, least=0.30, bars=3):
     return sorted((means[a][0], means[b][0], round(means[a][1], 3), round(means[b][1], 3)) for a, b in up + down)
 
 
+def pieces(notes):
+    """{piece: its notes} when the notes are a kit's pieces (pitches that are not note names or numbers) and there is
+    more than one of them; {None: notes} for a pitched track, or a kit track that plays one piece."""
+    by = {}
+    for n in notes:
+        p = n.get("pitch")
+        try:
+            pitchbench.midi(p)
+            return {None: notes}                       # a pitched part: one instrument
+        except (ValueError, TypeError):
+            by.setdefault(str(p), []).append(n)
+    return by if len(by) > 1 else {None: notes}
+
+
 def tracks_of(canon):
     names = []
 
@@ -104,10 +124,17 @@ def find(canon, least=0.30, bars=3, only=None):
         if only and name not in only:
             continue
         notes = notechk.track_notes(canon, name) or []
-        for a, b, v0, v1 in ramps(bar_tops(notes, 0.8 if vel is None else float(vel)), least, bars):
-            rows.append({"track": name, "from": a + 1, "to": b + 1, "vel_from": v0, "vel_to": v1,
-                         "written_db": round(20 * math.log10(v1 / v0), 1) if v0 > 0 and v1 > 0 else None})
-    return rows
+        by = pieces(notes)
+        for piece, mine in by.items():
+            others = {int(math.floor(float(n.get("at") or 0) / 4.0 + 1e-9)) for q, ns in by.items() if q != piece for n in ns}
+            for a, b, v0, v1 in ramps(bar_tops(mine, 0.8 if vel is None else float(vel)), least, bars):
+                row = {"track": name, "from": a + 1, "to": b + 1, "vel_from": v0, "vel_to": v1,
+                       "written_db": round(20 * math.log10(v1 / v0), 1) if v0 > 0 and v1 > 0 else None}
+                if piece is not None:                  # a kit's piece; can the track alone be read at its two ends?
+                    row["piece"] = piece
+                    row["alone"] = a not in others and b not in others
+                rows.append(row)
+    return sorted(rows, key=lambda r: ([n for n, _ in tracks_of(canon)].index(r["track"]), r["from"], r.get("piece") or ""))
 
 
 def plan(pin, song):
@@ -146,6 +173,9 @@ def measure(song, rows, tempo, pin, where, say=None):
             x = np.frombuffer(w.readframes(w.getnframes()), dtype={2: np.int16, 4: np.int32}[sw]).reshape(-1, ch).astype(float)
         x = x.mean(1) / float(1 << (8 * sw - 1))
         for row in mine:
+            if row.get("alone") is False:              # the kit's other pieces sound there: the track alone is not this piece
+                row["sounds_db"], row["there"] = None, None
+                continue
             a, b = bar_level(x, sr, row["from"], tempo), bar_level(x, sr, row["to"], tempo)
             row["sounds_db"] = None if a is None or b is None else round(b - a, 1)
             w_db = row["written_db"]
@@ -198,9 +228,11 @@ def main(argv=None):
     print(f"  {'track':12s} {'bars':>9s}  {'velocity':14s} {'written':>9s}" + ("   sounds (the track alone)" if flags["--measure"] else ""))
     for r in rows:
         w_db = "       -" if r["written_db"] is None else f"{r['written_db']:+6.1f} dB"
-        line = f"  {r['track']:12s} {str(r['from']) + '-' + str(r['to']):>9s}  {r['vel_from']:.2f} to {r['vel_to']:.2f}   {w_db}"
+        name = r["track"] + (f" ({r['piece']})" if r.get("piece") else "")
+        line = f"  {name:12s} {str(r['from']) + '-' + str(r['to']):>9s}  {r['vel_from']:.2f} to {r['vel_to']:.2f}   {w_db}"
         if "sounds_db" in r:
-            line += ("   silent at an end" if r["sounds_db"] is None
+            line += ("   not read: the kit's other pieces sound in those bars" if r.get("alone") is False
+                     else "   silent at an end" if r["sounds_db"] is None
                      else f"   {r['sounds_db']:+6.1f} dB" + ("   NOT THERE" if r["there"] is False else ""))
         print(line)
     return 0
