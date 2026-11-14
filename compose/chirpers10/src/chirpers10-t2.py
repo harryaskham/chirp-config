@@ -113,7 +113,8 @@ VOICE = os.environ.get("C10T2_VOICE", "-6dB;3dB;0.5;-18dB;2")
 # the first formant): with Common Time's eq (hp 120, 300 Hz -6) the voiced holds read 7 dB over the records' voiced
 # passages at 250-500 Hz; a high-pass alone (220, 450, 650 Hz) left 3 to 5 and cost words; this notch leaves 2 to 3
 # and the recogniser reads as many words as before (18 of 24).
-TALKEQ = os.environ.get("C10T2_TALKEQ", "hp cutoff=300|peak cutoff=400 q=1 gain=-12dB")
+TALKEQ_V5 = "hp cutoff=300|peak cutoff=400 q=1 gain=-12dB"
+TALKFX = os.environ.get("C10T2_TALKFX", "")
 VOICE_LINES = [      # syllables (ARPAbet, from `chirp tts --print`); "up" = the line starts on the sixteenth before the bar line
     ("AY1|K AE1|N AA0 T|HH IY1 R|Y UW1|TH R UW1|DH AH0|W AO1 L", "up"),
     ("OW1 N|L IY0|DH AH0|F L AO1 R|B IH0|T W IY1 N|AH1 S|M UW1 V Z", os.environ.get("C10T2_L2", "down")),
@@ -123,7 +124,44 @@ VOICE_LINES = [      # syllables (ARPAbet, from `chirp tts --print`); "up" = the
 # v5 also: THE KIT'S TOP FALLS AS THE RECORDS' DOES (chirp-eco's reading by thirds: level with the records to 11.6 kHz,
 # then ours stayed flat where theirs fall: +1.6 dB at 11.6-13.7 kHz, +4.7 at 13.7-16, +7.4 at 16-20; every piece of the
 # kit carried it). A low-pass on the drums' bus and the overheads': Hz ; q. "" = v4.
-DTOP = os.environ.get("C10T2_DTOP", "14500;0.7")
+DTOP = os.environ.get("C10T2_DTOP", "14250;0.8")     # v7: Common Time's fit (v5-v6 had 14500;0.7, which took 1.4 dB at 11.6-13.7 kHz that was not owed)
+# v7: THE WORDS ARE HEARD (whole-song round). chirp-eco read v5's spoken holds with a recogniser IN THE MIX: 5 words of
+# 24 in both (14 and 10 with the voices alone), and each voice 2 to 3 dB under the records' voices and near the mix a
+# third as often. Three changes:
+#   1. IN STEP THERE IS ONE VOICE, in the middle (track `tc`). Two tracks of one voice in unison smeared each other (14
+#      words against 18 for one alone), and when the clocks agree there is one voice: it splits in two only when they part.
+#   2. A QUARTER APART the two voices stand further apart (the pan below), so each ear has its own.
+#   3. THE GUITARS BREATHE WITH THE SPEECH: a `pump` on the guitars' bus keyed from the voices' NOTES (not their sound, so
+#      it is down by the syllable's first consonant, which a sidechain duck with a 20 ms attack never was), in place of
+#      v5's 2 dB duck.
+#      Under the one voice the guitars fall 5 dB at each syllable; under the two, 2.5 dB for each (two pumps, so 5 where
+#      their syllables overlap: at 5 dB each the guitars were down nearly all the time and the hold lost its middle).
+#   4. THE VOICE IS RE-VOICED. Measured alone, v5's spoken voice had most of its energy under 1 kHz and 11 to 12 dB less
+#      at 1-4 kHz, where words are told apart and where the guitars are loudest: in the hold a quarter apart the two
+#      voices WERE the mix's 250-500 Hz (2 dB under the whole band; the guitars 7 under), which is why that band read
+#      4.5 dB over the records. Now a steep high-pass at 500 Hz and 8 dB more around 2.5 kHz: for the same level the
+#      voice has 4 dB less at 250-500 Hz and 4 to 5 dB more at 1-4 kHz, and no more top. It costs words alone (the
+#      recogniser reads 15 of 24, was 18). An 8 dB shelf above 1.2 kHz kept all 18 but put the holds' 4-8 kHz 2 dB
+#      over the records; not taken.
+# the centre voice's gain ; the two voices' gain ; their pan ; the pump's depth dB under the one voice : hold : release ;
+# its depth under each of the two. "" = v6.
+#      (Measured on the guitars alone, pumped against not: the engine starts a spoken syllable about 80 ms before its
+#      written time, so that its vowel lands on the beat, and the pump falls with that start. A 90 ms hold had the
+#      guitars back up 120 ms after the beat with the syllable sounding for another 120; the hold is now 250 ms.)
+HEARD = os.environ.get("C10T2_HEARD", "-6.8dB;-4.5dB;0.8;5:250ms:100ms;2.5")
+TALKEQ = os.environ.get("C10T2_TALKEQ", "hp cutoff=500|hp cutoff=500|peak cutoff=2500 q=0.8 gain=8dB" if HEARD else TALKEQ_V5)
+# Tried in the same round and NOT taken: the speech moved into the riff's holes (the same rhythm half a bar late falls
+# exactly in the riff's gaps, C10T2_HOLES=8). It should have been easier to hear; nothing I can measure says so: the
+# recogniser on the full mix read 10 and 8 words on the attacks against 7 and 11 in the holes (two seeds; base.en 5 and 7
+# against 4 and 10), and the voice against the mix read the same (-5.4 and -5.6 dB). So the syllables stay on the riff.
+HOLES = int(os.environ.get("C10T2_HOLES", "") or 0)
+# Tried in the same round and NOT taken: the quarter hold on C (C10T2_QUARTER=7), which would have made the hook's three
+# notes the grounds in rising order (Ab, B, C). Rendered and scored: the form's "returns" fell (compscore 98.84 / 99.60
+# without it, 97.53 / 98.62 with), and it is right that they did. The song has three PILLARS, the simple distances
+# (together, a beat apart, half a bar apart), and they say the same words over the same riff: they must stand on the
+# same ground (F) for the distance to be the only thing that changed. The ODD distances (one, two, three sixteenths)
+# are the excursions and take the hook's notes: Ab and B so far; the hold a sixteenth apart is still on F and can take C.
+QROOT = int(os.environ.get("C10T2_QUARTER", "") or 0)
 # v6: THE HOLD THREE SIXTEENTHS APART (bars 50-56, and the slip into it from bar 48). At this distance the two guitars
 # strike TOGETHER five times a bar, more than at any other (sixteenths 0, 3, 10, 12, 13), and three of those are two
 # different notes: the riff makes chords with itself (a tritone, a minor third, a fifth). So this hold is built on the
@@ -182,7 +220,7 @@ def bass(b0, b1, lead=0, vel=0.9, root=0, union=False, only=None):
                     add("bass", b * 16 + q, 1, root + (F1 if kind in "co" else HOOK[int(kind[1])]), vel * 0.85)
 
 
-def say(line, bar, kind="talk", ring=True):
+def say(line, bar, kind="talk", ring=True, one=False):
     """One line on both voices of a kind (spoken `tl`/`tr`, barked `vl`/`vr`): a syllable to each attack of the riff,
     none longer than two sixteenths and a bit (short syllables read better, and take turns better)."""
     phs, how = VOICE_LINES[line]
@@ -191,8 +229,8 @@ def say(line, bar, kind="talk", ring=True):
         ln = (pos[i + 1] - pos[i]) if i < 7 else (6 if ring else (1 if how == "down" else 2))
         ln = min(ln, 2.2) if not (i == 7 and ring) else ln
         pitch = nm(65) if kind == "bark" else ("m41.5" if i == 7 else "m45.5")       # the talk falls at the end of a line
-        for tr in (("vl", "vr") if kind == "bark" else ("tl", "tr")):
-            T.setdefault(tr, []).append({"at": round((bar * 16 + pos[i]) / 4, 4), "len": round(ln * 0.9 / 4, 4), "pitch": pitch, "vel": 0.9, "ph": ph})
+        for tr in (("vl", "vr") if kind == "bark" else ("tc",) if one else ("tl", "tr")):
+            T.setdefault(tr, []).append({"at": round((bar * 16 + pos[i] + (HOLES if kind == "talk" else 0)) / 4, 4), "len": round(ln * 0.9 / 4, 4), "pitch": pitch, "vel": 0.9, "ph": ph})
 
 
 def drum(piece, s16, vel):
@@ -303,9 +341,10 @@ def compose():
                         drum("h", b * 16 + p, 0.45)
                 fill(b1, "snare")
             continue
-        riff("gl", b0, b1)
-        riff("gr", b0, b1)
-        bass(b0, b1, lead or 0)
+        root = QROOT if (lead == 4 or (b0, b1) == (56, 58)) else 0      # the quarter hold and the slip into it, on C (v7)
+        riff("gl", b0, b1, root=root)
+        riff("gr", b0, b1, root=root)
+        bass(b0, b1, lead or 0, root=root)
         if lead is None:                 # a slip: the beat thins to a kick on the bar line and a hat, so the slip is heard
             for b in range(b0, b1):
                 drum("k", b * 16, 0.85)
@@ -358,7 +397,7 @@ def compose():
         drum("c", b * 16, 0.85)
     if VOICE:
         for i in range(4):                       # in step: the four lines, together
-            say(i, 16 + 2 * i)
+            say(i, 16 + 2 * i, one=bool(HEARD))
         for i in range(4):                       # a quarter apart: the four lines, each syllable said twice a beat apart
             say(i, 60 + 2 * i)
         say(2, 68)
@@ -408,6 +447,10 @@ def song():
     b = lambda bar: f"{bar * 4}b"
     eb, hlp = ([float(x) for x in EIGHTH.split(";")[3:5]] if EIGHTH and len(EIGHTH.split(";")) > 4 else (0, 0))
     vo = VOICE.split(";") if VOICE else None
+    hd = HEARD.split(";") if HEARD else None
+    talkfx = ([TALKFX] if TALKFX else []) + ([{"type": "eq", "bands": TALKEQ.split("|")}] if TALKEQ else [])
+    pump = [{"type": "pump", "on": tr, "depth": f"-{hd[3].split(':')[0] if tr == 'tc' else hd[4]}dB", "attack": "4ms", "hold": hd[3].split(":")[1], "release": hd[3].split(":")[2]}
+            for tr in ("tc", "tl", "tr")] if VOICE and HEARD and float(hd[3].split(":")[0]) else []
     dtop = [f"lp cutoff={DTOP.split(';')[0]} q={DTOP.split(';')[1]}"] if DTOP else []
     tw = TWIN.split(";")[0].split(":") if TWIN else None
     beam = TWIN.split(";")[1].split(":") if TWIN else None
@@ -418,8 +461,9 @@ def song():
            {"name": "gr", "patch": "ct-chug-r" + HEAVY, "gain": "3.3dB", "pan": 1, "out": "gtrs", "fx": cab(13), "warp": WARP}]),
         {"name": "cl", "patch": CLEAN, "gain": "1dB", "pan": -0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP]},
         {"name": "cr", "patch": CLEAN, "gain": "1dB", "pan": 0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP], "warp": WARP},
-        *([{"name": tr, "patch": "voice-talk", "gain": vo[0], "pan": sgn * float(vo[2]),
-            "fx": [{"type": "eq", "bands": TALKEQ.split("|")}],
+        *([{"name": "tc", "patch": "voice-talk", "gain": hd[0], "pan": 0, "fx": talkfx}] if VOICE and HEARD else []),
+        *([{"name": tr, "patch": "voice-talk", "gain": hd[1] if HEARD else vo[0], "pan": sgn * float(hd[2] if HEARD else vo[2]),
+            "fx": talkfx,
             **({"warp": WARP} if tr == "tr" else {})} for tr, sgn in (("tl", -1), ("tr", 1))] if VOICE else []),
         *([{"name": tr, "patch": "kidman synth.layers.0.diction=2 synth.layers.0.speech=1", "gain": vo[1], "pan": sgn * float(vo[2]), "sends": {"hall": vo[3]},
             "fx": [{"type": "eq", "bands": ["hp cutoff=440", "peak cutoff=1400 q=0.8 gain=4.5dB", "peak cutoff=5500 q=1.2 gain=-4dB", "highshelf cutoff=7000 gain=-6dB"] + dtop}],      # the bark's hiss falls with the kit's top
@@ -461,7 +505,7 @@ def song():
                              {"type": "eq", "bands": ["peak cutoff=400 q=0.8 gain=-6dB", "peak cutoff=5500 q=0.9 gain=1dB", "highshelf cutoff=9000 gain=-2dB"] + dtop}]},
             "oh": {"fx": ["reverb kind=room decay=0.7s mix=1 predelay=4ms low_cut=5000 high_cut=12000 spread=0.6"] + ([{"type": "eq", "bands": dtop}] if DTOP else [])},
             "gtrs": {"fx": [{"type": "gain", "gain": "0dB"}] + ([f"reverb kind={beam[0]} decay={beam[1]} mix={beam[2]} predelay=6ms"] if TWIN else [])
-                     + ([{"type": "duck", "by": "tl", "depth": f"-{vo[4]}dB", "attack": "20ms", "release": "250ms"}] if VOICE and float(vo[4]) else [])},
+                     + (pump if HEARD else [{"type": "duck", "by": "tl", "depth": f"-{vo[4]}dB", "attack": "20ms", "release": "250ms"}] if VOICE and float(vo[4]) else [])},
             "low": {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
                            {"type": "eq", "bands": ["peak cutoff=170 q=1.2 gain=-3dB"]}]},
