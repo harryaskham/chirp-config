@@ -171,6 +171,21 @@ QROOT = int(os.environ.get("C10T2_QUARTER", "") or 0)
 # of the hook's notes to become a ground (Ab at an eighth, B here).
 # the root's semitones above F ; the pendulum's velocity. "" = v5.
 THREE = os.environ.get("C10T2_THREE", "6;0.42")
+# v8: THE HOLD A SIXTEENTH APART (bars 28-32, 1:02-1:11) gets what only that distance has, and the last of the hook's
+# notes as its ground. A sixteenth apart is as close as the two guitars come without being together: every note has a
+# shadow a sixteenth before it, and between them they strike thirteen of the bar's sixteen sixteenths (only 4, 7 and 8
+# are left). So here the band plays the UNION: the kick and the bass on every note of either guitar, and the drummer
+# fills the three holes (a tom, the floor tom, the snare), so that for four bars every sixteenth of the bar is struck.
+# The three odd distances now each show one thing: a sixteenth apart everything either guitar plays (the densest four
+# bars before the end), an eighth apart the echo, three sixteenths apart only what they play together (the sparsest).
+# It stands on C, the hook's third note: C a sixteenth apart, Ab an eighth, B three sixteenths; the song's three simple
+# distances stay on F.
+# the root's semitones above F ; the two toms' velocity ; the kick's velocity off the beat. "" = v7.
+ONE = os.environ.get("C10T2_ONE", "7;0.8;0.8")
+# On C, with the kick and the bass on thirteen sixteenths of a bar, the hold read 1.4 dB over the records at 60-120 Hz
+# (the bass's C2 is 65 Hz; on F its fundamental is under 60). The bass bus's fader comes down there, after its
+# compressor (a gain on the bass track is taken back by the compressor). bar:bar:dB, ... "" = no ride.
+LOWRIDE = os.environ.get("C10T2_LOWRIDE", "28:32:-1.5" if ONE else "")
 T = {}
 
 
@@ -285,6 +300,23 @@ def groove_three(b0, b1, tick):
     return hits
 
 
+def groove_one(b0, b1, tomv, kv):
+    """The beat of the hold a sixteenth apart: the kick on every note of either guitar; the three sixteenths neither
+    plays go to a tom, the floor tom and the snare; the china on the quarter as in step."""
+    union = sorted(set(ATTACKS) | {(p - 1) % 16 for p in ATTACKS})
+    holes = [p for p in range(16) if p not in union]
+    assert len(union) == 13 and holes == [4, 7, 8]
+    for b in range(b0, b1):
+        for p in union:
+            drum("k", b * 16 + p, 0.92 if p % 4 == 0 else kv)
+        drum("t2", b * 16 + 4, tomv)
+        drum("ft", b * 16 + 7, tomv)
+        drum("s", b * 16 + 8, 0.95)
+        for p in range(0, 16, 4):
+            drum("x", b * 16 + p, 0.6 if p == 0 else 0.5)
+    drum("c", b0 * 16, 0.9)
+
+
 def fill(b, kind="toms"):
     """The last half bar before bar `b`."""
     if kind == "toms":
@@ -341,7 +373,14 @@ def compose():
                         drum("h", b * 16 + p, 0.45)
                 fill(b1, "snare")
             continue
-        root = QROOT if (lead == 4 or (b0, b1) == (56, 58)) else 0      # the quarter hold and the slip into it, on C (v7)
+        if ONE and lead == 1:            # the hold a sixteenth apart: the union, on C (v8)
+            root, tomv, kv = int(ONE.split(";")[0]), float(ONE.split(";")[1]), float(ONE.split(";")[2])
+            riff("gl", b0, b1, root=root)
+            riff("gr", b0, b1, root=root)
+            bass(b0, b1, lead, root=root, union=True)
+            groove_one(b0, b1, tomv, kv)
+            continue
+        root = QROOT if (lead == 4 or (b0, b1) == (56, 58)) else 0      # the quarter hold and the slip into it, on C (tried at v7, off)
         riff("gl", b0, b1, root=root)
         riff("gr", b0, b1, root=root)
         bass(b0, b1, lead or 0, root=root)
@@ -448,6 +487,11 @@ def song():
     eb, hlp = ([float(x) for x in EIGHTH.split(";")[3:5]] if EIGHTH and len(EIGHTH.split(";")) > 4 else (0, 0))
     vo = VOICE.split(";") if VOICE else None
     hd = HEARD.split(";") if HEARD else None
+    lowride = [["0b", 0]]                    # the bass bus's fader by section, after its compressor (a key moves the low end)
+    for seg in (LOWRIDE.split(",") if LOWRIDE else []):
+        b0, b1, db = [float(x) for x in seg.split(":")]
+        lowride += [[f"{b0 * 4 - 1:g}b", 0], [f"{b0 * 4:g}b", db], [f"{b1 * 4 - 1:g}b", db], [f"{b1 * 4:g}b", 0]]
+    lowride = lowride if len(lowride) > 1 else None
     talkfx = ([TALKFX] if TALKFX else []) + ([{"type": "eq", "bands": TALKEQ.split("|")}] if TALKEQ else [])
     pump = [{"type": "pump", "on": tr, "depth": f"-{hd[3].split(':')[0] if tr == 'tc' else hd[4]}dB", "attack": "4ms", "hold": hd[3].split(":")[1], "release": hd[3].split(":")[2]}
             for tr in ("tc", "tl", "tr")] if VOICE and HEARD and float(hd[3].split(":")[0]) else []
@@ -508,7 +552,9 @@ def song():
                      + (pump if HEARD else [{"type": "duck", "by": "tl", "depth": f"-{vo[4]}dB", "attack": "20ms", "release": "250ms"}] if VOICE and float(vo[4]) else [])},
             "low": {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
-                           {"type": "eq", "bands": ["peak cutoff=170 q=1.2 gain=-3dB"]}]},
+                           {"type": "eq", "bands": ["peak cutoff=170 q=1.2 gain=-3dB"]}]
+                           + ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}}] if lowride else []),
+                    **({"auto": {"ride": {"points": lowride, "curve": 0}}} if lowride else {})},
         },
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": f"{1.6 + (float(TWIN.split(';')[2]) if TWIN else 0):g}dB"}]},
         "tracks": tracks,
