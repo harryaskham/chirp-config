@@ -161,6 +161,39 @@ if CLIMB:                # the bar the lead starts: it leaves room for six notes
     CLIMB_B0 = int(CLIMB_B0) if CLIMB_B0 == int(CLIMB_B0) else CLIMB_B0
 
 
+# v6: THE METHOD IS HEARD (whole song). Through v5 the two long stretches were a riff that changed and a kit that did
+# not: nothing told the ear where the ringing was in its course (the section map called three windows static). The
+# method has a shape, and now the band plays it:
+#   HOME. Each LEAD (ten rows) ends with the treble leading twice: the long note is first in the riff two riffs
+#     running, the one moment its slide stops. A crash goes on each of those two long notes, and
+#     the kit no longer crashes by the bar count. So the phrases are the leads: five bars in the first extent; in the
+#     second six and a quarter, so each home falls a beat later in the bar than the last.
+#   THE CALL. Where the conductor would call (a bob or a single: three times in the first extent, six in the second)
+#     those two riffs are a break for the whole band in unison: every note open and loud, the kick with every note,
+#     and the kit stops its beat and RINGS THE ROW: a crash for the treble, a tom for each of the four bells between
+#     (high to low as the bells are), the snare on the tenor's chugs. In the first extent the calls are the last bar of
+#     each third (the turnaround into the key change); in the second there is one in the middle of each third too.
+#   THE HUNT LAID BARE. For one lead in each cycle, the first on A flat (0:56-1:06 and 3:22-3:34), the guitars play
+#     only the long note and the low chugs, and the bass alone keeps the four notes between: the long note is heard
+#     sliding against the chugs with nothing in the way. Then the whole riff comes back. It is in both cycles at the
+#     same place, so the second time it is a thing that returns.
+# (Tried and not kept: the kit's three beats in the second cycle in the first cycle's order, `abc`. I expected the
+# scorer to hear the second cycle as more of a return; it heard less of one, 0.192 for 0.224 of its sections.)
+# the two cymbals at home ; the velocity of a call's notes ; the rows of each extent laid bare (from:to) ; the kit's
+# beat in each third of the second extent. "" = v5.
+FORM = os.environ.get("C10T3_FORM", "c,c;1.0;40:50;bac")
+CALLS_1 = [L for L, c in enumerate("pppb" * 3) if c != "p"]
+CALLS_2 = [L for L, c in enumerate("pbpbps" * 2) if c != "p"]
+BREAKS, BREAK_HITS = [], []          # the calls' spans (sixteenths) and the kit's notes in them
+
+
+def lead_mode(k, calls):
+    """What row k of an extent is: `call` (the two rows of a called lead end), `home` (of a plain one), or neither."""
+    if not FORM or k % 10 < 8:
+        return ""
+    return ("call" if k // 10 in calls else "home") + str(k % 10 - 8)
+
+
 def add(tr, s16, len16, pitch, vel, **expr):
     n = {"at": round(s16 / 4, 4), "len": round(len16 / 4 * 0.98, 4), "pitch": nm(pitch) if isinstance(pitch, int) else pitch, "vel": round(vel, 3)}
     if expr:
@@ -173,28 +206,46 @@ def drum(piece, s16, vel):
     T.setdefault(tr, []).append({"at": round(s16 / 4, 4), "len": 2.0 if piece in ("c", "x") else 0.5 if piece in ("h", "rb", "rd") else 0.25, "pitch": piece, "vel": round(vel, 3)})
 
 
-def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teeth=False):
+def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teeth=False, mode=""):
     """One row on the band from `s16`: the five bells in the row's order, then the tenor. The treble is open and loud
     and w[0] sixteenths long; the tenor is w[1] muted chugs; every other bell one muted sixteenth. The kick goes with
     the treble and each of the tenor's chugs (`all`: on every sixteenth); a church bell doubles the treble three
     octaves up."""
     t = s16
+    call, bare = mode.startswith("call"), mode == "bare"
+    if call:
+        BREAKS.append((s16, s16 + 4 + sum(w)))
     for b in tuple(row) + (6,):
         n = w[0] if b == 1 else w[1] if b == 6 else 1
         for j in range(n if b == 6 else 1):                 # the tenor's chugs; any other bell is one note
             v = 1.0 if b == 1 else (0.95 if j == 0 else 0.9) if b == 6 else 0.85
+            if call:
+                v = float(FORM.split(";")[1])
             for tr in (G4 if gtrs else ()):
-                if b == 1:
-                    add(tr, t, n, F1 + root + PITCH[b], v)
+                if bare and b not in (1, 6):
+                    continue
+                if b == 1 or call:
+                    add(tr, t + j, n if b == 1 else 1, F1 + root + PITCH[b], v)
                 else:
                     add(tr, t + j, 1, F1 + root + PITCH[b], v, pm=1)
             for tr in (("bass", "fuzz") if teeth else ("bass",)):
-                add(tr, t + j, n if b == 1 else 1, F1 + root + PITCH[b], (0.95 if j == 0 else 0.9) if b in (1, 6) else 0.85)
+                add(tr, t + j, n if b == 1 else 1, F1 + root + PITCH[b], v if call else (0.95 if j == 0 else 0.9) if b in (1, 6) else 0.85)
         for j in range(n):
             if b in (1, 6) and (j == 0 or b == 6):
                 drum("k", t + j, 0.95 if j == 0 else 0.9)
+            elif call and j == 0:
+                drum("k", t, 0.9)
             elif kicks == "all":
                 drum("k", t + j, 0.62)
+        if call:                                            # the kit rings the row
+            if b == 1:
+                BREAK_HITS.append(("c" if mode.endswith("0") else "x", t, 0.9))
+            elif b == 6:
+                BREAK_HITS.extend(("s", t + j, round(0.95 - 0.05 * (n - 1 - j), 3)) for j in range(n))
+            else:
+                BREAK_HITS.append(({2: "t1", 3: "t2", 4: "t3", 5: "ft"}[b], t, 0.85))
+        elif mode.startswith("home") and b == 1:
+            BREAK_HITS.append((FORM.split(";")[0].split(",")[int(mode[-1])], t, 0.8 if mode.endswith("0") else 0.7))
         if bell and b == 1:
             T.setdefault("bell", []).append({"at": round(t / 4, 4), "len": 1.5, "pitch": nm(F1 + root + PITCH[1] + 36), "vel": 0.6})
         t += n
@@ -262,10 +313,12 @@ def compose():
     beat(BAND, PART1, "a", meet(L1))
     fill(PART1)
     # the first extent: Plain Bob Doubles. Forty rows on F, forty on Ab, forty on B
+    bare = [int(x) for x in FORM.split(";")[2].split(":")] if FORM else [0, 0]
     for k, row in enumerate(EXTENT_1):
-        row_notes(row, PART1 * 16 + k * L1, KEYS_1[k // 40], W1, kicks="all" if k >= 80 else "hunt")
+        row_notes(row, PART1 * 16 + k * L1, KEYS_1[k // 40], W1, kicks="all" if k >= 80 else "hunt",
+                  mode=lead_mode(k, CALLS_1) or ("bare" if bare[0] <= k < bare[1] else ""))
     for i, kind in enumerate("abc"):
-        beat(PART1 + T1 * i, PART1 + T1 * (i + 1), kind, meet(L1))
+        beat(PART1 + T1 * i, PART1 + T1 * (i + 1), kind, 10 ** 6 if FORM else meet(L1))
         fill(PART1 + T1 * (i + 1))
     # it has come round. One chord, and the bells alone again: rounds, slowly, over a drone and a pad
     hit(MIDDLE, 6)
@@ -281,9 +334,10 @@ def compose():
     # the second extent: Grandsire Doubles, on F, Ab and C
     for k, row in enumerate(EXTENT_2):
         row_notes(row, PART2 * 16 + k * L2, KEYS_2[k // 40], W2, kicks="all" if k >= 80 else "hunt",
-                  gtrs=not FUZZ or k >= int(FUZZ.split(";")[3]), teeth=bool(FUZZ))
-    for i, kind in enumerate("bac"):
-        beat(PART2 + T2 * i, PART2 + T2 * (i + 1), kind, meet(L2))
+                  gtrs=not FUZZ or k >= int(FUZZ.split(";")[3]), teeth=bool(FUZZ),
+                  mode=lead_mode(k, CALLS_2) or ("bare" if bare[0] <= k < bare[1] else ""))
+    for i, kind in enumerate(FORM.split(";")[3] if FORM else "bac"):
+        beat(PART2 + T2 * i, PART2 + T2 * (i + 1), kind, 10 ** 6 if FORM else meet(L2))
         fill(PART2 + T2 * (i + 1))
     if CLIMB:                            # v4: the lead climbs the row, slowly, over the last third; the snare on every beat at the end
         base, per, sv = int(CLIMB.split(";")[2]), float(CLIMB.split(";")[3]), float(CLIMB.split(";")[4])
@@ -307,6 +361,14 @@ def compose():
         chant(END * 4 + 2, 9.5)
     for i, v in enumerate((0.9, 0.7, 0.5)):
         T.setdefault("bell", []).append({"at": (END + i) * 4, "len": 4.0, "pitch": nm(F1 + 36), "vel": v})
+    # v6: in a call the kit stops its beat (and the fill that led to a key change goes: the call is the fill) and rings the row
+    for tr in ("snare", "hat", "cym", "toms"):
+        T[tr] = [n for n in T.get(tr, []) if not any(a / 4 <= n["at"] < z / 4 for a, z in BREAKS)]
+    for piece, t, v in BREAK_HITS:
+        drum(piece, t, v)
+    for a, z in BREAKS:                  # and the band comes back in on a crash
+        if not any(a2 == z for a2, _ in BREAKS) and not any(n["at"] == z / 4 and n["pitch"] == "c" for n in T["cym"]):
+            drum("c", z, 0.8)
 
 
 def song():

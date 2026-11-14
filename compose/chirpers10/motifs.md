@@ -204,3 +204,13 @@ The ringers' rule is untouched: the same 240 rows in the same order. 120 bpm (it
 | 76-151 | 2:32 | the second extent: the bass alone for five bars, the guitars at 2:42; on Ab (3:22), on C (4:12); the lead climbs from 4:18 |
 | 151-159 | 5:02 | the landing: rounds on F, sixteen times, the bells over the band |
 | 159-162 | 5:18 | one chord, the gong; the tenor tolls three times |
+
+**The method is heard (v6).** A LEAD is ten rows, and in each one the treble walks out to the back of the row and home again; the last two rows of every lead have it leading, so the long note is first in the riff twice running. The band now plays that shape.
+
+| what | where in a lead | what the band does | when |
+|---|---|---|---|
+| HOME (a plain lead end) | rows 9 and 10 | a crash on each of the two long notes; the kit no longer crashes by the bar count | first cycle: every five bars (0:24, 0:34, 0:44; 1:04 ...); second cycle: every six and a quarter, so each falls a beat later in the bar (2:42, 3:07, 3:32, 3:57, 4:22, 4:47) |
+| THE CALL (a bob or a single) | rows 9 and 10 of a called lead | a unison break: every note open and loud, the kick with every note, and the kit stops its beat and rings the row (crash = treble, four toms high to low = the four bells between, snare = the tenor's chugs); then the band is back on a crash | first cycle: the last bar of each third (0:54, 1:34, 2:14); second cycle: the middle and the end of each third (2:54, 3:19, 3:44, 4:09, 4:34, 4:59 into the landing) |
+| THE HUNT LAID BARE | the first lead on A flat, in both cycles | the guitars play only the long note and the low chugs; the bass keeps the four notes between | 0:56-1:06 and 3:22-3:34 |
+
+The bare lead is in both cycles on purpose: with it in the first only, the scorer heard the second cycle as less of a return of the first (returns 0.224 of sections, under its floor of 0.25); in both, 0.354 on both seeds, and it cuts the second cycle's thirds where the first's are cut.
