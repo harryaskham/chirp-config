@@ -29,6 +29,7 @@ asker verbatim as ONE caco message once he has been quiet for two minutes (cc ch
             [--ab "v6|v7=CLIP-ab.mp3"]... [--clip "the voice alone=CLIP.mp3"]... [--choice TEXT]... [--at SECONDS]
       --ab: ONE file holding the versions one after another with a silence between (the usual -ab clip) is cut at
             the silences into its parts, shown side by side; parts of equal length can be switched mid-phrase.
+            ANY NUMBER of takes: "first|made|middle=FILE", "1|2|3|4|5=FILE" (one label a take; the row wraps).
       --clip: one file, one player. Both may repeat; a question may have neither.
       --choice: the answers offered as buttons (he can always write instead). --at: where it is in the song, for an
             "open in Listen" link. --key: a later question with the same key REPLACES this one (a new version of
@@ -1149,7 +1150,8 @@ def main(argv=None):
     p.add_argument("--context", default="", help="what changed, what to listen for (a few lines)")
     p.add_argument("--version", default="", help="the version it is about, as in v7")
     p.add_argument("--key", default="", help="a later question with the same key replaces this one")
-    p.add_argument("--ab", action="append", default=[], metavar="'A|B=FILE'", help="one file of takes end to end, cut at its silences")
+    p.add_argument("--ab", action="append", default=[], metavar="'A|B[|C...]=FILE'",
+                   help="one file of takes end to end (two or more, a label each), cut at its silences")
     p.add_argument("--clip", action="append", default=[], metavar="'LABEL=FILE'", help="one clip")
     p.add_argument("--choice", action="append", default=[], help="an answer offered as a button (repeatable)")
     p.add_argument("--at", type=float, help="where it is in the song, in seconds (an 'open in Listen' link)")

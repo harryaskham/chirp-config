@@ -186,7 +186,8 @@ only in a message:
         --choice "Yes, clearly" --choice "Some of them" --choice "No, the band still covers them"
 
 - `--ab "A|B=FILE"`: the usual A-then-B clip (a silence between the takes) is cut into its sides and shown side by
-  side; when the sides are the same length he can switch between them mid-phrase. `--clip` is one player.
+  side; when the sides are the same length he can switch between them mid-phrase. It takes any number of takes, a
+  label each ("1|2|3|4|5=FILE": five voices in one row). `--clip` is one player.
 - `--choice` are buttons; he can always write instead, or as well. One question a card: ask two things as two cards
   unless one answer covers both.
 - When a change is being taken back or softened, ask THREE WAYS in one `--ab` ("as it first was|as I made it|a

@@ -93,6 +93,41 @@ class Lagchk(unittest.TestCase):
         _, near = self.run_tool(wav, str(BPM), "8", "--reach", "0.5")      # a reach too short to see a whole sixteenth
         self.assertLess(abs(self.lead(near)), 0.51)
 
+    def test_step_draws_a_warp_a_bar_at_a_time(self):
+        # the right part's lead by bar: 1, 2, 3, 3, 2, 1 sixteenths (a warp sliding out and back)
+        riff = [4, 5, 7, 9, 10, 12]                                        # every note well inside its bar
+        n = int(0.06 * SR)
+        tone = np.sin(2 * np.pi * 220 * np.arange(n) / SR) * np.linspace(1, 0.2, n)
+        left, right = np.zeros(10 * 2 * SR), np.zeros(10 * 2 * SR)
+        want = [1, 2, 3, 3, 2, 1]
+        for b in range(2, 8):
+            for k in riff:
+                i = int((b * 16 + k) * 0.125 * SR)
+                left[i:i + n] += tone
+                j = int((b * 16 + k - want[b - 2]) * 0.125 * SR)
+                right[j:j + n] += tone
+        f = save(os.path.join(self.root, "warp.wav"), left, right)
+        code, text = self.run_tool(f, str(BPM), "--step", "3-9")
+        self.assertEqual(code, 0)
+        lines = text.splitlines()
+        self.assertEqual([ln.split(":")[0].strip() for ln in lines], ["3", "4", "5", "6", "7", "8"])   # TO is where it stops
+        got = [float(ln.split("right leads by ")[1].split()[0]) for ln in lines]
+        for g, w in zip(got, want):
+            self.assertAlmostEqual(g, w, delta=0.1)
+        self.assertNotIn("then", text)                                     # one reading a line
+        self.assertNotIn("found as", text)
+        _, two = self.run_tool(f, str(BPM), "--step", "3-5", "--bars", "2")
+        self.assertEqual(len(two.splitlines()), 2)
+        for bad in ("9-3", "x"):
+            with self.assertRaises(SystemExit):
+                self.run_tool(f, str(BPM), "--step", bad)
+
+    def test_a_lead_is_kept_beside_the_one_before(self):
+        self.assertEqual(G.beside(8.0, None), 8.0)                         # the first line is as found
+        self.assertAlmostEqual(G.beside(-6.12, 8.64), 9.88)                # Odd Sympathy v18: past the reach, found a bar back
+        self.assertAlmostEqual(G.beside(7.9, 8.1), 7.9)
+        self.assertAlmostEqual(G.beside(7.0, -8.5), -9.0)
+
     def test_one_channel_and_no_arguments(self):
         mono = save(os.path.join(self.root, "mono.wav"), part(0))
         with self.assertRaises(SystemExit) as e:
