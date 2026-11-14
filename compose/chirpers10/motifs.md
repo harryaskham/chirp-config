@@ -80,6 +80,8 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 
 **Fills.** Six kinds: a run down the toms (8 or 16 sixteenths), a snare crescendo, the five cell on the toms, thirty-second-note kicks under two snares, and a stop (silence with one choked stab). Ghost notes on the snare in the breaks, the split and the swap (since v6 the same snare struck softly, 7-10 dB under the backbeat after the drums bus; before, the old kit's ghost piece). In the hardest stretch's last seven bars the snare goes to the off-beats.
 
+**Riff C splays (v40).** Bars 132-140, the riff's last eight, back on F. The hook Ab Gb B C is pulled apart on the guitars: for four bars Ab1 Gb2 B1 C3 (every other note up an octave), then Ab2 Gb3 B2 C4 (every note up, by one octave and two in turn) over chugs still on the low F, with the open chords out. The bass and the synth keep the hook as written, so the guitars leave the bass and arrive at the synth's Gb3 and C4. The split that follows (bar 140) is an octave up.
+
 ## t2 Odd Sympathy (chirper-zero)
 
 **The idea.** The other way round from Common Time. There: one pulse, three cells of different lengths turning under it. Here: ONE cell, one bar long, and two clocks. The left guitar keeps the song's clock; the right guitar plays the same riff on a clock that runs a hair fast, slips ahead a sixteenth at a time, and holds at each distance. After Huygens's two pendulum clocks on one beam (1665), which however he started them ended swinging exactly against each other: "an odd kind of sympathy".

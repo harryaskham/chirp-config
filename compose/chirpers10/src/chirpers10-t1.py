@@ -518,6 +518,18 @@ DTOP = os.environ.get("C10T1_DTOP", "14250;0.8")
 DTOP_BANDS = [f"lp cutoff={DTOP.split(';')[0]} q={DTOP.split(';')[1]}"] if DTOP else []
 
 
+# v40: RIFF C SPLAYS (4:11-4:26). The brief asks for a motif that gets splayed; riff C is the long one, on eleven. In its
+# last eight bars, back on F, the guitars pull its hook apart: for four bars every other note of the hook (Ab Gb B C)
+# goes up an octave (Ab, Gb an octave up, B, C an octave up: leaps of a seventh and a ninth where there were steps);
+# for the last four every note of it is up, by one octave and two in turn (Ab2, Gb3, B2, C4), over chugs still on the
+# low F. The bass and the synth keep the hook as it was, so the guitars are heard leaving the bass and arriving where
+# the synth is (its Gb3 and C4); the split that follows is an octave up, and the splay lands there.
+# For those last four bars the open chords stop: with them ringing (two more guitars, as loud as the riff's) the leaps
+# were an inner detail; without them the riff is alone as it was when it began (3:29), now pulled wide.
+# the hook for the first bars ; for the rest ; how many bars the first lasts ; 1 = the open chords stop for the rest. "" = v39.
+SPLAY = os.environ.get("C10T1_SPLAY", "3,13,6,19;15,25,18,31;4;1")
+
+
 def compose():
     B = BOUNDS
     F_ONLY = [(0, 0)]
@@ -617,9 +629,15 @@ def compose():
     # 7. 110-140  five meets eleven: RIFF C, the splayed one. Eleven everywhere for eleven bars; then the kick slips onto five
     a, z = B[6], B[7]
     for (x, y, root, hook) in ((a, a + 11, F1, H1), (a + 11, a + 22, F1 + 5, H3), (a + 22, z, F1, H1)):
-        gtr(WL, 11, ELEVEN_A, x, y, root=root, hook=hook)               # the riff itself on the wall rig, alone at first
+        if SPLAY and x == a + 22:                                       # v40: in its last eight bars the hook is pulled apart
+            h1, h2, nb = [int(v) for v in SPLAY.split(";")[0].split(",")], [int(v) for v in SPLAY.split(";")[1].split(",")], int(SPLAY.split(";")[2])
+            gtr(WL, 11, ELEVEN_A, x, x + nb, root=root, hook=h1)
+            gtr(WL, 11, ELEVEN_A, x + nb, y, root=root, hook=h2)
+        else:
+            gtr(WL, 11, ELEVEN_A, x, y, root=root, hook=hook)           # the riff itself on the wall rig, alone at first
         if x > a:
-            gtr(G2, 11, ELEVEN_W, x, y, root=root, vel=0.9)             # the open chords join when the ground moves
+            stop = x + int(SPLAY.split(";")[2]) if SPLAY and x == a + 22 and SPLAY.split(";")[3:] == ["1"] else y
+            gtr(G2, 11, ELEVEN_W, x, stop, root=root, vel=0.9)          # the open chords join when the ground moves (v40: and stop where the full splay begins)
         bass(11, ELEVEN_A, x, y, root=root, hook=hook)
         if CZ:
             layer("cz", 11, ELEVEN_A, x, y, root=root, hook=hook)      # a phase-distortion synth doubles riff C two octaves up
@@ -890,6 +908,12 @@ SECTION_FADERS = {"gl2": [(280, 308, -2.5)], "gr2": [(280, 308, -2.5)]} if SECMI
 TIDY = os.environ.get("C10T1_TIDY", "1")
 if TIDY:
     SECTION_FADERS.update({"kick": [(110, 154, -1.0), (220, 231, -1.2)], "wl": [(220, 231, 1.5)], "wr": [(220, 231, 1.5)]})
+# v40: where riff C's open chords stop and its hook is pulled wide (bars 136-140) the riff's two guitars come up by this
+# much: without the chords the passage fell 1.6 dB (-19.4 LUFS raw, where the riff alone at 3:29 reads -19.5)
+SPLAY_LIFT = os.environ.get("C10T1_SPLAYLIFT", "1.5")
+if SPLAY and SPLAY.split(";")[3:] == ["1"] and SPLAY_LIFT and SECMIX:
+    for _tr in ("wl", "wr"):
+        SECTION_FADERS[_tr] = sorted(SECTION_FADERS.get(_tr, []) + [(136, 140, float(SPLAY_LIFT))])
 # the wall rig's tracks: a dip at 350 Hz. It is the thick rig (4-5 dB more than the tight one at 160-315 Hz), and every section
 # it plays chords in read over the records at 250-500 Hz (riff C with its chords 2.4, the approach 3.2, section 13 1.3)
 WALL_EQ = os.environ.get("C10T1_WALLEQ", "350:1:-2.5") if SECMIX else ""
