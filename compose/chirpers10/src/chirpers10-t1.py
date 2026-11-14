@@ -530,6 +530,32 @@ DTOP_BANDS = [f"lp cutoff={DTOP.split(';')[0]} q={DTOP.split(';')[1]}"] if DTOP 
 SPLAY = os.environ.get("C10T1_SPLAY", "3,13,6,19;15,25,18,31;4;1")
 
 
+# v41: THE SNARE GETS ITS CRACK BACK (whole song). Since v10 the snare went into the overheads' room almost as loud as it
+# went to the drums' bus (send -1.5 dB, a bright 0.7 s room). Measured alone through its buses (drumpunch.py, riff A):
+# its peak stood only 7.8 dB over its own body 20-50 ms later and it took 125 ms to fall 20 dB; the records' snares
+# stand 12.2 (The Faultless) and 17.9 dB (Bleed) over theirs and fall in 12 to 22 ms. The room was the tail: with the
+# send at -12 dB the snare stands 12.0 dB over its body and falls in 50 ms. A transient shaper on the track did less
+# (10.9 dB with the send cut, nothing without: the tail was not the drum's), a gate the same as no gate.
+# BUT THE ROOM WAS ALSO MOST OF THE SNARE'S LEVEL: the drums' bus is clipped at -13 dB and the room is not, so the
+# snare's peak reached the mix through the room (alone: -5.1 dBFS with it, -11.4 without; 3.8 LU quieter). Pushing the
+# track 4 dB harder into the clip gave half of it back and blunted it (punch 10.1). A room of its own, short (0.15 s),
+# kept the level and the blur (punch 8.6). What works is a DRY path beside the clipped bus (bus `snr`, no effect):
+# at -12 dB the snare alone is as loud as it was (-23.3 against -22.9 LUFS) with a peak 3 dB LOWER, stands 11.6 dB over
+# its body and falls in 55 ms, and has its body back (150-300 Hz against 1.5-5 kHz: -5.6 -> +3.3 dB; the records +13 and -3).
+# effects on the snare's track, | between ; its send to the overheads' room, dB ("" = none) ; its gain ;
+# its own bus beside the drums' (a room's decay, or "dry") : the send to it, dB. "" = v40.
+# In the mix, with its tail gone, the snare then read 0.7 to 1.5 dB LOUDER against the mix while it sounds (presence:
+# riff A -6.9 -> -6.2, the hardest stretch -7.5 -> -6.6, the landing -8.4 -> -6.9) and was the loudest track in all
+# three; its track comes down 1 dB so that it leads less.
+# A shelf on the snare's track (2 dB off above 7 kHz): out of the room its wires stood 1.5 dB over its crack (the
+# records -0.8 and +0.9; now +0.6), and the mix's loud frames read 0.4 to 0.8 dB more at 8-16 kHz against the records.
+SNARE = os.environ.get("C10T1_SNARE", "shelf:7000:-2;-12;7dB;dry:-10")
+# the dry path's eq. Without one it carried the snare's body past the drums' bus's own 400 Hz cut, and every section read
+# 0.5 to 1.4 dB more at 250-500 Hz against the records (the split +1.9 -> +2.8, the landing +1.1 -> +1.9). With this cut
+# (and the send 2 dB up) the snare alone carries as much at 250-500 Hz as it did at v40, and 1.1 dB more at 120-250 Hz.
+SNARE_EQ = os.environ.get("C10T1_SNAREEQ", "300:0.7:-12")
+
+
 def compose():
     B = BOUNDS
     F_ONLY = [(0, 0)]
@@ -1356,7 +1382,7 @@ def song():
         ("wl", WALL_L, "-2dB", -0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
         ("wr", WALL_R, "-2dB", 0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
         ("bass", BASS, "0.5dB", 0, BOUT),
-        ("kick", KIT, "2dB", None, {"out": "drums", **KCLICK_FX}), ("snare", KIT, "8dB", None, {"out": "drums", **OHS}),
+        ("kick", KIT, "2dB", None, {"out": "drums", **KCLICK_FX}), ("snare", KIT, SNARE.split(";")[2] if SNARE else "8dB", None, {"out": "drums", **({"sends": {**({"oh": SNARE.split(";")[1] + "dB"} if SNARE.split(";")[1] and DROOM else {}), **({"snr": SNARE.split(";")[3].split(":")[1] + "dB"} if SNARE.split(";")[3:] and SNARE.split(";")[3] else {})}} if SNARE else OHS), **({"fx": [({"type": "eq", "bands": [f"highshelf cutoff={f.split(':')[1]} gain={f.split(':')[2]}dB"]} if f.startswith("shelf:") else f) for f in SNARE.split(";")[0].split("|") if f]} if SNARE and SNARE.split(";")[0] else {})}),
         ("cym", KIT, "-3dB", None, {"out": "drums", **OHC, **AIRFX}), ("toms", KIT, "4dB", None, {"out": "drums", **OHS}),
         ("hat", KIT, "14dB", float(HATPAN) if HATPAN else None, {"out": "drums", **OHC, **AIRFX}), ("ride", KIT, "6dB", None, {"out": "drums", **OHC, **AIRFX}),
         ("lead", "m8-lead-guitar", {"value": "-3dB", "mod": [{"src": "auto.eye", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"eye": {"points": LEAD_LANE}}}),
@@ -1478,6 +1504,7 @@ def song():
                                        {"type": "eq", "bands": [f"hp cutoff={gh:g}", f"lp cutoff={glp:g}"]},
                                        {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.lvl", "amount": 1}]}}],
                                 "auto": {"lvl": {"points": GRIND_LVL, "curve": 0}, "teeth": {"points": GRIND_TEETH, "curve": 0}}}} if GRIND and BEQ else {}),
+                  **({"snr": {"fx": [{"type": "eq", "bands": peaks(SNARE_EQ.split(";")[0]) + ([f"highshelf cutoff={SNARE_EQ.split(';')[1].split(':')[0]} gain={SNARE_EQ.split(';')[1].split(':')[1]}dB"] + DTOP_BANDS if SNARE_EQ.split(";")[1:] else [])} if SNARE_EQ else {"type": "gain", "gain": "0dB"}] if SNARE.split(";")[3].split(":")[0] == "dry" else [f"reverb kind=room decay={SNARE.split(';')[3].split(':')[0]} mix=1 predelay=4ms low_cut={DROOM.split(':')[0]} high_cut=12000 spread=0.6"]}} if SNARE and SNARE.split(";")[3:] and SNARE.split(";")[3] and DROOM else {}),
                   **({"oh": {"fx": [f"reverb kind=room decay={(DROOM.split(':') + ['0.4'])[3]}s mix=1 predelay=4ms low_cut={DROOM.split(':')[0]} high_cut=12000 spread=0.6"] + ([{"type": "eq", "bands": DTOP_BANDS}] if DTOP else [])}} if DROOM else {}),
                   **({"gtrs": {"fx": ([] if OWNCAB else [{"type": "eq", "bands": peaks(GEQ)}]) + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}] + ([{"src": "auto.ring", "amount": 1}] if RINGS else [])}}]
                                + ([{"type": "rotary", "mix": {"value": 0, "mod": [{"src": "auto.rot", "amount": 1}]}, "speed": {"value": 0, "mod": [{"src": "auto.spin", "amount": 1}]}}] if ROTARY else [])
