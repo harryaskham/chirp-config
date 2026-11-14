@@ -29,6 +29,10 @@ half a second each, against their neighbours eight seconds either way), so it is
 onsets: a harmony that joins near the window's start and stays (Plain Hunt v7, w8) is one change and then none, and
 the window is still static. "little new" keys on CHANGE: the window's mean frame against the window before's.
 "little new vs wN" only says the window continues the one before.
+WHAT ENTERS IN A STATIC WINDOW (14 Nov, chirper-zero, Common Time v48): the map's most static window had a new
+wheel arriving in the middle of it, 3 to 4 dB under guitars that never stopped: "static" was "the arrival is
+masked". Under the map, each static window now lists the parts that ENTER in it (from the plan: a part silent for
+two bars or more before its note) and the command that says how loud they are against what was already playing.
 A sung return (the chorus or hook coming back, a crest's later lines) is MEANT to repeat; hear it before rewriting.
 chirper-three, t4 v24 (6 Nov): rewriting a flagged chorus return cost recurrence 96.2 -> 91.7 and the round was refused.
 """
@@ -372,6 +376,63 @@ def flag(rows):
         r["flags"] = f
 
 
+ENTER_QUIET = 8.0          # beats a part must have been silent for its next note to be an entry (two bars of four)
+
+
+def plan_of(song, pin):
+    """The song as chirp plans it (canonical), or None when it cannot be asked."""
+    env = {k: v for k, v in os.environ.items() if k != "LD_LIBRARY_PATH"}
+    try:
+        r = subprocess.run([pin, "plan", "-f", song, "--json"], capture_output=True, text=True, env=env, cwd=ROOT)
+        return json.loads(r.stdout)["data"]["canonical"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
+def entries(canon, rows, quiet=ENTER_QUIET):
+    """{window n: [(track, beat)]}: the parts that ENTER in each window, with where: a note of a track that had been
+    silent for `quiet` beats or more (or had not played yet). From the plan's notes as written; one entry a track a
+    window (its first). Windows without beats (a song with no tempo) have none."""
+    out = {}
+    if not canon or not rows or rows[0]["beats"][0] is None:
+        return out
+    stack = list(canon.get("tracks") or [])
+    while stack:
+        t = stack.pop(0)
+        stack.extend(t.get("tracks") or [])
+        spans = sorted((float(n.get("at") or 0), float(n.get("at") or 0) + float(n.get("len") or 0))
+                       for n in t.get("notes") or [] if isinstance(n, dict))
+        end = None
+        for a, b in spans:
+            if end is None or a - end >= quiet:
+                r = next((r for r in rows if r["beats"][0] <= a < r["beats"][1]), None)
+                if r and not any(name == t.get("name") for name, _ in out.get(r["n"], [])):
+                    out.setdefault(r["n"], []).append((t.get("name"), a))
+            end = b if end is None else max(end, b)
+    return {n: sorted(v, key=lambda e: e[1]) for n, v in out.items()}
+
+
+def entry_lines(cid, rows, enters, clock):
+    """The lines under the map: for each window flagged static, what enters in it and the presence command."""
+    lines = []
+    for r in rows:
+        if "static" not in (r.get("flags") or []):
+            continue
+        got = enters.get(r["n"]) or []
+        if not got:
+            lines.append(f"  w{r['n']} static: nothing enters in it (the same parts throughout, or parts that never rested two bars)")
+            continue
+        by = {}
+        for name, beat in got:
+            by.setdefault(round(beat, 3), []).append(name)
+        said = "; ".join(f"{', '.join(v[:6])}{' +' + str(len(v) - 6) if len(v) > 6 else ''} at {fmt_t(float(clock(b)[0]))}"
+                         for b, v in list(by.items())[:4])
+        first = got[0][1]
+        lines.append(f"  w{r['n']} static, and these ENTER in it: {said}. How loud against what was already playing: "
+                     f"presence.py {cid} --windows {first:g}b-{first + 16:g}b --preroll 8")
+    return lines
+
+
 def focus_order(rows, ledger, recent=3):
     """Windows to focus on next: flagged ones first (most flags, then the most repeat-like), least recently focused
     first; a window focused in the last RECENT marks waits."""
@@ -474,7 +535,7 @@ def render(song, pin, out):
         raise SystemExit(f"sectionmap: render failed: {r.stderr.strip()[-400:]}")
 
 
-def print_map(cid, song, rows, dur, ledger):
+def print_map(cid, song, rows, dur, ledger, canon=None):
     rel = os.path.relpath(song, ROOT)
     w0 = rows[0]
     span = (w0["beats"][1] - w0["beats"][0]) if w0["beats"][0] is not None else None
@@ -509,6 +570,10 @@ def print_map(cid, song, rows, dur, ledger):
               "level, half a second at a time) changes WITHIN the window. A part that joins and stays is one change, then none.")
         print(f"  little new = change at or under {c25:.3f}, its lowest quarter: 1 - likeness to the window before, + the level "
               "step / 20. A quarter of the windows carry each flag, however good the song.")
+    if canon:                                            # a static window with an arrival in it: the arrival may be masked
+        clock, _ = beat_clock(song)
+        for ln in entry_lines(cid, rows, entries(canon, rows), clock) if clock else []:
+            print(ln)
     order = focus_order(rows, ledger)[:3]
     if order:
         print("focus next (flagged and least recently focused first):")
@@ -600,7 +665,7 @@ def main(argv=None):
                                                                    if k not in ("vec", "chroma", "seq", "ghist")} for r in rows],
                               "focus": focus_order(rows, ledger)}))
             return
-        print_map(a.id, song, rows, dur, ledger)
+        print_map(a.id, song, rows, dur, ledger, plan_of(song, a.pin or open(os.path.join(HERE, "groove-pin")).read().strip()))
     finally:
         if tmp:
             import shutil

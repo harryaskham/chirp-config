@@ -252,3 +252,31 @@ def test_the_placed_ledger_feeds_the_focus_order_and_the_map_says_so(capsys):
     assert "focused 2026-11-14T19:31 by zero (about here: marked on v4 as w2, and the song's tempo or length has changed since)" in line3
     line5 = next(ln for ln in out.splitlines() if ln.startswith("  5 "))
     assert line5.rstrip().endswith("focused 2026-11-14T20:00 by zero")
+
+
+# ── what enters in a static window (14 Nov, Common Time v48: "static" was "the arrival is masked") ──
+def test_entries_are_notes_after_two_bars_of_silence_one_a_track_a_window():
+    rows = _grid(256)                                                        # four windows of 64 beats
+    canon = {"tracks": [
+        {"name": "five", "notes": [{"at": 4.0 * i, "len": 3.9} for i in range(64)]},                 # never rests: enters once, at 0
+        {"name": "eleven", "notes": [{"at": 100.0, "len": 2}, {"at": 104.0, "len": 2}, {"at": 200.0, "len": 2}]},
+        {"name": "kit", "tracks": [{"name": "china", "notes": [{"at": 100.0, "len": 1}, {"at": 107.0, "len": 1},
+                                                               {"at": 118.0, "len": 1}]}]},
+        {"name": "silent", "notes": []}]}
+    got = SM.entries(canon, rows)
+    assert got[1] == [("five", 0.0)]
+    assert got[2] == [("eleven", 100.0), ("china", 100.0)]                   # 107 is 6 beats after 101: not an entry; 118 is, but
+    assert got[4] == [("eleven", 200.0)]                                     # the window already has the china's first
+    assert 3 not in got
+    assert SM.entries(None, rows) == {} and SM.entries(canon, [{"n": 1, "beats": [None, None]}]) == {}
+
+
+def test_a_static_window_says_what_enters_and_how_to_weigh_it():
+    rows = _grid(256)
+    rows[1]["flags"], rows[2]["flags"], rows[3]["flags"] = ["static"], ["static", "little new vs w2"], ["little new vs w3"]
+    enters = {2: [("eleven", 100.0), ("china", 100.0), ("lead", 120.0)], 4: [("eleven", 200.0)]}
+    lines = SM.entry_lines("x", rows, enters, lambda b: [b / 2.0])
+    assert lines == [
+        "  w2 static, and these ENTER in it: eleven, china at 0:50; lead at 1:00. How loud against what was already playing: "
+        "presence.py x --windows 100b-116b --preroll 8",
+        "  w3 static: nothing enters in it (the same parts throughout, or parts that never rested two bars)"]
