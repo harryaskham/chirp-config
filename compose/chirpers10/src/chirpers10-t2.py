@@ -257,6 +257,17 @@ LETGO = os.environ.get("C10T2_LETGO", "12;30;3.5;24")
 # the bar the chugs come in ; the guitars' bus there, dB : just before the landing ; the bass's bus at bar 92, dB. "" = v11.
 LOCK = os.environ.get("C10T2_LOCK", "96;-9:-3;-10") if os.environ.get("C10T2_LETGO", "x") else ""
 LOCK_BAR = int(LOCK.split(";")[0]) if LOCK else 96
+# v15: TWO MUSIC BOXES (palette round). When the band lets go, what ticks on through the drift was two clean guitars:
+# Common Time's clean guitar, the same players with the gain off. The song is about two clocks, and its drift is its
+# quiet middle, fifty-three seconds of one riff on two identical instruments sliding apart. Now those two are MUSIC
+# BOXES (the library's `music-box`, which no other track on the album uses): clockwork, a comb of steel tines, left and
+# right, the right one on its own clock as before. They play the riff two octaves above where the guitars ticked it
+# (a music box has no low notes), through the same dripping spring. They are also what is left at the very end, with
+# the two clocks. The clean guitars leave the song.
+# the patch ; semitones above the heavy riff ; gain ; pan ; hall send ; the dripping spring's mix (0 = none). "" = v14.
+BOX = os.environ.get("C10T2_BOX", "music-box;48;-11dB;0.7;-9dB;0.22")
+TICKS = ("ml", "mr") if BOX else ("cl", "cr")
+TICK_UP = int(BOX.split(";")[1]) if BOX else 24
 T = {}
 
 
@@ -487,8 +498,8 @@ def compose():
         edges = [74, 80, 86, 92, 98]
         lvl = lambda b: 0.8 + 0.3 * (b - 74) / 23
         for r, b0, b1 in zip(roots, edges, edges[1:]):
-            for tr in ("cl", "cr"):
-                riff(tr, b0, b1, vel=0.5, up=24 + r, clean=True, ramp=(lvl(b0), lvl(b1 - 1)))
+            for tr in TICKS:
+                riff(tr, b0, b1, vel=0.5, up=TICK_UP + r, clean=True, ramp=(lvl(b0), lvl(b1 - 1)))
             T.setdefault("home", []).append({"at": b0 * 4, "len": (b1 - b0) * 4 + 0.2, "pitch": nm(F1 + r), "vel": 0.55})
             for iv in (12, 19):
                 T.setdefault("air", []).append({"at": b0 * 4, "len": (b1 - b0) * 4 + 0.2, "pitch": nm(F1 + r + iv), "vel": 0.45})
@@ -504,8 +515,8 @@ def compose():
         for i, t in enumerate(range(96 * 16, 98 * 16 - 8, 4)):
             drum("ft", t, 0.4 + 0.05 * i)
     else:
-        for tr in ("cl", "cr"):
-            riff(tr, 74, 98, vel=0.5, up=24, clean=True, ramp=(0.8, 1.1))
+        for tr in TICKS:
+            riff(tr, 74, 98, vel=0.5, up=TICK_UP, clean=True, ramp=(0.8, 1.1))
         pendulum(74, 98)
         for b in range(86, 98):
             drum("k", b * 16, 0.4 + 0.03 * (b - 86))
@@ -551,8 +562,8 @@ def compose():
                     T.setdefault(tr, []).append({"at": b * 4 + 2, "len": 0.5, "pitch": "F4", "vel": kv})
     else:
         pendulum(122, 130)
-    for tr in ("cl", "cr"):
-        riff(tr, 126, 130, vel=0.45, up=24, clean=True, ramp=(1.0, 0.6))
+    for tr in TICKS:
+        riff(tr, 126, 130, vel=0.32 if BOX else 0.45, up=TICK_UP, clean=True, ramp=(1.0, 0.6))     # (the boxes softer at the end: the two clocks are the point there)
     T.setdefault("home", []).append({"at": 126 * 4, "len": 16.0, "pitch": "F1", "vel": 0.5})
 
 
@@ -610,8 +621,11 @@ def song():
            {"name": "gr", "patch": f"{tw[0]}{mic} fx.2.cone={tw[2]}", "gain": f"{tw[3]}dB", "pan": 1, "out": "gtrs", "warp": WARP}] if TWIN else
           [{"name": "gl", "patch": "ct-chug-l" + HEAVY, "gain": "3.3dB", "pan": -1, "out": "gtrs", "fx": cab(12)},
            {"name": "gr", "patch": "ct-chug-r" + HEAVY, "gain": "3.3dB", "pan": 1, "out": "gtrs", "fx": cab(13), "warp": WARP}]),
-        {"name": "cl", "patch": CLEAN, "gain": "1dB", "pan": -0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP]},
-        {"name": "cr", "patch": CLEAN, "gain": "1dB", "pan": 0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP], "warp": WARP},
+        *([{"name": tr, "patch": BOX.split(";")[0], "gain": BOX.split(";")[2], "pan": sgn * float(BOX.split(";")[3]), "sends": {"hall": BOX.split(";")[4]},
+            **({"fx": [{**DRIP, "mix": float(BOX.split(";")[5])}]} if float(BOX.split(";")[5]) else {}), **({"warp": WARP} if tr == "mr" else {})}
+           for tr, sgn in (("ml", -1), ("mr", 1))] if BOX else
+          [{"name": "cl", "patch": CLEAN, "gain": "1dB", "pan": -0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP]},
+           {"name": "cr", "patch": CLEAN, "gain": "1dB", "pan": 0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP], "warp": WARP}]),
         *([{"name": "tc", "patch": "voice-talk", "gain": hd[0], "pan": 0, "fx": talkfx}] if VOICE and HEARD else []),
         *([{"name": tr, "patch": "voice-talk", "gain": hd[1] if HEARD else vo[0], "pan": sgn * float(hd[2] if HEARD else vo[2]),
             "fx": talkfx,
