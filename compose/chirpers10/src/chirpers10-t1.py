@@ -621,6 +621,19 @@ REBUILD = os.environ.get("C10T1_REBUILD", "210:220:-8")
 # came in with the first guitar, waits two bars, so the first lone notes have only the ticks and the heartbeat by them.
 # for the seven wheel's guitar: turns : which of its cell's notes sound ; ... (then the whole cell) | the same for the
 # five wheel's guitar | the spring's mix while the notes come alone. "" = v46.
+# v48: ELEVEN ARRIVES ALONE (section round, 1:44-1:54; the section map called 1:31-2:01 the most static window of the
+# song, though a whole new wheel arrives in the middle of it). Eleven came in as open chords UNDER the five wheel's
+# riff, which went straight on: nothing got out of its way, so the arrival was a thickening. Now, when eleven's first
+# chord lands (1:44), the two guitars of the five wheel REST for five bars. The bass and the kick go on turning five;
+# the wall guitars ring eleven's chords over them, the china striking with each chord (which Harry kept: "Harder, and
+# I still feel the bar"). So for ten seconds you hear the two wheels against each other with nothing else: five in
+# the rhythm section, eleven in the guitars. Then the five wheel's guitars come back where five next meets a bar line
+# (1:54), on a crash, and the section is as it was.
+# For those bars the wall guitars' faders come up (the third field, dB): alone over the rhythm section they stood under
+# the kick and the bass (wl -8.4 by presence, the kick -4.8), and the arrival was 1.9 dB quieter than the riff before it.
+# bars the five wheel's guitars rest when eleven arrives (a multiple of five) ; the crash they come back on ; the wall
+# guitars' lift in those bars, dB. "" = v47.
+ELEVALONE = os.environ.get("C10T1_ELEVALONE", "5;0.85;3")
 ASSEMBLE = os.environ.get("C10T1_ASSEMBLE", "3:0;2:0,2;2:0,1,2;2:0,1,2,4|2:0;2:0,3|0.7")
 LONE = float(os.environ.get("C10T1_LONE", "1.8"))        # how much harder a note alone is struck
 HOLE = os.environ.get("C10T1_HOLE", "293:8:all")        # v44-v45: 293:8 (the kick went on alone)
@@ -708,7 +721,11 @@ def compose():
 
     # 3. 55-70  five meets eleven: the five wheel thickens, and eleven arrives as open chords left to ring
     a, z = B[2], B[3]
-    gtr(G, 5, FIVE_B, a, z, hook=H1)
+    n5 = int(ELEVALONE.split(";")[0]) if ELEVALONE else 0
+    assert n5 % 5 == 0
+    gtr(G, 5, FIVE_B, a + n5, z, hook=H1)                              # v48: eleven arrives alone; five's guitars come back on five's next landing
+    if n5:
+        crash((a + n5) * 16, float(ELEVALONE.split(";")[1]))
     gtr(WL, 11, ELEVEN_W, a, a + 11, vel=0.9)
     gtr(WL, 11, [(0, 8, "P"), (8, 2, "d")], a + 11, z, vel=0.9)       # after eleven lands, each chord is answered by a stab
     bass(5, FIVE_A, a, z, hook=H1)
@@ -1062,6 +1079,9 @@ SPLAY_LIFT = os.environ.get("C10T1_SPLAYLIFT", "1.5")
 if SPLAY and SPLAY.split(";")[3:] == ["1"] and SPLAY_LIFT and SECMIX:
     for _tr in ("wl", "wr"):
         SECTION_FADERS[_tr] = sorted(SECTION_FADERS.get(_tr, []) + [(136, 140, float(SPLAY_LIFT))])
+if ELEVALONE and SECMIX and float(ELEVALONE.split(";")[2]):          # v48: eleven's chords, alone over the rhythm section
+    for _tr in ("wl", "wr"):
+        SECTION_FADERS[_tr] = sorted(SECTION_FADERS.get(_tr, []) + [(55, 55 + int(ELEVALONE.split(";")[0]), float(ELEVALONE.split(";")[2]))])
 # the wall rig's tracks: a dip at 350 Hz. It is the thick rig (4-5 dB more than the tight one at 160-315 Hz), and every section
 # it plays chords in read over the records at 250-500 Hz (riff C with its chords 2.4, the approach 3.2, section 13 1.3)
 WALL_EQ = os.environ.get("C10T1_WALLEQ", "350:1:-2.5") if SECMIX else ""
