@@ -97,6 +97,15 @@ CYM_BUSY = float(os.environ.get("C10T3_CYMBUSY", "-3"))
 # the chant's patch ; its gain ; its hall send ; the gong's patch ; its gain ; its note ; the floor's patch ; its gain.
 # "" = v1 (the drone and the pad).
 TOWER = os.environ.get("C10T3_TOWER", "fof-chant;-15.5dB;-6dB;modal-gong;-13dB;F1;tagelharpa-bass;-21dB")
+# v3: THE SECOND EXTENT STARTS ON THE BASS, AND THE BASS HAS TEETH (palette round). Until now nothing but the drums'
+# pattern told the second extent from the first. Now its bass is two basses: the album's `ct-bass`, which keeps the
+# weight, and over it the library's `bass-fuzz` (a bass string through a FOLDING fuzz; here the fold is the engine's
+# `wavefold`, which the album had not used), high-passed so that only its teeth are added: 1-4 kHz, where ct-bass
+# has little. No other track on the album uses it. And the extent opens on it: for its first eight rows (three bars,
+# until the row and the bar line meet again) the guitars rest and the bass, the kick, the snare and the bell carry
+# the row; then the four guitars come in on the crash.
+# the patch string ; its gain ; its high-pass, Hz ; rows the guitars rest at the start ; its gain in those rows, dB over. "" = v2.
+FUZZ = os.environ.get("C10T3_FUZZ", "bass-fuzz fx.0.shape=wavefold;4dB;180;8;4")
 
 
 def add(tr, s16, len16, pitch, vel, **expr):
@@ -111,18 +120,19 @@ def drum(piece, s16, vel):
     T.setdefault(tr, []).append({"at": round(s16 / 4, 4), "len": 2.0 if piece in ("c", "x") else 0.5 if piece in ("h", "rb", "rd") else 0.25, "pitch": piece, "vel": round(vel, 3)})
 
 
-def row_notes(row, s16, root, kicks="hunt", bell=True):
+def row_notes(row, s16, root, kicks="hunt", bell=True, gtrs=True, teeth=False):
     """One row on the band, six sixteenths from `s16`: the five bells in the row's order, then the tenor. Every note a
     muted chug but the treble, which is open and loud; the kick goes with the treble and the tenor (`all`: with every
     note); a church bell doubles the treble three octaves up."""
     for i, b in enumerate(tuple(row) + (6,)):
         t = s16 + i
-        for tr in G4:
+        for tr in (G4 if gtrs else ()):
             if b == 1:
                 add(tr, t, 1, F1 + root + PITCH[b], 1.0)
             else:
                 add(tr, t, 1, F1 + root + PITCH[b], 0.95 if b == 6 else 0.85, pm=1)
-        add("bass", t, 1, F1 + root + PITCH[b], 0.95 if b in (1, 6) else 0.85)
+        for tr in (("bass", "fuzz") if teeth else ("bass",)):
+            add(tr, t, 1, F1 + root + PITCH[b], 0.95 if b in (1, 6) else 0.85)
         if kicks == "all" or b in (1, 6):
             drum("k", t, 0.95 if b in (1, 6) else 0.62)
         if bell and b == 1:
@@ -209,7 +219,8 @@ def compose():
     fill(PART2)
     # the second extent: Grandsire Doubles, on F, Ab and C
     for k, row in enumerate(EXTENT_2):
-        row_notes(row, PART2 * 16 + k * 6, KEYS_2[k // 40], kicks="all" if k >= 80 else "hunt")
+        row_notes(row, PART2 * 16 + k * 6, KEYS_2[k // 40], kicks="all" if k >= 80 else "hunt",
+                  gtrs=not FUZZ or k >= int(FUZZ.split(";")[3]), teeth=bool(FUZZ))
     for i, kind in enumerate("bac"):
         beat(PART2 + 15 * i, PART2 + 15 * (i + 1), kind)
         fill(PART2 + 15 * (i + 1))
@@ -242,6 +253,10 @@ def song():
         {"name": "gr2", "patch": dbl.format(17), "gain": GD, "pan": 0.75, "out": "gtrs"},
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
         # the kick's fader: down where it plays every sixteenth (the last third of each extent)
+        *([{"name": "fuzz", "patch": FUZZ.split(";")[0], "gain": {"value": FUZZ.split(";")[1], "mod": [{"src": "auto.open", "amount": 1}]}, "pan": 0,
+            "fx": [{"type": "eq", "bands": [f"hp cutoff={FUZZ.split(';')[2]}"]}],
+            "auto": {"open": {"points": [["0b", float(FUZZ.split(";")[4])], [f"{PART2 * 4 + int(FUZZ.split(';')[3]) * 1.5 - 0.5:g}b", float(FUZZ.split(";")[4])],
+                                         [f"{PART2 * 4 + int(FUZZ.split(';')[3]) * 1.5:g}b", 0]], "curve": 0}}}] if FUZZ else []),
         {"name": "kick", "patch": kit, "gain": {"value": "2dB", "mod": [{"src": "auto.all", "amount": 1}]}, "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}],
          "auto": {"all": {"points": [["0b", 0]] + [pt for b0 in (PART1 + 30, PART2 + 30) for pt in ([f"{b0 * 4 - 0.5}b", 0], [f"{b0 * 4}b", KICK_ALL], [f"{(b0 + 15) * 4 - 0.5}b", KICK_ALL], [f"{(b0 + 15) * 4}b", 0])], "curve": 0}}},
         {"name": "snare", "patch": kit, "gain": "3.5dB", "out": "drums", "sends": {"oh": "-1.5dB", "snr": "-10dB"},

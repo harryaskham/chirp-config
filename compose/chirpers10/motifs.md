@@ -177,3 +177,5 @@ Rounds is the bells in order: Eb C B Ab Gb F, the album's hook notes running dow
 v1 is the skeleton: the whole shape standing, bare. No voice yet.
 
 **The tower (v2).** Where the bells ring alone (0:00, 2:17, the end) they ring over a chant: two low men's voices a fifth apart, F and C, the mouth moving slowly between "o" and "u", with a bowed horsehair drone on the low F as their floor. A gong is struck twice: when the first extent comes round (2:17) and on the last chord (4:52). The bowed bass and the synth pad the album's other two songs use have left this one.
+
+**The second extent starts on the bass (v3).** For its first eight rows (bars 63-66, until the row and the bar line meet again) the guitars rest: the bass, the kick, the snare and the bell carry the row, and the four guitars come in on the crash. All through the second extent the bass is two basses: the one it had for the weight, and over it a bass through a folding fuzz for the teeth.
