@@ -181,3 +181,24 @@ v1 is the skeleton: the whole shape standing, bare. No voice yet.
 **The second extent starts on the bass (v3).** For its first eight rows (bars 63-66, until the row and the bar line meet again) the guitars rest: the bass, the kick, the snare and the bell carry the row, and the four guitars come in on the crash. All through the second extent the bass is two basses: the one it had for the weight, and over it a bass through a folding fuzz for the teeth.
 
 **The climb (v4).** Over the last third of the second extent (bars 93-108, on C) a lead guitar plays the row's own notes the other way and slowly: from the ground up, C5 Db5 Eb5 Gb5 G5 Bb5, two bars to a note, then the octave C6 held for the last three bars. The band's row falls sixteen notes a bar; the lead climbs once and reaches the top as the extent comes round and the band lands on F. The song's first lead. For the last four bars the snare is on every beat.
+
+**The row becomes a riff (v5).** The bells have weights, and keep them wherever they stand in the row. The treble is LONG (open, ringing: two sixteenths in the first extent, three in the second); the tenor is REPEATED (two muted chugs, then three: a gallop); the four between are single muted sixteenths.
+
+| extent | a row | rounds as played | against the bar |
+|---|---|---|---|
+| first (Plain Bob) | 8 sixteenths | Eb- C B Ab Gb F F | half a bar: every row starts on a beat, and the long note walks through the sixteenths between |
+| second (Grandsire) | 10 sixteenths | Eb-- C B Ab Gb F F F | turns against it: the row and the bar line meet every fifth bar |
+
+The ringers' rule is untouched: the same 240 rows in the same order. 120 bpm (it was 96), so a row takes about the time it took. The landing is rung as the band first rang rounds (the first extent's row, on F).
+
+**The form since v5** (bars, 0-indexed; 2 s a bar; the table above is v1-v4's):
+
+| bars | time | what |
+|---|---|---|
+| 0-4 | 0:00 | the bells alone ring rounds over the chant |
+| 4-8 | 0:08 | the band's rounds, eight times |
+| 8-68 | 0:16 | the first extent: on F, on Ab (0:56), on B (1:36) |
+| 68-76 | 2:16 | it has come round: the chord, the gong, the bells over the chant |
+| 76-151 | 2:32 | the second extent: the bass alone for five bars, the guitars at 2:42; on Ab (3:22), on C (4:12); the lead climbs from 4:18 |
+| 151-159 | 5:02 | the landing: rounds on F, sixteen times, the bells over the band |
+| 159-162 | 5:18 | one chord, the gong; the tenor tolls three times |

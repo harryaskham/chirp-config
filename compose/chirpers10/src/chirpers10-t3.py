@@ -24,6 +24,7 @@ v1 is the SKELETON (Harry, 14 Nov: "answered clips. unlock a third track slot!";
 standing, bare.
 """
 import json
+import math
 import os
 
 OUT = os.environ.get("C10T3_OUT", os.path.join(os.path.dirname(__file__), "..", "..", "..", "songs", "chirpers10-t3.yaml"))
@@ -76,8 +77,44 @@ def ring(method, calls):
 EXTENT_1 = ring(PLAIN_BOB, "pppb" * 3)
 EXTENT_2 = ring(GRANDSIRE, "pbpbps" * 2)
 
+# v5: THE ROW BECOMES A RIFF (whole song). Through v4 the row was six even sixteenths: a run. A riff has weight: long
+# notes, repeated notes, an accent that means something. Now the bells have WEIGHTS, and they keep them wherever they
+# stand in the row:
+#   the treble (the highest note) is LONG: open, ringing, two sixteenths in the first extent and three in the second;
+#   the tenor (the low F, always last) is REPEATED: two muted chugs in the first extent, three in the second (a gallop);
+#   the four bells between are single muted sixteenths, as they were.
+# So in the first extent a row is eight sixteenths, half a bar: every row starts on a beat, the tenor's two chugs
+# close each half bar, and the long note walks through the sixteenths between as the treble hunts: an accent that
+# slides later and later against a beat that does not move. In the second extent a row is ten sixteenths: heavier,
+# and it turns against the bar again (the row and the bar line meet every fifth bar). The ringers' rule is untouched:
+# the same 240 rows, in the same order. The song is faster (120 for 96) so that a row takes about the time it took.
+# treble , tenor weight in the first extent ; in the second ; the tempo ; rows of rounds before the first extent ; rows
+# of rounds at the landing. "" = v4 (six even sixteenths, 96).
+RHYTHM = os.environ.get("C10T3_RHYTHM", "2,2;3,3;120;8;16")
+if RHYTHM:
+    W1, W2 = (tuple(int(x) for x in part.split(",")) for part in RHYTHM.split(";")[:2])
+    BPM, ROUNDS_N, LAND_N = (int(x) for x in RHYTHM.split(";")[2:5])
+else:
+    W1, W2, ROUNDS_N, LAND_N = (1, 1), (1, 1), 16, 24
+L1, L2 = 4 + sum(W1), 4 + sum(W2)                  # a row's length in each extent, sixteenths
+assert (40 * L1) % 16 == 0 and (40 * L2) % 16 == 0 and (ROUNDS_N * L1) % 16 == 0 and (LAND_N * L1) % 16 == 0
+T1, T2 = 40 * L1 // 16, 40 * L2 // 16              # bars in a third of each extent (forty rows)
 # ---------------------------------------------------------------------------------------------------- the form (bars)
-INTRO, BAND, PART1, MIDDLE, PART2, LAND, END, NB = 0, 4, 10, 55, 63, 108, 117, 120
+INTRO, BAND = 0, 4
+PART1 = BAND + ROUNDS_N * L1 // 16
+MIDDLE = PART1 + 3 * T1
+PART2 = MIDDLE + 8
+LAND = PART2 + 3 * T2
+END = LAND + LAND_N * L1 // 16         # the landing is rung as the band first rang rounds: the first extent's row
+NB = END + 3
+
+
+def meet(length):
+    """Bars between meetings of the row and the bar line (a crash there); every fourth bar where they always meet."""
+    c = math.lcm(length, 16) // 16
+    return c if c > 1 else 4
+
+
 KEYS_1 = (0, 3, 6)        # the ground of each third of the first extent: F, Ab, B
 KEYS_2 = (0, 3, 7)        # and of the second: F, Ab, C (so the landing on F is a fall of a fifth)
 G4 = ("gl", "gr", "gl2", "gr2")
@@ -116,7 +153,12 @@ FUZZ = os.environ.get("C10T3_FUZZ", "bass-fuzz fx.0.shape=wavefold;4dB;180;8;4")
 # The four guitars' bus comes down a little under the lead, so the climb is not louder than the landing it leads to.
 # the patch ; its gain ; its lowest note (MIDI) ; bars to a note ; the snare's velocity on the added beats ; the
 # guitars' bus under the lead, dB. "" = v3.
-CLIMB = os.environ.get("C10T3_CLIMB", "lead-monster;-12dB;72;2;0.85;-1.5")
+CLIMB = os.environ.get("C10T3_CLIMB", "lead-monster;-12dB;72;%s;0.85;-1.5" % ("3" if RHYTHM else "2"))
+if CLIMB:                # the bar the lead starts: it leaves room for six notes and the octave (held four bars at most since v5)
+    _per = float(CLIMB.split(";")[3])
+    _top = min(4, T2 - 6 * _per) if RHYTHM else T2 - 6 * _per
+    CLIMB_B0 = PART2 + 2 * T2 + (T2 - 6 * _per - _top)
+    CLIMB_B0 = int(CLIMB_B0) if CLIMB_B0 == int(CLIMB_B0) else CLIMB_B0
 
 
 def add(tr, s16, len16, pitch, vel, **expr):
@@ -131,23 +173,31 @@ def drum(piece, s16, vel):
     T.setdefault(tr, []).append({"at": round(s16 / 4, 4), "len": 2.0 if piece in ("c", "x") else 0.5 if piece in ("h", "rb", "rd") else 0.25, "pitch": piece, "vel": round(vel, 3)})
 
 
-def row_notes(row, s16, root, kicks="hunt", bell=True, gtrs=True, teeth=False):
-    """One row on the band, six sixteenths from `s16`: the five bells in the row's order, then the tenor. Every note a
-    muted chug but the treble, which is open and loud; the kick goes with the treble and the tenor (`all`: with every
-    note); a church bell doubles the treble three octaves up."""
-    for i, b in enumerate(tuple(row) + (6,)):
-        t = s16 + i
-        for tr in (G4 if gtrs else ()):
-            if b == 1:
-                add(tr, t, 1, F1 + root + PITCH[b], 1.0)
-            else:
-                add(tr, t, 1, F1 + root + PITCH[b], 0.95 if b == 6 else 0.85, pm=1)
-        for tr in (("bass", "fuzz") if teeth else ("bass",)):
-            add(tr, t, 1, F1 + root + PITCH[b], 0.95 if b in (1, 6) else 0.85)
-        if kicks == "all" or b in (1, 6):
-            drum("k", t, 0.95 if b in (1, 6) else 0.62)
+def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teeth=False):
+    """One row on the band from `s16`: the five bells in the row's order, then the tenor. The treble is open and loud
+    and w[0] sixteenths long; the tenor is w[1] muted chugs; every other bell one muted sixteenth. The kick goes with
+    the treble and each of the tenor's chugs (`all`: on every sixteenth); a church bell doubles the treble three
+    octaves up."""
+    t = s16
+    for b in tuple(row) + (6,):
+        n = w[0] if b == 1 else w[1] if b == 6 else 1
+        for j in range(n if b == 6 else 1):                 # the tenor's chugs; any other bell is one note
+            v = 1.0 if b == 1 else (0.95 if j == 0 else 0.9) if b == 6 else 0.85
+            for tr in (G4 if gtrs else ()):
+                if b == 1:
+                    add(tr, t, n, F1 + root + PITCH[b], v)
+                else:
+                    add(tr, t + j, 1, F1 + root + PITCH[b], v, pm=1)
+            for tr in (("bass", "fuzz") if teeth else ("bass",)):
+                add(tr, t + j, n if b == 1 else 1, F1 + root + PITCH[b], (0.95 if j == 0 else 0.9) if b in (1, 6) else 0.85)
+        for j in range(n):
+            if b in (1, 6) and (j == 0 or b == 6):
+                drum("k", t + j, 0.95 if j == 0 else 0.9)
+            elif kicks == "all":
+                drum("k", t + j, 0.62)
         if bell and b == 1:
             T.setdefault("bell", []).append({"at": round(t / 4, 4), "len": 1.5, "pitch": nm(F1 + root + PITCH[1] + 36), "vel": 0.6})
+        t += n
 
 
 def slow_rounds(b0, rows, root=0, vel=0.8):
@@ -168,7 +218,7 @@ def gong(at, vel):
     T.setdefault("gong", []).append({"at": at, "len": 12.0, "pitch": TOWER.split(";")[5], "vel": vel})
 
 
-def beat(b0, b1, kind):
+def beat(b0, b1, kind, per=3):
     """The kit over a stretch (the kick is written with the rows). a: half time, the snare on three, china on the
     quarters. b: the backbeat, the hat in eighths. c: the backbeat, china in eighths."""
     for b in range(b0, b1):
@@ -180,7 +230,7 @@ def beat(b0, b1, kind):
         else:
             for p in range(0, 16, 4 if kind == "a" else 2):
                 drum("x", b * 16 + p, (0.6 if p == 0 else 0.5) if kind == "a" else (0.52 if p % 4 == 0 else 0.42))
-        if (b - b0) % 3 == 0:                # where the row and the bar line meet
+        if (b - b0) % per == 0:              # where the row and the bar line meet
             drum("c", b * 16, 0.9 if b == b0 else 0.7)
 
 
@@ -207,16 +257,16 @@ def compose():
     else:
         T.setdefault("home", []).append({"at": 0, "len": 15.5, "pitch": "F1", "vel": 0.5})
     # the band takes the row up at twice the speed: rounds, sixteen times, the row turning against the bar
-    for r in range(16):
-        row_notes(ROUNDS, BAND * 16 + r * 6, 0)
-    beat(BAND, PART1, "a")
+    for r in range(ROUNDS_N):
+        row_notes(ROUNDS, BAND * 16 + r * L1, 0, W1)
+    beat(BAND, PART1, "a", meet(L1))
     fill(PART1)
-    # the first extent: Plain Bob Doubles. Forty rows (fifteen bars) on F, forty on Ab, forty on B
+    # the first extent: Plain Bob Doubles. Forty rows on F, forty on Ab, forty on B
     for k, row in enumerate(EXTENT_1):
-        row_notes(row, PART1 * 16 + k * 6, KEYS_1[k // 40], kicks="all" if k >= 80 else "hunt")
+        row_notes(row, PART1 * 16 + k * L1, KEYS_1[k // 40], W1, kicks="all" if k >= 80 else "hunt")
     for i, kind in enumerate("abc"):
-        beat(PART1 + 15 * i, PART1 + 15 * (i + 1), kind)
-        fill(PART1 + 15 * (i + 1))
+        beat(PART1 + T1 * i, PART1 + T1 * (i + 1), kind, meet(L1))
+        fill(PART1 + T1 * (i + 1))
     # it has come round. One chord, and the bells alone again: rounds, slowly, over a drone and a pad
     hit(MIDDLE, 6)
     slow_rounds(MIDDLE + 1, 9)
@@ -230,14 +280,14 @@ def compose():
     fill(PART2)
     # the second extent: Grandsire Doubles, on F, Ab and C
     for k, row in enumerate(EXTENT_2):
-        row_notes(row, PART2 * 16 + k * 6, KEYS_2[k // 40], kicks="all" if k >= 80 else "hunt",
+        row_notes(row, PART2 * 16 + k * L2, KEYS_2[k // 40], W2, kicks="all" if k >= 80 else "hunt",
                   gtrs=not FUZZ or k >= int(FUZZ.split(";")[3]), teeth=bool(FUZZ))
     for i, kind in enumerate("bac"):
-        beat(PART2 + 15 * i, PART2 + 15 * (i + 1), kind)
-        fill(PART2 + 15 * (i + 1))
+        beat(PART2 + T2 * i, PART2 + T2 * (i + 1), kind, meet(L2))
+        fill(PART2 + T2 * (i + 1))
     if CLIMB:                            # v4: the lead climbs the row, slowly, over the last third; the snare on every beat at the end
         base, per, sv = int(CLIMB.split(";")[2]), float(CLIMB.split(";")[3]), float(CLIMB.split(";")[4])
-        b0 = PART2 + 30
+        b0 = CLIMB_B0
         for i, iv in enumerate(sorted(PITCH.values())):
             T.setdefault("lead", []).append({"at": (b0 + i * per) * 4, "len": round(per * 4 - 0.06, 4), "pitch": nm(base + iv), "vel": 0.85})
         top = b0 + 6 * per
@@ -246,10 +296,10 @@ def compose():
             for q in (0, 8):
                 drum("s", b * 16 + q, sv)
     # the landing: rounds on F, twenty-four times, and the bells ring rounds over the band at half its speed
-    for r in range(24):
-        row_notes(ROUNDS, LAND * 16 + r * 6, 0, bell=False)
-    beat(LAND, END, "c")
-    slow_rounds(LAND, 12, vel=0.9)
+    for r in range(LAND_N):
+        row_notes(ROUNDS, LAND * 16 + r * L1, 0, W1, bell=False)
+    beat(LAND, END, "c", meet(L1))
+    slow_rounds(LAND, int((END - LAND) * 4 / 3) if RHYTHM else 12, vel=0.9)
     # the end: one chord, and the tenor tolls
     hit(END, 10)
     if TOWER:
@@ -276,16 +326,16 @@ def song():
         # the kick's fader: down where it plays every sixteenth (the last third of each extent)
         *([{"name": "fuzz", "patch": FUZZ.split(";")[0], "gain": {"value": FUZZ.split(";")[1], "mod": [{"src": "auto.open", "amount": 1}]}, "pan": 0,
             "fx": [{"type": "eq", "bands": [f"hp cutoff={FUZZ.split(';')[2]}"]}],
-            "auto": {"open": {"points": [["0b", float(FUZZ.split(";")[4])], [f"{PART2 * 4 + int(FUZZ.split(';')[3]) * 1.5 - 0.5:g}b", float(FUZZ.split(";")[4])],
-                                         [f"{PART2 * 4 + int(FUZZ.split(';')[3]) * 1.5:g}b", 0]], "curve": 0}}}] if FUZZ else []),
+            "auto": {"open": {"points": [["0b", float(FUZZ.split(";")[4])], [f"{PART2 * 4 + int(FUZZ.split(';')[3]) * L2 / 4 - 0.5:g}b", float(FUZZ.split(";")[4])],
+                                         [f"{PART2 * 4 + int(FUZZ.split(';')[3]) * L2 / 4:g}b", 0]], "curve": 0}}}] if FUZZ else []),
         {"name": "kick", "patch": kit, "gain": {"value": "2dB", "mod": [{"src": "auto.all", "amount": 1}]}, "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}],
-         "auto": {"all": {"points": [["0b", 0]] + [pt for b0 in (PART1 + 30, PART2 + 30) for pt in ([f"{b0 * 4 - 0.5}b", 0], [f"{b0 * 4}b", KICK_ALL], [f"{(b0 + 15) * 4 - 0.5}b", KICK_ALL], [f"{(b0 + 15) * 4}b", 0])], "curve": 0}}},
+         "auto": {"all": {"points": [["0b", 0]] + [pt for b0, n in ((PART1 + 2 * T1, T1), (PART2 + 2 * T2, T2)) for pt in ([f"{b0 * 4 - 0.5}b", 0], [f"{b0 * 4}b", KICK_ALL], [f"{(b0 + n) * 4 - 0.5}b", KICK_ALL], [f"{(b0 + n) * 4}b", 0])], "curve": 0}}},
         {"name": "snare", "patch": kit, "gain": "3.5dB", "out": "drums", "sends": {"oh": "-1.5dB", "snr": "-10dB"},
          "fx": [{"type": "eq", "bands": ["highshelf cutoff=7000 gain=-3dB"]}]},
         {"name": "toms", "patch": kit, "gain": "4dB", "out": "drums", "sends": {"oh": "-1.5dB"}},
         # the cymbals' fader: down where the china plays eighths (the last third of each extent, and the landing)
         {"name": "cym", "patch": kit, "gain": {"value": "-4.5dB", "mod": [{"src": "auto.busy", "amount": 1}]}, "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air,
-         "auto": {"busy": {"points": [["0b", 0]] + [pt for b0, b1 in ((PART1 + 30, PART1 + 45), (PART2 + 30, END)) for pt in ([f"{b0 * 4 - 0.5}b", 0], [f"{b0 * 4}b", CYM_BUSY], [f"{b1 * 4 - 0.5}b", CYM_BUSY], [f"{b1 * 4}b", 0])], "curve": 0}}},
+         "auto": {"busy": {"points": [["0b", 0]] + [pt for b0, b1 in ((PART1 + 2 * T1, PART1 + 3 * T1), (PART2 + 2 * T2, END)) for pt in ([f"{b0 * 4 - 0.5}b", 0], [f"{b0 * 4}b", CYM_BUSY], [f"{b1 * 4 - 0.5}b", CYM_BUSY], [f"{b1 * 4}b", 0])], "curve": 0}}},
         {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
         *([{"name": "lead", "patch": CLIMB.split(";")[0], "gain": CLIMB.split(";")[1], "pan": 0, "sends": {"hall": "-12dB"}}] if CLIMB else []),
         # the bells' fader: down in the landing, where twelve slow rows of six ring into one another over the full band
@@ -303,7 +353,9 @@ def song():
         "about": ("chirpers X (Common Time), track 3 by chirper-zero: \"Plain Hunt\". One row of six sixteenths (Eb C B Ab Gb and a low F "
                   "that always comes last) rung in every order by the bell-ringers' rule that a note may only swap places with its "
                   "neighbour: two extents, 240 rows, none repeated within either, each coming back to the scale it began on. The "
-                  "highest note walks through the row and back all piece long, with the kick and a church bell on it. v1 is the skeleton."),
+                  "highest note walks through the row and back all piece long, with the kick and a church bell on it. "
+                  + ("Since v5 the highest note is long and the low F repeated, so the row is a riff: eight sixteenths in the first "
+                     "extent, ten in the second." if RHYTHM else "v1 is the skeleton.")),
         "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}}},
         "buses": {
@@ -316,13 +368,13 @@ def song():
             "snr": {"fx": [{"type": "eq", "bands": ["peak cutoff=300 q=0.7 gain=-12dB"]}]},
             "gtrs": {"fx": ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.under", "amount": 1}]}}] if CLIMB else [])
                            + [{"type": "eq", "bands": ["peak cutoff=330 q=1.2 gain=-2dB"]}, "reverb kind=room decay=0.35s mix=0.06 predelay=6ms"],
-                     **({"auto": {"under": {"points": [["0b", 0], [f"{(PART2 + 30) * 4 - 0.5}b", 0], [f"{(PART2 + 30) * 4}b", float(CLIMB.split(";")[5])],
+                     **({"auto": {"under": {"points": [["0b", 0], [f"{CLIMB_B0 * 4 - 0.5}b", 0], [f"{CLIMB_B0 * 4}b", float(CLIMB.split(";")[5])],
                                                        [f"{LAND * 4 - 0.5}b", float(CLIMB.split(";")[5])], [f"{LAND * 4}b", 0]], "curve": 0}}} if CLIMB else {})},
             "low": {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
                            {"type": "eq", "bands": ["peak cutoff=170 q=1.2 gain=-3dB"]}]},
         },
-        "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": os.environ.get("C10T3_MASTER", "3.1dB")}]},
+        "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": os.environ.get("C10T3_MASTER", "2.7dB" if RHYTHM else "3.1dB")}]},
         "tracks": tracks,
     }
 
