@@ -96,6 +96,34 @@ TWIN = os.environ.get("C10T2_TWIN", "ct-twin:4:5:3.2;room:0.35s:0.06;0.5")
 # takes it back; and a 13 kHz low-pass on the hat cost the top it had just gained (8-16 kHz -0.1 -> -0.8).
 # the root's semitones above F ; the ghost's velocity ; the china's velocity [; the bass's dB there ; the hat's low-pass Hz]. "" = v3.
 EIGHTH = os.environ.get("C10T2_EIGHTH", "3;0.45;0.5")
+# v5: TWO VOICES (whole-song round). The piece had no voice and no tune: a riff and its canon. It gets the same idea in
+# speech: two voices, left and right, twins like the guitars, saying the same four lines, a syllable to each attack of
+# the riff. The right voice is on the right guitar's clock (the same `warp`), so nothing is placed by hand:
+#   in step (0:36)            the four lines SPOKEN (voice-talk), the two voices together: one voice
+#   a quarter apart (2:13)    the four lines again, spoken, the right voice a beat ahead: each syllable said twice
+#   against (3:46)            the last line only, BARKED (Common Time's bark), over and over: half a bar apart the two
+#                             voices' syllables interlock as the guitars' notes do, sixteen to the bar, alternating sides
+#   I cannot hear you through the wall / only the floor between us moves / whatever way you lean I lean /
+#   against you until we agree
+# (two clocks on one beam, from the inside; Huygens is not named.) Spoken first, because a recogniser reads the spoken
+# voice 18 words of 24 on this rhythm and the bark 14: the words are learnt spoken, then barked.
+# the talk's gain ; the bark's gain ; pan ; the bark's hall send ; dB the guitars' bus ducks under the talk. "" = v4.
+VOICE = os.environ.get("C10T2_VOICE", "-6dB;3dB;0.5;-18dB;2")
+# The spoken voice's eq. A clean male voice has a body the records' harsh voices do not (110 Hz and its harmonics up to
+# the first formant): with Common Time's eq (hp 120, 300 Hz -6) the voiced holds read 7 dB over the records' voiced
+# passages at 250-500 Hz; a high-pass alone (220, 450, 650 Hz) left 3 to 5 and cost words; this notch leaves 2 to 3
+# and the recogniser reads as many words as before (18 of 24).
+TALKEQ = os.environ.get("C10T2_TALKEQ", "hp cutoff=300|peak cutoff=400 q=1 gain=-12dB")
+VOICE_LINES = [      # syllables (ARPAbet, from `chirp tts --print`); "up" = the line starts on the sixteenth before the bar line
+    ("AY1|K AE1|N AA0 T|HH IY1 R|Y UW1|TH R UW1|DH AH0|W AO1 L", "up"),
+    ("OW1 N|L IY0|DH AH0|F L AO1 R|B IH0|T W IY1 N|AH1 S|M UW1 V Z", os.environ.get("C10T2_L2", "down")),
+    ("W AH2|T EH1|V ER0|W EY1|Y UW1|L IY1 N|AY1|L IY1 N", "up"),
+    ("AH0|G EH1 N S T|Y UW1|AH0 N|T IH1 L|W IY1|AH0|G R IY1", "up"),
+]
+# v5 also: THE KIT'S TOP FALLS AS THE RECORDS' DOES (chirp-eco's reading by thirds: level with the records to 11.6 kHz,
+# then ours stayed flat where theirs fall: +1.6 dB at 11.6-13.7 kHz, +4.7 at 13.7-16, +7.4 at 16-20; every piece of the
+# kit carried it). A low-pass on the drums' bus and the overheads': Hz ; q. "" = v4.
+DTOP = os.environ.get("C10T2_DTOP", "14500;0.7")
 T = {}
 
 
@@ -138,6 +166,19 @@ def bass(b0, b1, lead=0, vel=0.9, root=0, union=False):
                 q = (p - lead) % 16
                 if q not in seen and (kind == "c" or union):
                     add("bass", b * 16 + q, 1, root + (F1 if kind in "co" else HOOK[int(kind[1])]), vel * 0.85)
+
+
+def say(line, bar, kind="talk", ring=True):
+    """One line on both voices of a kind (spoken `tl`/`tr`, barked `vl`/`vr`): a syllable to each attack of the riff,
+    none longer than two sixteenths and a bit (short syllables read better, and take turns better)."""
+    phs, how = VOICE_LINES[line]
+    pos = ATTACKS if how == "down" else [-1] + ATTACKS[:-1]
+    for i, ph in enumerate(phs.split("|")):
+        ln = (pos[i + 1] - pos[i]) if i < 7 else (6 if ring else (1 if how == "down" else 2))
+        ln = min(ln, 2.2) if not (i == 7 and ring) else ln
+        pitch = nm(65) if kind == "bark" else ("m41.5" if i == 7 else "m45.5")       # the talk falls at the end of a line
+        for tr in (("vl", "vr") if kind == "bark" else ("tl", "tr")):
+            T.setdefault(tr, []).append({"at": round((bar * 16 + pos[i]) / 4, 4), "len": round(ln * 0.9 / 4, 4), "pitch": pitch, "vel": 0.9, "ph": ph})
 
 
 def drum(piece, s16, vel):
@@ -270,6 +311,16 @@ def compose():
     groove(98, 122, 8, snare=(4, 12), cym="x")
     for b in range(102, 122, 4):
         drum("c", b * 16, 0.85)
+    if VOICE:
+        for i in range(4):                       # in step: the four lines, together
+            say(i, 16 + 2 * i)
+        for i in range(4):                       # a quarter apart: the four lines, each syllable said twice a beat apart
+            say(i, 60 + 2 * i)
+        say(2, 68)
+        say(3, 70)
+        for b0 in (102, 110, 118):               # against: the last line, four times round, the two voices interlocked
+            for k in range(4):
+                say(3, b0 + k, "bark", ring=(k == 3))
     # two clocks: the guitars alone, still against each other; then only the ticks
     riff("gl", 122, 126, vel=0.85)
     riff("gr", 122, 126, vel=0.85)
@@ -311,6 +362,8 @@ def song():
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     b = lambda bar: f"{bar * 4}b"
     eb, hlp = ([float(x) for x in EIGHTH.split(";")[3:5]] if EIGHTH and len(EIGHTH.split(";")) > 4 else (0, 0))
+    vo = VOICE.split(";") if VOICE else None
+    dtop = [f"lp cutoff={DTOP.split(';')[0]} q={DTOP.split(';')[1]}"] if DTOP else []
     tw = TWIN.split(";")[0].split(":") if TWIN else None
     beam = TWIN.split(";")[1].split(":") if TWIN else None
     spec = [
@@ -320,6 +373,12 @@ def song():
            {"name": "gr", "patch": "ct-chug-r" + HEAVY, "gain": "3.3dB", "pan": 1, "out": "gtrs", "fx": cab(13), "warp": WARP}]),
         {"name": "cl", "patch": CLEAN, "gain": "1dB", "pan": -0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP]},
         {"name": "cr", "patch": CLEAN, "gain": "1dB", "pan": 0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP], "warp": WARP},
+        *([{"name": tr, "patch": "voice-talk", "gain": vo[0], "pan": sgn * float(vo[2]),
+            "fx": [{"type": "eq", "bands": TALKEQ.split("|")}],
+            **({"warp": WARP} if tr == "tr" else {})} for tr, sgn in (("tl", -1), ("tr", 1))] if VOICE else []),
+        *([{"name": tr, "patch": "kidman synth.layers.0.diction=2 synth.layers.0.speech=1", "gain": vo[1], "pan": sgn * float(vo[2]), "sends": {"hall": vo[3]},
+            "fx": [{"type": "eq", "bands": ["hp cutoff=440", "peak cutoff=1400 q=0.8 gain=4.5dB", "peak cutoff=5500 q=1.2 gain=-4dB", "highshelf cutoff=7000 gain=-6dB"] + dtop}],      # the bark's hiss falls with the kit's top
+            **({"warp": WARP} if tr == "vr" else {})} for tr, sgn in (("vl", -1), ("vr", 1))] if VOICE else []),
         {"name": "bass", "patch": "ct-bass", "gain": {"value": "0.5dB", "mod": [{"src": "auto.hold", "amount": 1}]} if EIGHTH and eb else "0.5dB", "pan": 0, "out": "low",
          **({"auto": {"hold": {"points": [["0b", 0], [b(35.9), 0], [b(36), eb], [b(48), eb], [b(48.1), 0]], "curve": 0}}} if EIGHTH and eb else {})},
         {"name": "kick", "patch": kit, "gain": "2dB", "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]},
@@ -354,9 +413,10 @@ def song():
             "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
                              {"type": "glue", "threshold": "-24dB", "ratio": 2.5, "attack": "20ms", "release": "140ms", "knee": 6.0},
                              "clip drive=0dB ceiling=-13dB",
-                             {"type": "eq", "bands": ["peak cutoff=400 q=0.8 gain=-6dB", "peak cutoff=5500 q=0.9 gain=1dB", "highshelf cutoff=9000 gain=-2dB"]}]},
-            "oh": {"fx": ["reverb kind=room decay=0.7s mix=1 predelay=4ms low_cut=5000 high_cut=12000 spread=0.6"]},
-            "gtrs": {"fx": [{"type": "gain", "gain": "0dB"}] + ([f"reverb kind={beam[0]} decay={beam[1]} mix={beam[2]} predelay=6ms"] if TWIN else [])},
+                             {"type": "eq", "bands": ["peak cutoff=400 q=0.8 gain=-6dB", "peak cutoff=5500 q=0.9 gain=1dB", "highshelf cutoff=9000 gain=-2dB"] + dtop}]},
+            "oh": {"fx": ["reverb kind=room decay=0.7s mix=1 predelay=4ms low_cut=5000 high_cut=12000 spread=0.6"] + ([{"type": "eq", "bands": dtop}] if DTOP else [])},
+            "gtrs": {"fx": [{"type": "gain", "gain": "0dB"}] + ([f"reverb kind={beam[0]} decay={beam[1]} mix={beam[2]} predelay=6ms"] if TWIN else [])
+                     + ([{"type": "duck", "by": "tl", "depth": f"-{vo[4]}dB", "attack": "20ms", "release": "250ms"}] if VOICE and float(vo[4]) else [])},
             "low": {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
                            {"type": "eq", "bands": ["peak cutoff=170 q=1.2 gain=-3dB"]}]},
