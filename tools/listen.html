@@ -243,7 +243,7 @@ async function qSave(id,choice){const card=$("#q-"+id),x=D.questions.find(q=>q.i
  card.classList.add("ans");card.querySelectorAll(".qa .chip").forEach(e=>e.classList.toggle("on",e.dataset.c===c));
  card.querySelector(".qst").innerHTML=qStatus(x);qProgress();toast("saved");}
 function qDraw(){const ts=[...new Set(qLive().map(x=>x.n))].sort((a,b)=>a-b);
- $("#qft").innerHTML=ts.length>1?`<span class="chip${qf.n===0?" on":""}" data-n=0>both songs</span>`+ts.map(n=>`<span class="chip${qf.n===n?" on":""}" data-n="${n}"><span class=dot style="background:${col(n)}"></span>${esc(trackOf(n).title||"the album")}</span>`).join(""):"";
+ $("#qft").innerHTML=ts.length>1?`<span class="chip${qf.n===0?" on":""}" data-n=0>${ts.length>2?"all songs":"both songs"}</span>`+ts.map(n=>`<span class="chip${qf.n===n?" on":""}" data-n="${n}"><span class=dot style="background:${col(n)}"></span>${esc(trackOf(n).title||"the album")}</span>`).join(""):"";
  $$("#qft .chip").forEach(c=>c.onclick=()=>{qf.n=+c.dataset.n;qDraw();});
  $$("#qff .chip").forEach(c=>{c.classList.toggle("on",c.dataset.f===qf.state);c.onclick=()=>{qf.state=c.dataset.f;qDraw();};});
  const xs=qLive().filter(x=>(!qf.n||x.n===qf.n)&&(qf.state==="all"||(qf.state==="open")===!myAns(x))).sort((a,b)=>(a.n-b.n)||(a.t??1e9)-(b.t??1e9)||String(a.at).localeCompare(String(b.at)));
