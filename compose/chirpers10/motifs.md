@@ -79,3 +79,27 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 **Voices (v11; Harry, 12 Nov: "try different options in different parts").** Three kinds so far, each in one place. A WHISPER in the opening, half a bar before each new part comes in: "wait", "wait", "not yet". THREE SOFT SINGERS in the eye, in unison with the lead on the tune's second pass. A BARK over the hardest stretch (8:53): one note to a syllable, on F (Gb where the ground rises), in the bar's own time - eighth-notes from the first beat of every second bar - while the band turns the seven wheel under it, so the voice is the one part in common time. Its lines: Wait. / Not yet. / Each one keeps its own count. / None of them wrong. / Wait. / Not yet. / They do not know each other. / Somewhere ahead / one hour / holds them all. / Keep count. (three times).
 
 **Fills.** Six kinds: a run down the toms (8 or 16 sixteenths), a snare crescendo, the five cell on the toms, thirty-second-note kicks under two snares, and a stop (silence with one choked stab). Ghost notes on the snare in the breaks, the split and the swap (since v6 the same snare struck softly, 7-10 dB under the backbeat after the drums bus; before, the old kit's ghost piece). In the hardest stretch's last seven bars the snare goes to the off-beats.
+
+## t2 Odd Sympathy (chirper-zero)
+
+**The idea.** The other way round from Common Time. There: one pulse, three cells of different lengths turning under it. Here: ONE cell, one bar long, and two clocks. The left guitar keeps the song's clock; the right guitar plays the same riff on a clock that runs a hair fast, slips ahead a sixteenth at a time, and holds at each distance. After Huygens's two pendulum clocks on one beam (1665), which however he started them ended swinging exactly against each other: "an odd kind of sympathy".
+
+**The pulse.** 108 bpm, 4/4. A pendulum (ride bell on beats 1 and 3) where the band is out.
+
+**The riff.** Sixteen sixteenths on F (the low open string), every note short, the gaps real rests:
+
+| sixteenth | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| note | c | c | . | o | . | . | B | . | . | . | Ab | . | c | c | . | C |
+
+(`c` a palm-muted chug, `o` the string open.) Its second half is the NEGATIVE of its first: of any two sixteenths half a bar apart, exactly one is struck. So the riff against itself half a bar away fills the bar with no two notes together; at any other distance some notes collide and some gaps stay.
+
+**The hook's notes** are three of Common Time's four (Ab Gb B C over F): B the tritone, Ab the minor third, C the fifth. Quoted, on a new clock.
+
+**The stations** (the right guitar's lead over the left, in sixteenths): 0 (in step, bars 8-24), 1 (28-32), 2 (36-48), 3 (50-56), 4 (58-74), then a long free drift on clean guitars (74-96) to 8 (against, 98-122, and to the end). Notes struck together at each lead: 8, 3, 4, 5, 4, ..., 0. The slips between stations are 2 or 4 bars; the drums thin to a kick on the bar line so the slip is heard.
+
+**Against (lead 8).** The two guitars together make one line of sixteen sixteenths, alternating sides L L R L R R L R | R R L R L L R L, and that line repeats every HALF bar: `F F Ab F F F B C`, a cell eight sixteenths long. Common Time's landing riff is also eight sixteenths long: both songs arrive at common time, from opposite sides. (Not planned; it falls out of the riff being its own negative.)
+
+**The kick** is on every chug of either guitar, so the beat changes at each station without a note of the riff changing.
+
+**The swarm** (sixteen oscillators finding a common phase, as in Common Time) sounds only in the drift and locks as the guitars reach half a bar.
