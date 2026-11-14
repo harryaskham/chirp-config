@@ -570,6 +570,13 @@ APPROACH = os.environ.get("C10T1_APPROACH", "30:35:-12:-4")
 # were, so the rebuild is led by the toms, as its plan always said.
 # first bar : last bar : dB at the start. "" = v42.
 REBUILD = os.environ.get("C10T1_REBUILD", "210:220:-8")
+# v44: THE ENGINE, EXPOSED (9:19, in the hardest stretch). For twenty-eight bars everything runs at once: four guitars
+# and the bass on seven, the china on every eighth, the bark, and under it all the kick in unbroken sixteenths. The one
+# event inside it is the ground moving up a semitone at 9:20. Now, for the half bar before that, everything stops
+# except the kick: eight sixteenths of the kick alone, the machine with its cover off, and then the crash and the lift.
+# The pulse is not broken (the kick is the pulse); a rest is a rest.
+# the bar : the sixteenth from which everything but the kick rests. "" = v43.
+HOLE = os.environ.get("C10T1_HOLE", "293:8")
 # the dry path's eq. Without one it carried the snare's body past the drums' bus's own 400 Hz cut, and every section read
 # 0.5 to 1.4 dB more at 250-500 Hz against the records (the split +1.9 -> +2.8, the landing +1.1 -> +1.9). With this cut
 # (and the send 2 dB up) the snare alone carries as much at 250-500 Hz as it did at v40, and 1.1 dB more at 120-250 Hz.
@@ -824,6 +831,20 @@ def compose():
     kick(7, SEVEN_B, a, z, fill16=True)
     kit(a, a + 21, "x", 2, "back", None, cvel=HCYM[0])           # the china on every eighth: the piece's densest cymbal
     kit(a + 21, z, "x", 4, "blast", "roll16", cvel=HCYM[1], crash_at_start=False)
+    if HOLE:                              # v44: half a bar of the kick alone before the ground moves up
+        hb, h16 = [int(v) for v in HOLE.split(":")]
+        g0, g1 = (hb * 16 + h16) / 4, (hb + 1) * 4
+        for tr in list(T):
+            if tr == "kick":
+                continue
+            keep = []
+            for n in T[tr]:
+                if g0 <= n["at"] < g1:
+                    continue
+                if hb * 4 <= n["at"] < g0 < n["at"] + n["len"]:      # a note of this bar ringing into the hole stops at its edge
+                    n = {**n, "len": round(g0 - n["at"], 4)}
+                keep.append(n)
+            T[tr] = keep
     if VOX:
         vox(a)
 
