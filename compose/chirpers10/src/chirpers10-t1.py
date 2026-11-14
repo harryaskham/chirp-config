@@ -508,7 +508,8 @@ WL = ("wl", "wr")      # the wall rig: eleven's open chords, riff C, every chord
 # v38: THE BREAK OPENS ON ONE GUITAR. For this many bars at the top of the seven break (2:13) the bass, the kick and the
 # snare's backbeat stay out: the low-gain guitar, its hand and its spring, alone with the hat and the snare's ghost
 # strokes. Then bass, kick and backbeat; then the second guitar. "" or 0 = v37 (everything from the first bar).
-BREAK_ALONE = int(os.environ.get("C10T1_BREAK", "2") or 0)
+# v46: Harry, on the Questions page: "A hole". The band plays from the break's first bar again (v38-v45: 2).
+BREAK_ALONE = int(os.environ.get("C10T1_BREAK", "0") or 0)
 
 
 # v39: WHEN ELEVEN ARRIVES, THE CYMBAL GOES WITH IT (1:44-2:13). From 1:06 to 2:13 the kit played one pattern for 35 bars
@@ -566,7 +567,7 @@ SPLAY = os.environ.get("C10T1_SPLAY", "3,13,6,19;15,25,18,31;4;1")
 # three; its track comes down 1 dB so that it leads less.
 # A shelf on the snare's track (2 dB off above 7 kHz): out of the room its wires stood 1.5 dB over its crack (the
 # records -0.8 and +0.9; now +0.6), and the mix's loud frames read 0.4 to 0.8 dB more at 8-16 kHz against the records.
-SNARE = os.environ.get("C10T1_SNARE", "shelf:7000:-2;-12;7dB;dry:-10")
+SNARE = os.environ.get("C10T1_SNARE", "shelf:7000:-2;-1.5;5.25dB;dry:-10")        # v41-v45: shelf:7000:-2;-12;7dB;dry:-10
 # v42: THE MACHINE APPROACHES (0:57-1:06). The wait's last five bars were written as "the machine, approaching": the
 # guitars and the bass play riff A from bar 30 with their velocity rising from 0.45 to 0.9. Through a saturated rig
 # velocity does nothing: the guitars alone read -24.5 dB at bar 30 and -24.6 at bar 35, the mix jumped 5.3 dB at bar
@@ -593,7 +594,27 @@ REBUILD = os.environ.get("C10T1_REBUILD", "210:220:-8")
 # except the kick: eight sixteenths of the kick alone, the machine with its cover off, and then the crash and the lift.
 # The pulse is not broken (the kick is the pulse); a rest is a rest.
 # the bar : the sixteenth from which everything but the kick rests. "" = v43.
-HOLE = os.environ.get("C10T1_HOLE", "293:8")
+HOLE = os.environ.get("C10T1_HOLE", "293:8:all")        # v44-v45: 293:8 (the kick went on alone)
+# v46: HARRY'S ANSWERS (whole piece). On 14 Nov, 16:12-17:40 GMT, Harry answered the Questions page. Four of his answers
+# on this piece say what to do, and each is done (his words in quotes):
+#   1. THE SNARE, "Too dry: it lost its air". v41 took the snare out of the cymbals' room (its send to `oh` -1.5 -> -12 dB)
+#      because that send is a path round the drums' clip, and read the result against two records' snares. His ear says
+#      the path was the snare's air. The send is back at -1.5 dB. The dry path beside it (the crack) stays, and the
+#      track comes down 1.75 dB so the snare sits where it sat (C10T1_SNARE's second and third fields). He heard the
+#      same mend on Odd Sympathy v17 first: "Now: the air is back".
+#   2. THE HOLE AT 9:19, "The kick alone sounds wrong". The half bar before the ground moves up is a rest for the whole
+#      band now, the kick too: half a bar of nothing but what is still ringing, then the crash and the lift
+#      (C10T1_HOLE's third field, `all`).
+#   3. THE LANDING RIFF, "double track em". Each side had one guitar and a second 5.5 dB under it on the same rig. Now
+#      each side is TWO guitars at one level: the one it had (the `gojira` amp) and a second take through another amp
+#      (`5150`), another microphone place and another cone, a little inside it (C10T1_DOUBLE).
+#   4. THE SEVEN BREAK AT 2:13, "A hole". It opened on one guitar alone for two bars (v38); the bass, the kick and the
+#      backbeat play from its first bar again (C10T1_BREAK, above).
+# the doubles' amp ; microphone , left cone , right cone ; pan ; their trim over the tight rig's, dB, left , right ;
+# a trim on all four so the landing riff's guitars are as loud as they were. "" = v45.
+# The second amp is thicker at 160-320 Hz (3 dB over the first, alone), where the landing riff already stood over the
+# records; one eq band on the second takes puts them level with the first there (the last field: Hz : q : dB).
+DOUBLE = os.environ.get("C10T1_DOUBLE", "5150;0.4,8,9;0.75;0.5,1.5;-1.9;230:1.1:-3.5")
 # v45: THE RUN, BACKWARDS (6:59-7:20). The form is a palindrome: 35 20 15 7 28 5 30 14 11 10 | the eye | 10 11 14 30 ...
 # and each section has a mirror. The lead's run (4:53-5:14, eleven bars, on Db) is the one melody of the first half, and
 # its mirror, eleven bars on Bb, had no lead at all. Now the run comes back there BACKWARDS, note for note: the same
@@ -861,10 +882,10 @@ def compose():
     kit(a, a + 21, "x", 2, "back", None, cvel=HCYM[0])           # the china on every eighth: the piece's densest cymbal
     kit(a + 21, z, "x", 4, "blast", "roll16", cvel=HCYM[1], crash_at_start=False)
     if HOLE:                              # v44: half a bar of the kick alone before the ground moves up
-        hb, h16 = [int(v) for v in HOLE.split(":")]
+        hb, h16 = [int(v) for v in HOLE.split(":")[:2]]
         g0, g1 = (hb * 16 + h16) / 4, (hb + 1) * 4
         for tr in list(T):
-            if tr == "kick":
+            if tr == "kick" and HOLE.split(":")[2:] != ["all"]:
                 continue
             keep = []
             for n in T[tr]:
@@ -1140,7 +1161,7 @@ if SECMIX and (LANDMIX or CYMINST):
         lb, lk, ld, lc = [float(x) for x in LANDMIX.split(":")]
         cymf.append((389, 400.5, lc))        # back to the old balance by bar 401: the last chord and its crash are as they were
         SECTION_FADERS["kick"] = SECTION_FADERS.get("kick", []) + [(389, 400.5, lk)]
-        for tr in ("el2", "er2") if LAND_MAP else ("rl2", "rr2") if REAL5 else ("gl2", "gr2"):
+        for tr in (() if DOUBLE else ("el2", "er2")) if LAND_MAP else ("rl2", "rr2") if REAL5 else ("gl2", "gr2"):
             SECTION_FADERS[tr] = SECTION_FADERS.get(tr, []) + [(389, 400.5, ld)]
     if cymf:
         if CYMAIR and len(CYMAIR.split(";")) > 1 and float(CYMAIR.split(";")[1]):
@@ -1457,7 +1478,9 @@ def song():
         *([("rl", RIG_L + REAL_RIG, "0dB", -1, {**GOUT, **REAL_FX}), ("rr", RIG_R + REAL_RIG, "0dB", 1, {**GOUT, **REAL_FX}),
            ("rl2", RIG_L + REAL_RIG, "-3dB", -0.8, {**GOUT, **REAL_FX}), ("rr2", RIG_R + REAL_RIG, "-3dB", 0.8, {**GOUT, **REAL_FX})] if REAL5 else []),
         *([("el", RIG_L + REAL_RIG + LAND_AMP, "0dB", -1, {**GOUT, **REAL_FX}), ("er", RIG_R + REAL_RIG + LAND_AMP, "0dB", 1, {**GOUT, **REAL_FX}),
-           ("el2", RIG_L + REAL_RIG + LAND_AMP, "-3dB", -0.8, {**GOUT, **REAL_FX}), ("er2", RIG_R + REAL_RIG + LAND_AMP, "-3dB", 0.8, {**GOUT, **REAL_FX})] if LAND_MAP else []),
+           *([("el2", RIG_L + REAL_RIG + f" fx.2.model='{DOUBLE.split(';')[0]}'", "0dB", -float(DOUBLE.split(";")[2]), {**GOUT, **REAL_FX}),
+              ("er2", RIG_R + REAL_RIG + f" fx.2.model='{DOUBLE.split(';')[0]}'", "0dB", float(DOUBLE.split(";")[2]), {**GOUT, **REAL_FX})] if DOUBLE else
+             [("el2", RIG_L + REAL_RIG + LAND_AMP, "-3dB", -0.8, {**GOUT, **REAL_FX}), ("er2", RIG_R + REAL_RIG + LAND_AMP, "-3dB", 0.8, {**GOUT, **REAL_FX})])] if LAND_MAP else []),
         *([("ql", RIG_L + " synth.layers.0.node=4", SQUEAL, -0.5, GOUT), ("qr", RIG_R + " synth.layers.0.node=4", SQUEAL, 0.5, GOUT)] if SQUEAL else []),
         ("sl", BITE_L, BITE_DB, -1, GOUT), ("sr", BITE_R, BITE_DB, 1, GOUT),
         ("kl", CRUNCH_L + HANDED, CRUNCH_DB, -0.8, {}), ("kr", CRUNCH_R + HANDED, CRUNCH_DB, 0.8, {}),          # not through the guitars' bus: its eq scoops the mids this rig is made of
@@ -1517,15 +1540,16 @@ def song():
                 m, dist = ENGCAB.split(";")[0].split(":")
                 mic, *cones = ENGCAB.split(";")[1 + kind].split(",")
                 if name in LAND_MAP.values():        # the landing riff's rig has its own microphone and cones
-                    mic, *cones = LANDRIG.split(";")[1].split(",")
+                    mic, *cones = (DOUBLE if DOUBLE and name in ("el2", "er2") else LANDRIG).split(";")[1].split(",")
                 cab = {"type": "cab", "model": m, "mic": float(mic), "distance": float(dist)}
                 if int(cones[right]):
                     cab["cone"] = int(cones[right])
-                t["fx"] = [cab] + ([{"type": "eq", "bands": peaks(OWNBITE)}] if kind == 1 and OWNBITE else [])
+                t["fx"] = [cab] + ([{"type": "eq", "bands": peaks(OWNBITE)}] if kind == 1 and OWNBITE else []) \
+                    + ([{"type": "eq", "bands": peaks(DOUBLE.split(";")[5])}] if DOUBLE and name in ("el2", "er2") and DOUBLE.split(";")[5:] else [])
             else:
                 t["fx"] = [{"type": "eq", "bands": OWNCAB.split("|") + grit(kind, right) + (peaks(OWNBITE) if kind == 1 else []) + (peaks(OWNREAL) if OWNREAL and name in ("rl", "rr", "rl2", "rr2") else [])}]
             # the squeal (Ab5, 830 Hz) has its own trim, so it is as loud as it was (it sits in the cabinet's scoop and on its cone's detail)
-            gain = t["gain"] = f"{float(gain[:-2]) + float(OWNTRIM.split(':')[kind]) + ((-0.6 if ENGCAB else 0.5) if name in ('ql', 'qr') else 0) + (float(LANDRIG.split(';')[2].split(',')[right]) if name in LAND_MAP.values() else 0):g}dB"
+            gain = t["gain"] = f"{float(gain[:-2]) + float(OWNTRIM.split(':')[kind]) + ((-0.6 if ENGCAB else 0.5) if name in ('ql', 'qr') else 0) + (float(LANDRIG.split(';')[2].split(',')[right]) if name in LAND_MAP.values() and not (DOUBLE and name in ('el2', 'er2')) else 0) + ((float(DOUBLE.split(';')[3].split(',')[right]) if name in ('el2', 'er2') else 0) + float(DOUBLE.split(';')[4]) if DOUBLE and name in LAND_MAP.values() else 0):g}dB"
         if TOP and name in TOP_OF:
             kind = TOP_OF[name]
             t["patch"] = t["patch"] + " fx.4.bands.3.gain=0dB" + ("" if kind == 2 else " fx.4.bands.6.gain=0dB")

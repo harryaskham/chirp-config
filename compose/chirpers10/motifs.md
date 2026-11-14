@@ -84,6 +84,8 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 
 **The run, backwards (v45).** The lead's run (bars 154-165, on Db) has a mirror in the palindrome: bars 220-231, on Bb. There the run comes back note for note in retrograde: every note keeps its length and takes its mirrored place (a note that began t sixteenths after the run's start and lasted n now ends t sixteenths before the section's end), a minor third lower. Forwards a flurry climbs to a long note (F Bb Ab C Bb -> Db held ...); backwards the long note comes first and the flurry falls from it (A held, C Bb C ... down to Bb held, G A F G D). Its last note, D, is a semitone under the Eb the next section stands on. The wah pedal's moves are mirrored too. It sits 3 dB under the run.
 
+**Harry's answers (v46).** Four things changed on his ear. The hole at 9:19 is a rest for the whole band, the kick too ("The kick alone sounds wrong"). The landing riff is double-tracked: two takes a side through two amps, level with each other ("double track em"). The seven break has its bass, kick and backbeat from the first bar again ("A hole"). The snare is back in the cymbals' room ("Too dry: it lost its air").
+
 ## t2 Odd Sympathy (chirper-zero)
 
 **The idea.** The other way round from Common Time. There: one pulse, three cells of different lengths turning under it. Here: ONE cell, one bar long, and two clocks. The left guitar keeps the song's clock; the right guitar plays the same riff on a clock that runs a hair fast, slips ahead a sixteenth at a time, and holds at each distance. After Huygens's two pendulum clocks on one beam (1665), which however he started them ended swinging exactly against each other: "an odd kind of sympathy".
