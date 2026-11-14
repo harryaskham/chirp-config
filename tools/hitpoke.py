@@ -12,7 +12,8 @@ For every note of TRACK in a window that has no other note of TRACK in the 60 ms
 the band (2 ms RMS) over the 12 ms from the hit, less the same over the 12 ms ending 6 ms before it. Prints the
 median rise in dB for each window and file, and how many hits. 0 dB: the hit is not there in that band; 3 dB: it
 doubles the band's power for those 12 ms. Compare two versions of a song by giving both renders.
-It reads fixed-tempo songs in 4/4 only. Read-only; needs scipy. Tests: tools/tests/test_hitpoke.py.
+It reads fixed-tempo songs in 4/4 only; a TRACK with a `warp` is read where its notes sound (tools/warp.py).
+Read-only; needs scipy. Tests: tools/tests/test_hitpoke.py.
 """
 import json
 import os

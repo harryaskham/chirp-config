@@ -16,7 +16,8 @@ the plan leaves out a tempo of 120). --from is where the render starts, as `chir
 1-indexed, in 4/4), beats (160b) or seconds (76.2s); default the top. --which: muted (notes with `expr.pm`, the
 default), open (those without) or all. --channel: left by default (a track panned hard left in a pair). Several WAVs
 are several candidates over the same notes: render each the same way and read the rows against each other.
-Read-only; nothing is rendered.
+A track with a `warp` (its own clock against the song's) is read where its notes sound, not where they are written
+(tools/warp.py). Read-only; nothing is rendered.
 """
 import argparse
 import json
@@ -31,16 +32,24 @@ from scipy import signal as sg
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
+import warp  # noqa: E402
 import wincut  # noqa: E402
 
 
 def track_notes(canon, name):
-    """The notes of the track called name, at any depth; None when there is no such track."""
+    """The notes of the track called name, at any depth, AS THEY SOUND: a track with a `warp` (its own clock against
+    the song's) has each note's `at` and `len` moved by it (tools/warp.py). None when there is no such track."""
     def walk(ts):
         for t in ts or []:
             if isinstance(t, dict):
                 if t.get("name") == name:
-                    return [n for n in t.get("notes") or [] if isinstance(n, dict)]
+                    notes = [n for n in t.get("notes") or [] if isinstance(n, dict)]
+                    if not t.get("warp"):
+                        return notes
+                    tempo = canon.get("tempo", 120.0)
+                    if not isinstance(tempo, (int, float)) or isinstance(tempo, bool) or tempo <= 0:
+                        raise SystemExit(f"track {name!r} has a warp and the song's tempo changes: only fixed-tempo songs are read")
+                    return warp.moved(notes, t["warp"], tempo)
                 found = walk(t.get("tracks"))
                 if found is not None:
                     return found

@@ -20,7 +20,8 @@ and flags FLAT (fall less than --flat dB, default 6: saturated rigs fall 1-4, a 
 and "cut" (20 dB or more gone within half a beat of the end).
 Listed: the flat holds with a rest after them, the ones a listener hears stop. A flat hold that runs into the track's
 next note is counted ("run on") and not listed: a pad, a drone, a sustained lead. --all lists every hold. The list
-says where to look; what should die is the composer's call. Fixed-tempo songs only. Read-only.
+says where to look; what should die is the composer's call. Fixed-tempo songs only; a track with a `warp` is read
+where its notes sound (tools/warp.py). Read-only.
 """
 import argparse
 import json
@@ -56,10 +57,12 @@ def walk(tracks, out=None):
     return out
 
 
-def holds_of(track, min_beats):
-    """[{at, len, pitch, voices, next}] for a track's notes of min_beats or more; a chord's notes are one hold."""
-    notes = [(float(n.get("at") or 0), float(n.get("len") or 0), str(n.get("pitch", ""))) for n in track.get("notes") or []
-             if isinstance(n, dict)]
+def holds_of(track, min_beats, tempo=120.0):
+    """[{at, len, pitch, voices, next}] for a track's notes of min_beats or more; a chord's notes are one hold. A track
+    with a `warp` is read as it sounds (tools/warp.py; `tempo` matters only for a warp written in seconds)."""
+    import warp
+    notes = [(float(n.get("at") or 0), float(n.get("len") or 0), str(n.get("pitch", "")))
+             for n in warp.moved([n for n in track.get("notes") or [] if isinstance(n, dict)], track.get("warp"), tempo)]
     seen = {}
     for at, ln, pitch in notes:
         if ln < min_beats:
@@ -161,7 +164,7 @@ def main(argv=None):
     for t in walk(canon.get("tracks")):
         if want and not want.search(t["name"]):
             continue
-        hs = holds_of(t, a.min)
+        hs = holds_of(t, a.min, tempo)
         if hs:
             jobs.append((t, hs))
     work = tempfile.mkdtemp(prefix="holds-", dir="/tmp/lt" if os.path.isdir("/tmp/lt") else None)
