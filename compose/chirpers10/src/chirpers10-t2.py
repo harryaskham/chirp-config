@@ -16,6 +16,7 @@ The slips are the engine's track `warp` (the right-hand tracks' own clock agains
 v1 is the SKELETON (Harry, 14 Nov: "should skeleton it and then climb both"): the whole shape standing, bare.
 """
 import json
+import math
 import os
 
 OUT = os.environ.get("C10T2_OUT", os.path.join(os.path.dirname(__file__), "..", "..", "..", "songs", "chirpers10-t2.yaml"))
@@ -65,6 +66,14 @@ WARP = [
     {"over": "88b", "to": -2.0, "curve": "linear"},          # bars 74-96: the long drift, a little over 1% fast
 ]
 
+# v2: THE DRIFT GETS A SHAPE (bars 74-98; the window the section map called static). Three things, "" = v1:
+# (1) the ground moves under the drifting ticks, a step at a time: F, Eb, Db, then C, the dominant, held until the band
+#     comes back on F. The clocks arrive against each other ON the dominant and resolve with the band.
+# (2) the pendulum lets go too. From bar 80 its tick-tock is a Risset rhythm (the engine's track `risset`, two copies an
+#     octave of tempo apart, a cycle of four bars): it speeds up for ever and is never faster. On each fourth bar line the
+#     tick is back on the bar, at the speed it started; at bar 96, where the guitars lock, the plain pendulum has it again.
+# (3) the last six bars build: a dominant pedal on the bass, the kick on one and three, floor tom into the fill.
+DRIFT = os.environ.get("C10T2_DRIFT", "0,-2,-4,-5;16:2;0.5")       # the roots' semitones ; risset cycle beats : layers ; pedal velocity
 T = {}
 
 
@@ -173,14 +182,36 @@ def compose():
             groove(b0, b1, lead, snare=(4, 12) if lead in (2, 4) else (8,), cym="h" if lead == 2 else "rd" if lead == 4 else "x")
     # let go: the heavy guitars stop; two clean guitars tick the riff, the right one drifting from a quarter to half a bar
     # ahead; the swarm (sixteen oscillators finding a common phase) locks as they arrive
-    for tr in ("cl", "cr"):
-        riff(tr, 74, 98, vel=0.5, up=24, clean=True, ramp=(0.8, 1.1))
-    pendulum(74, 98)
-    for b in range(86, 98):
-        drum("k", b * 16, 0.4 + 0.03 * (b - 86))
-    T.setdefault("home", []).append({"at": 74 * 4, "len": 96.2, "pitch": "F1", "vel": 0.55})
-    for n in ("F2", "C3"):
-        T.setdefault("air", []).append({"at": 74 * 4, "len": 96.2, "pitch": n, "vel": 0.45})
+    if DRIFT:
+        roots = [int(x) for x in DRIFT.split(";")[0].split(",")]
+        edges = [74, 80, 86, 92, 98]
+        lvl = lambda b: 0.8 + 0.3 * (b - 74) / 23
+        for r, b0, b1 in zip(roots, edges, edges[1:]):
+            for tr in ("cl", "cr"):
+                riff(tr, b0, b1, vel=0.5, up=24 + r, clean=True, ramp=(lvl(b0), lvl(b1 - 1)))
+            T.setdefault("home", []).append({"at": b0 * 4, "len": (b1 - b0) * 4 + 0.2, "pitch": nm(F1 + r), "vel": 0.55})
+            for iv in (12, 19):
+                T.setdefault("air", []).append({"at": b0 * 4, "len": (b1 - b0) * 4 + 0.2, "pitch": nm(F1 + r + iv), "vel": 0.45})
+        pendulum(74, 80)
+        T["tick"] = [{"at": 0, "len": 2.0, "pitch": "rb", "vel": 0.47}, {"at": 2, "len": 2.0, "pitch": "rb", "vel": 0.42}]   # one tick-tock: the pattern the Risset rhythm turns
+        pendulum(96, 98)
+        pv = float(DRIFT.split(";")[2])
+        for b in range(86, 98):
+            drum("k", b * 16, 0.4 + 0.03 * (b - 86))
+            if b >= 92:
+                drum("k", b * 16 + 8, 0.35 + 0.03 * (b - 86))
+                T.setdefault("bass", []).append({"at": b * 4, "len": 3.9, "pitch": nm(F1 + 7), "vel": round(pv + 0.04 * (b - 92), 3)})
+        for i, t in enumerate(range(96 * 16, 98 * 16 - 8, 4)):
+            drum("ft", t, 0.4 + 0.05 * i)
+    else:
+        for tr in ("cl", "cr"):
+            riff(tr, 74, 98, vel=0.5, up=24, clean=True, ramp=(0.8, 1.1))
+        pendulum(74, 98)
+        for b in range(86, 98):
+            drum("k", b * 16, 0.4 + 0.03 * (b - 86))
+        T.setdefault("home", []).append({"at": 74 * 4, "len": 96.2, "pitch": "F1", "vel": 0.55})
+        for n in ("F2", "C3"):
+            T.setdefault("air", []).append({"at": 74 * 4, "len": 96.2, "pitch": n, "vel": 0.45})
     for n in ("F3", "C4"):
         T.setdefault("swarm", []).append({"at": 74 * 4, "len": 96.0, "pitch": n, "vel": 0.7})
     fill(98)
@@ -212,6 +243,19 @@ SWARM = {"about": "chirper-zero: the swarm - sixteen saws to a note, each at its
                    "filters": [{"kind": "lp", "cutoff": {"value": 350, "mod": [{"src": "sync", "amount": 2.6}]}}], "amp": {"a": "1.5s", "d": 0, "s": 1, "r": "3s"}}, "gain": "-9.5dB"}
 
 
+def risset_tick():
+    """The Risset pendulum's track settings. With two copies the one at the written speed starts a cycle alone, part-way
+    through the pattern; the track starts early by just as much as puts its first tick on bar 80's bar line (and so on
+    every fourth bar line after, where the cycle comes round)."""
+    c, k = DRIFT.split(";")[1].split(":")
+    c, k = float(c), int(k)
+    assert k == 2, "the hand-over to the plain pendulum is seamless only with two copies"
+    L = 4.0                                                    # the pattern: a tick and a tock, four beats
+    p0 = (0.5 * c / math.log(2)) % L                           # where in the pattern the written-speed copy starts
+    lead = c * math.log2(1 + (L - p0) / (c / math.log(2)))     # beats until its first tick
+    return {"at": f"{80 * 4 - lead:.4f}b", "risset": {"cycle": f"{c:g}b", "layers": k, "length": f"{16 * 4 + lead:.4f}b"}}
+
+
 def song():
     compose()
     cab = lambda cone: [{"type": "cab", "model": "4x12-modern", "mic": 0.25, "distance": 0.15, "cone": cone}]
@@ -230,6 +274,7 @@ def song():
         {"name": "cym", "patch": kit, "gain": "-3dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
         {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
         {"name": "ride", "patch": kit, "gain": "6dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
+        *([{"name": "tick", "patch": kit, "gain": "6dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air, **risset_tick()}] if DRIFT else []),
         {"name": "home", "patch": "contrabass-tight", "gain": "-9dB", "pan": 0.3, "sends": {"hall": "-12dB"}},
         {"name": "air", "patch": "juno-pad", "gain": "-13dB", "pan": 0.15, "sends": {"hall": "-8dB"}},
         {"name": "swarm", "patch": "ot-swarm", "gain": {"value": "-14dB", "mod": [{"src": "auto.lvl", "amount": 1}]}, "pan": 0, "sends": {"hall": "-8dB"},

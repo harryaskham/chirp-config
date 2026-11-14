@@ -103,3 +103,7 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 **The kick** is on every chug of either guitar, so the beat changes at each station without a note of the riff changing.
 
 **The swarm** (sixteen oscillators finding a common phase, as in Common Time) sounds only in the drift and locks as the guitars reach half a bar.
+
+**The drift (v2).** Bars 74-98, where the band lets go. Three clocks at once: the left clean guitar on the song's grid, the right one running about 1% fast (a quarter to half a bar ahead over 22 bars), and the pendulum, which from bar 80 is a Risset rhythm (the engine's track `risset`, two copies an octave of tempo apart, a cycle of four bars): its tick-tock closes from half a bar apart to a quarter while it fades, a new one fades in under it and closes to half a bar, and on every fourth bar line (84, 88, 92, 96) the tick is back on the bar at the speed it started. It speeds up for ever and is never faster. At bar 96, where the guitars lock, the plain pendulum has it again.
+
+**The drift's ground (v2).** A step down every six bars: F (74), Eb (80), Db (86), then C, the dominant (92), held under the lock until the band comes back on F at bar 98. The clean guitars' ticks move with it; the swarm holds F and C throughout (a ninth and sixth over Eb, a third and seventh over Db, a fourth and root over C). The last six bars build: the bass on C, the kick on one and three, floor tom into the fill.
