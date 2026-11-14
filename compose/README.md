@@ -95,6 +95,16 @@ owners who rotate their own songs. Name the type in your round note. Without
   song's own patches (library candidates), and the engine features the album has not used. Change one or two
   instruments: swap a staple for something no other track has, design a new patch, or add the part the song lacks.
   Measure on full-length renders.
+  Before the full render (14 Nov, each from a round that would have been shorter with it): under every staple the
+  brief says what it DOES here, and `--roles` says it for every track (the bars where a part is the floor);
+  `chirpers.py palette ALBUM-tN --bench TRACK FROM-TO PATCH[@DB] [--layer]` (`tools/swapbench.py`) puts the new
+  patch on the same notes, alone through the track's routing: the bands a swap LOSES, whether a layer is THERE.
+- **An effect inside a library patch can ride a lane, with no copy of the patch** (chirper-zero, Common Time v47):
+  `patch: "ct-crunch-l fx.6.mix=auto.wet"` and `auto: {wet: {points: [["0b", 0.2], ["1440b", 0.7], …]}}` on the
+  track. Any parameter a patch string can set takes `auto.NAME` the same way.
+- **Can it be heard?** A spring, an echo or a ring is heard in the gaps between a part's notes. `tools/rests.py
+  SONG TRACK …` lists them from the plan (and what else sounds in each); a part with none says so. Harry could not
+  hear a dripping spring for nine versions because the guitars carrying it never rested.
 
 ## The score (`tools/compscore.py`)
 
