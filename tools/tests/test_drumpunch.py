@@ -21,6 +21,20 @@ def hit(att_ms, decay_s, f=200.0, n=0.4):
     return np.sin(2 * np.pi * f * t) * (1 - np.exp(-t / (att_ms / 1000))) * np.exp(-t / decay_s)
 
 
+class RefWindow(unittest.TestCase):
+    def test_a_whole_length_ref_is_cut_and_a_window_ref_is_taken_whole(self):
+        full = np.arange(10 * SR, dtype=float)
+        x, t1 = D.ref_window(full, 2.0, 5.0)
+        self.assertEqual((len(x), x[0], t1), (3 * SR, 2.0 * SR, 5.0))      # the old behaviour: cut out of the whole file
+        x, t1 = D.ref_window(full, 2.0, None)
+        self.assertEqual((len(x), t1), (8 * SR, 10.0))                     # ... to its end when --to is not given
+        win = np.arange(3 * SR, dtype=float)
+        x, t1 = D.ref_window(win, 2.0, 5.0, is_window=True)
+        self.assertEqual((len(x), x[0], t1), (3 * SR, 0.0, 5.0))           # --ref-is-window: the file is the window
+        x, t1 = D.ref_window(win, 2.0, None, is_window=True)
+        self.assertEqual(t1, 5.0)                                          # ... and its length gives the window's end
+
+
 class Tempo(unittest.TestCase):
     def test_constant_and_mapped(self):
         self.assertAlmostEqual(D.beats_to_seconds(120)(8), 4.0)

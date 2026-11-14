@@ -265,6 +265,15 @@ def render_ours(song_file, t0, t1, tracks, seed, sets):
         os.unlink(snap)
 
 
+def ref_window(full, t0, t1, is_window=False):
+    """(the ref side's samples for the window, the window's end): `full` is a whole-length file to cut from t0 to t1
+    (to its end when t1 is not given), or, when is_window, the window's own audio starting at t0."""
+    if is_window:
+        return full, (t1 or t0 + len(full) / SR)
+    t1 = t1 or len(full) / SR
+    return full[int(t0 * SR):int(t1 * SR)], t1
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--song", help="climb id (its song file gives the hits; its record's drum stem is the ref)")
@@ -277,6 +286,8 @@ def main(argv=None):
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--ref", help="a WAV for the ref side instead of the drum stem (cut to the window)")
     ap.add_argument("--ours", help="a WAV for our side instead of rendering (the window's render)")
+    ap.add_argument("--ref-is-window", action="store_true",
+                    help="--ref is the window's render too, as --ours is (two renders of one window), not a whole-length file to cut")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
     song, t0, t1 = a.song, a.t0, a.t1
@@ -294,8 +305,7 @@ def main(argv=None):
     import stemfile
     full = stemfile.load(stem)
     t0 = t0 or 0.0
-    t1 = t1 or len(full) / SR
-    ref_x = full[int(t0 * SR):int(t1 * SR)]
+    ref_x, t1 = ref_window(full, t0, t1, bool(a.ref and a.ref_is_window))
     ours_x = L.load(a.ours) if a.ours else render_ours(song_file, t0, t1, tracks, a.seed, a.set)
     evs = [e for e in evs if t0 <= e[0] < t1]
     shift = lag(ref_x, ours_x)
