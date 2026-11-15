@@ -244,6 +244,8 @@ The bare lead is in both cycles on purpose: with it in the first only, the score
 
 **The bass follows the key (v11).** A mix round, no notes changed. The bass's eq was cut to the low F; on A flat, B and C its fundamental climbed into the eq's lift and its body and growl were pushed down. The eq's three low bands now move with the ground, so the bass keeps on B and C the shape it has on F.
 
+**The harmony, first heard (v12).** Section round, 1:26-1:36. The harmony guitars (a third and an octave over the riff), which Harry kept in the second cycle ("Keep it, louder"), now make a first short appearance in the first: the last lead of the stretch on A flat, four bars, and the break after it an octave up. It is where the second cycle has its long one (eleven bars, after its own break), so the second is the first grown, as the bare riff is in both. Tried first and dropped: the stretch assembled a pair of guitars at a time (ten thin bars after five bare ones; and through this cabinet the two amps differ by less than 1.5 dB in any band).
+
 ## t4 Running Total (chirper-zero)
 
 Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber". The album's fourth kind of long cycle: a SUM.

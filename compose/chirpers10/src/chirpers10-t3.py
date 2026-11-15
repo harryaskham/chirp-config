@@ -245,6 +245,19 @@ HUNT = os.environ.get("C10T3_HUNT", "100:118;0.95")
 # bass keeps the shape it has on F wherever the song goes.
 # "1" = on. "" = v10.
 KEYEQ = os.environ.get("C10T3_KEYEQ", "1")
+# v12: THE HARMONY IS HEARD IN THE FIRST CYCLE TOO (section round, 1:26-1:36; the map called 1:04-1:36 static and
+# nothing entered in it but crashes). Harry on the harmony guitars of the second cycle: "Keep it, louder". They were
+# kept out of the first cycle so that the second would have something of its own. But the riff laid bare is in both
+# cycles at the same place, and he kept that ("Shape: keep all three"): a thing that returns. So the harmony now makes
+# a first, short appearance where the second cycle has its long one: the LAST LEAD of the stretch on A flat (four bars,
+# 1:26-1:34), and it joins the break after it an octave up, as it does at 4:09. The second cycle still has more of
+# it (eleven bars), after its own break.
+# (Tried first and not kept: the stretch put together a pair of guitars at a time, each rig alone for five bars. On
+# the bench one pair alone was 1.2 dB down for ten bars after the five bare ones, the guitars 3 dB under the bass;
+# and Harry had just called five bars of bass alone "Too long alone". With the lone pair made as loud as the four,
+# nothing would be heard: through this cabinet the two amps differ by less than 1.5 dB in any band.)
+# the rows of the first extent in harmony (from:to; the call after them is played in unison). "" = v11.
+HARM1 = os.environ.get("C10T3_HARM1", "70:78") if HARM else ""
 CALLS_1 = [L for L, c in enumerate("pppb" * 3) if c != "p"]
 CALLS_2 = [L for L, c in enumerate("pbpbps" * 2) if c != "p"]
 BREAKS, BREAK_HITS = [], []          # the calls' spans (sixteenths) and the kit's notes in them
@@ -420,14 +433,15 @@ def compose():
     for i, kind in enumerate(FORM.split(";")[3] if FORM else "bac"):
         beat(PART2 + T2 * i, PART2 + T2 * (i + 1), kind, 10 ** 6 if FORM else meet(L2))
         fill(PART2 + T2 * (i + 1))
-    if HARM:                             # v7: the riff in harmony, on two more guitars
-        r0, r1 = (int(x) for x in HARM.split(";")[3].split(":"))
+    def harmony(extent, calls, r0, r1, part, length, w, keys):
+        """The riff a third above (two steps up its own scale) and an octave up, on `hl`/`hr`, over rows r0..r1-1; the
+        two rows of the call after them in unison an octave up."""
         steps, up, scale = int(HARM.split(";")[4]), int(HARM.split(";")[5]), sorted(PITCH.values())
         for k in range(r0, r1 + 2):
-            t, root, call = PART2 * 16 + k * L2, KEYS_2[k // 40], lead_mode(k, CALLS_2).startswith("call")
+            t, root, call = part * 16 + k * length, keys[k // 40], lead_mode(k, calls).startswith("call")
             assert call == (k >= r1), "the harmony must end on a call"
-            for b in tuple(EXTENT_2[k]) + (6,):
-                n = W2[0] if b == 1 else W2[1] if b == 6 else 1
+            for b in tuple(extent[k]) + (6,):
+                n = w[0] if b == 1 else w[1] if b == 6 else 1
                 i = scale.index(PITCH[b]) + (0 if call else steps)
                 pitch = F1 + root + up + scale[i % 6] + 12 * (i // 6)
                 for j in range(n if b == 6 else 1):
@@ -437,6 +451,13 @@ def compose():
                         else:
                             add(tr, t + j, 1, pitch, (0.95 if j == 0 else 0.9) if b == 6 else 0.85, pm=1)
                 t += n
+
+    if HARM:                             # v7: the riff in harmony, on two more guitars
+        r0, r1 = (int(x) for x in HARM.split(";")[3].split(":"))
+        harmony(EXTENT_2, CALLS_2, r0, r1, PART2, L2, W2, KEYS_2)
+    if HARM1:                            # v12: and, briefly, in the first cycle
+        r0, r1 = (int(x) for x in HARM1.split(":"))
+        harmony(EXTENT_1, CALLS_1, r0, r1, PART1, L1, W1, KEYS_1)
     if CLIMB:                            # v4: the lead climbs the row, slowly, over the last third; the snare on every beat at the end
         base, per, sv = int(CLIMB.split(";")[2]), float(CLIMB.split(";")[3]), float(CLIMB.split(";")[4])
         b0 = CLIMB_B0
@@ -485,6 +506,9 @@ def song():
     if HARM and CLIMB:        # the guitars' bus comes down a little while six guitars play (the lane is the climb's)
         h0, h1 = (PART2 * 4 + int(x) * L2 / 4 for x in HARM.split(";")[3].split(":"))
         HARM_DIP = [[f"{h0 - 0.5:g}b", 0], [f"{h0:g}b", float(HARM.split(";")[7])], [f"{h1 + 2 * L2 / 4 - 0.25:g}b", float(HARM.split(";")[7])], [f"{h1 + 2 * L2 / 4:g}b", 0]]
+        if HARM1:        # v12: the same under the first cycle's harmony
+            g0, g1 = (PART1 * 4 + int(x) * L1 / 4 for x in HARM1.split(":"))
+            HARM_DIP = [[f"{g0 - 0.5:g}b", 0], [f"{g0:g}b", float(HARM.split(";")[7])], [f"{g1 + 2 * L1 / 4 - 0.25:g}b", float(HARM.split(";")[7])], [f"{g1 + 2 * L1 / 4:g}b", 0]] + HARM_DIP
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     dtop = ["lp cutoff=14250 q=0.8"]
