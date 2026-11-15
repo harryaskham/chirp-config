@@ -634,6 +634,16 @@ REBUILD = os.environ.get("C10T1_REBUILD", "210:220:-8")
 # bars the five wheel's guitars rest when eleven arrives (a multiple of five) ; the crash they come back on ; the wall
 # guitars' lift in those bars, dB. "" = v47.
 ELEVALONE = os.environ.get("C10T1_ELEVALONE", "5;0.85;3")
+# v49: IN RIFF B THE CYMBAL FINDS THE BASS'S WHEEL (section round, 2:40-2:53; the map's window 2:32-3:02 had never had
+# a round, and it called it static). Riff B is "seven meets eleven": the guitars and the kick turn seven, the bass
+# turns eleven under them, and nothing says so: for its first fourteen bars a ride bell counts quarters. Riff A's rule
+# was that at every landing something joins; riff B's second landing (bar 84, 2:40) had nothing. Now, from there, the
+# CHINA strikes where the bass's eleven begins each turn (every eleven sixteenths), over the ride bell's quarters: the
+# move Harry kept at 1:44 ("Harder, and I still feel the bar"), here for a wheel only the bass is playing. Seven bars
+# later the lead comes in with its tune, which is one note to each turn of eleven: the cymbal has been marking the
+# tune's own clock before the tune arrives, and hands it over (the china goes to the quarters at 2:53, as it did).
+# bars into riff B where it starts (a landing of seven) ; the china's velocity. "" = v48.
+SEVCYM = os.environ.get("C10T1_SEVCYM", "7;0.58")
 ASSEMBLE = os.environ.get("C10T1_ASSEMBLE", "3:0;2:0,2;2:0,1,2;2:0,1,2,4|2:0;2:0,3|0.7")
 LONE = float(os.environ.get("C10T1_LONE", "1.8"))        # how much harder a note alone is struck
 HOLE = os.environ.get("C10T1_HOLE", "293:8:all")        # v44-v45: 293:8 (the kick went on alone)
@@ -758,6 +768,10 @@ def compose():
     bass(11, ELEVEN_A, a, z, hook=OCT)
     kick(7, SEVEN_B, a, z)
     kit(a, a + 14, "rb", 4, "half", None, cvel=0.6)
+    if SEVCYM:                                                        # v49: the china finds the bass's eleven, until the tune takes it over
+        for t, ln, kind, j, hi in strikes(11, ELEVEN_A, s16(a + int(SEVCYM.split(";")[0])), s16(a + 14)):
+            if j == 0:
+                add("cym", t, 8, "x", float(SEVCYM.split(";")[1]))
     kit(a + 14, z, "x", 4, "half", "run")
     long_wait(a + 14, z)
     harm(G2, 7, SEVEN_B, a + 21, z, 12, hook=H2, vel=0.75)            # the last seven bars: the hook doubled an octave up
