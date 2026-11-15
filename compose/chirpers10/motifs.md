@@ -239,3 +239,26 @@ The bare lead is in both cycles on purpose: with it in the first only, the score
 - the chant ("dont hear chamts"): it was two held notes, a pad. Now the two voices SING A LINE, a note to each row the bells ring, stepping round the low F (F, G flat, A flat), the upper voice a fifth over the lower throughout; and 4 dB louder. Under the last tolls each bell is answered two beats later.
 - the bass alone at 2:32 ("Too long alone"): four rows, not eight (2.5 bars for 5); the guitars come in on a crash at 2:37.
 - the harmony guitars at 3:47 ("Keep it, louder"): 3 dB up.
+
+## t4 Running Total (chirper-zero)
+
+Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber". The album's fourth kind of long cycle: a SUM.
+
+**The idea.** One riff, two bars of sixteenths (thirty-two places), never simply played but added up: its first place; its first two; its first three; each statement from the top and one place longer. The n-th statement begins after 1 + 2 + ... + (n-1) sixteenths (the triangular numbers), so against a kit that keeps four in a bar the riff's head lands somewhere new every time. The arithmetic closes: 1 + ... + 31 = 496 sixteenths = 31 bars exactly, and + 32 = 528 = 33 bars. So the first statement after the very first to begin on a bar line is the first WHOLE one.
+
+**The riff** (o = the open low F, accented; c = a muted chug; a note name = a hook note; - = held; r = rest):
+
+    o c c Ab - c B - c c r Gb c C - c | o c Eb - c c B Ab c r c Gb - c c C
+
+**The form (v1, the skeleton).** 116 bpm, 131 bars, 4:31.
+
+| bars | time | what |
+|---|---|---|
+| 0-33 | 0:00 | THE BUILD: statements 1 to 32 from the top. A marimba counts the first eight alone (an abacus); one guitar with bass and kick (0:05); the second guitar (0:18); the doubles (0:39); the first whole statement begins on the bar line at 1:04 |
+| 33-49 | 1:08 | THE TOTAL: the whole riff eight times, on F then on A flat (1:25) |
+| 49-82 | 1:41 | THE BACK-BUILD, on B: the same sum from the other end (the last place, the last two, ...). The marimba alone; the bass and kick join (1:59); the band (2:20) |
+| 82-98 | 2:50 | THE TOTAL again: on C, then home on F (3:06) |
+| 98-129 | 3:23 | THE MELT: the riff loses its first place each time; the band thins; the marimba counts the last eight down alone (4:22) |
+| 129-131 | 4:27 | one chord |
+
+**Its own colour.** A marimba (`modal-marimba`, a rosewood bar): wood, where Odd Sympathy has a music box and Plain Hunt has bells.
