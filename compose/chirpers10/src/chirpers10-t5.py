@@ -81,7 +81,36 @@ assert (RISE - FOOT) % 4 == 0 and (TIME - RISE) % len(PEDAL) == 0 and (FALL - TI
 LINE_BASE = int(os.environ.get("C10T5_LINEBASE", str(F1)))
 RIFF_BASE = F1
 # each illusion's trim on the three guitars' faders, dB: the line ; the turn ; the descent ; both
-TRIM = dict(zip(("line", "time", "fall", "both"), (float(x) for x in os.environ.get("C10T5_TRIM", "1;2.5;1.5;2.5").split(";"))))
+TRIM = dict(zip(("line", "time", "fall", "both"), (float(x) for x in os.environ.get("C10T5_TRIM", "1;3;1.5;3").split(";"))))
+# v2: THE ILLUSIONS HOLD, AND THE JOINS ARE RISERS (whole song).
+# ONE CABINET A SIDE. chirp-eco's new `tools/endless.py` read v1: inside a bar the stair holds (no saw-tooth), but the
+# eight guitars did not repeat every bar, they repeated every FOUR (+0.3 -0.8 -0.2 +0.7 dB by bar; 6 dB of movement
+# at 60-120 Hz), and in the turn the third and fourth cycles were 1.6 to 2 dB over the first two. Each of the eight had
+# its own speaker cone and its own place in the stereo, so WHICH speaker held WHICH octave came round every four bars:
+# a cycle the ear could count. Now the four on a side share one cone and one place: a bar is the same bar.
+# the pan of the four a side. "" = v1 (a cone and a pan each).
+ONE = os.environ.get("C10T5_ONE", "0.7")
+# THE JOINS ARE RISERS, ON THE GUITARS. Harry asked for "mainly risers/shpehers but in djent style". The song's
+# sections now hand over on a RUN: the eight guitars pick a semitone to the sixteenth on the same bell, so the run
+# climbs four thirds of an octave a bar and is never higher (falling, at the end of the descent). Two bars each: into
+# the turn (bars 30-32, rising), out of the descent (70-72, falling), and out of the pole into both (82-84, rising,
+# with the riser that never arrives). Under the two rising ones the snare doubles its speed into the bar line.
+# bars of run at a join ; the eight guitars' trim in it, dB ; the snare's gain in its build, dB. "" = v1 (a tom fill).
+RUNS = os.environ.get("C10T5_RUNS", "2;0;-3")
+# THE KIT PLAYS ONE TOO. In the pole (the breath) the hat's quarters become a tick that speeds up for ever: the
+# engine's own `risset` on a kit track (three copies an octave of speed apart, each doubling in four bars; it works
+# there because a drum has no amp to flatten the copies' fades). The plain form of the turn, heard alone.
+# the tick's gain ; its accent's and its other strokes' velocity ; bars to double its speed. "" = v1 (hat quarters).
+TICK = os.environ.get("C10T5_TICK", "22dB;0.9;0.6;4")
+# THE FIRST READ AGAINST THE RECORDS, BY PART (v1, `stembal --id`), and what it moved:
+#   the stair was 3.7 dB over the eleven records at 250-500 Hz, and the Shepard tone held 57% of that band: it comes
+#     down 2.5 dB under the band (and is as it was where it is alone); and 2.3 dB short at 60-120 Hz: the bass 1.5 dB up.
+#   the turn was 2.9 dB short at 60-120 Hz and 2.8 over at 120-250: the bass held ONE LONG NOTE a bar there, and a long
+#     note of this bass is all 120-250 Hz (alone: 60-120 Hz 7.3 dB under its total, 120-250 Hz 2.3 under; chugged it is
+#     3.6 and 6.4). It now strikes every beat (in both, too): four in a bar with the kit, against the guitars' turn.
+#   the descent was 2.4 dB over at 120-500 Hz, part of it the falling rumble: 2 dB off it.
+# strokes of the bass to the bar in the turn and in both ("" = v1: one long note).
+ANCHOR = os.environ.get("C10T5_ANCHOR", "4")
 LANE = {v: [(0.0, FLOOR)] for v in range(VOICES)}       # each voice's fader, (beat, dB)
 BLANE = {w: [(0.0, FLOOR)] for w in range(2)}           # the descent's two basses
 KEY = [(0.0, 0)]                                        # the ground under the bass's eq, (beat, semitones over F)
@@ -168,6 +197,29 @@ def line(b0, b1, gtrs=True, synth=True, slow=1, rot=None):
             n += 1
 
 
+def run(b0, b1, down=False, synth=True):
+    """THE RISER, ON GUITARS. A semitone to the sixteenth on the eight guitars' bell (and on the Shepard tone)."""
+    for n in range((b1 - b0) * 16):
+        t, s = b0 * 16 + n, -n if down else n
+        if synth:
+            add("stair", t, 1, 65 + s % 12, 0.8)
+        for v in range(VOICES):
+            p = (s + 12 * v) % (12 * VOICES)
+            g = db(bell(p / (12 * VOICES))) + float(RUNS.split(";")[1])
+            if g <= -45:
+                continue
+            step(LANE[v], t / 4, g)
+            vadd(v, t / 4, 0.25, LINE_BASE + p, 0.95)
+
+
+def build(b0, b1):
+    """The snare doubles its speed into the bar line (eighths, then sixteenths in the last bar), getting louder."""
+    nb = b1 - b0
+    for i, b in enumerate(range(b0, b1)):
+        for p in range(0, 16, 2 if i < nb - 1 else 1):
+            drum("s", b * 16 + p, 0.45 + 0.5 * (i * 16 + p) / (nb * 16), gain=float(RUNS.split(";")[2]))
+
+
 def pedal(b0, b1, kick=True):
     """The low string under the stair: a chug on every sixteenth, open where the line's notes fall, the bass with it
     and the kick on the line's notes."""
@@ -183,7 +235,7 @@ def pedal(b0, b1, kick=True):
                 drum("k", b * 16 + i, 0.95)
 
 
-def descent(b0, b1):
+def descent(b0, b1, gend=None):
     """THE STAIR, DOWNWARDS, AND ALL OF IT. The whole riff (the stair's rhythm, chugged) a step of the scale lower
     every bar, on the three guitars a side over three octaves and on two basses over two."""
     for b in range(b0, b1):
@@ -193,7 +245,7 @@ def descent(b0, b1):
         for v in range(VOICES):
             p = (lad + 12 * v) % (12 * VOICES)
             g = db(bell(p / (12 * VOICES))) + TRIM["fall"]
-            if g <= -45:
+            if g <= -45 or (gend is not None and b >= gend):       # from `gend` the guitars are on the run
                 continue
             step(LANE[v], b * 4, g)
             for i in range(16):
@@ -246,6 +298,16 @@ def turn(b0, b1, pitched=False):
                         drum("k", (c0 + u * tc) * 4, 0.95, gain=g)
 
 
+def anchor(b):
+    """The bass under the turn: it keeps the bar while the guitars leave it."""
+    if not ANCHOR:
+        add("bass", b * 16, 14, F1, 0.95)
+        return
+    n = int(ANCHOR)
+    for i in range(n):
+        add("bass", b * 16 + i * 16 // n, 16 // n, F1, 0.95 if i == 0 else 0.85)
+
+
 def beat(b0, b1, snare=(8,), cym="x", stepc=4, vel=0.5, crash=4):
     """The kit keeps four in a bar: the snare on the sixteenths `snare`, a cymbal every `stepc` sixteenths, a crash
     every `crash` bars."""
@@ -272,20 +334,28 @@ def compose():
     beat(FOOT + 4, RISE, snare=(), cym="h", vel=0.45, crash=0)
     fill(RISE)
     # the stair: the band
-    line(RISE, TIME)
+    R = int(RUNS.split(";")[0]) if RUNS else 0
+    line(RISE, TIME - R)
     pedal(RISE, TIME)
     beat(RISE, RISE + 12, snare=(8,), cym="x", stepc=4)
-    beat(RISE + 12, TIME, snare=(4, 12), cym="x", stepc=2)
-    fill(TIME)
+    beat(RISE + 12, TIME - R, snare=(4, 12), cym="x", stepc=2)
+    if R:                                # v2: the stair hands over on a run, the snare doubling under it
+        run(TIME - R, TIME)
+        beat(TIME - R, TIME, snare=(), cym="x", stepc=2, crash=0)
+        build(TIME - R, TIME)
+    else:
+        fill(TIME)
     # the turn: the chug at three speeds, speeding up for ever. The kit and the bass hold the bar
     turn(TIME, FALL)
     beat(TIME, FALL, snare=(8,), cym="x", stepc=4, crash=CYCLE)
     for b in range(TIME, FALL):
         ground(b * 4, 0)
-        add("bass", b * 16, 14, F1, 0.95)
+        anchor(b)
     fill(FALL)
     # the descent
-    descent(FALL, POLE)
+    descent(FALL, POLE, gend=POLE - R if R else None)
+    if R:                                # v2: the guitars leave the descent on a falling run
+        run(POLE - R, POLE, down=True, synth=False)
     beat(FALL, POLE, snare=(8,), cym="x", stepc=4, crash=6)
     T.setdefault("rumble", []).append({"at": FALL * 4, "len": (POLE - FALL) * 4 - 0.5, "pitch": "F2", "vel": 0.8})
     # the pole: one chord through a filter that climbs for ever; the line slowly; a bass that is only its overtones
@@ -295,16 +365,24 @@ def compose():
             add(tr, b * 16, 31, ",".join(nm(F1 + root + i) for i in (0, 7, 12)), 0.9)
         add("ghost", b * 16, 31, F1 + (root - 12 if root > 6 else root), 0.85)
         drum("k", b * 16, 0.85)
-    line(POLE, BOTH, gtrs=False, slow=2)
-    beat(POLE, BOTH, snare=(), cym="h", vel=0.42, crash=0)
-    T.setdefault("riser", []).append({"at": (BOTH - 4) * 4, "len": 16.0, "pitch": "F4", "vel": 0.8})
-    fill(BOTH)
+    line(POLE, BOTH - R, gtrs=False, slow=2)
+    if TICK:                             # v2: a tick that speeds up for ever (the track's `risset`; these three strokes are its pattern)
+        for at, ln, v in ((0.0, 0.5, float(TICK.split(";")[1])), (0.5, 0.5, float(TICK.split(";")[2])), (1.0, 1.0, float(TICK.split(";")[2]))):
+            T.setdefault("tick", []).append({"at": at, "len": ln, "pitch": "h", "vel": v})
+    else:
+        beat(POLE, BOTH, snare=(), cym="h", vel=0.42, crash=0)
+    T.setdefault("riser", []).append({"at": (BOTH - 4) * 4, "len": 16.0, "pitch": "F4", "vel": 0.8, **({"gain": "-3.0dB"} if R else {})})
+    if R:                                # v2: a rising run into both, the snare doubling under it (the riser 3 dB down under them)
+        run(BOTH - R, BOTH)
+        build(BOTH - R, BOTH)
+    else:
+        fill(BOTH)
     # both: pitch and speed rise together. A riser that never arrives swells over the second half, and stops dead
     turn(BOTH, STOP, pitched=True)
     beat(BOTH, STOP, snare=(4, 12), cym="x", stepc=2, crash=CYCLE)
     for b in range(BOTH, STOP):
         ground(b * 4, 0)
-        add("bass", b * 16, 14, F1, 0.95)
+        anchor(b)
     T.setdefault("riser", []).append({"at": (STOP - 8) * 4, "len": 32.0, "pitch": "F4", "vel": 1.0})
     for b in range(STOP - 2, STOP):                      # the snare on every beat into the stop
         for q in (0, 8):
@@ -346,24 +424,24 @@ def song():
     GH, GV = os.environ.get("C10T5_GHEAVY", "-1.7dB"), os.environ.get("C10T5_GVOICE", "0dB")
     # the Shepard tone: its gain under the band ; its hall send ; dB over that alone at the foot ; with the guitars
     # at the foot ; in the pole
-    synth = os.environ.get("C10T5_STAIR", "-17dB;-10dB;5;3;3").split(";")
+    synth = os.environ.get("C10T5_STAIR", "-19.5dB;-10dB;7.5;5.5;5.5").split(";")
     syn_lane = [(0.0, float(synth[2]))]
-    for bar, lvl in ((FOOT + 4, float(synth[3])), (RISE, 0.0), (POLE, float(synth[4])), (BOTH, 0.0)):
+    for bar, lvl in ((FOOT + 4, float(synth[3])), (RISE, 0.0), (POLE, float(synth[4])), (BOTH - (int(RUNS.split(";")[0]) if RUNS else 0), 0.0)):
         step(syn_lane, bar * 4, lvl)
     tracks = [
         {"name": "gl", "patch": heavy.format(30), "gain": GH, "pan": -1, "out": "gtrs"},
         {"name": "gr", "patch": heavy.format(31), "gain": GH, "pan": 1, "out": "gtrs"},
-        *[{"name": f"v{v}{side}", "patch": voice.format(32 + 2 * v + i), "gain": {"value": GV, "mod": [{"src": "auto.bell", "amount": 1}]},
-           "pan": (-1, 1)[i] * (0.9, 0.75, 0.6, 0.45)[v], "out": "gtrs", "auto": {"bell": {"points": pts(LANE[v]), "curve": 0}}}
+        *[{"name": f"v{v}{side}", "patch": voice.format(32 + i if ONE else 32 + 2 * v + i), "gain": {"value": GV, "mod": [{"src": "auto.bell", "amount": 1}]},
+           "pan": (-1, 1)[i] * (float(ONE) if ONE else (0.9, 0.75, 0.6, 0.45)[v]), "out": "gtrs", "auto": {"bell": {"points": pts(LANE[v]), "curve": 0}}}
           for v in range(VOICES) for i, side in enumerate("lr")],
         {"name": "pl", "patch": heavy.format(40), "gain": os.environ.get("C10T5_POLE", "-1dB"), "pan": -0.8, "out": "pole"},
         {"name": "pr", "patch": heavy.format(41), "gain": os.environ.get("C10T5_POLE", "-1dB"), "pan": 0.8, "out": "pole"},
         {"name": "stair", "patch": "fs-stair", "gain": {"value": synth[0], "mod": [{"src": "auto.lvl", "amount": 1}]}, "pan": 0, "sends": {"hall": synth[1]},
          "auto": {"lvl": {"points": pts(syn_lane), "curve": 0}}},
         {"name": "riser", "patch": "fx-riser-endless amp.a=16b", "gain": os.environ.get("C10T5_RISER", "-18dB"), "pan": 0},
-        {"name": "rumble", "patch": "shepard-fall", "gain": os.environ.get("C10T5_RUMBLE", "-19dB"), "pan": 0},
+        {"name": "rumble", "patch": "shepard-fall", "gain": os.environ.get("C10T5_RUMBLE", "-21dB"), "pan": 0},
         {"name": "ghost", "patch": "phantom-bass", "gain": os.environ.get("C10T5_GHOST", "-14dB"), "pan": 0},
-        {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
+        {"name": "bass", "patch": "ct-bass", "gain": os.environ.get("C10T5_BASS", "2dB"), "pan": 0, "out": "low"},
         *[{"name": f"bs{w}", "patch": "ct-bass", "gain": {"value": "0.5dB", "mod": [{"src": "auto.bell", "amount": 1}]}, "pan": 0, "out": "low",
            "auto": {"bell": {"points": pts(BLANE[w]), "curve": 0}}} for w in range(2)],
         {"name": "kick", "patch": kit, "gain": "2dB", "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]},
@@ -372,6 +450,8 @@ def song():
         {"name": "toms", "patch": kit, "gain": "4dB", "out": "drums", "sends": {"oh": "-1.5dB"}},
         {"name": "cym", "patch": kit, "gain": "-4.5dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
         {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
+        *([{"name": "tick", "patch": kit, "gain": TICK.split(";")[0], "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air, "at": f"{POLE * 4}b",
+            "risset": {"cycle": f"{TICK.split(';')[3]}bar", "layers": 3, "length": f"{BOTH - POLE - (int(RUNS.split(';')[0]) if RUNS else 0)}bar"}}] if TICK else []),
     ]
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])

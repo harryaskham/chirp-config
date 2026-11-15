@@ -300,3 +300,11 @@ A false summit is the top you can see from below that is not the top. The piece 
 | 100-108 | the summit | silence, the stair's first bars, one chord |
 
 Form as arithmetic: every section's start is computed from its length (`FOOT`, `RISE`, `TIME`, `FALL`, `POLE`, `BOTH`, `STOP`, `HOME`, `END`), the cycle from `CYCLE`, the bells from `VOICES` and `ROLES`.
+
+**The joins are risers (v2).** Harry asked for "mainly risers/shpehers but in djent style". Three sections now hand over on a RUN: the eight guitars pick a semitone to the sixteenth on the same bell, so the run climbs four thirds of an octave a bar and is never higher. Two bars each: out of the stair into the turn (bars 30-32, rising; it ends on C and the turn lands on F), out of the descent into the pole (70-72, falling), out of the pole into both (82-84, rising, under the riser that never arrives). Under the two rising ones the snare doubles its speed into the bar line.
+
+**One cabinet a side (v2).** chirp-eco's `tools/endless.py` read v1: the stair held inside a bar but the eight guitars repeated every FOUR bars, not every bar (each had its own cone and pan, so which speaker held which octave came round), and the turn's last two cycles were 1.6 to 2 dB over its first two. The four on a side now share one cone and one place. The turn and both now read "it holds".
+
+**The tick (v2).** In the pole the hat's quarters are a tick that speeds up for ever: the engine's own `risset` on a kit track (it works on a drum: no amp to flatten the copies' fades). The plain form of the turn, alone, as the foot is the plain form of the stair.
+
+**The bass keeps the bar (v2).** Under the turn and under both the bass strikes every beat (it held one long note a bar, and a long note of this bass is all 120-250 Hz).
