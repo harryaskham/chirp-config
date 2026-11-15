@@ -271,15 +271,23 @@ const me=()=>U().toLowerCase(),myAns=x=>(x.answers||{})[me()],qLive=()=>(D.quest
 const qGet=id=>(D.questions||[]).find(x=>x.id===id),qSet=(k,v)=>localStorage.setItem("listen_q"+k,v?"1":"0"),qOn=k=>localStorage.getItem("listen_q"+k)!=="0";
 function qBadge(){const el=$("#qbadge");if(!el)return;const n=qLive().filter(x=>!myAns(x)).length;el.innerHTML=n?`<span class=badge>${n}</span>`:"";}
 // a card's title as the composer wrote it: what changed, then the question, sometimes with the listener's earlier words in
-// brackets. {lead, ask, said}: the page sets the question large and the rest small. A title with no question is shown whole.
+// brackets. {lead, ask, said}: the page sets the question large and the rest small. A title with no question, or a short
+// one, is shown whole.
+const qSents=s=>(String(s||"").match(/.+?(?:[.?!]+["'\u2019\u201D)]*(?=\s+["'\u2018\u201C(]?[A-Z0-9])|$)/gs)||[]).map(p=>p.trim()).filter(Boolean);
 function qSplit(title){let s=String(title||"").trim(),said="";
  s=s.replace(/\s*\(\s*you said[^:)]*:\s*([^)]+)\)/i,(m,g)=>{said=g.trim().replace(/^['"\u2018\u201C]+|['"\u2019\u201D.]+$/g,"");return "";}).replace(/([?!])\./g,"$1").trim();
- const ps=(s.match(/.+?(?:[.?!]+["'\u2019\u201D)]*(?=\s+["'\u2018\u201C(]?[A-Z0-9])|$)/gs)||[s]).map(p=>p.trim()).filter(Boolean);
+ const ps=qSents(s);if(!ps.length)ps.push(s);
  let i=ps.length;while(i>0&&/\?["'\u2019\u201D)]*$/.test(ps[i-1]))i--;
  if(i===ps.length)return {lead:"",ask:s,said};
  let lead=ps.slice(0,i).join(" "),ask=ps.slice(i).join(" ");
- if(!lead){const m=ask.match(/^(.{16,}?):\s+(.{12,})$/s);if(m){lead=m[1]+".";ask=m[2].charAt(0).toUpperCase()+m[2].slice(1);}}
+ if(!lead&&ask.length>90){const m=ask.match(/^(.{16,}?):\s+(.{12,})$/s);if(m){lead=m[1]+".";ask=m[2].charAt(0).toUpperCase()+m[2].slice(1);}}
  return {lead,ask,said};}
+// the small line over the question: the title's own, else the opening sentence of the composer's notes (what changed);
+// `rest` is what stays folded under the card
+function qLead(context,s){const c=String(context||"").trim();if(s.lead)return {lead:s.lead,rest:c};const ps=qSents(c);
+ if(!ps.length||ps[0].length>300)return {lead:"",rest:c};
+ let n=1;while(n<ps.length&&n<3&&ps.slice(0,n).join(" ").length<70&&ps.slice(0,n+1).join(" ").length<=260)n++;   // a short opener takes the next with it
+ return {lead:ps.slice(0,n).join(" "),rest:ps.slice(n).join(" ")};}
 let qf="open",qorder=[],qcur=null,qtk=null,qadv=null,QAC=null;const qbuf=new Map();
 // the queue is fixed when a filter is chosen, so a question answered a moment ago stays where it was (ticked)
 function qFilter(f){qf=f;qorder=qLive().filter(x=>f==="all"||(f==="open")===!myAns(x))
@@ -311,7 +319,7 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden&&qtk)qtk.pa
 function qTakes(root,x){const keys=[...root.querySelectorAll(".take")],sc=root.querySelector(".fq-scrub"),fill=sc.querySelector("i"),zone=sc.querySelector("u"),
   clock=root.querySelector(".fq-clock"),bt=root.querySelector(".fq-turn"),bf=root.querySelector(".fq-foc"),bp=root.querySelector(".fq-play");
  const T=keys.map(k=>({k,src:k.dataset.src,g:+k.dataset.g,sync:k.dataset.sync==="1",secs:+k.dataset.secs||0,buf:null,pos:null}));
- let cur=-1,node=null,gain=null,t0=0,p0=0,playing=false,raf=0,dead=false,token=0,gap=0,begun=false;
+ let cur=-1,node=null,gain=null,t0=0,p0=0,playing=false,raf=0,dead=false,token=0,gap=0,begun=false,seq=false;
  const foc=i=>T[i].sync&&qOn("focus")&&(x.media[T[i].g]||{}).focus||null,dur=i=>T[i].buf?T[i].buf.duration:T[i].secs;
  const span=i=>{const f=foc(i),d=dur(i);return f?[f[0],d?Math.min(f[1],d):f[1]]:[0,d];};
  const pos=()=>cur<0?span(0)[0]:playing&&node?Math.min(p0+Math.max(0,QAC.currentTime-t0),dur(cur)):(T[cur].pos??span(cur)[0]);
@@ -326,7 +334,9 @@ function qTakes(root,x){const keys=[...root.querySelectorAll(".take")],sc=root.q
  const tick=()=>{paint();raf=playing&&!dead?requestAnimationFrame(tick):0;};
  const mates=i=>T[i].sync?T.map((t,j)=>j).filter(j=>T[j].g===T[i].g):[i];
  const ended=i=>{playing=false;T[i].pos=span(i)[0];const ms=mates(i);
-  if(qOn("turn")&&ms.length>1){const nx=ms[(ms.indexOf(i)+1)%ms.length];gap=setTimeout(()=>start(nx,span(nx)[0]),260);}paint();};
+  if(qOn("turn")&&ms.length>1){const nx=ms[(ms.indexOf(i)+1)%ms.length];gap=setTimeout(()=>start(nx,span(nx)[0]),260);}
+  else if(seq&&!T.some(t=>t.sync)&&T[i+1])gap=setTimeout(()=>start(i+1,null),450);      // clips of different passages: each once, in order
+  paint();};
  async function start(i,at){const my=++token;if(cur>=0&&playing)T[cur].pos=pos();halt();cur=i;playing=true;T[i].pos=at;begun=true;paint();
   let buf=T[i].buf;if(!buf){keys[i].classList.add("wait");try{buf=T[i].buf=await qLoad(T[i].src);}catch(e){keys[i].classList.remove("wait");if(my===token){playing=false;paint();toast("that clip did not load");}return;}
    keys[i].classList.remove("wait");const du=keys[i].querySelector(".du");if(du)du.textContent=mmss(buf.duration);}
@@ -336,8 +346,8 @@ function qTakes(root,x){const keys=[...root.querySelectorAll(".take")],sc=root.q
   g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(1,now+0.012);
   if(b<buf.duration-0.03&&len>0.12){g.gain.setValueAtTime(1,now+len-0.07);g.gain.linearRampToValueAtTime(0,now+len);}
   n.onended=()=>{if(node===n){node=gain=null;ended(i);}};n.start(now,at,len);node=n;gain=g;t0=now;p0=at;T[i].pos=at;if(!raf)tick();}
- const pause=()=>{if(cur<0)return;if(playing)T[cur].pos=pos();token++;halt();playing=false;paint();};
- const play=i=>{if(!T[i])return;if(i===cur&&playing)return pause();
+ const pause=()=>{if(cur<0)return;if(playing)T[cur].pos=pos();token++;halt();playing=false;seq=false;paint();};
+ const play=i=>{if(!T[i])return;seq=false;if(i===cur&&playing)return pause();
   start(i,cur>=0&&cur!==i&&T[cur].sync&&T[i].sync&&T[cur].g===T[i].g?pos():T[i].pos);};
  const seekTo=p=>{if(cur<0)cur=0;const i=cur,f=foc(i);if(f&&(p<f[0]||p>f[1])){qSet("focus",false);}
   p=Math.min(Math.max(0,p),Math.max(0,dur(i)-0.1));if(playing)start(i,p);else{T[i].pos=p;paint();}};
@@ -347,7 +357,7 @@ function qTakes(root,x){const keys=[...root.querySelectorAll(".take")],sc=root.q
  bt.onclick=()=>{qSet("turn",!qOn("turn"));paint();};bp.onclick=()=>{qSet("play",!qOn("play"));paint();if(qOn("play"))auto();};
  bf.onclick=()=>{qSet("focus",!qOn("focus"));if(cur>=0&&playing)start(cur,pos());else{if(cur>=0)T[cur].pos=null;paint();}};
  T.forEach((t,i)=>{if(i<5&&keys[i].dataset.big)qLoad(t.src).then(b=>{if(dead)return;t.buf=b;if(cur<0||cur===i)paint();}).catch(()=>{});});
- function auto(){if(dead||begun||!qOn("play"))return;if(qCtx().state==="running")start(0,null);else paint();}
+ function auto(){if(dead||begun||!qOn("play"))return;if(qCtx().state==="running"){seq=true;start(0,null);}else paint();}
  paint();auto();
  return {play,pause,wake:auto,toggle(){cur<0?start(0,null):playing?pause():start(cur,T[cur].pos);},seek(d){if(cur>=0){const [a,b]=span(cur);seekTo(Math.min(Math.max(a,pos()+d),Math.max(a,b-0.3)));}},
   turn(){if(!bt.hidden)bt.click();},focus(){if(!bf.hidden)bf.click();},stop(){dead=true;token++;halt();cancelAnimationFrame(raf);}};}
@@ -360,7 +370,7 @@ function qShow(id,dir=0){if(qtk){qtk.stop();qtk=null;}clearTimeout(qadv);qcur=id
   pane.innerHTML=`<div class="fq fq-done"><h2 class=fq-ask>${live.length&&done===live.length?"All answered.":qf==="open"?"Nothing waiting.":"Nothing here."}</h2>
   ${done?`<p class=fq-lead>${done} of ${live.length} answered. The composer gets them two minutes after your last one.</p>${qf!=="answered"?"<button id=qseen>Look over your answers</button>":""}`:""}</div>`;
   const b=$("#qseen");if(b)b.onclick=()=>{qFilter("answered");qRail();qShow(qorder[0]||null);};return;}
- const s=qSplit(x.title),a=myAns(x)||{},i=qorder.indexOf(id),latest=D.snapshots.length?D.snapshots[D.snapshots.length-1].id:"",groups=x.media||[];
+ const s=qSplit(x.title),ld=qLead(x.context,s),a=myAns(x)||{},i=qorder.indexOf(id),latest=D.snapshots.length?D.snapshots[D.snapshots.length-1].id:"",groups=x.media||[];
  let k=0;const key=(it,gi,g,big)=>{const L=String.fromCharCode(65+k++);
   return `<button class=take data-k="${L}" data-g="${gi}" data-sync="${g.sync&&g.items.length>1?1:0}"${big?" data-big=1":""} data-secs="${it.secs||""}" data-src="${esc(qSrc(it))}" aria-label="take ${L}: ${esc(it.label)}"><span class=k>${L}</span><span class=tl>${esc(it.label)}</span>${big?"":`<span class=du>${it.secs?mmss(it.secs):""}</span>`}</button>`;};
  const many=groups.some(g=>g.items.length>1);let big="",more="";      // takes side by side are the big keys; lone clips sit under the line
@@ -370,13 +380,13 @@ function qShow(id,dir=0){if(qtk){qtk.stop();qtk=null;}clearTimeout(qadv);qcur=id
  pane.innerHTML=`<article class="fq${dir>0?" in-r":dir<0?" in-l":""}" style="--song:${col(x.n||1)}">
  <div class=fq-meta><span class=fq-song>${esc(qSong(x))}</span>${x.t!=null&&latest&&x.n?`<a href="#" class=golisten title="hear it in the song as it is now">${mmss(x.t)}</a>`:""}${x.version?`<span class=fq-ver>${esc(x.version)}</span>`:""}${moved}
   <span class=fq-pos>${i+1} / ${qorder.length}</span><button class=fq-list aria-label="the list of questions">${i+1} / ${qorder.length}</button></div>
- ${s.lead?`<p class=fq-lead>${esc(s.lead)}</p>`:""}<h2 class=fq-ask>${esc(s.ask)}</h2>${s.said?`<p class=fq-said>you said <q>${esc(s.said)}</q></p>`:""}
+ ${ld.lead?`<p class=fq-lead>${esc(ld.lead)}</p>`:""}<h2 class=fq-ask>${esc(s.ask)}</h2>${s.said?`<p class=fq-said>you said <q>${esc(s.said)}</q></p>`:""}
  ${k?`<section class=fq-takes>${big}<div class=fq-line><div class=fq-scrub><b><u></u><i></i></b></div><span class=fq-clock></span></div>${more?`<div class=fq-more>${more}</div>`:""}
   <div class=fq-prefs><button class="pref fq-play">plays by itself</button><button class="pref fq-turn">takes in turn</button><button class="pref fq-foc" hidden>only where they differ</button></div></section>`:"<div style='height:26px'></div>"}
  <section class=fq-opts>${(x.choices||[]).map((c,j)=>`<button class="opt${a.choice===c?" on":""}" data-c="${esc(c)}"><kbd>${j+1}</kbd><span>${esc(c)}</span></button>`).join("")}</section>
  <div class=fq-note><textarea rows=1 placeholder="${(x.choices||[]).length?"or in your own words":"in your own words"}" aria-label="your answer in your own words">${esc(a.text||"")}</textarea><button class=qsave>Save</button></div>
  <div class=fq-state>${qState(x)}</div>
- ${x.context?`<details class=fq-notes${localStorage.getItem("listen_qnotes")==="1"?" open":""}><summary>${esc(x.by)}'s notes<span>${dayOf(x.at)} ${hhmm(x.at)}</span></summary><div class=body>${esc(x.context)}</div></details>`:""}
+ ${ld.rest?`<details class=fq-notes${localStorage.getItem("listen_qnotes")==="1"?" open":""}><summary>${esc(x.by)}'s notes<span>${dayOf(x.at)} ${hhmm(x.at)}</span></summary><div class=body>${esc(ld.rest)}</div></details>`:""}
  <div class=fq-nav><button class=qprev${i>0?"":" disabled"} aria-label="the question before">&lsaquo;</button>
   <button class="pref${qOn("auto")?" on":""}" id=qauto aria-pressed="${qOn("auto")}">next when answered</button>
   <span class=fq-legend>${k?`<span><kbd>A</kbd>${k>1?`&ndash;<kbd>${String.fromCharCode(64+k)}</kbd>`:""} take</span><span><kbd>space</kbd> pause</span>`:""}${(x.choices||[]).length?`<span><kbd>1</kbd>&ndash;<kbd>${x.choices.length}</kbd> answer</span>`:""}<span><kbd>J</kbd><kbd>K</kbd> move</span></span>

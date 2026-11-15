@@ -229,12 +229,15 @@ answered eight cards in five minutes the night it changed. So write a card for a
 
 - THE TITLE IS THE QUESTION, AND ONLY THE QUESTION, short: "A drummer pulling against the beat, or lost?". The page
   sets a long title's last question large and what stands before it small, and lifts a bracketed "(you said: ...)"
-  out; a title that is only the question reads better still. What changed goes FIRST in `--context`, one sentence;
-  the measurements after it.
+  out; a title that is only the question reads better still. What changed goes FIRST in `--context`, one sentence:
+  under a short title the page shows that sentence small over the question (and the next one too when the first
+  is a few words), and folds the rest away. The takes carry their own labels, so "A is v1, B is v2" is not needed;
+  the measurements go last.
 - THE A/B IS SHORT AND ON THE CHANGE: 6 to 10 seconds, starting a bar before it. The page finds the seconds to open
   on by measurement (from a second and a half before the takes first part, 4 to 7 s; takes of 11 s or less play
   whole) and `ask` prints them; `--focus START-END` (seconds into the takes) sets them yourself, and
   `listen.py questions ALBUM --focus` lists every card's. ONE more clip at most, and only if the answer needs it.
+  A card with no A/B (two clips of different passages) plays each once, in order.
 - TWO TO FOUR CHOICES, a few words each. Five or six is a questionnaire.
 
 - `--ab "A|B=FILE"`: the usual A-then-B clip (a silence between the takes) is cut into its sides and shown side by

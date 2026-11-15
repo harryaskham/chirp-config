@@ -385,17 +385,39 @@ class Focus(unittest.TestCase):
 class Page(unittest.TestCase):
     """The page's own reading of a card's title (tools/listen.html, qSplit), run in node when there is one."""
 
-    def split(self, titles):
+    def run_js(self, expr):
         node = shutil.which("node")
         if not node:
             self.skipTest("node")
         with open(os.path.join(TOOLS, "listen.html")) as f:
-            m = re.search(r"\nfunction qSplit\(title\)\{.*?\n return \{lead,ask,said\};\}", f.read(), re.S)
-        self.assertIsNotNone(m, "qSplit is in the page")
-        js = m.group(0) + "\nconsole.log(JSON.stringify(" + json.dumps(titles) + ".map(qSplit)));"
+            m = re.search(r"\nconst qSents=.*?\nlet qf=", f.read(), re.S)
+        self.assertIsNotNone(m, "qSents, qSplit and qLead are in the page")
+        js = m.group(0)[:-len("let qf=")] + "\nconsole.log(JSON.stringify(" + expr + "));"
         r = subprocess.run([node, "-e", js], capture_output=True, text=True, timeout=60)
         self.assertEqual(r.returncode, 0, r.stderr[-400:])
         return json.loads(r.stdout)
+
+    def split(self, titles):
+        return self.run_js(json.dumps(titles) + ".map(qSplit)")
+
+    def test_a_short_title_is_the_question_and_the_notes_open_it(self):
+        cards = [["A riff that grows by a note each time: a hook, or an exercise?",
+                  "Running Total, the new fourth song (a skeleton). The riff is never played whole at first: one note, then two, "
+                  "then three, each time from the top, until it is complete at 1:04. A marimba counts where the band does not. "
+                  "Measured, not heard."],
+                 ["The machine approaches (0:57): the guitars come nearer. An approach, or a fade?", "The guitars' gain rides a lane."],
+                 ["Louder?", ""],
+                 ["Louder?", "x" * 320 + ". And more."]]
+        got = self.run_js(json.dumps(cards) + ".map(([t,c])=>{const s=qSplit(t);return [s,qLead(c,s)];})")
+        self.assertEqual(got[0][0]["ask"], cards[0][0])                               # short: the whole title is the question
+        self.assertEqual(got[0][1]["lead"], "Running Total, the new fourth song (a skeleton). The riff is never played whole at "
+                                            "first: one note, then two, then three, each time from the top, until it is complete "
+                                            "at 1:04.")                    # a short opener takes the next sentence with it
+        self.assertEqual(got[0][1]["rest"], "A marimba counts where the band does not. Measured, not heard.")
+        self.assertEqual(got[1][1], {"lead": "The machine approaches (0:57): the guitars come nearer.",    # the title's own lead:
+                                     "rest": "The guitars' gain rides a lane."})                         # the notes stay folded
+        self.assertEqual(got[2][1], {"lead": "", "rest": ""})
+        self.assertEqual(got[3][1]["lead"], "")                                       # an opening too long to be a lead stays folded
 
     def test_a_title_is_split_into_what_changed_and_the_question(self):
         got = self.split([
@@ -413,8 +435,8 @@ class Page(unittest.TestCase):
                                           "at 1:06.", "ask": "An approach and a landing, or do you miss the guitars slamming in at 0:57?",
                                   "said": ""})
         self.assertEqual(got[1], {"lead": "", "ask": "Can you make out the spoken words now?", "said": ""})
-        self.assertEqual(got[2], {"lead": "Odd Sympathy's words, five voices, alone.", "ask": "Which should say them?",
-                                  "said": "more realistic and in some kindof tune"})
+        self.assertEqual(got[2], {"lead": "", "ask": "Odd Sympathy's words, five voices, alone: which should say them?",
+                                  "said": "more realistic and in some kindof tune"})        # short: no split at the colon
         self.assertEqual(got[3], {"lead": "Common Time at 6:42: the spoken lines are now said by the GUITARS.",
                                   "ask": "A stronger voice, or a gimmick?", "said": "the voice needs work... voice is weak"})
         self.assertEqual(got[4]["lead"], "When eleven arrives (1:44) the china goes with its chords.")
