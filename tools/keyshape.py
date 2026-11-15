@@ -7,14 +7,17 @@ and up to 7.5 dB at 1-2 kHz. In the mix it read as "+1 at 60-120, -2 at 120-250"
 Harry's "more bass", which was answered with a fader. He found it by benching the part four times by hand: "a
 tool would have found this at the first key change of the first song".)
 
-  keyshape.py SONG TRACK[,TRACK...] [--bars 8] [--min 2] [--pin CHIRP] [--keep DIR] [--json]
+  keyshape.py SONG TRACK[,TRACK...] [--bars 8] [--min 2] [--pool] [--pin CHIRP] [--keep DIR] [--json]
 
 SONG is an id (songs/ID.yaml) or a file; the TRACKs are one part (the bass; both guitars of a rig: gl,gr; where
 one of them rests, the ground is read from the other).
 The grounds are found from the part's own notes: the lowest note of each bar, and each run of bars that share it
 (runs under --min bars are passing notes and left out). For each ground, the first --bars bars of its longest run
 are rendered with every other track's notes out, so the part's effects, its bus and the master are the song's
-(loudness off, seed 0): a second or two a ground. Printed:
+(loudness off, seed 0): a second or two a ground. --pool reads a ground from as many of its runs as it takes
+to make --bars bars (longest first; their power summed), for a part that changes ground every bar or two: with
+--min 1 a pedal of one bar a ground is read from eight of its bars, not one ("12-13 +7" = that bar and seven more
+stretches). Printed:
   its own shape    the nine bands tools/stembal.py reads, each against the part's OWN total there, for every ground;
                    HOME is the ground with the most bars
   against home     each other ground's shape minus home's, in dB, twice:
@@ -41,6 +44,8 @@ import os
 import shutil
 import sys
 import tempfile
+
+import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.environ.get("CLIMB_ROOT") or os.path.dirname(HERE)
@@ -109,18 +114,27 @@ def runs(doc, tracks):
     return [tuple(r) for r in out]
 
 
-def grounds(found, least=2, most=8):
-    """[{ground, name, hz, bars, runs, read: (first bar, last bar)}], home first, then by pitch: every ground with a
-    run of `least` bars or more; `read` is the first `most` bars of its longest run."""
+def grounds(found, least=2, most=8, pool=False):
+    """[{ground, name, hz, bars, runs, read: (first bar, last bar), reads: [(first, last)]}], home first, then by
+    pitch: every ground with a run of `least` bars or more; `read` is the first `most` bars of its longest run, and
+    `reads` is that alone, or with `pool` as many of its runs (longest first) as it takes to make `most` bars."""
     by = {}
     for a, b, g in found:
         if b - a + 1 >= least:
             by.setdefault(g, []).append((a, b))
     out = []
     for g, rs in by.items():
-        a, b = max(rs, key=lambda r: (r[1] - r[0], -r[0]))
+        order = sorted(rs, key=lambda r: (-(r[1] - r[0]), r[0]))
+        a, b = order[0]
+        reads, have = [], 0
+        for x, y in order if pool else order[:1]:
+            if have >= most:
+                break
+            y = min(y, x + most - have - 1)
+            reads.append((x, y))
+            have += y - x + 1
         out.append({"ground": g, "name": note_name(g), "hz": round(pitchbench.hz(g), 1), "bars": sum(y - x + 1 for x, y in rs),
-                    "runs": len(rs), "read": (a, min(b, a + most - 1))})
+                    "runs": len(rs), "read": (a, min(b, a + most - 1)), "reads": sorted(reads)})
     if not out:
         return out
     home = max(out, key=lambda r: (r["bars"], -r["ground"]))
@@ -165,7 +179,7 @@ def far_note(semis):
             "note, not the rig)")
 
 
-def read(song, tracks, pin, where, least=2, most=8):
+def read(song, tracks, pin, where, least=2, most=8, pool=False):
     """The table: {"home": name, "grounds": [{name, hz, bars, runs, read, own, vs_home, moved, loses, moved_loses, says}]}.
     `own` is each band against the part's own total on that ground; vs_home / moved are in dB against home's own."""
     doc = songfmt.load(song)
@@ -173,7 +187,7 @@ def read(song, tracks, pin, where, least=2, most=8):
     if not isinstance(tempo, (int, float)) or isinstance(tempo, bool) or tempo <= 0:
         raise SystemExit("keyshape: the song's tempo changes: only fixed-tempo songs are benched")
     try:
-        gs = grounds(runs(doc, tracks), least, most)
+        gs = grounds(runs(doc, tracks), least, most, pool)
     except KeyError as e:
         raise SystemExit(f"keyshape: {os.path.basename(song)} has no track {e.args[0]}") from None
     if not gs:
@@ -196,21 +210,26 @@ def read(song, tracks, pin, where, least=2, most=8):
                     for n in t.get("notes") or []:
                         n["at"] = float(n.get("at") or 0) + at - b0
             b0, b1 = at, at + b1 - b0
-        got = keybench.band_levels(keybench.render(made, pin, where, tag, b0, b1))
-        return [round(v - got[-1], 1) for v in got[:-1]]
+        return keybench.band_levels(keybench.render(made, pin, where, tag, b0, b1))
+
+    def own(levels):
+        """Several stretches' bands as one: their power summed, each band against the total (one stretch: itself)."""
+        total = 10 * np.log10(np.sum(10 ** (np.array(levels) / 10.0), axis=0))
+        return [round(float(v - total[-1]), 1) for v in total[:-1]]
     home = gs[0]
-    hb0 = home["read"][0] * BEATS
     for i, g in enumerate(gs):
-        gb0, gb1 = g["read"][0] * BEATS, (g["read"][1] + 1) * BEATS
-        g["own"] = shape(gb0, gb1, 0, f"-{g['name']}")
+        g["own"] = own([shape(a * BEATS, (b + 1) * BEATS, 0, f"-{g['name']}-{k}") for k, (a, b) in enumerate(g["reads"])])
         if i == 0:
             continue
         semis = int(round(g["ground"] - home["ground"]))
         first = max(band_of(g["hz"]), band_of(home["hz"])) + 1
-        bars = min(g["read"][1] - g["read"][0], home["read"][1] - home["read"][0]) + 1
         g["vs_home"] = [round(a - b, 1) for a, b in zip(g["own"], home["own"])]
-        g["moved"] = [round(a - b, 1) for a, b in
-                      zip(shape(hb0, hb0 + bars * BEATS, semis, f"-{g['name']}-moved", at=gb0), home["own"])]
+        moved = []
+        for k, (a, b) in enumerate(g["reads"]):          # home's own bars, played at each of this ground's stretches
+            ha, hb = home["reads"][k % len(home["reads"])]
+            bars = min(b - a, hb - ha) + 1
+            moved.append(shape(ha * BEATS, (ha + bars) * BEATS, semis, f"-{g['name']}-moved-{k}", at=a * BEATS))
+        g["moved"] = [round(a - b, 1) for a, b in zip(own(moved), home["own"])]
         g["semis"] = semis
         g["loses"], g["moved_loses"] = loses(g["vs_home"], home["own"], first), loses(g["moved"], home["own"], first)
         g["says"] = verdict(g["loses"], g["moved_loses"])
@@ -222,6 +241,9 @@ def read(song, tracks, pin, where, least=2, most=8):
 def main(argv=None):
     a = list(sys.argv[1:] if argv is None else argv)
     opt = {"--pin": None, "--keep": None, "--bars": "8", "--min": "2"}
+    pool = "--pool" in a
+    if pool:
+        a.remove("--pool")
     for k in list(opt):
         if k in a and a.index(k) + 1 < len(a):
             i = a.index(k)
@@ -246,7 +268,7 @@ def main(argv=None):
     where = opt["--keep"] or tempfile.mkdtemp(prefix="keyshape-")
     os.makedirs(where, exist_ok=True)
     try:
-        got = read(path, tracks, opt["--pin"] or chirpbin.resolve(), where, least, most)
+        got = read(path, tracks, opt["--pin"] or chirpbin.resolve(), where, least, most, pool)
     finally:
         if not opt["--keep"]:
             shutil.rmtree(where, True)
@@ -259,7 +281,10 @@ def main(argv=None):
     print(f"  {'ground':7s}{'Hz':>6s}  {'bars read':12s}" + "".join(s.rjust(8) for s in LABELS))
     for i, g in enumerate(gs):
         a0, a1 = g["read"]
-        print(f"  {g['name']:7s}{g['hz']:6.1f}  {f'{a0 + 1}-{a1 + 2}':12s}" + "".join(f"{v:+8.1f}" for v in g["own"])
+        if len(g["reads"]) > 1:
+            a0, a1 = g["reads"][0]
+        many = f" +{len(g['reads']) - 1}" if len(g["reads"]) > 1 else ""
+        print(f"  {g['name']:7s}{g['hz']:6.1f}  {f'{a0 + 1}-{a1 + 2}{many}':12s}" + "".join(f"{v:+8.1f}" for v in g["own"])
               + f"   {g['bars']} bars in {g['runs']} run{'s' if g['runs'] != 1 else ''}" + (": HOME" if i == 0 else ""))
     if len(gs) == 1:
         print(f"  it plays on {gs[0]['name']} only: no other key to read it in")

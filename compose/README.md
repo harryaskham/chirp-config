@@ -136,6 +136,12 @@ drew three in one night. It is the composer's to set and to take off again; say 
   the wrap (a SAW-TOOTH is a run undone at the wrap: the riser starting again). `chirpers.py illusion` says the
   part LEADS; this says the illusion HOLDS. Neither says an ear hears it climb. An illusion on a distorted
   guitar is written out a copy a track with fader lanes (the engine's `risset` fades ahead of the amp).
+- **Where does a `risset` track sound?** `tools/risset.py SONG [TRACK] [--bars A-B]`: the song writes only the
+  pattern; this lists every copy's strokes with their speed and level, bar by bar (the engine's arithmetic,
+  checked against its audio). `endless.py` reads such a track through it. On a clean kit the engine's `risset`
+  is the illusion as written; through an amp, write the copies out (above).
+- **A pedal that changes every bar**: `keyshape.py SONG bass --min 1 --pool` reads each ground from as many of
+  its bars as make eight.
 - **An eq band's cutoff rides a lane too**: `{"kind": "peak", "cutoff": {"value": 44, "mod": [{"src": "auto.key",
   "amount": 0.08333}]}, "q": 1.5, "gain": "-7dB"}` on a bus with a lane `key` in semitones over the home ground (a
   frequency mod is in octaves, so 1/12 a semitone). The mend for a rig fitted to one key.

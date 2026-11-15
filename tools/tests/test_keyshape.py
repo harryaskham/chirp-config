@@ -99,6 +99,16 @@ class Grounds(unittest.TestCase):
         self.assertEqual([g["name"] for g in K.grounds(K.runs(SONG, ["bass"]), least=1)], ["A1", "G1", "B1", "D2"])
         self.assertEqual(K.grounds([]), [])
 
+    def test_pooling_reads_a_ground_from_several_runs(self):
+        found = [(0, 0, 33), (1, 1, 36), (2, 2, 33), (3, 3, 36), (4, 4, 33), (5, 5, 36), (6, 9, 33)]
+        self.assertEqual([(g["ground"], g["reads"]) for g in K.grounds(found, 1, 4, pool=True)],
+                         [(33, [(6, 9)]), (36, [(1, 1), (3, 3), (5, 5)])])          # a long run is enough by itself
+        self.assertEqual(K.grounds(found, 1, 2, pool=True)[1]["reads"], [(1, 1), (3, 3)])      # no more than --bars bars
+        self.assertEqual(K.grounds(found, 1, 6, pool=True)[0]["reads"], [(0, 0), (2, 2), (6, 9)])
+        plain = K.grounds(found, 1, 4)
+        self.assertEqual([(g["read"], g["reads"]) for g in plain], [((6, 9), [(6, 9)]), ((1, 1), [(1, 1)])])   # as before
+        self.assertEqual([g["ground"] for g in K.grounds(found, 2, 4, pool=True)], [33])        # --min still decides
+
     def test_bands_under_a_fundamental_are_not_read(self):
         self.assertEqual([K.band_of(f) for f in (43.7, 59.9, 61.7, 119.0, 130.8, 260.0)], [0, 0, 1, 1, 2, 3])
         home = [-10.0, -1.0, -11.0, -23.0, -19.0, -30.0, -27.0, -48.0, -79.0]
@@ -167,6 +177,23 @@ class WholeRun(unittest.TestCase):
         self.write(doc)
         b1 = json.loads(self.run_tool("bass", "--bars", "4", "--json")[1])["grounds"][2]
         self.assertEqual((b1["name"], b1["loses"], b1["moved_loses"], b1["says"]), ("B1", [], [], ""))
+
+    def test_a_pedal_that_changes_every_bar_is_read_from_many_of_its_bars(self):
+        doc = json.loads(json.dumps(SONG))                                   # A1 and B1 a bar each, eight times over
+        doc["tracks"][0]["notes"] = [n for b in range(16) for n in bars(b, b, ["A1" if b % 2 == 0 else "B1"])]
+        self.write(doc)
+        with self.assertRaises(SystemExit) as e:
+            self.run_tool("bass")
+        self.assertIn("plays no pitched notes for 2 bars together", str(e.exception))
+        one = json.loads(self.run_tool("bass", "--min", "1", "--bars", "4", "--json")[1])
+        many = json.loads(self.run_tool("bass", "--min", "1", "--bars", "4", "--pool", "--json")[1])
+        self.assertEqual([g["reads"] for g in one["grounds"]], [[[0, 0]], [[1, 1]]])
+        self.assertEqual([g["reads"] for g in many["grounds"]], [[[0, 0], [2, 2], [4, 4], [6, 6]], [[1, 1], [3, 3], [5, 5], [7, 7]]])
+        for got in (one, many):                                              # the rig's fault is read either way
+            self.assertEqual([lb for lb, _ in got["grounds"][1]["loses"]], [lb for lb, _ in got["grounds"][1]["moved_loses"]])
+            self.assertTrue(got["grounds"][1]["says"].startswith("THE RIG"))
+        text = self.run_tool("bass", "--min", "1", "--bars", "4", "--pool")[1]
+        self.assertIn("  2-3 +3  ", text)
 
     def test_a_part_of_two_tracks_where_one_rests(self):
         doc = json.loads(json.dumps(SONG))

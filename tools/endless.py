@@ -29,7 +29,8 @@ width, the register and the ear decide that); whether the part is heard in the m
 presence.py); and, for a RHYTHM, how fast it sounds: through a saturated rig the attacks cannot be counted from
 the audio (tried: an onset measure followed the level, not the rate), so a Risset rhythm is read by its notes
 (the same in every cycle), its level and its brightness, and each copy's fade is read by soloing that copy.
-The song's notes are read where they are WRITTEN: on a track with `risset` or `warp` the audio lines are the truth.
+The song's notes are read where they SOUND: a `risset` track's copies (tools/risset.py), a warped track's notes
+moved (tools/warp.py), a track that starts late from its own start.
 """
 import collections
 import json
@@ -48,7 +49,9 @@ ROOT = os.environ.get("CLIMB_ROOT") or os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import chirpbin  # noqa: E402
 import keyshape  # noqa: E402
+import risset  # noqa: E402
 import songfmt  # noqa: E402
+import warp  # noqa: E402
 import wincut  # noqa: E402
 from keybench import EDGES, LABELS  # noqa: E402
 
@@ -174,13 +177,47 @@ def measure(x, sr, cycle_s, steps=16):
     }
 
 
-def plan_cycles(doc, tracks, b0, b1, cycle_beats):
+def find(doc, name):
+    """The track of that name, at any depth; None when there is none."""
+    def walk(ts):
+        for t in ts or []:
+            if isinstance(t, dict):
+                if t.get("name") == name:
+                    return t
+                got = walk(t.get("tracks"))
+                if got is not None:
+                    return got
+        return None
+    return walk(doc.get("tracks"))
+
+
+def notes_sounding(doc, name, tempo=None):
+    """A track's notes where they SOUND, in the song's beats: a `risset` track's copies, a warped track's notes moved,
+    a late track's notes from its own start; as written when no tempo is given. [] when there is no such track."""
+    t = find(doc, name)
+    if t is None:
+        return []
+    notes = [n for n in t.get("notes") or [] if isinstance(n, dict)]
+    if not tempo:
+        return notes
+    try:
+        if t.get("risset"):
+            return risset.sounding(t, tempo)
+        origin = warp.beats(t.get("at", 0), tempo)
+        if t.get("warp"):
+            notes = warp.moved(notes, t["warp"], tempo)
+    except (ValueError, TypeError, KeyError):
+        return notes
+    return [dict(n, at=origin + float(n.get("at") or 0)) for n in notes] if origin else notes
+
+
+def plan_cycles(doc, tracks, b0, b1, cycle_beats, tempo=None):
     """From the song: each whole cycle's notes of the parts together, as {(place in the cycle, pitch): count}; then
     (how many cycles, notes in the usual cycle, [(cycle from 1, notes that differ)])."""
     n = int((b1 - b0) / cycle_beats + 1e-6)
     cyc = [collections.Counter() for _ in range(n)]
     for t in tracks:
-        for note in keyshape.track_notes(doc, t) or []:
+        for note in notes_sounding(doc, t, tempo):
             at = float(note.get("at") or 0)
             i = int((at - b0) / cycle_beats + 1e-6) if at >= b0 - 1e-9 else -1
             if 0 <= i < n and at < b1 - 1e-9:
@@ -247,7 +284,7 @@ def report(head, got, plan, warped):
         print(f"    the song    {n} cycles of {notes} notes" + (", the same notes at the same places in every one" if not odd else
               ": NOT the same in cycle " + ", ".join(f"{i} ({d} notes differ)" for i, d in odd[:8]) + ("..." if len(odd) > 8 else "")))
         if warped:
-            print(f"                ({', '.join(warped)}: notes read where they are written; a `risset` or `warp` moves them)")
+            print(f"                ({', '.join(warped)}: a risset AND a warp on one track: its notes are read as the risset alone)")
     k = got["steps"]
     print(f"  INSIDE THE CYCLE, AND AT THE WRAP ({k} slices, the mean over the {got['cycles']} cycles, against the cycle's own):")
     for a in range(0, k, 16):
@@ -325,17 +362,8 @@ def main(argv=None):
             if not opt["--keep"]:
                 shutil.rmtree(where, True)
         got = measure(x, sr, cyc, steps)
-        plan = plan_cycles(doc, tracks, pos[0] * tempo / 60.0, pos[1] * tempo / 60.0, cyc * tempo / 60.0)
-
-        def moved(name, ts):
-            for t in ts or []:
-                if isinstance(t, dict):
-                    if t.get("name") == name:
-                        return bool(t.get("risset") or t.get("warp"))
-                    if moved(name, t.get("tracks")):
-                        return True
-            return False
-        warped = [t for t in tracks if moved(t, doc.get("tracks"))]
+        plan = plan_cycles(doc, tracks, pos[0] * tempo / 60.0, pos[1] * tempo / 60.0, cyc * tempo / 60.0, tempo)
+        warped = [t for t in tracks if (find(doc, t) or {}).get("risset") and (find(doc, t) or {}).get("warp")]
         head = (f"{os.path.basename(path)} {', '.join(tracks)}: {span}, {got['cycles']} cycles of {opt['--cycle']} ({cyc:.3f} s), "
                 "alone through their own effects, bus and master")
     if as_json:
