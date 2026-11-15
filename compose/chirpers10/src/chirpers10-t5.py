@@ -133,6 +133,21 @@ VEQ = os.environ.get("C10T5_VEQ", "700:1:-2.5")
 # the patch ; its gain ; the bar it starts ; its top note (MIDI) ; the eight guitars under it, dB. "" = v3.
 # (At the patch's first gain, -16 dB, it read 23 dB under the mix: not there. 14 dB went on at the bench.)
 LEAD = os.environ.get("C10T5_LEAD", "lead-tape;-2dB;24;77;-1")
+# v5: THE FILL THAT NEVER LANDS (palette round). The kit had one illusion (the tick) and the descent had none of the
+# kit's: for a minute the drums kept a plain beat under it. Every drummer's fill goes round the toms from the high one
+# to the floor tom and stops there, because the kit has no lower drum. This song now has a set of toms that has: a new
+# instrument, `fs-tom` (the kit's own tom, a struck head, made a pitched part), struck three at a time an octave apart
+# under the same bell as the guitars, so a fill can go on down for as long as it likes and the drum under the sticks
+# is never lower. The descent ends each of its octaves on one: eight strokes into bar 54, twelve into 60, a whole bar
+# into 66, each a step of the scale to the sixteenth and each landing on the riff's F; and under the guitars' falling
+# run (bars 70-72) the toms fall with it, a semitone to the sixteenth for two bars, thirty-two drums down and no
+# lower. The china and the snare stop for each (the drummer's hands are on the toms); the kick keeps the riff. The
+# fill into the descent (bar 47) is still the kit's four real toms, high to low to the snare: the one that lands.
+# the patch ; its gain ; the fills' lengths in sixteenths, at the descent's octaves ; its pan ; its head's ring, s. "" = v4.
+# (At 0 dB the new toms were the loudest thing in their bars by 4 dB, -3.3 by presence where the kit's real toms read
+# -7.4 in their fill; 6.5 dB came off at the bench, in two goes: the drum bus's compressor gives back half of a cut.)
+TOMS = os.environ.get("C10T5_TOMS", "fs-tom;-6.5dB;8,12,16;0.2;0.9")
+TOM_BASE = F1                           # three octaves of drums from here; the bell is fullest at B2 (123 Hz)
 LANE = {v: [(0.0, FLOOR)] for v in range(VOICES)}       # each voice's fader, (beat, dB)
 BLANE = {w: [(0.0, FLOOR)] for w in range(2)}           # the descent's two basses
 KEY = [(0.0, 0)]                                        # the ground under the bass's eq, (beat, semitones over F)
@@ -292,6 +307,24 @@ def descent(b0, b1, gend=None):
             drum("k", b * 16 + a, 0.95)
 
 
+def tomfall(s0, n16, scale):
+    """THE FILL THAT NEVER LANDS: `n16` sixteenths of toms from sixteenth `s0`, each stroke three drums an octave apart
+    under the bell. `scale`: a step of the scale down a stroke, so that the stroke after the last would be F (the bar
+    line's note); otherwise a semitone down a stroke from F, with the guitars' falling run. The snare and the china
+    rest under it."""
+    for i in range(n16):
+        k = n16 - i
+        semis = 12 * (k // 6) + SCALE[k % 6] if scale else -i
+        vel = 0.72 + 0.2 * i / max(1, n16 - 1) + (0.06 if i % 4 == 0 else 0)
+        for v in range(3):
+            p = (semis + 12 * v) % 36
+            g = db(bell(p / 36))
+            if g > -45:
+                addb("falls", (s0 + i) / 4, 0.25, TOM_BASE + p, min(1.0, vel), gain=g)
+    for tr, pieces in (("snare", ("s",)), ("cym", ("x",))):
+        T[tr] = [n for n in T.get(tr, []) if not (n["pitch"] in pieces and s0 <= round(n["at"] * 4) < s0 + n16)]
+
+
 def turn(b0, b1, pitched=False):
     """THE TURN. The bar `PAT` at three speeds an octave of speed apart, all three speeding up in a straight line so
     that each doubles in CYCLE bars: guitar v plays role (v + cycle) mod 3 (x0.5 -> x1, x1 -> x2, x2 -> x4) and its
@@ -395,6 +428,11 @@ def compose():
         run(POLE - R, POLE, down=True, synth=False)
     beat(FALL, POLE, snare=(8,), cym="x", stepc=4, crash=6)
     T.setdefault("rumble", []).append({"at": FALL * 4, "len": (POLE - FALL) * 4 - 0.5, "pitch": "F2", "vel": 0.8})
+    if TOMS:                             # v5: each octave of the descent ends on a fill that never lands; the last is the run's
+        for i, n16 in enumerate(int(x) for x in TOMS.split(";")[2].split(",")):
+            tomfall((FALL + 6 * (i + 1)) * 16 - n16, n16, scale=True)
+        if R:
+            tomfall((POLE - R) * 16, R * 16, scale=False)
     # the pole: one chord through a filter that climbs for ever; the line slowly; a bass that is only its overtones
     for b in range(POLE, BOTH, 2):
         root = PEDAL[((b - POLE) // 2) % len(PEDAL)]
@@ -487,6 +525,7 @@ def song():
         {"name": "snare", "patch": kit, "gain": "3.5dB", "out": "drums", "sends": {"oh": "-1.5dB", "snr": "-10dB"},
          "fx": [{"type": "eq", "bands": ["highshelf cutoff=7000 gain=-3dB"]}]},
         {"name": "toms", "patch": kit, "gain": "4dB", "out": "drums", "sends": {"oh": "-1.5dB"}},
+        *([{"name": "falls", "patch": TOMS.split(";")[0], "gain": TOMS.split(";")[1], "pan": float(TOMS.split(";")[3]), "out": "drums", "sends": {"oh": "-1.5dB"}}] if TOMS else []),
         {"name": "cym", "patch": kit, "gain": "-4.5dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
         {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
         *([{"name": "tick", "patch": kit, "gain": TICK.split(";")[0], "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air, "at": f"{POLE * 4}b",
@@ -508,6 +547,16 @@ def song():
                                    "filters": [{"kind": "lp", "cutoff": "5k", "q": 0.6}],
                                    "amp": {"a": "6ms", "d": "500ms", "s": 0.55, "r": "150ms"}},
                          "play": {"gate": 1.0, "vel_sens": 0.3}, "gain": "-6dB"},
+            # v5: the kit's tom (ct-kit's: a struck modal head and a stick) as a pitched part, with a shorter ring so a run of them stays apart
+            **({TOMS.split(";")[0]: {"synth": {"amp": {"a": "0.2ms", "d": f"{float(TOMS.split(';')[4]) * 1.4:.2f}s", "r": "150ms", "s": 0}, "drive": 0.12,
+                                               "env": {"att": {"a": "0.1ms", "d": "5ms", "s": 0}},
+                                               "filters": [{"cutoff": 40, "kind": "hp"}, {"cutoff": "4k", "gain": "2dB", "kind": "peak", "q": 1}],
+                                               "layers": [{"type": "modal", "name": "head", "bright": {"value": 0.45, "mod": [{"src": "vel", "amount": 0.4}]},
+                                                           "damp": 0.45, "decay": f"{TOMS.split(';')[4]}s", "sharp": 70.0,
+                                                           "strike": {"value": 0.3, "mod": [{"src": "rand", "amount": 0.08}]}, "tilt": -2.0, "vary": 0.4},
+                                                          {"type": "noise", "name": "stick",
+                                                           "level": {"value": "-66dB", "mod": [{"src": "env.att", "amount": 50.0}, {"src": "vel", "amount": 8.0}]}}]},
+                                     "play": {"vel_sens": 0.55}}} if TOMS else {}),
         },
         "buses": {
             "hall": {"fx": ["reverb kind=hall decay=4.5s mix=1 predelay=30ms low_cut=150"]},
