@@ -500,6 +500,25 @@ def fill(b, kind="toms"):
             drum("s", b * 16 - 8 + i, 0.5 + 0.06 * i)
 
 
+# v21: THE CLOCK THAT OPENS THE SONG IS A MUSIC BOX (palette round). The song opened on the left guitar and a
+# "pendulum": the kit's ride bell on one and three. Harry has now turned that pendulum down twice where it was
+# exposed: under the drift ("doesnt work at this tempo on this kit piece") and at the end ("Sounds like a click
+# track"); both went at v17, and the music boxes that replaced them he kept ("Music boxes: keep them", "An ending:
+# keep it"). The same ride bell still opened the song, as exposed as anywhere: one guitar and a tick. Now the opening's
+# clock is the LEFT MUSIC BOX: tick on the bar line (the riff's F, two octaves over the boxes' riff), tock on three
+# (the C under it). One clock, on the left, with the left guitar; the instrument that takes the riff when the guitars
+# let go (2:44) and that the song ends on. So the song begins and ends on the same clock.
+# the track ; the tick's semitones over the song's low F ; the tock's ; the tick's velocity ; the tock's. "" = v20.
+CLOCK = os.environ.get("C10T2_CLOCK", "ml;60;55;1.0;0.85") if BOX else ""
+
+
+def box_clock(b0, b1):
+    tr, up1, up2, v1, v2 = CLOCK.split(";")
+    for b in range(b0, b1):
+        T.setdefault(tr, []).append({"at": b * 4, "len": 0.5, "pitch": nm(F1 + int(up1)), "vel": float(v1)})          # tick
+        T.setdefault(tr, []).append({"at": b * 4 + 2, "len": 0.5, "pitch": nm(F1 + int(up2)), "vel": float(v2)})      # tock
+
+
 def pendulum(b0, b1, vel=0.42):
     for b in range(b0, b1):
         drum("rb", b * 16, vel * 1.12)       # tick
@@ -509,7 +528,10 @@ def pendulum(b0, b1, vel=0.42):
 def compose():
     # one clock: no introduction (Common Time has the long wait; this starts). The left guitar alone with the riff and a
     # pendulum; then the bass and the kick under it
-    pendulum(0, 8)
+    if CLOCK:
+        box_clock(0, 8)
+    else:
+        pendulum(0, 8)
     T.setdefault("home", []).append({"at": 0, "len": 32.2, "pitch": "F1", "vel": 0.55})
     riff("gl", 0, 8, vel=0.85)
     if OPEN:                             # v9: the other guitar's chugs join with the bass and the kick: the riff's skeleton, on the right
