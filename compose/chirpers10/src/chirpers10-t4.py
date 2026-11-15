@@ -76,6 +76,33 @@ G_MAIN, G_DBL = ("gl", "gr"), ("gl2", "gr2")
 TUNE = os.environ.get("C10T4_TUNE", "lead-monster;-13.5dB;36;-12dB")
 
 
+# v3: THE SECOND COUNT IS SAID QUIETLY (whole song). The scorer's one weak term on this song said something true: its
+# sections were all one loudness (a range of 1.7 dB) and one density. The riff is added up twice, and both times the
+# band came in a third of the way through and stayed. Now the second sum, the one from the riff's END (bars 49-82, on
+# B), is the song's quiet middle. The marimba counts the first eight statements alone, as it did; then a CLEAN GUITAR
+# says them with it (the album's `ct-glass`: bridge and middle coils, a small miked amp), an octave over the riff, its
+# low notes short and its hook notes ringing; at the seventeenth a second clean guitar on the other side (`ct-clean`:
+# a neck coil, chorus); at the twenty-fifth the bass and the kick come back, on the riff's accents and hook notes
+# only. The hat keeps time; no snare. The band waits for the LAST FOUR statements (the 29th, 2:33, on a crash): seven
+# and a half bars of the riff nearly whole, into the total on C. So something joins at each stage, the low end is
+# gone for forty seconds, and you hear the riff's ending said clean twenty-eight times before the band says it.
+# (First with the bass and kick back at the seventeenth: by loudness the stretch was 2.5 dB under the band, but by
+# plain level only 1.6: the low end had never left. The scorer said so, and it was right.)
+# the clean guitar on the left ; on the right ; their gains ; semitones over the riff ; the statement the first
+# joins ; the second ; the band ; their hall send ; the statement the bass and kick come back, softly. "" = v2.
+CLEAN = os.environ.get("C10T4_CLEAN", "ct-glass;ct-clean;8dB;8dB;12;9;17;29;-9dB;25")
+# THE BASS'S TONE FOLLOWS THE KEY (the fault found on Plain Hunt at its v11, owed here since): the bass's eq was cut
+# to the low F, and off it the bass alone lost 3 to 5 dB from 120 Hz up on A flat and 8 to 10 on B and C (`keyshape`).
+# The three bands fitted to the ground now follow it (a lane `key` on the bass's bus, semitones over F). "" = v2.
+# (`all` makes the two fixed bands, 350 Hz and 1500 Hz, follow too. Tried at the bench and worse: on B and C the bass
+# alone then read 8 dB down at 500 Hz-2 kHz where the three leave it 5 down.)
+KEYEQ = os.environ.get("C10T4_KEYEQ", "1")
+
+
+def key_f(hz):
+    return {"value": hz, "mod": [{"src": "auto.key", "amount": round(1 / 12, 5)}]}
+
+
 def tune(b0, root, reps, vel=0.9):
     """The riff's hook notes alone, each held until the next, over `reps` statements of the whole riff from bar b0."""
     hooks = [(i, int(k)) for i, k in enumerate(RIFF) if k not in "ocr-"]
@@ -97,7 +124,7 @@ def drum(piece, s16, vel):
     T.setdefault(tr, []).append({"at": round(s16 / 4, 4), "len": 2.0 if piece in ("c", "x") else 0.5 if piece == "h" else 0.25, "pitch": piece, "vel": round(vel, 3)})
 
 
-def say(t, a, b, root, gtrs, kick=True, low=True, wood=False):
+def say(t, a, b, root, gtrs, kick=True, low=True, wood=False, soft=False, clean=()):
     """Places a..b-1 of the riff, from sixteenth t, on the guitars `gtrs`, the bass (`low`) and the kick; on the
     marimba too with `wood`. A statement that begins inside a held note strikes it again; one that ends inside it
     cuts it short."""
@@ -118,25 +145,32 @@ def say(t, a, b, root, gtrs, kick=True, low=True, wood=False):
         at = t + (i - a)
         if wood:
             add("wood", at, 2, F1 + root + 24 + (0 if kind in "oc" else int(kind)), 0.95 if kind == "o" else 0.6 if kind == "c" else 0.85)
+        up = int(CLEAN.split(";")[4]) if clean else 0
         if kind == "o":
             for tr in gtrs:
                 add(tr, at, n, F1 + root, 1.0)
+            for tr in clean:
+                add(tr, at, 2, F1 + root + up, 0.9)
             if low:
-                add("bass", at, n, F1 + root, 0.95)
+                add("bass", at, 2 if soft else n, F1 + root, 0.8 if soft else 0.95)
             if kick and low:
-                drum("k", at, 0.95)
+                drum("k", at, 0.8 if soft else 0.95)
         elif kind == "c":
             for tr in gtrs:
                 add(tr, at, n, F1 + root, 0.88, pm=1)
-            if low:
+            for tr in clean:
+                add(tr, at, 0.6, F1 + root + up, 0.55)
+            if low and not soft:
                 add("bass", at, n, F1 + root, 0.85)
-            if kick and low:
+            if kick and low and not soft:
                 drum("k", at, 0.85)
         else:
             for tr in gtrs:
                 add(tr, at, n, F1 + root + int(kind), 0.95)
+            for tr in clean:
+                add(tr, at, n + 1, F1 + root + up + int(kind), 0.85)
             if low:
-                add("bass", at, n, F1 + root + int(kind), 0.9)
+                add("bass", at, n, F1 + root + int(kind), 0.75 if soft else 0.9)
         i += n
 
 
@@ -182,7 +216,19 @@ def compose():
     fill(BACK)
     # the back-build: statement k is the riff's LAST k places. On B
     t = BACK * 16
+    if CLEAN:                             # v3: the second count is said quietly; the band waits for the last four statements
+        c1, c2, cb = (int(x) for x in CLEAN.split(";")[5:8])
     for k in range(1, N + 1):
+        if CLEAN:
+            band = k >= cb
+            say(t, N - k, N, 6, G_MAIN + G_DBL if band else (), low=k >= int(CLEAN.split(";")[9]), soft=not band, wood=k < cb,
+                clean=() if band or k < c1 else ("cl",) if k < c2 else ("cl", "cr"))
+            if k == cb:
+                for i, pc in enumerate(["t1", "t2", "ft", "s"]):
+                    drum(pc, t - 4 + i, 0.6 + 0.08 * i)
+                drum("c", t, 0.9)
+            t += k
+            continue
         gtrs = () if k < 25 else G_MAIN + G_DBL
         say(t, N - k, N, 6, gtrs, low=k >= 17, wood=k < 29)   # the marimba alone; then with the bass and kick; then the band
         if k == 25:
@@ -190,8 +236,13 @@ def compose():
         t += k
     assert t == TOTAL2 * 16
     beat(BACK, BACK + 9, cym="h", vel=0.45)
-    beat(BACK + 9, BACK + 19, snare=(8,), cym="h", step=2, vel=0.55)
-    beat(BACK + 19, TOTAL2, snare=(4, 12), cym="x", vel=0.5)
+    if CLEAN:
+        bb = BACK + (cb * (cb - 1) // 2) // 16          # the bar the band comes in
+        beat(BACK + 9, bb, cym="h", step=2, vel=0.5)
+        beat(bb, TOTAL2, snare=(4, 12), cym="x", vel=0.5)
+    else:
+        beat(BACK + 9, BACK + 19, snare=(8,), cym="h", step=2, vel=0.55)
+        beat(BACK + 19, TOTAL2, snare=(4, 12), cym="x", vel=0.5)
     drum("c", (TOTAL2 - 2) * 16, 0.9)
     fill(TOTAL2)
     # the total again: on C, then home on F
@@ -234,6 +285,8 @@ def song():
         {"name": "gr2", "patch": dbl.format(23), "gain": GD, "pan": 0.75, "out": "gtrs"},
         {"name": "wood", "patch": "modal-marimba", "gain": os.environ.get("C10T4_WOOD", "-14dB"), "pan": -0.15, "sends": {"hall": "-10dB"}},
         *([{"name": "lead", "patch": TUNE.split(";")[0], "gain": TUNE.split(";")[1], "pan": 0, "sends": {"hall": TUNE.split(";")[3]}}] if TUNE else []),
+        *([{"name": tr, "patch": CLEAN.split(";")[i], "gain": CLEAN.split(";")[2 + i], "pan": (-0.5, 0.5)[i], "sends": {"hall": CLEAN.split(";")[8]}}
+           for i, tr in enumerate(("cl", "cr"))] if CLEAN else []),
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
         {"name": "kick", "patch": kit, "gain": "2dB", "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]},
         {"name": "snare", "patch": kit, "gain": "3.5dB", "out": "drums", "sends": {"oh": "-1.5dB", "snr": "-10dB"},
@@ -260,9 +313,15 @@ def song():
             "oh": {"fx": ["reverb kind=room decay=0.7s mix=1 predelay=4ms low_cut=5000 high_cut=12000 spread=0.6", {"type": "eq", "bands": ["lp cutoff=14250 q=0.8"]}]},
             "snr": {"fx": [{"type": "eq", "bands": ["peak cutoff=300 q=0.7 gain=-12dB"]}]},
             "gtrs": {"fx": [{"type": "eq", "bands": ["peak cutoff=330 q=1.2 gain=-2dB"]}, "reverb kind=room decay=0.35s mix=0.06 predelay=6ms"]},
-            "low": {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
-                           {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
-                           {"type": "eq", "bands": ["peak cutoff=170 q=1.2 gain=-3dB"]}]},
+            "low": ({"fx": [{"type": "eq", "bands": [{"kind": "peak", "cutoff": key_f(44), "q": 1.5, "gain": "-7dB"}, {"kind": "peak", "cutoff": key_f(90), "q": 1.0, "gain": "7.5dB"},
+                                                     {"kind": "peak", "cutoff": key_f(350) if KEYEQ == "all" else 350, "q": 1.0, "gain": "-8dB"}, {"kind": "peak", "cutoff": key_f(1500) if KEYEQ == "all" else 1500, "q": 1.0, "gain": "4dB"}]},
+                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
+                            {"type": "eq", "bands": [{"kind": "peak", "cutoff": key_f(170), "q": 1.2, "gain": "-3dB"}]}],
+                     "auto": {"key": {"points": [["0b", 0]] + [pt for (b, k), prev in zip(((TOTAL1 + 8, 3), (BACK, 6), (TOTAL2, 7), (TOTAL2 + 8, 0)), (0, 3, 6, 7))
+                                                                for pt in ([f"{b * 4 - 0.02:g}b", prev], [f"{b * 4:g}b", k])], "curve": 0}}} if KEYEQ else
+                    {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
+                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
+                            {"type": "eq", "bands": ["peak cutoff=170 q=1.2 gain=-3dB"]}]}),
         },
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": os.environ.get("C10T4_MASTER", "2.7dB")}]},
         "tracks": tracks,

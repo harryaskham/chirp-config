@@ -271,6 +271,10 @@ Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber"
 
 **The total has a tune (v2).** The riff has nine notes that are not the low string: A flat, B, G flat, C, then E flat, B, A flat, G flat, C: the album's hook. In the riff they pass in a sixteenth or two. When the first total moves up to A flat (1:25) a lead guitar plays only those nine, each held until the next, each starting exactly where the riff strikes it: the tune that was inside the riff, drawn out over the band. (The second total does not have it yet.)
 
+**The second count is said quietly (v3).** The riff is added up twice, and both times the band came in a third of the way through and stayed. Now the second sum (from the riff's END, bars 49-82, on B) is the song's quiet middle, and it is staged like a sum: the marimba counts eight statements alone; a clean guitar says them with it from the ninth (`ct-glass`, left, an octave over the riff, its low notes short and its hook notes ringing); a second clean guitar from the seventeenth (`ct-clean`, right); the bass and kick come back at the twenty-fifth, on the accents and hook notes only; the band comes in for the last four statements (the 29th, 2:33, on a crash). The hat keeps time; no snare until the band. The low end is gone for forty seconds.
+
+**The bass follows the key (v3).** The fault found on Plain Hunt at its v11: the bass's eq was cut to the low F. Its three bands fitted to the ground now follow it (A flat, B, C).
+
 ## t5 False Summit (chirper-zero)
 
 Harry, 15 Nov about 12:38: "true djent, but that leverages audio illusions throughout mainly risers/shpehers but in djent style, really make it a clear illlusory song, all about the illusions". 100 bpm, F, 108 bars, 4:24.
