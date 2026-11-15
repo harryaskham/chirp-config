@@ -99,6 +99,29 @@ CLEAN = os.environ.get("C10T4_CLEAN", "ct-glass;ct-clean;8dB;8dB;12;9;17;29;-9dB
 KEYEQ = os.environ.get("C10T4_KEYEQ", "1")
 
 
+# v4: THE TUNE IS ADDED UP TOO (section round, 2:50-3:23: the second total, which the section map called static: the
+# whole riff eight times, as the first total was, and without the first total's tune). The riff was a sum; now its
+# tune is one. Over the second total the lead plays the riff's hook notes as the riff strikes them, but only the first
+# TWO in the first statement, holding the second; the first three in the next; one more each statement. The total is
+# eight statements and the tune has nine notes, so the tune is whole exactly once: in the last statement, at home on
+# F, as the melt begins to take the riff apart. (The riff took thirty-two statements to be whole; its tune takes
+# eight.) And the kit shapes the stretch: half time on C (the snare on three, the china on the beats) while the tune
+# is short, the backbeat when the key comes home.
+# hook notes in the first statement ; the kit on C (`half` = half time; anything else = the backbeat). "" = v3.
+TUNE2 = os.environ.get("C10T4_TUNE2", "2;half") if TUNE else ""
+
+
+def tune_sum(b0, roots, first):
+    """The riff's hook notes over the statements from bar b0, one more each statement, each held until the next and
+    the last to the statement's end."""
+    hooks = [(i, int(k)) for i, k in enumerate(RIFF) if k not in "ocr-"]
+    for r, root in enumerate(roots):
+        m = min(len(hooks), first + r)
+        for j in range(m):
+            i, semi = hooks[j]
+            add("lead", (b0 + 2 * r) * 16 + i, (hooks[j + 1][0] if j + 1 < m else N) - i, F1 + root + int(TUNE.split(";")[2]) + semi, 0.9)
+
+
 def key_f(hz):
     return {"value": hz, "mod": [{"src": "auto.key", "amount": round(1 / 12, 5)}]}
 
@@ -249,7 +272,13 @@ def compose():
     for i in range(8):
         say((TOTAL2 + 2 * i) * 16, 0, N, 7 if i < 4 else 0, G_MAIN + G_DBL)
         drum("c", (TOTAL2 + 2 * i) * 16, 0.9 if i in (0, 4) else 0.7)
-    beat(TOTAL2, MELT, snare=(4, 12), cym="x", step=2, vel=0.5)
+    if TUNE2:                             # v4: the tune is added up over the second total
+        tune_sum(TOTAL2, [7 - 12] * 4 + [0] * 4, int(TUNE2.split(";")[0]))      # on C an octave under: the tune rises as it comes home
+    if TUNE2 and TUNE2.split(";")[1] == "half":
+        beat(TOTAL2, TOTAL2 + 8, snare=(8,), cym="x", step=4, vel=0.55)
+        beat(TOTAL2 + 8, MELT, snare=(4, 12), cym="x", step=2, vel=0.5)
+    else:
+        beat(TOTAL2, MELT, snare=(4, 12), cym="x", step=2, vel=0.5)
     fill(TOTAL2 + 8)
     fill(MELT)
     # the melt: the riff loses its first place each time; the band thins with it

@@ -275,6 +275,8 @@ Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber"
 
 **The bass follows the key (v3).** The fault found on Plain Hunt at its v11: the bass's eq was cut to the low F. Its three bands fitted to the ground now follow it (A flat, B, C).
 
+**The tune is added up too (v4).** Section round, the second total (2:50-3:23). The riff was a sum; now its tune is one. Over the second total the lead plays the riff's hook notes as the riff strikes them, but only the first two in the first statement (the second held); one more each statement. Eight statements and nine notes: the tune is whole exactly once, in the last statement, at home on F, as the melt begins. On C it is an octave under, so it rises as it comes home. The kit is in half time on C and takes the backbeat when the key comes home.
+
 ## t5 False Summit (chirper-zero)
 
 Harry, 15 Nov about 12:38: "true djent, but that leverages audio illusions throughout mainly risers/shpehers but in djent style, really make it a clear illlusory song, all about the illusions". 100 bpm, F, 108 bars, 4:24.
