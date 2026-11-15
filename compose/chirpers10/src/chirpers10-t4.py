@@ -66,6 +66,25 @@ assert TOTAL1 == sum(range(1, N + 1)) // 16 and BACK - TOTAL1 == 16 and TOTAL2 -
 G_MAIN, G_DBL = ("gl", "gr"), ("gl2", "gr2")
 
 
+# v2: THE TOTAL HAS A TUNE (section round, 1:25-1:41: the second half of the first total, which the section map
+# called static: once the riff is whole it was played eight times and nothing else happened). The riff has nine notes
+# that are not the low string: A flat, B, G flat, C, then E flat, B, A flat, G flat, C: the album's hook, the notes
+# Common Time's riffs grow. In the riff they pass in a sixteenth or two. Now, when the total moves up to A flat, a LEAD
+# GUITAR plays only those nine, each held until the next: the tune that was inside the riff all along, drawn out of it
+# over the band, in the riff's own time (each lead note starts exactly where the riff strikes it).
+# the patch ; its gain ; semitones over the riff ; its hall send. "" = v1.
+TUNE = os.environ.get("C10T4_TUNE", "lead-monster;-13.5dB;36;-12dB")
+
+
+def tune(b0, root, reps, vel=0.9):
+    """The riff's hook notes alone, each held until the next, over `reps` statements of the whole riff from bar b0."""
+    hooks = [(i, int(k)) for i, k in enumerate(RIFF) if k not in "ocr-"]
+    for r in range(reps):
+        for j, (i, semi) in enumerate(hooks):
+            nxt = hooks[j + 1][0] if j + 1 < len(hooks) else N + (hooks[0][0] if r + 1 < reps else 0)
+            add("lead", (b0 + 2 * r) * 16 + i, nxt - i, F1 + root + int(TUNE.split(";")[2]) + semi, vel)
+
+
 def add(tr, s16, len16, pitch, vel, **expr):
     n = {"at": round(s16 / 4, 4), "len": round(len16 / 4 * 0.98, 4), "pitch": nm(pitch) if isinstance(pitch, int) else pitch, "vel": round(vel, 3)}
     if expr:
@@ -156,6 +175,8 @@ def compose():
     for i in range(8):
         say((TOTAL1 + 2 * i) * 16, 0, N, 0 if i < 4 else 3, G_MAIN + G_DBL)
         drum("c", (TOTAL1 + 2 * i) * 16, 0.9 if i in (0, 4) else 0.7)
+    if TUNE:                              # v2: on A flat the lead draws the riff's hook out of it
+        tune(TOTAL1 + 8, 3, 4)
     beat(TOTAL1, BACK, snare=(4, 12), cym="x", step=2, vel=0.5)
     fill(TOTAL1 + 8)
     fill(BACK)
@@ -212,6 +233,7 @@ def song():
         {"name": "gl2", "patch": dbl.format(22), "gain": GD, "pan": -0.75, "out": "gtrs"},
         {"name": "gr2", "patch": dbl.format(23), "gain": GD, "pan": 0.75, "out": "gtrs"},
         {"name": "wood", "patch": "modal-marimba", "gain": os.environ.get("C10T4_WOOD", "-14dB"), "pan": -0.15, "sends": {"hall": "-10dB"}},
+        *([{"name": "lead", "patch": TUNE.split(";")[0], "gain": TUNE.split(";")[1], "pan": 0, "sends": {"hall": TUNE.split(";")[3]}}] if TUNE else []),
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
         {"name": "kick", "patch": kit, "gain": "2dB", "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]},
         {"name": "snare", "patch": kit, "gain": "3.5dB", "out": "drums", "sends": {"oh": "-1.5dB", "snr": "-10dB"},

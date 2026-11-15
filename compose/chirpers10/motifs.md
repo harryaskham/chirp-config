@@ -262,3 +262,5 @@ Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber"
 | 129-131 | 4:27 | one chord |
 
 **Its own colour.** A marimba (`modal-marimba`, a rosewood bar): wood, where Odd Sympathy has a music box and Plain Hunt has bells.
+
+**The total has a tune (v2).** The riff has nine notes that are not the low string: A flat, B, G flat, C, then E flat, B, A flat, G flat, C: the album's hook. In the riff they pass in a sixteenth or two. When the first total moves up to A flat (1:25) a lead guitar plays only those nine, each held until the next, each starting exactly where the riff strikes it: the tune that was inside the riff, drawn out over the band. (The second total does not have it yet.)
