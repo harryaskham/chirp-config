@@ -129,6 +129,13 @@ drew three in one night. It is the composer's to set and to take off again; say 
   from 250 Hz up, the mix read "+1 at 60-120, -2 at 120-250", and Harry's "more bass" on one such stretch was
   answered with a fader. When his ear asks for MORE of a part in one place, read the part alone there against
   itself elsewhere before reaching for level.
+- **Does the endless thing hold?** `tools/endless.py SONG TRACK,TRACK FROM-TO --cycle 1bar` (a Shepard scale, a
+  Risset rhythm, a barber pole, a riser that never arrives): the illusion's parts alone, one cycle against the
+  next (level, bands, the centroid's drift in octaves a cycle: a real climb reads 1.00), a LONGER cycle under it
+  (parts that take turns and are not alike), the song's notes cycle by cycle, and the inside of the cycle with
+  the wrap (a SAW-TOOTH is a run undone at the wrap: the riser starting again). `chirpers.py illusion` says the
+  part LEADS; this says the illusion HOLDS. Neither says an ear hears it climb. An illusion on a distorted
+  guitar is written out a copy a track with fader lanes (the engine's `risset` fades ahead of the amp).
 - **An eq band's cutoff rides a lane too**: `{"kind": "peak", "cutoff": {"value": 44, "mod": [{"src": "auto.key",
   "amount": 0.08333}]}, "q": 1.5, "gain": "-7dB"}` on a bus with a lane `key` in semitones over the home ground (a
   frequency mod is in octaves, so 1/12 a semitone). The mend for a rig fitted to one key.
