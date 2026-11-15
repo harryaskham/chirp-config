@@ -314,3 +314,5 @@ Form as arithmetic: every section's start is computed from its length (`FOOT`, `
 **The tick (v2).** In the pole the hat's quarters are a tick that speeds up for ever: the engine's own `risset` on a kit track (it works on a drum: no amp to flatten the copies' fades). The plain form of the turn, alone, as the foot is the plain form of the stair.
 
 **The bass keeps the bar (v2).** Under the turn and under both the bass strikes every beat (it held one long note a bar, and a long note of this bass is all 120-250 Hz).
+
+**The stair has a tune (v3).** The line was the scale straight up: the plain form, right for the first eight bars with the band, and not a tune. From bar 16 it is a FIGURE: up two steps of the scale, back one, up two, back one, each bar starting three steps above the last: F A-flat G-flat B A-flat C | B E-flat C F E-flat G-flat. Two bars, ending an octave above where it began and beginning again there: it climbs an octave every two bars and is never higher. Same eight guitars, same bell, same six places in the bar. The kit takes the backbeat where it comes in. The first bars again at the end are the scale, as at the start.

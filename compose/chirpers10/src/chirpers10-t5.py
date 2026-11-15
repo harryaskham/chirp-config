@@ -111,6 +111,18 @@ TICK = os.environ.get("C10T5_TICK", "22dB;0.9;0.6;4")
 #   the descent was 2.4 dB over at 120-500 Hz, part of it the falling rumble: 2 dB off it.
 # strokes of the bass to the bar in the turn and in both ("" = v1: one long note).
 ANCHOR = os.environ.get("C10T5_ANCHOR", "4")
+# v3: THE STAIR HAS A TUNE (whole song). The line was the scale, straight up: the plain form, and right for the first
+# eight bars. But a scale is not a tune, and the band played it for twenty-two bars. From bar 16 the line is a FIGURE:
+# up two steps of the scale, back one, up two, back one (F A-flat G-flat B A-flat C | B E-flat C F E-flat G-flat), six
+# notes on the bar's 3 3 3 3 2 2 as before, each bar starting three steps above the last. So it is a two-bar tune that
+# ends an octave above where it began and begins again there: it climbs an octave every two bars and is never higher.
+# The same eight guitars on the same bell play it; the kit takes the backbeat where it comes in (it was at bar 20).
+# the bar the figure starts ; its six notes, in steps of the scale over the bar's first ; steps a bar climbs. "" = v2.
+FIGURE = os.environ.get("C10T5_FIGURE", "16;0,2,1,3,2,4;3")
+# THE EIGHT GUITARS' OWN REGISTER. Read against the eleven records by part (v2), the stair stood 3.7 dB over them at
+# 500 Hz-1 kHz and the eight guitars held 58% of that band (both: 2.8 over). One eq band on each of the eight.
+# frequency : q : dB. "" = v2.
+VEQ = os.environ.get("C10T5_VEQ", "700:1:-2.5")
 LANE = {v: [(0.0, FLOOR)] for v in range(VOICES)}       # each voice's fader, (beat, dB)
 BLANE = {w: [(0.0, FLOOR)] for w in range(2)}           # the descent's two basses
 KEY = [(0.0, 0)]                                        # the ground under the bass's eq, (beat, semitones over F)
@@ -179,10 +191,15 @@ def line(b0, b1, gtrs=True, synth=True, slow=1, rot=None):
     """THE STAIR. The six notes climbing, an octave a bar (`slow` 2: half an octave a bar), on the Shepard tone and on
     the three guitars a side. Guitar v is in octave (v + bar) mod 3 of its three, and its fader is the bell there."""
     n, rot = 0, b0 if rot is None else rot
+    fig = [int(x) for x in FIGURE.split(";")[1].split(",")] if FIGURE and slow == 1 and gtrs and b0 == RISE else None
     for b in range(b0, b1):
         acc = ACC if slow == 1 else (0, 6, 12)
         for i, a in enumerate(acc):
-            k, octave = n % 6, n // 6
+            d = n                                  # the step of the scale: straight up
+            if fig and b >= int(FIGURE.split(";")[0]):   # v3: the figure, from the octave the scale had reached
+                bf = int(FIGURE.split(";")[0])
+                d = 6 * (bf - b0) + int(FIGURE.split(";")[2]) * (b - bf) + fig[i]
+            k, octave = d % 6, d // 6
             n16 = (acc[i + 1] if i + 1 < len(acc) else 16) - a
             t = b * 16 + a
             if synth:
@@ -337,8 +354,9 @@ def compose():
     R = int(RUNS.split(";")[0]) if RUNS else 0
     line(RISE, TIME - R)
     pedal(RISE, TIME)
-    beat(RISE, RISE + 12, snare=(8,), cym="x", stepc=4)
-    beat(RISE + 12, TIME - R, snare=(4, 12), cym="x", stepc=2)
+    back = int(FIGURE.split(";")[0]) if FIGURE else RISE + 12        # the backbeat comes in with the figure
+    beat(RISE, back, snare=(8,), cym="x", stepc=4)
+    beat(back, TIME - R, snare=(4, 12), cym="x", stepc=2)
     if R:                                # v2: the stair hands over on a run, the snare doubling under it
         run(TIME - R, TIME)
         beat(TIME - R, TIME, snare=(), cym="x", stepc=2, crash=0)
@@ -432,7 +450,8 @@ def song():
         {"name": "gl", "patch": heavy.format(30), "gain": GH, "pan": -1, "out": "gtrs"},
         {"name": "gr", "patch": heavy.format(31), "gain": GH, "pan": 1, "out": "gtrs"},
         *[{"name": f"v{v}{side}", "patch": voice.format(32 + i if ONE else 32 + 2 * v + i), "gain": {"value": GV, "mod": [{"src": "auto.bell", "amount": 1}]},
-           "pan": (-1, 1)[i] * (float(ONE) if ONE else (0.9, 0.75, 0.6, 0.45)[v]), "out": "gtrs", "auto": {"bell": {"points": pts(LANE[v]), "curve": 0}}}
+           "pan": (-1, 1)[i] * (float(ONE) if ONE else (0.9, 0.75, 0.6, 0.45)[v]), "out": "gtrs", "auto": {"bell": {"points": pts(LANE[v]), "curve": 0}},
+           **({"fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*VEQ.split(":"))]}]} if VEQ else {})}
           for v in range(VOICES) for i, side in enumerate("lr")],
         {"name": "pl", "patch": heavy.format(40), "gain": os.environ.get("C10T5_POLE", "-1dB"), "pan": -0.8, "out": "pole"},
         {"name": "pr", "patch": heavy.format(41), "gain": os.environ.get("C10T5_POLE", "-1dB"), "pan": 0.8, "out": "pole"},
