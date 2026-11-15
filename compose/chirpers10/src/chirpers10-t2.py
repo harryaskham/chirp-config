@@ -512,6 +512,29 @@ def fill(b, kind="toms"):
 CLOCK = os.environ.get("C10T2_CLOCK", "ml;60;55;1.0;0.85") if BOX else ""
 
 
+# v22: IN EVERY SLIP YOU HEAR THE TWO CLOCKS (palette round). Each time the right guitar slides a sixteenth further
+# ahead (four slips: 0:53, 1:11, 1:46, 2:04) the kit thinned to a kick on the bar line and a hat counting quarters, "so
+# the slip is heard". The hat goes, and two MUSIC BOXES take its place: a left one that ticks on one and tocks on
+# three, on the song's clock, and a right one written on the same beats but on the RIGHT GUITAR'S clock (the track
+# `warp`; nothing is shifted by hand). So as the right guitar slides, the right tick slides with it: in the first
+# slip the two ticks start together and pull apart until they are a sixteenth apart; in each later slip they start
+# as far apart as the hold before and widen by one more. The slip is the song's whole idea, and now each one states
+# it with nothing but two clocks ticking: the same instrument that opens the song, takes the riff when the guitars let
+# go, and ends it. Harry on the slips: "A thrill", and "add".
+# the patch ; its gain ; the pan ; the tick's velocity ; the tock's ; the hall send ; the spring's mix. "" = v21.
+SLIPCLOCK = os.environ.get("C10T2_SLIPCLOCK", "music-box;-7dB;0.7;1.0;0.85;-9dB;0.22") if BOX else ""
+
+
+def slip_clock(b0, b1, root=0):
+    """The two clocks through a slip: the same ticks on `bl` (the song's time) and `br` (the right guitar's)."""
+    v1, v2 = float(SLIPCLOCK.split(";")[3]), float(SLIPCLOCK.split(";")[4])
+    up = 60 if root == 0 else 48                 # F6 and C6 on F; an octave lower on another ground
+    for b in range(b0, b1):
+        for tr in ("bl", "br"):
+            T.setdefault(tr, []).append({"at": b * 4, "len": 0.5, "pitch": nm(F1 + root + up), "vel": v1})
+            T.setdefault(tr, []).append({"at": b * 4 + 2, "len": 0.5, "pitch": nm(F1 + root + up - 5), "vel": v2})
+
+
 def box_clock(b0, b1):
     tr, up1, up2, v1, v2 = CLOCK.split(";")
     for b in range(b0, b1):
@@ -591,8 +614,10 @@ def compose():
                 bass(b0, b1, root=root)
                 for b in range(b0, b1):
                     drum("k", b * 16, 0.85)
-                    for p in range(0, 16, 4):
+                    for p in (range(0, 16, 4) if not SLIPCLOCK else ()):
                         drum("h", b * 16 + p, 0.45)
+                if SLIPCLOCK:
+                    slip_clock(b0, b1, root)
                 fill(b1, "snare")
             continue
         if ONE and lead == 1:            # the hold a sixteenth apart: the union, on C (v8)
@@ -609,8 +634,10 @@ def compose():
         if lead is None:                 # a slip: the beat thins to a kick on the bar line and a hat, so the slip is heard
             for b in range(b0, b1):
                 drum("k", b * 16, 0.85)
-                for p in range(0, 16, 4):
+                for p in (range(0, 16, 4) if not SLIPCLOCK else ()):
                     drum("h", b * 16 + p, 0.45)
+            if SLIPCLOCK:
+                slip_clock(b0, b1, root)
             fill(b1, "snare" if b1 - b0 < 4 else "toms")
         else:
             groove(b0, b1, lead, snare=(4, 12) if lead in (2, 4) else (8,), cym="h" if lead == 2 else "rd" if lead == 4 else "x")
@@ -801,6 +828,9 @@ def song():
            for tr, sgn in (("ml", -1), ("mr", 1))] if BOX else
           [{"name": "cl", "patch": CLEAN, "gain": "1dB", "pan": -0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP]},
            {"name": "cr", "patch": CLEAN, "gain": "1dB", "pan": 0.7, "sends": {"hall": "-9dB"}, "fx": [DRIP], "warp": WARP}]),
+        *([{"name": tr, "patch": SLIPCLOCK.split(";")[0], "gain": SLIPCLOCK.split(";")[1], "pan": sgn * float(SLIPCLOCK.split(";")[2]),
+            "sends": {"hall": SLIPCLOCK.split(";")[5]}, "fx": [{**DRIP, "mix": float(SLIPCLOCK.split(";")[6])}],
+            **({"warp": WARP} if tr == "br" else {})} for tr, sgn in (("bl", -1), ("br", 1))] if SLIPCLOCK else []),
         *([{"name": "tc", "patch": "voice-talk", "gain": sg[1], "pan": 0, "sends": {"hall": sg[4]},
             "fx": [{"type": "eq", "bands": sg[6].split("|")}, "reverb kind={} decay={} mix={} predelay=6ms".format(*sg[3].split(":"))]}]
           + ([{"name": tr, "patch": sg[5].split(":")[0], "gain": sg[5].split(":")[1], "pan": sgn * float(sg[5].split(":")[2]), "sends": {"hall": sg[4]},
