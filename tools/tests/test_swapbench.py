@@ -32,7 +32,8 @@ with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "calls.log"),
 beat = 60.0 / song["tempo"]
 start, end = (float(a[a.index(k) + 1].rstrip("b")) for k in ("--from", "--to"))
 x = np.zeros(int((end - start) * beat * 48000))
-PARTIALS = {"deep": {1: 0.2}, "teeth": {h: 0.05 for h in range(8, 13)}, "thin": {1: 0.05}}
+PARTIALS = {"deep": {1: 0.2}, "teeth": {h: 0.05 for h in range(8, 13)}, "thin": {1: 0.05}, "wash": {1: 0.2}}
+RINGS = {"wash": 0.5}                      # a patch that plays on past its notes' written ends, as loud, for half a beat
 if any(t.get("patch") == "broken" for t in song["tracks"]):
     sys.exit("unknown patch `broken`")
 for t in song["tracks"]:
@@ -41,7 +42,8 @@ for t in song["tracks"]:
         if isinstance(fx, str) and fx.startswith("gain gain="):
             gain *= 10 ** (float(fx[len("gain gain="):-2]) / 20)
     for n in t.get("notes") or []:
-        i, k = int((n["at"] - start) * beat * 48000), int(n["len"] * beat * 48000)
+        i = int((n["at"] - start) * beat * 48000)
+        k = min(int((n.get("len", 0.1) + RINGS.get(t["patch"].split()[0], 0)) * beat * 48000), len(x) - i)
         tt = np.arange(k) / 48000
         f0 = 43.65 * (2 if n["pitch"] == "F2" else 1)
         x[i:i + k] += gain * sum(amp * np.sin(2 * np.pi * f0 * h * tt) for h, amp in PARTIALS[t["patch"].split()[0]].items())
@@ -192,6 +194,38 @@ class Bench(unittest.TestCase):
         with self.assertRaises(SystemExit) as e:
             self.run_tool("bass,lead", "3-5", "teeth")
         self.assertIn("several tracks are read together only with no PATCH", str(e.exception))
+
+    def test_the_parts_rests(self):
+        """A part of eighth notes with eighth rests (250 ms at 120): the engine's patches stop dead with the note; `wash`
+        plays on as loud for half a beat, so it FILLS THE RESTS."""
+        song = {"tempo": 120, "tracks": [
+            {"name": "chug", "patch": "deep", "notes": [{"at": i, "len": 0.5, "pitch": "F1"} for i in range(8)]},
+            {"name": "kit", "patch": "deep", "notes": [{"at": i, "pitch": "F1"} for i in range(8)]}]}
+        bench = S.keybench.bench(song, ["chug"], 0.0, 8.0, 0)
+        notes, rests = S.written(bench, ["chug"], 0.0, 120.0)
+        self.assertEqual((len(notes), len(rests), notes[1]), (8, 7, (0.5, 0.75)))
+        self.assertEqual([round(v, 4) for v in rests[0]], [0.375, 0.5])           # the second half of the rest at 0.25-0.5 s
+        self.assertEqual(S.written(S.keybench.bench(song, ["kit"], 0.0, 8.0, 0), ["kit"], 0.0, 120.0), (None, None))
+        path = os.path.join(self.root, "chug.json")
+        with open(path, "w") as f:
+            json.dump(song, f)
+        rows = S.table(path, "chug", 0.0, 8.0, [("thin", 0.0), ("wash", 0.0)], True, self.pin, self.root)
+        got = {(r["patch"], r["how"]): r["rest_db"] for r in rows}
+        self.assertEqual((got[("deep", "as it is")], got[("thin", "swap")], rows[0]["rests"]), (S.REST_FLOOR_DB, S.REST_FLOOR_DB, 7))
+        self.assertAlmostEqual(got[("wash", "swap")], 0.0, delta=0.3)             # as loud in its rests as in its notes
+        self.assertAlmostEqual(got[("wash", "layer")], -6.0, delta=0.5)           # two in the notes, one in the rests
+        lines = S.rest_lines(rows, [S.label(r, 44) for r in rows], 16)
+        self.assertIn("the part's rests (7 of 60 ms or more as written)", lines[0])
+        self.assertEqual(len(lines), 6)
+        self.assertTrue(lines[1].rstrip().endswith("-60.0   as it is"), lines[1])
+        self.assertEqual([("FILLS THE RESTS" in ln) for ln in lines[1:]], [False, False, False, True, True])
+        self.assertIn("60.0 dB less of a stop than as it is", lines[4])
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            S.main([path, "chug", "0b-8b", "--pin", self.pin])
+        self.assertIn("its rests (7 of 60 ms or more as written): -60.0 dB against its notes", out.getvalue())
+        code, text = self.run_tool("bass", "3-5", "thin")                         # no rest in the window: nothing is added
+        self.assertEqual((code, "rests" in text), (0, False))
 
     def test_what_it_refuses(self):
         for argv, said in ((("nosuch", "3-5", "teeth"), "no track nosuch"), (("bass", "20-22", "teeth"), "no notes there"),

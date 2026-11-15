@@ -27,10 +27,16 @@ new sound's weight sits is read off the bench and not found on the full render (
 voice benched by loudness, presence and words, not by band, put its passage 6.3 dB over the records at 250-500 Hz;
 "a band table of the voice alone would have said it in ten seconds").
 With no PATCH it is that table for the part as it is; several tracks (tc,sl,sr) are read together as one part.
+and, when the part has RESTS in the window (60 ms or more between its notes as written), THE PART'S RESTS: for the
+part as it is and for each patch, the level in the SECOND HALF of each rest (of its first quarter second at most:
+by then a note's own release is over) against the level in the notes. -10 is a stop; 0 is a rig that plays through
+its rests (chirper-zero, Running Total v6: the plain wall rig read a riff's sixteenth rests AS LOUD as the chug
+before them, its stop form 7 to 8 dB down, and the band table could not show it).
 What the rows say:
   LOSES ...       a swap takes 3 dB or more out of a band the part holds (within 15 dB of its own total): what a
                   layer would keep
   NOT THERE       a layer moves no band by 0.5 dB: it is under its own part (raise it, PATCH@+4, and read again)
+  FILLS THE RESTS a patch's rests are 3 dB or more nearer its notes than the present part's: less of a stop
 A band where neither patch has anything (60 dB under the part's total, and still 45 under with the new patch) is
 printed as a dot: its difference is noise. (--json keeps the number.)
 What it cannot say: how either sounds; what the rest of the band covers (tools/presence.py against the part it
@@ -40,6 +46,7 @@ the track goes; a layer on another bus is the song's to try.
 Read-only. Tests: tools/tests/test_swapbench.py.
 """
 import json
+import math
 import os
 import shutil
 import sys
@@ -60,6 +67,11 @@ HOLDS_DB = -15.0      # a band the part "holds": within this of its own total
 LOSES_DB = -3.0       # a swap that takes this much out of such a band loses it
 THERE_DB = 0.5        # a layer that moves no band by this much is not there
 EMPTY_DB = (-60.0, -45.0)   # a band this far under the part's total, and still this far under on the new patch, is empty
+REST_S = 0.06         # a written gap this long between the part's notes is a rest (a sixteenth at 240 is 62 ms) ...
+REST_READ_S = 0.25    # ... read in the second half of its first quarter second at most: past the note's own release
+                      # (a gated rig is still up for 30-40 ms), before the room's tail is all that is left
+FILLS_DB = 3.0        # rests this much nearer the notes than the present part's: FILLS THE RESTS
+REST_FLOOR_DB = -60.0  # nothing reads deeper than this
 
 
 def candidate(text):
@@ -112,6 +124,48 @@ def reading(row, base):
     return "NOT THERE" if max(abs(d) for d, own in zip(row["bands"], base) if not empty(own, d)) < THERE_DB else ""
 
 
+def written(bench, tracks, b0, tempo):
+    """(notes, rests) of the part in a bench song, each [(start, end)] in seconds from the bench render's start (beat
+    b0): when its notes are written to sound (the tracks together), and where each gap of REST_S or more between them
+    is read: the second half of its first REST_READ_S at most. (None, None) when a note has no written length: a
+    kit's hit has no rest to read."""
+    spans = []
+    for name in tracks:
+        where, i = find(bench["tracks"], name)
+        for n in where[i].get("notes") or []:
+            ln = n.get("len")
+            if isinstance(ln, bool) or not isinstance(ln, (int, float)) or ln <= 0:
+                return None, None
+            a = (float(n.get("at") or 0) - b0) * 60.0 / tempo
+            spans.append((a, a + float(ln) * 60.0 / tempo))
+    notes = []
+    for a, b in sorted(spans):
+        if notes and a <= notes[-1][1] + 1e-9:
+            notes[-1][1] = max(notes[-1][1], b)
+        else:
+            notes.append([a, b])
+    rests = [(b + min(nxt - b, REST_READ_S) / 2, b + min(nxt - b, REST_READ_S))
+             for (_, b), (nxt, _) in zip(notes, notes[1:]) if nxt - b >= REST_S - 1e-9]
+    return [tuple(n) for n in notes], rests
+
+
+def rest_depth(wav, notes, rests):
+    """The level in the part's rests against the level in its notes, in dB (negative: quieter in the rests; never
+    under REST_FLOOR_DB). None when there is nothing to read."""
+    x = likeness.load(wav).astype(float)
+
+    def power(spans):
+        tot, n = 0.0, 0
+        for a, b in spans:
+            seg = x[max(0, int(round(a * likeness.SR))):max(0, int(round(b * likeness.SR)))]
+            tot, n = tot + float((seg ** 2).sum()), n + seg.size
+        return tot / n if n else None
+    held, gap = power(notes), power(rests)
+    if not held or gap is None:
+        return None
+    return round(max(REST_FLOOR_DB, 10 * math.log10(gap / held + 1e-12)), 1)
+
+
 def lufs(wav):
     """The loudness of a bench render (K-weighted, gated, as LUFS)."""
     return levels.loudness(likeness.load(wav), likeness.SR)[0]
@@ -120,7 +174,8 @@ def lufs(wav):
 def table(song, track, b0, b1, cands, layer, pin, where):
     """[{patch, db, how ("as it is" | "swap" | "layer"), bands, all, own, says}] for the track's notes in beats
     b0..b1: `bands` in dB against the part as it is (the first row's against its own total), `own` each row's bands
-    against ITS OWN total. `track` may be several ("tc,sl,sr": one part) when there are no candidates."""
+    against ITS OWN total. `track` may be several ("tc,sl,sr": one part) when there are no candidates. When the
+    part has written rests there, every row has `rest_db` (rest_depth) and the first `rests`, how many."""
     doc = songfmt.load(song)
     tracks = track.split(",")
     if len(tracks) > 1 and cands:
@@ -139,6 +194,10 @@ def table(song, track, b0, b1, cands, layer, pin, where):
     base, loud = keybench.band_levels(wav), lufs(wav)
     own = [round(v - base[-1], 1) for v in base[:-1]]
     rows = [{"patch": now, "db": 0.0, "how": "as it is", "bands": own, "all": 0.0, "own": own, "says": ""}]
+    notes, gaps = written(bench, tracks, b0, float(doc.get("tempo", 120)))
+    depth = rest_depth(wav, notes, gaps) if gaps else None
+    if depth is not None:
+        rows[0].update(rest_db=depth, rests=len(gaps))
     n = 0
     for patch, db in cands:
         for how in ("swap", "layer") if layer else ("swap",):
@@ -153,8 +212,27 @@ def table(song, track, b0, b1, cands, layer, pin, where):
             row["says"] = reading(row, own)
             if how == "swap":                      # the dB more of it that makes the part alone as loud as it is now
                 row["match_db"] = round(loud - lufs(wav), 1)
+            if depth is not None:
+                row["rest_db"] = rest_depth(wav, notes, gaps)
             rows.append(row)
     return rows
+
+
+def rest_lines(rows, names, width):
+    """The lines of THE PART'S RESTS (none when the part has no written rest in the window)."""
+    if "rest_db" not in rows[0]:
+        return []
+    base = rows[0]["rest_db"]
+    out = [f"  the part's rests ({rows[0]['rests']} of {REST_S * 1000:.0f} ms or more as written): the level in each one's second "
+           f"half (of its first {REST_READ_S * 1000:.0f} ms at most) against the level in its notes, dB"]
+    for r, n in zip(rows, names):
+        d = r.get("rest_db")
+        if d is None:
+            continue
+        says = "as it is" if r["how"] == "as it is" else (
+            f"FILLS THE RESTS: {d - base:.1f} dB less of a stop than as it is" if d - base >= FILLS_DB else "")
+        out.append(f"  {n:{width}s}{d:+8.1f}" + ("   " + says if says else ""))
+    return out
 
 
 def label(r, width):
@@ -208,6 +286,9 @@ def main(argv=None):
         print(f"  {'':16s}" + "".join(s.rjust(8) for s in LABELS))
         print(f"  {'its own shape':16s}" + "".join(f"{v:+8.1f}" for v in rows[0]["own"]) + f"   {rows[0]['patch']}")
         print("  (each band against the part's own total, in dB)")
+        if "rest_db" in rows[0]:
+            print(f"  its rests ({rows[0]['rests']} of {REST_S * 1000:.0f} ms or more as written): {rows[0]['rest_db']:+.1f} dB against "
+                  f"its notes in each one's second half (of its first {REST_READ_S * 1000:.0f} ms at most)")
         return 0
     print(f"{os.path.basename(path)} {track} at {window}: the same notes on other patches, alone through the track's own effects, "
           "bus and master")
@@ -227,6 +308,8 @@ def main(argv=None):
     for r, n in zip(rows, names):
         if r["how"] != "layer":
             print(f"  {n:{width}s}" + "".join(f"{v:+8.1f}" for v in r["own"]))
+    for line in rest_lines(rows, names, width):
+        print(line)
     return 0
 
 

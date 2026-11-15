@@ -55,3 +55,31 @@ def test_score_uses_the_ensemble_only_for_form_terms(monkeypatch):
     assert r["terms"]["structure"] == round(10.0 * 13 / 3, 2) and r["terms"]["length"] == 50.0
     r = C.score({**ctx, "section_sets": None, "sections": sets[0]})   # default: no ensemble anywhere
     assert r["terms"] == {"structure": 30.0, "length": 30.0} and "ensemble" not in r["detail"]["structure"]
+
+
+def _sec(a, b, level=-14.0, density=6.0, tilt=0.0):
+    return {"a": a, "b": b, "level": level, "density": density, "profile": np.full(9, tilt)}
+
+
+def test_a_short_section_that_carries_a_form_term_is_named():
+    """Six long sections alike, and the last chord cut off as four seconds of its own with no attacks in it: variety's
+    density cv is all that section. The note names its seconds and both readings; nothing else changes."""
+    body = [_sec(i * 45.0, (i + 1) * 45.0, density=6.0 + 0.1 * (i % 2)) for i in range(6)]
+    chord = _sec(270.0, 274.0, density=0.0)
+    ctx = {"dur": 276.0, "sections": body + [chord], "section_sets": None}
+    terms = {"structure": C.m_structure(ctx)[0], "variety": C.m_variety(ctx)[0]}
+    note = C.short_section_note(ctx, terms)
+    assert note.startswith("A SHORT SECTION CARRIES A FORM TERM: 270-274 s (under 3% of the render): ")
+    without = C.m_variety({**ctx, "sections": body})[0]
+    assert f"variety {terms['variety']:.1f} ({without:.1f} without)" in note and terms["variety"] - without > 20
+    assert C.short_section_note({**ctx, "sections": body}, terms) == ""                    # no short section: nothing
+    edges = [0.0, 20.0, 80.0, 110.0, 180.0, 220.0, 270.0]                                  # uneven, as a song's are
+    even = [_sec(a, b, density=3.0 + 3.0 * (i % 2), level=-14.0 - 6.0 * (i % 2)) for i, (a, b) in enumerate(zip(edges, edges[1:]))]
+    busy = {"dur": 276.0, "sections": even + [_sec(270.0, 274.0, density=4.0, level=-16.0)], "section_sets": None}
+    got = {"structure": C.m_structure(busy)[0], "variety": C.m_variety(busy)[0]}
+    assert C.short_section_note(busy, got) == ""                                           # short, but it carries nothing
+    sets = [body, body + [chord], body + [chord]]                                           # the album's cuts: their mean
+    ens = {"dur": 276.0, "sections": sets[1], "section_sets": sets, "novelty_thresholds": [0.1, 0.2, 0.3]}
+    mean = float(np.mean([C.m_variety({**ens, "sections": s})[0] for s in sets]))
+    assert f"variety {mean:.1f} ({without:.1f} without)" in C.short_section_note(ens, {"variety": mean})
+    assert "structure" not in C.short_section_note(ens, {"variety": mean})                 # a term not scored is not read

@@ -12,6 +12,8 @@ SONG is an id (songs/ID.yaml) or a file; the TRACKs are the illusion's parts, re
 own effects, bus and master with the groove's engine, from the top, so lanes, faders and tails are the song's.
 FROM-TO are positions as `chirp render --from/--to` take them (bars from 1: 9-33 is bars 9 to 32). --cycle is the
 illusion's period: 1bar, 4bars, 16b (beats) or 2.4s. With --wav: a render you already have, cut to the passage.
+A cycle SHORTER THAN A BAR is asked in beats, with a slice a stroke: a fill falling a semitone a sixteenth comes round
+every twelve, so `falls 71-73 --cycle 3b --steps 12` (False Summit v5: two cycles of 35 notes, the same; it holds).
 
 It prints
   ONE CYCLE LATER: each cycle's level, nine bands and centroid against the other cycles: the spread, and the

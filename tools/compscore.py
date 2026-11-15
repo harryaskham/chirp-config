@@ -242,6 +242,37 @@ def ensemble(fn, ctx):
     return float(np.mean([s for s, _ in runs])), d
 
 
+SHORT_SHARE = 0.03     # a section under this share of the render is SHORT ...
+SHORT_POINTS = 5.0     # ... and CARRIES a form term when the term reads this many points apart without the short ones
+
+
+def short_section_note(ctx, terms):
+    """One line when SHORT sections carry structure or variety, or "" when none does. Both terms count a section as
+    one whatever its length: variety's level range, timbre spread and density cv are taken over the sections
+    unweighted, structure's count and length cv likewise, so a few seconds cut off as a section of their own can move
+    them as far as a new passage would (chirper-zero, Running Total v6: the last chord, 4 s of 276, read on a new rig,
+    became a section at every cut; its density of nothing took density_cv 0.08 -> 0.45, variety 48.8 -> 72.7,
+    structure 89.5 -> 98.0, six points of the total, and the passage the round was about is a seam at no cut).
+    Nothing in the score changes: this says which seconds the points sit on. terms: the scored terms."""
+    sets = ctx.get("section_sets") or [ctx["sections"]]
+    least = SHORT_SHARE * ctx["dur"]
+    short = [(round(s["a"]), round(s["b"])) for secs in sets for s in secs if s["b"] - s["a"] < least]
+    if not short:
+        return ""
+    moved = []
+    for name, fn in (("structure", m_structure), ("variety", m_variety)):
+        if name not in terms:
+            continue
+        without = float(np.mean([fn({**ctx, "sections": [s for s in secs if s["b"] - s["a"] >= least]})[0] for secs in sets]))
+        if abs(terms[name] - without) >= SHORT_POINTS:
+            moved.append(f"{name} {terms[name]:.1f} ({without:.1f} without)")
+    if not moved:
+        return ""
+    where = ", ".join(f"{a}-{b} s" for a, b in sorted(set(short)))
+    return (f"A SHORT SECTION CARRIES A FORM TERM: {where} (under {SHORT_SHARE:.0%} of the render): {'; '.join(moved)}. A section "
+            "counts as one whatever its length, so those points say where a seam fell, not how much of the song changed")
+
+
 def section_feats(F, x, bounds, X=None):
     X = frames(F) if X is None else X
     out = []
@@ -889,6 +920,9 @@ def main(argv=None):
         note = edge_note(shares, *recurrence_band(ctx.get("album")))
         if note:
             print(f"  {note} (tools/secsim.py shows which sections return)")
+        note = short_section_note(ctx, res["terms"])           # only when it is so, as above
+        if note:
+            print(f"  {note} (tools/secsim.py shows the sections at each cut)")
         return
     print(json.dumps(res, default=float))
 
