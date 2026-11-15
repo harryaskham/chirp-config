@@ -535,6 +535,23 @@ def slip_clock(b0, b1, root=0):
             T.setdefault(tr, []).append({"at": b * 4 + 2, "len": 0.5, "pitch": nm(F1 + root + up - 5), "vel": v2})
 
 
+# v23: THE BASS'S TONE FOLLOWS THE KEY (a mix round, found on Plain Hunt at its v11). The bass's bus has an eq cut to
+# the low F: a notch on its fundamental (44 Hz), a lift on its octave (90 Hz), a compressor after them, a cut at four
+# times the fundamental (170 Hz). When the ground moves the fundamental climbs into the lift, the compressor clamps on
+# it and everything above it is pushed down. Alone, the bass's 120-250 Hz is 7.2 dB under its total on F, 12.4 on
+# A flat, 12.4 on B and 18.3 on C; its 1-2 kHz growl 16.0, 19.0, 21.6, 25.5. So in the holds on A flat and B the bass
+# lost its body, and on C nearly all of it: which is very likely what Harry heard when he asked for "more bass" on C.
+# Now the three bands follow the ground (a lane `key` on the bus, semitones over F; the engine bends a frequency in
+# octaves) IN THE HOLDS ON A FLAT AND B. The hold on C is left exactly as it is: Harry signed it off ("Enough") with
+# 3 dB more bass, and whether it should have its tone back in place of that is on the Questions page.
+# bar from : bar to : semitones over F, comma-separated. "" = v22.
+KEYEQ = os.environ.get("C10T2_KEYEQ", "36:48:3,48:56:6")
+
+
+def key_f(hz):
+    return {"value": hz, "mod": [{"src": "auto.key", "amount": round(1 / 12, 5)}]}
+
+
 def box_clock(b0, b1):
     tr, up1, up2, v1, v2 = CLOCK.split(";")
     for b in range(b0, b1):
@@ -810,6 +827,14 @@ def song():
             lowride += [[f"{74 * 4}b", 0], [f"{76 * 4}b", -float(LETGO.split(";")[3])], [f"{88 * 4}b", -float(LETGO.split(";")[3])]]
             lowride += [[f"{92 * 4}b", float(LOCK.split(";")[2])], [f"{98 * 4}b", 0]] if LOCK else [[f"{90 * 4}b", 0]]      # v12: the bass's pedal swells into the lock
     lowride = lowride if len(lowride) > 1 else None
+    key_lane = [["0b", 0]]                   # v23: the ground under the bass's eq, semitones over F
+    for seg in (KEYEQ.split(",") if KEYEQ else []):
+        k0, k1, semi = [float(x) for x in seg.split(":")]
+        if key_lane[-1][0] == f"{k0 * 4:g}b":     # one hold straight into the next
+            key_lane = key_lane[:-2] + [[f"{k0 * 4 - 0.02:g}b", key_lane[-2][1]], [f"{k0 * 4:g}b", semi]]
+        else:
+            key_lane += [[f"{k0 * 4 - 0.02:g}b", 0], [f"{k0 * 4:g}b", semi]]
+        key_lane += [[f"{k1 * 4 - 0.02:g}b", semi], [f"{k1 * 4:g}b", 0]]
     talkfx = ([TALKFX] if TALKFX else []) + ([{"type": "eq", "bands": TALKEQ.split("|")}] if TALKEQ else [])
     sg = SUNG.split(";") if SUNG and HEARD and VOICE else None
     pump = [{"type": "pump", "on": tr, "depth": f"-{(sg[2] if sg else hd[3].split(':')[0]) if tr == 'tc' else hd[4]}dB", "attack": "4ms", "hold": hd[3].split(":")[1], "release": hd[3].split(":")[2]}
@@ -893,11 +918,15 @@ def song():
                      "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.go", "amount": 1}]} if LETGO else "0dB"}]
                            + ([{"type": "eq", "bands": [f"peak cutoff={GBODY.split(':')[0]} q={GBODY.split(':')[1]} gain={GBODY.split(':')[2]}dB"]}] if GBODY else []) + ([f"reverb kind={beam[0]} decay={beam[1]} mix={beam[2]} predelay=6ms"] if TWIN else [])
                      + (pump if HEARD else [{"type": "duck", "by": "tl", "depth": f"-{vo[4]}dB", "attack": "20ms", "release": "250ms"}] if VOICE and float(vo[4]) else [])},
-            "low": {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
-                           {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
-                           {"type": "eq", "bands": ["peak cutoff=170 q=1.2 gain=-3dB"]}]
+            "low": {"fx": ([{"type": "eq", "bands": [{"kind": "peak", "cutoff": key_f(44), "q": 1.5, "gain": "-7dB"}, {"kind": "peak", "cutoff": key_f(90), "q": 1.0, "gain": "7.5dB"},
+                                                     {"kind": "peak", "cutoff": 350, "q": 1.0, "gain": "-8dB"}, {"kind": "peak", "cutoff": 1500, "q": 1.0, "gain": "4dB"}]},
+                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
+                            {"type": "eq", "bands": [{"kind": "peak", "cutoff": key_f(170), "q": 1.2, "gain": "-3dB"}]}] if KEYEQ else
+                           [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
+                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
+                            {"type": "eq", "bands": ["peak cutoff=170 q=1.2 gain=-3dB"]}])
                            + ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}]}}] if lowride else []),
-                    **({"auto": {"ride": {"points": lowride, "curve": 0}}} if lowride else {})},
+                    **({"auto": {**({"ride": {"points": lowride, "curve": 0}} if lowride else {}), **({"key": {"points": key_lane, "curve": 0}} if KEYEQ else {})}} if lowride or KEYEQ else {})},
         },
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": f"{1.6 + (float(TWIN.split(';')[2]) if TWIN else 0) + (float(SNARE.split(';')[4]) if SNARE and SNARE.split(';')[4:] else 0) + (float(MIX.split(';')[3]) if MIX else 0) + V14_MAKEUP:g}dB"}]},
         "tracks": tracks,
