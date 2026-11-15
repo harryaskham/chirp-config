@@ -242,6 +242,8 @@ The bare lead is in both cycles on purpose: with it in the first only, the score
 - the bass alone at 2:32 ("Too long alone"): four rows, not eight (2.5 bars for 5); the guitars come in on a crash at 2:37.
 - the harmony guitars at 3:47 ("Keep it, louder"): 3 dB up.
 
+**The bass follows the key (v11).** A mix round, no notes changed. The bass's eq was cut to the low F; on A flat, B and C its fundamental climbed into the eq's lift and its body and growl were pushed down. The eq's three low bands now move with the ground, so the bass keeps on B and C the shape it has on F.
+
 ## t4 Running Total (chirper-zero)
 
 Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber". The album's fourth kind of long cycle: a SUM.
@@ -267,4 +269,32 @@ Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber"
 
 **The total has a tune (v2).** The riff has nine notes that are not the low string: A flat, B, G flat, C, then E flat, B, A flat, G flat, C: the album's hook. In the riff they pass in a sixteenth or two. When the first total moves up to A flat (1:25) a lead guitar plays only those nine, each held until the next, each starting exactly where the riff strikes it: the tune that was inside the riff, drawn out over the band. (The second total does not have it yet.)
 
-**The bass follows the key (v11).** A mix round, no notes changed. The bass's eq was cut to the low F; on A flat, B and C its fundamental climbed into the eq's lift and its body and growl were pushed down. The eq's three low bands now move with the ground, so the bass keeps on B and C the shape it has on F.
+## t5 False Summit (chirper-zero)
+
+Harry, 15 Nov about 12:38: "true djent, but that leverages audio illusions throughout mainly risers/shpehers but in djent style, really make it a clear illlusory song, all about the illusions". 100 bpm, F, 108 bars, 4:24.
+
+A false summit is the top you can see from below that is not the top. The piece is built on the two illusions of endless motion, and THE BAND plays them (they are not a pad behind the band). Its long cycle is one that never completes.
+
+**The stair (a Shepard scale on guitars).** A line climbs the album's six notes (F, G flat, A flat, B, C, E flat), six notes to the bar on the bar's 3 3 3 3 2 2, an octave every bar, for ever, and is never higher. Four guitars a side play it an octave apart (F1 to E5). Each climbs through all four octaves, and its fader is a bell over where it is: nothing at the bottom, full two octaves up (F3), nothing at the top, where it drops back to the bottom unheard. Three faders a third apart on such a bell always add to the same power, so every bar is the same bar and every bar starts higher than the last. Under it the low string chugs sixteenths (F, F, A flat, E flat, a bar each), open where the line's notes fall, the kick on those six.
+
+**The turn (a Risset rhythm on guitars).** One bar of the low F (`occoccoc` in eighths: 3 3 2) at three speeds an octave of speed apart, all speeding up together, each doubling over four bars while the fastest fades out and the slowest fades in: faster and faster, never faster. The speed rises in a STRAIGHT LINE, not the usual curve, and that closes the arithmetic: in four bars the three play 3, 6 and 12 bars of the riff, so at every fourth bar line all three and the kit are together, and inside the cycle a chug falls on every bar line (the speeds there are 5:4, 3:2, 7:4 of the kit's). The three are always exactly 1 : 2 : 4, so they share one grid: it is one riff, not three. The snare, the china and the bass keep four in a bar.
+
+**The descent.** The stair downwards and all of it: the whole riff, chugs and all, a step of the scale lower every bar on the four guitars a side (and two basses an octave apart on their own bell), under an endless falling rumble (the library's `shepard-fall`). A tuning that keeps dropping.
+
+**The pole.** A breath: one chord through a filter that climbs for ever (`barberpole`), the line at half speed on the Shepard tone, and a bass that is only its second to sixth harmonics (`phantom-bass`): the ear supplies the note.
+
+**Both.** Pitch and speed rise together, as a tape speeding up does: each guitar climbs an octave of the scale while it doubles its speed. An endless riser (`fx-riser-endless`) swells over the last eight bars and stops dead.
+
+**The summit.** A bar of nothing, then the stair's first four bars exactly (the same notes on the same guitars at the same tempo), and one chord. After four minutes of climbing the band is where it started.
+
+| bars | | |
+|---|---|---|
+| 0-8 | the foot | the stair alone on a Shepard tone (the plain form of the illusion first), then the guitars take it up |
+| 8-32 | the stair | the band; half time, then the backbeat from bar 20 |
+| 32-48 | the turn | four cycles |
+| 48-72 | the descent | four octaves down |
+| 72-84 | the pole | the riser comes in at bar 80 |
+| 84-100 | both | four cycles; the riser from bar 92 |
+| 100-108 | the summit | silence, the stair's first bars, one chord |
+
+Form as arithmetic: every section's start is computed from its length (`FOOT`, `RISE`, `TIME`, `FALL`, `POLE`, `BOTH`, `STOP`, `HOME`, `END`), the cycle from `CYCLE`, the bells from `VOICES` and `ROLES`.
