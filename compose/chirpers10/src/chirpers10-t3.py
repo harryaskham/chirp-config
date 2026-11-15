@@ -142,7 +142,17 @@ TOWER = os.environ.get("C10T3_TOWER", "fof-chant;-15.5dB;-6dB;modal-gong;-13dB;F
 # until the row and the bar line meet again) the guitars rest and the bass, the kick, the snare and the bell carry
 # the row; then the four guitars come in on the crash.
 # the patch string ; its gain ; its high-pass, Hz ; rows the guitars rest at the start ; its gain in those rows, dB over. "" = v2.
-FUZZ = os.environ.get("C10T3_FUZZ", "bass-fuzz fx.0.shape=wavefold;4dB;180;8;4")
+# v10 (Harry, of the bass alone at 2:32: "Too long alone"): four rows, not eight: two and a half bars for five. The
+# guitars come in where the fifth row starts, on a crash.
+FUZZ = os.environ.get("C10T3_FUZZ", "bass-fuzz fx.0.shape=wavefold;4dB;180;4;4")
+# v10: THE CHANT CHANTS (Harry, asked whether the chant under the bells sounded like men chanting: "dont hear
+# chamts"). It was two held notes, a fifth apart, 7 dB under the bells: a pad. Now the two voices SING A LINE: a note
+# to each row the bells ring (every three beats), stepping round the low F on the riff's own scale (F, G flat, A
+# flat), the upper voice a fifth above the lower the whole way, as the oldest two-part chant goes; and they are
+# louder. The bowed floor under them holds as it did.
+# the lower voice's line under the opening's bells | under the middle's | under the last tolls (semitones over F) ;
+# the gap between notes, beats ; the chant's gain (it was -15.5 dB). "" = v9.
+CHANT = os.environ.get("C10T3_CHANT", "0,1,0,3,0|0,0,1,0,3,1,0,1,0|0,1,0;0.25;-11.5dB") if TOWER else ""
 # v4: THE CLIMB (section round, 3:52-4:30: the last third of the second extent, which the section map called static:
 # fifteen bars of the row with the kick on every note). Over it a LEAD GUITAR now plays the row's own notes the other
 # way and sixteen times slower than the band's eighths would be: from the ground up, C D-flat E-flat G-flat G B-flat,
@@ -192,7 +202,8 @@ FORM = os.environ.get("C10T3_FORM", "c,c;1.0;40:50;bac")
 # the patch string ({} = the cone) ; the gain ; the pan ; the rows of the second extent in harmony (from:to; the call
 # after them is played in unison) ; scale steps up ; semitones up ; the two cones ; the guitars' bus under them, dB
 # (six guitars for four: without it the stretch was as loud as the stretch on C it leads to). "" = v6.
-HARM = os.environ.get("C10T3_HARM", "ct-twin fx.1.model=mark fx.2.mic=0.55 fx.2.cone={};-3dB;0.45;60:78;2;12;18,19;-0.7")
+# v10 (Harry: "Keep it, louder"): the two harmony guitars 3 dB up (-3 dB -> 0 dB) and the bus 1.2 dB under them (it was 0.7).
+HARM = os.environ.get("C10T3_HARM", "ct-twin fx.1.model=mark fx.2.mic=0.55 fx.2.cone={};0dB;0.45;60:78;2;12;18,19;-1.2")
 # v8: THE LAST STRETCH HAS ITS OWN RIG (palette round). Both cycles were played on the same four guitars: a 5150 take
 # and a `nolly` take a side, all through the engine's modern 4x12. Now, from where the key moves to C and the lead
 # begins to climb (4:12) until the landing, the SECOND pair is another rig:
@@ -298,11 +309,20 @@ def slow_rounds(b0, rows, root=0, vel=0.8):
             T.setdefault("bell", []).append({"at": b0 * 4 + (r * 6 + i) * 0.5, "len": 3.0, "pitch": nm(F1 + root + PITCH[i + 1] + 36), "vel": round(min(1.0, vel * (1.12 if i == 5 else 1.0)), 3)})
 
 
-def chant(at, beats):
-    """Two low voices a fifth apart, held."""
+def chant(at, beats, line=None, first=None, step=3.0):
+    """Two low voices a fifth apart over a bowed floor. Held (v2); or, with `line` (v10), singing a note to each
+    row of the bells from `first`, `step` beats apart, the last note held to the end."""
+    T.setdefault("drone", []).append({"at": at, "len": beats, "pitch": "F1", "vel": 0.5})
+    if CHANT and line is not None:
+        steps, gap = [int(x) for x in CHANT.split(";")[0].split("|")[line].split(",")], float(CHANT.split(";")[1])
+        for i, d in enumerate(steps):
+            t0 = first + i * step
+            ln = (at + beats - t0) if i == len(steps) - 1 else step - gap
+            for base, v in ((41, 0.6), (48, 0.5)):                   # F2 and the C above it
+                T.setdefault("chant", []).append({"at": round(t0, 4), "len": round(ln, 4), "pitch": nm(base + d), "vel": v})
+        return
     for p, v in (("F2", 0.6), ("C3", 0.5)):
         T.setdefault("chant", []).append({"at": at, "len": beats, "pitch": p, "vel": v})
-    T.setdefault("drone", []).append({"at": at, "len": beats, "pitch": "F1", "vel": 0.5})
 
 
 def gong(at, vel):
@@ -344,7 +364,7 @@ def compose():
     # the bells alone: rounds, slowly, five times; a drone under them. No band.
     slow_rounds(INTRO, 5)
     if TOWER:
-        chant(0, 15.5)
+        chant(0, 15.5, line=0, first=0)
     else:
         T.setdefault("home", []).append({"at": 0, "len": 15.5, "pitch": "F1", "vel": 0.5})
     # the band takes the row up at twice the speed: rounds, sixteen times, the row turning against the bar
@@ -371,7 +391,7 @@ def compose():
     slow_rounds(MIDDLE + 1, 9)
     if TOWER:
         gong(MIDDLE * 4, 0.9)
-        chant(MIDDLE * 4 + 2, 29.5)
+        chant(MIDDLE * 4 + 2, 29.5, line=1, first=(MIDDLE + 1) * 4)
     else:
         T.setdefault("home", []).append({"at": MIDDLE * 4, "len": 31.5, "pitch": "F1", "vel": 0.5})
         for p in ("F2", "C3"):
@@ -383,6 +403,8 @@ def compose():
                   gtrs=not FUZZ or k >= int(FUZZ.split(";")[3]), teeth=bool(FUZZ),
                   mode=lead_mode(k, CALLS_2) or ("bare" if bare[0] <= k < bare[1] else ""),
                   trs=G4B if RIG2 and k >= int(RIG2.split(";")[5]) else G4)
+    if FUZZ and FORM and int(FUZZ.split(";")[3]) % 10 not in (8, 9, 0):     # v10: the guitars' entry is not at a home any more: its own crash
+        drum("c", PART2 * 16 + int(FUZZ.split(";")[3]) * L2, 0.85)
     for i, kind in enumerate(FORM.split(";")[3] if FORM else "bac"):
         beat(PART2 + T2 * i, PART2 + T2 * (i + 1), kind, 10 ** 6 if FORM else meet(L2))
         fill(PART2 + T2 * (i + 1))
@@ -422,7 +444,7 @@ def compose():
     hit(END, 10)
     if TOWER:
         gong(END * 4, 1.0)
-        chant(END * 4 + 2, 9.5)
+        chant(END * 4 + 2, 9.5, line=2, first=END * 4 + 2, step=4.0)     # two beats after each toll: the bell, then the voices
     for i, v in enumerate((0.9, 0.7, 0.5)):
         T.setdefault("bell", []).append({"at": (END + i) * 4, "len": 4.0, "pitch": nm(F1 + 36), "vel": v})
     # v6: in a call the kit stops its beat (and the fill that led to a key change goes: the call is the fill) and rings the row
@@ -475,7 +497,7 @@ def song():
         # the bells' fader: down in the landing, where twelve slow rows of six ring into one another over the full band
         {"name": "bell", "patch": "modal-bell", "gain": {"value": os.environ.get("C10T3_BELL", "-18dB"), "mod": [{"src": "auto.lvl", "amount": 1}]}, "pan": 0.1, "sends": {"hall": "-8dB"},
          "auto": {"lvl": {"points": [["0b", 0], [f"{LAND * 4 - 1}b", 0], [f"{LAND * 4}b", BELL_LAND], [f"{END * 4 - 1}b", BELL_LAND], [f"{END * 4}b", 0]], "curve": 0}}},
-        *([{"name": "chant", "patch": TOWER.split(";")[0], "gain": TOWER.split(";")[1], "pan": -0.1, "sends": {"hall": TOWER.split(";")[2]}},
+        *([{"name": "chant", "patch": TOWER.split(";")[0], "gain": CHANT.split(";")[2] if CHANT else TOWER.split(";")[1], "pan": -0.1, "sends": {"hall": TOWER.split(";")[2]}},
            {"name": "gong", "patch": TOWER.split(";")[3], "gain": TOWER.split(";")[4], "pan": 0.2, "sends": {"hall": "-8dB"}},
            {"name": "drone", "patch": TOWER.split(";")[6], "gain": TOWER.split(";")[7], "pan": 0.2, "sends": {"hall": "-12dB"}}] if TOWER else
           [{"name": "home", "patch": "contrabass-tight", "gain": "-9dB", "pan": 0.3, "sends": {"hall": "-12dB"}},
