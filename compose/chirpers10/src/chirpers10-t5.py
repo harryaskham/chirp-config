@@ -123,6 +123,16 @@ FIGURE = os.environ.get("C10T5_FIGURE", "16;0,2,1,3,2,4;3")
 # 500 Hz-1 kHz and the eight guitars held 58% of that band (both: 2.8 over). One eq band on each of the eight.
 # frequency : q : dB. "" = v2.
 VEQ = os.environ.get("C10T5_VEQ", "700:1:-2.5")
+# v4: THE LEAD COMES DOWN (section round, 0:57-1:12: the stair's last six bars before the run; the map called the
+# stretch static, and from the band's entry at 0:19 to the turn at 1:16 nothing JOINED). A lead guitar comes in over
+# the tune and does the one thing nothing else in this song does: it really moves. It comes DOWN the scale, a note to
+# the half bar, two octaves in six bars (F5 to F3), and lands on the low F exactly where the guitars' run begins. In
+# those six bars the tune under it climbs three octaves and is no higher; the lead falls two and is two octaves lower.
+# So the one honest line in the song shows the stair up for what it is. It is the library's `lead-tape` (the
+# sustaining 8-string into a dark tape echo and a wide hall), on no other track of the album.
+# the patch ; its gain ; the bar it starts ; its top note (MIDI) ; the eight guitars under it, dB. "" = v3.
+# (At the patch's first gain, -16 dB, it read 23 dB under the mix: not there. 14 dB went on at the bench.)
+LEAD = os.environ.get("C10T5_LEAD", "lead-tape;-2dB;24;77;-1")
 LANE = {v: [(0.0, FLOOR)] for v in range(VOICES)}       # each voice's fader, (beat, dB)
 BLANE = {w: [(0.0, FLOOR)] for w in range(2)}           # the descent's two basses
 KEY = [(0.0, 0)]                                        # the ground under the bass's eq, (beat, semitones over F)
@@ -209,6 +219,8 @@ def line(b0, b1, gtrs=True, synth=True, slow=1, rot=None):
                 g = db(bell(p / (12 * VOICES))) + TRIM["line"]
                 if g <= -45:
                     continue
+                if LEAD and b0 == RISE and b >= int(LEAD.split(";")[2]):      # v4: the eight sit back a little under the lead
+                    g += float(LEAD.split(";")[4])
                 step(LANE[v], t / 4, g)
                 vadd(v, t / 4, n16 / 4, LINE_BASE + p, 0.95)
             n += 1
@@ -363,6 +375,13 @@ def compose():
         build(TIME - R, TIME)
     else:
         fill(TIME)
+    if LEAD:                             # v4: a lead comes down two octaves over the tune's last six bars, onto the run's first note
+        lb, top = int(LEAD.split(";")[2]), int(LEAD.split(";")[3])
+        halves = 2 * (TIME - R - lb)
+        assert halves == 12, "two octaves of a six-note scale, a note to the half bar"
+        for i in range(halves):
+            add("lead", lb * 16 + 8 * i, 8, top + 12 * (-i // 6) + SCALE[-i % 6], 0.9)
+        add("lead", (TIME - R) * 16, 4, top - 24, 0.95)
     # the turn: the chug at three speeds, speeding up for ever. The kit and the bass hold the bar
     turn(TIME, FALL)
     beat(TIME, FALL, snare=(8,), cym="x", stepc=4, crash=CYCLE)
@@ -457,6 +476,7 @@ def song():
         {"name": "pr", "patch": heavy.format(41), "gain": os.environ.get("C10T5_POLE", "-1dB"), "pan": 0.8, "out": "pole"},
         {"name": "stair", "patch": "fs-stair", "gain": {"value": synth[0], "mod": [{"src": "auto.lvl", "amount": 1}]}, "pan": 0, "sends": {"hall": synth[1]},
          "auto": {"lvl": {"points": pts(syn_lane), "curve": 0}}},
+        *([{"name": "lead", "patch": LEAD.split(";")[0], "gain": LEAD.split(";")[1], "pan": 0.1}] if LEAD else []),
         {"name": "riser", "patch": "fx-riser-endless amp.a=16b", "gain": os.environ.get("C10T5_RISER", "-18dB"), "pan": 0},
         {"name": "rumble", "patch": "shepard-fall", "gain": os.environ.get("C10T5_RUMBLE", "-21dB"), "pan": 0},
         {"name": "ghost", "patch": "phantom-bass", "gain": os.environ.get("C10T5_GHOST", "-14dB"), "pan": 0},
