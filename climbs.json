@@ -8699,7 +8699,7 @@
     {
       "id": "chirpers10-t4",
       "song": "songs/chirpers10-t4.yaml",
-      "reference": "chirpers — Track 4 (untitled)",
+      "reference": "chirpers — Running Total",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers10-t4 OUT.wav",
@@ -8715,7 +8715,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Common Time",
-        "title": "Track 4 (untitled)",
+        "title": "Running Total",
         "track": 4,
         "year": 2026
       },
