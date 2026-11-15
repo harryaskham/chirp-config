@@ -128,8 +128,11 @@ class Windows(unittest.TestCase):
         os.remove(self.log)
         self.run_tool("--to", "3", "--preroll", "8")                      # nothing to start before: the top it is
         self.assertTrue(all("--preroll" not in c for c in self.calls()))
+        os.remove(self.log)
+        self.run_tool("--from", "5", "--to", "6", "--preroll", "0")           # none: from the top, as without the flag
+        self.assertTrue(all("--from 5 --to 6" in c and "--preroll" not in c for c in self.calls()))
         with self.assertRaises(SystemExit):
-            self.run_tool("--from", "5", "--to", "6", "--preroll", "0")
+            self.run_tool("--from", "5", "--to", "6", "--preroll", "-1")
 
     def test_stereo_reads_both_channels_power(self):
         sr = P.L.SR

@@ -5,6 +5,7 @@ the piece"; the cause was that the two guitars carrying it had NO gap between no
 places, so nothing of the spring was ever heard alone. "A reader would have said so in round 38.")
 
   rests.py SONG TRACK [TRACK ...] [--min 150ms] [--from POS] [--to POS] [--tail 1s] [--pin CHIRP] [--json]
+  rests.py SONG ride:rb cym:x                  (ONE PIECE of a kit's track: where that piece plays, and its rests)
 
 SONG is an id (songs/ID.yaml) or a file; each TRACK a part with a spring, an echo, a long reverb or a ring that is
 meant to be heard. From the plan's notes alone (nothing is rendered; a track with a `warp` is read where its notes
@@ -18,6 +19,10 @@ A rest is between notes AS WRITTEN: the end of one (its `at` + `len`) and the st
 it cannot say: how long a note really rings past its written length (tools/stops.py reads that from a render), how
 loud the tail is (tools/presence.py, tools/dispersion.py), or whether the parts that sound in the rest cover it
 (tools/stembal.py --parts). Kit tracks count as sounding while their hits are written.
+WHERE ELSE DOES THIS PART PLAY? TRACK:PIECE reads one piece of a kit's track (the ride bell on the `ride` track,
+the china on `cym`), so the first line, "plays bars ...", answers it for a single drum. When an ear turns a device
+down in one place, look there for the same piece on the same pattern elsewhere: a ride-bell pendulum was mended in
+the two passages Harry was asked about and left opening the song for seven hours (chirper-zero, Odd Sympathy v21).
 Only songs in one tempo. Read-only. Tests: tools/tests/test_rests.py.
 """
 import json
@@ -59,10 +64,21 @@ def names(canon):
     return out
 
 
+def notes_of(canon, name):
+    """The notes of a track, or of ONE PIECE of a kit's track when name is "TRACK:PIECE" (ride:rb); None when there is
+    no such track."""
+    track, _, piece = name.partition(":")
+    notes = notechk.track_notes(canon, track)
+    if notes is None or not piece:
+        return notes
+    return [n for n in notes if str(n.get("pitch")) == piece]
+
+
 def sounding(canon, name):
-    """[(start, end)] in beats, merged and in order, of when the track's notes are written to sound."""
+    """[(start, end)] in beats, merged and in order, of when the track's notes (or one piece's: TRACK:PIECE) are
+    written to sound."""
     spans = sorted((float(n.get("at") or 0), float(n.get("at") or 0) + float(n.get("len") or 0))
-                   for n in notechk.track_notes(canon, name) or [])
+                   for n in notes_of(canon, name) or [])
     out = []
     for a, b in spans:
         if out and a <= out[-1][1] + 1e-9:
@@ -112,9 +128,10 @@ def read(canon, tracks, least_s, tail_s, lo_s=None, hi_s=None):
     all_spans = {n: sounding(canon, n) for n in names(canon)}
     out = []
     for name in tracks:
-        if name not in all_spans:
+        if name.partition(":")[0] not in all_spans or not (notes_of(canon, name) or []):
             raise KeyError(name)
-        passages, found = rests(all_spans[name], to_b(least_s), lo, hi)
+        mine = all_spans[name] if name in all_spans else sounding(canon, name)       # a kit's piece: its own spans
+        passages, found = rests(mine, to_b(least_s), lo, hi)
         rows = []
         for start, gap in found:
             ends_passage = gap is None or gap >= PASSAGE_BEATS
@@ -125,7 +142,7 @@ def read(canon, tracks, least_s, tail_s, lo_s=None, hi_s=None):
                          "ms": None if gap is None else round(gap * 60000.0 / tempo),
                          "out": ends_passage, "with": others_in(all_spans, name, start, listen)})
         out.append({"track": name, "passages": [[round(a, 3), round(b, 3)] for a, b in passages], "rests": rows,
-                    "notes": len(notechk.track_notes(canon, name) or [])})
+                    "notes": len(notes_of(canon, name) or [])})
     return out
 
 

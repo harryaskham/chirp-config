@@ -123,6 +123,25 @@ class Song(unittest.TestCase):
         _, text = self.run_tool("kick", "--from", "30")
         self.assertIn("song.json kick, 30 to the end: no notes there", text)
 
+    def test_one_piece_of_a_kits_track(self):
+        doc = json.loads(json.dumps(SONG))
+        doc["tracks"].append({"name": "ride", "notes": [{"at": float(b), "len": 0.5, "pitch": "rb"} for b in (0, 2, 4, 6)]
+                              + [{"at": float(b), "len": 0.5, "pitch": "rd"} for b in range(8, 40)]
+                              + [{"at": float(b), "len": 0.5, "pitch": "rb"} for b in (48, 50)]})
+        self.write(doc)
+        _, text = self.run_tool("ride:rb", "--min", "2b")
+        self.assertTrue(text.startswith("song.json ride:rb: plays bars 1-2, 13; 0 rest(s) of 2b or more"))   # the bell alone
+        _, whole = self.run_tool("ride", "--min", "2b")
+        self.assertTrue(whole.startswith("song.json ride: plays bars 1-10, 13; "))                           # the whole track
+        d = json.loads(self.run_tool("ride:rb", "--json")[1])["tracks"][0]
+        self.assertEqual((d["track"], d["notes"]), ("ride:rb", 6))
+        self.assertIn("ride", d["rests"][0]["with"] + ["ride"])                  # the track's other pieces count as others
+        self.assertEqual(R.sounding(doc, "ride:rd")[0], (8.0, 8.5))
+        for bad in ("ride:nosuch", "nosuch:rb"):
+            with self.assertRaises(SystemExit) as e:
+                self.run_tool(bad)
+            self.assertIn(f"no track {bad} with notes", str(e.exception))
+
     def test_what_it_refuses(self):
         for argv, said in ((("nosuch",), "no track nosuch with notes"), (("silent",), "no track silent with notes"),
                            (("lone", "--min", "150"), "--min and --tail take a length"), (("lone", "--from", "x"), "--from x")):

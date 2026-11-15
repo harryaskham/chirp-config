@@ -31,7 +31,7 @@ guitar: bit for bit at 8 s; the whole mix within -105 dB). A part on a bus with 
 (bd-e11da9), so the mix of such a song gains less (180 s for 256). Tails longer than SECS are cut short: 8 is plenty
 for levels. With --windows the renders start SECS before the EARLIEST window, so it pays when the windows sit
 together late in the song and costs nothing otherwise. (chirper-zero, Common Time v46: 49 tracks to bar 397 took
-about ten minutes.)
+about ten minutes.) --preroll 0 is the same as leaving it out.
 
 --stereo: EVERY LEVEL HERE IS READ FROM THE MONO SUM (left + right) unless you ask for --stereo, which reads both
 channels' power as a loudness meter does. In the mono sum a hard-panned part reads about 1.5 dB lower than the same
@@ -224,8 +224,10 @@ def main(argv=None):
         raise SystemExit("presence: give a climb ID (songs/ID.yaml) or --song FILE")
     if a.windows and (a.frm or a.to):
         raise SystemExit("presence: --windows or --from/--to, not both")
-    if a.preroll is not None and a.preroll <= 0:
-        raise SystemExit("presence: --preroll takes seconds, more than none")
+    if a.preroll is not None and a.preroll < 0:
+        raise SystemExit("presence: --preroll takes seconds")
+    if a.preroll == 0:
+        a.preroll = None                           # --preroll 0: from the top, as without it (a window at the song's start)
     for w in a.windows or []:
         if "-" not in w.partition(":")[0]:
             raise SystemExit(f"presence: --windows takes FROM-TO[:label], not {w!r}")

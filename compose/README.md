@@ -111,6 +111,10 @@ owners who rotate their own songs. Name the type in your round note. Without
 - **An effect inside a library patch can ride a lane, with no copy of the patch** (chirper-zero, Common Time v47):
   `patch: "ct-crunch-l fx.6.mix=auto.wet"` and `auto: {wet: {points: [["0b", 0.2], ["1440b", 0.7], …]}}` on the
   track. Any parameter a patch string can set takes `auto.NAME` the same way.
+- **What joins, and where else does it play?** `tools/entries.py SONG --from A --to B` lists every part that
+  enters over a stretch, in order, a kit's pieces apart (a missing step in "something joins at every landing" is a
+  gap in the list). `tools/rests.py SONG TRACK:PIECE` says where one drum of a kit plays: when Harry turns a device
+  down in one place, look for the same part elsewhere the same hour.
 - **Can it be heard?** A spring, an echo or a ring is heard in the gaps between a part's notes. `tools/rests.py
   SONG TRACK …` lists them from the plan (and what else sounds in each); a part with none says so. Harry could not
   hear a dripping spring for nine versions because the guitars carrying it never rested.
