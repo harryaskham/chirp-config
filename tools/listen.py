@@ -27,10 +27,15 @@ its clips; Harry answers there (a choice, a line of text, or both), many in one 
 asker verbatim as ONE caco message once he has been quiet for two minutes (cc chirp-eco).
   listen.py ask ALBUM --track N --title "the question" [--context TEXT] [--version v7] [--key NAME]
             [--ab "v6|v7=CLIP-ab.mp3"]... [--clip "the voice alone=CLIP.mp3"]... [--choice TEXT]... [--at SECONDS]
+            [--parts ride:rb,hat]
       --ab: ONE file holding the versions one after another with a silence between (the usual -ab clip) is cut at
             the silences into its parts, shown side by side; parts of equal length can be switched mid-phrase.
             ANY NUMBER of takes: "first|made|middle=FILE", "1|2|3|4|5=FILE" (one label a take; the row wraps).
       --clip: one file, one player. Both may repeat; a question may have neither.
+      --parts: the tracks the question is ABOUT (a kit's piece as TRACK:PIECE). When it is answered, the message that
+            brings the answer also says where else those parts play in the song as it then stands: an answer about
+            one place is often an answer about a device (a ride-bell pendulum turned down in two passages went on
+            opening the song for seven hours: chirper-zero, 15 Nov).
       --choice: the answers offered as buttons (he can always write instead). --at: where it is in the song, for an
             "open in Listen" link. --key: a later question with the same key REPLACES this one (a new version of
             the same passage), so the page never asks about a superseded clip.
@@ -152,8 +157,9 @@ def untold(qs):
     return sorted(out, key=lambda qa: qa[1]["at"] or "")
 
 
-def digest_text(album, pairs, public=None):
-    """One message for a batch of answers: every answer verbatim under its question."""
+def digest_text(album, pairs, public=None, also=None):
+    """One message for a batch of answers: every answer verbatim under its question. also(question) may give one more
+    line for a question (where else its parts play), or None."""
     who = sorted({a["by"] for _, a in pairs})
     lines = [f"{' and '.join(w.upper() for w in who)} ANSWERED {len(pairs)} QUESTION{'S' if len(pairs) != 1 else ''} "
              f"on the review page ({album}). Verbatim:", ""]
@@ -164,6 +170,9 @@ def digest_text(album, pairs, public=None):
             lines.append(f"   {a['by']} chose: {a['choice']}")
         if a["text"]:
             lines.append(f"   {a['by']} wrote: {a['text']}")
+        extra = also(q) if also else None
+        if extra:
+            lines.append(f"   {extra}")
         lines.append("")
     lines.append(f"The page: {public or PUBLIC}#a={album}&v=questions")
     lines.append(f"All of them: python3 ~/.config/chirp/tools/listen.py questions {album}")
@@ -410,7 +419,55 @@ def cut_parts(path, outs, probe=probe_silences, run=subprocess.run):
     return [round(b - a, 2) for a, b in spans]
 
 
-def ask(album, n, title, context="", version="", key="", abs_=(), clips=(), choices=(), at=None, by=None, cut=cut_parts):
+def parts_play(q, canon=None):
+    """{part: [(first bar, last bar, True when the question's own place is in it)]} for the parts a question names
+    (`parts`: tracks, or a kit's pieces as TRACK:PIECE), in the song as it stands now; {} when it names none, and
+    None for a part with no notes. Bars are counted as chirp render counts them. Raises when the song cannot be read."""
+    parts = [p for p in q.get("parts") or [] if p]
+    if not parts or not q.get("track"):
+        return {}
+    import chirpbin
+    import rests
+    if canon is None:
+        env = {k: v for k, v in os.environ.items() if k != "LD_LIBRARY_PATH"}
+        r = subprocess.run([chirpbin.resolve(), "plan", "-f", os.path.join(ROOT, "songs", f"{q['track']}.yaml"), "--json"],
+                           capture_output=True, text=True, env=env, cwd=ROOT, timeout=120)
+        canon = json.loads(r.stdout)["data"]["canonical"]
+    tempo = canon.get("tempo", 120.0)
+    here = None
+    if q.get("t") is not None:                       # the stretch the question's clip covers, in beats
+        t, dur = passage_window(q)
+        here = (t * tempo / 60.0, (t + dur) * tempo / 60.0)
+    out = {}
+    for p in parts:
+        spans = rests.sounding(canon, p) if rests.notes_of(canon, p) else []
+        runs = rests.rests(spans, 0.5)[0]
+        out[p] = [(int(a // 4) + 1, int((b - 1e-6) // 4) + 1, here is not None and a < here[1] and b > here[0])
+                  for a, b in runs] or None
+    return out
+
+
+def parts_line(q, play=parts_play):
+    """The digest's line for a question that names its parts: where each plays now, the question's own place starred.
+    None when it names none or the song cannot be read (the answer still goes)."""
+    try:
+        got = play(q)
+    except Exception:                                # never hold an answer back for this
+        return None
+    if not got:
+        return None
+    said = []
+    for p, runs in got.items():
+        if not runs:
+            said.append(f"{p}: not in the song now")
+            continue
+        said.append(f"{p}: bars " + ", ".join((f"{a}" if a == b else f"{a}-{b}") + ("*" if mine else "") for a, b, mine in runs))
+    star = "; * = where this question is" if any(mine for runs in got.values() for _, _, mine in runs or []) else ""
+    return f"WHERE ITS PARTS PLAY NOW ({'; '.join(said)}{star}). An answer about one place may be an answer about the device."
+
+
+def ask(album, n, title, context="", version="", key="", abs_=(), clips=(), choices=(), at=None, by=None, cut=cut_parts,
+        parts=()):
     """Put a question on the page. abs_: [("v6|v7", FILE)] cut into side-by-side parts; clips: [(label, FILE)].
     The media is copied into DATA/ALBUM/questions/ (the clips folder is cleared after a week). Returns the question."""
     title = str(title or "").strip()
@@ -445,6 +502,8 @@ def ask(album, n, title, context="", version="", key="", abs_=(), clips=(), choi
          "version": str(version or ""), "key": str(key or ""), "title": title[:400], "context": str(context or "")[:4000],
          "media": media, "choices": [str(c)[:200] for c in choices if str(c).strip()],
          "t": None if at is None else round(float(at), 1)}
+    if [p for p in parts if str(p).strip()]:
+        q["parts"] = [str(p).strip() for p in parts if str(p).strip()]
     question_event(album, q)
     return q
 
@@ -795,12 +854,13 @@ def send_digest(album, send=None):
     with open(os.path.join(album_dir(album), "notify.log"), "a") as logf:
         for asker, group in by_asker.items():
             target = known.get(asker)
-            ok, res = send(target, digest_text(album, group)) if target and target != known.get("chirp-eco") else (True, "no agent")
+            ok, res = (send(target, digest_text(album, group, also=parts_line))
+                       if target and target != known.get("chirp-eco") else (True, "no agent"))
             logf.write(f"{now_iso()} answers x{len(group)} -> {asker or '?'}: {'ok' if ok else 'FAILED'} {res}\n")
             if ok:
                 told += [[q["id"], a["by"], a["at"]] for q, a in group]
         if known.get("chirp-eco"):
-            ok, res = send(known["chirp-eco"], digest_text(album, pairs))
+            ok, res = send(known["chirp-eco"], digest_text(album, pairs, also=parts_line))
             logf.write(f"{now_iso()} answers x{len(pairs)} -> chirp-eco: {'ok' if ok else 'FAILED'} {res}\n")
     if told:
         question_event(album, {"op": "told", "at": now_iso(), "answers": told})
@@ -1155,6 +1215,8 @@ def main(argv=None):
     p.add_argument("--clip", action="append", default=[], metavar="'LABEL=FILE'", help="one clip")
     p.add_argument("--choice", action="append", default=[], help="an answer offered as a button (repeatable)")
     p.add_argument("--at", type=float, help="where it is in the song, in seconds (an 'open in Listen' link)")
+    p.add_argument("--parts", default="", metavar="TRACK[:PIECE],...",
+                   help="the tracks the question is about: its answer's message says where else they play")
     p.add_argument("--by", help="who is asking (default: this shell's caco agent)")
     p = sub.add_parser("questions", help="the questions and every answer")
     p.add_argument("album")
@@ -1199,11 +1261,13 @@ def main(argv=None):
             return label, os.path.expanduser(path)
         try:
             q = ask(a.album, a.track, a.title, a.context, a.version, a.key, [pair(t, "--ab") for t in a.ab],
-                    [pair(t, "--clip") for t in a.clip], a.choice, a.at, a.by)
+                    [pair(t, "--clip") for t in a.clip], a.choice, a.at, a.by, parts=a.parts.split(","))
         except ValueError as e:
             raise SystemExit(f"listen: {e}") from None
         quiet_refresh_moved(a.album)
         print(f"listen: question {q['id']} is on the page: {PUBLIC}#a={a.album}&v=questions&q={q['id']}")
+        if q.get("parts"):                           # say now what the answer's message will say, so a wrong name shows
+            print("listen: " + (parts_line(q) or "its parts could not be read in the song (check --parts and --track)"))
     elif a.cmd == "questions":
         qs = [q for q in questions(a.album) if (a.track is None or q["n"] == a.track) and not (a.open and (q["answers"] or q["retired"]))]
         if a.moved:

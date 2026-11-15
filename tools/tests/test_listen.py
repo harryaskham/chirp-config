@@ -96,6 +96,33 @@ class Questions(unittest.TestCase):
         self.assertIn('   harry wrote: first line yes; "between us moves" is lost', text)
         self.assertIn("http://x/#a=chirpers10&v=questions", text)
 
+    def test_a_question_that_names_its_parts_says_where_else_they_play(self):
+        # tempo 120: a bar is two seconds. The ride bell plays bars 1-4 and 26-28; the question is about 0:50 (bar 26)
+        canon = {"tempo": 120, "tracks": [
+            {"name": "ride", "notes": [{"at": float(b), "len": 0.5, "pitch": "rb"}
+                                       for b in list(range(0, 16, 2)) + list(range(100, 112, 2))]
+             + [{"at": float(b), "len": 0.5, "pitch": "rd"} for b in range(40, 80)]},
+            {"name": "hat", "notes": [{"at": float(b), "len": 0.5, "pitch": "h"} for b in range(100, 108)]}]}
+        q = {**self.ASK, "track": "chirpers10-t2", "t": 50.0, "parts": ["ride:rb", "hat", "gone"]}
+        got = L.parts_play(q, canon)
+        self.assertEqual(got, {"ride:rb": [(1, 4, False), (26, 28, True)], "hat": [(26, 27, True)], "gone": None})
+        line = L.parts_line(q, play=lambda q: got)
+        self.assertEqual(line, "WHERE ITS PARTS PLAY NOW (ride:rb: bars 1-4, 26-28*; hat: bars 26-27*; gone: not in the song now; "
+                               "* = where this question is). An answer about one place may be an answer about the device.")
+        self.assertEqual(L.parts_play({**self.ASK, "track": "chirpers10-t2"}), {})          # it names none: nothing is planned
+        self.assertIsNone(L.parts_line({**self.ASK, "track": "chirpers10-t2"}))
+
+        def broken(q):
+            raise OSError("no pin")
+        self.assertIsNone(L.parts_line(q, play=broken))                                     # the answer still goes
+        qa = L.reduce_questions([{**q, "op": "ask"}, {"op": "answer", "id": "q1", "at": "2026-11-14T10:00:00Z", "by": "harry",
+                                                     "choice": "Sounds like a click track"}])
+        text = L.digest_text("chirpers10", L.untold(qa), public="http://x/", also=lambda q: L.parts_line(q, play=lambda q: got))
+        lines = text.splitlines()
+        i = lines.index("   harry chose: Sounds like a click track")
+        self.assertTrue(lines[i + 1].startswith("   WHERE ITS PARTS PLAY NOW (ride:rb: bars 1-4, 26-28*; hat"))
+        self.assertNotIn("WHERE ITS PARTS", L.digest_text("chirpers10", L.untold(qa), public="http://x/"))   # as before without it
+
     def test_where_a_file_of_takes_is_cut(self):
         # two takes of 18.9 s with 0.8 s between; a breath inside the first take is not the boundary
         self.assertEqual(L.split_points([(7.0, 7.4), (18.9, 19.7)], 38.6, 2), [(0.0, 18.9), (19.7, 38.6)])

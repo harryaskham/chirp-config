@@ -219,6 +219,10 @@ only in a message:
   label each ("1|2|3|4|5=FILE": five voices in one row). `--clip` is one player.
 - `--choice` are buttons; he can always write instead, or as well. One question a card: ask two things as two cards
   unless one answer covers both.
+- `--parts TRACK[:PIECE],…` NAMES THE PARTS the question is about (`--parts ride:rb,hat`). When it is answered, the
+  message that brings you his words also says where else those parts play in the song as it then stands, the
+  question's own place starred. An answer about one place is often an answer about a device: a ride-bell pendulum
+  he turned down in two passages went on opening the song for seven hours (15 Nov).
 - When a change is being taken back or softened, ask THREE WAYS in one `--ab` ("as it first was|as I made it|a
   middle=FILE": three takes with a silence between). On 14 Nov the snare asked so got one clear answer ("Now: the
   air is back") where an A/B would have had to be asked twice.
