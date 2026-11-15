@@ -212,6 +212,16 @@ HARM = os.environ.get("C10T3_HARM", "ct-twin fx.1.model=mark fx.2.mic=0.55 fx.2.
 # row of the second extent it starts at. "" = v7.
 RIG2 = os.environ.get("C10T3_RIG2", "ct-twin fx.1.model=gojira fx.2.model=1x12 fx.2.mic=0.5 fx.2.cone={};1dB;16,17;700:1:-4;500;80")
 G4B = ("gl", "gr", "jl", "jr") if RIG2 else ("gl", "gr", "gl2", "gr2")
+# v9: THE SNARE HUNTS (section round, 1:56-2:14: the last two leads of the first cycle; the map called 1:36-2:08
+# static and found nothing entering in it). The first cycle had no event of its own at its end (the second has the
+# lead's climb). Its last stretch keeps the backbeat for two leads; then, for the last two, the SNARE LEAVES THE
+# BACKBEAT AND FOLLOWS THE LONG NOTE: one stroke to each riff, exactly where the treble is. So the snare does what the
+# song is named for: it hunts. Through each lead it slides a sixteenth later each half bar, out to the back of the
+# riff and home again (bar by bar it falls on sixteenths 1 and 10, 3 and 12, 4 and 11, 2 and 9, then 0 and 8), and
+# in the lead's last bar it lands on beats one and three with the two crashes that mark home. The china's eighths and
+# the kick go on as they were, so the bar is still there to be pushed against. As many snare strokes as before.
+# the rows of the first extent where the snare hunts (from:to) ; its velocity. "" = v8.
+HUNT = os.environ.get("C10T3_HUNT", "100:118;0.95")
 CALLS_1 = [L for L, c in enumerate("pppb" * 3) if c != "p"]
 CALLS_2 = [L for L, c in enumerate("pbpbps" * 2) if c != "p"]
 BREAKS, BREAK_HITS = [], []          # the calls' spans (sixteenths) and the kit's notes in them
@@ -350,6 +360,12 @@ def compose():
     for i, kind in enumerate("abc"):
         beat(PART1 + T1 * i, PART1 + T1 * (i + 1), kind, 10 ** 6 if FORM else meet(L1))
         fill(PART1 + T1 * (i + 1))
+    if HUNT:                             # v9: the snare leaves the backbeat and follows the treble
+        r0, r1 = (int(x) for x in HUNT.split(";")[0].split(":"))
+        t0, t1 = PART1 * 16 + r0 * L1, PART1 * 16 + r1 * L1
+        T["snare"] = [n for n in T["snare"] if not (t0 / 4 <= n["at"] < t1 / 4)]
+        for k in range(r0, r1):
+            drum("s", PART1 * 16 + k * L1 + EXTENT_1[k].index(1), float(HUNT.split(";")[1]))
     # it has come round. One chord, and the bells alone again: rounds, slowly, over a drone and a pad
     hit(MIDDLE, 6)
     slow_rounds(MIDDLE + 1, 9)
