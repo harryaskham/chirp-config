@@ -27,11 +27,20 @@ its clips; Harry answers there (a choice, a line of text, or both), many in one 
 asker verbatim as ONE caco message once he has been quiet for two minutes (cc chirp-eco).
   listen.py ask ALBUM --track N --title "the question" [--context TEXT] [--version v7] [--key NAME]
             [--ab "v6|v7=CLIP-ab.mp3"]... [--clip "the voice alone=CLIP.mp3"]... [--choice TEXT]... [--at SECONDS]
-            [--parts ride:rb,hat]
+            [--parts ride:rb,hat] [--focus 4-11]
+      THE PAGE SHOWS ONE QUESTION AT A TIME and plays it by itself, the takes in turn; an answer brings the next
+      (Harry, 15 Nov: "questions are very busy and hard to even parse or answer"; "make it easy to respond, like a
+      flick thru view w autoplay, maybe with shorter more focused examples"). So: the TITLE is the question and
+      only the question, short (the page sets a title's last question large and what stands before it small);
+      what changed goes first in --context, the measurements after it (they are folded away); the --ab is 6 to 10
+      seconds ON THE CHANGE; one more clip at most; two to four choices of a few words.
       --ab: ONE file holding the versions one after another with a silence between (the usual -ab clip) is cut at
             the silences into its parts, shown side by side; parts of equal length can be switched mid-phrase.
             ANY NUMBER of takes: "first|made|middle=FILE", "1|2|3|4|5=FILE" (one label a take; the row wraps).
       --clip: one file, one player. Both may repeat; a question may have neither.
+      --focus START-END: the seconds of the --ab takes the card plays first (the whole take is one press away).
+            Without it the page finds them: from a second and a half before the takes first part, for 4 to 7
+            seconds (focus_window; takes of 11 s or less are played whole). `ask` prints what it found.
       --parts: the tracks the question is ABOUT (a kit's piece as TRACK:PIECE). When it is answered, the message that
             brings the answer also says where else those parts play in the song as it then stands: an answer about
             one place is often an answer about a device (a ride-bell pendulum turned down in two passages went on
@@ -41,6 +50,7 @@ asker verbatim as ONE caco message once he has been quiet for two minutes (cc ch
             "open in Listen" link. --key: a later question with the same key REPLACES this one (a new version of
             the same passage), so the page never asks about a superseded clip.
   listen.py questions ALBUM [--open] [--track N] [--json]     the questions and every answer
+  listen.py questions ALBUM --focus      each live question's takes and the seconds the card plays first
   listen.py questions ALBUM --moved      the live ones whose passage of the song has moved since their clips were cut,
       the furthest first. Measured from the snapshots' audio (the same seconds on the question's version and now:
       the mean difference of the band envelopes in dB; under 0.15 it sounds as it did, from 0.6 it has changed),
@@ -290,6 +300,126 @@ def envelope_diff(a, b, sr=22050):
     return round(float(np.abs(eb - ea - level)[live].mean()), 2) if live.any() else 0.0
 
 
+FOCUS_S = 7.0          # the longest stretch of an A/B a card plays first (Harry, 15 Nov: "shorter more focused examples")
+FOCUS_MIN = 4.0        # and the shortest
+FOCUS_LEAD = 1.5       # seconds of the passage before the takes part, so the change is heard arriving
+FOCUS_SLACK = 4.0      # takes within this of the focus in length are played whole (an 11 s take is short enough)
+
+
+def focus_window(takes, sr=22050, length=FOCUS_S, shortest=FOCUS_MIN, lead=FOCUS_LEAD, slack=FOCUS_SLACK):
+    """(start, end) in seconds: the few seconds of two or more takes of ONE passage that say what differs, or None
+    when the takes are short already (the window would leave under `slack` out) or cannot be compared.
+    Band envelopes as envelope_diff (eight bands, 46 ms steps), each take against the first over the bands that
+    sound in either, with the overall level difference taken out, smoothed over half a second. The window opens
+    `lead` seconds before the takes first part (where the difference first reaches a third of its largest), on an
+    attack of the first take when one lies within
+    half a second before that, and runs to a second past where they last differ: at most `length`, at least
+    `shortest`. It takes in the clip's start or end when it comes within a second of them. Needs numpy."""
+    import numpy as np
+    m = min((len(t) for t in takes), default=0)
+    n, hop, edges = 2048, 1024, [60, 120, 250, 500, 1000, 2000, 4000, 8000, 11000]
+    if len(takes) < 2 or m < max(shortest + slack, 2.0) * sr:
+        return None
+    win, fr = np.hanning(n), np.fft.rfftfreq(n, 1 / sr)
+    sel = [(fr >= lo) & (fr < hi) for lo, hi in zip(edges[:-1], edges[1:])]
+
+    def env(x):
+        x = np.asarray(x[:m], float)
+        rows = [[(np.abs(np.fft.rfft(x[i:i + n] * win)) ** 2)[k].sum() for k in sel] for i in range(0, m - n + 1, hop)]
+        return 10 * np.log10(np.array(rows) + 1e-12)
+    E = [env(t) for t in takes]
+    top = max(float(e.max()) for e in E)                 # one floor for every take: only what sounds is compared
+    E = [np.maximum(e, top - 50.0) for e in E]
+    d = np.zeros(len(E[0]))
+    for e in E[1:]:
+        live = (e > top - 40.0) | (E[0] > top - 40.0)
+        if not live.any():
+            continue
+        diff = e - E[0]
+        d += np.where(live, np.abs(diff - np.median(diff[live])), 0.0).sum(1) / np.maximum(live.sum(1), 1)
+    per = sr / hop                                        # steps a second
+    k = max(1, int(round(0.5 * per)))
+    d = np.convolve(d, np.ones(k) / k, mode="same")
+    if d.max() <= 0:
+        return None
+    apart = np.nonzero(d >= d.max() / 3.0)[0]
+    i = max(0, int(apart[0] - lead * per))
+    level = 10 * np.log10((10 ** (E[0] / 10)).sum(1))
+    lo = max(1, i - int(0.5 * per))
+    if i > lo:                                           # open on an attack, not in the middle of a note
+        rises = level[lo:i + 1] - level[lo - 1:i]
+        if rises.max() >= 3.0:
+            i = lo + int(np.argmax(rises))
+    total = m / sr
+    start = i / per
+    start = 0.0 if start < 1.0 else max(0.0, start - 0.03)
+    end = min(start + length, max(start + shortest, apart[-1] / per + 1.0))
+    if total - end < 1.0:
+        end = total
+    if total - (end - start) < slack:
+        return None
+    return round(start, 2), round(end, 2)
+
+
+def focus_file(album):
+    return os.path.join(album_dir(album), "questions-focus.json")
+
+
+def read_focus(album):
+    try:
+        return read_json(focus_file(album))
+    except (OSError, ValueError):
+        return {}
+
+
+def refresh_focus(album, decode=None, log=print):
+    """For every live question, the stretch of each group of side-by-side takes in which they differ most
+    (focus_window), kept in DATA/ALBUM/questions-focus.json as {"QID|GROUP": [start, end] or null} for the server and
+    the page. Only what is not measured yet is measured. Run by `ask`, `cut` and `questions --focus`."""
+    decode = decode or (lambda path: decode_passage(path, 0.0, 600.0))
+    old, new, done = read_focus(album), {}, 0
+    for q in questions(album):
+        if q["retired"]:
+            continue
+        for gi, g in enumerate(q.get("media") or []):
+            if not g.get("sync") or len(g.get("items") or []) < 2:
+                continue
+            key = f"{q['id']}|{gi}"
+            if key in old:
+                new[key] = old[key]
+                continue
+            files = [os.path.join(album_dir(album), "questions", it["src"]) for it in g["items"]]
+            try:
+                w = focus_window([decode(f) for f in files]) if all(map(os.path.exists, files)) else None
+                new[key] = list(w) if w else None
+            except Exception as e:
+                log(f"listen: {q['id']}: no focus for its takes ({e})")
+                new[key] = None
+            done += 1
+    if new != old:
+        tmp = focus_file(album) + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(new, f, indent=0, sort_keys=True)
+        os.replace(tmp, focus_file(album))
+    return done
+
+
+def with_focus(qs, focus):
+    """The questions with `focus` ([start, end] seconds) on each group of side-by-side takes that has one: the asker's
+    own (`ask --focus`, on the first such group) before the measured one."""
+    out = []
+    for q in qs:
+        media, first = [], True
+        for gi, g in enumerate(q.get("media") or []):
+            f = None
+            if g.get("sync") and len(g.get("items") or []) > 1:
+                f = (q.get("focus") if first else None) or (focus or {}).get(f"{q['id']}|{gi}")
+                first = False
+            media.append({**g, "focus": f} if f else g)
+        out.append({**q, "media": media})
+    return out
+
+
 def decode_passage(path, t, dur, sr=22050):
     """dur seconds of an audio file from t, mono at sr, as a numpy array."""
     import numpy as np
@@ -365,9 +495,10 @@ def refresh_moved(album, decode=decode_passage, log=print):
 
 
 def quiet_refresh_moved(album):
-    """refresh_moved for the commands whose own work must never fail or grow a line because of it."""
+    """refresh_moved (and refresh_focus) for the commands whose own work must never fail or grow a line because of it."""
     try:
         refresh_moved(album, log=lambda *x: None)
+        refresh_focus(album, log=lambda *x: None)
     except Exception as e:
         print(f"listen: the questions' passages were not compared ({e})", file=sys.stderr)
 
@@ -467,6 +598,30 @@ def parts_line(q, play=parts_play):
     return f"WHERE ITS PARTS PLAY NOW ({'; '.join(said)}{star}). An answer about one place may be an answer about the device."
 
 
+TITLE_LONG = 110       # characters: past this a card's title is more than its question
+
+
+def card_notes(q):
+    """What `ask` says about a new card as the page will show it: the seconds each group of takes opens on, and a
+    title that is long. [] when there is nothing to say."""
+    out = []
+    for g in q.get("media") or []:
+        secs = [it.get("secs") for it in g.get("items") or [] if it.get("secs")]
+        if g.get("sync") and len(secs) > 1:
+            f = g.get("focus")
+            if not f:
+                out.append(f"the takes ({max(secs):.0f} s) play whole")
+            elif q.get("focus") == f:
+                out.append(f"the takes ({max(secs):.0f} s) open on {f[0]:g} to {f[1]:g} s (yours)")
+            else:
+                out.append(f"the takes ({max(secs):.0f} s) open on {f[0]:g} to {f[1]:g} s, where they differ; "
+                           "--focus START-END sets it yourself")
+    if len(q.get("title") or "") > TITLE_LONG:
+        out.append(f"the title is {len(q['title'])} characters. The page sets its last question large and the rest small; "
+                   "a title that is only the question reads best, with what changed in --context")
+    return out
+
+
 def parts_hint(line):
     """What `ask` adds when a named part is not in the kept song yet: the card is fine, the line is read again later."""
     if line and "not in the song now" in line:
@@ -476,7 +631,7 @@ def parts_hint(line):
 
 
 def ask(album, n, title, context="", version="", key="", abs_=(), clips=(), choices=(), at=None, by=None, cut=cut_parts,
-        parts=()):
+        parts=(), focus=None):
     """Put a question on the page. abs_: [("v6|v7", FILE)] cut into side-by-side parts; clips: [(label, FILE)].
     The media is copied into DATA/ALBUM/questions/ (the clips folder is cleared after a week). Returns the question."""
     title = str(title or "").strip()
@@ -513,6 +668,11 @@ def ask(album, n, title, context="", version="", key="", abs_=(), clips=(), choi
          "t": None if at is None else round(float(at), 1)}
     if [p for p in parts if str(p).strip()]:
         q["parts"] = [str(p).strip() for p in parts if str(p).strip()]
+    if focus:                                         # the asker knows where the change is: seconds into the --ab takes
+        a, b = float(focus[0]), float(focus[1])
+        if not 0 <= a < b:
+            raise ValueError("--focus wants START-END in seconds into the takes, as in --focus 4-11")
+        q["focus"] = [round(a, 2), round(b, 2)]
     question_event(album, q)
     return q
 
@@ -1061,8 +1221,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if len(parts) == 2 and parts[0] == "api":
             snaps = snapshots(parts[1])
             return self.send_json({"album": parts[1], "snapshots": snaps, "notes": notes(parts[1]),
-                                   "questions": with_now(questions(parts[1]), current_versions(parts[1]), snaps,
-                                                         read_moved(parts[1]))})
+                                   "questions": with_focus(with_now(questions(parts[1]), current_versions(parts[1]),
+                                                                    snaps, read_moved(parts[1])), read_focus(parts[1]))})
         if len(parts) == 3 and parts[0] == "api" and parts[2] == "log" and re.fullmatch(r"[\w-]+", parts[1]):
             return self.send_json(worklog(parts[1]))
         if len(parts) == 4 and parts[0] == "media" and parts[2] == "release" and parts[3] == "album.mp4":
@@ -1226,6 +1386,7 @@ def main(argv=None):
     p.add_argument("--at", type=float, help="where it is in the song, in seconds (an 'open in Listen' link)")
     p.add_argument("--parts", default="", metavar="TRACK[:PIECE],...",
                    help="the tracks the question is about: its answer's message says where else they play")
+    p.add_argument("--focus", metavar="START-END", help="the seconds of the --ab takes the card plays first")
     p.add_argument("--by", help="who is asking (default: this shell's caco agent)")
     p = sub.add_parser("questions", help="the questions and every answer")
     p.add_argument("album")
@@ -1234,6 +1395,7 @@ def main(argv=None):
     p.add_argument("--json", action="store_true")
     p.add_argument("--moved", action="store_true",
                    help="only live questions whose passage of the song has moved since their clips were cut, the furthest first")
+    p.add_argument("--focus", action="store_true", help="each live question's takes and the seconds the card plays first")
     p = sub.add_parser("retire", help="take a question off the page")
     p.add_argument("album")
     p.add_argument("id")
@@ -1269,12 +1431,20 @@ def main(argv=None):
                 raise SystemExit(f"listen: {flag} wants LABEL=FILE, as in {flag} 'v6|v7=clip-ab.mp3'")
             return label, os.path.expanduser(path)
         try:
+            focus = None
+            if a.focus:
+                m = re.fullmatch(r"\s*([0-9.]+)\s*-\s*([0-9.]+)\s*", a.focus)
+                if not m:
+                    raise ValueError("--focus wants START-END in seconds into the takes, as in --focus 4-11")
+                focus = (float(m.group(1)), float(m.group(2)))
             q = ask(a.album, a.track, a.title, a.context, a.version, a.key, [pair(t, "--ab") for t in a.ab],
-                    [pair(t, "--clip") for t in a.clip], a.choice, a.at, a.by, parts=a.parts.split(","))
+                    [pair(t, "--clip") for t in a.clip], a.choice, a.at, a.by, parts=a.parts.split(","), focus=focus)
         except ValueError as e:
             raise SystemExit(f"listen: {e}") from None
         quiet_refresh_moved(a.album)
         print(f"listen: question {q['id']} is on the page: {PUBLIC}#a={a.album}&v=questions&q={q['id']}")
+        for line in card_notes(with_focus([q], read_focus(a.album))[0]):
+            print("listen: " + line)
         if q.get("parts"):                           # say now what the answer's message will say, so a wrong name shows
             line = parts_line(q)
             print("listen: " + (line or "its parts could not be read in the song (check --parts and --track)"))
@@ -1282,6 +1452,13 @@ def main(argv=None):
                 print("listen: " + parts_hint(line))
     elif a.cmd == "questions":
         qs = [q for q in questions(a.album) if (a.track is None or q["n"] == a.track) and not (a.open and (q["answers"] or q["retired"]))]
+        if a.focus:
+            refresh_focus(a.album)
+            for q in with_focus([q for q in qs if not q["retired"]], read_focus(a.album)):
+                for line in card_notes(q):
+                    if line.startswith("the takes"):
+                        print(f"[{q['id']}] t{q['n']} {q.get('version') or '':>4s}  key {q.get('key') or '-':16s} {line.split(',')[0]}")
+            return
         if a.moved:
             refresh_moved(a.album)
             qs = [q for q in with_now(qs, current_versions(a.album), snapshots(a.album), read_moved(a.album))

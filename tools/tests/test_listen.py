@@ -6,8 +6,10 @@ re-rendered) and the server's API (notes, ranged media, the chirp web redirect).
 """
 import json
 import os
+import re
 import shutil
 import struct
+import subprocess
 import sys
 import tempfile
 import time
@@ -287,6 +289,138 @@ class Moved(unittest.TestCase):
         self.assertEqual(L.passage_window({"t": 5, "media": [{"items": [{"secs": 2.0}]}]})[1], 6.0)
         self.assertEqual(L.passage_window({"t": 5, "media": [{"items": [{"secs": 80}]}]})[1], 30.0)
         self.assertIsNone(L.moved_key({"id": "q", "n": 1, "version": "v3", "t": None}, []))
+
+
+class Focus(unittest.TestCase):
+    """The few seconds of an A/B a card plays first (Harry, 15 Nov: "shorter more focused examples")."""
+
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+        old, L.DATA = L.DATA, self.d
+        self.addCleanup(setattr, L, "DATA", old)
+        self.addCleanup(shutil.rmtree, self.d, True)
+
+    def takes(self, seconds=16.0):
+        try:
+            import numpy as np
+        except ImportError:
+            self.skipTest("numpy")
+        sr = 22050
+        t = np.arange(int(seconds * sr)) / sr
+        rng = np.random.default_rng(7)
+        hit = np.exp(-((t * 2) % 1.0) * 14) * rng.standard_normal(len(t)) * 0.4          # a drum twice a second
+        return np, sr, t, hit + 0.1 * np.sin(2 * np.pi * 110 * t)
+
+    def test_it_opens_before_the_takes_part_and_closes_after(self):
+        np, sr, t, a = self.takes()
+        b = a + ((t >= 9.0) & (t < 11.0)) * 0.5 * np.sin(2 * np.pi * 1500 * t)           # two seconds of something new
+        start, end = L.focus_window([a, b], sr)
+        self.assertTrue(6.9 <= start <= 7.7, start)                                    # a second and a half of lead-in
+        self.assertTrue(11.7 <= end <= 12.3, end)                                      # and a second past the change
+        self.assertEqual(L.focus_window([b, a], sr), (start, end))                     # whichever take is first
+        # a change that runs on: the longest stretch a card plays, from just before it
+        c = a + (t >= 4.0) * 0.5 * np.sin(2 * np.pi * 1500 * t)
+        start, end = L.focus_window([a, c], sr)
+        self.assertTrue(1.9 <= start <= 2.7 and abs(end - start - L.FOCUS_S) < 0.05, (start, end))
+        # takes that differ from their first second open at the top; near the end, the window takes the end in
+        self.assertEqual(L.focus_window([a, a + 0.5 * np.sin(2 * np.pi * 1500 * t)], sr), (0.0, L.FOCUS_S))
+        late = a + (t >= 13.5) * 0.5 * np.sin(2 * np.pi * 1500 * t)
+        self.assertEqual(L.focus_window([a, late], sr)[1], 16.0)
+
+    def test_short_or_identical_takes_play_whole(self):
+        np, sr, t, a = self.takes(9.0)
+        self.assertIsNone(L.focus_window([a, a + 0.5 * np.sin(2 * np.pi * 1500 * t)], sr))   # 9 s: short enough already
+        np, sr, t, a = self.takes()
+        self.assertIsNone(L.focus_window([a, a.copy()], sr))                           # nothing to tell apart
+        self.assertIsNone(L.focus_window([a], sr))
+        self.assertIsNone(L.focus_window([], sr))
+
+    def test_the_file_the_api_and_the_askers_own(self):
+        qs = [{"op": "ask", "id": "q1", "at": "2026-11-15T01:00:00Z", "by": "chirper-zero", "n": 3, "title": "A or B?", "key": "",
+               "media": [{"sync": True, "items": [{"label": "v8", "src": "q1-0a.mp3", "secs": 16.0},
+                                                  {"label": "v9", "src": "q1-0b.mp3", "secs": 16.0}]},
+                         {"sync": False, "items": [{"label": "the kit alone", "src": "q1-c0.mp3"}]},
+                         {"sync": True, "items": [{"label": "x", "src": "q1-2a.mp3", "secs": 9.0},
+                                                  {"label": "y", "src": "q1-2b.mp3", "secs": 9.0}]}]},
+              {"op": "ask", "id": "q2", "at": "2026-11-15T01:10:00Z", "by": "chirper-zero", "n": 3, "title": "Mine?", "key": "",
+               "focus": [4.0, 11.0], "media": [{"sync": True, "items": [{"label": "a", "src": "q2-0a.mp3", "secs": 20.0},
+                                                                         {"label": "b", "src": "q2-0b.mp3", "secs": 20.0}]}]}]
+        for q in qs:
+            L.question_event("chirpers9", q)
+        d = os.path.join(self.d, "chirpers9", "questions")
+        os.makedirs(d, exist_ok=True)
+        for name in ("q1-0a", "q1-0b", "q1-2a", "q1-2b", "q2-0a", "q2-0b"):
+            open(os.path.join(d, name + ".mp3"), "wb").close()
+        np, sr, t, a = self.takes()
+        b = a + ((t >= 9.0) & (t < 11.0)) * 0.5 * np.sin(2 * np.pi * 1500 * t)
+        calls = []
+
+        def decode(path):
+            calls.append(os.path.basename(path))
+            short = "-2" in path
+            x = b if path.endswith("b.mp3") else a
+            return x[:9 * sr] if short else x
+        self.assertEqual(L.refresh_focus("chirpers9", decode=decode), 3)               # three groups of takes side by side
+        got = L.read_focus("chirpers9")
+        self.assertEqual(sorted(got), ["q1|0", "q1|2", "q2|0"])
+        self.assertTrue(6.9 <= got["q1|0"][0] <= 7.7 and got["q1|2"] is None)
+        self.assertEqual(L.refresh_focus("chirpers9", decode=decode), 0)               # measured once
+        self.assertEqual(len(calls), 6)
+        out = {q["id"]: q for q in L.with_focus(L.questions("chirpers9"), got)}
+        self.assertEqual(out["q1"]["media"][0]["focus"], got["q1|0"])
+        self.assertNotIn("focus", out["q1"]["media"][1])                               # a lone clip has none
+        self.assertNotIn("focus", out["q1"]["media"][2])                               # short takes play whole
+        self.assertEqual(out["q2"]["media"][0]["focus"], [4.0, 11.0])                  # the asker's own before the measured
+        self.assertNotIn("focus", L.questions("chirpers9")[0]["media"][0])             # the log itself is untouched
+        notes = L.card_notes(out["q1"])
+        self.assertTrue(notes[0].startswith("the takes (16 s) open on ") and "where they differ" in notes[0])
+        self.assertEqual(notes[1], "the takes (9 s) play whole")
+        self.assertEqual(L.card_notes(out["q2"]), ["the takes (20 s) open on 4 to 11 s (yours)"])
+        long = L.card_notes({"title": "x" * 150, "media": []})
+        self.assertTrue(long[0].startswith("the title is 150 characters."))
+        with self.assertRaises(ValueError):
+            L.ask("chirpers9", 0, "Backwards?", focus=(9, 4))
+
+
+class Page(unittest.TestCase):
+    """The page's own reading of a card's title (tools/listen.html, qSplit), run in node when there is one."""
+
+    def split(self, titles):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("node")
+        with open(os.path.join(TOOLS, "listen.html")) as f:
+            m = re.search(r"\nfunction qSplit\(title\)\{.*?\n return \{lead,ask,said\};\}", f.read(), re.S)
+        self.assertIsNotNone(m, "qSplit is in the page")
+        js = m.group(0) + "\nconsole.log(JSON.stringify(" + json.dumps(titles) + ".map(qSplit)));"
+        r = subprocess.run([node, "-e", js], capture_output=True, text=True, timeout=60)
+        self.assertEqual(r.returncode, 0, r.stderr[-400:])
+        return json.loads(r.stdout)
+
+    def test_a_title_is_split_into_what_changed_and_the_question(self):
+        got = self.split([
+            "The machine approaches (0:57): the guitars come nearer over five bars and the band lands at 1:06. An approach "
+            "and a landing, or do you miss the guitars slamming in at 0:57?",
+            "Can you make out the spoken words now?",
+            "Odd Sympathy's words, five voices, alone: which should say them? (You said: 'more realistic and in some kindof tune'.)",
+            "Common Time at 6:42: the spoken lines are now said by the GUITARS (you said: 'the voice needs work... voice is "
+            "weak'). A stronger voice, or a gimmick?",
+            "When eleven arrives (1:44) the china goes with its chords: do the chords hit harder, or does it read as a drummer "
+            "off the beat? Can you still feel the bar?",
+            "The snare is 2.6 dB up at v42. Too much?",
+            "A statement with no question at all."])
+        self.assertEqual(got[0], {"lead": "The machine approaches (0:57): the guitars come nearer over five bars and the band lands "
+                                          "at 1:06.", "ask": "An approach and a landing, or do you miss the guitars slamming in at 0:57?",
+                                  "said": ""})
+        self.assertEqual(got[1], {"lead": "", "ask": "Can you make out the spoken words now?", "said": ""})
+        self.assertEqual(got[2], {"lead": "Odd Sympathy's words, five voices, alone.", "ask": "Which should say them?",
+                                  "said": "more realistic and in some kindof tune"})
+        self.assertEqual(got[3], {"lead": "Common Time at 6:42: the spoken lines are now said by the GUITARS.",
+                                  "ask": "A stronger voice, or a gimmick?", "said": "the voice needs work... voice is weak"})
+        self.assertEqual(got[4]["lead"], "When eleven arrives (1:44) the china goes with its chords.")
+        self.assertEqual(got[4]["ask"], "Do the chords hit harder, or does it read as a drummer off the beat? Can you still feel the bar?")
+        self.assertEqual(got[5], {"lead": "The snare is 2.6 dB up at v42.", "ask": "Too much?", "said": ""})   # 2.6 is not a sentence
+        self.assertEqual(got[6], {"lead": "", "ask": "A statement with no question at all.", "said": ""})
 
 
 class Who(unittest.TestCase):

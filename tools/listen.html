@@ -2,7 +2,10 @@
 <title>chirpers - studio</title><link rel=icon href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23e8c27a'/%3E%3C/svg%3E">
 <style>
 :root{--bg:#0b0d12;--panel:#12151d;--panel2:#171b26;--line:#262b38;--amber:#e8c27a;--hi:#ffd58a;--dim:#8f98aa;--text:#d6dbe6;
---note:#7fd1c3;--good:#9fe3a0;--bad:#e79a8f;--eng:#b9a3f0;--snap:#8fc3f0}
+--note:#7fd1c3;--good:#9fe3a0;--bad:#e79a8f;--eng:#b9a3f0;--snap:#8fc3f0;
+--rail:#0e1118;--sel:#1b2130;--key:#232836;--edge:#4a4636;--lit:#2a2416;--done:#16241a;--paper:#f3ead8;--zone:rgba(232,194,122,.14);
+--serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,ui-serif,serif;--mono:ui-monospace,"SF Mono","JetBrains Mono","DejaVu Sans Mono",Menlo,Consolas,monospace}
+html{scrollbar-color:var(--line) transparent}#side{scrollbar-width:thin}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--amber);font:14px/1.45 system-ui,sans-serif}
 header{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
 h1{font-size:16px;margin:0 6px 0 0;color:var(--hi);white-space:nowrap}h2{font-size:16px;margin:0 0 6px;color:var(--hi)}h3{font-size:13px;margin:16px 0 6px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
@@ -12,7 +15,9 @@ select,button,input{padding:4px 8px}button{cursor:pointer}button:hover{border-co
 .views button.on{color:var(--bg);background:var(--amber)}.sp{flex:1}.m{color:var(--dim);font-size:12px}a{color:var(--hi)}
 kbd{border:1px solid var(--line);border-radius:3px;padding:0 4px;font-size:11px;color:var(--dim)}
 main{display:grid;grid-template-columns:minmax(220px,300px) 1fr;min-height:calc(100vh - 50px)}
-main.wide{grid-template-columns:1fr}@media(max-width:760px){main{grid-template-columns:1fr}}
+main.wide{grid-template-columns:1fr}@media(max-width:760px){main{grid-template-columns:1fr}
+ body>header{padding:6px 10px;gap:4px 8px}#hint,body>header .sp{display:none}#me{margin-left:auto;order:1}#albums{order:2}#views{order:3}
+ body>header .tabs{flex-basis:100%;overflow-x:auto;scrollbar-width:none}body>header .tabs button{white-space:nowrap;flex:none}}
 #side{border-right:1px solid var(--line);overflow:auto;max-height:calc(100vh - 50px);position:sticky;top:50px}#pane{padding:12px 18px;min-width:0;max-width:1100px}
 .tr{padding:7px 12px;border-bottom:1px solid var(--line);cursor:pointer}.tr:hover{background:#151a25}.tr.on{background:#1b2130;border-left:3px solid var(--hi)}
 .badge{background:#203a36;color:var(--note);border-radius:9px;padding:0 6px;font-size:11px;margin-left:4px}.new{color:var(--good);font-size:11px;margin-left:4px}
@@ -41,18 +46,73 @@ audio,video{width:100%;max-width:960px;display:block;background:#000;border-radi
 #gate{position:fixed;inset:0;background:rgba(5,6,10,.92);display:flex;align-items:center;justify-content:center;z-index:50}
 #gate form{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 24px;width:min(360px,92vw)}
 #gate input{width:100%;margin:6px 0 12px}#gate .err{color:var(--bad);font-size:12px;min-height:16px}
-.q{max-width:1040px;scroll-margin-top:96px}.q.ans{border-color:#355c3a}.q.cur{box-shadow:0 0 0 1px var(--hi)}.q .headline{font-size:16px;margin:6px 0 2px}
-.cmp{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 4px;align-items:stretch}
-.pl{flex:1 1 280px;min-width:230px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:7px 9px}
-.pl.on{border-color:var(--hi)}.pl .lbl{display:flex;gap:8px;align-items:center;color:var(--text);margin-bottom:5px;cursor:pointer}
-.pl .k{display:inline-block;min-width:30px;text-align:center;border-radius:5px;background:var(--amber);color:var(--bg);font-weight:700;padding:3px 0}.pl .lbl:hover .k{background:var(--hi)}
-.pl.on .k{background:var(--hi)}.pl audio{width:100%;height:36px;background:transparent;color-scheme:dark}.sync{color:var(--dim);font-size:12px;flex-basis:100%;margin:-2px 0 0}
-.qa{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 6px}.qa .chip{font-size:13.5px;padding:5px 13px;color:var(--amber);border-color:#4a4636}
-.qa .chip:hover{border-color:var(--amber)}.qa .chip.on{color:var(--bg);background:var(--good);border-color:var(--good);font-weight:600}
-.qa .chip .kn{color:var(--dim);font-size:11px;margin-right:5px}.qa .chip.on .kn{color:#24402a}
-.qst{font-size:12px;color:var(--dim);margin-top:5px}.qst b{color:var(--good)}.qst .oth{color:var(--note)}
-#qbar{position:sticky;top:50px;background:var(--bg);padding:6px 0;z-index:3;border-bottom:1px solid var(--line);margin-bottom:6px}
-#qbar .chips{margin:4px 0}.prog{height:4px;background:var(--panel);border-radius:2px;max-width:1040px}.prog i{display:block;height:4px;background:var(--good);border-radius:2px}
+/* questions: a queue down the side and ONE question at a time */
+main.qmode{grid-template-columns:312px minmax(0,1fr)}main.qmode #side{background:var(--rail)}
+main.qmode #pane{max-width:none;padding:30px 32px 64px;color:var(--text)}
+.qr-top{position:sticky;top:0;background:var(--rail);padding:12px 14px 0;z-index:1}
+.qr-tabs{display:flex;gap:16px;font-size:13px}.qr-tabs button{background:none;border:none;border-radius:0;padding:2px 0 7px;color:var(--dim);border-bottom:2px solid transparent}
+.qr-tabs button:hover{color:var(--text)}.qr-tabs button.on{color:var(--hi);border-bottom-color:var(--amber)}.qr-tabs b{font:500 12px var(--mono);margin-left:5px;color:inherit;opacity:.8}
+.qr-prog{height:2px;background:var(--line);margin:0 -14px}.qr-prog i{display:block;height:2px;background:var(--good);transition:width .25s}
+.qr-song{display:flex;align-items:center;gap:7px;padding:16px 14px 6px;font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--dim)}
+.qr-song span{margin-left:auto;font:500 11px var(--mono);letter-spacing:0}
+.qr-item{display:grid;grid-template-columns:36px minmax(0,1fr) 12px;gap:9px;align-items:baseline;width:100%;text-align:left;background:none;border:none;border-left:2px solid transparent;border-radius:0;padding:6px 12px 6px 10px;color:var(--text);font-size:13px;line-height:1.35}
+.qr-item:hover{background:var(--panel)}.qr-item .tm{font:11.5px var(--mono);color:var(--dim);text-align:right}
+.qr-item .tx{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.qr-item .st{color:var(--good);font-size:11px}
+.qr-item.ans .tx{color:var(--dim)}.qr-item.cur{background:var(--sel);border-left-color:var(--song)}.qr-item.cur .tx{color:var(--hi)}
+.qr-none{padding:16px 14px;color:var(--dim);font-size:13px}.qr-close{display:none}
+.fq{max-width:700px;margin:0 auto}
+.fq-meta{display:flex;gap:14px;align-items:center;font-size:12.5px;color:var(--dim);margin-bottom:24px;min-height:24px}
+.fq-song{color:var(--song);font-weight:600;letter-spacing:.02em}.fq-meta a{color:var(--dim);font-family:var(--mono);text-decoration:none;border-bottom:1px dotted var(--dim)}
+.fq-meta a:hover{color:var(--hi);border-bottom-color:var(--hi)}.fq-ver{font-family:var(--mono)}.fq-moved{color:var(--amber);cursor:help;border-bottom:1px dotted var(--amber)}
+.fq-pos{margin-left:auto;font-family:var(--mono)}.fq-list{display:none}
+.fq-lead{font-size:15px;line-height:1.55;color:var(--text);margin:0 0 12px;max-width:64ch}
+.fq-ask{font-family:var(--serif);font-size:28px;line-height:1.24;font-weight:500;color:var(--paper);margin:0;letter-spacing:-.006em;text-wrap:balance}
+.fq-said{font-size:13px;color:var(--dim);margin:12px 0 0}.fq-said q{color:var(--note);quotes:"\201C" "\201D"}
+.fq-takes{margin:28px 0 26px}.fq-keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:8px}
+.take{display:flex;align-items:center;gap:12px;text-align:left;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 12px;color:var(--text);min-height:58px;transition:background .12s,border-color .12s}
+.take .k{flex:none;width:34px;height:34px;display:grid;place-items:center;border-radius:5px;background:var(--key);color:var(--hi);font:600 15px var(--mono);transition:background .12s,color .12s}
+.take .tl{font-size:14px;line-height:1.3;min-width:0}.take .du{margin-left:auto;font:11.5px var(--mono);color:var(--dim);flex:none}
+.take:hover{border-color:var(--edge)}.take.sel{border-color:var(--edge)}.take.sel .k{color:var(--bg);background:var(--dim)}
+.take.on{background:var(--lit);border-color:var(--amber)}.take.on .k{background:var(--amber);color:var(--bg)}
+.fq-more{display:grid;gap:1px;margin-top:6px}.fq-more .take{min-height:0;padding:6px 12px 6px 6px;background:none;border-color:transparent}
+.fq-more .take .k{width:24px;height:24px;font-size:12px;margin-left:5px;margin-right:5px}.fq-more .take .tl{font-size:13px;color:var(--dim)}
+.fq-more .take:hover{background:var(--panel)}.fq-more .take.on,.fq-more .take.sel{background:var(--lit);border-color:transparent}.fq-more .take.on .tl,.fq-more .take.sel .tl{color:var(--text)}
+.fq-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin-top:2px}
+.fq-scrub{height:22px;display:flex;align-items:center;cursor:pointer;touch-action:none}.fq-scrub b{display:block;position:relative;height:3px;flex:1;background:var(--line);border-radius:2px}
+.fq-scrub i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--amber);border-radius:2px}.fq-scrub:hover b{background:var(--edge)}
+.fq-scrub u{position:absolute;top:-4px;bottom:-4px;display:none;border-left:1px solid var(--edge);border-right:1px solid var(--edge);background:var(--zone)}
+.fq-clock{font:12px var(--mono);color:var(--dim);min-width:92px;text-align:right;white-space:pre}
+.fq-prefs{display:flex;gap:4px 18px;flex-wrap:wrap;margin-top:12px}
+.pref{background:none;border:none;border-radius:4px;padding:2px 0;color:var(--dim);font-size:12.5px;display:flex;align-items:center;gap:7px;white-space:nowrap}.pref[hidden]{display:none}
+.pref::before{content:"";width:7px;height:7px;border-radius:50%;border:1px solid var(--dim);flex:none}.pref:hover{color:var(--text)}
+.pref.on{color:var(--text)}.pref.on::before{background:var(--amber);border-color:var(--amber)}
+.take.wait .k{animation:qwait .9s ease-in-out infinite alternate}@keyframes qwait{to{opacity:.35}}
+.fq.in-r{animation:qin-r .16s ease-out}.fq.in-l{animation:qin-l .16s ease-out}@keyframes qin-r{from{opacity:0;transform:translateX(26px)}}@keyframes qin-l{from{opacity:0;transform:translateX(-26px)}}
+@media(prefers-reduced-motion:reduce){.fq.in-r,.fq.in-l,.take.wait .k{animation:none}}
+.fq-opts{display:grid;gap:6px;margin:0 0 10px}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;width:100%;background:none;border:1px solid var(--line);border-radius:6px;padding:10px 14px 10px 11px;color:var(--text);font-size:15px;line-height:1.3;min-height:46px;transition:background .12s,border-color .12s}
+.opt kbd{flex:none;border:none;background:var(--key);color:var(--dim);width:24px;height:24px;display:grid;place-items:center;border-radius:4px;font:12px var(--mono);padding:0}
+.opt:hover{border-color:var(--amber);background:var(--panel)}.opt.on{border-color:var(--good);background:var(--done);color:var(--paper)}.opt.on kbd{background:var(--good);color:var(--bg)}
+.fq-note{display:flex;gap:8px;align-items:stretch}.fq-note textarea{flex:1;min-height:42px;padding:10px 12px;background:none;color:var(--text);border-color:var(--line);border-radius:6px;resize:none;font-size:14px}
+.fq-note textarea:focus{outline:none;border-color:var(--amber)}.fq-note textarea::placeholder{color:var(--dim)}
+.fq-note button{padding:0 16px;border-radius:6px;color:var(--dim);background:none}.fq-note button:hover{color:var(--hi)}
+.fq-state{font-size:12.5px;color:var(--dim);min-height:19px;margin-top:9px}.fq-state b{color:var(--good);font-weight:600}.fq-state .oth{color:var(--note);margin-top:2px}
+.fq-notes{margin-top:30px;border-top:1px solid var(--line);padding-top:12px;font-size:13px;color:var(--dim)}
+.fq-notes summary{cursor:pointer;list-style:none;display:flex;gap:10px;align-items:baseline}.fq-notes summary::-webkit-details-marker{display:none}
+.fq-notes summary::before{content:"+";font-family:var(--mono);color:var(--dim);width:10px}.fq-notes[open] summary::before{content:"\2212"}
+.fq-notes summary:hover{color:var(--text)}.fq-notes summary span{margin-left:auto;font-size:12px}.fq-notes .body{margin:10px 0 0 20px;line-height:1.55;max-width:66ch}
+.fq-nav{display:flex;align-items:center;gap:14px;margin-top:22px;font-size:12.5px;color:var(--dim)}.fq-nav button{background:none;border-color:var(--line);color:var(--dim);padding:6px 12px;border-radius:6px}
+.fq-nav button:hover{color:var(--hi)}.fq-nav button:disabled{opacity:.35;cursor:default;border-color:var(--line);color:var(--dim)}
+.fq-nav .pref{border:none;padding:2px 0}.fq-legend{margin-left:auto;display:flex;gap:12px;white-space:nowrap}
+.fq-nav .qnext{margin-left:0}.fq-nav .qprev{padding:6px 11px}
+.fq-done{padding-top:12vh;text-align:center}.fq-done .fq-ask{margin-bottom:12px}.fq-done .fq-lead{margin:0 auto 22px}.fq-done button{background:none;color:var(--hi);padding:8px 16px;border-radius:6px}
+.take:focus-visible,.opt:focus-visible,.qr-item:focus-visible,.fq-nav button:focus-visible,.pref:focus-visible,.qr-tabs button:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
+@media(max-width:860px){main.qmode{grid-template-columns:1fr}main.qmode #side{display:none}main.qmode #pane{padding:16px 14px 44px}
+ main.qmode.rail #side{display:block;position:fixed;inset:0;z-index:20;max-height:none;border:none;overflow:auto}
+ .qr-close{display:block;margin-left:auto;background:none;border:none;color:var(--dim);font-size:13px;padding:2px 0 7px}
+ .fq-meta{margin-bottom:16px;gap:10px;flex-wrap:wrap}.fq-pos{display:none}.fq-list{display:block;margin-left:auto;background:none;border-color:var(--line);color:var(--text);font:12px var(--mono);padding:4px 10px;border-radius:6px}
+ .fq-ask{font-size:23px}.fq-lead{font-size:14.5px}.fq-takes{margin:22px 0 22px}.fq-keys{grid-template-columns:1fr 1fr}.take{min-height:54px;padding:9px 10px;gap:10px}.fq-legend{display:none}
+ .fq-nav{gap:10px}.fq-nav .qnext{margin-left:auto}.opt{min-height:50px}.fq-clock{min-width:0}}
 .intro{color:var(--text);max-width:960px;font-size:13px}.toast{position:fixed;bottom:16px;right:16px;background:var(--panel2);border:1px solid var(--amber);padding:6px 12px;border-radius:6px;display:none}
 </style>
 <div id=gate style="display:none"><form id=gateForm><h2>chirpers studio</h2>
@@ -78,7 +138,6 @@ const toast=m=>{const t=$("#toast");t.textContent=m;t.style.display="block";setT
 const U=()=>localStorage.getItem("listen_user")||"",CODE=()=>localStorage.getItem("listen_code")||"";
 const HUMANS=new Set(["harry"]);
 let ALB=[],A,AI,D,W,view="listen",S,N,media,noteT=null,segA=null,segB=null,hist={n:null,i:null,seq:false};
-let qf={state:"open",n:0},qcur=null,qlast=null;
 const q=()=>Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
 function setHash(o){history.replaceState(null,"","#"+new URLSearchParams(Object.entries({a:A,v:view,...o}).filter(([k,v])=>v!==undefined&&v!==null&&v!=="")).toString());}
 
@@ -110,9 +169,10 @@ async function openAlbum(id,v,h={}){A=id;AI=ALB.find(a=>a.id===id);W=null;S=null
  $$("#views button").forEach(b=>b.onclick=()=>show(b.dataset.v));show(v,h);}
 async function needW(){if(!W)W=await api(`api/${A}/log`);return W;}
 function show(v,h={}){view=v;$$("#views button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));if(media){media.pause();media=null;}$("#hmed")?.pause();
+ if(qtk){qtk.stop();qtk=null;}clearTimeout(qadv);$("#main").classList.toggle("qmode",v==="questions");$("#main").classList.remove("rail");
  $("#hint").innerHTML=v==="listen"?"<kbd>space</kbd> play <kbd>N</kbd> note <kbd>&larr;</kbd><kbd>&rarr;</kbd> 5 s <kbd>J</kbd><kbd>K</kbd> track":
-  v==="questions"?"<kbd>J</kbd><kbd>K</kbd> question <kbd>A</kbd><kbd>B</kbd> play that side <kbd>space</kbd> pause <kbd>1</kbd>-<kbd>9</kbd> answer":"";
- $("#main").classList.toggle("wide",v==="feedback"||v==="worklog"||v==="questions");$("#side").innerHTML="";$("#pane").innerHTML="<p class=m>Loading&hellip;</p>";
+  "";
+ $("#main").classList.toggle("wide",v==="feedback"||v==="worklog");$("#side").innerHTML="";$("#pane").innerHTML="<p class=m>Loading&hellip;</p>";
  ({listen:listenView,questions:questionsView,feedback:feedbackView,worklog:worklogView,history:historyView})[v](h);}
 const trackOf=n=>(AI.tracks||[]).find(t=>t.n===n)||{};
 const fbAuthor=n=>`<span class="who${HUMANS.has(String(n.by||"harry").toLowerCase())?" h":""}">${esc(n.by||"harry")}</span>`;
@@ -205,66 +265,149 @@ function feedbackView(){const latest=D.snapshots.length?D.snapshots[D.snapshots.
  $("#genb").onclick=async()=>{const text=$("#gen").value.trim();if(!text)return;
   await post(`api/${A}/notes`,{snap:AI.release&&!latest?"release":latest,n:0,t:0,text});toast("sent");await refresh();};setHash({});}
 
-// ── questions: the composers' by-ear questions, clips side by side, answered in a batch ──
+// ── questions: the composers' by-ear questions. A queue down the side and ONE question at a time: it plays by itself,
+//    an answer brings the next (Harry, 15 Nov: "make it easy to respond, like a flick thru view w autoplay") ──
 const me=()=>U().toLowerCase(),myAns=x=>(x.answers||{})[me()],qLive=()=>(D.questions||[]).filter(x=>!x.retired);
+const qGet=id=>(D.questions||[]).find(x=>x.id===id),qSet=(k,v)=>localStorage.setItem("listen_q"+k,v?"1":"0"),qOn=k=>localStorage.getItem("listen_q"+k)!=="0";
 function qBadge(){const el=$("#qbadge");if(!el)return;const n=qLive().filter(x=>!myAns(x)).length;el.innerHTML=n?`<span class=badge>${n}</span>`:"";}
-function qStatus(x){const a=myAns(x),oth=Object.values(x.answers||{}).filter(o=>String(o.by).toLowerCase()!==me());
- const said=o=>[o.choice?`&ldquo;${esc(o.choice)}&rdquo;`:"",o.text?esc(o.text):""].filter(Boolean).join(" &mdash; ");
- return (a?`<b>&#10003; saved</b> ${said(a)} <span class=m>&middot; ${hhmm(a.at)}; change it any time</span>`:"not answered yet")+
-  oth.map(o=>`<div class=oth>${esc(o.by)}: ${said(o)}</div>`).join("");}
-// has the passage moved since the card's clips were cut? (x.moved: dB between the song then and now over those seconds)
-function qMoved(x){if(x.moved==null||x.moved<0.15)return "";const big=x.moved>=0.6;
- const tip=`The clips on this card were cut on ${x.version}. The same seconds of the song as it is now (${x.now}) differ from then by ${x.moved.toFixed(1)} dB across the bands (under 0.15 is the same sound). The question still stands; "in the song" plays it as it is now.`;
- return `<span class="pill moved${big?" big":""}" title="${esc(tip)}">${big?"this passage has changed since":"the mix has moved a little since"} &middot; now ${esc(x.now||"")}</span>`;}
-function qCard(x){let k=0,hinted=false;const a=myAns(x)||{};const latest=D.snapshots.length?D.snapshots[D.snapshots.length-1].id:"";
- const med=(x.media||[]).map((g,gi)=>`<div class=cmp>${g.items.map((it,ii)=>{const L=String.fromCharCode(65+k++);
-   return `<div class=pl data-g="${gi}" data-sync="${g.sync?1:0}"><div class=lbl title="play ${L}"><span class=k>${L}</span><span>${esc(it.label)}</span></div><audio controls preload=none src="media/${A}/q/${esc(it.src)}"></audio></div>`;}).join("")}${g.sync&&g.items.length>1&&!hinted&&(hinted=true)?"<div class=sync>The two sides are the same length: switching keeps your place.</div>":""}</div>`).join("");
- return `<div class="card q${myAns(x)?" ans":""}" id="q-${x.id}" data-q="${x.id}"><div class=hd>${x.n?`<span class=pill style="color:${col(x.n)};border-color:${col(x.n)}55">${x.n}. ${esc(x.track_title||trackOf(x.n).title||"")}</span>`:""}${x.version?`<span class="pill type">${esc(x.version)}</span>`:""}${qMoved(x)}
-  <span class=m>asked by ${esc(x.by)} &middot; ${dayOf(x.at)} ${hhmm(x.at)}</span>${x.t!=null&&latest&&x.n?`<a href="#" class="m golisten" data-n="${x.n}" data-t="${x.t}">in the song at ${mmss(x.t)}</a>`:""}</div>
-  <div class=headline>${esc(x.title)}</div>${x.context?`<div class=body>${esc(x.context)}</div>`:""}${med}
-  <div class=qa>${(x.choices||[]).map((c,i)=>`<span class="chip${a.choice===c?" on":""}" data-c="${esc(c)}"><span class=kn>${i+1}</span>${esc(c)}</span>`).join("")}</div>
-  <div class=row><textarea rows=1 placeholder="In your own words (optional)&hellip;">${esc(a.text||"")}</textarea><button class=qsave>Save</button></div>
-  <div class=qst>${qStatus(x)}</div></div>`;}
-function qProgress(){const qs=qLive(),done=qs.filter(myAns).length;if($("#qcount"))$("#qcount").textContent=`${done} of ${qs.length} answered`;
- if($("#qprog"))$("#qprog").style.width=(qs.length?100*done/qs.length:0)+"%";qBadge();}
-function qSetCur(id,scroll){qcur=id;$$(".q").forEach(e=>e.classList.toggle("cur",e.dataset.q===id));if(scroll&&id)$("#q-"+id)?.scrollIntoView({block:"start",behavior:"smooth"});}
-function qPlayAt(au,t){const go=()=>{if(au.duration&&t>au.duration-0.3)t=0;try{au.currentTime=Math.max(0,t);}catch(e){}au.play();};
- if(au.readyState>=1)go();else{au.addEventListener("loadedmetadata",go,{once:true});au.load();}}
-function qPlay(pl){const au=pl.querySelector("audio"),card=pl.closest(".q");
- if(qlast===au&&!au.paused){au.pause();return;}
- let t=au.currentTime||0;if(qlast&&qlast!==au){const from=qlast.closest(".pl");   // the other side of the same passage: keep the place
-  if(from&&from.closest(".q")===card&&from.dataset.g===pl.dataset.g&&pl.dataset.sync==="1")t=qlast.currentTime;qlast.pause();}
- qSetCur(card.dataset.q);qPlayAt(au,t);}
-async function qSave(id,choice){const card=$("#q-"+id),x=D.questions.find(q=>q.id===id);if(!card||!x)return;
- const text=card.querySelector("textarea").value.trim(),c=choice!==undefined?choice:((myAns(x)||{}).choice||"");
- if(!c&&!text){toast("pick an answer or write one");return;}
- const r=await post(`api/${A}/questions/${id}/answer`,{choice:c,text});if(!r.ok){toast(r.error||"not saved");return;}
+// a card's title as the composer wrote it: what changed, then the question, sometimes with the listener's earlier words in
+// brackets. {lead, ask, said}: the page sets the question large and the rest small. A title with no question is shown whole.
+function qSplit(title){let s=String(title||"").trim(),said="";
+ s=s.replace(/\s*\(\s*you said[^:)]*:\s*([^)]+)\)/i,(m,g)=>{said=g.trim().replace(/^['"\u2018\u201C]+|['"\u2019\u201D.]+$/g,"");return "";}).replace(/([?!])\./g,"$1").trim();
+ const ps=(s.match(/.+?(?:[.?!]+["'\u2019\u201D)]*(?=\s+["'\u2018\u201C(]?[A-Z0-9])|$)/gs)||[s]).map(p=>p.trim()).filter(Boolean);
+ let i=ps.length;while(i>0&&/\?["'\u2019\u201D)]*$/.test(ps[i-1]))i--;
+ if(i===ps.length)return {lead:"",ask:s,said};
+ let lead=ps.slice(0,i).join(" "),ask=ps.slice(i).join(" ");
+ if(!lead){const m=ask.match(/^(.{16,}?):\s+(.{12,})$/s);if(m){lead=m[1]+".";ask=m[2].charAt(0).toUpperCase()+m[2].slice(1);}}
+ return {lead,ask,said};}
+let qf="open",qorder=[],qcur=null,qtk=null,qadv=null,QAC=null;const qbuf=new Map();
+// the queue is fixed when a filter is chosen, so a question answered a moment ago stays where it was (ticked)
+function qFilter(f){qf=f;qorder=qLive().filter(x=>f==="all"||(f==="open")===!myAns(x))
+ .sort((a,b)=>(a.n-b.n)||((a.t??1e9)-(b.t??1e9))||String(a.at).localeCompare(String(b.at))).map(x=>x.id);}
+const qSong=x=>x.n?(x.track_title||trackOf(x.n).title||""):"the album",qSrc=it=>`media/${A}/q/${it.src}`;
+function qRail(){const live=qLive(),wait=live.filter(x=>!myAns(x)).length,done=live.length-wait;let last=null;
+ let h=`<div class=qr-top><div class=qr-tabs>${[["open","waiting",wait],["answered","answered",done],["all","all",live.length]].map(([f,l,n])=>
+  `<button data-f="${f}"${qf===f?" class=on":""}>${l}<b>${n}</b></button>`).join("")}<button class=qr-close>close</button></div>
+  <div class=qr-prog><i style="width:${live.length?100*done/live.length:0}%"></i></div></div>`;
+ qorder.forEach(id=>{const x=qGet(id);if(!x)return;
+  if(x.n!==last){last=x.n;h+=`<div class=qr-song><i class=dot style="background:${col(x.n||1)}"></i>${esc(qSong(x))}<span>${qorder.filter(j=>(qGet(j)||{}).n===x.n).length}</span></div>`;}
+  h+=`<button class="qr-item${id===qcur?" cur":""}${myAns(x)?" ans":""}" data-q="${id}" style="--song:${col(x.n||1)}" title="${esc(x.title)}">
+  <span class=tm>${x.t!=null?mmss(x.t):""}</span><span class=tx>${esc(qSplit(x.title).ask)}</span><span class=st>${myAns(x)?"&#10003;":""}</span></button>`;});
+ if(!qorder.length)h+=`<div class=qr-none>${qf==="open"?"Nothing waiting.":"Nothing here."}</div>`;
+ $("#side").innerHTML=h;
+ $$("#side .qr-tabs [data-f]").forEach(b=>b.onclick=()=>{qFilter(b.dataset.f);qRail();qShow(qorder.includes(qcur)?qcur:qorder[0]||null);});
+ $$("#side .qr-item").forEach(b=>b.onclick=()=>{$("#main").classList.remove("rail");qShow(b.dataset.q);});
+ $("#side .qr-close").onclick=()=>$("#main").classList.remove("rail");}
+// sound: one audio context, woken by the first touch or key; a clip is decoded whole (they are short), so takes switch
+// in place and a stretch starts and stops exactly
+function qCtx(){if(!QAC){const C=window.AudioContext||window.webkitAudioContext;QAC=new C();}return QAC;}
+function qLoad(src){let p=qbuf.get(src);if(!p){p=fetch(src,{headers:{"X-Listen-Code":CODE()}}).then(r=>{if(!r.ok)throw new Error("clip "+r.status);return r.arrayBuffer();})
+  .then(b=>new Promise((ok,no)=>qCtx().decodeAudioData(b,ok,no)));p.catch(()=>qbuf.delete(src));qbuf.set(src,p);}return p;}
+function qWake(){if(view!=="questions")return;const c=qCtx();if(c.state!=="running")c.resume().then(()=>qtk&&qtk.wake()).catch(()=>{});}
+document.addEventListener("pointerdown",qWake,true);document.addEventListener("keydown",qWake,true);
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&qtk)qtk.pause();});
+// the takes of one question: lettered keys over one line. Takes of the same passage keep the place when switched, play in
+// turn (A, B, A ...) while "in turn" is on, and open on the focus: the seconds in which they differ.
+function qTakes(root,x){const keys=[...root.querySelectorAll(".take")],sc=root.querySelector(".fq-scrub"),fill=sc.querySelector("i"),zone=sc.querySelector("u"),
+  clock=root.querySelector(".fq-clock"),bt=root.querySelector(".fq-turn"),bf=root.querySelector(".fq-foc"),bp=root.querySelector(".fq-play");
+ const T=keys.map(k=>({k,src:k.dataset.src,g:+k.dataset.g,sync:k.dataset.sync==="1",secs:+k.dataset.secs||0,buf:null,pos:null}));
+ let cur=-1,node=null,gain=null,t0=0,p0=0,playing=false,raf=0,dead=false,token=0,gap=0,begun=false;
+ const foc=i=>T[i].sync&&qOn("focus")&&(x.media[T[i].g]||{}).focus||null,dur=i=>T[i].buf?T[i].buf.duration:T[i].secs;
+ const span=i=>{const f=foc(i),d=dur(i);return f?[f[0],d?Math.min(f[1],d):f[1]]:[0,d];};
+ const pos=()=>cur<0?span(0)[0]:playing&&node?Math.min(p0+Math.max(0,QAC.currentTime-t0),dur(cur)):(T[cur].pos??span(cur)[0]);
+ const halt=()=>{clearTimeout(gap);if(!node)return;const n=node,g=gain,now=QAC.currentTime;node=gain=null;n.onended=null;
+  try{g.gain.cancelScheduledValues(now);g.gain.setValueAtTime(g.gain.value,now);g.gain.linearRampToValueAtTime(0,now+0.025);n.stop(now+0.035);}catch(e){}};
+ const paint=()=>{const i=cur<0?0:cur,d=dur(i),t=pos(),f=foc(i);fill.style.width=(d?Math.min(100,100*t/d):0)+"%";
+  zone.style.display=f&&d?"block":"none";if(f&&d){zone.style.left=100*f[0]/d+"%";zone.style.width=100*(Math.min(f[1],d)-f[0])/d+"%";}
+  clock.textContent=cur<0&&QAC&&QAC.state!=="running"&&qOn("play")?"tap to play":(cur<0?"":keys[i].dataset.k+"  ")+mmss(t)+" / "+mmss(d);
+  keys.forEach((k,j)=>{const on=j===cur&&playing;k.classList.toggle("on",on);k.classList.toggle("sel",j===cur&&!on);k.setAttribute("aria-pressed",on);});
+  bf.hidden=!T.some(t=>t.sync&&(x.media[t.g]||{}).focus);bt.hidden=!T.some(t=>t.sync);
+  [[bf,"focus"],[bt,"turn"],[bp,"play"]].forEach(([b,k])=>{b.classList.toggle("on",qOn(k));b.setAttribute("aria-pressed",qOn(k));});};
+ const tick=()=>{paint();raf=playing&&!dead?requestAnimationFrame(tick):0;};
+ const mates=i=>T[i].sync?T.map((t,j)=>j).filter(j=>T[j].g===T[i].g):[i];
+ const ended=i=>{playing=false;T[i].pos=span(i)[0];const ms=mates(i);
+  if(qOn("turn")&&ms.length>1){const nx=ms[(ms.indexOf(i)+1)%ms.length];gap=setTimeout(()=>start(nx,span(nx)[0]),260);}paint();};
+ async function start(i,at){const my=++token;if(cur>=0&&playing)T[cur].pos=pos();halt();cur=i;playing=true;T[i].pos=at;begun=true;paint();
+  let buf=T[i].buf;if(!buf){keys[i].classList.add("wait");try{buf=T[i].buf=await qLoad(T[i].src);}catch(e){keys[i].classList.remove("wait");if(my===token){playing=false;paint();toast("that clip did not load");}return;}
+   keys[i].classList.remove("wait");const du=keys[i].querySelector(".du");if(du)du.textContent=mmss(buf.duration);}
+  if(my!==token||dead)return;const c=qCtx();if(c.state!=="running"){playing=false;begun=false;cur=-1;paint();return;}
+  let [a,b]=span(i);if(!b)b=buf.duration;if(at==null||at<a-0.01||at>=b-0.08)at=a;
+  const n=c.createBufferSource(),g=c.createGain(),now=c.currentTime+0.012,len=Math.max(0.05,b-at);n.buffer=buf;n.connect(g);g.connect(c.destination);
+  g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(1,now+0.012);
+  if(b<buf.duration-0.03&&len>0.12){g.gain.setValueAtTime(1,now+len-0.07);g.gain.linearRampToValueAtTime(0,now+len);}
+  n.onended=()=>{if(node===n){node=gain=null;ended(i);}};n.start(now,at,len);node=n;gain=g;t0=now;p0=at;T[i].pos=at;if(!raf)tick();}
+ const pause=()=>{if(cur<0)return;if(playing)T[cur].pos=pos();token++;halt();playing=false;paint();};
+ const play=i=>{if(!T[i])return;if(i===cur&&playing)return pause();
+  start(i,cur>=0&&cur!==i&&T[cur].sync&&T[i].sync&&T[cur].g===T[i].g?pos():T[i].pos);};
+ const seekTo=p=>{if(cur<0)cur=0;const i=cur,f=foc(i);if(f&&(p<f[0]||p>f[1])){qSet("focus",false);}
+  p=Math.min(Math.max(0,p),Math.max(0,dur(i)-0.1));if(playing)start(i,p);else{T[i].pos=p;paint();}};
+ keys.forEach((k,i)=>k.onclick=()=>play(i));
+ const at=e=>{const r=sc.getBoundingClientRect(),d=dur(cur<0?0:cur);if(d)seekTo(Math.min(1,Math.max(0,(e.clientX-r.left)/r.width))*d);};
+ sc.onpointerdown=e=>{at(e);try{sc.setPointerCapture(e.pointerId);}catch(x){}sc.onpointermove=at;};sc.onpointerup=sc.onpointercancel=()=>{sc.onpointermove=null;};
+ bt.onclick=()=>{qSet("turn",!qOn("turn"));paint();};bp.onclick=()=>{qSet("play",!qOn("play"));paint();if(qOn("play"))auto();};
+ bf.onclick=()=>{qSet("focus",!qOn("focus"));if(cur>=0&&playing)start(cur,pos());else{if(cur>=0)T[cur].pos=null;paint();}};
+ T.forEach((t,i)=>{if(i<5&&keys[i].dataset.big)qLoad(t.src).then(b=>{if(dead)return;t.buf=b;if(cur<0||cur===i)paint();}).catch(()=>{});});
+ function auto(){if(dead||begun||!qOn("play"))return;if(qCtx().state==="running")start(0,null);else paint();}
+ paint();auto();
+ return {play,pause,wake:auto,toggle(){cur<0?start(0,null):playing?pause():start(cur,T[cur].pos);},seek(d){if(cur>=0){const [a,b]=span(cur);seekTo(Math.min(Math.max(a,pos()+d),Math.max(a,b-0.3)));}},
+  turn(){if(!bt.hidden)bt.click();},focus(){if(!bf.hidden)bf.click();},stop(){dead=true;token++;halt();cancelAnimationFrame(raf);}};}
+function qState(x){const a=myAns(x),oth=Object.values(x.answers||{}).filter(o=>String(o.by).toLowerCase()!==me());
+ const said=o=>[o.choice?esc(o.choice):"",o.text?`&ldquo;${esc(o.text)}&rdquo;`:""].filter(Boolean).join(" &middot; ");
+ return (a?`<b>&#10003; saved</b> ${hhmm(a.at)}`:"")+oth.map(o=>`<div class=oth>${esc(o.by)}: ${said(o)}</div>`).join("");}
+function qShow(id,dir=0){if(qtk){qtk.stop();qtk=null;}clearTimeout(qadv);qcur=id;const x=id&&qGet(id),pane=$("#pane");
+ $$("#side .qr-item").forEach(e=>{const on=e.dataset.q===id;e.classList.toggle("cur",on);if(on)e.scrollIntoView({block:"nearest"});});
+ if(!x){const live=qLive(),done=live.filter(myAns).length;setHash({});
+  pane.innerHTML=`<div class="fq fq-done"><h2 class=fq-ask>${live.length&&done===live.length?"All answered.":qf==="open"?"Nothing waiting.":"Nothing here."}</h2>
+  ${done?`<p class=fq-lead>${done} of ${live.length} answered. The composer gets them two minutes after your last one.</p>${qf!=="answered"?"<button id=qseen>Look over your answers</button>":""}`:""}</div>`;
+  const b=$("#qseen");if(b)b.onclick=()=>{qFilter("answered");qRail();qShow(qorder[0]||null);};return;}
+ const s=qSplit(x.title),a=myAns(x)||{},i=qorder.indexOf(id),latest=D.snapshots.length?D.snapshots[D.snapshots.length-1].id:"",groups=x.media||[];
+ let k=0;const key=(it,gi,g,big)=>{const L=String.fromCharCode(65+k++);
+  return `<button class=take data-k="${L}" data-g="${gi}" data-sync="${g.sync&&g.items.length>1?1:0}"${big?" data-big=1":""} data-secs="${it.secs||""}" data-src="${esc(qSrc(it))}" aria-label="take ${L}: ${esc(it.label)}"><span class=k>${L}</span><span class=tl>${esc(it.label)}</span>${big?"":`<span class=du>${it.secs?mmss(it.secs):""}</span>`}</button>`;};
+ const many=groups.some(g=>g.items.length>1);let big="",more="";      // takes side by side are the big keys; lone clips sit under the line
+ groups.forEach((g,gi)=>{const h=g.items.map(it=>key(it,gi,g,g.items.length>1||!many)).join("");if(g.items.length>1)big+=`<div class=fq-keys>${h}</div>`;else if(many)more+=h;else big+=h;});
+ if(!many&&big)big=`<div class=fq-keys>${big}</div>`;
+ const moved=x.moved!=null&&x.moved>=0.6?`<span class=fq-moved title="${esc(`These clips were cut on ${x.version}. The same seconds of the song as it is now (${x.now}) differ by ${x.moved.toFixed(1)} dB. The time plays it as it is now.`)}">changed since</span>`:"";
+ pane.innerHTML=`<article class="fq${dir>0?" in-r":dir<0?" in-l":""}" style="--song:${col(x.n||1)}">
+ <div class=fq-meta><span class=fq-song>${esc(qSong(x))}</span>${x.t!=null&&latest&&x.n?`<a href="#" class=golisten title="hear it in the song as it is now">${mmss(x.t)}</a>`:""}${x.version?`<span class=fq-ver>${esc(x.version)}</span>`:""}${moved}
+  <span class=fq-pos>${i+1} / ${qorder.length}</span><button class=fq-list aria-label="the list of questions">${i+1} / ${qorder.length}</button></div>
+ ${s.lead?`<p class=fq-lead>${esc(s.lead)}</p>`:""}<h2 class=fq-ask>${esc(s.ask)}</h2>${s.said?`<p class=fq-said>you said <q>${esc(s.said)}</q></p>`:""}
+ ${k?`<section class=fq-takes>${big}<div class=fq-line><div class=fq-scrub><b><u></u><i></i></b></div><span class=fq-clock></span></div>${more?`<div class=fq-more>${more}</div>`:""}
+  <div class=fq-prefs><button class="pref fq-play">plays by itself</button><button class="pref fq-turn">takes in turn</button><button class="pref fq-foc" hidden>only where they differ</button></div></section>`:"<div style='height:26px'></div>"}
+ <section class=fq-opts>${(x.choices||[]).map((c,j)=>`<button class="opt${a.choice===c?" on":""}" data-c="${esc(c)}"><kbd>${j+1}</kbd><span>${esc(c)}</span></button>`).join("")}</section>
+ <div class=fq-note><textarea rows=1 placeholder="${(x.choices||[]).length?"or in your own words":"in your own words"}" aria-label="your answer in your own words">${esc(a.text||"")}</textarea><button class=qsave>Save</button></div>
+ <div class=fq-state>${qState(x)}</div>
+ ${x.context?`<details class=fq-notes${localStorage.getItem("listen_qnotes")==="1"?" open":""}><summary>${esc(x.by)}'s notes<span>${dayOf(x.at)} ${hhmm(x.at)}</span></summary><div class=body>${esc(x.context)}</div></details>`:""}
+ <div class=fq-nav><button class=qprev${i>0?"":" disabled"} aria-label="the question before">&lsaquo;</button>
+  <button class="pref${qOn("auto")?" on":""}" id=qauto aria-pressed="${qOn("auto")}">next when answered</button>
+  <span class=fq-legend>${k?`<span><kbd>A</kbd>${k>1?`&ndash;<kbd>${String.fromCharCode(64+k)}</kbd>`:""} take</span><span><kbd>space</kbd> pause</span>`:""}${(x.choices||[]).length?`<span><kbd>1</kbd>&ndash;<kbd>${x.choices.length}</kbd> answer</span>`:""}<span><kbd>J</kbd><kbd>K</kbd> move</span></span>
+  <button class=qnext${i<qorder.length-1?"":" disabled"}>skip &rsaquo;</button></div></article>`;
+ const root=pane.querySelector(".fq"),ta=root.querySelector("textarea");if(k)qtk=qTakes(root,x);
+ root.querySelectorAll(".opt").forEach(b=>b.onclick=()=>qSave(b.dataset.c));root.querySelector(".qsave").onclick=()=>qSave();
+ ta.onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();qSave();}if(e.key==="Escape")ta.blur();};ta.onfocus=()=>clearTimeout(qadv);
+ const grow=()=>{ta.style.height="auto";ta.style.height=Math.min(160,ta.scrollHeight+2)+"px";};ta.oninput=grow;if(ta.value)grow();
+ root.querySelector(".qprev").onclick=()=>qGo(-1);root.querySelector(".qnext").onclick=()=>qGo(1);
+ $("#qauto").onclick=e=>{const v=!qOn("auto");qSet("auto",v);e.currentTarget.classList.toggle("on",v);e.currentTarget.setAttribute("aria-pressed",v);};
+ root.querySelector(".fq-list").onclick=()=>$("#main").classList.add("rail");
+ const nt=root.querySelector(".fq-notes");if(nt)nt.ontoggle=()=>qSet("notes",nt.open);
+ const go=root.querySelector(".golisten");if(go)go.onclick=e=>{e.preventDefault();show("listen",{s:latest,n:x.n,t:x.t});};
+ const nx=qGet(qorder.slice(i+1).find(j=>!myAns(qGet(j)))),keep=groups.flatMap(g=>g.items.map(qSrc));       // the next card's takes, ready before the flick
+ if(nx)(nx.media||[]).filter(g=>g.items.length>1).slice(0,1).forEach(g=>g.items.slice(0,3).forEach(it=>{keep.push(qSrc(it));qLoad(qSrc(it)).catch(()=>{});}));
+ for(const u of [...qbuf.keys()])if(!keep.includes(u))qbuf.delete(u);
+ setHash({q:id});window.scrollTo(0,0);}
+function qGo(d){const id=qorder[qorder.indexOf(qcur)+d];if(id)qShow(id,d);}
+function qNextWaiting(){const i=qorder.indexOf(qcur),id=[...qorder.slice(i+1),...qorder.slice(0,Math.max(0,i))].find(j=>!myAns(qGet(j)));qShow(id||null,1);}
+async function qSave(choice){const x=qGet(qcur),root=$("#pane .fq");if(!x||!root)return;const ta=root.querySelector("textarea");
+ const text=ta.value.trim(),c=choice!==undefined?choice:((myAns(x)||{}).choice||"");if(!c&&!text){ta.focus();return;}
+ const r=await post(`api/${A}/questions/${x.id}/answer`,{choice:c,text});if(!r.ok){toast(r.error||"not saved");return;}
  x.answers=x.answers||{};x.answers[me()]={by:U(),at:new Date().toISOString(),choice:c,text};
- card.classList.add("ans");card.querySelectorAll(".qa .chip").forEach(e=>e.classList.toggle("on",e.dataset.c===c));
- card.querySelector(".qst").innerHTML=qStatus(x);qProgress();toast("saved");}
-function qDraw(){const ts=[...new Set(qLive().map(x=>x.n))].sort((a,b)=>a-b);
- $("#qft").innerHTML=ts.length>1?`<span class="chip${qf.n===0?" on":""}" data-n=0>${ts.length>2?"all songs":"both songs"}</span>`+ts.map(n=>`<span class="chip${qf.n===n?" on":""}" data-n="${n}"><span class=dot style="background:${col(n)}"></span>${esc(trackOf(n).title||"the album")}</span>`).join(""):"";
- $$("#qft .chip").forEach(c=>c.onclick=()=>{qf.n=+c.dataset.n;qDraw();});
- $$("#qff .chip").forEach(c=>{c.classList.toggle("on",c.dataset.f===qf.state);c.onclick=()=>{qf.state=c.dataset.f;qDraw();};});
- const xs=qLive().filter(x=>(!qf.n||x.n===qf.n)&&(qf.state==="all"||(qf.state==="open")===!myAns(x))).sort((a,b)=>(a.n-b.n)||(a.t??1e9)-(b.t??1e9)||String(a.at).localeCompare(String(b.at)));
- $("#ql").innerHTML=xs.length?xs.map(qCard).join(""):`<p class=m>${qf.state==="open"?"Nothing waiting on you here. Thank you.":"Nothing here."}</p>`;qlast=null;
- $$("#ql .pl").forEach(pl=>{pl.querySelector(".lbl").onclick=()=>qPlay(pl);const au=pl.querySelector("audio");
-  au.onplay=()=>{const prev=qlast;if(prev&&prev!==au&&!prev.paused){const from=prev.closest(".pl");   // its own play button, the other side still going
-    if(from.closest(".q")===pl.closest(".q")&&from.dataset.g===pl.dataset.g&&pl.dataset.sync==="1"&&prev.currentTime<(au.duration||1e9)-0.3)au.currentTime=prev.currentTime;}
-   $$("#ql audio").forEach(o=>{if(o!==au)o.pause();});qlast=au;$$("#ql .pl").forEach(e=>e.classList.toggle("on",e===pl));qSetCur(pl.closest(".q").dataset.q);};
-  au.onpause=()=>pl.classList.remove("on");});
- $$("#ql .q").forEach(card=>{const id=card.dataset.q;card.onclick=e=>{if(!e.target.closest("a"))qSetCur(id);};
-  card.querySelectorAll(".qa .chip").forEach(c=>c.onclick=()=>qSave(id,c.dataset.c));card.querySelector(".qsave").onclick=()=>qSave(id);
-  const ta=card.querySelector("textarea");ta.onkeydown=e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault();qSave(id);}};
-  ta.oninput=()=>{ta.rows=Math.min(6,Math.max(1,ta.value.split("\n").length));};
-  const go=card.querySelector(".golisten");if(go)go.onclick=e=>{e.preventDefault();show("listen",{s:D.snapshots[D.snapshots.length-1].id,n:go.dataset.n,t:go.dataset.t});};});
- if(!xs.find(x=>x.id===qcur))qcur=xs.length?xs[0].id:null;qSetCur(qcur);qProgress();}
-async function questionsView(h={}){const d=await api("api/"+A);D.questions=d.questions||[];D.notes=d.notes;D.snapshots=d.snapshots;
- if(h.q&&qLive().find(x=>x.id===h.q)){qf={state:"all",n:0};qcur=h.q;}
- $("#pane").innerHTML=`<h2>Questions on ${esc(AI.title)} <span class=m id=qcount></span></h2>
- <p class=intro>What the composers could not judge by measurement and need an ear for. Each has its clips side by side: press <b>A</b> or <b>B</b> to play that side, and where the two are the same passage, switching keeps your place. Pick an answer, write one, or both. Every answer is saved as you give it; the composer gets them all together a couple of minutes after you stop.</p>
- <div id=qbar><div class=prog><i id=qprog style="width:0"></i></div><div class=chips id=qff><span class=chip data-f=open>waiting on you</span><span class=chip data-f=answered>answered</span><span class=chip data-f=all>all</span></div><div class=chips id=qft></div></div><div id=ql></div>`;
- qDraw();if(h.q)qSetCur(h.q,true);setHash({});}
+ root.querySelectorAll(".opt").forEach(e=>e.classList.toggle("on",e.dataset.c===c));root.querySelector(".fq-state").innerHTML=qState(x);qRail();qBadge();
+ clearTimeout(qadv);if(qOn("auto")&&qf==="open"){if(document.activeElement===ta)ta.blur();qadv=setTimeout(qNextWaiting,650);}}
+async function questionsView(h={}){const d=await api("api/"+A);D.questions=d.questions||[];D.notes=d.notes;D.snapshots=d.snapshots;qCtx();
+ const want=h.q&&qLive().find(x=>x.id===h.q);qFilter(want&&myAns(want)?"all":"open");qRail();qShow(want?want.id:qorder[0]||null);qBadge();}
+// a flick: left for the next question, right for the one before
+(()=>{let sx=0,sy=0,ok=false;const p=$("#pane");
+ p.addEventListener("touchstart",e=>{ok=view==="questions"&&e.touches.length===1&&!e.target.closest(".fq-scrub,textarea,.fq-notes");if(ok){sx=e.touches[0].clientX;sy=e.touches[0].clientY;}},{passive:true});
+ p.addEventListener("touchend",e=>{if(!ok)return;ok=false;const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dx)>70&&Math.abs(dx)>2.2*Math.abs(dy))qGo(dx<0?1:-1);},{passive:true});})();
 
 // ── worklog ──
 // a round's headline: the composer's first ALL-CAPS phrase that is not a label, else its first sentence
@@ -358,11 +501,17 @@ document.addEventListener("keydown",e=>{if(["TEXTAREA","INPUT","SELECT"].include
  else if(e.key==="ArrowLeft")media.currentTime=Math.max(0,media.currentTime-5);else if(e.key==="ArrowRight")media.currentTime+=5;
  else if((e.key==="j"||e.key==="k")&&S){const i=S.tracks.findIndex(x=>x.n===N)+(e.key==="j"?1:-1);if(S.tracks[i])pick(S.tracks[i].n,0,true);}});
 // ── keys (Questions) ──
-document.addEventListener("keydown",e=>{if(["TEXTAREA","INPUT","SELECT"].includes(e.target.tagName)||view!=="questions"||e.ctrlKey||e.metaKey||e.altKey)return;
- const cards=$$("#ql .q");if(!cards.length)return;const i=Math.max(0,cards.findIndex(c=>c.dataset.q===qcur)),card=cards[i],k=e.key.toLowerCase();
- if(k==="j"||k==="k"){e.preventDefault();const c=cards[i+(k==="j"?1:-1)];if(c)qSetCur(c.dataset.q,true);}
- else if(k===" "){e.preventDefault();if(qlast&&qlast.closest(".q")===card){qlast.paused?qlast.play():qlast.pause();}else{const pl=card.querySelector(".pl");if(pl)qPlay(pl);}}
- else if(k.length===1&&k>="a"&&k<="h"){const pl=card.querySelectorAll(".pl")[k.charCodeAt(0)-97];if(pl){e.preventDefault();qPlay(pl);}}
- else if(k>="1"&&k<="9"){const c=card.querySelectorAll(".qa .chip")[+k-1];if(c){e.preventDefault();qSave(card.dataset.q,c.dataset.c);}}});
+document.addEventListener("keydown",e=>{if(view!=="questions"||e.ctrlKey||e.metaKey||e.altKey)return;
+ if(["TEXTAREA","SELECT"].includes(e.target.tagName)||(e.target.tagName==="INPUT"&&e.target.type!=="checkbox"))return;
+ const k=e.key.toLowerCase();if(k==="escape"){$("#main").classList.remove("rail");return;}
+ if(k==="j"){e.preventDefault();qGo(1);}else if(k==="k"){e.preventDefault();qGo(-1);}
+ else if(!qGet(qcur))return;
+ else if(k===" "){e.preventDefault();if(qtk)qtk.toggle();}
+ else if(k==="arrowleft"||k==="arrowright"){if(qtk){e.preventDefault();qtk.seek(k==="arrowleft"?-2:2);}}
+ else if(k==="t"){if(qtk)qtk.turn();}else if(k==="w"){if(qtk)qtk.focus();}
+ else if(k==="n"){e.preventDefault();$("#pane .fq textarea")?.focus();}
+ else if(k==="i"){const d=$("#pane .fq-notes");if(d)d.open=!d.open;}
+ else if(k.length===1&&k>="a"&&k<="h"){if(qtk){e.preventDefault();qtk.play(k.charCodeAt(0)-97);}}
+ else if(k>="1"&&k<="9"){const c=$$("#pane .opt")[+k-1];if(c){e.preventDefault();qSave(c.dataset.c);}}});
 boot();
 </script>

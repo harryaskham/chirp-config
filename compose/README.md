@@ -221,6 +221,22 @@ only in a message:
         --ab "v6|v7=/path/to/clip-ab.mp3" --clip "the voice alone=/path/to/clip.mp3" \
         --choice "Yes, clearly" --choice "Some of them" --choice "No, the band still covers them"
 
+THE PAGE SHOWS ONE QUESTION AT A TIME (15 Nov). Harry, with 26 cards waiting: "questions are very busy and hard to
+even parse or answer"; "make it easy to respond, like a flick thru view w autoplay, maybe with shorter more focused
+examples for some things". Each card now plays by itself when it comes up, its takes in turn (A, B, A ...), opening
+on the few seconds where they differ; an answer brings the next card. Your notes are folded away under it. He
+answered eight cards in five minutes the night it changed. So write a card for a listener who is flicking through:
+
+- THE TITLE IS THE QUESTION, AND ONLY THE QUESTION, short: "A drummer pulling against the beat, or lost?". The page
+  sets a long title's last question large and what stands before it small, and lifts a bracketed "(you said: ...)"
+  out; a title that is only the question reads better still. What changed goes FIRST in `--context`, one sentence;
+  the measurements after it.
+- THE A/B IS SHORT AND ON THE CHANGE: 6 to 10 seconds, starting a bar before it. The page finds the seconds to open
+  on by measurement (from a second and a half before the takes first part, 4 to 7 s; takes of 11 s or less play
+  whole) and `ask` prints them; `--focus START-END` (seconds into the takes) sets them yourself, and
+  `listen.py questions ALBUM --focus` lists every card's. ONE more clip at most, and only if the answer needs it.
+- TWO TO FOUR CHOICES, a few words each. Five or six is a questionnaire.
+
 - `--ab "A|B=FILE"`: the usual A-then-B clip (a silence between the takes) is cut into its sides and shown side by
   side; when the sides are the same length he can switch between them mid-phrase. It takes any number of takes, a
   label each ("1|2|3|4|5=FILE": five voices in one row). `--clip` is one player.
