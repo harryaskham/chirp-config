@@ -233,6 +233,18 @@ G4B = ("gl", "gr", "jl", "jr") if RIG2 else ("gl", "gr", "gl2", "gr2")
 # the kick go on as they were, so the bar is still there to be pushed against. As many snare strokes as before.
 # the rows of the first extent where the snare hunts (from:to) ; its velocity. "" = v8.
 HUNT = os.environ.get("C10T3_HUNT", "100:118;0.95")
+# v11: THE BASS'S TONE FOLLOWS THE KEY (whole song; the first read of the song part by part against the eleven
+# records). The bass's bus has an eq cut to the low F: a notch on its fundamental (44 Hz), a lift on its octave (90 Hz),
+# a compressor after them, then a cut at four times the fundamental (170 Hz). That is right on F. When the ground
+# moves up to A flat, B or C the fundamental climbs INTO the lift, the compressor clamps on it, and everything above it
+# is pushed down: alone, the bass's 120-250 Hz is 12.1 dB under its total on F, 15.7 on A flat, 18.9 on B, and its
+# 1-2 kHz growl 18.8, 22.5, 26.3. So on B and C the bass is all fundamental, and read against the records those
+# stretches are 1.2 and 0.7 dB over at 60-120 Hz and 2.1 and 2.6 under at 120-250.
+# Now those three eq bands move with the key: a lane on the bass's bus carries the ground in semitones over F (0, 3, 6
+# or 7) and each band's frequency follows it (the engine bends a frequency in octaves: a twelfth of the lane). The
+# bass keeps the shape it has on F wherever the song goes.
+# "1" = on. "" = v10.
+KEYEQ = os.environ.get("C10T3_KEYEQ", "1")
 CALLS_1 = [L for L, c in enumerate("pppb" * 3) if c != "p"]
 CALLS_2 = [L for L, c in enumerate("pbpbps" * 2) if c != "p"]
 BREAKS, BREAK_HITS = [], []          # the calls' spans (sixteenths) and the kit's notes in them
@@ -457,8 +469,18 @@ def compose():
             drum("c", z, 0.8)
 
 
+def key_f(hz):
+    """An eq frequency that follows the key: the lane `key` is the ground in semitones over F; the engine bends in octaves."""
+    return {"value": hz, "mod": [{"src": "auto.key", "amount": round(1 / 12, 5)}]}
+
+
 def song():
     compose()
+    # the ground, in semitones over F, from the bar each stretch begins
+    grounds = [(0, 0), (PART1 + T1, KEYS_1[1]), (PART1 + 2 * T1, KEYS_1[2]), (MIDDLE, 0), (PART2 + T2, KEYS_2[1]), (PART2 + 2 * T2, KEYS_2[2]), (LAND, 0)]
+    KEY_LANE = [["0b", 0]]
+    for (b, k), (_, prev) in zip(grounds[1:], grounds):
+        KEY_LANE += [[f"{b * 4 - 0.02:g}b", prev], [f"{b * 4:g}b", k]]
     HARM_DIP = []
     if HARM and CLIMB:        # the guitars' bus comes down a little while six guitars play (the lane is the climb's)
         h0, h1 = (PART2 * 4 + int(x) * L2 / 4 for x in HARM.split(";")[3].split(":"))
@@ -526,9 +548,14 @@ def song():
                            + [{"type": "eq", "bands": ["peak cutoff=330 q=1.2 gain=-2dB"]}, "reverb kind=room decay=0.35s mix=0.06 predelay=6ms"],
                      **({"auto": {"under": {"points": [["0b", 0]] + HARM_DIP + [[f"{CLIMB_B0 * 4 - 0.5}b", 0], [f"{CLIMB_B0 * 4}b", float(CLIMB.split(";")[5])],
                                                        [f"{LAND * 4 - 0.5}b", float(CLIMB.split(";")[5])], [f"{LAND * 4}b", 0]], "curve": 0}}} if CLIMB else {})},
-            "low": {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
-                           {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
-                           {"type": "eq", "bands": ["peak cutoff=170 q=1.2 gain=-3dB"]}]},
+            "low": ({"fx": [{"type": "eq", "bands": [{"kind": "peak", "cutoff": key_f(44), "q": 1.5, "gain": "-7dB"}, {"kind": "peak", "cutoff": key_f(90), "q": 1.0, "gain": "7.5dB"},
+                                                     {"kind": "peak", "cutoff": 350, "q": 1.0, "gain": "-8dB"}, {"kind": "peak", "cutoff": 1500, "q": 1.0, "gain": "4dB"}]},
+                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
+                            {"type": "eq", "bands": [{"kind": "peak", "cutoff": key_f(170), "q": 1.2, "gain": "-3dB"}]}],
+                     "auto": {"key": {"points": KEY_LANE, "curve": 0}}} if KEYEQ else
+                    {"fx": [{"type": "eq", "bands": ["peak cutoff=44 q=1.5 gain=-7dB", "peak cutoff=90 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
+                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
+                            {"type": "eq", "bands": ["peak cutoff=170 q=1.2 gain=-3dB"]}]}),
         },
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": os.environ.get("C10T3_MASTER", "2.7dB" if RHYTHM else "3.1dB")}]},
         "tracks": tracks,
