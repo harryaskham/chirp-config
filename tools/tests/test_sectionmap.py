@@ -280,3 +280,71 @@ def test_a_static_window_says_what_enters_and_how_to_weigh_it():
         "  w2 static, and these ENTER in it: eleven, china at 0:50; lead at 1:00. How loud against what was already playing: "
         "presence.py x --windows 100b-116b --preroll 8",
         "  w3 static: nothing enters in it (the same parts throughout, or parts that never rested two bars)"]
+
+
+# ── rhythm inside a window (15 Nov, Plain Hunt v9: a snare moved in time changed no tone, harmony or level) ──
+def _attacks(strokes, bars=8, hop=0.005, tempo=120.0, bpb=4):
+    """An onset envelope at 5 ms for `bars` bars of `bpb` beats: strokes(bar) gives the beats struck in that bar."""
+    spb = 60.0 / tempo
+    times = np.arange(0, bars * bpb * spb, hop)
+    env = np.zeros(len(times))
+    for bar in range(bars):
+        for beat in strokes(bar):
+            env[int(round((bar * bpb + beat) * spb / hop))] += 1.0
+    return env, times, (lambda b: np.atleast_1d(np.asarray(b, float)) * spb)
+
+
+def test_rhythm_is_nothing_for_a_bar_that_repeats_and_plain_for_a_stroke_that_slides():
+    kick = [0.0, 1.0, 2.0, 3.0]
+    env, t, clock = _attacks(lambda bar: kick + [1.0, 3.0])                       # a backbeat, every bar alike
+    assert SM.rhythm_motion(env, t, clock, 0.0, 32.0) < 0.01
+    env, t, clock = _attacks(lambda bar: kick + [1.0 + 0.25 * (bar % 4), 3.0 + 0.25 * (bar % 4)])   # a sixteenth later each bar
+    assert SM.rhythm_motion(env, t, clock, 0.0, 32.0) > SM.RHYTHM_MOVES
+    env, t, clock = _attacks(lambda bar: [] if bar in (3, 4) else kick + [1.0, 3.0])                # two bars of rest
+    assert SM.rhythm_motion(env, t, clock, 0.0, 32.0) < 0.01                      # a rest is not a change of rhythm
+    assert SM.rhythm_motion(env, t, clock, 0.0, 4.0) is None                      # one bar: nothing to compare
+    env, t, clock = _attacks(lambda bar: [0.0, 1.5, 2.0], bpb=3)                  # bars of three beats, read in their own meter
+    assert SM.rhythm_motion(env, t, clock, 0.0, 24.0, bpb=3.0) < 0.01
+    assert SM.rhythm_motion(env, t, clock, 0.0, 24.0) > 0.3                       # and read as fours, nothing lines up
+    early = np.roll(env, -1)                                                      # every attack 5 ms early: still each bar's own
+    assert SM.rhythm_motion(early, t, clock, 3.0, 24.0, bpb=3.0) < 0.01           # (from the second bar: the roll wraps the first)
+
+
+def test_a_static_window_whose_rhythm_moves_is_static_in_tone():
+    rows = _rows()
+    for r, v in zip(rows, (0.08, 0.10, 0.09, 0.23, 0.12)):
+        r["rhythm"] = v
+    SM.flag(rows)
+    assert "static in tone" in rows[3]["flags"] and "static" not in rows[3]["flags"]
+    assert SM.is_static(rows[3]) and not SM.is_static(rows[1])
+    low, mid, moves = SM.rhythm_line(rows)
+    assert (round(low, 3), round(mid, 3), round(moves, 3)) == (0.09, 0.10, 0.15)   # the top quarter is 0.12: the floor holds
+    rows = _rows()
+    for r, v in zip(rows, (0.02, 0.03, 0.02, 0.05, 0.03)):                        # a steady song: its "most moving" window
+        r["rhythm"] = v                                                           # still repeats bar for bar
+    SM.flag(rows)
+    assert "static" in rows[3]["flags"]
+    assert SM.rhythm_line(_rows()) == (None, None, None)                          # no rhythm figures: as before
+
+
+def test_the_static_lines_say_which_way_the_rhythm_reads():
+    rows = _grid(320)                                                             # five windows
+    for r, v, f in zip(rows, (0.07, 0.23, 0.12, 0.10, 0.12), (["static"], ["static in tone"], ["static"], [], ["little new vs w4"])):
+        r["rhythm"], r["flags"] = v, f
+    lines = SM.entry_lines("x", rows, {3: [("lead", 130.0)]}, lambda b: [b / 2.0])
+    assert lines == [
+        "  w1 static (and its rhythm repeats: 0.070 bar to bar, this song's median 0.120): nothing enters in it (the same parts "
+        "throughout, or parts that never rested two bars)",
+        "  w2 static in tone (its rhythm MOVES: 0.230 bar to bar, this song's median 0.120): nothing enters in it (the same parts "
+        "throughout, or parts that never rested two bars)",
+        "  w3 static (rhythm 0.120 bar to bar, this song's median 0.120), and these ENTER in it: lead at 1:05. How loud against what "
+        "was already playing: presence.py x --windows 130b-146b --preroll 8"]
+
+
+def test_an_ab_carries_the_rhythm_was_and_now():
+    def row(n, rhythm):
+        v = np.ones(8)
+        return {"n": n, "level": -12.0, "bright_hz": 600, "density": 6.0, "motion": 0.03, "vec": v, "chroma": v, "seq": None,
+                "rhythm": rhythm}
+    cmp_ = SM.compare([row(1, 0.228), row(2, None)], [row(1, 0.068), row(2, 0.1)])
+    assert cmp_[0]["rhythm"] == [0.068, 0.228] and "rhythm" not in cmp_[1]

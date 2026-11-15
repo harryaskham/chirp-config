@@ -29,6 +29,12 @@ half a second each, against their neighbours eight seconds either way), so it is
 onsets: a harmony that joins near the window's start and stays (Plain Hunt v7, w8) is one change and then none, and
 the window is still static. "little new" keys on CHANGE: the window's mean frame against the window before's.
 "little new vs wN" only says the window continues the one before.
+THE MAP'S BLIND SIDE WAS RHYTHM THAT KEEPS ITS INSTRUMENTS (15 Nov, chirper-zero, Plain Hunt v9: a snare moved in
+time, the same strokes on the same drum, changed no tone, harmony or level, and the window's motion went 0.0321 to
+0.0315). The `rhythm` column is how far the attacks' places in the BAR change from one bar to the next inside the
+window (0 = every bar alike; that window went 0.087 to 0.230). A static window whose rhythm is in the song's top
+quarter (and at least 0.15) is flagged "static in tone"; the line under the map says which way each static window's
+rhythm reads. It is still a flag: whether a rhythm that moves is tension or the floor going is for an ear.
 WHAT ENTERS IN A STATIC WINDOW (14 Nov, chirper-zero, Common Time v48): the map's most static window had a new
 wheel arriving in the middle of it, 3 to 4 dB under guitars that never stopped: "static" was "the arrival is
 masked". Under the map, each static window now lists the parts that ENTER in it (from the plan: a part silent for
@@ -237,6 +243,39 @@ def groove_hist(env, times, clock, ba, bb):
     return h / (h.sum() + 1e-12)
 
 
+# Rhythm inside a window: where in the BAR the attacks fall, bar by bar. The mean of 1 - cosine between consecutive
+# bars' onset histograms. Steady grooves read 0.02 to 0.09 on Common Time's three songs; a riff of ten sixteenths
+# sliding against the bar 0.12 to 0.19; Plain Hunt v9's snare following the riff's long note 0.230 (0.087 before).
+RHYTHM_BINS = 48            # places in a bar: a sixteenth is three of them in 4/4, a triplet eighth four
+RHYTHM_MOVES = 0.15
+
+
+def rhythm_motion(env, times, clock, ba, bb, bpb=4.0):
+    """How far the attacks' places in the bar change from one bar to the next between beats ba and bb: the mean, over
+    consecutive bars, of 1 - cosine of their onset histograms (RHYTHM_BINS places, a one-bin smear). 0 = every bar
+    alike. Bars with next to no attacks (under a fiftieth of the busiest bar's) are left out, so a rest is not a
+    change of rhythm. None when fewer than two bars can be compared."""
+    hs, tot = [], []
+    half = bpb / (2.0 * RHYTHM_BINS)                # places are centred on the grid, so an attack on a sixteenth is in ONE
+    for b0 in np.arange(ba, bb - bpb + 1e-9, bpb):  # place, and a bar owns the attacks from half a place before its line
+        grid = np.linspace(b0 - half, b0 + bpb - half, int(round(bpb * 96)) + 1)
+        secs = clock(grid)
+        sel = (times >= secs[0]) & (times < secs[-1])
+        beats = np.interp(times[sel], secs, grid)
+        h = np.bincount(np.clip(np.floor((beats - b0) / bpb * RHYTHM_BINS + 0.5).astype(int), 0, RHYTHM_BINS - 1),
+                        weights=env[sel], minlength=RHYTHM_BINS)
+        tot.append(float(h.sum()))
+        hs.append(h + 0.5 * (np.roll(h, 1) + np.roll(h, -1)))
+    floor = max(tot, default=0.0) / 50.0
+    steps = [1 - _cos(hs[i], hs[i + 1]) for i in range(len(hs) - 1) if tot[i] > floor and tot[i + 1] > floor]
+    return float(np.mean(steps)) if steps else None
+
+
+def is_static(r):
+    """Whether a window carries the static flag, in either wording ("static", "static in tone")."""
+    return any(f.startswith("static") for f in r.get("flags") or [])
+
+
 def semitones(x, sr, hop_s=0.1, ref=None, info=None):
     """(frames x 60 semitone energies C2..B6, log-compressed; frame times in s) of the mono mix, at 12 kHz. The scale is
     the render's own loudest semitone frame, or REF (another render's, so an A/B shares one scale); INFO gets 'sref'."""
@@ -324,6 +363,7 @@ def analyse(wav, song, window_s=30.0, x=None, sref=None, info=None):
     S, st = semitones(x, L.SR, ref=sref, info=info)
     clock, _ = beat_clock(song)
     env, etimes = onset_env(x, L.SR) if clock is not None else (None, None)
+    bpb = meter_beats(song)
     rows = []
     for i, ((ba, bb, ta, tb), f) in enumerate(zip(wins, feats)):
         prof = np.asarray(f["profile"], float)
@@ -336,6 +376,8 @@ def analyse(wav, song, window_s=30.0, x=None, sref=None, info=None):
              "vec": f["vec"], "chroma": f["chroma"], "seq": seq_of(S, st, clock, ba, bb, ta, tb)}
         if env is not None and ba is not None:
             r["ghist"] = groove_hist(env, etimes, clock, ba, bb)
+            rm = rhythm_motion(env, etimes, clock, ba, bb, bpb)
+            r["rhythm"] = None if rm is None else round(rm, 3)
         if i:
             prev = rows[-1]
             r["change"] = round(1 - _sim(prev, r) + abs(r["level"] - prev["level"]) / 20.0, 4)
@@ -352,6 +394,15 @@ def analyse(wav, song, window_s=30.0, x=None, sref=None, info=None):
     return rows, dur
 
 
+def rhythm_line(rows):
+    """(lowest quarter, median, the "rhythm moves" line) of the windows' rhythm figures: the last is the song's top
+    quarter, and at least RHYTHM_MOVES. (None, None, None) when fewer than three windows have one."""
+    rhy = [r["rhythm"] for r in rows if r.get("rhythm") is not None]
+    if len(rhy) < 3:
+        return None, None, None
+    return float(np.percentile(rhy, 25)), float(np.median(rhy)), max(float(np.percentile(rhy, 75)), RHYTHM_MOVES)
+
+
 def flag(rows):
     """Flags relative to the song itself (its own quartiles) plus a few absolute ones."""
     if len(rows) < 3:
@@ -360,14 +411,15 @@ def flag(rows):
     chg = np.array([r.get("change", np.nan) for r in rows])
     m25 = float(np.percentile(mot, 25))
     c25 = float(np.nanpercentile(chg, 25))
+    moves = rhythm_line(rows)[2]
     for r in rows:
         f = []
         lk = r.get("like")
         if (lk and lk.get("notes", 9.0) <= REPEAT_NOTES and lk.get("avg", 0.0) >= REPEAT_AVG
                 and abs(lk["dlevel"]) <= 1.5):
             f.append(f"near-repeat of w{lk['n']}")
-        if r["motion"] <= m25:
-            f.append("static")
+        if r["motion"] <= m25:                                    # static in tone, harmony and level: the rhythm may still move
+            f.append("static in tone" if moves is not None and (r.get("rhythm") or 0.0) >= moves else "static")
         if (r.get("change") is not None and r["change"] <= c25
                 and r.get("groove", 0.0) < GROOVE_NEW):           # a new groove is new, whatever texture says
             f.append("little new vs w{}".format(r["n"] - 1))
@@ -415,20 +467,29 @@ def entries(canon, rows, quiet=ENTER_QUIET):
 def entry_lines(cid, rows, enters, clock):
     """The lines under the map: for each window flagged static, what enters in it and the presence command."""
     lines = []
+    low, mid, moves = rhythm_line(rows)
     for r in rows:
-        if "static" not in (r.get("flags") or []):
+        if not is_static(r):
             continue
+        said = "static"
+        if moves is not None and r.get("rhythm") is not None:    # which way its rhythm reads: the map's motion cannot hear it
+            if r["rhythm"] >= moves:
+                said = f"static in tone (its rhythm MOVES: {r['rhythm']:.3f} bar to bar, this song's median {mid:.3f})"
+            elif r["rhythm"] <= low:
+                said = f"static (and its rhythm repeats: {r['rhythm']:.3f} bar to bar, this song's median {mid:.3f})"
+            else:
+                said = f"static (rhythm {r['rhythm']:.3f} bar to bar, this song's median {mid:.3f})"
         got = enters.get(r["n"]) or []
         if not got:
-            lines.append(f"  w{r['n']} static: nothing enters in it (the same parts throughout, or parts that never rested two bars)")
+            lines.append(f"  w{r['n']} {said}: nothing enters in it (the same parts throughout, or parts that never rested two bars)")
             continue
         by = {}
         for name, beat in got:
             by.setdefault(round(beat, 3), []).append(name)
-        said = "; ".join(f"{', '.join(v[:6])}{' +' + str(len(v) - 6) if len(v) > 6 else ''} at {fmt_t(float(clock(b)[0]))}"
+        what = "; ".join(f"{', '.join(v[:6])}{' +' + str(len(v) - 6) if len(v) > 6 else ''} at {fmt_t(float(clock(b)[0]))}"
                          for b, v in list(by.items())[:4])
         first = got[0][1]
-        lines.append(f"  w{r['n']} static, and these ENTER in it: {said}. How loud against what was already playing: "
+        lines.append(f"  w{r['n']} {said}, and these ENTER in it: {what}. How loud against what was already playing: "
                      f"presence.py {cid} --windows {first:g}b-{first + 16:g}b --preroll 8")
     return lines
 
@@ -513,6 +574,8 @@ def compare(new, old, xn=None, xo=None, sr=None):
              "change_vs_prev": [b.get("change"), a.get("change")]}
         if a.get("ghist") is not None and b.get("ghist") is not None:
             c["groove"] = round(1 - _cos(a["ghist"], b["ghist"]), 3)        # the window's feel, new vs old
+        if a.get("rhythm") is not None and b.get("rhythm") is not None:
+            c["rhythm"] = [b["rhythm"], a["rhythm"]]                        # bar-to-bar change inside the window, was -> now
         if xn is not None and xo is not None:
             c["residual_db"] = residual_db(xn, xo, a["time"][0], a["time"][1], sr or L.SR)
         out.append(c)
@@ -543,13 +606,14 @@ def print_map(cid, song, rows, dur, ledger, canon=None):
           f" — a flashlight, not a score")
     last = {e.get("window"): e for e in ledger}
     print(f"{'w':>3} {'time':>11} {'beats':>11} {'lvl dB':>7} {'bright':>7} {'dens':>5} {'motion':>7} {'change':>7} "
-          f"{'groove':>6}  {'most like':<14} flags / last focus")
+          f"{'groove':>6} {'rhythm':>6}  {'most like':<14} flags / last focus")
     for r in rows:
         b = f"{r['beats'][0]:g}-{r['beats'][1]:.0f}" if r["beats"][0] is not None else "-"
         lk = r.get("like")
         like = f"w{lk['n']} {lk['sim']:.3f}" if lk else "-"
         ch = f"{r['change']:.3f}" if r.get("change") is not None else "-"
         gv = f"{r['groove']:.3f}" if r.get("groove") is not None else "-"
+        rv = f"{r['rhythm']:.3f}" if r.get("rhythm") is not None else "-"
         lf = last.get(r["n"])
         tail = ", ".join(r.get("flags") or [])
         if r.get("groove", 0.0) >= GROOVE_NEW:
@@ -562,7 +626,7 @@ def print_map(cid, song, rows, dur, ledger, canon=None):
             elif lf.get("marked_as"):
                 tail += f" (marked as w{lf['marked_as']} on another window length)"
         print(f"{r['n']:>3} {fmt_t(r['time'][0]):>5}-{fmt_t(r['time'][1]):<5} {b:>11} {r['level']:>7.1f} "
-              f"{r['bright_hz']:>7} {r['density']:>5.2f} {r['motion']:>7.4f} {ch:>7} {gv:>6}  {like:<14} {tail}")
+              f"{r['bright_hz']:>7} {r['density']:>5.2f} {r['motion']:>7.4f} {ch:>7} {gv:>6} {rv:>6}  {like:<14} {tail}")
     if len(rows) >= 3:                                   # what the two commonest flags key on, with this song's own lines
         m25 = float(np.percentile([r["motion"] for r in rows], 25))
         c25 = float(np.nanpercentile([r.get("change", np.nan) for r in rows], 25))
@@ -570,6 +634,12 @@ def print_map(cid, song, rows, dur, ledger, canon=None):
               "level, half a second at a time) changes WITHIN the window. A part that joins and stays is one change, then none.")
         print(f"  little new = change at or under {c25:.3f}, its lowest quarter: 1 - likeness to the window before, + the level "
               "step / 20. A quarter of the windows carry each flag, however good the song.")
+        moves = rhythm_line(rows)[2]
+        if moves is not None:
+            print(f"  rhythm = how far the attacks' places in the bar change from one bar to the next WITHIN the window (0 = every "
+                  "bar alike). Motion hears tone, harmony and level; a part moved in time, the same strokes on the same drum, shows "
+                  f"only here. static in tone = static, with rhythm at or over {moves:.3f} (this song's top quarter, and at least "
+                  f"{RHYTHM_MOVES}).")
     if canon:                                            # a static window with an arrival in it: the arrival may be masked
         clock, _ = beat_clock(song)
         for ln in entry_lines(cid, rows, entries(canon, rows), clock) if clock else []:
@@ -650,15 +720,17 @@ def main(argv=None):
                       f"gain into the master's compressors moving because the edit changed the song's loudness, not edits "
                       f"there. '<' marks windows above {cut:.1f} dB, well clear of that floor.")
             print(f"{'w':>3} {'time':>11} {'resid dB':>8} {'melody':>7} {'groove':>6} {'change':>7} {'dB':>6} {'bright':>7} "
-                  f"{'dens':>6}  change vs prev (was -> now)")
+                  f"{'dens':>6}  change vs prev (was -> now)   rhythm in the window (was -> now)")
             for c, r in zip(cmp_, rows):
                 mark_ = " <" if c["residual_db"] > cut else ""
                 cv = c["change_vs_prev"]
                 cvs = f"{cv[0]:.3f} -> {cv[1]:.3f}" if cv[0] is not None and cv[1] is not None else "-"
                 mel = f"{c['melody']:.3f}" if c["melody"] is not None else "-"
                 gv = f"{c['groove']:.3f}" if c.get("groove") is not None else "-"
+                rh = c.get("rhythm")
+                rhs = f"{rh[0]:.3f} -> {rh[1]:.3f}" + ("  moved" if abs(rh[1] - rh[0]) >= 0.05 else "") if rh else "-"
                 print(f"{c['n']:>3} {fmt_t(r['time'][0]):>5}-{fmt_t(r['time'][1]):<5} {c['residual_db']:>8.1f} {mel:>7} {gv:>6} "
-                      f"{c['change']:>7.4f} {c['dlevel']:>6.1f} {c['dbright_hz']:>7} {c['ddensity']:>6.2f}  {cvs}{mark_}")
+                      f"{c['change']:>7.4f} {c['dlevel']:>6.1f} {c['dbright_hz']:>7} {c['ddensity']:>6.2f}  {cvs:<27s}   {rhs}{mark_}")
             return
         if a.json:
             print(json.dumps({"id": a.id, "dur": dur, "windows": [{k: v for k, v in r.items()

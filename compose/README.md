@@ -39,7 +39,11 @@ plus Harry's ratings), and Harry's ear decides.
    A NEW SONG'S FIRST ROUNDS: read its first full section AGAINST THE ALBUM'S REFERENCE RECORDS, and by part
    (`tools/stembal.py song … --refs … --windows … --voice --parts …`), as soon as it has one. The scorer's spectrum
    term will not say it (it reads the whole song against a wide envelope). Plain Hunt was first read at v8, seven
-   versions in, and its last stretch stood +2.9 dB at 250-500 Hz and -2.6 at 120-250.
+   versions in, and its last stretch stood +2.9 dB at 250-500 Hz and -2.6 at 120-250. (`--id ALBUM-tN` puts the
+   read on record; `climb.py next` says when a song is unread or four versions stale.)
+   And at v2 or v3, read WHAT JOINS over the whole song: `tools/entries.py ALBUM-tN`. Plain Hunt's first cycle
+   gained nothing but crashes, the calls' toms and a hat for two minutes (0:16 to 2:14); the list says it in one
+   glance, and it was first looked at at v9.
 4. **Render, listen, score**: `python3 tools/compscore.py ALBUM-tN OUT.wav --text [--song CANDIDATE.yaml]` shows the
    terms and where it is weak (pass `--song` when the render came from a candidate file: its `tempo` sets the rhythm grid).
 5. **Record**: `climb.py done ALBUM-tN --version v1 --score S --note … --next … --with songs/ALBUM-tN.yaml
