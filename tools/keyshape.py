@@ -9,7 +9,8 @@ tool would have found this at the first key change of the first song".)
 
   keyshape.py SONG TRACK[,TRACK...] [--bars 8] [--min 2] [--pin CHIRP] [--keep DIR] [--json]
 
-SONG is an id (songs/ID.yaml) or a file; the TRACKs are one part (the bass; both guitars of a rig: gl,gr).
+SONG is an id (songs/ID.yaml) or a file; the TRACKs are one part (the bass; both guitars of a rig: gl,gr; where
+one of them rests, the ground is read from the other).
 The grounds are found from the part's own notes: the lowest note of each bar, and each run of bars that share it
 (runs under --min bars are passing notes and left out). For each ground, the first --bars bars of its longest run
 are rendered with every other track's notes out, so the part's effects, its bus and the master are the song's
@@ -25,6 +26,8 @@ are rendered with every other track's notes out, so the part's effects, its bus 
 then what the two rows say together: when home's own notes lose the band there too, it is THE RIG (an eq, a tight
 filter or a compressor fitted to one ground); when they keep it, the notes the song plays there are different ones;
 when only home's notes lose something, the rig is at work there and the song's own notes hide it.
+A ground nine semitones or more from home is marked: the bands are an octave wide, so that far the harmonics
+themselves change bands and a few dB of any loss is the note.
 What it cannot say: whether the loss is heard (tools/stembal.py on the stretch, by part; an ear), or what mends
 it. One mend: the eq bands take their cutoff from a bus lane that follows the ground
 ({"kind": "peak", "cutoff": {"value": 44, "mod": [{"src": "auto.key", "amount": 0.08333}]}, ...}; a Freq mod is in
@@ -151,6 +154,17 @@ def verdict(written, moved):
     return "the notes: home's own notes, moved there, keep it"
 
 
+FAR = 9               # semitones: from here a move carries the harmonics most of a band up by itself
+
+
+def far_note(semis):
+    """A caution for a ground far from home ("" within FAR semitones): the bands are an octave wide."""
+    if abs(semis) < FAR:
+        return ""
+    return (f" ({abs(semis)} semitones from home: the harmonics themselves move most of a band, so a few dB of this is the "
+            "note, not the rig)")
+
+
 def read(song, tracks, pin, where, least=2, most=8):
     """The table: {"home": name, "grounds": [{name, hz, bars, runs, read, own, vs_home, moved, loses, moved_loses, says}]}.
     `own` is each band against the part's own total on that ground; vs_home / moved are in dB against home's own."""
@@ -166,9 +180,11 @@ def read(song, tracks, pin, where, least=2, most=8):
         raise SystemExit(f"keyshape: {', '.join(tracks)} plays no pitched notes for {least} bars together")
 
     def shape(b0, b1, semis, tag, at=None):
-        """The part's bars b0..b1 (beats) alone, moved by semis and, with `at`, played from that beat instead."""
+        """The part's bars b0..b1 (beats) alone, moved by semis and, with `at`, played from that beat instead. Of
+        several tracks, those that play in those bars (a second guitar may rest where the first carries the ground)."""
+        here = [t for t in tracks if any(b0 <= float(n.get("at") or 0) < b1 for n in track_notes(doc, t) or [])]
         try:
-            made = keybench.bench(doc, tracks, b0, b1, semis)
+            made = keybench.bench(doc, here, b0, b1, semis)
         except KeyError as e:
             raise SystemExit(f"keyshape: {os.path.basename(song)} has no track {e.args[0]}") from None
         if at is not None and at != b0:
@@ -198,6 +214,8 @@ def read(song, tracks, pin, where, least=2, most=8):
         g["semis"] = semis
         g["loses"], g["moved_loses"] = loses(g["vs_home"], home["own"], first), loses(g["moved"], home["own"], first)
         g["says"] = verdict(g["loses"], g["moved_loses"])
+        if g["says"]:
+            g["says"] += far_note(semis)
     return {"home": home["name"], "grounds": gs}
 
 

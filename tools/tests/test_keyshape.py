@@ -116,6 +116,9 @@ class Grounds(unittest.TestCase):
         self.assertEqual(K.verdict([a, b], [b, a]), "THE RIG: home's own notes lose them there too")
         self.assertEqual(K.verdict([a], []), "the notes: home's own notes, moved there, keep it")
         self.assertTrue(K.verdict([a, b], [b]).startswith("THE RIG at 1-2k (home's own notes lose that there too); the rest"))
+        self.assertEqual((K.far_note(7), K.far_note(-8)), ("", ""))
+        self.assertTrue(K.far_note(12).startswith(" (12 semitones from home: the harmonics themselves move most of a band"))
+        self.assertTrue(K.far_note(-9).startswith(" (9 semitones from home"))
 
 
 class WholeRun(unittest.TestCase):
@@ -164,6 +167,14 @@ class WholeRun(unittest.TestCase):
         self.write(doc)
         b1 = json.loads(self.run_tool("bass", "--bars", "4", "--json")[1])["grounds"][2]
         self.assertEqual((b1["name"], b1["loses"], b1["moved_loses"], b1["says"]), ("B1", [], [], ""))
+
+    def test_a_part_of_two_tracks_where_one_rests(self):
+        doc = json.loads(json.dumps(SONG))
+        doc["tracks"].append({"name": "bass2", "notes": bars(0, 7, ["A1"])})       # the second take plays the home bars only
+        self.write(doc)
+        got = json.loads(self.run_tool("bass,bass2", "--bars", "4", "--json")[1])
+        self.assertEqual([g["name"] for g in got["grounds"]], ["A1", "G1", "B1"])
+        self.assertEqual([lb for lb, _ in got["grounds"][2]["loses"]], ["250-500"])    # B is read from the one that plays it
 
     def test_the_table_and_what_it_refuses(self):
         code, text = self.run_tool("bass", "--bars", "4")
