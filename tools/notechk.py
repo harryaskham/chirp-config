@@ -32,24 +32,37 @@ from scipy import signal as sg
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
+import risset  # noqa: E402
 import warp  # noqa: E402
 import wincut  # noqa: E402
 
 
 def track_notes(canon, name):
     """The notes of the track called name, at any depth, AS THEY SOUND: a track with a `warp` (its own clock against
-    the song's) has each note's `at` and `len` moved by it (tools/warp.py). None when there is no such track."""
+    the song's) has each note's `at` and `len` moved by it (tools/warp.py); a track with a `risset` gives its copies'
+    strokes, not its pattern (tools/risset.py: each with `gain`, `copy`, `speed`); a track that starts late (`at`) has
+    its notes counted from the song's top. None when there is no such track."""
     def walk(ts):
         for t in ts or []:
             if isinstance(t, dict):
                 if t.get("name") == name:
                     notes = [n for n in t.get("notes") or [] if isinstance(n, dict)]
-                    if not t.get("warp"):
+                    if not (t.get("warp") or t.get("risset") or t.get("at")):
                         return notes
                     tempo = canon.get("tempo", 120.0)
                     if not isinstance(tempo, (int, float)) or isinstance(tempo, bool) or tempo <= 0:
+                        if not t.get("warp"):
+                            return notes                 # a tempo that changes: a risset or a late start is left as written
                         raise SystemExit(f"track {name!r} has a warp and the song's tempo changes: only fixed-tempo songs are read")
-                    return warp.moved(notes, t["warp"], tempo)
+                    try:
+                        if t.get("risset"):
+                            return risset.sounding(t, tempo)
+                        origin = warp.beats(t.get("at", 0), tempo)
+                    except (ValueError, TypeError):
+                        return notes
+                    if t.get("warp"):
+                        notes = warp.moved(notes, t["warp"], tempo)
+                    return [dict(n, at=origin + float(n.get("at") or 0)) for n in notes] if origin else notes
                 found = walk(t.get("tracks"))
                 if found is not None:
                     return found

@@ -96,6 +96,20 @@ def events(rel, length, cycle, layers, down, total, ratio):
     return out
 
 
+def written_gain(note):
+    """A note's own gain as a factor: a number as it is, "-6dB" as 0.5, none as 1."""
+    g = note.get("gain")
+    if isinstance(g, bool) or g is None:
+        return 1.0
+    if isinstance(g, (int, float)):
+        return float(g)
+    try:
+        s = str(g).strip()
+        return 10 ** (float(s[:-2]) / 20.0) if s.lower().endswith("db") else float(s)
+    except ValueError:
+        return 1.0
+
+
 def sounding(track, tempo):
     """A track's notes as they sound (see the module's docstring); the written notes when it has no risset."""
     notes = [n for n in track.get("notes") or [] if isinstance(n, dict)]
@@ -109,7 +123,7 @@ def sounding(track, tempo):
     out = []
     for down, level in (((False, 0.5), (True, 0.5)) if s["both"] else ((s["down"], 1.0),)):
         for ni, t, ln, f, w, j in events(rel, length, s["cycle"], s["layers"], down, s["total"], s["ratio"]):
-            m = dict(notes[ni], at=origin + t, len=max(ln / f, 1e-3), gain=w * level, copy=j, speed=f)
+            m = dict(notes[ni], at=origin + t, len=max(ln / f, 1e-3), gain=written_gain(notes[ni]) * w * level, copy=j, speed=f)
             m["from"] = ni
             if s["pitch"]:
                 m["tr"] = float(notes[ni].get("tr", 0) or 0) + 12.0 * math.log2(f)

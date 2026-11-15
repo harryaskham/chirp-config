@@ -102,6 +102,32 @@ class Arithmetic(unittest.TestCase):
         self.assertEqual(R.sounding({"name": "e", "risset": {}, "notes": []}, 120), [])
 
 
+class Readers(unittest.TestCase):
+    """tools/notechk.py's track_notes is what entries.py, rests.py, velramp.py, hitpoke.py and palette.py read."""
+
+    def test_the_note_tools_read_the_copies_and_a_late_track_from_the_top(self):
+        import notechk
+        got = notechk.track_notes(SONG, "tick")
+        self.assertEqual((len(got), R.warp.place(got[0]["at"]), R.warp.place(got[-1]["at"])[:2]), (202, "73:00.05", "82"))
+        self.assertEqual(notechk.track_notes(SONG, "gl"), SONG["tracks"][1]["notes"])               # untouched: the same list
+        late = {"tempo": 120, "tracks": [{"name": "late", "at": "2bar",
+                                          "notes": [{"at": 0, "pitch": "C2"}, {"at": 4, "pitch": "D2"}]}]}
+        self.assertEqual([(n["at"], n["pitch"]) for n in notechk.track_notes(late, "late")], [(8.0, "C2"), (12.0, "D2")])
+        changing = {"tempo": [[0, 100], [8, 120]], "tracks": [dict(TICK)]}
+        self.assertEqual(notechk.track_notes(changing, "tick"), TICK["notes"])                       # left as written
+        self.assertIsNone(notechk.track_notes(SONG, "nobody"))
+
+    def test_a_notes_own_gain_rides_under_the_fade(self):
+        t = {"name": "x", "risset": {"cycle": "2bar"},
+             "notes": [{"at": 0, "len": 0.5, "pitch": "h", "gain": "-6dB"}, {"at": 1, "pitch": "h"}]}
+        got = R.sounding(t, 120)
+        a = max(m["gain"] for m in got if m["from"] == 0)
+        b = max(m["gain"] for m in got if m["from"] == 1)
+        self.assertAlmostEqual(a / b, 10 ** (-6 / 20), delta=0.03)
+        gains = ({}, {"gain": 0.5}, {"gain": "-20dB"}, {"gain": "2"}, {"gain": "loud"}, {"gain": True})
+        self.assertEqual([R.written_gain(n) for n in gains], [1.0, 0.5, 0.1, 2.0, 1.0, 1.0])
+
+
 class Tool(unittest.TestCase):
     def setUp(self):
         self.root = tempfile.mkdtemp(prefix="risset-test-")
