@@ -279,6 +279,8 @@ Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber"
 
 **The china counts (v5).** Wherever the riff is being added up or taken apart (the build from its seventeenth statement, the last statements of the second count, the melt) the china strikes where each statement STARTS, with the kick and the open string, and a hat keeps the time. The strokes come further apart as the statements grow and closer as they melt: the kit plays the sum. In the two totals the china rides the bar as before, so the cymbal alone says whether the riff is being counted or is whole.
 
+**The riff whole has its own rig (v6).** Palette round. In the two totals, and on the last chord, the second pair of guitars is Common Time's wall rig (in its form whose rests are rests); wherever the riff is being counted it is the tight pair as before. So the guitars say what the china says: counted, the riff is tight; whole, it is a wall.
+
 ## t5 False Summit (chirper-zero)
 
 Harry, 15 Nov about 12:38: "true djent, but that leverages audio illusions throughout mainly risers/shpehers but in djent style, really make it a clear illlusory song, all about the illusions". 100 bpm, F, 108 bars, 4:24.

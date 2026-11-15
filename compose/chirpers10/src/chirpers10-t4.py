@@ -139,6 +139,22 @@ COUNT = os.environ.get("C10T4_COUNT", "x;0.9;2;0.5;17")
 HEADS = []                            # (sixteenth, section) of each statement's start, where the band plays
 
 
+# v6: THE RIFF WHOLE HAS ITS OWN RIG (palette round). All four guitars were the album's `ct-twin`, a staple of four
+# of its five songs, and the same four played the riff being counted and the riff complete. Now, in the two totals
+# (and on the last chord, which is the total), the SECOND pair is Common Time's WALL rig, in its form whose rests are
+# rests (`ct-wall-stop-l` / `ct-wall-stop-r`: a darker, thicker amp into a captured cabinet), which no song but Common
+# Time had used. (The plain `ct-wall` was benched first: its sympathetic strings keep the amp full through the riff's
+# two rests, which read as loud as the chug before them; on the old pair and on this one a rest is 9 dB down.) Alone on the same notes and
+# as loud as the pair it replaces it has 7 to 8 dB more from 120 Hz to 1 kHz and 13 dB less above 8 kHz: the first
+# pair keeps the edge and the second becomes the body. So the guitars say what the china says: the riff being counted
+# is tight; the riff whole is a wall.
+# (Benched and not taken: the engine's 4x12 and 2x12 cabinets on the second pair: each lost 5 to 10 dB under 250 Hz
+# and gained 2 at 500 Hz-1 kHz: thinner and honkier, the wrong way for an arrival.)
+# the left patch ; the right ; their gain ; one eq band on them (hz:q:dB, or empty). "" = v5.
+RIG2 = os.environ.get("C10T4_RIG2", "ct-wall-stop-l;ct-wall-stop-r;-3.5dB;380:1:-3")
+G_TOT = ("gl", "gr", "wl", "wr") if RIG2 else ("gl", "gr", "gl2", "gr2")
+
+
 def key_f(hz):
     return {"value": hz, "mod": [{"src": "auto.key", "amount": round(1 / 12, 5)}]}
 
@@ -252,7 +268,7 @@ def compose():
     fill(TOTAL1)
     # the total: the whole riff, eight times: on F, then on A flat
     for i in range(8):
-        say((TOTAL1 + 2 * i) * 16, 0, N, 0 if i < 4 else 3, G_MAIN + G_DBL)
+        say((TOTAL1 + 2 * i) * 16, 0, N, 0 if i < 4 else 3, G_TOT)
         drum("c", (TOTAL1 + 2 * i) * 16, 0.9 if i in (0, 4) else 0.7)
     if TUNE:                              # v2: on A flat the lead draws the riff's hook out of it
         tune(TOTAL1 + 8, 3, 4)
@@ -297,7 +313,7 @@ def compose():
     fill(TOTAL2)
     # the total again: on C, then home on F
     for i in range(8):
-        say((TOTAL2 + 2 * i) * 16, 0, N, 7 if i < 4 else 0, G_MAIN + G_DBL)
+        say((TOTAL2 + 2 * i) * 16, 0, N, 7 if i < 4 else 0, G_TOT)
         drum("c", (TOTAL2 + 2 * i) * 16, 0.9 if i in (0, 4) else 0.7)
     if TUNE2:                             # v4: the tune is added up over the second total
         tune_sum(TOTAL2, [7 - 12] * 4 + [0] * 4, int(TUNE2.split(";")[0]))      # on C an octave under: the tune rises as it comes home
@@ -329,7 +345,7 @@ def compose():
     beat(MELT + 12, MELT + 22, snare=(8,), cym="h", vel=0.5)
     beat(MELT + 22, END, cym="h", vel=0.42)
     # one chord: the total
-    for tr in G_MAIN + G_DBL:
+    for tr in G_TOT:
         add(tr, END * 16, 32, ",".join(nm(F1 + i) for i in (0, 7, 12, 19)), 0.95)
     add("bass", END * 16, 32, F1, 0.95)
     drum("k", END * 16, 0.95)
@@ -348,6 +364,9 @@ def song():
         {"name": "gr", "patch": main.format(21), "gain": GM, "pan": 1, "out": "gtrs"},
         {"name": "gl2", "patch": dbl.format(22), "gain": GD, "pan": -0.75, "out": "gtrs"},
         {"name": "gr2", "patch": dbl.format(23), "gain": GD, "pan": 0.75, "out": "gtrs"},
+        *([{"name": tr, "patch": RIG2.split(";")[i], "gain": RIG2.split(";")[2], "pan": (-0.75, 0.75)[i], "out": "gtrs",
+            **({"fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*RIG2.split(";")[3].split(":"))]}]} if RIG2.split(";")[3] else {})}
+           for i, tr in enumerate(("wl", "wr"))] if RIG2 else []),
         {"name": "wood", "patch": "modal-marimba", "gain": os.environ.get("C10T4_WOOD", "-14dB"), "pan": -0.15, "sends": {"hall": "-10dB"}},
         *([{"name": "lead", "patch": TUNE.split(";")[0], "gain": TUNE.split(";")[1], "pan": 0, "sends": {"hall": TUNE.split(";")[3]}}] if TUNE else []),
         *([{"name": tr, "patch": CLEAN.split(";")[i], "gain": CLEAN.split(";")[2 + i], "pan": (-0.5, 0.5)[i], "sends": {"hall": CLEAN.split(";")[8]}}
