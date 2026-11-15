@@ -443,8 +443,9 @@ def plan_of(song, pin):
 
 def entries(canon, rows, quiet=ENTER_QUIET):
     """{window n: [(track, beat)]}: the parts that ENTER in each window, with where: a note of a track that had been
-    silent for `quiet` beats or more (or had not played yet). From the plan's notes as written; one entry a track a
-    window (its first). Windows without beats (a song with no tempo) have none."""
+    silent for `quiet` beats or more (or had not played yet). From the plan's notes where they SOUND (a warped track,
+    a risset track's copies, a track that starts late: tools/notechk.py); one entry a track a window (its first).
+    Windows without beats (a song with no tempo) have none."""
     out = {}
     if not canon or not rows or rows[0]["beats"][0] is None:
         return out
@@ -452,8 +453,15 @@ def entries(canon, rows, quiet=ENTER_QUIET):
     while stack:
         t = stack.pop(0)
         stack.extend(t.get("tracks") or [])
+        notes = t.get("notes") or []
+        if t.get("name") and (t.get("warp") or t.get("risset") or t.get("at")):
+            import notechk
+            try:
+                notes = notechk.track_notes(canon, t["name"]) or notes
+            except SystemExit:
+                pass
         spans = sorted((float(n.get("at") or 0), float(n.get("at") or 0) + float(n.get("len") or 0))
-                       for n in t.get("notes") or [] if isinstance(n, dict))
+                       for n in notes if isinstance(n, dict))
         end = None
         for a, b in spans:
             if end is None or a - end >= quiet:
