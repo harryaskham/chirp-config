@@ -122,6 +122,23 @@ def tune_sum(b0, roots, first):
             add("lead", (b0 + 2 * r) * 16 + i, (hooks[j + 1][0] if j + 1 < m else N) - i, F1 + root + int(TUNE.split(";")[2]) + semi, 0.9)
 
 
+# v5: THE CHINA COUNTS (whole song). The song's one idea is a sum: each statement starts again and goes one place
+# further. But the kit only kept time: the china rode the beat through the build exactly as it does when the riff is
+# whole, so nothing but the guitars' open note said where a statement began. Now, wherever the riff is being added up
+# or taken apart (the build, the last statements of the second count, the melt), THE CHINA STRIKES WHERE EACH STATEMENT
+# STARTS, with the kick and the open string, and a hat keeps the time in its place. The strokes come further and
+# further apart as the statements grow (and closer as they melt): the kit plays the sum. When the riff is whole (the
+# two totals) the china rides the bar as it did: so you can hear by the cymbal alone whether the riff is being counted
+# or is complete.
+# In the build it starts with the SEVENTEENTH statement (0:17), where the second guitar and the snare come in: one
+# stage more. (Tried from the ninth, with the first guitar: the scorer then lost the seam at 0:18 on its two highest
+# cuts, 5 sections to 4, because too much had already come in. It was right: the entry at 0:18 had nothing left.)
+# the cymbal on each statement's head ; its velocity ; the hat's step in sixteenths where the china rode ; its
+# velocity ; the statement of the build it starts at. "" = v4.
+COUNT = os.environ.get("C10T4_COUNT", "x;0.9;2;0.5;17")
+HEADS = []                            # (sixteenth, section) of each statement's start, where the band plays
+
+
 def key_f(hz):
     return {"value": hz, "mod": [{"src": "auto.key", "amount": round(1 / 12, 5)}]}
 
@@ -219,13 +236,18 @@ def compose():
     for k in range(1, N + 1):
         gtrs = () if k < 9 else ("gl",) if k < 17 else G_MAIN if k < 25 else G_MAIN + G_DBL
         say(t, 0, k, 0, gtrs, low=k >= 9, wood=k < 17)       # the marimba counts the first eight alone, and hands over
+        if COUNT and k >= int(COUNT.split(";")[4]):
+            HEADS.append(t)
         t += k
     assert t == TOTAL1 * 16
     beat(0, 9, cym="h", vel=0.45)
     beat(9, 19, snare=(8,), cym="h", vel=0.5)
-    for b in range(9, 19):
-        drum("x", b * 16, 0.55)
-    beat(19, 33, snare=(4, 12), cym="x", vel=0.5)
+    if COUNT:                             # v5: the china is on the statements' heads; a hat keeps the time
+        beat(19, 33, snare=(4, 12), cym="h", step=int(COUNT.split(";")[2]), vel=float(COUNT.split(";")[3]))
+    else:
+        for b in range(9, 19):
+            drum("x", b * 16, 0.55)
+        beat(19, 33, snare=(4, 12), cym="x", vel=0.5)
     drum("c", 31 * 16, 0.9)               # the first whole statement begins on a bar line
     fill(TOTAL1)
     # the total: the whole riff, eight times: on F, then on A flat
@@ -250,6 +272,8 @@ def compose():
                 for i, pc in enumerate(["t1", "t2", "ft", "s"]):
                     drum(pc, t - 4 + i, 0.6 + 0.08 * i)
                 drum("c", t, 0.9)
+            elif band:
+                HEADS.append(t)
             t += k
             continue
         gtrs = () if k < 25 else G_MAIN + G_DBL
@@ -262,7 +286,10 @@ def compose():
     if CLEAN:
         bb = BACK + (cb * (cb - 1) // 2) // 16          # the bar the band comes in
         beat(BACK + 9, bb, cym="h", step=2, vel=0.5)
-        beat(bb, TOTAL2, snare=(4, 12), cym="x", vel=0.5)
+        if COUNT:
+            beat(bb, TOTAL2, snare=(4, 12), cym="h", step=int(COUNT.split(";")[2]), vel=float(COUNT.split(";")[3]))
+        else:
+            beat(bb, TOTAL2, snare=(4, 12), cym="x", vel=0.5)
     else:
         beat(BACK + 9, BACK + 19, snare=(8,), cym="h", step=2, vel=0.55)
         beat(BACK + 19, TOTAL2, snare=(4, 12), cym="x", vel=0.5)
@@ -286,10 +313,19 @@ def compose():
     for k in range(N - 1, 0, -1):
         gtrs = G_MAIN + G_DBL if k > 16 else G_MAIN if k > 8 else ()
         say(t, N - k, N, 0, gtrs, low=k > 8, wood=k <= 16)    # the marimba joins as the band thins, and counts the last eight down alone
+        if k > 8 and t > MELT * 16:
+            HEADS.append(t)
         t += k
     assert t == END * 16
     drum("c", MELT * 16, 0.9)
-    beat(MELT, MELT + 12, snare=(4, 12), cym="x", vel=0.5)
+    if COUNT:
+        beat(MELT, MELT + 12, snare=(4, 12), cym="h", step=int(COUNT.split(";")[2]), vel=float(COUNT.split(";")[3]))
+        crashes = {n["at"] for n in T["cym"] if n["pitch"] == "c"}
+        for h in HEADS:                   # the china where each statement starts (a crash already there stands)
+            if round(h / 4, 4) not in crashes:
+                drum(COUNT.split(";")[0], h, float(COUNT.split(";")[1]))
+    else:
+        beat(MELT, MELT + 12, snare=(4, 12), cym="x", vel=0.5)
     beat(MELT + 12, MELT + 22, snare=(8,), cym="h", vel=0.5)
     beat(MELT + 22, END, cym="h", vel=0.42)
     # one chord: the total
