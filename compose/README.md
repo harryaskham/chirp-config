@@ -115,6 +115,9 @@ owners who rotate their own songs. Name the type in your round note. Without
 - **An effect inside a library patch can ride a lane, with no copy of the patch** (chirper-zero, Common Time v47):
   `patch: "ct-crunch-l fx.6.mix=auto.wet"` and `auto: {wet: {points: [["0b", 0.2], ["1440b", 0.7], …]}}` on the
   track. Any parameter a patch string can set takes `auto.NAME` the same way.
+- **A new part in an empty band: bench it at -6 dB first.** A lone high tone needs far less gain than a part in a
+  full band (K-weighting, and nothing to mask it): two music boxes set from the song's opening came out over the
+  guitars and their bars 3 dB louder than the holds around them; 7 dB came off before the first full render.
 - **What joins, and where else does it play?** `tools/entries.py SONG --from A --to B` lists every part that
   enters over a stretch, in order, a kit's pieces apart (a missing step in "something joins at every landing" is a
   gap in the list). `tools/rests.py SONG TRACK:PIECE` says where one drum of a kit plays: when Harry turns a device
@@ -226,7 +229,9 @@ only in a message:
 - `--parts TRACK[:PIECE],…` NAMES THE PARTS the question is about (`--parts ride:rb,hat`). When it is answered, the
   message that brings you his words also says where else those parts play in the song as it then stands, the
   question's own place starred. An answer about one place is often an answer about a device: a ride-bell pendulum
-  he turned down in two passages went on opening the song for seven hours (15 Nov).
+  he turned down in two passages went on opening the song for seven hours (15 Nov). A new track of a version not
+  yet in `songs/` reads "not in the song now" when you ask: the card stands (the line is read again when he
+  answers), and asking after `climb.py done` shows the bars at once.
 - When a change is being taken back or softened, ask THREE WAYS in one `--ab` ("as it first was|as I made it|a
   middle=FILE": three takes with a silence between). On 14 Nov the snare asked so got one clear answer ("Now: the
   air is back") where an A/B would have had to be asked twice.

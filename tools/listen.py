@@ -35,7 +35,8 @@ asker verbatim as ONE caco message once he has been quiet for two minutes (cc ch
       --parts: the tracks the question is ABOUT (a kit's piece as TRACK:PIECE). When it is answered, the message that
             brings the answer also says where else those parts play in the song as it then stands: an answer about
             one place is often an answer about a device (a ride-bell pendulum turned down in two passages went on
-            opening the song for seven hours: chirper-zero, 15 Nov).
+            opening the song for seven hours: chirper-zero, 15 Nov). A new track of a version not yet in songs/
+            reads "not in the song now" when you ask; the line is read again when he answers, so the card stands.
       --choice: the answers offered as buttons (he can always write instead). --at: where it is in the song, for an
             "open in Listen" link. --key: a later question with the same key REPLACES this one (a new version of
             the same passage), so the page never asks about a superseded clip.
@@ -464,6 +465,14 @@ def parts_line(q, play=parts_play):
         said.append(f"{p}: bars " + ", ".join((f"{a}" if a == b else f"{a}-{b}") + ("*" if mine else "") for a, b, mine in runs))
     star = "; * = where this question is" if any(mine for runs in got.values() for _, _, mine in runs or []) else ""
     return f"WHERE ITS PARTS PLAY NOW ({'; '.join(said)}{star}). An answer about one place may be an answer about the device."
+
+
+def parts_hint(line):
+    """What `ask` adds when a named part is not in the kept song yet: the card is fine, the line is read again later."""
+    if line and "not in the song now" in line:
+        return ("a part that is not in songs/ yet (a new track of a version not kept so far) is fine: the line is read "
+                "again, on the song as it then stands, when he answers. No need to ask again.")
+    return None
 
 
 def ask(album, n, title, context="", version="", key="", abs_=(), clips=(), choices=(), at=None, by=None, cut=cut_parts,
@@ -1267,7 +1276,10 @@ def main(argv=None):
         quiet_refresh_moved(a.album)
         print(f"listen: question {q['id']} is on the page: {PUBLIC}#a={a.album}&v=questions&q={q['id']}")
         if q.get("parts"):                           # say now what the answer's message will say, so a wrong name shows
-            print("listen: " + (parts_line(q) or "its parts could not be read in the song (check --parts and --track)"))
+            line = parts_line(q)
+            print("listen: " + (line or "its parts could not be read in the song (check --parts and --track)"))
+            if parts_hint(line):
+                print("listen: " + parts_hint(line))
     elif a.cmd == "questions":
         qs = [q for q in questions(a.album) if (a.track is None or q["n"] == a.track) and not (a.open and (q["answers"] or q["retired"]))]
         if a.moved:

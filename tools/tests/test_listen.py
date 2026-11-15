@@ -112,6 +112,10 @@ class Questions(unittest.TestCase):
         self.assertEqual(L.parts_play({**self.ASK, "track": "chirpers10-t2"}), {})          # it names none: nothing is planned
         self.assertIsNone(L.parts_line({**self.ASK, "track": "chirpers10-t2"}))
 
+        self.assertIn("No need to ask again", L.parts_hint(line))                            # a part not in songs/ yet
+        self.assertIsNone(L.parts_hint("WHERE ITS PARTS PLAY NOW (hat: bars 26-27*)."))
+        self.assertIsNone(L.parts_hint(None))
+
         def broken(q):
             raise OSError("no pin")
         self.assertIsNone(L.parts_line(q, play=broken))                                     # the answer still goes
