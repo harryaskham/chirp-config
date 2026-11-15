@@ -78,6 +78,10 @@ An album can set `params.rounds` in its `album.json`, e.g. `{"whole": 0.4, "sect
 says which. `next --type T` overrides the draw when you have a reason; `climb.py type ID` prints one song's type, for
 owners who rotate their own songs. Name the type in your round note. Without
 `params.rounds`, every round is a whole-song round as before.
+A SONG MAY CARRY ITS OWN WEIGHTS (15 Nov): `"rounds": {"whole": 0.4, "section": 0.6}` on its track in `album.json`
+stands for that song in place of the album's. For a song whose palette is settled (every instrument kept by Harry's
+ear or waiting on his answer), so the draw stops landing on a palette round with nothing honest to do: Odd Sympathy
+drew three in one night. It is the composer's to set and to take off again; say so in the round note.
 
 - **whole**: the usual round, the bold change that moves the whole song most.
 - **section**: one ~30 s window, worked closely in its context. The aim is the small changes a whole-song pass misses,
@@ -118,6 +122,16 @@ owners who rotate their own songs. Name the type in your round note. Without
 - **A new part in an empty band: bench it at -6 dB first.** A lone high tone needs far less gain than a part in a
   full band (K-weighting, and nothing to mask it): two music boxes set from the song's opening came out over the
   guitars and their bars 3 dB louder than the holds around them; 7 dB came off before the first full render.
+- **Does the part keep its tone in every key?** `tools/keyshape.py SONG bass` (or `gl,gr`): the part alone on each
+  ground it plays, each band against its own total, against its home key; and home's own bars played there, so a
+  loss is told apart as THE RIG (an eq or compressor fitted to one ground) or the notes. Run it at a song's first
+  key change. All four of Common Time's songs carried a bass bus fitted on F: off it the bass alone lost 4 to 10 dB
+  from 250 Hz up, the mix read "+1 at 60-120, -2 at 120-250", and Harry's "more bass" on one such stretch was
+  answered with a fader. When his ear asks for MORE of a part in one place, read the part alone there against
+  itself elsewhere before reaching for level.
+- **An eq band's cutoff rides a lane too**: `{"kind": "peak", "cutoff": {"value": 44, "mod": [{"src": "auto.key",
+  "amount": 0.08333}]}, "q": 1.5, "gain": "-7dB"}` on a bus with a lane `key` in semitones over the home ground (a
+  frequency mod is in octaves, so 1/12 a semitone). The mend for a rig fitted to one key.
 - **What joins, and where else does it play?** `tools/entries.py SONG --from A --to B` lists every part that
   enters over a stretch, in order, a kit's pieces apart (a missing step in "something joins at every landing" is a
   gap in the list). `tools/rests.py SONG TRACK:PIECE` says where one drum of a kit plays: when Harry turns a device

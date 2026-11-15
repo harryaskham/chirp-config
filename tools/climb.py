@@ -850,7 +850,9 @@ ROUND_TYPES = {
 
 def round_type(c, override=None):
     """This round's type for a composition climb whose album sets params.rounds ({whole, section, palette: weight}):
-    drawn per song and round number (reproducible), or OVERRIDE (`next --type T`). None when the album sets none."""
+    drawn per song and round number (reproducible), or OVERRIDE (`next --type T`). None when the album sets none.
+    A track of the album may carry its own `rounds` (the same form), which then stands for that song: a song whose
+    palette is settled can be given {"whole": 0.4, "section": 0.6} by its composer."""
     if override:
         if override not in ROUND_TYPES:
             die(f"--type must be one of {', '.join(ROUND_TYPES)}", 2)
@@ -859,7 +861,11 @@ def round_type(c, override=None):
         return None
     try:
         with open(os.path.join(ROOT, "compose", c["album"], "album.json")) as f:
-            w = ((json.load(f).get("params") or {}).get("rounds")) or {}
+            album = json.load(f)
+        w = ((album.get("params") or {}).get("rounds")) or {}
+        own = next((t.get("rounds") for t in album.get("tracks") or [] if isinstance(t, dict) and t.get("id") == c["id"]), None)
+        if w and isinstance(own, dict) and own:        # the song's own weights, where its composer has set them
+            w = own
     except (OSError, ValueError, KeyError):
         return None
     w = {k: float(v) for k, v in w.items() if k in ROUND_TYPES and float(v) > 0}

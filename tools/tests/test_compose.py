@@ -461,9 +461,25 @@ class RoundTypes(unittest.TestCase):
         seen = {CH.C.round_type({**c, "rounds": r}) for r in range(40)}
         self.assertEqual(seen, {"whole", "section", "palette"})          # every type comes up across rounds
         self.assertEqual(CH.C.round_type(c, "palette"), "palette")       # next --type overrides
+        before = [CH.C.round_type({**c, "rounds": r}) for r in range(40)]
+        album = {"id": "rt", "params": {"rounds": {"whole": 0.4, "section": 0.4, "palette": 0.2}},
+                 "tracks": [{"n": 1, "id": "rt-t1", "rounds": {"whole": 0.4, "section": 0.6}}, {"n": 2, "id": "rt-t2"}]}
+        with open(os.path.join(d, "album.json"), "w") as f:
+            json.dump(album, f)
+        own = {CH.C.round_type({**c, "rounds": r}) for r in range(40)}
+        self.assertEqual(own, {"whole", "section"})                       # a song's own weights: its palette is settled
+        other = [CH.C.round_type({**c, "id": "rt-t2", "rounds": r}) for r in range(40)]
+        self.assertIn("palette", other)                                   # the album's weights for every other song,
+        album["tracks"][0].pop("rounds")
+        with open(os.path.join(d, "album.json"), "w") as f:
+            json.dump(album, f)
+        self.assertEqual([CH.C.round_type({**c, "rounds": r}) for r in range(40)], before)   # and the same draws without them
+        with open(os.path.join(d, "album.json"), "w") as f:
+            json.dump({"id": "rt", "tracks": [{"n": 1, "id": "rt-t1", "rounds": {"whole": 1}}]}, f)
+        self.assertIsNone(CH.C.round_type(c))                             # no params.rounds: no type line, whatever a track says
         with open(os.path.join(d, "album.json"), "w") as f:
             json.dump({"id": "rt"}, f)
-        self.assertIsNone(CH.C.round_type(c))                             # no params.rounds: no type line
+        self.assertIsNone(CH.C.round_type(c))
         self.assertIsNone(CH.C.round_type({"id": "x", "mode": "climb"}))
 
     def test_the_section_ledger_records_who_focused_which_window(self):
