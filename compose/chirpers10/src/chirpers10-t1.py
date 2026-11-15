@@ -879,6 +879,16 @@ def compose():
     rise(z, 1)
     if SPEAK:
         speak("speak", SPOKEN)
+        for i in range(len(ROBOTS)):                                  # v50: the same line on each machine
+            speak(f"rb{i + 1}", SPOKEN)
+        if SPEAKS.startswith("cross"):                                # the wall guitars hold the chord through each line, and say it
+            speak("spk", SPOKEN)                                      # (the line once more on a muted track: the effect's key, see SPEAKS)
+            k = 126 / 110 * 4
+            for bar, notes in SPOKEN:
+                t0 = bar * 16 + (notes[0][0] - 0.25) * k - 2
+                t1 = bar * 16 + (notes[-1][0] - 0.25 + notes[-1][1]) * k + 2
+                for tr in ("wsl", "wsr"):
+                    add(tr, t0, t1 - t0, SPEAKS.split(";")[1], 0.9)
 
     # 13. 220-231  five meets eleven: the splayed riff again, filled in, its hook doubled above; on Bb
     a, z = B[12], B[13]
@@ -1401,6 +1411,30 @@ MASTER_DB = os.environ.get("C10T1_MASTER", "1")                              # t
 # voices, each its track's gain ("" = off): the bark (8:53), three soft singers on the tune in the eye (6:03), a whisper in the opening
 DUCK = os.environ.get("C10T1_DUCK", "6:5")        # while the spoken voice speaks, the guitars' bus and the drums' bus give way by this many dB (guitars:drums)
 SPEAK = os.environ.get("C10T1_SPEAK", "-3dB")      # a spoken voice in the rebuild (6:42)
+# v50: THE GUITARS SPEAK (palette round; an engine effect the album had not used). Harry's main word on this song:
+# "the voice needs work is my main takesway, voice is weak". The weak voice is the spoken one at 6:42 ("Each one keeps
+# its own count. None of them wrong."): a calm synthetic talker, dry, over a band coming back, and by presence far the
+# loudest thing there (1.5 dB under the whole mix; the next part 7.9). Nothing I could measure made it stronger AS A
+# VOICE (a larger throat, a second speaker, a whisper under it: benches at v47 and v49). So it is no longer asked to
+# pass for one. The two WALL GUITARS (the rig of the eleven wheel and of every chord left to ring) hold the song's
+# open chord through each line, and the engine's cross-synthesis (`morph`, mode `cross`) gives that chord the
+# talker's moving spectrum: the guitars say the words. They sound only while the voice does (-88 dB between the
+# lines, benched alone). The talker stays under them, 9 dB lower than it was, for its consonants. So the lines the
+# bark screams at 9:01 are first said by the machine itself.
+# Benched alone (/tmp/lt/cz-t1voice3): a recogniser reads 6 of the 10 words from the speaking guitars (two
+# recognisers the same; with the talker under them, 6 again); 8 and 7 from the talker alone. Also benched: a
+# MACHINE CHOIR (mode `robot` below: three copies of the line through the phase vocoder's robot on F, C and F), 7
+# and 6 words: kept as a switch and as a take on the card; a plain vocoder on the same chord, 0 and 2 words; the
+# machine choir through an amp, 0.
+# THE EFFECT'S KEY IS A MUTED COPY OF THE LINE (track `spk`), NOT `speak`: a track that is both this effect's key and
+# a `duck`'s key panics every window render that uses a preroll (engine.rs, the keyed track's pre-fader buffer is
+# empty on that path). Found by halving the song; reported to chirp-eco. With the copy every tool renders.
+# mode `cross` ; the chord the guitars hold ; their gain ; the talker's gain under them (it was SPEAK) ; their pan
+# mode `robot` ; note:pan:gain dB for each machine, comma-separated ; the talker's gain                 "" = v49.
+SPEAKS = os.environ.get("C10T1_SPEAKS", "cross;F1,C2,F2,C3;-3.5dB;-12dB;0.8") if SPEAK else ""
+ROBOTS = [x.split(":") for x in SPEAKS.split(";")[1].split(",")] if SPEAKS.startswith("robot") else []
+if SPEAKS.startswith("cross"):
+    TOP_OF.update({"wsl": 2, "wsr": 2})            # the wall rig's cabinet, cones and trim
 WORD = os.environ.get("C10T1_WORD", "-12dB")       # a choir of fifteen on the landing's chords, singing one word
 # the word: "yes" (the answer to "not yet", and nearly its sound). "now" was the first choice, but the larger of two speech
 # recognisers heard the choir's "now" as "no", the opposite word, in all three renders tried (the smaller heard "now");
@@ -1546,6 +1580,7 @@ def song():
         gh, gd0, gd1, glp, gdb = [float(x) for x in GRIND.split(":")]
         GRIND_LVL = [["0b", -120], [f"{308.5 * 4}b", -120], [f"{308.6 * 4}b", gdb - 8], [f"{312.5 * 4}b", gdb], [f"{314.9 * 4}b", gdb], [f"{315 * 4}b", -120]]
         GRIND_TEETH = [["0b", gd0], [f"{308.5 * 4}b", gd0], [f"{314 * 4}b", gd1], [f"{315 * 4}b", gd1], [f"{315.1 * 4}b", gd0]]
+    SPEAK_EQ = {"type": "eq", "bands": ["hp cutoff=" + os.environ.get("C10T1_SPEAKHP", "120"), "peak cutoff=300 q=1 gain=" + os.environ.get("C10T1_SPEAKDIP", "-6" if TIDY else "-2.5") + "dB"]}
     spec = [
         ("gl", RIG_L + PICKED, "0dB", -1, {**GOUT, **PICK_FX}), ("gr", RIG_R + PICKED, "0dB", 1, {**GOUT, **PICK_FX}),
         ("gl2", RIG_L + PICKED, "-3dB", -0.8, {**GOUT, **PICK_FX}), ("gr2", RIG_R + PICKED, "-3dB", 0.8, {**GOUT, **PICK_FX}),
@@ -1560,6 +1595,10 @@ def song():
         ("kl", CRUNCH_L + HANDED, CRUNCH_DB, -0.8, wet_lane(360, 360.7, 362.5)), ("kr", CRUNCH_R + HANDED, CRUNCH_DB, 0.8, wet_lane(357, 358.4, 361)),          # not through the guitars' bus: its eq scoops the mids this rig is made of
         ("wl", WALL_L, "-2dB", -0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
         ("wr", WALL_R, "-2dB", 0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
+        *([("wsl", WALL_L, SPEAKS.split(";")[2], -float(SPEAKS.split(";")[4]), {}),       # not through the guitars' bus: its fader is rising there and it ducks under the voice
+           ("wsr", WALL_R, SPEAKS.split(";")[2], float(SPEAKS.split(";")[4]), {})] if SPEAKS.startswith("cross") else []),
+        *([("spk", "voice-talk", "0dB", 0, {"fx": [SPEAK_EQ], "mute": True})] if SPEAKS.startswith("cross") else []),
+        *[(f"rb{i + 1}", "voice-talk", f"{g}dB", float(pan), {"fx": [SPEAK_EQ, f"pvoc mode=robot pitch={note}"]}) for i, (note, pan, g) in enumerate(ROBOTS)],
         ("bass", BASS, "0.5dB", 0, BOUT),
         ("kick", KIT, "2dB", None, {"out": "drums", **KCLICK_FX}), ("snare", KIT, SNARE.split(";")[2] if SNARE else "8dB", None, {"out": "drums", **({"sends": {**({"oh": SNARE.split(";")[1] + "dB"} if SNARE.split(";")[1] and DROOM else {}), **({"snr": SNARE.split(";")[3].split(":")[1] + "dB"} if SNARE.split(";")[3:] and SNARE.split(";")[3] else {})}} if SNARE else OHS), **({"fx": [({"type": "eq", "bands": [f"highshelf cutoff={f.split(':')[1]} gain={f.split(':')[2]}dB"]} if f.startswith("shelf:") else f) for f in SNARE.split(";")[0].split("|") if f]} if SNARE and SNARE.split(";")[0] else {})}),
         ("cym", KIT, "-3dB", None, {"out": "drums", **OHC, **AIRFX}), ("toms", KIT, "4dB", None, {"out": "drums", **OHS}),
@@ -1584,7 +1623,7 @@ def song():
         ("chime", "modal-glock", CHIME_GAIN, -0.2, {"sends": {"hall": "-6dB", "dly": "-14dB"}}),
         ("vox", "kidman" + VOX_WORDS, VOX or "0dB", 0, {"sends": {"hall": "-18dB"}, "fx": [{"type": "eq", "bands": [f"hp cutoff={VOX_HP}"] + peaks(VOX_EQ) + DTOP_BANDS + ([f"highshelf cutoff={VOX_SHELF.split(':')[0]} gain={VOX_SHELF.split(':')[1]}dB"] if VOX_SHELF else [])}]}),
         ("choir", "voice-backing", CHOIR or "0dB", 0, {"sends": {"hall": "-8dB"}}),
-        ("speak", "voice-talk", SPEAK or "0dB", 0, {"fx": [{"type": "eq", "bands": ["hp cutoff=" + os.environ.get("C10T1_SPEAKHP", "120"), "peak cutoff=300 q=1 gain=" + os.environ.get("C10T1_SPEAKDIP", "-6" if TIDY else "-2.5") + "dB"]}]}),      # dry: with the hall a recogniser lost "its own count"; the dip: it put the rebuild 3.9 dB over the records at 250-500 Hz
+        ("speak", "voice-talk", (SPEAKS.split(";")[3 if SPEAKS.startswith("cross") else 2] if SPEAKS else SPEAK) or "0dB", 0, {"fx": [SPEAK_EQ]}),      # dry: with the hall a recogniser lost "its own count"; the dip: it put the rebuild 3.9 dB over the records at 250-500 Hz
         ("word", "ct-word", {"value": WORD or "0dB", "mod": [{"src": "auto.breath", "amount": 1}]} if ENDING else (WORD or "0dB"), 0,
          {"sends": {"hall": "-8dB"}, "fx": [{"type": "eq", "bands": ["hp cutoff=350"]}],
           **({"auto": {"breath": {"points": [["0b", 0], [f"{402.5 * 4}b", 0], [f"{406 * 4}b", -19], [f"{NB * 4}b", -19]]}}} if ENDING else {})}),      # its notes are C3 F3 C4, on top of the guitars' chord: 250-500 Hz read 3.8 dB over with them in
@@ -1641,6 +1680,8 @@ def song():
                 pts += [[f"{(b0 - 0.5) * 4}b", 0], [f"{b0 * 4}b", db], [f"{b1 * 4}b", db], [f"{(b1 + 0.5) * 4}b", 0]]
             t["gain"] = {"value": gain, "mod": [{"src": "auto.sec", "amount": 1}]}
             t["auto"] = {**t.get("auto", {}), "sec": {"points": pts}}
+        if SPEAKS.startswith("cross") and name in ("wsl", "wsr"):          # (held) after the rig's cabinet, the voice's spectral envelope
+            t["fx"] = list(t.get("fx", [])) + [{"type": "morph", "mode": "cross", "key": "spk", "amount": 1}]
         t["notes"] = T[name]
         tracks.append(t)
     return {
