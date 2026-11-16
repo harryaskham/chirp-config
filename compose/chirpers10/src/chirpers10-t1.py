@@ -1100,6 +1100,14 @@ def compose():
     for b in range(a + 6, a + 16, 2):
         crash(b * 16, 0.85)
     hit((a + 16) * 16, ln=8 * 16)
+    if FLOOR:                                                       # v53: the four chords' floor
+        offs = [int(x) for x in FLOOR.split(";")[1].split(",")]
+        T["bass"] = [n for n in T["bass"] if not (a * 4 <= n["at"] < (a + 4) * 4)]
+        for b in range(a, a + 4):
+            for i, o in enumerate(offs):
+                add("bass", b * 16 + o, (offs[i + 1] if i + 1 < len(offs) else 14) - o, "F1", 1.0 if (b == a and o == 0) else 0.95)
+            if b > a:
+                add("drop", b * 16, 12, "F1", float(FLOOR.split(";")[0]))
     if WORD:                                                        # the answer to "wait" and "not yet": one word, on each of the four chords and on the last
         for b in range(a, a + 4):
             T.setdefault("word", []).append({"at": b * 4, "len": 3.5, "pitch": "F3", "vel": 0.9, "ph": WORD_PH})
@@ -1472,6 +1480,18 @@ SPEAKS = os.environ.get("C10T1_SPEAKS", "cross;F1,C2,F2,C3;-3.5dB;-12dB;0.8") if
 ROBOTS = [x.split(":") for x in SPEAKS.split(";")[1].split(",")] if SPEAKS.startswith("robot") else []
 if SPEAKS.startswith("cross"):
     TOP_OF.update({"wsl": 2, "wsr": 2})            # the wall rig's cabinet, cones and trim
+# v53: THE LANDING HAS A FLOOR (whole-song round: the piece read stretch by stretch against the records for the
+# first time since v20). The piece waits 385 bars for four chords, and under those four chords the bottom of the band
+# FELL AWAY: against the riff before them the finished file read 5 to 6 dB less under 60 Hz on the second, third and
+# fourth chords (the first has a sub drop; the others had none) and 6 to 9 dB less at 60-120 Hz on all four: one
+# stroke of the bass and one of the kick, then a held note dying under eight guitars and a choir. The chords landed
+# from the waist up. Now each of the four has the first one's sub drop under it, and the bass strikes with the
+# kick again inside the bar and does not sit on one dying note. That mends the bottom octave (all four chords now
+# read within 2 dB of the riff under 60 Hz). It does NOT mend 60-120 Hz (still 6 to 8 dB under the riff): that band
+# is the kick's and the bass's strokes, and held chords over "the plainest beat there is" have few. Benched and not
+# taken: the bass in quarters (1 to 2 dB more there, and four strokes a bar is no longer the plainest beat).
+# the drop's velocity on chords two to four (the first's is 0.8) ; the sixteenths of the bar the bass strikes. "" = v52.
+FLOOR = os.environ.get("C10T1_FLOOR", "0.8;0,10")
 WORD = os.environ.get("C10T1_WORD", "-12dB")       # a choir of fifteen on the landing's chords, singing one word
 # the word: "yes" (the answer to "not yet", and nearly its sound). "now" was the first choice, but the larger of two speech
 # recognisers heard the choir's "now" as "no", the opposite word, in all three renders tried (the smaller heard "now");

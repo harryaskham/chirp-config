@@ -98,6 +98,8 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 
 **The tune comes back in harmony (v52).** Section round, 8:15-8:44 (windows 7:37-8:38). Where all three wheels turn together (bars 245-275) the lead plays the tune twice through. On its second pass (from bar 259.9) a second lead guitar plays it a third above, note for note on the eleven wheel: E flat over C and B, C over A flat, A flat over F, B flat over G flat, F over D flat, all notes of the piece's mode. The only place the tune is harmonised by another guitar.
 
+**The landing has a floor (v53).** Whole-song round (the piece read stretch by stretch against the records; one finding acted on). Under the landing's four chords (bars 385-388, 12:13) each chord now has the sub drop the first one had, and the bass strikes with the kick's second stroke inside the bar where it held one note. No other note changed.
+
 ## t2 Odd Sympathy (chirper-zero)
 
 **The idea.** The other way round from Common Time. There: one pulse, three cells of different lengths turning under it. Here: ONE cell, one bar long, and two clocks. The left guitar keeps the song's clock; the right guitar plays the same riff on a clock that runs a hair fast, slips ahead a sixteenth at a time, and holds at each distance. After Huygens's two pendulum clocks on one beam (1665), which however he started them ended swinging exactly against each other: "an odd kind of sympathy".
