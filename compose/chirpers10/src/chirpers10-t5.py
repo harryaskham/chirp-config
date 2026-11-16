@@ -148,6 +148,21 @@ LEAD = os.environ.get("C10T5_LEAD", "lead-tape;-2dB;24;77;-1")
 # -7.4 in their fill; 6.5 dB came off at the bench, in two goes: the drum bus's compressor gives back half of a cut.)
 TOMS = os.environ.get("C10T5_TOMS", "fs-tom;-6.5dB;8,12,16;0.2;0.9")
 TOM_BASE = F1                           # three octaves of drums from here; the bell is fullest at B2 (123 Hz)
+# v6: THE RISER IS A GUITAR (palette round). The song's last climb (both: pitch and speed rising together) swelled into
+# the stop on the one thing in the song that was not played: a library riser effect, a synth. Harry asked for "risers
+# / shepards but in djent style". Now the riser is the LEAD GUITAR, three of them an octave apart under the bell, and
+# what it plays is the song's own stair, getting steeper: for four bars the stair's TUNE (an octave every two bars),
+# for two the plain SCALE (an octave a bar), for two the RUN (a semitone to the sixteenth, four thirds of an octave a
+# bar), and then the stop. It climbs eight and a half octaves in eight bars and ends where it began. At 0:57 the
+# lead was the one honest line in the song, the one that really came down; at the end it has caught the illusion too.
+# The synth riser stays under it, lower, for its noise (swap or layer was measured: see sounds.md).
+# the patch ; its gain ; the bars before the stop it starts ; its lowest note (MIDI) ; the synth riser under it, dB
+# ("off": none). "" = v5.
+# (First levels, lead -2 dB and the synth 3 dB down: in the last four bars the synth still read as loud as the three
+# leads together, -10.0 by presence to their -12.5 to -14.4 each, and held 500 Hz-1 kHz 1.5 dB under the WHOLE mix
+# as it had in v5. So the lead went up 2 dB and the synth down to -8.)
+CLIMB = os.environ.get("C10T5_CLIMB", "lead-tape;0dB;8;53;-8")
+LLANE = {v: [(0.0, FLOOR)] for v in range(3)}           # the three leads' faders
 LANE = {v: [(0.0, FLOOR)] for v in range(VOICES)}       # each voice's fader, (beat, dB)
 BLANE = {w: [(0.0, FLOOR)] for w in range(2)}           # the descent's two basses
 KEY = [(0.0, 0)]                                        # the ground under the bass's eq, (beat, semitones over F)
@@ -307,6 +322,36 @@ def descent(b0, b1, gend=None):
             drum("k", b * 16 + a, 0.95)
 
 
+def climb(b0, b1):
+    """THE RISER, ON THE LEAD: the stair's three forms, each steeper than the last (half the bars on the tune, a
+    quarter on the scale, a quarter on the run), on three leads an octave apart under the bell; all three faders
+    shut at b1, so nothing of it rings into the stop."""
+    fig = [int(x) for x in FIGURE.split(";")[1].split(",")] if FIGURE else list(range(6))
+    up = int(FIGURE.split(";")[2]) if FIGURE else 6
+    nb = b1 - b0
+    na, ns = nb // 2, nb // 4
+    notes = []                                         # (sixteenth, sixteenths long, semitones climbed)
+    for i in range(na + ns):
+        for j, a in enumerate(ACC):
+            d = up * i + fig[j] if i < na else up * na + 6 * (i - na) + j
+            notes.append(((b0 + i) * 16 + a, (ACC[j + 1] if j + 1 < len(ACC) else 16) - a, 12 * (d // 6) + SCALE[d % 6]))
+    d = up * na + 6 * ns
+    h0 = 12 * (d // 6) + SCALE[d % 6]
+    for n in range((nb - na - ns) * 16):
+        notes.append(((b0 + na + ns) * 16 + n, 1, h0 + n))
+    base = int(CLIMB.split(";")[3])
+    for t, ln, h in notes:
+        for v in range(3):
+            p = (h + 12 * v) % 36
+            g = db(bell(p / 36))
+            if g <= -45:
+                continue
+            step(LLANE[v], t / 4, g)
+            addb(f"ld{v}", t / 4, ln / 4, base + p, 0.9)
+    for v in range(3):
+        step(LLANE[v], b1 * 4, FLOOR)
+
+
 def tomfall(s0, n16, scale):
     """THE FILL THAT NEVER LANDS: `n16` sixteenths of toms from sixteenth `s0`, each stroke three drums an octave apart
     under the bell. `scale`: a step of the scale down a stroke, so that the stroke after the last would be F (the bar
@@ -458,7 +503,11 @@ def compose():
     for b in range(BOTH, STOP):
         ground(b * 4, 0)
         anchor(b)
-    T.setdefault("riser", []).append({"at": (STOP - 8) * 4, "len": 32.0, "pitch": "F4", "vel": 1.0})
+    if not (CLIMB and CLIMB.split(";")[4] == "off"):
+        T.setdefault("riser", []).append({"at": (STOP - 8) * 4, "len": 32.0, "pitch": "F4", "vel": 1.0,
+                                          **({"gain": f"{float(CLIMB.split(';')[4]):.1f}dB"} if CLIMB and CLIMB.split(";")[4] else {})})
+    if CLIMB:                            # v6: the riser is the lead guitar, playing the stair steeper and steeper
+        climb(STOP - int(CLIMB.split(";")[2]), STOP)
     for b in range(STOP - 2, STOP):                      # the snare on every beat into the stop
         for q in (0, 8):
             drum("s", b * 16 + q, 0.85)
@@ -515,6 +564,8 @@ def song():
         {"name": "stair", "patch": "fs-stair", "gain": {"value": synth[0], "mod": [{"src": "auto.lvl", "amount": 1}]}, "pan": 0, "sends": {"hall": synth[1]},
          "auto": {"lvl": {"points": pts(syn_lane), "curve": 0}}},
         *([{"name": "lead", "patch": LEAD.split(";")[0], "gain": LEAD.split(";")[1], "pan": 0.1}] if LEAD else []),
+        *([{"name": f"ld{v}", "patch": CLIMB.split(";")[0], "gain": {"value": CLIMB.split(";")[1], "mod": [{"src": "auto.bell", "amount": 1}]}, "pan": 0.1,
+            "auto": {"bell": {"points": pts(LLANE[v]), "curve": 0}}} for v in range(3)] if CLIMB else []),
         {"name": "riser", "patch": "fx-riser-endless amp.a=16b", "gain": os.environ.get("C10T5_RISER", "-18dB"), "pan": 0},
         {"name": "rumble", "patch": "shepard-fall", "gain": os.environ.get("C10T5_RUMBLE", "-21dB"), "pan": 0},
         {"name": "ghost", "patch": "phantom-bass", "gain": os.environ.get("C10T5_GHOST", "-14dB"), "pan": 0},
