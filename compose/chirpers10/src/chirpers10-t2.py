@@ -567,6 +567,16 @@ MIDS = os.environ.get("C10T2_MIDS", "700:0.9:2")
 FOUR = os.environ.get("C10T2_FOUR", "modern:0.6:6:7;-5.5;0.7;98:122;0.7") if TWIN else ""
 
 
+# v26: THE TWO GUITARS TRADE A BAR (section round, 0:27-0:31, in the window 0:00-0:35 the map calls static: sixteen
+# bars of one riff). The song is about two guitars with a clock each, and for its first half minute you cannot tell
+# there are two: in step, hard left and right, they are one wide guitar. So before anything slips they show
+# themselves: after four bars together the LEFT guitar plays the riff alone for a bar, then the RIGHT alone for a
+# bar, then both again into the stop and the voice's first word. The bass and the kit go straight on underneath. You
+# have now heard each of them by itself; when the right one starts to pull ahead at 0:53 you know who it is.
+# the bar the left guitar has alone ; the bar the right has alone. "" = v25.
+TRADE = os.environ.get("C10T2_TRADE", "12;13")
+
+
 def slip_clock(b0, b1, root=0):
     """The two clocks through a slip: the same ticks on `bl` (the song's time) and `br` (the right guitar's)."""
     v1, v2 = float(SLIPCLOCK.split(";")[3]), float(SLIPCLOCK.split(";")[4])
@@ -630,6 +640,10 @@ def compose():
     riff("gr", 8, 24)
     bass(8, 24)
     groove(8, 24, 0, snare=(8,), cym="x")
+    if TRADE:                            # v26: a bar each, alone (the clocks are in step here, so written time is sounding time)
+        bl_, br_ = (int(x) for x in TRADE.split(";"))
+        T["gr"] = [n for n in T["gr"] if not (bl_ * 4 <= n["at"] < bl_ * 4 + 4)]
+        T["gl"] = [n for n in T["gl"] if not (br_ * 4 <= n["at"] < br_ * 4 + 4)]
     if OPEN:                             # v9: the band stops for the last beat before the voice, and its first word falls in the gap
         g0 = 15 * 4 + int(OPEN.split(";")[1]) / 4
         for tr in ("gl", "gr", "bass", "kick", "snare", "cym", "hat", "ride", "toms"):
