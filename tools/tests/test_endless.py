@@ -308,6 +308,24 @@ class Endless(unittest.TestCase):
         one_speed = reading([[0.0, -0.05, 0.0, 0.05]] * 2 + [[-0.1, 0.3, -0.1, -0.1]] * 8)   # the first speed does not have it
         self.assertIn("NOT at every speed", E.shape_lines(E.cycle_shape([one_speed]), [one_speed])[-1])
 
+    def test_seeds_with_one_cycle_length_report_each_seed_and_what_all_mark(self):
+        code, text = self.run_tool(self.song, "riser", "1-9", "--cycle", "1bar", "--seeds", "0,3")
+        self.assertEqual(code, 0)
+        self.assertEqual([ln[:10] for ln in text.splitlines() if ln.startswith("== SEED")], ["== SEED 0:", "== SEED 3:"])
+        self.assertEqual(text.count("  ONE CYCLE LATER (each cycle against the others):"), 2)
+        self.assertIn("ON EVERY SEED (0, 3): ", text.splitlines()[-1])
+        self.assertIn("SAW-TOOTH (brightness)", text.splitlines()[-1])
+        self.assertNotIn("ON SOME SEEDS ONLY", text)
+        with open(os.path.join(self.root, "calls.log")) as f:
+            self.assertEqual([ln.split("--seed ")[1].split()[0] for ln in f.read().splitlines()[-2:]], ["0", "3"])
+        got = json.loads(self.run_tool(self.song, "stair", "1-9", "--cycle", "1bar", "--seeds", "0,3", "--json")[1])
+        self.assertEqual((got["seeds"], got["every_seed"], got["some_seeds"], len(got["by_seed"])), ([0, 3], [], [], 2))
+        code, text = self.run_tool(self.song, "stair", "1-9", "--cycle", "1bar", "--seeds", "0,3")
+        self.assertTrue(text.splitlines()[-1].startswith("ON EVERY SEED (0, 3): nothing is marked"))
+        one = self.run_tool(self.song, "stair", "1-9", "--cycle", "1bar", "--seeds", "5")[1]      # one seed: the report as ever
+        self.assertTrue(one.startswith("x.yaml stair: 1-9, 8 cycles of 1bar"))
+        self.assertNotIn("ON EVERY SEED", one)
+
     def test_cycle_lists_and_what_is_refused_of_them(self):
         self.assertEqual([round(s, 3) for _, s in E.cycle_list("2x6bars,2x3bars,2bars,2x1bar", 100)], [14.4, 14.4, 7.2, 7.2, 4.8, 2.4, 2.4])
         self.assertEqual([E.cycle_list(t, 100) for t in ("0x1bar", "x", "2x", "1bar,,2bars")], [None] * 4)

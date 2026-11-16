@@ -62,6 +62,7 @@ shorter notes, so some step is the rig's; the ear may hear the change as a new p
 over all the cycles and SAW-TOOTH speed by speed. ONE cycle's run is one reading, not a mean: it is marked only
 past saw_floor (what single cycles run where their pairs hold), so a lone cycle that is not marked is "nothing
 found at this size", not "it holds".
+(--seeds works with --cycle too: the whole report for each seed, then one line saying which marks every seed has.)
 READ IT ON TWO SEEDS (--seeds 0,11: one render a seed, the tables for each). At these sizes one seed misleads: where
 a slice holds two or three notes the players' own variation moves its brightness by half an octave, and a short
 cycle's by a tenth or two. False Summit v9's fall on seed 0 read a lone cycle 0.2 octaves darker than the cycles
@@ -738,18 +739,45 @@ def main(argv=None):
         for t in tracks:
             if keyshape.track_notes(doc, t) is None:
                 raise SystemExit(f"endless: {os.path.basename(path)} has no track {t}")
+        try:
+            seeds = [int(v) for v in opt["--seeds"].split(",")] if opt["--seeds"] else [seed]
+        except ValueError:
+            raise SystemExit("endless: --seeds takes whole numbers: 0,11") from None
         where = opt["--keep"] or tempfile.mkdtemp(prefix="endless-")
         os.makedirs(where, exist_ok=True)
+        gots = []
         try:
-            x, sr = load(render_solo(path, tracks, opt["--pin"] or chirpbin.resolve(), ends[0], ends[1], where, seed))
+            for sd in seeds:
+                wav = render_solo(path, tracks, opt["--pin"] or chirpbin.resolve(), ends[0], ends[1], where, sd)
+                x, sr = load(wav)
+                gots.append({**measure(x, sr, cyc, steps), "seed": sd})
+                if len(seeds) > 1:
+                    os.replace(wav, os.path.join(where, f"endless-s{sd}.wav"))
         finally:
             if not opt["--keep"]:
                 shutil.rmtree(where, True)
-        got = {**measure(x, sr, cyc, steps), "seed": seed}
+        got = gots[0]
         plan = plan_cycles(doc, tracks, pos[0] * tempo / 60.0, pos[1] * tempo / 60.0, cyc * tempo / 60.0, tempo)
         warped = [t for t in tracks if (find(doc, t) or {}).get("risset") and (find(doc, t) or {}).get("warp")]
         head = (f"{os.path.basename(path)} {', '.join(tracks)}: {span}, {got['cycles']} cycles of {opt['--cycle']} ({cyc:.3f} s), "
                 "alone through their own effects, bus and master")
+        if len(gots) > 1:                             # --seeds with --cycle: the report a seed, then what every seed marks
+            kind = lambda m, w: (("levels" if w.startswith("the cycles'") else "a band") if m == "SPREAD"  # noqa: E731
+                                 else w.split(" ")[1] if m == "SAW-TOOTH" else "")
+            kinds = [{(m, kind(m, w)) for m, w in marks(g, plan)} for g in gots]
+            every = sorted(set.intersection(*kinds))
+            some = sorted(set.union(*kinds) - set(every))
+            said = lambda ks: ", ".join(f"{m}{' (' + w + ')' if w else ''}" for m, w in ks)  # noqa: E731
+            if as_json:
+                print(json.dumps({"seeds": seeds, "every_seed": [list(k) for k in every], "some_seeds": [list(k) for k in some],
+                                  "by_seed": [{**g, "drift_floor": drift_floor(g["cycles"]), "marks": marks(g, plan)} for g in gots],
+                                  "plan": {"cycles": plan[0], "notes": plan[1], "differ": plan[2]}, "written_only": warped}))
+                return 0
+            for g in gots:
+                report(f"== SEED {g['seed']}: " + head, g, plan, warped)
+            print(f"ON EVERY SEED ({', '.join(str(v) for v in seeds)}): " + (said(every) if every else "nothing is marked")
+                  + ("; ON SOME SEEDS ONLY (more likely the players' own variation than the song): " + said(some) if some else ""))
+            return 0
     if as_json:
         print(json.dumps({**got, "drift_floor": drift_floor(got["cycles"]), "marks": marks(got, plan), "plan": None if not plan else
                           {"cycles": plan[0], "notes": plan[1], "differ": plan[2]}, "written_only": warped}))

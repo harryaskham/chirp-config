@@ -395,3 +395,27 @@ def test_a_static_window_says_what_its_notes_do():
     loop = {"tempo": 120, "tracks": [_plan_for_notes()["tracks"][0]]}
     only = SM.note_lines(rows, SM.note_motion(loop, rows), clock)
     assert only == [head + "1 part loops"]
+
+
+def test_where_in_a_window_its_change_sits():
+    sr = 1000
+    rng = np.random.default_rng(3)
+    old = rng.standard_normal((40 * sr, 2)) * 0.1
+    new = old.copy()
+    new[24 * sr:29 * sr] += rng.standard_normal((5 * sr, 2)) * 0.05          # only seconds 24-29 of the window 0-29 changed
+    assert SM.residual_span(new, old, 0.0, 29.0, sr) == (24.0, 29.0, -99.0)
+    assert SM.residual_span(new, old, 10.0, 39.0, sr) == (24.0, 29.0, -99.0)   # the same seconds, wherever the window starts
+    assert SM.residual_span(old, old, 0.0, 29.0, sr) is None                  # nothing changed
+    spread = old + rng.standard_normal(old.shape) * 0.05                      # changed all through: it sits nowhere
+    assert SM.residual_span(spread, old, 0.0, 29.0, sr) is None
+    both = new.copy()
+    both[:24 * sr] += rng.standard_normal((24 * sr, 2)) * 0.0005              # and a whisper everywhere else
+    t0, t1, rest = SM.residual_span(both, old, 0.0, 29.0, sr)
+    assert (t0, t1) == (24.0, 29.0) and -47.0 < rest < -45.0
+    assert SM.residual_span(new[:1500], old[:1500], 0.0, 1.5, sr) is None     # under two seconds: not read
+    rows = [{"n": 7, "time": [172.0, 201.0]}, {"n": 8, "time": [201.0, 230.0]}]
+    cmp_ = [{"n": 7, "residual_db": -15.6, "residual_span": [196.0, 201.0, -50.1]}, {"n": 8, "residual_db": -52.0,
+                                                                                    "residual_span": [201.0, 202.0, -60.0]}]
+    assert SM.span_lines(cmp_, rows, -40.0) == [
+        "  w7's change sits in 3:16-3:21 (5 s of its 29): the rest of the window reads -50.1 dB, untouched"]   # w8 did not change
+    assert SM.span_lines([{"n": 1, "residual_db": -12.0}], rows[:1], -40.0) == []

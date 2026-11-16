@@ -39,6 +39,13 @@ WHAT ENTERS IN A STATIC WINDOW (14 Nov, chirper-zero, Common Time v48): the map'
 wheel arriving in the middle of it, 3 to 4 dB under guitars that never stopped: "static" was "the arrival is
 masked". Under the map, each static window now lists the parts that ENTER in it (from the plan: a part silent for
 two bars or more before its note) and the command that says how loud they are against what was already playing.
+WHERE IN A WINDOW ITS CHANGE SITS (--against; 16 Nov, chirper-zero, False Summit v11). A window is half a minute and
+its residual is one number, so a change in its last five seconds reads as the whole window's. Under the table, for
+each changed window whose change sits in part of it (the shortest run of seconds holding nine tenths of the
+residual is no more than half the window): "w7's change sits in 3:16-3:21 (5 s of its 29): the rest of the window
+reads -50.1 dB, untouched". (There a fader came down two bars before the window's end; the passage the window is
+named for was untouched, and had been taken for an engine effect.)
+
 WHAT THE NOTES DO IN A STATIC WINDOW (16 Nov, chirper-zero, False Summit v8 and Plain Hunt v13: a harmony written
 on one side of a stair for ten bars, and a bell struck in a new place every row, left their windows "static": the
 same instruments at the same level, so the flag cannot hear which notes). Under each static window the map now reads
@@ -688,6 +695,63 @@ def residual_db(xn, xo, ta, tb, sr):
     return round(max(-99.0, 10 * np.log10(e / (float((n ** 2).sum()) + 1e-20) + 1e-20)), 1)
 
 
+SPAN_SLICE_S = 1.0          # WHERE IN THE WINDOW: the residual is read a second at a time ...
+SPAN_SHARE = 0.9            # ... and the change SITS in the shortest run of seconds that holds this share of it ...
+SPAN_MOST = 0.5             # ... when that run is no more than this share of the window
+
+
+def residual_span(xn, xo, ta, tb, sr):
+    """Where in a window its residual sits: (from s, to s, the residual of the REST of the window in dB), or None when
+    the change is spread through the window (the shortest run of seconds holding SPAN_SHARE of the residual energy is
+    more than SPAN_MOST of the window) or there is none. A window is half a minute: a change in its last five seconds
+    reads as the whole window's (chirper-zero, False Summit v11: a fader brought down two bars before a window's end
+    read -15.6 dB "at the pole", which itself was untouched at -52)."""
+    a, b = int(ta * sr), int(tb * sr)
+    n, o = xn[a:b].astype(np.float64), xo[a:b].astype(np.float64)
+    k = min(len(n), len(o))
+    step = int(SPAN_SLICE_S * sr)
+    if k < 2 * step:
+        return None
+    d = (n[:k] - o[:k]) ** 2
+    d = d.sum(axis=1) if d.ndim > 1 else d
+    p = (n[:k] ** 2).sum(axis=1) if n.ndim > 1 else n[:k] ** 2
+    cuts = list(range(0, k, step))
+    if k - cuts[-1] < step // 2 and len(cuts) > 1:           # a last sliver joins the slice before it
+        cuts.pop()
+    cuts.append(k)
+    e = np.array([d[i:j].sum() for i, j in zip(cuts, cuts[1:])])
+    total = float(e.sum())
+    if total <= 0:
+        return None
+    best, i, run = None, 0, 0.0
+    for j in range(len(e)):                                   # the shortest run of slices holding SPAN_SHARE of it
+        run += e[j]
+        while run - e[i] >= SPAN_SHARE * total:
+            run -= e[i]
+            i += 1
+        if run >= SPAN_SHARE * total and (best is None or j - i < best[1] - best[0]):
+            best = (i, j)
+    if best is None or (cuts[best[1] + 1] - cuts[best[0]]) > SPAN_MOST * k:
+        return None
+    lo, hi = cuts[best[0]], cuts[best[1] + 1]
+    rest_e = total - float(e[best[0]:best[1] + 1].sum())
+    rest_p = float(p.sum() - p[lo:hi].sum())
+    rest = max(-99.0, 10 * np.log10(rest_e / (rest_p + 1e-20) + 1e-20))
+    return round(ta + lo / sr, 1), round(ta + hi / sr, 1), round(rest, 1)
+
+
+def span_lines(cmp_, rows, cut):
+    """One line for each CHANGED window whose change sits in part of it."""
+    out = []
+    for c, r in zip(cmp_, rows):
+        sp = c.get("residual_span")
+        if sp and c.get("residual_db") is not None and c["residual_db"] > cut:
+            t0, t1, rest = sp
+            out.append(f"  w{c['n']}'s change sits in {fmt_t(t0)}-{fmt_t(t1)} ({t1 - t0:.0f} s of its {r['time'][1] - r['time'][0]:.0f}): "
+                       f"the rest of the window reads {rest:.1f} dB" + (", untouched" if rest <= -45.0 else ""))
+    return out
+
+
 def residual_floor(cmp_, levels=None):
     """(the median window residual, the level above which a window counts as changed): -40 dB, or 10 dB over the
     floor when the whole song moved (chirper-three, t11 v21: the mastering gain into the master compressors moved
@@ -727,6 +791,9 @@ def compare(new, old, xn=None, xo=None, sr=None):
             c["rhythm"] = [b["rhythm"], a["rhythm"]]                        # bar-to-bar change inside the window, was -> now
         if xn is not None and xo is not None:
             c["residual_db"] = residual_db(xn, xo, a["time"][0], a["time"][1], sr or L.SR)
+            span = residual_span(xn, xo, a["time"][0], a["time"][1], sr or L.SR)
+            if span:
+                c["residual_span"] = list(span)
         out.append(c)
     return out
 
@@ -882,6 +949,8 @@ def main(argv=None):
                 rhs = f"{rh[0]:.3f} -> {rh[1]:.3f}" + ("  moved" if abs(rh[1] - rh[0]) >= 0.05 else "") if rh else "-"
                 print(f"{c['n']:>3} {fmt_t(r['time'][0]):>5}-{fmt_t(r['time'][1]):<5} {c['residual_db']:>8.1f} {mel:>7} {gv:>6} "
                       f"{c['change']:>7.4f} {c['dlevel']:>6.1f} {c['dbright_hz']:>7} {c['ddensity']:>6.2f}  {cvs:<27s}   {rhs}{mark_}")
+            for ln in span_lines(cmp_, rows, cut):
+                print(ln)
             return
         if a.json:
             print(json.dumps({"id": a.id, "dur": dur, "windows": [{k: v for k, v in r.items()
