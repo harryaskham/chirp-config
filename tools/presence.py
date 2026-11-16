@@ -73,10 +73,19 @@ band there, nearest first (0 = the track is the band; -3 = about half of it). A 
 shared and is left out. The same caution as stembal's --parts: a track alone still goes through its bus and the
 master, and tracks that share a band add in power only when they are unrelated. Always the mono sum, whatever
 --stereo says of the levels. When a band reads over the records (stembal), look here for its owner before mending.
+LEFT AND RIGHT TOGETHER (16 Nov, chirper-zero, Odd Sympathy v24: two music boxes, el and er, one of them alone 5.3 dB
+under the mix's 500 Hz-1 kHz and so listed; "summed, the pair was 2.6 dB under", by hand. Had each been 6.5 under,
+nothing would have been listed). Tracks that are the left and the right of one part by name (gl/gr, gl2/gr2,
+v0l/v0r, el/er) are also read as a pair, their band powers added, and listed under the single tracks when the pair
+is within 6 dB of the mix's band. Added powers are right for a left and a right that do not sound the same thing at
+the same instant (two takes, an echo); a pair in unison could read up to 3 dB higher still. A PURE-TONED PART (a
+music box, a bell, a marimba, a sine) holds its fundamental's band at a `vs mix` a guitar would not: read this
+block, not the level, for such a part.
 """
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -188,6 +197,24 @@ def strokes(mix_f, solo_f):
             "hi": round(float(np.percentile(d, 90)), 1)}
 
 
+def sides(names):
+    """[(left, right)] of the tracks that are the left and the right of one part by name: gl/gr, gl2/gr2, v0l/v0r."""
+    by = {}
+    for n in names:
+        m = re.fullmatch(r"(.+?)([lr])(\d*)", n, re.I)
+        if m:
+            by.setdefault((m.group(1).lower(), m.group(3)), {})[m.group(2).lower()] = n
+    return [(v["l"], v["r"]) for v in by.values() if len(v) == 2]
+
+
+def pair_holds(rows, mix, power):
+    """Adds rows[left]["pair"] = {with: right, holds: {...}} for each left and right that both sound: the bands the two
+    hold TOGETHER (their band powers added), as holds() reads one track."""
+    for left, right in sides(list(rows)):
+        if not rows[left]["silent"] and not rows[right]["silent"]:
+            rows[left]["pair"] = {"with": right, "holds": holds(mix, power[left] + power[right])}
+
+
 def presence(mix_db, solo_db, buried=-25.0):
     """{vs_mix_db, near, active, buried} for one track's frame levels against the mix's (same frame grid)."""
     k = min(len(mix_db), len(solo_db))
@@ -248,12 +275,14 @@ def one_window(pin, song, live, win, a, work):
     kw = not a.rms
     x = L.load(wavs["__mix__"])
     mix, mixb, rows = frames_db(x, L.SR, kweight=kw, stereo=a.stereo), band_power(x, L.SR), {}
-    mixf = fine_db(x, L.SR, kweight=kw, stereo=a.stereo)
+    mixf, power = fine_db(x, L.SR, kweight=kw, stereo=a.stereo), {}
     for n in live:
         x = L.load(wavs[n])
         rows[n] = presence(mix, frames_db(x, L.SR, kweight=kw, stereo=a.stereo), a.buried)
-        rows[n]["holds"] = {} if rows[n]["silent"] else holds(mixb, band_power(x, L.SR))
+        power[n] = band_power(x, L.SR)
+        rows[n]["holds"] = {} if rows[n]["silent"] else holds(mixb, power[n])
         rows[n]["strokes"] = None if rows[n]["silent"] else strokes(mixf, fine_db(x, L.SR, kweight=kw, stereo=a.stereo))
+    pair_holds(rows, mixb, power)
     for f in wavs.values():
         os.remove(f)
     return rows
@@ -294,6 +323,7 @@ def many_windows(pin, song, live, windows, secs, a, work):
         for n in live:
             rows[n]["holds"] = {} if rows[n]["silent"] else holds(db["__mix__"][i][1], db[n][i][1])
             rows[n]["strokes"] = None if rows[n]["silent"] else strokes(db["__mix__"][i][2], db[n][i][2])
+        pair_holds(rows, db["__mix__"][i][1], {n: db[n][i][1] for n in live})
         many.append(rows)
     return many
 
@@ -317,13 +347,21 @@ def stroke_lines(rows):
 def whose_lines(rows):
     """The lines of WHOSE BAND IS IT under a table: for each band, the tracks that alone hold it, nearest first."""
     by = {lb: sorted(((r["holds"][lb], n) for n, r in rows.items() if lb in (r.get("holds") or {})), reverse=True) for lb in LABELS}
-    if not any(by.values()):
+    two = {lb: sorted(((r["pair"]["holds"][lb], f"{n}+{r['pair']['with']}") for n, r in rows.items()
+                       if lb in (r.get("pair") or {}).get("holds", {})), reverse=True) for lb in LABELS}
+    if not any(by.values()) and not any(two.values()):
         return []
     out = [f"  whose band is it (a track ALONE within {-HOLDS_DB:g} dB of the mix's own band; 0 = it is the band, -3 about half):"]
     for lb in LABELS:
         if by[lb]:
             out.append(f"    {lb:8s} " + ", ".join(f"{n} {d:+.1f}" for d, n in by[lb][:4])
                        + (f" +{len(by[lb]) - 4}" if len(by[lb]) > 4 else ""))
+    if any(two.values()):
+        out.append("    a left and a right TOGETHER (their powers added: a pair can hold a band neither holds alone):")
+        for lb in LABELS:
+            if two[lb]:
+                out.append(f"    {lb:8s} " + ", ".join(f"{n} {d:+.1f}" for d, n in two[lb][:4])
+                           + (f" +{len(two[lb]) - 4}" if len(two[lb]) > 4 else ""))
     return out
 
 

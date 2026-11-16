@@ -217,6 +217,17 @@ class Measure(unittest.TestCase):
         rows = {"a": {"holds": {"60-120": -1.0}}, "b": {"holds": {"60-120": -0.5, "1-2k": -3.0}}, "c": {"holds": {}}, "d": {}}
         self.assertEqual(P.whose_lines(rows)[1:], ["    60-120   b -0.5, a -1.0", "    1-2k     b -3.0"])
         self.assertEqual(P.whose_lines({"c": {"holds": {}}}), [])
+        self.assertEqual(sorted(P.sides(["gl", "gr", "gl2", "gr2", "v0l", "v0r", "el", "bell", "lead", "kick", "l", "r", "GR3", "gl3"])),
+                         [("gl", "gr"), ("gl2", "gr2"), ("gl3", "GR3"), ("v0l", "v0r")])
+        pair = {n: {"silent": False, "holds": {}} for n in ("el", "er", "gl", "gr", "pad")}
+        pair["gr"]["silent"] = True                                                # a side that does not sound: no pair
+        power = {"el": np.array([0, 0, 0, 0, 20.0, 0, 0, 0, 0]), "er": np.array([0, 0, 0, 0, 30.0, 0, 0, 0, 0]),
+                 "gl": np.ones(9), "gr": np.ones(9), "pad": np.ones(9)}
+        P.pair_holds(pair, np.array([1, 1, 1, 1, 100.0, 1, 1, 1, 1]), power)        # 20 and 30 of 100: -7 and -5.2 alone, -3 together
+        self.assertEqual(pair["el"]["pair"], {"with": "er", "holds": {"500-1k": -3.0}})
+        self.assertNotIn("pair", pair["gl"])
+        self.assertEqual(P.whose_lines(pair)[1:], ["    a left and a right TOGETHER (their powers added: a pair can hold a band neither "
+                                                   "holds alone):", "    500-1k   el+er -3.0"])
         sr = 48000
         t = np.arange(sr * 2) / sr
         tone = np.stack([np.sin(2 * np.pi * 300 * t)] * 2, axis=1)
