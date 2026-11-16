@@ -196,6 +196,24 @@ HARM = os.environ.get("C10T5_HARM", "20;30;2")
 # fall reached the run on A flat.)
 # bar:steps a bar (1, 2, 3 or 6), from that bar on. "" = v8 (a step a bar throughout).
 STEEP = os.environ.get("C10T5_STEEP", "60:2,66:3,68:6")
+# v10: THE SEAM IN THE FALL (found by chirp-eco's endless.py --cycles, 16 Nov: over fourteen cycles, two seeds and
+# all four speeds, the SECOND step of every octave of the descent, the E flat, was 0.28 octaves brighter and 0.7 dB
+# quieter than its cycle: once an octave the fall could be read coming round). The cause was mine: the bass's eq
+# follows the ground (since v1: a notch on the fundamental, a lift on its octave), and in the fall I gave it the step's
+# pitch class, 0 to 11 over F. So from F to E flat the eq leapt UP ten semitones while the basses went down two:
+# its notch landed on the fundamental of the bass that carries that step, and its lift on nothing. An illusion of
+# endless descent wants the opposite: a tone that does not move while the notes pass through it.
+# "0": the eq stands still on F through the fall; "wrap": it follows, but leaps where the two basses are equal
+# (the step's pitch class less an octave when over a tritone, as `pedal()` always did); "" = v9.
+FALLKEY = os.environ.get("C10T5_FALLKEY", "0")
+# AND THE KIT STEEPENS WITH THE FALL. Under v9's fall, which goes six times faster by its end, the kit played one
+# beat from end to end: the snare on three, the china on the quarters. Now it changes gear where the fall does:
+# to bar 60 as it was (half time); from 60, where the fall takes two steps a bar, the backbeat (two and four);
+# from 66 (three steps) the china in eighths as well; from 68 (six steps, an octave a bar) the snare on every beat;
+# and then the run's own roll, eighths and then sixteenths, as before. One, two, four, eight, sixteen snares a bar:
+# the whole second half of the descent is one acceleration into the turn. A crash marks each change of gear.
+# "1" = on; "" = v9's one beat.
+KITFALL = os.environ.get("C10T5_KITFALL", "1") if STEEP == "60:2,66:3,68:6" else ""
 RLANE = {v: [] for v in range(VOICES)}                  # the right side's faders while it is in harmony
 LLANE = {v: [(0.0, FLOOR)] for v in range(3)}           # the three leads' faders
 LANE = {v: [(0.0, FLOOR)] for v in range(VOICES)}       # each voice's fader, (beat, dB)
@@ -374,7 +392,8 @@ def descent(b0, b1, gend=None):
         for q in range(per):
             s0, s1 = edges[q], edges[q + 1]
             lad = 12 * (n // 6) + SCALE[n % 6]
-            ground(b * 4 + s0 / 4, lad % 12)
+            pc = lad % 12
+            ground(b * 4 + s0 / 4, 0 if FALLKEY == "0" else pc - 12 if FALLKEY == "wrap" and pc > 6 else pc)
             for v in range(VOICES):
                 p = (lad + 12 * v) % (12 * VOICES)
                 g = db(bell(p / (12 * VOICES))) + TRIM["fall"]
@@ -557,7 +576,14 @@ def compose():
     descent(FALL, POLE, gend=POLE - R if R else None)
     if R:                                # v2: the guitars leave the descent on a falling run
         run(POLE - R, POLE, down=True, synth=False)
-    beat(FALL, POLE, snare=(8,), cym="x", stepc=4, crash=6)
+    if KITFALL:                          # v10: the kit changes gear where the fall does
+        beat(FALL, 60, snare=(8,), cym="x", stepc=4, crash=6)
+        beat(60, 66, snare=(4, 12), cym="x", stepc=4, crash=6)
+        beat(66, 68, snare=(4, 12), cym="x", stepc=2, crash=2)
+        beat(68, POLE - 2, snare=(0, 4, 8, 12), cym="x", stepc=2, crash=2)
+        beat(POLE - 2, POLE, snare=(8,), cym="x", stepc=4, crash=0)
+    else:
+        beat(FALL, POLE, snare=(8,), cym="x", stepc=4, crash=6)
     T.setdefault("rumble", []).append({"at": FALL * 4, "len": (POLE - FALL) * 4 - 0.5, "pitch": "F2", "vel": 0.8})
     if TOMS:                             # v5: each octave of the descent ends on a fill that never lands; the last is the run's
         for i, n16 in enumerate(int(x) for x in TOMS.split(";")[2].split(",")):
