@@ -297,6 +297,8 @@ Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber"
 
 **The knock (v8).** Palette round: the part the song lacked. A woodblock knocks once where every statement starts, in the passages where the china does not: the build's statements 1-16 (0:00-0:16), the back-build's 1-28 (1:41-2:30), the melt's last eight (4:22-4:27). In the back-build and the melt each statement starts on a different place of the riff, so until now nothing said "again". Because the statements are 1, 2, 3 ... sixteenths long the knocks are a figure of their own: close together and soft at the start of a count, slowing by arithmetic (a ball bouncing, backwards); and at the end of the song they close up again and run into the last chord.
 
+**The count has mids, and the total on C is clearer (v9).** Whole-song round; no notes changed. The four tight guitars (the riff being counted: the build, the band's return in the back-build, the melt) get 2.5 dB at 700 Hz, where those stretches read hollow against the records. The wall pair's low-mid cut is 3 dB deeper while the total is on C (bars 82-90), the muddiest stretch.
+
 ## t5 False Summit (chirper-zero)
 
 Harry, 15 Nov about 12:38: "true djent, but that leverages audio illusions throughout mainly risers/shpehers but in djent style, really make it a clear illlusory song, all about the illusions". 100 bpm, F, 108 bars, 4:24.

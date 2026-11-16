@@ -219,6 +219,20 @@ BLOCK = json.loads(os.environ.get("C10T4_BLOCK", json.dumps({
                          {"type": "noise", "level": {"value": "-60dB", "mod": [{"src": "env.c", "amount": 44}]}}]}})))
 KNOCKS = []                           # (sixteenth, the key's root, the statement's length) of each statement's start, where the block knocks
 
+# v9: THE COUNT HAS MIDS, AND THE TOTAL ON C IS CLEAR (whole-song round: the first read of this song part by part
+# against the eleven records, section by section).
+#   1. THE TIGHT RIG WAS HOLLOW. Wherever the riff is being counted on the tight pair and its doubles (the build's
+#      second half, 0:33-1:08; the band's return in the back-build; the melt) the mix read 1.7 to 2.8 dB UNDER the
+#      records from 500 Hz to 1 kHz: the guitars' chest. The totals, on the wall rig, did not (-1.6 to +0.3). So for
+#      a third of the song the riff was all thump and fizz. The four tight guitars get that band back (one eq band).
+#   2. THE ARRIVAL ON C WAS THE MUDDIEST BAR OF THE SONG: 3.3 dB over the records at 250-500 Hz (the other totals
+#      0.6 to 1.4), and the wall pair alone was within 3.3 dB of the whole mix there: a fifth higher than on F, more
+#      of its chug lands in the cabinet's low mids. Its low-mid cut is deeper while the total is on C, and only there.
+# the tight rig's band: Hz : q : dB. "" = v8.
+MIDS = os.environ.get("C10T4_MIDS", "700:0.9:2.5")
+# the wall pair's low-mid cut on C: dB more than on the other grounds. "" = v8.
+CDIP = os.environ.get("C10T4_CDIP", "-3") if RIG2 and RIG2.split(";")[3] else ""
+
 
 def key_f(hz):
     return {"value": hz, "mod": [{"src": "auto.key", "amount": round(1 / 12, 5)}]}
@@ -436,13 +450,20 @@ def song():
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"            # a take a side
     dbl = "ct-twin fx.1.model=modern fx.2.mic=0.35 fx.2.cone={}"            # a second take a side through another amp, microphone and cone
     GM, GD = os.environ.get("C10T4_GMAIN", "-0.7dB"), os.environ.get("C10T4_GDBL", "-1.5dB")
+    mids = {"fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*MIDS.split(":"))]}]} if MIDS else {}
+    if CDIP:                              # v9: the wall pair's low-mid cut, deeper while the total is on C
+        hz, q, db = (float(x) for x in RIG2.split(";")[3].split(":"))
+        cdip = {"fx": [{"type": "eq", "bands": [{"kind": "peak", "cutoff": hz, "q": q, "gain": {"value": f"{db:g}dB", "mod": [{"src": "auto.cdip", "amount": 1}]}}]}],
+                "auto": {"cdip": {"points": [["0b", 0], [f"{TOTAL2 * 4 - 0.5:g}b", 0], [f"{TOTAL2 * 4:g}b", float(CDIP)],
+                                             [f"{(TOTAL2 + 8) * 4 - 0.5:g}b", float(CDIP)], [f"{(TOTAL2 + 8) * 4:g}b", 0]], "curve": 0}}}
     tracks = [
-        {"name": "gl", "patch": main.format(20), "gain": GM, "pan": -1, "out": "gtrs"},
-        {"name": "gr", "patch": main.format(21), "gain": GM, "pan": 1, "out": "gtrs"},
-        {"name": "gl2", "patch": dbl.format(22), "gain": GD, "pan": -0.75, "out": "gtrs"},
-        {"name": "gr2", "patch": dbl.format(23), "gain": GD, "pan": 0.75, "out": "gtrs"},
+        {"name": "gl", "patch": main.format(20), "gain": GM, "pan": -1, "out": "gtrs", **mids},
+        {"name": "gr", "patch": main.format(21), "gain": GM, "pan": 1, "out": "gtrs", **mids},
+        {"name": "gl2", "patch": dbl.format(22), "gain": GD, "pan": -0.75, "out": "gtrs", **mids},
+        {"name": "gr2", "patch": dbl.format(23), "gain": GD, "pan": 0.75, "out": "gtrs", **mids},
         *([{"name": tr, "patch": RIG2.split(";")[i], "gain": RIG2.split(";")[2], "pan": (-0.75, 0.75)[i], "out": "gtrs",
-            **({"fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*RIG2.split(";")[3].split(":"))]}]} if RIG2.split(";")[3] else {})}
+            **(cdip if CDIP else
+               {"fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*RIG2.split(";")[3].split(":"))]}]} if RIG2.split(";")[3] else {})}
            for i, tr in enumerate(("wl", "wr"))] if RIG2 else []),
         {"name": "wood", "patch": "modal-marimba", "gain": os.environ.get("C10T4_WOOD", "-14dB"), "pan": -0.15, "sends": {"hall": "-10dB"}},
         *([{"name": "knock", "patch": KNOCK.split(";")[0], "gain": KNOCK.split(";")[1], "pan": 0.2, "sends": {"hall": KNOCK.split(";")[4]}}] if KNOCK else []),

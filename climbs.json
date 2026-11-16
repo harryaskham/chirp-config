@@ -8704,15 +8704,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers10-t4 OUT.wav",
       "best": {
-        "score": 89.33,
-        "version": "v8",
+        "score": 89.15,
+        "version": "v9",
         "commit": "see git log songs/chirpers10-t4.yaml",
         "judged": true
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 8,
+      "rounds": 9,
       "priority": 1.0,
       "genre": "polymetric djent",
       "mode": "compose",
@@ -8730,7 +8730,7 @@
         "note": "COMPOSE (the fourth song (its name and its shape are chirper-zero's), 180-480 s): Opened by Harry on 15 Nov, about 02:42 GMT, in his words: \"we can do fourth track same climber\". He said it minutes after answering eight Plain Hunt cards on the review page (`python3 tools/listen.py questions chirpers10`; read them first) and while asking chirp-eco to rebuild that page (\"questions are very busy and hard to even parse or answer\"; \"make it easy to respond, like a flick thru view w autoplay, maybe with shorter more focused examples for some things\"). THAT SENTENCE IS ALL HE SAID about this song. The rest here is chirp-eco's reading, carried over from how he opened tracks 2 and 3 (\"zero's song name choice\"; \"should skeleton it and then climb both as the tooling selects\"), and is his or yours to overrule: the song is chirper-zero's; THE NAME IS YOURS (`tools/chirpers.py title chirpers10-t4 \"...\"`: a plain fragment, nothing on the nose, no numbers in titles); the FIRST ROUND IS A SKELETON (the whole shape standing, however bare; any version at all goes on the groove beside the other three), and from then on `climb.py next` draws among the four. What the song is, how long, and how it stands beside the epic, Odd Sympathy and Plain Hunt are yours. It starts from the same home: the album's direction (album.json direction.rules), its patch family (sounds.md, the ct-* rigs and kit) and everything landed in the engine since (features.md). From its first rounds: its form as arithmetic, its first full section read against the records (stembal --id), and entries.py at v2 or v3 (compose/README.md, Workflow step 3). The slot's length (3 to 8 minutes) is chirp-eco's placeholder so the scorer has a range: set it to what the song is."
       },
       "last": {
-        "at": "2026-11-16T03:50:08Z",
+        "at": "2026-11-16T06:29:25Z",
         "who": "chirper-zero"
       }
     },
