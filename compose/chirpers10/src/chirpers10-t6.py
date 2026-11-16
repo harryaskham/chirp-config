@@ -91,6 +91,24 @@ def lock(x, lo, hi, period, n):
     return best[1]
 
 
+# v3: THE BAND TELLS YOU WHERE THE RULE IS (whole-song round). Through v2 the riff changed under a band that did
+# not: from 0:41 to 2:24 the finished file sat within 0.6 dB, four guitars and the same hat whether the rule was
+# repeating or not, and the run down at the end changed the dial every four bars, before the rule had settled
+# (its stretch "four" never once played its four half bars through). Three things, one idea:
+#   - THE WALL AND THE OPEN HAT ARE FOR NEWS. Where the rule repeats, the band is two guitars and a closed hat:
+#     a riff you know, played tight. Where it does not repeat (1:10, 1:44, the top, and the half bars in which
+#     it is still finding a cycle), the second pair of guitars is in and the hat is open on every beat. So the
+#     song steps where the rule changes state: up at 1:10, down at 1:27 (the lock on five is the leanest thing
+#     in the middle of the song), up at 1:44, down at 2:01 and then built back a layer at a time (v2's layers:
+#     the second pair of guitars now ARRIVES with the harmony the third time round), up at 2:24.
+#   - THE TOP IS THE TOP: at the top of the dial every scream has the cymbal on it, ringing into the hole.
+#   - THE DIAL COMES DOWN SLOWLY ENOUGH TO HEAR. Each setting on the way down now lasts until the rule has
+#     settled and said its cycle: four (seven half bars of finding it, then the two-bar riff twice), two, and
+#     then one: the shuffle of 0:14 comes home for six bars before the song dies out.
+# the run down's half bars at four ; at two ; at one ; the velocity of the cymbal on a scream at the top. "" = v2.
+TELL = os.environ.get("C10T6_TELL", "16;12;12;0.9")
+DOWN = [int(v) for v in TELL.split(";")[:3]] if TELL else [8, 8, 8]
+
 # name, half bars, the dial. A list is one setting for each half bar; a tuple (lo, hi, period) is a window.
 DIAL = [
     ("growth", 16, lin(1.5, 2.8, 16)),
@@ -104,9 +122,9 @@ DIAL = [
     ("three", 18, (3.8290, 3.8405, 3)),
     ("six", 12, [3.845] * 12),
     ("full", 32, [3.995] * 32),
-    ("down-four", 8, [3.5] * 8),
-    ("down-two", 8, [3.2] * 8),
-    ("down-one", 8, [2.8] * 8),
+    ("down-four", DOWN[0], [3.5] * DOWN[0]),
+    ("down-two", DOWN[1], [3.2] * DOWN[1]),
+    ("down-one", DOWN[2], [2.8] * DOWN[2]),
     ("out", 4, [1.0] * 4),
 ]
 X0 = 0.02
@@ -190,20 +208,24 @@ def play(c, x, gtrs, bass=True, kick=True, harm=()):
 LOCK = os.environ.get("C10T6_LOCK", "2;3;-14dB;24;0.4")
 
 
-def lock_head(sec, period):
-    """The first half bar of `sec` that begins the cycle proper: its highest number, once the cycle repeats."""
+def lock_head(sec, period, rhythm=False):
+    """The first half bar of `sec` that begins the cycle proper: its highest number, once the cycle repeats
+    (`rhythm`: once the places struck repeat, whatever the accent does)."""
     a, b = AT[sec], AT[sec] + dict((n, k) for n, k, _ in DIAL)[sec]
-    t = next(j for j in range(a, b - period) if all(cell(CELLS[i][3]) == cell(CELLS[i + period][3]) for i in range(j, b - period)))
+    same = (lambda i, j: cell(CELLS[i][3])[0] == cell(CELLS[j][3])[0]) if rhythm else (lambda i, j: cell(CELLS[i][3]) == cell(CELLS[j][3]))
+    t = next(j for j in range(a, b - period) if all(same(i, i + period) for i in range(j, b - period)))
     return next(j for j in range(t, t + period) if CELLS[j][3] == max(CELLS[i][3] for i in range(t, t + period)))
 
 
 HEAD3 = lock_head("three", 3) if LOCK else None
+HEAD4D = lock_head("down-four", 4, rhythm=True) if TELL else None
+assert LOCK or not TELL, "C10T6_TELL builds on C10T6_LOCK"
 
 G = ("gl", "gr")
 G2 = ("gl2", "gr2")
 BACK = {"one", "two", "four", "eight", "chaos", "chaos2", "full", "down-four", "down-two", "down-one"}   # the snare on two and four
 HALF = {"five", "three", "six"}                                                                          # the snare on three only
-WIDE = {"four", "eight", "chaos", "five", "chaos2", "three", "six", "full"}                              # four guitars
+WIDE = {"chaos", "chaos2", "three", "full"} if TELL else {"four", "eight", "chaos", "five", "chaos2", "three", "six", "full"}   # four guitars
 LEAD = {"two", "four", "eight", "chaos", "five", "chaos2", "three", "six", "full", "down-four", "down-two"}
 
 
@@ -217,18 +239,22 @@ def compose():
             play(c, x, G)
         elif LOCK and (sec == "six" or (sec == "three" and c >= HEAD3)):
             turn = (c - HEAD3) // 3 + 1                       # which time round the cycle this is
-            play(c, x, G + G2, harm=G2 if turn >= int(LOCK.split(";")[1]) else ())
+            layered = turn >= int(LOCK.split(";")[1])
+            play(c, x, G + (G2 if layered or not TELL else ()), harm=G2 if layered else ())
             if len(cell(x)[0]) == 1 and turn >= int(LOCK.split(";")[0]):     # the hole: the cycle's three notes, as a triplet
                 for i, (cc, v) in enumerate(((c - 1, 0.8), (c, 0.7), (c + 1, 0.9))):
                     add("echo", c, 3 + i, 1, note(rung(CELLS[cc][3])) + int(LOCK.split(";")[3]), v)
         else:
             play(c, x, G + (G2 if sec in WIDE else ()))
         # the steady pulse: the machine's hat on every beat, opened on the last beat before a new setting
+        finding = LOCK and sec == "three" and c < HEAD3       # the dial has moved and the rule has not settled yet
+        news = TELL and cell(x)[0] and (sec in ("chaos", "chaos2", "full") or finding or (sec == "down-four" and c < HEAD4D))
         if sec != "out":
             for s in (0, 3):
                 last = c + 1 < NC and CELLS[c + 1][0] != sec and s == 3
-                drum("o" if last else "h", c, s, 0.75 if (s == 0 and c % 2 == 0) else 0.55)
-        finding = LOCK and sec == "three" and c < HEAD3       # the dial has moved and the rule has not settled yet
+                drum("o" if last or news else "h", c, s, 0.75 if (s == 0 and c % 2 == 0) else 0.55)
+        if TELL and sec == "full" and len(cell(x)[0]) == 6:   # the top: the cymbal on every scream
+            drum("c", c, cell(x)[0][cell(x)[1]], float(TELL.split(";")[3]))
         if sec in BACK or finding:
             drum("s", c, 3, 0.95)
         elif sec in HALF and c % 2 == 1:
@@ -239,7 +265,7 @@ def compose():
                 drum("c", c, 0, 0.95)
                 if c % 2 == 0:                                # (on a bar's third beat the half-time snare brings its own clap)
                     drum("p", c, 0, 0.9)
-        elif first and sec not in ("growth", "out"):
+        elif first and sec not in ("growth", "out") and not (TELL and sec == "down-four"):   # (the last scream's cymbal is still ringing there)
             drum("c", c, 0, 0.9)
         # a hole (a half bar with nothing in it) after sound: the boom falls through it
         if sec not in ("growth", "out") and not cell(x)[0] and c and cell(CELLS[c - 1][3])[0]:
@@ -310,7 +336,7 @@ def song():
             "p": piece("clap", "C4", os.environ.get("C10T6_P", "0dB")),
             "b": piece("boom", "E1", os.environ.get("C10T6_B", "-5dB"), decay="5s", drive=0.5),
             "h": piece("hat", "C6", os.environ.get("C10T6_H", "0dB"), pan=-0.3, choke="hat"),
-            "o": piece("hat", "C6", os.environ.get("C10T6_O", "0dB"), pan=-0.3, choke="hat", decay="380ms"),
+            "o": piece("hat", "C6", os.environ.get("C10T6_O", "-3dB" if TELL else "0dB"), pan=-0.3, choke="hat", decay="380ms"),   # v3: open on every beat of the news: 3 dB down
             "c": piece("cymbal", "C6", os.environ.get("C10T6_C", "-6dB"), pan=0.3),
         },
     }

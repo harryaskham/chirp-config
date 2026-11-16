@@ -400,8 +400,10 @@ Harry, 16 Nov about 12:33: "make it unique". Source: `src/chirpers10-t6.py` (its
 | 68-77 | 1:58 | 3.8365 | a window: THREE half bars, after three half bars of finding it |
 | 77-83 | 2:14 | 3.845 | the three doubles: six |
 | 83-99 | 2:24 | 3.995 | the whole range: screams, holes of up to three half bars (the 808 boom falls through them), climbs |
-| 99-111 | 2:52 | 3.5, 3.2, 2.8 | the dial comes down: four, two, one (each for four bars; the rule needs most of that to settle) |
-| 111-113 | 3:13 | 1.0 | three single low notes, each lower, and none |
+| 99-107 | 2:52 | 3.5 | the dial comes down (v3: slowly enough to hear). Four: seven half bars of finding it, then the two-bar riff twice (from 2:58) |
+| 107-113 | 3:06 | 3.2 | two |
+| 113-119 | 3:16 | 2.8 | one: the shuffle comes home, its accent still rocking between two places as the rule settles |
+| 119-121 | 3:27 | 1.0 | three single low notes, each lower, and none |
 
 It is one orbit: x starts at 0.02 and is never reset. The two windows' settings are found by the generator (`lock`): the setting inside the window from which the orbit, arriving as it does, locks soonest.
 
@@ -412,3 +414,5 @@ It is one orbit: x starts at 0.02 and is never reset. The two windows' settings 
 **v1 is the skeleton**: the whole dial, played bare, on the record's guitars and bass.
 
 **What a band can do once the riff repeats (v2).** Section round, 1:51-2:19 (the window of three). While the rule never repeats the band can only play it in unison; in a window it comes round again, so the window is arranged a layer for each time round. The dial moves at bar 68 (1:58) and the rule takes three half bars to settle: the snare keeps the back beat through them. On the first beat of the cycle's first half bar (half bar 139, 2:01; the scream is its fifth place) the cymbal marks the lock and the snare drops to half time. Second time round (2:04) a second chip (`echo`) answers in the cycle's hole with the cycle's own three notes as one triplet (D5 G3 D4), ending on the next half bar's accent, two octaves up. Third time round (2:06) `gl2`/`gr2` take the scream two rungs up (F3+C4 over D3+A3: a four-note chord). Both go on through the six.
+
+**The band tells you where the rule is (v3).** Whole-song round. Where the rule repeats (one, two, four, eight, the windows once locked, the run down once settled) the band is two guitars and a closed hat. Where it does not (bars 40-50, 60-68, the top, and the half bars in which it is still finding a cycle: 68-69.5 and 99-102.5) the second pair of guitars is in and the hat is open on every beat. In the window of three the second pair now ARRIVES the third time round, with the harmony. At the top every scream (a half bar with all six places struck) has the cymbal on its accent. The run down is 16, 12 and 12 half bars (it was 8, 8, 8): 3:37 in all.
