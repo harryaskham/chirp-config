@@ -51,6 +51,20 @@ What it cannot see (chirper-zero, Common Time v22): a pure tone has all its ener
 reference records (tools/stembal.py). Both readings were right. A level under the mix is not a share of a band: for a
 part with a narrow spectrum run stembal on the section as well.
 
+SHORT STROKES (16 Nov, chirper-zero, Running Total v8: a woodblock knock at ONE velocity read -11.2 dB where it struck
+every bar or so and -3.6 where it struck eight times in two bars). `vs mix` is the part's power while it SOUNDS, and a
+short stroke with a tail (a room, a reverb, a ringing bar) sounds for the whole window: active 1.00. So `vs mix`
+averages each stroke with its tail and follows how OFTEN the part strikes, not how loud a stroke is. Under the table,
+from the same renders: the parts made of strokes whose strokes `vs mix` reads 3 dB or more low, each with THE STROKE
+ITSELF against the mix: every stroke's own tenth of a second against the mix's same tenth (the median, low to high, how
+many). A stroke is a tenth of a second 10 dB over what the part was doing 0.1 to 0.2 s before, at a local peak, within
+30 dB of the part's loudest. Read that figure to set one level for a part that strikes at different rates: on Running
+Total v8, with velocity set by the gap so that `vs mix` read -10 to -13 everywhere, the knock's strokes were -2.5 to
+-3.2 dB under the mix where it is sparse and -6.2 to -7.3 where it is dense (the kick's strokes: -2.8 to -4.8).
+What it is not: how loud a stroke SOUNDS (a tenth of a second of K-weighted power is not loudness, and a stroke
+masked by a cymbal on the same beat reads the same as one in a gap); a held or fast-repeating part has no strokes
+here (nothing falls 10 dB between them) and `vs mix` is the figure for it.
+
 WHOSE BAND IS IT (16 Nov, chirper-zero, three times in one day: a synth riser that was most of a climax's 500 Hz to
 1 kHz for five versions, a bass's lift, a held lead 3.7 dB under the whole mix at 500 Hz-1 kHz; each found only when
 the part alone was put under the mix by band, by hand). Under each table, from the same renders (nothing more is
@@ -81,6 +95,10 @@ ROOT = os.environ.get("CLIMB_ROOT") or os.path.dirname(HERE)
 FRAME = 0.4          # seconds
 SOUNDS_DB = 50.0     # a frame "sounds" within this many dB of the track's loudest frame
 NEAR_DB = 10.0
+STROKE_S, STROKE_HOP_S = 0.1, 0.05   # a stroke is read in a tenth of a second, looked for every twentieth
+STROKE_RISE_DB = 10.0   # a stroke: the part this far over what it was doing 0.1 to 0.2 s before, at a local peak ...
+STROKE_FLOOR_DB = 30.0  # ... and within this of the part's loudest tenth of a second in the window
+STROKE_LOW_DB = 3.0     # listed when the strokes' median is this far over `vs mix`
 HOLDS_DB = -6.0      # a track alone within this of the mix's own band HOLDS the band
 BAND_FLOOR_DB = -40.0   # a band this far under the mix's whole is not read: next to nothing is in it
 
@@ -127,6 +145,47 @@ def frames_db(x, sr, frame=FRAME, kweight=False, stereo=False):
             m = levels.k_weight(m.astype(np.float64), sr)
         power += (m[:k * n].astype(np.float64).reshape(k, n) ** 2).mean(1)
     return 20 * np.log10(np.sqrt(power) + 1e-9)
+
+
+def fine_db(x, sr, kweight=False, stereo=False):
+    """Levels in dB a tenth of a second long, one every twentieth; weighted and summed as frames_db does."""
+    chans = [x[:, c] for c in range(x.shape[1])] if stereo and x.ndim > 1 else [x.mean(axis=1) if x.ndim > 1 else x]
+    n, hop = max(1, int(STROKE_S * sr)), max(1, int(STROKE_HOP_S * sr))
+    if len(chans[0]) < n:
+        return np.array([-120.0])
+    starts = np.arange(0, len(chans[0]) - n + 1, hop)
+    power = np.zeros(len(starts))
+    for m in chans:
+        m = levels.k_weight(m.astype(np.float64), sr) if kweight else m.astype(np.float64)
+        c = np.concatenate([[0.0], np.cumsum(m ** 2)])
+        power += (c[starts + n] - c[starts]) / n
+    return 20 * np.log10(np.sqrt(np.maximum(power, 0.0)) + 1e-9)
+
+
+def strokes(mix_f, solo_f):
+    """A part's strokes against the mix, from fine_db levels of both: {n, vs_mix_db (the median of each stroke's own
+    tenth of a second against the mix's same tenth), lo, hi (the 10th and 90th percentiles)}; None when the part has
+    fewer than two strokes in the window (a held part, a fast-repeating one, one hit)."""
+    k = min(len(mix_f), len(solo_f))
+    s, m = solo_f[:k], mix_f[:k]
+    if k < 5:
+        return None
+    top, idx = float(s.max()), []
+    for i in range(2, k):                             # the first tenth of a second has no "before" to rise from
+        if s[i] < top - STROKE_FLOOR_DB or s[i] < s[i - 1] or (i + 1 < k and s[i] <= s[i + 1]):
+            continue
+        if s[i] < s[max(0, i - 4):i - 1].min() + STROKE_RISE_DB:
+            continue
+        if idx and i - idx[-1] < 2:                   # one stroke seen twice: keep the louder reading
+            if s[i] > s[idx[-1]]:
+                idx[-1] = i
+            continue
+        idx.append(i)
+    if len(idx) < 2:
+        return None
+    d = s[idx] - m[idx]
+    return {"n": len(idx), "vs_mix_db": round(float(np.median(d)), 1), "lo": round(float(np.percentile(d, 10)), 1),
+            "hi": round(float(np.percentile(d, 90)), 1)}
 
 
 def presence(mix_db, solo_db, buried=-25.0):
@@ -189,10 +248,12 @@ def one_window(pin, song, live, win, a, work):
     kw = not a.rms
     x = L.load(wavs["__mix__"])
     mix, mixb, rows = frames_db(x, L.SR, kweight=kw, stereo=a.stereo), band_power(x, L.SR), {}
+    mixf = fine_db(x, L.SR, kweight=kw, stereo=a.stereo)
     for n in live:
         x = L.load(wavs[n])
         rows[n] = presence(mix, frames_db(x, L.SR, kweight=kw, stereo=a.stereo), a.buried)
         rows[n]["holds"] = {} if rows[n]["silent"] else holds(mixb, band_power(x, L.SR))
+        rows[n]["strokes"] = None if rows[n]["silent"] else strokes(mixf, fine_db(x, L.SR, kweight=kw, stereo=a.stereo))
     for f in wavs.values():
         os.remove(f)
     return rows
@@ -220,7 +281,8 @@ def many_windows(pin, song, live, windows, secs, a, work):
         for s0, s1 in secs:
             f0, f1 = wincut.frames(s0, s1, L.SR)
             seg = x[f0 - base:f1 - base]
-            out.append((frames_db(seg, L.SR, kweight=kw, stereo=a.stereo), band_power(seg, L.SR)))
+            out.append((frames_db(seg, L.SR, kweight=kw, stereo=a.stereo), band_power(seg, L.SR),
+                        fine_db(seg, L.SR, kweight=kw, stereo=a.stereo)))
         return out
 
     jobs = [("__mix__", None)] + [(n, n) for n in live]
@@ -231,8 +293,25 @@ def many_windows(pin, song, live, windows, secs, a, work):
         rows = {n: presence(db["__mix__"][i][0], db[n][i][0], a.buried) for n in live}
         for n in live:
             rows[n]["holds"] = {} if rows[n]["silent"] else holds(db["__mix__"][i][1], db[n][i][1])
+            rows[n]["strokes"] = None if rows[n]["silent"] else strokes(db["__mix__"][i][2], db[n][i][2])
         many.append(rows)
     return many
+
+
+def stroke_lines(rows):
+    """The lines of SHORT STROKES under a table: the parts whose strokes `vs mix` reads STROKE_LOW_DB or more low."""
+    low = sorted(((r["strokes"]["vs_mix_db"] - r["vs_mix_db"], n) for n, r in rows.items()
+                  if r.get("strokes") and r.get("vs_mix_db") is not None
+                  and r["strokes"]["vs_mix_db"] - r["vs_mix_db"] >= STROKE_LOW_DB), reverse=True)
+    if not low:
+        return []
+    out = ["  short strokes (`vs mix` averages a stroke with its tail, so it follows how OFTEN a part strikes; here each stroke's own "
+           "tenth of a second against the mix's same tenth: the median, low to high, how many):"]
+    for _, n in low:
+        st = rows[n]["strokes"]
+        out.append(f"    {n:16s} {st['vs_mix_db']:+7.1f}  ({st['lo']:+.1f} to {st['hi']:+.1f}; {st['n']} strokes)"
+                   f"   where vs mix says {rows[n]['vs_mix_db']:+.1f}")
+    return out
 
 
 def whose_lines(rows):
@@ -265,7 +344,7 @@ def report(song, span, a, tracks, live, rows):
     nb = sum(1 for r in rows.values() if r["buried"] and not r["silent"])
     if nb:
         print(f"  {nb} track(s) under {a.buried:g} dB while they sound: inaudible in the mix (raise, cut, or let them go)")
-    for ln in whose_lines(rows):
+    for ln in stroke_lines(rows) + whose_lines(rows):
         print(ln)
 
 

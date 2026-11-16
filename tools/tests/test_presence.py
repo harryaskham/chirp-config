@@ -29,7 +29,8 @@ a = sys.argv[1:]
 META = %s
 if "plan" in a:
     print(json.dumps({"data": {"canonical": dict(META, tracks=[{"name": "pad"}, {"name": "lead"}, {"name": "ghost"},
-                                                                {"name": "off", "mute": True}])}}))
+                                                                {"name": "off", "mute": True}]
+                                                 + ([{"name": "tick"}] if META.get("tick") else []))}}))
     sys.exit(0)
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "calls.log"), "a") as f:
     f.write(" ".join(a) + "\n")
@@ -40,10 +41,13 @@ def secs(tok):
 sr = 48000
 f0 = round(secs(a[a.index("--from") + 1]) * sr) if "--from" in a else 0
 f1 = round(secs(a[a.index("--to") + 1]) * sr) if "--to" in a else 12 * sr
-solo = [a[i + 1] for i, x in enumerate(a) if x == "--solo"] or ["pad", "lead", "ghost"]
+solo = [a[i + 1] for i, x in enumerate(a) if x == "--solo"] or ["pad", "lead", "ghost"] + (["tick"] if META.get("tick") else [])
 def amp(p, t):
+    if p == "tick":            # one stroke with a ringing tail: every half second from 4.3 s, every two seconds from 8.3 s
+        since = math.fmod(t - 4.3, 0.5) if 4.3 <= t < 8.3 else math.fmod(t - 8.3, 2.0) if t >= 8.3 else 9.0
+        return 0.3 * math.exp(-since / 0.02) + 0.003 * math.exp(-since / 0.6)
     return {"pad": 0.2, "lead": 0.4 if t >= 4 else 0.0, "ghost": 0.002}[p]
-FREQ = {"pad": 220.0, "lead": 1000.0, "ghost": 3000.0}
+FREQ = {"pad": 220.0, "lead": 1000.0, "ghost": 3000.0, "tick": 2000.0}
 with wave.open(a[a.index("-o") + 1], "wb") as w:
     w.setnchannels(2); w.setsampwidth(2); w.setframerate(sr)
     w.writeframes(b"".join(struct.pack("<hh", *[int(32767 * sum(amp(p, i / sr) * math.sin(2 * math.pi * FREQ[p] * i / sr)
@@ -119,6 +123,25 @@ class Windows(unittest.TestCase):
         self.assertEqual((before["lead"]["holds"], list(before["pad"]["holds"])), ({}, ["120-250"]))
         one = json.loads(self.run_tool("--from", "3", "--to", "5", "--json"))
         self.assertEqual(one["tracks"]["pad"]["holds"], after["pad"]["holds"])
+
+    def test_a_strokes_level_does_not_follow_how_often_it_strikes(self):
+        self.engine('{"tempo": 120.0, "tick": 1}')
+        many = json.loads(self.run_tool("--windows", "3-5:often", "5-7:seldom", "--json"))
+        often, seldom = (w["tracks"]["tick"] for w in many["windows"])
+        self.assertEqual((often["strokes"]["n"], seldom["strokes"]["n"]), (8, 2))
+        self.assertGreater(often["vs_mix_db"] - seldom["vs_mix_db"], 3.0)               # vs mix follows the rate ...
+        self.assertAlmostEqual(often["strokes"]["vs_mix_db"], seldom["strokes"]["vs_mix_db"], delta=1.0)   # ... a stroke does not
+        self.assertIsNone(many["windows"][0]["tracks"]["pad"]["strokes"])              # a held part has none
+        self.assertIsNone(many["windows"][0]["tracks"]["lead"]["strokes"])
+        text = self.run_tool("--windows", "3-5:often", "5-7:seldom")
+        head = "  short strokes (`vs mix` averages a stroke with its tail, so it follows how OFTEN a part strikes; here each stroke's own"
+        seldom_text = text.split("song.yaml (seldom: 5 -> 7;")[1]
+        self.assertIn(head, seldom_text)
+        line = [ln for ln in seldom_text.splitlines() if ln.startswith("    tick ")][0]
+        self.assertIn("2 strokes)   where vs mix says ", line)
+        self.assertLess(seldom_text.index(head), seldom_text.index("  whose band is it"))    # under the table, over the bands
+        one = json.loads(self.run_tool("--from", "5", "--to", "7", "--json"))
+        self.assertEqual(one["tracks"]["tick"]["strokes"], seldom["strokes"])           # one window alone reads the same
 
     def test_one_window_alone_is_printed_as_it_always_was(self):
         text = self.run_tool("--from", "3", "--to", "5")
@@ -201,6 +224,39 @@ class Measure(unittest.TestCase):
         self.assertEqual(int(np.argmax(bp)), P.LABELS.index("250-500"))
         self.assertLess(bp.sum() - bp.max(), bp.max() * 1e-4)                      # all of it in its band
         self.assertEqual(P.band_power(tone[:100], sr).sum(), 0.0)                  # shorter than a frame: nothing
+
+    def test_strokes_are_peaks_ten_db_over_what_came_before(self):
+        mix = np.full(60, -10.0)
+        held = np.full(60, -20.0)
+        self.assertIsNone(P.strokes(mix, held))                                        # nothing rises: no strokes
+        hits = np.full(60, -60.0)
+        for i in (10, 30, 50):
+            hits[i], hits[i + 1], hits[i + 2] = -14.0, -30.0, -45.0
+        got = P.strokes(mix, hits)
+        self.assertEqual(got, {"n": 3, "vs_mix_db": -4.0, "lo": -4.0, "hi": -4.0})
+        hits[0] = -14.0                                                                # a hit on the window's first frame has no
+        self.assertEqual(P.strokes(mix, hits)["n"], 3)                                 # "before" to rise from: not counted
+        roll = np.full(60, -60.0)
+        roll[10:50:2], roll[11:50:2] = -14.0, -18.0                                    # a roll: nothing falls 10 dB between hits
+        self.assertEqual(P.strokes(mix, roll)["n"], 2)                                 # (only its first two rise out of silence)
+        soft = hits.copy()
+        soft[30:33] = -50.0, -60.0, -60.0                                              # a stroke 36 dB under the loudest: not one
+        self.assertEqual(P.strokes(mix, soft)["n"], 2)
+        self.assertIsNone(P.strokes(mix[:4], hits[:4]))
+        rows = {"knock": {"vs_mix_db": -11.9, "strokes": {"n": 8, "vs_mix_db": -2.5, "lo": -3.4, "hi": -2.0}},
+                "kick": {"vs_mix_db": -5.3, "strokes": {"n": 29, "vs_mix_db": -2.8, "lo": -5.8, "hi": -1.6}},
+                "pad": {"vs_mix_db": -3.0, "strokes": None}, "gone": {"vs_mix_db": None, "strokes": None}}
+        lines = P.stroke_lines(rows)
+        self.assertEqual(len(lines), 2)                                                # the kick's strokes are 2.5 over: not listed
+        self.assertEqual(lines[1], "    knock               -2.5  (-3.4 to -2.0; 8 strokes)   where vs mix says -11.9")
+        self.assertEqual(P.stroke_lines({"pad": rows["pad"]}), [])
+        sr = 48000
+        x = np.zeros((sr, 2))
+        x[sr // 2:sr // 2 + 480] = 0.5                                                 # 10 ms of signal at half a second
+        f = P.fine_db(x, sr)
+        self.assertEqual(len(f), 19)                                                   # a tenth of a second, every twentieth
+        self.assertEqual(sorted(int(i) for i in np.argsort(f)[-2:]), [9, 10])          # the two tenths that hold it
+        self.assertEqual(P.fine_db(x[:100], sr).tolist(), [-120.0])
 
     def test_frames_db_of_a_full_scale_sine(self):
         sr = 48000
