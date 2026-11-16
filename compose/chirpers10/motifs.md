@@ -305,6 +305,8 @@ Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber"
 
 **The total arrives (v10).** Whole-song round. The count is said by two guitars to its last statement, both times (the build, and the band's return in the back-build); the riff whole is the first time there are four. Before, the second pair of tight guitars joined eight statements before the end, and the total was no louder than the count before it. The tight doubles (`gl2`/`gr2`) now play only in the melt (bars 98-121).
 
+**The snare counts too (v11).** Section round, 0:52-1:04 (window 0:33-1:06) and its mirror at 2:34-2:45. For the last three statements before the riff is whole (29, 30 and 31 places long) the snare leaves the backbeat and strikes the riff's hook notes with the guitars: kick on the chugs, snare on the hooks, china on the heads, the hat alone keeping the bar. The thirty-second statement begins on the bar line and the backbeat comes back with it; two bars later, the four guitars.
+
 ## t5 False Summit (chirper-zero)
 
 Harry, 15 Nov about 12:38: "true djent, but that leverages audio illusions throughout mainly risers/shpehers but in djent style, really make it a clear illlusory song, all about the illusions". 100 bpm, F, 108 bars, 4:24.

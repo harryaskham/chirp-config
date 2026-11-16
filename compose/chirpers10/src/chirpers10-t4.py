@@ -239,6 +239,20 @@ KNOCKS = []                           # (sixteenth, the key's root, the statemen
 # the snare (bar 9), the backbeat and the hat's eighths (bar 19).
 # "1" = the count on two guitars; "" = v9 (the doubles join at statement 25, and at the band's return).
 LEAN = os.environ.get("C10T4_LEAN", "1")
+# v11: THE SNARE COUNTS TOO (section round, 0:52-1:04, in the window 0:33-1:06 the map calls static; and its mirror at
+# 2:34-2:45). Through the count the kit keeps four in a bar and the riff's head walks against it. For the LAST THREE
+# statements before the riff is whole (29, 30 and 31 places long) the snare now leaves the backbeat and strikes the
+# riff's hook notes with the guitars: kick on the chugs, snare on the hooks, china on each head: the whole kit says
+# the riff, and only the hat still keeps the bar. Then the thirty-second statement begins ON the bar line, the first
+# whole one, and the backbeat comes back with it: after five and a half bars of the drummer pulling against the
+# bar, the riff "sits in the bar as if it always had" (this file's first page) and you hear it do so; two bars later
+# the four guitars. The same in the back-build's last three statements before the riff is whole on C.
+# (Plain Hunt's snare does a cousin of this at 1:56, and Harry kept it: "Pulling against the beat: keep it".)
+# (First bench at the backbeat's own velocity: twice as many strokes, and the snare read 2.3 dB over the kick and
+# 4.5 over the guitars, the stretch 0.4 dB louder than the whole statement it leads to. So they are struck softer.)
+# the first statement whose hooks the snare strikes ; its velocity. "" = v10.
+UNISON = os.environ.get("C10T4_UNISON", "29;0.75")
+SNARES = []                           # (first sixteenth, last, the snare's sixteenths) of each such statement
 # the tight rig's band: Hz : q : dB. "" = v8.
 MIDS = os.environ.get("C10T4_MIDS", "700:0.9:2.5")
 # the wall pair's low-mid cut on C: dB more than on the other grounds. "" = v8.
@@ -346,6 +360,8 @@ def compose():
             HEADS.append(t)
         elif KNOCK:
             KNOCKS.append((t, 0, k))
+        if UNISON and int(UNISON.split(";")[0]) <= k < N:
+            SNARES.append((t, t + k, [t + i for i in range(k) if RIFF[i] not in "ocr-"]))
         t += k
     assert t == TOTAL1 * 16
     beat(0, 9, cym="h", vel=0.45)
@@ -384,6 +400,8 @@ def compose():
                 HEADS.append(t)
             elif KNOCK:
                 KNOCKS.append((t, 6, k))
+            if UNISON and band and int(UNISON.split(";")[0]) <= k < N:
+                SNARES.append((t, t + k, [t + i - (N - k) for i in range(N - k, N) if RIFF[i] not in "ocr-"]))
             t += k
             continue
         gtrs = () if k < 25 else G_MAIN + G_DBL
@@ -443,6 +461,12 @@ def compose():
         beat(MELT, MELT + 12, snare=(4, 12), cym="x", vel=0.5)
     beat(MELT + 12, MELT + 22, snare=(8,), cym="h", vel=0.5)
     beat(MELT + 22, END, cym="h", vel=0.42)
+    for a, z, hits in SNARES:             # v11: the snare leaves the backbeat for the riff's hook notes
+        T["snare"] = [n for n in T["snare"] if not (a / 4 <= n["at"] < z / 4)]
+        for h in hits:
+            drum("s", h, float(UNISON.split(";")[1]))
+    if SNARES:
+        T["snare"].sort(key=lambda n: n["at"])
     for t, root, k in KNOCKS:             # v8: the block knocks where each statement starts
         v1, v0 = float(KNOCK.split(";")[3]), float(KNOCK.split(";")[5])
         add("knock", t, 1, F1 + root + int(KNOCK.split(";")[2]), round(v0 + (v1 - v0) * min(1.0, (k - 1) / 15), 3))
