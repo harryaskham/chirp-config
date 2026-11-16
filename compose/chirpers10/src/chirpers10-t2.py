@@ -542,6 +542,31 @@ CHIME = os.environ.get("C10T2_CHIME", "44:48;music-box;-8dB;0.7;-9dB;0.22;0.9") 
 HOOK_AT = [p for p, _, k in RIFF if k.startswith("h")]
 
 
+# v25: THE GUITARS' CHEST, AND FOUR GUITARS AGAINST (whole-song round: the song read part by part and stretch by
+# stretch against the eleven records, and its loudness read seam by seam with chirp-eco's seams.py).
+#   1. THE TWO GUITARS WERE HOLLOW. Wherever no voice sings (in step, the hold an eighth apart, the hold three apart)
+#      the band read 2.6 to 3.4 dB UNDER the records from 500 Hz to 1 kHz; where a voice sings it did not, because
+#      the voice fills that band. So the guitars had no chest of their own. They get it (one eq band on each).
+#   2. THE ARRIVAL WAS NO BIGGER THAN A HOLD. The song's whole aim is the bar where the two clocks are exactly against
+#      each other (3:38). It comes out of the quiet drift, so it is a jump of 5 dB; but at -8.7 to -8.8 LUFS it is
+#      exactly as loud as the hold a sixteenth apart at 1:00 (-8.8), and so is every hold between (-8.7 to -9.8, for
+#      two and a half minutes). Now, when the clocks lock against each other, EACH CLOCK HAS TWO GUITARS: a second
+#      take on each side, through another amplifier, microphone and cone, the right one on the right clock (`warp`).
+#      It is still one riff on two clocks; the machine with no holes is four guitars wide. They leave where the band
+#      does (4:31) and the two guitars end the song alone, as they began it.
+# (First bench of the doubles, 1.5 dB under the main pair on paper and the microphone nearer the cone: they were the
+# LOUDEST tracks in the band (this amplifier is hotter), the barked voices fell 2 dB behind them, and the stretch
+# went from 1.0 to 2.8 dB over the records at 2-4 kHz, the band v13 had mended. So: 5.5 dB under on paper, which
+# is about 3 under by ear's measure, and the microphone well off the cone.)
+# the guitars' band: Hz : q : dB. "" = v24.
+MIDS = os.environ.get("C10T2_MIDS", "700:0.9:2")
+# With four guitars the barked voices read 0.7 dB further back; they get that back (the last field), so they sit
+# against the band where they did.
+# the doubles: amp model : mic : left cone : right cone ; their gain against the main pair's, dB ; pan ; first bar : last ;
+# the barked voices' trim, dB. "" = v24.
+FOUR = os.environ.get("C10T2_FOUR", "modern:0.6:6:7;-5.5;0.7;98:122;0.7") if TWIN else ""
+
+
 def slip_clock(b0, b1, root=0):
     """The two clocks through a slip: the same ticks on `bl` (the song's time) and `br` (the right guitar's)."""
     v1, v2 = float(SLIPCLOCK.split(";")[3]), float(SLIPCLOCK.split(";")[4])
@@ -743,6 +768,13 @@ def compose():
     # against: half a bar apart. Every sixteenth has one guitar on it
     riff("gl", 98, 122, vel=0.9)
     riff("gr", 98, 122, vel=0.9)
+    if FOUR:                             # v25: each clock has two guitars
+        f0, f1 = (int(x) for x in FOUR.split(";")[3].split(":"))
+        riff("gl2", f0, f1, vel=0.9)
+        riff("gr2", f0, f1, vel=0.9)
+        # the right clock is half a bar ahead, so what is written from the bar line sounds half a bar before it: the
+        # main right guitar has always come in there (a pickup into the landing); its double waits for the landing
+        T["gr2"] = [n for n in T["gr2"] if n["at"] >= f0 * 4 + 2]
     bass(98, 122, 8, vel=0.95)
     groove(98, 122, 8, snare=(4, 12), cym="x")
     for b in range(102, 122, 4):
@@ -862,11 +894,17 @@ def song():
             for tr in ("tc", "tl", "tr")] if VOICE and HEARD and float(hd[3].split(":")[0]) else []
     dtop = [f"lp cutoff={DTOP.split(';')[0]} q={DTOP.split(';')[1]}"] if DTOP else []
     tw = TWIN.split(";")[0].split(":") if TWIN else None
+    mids = {"fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*MIDS.split(":"))]}]} if MIDS else {}
+    fo = FOUR.split(";")[0].split(":") if FOUR else None
     mic = f" fx.2.mic={MIX.split(';')[0]}" if MIX else ""
     beam = TWIN.split(";")[1].split(":") if TWIN else None
     spec = [
-        *([{"name": "gl", "patch": f"{tw[0]}{mic} fx.2.cone={tw[1]}", "gain": f"{tw[3]}dB", "pan": -1, "out": "gtrs"},
-           {"name": "gr", "patch": f"{tw[0]}{mic} fx.2.cone={tw[2]}", "gain": f"{tw[3]}dB", "pan": 1, "out": "gtrs", "warp": WARP}] if TWIN else
+        *([{"name": "gl", "patch": f"{tw[0]}{mic} fx.2.cone={tw[1]}", "gain": f"{tw[3]}dB", "pan": -1, "out": "gtrs", **mids},
+           {"name": "gr", "patch": f"{tw[0]}{mic} fx.2.cone={tw[2]}", "gain": f"{tw[3]}dB", "pan": 1, "out": "gtrs", **mids, "warp": WARP},
+           *([{"name": "gl2", "patch": f"{tw[0]} fx.1.model={fo[0]} fx.2.mic={fo[1]} fx.2.cone={fo[2]}", "gain": f"{float(tw[3]) + float(FOUR.split(';')[1]):g}dB",
+               "pan": -float(FOUR.split(";")[2]), "out": "gtrs", **mids},
+              {"name": "gr2", "patch": f"{tw[0]} fx.1.model={fo[0]} fx.2.mic={fo[1]} fx.2.cone={fo[3]}", "gain": f"{float(tw[3]) + float(FOUR.split(';')[1]):g}dB",
+               "pan": float(FOUR.split(";")[2]), "out": "gtrs", **mids, "warp": WARP}] if FOUR else [])] if TWIN else
           [{"name": "gl", "patch": "ct-chug-l" + HEAVY, "gain": "3.3dB", "pan": -1, "out": "gtrs", "fx": cab(12)},
            {"name": "gr", "patch": "ct-chug-r" + HEAVY, "gain": "3.3dB", "pan": 1, "out": "gtrs", "fx": cab(13), "warp": WARP}]),
         *([{"name": tr, "patch": BOX.split(";")[0], "gain": BOX.split(";")[2], "pan": sgn * float(BOX.split(";")[3]), "sends": {"hall": BOX.split(";")[4]},
@@ -889,7 +927,8 @@ def song():
         *([{"name": tr, "patch": "voice-talk", "gain": hd[1] if HEARD else vo[0], "pan": sgn * float(hd[2] if HEARD else vo[2]),
             "fx": talkfx,
             **({"warp": WARP} if tr == "tr" else {})} for tr, sgn in (("tl", -1), ("tr", 1))] if VOICE else []),
-        *([{"name": tr, "patch": "kidman synth.layers.0.diction=2 synth.layers.0.speech=1", "gain": vo[1], "pan": sgn * float(vo[2]), "sends": {"hall": vo[3]},
+        *([{"name": tr, "patch": "kidman synth.layers.0.diction=2 synth.layers.0.speech=1",
+            "gain": f"{float(vo[1][:-2]) + float(FOUR.split(';')[4]):g}dB" if FOUR and len(FOUR.split(";")) > 4 else vo[1], "pan": sgn * float(vo[2]), "sends": {"hall": vo[3]},
             "fx": [{"type": "eq", "bands": ["hp cutoff=440", "peak cutoff=1400 q=0.8 gain=4.5dB", "peak cutoff=5500 q=1.2 gain=-4dB", "highshelf cutoff=7000 gain=-6dB"] + dtop}],      # the bark's hiss falls with the kit's top
             **({"warp": WARP} if tr == "vr" else {})} for tr, sgn in (("vl", -1), ("vr", 1))] if VOICE else []),
         {"name": "bass", "patch": "ct-bass", "gain": {"value": "0.5dB", "mod": [{"src": "auto.hold", "amount": 1}]} if EIGHTH and eb else "0.5dB", "pan": 0, "out": "low",
