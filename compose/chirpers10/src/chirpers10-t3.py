@@ -164,6 +164,15 @@ CHANT = os.environ.get("C10T3_CHANT", "0,1,0,3,0|0,0,1,0,3,1,0,1,0|0,1,0;0.25;-1
 # the patch ; its gain ; its lowest note (MIDI) ; bars to a note ; the snare's velocity on the added beats ; the
 # guitars' bus under the lead, dB. "" = v3.
 CLIMB = os.environ.get("C10T3_CLIMB", "lead-monster;-12dB;72;%s;0.85;-1.5" % ("3" if RHYTHM else "2"))
+# v14: THE CLIMB IS TREMOLO-PICKED (palette round). The climb was seven notes held three bars each on a sustaining
+# lead: on top of the band like an organ (my own doubt since v8, and a choice on the card nobody has answered). The
+# last stretch is the song's hardest: the kick is on every sixteenth. Now the lead is on it: the same seven notes,
+# each PICKED on every sixteenth with the kick (tremolo picking, the oldest way a metal lead holds a note), on
+# another lead: the library's `lead-slap` (the 8-string through a 5150 with one 95 ms echo and a tight room: dry,
+# close, where `lead-monster` had a long delay and a big room; `lead-monster` is Running Total's lead too, so the
+# two songs' leads are now different instruments). It gets harder as it climbs.
+# the patch ; its gain ; the stroke, in sixteenths ; the strokes' velocity at the foot of the climb ; at the top. "" = v13.
+TREM = os.environ.get("C10T3_TREM", "lead-slap;-12dB;1;0.8;1.0") if CLIMB else ""
 if CLIMB:                # the bar the lead starts: it leaves room for six notes and the octave (held four bars at most since v5)
     _per = float(CLIMB.split(";")[3])
     _top = min(4, T2 - 6 * _per) if RHYTHM else T2 - 6 * _per
@@ -511,10 +520,18 @@ def compose():
     if CLIMB:                            # v4: the lead climbs the row, slowly, over the last third; the snare on every beat at the end
         base, per, sv = int(CLIMB.split(";")[2]), float(CLIMB.split(";")[3]), float(CLIMB.split(";")[4])
         b0 = CLIMB_B0
-        for i, iv in enumerate(sorted(PITCH.values())):
-            T.setdefault("lead", []).append({"at": (b0 + i * per) * 4, "len": round(per * 4 - 0.06, 4), "pitch": nm(base + iv), "vel": 0.85})
         top = b0 + 6 * per
-        T.setdefault("lead", []).append({"at": top * 4, "len": round((LAND - top) * 4 - 0.25, 4), "pitch": nm(base + 12), "vel": 0.95})
+        if TREM:                         # v14: every note of the climb picked on the sixteenth, harder as it climbs
+            n16, v0, v1 = int(TREM.split(";")[2]), float(TREM.split(";")[3]), float(TREM.split(";")[4])
+            a16, z16 = int(round(b0 * 16)), LAND * 16 - 1
+            for t in range(a16, z16, n16):
+                i = min(6, int((t - a16) // (per * 16)))
+                v = v0 + (v1 - v0) * (t - a16) / (z16 - a16) + (0.05 if t % 4 == 0 else 0.0)
+                add("lead", t, n16, base + (sorted(PITCH.values()) + [12])[i], min(1.0, v))
+        else:
+            for i, iv in enumerate(sorted(PITCH.values())):
+                T.setdefault("lead", []).append({"at": (b0 + i * per) * 4, "len": round(per * 4 - 0.06, 4), "pitch": nm(base + iv), "vel": 0.85})
+            T.setdefault("lead", []).append({"at": top * 4, "len": round((LAND - top) * 4 - 0.25, 4), "pitch": nm(base + 12), "vel": 0.95})
         for b in range(LAND - 4, LAND):
             for q in (0, 8):
                 drum("s", b * 16 + q, sv)
@@ -589,7 +606,7 @@ def song():
         {"name": "cym", "patch": kit, "gain": {"value": "-4.5dB", "mod": [{"src": "auto.busy", "amount": 1}]}, "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air,
          "auto": {"busy": {"points": [["0b", 0]] + [pt for b0, b1 in ((PART1 + 2 * T1, PART1 + 3 * T1), (PART2 + 2 * T2, END)) for pt in ([f"{b0 * 4 - 0.5}b", 0], [f"{b0 * 4}b", CYM_BUSY], [f"{b1 * 4 - 0.5}b", CYM_BUSY], [f"{b1 * 4}b", 0])], "curve": 0}}},
         {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
-        *([{"name": "lead", "patch": CLIMB.split(";")[0], "gain": CLIMB.split(";")[1], "pan": 0, "sends": {"hall": "-12dB"}}] if CLIMB else []),
+        *([{"name": "lead", "patch": (TREM or CLIMB).split(";")[0], "gain": (TREM or CLIMB).split(";")[1], "pan": 0, "sends": {"hall": "-12dB"}}] if CLIMB else []),
         # the bells' fader: down in the landing, where twelve slow rows of six ring into one another over the full band
         {"name": "bell", "patch": "modal-bell", "gain": {"value": os.environ.get("C10T3_BELL", "-18dB"), "mod": [{"src": "auto.lvl", "amount": 1}]}, "pan": 0.1, "sends": {"hall": "-8dB"},
          "auto": {"lvl": {"points": [["0b", 0], [f"{LAND * 4 - 1}b", 0], [f"{LAND * 4}b", BELL_LAND], [f"{END * 4 - 1}b", BELL_LAND], [f"{END * 4}b", 0]], "curve": 0}}},
