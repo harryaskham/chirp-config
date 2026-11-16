@@ -167,25 +167,43 @@ def note(r):
     return E1 + 12 * (r // 8) + OCT[r % 8]
 
 
+def keyof(c):
+    """How many minor thirds over E the band stands at half bar c (see KEYS, v6)."""
+    if not KEYS:
+        return 0
+    k5, k3, kt = (int(v) for v in KEYS.split(";")[:3])
+    return 0 if c >= AT["down-four"] else kt if c >= AT["full"] else k3 if c >= HEAD3 else k5 if c >= AT["five"] else 0
+
+
+def gup(c):
+    """Semitones the guitars, the lead and the chips are over the E version at half bar c."""
+    return 3 * keyof(c)
+
+
+def bup(c):
+    """The same for the bass: at the top it goes under, not over."""
+    return int(KEYS.split(";")[3]) if KEYS and AT["full"] <= c < AT["down-four"] else 3 * keyof(c)
+
+
 def play(c, x, gtrs, bass=True, kick=True, harm=()):
     """`harm`: the guitars that take an accent from the octave up two rungs higher."""
     slots, ai, r = cell(x)
     for i, s in enumerate(slots):
         nxt = slots[i + 1] if i + 1 < len(slots) else 6
         if i == ai:                           # the accent: a fretted note; from the octave up, a fifth on it
-            p = note(r)
+            p = note(r) + gup(c)
             for tr in gtrs:
-                q = note(r + 2) if tr in harm and r >= 8 else p
+                q = note(r + 2) + gup(c) if tr in harm and r >= 8 else p
                 add(tr, c, s, nxt - s, nm(q) if r < 8 else f"{nm(q)},{nm(q + 7)}", 1.0)
             if bass:
-                add("bass", c, s, nxt - s, note(r % 8), 0.95)
+                add("bass", c, s, nxt - s, note(r % 8) + bup(c), 0.95)
             if kick:
                 drum("k", c, s, 1.0)
         else:                                 # a muted chug on the open low string
             for tr in gtrs:
-                add(tr, c, s, 1, E1, 0.88, pm=1)
+                add(tr, c, s, 1, E1 + gup(c), 0.88, pm=1)
             if bass:
-                add("bass", c, s, 1, E1, 0.85)
+                add("bass", c, s, 1, E1 + bup(c), 0.85)
             if kick:
                 drum("k", c, s, 0.86)
 
@@ -237,6 +255,24 @@ UP = os.environ.get("C10T6_UP", "4;6;0.45;0.38;-20dB;-0.4;1")
 HATS = {"four": int(UP.split(";")[0]), "eight": int(UP.split(";")[1])} if UP else {}
 HEAD3 = lock_head("three", 3) if LOCK else None
 HEAD4D = lock_head("down-four", 4, rhythm=True) if TELL else None
+# v6: FOUR KEYS, ONE SCALE (whole-song round). Through v5 the song never left E: three and a half minutes on one
+# pedal, every stretch told apart by rhythm alone. The scale it is written in has a property no ordinary scale
+# has: moved up a minor third it is THE SAME EIGHT NOTES. So the band can change key and not change a note of its
+# scale, and four such steps come back to where they began: E, G, B flat, D flat, E. The song now takes that
+# road, one step at each change of state that v3 gave the band:
+#   - 1:27, the lock on five: everything a minor third up, on G (and the wall at 1:44 stays there);
+#   - 2:01, the lock on three (on the cymbal, not on the dial): on B flat, the far side of the circle from E;
+#   - 2:24, the top of the dial: on D flat. The guitars' screams are now the highest notes of the song (B3 and
+#     its fifth, D4 on the second pair), and the BASS does not go up with them: it goes UNDER, to the D flat
+#     below its E, the lowest note it plays anywhere. The top has the song's top and its bottom;
+#   - 2:52, the dial comes down: E. For the guitars a fall of a sixth onto the open string; for the bass one
+#     more minor third UP, from that low D flat to the E it started on. Four steps up, and home.
+# It is a long cycle that lines up, in pitch this time: the record's subject once more.
+# The tune and the chips go with the band (the engine's generators are given the same ladder, moved); the
+# machine's kick and boom stay on E, which is in the scale in every one of the four keys.
+# steps of a minor third over E at the lock on five ; at the lock on three ; at the top ; the bass's semitones
+# from E at the top. "" = v5.
+KEYS = os.environ.get("C10T6_KEYS", "1;2;3;-3") if LOCK and TELL else ""
 # v5: THE FIRST LOCK GOES WITH THE CYCLE (section round, 1:23-1:51: the window of five). There are two things a
 # band can do with a cycle that does not fit the bar. It can hold the bar and let the cycle turn against it: that
 # is the window of three (2:01), where the snare stays on the bar's third beat and the riff comes round under it,
@@ -274,12 +310,12 @@ def compose():
             play(c, x, G + (G2 if layered or not TELL else ()), harm=G2 if layered else ())
             if len(cell(x)[0]) == 1 and turn >= int(LOCK.split(";")[0]):     # the hole: the cycle's three notes, as a triplet
                 for i, (cc, v) in enumerate(((c - 1, 0.8), (c, 0.7), (c + 1, 0.9))):
-                    add("echo", c, 3 + i, 1, note(rung(CELLS[cc][3])) + int(LOCK.split(";")[3]), v)
+                    add("echo", c, 3 + i, 1, note(rung(CELLS[cc][3])) + int(LOCK.split(";")[3]) + gup(c), v)
         elif UP and UP.split(";")[6] == "1" and sec == "full":
             play(c, x, G + G2, harm=G2)
             if len(cell(x)[0]) == 1 and len(cell(CELLS[c - 1][3])[0]) == 6:      # the three's shape again: the chip answers
                 for i, (cc, v) in enumerate(((c - 1, 0.8), (c, 0.7), (c + 1, 0.9))):
-                    add("echo", c, 3 + i, 1, note(rung(CELLS[cc][3])) + int(LOCK.split(";")[3]), v)
+                    add("echo", c, 3 + i, 1, note(rung(CELLS[cc][3])) + int(LOCK.split(";")[3]) + gup(c), v)
         else:
             play(c, x, G + (G2 if sec in WIDE else ()))
         # the steady pulse: the machine's hat on every beat, opened on the last beat before a new setting
@@ -322,16 +358,36 @@ def compose():
 def lead_gens():
     """The lead's part is the rule itself: one `logistic` system for each run of half bars on one dial setting,
     started from the orbit's own number there, so the engine walks the same orbit the band is playing."""
-    pool = " ".join(nm(note(r) + 36) for r in range(16))
     gens, c = [], 0
     while c < NC:
         sec, r, x0, _ = CELLS[c]
+        pool = " ".join(nm(note(r_) + 36 + gup(c)) for r_ in range(16))
         n = 1
-        while c + n < NC and CELLS[c + n][0] == sec and CELLS[c + n][1] == r:
+        while c + n < NC and CELLS[c + n][0] == sec and CELLS[c + n][1] == r and keyof(c + n) == keyof(c):
             n += 1
         gens.append((c, n, sec, {"type": "logistic", "r": r, "x0": x0, "n": n, "len": "/2", "notes": pool, "rest": round(1 / 7, 6)}))
         c += n
     return gens
+
+
+def low_bus():
+    """ct-bass's bus. v6: the three bands that sit on the bass's own notes go with the bass from key to key."""
+    comp = {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"}
+    if not KEYS:
+        return {"fx": [{"type": "eq", "bands": ["peak cutoff=41.5 q=1.5 gain=-7dB", "peak cutoff=85 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
+                       comp, {"type": "eq", "bands": ["peak cutoff=160 q=1.2 gain=-3dB"]}]}
+
+    def kf(hz):
+        return {"value": hz, "mod": [{"src": "auto.key", "amount": round(1 / 12, 5)}]}
+
+    pts, prev = [["0b", 0]], 0
+    for c in (AT["five"], HEAD3, AT["full"], AT["down-four"]):
+        pts += [[f"{c * 2 - 0.02:g}b", prev], [f"{c * 2:g}b", bup(c)]]
+        prev = bup(c)
+    return {"fx": [{"type": "eq", "bands": [{"kind": "peak", "cutoff": kf(41.5), "q": 1.5, "gain": "-7dB"}, {"kind": "peak", "cutoff": kf(85), "q": 1.0, "gain": "7.5dB"},
+                                            "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
+                   comp, {"type": "eq", "bands": [{"kind": "peak", "cutoff": kf(160), "q": 1.2, "gain": "-3dB"}]}],
+            "auto": {"key": {"points": pts, "curve": 0}}}
 
 
 def second_voice():
@@ -412,9 +468,7 @@ def song():
                              {"type": "eq", "bands": ["lp cutoff=14250 q=0.8"]}]},
             "gtrs": {"fx": [{"type": "eq", "bands": ["peak cutoff=330 q=1.2 gain=-2dB"]}, "reverb kind=room decay=0.35s mix=0.06 predelay=6ms"]},
             # ct-bass's bus, as on the other songs, with its bands moved down a semitone to E
-            "low": {"fx": [{"type": "eq", "bands": ["peak cutoff=41.5 q=1.5 gain=-7dB", "peak cutoff=85 q=1 gain=7.5dB", "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
-                           {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
-                           {"type": "eq", "bands": ["peak cutoff=160 q=1.2 gain=-3dB"]}]},
+            "low": low_bus(),
         },
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": os.environ.get("C10T6_MASTER", "2.7dB")}]},
         "tracks": tracks,

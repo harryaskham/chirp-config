@@ -422,3 +422,15 @@ It is one orbit: x starts at 0.02 and is never reset. The two windows' settings 
 **The way up has events, and the top is the sum (v4).** Whole-song round on two costs of v3. (1) The machine's hat counts finer as the riff gets longer: two to a half bar in one and two, the shuffle's four places in four (0:42), all six in eight (0:56); at 1:10 it opens, on the beat, with the wall. (2) Eight is a riff said twice: the second time (bars 36-40, 1:03) the tune has a second voice a minor third above it, track `lead2`, which like `lead` has no notes: one `logistic` system, the same orbit read off a ladder two rungs higher (in the half-whole scale two rungs are always a minor third). Checked against the engine: 8 notes, none different. (3) At the top the second pair of guitars keeps the chord on the screams (two rungs up, as from 2:06), and where the three's shape turns up inside the chaos (a half bar with all six places, then one with a single low note: bars 86.5-87.5 and 91-92) the chip answers as it did in the window.
 
 **The first lock goes with the cycle (v5).** Section round, 1:23-1:51 (the window of five, bars 50-60). The two windows now show the two things a band can do with a cycle that does not fit the bar. THREE (2:01) holds the bar: the snare stays on the bar's third beat and the riff turns under it, three against two. FIVE (1:27) drops the bar: its cycle is ten beats, and the machine counts it four, four and two: snare (and clap) on beats 3 and 7, snare alone on 9 and 10 as a push, the cymbal on each head. Beat 3 is the cycle's lonely low note. Only the hat keeps the song's beat; after four times round, ten bars have passed and bar and cycle meet again at 1:44.
+
+**Four keys, one scale (v6).** Whole-song round. The half-whole scale moved up a minor third is the same eight notes, and four such steps close the circle: E, G, B flat, D flat, E. The band takes one step at each change of state:
+
+| from | time | key | guitars' muted string | bass's ground |
+|---|---|---|---|---|
+| bar 0 | 0:00 | E | E1 | E1 |
+| bar 50 (the lock on five) | 1:27 | G | G1 | G1 |
+| half bar 139 (the lock on three, on its cymbal) | 2:01 | B flat | B flat 1 | B flat 1 |
+| bar 83 (the top) | 2:24 | D flat | D flat 2 | D flat 1, UNDER its E: the lowest note it plays |
+| bar 99 (the dial comes down) | 2:52 | E | E1 (a fall of a sixth) | E1 (one more minor third UP) |
+
+Everything pitched goes with the key (the riff's ladder, the harmony, the chips; the lead's generators are given the ladder moved: 32 systems, checked against the engine, 183 notes, none different). The machine's kick and boom stay on E, which is in the scale in all four keys. The bass bus's three bands that sit on the bass's notes follow it (`auto.key`). At the top the screams are B3 and its fifth, with D4 and its fifth on the second pair: the highest notes the guitars play.
