@@ -343,6 +343,17 @@ TREBLE = os.environ.get("C10T3_TREBLE", "420:0.7;0.45")
 HOME = os.environ.get("C10T3_HOME", "jl,jr;8;1.0") if RIG2 and CLIMB else ""
 
 
+# v17: THE HARMONY OPENS (section round, 3:59-4:09, in the window 3:44-4:16 the map calls static in tone and "little
+# new"). The second cycle's harmony guitars play the riff a third above it for two whole leads, nineteen rows of
+# the same interval: Harry kept them ("Keep it, louder") and they then stood still. Now they move as twin guitars
+# do: the first lead in THIRDS, as it was; the second lead in SIXTHS (four steps up the riff's own six-note scale
+# where it was two: the tenor F takes C, G flat takes E flat, A flat takes F, B takes G flat, C takes A flat, the
+# treble's E flat takes B). The harmony climbs a fourth as the stretch nears the key change, hands the top of the
+# band to the call (unison, an octave up) and then to the lead's climb. Thirds, sixths, unison, lead.
+# the row of the second extent from which the harmony is wider ; its scale steps up there. "" = v16 (thirds throughout).
+SIXTHS = os.environ.get("C10T3_SIXTHS", "70;4") if HARM else ""
+
+
 def lead_mode(k, calls):
     """What row k of an extent is: `call` (the two rows of a called lead end), `home` (of a plain one), or neither."""
     if not FORM or k % 10 < 8:
@@ -534,7 +545,8 @@ def compose():
             assert call == (k >= r1), "the harmony must end on a call"
             for b in tuple(extent[k]) + (6,):
                 n = w[0] if b == 1 else w[1] if b == 6 else 1
-                i = scale.index(PITCH[b]) + (0 if call else steps)
+                wide = SIXTHS and part == PART2 and k >= int(SIXTHS.split(";")[0])       # v17: the second lead in sixths
+                i = scale.index(PITCH[b]) + (0 if call else int(SIXTHS.split(";")[1]) if wide else steps)
                 pitch = F1 + root + up + scale[i % 6] + 12 * (i // 6)
                 for j in range(n if b == 6 else 1):
                     for tr in ("hl", "hr"):

@@ -262,6 +262,8 @@ The bare lead is in both cycles on purpose: with it in the first only, the score
 
 **The landing lands (v16).** Palette round. On the landing (bars 151-159, 5:02) all six guitars play rounds: the first cycle's doubles (gl2/gr2) and the second cycle's (jl/jr, the small cabinet) together for the first time. And the lead's climb has its last note: one stroke of the top C on the landing's first beat, let ring (the tremolo stopped a sixteenth short before).
 
+**The harmony opens (v17).** Section round, 3:59-4:09 (window 3:44-4:16). The second cycle's harmony guitars play the first of their two leads in thirds (rows 60-69, as before) and the second in sixths (rows 70-77: four steps up the riff's six-note scale: F takes C, G flat takes E flat, A flat takes F, B takes G flat, C takes A flat, E flat takes B), then the call in unison an octave up, the key change, and the lead's climb.
+
 ## t4 Running Total (chirper-zero)
 
 Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber". The album's fourth kind of long cycle: a SUM.
