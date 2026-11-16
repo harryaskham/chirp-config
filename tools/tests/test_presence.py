@@ -113,11 +113,16 @@ class Windows(unittest.TestCase):
         head = "  whose band is it (a track ALONE within 6 dB of the mix's own band; 0 = it is the band, -3 about half):"
         self.assertIn(head, first)
         self.assertIn(head, second)
-        got = {ln.split()[0]: ln.split()[1:] for ln in second.split(head)[1].splitlines() if ln.startswith("    ")}
+        whose, _, eq = second.split(head)[1].partition("  what an eq on it would move")
+        got = {ln.split()[0]: ln.split()[1:] for ln in whose.splitlines() if ln.startswith("    ")}
+        moved = {ln.split()[0]: ln.split()[1:] for ln in eq.splitlines() if ln.startswith("    ")}
+        self.assertEqual(moved["120-250"][:2], ["pad", "100%"])              # the pad is its band: all of it,
+        self.assertAlmostEqual(float(moved["120-250"][2].rstrip(",")), 2.0, delta=0.1)   # and 2 dB on it is 2 dB on the band
         self.assertEqual((got["120-250"][0], got["500-1k"][0], got["1-2k"][0]), ("pad", "lead", "lead"))   # 1 kHz sits on the edge
         self.assertAlmostEqual(float(got["120-250"][1]), 0.0, delta=0.2)   # the pad IS its band
         self.assertNotIn("2-4k", got)                                      # the ghost's band is 46 dB under the mix: not read
         self.assertNotIn("lead", first.split(head)[1])                     # not in the first two seconds
+        self.assertIn("  what an eq on it would move", first)
         many = json.loads(self.run_tool("--windows", "1-2:before", "3-5", "--json"))
         before, after = (w["tracks"] for w in many["windows"])
         self.assertEqual((before["lead"]["holds"], list(before["pad"]["holds"])), ({}, ["120-250"]))
@@ -219,6 +224,16 @@ class Measure(unittest.TestCase):
         self.assertEqual(P.whose_lines({"c": {"holds": {}}}), [])
         self.assertEqual(sorted(P.sides(["gl", "gr", "gl2", "gr2", "v0l", "v0r", "el", "bell", "lead", "kick", "l", "r", "GR3", "gl3"])),
                          [("gl", "gr"), ("gl2", "gr2"), ("gl3", "GR3"), ("v0l", "v0r")])
+        share, up = P.moves(-5.0)                                                  # "pairs at -5 mean a third each:
+        self.assertAlmostEqual(share, 0.316, places=3)                             # 2 dB on them is 0.7 on the mix"
+        self.assertAlmostEqual(up, 0.74, places=2)
+        self.assertAlmostEqual(P.moves(0.0)[1], 2.0, places=6)                     # it IS the band: the band moves as it does
+        self.assertAlmostEqual(P.moves(1.5)[0], 1.0)                               # louder alone than the mix's band: all of it
+        self.assertAlmostEqual(P.moves(-3.0, -2.0)[1], -0.89, places=2)
+        eq = P.eq_lines(rows)
+        self.assertIn("what an eq on it would move", eq[0])
+        self.assertEqual(eq[1:], ["    60-120   b 89% +1.8, a 79% +1.7", "    1-2k     b 50% +1.1"])
+        self.assertEqual(P.eq_lines({"c": {"holds": {}}, "d": {}}), [])
         pair = {n: {"silent": False, "holds": {}} for n in ("el", "er", "gl", "gr", "pad")}
         pair["gr"]["silent"] = True                                                # a side that does not sound: no pair
         power = {"el": np.array([0, 0, 0, 0, 20.0, 0, 0, 0, 0]), "er": np.array([0, 0, 0, 0, 30.0, 0, 0, 0, 0]),
@@ -228,6 +243,7 @@ class Measure(unittest.TestCase):
         self.assertNotIn("pair", pair["gl"])
         self.assertEqual(P.whose_lines(pair)[1:], ["    a left and a right TOGETHER (their powers added: a pair can hold a band neither "
                                                    "holds alone):", "    500-1k   el+er -3.0"])
+        self.assertEqual(P.eq_lines(pair)[1:], ["    500-1k   el+er 50% +1.1"])     # a left and a right together: one part to an eq
         sr = 48000
         t = np.arange(sr * 2) / sr
         tone = np.stack([np.sin(2 * np.pi * 300 * t)] * 2, axis=1)

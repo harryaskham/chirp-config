@@ -344,6 +344,40 @@ def stroke_lines(rows):
     return out
 
 
+EQ_DB = 2.0               # WHAT AN EQ ON IT WOULD MOVE: the turn-up it is worked out for
+
+
+def moves(d, gain=EQ_DB):
+    """(the part's share of the mix's band, how far the mix's band moves in dB) when a part that alone reads d dB against
+    the band is turned up by `gain` dB there: powers added, as if the parts were unrelated."""
+    share = min(1.0, 10 ** (d / 10))
+    return share, 10 * np.log10(1 - share + share * 10 ** (gain / 10))
+
+
+def eq_lines(rows):
+    """The lines of WHAT AN EQ ON IT WOULD MOVE, under WHOSE BAND IS IT: for each holder of a band (alone, or a left and
+    a right together), its share of the band and how far the mix's own band moves when it alone is turned up EQ_DB there.
+    chirper-zero, 16 Nov (Plain Hunt, a round not made): "BEFORE AN EQ, ASK WHAT SHARE OF THE BAND THE PART HAS (WHOSE
+    BAND pairs at -5 mean a third each: 2 dB on them is 0.7 on the mix)": he benched two tilts on four guitars to learn
+    that 4.5 dB on them moved the song by under 1 dB."""
+    by = {}
+    for n, r in rows.items():
+        for lb, d in (r.get("holds") or {}).items():
+            by.setdefault(lb, []).append((d, n))
+        for lb, d in ((r.get("pair") or {}).get("holds") or {}).items():
+            by.setdefault(lb, []).append((d, f"{n}+{r['pair']['with']}"))
+    if not by:
+        return []
+    out = [f"  what an eq on it would move (its share of the band's power; the mix's own band when that part alone is turned up "
+           f"{EQ_DB:g} dB across it; powers added, a guide: a peak gives less than its gain across a whole band):"]
+    for lb in LABELS:
+        if lb in by:
+            got = sorted(by[lb], reverse=True)
+            out.append(f"    {lb:8s} " + ", ".join("{} {:.0%} {:+.1f}".format(n, *moves(d)) for d, n in got[:4])
+                       + (f" +{len(got) - 4}" if len(got) > 4 else ""))
+    return out
+
+
 def whose_lines(rows):
     """The lines of WHOSE BAND IS IT under a table: for each band, the tracks that alone hold it, nearest first."""
     by = {lb: sorted(((r["holds"][lb], n) for n, r in rows.items() if lb in (r.get("holds") or {})), reverse=True) for lb in LABELS}
@@ -382,7 +416,7 @@ def report(song, span, a, tracks, live, rows):
     nb = sum(1 for r in rows.values() if r["buried"] and not r["silent"])
     if nb:
         print(f"  {nb} track(s) under {a.buried:g} dB while they sound: inaudible in the mix (raise, cut, or let them go)")
-    for ln in stroke_lines(rows) + whose_lines(rows):
+    for ln in stroke_lines(rows) + whose_lines(rows) + eq_lines(rows):
         print(ln)
 
 
