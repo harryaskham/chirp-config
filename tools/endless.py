@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """tools/endless.py: DOES THE ENDLESS THING HOLD?  (chirper-zero's ask after False Summit v1, 15 Nov)
 
-  python3 tools/endless.py SONG TRACK[,TRACK...] FROM-TO --cycle 1bar [--steps 16] [--pin CHIRP] [--keep DIR] [--json]
+  python3 tools/endless.py SONG TRACK[,TRACK...] FROM-TO --cycle 1bar [--steps 16] [--seed 0] [--pin CHIRP] [--keep DIR] [--json]
   python3 tools/endless.py --wav FILE.wav --cycle 2.4s [--steps 16] [--json]
 
 An illusion of endless motion (a Shepard scale, a Risset rhythm, a barber-pole sweep, a riser that never arrives)
@@ -14,6 +14,10 @@ FROM-TO are positions as `chirp render --from/--to` take them (bars from 1: 9-33
 illusion's period: 1bar, 4bars, 16b (beats) or 2.4s. With --wav: a render you already have, cut to the passage.
 A cycle SHORTER THAN A BAR is asked in beats, with a slice a stroke: a fill falling a semitone a sixteenth comes round
 every twelve, so `falls 71-73 --cycle 3b --steps 12` (False Summit v5: two cycles of 35 notes, the same; it holds).
+--seed N renders the parts on another seed (0 is the groove's). A band's SPREAD that MOVES WITH THE SEED is the
+players' own variation, not the song: four guitars on one patch, the same notes and the same fader lanes in every
+cycle, still read 2.1 to 3.4 dB apart at 120-250 Hz, and a different cycle is the loud one on each seed (False
+Summit v8, the stair's left side). A spread that stays on the same cycle on every seed is written in the song.
 
 It prints
   ONE CYCLE LATER: each cycle's level, nine bands and centroid against the other cycles: the spread, and the
@@ -176,6 +180,8 @@ def measure(x, sr, cycle_s, steps=16):
         "cycles": n, "cycle_s": cycle_s, "steps": steps,
         "level": float(np.mean(lev)), "level_spread": float(np.ptp(lev)), "levels": [float(v) for v in lev],
         "band_spread": spread, "worst_band": worst, "longer": longer,
+        "worst_by_cycle": [] if worst is None else [float(v) for v in (lambda r: r - r.mean())(
+            bands[:, LABELS.index(worst)] - total)],
         "centroid_hz": float(2 ** cen.mean()), "centroid_drift": drift, "centroid_all": float(cen[-1] - cen[0]),
         "inside": {"level": [float(v) for v in lvp], "centroid": [float(v) for v in cep]},
         "runs": runs, "wraps": wraps, "steps_inside": steps_in,
@@ -269,9 +275,9 @@ def marks(got, plan=None):
     return out
 
 
-def render_solo(path, tracks, pin, f, t, where):
+def render_solo(path, tracks, pin, f, t, where, seed=0):
     wav = os.path.join(where, "endless.wav")
-    cmd = ["nice", "-n", "12", pin, "render", "-f", path, "--seed", "0", "--set", "loudness=null", "--threads", "2",
+    cmd = ["nice", "-n", "12", pin, "render", "-f", path, "--seed", str(seed), "--set", "loudness=null", "--threads", "2",
            "--from", f, "--to", t, "-o", wav]
     for name in tracks:
         cmd += ["--solo", name]
@@ -291,6 +297,8 @@ def report(head, got, plan, warped):
         worst = got["worst_band"]
         print(f"    spectrum    the band that moves most between cycles: {worst} Hz, {got['band_spread'][worst]:.1f} dB"
               f"   ({', '.join(f'{k} {v:.1f}' for k, v in got['band_spread'].items())})")
+        if got["cycles"] <= 48 and got.get("worst_by_cycle"):
+            print("                that band by cycle, against their mean: " + " ".join(f"{v:+.1f}" for v in got["worst_by_cycle"]))
     print(f"    brightness  centroid {got['centroid_hz']:.0f} Hz; it moves {got['centroid_drift']:+.2f} octaves a cycle, "
           f"{got['centroid_all']:+.2f} over the passage (a part that climbed an octave a cycle: +1.00)")
     if plan:
@@ -317,6 +325,9 @@ def report(head, got, plan, warped):
         print("  IT HOLDS: one cycle later it is the same, and nothing starts again at the wrap.")
     for mark, what in ms:
         print(f"  {mark}: {what}")
+    if any(m == "SPREAD" for m, _ in ms) and got.get("seed") is not None:
+        print(f"  (a SPREAD is read on one seed, {got['seed']}: read it on another, --seed {got['seed'] + 1}. One that moves to "
+              "another cycle with the seed is the players' own variation; one that stays put is written in the song)")
     floor = drift_floor(got["cycles"])
     if DRIFT_OCT <= abs(got["centroid_drift"]) < floor and not any(m == "DRIFT" for m, _ in ms):
         print(f"  (the centroid's {got['centroid_drift']:+.2f} octaves a cycle is not marked: from {got['cycles']} cycles a drift "
@@ -326,7 +337,7 @@ def report(head, got, plan, warped):
 
 def main(argv=None):
     a = list(sys.argv[1:] if argv is None else argv)
-    opt = {"--pin": None, "--keep": None, "--cycle": None, "--steps": "16", "--wav": None, "--tempo": None}
+    opt = {"--pin": None, "--keep": None, "--cycle": None, "--steps": "16", "--wav": None, "--tempo": None, "--seed": "0"}
     for k in list(opt):
         if k in a and a.index(k) + 1 < len(a):
             i = a.index(k)
@@ -343,6 +354,10 @@ def main(argv=None):
         steps = int(opt["--steps"])
     except ValueError:
         steps = 0
+    try:
+        seed = int(opt["--seed"])
+    except ValueError:
+        raise SystemExit("endless: --seed takes a whole number") from None
     if not 2 <= steps <= 96:
         raise SystemExit("endless: --steps takes a whole number of slices, 2 to 96")
     plan, warped = None, []
@@ -375,11 +390,11 @@ def main(argv=None):
         where = opt["--keep"] or tempfile.mkdtemp(prefix="endless-")
         os.makedirs(where, exist_ok=True)
         try:
-            x, sr = load(render_solo(path, tracks, opt["--pin"] or chirpbin.resolve(), ends[0], ends[1], where))
+            x, sr = load(render_solo(path, tracks, opt["--pin"] or chirpbin.resolve(), ends[0], ends[1], where, seed))
         finally:
             if not opt["--keep"]:
                 shutil.rmtree(where, True)
-        got = measure(x, sr, cyc, steps)
+        got = {**measure(x, sr, cyc, steps), "seed": seed}
         plan = plan_cycles(doc, tracks, pos[0] * tempo / 60.0, pos[1] * tempo / 60.0, cyc * tempo / 60.0, tempo)
         warped = [t for t in tracks if (find(doc, t) or {}).get("risset") and (find(doc, t) or {}).get("warp")]
         head = (f"{os.path.basename(path)} {', '.join(tracks)}: {span}, {got['cycles']} cycles of {opt['--cycle']} ({cyc:.3f} s), "

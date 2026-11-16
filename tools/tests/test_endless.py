@@ -27,6 +27,9 @@ ENGINE = r'''#!/usr/bin/env python3
 import json, sys, wave
 import numpy as np
 a = sys.argv[1:]
+import os
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "calls.log"), "a") as f:
+    f.write(" ".join(a) + "\n")
 song = json.load(open(a[a.index("-f") + 1]))
 solo = [a[i + 1] for i, v in enumerate(a) if v == "--solo"]
 bar = 4 * 60.0 / song.get("tempo", 120)
@@ -149,6 +152,24 @@ class Endless(unittest.TestCase):
         with contextlib.redirect_stdout(buf):
             E.report("head", {**small, "centroid_drift": 0.01, "centroid_all": 0.01}, None, None)
         self.assertNotIn("is not marked", buf.getvalue())
+
+    def test_another_seed_and_the_band_by_cycle(self):
+        """--seed reaches the engine; the band that moves most is printed cycle by cycle; a SPREAD says to read another seed."""
+        code, text = self.run_tool(self.song, "turns", "1-13", "--cycle", "1bar", "--seed", "3")
+        self.assertEqual(code, 0)
+        self.assertIn("that band by cycle, against their mean: ", text)
+        with open(os.path.join(self.root, "calls.log")) as f:
+            self.assertIn("--seed 3", f.read().splitlines()[-1])
+        got = json.loads(self.run_tool(self.song, "turns", "1-13", "--cycle", "1bar", "--seed", "3", "--json")[1])
+        self.assertEqual((got["seed"], len(got["worst_by_cycle"])), (3, 12))
+        self.assertAlmostEqual(sum(got["worst_by_cycle"]), 0.0, delta=1e-6)
+        spread = {**got, "level_spread": 4.0}
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            E.report("head", spread, None, None)
+        self.assertIn("(a SPREAD is read on one seed, 3: read it on another, --seed 4.", buf.getvalue())
+        with self.assertRaises(SystemExit):
+            self.run_tool(self.song, "turns", "1-13", "--cycle", "1bar", "--seed", "x")
 
     def test_parts_taking_turns_make_a_longer_cycle(self):
         got = self.read("turns", "1-13")
