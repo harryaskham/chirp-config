@@ -258,6 +258,8 @@ The bare lead is in both cycles on purpose: with it in the first only, the score
 
 **The treble is a treble, and in Grandsire two bells ring (v15).** Palette round. (1) In the band the bell that rings the treble's place in each row is its own instrument, `treble`: the church bell with its hum (the octave under its note) taken down; the tower's bells (opening, middle, landing) are untouched. (2) In the second cycle the bell in the hunt rings too, softer, a third to a fifth under the treble: two bells walk through each row against each other, and at every call the lower one changes its note (leads 0-1 the second bell, C over the ground; 2-3 the third, B; 4-5 the fourth, A flat; 6-7 the third; 8-9 the second; 10-11 the fourth). The first cycle has one hunting bell and one bell ringing; the second has two and two.
 
+**The landing lands (v16).** Palette round. On the landing (bars 151-159, 5:02) all six guitars play rounds: the first cycle's doubles (gl2/gr2) and the second cycle's (jl/jr, the small cabinet) together for the first time. And the lead's climb has its last note: one stroke of the top C on the landing's first beat, let ring (the tremolo stopped a sixteenth short before).
+
 ## t4 Running Total (chirper-zero)
 
 Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber". The album's fourth kind of long cycle: a SUM.

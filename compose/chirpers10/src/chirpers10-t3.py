@@ -329,6 +329,20 @@ def in_the_hunt(extent):
 TREBLE = os.environ.get("C10T3_TREBLE", "420:0.7;0.45")
 
 
+# v16: THE LANDING LANDS (palette round). The whole second cycle leads to one bar: the extent comes round, the lead
+# reaches the top of its climb, and the band lands on rounds on F (5:02). chirp-eco's seams.py read that bar in the
+# finished file: the climb -9.7 LUFS, the landing -9.6. Parts come and go there (the lead and the fuzz leave, the
+# first pair of doubles comes back) and nothing arrives. Two things, both instruments the song already has, in a
+# place they have never been:
+#   1. BOTH RIGS. The first cycle's doubles (gl2/gr2) and the second cycle's (jl/jr, the small cabinet) have never
+#      sounded together: one replaced the other at 4:12. On the landing all six guitars play rounds: the two rings
+#      of the two methods, home together.
+#   2. THE LEAD'S LAST NOTE. The lead picks its top note for four bars and stopped a sixteenth before the landing:
+#      the climb's last note was never played. Now it is: one stroke of that C on the landing's first beat, let ring.
+# the guitars added on the landing (comma-separated) ; beats the lead's last note rings (0 = none) ; its velocity. "" = v15.
+HOME = os.environ.get("C10T3_HOME", "jl,jr;8;1.0") if RIG2 and CLIMB else ""
+
+
 def lead_mode(k, calls):
     """What row k of an extent is: `call` (the two rows of a called lead end), `home` (of a plain one), or neither."""
     if not FORM or k % 10 < 8:
@@ -556,7 +570,9 @@ def compose():
                 drum("s", b * 16 + q, sv)
     # the landing: rounds on F, twenty-four times, and the bells ring rounds over the band at half its speed
     for r in range(LAND_N):
-        row_notes(ROUNDS, LAND * 16 + r * L1, 0, W1, bell=False)
+        row_notes(ROUNDS, LAND * 16 + r * L1, 0, W1, bell=False, **({"trs": G4 + tuple(HOME.split(";")[0].split(","))} if HOME else {}))
+    if HOME and float(HOME.split(";")[1]):          # v16: the climb's last note, struck on the landing and let ring
+        T.setdefault("lead", []).append({"at": LAND * 4, "len": float(HOME.split(";")[1]), "pitch": nm(int(CLIMB.split(";")[2]) + 12), "vel": float(HOME.split(";")[2])})
     beat(LAND, END, "c", meet(L1))
     slow_rounds(LAND, int((END - LAND) * 4 / 3) if RHYTHM else 12, vel=0.9)
     # the end: one chord, and the tenor tolls
