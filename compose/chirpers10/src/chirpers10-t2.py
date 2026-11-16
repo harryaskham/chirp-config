@@ -525,6 +525,23 @@ CLOCK = os.environ.get("C10T2_CLOCK", "ml;60;55;1.0;0.85") if BOX else ""
 SLIPCLOCK = os.environ.get("C10T2_SLIPCLOCK", "music-box;-7dB;0.7;1.0;0.85;-9dB;0.22") if BOX else ""
 
 
+# v24: THE CLOCKS CHIME THE ECHO (section round, 1:38-1:46; the window 1:11-1:46, "little new"). The hold an eighth
+# apart had three parts: six bars of its beat, two bars naked (the two guitars alone, so the echo is heard: every
+# hook note of the right guitar answered by the left an eighth later), and then four bars of the same beat again. The
+# last four are now what the first six were not: over the band TWO MUSIC BOXES play the riff's three hook notes, the
+# left one on the song's clock and the right one on the right guitar's (the track `warp`; nothing is placed by hand).
+# So each note chimes on the right and is answered on the left an eighth later, four octaves over the guitars: the
+# echo the naked bars have just shown, said by the song's clocks. The echo is implied, then exposed, then rung.
+# It is the first time the boxes play the riff's notes: until now they have only ticked (the opening, the slips);
+# a minute later (2:44) they take the whole riff. And they go straight from this into the next slip's ticks.
+# (First bench at 0 dB: the two boxes were the loudest things in the band and the four bars 1.8 dB up. At -6 dB they
+# sat 4 to 5 dB under each guitar, but alone they were within 2.6 dB of the WHOLE mix from 500 Hz to 1 kHz, where
+# their fundamentals are and the band has little: a pure tone holds its band at a level a guitar would not. -8 dB.)
+# first bar : last ; the patch ; its gain ; the pan ; the hall send ; the spring's mix ; the velocity. "" = v23.
+CHIME = os.environ.get("C10T2_CHIME", "44:48;music-box;-8dB;0.7;-9dB;0.22;0.9") if BOX else ""
+HOOK_AT = [p for p, _, k in RIFF if k.startswith("h")]
+
+
 def slip_clock(b0, b1, root=0):
     """The two clocks through a slip: the same ticks on `bl` (the song's time) and `br` (the right guitar's)."""
     v1, v2 = float(SLIPCLOCK.split(";")[3]), float(SLIPCLOCK.split(";")[4])
@@ -606,6 +623,10 @@ def compose():
                 for tr in ("bass", "kick", "snare", "cym", "toms", "hat"):
                     T[tr] = [n for n in T.get(tr, []) if not (n0 * 4 <= n["at"] < n1 * 4)]
                 drum("c", n1 * 16, 0.9)
+            if CHIME:                    # v24: the two boxes chime the hook, an eighth apart, over the hold's last bars
+                c0, c1 = [int(v) for v in CHIME.split(";")[0].split(":")]
+                for tr in ("el", "er"):
+                    riff(tr, c0, c1, vel=float(CHIME.split(";")[6]), up=TICK_UP, clean=True, root=int(root), only=HOOK_AT)
             continue
         if THREE and (lead == 3 or (b0, b1) == (48, 50)):     # the hold three sixteenths apart and the slip into it, on B (v6)
             root, tick = int(THREE.split(";")[0]), float(THREE.split(";")[1])
@@ -856,6 +877,9 @@ def song():
         *([{"name": tr, "patch": SLIPCLOCK.split(";")[0], "gain": SLIPCLOCK.split(";")[1], "pan": sgn * float(SLIPCLOCK.split(";")[2]),
             "sends": {"hall": SLIPCLOCK.split(";")[5]}, "fx": [{**DRIP, "mix": float(SLIPCLOCK.split(";")[6])}],
             **({"warp": WARP} if tr == "br" else {})} for tr, sgn in (("bl", -1), ("br", 1))] if SLIPCLOCK else []),
+        *([{"name": tr, "patch": CHIME.split(";")[1], "gain": CHIME.split(";")[2], "pan": sgn * float(CHIME.split(";")[3]),
+            "sends": {"hall": CHIME.split(";")[4]}, "fx": [{**DRIP, "mix": float(CHIME.split(";")[5])}],
+            **({"warp": WARP} if tr == "er" else {})} for tr, sgn in (("el", -1), ("er", 1))] if CHIME else []),
         *([{"name": "tc", "patch": "voice-talk", "gain": sg[1], "pan": 0, "sends": {"hall": sg[4]},
             "fx": [{"type": "eq", "bands": sg[6].split("|")}, "reverb kind={} decay={} mix={} predelay=6ms".format(*sg[3].split(":"))]}]
           + ([{"name": tr, "patch": sg[5].split(":")[0], "gain": sg[5].split(":")[1], "pan": sgn * float(sg[5].split(":")[2]), "sends": {"hall": sg[4]},
