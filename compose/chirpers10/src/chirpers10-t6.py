@@ -159,7 +159,9 @@ def add(tr, c, slot, len_slots, pitch, vel, **expr):
 
 
 def drum(piece, c, slot, vel, tr=None):
-    tr = tr or {"k": "kick", "s": "snare", "p": "snare", "h": "hat", "o": "hat", "c": "cym", "b": "boom"}[piece]
+    if TUNE and ((piece == "k" and keyof(c)) or (piece == "b" and keyof(c) == 3)):
+        piece += str(keyof(c))                # v7: the machine's kick (and its boom at the top) tuned to the ground
+    tr = tr or {"k": "kick", "k1": "kick", "k2": "kick", "k3": "kick", "s": "snare", "p": "snare", "h": "hat", "o": "hat", "c": "cym", "b": "boom", "b3": "boom"}[piece]
     T.setdefault(tr, []).append({"at": round(c * 2 + slot / 3, 5), "len": 0.25, "pitch": piece, "vel": round(vel, 3)})
 
 
@@ -273,6 +275,20 @@ HEAD4D = lock_head("down-four", 4, rhythm=True) if TELL else None
 # steps of a minor third over E at the lock on five ; at the lock on three ; at the top ; the bass's semitones
 # from E at the top. "" = v5.
 KEYS = os.environ.get("C10T6_KEYS", "1;2;3;-3") if LOCK and TELL else ""
+# v7: THE MACHINE TUNES ITS KICK TO THE GROUND (whole-song round, on two costs of v6 said in its note). v6 moved the
+# band through four keys and left the machine's kick and boom on E, "which is in the scale in all four". In the
+# scale is not the same as in tune with the floor: a kick resting on E (41 Hz) under guitars and a bass on G (49 Hz)
+# or B flat (58 Hz) is two low notes a third or a tritone apart in the one octave where intervals are mud. Anyone
+# who programs a drum machine tunes its kick to the song's key; this song has four. So the kick now rests on G
+# where the ground is G, and at the top, where the bass goes under to its low D flat, the kick and the long boom
+# go down there with it. On B flat it rests on F, the fifth under the ground, not on B flat itself: benched on
+# B flat (58 Hz) nothing in the band sat under 58 Hz and the bottom octave read 6.7 dB under the records.
+# AND the bottom octave on G and B flat (v6: 2.8 to 2.9 dB under the records): the bass bus's cut at the bass's
+# own fundamental no longer follows the bass up from E. It was made for E; up a third or a tritone the fundamental
+# is where a bass is heard, and the band needs it.
+# the kick's note on G ; on B flat ; at the top ; the boom's at the top ; `fixed` = the bass bus's 41.5 Hz cut stays
+# where it is ("" = it follows the key, as v6). "" = v6.
+TUNE = os.environ.get("C10T6_TUNE", "G1;F1;Db1;Db1;fixed") if KEYS else ""
 # v5: THE FIRST LOCK GOES WITH THE CYCLE (section round, 1:23-1:51: the window of five). There are two things a
 # band can do with a cycle that does not fit the bar. It can hold the bar and let the cycle turn against it: that
 # is the window of three (2:01), where the snare stays on the bar's third beat and the riff comes round under it,
@@ -384,7 +400,8 @@ def low_bus():
     for c in (AT["five"], HEAD3, AT["full"], AT["down-four"]):
         pts += [[f"{c * 2 - 0.02:g}b", prev], [f"{c * 2:g}b", bup(c)]]
         prev = bup(c)
-    return {"fx": [{"type": "eq", "bands": [{"kind": "peak", "cutoff": kf(41.5), "q": 1.5, "gain": "-7dB"}, {"kind": "peak", "cutoff": kf(85), "q": 1.0, "gain": "7.5dB"},
+    low = 41.5 if TUNE and TUNE.split(";")[4] == "fixed" else kf(41.5)
+    return {"fx": [{"type": "eq", "bands": [{"kind": "peak", "cutoff": low, "q": 1.5, "gain": "-7dB"}, {"kind": "peak", "cutoff": kf(85), "q": 1.0, "gain": "7.5dB"},
                                             "peak cutoff=350 q=1 gain=-8dB", "peak cutoff=1500 q=1 gain=4dB"]},
                    comp, {"type": "eq", "bands": [{"kind": "peak", "cutoff": kf(160), "q": 1.2, "gain": "-3dB"}]}],
             "auto": {"key": {"points": pts, "curve": 0}}}
@@ -450,6 +467,8 @@ def song():
             "h": piece("hat", "C6", os.environ.get("C10T6_H", "0dB"), pan=-0.3, choke="hat"),
             "o": piece("hat", "C6", os.environ.get("C10T6_O", "-3dB" if TELL else "0dB"), pan=-0.3, choke="hat", decay="380ms"),   # v3: open on every beat of the news: 3 dB down
             "c": piece("cymbal", "C6", os.environ.get("C10T6_C", "-6dB"), pan=0.3),
+            **({f"k{i + 1}": piece("kick", TUNE.split(";")[i], os.environ.get("C10T6_K", "-14dB"), click=0.8, drive=0.35, decay="180ms") for i in range(3)} if TUNE else {}),
+            **({"b3": piece("boom", TUNE.split(";")[3], os.environ.get("C10T6_B", "-5dB"), decay="5s", drive=0.5)} if TUNE else {}),
         },
     }
     return {

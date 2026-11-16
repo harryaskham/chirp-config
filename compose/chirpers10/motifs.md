@@ -434,3 +434,5 @@ It is one orbit: x starts at 0.02 and is never reset. The two windows' settings 
 | bar 99 (the dial comes down) | 2:52 | E | E1 (a fall of a sixth) | E1 (one more minor third UP) |
 
 Everything pitched goes with the key (the riff's ladder, the harmony, the chips; the lead's generators are given the ladder moved: 32 systems, checked against the engine, 183 notes, none different). The machine's kick and boom stay on E, which is in the scale in all four keys. The bass bus's three bands that sit on the bass's notes follow it (`auto.key`). At the top the screams are B3 and its fifth, with D4 and its fifth on the second pair: the highest notes the guitars play.
+
+**The machine tunes its kick to the ground (v7).** Whole-song round on two costs of v6. The kick rests on E where the band is on E, on G where it is on G (1:27-2:01), on F under B flat (2:01-2:24: the fifth below the ground; on B flat itself nothing in the band sat under 58 Hz), and at the top on the low D flat with the bass, where the boom goes too. The bass bus's cut at 41.5 Hz stays at 41.5 Hz and no longer follows the bass up.
