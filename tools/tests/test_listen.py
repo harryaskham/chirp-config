@@ -655,6 +655,27 @@ class Server(unittest.TestCase):
                                      headers={"X-Listen-Code": "solofury"})
         return json.load(urllib.request.urlopen(req))
 
+    def test_text_bodies_are_gzipped_for_a_client_that_takes_them(self):
+        import gzip
+        plain = self.get("api/albums")
+        raw = plain.read()
+        self.assertEqual((plain.headers.get("Content-Encoding"), plain.headers["Vary"]), (None, "Accept-Encoding"))
+        z = self.get("api/albums", {"Accept-Encoding": "gzip, deflate, br"})
+        body = z.read()
+        self.assertEqual((z.headers["Content-Encoding"], int(z.headers["Content-Length"])), ("gzip", len(body)))
+        self.assertEqual(json.loads(gzip.decompress(body)), json.loads(raw))
+        self.assertLess(len(body), len(raw) / 2)
+        page = self.get("", {"Accept-Encoding": "gzip"}, code=False)
+        self.assertEqual(page.headers["Content-Encoding"], "gzip")
+        self.assertIn(b"chirpers studio", gzip.decompress(page.read()))
+        old, L.GZIP_LEAST = L.GZIP_LEAST, 10 ** 9                                     # a short body is sent as it is
+        try:
+            self.assertIsNone(self.get("api/albums", {"Accept-Encoding": "gzip"}).headers.get("Content-Encoding"))
+        finally:
+            L.GZIP_LEAST = old
+        r = self.get(f"media/chirpers9/{self.snap['id']}/t01.mp3", {"Range": "bytes=0-9", "Accept-Encoding": "gzip"})
+        self.assertEqual((r.status, len(r.read()), r.headers.get("Content-Encoding")), (206, 10, None))   # audio is left alone
+
     def test_app_api_notes_media_web(self):
         self.assertIn(b"chirpers studio", self.get("", code=False).read())          # the page itself needs no code
         albums = json.load(self.get("api/albums"))

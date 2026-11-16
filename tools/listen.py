@@ -64,6 +64,7 @@ reply / delete; ask / answer / retire / told), so concurrent writers never clobb
 """
 import argparse
 import base64
+import gzip
 import hashlib
 import http.server
 import json
@@ -84,6 +85,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.environ.get("CLIMB_ROOT") or os.path.dirname(HERE)
 DATA = os.environ.get("CHIRP_LISTEN_DIR") or os.path.expanduser("~/.local/state/chirp-eco/listen")
 WEB = "https://a.skh.am/tools/chirp/"
+GZIP_LEAST = 1024      # a page or JSON body this long is gzipped for a client that takes it
 PUBLIC = os.environ.get("CHIRP_LISTEN_URL", "http://pocket4:8791/")
 # owner -> caco agent id (notes go to the owner, cc chirp-eco); DATA/agents.json overrides
 AGENTS = {"chirper-zero": "visiting-e308691bf15d", "chirper-one": "visiting-f54b7932ca1d",
@@ -1178,14 +1180,29 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         pass
 
+    def send_body(self, b, kind, code=200):
+        """A whole text body (the page, JSON), gzipped when the client takes it and it is worth it: the album's data is
+        880 kB as JSON and 134 kB gzipped, and the page fetches it again after every answer; over a relay or a phone
+        that is the wait (16 Nov: a client on a relayed link gave up on the worklog mid-body). A client that has gone
+        away is not an error."""
+        zipped = len(b) >= GZIP_LEAST and "gzip" in (self.headers.get("Accept-Encoding") or "").lower()
+        if zipped:
+            b = gzip.compress(b, 5)
+        try:
+            self.send_response(code)
+            self.send_header("Content-Type", kind)
+            if zipped:
+                self.send_header("Content-Encoding", "gzip")
+            self.send_header("Vary", "Accept-Encoding")
+            self.send_header("Content-Length", str(len(b)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(b)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+
     def send_json(self, obj, code=200):
-        b = json.dumps(obj, ensure_ascii=False).encode()
-        self.send_response(code)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(b)))
-        self.send_header("Cache-Control", "no-store")
-        self.end_headers()
-        self.wfile.write(b)
+        self.send_body(json.dumps(obj, ensure_ascii=False).encode(), "application/json; charset=utf-8", code)
 
     def authed(self):
         """The access code, from the page's cookie (set once with the visitor's name) or an X-Listen-Code header."""
@@ -1204,13 +1221,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         parts = [p for p in path.split("/") if p]
         if not parts:
             with open(os.path.join(HERE, "listen.html"), "rb") as f:
-                b = f.read()
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(b)))
-            self.send_header("Cache-Control", "no-store")
-            self.end_headers()
-            return self.wfile.write(b)
+                return self.send_body(f.read(), "text/html; charset=utf-8")
         if parts == ["favicon.ico"]:
             return self.send_error(404)
         if not self.authed():
