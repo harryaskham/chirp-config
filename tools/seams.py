@@ -7,6 +7,7 @@ ranges; "a one-line LUFS by section, and the step at each seam, would have shown
 
   seams.py ID [--song CANDIDATE.yaml] [--wav FINISHED.wav] [--least 2] [--quiet 4] [--json] [--pin CHIRP]
   seams.py ID [--song CANDIDATE.yaml] [--wav FINISHED.wav] --windows 21-33:count 33-41:whole 41-49:total ...
+  seams.py ID --wav RENDER.wav --windows 381-385:riff 385-386 386-387 387-388 388-389 --bands first
 
 ID is a climb (songs/ID.yaml) or a song file; --song is a candidate not yet in songs/ (as compscore.py and secsim.py
 take it: the seams and the names beside them are then the candidate's). --wav is the FINISHED file (mastered: the render the score reads, a
@@ -30,6 +31,15 @@ it is a fault: an arrival can be a change of tone at one level, and a master tha
 But a song that adds players four times and never gets louder has nowhere to arrive.
 What it cannot see: an arrival made without a new part (the same players, fuller): give those as --windows. Steps
 between stretches under about 3 s are rough (the meter gates on 400 ms blocks). Fixed-tempo songs in 4/4 only.
+--bands [before|first]: BY BAND. Under everything else, each stretch's nine bands (tools/stembal.py's; the mono sum)
+against the stretch BEFORE it (the step, band by band: the default) or against the FIRST stretch (give the reference
+first: a riff, then the four chords after it). The first row is that stretch's own shape (each band against its
+total). This is the like-for-like
+read of a passage the records cannot judge: a window of held chords against busy records proves little, and the
+same band, chord by chord, against the song's own riff next to it says which chord has no floor (chirper-zero,
+Common Time v53: under 60 Hz the landing's four chords read +0.7 / -5.7 / -5.3 / -5.3 against the riff before them;
+the first had a sub drop and the other three did not). Absolute levels: use one render for all the stretches you
+compare, and an unmastered one when the master's gain would move between them.
 (These are the seams INSIDE one song. `chirpers.py seams ALBUM` is another thing: the joins between an album's tracks.)
 Read-only. Tests: tools/tests/test_seams.py.
 """
@@ -40,13 +50,17 @@ import subprocess
 import sys
 import tempfile
 
+import numpy as np
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.environ.get("CLIMB_ROOT") or os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import levels  # noqa: E402
 import likeness as L  # noqa: E402
 import notechk  # noqa: E402
+import presence  # noqa: E402
 import wincut  # noqa: E402
+from keybench import LABELS  # noqa: E402
 
 BEATS = 4.0
 STEP_DB = 0.5          # parts enter and the level rises less than this ...
@@ -127,6 +141,33 @@ def lean(x, sr, s0, s1):
     return None if bal is None else round(bal, 1)
 
 
+def bands(x, sr, s0, s1):
+    """The nine bands' levels in dB over s0..s1 seconds (the mono sum, every sample alike; no fixed reference: read one
+    stretch against another), or None when the stretch is shorter than one frame."""
+    seg = x[int(round(s0 * sr)):int(round(s1 * sr))]
+    p = presence.band_power(seg, sr)
+    if not p.any():
+        return None
+    return [round(float(v), 1) for v in 10 * np.log10(p + 1e-20)]
+
+
+def band_lines(stretches, against="before"):
+    """The lines of BY BAND: each stretch's bands against the stretch before it, or against the first."""
+    rows = [s for s in stretches if s.get("bands")]
+    if len(rows) < 2:
+        return []
+    out = [f"  BY BAND (dB, the mono sum): each stretch against the {'one before it' if against == 'before' else 'FIRST stretch'}; "
+           "the first row is that stretch's own shape",
+           f"  {'bars':>11s}  " + "".join(f"{lb:>8s}" for lb in LABELS)]
+    for i, s in enumerate(rows):
+        ref = None if i == 0 else rows[i - 1 if against == "before" else 0]["bands"]
+        total = 10 * np.log10(sum(10 ** (v / 10) for v in s["bands"]))
+        cells = "".join(f"{v - total:8.1f}" if ref is None else f"{v - ref[k]:+8.1f}" for k, v in enumerate(s["bands"]))
+        out.append(f"  {s['bars'][0]:>5.5g}-{s['bars'][1]:<5.5g}  {cells}" + (f"   {s['label']}" if s.get("label") else "")
+                   + ("   (its own shape: each band against its total)" if ref is None else ""))
+    return out
+
+
 def lufs(x, sr, s0, s1):
     """The loudness of s0..s1 seconds of a render (integrated, gated), or None when there is under 0.4 s of it."""
     seg = x[int(round(s0 * sr)):int(round(s1 * sr))]
@@ -170,8 +211,9 @@ def table(stretches, whole=None):
     return out
 
 
-def read(canon, x, sr, windows=None, least=2.0, quiet=4.0):
-    """The stretches of a song: the plan's own (windows None) or the given ones."""
+def read(canon, x, sr, windows=None, least=2.0, quiet=4.0, with_bands=False):
+    """The stretches of a song: the plan's own (windows None) or the given ones. with_bands: each also carries its nine
+    bands' levels."""
     tempo = canon.get("tempo", 120.0)
     if not isinstance(tempo, (int, float)) or isinstance(tempo, bool) or tempo <= 0 or \
             str(canon.get("meter") or "4/4").replace(" ", "") != "4/4":
@@ -203,6 +245,8 @@ def read(canon, x, sr, windows=None, least=2.0, quiet=4.0):
                         "enter": list(f[1]), "leave": list(f[2]),
                         "adjacent": i > 0})
     for i, s in enumerate(out):
+        if with_bands:
+            s["bands"] = bands(x, sr, s["time"][0], s["time"][1])
         adjacent = s.pop("adjacent")
         prev = out[i - 1] if i and adjacent else None
         s["step"] = round(s["lufs"] - prev["lufs"], 1) if prev and None not in (s["lufs"], prev["lufs"]) else None
@@ -217,6 +261,8 @@ def main(argv=None):
     ap.add_argument("--windows", nargs="+", help="FROM-TO[:label] ...: your own stretches instead of the plan's seams")
     ap.add_argument("--least", type=float, default=2.0, help="bars a part must play for to count, and between two seams")
     ap.add_argument("--quiet", type=float, default=4.0, help="bars of its own silence after which a part has LEFT")
+    ap.add_argument("--bands", nargs="?", const="before", choices=("before", "first"),
+                    help="BY BAND: each stretch's nine bands against the stretch before it (default) or against the first")
     ap.add_argument("--pin")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
@@ -240,7 +286,7 @@ def main(argv=None):
             if rr.returncode:
                 raise SystemExit(f"seams: the song did not render: {rr.stderr.strip()[-300:]}")
         x = L.load(wav)
-        got = read(canon, x, L.SR, a.windows, a.least, a.quiet)
+        got = read(canon, x, L.SR, a.windows, a.least, a.quiet, bool(a.bands))
         whole = levels.stereo(x)[0]
     finally:
         if tmp:
@@ -252,7 +298,7 @@ def main(argv=None):
     print(f"{os.path.basename(song)}, {os.path.basename(a.wav) if a.wav else 'rendered at seed 0'}: {len(got)} stretches "
           + ("(yours)" if a.windows else f"between the plan's seams (a part enters or leaves; --least {a.least:g} bars, "
              f"--quiet {a.quiet:g})") + "; LUFS of the finished file, and the step into each")
-    print("\n".join(table(got, whole)))
+    print("\n".join(table(got, whole) + (band_lines(got, a.bands) if a.bands else [])))
     return 0
 
 

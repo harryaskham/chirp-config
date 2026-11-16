@@ -104,6 +104,29 @@ class Seams(unittest.TestCase):
         self.assertNotIn("the picture", "\n".join(S.table(got)))             # no whole-file figure given: the line is left out
         self.assertIsNone(S.lean(x[:, :1], SR, 0.0, 4.0))                     # one channel
 
+    def test_by_band_against_the_stretch_before_or_the_first(self):
+        t = np.arange(int(12 * BAR * SR)) / SR
+        low, mid = 0.1 * np.sin(2 * np.pi * 90 * t), 0.1 * np.sin(2 * np.pi * 700 * t)
+        x = low + mid
+        x[int(4 * BAR * SR):int(8 * BAR * SR)] = mid[int(4 * BAR * SR):int(8 * BAR * SR)]            # bars 5-8: the low tone is out
+        x[int(8 * BAR * SR):] += low[int(8 * BAR * SR):]                                              # bars 9-12: twice the low tone
+        x = np.stack([x, x], 1)
+        got = S.read(song(), x, SR, ["1-5:riff", "5-9:chord", "9-13:back"], with_bands=True)
+        lo, mi = S.LABELS.index("60-120"), S.LABELS.index("500-1k")
+        self.assertLess(got[1]["bands"][lo] - got[0]["bands"][lo], -30)                                # the floor is gone
+        self.assertAlmostEqual(got[1]["bands"][mi] - got[0]["bands"][mi], 0.0, delta=0.2)             # the middle is as it was
+        self.assertAlmostEqual(got[2]["bands"][lo] - got[0]["bands"][lo], 6.0, delta=0.3)             # twice the tone: +6
+        before, first = S.band_lines(got), S.band_lines(got, "first")
+        self.assertIn("each stretch against the one before it", before[0])
+        self.assertIn("each stretch against the FIRST stretch", first[0])
+        self.assertTrue(before[2].endswith("riff   (its own shape: each band against its total)"))
+        self.assertAlmostEqual(float(before[2].split()[1 + lo]), -3.0, delta=0.3)                     # two equal tones: half each
+        self.assertEqual(before[1].split()[:3], ["bars", "<60", "60-120"])
+        self.assertAlmostEqual(float(first[4].split()[1 + lo]), 6.0, delta=0.3)                       # against the riff
+        self.assertGreater(float(before[4].split()[1 + lo]), 30.0)                                    # against the chord before
+        self.assertEqual(S.band_lines(S.read(song(), x, SR, ["1-5"])), [])                            # not asked for: none
+        self.assertIsNone(S.bands(x, SR, 0.0, 0.5))                                                   # under one frame
+
     def test_your_own_stretches(self):
         got = S.read(song(), audio([-30] * 8 + [-24] * 4), SR, ["1-5:count", "5-9:whole", "9-13:total", "3-4:alone"])
         self.assertEqual([(s["label"], s["bars"]) for s in got],
