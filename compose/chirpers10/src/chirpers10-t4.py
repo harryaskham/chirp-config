@@ -264,6 +264,14 @@ SNARES = []                           # (first sixteenth, last, the snare's sixt
 # (First bench at 2 dB: -13.9 by presence, never near the front: there, but not an entry. 4 dB up.)
 # the patch string ; its gain ; its high-pass, Hz ; the build's first statement with it ; the back-build's. "" = v11.
 TEETH = os.environ.get("C10T4_TEETH", "bass-fuzz fx.0.shape=wavefold;6dB;500;25;29")
+# v13: THE BAND THINS AS THE RIFF DOES (section round, 3:48, in the window 3:18-3:51 the map calls static and "little
+# new"). The melt is the sum undone: the riff loses its first place each time, "and the band thins with it" (this
+# file's first page). It did not: seam by seam the finished file read -8.9 LUFS for the second total and -8.9 for
+# the melt's first forty-six seconds; all the thinning was kept for the last twenty. Now the second pair of guitars
+# leaves when the riff has lost its first eight places (statement 24, 3:48), not its first sixteen: four guitars,
+# then two under the melting tune, then the marimba and no tune (4:08), then the marimba alone.
+# the longest statement of the melt played by two guitars (v12: 16). "" = v12.
+THIN = os.environ.get("C10T4_THIN", "24")
 # the tight rig's band: Hz : q : dB. "" = v8.
 MIDS = os.environ.get("C10T4_MIDS", "700:0.9:2.5")
 # the wall pair's low-mid cut on C: dB more than on the other grounds. "" = v8.
@@ -450,7 +458,7 @@ def compose():
     # the melt: the riff loses its first place each time; the band thins with it
     t = MELT * 16
     for k in range(N - 1, 0, -1):
-        gtrs = G_MAIN + G_DBL if k > 16 else G_MAIN if k > 8 else ()
+        gtrs = G_MAIN + G_DBL if k > (int(THIN) if THIN else 16) else G_MAIN if k > 8 else ()
         say(t, N - k, N, 0, gtrs, low=k > 8, wood=k <= 16)    # the marimba joins as the band thins, and counts the last eight down alone
         if MELTUNE and k >= int(MELTUNE.split(";")[0]):       # v7: the tune melts with the riff, on the lead
             tune_melt(t, N - k, 0.9)

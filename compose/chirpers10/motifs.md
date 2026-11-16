@@ -315,6 +315,8 @@ Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber"
 
 **The bass grows teeth (v12).** Palette round. From the build's statement 25 (bar 18.75, 0:39) to the total, and from the back-build's statement 29 (2:34) to the second total, a fuzz bass (`teeth`: `bass-fuzz`, the folding fuzz, high-passed at 500 Hz) doubles the bass's notes. It comes in where the second pair of guitars used to (v10 took them out so that the riff whole would arrive): the count grows at 0:39 again, without becoming four guitars.
 
+**The band thins as the riff does (v13).** Section round, 3:48 (window 3:18-3:51). In the melt the second pair of guitars leaves at statement 24 (bar 110.25), where the kit goes to half time, not at statement 16: four guitars (3:23), two under the melting tune (3:48), the marimba and no tune (4:08), the marimba alone (4:22), the chord.
+
 ## t5 False Summit (chirper-zero)
 
 Harry, 15 Nov about 12:38: "true djent, but that leverages audio illusions throughout mainly risers/shpehers but in djent style, really make it a clear illlusory song, all about the illusions". 100 bpm, F, 108 bars, 4:24.
