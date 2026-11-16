@@ -5,10 +5,11 @@ should step and do not". A piece about waiting for a riff to be whole read -9.3,
 end, the first whole statement and the total: no step when it arrived. Found at v9 by hand, with ebur128 over bar
 ranges; "a one-line LUFS by section, and the step at each seam, would have shown this at v1".)
 
-  seams.py ID [--wav FINISHED.wav] [--least 2] [--quiet 4] [--json] [--pin CHIRP]
-  seams.py ID [--wav FINISHED.wav] --windows 21-33:count 33-41:whole 41-49:total ...
+  seams.py ID [--song CANDIDATE.yaml] [--wav FINISHED.wav] [--least 2] [--quiet 4] [--json] [--pin CHIRP]
+  seams.py ID [--song CANDIDATE.yaml] [--wav FINISHED.wav] --windows 21-33:count 33-41:whole 41-49:total ...
 
-ID is a climb (songs/ID.yaml) or a song file. --wav is the FINISHED file (mastered: the render the score reads, a
+ID is a climb (songs/ID.yaml) or a song file; --song is a candidate not yet in songs/ (as compscore.py and secsim.py
+take it: the seams and the names beside them are then the candidate's). --wav is the FINISHED file (mastered: the render the score reads, a
 round's n-0.wav); without it the song is rendered at seed 0 with the groove's pin, idle.
 
 Without --windows THE SEAMS ARE THE PLAN'S: every place a part ENTERS (a note after --quiet bars or more of its own
@@ -191,6 +192,7 @@ def read(canon, x, sr, windows=None, least=2.0, quiet=4.0):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("id")
+    ap.add_argument("--song", help="a candidate's song file: its plan, not songs/ID.yaml's")
     ap.add_argument("--wav", help="the finished (mastered) render; else the song is rendered at seed 0")
     ap.add_argument("--windows", nargs="+", help="FROM-TO[:label] ...: your own stretches instead of the plan's seams")
     ap.add_argument("--least", type=float, default=2.0, help="bars a part must play for to count, and between two seams")
@@ -198,9 +200,9 @@ def main(argv=None):
     ap.add_argument("--pin")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
-    song = a.id if os.path.exists(a.id) else os.path.join(ROOT, "songs", f"{a.id}.yaml")
+    song = a.song or (a.id if os.path.exists(a.id) else os.path.join(ROOT, "songs", f"{a.id}.yaml"))
     if not os.path.exists(song):
-        raise SystemExit(f"seams: no song {a.id}")
+        raise SystemExit(f"seams: no song {a.song or a.id}")
     pin = a.pin or open(os.path.join(HERE, "groove-pin")).read().strip()
     r = subprocess.run([pin, "plan", "-f", song, "--json"], capture_output=True, text=True)
     try:

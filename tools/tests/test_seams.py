@@ -141,6 +141,19 @@ class Seams(unittest.TestCase):
         with self.assertRaises(SystemExit) as e:
             S.main(["nosuch", "--pin", pin])
         self.assertIn("no song nosuch", str(e.exception))
+        cand = os.path.join(root, "n.yaml")                                  # a candidate: the guitar comes in at bar 3
+        doc = song()
+        doc["tracks"][1] = part("gtr", range(3, 13))
+        with open(cand, "w") as f:
+            json.dump(doc, f)
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            S.main(["any-id", "--song", cand, "--wav", wav, "--pin", pin, "--json"])
+        got = json.loads(out.getvalue())
+        self.assertEqual((got["song"], got["stretches"][1]["bars"], got["stretches"][1]["enter"]), (cand, [3.0, 9.0], ["gtr"]))
+        with self.assertRaises(SystemExit) as e:
+            S.main(["any-id", "--song", os.path.join(root, "gone.yaml"), "--pin", pin])
+        self.assertIn("gone.yaml", str(e.exception))
 
 
 if __name__ == "__main__":
