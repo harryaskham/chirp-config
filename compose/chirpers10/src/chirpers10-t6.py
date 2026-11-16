@@ -217,6 +217,24 @@ def lock_head(sec, period, rhythm=False):
     return next(j for j in range(t, t + period) if CELLS[j][3] == max(CELLS[i][3] for i in range(t, t + period)))
 
 
+# v4: THE WAY UP HAS EVENTS, AND THE TOP IS THE SUM (whole-song round; both were costs of v3, said in its note).
+# v3 saved the second pair of guitars for the stretches that do not repeat, which left the first minute on two
+# guitars with nothing happening at 0:42 and 0:56 but the riff doubling its length; and at the top (2:24) the band
+# DROPPED what it had just learned in the window of three (the chord on the scream, the chip's answer).
+#   - THE HAT COUNTS FINER AS THE RIFF GETS LONGER. One and two: the machine's hat on the beat (two to a half
+#     bar). Four (0:42): the shuffle's four places. Eight (0:56): all six, running. Then at 1:10 it opens, on the
+#     beat, with the wall. The first minute builds on the machine alone.
+#   - EIGHT IS A RIFF SAID TWICE, AND A BAND ARRANGES A REPEAT (v2's rule): the second time (1:03) the tune has a
+#     second voice, a third above it. Like the tune it has no notes in the song: it is the engine's logistic
+#     generator again, the same orbit read off a ladder two rungs higher (in this scale two rungs are always a
+#     minor third).
+#   - THE TOP KEEPS WHAT THE SONG HAS LEARNED: the screams stay chords (the second pair two rungs up, as from
+#     2:06), and wherever the three's shape turns up again inside the chaos (a scream, then one low note: it
+#     does, twice, because the top of the dial is next door to that window) the chip answers as it did there.
+# hats to a half bar at four ; at eight ; the velocity of the two pick-up places ; of the other two ; the second
+# voice's gain ; its pan ; 1 = the top keeps the chord and the answer. "" = v3.
+UP = os.environ.get("C10T6_UP", "4;6;0.45;0.38;-20dB;-0.4;1")
+HATS = {"four": int(UP.split(";")[0]), "eight": int(UP.split(";")[1])} if UP else {}
 HEAD3 = lock_head("three", 3) if LOCK else None
 HEAD4D = lock_head("down-four", 4, rhythm=True) if TELL else None
 assert LOCK or not TELL, "C10T6_TELL builds on C10T6_LOCK"
@@ -244,6 +262,11 @@ def compose():
             if len(cell(x)[0]) == 1 and turn >= int(LOCK.split(";")[0]):     # the hole: the cycle's three notes, as a triplet
                 for i, (cc, v) in enumerate(((c - 1, 0.8), (c, 0.7), (c + 1, 0.9))):
                     add("echo", c, 3 + i, 1, note(rung(CELLS[cc][3])) + int(LOCK.split(";")[3]), v)
+        elif UP and UP.split(";")[6] == "1" and sec == "full":
+            play(c, x, G + G2, harm=G2)
+            if len(cell(x)[0]) == 1 and len(cell(CELLS[c - 1][3])[0]) == 6:      # the three's shape again: the chip answers
+                for i, (cc, v) in enumerate(((c - 1, 0.8), (c, 0.7), (c + 1, 0.9))):
+                    add("echo", c, 3 + i, 1, note(rung(CELLS[cc][3])) + int(LOCK.split(";")[3]), v)
         else:
             play(c, x, G + (G2 if sec in WIDE else ()))
         # the steady pulse: the machine's hat on every beat, opened on the last beat before a new setting
@@ -253,6 +276,8 @@ def compose():
             for s in (0, 3):
                 last = c + 1 < NC and CELLS[c + 1][0] != sec and s == 3
                 drum("o" if last or news else "h", c, s, 0.75 if (s == 0 and c % 2 == 0) else 0.55)
+            for s in {2: (), 4: (2, 5), 6: (1, 2, 4, 5)}[HATS.get(sec, 2)]:      # v4: the hat counts finer as the riff gets longer
+                drum("h", c, s, float(UP.split(";")[2 if s in (2, 5) else 3]))
         if TELL and sec == "full" and len(cell(x)[0]) == 6:   # the top: the cymbal on every scream
             drum("c", c, cell(x)[0][cell(x)[1]], float(TELL.split(";")[3]))
         if sec in BACK or finding:
@@ -287,6 +312,13 @@ def lead_gens():
     return gens
 
 
+def second_voice():
+    """Eight's second statement: the same orbit, read off the lead's ladder two rungs higher (a minor third)."""
+    c = AT["eight"] + 8
+    pool = " ".join(nm(note(r + 2) + 36) for r in range(16))
+    return c, {"type": "logistic", "r": CELLS[c][1], "x0": CELLS[c][2], "n": 8, "len": "/2", "notes": pool, "rest": round(1 / 7, 6)}
+
+
 def song():
     compose()
     kit = "cc-machine"
@@ -305,6 +337,8 @@ def song():
          "sends": {"hall": "-12dB"}, "gen": [g[3] for g in gens]},
         *([{"name": "echo", "patch": "nes-pulse-lead layers.0.chip.duty=0.125", "gain": LOCK.split(";")[2], "pan": float(LOCK.split(";")[4]),
             "sends": {"hall": "-12dB"}}] if LOCK else []),
+        *([{"name": "lead2", "patch": "nes-pulse-lead", "gain": UP.split(";")[4], "pan": float(UP.split(";")[5]), "at": f"{second_voice()[0] * 2}b",
+            "sends": {"hall": "-12dB"}, "gen": [second_voice()[1]]}] if UP else []),
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
         {"name": "boom", "patch": kit, "gain": os.environ.get("C10T6_BOOM", "0dB"), "out": "drums"},
         {"name": "kick", "patch": kit, "gain": os.environ.get("C10T6_KICK", "0dB"), "out": "drums"},
