@@ -26,6 +26,7 @@ it is a fault: an arrival can be a change of tone at one level, and a master tha
 But a song that adds players four times and never gets louder has nowhere to arrive.
 What it cannot see: an arrival made without a new part (the same players, fuller): give those as --windows. Steps
 between stretches under about 3 s are rough (the meter gates on 400 ms blocks). Fixed-tempo songs in 4/4 only.
+(These are the seams INSIDE one song. `chirpers.py seams ALBUM` is another thing: the joins between an album's tracks.)
 Read-only. Tests: tools/tests/test_seams.py.
 """
 import argparse
