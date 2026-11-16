@@ -39,6 +39,15 @@ WHAT ENTERS IN A STATIC WINDOW (14 Nov, chirper-zero, Common Time v48): the map'
 wheel arriving in the middle of it, 3 to 4 dB under guitars that never stopped: "static" was "the arrival is
 masked". Under the map, each static window now lists the parts that ENTER in it (from the plan: a part silent for
 two bars or more before its note) and the command that says how loud they are against what was already playing.
+WHAT THE NOTES DO IN A STATIC WINDOW (16 Nov, chirper-zero, False Summit v8 and Plain Hunt v13: a harmony written
+on one side of a stair for ten bars, and a bell struck in a new place every row, left their windows "static": the
+same instruments at the same level, so the flag cannot hear which notes). Under each static window the map now reads
+the PLAN, part by part and bar by bar (a part is a pitched track or one piece of a kit; a note is its place in the
+bar and its pitch class, so a line passed between octaves is the same notes): how many parts LOOP (the same every
+1, 2 or 4 bars while they play), which CHANGE inside the window (a loop, then other notes from one bar on: where),
+and which NEVER SETTLE (half their bars or more repeat nothing near them). A window whose parts change or never
+settle is static in its SOUND, not in its notes: listen before rewriting it. A part that only enters or leaves is
+the ENTERS line's, not a change.
 A sung return (the chorus or hook coming back, a crest's later lines) is MEANT to repeat; hear it before rewriting.
 chirper-three, t4 v24 (6 Nov): rewriting a flagged chorus return cost recurrence 96.2 -> 91.7 and the round was refused.
 """
@@ -472,6 +481,138 @@ def entries(canon, rows, quiet=ENTER_QUIET):
     return {n: sorted(v, key=lambda e: e[1]) for n, v in out.items()}
 
 
+NOTE_PERIODS = (1, 2, 4)    # bars LOOP when they repeat this many bars on, throughout a run
+NOTE_GRID = 12              # places are read to a twelfth of a beat (sixteenths and triplets)
+NOTE_SAME = 0.8             # two bars are the same notes when this share of them is shared ...
+NOTE_SHORT = 0.5            # ... or when one is the other with notes left out, down to this share of it (a figure cut
+#                             short at the edge of a part's range is still the figure: a stair's guitar drops two notes
+#                             of six where its register ends)
+NOTE_MOVES = 0.5            # NEVER SETTLES: at least this share of a part's bars belong to no looping run
+
+
+def _same(a, b):
+    if a == b:
+        return True
+    lo, hi = sorted((a, b), key=len)
+    return bool(lo) and (len(a & b) >= NOTE_SAME * len(a | b) or (lo <= hi and len(lo) >= NOTE_SHORT * len(hi)))
+
+
+def _loops(sigs):
+    """The shortest of NOTE_PERIODS at which a run of bars repeats throughout (two bars or more of evidence), or None."""
+    for p in NOTE_PERIODS:
+        if len(sigs) >= max(2, 2 * p) and all(_same(a, b) for a, b in zip(sigs, sigs[p:])):
+            return p
+    return None
+
+
+def _runs(sigs):
+    """Bars as the longest looping runs, left to right: [(start, end, period)], period None for a bar that loops with
+    nothing after it."""
+    out, i = [], 0
+    while i < len(sigs):
+        end = next((e for e in range(len(sigs), i + 1, -1) if _loops(sigs[i:e])), None)
+        if end is None:
+            out.append((i, i + 1, None))
+            i += 1
+        else:
+            out.append((i, end, _loops(sigs[i:end])))
+            i = end
+    return out
+
+
+def note_motion(canon, rows, bpb=4.0):
+    """{window n: {"loops": [part], "changes": [(part, beat)], "moves": [part], "mixed": [part]}} from the plan's
+    notes where they sound, part by part. A part is a pitched track, or ONE PIECE of a kit's track (kit:t1); a note is
+    its place in the bar and its pitch class, so a line passed between octaves is the same notes. Over the bars a part
+    plays in the window (two or more):
+      loops    its bars repeat every 1, 2 or 4 bars throughout (rests between are not a change)
+      changes  it loops, then loops on OTHER notes: the beat of each such bar
+      moves    at least NOTE_MOVES of its bars belong to no looping run: it never settles
+      mixed    a loop with breaks"""
+    import pitchbench
+    out = {}
+    if not canon or not rows or rows[0]["beats"][0] is None:
+        return out
+    parts, order = {}, []                               # part -> bar -> {(place, class)}
+    stack = list(canon.get("tracks") or [])
+    while stack:
+        t = stack.pop(0)
+        stack.extend(t.get("tracks") or [])
+        notes = t.get("notes") or []
+        if not t.get("name") or not notes:
+            continue
+        if t.get("warp") or t.get("risset") or t.get("at"):
+            import notechk
+            try:
+                notes = notechk.track_notes(canon, t["name"]) or notes
+            except SystemExit:
+                pass
+        for n in notes:
+            if not isinstance(n, dict):
+                continue
+            at = float(n.get("at") or 0)
+            k = int(np.floor(at / bpb + 1e-9))
+            place, pitch = int(round((at - k * bpb) * NOTE_GRID)), n.get("pitch")
+            try:
+                if isinstance(pitch, (int, float)) and not isinstance(pitch, bool):
+                    name, classes = t["name"], {int(round(pitch)) % 12}
+                else:
+                    name, classes = t["name"], {pitchbench.midi(x.strip()) % 12 for x in str(pitch).split(",")}
+            except (ValueError, KeyError, IndexError):
+                name, classes = f"{t['name']}:{pitch}", {0}          # a kit's piece is a part of its own
+            if name not in parts:
+                order.append(name)
+            parts.setdefault(name, {}).setdefault(k, set()).update((place, c) for c in classes)
+    for r in rows:
+        k0, k1 = int(np.ceil(r["beats"][0] / bpb - 1e-9)), int(np.floor(r["beats"][1] / bpb + 1e-9))
+        for name in order:
+            sigs = [frozenset(parts[name].get(k, ())) for k in range(k0, k1)]
+            played = [i for i, x in enumerate(sigs) if x]
+            if len(played) < 2:
+                continue
+            first, sigs = played[0], sigs[played[0]:played[-1] + 1]
+            runs = _runs(sigs)
+            sounding = [(a, b, p) for a, b, p in runs if any(sigs[a:b])]
+            got = out.setdefault(r["n"], {"loops": [], "changes": [], "moves": [], "mixed": []})
+            new = sum(1 for a, b, p in sounding if p is None)
+            cuts = [(k0 + first + b0) * bpb for (_, a1, _), (b0, _, _) in zip(sounding, sounding[1:]) if a1 == b0]
+            if new >= NOTE_MOVES * len(played):
+                got["moves"].append(name)
+            elif new:
+                got["mixed"].append(name)
+            elif cuts:
+                got["changes"].extend((name, b) for b in cuts)
+            else:
+                got["loops"].append(name)
+    return out
+
+
+def note_lines(rows, motion, clock, bpb=4.0):
+    """The lines under the map: for each window flagged static, what its parts' NOTES do there (from the plan)."""
+    def names(v):
+        return ", ".join(v[:8]) + (f" +{len(v) - 8}" if len(v) > 8 else "")
+    lines = []
+    for r in rows:
+        got = motion.get(r["n"])
+        if not is_static(r) or not got:
+            continue
+        n = len(got["loops"]) + len(got["mixed"])
+        said = [f"{n} part{'s' if n != 1 else ''} loop{'s' if n == 1 else ''}"
+                + (f" ({len(got['mixed'])} with breaks)" if got["mixed"] else "")]
+        if got["changes"]:
+            by = {}
+            for name, beat in got["changes"]:
+                by.setdefault(beat, []).append(name)
+            said.append("these CHANGE in it (a loop, then other notes): " + "; ".join(
+                f"{names(v)} at {fmt_t(float(clock(b)[0]))} (bar {int(b // bpb) + 1})" for b, v in sorted(by.items())[:4]))
+        if got["moves"]:
+            said.append(f"these NEVER SETTLE (most of their bars repeat nothing near them): {names(got['moves'])}")
+        lines.append(f"  w{r['n']} by the plan's notes (part by part; a note is its place in the bar and its pitch class): "
+                     + "; ".join(said) + (". Static in its SOUND, not in its notes: the flag cannot hear which notes; listen before "
+                                          "rewriting it" if got["changes"] or got["moves"] else ""))
+    return lines
+
+
 def entry_lines(cid, rows, enters, clock):
     """The lines under the map: for each window flagged static, what enters in it and the presence command."""
     lines = []
@@ -651,6 +792,8 @@ def print_map(cid, song, rows, dur, ledger, canon=None):
     if canon:                                            # a static window with an arrival in it: the arrival may be masked
         clock, _ = beat_clock(song)
         for ln in entry_lines(cid, rows, entries(canon, rows), clock) if clock else []:
+            print(ln)
+        for ln in note_lines(rows, note_motion(canon, rows, meter_beats(song)), clock, meter_beats(song)) if clock else []:
             print(ln)
     order = focus_order(rows, ledger)[:3]
     if order:

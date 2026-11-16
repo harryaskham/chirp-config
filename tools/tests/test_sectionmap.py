@@ -348,3 +348,50 @@ def test_an_ab_carries_the_rhythm_was_and_now():
                 "rhythm": rhythm}
     cmp_ = SM.compare([row(1, 0.228), row(2, None)], [row(1, 0.068), row(2, 0.1)])
     assert cmp_[0]["rhythm"] == [0.068, 0.228] and "rhythm" not in cmp_[1]
+
+
+def _plan_for_notes():
+    """Twelve bars of 4/4. riff: a two-bar figure. octaves: one figure, an octave higher every bar. harm: one figure for
+    six bars, then the same places a third higher. short: six notes a bar, four of them in bar 4. late: rests eight bars,
+    then loops. The kit: a kick that loops and a tom whose place moves every bar."""
+    def bar(k, places_pitches):
+        return [{"at": k * 4 + pl, "len": 0.5, "pitch": p} for pl, p in places_pitches]
+    a, b = [(0, "F2"), (1, "Ab2"), (2.5, "C3")], [(0, "F2"), (1.5, "Eb2"), (3, "C3")]
+    six = [(i * 0.5, p) for i, p in enumerate(["F2", "G2", "Ab2", "Bb2", "C3", "Db3"])]
+    return {"tempo": 120, "tracks": [
+        {"name": "riff", "notes": [n for k in range(12) for n in bar(k, a if k % 2 == 0 else b)]},
+        {"name": "octaves", "notes": [n for k in range(12) for n in bar(k, [(0, f"F{1 + k % 4}"), (2, f"C{2 + k % 4}")])]},
+        {"name": "harm", "notes": [n for k in range(12) for n in bar(k, a if k < 6 else [(0, "A2"), (1, "C3"), (2.5, "E3")])]},
+        {"name": "short", "notes": [n for k in range(12) for n in bar(k, six[:4] if k == 3 else six)]},
+        {"name": "late", "notes": [n for k in range(8, 12) for n in bar(k, a)]},
+        {"name": "kit", "tracks": [{"name": "drums", "notes": [n for k in range(12)
+                                                               for n in bar(k, [(0, "k"), (2, "k"), ((k * 0.75) % 4, "t1")])]}]},
+    ]}
+
+
+def test_the_plans_notes_part_by_part_loop_change_or_never_settle():
+    rows = [{"n": 1, "beats": [0.0, 48.0], "flags": ["static"]}, {"n": 2, "beats": [48.0, 96.0], "flags": []}]
+    got = SM.note_motion(_plan_for_notes(), rows)
+    assert set(got) == {1}                                                   # nothing plays in the second window
+    assert got[1]["loops"] == ["riff", "octaves", "short", "late", "drums:k"]   # an octave up is the same notes; a figure cut
+    assert got[1]["changes"] == [("harm", 24.0)]                             # short is the figure; an entry is not a change
+    assert got[1]["moves"] == ["drums:t1"] and got[1]["mixed"] == []         # one piece of a kit is a part of its own
+    assert SM.note_motion(None, rows) == {} and SM.note_motion(_plan_for_notes(), [{"n": 1, "beats": [None, None]}]) == {}
+    half = SM.note_motion(_plan_for_notes(), [{"n": 1, "beats": [0.0, 24.0]}])   # the harmony is not in the first six bars
+    assert half[1]["changes"] == [] and "harm" in half[1]["loops"] and "late" not in half[1]["loops"]
+
+
+def test_a_static_window_says_what_its_notes_do():
+    rows = [{"n": 1, "beats": [0.0, 48.0], "flags": ["static"]}]
+    clock = lambda b: np.atleast_1d(np.asarray(b, float)) * 0.5  # noqa: E731
+    motion = SM.note_motion(_plan_for_notes(), rows)
+    lines = SM.note_lines(rows, motion, clock)
+    head = "  w1 by the plan's notes (part by part; a note is its place in the bar and its pitch class): "
+    assert len(lines) == 1 and lines[0].startswith(head + "5 parts loop; ")
+    assert "these CHANGE in it (a loop, then other notes): harm at 0:12 (bar 7)" in lines[0]
+    assert "these NEVER SETTLE (most of their bars repeat nothing near them): drums:t1" in lines[0]
+    assert lines[0].endswith("Static in its SOUND, not in its notes: the flag cannot hear which notes; listen before rewriting it")
+    assert SM.note_lines([{**rows[0], "flags": ["little new vs w0"]}], motion, clock) == []     # only under a static window
+    loop = {"tempo": 120, "tracks": [_plan_for_notes()["tracks"][0]]}
+    only = SM.note_lines(rows, SM.note_motion(loop, rows), clock)
+    assert only == [head + "1 part loops"]
