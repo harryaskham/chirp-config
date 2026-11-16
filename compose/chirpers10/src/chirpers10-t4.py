@@ -190,6 +190,35 @@ HEADS = []                            # (sixteenth, section) of each statement's
 RIG2 = os.environ.get("C10T4_RIG2", "ct-wall-stop-l;ct-wall-stop-r;-3.5dB;380:1:-3")
 G_TOT = ("gl", "gr", "wl", "wr") if RIG2 else ("gl", "gr", "gl2", "gr2")
 
+# v8: THE KNOCK (palette round: the part the song lacked). The piece is a count, and in two of its three counts the
+# count is the hardest thing in it to hear: in the back-build each statement starts on a different place of the riff
+# (its last place, its last two ...), and in the melt likewise, so nothing says "again". Now something does: a
+# WOODBLOCK knocks once where every statement starts, in the passages where the china does not (the china has the
+# statements' heads once the band is in, since v5). It is the abacus's other voice: the marimba is the beads, the
+# block is the bead hitting the frame. A new instrument, on no other song: `rt-block`, the song's own patch: the
+# marimba's rosewood bar made short and hard (rung out in a tenth of a second, struck near its edge, with a click),
+# two octaves over the marimba's low note and tuned to the key.
+# And because the statements are 1, 2, 3 ... sixteenths long, the knocks are a figure of their own: at the start of
+# each count they come one, two, three, four sixteenths apart and slow by arithmetic (a ball bouncing, backwards);
+# and at the very end of the song, as the melt runs out (8, 7, 6 ... 1), they close up again and run into the last
+# chord: the ball comes to rest.
+# The knocks are soft where they are close together and full where they are a bar apart, as a ball's bounces are.
+# (First bench: decay 0.1 s, gone in 40 ms, at -12 dB: a tick, 5 dB under the hat in the back-build. Then decay
+# 0.3 s and -5 dB at one velocity: right in the back-build, but LOUDER THAN THE MARIMBA in the flurries at the
+# start and the end. Hence the velocities.)
+# the patch ; its gain ; semitones over the riff's low note ; velocity where the statements are sixteen places or
+# longer ; hall send ; velocity at one place long. "" = v7.
+KNOCK = os.environ.get("C10T4_KNOCK", "rt-block;-5dB;48;0.9;-14dB;0.4")
+BLOCK = json.loads(os.environ.get("C10T4_BLOCK", json.dumps({
+    "about": "Running Total's woodblock (chirper-zero, v8): the marimba's rosewood bar made short and hard, with a stick's click.",
+    "play": {"vel_sens": 0.9},
+    "synth": {"amp": {"a": "0.5ms", "d": "400ms", "s": 0, "r": "80ms"},
+              "env": {"c": {"a": "0.2ms", "d": "4ms", "s": 0}},
+              "layers": [{"type": "modal", "modes": "bar", "decay": "0.3s", "damp": 0.5, "strike": 0.6, "tilt": 0.0, "vary": 0.3,
+                          "bright": {"value": 0.7, "mod": [{"src": "vel", "amount": 0.25}]}},
+                         {"type": "noise", "level": {"value": "-60dB", "mod": [{"src": "env.c", "amount": 44}]}}]}})))
+KNOCKS = []                           # (sixteenth, the key's root, the statement's length) of each statement's start, where the block knocks
+
 
 def key_f(hz):
     return {"value": hz, "mod": [{"src": "auto.key", "amount": round(1 / 12, 5)}]}
@@ -290,6 +319,8 @@ def compose():
         say(t, 0, k, 0, gtrs, low=k >= 9, wood=k < 17)       # the marimba counts the first eight alone, and hands over
         if COUNT and k >= int(COUNT.split(";")[4]):
             HEADS.append(t)
+        elif KNOCK:
+            KNOCKS.append((t, 0, k))
         t += k
     assert t == TOTAL1 * 16
     beat(0, 9, cym="h", vel=0.45)
@@ -326,6 +357,8 @@ def compose():
                 drum("c", t, 0.9)
             elif band:
                 HEADS.append(t)
+            elif KNOCK:
+                KNOCKS.append((t, 6, k))
             t += k
             continue
         gtrs = () if k < 25 else G_MAIN + G_DBL
@@ -370,6 +403,8 @@ def compose():
             MELT_END[0] = (t + k) / 4
         if k > 8 and t > MELT * 16:
             HEADS.append(t)
+        elif KNOCK and k <= 8:
+            KNOCKS.append((t, 0, k))
         t += k
     assert t == END * 16
     drum("c", MELT * 16, 0.9)
@@ -383,6 +418,9 @@ def compose():
         beat(MELT, MELT + 12, snare=(4, 12), cym="x", vel=0.5)
     beat(MELT + 12, MELT + 22, snare=(8,), cym="h", vel=0.5)
     beat(MELT + 22, END, cym="h", vel=0.42)
+    for t, root, k in KNOCKS:             # v8: the block knocks where each statement starts
+        v1, v0 = float(KNOCK.split(";")[3]), float(KNOCK.split(";")[5])
+        add("knock", t, 1, F1 + root + int(KNOCK.split(";")[2]), round(v0 + (v1 - v0) * min(1.0, (k - 1) / 15), 3))
     # one chord: the total
     for tr in G_TOT:
         add(tr, END * 16, 32, ",".join(nm(F1 + i) for i in (0, 7, 12, 19)), 0.95)
@@ -407,6 +445,7 @@ def song():
             **({"fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*RIG2.split(";")[3].split(":"))]}]} if RIG2.split(";")[3] else {})}
            for i, tr in enumerate(("wl", "wr"))] if RIG2 else []),
         {"name": "wood", "patch": "modal-marimba", "gain": os.environ.get("C10T4_WOOD", "-14dB"), "pan": -0.15, "sends": {"hall": "-10dB"}},
+        *([{"name": "knock", "patch": KNOCK.split(";")[0], "gain": KNOCK.split(";")[1], "pan": 0.2, "sends": {"hall": KNOCK.split(";")[4]}}] if KNOCK else []),
         *([{"name": "lead", "patch": TUNE.split(";")[0],
             "gain": {"value": TUNE.split(";")[1], "mod": [{"src": "auto.melt", "amount": 1}]} if MELTUNE else TUNE.split(";")[1],
             "pan": 0, "sends": {"hall": TUNE.split(";")[3]},
@@ -430,7 +469,8 @@ def song():
                   "the riff's head lands somewhere new in the bar every time; the sum closes on a bar line exactly when the riff is "
                   "whole. Then the same sum from the other end, and at last undone. v1 is the skeleton."),
         "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
-        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}}},
+        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
+                    **({KNOCK.split(";")[0]: BLOCK} if KNOCK else {})},
         "buses": {
             "hall": {"fx": ["reverb kind=hall decay=4.5s mix=1 predelay=30ms low_cut=150"]},
             "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",

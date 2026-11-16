@@ -289,6 +289,8 @@ Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber"
 
 **The tune melts too (v7).** Section round, the melt's first half minute (3:18-3:51), and on to where the guitars thin. The riff was added up and so was its tune; the riff is taken apart and now so is the tune. Through the melt the lead goes on playing the riff's hook notes where the riff strikes them, and as the riff loses its front the tune loses its first note: nine notes for four statements, eight from 3:38, seven from 3:48, six from 4:00, five at 4:07. It stops where the second pair of guitars does (4:09), and the marimba, which comes in there, carries what is left down to the last note, C. The lead's fader sinks 5 dB through it.
 
+**The knock (v8).** Palette round: the part the song lacked. A woodblock knocks once where every statement starts, in the passages where the china does not: the build's statements 1-16 (0:00-0:16), the back-build's 1-28 (1:41-2:30), the melt's last eight (4:22-4:27). In the back-build and the melt each statement starts on a different place of the riff, so until now nothing said "again". Because the statements are 1, 2, 3 ... sixteenths long the knocks are a figure of their own: close together and soft at the start of a count, slowing by arithmetic (a ball bouncing, backwards); and at the end of the song they close up again and run into the last chord.
+
 ## t5 False Summit (chirper-zero)
 
 Harry, 15 Nov about 12:38: "true djent, but that leverages audio illusions throughout mainly risers/shpehers but in djent style, really make it a clear illlusory song, all about the illusions". 100 bpm, F, 108 bars, 4:24.
