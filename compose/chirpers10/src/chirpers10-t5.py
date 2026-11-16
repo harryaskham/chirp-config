@@ -182,6 +182,20 @@ NAKED = os.environ.get("C10T5_NAKED", "2;lift")
 # the run (30).
 # the bar the right side leaves the unison ; the bar it comes back (the run) ; the steps of the scale it is above. "" = v7.
 HARM = os.environ.get("C10T5_HARM", "20;30;2")
+# v9: THE FALL GETS STEEPER (section round, 2:24-2:52: the descent's second half, which the map called "little new"
+# against its first: twenty-two bars of the riff a step of the scale lower every bar). Now the descent falls faster
+# and faster and is still never lower. Its first half is as it was, a step a bar (an octave in six bars). From bar
+# 60 (2:24) it falls TWO steps a bar (an octave in three bars); from bar 66 (2:38) THREE (an octave in two); and for
+# its last two bars (68-70, 2:43) SIX, a step on every one of the riff's accents: the riff has become the scale, an
+# octave a bar, on the stair's own rhythm: the stair of the song's first minute, upside down. Then the run, a semitone
+# on every sixteenth, as before; and the fall now reaches the run on F, the note the run starts from. The steps
+# change on the riff's accents (never on a muted chug). Each of the first two changes of speed comes out of one of
+# the tom fills that never land (into 2:24 and into 2:38): the fill is the gear change. So the song's two long
+# illusions now answer each other: the stair gathers (tune, harmony, lead, run) and the descent steepens.
+# (First cut: two steps a bar, then four, a step on every beat. The step at mid-bar fell on a muted chug, and the
+# fall reached the run on A flat.)
+# bar:steps a bar (1, 2, 3 or 6), from that bar on. "" = v8 (a step a bar throughout).
+STEEP = os.environ.get("C10T5_STEEP", "60:2,66:3,68:6")
 RLANE = {v: [] for v in range(VOICES)}                  # the right side's faders while it is in harmony
 LLANE = {v: [(0.0, FLOOR)] for v in range(3)}           # the three leads' faders
 LANE = {v: [(0.0, FLOOR)] for v in range(VOICES)}       # each voice's fader, (beat, dB)
@@ -352,27 +366,33 @@ def pedal(b0, b1, kick=True):
 def descent(b0, b1, gend=None):
     """THE STAIR, DOWNWARDS, AND ALL OF IT. The whole riff (the stair's rhythm, chugged) a step of the scale lower
     every bar, on the three guitars a side over three octaves and on two basses over two."""
+    rates = sorted((int(x.split(":")[0]), int(x.split(":")[1])) for x in STEEP.split(",")) if STEEP else []
+    n = 0
     for b in range(b0, b1):
-        n = -(b - b0)
-        lad = 12 * (n // 6) + SCALE[n % 6]
-        ground(b * 4, lad % 12)
-        for v in range(VOICES):
-            p = (lad + 12 * v) % (12 * VOICES)
-            g = db(bell(p / (12 * VOICES))) + TRIM["fall"]
-            if g <= -45 or (gend is not None and b >= gend):       # from `gend` the guitars are on the run
-                continue
-            step(LANE[v], b * 4, g)
-            for i in range(16):
-                o = i in ACC
-                vadd(v, b * 4 + i / 4, 0.25, RIFF_BASE + p, 1.0 if o else 0.86, **({} if o else {"pm": 1}))
-        for w in range(2):
-            p = (lad + 12 * w) % 24
-            a = math.sin(math.pi * p / 24)
-            if db(a) <= -45:
-                continue
-            step(BLANE[w], b * 4, db(a))
-            for i in range(16):
-                addb(f"bs{w}", b * 4 + i / 4, 0.25, RIFF_BASE + p, 0.95 if i in ACC else 0.82)
+        per = ([1] + [r for bar, r in rates if bar <= b])[-1]      # v9: the steps of the scale this bar falls
+        edges = [ACC[q * len(ACC) // per] for q in range(per)] + [16]      # the steps change on the riff's accents
+        for q in range(per):
+            s0, s1 = edges[q], edges[q + 1]
+            lad = 12 * (n // 6) + SCALE[n % 6]
+            ground(b * 4 + s0 / 4, lad % 12)
+            for v in range(VOICES):
+                p = (lad + 12 * v) % (12 * VOICES)
+                g = db(bell(p / (12 * VOICES))) + TRIM["fall"]
+                if g <= -45 or (gend is not None and b >= gend):       # from `gend` the guitars are on the run
+                    continue
+                step(LANE[v], b * 4 + s0 / 4, g)
+                for i in range(s0, s1):
+                    o = i in ACC
+                    vadd(v, b * 4 + i / 4, 0.25, RIFF_BASE + p, 1.0 if o else 0.86, **({} if o else {"pm": 1}))
+            for w in range(2):
+                p = (lad + 12 * w) % 24
+                a = math.sin(math.pi * p / 24)
+                if db(a) <= -45:
+                    continue
+                step(BLANE[w], b * 4 + s0 / 4, db(a))
+                for i in range(s0, s1):
+                    addb(f"bs{w}", b * 4 + i / 4, 0.25, RIFF_BASE + p, 0.95 if i in ACC else 0.82)
+            n -= 1
         for a in ACC:
             drum("k", b * 16 + a, 0.95)
 
