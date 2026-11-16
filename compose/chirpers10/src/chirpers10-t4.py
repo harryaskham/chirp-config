@@ -253,6 +253,17 @@ LEAN = os.environ.get("C10T4_LEAN", "1")
 # the first statement whose hooks the snare strikes ; its velocity. "" = v10.
 UNISON = os.environ.get("C10T4_UNISON", "29;0.75")
 SNARES = []                           # (first sixteenth, last, the snare's sixteenths) of each such statement
+# v12: THE BASS GROWS TEETH (palette round: an instrument new to this song). v10 took the second pair of guitars out
+# of the count so that the riff whole would arrive, and it does (1.3 dB); but it left the count's last twenty-five
+# seconds on two guitars for forty-seven, with nothing coming in at the place the doubles used to (0:39), and 1 to
+# 2.5 dB short of the records where guitars live. Now something comes in there that is not a guitar: over the bass a
+# second bass through a FOLDING fuzz (the library's `bass-fuzz`, the engine's `wavefold`; Plain Hunt's second cycle
+# has it and no other song), high-passed so that only its teeth are added, on the bass's own notes. The count's last
+# eight statements bare their teeth; the riff whole still has the only four guitars. The same at the band's return
+# before the second arrival.
+# (First bench at 2 dB: -13.9 by presence, never near the front: there, but not an entry. 4 dB up.)
+# the patch string ; its gain ; its high-pass, Hz ; the build's first statement with it ; the back-build's. "" = v11.
+TEETH = os.environ.get("C10T4_TEETH", "bass-fuzz fx.0.shape=wavefold;6dB;500;25;29")
 # the tight rig's band: Hz : q : dB. "" = v8.
 MIDS = os.environ.get("C10T4_MIDS", "700:0.9:2.5")
 # the wall pair's low-mid cut on C: dB more than on the other grounds. "" = v8.
@@ -461,6 +472,10 @@ def compose():
         beat(MELT, MELT + 12, snare=(4, 12), cym="x", vel=0.5)
     beat(MELT + 12, MELT + 22, snare=(8,), cym="h", vel=0.5)
     beat(MELT + 22, END, cym="h", vel=0.42)
+    if TEETH:                             # v12: the fuzz bass doubles the bass through the count's last statements
+        k1, k2 = int(TEETH.split(";")[3]), int(TEETH.split(";")[4])
+        spans = ((BUILD * 16 + k1 * (k1 - 1) // 2, TOTAL1 * 16), (BACK * 16 + k2 * (k2 - 1) // 2, TOTAL2 * 16))
+        T["teeth"] = [dict(n) for n in T["bass"] if any(a / 4 <= n["at"] < z / 4 for a, z in spans)]
     for a, z, hits in SNARES:             # v11: the snare leaves the backbeat for the riff's hook notes
         T["snare"] = [n for n in T["snare"] if not (a / 4 <= n["at"] < z / 4)]
         for h in hits:
@@ -510,6 +525,8 @@ def song():
         *([{"name": tr, "patch": CLEAN.split(";")[i], "gain": CLEAN.split(";")[2 + i], "pan": (-0.5, 0.5)[i], "sends": {"hall": CLEAN.split(";")[8]}}
            for i, tr in enumerate(("cl", "cr"))] if CLEAN else []),
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
+        *([{"name": "teeth", "patch": TEETH.split(";")[0], "gain": TEETH.split(";")[1], "pan": 0,
+            "fx": [{"type": "eq", "bands": [f"hp cutoff={TEETH.split(';')[2]}"]}]}] if TEETH else []),
         {"name": "kick", "patch": kit, "gain": "2dB", "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]},
         {"name": "snare", "patch": kit, "gain": "3.5dB", "out": "drums", "sends": {"oh": "-1.5dB", "snr": "-10dB"},
          "fx": [{"type": "eq", "bands": ["highshelf cutoff=7000 gain=-3dB"]}]},
