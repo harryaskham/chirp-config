@@ -171,6 +171,18 @@ CLIMB = os.environ.get("C10T5_CLIMB", "lead-tape;0dB;8;53;-8")
 # left: the snare on the backbeat, the china in eighths, into the fill and the descent.
 # the cycle (from 0) heard naked ; `lift`: the cycle after it has the backbeat and the china in eighths. "" = v6.
 NAKED = os.environ.get("C10T5_NAKED", "2;lift")
+# v8: THE STAIR IN HARMONY (section round, 0:28-0:57: the map called it static, nothing enters in it; the tune is
+# stated four times alike before the lead comes). The stair's tune is on four guitars a side, the two sides in
+# unison. From its third statement (bar 20, 0:48) the RIGHT side takes the tune two steps of the scale higher: a third
+# or a fourth over the left on every note (F with A flat, G flat with B, A flat with C, B with E flat, C with F,
+# E flat with G flat): the twin-guitar harmony of every metal record, except that both lines are stairs. Each side
+# is still four guitars an octave apart under its own bell, so each still climbs an octave every two bars and is
+# never higher, and the two stay a third apart for ever. It holds under the lead (bar 24) until the run (bar 30).
+# So the stair now gathers every four bars: the tune (16), its harmony (20), the lead coming down through both (24),
+# the run (30).
+# the bar the right side leaves the unison ; the bar it comes back (the run) ; the steps of the scale it is above. "" = v7.
+HARM = os.environ.get("C10T5_HARM", "20;30;2")
+RLANE = {v: [] for v in range(VOICES)}                  # the right side's faders while it is in harmony
 LLANE = {v: [(0.0, FLOOR)] for v in range(3)}           # the three leads' faders
 LANE = {v: [(0.0, FLOOR)] for v in range(VOICES)}       # each voice's fader, (beat, dB)
 BLANE = {w: [(0.0, FLOOR)] for w in range(2)}           # the descent's two basses
@@ -196,6 +208,25 @@ def step(lane, beat, level):
     if beat - 0.01 > t:
         lane.append((round(beat - 0.01, 4), last))
     lane.append((round(beat, 4), level))
+
+
+def lane_at(lane, beat):
+    """The fader's level at `beat`."""
+    lv = lane[0][1]
+    for t, x in lane:
+        if t > beat:
+            break
+        lv = x
+    return lv
+
+
+def right_lane(v):
+    """The right side's fader: the left's, but its own while it is in harmony."""
+    if not (HARM and RLANE[v]):
+        return LANE[v]
+    a, z = RLANE[v][0][0], int(HARM.split(";")[1]) * 4.0
+    return ([q for q in LANE[v] if q[0] < a] + RLANE[v] + [(round(z - 0.01, 4), RLANE[v][-1][1]), (z, lane_at(LANE[v], z))]
+            + [q for q in LANE[v] if q[0] > z])
 
 
 def ramp(lane, beat, level):
@@ -253,9 +284,24 @@ def line(b0, b1, gtrs=True, synth=True, slow=1, rot=None):
             t = b * 16 + a
             if synth:
                 add("stair", t, n16, 65 + SCALE[k], 0.85 if k else 1.0)
+            harm = bool(HARM) and gtrs and b0 == RISE and int(HARM.split(";")[0]) <= b < int(HARM.split(";")[1])
             for v in range(VOICES if gtrs else 0):
                 p = 12 * ((v + octave + rot) % VOICES) + SCALE[k]
                 g = db(bell(p / (12 * VOICES))) + TRIM["line"]
+                dip = float(LEAD.split(";")[4]) if LEAD and b0 == RISE and b >= int(LEAD.split(";")[2]) else 0.0
+                if harm:                 # v8: the right side plays the same line some steps of the scale higher, under its own bell
+                    dr = d + int(HARM.split(";")[2])
+                    pr = 12 * ((v + dr // 6 + rot) % VOICES) + SCALE[dr % 6]
+                    gr = db(bell(pr / (12 * VOICES))) + TRIM["line"]
+                    if not RLANE[v]:
+                        RLANE[v].append((round(t / 4 - 0.02, 4), lane_at(LANE[v], t / 4 - 0.02)))
+                    if gr > -45:
+                        step(RLANE[v], t / 4, gr + dip)
+                        addb(f"v{v}r", t / 4, n16 / 4, LINE_BASE + pr, 0.95)
+                    if g > -45:
+                        step(LANE[v], t / 4, g + dip)
+                        addb(f"v{v}l", t / 4, n16 / 4, LINE_BASE + p, 0.95)
+                    continue
                 if g <= -45:
                     continue
                 if LEAD and b0 == RISE and b >= int(LEAD.split(";")[2]):      # v4: the eight sit back a little under the lead
@@ -576,7 +622,7 @@ def song():
         {"name": "gl", "patch": heavy.format(30), "gain": GH, "pan": -1, "out": "gtrs"},
         {"name": "gr", "patch": heavy.format(31), "gain": GH, "pan": 1, "out": "gtrs"},
         *[{"name": f"v{v}{side}", "patch": voice.format(32 + i if ONE else 32 + 2 * v + i), "gain": {"value": GV, "mod": [{"src": "auto.bell", "amount": 1}]},
-           "pan": (-1, 1)[i] * (float(ONE) if ONE else (0.9, 0.75, 0.6, 0.45)[v]), "out": "gtrs", "auto": {"bell": {"points": pts(LANE[v]), "curve": 0}},
+           "pan": (-1, 1)[i] * (float(ONE) if ONE else (0.9, 0.75, 0.6, 0.45)[v]), "out": "gtrs", "auto": {"bell": {"points": pts(right_lane(v) if i else LANE[v]), "curve": 0}},
            **({"fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*VEQ.split(":"))]}]} if VEQ else {})}
           for v in range(VOICES) for i, side in enumerate("lr")],
         {"name": "pl", "patch": heavy.format(40), "gain": os.environ.get("C10T5_POLE", "-1dB"), "pan": -0.8, "out": "pole"},
