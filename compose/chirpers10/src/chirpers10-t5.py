@@ -123,6 +123,16 @@ FIGURE = os.environ.get("C10T5_FIGURE", "16;0,2,1,3,2,4;3")
 # 500 Hz-1 kHz and the eight guitars held 58% of that band (both: 2.8 over). One eq band on each of the eight.
 # frequency : q : dB. "" = v2.
 VEQ = os.environ.get("C10T5_VEQ", "700:1:-2.5")
+# v13: THE EIGHT GUITARS ALONE (whole-song round: the song read again stretch by stretch against the records).
+# That band was cut at 700 Hz when the stair stood 3.7 dB over the records there, with the low-string guitars and
+# the plain tone both playing under the eight. Since then the tone has left the band (v11), and for more than half
+# the song (the turn, the descent, the first half of "both") the eight are the ONLY guitars. There the cut left a
+# hole where it had been trimming a pile: 500 Hz-1 kHz read 1.8 to 2.4 dB UNDER the records and 250-500 Hz 2.4 to
+# 2.7 over: a boxy, hollow band exactly where the song's illusions are. Now the band of the eq MOVES while the eight
+# are alone: the same 2.5 dB cut, an octave lower. It stands still within each illusion (it steps only at a seam
+# between sections), so nothing follows the stair.
+# the bars the eight are the only guitars, from:to ; the band's frequency there. "" = v12.
+ALONE = os.environ.get("C10T5_ALONE", "32:92;350") if VEQ else ""
 # v4: THE LEAD COMES DOWN (section round, 0:57-1:12: the stair's last six bars before the run; the map called the
 # stretch static, and from the band's entry at 0:19 to the turn at 1:16 nothing JOINED). A lead guitar comes in over
 # the tune and does the one thing nothing else in this song does: it really moves. It comes DOWN the scale, a note to
@@ -682,6 +692,23 @@ def pts(lane):
     return [[f"{t:g}b", v] for t, v in lane]
 
 
+def veq_band():
+    hz, q, db = VEQ.split(":")
+    if not ALONE:
+        return f"peak cutoff={hz} q={q} gain={db}dB"
+    return {"kind": "peak", "cutoff": {"value": float(hz), "mod": [{"src": "auto.veq", "amount": 1}]}, "q": float(q), "gain": f"{db}dB"}
+
+
+def veq_lane():
+    """The eq band's frequency, in octaves from its own: it steps where the eight guitars are left alone and back."""
+    if not ALONE:
+        return {}
+    import math
+    a, b = (int(v) for v in ALONE.split(";")[0].split(":"))
+    o = round(math.log2(float(ALONE.split(";")[1]) / float(VEQ.split(":")[0])), 4)
+    return {"veq": {"points": [["0b", 0], [f"{a * 4 - 0.5:g}b", 0], [f"{a * 4:g}b", o], [f"{b * 4 - 0.5:g}b", o], [f"{b * 4:g}b", 0]], "curve": 0}}
+
+
 def song():
     compose()
     key_lane = [["0b", 0]]
@@ -712,8 +739,8 @@ def song():
         {"name": "gl", "patch": heavy.format(30), "gain": GH, "pan": -1, "out": "gtrs"},
         {"name": "gr", "patch": heavy.format(31), "gain": GH, "pan": 1, "out": "gtrs"},
         *[{"name": f"v{v}{side}", "patch": voice.format(32 + i if ONE else 32 + 2 * v + i), "gain": {"value": GV, "mod": [{"src": "auto.bell", "amount": 1}]},
-           "pan": (-1, 1)[i] * (float(ONE) if ONE else (0.9, 0.75, 0.6, 0.45)[v]), "out": "gtrs", "auto": {"bell": {"points": pts(right_lane(v) if i else LANE[v]), "curve": 0}},
-           **({"fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*VEQ.split(":"))]}]} if VEQ else {})}
+           "pan": (-1, 1)[i] * (float(ONE) if ONE else (0.9, 0.75, 0.6, 0.45)[v]), "out": "gtrs", "auto": {"bell": {"points": pts(right_lane(v) if i else LANE[v]), "curve": 0}, **veq_lane()},
+           **({"fx": [{"type": "eq", "bands": [veq_band()]}]} if VEQ else {})}
           for v in range(VOICES) for i, side in enumerate("lr")],
         {"name": "pl", "patch": heavy.format(40), "gain": os.environ.get("C10T5_POLE", "-1dB"), "pan": -0.8, "out": "pole"},
         {"name": "pr", "patch": heavy.format(41), "gain": os.environ.get("C10T5_POLE", "-1dB"), "pan": 0.8, "out": "pole"},

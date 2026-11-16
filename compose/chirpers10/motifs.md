@@ -375,6 +375,8 @@ Form as arithmetic: every section's start is computed from its length (`FOOT`, `
 
 **The pole's line is on guitars (v12).** Palette round. In the quiet middle (bars 72-82, 2:53-3:17) the stair's line, at half an octave a bar, is on the three lead guitars an octave apart under the bell (`slow_leads()`), where it was on the Shepard tone. The tone now sounds only in the foot (bars 0-8).
 
+**The eight guitars alone (v13).** Whole-song round (the song read again stretch by stretch against the records; one finding acted on). No note changed. The eight stair guitars' eq band (a 2.5 dB cut at 700 Hz since v3) moves an octave lower, to 350 Hz, for bars 32-92, where they are the only guitars (the turn, the descent, the pole's middle where they rest, the first run-up of "both"). It steps at two seams between sections and stands still inside each illusion.
+
 ## t6 Carrying Capacity (chirper-zero)
 
 Harry, 16 Nov about 12:33: "make it unique". Source: `src/chirpers10-t6.py` (its first page is the full account).
