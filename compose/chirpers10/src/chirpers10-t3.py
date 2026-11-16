@@ -312,6 +312,23 @@ def in_the_hunt(extent):
     return out
 
 
+# v15: THE TREBLE IS A TREBLE, AND IN GRANDSIRE TWO BELLS RING (palette round). Through the band's passages a church
+# bell rings the treble's place in every row. It was the same great bell as the tower's, hum and all: a note every
+# second with seven seconds of ring, so three or four were always sounding, and alone that bell was within 3 to 5 dB
+# of the WHOLE band from 500 Hz to 1 kHz in every stretch, and within 4.5 dB at 250-500 Hz in the last one (where
+# the band reads 3.3 dB over the records). A treble is the lightest bell of a ring; the weight is the tenor's.
+#   1. In the band the row's bell is now its own instrument (`treble`): the same bell with its hum, the octave under
+#      its note, taken down (a high-pass just under its note, which follows the key). The tower's bells (the opening,
+#      the middle, the landing) are untouched: they are the ones Harry called ominous.
+#   2. In the second cycle the BELL IN THE HUNT rings too. Grandsire is the method with two hunting bells, and since
+#      v13 the second one is marked by a tom and an open note for a stretch; now it is a BELL, through the whole
+#      second cycle, a third to a fifth under the treble and softer. So two bells walk through each row against each
+#      other, and at every call the lower one changes its note: C, then B, then A flat, then back (over the ground).
+#      The first cycle has one bell in the hunt and one bell ringing; the second has two and two.
+# the high-pass under the treble's note on F, Hz : its q ; the second bell's velocity (the treble's is 0.6). "" = v14.
+TREBLE = os.environ.get("C10T3_TREBLE", "420:0.7;0.45")
+
+
 def lead_mode(k, calls):
     """What row k of an extent is: `call` (the two rows of a called lead end), `home` (of a plain one), or neither."""
     if not FORM or k % 10 < 8:
@@ -331,7 +348,7 @@ def drum(piece, s16, vel):
     T.setdefault(tr, []).append({"at": round(s16 / 4, 4), "len": 2.0 if piece in ("c", "x") else 0.5 if piece in ("h", "rb", "rd") else 0.25, "pitch": piece, "vel": round(vel, 3)})
 
 
-def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teeth=False, mode="", trs=None, hunt=0):
+def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teeth=False, mode="", trs=None, hunt=0, ring2=0):
     """One row on the band from `s16`: the five bells in the row's order, then the tenor. The treble is open and loud
     and w[0] sixteenths long; the tenor is w[1] muted chugs; every other bell one muted sixteenth. The kick goes with
     the treble and each of the tenor's chugs (`all`: on every sixteenth); a church bell doubles the treble three
@@ -376,7 +393,9 @@ def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teet
         if b == hunt and not call:                          # v13: and struck on its own tom
             HUNT_HITS.append(({2: "t1", 3: "t2", 4: "t3", 5: "ft"}[b], t, float(HUNT2.split(";")[1])))
         if bell and b == 1:
-            T.setdefault("bell", []).append({"at": round(t / 4, 4), "len": 1.5, "pitch": nm(F1 + root + PITCH[1] + 36), "vel": 0.6})
+            T.setdefault("treble" if TREBLE else "bell", []).append({"at": round(t / 4, 4), "len": 1.5, "pitch": nm(F1 + root + PITCH[1] + 36), "vel": 0.6})
+        elif bell and TREBLE and b == ring2 and not call:   # v15: the bell in the hunt rings too
+            T.setdefault("treble", []).append({"at": round(t / 4, 4), "len": 1.5, "pitch": nm(F1 + root + PITCH[b] + 36), "vel": float(TREBLE.split(";")[1])})
         t += n
 
 
@@ -477,13 +496,13 @@ def compose():
     fill(PART2)
     # the second extent: Grandsire Doubles, on F, Ab and C
     h0, h1 = (int(x) for x in HUNT2.split(";")[0].split(":")) if HUNT2 else (0, 0)
-    hunting = in_the_hunt(EXTENT_2) if HUNT2 else []
+    hunting = in_the_hunt(EXTENT_2) if HUNT2 or TREBLE else []
     for k, row in enumerate(EXTENT_2):
         row_notes(row, PART2 * 16 + k * L2, KEYS_2[k // 40], W2, kicks="all" if k >= 80 else "hunt",
                   gtrs=not FUZZ or k >= int(FUZZ.split(";")[3]), teeth=bool(FUZZ),
                   mode=lead_mode(k, CALLS_2) or ("bare" if bare[0] <= k < bare[1] else ""),
                   trs=G4B if RIG2 and k >= int(RIG2.split(";")[5]) else G4,
-                  **({"hunt": hunting[k]} if h0 <= k < h1 else {}))
+                  **({"hunt": hunting[k]} if h0 <= k < h1 else {}), **({"ring2": hunting[k]} if TREBLE else {}))
     if FUZZ and FORM and int(FUZZ.split(";")[3]) % 10 not in (8, 9, 0):     # v10: the guitars' entry is not at a home any more: its own crash
         drum("c", PART2 * 16 + int(FUZZ.split(";")[3]) * L2, 0.85)
     for i, kind in enumerate(FORM.split(";")[3] if FORM else "bac"):
@@ -610,6 +629,10 @@ def song():
         # the bells' fader: down in the landing, where twelve slow rows of six ring into one another over the full band
         {"name": "bell", "patch": "modal-bell", "gain": {"value": os.environ.get("C10T3_BELL", "-18dB"), "mod": [{"src": "auto.lvl", "amount": 1}]}, "pan": 0.1, "sends": {"hall": "-8dB"},
          "auto": {"lvl": {"points": [["0b", 0], [f"{LAND * 4 - 1}b", 0], [f"{LAND * 4}b", BELL_LAND], [f"{END * 4 - 1}b", BELL_LAND], [f"{END * 4}b", 0]], "curve": 0}}},
+        *([{"name": "treble", "patch": "modal-bell", "gain": os.environ.get("C10T3_BELL", "-18dB"), "pan": 0.1, "sends": {"hall": "-8dB"},
+            "fx": [{"type": "eq", "bands": [{"kind": "hp", "cutoff": key_f(float(TREBLE.split(";")[0].split(":")[0])) if KEYEQ else float(TREBLE.split(";")[0].split(":")[0]),
+                                             "q": float(TREBLE.split(";")[0].split(":")[1])}]}],
+            **({"auto": {"key": {"points": KEY_LANE, "curve": 0}}} if KEYEQ else {})}] if TREBLE else []),
         *([{"name": "chant", "patch": TOWER.split(";")[0], "gain": CHANT.split(";")[2] if CHANT else TOWER.split(";")[1], "pan": -0.1, "sends": {"hall": TOWER.split(";")[2]}},
            {"name": "gong", "patch": TOWER.split(";")[3], "gain": TOWER.split(";")[4], "pan": 0.2, "sends": {"hall": "-8dB"}},
            {"name": "drone", "patch": TOWER.split(";")[6], "gain": TOWER.split(";")[7], "pan": 0.2, "sends": {"hall": "-12dB"}}] if TOWER else

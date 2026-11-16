@@ -254,6 +254,8 @@ The bare lead is in both cycles on purpose: with it in the first only, the score
 
 **The climb is tremolo-picked (v14).** Palette round. The lead's climb over the last stretch (4:18-5:02) was seven notes held three bars each; it is now the same seven notes picked on every sixteenth, with the kick, on a drier lead (`lead-slap`), harder as it climbs.
 
+**The treble is a treble, and in Grandsire two bells ring (v15).** Palette round. (1) In the band the bell that rings the treble's place in each row is its own instrument, `treble`: the church bell with its hum (the octave under its note) taken down; the tower's bells (opening, middle, landing) are untouched. (2) In the second cycle the bell in the hunt rings too, softer, a third to a fifth under the treble: two bells walk through each row against each other, and at every call the lower one changes its note (leads 0-1 the second bell, C over the ground; 2-3 the third, B; 4-5 the fourth, A flat; 6-7 the third; 8-9 the second; 10-11 the fourth). The first cycle has one hunting bell and one bell ringing; the second has two and two.
+
 ## t4 Running Total (chirper-zero)
 
 Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber". The album's fourth kind of long cycle: a SUM.
