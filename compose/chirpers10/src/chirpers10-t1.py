@@ -822,6 +822,13 @@ def compose():
     bass(11, ELEVEN_A, a, z, root=DB, hook=OCT)
     kick(7, SEVEN_A, a, z)
     kit(a, z, "rd", 4, "half", "run", cvel=0.6)
+    if ELEVEN9:                          # v51: the eleven wheel gets a body: the toms turn it with the bass
+        lo, hi, v0, v1, g = ELEVEN9.split(";")
+        snares = {round(n["at"] * 4) for n in T.get("snare", [])}
+        for t, ln, kind, j, hi_i in strikes(11, ELEVEN_A, s16(a), s16(z) - FILL_LEN["run"]):
+            if t not in snares:          # one hand: where the backbeat falls it plays the snare
+                add("toms", t, 1, hi if kind == "h" else lo, float(v0) if j == 0 else float(v1))
+                T["toms"][-1]["gain"] = g
     solo(a, z)
 
     # 10. 165-175  five meets eleven: the weight comes off, slowly. No riff: one chord to each turn of the eleven wheel,
@@ -1467,6 +1474,75 @@ CLEAN11_DB = os.environ.get("C10T1_CLEAN11DB", "-4dB")
 
 def peaks(spec):
     return ["peak cutoff=%s q=%s gain=%sdB" % tuple(x.split(":")) for x in spec.split(",") if x]
+# v51: THE BASS'S TONE FOLLOWS THE GROUND (whole song; the fault found on Plain Hunt at its v11 and mended since on the
+# album's other four songs: owed here). The bass's bus has an eq fitted on the low F: a cut under the fundamental at
+# 44 Hz, a lift on its second harmonic at 90, a cut at 170. On any other ground the note climbs into the lift, the
+# compressor after it clamps down, and the bass loses its voice. `tools/keyshape.py` on v50, the bass alone, against
+# itself on F: on B flat (bars 122-130 and the like, 22 bars) it lost 4.0 dB at 120-250 Hz and about 3 from there up;
+# on D flat (155-163) 5 to 7.5 dB of everything from 250 Hz up; on E flat (232-240, the last climb before the
+# landing) 10 to 11 dB of everything from 250 Hz up. Those three eq bands now move with the ground (a lane `key` on
+# the bus, in semitones over the low F, read from the bass's own lowest note in each bar), so the eq sits on the note
+# as it does on F. The two bands that shape its voice (350 Hz, 1.5 kHz) stay where they are: on Running Total moving
+# them too was worse.
+# NOT ON D FLAT. Read in the MIX (the full band, v50 against the first cut of this), the bass's regained voice above
+# 250 Hz moves nothing: the guitars hold those bands. What the moving eq does change is the low end: about 1 dB from
+# 60-120 Hz into 120-250. On B flat and E flat that is toward the eleven records (120-250 Hz was 2.1 and 1.6 dB
+# short of them; now 0.8 and 0.3). On D flat it was AWAY from them (60-120 Hz -0.9 -> -2.3, 120-250 +0.5 -> +2.5):
+# there the bass turns the eleven wheel with octave jumps, and its upper notes (139 Hz) land in the lift that has
+# followed the ground. So on D flat the eq stays where it was.
+# on ; the grounds (semitones over F) it does not follow. "" = v50.
+KEYEQ = os.environ.get("C10T1_KEYEQ", "1;8")
+# AND WHERE SEVEN MEETS ELEVEN, THE ELEVEN HAS A BODY (section 9, bars 154-165, 4:53-5:14). The section is the lead's run
+# over the guitars and the kick on the seven wheel "while the bass turns eleven": the eleven wheel had ONE voice, the
+# bass, and on this ground (D flat) that bass was the one above with 5 to 7 dB of its voice gone. So the meeting the
+# section is named for was a riff in seven with something moving underneath. Now the drummer's left hand turns the
+# eleven wheel on the toms with the bass, strike for strike: the floor tom where the bass is on the ground, the high
+# tom where it jumps the octave (the two toms are an octave apart, as the bass's two notes are), and the snare
+# where the backbeat falls. The right hand keeps four on the ride and the foot keeps seven with the guitars: three
+# wheels in one kit.
+# the tom on the ground's strikes ; on the octave's ; the velocity of a turn's first strike ; of the others ; their
+# gain. "" = v50. (At the fill toms' own level they held the section's 250-500 Hz, 2.7 dB under the whole mix, and put
+# the section 0.5 dB up: 4 dB came off at the bench.)
+ELEVEN9 = os.environ.get("C10T1_ELEVEN9", "ft;t1;0.85;0.7;-4dB")
+
+
+def key_f(hz):
+    return {"value": float(hz), "mod": [{"src": "auto.key", "amount": round(1 / 12, 5)}]}
+
+
+def kpeaks(spec, follow):
+    """`peaks`, with the first `follow` bands' frequencies on the bus's `key` lane."""
+    out = []
+    for i, x in enumerate(y for y in spec.split(",") if y):
+        hz, q, g = x.split(":")
+        out.append({"kind": "peak", "cutoff": key_f(hz), "q": float(q), "gain": g + "dB"} if i < follow else "peak cutoff=%s q=%s gain=%sdB" % (hz, q, g))
+    return out
+
+
+def key_lane():
+    """The ground under the bass, bar by bar: its lowest note in each bar, in semitones over the low F; a ground of
+    one bar is a passing note and is left out; where the bass rests the last ground holds."""
+    low = {}
+    for n in T.get("bass", []):
+        b = int(n["at"] // 4)
+        m = min(NOTE.index(x[:-1]) + 12 * (int(x[-1]) + 1) for x in n["pitch"].split(","))
+        low[b] = min(low.get(b, 999), m)
+    bars = sorted(low)
+    runs = []                                          # [first bar, ground, bars]
+    for b in bars:
+        if runs and runs[-1][1] == low[b]:
+            runs[-1][2] += 1
+        else:
+            runs.append([b, low[b], 1])
+    skip = {int(x) for x in (KEYEQ.split(";") + [""])[1].split(",") if x}
+    pts, prev = [["0b", 0]], 0
+    for b, g, nb in runs:
+        k = 0 if g - F1 in skip else g - F1
+        if nb < 2 or k == prev:
+            continue
+        pts += [[f"{b * 4 - 0.02:g}b", prev], [f"{b * 4:g}b", k]]
+        prev = k
+    return pts
 CL_SENDS = {"dly": "-14dB", "hall": "-12dB"} if CLEAN == "m8-clean" else {"dly": "-9dB", "hall": "-7dB"}   # ct-clean is dry: the song gives it its space
 
 
@@ -1734,11 +1810,12 @@ def song():
                                + ([{"type": "rotary", "mix": {"value": 0, "mod": [{"src": "auto.rot", "amount": 1}]}, "speed": {"value": 0, "mod": [{"src": "auto.spin", "amount": 1}]}}] if ROTARY else [])
                                + ([{"type": "duck", "by": "speak", "depth": f"-{DUCK.split(':')[0]}dB", "attack": "20ms", "release": "250ms"}] if DUCK and SPEAK else []),
                                "auto": {"ride": {"points": GTR_RIDE}, **({"ring": {"points": GTR_RING, "curve": 0}} if RINGS else {}), **({"rot": {"points": ROT_MIX}, "spin": {"points": ROT_SPIN}} if ROTARY else {})}}} if GEQ else {}),
-                  **({"low": {"fx": [{"type": "eq", "bands": peaks(BEQ)}]
+                  **({"low": {"fx": [{"type": "eq", "bands": kpeaks(BEQ, 2) if KEYEQ else peaks(BEQ)}]
                               + ([{"type": "compressor", "threshold": BCOMP.split(":")[0] + "dB", "ratio": float(BCOMP.split(":")[1]), "attack": "12ms", "release": "120ms", "makeup": BCOMP.split(":")[2] + "dB"}] if BCOMP else [])
-                              + ([{"type": "eq", "bands": peaks(BEQ2)}] if BEQ2 else [])
+                              + ([{"type": "eq", "bands": kpeaks(BEQ2, 1) if KEYEQ else peaks(BEQ2)}] if BEQ2 else [])
                               + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.ride", "amount": 1}] + ([{"src": "auto.ring", "amount": 1}] if RINGS else [])}}],
-                              "auto": {"ride": {"points": BASS_RIDE}, **({"ring": {"points": BASS_RING, "curve": 0}} if RINGS else {})}}} if BEQ else {})},
+                              "auto": {"ride": {"points": BASS_RIDE}, **({"ring": {"points": BASS_RING, "curve": 0}} if RINGS else {}),
+                                       **({"key": {"points": key_lane(), "curve": 0}} if KEYEQ else {})}}} if BEQ else {})},
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}] + ([{"type": "gain", "gain": f"{MASTER_DB}dB"}] if MASTER_DB else [])
                    + ([{"type": "gain", "gain": f"{MGAIN.split(':')[0]}dB"}, "limiter ceiling=-1dB", {"type": "gain", "gain": f"-{MGAIN.split(':')[1]}dB"}] if MGAIN else [])
                    + ([{"type": "tapestop", "stop": {"value": 0, "mod": [{"src": "auto.stop", "amount": 1}]}, "time": "1.25b"}] if TSTOP else [])
