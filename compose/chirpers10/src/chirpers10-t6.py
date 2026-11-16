@@ -149,14 +149,16 @@ def note(r):
     return E1 + 12 * (r // 8) + OCT[r % 8]
 
 
-def play(c, x, gtrs, bass=True, kick=True):
+def play(c, x, gtrs, bass=True, kick=True, harm=()):
+    """`harm`: the guitars that take an accent from the octave up two rungs higher."""
     slots, ai, r = cell(x)
     for i, s in enumerate(slots):
         nxt = slots[i + 1] if i + 1 < len(slots) else 6
         if i == ai:                           # the accent: a fretted note; from the octave up, a fifth on it
             p = note(r)
             for tr in gtrs:
-                add(tr, c, s, nxt - s, nm(p) if r < 8 else f"{nm(p)},{nm(p + 7)}", 1.0)
+                q = note(r + 2) if tr in harm and r >= 8 else p
+                add(tr, c, s, nxt - s, nm(q) if r < 8 else f"{nm(q)},{nm(q + 7)}", 1.0)
             if bass:
                 add("bass", c, s, nxt - s, note(r % 8), 0.95)
             if kick:
@@ -169,6 +171,33 @@ def play(c, x, gtrs, bass=True, kick=True):
             if kick:
                 drum("k", c, s, 0.86)
 
+
+# v2: WHAT A BAND CAN DO ONCE THE RIFF REPEATS (section round, 1:51-2:19: the window of three, which the map called
+# static). While the rule never repeats, nobody can arrange it: every half bar is news, so the band plays it in
+# unison. In a window the same three half bars come round again and again, and a band that has heard a riff twice
+# starts to arrange it. So the window is now told that way, a layer for each time round:
+#   - it FINDS the cycle: the dial moves at 1:58 and for three half bars the rule is still settling; the snare keeps
+#     the back beat of the stretch before. On the first scream of the cycle proper (2:01) the cymbal and the clap
+#     mark it and the snare drops to half time: the groove changes when the rule locks, not when the dial moves;
+#   - the second time round, a second chip answers in the hole (the cycle has one: a single low note, then nothing
+#     for most of a half bar): it plays the cycle's own three notes as one triplet, the cycle inside itself, and
+#     its last note is the note the band plays next;
+#   - the third time round, the second pair of guitars takes the scream two rungs higher (a third), so the scream
+#     is a four-note chord and no longer a fifth;
+#   - both go on through the six (2:14).
+# the time round at which the answer starts ; at which the harmony starts ; the answer's gain ; its register
+# (semitones over the riff's) ; its pan. "" = v1.
+LOCK = os.environ.get("C10T6_LOCK", "2;3;-14dB;24;0.4")
+
+
+def lock_head(sec, period):
+    """The first half bar of `sec` that begins the cycle proper: its highest number, once the cycle repeats."""
+    a, b = AT[sec], AT[sec] + dict((n, k) for n, k, _ in DIAL)[sec]
+    t = next(j for j in range(a, b - period) if all(cell(CELLS[i][3]) == cell(CELLS[i + period][3]) for i in range(j, b - period)))
+    return next(j for j in range(t, t + period) if CELLS[j][3] == max(CELLS[i][3] for i in range(t, t + period)))
+
+
+HEAD3 = lock_head("three", 3) if LOCK else None
 
 G = ("gl", "gr")
 G2 = ("gl2", "gr2")
@@ -186,6 +215,12 @@ def compose():
             play(c, x, gtrs, bass=c >= 4)
         elif sec == "out":
             play(c, x, G)
+        elif LOCK and (sec == "six" or (sec == "three" and c >= HEAD3)):
+            turn = (c - HEAD3) // 3 + 1                       # which time round the cycle this is
+            play(c, x, G + G2, harm=G2 if turn >= int(LOCK.split(";")[1]) else ())
+            if len(cell(x)[0]) == 1 and turn >= int(LOCK.split(";")[0]):     # the hole: the cycle's three notes, as a triplet
+                for i, (cc, v) in enumerate(((c - 1, 0.8), (c, 0.7), (c + 1, 0.9))):
+                    add("echo", c, 3 + i, 1, note(rung(CELLS[cc][3])) + int(LOCK.split(";")[3]), v)
         else:
             play(c, x, G + (G2 if sec in WIDE else ()))
         # the steady pulse: the machine's hat on every beat, opened on the last beat before a new setting
@@ -193,12 +228,18 @@ def compose():
             for s in (0, 3):
                 last = c + 1 < NC and CELLS[c + 1][0] != sec and s == 3
                 drum("o" if last else "h", c, s, 0.75 if (s == 0 and c % 2 == 0) else 0.55)
-        if sec in BACK:
+        finding = LOCK and sec == "three" and c < HEAD3       # the dial has moved and the rule has not settled yet
+        if sec in BACK or finding:
             drum("s", c, 3, 0.95)
         elif sec in HALF and c % 2 == 1:
             drum("s", c, 0, 1.0)
             drum("p", c, 0, 0.8)
-        if first and sec not in ("growth", "out"):
+        if LOCK and sec == "three":
+            if c == HEAD3:                                    # it locks: the cymbal and the clap on the cycle's first scream
+                drum("c", c, 0, 0.95)
+                if c % 2 == 0:                                # (on a bar's third beat the half-time snare brings its own clap)
+                    drum("p", c, 0, 0.9)
+        elif first and sec not in ("growth", "out"):
             drum("c", c, 0, 0.9)
         # a hole (a half bar with nothing in it) after sound: the boom falls through it
         if sec not in ("growth", "out") and not cell(x)[0] and c and cell(CELLS[c - 1][3])[0]:
@@ -236,6 +277,8 @@ def song():
         {"name": "gr2", "patch": dbl.format(33), "gain": "-3.5dB", "pan": 0.75, "out": "gtrs", **mids},
         {"name": "lead", "patch": "nes-pulse-lead", "gain": os.environ.get("C10T6_LEAD", "-18dB"), "pan": 0, "at": f"{lead_at * 2}b",
          "sends": {"hall": "-12dB"}, "gen": [g[3] for g in gens]},
+        *([{"name": "echo", "patch": "nes-pulse-lead layers.0.chip.duty=0.125", "gain": LOCK.split(";")[2], "pan": float(LOCK.split(";")[4]),
+            "sends": {"hall": "-12dB"}}] if LOCK else []),
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
         {"name": "boom", "patch": kit, "gain": os.environ.get("C10T6_BOOM", "0dB"), "out": "drums"},
         {"name": "kick", "patch": kit, "gain": os.environ.get("C10T6_KICK", "0dB"), "out": "drums"},
