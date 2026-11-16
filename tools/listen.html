@@ -11,7 +11,7 @@ header{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 14px;
 h1{font-size:16px;margin:0 6px 0 0;color:var(--hi);white-space:nowrap}h2{font-size:16px;margin:0 0 6px;color:var(--hi)}h3{font-size:13px;margin:16px 0 6px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 select,button,textarea,input{background:var(--panel);color:var(--amber);border:1px solid var(--line);border-radius:5px;font:inherit}
 select,button,input{padding:4px 8px}button{cursor:pointer}button:hover{border-color:var(--amber)}textarea{padding:6px;width:100%}
-.tabs{display:flex;gap:2px}.tabs button{border-radius:5px 5px 0 0;border-bottom:none;color:var(--dim)}.tabs button.on{color:var(--hi);background:var(--panel2);border-color:var(--amber)}
+.tabs{display:flex;gap:2px}.tabs a.lk{align-self:center;margin-left:10px;color:var(--amber);white-space:nowrap;flex:none;text-decoration:none;font-size:.92em}.tabs a.lk:hover{text-decoration:underline}.tabs button{border-radius:5px 5px 0 0;border-bottom:none;color:var(--dim)}.tabs button.on{color:var(--hi);background:var(--panel2);border-color:var(--amber)}
 .views button.on{color:var(--bg);background:var(--amber)}.sp{flex:1}.m{color:var(--dim);font-size:12px}a{color:var(--hi)}
 kbd{border:1px solid var(--line);border-radius:3px;padding:0 4px;font-size:11px;color:var(--dim)}
 main{display:grid;grid-template-columns:minmax(220px,300px) 1fr;min-height:calc(100vh - 50px)}
@@ -165,7 +165,8 @@ async function openAlbum(id,v,h={}){A=id;AI=ALB.find(a=>a.id===id);W=null;S=null
  $$("#albums button").forEach(b=>b.classList.toggle("on",b.dataset.a===id));
  D=await api("api/"+A);D.notes.forEach(n=>HUMANS.add(String(n.by||"harry").toLowerCase()));
  const vs=[["listen","Listen"],["questions","Questions"],["feedback","Feedback"],["worklog","Worklog"],["history","History"]];
- $("#views").innerHTML=vs.map(([k,l])=>`<button data-v="${k}">${l}${k==="questions"?"<span id=qbadge></span>":""}</button>`).join("");qBadge();
+ $("#views").innerHTML=vs.map(([k,l])=>`<button data-v="${k}">${l}${k==="questions"?"<span id=qbadge></span>":""}</button>`).join("")
+  +(D.links||[]).map(l=>`<a class=lk href="${esc(l.url)}" target=_blank rel=noopener title="${esc(l.by?l.by+"'s page":"")}">${esc(l.title)} &#8599;</a>`).join("");qBadge();
  $$("#views button").forEach(b=>b.onclick=()=>show(b.dataset.v));show(v,h);}
 async function needW(){if(!W)W=await api(`api/${A}/log`);return W;}
 function show(v,h={}){view=v;$$("#views button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));if(media){media.pause();media=null;}$("#hmed")?.pause();

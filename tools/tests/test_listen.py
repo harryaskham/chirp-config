@@ -382,6 +382,44 @@ class Focus(unittest.TestCase):
             L.ask("chirpers9", 0, "Backwards?", focus=(9, 4))
 
 
+class Links(unittest.TestCase):
+    """compose/ALBUM/links.json: a composer's own pages, in the page's bar."""
+
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+        old, L.ROOT = L.ROOT, self.d
+        self.addCleanup(setattr, L, "ROOT", old)
+        self.addCleanup(shutil.rmtree, self.d, True)
+        os.makedirs(os.path.join(self.d, "compose", "chirpers10"))
+
+    def write(self, text):
+        with open(os.path.join(self.d, "compose", "chirpers10", "links.json"), "w") as f:
+            f.write(text)
+
+    def test_only_titled_http_links_are_passed_on(self):
+        self.assertEqual(L.album_links("chirpers10"), [])                              # no file
+        self.write(json.dumps([{"title": "While you were away", "url": "http://pocket4:8790/clips/night.html", "by": "chirper-zero"},
+                               {"title": "script", "url": "javascript:alert(1)"}, {"title": "", "url": "http://x/y"},
+                               {"title": "x" * 61, "url": "http://x/y"}, {"url": "http://x/y"}, "http://x/y",
+                               {"title": "quoted", "url": "http://x/y\" onmouseover=\"z"},
+                               {"title": " Listening order ", "url": "https://example.org/a?b=1&c=2"}]))
+        self.assertEqual(L.album_links("chirpers10"),
+                         [{"title": "While you were away", "url": "http://pocket4:8790/clips/night.html", "by": "chirper-zero"},
+                          {"title": "Listening order", "url": "https://example.org/a?b=1&c=2", "by": ""}])
+        self.write("{not json")
+        self.assertEqual(L.album_links("chirpers10"), [])
+        self.write(json.dumps({"title": "one", "url": "http://x/y"}))                  # not a list
+        self.assertEqual(L.album_links("chirpers10"), [])
+        self.write(json.dumps([{"title": f"t{i}", "url": "http://x/y"} for i in range(9)]))
+        self.assertEqual(len(L.album_links("chirpers10")), 6)                          # the bar has room for six
+
+    def test_the_page_puts_them_after_its_views(self):
+        with open(os.path.join(TOOLS, "listen.html")) as f:
+            page = f.read()
+        self.assertIn("(D.links||[]).map(l=>`<a class=lk href=\"${esc(l.url)}\" target=_blank rel=noopener", page)
+        self.assertIn(".tabs a.lk{", page)
+
+
 class Page(unittest.TestCase):
     """The page's own reading of a card's title (tools/listen.html, qSplit), run in node when there is one."""
 

@@ -1096,6 +1096,23 @@ def release_info(album_id):
     return {"video": f"media/{album_id}/release/album.mp4", "chapters": chapters, **meta}
 
 
+def album_links(album_id):
+    """The album's own links for the page's bar: compose/ALBUM/links.json, a list of {"title", "url"[, "by"]}. A
+    composer's page that is not this app's (a digest of a night's rounds, a listening order) is found where the
+    questions are. Only http(s) URLs and titles of 60 characters or fewer are passed on; a file that does not parse
+    gives none. (chirper-zero, 16 Nov: "what changed while you were away", generated from the climb files.)"""
+    try:
+        rows = read_json(os.path.join(ROOT, "compose", album_id, "links.json"))
+    except (OSError, ValueError):
+        return []
+    out = []
+    for r in rows if isinstance(rows, list) else []:
+        if isinstance(r, dict) and isinstance(r.get("title"), str) and isinstance(r.get("url"), str) \
+                and r["title"].strip() and len(r["title"]) <= 60 and re.fullmatch(r"https?://[^\s\"'<>]+", r["url"]):
+            out.append({"title": r["title"].strip(), "url": r["url"], "by": re.sub(r"[^\w .-]", "", str(r.get("by") or ""))[:40]})
+    return out[:6]
+
+
 def album_info(album_id):
     p = os.path.join(ROOT, "compose", album_id, "album.json")
     a = read_json(p) if os.path.exists(p) else {}
@@ -1231,7 +1248,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                                    if os.path.exists(os.path.join(ROOT, "compose", a, "album.json")) or snapshots(a)])
         if len(parts) == 2 and parts[0] == "api":
             snaps = snapshots(parts[1])
-            return self.send_json({"album": parts[1], "snapshots": snaps, "notes": notes(parts[1]),
+            return self.send_json({"album": parts[1], "snapshots": snaps, "notes": notes(parts[1]), "links": album_links(parts[1]),
                                    "questions": with_focus(with_now(questions(parts[1]), current_versions(parts[1]),
                                                                     snaps, read_moved(parts[1])), read_focus(parts[1]))})
         if len(parts) == 3 and parts[0] == "api" and parts[2] == "log" and re.fullmatch(r"[\w-]+", parts[1]):
