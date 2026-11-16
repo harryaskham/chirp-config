@@ -50,6 +50,7 @@ import re
 import shutil
 import subprocess
 import sys
+import threading
 import tempfile
 
 import numpy as np
@@ -83,8 +84,15 @@ def load_album(album_id):
 def save_album(album):
     p = album_path(album["id"])
     os.makedirs(os.path.dirname(p), exist_ok=True)
-    with open(p, "w") as f:
-        f.write(json.dumps(album, indent=2, ensure_ascii=False) + "\n")
+    tmp = f"{p}.{os.getpid()}.{threading.get_ident()}.tmp"   # whole or not at all (composers share it): a temporary file, renamed
+    try:
+        with open(tmp, "w") as f:
+            f.write(json.dumps(album, indent=2, ensure_ascii=False) + "\n")
+        os.replace(tmp, p)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        raise
 
 
 def track_id(album_id, n):
@@ -354,8 +362,7 @@ def cmd_rebaseline(a, args):
                     me = CS.build_ctx(cid, wavs[seeds[0]], c, album, song)["me"]
                     d = os.path.join(CS.cache_dir(a.album_id), "features")
                     os.makedirs(d, exist_ok=True)
-                    with open(os.path.join(d, f"{cid}.json"), "w") as f:
-                        json.dump(me, f)
+                    CS.write_json(os.path.join(d, f"{cid}.json"), me)
         results = []
         for c, song, wavs, _seen in todo:                # pass 2: score
             scores = {sd: CS.score(CS.build_ctx(c["id"], w, c, album, song), CS.plugins())["total"] for sd, w in wavs.items()}

@@ -83,3 +83,35 @@ def test_a_short_section_that_carries_a_form_term_is_named():
     mean = float(np.mean([C.m_variety({**ens, "sections": s})[0] for s in sets]))
     assert f"variety {mean:.1f} ({without:.1f} without)" in C.short_section_note(ens, {"variety": mean})
     assert "structure" not in C.short_section_note(ens, {"variety": mean})                 # a term not scored is not read
+
+
+def test_a_saved_file_is_whole_or_not_there(tmp_path, monkeypatch):
+    """--save and the album's files are read by other runs while they are written: a temporary file, then a rename."""
+    import json
+    path = str(tmp_path / "features.json")
+    C.write_json(path, {"a": [1.5, 2, None], "long": "x" * 4000})
+    C.write_json(path, {"a": 1})                                   # a shorter file over a longer one: nothing left of it
+    with open(path) as f:
+        assert json.load(f) == {"a": 1}
+    assert os.listdir(tmp_path) == ["features.json"]               # no temporary file stays
+
+    def boom(*_a, **_k):
+        raise RuntimeError("the disk is full")
+    monkeypatch.setattr(C.os, "replace", boom)
+    try:
+        C.write_json(path, {"a": 2})
+    except RuntimeError:
+        pass
+    with open(path) as f:
+        assert json.load(f) == {"a": 1}                            # a write that fails leaves the old file as it was
+    assert os.listdir(tmp_path) == ["features.json"]
+    monkeypatch.undo()
+    import threading                                               # eight writers at once: one of their files, whole
+    docs = [{"n": i, "pad": "y" * (500 * (i + 1))} for i in range(8)]
+    ts = [threading.Thread(target=lambda d=d: [C.write_json(path, d) for _ in range(40)]) for d in docs]
+    for t in ts:
+        t.start()
+    for t in ts:
+        t.join()
+    with open(path) as f:
+        assert json.load(f) in docs

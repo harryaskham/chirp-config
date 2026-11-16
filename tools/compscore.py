@@ -46,6 +46,7 @@ import json
 import os
 import re
 import sys
+import threading
 
 # a metric command runs from a plain shell: one BLAS thread, or a loaded box spins (chirper-one's first run, 28 Oct)
 os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
@@ -86,6 +87,27 @@ def album_dir(album_id):
 
 def cache_dir(album_id):
     return os.path.join(ROOT, "ref", "compose", album_id)
+
+
+def write_text(path, text):
+    """Write a file others read WHOLE OR NOT AT ALL: to a temporary file beside it, then a rename. Two writers at
+    once leave one of the two files, never a mixture, and a reader never sees half of one. (16 Nov: two `--save`
+    runs, seeds 0 and 11 started together, wrote one track's features at the same moment and left nine bytes of
+    the longer file after the shorter; every reader of the album's features failed for half an hour.)"""
+    tmp = f"{path}.{os.getpid()}.{threading.get_ident()}.tmp"       # one a writer, beside the file (a rename within a directory)
+    try:
+        with open(tmp, "w") as f:
+            f.write(text)
+        os.replace(tmp, path)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        raise
+
+
+def write_json(path, obj):
+    """json.dump(obj) to path, whole or not at all (write_text)."""
+    write_text(path, json.dumps(obj))
 
 
 def load_album(album_id):
@@ -373,8 +395,7 @@ def genre_envelope(album):
         return None
     env = np.mean(profs, axis=0)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        json.dump({"refs": refs, "v": PROFILE_V, "envelope": env.tolist()}, f)
+    write_json(path, {"refs": refs, "v": PROFILE_V, "envelope": env.tolist()})
     return env
 
 
@@ -896,8 +917,7 @@ def main(argv=None):
     if a.save:
         d = os.path.join(cache_dir(album_id), "features")
         os.makedirs(d, exist_ok=True)
-        with open(os.path.join(d, f"{a.id}.json"), "w") as f:
-            json.dump(ctx["me"], f)
+        write_json(os.path.join(d, f"{a.id}.json"), ctx["me"])
     if a.bands:
         w = res["weights"].get("spectrum", 0.0)
         print(f"{a.id}: total {res['total']:.2f}, spectrum {res['terms'].get('spectrum', float('nan')):.1f} (w {w:.3f}); "
