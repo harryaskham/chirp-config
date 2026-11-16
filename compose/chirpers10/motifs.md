@@ -374,3 +374,39 @@ Form as arithmetic: every section's start is computed from its length (`FOOT`, `
 **The band carries the stair alone (v11).** Whole-song round. The Shepard tone that states the illusion at the foot no longer stays on under the band: it sounds alone (bars 0-4), the guitars take the stair up (4-8), and when the band comes in (bar 8, 0:19) it is gone; the same at the summit (bars 101-105). It still sounds in the pole. Through the stair (bars 8-32) the illusion is the eight guitars' alone.
 
 **The pole's line is on guitars (v12).** Palette round. In the quiet middle (bars 72-82, 2:53-3:17) the stair's line, at half an octave a bar, is on the three lead guitars an octave apart under the bell (`slow_leads()`), where it was on the Shepard tone. The tone now sounds only in the foot (bars 0-8).
+
+## t6 Carrying Capacity (chirper-zero)
+
+Harry, 16 Nov about 12:33: "make it unique". Source: `src/chirpers10-t6.py` (its first page is the full account).
+
+**The idea: one rule and one dial; no riff was written.** Every half bar the rule `x <- r * x * (1 - x)` is applied once, and the number it gives (0 to 1) is the half bar:
+- `floor(7x)` of its six places are struck, filling in the order 0, 3, 2, 5, 1, 4 (the two beats, their pick-ups, the rest);
+- one of the struck places is the accent (which one: how far x is through its seventh); the rest are muted chugs on the open low E;
+- the accent's pitch is rung `floor(16x)` of sixteen rungs: two octaves of the half-whole scale on E (E F G Ab Bb B Db D). From the octave up it is a fifth, not a single note.
+- under 1/7 the half bar is empty.
+
+**The form is the dial r** (bars are 0-indexed; a bar is two half bars, 1.74 s):
+
+| bars | time | r | what the rule does |
+|---|---|---|---|
+| 0-8 | 0:00 | 1.5 rising to 2.8 | growth: nothing, single low notes, then the shuffle assembles |
+| 8-16 | 0:14 | 2.8 to 2.98 | one: the same half bar every time (`0.0A.0`: a shuffle with its accent on the back beat) |
+| 16-24 | 0:28 | 3.2, then 3.4 | two: two half bars alternate |
+| 24-32 | 0:42 | 3.5 | four: a two-bar riff |
+| 32-40 | 0:56 | 3.555 | eight: the two-bar riff, differently the second time |
+| 40-50 | 1:10 | 3.6 rising to 3.7 | it stops repeating |
+| 50-60 | 1:27 | 3.7402 | a window: it locks on FIVE half bars (two and a half bars), four times round |
+| 60-68 | 1:44 | 3.8 | it lets go again |
+| 68-77 | 1:58 | 3.8365 | a window: THREE half bars, after three half bars of finding it |
+| 77-83 | 2:14 | 3.845 | the three doubles: six |
+| 83-99 | 2:24 | 3.995 | the whole range: screams, holes of up to three half bars (the 808 boom falls through them), climbs |
+| 99-111 | 2:52 | 3.5, 3.2, 2.8 | the dial comes down: four, two, one (each for four bars; the rule needs most of that to settle) |
+| 111-113 | 3:13 | 1.0 | three single low notes, each lower, and none |
+
+It is one orbit: x starts at 0.02 and is never reset. The two windows' settings are found by the generator (`lock`): the setting inside the window from which the orbit, arriving as it does, locks soonest.
+
+**Who plays it.** Guitars, bass and the machine's kick play the half bar together. The machine's hat keeps the beat (four in a bar, opened before each new setting); its snare is on two and four where the riff repeats or runs wild, and on three only in the windows. The lead (`nes-pulse-lead`, a chip's pulse) has NO notes in the song: its track is the engine's own `gen: logistic`, one system for each dial setting, started from the orbit's own number there; it plays each half bar's rung, three octaves up. The generator was checked against the engine: 171 notes, none different.
+
+**Unlike the other five** (what chirp-eco measured they share): triplets (twelve-eight written as four-four) at 138 where they are straight sixteenths at 100 to 126; on E in the half-whole scale where they sit on F and C; a drum machine where they have one kit and a stick; a part the engine composes.
+
+**v1 is the skeleton**: the whole dial, played bare, on the record's guitars and bass.
