@@ -51,9 +51,15 @@ SCHEMA = {
             "synth": {"$ref": "#/$defs/Synth"}, "play": {"anyOf": [{"$ref": "#/$defs/Play"}, {"type": "null"}]},
             "fx": {"type": "array", "items": {"$ref": "#/$defs/Effect"}},
             "kit": {"type": ["object", "null"], "additionalProperties": {"type": "object"}}}},
+        "SystemKind": {"oneOf": [{"enum": ["logistic", "ca"], "type": "string"}, {"const": "life", "description": "Conway's."}]},
+        "System": {"type": "object", "properties": {"type": {"$ref": "#/$defs/SystemKind", "default": "logistic"},
+                                                    "r": {"type": "number"}, "rule": {"type": "integer"}, "n": {"type": "integer"}}},
+        "Gens": {"anyOf": [{"$ref": "#/$defs/System"}, {"type": "array", "items": {"$ref": "#/$defs/System"}}]},
         "Track": {"type": "object", "properties": {
             "name": {"type": "string"}, "patch": {"anyOf": [{"type": "string"}, {"$ref": "#/$defs/Patch"}]},
-            "fx": {"type": "array", "items": {"$ref": "#/$defs/Effect"}}, "notes": {"type": "array"}}},
+            "fx": {"type": "array", "items": {"$ref": "#/$defs/Effect"}}, "notes": {"type": "array"},
+            "score": {"type": ["string", "null"]}, "gen": {"anyOf": [{"$ref": "#/$defs/Gens"}, {"type": "null"}]},
+            "tracks": {"type": "array", "items": {"$ref": "#/$defs/Track"}}}},
         "Bus": {"type": "object", "properties": {"fx": {"type": "array", "items": {"$ref": "#/$defs/Effect"}}}},
     },
     "type": "object",
@@ -169,6 +175,60 @@ class Showcase(unittest.TestCase):
         self.assertIn("  reverbs: 2 of 2", lines)
         self.assertNotIn("voice (source)", text)             # a source the song does not use: its options are not listed
         self.assertNotIn("wah (effect)", text)
+
+    def gen_song(self, text):
+        p = os.path.join(self.root, "gen.yaml")
+        with open(p, "w") as f:
+            f.write(text)
+        return p
+
+    def test_a_tracks_gen_and_score_are_read_from_the_songs_own_file(self):
+        """The plan turns a `gen` and a `score` into notes: the planned song (PLAN: three tracks of notes) has neither."""
+        plain = self.run_tool()
+        self.assertIn("  generative systems: 0 of 3: logistic, ca, life", plain)                 # nothing in the file: as before
+        song = self.gen_song('tempo: 120\ntracks:\n'
+                             '  - {"name": "gl", "patch": "rig", "score": "c4 e4"}\n'
+                             '  - {"name": "grp", "tracks": [{"name": "lead", "gen": [{"r": 3.7, "n": 8}, {"type": "life", "n": 4}]}]}\n')
+        self.assertEqual(S.source_gens(song), ([("gl", {"score": "c4 e4"}),
+                                                ("lead", {"gen": [{"r": 3.7, "n": 8}, {"type": "life", "n": 4}]})], 0))
+        lines = self.run_tool(song=song).splitlines()
+        i = lines.index("  generative systems: 2 of 3")
+        self.assertEqual(lines[i + 1:i + 3], ["      used:     logistic (track lead by default), life (track lead)", "      not used: ca"])
+        i = lines.index("  System: 3 of 4")
+        self.assertEqual(lines[i + 1:i + 3], ["      set:     type, r, n", "      default: rule"])
+        i = [k for k, ln in enumerate(lines) if ln.startswith("  track: ")][0]
+        self.assertIn("gen", lines[i + 1])
+        self.assertIn("score", lines[i + 1])
+        self.assertNotIn("could not be read", "\n".join(lines))
+        use = json.loads(self.run_tool("--json", song=song))
+        self.assertEqual(use["kinds"]["SystemKind"]["used"], {"logistic": ["track lead by default"], "life": ["track lead"]})
+
+    def test_a_gen_in_any_other_yaml_is_found_in_the_text(self):
+        """A block mapping is not the songs' one-line shape: the file is searched for `gen:` and the track is not known."""
+        song = self.gen_song('buses:\n  room: {"fx": []}\ntracks:\n'
+                             '  - {name: a, about: "a \\"gen\\": [not this]", gen: {type: ca, rule: 30}}\n'
+                             '  - {"name": "b", "gen": [{"type": "life"}]}\n  - {name: c, oxygen: [1]}\n')
+        self.assertEqual(S.source_gens(song), ([(None, {"gen": {"type": "ca", "rule": 30}}), (None, {"gen": [{"type": "life"}]})], 0))
+        lines = self.run_tool(song=song).splitlines()
+        i = lines.index("  generative systems: 2 of 3")
+        self.assertEqual(lines[i + 1], "      used:     ca (a track's gen), life (a track's gen)")
+        broken = self.gen_song('buses:\n  room: {"fx": []}\ntracks:\n  - {name: a, gen: [{type: ca, rule: 30}\n')
+        self.assertEqual(S.source_gens(broken), ([], 1))
+        self.assertIn("(1 `gen` value(s) in " + broken + " could not be read", self.run_tool(song=broken).splitlines()[-1])
+        self.assertEqual(S.source_gens(os.path.join(self.root, "missing.yaml")), ([], 0))
+
+    def test_an_album_marks_the_song_whose_file_has_the_gen(self):
+        song = self.gen_song('tempo: 120\ntracks:\n  - {"name": "lead", "gen": {"type": "ca", "rule": 90}}\n')
+        out, old = io.StringIO(), sys.argv
+        sys.argv = ["showcase.py", self.song, song, "--pin", self.engine]
+        try:
+            with contextlib.redirect_stdout(out):
+                S.main()
+        finally:
+            sys.argv = old
+        lines = out.getvalue().splitlines()
+        i = [k for k, ln in enumerate(lines) if ln.startswith("  generative systems: 1 of 3")][0]
+        self.assertEqual(lines[i + 1:i + 3], ["      used:     ca (gen)", "      not used: logistic, life"])
 
     def test_all_and_only_also_list_what_is_not_used(self):
         self.assertIn("voice (source): 0 of 1", self.run_tool("--all"))

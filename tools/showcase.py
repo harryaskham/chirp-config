@@ -31,6 +31,10 @@ something it does use (a reverb with no `kind` is a hall, an amp with no `model`
 An OPTION is "set" when it is given a value other than the engine's default somewhere; the plan drops values equal to
 the default, so "default" means nowhere moved, written or not. A feature left out because it does not serve the piece
 is a choice; a feature nobody knew was there is what this is for.
+A track's `score` and its `gen` (a complex system that writes its notes) are read from the song's own FILE: the plan
+turns both into notes and keeps only the notes (checked on seven songs: no planned track has either), so the planned
+song no longer says a logistic map wrote them (Carrying Capacity, chirpers10-t6: a lead with no notes of its own and
+twenty-six logistic maps read "generative systems: 0 of 8" until 16 Nov; chirpers8's `gen` tracks likewise).
 (chirp-eco, 12 Nov; tests: tools/tests/test_showcase.py.)"""
 import argparse
 import json
@@ -44,6 +48,7 @@ import textwrap
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import chirpbin  # noqa: E402
+import songfmt  # noqa: E402
 
 NAMES = {"Effect": "effects", "LayerKind": "sound sources (layer kinds)", "AmpModel": "amp models", "CabModel": "cabinets",
          "ToneStack": "tone stacks", "ReverbKind": "reverbs", "FilterKind": "filter kinds", "Shape": "drive shapes",
@@ -300,6 +305,72 @@ class Usage:
                 self.walk(v, props[k], f"Song.{k}", "master" if k == "master" else "song")
         return self
 
+    def gens(self, found):
+        """Mark what the plan dropped ([(track, {"score": …, "gen": …})], from source_gens): that a track has a `score` or
+        a `gen`, and for a `gen` which complex system it is and which of its options are set."""
+        props = (self.cat.defs.get("Track") or {}).get("properties") or {}
+        for name, got in found:
+            for k, v in got.items():
+                if isinstance(props.get(k), dict):
+                    ctx = f"track {name}" if name else f"a track's {k}"
+                    self._mark(self.opts, self.cat.group("Track", k, props[k]), k, ctx)
+                    if k == "gen":
+                        self.walk(v, props[k], "Track.gen", ctx)
+        return self
+
+
+GEN_KEY = re.compile(r'(?<![\\\w])(?:"gen"|gen)\s*:\s*(?=[\[{])')
+
+
+SOURCE_ONLY = ("score", "gen")      # a track's options the plan turns into notes and drops
+
+
+def source_gens(path):
+    """What a song's own file says that its plan no longer does: ([(track name or None, {"score": …, "gen": …})], how
+    many `gen` values could not be read). The songs' one-line shape (tools/songfmt.py) or JSON gives each track's, at
+    any depth and in a song inside the song; any other YAML is only searched for `gen:` followed by a list or a mapping
+    (the track is then not known, and a `score` there is not seen)."""
+    try:
+        with open(path) as f:
+            text = f.read()
+    except OSError:
+        return [], 0
+    try:
+        doc = json.loads(text) if text.lstrip().startswith("{") else songfmt.parse_yaml(text, os.path.basename(path))
+    except (ValueError, KeyError, TypeError, IndexError):
+        doc = None
+    if isinstance(doc, dict):
+        out = []
+
+        def tracks(ts):
+            for t in ts if isinstance(ts, list) else []:
+                if isinstance(t, dict):
+                    got = {k: t[k] for k in SOURCE_ONLY if t.get(k) is not None}
+                    if got:
+                        out.append((t.get("name"), got))
+                    tracks(t.get("tracks"))
+
+        def song(d):
+            tracks(d.get("tracks"))
+            for sub in (d.get("songs") or {}).values() if isinstance(d.get("songs"), dict) else []:
+                if isinstance(sub, dict):
+                    song(sub)
+
+        song(doc)
+        return out, 0
+    out, bad = [], 0
+    for m in GEN_KEY.finditer(text):
+        try:
+            v, _ = json.JSONDecoder().raw_decode(text, m.end())
+        except ValueError:
+            try:
+                v, _ = songfmt.flow_value(text, m.end(), "gen")
+            except (ValueError, IndexError):
+                bad += 1
+                continue
+        out.append((None, {"gen": v}))
+    return out, bad
+
 
 def base(name):
     """The patch a name belongs to: "ct-kit.k" (a kit's piece) and "haake-hat amp.r=80ms" (overrides) are their base."""
@@ -533,6 +604,12 @@ def why(cat, use, names, scope="this song"):
     return out
 
 
+def unread_lines(unread):
+    """A last line for each song whose file has a `gen` this could not read ({song: how many})."""
+    return [f"({n} `gen` value(s) in {song} could not be read: the plan keeps only a generator's notes, so the systems "
+            "behind them are not listed above)" for song, n in unread.items() if n]
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("song", nargs="+")
@@ -557,7 +634,8 @@ def main():
     if a.diff:
         print("\n".join(diff(canon, *a.diff)))
         return
-    use = Usage(cat).song(canon)
+    found, unread = source_gens(a.song)
+    use = Usage(cat).song(canon).gens(found)
     if a.json:
         print(json.dumps({"song": a.song, "engine": os.path.basename(pin), "rigs": rigs(canon, cat.default_kind),
                           "kinds": {k: {"offered": list(v), "used": use.kinds.get(k, {})} for k, v in cat.kinds.items()},
@@ -570,7 +648,7 @@ def main():
     n_tracks = len(canon.get("tracks") or [])
     n_patch = len([n for n in (canon.get("patches") or {}) if "." not in n])
     print(f"showcase: {a.song} on {os.path.basename(pin)}: {n_tracks} tracks, {n_patch} patches, {len(canon.get('buses') or {})} buses")
-    print("\n".join(report(cat, use, canon, a)))
+    print("\n".join(report(cat, use, canon, a) + unread_lines({a.song: unread})))
 
 
 def album(cat, pin, songs, a):
@@ -579,7 +657,8 @@ def album(cat, pin, songs, a):
         die("--diff sets two patches of ONE song side by side: give one song")
     names = tags(songs)
     canons = [load_plan(pin, song) for song in songs]
-    per = {name: Usage(cat).song(canon) for name, canon in zip(names, canons)}
+    gens = [source_gens(song) for song in songs]
+    per = {name: Usage(cat).song(canon).gens(g[0]) for name, canon, g in zip(names, canons, gens)}
     use = merged(cat, per)
     if a.json:
         print(json.dumps({"songs": dict(zip(names, songs)), "engine": os.path.basename(pin),
@@ -593,7 +672,7 @@ def album(cat, pin, songs, a):
     sizes = "; ".join(f"{name} ({len(c.get('tracks') or [])} tracks, {len([n for n in (c.get('patches') or {}) if '.' not in n])} patches, "
                       f"{len(c.get('buses') or {})} buses)" for name, c in zip(names, canons))
     print(f"showcase: {len(songs)} songs on {os.path.basename(pin)}: {sizes}")
-    print("\n".join(report(cat, use, None, a, per)))
+    print("\n".join(report(cat, use, None, a, per) + unread_lines({song: g[1] for song, g in zip(songs, gens)})))
 
 
 if __name__ == "__main__":
