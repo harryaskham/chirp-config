@@ -62,6 +62,9 @@ BAND_DB = 3.0          # a band the part has, apart by this much between cycles:
 HOLDS_DB = -25         # a band counts when it is within this of the part's total
 DRIFT_OCT = 0.05       # the centroid moving this much a cycle ...
 DRIFT_ALL = 0.25       # ... or this much over the passage: DRIFT
+CYCLE_NOISE_OCT = 0.045  # how far a cycle's centroid sits from the line through them where a passage HOLDS: False
+#                          Summit's stair (eight guitars, seven cycles of two bars) runs +0.009 octaves a cycle while
+#                          neighbouring cycles differ by up to 0.11. So few cycles cannot show a small drift: see drift_floor
 LONGER = 0.6           # the cycles' levels this alike some cycles on (and 1 dB apart): A LONGER CYCLE under this one
 SAW_DB, SAW_OCT = 1.5, 0.15                    # a run through the cycle of this much, undone at the wrap: SAW-TOOTH
 
@@ -232,6 +235,15 @@ def plan_cycles(doc, tracks, b0, b1, cycle_beats, tempo=None):
     return n, sum(ref.values()), odd
 
 
+def drift_floor(n):
+    """The least drift (octaves a cycle) that n cycles can show: DRIFT_OCT, or with few cycles twice what their own
+    scatter (CYCLE_NOISE_OCT) gives a line through n of them: two cycles 0.13, three 0.064, four or more 0.05.
+    (chirper-zero, False Summit v6: -0.06 and +0.10 on two cycles of a lead with an echo were marked DRIFT; they
+    are inside what one cycle differs from the next where a passage holds.)"""
+    i = np.arange(max(2, int(n)))
+    return max(DRIFT_OCT, 2 * CYCLE_NOISE_OCT / float(np.sqrt(((i - i.mean()) ** 2).sum())))
+
+
 def marks(got, plan=None):
     """The lines an ear should look at: [(mark, what)]."""
     out = []
@@ -239,7 +251,7 @@ def marks(got, plan=None):
         out.append(("SPREAD", f"the cycles' levels are {got['level_spread']:.1f} dB apart"))
     if got["worst_band"] and got["band_spread"][got["worst_band"]] > BAND_DB:
         out.append(("SPREAD", f"{got['worst_band']} Hz moves {got['band_spread'][got['worst_band']]:.1f} dB between cycles"))
-    if abs(got["centroid_drift"]) >= DRIFT_OCT or abs(got["centroid_all"]) >= DRIFT_ALL:
+    if abs(got["centroid_drift"]) >= drift_floor(got["cycles"]) or abs(got["centroid_all"]) >= DRIFT_ALL:
         out.append(("DRIFT", f"the centroid moves {got['centroid_drift']:+.2f} octaves a cycle, {got['centroid_all']:+.2f} over "
                              "the passage: it is going somewhere (a real octave a cycle would read 1.00)"))
     if got.get("longer"):
@@ -305,6 +317,10 @@ def report(head, got, plan, warped):
         print("  IT HOLDS: one cycle later it is the same, and nothing starts again at the wrap.")
     for mark, what in ms:
         print(f"  {mark}: {what}")
+    floor = drift_floor(got["cycles"])
+    if DRIFT_OCT <= abs(got["centroid_drift"]) < floor and not any(m == "DRIFT" for m, _ in ms):
+        print(f"  (the centroid's {got['centroid_drift']:+.2f} octaves a cycle is not marked: from {got['cycles']} cycles a drift "
+              f"under {floor:.2f} is inside what one cycle differs from the next where a passage holds; more cycles would say)")
     print("  (whether an ear hears it climb for ever is not measured here; marks are questions for an ear before they are faults)")
 
 
@@ -369,7 +385,7 @@ def main(argv=None):
         head = (f"{os.path.basename(path)} {', '.join(tracks)}: {span}, {got['cycles']} cycles of {opt['--cycle']} ({cyc:.3f} s), "
                 "alone through their own effects, bus and master")
     if as_json:
-        print(json.dumps({**got, "marks": marks(got, plan), "plan": None if not plan else
+        print(json.dumps({**got, "drift_floor": drift_floor(got["cycles"]), "marks": marks(got, plan), "plan": None if not plan else
                           {"cycles": plan[0], "notes": plan[1], "differ": plan[2]}, "written_only": warped}))
         return 0
     report(head, got, plan, warped)

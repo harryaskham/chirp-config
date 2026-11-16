@@ -131,6 +131,25 @@ class Endless(unittest.TestCase):
         self.assertAlmostEqual(got["centroid_all"], 1.75, delta=0.1)
         self.assertIn("it is going somewhere (a real octave a cycle would read 1.00)", got["marks"][0][1])
 
+    def test_few_cycles_cannot_show_a_small_drift(self):
+        """Two cycles 0.10 octaves apart are inside what neighbouring cycles of a passage that holds differ by: not marked,
+        and said so. The same over seven cycles is a drift; a real climb is one on two."""
+        self.assertEqual([round(E.drift_floor(n), 3) for n in (2, 3, 4, 7, 40)], [0.127, 0.064, 0.05, 0.05, 0.05])
+        got = self.read("climb", "1-3")
+        self.assertEqual((got["cycles"], "DRIFT" in [m for m, _ in got["marks"]], round(got["drift_floor"], 3)), (2, True, 0.127))
+        small = {**got, "centroid_drift": 0.10, "centroid_all": 0.10, "level_spread": 0.2, "worst_band": None}
+        self.assertEqual(E.marks(small), [])
+        self.assertEqual([m for m, _ in E.marks({**small, "cycles": 7})], ["DRIFT"])
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            E.report("head", small, None, None)
+        self.assertIn("IT HOLDS", buf.getvalue())
+        self.assertIn("(the centroid's +0.10 octaves a cycle is not marked: from 2 cycles a drift under 0.13 is inside", buf.getvalue())
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            E.report("head", {**small, "centroid_drift": 0.01, "centroid_all": 0.01}, None, None)
+        self.assertNotIn("is not marked", buf.getvalue())
+
     def test_parts_taking_turns_make_a_longer_cycle(self):
         got = self.read("turns", "1-13")
         self.assertEqual(got["longer"]["every"], 3)

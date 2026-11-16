@@ -7,7 +7,7 @@ and up to 7.5 dB at 1-2 kHz. In the mix it read as "+1 at 60-120, -2 at 120-250"
 Harry's "more bass", which was answered with a fader. He found it by benching the part four times by hand: "a
 tool would have found this at the first key change of the first song".)
 
-  keyshape.py SONG TRACK[,TRACK...] [--bars 8] [--min 2] [--pool] [--pin CHIRP] [--keep DIR] [--json]
+  keyshape.py SONG TRACK[,TRACK...] [--bars 8] [--min 2] [--pool] [--no-mix] [--pin CHIRP] [--keep DIR] [--json]
 
 SONG is an id (songs/ID.yaml) or a file; the TRACKs are one part (the bass; both guitars of a rig: gl,gr; where
 one of them rests, the ground is read from the other).
@@ -29,10 +29,19 @@ stretches). Printed:
 then what the two rows say together: when home's own notes lose the band there too, it is THE RIG (an eq, a tight
 filter or a compressor fitted to one ground); when they keep it, the notes the song plays there are different ones;
 when only home's notes lose something, the rig is at work there and the song's own notes hide it.
+  IN THE MIX       for a ground that loses something: the WHOLE song over the first four bars read there, and for
+                   each band lost how far the part alone sits against the mix (-17.1: that far under it) and what
+                   the loss is WORTH: the dB the mix's band would rise were it mended (powers added; a first
+                   figure). COVERED when no band is worth 0.5 dB: the rest of the band holds those bands there, and
+                   a mend will not be heard as level (chirper-zero, Common Time v51: a 7 dB mend of the bass alone
+                   moved the mix 1 dB at 120-250 Hz and nothing above; "a line under the table would have said it
+                   before the first full render"). It costs one render of the whole song's bars for each ground that
+                   loses: on a full song about 40 s each, however few the bars (the engine's start is most of it).
+                   --no-mix leaves it out: use that while fitting a mend, and read the mix once at the end.
 A ground nine semitones or more from home is marked: the bands are an octave wide, so that far the harmonics
 themselves change bands and a few dB of any loss is the note.
-What it cannot say: whether the loss is heard (tools/stembal.py on the stretch, by part; an ear), or what mends
-it. One mend: the eq bands take their cutoff from a bus lane that follows the ground
+What it cannot say: whether the loss is heard as TONE where the part is exposed (an ear; tools/stembal.py on the
+stretch, by part), or what mends it. One mend: the eq bands take their cutoff from a bus lane that follows the ground
 ({"kind": "peak", "cutoff": {"value": 44, "mod": [{"src": "auto.key", "amount": 0.08333}]}, ...}; a Freq mod is in
 octaves, so 1/12 a semitone), as Plain Hunt v11 and Odd Sympathy v23 do.
 Limits: fixed-tempo songs in 4/4; notes as written (a part on a `warp` is read by the bars it is written in);
@@ -40,6 +49,7 @@ kit pieces and pitches that are not note names are skipped. --keep DIR keeps eac
 --pin: the chirp binary (else $CHIRP, else the groove's pin). Read-only. Tests: tools/tests/test_keyshape.py.
 """
 import json
+import math
 import os
 import shutil
 import sys
@@ -59,6 +69,11 @@ LABELS = keybench.LABELS
 HOLDS_DB = -25.0      # a band the part "has" at home: within this of its own total
 LOSES_DB = -3.0       # a ground that takes this much out of such a band loses it
 BEATS = 4.0           # a bar
+MIX_BARS = 4          # IN THE MIX reads the whole song over this many bars of a ground's first stretch ...
+MIX_PREROLL_S = 3.0   # ... with the engine warmed this long before them (`chirp render --preroll`). On Common Time a
+#                       render costs 38 s whether it is two bars or four, warmed 0.5 s or 6 (the engine's start), two
+#                       bars read within 1 dB of four, and three renders at once were no faster than one after another
+COVERED_DB = 0.5      # no lost band worth this much of the mix: COVERED
 
 
 def note_name(m):
@@ -179,9 +194,16 @@ def far_note(semis):
             "note, not the rig)")
 
 
-def read(song, tracks, pin, where, least=2, most=8, pool=False):
-    """The table: {"home": name, "grounds": [{name, hz, bars, runs, read, own, vs_home, moved, loses, moved_loses, says}]}.
-    `own` is each band against the part's own total on that ground; vs_home / moved are in dB against home's own."""
+def worth(under, loss):
+    """The dB a mix's band would rise were a part's loss in it mended: the part sits `under` dB against the mix there
+    (negative: under it) having lost `loss` dB (negative). Powers added: a first figure."""
+    return 10 * math.log10(1 + 10 ** (under / 10.0) * (10 ** (-loss / 10.0) - 1))
+
+
+def read(song, tracks, pin, where, least=2, most=8, pool=False, mix=True):
+    """The table: {"home": name, "grounds": [{name, hz, bars, runs, read, own, vs_home, moved, loses, moved_loses, says,
+    in_mix}]}. `own` is each band against the part's own total on that ground; vs_home / moved are in dB against
+    home's own; in_mix (a ground that loses, with `mix`): {bars, bands: [{band, loss, under, worth}], covered}."""
     doc = songfmt.load(song)
     tempo = doc.get("tempo", 120)
     if not isinstance(tempo, (int, float)) or isinstance(tempo, bool) or tempo <= 0:
@@ -212,13 +234,18 @@ def read(song, tracks, pin, where, least=2, most=8, pool=False):
             b0, b1 = at, at + b1 - b0
         return keybench.band_levels(keybench.render(made, pin, where, tag, b0, b1))
 
+    def summed(levels):
+        """Several stretches' bands (and the whole, last) as one: their power summed."""
+        return 10 * np.log10(np.sum(10 ** (np.array(levels) / 10.0), axis=0))
+
     def own(levels):
         """Several stretches' bands as one: their power summed, each band against the total (one stretch: itself)."""
-        total = 10 * np.log10(np.sum(10 ** (np.array(levels) / 10.0), axis=0))
+        total = summed(levels)
         return [round(float(v - total[-1]), 1) for v in total[:-1]]
     home = gs[0]
     for i, g in enumerate(gs):
-        g["own"] = own([shape(a * BEATS, (b + 1) * BEATS, 0, f"-{g['name']}-{k}") for k, (a, b) in enumerate(g["reads"])])
+        alone = [shape(a * BEATS, (b + 1) * BEATS, 0, f"-{g['name']}-{k}") for k, (a, b) in enumerate(g["reads"])]
+        g["own"] = own(alone)
         if i == 0:
             continue
         semis = int(round(g["ground"] - home["ground"]))
@@ -235,6 +262,22 @@ def read(song, tracks, pin, where, least=2, most=8, pool=False):
         g["says"] = verdict(g["loses"], g["moved_loses"])
         if g["says"]:
             g["says"] += far_note(semis)
+
+    def in_mix(g):
+        """The WHOLE song over the ground's first bars: what is each lost band worth there?"""
+        lost = {**dict(g["moved_loses"]), **dict(g["loses"])}          # a band both rows lose: the song's own figure
+        a = g["reads"][0][0]
+        b0, b1 = a * BEATS, (a + min(g["reads"][0][1] - a + 1, MIX_BARS)) * BEATS
+        part = shape(b0, b1, 0, f"-{g['name']}-part")
+        whole = keybench.band_levels(keybench.render(doc, pin, where, f"-{g['name']}-mix", b0, b1, preroll=MIX_PREROLL_S))
+        bands = [{"band": lb, "loss": lost[lb], "under": round(float(part[k] - whole[k]), 1)}
+                 for k, lb in enumerate(LABELS) if lb in lost]
+        for m in bands:
+            m["worth"] = round(worth(m["under"], m["loss"]), 1)
+        return {"bars": [a, int(b1 / BEATS) - 1], "bands": bands, "covered": all(m["worth"] < COVERED_DB for m in bands)}
+    for g in gs[1:] if mix else []:
+        if g["loses"] or g["moved_loses"]:
+            g["in_mix"] = in_mix(g)
     return {"home": home["name"], "grounds": gs}
 
 
@@ -244,6 +287,9 @@ def main(argv=None):
     pool = "--pool" in a
     if pool:
         a.remove("--pool")
+    mix = "--no-mix" not in a
+    if not mix:
+        a.remove("--no-mix")
     for k in list(opt):
         if k in a and a.index(k) + 1 < len(a):
             i = a.index(k)
@@ -268,7 +314,7 @@ def main(argv=None):
     where = opt["--keep"] or tempfile.mkdtemp(prefix="keyshape-")
     os.makedirs(where, exist_ok=True)
     try:
-        got = read(path, tracks, opt["--pin"] or chirpbin.resolve(), where, least, most, pool)
+        got = read(path, tracks, opt["--pin"] or chirpbin.resolve(), where, least, most, pool, mix)
     finally:
         if not opt["--keep"]:
             shutil.rmtree(where, True)
@@ -298,6 +344,14 @@ def main(argv=None):
                   + ("   LOSES " + ", ".join(f"{lb} ({d:+.1f})" for lb, d in lost) if lost else ""))
         if g["says"]:
             print(f"  {'':27s}{g['says']}")
+        if g.get("in_mix"):
+            im = g["in_mix"]
+            print(f"  {'':27s}IN THE MIX there (the whole song, bars {im['bars'][0] + 1}-{im['bars'][1] + 2}; the part alone against "
+                  "the mix, and what its loss is worth of the mix, dB): "
+                  + "; ".join(f"{m['band']} {m['under']:+.1f}, {-m['loss']:.1f} worth {m['worth']:.1f}" for m in im["bands"]))
+            if im["covered"]:
+                print(f"  {'':27s}COVERED: mended, no band of the mix would rise {COVERED_DB:g} dB on these bars: it will not be "
+                      "heard as level (as the part's own tone where it is exposed: an ear)")
     if not any(g["loses"] or g["moved_loses"] for g in gs[1:]):
         print("  the part keeps its shape on every ground (no band it has at home falls 3 dB above the fundamentals)")
     print("  (bands at or under the one holding a fundamental are not read: there it is the note that moved. The bars are as "

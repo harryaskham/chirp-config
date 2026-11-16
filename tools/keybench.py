@@ -97,13 +97,15 @@ def spectrum(path):
     return eqpred.spectrum(path)
 
 
-def render(doc, pin, where, tag, b0, b1):
+def render(doc, pin, where, tag, b0, b1, preroll=None):
+    """Beats b0..b1 of a song (loudness off, seed 0) as a WAV in `where`. preroll (seconds): the engine starts that
+    long before the window instead of at the top (`chirp render --preroll`; for a whole song's late window)."""
     song = os.path.join(where, f"bench{tag}.json")
     wav = os.path.join(where, f"bench{tag}.wav")
     with open(song, "w") as f:
         json.dump(doc, f)
     cmd = ["nice", "-n", "12", pin, "render", "-f", song, "--seed", "0", "--set", "loudness=null", "--threads", "2",
-           "--from", f"{b0:g}b", "--to", f"{b1:g}b", "-o", wav]
+           "--from", f"{b0:g}b", "--to", f"{b1:g}b", "-o", wav] + (["--preroll", f"{preroll:g}"] if preroll else [])
     r = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT, env={k: v for k, v in os.environ.items() if k != "LD_LIBRARY_PATH"})
     if r.returncode:
         raise SystemExit("keybench: the bench did not render: " + (r.stderr or r.stdout).strip()[-400:])

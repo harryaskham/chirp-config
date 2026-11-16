@@ -169,6 +169,35 @@ class WholeRun(unittest.TestCase):
         self.assertEqual(g1["moved_loses"], [])
         self.assertEqual(g1["says"], "the notes: home's own notes, moved there, keep it")
 
+    def test_what_a_loss_is_worth_in_the_mix(self):
+        """The whole song over the ground's bars. In SONG nothing else is pitched, so the part IS the mix and its loss is
+        worth all of itself; under a wall of chords that holds those bands it is COVERED."""
+        self.assertEqual([round(K.worth(u, d), 2) for u, d in ((0, -3), (-10, -7), (-15, -7), (-30, -12))], [3.0, 1.46, 0.52, 0.06])
+
+        def b1_of():
+            code, text = self.run_tool("bass", "--bars", "4", "--json")
+            return next(g for g in json.loads(text)["grounds"] if g["name"] == "B1")
+        im = b1_of()["in_mix"]                                                             # under the song's pad
+        self.assertEqual((im["bars"], im["covered"], [m["band"] for m in im["bands"]]), ([8, 11], False, ["250-500"]))
+        self.assertTrue(im["bands"][0]["under"] < -10 and 0.5 <= im["bands"][0]["worth"] < 2.0, im)
+        self.assertAlmostEqual(im["bands"][0]["worth"], K.worth(im["bands"][0]["under"], im["bands"][0]["loss"]), delta=0.06)
+        self.write({**SONG, "tracks": [t for t in SONG["tracks"] if t["name"] != "pad"]})
+        im = b1_of()["in_mix"]
+        self.assertAlmostEqual(im["bands"][0]["under"], 0.0, delta=0.3)                     # alone, the part is the mix
+        self.assertAlmostEqual(im["bands"][0]["worth"], -im["bands"][0]["loss"], delta=0.4)   # so its loss is worth itself
+        wall = json.loads(json.dumps(SONG))
+        wall["tracks"].append({"name": "wall", "notes": bars(0, 21, ["C3,E3,G3,C4,E4,G4"])})
+        self.write(wall)
+        im = b1_of()["in_mix"]
+        self.assertTrue(im["covered"] and im["bands"][0]["under"] < -15 and im["bands"][0]["worth"] < K.COVERED_DB, im)
+        code, text = self.run_tool("bass", "--bars", "4")
+        self.assertIn("IN THE MIX there (the whole song, bars 9-13; the part alone against the mix", text)
+        self.assertIn("COVERED: mended, no band of the mix would rise 0.5 dB on these bars", text)
+        code, text = self.run_tool("bass", "--bars", "4", "--no-mix")
+        self.assertEqual((code, "IN THE MIX" in text, "LOSES" in text), (0, False, True))
+        got = K.read(self.song, ["bass"], self.engine, self.root, 2, 4, mix=False)
+        self.assertFalse(any("in_mix" in g for g in got["grounds"]))
+
     def test_the_control_is_played_where_the_ground_is(self):
         # the rig's lift follows a lane at bars 9-12 (two semitones up there): the song is mended, and the control,
         # played at THAT place, says so too; played at home's place it would still lose
