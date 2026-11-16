@@ -162,6 +162,15 @@ TOM_BASE = F1                           # three octaves of drums from here; the 
 # leads together, -10.0 by presence to their -12.5 to -14.4 each, and held 500 Hz-1 kHz 1.5 dB under the WHOLE mix
 # as it had in v5. So the lead went up 2 dB and the synth down to -8.)
 CLIMB = os.environ.get("C10T5_CLIMB", "lead-tape;0dB;8;53;-8")
+# v7: THE TURN, HEARD NAKED (section round, 1:26-1:55, the turn's second half: the map called it static, and it was:
+# four cycles of the same thing, the kit and the bass holding the bar under all of them). The turn is the hardest of
+# the song's illusions to hear, because the thing that speeds up for ever is under a snare, a china and a bass that
+# do not. Now it has a shape: two cycles with the kit holding the bar, as before (the ear gets the bar); then for the
+# THIRD cycle the snare, the china and the bass stop on a crash and the chug is alone with its kick, speeding up, for
+# four bars (the illusion with nothing in front of it); then the kit comes back for the last cycle harder than it
+# left: the snare on the backbeat, the china in eighths, into the fill and the descent.
+# the cycle (from 0) heard naked ; `lift`: the cycle after it has the backbeat and the china in eighths. "" = v6.
+NAKED = os.environ.get("C10T5_NAKED", "2;lift")
 LLANE = {v: [(0.0, FLOOR)] for v in range(3)}           # the three leads' faders
 LANE = {v: [(0.0, FLOOR)] for v in range(VOICES)}       # each voice's fader, (beat, dB)
 BLANE = {w: [(0.0, FLOOR)] for w in range(2)}           # the descent's two basses
@@ -462,10 +471,21 @@ def compose():
         add("lead", (TIME - R) * 16, 4, top - 24, 0.95)
     # the turn: the chug at three speeds, speeding up for ever. The kit and the bass hold the bar
     turn(TIME, FALL)
-    beat(TIME, FALL, snare=(8,), cym="x", stepc=4, crash=CYCLE)
+    if NAKED:                            # v7: one cycle of the turn alone with its kick; the kit comes back harder
+        n0 = TIME + CYCLE * int(NAKED.split(";")[0])
+        beat(TIME, n0, snare=(8,), cym="x", stepc=4, crash=CYCLE)
+        drum("c", n0 * 16, 0.9)
+        if NAKED.split(";")[1] == "lift":
+            beat(n0 + CYCLE, FALL, snare=(4, 12), cym="x", stepc=2, crash=CYCLE)
+        else:
+            beat(n0 + CYCLE, FALL, snare=(8,), cym="x", stepc=4, crash=CYCLE)
+    else:
+        n0 = None
+        beat(TIME, FALL, snare=(8,), cym="x", stepc=4, crash=CYCLE)
     for b in range(TIME, FALL):
         ground(b * 4, 0)
-        anchor(b)
+        if n0 is None or not n0 <= b < n0 + CYCLE:
+            anchor(b)
     fill(FALL)
     # the descent
     descent(FALL, POLE, gend=POLE - R if R else None)
