@@ -228,6 +228,17 @@ KNOCKS = []                           # (sixteenth, the key's root, the statemen
 #   2. THE ARRIVAL ON C WAS THE MUDDIEST BAR OF THE SONG: 3.3 dB over the records at 250-500 Hz (the other totals
 #      0.6 to 1.4), and the wall pair alone was within 3.3 dB of the whole mix there: a fifth higher than on F, more
 #      of its chug lands in the cabinet's low mids. Its low-mid cut is deeper while the total is on C, and only there.
+# v10: THE TOTAL ARRIVES (whole-song round). The piece waits thirty-three bars for its riff to be whole, and when it
+# was whole NOTHING GOT BIGGER: in the finished file the last stretch of the count read -9.3 LUFS, the first whole
+# statement -9.1 and the total -9.3; the same again at the second total (-9.3 and -9.3). The count had already
+# brought in a second pair of guitars eight statements before the end, so the total's four guitars arrived to find
+# four guitars there. Now the count is said by TWO guitars to its last statement, both times (the build, and the
+# band's return in the back-build), and the riff whole is the first time there are four. The second pair of tight
+# guitars is first heard where the totals come apart (the melt), which is what a thinner rig is for.
+# What still grows through the count's second half: the second guitar and the china on the heads (statement 17),
+# the snare (bar 9), the backbeat and the hat's eighths (bar 19).
+# "1" = the count on two guitars; "" = v9 (the doubles join at statement 25, and at the band's return).
+LEAN = os.environ.get("C10T4_LEAN", "1")
 # the tight rig's band: Hz : q : dB. "" = v8.
 MIDS = os.environ.get("C10T4_MIDS", "700:0.9:2.5")
 # the wall pair's low-mid cut on C: dB more than on the other grounds. "" = v8.
@@ -329,7 +340,7 @@ def compose():
     # the build: statement k is the riff's first k places. The band grows as the riff does
     t = BUILD * 16
     for k in range(1, N + 1):
-        gtrs = () if k < 9 else ("gl",) if k < 17 else G_MAIN if k < 25 else G_MAIN + G_DBL
+        gtrs = () if k < 9 else ("gl",) if k < 17 else G_MAIN if k < 25 or LEAN else G_MAIN + G_DBL
         say(t, 0, k, 0, gtrs, low=k >= 9, wood=k < 17)       # the marimba counts the first eight alone, and hands over
         if COUNT and k >= int(COUNT.split(";")[4]):
             HEADS.append(t)
@@ -363,7 +374,7 @@ def compose():
     for k in range(1, N + 1):
         if CLEAN:
             band = k >= cb
-            say(t, N - k, N, 6, G_MAIN + G_DBL if band else (), low=k >= int(CLEAN.split(";")[9]), soft=not band, wood=k < cb,
+            say(t, N - k, N, 6, (G_MAIN if LEAN else G_MAIN + G_DBL) if band else (), low=k >= int(CLEAN.split(";")[9]), soft=not band, wood=k < cb,
                 clean=() if band or k < c1 else ("cl",) if k < c2 else ("cl", "cr"))
             if k == cb:
                 for i, pc in enumerate(["t1", "t2", "ft", "s"]):

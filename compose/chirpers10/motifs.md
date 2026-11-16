@@ -299,6 +299,8 @@ Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber"
 
 **The count has mids, and the total on C is clearer (v9).** Whole-song round; no notes changed. The four tight guitars (the riff being counted: the build, the band's return in the back-build, the melt) get 2.5 dB at 700 Hz, where those stretches read hollow against the records. The wall pair's low-mid cut is 3 dB deeper while the total is on C (bars 82-90), the muddiest stretch.
 
+**The total arrives (v10).** Whole-song round. The count is said by two guitars to its last statement, both times (the build, and the band's return in the back-build); the riff whole is the first time there are four. Before, the second pair of tight guitars joined eight statements before the end, and the total was no louder than the count before it. The tight doubles (`gl2`/`gr2`) now play only in the melt (bars 98-121).
+
 ## t5 False Summit (chirper-zero)
 
 Harry, 15 Nov about 12:38: "true djent, but that leverages audio illusions throughout mainly risers/shpehers but in djent style, really make it a clear illlusory song, all about the illusions". 100 bpm, F, 108 bars, 4:24.
