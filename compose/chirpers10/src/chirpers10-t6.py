@@ -237,6 +237,19 @@ UP = os.environ.get("C10T6_UP", "4;6;0.45;0.38;-20dB;-0.4;1")
 HATS = {"four": int(UP.split(";")[0]), "eight": int(UP.split(";")[1])} if UP else {}
 HEAD3 = lock_head("three", 3) if LOCK else None
 HEAD4D = lock_head("down-four", 4, rhythm=True) if TELL else None
+# v5: THE FIRST LOCK GOES WITH THE CYCLE (section round, 1:23-1:51: the window of five). There are two things a
+# band can do with a cycle that does not fit the bar. It can hold the bar and let the cycle turn against it: that
+# is the window of three (2:01), where the snare stays on the bar's third beat and the riff comes round under it,
+# three against two. Or it can drop the bar and go with the cycle. Through v4 both windows did the first. Now the
+# window of five does the second: for its seventeen seconds the song is IN five. The cycle is ten beats long, and
+# the machine plays it as a drummer counts ten: four, four and two. The snare is on the third beat of each four
+# (the first of them lands on the cycle's one lonely low note), and both beats of the two are snare, a push into
+# the cycle's head, where the cymbal is. Nothing in that stretch marks the song's own bar but the hat, which never
+# stops keeping the beat; after four times round, ten bars have gone by and the two meet again.
+# the snare's beats in the ten-beat cycle ; those of them with the clap ; the cymbal's velocity on each head. "" = v4.
+FIVE = os.environ.get("C10T6_FIVE", "3,7,9,10;3,7;0.85")
+HEAD5 = lock_head("five", 5) if FIVE else None
+assert not FIVE or HEAD5 == AT["five"], "the window of five is written for a cycle that locks at once"
 assert LOCK or not TELL, "C10T6_TELL builds on C10T6_LOCK"
 
 G = ("gl", "gr")
@@ -280,7 +293,16 @@ def compose():
                 drum("h", c, s, float(UP.split(";")[2 if s in (2, 5) else 3]))
         if TELL and sec == "full" and len(cell(x)[0]) == 6:   # the top: the cymbal on every scream
             drum("c", c, cell(x)[0][cell(x)[1]], float(TELL.split(";")[3]))
-        if sec in BACK or finding:
+        if FIVE and sec == "five":                            # v5: the machine counts the cycle, not the bar
+            k = (c - HEAD5) % 5
+            for b in (int(v) for v in FIVE.split(";")[0].split(",")):
+                if (b - 1) // 2 == k:
+                    drum("s", c, 0 if b % 2 else 3, 1.0 if b % 2 else 0.9)
+                    if str(b) in FIVE.split(";")[1].split(","):
+                        drum("p", c, 0 if b % 2 else 3, 0.8)
+            if k == 0 and not first:
+                drum("c", c, 0, float(FIVE.split(";")[2]))
+        elif sec in BACK or finding:
             drum("s", c, 3, 0.95)
         elif sec in HALF and c % 2 == 1:
             drum("s", c, 0, 1.0)
