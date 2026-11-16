@@ -446,6 +446,38 @@ def climb(b0, b1):
         step(LLANE[v], b1 * 4, FLOOR)
 
 
+# v12: THE POLE'S LINE IS ON GUITARS (palette round: the swap). The quiet middle of the song (2:53-3:19) is one chord
+# through a filter that climbs for ever, and over it the stair's line, slowly: and that line was on the Shepard TONE,
+# the one synthesiser in a song whose first sentence says the band plays the illusions. v6 took the riser from a
+# synth and gave it to three lead guitars; v11 took the tone out from under the stair. This is the last place it
+# carried anything: read alone it was the loudest part there with the chord and held the band from 250 Hz to 1 kHz.
+# Now the slow line is on the same THREE LEAD GUITARS, an octave apart, each fading in at the bottom and out at the
+# top as it climbs (the stair's own way), half an octave a bar: an endless climb sung by three guitars over the
+# turning chord. The tone now does one thing only: it states the illusion, alone, for the song's first ten seconds.
+# (First bench at -4 dB: the three leads together read about a dB under where the tone had been, and under the chord;
+# the line is the pole's tune, so 1.5 dB up.)
+# the leads' level in the pole against their level in the climb, dB. "" = v11 (the tone).
+POLELEAD = os.environ.get("C10T5_POLELEAD", "-2.5") if CLIMB else ""
+
+
+def slow_leads(b0, b1):
+    """The stair's line at half speed (three notes a bar) on the three leads under the bell; the faders shut at b1."""
+    base, trim, n = int(CLIMB.split(";")[3]), float(POLELEAD), 0
+    for b in range(b0, b1):
+        for i, a in enumerate((0, 6, 12)):
+            h = 12 * (n // 6) + SCALE[n % 6]
+            for v in range(3):
+                p = (h + 12 * v) % 36
+                g = db(bell(p / 36)) + trim
+                if g <= -45:
+                    continue
+                step(LLANE[v], (b * 16 + a) / 4, g)
+                addb(f"ld{v}", (b * 16 + a) / 4, ((6, 12, 16)[i] - a) / 4, base + p, 0.9)
+            n += 1
+    for v in range(3):
+        step(LLANE[v], b1 * 4, FLOOR)
+
+
 def tomfall(s0, n16, scale):
     """THE FILL THAT NEVER LANDS: `n16` sixteenths of toms from sixteenth `s0`, each stroke three drums an octave apart
     under the bell. `scale`: a step of the scale down a stroke, so that the stroke after the last would be F (the bar
@@ -597,7 +629,9 @@ def compose():
             add(tr, b * 16, 31, ",".join(nm(F1 + root + i) for i in (0, 7, 12)), 0.9)
         add("ghost", b * 16, 31, F1 + (root - 12 if root > 6 else root), 0.85)
         drum("k", b * 16, 0.85)
-    line(POLE, BOTH - R, gtrs=False, slow=2)
+    line(POLE, BOTH - R, gtrs=False, slow=2, synth=not POLELEAD)
+    if POLELEAD:                         # v12: the slow line on the three leads
+        slow_leads(POLE, BOTH - R)
     if TICK:                             # v2: a tick that speeds up for ever (the track's `risset`; these three strokes are its pattern)
         for at, ln, v in ((0.0, 0.5, float(TICK.split(";")[1])), (0.5, 0.5, float(TICK.split(";")[2])), (1.0, 1.0, float(TICK.split(";")[2]))):
             T.setdefault("tick", []).append({"at": at, "len": ln, "pitch": "h", "vel": v})
