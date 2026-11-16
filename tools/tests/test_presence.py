@@ -102,6 +102,24 @@ class Windows(unittest.TestCase):
         self.assertIn("silent", text.split(heads[1])[0])                   # the lead, in the first table only
         self.assertNotIn("silent", text.split(heads[1])[1])
 
+    def test_whose_band_is_it_comes_from_the_same_renders(self):
+        text = self.run_tool("--windows", "1-2:before", "3-5")
+        self.assertEqual(len(self.calls()), 4)                             # nothing more is rendered for it
+        first, second = text.split("song.yaml (3 -> 5;")
+        head = "  whose band is it (a track ALONE within 6 dB of the mix's own band; 0 = it is the band, -3 about half):"
+        self.assertIn(head, first)
+        self.assertIn(head, second)
+        got = {ln.split()[0]: ln.split()[1:] for ln in second.split(head)[1].splitlines() if ln.startswith("    ")}
+        self.assertEqual((got["120-250"][0], got["500-1k"][0], got["1-2k"][0]), ("pad", "lead", "lead"))   # 1 kHz sits on the edge
+        self.assertAlmostEqual(float(got["120-250"][1]), 0.0, delta=0.2)   # the pad IS its band
+        self.assertNotIn("2-4k", got)                                      # the ghost's band is 46 dB under the mix: not read
+        self.assertNotIn("lead", first.split(head)[1])                     # not in the first two seconds
+        many = json.loads(self.run_tool("--windows", "1-2:before", "3-5", "--json"))
+        before, after = (w["tracks"] for w in many["windows"])
+        self.assertEqual((before["lead"]["holds"], list(before["pad"]["holds"])), ({}, ["120-250"]))
+        one = json.loads(self.run_tool("--from", "3", "--to", "5", "--json"))
+        self.assertEqual(one["tracks"]["pad"]["holds"], after["pad"]["holds"])
+
     def test_one_window_alone_is_printed_as_it_always_was(self):
         text = self.run_tool("--from", "3", "--to", "5")
         self.assertTrue(text.startswith("song.yaml (3 -> 5; seed 0; unmastered, K-weighted): 3 tracks, 1 muted skipped\n"))
@@ -168,6 +186,22 @@ class Windows(unittest.TestCase):
 
 
 class Measure(unittest.TestCase):
+    def test_a_track_holds_a_band_within_six_db_of_the_mixs(self):
+        mix = np.array([0, 100.0, 100.0, 100.0, 1e-4, 0, 0, 0, 0])
+        solo = np.array([0, 100.0, 30.0, 20.0, 1e-4, 0, 0, 0, 0])
+        self.assertEqual(P.holds(mix, solo), {"60-120": 0.0, "120-250": -5.2})     # -7 is not held; a band 64 dB under the
+        self.assertEqual(P.holds(np.zeros(9), np.zeros(9)), {})                    # mix's whole is not read
+        rows = {"a": {"holds": {"60-120": -1.0}}, "b": {"holds": {"60-120": -0.5, "1-2k": -3.0}}, "c": {"holds": {}}, "d": {}}
+        self.assertEqual(P.whose_lines(rows)[1:], ["    60-120   b -0.5, a -1.0", "    1-2k     b -3.0"])
+        self.assertEqual(P.whose_lines({"c": {"holds": {}}}), [])
+        sr = 48000
+        t = np.arange(sr * 2) / sr
+        tone = np.stack([np.sin(2 * np.pi * 300 * t)] * 2, axis=1)
+        bp = P.band_power(tone, sr)
+        self.assertEqual(int(np.argmax(bp)), P.LABELS.index("250-500"))
+        self.assertLess(bp.sum() - bp.max(), bp.max() * 1e-4)                      # all of it in its band
+        self.assertEqual(P.band_power(tone[:100], sr).sum(), 0.0)                  # shorter than a frame: nothing
+
     def test_frames_db_of_a_full_scale_sine(self):
         sr = 48000
         t = np.arange(sr * 2) / sr

@@ -50,6 +50,15 @@ What it cannot see (chirper-zero, Common Time v22): a pure tone has all its ener
 -12 to -14 dB here ("buried", 5 dB under the lead) while it put its section's 250-500 Hz 3.8 dB further over the
 reference records (tools/stembal.py). Both readings were right. A level under the mix is not a share of a band: for a
 part with a narrow spectrum run stembal on the section as well.
+
+WHOSE BAND IS IT (16 Nov, chirper-zero, three times in one day: a synth riser that was most of a climax's 500 Hz to
+1 kHz for five versions, a bass's lift, a held lead 3.7 dB under the whole mix at 500 Hz-1 kHz; each found only when
+the part alone was put under the mix by band, by hand). Under each table, from the same renders (nothing more is
+rendered): for each of the nine bands tools/stembal.py reads, the tracks that ALONE are within 6 dB of the mix's own
+band there, nearest first (0 = the track is the band; -3 = about half of it). A band nobody holds that closely is
+shared and is left out. The same caution as stembal's --parts: a track alone still goes through its bus and the
+master, and tracks that share a band add in power only when they are unrelated. Always the mono sum, whatever
+--stereo says of the levels. When a band reads over the records (stembal), look here for its owner before mending.
 """
 import argparse
 import json
@@ -66,11 +75,42 @@ sys.path.insert(0, HERE)
 import levels  # noqa: E402
 import likeness as L  # noqa: E402
 import wincut  # noqa: E402
+from keybench import EDGES, LABELS  # noqa: E402
 
 ROOT = os.environ.get("CLIMB_ROOT") or os.path.dirname(HERE)
 FRAME = 0.4          # seconds
 SOUNDS_DB = 50.0     # a frame "sounds" within this many dB of the track's loudest frame
 NEAR_DB = 10.0
+HOLDS_DB = -6.0      # a track alone within this of the mix's own band HOLDS the band
+BAND_FLOOR_DB = -40.0   # a band this far under the mix's whole is not read: next to nothing is in it
+
+
+def band_power(x, sr):
+    """The power of the mono sum in the nine bands tools/stembal.py reads, every sample counted alike (Hann frames a
+    quarter of a frame apart). Zeros for a stretch shorter than one frame."""
+    m = (x.mean(axis=1) if x.ndim > 1 else x).astype(np.float64)
+    n, hop = 8192, 2048
+    if len(m) < n:
+        return np.zeros(len(LABELS))
+    sp, w, k = np.zeros(n // 2 + 1), np.hanning(n), 0
+    for i in range(0, len(m) - n + 1, hop):
+        sp += np.abs(np.fft.rfft(m[i:i + n] * w)) ** 2
+        k += 1
+    fr = np.fft.rfftfreq(n, 1.0 / sr)
+    return np.array([sp[(fr >= lo) & (fr < hi)].sum() for lo, hi in zip(EDGES, EDGES[1:])]) / k
+
+
+def holds(mix, solo):
+    """{band label: dB against the mix's own band} for the bands a track alone HOLDS: within HOLDS_DB of the mix's
+    band, in a band the mix has something in (BAND_FLOOR_DB of its whole)."""
+    out = {}
+    whole = float(mix.sum())
+    for lb, m, s in zip(LABELS, mix, solo):
+        if whole > 0 and m > whole * 10 ** (BAND_FLOOR_DB / 10) and s > 0:
+            d = 10 * np.log10(s / m)
+            if d >= HOLDS_DB:
+                out[lb] = round(float(d), 1)
+    return out
 
 
 def frames_db(x, sr, frame=FRAME, kweight=False, stereo=False):
@@ -147,8 +187,12 @@ def one_window(pin, song, live, win, a, work):
                              a.preroll),
             jobs)))
     kw = not a.rms
-    mix = frames_db(L.load(wavs["__mix__"]), L.SR, kweight=kw, stereo=a.stereo)
-    rows = {n: presence(mix, frames_db(L.load(wavs[n]), L.SR, kweight=kw, stereo=a.stereo), a.buried) for n in live}
+    x = L.load(wavs["__mix__"])
+    mix, mixb, rows = frames_db(x, L.SR, kweight=kw, stereo=a.stereo), band_power(x, L.SR), {}
+    for n in live:
+        x = L.load(wavs[n])
+        rows[n] = presence(mix, frames_db(x, L.SR, kweight=kw, stereo=a.stereo), a.buried)
+        rows[n]["holds"] = {} if rows[n]["silent"] else holds(mixb, band_power(x, L.SR))
     for f in wavs.values():
         os.remove(f)
     return rows
@@ -175,13 +219,33 @@ def many_windows(pin, song, live, windows, secs, a, work):
         out = []
         for s0, s1 in secs:
             f0, f1 = wincut.frames(s0, s1, L.SR)
-            out.append(frames_db(x[f0 - base:f1 - base], L.SR, kweight=kw, stereo=a.stereo))
+            seg = x[f0 - base:f1 - base]
+            out.append((frames_db(seg, L.SR, kweight=kw, stereo=a.stereo), band_power(seg, L.SR)))
         return out
 
     jobs = [("__mix__", None)] + [(n, n) for n in live]
     with ThreadPoolExecutor(max(1, a.j)) as ex:
         db = dict(zip([j[0] for j in jobs], ex.map(one, jobs)))
-    return [{n: presence(db["__mix__"][i], db[n][i], a.buried) for n in live} for i in range(len(secs))]
+    many = []
+    for i in range(len(secs)):
+        rows = {n: presence(db["__mix__"][i][0], db[n][i][0], a.buried) for n in live}
+        for n in live:
+            rows[n]["holds"] = {} if rows[n]["silent"] else holds(db["__mix__"][i][1], db[n][i][1])
+        many.append(rows)
+    return many
+
+
+def whose_lines(rows):
+    """The lines of WHOSE BAND IS IT under a table: for each band, the tracks that alone hold it, nearest first."""
+    by = {lb: sorted(((r["holds"][lb], n) for n, r in rows.items() if lb in (r.get("holds") or {})), reverse=True) for lb in LABELS}
+    if not any(by.values()):
+        return []
+    out = [f"  whose band is it (a track ALONE within {-HOLDS_DB:g} dB of the mix's own band; 0 = it is the band, -3 about half):"]
+    for lb in LABELS:
+        if by[lb]:
+            out.append(f"    {lb:8s} " + ", ".join(f"{n} {d:+.1f}" for d, n in by[lb][:4])
+                       + (f" +{len(by[lb]) - 4}" if len(by[lb]) > 4 else ""))
+    return out
 
 
 def report(song, span, a, tracks, live, rows):
@@ -201,6 +265,8 @@ def report(song, span, a, tracks, live, rows):
     nb = sum(1 for r in rows.values() if r["buried"] and not r["silent"])
     if nb:
         print(f"  {nb} track(s) under {a.buried:g} dB while they sound: inaudible in the mix (raise, cut, or let them go)")
+    for ln in whose_lines(rows):
+        print(ln)
 
 
 def main(argv=None):
