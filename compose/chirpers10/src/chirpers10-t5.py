@@ -661,8 +661,18 @@ def song():
     # the Shepard tone: its gain under the band ; its hall send ; dB over that alone at the foot ; with the guitars
     # at the foot ; in the pole
     synth = os.environ.get("C10T5_STAIR", "-19.5dB;-10dB;7.5;5.5;5.5").split(";")
+    # v11: THE BAND CARRIES THE STAIR ALONE (whole-song round). The top of this file says the band plays the illusions,
+    # "not a pad behind the band". But a pad WAS behind the band: the Shepard tone that states the illusion alone at
+    # the foot stayed on under the whole stair (bars 8-32, a quarter of the song), 19.5 dB down on its fader. It is a
+    # pure tone with all its weight around 500 Hz, and read alone it was within 3 dB of the WHOLE band from 250 to
+    # 500 Hz there, the band where the stair stood 3.0 to 3.3 dB over the records. Now it does what the plan always
+    # said: it states the illusion alone, the guitars take it up, and when the band comes in (0:19) it is gone. The
+    # same at the summit, which is the stair's first bars again. It still sounds in the foot and in the pole.
+    # the tone's level under the band, dB against its fader's own (-60 = out). "" = v10 (0: on under the band).
+    bandonly = os.environ.get("C10T5_BANDONLY", "-60")
+    under = float(bandonly) if bandonly else 0.0
     syn_lane = [(0.0, float(synth[2]))]
-    for bar, lvl in ((FOOT + 4, float(synth[3])), (RISE, 0.0), (POLE, float(synth[4])), (BOTH - (int(RUNS.split(";")[0]) if RUNS else 0), 0.0)):
+    for bar, lvl in ((FOOT + 4, float(synth[3])), (RISE, under), (POLE, float(synth[4])), (BOTH - (int(RUNS.split(";")[0]) if RUNS else 0), under)):
         step(syn_lane, bar * 4, lvl)
     tracks = [
         {"name": "gl", "patch": heavy.format(30), "gain": GH, "pan": -1, "out": "gtrs"},
