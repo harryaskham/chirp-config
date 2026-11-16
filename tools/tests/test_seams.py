@@ -91,6 +91,19 @@ class Seams(unittest.TestCase):
         thin = S.read(song(), audio([-30] * 4 + [-34] * 8), SR)                # it comes in and the level FALLS 4: not marked
         self.assertFalse(S.flat(thin[2]))
 
+    def test_the_picture_leans_where_one_side_plays_alone(self):
+        x = audio([-30] * 12)
+        x[int(4 * BAR * SR):int(6 * BAR * SR), 1] *= 10 ** (-4 / 20)         # bars 5-6: the right 4 dB down
+        got = S.read(song(), x, SR, ["1-5:both", "5-7:left", "7-13:both"])
+        self.assertAlmostEqual(got[1]["lean"], -4.0, delta=0.2)
+        self.assertAlmostEqual(got[0]["lean"], 0.0, delta=0.2)
+        lines = S.table(got, -0.5)
+        self.assertEqual(lines[-1], f"  the picture: right minus left -0.5 dB over the file; it leans 1 dB or more in bars 5-7 "
+                                    f"({got[1]['lean']:+.1f})")
+        self.assertTrue(S.table(S.read(song(), audio([-30] * 12), SR), 0.0)[-2].endswith("no stretch leans 1 dB"))
+        self.assertNotIn("the picture", "\n".join(S.table(got)))             # no whole-file figure given: the line is left out
+        self.assertIsNone(S.lean(x[:, :1], SR, 0.0, 4.0))                     # one channel
+
     def test_your_own_stretches(self):
         got = S.read(song(), audio([-30] * 8 + [-24] * 4), SR, ["1-5:count", "5-9:whole", "9-13:total", "3-4:alone"])
         self.assertEqual([(s["label"], s["bars"]) for s in got],

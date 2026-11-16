@@ -42,6 +42,50 @@ class Peaks(unittest.TestCase):
         self.assertEqual(LV.longest_run(np.abs(z) >= 1.0), 10)
 
 
+class Picture(unittest.TestCase):
+    def test_right_against_left_correlation_and_dc(self):
+        rng = np.random.default_rng(5)
+        mid, side = rng.standard_normal(SR) * 0.1, rng.standard_normal(SR) * 0.05
+        x = np.stack([mid + side, (mid - side) * 10 ** (1.0 / 20)], 1)          # the right 1 dB up
+        bal, corr, dc = LV.stereo(x)
+        self.assertAlmostEqual(bal, 1.0, delta=0.15)                             # (mid and side are a second of noise)
+        self.assertGreater(corr, 0.5)
+        self.assertLess(dc, 0.005)                                              # noise has no offset to speak of
+        self.assertAlmostEqual(LV.stereo(np.stack([mid, -mid], 1))[1], -1.0, places=6)      # out of phase
+        self.assertAlmostEqual(LV.stereo(np.stack([mid + 0.01, mid], 1))[2], 0.01, delta=0.001)
+        self.assertEqual(LV.stereo(mid[:, None])[:2], (None, None))                         # one channel
+        self.assertEqual(LV.stereo(np.stack([mid, 0 * mid], 1))[:2], (None, None))          # a silent side
+
+    def test_a_file_that_leans_is_flagged_and_listed(self):
+        import contextlib
+        import io
+        import tempfile
+        import wave
+        import likeness as L
+        rng = np.random.default_rng(6)
+        mid = rng.standard_normal(2 * L.SR) * 0.1
+        with tempfile.TemporaryDirectory() as d:
+            paths = []
+            for name, x in (("level.wav", np.stack([mid, mid * 0.99], 1)), ("leans.wav", np.stack([mid, mid * 10 ** (-0.6 / 20)], 1)),
+                            ("anti.wav", np.stack([mid, -mid], 1))):
+                paths.append(os.path.join(d, name))
+                with wave.open(paths[-1], "wb") as w:
+                    w.setnchannels(2)
+                    w.setsampwidth(2)
+                    w.setframerate(L.SR)
+                    w.writeframes((np.clip(x, -1, 1) * 32767).astype("<i2").tobytes())
+            rows = [LV.measure(p) for p in paths]
+            self.assertEqual([[f for f in r["flags"] if f in ("LEAN", "ANTI", "DC")] for r in rows], [[], ["LEAN"], ["ANTI"]])
+            self.assertAlmostEqual(rows[1]["balance_db"], -0.6, delta=0.02)
+            self.assertEqual(rows[2]["lr_corr"], -1.0)
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                LV.main(paths)
+            text = out.getvalue()
+            self.assertIn("the picture       R-L dB  L/R corr       DC   (right minus left over the whole file; LEAN at 0.5 dB;", text)
+            self.assertIn("leans.wav          -0.60      1.00   0.0000", text)
+
+
 if __name__ == "__main__":
     unittest.main()
 

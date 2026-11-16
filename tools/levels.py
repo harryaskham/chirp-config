@@ -18,6 +18,12 @@ samples IDENTICAL to it (within 1e-6; >= 4 means flat-topped: a clamp or hard cl
 again, while a clean 40 Hz sine stays within 0.01 dB of its crest for ~18 samples but repeats no value, wM 30 Oct).
 Flags: TP>0 (inter-sample overs), TP>-1 (above the usual streaming ceiling), FLAT (a run of 4+ pinned samples), and
 for an album LOUD/QUIET (more than 2 LU from its median).
+
+DOES THE PICTURE LEAN (16 Nov; chirper-zero ran it by hand on Common Time's five finished files: "a check I had not
+run on this album"). Under the table, for each stereo file: right minus left in dB over the whole file, the
+correlation of the two channels, and the larger DC offset. Flags: LEAN (the sides half a dB or more apart over the
+whole song), ANTI (the channels correlate negatively: it thins or vanishes in mono), DC (an offset over 0.001).
+A lean inside a song, stretch by stretch, is tools/seams.py's last line.
 """
 import argparse
 import json
@@ -110,6 +116,23 @@ def pinned_run(x, peak=None):
     return max(longest_run(pinned[:, c]) for c in range(x.shape[1])) if x.ndim > 1 else longest_run(pinned)
 
 
+LEAN_DB = 0.5          # right against left by this much over a whole file: LEAN
+DC_MAX = 0.001         # an offset over this on either channel: DC
+
+
+def stereo(x):
+    """(right minus left in dB, the correlation of the two channels, the larger DC offset) of a render; the first two
+    are None for one channel, or when a side is silent."""
+    if x.ndim < 2 or x.shape[1] < 2:
+        return None, None, float(abs(x.mean())) if len(x) else 0.0
+    left, right = x[:, 0].astype(np.float64), x[:, 1].astype(np.float64)
+    pl, pr = float((left ** 2).mean()), float((right ** 2).mean())
+    dc = float(max(abs(left.mean()), abs(right.mean())))
+    if pl <= 0 or pr <= 0:
+        return None, None, dc
+    return float(10 * np.log10(pr / pl)), float((left * right).mean() / np.sqrt(pl * pr)), dc
+
+
 def measure(path):
     import likeness as L
     x = L.load(path).astype(np.float64)
@@ -122,9 +145,14 @@ def measure(path):
     tp = 20 * np.log10(true_peak(x) or 1e-12)
     integ, st = loudness(x, sr)
     flags = (["TP>0"] if tp > 0 else ["TP>-1"] if tp > -1 else []) + (["FLAT"] if run >= 4 else [])
+    bal, corr, dc = stereo(x)
+    flags += (["LEAN"] if bal is not None and abs(bal) >= LEAN_DB else []) + (["ANTI"] if corr is not None and corr < 0 else []) \
+        + (["DC"] if dc > DC_MAX else [])
     return {"file": path, "dur": round(len(x) / sr, 1), "peak_dbfs": round(pdb, 2), "true_peak_dbtp": round(tp, 2),
             "lufs": round(integ, 1), "st_max_lufs": round(st, 1), "plr": round(tp - integ, 1),
-            "near_peak_pct": round(100 * float(near.mean()), 3), "longest_pinned_run": run, "flags": flags}
+            "near_peak_pct": round(100 * float(near.mean()), 3), "longest_pinned_run": run, "flags": flags,
+            "balance_db": None if bal is None else round(bal, 2), "lr_corr": None if corr is None else round(corr, 2),
+            "dc": round(dc, 5)}
 
 
 def render_album(album_id, work):
@@ -184,6 +212,12 @@ def main(argv=None):
         lu = [r["lufs"] for r in rows]
         print(f"album: LUFS {min(lu):.1f}..{max(lu):.1f} (median {np.median(lu):.1f}, spread {max(lu) - min(lu):.1f} LU); "
               f"max true peak {max(r['true_peak_dbtp'] for r in rows):.2f} dBTP")
+    both = [r for r in rows if r.get("balance_db") is not None]
+    if both:
+        print(f"{'the picture':16s} {'R-L dB':>7s} {'L/R corr':>9s} {'DC':>8s}   (right minus left over the whole file; LEAN at "
+              f"{LEAN_DB:g} dB; a lean stretch by stretch: tools/seams.py)")
+        for r in both:
+            print(f"{r['id'][:16]:16s} {r['balance_db']:+7.2f} {r['lr_corr']:9.2f} {r['dc']:8.4f}")
 
 
 if __name__ == "__main__":

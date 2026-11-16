@@ -21,7 +21,10 @@ With --windows the stretches are yours (bars from 1, as `chirp render --from/--t
 one before ends has a step), and the plan's entries and exits within a bar of each start are named beside it.
 
 Under the table: where it steps up 1 dB or more, and its loudest stretch: read whether the arrivals you wrote are in
-that list. Marked: ENTERS, NO STEP: parts enter, none leave, and the level moves between -1 and +0.5 dB (a seam where
+that list; and THE PICTURE: right minus left over the whole file, and the stretches that lean 1 dB or more to a side
+(chirper-zero, Odd Sympathy v26: two guitars trading a bar read -3.4 and +3.9; Running Total leans 0.4 dB left over
+the song and 1.0 where one side enters first, by design).
+Marked: ENTERS, NO STEP: parts enter, none leave, and the level moves between -1 and +0.5 dB (a seam where
 parts change hands is not marked: read its step in the table). A question for an ear before
 it is a fault: an arrival can be a change of tone at one level, and a master that holds the level is doing its job.
 But a song that adds players four times and never gets louder has nowhere to arrive.
@@ -49,6 +52,7 @@ BEATS = 4.0
 STEP_DB = 0.5          # parts enter and the level rises less than this ...
 DROP_DB = -1.0         # ... and does not fall further than this (then the others thinned out: another matter): ENTERS, NO STEP
 UP_DB = 1.0            # a step up of this much is listed under the table
+LEAN_DB = 1.0          # a stretch whose right and left are this far apart LEANS (a whole file at 0.5: tools/levels.py)
 
 
 def flat(s):
@@ -114,6 +118,15 @@ def seams(played, least_beats):
     return out
 
 
+def lean(x, sr, s0, s1):
+    """Right minus left in dB over s0..s1 seconds, or None (one channel, a silent side, under 0.4 s)."""
+    seg = x[int(round(s0 * sr)):int(round(s1 * sr))]
+    if len(seg) < 0.4 * sr:
+        return None
+    bal = levels.stereo(seg)[0]
+    return None if bal is None else round(bal, 1)
+
+
 def lufs(x, sr, s0, s1):
     """The loudness of s0..s1 seconds of a render (integrated, gated), or None when there is under 0.4 s of it."""
     seg = x[int(round(s0 * sr)):int(round(s1 * sr))]
@@ -122,8 +135,9 @@ def lufs(x, sr, s0, s1):
     return round(levels.loudness(seg, sr)[0], 1)
 
 
-def table(stretches):
-    """The lines for [{bars, time, lufs, step, enter, leave, label}], and the ENTERS, NO STEP marks."""
+def table(stretches, whole=None):
+    """The lines for [{bars, time, lufs, step, enter, leave, label, lean}], and the ENTERS, NO STEP marks. whole: right
+    minus left over the whole file (then the picture's line is printed)."""
     def t(s):
         return f"{int(s // 60)}:{int(s % 60):02d}"
     out = [f"  {'bars':>11s}  {'time':>11s}  {'LUFS':>6s}  {'step':>5s}   at the seam"]
@@ -143,6 +157,11 @@ def table(stretches):
         out.append("  it steps up 1 dB or more " + ("at bar " + ", ".join(f"{s['bars'][0]:g} ({s['step']:+.1f})" for s in ups) if ups
                                                     else "nowhere")
                    + f"; its loudest stretch is {top['bars'][0]:g}-{top['bars'][1]:g} ({top['lufs']:.1f} LUFS)")
+    leans = [s for s in heard if s.get("lean") is not None and abs(s["lean"]) >= LEAN_DB and s["lufs"] > -50]
+    if whole is not None:
+        out.append(f"  the picture: right minus left {whole:+.1f} dB over the file; "
+                   + ("it leans 1 dB or more in bars " + ", ".join(f"{s['bars'][0]:g}-{s['bars'][1]:g} ({s['lean']:+.1f})" for s in leans)
+                      if leans else "no stretch leans 1 dB"))
     flats = [s for s in stretches if flat(s)]
     if flats:
         out.append(f"  ENTERS, NO STEP at bar {', '.join(format(s['bars'][0], 'g') for s in flats)}: parts come in and the finished "
@@ -170,7 +189,7 @@ def read(canon, x, sr, windows=None, least=2.0, quiet=4.0):
             b0, b1 = s0 / beat, s1 / beat
             near = [f for f in found if abs(f[0] - b0) <= BEATS]
             out.append({"bars": [round(b0 / BEATS + 1, 2), round(b1 / BEATS + 1, 2)], "time": [s0, min(s1, dur)],
-                        "lufs": lufs(x, sr, s0, s1), "label": win.partition(":")[2],
+                        "lufs": lufs(x, sr, s0, s1), "lean": lean(x, sr, s0, s1), "label": win.partition(":")[2],
                         "enter": [n for f in near for n in f[1]], "leave": [n for f in near for n in f[2]],
                         "adjacent": bool(out) and abs(out[-1]["time"][1] - s0) < 1e-6})
     else:
@@ -180,7 +199,8 @@ def read(canon, x, sr, windows=None, least=2.0, quiet=4.0):
         for i, (b0, b1) in enumerate(zip(edges, edges[1:])):
             f = first if i == 0 else cuts[i - 1]
             out.append({"bars": [round(b0 / BEATS + 1, 2), round(b1 / BEATS + 1, 2)], "time": [b0 * beat, b1 * beat],
-                        "lufs": lufs(x, sr, b0 * beat, b1 * beat), "label": "", "enter": list(f[1]), "leave": list(f[2]),
+                        "lufs": lufs(x, sr, b0 * beat, b1 * beat), "lean": lean(x, sr, b0 * beat, b1 * beat), "label": "",
+                        "enter": list(f[1]), "leave": list(f[2]),
                         "adjacent": i > 0})
     for i, s in enumerate(out):
         adjacent = s.pop("adjacent")
@@ -221,17 +241,18 @@ def main(argv=None):
                 raise SystemExit(f"seams: the song did not render: {rr.stderr.strip()[-300:]}")
         x = L.load(wav)
         got = read(canon, x, L.SR, a.windows, a.least, a.quiet)
+        whole = levels.stereo(x)[0]
     finally:
         if tmp:
             import shutil
             shutil.rmtree(tmp, True)
     if a.json:
-        print(json.dumps({"song": song, "wav": a.wav, "stretches": got}))
+        print(json.dumps({"song": song, "wav": a.wav, "stretches": got, "lean_db": None if whole is None else round(whole, 2)}))
         return 0
     print(f"{os.path.basename(song)}, {os.path.basename(a.wav) if a.wav else 'rendered at seed 0'}: {len(got)} stretches "
           + ("(yours)" if a.windows else f"between the plan's seams (a part enters or leaves; --least {a.least:g} bars, "
              f"--quiet {a.quiet:g})") + "; LUFS of the finished file, and the step into each")
-    print("\n".join(table(got)))
+    print("\n".join(table(got, whole)))
     return 0
 
 
