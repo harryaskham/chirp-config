@@ -248,6 +248,8 @@ The bare lead is in both cycles on purpose: with it in the first only, the score
 
 **The harmony, first heard (v12).** Section round, 1:26-1:36. The harmony guitars (a third and an octave over the riff), which Harry kept in the second cycle ("Keep it, louder"), now make a first short appearance in the first: the last lead of the stretch on A flat, four bars, and the break after it an octave up. It is where the second cycle has its long one (eleven bars, after its own break), so the second is the first grown, as the bare riff is in both. Tried first and dropped: the stretch assembled a pair of guitars at a time (ten thin bars after five bare ones; and through this cabinet the two amps differ by less than 1.5 dB in any band).
 
+**The bell in the hunt (v13).** Section round, 2:40-3:12 (and on to 3:19). The second extent is Grandsire, where TWO bells hunt: the treble and one more, and a call puts a different bell into the hunt. From the second lead of the F stretch (row 10, 2:44) the bell in the hunt is heard: its note is left open on the guitars and struck on that bell's own tom (the toms the calls are rung on). Each row has two accents that walk through it against each other. After the call at 2:55 it is another note and another tom: the third bell (B, the second tom) for the second (C, the first tom).
+
 ## t4 Running Total (chirper-zero)
 
 Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber". The album's fourth kind of long cycle: a SUM.

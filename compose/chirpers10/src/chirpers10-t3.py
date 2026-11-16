@@ -263,6 +263,46 @@ CALLS_2 = [L for L, c in enumerate("pbpbps" * 2) if c != "p"]
 BREAKS, BREAK_HITS = [], []          # the calls' spans (sixteenths) and the kit's notes in them
 
 
+# v13: THE BELL IN THE HUNT (section round, 2:40-3:12: the second extent's first stretch, which the section map
+# called static: twenty-five bars of the riff on F under one beat). The second extent is Grandsire, and what makes
+# Grandsire Grandsire is that TWO bells hunt: the treble, and one more, "the bell in the hunt", which walks through
+# the row with it; and what a call does in Grandsire is put a DIFFERENT bell into the hunt. Through twelve versions
+# only the treble's walk could be heard (the long open note, the kick). Now, from the second lead of the stretch
+# (2:44), the bell in the hunt is heard too: its note is left open on the guitars and the drummer's left hand strikes
+# it on that bell's own tom (the toms the kit already rings the calls on). So each row has two accents, and they
+# walk through the row against each other, cross, and part. After the call at 2:55 the accent is on another note
+# and another tom: the third bell has gone into the hunt in place of the second. The ringers' rule made audible.
+# (The tom sounds with the snare where the backbeat falls, three rows in eight: leaving it out there broke the walk.)
+# the rows of the second extent in which it is marked ; its tom's velocity ; its guitar note's. "" = v12.
+HUNT2 = os.environ.get("C10T3_HUNT2", "10:38;0.8;0.95")
+HUNT_HITS = []
+
+
+def in_the_hunt(extent):
+    """For each row of a Grandsire extent, the bell (not the treble) that is hunting: the one whose walk through
+    the lead's first eight rows only turns at the front or the back."""
+    def hunts(seq, b):
+        pos, last, stayed = [r.index(b) for r in seq], None, False
+        for a, c in zip(pos, pos[1:]):
+            d = c - a
+            if abs(d) > 1 or (d == 0 and a not in (0, 4)):
+                return False
+            if d == 0:
+                stayed = True
+                continue
+            if last is not None and d != last and not stayed:
+                return False
+            last, stayed = d, False
+        return True
+    out = []
+    for j in range(len(extent) // 10):
+        seq = [ROUNDS if j == 0 else extent[10 * j - 1]] + list(extent[10 * j:10 * j + 8])
+        bells = [b for b in (2, 3, 4, 5) if hunts(seq, b)]
+        assert len(bells) == 1, "one bell in the hunt to a lead"
+        out += bells * 10
+    return out
+
+
 def lead_mode(k, calls):
     """What row k of an extent is: `call` (the two rows of a called lead end), `home` (of a plain one), or neither."""
     if not FORM or k % 10 < 8:
@@ -282,7 +322,7 @@ def drum(piece, s16, vel):
     T.setdefault(tr, []).append({"at": round(s16 / 4, 4), "len": 2.0 if piece in ("c", "x") else 0.5 if piece in ("h", "rb", "rd") else 0.25, "pitch": piece, "vel": round(vel, 3)})
 
 
-def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teeth=False, mode="", trs=None):
+def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teeth=False, mode="", trs=None, hunt=0):
     """One row on the band from `s16`: the five bells in the row's order, then the tenor. The treble is open and loud
     and w[0] sixteenths long; the tenor is w[1] muted chugs; every other bell one muted sixteenth. The kick goes with
     the treble and each of the tenor's chugs (`all`: on every sixteenth); a church bell doubles the treble three
@@ -302,6 +342,8 @@ def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teet
                     continue
                 if b == 1 or call:
                     add(tr, t + j, n if b == 1 else 1, F1 + root + PITCH[b], v)
+                elif b == hunt:                             # v13: the bell in the hunt is left open
+                    add(tr, t + j, 1, F1 + root + PITCH[b], float(HUNT2.split(";")[2]))
                 else:
                     add(tr, t + j, 1, F1 + root + PITCH[b], v, pm=1)
             for tr in (("bass", "fuzz") if teeth else ("bass",)):
@@ -322,6 +364,8 @@ def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teet
                 BREAK_HITS.append(({2: "t1", 3: "t2", 4: "t3", 5: "ft"}[b], t, 0.85))
         elif mode.startswith("home") and b == 1:
             BREAK_HITS.append((FORM.split(";")[0].split(",")[int(mode[-1])], t, 0.8 if mode.endswith("0") else 0.7))
+        if b == hunt and not call:                          # v13: and struck on its own tom
+            HUNT_HITS.append(({2: "t1", 3: "t2", 4: "t3", 5: "ft"}[b], t, float(HUNT2.split(";")[1])))
         if bell and b == 1:
             T.setdefault("bell", []).append({"at": round(t / 4, 4), "len": 1.5, "pitch": nm(F1 + root + PITCH[1] + 36), "vel": 0.6})
         t += n
@@ -423,16 +467,22 @@ def compose():
             T.setdefault("air", []).append({"at": (MIDDLE + 1) * 4, "len": 27.5, "pitch": p, "vel": 0.45})
     fill(PART2)
     # the second extent: Grandsire Doubles, on F, Ab and C
+    h0, h1 = (int(x) for x in HUNT2.split(";")[0].split(":")) if HUNT2 else (0, 0)
+    hunting = in_the_hunt(EXTENT_2) if HUNT2 else []
     for k, row in enumerate(EXTENT_2):
         row_notes(row, PART2 * 16 + k * L2, KEYS_2[k // 40], W2, kicks="all" if k >= 80 else "hunt",
                   gtrs=not FUZZ or k >= int(FUZZ.split(";")[3]), teeth=bool(FUZZ),
                   mode=lead_mode(k, CALLS_2) or ("bare" if bare[0] <= k < bare[1] else ""),
-                  trs=G4B if RIG2 and k >= int(RIG2.split(";")[5]) else G4)
+                  trs=G4B if RIG2 and k >= int(RIG2.split(";")[5]) else G4,
+                  **({"hunt": hunting[k]} if h0 <= k < h1 else {}))
     if FUZZ and FORM and int(FUZZ.split(";")[3]) % 10 not in (8, 9, 0):     # v10: the guitars' entry is not at a home any more: its own crash
         drum("c", PART2 * 16 + int(FUZZ.split(";")[3]) * L2, 0.85)
     for i, kind in enumerate(FORM.split(";")[3] if FORM else "bac"):
         beat(PART2 + T2 * i, PART2 + T2 * (i + 1), kind, 10 ** 6 if FORM else meet(L2))
         fill(PART2 + T2 * (i + 1))
+    for piece, t, v in HUNT_HITS:        # v13: the tom of the bell in the hunt (with the snare where the backbeat falls: three rows in eight)
+        drum(piece, t, v)
+
     def harmony(extent, calls, r0, r1, part, length, w, keys):
         """The riff a third above (two steps up its own scale) and an octave up, on `hl`/`hr`, over rows r0..r1-1; the
         two rows of the call after them in unison an octave up."""
