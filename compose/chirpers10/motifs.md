@@ -283,6 +283,8 @@ Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber"
 
 **The riff whole has its own rig (v6).** Palette round. In the two totals, and on the last chord, the second pair of guitars is Common Time's wall rig (in its form whose rests are rests); wherever the riff is being counted it is the tight pair as before. So the guitars say what the china says: counted, the riff is tight; whole, it is a wall.
 
+**The tune melts too (v7).** Section round, the melt's first half minute (3:18-3:51), and on to where the guitars thin. The riff was added up and so was its tune; the riff is taken apart and now so is the tune. Through the melt the lead goes on playing the riff's hook notes where the riff strikes them, and as the riff loses its front the tune loses its first note: nine notes for four statements, eight from 3:38, seven from 3:48, six from 4:00, five at 4:07. It stops where the second pair of guitars does (4:09), and the marimba, which comes in there, carries what is left down to the last note, C. The lead's fader sinks 5 dB through it.
+
 ## t5 False Summit (chirper-zero)
 
 Harry, 15 Nov about 12:38: "true djent, but that leverages audio illusions throughout mainly risers/shpehers but in djent style, really make it a clear illlusory song, all about the illusions". 100 bpm, F, 108 bars, 4:24.

@@ -122,6 +122,42 @@ def tune_sum(b0, roots, first):
             add("lead", (b0 + 2 * r) * 16 + i, (hooks[j + 1][0] if j + 1 < m else N) - i, F1 + root + int(TUNE.split(";")[2]) + semi, 0.9)
 
 
+# v7: THE TUNE MELTS TOO (section round, 3:18-3:51: the melt's first half minute, which the section map called static
+# and "little new" against the total before it: the riff nearly whole, on the same ground, with the lead gone). The
+# riff was added up and so was its tune; the riff is taken apart, and now so is the tune. Through the melt the lead
+# goes on playing the riff's hook notes where the riff strikes them, and as the riff loses its front the tune loses
+# its first note: nine notes for four statements, then eight (the A flat has gone), seven (the B), six, five. A
+# thirty-two-place riff losing one chug is hard to hear; a nine-note tune losing its first note is not: the melt can
+# now be followed by ear. The lead stops where the second pair of guitars does (the seventeenth statement from the
+# end, 4:09) and the marimba, which comes in there with the riff's notes, carries what is left of the tune down to
+# its last note.
+# THE LEAD SINKS AS IT MELTS. At the total's level the lead read as it does in the total (-8.3 to -8.9 by presence)
+# and lifted the melt 0.5 to 0.7 dB, level with the total it comes out of: but the melt is the band thinning, a step
+# down (0.8 dB) from the riff whole. So the lead's fader goes down through the melt, to its last statement. (A fader after its amp: on a high-gain lead a note's velocity or gain changes the drive, not the
+# level. Tried at -3 falling to -6: the lead read -12.5 to -14.3 by presence and was never near the front: too far
+# down for a line the ear is meant to follow; and at -1.5 falling to -5: -11.2 at the start, where the ear has to
+# learn the game. So it starts where the total left it and sinks from there.)
+# the shortest statement the lead still plays ; its fader at the melt's start and at its own last statement, dB. "" = v6.
+MELTUNE = os.environ.get("C10T4_MELTUNE", "17;0;-5") if TUNE else ""
+MELT_END = [0.0]                         # the beat the lead's last melt statement ends
+
+
+def tune_melt(t, a, vel):
+    """The riff's hook notes in places a..N-1, from sixteenth t (place a), each held until the next and the last to
+    the statement's end. A statement that begins inside a held hook note strikes it again, as the guitars do."""
+    hooks = [(i, int(k)) for i, k in enumerate(RIFF) if k not in "ocr-"]
+    if RIFF[a] == "-":
+        j = a
+        while RIFF[j] == "-":
+            j -= 1
+        hooks = [(a, int(RIFF[j]))] + [h for h in hooks if h[0] > a]
+    else:
+        hooks = [h for h in hooks if h[0] >= a]
+    for j, (i, semi) in enumerate(hooks):
+        nxt = hooks[j + 1][0] if j + 1 < len(hooks) else N
+        add("lead", t + i - a, nxt - i, F1 + int(TUNE.split(";")[2]) + semi, vel)
+
+
 # v5: THE CHINA COUNTS (whole song). The song's one idea is a sum: each statement starts again and goes one place
 # further. But the kit only kept time: the china rode the beat through the build exactly as it does when the riff is
 # whole, so nothing but the guitars' open note said where a statement began. Now, wherever the riff is being added up
@@ -329,6 +365,9 @@ def compose():
     for k in range(N - 1, 0, -1):
         gtrs = G_MAIN + G_DBL if k > 16 else G_MAIN if k > 8 else ()
         say(t, N - k, N, 0, gtrs, low=k > 8, wood=k <= 16)    # the marimba joins as the band thins, and counts the last eight down alone
+        if MELTUNE and k >= int(MELTUNE.split(";")[0]):       # v7: the tune melts with the riff, on the lead
+            tune_melt(t, N - k, 0.9)
+            MELT_END[0] = (t + k) / 4
         if k > 8 and t > MELT * 16:
             HEADS.append(t)
         t += k
@@ -368,7 +407,11 @@ def song():
             **({"fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*RIG2.split(";")[3].split(":"))]}]} if RIG2.split(";")[3] else {})}
            for i, tr in enumerate(("wl", "wr"))] if RIG2 else []),
         {"name": "wood", "patch": "modal-marimba", "gain": os.environ.get("C10T4_WOOD", "-14dB"), "pan": -0.15, "sends": {"hall": "-10dB"}},
-        *([{"name": "lead", "patch": TUNE.split(";")[0], "gain": TUNE.split(";")[1], "pan": 0, "sends": {"hall": TUNE.split(";")[3]}}] if TUNE else []),
+        *([{"name": "lead", "patch": TUNE.split(";")[0],
+            "gain": {"value": TUNE.split(";")[1], "mod": [{"src": "auto.melt", "amount": 1}]} if MELTUNE else TUNE.split(";")[1],
+            "pan": 0, "sends": {"hall": TUNE.split(";")[3]},
+            **({"auto": {"melt": {"points": [["0b", 0], [f"{MELT * 4 - 0.5:g}b", 0], [f"{MELT * 4:g}b", float(MELTUNE.split(";")[1])],
+                                             [f"{MELT_END[0]:g}b", float(MELTUNE.split(";")[2])]]}}} if MELTUNE else {})}] if TUNE else []),
         *([{"name": tr, "patch": CLEAN.split(";")[i], "gain": CLEAN.split(";")[2 + i], "pan": (-0.5, 0.5)[i], "sends": {"hall": CLEAN.split(";")[8]}}
            for i, tr in enumerate(("cl", "cr"))] if CLEAN else []),
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
