@@ -96,6 +96,8 @@ Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album toget
 
 **Seven meets eleven, and the eleven has a body (v51).** Section 9 (bars 154-165) is the lead's run over the guitars and the kick on the seven wheel "while the bass turns eleven": the eleven wheel had one voice, the bass. Now the drummer's left hand turns it on the toms with the bass, strike for strike: the floor tom on the ground, the high tom where the bass jumps the octave, the snare where the backbeat falls. The right hand keeps four on the ride, the foot keeps seven with the guitars: three wheels in one kit. And the bass's eq now follows the ground on B flat, E flat, A flat and G flat (not on D flat).
 
+**The tune comes back in harmony (v52).** Section round, 8:15-8:44 (windows 7:37-8:38). Where all three wheels turn together (bars 245-275) the lead plays the tune twice through. On its second pass (from bar 259.9) a second lead guitar plays it a third above, note for note on the eleven wheel: E flat over C and B, C over A flat, A flat over F, B flat over G flat, F over D flat, all notes of the piece's mode. The only place the tune is harmonised by another guitar.
+
 ## t2 Odd Sympathy (chirper-zero)
 
 **The idea.** The other way round from Common Time. There: one pulse, three cells of different lengths turning under it. Here: ONE cell, one bar long, and two clocks. The left guitar keeps the song's clock; the right guitar plays the same riff on a clock that runs a hair fast, slips ahead a sixteenth at a time, and holds at each distance. After Huygens's two pendulum clocks on one beam (1665), which however he started them ended swinging exactly against each other: "an odd kind of sympathy".

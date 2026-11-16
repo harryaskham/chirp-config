@@ -379,6 +379,33 @@ def long_wait(b0, b1, vel=0.75, up=0, start=None, tr="lead", i0=0):
         i += 1
 
 
+# v52: THE TUNE COMES BACK IN HARMONY (section round, 8:15-8:44, in the windows 7:37-8:38 the map called static and
+# "little new"). Where all three wheels turn together (7:46) the lead plays the tune twice through, the same notes in
+# the same octave both times; the second time the rhythm guitars gain a harmony and the lead did not. Now the lead
+# does: on its second pass a SECOND LEAD GUITAR plays the tune a third above it, note for note on the eleven wheel
+# (E flat over C and B, C over A flat, A flat over F, B flat over G flat, F over D flat: every one a note of the
+# piece's mode). Twin leads: the tune is said once alone and once by two. It is the only place in the piece where
+# the tune is harmonised by another guitar (in the eye, three singers double it; in the ending a second voice
+# answers it).
+# The pair weighs what the one lead did: under the harmony the lead comes down 1.5 dB and the second sits 4 dB under
+# it, so the two add up to the lead's old power. (First bench, the lead left alone: the stretch read 0.9 dB up at
+# 250-500 Hz and 0.7 at 500 Hz-1 kHz, where it was already 0.6 and 1.0 over the records with the tune alone.)
+# the second lead's level against the lead's, dB ; its pan ; its velocity ; both leads' trim while they play together, dB. "" = v51.
+TWIN = os.environ.get("C10T1_TWIN", "-4;0.3;0.8;-1.5")
+TWIN_AT = []                          # the sixteenth the second lead comes in, and the one it stops
+THIRD = {72: 75, 71: 75, 68: 72, 65: 68, 66: 70, 73: 77}
+
+
+def twin(start, s1):
+    """The tune's notes from `start` (a sixteenth) to `s1`, a third above, on the second lead."""
+    t, i = start, 0
+    while t < s1:
+        pitch, turns = LONG_WAIT[i % len(LONG_WAIT)]
+        add("lead2", t, min(turns * 11, s1 - t), THIRD[pitch], float(TWIN.split(";")[2]))
+        t += turns * 11
+        i += 1
+
+
 MODE = [0, 1, 3, 5, 6, 7, 8, 10]     # F Gb Ab Bb B C Db Eb
 
 
@@ -925,6 +952,9 @@ def compose():
     kit(a, a + 15, "rde", 4, "half", None, cvel=0.6)
     kit(a + 15, z, "x", 4, "half", "run16", crash_at_start=False)
     long_wait(a, z, vel=0.8)
+    if TWIN:                                                          # v52: the tune's second pass, in thirds
+        twin(s16(a) + (-s16(a)) % 11 + LONG_WAIT_TURNS * 11, s16(z))
+        TWIN_AT[:] = [s16(a) + (-s16(a)) % 11 + LONG_WAIT_TURNS * 11, s16(z)]
     harm(G2, 5, FIVE_B, a + 15, z, 12, hook=H1, vel=0.72)
     for t in landings(5, a * 16 + 1, z * 16):
         crash(t, 0.8)
@@ -1570,6 +1600,9 @@ def song():
     LEAD_LANE = [["0b", TUNE_DB]]
     for b0, b1, v in ((154, 165, 0), (175, 210, -10)):
         LEAD_LANE += [[f"{(b0 - 1) * 4}b", TUNE_DB], [f"{b0 * 4}b", v], [f"{b1 * 4}b", v], [f"{(b1 + 1) * 4}b", TUNE_DB]]
+    if TWIN and TWIN_AT:              # v52: the two leads together weigh what the one did
+        v = round(TUNE_DB + float(TWIN.split(";")[3]), 2)
+        LEAD_LANE += [[f"{TWIN_AT[0] / 4 - 0.5:g}b", TUNE_DB], [f"{TWIN_AT[0] / 4:g}b", v], [f"{TWIN_AT[1] / 4:g}b", v], [f"{TWIN_AT[1] / 4 + 0.5:g}b", TUNE_DB]]
     # the bass's fader, after its compressor (which levels every note, so velocity and the track's gain do nothing):
     # down 2.5 dB under the slow chords at 5:14, where its long notes read 1.5-2 dB over the guitars, then dying away
     BASS_RIDE = [["0b", 0], [f"{164.75 * 4}b", 0], [f"{165 * 4}b", -2.5], [f"{170 * 4}b", -2.5], [f"{175 * 4}b", -7.5], [f"{176 * 4}b", 0]]
@@ -1680,6 +1713,8 @@ def song():
         ("cym", KIT, "-3dB", None, {"out": "drums", **OHC, **AIRFX}), ("toms", KIT, "4dB", None, {"out": "drums", **OHS}),
         ("hat", KIT, "14dB", float(HATPAN) if HATPAN else None, {"out": "drums", **OHC, **AIRFX}), ("ride", KIT, "6dB", None, {"out": "drums", **OHC, **AIRFX}),
         ("lead", "m8-lead-guitar", {"value": "-3dB", "mod": [{"src": "auto.eye", "amount": 1}]}, 0, {"sends": {"hall": "-10dB"}, "auto": {"eye": {"points": LEAD_LANE}}}),
+        *([("lead2", "m8-lead-guitar", {"value": f"{-3 + float(TWIN.split(';')[0]):g}dB", "mod": [{"src": "auto.eye", "amount": 1}]}, float(TWIN.split(";")[1]),
+            {"sends": {"hall": "-10dB"}, "auto": {"eye": {"points": LEAD_LANE}}})] if TWIN else []),
         ("leadw", "ct-lead-wah", {"value": "-3dB", "mod": [{"src": "auto.back", "amount": 1}]} if RETRO and float(RETRO.split(";")[2]) else "-3dB", 0,
          {"sends": {"hall": "-10dB"}, "auto": {"wah": {"points": [[f"{round(t / 4, 3)}b", v] for t, v in WAH_PTS]},
                                               **({"back": {"points": [["0b", 0], [f"{BOUNDS[12] * 4 - 1}b", 0], [f"{BOUNDS[12] * 4}b", float(RETRO.split(";")[2])], [f"{BOUNDS[13] * 4}b", float(RETRO.split(";")[2])],
