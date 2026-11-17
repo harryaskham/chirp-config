@@ -8813,7 +8813,7 @@
     {
       "id": "chirpers10-t7",
       "song": "songs/chirpers10-t7.yaml",
-      "reference": "chirpers — Track 7 (untitled)",
+      "reference": "chirpers — Extreme and Mean",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers10-t7 OUT.wav",
@@ -8829,7 +8829,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Common Time",
-        "title": "Track 7 (untitled)",
+        "title": "Extreme and Mean",
         "track": 7,
         "year": 2026
       },
