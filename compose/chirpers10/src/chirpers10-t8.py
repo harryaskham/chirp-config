@@ -46,6 +46,11 @@ BPM = 160
 F1 = 29
 NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
 T = {}
+# v2, THE TWO BELLS: each riff has a bell that rings where the riff begins again, the left riff's low and on the left, the
+# right riff's a fourth higher and on the right. As the riffs are cut down the bells come faster and closer, and at the
+# measure they ring together on every beat. gain, dB ; velocity ; velocity in the measure ; the low bell's dB over the
+# high one's (it reads 2.4 dB quieter at the same gain). "" = v1 (no bells).
+BELLS = os.environ.get("C10T8_BELLS", "-12;0.9;0.95;1.5")
 
 
 def nm(n):
@@ -143,6 +148,11 @@ def fill(s):
 
 
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
+def bell(side, s16, root=0, vel=None):
+    if BELLS:
+        add("bell-" + side, s16, 1, F1 + root + (55 if side == "l" else 60), float(BELLS.split(";")[1]) if vel is None else vel)
+
+
 MARKS = [("the two given", 0)]            # (name, first sixteenth)
 ROOTS = [(0, 0)]
 
@@ -151,6 +161,7 @@ def compose():
     # the two given: B alone on the right, twice bare (a hat in quarters) and twice with the band
     for i in range(4):
         say(B, i * 32, ("gr", "dr") if i >= 2 else ("gr",), low=i >= 2)
+        bell("r", i * 32)
     beat(0, 64, cym="h", step=4, vel=0.45, snare=())
     beat(64, INTRO)
     t = INTRO
@@ -167,10 +178,17 @@ def compose():
         # THE ARGUMENT NARROWS: the last two pairs are one guitar a side, and the last has no bass; the measure gets everything
         gl, gr = (("gl", "dl"), ("gr", "dr")) if k < 3 else (("gl",), ("gr",))
         kick_from = t + n // 2 if last else t          # the last pair: the guitars alone for its first half, then the kick
+
+        def grow(q, t=t, stop=stop):                   # in the last pair the bells grow with the snare (0.5 to 0.9)
+            return 0.5 + 0.4 * (q - t) / (stop - t)
         for i in range(n // a):
             say(left, t + i * a, gl, low=a < b and t + i * a >= kick_from, stop=stop if last or a < b else None, bass=not last)
+            if not (last or a < b) or t + i * a < stop:
+                bell("l", t + i * a, vel=grow(t + i * a) if last else None)
         for i in range(n // b):
             say(right, t + i * b, gr, low=b < a and t + i * b >= kick_from, stop=stop if last or b < a else None, bass=not last)
+            if not (last or b < a) or t + i * b < stop:
+                bell("r", t + i * b, vel=grow(t + i * b) if last else None)
         if k == 0:
             fill(t)
         drum("c", t, 0.9)
@@ -199,6 +217,8 @@ def compose():
         ROOTS.append((t + j * 32, root))
         for i in range(8):
             say(G, t + j * 32 + i * 4, ALL, low=True, root=root, chord=True)
+            for side in "lr":
+                bell(side, t + j * 32 + i * 4, root, float(BELLS.split(";")[2]) if BELLS else 0)
         if j:
             drum("c", t + j * 32, 0.7)
     beat(t, t + 256, cym="x", step=4, vel=0.5)
@@ -210,6 +230,8 @@ def compose():
     s = t
     for riff in (A, A, A, A, B, B, B, B):
         say(riff, s, ALL, low=True)
+        bell("l", s)
+        bell("r", s)
         if s > t:
             drum("c", s, 0.7)
         s += len(riff)
@@ -221,6 +243,8 @@ def compose():
     add("bass", s, 32, F1, 0.95)
     drum("k", s, 0.95)
     drum("c", s, 0.95)
+    bell("l", s)
+    bell("r", s)
     ROOTS.append((t, 0))
     return s + 32
 
@@ -241,6 +265,8 @@ def song():
         {"name": "dr", "patch": dbl.format(63), "gain": os.environ.get("C10T8_DBL", "-2.5dB"), "pan": 0.75, "out": "gtrs", **mids},
         {"name": "wl", "patch": "ct-wall-stop-l", "gain": "-3.5dB", "pan": -0.75, "out": "gtrs", **wall},
         {"name": "wr", "patch": "ct-wall-stop-r", "gain": "-3.5dB", "pan": 0.75, "out": "gtrs", **wall},
+        *([{"name": "bell-" + side, "patch": "cm-bell", "gain": f"{float(BELLS.split(';')[0]) + (float(BELLS.split(';')[3]) if side == 'l' else 0):g}dB", "pan": pan}
+           for side, pan in (("l", -0.6), ("r", 0.6))] if BELLS else []),
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
         {"name": "kick", "patch": kit, "gain": "2dB", "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]},
         {"name": "snare", "patch": kit, "gain": "3.5dB", "out": "drums", "sends": {"oh": "-1.5dB", "snr": "-10dB"},
@@ -267,7 +293,15 @@ def song():
                   "against 12, 8 against 12, 8 against 4. Four goes into eight: the measure is one beat, the four sixteenths both "
                   "riffs end with, and then the two riffs are played whole, together. The fast song: 160. v1 is the skeleton."),
         "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{total // 4}b", "event_stable": True,
-        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}}},
+        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
+                    **({"cm-bell": {
+                        "about": ("Common Measure's bell (chirper-zero, 17 Nov): the library's agogo bell (afro-perc's `ah`: three partials at 1, "
+                                  "2.4 and 3.9 and a 4 ms click) as a patch that takes a pitch, so the two bells can sit on the song's fifth "
+                                  "and root and follow the chords."),
+                        "synth": {"amp": {"a": "0.2ms", "curve": 3, "d": "240ms", "r": "30ms", "s": 0},
+                                  "env": {"h": {"a": "0.2ms", "d": "4ms", "s": 0}},
+                                  "layers": [{"type": "additive", "damp": 0.3, "partials": [[1, 1], [2.4, 0.4], [3.9, 0.15]]},
+                                             {"type": "noise", "level": {"value": "-60dB", "mod": [{"src": "env.h", "amount": 40}]}}]}}} if BELLS else {})},
         "buses": {
             "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
                              {"type": "glue", "threshold": "-24dB", "ratio": 2.5, "attack": "20ms", "release": "140ms", "knee": 6.0},
