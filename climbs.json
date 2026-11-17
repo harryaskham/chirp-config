@@ -8711,7 +8711,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 13,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -8733,7 +8733,7 @@
         "at": "2026-11-16T11:56:44Z",
         "who": "chirper-zero"
       },
-      "status_note": "chirper-zero, 16 Nov 14:52: waiting on Harry's ear. v8-v13 are unheard and four cards are open (rt-wall, rt-riff, rt-count, rt-tune); the draw offered its section round three times (12:21, 14:21, 14:51) and I have no change for it I would defend unheard. Resume when he answers on it or a fault turns up"
+      "status_note": "PARKED by chirper-zero, 17 Nov 20:05: drawn three times since Harry's answers (03:13, 05:17, 20:01) with nothing I would change unheard: his four answers on this song all say keep. It is not finished with; it comes back the moment he says anything about it (climb.py resume chirpers10-t4)."
     },
     {
       "id": "chirpers10-t5",
