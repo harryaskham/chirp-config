@@ -157,6 +157,8 @@ def gtr(trs, p, cell, b0, b1, root=F1, hook=H1, vel=0.85, ramp=None, rig=None, d
     """`grow`: the riff assembles itself. A list of (turns, the cell's notes that sound for that many turns of the wheel);
     after the list, the whole cell."""
     s0, s1 = s16(b0), s16(b1)
+    if DBL_MAP and set(trs) & set(G2) and set(trs) & set(G) and p != 8:
+        DBL_EXCL.append((b0, b1))
     for t, ln, kind, j, hi in strikes(p, cell, s0, s1):
         if grow:
             turn, only = (t - cell[j][0]) // p - s0 // p, None
@@ -694,6 +696,26 @@ HOLE = os.environ.get("C10T1_HOLE", "293:8:all")        # v44-v45: 293:8 (the ki
 # The second amp is thicker at 160-320 Hz (3 dB over the first, alone), where the landing riff already stood over the
 # records; one eq band on the second takes puts them level with the first there (the last field: Hz : q : dB).
 DOUBLE = os.environ.get("C10T1_DOUBLE", "5150;0.4,8,9;0.75;0.5,1.5;-1.9;230:1.1:-3.5")
+# v54: EVERY RIFF IS DOUBLE-TRACKED (Harry, 17 Nov 00:25, asked whether the landing riff's two takes a side through two
+# amps were the double-tracking he meant: "Yes: do it to the other riffs too"). Until now only the landing riff had it.
+# Every other riff was one guitar a side (the second pair, where it played, played something else: the hook an octave
+# up, eleven's chords). Now each guitar of the three heavy rigs has a SECOND TAKE beside it: the same part played again
+# (its own track, so its own timing and picking), through the second guitarist's amp, the `5150` the landing's doubles
+# use, on another microphone place and another cone, a little inside the first. Where a side plays its own wheel (five
+# on the left and seven on the right) each side's wheel is doubled on its own side.
+#   - Not doubled: the low-gain rig (the seven break and the approach's first guitars are ONE guitar on purpose), the
+#     second pair's harmonies and chords, and the two stretches where the second pair already plays the first pair's
+#     notes (the stop-time at 3:20 and the hardest stretch, 8:53): there the four are the double.
+#   - THE PAIR WEIGHS WHAT THE ONE DID: each rig's two takes together are trimmed to the loudness of its one before,
+#     so no riff is louder for being doubled; it is wider and thicker.
+# the doubles' amp ; microphone ; cones left , right for the tight rig ; for seven's rig ; for the wall rig ; pan
+# (the wall's are scaled as its first takes are) ; the doubles' trim over their first take, dB, left , right, for the
+# tight rig ; seven's ; the wall ; each rig's trim on all its takes where the doubles play, dB (tight ; seven's ;
+# wall) ; an eq band on each rig's doubles (Hz : q : dB, as the landing's; tight , seven's , wall; empty = none).
+# "" = v53.
+DBL = os.environ.get("C10T1_DBL", "5150;0.33;4,5;10,11;16,17;0.75;0.8,0.7;-0.2,-0.4;1.0,0.8;-3;-3;-3;230:1.1:-3.5,230:1.1:-3.5,330:1:-3")
+DBL_MAP = {"gl": "dgl", "gr": "dgr", "rl": "drl", "rr": "drr", "sl": "dsl", "sr": "dsr", "wl": "dwl", "wr": "dwr"} if DBL else {}
+DBL_EXCL = []          # (bar, bar): where the second pair plays the first pair's notes (filled by gtr)
 # v45: THE RUN, BACKWARDS (6:59-7:20). The form is a palindrome: 35 20 15 7 28 5 30 14 11 10 | the eye | 10 11 14 30 ...
 # and each section has a mirror. The lead's run (4:53-5:14, eleven bars, on Db) is the one melody of the first half, and
 # its mirror, eleven bars on Bb, had no lead at all. Now the run comes back there BACKWARDS, note for note: the same
@@ -1268,6 +1290,8 @@ BEQ2 = os.environ.get("C10T1_BEQ2", "170:1.2:-3")
 # the tight rig's peaks ; seven's rig's ; the wall rig's. "" = v30.
 TOP = os.environ.get("C10T1_TOP", "5300:2:-10,9100:1.8:7.5;3000:1.2:-2,5500:1.6:-6.7,9000:1.2:-4;5272:2.4:-9.7,9613:1.1:5")
 TOP_OF = {**{t: 0 for t in ("gl", "gr", "gl2", "gr2", "rl", "rr", "rl2", "rr2", "ql", "qr", "el", "er", "el2", "er2")}, "sl": 1, "sr": 1, "wl": 2, "wr": 2}
+if DBL_MAP:
+    TOP_OF.update({d: TOP_OF[x] for x, d in DBL_MAP.items()})
 CYMINST = os.environ.get("C10T1_CYMINST", "-1.5")
 # v35: THE CYMBALS' AIR. Read window by window against the records' passages with as much voice as the window has
 # (stembal --voice-tracks), 8-16 kHz was the worst band left: +1.0 to +2.2 dB in the six windows with little or no voice
@@ -1606,6 +1630,25 @@ def wet_lane(b0, b1, b2):
 
 def song():
     compose()
+    if DBL_MAP:              # v54: every first take's part again on its double, except where the second pair already plays it
+        trims = [float(v) for v in DBL.split(";")[9:12]]
+        excl = []
+        for a, z in sorted(DBL_EXCL):          # touching stretches are one stretch (a fader lane wants its points in order)
+            if excl and a <= excl[-1][1]:
+                excl[-1] = (excl[-1][0], max(z, excl[-1][1]))
+            else:
+                excl.append((a, z))
+        DBL_EXCL[:] = excl
+        for x, d in DBL_MAP.items():
+            kind = TOP_OF[x]
+            if x in SECTION_FADERS:
+                SECTION_FADERS[d] = list(SECTION_FADERS[x])
+            notes = [dict(n) for n in T.get(x, []) if not any(a * 4 <= n["at"] < z * 4 for a, z in DBL_EXCL)]
+            if notes:
+                T[d] = notes
+            for a, z in DBL_EXCL:      # there the first take plays without its double: it keeps the level it had
+                if trims[kind] and any(a * 4 <= n["at"] < z * 4 for n in T.get(x, [])):
+                    SECTION_FADERS[x] = sorted(SECTION_FADERS.get(x, []) + [(a, z, -trims[kind])])
     # the hats and the ride have their own faders: at the cymbals' level a closed hat read 27-29 dB under the mix
     # and the ride 23 under (tools/presence.py); the bell stays with the cymbals (it is right in the quiet sections)
     for piece_set, name in ((("h", "hs", "oh", "hf", "h1", "h2", "h3"), "hat"), (("rd", "rde", "rds"), "ride")):
@@ -1710,6 +1753,7 @@ def song():
         GRIND_LVL = [["0b", -120], [f"{308.5 * 4}b", -120], [f"{308.6 * 4}b", gdb - 8], [f"{312.5 * 4}b", gdb], [f"{314.9 * 4}b", gdb], [f"{315 * 4}b", -120]]
         GRIND_TEETH = [["0b", gd0], [f"{308.5 * 4}b", gd0], [f"{314 * 4}b", gd1], [f"{315 * 4}b", gd1], [f"{315.1 * 4}b", gd0]]
     SPEAK_EQ = {"type": "eq", "bands": ["hp cutoff=" + os.environ.get("C10T1_SPEAKHP", "120"), "peak cutoff=300 q=1 gain=" + os.environ.get("C10T1_SPEAKDIP", "-6" if TIDY else "-2.5") + "dB"]}
+    DBL_AMP, DBL_PAN = (f" fx.2.model='{DBL.split(';')[0]}'", float(DBL.split(";")[5])) if DBL_MAP else ("", 0.0)
     spec = [
         ("gl", RIG_L + PICKED, "0dB", -1, {**GOUT, **PICK_FX}), ("gr", RIG_R + PICKED, "0dB", 1, {**GOUT, **PICK_FX}),
         ("gl2", RIG_L + PICKED, "-3dB", -0.8, {**GOUT, **PICK_FX}), ("gr2", RIG_R + PICKED, "-3dB", 0.8, {**GOUT, **PICK_FX}),
@@ -1724,6 +1768,11 @@ def song():
         ("kl", CRUNCH_L + HANDED, CRUNCH_DB, -0.8, wet_lane(360, 360.7, 362.5)), ("kr", CRUNCH_R + HANDED, CRUNCH_DB, 0.8, wet_lane(357, 358.4, 361)),          # not through the guitars' bus: its eq scoops the mids this rig is made of
         ("wl", WALL_L, "-2dB", -0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
         ("wr", WALL_R, "-2dB", 0.9, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
+        *([("dgl", RIG_L + PICKED + DBL_AMP, "0dB", -DBL_PAN, {**GOUT, **PICK_FX}), ("dgr", RIG_R + PICKED + DBL_AMP, "0dB", DBL_PAN, {**GOUT, **PICK_FX}),
+           *([("drl", RIG_L + REAL_RIG + DBL_AMP, "0dB", -DBL_PAN, {**GOUT, **REAL_FX}), ("drr", RIG_R + REAL_RIG + DBL_AMP, "0dB", DBL_PAN, {**GOUT, **REAL_FX})] if REAL5 else []),
+           ("dsl", BITE_L + DBL_AMP, BITE_DB, -DBL_PAN, GOUT), ("dsr", BITE_R + DBL_AMP, BITE_DB, DBL_PAN, GOUT),
+           ("dwl", WALL_L + DBL_AMP, "-2dB", -0.9 * DBL_PAN, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})}),
+           ("dwr", WALL_R + DBL_AMP, "-2dB", 0.9 * DBL_PAN, {**GOUT, **({"fx": [{"type": "eq", "bands": peaks(WALL_EQ)}]} if WALL_EQ else {})})] if DBL_MAP else []),
         *([("wsl", WALL_L, SPEAKS.split(";")[2], -float(SPEAKS.split(";")[4]), {}),       # not through the guitars' bus: its fader is rising there and it ducks under the voice
            ("wsr", WALL_R, SPEAKS.split(";")[2], float(SPEAKS.split(";")[4]), {})] if SPEAKS.startswith("cross") else []),
         *([("spk", "voice-talk", "0dB", 0, {"fx": [SPEAK_EQ], "mute": True})] if SPEAKS.startswith("cross") else []),
@@ -1785,15 +1834,18 @@ def song():
                 mic, *cones = ENGCAB.split(";")[1 + kind].split(",")
                 if name in LAND_MAP.values():        # the landing riff's rig has its own microphone and cones
                     mic, *cones = (DOUBLE if DOUBLE and name in ("el2", "er2") else LANDRIG).split(";")[1].split(",")
+                if name in DBL_MAP.values():         # v54: a double has another microphone place and its own cones
+                    mic, cones = DBL.split(";")[1], DBL.split(";")[2 + kind].split(",")
                 cab = {"type": "cab", "model": m, "mic": float(mic), "distance": float(dist)}
                 if int(cones[right]):
                     cab["cone"] = int(cones[right])
                 t["fx"] = [cab] + ([{"type": "eq", "bands": peaks(OWNBITE)}] if kind == 1 and OWNBITE else []) \
-                    + ([{"type": "eq", "bands": peaks(DOUBLE.split(";")[5])}] if DOUBLE and name in ("el2", "er2") and DOUBLE.split(";")[5:] else [])
+                    + ([{"type": "eq", "bands": peaks(DOUBLE.split(";")[5])}] if DOUBLE and name in ("el2", "er2") and DOUBLE.split(";")[5:] else []) \
+                    + ([{"type": "eq", "bands": peaks(DBL.split(";")[12].split(",")[kind])}] if name in DBL_MAP.values() and DBL.split(";")[12:] and DBL.split(";")[12].split(",")[kind] else [])
             else:
                 t["fx"] = [{"type": "eq", "bands": OWNCAB.split("|") + grit(kind, right) + (peaks(OWNBITE) if kind == 1 else []) + (peaks(OWNREAL) if OWNREAL and name in ("rl", "rr", "rl2", "rr2") else [])}]
             # the squeal (Ab5, 830 Hz) has its own trim, so it is as loud as it was (it sits in the cabinet's scoop and on its cone's detail)
-            gain = t["gain"] = f"{float(gain[:-2]) + float(OWNTRIM.split(':')[kind]) + ((-0.6 if ENGCAB else 0.5) if name in ('ql', 'qr') else 0) + (float(LANDRIG.split(';')[2].split(',')[right]) if name in LAND_MAP.values() and not (DOUBLE and name in ('el2', 'er2')) else 0) + ((float(DOUBLE.split(';')[3].split(',')[right]) if name in ('el2', 'er2') else 0) + float(DOUBLE.split(';')[4]) if DOUBLE and name in LAND_MAP.values() else 0):g}dB"
+            gain = t["gain"] = f"{float(gain[:-2]) + float(OWNTRIM.split(':')[kind]) + ((-0.6 if ENGCAB else 0.5) if name in ('ql', 'qr') else 0) + (float(LANDRIG.split(';')[2].split(',')[right]) if name in LAND_MAP.values() and not (DOUBLE and name in ('el2', 'er2')) else 0) + ((float(DOUBLE.split(';')[3].split(',')[right]) if name in ('el2', 'er2') else 0) + float(DOUBLE.split(';')[4]) if DOUBLE and name in LAND_MAP.values() else 0) + ((float(DBL.split(';')[6 + kind].split(',')[right]) if name in DBL_MAP.values() else 0) + float(DBL.split(';')[9 + kind]) if name in DBL_MAP or name in DBL_MAP.values() else 0):g}dB"
         if TOP and name in TOP_OF:
             kind = TOP_OF[name]
             t["patch"] = t["patch"] + " fx.4.bands.3.gain=0dB" + ("" if kind == 2 else " fx.4.bands.6.gain=0dB")
