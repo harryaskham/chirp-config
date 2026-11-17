@@ -8850,7 +8850,7 @@
     {
       "id": "chirpers10-t8",
       "song": "songs/chirpers10-t8.yaml",
-      "reference": "chirpers — Track 8 (untitled)",
+      "reference": "chirpers — Common Measure",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers10-t8 OUT.wav",
@@ -8866,7 +8866,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Common Time",
-        "title": "Track 8 (untitled)",
+        "title": "Common Measure",
         "track": 8,
         "year": 2026
       },
