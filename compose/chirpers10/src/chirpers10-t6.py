@@ -371,6 +371,47 @@ def compose():
             drum("b", c, 0, 0.95)
 
 
+# v8: THE MACHINE AND THE RECORD'S KIT TOGETHER (Harry, 17 Nov 00:29, on the card "a drum machine under the guitars.
+# Keep it?": "The machine and the record's kit together"). The record's kit is the one the other five songs share
+# (`ct-kit`, its room and overheads as on Running Total). It plays the DRUMMER'S part and the machine keeps the
+# MACHINE'S:
+#   - the drummer: the kick on every note of the riff, the snare wherever the machine's snare falls, a crash where a
+#     section starts and the china on every scream at the top. (Benched and left out: the china on the half bar
+#     wherever the machine's hat is open. With it the wall stood 1.5 dB over the records at 4-8 kHz and 2.5 at
+#     8-16 kHz: the open hat is already that stretch's cymbal. The last field turns it on.)
+#   - the machine: everything it had. Its hat still counts (finer as the riff grows), its clap and its long boom are
+#     its own, and its kick, tuned to each key (v7), is now the BOTTOM of a kick whose beater and skin are the kit's:
+#     the kit's kick is high-passed, so the low octave is still the tuned one and nothing fights it there.
+#   - THE PAIR WEIGHS WHAT THE ONE DID: stroke for stroke the kit's kick is 2 dB under the machine's (the machine is
+#     the kick's body, the kit its beater) and the kit's snare level with the machine's to 2 dB over it (it has the
+#     crack), and each pair is within a quarter of a decibel of the machine's one before.
+#   - THE SONG STARTS AND ENDS ON THE MACHINE ALONE: while the rule is still growing (0:00-0:14) there is no drummer;
+#     he comes in, on a crash, when the riff first settles and both guitars are in; the last two bars are the
+#     machine's again.
+# the kit's kick gain ; its snare ; its cymbals ; the kick's high-pass, Hz ; the machine's kick trim, dB ; its snare
+# trim, dB ; the china's velocity on the half bar ; the kit kick's click (its 4.5 kHz lift, dB; the other songs have
+# 10) ; the machine's cymbal trim, dB ; a dip on the kit's snare (Hz : q : dB: its body sits where the machine's
+# snare was already cut, in the guitars' low mids) ; the kit bus's shelf at 9 kHz, dB (the other songs have -2: here
+# the machine's hat already holds that band). "" = v7 (the machine alone).
+KIT = os.environ.get("C10T6_KIT", "-3.5dB;-1.4dB;-5.5dB;130;-2.5;-3.6;0;5;-2;330:1:-4;-4.5")
+
+
+def kit_part():
+    """The record's kit, written from the machine's own part (so the two can never disagree)."""
+    t0, t1 = AT["one"] * 2, AT["out"] * 2
+    heads = {AT[name] * 2 for name, _, _ in DIAL}
+    inside = lambda n: t0 <= n["at"] < t1
+    T["dkick"] = [{**n, "pitch": "k"} for n in T.get("kick", []) if inside(n)]
+    T["dsnare"] = [{**n} for n in T.get("snare", []) if inside(n) and n["pitch"] == "s"]
+    T["dcym"] = [{**n, "len": 2.0, "pitch": "c" if n["at"] in heads or n["vel"] >= 0.95 else "x"} for n in T.get("cym", []) if inside(n)]
+    struck = {n["at"] for n in T["dcym"]}
+    ride = float(KIT.split(";")[6])
+    for c, (sec, r, x0, x) in enumerate(CELLS):          # the china on the half bar where the machine's hat is open
+        if ride and t0 <= c * 2 < t1 and c * 2 not in struck and sec != "full" and any(
+                n["pitch"] == "o" and n["at"] == c * 2 for n in T.get("hat", [])) and sec in ("chaos", "chaos2", "three", "down-four"):
+            T["dcym"].append({"at": c * 2, "len": 2.0, "pitch": "x", "vel": ride})
+
+
 def lead_gens():
     """The lead's part is the rule itself: one `logistic` system for each run of half bars on one dial setting,
     started from the orbit's own number there, so the engine walks the same orbit the band is playing."""
@@ -416,6 +457,9 @@ def second_voice():
 
 def song():
     compose()
+    if KIT:
+        kit_part()
+    kt = KIT.split(";") if KIT else None
     kit = "cc-machine"
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
     dbl = "ct-twin fx.1.model=modern fx.2.mic=0.35 fx.2.cone={}"
@@ -441,6 +485,12 @@ def song():
          "fx": [{"type": "eq", "bands": ["peak cutoff=350 q=1 gain=-5dB"]}]},      # its second oscillator sits in the guitars' low mids
         {"name": "cym", "patch": kit, "gain": os.environ.get("C10T6_CYM", "0dB"), "out": "drums"},
         {"name": "hat", "patch": kit, "gain": os.environ.get("C10T6_HAT", "0dB"), "out": "drums"},
+        *([{"name": "dkick", "patch": "ct-kit-here", "gain": kt[0], "out": "kit",
+            "fx": [{"type": "eq", "bands": [f"hp cutoff={kt[3]}", f"peak cutoff=4500 q=0.8 gain={kt[7]}dB"]}]},
+           {"name": "dsnare", "patch": "ct-kit-here", "gain": kt[1], "out": "kit", "sends": {"oh": "-1.5dB", "snr": "-10dB"},
+            "fx": [{"type": "eq", "bands": ["highshelf cutoff=7000 gain=-3dB"] + (["peak cutoff={} q={} gain={}dB".format(*kt[9].split(":"))] if kt[9:] and kt[9] else [])}]},
+           {"name": "dcym", "patch": "ct-kit-here", "gain": kt[2], "out": "kit", "sends": {"oh": "4.5dB"},
+            "fx": [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]}] if KIT else []),
     ]
     for t in tracks:
         if "gen" not in t:
@@ -453,6 +503,7 @@ def song():
             p["choke"] = choke
         return p
 
+    KG = os.environ.get("C10T6_K", f"{-14 + float(kt[4]):g}dB" if KIT else "-14dB")
     machine = {
         "about": ("Carrying Capacity's drum machine (chirper-zero, 16 Nov): the engine's `machine` voices, the first on this record. "
                   "k a 909-style kick resting on the song's E with its click up; s the two-oscillator snare; p the clap; "
@@ -460,14 +511,14 @@ def song():
                   "h and o the six-square hat, closed and open (they choke each other); c the cymbal."),
         "play": {"len": "/16", "vel_sens": 0.5},
         "kit": {
-            "k": piece("kick", "E1", os.environ.get("C10T6_K", "-14dB"), click=0.8, drive=0.35, decay="180ms"),
-            "s": piece("snare", "G3", os.environ.get("C10T6_S", "-5.5dB"), snappy=0.5, drive=0.2),
+            "k": piece("kick", "E1", KG, click=0.8, drive=0.35, decay="180ms"),
+            "s": piece("snare", "G3", os.environ.get("C10T6_S", f"{-5.5 + float(kt[5]):g}dB" if KIT else "-5.5dB"), snappy=0.5, drive=0.2),
             "p": piece("clap", "C4", os.environ.get("C10T6_P", "0dB")),
             "b": piece("boom", "E1", os.environ.get("C10T6_B", "-5dB"), decay="5s", drive=0.5),
             "h": piece("hat", "C6", os.environ.get("C10T6_H", "0dB"), pan=-0.3, choke="hat"),
             "o": piece("hat", "C6", os.environ.get("C10T6_O", "-3dB" if TELL else "0dB"), pan=-0.3, choke="hat", decay="380ms"),   # v3: open on every beat of the news: 3 dB down
-            "c": piece("cymbal", "C6", os.environ.get("C10T6_C", "-6dB"), pan=0.3),
-            **({f"k{i + 1}": piece("kick", TUNE.split(";")[i], os.environ.get("C10T6_K", "-14dB"), click=0.8, drive=0.35, decay="180ms") for i in range(3)} if TUNE else {}),
+            "c": piece("cymbal", "C6", os.environ.get("C10T6_C", f"{-6 + float(kt[8]):g}dB" if KIT else "-6dB"), pan=0.3),
+            **({f"k{i + 1}": piece("kick", TUNE.split(";")[i], KG, click=0.8, drive=0.35, decay="180ms") for i in range(3)} if TUNE else {}),
             **({"b3": piece("boom", TUNE.split(";")[3], os.environ.get("C10T6_B", "-5dB"), decay="5s", drive=0.5)} if TUNE else {}),
         },
     }
@@ -479,7 +530,8 @@ def song():
                   "bars and then on three, fills the whole range, and dies out. Triplets at 138, on E, with a drum machine; "
                   "the lead has no notes, only the rule (the engine's own logistic generator). v1 is the skeleton."),
         "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
-        "patches": {"cc-machine": machine},
+        "patches": {"cc-machine": machine,
+                    **({"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}}} if KIT else {})},
         "buses": {
             "hall": {"fx": ["reverb kind=hall decay=4.5s mix=1 predelay=30ms low_cut=150"]},
             "drums": {"fx": [{"type": "glue", "threshold": "-24dB", "ratio": 2.5, "attack": "20ms", "release": "140ms", "knee": 6.0},
@@ -488,6 +540,13 @@ def song():
             "gtrs": {"fx": [{"type": "eq", "bands": ["peak cutoff=330 q=1.2 gain=-2dB"]}, "reverb kind=room decay=0.35s mix=0.06 predelay=6ms"]},
             # ct-bass's bus, as on the other songs, with its bands moved down a semitone to E
             "low": low_bus(),
+            # v8: the record's kit, on the other songs' drum bus, room and overheads
+            **({"kit": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
+                               {"type": "glue", "threshold": "-24dB", "ratio": 2.5, "attack": "20ms", "release": "140ms", "knee": 6.0},
+                               "clip drive=0dB ceiling=-13dB",
+                               {"type": "eq", "bands": ["peak cutoff=400 q=0.8 gain=-6dB", "peak cutoff=5500 q=0.9 gain=1dB", f"highshelf cutoff=9000 gain={kt[10] if kt[10:] else -2}dB", "lp cutoff=14250 q=0.8"]}]},
+                "oh": {"fx": ["reverb kind=room decay=0.7s mix=1 predelay=4ms low_cut=5000 high_cut=12000 spread=0.6", {"type": "eq", "bands": ["lp cutoff=14250 q=0.8"]}]},
+                "snr": {"fx": [{"type": "eq", "bands": ["peak cutoff=300 q=0.7 gain=-12dB"]}]}} if KIT else {}),
         },
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": os.environ.get("C10T6_MASTER", "2.7dB")}]},
         "tracks": tracks,
