@@ -730,7 +730,11 @@ def song():
     # said: it states the illusion alone, the guitars take it up, and when the band comes in (0:19) it is gone. The
     # same at the summit, which is the stair's first bars again. It still sounds in the foot and in the pole.
     # the tone's level under the band, dB against its fader's own (-60 = out). "" = v10 (0: on under the band).
-    bandonly = os.environ.get("C10T5_BANDONLY", "-60")
+    # v14 (Harry, 17 Nov 00:28, asked whether the riff keeps climbing: "It climbed better with the tone under it"):
+    # the tone is back under the band, at v10's level, in the stair and at the summit. His ear over my band table:
+    # the stair reads 3.0 to 3.3 dB over the records at 250-500 Hz again, and that is now his to keep. The default is
+    # "" again; C10T5_BANDONLY=-60 is v13 (the band alone).
+    bandonly = os.environ.get("C10T5_BANDONLY", "")
     under = float(bandonly) if bandonly else 0.0
     syn_lane = [(0.0, float(synth[2]))]
     for bar, lvl in ((FOOT + 4, float(synth[3])), (RISE, under), (POLE, float(synth[4])), (BOTH - (int(RUNS.split(";")[0]) if RUNS else 0), under)):

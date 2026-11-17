@@ -377,6 +377,8 @@ Form as arithmetic: every section's start is computed from its length (`FOOT`, `
 
 **The eight guitars alone (v13).** Whole-song round (the song read again stretch by stretch against the records; one finding acted on). No note changed. The eight stair guitars' eq band (a 2.5 dB cut at 700 Hz since v3) moves an octave lower, to 350 Hz, for bars 32-92, where they are the only guitars (the turn, the descent, the pole's middle where they rest, the first run-up of "both"). It steps at two seams between sections and stands still inside each illusion.
 
+**The tone is back under the stair (v14).** Harry's answer (17 Nov 00:28), asked whether the riff keeps climbing: "It climbed better with the tone under it". v11 had taken the plain Shepard tone out from under the band in the stair (0:19-1:16) and at the summit (4:02-4:12), on a band table: read alone it held 250-500 Hz there. It is back in both places at v10's level. The lesson is about what the table cannot say: the tone was a "pad behind the band" to the meter and the thing that makes the staircase read as one to the ear. An illusion's carrier is not clutter because it holds a band. The cost is plain and now his: the stair is 3.0 to 3.3 dB over the records at 250-500 Hz again. The quiet middle stays on three lead guitars (v12); if he wants the tone back there too, `C10T5_POLELEAD=""`. His other two answers ask for nothing: the guitars' riser into the turn is "A lift: keep it", and at the turn the chug gets "Faster and faster".
+
 ## t6 Carrying Capacity (chirper-zero)
 
 Harry, 16 Nov about 12:33: "make it unique". Source: `src/chirpers10-t6.py` (its first page is the full account).
