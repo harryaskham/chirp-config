@@ -482,6 +482,12 @@ def cmd_song(a):
         os.remove(f)
     print(f"{'refs mix median':22s}" + "".join(f"{x:7.1f}" for x in M))
     print(f"{'OURS - REFS (mean)':22s}" + "".join(f"{x:7.1f}" for x in np.mean(mixes, axis=0) - M))
+    # chirper-zero, Common Time v54: second takes panned inside their first takes moved this table +0.3 to +0.6 at
+    # 500 Hz-4 kHz where the guitars' power moved under 0.1 dB; the docstring said why, the output did not.
+    print("(every row is read from the MONO SUM of the file, ours and the records' alike: a part that is in both channels, "
+          "such as a double panned inside its first take, adds in step and reads up to 3 dB over the same power "
+          "hard-panned or in a wide room. The two channels' power: tools/gspec.py. Read both before moving a band by "
+          "under a dB.)")
     if a.spread:
         S = spread(a)
         if S:

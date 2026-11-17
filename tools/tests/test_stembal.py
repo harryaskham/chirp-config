@@ -222,6 +222,10 @@ class Stembal(unittest.TestCase):
                              "--groups", "bass=bass", "--mix-only", "--out", self.root)
         self.assertNotIn("groups:", text)
         self.assertIn("OURS - REFS (mean)", text)
+        # under the table: what the rows are read from (a double panned inside reads higher here than its power)
+        lines = text.splitlines()
+        at = [i for i, ln in enumerate(lines) if ln.startswith("OURS - REFS (mean)")][0]
+        self.assertTrue(lines[at + 1].startswith("(every row is read from the MONO SUM"))
 
     def test_a_group_naming_no_track_stops_with_the_engines_words(self):
         with self.assertRaises(SystemExit) as e:
