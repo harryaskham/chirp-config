@@ -10,6 +10,9 @@ SONG is an id (songs/ID.yaml) or a file; the TRACKs are the part (both guitars o
 plays, as `chirp render --from/--to` take positions (29-33, 112b-128b); each SHIFT a number of semitones (-7, 5).
 The bench is the song with every other track's notes out, so the rig, its bus and the master are the song's own
 (loudness off, seed 0), and the part's notes in the window as written, then moved by each SHIFT.
+A GENERATED part (a track with a `gen` and no written notes) is benched too: its generator plays as written and the
+note names in its pool (`notes: "Ab3 B3 Eb4"`) are moved; a pool of degrees or offsets is refused (move the key).
+So "what level will this patch have an octave down" is one command before the lower part is written.
 Prints the nine bands tools/stembal.py reads (under 60 Hz to 8-16 kHz) and the whole: the first row is the passage
 as written, each band against its own total; every other row is that ground MINUS as written, in dB, same rig and
 same gain. So a row says what the move does to the part's tone and level, and tools/eqpred.py says what filter
@@ -56,8 +59,26 @@ def moved(pitch, semis):
     return ",".join(one(q) for q in str(pitch).split(","))
 
 
+def moved_pool(gens, semis):
+    """A track's `gen` (one, or a list) with every note NAME in each pool (`notes`) moved by semis; degrees (`%3`),
+    offsets (`~6`) and kit pieces stay. Returns (the moved gen, how many names it found)."""
+    found = 0
+    out = json.loads(json.dumps(gens))
+    for g in out if isinstance(out, list) else [out]:
+        if not isinstance(g, dict) or not isinstance(g.get("notes"), str):
+            continue
+        pool = []
+        for tok in g["notes"].split():
+            named = tok[:1].upper() in "ABCDEFG" and tok[-1:].isdigit()
+            found += named
+            pool.append(moved(tok, semis) if named else tok)
+        g["notes"] = " ".join(pool)
+    return out, found
+
+
 def bench(doc, tracks, b0, b1, semis):
     """The song with every note out but those of `tracks` that start in [b0, b1) beats, moved by semis.
+    A track with no written notes but a `gen` (a generated part) keeps its generator, the pool's note names moved.
     KeyError (the name) when a track is missing or plays nothing there."""
     out = json.loads(json.dumps(doc))
     src, got = {}, {}
@@ -78,6 +99,14 @@ def bench(doc, tracks, b0, b1, semis):
         if name not in got:
             raise KeyError(name)
         notes = [n for n in src[name].get("notes") or [] if isinstance(n, dict) and b0 <= float(n.get("at") or 0) < b1]
+        if not notes and src[name].get("gen") and not src[name].get("notes"):
+            # a generated part (chirper-zero, Extreme and Mean v2: three lower harps had their gains set on a guess)
+            gen, found = moved_pool(src[name]["gen"], semis)
+            if not found:
+                raise KeyError(name + " (its generator's pool has no note names to move: degrees follow the score's key)")
+            got[name]["gen"] = gen
+            got[name].pop("mute", None)
+            continue
         if not notes:
             raise KeyError(name + " (no notes there)")
         got[name]["notes"] = [dict(n, pitch=moved(n["pitch"], semis)) if "pitch" in n else dict(n) for n in notes]

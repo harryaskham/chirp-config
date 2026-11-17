@@ -62,6 +62,30 @@ class Moving(unittest.TestCase):
                 K.bench(SONG, tracks, 40.0, 48.0, 0)
             self.assertEqual(e.exception.args[0], said)
 
+    def test_a_generated_part_keeps_its_generator_and_its_pool_moves(self):
+        """chirper-zero, Extreme and Mean v2: lower copies of a generated harp had their gains set on a guess. A track
+        with a `gen` and no written notes is benched with its generator as written and the pool's note names moved."""
+        song = {"tempo": 80, "tracks": [
+            {"name": "harp", "patch": "ks-harp", "at": "8b", "mute": True,
+             "gen": [{"type": "lsystem", "axiom": "Apq", "n": 55, "len": "/16", "notes": "Ab3 B3 Eb4 Gb4"}]},
+            {"name": "deg", "patch": "ks-harp", "gen": {"type": "logistic", "notes": "%1 %3 ~5 k"}},
+            {"name": "gl", "patch": "pluck", "notes": [{"at": 8, "len": 1, "pitch": "E2"}]}]}
+        made = K.bench(song, ["harp"], 8.0, 16.0, -12)
+        harp, deg, gl = made["tracks"]
+        self.assertEqual(harp["gen"][0]["notes"], "Ab2 B2 Eb3 Gb3")
+        self.assertEqual({k: v for k, v in harp["gen"][0].items() if k != "notes"},
+                         {k: v for k, v in song["tracks"][0]["gen"][0].items() if k != "notes"})
+        self.assertEqual(harp["at"], "8b")
+        self.assertNotIn("mute", harp)
+        self.assertNotIn("gen", deg)                                                       # every other part is out
+        self.assertEqual(gl["notes"], [])
+        self.assertEqual(K.bench(song, ["harp"], 8.0, 16.0, 0)["tracks"][0]["gen"], song["tracks"][0]["gen"])
+        self.assertEqual(song["tracks"][0]["gen"][0]["notes"], "Ab3 B3 Eb4 Gb4")           # the song given is not touched
+        self.assertEqual(K.moved_pool({"type": "walk", "notes": "C4 %2 k"}, 7), ({"type": "walk", "notes": "G4 %2 k"}, 1))
+        with self.assertRaises(KeyError) as e:                                             # degrees follow the key: refused
+            K.bench(song, ["deg"], 8.0, 16.0, -12)
+        self.assertIn("no note names to move", e.exception.args[0])
+
 
 class WholeRun(unittest.TestCase):
     def setUp(self):
