@@ -8785,7 +8785,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "paused",
+      "status": "active",
       "rounds": 7,
       "priority": 1.0,
       "genre": "polymetric djent",
