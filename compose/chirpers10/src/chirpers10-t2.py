@@ -316,7 +316,8 @@ if END:
 #      as in the other slips, and the lock holds: a crash, and the last barks. Huygens's clocks did this when he
 #      disturbed them.
 #      the bar it starts ; bars out (and as many back) ; the right clock's shift at its furthest, beats. "" = v17.
-PULSE = os.environ.get("C10T2_PULSE", "78;-13;-10;0.28;0.55") if DRIFT and os.environ.get("C10T2_LETGO", "x") else ""
+#      v27 (Harry: "Too much: it buries the boxes"): 78;-18;-15;0.07;0.3. v18-v26: 78;-13;-10;0.28;0.55.
+PULSE = os.environ.get("C10T2_PULSE", "78;-18;-15;0.07;0.3") if DRIFT and os.environ.get("C10T2_LETGO", "x") else ""
 SHAKE = os.environ.get("C10T2_SHAKE", "106;2;-2.5")
 if SHAKE:
     _sb, _sn, _far = int(SHAKE.split(";")[0]), int(SHAKE.split(";")[1]), float(SHAKE.split(";")[2])
@@ -403,6 +404,22 @@ def bass(b0, b1, lead=0, vel=0.9, root=0, union=False, only=None):
 # send ; the doubles (patch:gain:pan, or "") ; its eq. "" = v18.
 SUNG = os.environ.get("C10T2_SUNG", "53;-10dB;2;room:0.35s:0.15;-16dB;voice-hook:-9.5dB:0.6;hp cutoff=500|hp cutoff=500|peak cutoff=2500 q=0.8 gain=6dB")
 RIFF_NOTE = {0: 0, 1: 0, 3: 0, 6: 6, 10: 3, 12: 0, 13: 0, 15: 7, -1: 7}      # the riff's note at each of its attacks, semitones over F
+# v27: HARRY'S THREE ANSWERS (17 Nov 00:25; his words in quotes).
+#   1. "2: sung, in the band. Do the lines at 2:13 too". The second passage (the hold a quarter apart, the two voices a
+#      beat apart, left spoken since v19 so that he could hear the two against each other) is SUNG now, the same way:
+#      each voice on the riff's own notes at the riff's attacks, in the first passage's eq and room. The right voice is
+#      the left a beat late, as the right guitar is: so the words come as a ROUND at the quarter, on the riff.
+#      each of the two voices' gain ; their hall send. "" = v26 (spoken).
+#      Benched by part against the first passage: the one centre voice there sits 9.2 dB under the mix and is half of
+#      500 Hz-1 kHz; the two here sit 11.7 and 12.2 under (8.9 together) and together are as much of that band (-2.6
+#      against -2.9). Spoken they were 9.6 and 9.8 under: on top, which is what he had turned down.
+#   2. THE DRIFT'S PULSE, "Too much: it buries the boxes". It does: read stroke by stroke, the pulse's kick was 1 dB OVER
+#      the music boxes' strokes and its hat 1 dB under them, and the hat was the whole of the mix from 4 kHz up. The
+#      pulse stays (he asked for one) and goes UNDER: the bass 5 dB down until the swell into the landing, the kick's
+#      velocity a quarter of what it was, the hat's about half (C10T2_PULSE, below).
+#   3. THE HOLD ON C, "With its tone back: do it". The bass's three eq bands follow the ground there too, as on A flat
+#      and B since v23 (C10T2_KEYEQ, below): its body and growl back, in place of fundamental.
+SUNG2 = os.environ.get("C10T2_SUNG2", "-8dB;-16dB") if SUNG else ""
 
 
 def say(line, bar, kind="talk", ring=True, one=False):
@@ -414,7 +431,7 @@ def say(line, bar, kind="talk", ring=True, one=False):
         ln = (pos[i + 1] - pos[i]) if i < 7 else (6 if ring else (1 if how == "down" else 2))
         ln = min(ln, 2.2) if not (i == 7 and ring) else ln
         pitch = nm(65) if kind == "bark" else ("m41.5" if i == 7 else "m45.5")       # the talk falls at the end of a line
-        sung = SUNG and one and kind == "talk"
+        sung = SUNG and (one or SUNG2) and kind == "talk"
         if sung:
             pitch = nm(int(SUNG.split(";")[0]) + RIFF_NOTE[pos[i]])
         for tr in (("vl", "vr") if kind == "bark" else (("tc",) + (("sl", "sr") if sung and SUNG.split(";")[5] else ())) if one else ("tl", "tr")):
@@ -597,7 +614,8 @@ def slip_clock(b0, b1, root=0):
 # octaves) IN THE HOLDS ON A FLAT AND B. The hold on C is left exactly as it is: Harry signed it off ("Enough") with
 # 3 dB more bass, and whether it should have its tone back in place of that is on the Questions page.
 # bar from : bar to : semitones over F, comma-separated. "" = v22.
-KEYEQ = os.environ.get("C10T2_KEYEQ", "36:48:3,48:56:6")
+# v27 (Harry, on the card that asked: "With its tone back: do it"): the hold on C too (28:32:7). v23-v26: 36:48:3,48:56:6.
+KEYEQ = os.environ.get("C10T2_KEYEQ", "28:32:7,36:48:3,48:56:6")
 
 
 def key_f(hz):
@@ -904,6 +922,7 @@ def song():
         key_lane += [[f"{k1 * 4 - 0.02:g}b", semi], [f"{k1 * 4:g}b", 0]]
     talkfx = ([TALKFX] if TALKFX else []) + ([{"type": "eq", "bands": TALKEQ.split("|")}] if TALKEQ else [])
     sg = SUNG.split(";") if SUNG and HEARD and VOICE else None
+    s2 = SUNG2.split(";") if SUNG2 and sg else None
     pump = [{"type": "pump", "on": tr, "depth": f"-{(sg[2] if sg else hd[3].split(':')[0]) if tr == 'tc' else hd[4]}dB", "attack": "4ms", "hold": hd[3].split(":")[1], "release": hd[3].split(":")[2]}
             for tr in ("tc", "tl", "tr")] if VOICE and HEARD and float(hd[3].split(":")[0]) else []
     dtop = [f"lp cutoff={DTOP.split(';')[0]} q={DTOP.split(';')[1]}"] if DTOP else []
@@ -938,8 +957,9 @@ def song():
                "fx": [{"type": "eq", "bands": sg[6].split("|")}, "reverb kind={} decay={} mix={} predelay=6ms".format(*sg[3].split(":"))]}
               for tr, sgn in (("sl", -1), ("sr", 1))] if sg[5] else []) if sg else
           [{"name": "tc", "patch": "voice-talk", "gain": hd[0], "pan": 0, "fx": talkfx}] if VOICE and HEARD else []),
-        *([{"name": tr, "patch": "voice-talk", "gain": hd[1] if HEARD else vo[0], "pan": sgn * float(hd[2] if HEARD else vo[2]),
-            "fx": talkfx,
+        *([{"name": tr, "patch": "voice-talk", "gain": s2[0] if s2 else hd[1] if HEARD else vo[0], "pan": sgn * float(hd[2] if HEARD else vo[2]),
+            **({"sends": {"hall": s2[1]}} if s2 else {}),
+            "fx": [{"type": "eq", "bands": sg[6].split("|")}, "reverb kind={} decay={} mix={} predelay=6ms".format(*sg[3].split(":"))] if s2 else talkfx,
             **({"warp": WARP} if tr == "tr" else {})} for tr, sgn in (("tl", -1), ("tr", 1))] if VOICE else []),
         *([{"name": tr, "patch": "kidman synth.layers.0.diction=2 synth.layers.0.speech=1",
             "gain": f"{float(vo[1][:-2]) + float(FOUR.split(';')[4]):g}dB" if FOUR and len(FOUR.split(";")) > 4 else vo[1], "pan": sgn * float(vo[2]), "sends": {"hall": vo[3]},
