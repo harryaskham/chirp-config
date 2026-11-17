@@ -54,6 +54,11 @@ PAD = os.environ.get("C10T7_PAD", "7.5dB;-9dB")        # the clean guitar's chor
 # the bass in the quiet sections, dB after its bus (its compressor holds a long soft note at the level of a hard short
 # one, so a lower velocity does not make it quieter; this does)
 QBASS = os.environ.get("C10T7_QBASS", "-4.5")
+# v2, THE SAME TUNE AT EVERY SIZE: the three quiet sections were the same nine bars three times. Now the second has two
+# harps and the third three, and each added harp plays THE SAME TUNE ON LARGER CELLS (5 and 3 sixteenths; then 8 and 5),
+# an octave lower each: a canon in which the voices' speeds stand as the long cell to the short. Every note of a slower
+# harp falls with a note of the faster ones. The second voice's gain ; the third's. "" = v1.
+CANON = os.environ.get("C10T7_CANON", "-16dB;-18dB")
 
 
 def nm(n):
@@ -202,6 +207,20 @@ def harp_gen(depth, n, pool):
     return {"type": "lsystem", "axiom": "Apq", "rules": RULES, "depth": depth, "n": n, "len": "/16", "notes": " ".join(nm(x) for x in pool)}
 
 
+def harp_gen_at(k, n, pool):
+    """The same L-system on the cells of size k (SIZE[k] sixteenths): a long is A and its rests, a short B and its rests."""
+    ln, sn = SIZE[k]
+    abc = "abcdefghijklmnopqrstuvwxyz"
+    lr, sr = abc[:ln - 1], abc[ln - 1:ln - 1 + sn - 1]
+    rules = {"A": "A", "B": "A"}
+    for c in lr[:-1]:
+        rules[c] = c
+    rules[lr[-1]] = lr[-1] + "[+B" + sr + "]"                     # the short cell is born a step up, as at size 0
+    for j, c in enumerate(sr):
+        rules[c] = lr[j] if j < len(sr) - 1 else lr[len(sr) - 1:]     # a short's rests grow into a long's
+    return {"type": "lsystem", "axiom": "A" + lr, "rules": rules, "depth": 8 - k, "n": n, "len": "/16", "notes": " ".join(nm(x) for x in pool)}
+
+
 def harp_tune(depth):
     """What the engine's turtle will play (for the notes and the docs): the pool step of each cell."""
     s = "Apq"
@@ -241,6 +260,10 @@ def song():
         {"name": "wr", "patch": "ct-wall-stop-r", "gain": "-3.5dB", "pan": 0.75, "out": "gtrs", **wall},
         *[{"name": f"harp{i + 1}", "patch": "em-harp", "gain": g, "pan": 0.25, "at": f"{s0 / 4:g}b", "sends": {"hall": hh},
            "gen": [harp_gen(d, n, pool)]} for i, s0, d, n, pool, g in harps],
+        *([{"name": f"harp{i + 1}{'bc'[k - 1]}", "patch": "em-harp", "gain": CANON.split(";")[k - 1], "pan": (-0.3, 0.0)[k - 1],
+            "at": f"{SECS[i][0] / 4:g}b", "sends": {"hall": hh},
+            "gen": [harp_gen_at(k, 144, [x + KEY[i] + (12 if i == 6 else 0) - 12 * k for x in POOL])]}
+           for i, k in ((4, 1), (6, 1), (6, 2))] if CANON else []),
         {"name": "pad", "patch": "ct-glass", "gain": PAD.split(";")[0], "pan": -0.3, "sends": {"hall": PAD.split(";")[1]}},
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
         {"name": "kick", "patch": kit, "gain": "2dB", "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]},
