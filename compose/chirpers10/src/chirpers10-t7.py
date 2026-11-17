@@ -59,6 +59,13 @@ QBASS = os.environ.get("C10T7_QBASS", "-4.5")
 # an octave lower each: a canon in which the voices' speeds stand as the long cell to the short. Every note of a slower
 # harp falls with a note of the faster ones. The second voice's gain ; the third's. "" = v1.
 CANON = os.environ.get("C10T7_CANON", "-16dB;-18dB")
+# v3, THE TUNE AT THE LARGEST SIZE A BREATH CAN HOLD: cells of 21 and 13 sixteenths (3.9 and 2.4 seconds) had no voice of
+# their own. In the four-guitar sections a brass section (horns and trombones on the engine's physical lips: the record's
+# first `wind` source) plays the harp's tune on those cells, one long note to a cell: strings plucked for the small
+# sizes, breath for the large one. patch ; gain ; velocity ; semitones over the harp's pool (an octave up: at the harp's
+# own octave its notes sat at 250-500 Hz and read 7 dB over the records there) ; a dip at its lowest notes (Hz : q : dB).
+# "" = v2.
+BRASS = os.environ.get("C10T7_BRASS", "brass;-13dB;0.8;12;400:1:-3")
 
 
 def nm(n):
@@ -192,6 +199,10 @@ def quiet(i, s0, n):
 def compose():
     for i, (s0, kind, n) in enumerate(SECS):
         (heavy if kind == "L" else quiet)(i, s0, n)
+        if BRASS and i in WIDE:
+            big = [c for c in LEV[4] if s0 <= c[0] < s0 + n]
+            for (p, _, ln), step in zip(big, harp_tune(5)):
+                add("brass", p, ln - 1, POOL[step] + KEY[i] + int(BRASS.split(";")[3]), float(BRASS.split(";")[2]))
     for tr in ("gl", "gr", "wl", "wr"):                   # where the fifteenth line would begin: one chord
         add(tr, TOTAL, 32, ",".join(nm(F1 + j) for j in (0, 7, 12, 19)), 0.95)
     add("bass", TOTAL, 32, F1, 0.95)
@@ -264,6 +275,8 @@ def song():
             "at": f"{SECS[i][0] / 4:g}b", "sends": {"hall": hh},
             "gen": [harp_gen_at(k, 144, [x + KEY[i] + (12 if i == 6 else 0) - 12 * k for x in POOL])]}
            for i, k in ((4, 1), (6, 1), (6, 2))] if CANON else []),
+        *([{"name": "brass", "patch": BRASS.split(";")[0], "gain": BRASS.split(";")[1], "pan": 0,
+            "fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*BRASS.split(";")[4].split(":"))]}]}] if BRASS else []),
         {"name": "pad", "patch": "ct-glass", "gain": PAD.split(";")[0], "pan": -0.3, "sends": {"hall": PAD.split(";")[1]}},
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
         {"name": "kick", "patch": kit, "gain": "2dB", "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]},
