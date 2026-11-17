@@ -51,6 +51,11 @@ T = {}
 # measure they ring together on every beat. gain, dB ; velocity ; velocity in the measure ; the low bell's dB over the
 # high one's (it reads 2.4 dB quieter at the same gain). "" = v1 (no bells).
 BELLS = os.environ.get("C10T8_BELLS", "-12;0.9;0.95;1.5")
+# v3, WHAT WAS CUT AWAY COMES BACK: the long riff's head (the hook coming down: E flat, C, B, A flat, G flat, F) was the
+# first thing the algorithm cut off, at 0:51. At the measure a lead guitar plays it again, each note held for two
+# bars over the cell that measures it, against the chords climbing the same notes the other way. Then the F again and
+# the F above. patch ; gain ; hall send ; semitones over the low F. "" = v2 (no lead).
+HEAD = os.environ.get("C10T8_HEAD", "lead-monster;-12dB;-12dB;36")
 
 
 def nm(n):
@@ -221,6 +226,9 @@ def compose():
                 bell(side, t + j * 32 + i * 4, root, float(BELLS.split(";")[2]) if BELLS else 0)
         if j:
             drum("c", t + j * 32, 0.7)
+        if HEAD:
+            head = [int(k) if k.isdigit() else 0 for k in A[:16] if k not in "-rc"] + [0, 12]
+            add("lead", t + j * 32, 32, F1 + int(HEAD.split(";")[3]) + head[j], 0.9)
     beat(t, t + 256, cym="x", step=4, vel=0.5)
     t += 256
     # measured: the two riffs said together, in unison, the beat under them
@@ -267,6 +275,7 @@ def song():
         {"name": "wr", "patch": "ct-wall-stop-r", "gain": "-3.5dB", "pan": 0.75, "out": "gtrs", **wall},
         *([{"name": "bell-" + side, "patch": "cm-bell", "gain": f"{float(BELLS.split(';')[0]) + (float(BELLS.split(';')[3]) if side == 'l' else 0):g}dB", "pan": pan}
            for side, pan in (("l", -0.6), ("r", 0.6))] if BELLS else []),
+        *([{"name": "lead", "patch": HEAD.split(";")[0], "gain": HEAD.split(";")[1], "pan": 0, "sends": {"hall": HEAD.split(";")[2]}}] if HEAD else []),
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
         {"name": "kick", "patch": kit, "gain": "2dB", "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]},
         {"name": "snare", "patch": kit, "gain": "3.5dB", "out": "drums", "sends": {"oh": "-1.5dB", "snr": "-10dB"},
@@ -303,6 +312,7 @@ def song():
                                   "layers": [{"type": "additive", "damp": 0.3, "partials": [[1, 1], [2.4, 0.4], [3.9, 0.15]]},
                                              {"type": "noise", "level": {"value": "-60dB", "mod": [{"src": "env.h", "amount": 40}]}}]}}} if BELLS else {})},
         "buses": {
+            **({"hall": {"fx": ["reverb kind=hall decay=4.5s mix=1 predelay=30ms low_cut=150"]}} if HEAD else {}),
             "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
                              {"type": "glue", "threshold": "-24dB", "ratio": 2.5, "attack": "20ms", "release": "140ms", "knee": 6.0},
                              "clip drive=0dB ceiling=-13dB",
