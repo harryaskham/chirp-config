@@ -270,6 +270,8 @@ The bare lead is in both cycles on purpose: with it in the first only, the score
 
 **The harmony opens (v17).** Section round, 3:59-4:09 (window 3:44-4:16). The second cycle's harmony guitars play the first of their two leads in thirds (rows 60-69, as before) and the second in sixths (rows 70-77: four steps up the riff's six-note scale: F takes C, G flat takes E flat, A flat takes F, B takes G flat, C takes A flat, E flat takes B), then the call in unison an octave up, the key change, and the lead's climb.
 
+**The chant is men, and they have words (v18).** Harry's answer (17 Nov 00:26): "I hear it, but it is a synth, not men". v10 had given the chant a line and he could hear it; what he heard was a formant voice with a mouth on an LFO. The line stays, note for note; the singer changes: the engine's singing voice as a choir of ten (five basses on the line, five a fifth above, sized to their part), singing words, since consonants are what a synthetic vowel lacks. The words are bell inscriptions: "vivos voco" under the opening's bells, "mortuos plango, vivos voco" when the bells come round, "orate" after the last tolls. So the tower now says what a tower says, and the song's three bell-alone places are three lines of one text. His other five answers keep what is there: the harmony in the first cycle, the bass's body on B, the bass alone for two and a half bars ("Right now"), the sixths, and the climb ("It pulls, and it lands": so the landing's bells, loud as they measure, stand).
+
 ## t4 Running Total (chirper-zero)
 
 Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber". The album's fourth kind of long cycle: a SUM.

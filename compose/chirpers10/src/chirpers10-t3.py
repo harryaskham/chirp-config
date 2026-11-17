@@ -153,6 +153,19 @@ FUZZ = os.environ.get("C10T3_FUZZ", "bass-fuzz fx.0.shape=wavefold;4dB;180;4;4")
 # the lower voice's line under the opening's bells | under the middle's | under the last tolls (semitones over F) ;
 # the gap between notes, beats ; the chant's gain (it was -15.5 dB). "" = v9.
 CHANT = os.environ.get("C10T3_CHANT", "0,1,0,3,0|0,0,1,0,3,1,0,1,0|0,1,0;0.25;-11.5dB") if TOWER else ""
+# v18: THE CHANT IS MEN, AND THEY HAVE WORDS (Harry, 17 Nov 00:26, asked "Do you hear men chanting now?": "I hear it,
+# but it is a synth, not men"). The line he heard was right and the singer was wrong: `fof-chant` is one formant
+# voice with a mouth that moves on an LFO between "o" and "u": no consonants, no breath, no second man. The same line
+# is now sung by the engine's SINGING voice as a choir (`voice-choir`: five singers on a line, each with his own
+# size, entry and drifting tuning), with larger tracts (basses), and the upper voice a fifth above is five more,
+# sized to their part: ten men, in the oldest two-part chant (the fifth above, the whole way). And they sing WORDS,
+# because a mouth that makes consonants is what tells a man from an organ stop: what bells have had cast on them
+# for centuries. Under the opening's bells "vivos voco" (I call the living); when the bells come round in the middle
+# "mortuos plango, vivos voco" (I mourn the dead, I call the living); after the last tolls "orate" (pray).
+# the patch ; its gain ; its hall send ; the words, a syllable to each note of the line (ARPAbet), the three lines
+# split by "/". "" = v17 (`fof-chant`).
+MONKS = os.environ.get("C10T3_MONKS", "voice-choir synth.layers.0.harmony=[7] synth.layers.0.part_size=1 synth.layers.0.tract=1.18 synth.layers.0.vib_spread=1;-5.5dB;-9dB;"
+                       "V IY1|V OW0 S|V OW1|K OW0|OW1/M AO1 R|T UW0|OW0 S|P L AA1 N|G OW0|V IY1|V OW0 S|V OW1|K OW0/OW1|R AA1|T EY0") if CHANT else ""
 # v4: THE CLIMB (section round, 3:52-4:30: the last third of the second extent, which the section map called static:
 # fifteen bars of the row with the kick on every note). Over it a LEAD GUITAR now plays the row's own notes the other
 # way and sixteen times slower than the band's eighths would be: from the ground up, C D-flat E-flat G-flat G B-flat,
@@ -440,6 +453,11 @@ def chant(at, beats, line=None, first=None, step=3.0):
         for i, d in enumerate(steps):
             t0 = first + i * step
             ln = (at + beats - t0) if i == len(steps) - 1 else step - gap
+            if MONKS:                                                # v18: one line; the patch sings the fifth above it
+                words = MONKS.split(";")[3].split("/")[line].split("|")
+                assert len(words) == len(steps), (line, len(words), len(steps))
+                T.setdefault("chant", []).append({"at": round(t0, 4), "len": round(ln, 4), "pitch": nm(41 + d), "vel": 0.6, "ph": words[i]})
+                continue
             for base, v in ((41, 0.6), (48, 0.5)):                   # F2 and the C above it
                 T.setdefault("chant", []).append({"at": round(t0, 4), "len": round(ln, 4), "pitch": nm(base + d), "vel": v})
         return
@@ -661,7 +679,8 @@ def song():
             "fx": [{"type": "eq", "bands": [{"kind": "hp", "cutoff": key_f(float(TREBLE.split(";")[0].split(":")[0])) if KEYEQ else float(TREBLE.split(";")[0].split(":")[0]),
                                              "q": float(TREBLE.split(";")[0].split(":")[1])}]}],
             **({"auto": {"key": {"points": KEY_LANE, "curve": 0}}} if KEYEQ else {})}] if TREBLE else []),
-        *([{"name": "chant", "patch": TOWER.split(";")[0], "gain": CHANT.split(";")[2] if CHANT else TOWER.split(";")[1], "pan": -0.1, "sends": {"hall": TOWER.split(";")[2]}},
+        *([{"name": "chant", "patch": "ph-monks" if MONKS else TOWER.split(";")[0], "gain": MONKS.split(";")[1] if MONKS else CHANT.split(";")[2] if CHANT else TOWER.split(";")[1],
+            "pan": -0.1, "sends": {"hall": MONKS.split(";")[2] if MONKS else TOWER.split(";")[2]}},
            {"name": "gong", "patch": TOWER.split(";")[3], "gain": TOWER.split(";")[4], "pan": 0.2, "sends": {"hall": "-8dB"}},
            {"name": "drone", "patch": TOWER.split(";")[6], "gain": TOWER.split(";")[7], "pan": 0.2, "sends": {"hall": "-12dB"}}] if TOWER else
           [{"name": "home", "patch": "contrabass-tight", "gain": "-9dB", "pan": 0.3, "sends": {"hall": "-12dB"}},
@@ -677,7 +696,9 @@ def song():
                   + ("Since v5 the highest note is long and the low F repeated, so the row is a riff: eight sixteenths in the first "
                      "extent, ten in the second." if RHYTHM else "v1 is the skeleton.")),
         "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
-        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}}},
+        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
+                    **({"ph-monks": {"about": "chirper-zero: Plain Hunt's chant - the library's voice-choir (five singers on a line) with basses' tracts, and a second five a fifth above sized to their part: ten men singing words",
+                                     "extends": MONKS.split(";")[0]}} if MONKS else {})},
         "buses": {
             "hall": {"fx": ["reverb kind=hall decay=4.5s mix=1 predelay=30ms low_cut=150"]},
             "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
