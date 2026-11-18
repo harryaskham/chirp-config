@@ -23,12 +23,13 @@ def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True):
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
     signature = signature and picking_hand       # --without-picking-hand still gives v5
-    ev = defaultdict(list); sections = []; start = 0
+    ties = ties and signature                    # --without-signature still gives v6
+    ev = defaultdict(list); sections = []; tie_gains = {}; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
         if mute: expr['pm'] = 1
@@ -211,6 +212,48 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                     elif not tom_reply or t-a not in opens[1]: kit('hat',t,'h',.65 if beat%4==0 else .48)
             if sec in ('ink','opposite','raised','one hand') and i==0: kit('brass',a,'c',.88)
         start+=count*STRIP
+    if ties:
+        # At each key change the two transpositions of this four-note hook
+        # share just one pitch class. Keep it sounding: third -> root at
+        # carbon, flat second -> minor third at raised. No new clock or patch.
+        marks = {name:t for name,t,_ in sections}
+        def bridge(section, old_root, new_root):
+            outgoing = {(old_root+v)%12:t for t,v in opens[1].items()}
+            incoming = {(new_root+v)%12:t for t,v in opens[1].items()}
+            pc, = outgoing.keys() & incoming.keys()
+            seam = marks[section]
+            return seam-STRIP+outgoing[pc], seam+incoming[pc], pc
+        tick = lambda n: round(n['at']*GRID)
+        a,b,pc = bridge('carbon',29,32)
+        pop = next(n for n in ev['thumb'] if tick(n)==a-1)
+        vowel = next(n for n in ev['mouth'] if tick(n)==b)
+        assert pop['pitch']==pitch(36+pc) and vowel['pitch']==pitch(48+pc)
+        ev['right'] = [n for n in ev['right'] if not a<=tick(n)<b]
+        put('right',a,pop['pitch']+','+vowel['pitch'],b-a-.3,.90)
+        # The saturated rig doesn't decay like the popped string. Let it
+        # withdraw across the quieter strip rather than stay as loud as the riff.
+        tie_gains['right'] = [(marks['carbon'],0),(b-.3,-8),(b+GRID,-8),(b+2*GRID,0)]
+
+        a,b,pc = bridge('raised',32,30)
+        vowel = next(n for n in ev['mouth'] if tick(n)==a)
+        assert vowel['pitch']==pitch(48+pc)
+        ev['mouth'] = [n for n in ev['mouth'] if not a<tick(n)<=b]
+        vowel['len'] = round((b-a-.3)/GRID,5)
+        seam = marks['raised']
+        # The same mouth is exposed before this seam and inside two amps
+        # after it. Open its fader only while it is carrying A through the band.
+        tie_gains['mouth'] = [(seam,0),(seam+GRID,3),(b-.3,3),(b+1,0)]
+        next_open = seam+min(t for t in opens[1] if t>b-seam)
+        # The upper sound still belongs to the vowel: single low strings on
+        # the right until that player catches its A3, then let that octave
+        # ring to the closing G-flat without the intervening palm stroke.
+        for n in ev['right']:
+            t = tick(n)
+            if seam<=t<b and t-seam in opens[1]: n['pitch']=n['pitch'].split(',')[0]
+            if t==b:
+                n['pitch']=n['pitch'].split(',')[0]+','+vowel['pitch']
+                n['len']=round((next_open-b-.3)/GRID,5)
+        ev['right'] = [n for n in ev['right'] if not b<tick(n)<next_open]
     if signature:
         # The mouth teaches its last opening strip to a ribbon instrument. The
         # same hand signs forwards against the guitars' backward cadence.
@@ -256,6 +299,11 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
             track('foot','ct-kit','2dB',0,'drums',[{'type':'eq','bands':['peak cutoff=4400 q=0.84 gain=6dB']}]),
             track('snare','ct-kit','2dB',0,'drums'),track('hat','ct-kit','11dB',-.18,'drums'),
             track('brass','ct-kit','-4.5dB',.15,'drums'),track('skins','ct-kit','1.5dB',0,'drums')]
+    for tr in tracks:
+        if tr['name'] in tie_gains:
+            tr['gain']={'value':tr['gain'],'mod':[{'src':'auto.carry','amount':1}]}
+            pts=[['0b',0]]+[[f'{t/GRID:g}b',db] for t,db in tie_gains[tr['name']]]
+            tr['auto']={'carry':{'points':pts,'curve':0}}
     if mirror_bass:
         # Let the upper string ring without choking the low thumb. Same bass
         # bus as the picked part; no low-octave double or added kick.
@@ -311,8 +359,9 @@ if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); ap.add_argument('--without-crease',action='store_true',help='regenerate v3')
     ap.add_argument('--without-mirror-bass',action='store_true',help='regenerate v4')
     ap.add_argument('--without-picking-hand',action='store_true',help='regenerate v5')
-    ap.add_argument('--without-signature',action='store_true',help='regenerate v6'); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature)
+    ap.add_argument('--without-signature',action='store_true',help='regenerate v6')
+    ap.add_argument('--without-ties',action='store_true',help='regenerate v7, without the two common-tone handoffs'); a=ap.parse_args()
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
