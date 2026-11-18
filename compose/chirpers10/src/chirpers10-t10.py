@@ -77,6 +77,22 @@ RECALL = os.environ.get('C10T10_RECALL', '24;3;0' if BRUSH and BREATH else '')
 # while every older switch is, so each of those still gives what it gave.
 KEPT = os.environ.get('C10T10_KEPT', '-27;0.55' if all((
     RECALL, BRUSH, STRIDE, PRESS, CHANGE, BREATH, PAYBACK, STRAIGHT, COURSES, ADVANCE, TRADE)) else '')
+# v14, whole song: THE GROUND RISES WITH THE CREDIT. From the pocket at 1:30 to
+# the line at 2:17 the riff sat on E flat for seven pairs running, and the
+# line's first low chord, A flat, arrived from nowhere. Once the answer starts
+# to come EARLY, the whole band now climbs to meet that chord: the pair four
+# ticks in credit is on F, the pair six in credit on G flat, and the line's
+# A flat is the next step. The song's first minute borrows on a ground that
+# will not move and climbs only at full debt (E flat, G flat, A flat); its
+# second half now climbs as the debt turns to credit, by step, to the same A
+# flat. Guitars, bass, the straight guitar and the pressure drum all move
+# together (the drum bends to the answer's first note on each new ground).
+# And the third guitar, the wall chord that carries the crest and the line,
+# strikes each new ground and its answer: the three climbs share one voice.
+# Semitones over E flat for the pairs two, four and six ticks in credit ;
+# 1 = the wall chord on each raised ground. Empty restores v13; it is on only
+# while KEPT is.
+LADDER = os.environ.get('C10T10_LADDER', '0,2,3;1' if KEPT else '')
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -205,6 +221,11 @@ def build():
             if s == 'still owing': root += crest_roots[j]
             if s == 'two clocks': root += (5,3,0,0)[j]
             if s == 'square': root += (0,-2,-4,-2,0)[j]
+            if LADDER and s == 'called in' and d < 0:
+                rungs = [int(x) for x in LADDER.split(';')[0].split(',')]
+                credit = sorted((-v for v in debts if v < 0))
+                assert len(rungs) == len(credit)
+                root += rungs[credit.index(-d)]
             if s == 'the receipt':
                 # One straight low chord; the two middle markers coincide for
                 # the last time, over the fifth returning to E-flat.
@@ -415,6 +436,8 @@ def build():
                             kit('k',hit,vel)
                     if s in ('still owing','across the line') and how=='o' and not (trade and back and j<6) and not (
                             straight_call and not back and RECALL.split(';')[2]=='1'):
+                        note('weight',hit,dur,chord(pitch,pitch+7),.93)
+                    if LADDER and LADDER.split(';')[1]=='1' and s=='called in' and root!=HOME and how=='o':
                         note('weight',hit,dur,chord(pitch,pitch+7),.93)
                     if s=='square' and back and not mute:
                         if p0 in repay:
