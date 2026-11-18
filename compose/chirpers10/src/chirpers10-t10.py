@@ -131,6 +131,29 @@ ROOM_LUFS = -9.976
 # seconds as one section, 95.9/94.1 -> 93.6/91.1; and the card's first chord follows a silence instead of a bar.)
 # Empty restores v15; it is on only while ROOM is.
 ANSWER = os.environ.get('C10T10_ANSWER', '1' if ROOM else '')
+# v17 (chirper-one; palette): WHAT IS STILL OWED IS THE LENGTH OF THE BOOM. 'Called in' is the song's half-time
+# section, and since v10 the bassist's step there is the debt itself: a note every six sixteenths while six are owed,
+# every four while four are, every two while two are, and at par he stops counting. It was the staple bass guitar,
+# each step held four fifths of its length: a line that got busier. THE SWAP: those thirty steps (1:47.1-2:00.0) go
+# from the bass guitar to an 808 (the library's `808-dist`, a long sub with a pitch-drop punch, driven so it speaks on
+# small speakers; no other song on the record has one), which is one voice: each boom rings until the next cuts it.
+# So what is still owed is how long the boom lasts: six sixteenths, then four, then two, and on the downbeat of
+# 2:00.0, where nothing is owed, the last one is cut and the bass guitar comes back on its held E flat, as before.
+# The bass guitar rests for those three pairs (its first rest inside a loud section); the notes, their places and
+# their pitches are the bassist's own, unmoved. The 808 plays nowhere else.
+# Benched raw, seed 0, each alone on the same thirty steps. At -15 dB the 808 was 2.5 dB over the bass guitar it
+# replaces (1.9 K), the raw mix +0.6 dB and +2.9 at 20-60 Hz. At -17 it is level with it (+0.5 dB, 0.0 K) and the
+# mix within 0.1 dB; a boom falls 0.3 to 0.7 dB over its own length, so it is the next one that ends it. Against the
+# bass guitar it has 2 to 3 dB more under 60 Hz and 3 to 5 less at 60-120 Hz.
+# What it gave up was 60-120 Hz, where this song is already short (the scorer's worst band on every seed is 97 Hz):
+# finished, the three pairs went from 2.0 to 3.7 dB short of the eleven records there. So one eq band on the 808's
+# own track, 5 dB at 95 Hz, and the fader 1.5 dB down to hold its level: it gets about 2 dB of that band back, and
+# note by note it then follows the bass guitar's own balance more closely (the spread across the five pitches of
+# the steps goes from 2.2 dB to 1.0). Raising the patch's octave-up triangle layer instead did nothing (benched).
+# patch ; track gain dB ; semitones against the written steps ; the song's loudness target (every bar outside the
+# three pairs keeps v16's mastering gain: at v16's target they came out 0.004 dB louder) ; one eq band on its track
+# (leave the field out for none). Empty restores v16; it is on only while ANSWER and STRIDE are.
+BOOM = os.environ.get('C10T10_BOOM', '808-dist;-18.5;0;-9.98;peak cutoff=95 q=1.2 gain=5dB' if ANSWER and STRIDE else '')
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -563,7 +586,10 @@ def build():
             if d<0: break
             clear(base,base+pair)
             for pos in range(0,pair,d):
-                note('bass',base+pos,min(d,pair-pos)*hold,bass_pitch(pos,d,HOME),.92)
+                if BOOM:    # v17: the step is an 808's; it rings its whole length, and the next one cuts it
+                    note('boom',base+pos,min(d,pair-pos),bass_pitch(pos,d,HOME)+int(BOOM.split(';')[2]),.92)
+                else:
+                    note('bass',base+pos,min(d,pair-pos)*hold,bass_pitch(pos,d,HOME),.92)
 
     if ROOM:
         _,_,shift,foot = ROOM.split(';')
@@ -646,13 +672,16 @@ def build():
                     "synth.layers.0.decay.value=12s synth.layers.1.decay.value=9s "
                     "synth.amp.r=90ms fx.3.mix=0.05")
         tracks.append(track('courses',acoustic,float(COURSES),.42,fx=['hp cutoff=130']))
+    if BOOM:
+        tracks.append(track('boom',BOOM.split(';')[0],float(BOOM.split(';')[1]),
+                            **({'fx':[{'type':'eq','bands':[BOOM.split(';')[4]]}]} if BOOM.split(';')[4:] else {})))
     assert not voices
     key_patch={'about':'Still Owing: the reply marker. Its orbit opens in proportion to the sixteenths borrowed in this pair.',
       'synth':{'amp':{'a':'2ms','d':'450ms','s':.2,'r':'95ms'},'layers':[{'type':'terrain','terrain':{
           'surface':'sines','k':1.7,'cx':.13,'cy':-.18,'rx':{'value':.16,'mod':[{'src':'expr.owing','amount':.46}]},
           'ry':{'value':.12,'mod':[{'src':'expr.owing','amount':.34}]}}}]},'fx':['hp cutoff=185']}
     return {'about':'Still Owing, Common Time track 10: a low call borrows time from a higher answer and pays it back within each two-bar phrase.',
-        'tempo':BPM,'seed':1,'event_stable':True,'length':f'{t//SUB}b','tail':'3s','loudness':ROOM_LUFS if ROOM else -10,'ceiling':'-1dB','true_peak':True,
+        'tempo':BPM,'seed':1,'event_stable':True,'length':f'{t//SUB}b','tail':'3s','loudness':float(BOOM.split(';')[3]) if BOOM else ROOM_LUFS if ROOM else -10,'ceiling':'-1dB','true_peak':True,
         **({'songs':fold_sources} if fold_sources else {}),
         'patches':{'owing-key':key_patch,**fold_patches,**({'owing-skin':pressure_skin()} if PRESS else {}),
                    **({'owing-kept':kept_key()} if KEPT else {})},
