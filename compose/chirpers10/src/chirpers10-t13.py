@@ -28,7 +28,7 @@ def name(n):
     return PITCH[n % 12] + str(n // 12 - 1)
 
 
-def compose():
+def compose(phrase_return=True):
     parts = defaultdict(list)
     def put(tr, at, dur, p, v, mute=False):
         event = dict(at=round(at / SUB, 6), len=round(dur / SUB, 6),
@@ -47,6 +47,42 @@ def compose():
         for rig in rigs:
             pitch = name(p) + ',' + name(p + 7) if fifth else p
             put(rig, t, d, pitch, v, mute)
+
+    def last_exchange(start, span):
+        """Twelve cells for the two sides to finish their sentences, 3:25's cadence untouched."""
+        n = span // CELL
+        assert n == 12
+
+        def say(first, size):
+            # Keep the contour AND its irregular spacing. Four times as broad
+            # it is a line of ringing chords, not twelve more turns of the riff.
+            for j, k in enumerate(HEADS):
+                t = start + (first*CELL + size*k)
+                gap = size * ((HEADS + (CELL,))[j+1] - k)
+                p = F + TUNE[j]
+                dur = min(9.5, gap * .72)
+                guitars(t, p, dur, .97 if j in (0,3) else .90, fifth=True)
+                put('bass', t, gap-.37, p, .93)
+                drums('k', t, .97 if j in (0,3) else .88)
+
+        def answer(first, count, stop=False):
+            for i in range(count):
+                for j,k in enumerate(HEADS):
+                    end = (HEADS + (CELL,))[j+1]
+                    for pos in range(k+1, end):
+                        # At the last answer the drummer lifts his sticks and the
+                        # strings leave the last beat free for the slower coda.
+                        if stop and i==count-1 and pos>=CELL-SUB:
+                            continue
+                        t = start + (first+i)*CELL + pos
+                        v = .93 if pos==k+1 else .76
+                        guitars(t, F, .61, v, mute=True)
+                        put('bass', t, .65, F, v-.1)
+                        drums('k', t, v)
+
+        say(0,4); answer(4,4)       # one long statement; four short negatives
+        say(8,2); say(10,1)        # then in two cells, then in one
+        answer(11,1,stop=True)
 
     start = 0
     for section, span in FORM:
@@ -76,6 +112,8 @@ def compose():
             # Kit is on bar time, not cell time. Two distinct feels either side of the break.
             for beat in range(span // SUB):
                 t, q = start + beat*SUB, beat % 4
+                if phrase_return and section == 'both sides' and t >= start+span-SUB:
+                    continue
                 if section == 'under glass':
                     if q in (0, 2):
                         drums('ft' if q == 0 else 't2', t, .55 if q == 0 else .4)
@@ -91,6 +129,10 @@ def compose():
                     drums(cym, t, .66 if q == 0 else .52)
                 if section == 'turn the sheet' and beat % 2:
                     drums('h', t + 2, .43)
+            if phrase_return and section == 'both sides':
+                last_exchange(start, span)
+                start += span
+                continue
             for i in range(span // CELL):
                 # Halfway through 'lit through' the same four scale tones sit over Ab; the
                 # subsequent return of low F should therefore feel like a physical drop.
@@ -155,7 +197,7 @@ def compose():
               track('snare','ct-kit',3,out='drums',sends={'chamber':'-14dB'}),
               track('metal','ct-kit',1.5,out='drums'), track('skins','ct-kit',3,out='drums')]
     assert not parts
-    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 v1.',
+    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
             'ceiling':'-1dB', 'true_peak':True, 'loudness':-10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
@@ -168,8 +210,9 @@ def compose():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, default=OUT)
+    parser.add_argument('--v1', action='store_true', help='reproduce the original alternating-cell return')
     args = parser.parse_args()
-    doc = compose()
+    doc = compose(not args.v1)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
