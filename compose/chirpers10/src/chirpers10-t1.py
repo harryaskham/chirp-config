@@ -477,6 +477,31 @@ def chimes(b0, b1, pairs=((5, 7), (5, 11), (7, 11)), vel=0.5):
                 add("chime", t, 8, pitch[(p, q)], vel)
 
 
+# v55: the opening's clean guitars meet again above the split and its swap.
+# Gains for the five and seven, in dB. Empty regenerates v54 exactly.
+RELAY = os.environ.get("C10T1_RELAY", "8;10")
+
+
+def relay(b0, b1, returning=False):
+    """Two next starts, one hook note: five picks it up, seven carries it."""
+    if not RELAY:
+        return
+    # Leave the stop at the seam (half a bar) intact. At the split the first
+    # two meetings go by with just the heavy band; at the swap the longer
+    # hook fills all seven meetings and leads straight to riff A's return.
+    start, stop = s16(b0), s16(b1 - .5)
+    cycle = 5 * 7
+    meets = list(range(start + (-start) % cycle, stop - 2 * 7 + 1, cycle))
+    tune = HX if returning else H1
+    assert len(meets) >= len(tune)
+    for t, semis in zip(meets[-len(tune):], tune):
+        low = F1 + 36 + semis
+        # First pass rises left to right; returning, five is on the right
+        # and high, seven on the left and low. No pan moves during a note.
+        add("relay5", t + 5, 1.8, low + (12 if returning else 0), .90)
+        add("relay7", t + 7, 7, low + (0 if returning else 12), .88)
+
+
 def chime_all(t, vel=0.7):
     for n in (77, 80, 84, 89):
         add("chime", t, 16, n, vel)
@@ -864,6 +889,7 @@ def compose():
     bass(7, SEVEN_B, a, z - 0.5, hook=H2)                             # with the right guitar, an octave below it
     kick(5, FIVE_B, a, z - 0.5)
     kit(a, z, "h", 2, "back", "stop", cvel=0.5, ghost=True)
+    relay(a, z)
 
     # 9. 154-165  seven meets eleven: the lead runs on the seven wheel while the bass turns eleven; the ground moves to Db
     a, z = B[8], B[9]
@@ -1043,6 +1069,8 @@ def compose():
     kick(5, FIVE_A, a, z - 0.5)
     kick(7, SEVEN_A, a, z - 0.5, only_first=True)
     kit(a, z, "ft", 4, "half", "stop", cvel=0.58, ghost=True)                 # no cymbals: the pulse is on the floor tom
+
+    relay(a, z, returning=True)
 
     # 20. 330-350  five meets eleven: RIFF A comes home, with eleven's chords and the tune
     a, z = B[19], B[20]
@@ -1815,6 +1843,14 @@ def song():
         ("rise", "ct-swell", "-9dB", 0, {"sends": {"hall": "-10dB"}}),
         ("drop", "ct-drop", "-8dB", 0, {}),
     ]
+    if RELAY:
+        g5, g7 = map(float, RELAY.split(";"))
+        for name, patch, db, side in (("relay5", CLEAN, g5, -.72), ("relay7", CLEAN7 or CLEAN, g7, .72)):
+            # Switch seats in the silence between the passages. No delay or
+            # hall send: keep the handoff distinct from its reflections.
+            pan = {"value": 0, "mod": [{"src": "auto.seat", "amount": 1}]}
+            lane = {"points": [["0b", side], [f"{BOUNDS[8] * 4}b", side], [f"{BOUNDS[18] * 4}b", -side]], "curve": 0}
+            spec.append((name, patch + REALS, f"{db:g}dB", pan, {"auto": {"seat": lane}}))
     tracks = []
     for name, patch, gain, pan, extra in spec:
         if KPANS and patch == KIT:
