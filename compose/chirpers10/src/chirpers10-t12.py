@@ -71,6 +71,17 @@ def build():
                 # Carbon is one guitarist with a delayed memory, not a stereo solo.
                 if sec=='carbon' and tr=='right': continue
                 if sec=='ink' and i<4 and tr=='right': continue
+                if sec=='turn over' and rev:
+                    # The hand reading back picks up a volume steel. First hold just
+                    # the two meeting notes (C, Ab); then fill in the reflected tune.
+                    # The other hand still chugs. Swap chairs on every new strip.
+                    stops = [t for t in sorted(opens[1]) if i>=4 or t in (3,15)]
+                    end = 10 if i==count-1 else STRIP
+                    stops = [t for t in stops if t<end]
+                    for j,t in enumerate(stops):
+                        until = stops[j+1] if j+1<len(stops) else end
+                        put('steel-'+tr,a+t,root+24+opens[1][t],until-t-.12,.87)
+                    continue
                 r = back if rev else front
                 for j,(t,p,k) in enumerate(r):
                     if sec=='one hand' and k=='m' and (i>=4 or t%2): continue
@@ -127,6 +138,11 @@ def build():
             track('foot','ct-kit','2dB',0,'drums',[{'type':'eq','bands':['peak cutoff=4400 q=0.84 gain=6dB']}]),
             track('snare','ct-kit','2dB',0,'drums'),track('hat','ct-kit','11dB',-.18,'drums'),
             track('brass','ct-kit','-4.5dB',.15,'drums'),track('skins','ct-kit','1.5dB',0,'drums')]
+    # Shorten the borrowed pedal's swell enough to speak on the strip's last
+    # sixteenth. No echo crossing into the other player's chair, or over the stop.
+    steel = 'pedal-steel synth.amp.a=85ms synth.amp.r=80ms fx.1.mix=0 fx.2.mix=0 play.glide=65ms'
+    for side,pan in [('left',-.77),('right',.77)]:
+        tracks.append(track('steel-'+side,steel,'-5.5dB',pan,'strings'))
     buses={'strings':{'fx':[{'type':'eq','bands':['peak cutoff=360 q=0.8 gain=-2dB','peak cutoff=730 q=1 gain=1.5dB']}]},
            'drums':{'fx':['reverb kind=room mix=0.10 decay=0.53s predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'18ms','release':'120ms'},'clip ceiling=-13dB']},
            'low':{'fx':[{'type':'eq','bands':['peak cutoff=48 q=1.4 gain=-4dB','peak cutoff=98 q=1 gain=3dB','peak cutoff=310 q=0.9 gain=-4dB']},{'type':'compressor','threshold':'-24dB','ratio':5,'attack':'14ms','release':'115ms'}]}}
