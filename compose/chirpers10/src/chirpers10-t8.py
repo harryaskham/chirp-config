@@ -61,6 +61,8 @@ HEAD = os.environ.get("C10T8_HEAD", "lead-monster;-12dB;-12dB;36")
 # Empty switches the section off, giving v3 exactly. This part is dry: let the
 # bare last tail belong to the guitars.
 BREATH = os.environ.get("C10T8_BREATH", "shaper-reed;-13dB")
+# v5: the bass takes the measuring riff; the guitars answer with what's left.
+BASS_BREAK = os.environ.get("C10T8_BASS_BREAK", "1")
 
 
 def nm(n):
@@ -167,6 +169,33 @@ MARKS = [("the two given", 0)]            # (name, first sixteenth)
 ROOTS = [(0, 0)]
 
 
+def bass_break(start, stop, short, long, short_side, long_side):
+    """The shorter riff is already in the bass and foot. Give it the stage.
+
+    Leave the longer guitar only the remainder at the end of each cycle, in
+    its original place. Its last exposed tail, beyond stop, is untouched.
+    """
+    def keep(track, p):
+        if not start <= p < stop:
+            return True
+        return track in long_side and (p - start) % len(long) >= len(short)
+
+    for tr in short_side + long_side:
+        T[tr] = [n for n in T[tr] if keep(tr, round(n['at'] * 4))]
+    pop_tail(start, stop, short)
+
+
+def pop_tail(start, stop, riff):
+    # Thumb the low F; take only the changing, pitched notes up one string octave.
+    # Same attacks and rests, so the kick and the picking hand keep their pattern.
+    for note in T['bass']:
+        p = round(note['at'] * 4)
+        if start <= p < stop:
+            token = riff[(p - start) % len(riff)]
+            if token.isdigit():
+                note['pitch'] = nm(F1 + 12 + int(token))
+
+
 def compose():
     # the two given: B alone on the right, twice bare (a hat in quarters) and twice with the band
     for i in range(4):
@@ -205,6 +234,12 @@ def compose():
             say(played, t + i * b, gr, low=b < a and t + i * b >= kick_from, stop=stop if last or b < a else None, bass=not last)
             if not (last or b < a) or t + i * b < stop:
                 bell("r", t + i * b, vel=grow(t + i * b) if last else None)
+        if BASS_BREAK and k in (1, 2):
+            # On the second half of each pair the measuring hand switches side:
+            # A's twenty places against B's twelve-place answer, then the reverse
+            # subtraction with twelve in the bass and eight in the answer.
+            args = (left, right, gl, gr) if a < b else (right, left, gr, gl)
+            bass_break(t + n // 2, stop, *args)
         if k == 0:
             fill(t)
         drum("c", t, 0.9)
@@ -264,8 +299,17 @@ def compose():
     fill(t)
     drum("c", t, 0.95)
     s = t
-    for riff in (A, A, A, A, B, B, B, B):
-        say(riff, s, ALL, low=True)
+    for j, riff in enumerate((A, A, A, A, B, B, B, B)):
+        # Once on each complete riff, hand its tail back to the bass soloist.
+        # The last B reunites everybody; the low F at the end is unchanged.
+        recall = A[-20:] if j == 3 else B[-12:] if j == 6 else []
+        if BASS_BREAK and recall:
+            split = len(riff) - len(recall)
+            say(riff[:split], s, ALL, low=True)
+            say(recall, s + split, (), low=True)
+            pop_tail(s + split, s + len(riff), recall)
+        else:
+            say(riff, s, ALL, low=True)
         bell("l", s)
         bell("r", s)
         if s > t:
