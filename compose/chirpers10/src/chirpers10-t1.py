@@ -495,6 +495,25 @@ EYE_BARS = os.environ.get("C10T1_EYE_BARS", "-14.5dB" if RELAY else "")
 # v57: both five-bar stop-times have sixteen stabs, four of which land on
 # quarters. Those four bear the hook in one direction, then the other.
 STOP_HOOK = os.environ.get('C10T1_STOP_HOOK', '1' if EYE_BARS else '')
+# The four resting places of the Long Wait, before the tune itself. Cellos'
+# note trims in the opening and under the slow chords (dB). Empty restores v57.
+RESTING = os.environ.get('C10T1_RESTING', '0;4' if STOP_HOOK else '')
+
+
+def resting_places():
+    """The four phrases end in a held note; their lengths are 5, 5, 5, 6 turns."""
+    turns = 0
+    for p, n in LONG_WAIT:
+        turns += n
+        if n > 1:
+            yield p, turns
+            turns = 0
+    assert turns == 0
+
+
+def bowed_rest(t, duration, pitch, trim):
+    add('fifth', t, duration, pitch, .7)
+    T['fifth'][-1]['gain'] = trim+'dB'
 
 
 def quarter_stabs(start_bar, end_bar, returning=False):
@@ -798,6 +817,18 @@ def compose():
     # 1. 0-35  THE WAIT BEGINS: everything strikes once, together; then only the wheels, ticking, one by one
     hit(0)
     bed(F_ONLY, 35 * 16)
+    if RESTING:
+        # The lower cello keeps its C. Take two bows out of the sustained
+        # upper F and give it the phrase endings, an octave low on the five
+        # clock. It comes back to the bed before the first whispered 'wait'.
+        ends = tuple(resting_places())
+        opening_trim, return_trim = RESTING.split(';')
+        t = 5 * 16
+        T['fifth'] = [n for n in T['fifth'] if not (4*16 <= n['at']*4 < 12*16 and n['pitch'] == nm(F1+12))]
+        for p, turns in ends:
+            bowed_rest(t, 5*turns-.6, p-12, opening_trim)
+            t += 5*turns
+        assert t <= 12*16
     tick("cl5", 5, TICK5, CL5, 2, 35)
     tick("cl7", 7, TICK7, CL7, 14, 35)                              # enters where seven meets a bar line
     tick("cl11", 11, TICK11, CL11, 22, 35, vel=0.36)                # and eleven where it does
@@ -949,6 +980,12 @@ def compose():
     for i, (t0, root) in enumerate(doom):
         t1 = doom[i + 1][0] if i + 1 < len(doom) else z * 16
         fade = 1.0 - 0.45 * (t0 - a * 16) / 160
+        if RESTING:
+            # This time the band supplies the ground: Db, Ab, Gb, F. The
+            # cello enters on the *second* stroke of each chord, giving the
+            # chord its third or root. The full tune belongs to the eye.
+            pitch, _ = ends[i]
+            bowed_rest(t0+11, t1-t0-11-1, pitch, return_trim)
         gtr(WL, 11, ELEVEN_D, t0 / 16, t1 / 16, root=root, vel=0.95 * fade)
         bass(11, ELEVEN_D, t0 / 16, t1 / 16, root=root, vel=0.9 * fade)
         crash(t0, 0.9 * fade, "c" if i % 2 == 0 else "x")
