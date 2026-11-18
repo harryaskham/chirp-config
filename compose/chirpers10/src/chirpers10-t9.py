@@ -49,6 +49,10 @@ RING = os.environ.get("C10T9_RING", "1")
 # w3: the foot keeps four; the sticks take every fourth triplet. Gain of the
 # ride-bell track; gain of the pedal-chick piece in this song's kit. Empty = v3.
 CROSS = os.environ.get("C10T9_CROSS", "0.5dB;-8dB")
+# v5, THE BASS IS LAST TO TURN: one seven-beat bass phrase each side of the
+# two-to-three boundary. The guitars change speed but the bassist repeats the
+# same six attacks at the old rate. Empty restores v4.
+BASS_TURN = os.environ.get("C10T9_BASS_TURN", "1")
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
 ROOTS = [(0, 0)]
@@ -149,6 +153,27 @@ def beat(b0, b1, cym="x", vel=0.5, snare=(1, 3)):
             drum("s", b, 0.95)
 
 
+def last_to_turn(seam):
+    """The two cells in eighths take exactly as long as three cells in triplets."""
+    lo, hi = seam - N, seam + N
+    T["bass"] = [n for n in T["bass"] if not lo <= n["at"] < hi]
+    # Let the second bass cell speak once in the clear before the new tempo
+    # of the guitars crosses it. They strike its F, damp the strings and come
+    # back for its last pickup; the foot and hat never leave the old grid.
+    exposed = seam - N / 2
+    for tr in ("gl", "gr"):
+        T[tr] = [n for n in T[tr] if not exposed < n["at"] < seam - .5]
+    for start in (lo, seam):
+        for j, cell in enumerate(CELLS):
+            at = start + j * N / 2
+            # A low open F; the thumb-to-octave leap on the first answer; the
+            # second answer back close to the floor. The chugs are guitar alone.
+            heads = [i for i, stroke in enumerate(cell) if stroke != "c"]
+            for i, end in zip(heads, heads[1:] + [N]):
+                midi = F1 if i == 0 else F1 + int(cell[i]) + (12 if i == heads[1] else 0)
+                add("bass", at + i / 2, (end - i) / 2 - .09, midi, .97 if i == 0 else .9)
+
+
 def crossbeat(b):
     """Last five bars of the threes. All positions derived from one 12-stroke bar."""
     for bar, voices in enumerate(('bbb','bbb','bss','sbs','sss')):
@@ -197,6 +222,8 @@ def compose():
             if k >= 2:
                 drum("c", b + j, 0.9 if j == 0 else 0.7)
         b += RUNG
+    if BASS_TURN:
+        last_to_turn(2 * RUNG)
     # seven to the beat: the riff is one beat long
     MARKS.append(("seven: it locks", b))
     fill(b)
