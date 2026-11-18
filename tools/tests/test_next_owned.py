@@ -124,6 +124,29 @@ class NextOwned(unittest.TestCase):
         self.assertNotIn("owned by", r.stderr)
 
 
+class Handoff(unittest.TestCase):
+    """done --with refuses when someone else was on the song WHILE you were; a round finished before you began is a
+    handoff (chirper-alpha, 18 Nov: The Other Hand, chirper-two done at 04:56, alpha started at 05:00)."""
+
+    def test_a_round_finished_before_you_began_is_not_a_collision(self):
+        t0 = 1_800_000_000
+        iso = lambda t: __import__("time").strftime("%Y-%m-%dT%H:%M:%SZ", __import__("time").gmtime(t))   # noqa: E731
+        st = [{"id": "s", "who": "chirper-two", "t": t0}, {"id": "s", "who": "chirper-alpha", "t": t0 + 460},
+              {"id": "other", "who": "chirper-one", "t": t0 + 400}]
+        done = [{"round": 1, "who": "chirper-two", "at": iso(t0 + 230)}]
+        self.assertEqual(climb.collided("s", "chirper-alpha", st=st, hist=done), [])                # the handoff
+        self.assertEqual([s["who"] for s in climb.collided("s", "chirper-alpha", st=st, hist=[])], ["chirper-two"])
+        note = [{"who": "chirper-two", "at": iso(t0 + 230), "note": "a note, not a round"}]
+        self.assertEqual(len(climb.collided("s", "chirper-alpha", st=st, hist=note)), 1)           # a note finishes nothing
+        late = [{"round": 1, "who": "chirper-two", "at": iso(t0 + 600)}]
+        self.assertEqual(len(climb.collided("s", "chirper-alpha", st=st, hist=late)), 1)           # recorded after you began
+        again = st + [{"id": "s", "who": "chirper-two", "t": t0 + 500}]
+        self.assertEqual([s["t"] for s in climb.collided("s", "chirper-alpha", st=again, hist=done)], [t0 + 500])
+        old = [{"id": "s", "who": "chirper-two", "t": t0 - 3 * 3600}, {"id": "s", "who": "chirper-alpha", "t": t0}]
+        self.assertEqual(climb.collided("s", "chirper-alpha", st=old, hist=[]), [])                 # long before: as it was
+        self.assertEqual(climb.collided("s", "chirp-climb2", st=st[:1], hist=[], now=t0 + 60), [])  # your own alias
+
+
 class Heard(unittest.TestCase):
     """The brief carries Harry's open notes, his answers and the cards waiting on him, for whoever draws the track."""
 

@@ -1212,6 +1212,34 @@ def cmd_next(a):
               f"{', '.join(f'{p} {t}' for p, t in pending)}): ask before building it", file=sys.stderr)
 
 
+def collided(cid, me, st=None, hist=None, now=None):
+    """Other agents' starts on this climb that OVERLAP your round: from SPREAD before your own start on, and not
+    finished before you began. A start whose agent recorded a round on the climb before your start is a HANDOFF, not a
+    collision (chirper-alpha, 18 Nov: with no owners one composer records a round and the next draws the song minutes
+    later; chirper-two's finished round of 04:56 was read as concurrent with alpha's start of 05:00 and `done --with`
+    refused)."""
+    st = starts() if st is None else st
+    hist = history(cid) if hist is None else hist
+    mine = agent_names(me)
+    began = [s["t"] for s in st if s["id"] == cid and agent_names(s.get("who")) & mine]
+    began = began[-1] if began else (time.time() if now is None else now)
+
+    def finished(s):
+        who = agent_names(s.get("who"))
+        for h in hist:
+            if h.get("round") is None or not (agent_names(h.get("who")) & who):
+                continue
+            try:
+                r = calendar.timegm(time.strptime(h.get("at", ""), "%Y-%m-%dT%H:%M:%SZ"))
+            except ValueError:
+                continue
+            if s.get("t", 0) - 1 <= r <= began:
+                return True
+        return False
+    return [s for s in st if s["id"] == cid and not (agent_names(s.get("who")) & mine)
+            and s.get("t", 0) >= began - SPREAD and not finished(s)]
+
+
 def cmd_done(a):
     pos = positional(a, ("--note", "--score", "--version", "--next", "--engine", "--as", "--with", "--render",
                          "--best-now"))
@@ -1231,10 +1259,7 @@ def cmd_done(a):
     library_gate(withs, a, me=me, mine=(cid,))      # before anything is recorded
     picture_notice(withs, a)
     if withs and "--force" not in a:
-        st = starts()
-        mine = [s["t"] for s in st if s["id"] == cid and s.get("who") == me]
-        since = (mine[-1] if mine else time.time()) - SPREAD
-        others = [s for s in st if s["id"] == cid and s.get("who") != me and s.get("t", 0) >= since]
+        others = collided(cid, me)
         if others:
             first = min(s["t"] for s in others)
             touched = [p for p in withs if os.path.exists(os.path.join(ROOT, p)) and os.path.getmtime(os.path.join(ROOT, p)) > first]
