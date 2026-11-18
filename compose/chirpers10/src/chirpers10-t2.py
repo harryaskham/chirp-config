@@ -610,6 +610,26 @@ TRADE = os.environ.get("C10T2_TRADE", "12;13")
 # comes from BOTH clocks, at three times its length. The main pair keep the fast
 # line audible underneath. Empty restores v27 exactly.
 BRAID = os.environ.get("C10T2_BRAID", "1")
+# v30, THE WHOLE MACHINE (whole-song round). The song is for the bar where the two clocks are exactly against each
+# other, and its last pillar said so three times alike: the same four barks over the same beat at 3:47, 4:04 and
+# 4:22. The third time is now the song's peak. For the band's last four bars the RHYTHM SECTION IS THE TWO CLOCKS:
+#   the bass   plays every note of either guitar, sixteen to the bar: F F Ab F F F B C, twice. It is the tune the
+#              inside guitars have just picked out slowly in the gap (v28), now at full speed and at the bottom;
+#   the feet   play the left guitar: the kick on its eight attacks and nowhere else;
+#   the hands  play the right guitar where it sounds: the snare on its low string, a tom for each hook note (floor
+#              tom, middle, high for A flat, B and C). The china stays only where the hands are free (one and four).
+# Sixteen strokes a bar and no two together; the second half of the bar is the first with hands and feet exchanged,
+# which is how the riff was written. Until now the kick took both guitars' chugs and the snare kept a backbeat.
+# bars from:to ; the toms' velocity : their notes' gain ; the snare's second stroke of a pair ; the snare on the right
+# guitar's open string ; the loudness target (the passage is denser: every other bar keeps v29's mastering gain).
+# "" = v29.
+# (Benched raw on seed 0 against the same bars of v29. First try, toms at 0.85 and full gain, the snare's other
+# strokes at 0.8 and 0.72: the four bars rose 0.47 LU, 1.9 dB at 250-500 Hz (the band v14 cut on this song; the toms
+# were as much of it as the snare) and each barked syllable sat 0.8 dB further behind the band. As set here: +0.26 LU,
+# +1.1 dB at 250-500 Hz, the barks 0.4 dB further back at the median and no further in their worst quarter. The
+# snare on the beat sits where the backbeat sat, 1.8 dB under the mix in its first 60 ms; its second strokes 3.7
+# under, the open string's 6.4, the toms 7 to 8.)
+MACHINE = os.environ.get("C10T2_MACHINE", "118:122;0.8:-4.5dB;0.72;0.62;-10" if HOLE_FILL and BRAID and FOUR and SHAKE else "")
 
 
 def sing_the_lock():
@@ -630,6 +650,33 @@ def sing_the_lock():
         add('gl2' if left else 'gr2', start+i*stretch+(0 if left else lead),
             1.65 if kind=='c' else 2.8, key+24, .87 if kind=='c' else .96,
             **({'pm':1} if kind=='c' else {}))
+
+
+def whole_machine(b0, b1, toms, pair, openv):
+    """The band's last bars, half a bar apart: the bass on all sixteen, the feet on the left clock, the hands on the
+    right. Written where the right guitar SOUNDS: the kit and the bass keep the song's time."""
+    lead, tomv, tomg = 8, float(toms.split(":")[0]), toms.split(":")[1]
+    right = {(p - lead) % 16: kind for p, _, kind in RIFF}
+    assert sorted(ATTACKS + list(right)) == list(range(16)), "no hole, and no sixteenth twice"
+    for tr in ("kick", "snare", "toms", "bass"):
+        T[tr] = [n for n in T.get(tr, []) if not (b0 * 4 <= n["at"] < b1 * 4)]
+    # a drummer has two hands: the china only on the beats the left guitar's chugs take
+    T["cym"] = [n for n in T["cym"] if not (b0 * 4 <= n["at"] < b1 * 4 and n["pitch"] == "x" and round(n["at"] * 4) % 16 in right)]
+    bass(b0, b1, lead, vel=0.95, union=True)
+    for n in T["bass"]:                  # a line of sixteen: no note rings into the next (the B is a semitone under the C)
+        if b0 * 4 <= n["at"] < b1 * 4:
+            n["len"] = min(n["len"], round(0.98 / 4, 4))
+    for b in range(b0, b1):
+        for p in ATTACKS:
+            drum("k", b * 16 + p, 0.92 * (1.0 if p % 4 == 0 else 0.9))
+        for q, kind in sorted(right.items()):
+            if kind == "c":
+                drum("s", b * 16 + q, 0.95 if q % 4 == 0 else pair)
+            elif kind == "o":
+                drum("s", b * 16 + q, openv)
+            else:
+                drum({"h0": "t2", "h1": "ft", "h2": "t1"}[kind], b * 16 + q, tomv)
+                T["toms"][-1]["gain"] = tomg
 
 
 def slip_clock(b0, b1, root=0):
@@ -861,6 +908,9 @@ def compose():
             for q in range(0, 16, 4):
                 drum("h", b * 16 + q, 0.45)
         fill(s1, "toms")                 # (the crash on the bar it holds is the section's own)
+    if MACHINE:                          # v30: the band's last four bars
+        m0, m1 = (int(x) for x in MACHINE.split(";")[0].split(":"))
+        whole_machine(m0, m1, MACHINE.split(";")[1], *(float(x) for x in MACHINE.split(";")[2:4]))
     if VOICE:
         for i in range(4):                       # in step: the four lines, together
             say(i, 16 + 2 * i, one=bool(HEARD))
@@ -1035,7 +1085,7 @@ def song():
                   "engine's track warp), holding at each distance, until it is half a bar ahead, exactly against the left, and "
                   "there the riff's two halves fit: every sixteenth has one guitar on it and never both. After Huygens's two "
                   "pendulum clocks on one beam (1665), which always ended swinging against each other. v1: the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "4s", "length": f"{int(float(END.split(';')[3])) if END else NB * 4 + (4 if CLOCKS else 0)}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(MACHINE.split(";")[4]) if MACHINE and float(MACHINE.split(";")[4]) != -10 else -10, "seed": 1, "tail": "4s", "length": f"{int(float(END.split(';')[3])) if END else NB * 4 + (4 if CLOCKS else 0)}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
                     "ot-swarm": SWARM,
                     **({"ot-clock": {"about": "chirper-zero: a clock's tick - a drum machine's rim-shot circuit (the `machine` layer, part rim), 16-20 ms long; it follows the note's pitch (C5 the tick, F4 the tock)",
