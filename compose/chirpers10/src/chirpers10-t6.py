@@ -688,6 +688,40 @@ def moved_accents():
     return marks
 
 
+# v17 (whole song): the hand on the dial. The machine only works the rule out;
+# it cannot know the dial is about to move. The drummer can: the form is
+# his. Until now he had no toms and played no fill. On the last bar before
+# each turn of the dial his hands say the riff's own strokes on the toms
+# (his feet keep the kick; where his snare or china falls the hands are
+# there): floor to high when the dial is going up, high to floor when it is
+# coming down. No stroke is added to the rule. Not into 'one' (he is not
+# playing yet) and not into 'out' (the ending folds as it did).
+# Track gain ; first stroke's velocity ; last stroke's ; trim in dB where only
+# two guitars play (one fader left the fills 4 dB hotter against the lean band
+# than against the wall, and the bar 1.2 dB up). Empty restores v16.
+TOMS = os.environ.get("C10T6_TOMS", "0.1dB;0.62;0.95;-6") if MOVED and KIT else ""
+
+
+def hand_on_the_dial():
+    v0, v1, lean = (float(v) for v in TOMS.split(";")[1:4])
+    names = [name for name, _, _ in DIAL]
+    hands = {n["at"] for tr in ("dsnare", "dcym") for n in T[tr]}
+    turns = []
+    for after in names[2:-1]:
+        c = AT[after]
+        up = CELLS[c][1] > CELLS[c - 1][1]
+        strokes = sorted(n["at"] for n in T["dkick"] if (c - 2) * 2 <= n["at"] < c * 2 and n["at"] not in hands)
+        assert len(strokes) >= 3, after
+        ladder = ("ft", "t2", "t1") if up else ("t1", "t2", "ft")
+        wall = any((c - 2) * 2 <= n["at"] < c * 2 for n in T.get("gl2", []))
+        for i, at in enumerate(strokes):
+            T.setdefault("dtoms", []).append({"at": at, "len": 0.25, "pitch": ladder[i * 3 // len(strokes)],
+                                              "vel": round(v0 + (v1 - v0) * i / (len(strokes) - 1), 3),
+                                              **({} if wall or not lean else {"gain": f"{lean:g}dB"})})
+        turns.append((after, up, wall))
+    assert len(turns) == 12 and [u for _, u, _ in turns] == [True] * 9 + [False] * 3 and sum(w for _, _, w in turns) == 5
+
+
 def last_string():
     """Use alternate sides of the fixed point, then the last occupied cells."""
     out = AT["out"]
@@ -752,6 +786,8 @@ def song():
     if KIT:
         kit_part()
         T["dcym"] += [{"at": at, "len": 2.0, "pitch": "x", "vel": float(MOVED.split(";")[0])} for at in moved]
+        if TOMS:
+            hand_on_the_dial()
     kt = KIT.split(";") if KIT else None
     kit = "cc-machine"
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
@@ -796,6 +832,8 @@ def song():
         for name, gain, pan in (("high", high, .32), ("low", low, -.32)):
             tracks.append({"name": "tine-" + name, "patch": patch, "gain": f"{gain:g}dB",
                            "pan": pan, "fx": ["hp cutoff=120"]})
+    if TOMS:
+        tracks.append({"name": "dtoms", "patch": "ct-kit-here", "gain": TOMS.split(";")[0], "out": "kit", "sends": {"oh": "-1.5dB"}})
     for t in tracks:
         if "gen" not in t:
             t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
