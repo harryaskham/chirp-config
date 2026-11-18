@@ -102,6 +102,20 @@ SHARED = os.environ.get('C10T8_SHARED', '1' if CONVERGE and BELLS and HEAD else 
 # nothing ahead of a saturated amp, so it is the inner take, 3.2 dB lower.
 # Empty restores v14.
 RING = os.environ.get('C10T8_RING', '12;dl' if SHARED and BASS_BREAK else '')
+# v16 (palette): a koto says the rest of A. In 'measured' the felt piano
+# already spells the riff's six-note head, three octaves over the guitars
+# (v9). Where the piano stops, a koto goes on in the same octave with every
+# note of the riff that is not a clipped stroke: F C B, F A flat, F E flat,
+# B, F. So on the second, third and fourth A the whole tune is heard above
+# six guitars, hammered and then plucked. On the fourth it stops where the
+# bass takes the tail alone. Thirteen strings, each tuned by where its bridge
+# stands, for a riff thirteen beats long.
+# Semitones over the low F ; track gain. Benched at -6 dB: its notes read
+# 9.4 dB under the raw mix (the piano's 7.3, in a thinner band), so -7.
+# Empty restores v15; it is on only
+# while every older switch is, so each of those still gives what it gave.
+KOTO = os.environ.get('C10T8_KOTO', '36;-7dB' if all((
+    RING, SHARED, CONVERGE, SIDEBANDS, AFTER, TWICE, FELT, SCRAPER, SPAN, STICKS, BASS_BREAK, BREATH, HEAD, BELLS)) else '')
 
 
 def nm(n):
@@ -256,6 +270,16 @@ def unfold_head(start, pass_no):
         upper_end = second if pass_no == 3 else stop
         add('felt', start+first, upper_end-first-.20, F1+36+upper, .92)
         add('felt', start+enter, stop-enter-.20, F1+(36 if pass_no==3 else 24)+lower, .84, soft=.35)
+
+
+def the_rest_on_thirteen_strings(start, upto):
+    """After the piano's head: the notes of A that are not clipped strokes, each ringing to the next."""
+    head = A.index('c')
+    up = int(KOTO.split(';')[0])
+    notes = [(i, 0 if k == 'o' else int(k)) for i, k in enumerate(A) if head <= i < upto and k not in 'cr-']
+    for (i, semi), following in zip(notes, [i for i, _ in notes[1:]] + [upto]):
+        # The open F is the string the tune keeps coming back to: softer than the notes that move.
+        add('koto', start + i, min(following - i, 6) - .15, F1 + up + semi, .93 if semi else .84)
 
 
 def twice_under_one(start, long, short):
@@ -485,6 +509,8 @@ def compose():
             say(riff, s, ALL, low=True)
         if FELT and 1 <= j <= 3:
             unfold_head(s, j)
+        if KOTO and 1 <= j <= 3:
+            the_rest_on_thirteen_strings(s, len(riff) - len(recall))
         bell("l", s)
         bell("r", s)
         if s > t:
@@ -704,6 +730,9 @@ def song():
     if BREATH:
         timbre, gain = BREATH.split(";")
         tracks.append({"name": "breath", "patch": timbre, "gain": gain, "pan": 0.12})
+    if KOTO:
+        # Opposite the piano (-0.10), a little wider. Less of the patch's hall: the guitars' room is short.
+        tracks.append({'name': 'koto', 'patch': 'koto fx.0.mix=0.08', 'gain': KOTO.split(';')[1], 'pan': .28})
     if SPAN:
         # Close the tone control in the gap between spans. The selected family
         # should descend; a high multiple of the second node can otherwise mask it.
