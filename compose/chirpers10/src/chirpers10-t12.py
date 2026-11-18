@@ -18,17 +18,23 @@ ROW = [(0,0,'o'), (2,0,'m'), (3,3,'o'), (6,0,'m'), (7,0,'m'),
        (10,1,'o'), (13,0,'m'), (15,7,'o'), (17,0,'m')]
 PITCH = 'C Db D Eb E F Gb G Ab A Bb B'.split()
 OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers10-t12.yaml'
+# v9: per-note trim of the pedal hat that keeps counting under the last four strips.
+FOOT_COUNT = '-3dB'
+# Seventeen quiet seconds lower the song's integrated loudness by 0.15 LU. Ask for
+# that much less, so the mastering gain on everything before the page is v8's.
+PAGE_LOUDNESS = -10.15
 
 def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True):
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
     signature = signature and picking_hand       # --without-picking-hand still gives v5
     ties = ties and signature                    # --without-signature still gives v6
+    facing = facing and ties                     # --without-ties still gives v7
     ev = defaultdict(list); sections = []; tie_gains = {}; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -282,6 +288,49 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                     u = max(0.,min(1.,(t-(STRIP//2-GRID))/GRID))
                     curve.append(round((tune[0]-p)*u*u*(3-2*u),4))
                 ev['ribbon'][-1]['expr_path'] = {'ribbon':curve}
+    if facing:
+        # THE FACING PAGE. Close a book on wet ink and the other page takes its
+        # mirror image. The song's first six strips (the pencil's four, then
+        # the left guitar's first two in ink) are read from the far end by the
+        # other hand. Six, because then the backward reading's last note, F,
+        # is the only strip ending that falls on the drummer's ONE: bar 109.
+        mirrored = 6
+        page = start
+        last = page + mirrored*STRIP - 1
+        assert last % (4*GRID) == 0 and [n for n,_,c in sections[:2]] == ['pencil','ink'] and sections[0][2] == 4
+        sections.append(('facing page', page, mirrored))
+        for j in range(mirrored):
+            a = page + j*STRIP
+            source = mirrored-1-j           # the opening strip this one reflects
+            for t in range(a, a+STRIP):
+                if t%GRID: continue
+                beat = t//GRID
+                if source >= 4:             # ink's count: a hat in quarters, the snare on three
+                    kit('hat',t,'h',.65 if beat%4==0 else .48)
+                    if beat%4==2: kit('snare',t,'s',.94)
+                else:                       # the sticks are down; the foot goes on counting
+                    kit('hat',t,'hp',.5 if beat%4==0 else .4)
+                    ev['hat'][-1]['gain'] = FOOT_COUNT
+            if source >= 4:
+                # Ink began with the left hand alone, forwards, and a crash on
+                # its first note. The right hand alone, backwards, ends on it.
+                for i,(t,p,k) in enumerate(back):
+                    gap = (back[i+1][0] if i+1<len(back) else STRIP)-t
+                    dur = .64 if k=='m' else 3.45 if source==4 and t==STRIP-1 else min(gap-.23, 3.45)
+                    put('right',a+t,29+p,dur,.94 if k=='o' else .79,k=='m')
+                for t,p in opens[1].items():
+                    put('bass',a+t,29+p,1.7,.92); kit('foot',a+t,'k',.98 if t in (0,3,15,18) else .83)
+                if source == 4: kit('brass',a+STRIP-1,'c',.88)
+                continue
+            if source >= 2:                 # the clean guitar answered backwards; now it leads, forwards
+                for t,p in opens[0].items(): put('wire',a+t,29+12+p,2.4,.82)
+            for t,p in opens[1].items():    # ribbon, then the mouth: C, G-flat, A-flat, F
+                if source == 3: put('ribbon',a+t,29+36+p,2.4,.78)
+                else: put('mouth',a+t,29+24+p,2.4,.78)
+        # The song began with a short F on the one. It ends on the same F, held.
+        ev['mouth'][-1]['len'] = round(8/GRID,5)
+        assert round(ev['mouth'][-1]['at']*GRID) == last
+        start = last + 8
     assert all(0<=e['at']<start/GRID and e['at']+e['len'] <= start/GRID for tr in ev.values() for e in tr)
     def track(name,patch,gain,pan=0,out=None,fx=None):
         d=dict(name=name,patch=patch,gain=gain,pan=pan,notes=sorted(ev[name],key=lambda e:e['at']))
@@ -345,11 +394,14 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
         ribbon = track('ribbon',patch,{'value':'-14.5dB','mod':[{'src':'auto.sign','amount':-1.5}]},
                        {'value':-.2,'mod':[{'src':'auto.sign','amount':.78}]})
         ribbon['auto'] = {'sign':{'points':[['0b',0],[f'{(learn+STRIP)/GRID:g}b',0],[f'{sign/GRID:g}b',1]],'curve':0}}
+        if facing:
+            # Back beside the mouth, at its first level, to hand the tune home.
+            ribbon['auto']['sign']['points'] += [[f'{page/GRID:g}b',1],[f'{(page+2*STRIP)/GRID:g}b',0]]
         tracks.append(ribbon)
     buses={'strings':{'fx':[{'type':'eq','bands':['peak cutoff=360 q=0.8 gain=-2dB','peak cutoff=730 q=1 gain=1.5dB']}]},
            'drums':{'fx':['reverb kind=room mix=0.10 decay=0.53s predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'18ms','release':'120ms'},'clip ceiling=-13dB']},
            'low':{'fx':[{'type':'eq','bands':['peak cutoff=48 q=1.4 gain=-4dB','peak cutoff=98 q=1 gain=3dB','peak cutoff=310 q=0.9 gain=-4dB']},{'type':'compressor','threshold':'-24dB','ratio':5,'attack':'14ms','release':'115ms'}]}}
-    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=-10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
+    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=PAGE_LOUDNESS if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
     return doc,sections
 
 def dump(d):
@@ -360,8 +412,9 @@ if __name__=='__main__':
     ap.add_argument('--without-mirror-bass',action='store_true',help='regenerate v4')
     ap.add_argument('--without-picking-hand',action='store_true',help='regenerate v5')
     ap.add_argument('--without-signature',action='store_true',help='regenerate v6')
-    ap.add_argument('--without-ties',action='store_true',help='regenerate v7, without the two common-tone handoffs'); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties)
+    ap.add_argument('--without-ties',action='store_true',help='regenerate v7, without the two common-tone handoffs')
+    ap.add_argument('--without-facing-page',action='store_true',help='regenerate v8, ending on the signed chord'); a=ap.parse_args()
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
