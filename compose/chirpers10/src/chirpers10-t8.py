@@ -116,6 +116,20 @@ RING = os.environ.get('C10T8_RING', '12;dl' if SHARED and BASS_BREAK else '')
 # while every older switch is, so each of those still gives what it gave.
 KOTO = os.environ.get('C10T8_KOTO', '36;-7dB' if all((
     RING, SHARED, CONVERGE, SIDEBANDS, AFTER, TWICE, FELT, SCRAPER, SPAN, STICKS, BASS_BREAK, BREATH, HEAD, BELLS)) else '')
+# v17 (palette): the timeline. A is thirteen beats long and B eight, and the
+# most even way to spread eight strokes over thirteen beats is what the
+# algorithm this song plays gives when it is run on a rhythm. A pair of claves
+# (a patch of the song's own) plays it against A, from A's fourth statement
+# (0:26.6, after the opening the card plays) to the first cut: four times
+# eight in thirteen, and over the last head, which is as long as B, five in
+# eight: the next pair's two numbers. Not one stroke is written here: the
+# track's score is the pairs of numbers and the engine's Euclidean rhythm
+# lays them out. Pitch ; track gain ; pan ; A's first statement with it
+# (counted from 0). Benched at -6 dB the strokes read 5.7 dB under the mix,
+# 2.5 over the left bell that marks the same riff; at -9.5 they sit under it.
+# Empty restores v16.
+TIMELINE = os.environ.get('C10T8_TIMELINE', 'c7;-9.5dB;-0.3;3' if KOTO else '')
+
 
 
 def nm(n):
@@ -800,7 +814,30 @@ def song():
         measure_the_shell(doc)
     if SIDEBANDS:
         difference_key(doc)
+    if TIMELINE:
+        the_timeline(doc)
     return doc
+
+
+def the_timeline(doc):
+    """Eight in thirteen on claves, by the engine's own Euclid; then five in eight."""
+    pitch, gain, pan, first = TIMELINE.split(';')
+    left, right = PAIRS[0]
+    a, b = len(left) // len(G), len(right) // len(G)              # thirteen beats and eight
+    nxt = len(PAIRS[1][0]) // len(G)                              # five: what is left of A after the first cut
+    start = dict(MARKS)[f'{len(left)} against {len(right)}']
+    whole = lcm(len(left), len(right)) // len(left) - 1           # the last statement is cut after its head
+    assert (a, b, nxt) == (13, 8, 5) and len(left) - len(right) == len(PAIRS[1][0]) and 0 <= int(first) < whole
+    doc['patches']['cm-clave'] = {
+        'about': ("Common Measure's claves (chirper-two, 18 Nov): a rosewood stick as a free bar on the modal layer (the glock "
+                  "set's 1 : 2.76 : 5.40), struck hard and gone in a tenth of a second. A tock, not a bell: the second mode sits "
+                  "10 dB under the first and the third 21 under. Takes a pitch (C7, 2.1 kHz, is a clave's)."),
+        'synth': {'amp': {'a': '0.2ms', 'd': '300ms', 's': 0, 'r': '40ms'},
+                  'layers': [{'type': 'modal', 'modes': 'glock', 'decay': '180ms', 'damp': 0.25, 'bright': 0.9, 'strike': 0.5, 'tilt': 0}]},
+        'play': {'vel_sens': 0.5}}
+    score = ' '.join([f'{pitch}({b},{a})/4@100'] * (whole - int(first)) + [f'{pitch}({nxt},{b})/4@100'])
+    doc['tracks'].append({'name': 'clave', 'patch': 'cm-clave', 'gain': gain, 'pan': float(pan),
+                          'at': f'{(start + int(first) * len(left)) // 4}b', 'score': score})
 
 
 def dump(doc):
