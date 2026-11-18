@@ -28,6 +28,9 @@ ROD = os.getenv('C10T11_ROD', '-9dB' if KETTLE else '')
 # v4: keep a double stop ringing over each of the last five changes of feet.
 # Register in semitones. Empty restores v3; older version switches still work.
 STAY = os.getenv('C10T11_STAY', '0' if ROD else '')
+# v5: the muted half of the heavy riff is heard on skins before it is picked.
+# Empty restores v4 (and the older switches retain their published defaults).
+PICKUP = os.getenv('C10T11_PICKUP', '1' if STAY else '')
 BROAD = CELL // 4
 # Offset, duration, semitones, open power chord / single ringing note / palm mute.
 # The two short strokes before the Db and the delayed F are the tell in both walks.
@@ -125,7 +128,24 @@ def make():
                 for t,d,s,kind in RIFF:
                     if kind=='m': continue
                     put('latch',a+t,d*1.1,HOME+24+answer(i,s),.77)
-                if i>=2:
+                if PICKUP and i:
+                    # Nothing invented for a fill: the two clipped strokes
+                    # before Db, the single hits, and the later pair are all
+                    # muted slots of the riff the band is about to play.
+                    for t,d,_,kind in RIFF:
+                        if kind!='m' or (i==1 and t>=CELL//2): continue
+                        if i==count-1 or (i==count-2 and t<CELL//2):
+                            put('gl',a+t,d,HOME,.84,True)
+                            # The other amp catches the last three strokes. The
+                            # full chord, the bass and the kick still wait for 0:10.
+                            if i==count-1 and t>=CELL//2:
+                                put('gr',a+t,d,HOME,.84,True)
+                        else:
+                            # High drum at the front of the phrase, low at the
+                            # back; very last stroke is a pickup to the repeat.
+                            piece = 't1' if t<CELL//2 else ('t2' if t==22 else 'ft')
+                            drum(piece,a+t,(.32 if t in (4,15) else .23) + .16*(i-1))
+                elif not PICKUP and i>=2:
                     for t,p in ((0,'t1'),(CELL//2,'ft')): drum(p,a+t,.60)
             elif section=='shut':
                 if i==0:
