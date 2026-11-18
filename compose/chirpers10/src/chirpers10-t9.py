@@ -66,6 +66,9 @@ SLOW_HAND = os.environ.get('C10T9_SLOW_HAND', '1') if CUT and HANDS and BASS_TUR
 # v9: stick on riff accents, foot on untouched quarters. Open-cymbal piece
 # gain. Empty restores v8; disabling SLOW_HAND still gives v7.
 CLUTCH = os.environ.get('C10T9_CLUTCH', '-16dB' if SLOW_HAND else '')
+# v10: C under the last sixes, F–E above it. The lock supplies the last F.
+# Empty restores v9; turning off the clutch still defaults to v8.
+CADENCE = os.environ.get('C10T9_CADENCE', '1' if CLUTCH else '')
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
 ROOTS = [(0, 0)]
@@ -221,6 +224,32 @@ def tune_the_heads(seam):
         T[tr] = [e for e in T[tr] if e['at'] not in holes]
 
 
+def before_the_lock(seam):
+    """Two turns of seven beats. Keep counting six right up to the kit break;
+    it is the harmony, not an early switch to quarters, that prepares the lock.
+    """
+    speed = N-1
+    start, half, stop = seam-2*N, seam-N, seam-1
+    resolve = half+N/2
+    T['bass'] = [e for e in T['bass'] if not start<=e['at']<seam]
+    for i in range(2*speed):
+        at = start+i*N/speed
+        if at<stop:
+            # The dominant pedal is picked at CELL heads, still drifting past
+            # the kit. Shorten the partial last cell before the kit's beat.
+            add('bass',at,min(.88*N/speed,stop-at),F1+7,.92)
+    # The left player never lets the sixes go. Against the bass's C the right
+    # holds a fourth, then a major third. F2 is in the existing landing chord.
+    T['gr'] = [e for e in T['gr'] if not half<=e['at']<seam]
+    for a,b,semi in ((half,resolve,12),(resolve,stop,11)):
+        lo = F1+semi
+        add('gr',a,b-a-.06,f'{nm(lo)},{nm(lo+12)}',.92)
+    for e in T['pawl']:
+        if resolve<=e['at']<seam:
+            e['pitch'] = nm(F1+36-1)
+            e['len'] = min(e['len'],round(stop-e['at']-.02,5))
+
+
 def slow_hand(start):
     """One slow cell, two bass cells and four fast cells occupy seven beats."""
     # Quote the actual bass phrase from v5, not a second transcription of it.
@@ -328,6 +357,8 @@ def compose():
         slow_hand(4 * RUNG - len(CELLS)*N)
     if PAWL and HEAD_TUNE:
         tune_the_heads(5 * RUNG)
+    if CADENCE and PAWL:
+        before_the_lock(b)
     # seven to the beat: the riff is one beat long
     MARKS.append(("seven: it locks", b))
     fill(b)
@@ -401,6 +432,12 @@ def song():
         if r != prev:
             pts += [[f"{p - 0.02:g}b", prev], [f"{p:g}b", r]]
             prev = r
+    if CADENCE and PAWL:
+        # The old F-centred EQ takes the body out of a held C. Move the
+        # existing three key-following bands with it; reset in the kit break.
+        land = dict(MARKS)['seven: it locks']; start = land-2*N
+        pts += [[f'{start-.02:g}b',0],[f'{start:g}b',7],[f'{land-1:g}b',7],[f'{land-.02:g}b',0]]
+        pts.sort(key=lambda point: float(point[0].removesuffix('b')))
     return {
         "about": ("chirpers X (Common Time), track 9 by chirper-zero: In the Time Of. One riff of seven notes and one beat that never "
                   "changes (84). The band deals the riff out at one note to the beat, then two, three, four, five, six, drifting "
