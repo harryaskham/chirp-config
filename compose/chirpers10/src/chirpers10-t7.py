@@ -70,6 +70,8 @@ BRASS = os.environ.get("C10T7_BRASS", "brass;-13dB;0.8;12;400:1:-3")
 # bends its way through 55, then 34: the short line is literally the head of the long one.
 # Dry and close, not a third wall of rhythm guitar. Empty regenerates v3.
 STEEL = os.environ.get("C10T7_STEEL", "-12dB")
+# v5: the last riff sheds its smallest strokes before the whole band signs the final chord.
+PEEL = os.environ.get("C10T7_PEEL", "1")
 
 
 def nm(n):
@@ -219,6 +221,31 @@ def steel_answer():
     assert start == SECS[3][0]
 
 
+def peel_last_riff():
+    # Count down *toward* the endpoint in the riff's own sizes. For 21 sixteenths
+    # the outer pair rings the big cells above the inside chug; the inside pair
+    # then inherits one held chord. First the feet, then the harp, horn and fill
+    # have the figure to themselves. The final low F is composed as before.
+    a, b, c, d = (TOTAL - SIZE[k][0] for k in (6, 5, 4, 3))  # 55, 34, 21, 13 to go
+    for tr in ('wl', 'wr', 'gl', 'gr', 'bass', 'kick', 'cym'):
+        kept = []
+        for note in T[tr]:
+            p = round(4 * note['at'])
+            if a <= p < TOTAL:
+                if tr in ('wl', 'wr', 'gl', 'gr'):
+                    outside = tr in ('wl', 'wr')
+                    if (outside and p >= b) or (not outside and p >= c):
+                        continue
+                    if outside or p >= b:
+                        if p not in STARTS[3]:
+                            continue
+                        note = {**note, 'len': round((at_size(3, p)[2] - 1) / 4, 4)}
+                elif p >= (c if tr == 'cym' else d):
+                    continue
+            kept.append(note)
+        T[tr] = kept
+
+
 def compose():
     if STEEL:
         steel_answer()
@@ -228,6 +255,8 @@ def compose():
             big = [c for c in LEV[4] if s0 <= c[0] < s0 + n]
             for (p, _, ln), step in zip(big, harp_tune(5)):
                 add("brass", p, ln - 1, POOL[step] + KEY[i] + int(BRASS.split(";")[3]), float(BRASS.split(";")[2]))
+    if PEEL:
+        peel_last_riff()
     for tr in ("gl", "gr", "wl", "wr"):                   # where the fifteenth line would begin: one chord
         add(tr, TOTAL, 32, ",".join(nm(F1 + j) for j in (0, 7, 12, 19)), 0.95)
     add("bass", TOTAL, 32, F1, 0.95)
