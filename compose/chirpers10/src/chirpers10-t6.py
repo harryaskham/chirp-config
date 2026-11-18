@@ -187,7 +187,25 @@ def bup(c):
     return int(KEYS.split(";")[3]) if KEYS and AT["full"] <= c < AT["down-four"] else 3 * keyof(c)
 
 
+# v10: the guitars detect a repeat by playing it. The left stays with the
+# rhythm section; the right reads back by the period of the next locked riff.
+# Only the fingering travels: the guitarist stays on the current ground.
+READ_BACK = os.environ.get("C10T6_READ_BACK", "1")
+
+
 def play(c, x, gtrs, bass=True, kick=True, harm=()):
+    sec = CELLS[c][0]
+    lag = 5 if sec in ("chaos", "five") else 3 if sec in ("chaos2", "three") else 0
+    if READ_BACK and lag:
+        then = CELLS[c - lag][3]
+        if cell(then) != cell(x):
+            right = tuple(tr for tr in gtrs if tr in ("gr", "gr2"))
+            play_cell(c, then, right, False, False, harm)
+            gtrs = tuple(tr for tr in gtrs if tr not in right)
+    play_cell(c, x, gtrs, bass, kick, harm)
+
+
+def play_cell(c, x, gtrs, bass, kick, harm):
     """`harm`: the guitars that take an accent from the octave up two rungs higher."""
     slots, ai, r = cell(x)
     for i, s in enumerate(slots):
