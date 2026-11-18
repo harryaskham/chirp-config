@@ -63,6 +63,9 @@ CUT = os.environ.get('C10T9_CUT', '1' if HEAD_TUNE else '')
 # the slow and fast guitar pairs the bass brings back its two-to-a-beat answer.
 # Empty restores v7; preserve the older cascade of rollback switches.
 SLOW_HAND = os.environ.get('C10T9_SLOW_HAND', '1') if CUT and HANDS and BASS_TURN else ''
+# v9: stick on riff accents, foot on untouched quarters. Open-cymbal piece
+# gain. Empty restores v8; disabling SLOW_HAND still gives v7.
+CLUTCH = os.environ.get('C10T9_CLUTCH', '-16dB' if SLOW_HAND else '')
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
 ROOTS = [(0, 0)]
@@ -251,6 +254,24 @@ def slow_hand(start):
                 add(outer, at, until - i - .14, pitch, .97 if k == 'o' else .94)
 
 
+def work_the_hats(start):
+    """Four cells of eighths: two players' jobs on a single hi-hat.
+    Striking on a footfall gives one closed attack, never two stacked hits.
+    Between footfalls the cymbals open; the following step chokes the wash.
+    """
+    first = N                              # leave the first cell of eighths plain
+    last = first + 2*len(CELLS)*N          # back to the old beat before the card
+    lo, hi = start+first/2, start+last/2
+    T['hat'] = [e for e in T['hat'] if not lo<=e['at']<hi]
+    for i in range(first,last):
+        at = start+i/2
+        k = CELLS[(i//N)%len(CELLS)][i%N]
+        if i%2==0:                        # foot presses on every quarter
+            drum('hp' if k=='c' else 'h', at, .60 if k=='c' else .58)
+        elif k!='c':                      # long enough to cross the footfall if left open
+            add('hat', at, 1.25, 'oh', .59 if k=='o' else .53)
+
+
 def crossbeat(b):
     """Last five bars of the threes. All positions derived from one 12-stroke bar."""
     for bar, voices in enumerate(('bbb','bbb','bss','sbs','sss')):
@@ -299,6 +320,8 @@ def compose():
             if k >= 2:
                 drum("c", b + j, 0.9 if j == 0 else 0.7)
         b += RUNG
+    if CLUTCH:
+        work_the_hats(RUNG)
     if BASS_TURN:
         last_to_turn(2 * RUNG)
     if SLOW_HAND:
@@ -386,7 +409,9 @@ def song():
                   "v1 is the skeleton.") + (" At four to the beat the two hook notes pass between a baritone guitar and a clavinet; they exchange roles halfway." if HANDS else "")
                  + (" One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then the original two guitars play the last cell before everyone lands on F." if RING else ""),
         "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
-        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}, **({'hp': {'gain': CROSS.split(';')[1]}} if CROSS else {})}},
+        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}, **({'hp': {'gain': CROSS.split(';')[1]}} if CROSS else {}),
+                            **({'oh': {'patch':'haake-hat amp.d=1.05s amp.r=180ms amp.curve=2.2',
+                                       'gain':CLUTCH,'pan':-.45,'choke':'hat'}} if CLUTCH else {})}},
                     **({"it-pawl": {"synth": {"layers": [{"type": "wavetable", "frames": [
                         [[j, round(1 / j**0.45, 4)] for j, x in enumerate(CELLS[0], 1) if x != "c"],
                         [[j, round(1 / j**0.45, 4)] for j, x in enumerate(CELLS[0], 1) if x == "c"]],
