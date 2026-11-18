@@ -255,6 +255,21 @@ KITFALL = os.environ.get("C10T5_KITFALL", "1") if STEEP == "60:2,66:3,68:6" else
 # the fills' lengths in sixteenths, at the lead's octaves (0: none there) ; `land`: the crashes follow the lead's
 # octaves. "" = v22 (read in compose(), where it defaults on only if every later switch is on).
 TOMRISE_DEFAULT = "8,12;land"
+# v24 (chirper-one; section w2, 0:28.8-0:57.6, which the map calls static: "the same kit beat from 0:38 to 0:56"):
+# THE KIT CLIMBS AN OCTAVE OF SPEED. The stair is the illusion in pitch, and an octave of pitch is a doubling. Under
+# it the kit has always changed gear once: half time while the line is the plain scale (0:19, the snare on three),
+# the backbeat when the tune comes in (0:38, the snare on two and four). Then nothing for eight bars, while the tune
+# is said four times and the right side goes up into harmony. Now, where the harmony comes in (0:48), the backbeat
+# doubles again: the snare on the "and" of every beat, twice as many as before, over the same riff at the same
+# tempo. So the drummer says the stair's own claim in time, a doubling at each stage of the tune (half time, time,
+# double time), and the band seems to have picked up speed twice without moving. Four bars; the china's eighths and
+# the kick (on the line's six notes) do not change, so two of the four new strokes in a bar fall WITH the line (its
+# third and sixth notes) and two between. The rising fill at 0:56.4 (v23) takes the last half bar as before, and
+# at 0:57.6, where the one honest line comes in and starts to fall, the kit drops back to the plain backbeat: the
+# false summit, in the drums.
+# the bars in double time (from:to) ; the snare's velocity there (the backbeat's is 0.95). "" = v23 (read in
+# compose(), where it defaults on only while the rising fills are as v23 left them and every older switch is on).
+DOUBLE_DEFAULT = "20:24;0.92"
 RLANE = {v: [] for v in range(VOICES)}                  # the right side's faders while it is in harmony
 LLANE = {v: [(0.0, FLOOR)] for v in range(3)}           # the three leads' faders
 LANE = {v: [(0.0, FLOOR)] for v in range(VOICES)}       # each voice's fader, (beat, dB)
@@ -705,6 +720,16 @@ def compose():
         TOMS, LEAD, FIGURE, HARM, NAKED, RUNS, os.environ.get('C10T5_COUNTERFALL', '1'), os.environ.get('C10T5_FALSE_COUNT', '1'),
         os.environ.get('C10T5_GONG', '1'), os.environ.get('C10T5_WHEEL', '1'), os.environ.get('C10T5_AFTERIMAGE', '1'),
         os.environ.get('C10T5_HOLD', '1'))) else '')
+    double = os.environ.get('C10T5_DOUBLE', DOUBLE_DEFAULT if rise == TOMRISE_DEFAULT and all((
+        POLELEAD, KITFALL, FALLKEY, STEEP, CLIMB, ALONE, VEQ, ANCHOR, BRAKE, TICK, ONE)) else '')
+    if double:                           # v24: the backbeat doubles where the harmony comes in (before the fills take their rests)
+        d0, d1 = (int(x) for x in double.split(";")[0].split(":"))
+        assert back <= d0 < d1 <= TIME - R, "inside the stair's backbeat"
+        assert sum(1 for n in T["snare"] if n["pitch"] == "s" and d0 * 4 <= n["at"] < d1 * 4) == 2 * (d1 - d0)
+        T["snare"] = [n for n in T["snare"] if not (n["pitch"] == "s" and d0 * 4 <= n["at"] < d1 * 4)]
+        for b in range(d0, d1):
+            for p in (2, 6, 10, 14):
+                drum("s", b * 16 + p, float(double.split(";")[1]))
     if rise:                             # v23: the lead's octaves each get a fill that never tops out
         lb, lengths = int(LEAD.split(";")[2]), [int(x) for x in rise.split(";")[0].split(",")]
         assert len(lengths) in (2, 3) and lb + 6 == TIME - R       # the lead falls an octave every three bars
