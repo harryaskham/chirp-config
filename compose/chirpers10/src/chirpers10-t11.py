@@ -34,6 +34,9 @@ PICKUP = os.getenv('C10T11_PICKUP', '1' if STAY else '')
 # v6: F stays in the clean guitar while the bass changes what that F means.
 # Clean harmonic's trim in the middle (dB). Empty restores v5.
 PIVOT = os.getenv('C10T11_PIVOT', '4.5' if PICKUP else '')
+# v7: a reed phrase around (not inside) the control. Register over low Bb;
+# empty restores v6. The four notes come straight from the open guitar strokes.
+COUNTER = os.getenv('C10T11_COUNTER', '24' if PIVOT else '')
 BROAD = CELL // 4
 # Offset, duration, semitones, open power chord / single ringing note / palm mute.
 # The two short strokes before the Db and the delayed F are the tell in both walks.
@@ -91,6 +94,16 @@ def make():
         else:
             # F4 under Db5/C5: the upper bench makes the bellows motion less buried.
             put('bellows',start,CELL-.15,chord(HOME+31,HOME+36+(2 if i%4 in (2,3) else 3)),.78)
+    def other_walk(start, cell, step):
+        # Two cells = five seconds. The same four-note sentence fits twice at
+        # four steps a cell, three times at six. Carry it across cell boundaries.
+        tune = [s for _,_,s,k in RIFF if k!='m']
+        steps = CELL//step
+        for j in range(steps):
+            pos = (cell*steps+j) % len(tune)
+            put('bellows',start+j*step,step*(.80,.70,.52,.92)[pos],
+                HOME+int(COUNTER)+tune[pos],(.89,.84,.78,.92)[pos])
+
     def swing_slow(i):
         return i<4 or 8<=i<10 or (12<=i<16 and i%2==0)
 
@@ -229,7 +242,11 @@ def make():
                         put('kettle',a+landing,2.1 if k=='p' else 3.7,
                             HOME+answer(i,s)+int(KETTLE.split(';')[1]), .93 if k=='p' else .98)
                 walk(a,6 if slow else 4,'x' if section in ('shoulder','swing') else 'h')
-                if section=='lean' or (section=='broad' and i<count-4): reed(a,i)
+                if COUNTER and ORGAN and section=='lean' and i<2:
+                    other_walk(a,i,BROAD)  # organ anticipates the four; drummer still plays six
+                elif COUNTER and ORGAN and section=='broad' and 4<=i<6:
+                    other_walk(a,i-4,SUB)  # keep one memory of the six after the kit changes
+                elif section=='lean' or (section=='broad' and i<count-4): reed(a,i)
                 if section in ('quick','shoulder','swing') and i==0: drum('c',a,.88)
                 if section=='broad' and i==count-1:
                     for t,p in ((18,'t1'),(20,'t2'),(22,'ft')):drum(p,a+t,.73)
@@ -266,7 +283,18 @@ def make():
                           [f'{end:g}b',float(PIVOT)],[f'{end+1:g}b',0]]}}
     if ORGAN:
         pump=[{'type':'pump','every':'3/8','attack':'12ms','hold':'28ms','release':'395ms','depth':PUMP,'curve':0.65}] if PUMP else []
-        tracks.append(tr('bellows','harmonium',ORGAN,.12,fx=pump))
+        organ = tr('bellows','harmonium',ORGAN,.12,fx=pump)
+        if COUNTER and pump:
+            # The fingers make these attacks. Leave only a little of the deep
+            # pedal duck on them; full bellows depth returns for the held dyads.
+            wet=[['0b',1.0]]
+            for tick in (marks['lean'], marks['broad']+4*CELL):
+                b0,b1=tick/SUB,(tick+2*CELL)/SUB
+                wet += [[f'{b0:g}b',1.0],[f'{b0+.01:g}b',.25],
+                        [f'{b1-.01:g}b',.25],[f'{b1:g}b',1.0]]
+            pump[0]['mix']={'value':0,'mod':[{'src':'auto.hand','amount':1}]}
+            organ['auto']={'hand':{'points':wet,'curve':0}}
+        tracks.append(organ)
     if KETTLE:
         tracks.append(tr('kettle','timpani fx.0.mix=0.07 synth.amp.r=240ms',KETTLE.split(';')[0],-.15))
     if ROD:
