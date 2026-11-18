@@ -46,6 +46,9 @@ HANDS = os.environ.get("C10T9_HANDS", "-11.5dB;-4.5dB")
 # the following mute. At the return that line belongs to a pair; the last cell
 # strips back to the original two parts before the six-guitar F. Empty = v2.
 RING = os.environ.get("C10T9_RING", "1")
+# w3: the foot keeps four; the sticks take every fourth triplet. Gain of the
+# ride-bell track; gain of the pedal-chick piece in this song's kit. Empty = v3.
+CROSS = os.environ.get("C10T9_CROSS", "0.5dB;-8dB")
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
 ROOTS = [(0, 0)]
@@ -63,7 +66,7 @@ def add(tr, beat, length, pitch, vel, **expr):
 
 
 def drum(piece, beat, vel):
-    tr = {"k": "kick", "s": "snare", "h": "hat", "c": "cym", "x": "cym"}.get(piece, "toms")
+    tr = {"k": "kick", "s": "snare", "h": "hat", "hp": "hat", "c": "cym", "x": "cym", "rbs": "crossbell"}.get(piece, "toms")
     T.setdefault(tr, []).append({"at": round(beat, 5), "len": 2.0 if piece in ("c", "x") else 0.5 if piece == "h" else 0.25,
                                  "pitch": piece, "vel": round(vel, 3)})
 
@@ -146,6 +149,20 @@ def beat(b0, b1, cym="x", vel=0.5, snare=(1, 3)):
             drum("s", b, 0.95)
 
 
+def crossbeat(b):
+    """Last five bars of the threes. All positions derived from one 12-stroke bar."""
+    for bar, voices in enumerate(('bbb','bbb','bss','sbs','sss')):
+        a = b + 4*bar
+        for q in range(4):
+            drum('hp', a+q, .85 if q==0 else .74)
+        if bar < 2:                 # establish three against the existing backbeat
+            for q in (1,3): drum('s', a+q, .88)
+        for j,voice in enumerate(voices):
+            at = a + j*4/3
+            if voice=='b': drum('rbs', at, .88 if j==0 else .81)
+            else: drum('s', at, (.72,.83,.97)[j] if bar==4 else .88)
+
+
 def fill(b):
     """The last two beats before beat b."""
     for i, pc in enumerate(["t1", "t1", "t2", "t2", "ft", "ft", "s", "s"]):
@@ -162,7 +179,11 @@ def compose():
         MARKS.append((names[k - 1], b))
         gtrs = ("gl", "gr", "dl", "dr") if k in (3, 4) else ("gl", "gr")
         deal(b, RUNG - int(k == N - 1), k, gtrs, low=k >= 2)
-        if k < 3:
+        if k == 3 and CROSS:
+            cross_at = b + RUNG - 5*4
+            beat(b, cross_at)
+            crossbeat(cross_at)
+        elif k < 3:
             beat(b, b + RUNG, cym="h", vel=0.45, snare=())
         else:
             beat(b, b + RUNG)
@@ -235,6 +256,9 @@ def song():
             "gain": HANDS.split(";")[0], "pan": -0.56},
            {"name": "keyed", "patch": "clav", "gain": HANDS.split(";")[1], "pan": 0.56}] if HANDS else []),
     ]
+    if CROSS:
+        tracks.append({"name": "crossbell", "patch": kit, "gain": CROSS.split(';')[0], "pan": 0.30,
+                       "out": "drums", "sends": {"oh": "0dB"}, "fx": air})
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
 
@@ -254,7 +278,7 @@ def song():
                   "v1 is the skeleton.") + (" At four to the beat the two hook notes pass between a baritone guitar and a clavinet; they exchange roles halfway." if HANDS else "")
                  + (" One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then the original two guitars play the last cell before everyone lands on F." if RING else ""),
         "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
-        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
+        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}, **({'hp': {'gain': CROSS.split(';')[1]}} if CROSS else {})}},
                     **({"it-pawl": {"synth": {"layers": [{"type": "wavetable", "frames": [
                         [[j, round(1 / j**0.45, 4)] for j, x in enumerate(CELLS[0], 1) if x != "c"],
                         [[j, round(1 / j**0.45, 4)] for j, x in enumerate(CELLS[0], 1) if x == "c"]],
