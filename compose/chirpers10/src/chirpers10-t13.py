@@ -28,7 +28,8 @@ def name(n):
     return PITCH[n % 12] + str(n // 12 - 1)
 
 
-def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True):
+def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
+            rim=True, rim_gain=-18):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -36,6 +37,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     afterimage = afterimage and held_back
     drum_memory = drum_memory and afterimage
     edges = edges and drum_memory
+    rim = rim and edges
     parts = defaultdict(list)
     def put(tr, at, dur, p, v, mute=False):
         event = dict(at=round(at / SUB, 6), len=round(dur / SUB, 6),
@@ -122,7 +124,9 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
             a = start + i*CELL
             if HEADS[first]:
                 dyad = ('F3,C4', 'Ab3,Eb4', 'Eb3,Bb3')[group]
-                put('glass', a, HEADS[first]-.65, dyad, .82)
+                # v9: a held glass tone, not a pluck: it stands exactly as long
+                # as the tune's head is still missing, and lifts for the bass.
+                put('rim' if rim else 'glass', a, HEADS[first]-.65, dyad, .82)
             pickup = take==repeats-1 and first>0
             for j in range(first, len(HEADS)):
                 k = HEADS[j]; end = (HEADS+(CELL,))[j+1]
@@ -354,11 +358,20 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
               track('snare','ct-kit'+(' kit.ss.gain=7dB kit.g.gain=-5dB' if drum_memory else ''),3,
                     out='drums',sends={'chamber':'-14dB'}),
               track('metal','ct-kit',1.5,out='drums'), track('skins','ct-kit',3,out='drums')]
+    if rim:
+        # The library's FM glass pad, made to speak and stop like a rubbed rim:
+        # 160 ms in, 220 ms out, its own long hall nearly shut (the song's
+        # chamber carries it, as it carried the guitar it replaces). Benched
+        # at -9 dB the tone WAS the bridge (+2.8 dB on the section); at -18 it
+        # holds just under where the pluck's attack stood and the section
+        # is within 0.2 dB of v8.
+        tracks.append(track('rim','pad-glass synth.amp.a=160ms synth.amp.r=220ms synth.env.glint.a=300ms '
+                            'synth.env.glint.r=220ms fx.1.mix=0.05',rim_gain,-.18,sends={'chamber':'-9dB'}))
     if wood:
         for side,pan in zip(sides,(-.58,.58)):
             tracks.append(track('box-'+side,'cajon kit.cb.pitch=F2 kit.cs.gain=4dB kit.cg.gain=1dB fx.0.mix=0.06',wood_gain,pan))
     assert not parts
-    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
+    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
             'ceiling':'-1dB', 'true_peak':True, 'loudness':-10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
@@ -379,9 +392,12 @@ if __name__ == '__main__':
     previous.add_argument('--v5', action='store_true', help='restore the seven muted strokes over the A-flat pedal')
     previous.add_argument('--v6', action='store_true', help='restore the original backbeat in the negative and its returns')
     previous.add_argument('--v7', action='store_true', help='restore the doubled chugs on both sides of the break')
+    previous.add_argument('--v8', action='store_true', help='restore the plucked clean dyads in the quiet middle')
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
+    parser.add_argument('--rim-gain', type=float, default=-18, help='held glass track gain in dB')
     args = parser.parse_args()
-    doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7)
+    doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
+                  not args.v8, args.rim_gain)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
