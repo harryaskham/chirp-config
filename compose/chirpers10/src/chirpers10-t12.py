@@ -23,7 +23,8 @@ def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True):
+def build(drum_hand=True, crease=True):
+    crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     ev = defaultdict(list); sections = []; start = 0
     def put(tr, t, n, dur, v, mute=False):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -43,6 +44,18 @@ def build(drum_hand=True):
             # F all through the introduction and first traversal. The quiet centre
             # moves to its minor third; the high answer alone bends on the way home.
             root = 29 + (3 if sec in ('carbon','thumbprint') else 1 if sec=='raised' and i<count//2 else 0)
+            # v4: fold the last three G-flat strips about their shared, silent
+            # centre. The two open meetings at 3 and 15 are the first fold's
+            # edges. The second keeps half that span; the last keeps just the
+            # centre. The independent quarter-note count stays outside the fold.
+            centre = STRIP // 2
+            step = i - (count//2 - 3)
+            folding = crease and sec=='raised' and 0 <= step < 3
+            radius = (centre - min(opens[0].keys() & opens[1].keys())) * (2-step)//2 if folding else centre
+            def inside(t): return abs(t-centre) <= radius
+            if folding:
+                assert centre not in {t for t,_,_ in front+back}
+                put('wire',a+centre,29+36,(2,5,STRIP-centre-.25)[step],.88)
             # In 'carbon' the mouth hands its line to the drummer from the tail
             # backwards: one note, two, then all four. In 'one hand' the drummer
             # answers two full strips, at the guitarists' timing this time.
@@ -90,6 +103,7 @@ def build(drum_hand=True):
                     continue
                 r = back if rev else front
                 for j,(t,p,k) in enumerate(r):
+                    if not inside(t): continue
                     if tom_reply and not (i==count-1 and t==STRIP-1): continue
                     if sec=='one hand' and k=='m' and (i>=4 or t%2): continue
                     if sec=='carbon' and k=='m' and i%2: continue
@@ -114,6 +128,7 @@ def build(drum_hand=True):
                 apart = sec in ('opposite','turn over','raised')
                 rb = opens[1 if leftback else 0]
                 for t,p in rb.items():
+                    if not inside(t): continue
                     if sec=='turn over' and i==count-1 and t>=10: continue
                     if tom_reply:
                         put('drum-hand',a+t,'head'+str(root+12+p),2.3,.92)
@@ -127,7 +142,19 @@ def build(drum_hand=True):
                         kit('foot',a+t,'k',.98 if t in (0,3,15,18) else .83)
                 if sec=='raised':
                     for t in (3,15):
-                        put('mouth',a+t,root+24+opens[1][t],2.65,.85)
+                        if inside(t): put('mouth',a+t,root+24+opens[1][t],2.65,.85)
+                    if folding and step>0:
+                        # Even when the guitars no longer meet here, the foot
+                        # remembers ONE of their two meetings. Hold that last
+                        # low G-flat up to the clean F, not across its attack.
+                        anchor = min(opens[0].keys() & opens[1].keys())
+                        put('bass',a+anchor,root,centre-anchor-.4,.92)
+                        kit('foot',a+anchor,'k',.98)
+                    if crease and i==count//2:
+                        # The high F has told us the key already. Meet the
+                        # returning left guitar three octaves down, then go
+                        # back to the bass's two meetings a strip; no crash.
+                        put('bass',a,root,2.7,.95)
                 if sec=='opposite' and i in (3,7,11,15): kit('skins',a+17,'ft',.84)
             # The drummer counts through the strip seams, not from strip zero.
             for t in range(a, a+STRIP):
@@ -159,6 +186,19 @@ def build(drum_hand=True):
             track('foot','ct-kit','2dB',0,'drums',[{'type':'eq','bands':['peak cutoff=4400 q=0.84 gain=6dB']}]),
             track('snare','ct-kit','2dB',0,'drums'),track('hat','ct-kit','11dB',-.18,'drums'),
             track('brass','ct-kit','-4.5dB',.15,'drums'),track('skins','ct-kit','1.5dB',0,'drums')]
+    if crease:
+        # Bring the quiet middle's clean guitar up on the fader for the first
+        # two strokes under the distorted pair, then return to its original
+        # level for the exposed one. No gain change in either of its old parts.
+        _, onset, strips = next(s for s in sections if s[0]=='raised')
+        first = onset + (strips//2-3)*STRIP
+        wire = next(t for t in tracks if t['name']=='wire')
+        wire['gain']={'value':wire['gain'],'mod':[{'src':'auto.crease','amount':1}]}
+        points=[['0b',0],[f'{first/GRID:g}b',0]]
+        for j,boost in enumerate((6,4,0)):
+            middle=(first+j*STRIP+STRIP//2)/GRID
+            points.extend([[f'{middle-.5:g}b',boost],[f'{middle+.5:g}b',boost]])
+        wire['auto']={'crease':{'curve':0,'points':points}}
     # Shorten the borrowed pedal's swell enough to speak on the strip's last
     # sixteenth. No echo crossing into the other player's chair, or over the stop.
     steel = 'pedal-steel synth.amp.a=85ms synth.amp.r=80ms fx.1.mix=0 fx.2.mix=0 play.glide=65ms'
@@ -187,8 +227,8 @@ def dump(d):
     return '\n'.join('tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) if k=='tracks' else k+': '+json.dumps(v) for k,v in d.items())+'\n'
 
 if __name__=='__main__':
-    ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand)
+    ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); ap.add_argument('--without-crease',action='store_true',help='regenerate v3'); a=ap.parse_args()
+    doc,sections=build(not a.without_drum_hand,not a.without_crease)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
