@@ -56,6 +56,11 @@ BELLS = os.environ.get("C10T8_BELLS", "-12;0.9;0.95;1.5")
 # bars over the cell that measures it, against the chords climbing the same notes the other way. Then the F again and
 # the F above. patch ; gain ; hall send ; semitones over the low F. "" = v2 (no lead).
 HEAD = os.environ.get("C10T8_HEAD", "lead-monster;-12dB;-12dB;36")
+# v4: in the one-guitar-per-side pair, the right riff's three rising notes are
+# stretched to the distance between joint landings, then gathered back to tempo.
+# Empty switches the section off, giving v3 exactly. This part is dry: let the
+# bare last tail belong to the guitars.
+BREATH = os.environ.get("C10T8_BREATH", "shaper-reed;-13dB")
 
 
 def nm(n):
@@ -191,7 +196,13 @@ def compose():
             if not (last or a < b) or t + i * a < stop:
                 bell("l", t + i * a, vel=grow(t + i * a) if last else None)
         for i in range(n // b):
-            say(right, t + i * b, gr, low=b < a and t + i * b >= kick_from, stop=stop if last or b < a else None, bass=not last)
+            # In v4 the right guitarist lets the reed take the three pitched
+            # attacks. His four-place tail and bell still give the riff its
+            # full twelve places. First one of every two statements answers,
+            # then he waits; at landing six the pitches meet in octaves.
+            leave_head = BREATH and k == 3 and i*b < 5*cyc and (i % 2 == 0 or i*b >= 3*cyc)
+            played = ["r" if token.isdigit() else token for token in right] if leave_head else right
+            say(played, t + i * b, gr, low=b < a and t + i * b >= kick_from, stop=stop if last or b < a else None, bass=not last)
             if not (last or b < a) or t + i * b < stop:
                 bell("r", t + i * b, vel=grow(t + i * b) if last else None)
         if k == 0:
@@ -209,6 +220,23 @@ def compose():
             beat(t, stop, cym="x", step=4, snare=(8,))                 # half time: the snare on three
         elif k == 3:
             beat(t, stop)                                              # the hat again, the backbeat back
+            if BREATH:
+                # Right begins Ab-- B-- C-. Give each note first a whole
+                # landing (24 sixteenths), then three times and twice its
+                # written length, then let the reed meet the actual guitar.
+                heads = [(i, int(token)) for i, token in enumerate(right) if token.isdigit()]
+                assert [i for i, _ in heads] == [0, 3, 6]
+                for j, (_, pitch) in enumerate(heads):
+                    add("breath", t + j * cyc, cyc - 2, F1 + 36 + pitch, 0.79 + 0.035 * j)
+                for h, stretch in ((3, 3), (4, 2), (5, 1)):
+                    for j, (i, pitch) in enumerate(heads):
+                        # The two quicker answers overblow an octave; come
+                        # back down when both play the three pitches together.
+                        add("breath", t + h * cyc + i * stretch, (3 if j < 2 else 2) * stretch - 0.3,
+                            F1 + (48 if stretch > 1 else 36) + pitch, 0.86 + 0.035 * j)
+                # Answer down on F, then let the last two meetings and the
+                # right riff's exposed tail go by without the reed.
+                add("breath", t + 5 * cyc + 8, cyc - 10, F1 + 36, 0.84)
         else:
             beat(t, stop, snare=())                                    # the snare on every beat, growing
             beats = list(range(t, stop, 4))
@@ -284,6 +312,9 @@ def song():
         {"name": "cym", "patch": kit, "gain": "-4.5dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
         {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
     ]
+    if BREATH:
+        timbre, gain = BREATH.split(";")
+        tracks.append({"name": "breath", "patch": timbre, "gain": gain, "pan": 0.12})
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
 
