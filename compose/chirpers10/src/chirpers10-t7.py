@@ -81,6 +81,9 @@ BIG_STROKES = os.environ.get("C10T7_BIG_STROKES", "1" if BOWL else "")
 # v8: the horn borrows five notes from the lowest harp before the last
 # quiet section. Empty restores v7; older rollback switches keep working.
 REVEAL = os.environ.get("C10T7_REVEAL", "1") if BIG_STROKES and CANON and BRASS else ""
+# v9: after 55 sixteenths the first riff's short children go to a pitched log drum.
+# Track gain; empty restores v8. Keep the older rollback switches intact.
+CHILD = os.environ.get("C10T7_CHILD", "-5dB") if REVEAL else ""
 
 
 def nm(n):
@@ -360,8 +363,40 @@ def harp_tune(depth):
 POOL = [53, 56, 60, 63, 65, 68, 72, 75]   # F3 Ab3 C4 Eb4 F4 Ab4 C5 Eb5 (F minor seventh, broken): step 0 sounds once, step 1 at cells 1 2 3 5 8 13 21 34
 
 
+def short_children():
+    """The harp's tune, on only the cells born short. No new strike times."""
+    s0 = SECS[0][0]
+    long_span, short_span = SIZE[6]
+    end = SIZE[8][0]
+    band = [cell for cell in LEV[0] if s0 <= cell[0] < s0 + end]
+    steps = harp_tune(8)
+    assert len(steps) == len(band) and long_span + short_span + long_span == end
+    low_hits, high_hits = set(), set()
+    for (p, kind, ln), step in zip(band, steps):
+        if p < s0 + long_span or kind != "S":
+            continue
+        # First tell it on Gb in the bass register. When the ground falls to
+        # F, let the same contour speak an octave higher and finish its phrase.
+        low = p < s0 + long_span + short_span
+        root = KEY[0] + int(at_size(6, p)[1] == "S")
+        add("log", p, ln - 1, POOL[step] + root - (24 if low else 12), .88)
+        if low:
+            T["log"][-1]["gain"] = "-2dB"       # match the five low strikes to the bass they take
+            low_hits.add(p)
+        else:
+            high_hits.add(p)
+    take = low_hits | high_hits
+    T["bass"] = [n for n in T["bass"] if round(n["at"] * 4) not in take]
+    # Low, the drum takes the foot's stroke too. High, the foot returns
+    # under it while the right guitar leaves it the attack instead.
+    T["kick"] = [n for n in T["kick"] if round(n["at"] * 4) not in low_hits]
+    T["gr"] = [n for n in T["gr"] if round(n["at"] * 4) not in high_hits]
+
+
 def song():
     compose()
+    if CHILD:
+        short_children()
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
@@ -416,6 +451,9 @@ def song():
                    [f"{(hi - .25) / 4:.8g}b", -60], [f"{hi / 4:.8g}b", 0]]
             t["gain"] = {"value": t["gain"], "mod": [{"src": "auto.damp", "amount": 1}]}
             t["auto"] = {"damp": {"points": pts, "curve": 0}}
+    if CHILD:
+        tracks.append({"name": "log", "patch": "log-drum play.glide=0ms play.gate=1 synth.env.p.d=35ms synth.amp.r=45ms",
+                       "gain": CHILD, "pan": .4, "out": "drums"})
     for t in tracks:
         if "gen" not in t:
             t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
