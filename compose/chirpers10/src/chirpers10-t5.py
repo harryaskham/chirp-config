@@ -577,11 +577,32 @@ def fill(b):
         drum(pc, b * 16 - 8 + i, 0.6 + 0.045 * i)
 
 
+def false_count(b0, b1):
+    """Four bars of dotted-eighth 'quarters' fit in three bars of the stair."""
+    start, settle = b0*16, (b1-1)*16
+    short = ACC[1]-ACC[0]       # the stair starts with groups of three sixteenths
+    assert settle-start == 4*4*short
+    def stroke(at, i):
+        drum('h', at, (.60,.44,.51,.44)[i])
+        if i in (1,3):
+            add('snare', at, .8, 'ss', .77 if i==1 else .86)
+            T['snare'][-1]['gain'] = '10dB'  # the rim only; the song's snare fader stays put
+    for i, t in enumerate(range(start,settle,short)):
+        stroke(t, i%4)
+    # Same hands, real quarter notes. The existing tom fill completes this
+    # slower bar; neither the kick nor a cymbal announces the downbeat early.
+    for i in range(2):
+        stroke(settle+i*4, i)
+
+
 def compose():
     # the foot: the stair alone on the Shepard tone; then the three guitars a side take it up
     line(FOOT, FOOT + 4, gtrs=False)
     line(FOOT + 4, RISE)
-    beat(FOOT + 4, RISE, snare=(), cym="h", vel=0.45, crash=0)
+    if FALSE_COUNT:
+        false_count(FOOT + 4, RISE)
+    else:
+        beat(FOOT + 4, RISE, snare=(), cym="h", vel=0.45, crash=0)
     fill(RISE)
     # the stair: the band
     R = int(RUNS.split(";")[0]) if RUNS else 0
@@ -820,6 +841,9 @@ def bowed_pole(doc):
 
 # v19: one last swell comes from the kit. Empty restores v18.
 GONG = os.environ.get("C10T5_GONG", "-8dB") if WHEEL and CLIMB and CLIMB.split(";")[4] != "off" else ""
+# v20: a false count-in under the first guitar stairs only. Empty = v19;
+# omitting GONG still restores the original v18 arrangement.
+FALSE_COUNT = os.environ.get('C10T5_FALSE_COUNT', '1' if GONG else '')
 
 
 def halfway(doc):
