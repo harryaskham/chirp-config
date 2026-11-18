@@ -844,6 +844,49 @@ GONG = os.environ.get("C10T5_GONG", "-8dB") if WHEEL and CLIMB and CLIMB.split("
 # v20: a false count-in under the first guitar stairs only. Empty = v19;
 # omitting GONG still restores the original v18 arrangement.
 FALSE_COUNT = os.environ.get('C10T5_FALSE_COUNT', '1' if GONG else '')
+# v21: where the fall takes two steps a bar, the right-hand guitars climb the
+# same six notes against it. 'pick' keeps the riff's strokes; 'ring' holds
+# each step instead. Empty = v20.
+COUNTERFALL = os.environ.get('C10T5_COUNTERFALL', 'pick' if FALSE_COUNT and ONE else '')
+
+
+def contrary_stairs(doc):
+    rates = sorted((int(a), int(k)) for a, k in (v.split(':') for v in STEEP.split(',') if v))
+    wheel = VOICES * len(SCALE)
+    # Up two octaves and down two are four octaves apart, the whole wheel: so
+    # every string, not only the sum of them, leaves from its own note and
+    # arrives on the note it would have fallen to. Nothing has to jump back.
+    spans = [(a, b, k) for (a, k), (b, _) in zip(rates, rates[1:]) if k == 2 and 2 * (b - a) * k % wheel == 0]
+    if not spans:
+        return
+    a, b, per = spans[0]
+    start = -sum(([1] + [k for bar, k in rates if bar <= x])[-1] for x in range(FALL, a))
+    edges = [ACC[q * len(ACC) // per] for q in range(per)] + [16]
+    for v in range(VOICES):
+        tr = next(t for t in doc['tracks'] if t['name'] == f'v{v}r')
+        was = tr['auto']['bell']['points']
+        beat = lambda p: float(p[0][:-1])
+        at = lambda x: [p[1] for p in was if beat(p) <= x][-1]
+        lane, notes = [(a * 4.0, at(a * 4))], []
+        for m in range((b - a) * per):
+            bar, q = a + m // per, m % per
+            d = start + m                       # the same ladder as the fall, walked the other way
+            p = (12 * (d // 6) + SCALE[d % 6] + 12 * v) % (12 * VOICES)
+            g = db(bell(p / (12 * VOICES))) + TRIM['fall']
+            if g <= -45:
+                continue
+            step(lane, bar * 4 + edges[q] / 4, g)
+            if COUNTERFALL == 'ring':
+                notes.append({'at': bar * 4 + edges[q] / 4, 'len': round((edges[q + 1] - edges[q] - .35) / 4, 4),
+                              'pitch': nm(RIFF_BASE + p), 'vel': 1.0})
+                continue
+            for i in range(edges[q], edges[q + 1]):
+                o = i in ACC
+                notes.append({'at': round(bar * 4 + i / 4, 4), 'len': round(.25 * .98, 4), 'pitch': nm(RIFF_BASE + p),
+                              'vel': 1.0 if o else .86, **({} if o else {'expr': {'pm': 1.0}})})
+        tr['notes'] = sorted([n for n in tr['notes'] if not a * 4 <= n['at'] < b * 4] + notes, key=lambda n: n['at'])
+        tr['auto']['bell']['points'] = ([p for p in was if beat(p) <= a * 4] + pts(lane[1:]) +
+                                        pts([(b * 4 - .01, lane[-1][1]), (b * 4, at(b * 4))]) + [p for p in was if beat(p) > b * 4])
 
 
 def halfway(doc):
@@ -1005,6 +1048,8 @@ def song():
         bowed_pole(doc)
     if GONG:
         halfway(doc)
+    if COUNTERFALL:
+        contrary_stairs(doc)
     return doc
 
 
