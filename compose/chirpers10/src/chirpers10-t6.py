@@ -455,8 +455,48 @@ def second_voice():
     return c, {"type": "logistic", "r": CELLS[c][1], "x0": CELLS[c][2], "n": 8, "len": "/2", "notes": pool, "rest": round(1 / 7, 6)}
 
 
+# v9: on alternate laps of the doubling riff the keys take the two outside
+# notes from the guitars. Upper/lower hand in dB; empty gives v8 exactly.
+TINES = os.environ.get("C10T6_TINES", "-14;-13")
+
+
+def periodic_tines():
+    """Keep the bass and both kits playing the orbit under the ringing keys."""
+    sections = (("one", 1), ("two", 2), ("four", 4), ("eight", 8),
+                ("down-four", 4), ("down-two", 2), ("down-one", 1))
+    exchanges = []
+    for sec, period in sections:
+        a = AT[sec]
+        b = a + next(n for name, n, _ in DIAL if name == sec)
+        if period == 1:
+            a = b - 4                           # a single pitch to introduce / close the exchange
+        if sec == "down-four" and HEAD4D is not None:
+            a = HEAD4D                          # wait for the return to settle
+        for lap, start in enumerate(range(a, b - period + 1, period)):
+            if period != 1 and lap % 2 == 0:
+                continue                        # guitars state a whole lap first
+            cycle = range(start, start + period)
+            end = (start + period) * 2
+            exchanges.append((start * 2, end))
+            for hand, choose in (("high", max), ("low", min)):
+                if period == 1 and hand == "low":
+                    continue
+                c = choose(cycle, key=lambda i: CELLS[i][3])  # by x, not by its rounded fret
+                slots, accent, r = cell(CELLS[c][3])
+                if not slots:
+                    continue
+                beat = round(2 * c + slots[accent] / 3, 5)
+                pitch = note(r) + gup(c) + (24 if hand == "high" else 12)
+                T.setdefault("tine-" + hand, []).append({"at": beat, "len": round((end - beat) * .97, 5),
+                                                       "pitch": nm(pitch), "vel": .86 if hand == "high" else .82})
+    for tr in G:
+        T[tr] = [n for n in T[tr] if not any(a <= n["at"] < b for a, b in exchanges)]
+
+
 def song():
     compose()
+    if TINES:
+        periodic_tines()
     if KIT:
         kit_part()
     kt = KIT.split(";") if KIT else None
@@ -492,6 +532,12 @@ def song():
            {"name": "dcym", "patch": "ct-kit-here", "gain": kt[2], "out": "kit", "sends": {"oh": "4.5dB"},
             "fx": [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]}] if KIT else []),
     ]
+    if TINES:
+        patch = "rhodes synth.amp.s=0.35 synth.amp.r=90ms fx.2.mix=0.04"
+        high, low = (float(v) for v in TINES.split(";"))
+        for name, gain, pan in (("high", high, .32), ("low", low, -.32)):
+            tracks.append({"name": "tine-" + name, "patch": patch, "gain": f"{gain:g}dB",
+                           "pan": pan, "fx": ["hp cutoff=120"]})
     for t in tracks:
         if "gen" not in t:
             t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
