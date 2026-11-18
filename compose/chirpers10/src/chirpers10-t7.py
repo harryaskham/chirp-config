@@ -84,6 +84,8 @@ REVEAL = os.environ.get("C10T7_REVEAL", "1") if BIG_STROKES and CANON and BRASS 
 # v9: after 55 sixteenths the first riff's short children go to a pitched log drum.
 # Track gain; empty restores v8. Keep the older rollback switches intact.
 CHILD = os.environ.get("C10T7_CHILD", "-5dB") if REVEAL else ""
+# v10: the heavy middle anticipates the bowl's chords; the last one opens into F minor.
+PIVOT = os.environ.get("C10T7_PIVOT", "1") if CHILD else ""  # empty restores v9
 
 
 def nm(n):
@@ -393,8 +395,77 @@ def short_children():
     T["gr"] = [n for n in T["gr"] if round(n["at"] * 4) not in high_hits]
 
 
+def two_common_tones():
+    """Ab minor and E major share two notes. First move a finger, then move the ground."""
+    s, quiet_in, back = (SECS[i][0] for i in (3, 4, 5))
+    first, again = s + SIZE[7][0], s + SIZE[8][0]
+    cells = [c for c in LEV[5] if first <= c[0] < quiet_in]
+    assert "".join(kind for _, kind, _ in cells) == "LSLSL"  # question, then question with a return
+    home = F1 + KEY[3]
+    first_up, last_up = [p for p, kind, _ in cells if kind == "S"]
+
+    def tick(n):
+        return round(n["at"] * 4)
+
+    def rest(tracks, start, end):
+        for tr in tracks:
+            T[tr] = [n for n in T[tr] if not start <= tick(n) < end]
+
+    def ground(p):
+        return home - 4 if p >= again and at_size(5, p)[1] == "S" else home
+
+    # The left amp plays the quiet guitarist's Ab2/Eb3 and raises just the fifth.
+    # The right picks B3 during each long and lets it ring across the short.
+    rest(("wl", "wr"), first, quiet_in)
+    for p, kind, ln in cells:
+        short = kind == "S"
+        add("wl", p, ln - .4, ",".join(nm(home + i) for i in (12, 19 + int(short))), .92)
+        if not short:
+            middle = p + SIZE[4][0]
+            add("wr", p, middle - p - .25, home + 27, .92)
+            following = SIZE[4][0] if p + ln < quiet_in else 0
+            add("wr", middle, p + ln + following - middle - .25, home + 27, .90)
+
+    # On the first E the bass holds Ab. Keep its octaves but not an Eb in the
+    # inside guitar chord. The second E drops into root position with the chugs.
+    for tr in ("bass", "gl", "gr"):
+        for n in T[tr]:
+            p = tick(n)
+            if not first <= p < quiet_in:
+                continue
+            root = ground(p)
+            intervals = (0,)
+            if "," in n["pitch"]:
+                intervals = (0, 12) if first_up <= p < again else (0, 7, 12)
+            n["pitch"] = ",".join(nm(root + i) for i in intervals)
+    ROOTS[:] = sorted([(p, r) for p, r in ROOTS if not first <= p < quiet_in]
+                      + [(p, ground(p) - F1) for p, _, _ in cells])
+    rest(("gl", "gr"), first_up + SIZE[3][0], again)  # eight sixteenths of space for the question
+    T["brass"] = [n for n in T["brass"] if tick(n) != first_up and not quiet_in - SIZE[3][0] <= tick(n) < quiet_in]
+    next(n for n in T["brass"] if tick(n) == last_up)["pitch"] = nm(home + 44)  # E5 on the answer
+
+    # The mallet strikes B3 on the short cells. The clean guitarist answers the
+    # first with E3; the second becomes a broken E chord on the way home to F.
+    p, _, ln = next(c for c in LEV[5] if c[0] >= quiet_in and c[1] == "S")
+    delay = SIZE[0][0]
+    add("pad", p + delay, ln - delay - 1, home + 20, .78)
+    final, kind, ln = at_size(5, back - 1)
+    assert kind == "S" and final + ln == back
+    wait, carry = SIZE[1][0], SIZE[3][0]
+    add("pad", final + wait, ln - wait - .5, home + 20, .78)
+    rest(("wl", "wr"), back, back + carry)
+    # E/B moves to F/C. Ab3 is the common note this time, carried on one string
+    # through the change. Only the left of the outside pair picks on the one.
+    arrival = back - SIZE[2][0]
+    assert arrival == final + carry
+    add("wr", arrival, back + carry - 1 - arrival, home + 24, .88)
+    add("wl", back, carry - .5, ",".join(nm(F1 + i) for i in (24, 31)), .96)
+
+
 def song():
     compose()
+    if PIVOT:
+        two_common_tones()
     if CHILD:
         short_children()
     kit = "ct-kit-here"
@@ -428,6 +499,14 @@ def song():
         {"name": "cym", "patch": kit, "gain": "-4.5dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
         {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
     ]
+    if PIVOT:
+        # Bring the already vibrating Ab3 up AFTER the amp; no second pick when the band enters.
+        t = next(t for t in tracks if t["name"] == "wr")
+        back = SECS[5][0]
+        at = back - SIZE[2][0]
+        points = [(0, 0), (at - 2, 0), (at - 1, -14), (at, -14), (back - 1, -6), (back, 0)]
+        t["gain"] = {"value": t["gain"], "mod": [{"src": "auto.carry", "amount": 1}]}
+        t["auto"] = {"carry": {"points": [[f"{p / 4:g}b", v] for p, v in points], "curve": 0}}
     if STEEL:
         tracks.append({"name": "bar", "patch": "em-steel", "gain": STEEL, "pan": 0.12,
                        "fx": [{"type": "eq", "bands": ["hp cutoff=440 q=0.707", "peak cutoff=1650 q=0.8 gain=3.5dB"]}]})
