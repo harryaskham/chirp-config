@@ -78,6 +78,9 @@ FELT = os.environ.get('C10T8_FELT', '-5dB' if SCRAPER else '')
 # v10: one held B against two picked F cells. Empty restores v9. Keep the
 # earlier rollback flags restoring the same versions their notes promised.
 TWICE = os.environ.get('C10T8_TWICE', '1' if FELT else '')
+# v11: after the loud final chord, put the two riffs back together by addition.
+# Empty restores v10; the older version switches keep working.
+AFTER = os.environ.get('C10T8_AFTER', '1' if TWICE and BREATH and BASS_BREAK else '')
 
 
 def nm(n):
@@ -292,6 +295,40 @@ def measured_drums(start, stop):
                     drum("s", common + i, .70 if i == len(G) - 2 else .89)
 
 
+def afterword(start):
+    """The Euclidean cuts in reverse: one beat, then 8, 12, 20, 32, 52 ticks.
+    These are the original pitches AND rests, not a scale pasted over the sums.
+    Each new head has the other riff's length. The other player lends it a
+    voice; the surviving tail answers in the riff's own voice. The common
+    four places at the end of every statement belong to the bass alone.
+    """
+    t = start
+    phrases = [G] + [max(pair, key=len) for pair in reversed(PAIRS)]
+    for i, riff in enumerate(phrases):
+        tail = G if i < 2 else phrases[i-2]
+        cut = len(riff) - len(tail)
+        assert riff[cut:] == tail and tail[-len(G):] == G
+        if i:
+            assert cut == len(phrases[i-1])
+        for k, token in enumerate(riff):
+            if token in ('r', '-'):
+                continue
+            n = 1
+            while k+n < len(riff) and riff[k+n] == '-':
+                n += 1
+            if k >= len(riff)-len(G) or token == 'c':
+                add('bass', t+k, .67 if token=='c' else n-.12, F1, .77 if token=='c' else .94)
+                continue
+            # A is the keys' phrase, B the reed's. At the cut the lending
+            # instrument lets go: no drums or loud guitar marking the seam.
+            piano = (i%2 == 1) != (k < cut)
+            semi = 0 if token=='o' else int(token)
+            add('felt' if piano else 'breath', t+k, n-.12, F1+(24 if piano else 36)+semi, .88)
+        t += len(riff)
+    assert (t-start)%16 == 0
+    return t
+
+
 def compose():
     # the two given: B alone on the right, twice bare (a hat in quarters) and twice with the band
     for i in range(4):
@@ -438,7 +475,11 @@ def compose():
     bell("l", s)
     bell("r", s)
     ROOTS.append((t, 0))
-    return s + 32
+    stop = s + 32
+    if AFTER:
+        MARKS.append(('put back', stop))
+        return afterword(stop)
+    return stop
 
 
 def measure_the_shell(doc):
@@ -553,7 +594,11 @@ def song():
                   "Each section the longer riff is cut down to what was left over, its own tail: 52 against 32, 20 against 32, 20 "
                   "against 12, 8 against 12, 8 against 4. Four goes into eight: the measure is one beat, the four sixteenths both "
                   "riffs end with, and then the two riffs are played whole, together. The fast song: 160. v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{total // 4}b", "event_stable": True,
+        # The quiet afterword adds 12 seconds to the loudness measurement.
+        # Don't turn the existing 3:12 up to compensate: the four comparison
+        # clips on that stretch have already been put in front of Harry.
+        "tempo": BPM, "ceiling": "-1dB", "loudness": -10.17 if AFTER else -10,
+        "seed": 1, "tail": "5s", "length": f"{total // 4}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
                     **({"cm-bell": {
                         "about": ("Common Measure's bell (chirper-zero, 17 Nov): the library's agogo bell (afro-perc's `ah`: three partials at 1, "
