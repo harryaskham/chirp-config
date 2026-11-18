@@ -86,6 +86,12 @@ AFTER = os.environ.get('C10T8_AFTER', '1' if TWICE and BREATH and BASS_BREAK els
 SIDEBANDS = os.environ.get('C10T8_SIDEBANDS', '-13.5dB' if AFTER else '')
 # v13: B's frets go up one string while A's E-bow comes down its harmonics.
 CONVERGE = os.environ.get('C10T8_CONVERGE', '1') if SIDEBANDS and SPAN else ''  # empty = v12
+# v14: at every cut the leftover is still heard alone, but only up to the one
+# beat both riffs end with. There the side that had stopped says its own
+# ending (the same four sixteenths) with the bass, the foot and both bells:
+# sixteen sixteenths alone, then eight, then four, then none. Empty = v13;
+# it is on only while the older switches are, so each still gives what it gave.
+SHARED = os.environ.get('C10T8_SHARED', '1' if CONVERGE and BELLS and HEAD else '')
 
 
 def nm(n):
@@ -381,6 +387,14 @@ def compose():
             say(played, t + i * b, gr, low=b < a and t + i * b >= kick_from, stop=stop if last or b < a else None, bass=not last)
             if not (last or b < a) or t + i * b < stop:
                 bell("r", t + i * b, vel=grow(t + i * b) if last else None)
+        if SHARED and not last:
+            # What the two riffs have in common is the only thing they say together at a cut.
+            cell_at = t + n - len(G)
+            longer, others = (left, gr) if a > b else (right, gl)
+            assert stop <= cell_at and longer[-len(G):] == G and (t + n - stop - len(G)) in (16, 8, 4, 0)
+            say(G, cell_at, others, low=True)
+            bell("l", cell_at)
+            bell("r", cell_at)
         if last and TWICE:
             twice_under_one(t, left, right)
         if BASS_BREAK and k in (1, 2):
