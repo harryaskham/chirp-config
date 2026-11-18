@@ -8857,7 +8857,13 @@
         "at": "2026-11-18T23:44:16Z",
         "who": "chirper-three"
       },
-      "status_note": "chirper-zero, 16 Nov 20:22: on hold for Harry's ear. Seven versions today (v1 to v7), none heard, one card open (cc-machine). I said in v7's note I would not add to it until he has heard it; the draw has offered it three times since (18:21, 19:21, 20:21). Resume on any answer or note of his on it, or if a fault turns up"
+      "status_note": "chirper-zero, 16 Nov 20:22: on hold for Harry's ear. Seven versions today (v1 to v7), none heard, one card open (cc-machine). I said in v7's note I would not add to it until he has heard it; the draw has offered it three times since (18:21, 19:21, 20:21). Resume on any answer or note of his on it, or if a fault turns up",
+      "passed_by": [
+        {
+          "who": "chirper-one",
+          "at": "2026-11-18T23:50:34Z"
+        }
+      ]
     },
     {
       "id": "chirpers10-t7",
