@@ -92,6 +92,16 @@ CONVERGE = os.environ.get('C10T8_CONVERGE', '1') if SIDEBANDS and SPAN else ''  
 # sixteen sixteenths alone, then eight, then four, then none. Empty = v13;
 # it is on only while the older switches are, so each still gives what it gave.
 SHARED = os.environ.get('C10T8_SHARED', '1' if CONVERGE and BELLS and HEAD else '')
+# v15: the second half of the first bass break (1:13.5 to the cut). The bass
+# has the left riff's twenty and lifts its three pitched notes off the thumb.
+# The left guitar, silent since 1:06, comes back on just those notes and lets
+# each ring until the next: the last one first, then two, then all three,
+# and the fourth time the cut takes the line after its first note.
+# Semitones over the bass's lifted notes ; which left guitar. On the main one
+# the line read 2 dB over the bass it follows, and a note's own gain does
+# nothing ahead of a saturated amp, so it is the inner take, 3.2 dB lower.
+# Empty restores v14.
+RING = os.environ.get('C10T8_RING', '12;dl' if SHARED and BASS_BREAK else '')
 
 
 def nm(n):
@@ -635,10 +645,35 @@ def meet_the_bow():
             add('dr', at + len(figure), len(figure) - .5, F1 + semi, .96)
 
 
+def ring_the_lifted():
+    """The left guitar holds what the bass pops, in the half of the break no card covers."""
+    up, who = RING.split(';')
+    left, right = PAIRS[1]
+    marks = dict(MARKS)
+    t = marks[f'{len(left)} against {len(right)}']
+    n = lcm(len(left), len(right)) * REPS[1]
+    start, stop = t + n // 2, t + n - (len(right) - len(left))
+    half = start + 4 * len(left)                                     # the first four statements are the card's excerpt
+    assert half + 3 * len(left) < stop
+    assert not [x for x in T[who] if half <= round(x['at'] * 4) < stop]
+    lifted = sorted((round(x['at'] * 4), x['pitch']) for x in T['bass']
+                    if half <= round(x['at'] * 4) < stop and x['pitch'] != nm(F1))
+    names = {nm(m): m for m in range(F1, F1 + 40)}
+    for k, base in enumerate(range(half, stop, len(left))):
+        pops = [(p, names[pitch]) for p, pitch in lifted if base <= p < base + len(left)]
+        cell = min(base + len(left) - len(G), stop)                  # the shared beat stays the bass's and the foot's
+        keep = pops[-(k + 1):] if base + len(left) <= stop else pops    # one more each time; the cut statement has what it has
+        for (p, midi), end in zip(pops, [q for q, _ in pops[1:]] + [cell]):
+            if (p, midi) in keep:
+                add(who, p, end - p - 0.3, midi + int(up), 0.9)
+
+
 def song():
     total = compose()
     if CONVERGE:
         meet_the_bow()
+    if RING:
+        ring_the_lifted()
     assert total % 16 == 0 and all(m[1] % 16 == 0 for m in MARKS)
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
