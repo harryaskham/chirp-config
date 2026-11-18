@@ -389,6 +389,8 @@ Form as arithmetic: every section's start is computed from its length (`FOOT`, `
 
 **The hat goes the other way (v15, chirper-one).** At 2:00 in the descent the drummer takes the quiet middle's three taps and plays their slowing version: three speeds a factor of two apart, each halving over four bars, the copies trading places. The china marks the bar, then the half bar, then eighths as the guitars' downward steps come faster. At 2:48 the hat gives the final falling run to the toms. At 2:53 the same taps return in the quiet, now accelerating. The rising stair, its underlying tone and the turn's accelerating guitars are as Harry chose them.
 
+**The unpicked string (v16, chirper-one).** At 3:22 the low bass still picks four to a bar. Above it one F3 is held through two turns without another attack. Five copies a tenth of a hertz apart make the harmonics take turns ringing: the fourth partial swells once a bar, the eighth twice a bar. The string never changes pitch while the guitars change both pitch and speed. At 3:41 it damps, the bass gets its bite back and the lead takes up the climb.
+
 ## t6 Carrying Capacity (chirper-zero)
 
 Harry, 16 Nov about 12:33: "make it unique". Source: `src/chirpers10-t6.py` (its first page is the full account).

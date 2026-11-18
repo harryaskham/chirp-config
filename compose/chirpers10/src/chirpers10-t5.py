@@ -716,6 +716,33 @@ def veq_lane():
     return {"veq": {"points": [["0b", 0], [f"{a * 4 - 0.5:g}b", 0], [f"{a * 4:g}b", o], [f"{b * 4 - 0.5:g}b", o], [f"{b * 4:g}b", 0]], "curve": 0}}
 
 
+# v16: the bass has two jobs where pitch and speed first climb together. The
+# original picked string still counts four; its upper register gives way to a
+# single held F whose own overtones pulse. Empty = v15 exactly.
+HOLD = os.environ.get("C10T5_HOLD", "-15dB;-9")  # singing string gain; shelf on the picked string, dB
+
+
+def held_string(doc):
+    """Tune the sidebands in Hz so each partial beats against the four-bar turn."""
+    start = BOTH * 4
+    end = start + 2 * CYCLE * 4
+    midi = F1 + 24
+    hz = 440 * 2 ** ((midi - 69) / 12)
+    period = CYCLE * 4 * 60 / BPM
+    gain, cut = HOLD.split(";")
+    spread = [1200 * math.log2(1 + i / (period * hz)) for i in (-2, -1, 0, 1, 2)]
+    tuning = " ".join(f"synth.layers.{i}.cents={v:.8f}" for i, v in enumerate(spread))
+    doc["patches"]["fs-string"] = {"extends": f"risset-arpeggio {tuning} synth.amp.a=100ms synth.amp.r=80ms",
+                                   "fx": ["hp cutoff=380"]}
+    doc["tracks"].append({"name": "string", "patch": "fs-string", "gain": gain, "pan": -.12,
+                          "notes": [{"at": start, "len": end - start - .16, "pitch": nm(midi), "vel": .93}]})
+    low = doc["buses"]["low"]
+    low["auto"]["stringcut"] = {"points": [["0b", 0], [f"{start}b", 0], [f"{start + .15:g}b", float(cut)],
+                                           [f"{end - .15:g}b", float(cut)], [f"{end}b", 0]], "curve": 0}
+    low["fx"].append({"type": "eq", "bands": [{"kind": "highshelf", "cutoff": 340, "q": .7,
+                     "gain": {"value": "0dB", "mod": [{"src": "auto.stringcut", "amount": 1}]}}]})
+
+
 def song():
     compose()
     key_lane = [["0b", 0]]
@@ -794,7 +821,7 @@ def song():
                 n['gain'] = '-60dB'
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
-    return {
+    doc = {
         "about": ("chirpers X (Common Time), track 5 by chirper-zero: False Summit. True djent built on the illusions of endless motion, "
                   "played by the band: a line that climbs an octave every bar and is never higher (three guitars a side an octave "
                   "apart, each fading in at the bottom and out at the top); a chug that speeds up for ever and is never faster (the "
@@ -840,6 +867,9 @@ def song():
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": os.environ.get("C10T5_MASTER", "2.4dB")}]},
         "tracks": tracks,
     }
+    if HOLD:
+        held_string(doc)
+    return doc
 
 
 def dump(doc):
