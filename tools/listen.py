@@ -438,14 +438,21 @@ def passage_window(q):
 
 
 def moved_key(q, snaps):
-    """(cache key, the first snapshot of the question's version, the newest snapshot, same song text?) or None when
-    the question has no place in the song or its version was never in a snapshot."""
+    """(cache key, the snapshot of the question's version, the newest snapshot, same song text?) or None when the
+    question has no place in the song or its version was never in a snapshot."""
     if q.get("t") is None or not q.get("n") or not q.get("version"):
         return None
     mine = [(s["id"], t) for s in snaps for t in s.get("tracks") or [] if t.get("n") == q["n"]]
-    then = next(((sid, t) for sid, t in mine if t.get("version") == q["version"]), None)
-    if not then or not mine:
+    of = [i for i, (_, t) in enumerate(mine) if t.get("version") == q["version"]]
+    if not of:
         return None
+    # A snapshot cut in the minute a version is recorded can carry the new LABEL over the OLD song (chirper-alpha,
+    # 18 Nov: Plain Hunt's first "v22" snapshot had v21's text and audio; the true one came four minutes later, and
+    # ph-tower-hunt read CHANGED by 2.51 dB against a song that had moved 0.05). So the version's own snapshot is the
+    # first one labelled with it whose song text differs from the snapshot before the label appeared; when none does
+    # (a version that changed no text), the first labelled one, as before.
+    before = mine[of[0] - 1][1].get("sha") if of[0] else None
+    then = next((mine[i] for i in of if before and mine[i][1].get("sha") and mine[i][1]["sha"] != before), mine[of[0]])
     now = mine[-1]
     a, b = then[1].get("sha") or then[0], now[1].get("sha") or now[0]      # by the song's text: a snapshot in which only
     return f"{q['id']}|{a}|{b}", then[0], now[0], a == b                   # another track moved makes nothing due

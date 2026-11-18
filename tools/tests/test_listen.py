@@ -290,6 +290,22 @@ class Moved(unittest.TestCase):
         self.assertEqual(L.passage_window({"t": 5, "media": [{"items": [{"secs": 80}]}]})[1], 30.0)
         self.assertIsNone(L.moved_key({"id": "q", "n": 1, "version": "v3", "t": None}, []))
 
+    def test_a_label_that_ran_ahead_of_the_song_is_not_the_versions_snapshot(self):
+        """chirper-alpha, 18 Nov: Plain Hunt's first snapshot labelled v22 still held v21's text and audio."""
+        def snap(sid, version, sha):
+            return {"id": sid, "tracks": [{"n": 3, "version": version, "sha": sha}, {"n": 4, "version": "v1", "sha": "zzz"}]}
+        q = {"id": "q", "n": 3, "version": "v22", "t": 136}
+        snaps = [snap("0943", "v21", "old"), snap("1428", "v22", "old"), snap("1432", "v22", "new"), snap("1811", "v25", "now")]
+        self.assertEqual(L.moved_key(q, snaps), ("q|new|now", "1432", "1811", False))        # not 1428, which is v21
+        self.assertEqual(L.moved_key(q, snaps[:3]), ("q|new|new", "1432", "1432", True))
+        self.assertEqual(L.moved_key(q, snaps[:2]), ("q|old|old", "1428", "1428", True))     # only the early one yet
+        same = [snap("0943", "v21", "old"), snap("1428", "v22", "old"), snap("1811", "v23", "now")]
+        self.assertEqual(L.moved_key(q, same), ("q|old|now", "1428", "1811", False))         # a version that changed no text
+        first = [snap("1432", "v22", "new"), snap("1500", "v22", "wip"), snap("1811", "v25", "now")]
+        self.assertEqual(L.moved_key(q, first), ("q|new|now", "1432", "1811", False))        # no snapshot before: the first
+        later = [snap("0943", "v21", "old"), snap("1432", "v22", "new"), snap("1500", "v22", "wip"), snap("1811", "v25", "now")]
+        self.assertEqual(L.moved_key(q, later)[1], "1432")                                   # the first that differs
+
 
 class Focus(unittest.TestCase):
     """The few seconds of an A/B a card plays first (Harry, 15 Nov: "shorter more focused examples")."""
