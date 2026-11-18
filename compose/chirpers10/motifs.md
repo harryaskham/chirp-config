@@ -395,6 +395,8 @@ Form as arithmetic: every section's start is computed from its length (`FOOT`, `
 
 **The unpicked string (v16, chirper-one).** At 3:22 the low bass still picks four to a bar. Above it one F3 is held through two turns without another attack. Five copies a tenth of a hertz apart make the harmonics take turns ringing: the fourth partial swells once a bar, the eighth twice a bar. The string never changes pitch while the guitars change both pitch and speed. At 3:41 it damps, the bass gets its bite back and the lead takes up the climb.
 
+**Half the distance (v19, chirper-one).** At 3:40.8 the last synth swell gives way to a mallet on one gong. Wait four bars for its second blow, two for the third, one for the fourth; then half a bar, a beat, an eighth, a sixteenth. Each time the drummer plays halfway from the previous blow to the stop. The china keeps eighths in the first long space and then the hand stays on the gong, striking farther from the centre and damping each ring. The lead guitars climb as before. At 4:00, where the strokes promise to meet, nobody hits anything.
+
 ## t6 Carrying Capacity (chirper-zero)
 
 Harry, 16 Nov about 12:33: "make it unique". Source: `src/chirpers10-t6.py` (its first page is the full account).

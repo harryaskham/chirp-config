@@ -818,6 +818,37 @@ def bowed_pole(doc):
                           'gain':WHEEL, 'pan':right['pan'], 'out':right['out'], 'notes':notes})
 
 
+# v19: one last swell comes from the kit. Empty restores v18.
+GONG = os.environ.get("C10T5_GONG", "-8dB") if WHEEL and CLIMB and CLIMB.split(";")[4] != "off" else ""
+
+
+def halfway(doc):
+    """Strike halfway to the stop each time. Withhold the blow on the stop itself."""
+    parts = {t["name"]: t for t in doc["tracks"]}
+    end = STOP * 4
+    rise = next(n for n in parts["riser"]["notes"] if n["at"] + n["len"] == end)
+    parts["riser"]["notes"].remove(rise)
+    distance = rise["len"]
+    middle = end - distance / 2
+    notes = []
+    while distance >= .25:  # eight bars left, four, two, one, right down to a sixteenth
+        i = len(notes)
+        space = distance / 2
+        # Same plate, never retuned. Carry the beater from near the boss to
+        # the rim as the gaps close; don't let the last roll drown the lead.
+        edge = min(1, .22 + .115 * i)
+        notes.append({"at": end - distance, "len": min(6.5, space * .68), "pitch": nm(F1 + 12),
+                      "vel": round(min(.95, .68 + .045 * i), 3), "expr": {"edge": round(edge, 3)},
+                      "gain": f"{-min(3, max(0, i - 2))}dB"})
+        distance = space
+    cym = parts["cym"]
+    # The drummer marks the long wait in eighths; past halfway the hand stays with the gong.
+    cym["notes"] = [n for n in cym["notes"] if n["at"] != rise["at"] and not middle <= n["at"] < end]
+    doc["tracks"].append({"name": "gong", "patch": "modal-gong play.gate=1 synth.amp.r=65ms "
+                          "synth.layers.0.damp=0.1 synth.layers.0.strike=expr.edge",
+                          "gain": GONG, "pan": .35, "fx": ["hp cutoff=150"], "notes": notes})
+
+
 def song():
     compose()
     key_lane = [["0b", 0]]
@@ -948,6 +979,8 @@ def song():
         last_chord(doc)
     if WHEEL:
         bowed_pole(doc)
+    if GONG:
+        halfway(doc)
     return doc
 
 
