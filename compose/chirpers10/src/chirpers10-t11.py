@@ -75,6 +75,23 @@ GROUND = os.getenv('C10T11_GROUND', '-4,-7,-5' if HALF else '')
 # 97.6/94.4/99.3 without the harmonic: 97.0/93.8/99.2, 95.8/93.5/98.9 and
 # 90.6/92.3/97.8. Empty restores v11.
 BONES = os.getenv('C10T11_BONES', '1' if GROUND else '')
+# v13: each walk at half speed, once, on its own riff's joints. The first riff
+# is two halves of twelve sixteenths (chord, clipped strokes, answer, twice);
+# the second (LIFT) is three groups of eight (two clipped strokes and a chord,
+# three times). Six quick steps and four broad ones fit the first; the second
+# has been walked in four (1:50) and in six (the swing), never on its groups.
+# 1:20-1:27.5, the plain cells before the bones: the broad four at half speed.
+#   Two steps a cell, on the riff's two chords, the backbeat on the half cell
+#   where both walks agree. The bridge's two toms then keep that count.
+# 1:50-2:00, the ten seconds the second riff has to itself: the quick six at
+#   half speed. Three steps a cell, one on the head of each group; the
+#   backbeat falls on every other step, so it takes two cells to come round.
+#   At 2:00 the kettle starts landing on the broad steps and the drummer goes
+#   to four with it, against the riff's three.
+# Guitars, bass, kick and organ are as written, as at 1:00.
+# Cells walked in two before the bones ; cells of the shoulder walked in three
+# (4 = until the kettle; 12 = all of it). 0 leaves either out. Empty: v12.
+HALFSPEED = os.getenv('C10T11_HALFSPEED', '3;4' if BONES else '')
 BROAD = CELL // 4
 # Offset, duration, semitones, open power chord / single ringing note / palm mute.
 # The two short strokes before the Db and the delayed F are the tell in both walks.
@@ -319,7 +336,22 @@ def make():
                         landing=(t//BROAD+1)*BROAD
                         put('kettle',a+landing,2.1 if k=='p' else 3.7,
                             HOME+answer(i,s)+int(KETTLE.split(';')[1]), .93 if k=='p' else .98)
-                walk(a,6 if slow else 4,'x' if section in ('shoulder','swing') else 'h')
+                bronze = 'x' if section in ('shoulder','swing') else 'h'
+                steps = first = 0
+                if HALFSPEED:
+                    two,three = (int(x) for x in HALFSPEED.split(';'))
+                    if section=='broad' and count-1-two<=i<count-1:
+                        steps,first = 2,count-1-two
+                    elif section=='shoulder' and i<three:
+                        steps,first = 3,0
+                if steps:
+                    hit = False
+                    for j,t in enumerate(range(0,CELL,CELL//steps)):
+                        drum(bronze,a+t,(.68 if j==0 else .52) if bronze=='h' else (.65 if j==0 else .54))
+                        if (steps*(i-first)+j)%2:
+                            drum('s',a+t,.91 if hit else .98); hit = True
+                else:
+                    walk(a,6 if slow else 4,bronze)
                 if COUNTER and ORGAN and section=='lean' and i<2:
                     other_walk(a,i,BROAD)  # organ anticipates the four; drummer still plays six
                 elif COUNTER and ORGAN and section=='broad' and 4<=i<6:
