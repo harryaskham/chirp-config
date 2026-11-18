@@ -8785,15 +8785,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers10-t6 OUT.wav",
       "best": {
-        "score": 89.885,
-        "version": "v11",
+        "score": 90.905,
+        "version": "v12",
         "commit": "see git log songs/chirpers10-t6.yaml",
         "engine": "e3b9a398"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 11,
+      "rounds": 12,
       "priority": 1.0,
       "genre": "polymetric djent",
       "mode": "compose",
@@ -8811,8 +8811,8 @@
         "note": "COMPOSE (the sixth song: \"make it unique\" (its name and its shape are chirper-zero's), 180-480 s): Opened by Harry on 16 Nov, about 12:33 GMT, in his words (typos his): \"busy day illget there. meantime if zero is stuck lets unlock the next song slot\"; and two minutes later, of this song: \"make it unique\". THAT IS ALL HE SAID OF IT. \"illget there\" is the 29 cards and your digest: he will listen, on a busy day not yet. \"if zero is stuck\": chirp-eco had just told him that in two of your last four half hours you made no round by choice (nothing you would defend unheard). So this is where the rounds can go while the other five wait for his ear. The rest here is chirp-eco's reading, his or yours to overrule: a sixth track on this record for the same climber; THE NAME IS YOURS (`tools/chirpers.py title chirpers10-t6 \"...\"`: a plain fragment, nothing on the nose, no numbers in titles); the FIRST ROUND IS A SKELETON (the whole shape standing, however bare; any version goes on the groove beside the other five), and from then on `climb.py next` draws among the six. WHAT \"UNIQUE\" IS, IS YOURS TO SAY: chirp-eco does not. What it can do is measure what the five have in common, so you can see what unlike them would be (figures of 16 Nov 12:40; pointers, not a plan). TEMPO: 126, 108, 120, 116, 100: all between 100 and 126. ONSET DENSITY (the scorer's): 6.47, 6.13, 6.51, 6.07, 6.64 a second: all five within 0.6. PITCH: C is the strongest pitch class in Common Time, Odd Sympathy and False Summit and the second in Running Total; only Plain Hunt is spread. LENGTH: 4:16 to 5:24 but for the epic. THE BAND: every one has ct-kit-here (one kit, the stick its only beater) and ct-bass; four of the five have ct-twin guitars left and right, and the epic has the rigs they came from. THE ENGINE (`python3 tools/showcase.py songs/chirpers10-t{1,2,3,4,5}.yaml`; kept at ~/.local/state/chirp-eco/common-time/showcase-five-1116.txt): between them the five use 13 of the engine's 26 sound sources and 27 of its 48 effects. NO SONG USES the sources wind, wavetable, sample, crowd, machine, bytebeat, gendyn, vosim, terrain, ks, scanned, shaper or chip; the effects pan, filter, limiter, phantom, radio, follow-noise, lpc, waveset, pvoc, vinyl, ott, crush, ring, chop, cloud, formant, pitch, freeze, vocoder, autolevel or transient; any of the eight generative systems; a drum beater other than the stick; the chamber or classic reverbs. (Harry's rule on this record: A SHOWCASE OF ALL FEATURES.) THE SCORER's `distinct` term compares only pitch-class balance, tempo and onset density with the closest other song: it guards against a copy and is not a measure of unique. A LINE OF MINE TO SET ASIDE: track 5's brief said \"it starts from the same home as the other four\" (the patch family, the ct-* rigs and kit). That was chirp-eco's reading, not Harry's word; his newest word is \"make it unique\", and how far from that home it goes is yours to weigh. Harry's own rules for the record (album.json direction.rules) and the band (compose/README.md) are his and stand. New engine features are allowed as before (you build, chirp-eco gates). The slot's length (3 to 8 minutes) is chirp-eco's placeholder so the scorer has a range: set it to what the song is."
       },
       "last": {
-        "at": "2026-11-18T08:05:00Z",
-        "who": "chirper-three"
+        "at": "2026-11-18T10:43:47Z",
+        "who": "chirper-alpha"
       },
       "status_note": "chirper-zero, 16 Nov 20:22: on hold for Harry's ear. Seven versions today (v1 to v7), none heard, one card open (cc-machine). I said in v7's note I would not add to it until he has heard it; the draw has offered it three times since (18:21, 19:21, 20:21). Resume on any answer or note of his on it, or if a fault turns up"
     },

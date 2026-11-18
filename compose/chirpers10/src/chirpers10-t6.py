@@ -543,8 +543,59 @@ def growth_harmonics():
                for n in T['gl'] if n['at'] not in touch_only]
 
 
+# v12: two crests inside 'full' almost repeat. The inner left sings the accents
+# on both; on their return the inner right remembers the timing of the first.
+# Octave of the singing line in semitones. Empty restores v11.
+CREST = os.environ.get('C10T6_CREST', '12' if GROWTH_TOUCH else '')
+
+
+def crest_lines():
+    # Separate phrases at the orbit's actual empty half-bars. Compare the
+    # pitches, not just the count: these are not two copies pasted into the song.
+    runs = []
+    for c in range(AT['full'], AT['down-four']):
+        slots, ai, r = cell(CELLS[c][3])
+        if slots:
+            if not runs or runs[-1][-1][0]+1 != c:
+                runs.append([])
+            runs[-1].append((c, slots[ai], r))
+    seen = {}
+    for run in runs:
+        key = tuple(r for _, _, r in run)
+        old = seen.get(key)
+        if len(run) >= 4 and old and [s for _,s,_ in old] != [s for _,s,_ in run]:
+            break
+        seen[key] = run
+    else:
+        return
+
+    def sing(tr, dest, attacks, upper):
+        start, stop = dest[0][0], dest[-1][0]+1
+        T[tr] = [n for n in T[tr] if not 2*start <= n['at'] < 2*stop]
+        onsets = [c*6 + hit for (c,_,_), (_,hit,_) in zip(dest, attacks)] + [stop*6]
+        for (c,_,r), a, b in zip(dest, onsets, onsets[1:]):
+            # Cut even the last string before the empty cell. The lower hand
+            # uses the harmony the doubles already played on the high accents.
+            pitch = note(r) + int(CREST) if upper else note(r+2 if r>=8 else r)
+            gate = b-a-.18 if upper else min(b-a-.18, 2.4)
+            add(tr, c, a-6*c, gate, pitch+gup(c), .94)
+
+    sing('gl2', old, old, True)
+    sing('gl2', run, run, True)
+    sing('gr2', run, old, False)
+    # The first and last accents still belong to everybody. Between them the
+    # rhythm pair plays the chugs but leaves the accents to the two ringing
+    # strings, including the one late answer. Neither kick is ducked or moved.
+    space = {round(2*c + hit/3, 5) for (c, now, _), (_, then, _) in zip(run[1:-1], old[1:-1])
+             for hit in (now, then)}
+    for tr in G:
+        T[tr] = [n for n in T[tr] if n['at'] not in space]
+
+
 def song():
     compose()
+    if CREST:
+        crest_lines()
     if GROWTH_TOUCH:
         growth_harmonics()
     if TINES:
