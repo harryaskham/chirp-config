@@ -487,6 +487,12 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 
 **The hinge (1:20–2:40).** At five and six strokes per beat the doubled guitars fall away. A short pitched tap marks each cell head, once a second at five, every five-sixths of a second at six. Its wavetable turns the cell into a sound: partials 1/4/6 for the open strokes, 2/3/5/7 for the mutes, moving between those colours. Last beat before the lock: the drummer alone. At 2:00 the tap hands its job to bass and kick in straight quarters under six guitars playing septuplets. The cell is no longer slipping under the beat. At 2:40 the opening comes back as chords, one stroke to a beat again. The music is 65 bars; a two-bar chord closes it.
 
+## t11 On Its Hinge (v1 by chirper-zero)
+
+**One riff with two walks.** Twelve eighths in B♭: two clipped pedal strokes lift into D♭, then a late F (C every fourth time). The same span fits six quarters at 144 or four dotted quarters at 96. At 1:00 the drummer steps from one to the other. The four cells just before and after contain identical written guitars, bass, organ **and kick**; the hat plays 24 then 16 strokes and the snare 12 then 8. The new beat comes from the backbeat, not a tempo change.
+
+**The organ knows first.** From 0:40 a harmonium breathes four times to the riff while the drummer is still playing six. At 1:30 the distorted guitars step away and the organ plays just their two answer notes, given room to swell. From 1:50 a second pair of guitars puts the ringing notes just ahead of the feet. At 2:20 the drummer switches counts after four cells, then two, then every cell, before the original open notes come home as chords with the mutes mostly left out. A two-cell cadence brings D♭ down through C to B♭.
+
 ## t13 Where It Was (v1 by chirper-one)
 
 **The shape and the holes.** E♭–C–A♭–F, four of the record's hook notes falling home. One cell of eleven triplet eighths: the tune strikes on 0, 3, 7, 9. Its negative is a low F on 1, 2, 4, 5, 6, 8, 10. The kit keeps four at 96 BPM; twelve cells land back on the bar after eleven bars. A scanned mallet rings the tune in the opening. Two gated guitars take it at 0:10. From 0:37.5 they give one note at a time back to the mallet and palm-mute the strokes between instead. At 1:05 even the mallet stops. The tune is now four rests.

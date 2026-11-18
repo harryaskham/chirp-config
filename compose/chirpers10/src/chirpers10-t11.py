@@ -1,0 +1,174 @@
+#!/usr/bin/env python3
+"""On Its Hinge — one guitar phrase with two possible walks underneath it.
+
+One cell = twelve eighths. The quick drummer counts six quarters (144/min);
+without changing the riff, the broad drummer counts four dotted quarters (96).
+A pump organ already breathes in the second time while the first is playing.
+Times are in sixteenths here, in regular quarter-note beats in the output.
+"""
+import argparse
+import json
+import os
+from collections import defaultdict
+from pathlib import Path
+
+BPM, SUB, CELL, HOME = 144, 4, 24, 34  # B flat on the next string up from low F
+FORM = [('latch', 4), ('quick', 12), ('lean', 8), ('broad', 12), ('bellows', 8),
+        ('shoulder', 12), ('swing', 16), ('home', 8), ('shut', 2)]
+PITCH = 'C Db D Eb E F Gb G Ab A Bb B'.split()
+OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers10-t11.yaml'
+ORGAN = os.getenv('C10T11_REED', '-9dB')
+PUMP = os.getenv('C10T11_PUMP', '-13dB')
+# Offset, duration, semitones, open power chord / single ringing note / palm mute.
+# The two short strokes before the Db and the delayed F are the tell in both walks.
+RIFF = [(0,3.55,0,'p'), (4,0.65,0,'m'), (5,0.65,0,'m'), (7,2.7,3,'n'),
+        (11,0.68,0,'m'), (12,2.0,0,'p'), (15,0.72,0,'m'), (17,0.75,0,'m'),
+        (19,2.55,7,'n'), (22,0.83,0,'m')]
+# In the heavier verse the answers arrive BEFORE the root, and hang over the
+# drummer's next footfall. A different phrase, not the first riff cut or sped up.
+LIFT = [(0,0.70,0,'m'), (2,0.70,0,'m'), (3,3.65,3,'p'), (8,0.65,0,'m'),
+        (10,0.7,0,'m'), (11,3.8,7,'p'), (16,0.7,0,'m'), (18,1.1,0,'m'),
+        (20,3.5,2,'n')]
+
+
+def note(n):
+    return PITCH[n%12] + str(n//12 - 1)
+
+
+def chord(*ns):
+    return ','.join(note(n) for n in ns)
+
+
+def make():
+    notes = defaultdict(list)
+    marks = {}
+    def put(tr, at, dur, p, v, mute=False):
+        ev = dict(at=round(at/SUB, 5), len=round(dur/SUB, 5), pitch=note(p) if isinstance(p,int) else p, vel=round(v,3))
+        if mute:
+            ev['expr'] = {'pm': 1.0}
+        notes[tr].append(ev)
+    def drum(p, at, v):
+        tr = {'k':'kick', 's':'snare', 'h':'hat', 'rde':'metal', 'x':'metal', 'c':'metal'}.get(p,'skins')
+        put(tr, at, 4.5 if p in ('x','rde','c') else 1.2, p, v)
+    def walk(start, period, bronze, back=True):
+        for j,t in enumerate(range(0,CELL,period)):
+            drum(bronze, start+t, (.68 if j==0 else .52) if bronze=='h' else (.65 if j==0 else .54))
+            if back and j%2==1:
+                drum('s',start+t,.98 if j==1 else .91)
+    def answer(i,semi):
+        # Every fourth cell its high fifth folds down to the major second instead.
+        return 2 if i%4==3 and semi==7 else semi
+    def strings(at, dur, midi, typ, vel, wide=False):
+        pitch=chord(midi,midi+7) if typ=='p' else midi
+        for tr in (('gl','gr','wallL','wallR') if wide else ('gl','gr')):
+            put(tr, at, dur, pitch, vel, typ=='m')
+    def reed(start,i,melody=False):
+        if not ORGAN: return
+        if melody:
+            # The two answers from the riff, each granted half a cell to ring.
+            for k,semi in enumerate((3,answer(i,7))):
+                put('bellows', start+k*CELL/2, CELL/2-.5, HOME+36+semi, .90)
+        else:
+            # F4 under Db5/C5: the upper bench makes the bellows motion less buried.
+            put('bellows',start,CELL-.15,chord(HOME+31,HOME+36+(2 if i%4 in (2,3) else 3)),.78)
+    def main_riff(start,i,lift=False,wide=False):
+        for t,d,s,kind in (LIFT if lift else RIFF):
+            m=HOME+answer(i,s); v=.87 if kind=='m' else .96
+            strings(start+t,d,m,kind,v,wide)
+            if kind!='m' or t in (4,15,16):
+                put('bass',start+t,d,m,.91,kind=='m')
+            if t in ((0,3,8,11,18) if lift else (0,4,7,12,17)):
+                drum('k',start+t,.98 if kind!='m' or t==0 else .82)
+    start=0
+    for section,count in FORM:
+        marks[section]=start
+        for i in range(count):
+            a=start+CELL*i
+            if section=='latch':
+                for t,d,s,kind in RIFF:
+                    if kind=='m': continue
+                    put('latch',a+t,d*1.1,HOME+24+answer(i,s),.77)
+                if i>=2:
+                    for t,p in ((0,'t1'),(CELL//2,'ft')): drum(p,a+t,.60)
+            elif section=='shut':
+                if i==0:
+                    for t,s in ((0,3),(6,2),(12,0)):
+                        dur = CELL+11.5 if t==12 else 5.3
+                        strings(a+t,dur,HOME+s,'p',.96,True)
+                        put('bass',a+t,dur,HOME+s,.94); drum('k',a+t,.9)
+                    put('glass',a+12,CELL+11.5,HOME+31,.82); drum('c',a+12,.92)
+            elif section=='bellows':
+                reed(a,i,True)
+                for t in (0,12):
+                    put('bass',a+t,9.5,HOME+(0 if t==0 else 7),.76)
+                    drum('ft' if t==0 else 't2',a+t,.57)
+                for t,d,s,k in RIFF:
+                    if k!='m': put('glass',a+t,d,HOME+24+answer(i,s),.76)
+                if i>=count//2:
+                    for t in range(0,CELL,4): drum('h',a+t,.46 if t else .6)
+            elif section=='home':
+                # The open attacks keep their original positions; the spaces between
+                # are now holes, or a single muted pickup on alternate cells.
+                for t,d,s,k in RIFF:
+                    if k=='m' and not (i%2 and t in (4,5)): continue
+                    m=HOME+answer(i,s); dur=d if k=='m' else min(5.5,CELL-t-.2)
+                    strings(a+t,dur,m,'m' if k=='m' else 'p',.94,True)
+                    if k!='m': put('bass',a+t,dur,m,.94); drum('k',a+t,.98)
+                walk(a,6,'rde')
+                if i in (0,4): drum('c',a,.84)
+            else:
+                slow=section in ('broad','shoulder')
+                if section=='swing':
+                    slow = (i<4 or 8<=i<10 or (12<=i<16 and i%2==0))
+                lifted=section=='shoulder' or (section=='swing' and not slow)
+                main_riff(a,i,lift=lifted,wide=section in ('shoulder','swing'))
+                walk(a,6 if slow else 4,'x' if section in ('shoulder','swing') else 'h')
+                if section=='lean' or (section=='broad' and i<count-4): reed(a,i)
+                if section in ('quick','shoulder','swing') and i==0: drum('c',a,.88)
+                if section=='broad' and i==count-1:
+                    for t,p in ((18,'t1'),(20,'t2'),(22,'ft')):drum(p,a+t,.73)
+        start+=count*CELL
+    # The control comparison for the hinge: all non-drum attacks, pitches, gates,
+    # velocities and expressions repeat exactly. Drums are counted independently.
+    hinge=marks['broad']/SUB; span=4*CELL/SUB
+    def window(tr,a,b):return [dict(e,at=round(e['at']-a,5)) for e in notes[tr] if a<=e['at']<b]
+    for tr in ['gl','gr','wallL','wallR','latch','glass','bass','bellows','kick']:
+        assert window(tr,hinge-span,hinge)==window(tr,hinge,hinge+span),tr
+    assert [len(window('hat',a,a+span)) for a in (hinge-span,hinge)]==[24,16]
+    assert [len(window('snare',a,a+span)) for a in (hinge-span,hinge)]==[12,8]
+    def tr(name,patch,gain,pan=0,out=None,fx=None):
+        d={'name':name,'patch':patch,'gain':gain,'pan':pan,'notes':sorted(notes[name],key=lambda n:n['at'])}
+        if out:d['out']=out
+        if fx:d['fx']=fx
+        return d
+    # The twin pair supplies the pick; the second pair joins after the exposed
+    # bellows, on a wider-bodied amp. Both play actual rests.
+    tracks=[tr('gl','ct-twin fx.1.model=gojira fx.2.cone=81','0.5dB',-1,'gtrs'),
+            tr('gr','ct-twin fx.1.model=gojira fx.2.cone=82','0.5dB',1,'gtrs'),
+            tr('wallL','ct-wall-stop-l','-3dB',-.72,'gtrs'),tr('wallR','ct-wall-stop-r','-3dB',.72,'gtrs'),
+            tr('latch','ct-bell','6.5dB',0),tr('glass','ct-bell','-1.5dB',-.20),
+            tr('bass','ct-bass','0.7dB',0,'low'),tr('kick','ct-kit','2dB',0,'drums',[{'type':'eq','bands':['peak cutoff=4500 q=0.8 gain=8dB']}]),
+            tr('snare','ct-kit','3dB',0,'drums'),tr('hat','ct-kit','12dB',-.28,'drums'),
+            tr('metal','ct-kit','-4dB',.25,'drums'),tr('skins','ct-kit','3dB',0,'drums')]
+    if ORGAN:
+        pump=[{'type':'pump','every':'3/8','attack':'12ms','hold':'28ms','release':'395ms','depth':PUMP,'curve':0.65}] if PUMP else []
+        tracks.append(tr('bellows','harmonium',ORGAN,.12,fx=pump))
+    doc={'about':'On Its Hinge — chirpers, Common Time, track eleven. A twelve-eighth riff in B flat; the drummer swaps six quick steps for four broad ones, on an unchanged riff. The reed organ breathes the broad walk before the kit takes it.',
+         'tempo':BPM,'seed':1,'length':f'{start//SUB}b','tail':'4s','ceiling':'-1dB','loudness':-10,'event_stable':True,
+         'buses':{'drums':{'fx':['reverb kind=room decay=0.62s mix=0.13 predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'20ms','release':'135ms'},'clip drive=0dB ceiling=-13dB',{'type':'eq','bands':['peak cutoff=400 q=0.8 gain=-5dB','highshelf cutoff=9000 gain=-2dB']}]},
+                  'gtrs':{'fx':[{'type':'eq','bands':['peak cutoff=350 q=1 gain=-2dB','peak cutoff=720 q=0.9 gain=2dB']},'reverb kind=room decay=0.35s mix=0.06 predelay=6ms']},
+                  'low':{'fx':[{'type':'eq','bands':['peak cutoff=58 q=1.5 gain=-6dB','peak cutoff=116 q=1 gain=5dB','peak cutoff=350 q=1 gain=-6dB','peak cutoff=1500 q=1 gain=3dB']},{'type':'compressor','threshold':'-26dB','ratio':6,'attack':'12ms','release':'120ms','makeup':'2dB'}]}},
+         'master':{'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2.7dB']},'tracks':tracks}
+    return doc,marks
+
+
+def dump(d):
+    return '\n'.join('tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) if k=='tracks' else k+': '+json.dumps(v) for k,v in d.items())+'\n'
+
+
+if __name__=='__main__':
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('-o','--out',type=Path,default=Path(os.environ.get('C10T11_OUT',OUT)));p.add_argument('--map',action='store_true'); a=p.parse_args(); doc,marks=make()
+    if a.map:
+        for name,cells in FORM:
+            t=marks[name];print(f'{name:10} {t/16+1:g}-{(t+CELL*cells)/16+1:g} bars; {t/SUB*60/BPM:g}s, {cells} cells')
+    else: a.out.write_text(dump(doc))
