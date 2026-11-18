@@ -342,8 +342,11 @@ def compose():
         elif LOCK and (sec == "six" or (sec == "three" and c >= HEAD3)):
             turn = (c - HEAD3) // 3 + 1                       # which time round the cycle this is
             layered = turn >= int(LOCK.split(";")[1])
-            play(c, x, G + (G2 if layered or not TELL else ()), harm=G2 if layered else ())
-            if len(cell(x)[0]) == 1 and turn >= int(LOCK.split(";")[0]):     # the hole: the cycle's three notes, as a triplet
+            apart = (c - AT["six"]) // 3 if UNWIND and sec == "six" else -1            # v20: which time round the six
+            left = [apart >= int(v) for v in UNWIND.split(";")[:3]] if apart >= 0 else [False] * 3
+            layered = layered and not left[0]
+            play(c, x, (G[:1] if left[2] else G) + (G2 if layered or not TELL else ()), harm=G2 if layered else ())
+            if len(cell(x)[0]) == 1 and turn >= int(LOCK.split(";")[0]) and not left[1]:     # the hole: the cycle's three notes, as a triplet
                 for i, (cc, v) in enumerate(((c - 1, 0.8), (c, 0.7), (c + 1, 0.9))):
                     add("echo", c, 3 + i, 1, note(rung(CELLS[cc][3])) + int(LOCK.split(";")[3]) + gup(c), v)
         elif UP and UP.split(";")[6] == "1" and sec == "full":
@@ -736,7 +739,8 @@ def hand_on_the_dial():
                                               "vel": round(v0 + (v1 - v0) * i / (len(strokes) - 1), 3),
                                               **({} if wall or not lean else {"gain": f"{lean:g}dB"})})
         turns.append((after, up, wall))
-    assert len(turns) == 12 and [u for _, u, _ in turns] == [True] * 9 + [False] * 3 and sum(w for _, _, w in turns) == 5
+    # (v20: the bar before the top is no longer a wall, so by this function's own rule its fill carries the lean trim)
+    assert len(turns) == 12 and [u for _, u, _ in turns] == [True] * 9 + [False] * 3 and sum(w for _, _, w in turns) == (4 if UNWIND else 5)
 
 
 # v18 (whole song): at the top the drummer is the population. The top of
@@ -769,6 +773,28 @@ REGROW = os.environ.get("C10T6_REGROW", "-2") if TOMS else ""
 # the top keeps v18's mastering gain: with the target left at -10 the rest of the song came out 0.06 dB lower).
 # "" = v18.
 SIX = os.environ.get("C10T6_SIX", "ct-twin fx.1.model=mark fx.2.mic=0.55 fx.2.cone={};-1dB;0.45;34,35;-9.94") if REGROW else ""
+# v20 (whole song: the step INTO the top): WHAT THE WINDOW BUILT, THE SIX TAKES APART. Read in the finished file at
+# v19 the song does not step from 1:10 to 3:00: wall, lock, wall, lock, six and top stand within a decibel of each
+# other, and the stretch at the top of the dial, six guitars and all, reads a decibel UNDER the six before it (its
+# holes; and the limiter takes half a decibel more off its screams than off anything else). Three rounds today made
+# the top bigger. This one makes what comes before it smaller, and the rule says how.
+# In the window of three the band arranges a riff it has heard twice, a layer each time round (v2): the chip's answer
+# in the hole the second time, the second pair of guitars and the third above the scream the third time. And "both
+# go on through the six". But the six is where that lock comes apart: the dial has moved, the cycle of three has
+# split in two, and the next thing the rule does is fill the whole range. So through the six the band now takes its
+# arrangement apart again, a layer each time round and last in, first out: the first time round all of it; the
+# second, the second pair is gone and the scream is a bare fifth; the third, the chip no longer answers and the hole
+# holds its one low note; the fourth, the right guitar is gone too, and the left guitar, the bass and the two kits
+# say the cycle once more, as the song began (the left guitar was the first in, at 0:07). Then the top: six guitars,
+# a new key, the cymbal. One guitar, then six.
+# Nothing is added and nothing moves: 76 notes on gl2, gr2, gr and the chip are left out. The tune, the bass and
+# both kits are as they were; the drummer's three rising toms before the turn (v17) are now over a lean band, not a
+# wall, so by v17's own rule they carry its lean trim (-6 dB).
+# the time round the six (0-3) from which the second pair is gone ; the chip's answer ; the right guitar ; the song's
+# loudness target (the six is quieter, so with the target left at -9.94 every other bar came out 0.07 dB louder,
+# and on one seed that was enough for the scorer to cut the opening at 0:14 and not 0:08).
+# "" = v19.
+UNWIND = os.environ.get("C10T6_UNWIND", "1;2;3;-10.006") if SIX and LOCK and TELL else ""
 
 
 def crash_and_regrowth():
@@ -957,7 +983,7 @@ def song():
                   "and back down: the riff settles, splits in two, four, eight, stops repeating, locks by itself on five half "
                   "bars and then on three, fills the whole range, and dies out. Triplets at 138, on E, with a drum machine; "
                   "the lead has no notes, only the rule (the engine's own logistic generator). v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"cc-machine": machine,
                     **({"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}}} if KIT else {})},
         "buses": {
