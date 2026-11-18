@@ -40,6 +40,17 @@ COUNTER = os.getenv('C10T11_COUNTER', '24' if PIVOT else '')
 # v8: open the broad phrases of the swing around a fixed release. Register
 # above the original answer in semitones; empty restores v7 byte for byte.
 EARLY = os.getenv('C10T11_EARLY', '12' if COUNTER else '')
+# v9: when the band stops, the organ is still breathing the broad walk. It
+# comes in under the last chord on the dyad it held at 0:50 and keeps it for
+# one more cell alone, at the level it always had. That dyad (F, D flat) has
+# no root: on the next downbeat the kettle, which only ever had D flat, F and
+# C, lands its first B flat and the reeds close.
+# The dyad's trim in dB (benched 0, 6 and 10: 0 already stands 10 dB under
+# the chord) ; the kettle's B flat in semitones over the low string (empty: no
+# kettle) ; its velocity. Empty restores v8 exactly.
+BREATH = os.getenv('C10T11_BREATH', '0;0;0.9' if EARLY else '')
+if BREATH:
+    FORM[-1] = ('shut', 3)
 BROAD = CELL // 4
 # Offset, duration, semitones, open power chord / single ringing note / palm mute.
 # The two short strokes before the Db and the delayed F are the tell in both walks.
@@ -179,6 +190,16 @@ def make():
                         strings(a+t,dur,HOME+s,'p',.96,True)
                         put('bass',a+t,dur,HOME+s,.94); drum('k',a+t,.9)
                     put('glass',a+12,CELL+11.5,HOME+31,.82); drum('c',a+12,.92)
+                    if BREATH and ORGAN:
+                        # No new attack after the band's last one: the reeds
+                        # start under the chord and are simply left sounding.
+                        put('bellows',a+12,count*CELL-12.5,chord(HOME+31,HOME+36+3),.78)
+                        trim,low,touch=(BREATH.split(';')+['',''])[:3]
+                        if float(trim):
+                            notes['bellows'][-1]['gain']=f'{float(trim):g}dB'
+                        if KETTLE and low:
+                            put('kettle',a+count*CELL,10,HOME+int(low),float(touch))
+                            marks['close']=3
             elif section=='bellows':
                 reed(a,i,True)
                 # Two phrases on each ground: Bb, Gb, Eb, F. The upper F is
@@ -338,7 +359,7 @@ def make():
         # dissonant upper partials carry the sound, not a detuned six-second hall.
         tracks.append(tr('rod','waterphone synth.amp.a=150ms synth.amp.r=135ms synth.pitch.mod.0.amount=0.12 synth.pitch.mod.1.amount=0.18 fx.0.decay=0.8s fx.0.mix=0.09',ROD,-.15))
     doc={'about':'On Its Hinge — chirpers, Common Time, track eleven. A twelve-eighth riff in B flat; the drummer swaps six quick steps for four broad ones, on an unchanged riff. The reed organ breathes the broad walk before the kit takes it.' + (' The kettledrum answers the heavy riff on the next broad steps, then takes its last C.' if KETTLE else ''),
-         'tempo':BPM,'seed':1,'length':f'{start//SUB}b','tail':'4s','ceiling':'-1dB','loudness':-10,'event_stable':True,
+         'tempo':BPM,'seed':1,'length':f'{start//SUB+marks.pop("close",0)}b','tail':'4s','ceiling':'-1dB','loudness':-10,'event_stable':True,
          'buses':{'drums':{'fx':['reverb kind=room decay=0.62s mix=0.13 predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'20ms','release':'135ms'},'clip drive=0dB ceiling=-13dB',{'type':'eq','bands':['peak cutoff=400 q=0.8 gain=-5dB','highshelf cutoff=9000 gain=-2dB']}]},
                   'gtrs':{'fx':[{'type':'eq','bands':['peak cutoff=350 q=1 gain=-2dB','peak cutoff=720 q=0.9 gain=2dB']},'reverb kind=room decay=0.35s mix=0.06 predelay=6ms']},
                   'low':{'fx':[{'type':'eq','bands':['peak cutoff=58 q=1.5 gain=-6dB','peak cutoff=116 q=1 gain=5dB','peak cutoff=350 q=1 gain=-6dB','peak cutoff=1500 q=1 gain=3dB']},{'type':'compressor','threshold':'-26dB','ratio':6,'attack':'12ms','release':'120ms','makeup':'2dB'}]}},
