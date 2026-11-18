@@ -23,10 +23,11 @@ def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True):
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
+    signature = signature and picking_hand       # --without-picking-hand still gives v5
     ev = defaultdict(list); sections = []; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -210,6 +211,34 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True):
                     elif not tom_reply or t-a not in opens[1]: kit('hat',t,'h',.65 if beat%4==0 else .48)
             if sec in ('ink','opposite','raised','one hand') and i==0: kit('brass',a,'c',.88)
         start+=count*STRIP
+    if signature:
+        # The mouth teaches its last opening strip to a ribbon instrument. The
+        # same hand signs forwards against the guitars' backward cadence.
+        _, p0, strips = next(s for s in sections if s[0]=='pencil')
+        learn = p0 + (strips-1)*STRIP
+        def lesson(n): return learn <= round(n['at']*GRID) < learn+STRIP
+        taught = [n for n in ev['mouth'] if lesson(n)]
+        tune = [p for _,p in sorted(opens[0].items())]
+        assert len(taught) == len(tune)
+        ev['ribbon'] = [{**n, 'pitch':pitch(29+36+p)} for n,p in zip(taught,tune)]
+        ev['mouth'] = [n for n in ev['mouth'] if not lesson(n)]
+        _, sign, _ = next(s for s in sections if s[0]=='signed')
+        stabs = [n for n in ev['right'] if n['at']*GRID >= sign]
+        assert len(stabs) == len(tune)
+        for j,(n,p) in enumerate(zip(stabs,tune)):
+            tick = round(n['at']*GRID)
+            # Keep the right guitarist's low string for its original length;
+            # the fifth, not the weight, goes to the answering instrument.
+            n['pitch'] = n['pitch'].split(',')[0]
+            dur = round(n['len']*GRID)
+            put('ribbon',tick,29+36+p,dur,.84 if j==len(tune)-1 else .85)
+            if j == len(tune)-1:
+                # Slide C5 down to F4 at the fold without a second note-on.
+                curve = []
+                for t in range(dur+1):
+                    u = max(0.,min(1.,(t-(STRIP//2-GRID))/GRID))
+                    curve.append(round((tune[0]-p)*u*u*(3-2*u),4))
+                ev['ribbon'][-1]['expr_path'] = {'ribbon':curve}
     assert all(0<=e['at']<start/GRID and e['at']+e['len'] <= start/GRID for tr in ev.values() for e in tr)
     def track(name,patch,gain,pan=0,out=None,fx=None):
         d=dict(name=name,patch=patch,gain=gain,pan=pan,notes=sorted(ev[name],key=lambda e:e['at']))
@@ -262,6 +291,13 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True):
         drums['auto'] = {'touch':{'curve':0,'points':[['0b',-13],
                          [f"{beats['thumbprint']:g}b",-13],[f"{beats['one hand']:g}b",0]]}}
         tracks.append(drums)
+    if signature:
+        patch = {'extends':'ondes synth.amp.r=90ms fx.0.mix=0.1 fx.0.decay=1.1s fx.1.mix=0.04 fx.1.decay=0.8s',
+                 'synth':{'pitch':{'value':0,'mod':[{'src':'lfo.vib','amount':.13},{'src':'expr.ribbon','amount':1}]}}}
+        ribbon = track('ribbon',patch,{'value':'-14.5dB','mod':[{'src':'auto.sign','amount':-1.5}]},
+                       {'value':-.2,'mod':[{'src':'auto.sign','amount':.78}]})
+        ribbon['auto'] = {'sign':{'points':[['0b',0],[f'{(learn+STRIP)/GRID:g}b',0],[f'{sign/GRID:g}b',1]],'curve':0}}
+        tracks.append(ribbon)
     buses={'strings':{'fx':[{'type':'eq','bands':['peak cutoff=360 q=0.8 gain=-2dB','peak cutoff=730 q=1 gain=1.5dB']}]},
            'drums':{'fx':['reverb kind=room mix=0.10 decay=0.53s predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'18ms','release':'120ms'},'clip ceiling=-13dB']},
            'low':{'fx':[{'type':'eq','bands':['peak cutoff=48 q=1.4 gain=-4dB','peak cutoff=98 q=1 gain=3dB','peak cutoff=310 q=0.9 gain=-4dB']},{'type':'compressor','threshold':'-24dB','ratio':5,'attack':'14ms','release':'115ms'}]}}
@@ -274,8 +310,9 @@ def dump(d):
 if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); ap.add_argument('--without-crease',action='store_true',help='regenerate v3')
     ap.add_argument('--without-mirror-bass',action='store_true',help='regenerate v4')
-    ap.add_argument('--without-picking-hand',action='store_true',help='regenerate v5'); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand)
+    ap.add_argument('--without-picking-hand',action='store_true',help='regenerate v5')
+    ap.add_argument('--without-signature',action='store_true',help='regenerate v6'); a=ap.parse_args()
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
