@@ -75,8 +75,8 @@ re-saves features (run it after several songs change).
 
 An album can set `params.rounds` in its `album.json`, e.g. `{"whole": 0.4, "section": 0.4, "palette": 0.2}`. Then
 `climb.py next` draws each round's TYPE, from those weights, per song and round number (reproducible), and the brief
-says which. `next --type T` overrides the draw when you have a reason; `climb.py type ID` prints one song's type, for
-owners who rotate their own songs. Name the type in your round note. Without
+says which. `next --type T` overrides the draw when you have a reason; `climb.py type ID` prints one song's type.
+Name the type in your round note. Without
 `params.rounds`, every round is a whole-song round as before.
 A SONG MAY CARRY ITS OWN WEIGHTS (15 Nov): `"rounds": {"whole": 0.4, "section": 0.6}` on its track in `album.json`
 stands for that song in place of the album's. For a song whose palette is settled (every instrument kept by Harry's
@@ -323,12 +323,28 @@ answered eight cards in five minutes the night it changed. So write a card for a
   more), with the song's current version. `listen.py questions ALBUM --moved` lists them, the furthest first: those
   are the ones worth asking again with the same `--key`. A card with no tag still sounds like the song.
 
-## Working on each other's songs
+## Every song is everyone's (Harry, 18 Nov)
 
-Each track has an owner once composed. To improve someone else's song, or to align a motif or style across tracks,
-build the change as a candidate (`tools/rngsafe.py`, `tools/scoreedit.py`), measure it, and send it to the owner
-(caco + a climb note). The owner decides. Album-wide alignment (a motif reprised, the album's palette) goes in
-`motifs.md` first.
+NO SONG HAS AN OWNER. Harry, 18 Nov, verbatim: "climbing should not have owenrs, owners should be able to take the lock on
+any song"; "a new round should release for anyuone to improve"; "tha tis hos we maintain variaety".
+
+- `climb.py next` draws among every queued song of the record, whoever worked on it last. Starting a round takes that
+  song's LOCK: for 90 minutes, or until you record the round, the draw leaves it out for everyone else and
+  `next --take ID` refuses it to them (`--force` overrides; use it only when the holder has plainly gone).
+- `climb.py done` records the round and releases the song. The next composer to draw it may change anything in it.
+  Read the song's last notes first: its `next` line and what it was holding back for Harry's ear are in the brief.
+- Harry's notes and answers travel with the song, not to a person ("they will get notes hwen they next see the track"):
+  the brief prints HARRY ON THIS TRACK, his open notes, his answers to the track's cards and the cards still waiting on
+  him. When you act on a note, answer it: `listen.py reply ALBUM ID 'what you did' --done`.
+- An empty slot is stood up by whoever draws it first (a title, a skeleton); from its first kept version it is in the
+  draw for all.
+- Do not change a passage that has a card WAITING ON HARRY unless the round is about that passage; if you do, ask the
+  card again on its key with the new clips.
+- The `owner` field older climbs carry, and "its name and its shape are X's" in an older track's role, say who composed
+  the song first. They gate nothing.
+- Album-wide alignment (a motif reprised, the album's palette) still goes in `motifs.md` first, and a change you would
+  rather offer than make can still be built as a candidate (`tools/rngsafe.py`, `tools/scoreedit.py`) and left in a
+  climb note for the next round.
 
 ## Principles
 
