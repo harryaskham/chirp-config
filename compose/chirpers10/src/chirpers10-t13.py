@@ -29,7 +29,8 @@ def name(n):
 
 
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
-            rim=True, rim_gain=-18, turned=True, hole=True, mold=True, fretless=True, fretless_gain=-10.0):
+            rim=True, rim_gain=-18, turned=True, hole=True, mold=True, fretless=True, fretless_gain=-10.0,
+            lit=True, held_gain=-16.0, grip='0.12:0.55:0.7'):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -42,6 +43,8 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     hole = hole and turned
     mold = mold and hole
     fretless = fretless and mold
+    lit = lit and fretless
+    marks = {}
     # v12: THE NEGATIVE IN PITCH. The tune takes four of the scale's seven
     # notes; the three it leaves out lie one between each pair it steps
     # across: D-flat between E-flat and C, B-flat between C and A-flat, G
@@ -239,6 +242,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
 
     start = 0
     for section, span in FORM:
+        marks[section] = (start, span)
         if section == 'chalk':
             # Four little statements at the bar line, a spare slot to breathe.
             for b in range(span // BAR):
@@ -349,7 +353,16 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                         drums('k', t, .99 if j == 0 else .86)
                     empty = given and j == i // 3
                     assert not empty or hand
-                    if hand or section == 'lit through' or (section == 'turn the sheet' and i % 2 == 0):
+                    if lit and section == 'lit through' and 0 < i < span//CELL - 1:
+                        # v14: LIT THROUGH. The tune has only ever been points: a
+                        # strike that dies. Here, where it comes back over its own
+                        # negative, a hand is on the ring and each note is held
+                        # until the next: the four points are one line. The first
+                        # cell is struck as before (the return as it was), and in
+                        # the last the hand lets go, so the sheet turns on a struck
+                        # ring and its tail, as it did.
+                        put('held', t, end-k-.04, p+36, .91 if j == 0 else .79)
+                    elif hand or section == 'lit through' or (section == 'turn the sheet' and i % 2 == 0):
                         # across a hole the ring is let ring up to the next note
                         put('ring', t, end-k-.25 if empty else 1.45, p+36, .91 if j == 0 else .79)
                     if section == 'under glass':
@@ -453,15 +466,42 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
         # records: so -10, and the picked bass's own dip at 320 Hz.
         tracks.append(track('fretless','fretless-bass play.glide=150ms fx.2.mix=0',fretless_gain,0,
                             fx=[{'type':'eq','bands':['hp cutoff=29','peak cutoff=320 q=1 gain=-4dB','lp cutoff=1800 q=0.6']}]))
+    patches = {}
+    if lit:
+        # The song's own ring (the library's scanned-mallet: the same strike,
+        # speed and smoothing) with the one thing a mallet has not got: a hand.
+        # The engine's scanned `push` holds the ring toward the strike's shape,
+        # so the note neither dies nor mellows while it is held; how firmly is
+        # how bright. The lane `hand` leans in over the F cells (round, then
+        # the middle ripples) and a little further over A-flat. No other song
+        # on the record uses `push`.
+        # Benched at -19 dB the held notes' fundamentals stood level with the
+        # band at their pitch (the struck ring's stand 1 to 7 dB over it in the
+        # strike); at -16 they stand 1 to 7 over for the whole note, the line
+        # is 16 dB under the mix at 2:02 and 12.5 under at 2:25 as the hand
+        # firms, and the section is within 0.11 dB of v13.
+        a, span = marks['lit through']
+        soft, firm, most = (float(x) for x in grip.split(':'))
+        b = lambda cell: f'{(a + cell*CELL)/SUB:g}b'
+        cells = span // CELL
+        patches['wiw-held'] = {
+            'about': "Where It Was: the ring, held (chirper-alpha, 18 Nov). The song's scanned mallet with a hand on it: `push` holds the ring of masses toward the strike's shape, so a note sings until it is let go instead of dying. The lane `hand` is how firmly: about 0.1 keeps only the broad shape (round), 0.5 the middle ripples (bright).",
+            'synth': {'layers': [{'type': 'scanned', 'decay': '3s', 'scanned': {'speed': 1.6, 'width': 0.08, 'smooth': 0.5,
+                                  'push': {'value': 0, 'mod': [{'src': 'auto.hand', 'amount': 1}]}}}],
+                      'amp': {'a': '1ms', 'd': 0, 's': 1, 'r': '260ms'}},
+            'gain': '-2.3dB'}
+        tracks.append(track('held', 'wiw-held', held_gain, .06, sends={'chamber': '-12dB'},
+                            auto={'hand': {'curve': 0, 'points': [['0b', soft], [b(1), soft], [b(cells//2), firm],
+                                                                    [b(cells-2), most], [b(cells-1), most]]}}))
     assert not parts
-    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v13.' if fretless else 'v12.' if mold else 'v11.' if hole else 'v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
+    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v14.' if lit else 'v13.' if fretless else 'v12.' if mold else 'v11.' if hole else 'v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
             'ceiling':'-1dB', 'true_peak':True, 'loudness':-10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
                                      'glue threshold=-22dB ratio=2 attack=18ms release=120ms',
                                      {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14800']}]},
                      'chamber':{'fx':['reverb kind=chamber mix=1 decay=1.1s predelay=14ms low_cut=280 high_cut=7200']}},
-            'master':{'fx':[{'type':'eq','bands':['hp cutoff=25']}]}, 'tracks':tracks}
+            'master':{'fx':[{'type':'eq','bands':['hp cutoff=25']}]}, **({'patches': patches} if patches else {}), 'tracks':tracks}
 
 
 if __name__ == '__main__':
@@ -480,12 +520,16 @@ if __name__ == '__main__':
     previous.add_argument('--v10', action='store_true', help='restore the muted strokes in the cell where each note is handed over')
     previous.add_argument('--v11', action='store_true', help='restore low F under every stroke of the negative')
     previous.add_argument('--v12', action='store_true', help='restore the picked bass in the quiet middle')
+    previous.add_argument('--v13', action='store_true', help="restore the struck ring through 'lit through'")
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     parser.add_argument('--rim-gain', type=float, default=-18, help='held glass track gain in dB')
     parser.add_argument('--fretless-gain', type=float, default=-10.0, help='fretless bass track gain in dB')
+    parser.add_argument('--held-gain', type=float, default=-16.0, help='held ring track gain in dB')
+    parser.add_argument('--grip', default='0.12:0.55:0.7', help="how firmly the hand holds the ring: at 2:02 : at the A-flat : at its most")
     args = parser.parse_args()
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
-                  not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11, not args.v12, args.fretless_gain)
+                  not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11, not args.v12, args.fretless_gain,
+                  not args.v13, args.held_gain, args.grip)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
