@@ -594,6 +594,32 @@ FOUR = os.environ.get("C10T2_FOUR", "modern:0.6:6:7;-5.5;0.7;98:122;0.7") if TWI
 TRADE = os.environ.get("C10T2_TRADE", "12;13")
 
 
+# v28: in the gap between the last two barks the inside pair sing the line that
+# comes from BOTH clocks, at three times its length. The main pair keep the fast
+# line audible underneath. Empty restores v27 exactly.
+BRAID = os.environ.get("C10T2_BRAID", "1")
+
+
+def sing_the_lock():
+    start = 114*16 + 4       # after the left voice's held syllable
+    width, stretch, lead = 16, 3, 8
+    end = start + width*stretch  # before the right voice's next pickup
+    row = {t:kind for t, _, kind in RIFF}
+    for tr, offset in (("gl2", 0), ("gr2", lead)):
+        # At this station the right guitar sounds eight ticks BEFORE the ink.
+        T[tr] = [n for n in T[tr] if not start <= round(n['at']*4)-offset < end]
+    for i in range(width):
+        left = i in row
+        j = i if left else (i+lead) % width
+        kind = row[j]
+        key = F1 if kind in ('c','o') else HOOK[int(kind[1])]
+        # Same eight pitches twice, but no one plays the same half twice. Keep
+        # the short palm strokes separate from the open string and hook notes.
+        add('gl2' if left else 'gr2', start+i*stretch+(0 if left else lead),
+            1.65 if kind=='c' else 2.8, key+24, .87 if kind=='c' else .96,
+            **({'pm':1} if kind=='c' else {}))
+
+
 def slip_clock(b0, b1, root=0):
     """The two clocks through a slip: the same ticks on `bl` (the song's time) and `br` (the right guitar's)."""
     v1, v2 = float(SLIPCLOCK.split(";")[3]), float(SLIPCLOCK.split(";")[4])
@@ -807,6 +833,8 @@ def compose():
         # the right clock is half a bar ahead, so what is written from the bar line sounds half a bar before it: the
         # main right guitar has always come in there (a pickup into the landing); its double waits for the landing
         T["gr2"] = [n for n in T["gr2"] if n["at"] >= f0 * 4 + 2]
+        if BRAID and f0 <= 114 and f1 >= 118:
+            sing_the_lock()
     bass(98, 122, 8, vel=0.95)
     groove(98, 122, 8, snare=(4, 12), cym="x")
     for b in range(102, 122, 4):
