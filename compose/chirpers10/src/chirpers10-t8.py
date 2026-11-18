@@ -142,6 +142,21 @@ TIMELINE = os.environ.get('C10T8_TIMELINE', 'c7;-9.5dB;-0.3;3' if KOTO else '')
 # over there and 1.4 at 4-8 kHz). Track gain ; pan ; the beads' top in Hz ;
 # overhead send. Empty restores v17.
 SHAKER = os.environ.get('C10T8_SHAKER', '3dB;-0.45;14000;-5dB' if TIMELINE else '')
+# v19 (section w4): the foot crosses over. The bass and the kick go together
+# with the shorter riff of every pair, so at each cut they jump to the other
+# side as one. At 8 against 4 they both drop out, and when the kick comes
+# back (2:07.5) it is on the right, with the cell. Now it crosses before it
+# leaves: for the last meetings of 8 against 12, after the reed has gone, the
+# kick plays the right riff's strokes (the three rising notes and the cell)
+# and the bass stays with the left. It is the only place in the song where
+# the bass and the foot are on opposite sides: the argument divides even
+# them, just before the answer is found. By subtraction: every stroke of the
+# right riff already had a kick under it; the kick gives up the six a cycle
+# that were the left's alone. The snare and the hat keep common time, as
+# they do throughout. It begins after the first backbeat (1:57.4): the reed
+# card's clip runs to 1:57.3. The value is the number of meetings. Empty
+# restores v18.
+CROSS = os.environ.get('C10T8_CROSS', '2' if SHAKER else '')
 
 
 
@@ -721,12 +736,32 @@ def ring_the_lifted():
                 add(who, p, end - p - 0.3, midi + int(up), 0.9)
 
 
+def the_foot_crosses_over():
+    """The last meetings of 8 against 12: the kick with the right riff, the bass still with the left."""
+    left, right = PAIRS[3]
+    t = dict(MARKS)[f'{len(left)} against {len(right)}']
+    cyc = lcm(len(left), len(right))
+    end = t + cyc * REPS[3]
+    start = end - int(CROSS) * cyc + 4
+    rights = {i for i, token in enumerate(right) if token not in 'r-'}
+    lefts = {i for i, token in enumerate(left) if token not in 'r-'}
+    place = lambda n: round(n['at'] * 4)
+    inside = [n for n in T['kick'] if start <= place(n) < end]
+    # every stroke of the right riff in the passage already has the kick: nothing is added
+    assert {place(n) for n in inside} >= {q for q in range(start, end) if (q - t) % len(right) in rights}
+    assert all((place(n) - t) % len(left) in lefts for n in inside)
+    T['kick'] = [n for n in T['kick'] if not (start <= place(n) < end and (place(n) - t) % len(right) not in rights)]
+    assert len(inside) - len([n for n in T['kick'] if start <= place(n) < end]) == 6 * int(CROSS) - 1
+
+
 def song():
     total = compose()
     if CONVERGE:
         meet_the_bow()
     if RING:
         ring_the_lifted()
+    if CROSS:
+        the_foot_crosses_over()
     assert total % 16 == 0 and all(m[1] % 16 == 0 for m in MARKS)
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
