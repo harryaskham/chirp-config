@@ -75,6 +75,9 @@ SCRAPER = os.environ.get('C10T8_SCRAPER', '-3dB' if SPAN else '')
 # v9: felt piano folds the six-note head of A into three grips, then opens
 # them again. Trim in dB. Empty restores v8 and earlier switches still work.
 FELT = os.environ.get('C10T8_FELT', '-5dB' if SCRAPER else '')
+# v10: one held B against two picked F cells. Empty restores v9. Keep the
+# earlier rollback flags restoring the same versions their notes promised.
+TWICE = os.environ.get('C10T8_TWICE', '1' if FELT else '')
 
 
 def nm(n):
@@ -231,6 +234,22 @@ def unfold_head(start, pass_no):
         add('felt', start+enter, stop-enter-.20, F1+(36 if pass_no==3 else 24)+lower, .84, soft=.35)
 
 
+def twice_under_one(start, long, short):
+    """The last exact division, played in the hands rather than just marked by bells."""
+    size, unit = len(long), len(short)
+    assert size == 2*unit and long[-unit:] == short == G
+    # Let the first eight announce the pair as written. On successive turns
+    # the left lets its B through more of the riff instead of choking it on F.
+    # Four, six, then all eight places. Hold the full span twice: the first
+    # time the right hand picks every stroke, the second just its two open Fs.
+    for i, span in enumerate((unit, unit+unit//2, size, size), 1):
+        at = start + i*size
+        T['gl'] = [n for n in T['gl'] if not at <= round(n['at']*4) < at+span]
+        add('gl', at, span, F1 + 12 + int(long[0]), .94)
+        if i == 4:
+            T['gr'] = [n for n in T['gr'] if not (at <= round(n['at']*4) < at+size and n.get('expr', {}).get('pm'))]
+
+
 def measured_drums(start, stop):
     """Four statements of B: keep time, play its tail, anticipate it, land it."""
     tail = PAIRS[2][1]  # the twelve B still had after 32 minus 20
@@ -320,6 +339,8 @@ def compose():
             say(played, t + i * b, gr, low=b < a and t + i * b >= kick_from, stop=stop if last or b < a else None, bass=not last)
             if not (last or b < a) or t + i * b < stop:
                 bell("r", t + i * b, vel=grow(t + i * b) if last else None)
+        if last and TWICE:
+            twice_under_one(t, left, right)
         if BASS_BREAK and k in (1, 2):
             # On the second half of each pair the measuring hand switches side:
             # A's twenty places against B's twelve-place answer, then the reverse
