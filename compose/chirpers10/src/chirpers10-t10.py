@@ -47,6 +47,9 @@ CHANGE = os.environ.get('C10T10_CHANGE', '-11.5' if BREATH else '')
 # v9: once the answer arrives early in 'called in', a pressure drum takes the
 # terrain key's stroke and bends to the pitch of the square guitar. Empty = v8.
 PRESS = os.environ.get('C10T10_PRESS', '-13' if CHANGE else '')
+# v10: the distance between the two markers becomes the bassist's step.
+# Fraction of the step held; empty restores v9 and earlier switches.
+STRIDE = os.environ.get('C10T10_STRIDE', '.80' if PRESS else '')
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -146,6 +149,7 @@ def build():
         return .72*(end-pos)
 
     pair = 2*BAR
+    crest_roots = (0,0,3,3,5,5)
     t = 0
     for s, debts in FORM:
         sections.append((s,t))
@@ -156,7 +160,7 @@ def build():
             # The sustained middle climbs Eb -> Gb -> Ab. The following pocket
             # strips this to two strokes and lets the bass settle home on Eb.
             root = HOME
-            if s == 'still owing': root += (0,0,3,3,5,5)[j]
+            if s == 'still owing': root += crest_roots[j]
             if s == 'two clocks': root += (5,3,0,0)[j]
             if s == 'square': root += (0,-2,-4,-2,0)[j]
             if s == 'the receipt':
@@ -375,6 +379,54 @@ def build():
             if s in ('on account','across the line') and j==len(debts)-1:
                 for off,pc in ((4,'t1'),(2,'t2'),(1,'ft')): kit(pc,t+pair-off,.76)
             t+=pair
+
+    if STRIDE:
+        hold = float(STRIDE)
+        assert 0 < hold <= 1, 'C10T10_STRIDE must be a fraction of a step'
+        # Read the last *pitched* stroke of the original riff on the bassist's
+        # clock. A short palm stroke is not another note of the melody.
+        def bass_pitch(pos, d, root):
+            width = BAR+d
+            back = pos>=width
+            pat = REPLY if back else CALL
+            local = (pos-width if back else pos)*BAR/(pair-width if back else width)
+            semi = next(s for p,_,s,h in reversed(pat) if h!='m' and p<=local)
+            return root+semi-(12 if back and semi>=12 else 0)
+
+        marks = dict(sections)
+        debts = dict(FORM)
+        def clear(a,b):
+            voices['bass'] = [n for n in voices['bass'] if not a/SUB <= n['at'] < b/SUB]
+
+        # Three pairs on the maximum debt. Six does not divide 32, but it
+        # divides 96: don't restart on each bar. Where a step would cover the
+        # backwards guitar, let the breath last until the compressed reply.
+        start = marks['still owing'] + 2*pair
+        stop = start + 3*pair
+        clear(start,stop)
+        for at in range(start,stop,MAX_DEBT):
+            j,pos = divmod(at-marks['still owing'],pair)
+            d = debts['still owing'][j]
+            if ADVANCE and j%2 and BAR<=pos<BAR+d: continue
+            root = HOME+crest_roots[j]
+            note('bass',at,MAX_DEBT*hold,bass_pitch(pos,d,root),.92)
+
+        # On the way down each positive debt names a new stride: 6, 4, 2.
+        # Let the previous step go before the pair ends. At zero stop counting;
+        # the old bass part returns on the two guitarists' shared reply.
+        repayment = debts['called in']
+        for j,d in enumerate(repayment):
+            base = marks['called in']+pair*j
+            if d==0:
+                # No gap left to count. Hold Eb, lift for one last two-tick
+                # stride, then strike Gb with both players on the same beat.
+                clear(base,base+BAR)
+                note('bass',base,BAR-repayment[j-1],HOME,.93)
+                break
+            if d<0: break
+            clear(base,base+pair)
+            for pos in range(0,pair,d):
+                note('bass',base+pos,min(d,pair-pos)*hold,bass_pitch(pos,d,HOME),.92)
 
     def track(tr,patch,db,pan=0,**more):
         ns=sorted(voices.pop(tr),key=lambda e:e['at']); assert ns
