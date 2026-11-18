@@ -498,6 +498,20 @@ STOP_HOOK = os.environ.get('C10T1_STOP_HOOK', '1' if EYE_BARS else '')
 # The four resting places of the Long Wait, before the tune itself. Cellos'
 # note trims in the opening and under the slow chords (dB). Empty restores v57.
 RESTING = os.environ.get('C10T1_RESTING', '0;4' if STOP_HOOK else '')
+# v59 (palette): the eleven wheel's tick comes back inside the heavy music.
+# The ticks are the piece's first sound: three clean guitars, one to a
+# wheel, in the wait, the eye and the approach, and nowhere else. In section
+# 14 (bars 231-245, 7:20: seven on the guitars in double time) the eleven
+# wheel is only held chords. An analog sequencer (the library's moog-seq,
+# on no other song of the record) plays the eleven's own five ticks over
+# them, the opening's notes on this section's ground, its filter opening as
+# the section climbs to where all three wheels sound.
+# Track gain ; semitones over the clean tick ; pan ; first and last velocity ;
+# high-pass. First bench (-12 dB, high-pass 250): the patch's sub-octave
+# square and its body put 0.8 dB on the section at 250-500 Hz and 1.6 at
+# 500 Hz-1 kHz, where these guitars are already thick: so the sub is cut
+# and the fader is 1.5 dB lower. Empty restores v58.
+SEQ = os.environ.get('C10T1_SEQ', '-13.5dB;12;0;0.5;0.8;500' if RESTING else '')
 
 
 def resting_places():
@@ -1062,6 +1076,13 @@ def compose():
     bass(7, SEVEN_B, a, z, root=EB, hook=H3)
     kick(7, SEVEN_B, a, z)
     kit(a, z, "x", 2, "back", "run", cvel=0.55)
+    if SEQ:
+        up, v0, v1 = int(SEQ.split(';')[1]), float(SEQ.split(';')[3]), float(SEQ.split(';')[4])
+        s0, s1 = s16(a), s16(z) - s16(z) % 11            # whole turns of eleven: the last quarter note is the band's
+        assert s0 % 11 == 0
+        for t, ln, kind, j, hi in strikes(11, TICK11, s0, s1):
+            v = v0 + (v1 - v0) * (t - s0) / (s1 - s0) + (0.18 if j == 0 else 0)
+            add('seq', t, 1, 53 + EB - F1 - 12 + CL11[j] + up, v)
 
     # 15. 245-275  five meets seven: all three. Five left, seven right, eleven in the bass, and the tune over them
     a, z = B[14], B[15]
@@ -1929,6 +1950,8 @@ def song():
             pan = {"value": 0, "mod": [{"src": "auto.seat", "amount": 1}]}
             lane = {"points": [["0b", side], [f"{BOUNDS[8] * 4}b", side], [f"{BOUNDS[18] * 4}b", -side]], "curve": 0}
             spec.append((name, patch + REALS, f"{db:g}dB", pan, {"auto": {"seat": lane}}))
+    if SEQ:
+        spec.append(("seq", "moog-seq fx.0.mix=0.1", SEQ.split(';')[0], float(SEQ.split(';')[2]), {"fx": [{"type": "eq", "bands": [f"hp cutoff={SEQ.split(';')[5]}"]}]}))
     tracks = []
     for name, patch, gain, pan, extra in spec:
         if KPANS and patch == KIT:
