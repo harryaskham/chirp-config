@@ -69,6 +69,9 @@ CLUTCH = os.environ.get('C10T9_CLUTCH', '-16dB' if SLOW_HAND else '')
 # v10: C under the last sixes, F–E above it. The lock supplies the last F.
 # Empty restores v9; turning off the clutch still defaults to v8.
 CADENCE = os.environ.get('C10T9_CADENCE', '1' if CLUTCH else '')
+# v11: inside the F lock, fret the two coming answers on the high strings of
+# the existing wall pair. Empty = v10; the published older switches still work.
+FORETELL = os.environ.get('C10T9_FORETELL', '1' if CADENCE else '')
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
 ROOTS = [(0, 0)]
@@ -250,6 +253,30 @@ def before_the_lock(seam):
             e['len'] = min(e['len'],round(stop-e['at']-.02,5))
 
 
+def chord_before_the_line(seam):
+    """The head of a locked cell forecasts its own pitches; the low strings catch them."""
+    bar = 4
+    start, stop = seam + 2*bar, seam + 6*bar
+    for tr, which in (('wl', 0), ('wr', 1)):
+        tops = []
+        for n in T[tr]:
+            at = n['at']
+            if not start <= at < stop or at != int(at):
+                continue
+            phrase_bar = int(at-start)//bar
+            if (which==0 and phrase_bar==3) or (which==1 and phrase_bar==0):
+                continue  # the left introduces the idea; the right finishes it
+            cell = CELLS[int(at-seam) % len(CELLS)]
+            slot, interval = [(i,int(k)) for i,k in enumerate(cell) if k not in ('o','c')][which]
+            # Keep the low root and fifth at their full speed. Exchange the
+            # octave string, with its own gate; don't add another downbeat.
+            root, fifth, octave = n['pitch'].split(',')
+            assert octave == nm(F1+12)
+            n['pitch'] = root + ',' + fifth
+            tops.append(dict(n, pitch=nm(F1+24+interval), len=round(slot/N,5)))
+        T[tr].extend(tops)
+
+
 def slow_hand(start):
     """One slow cell, two bass cells and four fast cells occupy seven beats."""
     # Quote the actual bass phrase from v5, not a second transcription of it.
@@ -364,6 +391,8 @@ def compose():
     fill(b)
     drum("c", b, 0.95)
     deal(b, 32, 7, ALL, chords="o")
+    if FORETELL:
+        chord_before_the_line(b)
     ROOTS.append((b + 32, 3))
     deal(b + 32, 24, 7, ALL, root=3, chords="o", cut=bool(CUT))
     drum("c", b + 32, 0.9)
