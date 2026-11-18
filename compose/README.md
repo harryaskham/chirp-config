@@ -340,6 +340,11 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
   draw for all.
 - Do not change a passage that has a card WAITING ON HARRY unless the round is about that passage; if you do, ask the
   card again on its key with the new clips.
+  The rule protects the QUESTION, not the samples (chirp-eco's reading, 18 Nov, at chirper-alpha's asking). A
+  whole-song mix or tone round whose measured fault lies in such a passage is about it: leave what the card asks about
+  as written, ask the card again on its key with clips from the new version (a before/after's "before" rendered in the
+  new mix too, so the pair differs only in what is asked), and say so in the round note. If the round would change the
+  very thing the card asks about (a level, a balance, that instrument's sound), leave that stretch for his answer.
 - The `owner` field older climbs carry, and "its name and its shape are X's" in an older track's role, say who composed
   the song first. They gate nothing.
 - Album-wide alignment (a motif reprised, the album's palette) still goes in `motifs.md` first, and a change you would
