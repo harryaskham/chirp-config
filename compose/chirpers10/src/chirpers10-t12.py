@@ -42,12 +42,17 @@ KIT_EQ = ['peak cutoff=92 q=1.2 gain=3.5dB', 'peak cutoff=400 q=0.8 gain=-6dB', 
 # under the mix there) and that stretch still read 4.1 over. Two dB less: 14.7 under the whole mix, where the
 # signature at the close stands (14.1), and still the strongest partial near it in nine frames of ten.
 PALINDROME_TRIM_KIT = '-5dB'
+# v12: the steel's notes on the four strips on C. A fifth up, all four of its notes lie inside 250-500 Hz, where it
+# already held three quarters of the band: at its own level those strips read 7.6 dB over the eleven records there
+# (6.3 on F) and the steel stood 0.6 dB further forward against the band (K). With this trim on each of those notes
+# the band reads what it read on F.
+STEEL_ON_C = '-1.5dB'
 
 def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True):
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
@@ -56,6 +61,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
     facing = facing and ties                     # --without-ties still gives v7
     palindrome = palindrome and facing           # --without-facing-page still gives v8
     album_kit = album_kit and palindrome         # --without-palindrome still gives v9
+    dominant = dominant and album_kit            # --without-album-kit still gives v10
     ev = defaultdict(list); sections = []; tie_gains = {}; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -91,6 +97,20 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
             # F all through the introduction and first traversal. The quiet centre
             # moves to its minor third; the high answer alone bends on the way home.
             root = 29 + (3 if sec in ('carbon','thumbprint') else 1 if sec=='raised' and i<count//2 else 0)
+            # v12: THE FOURTH NOTE IS A GROUND. The strip has four open notes:
+            # F, A-flat, G-flat, C. The song has stood on the first three, in
+            # that order (F; A-flat from 'carbon'; G-flat in 'raised'), and
+            # never on the fourth. The last four strips of 'turn over' move up
+            # to C. The forward hand's last open chord in a strip IS C: on the
+            # strip before, it is left ringing (its closing palm stroke is not
+            # played) and becomes the ground. And 'one hand' begins on C: read
+            # from the far end, the strip's first open chord is that same C,
+            # and it comes down C, G-flat, A-flat, F. So the form reads the
+            # strip forwards, a ground at a time, before the signature reads
+            # it backwards in four chords.
+            lifted = dominant and sec=='turn over' and i >= count-4
+            if lifted: root += dict((t,p) for t,p,k in ROW if k=='o')[max(t for t,p,k in ROW if k=='o')]
+            pivot = dominant and sec=='turn over' and i == count-5
             # v4: fold the last three G-flat strips about their shared, silent
             # centre. The two open meetings at 3 and 15 are the first fold's
             # edges. The second keeps half that span; the last keeps just the
@@ -147,19 +167,23 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                     for j,t in enumerate(stops):
                         until = stops[j+1] if j+1<len(stops) else end
                         put('steel-'+tr,a+t,root+24+opens[1][t],until-t-.12,.87)
+                        if lifted: ev['steel-'+tr][-1]['gain'] = STEEL_ON_C
                     continue
                 r = back if rev else front
                 if picking_hand and sec=='ink' and tr=='right':
                     lap = i - count//2
                     if 0 <= lap < 3:
                         r = turn_mutes((len(by_centre)+1)//2 if lap==0 else len(by_centre))
+                last_open = max(t for t,_,k in r if k=='o')
                 for j,(t,p,k) in enumerate(r):
                     if not inside(t): continue
+                    if pivot and t > last_open: continue     # v12: nothing damps the C that is about to be the ground
                     if tom_reply and not (i==count-1 and t==STRIP-1): continue
                     if sec=='one hand' and k=='m' and (i>=4 or t%2): continue
                     if sec=='carbon' and k=='m' and i%2: continue
                     if sec=='turn over' and i==count-1 and t>=10: continue
                     gap = (r[j+1][0] if j+1<len(r) else STRIP)-t
+                    if pivot and t == last_open: gap = STRIP-t
                     dur = .64 if k=='m' else min(gap-.23, 3.45)
                     n = root+p
                     if picking_hand and sec=='ink' and tr=='right' and k=='m' and t not in by_centre:
@@ -477,8 +501,9 @@ if __name__=='__main__':
     ap.add_argument('--without-ties',action='store_true',help='regenerate v7, without the two common-tone handoffs')
     ap.add_argument('--without-facing-page',action='store_true',help='regenerate v8, ending on the signed chord')
     ap.add_argument('--without-palindrome',action='store_true',help='regenerate v9, without the ribbon over the opposed guitars')
-    ap.add_argument('--without-album-kit',action='store_true',help="regenerate v10, the kit's bus without the album's eq"); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit)
+    ap.add_argument('--without-album-kit',action='store_true',help="regenerate v10, the kit's bus without the album's eq")
+    ap.add_argument('--without-dominant',action='store_true',help="regenerate v11, 'turn over' on F throughout"); a=ap.parse_args()
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
