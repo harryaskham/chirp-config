@@ -155,6 +155,22 @@ ARCO = os.environ.get("C10T7_ARCO", "contrabass synth.pitch.mod.0.amount=0 fx.0.
 # "" = v15; it is on only while ARCO is.
 IRON = os.environ.get("C10T7_IRON", "-15dB;-0.3;36;0.5") if ARCO else ""
 PHI = (1 + 5 ** 0.5) / 2
+# v17 (section w5, 1:36-2:00): ONE STROKE AND A REST, AT THE SIZE OF THE ROOT. Everywhere else in the song a quiet
+# section stands between two heavy ones. Between the third section and the fourth (the form is L S L L S L S L) there
+# is nothing: the riff in F and G flat runs straight into the tutti in A flat, behind eight sixteenths of tom fill
+# that the guitars play through. The rule already says what belongs there. A short cell is ONE STROKE AND A REST; the
+# third section's last cell of 34 is a short one (the root's size: 55 and 34), and 34 is 21 and 13. So the band plays
+# its 21 and RESTS its 13: from 1:51.9 the two guitars, the bass and the foot stop, the largest rest in the song, 2.4
+# seconds, where the smallest is one sixteenth. The kit does not stop: it is not in the pattern, it keeps common time,
+# and its china goes on counting quarters through the hole. In the hole the steel's last bend, A flat falling to F,
+# is heard alone: the note the band is about to move to, let go. Then the drummer, who has kept four against the
+# pattern for 114 seconds, says it: the toms play exactly the five strokes the guitars leave out (two, the ringing
+# one, two; the old fill was eight even sixteenths ending on the snare), one sixteenth of china, and the tutti lands.
+# The other four heavy sections keep their fill. The toms' five strokes: velocities. "" = v16; on only while IRON is.
+REST = os.environ.get("C10T7_REST", "0.8,0.68,0.93,0.86,1") if IRON else ""
+# A hole of 2.4 seconds makes the file measure 0.028 dB quieter, so every other bar came out that much louder. This
+# target gives those bars the gain they had in v16.
+REST_LUFS = -10.028
 
 
 def nm(n):
@@ -677,6 +693,25 @@ def the_iron_says_five_and_three():
         add("iron", p, ln - 0.5, F1 + ground + int(IRON.split(";")[2]), 0.92 if kind == "L" else 0.84, cut=kind == "S")
 
 
+def one_stroke_and_a_rest():
+    """The third section's last cell of 34 as a short cell says it: 21 played, 13 rested. The toms say the rested strokes."""
+    s0, _, n = SECS[2]
+    end = s0 + n
+    hole, fill = end - SIZE[4][1], end - 8
+    assert at_size(6, hole) == (end - SIZE[6][1], "S", SIZE[6][1]) and at_size(4, hole) == (hole, "S", SIZE[4][1])
+    tick = lambda note: round(note["at"] * 4)
+    left_out = [tick(note) for note in T["gl"] if fill <= tick(note) < end]
+    for tr in ("gl", "gr", "bass", "kick"):
+        assert [tick(note) for note in T[tr] if fill <= tick(note) < end] == left_out
+        T[tr] = [note for note in T[tr] if not hole <= tick(note) < end]
+    for tr in ("toms", "snare"):                 # the old fill: six toms and two snares in even sixteenths
+        T[tr] = [note for note in T[tr] if not fill <= tick(note) < end]
+    vels = [float(v) for v in REST.split(",")]
+    assert len(left_out) == len(vels) == 5 and left_out[0] == fill
+    for p, piece, vel in zip(left_out, ("t1", "t1", "t2", "ft", "ft"), vels):
+        drum(piece, p, vel)
+
+
 def letters_on_two_sides():
     """Long cells left, short cells right, for the song's first cell of 55. Nothing is added."""
     s0, end = SECS[0][0], SECS[0][0] + SIZE[6][0]
@@ -707,6 +742,8 @@ def song():
         the_bow_holds_the_root()
     if IRON:
         the_iron_says_five_and_three()
+    if REST:
+        one_stroke_and_a_rest()
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
@@ -802,7 +839,7 @@ def song():
                   "is the same at every size, so the band plays it at many sizes at once: muted strokes, open notes, chords, crashes, "
                   "the root, and the song's own sections (long ones heavy, short ones quiet). The kit keeps common time against it. In "
                   "the quiet sections a wire harp has no notes, only the rule (the engine's L-system). The slow song: 80. v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{(TOTAL + 32) / 4:g}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": REST_LUFS if REST else -10, "seed": 1, "tail": "5s", "length": f"{(TOTAL + 32) / 4:g}b", "event_stable": True,
         "patches": {
             **({"em-steel": {
                 "extends": "pedal-steel synth.amp.a=75ms synth.amp.r=140ms fx.0.mix=0.08 fx.1.mix=0 fx.2.mix=0 play.glide=0ms",
