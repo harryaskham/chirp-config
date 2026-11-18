@@ -1002,6 +1002,9 @@ def compose_brief(c):
                    f"terms (--text) for ideas. compscore is a guardrail, not a gate: near its ceiling, keep what sounds "
                    f"better on judgment (`climb.py done … --keep`) unless it clearly breaks something. Variety over "
                    f"convergence. Then `climb.py done {c['id']} …` and compscore --save.")
+        out.append(f"  NO ROUND TO MAKE (every passage is waiting on Harry's ear, say)? Say why and let it go: "
+                   f"`climb.py pass {c['id']} 'why'` releases the song at once and leaves it out of your draw until a "
+                   f"version lands on it. A note does not release it.")
         out.append("  DO MORE EACH ROUND (Harry, 2 Nov 17:0x: 'do more each round to try to get progress made and interesting "
                    "quality improvements made'): every round lands an interesting, audible quality improvement you would "
                    "want Harry to hear, and preferably several. A level judgment-keep with a small tweak, a cleanup, a "
