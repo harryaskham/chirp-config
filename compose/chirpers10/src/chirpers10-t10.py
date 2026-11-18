@@ -42,6 +42,8 @@ PAYBACK = os.environ.get('C10T10_PAYBACK', '1' if STRAIGHT else '')
 # v7: breath and pick are the two halves before anybody borrows a tick.
 # Empty gives v6 exactly; PAYBACK empty still gives the pre-fill version.
 BREATH = os.environ.get('C10T10_BREATH', '-15' if PAYBACK else '')
+# v8: count the first debts on damped bronze keys. Track gain; empty = v7.
+CHANGE = os.environ.get('C10T10_CHANGE', '-11.5' if BREATH else '')
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -65,6 +67,7 @@ def build():
     fold_sources, fold_patches = {}, {}
     air_points = [[0,0]]
     call_heads = [p for p,_,_,how in CALL if how!='m']
+    change_pitches = [semi for _,_,semi,how in REPLY if how!='m']
     def shade_breath(at, phrase):
         # The bore needs time to speak at Eb2. Articulate an already sounding
         # note rather than restarting it for two 90 ms strokes of mere air.
@@ -142,7 +145,15 @@ def build():
 
             # What stays at home is a different sound from what moves. The
             # piano sometimes sits out, so the pair's end is not another click.
-            if s in ('at par','in hand','on account','two clocks','across the line','square'):
+            early = change_pitches[:d] if CHANGE and s=='on account' and 0 < d <= len(change_pitches) else ()
+            if early:
+                # The mallet strikes the straight midpoint, always on Gb. Each
+                # borrowed tick buys one more note before the full answer.
+                for slot, semi in enumerate(early):
+                    note('change',t+BAR+slot,.84,root+36+semi,.79 if slot==0 else .70)
+                    if slot == 0:
+                        voices['change'][-1]['gain'] = '3.5dB'  # keep the piano's downbeat accent
+            elif s in ('at par','in hand','on account','two clocks','across the line','square'):
                 note('rule',t+BAR,2.2,HOME+31,.72 if s!='two clocks' else .89)
             tally(turn,root+39,d,4.2 if s=='two clocks' else 2.7)
 
@@ -263,7 +274,7 @@ def build():
                             if back and d==0 and mute: continue
                         if repay and back and side == 'right' and p0 < dry_from:
                             continue  # no right-hand chugs between the notes given to the open courses
-                        if advance and side=='right' and not back and hit>=t+BAR:
+                        if (advance or early) and side=='right' and not back and hit>=t+BAR:
                             continue  # the left guitar keeps the tail of the call; the right makes room
                         if trade and back and p0 not in reunited:
                             if mute and (side=='right' or (d<0 and hit<lay_out_until)): continue
@@ -276,6 +287,8 @@ def build():
                         if s=='square' and back and not mute and side=='right':
                             voiced=chord(pitch,pitch+7)
                         guitar_gate = straight_gate(pattern,p0) if meeting else dur
+                        if early and side=='right' and not back:
+                            guitar_gate = min(guitar_gate, t+BAR-hit)
                         note(side,hit,guitar_gate,voiced,vel,**({'pm':1} if mute else {}))
                     # Bass keeps the hook's accents clear, not a second fast solo.
                     long_answer = trade and back and d<0
@@ -339,6 +352,10 @@ def build():
                             float(TRADE),-.66,fx=['hp cutoff=120']))
     for name in fold_patches:
         tracks.append(track(name,name,float(ADVANCE),.66))
+    if CHANGE:
+        bronze = ('gamelan play.gate=1 play.humanize.time=0ms play.humanize.vel=0 '
+                  'synth.amp.r=14ms synth.env.ring.r=16ms fx.0.mix=0')
+        tracks.append(track('change',bronze,float(CHANGE),-.35))
     if COURSES:
         # The written gates only lift the dampers. Lengthen the strings' own
         # decays too, or the first courses are already dead when the last rings.

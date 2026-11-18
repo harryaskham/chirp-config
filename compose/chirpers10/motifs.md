@@ -535,6 +535,8 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 
 **One breath, then two pick strokes (v7, 0:00–0:13).** Before the band starts, a baritone sax takes the E♭–B♭–F call, an octave below the old clean guitar. The guitar keeps its four picked answers. On the first call the reed connects the three notes; on the second it tongues two shorts inside the held E♭, where the heavy player will mute the string. On the third it closes for both pairs of shorts and the guitarist makes those attacks. The piano and tally still meet on every reply. There is no sax once the band is in.
 
+**Small change (v8, chirper-one).** At 0:40.7 a damped bronze G♭5 takes the piano's straight midpoint. The terrain key answers on G♭4 one sixteenth later. For two borrowed ticks there is room for G♭–F; for three, G♭–F–C; for four at 0:53.6, the entire G♭–F–C–E♭ hook. The right guitar damps its call at the midpoint and lets the mallet have the gap; the left still plays the stretched call. The actual reply never moves. Once the bronze has played all four notes, the usual piano and key are on their own again.
+
 ## t11 On Its Hinge (v1 by chirper-zero)
 
 **One riff with two walks.** Twelve eighths in B♭: two clipped pedal strokes lift into D♭, then a late F (C every fourth time). The same span fits six quarters at 144 or four dotted quarters at 96. At 1:00 the drummer steps from one to the other. The four cells just before and after contain identical written guitars, bass, organ **and kick**; the hat plays 24 then 16 strokes and the snare 12 then 8. The new beat comes from the backbeat, not a tempo change.
