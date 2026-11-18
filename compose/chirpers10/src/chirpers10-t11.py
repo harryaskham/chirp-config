@@ -37,6 +37,9 @@ PIVOT = os.getenv('C10T11_PIVOT', '4.5' if PICKUP else '')
 # v7: a reed phrase around (not inside) the control. Register over low Bb;
 # empty restores v6. The four notes come straight from the open guitar strokes.
 COUNTER = os.getenv('C10T11_COUNTER', '24' if PIVOT else '')
+# v8: open the broad phrases of the swing around a fixed release. Register
+# above the original answer in semitones; empty restores v7 byte for byte.
+EARLY = os.getenv('C10T11_EARLY', '12' if COUNTER else '')
 BROAD = CELL // 4
 # Offset, duration, semitones, open power chord / single ringing note / palm mute.
 # The two short strokes before the Db and the delayed F are the tell in both walks.
@@ -251,6 +254,39 @@ def make():
                 if section=='broad' and i==count-1:
                     for t,p in ((18,'t1'),(20,'t2'),(22,'ft')):drum(p,a+t,.73)
         start+=count*CELL
+    if EARLY:
+        start_swing = marks['swing']
+        calls = [(t,d,s) for t,d,s,k in RIFF if k=='n']
+        first = calls[0][0]
+        assert len(calls)==2 and calls[1][0]==first+CELL//2
+        attacks = (first, BROAD, SUB, 0)  # late; broad foot; quick foot; downbeat
+        assert all(swing_slow(i) for i in range(len(attacks))) and not swing_slow(len(attacks))
+        pair = ('wallL','wallR')
+        for i, attack in enumerate(attacks):
+            if i==0: continue  # hear the whole riff once after the kettle's last C
+            a = start_swing + CELL*i
+            for tr in pair:
+                notes[tr] = [n for n in notes[tr] if not a <= n['at']*SUB < a+CELL]
+            for which,(old,d,semi) in enumerate(calls):
+                head = which*(CELL//2)
+                now, off = head+attack, old+d
+                # The low fifth occupies the front of the same space. As one
+                # player's answer opens, the other player's chord closes.
+                if attack:
+                    put(pair[1-which],a+head,attack-.28,chord(HOME,HOME+7),.91)
+                put(pair[which],a+now,off-now,HOME+int(EARLY)+answer(i,semi),.96)
+                stop,gate,_,_ = next(n for n in RIFF if n[0]>=off and n[3]=='m')
+                put(pair[which],a+stop,gate,HOME,.84,True)  # catch the ring on the original clipped stroke
+                # The facing amp and bass keep the old attack: the high voice
+                # starts alone, the octave joins late, and they release together.
+                same_side = ('gl','gr')[which]
+                notes[same_side] = [n for n in notes[same_side] if n['at']*SUB!=a+old]
+        # The fourth answer is C, not F. The same hand takes it up one fret
+        # to the first Db of the quick riff, then rejoins the low guitars.
+        turn = start_swing + len(attacks)*CELL
+        landing,gate,semi,_ = next(n for n in LIFT if n[3]=='p')
+        notes['wallR'] = [n for n in notes['wallR'] if not turn <= n['at']*SUB <= turn+landing]
+        put('wallR',turn+landing,gate,HOME+int(EARLY)+semi,.96)
     # The control comparison for the hinge: all non-drum attacks, pitches, gates,
     # velocities and expressions repeat exactly. Drums are counted independently.
     hinge=marks['broad']/SUB; span=4*CELL/SUB
