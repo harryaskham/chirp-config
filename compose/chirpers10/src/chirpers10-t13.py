@@ -28,10 +28,11 @@ def name(n):
     return PITCH[n % 12] + str(n // 12 - 1)
 
 
-def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12):
+def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
+    held_back = held_back and wood
     parts = defaultdict(list)
     def put(tr, at, dur, p, v, mute=False):
         event = dict(at=round(at / SUB, 6), len=round(dur / SUB, 6),
@@ -86,6 +87,26 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12):
         say(0,4); answer(4,4)       # one long statement; four short negatives
         say(8,2); say(10,1)        # then in two cells, then in one
         answer(11,1,stop=True)
+
+    def old_fourth_beat(start):
+        """The intro put F on beat four. It echoes there while the tune walks off.
+        Keep the opening THREE heavy cells: these are 'The tune' on wiw-negative.
+        Its clip ends precisely when the right player changes from E-flat to F.
+        """
+        foot = HEADS[-1]
+        furthest = len(HEADS)
+        first = furthest-2
+        echo_at = start + first*BAR + foot
+        meet_at = start + 2*furthest*CELL + foot
+        parts['right'] = [e for e in parts['right'] if not echo_at <= round(e['at']*SUB) < meet_at]
+        for i in range(first, 2*furthest):
+            # The first three F's keep bar time (12 ticks); the next three
+            # close the gap in ten ticks each. Leave the low unison F at meet_at.
+            late = (furthest-abs(furthest-i))*(BAR-CELL)
+            offset = i*CELL+foot+late
+            # Ring across the next E-flat and C, but lift for its A-flat.
+            gate = (i+1)*CELL+HEADS[-2]-offset-.4
+            guitars(start+offset,F+12,gate,.91,rigs=('right',),fifth=True)
 
     def recovery(start, span):
         """The glass chord occupies only the missing head. The bass finds a new note
@@ -240,6 +261,8 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12):
                                 put('bass', a, .65, pedal, .82 if n == k+1 else .68)
                             if section != 'turn the sheet' or n == k+1:
                                 drums('k', a, .93 if n == k+1 else .73)
+            if held_back and section=='the shape':
+                old_fourth_beat(start)
             if section in ('the shape','under glass','turn the sheet'):
                 for off, piece in zip((3,2,1), ('t1','t2','ft')):
                     drums(piece, start + span - off, .59+(3-off)*.1)
@@ -261,7 +284,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12):
         for side,pan in zip(sides,(-.58,.58)):
             tracks.append(track('box-'+side,'cajon kit.cb.pitch=F2 kit.cs.gain=4dB kit.cg.gain=1dB fx.0.mix=0.06',wood_gain,pan))
     assert not parts
-    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
+    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
             'ceiling':'-1dB', 'true_peak':True, 'loudness':-10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
@@ -278,9 +301,10 @@ if __name__ == '__main__':
     previous.add_argument('--v1', action='store_true', help='reproduce the original alternating-cell return')
     previous.add_argument('--v2', action='store_true', help='restore the sustained glass and doubled bass in the clean middle')
     previous.add_argument('--v3', action='store_true', help='restore both guitar parts in the side-to-side trade')
+    previous.add_argument('--v4', action='store_true', help='keep the two guitars in unison through the first heavy section')
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     args = parser.parse_args()
-    doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain)
+    doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
