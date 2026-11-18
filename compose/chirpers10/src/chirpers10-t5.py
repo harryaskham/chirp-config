@@ -850,6 +850,49 @@ FALSE_COUNT = os.environ.get('C10T5_FALSE_COUNT', '1' if GONG else '')
 COUNTERFALL = os.environ.get('C10T5_COUNTERFALL', 'pick' if FALSE_COUNT and ONE else '')
 
 
+# v22, section w4 (1:50.4-1:55.2, the turn's last two bars): THE ROLL THAT BECOMES THE NOTE. The turn speeds up for
+# ever and is never faster; Harry hears it ("Faster and faster"). Under its last two bars one drum now REALLY speeds
+# up: a roll on this song's own tom (`fs-tom`, the fill that never lands), from sixteenths, faster by the same factor
+# every beat, until it is struck 43.65 times a second. That is the frequency of the low F. Past twenty or so
+# strokes a second the ear stops counting strokes and hears a note whose pitch is the speed of the roll: so the roll
+# turns into a tone that slides up and arrives, on the bar line of the descent, on the F the band is playing. At
+# 0:57 the lead was the one line in the song that really came down; this is the one thing that really gets faster,
+# and where it arrives is the note everyone started on. The eight guitars, the bass and the kit (with its fill, the
+# one that lands) are as they were.
+# (Why the tom: the first bench had two more guitars pick the roll. Their strokes never became a note: each pick of
+# this string is a new burst of noise, and at 42 strokes a second the roll's waveform repeated itself by 0.15 at
+# one stroke's distance. The kick read 0.08 and the bass 0.05. The tom's head is struck the same way every time:
+# 0.95, with its lines on 43.6, 87.3 and 174.7 Hz.)
+# (Levels, raw on seed 0: the roll enters 14.5 dB under the mix and swells to 8.4 under in its last half bar. The
+# two bars gain 0.39 LU and 3.1 dB at 250-500 Hz, where this drum's head rings (lines near 200 and 325 Hz). At
+# 8 dB more and with every stroke equally loud it added 1.1 LU and 6.2 dB there.)
+# bars before the descent ; strokes to the beat it starts at ; track gain ; how each stroke's level follows the
+# roll's speed (an exponent: positive takes level back as the roll gets denser, negative adds, so the roll swells
+# into its note) ; the drum's note ; the loudness target. Empty restores v21.
+REV = os.environ.get('C10T5_REV', '2;4;-22dB;-0.3;F2;-10' if COUNTERFALL and TOMS else '')
+
+
+def roll_into_the_note(doc):
+    bars, r0, gain, back, drum_note, lufs = REV.split(';')
+    bars, r0, back = int(bars), float(r0), float(back)
+    r1 = 440 * 2 ** ((F1 - 69) / 12) * 60 / BPM      # strokes to the beat at which the roll IS the low F
+    tb, q, b0 = bars * 4.0, r1 / r0, (FALL - bars) * 4.0
+    notes, k = [], 0
+    while True:
+        # the k-th stroke of a roll whose speed is r0 * q ** (t / tb): where its phase reaches k
+        t = tb * math.log(1 + k * math.log(q) / (r0 * tb)) / math.log(q)
+        if t >= tb - 1e-9:
+            break
+        r = r0 * q ** (t / tb)
+        notes.append({"at": round(b0 + t, 4), "len": round(0.8 / r, 4), "pitch": drum_note, "vel": 0.9,
+                      "gain": f"{-back * 20 * math.log10(r / r0):.1f}dB"})
+        k += 1
+    assert notes[0]["at"] == b0 and b0 + tb - 1 / r1 < notes[-1]["at"] < b0 + tb
+    doc["tracks"].append({"name": "roll", "patch": TOMS.split(";")[0], "gain": gain, "pan": 0, "notes": notes})
+    if float(lufs) != -10:
+        doc["loudness"] = float(lufs)
+
+
 def contrary_stairs(doc):
     rates = sorted((int(a), int(k)) for a, k in (v.split(':') for v in STEEP.split(',') if v))
     wheel = VOICES * len(SCALE)
@@ -1050,6 +1093,8 @@ def song():
         halfway(doc)
     if COUNTERFALL:
         contrary_stairs(doc)
+    if REV:
+        roll_into_the_note(doc)
     return doc
 
 
