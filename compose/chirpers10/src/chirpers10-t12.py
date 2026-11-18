@@ -23,7 +23,7 @@ def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build():
+def build(drum_hand=True):
     ev = defaultdict(list); sections = []; start = 0
     def put(tr, t, n, dur, v, mute=False):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -34,6 +34,8 @@ def build():
     front,back = strip(),strip(True)
     opens = [{t:p for t,p,k in r if k=='o'} for r in (front,back)]
     assert opens[0].keys() & opens[1].keys() == {3,15}
+    taps = (2,7,13,17)
+    assert set(taps) <= {t for t,_,k in front if k=='m'}
     for sec,count in FORM:
         sections.append((sec,start,count))
         for i in range(count):
@@ -41,6 +43,10 @@ def build():
             # F all through the introduction and first traversal. The quiet centre
             # moves to its minor third; the high answer alone bends on the way home.
             root = 29 + (3 if sec in ('carbon','thumbprint') else 1 if sec=='raised' and i<count//2 else 0)
+            # In 'carbon' the mouth hands its line to the drummer from the tail
+            # backwards: one note, two, then all four. In 'one hand' the drummer
+            # answers two full strips, at the guitarists' timing this time.
+            tom_reply = drum_hand and sec=='one hand' and i in (count-3,count-1)
             if sec=='signed':
                 # No counting-out: the last two chord changes are read right to left.
                 if i==0: cadence=[(0,7,5),(8,1,7)]
@@ -84,6 +90,7 @@ def build():
                     continue
                 r = back if rev else front
                 for j,(t,p,k) in enumerate(r):
+                    if tom_reply and not (i==count-1 and t==STRIP-1): continue
                     if sec=='one hand' and k=='m' and (i>=4 or t%2): continue
                     if sec=='carbon' and k=='m' and i%2: continue
                     if sec=='turn over' and i==count-1 and t>=10: continue
@@ -92,7 +99,14 @@ def build():
                     n = root+p
                     put(tr,a+t,chord(n) if k=='o' and sec in ('raised','turn over','one hand') else n,dur,.94 if k=='o' else .79,k=='m')
             if sec=='carbon':
-                for t,p in opens[1].items(): put('mouth',a+t,root+24+p,2.15,.84)
+                n_take = min(4, 2**(i//2)) if drum_hand and i%2 else 0
+                for j,(t,p) in enumerate(sorted(opens[1].items())):
+                    if j < len(opens[1])-n_take:
+                        put('mouth',a+t,root+24+p,2.15,.84)
+                    else:
+                        # Lead the missing word on a vacated palm stroke, never
+                        # double it. The four head pitches are the same tune.
+                        put('drum-hand',a+taps[j],'head'+str(root+12+p),2.3,.86)
                 for t in (3,15): put('bass',a+t,root,3,.87); kit('foot',a+t,'k',.87)
             else:
                 # In the opposing voices the bass recognises only the two common
@@ -101,9 +115,16 @@ def build():
                 rb = opens[1 if leftback else 0]
                 for t,p in rb.items():
                     if sec=='turn over' and i==count-1 and t>=10: continue
-                    if not apart or t in (3,15):
-                        put('bass',a+t,root+(0 if apart else p),3 if apart else 1.7,.92)
-                    kit('foot',a+t,'k',.98 if t in (0,3,15,18) else .83)
+                    if tom_reply:
+                        put('drum-hand',a+t,'head'+str(root+12+p),2.3,.92)
+                        # One low pedal on the first beat of the answer; leave
+                        # the rest to the drum pitches, not the bass doubling them.
+                        if t==min(rb):
+                            put('bass',a+t,root,3,.92); kit('foot',a+t,'k',.95)
+                    else:
+                        if not apart or t in (3,15):
+                            put('bass',a+t,root+(0 if apart else p),3 if apart else 1.7,.92)
+                        kit('foot',a+t,'k',.98 if t in (0,3,15,18) else .83)
                 if sec=='raised':
                     for t in (3,15):
                         put('mouth',a+t,root+24+opens[1][t],2.65,.85)
@@ -118,7 +139,7 @@ def build():
                 else:
                     if beat%4==(2 if sec in ('ink','one hand') else 1) or (sec not in ('ink','one hand') and beat%4==3): kit('snare',t,'s',.94)
                     if sec in ('raised','turn over'): kit('brass',t,'x' if sec=='turn over' else 'rde',.72 if beat%4==0 else .60)
-                    else: kit('hat',t,'h',.65 if beat%4==0 else .48)
+                    elif not tom_reply or t-a not in opens[1]: kit('hat',t,'h',.65 if beat%4==0 else .48)
             if sec in ('ink','opposite','raised','one hand') and i==0: kit('brass',a,'c',.88)
         start+=count*STRIP
     assert all(0<=e['at']<start/GRID and e['at']+e['len'] <= start/GRID for tr in ev.values() for e in tr)
@@ -143,6 +164,19 @@ def build():
     steel = 'pedal-steel synth.amp.a=85ms synth.amp.r=80ms fx.1.mix=0 fx.2.mix=0 play.glide=65ms'
     for side,pan in [('left',-.77),('right',.77)]:
         tracks.append(track('steel-'+side,steel,'-5.5dB',pan,'strings'))
+    if drum_hand:
+        # Seven fixed drums for the two keys, lowest at the drummer's right.
+        pitches = sorted({base+p for base in (41,44) for p in opens[1].values()})
+        heads = {'head'+str(m): {'patch':'modal-tom','pitch':pitch(m),
+                 'pan':round(.45-.8*j/(len(pitches)-1),3)} for j,m in enumerate(pitches)}
+        # The mouth is a much quieter partner than the heavy guitars. Bring the
+        # rack up between passages, while the stick is off it.
+        beats = {name:t/GRID for name,t,_ in sections}
+        drums = track('drum-hand',{'kit':heads},
+                      {'value':'0dB','mod':[{'src':'auto.touch','amount':1}]},out='drums')
+        drums['auto'] = {'touch':{'curve':0,'points':[['0b',-13],
+                         [f"{beats['thumbprint']:g}b",-13],[f"{beats['one hand']:g}b",0]]}}
+        tracks.append(drums)
     buses={'strings':{'fx':[{'type':'eq','bands':['peak cutoff=360 q=0.8 gain=-2dB','peak cutoff=730 q=1 gain=1.5dB']}]},
            'drums':{'fx':['reverb kind=room mix=0.10 decay=0.53s predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'18ms','release':'120ms'},'clip ceiling=-13dB']},
            'low':{'fx':[{'type':'eq','bands':['peak cutoff=48 q=1.4 gain=-4dB','peak cutoff=98 q=1 gain=3dB','peak cutoff=310 q=0.9 gain=-4dB']},{'type':'compressor','threshold':'-24dB','ratio':5,'attack':'14ms','release':'115ms'}]}}
@@ -153,8 +187,8 @@ def dump(d):
     return '\n'.join('tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) if k=='tracks' else k+': '+json.dumps(v) for k,v in d.items())+'\n'
 
 if __name__=='__main__':
-    ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); a=ap.parse_args()
-    doc,sections=build()
+    ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); a=ap.parse_args()
+    doc,sections=build(not a.without_drum_hand)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
