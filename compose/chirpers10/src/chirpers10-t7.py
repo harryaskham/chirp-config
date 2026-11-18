@@ -72,6 +72,9 @@ BRASS = os.environ.get("C10T7_BRASS", "brass;-13dB;0.8;12;400:1:-3")
 STEEL = os.environ.get("C10T7_STEEL", "-12dB")
 # v5: the last riff sheds its smallest strokes before the whole band signs the final chord.
 PEEL = os.environ.get("C10T7_PEEL", "1")
+# v6: a shared pitch, a rubbed rim on a long cell and a felt stroke on a short.
+# Middle quiet section only. Track trims in dB (rim; mallet); empty gives v5.
+BOWL = os.environ.get("C10T7_BOWL", "-16;-13")
 
 
 def nm(n):
@@ -192,7 +195,19 @@ def quiet(i, s0, n):
         if not s0 <= p < s0 + n:
             continue
         ch, low = ((41, 48, 56), 0) if kind == "L" else ((37, 44, 53), 8)
-        add("pad", p, ln - 1, ",".join(nm(x + key) for x in ch), 0.8)
+        if BOWL and i == 4:
+            # Ab minor to E major: one bowl on Cb/B belongs to both. The clean
+            # guitar leaves it out of its long chords and rests on the short
+            # ones. Damp the rim before the mallet falls so the strokes speak.
+            shared = 56 + key
+            assert any((x + key - shared) % 12 == 0 for x in ch)
+            if kind == "L":
+                add("pad", p, ln - 1, ",".join(nm(x + key) for x in ch if (x + key - shared) % 12), 0.8)
+                add("rim", p, ln - 2, shared, 0.82)
+            else:
+                add("mallet", p, ln - 1, shared, 0.85)
+        else:
+            add("pad", p, ln - 1, ",".join(nm(x + key) for x in ch), 0.8)
         add("bass", p, ln - 2, F1 + key + low, 0.3)
         ROOTS.append((p, key + low))
     for p, kind, ln in LEV[3]:
@@ -343,6 +358,13 @@ def song():
     if STEEL:
         tracks.append({"name": "bar", "patch": "em-steel", "gain": STEEL, "pan": 0.12,
                        "fx": [{"type": "eq", "bands": ["hp cutoff=440 q=0.707", "peak cutoff=1650 q=0.8 gain=3.5dB"]}]})
+    if BOWL:
+        rim, mallet = BOWL.split(";")
+        room = " fx.0.mix=0.1 fx.0.decay=1s"
+        tracks.extend([
+            {"name": "rim", "patch": "singing-bowl-rim synth.amp.r=200ms" + room, "gain": rim + "dB", "pan": 0},
+            {"name": "mallet", "patch": "singing-bowl synth.amp.d=2.6s synth.amp.r=200ms" + room, "gain": mallet + "dB", "pan": 0},
+        ])
     for t in tracks:
         if "gen" not in t:
             t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
