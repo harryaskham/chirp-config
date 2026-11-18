@@ -29,7 +29,7 @@ def name(n):
 
 
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
-            rim=True, rim_gain=-18, turned=True, hole=True):
+            rim=True, rim_gain=-18, turned=True, hole=True, mold=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -40,6 +40,14 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     rim = rim and edges
     turned = turned and rim
     hole = hole and turned
+    mold = mold and hole
+    # v12: THE NEGATIVE IN PITCH. The tune takes four of the scale's seven
+    # notes; the three it leaves out lie one between each pair it steps
+    # across: D-flat between E-flat and C, B-flat between C and A-flat, G
+    # between A-flat and F. Nothing lies between F and the next E-flat.
+    SCALE = (0, 2, 3, 5, 7, 8, 10)
+    BETWEEN = tuple(([n for n in SCALE if lo < n < hi] or [0])[0] for hi, lo in zip(TUNE, TUNE[1:] + (TUNE[-1],)))
+    assert BETWEEN == (8, 5, 2, 0) and sorted(set(TUNE) | set(BETWEEN)) == list(SCALE)
     # v10: the sheet turned over. Read from its other end the cell strikes on
     # 0, 2, 4, 8 and the four notes rise, F A-flat C E-flat: the record's own
     # hook, which this tune was written as the falling answer to.
@@ -302,6 +310,18 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                 # return, 100 -> 88.5 and 77.7, and it is a second cell without the
                 # band before the first, at 1:25, has been heard.)
                 given = hole and section == 'the handover' and i % 3 == 0
+                # v12: in 'where it was' every stroke of the negative sat on low
+                # F. After the three cells on the review card, each gap takes the
+                # note that lies between the two missing notes around it: two
+                # D-flats, three B-flats, a G, and F where nothing lies between.
+                # So the strokes come down the scale and the holes are the steps
+                # they skip. Two cells at a time: the bass alone under both
+                # guitars' F, then the left guitar with it, then both, the last
+                # of those being the cell where the snare says the four holes
+                # (the whole scale, drum and strings in turn). After the cell
+                # with no band the negative is on F again, for the bass to start
+                # the tune from in the quiet middle.
+                learned = (i - 3) // 2 if mold and section == 'where it was' and 3 <= i <= 8 else -1
                 heads, tune = (BACK_HEADS, BACK_TUNE) if back else (HEADS, TUNE)
                 for j, k in enumerate(heads):
                     t, p = start + i*CELL + k, F + tune[j]
@@ -366,9 +386,11 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                             if piece:
                                 put('box-'+opposite[0], a, .65, piece, .90 if piece=='cs' else .80)
                             elif reinforce:
-                                guitars(a, pedal, .61, .94 if n == k+1 else .76, opposite, mute=True)
+                                for rig in opposite:
+                                    moved = learned > sides.index(rig)
+                                    guitars(a, F + BETWEEN[j] if moved else pedal, .61, .94 if n == k+1 else .76, (rig,), mute=True)
                             if section in ('where it was','the handover','both sides'):
-                                put('bass', a, .65, pedal, .82 if n == k+1 else .68)
+                                put('bass', a, .65, F + BETWEEN[j] if learned >= 0 else pedal, .82 if n == k+1 else .68)
                             if (not lead_in or reinforce) and (section != 'turn the sheet' or n == k+1):
                                 drums('k', a, .93 if n == k+1 else .73)
             if held_back and section=='the shape':
@@ -409,7 +431,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
         for side,pan in zip(sides,(-.58,.58)):
             tracks.append(track('box-'+side,'cajon kit.cb.pitch=F2 kit.cs.gain=4dB kit.cg.gain=1dB fx.0.mix=0.06',wood_gain,pan))
     assert not parts
-    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v11.' if hole else 'v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
+    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v12.' if mold else 'v11.' if hole else 'v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
             'ceiling':'-1dB', 'true_peak':True, 'loudness':-10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
@@ -433,11 +455,12 @@ if __name__ == '__main__':
     previous.add_argument('--v8', action='store_true', help='restore the plucked clean dyads in the quiet middle')
     previous.add_argument('--v9', action='store_true', help='restore the falling tune on every turn of the trade and before the close')
     previous.add_argument('--v10', action='store_true', help='restore the muted strokes in the cell where each note is handed over')
+    previous.add_argument('--v11', action='store_true', help='restore low F under every stroke of the negative')
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     parser.add_argument('--rim-gain', type=float, default=-18, help='held glass track gain in dB')
     args = parser.parse_args()
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
-                  not args.v8, args.rim_gain, not args.v9, not args.v10)
+                  not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
