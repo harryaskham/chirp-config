@@ -8925,7 +8925,7 @@
     {
       "id": "chirpers10-t10",
       "song": "songs/chirpers10-t10.yaml",
-      "reference": "chirpers — Track 10 (untitled)",
+      "reference": "chirpers — Still Owing",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers10-t10 OUT.wav",
@@ -8941,7 +8941,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Common Time",
-        "title": "Track 10 (untitled)",
+        "title": "Still Owing",
         "track": 10,
         "year": 2026
       },
