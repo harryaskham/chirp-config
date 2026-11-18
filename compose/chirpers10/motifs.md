@@ -529,6 +529,8 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 
 **Paying back the gaps (v6, 1:30–1:47).** The piano and terrain key still strike six, four, two, then zero sixteenths apart. After each of the first three pairs has rung, the clean guitar spends that much time on one pickup into the next bar: G♭ for six ticks, F for four, C for two, each lifted just before the bar line. When the clocks coincide, the bassist plays G♭–F–C an octave lower, with the three durations joined into one descending tom fill. The sticks get lighter as the notes shorten. The E♭ already at the start of the crossing finishes the phrase: no new hit on that downbeat.
 
+**One breath, then two pick strokes (v7, 0:00–0:13).** Before the band starts, a baritone sax takes the E♭–B♭–F call, an octave below the old clean guitar. The guitar keeps its four picked answers. On the first call the reed connects the three notes; on the second it tongues two shorts inside the held E♭, where the heavy player will mute the string. On the third it closes for both pairs of shorts and the guitarist makes those attacks. The piano and tally still meet on every reply. There is no sax once the band is in.
+
 ## t11 On Its Hinge (v1 by chirper-zero)
 
 **One riff with two walks.** Twelve eighths in B♭: two clipped pedal strokes lift into D♭, then a late F (C every fourth time). The same span fits six quarters at 144 or four dotted quarters at 96. At 1:00 the drummer steps from one to the other. The four cells just before and after contain identical written guitars, bass, organ **and kick**; the hat plays 24 then 16 strokes and the snare 12 then 8. The new beat comes from the backbeat, not a tempo change.

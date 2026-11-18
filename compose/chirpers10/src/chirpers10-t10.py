@@ -39,6 +39,9 @@ STRAIGHT = os.environ.get('C10T10_STRAIGHT', '12' if COURSES else '')
 # v6: repay each clock gap as the length of a note. Empty restores v5;
 # omitting STRAIGHT still gives the pre-crossing arrangement.
 PAYBACK = os.environ.get('C10T10_PAYBACK', '1' if STRAIGHT else '')
+# v7: breath and pick are the two halves before anybody borrows a tick.
+# Empty gives v6 exactly; PAYBACK empty still gives the pre-fill version.
+BREATH = os.environ.get('C10T10_BREATH', '-15' if PAYBACK else '')
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -60,6 +63,21 @@ def build():
     voices = defaultdict(list)
     sections = []
     fold_sources, fold_patches = {}, {}
+    air_points = [[0,0]]
+    call_heads = [p for p,_,_,how in CALL if how!='m']
+    def shade_breath(at, phrase):
+        # The bore needs time to speak at Eb2. Articulate an already sounding
+        # note rather than restarting it for two 90 ms strokes of mere air.
+        for start,end in zip(call_heads,call_heads[1:]+[BAR]):
+            taps=[p for p,_,_,h in CALL if start<p<end and h=='m']
+            if not taps or phrase==0 or (phrase==1 and start!=0): continue
+            pts=[(taps[0]-.65,0),(taps[0]-.25,-30)]
+            if phrase==1:  # two short openings of the same low Eb
+                for p in taps:
+                    pts.extend([(p-.08,-30),(p+.06,0),(p+.51,0),(p+.68,-30)])
+            pts.extend([(end-.26,-30),(end-.04,0)])
+            air_points.extend([[f'{(at+p)/SUB:g}b',db] for p,db in pts])
+
     def note(track, tick, gate, pitch, vel, **expr):
         assert tick >= 0 and gate > 0 and 0 < vel <= 1
         n = {'at':round(tick/SUB,6), 'len':round(gate/SUB,6),
@@ -212,6 +230,8 @@ def build():
                         pitch = chord(pitch,pitch+7)  # let the fifth lead home
                     note('bow',turn+pos*(pair-width)/BAR,(end-pos)*(pair-width)/BAR-.32,
                          pitch, (.92,.87,.82,.90)[i])
+            if BREATH and s=='at par':
+                shade_breath(t,j)
             for back, (pattern,at,w) in enumerate(((CALL,t,width),(REPLY,turn,pair-width))):
                 for ix,(p0,gate,semi,how) in enumerate(pattern):
                     hit = at+p0*w/BAR
@@ -221,7 +241,15 @@ def build():
                     vel = (.76 if mute else .92) if p0 else .99
                     if s=='at par':
                         # Give the answer a face before its first displacement.
-                        if not mute:
+                        if BREATH and not back:
+                            # The baritone calls an octave below the original
+                            # clean guitar. First connect the three pitches.
+                            # Second, tongue the first double stroke on Eb;
+                            # third, leave BOTH short pairs to the left guitar.
+                            if not mute:
+                                following = next((pos for pos in call_heads if pos>p0), BAR)
+                                note('breath',hit,following-p0-.25,pitch+12,vel-.09,sub=.12)
+                        elif not mute:
                             note('clean',hit,dur,pitch+24,vel-.09)
                         if j>=1 and not back and not p0:
                             note('bass',hit,dur,root,.83); kit('k',hit,.86)
@@ -302,6 +330,10 @@ def build():
             track('rule','piano-additive',-9,-.35), track('tally','owing-key',-9,.38,sends={'spring':'-15dB'}),
             track('kick','ct-kit',2,out='drums',fx=['peak cutoff=4100 q=0.85 gain=6dB']),
             track('snare','ct-kit',3,out='drums'), track('metal','ct-kit',2,out='drums'),track('skins','ct-kit',2,out='drums')]
+    if BREATH:
+        tracks.append(track('breath','bari-sax synth.amp.r=65ms fx.0.mix=0.075',float(BREATH),-.16,
+                            auto={'tongue':{'points':air_points,'curve':0}},
+                            fx=[{'type':'gain','gain':{'value':'0dB','mod':[{'src':'auto.tongue','amount':1}]}}]))
     if TRADE:
         tracks.append(track('bow','tagelharpa-bass-bowed synth.amp.r=80ms fx.0.mix=0.035',
                             float(TRADE),-.66,fx=['hp cutoff=120']))
