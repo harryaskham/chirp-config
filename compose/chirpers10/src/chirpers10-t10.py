@@ -33,6 +33,9 @@ ADVANCE = os.environ.get('C10T10_ADVANCE', '7.5')
 # v4: after the players return to straight time, one more note of the answer
 # can ring each time around. Track gain in dB; empty reproduces v3 exactly.
 COURSES = os.environ.get('C10T10_COURSES', '-11')
+# v5: 'called in' puts the straight clock into the right guitarist's hands.
+# Semitones above the low part; the left joins that register at par. Empty = v4.
+STRAIGHT = os.environ.get('C10T10_STRAIGHT', '12' if COURSES else '')
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -84,6 +87,12 @@ def build():
         fold_patches[name] = {'play':{'gate':1},'synth':{'amp':{'a':'3ms','s':1,'r':'6ms'},
                               'layers':[{'type':'sample','song':src,'root':'C4','reverse':True}]}}
         note(name,midpoint,debt,'C4',1)
+
+    def straight_gate(pattern, pos):
+        # Lift the pick before the next pitched attack. No repeated pedal notes
+        # between: this line has three strokes in the call and four in the answer.
+        end = next((p for p,_,_,how in pattern if p>pos and how!='m'), BAR)
+        return .72*(end-pos)
 
     pair = 2*BAR
     t = 0
@@ -143,6 +152,16 @@ def build():
             advance = bool(ADVANCE) and s == 'still owing' and j%2==1
             if advance:
                 borrow(root, d, t+BAR)
+            crossing = bool(STRAIGHT) and s == 'called in'
+            if crossing:
+                for half,shape in enumerate((CALL,REPLY)):
+                    for pos,_,semi,how in shape:
+                        if how=='m': continue
+                        p = root+semi+int(STRAIGHT)
+                        # One player stays on 16+16 while the other's answer
+                        # moves from six ticks behind to six ticks ahead.
+                        note('right',t+half*BAR+pos,straight_gate(shape,pos),
+                             chord(p,p+7) if how=='o' else p,.99 if pos==0 else .92)
             trade = bool(TRADE) and s == 'across the line'
             # Each smaller swing starts on a new low chord. The answer stays
             # Gb-F-C-Eb against them all; the call comes home as the hands meet.
@@ -186,6 +205,9 @@ def build():
                     # Low Eb call, high Gb answer. In the first crest the right
                     # hand lets its reply ring instead of adding more mutes.
                     for side in ('left','right'):
+                        if crossing:
+                            if side=='right': continue  # already played the square version
+                            if back and d==0 and mute: continue
                         if repay and back and side == 'right' and p0 < dry_from:
                             continue  # no right-hand chugs between the notes given to the open courses
                         if advance and side=='right' and not back and hit>=t+BAR:
@@ -195,10 +217,13 @@ def build():
                             if not mute and (d<0 or side=='left'): continue
                         if s=='called in' and j<3 and side=='right' and not back: continue
                         if s=='still owing' and side=='right' and back and mute: continue
-                        voiced = chord(pitch,pitch+7) if how=='o' else pitch
+                        meeting = crossing and back and d==0
+                        gp = pitch+int(STRAIGHT) if meeting else pitch
+                        voiced = chord(gp,gp+7) if how=='o' else gp
                         if s=='square' and back and not mute and side=='right':
                             voiced=chord(pitch,pitch+7)
-                        note(side,hit,dur,voiced,vel,**({'pm':1} if mute else {}))
+                        guitar_gate = straight_gate(pattern,p0) if meeting else dur
+                        note(side,hit,guitar_gate,voiced,vel,**({'pm':1} if mute else {}))
                     # Bass keeps the hook's accents clear, not a second fast solo.
                     long_answer = trade and back and d<0
                     if not mute and not long_answer:
