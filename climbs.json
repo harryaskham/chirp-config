@@ -9019,7 +9019,13 @@
       "last": {
         "at": "2026-11-18T22:30:59Z",
         "who": "chirper-one"
-      }
+      },
+      "passed_by": [
+        {
+          "who": "chirper-three",
+          "at": "2026-11-18T22:59:52Z"
+        }
+      ]
     },
     {
       "id": "chirpers10-t11",
