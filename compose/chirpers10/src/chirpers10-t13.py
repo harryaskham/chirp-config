@@ -29,7 +29,7 @@ def name(n):
 
 
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
-            rim=True, rim_gain=-18, turned=True, hole=True, mold=True):
+            rim=True, rim_gain=-18, turned=True, hole=True, mold=True, fretless=True, fretless_gain=-10.0):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -41,6 +41,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     turned = turned and rim
     hole = hole and turned
     mold = mold and hole
+    fretless = fretless and mold
     # v12: THE NEGATIVE IN PITCH. The tune takes four of the scale's seven
     # notes; the three it leaves out lie one between each pair it steps
     # across: D-flat between E-flat and C, B-flat between C and A-flat, G
@@ -55,11 +56,13 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     BACK_TUNE = TUNE[::-1]
     assert BACK_HEADS == (0, 2, 4, 8) and [F + n for n in BACK_TUNE] == [F, F + 3, F + 7, F + 10]
     parts = defaultdict(list)
-    def put(tr, at, dur, p, v, mute=False):
+    def put(tr, at, dur, p, v, mute=False, slide=False):
         event = dict(at=round(at / SUB, 6), len=round(dur / SUB, 6),
                      pitch=name(p) if isinstance(p, int) else p, vel=round(v, 3))
         if mute:
             event['expr'] = {'pm': 1.0}
+        if slide:
+            event['expr'] = {'h': 1.0}  # the left hand arrives; no new pluck
         parts[tr].append(event)
 
     def drums(piece, t, v):
@@ -137,6 +140,13 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
         at the end of one cell, then plays it in its proper place in the next."""
         repeats, remainder = divmod(span, CELL*len(HEADS))
         assert repeats >= 2 and remainder == 0
+        # v13: in the quiet middle the bassist puts the pick down. The tune is
+        # rebuilt on a fretless bass (no other song on the record has one):
+        # plucked with the finger, each note blooming after its start. And a
+        # note is FOUND before it is played: at the end of a cell the hand
+        # slides up the string from F to the new note without plucking again,
+        # and in the next cell that note is plucked in its proper place.
+        low = 'fretless' if fretless else 'bass'
         for i in range(repeats*len(HEADS)):
             group, take = divmod(i, repeats)
             first = len(HEADS)-1-group
@@ -151,13 +161,16 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                 k = HEADS[j]; end = (HEADS+(CELL,))[j+1]
                 # Shorten F by one triplet tick to make a breath for the pickup.
                 if pickup and j==len(HEADS)-1: end -= 1
-                put('bass',a+k,end-k-.20,F+TUNE[j], .93 if j==first else .84)
+                # (v13: no breath; the F is held into the pickup, so the one
+                # string slides up from it.)
+                sounding = end-k+.30 if fretless and pickup and j==len(HEADS)-1 else end-k-.20
+                put(low,a+k,sounding,F+TUNE[j], .93 if j==first else .84)
                 # First time, the bassist says it alone. The ring remembers the
                 # old tail on the second turn and catches the newest note last.
                 if take and (j>first or take==repeats-1):
                     put('ring',a+k,min(1.7,end-k-.25),F+TUNE[j]+24,.71)
             if pickup:
-                put('bass',a+CELL-1,.78,F+TUNE[first-1],.86)
+                put(low,a+CELL-1,.78,F+TUNE[first-1],.86,slide=fretless)
         for beat in range(span//SUB):
             i,k = divmod(beat*SUB,CELL); group,take = divmod(i,repeats)
             first = len(HEADS)-1-group
@@ -430,8 +443,18 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     if wood:
         for side,pan in zip(sides,(-.58,.58)):
             tracks.append(track('box-'+side,'cajon kit.cb.pitch=F2 kit.cs.gain=4dB kit.cg.gain=1dB fx.0.mix=0.06',wood_gain,pan))
+    if fretless:
+        # The library's fretless on the same notes read 8.5 dB over the picked
+        # bass and 16 to 30 dB over it above 500 Hz (a bridge pickup, a bright
+        # room): a different lead, not the same bassist. Closed above 1.8 kHz,
+        # a slower slide than the patch's so the three finds are heard, no chorus.
+        # At -9 dB it stood 1.5 dB over the picked line (K) and the section
+        # gained 1.5 dB at 250-500 Hz, where it already read 4 over the
+        # records: so -10, and the picked bass's own dip at 320 Hz.
+        tracks.append(track('fretless','fretless-bass play.glide=150ms fx.2.mix=0',fretless_gain,0,
+                            fx=[{'type':'eq','bands':['hp cutoff=29','peak cutoff=320 q=1 gain=-4dB','lp cutoff=1800 q=0.6']}]))
     assert not parts
-    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v12.' if mold else 'v11.' if hole else 'v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
+    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v13.' if fretless else 'v12.' if mold else 'v11.' if hole else 'v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
             'ceiling':'-1dB', 'true_peak':True, 'loudness':-10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
@@ -456,11 +479,13 @@ if __name__ == '__main__':
     previous.add_argument('--v9', action='store_true', help='restore the falling tune on every turn of the trade and before the close')
     previous.add_argument('--v10', action='store_true', help='restore the muted strokes in the cell where each note is handed over')
     previous.add_argument('--v11', action='store_true', help='restore low F under every stroke of the negative')
+    previous.add_argument('--v12', action='store_true', help='restore the picked bass in the quiet middle')
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     parser.add_argument('--rim-gain', type=float, default=-18, help='held glass track gain in dB')
+    parser.add_argument('--fretless-gain', type=float, default=-10.0, help='fretless bass track gain in dB')
     args = parser.parse_args()
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
-                  not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11)
+                  not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11, not args.v12, args.fretless_gain)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
