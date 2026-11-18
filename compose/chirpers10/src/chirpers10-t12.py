@@ -23,24 +23,32 @@ def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True):
+def build(drum_hand=True, crease=True, mirror_bass=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
+    mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     ev = defaultdict(list); sections = []; start = 0
-    def put(tr, t, n, dur, v, mute=False):
+    def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
-        if mute: e['expr']={'pm':1}
+        if mute: expr['pm'] = 1
+        if expr: e['expr'] = expr
         ev[tr].append(e)
     def kit(tr,t,p,v): put(tr,t,p,3.8 if p in ('c','x','rde') else 1.15,v)
     def chord(root): return pitch(root)+','+pitch(root+7)
     front,back = strip(),strip(True)
     opens = [{t:p for t,p,k in r if k=='o'} for r in (front,back)]
-    assert opens[0].keys() & opens[1].keys() == {3,15}
+    meetings = sorted(opens[0].keys() & opens[1].keys())
+    assert meetings == [3,15]
+    # Immediately inside the shared attacks is a reflected pair of gaps.
+    # Neither guitar picks at 4 or 14. Leave the silent centre, tick 9, alone.
+    gaps = [meetings[0]+1, meetings[1]-1]
+    assert sum(gaps) == STRIP-1 and set(gaps).isdisjoint(t for t,_,_ in front+back)
     taps = (2,7,13,17)
     assert set(taps) <= {t for t,_,k in front if k=='m'}
     for sec,count in FORM:
         sections.append((sec,start,count))
         for i in range(count):
             a = start + i*STRIP
+            slapping = mirror_bass and sec == 'opposite' and i >= count//2
             # F all through the introduction and first traversal. The quiet centre
             # moves to its minor third; the high answer alone bends on the way home.
             root = 29 + (3 if sec in ('carbon','thumbprint') else 1 if sec=='raised' and i<count//2 else 0)
@@ -138,8 +146,21 @@ def build(drum_hand=True, crease=True):
                             put('bass',a+t,root,3,.92); kit('foot',a+t,'k',.95)
                     else:
                         if not apart or t in (3,15):
-                            put('bass',a+t,root+(0 if apart else p),3 if apart else 1.7,.92)
+                            put('thumb' if slapping else 'bass',a+t,root+(0 if apart else p),3 if apart else 1.7,.92)
                         kit('foot',a+t,'k',.98 if t in (0,3,15,18) else .83)
+                if slapping:
+                    # Pop AFTER the first thumb and BEFORE its reflection. First
+                    # quote the forward guitarist's pitches, then the other's.
+                    lap = i - count//2
+                    source = opens[int(lap >= (count-count//2)//2)]
+                    for j,(cross,gap) in enumerate(zip(meetings,gaps)):
+                        if j == 1 and lap < 2: continue
+                        # A-flat is the next section's ground. The last two
+                        # pickups ring across the low F to point the way to it.
+                        dur = .83
+                        if j == 1 and i >= count-2:
+                            dur = STRIP-gap-.4 if i == count-1 else 2.5
+                        put('thumb',a+gap,root+12+source[cross],dur,.78 if j==0 else .72,pop=1)
                 if sec=='raised':
                     for t in (3,15):
                         if inside(t): put('mouth',a+t,root+24+opens[1][t],2.65,.85)
@@ -186,6 +207,10 @@ def build(drum_hand=True, crease=True):
             track('foot','ct-kit','2dB',0,'drums',[{'type':'eq','bands':['peak cutoff=4400 q=0.84 gain=6dB']}]),
             track('snare','ct-kit','2dB',0,'drums'),track('hat','ct-kit','11dB',-.18,'drums'),
             track('brass','ct-kit','-4.5dB',.15,'drums'),track('skins','ct-kit','1.5dB',0,'drums')]
+    if mirror_bass:
+        # Let the upper string ring without choking the low thumb. Same bass
+        # bus as the picked part; no low-octave double or added kick.
+        tracks.append(track('thumb','slap-bass play.mono=false','-4.5dB',0,'low'))
     if crease:
         # Bring the quiet middle's clean guitar up on the fader for the first
         # two strokes under the distorted pair, then return to its original
@@ -227,8 +252,9 @@ def dump(d):
     return '\n'.join('tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) if k=='tracks' else k+': '+json.dumps(v) for k,v in d.items())+'\n'
 
 if __name__=='__main__':
-    ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); ap.add_argument('--without-crease',action='store_true',help='regenerate v3'); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease)
+    ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); ap.add_argument('--without-crease',action='store_true',help='regenerate v3')
+    ap.add_argument('--without-mirror-bass',action='store_true',help='regenerate v4'); a=ap.parse_args()
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))

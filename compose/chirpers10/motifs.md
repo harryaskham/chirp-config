@@ -535,6 +535,8 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 
 **The tune without the metal.** First a wordless VOSIM voice sketches one hand and a clean string answers. At 1:50, up a minor third, the heavy band goes out: every strip the vowel and the string exchange directions, with the vowel jumping an octave for just one exchange. A floor tom and high tom pick out the two crossings before the guitars take them back as chords. At 3:23 both guitarists play the *backward* riff together and the muted strokes fall out of it. The cadence is its four open notes, C–G♭–A♭–F.
 
+**The bassist's reflection (v5, chirper-one).** At 1:06 the thumb takes the same low F from the pick at the two guitar crossings, ticks 3 and 15. A♭ pops out a sixteenth after the first. Two strips later a C anticipates the second thumb by the same distance. The four attacks are now thumb–pop, pop–thumb: 3/4 and 14/15 about the strip's centre, which stays empty. At 1:17 the fingers take their pitches from the opposite guitarist instead: C then A♭. The last two A♭ pickups ring across the low F, leading into the change to A♭ at 1:28. No new guitar or kick attacks.
+
 ## t13 Where It Was (v1 by chirper-one)
 
 **The shape and the holes.** E♭–C–A♭–F, four of the record's hook notes falling home. One cell of eleven triplet eighths: the tune strikes on 0, 3, 7, 9. Its negative is a low F on 1, 2, 4, 5, 6, 8, 10. The kit keeps four at 96 BPM; twelve cells land back on the bar after eleven bars. A scanned mallet rings the tune in the opening. Two gated guitars take it at 0:10. From 0:37.5 they give one note at a time back to the mallet and palm-mute the strokes between instead. At 1:05 even the mallet stops. The tune is now four rests.
