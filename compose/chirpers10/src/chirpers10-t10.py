@@ -30,6 +30,9 @@ TRADE = os.environ.get('C10T10_TRADE', '-5')
 # v3: on the repeat of each crest root, spend the six borrowed sixteenths
 # on a reverse pickup made from the following answer. Empty = published v2.
 ADVANCE = os.environ.get('C10T10_ADVANCE', '7.5')
+# v4: after the players return to straight time, one more note of the answer
+# can ring each time around. Track gain in dB; empty reproduces v3 exactly.
+COURSES = os.environ.get('C10T10_COURSES', '-11')
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -125,6 +128,18 @@ def build():
                         kit(piece,t+pair-4+i,.53+i*.10)
                 t+=pair; continue
 
+            # One lick becomes an open chord. On the final Eb, the upper four
+            # courses of a twelve-string tuned down a semitone take frets
+            # 2/0/2/2 (Eb3/Gb3/C4/F4). Pick in melody order, not string order.
+            repay = {}
+            dry_from = 0
+            if COURSES and s == 'square':
+                positions = [pos for pos,_,_,how in REPLY if how != 'm']
+                octaves = (12,24,24,12)
+                assert len(positions) == len(octaves)
+                count = len(positions) if len(debts)==1 else j*len(positions)//(len(debts)-1)
+                repay = dict(zip(positions[:count], octaves[:count]))
+                dry_from = positions[count] if count < len(positions) else BAR
             advance = bool(ADVANCE) and s == 'still owing' and j%2==1
             if advance:
                 borrow(root, d, t+BAR)
@@ -171,6 +186,8 @@ def build():
                     # Low Eb call, high Gb answer. In the first crest the right
                     # hand lets its reply ring instead of adding more mutes.
                     for side in ('left','right'):
+                        if repay and back and side == 'right' and p0 < dry_from:
+                            continue  # no right-hand chugs between the notes given to the open courses
                         if advance and side=='right' and not back and hit>=t+BAR:
                             continue  # the left guitar keeps the tail of the call; the right makes room
                         if trade and back and p0 not in reunited:
@@ -195,7 +212,15 @@ def build():
                     if s in ('still owing','across the line') and how=='o' and not (trade and back and j<6):
                         note('weight',hit,dur,chord(pitch,pitch+7),.93)
                     if s=='square' and back and not mute:
-                        note('clean',hit,dur,pitch+24,.90)
+                        if p0 in repay:
+                            # Lift together before the next low call. The last
+                            # reply outlasts the receipt's first low chord by a
+                            # beat. For that beat the chord can ring on its own;
+                            # leave two ticks of breath before the last Eb.
+                            damp = t + pair + (BAR-2 if j == len(debts)-1 else 0)
+                            note('courses',hit,damp-hit-.12,pitch+repay[p0],.90 if p0==0 else .84)
+                        else:
+                            note('clean',hit,dur,pitch+24,.90)
             # No borrowing in this part: the drummer's quarters and backbeat
             # can be followed across both displaced halves of the guitar riff.
             for i in range(pair//SUB):
@@ -232,6 +257,13 @@ def build():
                             float(TRADE),-.66,fx=['hp cutoff=120']))
     for name in fold_patches:
         tracks.append(track(name,name,float(ADVANCE),.66))
+    if COURSES:
+        # The written gates only lift the dampers. Lengthen the strings' own
+        # decays too, or the first courses are already dead when the last rings.
+        acoustic = ("twelve-string play.tuning='Eb2 Ab2 Db3 Gb3 Bb3 Eb4' play.gate=1 "
+                    "synth.layers.0.decay.value=12s synth.layers.1.decay.value=9s "
+                    "synth.amp.r=90ms fx.3.mix=0.05")
+        tracks.append(track('courses',acoustic,float(COURSES),.42,fx=['hp cutoff=130']))
     assert not voices
     key_patch={'about':'Still Owing: the reply marker. Its orbit opens in proportion to the sixteenths borrowed in this pair.',
       'synth':{'amp':{'a':'2ms','d':'450ms','s':.2,'r':'95ms'},'layers':[{'type':'terrain','terrain':{
