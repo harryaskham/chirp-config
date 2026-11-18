@@ -28,9 +28,10 @@ def name(n):
     return PITCH[n % 12] + str(n // 12 - 1)
 
 
-def compose(phrase_return=True, recover=True):
-    # The published baselines are cumulative: --v1 disables both later rounds.
+def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12):
+    # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
+    wood = wood and recover
     parts = defaultdict(list)
     def put(tr, at, dur, p, v, mute=False):
         event = dict(at=round(at / SUB, 6), len=round(dur / SUB, 6),
@@ -118,6 +119,25 @@ def compose(phrase_return=True, recover=True):
             if q in (0,2): drums('ft' if q==0 else 't2',start+beat*SUB,.55 if q==0 else .4)
         for off,piece in zip((3,2,1),('t1','t2','ft')):
             drums(piece,start+span-off,.59+(3-off)*.1)
+
+    def box_stroke(cell, cells, head, slot, end):
+        """The box borrows the negative; it never doubles the borrowed chug.
+        Let the last pair of cells return to two guitars before the cadence card.
+        """
+        first = slot == head+1
+        multi = end-head > 2
+        if 2 <= cell < 4:
+            take = multi and slot == end-1  # hear just the two rim answers
+        elif 4 <= cell < cells-4:
+            take = True
+        elif cells-4 <= cell < cells-2:
+            take = not first   # give the starts of the groups back first
+        else:
+            take = False
+        if not take: return None
+        # 2 + 3 + 1 + 1: centre/slap, centre/ghost/slap, centre, slap.
+        if slot==end-1 and (multi or end==CELL): return 'cs'
+        return 'cb' if first else 'cg'
 
     start = 0
     for section, span in FORM:
@@ -211,7 +231,11 @@ def compose(phrase_return=True, recover=True):
                         opposite = (sides[1-(i%2)],) if section == 'turn the sheet' else sides
                         for n in range(k+1, end):
                             a = start + i*CELL + n
-                            guitars(a, pedal, .61, .94 if n == k+1 else .76, opposite, mute=True)
+                            piece = box_stroke(i,span//CELL,k,n,end) if wood and section=='turn the sheet' else None
+                            if piece:
+                                put('box-'+opposite[0], a, .65, piece, .90 if piece=='cs' else .80)
+                            else:
+                                guitars(a, pedal, .61, .94 if n == k+1 else .76, opposite, mute=True)
                             if section in ('where it was','the handover','both sides'):
                                 put('bass', a, .65, pedal, .82 if n == k+1 else .68)
                             if section != 'turn the sheet' or n == k+1:
@@ -233,8 +257,11 @@ def compose(phrase_return=True, recover=True):
               track('kick','ct-kit',2,out='drums',fx=[{'type':'eq','bands':['peak cutoff=4300 q=0.8 gain=7dB']}]),
               track('snare','ct-kit',3,out='drums',sends={'chamber':'-14dB'}),
               track('metal','ct-kit',1.5,out='drums'), track('skins','ct-kit',3,out='drums')]
+    if wood:
+        for side,pan in zip(sides,(-.58,.58)):
+            tracks.append(track('box-'+side,'cajon kit.cb.pitch=F2 kit.cs.gain=4dB kit.cg.gain=1dB fx.0.mix=0.06',wood_gain,pan))
     assert not parts
-    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v3.' if recover else 'v2.' if phrase_return else 'v1.'),
+    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
             'ceiling':'-1dB', 'true_peak':True, 'loudness':-10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
@@ -250,8 +277,10 @@ if __name__ == '__main__':
     previous = parser.add_mutually_exclusive_group()
     previous.add_argument('--v1', action='store_true', help='reproduce the original alternating-cell return')
     previous.add_argument('--v2', action='store_true', help='restore the sustained glass and doubled bass in the clean middle')
+    previous.add_argument('--v3', action='store_true', help='restore both guitar parts in the side-to-side trade')
+    parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     args = parser.parse_args()
-    doc = compose(not args.v1, not args.v2)
+    doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
