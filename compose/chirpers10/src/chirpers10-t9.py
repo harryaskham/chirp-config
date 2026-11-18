@@ -59,6 +59,10 @@ HEAD_TUNE = os.environ.get('C10T9_HEAD_TUNE', '1' if BASS_TURN else '')
 # v7: after the lock modulates, count 1..7 without increasing the speed.
 # All six picks lift together; bass and kick still walk. Empty restores v6.
 CUT = os.environ.get('C10T9_CUT', '1' if HEAD_TUNE else '')
+# v8: inside the fours the opening returns at one stroke per beat. Between
+# the slow and fast guitar pairs the bass brings back its two-to-a-beat answer.
+# Empty restores v7; preserve the older cascade of rollback switches.
+SLOW_HAND = os.environ.get('C10T9_SLOW_HAND', '1') if CUT and HANDS and BASS_TURN else ''
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
 ROOTS = [(0, 0)]
@@ -214,6 +218,39 @@ def tune_the_heads(seam):
         T[tr] = [e for e in T[tr] if e['at'] not in holes]
 
 
+def slow_hand(start):
+    """One slow cell, two bass cells and four fast cells occupy seven beats."""
+    # Quote the actual bass phrase from v5, not a second transcription of it.
+    source = 2 * RUNG - N
+    phrase = [n for n in T['bass'] if source <= n['at'] < source + N]
+    assert len(phrase) == sum(tok != 'c' for cell in CELLS for tok in cell)
+    end = start + len(CELLS) * N
+    T['bass'] = [n for n in T['bass'] if not start <= n['at'] < end]
+    for j in range(len(CELLS)):
+        T['bass'].extend({**n, 'at': start + j*N + n['at'] - source} for n in phrase)
+    # The foot picks out the three pitched strokes on the first slow pass.
+    # On the second it is back with the fast side; china and snare stay in four.
+    T['kick'] = [n for n in T['kick'] if not start <= n['at'] < start + N]
+    for i, k in enumerate(CELLS[0]):
+        if k != 'c':
+            drum('k', start + i, .97 if k == 'o' else .86)
+    for j, cell in enumerate(CELLS):
+        head = start + j*N
+        outer, inner = ('gr', 'dr') if j % 2 == 0 else ('gl', 'dl')
+        for tr in (outer, inner):
+            T[tr] = [n for n in T[tr] if not head <= n['at'] < head + N]
+        for i, k in enumerate(cell):
+            at = head + i
+            if k == 'c':
+                add(inner, at, .56, F1, .79, pm=1)
+            else:
+                # The outer guitarist rings through the inner player's mutes,
+                # not through the next pitch or the seam into five.
+                until = next((p for p in range(i+1, N) if cell[p] != 'c'), N)
+                pitch = F1 + 12 if k == 'o' else F1 + 24 + int(k)
+                add(outer, at, until - i - .14, pitch, .97 if k == 'o' else .94)
+
+
 def crossbeat(b):
     """Last five bars of the threes. All positions derived from one 12-stroke bar."""
     for bar, voices in enumerate(('bbb','bbb','bss','sbs','sss')):
@@ -264,6 +301,8 @@ def compose():
         b += RUNG
     if BASS_TURN:
         last_to_turn(2 * RUNG)
+    if SLOW_HAND:
+        slow_hand(4 * RUNG - len(CELLS)*N)
     if PAWL and HEAD_TUNE:
         tune_the_heads(5 * RUNG)
     # seven to the beat: the riff is one beat long
