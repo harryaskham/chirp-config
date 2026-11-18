@@ -92,6 +92,18 @@ BONES = os.getenv('C10T11_BONES', '1' if GROUND else '')
 # Cells walked in two before the bones ; cells of the shoulder walked in three
 # (4 = until the kettle; 12 = all of it). 0 leaves either out. Empty: v12.
 HALFSPEED = os.getenv('C10T11_HALFSPEED', '3;4' if BONES else '')
+# v14 (section w7): the first groove comes back, once. The song opens on the
+# first riff over the six quick steps, on two guitars and a closed hat, and
+# after the hinge at 1:00 that is never heard again: from there the first
+# riff is only ever walked in four, and in the swing the quick six carries
+# the heavy riff. Now the two-cell quick phrase in the swing's second half
+# (2:45-2:50) is the opening again: the wall pair rests after its held
+# double stop, the outer pair and the bass enter at the half cell on the
+# first riff, the kick goes back to its places and the china hands the six
+# steps to the hat. It is 1:00 the other way round: the riff of 2:40 stays
+# and the feet change, broad to quick. The single quick cells after it keep
+# the heavy riff and the wall. Empty restores v13.
+RETURN = os.getenv('C10T11_RETURN', '1' if HALFSPEED else '')
 BROAD = CELL // 4
 # Offset, duration, semitones, open power chord / single ringing note / palm mute.
 # The two short strokes before the Db and the delayed F are the tell in both walks.
@@ -162,12 +174,12 @@ def make():
     def swing_slow(i):
         return i<4 or 8<=i<10 or (12<=i<16 and i%2==0)
 
-    def main_riff(start,i,lift=False,wide=False,lend=False,carry_out=False,count_in=False,bass_floor=None,plant=None,bare=0):
+    def main_riff(start,i,lift=False,wide=False,lend=False,carry_out=False,count_in=False,bass_floor=None,plant=None,bare=0,quick_in=False):
         pattern = LIFT if lift else RIFF
         meet = CELL//2             # both walks hit 12: three quarters or two dotted quarters
         last = max(t for t,_,_,kind in pattern if kind=='n')
         if count_in:
-            for foot in range(0,meet,4 if lift else BROAD):
+            for foot in range(0,meet,4 if lift or quick_in else BROAD):
                 drum('k',start+foot,.98 if not foot else .85)
         for pos,d,s,kind in pattern:
             t=pos
@@ -301,7 +313,10 @@ def make():
                 slow=section in ('broad','shoulder')
                 if section=='swing':
                     slow = swing_slow(i)
-                lifted=section=='shoulder' or (section=='swing' and not slow)
+                # v14: the quick phrase of two cells in the swing's second half
+                again = bool(RETURN) and section=='swing' and i in (count//2+2,count//2+3)
+                assert not again or (not slow and swing_slow(count//2+1) and swing_slow(count//2+4))
+                lifted=section=='shoulder' or (section=='swing' and not slow and not again)
                 reply = bool(KETTLE) and section=='shoulder' and i>=count//3
                 # After the first two-cell broad statement, only the kit attacks
                 # the new walk until its midpoint. Do not carry into 'home'.
@@ -322,9 +337,9 @@ def make():
                     ground = HOME+int(GROUND.split(',')[max(n for n,k in enumerate(heads) if k<=i)])
                     if i in heads: plant = ground
                     else: floor = ground
-                main_riff(a,i,lift=lifted,wide=section in ('shoulder','swing'),lend=reply and i>=2*count//3,
+                main_riff(a,i,lift=lifted,wide=section in ('shoulder','swing') and not again,lend=reply and i>=2*count//3,
                           carry_out=carry_out,count_in=count_in,bass_floor=floor,plant=plant,
-                          bare=thin)
+                          bare=thin,quick_in=again)
                 if thin==2 and i==count-1:
                     # Same octave and touch as the opening. It rings into the
                     # stops, and the bridge's clean F takes over from it.
@@ -336,7 +351,7 @@ def make():
                         landing=(t//BROAD+1)*BROAD
                         put('kettle',a+landing,2.1 if k=='p' else 3.7,
                             HOME+answer(i,s)+int(KETTLE.split(';')[1]), .93 if k=='p' else .98)
-                bronze = 'x' if section in ('shoulder','swing') else 'h'
+                bronze = 'x' if section in ('shoulder','swing') and not again else 'h'
                 steps = first = 0
                 if HALFSPEED:
                     two,three = (int(x) for x in HALFSPEED.split(';'))
