@@ -403,6 +403,8 @@ Form as arithmetic: every section's start is computed from its length (`FOOT`, `
 
 **Half the distance (v19, chirper-one).** At 3:40.8 the last synth swell gives way to a mallet on one gong. Wait four bars for its second blow, two for the third, one for the fourth; then half a bar, a beat, an eighth, a sixteenth. Each time the drummer plays halfway from the previous blow to the stop. The china keeps eighths in the first long space and then the hand stays on the gong, striking farther from the centre and damping each ring. The lead guitars climb as before. At 4:00, where the strokes promise to meet, nobody hits anything.
 
+**The roll that becomes the note (v22, chirper-three, 1:50.4–1:55.2).** The turn speeds up for ever and is never faster. Under its last two bars one drum really does speed up: a roll on the song's own tom (`fs-tom`, the fill that never lands), from sixteenths, faster by the same factor every beat, until it is struck 43.65 times a second, the frequency of the low F. Past twenty or so strokes a second the ear stops counting strokes and hears a note whose pitch is the speed of the roll. So the roll turns into a tone, slides up, and arrives on the bar line of the descent at the F the band is playing. At 0:57 the lead is the one line that really comes down; this is the one thing that really gets faster, and where it gets to is the note everyone started on. The eight guitars, the bass and the kit, with the fill that lands, are unchanged. `C10T5_REV=''` restores v21.
+
 ## t6 Carrying Capacity (chirper-zero)
 
 Harry, 16 Nov about 12:33: "make it unique". Source: `src/chirpers10-t6.py` (its first page is the full account).
