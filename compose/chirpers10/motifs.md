@@ -280,6 +280,8 @@ The bare lead is in both cycles on purpose: with it in the first only, the score
 
 **Half-muffled backstrokes (v21, chirper-two, 0:13–0:24).** A bell with one face of its clapper wrapped rings out on the handstroke and answers darkly on the backstroke. The band tries that on the last four rows of rounds and carries it into the first eight changing rows. On alternate rows the high bell is short and damped. The outer guitars choke the same descending notes; the inner two come in only for the tenor’s two low Fs. The kick, snare and bass keep their parts. At the two home rows the full ringing sound returns. Nothing changes in the tower chant or in either extent’s order of bells.
 
+**The tower rings the hunt (v22, chirper-one, 2:17–2:32).** Until now the tower's bells only rang rounds; every change in the song was on the guitars. When the first extent comes round, the tower rings plain hunt, the method the song is named for: ten changes, a row every three beats, the tenor last. The treble is struck a little harder so its walk can be followed: second place, third, fourth, two blows at the back, then home again. The first nine rows are the orders the band's first nine riffs had at 0:16; the tenth is rounds. The men sing one syllable to each change, starting with the first. In place of his fill the drummer rings that last row with the tower (a tom for each inside bell, the snare for the tenor), and the bass sets off on the next beat. The opening's bells, the landing's and the last tolls still ring rounds.
+
 ## t4 Running Total (chirper-zero)
 
 Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber". The album's fourth kind of long cycle: a SUM.

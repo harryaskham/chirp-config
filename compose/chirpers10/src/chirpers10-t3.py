@@ -376,6 +376,15 @@ CROSS = os.environ.get("C10T3_CROSS", "12" if HANDSTROKE else "")
 # eight changes. The tower bells and the lead's two home rows are not muffled.
 # Empty restores v20; switching off v20's crossings still restores v19.
 MUFFLE = os.environ.get('C10T3_MUFFLE', '3.5' if CROSS and TREBLE and W1==(2,2) else '')
+# v22: THE TOWER RINGS THE HUNT (whole song). The tower's own bells had only ever rung rounds: every change in the
+# song was the guitars'. When the first extent comes round (2:16) the tower now rings the method the song is named
+# for, slowly and bare: ten changes of plain hunt, the treble struck a little harder so its walk to the back and
+# home can be followed, the tenor behind. They are the orders the band's first nine riffs had (0:16), and the tenth
+# is rounds. The chant sings a note to each change from the first; the drummer comes back by ringing that last row
+# with the tower (a tom to each bell, the snare for the tenor) in place of his fill, and the bass sets off.
+# the treble's velocity (the other bells keep 0.8, the tenor 0.896). "" = v21 (rounds, nine times). It is on only
+# while every earlier switch is, so each of them still gives exactly what it gave at v21.
+TOWERHUNT = os.environ.get('C10T3_TOWERHUNT', '0.95' if all((MUFFLE, MONKS, FORM, FUZZ, HUNT, HUNT2, HARM1, SIXTHS, HOME, TREM, KEYEQ)) else '')
 
 
 def lead_mode(k, calls):
@@ -533,6 +542,28 @@ def slow_rounds(b0, rows, root=0, vel=0.8):
             T.setdefault("bell", []).append({"at": b0 * 4 + (r * 6 + i) * 0.5, "len": 3.0, "pitch": nm(F1 + root + PITCH[i + 1] + 36), "vel": round(min(1.0, vel * (1.12 if i == 5 else 1.0)), 3)})
 
 
+def tower_hunt(at):
+    """The tower's bells ring plain hunt from beat `at`: ten changes, a row every three beats, coming round."""
+    rows, r = [], ROUNDS
+    for i in range(10):
+        r = change(r, {5} if i % 2 == 0 else {1})
+        rows.append(r)
+    # the song's title, whole: the first nine are the rows the band began the first extent with; the tenth is home
+    assert rows[-1] == ROUNDS and len(set(rows)) == 10 and rows[:9] == EXTENT_1[:9]
+    for k, row in enumerate(rows):
+        for i, b in enumerate(row + (6,)):
+            vel = float(TOWERHUNT) if b == 1 else 0.896 if b == 6 else 0.8
+            T.setdefault("bell", []).append({"at": at + (k * 6 + i) * 0.5, "len": 3.0, "pitch": nm(F1 + PITCH[b] + 36), "vel": vel})
+    return at + 30
+
+
+def rounds_on_the_toms(b):
+    """The last row before bar `b` is rounds on the tower. The kit rings it too, as it rings a call: the treble is
+    left to the bell, then a tom to each bell between, high to low, and the snare for the tenor."""
+    for i, (pc, v) in enumerate((("t1", 0.66), ("t2", 0.74), ("t3", 0.82), ("ft", 0.9), ("s", 0.95)), 1):
+        drum(pc, b * 16 - 12 + 2 * i, v)
+
+
 def chant(at, beats, line=None, first=None, step=3.0):
     """Two low voices a fifth apart over a bowed floor. Held (v2); or, with `line` (v10), singing a note to each
     row of the bells from `first`, `step` beats apart, the last note held to the end."""
@@ -624,15 +655,21 @@ def compose():
             drum("s", PART1 * 16 + k * L1 + EXTENT_1[k].index(1), float(HUNT.split(";")[1]))
     # it has come round. One chord, and the bells alone again: rounds, slowly, over a drone and a pad
     hit(MIDDLE, 6)
-    slow_rounds(MIDDLE + 1, 9)
+    if TOWERHUNT:                        # v22: the tower rings the hunt, and comes round on the bar the bass sets off
+        assert tower_hunt(MIDDLE * 4 + 2) == PART2 * 4
+    else:
+        slow_rounds(MIDDLE + 1, 9)
     if TOWER:
         gong(MIDDLE * 4, 0.9)
-        chant(MIDDLE * 4 + 2, 29.5, line=1, first=(MIDDLE + 1) * 4)
+        chant(MIDDLE * 4 + 2, 29.5, line=1, first=MIDDLE * 4 + 2 if TOWERHUNT else (MIDDLE + 1) * 4)
     else:
         T.setdefault("home", []).append({"at": MIDDLE * 4, "len": 31.5, "pitch": "F1", "vel": 0.5})
         for p in ("F2", "C3"):
             T.setdefault("air", []).append({"at": (MIDDLE + 1) * 4, "len": 27.5, "pitch": p, "vel": 0.45})
-    fill(PART2)
+    if TOWERHUNT:
+        rounds_on_the_toms(PART2)
+    else:
+        fill(PART2)
     # the second extent: Grandsire Doubles, on F, Ab and C
     h0, h1 = (int(x) for x in HUNT2.split(";")[0].split(":")) if HUNT2 else (0, 0)
     hunting = in_the_hunt(EXTENT_2) if HUNT2 or TREBLE else []
