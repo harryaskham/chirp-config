@@ -44,6 +44,9 @@ PAYBACK = os.environ.get('C10T10_PAYBACK', '1' if STRAIGHT else '')
 BREATH = os.environ.get('C10T10_BREATH', '-15' if PAYBACK else '')
 # v8: count the first debts on damped bronze keys. Track gain; empty = v7.
 CHANGE = os.environ.get('C10T10_CHANGE', '-11.5' if BREATH else '')
+# v9: once the answer arrives early in 'called in', a pressure drum takes the
+# terrain key's stroke and bends to the pitch of the square guitar. Empty = v8.
+PRESS = os.environ.get('C10T10_PRESS', '-13' if CHANGE else '')
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -59,6 +62,30 @@ def nm(p):
 
 def chord(*p):
     return ','.join(map(nm,p))
+
+
+def pressure_skin():
+    # The short, inharmonic skin sound dies before the pitched bend. Only one
+    # fingertip attack: the wrist moves the remaining modes up to the reply.
+    layers = [
+        {'type':'additive','partials':[[1,.85],[2,.88],[3,.55],[4.02,.38],[5.01,.21],[6.02,.13]],'damp':.38},
+        {'type':'additive','partials':[[1.54,1],[2.43,.68],[3.14,.33],[5.16,.22]],
+         'level':{'value':'-65dB','mod':[{'src':'env.skin','amount':56}]}},
+        {'wave':'sine','ratio':.67,'level':{'value':'-65dB','mod':[{'src':'env.thud','amount':56}]}},
+        {'type':'noise','color':'pink','level':{'value':'-66dB','mod':[{'src':'env.tap','amount':58}]}}
+    ]
+    return {
+        'about':'Tuned pressure drum: a fingertip strike, a lower thud and a ringing head. The wrist moves the head pitch without a second attack.',
+        'play':{'gate':1,'vel_sens':.6},
+        'synth':{
+            'layers':layers,
+            'env':{'tap':{'a':'0.3ms','d':'17ms','s':0},'thud':{'a':'1ms','d':'95ms','s':0},
+                   'skin':{'a':'0.4ms','d':'85ms','s':0}},
+            'pitch':{'value':0,'mod':[{'src':'expr.press','amount':1}]},
+            'filters':['hp cutoff=95','lp cutoff=6000'],
+            'amp':{'a':'1ms','d':'2.4s','s':.24,'r':'45ms','curve':2}
+        }
+    }
 
 
 def build():
@@ -155,7 +182,26 @@ def build():
                         voices['change'][-1]['gain'] = '3.5dB'  # keep the piano's downbeat accent
             elif s in ('at par','in hand','on account','two clocks','across the line','square'):
                 note('rule',t+BAR,2.2,HOME+31,.72 if s!='two clocks' else .89)
-            tally(turn,root+39,d,4.2 if s=='two clocks' else 2.7)
+            if PRESS and s=='called in' and d<0:
+                # The three early answers leave two, four and six ticks to the
+                # straight reply. Start on its other three pitches, nearest
+                # first (F3, Eb3, C3); squeeze the head up to Gb3 at the beat.
+                target = root + change_pitches[0] + 12
+                starts = sorted({root+p+12 for p in change_pitches if root+p+12<target}, reverse=True)
+                gaps = sorted(-v for v in debts if v<0)
+                assert len(starts)==len(gaps) and turn-d==t+BAR
+                base = starts[gaps.index(-d)]
+                ticks = -d
+                note('pressure',turn,ticks+1,base,.86)
+                # The note lasts one more tick at the destination. Half-tick
+                # knots keep the bend on time even on the shortest stroke.
+                path = []
+                for half in range(2*(ticks+1)+1):
+                    u = min(1., half/(2*ticks))
+                    path.append(round((target-base)*u*u*(3-2*u),5))
+                voices['pressure'][-1]['expr_path']={'press':path}
+            else:
+                tally(turn,root+39,d,4.2 if s=='two clocks' else 2.7)
 
             if s == 'two clocks':
                 # A bass pedal to stand on; listen for the distance between
@@ -356,6 +402,8 @@ def build():
         bronze = ('gamelan play.gate=1 play.humanize.time=0ms play.humanize.vel=0 '
                   'synth.amp.r=14ms synth.env.ring.r=16ms fx.0.mix=0')
         tracks.append(track('change',bronze,float(CHANGE),-.35))
+    if PRESS:
+        tracks.append(track('pressure','owing-skin',float(PRESS),.38,sends={'spring':'-20dB'}))
     if COURSES:
         # The written gates only lift the dampers. Lengthen the strings' own
         # decays too, or the first courses are already dead when the last rings.
@@ -371,7 +419,8 @@ def build():
     return {'about':'Still Owing, Common Time track 10: a low call borrows time from a higher answer and pays it back within each two-bar phrase.',
         'tempo':BPM,'seed':1,'event_stable':True,'length':f'{t//SUB}b','tail':'3s','loudness':-10,'ceiling':'-1dB','true_peak':True,
         **({'songs':fold_sources} if fold_sources else {}),
-        'patches':{'owing-key':key_patch,**fold_patches}, 'buses':{'spring':{'fx':['reverb kind=spring drip=0.65 mix=1 decay=1.2s low_cut=350 predelay=18ms']},
+        'patches':{'owing-key':key_patch,**fold_patches,**({'owing-skin':pressure_skin()} if PRESS else {})},
+        'buses':{'spring':{'fx':['reverb kind=spring drip=0.65 mix=1 decay=1.2s low_cut=350 predelay=18ms']},
         'drums':{'fx':['reverb kind=room decay=0.48s mix=0.08','glue threshold=-23dB ratio=2.2 attack=18ms release=130ms',
                      {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14900']}]}},
         'master':{'fx':['hp cutoff=25']},'tracks':tracks}, sections
