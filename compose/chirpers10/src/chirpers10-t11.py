@@ -31,6 +31,9 @@ STAY = os.getenv('C10T11_STAY', '0' if ROD else '')
 # v5: the muted half of the heavy riff is heard on skins before it is picked.
 # Empty restores v4 (and the older switches retain their published defaults).
 PICKUP = os.getenv('C10T11_PICKUP', '1' if STAY else '')
+# v6: F stays in the clean guitar while the bass changes what that F means.
+# Clean harmonic's trim in the middle (dB). Empty restores v5.
+PIVOT = os.getenv('C10T11_PIVOT', '4.5' if PICKUP else '')
 BROAD = CELL // 4
 # Offset, duration, semitones, open power chord / single ringing note / palm mute.
 # The two short strokes before the Db and the delayed F are the tell in both walks.
@@ -81,14 +84,17 @@ def make():
         if melody:
             # The two answers from the riff, each granted half a cell to ring.
             for k,semi in enumerate((3,answer(i,7))):
-                put('bellows', start+k*CELL/2, CELL/2-.5, HOME+36+semi, .90)
+                # After the heavy band stops, let the bass and harmonic speak
+                # one broad step before the organ. Its second note is not delayed.
+                wait = BROAD if PIVOT and i==0 and k==0 else 0
+                put('bellows', start+k*CELL/2+wait, CELL/2-.5-wait, HOME+36+semi, .90)
         else:
             # F4 under Db5/C5: the upper bench makes the bellows motion less buried.
             put('bellows',start,CELL-.15,chord(HOME+31,HOME+36+(2 if i%4 in (2,3) else 3)),.78)
     def swing_slow(i):
         return i<4 or 8<=i<10 or (12<=i<16 and i%2==0)
 
-    def main_riff(start,i,lift=False,wide=False,lend=False,carry_out=False,count_in=False):
+    def main_riff(start,i,lift=False,wide=False,lend=False,carry_out=False,count_in=False,bass_floor=None):
         pattern = LIFT if lift else RIFF
         meet = CELL//2             # both walks hit 12: three quarters or two dotted quarters
         last = max(t for t,_,_,kind in pattern if kind=='n')
@@ -116,7 +122,10 @@ def make():
             else:
                 strings(start+t,d,m,kind,v,wide)
             if kind!='m' or t in (4,15,16):
-                put('bass',start+t,d,m,.91,kind=='m')
+                # The first hint: the riff is unchanged over Gb. Its Db still
+                # has a bass fifth; the guitar's F is now the major seventh.
+                low = m if bass_floor is None else bass_floor + (7 if s==3 else 0)
+                put('bass',start+t,d,low,.91,kind=='m')
             if pos in ((0,3,8,11,18) if lift else (0,4,7,12,17)):
                 drum('k',start+t,.98 if kind!='m' or t==0 else .82)
     start=0
@@ -156,11 +165,24 @@ def make():
                     put('glass',a+12,CELL+11.5,HOME+31,.82); drum('c',a+12,.92)
             elif section=='bellows':
                 reed(a,i,True)
+                # Two phrases on each ground: Bb, Gb, Eb, F. The upper F is
+                # fifth, major seventh, ninth, then root; it never transposes.
+                turn = 4*i//count
+                floor = HOME + ((0,-4,-7,-5)[turn] if PIVOT else 0)
                 for t in (0,12):
-                    put('bass',a+t,9.5,HOME+(0 if t==0 else 7),.76)
+                    put('bass',a+t,9.5,floor+(0 if t==0 else 7),.76)
                     drum('ft' if t==0 else 't2',a+t,.57)
-                for t,d,s,k in RIFF:
-                    if k!='m': put('glass',a+t,d,HOME+24+answer(i,s),.76)
+                if PIVOT:
+                    put('glass',a,CELL-1,HOME+19,.80)
+                    # Answer below the harmonic at the riff's original Db/F
+                    # attacks. Only on the final F does the suspended Bb go to A.
+                    for t,_,_,k in RIFF:
+                        if k=='n':
+                            inner = (15,12,8,12)[turn] - int(i==count-1 and t==LAST_ANSWER)
+                            put('glass',a+t,min(5,CELL-t-.2),HOME+inner,.82)
+                else:
+                    for t,d,s,k in RIFF:
+                        if k!='m': put('glass',a+t,d,HOME+24+answer(i,s),.76)
                 if i>=count//2:
                     for t in range(0,CELL,4): drum('h',a+t,.46 if t else .6)
             elif section=='home':
@@ -198,7 +220,8 @@ def make():
                 count_in = split and i>count//2 and slow!=swing_slow(i-1)
                 carry_out = split and count//2<=i<count-1 and slow!=swing_slow(i+1)
                 main_riff(a,i,lift=lifted,wide=section in ('shoulder','swing'),lend=reply and i>=2*count//3,
-                          carry_out=carry_out,count_in=count_in)
+                          carry_out=carry_out,count_in=count_in,
+                          bass_floor=HOME-4 if PIVOT and section=='quick' and count//3<=i<count//2 else None)
                 if reply:
                     for t,_,s,k in LIFT:
                         if k=='m': continue
@@ -233,6 +256,14 @@ def make():
             tr('bass','ct-bass','0.7dB',0,'low'),tr('kick','ct-kit','2dB',0,'drums',[{'type':'eq','bands':['peak cutoff=4500 q=0.8 gain=8dB']}]),
             tr('snare','ct-kit','3dB',0,'drums'),tr('hat','ct-kit','12dB',-.28,'drums'),
             tr('metal','ct-kit','-4dB',.25,'drums'),tr('skins','ct-kit','3dB',0,'drums')]
+    if PIVOT:
+        # A long harmonic is much quieter than the old picked figure. Lift it
+        # in the bridge only; the same guitar's final F stays at its old gain.
+        glass = next(t for t in tracks if t['name']=='glass')
+        glass['gain'] = {'value':glass['gain'],'mod':[{'src':'auto.pivot','amount':1}]}
+        end = marks['shoulder']/SUB
+        glass['auto'] = {'pivot':{'curve':0,'points':[['0b',float(PIVOT)],
+                          [f'{end:g}b',float(PIVOT)],[f'{end+1:g}b',0]]}}
     if ORGAN:
         pump=[{'type':'pump','every':'3/8','attack':'12ms','hold':'28ms','release':'395ms','depth':PUMP,'curve':0.65}] if PUMP else []
         tracks.append(tr('bellows','harmonium',ORGAN,.12,fx=pump))
