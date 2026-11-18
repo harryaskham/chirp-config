@@ -23,18 +23,21 @@ FOOT_COUNT = '-3dB'
 # Seventeen quiet seconds lower the song's integrated loudness by 0.15 LU. Ask for
 # that much less, so the mastering gain on everything before the page is v8's.
 PAGE_LOUDNESS = -10.15
+# v10: the ribbon's one long note over the opposed guitars, against its track's level.
+PALINDROME_TRIM = '-3dB'
 
 def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True):
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
     signature = signature and picking_hand       # --without-picking-hand still gives v5
     ties = ties and signature                    # --without-signature still gives v6
     facing = facing and ties                     # --without-ties still gives v7
+    palindrome = palindrome and facing           # --without-facing-page still gives v8
     ev = defaultdict(list); sections = []; tie_gains = {}; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -288,6 +291,46 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                     u = max(0.,min(1.,(t-(STRIP//2-GRID))/GRID))
                     curve.append(round((tune[0]-p)*u*u*(3-2*u),4))
                 ev['ribbon'][-1]['expr_path'] = {'ribbon':curve}
+    if palindrome:
+        # THE LINE BOTH HANDS MAKE. Read from opposite ends, the two guitars'
+        # open notes add up to something neither plays: F, C over A-flat,
+        # G-flat, G-flat, C over A-flat, F. Its top is the same from either
+        # end. The ribbon, which learned the tune forwards and will sign it at
+        # the close, draws that top once without lifting: it is on each note
+        # when a guitar strikes it and holds G-flat across the silent centre,
+        # from the right hand's G-flat to the left's. Four strips, the second
+        # half of the plain opposition; it stops where the thumb starts.
+        _, opp, strips = next(s for s in sections if s[0]=='opposite')
+        first, laps = strips//4, strips//4
+        top = {t:max(opens[0].get(t,-1), opens[1].get(t,-1)) for t in opens[0].keys()|opens[1].keys()}
+        assert [top[t] for t in sorted(top)] == [0,7,1,1,7,0] and all(top[t]==top[STRIP-1-t] for t in top)
+        # It stays on C for two ticks on the inner side of each meeting, on
+        # G-flat between the two hands' G-flats, and on F from a tick before
+        # the strip's last note to a tick after the next strip's first.
+        # Between those, a straight slide: so the drawn line is its own mirror.
+        centre, hold = STRIP//2, []
+        for t,v in sorted(top.items()):
+            if t in meetings: hold += [(t,v), (t+(2 if t<centre else -2), v)]
+            elif t in (0, STRIP-1): hold.append((1 if t==0 else STRIP-2, v))
+            else: hold.append((t,v))
+        hold = [(-2, top[STRIP-1])] + sorted(hold) + [(STRIP+1, top[0])]
+        def at(t):
+            for (a,va),(b,vb) in zip(hold, hold[1:]):
+                if a <= t <= b: return va + (vb-va)*(t-a)/(b-a)
+        strip_curve = [round(at(t),4) for t in range(STRIP)]
+        assert all(strip_curve[t]==strip_curve[STRIP-1-t] for t in range(STRIP))
+        assert all(strip_curve[t]==v for t,v in top.items())
+        begin = opp + first*STRIP
+        put('ribbon', begin, 29+36, laps*STRIP, .85)      # it lets go on the thumb's first strip
+        # The engine reaches point k of a path at (k+1)/N of the note (benched:
+        # with a point for each tick AND one for the end, the first strip ran a
+        # tick late and the last a quarter). So N is the note's ticks, and
+        # point k is where the line should be at tick k+1.
+        ev['ribbon'][-1]['expr_path'] = {'ribbon': (strip_curve*laps + [strip_curve[0]])[1:]}
+        # An unbroken tone over single-string riffs carries further than the
+        # same fader does over the closing chords: at the track's level it stood
+        # 9.8 dB under the band, where the signature stands 14.1 under.
+        ev['ribbon'][-1]['gain'] = PALINDROME_TRIM
     if facing:
         # THE FACING PAGE. Close a book on wet ink and the other page takes its
         # mirror image. The song's first six strips (the pencil's four, then
@@ -413,8 +456,9 @@ if __name__=='__main__':
     ap.add_argument('--without-picking-hand',action='store_true',help='regenerate v5')
     ap.add_argument('--without-signature',action='store_true',help='regenerate v6')
     ap.add_argument('--without-ties',action='store_true',help='regenerate v7, without the two common-tone handoffs')
-    ap.add_argument('--without-facing-page',action='store_true',help='regenerate v8, ending on the signed chord'); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page)
+    ap.add_argument('--without-facing-page',action='store_true',help='regenerate v8, ending on the signed chord')
+    ap.add_argument('--without-palindrome',action='store_true',help='regenerate v9, without the ribbon over the opposed guitars'); a=ap.parse_args()
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
