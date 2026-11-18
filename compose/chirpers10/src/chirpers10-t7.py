@@ -113,6 +113,13 @@ LIFT = os.environ.get("C10T7_LIFT", "3") if SMALLER and PEEL else ""
 # track gain ; hall send ; the roll's strokes, first:last, in dB under a plain stroke ("" = one stroke on G flat, no roll,
 # no pedal). "" = v12.
 KETTLE = os.environ.get("C10T7_KETTLE", "-12dB;-12dB;-22:-8") if LIFT else ""
+# v14: the opening says the rule's two letters on two sides. For the first
+# cell of 55 sixteenths (0:00 to 0:10.3, before the log drum takes the short
+# cells) the chords and ringing strings are still both guitars; of the
+# clipped strokes, the ones in long cells are the left guitar's alone and the
+# ones in short cells the right's: thirteen to eight. "1" as said; "2" swaps
+# the sides at the crash on 34. Empty restores v13.
+SIDES = os.environ.get("C10T7_SIDES", "1") if KETTLE else ""
 
 
 def nm(n):
@@ -614,6 +621,20 @@ def two_common_tones():
     add("wl", back, carry - .5, ",".join(nm(F1 + i) for i in (24, 31)), .96)
 
 
+def letters_on_two_sides():
+    """Long cells left, short cells right, for the song's first cell of 55. Nothing is added."""
+    s0, end = SECS[0][0], SECS[0][0] + SIZE[6][0]
+    turn = s0 + SIZE[5][0] if SIDES == "2" else end
+    def stays(track, n):
+        p = round(n["at"] * 4)
+        if not s0 <= p < end or not n.get("expr"):
+            return True                                # chords, ringing strings and everything after
+        side = ("gl", "gr")[(at_size(0, p)[1] == "S") != (p >= turn)]
+        return track == side
+    for tr in ("gl", "gr"):
+        T[tr] = [n for n in T[tr] if stays(tr, n)]
+
+
 def song():
     compose()
     if PIVOT:
@@ -624,6 +645,8 @@ def song():
         one_size_smaller()
     if KETTLE:
         kettles()
+    if SIDES:
+        letters_on_two_sides()
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
