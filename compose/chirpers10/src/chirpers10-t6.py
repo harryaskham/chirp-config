@@ -511,8 +511,42 @@ def periodic_tines():
         T[tr] = [n for n in T[tr] if not any(a <= n["at"] < b for a, b in exchanges)]
 
 
+# v11: the right player's harmonic is tuned by the number of unoccupied slots.
+# Once the cell is full enough to shuffle, the thumb lifts for a fretted G.
+# A song-local clean rig, dry enough to stop in the gaps. Empty restores v10.
+GROWTH_TOUCH = os.environ.get("C10T6_GROWTH_TOUCH", "-3dB")
+
+
+def growth_harmonics():
+    end = AT['one']
+    touch_only, single = set(), {}
+    for c in range(AT['growth'], end):
+        slots, ai, r = cell(CELLS[c][3])
+        if not slots:
+            continue                    # no pitched sound before the first occupied slot
+        hit = slots[ai]
+        stop = slots[ai + 1] if ai + 1 < len(slots) else len(PRI)
+        partial = 1 + len(PRI) - len(slots)
+        # Touch a node on the actual fretted string, not a higher MIDI note.
+        # The string rings up to the orbit's next stroke, never across it.
+        contact = min(1., (end - 1 - c) / 4)
+        pitch = note(r) + gup(c)
+        add('touch', c, hit, stop - hit - .12, pitch, .93, node=partial, contact=contact)
+        at = T['touch'][-1]['at']
+        if contact == 1:
+            touch_only.add(at)
+        elif contact >= .5:
+            single[at] = nm(pitch)
+    # The left player arrives with just the low shuffle, not another attack
+    # masking the harmonic. Its accents come back as roots and then fifths.
+    T['gl'] = [dict(n, pitch=single[n['at']]) if n['at'] in single else n
+               for n in T['gl'] if n['at'] not in touch_only]
+
+
 def song():
     compose()
+    if GROWTH_TOUCH:
+        growth_harmonics()
     if TINES:
         periodic_tines()
     if KIT:
@@ -550,6 +584,11 @@ def song():
            {"name": "dcym", "patch": "ct-kit-here", "gain": kt[2], "out": "kit", "sends": {"oh": "4.5dB"},
             "fx": [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]}] if KIT else []),
     ]
+    if GROWTH_TOUCH:
+        tracks.append({'name':'touch', 'pan':.52, 'gain':GROWTH_TOUCH,
+                       'patch':'ct-clean synth.layers.0.node=expr.node synth.layers.0.pinch=expr.contact '
+                               'synth.layers.0.pickup=0.075 synth.layers.0.soft=1 synth.layers.0.choke=55ms '
+                               'synth.amp.r=45ms play.gate=1 fx.3.mix=0'})
     if TINES:
         patch = "rhodes synth.amp.s=0.35 synth.amp.r=90ms fx.2.mix=0.04"
         high, low = (float(v) for v in TINES.split(";"))
