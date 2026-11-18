@@ -72,6 +72,11 @@ CADENCE = os.environ.get('C10T9_CADENCE', '1' if CLUTCH else '')
 # v11: inside the F lock, fret the two coming answers on the high strings of
 # the existing wall pair. Empty = v10; the published older switches still work.
 FORETELL = os.environ.get('C10T9_FORETELL', '1' if CADENCE else '')
+# v12: the last seven beats of the lock play 7, 6, 5, 4, 3, 2 and 1 strokes:
+# 28 strokes, four whole cells, the head due on the slow chords. "plain"
+# keeps the lock's single notes; any other value thickens them on the way down.
+# Empty = v11; the published older switches still work.
+GEAR = os.environ.get('C10T9_GEAR_DOWN', '1' if FORETELL else '')
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
 ROOTS = [(0, 0)]
@@ -174,6 +179,39 @@ def deal(b0, beats, k, gtrs, low=True, root=0, chords="", cut=False):
         else:
             add("bass", at, (0.68 if mute else 1) / k, midi, vel)
             drum("k", at, vel)
+
+
+def gear_down(b0, root, cell0):
+    """Every speed of the song, fastest first, one beat each. The riff never restarts."""
+    strokes = []
+    for step, k in enumerate(range(N, 0, -1)):
+        for j in range(k):
+            i = len(strokes)
+            kind = CELLS[(cell0 + i // N) % len(CELLS)][i % N]
+            strokes.append((b0 + step + j / k, k, kind))
+    low = []                                     # the bass and foot do what they did at each speed
+    for at, k, kind in strokes:
+        part = kind if kind in ("o", "c") else "h"
+        mute = part == "c"
+        midi = F1 + root + (0 if part != "h" else int(kind))
+        vel = 0.82 if mute else 1.0 if part == "o" else 0.95
+        chords = "o" if GEAR == "plain" or k > 5 else "oh" if k > 3 else "ohc"
+        pitch = midi
+        if part in chords:
+            pitch = ",".join(nm(midi + x) for x in ((0, 7) if mute else (0, 7, 12)))
+        for tr in ALL:
+            add(tr, at, (0.65 if mute else 1) / k, pitch, vel, **({"pm": 1} if mute else {}))
+        if k == N:
+            if part == "o":
+                low.append((at, 1, midi, 0.96, 1))
+        elif k >= 3:
+            if not mute:
+                low.append((at, (3 if part == "o" else 2) / k, midi, 0.93, 0.97 if part == "o" else 0.86))
+        else:
+            low.append((at, (0.68 if mute else 1) / k, midi, vel, vel))
+    for (at, length, midi, vel, foot), nxt in zip(low, low[1:] + [(b0 + N,)]):
+        add("bass", at, min(length, nxt[0] - at), midi, vel)
+        drum("k", at, foot)
 
 
 def beat(b0, b1, cym="x", vel=0.5, snare=(1, 3)):
@@ -394,7 +432,9 @@ def compose():
     if FORETELL:
         chord_before_the_line(b)
     ROOTS.append((b + 32, 3))
-    deal(b + 32, 24, 7, ALL, root=3, chords="o", cut=bool(CUT))
+    deal(b + 32, 24 - (N if GEAR else 0), 7, ALL, root=3, chords="o", cut=bool(CUT))
+    if GEAR:
+        gear_down(b + 56 - N, 3, 24 - N)
     drum("c", b + 32, 0.9)
     for j in range(4, 56, 4):
         if j != 32:
@@ -404,7 +444,8 @@ def compose():
     # one to the beat again, every note a chord
     MARKS.append(("one again", b))
     ROOTS.append((b, 0))
-    fill(b)
+    if not GEAR:
+        fill(b)                                  # the gears are the fill now
     deal(b, RUNG, 1, ALL, chords="ohc")
     beat(b, b + RUNG, snare=(2,))
     for j in range(0, RUNG, N):
