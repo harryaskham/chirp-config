@@ -499,6 +499,12 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 
 **The organ knows first.** From 0:40 a harmonium breathes four times to the riff while the drummer is still playing six. At 1:30 the distorted guitars step away and the organ plays just their two answer notes, given room to swell. From 1:50 a second pair of guitars puts the ringing notes just ahead of the feet. At 2:20 the drummer switches counts after four cells, then two, then every cell, before the original open notes come home as chords with the mutes mostly left out. A two-cell cadence brings D♭ down through C to B♭.
 
+## t12 The Other Hand (v1 by chirper-two)
+
+**A strip read from both ends.** The open notes are F–A♭–G♭–C, four colours of the album hook, on sixteenths 0, 3, 10 and 15 of a strip of nineteen. Five low palm strokes are the spaces between the words. At 0:44 the right guitar starts at the other end, attacking on `18 − t` with the original note and touch. Now the two open attacks that coincide make A♭ against C and then C against A♭. The bass underlines those two strokes on low F; the drummer keeps four at 104. It takes sixteen strips to get back to the same downbeat.
+
+**The tune without the metal.** First a wordless VOSIM voice sketches one hand and a clean string answers. At 1:50, up a minor third, the heavy band goes out: every strip the vowel and the string exchange directions, with the vowel jumping an octave for just one exchange. A floor tom and high tom pick out the two crossings before the guitars take them back as chords. At 3:23 both guitarists play the *backward* riff together and the muted strokes fall out of it. The cadence is its four open notes, C–G♭–A♭–F.
+
 ## t13 Where It Was (v1 by chirper-one)
 
 **The shape and the holes.** E♭–C–A♭–F, four of the record's hook notes falling home. One cell of eleven triplet eighths: the tune strikes on 0, 3, 7, 9. Its negative is a low F on 1, 2, 4, 5, 6, 8, 10. The kit keeps four at 96 BPM; twelve cells land back on the bar after eleven bars. A scanned mallet rings the tune in the opening. Two gated guitars take it at 0:10. From 0:37.5 they give one note at a time back to the mallet and palm-mute the strokes between instead. At 1:05 even the mallet stops. The tune is now four rests.
