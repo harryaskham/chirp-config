@@ -77,6 +77,17 @@ FORETELL = os.environ.get('C10T9_FORETELL', '1' if CADENCE else '')
 # keeps the lock's single notes; any other value thickens them on the way down.
 # Empty = v11; the published older switches still work.
 GEAR = os.environ.get('C10T9_GEAR_DOWN', '1' if FORETELL else '')
+# v13 palette: only at one stroke to the beat does a note last long enough to
+# be HELD. Each speed on the way up had a guest of its own (open hat, ride
+# bell, baritone and clavinet, the tap). The return to one gets a pipe organ:
+# no other song on the record has one. It holds the riff's three pitches for
+# 3 + 2 + 2 beats over the first two cells of the slow chords: principals and
+# mixture, no reed. The opening stays two guitars and a hat.
+# Note gain. Empty restores v12.
+WIND = os.environ.get('C10T9_WIND', '-6dB' if GEAR else '')
+# (With the pipes the loudness target is PIPE_LUFS, not -10: they add a little
+# to the song, and every bar without them should keep v12's mastering gain.)
+PIPE_LUFS = -9.98
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
 ROOTS = [(0, 0)]
@@ -380,6 +391,18 @@ def crossbeat(b):
             else: drum('s', at, (.72,.83,.97)[j] if bar==4 else .88)
 
 
+def hold_the_ones(b):
+    """Two cells: the open F for its three beats, each answer through its mute.
+    What the bass does from three to the beat on, a pipe can do at one."""
+    for cell, strokes in enumerate(CELLS):
+        heads = [i for i, k in enumerate(strokes) if k != 'c']
+        assert heads == [0, 3, 5]
+        for i, end in zip(heads, heads[1:] + [N]):
+            midi = F1 + 24 + (0 if strokes[i] == 'o' else int(strokes[i]))
+            add('wind', b + cell*N + i, end - i - .1, midi, .8)
+            T['wind'][-1]['gain'] = WIND
+
+
 def fill(b):
     """The last two beats before beat b."""
     for i, pc in enumerate(["t1", "t1", "t2", "t2", "ft", "ft", "s", "s"]):
@@ -450,6 +473,8 @@ def compose():
     beat(b, b + RUNG, snare=(2,))
     for j in range(0, RUNG, N):
         drum("c", b + j, 0.95 if j == 0 else 0.8)
+    if WIND:
+        hold_the_ones(b)
     b += RUNG
     MARKS.append(("one chord", b))
     for tr in ALL:
@@ -491,6 +516,10 @@ def song():
     if CROSS:
         tracks.append({"name": "crossbell", "patch": kit, "gain": CROSS.split(';')[0], "pan": 0.30,
                        "out": "drums", "sends": {"oh": "0dB"}, "fx": air})
+    if WIND:
+        # The library's cathedral rings for 5.5 s. A smaller room: the review
+        # excerpt that follows these pipes (2:53.2) must stay dry.
+        tracks.append({"name": "wind", "patch": "organ-pipe fx.0.decay=1.6s fx.0.mix=0.22", "gain": "0dB", "pan": 0.1})
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
 
@@ -515,7 +544,7 @@ def song():
                   "and locks. The bass and kick walk in quarters underneath. Then once more at one to the beat, every stroke a chord. "
                   "v1 is the skeleton.") + (" At four to the beat the two hook notes pass between a baritone guitar and a clavinet; they exchange roles halfway." if HANDS else "")
                  + (" One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then the original two guitars play the last cell before everyone lands on F." if RING else ""),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}, **({'hp': {'gain': CROSS.split(';')[1]}} if CROSS else {}),
                             **({'oh': {'patch':'haake-hat amp.d=1.05s amp.r=180ms amp.curve=2.2',
                                        'gain':CLUTCH,'pan':-.45,'choke':'hat'}} if CLUTCH else {})}},
