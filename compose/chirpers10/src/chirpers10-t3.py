@@ -444,6 +444,21 @@ FIRST = os.environ.get('C10T3_FIRST', '100:118;4;4;0.75;0.95' if ROWTIME and TRE
 # it is 12 under: the landing stays the larger event.)
 # the tower's rows ; its fader while it rings over the band, dB (the landing's is BELL_LAND). "" = v25.
 NEARLY = os.environ.get('C10T3_NEARLY', '6;-9' if FIRST and TOWERHUNT and TREBLE and FORM else '')
+# v27: THE PAIR (section round, w6; 2:44.5-2:54.5, the second extent's second lead, which the map still calls static).
+# Grandsire is the method in which TWO bells hunt, and they hunt as a pair: the bell in the hunt walks the treble's own
+# path through the row, two rows behind it. Since v13 the second one has been marked (an open note, its tom, since v15
+# its own small bell) but every guitar still played both in unison with the riff: two accents, never a chord. For
+# this one lead, the first in which the second bell is marked, the inner guitars play each of the two hunting bells
+# as its PARTNER's note, an octave up: over the treble's long E flat they hold C (a sixth), and on the bell in the
+# hunt's C they strike E flat (a tenth). So the pair is heard as a pair: wherever either of them is in the row, both
+# notes sound, and with the tenor's F under them they are the open fifth and seventh of the ground. It is the second
+# cycle's first harmony, a minute before the harmony guitars (3:47), and it is made of nothing but the two bells the
+# method singles out. The outer guitars, the bass and the kit play what they played; after the bob at 2:54.5 a
+# different bell goes into the hunt and the inner pair turns to the crossings (v20).
+# One note to an amp (the outer pair keeps the written note, the inner pair has the partner's), so no amp has a chord
+# to grind. No note is added, removed or moved: sixteen notes on each inner guitar change pitch.
+# the rows of the second extent ; semitones over the partner's written note ; trim on those notes, dB. "" = v26.
+PAIR = os.environ.get('C10T3_PAIR', '10:18;12;0' if NEARLY and HUNT2 and CROSS else '')
 NEAR_END = PART2 * 4 + 38 * L2 / 4                 # beats: where the fourth lead's bob starts
 NEAR_AT = NEAR_END - 3 * int(NEARLY.split(';')[0]) if NEARLY else NEAR_END
 NEARLY_PTS = [[f"{NEAR_AT - 1:g}b", 0], [f"{NEAR_AT:g}b", float(NEARLY.split(';')[1])],
@@ -484,7 +499,7 @@ def coming_pairs(extent, k, hunt=0):
     return pairs
 
 
-def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teeth=False, mode="", trs=None, hunt=0, ring2=0, pairs=None):
+def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teeth=False, mode="", trs=None, hunt=0, ring2=0, pairs=None, partner=0):
     """One row on the band from `s16`: the five bells in the row's order, then the tenor. The treble is open and loud
     and w[0] sixteenths long; the tenor is w[1] muted chugs; every other bell one muted sixteenth. The kick goes with
     the treble and each of the tenor's chugs (`all`: on every sixteenth); a church bell doubles the treble three
@@ -516,7 +531,13 @@ def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teet
                 if pairs is not None and (hunt or ring2) and tr in ("gl2", "gr2"):
                     if b not in (1, hunt, ring2) and not (b == 6 and j == n - 1):
                         continue
-                if b == 1 or call:
+                if partner and b in (1, partner) and tr in ("gl2", "gr2") and not call:
+                    # v27: each hunting bell as its partner's note, above the outer pair's written one
+                    add(tr, t + j, n if b == 1 else 1, F1 + root + PITCH[partner if b == 1 else 1] + int(PAIR.split(";")[1]),
+                        v if b == 1 else float(HUNT2.split(";")[2]))
+                    if float(PAIR.split(";")[2]):
+                        T[tr][-1]["gain"] = f"{float(PAIR.split(';')[2]):g}dB"
+                elif b == 1 or call:
                     add(tr, t + j, n if b == 1 else 1, F1 + root + PITCH[b], v)
                 elif b == hunt:                             # v13: the bell in the hunt is left open
                     add(tr, t + j, 1, F1 + root + PITCH[b], float(HUNT2.split(";")[2]))
@@ -805,13 +826,16 @@ def compose():
     # the second extent: Grandsire Doubles, on F, Ab and C
     h0, h1 = (int(x) for x in HUNT2.split(";")[0].split(":")) if HUNT2 else (0, 0)
     hunting = in_the_hunt(EXTENT_2) if HUNT2 or TREBLE else []
+    p0, p1 = (int(x) for x in PAIR.split(";")[0].split(":")) if PAIR else (0, 0)
+    assert not PAIR or (h0 <= p0 and p1 <= h1 and p1 <= 20 and len(set(hunting[p0:p1])) == 1), "one marked pair, before the crossings"
     for k, row in enumerate(EXTENT_2):
         row_notes(row, PART2 * 16 + k * L2, KEYS_2[k // 40], W2, kicks="all" if k >= 80 else "hunt",
                   gtrs=not FUZZ or k >= int(FUZZ.split(";")[3]), teeth=bool(FUZZ),
                   mode=lead_mode(k, CALLS_2) or ("bare" if bare[0] <= k < bare[1] else ""),
                   trs=G4B if RIG2 and k >= int(RIG2.split(";")[5]) else G4,
                   pairs=coming_pairs(EXTENT_2, k, hunting[k] if hunting else 0),
-                  **({"hunt": hunting[k]} if h0 <= k < h1 else {}), **({"ring2": hunting[k]} if TREBLE else {}))
+                  **({"hunt": hunting[k]} if h0 <= k < h1 else {}), **({"ring2": hunting[k]} if TREBLE else {}),
+                  **({"partner": hunting[k]} if p0 <= k < p1 and k % 10 < 8 else {}))
     if NEARLY:                           # v26: the tower hears home coming, a change before the bob
         nearly_home()
     if FUZZ and FORM and int(FUZZ.split(";")[3]) % 10 not in (8, 9, 0):     # v10: the guitars' entry is not at a home any more: its own crash
