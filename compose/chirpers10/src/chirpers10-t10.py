@@ -10,6 +10,7 @@ a wave terrain marks where the reply actually arrives. They part, then meet.
 """
 import argparse
 import json
+import os
 from collections import defaultdict
 from pathlib import Path
 
@@ -22,6 +23,10 @@ FORM = [('at par', [0]*3), ('in hand', [0]*5), ('on account', list(range(MAX_DEB
         ('square', [0]*5), ('the receipt', [0])]
 NOTES = 'C Db D Eb E F Gb G Ab A Bb B'.split()
 OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers10-t10.yaml'
+# v2: the length of the reply picks its player in 'across the line' alone.
+# Bowed lyre on the left, picked guitar on the right. As the two clocks
+# converge the guitars rejoin from the end of the phrase. Empty = v1 exactly.
+TRADE = os.environ.get('C10T10_TRADE', '-5')
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -100,11 +105,36 @@ def build():
                         kit(piece,t+pair-4+i,.53+i*.10)
                 t+=pair; continue
 
+            trade = bool(TRADE) and s == 'across the line'
+            # Each smaller swing starts on a new low chord. The answer stays
+            # Gb-F-C-Eb against them all; the call comes home as the hands meet.
+            call_root = root + (5,3,-2,0)[j//2] if trade else root
+            # Four swings on either side of the midpoint. With each swing let
+            # another note at the END of the answer belong to the whole band.
+            heads = [(pos,semi) for pos,_,semi,how in REPLY if how!='m'] if trade else []
+            reunited = {pos for pos,_ in heads[len(heads)-j//2:]} if trade else set()
+            # Keep a quarter-note hat under the early bow. The china and snare
+            # return with the reunited tail, sooner each time.
+            lay_out_until = turn + min(reunited, default=BAR)*(pair-width)/BAR
+            if trade and d < 0:
+                # Time for a bass note to ring: Bb, Db, Ab, home to Eb under
+                # successive long answers, instead of doubling their four pitches.
+                note('bass',turn,pair-width-.55,root+(7,10,5,0)[j//2],.91)
+                # Bow through the spaces where the guitars palm-mute. The four
+                # pitches and their stretched onsets are the SAME reply; the
+                # duration changes from a pick stroke to a breath of the bow.
+                for i,(pos,semi) in enumerate(heads):
+                    end = heads[i+1][0] if i+1 < len(heads) else BAR
+                    pitch = root+semi+12
+                    if i==len(heads)-1 and j==len(debts)-1:
+                        pitch = chord(pitch,pitch+7)  # let the fifth lead home
+                    note('bow',turn+pos*(pair-width)/BAR,(end-pos)*(pair-width)/BAR-.32,
+                         pitch, (.92,.87,.82,.90)[i])
             for back, (pattern,at,w) in enumerate(((CALL,t,width),(REPLY,turn,pair-width))):
                 for ix,(p0,gate,semi,how) in enumerate(pattern):
                     hit = at+p0*w/BAR
                     dur = gate*w/BAR
-                    pitch = root+semi
+                    pitch = (root if back else call_root)+semi
                     mute = how=='m'
                     vel = (.76 if mute else .92) if p0 else .99
                     if s=='at par':
@@ -118,6 +148,9 @@ def build():
                     # Low Eb call, high Gb answer. In the first crest the right
                     # hand lets its reply ring instead of adding more mutes.
                     for side in ('left','right'):
+                        if trade and back and p0 not in reunited:
+                            if mute and (side=='right' or (d<0 and hit<lay_out_until)): continue
+                            if not mute and (d<0 or side=='left'): continue
                         if s=='called in' and j<3 and side=='right' and not back: continue
                         if s=='still owing' and side=='right' and back and mute: continue
                         voiced = chord(pitch,pitch+7) if how=='o' else pitch
@@ -125,14 +158,16 @@ def build():
                             voiced=chord(pitch,pitch+7)
                         note(side,hit,dur,voiced,vel,**({'pm':1} if mute else {}))
                     # Bass keeps the hook's accents clear, not a second fast solo.
-                    if not mute:
+                    long_answer = trade and back and d<0
+                    if not mute and not long_answer:
                         bp = pitch-12 if back and semi>=12 else pitch
                         note('bass',hit,dur,bp,vel-.05)
                     elif not back and s not in ('called in','square'):
-                        note('bass',hit,dur*.84,root,.78)
+                        note('bass',hit,dur*.84,call_root,.78)
                     if (not back and (not mute or ix in (1,2))) or (back and (p0==0 or (s in ('still owing','across the line') and not mute))):
-                        kit('k',hit,vel)
-                    if s in ('still owing','across the line') and how=='o':
+                        if not long_answer or p0 in (0,REPLY[-1][0]):
+                            kit('k',hit,vel)
+                    if s in ('still owing','across the line') and how=='o' and not (trade and back and j<6):
                         note('weight',hit,dur,chord(pitch,pitch+7),.93)
                     if s=='square' and back and not mute:
                         note('clean',hit,dur,pitch+24,.90)
@@ -142,6 +177,9 @@ def build():
                 q = t+i*SUB
                 if s=='at par' and j<2: continue
                 if s in ('called in','at par') and i%2: continue
+                if trade and d<0 and turn<=q<lay_out_until:
+                    kit('h',q,.56 if i%4==0 else .44)
+                    continue
                 kit('x' if s=='across the line' else 'rde' if s=='still owing' else 'h',q,.57 if i%4==0 else .47)
                 snare_beats = (1,3) if s in ('still owing','across the line') else (2,)
                 if i%4 in snare_beats:
@@ -164,6 +202,9 @@ def build():
             track('rule','piano-additive',-9,-.35), track('tally','owing-key',-9,.38,sends={'spring':'-15dB'}),
             track('kick','ct-kit',2,out='drums',fx=['peak cutoff=4100 q=0.85 gain=6dB']),
             track('snare','ct-kit',3,out='drums'), track('metal','ct-kit',2,out='drums'),track('skins','ct-kit',2,out='drums')]
+    if TRADE:
+        tracks.append(track('bow','tagelharpa-bass-bowed synth.amp.r=80ms fx.0.mix=0.035',
+                            float(TRADE),-.66,fx=['hp cutoff=120']))
     assert not voices
     key_patch={'about':'Still Owing: the reply marker. Its orbit opens in proportion to the sixteenths borrowed in this pair.',
       'synth':{'amp':{'a':'2ms','d':'450ms','s':.2,'r':'95ms'},'layers':[{'type':'terrain','terrain':{

@@ -495,6 +495,8 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 
 **Two clocks.** Dry piano on the original middle of the pair; a struck wave-terrain key at the start of the actual answer. At 1:30 the heavy guitars stop. The keys, six ticks apart, approach to four, two, then strike together. The band goes past the middle in the other direction. From 2:17 the answer alternates late and early until both halves are square again. The clean guitar carries the four hook notes home above the low chords.
 
+**The picked and bowed answers (v2, 2:17–2:51).** The short, late G♭–F–C–E♭ is picked on the right. When the same answer comes early it lasts long enough to bow: a horsehair lyre on the left draws the four notes through the spaces between strokes. The bass holds B♭, D♭, A♭, then E♭ under the four long replies. The hat keeps time while the snare and china lay out. At each smaller displacement the guitars take one more note back from the end (none, E♭, C–E♭, F–C–E♭), and the drums come back with them. The low calls move A♭–G♭–D♭–E♭; the four-note answer does not transpose.
+
 ## t11 On Its Hinge (v1 by chirper-zero)
 
 **One riff with two walks.** Twelve eighths in B♭: two clipped pedal strokes lift into D♭, then a late F (C every fourth time). The same span fits six quarters at 144 or four dotted quarters at 96. At 1:00 the drummer steps from one to the other. The four cells just before and after contain identical written guitars, bass, organ **and kick**; the hat plays 24 then 16 strokes and the snare 12 then 8. The new beat comes from the backbeat, not a tempo change.
