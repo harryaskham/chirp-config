@@ -369,6 +369,9 @@ SIXTHS = os.environ.get("C10T3_SIXTHS", "70;4") if HARM else ""
 # these rows is the SAME bell. The two inner guitars stop doubling and ring it
 # to each other. Main guitars, bass, kick, snare and actual bells keep the grid.
 HANDSTROKE = os.environ.get("C10T3_HANDSTROKE", "1") if W1 == (2, 2) else ""
+# v20: hear the pair *about to swap* as an interval on the inner guitars.
+# Incoming bell's register above the row; empty restores v19.
+CROSS = os.environ.get("C10T3_CROSS", "12" if HANDSTROKE else "")
 
 
 def lead_mode(k, calls):
@@ -390,7 +393,22 @@ def drum(piece, s16, vel):
     T.setdefault(tr, []).append({"at": round(s16 / 4, 4), "len": 2.0 if piece in ("c", "x") else 0.5 if piece in ("h", "rb", "rd") else 0.25, "pitch": piece, "vel": round(vel, 3)})
 
 
-def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teeth=False, mode="", trs=None, hunt=0, ring2=0):
+def coming_pairs(extent, k, hunt=0):
+    """For ordinary rows of leads three and four: two bells which trade places
+    in the next row. Sound both at the first place; neither reattacks at the
+    second. The hunting bell(s), home rows and calls keep their own accents.
+    """
+    if not CROSS or not (20 <= k < 38 and k % 10 < 8):
+        return None
+    pairs = {}
+    row, after = extent[k:k + 2]
+    for i, (a, b) in enumerate(zip(row, row[1:])):
+        if 1 not in (a, b) and hunt not in (a, b) and after[i:i + 2] == (b, a):
+            pairs[a], pairs[b] = (a, b), ()
+    return pairs
+
+
+def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teeth=False, mode="", trs=None, hunt=0, ring2=0, pairs=None):
     """One row on the band from `s16`: the five bells in the row's order, then the tenor. The treble is open and loud
     and w[0] sixteenths long; the tenor is w[1] muted chugs; every other bell one muted sixteenth. The kick goes with
     the treble and each of the tenor's chugs (`all`: on every sixteenth); a church bell doubles the treble three
@@ -408,6 +426,20 @@ def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teet
             for tr in ((trs or G4) if gtrs else ()):
                 if bare and b not in (1, 6):
                     continue
+                if pairs and b in pairs and tr in ("gl2", "gr2"):
+                    if pairs[b]:
+                        # One bell per amp: the outgoing bell on the left,
+                        # the incoming one already sounding above it on the right.
+                        a, incoming = pairs[b]
+                        pitch = PITCH[a] if tr == "gl2" else PITCH[incoming] + int(CROSS)
+                        add(tr, t, 1.9, F1 + root + pitch, 0.94)
+                    continue
+                # Grandsire's two hunting bells leave fewer working pairs to
+                # cross. Give those few chords space: between them, the inner
+                # amps ring just the two hunters and the tenor's final stroke.
+                if pairs is not None and (hunt or ring2) and tr in ("gl2", "gr2"):
+                    if b not in (1, hunt, ring2) and not (b == 6 and j == n - 1):
+                        continue
                 if b == 1 or call:
                     add(tr, t + j, n if b == 1 else 1, F1 + root + PITCH[b], v)
                 elif b == hunt:                             # v13: the bell in the hunt is left open
@@ -544,7 +576,7 @@ def compose():
         split = HANDSTROKE and 80 <= k < 100 and k % 10 < 8
         row_notes(row, s16, root, W1, kicks="all" if k >= 80 else "hunt",
                   mode=lead_mode(k, CALLS_1) or ("bare" if bare[0] <= k < bare[1] else ""),
-                  trs=G4[:2] if split else None)
+                  trs=G4[:2] if split else None, pairs=coming_pairs(EXTENT_1, k))
         if split:
             handstroke(k, s16, root)
     for i, kind in enumerate("abc"):
@@ -575,6 +607,7 @@ def compose():
                   gtrs=not FUZZ or k >= int(FUZZ.split(";")[3]), teeth=bool(FUZZ),
                   mode=lead_mode(k, CALLS_2) or ("bare" if bare[0] <= k < bare[1] else ""),
                   trs=G4B if RIG2 and k >= int(RIG2.split(";")[5]) else G4,
+                  pairs=coming_pairs(EXTENT_2, k, hunting[k] if hunting else 0),
                   **({"hunt": hunting[k]} if h0 <= k < h1 else {}), **({"ring2": hunting[k]} if TREBLE else {}))
     if FUZZ and FORM and int(FUZZ.split(";")[3]) % 10 not in (8, 9, 0):     # v10: the guitars' entry is not at a home any more: its own crash
         drum("c", PART2 * 16 + int(FUZZ.split(";")[3]) * L2, 0.85)
