@@ -69,6 +69,9 @@ STICKS = os.environ.get("C10T8_STICKS", "1")
 # v7: a different left-hand string spans exactly the length about to be
 # subtracted, never the surviving tail. Track gain; empty restores v6.
 SPAN = os.environ.get('C10T8_SPAN', '-11dB' if STICKS else '')
+# v8: count the shorter riff on the china, play the leftover tail on a güiro.
+# Empty = v7; the published SPAN and earlier rollback switches still work.
+SCRAPER = os.environ.get('C10T8_SCRAPER', '-3dB' if SPAN else '')
 
 
 def nm(n):
@@ -389,6 +392,55 @@ def compose():
     return s + 32
 
 
+def measure_the_shell(doc):
+    """Let the china state the five-beat measure, then give B's remaining three beats to wood."""
+    left, right = PAIRS[1]  # 20 against 32 sixteenths, i.e. five beats inside eight
+    a, b = len(left), len(right)
+    assert a % len(G) == b % len(G) == 0
+    pair_at = next(t for name,t in MARKS if name == f'{a} against {b}')
+    start, stop = pair_at + b, pair_at + 4*b
+    cym = next(t for t in doc['tracks'] if t['name']=='cym')
+    tail = right[a:]
+    assert tail == PAIRS[2][1] and tail[-len(G):] == G
+    def in_answer(n):
+        tick = round(n['at']*4)
+        return n['pitch']=='x' and start <= tick < stop and (tick-start) % b >= a
+    assert sum(map(in_answer,cym['notes'])) == 3*len(tail)//len(G)
+    cym['notes'] = [n for n in cym['notes'] if not in_answer(n)]
+    hits = []
+    for s in range(start,stop,b):
+        strokes = 0
+        for i,k in enumerate(tail):
+            beat = (s+a+i)/4
+            if k.isdigit():
+                # Five ridges in one sweep. Push, pull, push on B's three
+                # rising notes, not on three quarter notes. The last is shorter.
+                forward = (0,.075,.126,.163,.193)
+                ridges = forward if strokes%2==0 else [forward[-1]-t for t in reversed(forward)]
+                for dt,v in zip(ridges,(.68,.84,1,.84,.60)):
+                    hits.append({'at':round(beat+dt*(.76 if strokes==2 else 1),4),
+                                 'len':.057,'pitch':'ridge','vel':round(v*(.83,.9,1)[strokes],3)})
+                strokes += 1
+            elif k in ('o','c'):
+                # The four-place common cell: knock, hold, two clipped knocks.
+                hits.append({'at':beat,'len':.28 if k=='o' else .12,'pitch':'shell',
+                             'vel':.94 if k=='o' else .80 if i==len(tail)-1 else .68})
+    doc['patches']['cm-gourd'] = {
+        'about':'One hollow gourd: a stick drawn over five ridges, then its handle knocking the shell.',
+        'kit':{
+            'ridge':{'pitch':'G5','gain':'-2dB','patch':{'synth':{
+                'layers':[{'type':'noise','level':'-2dB'}, {'wave':'sine','level':'-14dB'},
+                          {'wave':'sine','ratio':2.37,'level':'-7dB'}],
+                'filters':['hp cutoff=780','lp cutoff=8500'],
+                'amp':{'a':'0.5ms','d':'29ms','s':0,'r':'11ms'}}}},
+            'shell':{'pitch':'G4','patch':{'synth':{
+                'layers':[{'type':'additive','partials':[[1,.85],[2.37,.7],[4.12,.33]]},
+                          {'type':'noise','level':{'value':'-54dB','mod':[{'src':'env.wood','amount':40}]}}],
+                'env':{'wood':{'a':'0.3ms','d':'7ms','s':0}},
+                'amp':{'a':'0.5ms','d':'90ms','s':0,'r':'16ms','curve':3}}}}}}
+    doc['tracks'].append({'name':'gourd','patch':'cm-gourd','gain':SCRAPER,'pan':.18,'out':'drums','notes':hits})
+
+
 def song():
     total = compose()
     assert total % 16 == 0 and all(m[1] % 16 == 0 for m in MARKS)
@@ -444,7 +496,7 @@ def song():
         if r != prev:
             pts += [[f"{p / 4 - 0.02:g}b", prev], [f"{p / 4:g}b", r]]
             prev = r
-    return {
+    doc = {
         "about": ("chirpers X (Common Time), track 8 by chirper-zero: Common Measure. Two riffs of different lengths, 52 sixteenths on the "
                   "left guitar and 32 on the right, and Euclid's way of finding what measures both: take the less from the greater. "
                   "Each section the longer riff is cut down to what was left over, its own tail: 52 against 32, 20 against 32, 20 "
@@ -478,6 +530,9 @@ def song():
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": os.environ.get("C10T8_MASTER", "2.7dB")}]},
         "tracks": tracks,
     }
+    if SCRAPER:
+        measure_the_shell(doc)
+    return doc
 
 
 def dump(doc):
