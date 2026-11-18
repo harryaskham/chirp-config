@@ -28,7 +28,9 @@ def name(n):
     return PITCH[n % 12] + str(n // 12 - 1)
 
 
-def compose(phrase_return=True):
+def compose(phrase_return=True, recover=True):
+    # The published baselines are cumulative: --v1 disables both later rounds.
+    recover = recover and phrase_return
     parts = defaultdict(list)
     def put(tr, at, dur, p, v, mute=False):
         event = dict(at=round(at / SUB, 6), len=round(dur / SUB, 6),
@@ -84,6 +86,39 @@ def compose(phrase_return=True):
         say(8,2); say(10,1)        # then in two cells, then in one
         answer(11,1,stop=True)
 
+    def recovery(start, span):
+        """The glass chord occupies only the missing head. The bass finds a new note
+        at the end of one cell, then plays it in its proper place in the next."""
+        repeats, remainder = divmod(span, CELL*len(HEADS))
+        assert repeats >= 2 and remainder == 0
+        for i in range(repeats*len(HEADS)):
+            group, take = divmod(i, repeats)
+            first = len(HEADS)-1-group
+            a = start + i*CELL
+            if HEADS[first]:
+                dyad = ('F3,C4', 'Ab3,Eb4', 'Eb3,Bb3')[group]
+                put('glass', a, HEADS[first]-.65, dyad, .82)
+            pickup = take==repeats-1 and first>0
+            for j in range(first, len(HEADS)):
+                k = HEADS[j]; end = (HEADS+(CELL,))[j+1]
+                # Shorten F by one triplet tick to make a breath for the pickup.
+                if pickup and j==len(HEADS)-1: end -= 1
+                put('bass',a+k,end-k-.20,F+TUNE[j], .93 if j==first else .84)
+                # First time, the bassist says it alone. The ring remembers the
+                # old tail on the second turn and catches the newest note last.
+                if take and (j>first or take==repeats-1):
+                    put('ring',a+k,min(1.7,end-k-.25),F+TUNE[j]+24,.71)
+            if pickup:
+                put('bass',a+CELL-1,.78,F+TUNE[first-1],.86)
+        for beat in range(span//SUB):
+            i,k = divmod(beat*SUB,CELL); group,take = divmod(i,repeats)
+            first = len(HEADS)-1-group
+            if take==0 and k>=HEADS[first]: continue  # no tom over the discovery
+            q=beat%4
+            if q in (0,2): drums('ft' if q==0 else 't2',start+beat*SUB,.55 if q==0 else .4)
+        for off,piece in zip((3,2,1),('t1','t2','ft')):
+            drums(piece,start+span-off,.59+(3-off)*.1)
+
     start = 0
     for section, span in FORM:
         if section == 'chalk':
@@ -96,6 +131,8 @@ def compose(phrase_return=True):
                         put('glass', t, 1.75, F + 24 + TUNE[j], .79)
                 if b >= 1:
                     drums('ft', start + b * BAR, .52 + b * .08)
+        elif section == 'under glass' and recover:
+            recovery(start, span)
         elif section == 'one impression':
             # The four-note song, its proportions intact, twice as slow. No triplet ticks.
             for j, k in enumerate(HEADS):
@@ -197,7 +234,7 @@ def compose(phrase_return=True):
               track('snare','ct-kit',3,out='drums',sends={'chamber':'-14dB'}),
               track('metal','ct-kit',1.5,out='drums'), track('skins','ct-kit',3,out='drums')]
     assert not parts
-    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v2.' if phrase_return else 'v1.'),
+    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v3.' if recover else 'v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
             'ceiling':'-1dB', 'true_peak':True, 'loudness':-10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
@@ -210,9 +247,11 @@ def compose(phrase_return=True):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, default=OUT)
-    parser.add_argument('--v1', action='store_true', help='reproduce the original alternating-cell return')
+    previous = parser.add_mutually_exclusive_group()
+    previous.add_argument('--v1', action='store_true', help='reproduce the original alternating-cell return')
+    previous.add_argument('--v2', action='store_true', help='restore the sustained glass and doubled bass in the clean middle')
     args = parser.parse_args()
-    doc = compose(not args.v1)
+    doc = compose(not args.v1, not args.v2)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
