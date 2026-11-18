@@ -50,6 +50,8 @@ PRESS = os.environ.get('C10T10_PRESS', '-13' if CHANGE else '')
 # v10: the distance between the two markers becomes the bassist's step.
 # Fraction of the step held; empty restores v9 and earlier switches.
 STRIDE = os.environ.get('C10T10_STRIDE', '.80' if PRESS else '')
+# Before a downbeat moves, the brush borrows *duration*. Empty restores v10.
+BRUSH = os.environ.get('C10T10_BRUSH', '-7' if STRIDE else '')
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -364,6 +366,11 @@ def build():
                             note('clean',hit,dur,pitch+24,.90)
             # No borrowing in this part: the drummer's quarters and backbeat
             # can be followed across both displaced halves of the guitar riff.
+            # Three still-square pairs just before the first unequal one. The
+            # two strokes always start on beat two, and always share eight ticks.
+            spread = (j-(len(debts)-2) if s=='in hand' and j>=len(debts)-2 else
+                      2 if s=='on account' and j==0 else None)
+            if BRUSH and spread is not None: assert d==0
             for i in range(pair//SUB):
                 q = t+i*SUB
                 if s=='at par' and j<2: continue
@@ -371,7 +378,14 @@ def build():
                 if trade and d<0 and turn<=q<lay_out_until:
                     kit('h',q,.56 if i%4==0 else .44)
                     continue
-                kit('x' if s=='across the line' else 'rde' if s=='still owing' else 'h',q,.57 if i%4==0 else .47)
+                if BRUSH and spread is not None and i%4==1:
+                    # 4+4, 5+3, 6+2 sixteenths of wire on the head. Nothing
+                    # new strikes as the longer sweep passes the backbeat.
+                    note('sweep',q,SUB+(spread if i<4 else -spread),'sw',.88)
+                elif BRUSH and spread is not None and i%4==2:
+                    kit('hp',q,.64)  # the foot counts three while the hands brush and strike
+                else:
+                    kit('x' if s=='across the line' else 'rde' if s=='still owing' else 'h',q,.57 if i%4==0 else .47)
                 snare_beats = (1,3) if s in ('still owing','across the line') else (2,)
                 if i%4 in snare_beats:
                     kit('s',q,.96 if i%4!=1 else .83)
@@ -441,6 +455,10 @@ def build():
             track('rule','piano-additive',-9,-.35), track('tally','owing-key',-9,.38,sends={'spring':'-15dB'}),
             track('kick','ct-kit',2,out='drums',fx=['peak cutoff=4100 q=0.85 gain=6dB']),
             track('snare','ct-kit',3,out='drums'), track('metal','ct-kit',2,out='drums'),track('skins','ct-kit',2,out='drums')]
+    if BRUSH:
+        tracks.append(track('sweep','brush-kit kit.sw.patch.synth.amp.a=28ms kit.sw.patch.synth.amp.r=32ms '
+                            'play.humanize.time=0ms play.humanize.vel=0 fx.3.mix=0',
+                            float(BRUSH),-.18,out='drums'))
     if BREATH:
         tracks.append(track('breath','bari-sax synth.amp.r=65ms fx.0.mix=0.075',float(BREATH),-.16,
                             auto={'tongue':{'points':air_points,'curve':0}},
