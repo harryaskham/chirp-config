@@ -27,6 +27,9 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers10-t10.yaml'
 # Bowed lyre on the left, picked guitar on the right. As the two clocks
 # converge the guitars rejoin from the end of the phrase. Empty = v1 exactly.
 TRADE = os.environ.get('C10T10_TRADE', '-5')
+# v3: on the repeat of each crest root, spend the six borrowed sixteenths
+# on a reverse pickup made from the following answer. Empty = published v2.
+ADVANCE = os.environ.get('C10T10_ADVANCE', '7.5')
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -47,6 +50,7 @@ def chord(*p):
 def build():
     voices = defaultdict(list)
     sections = []
+    fold_sources, fold_patches = {}, {}
     def note(track, tick, gate, pitch, vel, **expr):
         assert tick >= 0 and gate > 0 and 0 < vel <= 1
         n = {'at':round(tick/SUB,6), 'len':round(gate/SUB,6),
@@ -61,6 +65,22 @@ def build():
 
     def tally(at, p, d, length=3.0, vel=.83):
         note('tally', at, length, p, vel, owing=abs(d)/MAX_DEBT)
+
+    def borrow(root, debt, midpoint):
+        # Record this ground's first `debt` ticks of the COMPRESSED answer on
+        # the introduction's clean guitar; no external samples or helper songs.
+        ratio = (BAR-debt)/BAR
+        name = f'owing-advance-{root}'
+        src = name+'-source'
+        heads = [{'at':round(pos*ratio/SUB,6), 'len':round(min(gate*ratio,debt-pos*ratio)/SUB,6),
+                  'pitch':nm(root+semi+24), 'vel':.90 if pos==0 else .83}
+                 for pos,gate,semi,how in REPLY if how!='m' and pos*ratio<debt]
+        fold_sources[src] = {'tempo':BPM,'length':f'{debt/SUB:g}b','tail':'0s','seed':1,
+                             'tracks':[{'name':'source','patch':'ct-clean synth.layers.0.inharm=0.00008 play.gate=1 play.humanize.time=0ms play.humanize.vel=0',
+                                        'notes':heads}]}
+        fold_patches[name] = {'play':{'gate':1},'synth':{'amp':{'a':'3ms','s':1,'r':'6ms'},
+                              'layers':[{'type':'sample','song':src,'root':'C4','reverse':True}]}}
+        note(name,midpoint,debt,'C4',1)
 
     pair = 2*BAR
     t = 0
@@ -105,6 +125,9 @@ def build():
                         kit(piece,t+pair-4+i,.53+i*.10)
                 t+=pair; continue
 
+            advance = bool(ADVANCE) and s == 'still owing' and j%2==1
+            if advance:
+                borrow(root, d, t+BAR)
             trade = bool(TRADE) and s == 'across the line'
             # Each smaller swing starts on a new low chord. The answer stays
             # Gb-F-C-Eb against them all; the call comes home as the hands meet.
@@ -148,6 +171,8 @@ def build():
                     # Low Eb call, high Gb answer. In the first crest the right
                     # hand lets its reply ring instead of adding more mutes.
                     for side in ('left','right'):
+                        if advance and side=='right' and not back and hit>=t+BAR:
+                            continue  # the left guitar keeps the tail of the call; the right makes room
                         if trade and back and p0 not in reunited:
                             if mute and (side=='right' or (d<0 and hit<lay_out_until)): continue
                             if not mute and (d<0 or side=='left'): continue
@@ -205,6 +230,8 @@ def build():
     if TRADE:
         tracks.append(track('bow','tagelharpa-bass-bowed synth.amp.r=80ms fx.0.mix=0.035',
                             float(TRADE),-.66,fx=['hp cutoff=120']))
+    for name in fold_patches:
+        tracks.append(track(name,name,float(ADVANCE),.66))
     assert not voices
     key_patch={'about':'Still Owing: the reply marker. Its orbit opens in proportion to the sixteenths borrowed in this pair.',
       'synth':{'amp':{'a':'2ms','d':'450ms','s':.2,'r':'95ms'},'layers':[{'type':'terrain','terrain':{
@@ -212,7 +239,8 @@ def build():
           'ry':{'value':.12,'mod':[{'src':'expr.owing','amount':.34}]}}}]},'fx':['hp cutoff=185']}
     return {'about':'Still Owing, Common Time track 10: a low call borrows time from a higher answer and pays it back within each two-bar phrase.',
         'tempo':BPM,'seed':1,'event_stable':True,'length':f'{t//SUB}b','tail':'3s','loudness':-10,'ceiling':'-1dB','true_peak':True,
-        'patches':{'owing-key':key_patch}, 'buses':{'spring':{'fx':['reverb kind=spring drip=0.65 mix=1 decay=1.2s low_cut=350 predelay=18ms']},
+        **({'songs':fold_sources} if fold_sources else {}),
+        'patches':{'owing-key':key_patch,**fold_patches}, 'buses':{'spring':{'fx':['reverb kind=spring drip=0.65 mix=1 decay=1.2s low_cut=350 predelay=18ms']},
         'drums':{'fx':['reverb kind=room decay=0.48s mix=0.08','glue threshold=-23dB ratio=2.2 attack=18ms release=130ms',
                      {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14900']}]}},
         'master':{'fx':['hp cutoff=25']},'tracks':tracks}, sections
