@@ -592,6 +592,59 @@ def crest_lines():
         T[tr] = [n for n in T[tr] if n['at'] not in space]
 
 
+# v13: in the last window the clean guitar remembers its opening notes.
+# Empty restores v12; switching off CREST still gives the pre-crest version.
+LAST_TOUCH = os.environ.get("C10T6_LAST_TOUCH", "1") if CREST and TINES else ""
+
+
+def last_string():
+    """Use alternate sides of the fixed point, then the last occupied cells."""
+    out = AT["out"]
+    tines = {n["at"]: n for n in T["tine-high"]}
+    take = set()
+    for c in range(AT["down-one"], out):
+        _, rate, _, x = CELLS[c]
+        if x >= 1 - 1 / rate:
+            continue
+        slots, ai, r = cell(x)
+        if not slots:
+            continue
+        hit = slots[ai]
+        at = round(2 * c + hit / 3, 5)
+        p = note(r) + gup(c)
+        # Below equilibrium the fourth harmonic takes the fretted accent,
+        # or (in the piano exchange) the same note the key was sounding.
+        if at in tines:
+            assert tines[at]["pitch"] == nm(p + 24)
+            T["touch"].append({**tines[at], "pitch": nm(p), "vel": .93, "expr": {"node": 4., "contact": 1.}})
+        else:
+            stop = slots[ai + 1] if ai + 1 < len(slots) else len(PRI)
+            add("touch", c, hit, stop - hit - .12, p, .93, node=4, contact=1)
+        take.add(at)
+    for tr in ("tine-high", *G):
+        T[tr] = [n for n in T[tr] if n["at"] not in take]
+
+    opening = [n for n in T["touch"] if n["at"] < 2 * AT["one"]]
+    closing = [(c, x) for c, (_, _, _, x) in enumerate(CELLS) if c >= out and len(cell(x)[0]) == 1]
+    gates = {}
+    for i, ((c, x), memory) in enumerate(zip(closing, opening)):
+        slots, ai, _ = cell(x)
+        at = round(2 * c + slots[ai] / 3, 5)
+        # The opening accents receded into a growing band. Pick the first
+        # out over the heavy string, touch the last one lightly.
+        gain = 6 - 8 * i / max(1, len(closing) - 1)
+        T["touch"].append({**memory, "at": at, "gain": f"{gain:g}dB"})
+        # All three cells have one occupied place, but the amount above that
+        # threshold is draining away. It sets the left guitar's gate only.
+        frac = (len(PRI) + 1) * x - len(slots)
+        gates[at] = round((1 + (len(PRI) - 1) * frac) / 3 * .96, 5)
+    T["gr"] = [n for n in T["gr"] if n["at"] not in gates]
+    # With less than two slots of gesture, leave the low note to bass and
+    # machine. Neither the three footfalls nor the empty last cell is edited.
+    T["gl"] = [dict(n, len=min(n["len"], gates[n["at"]])) if n["at"] in gates else n for n in T["gl"]
+               if n["at"] not in gates or gates[n["at"]] >= 2 * .96 / 3]
+
+
 def song():
     compose()
     if CREST:
@@ -600,6 +653,8 @@ def song():
         growth_harmonics()
     if TINES:
         periodic_tines()
+    if LAST_TOUCH:
+        last_string()
     if KIT:
         kit_part()
     kt = KIT.split(";") if KIT else None
