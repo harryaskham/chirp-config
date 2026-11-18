@@ -231,6 +231,30 @@ FALLKEY = os.environ.get("C10T5_FALLKEY", "0")
 # the whole second half of the descent is one acceleration into the turn. A crash marks each change of gear.
 # "1" = on; "" = v9's one beat.
 KITFALL = os.environ.get("C10T5_KITFALL", "1") if STEEP == "60:2,66:3,68:6" else ""
+# v23 (section w3, 0:57-1:26): THE FILL THAT NEVER TOPS OUT. At 0:57 a lead guitar comes down the scale over the
+# stair, two octaves in six bars: the one honest line in the song (v4), there to show the stair up. The descent has
+# the kit's own illusion, the fill that never lands (v5): the toms go down the scale for as long as they like and are
+# never lower, one fill at each octave the riff falls. The stair had none of the kit's: for 48 seconds the drums keep
+# a plain beat under it. Now the same toms answer the lead at ITS octaves. Into 0:57.6, where the lead enters on its
+# top F, and into 1:04.8, where it has really come down one octave, the drummer goes UP the toms, a step of the scale
+# to the sixteenth (eight strokes, then twelve), three drums an octave apart under the bell, each fill arriving on
+# the F the lead is on: a fill that climbs for as long as it likes and is never higher. So each time the honest line
+# has fallen an octave the kit claims to have risen one, and at the lead's third octave (1:12) the guitars' run takes
+# over, as before. The snare and the china rest under each fill (the hands are on the toms); the kick keeps the line.
+# The stair's fills go up where the descent's go down; the run, its snare and everything Harry has heard are as they
+# were.
+# And each fill lands on a crash, as the descent's do: the crash at the lead's entry is struck as a landing, and the
+# next one moves from the four-bar line (1:07.2) to the lead's octave (1:04.8). Under the lead the kit now phrases in
+# threes, the honest line's time.
+# (Raw, seed 0: the toms stand 6.4 and 6.5 dB under the mix in these fills, K-weighted; in the descent's they stand
+# 6.1 to 6.2. The lead under the second fill is where it was against the mix, -10.4 for -10.5. A fill adds 2.4 to
+# 3.2 dB at 120-500 Hz and takes 9.5 to 11 dB off 8-16 kHz while the china rests. The crash is a quiet mark: the
+# new one adds 0.26 dB at 8-16 kHz over its two beats. A third fill into the run, `8,12,16`, was benched and left
+# out: the run is the stair's third and largest fill already, the lead's last two notes are in the toms' register,
+# and Harry heard the run as it is: "A lift: keep it".)
+# the fills' lengths in sixteenths, at the lead's octaves (0: none there) ; `land`: the crashes follow the lead's
+# octaves. "" = v22 (read in compose(), where it defaults on only if every later switch is on).
+TOMRISE_DEFAULT = "8,12;land"
 RLANE = {v: [] for v in range(VOICES)}                  # the right side's faders while it is in harmony
 LLANE = {v: [(0.0, FLOOR)] for v in range(3)}           # the three leads' faders
 LANE = {v: [(0.0, FLOOR)] for v in range(VOICES)}       # each voice's fader, (beat, dB)
@@ -558,6 +582,23 @@ def anchor(b):
         add("bass", b * 16 + i * 16 // n, 16 // n, F1, 0.95 if i == 0 else 0.85)
 
 
+def tomrise(s0, n16):
+    """THE FILL THAT NEVER TOPS OUT: tomfall's mirror. `n16` sixteenths of toms from sixteenth `s0`, a step of the
+    scale UP a stroke, so that the stroke after the last would be F (the bar line's note). The snare and the china
+    rest under it."""
+    for i in range(n16):
+        k = i - n16
+        semis = 12 * (k // 6) + SCALE[k % 6]
+        vel = 0.72 + 0.2 * i / max(1, n16 - 1) + (0.06 if i % 4 == 0 else 0)
+        for v in range(3):
+            p = (semis + 12 * v) % 36
+            g = db(bell(p / 36))
+            if g > -45:
+                addb("falls", (s0 + i) / 4, 0.25, TOM_BASE + p, min(1.0, vel), gain=g)
+    for tr, pieces in (("snare", ("s",)), ("cym", ("x",))):
+        T[tr] = [n for n in T.get(tr, []) if not (n["pitch"] in pieces and s0 <= round(n["at"] * 4) < s0 + n16)]
+
+
 def beat(b0, b1, snare=(8,), cym="x", stepc=4, vel=0.5, crash=4):
     """The kit keeps four in a bar: the snare on the sixteenths `snare`, a cymbal every `stepc` sixteenths, a crash
     every `crash` bars."""
@@ -660,6 +701,23 @@ def compose():
             tomfall((FALL + 6 * (i + 1)) * 16 - n16, n16, scale=True)
         if R:
             tomfall((POLE - R) * 16, R * 16, scale=False)
+    rise = os.environ.get('C10T5_TOMRISE', TOMRISE_DEFAULT if os.environ.get('C10T5_REV', '1') and all((
+        TOMS, LEAD, FIGURE, HARM, NAKED, RUNS, os.environ.get('C10T5_COUNTERFALL', '1'), os.environ.get('C10T5_FALSE_COUNT', '1'),
+        os.environ.get('C10T5_GONG', '1'), os.environ.get('C10T5_WHEEL', '1'), os.environ.get('C10T5_AFTERIMAGE', '1'),
+        os.environ.get('C10T5_HOLD', '1'))) else '')
+    if rise:                             # v23: the lead's octaves each get a fill that never tops out
+        lb, lengths = int(LEAD.split(";")[2]), [int(x) for x in rise.split(";")[0].split(",")]
+        assert len(lengths) in (2, 3) and lb + 6 == TIME - R       # the lead falls an octave every three bars
+        for i, n16 in enumerate(lengths):
+            tomrise((lb + 3 * i) * 16 - n16, n16)
+        if rise.split(";")[1:] == ["land"]:
+            # each fill lands on a crash, as the descent's do. The one at the lead's entry is struck as a landing; the
+            # next moves from the four-bar line (bar 28) to the lead's octave (bar 27). So under the lead the kit's
+            # phrases are three bars and three, the honest line's time, against the tune's two and the low string's four
+            crashes = {n["at"]: n for n in T["cym"] if n["pitch"] == "c"}
+            crashes[lb * 4.0]["vel"] = 0.9
+            moved = crashes[(lb + 4) * 4.0]
+            moved["at"], moved["vel"] = (lb + 3) * 4.0, 0.9
     # the pole: one chord through a filter that climbs for ever; the line slowly; a bass that is only its overtones
     for b in range(POLE, BOTH, 2):
         root = PEDAL[((b - POLE) // 2) % len(PEDAL)]
