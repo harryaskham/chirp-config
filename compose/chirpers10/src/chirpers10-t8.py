@@ -40,6 +40,7 @@ skeleton first): the whole shape standing, bare.
 """
 import json
 import os
+from math import log2
 
 OUT = os.environ.get("C10T8_OUT", os.path.join(os.path.dirname(__file__), "..", "..", "..", "songs", "chirpers10-t8.yaml"))
 BPM = 160
@@ -65,6 +66,9 @@ BREATH = os.environ.get("C10T8_BREATH", "shaper-reed;-13dB")
 BASS_BREAK = os.environ.get("C10T8_BASS_BREAK", "1")
 # v6: the kit learns B's surviving tail in the measured coda. Empty = v5.
 STICKS = os.environ.get("C10T8_STICKS", "1")
+# v7: a different left-hand string spans exactly the length about to be
+# subtracted, never the surviving tail. Track gain; empty restores v6.
+SPAN = os.environ.get('C10T8_SPAN', '-11dB' if STICKS else '')
 
 
 def nm(n):
@@ -265,7 +269,16 @@ def compose():
         def grow(q, t=t, stop=stop):                   # in the last pair the bells grow with the snare (0.5 to 0.9)
             return 0.5 + 0.4 * (q - t) / (stop - t)
         for i in range(n // a):
-            say(left, t + i * a, gl, low=a < b and t + i * a >= kick_from, stop=stop if last or a < b else None, bass=not last)
+            at = t + i * a
+            if SPAN and k == 0 and i >= n // a - 4:
+                # 52 - 32 = 20. The main left guitar keeps all 52. Its double
+                # takes up the E-bow for 32, then picks the last 20 as before.
+                say(left, at, gl[:1])
+                say(left[b:], at + b, gl[1:])
+                h = n // a - i                # 4, 3, 2, then the open string
+                add('span', at, b, F1 + 12, .89, nh=h if h>1 else 0)
+            else:
+                say(left, at, gl, low=a < b and at >= kick_from, stop=stop if last or a < b else None, bass=not last)
             if not (last or a < b) or t + i * a < stop:
                 bell("l", t + i * a, vel=grow(t + i * a) if last else None)
         for i in range(n // b):
@@ -406,6 +419,20 @@ def song():
     if BREATH:
         timbre, gain = BREATH.split(";")
         tracks.append({"name": "breath", "patch": timbre, "gain": gain, "pan": 0.12})
+    if SPAN:
+        # Close the tone control in the gap between spans. The selected family
+        # should descend; a high multiple of the second node can otherwise mask it.
+        def holds(values):
+            points = [['0b',values[0]]]
+            for i,note in enumerate(T['span'][1:]):
+                points += [[f"{note['at']-1:g}b",values[i]], [f"{note['at']:g}b",values[i+1]]]
+            return {'points':points,'curve':0}
+        pole = {'value':90,'mod':[{'src':'auto.tone','amount':1}]}
+        tracks.append({'name':'span','patch':'ebow synth.layers.0.pick=0.11 synth.layers.0.pickup=0.13 fx.1.gain=0.20 synth.amp.a=135ms synth.amp.r=42ms fx.3.mix=0 fx.4.mix=0',
+                       'gain':{'value':SPAN,'mod':[{'src':'auto.trim','amount':1}]},'pan':-.69,
+                       'auto':{'tone':holds([log2(h) for h in (4,3,2,1)]),
+                               'trim':holds([0,0,12,5])},
+                       'fx':[{'type':'eq','bands':[{'kind':'lp','cutoff':pole,'q':1.05}]}]})
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
 
