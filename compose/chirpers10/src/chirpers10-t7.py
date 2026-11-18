@@ -75,6 +75,9 @@ PEEL = os.environ.get("C10T7_PEEL", "1")
 # v6: a shared pitch, a rubbed rim on a long cell and a felt stroke on a short.
 # Middle quiet section only. Track trims in dB (rim; mallet); empty gives v5.
 BOWL = os.environ.get("C10T7_BOWL", "-16;-13")
+# v7: in the return to F, the wall pair plays the riff three sizes larger.
+# Empty restores v6; the v6 BOWL-empty switch still restores v5.
+BIG_STROKES = os.environ.get("C10T7_BIG_STROKES", "1" if BOWL else "")
 
 
 def nm(n):
@@ -142,10 +145,15 @@ ROOTS = []                                # (sixteenth, the bass's root in semit
 
 
 def heavy(i, s0, n):
-    gtrs = ("gl", "gr", "wl", "wr") if i in WIDE else ("gl", "gr")
+    twins, walls = ("gl", "gr"), ("wl", "wr")
+    # The first 55 sixteenths of this return stay in unison, as do the
+    # 89 after the exchange. Both seams fall at the head of a size-3 cell.
+    spread_at, together_at = s0 + SIZE[6][0], s0 + SIZE[8][0]
     for p, kind, ln in LEV[0]:
         if not s0 <= p < s0 + n:
             continue
+        big = BIG_STROKES and i == 5 and spread_at <= p < together_at
+        gtrs = twins + walls if i in WIDE and not big else twins
         r = RANK[p]
         root = KEY[i] + (1 if at_size(6, p)[1] == "S" else 0)
         if not ROOTS or ROOTS[-1][1] != root:
@@ -154,6 +162,17 @@ def heavy(i, s0, n):
             up = 6 if at_size(3, p)[1] == "S" and i >= 2 else 0
             for tr in gtrs:
                 add(tr, p, ln, ",".join(nm(F1 + root + up + j) for j in (0, 7, 12)), 1.0)
+            if big:
+                # Magnify each one-sixteenth stroke by three substitutions:
+                # L = hit(5), hit(3), rest(5); S = hit(5), rest(3).
+                # The second attack turns the fifth upside down; it is not
+                # a new chord. Let go before each next stroke.
+                first, second = SIZE[1]
+                base = F1 + root + up
+                for tr in walls:
+                    add(tr, p, first - 0.5, f"{nm(base)},{nm(base + 7)}", 0.97)
+                    if at_size(3, p)[1] == "L":
+                        add(tr, p + first, second - 0.5, f"{nm(base + 7)},{nm(base + 12)}", 0.92)
             add("bass", p, ln, F1 + root + up, 0.95)
             drum("k", p, 0.95)
             if r >= 5:
