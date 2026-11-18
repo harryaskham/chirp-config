@@ -88,6 +88,18 @@ WIND = os.environ.get('C10T9_WIND', '-6dB' if GEAR else '')
 # (With the pipes the loudness target is PIPE_LUFS, not -10: they add a little
 # to the song, and every bar without them should keep v12's mastering gain.)
 PIPE_LUFS = -9.98
+# v14, section w4 (1:20-1:30): FIVE, COUNTED BY HAND. "Five in the time of four" is how a musician says a
+# quintuplet; in North India it is a tala. For the first two turns of the fives a tabla plays jhaptal, the ten-beat
+# cycle, at five strokes to the beat: dhin na | dhin dhin na, tin na | dhin dhin na. Its two-and-three fall inside
+# every beat of the kit, and its ten strokes last two beats: the bass drum of the pair sounds on one and three and
+# is left out on two and four, where the snare is. So three things now turn at once: the kit in four, the tabla
+# in ten, the riff in seven. The riff's head (and its tap) lands on a different bol each time: first, third,
+# fifth, second, fourth. In the last two beats the tabla plays a tihai, the thrice-said cadence (te re dha, three
+# times, a stroke's rest between), whose last dha is the beat where the tap begins its tune: the five places in
+# the beat have been counted, and the tap now gives each a pitch (v6). The kit does not change.
+# Track gain ; the loudness target (every bar without the tabla keeps v13's mastering gain) ; how hard the hands
+# play (a factor on every stroke; harder is brighter). Empty restores v13.
+KHANDA = os.environ.get('C10T9_KHANDA', '-9dB;-9.96;1' if WIND else '')
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
 ROOTS = [(0, 0)]
@@ -403,6 +415,38 @@ def hold_the_ones(b):
             T['wind'][-1]['gain'] = WIND
 
 
+def count_the_five(b0, beats):
+    """Jhaptal at five to the beat for `beats` beats, the last two a tihai that lands on the beat after them.
+    A dhin is the ringing treble stroke and the bass drum together, written as two notes: the library's own
+    compound stroke tunes its bass a twelfth under the treble, which would be B flat here."""
+    theka = (("tin", "ge", .9), ("na", "", .62), ("tin", "ge", .8), ("tin", "ge", .68), ("na", "", .74),
+             ("tin", "", .88), ("na", "", .62), ("tin", "ge", .8), ("tin", "ge", .68), ("na", "", .74))
+    assert beats % 2 == 0 and b0 % 4 == 0, "whole turns, the first on a bar line"
+    body = (beats - 2) * 5
+
+    hard = float(KHANDA.split(";")[2])
+
+    def bol(piece, at, vel, length=.19):
+        T.setdefault("tabla", []).append({"at": round(at, 5), "len": length, "pitch": piece, "vel": round(min(1, vel * hard), 3)})
+
+    for i in range(body):
+        treble, low, vel = theka[i % 10]
+        swell = .9 + .1 * i / body
+        bol(treble, b0 + i / 5, vel * swell)
+        if low:                                 # the wrist slides the bass drum up on each bar line
+            bol("gem" if i % 20 == 0 else low, b0 + i / 5, vel * swell * .9)
+    for said in range(3):
+        at = b0 + beats - 2 + said * 4 / 5
+        for j, closed in enumerate(("te", "re")):
+            # The closed strokes are the quietest the drum has: 14 dB under the mix where the dha is 8. Struck
+            # harder they came up half a dB, so these six notes are turned up instead.
+            bol(closed, at + j / 5, .9)
+            T["tabla"][-1]["gain"] = "4dB"
+        bol("na", at + 2 / 5, .9 + .05 * said, 1.5 if said == 2 else .19)
+        bol("ge", at + 2 / 5, .86 + .06 * said, 1.5 if said == 2 else .19)
+    assert abs(T["tabla"][-1]["at"] - (b0 + beats)) < 1e-9
+
+
 def fill(b):
     """The last two beats before beat b."""
     for i, pc in enumerate(["t1", "t1", "t2", "t2", "ft", "ft", "s", "s"]):
@@ -445,6 +489,8 @@ def compose():
         slow_hand(4 * RUNG - len(CELLS)*N)
     if PAWL and HEAD_TUNE:
         tune_the_heads(5 * RUNG)
+    if KHANDA:
+        count_the_five(4 * RUNG, 2 * N)
     if CADENCE and PAWL:
         before_the_lock(b)
     # seven to the beat: the riff is one beat long
@@ -520,6 +566,8 @@ def song():
         # The library's cathedral rings for 5.5 s. A smaller room: the review
         # excerpt that follows these pipes (2:53.2) must stay dry.
         tracks.append({"name": "wind", "patch": "organ-pipe fx.0.decay=1.6s fx.0.mix=0.22", "gain": "0dB", "pan": 0.1})
+    if KHANDA:
+        tracks.append({"name": "tabla", "patch": "it-tabla", "gain": KHANDA.split(";")[0], "pan": 0.2})
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
 
@@ -544,7 +592,7 @@ def song():
                   "and locks. The bass and kick walk in quarters underneath. Then once more at one to the beat, every stroke a chord. "
                   "v1 is the skeleton.") + (" At four to the beat the two hook notes pass between a baritone guitar and a clavinet; they exchange roles halfway." if HANDS else "")
                  + (" One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then the original two guitars play the last cell before everyone lands on F." if RING else ""),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(KHANDA.split(";")[1]) if KHANDA else PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}, **({'hp': {'gain': CROSS.split(';')[1]}} if CROSS else {}),
                             **({'oh': {'patch':'haake-hat amp.d=1.05s amp.r=180ms amp.curve=2.2',
                                        'gain':CLUTCH,'pan':-.45,'choke':'hat'}} if CLUTCH else {})}},
@@ -552,7 +600,10 @@ def song():
                         [[j, round(1 / j**0.45, 4)] for j, x in enumerate(CELLS[0], 1) if x != "c"],
                         [[j, round(1 / j**0.45, 4)] for j, x in enumerate(CELLS[0], 1) if x == "c"]],
                         "position": {"value": 0, "mod": [{"src": "expr.turn", "amount": 1}]}}],
-                        "amp": {"a": "3ms", "d": "105ms", "s": 0.22, "r": "42ms"}}}} if PAWL else {})},
+                        "amp": {"a": "3ms", "d": "105ms", "s": 0.22, "r": "42ms"}}}} if PAWL else {}),
+                    # the library's tabla, its treble drum on F and its bass drum on the riff's low F
+                    **({"it-tabla": {"extends": "tabla-kit", "kit": {**{pc: {"pitch": "F4"} for pc in ("na", "tin", "te")},
+                                                                    "re": {"pitch": "Eb4"}, "ge": {"pitch": "F2"}, "gem": {"pitch": "F2"}}}} if KHANDA else {})},
         "buses": {
             "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
                              {"type": "glue", "threshold": "-24dB", "ratio": 2.5, "attack": "20ms", "release": "140ms", "knee": 6.0},
