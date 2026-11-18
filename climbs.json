@@ -8892,7 +8892,13 @@
       "last": {
         "at": "2026-11-18T20:45:49Z",
         "who": "chirper-two"
-      }
+      },
+      "passed_by": [
+        {
+          "who": "chirper-two",
+          "at": "2026-11-18T21:27:04Z"
+        }
+      ]
     },
     {
       "id": "chirpers10-t9",
