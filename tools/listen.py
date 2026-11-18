@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """listen: Harry's album review app (chirp-eco, 6 Nov). Immutable SNAPSHOTS of an album in progress (each track's kept
 song file rendered at seed 0 on the groove pin; a track whose song file is unchanged is hard-linked from the previous
-snapshot, not re-rendered), a track-by-track player, NOTES at timestamps that go straight to the track's owner, an
+snapshot, not re-rendered), a track-by-track player, NOTES at timestamps that stay on the track for whoever draws it, an
 "open live in chirp web" link per track (the canonical song in the URL hash, rendered and drawn in the browser), and
 best-effort 480p preview videos.
 
   listen.py cut ALBUM [--label TEXT]                 cut a snapshot (renders changed tracks at nice 15)
   listen.py video ALBUM [SNAP] [--ids 1,8] [--look accretion | '{id}|accretion3d'] [--redo | --stale]
                                                              480p previews (~1.3x real time each: an idle unit)
-  listen.py serve [--host H]... [--port 8791]        the app (notes notify the owner through caco); --host repeats
+  listen.py serve [--host H]... [--port 8791]        the app (a note tells chirp-eco through caco); --host repeats
                                                              (the tailnet address and 127.0.0.1 for a Tailscale funnel)
 
 The site (8 Nov, Harry: for him and a friend): a name and the access code once per browser ($CHIRP_LISTEN_CODE, default
@@ -965,8 +965,10 @@ def agents():
 
 
 def notify(album, note, track):
-    owner = (track or {}).get("owner")
-    ids = [i for i in (agents().get(owner), agents().get("chirp-eco")) if i]
+    # No song has an owner (Harry, 18 Nov: "climbing should not have owenrs"; of notes: "they will get notes hwen they
+    # next see the track"): a note is not sent to a composer. It stays open on its track, and `climb.py next` prints it
+    # in the brief of whoever draws the song (climb.heard_lines). chirp-eco is told, as before.
+    ids = [i for i in (agents().get("chirp-eco"),) if i]
     link = f"{PUBLIC}#a={album}&s={note['snap']}&n={note['n']}&t={note['t']:.1f}"
     who = (note.get("by") or "harry").upper()
     where = (f"on t{note['n']} {track.get('title', '')} ({track.get('version')}, snapshot {note['snap']}) at {mmss(note['t'])}"

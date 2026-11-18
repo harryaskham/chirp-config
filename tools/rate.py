@@ -85,7 +85,8 @@ def record(cid, score, note, who, argv):
     with open(p, "a") as f:
         f.write(json.dumps(e, ensure_ascii=False) + "\n")
     paths = [os.path.relpath(p, ROOT)]
-    if score is not None and who != c.get("owner") and (c.get("best") or {}).get("score") is not None:
+    own = c.get("owner") or (c.get("last") or {}).get("who")   # no owners since 18 Nov: the last round's composer
+    if score is not None and who != own and (c.get("best") or {}).get("score") is not None:
         # A rating moves compscore's total (human .30, peer .05) but not the stored best, so `done` would compare a
         # new round against a pre-rating number (chirper-three: Hail on a Music Box v3 98.15 -> 92.50 like for like
         # after Harry's 8.0, and v4 92.58 logged as not kept, 29 Oct). Mark the best stale until it is re-measured.

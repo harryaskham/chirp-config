@@ -20,13 +20,17 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
   climb.py refs ALBUM SOURCE                        replace an album's references (matched by track number),
                                                     e.g. with better files; notes each climb to re-measure
   climb.py next [--as NAME] [--peek] [--take ID] [--include-owned] [--json] [--seed N] [--type T]
-                                                    pick this pass's climb (and say what to do); skips climbs
-                                                    another agent owns (--include-owned draws them too);
-                                                    --peek records no start, --take ID starts exactly that one;
+                                                    pick this pass's climb (and say what to do). NO CLIMB HAS AN
+                                                    OWNER (Harry, 18 Nov): the draw is among every queued climb,
+                                                    whoever worked on it last; starting one takes its LOCK, and
+                                                    recording the round (done) releases it for anyone.
+                                                    --peek records no start; --take ID starts exactly that one
+                                                    (refused while someone else holds its lock, unless --force);
+                                                    --include-owned is accepted and does nothing now;
                                                     composition albums with params.rounds print a ROUND TYPE
                                                     (whole, section, palette; --type T overrides the draw)
-  climb.py type ID [--type T]                       this round's type for one song (for owners who rotate their
-                                                    own songs; compose/README.md, Round types)
+  climb.py type ID [--type T]                       this round's type for one song (compose/README.md, Round
+                                                    types)
   climb.py done ID --note TEXT [--score S --version vN] [--next TEXT] [--engine SHA]
                [--with FILE …] [--render WAV] [--as NAME] [--force]
                                                     record the round (kept or not), hand off; --with refuses
@@ -992,11 +996,61 @@ def compose_brief(c):
         for r in mine:
             out.append(f"  RATING {r['at'][:16]} {r.get('who')} {r.get('score', '')}{'/10' if 'score' in r else 'note'}"
                        f" ({r.get('version') or '-'}){': ' + r['note'] if r.get('note') else ''}")
+    out += heard_lines(album["id"], c)
     st = (c.get("best") or {}).get("stale")
     if st:
         out.append(f"  BEST IS STALE: {c['best'].get('score')} ({c['best'].get('version')}) was measured before "
                    f"{st.get('who')} rated it {st.get('rating')}/10 at {str(st.get('since'))[:16]}. Ratings move compscore's "
                    f"total, so score {c['best'].get('version')} again like for like and pass `done … --best-now S`.")
+    return out
+
+
+def heard_lines(album_id, c, limit=12, days=14):
+    """What Harry has said of this track on the review page, for whoever draws it next (Harry, 18 Nov: "they will get
+    notes hwen they next see the track"): his open notes, his answers to its cards (the newest `limit`, from the last
+    `days` days) and the cards still waiting on him. Nothing is sent to anyone: the song carries it."""
+    if os.environ.get("CLIMB_ROOT") and not os.environ.get("CHIRP_LISTEN_DIR"):
+        return []            # a test's registry: never read the real page
+    n = (c.get("meta") or {}).get("track")
+    try:
+        import listen
+        notes, qs = listen.notes(album_id), listen.questions(album_id)
+    except Exception as e:  # noqa: BLE001  (a brief must not fail on the page's files)
+        print(f"climb: the review page's notes and answers could not be read ({e!r})", file=sys.stderr)
+        return []
+    since = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - days * 86400))
+    out = []
+    for x in notes:
+        if x.get("done") or x.get("n") not in (n, None):
+            continue
+        where = f"at {int(x['t']) // 60}:{int(x['t']) % 60:02d} of {x.get('version') or x.get('snap') or '?'}" \
+            if x.get("n") == n and x.get("t") is not None else "on the whole album"
+        said = f"; {len(x['replies'])} repl{'y' if len(x['replies']) == 1 else 'ies'}, the last by {x['replies'][-1].get('by')}" \
+            if x.get("replies") else ""
+        out.append(f"  NOTE {str(x.get('at'))[:16]} {x.get('by') or 'harry'}, {where}: {x.get('text')}  (open{said}; when "
+                   f"acted on: `python3 tools/listen.py reply {album_id} {x.get('id')} 'what you did' --done`)")
+    ans, waiting = [], []
+    for q in qs:
+        if q.get("n") != n:
+            continue
+        for a in q["answers"].values():
+            if str(a.get("at")) >= since:
+                ans.append((str(a.get("at")), q, a))
+        if not q["answers"] and not q.get("retired"):
+            waiting.append(q)
+    ans.sort(key=lambda r: r[0], reverse=True)
+    for at, q, a in ans[:limit]:
+        said = " / ".join(x for x in (a.get("choice"), a.get("text")) if x)
+        out.append(f"  ANSWER {at[:16]} {a.get('by')}, card {q.get('key') or q.get('id')} (asked at {q.get('version') or '?'}): "
+                   f"\"{q.get('title')}\" -> \"{said}\"")
+    if len(ans) > limit:
+        out.append(f"  ... and {len(ans) - limit} earlier answers: `python3 tools/listen.py questions {album_id}`")
+    for q in waiting:
+        out.append(f"  WAITING ON HARRY, card {q.get('key') or q.get('id')} (asked at {q.get('version') or '?'} by "
+                   f"{q.get('by') or '?'}): \"{q.get('title')}\"")
+    if out:
+        out.insert(0, "  HARRY ON THIS TRACK, from the review page (whoever draws the song acts on these; nothing is sent to "
+                      "an owner, there is none):")
     return out
 
 
@@ -1073,9 +1127,25 @@ def agent_names(s):
     return out
 
 
-def owned_by_other(c, me):
-    o = c.get("owner")
-    return bool(o) and not (agent_names(o) & agent_names(me))
+def holders(c, me, st=None, t=None):
+    """Who else holds this climb's LOCK now: they started it under ROUND_HOLD ago and have recorded no round on it
+    since. (Harry, 18 Nov: "climbing should not have owenrs, owners should be able to take the lock on any song";
+    "a new round should release for anyuone to improve"; "tha tis hos we maintain variaety". A climb's `owner` field,
+    where an older one has it, is history: who composed it first. It gates nothing.)"""
+    t = time.time() if t is None else t
+    lr = c.get("last") or {}
+    try:
+        lr_t = calendar.timegm(time.strptime(lr.get("at", ""), "%Y-%m-%dT%H:%M:%SZ"))
+    except ValueError:
+        lr_t = 0
+    mine = agent_names(me)
+    out = set()
+    for s in starts() if st is None else st:
+        if s.get("id") != c["id"] or t - s.get("t", 0) >= ROUND_HOLD or agent_names(s.get("who")) & mine:
+            continue
+        if not (agent_names(lr.get("who")) & agent_names(s.get("who")) and lr_t >= s.get("t", 0) - 1):
+            out.add(s.get("who"))
+    return sorted(out)
 
 
 def untracked_setup(cid):
@@ -1100,20 +1170,16 @@ def cmd_next(a):
     take = opt(a, "--take")
     if take:
         c = find(reg, take)
-        if owned_by_other(c, me) and "--force" not in a:
-            die(f"`{take}` is owned by {c['owner']}: coordinate first (or --force to take it anyway)", 3)
+        on = holders(c, me)
+        if on and "--force" not in a:
+            die(f"`{take}` is held by {', '.join(on)} (started under {ROUND_HOLD // 60} minutes ago, no round recorded "
+                f"since): it is free for anyone once that round is recorded, or --force to take it anyway", 3)
         cid = take
     else:
         if not w:
             die("nothing queued (every climb is paused, dropped or done)", 1)
-        if "--include-owned" not in a:
-            # (chirper-zero/chirper-one, 23 Oct: draws of another agent's climb recorded a start that later forced
-            # `done --force` on the owner)
-            skipped = sorted(i for i in w if owned_by_other(find(reg, i), me))
-            w = {i: v for i, v in w.items() if i not in skipped}
-            if not w:
-                die(f"every queued climb is owned by another agent ({', '.join(skipped)}): `next --take ID` after "
-                    f"coordinating, or --include-owned", 1)
+        # No climb is skipped for whose it was (Harry, 18 Nov; see holders). What keeps two agents off one song is
+        # the lock: weights() leaves out a climb someone else holds while anything unheld is queued.
         rng = random.Random(int(opt(a, "--seed"))) if opt(a, "--seed") else random.Random()
         ids = list(w)
         cid = rng.choices(ids, weights=[w[i] for i in ids])[0]
@@ -1239,8 +1305,7 @@ def cmd_done(a):
         if c["status"] == "requested" and os.path.exists(os.path.join(ROOT, c["song"])) and kept:
             c["status"] = "active"
             c["enabled"] = not c.get("oob")  # out-of-band climbs never join the playlist
-            if c.get("mode") == "compose" and not c.get("owner"):
-                c["owner"] = me  # a composed track belongs to its composer (compose/README.md); others send candidates
+            # no owner is recorded (Harry, 18 Nov: "climbing should not have owenrs"): the round releases the song
         c["last"] = {"at": h["at"], "who": me}
         if kept and opt(a, "--render") and (c.get("meta") or {}).get("album") and c.get("mode") != "compose":
             # the album plays gaplessly: compare this version's two joins with the kept version's (a warning, not a

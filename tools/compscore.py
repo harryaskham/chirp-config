@@ -12,7 +12,8 @@ the render came from (default songs/ID.yaml): its declared `tempo` sets the rhyt
 Terms (0-100 each; the total is their weighted mean over the terms that apply; weights come from the album's
 compose/ALBUM/album.json "weights", defaults below):
   human      Harry's latest rating for this song (rate.py), x10; a rating of an older version counts half.
-  peer       other agents' latest ratings (not the song's owner), x10.
+  peer       other agents' latest ratings, x10: not those of the song's owner where an older song has one, else not
+             those of whoever recorded its last round (no song has an owner since 18 Nov; nobody rates their own work in).
   structure  sections by likeness's novelty segmentation: a count suited to the length, unequal lengths.
              Opt-in album.json params.sections.novelty: one cut (default 0.15) or a list such as
              [0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18]; with a list, structure, variety and recurrence are each
@@ -873,7 +874,7 @@ def build_ctx(cid, wav, climb, album, song=None):
     return {"id": cid, "wav": wav, "x": x, "F": F, "dur": dur, "album": album, "slot": slot, "sections": secs,
             "section_sets": sets, "novelty_thresholds": ths,
             "me": me, "density": me["density"], "others": others_features(album["id"], cid),
-            "ratings": ratings(album["id"]), "owner": climb.get("owner"),
+            "ratings": ratings(album["id"]), "owner": climb.get("owner") or (climb.get("last") or {}).get("who"),
             "version": (climb.get("best") or {}).get("version"), "envelope": genre_envelope(album),
             "bpm": declared_tempo(song or os.path.join(ROOT, climb.get("song") or f"songs/{cid}.yaml")),
             "tempo_map": tempo_points(song or os.path.join(ROOT, climb.get("song") or f"songs/{cid}.yaml"))}
