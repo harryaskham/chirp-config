@@ -71,12 +71,35 @@ TINES = ('kalimba fx.0.mix=0 synth.amp.r=600ms synth.layers.2.level.value=-18dB'
 # With the swap the song reads 0.007 LU louder to the meter, so at v12's target every other bar came out 0.004 to
 # 0.010 dB quieter (seeds 0 and 11). Ask for that much more.
 THUMBS_LOUDNESS = -10.143
+# v14 (chirper-alpha, palette): THE CARBON IS TAKEN ON A SECOND AMP. 'Carbon' (1:27.7-1:49.6) is one guitarist and
+# eight strips, and it has always gone page, copy, page, copy: on the first strip of each pair the hand plays the
+# whole strip, on the second only its four open notes, the strokes that were pressed hard enough to go through (the palm
+# strokes do not transfer), while the drummer's tuned heads take over the voice's words. But page and copy were
+# the same sound: the same saturated amp, which presses every stroke alike. Now the copy is taken on a second amp
+# from the same guitar and the same cabinet: a clean one, short of breaking up. The four notes of each odd strip
+# move to it (sixteen notes; nothing added, nothing moved). On it a stroke shows its pressure: the note speaks,
+# then falls, where the ink holds level; it is fainter and has no fizz. The page strips, the voice, the heads,
+# the bass and the foot are as they were. It is the song's first clean electric note that is not the high clean
+# guitar's: 'thumbprint', all clean, follows. (The clean voicing is on this record otherwise only inside ct-glass,
+# in three other songs.)
+# (Benched, raw seed 0, the sixteen notes alone. Turning the ink amp down does nothing: at gain 0.3 without its
+# boost, or on the crunch voicing at 0.5, the notes read within 0.4 dB, 30 Hz of centroid and 0.3 dB of crest of
+# the ink: the compressor and screamer in front keep it saturated. The clean voicing at 0.6: centroid 2110 ->
+# 1770 Hz, 1.4 dB less of its power over 2 kHz, crest 12.5 -> 15.5 dB, and the second half of each note 3.3 dB
+# under the first where the ink's is 1.0 under. At 0.35 it is a bare pick (crest 17.9); with the microphone moved
+# off the cone it goes dull (1360 Hz). Kept: 0.6, on the ink's own cone. At the ink's own fader the clean notes
+# read 5.3 dB under it (K); at 3.8 dB they stand 2.0 under: a copy is fainter, but it has to read.)
+# the amp ; the copy's track gain.
+COPY = ('ct-twin fx.1.model=clean fx.1.gain=0.6 fx.1.boost=0dB fx.2.cone=37', '3.8dB')
+# The copy strips are quieter to the meter (the fizz is most of what it hears), so at v13's target every other bar
+# came out 0.042 dB louder (seed 0). Ask for that much less.
+COPY_LOUDNESS = -10.185
 
 def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True):
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
@@ -87,6 +110,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
     album_kit = album_kit and palindrome         # --without-palindrome still gives v9
     dominant = dominant and album_kit            # --without-album-kit still gives v10
     thumbs = thumbs and dominant                 # --without-dominant still gives v11
+    copy = copy and thumbs                       # --without-thumbs still gives v12
     ev = defaultdict(list); sections = []; tie_gains = {}; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -220,7 +244,10 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                         # still ringing on the left. Ordinary down-picks stay put.
                         put(tr,a+t,n,dur,.84,pm=.55,up=1)
                     else:
-                        put(tr,a+t,chord(n) if k=='o' and sec in ('raised','turn over','one hand') else n,dur,.94 if k=='o' else .79,k=='m')
+                        # v14: an odd strip of 'carbon' is the copy, and it is taken on the second amp
+                        amp = 'copy' if copy and sec=='carbon' and i%2 else tr
+                        assert amp==tr or (tr=='left' and k=='o')
+                        put(amp,a+t,chord(n) if k=='o' and sec in ('raised','turn over','one hand') else n,dur,.94 if k=='o' else .79,k=='m')
             if sec=='carbon':
                 n_take = min(4, 2**(i//2)) if drum_hand and i%2 else 0
                 for j,(t,p) in enumerate(sorted(opens[1].items())):
@@ -514,11 +541,15 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
             # Back beside the mouth, at its first level, to hand the tune home.
             ribbon['auto']['sign']['points'] += [[f'{page/GRID:g}b',1],[f'{(page+2*STRIP)/GRID:g}b',0]]
         tracks.append(ribbon)
+    if copy:
+        # The same guitar, the same chair and the same cabinet as the left hand; only the amp differs.
+        left = next(t for t in tracks if t['name']=='left')
+        tracks.append(track('copy',COPY[0]+palm,COPY[1],left['pan'],'strings'))
     buses={'strings':{'fx':[{'type':'eq','bands':['peak cutoff=360 q=0.8 gain=-2dB','peak cutoff=730 q=1 gain=1.5dB']}]},
            'drums':{'fx':['reverb kind=room mix=0.10 decay=0.53s predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'18ms','release':'120ms'},'clip ceiling=-13dB']},
            'low':{'fx':[{'type':'eq','bands':['peak cutoff=48 q=1.4 gain=-4dB','peak cutoff=98 q=1 gain=3dB','peak cutoff=310 q=0.9 gain=-4dB']},{'type':'compressor','threshold':'-24dB','ratio':5,'attack':'14ms','release':'115ms'}]}}
     if album_kit: buses['drums']['fx'].append({'type':'eq','bands':KIT_EQ})
-    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
+    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(COPY_LOUDNESS if copy else THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
     return doc,sections
 
 def dump(d):
@@ -534,8 +565,9 @@ if __name__=='__main__':
     ap.add_argument('--without-palindrome',action='store_true',help='regenerate v9, without the ribbon over the opposed guitars')
     ap.add_argument('--without-album-kit',action='store_true',help="regenerate v10, the kit's bus without the album's eq")
     ap.add_argument('--without-dominant',action='store_true',help="regenerate v11, 'turn over' on F throughout")
-    ap.add_argument('--without-thumbs',action='store_true',help="regenerate v12, the clean guitar answering the voice in 'thumbprint'"); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs)
+    ap.add_argument('--without-thumbs',action='store_true',help="regenerate v12, the clean guitar answering the voice in 'thumbprint'")
+    ap.add_argument('--without-carbon-copy',action='store_true',help="regenerate v13, the copy strips of 'carbon' on the ink's own amp"); a=ap.parse_args()
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
