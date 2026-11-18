@@ -407,6 +407,23 @@ SLOW = os.environ.get('C10T3_SLOW', '50:70;24;0.92;1' if TOWERHUNT and W1 == (2,
 # sixteenths to the pulse, eight bars of it where there were five; he is back in four at the next meeting, on a crash.
 # The rows of the second extent (from:to). "" = v23.
 ROWTIME = os.environ.get('C10T3_ROWTIME', '48:56' if SLOW else '')
+# v25: THE FIRST FOUR RUNGS (chirper-alpha; section round, 1:56-2:14: the last two leads of the first cycle, in the
+# window 1:36-2:08 the map calls static in tone, nothing entering in it). The second cycle ends with the lead climbing
+# the row's own notes from the ground up, seven rungs, to the landing (Harry: "It pulls, and it lands"). The first
+# cycle ends on the same kind of stretch (the kick on every sixteenth, the snare hunting) and had nothing over it. It
+# now has the START of that climb: the same lead, picked on every sixteenth the same way, climbs the first four rungs
+# of the row on B: B, C, D, two bars each, and then F, held three bars until the call. The fourth rung of the row on
+# B is F, the song's home: the lead holds F, a tritone over a band still on B, the band answers with the call (the
+# whole band in unison, the kit ringing the row), comes round, and lands on that F (2:16). So the first cycle's climb
+# stops where the ground is going; the second cycle's (on C, all seven rungs, three bars each) goes to the top. As
+# the riff laid bare and the harmony are in both cycles ("Shape: keep all three", "Keep it"), the second climb is now
+# a thing that returns, and is finished.
+# The snare's hunt, the china, the kick and every guitar and bass note are as they were. The lead stops where the call
+# starts, two seconds before the chord, so that its ring has died by 2:16 (it reads 48 dB under the chord's first
+# second): the tower's passage is as it was.
+# the rows of the first extent under it (from:to) ; rows to a rung (the last rung takes what is left) ; rungs ; the
+# strokes' velocity at the foot ; at the top. "" = v24.
+FIRST = os.environ.get('C10T3_FIRST', '100:118;4;4;0.75;0.95' if ROWTIME and TREM and W1 == (2, 2) else '')
 
 
 def lead_mode(k, calls):
@@ -717,6 +734,17 @@ def compose():
         T["snare"] = [n for n in T["snare"] if not (t0 / 4 <= n["at"] < t1 / 4)]
         for k in range(r0, r1):
             drum("s", PART1 * 16 + k * L1 + EXTENT_1[k].index(1), float(HUNT.split(";")[1]))
+    if FIRST:                            # v25: the lead's first four rungs, over the first cycle's last two leads, up to the call
+        r0, r1 = (int(x) for x in FIRST.split(";")[0].split(":"))
+        per, rungs, v0, v1 = int(FIRST.split(";")[1]) * L1, int(FIRST.split(";")[2]), float(FIRST.split(";")[3]), float(FIRST.split(";")[4])
+        a16, z16 = PART1 * 16 + r0 * L1, PART1 * 16 + r1 * L1
+        base, ladder = F1 + KEYS_1[r0 // 40] + 36, sorted(PITCH.values())       # three octaves over the ground, as the second climb is
+        assert KEYS_1[r0 // 40] == KEYS_1[(r1 - 1) // 40] and a16 % 16 == 0 and per % 16 == 0 and per * (rungs - 1) < z16 - a16, "whole bars to a rung, in one key"
+        assert lead_mode(r1, CALLS_1) == "call0" and r1 + 2 == 120, "it stops where the extent's last call starts"
+        assert (base + ladder[rungs - 1]) % 12 == F1 % 12, "the last rung is the song's home"
+        for t in range(a16, z16, int(TREM.split(";")[2])):
+            v = v0 + (v1 - v0) * (t - a16) / (z16 - a16) + (0.05 if t % 4 == 0 else 0.0)
+            add("lead", t, int(TREM.split(";")[2]), base + ladder[min(rungs - 1, (t - a16) // per)], min(1.0, v))
     # it has come round. One chord, and the bells alone again: rounds, slowly, over a drone and a pad
     hit(MIDDLE, 6)
     if TOWERHUNT:                        # v22: the tower rings the hunt, and comes round on the bar the bass sets off
