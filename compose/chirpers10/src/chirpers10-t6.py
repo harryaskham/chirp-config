@@ -509,6 +509,29 @@ def periodic_tines():
                                                        "pitch": nm(pitch), "vel": .86 if hand == "high" else .82})
     for tr in G:
         T[tr] = [n for n in T[tr] if not any(a <= n["at"] < b for a, b in exchanges)]
+    if FORK:
+        hold_the_split()
+
+
+def hold_the_split():
+    """In the first bifurcation, let the two fret values sound as an interval.
+    Only play laps already given to guitars; the piano's replies stay bare.
+    No new pitch class or attack: the high branch waits for its low partner.
+    """
+    def accent(c):
+        slots,i,r = cell(CELLS[c][3])
+        return round(c*2+slots[i]/3,5),note(r)+gup(c)
+    for c in range(AT['two'], AT['four'], 2):
+        high,h = accent(c); low,l = accent(c+1)
+        if h<=l or not any(n['at']==high for n in T['gr']):
+            continue  # no descending pair, or the tines have this lap
+        assert any(n['at']==low for n in T['gl'])
+        end = (c+2)*2
+        for tr,at,midi in (('gr',high,h+int(FORK)), ('gl',low,l)):
+            # Keep the pick on the original accent and lift both fretting
+            # hands just before the pianist answers. The floor keeps its gallop.
+            T[tr] = [n for n in T[tr] if not at<=n['at']<end]
+            T[tr].append({'at':at,'len':round(end-.12-at,5),'pitch':nm(midi),'vel':.94})
 
 
 # v11: the right player's harmonic is tuned by the number of unoccupied slots.
@@ -595,6 +618,9 @@ def crest_lines():
 # v13: in the last window the clean guitar remembers its opening notes.
 # Empty restores v12; switching off CREST still gives the pre-crest version.
 LAST_TOUCH = os.environ.get("C10T6_LAST_TOUCH", "1") if CREST and TINES else ""
+# Upper branch's register above the original accent (in semitones).
+# Empty restores v13, and LAST_TOUCH empty still defaults to v12.
+FORK = os.environ.get('C10T6_FORK', '12' if LAST_TOUCH else '')
 
 
 def last_string():
