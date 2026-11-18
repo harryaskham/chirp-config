@@ -52,6 +52,14 @@ PRESS = os.environ.get('C10T10_PRESS', '-13' if CHANGE else '')
 STRIDE = os.environ.get('C10T10_STRIDE', '.80' if PRESS else '')
 # Before a downbeat moves, the brush borrows *duration*. Empty restores v10.
 BRUSH = os.environ.get('C10T10_BRUSH', '-7' if STRIDE else '')
+# v12: at the crest the baritone still plays the call in the bar it was given.
+# First time on each ground only (the second time has the backwards pickup).
+# Semitones over the guitars' call ; its lift over the opening, dB ; 1 = the
+# third guitar gives its call chord to the reed. Empty restores v11.
+# Benched an octave lower (its opening register): 10 dB under the mix and the
+# short third note 13-14 under. Up here it is a line, so it needs less lift,
+# and the third guitar keeps its chord where each new ground arrives.
+RECALL = os.environ.get('C10T10_RECALL', '24;3;0' if BRUSH and BREATH else '')
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -258,6 +266,17 @@ def build():
             advance = bool(ADVANCE) and s == 'still owing' and j%2==1
             if advance:
                 borrow(root, d, t+BAR)
+            straight_call = bool(RECALL) and s == 'still owing' and j%2==0
+            if straight_call:
+                # The guitars take 22 sixteenths over Eb-Bb-F. The reed takes
+                # the 16 it took at 0:00, so each note of its call comes a
+                # little further ahead of theirs, and it stops on the bar line.
+                register,lift,_ = RECALL.split(';')
+                for p0,_,semi,how in CALL:
+                    if how=='m': continue
+                    following = next((pos for pos in call_heads if pos>p0), BAR)
+                    note('breath',t+p0,following-p0-.25,root+semi+int(register),.90 if p0==0 else .83,sub=.12)
+                    voices['breath'][-1]['gain'] = f'{float(lift):g}dB'
             crossing = bool(STRAIGHT) and s == 'called in'
             if crossing:
                 for half,shape in enumerate((CALL,REPLY)):
@@ -352,7 +371,8 @@ def build():
                     if (not back and (not mute or ix in (1,2))) or (back and (p0==0 or (s in ('still owing','across the line') and not mute))):
                         if not long_answer or p0 in (0,REPLY[-1][0]):
                             kit('k',hit,vel)
-                    if s in ('still owing','across the line') and how=='o' and not (trade and back and j<6):
+                    if s in ('still owing','across the line') and how=='o' and not (trade and back and j<6) and not (
+                            straight_call and not back and RECALL.split(';')[2]=='1'):
                         note('weight',hit,dur,chord(pitch,pitch+7),.93)
                     if s=='square' and back and not mute:
                         if p0 in repay:
