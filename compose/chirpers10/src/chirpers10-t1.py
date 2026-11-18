@@ -465,7 +465,7 @@ def solo_back(b0, src1, shift, vscale):
         WAH_PTS.extend(sorted((s16(b0) + (s16(src1) - t), v) for t, v in list(WAH_PTS) if src0 <= t <= s16(src1)))
 
 
-def chimes(b0, b1, pairs=((5, 7), (5, 11), (7, 11)), vel=0.5):
+def chimes(b0, b1, pairs=((5, 7), (5, 11), (7, 11)), vel=0.5, motor=False):
     """Coincidences: wherever two wheels begin a turn on the same sixteenth, a struck bar sounds, one pitch to each
     pair (five and seven C, five and eleven Ab, seven and eleven F). All three coincide only at the first bar line
     and at the landing."""
@@ -474,12 +474,22 @@ def chimes(b0, b1, pairs=((5, 7), (5, 11), (7, 11)), vel=0.5):
     for p, q in pairs:
         for t in range(s0 + (-s0) % (p * q), s1, p * q):
             if t % 385:
-                add("chime", t, 8, pitch[(p, q)], vel)
+                if motor:
+                    # One struck bar per pair. Its resonator turns with the
+                    # wheel that DIDN'T meet, until that wheel comes round twice.
+                    third, = {5, 7, 11} - {p, q}
+                    release = min(s1 - t, (-t) % third + third)
+                    add(f"bar{third}", t, release - .15, pitch[(p,q)] - 12, vel)
+                else:
+                    add("chime", t, 8, pitch[(p, q)], vel)
 
 
 # v55: the opening's clean guitars meet again above the split and its swap.
 # Gains for the five and seven, in dB. Empty regenerates v54 exactly.
 RELAY = os.environ.get("C10T1_RELAY", "8;10")
+# v56, eye only: motor-driven bars instead of the glock and its echo. Empty
+# restores v55; RELAY='' alone still recovers v54, as the relay card promises.
+EYE_BARS = os.environ.get("C10T1_EYE_BARS", "-14.5dB" if RELAY else "")
 
 
 def relay(b0, b1, returning=False):
@@ -935,8 +945,8 @@ def compose():
     tick(EYE_TR[0], 5, TICK5, CL5, a, z, harmony=eye)                # in the eye each wheel's guitar moves to another wheel's count (EYEFX)
     tick(EYE_TR[1], 7, TICK7, CL7, a, z, harmony=eye)
     tick(EYE_TR[2], 11, TICK11, CL11_OPEN, a + 12, z, vel=0.36, harmony=eye)
-    chimes(a, z - 2, pairs=((5, 7),))
-    chimes(a + 12, z - 2, pairs=((5, 11), (7, 11)))
+    chimes(a, z - 2, pairs=((5, 7),), motor=bool(EYE_BARS))
+    chimes(a + 12, z - 2, pairs=((5, 11), (7, 11)), motor=bool(EYE_BARS))
     for t in range((a + 8) * 16, z * 16 - 8, 4):
         add("cym", t, 4, "rb", 0.3 * (1.12 if t % 16 == 0 else 1.0))
     long_wait(a, 176 + 231 / 16, vel=0.7, up=-12, start=t0)
@@ -1843,6 +1853,11 @@ def song():
         ("rise", "ct-swell", "-9dB", 0, {"sends": {"hall": "-10dB"}}),
         ("drop", "ct-drop", "-8dB", 0, {}),
     ]
+    if EYE_BARS:
+        for third, pan in ((5, .3), (7, -.3), (11, 0)):
+            spec.append((f"bar{third}", "modal-vibes synth.amp.r=120ms", EYE_BARS, pan,
+                         {"fx": [{"type":"tremolo", "rate":f"{third / 4:g}b", "depth":.72}],
+                          "sends": {"hall":"-18dB"}}))
     if RELAY:
         g5, g7 = map(float, RELAY.split(";"))
         for name, patch, db, side in (("relay5", CLEAN, g5, -.72), ("relay7", CLEAN7 or CLEAN, g7, .72)):
