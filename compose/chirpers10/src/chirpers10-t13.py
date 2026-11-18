@@ -29,7 +29,7 @@ def name(n):
 
 
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
-            rim=True, rim_gain=-18, turned=True):
+            rim=True, rim_gain=-18, turned=True, hole=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -39,6 +39,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     edges = edges and drum_memory
     rim = rim and edges
     turned = turned and rim
+    hole = hole and turned
     # v10: the sheet turned over. Read from its other end the cell strikes on
     # 0, 2, 4, 8 and the four notes rise, F A-flat C E-flat: the record's own
     # hook, which this tune was written as the falling answer to.
@@ -276,13 +277,31 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                 # The seven chugs needn't be duplicated by the entire band.
                 # Bass keeps the little strokes on the way out; kick keeps them
                 # on the way back. The two guitars frame opposite ends of each gap.
-                lead_in = edges and section=='the handover' and 0<i<span//CELL-1
+                # (v11: the first cell's gap is now empty, so the cell that states
+                # the first group in full, as v8 left the first cell, is the second.)
+                lead_in = edges and section=='the handover' and int(hole)<i<span//CELL-1
                 follow = edges and section=='lit through' and i>0 and not on_ab
                 # v10: in the side-to-side trade the right player's turns are the
                 # back of the sheet. Front and back make one palindrome of two
                 # cells, in pitch and in spacing; the holes, the box and the foot
                 # mirror with it. The last pair of cells stays as written.
                 back = turned and section == 'turn the sheet' and i % 2 == 1 and i < span//CELL - 2
+                # v11: THE HOLE COMES FIRST. A note passes to the ring every third
+                # cell, and until now the muted strokes it buys were there at once:
+                # the gap was never heard empty. Now the cell in which a note is
+                # given away leaves its gap EMPTY (two ticks, then three, then one
+                # and one): the guitars, the bass and the foot let go, and you hear
+                # where it was, with the ring sounding across it. The strokes arrive
+                # the cell after, where the snare learns that note (v7). The first
+                # hole is the handover's own downbeat: crash, ring, and no band
+                # until the C.
+                # (Two fuller forms were benched and are not here. The ring striking
+                # each note WITH the guitars the cell before: 14 to 17 dB under the
+                # chord, not heard. The band resting for the whole cell when the last
+                # note goes: the scorer's first heavy section stopped matching its
+                # return, 100 -> 88.5 and 77.7, and it is a second cell without the
+                # band before the first, at 1:25, has been heard.)
+                given = hole and section == 'the handover' and i % 3 == 0
                 heads, tune = (BACK_HEADS, BACK_TUNE) if back else (HEADS, TUNE)
                 for j, k in enumerate(heads):
                     t, p = start + i*CELL + k, F + tune[j]
@@ -295,8 +314,11 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                                 fifth=(j == 0))
                         put('bass', t, min(2, end-k-.2), p, .92)
                         drums('k', t, .99 if j == 0 else .86)
+                    empty = given and j == i // 3
+                    assert not empty or hand
                     if hand or section == 'lit through' or (section == 'turn the sheet' and i % 2 == 0):
-                        put('ring', t, 1.45, p+36, .91 if j == 0 else .79)
+                        # across a hole the ring is let ring up to the next note
+                        put('ring', t, end-k-.25 if empty else 1.45, p+36, .91 if j == 0 else .79)
                     if section == 'under glass':
                         # Rebuild the tune from its LOW end while the clean string holds dyads.
                         if j >= 3 - i//3:
@@ -335,7 +357,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                                     ('left',), mute=turn<2 or length==1)
                             drums('k',t+1+n,.93 if not n else .73)
                         continue
-                    if shadow:
+                    if shadow and not empty:
                         opposite = (sides[1-(i%2)],) if section == 'turn the sheet' else sides
                         for n in range(k+1, end):
                             a = start + i*CELL + n
@@ -387,7 +409,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
         for side,pan in zip(sides,(-.58,.58)):
             tracks.append(track('box-'+side,'cajon kit.cb.pitch=F2 kit.cs.gain=4dB kit.cg.gain=1dB fx.0.mix=0.06',wood_gain,pan))
     assert not parts
-    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
+    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v11.' if hole else 'v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
             'ceiling':'-1dB', 'true_peak':True, 'loudness':-10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
@@ -410,11 +432,12 @@ if __name__ == '__main__':
     previous.add_argument('--v7', action='store_true', help='restore the doubled chugs on both sides of the break')
     previous.add_argument('--v8', action='store_true', help='restore the plucked clean dyads in the quiet middle')
     previous.add_argument('--v9', action='store_true', help='restore the falling tune on every turn of the trade and before the close')
+    previous.add_argument('--v10', action='store_true', help='restore the muted strokes in the cell where each note is handed over')
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     parser.add_argument('--rim-gain', type=float, default=-18, help='held glass track gain in dB')
     args = parser.parse_args()
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
-                  not args.v8, args.rim_gain, not args.v9)
+                  not args.v8, args.rim_gain, not args.v9, not args.v10)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
