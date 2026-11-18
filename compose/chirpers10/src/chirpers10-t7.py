@@ -120,6 +120,21 @@ KETTLE = os.environ.get("C10T7_KETTLE", "-12dB;-12dB;-22:-8") if LIFT else ""
 # ones in short cells the right's: thirteen to eight. "1" as said; "2" swaps
 # the sides at the crash on 34. Empty restores v13.
 SIDES = os.environ.get("C10T7_SIDES", "1") if KETTLE else ""
+# v15 (palette): THE BOW HOLDS THE ROOT. Every size of cell but one has a voice of its own: strokes (3 and 2), the
+# ringing string (8 and 5), kettledrums (13 and 8), a breath of brass (21 and 13), a crash (34 and 21). Cells of 55 and
+# 34 are the root (home on the long ones, a semitone up on the short ones), and nothing ever HELD a root: it was only
+# struck again and again. 55 sixteenths is 10.3 seconds, more than a breath and just what one slow bow can hold. So in
+# the return to F (3:05-3:49) a section of double basses (the library's `contrabass`, a bowed string on the engine's
+# physical bow: the record's first) draws one bow to a cell: F, G flat, F, F, G flat. Plucked for the small sizes,
+# breath for the large one (v3), the bow for the one above. It is also the first thing in a heavy section that sounds
+# through the riff's rests. No vibrato (a section on a pedal; and it would beat against the guitars' own F).
+# Benched at -8 dB on the low F (F1) and an octave up: 7.5 and 6.2 dB under the band, the rests 3 dB shallower, and
+# on F1 2 dB more under 60 Hz, where the return already matched the records. The return read 1.1 dB under them at
+# 60-120 Hz and 2.9 over at 250-500. So: the octave up (its fundamental is 87 Hz), 4.5 dB lower, and a dip on its
+# third and fourth harmonics. patch ; track gain ; semitones over the low F ; the dip (Hz : q : dB).
+# "" = v14; it is on only while every older switch is, so each of those still gives what it gave.
+ARCO = os.environ.get("C10T7_ARCO", "contrabass synth.pitch.mod.0.amount=0 fx.0.mix=0.1;-12.5dB;12;300:0.9:-5") if all((
+    SIDES, KETTLE, LIFT, SMALLER, PIVOT, CHILD, REVEAL, BIG_STROKES, BOWL, PEEL, STEEL, BRASS, CANON, QBASS, PAD, HARP)) else ""
 
 
 def nm(n):
@@ -621,6 +636,16 @@ def two_common_tones():
     add("wl", back, carry - .5, ",".join(nm(F1 + i) for i in (24, 31)), .96)
 
 
+def the_bow_holds_the_root():
+    """One bow to each cell of 55 or 34 in the return to F; the last lifts with the band."""
+    i = 5
+    s0, _, n = SECS[i]
+    held = [c for c in LEV[6] if s0 <= c[0] < s0 + n]
+    assert sum(c[2] for c in held) == n and [c[1] for c in held] == list("LSLLS")
+    for j, (p, kind, ln) in enumerate(held):
+        add("arco", p, ln - (1 if j == len(held) - 1 else 0.25), F1 + int(ARCO.split(";")[2]) + KEY[i] + (kind == "S"), 0.8)
+
+
 def letters_on_two_sides():
     """Long cells left, short cells right, for the song's first cell of 55. Nothing is added."""
     s0, end = SECS[0][0], SECS[0][0] + SIZE[6][0]
@@ -647,6 +672,8 @@ def song():
         kettles()
     if SIDES:
         letters_on_two_sides()
+    if ARCO:
+        the_bow_holds_the_root()
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
@@ -714,6 +741,10 @@ def song():
                        "gain": CHILD, "pan": .4, "out": "drums"})
     if KETTLE:
         tracks.append({"name": "kettle", "patch": "em-kettle", "gain": KETTLE.split(";")[0], "pan": -0.1, "sends": {"hall": KETTLE.split(";")[1]}})
+    if ARCO:
+        # Straight to the mix, not through the bass guitar's compressor: a held note there would hold the chugs down.
+        tracks.append({"name": "arco", "patch": ARCO.split(";")[0], "gain": ARCO.split(";")[1], "pan": 0.05,
+                       "fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*ARCO.split(";")[3].split(":"))]}]})
     for t in tracks:
         if "gen" not in t:
             t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
