@@ -129,6 +129,19 @@ KOTO = os.environ.get('C10T8_KOTO', '36;-7dB' if all((
 # 2.5 over the left bell that marks the same riff; at -9.5 they sit under it.
 # Empty restores v16.
 TIMELINE = os.environ.get('C10T8_TIMELINE', 'c7;-9.5dB;-0.3;3' if KOTO else '')
+# v18 (palette): where the claves keep the timeline, the hi-hat's eighths go
+# to a shekere: the same strokes, the same accents, on a beaded gourd in the
+# place the hat had. The hat is on all thirteen songs; this passage now has
+# the song's own percussion instead (bell, sticks, shaker; the scraper comes
+# at 0:56) and the kit keeps only kick and backbeat until the cut.
+# Track gain ; pan ; the beads' top in Hz. The library's shekere (afro-perc
+# `sk`, closed at 11 kHz) at 0 dB sat 1.7 dB under the hat and took 1.4 dB
+# off the passage at 8-16 kHz: the hat left and little came. So the song has
+# its own, open to 14 kHz, 3 dB up, with a little of the overheads' room
+# (none: 0.4 dB short at 8-16 kHz; the hat's own send of 4.5 dB: 2.2 dB
+# over there and 1.4 at 4-8 kHz). Track gain ; pan ; the beads' top in Hz ;
+# overhead send. Empty restores v17.
+SHAKER = os.environ.get('C10T8_SHAKER', '3dB;-0.45;14000;-5dB' if TIMELINE else '')
 
 
 
@@ -816,6 +829,8 @@ def song():
         difference_key(doc)
     if TIMELINE:
         the_timeline(doc)
+    if SHAKER:
+        the_shekere(doc)
     return doc
 
 
@@ -838,6 +853,27 @@ def the_timeline(doc):
     score = ' '.join([f'{pitch}({b},{a})/4@100'] * (whole - int(first)) + [f'{pitch}({nxt},{b})/4@100'])
     doc['tracks'].append({'name': 'clave', 'patch': 'cm-clave', 'gain': gain, 'pan': float(pan),
                           'at': f'{(start + int(first) * len(left)) // 4}b', 'score': score})
+
+
+def the_shekere(doc):
+    """The hat's strokes under the claves, on a shekere. No stroke is added or moved."""
+    gain, pan, top, oh = SHAKER.split(';')
+    left, right = PAIRS[0]
+    b0 = float(next(t for t in doc['tracks'] if t['name'] == 'clave')['at'].rstrip('b'))
+    b1 = (dict(MARKS)[f'{len(left)} against {len(right)}'] + lcm(len(left), len(right)) - len(left) + len(right)) / 4   # where the band stops
+    hat = next(t for t in doc['tracks'] if t['name'] == 'hat')
+    moved = [n for n in hat['notes'] if b0 <= n['at'] < b1]
+    assert moved and all(n['pitch'] == 'h' for n in moved)
+    hat['notes'] = [n for n in hat['notes'] if not b0 <= n['at'] < b1]
+    doc['patches']['cm-shekere'] = {
+        'about': ("Common Measure's shekere (chirper-two, 18 Nov): the library's beaded gourd (afro-perc's `sk`: a soft-edged burst of "
+                  "noise between 3 kHz and its top) with the top opened, so it can stand where a closed hi-hat stood."),
+        'kit': {'sk': {'gain': '-6dB', 'patch': {'synth': {
+            'layers': [{'type': 'noise'}], 'filters': ['hp cutoff=3k', f'lp cutoff={top}'],
+            'amp': {'a': '6ms', 'd': '90ms', 's': 0, 'r': '30ms'}}}}},
+        'play': {'humanize': {'time': '5ms', 'vel': 0.08}, 'vel_sens': 0.6}}
+    doc['tracks'].append({'name': 'shaker', 'patch': 'cm-shekere', 'gain': gain, 'pan': float(pan), 'out': 'drums', 'sends': {'oh': oh},
+                          'notes': [{**n, 'pitch': 'sk'} for n in moved]})
 
 
 def dump(doc):
