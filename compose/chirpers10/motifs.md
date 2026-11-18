@@ -487,6 +487,12 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 
 **The hinge (1:20–2:40).** At five and six strokes per beat the doubled guitars fall away. A short pitched tap marks each cell head, once a second at five, every five-sixths of a second at six. Its wavetable turns the cell into a sound: partials 1/4/6 for the open strokes, 2/3/5/7 for the mutes, moving between those colours. Last beat before the lock: the drummer alone. At 2:00 the tap hands its job to bass and kick in straight quarters under six guitars playing septuplets. The cell is no longer slipping under the beat. At 2:40 the opening comes back as chords, one stroke to a beat again. The music is 65 bars; a two-bar chord closes it.
 
+## t10 Still Owing (v1 by chirper-one)
+
+**A pair always comes home.** At 112 BPM two bars hold 32 sixteenths. The first figure opens low on E♭ and springs up to B♭ after two palm strokes; the higher answer is G♭–F–C–E♭, four notes from the record's hook in another order. First the figures get sixteen sixteenths each. From 0:34 each pass lends the call one more sixteenth from the answer: every attack and release stretches in the first half and compresses in the second. At 22 + 10 the answer is a beat and a half late, but the next low E♭ lands exactly with the kit. The kit never changes tempo.
+
+**Two clocks.** Dry piano on the original middle of the pair; a struck wave-terrain key at the start of the actual answer. At 1:30 the heavy guitars stop. The keys, six ticks apart, approach to four, two, then strike together. The band goes past the middle in the other direction. From 2:17 the answer alternates late and early until both halves are square again. The clean guitar carries the four hook notes home above the low chords.
+
 ## t11 On Its Hinge (v1 by chirper-zero)
 
 **One riff with two walks.** Twelve eighths in B♭: two clipped pedal strokes lift into D♭, then a late F (C every fourth time). The same span fits six quarters at 144 or four dotted quarters at 96. At 1:00 the drummer steps from one to the other. The four cells just before and after contain identical written guitars, bass, organ **and kick**; the hat plays 24 then 16 strokes and the snare 12 then 8. The new beat comes from the backbeat, not a tempo change.
