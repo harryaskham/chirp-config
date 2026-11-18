@@ -492,6 +492,30 @@ RELAY = os.environ.get("C10T1_RELAY", "8;10")
 EYE_BARS = os.environ.get("C10T1_EYE_BARS", "-14.5dB" if RELAY else "")
 
 
+# v57: both five-bar stop-times have sixteen stabs, four of which land on
+# quarters. Those four bear the hook in one direction, then the other.
+STOP_HOOK = os.environ.get('C10T1_STOP_HOOK', '1' if EYE_BARS else '')
+
+
+def quarter_stabs(start_bar, end_bar, returning=False):
+    """Revoice just the inner pair. The low takes and all sixteen rests keep their shape."""
+    if not STOP_HOOK:
+        return
+    on_grid = [t for t, *_ in strikes(5, FIVE_S, s16(start_bar), s16(end_bar)) if t % 4 == 0]
+    hook = H1[::-1] if returning else H1
+    assert len(on_grid) == len(hook)
+    tops = dict(zip(on_grid, (F1 + 36 + h for h in hook)))
+    for name in G2:
+        tr = REAL_MAP.get(name, name) if REAL_FROM is not None and start_bar >= REAL_FROM else name
+        for n in T[tr]:
+            high = tops.get(round(4*n['at']))
+            if high is not None:
+                # First time, fret the hook above the open low F. In the
+                # mirror, the high cluster briefly clears to that note in octaves.
+                low = high - 12 if returning else F1
+                n['pitch'] = f'{nm(low)},{nm(high)}'
+
+
 def relay(b0, b1, returning=False):
     """Two next starts, one hook note: five picks it up, seven carries it."""
     if not RELAY:
@@ -865,6 +889,7 @@ def compose():
     # 6. 105-110  five and seven meet: stop-time. Sixteen stabs on the five wheel, silence between
     a, z = B[5], B[6]
     gtr(G + G2, 5, FIVE_S, a, z, vel=0.95)
+    quarter_stabs(a, z)
     bass(5, FIVE_S, a, z, vel=0.95)
     kick(5, FIVE_S, a, z, vel=0.95)
     for t, ln, kind, j, hi in strikes(5, FIVE_S, a * 16, z * 16):
@@ -1021,6 +1046,7 @@ def compose():
     a, z = B[15], B[16]
     gtr(G, 5, FIVE_S, a, z, vel=0.95)
     gtr(G2, 5, [(0, 2, "d")], a, z, vel=0.9)
+    quarter_stabs(a, z, returning=True)
     bass(5, FIVE_S, a, z, vel=0.95)
     kick(5, FIVE_S, a, z, vel=0.95)
     for t, ln, kind, j, hi in strikes(5, [(0, 2, "p"), (2, 1, "c"), (3, 1, "c"), (4, 1, "c")], a * 16, z * 16):
