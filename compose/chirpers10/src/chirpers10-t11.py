@@ -51,6 +51,11 @@ EARLY = os.getenv('C10T11_EARLY', '12' if COUNTER else '')
 BREATH = os.getenv('C10T11_BREATH', '0;0;0.9' if EARLY else '')
 if BREATH:
     FORM[-1] = ('shut', 3)
+# v10: before the organ arrives, one guitar says the riff from its middle.
+# The two halves have their answers in the same places, so D flat and F sound
+# together; the clipped strokes no longer coincide. Semitones the turned
+# guitar's answers sit above the written ones. Empty restores v9 exactly.
+HALF = os.getenv('C10T11_HALF', '12' if BREATH else '')
 BROAD = CELL // 4
 # Offset, duration, semitones, open power chord / single ringing note / palm mute.
 # The two short strokes before the Db and the delayed F are the tell in both walks.
@@ -308,6 +313,29 @@ def make():
         landing,gate,semi,_ = next(n for n in LIFT if n[3]=='p')
         notes['wallR'] = [n for n in notes['wallR'] if not turn <= n['at']*SUB <= turn+landing]
         put('wallR',turn+landing,gate,HOME+int(EARLY)+semi,.96)
+    if HALF:
+        # Last four cells of the quick verse (0:30-0:40). First the right hand
+        # only trades the two answers; then it plays the whole riff starting
+        # at the half cell, where both walks agree; then the left hand does.
+        # The fourth cell, with its C, is the written unison again. Bass and
+        # kick stay with the written riff throughout.
+        quick, half = marks['quick'], CELL//2
+        for i,(tr,turned) in zip(range(8,11), (('gr',False),('gr',True),('gl',True))):
+            a = quick + CELL*i
+            assert answer(i,7)==7 and not swing_slow(4)
+            written = [n for n in notes[tr] if a <= n['at']*SUB < a+CELL]
+            assert len(written)==len(RIFF)
+            notes[tr] = [n for n in notes[tr] if n not in written]
+            for pos,d,semi,kind in RIFF:
+                if turned:
+                    at = (pos+half) % CELL
+                else:
+                    at = pos
+                    if kind=='n':
+                        # Same place and gate, the other half's pitch.
+                        semi = next(s for t,_,s,k in RIFF if k=='n' and t==(pos+half)%CELL)
+                m = HOME+semi+(int(HALF) if kind=='n' else 0)
+                put(tr,a+at,d,chord(m,m+7) if kind=='p' else m,.87 if kind=='m' else .96,kind=='m')
     # The control comparison for the hinge: all non-drum attacks, pitches, gates,
     # velocities and expressions repeat exactly. Drums are counted independently.
     hinge=marks['broad']/SUB; span=4*CELL/SUB
