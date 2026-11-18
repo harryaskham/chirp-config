@@ -117,6 +117,20 @@ ROOM = os.environ.get('C10T10_ROOM', 'upright-bass play.gate=1 play.humanize.tim
 # the loudness meter's gate and the file read 0.024 dB louder: every other bar came out that much quieter. This target
 # gives those bars the gain they had in v14.
 ROOM_LUFS = -9.976
+# v16 (section, 0:00-0:34): THE LOUD BAND'S FIRST WORD IS AN ANSWER. The song is played by two bands, and the pair is
+# two halves: a call and its answer. In the introduction the quiet band has both (the sax calls, the pick answers),
+# three times. The loud band then took both at once, on the call, at 0:12.9. Now the sax calls a FOURTH time, exactly
+# as it called the third (the reed closed for the muted strokes, the upright, the soft foot, the hat and the backbeat
+# stealing in), and where the pick has answered three times the loud band answers instead: its first stroke is the
+# higher chord at 0:15.0, the crash and the kick with it, and the four falling notes are its way in to the riff. Its
+# first low E flat is then the downbeat of 0:17.1, the straight pair the so-debt card plays, which keeps every note.
+# So before anyone borrows a tick the two halves have changed hands one at a time, and the half that will owe is
+# the one the loud band took first.
+# (Benched the other way round and not kept: the loud band calls at 0:12.9 and the pick answers once more. The song
+# then stops two seconds after it starts, the scorer hears the loud band arrive at 0:17 and reads the first eighteen
+# seconds as one section, 95.9/94.1 -> 93.6/91.1; and the card's first chord follows a silence instead of a bar.)
+# Empty restores v15; it is on only while ROOM is.
+ANSWER = os.environ.get('C10T10_ANSWER', '1' if ROOM else '')
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -571,6 +585,19 @@ def build():
             assert len(early) == 2
             voices['kick'] = [n for n in voices['kick'] if n not in early]
             voices['sweep'].extend({**n,'gain':f'{float(foot):g}dB'} for n in early)
+
+    if ANSWER:
+        # The first bar of what was the loud band's first pair is the first bar of the quiet band's last pair, note
+        # for note, with the reed's tonguing; the crash moves to the loud band's first stroke.
+        first, pair = dict(sections)['in hand'], 2*BAR
+        first_bar = lambda n, start: start <= round(n['at']*SUB, 4) < start+BAR
+        for tr in ('left', 'right', 'bass', 'kick', 'snare', 'metal', 'breath', 'room', 'sweep'):
+            again = [{**n, 'at': round(n['at']+pair/SUB, 6)} for n in voices[tr] if first_bar(n, first-pair)]
+            voices[tr] = [n for n in voices[tr] if not first_bar(n, first)] + again
+        kit('c', first+BAR, .83)
+        lo, hi = (first-pair)/SUB, (first-pair+BAR)/SUB
+        air_points.extend([[f'{float(at[:-1])+pair/SUB:g}b', db] for at, db in list(air_points)
+                           if isinstance(at, str) and lo <= float(at[:-1]) < hi])
 
     def track(tr,patch,db,pan=0,**more):
         ns=sorted(voices.pop(tr),key=lambda e:e['at']); assert ns
