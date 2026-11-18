@@ -783,6 +783,41 @@ def last_chord(doc):
                            'q':1.5,'gain':{'value':'0dB','mod':[{'src':'auto.root_out','amount':1}]}}]})
 
 
+# v18: the right-hand chord in the middle of the pole goes to a wheel-bowed
+# string. Empty restores v17; the older AFTERIMAGE and HOLD rollbacks still work.
+WHEEL = os.environ.get('C10T5_WHEEL', '-9dB' if AFTERIMAGE else '')
+
+
+def bowed_pole(doc):
+    """One wheel turning under another: keep the common note when the ground changes."""
+    right = next(t for t in doc['tracks'] if t['name'] == 'pr')
+    start, end = 4*(POLE+2), 4*(BOTH-2)
+    chords = [n for n in right['notes'] if start <= n['at'] < end]
+    right['notes'] = [n for n in right['notes'] if not start <= n['at'] < end]
+    home_fifth = F1 + 31  # C4 over the first and returning F chord
+    previous, line = home_fifth, []
+    for chord in chords:
+        classes = {p[:-1] for p in chord['pitch'].split(',')}
+        tones = [p for p in range(home_fifth-6, home_fifth+7) if nm(p)[:-1] in classes]
+        key = home_fifth if home_fifth in tones else min(tones, key=lambda p: abs(p-previous))
+        if not line or key != previous:
+            line.append((chord['at'], key))
+        previous = key
+    notes = []
+    for j,(at,key) in enumerate(line):
+        # Overlap the two key changes for the slur; lift the wheel before the
+        # guitars pick up the chromatic run. No restrike through the two E-flats.
+        stop = line[j+1][0]+.03 if j+1<len(line) else end-.25
+        notes.append({'at':at, 'len':round(stop-at,4), 'pitch':nm(key), 'vel':.86,
+                      'expr':{'slur':int(j>0)}, **({'gain':'-1.5dB'} if key!=home_fifth else {})})
+    doc['tracks'].append({'name':'wheel',
+                          'patch':'hurdy-gurdy fx.0.mix=0 synth.amp.r=90ms play.gate=1 '
+                                  'synth.layers.0.bow_pos=0.075 synth.layers.0.rosin=0.48 '
+                                  'synth.layers.0.bright=0.65 synth.filters.0.cutoff=210',
+                          'fx':[{'type':'eq','bands':['peak cutoff=330 q=0.9 gain=-8dB']}],
+                          'gain':WHEEL, 'pan':right['pan'], 'out':right['out'], 'notes':notes})
+
+
 def song():
     compose()
     key_lane = [["0b", 0]]
@@ -911,6 +946,8 @@ def song():
         held_string(doc)
     if AFTERIMAGE:
         last_chord(doc)
+    if WHEEL:
+        bowed_pole(doc)
     return doc
 
 
