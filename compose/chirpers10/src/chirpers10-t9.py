@@ -136,6 +136,22 @@ AUGMENT = os.environ.get('C10T9_AUGMENT', '1' if KHANDA else '')
 # With the target left at -9.96 the rest of the song came out 0.008 dB lower.)
 SIX = os.environ.get('C10T9_SIX', '-11dB;24;-9.95' if all((AUGMENT, PAWL, HEAD_TUNE, CROSS, RING)) else '')
 PLACES = (0, 1, 3, 6, 7, 12)  # F, Gb, Ab, B, C, upper F: one for each place in a beat of six
+# v17, section w6 (the lock on F, 2:05-2:22.9): SEVEN, HEARD AS THREE AND TWO AND TWO. "What was a slow tune
+# should now be a fast figure over a very plain walk" (above). Measured, it was a wall over a walk: all six guitars
+# played all seven strokes, and folded on the beat their level was the same from stroke to stroke (the open note
+# and the two answers 0.4 dB over the four muted strokes; 1.1 dB in the whole mix). A saturated amp holds a muted
+# stroke as loud as an open one, so six of them leave no figure, only its pitches. Now the riff is orchestrated as
+# it is written. The lock still ARRIVES as the wall: six guitars on every stroke for the bass's first slow cell
+# (seven beats). From the second cell the main pair alone keeps all seven strokes; the inner pair and the wall
+# pair strike only the open note and the two answers, each one stroke long, and REST on the four muted strokes:
+# long short short, long short, long short, in every beat, until the band goes up to A flat, where all six are on
+# every stroke again. By subtraction: no stroke is added or moved; the main pair, the bass's slow tune (v15), the
+# kit and the answers the wall pair frets ahead (v11) are as they were.
+# Beats of full wall first ; the guitars that rest on the muted strokes ; how long they write their struck notes,
+# in strokes (0.5 sounds one stroke long: these rigs ring half a stroke past the note) ; the loudness target (the
+# lock is a little quieter; every other bar keeps v16's mastering gain: at -9.95 the rest of the song came out
+# 0.11 dB louder, at -10.06 still 0.002). Empty restores v16.
+SHAPE = os.environ.get('C10T9_SHAPE', '7;dl,dr,wl,wr;0.5;-10.062' if SIX and FORETELL else '')
 WALK = []
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
@@ -514,6 +530,19 @@ def count_the_five(b0, beats):
     assert abs(T["tabla"][-1]["at"] - (b0 + beats)) < 1e-9
 
 
+def three_two_two(b):
+    """The lock on F after its first slow cell: four guitars strike the open note and the answers and rest between."""
+    first, who, stab = int(SHAPE.split(';')[0]), SHAPE.split(';')[1].split(','), float(SHAPE.split(';')[2])
+    for tr in who:
+        here = lambda n: b + first <= n['at'] < b + 32 - 1e-9
+        keep = [n for n in T[tr] if not (here(n) and (n.get('expr') or {}).get('pm'))]
+        assert len(T[tr]) - len(keep) == 4 * (32 - first), (tr, len(T[tr]) - len(keep))
+        for n in keep:
+            if here(n) and n['len'] <= 1 / N + 1e-9:      # the struck notes; the answers fretted ahead keep their length
+                n['len'] = round(stab / N, 4)
+        T[tr] = keep
+
+
 def fill(b):
     """The last two beats before beat b."""
     for i, pc in enumerate(["t1", "t1", "t2", "t2", "ft", "ft", "s", "s"]):
@@ -570,6 +599,8 @@ def compose():
     deal(b, 32, 7, ALL, chords="o")
     if FORETELL:
         chord_before_the_line(b)
+    if SHAPE:
+        three_two_two(b)
     ROOTS.append((b + 32, 3))
     deal(b + 32, 24 - (N if GEAR else 0), 7, ALL, root=3, chords="o", cut=bool(CUT))
     if GEAR:
@@ -674,7 +705,7 @@ def song():
                   "and locks. The bass and kick walk in quarters underneath. Then once more at one to the beat, every stroke a chord. "
                   "v1 is the skeleton.") + (" At four to the beat the two hook notes pass between a baritone guitar and a clavinet; they exchange roles halfway." if HANDS else "")
                  + (" One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then the original two guitars play the last cell before everyone lands on F." if RING else ""),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(SIX.split(";")[2]) if SIX else float(KHANDA.split(";")[1]) if KHANDA else PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(SHAPE.split(";")[3]) if SHAPE else float(SIX.split(";")[2]) if SIX else float(KHANDA.split(";")[1]) if KHANDA else PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}, **({'hp': {'gain': CROSS.split(';')[1]}} if CROSS else {}),
                             **({'oh': {'patch':'haake-hat amp.d=1.05s amp.r=180ms amp.curve=2.2',
                                        'gain':CLUTCH,'pan':-.45,'choke':'hat'}} if CLUTCH else {})}},
