@@ -56,6 +56,13 @@ if BREATH:
 # together; the clipped strokes no longer coincide. Semitones the turned
 # guitar's answers sit above the written ones. Empty restores v9 exactly.
 HALF = os.getenv('C10T11_HALF', '12' if BREATH else '')
+# v11: the last changes of feet get the grounds of 1:30. Each time the broad
+# walk comes back in the second half of the swing, the bass leaves the
+# guitars' B flat at the half cell (where the two walks agree, and where the
+# band already re-enters) and plants G flat, then E flat, then F under the
+# unchanged riff. The quick cells and 'home' stay on B flat. Semitones from
+# the low B flat, one for each broad phrase; empty restores v10.
+GROUND = os.getenv('C10T11_GROUND', '-4,-7,-5' if HALF else '')
 BROAD = CELL // 4
 # Offset, duration, semitones, open power chord / single ringing note / palm mute.
 # The two short strokes before the Db and the delayed F are the tell in both walks.
@@ -126,7 +133,7 @@ def make():
     def swing_slow(i):
         return i<4 or 8<=i<10 or (12<=i<16 and i%2==0)
 
-    def main_riff(start,i,lift=False,wide=False,lend=False,carry_out=False,count_in=False,bass_floor=None):
+    def main_riff(start,i,lift=False,wide=False,lend=False,carry_out=False,count_in=False,bass_floor=None,plant=None):
         pattern = LIFT if lift else RIFF
         meet = CELL//2             # both walks hit 12: three quarters or two dotted quarters
         last = max(t for t,_,_,kind in pattern if kind=='n')
@@ -153,7 +160,12 @@ def make():
                     put('wallR',start+t,gate,m+int(STAY),.94)
             else:
                 strings(start+t,d,m,kind,v,wide)
-            if kind!='m' or t in (4,15,16):
+            if plant is not None and t>=meet:
+                # One long note under the second half of the riff: the lowest
+                # the bass goes under distortion, an octave-and-more of floor.
+                if t==meet:
+                    put('bass',start+t,CELL-meet-.3,plant,.93)
+            elif kind!='m' or t in (4,15,16):
                 # The first hint: the riff is unchanged over Gb. Its Db still
                 # has a bass fifth; the guitar's F is now the major seventh.
                 low = m if bass_floor is None else bass_floor + (7 if s==3 else 0)
@@ -261,9 +273,18 @@ def make():
                 split = bool(STAY) and section=='swing'
                 count_in = split and i>count//2 and slow!=swing_slow(i-1)
                 carry_out = split and count//2<=i<count-1 and slow!=swing_slow(i+1)
+                floor = HOME-4 if PIVOT and section=='quick' and count//3<=i<count//2 else None
+                plant = None
+                if GROUND and split and slow and i>=count//2:
+                    # 8-9, 12 and 14: the broad phrases among the last five
+                    # changes. The first cell of each is planted at its half;
+                    # a second cell walks the riff's rhythm on that ground.
+                    heads = [k for k in range(count//2,count) if swing_slow(k) and not swing_slow(k-1)]
+                    ground = HOME+int(GROUND.split(',')[max(n for n,k in enumerate(heads) if k<=i)])
+                    if i in heads: plant = ground
+                    else: floor = ground
                 main_riff(a,i,lift=lifted,wide=section in ('shoulder','swing'),lend=reply and i>=2*count//3,
-                          carry_out=carry_out,count_in=count_in,
-                          bass_floor=HOME-4 if PIVOT and section=='quick' and count//3<=i<count//2 else None)
+                          carry_out=carry_out,count_in=count_in,bass_floor=floor,plant=plant)
                 if reply:
                     for t,_,s,k in LIFT:
                         if k=='m': continue
