@@ -56,6 +56,9 @@ BASS_TURN = os.environ.get("C10T9_BASS_TURN", "1")
 # v6: give each position inside the beat a pitch for the last two cycles
 # of fives and first two of sixes. Empty restores v5. Keep the older v4 switch.
 HEAD_TUNE = os.environ.get('C10T9_HEAD_TUNE', '1' if BASS_TURN else '')
+# v7: after the lock modulates, count 1..7 without increasing the speed.
+# All six picks lift together; bass and kick still walk. Empty restores v6.
+CUT = os.environ.get('C10T9_CUT', '1' if HEAD_TUNE else '')
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
 ROOTS = [(0, 0)]
@@ -104,7 +107,16 @@ def one_again(tr, cell, pos, midi, pitch, length, returning):
     return pitch, length
 
 
-def deal(b0, beats, k, gtrs, low=True, root=0, chords=""):
+def keep_lock_stroke(beat, slot):
+    """Two eight-beat sentences on the fixed septuplet grid; third is untouched."""
+    if beat < N+1:
+        return slot < min(beat+1,N)  # admit the head first; both hooks arrive in turn
+    if beat < 2*(N+1):
+        return slot >= beat-(N+1)    # take the head away first; only the tail, then air
+    return True
+
+
+def deal(b0, beats, k, gtrs, low=True, root=0, chords="", cut=False):
     """Deal the cell. Chord letters: o = cell head, h = hook, c = clipped pedal fifth on a mute."""
     for i in range(beats * k):
         kind = CELLS[(i // N) % len(CELLS)][i % N]
@@ -128,6 +140,8 @@ def deal(b0, beats, k, gtrs, low=True, root=0, chords=""):
                 add("keyed", at, 0.85 / k, midi + 24, 0.96)
         else:
             for tr in gtrs:
+                if cut and not keep_lock_stroke(i//N, i%N):
+                    continue
                 note = pitch, (0.65 if mute else 1) / k
                 if RING and k == 1:
                     note = one_again(tr, i // N, i % N, midi, *note, returning=bool(chords))
@@ -258,7 +272,7 @@ def compose():
     drum("c", b, 0.95)
     deal(b, 32, 7, ALL, chords="o")
     ROOTS.append((b + 32, 3))
-    deal(b + 32, 24, 7, ALL, root=3, chords="o")
+    deal(b + 32, 24, 7, ALL, root=3, chords="o", cut=bool(CUT))
     drum("c", b + 32, 0.9)
     for j in range(4, 56, 4):
         if j != 32:
