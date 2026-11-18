@@ -630,6 +630,47 @@ BRAID = os.environ.get("C10T2_BRAID", "1")
 # snare on the beat sits where the backbeat sat, 1.8 dB under the mix in its first 60 ms; its second strokes 3.7
 # under, the open string's 6.4, the toms 7 to 8.)
 MACHINE = os.environ.get("C10T2_MACHINE", "118:122;0.8:-4.5dB;0.72;0.62;-10" if HOLE_FILL and BRAID and FOUR and SHAKE else "")
+# v31: THE FAST CLOCK SOUNDS FAST (chirper-alpha; section round, 2:04.4-2:08.9, in the window 1:46-2:22 the map calls
+# "little new"). The right guitar is the left guitar on a faster clock, and until now you heard that only in TIME: in
+# every slip it arrives earlier and earlier. But a sound that arrives earlier and earlier is also HIGHER: a tape run
+# fast, or anything heard through a delay that is shrinking, rises by exactly as much as it gains. In the last slip
+# before the hold a beat apart (the fast one: a sixteenth in two bars) the right guitar's PITCH goes with its clock.
+# Each of its notes is tuned by how fast its clock is running when it is struck. The slip eases in and out, so the
+# guitar leans sharp, 87 cents at the middle (its clock 5.2% fast, not far short of the G flat above), and comes back
+# into tune as it comes back into time: it is in tune again exactly when it locks a beat ahead, on F, where the two
+# guitars' chugs meet on four. The left guitar, the bass and the two music boxes stay where they are: the ear has F all
+# the way through. Nothing is tuned by hand: the cents are read off the track's `warp`.
+# Only this slip. The two slow slips (0:53, 1:11) Harry signed off as they are ("A thrill"); the fast one at 1:46 has
+# just changed ground to B and has no home to lean from. `48:50,56:58` would do both fast ones.
+# bars from:to (several, comma-separated) ; how much of the clock's true shift (1 = exactly the clock's). "" = v30.
+VARI = os.environ.get("C10T2_VARI", "56:58;1")
+
+
+def clock_speed(tau):
+    """How fast the right-hand clock is running against the song's at its own beat `tau` (1 = together): the engine's
+    `warp` moves a note written at tau to tau + shift(tau), so the track runs at 1 / (1 + shift'). A `smooth` stretch
+    is half a cosine (lower.rs, WarpCurve::Smooth)."""
+    b = d = 0.0
+    for seg in WARP:
+        over = float(seg["over"].rstrip("b"))
+        if b <= tau < b + over:
+            x = (tau - b) / over
+            slope = (seg["to"] - d) / over * (math.pi / 2 * math.sin(math.pi * x) if seg.get("curve") == "smooth" else 1.0)
+            return 1.0 / (1.0 + slope)
+        b, d = b + over, seg["to"]
+    return 1.0
+
+
+def lean(tr="gr"):
+    """v31: each note of a right-hand track in the VARI bars takes its clock's speed as pitch."""
+    spans, depth = [tuple(int(v) for v in s.split(":")) for s in VARI.split(";")[0].split(",")], float(VARI.split(";")[1])
+    for n in T[tr]:
+        if any(b0 * 4 <= n["at"] < b1 * 4 for b0, b1 in spans):
+            cents = 1200 * math.log2(clock_speed(n["at"])) * depth
+            if abs(cents) >= 0.5:
+                name = n["pitch"]
+                midi = NAMES.index(name.rstrip("-0123456789")) + 12 * (int(name[len(name.rstrip("-0123456789")):]) + 1)
+                n["pitch"] = f"m{midi + cents / 100:.3f}"
 
 
 def sing_the_lock():
@@ -954,6 +995,8 @@ def compose():
         for tr in TICKS:
             riff(tr, 126, 130, vel=0.32 if BOX else 0.45, up=TICK_UP, clean=True, ramp=(1.0, 0.6))     # (the boxes softer at the end: the two clocks are the point there)
         T.setdefault("home", []).append({"at": 126 * 4, "len": 16.0, "pitch": "F1", "vel": 0.5})
+    if VARI:                             # v31: in the last slip before the hold a beat apart the right guitar's pitch goes with its clock
+        lean("gr")
 
 
 # the heavy rig: Common Time's tight rig on the engine's own cabinet (sounds.md), one a side
