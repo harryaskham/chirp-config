@@ -324,6 +324,7 @@ assert LOCK or not TELL, "C10T6_TELL builds on C10T6_LOCK"
 
 G = ("gl", "gr")
 G2 = ("gl2", "gr2")
+G3 = ("gl3", "gr3")
 BACK = {"one", "two", "four", "eight", "chaos", "chaos2", "full", "down-four", "down-two", "down-one"}   # the snare on two and four
 HALF = {"five", "three", "six"}                                                                          # the snare on three only
 WIDE = {"chaos", "chaos2", "three", "full"} if TELL else {"four", "eight", "chaos", "five", "chaos2", "three", "six", "full"}   # four guitars
@@ -412,6 +413,22 @@ def compose():
 # snare was already cut, in the guitars' low mids) ; the kit bus's shelf at 9 kHz, dB (the other songs have -2: here
 # the machine's hat already holds that band). "" = v7 (the machine alone).
 KIT = os.environ.get("C10T6_KIT", "-3.5dB;-1.4dB;-5.5dB;130;-2.5;-3.6;0;5;-2;330:1:-4;-4.5")
+
+
+def third_pair():
+    """At the top a third pair plays what the first pair plays, each side its own side's part as it stands after
+    the crests (where the first pair leaves an accent to the two ringing strings, so does the third). The scream,
+    a fifth from the octave up, it plays an octave down."""
+    lo, hi = 2 * AT["full"], 2 * AT["down-four"]
+    for src, tr in zip(G, G3):
+        for n in T[src]:
+            if lo <= n["at"] < hi:
+                m = dict(n)
+                if "," in m["pitch"]:
+                    low = [NAMES.index(q[:-1]) + 12 * int(q[-1]) for q in m["pitch"].split(",")]     # an octave under
+                    assert len(low) == 2 and low[1] - low[0] == 7
+                    m["pitch"] = ",".join(nm(q) for q in low)
+                T.setdefault(tr, []).append(m)
 
 
 def kit_part():
@@ -734,6 +751,24 @@ def hand_on_the_dial():
 # on these toms: untrimmed, the half bar before each scream came up so far
 # that the scream's own step shrank by up to a decibel. Empty restores v17.
 REGROW = os.environ.get("C10T6_REGROW", "-2") if TOMS else ""
+# v19 (chirper-one; whole song): TWO, FOUR, SIX. Since v3 the band's size says where the rule is: two guitars where
+# it repeats, four where it does not. The top of the dial had the same four as the walls at 1:10 and 1:44, and its
+# size was named as not achieved at v3 and v4 ("marked by the cymbals and the holes, not by size"). Read in the
+# finished file at v18, the loudest second of the song was not at the top at all: it was just after it, where the
+# dial comes down (2:52), and the windows before it (2:01-2:24) stood over the top's loudest scream as well.
+# At the top the rule fills the whole range: it is the one place the population reaches the room there is. So at
+# the top, and only there, a THIRD pair of guitars plays (a third amp, the engine's `mark`, which this song had not
+# used; inside the other two pairs): every half bar the band plays there, with the first pair, note for note as
+# that pair stands after v12's crests (where it leaves an accent to the two ringing strings, so does the third).
+# And the scream, a fifth at the top of the neck with the second pair's third above it, gets a FLOOR: the third
+# pair plays it an octave down, so each scream is three chords deep. In the holes they are silent with everyone.
+# (First bench at the second pair's level, -3.5 dB: 7 to 8 dB under everything else on the screams (K), which read
+# +0.7 dB; the top's loudest second then stood 0.1 dB over the windows before it. A pair that is there to be the
+# top has to be heard as one: -1 dB.)
+# the patch ({} = the cone) ; its gain ; its pan ; the two cones ; the song's loudness target (every bar outside
+# the top keeps v18's mastering gain: with the target left at -10 the rest of the song came out 0.06 dB lower).
+# "" = v18.
+SIX = os.environ.get("C10T6_SIX", "ct-twin fx.1.model=mark fx.2.mic=0.55 fx.2.cone={};-1dB;0.45;34,35;-9.94") if REGROW else ""
 
 
 def crash_and_regrowth():
@@ -819,6 +854,8 @@ def song():
     compose()
     if CREST:
         crest_lines()
+    if SIX:
+        third_pair()        # after the crests: it follows the first pair as they left it
     if GROWTH_TOUCH:
         growth_harmonics()
     if AHEAD:
@@ -848,6 +885,8 @@ def song():
         {"name": "gr", "patch": main.format(31), "gain": "0.8dB", "pan": 1, "out": "gtrs", **mids},
         {"name": "gl2", "patch": dbl.format(32), "gain": "-3.5dB", "pan": -0.75, "out": "gtrs", **mids},
         {"name": "gr2", "patch": dbl.format(33), "gain": "-3.5dB", "pan": 0.75, "out": "gtrs", **mids},
+        *([{"name": tr, "patch": SIX.split(";")[0].format(cone), "gain": SIX.split(";")[1], "pan": side * float(SIX.split(";")[2]), "out": "gtrs", **mids}
+           for tr, cone, side in zip(G3, SIX.split(";")[3].split(","), (-1, 1))] if SIX else []),
         {"name": "lead", "patch": "nes-pulse-lead", "gain": os.environ.get("C10T6_LEAD", "-18dB"), "pan": 0, "at": f"{lead_at * 2}b",
          "sends": {"hall": "-12dB"}, "gen": [g[3] for g in gens]},
         *([{"name": "echo", "patch": "nes-pulse-lead layers.0.chip.duty=0.125", "gain": LOCK.split(";")[2], "pan": float(LOCK.split(";")[4]),
@@ -918,7 +957,7 @@ def song():
                   "and back down: the riff settles, splits in two, four, eight, stops repeating, locks by itself on five half "
                   "bars and then on three, fills the whole range, and dies out. Triplets at 138, on E, with a drum machine; "
                   "the lead has no notes, only the rule (the engine's own logistic generator). v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"cc-machine": machine,
                     **({"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}}} if KIT else {})},
         "buses": {
