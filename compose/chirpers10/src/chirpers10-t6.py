@@ -652,6 +652,42 @@ def know_the_way():
     return told
 
 
+# v16: WHAT THE DOUBLING MOVED (section round, 0:55-1:23; the guitars' lap of eight, 0:56-1:03). Eight is four said
+# twice, and the rule changes very little the second time: the same strokes in every half bar, the same first
+# accent, and then three accents that have MOVED (the low B from the first beat to the second; the chord from B flat
+# to B and two places later; the E a place earlier). Those three are all the news there is in a riff that repeats,
+# and since v3 the second pair of guitars is for news. So it is heard here for the first time, nine seconds before
+# it arrives as the wall: three chords, each struck on a moved accent and HELD to the next while the first pair
+# goes on chugging under it. Where the accent is a low single note the pair plays it as the chord an octave up;
+# where it is a chord, two rungs over the first pair (as it will from 2:06). That makes B, then B minor seventh,
+# then E minor seventh: the riff's last bar is a cadence home, and the keys answer it. The drummer, who has now
+# heard the first half, marks each with the china. The machine marks nothing: it only counts.
+# (First bench: the three struck no longer than the first pair's own accents, a triplet eighth for two of them.
+# They read 0.8 to 1.1 dB over v15 for a third of a second: an accent nobody would hear as an arrival.)
+# the china's velocity on a moved accent ; the gap before the next chord, in places. "" = v15.
+MOVED = os.environ.get("C10T6_MOVED", "0.8;0.3") if AHEAD else ""
+
+
+def moved_accents():
+    """-> the beats of the accents in the second half of eight's first lap that are not where the first half had them."""
+    a, found = AT["eight"], []
+    for c in range(a + 4, a + 8):
+        now, then = cell(CELLS[c][3]), cell(CELLS[c - 4][3])
+        if now == then:
+            continue
+        slots, ai, r = now
+        assert slots == then[0], "the doubling moves accents, not strokes"
+        found.append((c * 6 + slots[ai], c, r))
+    ends = [p for p, _, _ in found[1:]] + [(a + 8) * 6]          # each rings to the next; the last to the end of the lap
+    for (p, c, r), end in zip(found, ends):
+        q = (note(r + 2) if r >= 8 else note(r) + 12) + gup(c)
+        for tr in G2:
+            add(tr, c, p - c * 6, end - p - float(MOVED.split(";")[1]), f"{nm(q)},{nm(q + 7)}", 1.0)
+    marks = [round(p / 3, 5) for p, _, _ in found]
+    assert len(marks) == 3 and all(any(n["at"] == at for n in T[tr]) for at in marks for tr in G), "the guitars' own lap"
+    return marks
+
+
 def last_string():
     """Use alternate sides of the fixed point, then the last occupied cells."""
     out = AT["out"]
@@ -712,8 +748,10 @@ def song():
         periodic_tines()
     if LAST_TOUCH:
         last_string()
+    moved = moved_accents() if MOVED else []
     if KIT:
         kit_part()
+        T["dcym"] += [{"at": at, "len": 2.0, "pitch": "x", "vel": float(MOVED.split(";")[0])} for at in moved]
     kt = KIT.split(";") if KIT else None
     kit = "cc-machine"
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
