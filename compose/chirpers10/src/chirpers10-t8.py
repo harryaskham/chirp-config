@@ -81,6 +81,9 @@ TWICE = os.environ.get('C10T8_TWICE', '1' if FELT else '')
 # v11: after the loud final chord, put the two riffs back together by addition.
 # Empty restores v10; the older version switches keep working.
 AFTER = os.environ.get('C10T8_AFTER', '1' if TWICE and BREATH and BASS_BREAK else '')
+# v12: one electronic key voices 20:12 as frequencies, 5:3. Swap only the
+# inner left guitarist's pitched attacks in four middle answers. Empty = v11.
+SIDEBANDS = os.environ.get('C10T8_SIDEBANDS', '-13.5dB' if AFTER else '')
 
 
 def nm(n):
@@ -531,6 +534,53 @@ def measure_the_shell(doc):
     doc['tracks'].append({'name':'gourd','patch':'cm-gourd','gain':SCRAPER,'pan':.18,'out':'drums','notes':hits})
 
 
+def difference_key(doc):
+    """Twenty less twelve leaves eight. On the key, five minus three leaves two."""
+    long, short = PAIRS[2]
+    a, b, unit = len(long), len(short), len(G)
+    assert (a//unit, b//unit, a-b) == (5, 3, 8)
+    start = next(t for name,t in MARKS if name == f'{a} against {b}')
+    # The bass takes the shorter riff in the second half of this pair. Let its
+    # first answer and the last exposed tail stay on both original guitars.
+    lap_count = lcm(a,b)*REPS[2]//(2*a)
+    assert lap_count == 6
+    halfway = start + lap_count*a
+    modes = [('five','three'), ('both','both'), ('both','product'), ('product','product')]
+    remove, keys = set(), []
+    for lap, hands in enumerate(modes, 1):
+        at = halfway + lap*a + b
+        pitched = [(i,k) for i,k in enumerate(long[b:]) if k.isdigit() or k=='o']
+        for (i,k), mode in zip(pitched,hands,strict=True):
+            dur = 1
+            while b+i+dur < a and long[b+i+dur]=='-': dur += 1
+            # Teach the two tones and their product on ONE unit (F2). Only
+            # once the product is established does it take the player's B–F.
+            unit_note = F1 + 12 + (int(k) if lap==len(modes) and k.isdigit() else 0)
+            remove.add(at+i)
+            keys.append({'at':(at+i)/4, 'len':dur*.98/4, 'pitch':nm(unit_note), 'vel':.91,
+                         'expr':{'three':int(mode in ('three','both')), 'five':int(mode!='three'),
+                                 'product':int(mode=='product')},
+                         # Same sine RMS for one tone, two tones, or their product.
+                         'gain':{'three':'0dB','five':'0dB','both':'-3dB','product':'3dB'}[mode]})
+    double = next(t for t in doc['tracks'] if t['name']=='dl')
+    assert len(remove)==8 and sum(round(n['at']*4) in remove for n in double['notes'])==8
+    double['notes'] = [n for n in double['notes'] if round(n['at']*4) not in remove]
+    switch = lambda src: {'value':'-96dB','mod':[{'src':'expr.'+src,'amount':96}]}
+    doc['patches']['cm-sidebands'] = {
+        'about':'One struck electronic key. Two oscillators at the fifth and third harmonics of the written note; the ring circuit makes their sum and difference.',
+        'synth': {'layers':[
+            {'name':'reference','wave':'sine','ratio':b/unit,'audible':False},
+            {'wave':'sine','ratio':b/unit,'level':switch('three')},
+            {'wave':'sine','ratio':a/unit,'level':switch('five'),
+             'ringmod':{'from':'reference','mix':'expr.product'}},
+            {'type':'noise','level':{'value':'-76dB','mod':[{'src':'env.contact','amount':48}]}}],
+            'env':{'contact':{'a':'0.2ms','d':'5ms','s':0}},
+            'amp':{'a':'2ms','d':'340ms','s':.22,'r':'45ms','curve':2}},
+        'play':{'gate':1,'vel_sens':.6}}
+    doc['tracks'].append({'name':'residue','patch':'cm-sidebands','gain':SIDEBANDS,
+                          'pan':-.48,'out':'gtrs','notes':keys})
+
+
 def song():
     total = compose()
     assert total % 16 == 0 and all(m[1] % 16 == 0 for m in MARKS)
@@ -628,6 +678,8 @@ def song():
     }
     if SCRAPER:
         measure_the_shell(doc)
+    if SIDEBANDS:
+        difference_key(doc)
     return doc
 
 
