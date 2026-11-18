@@ -42,6 +42,10 @@ PAWL = os.environ.get("C10T9_PAWL", "-9dB")  # off = the same skeleton without t
 # v2 palette: a picked string and a keyed string take the two answers out of the
 # four unison guitars for one rung. Gains in that order. Empty restores v1.
 HANDS = os.environ.get("C10T9_HANDS", "-11.5dB;-4.5dB")
+# v3: on the repeat at the top, the right guitar lets each hook pitch sound across
+# the following mute. At the return that line belongs to a pair; the last cell
+# strips back to the original two parts before the six-guitar F. Empty = v2.
+RING = os.environ.get("C10T9_RING", "1")
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
 ROOTS = [(0, 0)]
@@ -62,6 +66,32 @@ def drum(piece, beat, vel):
     tr = {"k": "kick", "s": "snare", "h": "hat", "c": "cym", "x": "cym"}.get(piece, "toms")
     T.setdefault(tr, []).append({"at": round(beat, 5), "len": 2.0 if piece in ("c", "x") else 0.5 if piece == "h" else 0.25,
                                  "pitch": piece, "vel": round(vel, 3)})
+
+
+def one_again(tr, cell, pos, midi, pitch, length, returning):
+    """Voicing and duration for one stroke at the two bookends; None is a rest."""
+    hook = pos in (3, 5)
+    after_hook = pos in (4, 6)
+    if not returning and cell < len(CELLS):
+        return pitch, length             # teach both cells in their original register
+    if not returning or cell == RUNG // N - 1:
+        if tr not in ("gl", "gr"):
+            return None                  # fourth cell of the return: the first two players
+        if tr == "gr" and after_hook:
+            return None
+        if tr == "gr" and hook:
+            return midi + 12, 1.85       # across the mute which the left hand still plays
+        return midi, length
+    if tr in ("wl", "wr"):
+        # The wide pair gets only the answers, the same notes as the opening's
+        # right hand with the fifth below them. The mutes no longer choke them.
+        return (f"{nm(midi + 7)},{nm(midi + 12)}", 1.85) if hook else None
+    if tr in ("dl", "dr"):
+        if cell == len(CELLS):           # third cell: the inner pair goes over the wide pair
+            return (midi + 24, 1.85) if hook else None
+        if hook:
+            return None                  # first two cells: this pair plays the pedal, not the answers
+    return pitch, length
 
 
 def deal(b0, beats, k, gtrs, low=True, root=0, chords=""):
@@ -88,7 +118,12 @@ def deal(b0, beats, k, gtrs, low=True, root=0, chords=""):
                 add("keyed", at, 0.85 / k, midi + 24, 0.96)
         else:
             for tr in gtrs:
-                add(tr, at, (0.65 if mute else 1) / k, pitch, vel, **({"pm": 1} if mute else {}))
+                note = pitch, (0.65 if mute else 1) / k
+                if RING and k == 1:
+                    note = one_again(tr, i // N, i % N, midi, *note, returning=bool(chords))
+                if note is not None:
+                    voice, length = note
+                    add(tr, at, length, voice, vel, **({"pm": 1} if mute else {}))
         if not low:
             continue
         if k == N:                              # the beat and cell are now one: a footfall, not a kick roll
@@ -216,7 +251,8 @@ def song():
                   "changes (84). The band deals the riff out at one note to the beat, then two, three, four, five, six, drifting "
                   "across the beat and coming round to it every seven beats; at seven to the beat the riff is exactly one beat long "
                   "and locks. The bass and kick walk in quarters underneath. Then once more at one to the beat, every stroke a chord. "
-                  "v1 is the skeleton.") + (" At four to the beat the two hook notes pass between a baritone guitar and a clavinet; they exchange roles halfway." if HANDS else ""),
+                  "v1 is the skeleton.") + (" At four to the beat the two hook notes pass between a baritone guitar and a clavinet; they exchange roles halfway." if HANDS else "")
+                 + (" One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then the original two guitars play the last cell before everyone lands on F." if RING else ""),
         "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
                     **({"it-pawl": {"synth": {"layers": [{"type": "wavetable", "frames": [
