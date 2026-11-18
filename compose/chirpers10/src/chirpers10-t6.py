@@ -623,6 +623,35 @@ LAST_TOUCH = os.environ.get("C10T6_LAST_TOUCH", "1") if CREST and TINES else ""
 FORK = os.environ.get('C10T6_FORK', '12' if LAST_TOUCH else '')
 
 
+# v15: on the way down the right guitar already plays the riff the rule is
+# settling on (it learned these cycles on the way up); the left, the bass and
+# both kits still play the orbit. The two sides agree when the rule locks.
+# Empty restores v14. It is on only while every earlier switch is, so each
+# of them still gives exactly what it gave at v14 (TUNE implies KEYS and TELL).
+AHEAD = os.environ.get('C10T6_AHEAD', '1' if all((FORK, READ_BACK, KIT, TUNE, FIVE, UP)) else '')
+
+
+def know_the_way():
+    """Half bars where the orbit has not yet reached its cycle: the right hand plays the settled lap instead."""
+    told = []
+    for sec, period in (('down-four', 4), ('down-two', 2)):
+        a = AT[sec]
+        b = a + next(n for name, n, _ in DIAL if name == sec)
+        # The settled lap: the first locked four, or the last two half bars.
+        ref = HEAD4D if sec == 'down-four' else b - period
+        # Leave the hole after the last scream, and the single low note that
+        # follows it, to the boom: the right hand starts when the riff does.
+        first = next(c for c in range(a, ref) if len(cell(CELLS[c][3])[0]) > 2) if sec == 'down-four' else a
+        for c in range(first, ref):
+            goal = CELLS[ref + (c - ref) % period][3]
+            if cell(goal) == cell(CELLS[c][3]):
+                continue
+            T['gr'] = [n for n in T['gr'] if not 2 * c <= n['at'] < 2 * c + 2]
+            play_cell(c, goal, ('gr',), False, False, ())
+            told.append(c)
+    return told
+
+
 def last_string():
     """Use alternate sides of the fixed point, then the last occupied cells."""
     out = AT["out"]
@@ -677,6 +706,8 @@ def song():
         crest_lines()
     if GROWTH_TOUCH:
         growth_harmonics()
+    if AHEAD:
+        know_the_way()      # before the keys take their laps: those stay as they were
     if TINES:
         periodic_tines()
     if LAST_TOUCH:
