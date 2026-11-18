@@ -30,7 +30,7 @@ def name(n):
 
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
             rim=True, rim_gain=-18, turned=True, hole=True, mold=True, fretless=True, fretless_gain=-10.0,
-            lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True):
+            lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True, refill=True, whole_scale=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -45,6 +45,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     fretless = fretless and mold
     lit = lit and fretless
     spin = spin and lit
+    refill = refill and spin
     marks = {}
     # v12: THE NEGATIVE IN PITCH. The tune takes four of the scale's seven
     # notes; the three it leaves out lie one between each pair it steps
@@ -114,7 +115,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                 put('bass', t, gap-.37, p, .93)
                 drums('k', t, .97 if j in (0,3) else .88)
 
-        def answer(first, count, stop=False):
+        def answer(first, count, stop=False, scale_last=False):
             for i in range(count):
                 for j,k in enumerate(HEADS):
                     end = (HEADS + (CELL,))[j+1]
@@ -125,11 +126,47 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                             continue
                         t = start + (first+i)*CELL + pos
                         v = .93 if pos==k+1 else .76
-                        guitars(t, F, .61, v, mute=True)
-                        put('bass', t, .65, F, v-.1)
+                        # v16: in the cell where the ring has the three missing
+                        # notes, the strokes take the notes between them (v12).
+                        p = F + BETWEEN[j] if scale_last and i==count-1 else F
+                        guitars(t, p, .61, v, mute=True)
+                        put('bass', t, .65, p, v-.1)
                         drums('k', t, v)
 
-        say(0,4); answer(4,4)       # one long statement; four short negatives
+        say(0,4); answer(4,4,scale_last=refill and whole_scale)       # one long statement; four short negatives
+        if refill:
+            # v16: THE RING COMES BACK INTO THE HOLES, LAST ONE FIRST (3:06-3:13).
+            # The tune left the band a note at a time from its front (the
+            # handover: E-flat, then C, A-flat, F), each note passing to the
+            # struck ring; then the ring went too. The bass found it again from
+            # its last note (under glass). 'Both sides' has said the two sides
+            # in turn ever since v1: a statement, then negatives whose four
+            # holes are empty, and no ring at all until the slow close. Now,
+            # over the four short negatives, the ring refills the holes from
+            # the back, as the bass did: F alone; A-flat and F; C, A-flat, F.
+            # The band's muted strokes do not change, so the tune and its
+            # negative sound in one cell, each in the other's gaps: both sides
+            # of the sheet at once, for the first time. In the fourth cell the
+            # ring has the three notes that were still missing, E-flat, C,
+            # A-flat, and the F that came back first is the one hole left
+            # empty: where it was. The band then says all four in two cells.
+            # AND IN THAT FOURTH CELL THE STROKES COME DOWN THE SCALE (v12's
+            # negative in pitch, heard once at 1:12-1:25 and not since): each
+            # gap takes the note between the two around it, so ring and band
+            # between them say the whole scale once, in turn: E-flat, D-flat
+            # D-flat, C, B-flat B-flat B-flat, A-flat, G, the hole, low F.
+            # (The drummer does the same at 3:20: three strokes, the fourth held
+            # back for the close.)
+            # The first of the four cells is still the tail of the wiw-return
+            # excerpt (to 3:05.2); the ring's first note is at 3:06.0. The close
+            # on wiw-turned starts at 3:13.2: a ring F at 3:12.9 rang 0.7 s into
+            # it (first bench: -21 dB against the excerpt's first half second),
+            # which is the other reason that F is the hole, and why the last
+            # A-flat is let go early.
+            for i in range(4):
+                for j in range(3-i, len(HEADS) - (i == 3)):
+                    last = i == 3 and j == 2
+                    put('ring', start + (4+i)*CELL + HEADS[j], .8 if last else 1.45, F + TUNE[j] + 36, .91 if j == 3-i else .79)
         # then in two cells, then in one: and since v10 that last quick one
         # is the other side of the sheet, rising, so the slow close answers it.
         say(8,2); say(10,1,back=turned)
@@ -510,9 +547,11 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                             auto={'hand': {'curve': 0, 'points': [['0b', soft], [b(1), soft], [b(cells//2), firm],
                                                                     [b(cells-2), most], [b(cells-1), most]]}}))
     assert not parts
-    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v15.' if spin else 'v14.' if lit else 'v13.' if fretless else 'v12.' if mold else 'v11.' if hole else 'v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
+    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v16.' if refill else 'v15.' if spin else 'v14.' if lit else 'v13.' if fretless else 'v12.' if mold else 'v11.' if hole else 'v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
-            'ceiling':'-1dB', 'true_peak':True, 'loudness':-10,
+            # v16: nine ring notes make the whole song 0.01 LU louder to the meter, so at -10 every other bar
+            # (the five card excerpts among them) came out 0.008 to 0.011 dB quieter: the target moves by that.
+            'ceiling':'-1dB', 'true_peak':True, 'loudness':-9.99 if refill else -10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
                                      'glue threshold=-22dB ratio=2 attack=18ms release=120ms',
                                      {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14800']}]},
@@ -538,15 +577,17 @@ if __name__ == '__main__':
     previous.add_argument('--v12', action='store_true', help='restore the picked bass in the quiet middle')
     previous.add_argument('--v13', action='store_true', help="restore the struck ring through 'lit through'")
     previous.add_argument('--v14', action='store_true', help='restore one side a cell through the whole side-to-side trade')
+    previous.add_argument('--v15', action='store_true', help='restore the empty holes in the four short negatives of the last exchange')
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     parser.add_argument('--rim-gain', type=float, default=-18, help='held glass track gain in dB')
     parser.add_argument('--fretless-gain', type=float, default=-10.0, help='fretless bass track gain in dB')
     parser.add_argument('--held-gain', type=float, default=-16.0, help='held ring track gain in dB')
     parser.add_argument('--grip', default='0.12:0.55:0.7', help="how firmly the hand holds the ring: at 2:02 : at the A-flat : at its most")
+    parser.add_argument('--strokes-on-f', action='store_true', help="keep low F under every stroke of the fourth short negative (the ring's refill only)")
     args = parser.parse_args()
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
                   not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11, not args.v12, args.fretless_gain,
-                  not args.v13, args.held_gain, args.grip, not args.v14)
+                  not args.v13, args.held_gain, args.grip, not args.v14, not args.v15, not args.strokes_on_f)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
