@@ -30,7 +30,7 @@ def name(n):
 
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
             rim=True, rim_gain=-18, turned=True, hole=True, mold=True, fretless=True, fretless_gain=-10.0,
-            lit=True, held_gain=-16.0, grip='0.12:0.55:0.7'):
+            lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -44,6 +44,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     mold = mold and hole
     fretless = fretless and mold
     lit = lit and fretless
+    spin = spin and lit
     marks = {}
     # v12: THE NEGATIVE IN PITCH. The tune takes four of the scale's seven
     # notes; the three it leaves out lie one between each pair it steps
@@ -58,6 +59,22 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     BACK_HEADS = tuple(sorted((CELL - k) % CELL for k in HEADS))
     BACK_TUNE = TUNE[::-1]
     assert BACK_HEADS == (0, 2, 4, 8) and [F + n for n in BACK_TUNE] == [F, F + 3, F + 7, F + 10]
+    # v15: THE SHEET SPINS. In the side-to-side trade the tune changes side
+    # once a cell: one face of the sheet, then the other. After the six cells
+    # on the wiw-turned card and one more, the sheet is turned faster: twice a
+    # cell for two cells (two notes a side), then at every note for two cells.
+    # A card with a picture on each face, spun fast enough, shows both at
+    # once; and the next section is 'both sides'. The last cell is one whole
+    # statement on the right, as written, with the fill; then both guitars.
+    # The muted strokes and the box stay opposite the note they follow, so
+    # each guitar now plays its gap INTO its note: wood or mutes, then the
+    # string, on the same side. No note is added, removed or moved in time;
+    # only its side. In mono the passage keeps its notes and its level
+    # (0.1 dB); all that is left there is each note's change of amplifier.
+    def face(i, j):
+        if spin and 7 <= i <= 8: return 1 - j // 2   # right, right, left, left
+        if spin and 9 <= i <= 10: return 1 - j % 2   # right, left, right, left
+        return i % 2
     parts = defaultdict(list)
     def put(tr, at, dur, p, v, mute=False, slide=False):
         event = dict(at=round(at / SUB, 6), len=round(dur / SUB, 6),
@@ -376,8 +393,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                     if section in ('lit through','turn the sheet','both sides'):
                         # Hocket from side to side, then both shapes in the same stereo space.
                         if section == 'turn the sheet':
-                            half = i % 2
-                            guitars(t, p, 1.4, .94, rigs=(sides[half],), fifth=j in (0,3))
+                            guitars(t, p, 1.4, .94, rigs=(sides[face(i, j)],), fifth=j in (0,3))
                         elif section == 'both sides' and i % 2 == 0:
                             guitars(t, p, end-k-.35, .99, fifth=True)
                         if section != 'both sides' or i % 2 == 0:
@@ -404,7 +420,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                             drums('k',t+1+n,.93 if not n else .73)
                         continue
                     if shadow and not empty:
-                        opposite = (sides[1-(i%2)],) if section == 'turn the sheet' else sides
+                        opposite = (sides[1-face(i, j)],) if section == 'turn the sheet' else sides
                         for n in range(k+1, end):
                             a = start + i*CELL + n
                             reinforce = (not lead_in or n==end-1) and (not follow or n==k+1)
@@ -494,7 +510,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                             auto={'hand': {'curve': 0, 'points': [['0b', soft], [b(1), soft], [b(cells//2), firm],
                                                                     [b(cells-2), most], [b(cells-1), most]]}}))
     assert not parts
-    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v14.' if lit else 'v13.' if fretless else 'v12.' if mold else 'v11.' if hole else 'v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
+    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v15.' if spin else 'v14.' if lit else 'v13.' if fretless else 'v12.' if mold else 'v11.' if hole else 'v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
             'ceiling':'-1dB', 'true_peak':True, 'loudness':-10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
@@ -521,6 +537,7 @@ if __name__ == '__main__':
     previous.add_argument('--v11', action='store_true', help='restore low F under every stroke of the negative')
     previous.add_argument('--v12', action='store_true', help='restore the picked bass in the quiet middle')
     previous.add_argument('--v13', action='store_true', help="restore the struck ring through 'lit through'")
+    previous.add_argument('--v14', action='store_true', help='restore one side a cell through the whole side-to-side trade')
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     parser.add_argument('--rim-gain', type=float, default=-18, help='held glass track gain in dB')
     parser.add_argument('--fretless-gain', type=float, default=-10.0, help='fretless bass track gain in dB')
@@ -529,7 +546,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
                   not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11, not args.v12, args.fretless_gain,
-                  not args.v13, args.held_gain, args.grip)
+                  not args.v13, args.held_gain, args.grip, not args.v14)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
