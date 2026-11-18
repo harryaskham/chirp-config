@@ -89,6 +89,18 @@ PIVOT = os.environ.get("C10T7_PIVOT", "1") if CHILD else ""  # empty restores v9
 # v11: after the wall pair has played the riff three sizes larger, the foot plays it
 # one size smaller (cells of 2 and 1); bass and inside guitars follow. Empty = v10.
 SMALLER = os.environ.get("C10T7_SMALLER", "1") if PIVOT else ""
+# v12: THE GROUND RISES UNDER THE HARP (section round, 4:42.8-4:49.1, in the window 4:24-4:48 the map calls static:
+# nothing entered or left between the harp's entry at 4:16 and the peel). With 89 sixteenths to go the last section
+# is three cells: 34, 21, 34. The last was already a semitone up (the rule for cells of 34) and the 21 is where the
+# riff starts to fall away. In the first 34 the harp over the band plays only A flat, C and E flat, and the horn's
+# two breaths there are A flat and C: an A flat major chord that the band, chugging F under it, never let be one.
+# Now for that one cell the four guitars and the bass move up a minor third, to the middle sections' A flat, and
+# the same notes are heard as what they spell. The harp's last note in the cell is F: it falls home a sixteenth
+# before the band does, on the crash where the outer guitars begin to peel. So the last 89 are a lift (A flat),
+# home thinning (F), the semitone (G flat), and the chord. Nothing but the root moves: every stroke, the kit, the
+# harp and the horn are as they were.
+# semitones the ground rises for that cell. "" = v11.
+LIFT = os.environ.get("C10T7_LIFT", "3") if SMALLER and PEEL else ""
 
 
 def nm(n):
@@ -134,6 +146,10 @@ def at_size(k, p):
     return LEV[k][bisect.bisect_right(STARTS[k], p) - 1]
 
 
+LIFT_SPAN = (TOTAL - SIZE[7][0], TOTAL - SIZE[6][0])        # v12: from 89 to go until 55 to go
+assert at_size(5, LIFT_SPAN[0]) == (LIFT_SPAN[0], "L", LIFT_SPAN[1] - LIFT_SPAN[0])      # one long cell of 34, crash to crash
+
+
 SECS = LEV[TOP]                           # eight: L S L L S L S L
 KEY = [0, 0, 0, 3, 3, 0, 0, 0]            # home, a minor third up for the middle pair, home (the rule's own grouping: 3 + 2 + 3)
 WIDE = {3, 5, 7}                          # four guitars
@@ -167,6 +183,8 @@ def heavy(i, s0, n):
         gtrs = twins + walls if i in WIDE and not big else twins
         r = RANK[p]
         root = KEY[i] + (1 if at_size(6, p)[1] == "S" else 0)
+        if LIFT and LIFT_SPAN[0] <= p < LIFT_SPAN[1]:
+            root += int(LIFT)
         if not ROOTS or ROOTS[-1][1] != root:
             ROOTS.append((p, root))
         if r >= 3:                        # a chord: the root on a long cell of 13, a tritone up on a short one of 8
@@ -316,6 +334,13 @@ def compose():
                         here = q - width + p - centre
                         assert here in STARTS[2] and at_size(2, here)[2] == ln
                         add("brass", here, ln - 1, POOL[step] + KEY[i + 1] + 12, float(BRASS.split(";")[2]))
+    if LIFT:
+        # what the lift is for: there the harp and the horn already spell the major triad on the new ground,
+        # and the harp's last note is the home the band falls back to
+        s0 = SECS[7][0]
+        here = [POOL[st] for (p, _, _), st in zip([c for c in LEV[0] if c[0] >= s0], harp_tune(9)) if LIFT_SPAN[0] <= p < LIFT_SPAN[1]]
+        horn = [POOL[st] for (p, _, _), st in zip([c for c in LEV[4] if c[0] >= s0], harp_tune(5)) if LIFT_SPAN[0] <= p < LIFT_SPAN[1]]
+        assert {(x - POOL[0] - int(LIFT)) % 12 for x in here[:-1] + horn} == {0, 4, 7} and (here[-1] - POOL[0]) % 12 == 0
     if PEEL:
         peel_last_riff()
     for tr in ("gl", "gr", "wl", "wr"):                   # where the fifteenth line would begin: one chord
