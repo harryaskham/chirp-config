@@ -372,6 +372,10 @@ HANDSTROKE = os.environ.get("C10T3_HANDSTROKE", "1") if W1 == (2, 2) else ""
 # v20: hear the pair *about to swap* as an interval on the inner guitars.
 # Incoming bell's register above the row; empty restores v19.
 CROSS = os.environ.get("C10T3_CROSS", "12" if HANDSTROKE else "")
+# v21: half-muffled backstrokes from the last four rounds through the first
+# eight changes. The tower bells and the lead's two home rows are not muffled.
+# Empty restores v20; switching off v20's crossings still restores v19.
+MUFFLE = os.environ.get('C10T3_MUFFLE', '3.5' if CROSS and TREBLE and W1==(2,2) else '')
 
 
 def lead_mode(k, calls):
@@ -490,6 +494,36 @@ def handstroke(k, s16, root):
     # the answering hand chokes its second chug one sixteenth before the bar.
     for j in range(1 + back):
         add(tr, at + L1 - W1[1] + j, .8, F1 + root, .88, pm=1)
+
+
+def half_muffled():
+    """One face of a bell's clapper is wrapped: only the backstroke is dark.
+    Count rows relative to the first change so the alternation carries across
+    the bar where the tune starts permuting. The outer players keep every pitch.
+    """
+    def backstroke(note):
+        tick = round(note['at']*4) - PART1*16
+        row, place = divmod(tick, L1)
+        return -(ROUNDS_N//2) <= row < 8 and row%2==1, place
+
+    for tr in G4:
+        kept = []
+        for n in T[tr]:
+            mute, place = backstroke(n)
+            if mute:
+                # The inside pair gives up the row, except the tenor's two F's.
+                if tr in G4[2:] and place < L1-W1[1]:
+                    continue
+                n['len'] = round(n['len']*.42,4)
+                n['expr'] = {**n.get('expr',{}),'pm':1.0}
+            kept.append(n)
+        T[tr] = kept
+    # Same treble, pitch and striking time; different contact, not a quieter
+    # fader on the tower. Copy the events to a separately damped modal voice.
+    open_notes, wrapped = [], []
+    for n in T['treble']:
+        (wrapped if backstroke(n)[0] else open_notes).append(n)
+    T['treble'],T['wrapped'] = open_notes,wrapped
 
 
 def slow_rounds(b0, rows, root=0, vel=0.8):
@@ -683,6 +717,8 @@ def compose():
     for a, z in BREAKS:                  # and the band comes back in on a crash
         if not any(a2 == z for a2, _ in BREAKS) and not any(n["at"] == z / 4 and n["pitch"] == "c" for n in T["cym"]):
             drum("c", z, 0.8)
+    if MUFFLE and TREBLE:
+        half_muffled()
 
 
 def key_f(hz):
@@ -749,6 +785,11 @@ def song():
           [{"name": "home", "patch": "contrabass-tight", "gain": "-9dB", "pan": 0.3, "sends": {"hall": "-12dB"}},
            {"name": "air", "patch": "juno-pad", "gain": "-13dB", "pan": 0.15, "sends": {"hall": "-8dB"}}]),
     ]
+    if MUFFLE and TREBLE:
+        treble = next(t for t in tracks if t['name']=='treble')
+        tracks.append({**treble,'name':'wrapped','sends':{'hall':'-18dB'},
+                       'fx':[*treble['fx'],f'gain gain={MUFFLE}dB'],
+                       'patch':'modal-bell synth.layers.0.bright.value=0.18 synth.layers.0.bright.mod.0.amount=0.12 synth.layers.0.damp=0.46 synth.layers.0.decay=420ms synth.amp.r=140ms synth.amp.d=600ms'})
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
     return {
