@@ -66,6 +66,10 @@ CANON = os.environ.get("C10T7_CANON", "-16dB;-18dB")
 # own octave its notes sat at 250-500 Hz and read 7 dB over the records there) ; a dip at its lowest notes (Hz : q : dB).
 # "" = v2.
 BRASS = os.environ.get("C10T7_BRASS", "brass;-13dB;0.8;12;400:1:-3")
+# v4: the last 89 sixteenths of the second two-guitar riff. A steel above the fretted guitars
+# bends its way through 55, then 34: the short line is literally the head of the long one.
+# Dry and close, not a third wall of rhythm guitar. Empty regenerates v3.
+STEEL = os.environ.get("C10T7_STEEL", "-12dB")
 
 
 def nm(n):
@@ -196,7 +200,28 @@ def quiet(i, s0, n):
         drum("rde", s0 + q, 0.4)
 
 
+def steel_answer():
+    # Song arithmetic, not a separate clock: 233 = 144 + (55 + 34). Wait for the first
+    # 144. The chords already mark the heads; the bar comes in *after* them. On the
+    # second telling the extra high answer is missing, leaving the drum fill exposed.
+    start = SECS[2][0] + SIZE[8][0]
+    for length in SIZE[6]:
+        for offset, duration, pitch, bend, velocity in (
+            (3, 9, 65, 3, .82),          # F up to Ab
+            (15, 5, 75, -3, .70),        # Eb down to C
+            (21, 5, 68, -3, .80),        # Ab down to F; eight sixteenths of space
+            (34 + 3, 12, 72, 3, .90),    # C up to Eb, only in the long telling
+        ):
+            if offset + duration <= length:
+                add("bar", start + offset, duration, pitch, velocity)
+                T["bar"][-1]["expr_path"] = {"bend": [0, 0, bend * .2, bend * .82, bend, bend, bend]}
+        start += length
+    assert start == SECS[3][0]
+
+
 def compose():
+    if STEEL:
+        steel_answer()
     for i, (s0, kind, n) in enumerate(SECS):
         (heavy if kind == "L" else quiet)(i, s0, n)
         if BRASS and i in WIDE:
@@ -286,6 +311,9 @@ def song():
         {"name": "cym", "patch": kit, "gain": "-4.5dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
         {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
     ]
+    if STEEL:
+        tracks.append({"name": "bar", "patch": "em-steel", "gain": STEEL, "pan": 0.12,
+                       "fx": [{"type": "eq", "bands": ["hp cutoff=440 q=0.707", "peak cutoff=1650 q=0.8 gain=3.5dB"]}]})
     for t in tracks:
         if "gen" not in t:
             t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
@@ -310,6 +338,11 @@ def song():
                   "the quiet sections a wire harp has no notes, only the rule (the engine's L-system). The slow song: 80. v1 is the skeleton."),
         "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{(TOTAL + 32) / 4:g}b", "event_stable": True,
         "patches": {
+            **({"em-steel": {
+                "extends": "pedal-steel synth.amp.a=75ms synth.amp.r=140ms fx.0.mix=0.08 fx.1.mix=0 fx.2.mix=0 play.glide=0ms",
+                "about": "The moving bar against the two fretted guitars. Keep the pedal steel's vibrato, bend by hand within each note, and damp it before the band answers.",
+                "synth": {"pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": 0.06}, {"src": "expr.bend", "amount": 1}]}},
+            }} if STEEL else {}),
             "ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
             "em-harp": {"about": ("Extreme and Mean's wire harp (chirper-zero, 17 Nov): the library's ks-harp (Karplus-Strong, stretch 3) with a "
                                   "release long enough for a sixteenth-long pluck to ring on."),
