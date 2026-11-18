@@ -365,6 +365,10 @@ HOME = os.environ.get("C10T3_HOME", "jl,jr;8;1.0") if RIG2 and CLIMB else ""
 # band to the call (unison, an octave up) and then to the lead's climb. Thirds, sixths, unison, lead.
 # the row of the second extent from which the harmony is wider ; its scale steps up there. "" = v16 (thirds throughout).
 SIXTHS = os.environ.get("C10T3_SIXTHS", "70;4") if HARM else ""
+# v19, the handstroke gap (section, first extent on B). The head of every pair of
+# these rows is the SAME bell. The two inner guitars stop doubling and ring it
+# to each other. Main guitars, bass, kick, snare and actual bells keep the grid.
+HANDSTROKE = os.environ.get("C10T3_HANDSTROKE", "1") if W1 == (2, 2) else ""
 
 
 def lead_mode(k, calls):
@@ -435,6 +439,25 @@ def row_notes(row, s16, root, w=(1, 1), kicks="hunt", bell=True, gtrs=True, teet
         elif bell and TREBLE and b == ring2 and not call:   # v15: the bell in the hunt rings too
             T.setdefault("treble", []).append({"at": round(t / 4, 4), "len": 1.5, "pitch": nm(F1 + root + PITCH[b] + 36), "vel": float(TREBLE.split(";")[1])})
         t += n
+
+
+def handstroke(k, s16, root):
+    """Two rows to a bar: say their shared first bell twice, leave air before the next pair."""
+    row = EXTENT_1[k]
+    back, second_lead = k % 2, k // 10 % 2
+    assert row[0] == EXTENT_1[k ^ 1][0]
+    tr = ("gl2", "gr2")[back ^ second_lead]      # trade hands for the second lead
+    at = s16 - back                             # second stroke anticipates beat three
+    up = 12 * (1 + back * second_lead)           # last four replies clear the first by an octave
+    head = F1 + root + PITCH[row[0]] + up
+    # Distinguish the hands even in mono: a ringing octave stopped on two
+    # strings, answered by one shorter picked string. No added pitch class.
+    pitch = head if back else f"{nm(head)},{nm(head + 12)}"
+    add(tr, at, 3.5 if back else 5, pitch, .96)
+    # Close on the ground. The first hand makes room for the early answer;
+    # the answering hand chokes its second chug one sixteenth before the bar.
+    for j in range(1 + back):
+        add(tr, at + L1 - W1[1] + j, .8, F1 + root, .88, pm=1)
 
 
 def slow_rounds(b0, rows, root=0, vel=0.8):
@@ -515,8 +538,15 @@ def compose():
     # the first extent: Plain Bob Doubles. Forty rows on F, forty on Ab, forty on B
     bare = [int(x) for x in FORM.split(";")[2].split(":")] if FORM else [0, 0]
     for k, row in enumerate(EXTENT_1):
-        row_notes(row, PART1 * 16 + k * L1, KEYS_1[k // 40], W1, kicks="all" if k >= 80 else "hunt",
-                  mode=lead_mode(k, CALLS_1) or ("bare" if bare[0] <= k < bare[1] else ""))
+        s16, root = PART1 * 16 + k * L1, KEYS_1[k // 40]
+        # First two leads on B only. The home rows and the hunting snare from
+        # row 100 are left alone: the four strings fall back into unison there.
+        split = HANDSTROKE and 80 <= k < 100 and k % 10 < 8
+        row_notes(row, s16, root, W1, kicks="all" if k >= 80 else "hunt",
+                  mode=lead_mode(k, CALLS_1) or ("bare" if bare[0] <= k < bare[1] else ""),
+                  trs=G4[:2] if split else None)
+        if split:
+            handstroke(k, s16, root)
     for i, kind in enumerate("abc"):
         beat(PART1 + T1 * i, PART1 + T1 * (i + 1), kind, 10 ** 6 if FORM else meet(L1))
         fill(PART1 + T1 * (i + 1))
