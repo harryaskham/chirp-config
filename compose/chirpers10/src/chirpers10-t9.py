@@ -100,6 +100,22 @@ PIPE_LUFS = -9.98
 # Track gain ; the loudness target (every bar without the tabla keeps v13's mastering gain) ; how hard the hands
 # play (a factor on every stroke; harder is brighter). Empty restores v13.
 KHANDA = os.environ.get('C10T9_KHANDA', '-9dB;-9.96;1' if WIND else '')
+# v15, whole song: THE SLOW TUNE UNDER THE FAST ONE. The song opens with the
+# riff at one note to the beat and arrives, two minutes later, at seven to the
+# beat, where the bass and the kick only walked: a low F on every beat for 32
+# beats. The walk is now the OPENING. Under the lock on F the bass plays the
+# riff at one note to the beat again, as the two guitars did at 0:00: F F F
+# A-flat F B F, then F F F G-flat F C F, while six guitars play the same seven
+# notes inside every one of those beats. Seven in the time of one, over one.
+# It still strikes every beat with the kick; only nine of the 32 notes leave
+# F. A slow cell is seven beats and the lock on F is 32, so the fifth cell
+# gets as far as its first answer, A flat, on the last beat before the band
+# moves up to A flat: the note the riff has always answered with is the key
+# the song goes to, and the bass is there a beat early. (At 0:35 the bass is
+# the last to turn; here it turns first.) The bass's eq follows each of those
+# nine notes, as it follows the song's grounds. Empty restores v14.
+AUGMENT = os.environ.get('C10T9_AUGMENT', '1' if KHANDA else '')
+WALK = []
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
 ROOTS = [(0, 0)]
@@ -193,7 +209,11 @@ def deal(b0, beats, k, gtrs, low=True, root=0, chords="", cut=False):
             continue
         if k == N:                              # the beat and cell are now one: a footfall, not a kick roll
             if part == "o":
-                add("bass", at, 1, midi, 0.96)
+                slow = CELLS[(i // N // N) % len(CELLS)][i // N % N] if AUGMENT and root == 0 else "o"
+                walk = midi + (0 if slow in ("o", "c") else int(slow))
+                add("bass", at, 1, walk, 0.96 if slow == "o" else 0.9 if slow == "c" else 0.98)
+                if walk != midi:
+                    WALK.append((at, walk - F1))
                 drum("k", at, 1)
         elif k >= 3:
             if not mute:                        # three accents held through the guitar ticks: 3 + 2 + 2
@@ -456,6 +476,7 @@ def fill(b):
 def compose():
     T.clear()
     MARKS.clear()
+    WALK.clear()
     ROOTS[:] = [(0, 0)]
     names = ["one to the beat", "two", "three", "four", "five", "six"]
     b = 0
@@ -585,6 +606,16 @@ def song():
         land = dict(MARKS)['seven: it locks']; start = land-2*N
         pts += [[f'{start-.02:g}b',0],[f'{start:g}b',7],[f'{land-1:g}b',7],[f'{land-.02:g}b',0]]
         pts.sort(key=lambda point: float(point[0].removesuffix('b')))
+    if WALK:
+        # One beat on each note of the slow tune. Take away any step the song's
+        # own grounds make inside that beat (the move to A flat follows the
+        # bass's A flat), and come back to whatever ground is next.
+        when = lambda point: float(point[0].removesuffix('b'))
+        for at, semis in WALK:
+            after = [r for q, r in ROOTS if q <= at + 1][-1]
+            pts = [point for point in pts if not at < when(point) <= at + 1]
+            pts += [[f'{at - .02:g}b', 0], [f'{at:g}b', semis], [f'{at + .98:g}b', semis], [f'{at + 1:g}b', after]]
+        pts.sort(key=when)
     return {
         "about": ("chirpers X (Common Time), track 9 by chirper-zero: In the Time Of. One riff of seven notes and one beat that never "
                   "changes (84). The band deals the riff out at one note to the beat, then two, three, four, five, six, drifting "
