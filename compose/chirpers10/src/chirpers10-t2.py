@@ -644,6 +644,24 @@ MACHINE = os.environ.get("C10T2_MACHINE", "118:122;0.8:-4.5dB;0.72;0.62;-10" if 
 # just changed ground to B and has no home to lean from. `48:50,56:58` would do both fast ones.
 # bars from:to (several, comma-separated) ; how much of the clock's true shift (1 = exactly the clock's). "" = v30.
 VARI = os.environ.get("C10T2_VARI", "56:58;1")
+# v32: THROUGH THE WALL (chirper-alpha; section round, 1:20-1:33.3, the first six bars of the hold an eighth apart, in
+# the window 1:11-1:46 the map calls "little new"). At this distance the left guitar is the right guitar's echo: every
+# note of the right is answered by the left an eighth later. The hold showed that three ways and the first was only
+# implied: six bars of its beat with both guitars at full, then two bars naked, then the music boxes chiming it. The
+# six bars were one texture from the first bar to the last. Now the answer starts on the other side of a wall (the
+# song's first line: "I cannot hear you through the wall / only the floor between us moves"). When the band lands on
+# A flat the LEFT guitar is heard as a neighbour's is, its low end and nothing else, and over four bars the wall
+# thins until it is all there: so the echo comes into focus as you listen. Two bars of the band whole, then it
+# stops and the two guitars are alone. Walled, then naked, then rung. The right guitar, the bass and the kit are as
+# they were; the left guitar's notes are the same notes (they move to a track of the same guitar behind a low-pass).
+# Raw, seed 0, bar by bar from the landing: the walled guitar's brightness (spectral centroid) 250, 525, 1110, 1600,
+# 1850, 1850 Hz against 1820 to 1970 open; it stands 5.7, 4.7, 2.8, 1.3, 0.5 and 0.2 dB under itself; the mix is
+# 0.6, 0.7, 0.5, 0.3, 0.2 and 0.0 dB down, 1.7 dB of it at 1-4 kHz in the first two bars, and leans 1.4 to 1.7 dB
+# further right in those two, under 1 dB after. Under 250 Hz nothing moves: the floor.
+# (Benched with the wall gone a bar sooner: the opening was over in three bars. From 400 Hz: no different to speak of.)
+# bars from:to ; the low-pass's cutoff as the hold begins, Hz ; the bar by which it is fully open (16 kHz) ; its q.
+# "" = v31.
+WALL = os.environ.get("C10T2_WALL", "36:42;300;42;0.7")
 
 
 def clock_speed(tau):
@@ -997,6 +1015,10 @@ def compose():
         T.setdefault("home", []).append({"at": 126 * 4, "len": 16.0, "pitch": "F1", "vel": 0.5})
     if VARI:                             # v31: in the last slip before the hold a beat apart the right guitar's pitch goes with its clock
         lean("gr")
+    if WALL and TWIN:                    # v32: the left guitar's notes in those bars are played behind the wall
+        w0, w1 = (int(v) for v in WALL.split(";")[0].split(":"))
+        T["wl"] = [n for n in T["gl"] if w0 * 4 <= n["at"] < w1 * 4]
+        T["gl"] = [n for n in T["gl"] if not (w0 * 4 <= n["at"] < w1 * 4)]
 
 
 # the heavy rig: Common Time's tight rig on the engine's own cabinet (sounds.md), one a side
@@ -1117,6 +1139,14 @@ def song():
         {"name": "swarm", "patch": "ot-swarm", "gain": {"value": "-14dB", "mod": [{"src": "auto.lvl", "amount": 1}]}, "pan": 0, "sends": {"hall": "-8dB"},
          "auto": {"sync": {"points": [["0b", 0.3], [b(74), 0.3], [b(90), 1.0], [b(95), 1.4], [b(96), 3], [b(NB), 3]]},
                   "lvl": {"points": [["0b", 0], [b(74), -6], [b(80), 2], [b(96), 4], [b(98), -6], [b(NB), -6]]}}},
+        # v32: the left guitar behind the wall: the same guitar, amplifier, cone, fader and place as `gl`, with a
+        # low-pass after it whose cutoff the lane `wall` opens (in octaves over its starting place) to 16 kHz
+        *([{"name": "wl", "patch": f"{tw[0]}{mic} fx.2.cone={tw[1]}", "gain": f"{tw[3]}dB", "pan": -1, "out": "gtrs",
+            "fx": mids.get("fx", []) + [{"type": "filter", "kind": "lp", "q": float(WALL.split(";")[3]),
+                                          "cutoff": {"value": float(WALL.split(";")[1]), "mod": [{"src": "auto.wall", "amount": 1}]}}],
+            "auto": {"wall": {"curve": 0, "points": [["0b", 0], [b(int(WALL.split(";")[0].split(":")[0])), 0],
+                                                      [b(float(WALL.split(";")[2])), round(math.log2(16000 / float(WALL.split(";")[1])), 3)],
+                                                      [b(NB), round(math.log2(16000 / float(WALL.split(";")[1])), 3)]]}}}] if WALL and TWIN else []),
     ]
     tracks = []
     for t in spec:
