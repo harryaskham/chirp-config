@@ -25,6 +25,9 @@ KETTLE = os.getenv('C10T11_KETTLE', '-7dB;0')
 # v3: at home the delayed note changes hands, from the opening harmonic
 # to a bowed metal rod. Empty restores v2; KETTLE empty still defaults to v1.
 ROD = os.getenv('C10T11_ROD', '-9dB' if KETTLE else '')
+# v4: keep a double stop ringing over each of the last five changes of feet.
+# Register in semitones. Empty restores v3; older version switches still work.
+STAY = os.getenv('C10T11_STAY', '0' if ROD else '')
 BROAD = CELL // 4
 # Offset, duration, semitones, open power chord / single ringing note / palm mute.
 # The two short strokes before the Db and the delayed F are the tell in both walks.
@@ -79,17 +82,39 @@ def make():
         else:
             # F4 under Db5/C5: the upper bench makes the bellows motion less buried.
             put('bellows',start,CELL-.15,chord(HOME+31,HOME+36+(2 if i%4 in (2,3) else 3)),.78)
-    def main_riff(start,i,lift=False,wide=False,lend=False):
-        for t,d,s,kind in (LIFT if lift else RIFF):
+    def swing_slow(i):
+        return i<4 or 8<=i<10 or (12<=i<16 and i%2==0)
+
+    def main_riff(start,i,lift=False,wide=False,lend=False,carry_out=False,count_in=False):
+        pattern = LIFT if lift else RIFF
+        meet = CELL//2             # both walks hit 12: three quarters or two dotted quarters
+        last = max(t for t,_,_,kind in pattern if kind=='n')
+        if count_in:
+            for foot in range(0,meet,4 if lift else BROAD):
+                drum('k',start+foot,.98 if not foot else .85)
+        for pos,d,s,kind in pattern:
+            t=pos
+            if count_in and t<meet:
+                if lift and kind=='p' and t+d>meet:
+                    d -= meet-t; t=meet   # untie the anticipation: keep the original release
+                else:
+                    continue
             m=HOME+answer(i,s); v=.87 if kind=='m' else .96
             if lend and kind!='m':
                 if kind=='n':
                     continue  # C is now the drum's alone, at the following cell head.
                 d=min(d,BROAD-t%BROAD-.25)  # release the chord just before the footfall
-            strings(start+t,d,m,kind,v,wide)
+            if carry_out and t>=last:
+                strings(start+t,d,m,kind,v)   # outside pair still finishes the old riff
+                if t==last:
+                    gate=CELL-t+meet-.20
+                    put('wallL',start+t,gate,HOME+int(STAY),.94)
+                    put('wallR',start+t,gate,m+int(STAY),.94)
+            else:
+                strings(start+t,d,m,kind,v,wide)
             if kind!='m' or t in (4,15,16):
                 put('bass',start+t,d,m,.91,kind=='m')
-            if t in ((0,3,8,11,18) if lift else (0,4,7,12,17)):
+            if pos in ((0,3,8,11,18) if lift else (0,4,7,12,17)):
                 drum('k',start+t,.98 if kind!='m' or t==0 else .82)
     start=0
     for section,count in FORM:
@@ -144,10 +169,16 @@ def make():
             else:
                 slow=section in ('broad','shoulder')
                 if section=='swing':
-                    slow = (i<4 or 8<=i<10 or (12<=i<16 and i%2==0))
+                    slow = swing_slow(i)
                 lifted=section=='shoulder' or (section=='swing' and not slow)
                 reply = bool(KETTLE) and section=='shoulder' and i>=count//3
-                main_riff(a,i,lift=lifted,wide=section in ('shoulder','swing'),lend=reply and i>=2*count//3)
+                # After the first two-cell broad statement, only the kit attacks
+                # the new walk until its midpoint. Do not carry into 'home'.
+                split = bool(STAY) and section=='swing'
+                count_in = split and i>count//2 and slow!=swing_slow(i-1)
+                carry_out = split and count//2<=i<count-1 and slow!=swing_slow(i+1)
+                main_riff(a,i,lift=lifted,wide=section in ('shoulder','swing'),lend=reply and i>=2*count//3,
+                          carry_out=carry_out,count_in=count_in)
                 if reply:
                     for t,_,s,k in LIFT:
                         if k=='m': continue
