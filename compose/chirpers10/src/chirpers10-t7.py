@@ -101,6 +101,18 @@ SMALLER = os.environ.get("C10T7_SMALLER", "1") if PIVOT else ""
 # harp and the horn are as they were.
 # semitones the ground rises for that cell. "" = v11.
 LIFT = os.environ.get("C10T7_LIFT", "3") if SMALLER and PEEL else ""
+# v13: FOUR KETTLEDRUMS (palette round; the middle quiet section, 2:38-3:05). One size of cell had no tune anywhere:
+# 13 and 8 sixteenths. Under the band those cells are the chord; in the quiet sections they were only the foot, thirteen
+# soft strokes on a kick. In the middle quiet section those thirteen strokes now go to four kettledrums (the engine's
+# `kettle` mode set, the first on this record: the kettle's air pulls the head's modes to 1 : 1.5 : 2 : 2.44, so a drum
+# sings a note), and the drums have the harp's tune at that size, an octave under the lower harp: A flat, then C flat
+# and E flat, and on the last cell of all the one G flat. That last note is rolled, and while it is rolled the pedal
+# lets the head down a semitone, so the roll arrives on F with the band: G flat falling to F is the riff's own short
+# cell falling home. The clean E and B go UP to F and C there (v10); the drum comes down to meet them.
+# The first quiet section keeps its foot and the third its foot: one harp, then drums with pitch, then three harps.
+# track gain ; hall send ; the roll's strokes, first:last, in dB under a plain stroke ("" = one stroke on G flat, no roll,
+# no pedal). "" = v12.
+KETTLE = os.environ.get("C10T7_KETTLE", "-12dB;-12dB;-22:-8") if LIFT else ""
 
 
 def nm(n):
@@ -453,6 +465,88 @@ def one_size_smaller():
                 add(tr, p + 2, 1, head["pitch"].split(",")[0], 0.85, **({} if tr == "bass" else {"pm": 1}))
 
 
+def kettles():
+    """The foot's thirteen soft strokes in the middle quiet section, on four tuned drums, with the tune at their size."""
+    s0, _, n = SECS[4]
+    cells3 = [c for c in LEV[3] if s0 <= c[0] < s0 + n]
+    steps = harp_tune(8 - 3)
+    assert len(cells3) == len(steps) == 13
+    heads = {p for p, _, _ in cells3}
+    foot = [k for k in T["kick"] if round(k["at"] * 4) in heads]
+    assert len(foot) == 13 and all(k["vel"] == 0.3 for k in foot)
+    T["kick"] = [k for k in T["kick"] if round(k["at"] * 4) not in heads]
+    drums = sorted({POOL[st] + KEY[4] - 12 for st in steps})
+    assert [nm(x) for x in drums] == ["Ab2", "B2", "Eb3", "Gb3"]         # 32, 29, 26 and 23 inches: each inside its drum's range
+    loud = KETTLE.split(";")[2]
+    for j, ((p, _, ln), st) in enumerate(zip(cells3, steps)):
+        pitch = POOL[st] + KEY[4] - 12
+        if j < 12 or not loud:
+            # the head of a chord (cells of 34 and 21) is struck a little harder than the strokes inside it
+            add("kettle", p, ln - 0.5, pitch, 0.62 if p in STARTS[5] else 0.5)
+            continue
+        # The last cell: the tune's top note, rolled, swelling; over its last three sixteenths the pedal comes up
+        # and the head falls a semitone to F.
+        # A roll is not a rhythm: a timpanist times the sticks to the head, so that each stroke pushes the skin the
+        # way it is already going. Here that is done by counting the head's own cycles: every stroke falls 14 cycles
+        # after the last, three of them 12 (65 to 80 ms, about 13 strokes a second, on no grid). An even number,
+        # because the kettle's second mode is a fifth up, three cycles to the principal's two: after 13 cycles of the
+        # one the other is half a turn out.
+        # (First bench: strokes every 75 ms, which at 185 Hz is 13.875 cycles; each arrived an eighth of a turn out of
+        # step with the last, the fifth cancelled the first, and the roll had a hole 14 dB deep a third of a second in.
+        # Second: 13s and 14s; the principal held and the fifth above it was gone by the middle of the roll.)
+        end, strokes = p + ln, 20
+        assert st == max(steps) and steps.count(st) == 1 and end == SECS[5][0] and (pitch - 1 - F1) % 12 == 0
+        first, last = (float(x) for x in loud.split(":"))
+        sec, fine = 15 / BPM, 2000                                   # seconds to a sixteenth ; steps to a sixteenth
+
+        def pedal_from(start):
+            def pedal(t):
+                u = min(1.0, max(0.0, (t - start) / 2.6))
+                return round(-u * u * (3 - 2 * u), 4) + 0.0          # (+ 0.0: no minus zero in the file)
+            return pedal
+
+        def turns(pedal):
+            """The head's cycles since the first stroke, at each fine step of the cell."""
+            out, total = [0.0], 0.0
+            for i in range(ln * fine):
+                total += 440 * 2 ** ((pitch + pedal(p + (i + 0.5) / fine) - 69) / 12) * sec / fine
+                out.append(total)
+            return out
+
+        # The pedal starts where the whole roll is a whole number of cycles: the stroke with the band is in step too.
+        lo, hi = end - 3.6, end - 2.6
+        whole = int(turns(pedal_from(end - 3))[-1]) // 2 * 2
+        short = (14 * strokes - whole) // 2                          # how many of the gaps are 12 cycles, not 14
+        assert 0 <= short <= strokes // 4
+        gaps = [12 if (k + 1) * short // strokes > k * short // strokes else 14 for k in range(strokes)]
+        assert sum(gaps) == whole
+        assert turns(pedal_from(lo))[-1] < whole < turns(pedal_from(hi))[-1]
+        for _ in range(40):
+            mid = (lo + hi) / 2
+            lo, hi = (mid, hi) if turns(pedal_from(mid))[-1] < whole else (lo, mid)
+        pedal = pedal_from(round(lo, 4))
+        phase = turns(pedal)
+        assert abs(phase[-1] - whole) < 0.01 and pedal(end - 0.2) == -1.0
+        for k in range(strokes):
+            want = sum(gaps[:k])
+            t = p + next(i for i, c in enumerate(phase) if c >= want - 1e-6) / fine
+            ln16 = end - 0.05 - t
+            pts = max(1, round(ln16 / 0.2))
+            u = k / strokes
+            T.setdefault("kettle", []).append({
+                "at": round(t / 4, 5), "len": round(ln16 / 4, 5), "pitch": nm(pitch), "vel": 0.5 if k == 0 else round(0.25 + 0.35 * u, 3),
+                "expr": {"pedal": pedal(t)},
+                # the engine reaches point i of a path at (i + 1) / N of the note
+                "expr_path": {"pedal": [pedal(t + (i + 1) * ln16 / pts) for i in range(pts)]}})
+            if k:
+                # The first stroke is the tune's note; the roll under it starts as a murmur. Strokes in step add
+                # up, so each is far smaller than a stroke heard alone: a trim, from the first to the last. (At -6
+                # the last half second stood 7 to 9 dB over everything else there, which is the guitar's swelling
+                # A flat of v10: the roll is to lead that in, not cover it.)
+                T["kettle"][-1]["gain"] = f"{first + (last - first) * u ** 1.6:.1f}dB"
+        add("kettle", end, 6, pitch - 1, 0.85)                           # and lands with the band
+
+
 def two_common_tones():
     """Ab minor and E major share two notes. First move a finger, then move the ground."""
     s, quiet_in, back = (SECS[i][0] for i in (3, 4, 5))
@@ -528,6 +622,8 @@ def song():
         short_children()
     if SMALLER:
         one_size_smaller()
+    if KETTLE:
+        kettles()
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
@@ -593,6 +689,8 @@ def song():
     if CHILD:
         tracks.append({"name": "log", "patch": "log-drum play.glide=0ms play.gate=1 synth.env.p.d=35ms synth.amp.r=45ms",
                        "gain": CHILD, "pan": .4, "out": "drums"})
+    if KETTLE:
+        tracks.append({"name": "kettle", "patch": "em-kettle", "gain": KETTLE.split(";")[0], "pan": -0.1, "sends": {"hall": KETTLE.split(";")[1]}})
     for t in tracks:
         if "gen" not in t:
             t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
@@ -622,6 +720,20 @@ def song():
                 "about": "The moving bar against the two fretted guitars. Keep the pedal steel's vibrato, bend by hand within each note, and damp it before the band answers.",
                 "synth": {"pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": 0.06}, {"src": "expr.bend", "amount": 1}]}},
             }} if STEEL else {}),
+            **({"em-kettle": {
+                "about": ("Extreme and Mean's kettledrums (chirper-alpha, 18 Nov): the modal layer's `kettle` set (Rossing's 65 cm drum: the "
+                          "air in the kettle tunes the head's modes near 1 : 1.5 : 2 : 2.44, so it sings the note it is given), struck a "
+                          "quarter of the way in from the rim, with a felt head's soft thud. `expr.pedal` is the pedal, in semitones: "
+                          "the head follows it while it rings."),
+                "synth": {"pitch": {"value": 0, "mod": [{"src": "expr.pedal", "amount": 1}]},
+                          "layers": [{"name": "head", "type": "modal", "modes": "kettle", "strike": {"value": 0.72, "mod": [{"src": "rand", "amount": 0.05}]},
+                                      "decay": "5s", "damp": 0.2, "sharp": 10, "vary": 0.3},
+                                     {"name": "felt", "type": "noise", "color": "brown",
+                                      "level": {"value": "-60dB", "mod": [{"src": "env.att", "amount": 36}, {"src": "vel", "amount": 6}]}}],
+                          "env": {"att": {"a": "0.5ms", "d": "16ms", "s": 0}},
+                          "filters": ["hp cutoff=45", "lp cutoff=2400"],
+                          "amp": {"a": "0.3ms", "d": "5s", "s": 0, "r": "350ms", "curve": 2}},
+                "play": {"vel_sens": 0.6, "gate": 1, "poly": 32}}} if KETTLE else {}),
             "ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
             "em-harp": {"about": ("Extreme and Mean's wire harp (chirper-zero, 17 Nov): the library's ks-harp (Karplus-Strong, stretch 3) with a "
                                   "release long enough for a sixteenth-long pluck to ring on."),
