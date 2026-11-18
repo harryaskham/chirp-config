@@ -385,6 +385,22 @@ MUFFLE = os.environ.get('C10T3_MUFFLE', '3.5' if CROSS and TREBLE and W1==(2,2) 
 # the treble's velocity (the other bells keep 0.8, the tenor 0.896). "" = v21 (rounds, nine times). It is on only
 # while every earlier switch is, so each of them still gives exactly what it gave at v21.
 TOWERHUNT = os.environ.get('C10T3_TOWERHUNT', '0.95' if all((MUFFLE, MONKS, FORM, FUZZ, HUNT, HUNT2, HARM1, SIXTHS, HOME, TREM, KEYEQ)) else '')
+# v23: ONE LEAD AT TWO SPEEDS (section round, 1:06-1:26, in the window 1:04-1:36 the map calls "little new"). Each
+# third of the first extent has a figure for the inner pair of guitars (the crossings on F, the handstroke on B),
+# and A flat had none: after the bare lead the four simply played two leads in unison. Now, when the whole riff
+# comes back, only the outer pair and the bass take it. The inner pair rings the SAME lead at half the speed, an
+# octave up and every bell open: a bar to a row, the treble a quarter note, the tenor two muted eighths. So one lead
+# is rung once slowly while it and the next are rung fast under it, as the tower rings over the band at the
+# landing, but here with the changes. Both leave from home together and come home together at 1:24; and at the
+# fast riff's first home (1:15) the slow treble, then lying behind, falls on the same beat as the fast one.
+# (First bench, an octave up and at the pair's own level: the riff's second harmonics are the slow notes'
+# fundamentals, and read in the mix the slow note was the strongest pitch in only 42% of its notes. Two octaves up it
+# was 54%, but still 1.3 dB under the outer pair, where the harmony guitars Harry kept sit 1.2 dB over it. With the
+# inner pair's fader 2 dB up for these ten bars it was 62%, and the stretch read 0.15 LU OVER the harmony's entrance
+# it leads to (1:26), which is meant as a step up. So 1 dB: the stretch stays under that entrance.)
+# the rows of the first extent under the slow ring (from:to; it rings the first half of them) ; semitones it is above
+# the riff ; the velocity of its bells (the treble's is 1.0) ; the inner pair's fader while it rings, dB. "" = v22.
+SLOW = os.environ.get('C10T3_SLOW', '50:70;24;0.92;1' if TOWERHUNT and W1 == (2, 2) else '')
 
 
 def lead_mode(k, calls):
@@ -503,6 +519,26 @@ def handstroke(k, s16, root):
     # the answering hand chokes its second chug one sixteenth before the bar.
     for j in range(1 + back):
         add(tr, at + L1 - W1[1] + j, .8, F1 + root, .88, pm=1)
+
+
+def slow_ring(r0, r1, up, vel):
+    """Rows r0 .. halfway to r1 of the first extent on the inner guitars at half speed, over rows r0..r1-1."""
+    half = (r1 - r0) // 2
+    assert r0 % 10 == 0 and (r1 - r0) % 20 == 0 and KEYS_1[r0 // 40] == KEYS_1[(r1 - 1) // 40], "whole leads, in one key"
+    # where the fast riff is at home the slow treble is with it: behind at the first, leading at the second
+    assert EXTENT_1[r0 + half // 2 - 1].index(1) == 4 and EXTENT_1[r0 + half - 1].index(1) == 0
+    t, root = PART1 * 16 + r0 * L1, KEYS_1[r0 // 40]
+    for k in range(r0, r0 + half):
+        for b in EXTENT_1[k] + (6,):
+            n = W1[0] if b == 1 else W1[1] if b == 6 else 1
+            for tr in G4[2:]:
+                if b == 6:
+                    for j in range(n):
+                        add(tr, t + 2 * j, 2, F1 + root + up, 0.9, pm=1)
+                else:
+                    add(tr, t, 2 * n, F1 + root + PITCH[b] + up, 1.0 if b == 1 else vel)
+            t += 2 * n
+    assert t == PART1 * 16 + r1 * L1
 
 
 def half_muffled():
@@ -639,11 +675,14 @@ def compose():
         # First two leads on B only. The home rows and the hunting snare from
         # row 100 are left alone: the four strings fall back into unison there.
         split = HANDSTROKE and 80 <= k < 100 and k % 10 < 8
+        slow = bool(SLOW) and int(SLOW.split(";")[0].split(":")[0]) <= k < int(SLOW.split(";")[0].split(":")[1])
         row_notes(row, s16, root, W1, kicks="all" if k >= 80 else "hunt",
                   mode=lead_mode(k, CALLS_1) or ("bare" if bare[0] <= k < bare[1] else ""),
-                  trs=G4[:2] if split else None, pairs=coming_pairs(EXTENT_1, k))
+                  trs=G4[:2] if split or slow else None, pairs=coming_pairs(EXTENT_1, k))
         if split:
             handstroke(k, s16, root)
+    if SLOW:                             # v23: the inner pair rings one lead at half speed over two
+        slow_ring(*(int(x) for x in SLOW.split(";")[0].split(":")), int(SLOW.split(";")[1]), float(SLOW.split(";")[2]))
     for i, kind in enumerate("abc"):
         beat(PART1 + T1 * i, PART1 + T1 * (i + 1), kind, 10 ** 6 if FORM else meet(L1))
         fill(PART1 + T1 * (i + 1))
@@ -822,6 +861,13 @@ def song():
           [{"name": "home", "patch": "contrabass-tight", "gain": "-9dB", "pan": 0.3, "sends": {"hall": "-12dB"}},
            {"name": "air", "patch": "juno-pad", "gain": "-13dB", "pan": 0.15, "sends": {"hall": "-8dB"}}]),
     ]
+    if SLOW and len(SLOW.split(";")) > 3 and float(SLOW.split(";")[3]):      # v23: the inner pair's fader while it carries a line of its own
+        s0, s1 = (PART1 * 4 + int(x) * L1 / 4 for x in SLOW.split(";")[0].split(":"))
+        for t in tracks:
+            if t["name"] in G4[2:]:
+                t["gain"] = {"value": GD, "mod": [{"src": "auto.slow", "amount": 1}]}
+                t["auto"] = {"slow": {"points": [["0b", 0], [f"{s0 - 0.02:g}b", 0], [f"{s0:g}b", float(SLOW.split(";")[3])],
+                                                 [f"{s1 - 0.02:g}b", float(SLOW.split(";")[3])], [f"{s1:g}b", 0]], "curve": 0}}
     if MUFFLE and TREBLE:
         treble = next(t for t in tracks if t['name']=='treble')
         tracks.append({**treble,'name':'wrapped','sends':{'hall':'-18dB'},
