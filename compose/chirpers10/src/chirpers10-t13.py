@@ -28,12 +28,13 @@ def name(n):
     return PITCH[n % 12] + str(n // 12 - 1)
 
 
-def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True):
+def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
     held_back = held_back and wood
     afterimage = afterimage and held_back
+    drum_memory = drum_memory and afterimage
     parts = defaultdict(list)
     def put(tr, at, dur, p, v, mute=False):
         event = dict(at=round(at / SUB, 6), len=round(dur / SUB, 6),
@@ -161,6 +162,44 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
         if slot==end-1 and (multi or end==CELL): return 'cs'
         return 'cb' if first else 'cg'
 
+    def hands_remember(start, span, section):
+        """One sticking for the four missing notes. Remove backbeats wherever
+        it speaks; the descent is in the touch, not four tuned drums."""
+        def rest(tracks, a, b):
+            for tr in tracks:
+                parts[tr] = [e for e in parts[tr] if not a <= round(e['at']*SUB) < b]
+        def stroke(at, j):
+            if j==len(HEADS)-1:             # a left-hand grace into the last F
+                put('snare',at-.15,.12,'g',.77)
+            piece,vel = (('s',.89),('s',.61),('ss',.91),('s',.85))[j]
+            put('snare',at,.8,piece,vel)
+        cells = span//CELL
+        if section=='the handover':
+            # In the middle cell of each group the drum learns just the new
+            # mallet attack. The last cell is left intact before the review clip.
+            repeats = cells//len(HEADS)
+            for j,k in enumerate(HEADS):
+                a = start+(j*repeats+repeats//2)*CELL
+                rest(('snare',),a,a+CELL)
+                stroke(a+k,j)
+        elif section=='where it was':
+            # State the four on the holes of the low riff, then hear them with
+            # no strings or kick for one cell. The quarter hat never disappears.
+            # Both cells are well after the 65–71.875 s comparison.
+            for i in (cells-4,cells-3):
+                a=start+i*CELL
+                rest(('snare',),a,a+CELL)
+                if i==cells-3: rest(('left','right','bass','kick'),a,a+CELL)
+                for j,k in enumerate(HEADS): stroke(a+k,j)
+        elif section=='both sides':
+            # The last negative has a beat of silence: don't fill it. Carry
+            # the unplayed fourth stroke to the actual low F of the slow coda.
+            a = start+span-CELL
+            rest(('snare',),a,a+CELL)
+            for j,k in enumerate(HEADS[:-1]): stroke(a+k,j)
+        elif section=='one impression':
+            stroke(start+2*HEADS[-1],len(HEADS)-1)
+
     start = 0
     for section, span in FORM:
         if section == 'chalk':
@@ -210,6 +249,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                     drums('h', t + 2, .43)
             if phrase_return and section == 'both sides':
                 last_exchange(start, span)
+                if drum_memory: hands_remember(start, span, section)
                 start += span
                 continue
             half = span // CELL // 2
@@ -287,6 +327,8 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
             if section in ('the shape','under glass','turn the sheet'):
                 for off, piece in zip((3,2,1), ('t1','t2','ft')):
                     drums(piece, start + span - off, .59+(3-off)*.1)
+        if drum_memory and section in ('the handover','where it was','one impression'):
+            hands_remember(start, span, section)
         start += span
 
     def track(tr, patch, gain, pan=0, **kw):
@@ -299,13 +341,17 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
               track('ring','scanned-mallet',-13,.06,sends={'chamber':'-12dB'}),
               track('glass','ct-clean',-2,-.18,sends={'chamber':'-9dB'}),
               track('kick','ct-kit',2,out='drums',fx=[{'type':'eq','bands':['peak cutoff=4300 q=0.8 gain=7dB']}]),
-              track('snare','ct-kit',3,out='drums',sends={'chamber':'-14dB'}),
+              # The short wooden click and the flam grace were 21–26 dB
+              # under the accent on the stock kit. Bring up those two pieces
+              # only; the old backbeat and its fader stay where they were.
+              track('snare','ct-kit'+(' kit.ss.gain=7dB kit.g.gain=-5dB' if drum_memory else ''),3,
+                    out='drums',sends={'chamber':'-14dB'}),
               track('metal','ct-kit',1.5,out='drums'), track('skins','ct-kit',3,out='drums')]
     if wood:
         for side,pan in zip(sides,(-.58,.58)):
             tracks.append(track('box-'+side,'cajon kit.cb.pitch=F2 kit.cs.gain=4dB kit.cg.gain=1dB fx.0.mix=0.06',wood_gain,pan))
     assert not parts
-    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
+    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
             'ceiling':'-1dB', 'true_peak':True, 'loudness':-10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
@@ -324,9 +370,10 @@ if __name__ == '__main__':
     previous.add_argument('--v3', action='store_true', help='restore both guitar parts in the side-to-side trade')
     previous.add_argument('--v4', action='store_true', help='keep the two guitars in unison through the first heavy section')
     previous.add_argument('--v5', action='store_true', help='restore the seven muted strokes over the A-flat pedal')
+    previous.add_argument('--v6', action='store_true', help='restore the original backbeat in the negative and its returns')
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     args = parser.parse_args()
-    doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5)
+    doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
