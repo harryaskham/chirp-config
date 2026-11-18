@@ -9150,7 +9150,13 @@
       "last": {
         "at": "2026-11-18T23:43:54Z",
         "who": "chirper-alpha"
-      }
+      },
+      "passed_by": [
+        {
+          "who": "chirper-three",
+          "at": "2026-11-18T23:59:13Z"
+        }
+      ]
     },
     {
       "id": "chirpers10-t13",
