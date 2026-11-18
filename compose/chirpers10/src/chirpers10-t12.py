@@ -25,12 +25,29 @@ FOOT_COUNT = '-3dB'
 PAGE_LOUDNESS = -10.15
 # v10: the ribbon's one long note over the opposed guitars, against its track's level.
 PALINDROME_TRIM = '-3dB'
+# v11 (chirper-alpha, whole song): THE KIT GETS THE ALBUM'S EAR. The song had been read against the album's eleven
+# records once, at v1, on one stretch (+3.3 dB at 250-500 Hz, 2.4 short at 60-120), and nothing was done. Read whole
+# and by part at v10 (stembal, each band as a share of the mix, against the records' passages without a voice): every
+# stretch with a backbeat stood 2.6 to 6.1 dB over at 250-500 Hz (the unison opening 1.2) and 1.7 to 3.1 short at
+# 60-120 Hz. Part by part, the SNARE held half of 250-500 Hz wherever it plays two and four, and the kick most of the
+# rest; the kick is also 56 to 77% of 60-120 Hz. Every other song of the album that uses this kit cuts its bus at
+# 400 Hz (4 to 6 dB); this one, alone, did not. So the drums' bus gets the album's eq, after its clip: the cut at
+# 400 Hz, the small lift at 5.5 kHz and the shelf over 9 kHz as Common Time's kit has them, and one band of its own:
+# a lift at 92 Hz, because here the foot plays only the four open notes of a strip and the bass only two, so the
+# low end is few strokes and each has to carry more. No note changes.
+# (Benched: the same lift on the kick's own track, before the bus's compressor and clip, bought 0.5 dB of the band
+# for 3 dB of eq; on the bus after them 3 dB buys 1.0. At 4.5 dB the tuned toms' answers at 3:36 read 1.4 over.)
+KIT_EQ = ['peak cutoff=92 q=1.2 gain=3.5dB', 'peak cutoff=400 q=0.8 gain=-6dB', 'peak cutoff=5500 q=0.9 gain=1dB', 'highshelf cutoff=9000 gain=-2dB']
+# With the snare's body out of the way the ribbon's long note (v10, mine) was nearly all of its own octave (1.0 dB
+# under the mix there) and that stretch still read 4.1 over. Two dB less: 14.7 under the whole mix, where the
+# signature at the close stands (14.1), and still the strongest partial near it in nine frames of ten.
+PALINDROME_TRIM_KIT = '-5dB'
 
 def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True):
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
@@ -38,6 +55,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
     ties = ties and signature                    # --without-signature still gives v6
     facing = facing and ties                     # --without-ties still gives v7
     palindrome = palindrome and facing           # --without-facing-page still gives v8
+    album_kit = album_kit and palindrome         # --without-palindrome still gives v9
     ev = defaultdict(list); sections = []; tie_gains = {}; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -330,7 +348,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
         # An unbroken tone over single-string riffs carries further than the
         # same fader does over the closing chords: at the track's level it stood
         # 9.8 dB under the band, where the signature stands 14.1 under.
-        ev['ribbon'][-1]['gain'] = PALINDROME_TRIM
+        ev['ribbon'][-1]['gain'] = PALINDROME_TRIM_KIT if album_kit else PALINDROME_TRIM
     if facing:
         # THE FACING PAGE. Close a book on wet ink and the other page takes its
         # mirror image. The song's first six strips (the pencil's four, then
@@ -444,6 +462,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
     buses={'strings':{'fx':[{'type':'eq','bands':['peak cutoff=360 q=0.8 gain=-2dB','peak cutoff=730 q=1 gain=1.5dB']}]},
            'drums':{'fx':['reverb kind=room mix=0.10 decay=0.53s predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'18ms','release':'120ms'},'clip ceiling=-13dB']},
            'low':{'fx':[{'type':'eq','bands':['peak cutoff=48 q=1.4 gain=-4dB','peak cutoff=98 q=1 gain=3dB','peak cutoff=310 q=0.9 gain=-4dB']},{'type':'compressor','threshold':'-24dB','ratio':5,'attack':'14ms','release':'115ms'}]}}
+    if album_kit: buses['drums']['fx'].append({'type':'eq','bands':KIT_EQ})
     doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=PAGE_LOUDNESS if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
     return doc,sections
 
@@ -457,8 +476,9 @@ if __name__=='__main__':
     ap.add_argument('--without-signature',action='store_true',help='regenerate v6')
     ap.add_argument('--without-ties',action='store_true',help='regenerate v7, without the two common-tone handoffs')
     ap.add_argument('--without-facing-page',action='store_true',help='regenerate v8, ending on the signed chord')
-    ap.add_argument('--without-palindrome',action='store_true',help='regenerate v9, without the ribbon over the opposed guitars'); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome)
+    ap.add_argument('--without-palindrome',action='store_true',help='regenerate v9, without the ribbon over the opposed guitars')
+    ap.add_argument('--without-album-kit',action='store_true',help="regenerate v10, the kit's bus without the album's eq"); a=ap.parse_args()
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
