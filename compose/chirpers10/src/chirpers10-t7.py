@@ -78,6 +78,9 @@ BOWL = os.environ.get("C10T7_BOWL", "-16;-13")
 # v7: in the return to F, the wall pair plays the riff three sizes larger.
 # Empty restores v6; the v6 BOWL-empty switch still restores v5.
 BIG_STROKES = os.environ.get("C10T7_BIG_STROKES", "1" if BOWL else "")
+# v8: the horn borrows five notes from the lowest harp before the last
+# quiet section. Empty restores v7; older rollback switches keep working.
+REVEAL = os.environ.get("C10T7_REVEAL", "1") if BIG_STROKES and CANON and BRASS else ""
 
 
 def nm(n):
@@ -214,6 +217,7 @@ def quiet(i, s0, n):
         if not s0 <= p < s0 + n:
             continue
         ch, low = ((41, 48, 56), 0) if kind == "L" else ((37, 44, 53), 8)
+        exposed = REVEAL and i == 6 and p == s0 + SIZE[6][0]
         if BOWL and i == 4:
             # Ab minor to E major: one bowl on Cb/B belongs to both. The clean
             # guitar leaves it out of its long chords and rests on the short
@@ -225,9 +229,11 @@ def quiet(i, s0, n):
                 add("rim", p, ln - 2, shared, 0.82)
             else:
                 add("mallet", p, ln - 1, shared, 0.85)
-        else:
+        elif not exposed:
             add("pad", p, ln - 1, ",".join(nm(x + key) for x in ch), 0.8)
-        add("bass", p, ln - 2, F1 + key + low, 0.3)
+        # In the exposed phrase the bass gives one low F, then leaves the
+        # repeated Cs to the slow harp. The ride and foot keep their parts.
+        add("bass", p, SIZE[2][0] - 1 if exposed else ln - 2, F1 + key + low, 0.3)
         ROOTS.append((p, key + low))
     for p, kind, ln in LEV[3]:
         if s0 <= p < s0 + n:
@@ -288,7 +294,20 @@ def compose():
         if BRASS and i in WIDE:
             big = [c for c in LEV[4] if s0 <= c[0] < s0 + n]
             for (p, _, ln), step in zip(big, harp_tune(5)):
+                if REVEAL and i == 5 and p >= s0 + n - SIZE[5][0]:
+                    continue  # these last two breaths become the next harp's phrase below
                 add("brass", p, ln - 1, POOL[step] + KEY[i] + int(BRASS.split(";")[3]), float(BRASS.split(";")[2]))
+            if REVEAL and i == 5:
+                q = SECS[i + 1][0]
+                centre, width = q + SIZE[6][0], SIZE[5][0]
+                low_cells = [cell for cell in LEV[2] if q <= cell[0] < q + SECS[i + 1][2]]
+                steps = harp_tune(8 - 2)
+                assert len(steps) == len(low_cells)
+                for (p, _, ln), step in zip(low_cells, steps):
+                    if centre <= p < centre + width:
+                        here = q - width + p - centre
+                        assert here in STARTS[2] and at_size(2, here)[2] == ln
+                        add("brass", here, ln - 1, POOL[step] + KEY[i + 1] + 12, float(BRASS.split(";")[2]))
     if PEEL:
         peel_last_riff()
     for tr in ("gl", "gr", "wl", "wr"):                   # where the fifteenth line would begin: one chord
@@ -384,6 +403,19 @@ def song():
             {"name": "rim", "patch": "singing-bowl-rim synth.amp.r=200ms" + room, "gain": rim + "dB", "pan": 0},
             {"name": "mallet", "patch": "singing-bowl synth.amp.d=2.6s synth.amp.r=200ms" + room, "gain": mallet + "dB", "pan": 0},
         ])
+    if REVEAL:
+        # Keep the turtles running. Damp the faster strings to expose their
+        # slow relative: 144 = 34 + 21 + 34 + 21 + 34 sixteenths.
+        span = SECS[6][2]
+        for name, margin in (("harp7", SIZE[5][0]), ("harp7b", SIZE[6][0])):
+            t = next(tr for tr in tracks if tr["name"] == name)
+            # Automation on these offset tracks counts from the harp's first
+            # pluck, not from beat zero of the song.
+            lo, hi = margin, span - margin
+            pts = [["0b", 0], [f"{(lo - 2) / 4:.8g}b", 0], [f"{lo / 4:.8g}b", -60],
+                   [f"{(hi - .25) / 4:.8g}b", -60], [f"{hi / 4:.8g}b", 0]]
+            t["gain"] = {"value": t["gain"], "mod": [{"src": "auto.damp", "amount": 1}]}
+            t["auto"] = {"damp": {"points": pts, "curve": 0}}
     for t in tracks:
         if "gen" not in t:
             t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
