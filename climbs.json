@@ -9011,7 +9011,7 @@
     {
       "id": "chirpers10-t13",
       "song": "songs/chirpers10-t13.yaml",
-      "reference": "chirpers — Track 13 (untitled)",
+      "reference": "chirpers — Where It Was",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers10-t13 OUT.wav",
@@ -9027,7 +9027,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Common Time",
-        "title": "Track 13 (untitled)",
+        "title": "Where It Was",
         "track": 13,
         "year": 2026
       },
