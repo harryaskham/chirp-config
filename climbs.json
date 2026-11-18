@@ -8991,7 +8991,7 @@
     {
       "id": "chirpers10-t12",
       "song": "songs/chirpers10-t12.yaml",
-      "reference": "chirpers — Track 12 (untitled)",
+      "reference": "chirpers — The Other Hand",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers10-t12 OUT.wav",
@@ -9007,7 +9007,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Common Time",
-        "title": "Track 12 (untitled)",
+        "title": "The Other Hand",
         "track": 12,
         "year": 2026
       },
