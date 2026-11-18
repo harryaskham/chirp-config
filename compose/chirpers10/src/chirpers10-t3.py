@@ -401,6 +401,12 @@ TOWERHUNT = os.environ.get('C10T3_TOWERHUNT', '0.95' if all((MUFFLE, MONKS, FORM
 # the rows of the first extent under the slow ring (from:to; it rings the first half of them) ; semitones it is above
 # the riff ; the velocity of its bells (the treble's is 1.0) ; the inner pair's fader while it rings, dB. "" = v22.
 SLOW = os.environ.get('C10T3_SLOW', '50:70;24;0.92;1' if TOWERHUNT and W1 == (2, 2) else '')
+# v24, THE RINGERS' TIME: a row of the second extent is ten sixteenths and the kit's bar is sixteen, so row and bar
+# line meet every eighth row (five bars). Between two such meetings in the A-flat third, where the kit is in half time,
+# the drummer counts the ROW instead: china on its head and its middle, the snare on the middle. Half time at five
+# sixteenths to the pulse, eight bars of it where there were five; he is back in four at the next meeting, on a crash.
+# The rows of the second extent (from:to). "" = v23.
+ROWTIME = os.environ.get('C10T3_ROWTIME', '48:56' if SLOW else '')
 
 
 def lead_mode(k, calls):
@@ -539,6 +545,25 @@ def slow_ring(r0, r1, up, vel):
                     add(tr, t, 2 * n, F1 + root + PITCH[b] + up, 1.0 if b == 1 else vel)
             t += 2 * n
     assert t == PART1 * 16 + r1 * L1
+
+
+def ringers_time(r0, r1):
+    """From one meeting of row and bar line to the next, the kit keeps the row. No guitar, bass or kick note moves:
+    the kick was always written with the rows."""
+    a, z = PART2 * 16 + r0 * L2, PART2 * 16 + r1 * L2
+    assert a % 16 == 0 and z % 16 == 0 and (z - a) // 16 == meet(L2), "from one meeting to the very next"
+    assert KEYS_2[r0 // 40] == KEYS_2[(r1 - 1) // 40] and L2 % 2 == 0
+    assert not any(lead_mode(k, CALLS_2).startswith("call") for k in range(r0, r1))
+    kind = (FORM.split(";")[3] if FORM else "bac")[r0 // 40]
+    assert kind == "a", "half time: one snare to a bar, so one to a row"
+    for tr, piece in (("snare", "s"), ("cym", "x")):
+        T[tr] = [n for n in T[tr] if not (a / 4 <= n["at"] < z / 4 and n["pitch"] == piece)]
+    for t in range(a, z, L2):
+        drum("x", t, 0.6)
+        drum("x", t + L2 // 2, 0.5)
+        drum("s", t + L2 // 2, 0.95)
+    if not any(n["at"] == z / 4 and n["pitch"] == "c" for n in T["cym"]):
+        drum("c", z, 0.8)                # back in four, where they meet
 
 
 def half_muffled():
@@ -793,6 +818,8 @@ def compose():
     for a, z in BREAKS:                  # and the band comes back in on a crash
         if not any(a2 == z for a2, _ in BREAKS) and not any(n["at"] == z / 4 and n["pitch"] == "c" for n in T["cym"]):
             drum("c", z, 0.8)
+    if ROWTIME:
+        ringers_time(*(int(x) for x in ROWTIME.split(":")))
     if MUFFLE and TREBLE:
         half_muffled()
 
