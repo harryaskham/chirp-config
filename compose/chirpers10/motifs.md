@@ -513,6 +513,8 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 
 **The next footfall (v2, 1:50–2:20).** The heavy riff's three pitched attacks come at sixteenths 3, 11 and 20 (counting from zero). A kettledrum learns the line in the broad drummer's time: it plays the same pitches at 6, 12 and 24, the next dotted quarter after each guitar note. Three different waits, not a delay effect. Four phrases to state the riff; four to hear its answer; then in four more the guitars and bass choke the first two chords short and leave their last C to the mallet. Its final C lands on the downbeat at 2:20. The matched phrases across the original 1:00 change stay intact.
 
+**The last note changes hands (v3, 3:07–3:20).** The broad chords come home as before. On just the delayed F (C every fourth time), the inner wall guitars stop doubling. In two phrases the natural harmonic from the opening plucks that note; in the next two a bowed metal rod swells beneath the pluck; in the last two the bow takes it alone. Its first three notes ring across the next B♭, but the last C lifts before the cadence. The outer guitars and the drummer keep the broad walk underneath.
+
 ## t12 The Other Hand (v1 by chirper-two)
 
 **A strip read from both ends.** The open notes are F–A♭–G♭–C, four colours of the album hook, on sixteenths 0, 3, 10 and 15 of a strip of nineteen. Five low palm strokes are the spaces between the words. At 0:44 the right guitar starts at the other end, attacking on `18 − t` with the original note and touch. Now the two open attacks that coincide make A♭ against C and then C against A♭. The bass underlines those two strokes on low F; the drummer keeps four at 104. It takes sixteen strips to get back to the same downbeat.

@@ -22,12 +22,16 @@ PUMP = os.getenv('C10T11_PUMP', '-13dB')
 # v2: the pitched drum answers the anticipated notes on the next broad footfall.
 # Track gain; semitones above the riff. Empty = published v1.
 KETTLE = os.getenv('C10T11_KETTLE', '-7dB;0')
+# v3: at home the delayed note changes hands, from the opening harmonic
+# to a bowed metal rod. Empty restores v2; KETTLE empty still defaults to v1.
+ROD = os.getenv('C10T11_ROD', '-9dB' if KETTLE else '')
 BROAD = CELL // 4
 # Offset, duration, semitones, open power chord / single ringing note / palm mute.
 # The two short strokes before the Db and the delayed F are the tell in both walks.
 RIFF = [(0,3.55,0,'p'), (4,0.65,0,'m'), (5,0.65,0,'m'), (7,2.7,3,'n'),
         (11,0.68,0,'m'), (12,2.0,0,'p'), (15,0.72,0,'m'), (17,0.75,0,'m'),
         (19,2.55,7,'n'), (22,0.83,0,'m')]
+LAST_ANSWER = max(t for t,_,_,kind in RIFF if kind=='n')
 # In the heavier verse the answers arrive BEFORE the root, and hang over the
 # drummer's next footfall. A different phrase, not the first riff cut or sped up.
 LIFT = [(0,0.70,0,'m'), (2,0.70,0,'m'), (3,3.65,3,'p'), (8,0.65,0,'m'),
@@ -120,7 +124,20 @@ def make():
                 for t,d,s,k in RIFF:
                     if k=='m' and not (i%2 and t in (4,5)): continue
                     m=HOME+answer(i,s); dur=d if k=='m' else min(5.5,CELL-t-.2)
-                    strings(a+t,dur,m,'m' if k=='m' else 'p',.94,True)
+                    # Keep the first quarter of the return as it was. For the
+                    # high answer only, the outer guitars stay and the second
+                    # pair give up their chord to a different kind of metal.
+                    late = bool(ROD) and i>=count//4 and t==LAST_ANSWER
+                    strings(a+t,dur,m,'m' if k=='m' else 'p',.94,not late)
+                    if late:
+                        if i<3*count//4:
+                            # Same octave and touch as the note in 'latch'.
+                            put('latch',a+t,d*1.1,m+24,.77)
+                        if i>=count//2:
+                            # Its bow swells an octave below the sounding
+                            # harmonic; carry through the next downbeat, but
+                            # lift early on the last C so the cadence is clear.
+                            put('rod',a+t,CELL-t+2 if i<count-1 else CELL-t-1.6,m+24,.88)
                     if k!='m': put('bass',a+t,dur,m,.94); drum('k',a+t,.98)
                 walk(a,6,'rde')
                 if i in (0,4): drum('c',a,.84)
@@ -170,6 +187,10 @@ def make():
         tracks.append(tr('bellows','harmonium',ORGAN,.12,fx=pump))
     if KETTLE:
         tracks.append(tr('kettle','timpani fx.0.mix=0.07 synth.amp.r=240ms',KETTLE.split(';')[0],-.15))
+    if ROD:
+        # Shorter bow and smaller water movement than the ambient patch: the
+        # dissonant upper partials carry the sound, not a detuned six-second hall.
+        tracks.append(tr('rod','waterphone synth.amp.a=150ms synth.amp.r=135ms synth.pitch.mod.0.amount=0.12 synth.pitch.mod.1.amount=0.18 fx.0.decay=0.8s fx.0.mix=0.09',ROD,-.15))
     doc={'about':'On Its Hinge — chirpers, Common Time, track eleven. A twelve-eighth riff in B flat; the drummer swaps six quick steps for four broad ones, on an unchanged riff. The reed organ breathes the broad walk before the kit takes it.' + (' The kettledrum answers the heavy riff on the next broad steps, then takes its last C.' if KETTLE else ''),
          'tempo':BPM,'seed':1,'length':f'{start//SUB}b','tail':'4s','ceiling':'-1dB','loudness':-10,'event_stable':True,
          'buses':{'drums':{'fx':['reverb kind=room decay=0.62s mix=0.13 predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'20ms','release':'135ms'},'clip drive=0dB ceiling=-13dB',{'type':'eq','bands':['peak cutoff=400 q=0.8 gain=-5dB','highshelf cutoff=9000 gain=-2dB']}]},
