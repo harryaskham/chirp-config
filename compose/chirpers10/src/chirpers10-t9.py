@@ -9,7 +9,7 @@ different number of notes to the beat in each section:
   one to the beat      bars 0-7     the riff is a slow tune, seven beats long: two guitars and a hat
   two                  bars 7-14    the bass and the kick come in
   three                bars 14-21   triplets: the snare, the china, each guitar doubled
-  four                 bars 21-28   sixteenths
+  four                 bars 21-28   sixteenths; v2: the two hook notes pass between baritone and clavinet
   five                 bars 28-35   quintuplets: two guitars again; the bass holds through their muted strokes
   six                  bars 35-42   sextuplets: one beat of the kit alone before the lock
   seven                bars 42-56   septuplets: THE SEVEN STROKES ARE NOW EXACTLY ONE BEAT LONG. It locks:
@@ -39,6 +39,9 @@ CELLS = ["o c c 3 c 6 c".split(), "o c c 1 c 7 c".split()]
 N = len(CELLS[0])
 RUNG = 4 * N                              # beats: seven bars, four times round
 PAWL = os.environ.get("C10T9_PAWL", "-9dB")  # off = the same skeleton without the cell marker
+# v2 palette: a picked string and a keyed string take the two answers out of the
+# four unison guitars for one rung. Gains in that order. Empty restores v1.
+HANDS = os.environ.get("C10T9_HANDS", "-11.5dB;-4.5dB")
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
 ROOTS = [(0, 0)]
@@ -74,8 +77,18 @@ def deal(b0, beats, k, gtrs, low=True, root=0, chords=""):
             pitch = ",".join(nm(midi + j) for j in intervals)
         mute = part == "c"
         vel = 0.82 if mute else 1.0 if part == "o" else 0.95
-        for tr in gtrs:
-            add(tr, at, (0.65 if mute else 1) / k, pitch, vel, **({"pm": 1} if mute else {}))
+        if HANDS and k == 4 and part == "h":
+            # Sixteen cells in this rung. Exchange jobs after eight, not at a
+            # bar line: the reversal follows the riff, halfway through bar four.
+            first_answer = i % N == 3
+            picked = first_answer != (i >= beats * k // 2)
+            if picked:
+                add("picked", at, 1.55 / k, midi + 12, 0.94)
+            else:
+                add("keyed", at, 0.85 / k, midi + 24, 0.96)
+        else:
+            for tr in gtrs:
+                add(tr, at, (0.65 if mute else 1) / k, pitch, vel, **({"pm": 1} if mute else {}))
         if not low:
             continue
         if k == N:                              # the beat and cell are now one: a footfall, not a kick roll
@@ -183,6 +196,9 @@ def song():
         {"name": "cym", "patch": kit, "gain": "-4.5dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
         {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
         *([{"name": "pawl", "patch": "it-pawl", "gain": PAWL, "pan": -0.15}] if PAWL else []),
+        *([{"name": "picked", "patch": "baritone fx.3.mix=0.07 fx.4.mix=0.09",
+            "gain": HANDS.split(";")[0], "pan": -0.56},
+           {"name": "keyed", "patch": "clav", "gain": HANDS.split(";")[1], "pan": 0.56}] if HANDS else []),
     ]
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
@@ -200,7 +216,7 @@ def song():
                   "changes (84). The band deals the riff out at one note to the beat, then two, three, four, five, six, drifting "
                   "across the beat and coming round to it every seven beats; at seven to the beat the riff is exactly one beat long "
                   "and locks. The bass and kick walk in quarters underneath. Then once more at one to the beat, every stroke a chord. "
-                  "v1 is the skeleton."),
+                  "v1 is the skeleton.") + (" At four to the beat the two hook notes pass between a baritone guitar and a clavinet; they exchange roles halfway." if HANDS else ""),
         "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
                     **({"it-pawl": {"synth": {"layers": [{"type": "wavetable", "frames": [
