@@ -86,6 +86,9 @@ REVEAL = os.environ.get("C10T7_REVEAL", "1") if BIG_STROKES and CANON and BRASS 
 CHILD = os.environ.get("C10T7_CHILD", "-5dB") if REVEAL else ""
 # v10: the heavy middle anticipates the bowl's chords; the last one opens into F minor.
 PIVOT = os.environ.get("C10T7_PIVOT", "1") if CHILD else ""  # empty restores v9
+# v11: after the wall pair has played the riff three sizes larger, the foot plays it
+# one size smaller (cells of 2 and 1); bass and inside guitars follow. Empty = v10.
+SMALLER = os.environ.get("C10T7_SMALLER", "1") if PIVOT else ""
 
 
 def nm(n):
@@ -395,6 +398,36 @@ def short_children():
     T["gr"] = [n for n in T["gr"] if round(n["at"] * 4) not in high_hits]
 
 
+def one_size_smaller():
+    """Run the rule backwards once: a long of three is a long of two and a short
+    of one; a short of two is one long. So 'stroke stroke rest' becomes 'stroke
+    rest stroke'. No cell head moves, and the wall pair keeps the riff's own size.
+    """
+    s0, _, n = SECS[5]
+    start = s0 + SIZE[8][0]               # all four guitars are back on the small riff
+    follow = start + SIZE[4][0]           # 21 later the players nearest the foot go with it
+    stop = start + SIZE[6][0]             # 55: the horn's five notes get the old lock
+    assert stop == s0 + n - SIZE[5][0] and follow in STARTS[4]
+
+    def at(tr, p):
+        found = [e for e in T[tr] if round(e["at"] * 4) == p]
+        assert len(found) == 1, (tr, p, found)
+        return found[0]
+
+    for p, kind, _ in LEV[0]:
+        if not start <= p < stop or kind != "L" or RANK[p] == 2:
+            continue                      # a short is one stroke at either size; a ringing cell is 2 + 1 already
+        for tr in ("kick",) + (("bass", "gl", "gr") if p >= follow else ()):
+            head = at(tr, p)
+            if RANK[p] < 3:               # the second muted stroke crosses into the rest
+                at(tr, p + 1)["at"] = round((p + 2) / 4, 4)
+            elif tr == "kick":           # under a chord the walls hold: two sixteenths, then one
+                drum("k", p + 2, 0.85)
+            else:
+                head["len"] = round(2 / 4 * 0.98, 4)
+                add(tr, p + 2, 1, head["pitch"].split(",")[0], 0.85, **({} if tr == "bass" else {"pm": 1}))
+
+
 def two_common_tones():
     """Ab minor and E major share two notes. First move a finger, then move the ground."""
     s, quiet_in, back = (SECS[i][0] for i in (3, 4, 5))
@@ -468,6 +501,8 @@ def song():
         two_common_tones()
     if CHILD:
         short_children()
+    if SMALLER:
+        one_size_smaller()
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
