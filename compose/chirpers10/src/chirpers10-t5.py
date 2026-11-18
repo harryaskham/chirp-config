@@ -234,10 +234,10 @@ KITFALL = os.environ.get("C10T5_KITFALL", "1") if STEEP == "60:2,66:3,68:6" else
 # v23 (section w3, 0:57-1:26): THE FILL THAT NEVER TOPS OUT. At 0:57 a lead guitar comes down the scale over the
 # stair, two octaves in six bars: the one honest line in the song (v4), there to show the stair up. The descent has
 # the kit's own illusion, the fill that never lands (v5): the toms go down the scale for as long as they like and are
-# never lower, one fill at each octave the riff falls. The stair had none of the kit's: for 48 seconds the drums keep
+# never lower, one fill at each octave the riff falls. The stair had none of the kit's: for 53 seconds the drums keep
 # a plain beat under it. Now the same toms answer the lead at ITS octaves. Into 0:57.6, where the lead enters on its
 # top F, and into 1:04.8, where it has really come down one octave, the drummer goes UP the toms, a step of the scale
-# to the sixteenth (eight strokes, then twelve), three drums an octave apart under the bell, each fill arriving on
+# to the sixteenth (eight strokes, then twelve), two or three drums an octave apart under the bell, each arriving on
 # the F the lead is on: a fill that climbs for as long as it likes and is never higher. So each time the honest line
 # has fallen an octave the kit claims to have risen one, and at the lead's third octave (1:12) the guitars' run takes
 # over, as before. The snare and the china rest under each fill (the hands are on the toms); the kick keeps the line.
