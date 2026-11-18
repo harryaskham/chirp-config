@@ -29,7 +29,7 @@ def name(n):
 
 
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
-            rim=True, rim_gain=-18):
+            rim=True, rim_gain=-18, turned=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -38,6 +38,13 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     drum_memory = drum_memory and afterimage
     edges = edges and drum_memory
     rim = rim and edges
+    turned = turned and rim
+    # v10: the sheet turned over. Read from its other end the cell strikes on
+    # 0, 2, 4, 8 and the four notes rise, F A-flat C E-flat: the record's own
+    # hook, which this tune was written as the falling answer to.
+    BACK_HEADS = tuple(sorted((CELL - k) % CELL for k in HEADS))
+    BACK_TUNE = TUNE[::-1]
+    assert BACK_HEADS == (0, 2, 4, 8) and [F + n for n in BACK_TUNE] == [F, F + 3, F + 7, F + 10]
     parts = defaultdict(list)
     def put(tr, at, dur, p, v, mute=False):
         event = dict(at=round(at / SUB, 6), len=round(dur / SUB, 6),
@@ -62,13 +69,14 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
         n = span // CELL
         assert n == 12
 
-        def say(first, size):
+        def say(first, size, back=False):
             # Keep the contour AND its irregular spacing. Four times as broad
             # it is a line of ringing chords, not twelve more turns of the riff.
-            for j, k in enumerate(HEADS):
+            heads, tune = (BACK_HEADS, BACK_TUNE) if back else (HEADS, TUNE)
+            for j, k in enumerate(heads):
                 t = start + (first*CELL + size*k)
-                gap = size * ((HEADS + (CELL,))[j+1] - k)
-                p = F + TUNE[j]
+                gap = size * ((heads + (CELL,))[j+1] - k)
+                p = F + tune[j]
                 dur = min(9.5, gap * .72)
                 guitars(t, p, dur, .97 if j in (0,3) else .90, fifth=True)
                 put('bass', t, gap-.37, p, .93)
@@ -90,7 +98,9 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                         drums('k', t, v)
 
         say(0,4); answer(4,4)       # one long statement; four short negatives
-        say(8,2); say(10,1)        # then in two cells, then in one
+        # then in two cells, then in one: and since v10 that last quick one
+        # is the other side of the sheet, rising, so the slow close answers it.
+        say(8,2); say(10,1,back=turned)
         answer(11,1,stop=True)
 
     def old_fourth_beat(start):
@@ -268,9 +278,15 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                 # on the way back. The two guitars frame opposite ends of each gap.
                 lead_in = edges and section=='the handover' and 0<i<span//CELL-1
                 follow = edges and section=='lit through' and i>0 and not on_ab
-                for j, k in enumerate(HEADS):
-                    t, p = start + i*CELL + k, F + TUNE[j]
-                    end = HEADS[j+1] if j+1 < len(HEADS) else CELL
+                # v10: in the side-to-side trade the right player's turns are the
+                # back of the sheet. Front and back make one palindrome of two
+                # cells, in pitch and in spacing; the holes, the box and the foot
+                # mirror with it. The last pair of cells stays as written.
+                back = turned and section == 'turn the sheet' and i % 2 == 1 and i < span//CELL - 2
+                heads, tune = (BACK_HEADS, BACK_TUNE) if back else (HEADS, TUNE)
+                for j, k in enumerate(heads):
+                    t, p = start + i*CELL + k, F + tune[j]
+                    end = heads[j+1] if j+1 < len(heads) else CELL
                     hand = section == 'the handover' and j < 1 + i // 3
                     overt = section == 'the shape' or (section == 'the handover' and not hand)
                     shadow = section == 'where it was' or hand
@@ -371,7 +387,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
         for side,pan in zip(sides,(-.58,.58)):
             tracks.append(track('box-'+side,'cajon kit.cb.pitch=F2 kit.cs.gain=4dB kit.cg.gain=1dB fx.0.mix=0.06',wood_gain,pan))
     assert not parts
-    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
+    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
             'ceiling':'-1dB', 'true_peak':True, 'loudness':-10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
@@ -393,11 +409,12 @@ if __name__ == '__main__':
     previous.add_argument('--v6', action='store_true', help='restore the original backbeat in the negative and its returns')
     previous.add_argument('--v7', action='store_true', help='restore the doubled chugs on both sides of the break')
     previous.add_argument('--v8', action='store_true', help='restore the plucked clean dyads in the quiet middle')
+    previous.add_argument('--v9', action='store_true', help='restore the falling tune on every turn of the trade and before the close')
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     parser.add_argument('--rim-gain', type=float, default=-18, help='held glass track gain in dB')
     args = parser.parse_args()
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
-                  not args.v8, args.rim_gain)
+                  not args.v8, args.rim_gain, not args.v9)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
