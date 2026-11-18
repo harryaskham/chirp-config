@@ -795,6 +795,34 @@ SIX = os.environ.get("C10T6_SIX", "ct-twin fx.1.model=mark fx.2.mic=0.55 fx.2.co
 # and on one seed that was enough for the scorer to cut the opening at 0:14 and not 0:08).
 # "" = v19.
 UNWIND = os.environ.get("C10T6_UNWIND", "1;2;3;-10.006") if SIX and LOCK and TELL else ""
+# v21 (chirper-one; section w1, 0:00-0:27; the change is 0:17.4-0:24.3): THE WOBBLE BEFORE THE DOUBLING. At 0:14 the
+# rule has settled on ONE half bar, and the two guitars played it together twelve times running, the only stretch
+# of the song with no detail of its own. But the dial is moving all through it, from 2.8 to 2.98, and at 3 the one
+# splits in two. That split is not sudden. Near it, anything that disturbs the fixed point swings to the other side
+# of it on the next turn, and back, and dies away more slowly the closer the dial gets: the doubling is a wobble
+# before it is a riff. The notes cannot show it (the rule is already sitting on its point), so the hands do. Four
+# times the two guitars play the half bar together, as before. Then the ACCENT, the one fretted chord, goes from
+# side to side: left, right, left, right, the other guitar leaving that chord out and keeping the chugs. Then the
+# WHOLE half bar does: left, right, left, right, one guitar at a time. Then the keys take the accent for two bars,
+# as they did (v9), and at 0:27.8 the rule doubles: what the hands were doing, the notes now do. The bass, both
+# kits and the keys are as they were; 20 guitar notes are left out and none is added or moved.
+# half bars into the one at which the accent starts to change sides ; at which the whole half bar does ; the song's
+# loudness target (those seven seconds are quieter, so with v20's target every other bar came out 0.027 dB louder).
+# "" = v20.
+FLIP = os.environ.get("C10T6_FLIP", "4;8;-10.033") if UNWIND and TINES else ""
+
+
+def wobble_before_the_doubling():
+    a, b = AT["one"], AT["two"]
+    accent, whole = (a + int(v) for v in FLIP.split(";")[:2])
+    assert a < accent <= whole < b
+    for c in range(accent, b):
+        resting = G[1 - (c - accent) % 2]                    # the left guitar has the first one
+        mine = lambda n: 2 * c - 1e-6 <= n["at"] < 2 * c + 2 - 1e-6
+        if c >= whole:
+            T[resting] = [n for n in T[resting] if not mine(n)]
+        else:
+            T[resting] = [n for n in T[resting] if not (mine(n) and "expr" not in n)]     # the chugs carry expr.pm
 
 
 def crash_and_regrowth():
@@ -878,6 +906,8 @@ def last_string():
 
 def song():
     compose()
+    if FLIP:
+        wobble_before_the_doubling()
     if CREST:
         crest_lines()
     if SIX:
@@ -983,7 +1013,7 @@ def song():
                   "and back down: the riff settles, splits in two, four, eight, stops repeating, locks by itself on five half "
                   "bars and then on three, fills the whole range, and dies out. Triplets at 138, on E, with a drum machine; "
                   "the lead has no notes, only the rule (the engine's own logistic generator). v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(FLIP.split(";")[2]) if FLIP else float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"cc-machine": machine,
                     **({"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}}} if KIT else {})},
         "buses": {
