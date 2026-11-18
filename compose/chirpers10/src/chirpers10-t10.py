@@ -93,6 +93,30 @@ KEPT = os.environ.get('C10T10_KEPT', '-27;0.55' if all((
 # 1 = the wall chord on each raised ground. Empty restores v13; it is on only
 # while KEPT is.
 LADDER = os.environ.get('C10T10_LADDER', '0,2,3;1' if KEPT else '')
+# v15 (palette): THE QUIET ROOM HAS ITS OWN BASS AND ITS OWN FOOT. The song is played by two bands: the loud one, and a
+# small quiet one that is heard before it at 0:00 and inside it at 1:30: a baritone sax, a clean guitar, a piano, a
+# brush on the snare (0:26). The quiet band had no bass of its own: in both of its rooms the eight-string band's bass
+# guitar played for it, and at 0:04 and 0:08 the metal kit's kick. Now the quiet band has an UPRIGHT BASS, plucked
+# (the library's `upright-bass`; no other song on the record has one): the two low E flats under the sax, the four
+# pedals of the pocket (A flat, G flat, E flat, E flat) and the three notes that pay the pocket's debts back (G flat,
+# F, C, with the toms). And its foot is the brush kit's feathered bass drum, on the brush's own track. So the first
+# stroke of the bass guitar and of the metal kick drum is the loud band's entrance at 0:12.9 (its hat, snare and one
+# muted guitar still steal in at 0:08.6, as they did), and after the pocket the bass guitar comes back on the
+# downbeat of 1:47.1. No note is added, moved or removed. In v14 the metal kick at 0:08.6 was the introduction's
+# loudest instant, 5 dB over full scale before the limiter, which turned everything down 6 dB to pass it.
+# patch (with overrides) ; track gain dB ; semitones against the bass guitar's written notes ; the feathered kick's
+# gain over the brush track (dB ; empty leaves the metal kick in the introduction). Empty restores v14; it is on only
+# while LADDER is.
+# Benched raw, seed 0. The library patch as it is, at 0 dB: 2 to 10 dB over the bass guitar's notes (K), and its
+# pedal 24 dB down before the end of its ten sixteenths (the bass guitar's is held). So: the string's decay doubled
+# (1.7 s to 3.4 s: 10 to 12 dB down at the end), the note's whole written length (gate 1), and a track gain at which
+# the pocket reads as loud as it did (at -4 it was 0.15 LU over v14 finished, at -5 0.27 under).
+ROOM = os.environ.get('C10T10_ROOM', 'upright-bass play.gate=1 play.humanize.time=0ms play.humanize.vel=0 '
+                      'synth.layers.0.decay.value=3.4s;-4.5;0;0' if LADDER and BRUSH else '')
+# A plucked pedal dies away where the bass guitar's was held, so a few of the pocket's quietest moments fall under
+# the loudness meter's gate and the file read 0.024 dB louder: every other bar came out that much quieter. This target
+# gives those bars the gain they had in v14.
+ROOM_LUFS = -9.976
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -527,6 +551,27 @@ def build():
             for pos in range(0,pair,d):
                 note('bass',base+pos,min(d,pair-pos)*hold,bass_pitch(pos,d,HOME),.92)
 
+    if ROOM:
+        _,_,shift,foot = ROOM.split(';')
+        where = dict(sections)
+        quiet = lambda n: n['at']*SUB < where['in hand'] or where['two clocks'] <= n['at']*SUB < where['called in']
+        midi = lambda name: NOTES.index(name[:-1])+12*(int(name[-1])+1)
+        # Level-matched note by note to the bass guitar's own notes (K-weighted, each alone, raw): a plucked string
+        # speaks hardest when it is short and when it is high. In dB: the two E flats under the sax; the pedals
+        # A flat, G flat, E flat, E flat; the three notes of the fill (the last, on C, stays under its floor tom).
+        trims = (-5,-5, -2.5,-1,0,0, -1.5,-4.5,-10)
+        moved = sorted((n for n in voices['bass'] if quiet(n)), key=lambda n: n['at'])
+        assert len(moved) == len(trims)
+        for n,trim in zip(moved,trims):
+            voices['room'].append({**n,'pitch':nm(midi(n['pitch'])+int(shift)),**({'gain':f'{trim:g}dB'} if trim else {})})
+        voices['bass'] = [n for n in voices['bass'] if not quiet(n)]
+        assert len(voices['room']) == 2+4+3
+        if foot:
+            early = [n for n in voices['kick'] if n['at']*SUB < where['in hand']]
+            assert len(early) == 2
+            voices['kick'] = [n for n in voices['kick'] if n not in early]
+            voices['sweep'].extend({**n,'gain':f'{float(foot):g}dB'} for n in early)
+
     def track(tr,patch,db,pan=0,**more):
         ns=sorted(voices.pop(tr),key=lambda e:e['at']); assert ns
         assert all(0<=n['at']<t/SUB and n['at']+n['len']<=t/SUB+.00001 for n in ns)
@@ -544,6 +589,8 @@ def build():
         tracks.append(track('sweep','brush-kit kit.sw.patch.synth.amp.a=28ms kit.sw.patch.synth.amp.r=32ms '
                             'play.humanize.time=0ms play.humanize.vel=0 fx.3.mix=0',
                             float(BRUSH),-.18,out='drums'))
+    if ROOM:
+        tracks.append(track('room',ROOM.split(';')[0],float(ROOM.split(';')[1]),.08))
     if BREATH:
         tracks.append(track('breath','bari-sax synth.amp.r=65ms fx.0.mix=0.075',float(BREATH),-.16,
                             auto={'tongue':{'points':air_points,'curve':0}},
@@ -578,7 +625,7 @@ def build():
           'surface':'sines','k':1.7,'cx':.13,'cy':-.18,'rx':{'value':.16,'mod':[{'src':'expr.owing','amount':.46}]},
           'ry':{'value':.12,'mod':[{'src':'expr.owing','amount':.34}]}}}]},'fx':['hp cutoff=185']}
     return {'about':'Still Owing, Common Time track 10: a low call borrows time from a higher answer and pays it back within each two-bar phrase.',
-        'tempo':BPM,'seed':1,'event_stable':True,'length':f'{t//SUB}b','tail':'3s','loudness':-10,'ceiling':'-1dB','true_peak':True,
+        'tempo':BPM,'seed':1,'event_stable':True,'length':f'{t//SUB}b','tail':'3s','loudness':ROOM_LUFS if ROOM else -10,'ceiling':'-1dB','true_peak':True,
         **({'songs':fold_sources} if fold_sources else {}),
         'patches':{'owing-key':key_patch,**fold_patches,**({'owing-skin':pressure_skin()} if PRESS else {}),
                    **({'owing-kept':kept_key()} if KEPT else {})},
