@@ -743,6 +743,46 @@ def held_string(doc):
                      "gain": {"value": "0dB", "mod": [{"src": "auto.stringcut", "amount": 1}]}}]})
 
 
+# v17: the summit's final F has an afterimage. All four strings attack as
+# before; the two amps end on separate partials of F1. Empty restores v16.
+AFTERIMAGE = os.environ.get("C10T5_AFTERIMAGE", "1" if HOLD else "")  # HOLD='' alone still gives v15
+
+
+def last_chord(doc):
+    """One pick, several releases. By the end there is no low string to supply the root."""
+    at = END * 4
+    parts = {t['name']: t for t in doc['tracks']}
+    for side, sign in (('gl', -1), ('gr', 1)):
+        t = parts[side]
+        final = next(n for n in t['notes'] if n['at'] == at)
+        strings = final['pitch'].split(',')
+        assert strings == [nm(F1+i) for i in (0, 7, 12, 19)]
+        # Damp the bottom strings, then leave F2 on the left amp and C3 on the
+        # right. No amplifier gets both surviving pitches to make a sub tone.
+        lengths = [2, 4, final['len'] if sign < 0 else 4, final['len'] if sign > 0 else 4]
+        t['notes'].remove(final)
+        t['notes'].extend(dict(final, pitch=p, len=length) for p,length in zip(strings,lengths))
+        # Bring the two amps inward so each ear gets both pitches. Make up
+        # the lost strings' level before damping: test a missing root, not
+        # just a chord fading away. Ride the faders *after* the saturated amps.
+        t['pan'] = {'value':t['pan'], 'mod':[{'src':'auto.inward','amount':-sign*.7}]}
+        t['gain'] = {'value':t['gain'], 'mod':[{'src':'auto.release','amount':1}]}
+        t.setdefault('auto', {}).update({
+            'inward': {'curve':0,'points':[['0b',0],[f'{at}b',0],[f'{at+4}b',1]]},
+            'release': {'curve':0,'points':[['0b',0],[f'{at+2}b',0],[f'{at+4}b',1.2],
+                                           [f'{at+8:g}b',1.2],[f'{at+9:g}b',-8]]}})
+    for tr, length in (('bass',3), ('stair',4)):
+        next(n for n in parts[tr]['notes'] if n['at']==at)['len'] = length
+    # The saturated amps still put energy around 44 Hz even with only the
+    # upper strings left. Take that band out as the bass player's hand lifts;
+    # this EQ is flat during the stair, turn and all earlier guitar parts.
+    guitars = doc['buses']['gtrs']
+    guitars.setdefault('auto', {})['root_out'] = {'curve':0,'points':[
+        ['0b',0],[f'{at+2}b',0],[f'{at+4}b',-18]]}
+    guitars['fx'].append({'type':'eq','bands':[{'kind':'peak','cutoff':440*2**((F1-69)/12),
+                           'q':1.5,'gain':{'value':'0dB','mod':[{'src':'auto.root_out','amount':1}]}}]})
+
+
 def song():
     compose()
     key_lane = [["0b", 0]]
@@ -869,6 +909,8 @@ def song():
     }
     if HOLD:
         held_string(doc)
+    if AFTERIMAGE:
+        last_chord(doc)
     return doc
 
 
