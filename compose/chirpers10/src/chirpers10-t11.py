@@ -19,6 +19,10 @@ PITCH = 'C Db D Eb E F Gb G Ab A Bb B'.split()
 OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers10-t11.yaml'
 ORGAN = os.getenv('C10T11_REED', '-9dB')
 PUMP = os.getenv('C10T11_PUMP', '-13dB')
+# v2: the pitched drum answers the anticipated notes on the next broad footfall.
+# Track gain; semitones above the riff. Empty = published v1.
+KETTLE = os.getenv('C10T11_KETTLE', '-7dB;0')
+BROAD = CELL // 4
 # Offset, duration, semitones, open power chord / single ringing note / palm mute.
 # The two short strokes before the Db and the delayed F are the tell in both walks.
 RIFF = [(0,3.55,0,'p'), (4,0.65,0,'m'), (5,0.65,0,'m'), (7,2.7,3,'n'),
@@ -71,9 +75,13 @@ def make():
         else:
             # F4 under Db5/C5: the upper bench makes the bellows motion less buried.
             put('bellows',start,CELL-.15,chord(HOME+31,HOME+36+(2 if i%4 in (2,3) else 3)),.78)
-    def main_riff(start,i,lift=False,wide=False):
+    def main_riff(start,i,lift=False,wide=False,lend=False):
         for t,d,s,kind in (LIFT if lift else RIFF):
             m=HOME+answer(i,s); v=.87 if kind=='m' else .96
+            if lend and kind!='m':
+                if kind=='n':
+                    continue  # C is now the drum's alone, at the following cell head.
+                d=min(d,BROAD-t%BROAD-.25)  # release the chord just before the footfall
             strings(start+t,d,m,kind,v,wide)
             if kind!='m' or t in (4,15,16):
                 put('bass',start+t,d,m,.91,kind=='m')
@@ -121,7 +129,14 @@ def make():
                 if section=='swing':
                     slow = (i<4 or 8<=i<10 or (12<=i<16 and i%2==0))
                 lifted=section=='shoulder' or (section=='swing' and not slow)
-                main_riff(a,i,lift=lifted,wide=section in ('shoulder','swing'))
+                reply = bool(KETTLE) and section=='shoulder' and i>=count//3
+                main_riff(a,i,lift=lifted,wide=section in ('shoulder','swing'),lend=reply and i>=2*count//3)
+                if reply:
+                    for t,_,s,k in LIFT:
+                        if k=='m': continue
+                        landing=(t//BROAD+1)*BROAD
+                        put('kettle',a+landing,2.1 if k=='p' else 3.7,
+                            HOME+answer(i,s)+int(KETTLE.split(';')[1]), .93 if k=='p' else .98)
                 walk(a,6 if slow else 4,'x' if section in ('shoulder','swing') else 'h')
                 if section=='lean' or (section=='broad' and i<count-4): reed(a,i)
                 if section in ('quick','shoulder','swing') and i==0: drum('c',a,.88)
@@ -153,7 +168,9 @@ def make():
     if ORGAN:
         pump=[{'type':'pump','every':'3/8','attack':'12ms','hold':'28ms','release':'395ms','depth':PUMP,'curve':0.65}] if PUMP else []
         tracks.append(tr('bellows','harmonium',ORGAN,.12,fx=pump))
-    doc={'about':'On Its Hinge — chirpers, Common Time, track eleven. A twelve-eighth riff in B flat; the drummer swaps six quick steps for four broad ones, on an unchanged riff. The reed organ breathes the broad walk before the kit takes it.',
+    if KETTLE:
+        tracks.append(tr('kettle','timpani fx.0.mix=0.07 synth.amp.r=240ms',KETTLE.split(';')[0],-.15))
+    doc={'about':'On Its Hinge — chirpers, Common Time, track eleven. A twelve-eighth riff in B flat; the drummer swaps six quick steps for four broad ones, on an unchanged riff. The reed organ breathes the broad walk before the kit takes it.' + (' The kettledrum answers the heavy riff on the next broad steps, then takes its last C.' if KETTLE else ''),
          'tempo':BPM,'seed':1,'length':f'{start//SUB}b','tail':'4s','ceiling':'-1dB','loudness':-10,'event_stable':True,
          'buses':{'drums':{'fx':['reverb kind=room decay=0.62s mix=0.13 predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'20ms','release':'135ms'},'clip drive=0dB ceiling=-13dB',{'type':'eq','bands':['peak cutoff=400 q=0.8 gain=-5dB','highshelf cutoff=9000 gain=-2dB']}]},
                   'gtrs':{'fx':[{'type':'eq','bands':['peak cutoff=350 q=1 gain=-2dB','peak cutoff=720 q=0.9 gain=2dB']},'reverb kind=room decay=0.35s mix=0.06 predelay=6ms']},
