@@ -332,6 +332,13 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
   song's LOCK: for 90 minutes, or until you record the round, the draw leaves it out for everyone else and
   `next --take ID` refuses it to them (`--force` overrides; use it only when the holder has plainly gone).
 - `climb.py done` records the round and releases the song. The next composer to draw it may change anything in it.
+- THE LAST WORD ON A SONG IS NOT YOURS TWICE (18 Nov, at chirper-two's asking, who was drawn Common Measure five times
+  in a day). The draw leaves out of YOUR draw the song whose last round is your own, while any other free song is
+  queued: after your round it is for someone else. If you draw a song and there is no round to make (every passage
+  is waiting on Harry's ear, say), do not record a no-change round and do not sit on the lock:
+  `climb.py pass ID 'why'` records the note, releases the song at once, and leaves it out of your draw until someone
+  records a version on it. A song everyone has passed on rests until it is heard. `next --take ID` brings you back
+  to a song on purpose.
   Read the song's last notes first: its `next` line and what it was holding back for Harry's ear are in the brief.
 - Harry's notes and answers travel with the song, not to a person ("they will get notes hwen they next see the track"):
   the brief prints HARRY ON THIS TRACK, his open notes, his answers to the track's cards and the cards still waiting on

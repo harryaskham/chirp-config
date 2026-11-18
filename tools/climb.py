@@ -43,6 +43,9 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
   climb.py note ID TEXT [--next TEXT] [--fresh]     steer: a note in its history (not a round; `next` shows it);
                                                     --fresh: `next` shows nothing older (a fresh start;
                                                     the full history stays in `climb.py log`)
+  climb.py pass ID TEXT [--next TEXT]               drew it and found no round to make (say why): the note is recorded,
+                                                    the lock is released at once, and you are not drawn it again until
+                                                    someone records a version on it (`next --take ID` to come back)
   climb.py pause|resume|drop ID [--note TEXT]       take a climb out of (or back into) the queue
   climb.py tui                                      the queue as a TUI: toggle climbable/playlist, focus, notes
   climb.py focus ALBUM | --ids ID,ID… | --off       climb only that album (or those climbs): pause every other
@@ -446,6 +449,32 @@ def commit_or_die(paths, msg, args):
 
 # ── sampling ───────────────────────────────────────────────────────────────────────────────
 
+def released(c, s):
+    """Has the agent of start S let this climb go since: a round recorded on it, or a pass (`climb.py pass`)?"""
+    who = agent_names(s.get("who"))
+    for r in [c.get("last") or {}] + list(c.get("passed_by") or []):
+        if not (agent_names(r.get("who")) & who):
+            continue
+        try:
+            if calendar.timegm(time.strptime(r.get("at", ""), "%Y-%m-%dT%H:%M:%SZ")) >= s.get("t", 0) - 1:
+                return True
+        except ValueError:
+            pass
+    return False
+
+
+def said_last(c, me):
+    """In a composition, is the song's last word yours: you recorded its last round, or passed on it since? Then it
+    is for someone else (Harry, 18 Nov: "a new round should release for anyuone to improve"; "tha tis hos we maintain
+    variaety"): `weights` leaves it out of YOUR draw while any other free song is queued. chirper-two, 18 Nov: drawn
+    Common Measure five times in a day, three rounds running, then again twelve minutes after his own v19."""
+    if c.get("mode") != "compose":
+        return False
+    mine = agent_names(me)
+    return bool(agent_names((c.get("last") or {}).get("who")) & mine
+                or any(agent_names(p.get("who")) & mine for p in c.get("passed_by") or []))
+
+
 def weights(reg, me):
     """Draw weights. A climb another agent started under ROUND_HOLD ago and has not recorded a round on since is HELD:
     it is skipped while anything unheld is queued (two agents on one climb duplicate the round - chirper-two drew
@@ -455,7 +484,7 @@ def weights(reg, me):
     st = starts()
     mine = [s for s in st if s.get("who") == me]
     last = mine[-1] if mine else None
-    out, held = {}, set()
+    out, held, said = {}, set(), set()
     for c in reg["climbs"]:
         if c["status"] not in QUEUED or c.get("oob"):
             continue
@@ -464,13 +493,10 @@ def weights(reg, me):
             continue  # someone is setting it up
         w = float(c.get("priority", 1)) / (1 + c["rounds"])
         others = [s for s in st if s["id"] == c["id"] and s.get("who") != me and t - s.get("t", 0) < ROUND_HOLD]
-        lr = c.get("last") or {}
-        try:
-            lr_t = calendar.timegm(time.strptime(lr.get("at", ""), "%Y-%m-%dT%H:%M:%SZ"))
-        except ValueError:
-            lr_t = 0
-        if any(not (lr.get("who") == s.get("who") and lr_t >= s.get("t", 0) - 1) for s in others):
+        if any(not released(c, s) for s in others):
             held.add(c["id"])
+        if said_last(c, me):
+            said.add(c["id"])
         if others:
             w *= 0.5
         if last and last["id"] == c["id"]:
@@ -479,7 +505,8 @@ def weights(reg, me):
             w *= 0.6
         out[c["id"]] = w
     free = {k: v for k, v in out.items() if k not in held}
-    return free if free else out
+    fresh = {k: v for k, v in free.items() if k not in said}     # not the song whose last word is yours (said_last)
+    return fresh or free or out
 
 
 # ── commands ──────────────────────────────────────────────────────────────────────────────
@@ -1160,17 +1187,12 @@ def holders(c, me, st=None, t=None):
     "a new round should release for anyuone to improve"; "tha tis hos we maintain variaety". A climb's `owner` field,
     where an older one has it, is history: who composed it first. It gates nothing.)"""
     t = time.time() if t is None else t
-    lr = c.get("last") or {}
-    try:
-        lr_t = calendar.timegm(time.strptime(lr.get("at", ""), "%Y-%m-%dT%H:%M:%SZ"))
-    except ValueError:
-        lr_t = 0
     mine = agent_names(me)
     out = set()
     for s in starts() if st is None else st:
         if s.get("id") != c["id"] or t - s.get("t", 0) >= ROUND_HOLD or agent_names(s.get("who")) & mine:
             continue
-        if not (agent_names(lr.get("who")) & agent_names(s.get("who")) and lr_t >= s.get("t", 0) - 1):
+        if not released(c, s):                 # no round recorded and no pass (`climb.py pass`) since that start
             out.add(s.get("who"))
     return sorted(out)
 
@@ -1254,8 +1276,8 @@ def collided(cid, me, st=None, hist=None, now=None):
     def finished(s):
         who = agent_names(s.get("who"))
         for h in hist:
-            if h.get("round") is None or not (agent_names(h.get("who")) & who):
-                continue
+            if h.get("round") is None or (h.get("steer") and not h.get("passed")) or not (agent_names(h.get("who")) & who):
+                continue                       # a steering note finishes nothing; a round or a pass does
             try:
                 r = calendar.timegm(time.strptime(h.get("at", ""), "%Y-%m-%dT%H:%M:%SZ"))
             except ValueError:
@@ -1359,6 +1381,8 @@ def cmd_done(a):
             c["enabled"] = not c.get("oob")  # out-of-band climbs never join the playlist
             # no owner is recorded (Harry, 18 Nov: "climbing should not have owenrs"): the round releases the song
         c["last"] = {"at": h["at"], "who": me}
+        if kept:
+            c.pop("passed_by", None)           # the song has changed: whoever passed on it may be drawn it again
         if kept and opt(a, "--render") and (c.get("meta") or {}).get("album") and c.get("mode") != "compose":
             # the album plays gaplessly: compare this version's two joins with the kept version's (a warning, not a
             # gate — chirper-zero found Hedphelym v2 and Ageispolis v2 each lost one)
@@ -1451,6 +1475,30 @@ def cmd_note(a):
             f.write(json.dumps({k: v for k, v in h.items() if v is not None}, ensure_ascii=False) + "\n")
     print(f"{cid}: noted")
     commit_or_die(["climbs.json", f"climbs/{cid}.jsonl"], f"climbs: {cid} note: {text[:60]}", a)
+
+
+def cmd_pass(a):
+    """You drew it and there is no round to make (every passage is waiting on Harry's ear, say): say why, and let it
+    go. chirper-two, 18 Nov: "a pass cannot release the lock": `note` did not and `done` records a round, so his
+    start held Common Measure from four other composers for ninety minutes."""
+    pos = positional(a, ("--next", "--as"))
+    if len(pos) < 2:
+        die("pass ID TEXT [--next TEXT]   (why there is no round; it releases the song and leaves it out of your draw)")
+    cid, text = pos[0], " ".join(pos[1:])
+    me = whoami(a)
+    with registry() as reg:
+        c = find(reg, cid)
+        at = now_iso()
+        # `passed_by`, not `passes`: that key is the playlist's repeat count on every climb (playlist.py)
+        c["passed_by"] = ([p for p in c.get("passed_by") or [] if not (agent_names(p.get("who")) & agent_names(me))]
+                          + [{"who": me, "at": at}])
+        h = {"round": c["rounds"], "at": at, "who": me, "note": text, "next": opt(a, "--next"), "steer": True, "passed": True}
+        os.makedirs(HIST, exist_ok=True)
+        with open(os.path.join(HIST, f"{cid}.jsonl"), "a") as f:
+            f.write(json.dumps({k: v for k, v in h.items() if v is not None}, ensure_ascii=False) + "\n")
+    print(f"{cid}: passed. The song is released for anyone now; it is left out of your own draw until someone records a "
+          f"version on it (`next --take {cid}` if you change your mind).")
+    commit_or_die(["climbs.json", f"climbs/{cid}.jsonl"], f"climbs: {cid} pass: {text[:60]}", a)
 
 
 def cmd_set(a):
@@ -1586,7 +1634,7 @@ def main():
         return cmd_status(a[1:] if a else [])
     cmd, rest = a[0], a[1:]
     table = {"add": cmd_add, "request": cmd_add, "add-album": cmd_add_album, "refs": cmd_refs, "art": cmd_art, "next": cmd_next, "done": cmd_done, "log": cmd_log, "set": cmd_set,
-             "note": cmd_note,
+             "note": cmd_note, "pass": cmd_pass,
              "pause": lambda r: cmd_state(r, "paused"), "resume": lambda r: cmd_state(r, "active"),
              "drop": lambda r: cmd_state(r, "dropped"), "focus": cmd_focus, "tui": cmd_tui,
              "commit": cmd_commit, "publish": cmd_publish, "type": cmd_type}

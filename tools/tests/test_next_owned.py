@@ -124,6 +124,86 @@ class NextOwned(unittest.TestCase):
         self.assertNotIn("owned by", r.stderr)
 
 
+class Pass(unittest.TestCase):
+    """`climb.py pass`: drew it, no round to make. It releases the lock at once (chirper-two, 18 Nov: "a pass cannot
+    release the lock") and the song is left out of the passer's own draw; so is the song whose last round is yours."""
+
+    def setUp(self):
+        self.root = tempfile.mkdtemp(prefix="pass-test-")
+        self.addCleanup(shutil.rmtree, self.root, True)
+        self.starts = os.path.join(self.root, "starts.jsonl")
+        self.env = {**os.environ, "CLIMB_ROOT": self.root, "CLIMB_STARTS": self.starts}
+        climbs = [{"id": i, "status": "active", "rounds": 3, "mode": "compose", "song": f"songs/{i}.yaml", "passes": 1}
+                  for i in ("a", "b", "c")]                       # `passes` is the playlist's repeat count: never touched
+        climbs.append({"id": "repro", "status": "active", "rounds": 3, "song": "songs/repro.yaml",
+                       "last": {"at": "2026-11-18T10:00:00Z", "who": "chirper-two"}})
+        with open(os.path.join(self.root, "climbs.json"), "w") as f:
+            json.dump({"climbs": climbs}, f)
+
+    def run_(self, *args, who="chirper-two"):
+        return subprocess.run([sys.executable, os.path.join(TOOLS, "climb.py"), *args, "--as", who], capture_output=True,
+                              text=True, env=self.env)
+
+    def reg(self):
+        with open(os.path.join(self.root, "climbs.json")) as f:
+            return {c["id"]: c for c in json.load(f)["climbs"]}
+
+    def test_a_pass_releases_the_lock_and_leaves_the_song_out_of_the_passers_draw(self):
+        self.assertEqual(self.run_("next", "--take", "a", "--json").returncode, 0)
+        held = self.run_("next", "--take", "a", "--json", who="chirper-one")
+        self.assertEqual(held.returncode, 3, held.stderr)                                  # chirper-two holds it
+        r = self.run_("pass", "a", "full until it is heard:", "four cards wait", "--no-git")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("released", r.stdout)
+        self.assertEqual([p["who"] for p in self.reg()["a"]["passed_by"]], ["chirper-two"])
+        self.assertEqual(self.reg()["a"]["passes"], 1)
+        with open(os.path.join(self.root, "climbs", "a.jsonl")) as f:
+            h = json.loads(f.readlines()[-1])
+        self.assertTrue(h["passed"] and h["steer"] and "four cards" in h["note"])
+        self.assertEqual(self.run_("next", "--take", "a", "--json", who="chirper-one").returncode, 0)   # free at once
+        for seed in range(12):                                                             # never drawn to its passer
+            got = json.loads(self.run_("next", "--peek", "--json", "--seed", str(seed)).stdout)["climb"]["id"]
+            self.assertNotEqual(got, "a")
+        self.assertEqual(self.run_("next", "--take", "a", "--json", "--force").returncode, 0)   # but he may come back
+        self.run_("pass", "a", "again", "--no-git")
+        self.assertEqual(len(self.reg()["a"]["passed_by"]), 1)                               # one pass a composer
+
+    def test_your_own_last_round_is_for_someone_else_and_a_kept_version_voids_the_passes(self):
+        reg = {"climbs": list(self.reg().values())}
+        by = {c["id"]: c for c in reg["climbs"]}
+        by["b"]["last"] = {"at": "2026-11-18T10:00:00Z", "who": "chirper-two"}
+        by["c"]["passed_by"] = [{"who": "chirp-climb2", "at": "2026-11-18T10:00:00Z"}]      # an alias of chirper-two
+        self.assertEqual(sorted(climb.weights(reg, "chirper-two")), ["a", "repro"])        # not b (his round), not c
+        self.assertEqual(sorted(climb.weights(reg, "chirper-one")), ["a", "b", "c", "repro"])
+        self.assertTrue(climb.said_last(by["b"], "chirper-two") and not climb.said_last(by["repro"], "chirper-two"))
+        by["a"]["last"] = {"at": "2026-11-18T10:00:00Z", "who": "chirper-two"}
+        by["repro"]["status"] = "paused"
+        self.assertEqual(sorted(climb.weights(reg, "chirper-two")), ["a", "b", "c"])       # nothing else: all, as before
+        with open(os.path.join(self.root, "climbs.json"), "w") as f:
+            json.dump(reg, f)
+        r = self.run_("done", "c", "--version", "v4", "--score", "90", "--keep", "--note", "n", "--no-git", who="chirper-one")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertNotIn("passed_by", self.reg()["c"])                                     # the song changed
+        self.assertEqual(self.reg()["c"]["passes"], 1)
+
+    def test_released_reads_rounds_and_passes_and_a_note_finishes_nothing(self):
+        t0 = 1_800_000_000
+        iso = lambda t: __import__("time").strftime("%Y-%m-%dT%H:%M:%SZ", __import__("time").gmtime(t))   # noqa: E731
+        s = {"id": "a", "who": "chirper-two", "t": t0}
+        self.assertFalse(climb.released({"id": "a"}, s))
+        self.assertTrue(climb.released({"id": "a", "last": {"who": "chirper-two", "at": iso(t0 + 60)}}, s))
+        self.assertFalse(climb.released({"id": "a", "last": {"who": "chirper-one", "at": iso(t0 + 60)}}, s))
+        self.assertTrue(climb.released({"id": "a", "passed_by": [{"who": "chirper-two", "at": iso(t0 + 60)}]}, s))
+        self.assertFalse(climb.released({"id": "a", "passed_by": [{"who": "chirper-two", "at": iso(t0 - 600)}]}, s))   # older
+        self.assertEqual(climb.holders({"id": "a", "passed_by": [{"who": "chirper-two", "at": iso(t0 + 60)}]}, "chirper-one",
+                                       st=[s], t=t0 + 120), [])
+        self.assertEqual(climb.holders({"id": "a"}, "chirper-one", st=[s], t=t0 + 120), ["chirper-two"])
+        st = [s, {"id": "a", "who": "chirper-alpha", "t": t0 + 460}]
+        note = [{"round": 3, "who": "chirper-two", "at": iso(t0 + 230), "note": "a steering note", "steer": True}]
+        self.assertEqual(len(climb.collided("a", "chirper-alpha", st=st, hist=note)), 1)   # a real note carries `round`
+        self.assertEqual(climb.collided("a", "chirper-alpha", st=st, hist=[{**note[0], "passed": True}]), [])
+
+
 class Handoff(unittest.TestCase):
     """done --with refuses when someone else was on the song WHILE you were; a round finished before you began is a
     handoff (chirper-alpha, 18 Nov: The Other Hand, chirper-two done at 04:56, alpha started at 05:00)."""
