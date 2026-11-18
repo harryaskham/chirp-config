@@ -997,12 +997,39 @@ def compose_brief(c):
             out.append(f"  RATING {r['at'][:16]} {r.get('who')} {r.get('score', '')}{'/10' if 'score' in r else 'note'}"
                        f" ({r.get('version') or '-'}){': ' + r['note'] if r.get('note') else ''}")
     out += heard_lines(album["id"], c)
+    out += judged_run_lines(history(c["id"]))
     st = (c.get("best") or {}).get("stale")
     if st:
         out.append(f"  BEST IS STALE: {c['best'].get('score')} ({c['best'].get('version')}) was measured before "
                    f"{st.get('who')} rated it {st.get('rating')}/10 at {str(st.get('since'))[:16]}. Ratings move compscore's "
                    f"total, so score {c['best'].get('version')} again like for like and pass `done … --best-now S`.")
     return out
+
+
+def judged_run_lines(hist, least=3, fall=1.0):
+    """With no owners each composer compares a round with the version before it, and a round may be kept on judgment
+    a little under that. When the last LEAST or more versions were each kept on judgment and the recorded score has
+    fallen FALL or more since the last version kept on its number, print the sum, which no single round shows
+    (18 Nov: In the Time Of v4 to v8, five rounds by four composers, 82.18 to 80.98). A measure for whoever draws the
+    song next; it refuses nothing (the album brief: a songwriting climb, not a metric climb)."""
+    kept = [h for h in hist if h.get("round") is not None and h.get("kept") and h.get("version")
+            and isinstance(h.get("score"), (int, float))]
+    run = []
+    for h in reversed(kept):
+        if not h.get("judged"):
+            break
+        run.append(h)
+    if len(run) < least or len(run) == len(kept):
+        return []
+    base, last = kept[len(kept) - len(run) - 1], run[0]
+    drop = float(base["score"]) - float(last["score"])
+    if drop < fall:
+        return []
+    who = sorted({str(h.get("who")) for h in run})
+    return [f"  KEPT ON JUDGMENT {len(run)} ROUNDS RUNNING ({', '.join(who)}): {last['version']} is recorded at {last['score']}, "
+            f"{drop:.2f} under {base['version']} ({base['score']}), the last version kept on its number. Each round was "
+            f"weighed against the one before it; this is their sum, as recorded. The scorer is not Harry's ear: it is "
+            f"something to weigh, and refuses nothing."]
 
 
 def heard_lines(album_id, c, limit=12, days=14):

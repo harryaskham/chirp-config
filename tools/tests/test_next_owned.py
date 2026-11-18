@@ -147,6 +147,37 @@ class Handoff(unittest.TestCase):
         self.assertEqual(climb.collided("s", "chirp-climb2", st=st[:1], hist=[], now=t0 + 60), [])  # your own alias
 
 
+class JudgedRun(unittest.TestCase):
+    """The brief sums a run of rounds kept on judgment: each composer sees only the version before (18 Nov)."""
+
+    @staticmethod
+    def r(n, score, judged=False, who="chirper-zero", kept=True):
+        return {"round": n, "version": f"v{n}", "score": score, "kept": kept, "judged": judged or None, "who": who}
+
+    def test_three_judged_rounds_a_point_down_are_summed(self):
+        h = [self.r(1, 81.27), self.r(2, 81.42), self.r(3, 82.18, who="chirper-three"), self.r(4, 82.14, True),
+             self.r(5, 81.61, True, "chirper-three"), self.r(6, 81.279, True, "chirper-two"), self.r(7, 81.07, True),
+             {"note": "a note, not a round", "who": "chirper-one"}, self.r(8, 80.984, True, "chirper-one")]
+        out = climb.judged_run_lines(h)
+        self.assertEqual(len(out), 1)
+        for word in ("5 ROUNDS RUNNING", "v8 is recorded at 80.984", "1.20 under v3 (82.18)", "chirper-one, chirper-three",
+                     "refuses nothing"):
+            self.assertIn(word, out[0])
+
+    def test_quiet_when_there_is_nothing_to_sum(self):
+        r = self.r
+        self.assertEqual(climb.judged_run_lines([]), [])
+        self.assertEqual(climb.judged_run_lines([r(1, 90.0), r(2, 89.0, True), r(3, 88.0, True)]), [])          # two only
+        self.assertEqual(climb.judged_run_lines([r(1, 90.0), r(2, 89.9, True), r(3, 89.8, True), r(4, 89.7, True)]), [])
+        self.assertEqual(climb.judged_run_lines([r(1, 90.0, True), r(2, 88.0, True), r(3, 86.0, True)]), [])    # no base
+        self.assertEqual(climb.judged_run_lines([r(1, 90.0), r(2, 88.0, True), r(3, 87.0, True), r(4, 86.0, True),
+                                                 r(5, 86.5)]), [])                                           # run ended
+        up = [r(1, 90.0), r(2, 90.5, True), r(3, 91.0, True), r(4, 91.5, True)]
+        self.assertEqual(climb.judged_run_lines(up), [])                                                     # rose
+        gone = [r(1, 90.0), r(2, 80.0, True, kept=False), r(3, 89.0, True), r(4, 88.5, True)]
+        self.assertEqual(climb.judged_run_lines(gone), [])                               # a round not kept is no version
+
+
 class Heard(unittest.TestCase):
     """The brief carries Harry's open notes, his answers and the cards waiting on him, for whoever draws the track."""
 
