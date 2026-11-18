@@ -207,6 +207,10 @@ AGREE = os.environ.get("C10T2_AGREE", "52;0.6;55;0.7") if THREE else ""
 # distances stay on F.
 # the root's semitones above F ; the two toms' velocity ; the kick's velocity off the beat. "" = v7.
 ONE = os.environ.get("C10T2_ONE", "7;0.8;0.8")
+# v29, a fill with its rests played by the band. The two guitar clocks leave
+# three shared holes a bar on C. The drummer carries a FOUR-stroke descent
+# across those holes without resetting at the bar line. Empty restores v28.
+HOLE_FILL = os.environ.get("C10T2_HOLE_FILL", "1")
 # On C, with the kick and the bass on thirteen sixteenths of a bar, the hold read 1.4 dB over the records at 60-120 Hz
 # (the bass's C2 is 65 Hz; on F its fundamental is under 60). The bass bus's fader comes down there, after its
 # compressor (a gain on the bass track is taken back by the compressor). bar:bar:dB, ... "" = no ride.
@@ -499,9 +503,17 @@ def groove_one(b0, b1, tomv, kv):
     for b in range(b0, b1):
         for p in union:
             drum("k", b * 16 + p, 0.92 if p % 4 == 0 else kv)
-        drum("t2", b * 16 + 4, tomv)
-        drum("ft", b * 16 + 7, tomv)
-        drum("s", b * 16 + 8, 0.95)
+        if HOLE_FILL:
+            # High tom, middle, floor, snare. The crack therefore lands on
+            # beat two, just BEFORE beat three, then ON three to close the fill.
+            strokes = (("t1", tomv), ("t2", tomv * .94), ("ft", tomv * 1.07), ("s", .95))
+            for i, p in enumerate(holes):
+                pc, v = strokes[((b - b0) * len(holes) + i) % len(strokes)]
+                drum(pc, b * 16 + p, v)
+        else:
+            drum("t2", b * 16 + 4, tomv)
+            drum("ft", b * 16 + 7, tomv)
+            drum("s", b * 16 + 8, 0.95)
         for p in range(0, 16, 4):
             drum("x", b * 16 + p, 0.6 if p == 0 else 0.5)
     drum("c", b0 * 16, 0.9)
