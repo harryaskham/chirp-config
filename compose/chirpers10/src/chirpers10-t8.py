@@ -63,6 +63,8 @@ HEAD = os.environ.get("C10T8_HEAD", "lead-monster;-12dB;-12dB;36")
 BREATH = os.environ.get("C10T8_BREATH", "shaper-reed;-13dB")
 # v5: the bass takes the measuring riff; the guitars answer with what's left.
 BASS_BREAK = os.environ.get("C10T8_BASS_BREAK", "1")
+# v6: the kit learns B's surviving tail in the measured coda. Empty = v5.
+STICKS = os.environ.get("C10T8_STICKS", "1")
 
 
 def nm(n):
@@ -196,6 +198,48 @@ def pop_tail(start, stop, riff):
                 note['pitch'] = nm(F1 + 12 + int(token))
 
 
+def measured_drums(start, stop):
+    """Four statements of B: keep time, play its tail, anticipate it, land it."""
+    tail = PAIRS[2][1]  # the twelve B still had after 32 minus 20
+    assert B[-len(tail):] == tail and tail[-len(G):] == G
+    notes = [i for i, token in enumerate(tail) if token.isdigit()]
+    shells = ("ft", "t2", "t1")
+    assert len(notes) == len(shells)
+    first_b = stop - 4 * len(B)
+    beat(start, first_b, cym="x", step=4, vel=.5)
+    # Quote the kit's first two bars: only the hat counts quarters. B is
+    # now in all the guitars instead of one, so the opening returns changed.
+    beat(first_b, first_b + len(B), cym="h", step=4, vel=.45, snare=())
+    T["kick"] = [n for n in T["kick"] if not first_b <= round(n["at"] * 4) < first_b + len(B)]
+    T["cym"] = [n for n in T["cym"] if not (n["pitch"] == "c" and round(n["at"] * 4) == first_b)]
+    for rep in (1, 2, 3):
+        base = first_b + rep * len(B)
+        tail_at = base + len(B) - len(tail)
+        lead = len(tail) - len(G) if rep == 2 else 0
+        phrase = tail_at - lead
+        # No continuous backbeat under the shell phrase. In the third B, a
+        # short closed hat in the head leaves air around the coming bass solo.
+        beat(base, phrase, cym="h" if rep == 2 else "x", step=4, vel=.5)
+        velocities = {1: (.78, .85, .92), 2: (.66, .74, .83), 3: (.87, .93, .99)}[rep]
+        for i, piece, v in zip(notes, shells, velocities):
+            drum(piece, phrase + i, v)
+        common = base + len(B) - len(G)
+        if rep == 2:
+            # After the drummer's early answer, leave the three popped notes
+            # to the bassist. Foot comes back for the shared one-beat cell.
+            if BASS_BREAK:
+                T["kick"] = [n for n in T["kick"] if not tail_at <= round(n["at"] * 4) < common]
+        elif rep == 1:
+            drum("s", common, .92)
+        else:
+            # Replace the stock eight-stroke fill with the actual o - c c.
+            drum("ft", common, .92)
+            drum("s", common, .92)
+            for i, token in enumerate(G):
+                if token == "c":
+                    drum("s", common + i, .70 if i == len(G) - 2 else .89)
+
+
 def compose():
     # the two given: B alone on the right, twice bare (a hat in quarters) and twice with the band
     for i in range(4):
@@ -315,8 +359,11 @@ def compose():
         if s > t:
             drum("c", s, 0.7)
         s += len(riff)
-    beat(t, s, cym="x", step=4, vel=0.5)
-    fill(s)
+    if STICKS:
+        measured_drums(t, s)
+    else:
+        beat(t, s, cym="x", step=4, vel=0.5)
+        fill(s)
     MARKS.append(("one chord", s))
     for tr in ALL:
         add(tr, s, 32, ",".join(nm(F1 + j) for j in (0, 7, 12, 19)), 0.95)

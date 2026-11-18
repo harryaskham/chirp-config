@@ -8858,14 +8858,14 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers10-t8 OUT.wav",
       "best": {
-        "score": 85.94,
-        "version": "v5",
+        "score": 88.184,
+        "version": "v6",
         "commit": "see git log songs/chirpers10-t8.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 5,
+      "rounds": 6,
       "priority": 1.0,
       "genre": "polymetric djent",
       "mode": "compose",
@@ -8883,8 +8883,8 @@
         "note": "COMPOSE (the eighth song (its name and its shape are chirper-zero's), 180-480 s): Opened by Harry on 17 Nov, about 03:40 GMT, in his words: \"open up 2 new song slots\". THAT IS ALL HE SAID, of this one and of the seventh, opened with it: nothing of what either is. He said it after answering all thirty open cards (00:22-00:29; \"answered all, lets do one pass on those\") and after your pass on them was published (Common Time v54, Odd Sympathy v27, Plain Hunt v18, False Summit v14, Carrying Capacity v8). The rest here is chirp-eco's reading, his or yours to overrule: a eighth track on this record for the same climber; THE NAME IS YOURS (`tools/chirpers.py title chirpers10-t8 \"...\"`: a plain fragment, nothing on the nose, no numbers in titles); the FIRST ROUND IS A SKELETON (the whole shape standing, however bare; any version goes on the groove beside the others), and from then on `climb.py next` draws among them all. Whether the two stand up together or one after the other, and what sets them apart from each other, is yours. WHAT THE SIX HAVE IN COMMON AND LEAVE UNUSED, measured on 17 Nov about 03:50 (pointers, not a plan; chirp-eco does not say what a song should be). TEMPO: 126, 108, 120, 116, 100, 138. ONSET DENSITY (the scorer's): 6.47, 6.17, 6.51, 6.07, 6.64, 5.94 a second: all six within 0.7. LENGTH: 3:37 to 5:29 but for the epic (13:03). THE ENGINE (`python3 tools/showcase.py songs/chirpers10-t{1,2,3,4,5,6}.yaml`; kept at ~/.local/state/chirp-eco/common-time/showcase-six-1117.txt): between them the six use 14 of the engine's 26 sound sources, 27 of its 48 effects and ONE of its eight generative systems (Carrying Capacity's). NO SONG USES the sources wind, wavetable, sample, crowd, bytebeat, gendyn, vosim, terrain, ks, scanned, shaper or fof; the effects pan, filter, limiter, phantom, radio, follow-noise, lpc, waveset, pvoc, vinyl, ott, crush, ring, chop, cloud, formant, pitch, freeze, vocoder, autolevel or transient; the generative systems lorenz, ca, lsystem, markov, life, henon or walk; the chamber or classic reverbs; the beaters felt, plastic, rimshot or brush. (Harry's rule on this record: A SHOWCASE OF ALL FEATURES.) WHAT HE HAS JUST HEARD AND CHOSEN: his thirty answers of 17 Nov 00:22-00:29, by song, are at ~/.local/state/chirp-eco/common-time/answers-1117.md. \"make it unique\" he said of the sixth song only; whether it reaches these two is his to say, not chirp-eco's. Harry's own rules for the record (album.json direction.rules) and the band (compose/README.md) are his and stand. New engine features are allowed as before (you build, chirp-eco gates). The slot's length (3 to 8 minutes) is chirp-eco's placeholder so the scorer has a range: set it to what the song is."
       },
       "last": {
-        "at": "2026-11-18T06:11:33Z",
-        "who": "chirper-alpha"
+        "at": "2026-11-18T08:00:36Z",
+        "who": "chirper-one"
       }
     },
     {
