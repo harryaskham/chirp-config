@@ -135,6 +135,26 @@ SIDES = os.environ.get("C10T7_SIDES", "1") if KETTLE else ""
 # "" = v14; it is on only while every older switch is, so each of those still gives what it gave.
 ARCO = os.environ.get("C10T7_ARCO", "contrabass synth.pitch.mod.0.amount=0 fx.0.mix=0.1;-12.5dB;12;300:0.9:-5") if all((
     SIDES, KETTLE, LIFT, SMALLER, PIVOT, CHILD, REVEAL, BIG_STROKES, BOWL, PEEL, STEEL, BRASS, CANON, QBASS, PAD, HARP)) else ""
+# v16 (palette): THE IRON SAYS FIVE AND THREE, on a bar cut the same way. In the heavy sections one size had no voice:
+# cells of 5 and 3 sixteenths (the second harp has them in the quiet sections; under the band they were only an accent).
+# For the first 89 sixteenths of the tutti in A flat (1:54.4-2:11.1, before the walls take the bowl's chords) a hammer
+# on iron strikes the head of every such cell: thirteen long, eight short. With it every size from the stroke to the
+# root sounds at once, each on its own voice: strokes, iron, the ringing string, the chord, a breath of brass, a crash,
+# the root. The kit goes on counting four against it, and the two meet only where a cell's head falls on a beat.
+# THE BAR (`em-iron`, a new song-local patch): its overtones are cut in extreme and mean ratio. Each partial is to the
+# next as the long cell is to the short (1 : 1.618 : 2.618 : 4.236 : 6.854 ...), so each partial's frequency is the SUM
+# of the two below it: the rule the riff is made by, in the sound. Two bars: a long cell is struck on the bar tuned to
+# the ground, a short cell on a bar a golden cut shorter (833 cents up, between a minor and a major sixth), and every
+# partial of the short bar is a partial of the long one: the short bar is the long bar without its lowest note, as a
+# short cell is a long cell without its first stroke. The fourth partial lies two octaves and a semitone over the
+# first, so a stroke on A flat already holds the A the ground rises to at 2:04.7.
+# track gain ; pan ; semitones over the guitars' low string ; the long bar's first partial (its level against the
+# second; 1 is a plain bar: kept lower because the tutti is already over the records at 250-500 Hz).
+# Benched at -9 dB: 5.8 dB under the band and 8 dB OVER it at 600-1200 Hz on each stroke, a soloist. At -15: 11.8 under,
+# a stroke on the long bar 2.4 dB over the band at 600-1200 Hz for its first 60 ms, on the short bar 1.7 under.
+# "" = v15; it is on only while ARCO is.
+IRON = os.environ.get("C10T7_IRON", "-15dB;-0.3;36;0.5") if ARCO else ""
+PHI = (1 + 5 ** 0.5) / 2
 
 
 def nm(n):
@@ -646,6 +666,17 @@ def the_bow_holds_the_root():
         add("arco", p, ln - (1 if j == len(held) - 1 else 0.25), F1 + int(ARCO.split(";")[2]) + KEY[i] + (kind == "S"), 0.8)
 
 
+def the_iron_says_five_and_three():
+    """One stroke to each cell of 5 or 3 in the first 89 sixteenths of the tutti in A flat. No stroke of the band moves."""
+    i = 3
+    s0, end = SECS[i][0], SECS[i][0] + SIZE[7][0]
+    said = [c for c in LEV[1] if s0 <= c[0] < end]
+    assert sum(c[2] for c in said) == SIZE[7][0] and [c[1] for c in said].count("L") == 13 and len(said) == 21
+    for p, kind, ln in said:
+        ground = KEY[i] + (at_size(6, p)[1] == "S")
+        add("iron", p, ln - 0.5, F1 + ground + int(IRON.split(";")[2]), 0.92 if kind == "L" else 0.84, cut=kind == "S")
+
+
 def letters_on_two_sides():
     """Long cells left, short cells right, for the song's first cell of 55. Nothing is added."""
     s0, end = SECS[0][0], SECS[0][0] + SIZE[6][0]
@@ -674,6 +705,8 @@ def song():
         letters_on_two_sides()
     if ARCO:
         the_bow_holds_the_root()
+    if IRON:
+        the_iron_says_five_and_three()
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
@@ -745,6 +778,8 @@ def song():
         # Straight to the mix, not through the bass guitar's compressor: a held note there would hold the chugs down.
         tracks.append({"name": "arco", "patch": ARCO.split(";")[0], "gain": ARCO.split(";")[1], "pan": 0.05,
                        "fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*ARCO.split(";")[3].split(":"))]}]})
+    if IRON:
+        tracks.append({"name": "iron", "patch": "em-iron", "gain": IRON.split(";")[0], "pan": float(IRON.split(";")[1])})
     for t in tracks:
         if "gen" not in t:
             t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
@@ -788,6 +823,22 @@ def song():
                           "filters": ["hp cutoff=45", "lp cutoff=2400"],
                           "amp": {"a": "0.3ms", "d": "5s", "s": 0, "r": "350ms", "curve": 2}},
                 "play": {"vel_sens": 0.6, "gate": 1, "poly": 32}}} if KETTLE else {}),
+            **({"em-iron": {
+                "about": ("Extreme and Mean's iron (chirper-three, 18 Nov): a struck bar whose overtones are cut in extreme and mean "
+                          "ratio. Each partial is to the next as 1.618 to 1 (1 : 1.618 : 2.618 : 4.236 : 6.854 : 11.09 : 17.94), so each "
+                          "partial's frequency is the sum of the two below it. `expr.cut` 1 is the bar a golden cut shorter (833 cents "
+                          "up): all of its partials are partials of the long bar. A hammer's click, a short ring, no sustain."),
+                "synth": {"pitch": {"value": 0, "mod": [{"src": "expr.cut", "amount": round(12 * __import__("math").log2(PHI), 4)}]},
+                          "layers": [{"name": "bar", "type": "additive", "damp": 0.45,
+                                      "partials": [[round(PHI ** k, 6), g] for k, g in enumerate(
+                                          (float(IRON.split(";")[3]), 1, 0.9, 0.75, 0.5, 0.3, 0.15))]},
+                                     {"name": "hammer", "type": "noise", "color": "white",
+                                      "level": {"value": "-60dB", "mod": [{"src": "env.tap", "amount": 44}, {"src": "vel", "amount": 6}]}}],
+                          "env": {"tap": {"a": "0.2ms", "d": "5ms", "s": 0}},
+                          "filters": ["hp cutoff=300", "lp cutoff=9500"],
+                          "amp": {"a": "0.3ms", "d": "650ms", "s": 0, "r": "50ms", "curve": 2}},
+                "play": {"vel_sens": 0.5, "gate": 1, "poly": 8, "humanize": {"time": "0ms", "vel": 0}},
+                "fx": ["reverb kind=room decay=0.5s mix=0.1 predelay=6ms"]}} if IRON else {}),
             "ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
             "em-harp": {"about": ("Extreme and Mean's wire harp (chirper-zero, 17 Nov): the library's ks-harp (Karplus-Strong, stretch 3) with a "
                                   "release long enough for a sixteenth-long pluck to ring on."),
