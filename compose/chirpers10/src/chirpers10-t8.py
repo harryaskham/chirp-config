@@ -84,6 +84,8 @@ AFTER = os.environ.get('C10T8_AFTER', '1' if TWICE and BREATH and BASS_BREAK els
 # v12: one electronic key voices 20:12 as frequencies, 5:3. Swap only the
 # inner left guitarist's pitched attacks in four middle answers. Empty = v11.
 SIDEBANDS = os.environ.get('C10T8_SIDEBANDS', '-13.5dB' if AFTER else '')
+# v13: B's frets go up one string while A's E-bow comes down its harmonics.
+CONVERGE = os.environ.get('C10T8_CONVERGE', '1') if SIDEBANDS and SPAN else ''  # empty = v12
 
 
 def nm(n):
@@ -581,8 +583,48 @@ def difference_key(doc):
                           'pan':-.48,'out':'gtrs','notes':keys})
 
 
+def meet_the_bow():
+    """The picked string climbs by B's own frets to the E-bow's last open F."""
+    left, right = PAIRS[0]
+    a, b = len(left), len(right)
+    end = INTRO + lcm(a, b) * REPS[0]
+    stop = end - (a - b)  # beyond here only A's remainder is heard
+    frets = (int(k) if k.isdigit() else 0 for k in right if k.isdigit() or k == 'o')
+    up = list(dict.fromkeys(frets)) + [12]
+    assert up == [0, 1, 3, 6, 7, 12]
+    first = end - len(up) * b
+    figure = right[:b // 4]
+    strokes = [i for i, k in enumerate(figure) if k not in 'r-']
+    assert strokes == [0, 2, 3, 5, 6]
+    # First tie the back of each pair into the preceding stroke, then the front.
+    # Five picks, four, three, two, one, all on the original grid.
+    takes = [strokes, strokes[:-1], [0, 2, 5], [0, 5], [0]]
+    for j, semi in enumerate(up):
+        at = first + j * b
+        until = min(stop, at + 2 * len(figure))
+        T['dr'] = [n for n in T['dr'] if not at <= round(n['at'] * 4) < until]
+        if j == len(up) - 1:
+            # Both strings reach F2. Release the pick a beat before the bow;
+            # A's last C–B can lead into the exposed twenty on the left.
+            add('dr', at, until - at - len(G) - .25, F1 + semi, .96)
+            T['gr'] = [n for n in T['gr'] if not until - len(G) <= round(n['at'] * 4) < until]
+            continue
+        # One player takes the opening figure, the other replies under the ringing note.
+        T['gr'] = [n for n in T['gr'] if not at < round(n['at'] * 4) < at + len(figure)]
+        kept = takes[j]
+        for i, nxt in zip(kept, kept[1:] + [len(figure)]):
+            dur = max(p for p in strokes if i <= p < nxt) + 1 - i
+            if len(kept) == 1:
+                dur = 2 * len(figure) - .5  # carry C through the reply without another pick
+            add('dr', at + i, dur, F1 + semi, .96 if i == 0 else .88, **({'pm': 1} if i and dur == 1 else {}))
+        if len(kept) > 1:
+            add('dr', at + len(figure), len(figure) - .5, F1 + semi, .96)
+
+
 def song():
     total = compose()
+    if CONVERGE:
+        meet_the_bow()
     assert total % 16 == 0 and all(m[1] % 16 == 0 for m in MARKS)
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
