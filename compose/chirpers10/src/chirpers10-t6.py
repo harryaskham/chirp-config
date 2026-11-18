@@ -722,6 +722,51 @@ def hand_on_the_dial():
     assert len(turns) == 12 and [u for _, u, _ in turns] == [True] * 9 + [False] * 3 and sum(w for _, _, w in turns) == 5
 
 
+# v18 (whole song): at the top the drummer is the population. The top of
+# the dial was marked by cymbals and holes, not by size (v3, v4, held since).
+# It is the one place the rule crashes to nothing and grows back, and both
+# kits kept the backbeat straight through it. Now the drummer stops with
+# the band: in the empty half bars only the machine counts (its snare, its
+# closed hat, the boom). When the riff grows back he comes back with it on
+# the toms, floor to high, on the riff's own strokes, up to the next
+# scream: the hand that rises before each turn of the dial (v17) is the
+# regrowth here. No stroke is added to the rule. The value is a trim in dB
+# on these toms: untrimmed, the half bar before each scream came up so far
+# that the scream's own step shrank by up to a decibel. Empty restores v17.
+REGROW = os.environ.get("C10T6_REGROW", "-2") if TOMS else ""
+
+
+def crash_and_regrowth():
+    v0, v1 = (float(v) for v in TOMS.split(";")[1:3])
+    a, z = AT["full"], AT["down-four"]
+    struck = lambda c: sorted(n["at"] for n in T["dkick"] if c * 2 <= n["at"] < c * 2 + 2)
+    hands = {n["at"] for tr in ("dsnare", "dcym") for n in T[tr]}
+    holes, growths, c = [], [], a
+    while c < z:
+        if struck(c):
+            c += 1
+            continue
+        h0 = c
+        while c < z and not struck(c):
+            c += 1
+        holes.append((h0, c))
+        g0 = c
+        while c < z and len(struck(c)) < 6:          # up to the next scream, which is all six places
+            c += 1
+        growths.append((g0, c))
+    assert [h1 - h0 for h0, h1 in holes] == [3, 2, 2, 3], holes
+    T["dsnare"] = [n for n in T["dsnare"] if not any(h0 * 2 <= n["at"] < h1 * 2 for h0, h1 in holes)]
+    for g0, g1 in growths:
+        strokes = sorted(n["at"] for n in T["dkick"] if g0 * 2 <= n["at"] < g1 * 2 and n["at"] not in hands)
+        if len(strokes) < 2:                         # the last time it is back in one step: nothing to climb
+            continue
+        assert not [n for n in T["dtoms"] if g0 * 2 <= n["at"] < g1 * 2]
+        for i, at in enumerate(strokes):
+            T["dtoms"].append({"at": at, "len": 0.25, "pitch": ("ft", "t2", "t1")[i * 3 // len(strokes)],
+                               "vel": round(v0 + (v1 - v0) * i / (len(strokes) - 1), 3),
+                               **({"gain": f"{float(REGROW):g}dB"} if float(REGROW) else {})})
+
+
 def last_string():
     """Use alternate sides of the fixed point, then the last occupied cells."""
     out = AT["out"]
@@ -788,6 +833,8 @@ def song():
         T["dcym"] += [{"at": at, "len": 2.0, "pitch": "x", "vel": float(MOVED.split(";")[0])} for at in moved]
         if TOMS:
             hand_on_the_dial()
+        if REGROW:
+            crash_and_regrowth()
     kt = KIT.split(";") if KIT else None
     kit = "cc-machine"
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
