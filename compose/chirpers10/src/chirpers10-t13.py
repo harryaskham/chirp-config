@@ -28,11 +28,12 @@ def name(n):
     return PITCH[n % 12] + str(n // 12 - 1)
 
 
-def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True):
+def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
     held_back = held_back and wood
+    afterimage = afterimage and held_back
     parts = defaultdict(list)
     def put(tr, at, dur, p, v, mute=False):
         event = dict(at=round(at / SUB, 6), len=round(dur / SUB, 6),
@@ -211,10 +212,12 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                 last_exchange(start, span)
                 start += span
                 continue
+            half = span // CELL // 2
             for i in range(span // CELL):
                 # Halfway through 'lit through' the same four scale tones sit over Ab; the
                 # subsequent return of low F should therefore feel like a physical drop.
-                pedal = F + (3 if section == 'lit through' and i >= span // CELL // 2 else 0)
+                on_ab = section == 'lit through' and i >= half
+                pedal = F + (3 if on_ab else 0)
                 for j, k in enumerate(HEADS):
                     t, p = start + i*CELL + k, F + TUNE[j]
                     end = HEADS[j+1] if j+1 < len(HEADS) else CELL
@@ -248,6 +251,24 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                         if section == 'both sides' and i % 2 == 0:
                             drums('k', t, .98)
                         shadow = section != 'both sides' or i % 2 != 0
+                    if afterimage and on_ab:
+                        # On Ab the holes coalesce into four strokes of lengths
+                        # 2, 3, 1, 1. Keep the mallet's four actual places empty
+                        # on both strings: the right strings first echo its pitch,
+                        # then anticipate the NEXT pitch in the same gap.
+                        turn = i-half
+                        lead = turn >= half//2
+                        borrowed = F + 12 + TUNE[(j + int(lead)) % len(HEADS)]
+                        length = end-k-1
+                        guitars(t+1, borrowed, length-.23, .95, ('right',))
+                        # Give the first two answers the old clipped pulse. Then
+                        # the low guitar and foot strike each group only once.
+                        for n in range(length if turn<2 else 1):
+                            dur = .61 if turn<2 else length-.30
+                            guitars(t+1+n, pedal, dur, .94 if not n else .76,
+                                    ('left',), mute=turn<2 or length==1)
+                            drums('k',t+1+n,.93 if not n else .73)
+                        continue
                     if shadow:
                         opposite = (sides[1-(i%2)],) if section == 'turn the sheet' else sides
                         for n in range(k+1, end):
@@ -284,7 +305,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
         for side,pan in zip(sides,(-.58,.58)):
             tracks.append(track('box-'+side,'cajon kit.cb.pitch=F2 kit.cs.gain=4dB kit.cg.gain=1dB fx.0.mix=0.06',wood_gain,pan))
     assert not parts
-    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
+    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
             'ceiling':'-1dB', 'true_peak':True, 'loudness':-10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
@@ -302,9 +323,10 @@ if __name__ == '__main__':
     previous.add_argument('--v2', action='store_true', help='restore the sustained glass and doubled bass in the clean middle')
     previous.add_argument('--v3', action='store_true', help='restore both guitar parts in the side-to-side trade')
     previous.add_argument('--v4', action='store_true', help='keep the two guitars in unison through the first heavy section')
+    previous.add_argument('--v5', action='store_true', help='restore the seven muted strokes over the A-flat pedal')
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     args = parser.parse_args()
-    doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4)
+    doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
