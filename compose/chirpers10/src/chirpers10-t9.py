@@ -53,6 +53,9 @@ CROSS = os.environ.get("C10T9_CROSS", "0.5dB;-8dB")
 # two-to-three boundary. The guitars change speed but the bassist repeats the
 # same six attacks at the old rate. Empty restores v4.
 BASS_TURN = os.environ.get("C10T9_BASS_TURN", "1")
+# v6: give each position inside the beat a pitch for the last two cycles
+# of fives and first two of sixes. Empty restores v5. Keep the older v4 switch.
+HEAD_TUNE = os.environ.get('C10T9_HEAD_TUNE', '1' if BASS_TURN else '')
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
 ROOTS = [(0, 0)]
@@ -174,6 +177,29 @@ def last_to_turn(seam):
                 add("bass", at + i / 2, (end - i) / 2 - .09, midi, .97 if i == 0 else .9)
 
 
+def tune_the_heads(seam):
+    """The same scale under two clocks. The cell of seven advances two slots
+    at five to the beat but only one at six. No tap or quarter moves in time.
+    Let the highest tap in each cycle cross the footfall without the low riff.
+    """
+    degrees = (0, 1, 3, 6, 7, 12)  # F, Gb, Ab, B, C, upper F
+    holes = set()
+    for event in T['pawl']:
+        at = event['at']
+        if not seam-2*N <= at < seam+2*N:
+            continue
+        speed = 5 if at < seam else 6
+        # Integer subdivisions; never take a remainder on a rounded timestamp.
+        tick = round((at-seam)*speed)
+        slot = tick % speed
+        event['pitch'] = nm(F1 + 36 + degrees[slot])
+        if slot == speed-1:
+            event['len'] = round(2.5/speed*.98, 5)
+            holes.update(round(seam+(tick+j)/speed, 5) for j in range(3))
+    for tr in ('gl','gr','bass','kick'):
+        T[tr] = [e for e in T[tr] if e['at'] not in holes]
+
+
 def crossbeat(b):
     """Last five bars of the threes. All positions derived from one 12-stroke bar."""
     for bar, voices in enumerate(('bbb','bbb','bss','sbs','sss')):
@@ -224,6 +250,8 @@ def compose():
         b += RUNG
     if BASS_TURN:
         last_to_turn(2 * RUNG)
+    if PAWL and HEAD_TUNE:
+        tune_the_heads(5 * RUNG)
     # seven to the beat: the riff is one beat long
     MARKS.append(("seven: it locks", b))
     fill(b)
