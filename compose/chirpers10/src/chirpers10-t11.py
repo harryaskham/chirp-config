@@ -63,6 +63,18 @@ HALF = os.getenv('C10T11_HALF', '12' if BREATH else '')
 # unchanged riff. The quick cells and 'home' stay on B flat. Semitones from
 # the low B flat, one for each broad phrase; empty restores v10.
 GROUND = os.getenv('C10T11_GROUND', '-4,-7,-5' if HALF else '')
+# v12: before the quiet bridge the riff shows its bones. The song opens on the
+# riff's open notes alone (harmonics) and comes home on them as ringing
+# chords; in the last cell before the bridge the band plays them once in
+# between, as stops: no clipped strokes, and guitars, bass and kick strike
+# only the four open notes while the broad walk goes on. The opening's
+# harmonic plays them too, for the first time since 0:10.
+# How many cells thin out: 1 = the last cell only; 2 = the cell before it
+# loses its second half's clipped strokes first; 3 = one more cell does that
+# and the last two are bare. Scored on seeds 0/11/5 against v11's
+# 97.6/94.4/99.3 without the harmonic: 97.0/93.8/99.2, 95.8/93.5/98.9 and
+# 90.6/92.3/97.8. Empty restores v11.
+BONES = os.getenv('C10T11_BONES', '1' if GROUND else '')
 BROAD = CELL // 4
 # Offset, duration, semitones, open power chord / single ringing note / palm mute.
 # The two short strokes before the Db and the delayed F are the tell in both walks.
@@ -133,7 +145,7 @@ def make():
     def swing_slow(i):
         return i<4 or 8<=i<10 or (12<=i<16 and i%2==0)
 
-    def main_riff(start,i,lift=False,wide=False,lend=False,carry_out=False,count_in=False,bass_floor=None,plant=None):
+    def main_riff(start,i,lift=False,wide=False,lend=False,carry_out=False,count_in=False,bass_floor=None,plant=None,bare=0):
         pattern = LIFT if lift else RIFF
         meet = CELL//2             # both walks hit 12: three quarters or two dotted quarters
         last = max(t for t,_,_,kind in pattern if kind=='n')
@@ -142,6 +154,8 @@ def make():
                 drum('k',start+foot,.98 if not foot else .85)
         for pos,d,s,kind in pattern:
             t=pos
+            if kind=='m' and (bare>1 or (bare and t>=meet)):
+                continue  # the clipped stroke, with its bass note and its kick, is left out
             if count_in and t<meet:
                 if lift and kind=='p' and t+d>meet:
                     d -= meet-t; t=meet   # untie the anticipation: keep the original release
@@ -172,6 +186,10 @@ def make():
                 put('bass',start+t,d,low,.91,kind=='m')
             if pos in ((0,3,8,11,18) if lift else (0,4,7,12,17)):
                 drum('k',start+t,.98 if kind!='m' or t==0 else .82)
+            elif bare and kind=='n':
+                # Its kick used to fall on the clipped stroke before it. With
+                # that gone the foot goes to the late answer itself, as at home.
+                drum('k',start+t,.98)
     start=0
     for section,count in FORM:
         marks[section]=start
@@ -274,6 +292,10 @@ def make():
                 count_in = split and i>count//2 and slow!=swing_slow(i-1)
                 carry_out = split and count//2<=i<count-1 and slow!=swing_slow(i+1)
                 floor = HOME-4 if PIVOT and section=='quick' and count//3<=i<count//2 else None
+                thin = 0
+                if BONES and section=='broad':
+                    back = count-1-i            # cells before the bridge
+                    thin = 2 if back==0 or (back==1 and int(BONES)>=3) else int(back<int(BONES))
                 plant = None
                 if GROUND and split and slow and i>=count//2:
                     # 8-9, 12 and 14: the broad phrases among the last five
@@ -284,7 +306,13 @@ def make():
                     if i in heads: plant = ground
                     else: floor = ground
                 main_riff(a,i,lift=lifted,wide=section in ('shoulder','swing'),lend=reply and i>=2*count//3,
-                          carry_out=carry_out,count_in=count_in,bass_floor=floor,plant=plant)
+                          carry_out=carry_out,count_in=count_in,bass_floor=floor,plant=plant,
+                          bare=thin)
+                if thin==2 and i==count-1:
+                    # Same octave and touch as the opening. It rings into the
+                    # stops, and the bridge's clean F takes over from it.
+                    for t,d,s,k in RIFF:
+                        if k!='m': put('latch',a+t,d*1.1,HOME+24+answer(i,s),.77)
                 if reply:
                     for t,_,s,k in LIFT:
                         if k=='m': continue
