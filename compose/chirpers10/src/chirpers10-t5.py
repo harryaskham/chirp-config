@@ -102,6 +102,13 @@ RUNS = os.environ.get("C10T5_RUNS", "2;0;-3")
 # there because a drum has no amp to flatten the copies' fades). The plain form of the turn, heard alone.
 # the tick's gain ; its accent's and its other strokes' velocity ; bars to double its speed. "" = v1 (hat quarters).
 TICK = os.environ.get("C10T5_TICK", "22dB;0.9;0.6;4")
+# v15: the pole's hat first appears going the OTHER way in the descent.
+# Give the falling riff two bars to establish the beat; leave its last two to
+# the toms. At the pole the same three taps accelerate. 3 dB below the pole
+# hat: at its full setting the descent gained 5.2 dB at 8–16 kHz (mono).
+# Empty = v14, including the china pattern.
+BRAKE = os.environ.get("C10T5_BRAKE", "19dB") if TICK else ""
+BRAKE_IN, BRAKE_OUT = FALL + 2, POLE - 2
 # THE FIRST READ AGAINST THE RECORDS, BY PART (v1, `stembal --id`), and what it moved:
 #   the stair was 3.7 dB over the eleven records at 250-500 Hz, and the Shepard tone held 57% of that band: it comes
 #     down 2.5 dB under the band (and is as it was where it is alone); and 2.3 dB short at 60-120 Hz: the bass 1.5 dB up.
@@ -769,6 +776,22 @@ def song():
         *([{"name": "tick", "patch": kit, "gain": TICK.split(";")[0], "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air, "at": f"{POLE * 4}b",
             "risset": {"cycle": f"{TICK.split(';')[3]}bar", "layers": 3, "length": f"{BOTH - POLE - (int(RUNS.split(';')[0]) if RUNS else 0)}bar"}}] if TICK else []),
     ]
+    if BRAKE:
+        forward = next(t for t in tracks if t['name'] == 'tick')
+        tracks.append({**forward, 'name': 'brake', 'gain': BRAKE, 'at': f'{BRAKE_IN * 4}b',
+                       'risset': {**forward['risset'], 'down': True, 'length': f'{BRAKE_OUT - BRAKE_IN}bar'}})
+        T['brake'] = [dict(n) for n in T['tick']]
+        # One steady china stroke a bar to sight against the slowing hat. It
+        # returns in half notes, then eighths, as the guitars' fall steepens.
+        # Silence rather than delete its other taps to preserve the kit's seeds.
+        mid = (FALL + POLE) // 2
+        for n in T['cym']:
+            if n['pitch'] != 'x':
+                continue
+            place = round(n['at'] * 4)
+            bar, slot = divmod(place, 16)
+            if BRAKE_IN <= bar < POLE - 6 and slot % (16 if bar < mid else 8):
+                n['gain'] = '-60dB'
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
     return {

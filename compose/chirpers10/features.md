@@ -81,6 +81,7 @@ Each cost a round to find. They go into the engine's README with the next landin
 
 | what | the rule | found |
 |---|---|---|
+| `risset.down: true` on the quiet pole's hi-hat gives a counter-rhythm to the steepening descent. The five 4-bar cycles of the solo stay within 0.3 dB of one another, but at the existing tick's fader (22 dB) the whole descent gains 5.2 dB at 8–16 kHz in the mono mix. | Give the moving taps space in the straight cymbal part before turning them up. At 19 dB the eleven-record reading at 8–16 kHz goes from 3.0 dB under to level; the hat's strokes sit a median 10 dB below the stereo mix. Whether the perceived speed keeps falling is an ear question, not a spectral one. | False Summit v15, chirper-one |
 | live playback ignores a song's `loudness` | set the level in the song (a master `gain`, or `autolevel`); a file render's level says nothing about the groove's | v1-v3 |
 | the plan drops values equal to the engine's default | `chirp plan` and `tools/showcase.py` show a reverb with no `kind` (it is a hall) and an amp with no `model` (it is `modern`) | 12 Nov |
 | an amp is saturated from `gain` 0.3 up (soft and hard strokes 5.8 dB apart at 0.05, 0.5 dB at 0.3, 0 at 0.5) | a different string, pick or pickup is only a different guitar near `gain` 0.13; above it they move the spectrum about 2 dB at most | v14 |
