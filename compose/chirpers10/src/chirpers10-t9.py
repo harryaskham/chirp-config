@@ -115,6 +115,27 @@ KHANDA = os.environ.get('C10T9_KHANDA', '-9dB;-9.96;1' if WIND else '')
 # the last to turn; here it turns first.) The bass's eq follows each of those
 # nine notes, as it follows the song's grounds. Empty restores v14.
 AUGMENT = os.environ.get('C10T9_AUGMENT', '1' if KHANDA else '')
+# v16 palette: SIX STRINGS. Every speed on the way up has a guest of its own
+# but six, which shared the tap with five. Six strokes to the beat is one
+# pass across a six-string guitar, a string to a stroke. A nylon-string guitar
+# (the library's nylon; no other song on the record has one) is tuned to the
+# six notes the tap gives the six places in the beat (v6): F, G flat, A flat,
+# B, C, F. The tap names one string per cell, the next one up each time
+# (seven strokes move the head on by one place). A string is silent until it
+# is named and is plucked in its place in every beat after that: through the
+# first seven beats the pass grows from one string to six, through the second
+# seven it is whole, and the tap goes round again an octave above, pointing at
+# each string in turn. Where the riff leaves the tap's high F alone across the
+# footfall (v6), so does the guitar. It stops where the cadence starts.
+# Track gain ; semitones from the riff's low F up to the lowest string ; the
+# loudness target (every bar without it keeps v15's mastering gain).
+# Empty restores v15.
+# (First bench at -8 dB: 8.5 to 9.8 dB under everything else, K-weighted, with
+# the tap at 14.1 under, and +2.0 dB on the passage at 250-500 Hz. So -11.
+# An octave up, in unison with the tap, it took the tap's place instead.
+# With the target left at -9.96 the rest of the song came out 0.008 dB lower.)
+SIX = os.environ.get('C10T9_SIX', '-11dB;24;-9.95' if all((AUGMENT, PAWL, HEAD_TUNE, CROSS, RING)) else '')
+PLACES = (0, 1, 3, 6, 7, 12)  # F, Gb, Ab, B, C, upper F: one for each place in a beat of six
 WALK = []
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
@@ -290,7 +311,7 @@ def tune_the_heads(seam):
     at five to the beat but only one at six. No tap or quarter moves in time.
     Let the highest tap in each cycle cross the footfall without the low riff.
     """
-    degrees = (0, 1, 3, 6, 7, 12)  # F, Gb, Ab, B, C, upper F
+    degrees = PLACES
     holes = set()
     for event in T['pawl']:
         at = event['at']
@@ -306,6 +327,32 @@ def tune_the_heads(seam):
             holes.update(round(seam+(tick+j)/speed, 5) for j in range(3))
     for tr in ('gl','gr','bass','kick'):
         T[tr] = [e for e in T[tr] if e['at'] not in holes]
+
+
+def six_strings(seam):
+    """Two turns of seven beats at six to the beat: 84 strokes, a string to a stroke."""
+    speed = N - 1
+    up = int(SIX.split(';')[1])
+    taps = {e['at']: e for e in T['pawl'] if seam <= e['at'] < seam + 2*N}
+    alone = set()
+    for tick in range(0, 2*N*speed, N):
+        tap = taps[round(seam + tick/speed, 5)]
+        # The guitar's strings are the tap's notes, an octave under it.
+        assert tap['pitch'] == nm(F1 + 36 + PLACES[tick % speed]) and tick % (N*speed) // N == tick % speed
+        if tick % speed == speed - 1:
+            alone.update(range(tick, tick + 3))
+    for tick in range(2*N*speed):
+        turn, since = divmod(tick, N*speed)
+        string = tick % speed
+        if (turn == 0 and since < N*string) or tick in alone:
+            continue
+        at = seam + tick/speed
+        named = since % N == 0                 # the stroke the tap falls on
+        # Each string rings through the next one and is damped; before the
+        # strokes left to the tap, and before the cadence, the hand stops it.
+        rings = 1 if tick + 1 in alone else 2
+        add('six', at, min(rings/speed, seam + 2*N - .03 - at), F1 + up + PLACES[string],
+            .95 if named else .82 if string == 0 else .7)
 
 
 def before_the_lock(seam):
@@ -512,6 +559,8 @@ def compose():
         tune_the_heads(5 * RUNG)
     if KHANDA:
         count_the_five(4 * RUNG, 2 * N)
+    if SIX:
+        six_strings(5 * RUNG)
     if CADENCE and PAWL:
         before_the_lock(b)
     # seven to the beat: the riff is one beat long
@@ -589,6 +638,8 @@ def song():
         tracks.append({"name": "wind", "patch": "organ-pipe fx.0.decay=1.6s fx.0.mix=0.22", "gain": "0dB", "pan": 0.1})
     if KHANDA:
         tracks.append({"name": "tabla", "patch": "it-tabla", "gain": KHANDA.split(";")[0], "pan": 0.2})
+    if SIX:
+        tracks.append({"name": "six", "patch": "it-six", "gain": SIX.split(";")[0], "pan": 0.3})
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
 
@@ -623,7 +674,7 @@ def song():
                   "and locks. The bass and kick walk in quarters underneath. Then once more at one to the beat, every stroke a chord. "
                   "v1 is the skeleton.") + (" At four to the beat the two hook notes pass between a baritone guitar and a clavinet; they exchange roles halfway." if HANDS else "")
                  + (" One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then the original two guitars play the last cell before everyone lands on F." if RING else ""),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(KHANDA.split(";")[1]) if KHANDA else PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(SIX.split(";")[2]) if SIX else float(KHANDA.split(";")[1]) if KHANDA else PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}, **({'hp': {'gain': CROSS.split(';')[1]}} if CROSS else {}),
                             **({'oh': {'patch':'haake-hat amp.d=1.05s amp.r=180ms amp.curve=2.2',
                                        'gain':CLUTCH,'pan':-.45,'choke':'hat'}} if CLUTCH else {})}},
@@ -634,7 +685,9 @@ def song():
                         "amp": {"a": "3ms", "d": "105ms", "s": 0.22, "r": "42ms"}}}} if PAWL else {}),
                     # the library's tabla, its treble drum on F and its bass drum on the riff's low F
                     **({"it-tabla": {"extends": "tabla-kit", "kit": {**{pc: {"pitch": "F4"} for pc in ("na", "tin", "te")},
-                                                                    "re": {"pitch": "Eb4"}, "ge": {"pitch": "F2"}, "gem": {"pitch": "F2"}}}} if KHANDA else {})},
+                                                                    "re": {"pitch": "Eb4"}, "ge": {"pitch": "F2"}, "gem": {"pitch": "F2"}}}} if KHANDA else {}),
+                    # the library's nylon-string guitar, its six open strings the six places in the beat
+                    **({"it-six": {"extends": "nylon", "play": {"tuning": " ".join(nm(F1 + int(SIX.split(";")[1]) + j) for j in PLACES)}}} if SIX else {})},
         "buses": {
             "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
                              {"type": "glue", "threshold": "-24dB", "ratio": 2.5, "attack": "20ms", "release": "140ms", "knee": 6.0},
