@@ -47,12 +47,36 @@ PALINDROME_TRIM_KIT = '-5dB'
 # (6.3 on F) and the steel stood 0.6 dB further forward against the band (K). With this trim on each of those notes
 # the band reads what it read on F.
 STEEL_ON_C = '-1.5dB'
+# v13 (chirper-three, palette): THE THUMBPRINT IS LEFT BY THUMBS. In 'thumbprint' (1:49.6-2:17.0) a wordless voice
+# calls and a clean guitar answers with the same four notes read from the other end; nothing else plays until two
+# toms join half way. The answer moves from the clean guitar (ct-clean, a staple of six songs here) to a THUMB
+# PIANO: the library's kalimba, on no other song of the record. Same forty notes at the same times and
+# velocities, two octaves up, where a kalimba lives (A-flat 4 to E-flat 5): the answer was an octave under the
+# voice and is now an octave over it, and where the voice climbs for two strips (2:06-2:11.5) they share an octave.
+# And it is played as the instrument is: two thumbs, the tines laid out alternately left and right as they rise
+# (A-flat left, A right, B left, E-flat right), a track to a thumb. So the tune read forwards is LEFT, LEFT, RIGHT,
+# RIGHT and read backwards RIGHT, RIGHT, LEFT, LEFT: turning the strip over swaps the hands. The song's other thumb
+# is the bass player's (from 1:06, on its card); this is the section its name was waiting for. The clean guitar
+# still opens the song, rings the fold's F and closes the page.
+# (Benched, raw seed 0. FIRST: the same notes at the guitar's own pitch (A-flat 2 to E-flat 3): a kalimba down there
+# is nearly a pure fundamental at 104-156 Hz, a soft bass and not a tine, and at -2 dB it was 20 dB over the guitar
+# it replaced. An octave up it stood in the voice's own octave. KEPT, two octaves up at -23.5 dB: alone it is within
+# 1.1 dB of the guitar (K, first 150 ms of each note) and the voice stands 8.6 dB over it where it stood 8.3 over
+# the guitar. The tine's overtone is lifted 8 dB: 12 to 18 dB under the fundamental in a note's first 30 ms, where
+# the library's is 20 to 26. The section loses the guitar's pick: -1.2 dB at 2-4 kHz and -2.7 at 4-8 kHz; every
+# band under 2 kHz is within 0.6 dB.)
+# the patch (the song's chamber in place of its own room ; each tine rings 0.6 s after the thumb leaves it ; the
+# overtone's level) ; each thumb's track gain ; how far each sits from centre ; semitones over the guitar's notes.
+TINES = ('kalimba fx.0.mix=0 synth.amp.r=600ms synth.layers.2.level.value=-18dB', '-23.5dB', .4, 24)
+# With the swap the song reads 0.007 LU louder to the meter, so at v12's target every other bar came out 0.004 to
+# 0.010 dB quieter (seeds 0 and 11). Ask for that much more.
+THUMBS_LOUDNESS = -10.143
 
 def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True):
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
@@ -62,6 +86,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
     palindrome = palindrome and facing           # --without-facing-page still gives v8
     album_kit = album_kit and palindrome         # --without-palindrome still gives v9
     dominant = dominant and album_kit            # --without-album-kit still gives v10
+    thumbs = thumbs and dominant                 # --without-dominant still gives v11
     ev = defaultdict(list); sections = []; tie_gains = {}; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -147,7 +172,10 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                 else:
                     for t,p in opens[i%2].items():
                         put('mouth',a+t,root+24+p+(12 if i in (6,7) else 0),2.1,.84)
-                    for t,p in opens[1-i%2].items(): put('wire',a+t,root+12+p,2.6,.86)
+                    for t,p in opens[1-i%2].items():
+                        # v13: the answer is a thumb piano's; the tines alternate sides as they rise
+                        side = ('left','right')[sorted(opens[0].values()).index(p) % 2]
+                        put('tines-'+side if thumbs else 'wire',a+t,root+12+p+(TINES[3] if thumbs else 0),2.6,.86)
                     if i>=count//2:
                         for t in (3,15): kit('skins',a+t,'ft' if t==3 else 't1',.71)
                 continue
@@ -460,6 +488,9 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
     steel = 'pedal-steel synth.amp.a=85ms synth.amp.r=80ms fx.1.mix=0 fx.2.mix=0 play.glide=65ms'
     for side,pan in [('left',-.77),('right',.77)]:
         tracks.append(track('steel-'+side,steel,'-5.5dB',pan,'strings'))
+    if thumbs:
+        for side,way in [('left',-1),('right',1)]:
+            tracks.append(track('tines-'+side,TINES[0],TINES[1],way*TINES[2],fx=room))
     if drum_hand:
         # Seven fixed drums for the two keys, lowest at the drummer's right.
         pitches = sorted({base+p for base in (41,44) for p in opens[1].values()})
@@ -487,7 +518,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
            'drums':{'fx':['reverb kind=room mix=0.10 decay=0.53s predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'18ms','release':'120ms'},'clip ceiling=-13dB']},
            'low':{'fx':[{'type':'eq','bands':['peak cutoff=48 q=1.4 gain=-4dB','peak cutoff=98 q=1 gain=3dB','peak cutoff=310 q=0.9 gain=-4dB']},{'type':'compressor','threshold':'-24dB','ratio':5,'attack':'14ms','release':'115ms'}]}}
     if album_kit: buses['drums']['fx'].append({'type':'eq','bands':KIT_EQ})
-    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=PAGE_LOUDNESS if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
+    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
     return doc,sections
 
 def dump(d):
@@ -502,8 +533,9 @@ if __name__=='__main__':
     ap.add_argument('--without-facing-page',action='store_true',help='regenerate v8, ending on the signed chord')
     ap.add_argument('--without-palindrome',action='store_true',help='regenerate v9, without the ribbon over the opposed guitars')
     ap.add_argument('--without-album-kit',action='store_true',help="regenerate v10, the kit's bus without the album's eq")
-    ap.add_argument('--without-dominant',action='store_true',help="regenerate v11, 'turn over' on F throughout"); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant)
+    ap.add_argument('--without-dominant',action='store_true',help="regenerate v11, 'turn over' on F throughout")
+    ap.add_argument('--without-thumbs',action='store_true',help="regenerate v12, the clean guitar answering the voice in 'thumbprint'"); a=ap.parse_args()
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
