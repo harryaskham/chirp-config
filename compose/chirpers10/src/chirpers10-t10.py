@@ -36,6 +36,9 @@ COURSES = os.environ.get('C10T10_COURSES', '-11')
 # v5: 'called in' puts the straight clock into the right guitarist's hands.
 # Semitones above the low part; the left joins that register at par. Empty = v4.
 STRAIGHT = os.environ.get('C10T10_STRAIGHT', '12' if COURSES else '')
+# v6: repay each clock gap as the length of a note. Empty restores v5;
+# omitting STRAIGHT still gives the pre-crossing arrangement.
+PAYBACK = os.environ.get('C10T10_PAYBACK', '1' if STRAIGHT else '')
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -131,10 +134,32 @@ def build():
                 # their entrances, and they really do become one attack.
                 note('bass',t,10,root,.82)
                 note('clean',t,12,chord(root+24,root+31),.82)
-                note('clean',turn+3,4,root+26,.75)
-                if j == len(debts)-1:
-                    for i,piece in enumerate(('ft','t2','t1','s')):
-                        kit(piece,t+pair-4+i,.53+i*.10)
+                if PAYBACK:
+                    # No attack between the markers. In the spare air at the end
+                    # of each pair the clean string spends exactly its debt on
+                    # ONE of the reply notes. At par, string lengths become a
+                    # descending bass/tom fill; the next pair supplies the Eb.
+                    amounts = [delta for delta in debts if delta>0]
+                    pitches = [HOME+semi for _,_,semi,how in REPLY if how!='m']
+                    if d:
+                        pickup = t + pair-d
+                        assert pickup > turn
+                        note('clean',pickup,d-.24,pitches[j]+12,.92)
+                    else:
+                        pickup = t + pair-sum(amounts)
+                        assert pickup >= turn+SUB and len(amounts)==len(pitches)-1
+                        for dur,p,piece in zip(amounts,pitches[:-1],('t1','t2','ft'),strict=True):
+                            note('bass',pickup,dur-.24,p,.90)
+                            # Lighten the stick as the notes shorten: the last
+                            # floor tom should not cover the bass player's C.
+                            kit(piece,pickup,.35+.30*dur/max(amounts))
+                            pickup += dur
+                        assert pickup == t+pair
+                else:
+                    note('clean',turn+3,4,root+26,.75)
+                    if j == len(debts)-1:
+                        for i,piece in enumerate(('ft','t2','t1','s')):
+                            kit(piece,t+pair-4+i,.53+i*.10)
                 t+=pair; continue
 
             # One lick becomes an open chord. On the final Eb, the upper four
