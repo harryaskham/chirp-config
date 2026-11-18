@@ -424,6 +424,30 @@ ROWTIME = os.environ.get('C10T3_ROWTIME', '48:56' if SLOW else '')
 # the rows of the first extent under it (from:to) ; rows to a rung (the last rung takes what is left) ; rungs ; the
 # strokes' velocity at the foot ; at the top. "" = v24.
 FIRST = os.environ.get('C10T3_FIRST', '100:118;4;4;0.75;0.95' if ROWTIME and TREM and W1 == (2, 2) else '')
+# v26: NEARLY HOME (chirper-one; whole song). chirper-alpha, reading the rows at v25: the second extent's fourth lead
+# (3:09.5-3:19.5) is the song's first eight changes BACKWARDS. The band is unwinding its own opening, and after the
+# eighth row one plain change would bring it round: the piece would be over at 3:19.5, a hundred seconds early. That
+# is what a call is for. The conductor calls a bob and the ringing is turned away, up to A flat.
+# Nothing in the song said so. The tower has rung only where the band is home (the opening, the middle, the landing),
+# and it is the tower that now hears home coming: for the last six of those rows its bells ring over the band, the
+# first time they do so before the landing. They ring the band's own rows at their own pace, three beats to a row
+# where the band takes two and a half: the tower sets off on a row three beats before the band reaches it, the band
+# gains half a beat a row, and both finish the last row on the same beat (3:19.5). The treble is struck harder, as
+# in the middle, so its walk down to the front can be followed: fourth, fifth, fifth, fourth, third, second. The next
+# row is rounds. The band plays the bob (the whole band in unison, the kit ringing the row); the tower does not ring
+# again until 5:02, when the extent does come round and it rings what it was kept from here.
+# The band's own little bells (the one on the treble, the one on the bell in the hunt) rest while the tower rings,
+# as they do on the landing, and the bell on the treble is back on the first note of the bob: the note rounds would
+# have begun with.
+# (First bench, the fader at -7 dB: the tower 10.2 dB under everything else, K-weighted, where the landing's is 8.5
+# under; but its hum added 1.5 dB at 250-500 Hz to a stretch that already reads 2.3 over the eleven records. At -9
+# it is 12 under: the landing stays the larger event.)
+# the tower's rows ; its fader while it rings over the band, dB (the landing's is BELL_LAND). "" = v25.
+NEARLY = os.environ.get('C10T3_NEARLY', '6;-9' if FIRST and TOWERHUNT and TREBLE and FORM else '')
+NEAR_END = PART2 * 4 + 38 * L2 / 4                 # beats: where the fourth lead's bob starts
+NEAR_AT = NEAR_END - 3 * int(NEARLY.split(';')[0]) if NEARLY else NEAR_END
+NEARLY_PTS = [[f"{NEAR_AT - 1:g}b", 0], [f"{NEAR_AT:g}b", float(NEARLY.split(';')[1])],
+              [f"{NEAR_END + 4.5:g}b", float(NEARLY.split(';')[1])], [f"{NEAR_END + 5:g}b", 0]] if NEARLY else []
 
 
 def lead_mode(k, calls):
@@ -635,6 +659,22 @@ def tower_hunt(at):
     return at + 30
 
 
+def nearly_home():
+    """The tower rings the last rows before the second extent's fourth lead is called, and stops a change from rounds."""
+    rows, k1 = int(NEARLY.split(';')[0]), 38
+    assert lead_mode(k1, CALLS_2) == 'call0' and KEYS_2[(k1 + 1) // 40] == 0, 'the lead ends in a call, on F'
+    assert list(EXTENT_2[k1 - 8:k1]) == list(EXTENT_1[7::-1]), "the song's first eight changes, backwards"
+    assert change(EXTENT_2[k1 - 1], {5}) == ROUNDS and EXTENT_2[k1] != ROUNDS, 'a plain change from rounds; the bob is not one'
+    assert NEAR_AT >= PART2 * 4 + (k1 - 8) * L2 / 4 and NEAR_AT * 2 == int(NEAR_AT * 2)
+    for k, row in enumerate(EXTENT_2[k1 - rows:k1]):
+        band = PART2 * 4 + (k1 - rows + k) * L2 / 4          # where the band starts this row: the tower is ahead of it
+        assert 0 <= band - (NEAR_AT + 3 * k) <= 3 and band + L2 / 4 <= NEAR_END
+        for i, b in enumerate(row + (6,)):
+            vel = float(TOWERHUNT) if b == 1 else 0.896 if b == 6 else 0.8
+            T['bell'].append({"at": NEAR_AT + (k * 6 + i) * 0.5, "len": 3.0, "pitch": nm(F1 + PITCH[b] + 36), "vel": vel})
+    T['treble'] = [n for n in T['treble'] if not NEAR_AT <= n['at'] < NEAR_END]
+
+
 def rounds_on_the_toms(b):
     """The last row before bar `b` is rounds on the tower. The kit rings it too, as it rings a call: the treble is
     left to the bell, then a tom to each bell between, high to low, and the snare for the tenor."""
@@ -772,6 +812,8 @@ def compose():
                   trs=G4B if RIG2 and k >= int(RIG2.split(";")[5]) else G4,
                   pairs=coming_pairs(EXTENT_2, k, hunting[k] if hunting else 0),
                   **({"hunt": hunting[k]} if h0 <= k < h1 else {}), **({"ring2": hunting[k]} if TREBLE else {}))
+    if NEARLY:                           # v26: the tower hears home coming, a change before the bob
+        nearly_home()
     if FUZZ and FORM and int(FUZZ.split(";")[3]) % 10 not in (8, 9, 0):     # v10: the guitars' entry is not at a home any more: its own crash
         drum("c", PART2 * 16 + int(FUZZ.split(";")[3]) * L2, 0.85)
     for i, kind in enumerate(FORM.split(";")[3] if FORM else "bac"):
@@ -904,7 +946,7 @@ def song():
         *([{"name": "lead", "patch": (TREM or CLIMB).split(";")[0], "gain": (TREM or CLIMB).split(";")[1], "pan": 0, "sends": {"hall": "-12dB"}}] if CLIMB else []),
         # the bells' fader: down in the landing, where twelve slow rows of six ring into one another over the full band
         {"name": "bell", "patch": "modal-bell", "gain": {"value": os.environ.get("C10T3_BELL", "-18dB"), "mod": [{"src": "auto.lvl", "amount": 1}]}, "pan": 0.1, "sends": {"hall": "-8dB"},
-         "auto": {"lvl": {"points": [["0b", 0], [f"{LAND * 4 - 1}b", 0], [f"{LAND * 4}b", BELL_LAND], [f"{END * 4 - 1}b", BELL_LAND], [f"{END * 4}b", 0]], "curve": 0}}},
+         "auto": {"lvl": {"points": [["0b", 0], *NEARLY_PTS, [f"{LAND * 4 - 1}b", 0], [f"{LAND * 4}b", BELL_LAND], [f"{END * 4 - 1}b", BELL_LAND], [f"{END * 4}b", 0]], "curve": 0}}},
         *([{"name": "treble", "patch": "modal-bell", "gain": os.environ.get("C10T3_BELL", "-18dB"), "pan": 0.1, "sends": {"hall": "-8dB"},
             "fx": [{"type": "eq", "bands": [{"kind": "hp", "cutoff": key_f(float(TREBLE.split(";")[0].split(":")[0])) if KEYEQ else float(TREBLE.split(";")[0].split(":")[0]),
                                              "q": float(TREBLE.split(";")[0].split(":")[1])}]}],
