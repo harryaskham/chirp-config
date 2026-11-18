@@ -60,6 +60,23 @@ BRUSH = os.environ.get('C10T10_BRUSH', '-7' if STRIDE else '')
 # short third note 13-14 under. Up here it is a line, so it needs less lift,
 # and the third guitar keeps its chord where each new ground arrives.
 RECALL = os.environ.get('C10T10_RECALL', '24;3;0' if BRUSH and BREATH else '')
+# v13: what the mallet buys is kept on account. The bronze count is damped,
+# so each new note of the answer was gone as soon as it was struck. Now the
+# newest key is left sounding (a bow on the bar's edge, so it holds under the
+# band) until the next one is bought: G flat, F, C, then E flat, the answer
+# at a thirty-third of its speed over the riff that will not leave E flat.
+# Each lasts one pair and the sixteenth just borrowed; the last is damped a
+# sixteenth before the plain late pairs. Its shimmer is the drummer's clock:
+# one beat of the paired tuning for every straight sixteenth.
+# Track gain in dB ; depth of the shimmer. Benched at -17: 7.5 dB under the
+# raw mix and four fifths of everything at 500-1000 Hz, a test tone. At -24:
+# 14 under, but the passage read 2.3 dB over the records at 500-1000 Hz
+# (0.4 without it). So -27, and the two lower keys 2 dB less again: the band
+# leaves less in their semitones, and they stood 5 dB further out of it.
+# Empty restores v12; it is on only
+# while every older switch is, so each of those still gives what it gave.
+KEPT = os.environ.get('C10T10_KEPT', '-27;0.55' if all((
+    RECALL, BRUSH, STRIDE, PRESS, CHANGE, BREATH, PAYBACK, STRAIGHT, COURSES, ADVANCE, TRADE)) else '')
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -97,6 +114,21 @@ def pressure_skin():
             'pitch':{'value':0,'mod':[{'src':'expr.press','amount':1}]},
             'filters':['hp cutoff=95','lp cutoff=6000'],
             'amp':{'a':'1ms','d':'2.4s','s':.24,'r':'45ms','curve':2}
+        }
+    }
+
+
+def kept_key():
+    # One key of the same bronze, bowed instead of struck: the bar's own pitch
+    # with a little of its second and third modes, slow to speak, level while
+    # the bow is on it. The song's track adds the shimmer, locked to the tempo.
+    return {
+        'about':'Still Owing: the bronze key the mallet has just struck, kept sounding with a bow on the edge of the bar. No attack of its own; the damped mallet stroke is its attack.',
+        'play':{'gate':1,'vel_sens':.3,'humanize':{'time':'0ms','vel':0}},
+        'synth':{
+            'layers':[{'type':'additive','partials':[[1,1],[2.52,.085],[4.95,.022]]}],
+            'filters':['hp cutoff=150','lp cutoff=5200'],
+            'amp':{'a':'170ms','d':'1.2s','s':.82,'r':'120ms','curve':2}
         }
     }
 
@@ -194,6 +226,16 @@ def build():
                     note('change',t+BAR+slot,.84,root+36+semi,.79 if slot==0 else .70)
                     if slot == 0:
                         voices['change'][-1]['gain'] = '3.5dB'  # keep the piano's downbeat accent
+                if KEPT:
+                    # The key bought this time rings until the next is bought,
+                    # one sixteenth later in the following pair. After the
+                    # whole answer there is nothing left to buy: lift it one
+                    # sixteenth before the bar line.
+                    bought = t+BAR+d-1
+                    until = bought+pair+1 if d < len(change_pitches) else t+pair-1
+                    note('kept',bought,until-bought,root+36+early[-1],.80)
+                    if early[-1] < change_pitches[1]:
+                        voices['kept'][-1]['gain'] = '-2dB'  # C and E flat, under the two keys that began the answer
             elif s in ('at par','in hand','on account','two clocks','across the line','square'):
                 note('rule',t+BAR,2.2,HOME+31,.72 if s!='two clocks' else .89)
             if PRESS and s=='called in' and d<0:
@@ -494,6 +536,12 @@ def build():
         tracks.append(track('change',bronze,float(CHANGE),-.35))
     if PRESS:
         tracks.append(track('pressure','owing-skin',float(PRESS),.38,sends={'spring':'-20dB'}))
+    if KEPT:
+        level,shimmer = KEPT.split(';')
+        # A sixteenth is a quarter of a beat: the tremolo is loudest on every
+        # straight sixteenth from the top of the song, where each key starts.
+        tracks.append(track('kept','owing-kept',float(level),-.35,
+                            fx=[f'tremolo rate=0.25b depth={float(shimmer):g}']))
     if COURSES:
         # The written gates only lift the dampers. Lengthen the strings' own
         # decays too, or the first courses are already dead when the last rings.
@@ -509,7 +557,8 @@ def build():
     return {'about':'Still Owing, Common Time track 10: a low call borrows time from a higher answer and pays it back within each two-bar phrase.',
         'tempo':BPM,'seed':1,'event_stable':True,'length':f'{t//SUB}b','tail':'3s','loudness':-10,'ceiling':'-1dB','true_peak':True,
         **({'songs':fold_sources} if fold_sources else {}),
-        'patches':{'owing-key':key_patch,**fold_patches,**({'owing-skin':pressure_skin()} if PRESS else {})},
+        'patches':{'owing-key':key_patch,**fold_patches,**({'owing-skin':pressure_skin()} if PRESS else {}),
+                   **({'owing-kept':kept_key()} if KEPT else {})},
         'buses':{'spring':{'fx':['reverb kind=spring drip=0.65 mix=1 decay=1.2s low_cut=350 predelay=18ms']},
         'drums':{'fx':['reverb kind=room decay=0.48s mix=0.08','glue threshold=-23dB ratio=2.2 attack=18ms release=130ms',
                      {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14900']}]}},
