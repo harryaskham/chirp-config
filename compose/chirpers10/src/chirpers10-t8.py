@@ -72,6 +72,9 @@ SPAN = os.environ.get('C10T8_SPAN', '-11dB' if STICKS else '')
 # v8: count the shorter riff on the china, play the leftover tail on a güiro.
 # Empty = v7; the published SPAN and earlier rollback switches still work.
 SCRAPER = os.environ.get('C10T8_SCRAPER', '-3dB' if SPAN else '')
+# v9: felt piano folds the six-note head of A into three grips, then opens
+# them again. Trim in dB. Empty restores v8 and earlier switches still work.
+FELT = os.environ.get('C10T8_FELT', '-5dB' if SCRAPER else '')
 
 
 def nm(n):
@@ -203,6 +206,29 @@ def pop_tail(start, stop, riff):
             token = riff[(p - start) % len(riff)]
             if token.isdigit():
                 note['pitch'] = nm(F1 + 12 + int(token))
+
+
+def unfold_head(start, pass_no):
+    """The head of the *whole* A, back in the coda: six notes, heard in pairs.
+    Second A: play each pair as a chord. Third: unroll the lower key halfway.
+    Fourth: the two hands play the original descent at the original times.
+    """
+    end = A.index('c')  # the first muted stroke ends the descending head
+    heads = [(i, int(k) if k.isdigit() else 0) for i,k in enumerate(A[:end]) if k != '-']
+    assert len(heads) == 6 and 1 <= pass_no <= 3
+    # Always leave the main takes playing. Only their doubles give up notes;
+    # the second twin pair rejoins on the third A, the wall pair after each head.
+    for tr in (('wl', 'wr', 'dl', 'dr') if pass_no == 1 else ('wl', 'wr')):
+        T[tr] = [n for n in T[tr] if not start <= round(n['at']*4) < start+end]
+    for j in range(0, len(heads), 2):
+        first, upper = heads[j]; second, lower = heads[j+1]
+        stop = heads[j+2][0] if j+2 < len(heads) else end
+        enter = first + (second-first)*(pass_no-1)/2
+        # Open voicings on the first two passes. The last closes up into one
+        # register, so the piano hands the actual six-note line back intact.
+        upper_end = second if pass_no == 3 else stop
+        add('felt', start+first, upper_end-first-.20, F1+36+upper, .92)
+        add('felt', start+enter, stop-enter-.20, F1+(36 if pass_no==3 else 24)+lower, .84, soft=.35)
 
 
 def measured_drums(start, stop):
@@ -370,6 +396,8 @@ def compose():
             pop_tail(s + split, s + len(riff), recall)
         else:
             say(riff, s, ALL, low=True)
+        if FELT and 1 <= j <= 3:
+            unfold_head(s, j)
         bell("l", s)
         bell("r", s)
         if s > t:
@@ -468,6 +496,8 @@ def song():
         {"name": "cym", "patch": kit, "gain": "-4.5dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
         {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air},
     ]
+    if FELT:
+        tracks.append({'name':'felt','patch':'piano-muted fx.0.mix=0.06','gain':FELT,'pan':-.10})
     if BREATH:
         timbre, gain = BREATH.split(";")
         tracks.append({"name": "breath", "patch": timbre, "gain": gain, "pan": 0.12})
