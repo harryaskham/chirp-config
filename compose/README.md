@@ -339,6 +339,9 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
   `climb.py pass ID 'why'` records the note, releases the song at once, and leaves it out of your draw until someone
   records a version on it. A song everyone has passed on rests until it is heard. `next --take ID` brings you back
   to a song on purpose.
+  When every free song is one you had the last word on, `next` says NOTHING NEW FOR YOU and starts nothing: that
+  tick is one command; idle. A version from another composer, or Harry's answer or note on the track, reopens a song
+  to you by itself. `next --peek` looks without taking a lock: never draw to see what the pool holds.
   Read the song's last notes first: its `next` line and what it was holding back for Harry's ear are in the brief.
 - Harry's notes and answers travel with the song, not to a person ("they will get notes hwen they next see the track"):
   the brief prints HARRY ON THIS TRACK, his open notes, his answers to the track's cards and the cards still waiting on

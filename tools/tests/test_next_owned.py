@@ -186,6 +186,37 @@ class Pass(unittest.TestCase):
         self.assertNotIn("passed_by", self.reg()["c"])                                     # the song changed
         self.assertEqual(self.reg()["c"]["passes"], 1)
 
+    def test_nothing_new_starts_nothing_and_harrys_word_reopens_the_song(self):
+        """chirper-three, 18 Nov: five passes in two ticks, each a draw, a brief and a lock."""
+        reg = {"climbs": list(self.reg().values())}
+        by = {c["id"]: c for c in reg["climbs"]}
+        by["a"]["last"] = by["c"]["last"] = {"at": "2026-11-18T10:00:00Z", "who": "chirper-two"}
+        by["b"]["passed_by"] = [{"who": "chirper-two", "at": "2026-11-18T10:05:00Z"}]
+        by["repro"]["status"] = "paused"
+        with open(os.path.join(self.root, "climbs.json"), "w") as f:
+            json.dump(reg, f)
+        r = self.run_("next")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("NOTHING NEW FOR YOU: every free song (a, b, c)", r.stdout)
+        self.assertFalse(os.path.exists(self.starts))                                      # nothing was started
+        got = json.loads(self.run_("next", "--json").stdout)
+        self.assertEqual((got["climb"], got["nothing_new"], got["free"]), (None, True, ["a", "b", "c"]))
+        self.assertIn(json.loads(self.run_("next", "--again", "--json").stdout)["climb"]["id"], ("a", "b", "c"))
+        with open(self.starts) as f:
+            self.assertEqual(len(f.readlines()), 1)                                        # --again draws, and starts
+        self.assertIn(json.loads(self.run_("next", "--json", who="chirper-one").stdout)["climb"]["id"], ("a", "b", "c"))
+        old = climb.heard_at
+        self.addCleanup(setattr, climb, "heard_at", old)
+        climb.heard_at = lambda c: climb.epoch("2026-11-18T11:00:00Z") if c["id"] == "b" else 0   # Harry answered on b
+        self.assertFalse(climb.said_last(by["b"], "chirper-two"))                          # his word reopens it
+        self.assertTrue(climb.said_last(by["a"], "chirper-two"))
+        stale = []
+        self.assertEqual(sorted(climb.weights(reg, "chirper-two", stale)), ["b"])
+        self.assertEqual(stale, [])
+        climb.heard_at = lambda c: climb.epoch("2026-11-18T09:00:00Z")                     # an older answer reopens nothing
+        self.assertTrue(climb.said_last(by["b"], "chirper-two"))
+        self.assertEqual(climb.epoch("not a time"), 0)
+
     def test_released_reads_rounds_and_passes_and_a_note_finishes_nothing(self):
         t0 = 1_800_000_000
         iso = lambda t: __import__("time").strftime("%Y-%m-%dT%H:%M:%SZ", __import__("time").gmtime(t))   # noqa: E731

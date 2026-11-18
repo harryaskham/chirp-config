@@ -19,13 +19,15 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
                                                     the original is kept in ref/albums/SLUG/
   climb.py refs ALBUM SOURCE                        replace an album's references (matched by track number),
                                                     e.g. with better files; notes each climb to re-measure
-  climb.py next [--as NAME] [--peek] [--take ID] [--include-owned] [--json] [--seed N] [--type T]
+  climb.py next [--as NAME] [--peek] [--take ID] [--again] [--include-owned] [--json] [--seed N] [--type T]
                                                     pick this pass's climb (and say what to do). NO CLIMB HAS AN
                                                     OWNER (Harry, 18 Nov): the draw is among every queued climb,
                                                     whoever worked on it last; starting one takes its LOCK, and
                                                     recording the round (done) releases it for anyone.
                                                     --peek records no start; --take ID starts exactly that one
                                                     (refused while someone else holds its lock, unless --force);
+                                                    when every free song is one you had the last word on it says
+                                                    NOTHING NEW and starts nothing (--again draws anyway);
                                                     --include-owned is accepted and does nothing now;
                                                     composition albums with params.rounds print a ROUND TYPE
                                                     (whole, section, palette; --type T overrides the draw)
@@ -463,20 +465,49 @@ def released(c, s):
     return False
 
 
+_HEARD = {}
+
+
+def epoch(iso):
+    try:
+        return calendar.timegm(time.strptime(str(iso)[:19], "%Y-%m-%dT%H:%M:%S"))
+    except ValueError:
+        return 0
+
+
+def heard_at(c):
+    """When Harry last answered a card or left a note on this track on the review page (epoch; 0 when never, or when
+    the page cannot be read). His word reopens a song to whoever had the last word on it."""
+    album, n = c.get("album"), (c.get("meta") or {}).get("track")
+    if not album or n is None or (os.environ.get("CLIMB_ROOT") and not os.environ.get("CHIRP_LISTEN_DIR")):
+        return 0             # a test's registry: never read the real page
+    if album not in _HEARD:
+        try:
+            import listen
+            _HEARD[album] = (listen.notes(album), listen.questions(album))
+        except Exception:  # noqa: BLE001  (a draw must not fail on the page's files)
+            _HEARD[album] = ([], [])
+    notes, qs = _HEARD[album]
+    return max([epoch(a.get("at")) for q in qs if q.get("n") == n for a in q["answers"].values()]
+               + [epoch(x.get("at")) for x in notes if x.get("n") == n] + [0])
+
+
 def said_last(c, me):
-    """In a composition, is the song's last word yours: you recorded its last round, or passed on it since? Then it
-    is for someone else (Harry, 18 Nov: "a new round should release for anyuone to improve"; "tha tis hos we maintain
-    variaety"): `weights` leaves it out of YOUR draw while any other free song is queued. chirper-two, 18 Nov: drawn
-    Common Measure five times in a day, three rounds running, then again twelve minutes after his own v19."""
+    """In a composition, is the song's last word yours: you recorded its last round, or passed on it since, and Harry
+    has said nothing of the track since then? Then it is for someone else (Harry, 18 Nov: "a new round should release
+    for anyuone to improve"; "tha tis hos we maintain variaety"): `weights` leaves it out of YOUR draw while any other
+    free song is queued. chirper-two, 18 Nov: drawn Common Measure five times in a day, three rounds running, then
+    again twelve minutes after his own v19. Harry's answer or note on the track reopens it to you."""
     if c.get("mode") != "compose":
         return False
     mine = agent_names(me)
-    return bool(agent_names((c.get("last") or {}).get("who")) & mine
-                or any(agent_names(p.get("who")) & mine for p in c.get("passed_by") or []))
+    words = [r for r in [c.get("last") or {}] + list(c.get("passed_by") or []) if agent_names(r.get("who")) & mine]
+    return bool(words) and max(epoch(r.get("at")) for r in words) >= heard_at(c)
 
 
-def weights(reg, me):
-    """Draw weights. A climb another agent started under ROUND_HOLD ago and has not recorded a round on since is HELD:
+def weights(reg, me, stale=None):
+    """Draw weights. (`stale`, a list, is filled with the free climbs when every one of them is a song you had the last
+    word on: nothing new for you.) A climb another agent started under ROUND_HOLD ago and has not recorded a round on since is HELD:
     it is skipped while anything unheld is queued (two agents on one climb duplicate the round - chirper-two drew
     entrapment and imprint while chirper-three held them); when every candidate is held, held ones are drawn at
     half weight as before."""
@@ -506,6 +537,8 @@ def weights(reg, me):
         out[c["id"]] = w
     free = {k: v for k, v in out.items() if k not in held}
     fresh = {k: v for k, v in free.items() if k not in said}     # not the song whose last word is yours (said_last)
+    if stale is not None and free and not fresh:
+        stale.extend(sorted(free))                                # every free song is one you had the last word on
     return fresh or free or out
 
 
@@ -1217,9 +1250,21 @@ def untracked_setup(cid):
 def cmd_next(a):
     me = whoami(a)
     reg = load()
-    w = weights(reg, me)
+    stale = []
+    w = weights(reg, me, stale)
     skipped = []
     take = opt(a, "--take")
+    if stale and not take and "--again" not in a:
+        # chirper-three, 18 Nov: "nothing left in my draw has a round I can defend": five passes in two ticks, each
+        # a draw, a brief read and a lock. When every free song is one you had the last word on, say so and start
+        # nothing: the tick costs one command.
+        msg = (f"NOTHING NEW FOR YOU: every free song ({', '.join(stale)}) is one whose last round is yours or that you "
+               f"passed on, and neither a version nor a word from Harry has landed on any of them since. Nothing was "
+               f"started. Idle this tick; the draw reopens by itself when another composer records a version or Harry "
+               f"answers a card. On purpose: `next --take ID`, or `next --again` to draw among them anyway.")
+        print(json.dumps({"climb": None, "nothing_new": True, "free": stale, "say": msg}) if "--json" in a
+              else f"next for {me}: {msg}")
+        return
     if take:
         c = find(reg, take)
         on = holders(c, me)
