@@ -23,9 +23,10 @@ def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True, mirror_bass=True):
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
+    picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
     ev = defaultdict(list); sections = []; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -36,6 +37,15 @@ def build(drum_hand=True, crease=True, mirror_bass=True):
     def chord(root): return pitch(root)+','+pitch(root+7)
     front,back = strip(),strip(True)
     opens = [{t:p for t,p,k in r if k=='o'} for r in (front,back)]
+    # The right picking hand tries the reflection before the fretted tune does.
+    # The nearest three palm strokes move first; then all five move, twice.
+    # Recompute the gaps from each new row: an early mute chokes the open note.
+    by_centre = sorted((t for t,_,k in front if k=='m'), key=lambda t: abs(2*t-(STRIP-1)))
+    def turn_mutes(how_many):
+        move = set(by_centre[:how_many])
+        r = sorted((STRIP-1-t if t in move else t, p, k) for t,p,k in front)
+        assert len({t for t,_,_ in r}) == len(r)
+        return r
     meetings = sorted(opens[0].keys() & opens[1].keys())
     assert meetings == [3,15]
     # Immediately inside the shared attacks is a reflected pair of gaps.
@@ -110,6 +120,10 @@ def build(drum_hand=True, crease=True, mirror_bass=True):
                         put('steel-'+tr,a+t,root+24+opens[1][t],until-t-.12,.87)
                     continue
                 r = back if rev else front
+                if picking_hand and sec=='ink' and tr=='right':
+                    lap = i - count//2
+                    if 0 <= lap < 3:
+                        r = turn_mutes((len(by_centre)+1)//2 if lap==0 else len(by_centre))
                 for j,(t,p,k) in enumerate(r):
                     if not inside(t): continue
                     if tom_reply and not (i==count-1 and t==STRIP-1): continue
@@ -119,7 +133,13 @@ def build(drum_hand=True, crease=True, mirror_bass=True):
                     gap = (r[j+1][0] if j+1<len(r) else STRIP)-t
                     dur = .64 if k=='m' else min(gap-.23, 3.45)
                     n = root+p
-                    put(tr,a+t,chord(n) if k=='o' and sec in ('raised','turn over','one hand') else n,dur,.94 if k=='o' else .79,k=='m')
+                    if picking_hand and sec=='ink' and tr=='right' and k=='m' and t not in by_centre:
+                        # The travelling strokes are up-picks. Keep them short,
+                        # but lift the palm a little so they cut through the note
+                        # still ringing on the left. Ordinary down-picks stay put.
+                        put(tr,a+t,n,dur,.84,pm=.55,up=1)
+                    else:
+                        put(tr,a+t,chord(n) if k=='o' and sec in ('raised','turn over','one hand') else n,dur,.94 if k=='o' else .79,k=='m')
             if sec=='carbon':
                 n_take = min(4, 2**(i//2)) if drum_hand and i%2 else 0
                 for j,(t,p) in enumerate(sorted(opens[1].items())):
@@ -253,8 +273,9 @@ def dump(d):
 
 if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); ap.add_argument('--without-crease',action='store_true',help='regenerate v3')
-    ap.add_argument('--without-mirror-bass',action='store_true',help='regenerate v4'); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass)
+    ap.add_argument('--without-mirror-bass',action='store_true',help='regenerate v4')
+    ap.add_argument('--without-picking-hand',action='store_true',help='regenerate v5'); a=ap.parse_args()
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
