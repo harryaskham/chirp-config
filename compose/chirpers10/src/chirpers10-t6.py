@@ -502,7 +502,8 @@ def periodic_tines():
     """Keep the bass and both kits playing the orbit under the ringing keys."""
     sections = (("one", 1), ("two", 2), ("four", 4), ("eight", 8),
                 ("down-four", 4), ("down-two", 2), ("down-one", 1))
-    exchanges = []
+    exchanges, stays = [], []
+    keep = WITH.split(";")[0].split(",") if WITH else []
     for sec, period in sections:
         a = AT[sec]
         b = a + next(n for name, n, _ in DIAL if name == sec)
@@ -516,6 +517,8 @@ def periodic_tines():
             cycle = range(start, start + period)
             end = (start + period) * 2
             exchanges.append((start * 2, end))
+            if sec in keep:
+                stays.append((start * 2, end))
             for hand, choose in (("high", max), ("low", min)):
                 if period == 1 and hand == "low":
                     continue
@@ -526,9 +529,12 @@ def periodic_tines():
                 beat = round(2 * c + slots[accent] / 3, 5)
                 pitch = note(r) + gup(c) + (24 if hand == "high" else 12)
                 T.setdefault("tine-" + hand, []).append({"at": beat, "len": round((end - beat) * .97, 5),
-                                                       "pitch": nm(pitch), "vel": .86 if hand == "high" else .82})
+                                                       "pitch": nm(pitch), "vel": .86 if hand == "high" else .82,
+                                                       **({"gain": f"{float(WITH.split(';')[3]):g}dB"} if sec in keep and float(WITH.split(";")[3]) else {})})
+    stay = (G[0] if WITH.split(";")[1] == "l" else G[1]) if WITH else None
     for tr in G:
-        T[tr] = [n for n in T[tr] if not any(a <= n["at"] < b for a, b in exchanges)]
+        gone = [span for span in exchanges if not (tr == stay and span in stays)]     # v23: one guitar plays on
+        T[tr] = [n for n in T[tr] if not any(a <= n["at"] < b for a, b in gone)]
     if FORK:
         hold_the_split()
 
@@ -829,6 +835,20 @@ FLIP = os.environ.get("C10T6_FLIP", "4;8;-10.033") if UNWIND and TINES else ""
 # half bars under the resting point (r or l) ; the song's loudness target (those five seconds are quieter, so with
 # v21's target every other bar came out 0.014 to 0.018 dB louder on three seeds). "" = v21.
 SETTLE = os.environ.get("C10T6_SETTLE", "4;2;r;-10.049") if FLIP and LAST_TOUCH else ""
+# v23 (chirper-three; section round, w2 0:27.8-0:55.7: 'two' and 'four'): ONE GUITAR STAYS WITH THE KEYS (Harry,
+# 19 Nov 02:25, on the card that played 0:43: "Keep one guitar with the keys"; its other answers were "Keep the
+# exchange" and "Prefer guitars both times"). Since v9 the guitars state a lap of the doubling riff and leave the
+# next to two ringing keys, with only the bass and the two kits under them. Now the LEFT guitar, the song's first
+# (it enters alone at 0:07), plays on through the keys' laps: the figure it would have played, as the rule gives
+# it. The RIGHT guitar still leaves, so the exchange is still there, between the right guitar and the keys, over a
+# left hand that does not stop. In 'two' the right guitar's held high note (v14) and the keys now answer each
+# other across one unbroken figure; in 'four' (the card's passage) the keys' two notes ring over the riff they
+# were taken from. The keys, the bass and both kits are note for note v22's; nothing is added that the rule did
+# not already write: these are the left guitar's own notes, which v9 took out.
+# the sections whose key laps keep a guitar ; which guitar (l or r) ; the song's loudness target ; dB on the keys'
+# notes in those laps (with a guitar under them they lost 2 dB of their place against everything else). "" = v22.
+# (The exchange also runs at 'one', 'eight' and on the way down: those are as they were. See the round note.)
+WITH = os.environ.get("C10T6_WITH", "two,four;l;-9.966;2") if SETTLE and TINES else ""
 
 
 def wobble_before_the_doubling():
@@ -1050,7 +1070,7 @@ def song():
                   "and back down: the riff settles, splits in two, four, eight, stops repeating, locks by itself on five half "
                   "bars and then on three, fills the whole range, and dies out. Triplets at 138, on E, with a drum machine; "
                   "the lead has no notes, only the rule (the engine's own logistic generator). v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(SETTLE.split(";")[3]) if SETTLE else float(FLIP.split(";")[2]) if FLIP else float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(WITH.split(";")[2]) if WITH else float(SETTLE.split(";")[3]) if SETTLE else float(FLIP.split(";")[2]) if FLIP else float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"cc-machine": machine,
                     **({"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}}} if KIT else {})},
         "buses": {
