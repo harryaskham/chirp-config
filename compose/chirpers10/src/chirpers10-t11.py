@@ -180,6 +180,21 @@ STRING = os.getenv('C10T11_STRING', '600;-8;-2dB' if BOW else '')
 # How many cells before the half-speed walk go at double speed ; 1 = the organ's sigh doubles too. Empty restores
 # v17 byte for byte.
 DOUBLE = os.getenv('C10T11_DOUBLE', '2;1' if STRING and ORGAN and PUMP else '')
+# v19 (chirper-zero, instrument round): THE SNARE LOSES ITS BOX AND GETS ITS CRACK. Read alone at its own hits as
+# tools/drumpunch.py reads a record's snare (six records' drum stems): its body (150-300 Hz) stood 5.0 dB OVER its
+# crack (1.5-5 kHz), where five of the six records have it 0 to 4.4 UNDER (median -3.2; the sixth is The
+# Faultless's fat snare, which the album's kit was once fitted toward), and its wires (5-12 kHz) 2.6 over the crack
+# (records -0.6 to +1.4). In the mix the snare held the band from 250 to 500 Hz (54% of it in the quick six) and
+# the kit stood 4.7 dB over the records' kits there and 2.7 under them from 4 to 8 kHz, where the whole mix read
+# 1.8 to 3.4 under the records in every loud section. So the drum itself is retuned, in this song only: the kit's
+# 5 dB of body at 200 Hz becomes a 2 dB cut, the stick's contact is shorter (0.6 -> 0.35: a harder, brighter
+# stroke), more slap (1.2 -> 1.6), the wires a little tighter and voiced lower (0.85 -> 0.95, 7 kHz -> 5 kHz), so
+# their hiss sits in the band that was empty and not above it (at 5.8 kHz the mix's 8-16 kHz rose 0.5 dB).
+# AFTER, alone: body-crack +5.0 -> -3.4, wires-crack +2.6 -> -0.1, punch 13.2 -> 14.5 dB (records 13.8), each
+# stroke as loud as it was (-25.0 -> -24.6 dB).
+# the body's dB at 200 Hz ; the stick's contact ; slap ; the wires' tone Hz ; wires ; the loudness target (what
+# plays without the snare keeps the gain it had). '' = v18.
+SNARE = os.getenv('C10T11_SNARE', '-2;0.35;1.6;5000;0.95;-9.98' if DOUBLE else '')
 
 
 def BOW_PATCH():
@@ -554,12 +569,14 @@ def make():
     # The twin pair supplies the pick; the second pair joins after the exposed
     # bellows, on a wider-bodied amp. Both play actual rests. Since v15 both
     # pairs go through the engine's cabinet (SECOND).
+    SNARE_PATCH = (' kit.s.patch.synth.filters.1.gain={}dB kit.s.patch.synth.layers.0.contact={} kit.s.patch.synth.layers.0.slap={}'
+                   ' kit.s.patch.synth.layers.0.wire_tone={} kit.s.patch.synth.layers.0.wires={}').format(*SNARE.split(';')[:5]) if SNARE else ''
     tracks=[tr('gl','ct-twin fx.1.model=gojira fx.2.cone=81','0.5dB',-1,'gtrs'),
             tr('gr','ct-twin fx.1.model=gojira fx.2.cone=82','0.5dB',1,'gtrs'),
             tr('wallL','ct-wall-stop-l'+SECOND_PATCH,SECOND_GAIN,-.72,'gtrs',second_fx(0)),tr('wallR','ct-wall-stop-r'+SECOND_PATCH,SECOND_GAIN,.72,'gtrs',second_fx(1)),
             tr('latch','ct-bell','6.5dB',0),tr('glass','ct-bell','-1.5dB',-.20),
             tr('bass','ct-bass','0.7dB',0,'low'),tr('kick','ct-kit','2dB',0,'drums',[{'type':'eq','bands':['peak cutoff=4500 q=0.8 gain=8dB']}]),
-            tr('snare','ct-kit','3dB',0,'drums'),tr('hat','ct-kit','12dB',-.28,'drums'),
+            tr('snare','ct-kit'+SNARE_PATCH,'3dB',0,'drums'),tr('hat','ct-kit','12dB',-.28,'drums'),
             tr('metal','ct-kit','-4dB',.25,'drums'),tr('skins','ct-kit','3dB',0,'drums')]
     if PIVOT:
         # A long harmonic is much quieter than the old picked figure. Lift it
@@ -593,7 +610,7 @@ def make():
         else:
             tracks.append(tr('rod','waterphone synth.amp.a=150ms synth.amp.r=135ms synth.pitch.mod.0.amount=0.12 synth.pitch.mod.1.amount=0.18 fx.0.decay=0.8s fx.0.mix=0.09',ROD,-.15))
     doc={'about':'On Its Hinge — chirpers, Common Time, track eleven. A twelve-eighth riff in B flat; the drummer swaps six quick steps for four broad ones, on an unchanged riff. The reed organ breathes the broad walk before the kit takes it.' + (' The kettledrum answers the heavy riff on the next broad steps, then takes its last C.' if KETTLE else ''),
-         'tempo':BPM,'seed':1,'length':f'{start//SUB+marks.pop("close",0)}b','tail':'4s','ceiling':'-1dB','loudness':-10,'event_stable':True,
+         'tempo':BPM,'seed':1,'length':f'{start//SUB+marks.pop("close",0)}b','tail':'4s','ceiling':'-1dB','loudness':float(SNARE.split(';')[5]) if SNARE else -10,'event_stable':True,
          'buses':{'drums':{'fx':['reverb kind=room decay=0.62s mix=0.13 predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'20ms','release':'135ms'},'clip drive=0dB ceiling=-13dB',{'type':'eq','bands':['peak cutoff=400 q=0.8 gain=-5dB','highshelf cutoff=9000 gain=-2dB']}]},
                   'gtrs':{'fx':[{'type':'eq','bands':['peak cutoff=350 q=1 gain=-2dB','peak cutoff=720 q=0.9 gain=2dB']},'reverb kind=room decay=0.35s mix=0.06 predelay=6ms']},
                   'low':{'fx':[{'type':'eq','bands':['peak cutoff=58 q=1.5 gain=-6dB','peak cutoff=116 q=1 gain=5dB','peak cutoff=350 q=1 gain=-6dB','peak cutoff=1500 q=1 gain=3dB']},{'type':'compressor','threshold':'-26dB','ratio':6,'attack':'12ms','release':'120ms','makeup':'2dB'}]}},
