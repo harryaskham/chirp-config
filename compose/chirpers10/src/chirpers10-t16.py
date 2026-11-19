@@ -81,6 +81,29 @@ FORM = [
     ("close enough", Fr(0), 2, 0, "c"),
 ]
 REED = 53                                    # the pair's note on F: F3
+# v2, palette: THE PULSES ARE NAMED. The pair's overtones pulse two, three and four times to its one, and the kit
+# says so in strokes that have no pitch. A handpan (no other song on the record has one; its note fields are tuned
+# fundamental, octave and twelfth, the first three of the pair's own series) strikes each overtone AS A NOTE every
+# time that overtone swells: the reed's own F once to the pulse, the octave twice, the twelfth (C) three times, the
+# double octave four times. All four swell together on the pulse, so the pulse is a chord; between pulses it is
+# two against three against four: high F, C, the two Fs, C, high F. The cell is a tune, and it is the tune the
+# two reeds are already singing. Its notes are written in hertz, at whole multiples of the still reed.
+# It frames the song, and it SAYS, THEN LISTENS. As the hair opens (0:07.3) it names the overtones in order, a bar
+# each: one and two; then three; then four; and leaves the fourth bar to the pair alone. When the hair is twice as
+# wide (0:21.8) it says the whole cell on the first pulse of each bar and leaves the second to the pair, until the
+# band takes the cell over at 0:36.4. As the hair closes it comes back where the toms have gone (3:09.1) and
+# leaves as it came, the fours first, then the threes; the last pulse (3:16.4, two bars long) has only one and
+# two; then one chord, in tune.
+# Empty restores v1.  The song's own handpan ; the track gain as the hair opens ; as it closes (the band is in;
+# leave this field empty and it does not come back at the end: re-fit the target) ; the loudness target (every bar
+# without it keeps v1's mastering gain).
+# (The library handpan beats with itself: a split partner 3 cents up on the fundamental, the octave 2 cents sharp,
+# the twelfth 3 flat; and its shell answers at 92 Hz, a semitone over F. In this song the only wobble may be the
+# hair: the partner is silenced, the partials are exact, the shell is on F2.)
+PAN = os.environ.get("C10T16_PAN", "handpan synth.layers.0.partials.1.1=0 synth.layers.1.cents=0 synth.layers.2.cents=0 synth.layers.3.fixed=87.307;-17dB;-11dB;-9.981")
+NAMED = {"a hair": ((1, 2), (1, 2, 3), (1, 2, 3, 4), ()), "wider": ((1, 2, 3, 4), ()) * 4,
+         "a quarter": ((1, 2, 3, 4), (1, 2, 3)), "an eighth": ((1, 2),)}
+TOUCH = {1: 0.8, 2: 0.68, 3: 0.6, 4: 0.54}
 STILL = "harmonium fx.0.depth=0 synth.layers.1.cents=0"       # see the tracks
 
 
@@ -144,6 +167,18 @@ def build():
                 for bar in range(a, a + span, 4):
                     kit("snare", bar + 1, "s", 0.9)
                     kit("snare", bar + 3, "s", 0.95)
+        if PAN and name in NAMED and (b < 40 or PAN.split(";")[2]):
+            pulse = 1 / r                    # beats
+            assert len(NAMED[name]) == r * 4 * bars, name
+            for i, which in enumerate(NAMED[name]):
+                tr = "pan" if b < 40 else "pan-out"
+                for k in which:              # overtone k, k times to the pulse
+                    for j in range(k):
+                        put(tr, b + i * pulse + Fr(j, k) * pulse, f"{k * f:.3f}hz", min(2, float(pulse) / 2),
+                            round(TOUCH[k] + (0.2 if name == "an eighth" else 0), 2))   # three strokes in two bars: firmer
+        if PAN and PAN.split(";")[2] and name == "close enough":   # in tune: all four at once
+            for k in (1, 2, 3, 4):
+                put("pan-out", b, f"{k * f:.3f}hz", 6, round(1.06 - 0.06 * k, 2))
         b += 4 * bars
     end = b
     # the bass bus's eq follows the ground, as the album's does (its notch and lift sit on the note's first two harmonics)
@@ -190,6 +225,9 @@ def build():
         track("hat", "ct-kit", "16dB", -0.3, "drums", air, {"oh": "4.5dB"}),
         track("brass", "ct-kit", "-2.5dB", 0.2, "drums", air, {"oh": "4.5dB"}),
     ]
+    if PAN:
+        patch, opens, closes, _ = PAN.split(";")
+        tracks += [track("pan", patch, opens, 0.0)] + ([track("pan-out", patch, closes, 0.0)] if closes else [])
     buses = {
         "strings": {"fx": [{"type": "eq", "bands": ["peak cutoff=330 q=1.2 gain=-2dB"]}, "reverb kind=room decay=0.35s mix=0.06 predelay=6ms"]},
         "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
@@ -211,7 +249,7 @@ def build():
         about=("Close Enough: chirpers, Common Time, track sixteen (chirper-two). Two harmoniums hold one note a hair apart; "
                "the hair is as wide in cycles as the tempo is in beats, so the pair pulses in time, and each overtone pulses twice, "
                "three times, four times as fast. The band plays those pulses. The metre is a tuning; the snare keeps four."),
-        tempo=BPM, seed=1, length=f"{end:g}b", tail="5s", ceiling="-1dB", loudness=-10, event_stable=True,
+        tempo=BPM, seed=1, length=f"{end:g}b", tail="5s", ceiling="-1dB", loudness=float(PAN.split(";")[3]) if PAN else -10, event_stable=True,
         buses=buses, master={"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}]}, tracks=tracks)
     return doc, marks, end
 
