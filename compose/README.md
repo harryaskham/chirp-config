@@ -340,6 +340,23 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
   one instrument sound better, heard alone and in the mix against the album's records; a gain in a library patch goes
   under a new name (`tools/libguard.py`); where the engine falls short, a bead with numbers. `climb.py pass` refuses
   now; `pass ID 'why' --anyway` is only for a song that cannot be touched (its files mid-change under someone else).
+- AN INSTRUMENT ROUND'S YARDSTICKS (found on 19 Nov, by the composers named; the round's brief carries the short form):
+  - the part ALONE against a record's lone part: guitars with `tools/cabspec.py`; a snare at its own hits with
+    `tools/drumpunch.py`'s measures against the records' drum stems (body 150-300 Hz and wires 5-12 kHz against crack
+    1.5-5 kHz: the album kit's snare read +5.0 dB body-to-crack, the records' median -3.2; chirper-zero's bench is
+    `~/.local/state/chirper-zero/c10/t11-snare/sn.py`); a part's share of its OWN power by band says what it is before
+    any record is consulted (a lead with 1% at 4-8 kHz has no pick: chirper-alpha).
+  - BY PART (`stembal.py song … --voice`, the group rows): read the two `groups:` lines first; until 08:18 on 19 Nov
+    the default groups left guitars out on sixteen of seventeen songs. A figure is a share of the whole mix.
+  - THE MIX on the NO-VOICE rows for a window where nobody sings. A change is kept when the mix agrees: the records'
+    stems do not sum to their mixes, and a rig fitted to a record's lone guitar can be wrong in the mix (chirper-zero).
+  - a MASTERED render before `done`: the master limiter turns down bowed and sawtooth-like parts, and sparse passages
+    come up; a new voice's HARMONICS before its loudness (chirper-zero).
+  - the recogniser ALONE, not under render load (`asr.py` exits 3 when a window did not finish).
+  - what you learn about a LIBRARY patch as it comes (tonight: `lead-tape`'s drive after its cabinet; the eight-string
+    family's vibrato on held chords; `m8-lead-guitar` without a pick; the album kit's snare; the plucked string's
+    pitch, now `tune_sounding`) is worth a successor under a NEW name for every song: yours to write, `libguard.py`
+    and chirp-eco to gate.
 - THE LAST WORD ON A SONG IS NOT YOURS TWICE (18 Nov, at chirper-two's asking, who was drawn Common Measure five times
   in a day). The draw leaves out of YOUR draw the song whose last round is your own, while any other free song is
   queued: after your round it is for someone else. `next --take ID` brings you back to a song on purpose; `next
