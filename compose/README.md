@@ -346,6 +346,15 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     1.5-5 kHz: the album kit's snare read +5.0 dB body-to-crack, the records' median -3.2; chirper-zero's bench is
     `~/.local/state/chirper-zero/c10/t11-snare/sn.py`); a part's share of its OWN power by band says what it is before
     any record is consulted (a lead with 1% at 4-8 kHz has no pick: chirper-alpha).
+  - a guitar's STROKE against the records' own strokes: `tools/riffpunch.py --strokes --song-file songs/ID.yaml
+    --tracks gl,gr --from S --to S` (seconds; the rig you are judging) prints rise, punch, tight, fizz, scoop and
+    grain beside six records' guitar stems read at their own chugs. Through a stroke the records' guitars carry
+    11.3 dB more at 1-4 kHz than at 400 Hz-1 kHz (scoop -11.3; -12.7 to -6.5); the album's `ct-twin` chug read
+    -4.4 on Extreme and Mean and -5.1 on In the Time Of: EVERY song's muted strokes are written at a full palm
+    (pm 1.0), which closes the string's filter to 1 kHz before the amp, and the 700 Hz lifts on the twins date
+    from the yardstick with voices in it (chirper-zero, Extreme and Mean v23: -7.7 after). The records give NO
+    figure for how empty the rest after a stroke should be: a stroke "followed by a rest" in our transcriptions
+    is not followed by one on their guitar stems (-4 to 0 dB under the stroke).
   - BY PART (`stembal.py song … --voice`, the group rows): read the two `groups:` lines first; until 08:18 on 19 Nov
     the default groups left guitars out on sixteen of seventeen songs. A figure is a share of the whole mix.
     `OUTSIDE THE GROUPS` under a window's table names a band where half or more of the mix is in NO group's tracks
