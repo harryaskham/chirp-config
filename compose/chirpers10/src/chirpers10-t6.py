@@ -994,7 +994,7 @@ HOME = os.environ.get("C10T6_HOME", "full;;") if HAIR else ""
 # rule SETTLES, two starts end as one voice. The second voice walks on from where v27 stops it, unheard, through
 # the top. Computed, and nothing in it is put there (what each plays in a half bar is the number after the step):
 #   - in the top the two are strangers, meet by chance at 2:40.0 (0.00007 apart) and, the top being what it is,
-#     are apart again eight half bars later;
+#     are apart again ten half bars later;
 #   - 2:48.7, where it is heard again: G5 under the tune's A flat 5, A flat 6 under its B flat 6, B5 over its
 #     B flat 5 (a semitone, a tone, a semitone), and both land on the top's last note, B6 (2:51.3);
 #   - on the way down the tune goes alone for two notes (the second voice's number is under the rest line), the
