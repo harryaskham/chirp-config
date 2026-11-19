@@ -197,6 +197,13 @@ RUPAK = os.environ.get('C10T9_RUPAK', '14;7;-9dB;-10.047' if SHAPE and KHANDA el
 # did there; but there it had twenty seconds to be noticed and here it has one beat. A gain written on a nylon,
 # baritone or clavinet note moves it 0.3 dB for a dB, as chirper-one found of the tabla: hence the two tracks.)
 REPRISE = os.environ.get('C10T9_REPRISE', '-7dB;-6dB;3dB;-10.085' if RUPAK and GEAR and SIX and KHANDA and HANDS and CROSS and CLUTCH else '')
+# v20: SIX AS ONE (chirper-zero, 19 Nov). Harry on the card it-return-duet, "Does dropping to two guitars make the
+# last chord land better?": "Prefer six throughout". At v3 (RING) the last cell of the return stripped back to the
+# two guitars that began the song. Now the other four stay and all six play the riff, every stroke a chord: the
+# one cell of the return where the six do the same thing. Mastered, its strokes read -7.9 to -8.8 LUFS momentary
+# (v19 -10.1 to -11.2; the F chord it lands on -8.0). on ; the loudness target (every other bar keeps v19's
+# mastering gain: level within 0.003 dB, both seeds). Empty restores v19.
+GATHER = os.environ.get('C10T9_GATHER', '1;-10.029' if REPRISE and RING else '')
 WALK = []
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
@@ -226,6 +233,8 @@ def one_again(tr, cell, pos, midi, pitch, length, returning):
     after_hook = pos in (4, 6)
     if not returning and cell < len(CELLS):
         return pitch, length             # teach both cells in their original register
+    if returning and GATHER and cell == RUNG // N - 1:
+        return pitch, length             # v20: the fourth cell of the return is all six on the one riff, every stroke a chord
     if not returning or cell == RUNG // N - 1:
         if tr not in ("gl", "gr"):
             return None                  # fourth cell of the return: the first two players
@@ -827,8 +836,9 @@ def song():
                   "across the beat and coming round to it every seven beats; at seven to the beat the riff is exactly one beat long "
                   "and locks. The bass and kick walk in quarters underneath. Then once more at one to the beat, every stroke a chord. "
                   "v1 is the skeleton.") + (" At four to the beat the two hook notes pass between a baritone guitar and a clavinet; they exchange roles halfway." if HANDS else "")
-                 + (" One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then the original two guitars play the last cell before everyone lands on F." if RING else ""),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(REPRISE.split(";")[3]) if REPRISE else float(RUPAK.split(";")[3]) if RUPAK else float(SHAPE.split(";")[3]) if SHAPE else float(SIX.split(";")[2]) if SIX else float(KHANDA.split(";")[1]) if KHANDA else PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
+                 + ((" One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then all six play the last cell as one before landing on F." if GATHER else
+                     " One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then the original two guitars play the last cell before everyone lands on F.") if RING else ""),
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(GATHER.split(";")[1]) if GATHER else float(REPRISE.split(";")[3]) if REPRISE else float(RUPAK.split(";")[3]) if RUPAK else float(SHAPE.split(";")[3]) if SHAPE else float(SIX.split(";")[2]) if SIX else float(KHANDA.split(";")[1]) if KHANDA else PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}, **({'hp': {'gain': CROSS.split(';')[1]}} if CROSS else {}),
                             **({'oh': {'patch':'haake-hat amp.d=1.05s amp.r=180ms amp.curve=2.2',
                                        'gain':CLUTCH,'pan':-.45,'choke':'hat'}} if CLUTCH else {})}},
