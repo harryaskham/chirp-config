@@ -246,6 +246,25 @@ TIGHT = os.environ.get("C10T7_TIGHT", "20ms;20ms;0.45;-10.028") if CHUG else ""
 BREAK = os.environ.get("C10T7_BREAK", "2:89:1,1,1;7:89:1,2,3;-10.153") if TIGHT else ""
 
 
+# v21 (chirper-one, whole song): THE KIT BREAKS DOWN TOO. In v20's two breakdowns the band rests where the riff two
+# sizes up rests, and the hands went on keeping common time over the holes: china in quarters, snare on three. A
+# band that stops under a kit that does not sounds like guitars dropping out (v20's own doubt, and chirper-two's
+# design before it: "the kit is the cure"). So in a breakdown THE HANDS GO OVER TO THE RIFF, the one place in the
+# song they leave common time: where the band plays, the china strikes the head of each long cell and the snare the
+# head of each short one; where the band rests, the hands rest. Two sizes up the riff is a long of 8 (three struck,
+# two struck, three at rest) and a short of 5 (three struck, two at rest), so what the hands play is that riff
+# itself: china, snare, rest for a long; china, rest for a short. The kit says stroke, stroke, rest at the size the
+# band is resting at. A crash already at the head of a cell stands for the china there. And in the second
+# breakdown, once the band has played its last stroke (4:37.1), the kit is gone too: the harp is alone for 4.1
+# seconds, as v20's own description had it. Then the kit comes back first, with the fill it ends every heavy
+# section with (two strokes on each tom, two on the snare, over the last eight sixteenths), and the riff comes in
+# on the crash: a breakdown that ends in silence is called back by the drums.
+# the hands' piece on a long cell's head ; on a short's ; their velocities ; 'fill' if the kit calls the band back
+# out of a breakdown that ends at rest ; the loudness target (at v20's -10.153 every other bar came out 0.06 dB
+# lower: the fill and the hands' harder strokes measure louder than the count they replace). "" = v20.
+HANDS = os.environ.get("C10T7_HANDS", "x;s;0.8;0.95;fill;-10.118") if BREAK and os.environ.get("C10T7_MASTER", "x") else ""
+
+
 def nm(n):
     return f"{NAMES[n % 12]}{n // 12 - 1}"
 
@@ -847,6 +866,24 @@ def the_rests_grow():
     T["cym"] = [n for n in T["cym"] if not (n["pitch"] == "c" and inside(tick(n), rests))]
     T["brass"] = [n for n in T["brass"] if not inside(tick(n), whole)]
     assert gone["gl"] == gone["gr"] == gone["bass"] == gone["kick"] > 0, gone
+    if HANDS:
+        on_long, on_short, v_long, v_short = HANDS.split(";")[:4]
+        crashes = {tick(n) for n in T["cym"] if n["pitch"] == "c"}
+        # the hands leave common time for the cell ...
+        T["cym"] = [n for n in T["cym"] if n["pitch"] == "c" or not inside(tick(n), whole)]
+        T["snare"] = [n for n in T["snare"] if not inside(tick(n), whole)]
+        # ... and strike with the band: the head of each small cell that still sounds
+        for q, kind, m in LEV[0]:
+            if inside(q, whole) and not inside(q, rests):
+                if kind == "S":
+                    drum(on_short, q, float(v_short))
+                elif q not in crashes:
+                    drum(on_long, q, float(v_long))
+        if HANDS.split(";")[4]:
+            for a, z in whole:
+                if all(inside(t, rests) for t in range(z - 8, z)):
+                    for j, pc in enumerate(["t1", "t1", "t2", "t2", "ft", "ft", "s", "s"]):      # as heavy() ends a section
+                        drum(pc, z - 8 + j, 0.6 + 0.045 * j)
     return rests
 
 
@@ -984,7 +1021,7 @@ def song():
                   "is the same at every size, so the band plays it at many sizes at once: muted strokes, open notes, chords, crashes, "
                   "the root, and the song's own sections (long ones heavy, short ones quiet). The kit keeps common time against it. In "
                   "the quiet sections a wire harp has no notes, only the rule (the engine's L-system). The slow song: 80. v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(BREAK.split(";")[-1]) if BREAK else float(TIGHT.split(";")[3]) if TIGHT else float(CHUG.split(";")[2]) if CHUG else float(HOLD.split(";")[1]) if HOLD else REST_LUFS if REST else -10, "seed": 1, "tail": "5s", "length": f"{(TOTAL + 32) / 4:g}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(HANDS.split(";")[5]) if HANDS else float(BREAK.split(";")[-1]) if BREAK else float(TIGHT.split(";")[3]) if TIGHT else float(CHUG.split(";")[2]) if CHUG else float(HOLD.split(";")[1]) if HOLD else REST_LUFS if REST else -10, "seed": 1, "tail": "5s", "length": f"{(TOTAL + 32) / 4:g}b", "event_stable": True,
         "patches": {
             **({"em-steel": {
                 "extends": "pedal-steel synth.amp.a=75ms synth.amp.r=140ms fx.0.mix=0.08 fx.1.mix=0 fx.2.mix=0 play.glide=0ms",
