@@ -477,6 +477,18 @@ PAIR = os.environ.get('C10T3_PAIR', '10:18;12;0' if NEARLY and HUNT2 and CROSS e
 # the dealt strokes' velocity ; their height over the riff's own notes, semitones ; how much of its row a bell dealt
 # at an eighth rings for (1 = the whole row: all six ringing at once, and nothing crosses the room). "" = v27.
 LOWER = os.environ.get('C10T3_LOWER', '6;7,7,6,6,6,4,4,2,2,1,1,1,1;0.97;0;0.5' if PAIR and HOME and W1 == (2, 2) else '')
+# v29 (chirper-three; whole song: the opening, 2:17 and the last tolls): THE MEN SING OUT (Harry, 19 Nov 02:22, on the
+# chant card: "chant louder, no need for new card/question"). The ten men were 5 to 6 dB under the bells. They are
+# not only turned up: they SING harder (every note struck 0.9 for 0.6, which in the voice is more effort and less
+# breath, 5.3 dB), the fader comes up 1 dB, and their consonants are held 3 dB back so the S of "vivos" does not
+# lead the vowels up (the words' noise was already 11 dB over everything else at 4-8 kHz). At 2:17 and under the
+# last tolls that is 6 dB: the men level with everything else that sounds. The opening gets 4.5: any more and the
+# eight seconds before the band are as loud as the band's first eight. The bells, the drone and the gong are as
+# they were. The patch is a new song-local one (`ph-monks-forte`); `ph-monks` is as chirper-zero left it.
+# dB on the chant's fader ; what is added to the choir's patch ; how hard the men sing (the notes' velocity; 0.6 = as
+# before) ; dB on the opening's notes alone (the band's entry at 0:08 has to stay a step up) ; the loudness target
+# with the men louder (the song's own, -10, is fitted to v28). "" = v28.
+LOUDER = os.environ.get('C10T3_LOUDER', '1;synth.layers.0.consonant_level=-3dB;0.9;-1.8;-9.89' if LOWER and MONKS else '')
 NEAR_END = PART2 * 4 + 38 * L2 / 4                 # beats: where the fourth lead's bob starts
 NEAR_AT = NEAR_END - 3 * int(NEARLY.split(';')[0]) if NEARLY else NEAR_END
 NEARLY_PTS = [[f"{NEAR_AT - 1:g}b", 0], [f"{NEAR_AT:g}b", float(NEARLY.split(';')[1])],
@@ -767,7 +779,8 @@ def chant(at, beats, line=None, first=None, step=3.0):
             if MONKS:                                                # v18: one line; the patch sings the fifth above it
                 words = MONKS.split(";")[3].split("/")[line].split("|")
                 assert len(words) == len(steps), (line, len(words), len(steps))
-                T.setdefault("chant", []).append({"at": round(t0, 4), "len": round(ln, 4), "pitch": nm(41 + d), "vel": 0.6, "ph": words[i]})
+                T.setdefault("chant", []).append({"at": round(t0, 4), "len": round(ln, 4), "pitch": nm(41 + d), "vel": float(LOUDER.split(";")[2]) if LOUDER else 0.6, "ph": words[i],
+                                                  **({"gain": f"{float(LOUDER.split(';')[3]):g}dB"} if LOUDER and line == 0 and float(LOUDER.split(";")[3]) else {})})
                 continue
             for base, v in ((41, 0.6), (48, 0.5)):                   # F2 and the C above it
                 T.setdefault("chant", []).append({"at": round(t0, 4), "len": round(ln, 4), "pitch": nm(base + d), "vel": v})
@@ -1029,7 +1042,7 @@ def song():
             "fx": [{"type": "eq", "bands": [{"kind": "hp", "cutoff": key_f(float(TREBLE.split(";")[0].split(":")[0])) if KEYEQ else float(TREBLE.split(";")[0].split(":")[0]),
                                              "q": float(TREBLE.split(";")[0].split(":")[1])}]}],
             **({"auto": {"key": {"points": KEY_LANE, "curve": 0}}} if KEYEQ else {})}] if TREBLE else []),
-        *([{"name": "chant", "patch": "ph-monks" if MONKS else TOWER.split(";")[0], "gain": MONKS.split(";")[1] if MONKS else CHANT.split(";")[2] if CHANT else TOWER.split(";")[1],
+        *([{"name": "chant", "patch": ("ph-monks-forte" if LOUDER and LOUDER.split(";")[1] else "ph-monks") if MONKS else TOWER.split(";")[0], "gain": (f"{float(MONKS.split(';')[1][:-2]) + float(LOUDER.split(';')[0]):g}dB" if LOUDER else MONKS.split(";")[1]) if MONKS else CHANT.split(";")[2] if CHANT else TOWER.split(";")[1],
             "pan": -0.1, "sends": {"hall": MONKS.split(";")[2] if MONKS else TOWER.split(";")[2]}},
            {"name": "gong", "patch": TOWER.split(";")[3], "gain": TOWER.split(";")[4], "pan": 0.2, "sends": {"hall": "-8dB"}},
            {"name": "drone", "patch": TOWER.split(";")[6], "gain": TOWER.split(";")[7], "pan": 0.2, "sends": {"hall": "-12dB"}}] if TOWER else
@@ -1057,10 +1070,12 @@ def song():
                   "highest note walks through the row and back all piece long, with the kick and a church bell on it. "
                   + ("Since v5 the highest note is long and the low F repeated, so the row is a riff: eight sixteenths in the first "
                      "extent, ten in the second." if RHYTHM else "v1 is the skeleton.")),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(LOUDER.split(";")[4]) if LOUDER else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
                     **({"ph-monks": {"about": "chirper-zero: Plain Hunt's chant - the library's voice-choir (five singers on a line) with basses' tracts, and a second five a fifth above sized to their part: ten men singing words",
-                                     "extends": MONKS.split(";")[0]}} if MONKS else {})},
+                                     "extends": MONKS.split(";")[0]}} if MONKS else {}),
+                    **({"ph-monks-forte": {"about": "chirper-three: Plain Hunt's ten men (ph-monks) singing out, on Harry's 'chant louder'",
+                                           "extends": MONKS.split(";")[0] + " " + LOUDER.split(";")[1]}} if LOUDER and LOUDER.split(";")[1] else {})},
         "buses": {
             "hall": {"fx": ["reverb kind=hall decay=4.5s mix=1 predelay=30ms low_cut=150"]},
             "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
