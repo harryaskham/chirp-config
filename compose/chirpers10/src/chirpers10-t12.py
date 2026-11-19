@@ -210,7 +210,29 @@ def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, turned=True, rig=HANDS_RIG, reading=True, chest=True, palmas=True):
+# v20 (chirper-one, instrument round: the snare drum, every stroke; v18's and v19's handoffs asked for it): THE SNARE
+# LOSES ITS BOX AND GETS ITS CRACK. Read alone at its own strokes the way tools/drumpunch.py reads a snare on a
+# record, the album kit's snare stood here at body against crack +2.0 dB (six records' drums: -3.2, between -4.4 and
+# +0.2 on five of them) and wires against crack +2.8 (records 0.0, -0.6 to +1.4): a box with hiss over it. By part
+# against the records' drums the kit was 4.1 over at 250-500 Hz and 5.4 over at 500 Hz-1 kHz, 70 and 78% of it the
+# snare, and 2.1 short at 4-8 kHz. On Its Hinge's snare (its v19: the same drum, the same fault) read TOO THIN here
+# with that song's settings (body against crack -6.3): this song strikes it differently. So, fitted here: the body's
+# lift at 200 Hz 5 -> 1.5 dB; a harder stroke (contact 0.6 -> 0.35) with more slap (1.2 -> 1.6); the wires tighter
+# and voiced lower (0.85 -> 0.95, 7 kHz -> 5 kHz), so they fill 4-8 kHz; 3 dB off the drum's box at 650 Hz on its
+# track; its fader 2 -> 1 dB, so a stroke is as loud as it was. No note changes; nothing else is touched.
+# BUILT, RENDERED AND NOT KEPT (fields four and five): each hand giving back 3 dB above 4 kHz with its fader 0.45 up
+# ('highshelf cutoff=4000 gain=-3dB', 0.45). By part the hands hold 4.3 dB more of 4-8 kHz than the records' guitars
+# and 8.1 more of 8-16 kHz, and with that the three fullest sections read nearer the records; but where a guitar is
+# nearly alone ('one hand', 'facing page', 'carbon') the mix is already short up there and went shorter. It belongs
+# with the cymbals' round (chirper-zero's v18 handoff: "when the cymbals have their top").
+# the snare's settings ; a band on the snare's track ; its fader ; a band added to each hand's eq (None: none) ;
+# dB on each hand's fader ; the loudness target (None: unchanged). --without-crack gives v19.
+CRACK = (' kit.s.patch.synth.filters.1.gain=1.5dB kit.s.patch.synth.layers.0.contact=0.35 kit.s.patch.synth.layers.0.slap=1.6'
+         ' kit.s.patch.synth.layers.0.wire_tone=5000 kit.s.patch.synth.layers.0.wires=0.95',
+         'peak cutoff=650 q=1 gain=-3dB', '1dB', None, 0, None)
+
+
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, turned=True, rig=HANDS_RIG, reading=True, chest=True, palmas=True, crack=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
@@ -227,6 +249,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
     turned = turned and heavy and rig is not None  # --stock-rig is v15's notes on the old rig
     reading = reading and turned                 # --without-turned-page still gives v15
     palmas = PALMAS if palmas and chest and reading and rig is not None else None   # --without-chest still gives v17
+    crack = CRACK if crack and palmas and all([drum_hand, crease, mirror_bass, picking_hand, signature, ties, facing, palindrome, album_kit, dominant, thumbs, copy, heavy, turned]) else None   # every older flag gives exactly what it gave
     ev = defaultdict(list); sections = []; tie_gains = {}; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -615,7 +638,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
             track('mouth','vosim-voice synth.amp.a=11ms synth.amp.r=78ms','-14dB',-.12,fx=room),
             track('wire','ct-clean','-4dB',.21,fx=room),track('bass','ct-bass','0dB',0,'low'),
             track('foot','ct-kit','2dB',0,'drums',[{'type':'eq','bands':['peak cutoff=4400 q=0.84 gain=6dB']}]),
-            track('snare','ct-kit','2dB',0,'drums'),track('hat','ct-kit','11dB',-.18,'drums'),
+            track('snare','ct-kit'+(crack[0] if crack else ''),crack[2] if crack else '2dB',0,'drums',[{'type':'eq','bands':[crack[1]]}] if crack and crack[1] else None),track('hat','ct-kit','11dB',-.18,'drums'),
             track('brass','ct-kit','-4.5dB',.15,'drums'),track('skins','ct-kit','1.5dB',0,'drums')]
     for tr in tracks:
         if tr['name'] in tie_gains:
@@ -651,7 +674,10 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                 t['patch'] = t['patch'].replace('ct-twin ', 'ct-twin '+rig[0]+' ')
                 if rig[1] and isinstance(t['gain'], dict): t['gain']['value'] = rig[1]   # the right hand's fader has a lane (v7's ties)
                 elif rig[1]: t['gain'] = rig[1]
-                if rig[2]: t['fx'] = [{'type':'eq','bands':(CHEST[0] if chest and reading else [])+rig[2]}]
+                if rig[2]: t['fx'] = [{'type':'eq','bands':(CHEST[0] if chest and reading else [])+rig[2]+([crack[3]] if crack and crack[3] else [])}]
+                if crack and crack[4]:      # v20: the hands' faders, so the band is as loud as it was with their top given back
+                    if isinstance(t['gain'],str): t['gain'] = f"{float(t['gain'][:-2])+crack[4]:g}dB"
+                    else: t['gain'] = dict(t['gain'],value=f"{float(t['gain']['value'][:-2])+crack[4]:g}dB")
     if thumbs:
         for side,way in [('left',-1),('right',1)]:
             tracks.append(track('tines-'+side,TINES[0],TINES[1],way*TINES[2],fx=room))
@@ -687,7 +713,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
            'drums':{'fx':['reverb kind=room mix=0.10 decay=0.53s predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'18ms','release':'120ms'},'clip ceiling=-13dB']},
            'low':{'fx':[{'type':'eq','bands':['peak cutoff=48 q=1.4 gain=-4dB','peak cutoff=98 q=1 gain=3dB','peak cutoff=310 q=0.9 gain=-4dB']},{'type':'compressor','threshold':'-24dB','ratio':5,'attack':'14ms','release':'115ms'}]}}
     if album_kit: buses['drums']['fx'].append({'type':'eq','bands':KIT_EQ+([CHEST[1]] if chest and reading and rig else [])})
-    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(palmas[4] if palmas and palmas[4] else CHEST[2] if chest and reading and rig else READING[3] if reading else HEAVY_LOUDNESS if heavy else COPY_LOUDNESS if copy else THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
+    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(crack[5] if crack and crack[5] else palmas[4] if palmas and palmas[4] else CHEST[2] if chest and reading and rig else READING[3] if reading else HEAVY_LOUDNESS if heavy else COPY_LOUDNESS if copy else THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
     return doc,sections
 
 def dump(d):
@@ -710,8 +736,9 @@ if __name__=='__main__':
     ap.add_argument('--without-first-reading',action='store_true',help="regenerate v16, the last strip of 'ink' in unison")
     ap.add_argument('--without-chest',action='store_true',help="regenerate v17, the two hands without their chest and the kit's bus without its cut at 190 Hz")
     ap.add_argument('--without-palmas',action='store_true',help="regenerate v18, the count in 'opposite' without its other hand")
+    ap.add_argument('--without-crack',action='store_true',help="regenerate v19, the album kit's snare as it comes and the two hands with their top")
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas)
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
