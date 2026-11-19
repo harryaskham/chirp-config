@@ -186,6 +186,38 @@ REST_LUFS = -10.028
 # Sixteenths into the song where the bass starts to hold ; the loudness target (every quiet bar keeps v17's
 # mastering gain). "" = v17; it is on only while REST is.
 HOLD = os.environ.get("C10T7_HOLD", "144;-10.028") if REST else ""
+# v19: HARRY'S THREE ANSWERS (19 Nov 02:26, on the review page; they came in a minute before v18 was recorded and I
+# had not seen them). On "heavy, or only slow?": "yeah but really make it chug if slow. play with breakdowns". On the
+# last chord: "Chug right through" (not "Let the riff fall away"). On the steel: "Keep the steel".
+# A chug is the stroke AND its rest, in every part at once: v18's bass, holding through the rests, was less of one,
+# not more. So the bass keeps the rests again, with the guitars and the foot, as in v17 (v18's hold stays behind
+# this switch). And the last riff no longer falls away (v5's peel, from 55 sixteenths to go: the outer guitars left
+# at 34, the inner pair at 21, the bass and the foot at 13): all four guitars, the bass and the kit now play every
+# stroke up to the last chord. The steel stays as it is.
+# the bass: 'rests' or 'held' ; the last riff: 'through' or 'peel' ; the loudness target (ten seconds more of the
+# whole band made the file measure louder: at -10.028 every other bar came out 0.08 dB under v17, at -9.951 0.02 to 0.05 over).
+# "" = v18; 'rests;peel;-10.028' = v17. It is on only while HOLD is, so each older switch still gives what it gave.
+CHUG = os.environ.get("C10T7_CHUG", "rests;through;-9.951") if HOLD else ""
+# v19, the other half (chirper-two, palette round: the chug's own rig): THE STROKE STOPS. "Really make it chug": a
+# chug is the stroke and its rest, and measured on the parts alone the rest was not one. After a muted stroke the
+# guitar's level through the following sixteenth was 9 dB under the stroke (its string is let go over 90 ms into an
+# amp that holds whatever it is given at full level), and the bass's 8 dB under (its own release, then two
+# compressors' recovery). Neither the palm mute's damping nor the rig's gate moves that (benched: nothing at all);
+# the string's release does. So this song's guitars let go in a fiftieth of a second, twins and walls: no stroke
+# of theirs is written differently, every one is where it was and as long; what changes is how each one ENDS, the
+# chords and ringing notes too (they stop on the rest, where they rang 90 ms into it). The bass plays in the quiet
+# sections as well, long soft notes that should end as they did, so its rig is left alone: instead, in the heavy
+# sections only, each bass note that has a rest after it is written that much shorter, and its own release ends
+# where the rest begins.
+# the twins' release ; the walls' ; sixteenths off a bass note before a rest ; the loudness target. "" = the song
+# with CHUG alone.
+# (The target is v18's own, so the file measures what the album's files measure. The rests are emptier, so at that
+# loudness everything stands 0.3 dB higher than with CHUG alone: the heavy sections read what they read in v18,
+# within 0.2 dB, with the strokes higher and the rests lower inside them. At -10.206 the quiet sections kept their
+# gain exactly (-0.001 dB, residual -80 dB: no note or sound of theirs changes) and the file read -10.3.)
+# (The walls' plate was benched too: without it the tutti's rests are 1.5 dB emptier, no more, because what sounds
+# through them there is the brass, the iron and the kit's room. It stays.)
+TIGHT = os.environ.get("C10T7_TIGHT", "20ms;20ms;0.45;-10.028") if CHUG else ""
 
 
 def nm(n):
@@ -426,7 +458,7 @@ def compose():
         here = [POOL[st] for (p, _, _), st in zip([c for c in LEV[0] if c[0] >= s0], harp_tune(9)) if LIFT_SPAN[0] <= p < LIFT_SPAN[1]]
         horn = [POOL[st] for (p, _, _), st in zip([c for c in LEV[4] if c[0] >= s0], harp_tune(5)) if LIFT_SPAN[0] <= p < LIFT_SPAN[1]]
         assert {(x - POOL[0] - int(LIFT)) % 12 for x in here[:-1] + horn} == {0, 4, 7} and (here[-1] - POOL[0]) % 12 == 0
-    if PEEL:
+    if PEEL and not (CHUG and CHUG.split(";")[1] == "through"):
         peel_last_riff()
     for tr in ("gl", "gr", "wl", "wr"):                   # where the fifteenth line would begin: one chord
         add(tr, TOTAL, 32, ",".join(nm(F1 + j) for j in (0, 7, 12, 19)), 0.95)
@@ -744,6 +776,23 @@ def the_bass_does_not_rest():
     assert held > 200, held
 
 
+def the_stroke_stops():
+    """In the heavy sections a bass note with a rest after it ends early enough for its release to be over by the rest."""
+    off = float(TIGHT.split(";")[2])
+    tick = lambda note: round(note["at"] * 4)
+    done = 0
+    for s0, kind, n in SECS:
+        if kind != "L":
+            continue
+        inside = sorted((x for x in T["bass"] if s0 <= tick(x) < s0 + n), key=lambda x: x["at"])
+        for a, b in zip(inside, inside[1:] + [{"at": (s0 + n) / 4}]):
+            long16 = round(a["len"] * 4 / 0.98)                  # as written, in sixteenths
+            if tick(b) - tick(a) > long16 and long16 >= 1:       # a rest follows
+                a["len"] = round((long16 - off) / 4 * 0.98, 4)
+                done += 1
+    assert done > 200, done
+
+
 def letters_on_two_sides():
     """Long cells left, short cells right, for the song's first cell of 55. Nothing is added."""
     s0, end = SECS[0][0], SECS[0][0] + SIZE[6][0]
@@ -776,11 +825,14 @@ def song():
         the_iron_says_five_and_three()
     if REST:
         one_stroke_and_a_rest()
-    if HOLD:
+    if HOLD and not (CHUG and CHUG.split(";")[0] == "rests"):
         the_bass_does_not_rest()
+    if TIGHT:
+        the_stroke_stops()
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
-    main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
+    main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}" + (" synth.amp.r=" + TIGHT.split(";")[0] if TIGHT else "")
+    let_go = lambda patch, field: patch + (" synth.amp.r=" + TIGHT.split(";")[field] if TIGHT else "")
     mids = {"fx": [{"type": "eq", "bands": ["peak cutoff=700 q=0.9 gain=2.5dB"]}]}
     wall = {"fx": [{"type": "eq", "bands": ["peak cutoff=380 q=1 gain=-3dB"]}]}
     hg, hh, h8 = HARP.split(";")
@@ -790,8 +842,8 @@ def song():
     tracks = [
         {"name": "gl", "patch": main.format(50), "gain": "-0.7dB", "pan": -1, "out": "gtrs", **mids},
         {"name": "gr", "patch": main.format(51), "gain": "-0.7dB", "pan": 1, "out": "gtrs", **mids},
-        {"name": "wl", "patch": "ct-wall-stop-l", "gain": "-3.5dB", "pan": -0.75, "out": "gtrs", **wall},
-        {"name": "wr", "patch": "ct-wall-stop-r", "gain": "-3.5dB", "pan": 0.75, "out": "gtrs", **wall},
+        {"name": "wl", "patch": let_go("ct-wall-stop-l", 1), "gain": "-3.5dB", "pan": -0.75, "out": "gtrs", **wall},
+        {"name": "wr", "patch": let_go("ct-wall-stop-r", 1), "gain": "-3.5dB", "pan": 0.75, "out": "gtrs", **wall},
         *[{"name": f"harp{i + 1}", "patch": "em-harp", "gain": g, "pan": 0.25, "at": f"{s0 / 4:g}b", "sends": {"hall": hh},
            "gen": [harp_gen(d, n, pool)]} for i, s0, d, n, pool, g in harps],
         *([{"name": f"harp{i + 1}{'bc'[k - 1]}", "patch": "em-harp", "gain": CANON.split(";")[k - 1], "pan": (-0.3, 0.0)[k - 1],
@@ -873,7 +925,7 @@ def song():
                   "is the same at every size, so the band plays it at many sizes at once: muted strokes, open notes, chords, crashes, "
                   "the root, and the song's own sections (long ones heavy, short ones quiet). The kit keeps common time against it. In "
                   "the quiet sections a wire harp has no notes, only the rule (the engine's L-system). The slow song: 80. v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(HOLD.split(";")[1]) if HOLD else REST_LUFS if REST else -10, "seed": 1, "tail": "5s", "length": f"{(TOTAL + 32) / 4:g}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(TIGHT.split(";")[3]) if TIGHT else float(CHUG.split(";")[2]) if CHUG else float(HOLD.split(";")[1]) if HOLD else REST_LUFS if REST else -10, "seed": 1, "tail": "5s", "length": f"{(TOTAL + 32) / 4:g}b", "event_stable": True,
         "patches": {
             **({"em-steel": {
                 "extends": "pedal-steel synth.amp.a=75ms synth.amp.r=140ms fx.0.mix=0.08 fx.1.mix=0 fx.2.mix=0 play.glide=0ms",
