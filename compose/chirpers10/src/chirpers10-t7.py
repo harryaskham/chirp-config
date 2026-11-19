@@ -218,6 +218,32 @@ CHUG = os.environ.get("C10T7_CHUG", "rests;through;-9.951") if HOLD else ""
 # (The walls' plate was benched too: without it the tutti's rests are 1.5 dB emptier, no more, because what sounds
 # through them there is the brass, the iron and the kit's room. It stays.)
 TIGHT = os.environ.get("C10T7_TIGHT", "20ms;20ms;0.45;-10.028") if CHUG else ""
+# v20 (chirper-alpha, whole song): THE BREAKDOWNS (Harry, 19 Nov 02:26: "yeah but really make it chug if slow. play
+# with breakdowns"). v19 made the chug; this is the other half. The kit already plays half time at 80, so a
+# breakdown here cannot be 'half time'. It is the song's own rule instead, and nothing is written for it:
+#     THE BAND RESTS WHERE THE RIFF TWO SIZES UP RESTS.
+# The riff is a long cell of 3 (stroke, stroke, rest) and a short of 2 (stroke, rest). Two sizes up the same riff
+# is a long cell of 8 (three sixteenths struck, two struck, THREE AT REST) and a short of 5 (three struck, TWO AT
+# REST). In a breakdown the guitars, the bass and the foot go on playing their small strokes exactly where they
+# were, but only where that larger riff strikes; where it rests, they rest. So the chug comes in the shape of the
+# chug: a chord and a stroke, three quarters of a second of nothing; a ringing string and a stroke, under half a
+# second of nothing. No stroke is moved or added: A BREAKDOWN IS NOT PLAYED, IT IS LEFT OUT. And since v19 the
+# stroke stops, so what is left out is silence under the kit, which keeps common time as it does everywhere.
+# The rule goes on upward, and the song plays with that: four sizes up the rests are 8 and 5 sixteenths (1.5 and
+# 0.9 seconds), six sizes up 21 (3.9 seconds).
+#   1:27.4-1:37.7  the two-guitar section, its third cell of 55, before the steel: the rests of two sizes up.
+#   4:32.4-4:42.8  the last section, its third cell of 55, under the harp: the RESTS GROW. Its first 21 sixteenths
+#                  rest two sizes up; the next 13 four sizes up as well (one chord, one stroke, 1.7 seconds of
+#                  nothing); the last 21 six sizes up: the band is gone, and what is left is the harp, alone as
+#                  in the quiet sections, saying the same rule. Then the ground rises (v12) and the riff chugs
+#                  right through to the last chord (his other answer), every stroke of it.
+# The horn leaves both cells whole: in a breakdown everything that is not the chug goes.
+# section : sixteenths into it : how many sizes of rest are open in each of the cell's three parts (21, 13, 21);
+# ... ; the loudness target. "" = v19.
+# (The target: with twenty seconds of the song part silence the file measures quieter, and at v19's target every
+# other bar came out 0.07 to 0.22 dB higher. At -10.153 every bar outside the two cells keeps v19's gain within
+# 0.008 dB, residual -68 dB or lower, on both seeds; the file reads -10.2 LUFS.)
+BREAK = os.environ.get("C10T7_BREAK", "2:89:1,1,1;7:89:1,2,3;-10.153") if TIGHT else ""
 
 
 def nm(n):
@@ -793,6 +819,37 @@ def the_stroke_stops():
     assert done > 200, done
 
 
+def the_rests_grow():
+    """A breakdown: the band rests where the riff two (four, six) sizes up rests. No stroke moves, none is added."""
+    tick = lambda note: round(note["at"] * 4)
+    rests, whole = [], []
+    for spec in BREAK.split(";")[:-1]:
+        i, off, depths = spec.split(":")
+        s0 = SECS[int(i)][0] + int(off)
+        assert at_size(6, s0) == (s0, "L", SIZE[6][0])          # a long cell of 55: its parts are 21, 13 and 21
+        parts = [c for c in LEV[4] if s0 <= c[0] < s0 + SIZE[6][0]]
+        depths = [int(d) for d in depths.split(",")]
+        assert len(parts) == len(depths) == 3
+        whole.append((s0, s0 + SIZE[6][0]))
+        for (p, _, n), depth in zip(parts, depths):
+            for k in range(2, 2 * depth + 1, 2):
+                for q, kind, m in LEV[k]:                       # a cell of size k rests for its last cell of size k - 2
+                    a, z = q + m - SIZE[k - 2][kind == "S"], q + m
+                    if p <= a and z <= p + n:
+                        rests.append((a, z))
+    inside = lambda t, spans: any(a <= t < z for a, z in spans)
+    gone = {}
+    for tr in ("gl", "gr", "wl", "wr", "bass", "kick"):
+        keep = [n for n in T[tr] if not inside(tick(n), rests)]
+        gone[tr] = len(T[tr]) - len(keep)
+        T[tr] = keep
+    # a crash at the head of a cell is that cell's stroke; the china in quarters and the snare are the kit's time and stay
+    T["cym"] = [n for n in T["cym"] if not (n["pitch"] == "c" and inside(tick(n), rests))]
+    T["brass"] = [n for n in T["brass"] if not inside(tick(n), whole)]
+    assert gone["gl"] == gone["gr"] == gone["bass"] == gone["kick"] > 0, gone
+    return rests
+
+
 def letters_on_two_sides():
     """Long cells left, short cells right, for the song's first cell of 55. Nothing is added."""
     s0, end = SECS[0][0], SECS[0][0] + SIZE[6][0]
@@ -827,6 +884,8 @@ def song():
         one_stroke_and_a_rest()
     if HOLD and not (CHUG and CHUG.split(";")[0] == "rests"):
         the_bass_does_not_rest()
+    if BREAK:
+        the_rests_grow()                 # before the stroke stops: the bass's last note before each new rest is let go in time too
     if TIGHT:
         the_stroke_stops()
     kit = "ct-kit-here"
@@ -925,7 +984,7 @@ def song():
                   "is the same at every size, so the band plays it at many sizes at once: muted strokes, open notes, chords, crashes, "
                   "the root, and the song's own sections (long ones heavy, short ones quiet). The kit keeps common time against it. In "
                   "the quiet sections a wire harp has no notes, only the rule (the engine's L-system). The slow song: 80. v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(TIGHT.split(";")[3]) if TIGHT else float(CHUG.split(";")[2]) if CHUG else float(HOLD.split(";")[1]) if HOLD else REST_LUFS if REST else -10, "seed": 1, "tail": "5s", "length": f"{(TOTAL + 32) / 4:g}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(BREAK.split(";")[-1]) if BREAK else float(TIGHT.split(";")[3]) if TIGHT else float(CHUG.split(";")[2]) if CHUG else float(HOLD.split(";")[1]) if HOLD else REST_LUFS if REST else -10, "seed": 1, "tail": "5s", "length": f"{(TOTAL + 32) / 4:g}b", "event_stable": True,
         "patches": {
             **({"em-steel": {
                 "extends": "pedal-steel synth.amp.a=75ms synth.amp.r=140ms fx.0.mix=0.08 fx.1.mix=0 fx.2.mix=0 play.glide=0ms",
