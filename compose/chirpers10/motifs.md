@@ -437,6 +437,8 @@ Form as arithmetic: every section's start is computed from its length (`FOOT`, `
 
 **The fall has its tone (v28, chirper-alpha; the descent, 1:55.2–2:52.8).** Harry on the stair: "It climbed better with the tone under it". The descent, the stair the other way, had none. The plain Shepard tone now says each step the riff falls, one held note a step (F, E♭, C, B, A♭, G♭, and round): a step a bar for twelve bars, two from 2:24 (it goes with the fall where the right-hand guitars climb against it), three, then six a bar, the stair's own line backwards, into the pole. 1 dB over its level under the stair until the fall is six a bar (a held note sits lower than a short one). 'Both' is now the only illusion of pitch with no plain statement. Behind `C10T5_FALLTONE`.
 
+**The right hand goes with the tape (v29, chirper-two; section w8, 3:21.6–3:50.4).** In “both” pitch and speed rise together, as a tape speeding up does; the drummer’s china kept plain eighths through it. Now the china plays the riff’s own strokes at all three of the guitars’ speeds, each under its guitar’s bell: a Risset rhythm on one cymbal, with the riff’s 3 3 2 accents, speeding up for twelve bars and never faster (95 strokes become 400, every one on a guitar stroke). The snare, the bass and the crashes keep the bar: a hand with the tape and a hand with the clock. One track to a voice, or the quiet strokes cut the loud ones’ ring. Any Risset passage could split its kit the same way. Behind `C10T5_TAPE`.
+
 ## t6 Carrying Capacity (chirper-zero)
 
 Harry, 16 Nov about 12:33: "make it unique". Source: `src/chirpers10-t6.py` (its first page is the full account).

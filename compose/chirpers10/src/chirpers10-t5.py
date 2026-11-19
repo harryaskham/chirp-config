@@ -1157,6 +1157,68 @@ TICKTONE = os.environ.get("C10T5_TICKTONE", "filters.0.cutoff.value=5k amp.d=25m
 FALLTONE = os.environ.get("C10T5_FALLTONE", "1;68;-9.975" if TICKTONE else "")
 
 
+# v29 (chirper-two; section w8, 3:21.6-3:50.4, "both"; the window no round had focused): THE RIGHT HAND GOES WITH
+# THE TAPE. "Both" is the song's last illusion: pitch and speed rise together, "as a tape speeding up does". But a
+# tape that speeds up takes the cymbals with it, and here the drummer's right hand kept plain eighths on the china
+# for the whole passage, 300 ms apart from first to last, while six guitars sped up round it: the one thing in the
+# passage that says nothing is getting faster. Now the china leaves the bar and plays the riff's own strokes at all
+# three of the guitars' speeds, each under the same bell as its guitar: one voice fading in at half speed, one
+# doubling from the eighth to the sixteenth at full level, one from the sixteenth towards the thirty-second as it
+# fades out. Each voice goes on into the next cycle twice as fast as it began, so the cymbal speeds up for twelve
+# bars and is never faster. Its accents are the riff's (3 3 2), which the plain eighths never said. The LEFT hand
+# and the foot stay: the snare on two and four, the bass four in a bar, the crash on each four-bar line. So the kit
+# is torn in two, a hand with the tape and a hand with the clock, and the bar can still be counted.
+# At 3:50.4 the hand leaves for the gong, as before (v19): the last cycle has no china.
+# 95 strokes become 400 (three cycles; every one of the 400 falls on a guitar's stroke at that speed). A bar that
+# had 8 strokes has 27, 29, 18 and 22 within 9 dB of full, through each cycle.
+# ONE CYMBAL TO A VOICE: on one track the same strokes read 2 to 15 dB LOWER alone, bar by bar (a kit piece is one
+# voice on its track: a quiet stroke of the fast voice cuts the ring of a loud one). So three tracks, `tape0-2`,
+# copies of the cymbal track's own strip.
+# MEASURED (raw, seed 0). The illusion holds (tools/endless.py on the three tracks, 4-bar cycle): the three cycles
+# within 0.3 dB of each other, the level inside a cycle within 0.5 dB of its mean, 0.9 dB at the wrap; the notes
+# the same in every cycle but two (the bar line the gong has taken). The cymbals alone, K, by bar: -29.2..-30.6
+# before, -28.4..-29.0 now; against everything else -9.7..-12.2 before, -8.7..-10.6 now. The mix over the string's
+# passage (3:21.6-3:40.8): +0.40 dB at 4-8 kHz, +0.54 at 8-16 kHz, and 0.04 or less in every band under 4 kHz,
+# where the held string sounds ("I hear it: keep it"). In the finished file every other section is within 0.01 dB.
+# the china strikes every this-many eighths of the riff ; bars from:to ; dB on its strokes there ; velocity on the
+# riff's accents ; elsewhere ; strokes under this level of the bell are left out, dB ; the loudness target ("" =
+# unchanged). "" = v28.
+TAPE = os.environ.get("C10T5_TAPE", "1;84:96;-1;0.575;0.41;-24;" if FALLTONE else "")
+
+
+def the_right_hand_goes_with_the_tape(doc):
+    """In "both" the china leaves the bar and plays the riff's own grid at all three speeds, under the guitars' bell:
+    every stroke of it falls with a stroke of the guitar at that speed. The crashes, the snare and the bass keep the bar.
+    One cymbal to a voice (a track each): on one, a quiet stroke of the fast voice cuts the ring of a loud one."""
+    every, bars, trim, loud, soft, floor, lufs = TAPE.split(";")
+    b0, b1 = (int(x) for x in bars.split(":"))
+    assert BOTH <= b0 < b1 <= STOP and (b0 - BOTH) % CYCLE == 0 and (b1 - b0) % CYCLE == 0
+    cym = next(t for t in doc["tracks"] if t["name"] == "cym")
+    gone = [n for n in cym["notes"] if n["pitch"] == "x" and b0 * 4 <= n["at"] < b1 * 4]
+    cym["notes"] = [n for n in cym["notes"] if not (n["pitch"] == "x" and b0 * 4 <= n["at"] < b1 * 4)]
+    held = {n["at"] for n in cym["notes"]} | {n["at"] for n in gone}       # (a bar line the gong has taken stays the gong's)
+    tc, L, new = CYCLE * 4.0, len(PAT) * 0.5, {v: [] for v in range(ROLES)}
+    for c in range((b1 - b0) // CYCLE):
+        c0 = b0 * 4 + c * tc
+        for j in range(ROLES):
+            scale = 2 ** (j - 1) * tc
+            for m in range(int(round(1.5 * scale / L))):
+                for i in range(0, len(PAT), int(every)):
+                    u = -1 + math.sqrt(1 + 2 * (m * L + i * 0.5) / scale)
+                    g = db(bell((j + u) / ROLES))
+                    at = round(c0 + u * tc, 4)
+                    if g < float(floor) or (u == 0 and at not in held):
+                        continue
+                    new[(j - c) % ROLES].append({"at": at, "len": 2.0, "pitch": "x", "vel": float(loud) if PAT[i] == "o" else float(soft),
+                                                 "gain": f"{g + float(trim):.1f}dB"})
+    for v in range(ROLES):                               # a voice goes on from one cycle to the next, twice as fast
+        doc["tracks"].append({**{k: json.loads(json.dumps(x)) for k, x in cym.items() if k != "notes"}, "name": f"tape{v}",
+                              "notes": sorted(new[v], key=lambda n: n["at"])})
+    if lufs:
+        doc["loudness"] = float(lufs)
+    return len(gone), sum(len(x) for x in new.values())
+
+
 def the_tick_is_a_tick(doc):
     hat, fader, room, bands, lufs = TICKTONE.split(";")
     # a kit of its own, so the brake and the foot's hat keep the hat they had
@@ -1327,6 +1389,8 @@ def song():
         the_tick_is_a_tick(doc)
     if FALLTONE and FALLTONE.split(";")[2]:
         doc["loudness"] = float(FALLTONE.split(";")[2])
+    if TAPE:
+        the_right_hand_goes_with_the_tape(doc)
     return doc
 
 
