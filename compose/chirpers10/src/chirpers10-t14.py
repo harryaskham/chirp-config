@@ -393,6 +393,40 @@ SEMITONE = os.environ.get("C10T14_SEMITONE", f"C3,C4;l;m{53 + 12 * math.log2(8 /
 # in turn ; the sections it is played in ; the loudness target ("" = unchanged) ; where the bass's bus stands for
 # each of those notes, semitones over F ("" = it stays on F, the section's ground). "" = v11.
 TURN = os.environ.get("C10T14_TURN", "F1:6:24,C2:8:16,Ab2:10:20;minor,home;;0,7,15" if SEMITONE else "")
+# v13 (chirper-one, whole song: its frame): THE SONG IS COUNTED. The title says what the piece does (a chord slowed
+# until it is slow enough to count) and nobody in it counted: twelve rounds and no voice. Under the rule a lyric
+# needs no writing, as the tune needed no pitches: A NUMBER, SUNG, LASTS AS LONG AS IT SAYS, on the note of that
+# length. 'Three' is three sixteenths long and an F, 'four' four and a C, 'five' five and an A flat. The voice
+# sings only where the drums are alone, three places:
+#   down    0:04.5-0:13.7, over the rolls unwinding: 'three four five six seven eight nine ten eleven twelve',
+#           the tune's last phrase (S, the whole scale of the rule) as words. Each number is longer and lower than
+#           the last, so the count slows as it falls, two octaves, with the drums; it is 75 sixteenths, and the
+#           drums are in tempo as 'twelve' ends. Slow enough to count
+#   named   0:13.7-0:21.0, the three drums alone in tempo: 'three four five', five times. Each drum's stroke is
+#           named for exactly as long as it lasts, on its own note an octave over the drum; 3 + 4 + 5 is twelve,
+#           an F, and five twelves are the sixty. Then the band comes in and the voice has said what it will play
+#   up      2:57.8-3:06.9, over the rolls winding up: 'twelve eleven ten ... three', from the moment the tune's own
+#           last note (its 'twelve', the low F) ends: quicker and higher with every number, two octaves, to the F
+#           a moment before the band's last chord
+# Two voices an octave apart (a man, and the same voice with a shorter tract), on the tune's own notes for those
+# lengths and the octave under them; the seven is the D a third of a semitone sharp and the eleven the G flat a
+# quarter-tone sharp, by the song's tuning, as on the tabla wheels. THE DRUMS MAKE THE ROOM: the song's quiet frame
+# is its contrast with the band, and a first build with the voices 2 dB under the drums made those passages 2 dB
+# louder (the scorer's level range 5.3 -> 4.0 dB). So the voices are 3 dB lower and the toms' fader comes down
+# 1.6 dB while a voice counts: each passage is within a decibel of where it was.
+# the voice's patch ; its fader ; the second voice's tract, an octave over the first ('' = one voice) ; its fader ;
+# their eq bands (| between) ; the reverb on them ('' = dry) ; their velocity ; sixteenths of breath between two
+# numbers ; which of the three places are sung (down = the count as the drums slow, named = 'three four five' over
+# the three drums alone, up = the count back as they wind up) ; the loudness target ('' = unchanged) ; dB on the
+# notes of 'named' (its three notes are the voices' highest and loudest) ; dB the count back has gained by its last
+# number (it climbs into drums that are getting louder) ; dB on the toms' fader while a voice counts ('' = none):
+# the drums make the room, so each passage is as loud as it was. '' = v12.
+COUNT = os.environ.get("C10T14_COUNT", "voice-hook synth.layers.0.diction=3 synth.layers.0.effort_tilt=1;-15dB;0.86;-21dB;hp cutoff=150;"
+                       "reverb kind=hall decay=2.2s mix=0.14 predelay=30ms;0.85;0.4;down,named,up;;-4.5;3;-1.6" if TURN else "")
+# a number is as long as it says, on the note of that length (the tune's own notes, NOTE_OF); two syllables share it
+NUMBER = {3: [("TH R IY1", 3)], 4: [("F AO1 R", 4)], 5: [("F AY1 V", 5)], 6: [("S IH1 K S", 6)], 7: [("S EH1", 3), ("V AH0 N", 4)],
+          8: [("EY1 T", 8)], 9: [("N AY1 N", 9)], 10: [("T EH1 N", 10)], 11: [("IH0", 2), ("L EH1", 4), ("V AH0 N", 5)],
+          12: [("T W EH1 L V", 12)]}
 AT = starts()
 
 
@@ -657,6 +691,29 @@ def compose():
         # among the six strongest lines: under a power chord the guitars' minor third does not carry. The tune
         # holds it: the fives' note, over the chord the drums wound up to
         add("tune-still" if STILL and STILL.split(";")[2] else "tune", AT["one chord"], FORM[-1][1] - 4, "Ab4", vel)
+    if COUNT:                                                     # v13: the voice counts where the drums are alone
+        f = COUNT.split(";")
+        who = [("count", -1)] + ([("count-high", 0)] if f[2] else [])
+
+        def say(s, numbers, db=0.0):
+            for p in numbers:
+                n = NOTE_OF[p]
+                for i, (ph, n16) in enumerate(NUMBER[p]):
+                    end = i == len(NUMBER[p]) - 1
+                    for tr, octave in who:
+                        add(tr, s, (n16 - (float(f[7]) if end else 0)) / 0.96, n[:-1] + str(int(n[-1]) + octave), float(f[6]), ph=ph,
+                            **({"gain": f"{db:g}dB"} if db else {}))
+                    s += n16
+            return s
+        if "down" in f[8]:        # three to twelve, slowing as it falls, and the drums are in tempo as 'twelve' ends
+            assert say(AT["counted"] - sum(range(3, 13)), range(3, 13)) == AT["counted"]
+        if "named" in f[8]:       # the three drums alone, each named for as long as its own stroke: five times is the sixty
+            assert say(AT["counted"], (3, 4, 5) * 5, float(f[10] or 0)) == AT["counted"] + 60
+        if "up" in f[8]:          # twelve to three, quickening as it climbs, from where the tune's last note ends
+            s = AT["wound"] + 15
+            for k, p in enumerate(range(12, 2, -1)):
+                s = say(s, (p,), float(f[11] or 0) * k / 9)
+            assert s == AT["wound"] + 90
     if FILLS:
         fills()
     if SEMITONE:
@@ -761,6 +818,24 @@ def song():
             tracks += [{"name": "seven", "patch": patch, "gain": gain, "pan": -float(pan)}, {"name": "eleven", "patch": patch, "gain": gain, "pan": float(pan)}]
     if FOOT:
         tracks.append({"name": "block", "patch": kit, "gain": FOOT.split(";")[0], "out": "drums"})
+    if COUNT:                                                     # v13: the voice that counts, and its octave
+        f = COUNT.split(";")
+        fx = ([{"type": "eq", "bands": f[4].split("|")}] if f[4] else []) + ([f[5]] if f[5] else [])
+        tracks.append({"name": "count", "patch": f[0], "gain": f[1], "pan": -0.12, **({"fx": fx} if fx else {})})
+        if f[2]:
+            tracks.append({"name": "count-high", "patch": f"{f[0]} synth.layers.0.tract={f[2]}", "gain": f[3], "pan": 0.12, **({"fx": fx} if fx else {})})
+        if len(f) > 12 and f[12] and float(f[12]):                # the toms give the voices room
+            pts, b = [["0b", 0]], lambda s16: f"{s16 / 4:g}b"
+            for place, a, z in (("down", AT["counted"] - 75, AT["counted"]), ("named", AT["counted"], AT["counted"] + 60), ("up", AT["wound"] + 15, AT["wound"] + 90)):
+                if place in f[8]:
+                    if pts[-1][0] == b(a) and pts[-1][1] == 0:        # two places end to end: one stretch
+                        pts[-2:] = [[b(z - 2), float(f[12])], [b(z), 0]]
+                    else:
+                        pts += [[b(a - 2), 0], [b(a), float(f[12])], [b(z - 2), float(f[12])], [b(z), 0]]
+            toms = next(t for t in tracks if t["name"] == "toms")
+            assert isinstance(toms["gain"], str)
+            toms["gain"] = {"value": toms["gain"], "mod": [{"src": "auto.count", "amount": 1}]}
+            toms["auto"] = {**toms.get("auto", {}), "count": {"points": pts, "curve": 0}}
     assert {t["name"] for t in tracks} >= set(T), set(T) - {t["name"] for t in tracks}
     for t in tracks:
         t["notes"] = T.get(t["name"], [])
@@ -851,6 +926,8 @@ def song():
         doc["loudness"] = float(SEMITONE.split(";")[8])
     if TURN and TURN.split(";")[2]:
         doc["loudness"] = float(TURN.split(";")[2])
+    if COUNT and COUNT.split(";")[9]:
+        doc["loudness"] = float(COUNT.split(";")[9])
     if TUNED:
         doc = {k: v for k, v in list(doc.items())[:2]} | {"tuning": {"steps": JUST, "root": "F3", "map": "keys"}} | {k: v for k, v in list(doc.items())[2:]}
     return doc
