@@ -222,6 +222,29 @@ def halved(phrase):
     return [x for p in phrase for x in ((p / 2, p / 2) if p >= 8 else (p,))]
 
 
+# v6 (chirper-one, palette: the part the song lacks): THE TWO WHEELS THE BAND NEVER PLAYED. Three, four and five are
+# the chord, and each is a drum: the kit's three toms are tuned to the notes their rolls are. Nine and fifteen have
+# a section each. Seven and eleven had no player: v1 left them out, v2 tuned the song for them (every 7 is a D 33
+# cents sharp, 12/7 over F; every 11 a G flat 51 cents sharp, 12/11) and let the tune touch each once, in its last
+# scale. Now they are drums too: TWO TABLAS, for the second half of 'home' (2:41.3-2:55.9), where the song says
+# "everything". One is struck every seven sixteenths on the left and is tuned to that D; the other every eleven on
+# the right, tuned to that G flat. By the rule they could be nothing else. A tabla, because its head is loaded so
+# that its overtones are in tune with it (1 2 3 4 5): a drum whose note is heard, so a note a third of a semitone
+# from any key is one note and not a clang; the dayan comes tuned to D as it is, and here it is the seven's D. (In
+# the Time Of keeps its tala on one; no other song has two, tuned as counts.) Like every voice here each accents
+# its own register downward, with the drum's own
+# strokes: the rim stroke (na, which rings an octave over the head's note) on plain counts, the open stroke (tin)
+# on every second, the deep open centre (tun) on every fourth. They come in together on the meeting the drums'
+# fill lands on, strike through the tune's last scale, which says their two notes by name (the seven's at 2:50.8,
+# the eleven's at 2:55.0), strike together once more at 2:50.7, and stop where 'home' ends. (Through the whole of
+# 'home' two marimbas on these counts cost the return its likeness to 'minor'; benched. With 'marimba' in the
+# first field the wheels are marimbas again, on D5 and G flat 5 with their octaves: the first build of this round,
+# set aside because Running Total already counts on a marimba all through.)
+# the patch (a kit ending in -kit: bols; anything else: notes) ; the two tracks' gain ; how far left and right ;
+# the section + the sixteenth they enter on ; velocity ; the loudness target. "" = v5.
+WHEELS = os.environ.get("C10T14_WHEELS", "tabla-kit;-10dB;0.45;home+120;0.9;-10.36") if LEAD else ""
+
+
 def tune(a, phrases, vel, **more):
     s = a
     for ph in phrases:
@@ -476,6 +499,21 @@ def compose():
         add("tune-still" if STILL and STILL.split(";")[2] else "tune", AT["one chord"], FORM[-1][1] - 4, "Ab4", vel)
     if FILLS:
         fills()
+    if WHEELS:
+        sec, off = (WHEELS.split(";")[3].split("+") + ["0"])[:2]
+        vel = float(WHEELS.split(";")[4])
+        for tr, p, note in (("seven", 7, "D"), ("eleven", 11, "Gb")):
+            def stroke(s, i, tr=tr, note=note):
+                if WHEELS.split(";")[0].endswith("-kit"):
+                    bol, v = ("tun", vel) if i % 4 == 0 else ("tin", vel * 0.93) if i % 2 == 0 else ("na", vel * 0.85)
+                    T.setdefault(tr, []).append({"at": round(s / 4, 5), "len": 0.25, "pitch": bol, "vel": round(v, 3)})
+                elif i % 4 == 0:
+                    add(tr, s, 4, f"{note}4,{note}5,{note}6", vel)
+                elif i % 2 == 0:
+                    add(tr, s, 4, f"{note}5,{note}6", vel * 0.93)
+                else:
+                    add(tr, s, 4, f"{note}5", vel * 0.85)
+            every(AT[sec] + int(off), AT[sec] + dict(FORM)[sec], p, stroke)
     for tr in T:
         T[tr].sort(key=lambda n: (n["at"], n["pitch"]))
     return AT["end"]
@@ -525,6 +563,16 @@ def song():
         tracks += [{**t, "name": t["name"] + "-still", "patch": still(t["patch"], i // 2)} for i, t in enumerate(tracks[:4])]
         if TUNE and STILL.split(";")[2]:
             tracks += [{**t, "name": "tune-still", "patch": still(t["patch"], 3)} for t in tracks if t["name"] == "tune"]
+    wheel_patches = {}
+    if WHEELS:
+        patch, gain, pan = WHEELS.split(";")[:3]
+        if patch.endswith("-kit"):
+            # two drums of the same make, each tuned to the note its count is: D4 12/7 over F3, G flat 4 12/11 over F4
+            for name, note, side in (("seven", 53 + 12 * math.log2(12 / 7), -1), ("eleven", 65 + 12 * math.log2(12 / 11), 1)):
+                wheel_patches["sc-" + name] = {"extends": patch, "kit": {b: {"pitch": f"m{note:.4f}", "pan": side * float(pan)} for b in ("na", "tin", "tun")}}
+                tracks.append({"name": name, "patch": "sc-" + name, "gain": gain})
+        else:
+            tracks += [{"name": "seven", "patch": patch, "gain": gain, "pan": -float(pan)}, {"name": "eleven", "patch": patch, "gain": gain, "pan": float(pan)}]
     assert {t["name"] for t in tracks} >= set(T), set(T) - {t["name"] for t in tracks}
     for t in tracks:
         t["notes"] = T.get(t["name"], [])
@@ -548,8 +596,8 @@ def song():
                   "so threes against fours against fives are F minor. Three toms tuned to the chord are rolled at their own notes, slowed "
                   "six octaves until they can be counted, handed to the band a pulse at a time, and wound back up into the chord at the end. "
                   + ("The band is tuned to the pulses' own notes, and a lead plays a tune in which every note lasts as long as its period." if TUNED and TUNE else "v1 is the skeleton.")),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(LEAD.split(";")[3]) if LEAD and TUNE else -10, "seed": 1, "tail": "5s", "length": f"{end // 4}b", "event_stable": True,
-        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": kit_here}},
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(WHEELS.split(";")[5]) if WHEELS else float(LEAD.split(";")[3]) if LEAD and TUNE else -10, "seed": 1, "tail": "5s", "length": f"{end // 4}b", "event_stable": True,
+        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": kit_here}} | wheel_patches,
         "buses": {
             "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
                              {"type": "glue", "threshold": "-24dB", "ratio": 2.5, "attack": "20ms", "release": "140ms", "knee": 6.0},
