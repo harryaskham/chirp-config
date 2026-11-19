@@ -279,7 +279,7 @@ LONG = os.environ.get('C10T15_LONG', '15;17;15;0;0;-9.9' if TEETH else '')
 # Benched raw against everything else and against the voices alone (K, whole stretch): see the round note. The
 # box's own weight (its fundamentals, 350-620 Hz) is cut 8 dB at 430 Hz: the choruses already stand 2.4 to 2.9 dB
 # over the records there, and what a concertina is heard by over a band is its reed (1-8 kHz).
-TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE') for k in os.environ)
+TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB') for k in os.environ)
                       else '-4.5dB;0.35;-12dB;-3;hp cutoff=300|peak cutoff=430 q=0.8 gain=-8dB|peak cutoff=2500 q=0.7 gain=3dB;-9.85')
 # the chorus's tune as a concertina plays it, an octave over the crew: their notes where they sing them, a passing
 # note in the breath after 'haul', and two sixteenths up into the next bar. (sixteenth, length, note), a bar a line.
@@ -293,6 +293,30 @@ BOX_TUNE = [[(0, 6, 'C5'), (6, 2, 'Bb4'), (8, 2, 'Ab4'), (10, 4, 'F4'), (14, 1, 
             [(0, 4, 'C5'), (4, 4, 'Eb5'), (8, 8, 'F5')]]
 # the same a third higher, in the song's own scale (F G flat A flat B flat C D flat E flat)
 BOX_THIRD = {'F4': 'Ab4', 'Gb4': 'Bb4', 'Ab4': 'C5', 'Bb4': 'Db5', 'C5': 'Eb5', 'Db5': 'F5', 'Eb5': 'Gb5', 'F5': 'Ab5'}
+# v15 (chirper-zero; instrument round: the bass, with the kick's low end, because they are one job): THE SUB CHANGES
+# HANDS. No note moves. chirper-one's read by part under v14 named it (the bass 9.6 to 12.8 dB over the records'
+# basses under 60 Hz and 1.8 to 4.6 under them at 60-120 Hz: 'its weight is an octave too low'), and alpha's v11 left
+# the other half open ('the drum's tail is not shortened: that waits for a bass that holds the sub'). On the eleven
+# records it is the other way round: their basses sit 16 dB under their drums below 60 Hz, their weight an octave
+# up at 80 Hz, and the kick holds the floor (In the Time Of v24 found it and could only go halfway, for want of
+# this kick). Here the kit read 1.7 dB SHORT of the records' kits under 60 Hz while the bass stood 11.0 over.
+#   THE BASS LEANS ON ITS OCTAVE (In the Time Of v24's chain, further): the patch's sine sub 11 dB down (it is what
+#       drives the bass's two compressors: with less of it the string comes up); the lift at 110 Hz 6 -> 12 dB, at
+#       220 Hz 8 -> 6; the box cut (450 Hz +2 -> 540 Hz -6 dB, wide); the grind moved up to 1150 Hz. Alone beside
+#       eleven records' basses (tools/bassspec.py, verse one): 40 Hz +14.3 -> +9.8, 80 Hz -7.0 -> -1.6, 100 Hz
+#       -6.6 -> -1.3, 400-630 Hz +5.5..+10.4 -> +0.8..+5.2; distance 6.01 -> 3.82.
+#   THE KICK TAKES THE FLOOR, AND IS NO LONGER FOR IT: the drum's amp decay 210 -> 160 ms, and 6 dB at 55 Hz on its
+#       own track (the kit bus's clip gives back 2.4 of them; on the bus, after the clip, 4 dB did the same but
+#       reached the five men's boots, which share that bus), its click 11.5 -> 13 dB to stay where it was. Alone
+#       (alpha's kickref.py): 2.4 dB more under 60 Hz and 1.7 more at 60-120 Hz, its click where it was, 52 ms to
+#       20 dB down where 50 (the same lift with the decay untouched: 70 ms; the records 44).
+#   'EASY' IS WHY THE SINE IS NOT OFF: no kick plays there and the bass must carry its own floor (sine off, the
+#       stretch fell 10.4 dB under 60 Hz; as set, 0.8).
+# the bass's patch overrides ; the kick's amp decay ; a band on the kick's eq ; its click, dB at 4.5 kHz ; the
+# loudness target. "" = v14.
+SUB = os.environ.get('C10T15_SUB', 'fx.2.bands.0.gain=12dB fx.2.bands.1.gain=6dB fx.2.bands.2.cutoff=540 fx.2.bands.2.q=0.7 fx.2.bands.2.gain=-6dB '
+                                   'fx.2.bands.3.cutoff=1150 fx.2.bands.3.q=1.2 fx.2.bands.3.gain=6dB synth.layers.1.level=-20dB;160ms;'
+                                   'peak cutoff=55 q=0.7 gain=6dB;13;-9.8' if TUNE else '')
 BARK = 'kidman synth.layers.0.diction=2 synth.layers.0.speech=1'
 # five men: the kit piece, where in the spread his foot lands (0..1), how hard against the others, his board's
 # note, where he stands, how long his board rings (ms)
@@ -892,12 +916,33 @@ def build():
     return doc, marks
 
 
+def the_sub_changes_hands(doc):
+    """v15: the bass leans on its octave and the kick, shorter, takes the floor."""
+    bass, decay, band, click, target = SUB.split(';')
+    for t in doc['tracks']:
+        if t['name'] == 'bass' and bass:
+            t['patch'] += ' ' + bass
+        if t['name'] == 'kick':
+            if decay:
+                t['patch'] += f' kit.k.patch.synth.amp.d={decay}'
+            bands = t['fx'][0]['bands']
+            if click:
+                assert bands[0].startswith('peak cutoff=4500 '), bands
+                bands[0] = f'peak cutoff=4500 q=0.8 gain={click}dB'
+            if band:
+                t['fx'][0]['bands'] = bands + [band]
+    if target:
+        doc['loudness'] = float(target)
+
+
 def dump(d):
     return '\n'.join('tracks:\n' + '\n'.join('  - ' + json.dumps(t) for t in v) if k == 'tracks' else k + ': ' + json.dumps(v) for k, v in d.items()) + '\n'
 
 
 if __name__ == '__main__':
     doc, marks = build()
+    if SUB:
+        the_sub_changes_hands(doc)
     if os.environ.get('C10T15_SHOW'):
         for sec, bars in FORM:
             t = marks[sec]
