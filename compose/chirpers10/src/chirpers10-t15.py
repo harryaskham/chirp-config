@@ -44,6 +44,26 @@ CREW_GAIN = os.environ.get('C10T15_CREW', '-6dB')
 # the shantyman is the plain sung voice. 'Haul' with the dictionary's vowel (AO) read as 'home' or 'hole' every
 # time; with AA the crew's shout reads 'haul'. In the chorus the crew's long 'haul' still reads 'home', so the
 # shantyman sings the chorus with them: one clear voice in front of five.
+# v2, palette (chirper-two): THE ROPE. The song is about a rope and nothing in the band was one. Now there is: a
+# bass tagelharpa, the bowed horsehair lyre (two strings of twisted hair under a bow: no other song on the record
+# has one), and it sounds only when the crew pulls. Its note is how much slack is left, a semitone to a beat:
+#   the first call and the first verse (the late hand): D flat, D, E flat, E, and on the fourth pull, where the
+#     riff's head lands with the crew, F. Each pull finds it where the last one left it and HAULS it up a semitone
+#   the second verse (the early hand): A, A flat, G, G flat, each pull letting it DOWN a semitone ("and when I
+#     call then we all come down"), and F on the chorus's downbeat, where the seventeen lands after "Hold fast"
+#   the third verse (both hands): two ropes, the left a semitone slack and the right a semitone tight on either
+#     side of the crew's own note at the first pull (E, F, G flat: "a man too soon and a man too late"); at the
+#     second both come to F ("and the rope runs straight")
+#   the close: both on F under "home", and they do not move: made fast
+# F is the note the crew shouts "Haul!" on (F3), so the rope closes on the shout from below, then from above,
+# then from both sides, and is in tune with the men exactly when the band is in time with them.
+# Track gain ; how far left and right ; the slide's time ; the loudness target (the rope adds a little to the
+# song; every bar without it keeps v1's mastering gain). Empty restores v1.
+ROPE = os.environ.get('C10T15_ROPE', '-9.5dB;0.5;350ms;-9.947')
+# one bow, the pitch sliding inside the note (mono, legato); no chance detuning from note to note and less than half
+# of the library's unsteady bowing (12 cents either way there, 5 here): taut is in tune
+HAWSER = ('tagelharpa-bass play.mono=true play.legato=true play.glide={} play.glide_smooth=true '
+          'synth.pitch.mod.0.amount=0 synth.pitch.mod.1.amount=0.05')
 SHANTY = 'voice-hook synth.layers.0.diction=3 synth.layers.0.effort_tilt=1 play.phrase_arc=0.5'
 CREW = 'voice-choir synth.layers.0.tract=1.12 synth.layers.0.diction=3 synth.layers.0.effort_tilt=1 fx.0.mix=0.14'
 
@@ -148,6 +168,16 @@ def make():
                 if a <= t < b:
                     stroke(trs, t, kind, semi, min(dur, b - t - .1), **kw)
 
+    def haul(tr, t, slack, was=None, dur=9, v=.9):
+        """The rope at a pull: found where the last pull left it (`was`), then hauled to `slack` semitones from the crew's F."""
+        if not ROPE:
+            return
+        if was is not None:
+            put(tr, t, 2, F1 + 24 + was, v)
+            put(tr, t + 1.5, dur - 1.5, F1 + 24 + slack, v)
+        else:
+            put(tr, t, dur, F1 + 24 + slack, v)
+
     def stomp(t, v=.7):
         kit(t, 'ft', v)
         kit(t, 'k', v)
@@ -220,10 +250,13 @@ def make():
             for k in range(bars):
                 stomp(a + k * BAR, .72), stomp(a + k * BAR + 8, .62)
             couplets(sec, a, 1, [SLACK])
+            haul('rope-l', a + 48, -4, -5)
         elif sec == 'late hand':
             # 15 against 16: the head is 12, 8, 4 and 0 sixteenths after the four pulls
             cycle(('gl', 'gr'), RIFF15, 15, a, b, a)
             couplets(sec, a, 4, [SLACK, SLACK, SLACK, ALL])
+            for i in range(4):
+                haul('rope-l', a + i * 4 * BAR + 48, i - 3, i - 4)
             beat(a, bars, 'h')
             for t, p in ((12, 't1'), (13, 't1'), (14, 't2'), (15, 'ft')):
                 kit(b - BAR + t, p, .82)
@@ -231,6 +264,9 @@ def make():
             # 17 against 16: 3, 7, 11 and 15 after; one more bar and it lands on the chorus
             cycle(('gl', 'gr'), RIFF17, 17, a, b, a)
             couplets(sec, a, 4, [SLACK, SLACK, SLACK, SLACK])
+            for i in range(4):
+                haul('rope-r', a + i * 4 * BAR + 48, 4 - i, 5 - i)
+            haul('rope-r', b, 0, 1)                    # the seventeen lands on the chorus
             beat(a, bars - 1, 'x', skip_last_beat=False)
             hold = b - BAR
             sing('shanty', hold, line('hold fast', [(0, 6), (8, 6)], 'Ab3 C4'), .95)
@@ -274,6 +310,9 @@ def make():
             stroke(('gl', 'gr', 'wl', 'wr'), land, 'o', 0, 11.5)
             kit(land, 'c', .92)
             couplets(sec, a, 2, [SLACK, ALL])
+            for i in range(2):
+                haul('rope-l', a + i * 4 * BAR + 48, i - 1, i - 2, v=.75)
+                haul('rope-r', a + i * 4 * BAR + 48, 1 - i, 2 - i, v=.75)
             beat(a, bars, 'x', back=(4, 12))
             for t, p in ((12, 't1'), (13, 't2'), (14, 'ft'), (15, 'ft')):
                 kit(b - BAR + t, p, .84)
@@ -286,6 +325,8 @@ def make():
             kit(a + 2 * BAR, 'c', .92), kit(a + 2 * BAR, 'ft', .9)
             put('crew', a + 2 * BAR, 14, 'F3', .9, ph=PH['home'])
             put('shanty', a + 2 * BAR, 14, 'F3', .9, ph=PH['home'])
+            haul('rope-l', a + 2 * BAR, 0, dur=14, v=.8)
+            haul('rope-r', a + 2 * BAR, 0, dur=14, v=.8)
         start = b
     return ev, marks, start
 
@@ -308,6 +349,7 @@ def tracks_of(ev):
     lift = [{'type': 'eq', 'bands': ['peak cutoff=700 q=0.9 gain=2.5dB']}]
     dip = [{'type': 'eq', 'bands': ['peak cutoff=380 q=1 gain=-3dB']}]
     air = [{'type': 'eq', 'bands': ['highshelf cutoff=9000 gain=-2dB']}]
+    hair = [{'type': 'eq', 'bands': ['peak cutoff=180 q=0.8 gain=-8dB']}]
     return [
         tr('gl', 'ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone=92', '0.7dB', -1, 'gtrs', lift),
         tr('gr', 'ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone=93', '0.7dB', 1, 'gtrs', lift),
@@ -322,6 +364,10 @@ def tracks_of(ev):
         tr('shanty', SHANTY, SHANTY_GAIN, -.08, sends={'hall': '-16dB'}),
         tr('crew', CREW, CREW_GAIN, .1),
         tr('crew-high', CREW, CREW_GAIN, -.2),
+        # (the big lyre played this high is mostly fundamental: at a pull it stood over the whole band at 120-250 Hz
+        # and 8 to 14 dB under it from 500 Hz up. Eight dB off its body, so that what is heard is the hair)
+        *([tr('rope-l', HAWSER.format(ROPE.split(';')[2]), ROPE.split(';')[0], -float(ROPE.split(';')[1]), fx=hair),
+           tr('rope-r', HAWSER.format(ROPE.split(';')[2]), ROPE.split(';')[0], float(ROPE.split(';')[1]), fx=hair)] if ROPE else []),
     ]
 
 
@@ -342,7 +388,7 @@ def build():
         'low': {'fx': low},
     }
     doc = {'about': 'Take Up the Slack — chirpers, Common Time, track fifteen. A hauling song: the crew pulls in four, the riff is fifteen long, then seventeen, and each verse the slack between them is taken up.',
-           'tempo': BPM, 'seed': 1, 'length': f'{end // GRID}b', 'tail': '3s', 'ceiling': '-1dB', 'loudness': -10, 'event_stable': True,
+           'tempo': BPM, 'seed': 1, 'length': f'{end // GRID}b', 'tail': '3s', 'ceiling': '-1dB', 'loudness': float(ROPE.split(';')[3]) if ROPE else -10, 'event_stable': True,
            'buses': buses, 'master': {'fx': [{'type': 'eq', 'bands': ['hp cutoff=24']}, {'type': 'gain', 'gain': '2.7dB'}]},
            'tracks': tracks_of(ev)}
     return doc, marks
