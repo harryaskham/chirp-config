@@ -365,6 +365,32 @@ BEND = os.environ.get("C10T16_BEND", "all;-11.5dB;1200;0.5;-20;45;60;-9.851;380:
 # lead's oscillator ('' = as v10) ; the lead's eq, Hz:q:dB,... ('' = as v10) ; the loudness target. "" = v10.
 ALONE = os.environ.get("C10T16_ALONE", "synth.layers.0.tune_sounding=true synth.pitch.mod.1.amount=0;synth.pitch.mod.1.amount=0;1;4.5;saw phase=0.5;"
                                        "380:0.8:-9,700:1:-5,2200:0.7:4;-9.891" if BEND else "")
+# v12 (chirper-two; instrument round: the hi-hat; no note changes): THE HAT HAS A BODY.
+#   The closed hat plays 763 strokes here, sixteen to the bar in the squares and twenty-eight in 'seven', and it is
+#   the library's `haake-hat`: white noise (and three squares) through an 8 kHz high-pass, 45 ms. Read alone it
+#   had nothing under 8 kHz to speak of: its 4-8 kHz stood 2.3 dB UNDER its 8-16 kHz and its 2-4 kHz 11 under
+#   that. A hiss, with no metal under it. The eleven records' drum stems all carry 4.7 to 7.4 dB MORE at 4-8 kHz
+#   than at 8-16 (median 5.9); this kit carried 2.4 to 2.7 more, and the hat is all but the whole of the kit's
+#   top octave. The read by part said the same (the kit against the records' drums: 4-8 kHz -2.1 and -1.8 in
+#   'square' and 'seven', 8-16 kHz +1.4), and so did the mix, 1.3 to 1.8 dB short at 4-8 kHz in every band
+#   section, which every read of this song since v1 has listed.
+#   WHAT CHANGED, the hat only (the crash and china keep the album kit): a kit of the song's own, `ce-hat-kit`,
+#   whose closed hat is opened downwards (the high-pass 8 kHz -> 4.5 kHz) and shortened (45 -> 35 ms); on its
+#   track a peak at 6 kHz (q 0.8, +4 dB) and a deeper shelf over 9 kHz (-2 -> -4 dB), so the body comes up and
+#   the hiss does not; less of the overheads' room (send 4.5 -> 2.5 dB), which is where a tick becomes a wash;
+#   the fader 16 -> 17 dB.
+#   MEASURED, the hat alone (raw, seed 0, six bars of 'square' and of 'seven'): 4-8 kHz +5.2 dB, 2-4 kHz +9.5,
+#   8-16 kHz as it was (0.0 / -0.2); its 4-8 kHz now 3.0 dB OVER its 8-16. As a tick: the share of the time it is
+#   within 12 dB of its strokes' peaks 21 -> 16 % and 25 -> 21 %. In the band: a stroke's first 30 ms above 3 kHz
+#   against everything else there, -1.7 -> +1.6 dB (soft strokes, 'square') and -5.2 -> -2.8 (accents, which
+#   fall with the kick and guitars). The kit's 4-8 kHz over its 8-16: 2.4 -> 4.4 and 2.7 -> 4.7.
+#   THE MIX AGAINST THE RECORDS (stembal, the six windows on record), 4-8 kHz: square -1.3 -> -0.2, five -1.4 ->
+#   -0.2, seven -1.8 -> -0.5, three -1.6 -> -0.7, square again -1.8 -> -0.5, the close -3.2 -> -2.6; 8-16 kHz
+#   reads 0.1 to 0.2 lower and no other band moves more than 0.1. As mastered (three seeds): 4-8 kHz +1.0 to +1.4 dB in the band sections, 8-16 kHz
+#   -0.2 to -0.3. The target -9.891 -> -9.861 keeps the stretches with no hat within 0.01 dB of v11.
+# overrides on the library's closed hat (haake-hat) ; the hat track's fader ; its send to the overheads' room ;
+# its eq, band,band ; the loudness target ("" = unchanged). "" = v11 byte for byte.
+HAT = os.environ.get("C10T16_HAT", "filters.0.cutoff.value=4.5k amp.d=35ms;17dB;2.5dB;highshelf cutoff=9000 gain=-4dB,peak cutoff=6000 q=0.8 gain=4dB;-9.861" if ALONE else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -708,6 +734,8 @@ def build():
         unison_bend(doc)
     if ALONE:
         in_tune(doc, end)
+    if HAT:
+        a_hat_with_a_body(doc)
     return doc, marks, end
 
 
@@ -786,6 +814,22 @@ def spans_of(names):
             out.append((at, at + 4 * bars, ground))
         at += 4 * bars
     return out
+
+
+def a_hat_with_a_body(doc):
+    """v12: the closed hat gets a kit of its own (the crash and china on `brass` keep the album kit), a drier room and an eq."""
+    over, fader, room, bands, target = HAT.split(";")
+    doc.setdefault("patches", {})["ce-hat-kit"] = {
+        "about": ("Close Enough's closed hat (chirper-two, 19 Nov): the album kit with the library's closed hat (haake-hat: white noise "
+                  "and three squares through an 8 kHz high-pass, 45 ms) opened downwards and shortened, so it has a body under 8 kHz."),
+        "extends": "ct-kit", "kit": {"h": {"patch": "haake-hat " + over, "gain": "-10dB", "choke": "hat"}}}
+    hat = next(t for t in doc["tracks"] if t["name"] == "hat")
+    assert hat["patch"] == "ct-kit" and all(n["pitch"] == "h" for n in hat["notes"])
+    hat["patch"], hat["gain"] = "ce-hat-kit", fader
+    hat["sends"] = {"oh": room}                                          # new objects: `brass` shares the old ones
+    hat["fx"] = [{"type": "eq", "bands": bands.split(",")}]
+    if target:
+        doc["loudness"] = float(target)
 
 
 def great_drum(doc):
