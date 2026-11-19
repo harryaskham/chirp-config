@@ -189,9 +189,13 @@ CHEST = (['peak cutoff=180 q=1 gain=7dB', 'peak cutoff=800 q=1.2 gain=-1.5dB'], 
 # mirror make eighths, hat and answer in turn, and for the next they strike together in quarters; eight times.
 # The seam of every strip, which nothing in the kit has ever marked, can now be heard as that change.
 # THE PART is clapped: one pair of hands, on the right, beside the guitar that reads backwards. No other song on
-# the record has a handclap. THE PATCH is the song's own (the library's cajon kit has a clap, a 70 ms burst of
-# noise over 900 Hz; a single clap is shorter and has a note of its own, the air between the palms): 20 ms of
-# noise through a peak where cupped hands sound, in a small room.
+# the record has clapping hands (Carrying Capacity's drum machine has a clap voice, a circuit's). THE PATCH is the
+# song's own (the library's cajon kit has a clap, a 70 ms burst of noise over 900 Hz; a single clap is shorter and
+# has a note of its own, the air between the palms): 20 ms of noise through a peak where cupped hands sound
+# (1.3 kHz: read against 1.0, 1.7 and 2.4), in a small room, a few milliseconds loose in time.
+# MEASURED (raw, a stroke's first 30 ms against everything else, K): the hat -12.5 dB, the snare +4.2; a clap
+# between the beats -6.1, on the beat -11.0. THE TARGET: at v18's -10.32 the master's gain jumped 0.1 to 0.23 dB on
+# seed 0 (not on seeds 11 and 1); at -10.34 every other bar is within 0.017 dB on all three.
 # the patch ; the fader ; where the clapper stands ; velocity on the mirror of the bar's first beat and elsewhere ;
 # the loudness target (None: unchanged). --without-palmas gives v18.
 PALMAS = ({'kit': {'pa': {'patch': {'synth': {'amp': {'a': '0.1ms', 'curve': 3, 'd': '20ms', 'r': '10ms', 's': 0},
