@@ -180,6 +180,34 @@ LETGO = os.environ.get('C10T15_LETGO', '4;0.72;0.62;-10.084' if ANSWER else '')
 # the first pair's tight filter, Hz ; the voices' extra band ; dB back on their faders ; the loudness target.
 # '' = v8 byte for byte.
 WEIGHT = os.environ.get('C10T15_WEIGHT', '150;peak cutoff=400 q=0.8 gain=-3.5dB;1.5;-10.084' if LETGO and os.environ.get('C10T15_DECKCLIP', 'x') else '')
+# v10 (chirper-two, whole song): A MAN TOO LATE, A MAN TOO QUICK. The words have said it since v1: "a man too late
+# is a man let go" (verse one), "a man too quick is a man alone" (verse two), "a man too soon and a man too late /
+# we meet in the middle and the rope runs straight" (verse three). The band was that man and had no voice: since v8
+# its hands let go under the crew's answer and take the rope up at their own head, late or early, but a head is a
+# chord. Now each hand has a man, the band's own (the record's barked voice, which this song had not used), and
+# WHERE HIS HAND TAKES THE ROPE UP HE SHOUTS "HAUL!", the crew's word, at his own time. Verse one, the late man
+# (left): the crew sings "Take up the slack", pulls and shouts; three beats later the band comes in and its man
+# shouts after them; then two beats late; then one; and on the fourth pull, "All together", his shout is the crew's.
+# Verse two, the quick man (right): ten sixteenths BEFORE the crew's pull, then six, then two (the pull cuts him
+# off), and with them on the chorus's first "Haul". Verse three, both: the right a beat too soon, the pull, the
+# left a beat too late; and at the second pull both at once, from either side: in the middle. In the last eight
+# bars of 'home' both pull with the crew on every "Haul". 26 shouts at 18 moments; no other note is touched.
+# The voice is the record's bark (kidman with words, as Common Time and Odd Sympathy carry it), one man a little
+# larger than the other. Its eq is not theirs: on this one vowel the album's setting read 2 dB over the records'
+# voices at 500 Hz-1 kHz (where this song is already over) and 2 to 6 short above; as set it is within 1.8 dB of
+# them from 500 Hz to 16 kHz (tools/voxref.py). LEVEL: alone, a shout is as loud as the crew's own "Haul" (K -24.4
+# against -24.6). By the album's yardstick (voxref: the voice against the whole mix while it sounds; the records'
+# voices -9.2 dB): verse one -10.6, verse two -11.4, 'home' -9.0. A shout against everything else sounding with
+# it (raw, K): the late man 3.5, 5.2, 5.6 dB under; the quick man 6.4, 4.9, 3.0; verse three's 2.0 and 6.8; with
+# the crew (the fader's lift, one voice among seven and the whole band landing) 6.5, 5.7, 6.5; in 'home' 6.1 to 8.1.
+# NOT A WORD, AND I SAY SO: the recogniser hears the bark's "Haul" as "Ah!" or "Oh" in eight spellings (the engine's
+# 'haul', bd-43d2e1): it is a shout on the crew's vowel, told by where it falls.
+# gain ; how far left and right the two men stand ; their note ; sixteenths a shout lasts ; velocity ; the velocity
+# of their shouts in the last eight bars of 'home' ("" = none there) ; the size of each man's tract (late:early) ;
+# the loudness target ("" = unchanged) ; eq bands (| between) ; send to the hall ; dB more where one man shouts
+# with the crew, and where both do (one:both). "" = v9.
+MAN = os.environ.get('C10T15_MAN', '5.5dB;0.5;F4;3;0.9;0.9;1.06:0.96;-10.06;hp cutoff=440|peak cutoff=700 q=1.2 gain=-3dB|peak cutoff=1800 q=0.7 gain=6dB|peak cutoff=5500 q=1.2 gain=-2dB;-18dB;4:1' if WEIGHT else '')
+BARK = 'kidman synth.layers.0.diction=2 synth.layers.0.speech=1'
 # five men: the kit piece, where in the spread his foot lands (0..1), how hard against the others, his board's
 # note, where he stands, how long his board rings (ms)
 BOOTS = [('b1', 0.0, 1.0, 'D2', -0.15, 150), ('b2', 0.23, 0.88, 'C2', 0.4, 170), ('b3', 0.47, 0.94, 'Eb2', -0.5, 135),
@@ -342,6 +370,17 @@ def make():
         else:
             put(tr, t, dur, F1 + 24 + slack, v)
 
+    def shout(who, t, room=None, v=None, lift=None):
+        """v10: a man of the band shouts 'Haul!' where his hand takes the rope up (`room`: sixteenths before the crew's
+        own pull; `lift`: which of the switch's two lifts his fader takes, when he shouts WITH the crew)."""
+        if not MAN:
+            return
+        f = MAN.split(';')
+        for w in who:
+            put('man-' + w, t, float(f[3]) if not room else min(float(f[3]), room - .1), f[2], float(f[4]) if v is None else v, ph=PH['haul'])
+            if lift is not None and float(f[10].split(':')[lift]):
+                ev['lift:man-' + w].append((t, float(f[3]), float(f[10].split(':')[lift])))
+
     def stamp(t, v):
         """v6: five boots on the deck, not quite together."""
         spread = float(DECK.split(';')[1]) / (60000 / BPM / GRID)        # ms -> sixteenths
@@ -394,6 +433,8 @@ def make():
                 w, t, d, p = words[0]
                 if w == 'haul':
                     put('crew-high', t0 + t, d - .4, {'C4': 'F4', 'Eb4': 'Ab4'}[p], .9, ph=PH[w])
+            if high and MAN and MAN.split(';')[5] and b >= bars - 8 and words[0][0] == 'haul':
+                shout(('late', 'early'), t0, v=float(MAN.split(';')[5]))     # v10: the last time through, both men pull with the crew
             kit(t0, 'c' if b % 4 == 0 else 'x', .9 if b % 4 == 0 else .74)
             if built and built[2] and b % 4 and words[0][0] == 'haul':
                 kit(t0, 'c', float(built[2]))                         # v4: a crash on every pull, over the china that was there
@@ -447,6 +488,8 @@ def make():
                 haul('rope-l', a + i * 4 * BAR + 48, i - 3, i - 4)
             beat(a, bars, 'h', rests=rests)
             feet(a, rests)
+            for i, (_, head) in enumerate(rests):
+                shout(('late',), head, lift=0 if head == a + i * 4 * BAR + 48 else None)   # v10: three beats late, two, one, and with the crew
             for t, p in ((12, 't1'), (13, 't1'), (14, 't2'), (15, 'ft')):
                 kit(b - BAR + t, p, .82)
         elif sec == 'early hand':
@@ -459,6 +502,9 @@ def make():
             haul('rope-r', b, 0, 1)                    # the seventeen lands on the chorus
             beat(a, bars - 1, 'x', skip_last_beat=False, rests=rests)
             feet(a, rests)
+            for r0, head in rests:
+                shout(('early',), head, r0 + BAR - head)   # v10: ten sixteenths too soon, six, two (the pull cuts him off)
+            shout(('early',), b, lift=0)               # and with the crew on the chorus
             hold = b - BAR
             sing('shanty', hold, line('hold fast', [(0, 6), (8, 6)], 'Ab3 C4'), .95)
             kit(hold, 'x', .8)
@@ -511,6 +557,10 @@ def make():
                 haul('rope-r', a + i * 4 * BAR + 48, 1 - i, 2 - i, v=.75)
             beat(a, bars, 'x', back=(4, 12), rests=late)     # v8: the kit's time is back when both hands are
             feet(a, early)                                   # and the boots stamp while both are out
+            for r0, head in early:
+                shout(('early',), head, r0 + BAR - head, lift=1 if head == land else None)   # v10: a man too soon (the right), a beat before the pull
+            for _, head in late:
+                shout(('late',), head, lift=1 if head == land else None)                     # and a man too late (the left); then both, in the middle
             for t, p in ((12, 't1'), (13, 't2'), (14, 'ft'), (15, 'ft')):
                 kit(b - BAR + t, p, .84)
         elif sec == 'made fast':
@@ -593,6 +643,17 @@ def voices(tr):
     return out
 
 
+def with_the_crew(t, lifts):
+    """v10: a man's fader comes up for the shouts he gives WITH the crew (one voice among seven there, and the whole band lands)."""
+    if lifts:
+        points = [['0b', 0]]
+        for at, dur, db in sorted(lifts):
+            points += [[f'{(at - 2) / GRID:g}b', 0], [f'{(at - 1) / GRID:g}b', db], [f'{(at + dur + 1) / GRID:g}b', db], [f'{(at + dur + 2) / GRID:g}b', 0]]
+        t['gain'] = {'value': t['gain'], 'mod': [{'src': 'auto.with', 'amount': 1}]}
+        t['auto'] = {'with': {'points': points, 'curve': 0}}
+    return t
+
+
 def tracks_of(ev):
     def tr(name_, patch, gain, pan=0, out=None, fx=None, sends=None):
         d = {'name': name_, 'patch': patch, 'gain': gain, 'pan': pan, 'notes': sorted(ev[name_], key=lambda n: n['at'])}
@@ -624,6 +685,9 @@ def tracks_of(ev):
         *([tr('rope-l', HAWSER.format(ROPE.split(';')[2]), ROPE.split(';')[0], -float(ROPE.split(';')[1]), fx=hair),
            tr('rope-r', HAWSER.format(ROPE.split(';')[2]), ROPE.split(';')[0], float(ROPE.split(';')[1]), fx=hair)] if ROPE else []),
         *([tr('deck', 'deck', DECK.split(';')[0], 0, 'boards')] if DECK else []),
+        *([with_the_crew(tr('man-' + w, BARK + f' synth.layers.0.tract={size}', MAN.split(';')[0], side * float(MAN.split(';')[1]),
+                            fx=[{'type': 'eq', 'bands': MAN.split(';')[8].split('|')}], sends={'hall': MAN.split(';')[9]}), ev['lift:man-' + w])
+           for w, side, size in zip(('late', 'early'), (-1, 1), MAN.split(';')[6].split(':'))] if MAN else []),
     ]
 
 
@@ -670,6 +734,8 @@ def build():
         doc['loudness'] = float(LETGO.split(';')[3])
     if WEIGHT:
         doc['loudness'] = float(WEIGHT.split(';')[3])
+    if MAN and MAN.split(';')[7]:
+        doc['loudness'] = float(MAN.split(';')[7])
     return doc, marks
 
 
