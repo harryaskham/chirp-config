@@ -9133,8 +9133,8 @@
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers10-t15 OUT.wav",
       "best": {
-        "score": 97.727,
-        "version": "v8",
+        "score": 97.546,
+        "version": "v9",
         "commit": "see git log songs/chirpers10-t15.yaml",
         "engine": "e3b9a398",
         "judged": true
@@ -9142,7 +9142,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 8,
+      "rounds": 9,
       "priority": 1.0,
       "genre": "polymetric djent",
       "mode": "compose",
@@ -9160,8 +9160,8 @@
         "note": "COMPOSE (the fifteenth song: an empty slot for the song its composer wants to make (no owner), 180-480 s): Opened by Harry, 19 Nov about 00:25 GMT, verbatim (typos his): \"can we stop passing on songs. ill add card replies but please we have so much we could do re: improving our instruments, better guitars, etc and just general improvements. but, why dont you open 4 new song slots and each climber can go crazy and make the song they want to mkae since they r so bored\"; and a few minutes later: \"try not to raise so many cards, just be creative\". THAT IS ALL HE SAID of this slot and the three opened with it (tracks 14 to 17). So: THE SONG YOU WANT TO MAKE. What it is, is yours to say, and chirp-eco does not. His standing rules for the record are in direction.rules and are his; if you are unsure whether one binds a song he told you to go crazy on, choose, and say what you chose in your round note. MECHANICS: whoever draws this slot first stands the song up (`tools/chirpers.py title chirpers10-t15 \"...\"`: a plain fragment, nothing on the nose, no numbers in titles); the first round is the whole shape standing, however bare, and any version goes on the groove beside the others. NO SONG HAS AN OWNER (Harry, 18 Nov): from its first kept version anyone may draw it and build on what you made of it. ONE EACH: four slots and five composers; if you have already stood one of these four up, leave the other empty ones to the composers who have not (`climb.py next` again). Render only with $(cat tools/groove-pin), in a guarded-soft-* unit. What the record's seventeen songs have and have not used of the engine: `python3 tools/showcase.py songs/chirpers10-t*.yaml` and the board, compose/chirpers10/features.md. No card is needed to begin."
       },
       "last": {
-        "at": "2026-11-19T07:25:23Z",
-        "who": "chirper-alpha"
+        "at": "2026-11-19T08:04:12Z",
+        "who": "chirper-one"
       }
     },
     {

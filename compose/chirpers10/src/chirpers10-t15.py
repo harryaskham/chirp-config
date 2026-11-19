@@ -159,6 +159,27 @@ ANSWER = os.environ.get('C10T15_ANSWER', ';3;-3;' if DECK else '')
 # the shortest rest a hand takes, sixteenths ; the boots' velocity on one ; on three ; the loudness target
 # ("" = unchanged). "" = v7.
 LETGO = os.environ.get('C10T15_LETGO', '4;0.72;0.62;-10.084' if ANSWER else '')
+# v9 (chirper-one, whole song): THE READ, AND WHO HOLDS WHAT. The song had not been read against the album's eleven
+# records since v3, five kept versions ago, and every one of those versions moved the voices or the band. Read whole
+# at v8 (finished file, each band as a share of the mix): every stretch with the band stands 4.0 to 6.9 dB over the
+# records at 250-500 Hz and 3.2 to 4.6 over at 500 Hz-1 kHz, the verses 1.8 to 2.1 dB worse at 250-500 than at v3
+# (the shantyman's 3 dB, the crew's 3 dB, the stops). Read by part against the records' own stems (raw, verse one and
+# chorus one): THE VOICES are 42% and 32% of the mix (4.9 and 3.8 dB over the records' voices) and hold 79% and 64% of
+# 250-500 Hz and 82% and 80% of 500 Hz-1 kHz; their box, 250-500 Hz, stands 4.2 dB over their own level's share.
+# THE TWO GUITARS are 10% and 15% of the mix (4.6 and 2.9 dB under the records' guitars) and their shape is wrong
+# where a low-tuned guitar's weight is: 6.5 dB short at 120-250 Hz against the record's guitar heard alone, because
+# this rig cuts the low string before the amp (its `tight` filter, at 220 Hz; chirper-three found the same on So Far).
+# Two changes, each benched on the part alone:
+#   the first pair's tight filter comes down to 150 Hz: the pair alone +4.1 dB at 120-250 Hz, +1.7 at 60-120,
+#     0.2 or less everywhere else (180 Hz gave +2.0)
+#   the three voices lose 3.5 dB of box at 400 Hz (q 0.8) and get 1.5 dB back on their faders, which is what the cut
+#     took from their level (K): 250-500 Hz -1.8 dB, 500 Hz-1 kHz -0.6, 2-4 kHz +1.3. As loud as the three rounds
+#     before this set them, and more of it is consonant.
+# Not touched: the guitars' fader and their 700 Hz lift (they would come up under the shantyman's words), the bass,
+# the kit, the second pair.
+# the first pair's tight filter, Hz ; the voices' extra band ; dB back on their faders ; the loudness target.
+# '' = v8 byte for byte.
+WEIGHT = os.environ.get('C10T15_WEIGHT', '150;peak cutoff=400 q=0.8 gain=-3.5dB;1.5;-10.084' if LETGO and os.environ.get('C10T15_DECKCLIP', 'x') else '')
 # five men: the kit piece, where in the spread his foot lands (0..1), how hard against the others, his board's
 # note, where he stands, how long his board rings (ms)
 BOOTS = [('b1', 0.0, 1.0, 'D2', -0.15, 150), ('b2', 0.23, 0.88, 'C2', 0.4, 170), ('b3', 0.47, 0.94, 'Eb2', -0.5, 135),
@@ -551,6 +572,10 @@ def voices(tr):
     if not INBAND:
         return out
     bands, trim, ride = INBAND.split(';')[:3]
+    if WEIGHT:                              # v9: less box, the same level
+        cut = bands.split('|')
+        bands = '|'.join(cut[:2] + [WEIGHT.split(';')[1]] + cut[2:])
+        trim = f"{float(trim) + float(WEIGHT.split(';')[2]):g}"
     eq = [{'type': 'eq', 'bands': bands.split('|')}]
     points = in_the_choruses(float(ride))
     for t in out:
@@ -576,12 +601,13 @@ def tracks_of(ev):
         if fx: d['fx'] = fx
         return d
     lift = [{'type': 'eq', 'bands': ['peak cutoff=700 q=0.9 gain=2.5dB']}]
+    tight = f" fx.1.tight={WEIGHT.split(';')[0]}" if WEIGHT else ''     # v9: more of the low string into the amp
     dip = [{'type': 'eq', 'bands': ['peak cutoff=380 q=1 gain=-3dB']}]
     air = [{'type': 'eq', 'bands': ['highshelf cutoff=9000 gain=-2dB']}]
     hair = [{'type': 'eq', 'bands': ['peak cutoff=180 q=0.8 gain=-8dB']}]
     return [
-        tr('gl', 'ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone=92', '0.7dB', -1, 'gtrs', lift),
-        tr('gr', 'ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone=93', '0.7dB', 1, 'gtrs', lift),
+        tr('gl', 'ct-twin fx.1.model=gojira' + tight + ' fx.2.mic=0.5 fx.2.cone=92', '0.7dB', -1, 'gtrs', lift),
+        tr('gr', 'ct-twin fx.1.model=gojira' + tight + ' fx.2.mic=0.5 fx.2.cone=93', '0.7dB', 1, 'gtrs', lift),
         tr('wl', 'ct-wall-stop-l', '-3.5dB', -.75, 'gtrs', dip), tr('wr', 'ct-wall-stop-r', '-3.5dB', .75, 'gtrs', dip),
         *([{**tr('clean-' + side, SQUEEZE.split(';')[0], SQUEEZE.split(';')[1], pan, sends={'hall': SQUEEZE.split(';')[3]}), 'name': 'squeeze-' + side}
            for side, pan in (('l', -.6), ('r', .6))] if SQUEEZE else
@@ -642,6 +668,8 @@ def build():
         doc['loudness'] = float(said[3])
     if LETGO and LETGO.split(';')[3]:
         doc['loudness'] = float(LETGO.split(';')[3])
+    if WEIGHT:
+        doc['loudness'] = float(WEIGHT.split(';')[3])
     return doc, marks
 
 
