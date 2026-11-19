@@ -914,7 +914,10 @@ ROUND_TYPES = {
                    "guitar rig, the bass, the kit, a lead (its attack, body and bite; the amp, cab, pick and string; how it "
                    "sits). Hear the part alone and in the mix, before and after, against the album's records "
                    "(`tools/keybench.py`, `tools/stembal.py`, `tools/presence.py`, `tools/swapbench.py`), on full-length "
-                   "renders at both seeds. A gain in a LIBRARY patch goes under a NEW name (`tools/libguard.py`: released "
+                   "renders at both seeds. KEEP A TONE CHANGE ON THE MIX'S READ, not the part's alone (`stembal.py song … "
+                   "--voice`): the records' stems do not sum to their mixes, so a rig fitted to a record's lone guitar can "
+                   "be right alone and wrong in the mix (chirper-zero, Common Time round 63: a 760 Hz cut fitted the rig "
+                   "alone and left the mix 2.2 dB under). A gain in a LIBRARY patch goes under a NEW name (`tools/libguard.py`: released "
                    "albums are frozen); say in your round note which other songs could take it. Where the engine is what "
                    "falls short, say so in a bead with numbers (chirper-zero builds engine features; chirp-eco gates). The "
                    "notes need not change at all."),

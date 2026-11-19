@@ -493,6 +493,23 @@ def cmd_song(a):
         if S:
             print(f"{'refs own spread (std)':22s}" + "".join(f"{x:7.1f}" for x in spread_medians(S)[0])
                   + "   | what the records move between their own loud passages")
+    if not a.voice:
+        # chirper-zero, 19 Nov: Common Time carried a "hollow" at 500 Hz-1 kHz for five versions that was the records'
+        # voice: riff A read -2.2 dB plain and +0.1 against the records' passages without one. The plain table said
+        # nothing of it. When the records' split is already on disk the two rows cost nothing; it is never made here.
+        try:
+            vocsplit.ROOT = ROOT
+            with open(vocsplit.cache_file(ref_ids(a), 4.0, 12.0, 25.0, a.model)) as f:
+                got = json.load(f)
+            off = np.array(got["without"]) - np.array(got["all"])
+            print(f"{'no voice - all':22s}" + "".join(f"{x:7.1f}" for x in off) + "   | the records' passages without a voice")
+            print(f"{'OURS - REFS, no voice':22s}" + "".join(f"{x:7.1f}" for x in np.mean(mixes, axis=0) - (M + off)))
+        except (OSError, ValueError, KeyError, TypeError):
+            pass
+        print("(the records' median has a VOICE in many of its loud passages. A window where nobody sings is read against "
+              "their passages WITHOUT one: the 'no voice' rows, and --voice for every window both ways (with "
+              "--voice-tracks, weighed by how much of the window ours sings). Read plain, an instrumental window looks "
+              "hollow where a voice would be.)")
     if a.voice:
         if V:
             off, n, _ = V

@@ -252,9 +252,22 @@ class Stembal(unittest.TestCase):
         args = ("song", self.song, "--refs", "recV,recW", "--from", "0", "--dur", "20", "--windows", "1-4:all", "--mix-only",
                 "--out", self.root)
         plain = self.run_tool(*args)
-        self.assertNotIn("voice", plain)
+        # chirper-zero, 19 Nov: the plain table said nothing of the records' voice, and Common Time carried a false
+        # hollow at 500 Hz-1 kHz for five versions. Plain now ends with the caution; the split is never made by it.
+        head, caution = plain.split("(the records' median has a VOICE", 1)
+        self.assertIn("read against their passages WITHOUT one", caution)
+        self.assertNotIn("voice", head)                                    # no rows yet: the records' split is not on disk
+        self.assertNotIn("blend", plain)
         text = self.run_tool(*args, "--voice")
-        self.assertTrue(text.startswith(plain))                            # the block is added under what was there
+        self.assertTrue(text.startswith(head))                             # the block is added under what was there
+        self.assertNotIn("(the records' median has a VOICE", text)
+        again = self.run_tool(*args)                                       # the split is on disk now: two rows, for nothing
+        self.assertTrue(again.startswith(head))
+        rows = {ln[:22].strip(): [float(x) for x in ln[22:].split("|")[0].split()] for ln in again[len(head):].splitlines()
+                if ln[:22].strip() in ("no voice - all", "OURS - REFS, no voice")}
+        self.assertLess(rows["no voice - all"][4], -50.0)                  # the voice's band, 500 Hz-1 kHz
+        for band in (0, 1, 5):
+            self.assertAlmostEqual(rows["OURS - REFS, no voice"][band], 0.0, delta=0.2)   # level with their passages without one
         self.assertIn("== each window against the records' passages WITHOUT a voice and WITH one", text)
         self.assertIn("2 and 2 records", text)
         self.assertAlmostEqual(self.row(text, "voice - all")[4], 1.76, delta=0.1)      # the voice's band, 500 Hz-1 kHz
