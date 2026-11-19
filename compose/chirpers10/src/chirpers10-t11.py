@@ -255,6 +255,22 @@ TAIL = os.getenv('C10T11_TAIL', '3;wallL,wallR;m;0.42,0.86;' if TWELVE else '')
 # the walks of home's last cells, steps a cell, one a cell, ending with its last ('' in the list = none) ; 1 = the
 # one-step walk's backbeat falls on the first chord of 'shut' ; the loudness target ('' = unchanged). '' = v21.
 STRIDE = os.getenv('C10T11_STRIDE', '6,4,3,2,1;1;' if TAIL else '')
+# v23 (chirper-one, section w7, 2:40-3:06): THE ORGAN BREATHES THE OTHER WALK AT EACH CHANGE OF FEET. The song's first
+# idea is that the reed organ is already in the second time while the band is in the first: at 0:40 it says the
+# riff's four open notes on the four broad steps while the drummer walks six, and at 1:10 on the six quick steps
+# while he walks four. It then leaves at 1:50 and is not heard again until the band has stopped. The swing is where
+# the drummer changes feet cell by cell, and in its last six cells the guitars rest for the first half of five of
+# them over one held double stop: five holes with a walk in them and nothing across it. Now the organ is back for
+# those six cells (2:45-3:00) with the same sentence in the same register, always in the walk the drummer is NOT in
+# (four steps over his six, six over his four), carried across the cell lines as it was at 1:10; the holes show it
+# and the riff covers it, five times. It stops at home, where the bell and the bow answer.
+# Where a guitar is sounding the riff's folded answer (C: every fourth cell the high fifth folds down to the second)
+# the organ's D flat folds with it to C, the sigh it has had since 0:50: twice, at 2:50.4 in a hole, over the held
+# B flat and C, and at 2:54.4 under the riff. Otherwise it would say D flat against a held C.
+# the first cell of the swing it plays ; dB on its notes in the first of those cells and the last (a line between) ;
+# the bellows pedal's depth on them, as at 0:40 ; the loudness target ('' = unchanged) ; 1 = the D flat folds to C
+# where a guitar sounds C. '' = v22 byte for byte.
+ACROSS = os.getenv('C10T11_ACROSS', '10;-1.5,1.5;0.25;;1' if STRIDE else '')
 
 
 def BOW_PATCH():
@@ -338,6 +354,20 @@ def make():
 
     def swing_slow(i):
         return i<4 or 8<=i<10 or (12<=i<16 and i%2==0)
+    across_at, across_db = [0], []
+    def across(start, i, count, slow):
+        # v23: the sentence of other_walk, in the walk the kit is not in, its place carried from cell to cell
+        first = int(ACROSS.split(';')[0]); g0, g1 = (float(x) for x in ACROSS.split(';')[1].split(','))
+        tune = [s for _,_,s,k in RIFF if k!='m']
+        step = SUB if slow else BROAD
+        lift = g0 + (g1-g0)*(i-first)/max(1, count-1-first)
+        for j in range(CELL//step):
+            pos = across_at[0] % len(tune); across_at[0] += 1
+            put('bellows', start+j*step, step*(.80,.70,.52,.92)[pos], HOME+int(COUNTER)+tune[pos], (.89,.84,.78,.92)[pos])
+            if lift:
+                notes['bellows'][-1]['gain'] = f'{round(lift,2):g}dB'
+            if tune[pos]==3:
+                across_db.append(notes['bellows'][-1])
 
     def main_riff(start,i,lift=False,wide=False,lend=False,carry_out=False,count_in=False,bass_floor=None,plant=None,bare=0,quick_in=False):
         pattern = LIFT if lift else RIFF
@@ -582,6 +612,8 @@ def make():
                             drum('s',a+t,(.98 if j%4==1 else .91) if steps in (8,12) else .91 if hit else .98); hit = True
                 else:
                     walk(a,6 if slow else 4,bronze)
+                if ACROSS and COUNTER and ORGAN and section=='swing' and i>=int(ACROSS.split(';')[0]):
+                    across(a,i,count,slow)
                 if COUNTER and ORGAN and section=='lean' and i<2:
                     other_walk(a,i,BROAD)  # organ anticipates the four; drummer still plays six
                 elif COUNTER and ORGAN and section=='broad' and 4<=i<6:
@@ -652,6 +684,11 @@ def make():
     # velocities and expressions repeat exactly. Drums are counted independently.
     hinge=marks['broad']/SUB; span=4*CELL/SUB
     def window(tr,a,b):return [dict(e,at=round(e['at']-a,5)) for e in notes[tr] if a<=e['at']<b]
+    if ACROSS and ACROSS.split(';')[4:] and ACROSS.split(';')[4]=='1':
+        for ev in across_db:                    # v23: the organ's D flat folds to C where a guitar is sounding C
+            if any(n['at'] < ev['at']+ev['len'] and ev['at'] < n['at']+n['len'] and any(x[:-1]=='C' for x in str(n['pitch']).split(','))
+                   for g in ('gl','gr','wallL','wallR') for n in notes[g]):
+                ev['pitch'] = note(HOME+int(COUNTER)+2)
     for tr in ['gl','gr','wallL','wallR','latch','glass','bass','bellows','kick']:
         assert window(tr,hinge-span,hinge)==window(tr,hinge,hinge+span),tr
     assert [len(window('hat',a,a+span)) for a in (hinge-span,hinge)]==[24,16]
@@ -698,6 +735,10 @@ def make():
                 b0,b1=tick/SUB,(tick+2*CELL)/SUB
                 wet += [[f'{b0:g}b',1.0],[f'{b0+.01:g}b',.25],
                         [f'{b1-.01:g}b',.25],[f'{b1:g}b',1.0]]
+            if ACROSS:
+                b0,b1=(marks['swing']+int(ACROSS.split(';')[0])*CELL)/SUB,marks['home']/SUB
+                wet += [[f'{b0:g}b',1.0],[f'{b0+.01:g}b',float(ACROSS.split(';')[2])],
+                        [f'{b1-.01:g}b',float(ACROSS.split(';')[2])],[f'{b1:g}b',1.0]]
             pump[0]['mix']={'value':0,'mod':[{'src':'auto.hand','amount':1}]}
             organ['auto']={'hand':{'points':wet,'curve':0}}
         tracks.append(organ)
