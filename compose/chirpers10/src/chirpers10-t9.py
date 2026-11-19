@@ -152,6 +152,26 @@ PLACES = (0, 1, 3, 6, 7, 12)  # F, Gb, Ab, B, C, upper F: one for each place in 
 # lock is a little quieter; every other bar keeps v16's mastering gain: at -9.95 the rest of the song came out
 # 0.11 dB louder, at -10.06 still 0.002). Empty restores v16.
 SHAPE = os.environ.get('C10T9_SHAPE', '7;dl,dr,wl,wr;0.5;-10.062' if SIX and FORETELL else '')
+# v18, section w6 (the lock on F, 2:10-2:22.9): SEVEN, COUNTED BY HAND. The tabla counted the fives in jhaptal (v14)
+# and was not heard again. There is a tala of seven, rupak: tin tin na, dhin na, dhin na. It is three and two and
+# two, which is what v17 made the lock; it is the one common tala that BEGINS on its empty beat, no bass drum on
+# the one, and the riff begins on its open string; and its two dhins, the strokes where the bass drum sounds, are
+# the fourth and sixth of seven, the riff's two answers. So at seven to the beat one turn of rupak is one beat
+# long and is the riff, stroke for stroke (chirper-three saw it at r17). The tabla comes back for the last two and
+# a half slow cells of the lock: first the right hand alone, tin tin na, tin na, tin na (2:10); then, at the next
+# slow cell, the bass drum on the two answers (2:15); and in the last two beats a tihai, te re dha three times,
+# three strokes' rest between, whose third dha is the band's first stroke in A flat (2:22.9), as the tihai at 1:30
+# landed where the tap began its tune. No other part changes: the lock goes wall, figure, figure counted by hand,
+# figure with the low drum, A flat.
+# Beats into the lock where the tabla comes in ; beats after that where its bass drum joins ; the gain of its
+# track here ; the loudness target (every bar without it keeps v17's mastering gain). Empty restores v17.
+# (The same drums on a track of their own, `rupak`, at the fives' own fader. There they stand 8.0 to 9.1 dB under
+# everything else, K-weighted, where the fives' stand 8.6; they hold half of 250 Hz-1 kHz (their treble drum is on
+# F4, struck ten times a second) and the passage reads 2.3 to 3.2 dB over the eleven records in those two bands,
+# where v17 had left it level and the fives read 2.8 and 1.2. Benched at -12 dB: 11.3 to 11.9 under the rest, 1.2 to
+# 2.4 over the records, and the scorer stopped hearing the drums come back (89.863/86.324 against 91.068/91.746 on
+# seeds 0/11). With '-12dB' the target is -10.055. A gain written on each note moved them only 0.4 dB for a dB.)
+RUPAK = os.environ.get('C10T9_RUPAK', '14;7;-9dB;-10.047' if SHAPE and KHANDA else '')
 WALK = []
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
@@ -543,6 +563,36 @@ def three_two_two(b):
         T[tr] = keep
 
 
+def seven_by_hand(b):
+    """Rupak at seven to the beat in the lock on F that starts at beat b; a tihai lands on the A flat."""
+    field = RUPAK.split(';')
+    start, low_at = int(field[0]), int(field[1])
+    hard = float(KHANDA.split(';')[2])
+    theka = (('tin', .88), ('tin', .66), ('na', .72), ('tin', .84), ('na', .64), ('tin', .8), ('na', .68))
+    b0, end = b + start, b + 32
+    body = (32 - start - 2) * N
+
+    def bol(piece, at, vel, length=.13):
+        T.setdefault('rupak', []).append({'at': round(at, 5), 'len': length, 'pitch': piece, 'vel': round(min(1, vel * hard), 3)})
+
+    for i in range(body):
+        treble, vel = theka[i % N]
+        swell = .88 + .12 * i / body
+        bol(treble, b0 + i / N, vel * swell)
+        if i % N in (3, 5) and i // N >= low_at:        # the dhins: the riff's two answers
+            bol('gem' if i == low_at * N + 3 else 'ge', b0 + i / N, vel * swell * .9)
+    for said in range(3):                               # te re dha _ _ _ , te re dha _ _ _ , te re DHA
+        at = end - 2 + said * 6 / N
+        for j, closed in enumerate(('te', 're')):
+            bol(closed, at + j / N, .9)
+            T['rupak'][-1]['gain'] = '4dB'              # as at 1:30: the closed strokes are the drum's quietest
+        last = said == 2
+        bol('na', at + 2 / N, .9 + .05 * said, .5 if last else .13)
+        if not last:                                    # the third dha's low drum is the band, in A flat
+            bol('ge', at + 2 / N, .86 + .06 * said)
+    assert abs(T['rupak'][-1]['at'] - end) < 1e-9
+
+
 def fill(b):
     """The last two beats before beat b."""
     for i, pc in enumerate(["t1", "t1", "t2", "t2", "ft", "ft", "s", "s"]):
@@ -601,6 +651,8 @@ def compose():
         chord_before_the_line(b)
     if SHAPE:
         three_two_two(b)
+    if RUPAK:
+        seven_by_hand(b)
     ROOTS.append((b + 32, 3))
     deal(b + 32, 24 - (N if GEAR else 0), 7, ALL, root=3, chords="o", cut=bool(CUT))
     if GEAR:
@@ -671,6 +723,8 @@ def song():
         tracks.append({"name": "tabla", "patch": "it-tabla", "gain": KHANDA.split(";")[0], "pan": 0.2})
     if SIX:
         tracks.append({"name": "six", "patch": "it-six", "gain": SIX.split(";")[0], "pan": 0.3})
+    if RUPAK:
+        tracks.append({"name": "rupak", "patch": "it-tabla", "gain": RUPAK.split(";")[2], "pan": 0.2})
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
 
@@ -705,7 +759,7 @@ def song():
                   "and locks. The bass and kick walk in quarters underneath. Then once more at one to the beat, every stroke a chord. "
                   "v1 is the skeleton.") + (" At four to the beat the two hook notes pass between a baritone guitar and a clavinet; they exchange roles halfway." if HANDS else "")
                  + (" One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then the original two guitars play the last cell before everyone lands on F." if RING else ""),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(SHAPE.split(";")[3]) if SHAPE else float(SIX.split(";")[2]) if SIX else float(KHANDA.split(";")[1]) if KHANDA else PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(RUPAK.split(";")[3]) if RUPAK else float(SHAPE.split(";")[3]) if SHAPE else float(SIX.split(";")[2]) if SIX else float(KHANDA.split(";")[1]) if KHANDA else PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}, **({'hp': {'gain': CROSS.split(';')[1]}} if CROSS else {}),
                             **({'oh': {'patch':'haake-hat amp.d=1.05s amp.r=180ms amp.curve=2.2',
                                        'gain':CLUTCH,'pan':-.45,'choke':'hat'}} if CLUTCH else {})}},
