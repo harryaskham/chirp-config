@@ -354,9 +354,11 @@ KICK = os.environ.get("C10T14_KICK", "m32.1564;;F2;-3dB;90;11.5;;-10.388" if SNA
 #   THE BAR GETS ITS DRUM AND ITS NOTE: the C tom on every bar line (the fours' drum, two octaves down in time),
 #     and the LEFT wall guitar leaves the D flat for C on every bar line. The right wall keeps the D flat, as it
 #     will through the quiet middle that follows, so its fifteens run unbroken from 1:12.3 to 2:11.
-# So the two slowest things in the section are both struck, by a drum and a guitar each: together at 1:12.3, then
-# the D flat a sixteenth before the bar line, then two, three ... half a bar apart at 1:27, and closing again
-# (under the fill) to meet on the first stroke of 'fourth'. The gap can be counted.
+# So the two slowest things in the section are both struck, by a drum and a guitar each: together at 1:12.3 (where
+# the crash stands for the bar's drum), then the D flat a sixteenth before the bar line, then two, three ... half a
+# bar apart at 1:27, and closing again (under the fill) to meet on the first stroke of 'fourth'. The gap can be
+# counted. (A first build rested the china on every bar line the C tom takes: 0.8 dB off the mix at 8-16 kHz,
+# where the song is short. The left hand is free there, so it has the C tom and the china keeps its quarters.)
 # THE CHORD: C3 and C4, read against C4 alone and C4 with C5 (raw): only with the C3 does the wall give the mix
 # anything at 120-250 Hz, where 'sixth' stood 2.4 dB short of the records (0.6 of it back). The band now plays the
 # whole of D flat, F, A flat, C; until now the C was the kit's alone.
