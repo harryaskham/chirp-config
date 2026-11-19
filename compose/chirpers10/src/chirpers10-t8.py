@@ -220,6 +220,28 @@ OWN = os.environ.get('C10T8_OWN', '-17dB;96.01955;3.5:6.0:9.3;0.85;-10.015' if F
 # which of the two places get the break (1 = 0:26.25, 2 = 0:35.6; comma list) ; the loudness target ("" = unchanged).
 # Empty restores v21.
 PASS = os.environ.get('C10T8_PASS', '1,2;' if OWN else '')
+# v23 (chirper-one, palette: one instrument, the two bells, retuned through the whole song; no stroke added or moved).
+# chirper-alpha's v21 found that every pair in this song is an interval: two riffs 20 and 32 long stand as two strings
+# 5 and 8 long, so Euclid's steps are a cadence (13:8, 8:5, 5:3, 3:2, 2:1, 1:1), and said two of its steps on bowed
+# strings for 26 seconds. He named the carrier for the rest: THE BELLS, which ring wherever a riff comes round and had
+# rung the same two notes (C6 on the left, F6 on the right) from the first bar to the last.
+# Now EACH BELL RINGS ITS RIFF'S OWN NOTE: the measure's note (C7, the beat's), lower by the riff's length over four,
+# brought by octaves into the bell's own register, the left bell under the right as it always was.
+#   left   52 -> E flat 5, 61 cents sharp   20 -> A flat 5, 16 sharp   8 -> C6          the measure -> C7
+#   right  32 -> C6                         12 -> F6                   4 -> C7          the measure -> C7
+# So a bell CHANGES NOTE WHEN ITS RIFF IS CUT, and only then; each rises at every cut; and the two together sound the
+# pair's own interval or its inversion: 13:8 (0:12, the rough one: the thirteenth is between the keys), a major
+# third (0:51), 5:3 (1:21), a fourth (1:43.5, the two notes they always had), an octave (2:01.5), and at the measure
+# (2:13.5) ONE NOTE, where they rang a fourth apart. Wherever both riffs say the cell together at a cut, both bells
+# ring the measure's C7: the answer, early, in pitch. In 'measured' the bells do not part again: each riff said whole
+# is rung in by both on the measure's note. The last chord keeps the two notes it had.
+# The bells alone are as loud as they were in every section (K, within 0.05 dB): each note carries its own trim, and
+# the two on one note at once (one bell, in effect) come down 2 dB.
+# the measure's own note (a key number) ; left bell: riff length:octaves over the rule's note:dB, ... ; right bell ;
+# dB on both where they ring one note together ; the loudness target ("" = unchanged). "" = v22 byte for byte.
+RULE = os.environ.get('C10T8_RULE', '96.01955;52:2:0.7,20:1:0.4,8:0:0,4:0:-1.2;32:2:0.5,12:1:0,4:0:-0.7;-2;' if PASS and all(os.environ.get('C10T8_' + x, 'x') for x in ('DBL', 'MAIN', 'MASTER')) else '')
+OWN_NOTE = {side: {int(x.split(':')[0]): (int(x.split(':')[1]), float(x.split(':')[2])) for x in RULE.split(';')[k].split(',')}
+            for side, k in (('l', 1), ('r', 2))} if RULE else {}
 
 
 
@@ -318,8 +340,17 @@ def fill(s):
 
 
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
-def bell(side, s16, root=0, vel=None):
-    if BELLS:
+def bell(side, s16, root=0, vel=None, length=None, both=False):
+    if BELLS and RULE and length:
+        # v23: the riff's own note (the measure's, lower by the riff's length over four), in this bell's octave; a chord's
+        # root is folded to within a fourth below and a tritone above
+        octaves, trim = OWN_NOTE[side][length]
+        trim += float(RULE.split(';')[3] or 0) if both else 0     # the two on one note at once are one bell, and louder
+        key = float(RULE.split(';')[0]) - 12 * log2(length / 4) + 12 * octaves + (root + 5) % 12 - 5
+        add("bell-" + side, s16, 1, f"m{key:.4f}", float(BELLS.split(";")[1]) if vel is None else vel)
+        if trim:
+            T["bell-" + side][-1]["gain"] = f"{trim:g}dB"
+    elif BELLS:
         add("bell-" + side, s16, 1, F1 + root + (55 if side == "l" else 60), float(BELLS.split(";")[1]) if vel is None else vel)
 
 
@@ -483,7 +514,7 @@ def compose():
     # the two given: B alone on the right, twice bare (a hat in quarters) and twice with the band
     for i in range(4):
         say(B, i * 32, ("gr", "dr") if i >= 2 else ("gr",), low=i >= 2)
-        bell("r", i * 32)
+        bell("r", i * 32, length=32)
     beat(0, 64, cym="h", step=4, vel=0.45, snare=())
     beat(64, INTRO)
     t = INTRO
@@ -515,7 +546,7 @@ def compose():
             else:
                 say(left, at, gl, low=a < b and at >= kick_from, stop=stop if last or a < b else None, bass=not last)
             if not (last or a < b) or t + i * a < stop:
-                bell("l", t + i * a, vel=grow(t + i * a) if last else None)
+                bell("l", t + i * a, vel=grow(t + i * a) if last else None, length=a)
         for i in range(n // b):
             # In v4 the right guitarist lets the reed take the three pitched
             # attacks. His four-place tail and bell still give the riff its
@@ -525,15 +556,15 @@ def compose():
             played = ["r" if token.isdigit() else token for token in right] if leave_head else right
             say(played, t + i * b, gr, low=b < a and t + i * b >= kick_from, stop=stop if last or b < a else None, bass=not last)
             if not (last or b < a) or t + i * b < stop:
-                bell("r", t + i * b, vel=grow(t + i * b) if last else None)
+                bell("r", t + i * b, vel=grow(t + i * b) if last else None, length=b)
         if SHARED and not last:
             # What the two riffs have in common is the only thing they say together at a cut.
             cell_at = t + n - len(G)
             longer, others = (left, gr) if a > b else (right, gl)
             assert stop <= cell_at and longer[-len(G):] == G and (t + n - stop - len(G)) in (16, 8, 4, 0)
             say(G, cell_at, others, low=True)
-            bell("l", cell_at)
-            bell("r", cell_at)
+            bell("l", cell_at, length=len(G), both=True)
+            bell("r", cell_at, length=len(G), both=True)
         if last and TWICE:
             twice_under_one(t, left, right)
         if BASS_BREAK and k in (1, 2) and str(k) not in FULL.split(';')[0].split(','):
@@ -588,7 +619,7 @@ def compose():
         for i in range(8):
             say(G, t + j * 32 + i * 4, ALL, low=True, root=root, chord=True)
             for side in "lr":
-                bell(side, t + j * 32 + i * 4, root, float(BELLS.split(";")[2]) if BELLS else 0)
+                bell(side, t + j * 32 + i * 4, root, float(BELLS.split(";")[2]) if BELLS else 0, length=len(G), both=True)
         if j:
             drum("c", t + j * 32, 0.7)
         if HEAD:
@@ -616,8 +647,8 @@ def compose():
             unfold_head(s, j)
         if KOTO and 1 <= j <= 3:
             the_rest_on_thirteen_strings(s, len(riff) - len(recall))
-        bell("l", s)
-        bell("r", s)
+        bell("l", s, length=len(G), both=True)      # v23: the measure is found; the bells count in it from here on
+        bell("r", s, length=len(G), both=True)
         if s > t:
             drum("c", s, 0.7)
         s += len(riff)
@@ -962,6 +993,8 @@ def song():
         the_shekere(doc)
     if PASS:
         the_answer_passes_by(doc)
+    if RULE and RULE.split(';')[4]:
+        doc['loudness'] = float(RULE.split(';')[4])
     return doc
 
 
