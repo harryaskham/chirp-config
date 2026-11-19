@@ -701,6 +701,8 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 
 **The string, not its hoot (v17, chirper-zero, on v16's own read against the records; 3:12–3:20).** v16's bowed string was mostly its lowest harmonic: one low tone with a string behind it, which is the waterphone's fault over again in kind, and the read caught it (the last twenty seconds went from 0.8 to 3.1 dB over the records at 250–500 Hz, from four notes). A shelf in the patch now holds that harmonic back so the string's upper harmonics lead, and the bow is as loud in its two holes as it was. No note changes. `C10T11_STRING=''` is v16.
 
+**The broad walk at double speed, then at half (v18, chirper-one; 1:15–1:20).** In the last two plain cells before the half-speed walk the drummer takes the broad four at double speed: eight steps a cell, the backbeat on every other one, so each half of the riff is a bar of four. The organ's sigh (D♭ to C, once every ten seconds) is told in five there. Then at 1:20 the same walk at half speed: eight steps a cell to two. Guitars, bass and kick as written. Behind `C10T11_DOUBLE`.
+
 ## t12 The Other Hand (v1 by chirper-two)
 
 **A strip read from both ends.** The open notes are F–A♭–G♭–C, four colours of the album hook, on sixteenths 0, 3, 10 and 15 of a strip of nineteen. Five low palm strokes are the spaces between the words. At 0:44 the right guitar starts at the other end, attacking on `18 − t` with the original note and touch. Now the two open attacks that coincide make A♭ against C and then C against A♭. The bass underlines those two strokes on low F; the drummer keeps four at 104. It takes sixteen strips to get back to the same downbeat.

@@ -164,6 +164,22 @@ BOW = os.getenv('C10T11_BOW', '-6dB;1.75,1.75,1.75,1.2;1;8,300,-2' if SECOND and
 # octave under its corner, lost 2.6 LU) and at 700 (thin: the first four harmonics level).
 # the shelf's corner in Hz ; its gain in dB ; the track's gain. '' = v16.
 STRING = os.getenv('C10T11_STRING', '600;-8;-2dB' if BOW else '')
+# v18 (chirper-one, section w3, 1:15-1:20): THE BROAD WALK AT DOUBLE SPEED, THEN AT HALF. The song's rule is that the
+# riff never changes and the walk does. v13 walked each walk at half speed once; no walk had ever been walked faster.
+# The first riff is two halves of twelve sixteenths (chord, clipped strokes, answer, twice). Walked in the broad four
+# a cell is a bar. In the last two plain cells before v13's half-speed walk the drummer now takes the broad four at
+# double speed: eight steps a cell, a dotted eighth each, the backbeat on every other one. So each HALF of the riff
+# is a bar of four with its own two backbeats: kick with the chord on one, snare on two and four. Then at 1:20 the
+# same walk at half speed makes a bar of two cells. In thirty seconds the one riff is heard under four steps a cell
+# (1:00), the organ's six over them (1:10), eight (1:15), two (1:20), and then its bones. The drop from eight to
+# two is the song's one double-time into half-time. Guitars, bass and kick are as written, as at 1:00.
+# THE ORGAN TURNS WITH THE WALK. Under the four its upper note sighs from D flat to C once every four cells (two
+# cells each, ten seconds: 0:50, 1:00). In the doubled cells it tells that sigh at double speed: D flat for one
+# cell, C for the next (it used to hold C through both), so the turn into double time is heard in the harmony too,
+# on the downbeat where the hands change.
+# How many cells before the half-speed walk go at double speed ; 1 = the organ's sigh doubles too. Empty restores
+# v17 byte for byte.
+DOUBLE = os.getenv('C10T11_DOUBLE', '2;1' if STRING and ORGAN and PUMP else '')
 
 
 def BOW_PATCH():
@@ -223,7 +239,7 @@ def make():
         pitch=chord(midi,midi+7) if typ=='p' else midi
         for tr in (('gl','gr','wallL','wallR') if wide else ('gl','gr')):
             put(tr, at, dur, pitch, vel, typ=='m')
-    def reed(start,i,melody=False):
+    def reed(start,i,melody=False,top=None):
         if not ORGAN: return
         if melody:
             # The two answers from the riff, each granted half a cell to ring.
@@ -234,7 +250,7 @@ def make():
                 put('bellows', start+k*CELL/2+wait, CELL/2-.5-wait, HOME+36+semi, .90)
         else:
             # F4 under Db5/C5: the upper bench makes the bellows motion less buried.
-            put('bellows',start,CELL-.15,chord(HOME+31,HOME+36+(2 if i%4 in (2,3) else 3)),.78)
+            put('bellows',start,CELL-.15,chord(HOME+31,HOME+36+(top if top is not None else 2 if i%4 in (2,3) else 3)),.78)
     def other_walk(start, cell, step):
         # Two cells = five seconds. The same four-note sentence fits twice at
         # four steps a cell, three times at six. Carry it across cell boundaries.
@@ -437,20 +453,24 @@ def make():
                     two,three = (int(x) for x in HALFSPEED.split(';'))
                     if section=='broad' and count-1-two<=i<count-1:
                         steps,first = 2,count-1-two
+                    elif DOUBLE and section=='broad' and count-1-two-int(DOUBLE.split(';')[0])<=i<count-1-two:
+                        steps,first = 8,count-1-two-int(DOUBLE.split(';')[0])
                     elif section=='shoulder' and i<three:
                         steps,first = 3,0
                 if steps:
                     hit = False
                     for j,t in enumerate(range(0,CELL,CELL//steps)):
-                        drum(bronze,a+t,(.68 if j==0 else .52) if bronze=='h' else (.65 if j==0 else .54))
+                        bar = j%4==0 if steps==8 else j==0          # at double speed each half of the riff is a bar
+                        drum(bronze,a+t,(.68 if bar else .52) if bronze=='h' else (.65 if bar else .54))
                         if (steps*(i-first)+j)%2:
-                            drum('s',a+t,.91 if hit else .98); hit = True
+                            drum('s',a+t,(.98 if j%4==1 else .91) if steps==8 else .91 if hit else .98); hit = True
                 else:
                     walk(a,6 if slow else 4,bronze)
                 if COUNTER and ORGAN and section=='lean' and i<2:
                     other_walk(a,i,BROAD)  # organ anticipates the four; drummer still plays six
                 elif COUNTER and ORGAN and section=='broad' and 4<=i<6:
                     other_walk(a,i-4,SUB)  # keep one memory of the six after the kit changes
+                elif steps==8 and DOUBLE.split(';')[1]=='1' and i<count-4: reed(a,i,top=2 if (i-first)%2 else 3)
                 elif section=='lean' or (section=='broad' and i<count-4): reed(a,i)
                 if section in ('quick','shoulder','swing') and i==0: drum('c',a,.88)
                 if section=='broad' and i==count-1:
