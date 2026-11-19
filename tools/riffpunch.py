@@ -6,6 +6,8 @@ our notes are off the record's timing, or our attacks are the wrong shape.
   riffpunch.py --song ID [--from S --to S] [--song-file F] [--tracks a,b] [--set PATH=V …] [--seed N]
                [--stems guitar|guitar+bass] [--ours WAV] [--json]
   riffpunch.py --clip CLIP_ID [same options]
+  riffpunch.py --strokes --song-file F --from S --to S [--tracks a,b] [--set PATH=V …] [--ours WAV] [--json]
+      an ORIGINAL song's strokes (no record of its own) beside the RECORDS' strokes: see "--strokes" below
 
 Events: our guitar tracks' notes (patches/tracks matching m8|guitar|gtr|emg|rig|chug, or --tracks), doubled parts
 merged; a CLEAN onset has no other guitar onset within 40 ms before it and 60 ms after. Ours: those tracks rendered
@@ -32,6 +34,18 @@ Separator floor (28 Oct; htdemucs vs bs_roformer guitar stems of one song, 30 s 
 total 67-86. grain agrees within 0.02 and scoop within ~1 dB, so trust those. fizz differs by 3-11 dB (htdemucs
 loses the top), so judge fizz only against bs_roformer refs. Timing is noisy on sustained distortion (IQR up to 20 ms
 and 27-50% "off by >10 ms" between two stems of identical timing): compare it against that floor, never alone.
+
+--strokes (19 Nov, from chirper-zero's bench on Extreme and Mean v23): a song we wrote has no record to pair its notes
+with, but its strokes can be read by the same measures and set beside what six records' guitar stems read at their own
+chugs (tools/riffpunch-records.json: their medians, and the lowest and highest record). It renders the song's guitar
+tracks solo over the window (--tracks to name the rig you are judging; without it, every track whose name or patch
+says guitar, or whose resolved patch is a plucked string through an amp, less the bass) and prints ours, the records,
+their range and the difference. What it found on the album: through a stroke the records' guitars carry 11.3 dB more
+at 1-4 kHz than at 400 Hz-1 kHz (scoop_db -11.3; -12.7 to -6.5), and a `ct-twin` chug written at a full palm
+(pm 1.0, which closes the string's filter to 1 kHz before the amp) read -4.4: no teeth. Nothing is scored: it is a
+read. fizz_db is to be trusted only as far as the separator (see below). What the records CANNOT give: how empty the
+rest after a stroke should be. A stroke "followed by a rest" in our transcriptions is not followed by a rest on the
+records' guitar stems (-4 to 0 dB under the stroke on obZen, Pravus, Lethargica, This Spiteful Snake).
 """
 import argparse
 import json
@@ -55,7 +69,17 @@ GTR = re.compile(r"m8|guitar|gtr|emg|rig|chug|thrash|les-paul|fluence|bkp|obzen-
 TOL = {"rise_ms": 2.0, "punch_db": 2.5, "tight_db": 3.0, "fizz_db": 3.0, "scoop_db": 3.0, "grain": 0.05}
 
 
-def guitar_events(song_file, names=None):
+def strung_and_amped(patch):
+    """A resolved patch that is a plucked string through an amp: a guitar, whatever it is called (as stembal's)."""
+    try:
+        layers = [x.get("type") for x in patch["synth"]["layers"] if isinstance(x, dict)]
+        fx = [x.get("type") if isinstance(x, dict) else str(x).split()[0] for x in patch.get("fx") or []]
+    except (KeyError, TypeError, AttributeError):
+        return False
+    return "pluck" in layers and "amp" in fx
+
+
+def guitar_events(song_file, names=None, by_chain=False):
     """Onset times (s) of the song's guitar notes, doubles merged; and the track names."""
     import chirpbin
     r = subprocess.run([chirpbin.resolve("chirp"), "plan", "-f", os.path.abspath(song_file), "--json"], capture_output=True,
@@ -64,7 +88,15 @@ def guitar_events(song_file, names=None):
         can = json.loads(r.stdout)["data"]["canonical"]
     except (ValueError, KeyError, TypeError):
         raise SystemExit(f"riffpunch: chirp plan failed for {song_file}: {r.stderr.strip()[-200:]}")
+    return events_from(can, names, by_chain)
+
+
+def events_from(can, names=None, by_chain=False):
+    """guitar_events on a canonical plan. by_chain (only --strokes asks for it, so a reproduction's tracks and score are
+    as they were): a track no name places is a guitar when its resolved patch is a plucked string through an amp; the
+    album's rhythm rig is `ct-twin` on tracks called gl, gr, left, and no word in those says guitar."""
     to_s = D.beats_to_seconds(can.get("tempo"))
+    patches = can.get("patches") if isinstance(can.get("patches"), dict) else {}
     times, tracks = [], []
     for t in can.get("tracks", []):
         p = t.get("patch")
@@ -73,7 +105,9 @@ def guitar_events(song_file, names=None):
         if names is not None:
             if nm not in names:
                 continue
-        elif not (GTR.search(pname) or GTR.search(nm)) or "bass" in nm.lower() or "bass" in pname.lower():
+        elif "bass" in nm.lower() or "bass" in pname.lower():
+            continue
+        elif not (GTR.search(pname) or GTR.search(nm)) and not (by_chain and strung_and_amped(patches.get(pname))):
             continue
         tracks.append(nm)
         times += [to_s(float(n["at"])) for n in t.get("notes") or [] if n.get("at") is not None]
@@ -119,6 +153,51 @@ def measure_note(y, yb, t, nxt):
     return {"rise_ms": m["rise_ms"], "punch_db": m["punch_db"],
             "tight_db": 20 * np.log10(e(0.005, 0.025) / e(0.045, 0.085)) if len(lo) > int(0.085 * SR) else np.nan,
             "fizz_db": D.band_db(sus, 6000, 10000) - mid, "scoop_db": D.band_db(sus, 400, 1000) - mid, "grain": flatness(sus)}
+
+
+def strokes_read(ours, ts, t0, t1):
+    """--strokes: the medians of riffpunch's measures over the clean onsets of `ts` (seconds in the song) that fall in
+    the window t0-t1, on `ours` (the window's audio, starting at t0). {"n": strokes read, "of": onsets in the window,
+    "ours": {measure: median}}; a stroke in the window's first 30 ms or last 200 ms is not read."""
+    y = D.mono(ours)
+    yb = D.bandpass(y, 150, 8000)
+    cl, rows, inside = set(clean(ts)), [], 0
+    for i, t in enumerate(ts):
+        if not t0 <= t < t1:
+            continue
+        inside += 1
+        nxt = ts[i + 1] if i + 1 < len(ts) else t + 0.5
+        if t in cl and 0.03 < t - t0 < (t1 - t0) - 0.2:
+            m = measure_note(y, yb, t - t0, nxt - t0)
+            if m:
+                rows.append(m)
+    med = {k: (round(float(np.nanmedian([r[k] for r in rows])), 3) if rows else None) for k in TOL}
+    return {"n": len(rows), "of": inside, "ours": med}
+
+
+def records_table(path=None):
+    """{record id: {measure: its guitar stem's median, "n": onsets}} from tools/riffpunch-records.json."""
+    with open(path or os.path.join(HERE, "riffpunch-records.json")) as f:
+        return json.load(f)["records"]
+
+
+def records_stats(recs):
+    """{measure: (median, lowest, highest)} over the records."""
+    return {k: (float(np.median([r[k] for r in recs.values()])), min(r[k] for r in recs.values()),
+                max(r[k] for r in recs.values())) for k in TOL}
+
+
+def strokes_lines(res, stats, nrec):
+    row = lambda name, f: f"  {name:14s}" + "".join(f"{f(k):>14s}" for k in TOL)   # noqa: E731
+    o = res["ours"]
+    return [row("", lambda k: k),
+            row("ours", lambda k: f"{o[k]:.2f}"),
+            row("records", lambda k: f"{stats[k][0]:.2f}") + f"   (median of {nrec} records' guitar stems at their own chugs)",
+            row("  low..high", lambda k: f"{stats[k][1]:.1f}..{stats[k][2]:.1f}"),
+            row("ours - records", lambda k: f"{o[k] - stats[k][0]:+.2f}"),
+            "  scoop_db is 400 Hz-1 kHz less 1-4 kHz through a stroke: MORE negative is more teeth. rise_ms and punch_db are "
+            "the attack; tight_db the low end's fall; grain the noise between the harmonics. A read, not a score; fizz_db only "
+            "as far as the separator. The records give no figure for the rest after a stroke."]
 
 
 def compare(ref, ours, ts, shift):
@@ -177,8 +256,32 @@ def main(argv=None):
     ap.add_argument("--max-lag", type=float, default=20.0, help="global lag search, +-ms (default 20: songs are map-aligned; "
                     "a wider search found -100 ms on Pineal, chirper-one)")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--strokes", action="store_true", help="an original song's strokes beside the records' (no pairing, no score)")
     a = ap.parse_args(argv)
     song, t0, t1 = a.song, a.t0, a.t1
+    if a.strokes:
+        song_file = a.song_file or (os.path.join(ROOT, "songs", f"{song}.yaml") if song else None)
+        if not song_file or t1 is None:
+            raise SystemExit("riffpunch --strokes: --song-file F (or --song ID) and --from S --to S (seconds)")
+        t0 = t0 or 0.0
+        ts, tracks = guitar_events(song_file, a.tracks.split(",") if a.tracks else None, by_chain=True)
+        if not tracks:
+            raise SystemExit("riffpunch: no guitar tracks found; pass --tracks")
+        ours_x = L.load(a.ours) if a.ours else D.render_ours(song_file, t0, t1, tracks, a.seed, a.set)
+        res = strokes_read(ours_x, ts, t0, t1)
+        if not res["n"]:
+            raise SystemExit(f"riffpunch --strokes: no clean stroke of {','.join(tracks)} in {t0:g}-{t1:g} s ({res['of']} onsets)")
+        recs = records_table()
+        stats = records_stats(recs)
+        res.update(label=f"{os.path.basename(song_file)} {t0:g}-{t1:g} s", tracks=tracks,
+                   records={k: round(v[0], 3) for k, v in stats.items()}, low={k: v[1] for k, v in stats.items()},
+                   high={k: v[2] for k, v in stats.items()})
+        if a.json:
+            print(json.dumps(res))
+            return
+        print(f"riffpunch strokes {res['label']} (tracks {','.join(tracks)}): {res['n']} clean strokes read of {res['of']} onsets")
+        print("\n".join(strokes_lines(res, stats, len(recs))))
+        return
     if a.clip:
         cl = next((c for c in json.load(open(os.path.join(ROOT, "micro", "clips.json")))["clips"] if c["id"] == a.clip), None)
         if not cl:

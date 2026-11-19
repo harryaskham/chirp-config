@@ -1,0 +1,59 @@
+{
+ "about": "The records' own strokes, for `riffpunch.py --strokes`: riffpunch's per-stroke measures on six Meshuggah records' guitar stems at the clean onsets of our transcriptions, 30-90 s of each (`riffpunch.py --song ID --from 30 --to 90 --json`, the `ref` medians; `n` = the clean onsets read). Made by chirper-zero on 19 Nov 2026 (Extreme and Mean v23) on the groove pin 7138d6d5. To add a record: the same command on its reproduction, and its `ref` here.",
+ "records": {
+  "bleed": {
+   "rise_ms": 13.5,
+   "punch_db": 3.705,
+   "tight_db": 0.295,
+   "fizz_db": -35.9,
+   "scoop_db": -12.749,
+   "grain": 0.402,
+   "n": 579
+  },
+  "combustion": {
+   "rise_ms": 20.5,
+   "punch_db": 3.532,
+   "tight_db": -1.976,
+   "fizz_db": -32.791,
+   "scoop_db": -11.021,
+   "grain": 0.413,
+   "n": 392
+  },
+  "electric-red": {
+   "rise_ms": 19.5,
+   "punch_db": 3.549,
+   "tight_db": -0.753,
+   "fizz_db": -32.987,
+   "scoop_db": -11.982,
+   "grain": 0.436,
+   "n": 184
+  },
+  "obzen": {
+   "rise_ms": 23.5,
+   "punch_db": 3.473,
+   "tight_db": -1.217,
+   "fizz_db": -36.199,
+   "scoop_db": -11.539,
+   "grain": 0.406,
+   "n": 345
+  },
+  "pravus": {
+   "rise_ms": 17.5,
+   "punch_db": 4.232,
+   "tight_db": -0.984,
+   "fizz_db": -35.24,
+   "scoop_db": -11.08,
+   "grain": 0.36,
+   "n": 428
+  },
+  "the-faultless": {
+   "rise_ms": 20.0,
+   "punch_db": 3.862,
+   "tight_db": -2.19,
+   "fizz_db": -33.154,
+   "scoop_db": -6.541,
+   "grain": 0.312,
+   "n": 220
+  }
+ }
+}
