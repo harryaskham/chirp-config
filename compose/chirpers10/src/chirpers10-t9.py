@@ -218,6 +218,27 @@ GATHER = os.environ.get('C10T9_GATHER', '1;-10.029' if REPRISE and RING else '')
 # (alone the pair is as loud as it was, -23.4 LUFS) ; the song's loudness target (the first two minutes null against
 # v20). Empty restores v20.
 WALL = os.environ.get('C10T9_WALL', '0.4;74,75;0.15;-1.3;-10.038' if GATHER else '')
+# v22 (chirper-three; instrument round: the tabla, in its three places: the fives at 1:20, the sevens at 2:10 and its
+# one beat in the gears at 2:36). THE TABLA GETS ITS HANDS. Read alone and in the mix (raw, seed 0), the library's
+# drums at these speeds were not struck, they were held: a treble stroke had fallen 1.8 dB in 500 Hz-1 kHz when the
+# next one came at the sevens (3.6 at the fives), so the drum was one long F5 with a ripple on it; it held 52% of
+# the mix's 250-500 Hz and 55% of its 500 Hz-1 kHz in the sevens, where the mix read 2 dB over the records in
+# both; and above 2 kHz a stroke's first 15 ms stood 35 dB under everything else: no finger at all.
+# Now, on the tracks' own patch strings (the song's it-tabla and the library's kit are untouched):
+#   ONE HEAD, ONE SOUND: the treble drum's strokes (na, tin, te, re) stop each other, and the bass drum's (ge,
+#     gem), as a hand landing on a skin stops what it was doing (the kit's choke groups);
+#   THE RING FALLS AWAY: na dies in 250 ms and tin in 300 (1.3 and 1.6 s), so a stroke has fallen 7 dB when the
+#     next comes at the sevens and 13 at the fives;
+#   THE STROKE HAS A FRONT: the drum's own third, fourth and fifth partials (1 to 1.75 kHz on F) are struck harder
+#     (they die first, so they are the attack and not the ring), and the finger's click is 16 dB up and 40 ms long;
+#   and the three faders come up 4.5 dB, so that the drum holds the share of 500 Hz-1 kHz the two composers gave
+#     it (about half of the mix's, in both passages), now as strokes and not as a tone. (At 1.5 dB, where a stroke's
+#     first 30 ms stood where it had against the band, the mix read nearest the records, but the drum held a third
+#     of that band and the scorer no longer heard the sevens as the fives come back: 92.5 -> 85.1.)
+# the ring of na ; of tin ; the finger, dB over the library's ; its length ; na's third, fourth and fifth partials ;
+# tin's ; dB on the three tabla faders ; the loudness target ('' = unchanged) ; dB on the bass drum's two pieces (it
+# is not changed, so it gives back what the faders add). Empty restores v21 byte for byte.
+FINGERS = os.environ.get('C10T9_FINGERS', '250ms;300ms;16;40ms;0.8,0.65,0.45;0.65,0.45,0.25;4.5;-10.064;-4.5' if WALL and KHANDA else '')
 WALK = []
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
@@ -821,6 +842,21 @@ def song():
     if REPRISE:
         tracks.append({"name": "tabla-ab", "patch": "it-tabla-ab", "gain": REPRISE.split(";")[1], "pan": 0.2})
         tracks.append({"name": "six-ab", "patch": "it-six-ab", "gain": REPRISE.split(";")[0], "pan": 0.3})
+    if FINGERS:                                 # v22: the tabla's hands, on its three tracks' own patch strings
+        na, tin, click, clen, pna, ptin, lift = FINGERS.split(";")[:7]
+        bayan = FINGERS.split(";")[8] if len(FINGERS.split(";")) > 8 else ""
+        hands = " ".join([f"kit.{pc}.choke=dayan" for pc in ("na", "tin", "te", "re")] + [f"kit.{pc}.choke=bayan" for pc in ("ge", "gem")]
+                         + [f"kit.na.patch.synth.amp.d={na}", f"kit.tin.patch.synth.amp.d={tin}",
+                            f"kit.na.patch.synth.layers.1.level.value={-148 + float(click):g}dB",
+                            f"kit.tin.patch.synth.layers.1.level.value={-150 + float(click):g}dB",
+                            f"kit.na.patch.synth.env.c.d={clen}", f"kit.tin.patch.synth.env.c.d={clen}",
+                            "kit.na.patch.synth.layers.0.partials=[[2,1],[3,{}],[4,{}],[5,{}],[1,0.12]]".format(*pna.split(",")),
+                            "kit.tin.patch.synth.layers.0.partials=[[1,0.75],[2,1],[3,{}],[4,{}],[5,{}]]".format(*ptin.split(","))]
+                         + ([f"kit.ge.gain={bayan}dB", f"kit.gem.gain={bayan}dB"] if bayan and float(bayan) else []))
+        for t in tracks:
+            if t["name"] in ("tabla", "rupak", "tabla-ab"):
+                t["patch"] += " " + hands
+                t["gain"] = f"{float(t['gain'][:-2]) + float(lift):g}dB"
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
 
@@ -856,7 +892,7 @@ def song():
                   "v1 is the skeleton.") + (" At four to the beat the two hook notes pass between a baritone guitar and a clavinet; they exchange roles halfway." if HANDS else "")
                  + ((" One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then all six play the last cell as one before landing on F." if GATHER else
                      " One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then the original two guitars play the last cell before everyone lands on F.") if RING else ""),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(WALL.split(";")[4]) if WALL else float(GATHER.split(";")[1]) if GATHER else float(REPRISE.split(";")[3]) if REPRISE else float(RUPAK.split(";")[3]) if RUPAK else float(SHAPE.split(";")[3]) if SHAPE else float(SIX.split(";")[2]) if SIX else float(KHANDA.split(";")[1]) if KHANDA else PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(FINGERS.split(";")[7]) if FINGERS and FINGERS.split(";")[7] else float(WALL.split(";")[4]) if WALL else float(GATHER.split(";")[1]) if GATHER else float(REPRISE.split(";")[3]) if REPRISE else float(RUPAK.split(";")[3]) if RUPAK else float(SHAPE.split(";")[3]) if SHAPE else float(SIX.split(";")[2]) if SIX else float(KHANDA.split(";")[1]) if KHANDA else PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}, **({'hp': {'gain': CROSS.split(';')[1]}} if CROSS else {}),
                             **({'oh': {'patch':'haake-hat amp.d=1.05s amp.r=180ms amp.curve=2.2',
                                        'gain':CLUTCH,'pan':-.45,'choke':'hat'}} if CLUTCH else {})}},
