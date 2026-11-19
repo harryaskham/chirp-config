@@ -123,6 +123,24 @@ STILL = "harmonium fx.0.depth=0 synth.layers.1.cents=0"       # see the tracks
 # must hold a whole number of pulses). "" = v2.
 SLIDE = os.environ.get("C10T16_SLIDE", "five:2" if PAN else "")
 SLIDES = {s.split(":")[0]: int(s.split(":")[1]) for s in SLIDE.split(",")} if SLIDE else {}
+# v4 (chirper-alpha, instrument: THE TOMS). The three drums that say the threes were the album kit's as it comes:
+# a floor tom on F2, a rack tom on C3 and one on F3, in every section. Two things were wrong with that, and neither
+# is a matter of level. (1) THEY DID NOT FOLLOW THE GROUND. The song moves to A flat, to B and to the low E flat,
+# and the guitars, the bass and the pair move with it; the drums went on saying F, C, F: over the B of 'seven'
+# that is a tritone and a minor ninth, 168 pitched strokes of it in the song's busiest section. (2) THE TOP DRUM
+# SAT ON THE REED'S OWN NOTE: F3, 174.6 Hz, is the pair's note on F, the very line whose slow swell is the song's
+# subject, and a drum rang there three times a pulse.
+# Now the three drums are tuned to the ground's root and fifth, the three lowest of them a drum can hold (from B flat 1,
+# 58 Hz, up): on F they are C2, F2, C3; on A flat E flat 2, A flat 2, E flat 3; on B B1, G flat 2, B2; on the low
+# E flat B flat 1, E flat 2, B flat 2. No drum is on the pair's note in any section, and the drums as a set sit a fourth to
+# an octave lower: big slow drums for the slowest song on the record, under the pair and not in it. No stroke moves.
+# (The kit's pieces cannot change pitch in mid-song, so each ground has the same three drums on its own track.)
+# Drums in tune with the band add to its own lines instead of lying between them: benched raw in 'seven', the retuned
+# drums alone held LESS of 250-500 Hz than before (26% of the band for 33%), yet the mix there rose 0.7 dB, where it
+# was already the song's furthest band over the records. So the drums' tracks take 3 dB off at 330 Hz (TOMS_EQ).
+# ground in semitones over F = floor tom, middle, top ; ... "" = v3.
+TOMS = os.environ.get("C10T16_TOMS", "0=C2,F2,C3;3=Eb2,Ab2,Eb3;6=B1,Gb2,B2;-2=Bb1,Eb2,Bb2") if SLIDE else ""
+TOMS_EQ = [{"type": "eq", "bands": ["peak cutoff=330 q=1 gain=-3dB"]}]
 GLIDER = "ce-turned-reed"                    # the still reed with a pitch that follows a note's `slide`, in semitones
 
 
@@ -284,6 +302,22 @@ def build():
     # What is this song's own is the pair: two harmoniums, close together in the middle so that they beat in the
     # air of one place and not between two ears.
     palm = " synth.layers.0.mute=expr.pm*0.56 synth.layers.0.mute_width=0.10"
+    toms, tuned = [], {}
+    if TOMS:
+        # each ground's strokes go to that ground's drums: the same three pieces, the same fader, the same bus
+        spans, at = [], 0
+        for name, r, bars, ground, who in FORM:
+            spans.append((at, at + 4 * bars, ground))
+            at += 4 * bars
+        sets = {int(k): v.split(",") for k, v in (x.split("=") for x in TOMS.split(";"))}
+        strokes = ev.pop("skins")
+        for ground, (low, middle, top) in sets.items():
+            tr = "skins" if ground == 0 else "skins-" + low.lower()
+            ev[tr] = [e for e in strokes if any(a <= e["at"] < z and g == ground for a, z, g in spans)]
+            tuned["ce-toms-" + low.lower()] = {"about": f"chirper-alpha: the album kit with its three counting toms on {low}, {middle} and {top}",
+                                               "extends": "ct-kit", "kit": {"ft": {"pitch": low}, "t2": {"pitch": middle}, "t1": {"pitch": top}}}
+            toms.append(track(tr, "ce-toms-" + low.lower(), "-3dB", 0, "drums", TOMS_EQ))
+        assert sum(len(t["notes"]) for t in toms) == len(strokes) and all(t["notes"] for t in toms)
     mid = [{"type": "eq", "bands": ["peak cutoff=700 q=0.9 gain=2.5dB"]}]
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     tracks = [
@@ -301,7 +335,7 @@ def build():
         track("bass", "ct-bass", "0.5dB", 0, "low", [{"type": "eq", "bands": ["peak cutoff=180 q=1 gain=-3dB"]}]),
         track("foot", "ct-kit", "3.5dB", 0, "drums", [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]),
         track("snare", "ct-kit", "3.5dB", 0, "drums", [{"type": "eq", "bands": ["highshelf cutoff=7000 gain=-3dB"]}], {"oh": "-1.5dB"}),
-        track("skins", "ct-kit", "-3dB", 0, "drums"),      # at 1.5 dB they were half of everything from 60 to 500 Hz
+        *(toms if TOMS else [track("skins", "ct-kit", "-3dB", 0, "drums")]),      # at 1.5 dB they were half of everything from 60 to 500 Hz
         track("hat", "ct-kit", "16dB", -0.3, "drums", air, {"oh": "4.5dB"}),
         track("brass", "ct-kit", "-2.5dB", 0.2, "drums", air, {"oh": "4.5dB"}),
     ]
@@ -333,6 +367,8 @@ def build():
         buses=buses, master={"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}]}, tracks=tracks,
         **({"patches": {GLIDER: {"about": "chirper-three: Close Enough's still reed (one harmonium reed, steady bellows) with a pitch that follows a note's `slide`, in semitones: the peg being turned",
                                  "extends": STILL, "synth": {"pitch": {"value": 0, "mod": [{"src": "expr.slide", "amount": 1}]}}}}} if SLIDES else {}))
+    if tuned:
+        doc["patches"] = {**doc.get("patches", {}), **tuned}
     return doc, marks, end
 
 
