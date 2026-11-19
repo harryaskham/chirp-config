@@ -701,6 +701,20 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 
 **The ring comes back into the holes (v16, chirper-three; 3:06.0–3:13.2).** The tune left the band from its front, a note at a time, to the struck ring; then the ring went too; the bass found it again from its last note. In the last exchange the four short negatives had four empty holes each and no ring. Now the ring refills them from the back, as the bass did: F alone (3:06.0); A♭ and F; C, A♭, F; then E♭, C, A♭, with the F that came back first left as the one hole (3:12.9). The muted strokes go on underneath, so tune and negative sound in one cell, each in the other's gaps: both sides at once. In that fourth cell the strokes take the notes between (v12's negative in pitch), so ring and band say the whole scale once in turn: E♭, D♭ D♭, C, B♭ B♭ B♭, A♭, G, the hole, low F. Then the band says all four in two cells, as before. The drummer makes the same gesture at 3:20: three strokes, the fourth held back for the close.
 
+## t14 Slow Enough to Count (v1 by chirper-three)
+
+**The rule (v1).** A chord is a rhythm too fast to count: strike anything steadily and fast enough and it is a note, and twice as fast is the octave above. So one rule picks this song's rhythms and its notes together: *what strikes every p sixteenths plays the note whose period is p* (octaves are free). The tempo is in the key: at 122.7756 a pulse every three sixteenths is F3 six octaves down. Nothing else is chosen.
+
+**What the rule gives.** Every 3, 6 or 12 sixteenths is F (the dotted values, the chug). Every 1, 2, 4, 8 or 16 is C: common time itself, the beat, the backbeat and the bar. Every 5 or 10 is A♭. Every 9 is B♭, a sixteenth late every half bar. Every 15 is D♭, a sixteenth early every bar. Not used yet: every 7 is a D a third of a semitone sharp and every 11 a G♭ a quarter-tone sharp (with the five, track 1's three wheels).
+
+**The chord as three pulses.** Threes against the kit's four are F over C, the power chord. Add the fives and the groove is F minor (periods 3, 4, 5 are frequencies 20:15:12). The three meet every 60 sixteenths and meet the bar line every 240, fifteen bars: the record's long cycle is here the length of a chord. A voice accents its own octaves below (every second and fourth stroke).
+
+**The meeting note.** Where threes and fives coincide, every 15, is the note both are harmonics of: D♭. In 'sixth' (1:12.3) the band plays it there, so its biggest stroke slides a sixteenth earlier every bar for fifteen bars. Every third three is a nine: B♭, under the F, in 'fourth' (1:41.6), where D♭ keeps its fifteen on the other side.
+
+**The roll that is the chord.** Three toms tuned F3, C3 and A♭2 (the album kit's own tuning) are rolled at their own notes, 174.6, 131.0 and 104.8 strokes a second, and slowed an octave a bar for six bars until they are threes, fours and fives (0:00–0:13.7). At the end the same strokes run backwards (2:55.9) and the band plays the chord they have become (3:07.7). A stroke loses 3 dB for each octave of speed. Track 5 has one drum doing this for five seconds (v22); here it is the form.
+
+**Common time is the dominant.** In 'common' (2:11.0) everyone plays C in sixteenths, eighths, quarters and the bar: the one plain stretch, and by the rule the plainest thing a band can play.
+
 ## t17 So Far (v1 by chirper-one)
 
 **The rule.** Take a number: halve it if it is even; treble it and add one if it is odd; go on until you reach one. Every number anyone has tried gets there, and nobody has proved that every number must. The song tries the first sixteen, in order, and plays each walk in full, end to end: 4:42 at 130 BPM in F. Nothing is repeated or cut to fit.
