@@ -504,8 +504,12 @@ def periodic_tines():
     """Keep the bass and both kits playing the orbit under the ringing keys."""
     sections = (("one", 1), ("two", 2), ("four", 4), ("eight", 8),
                 ("down-four", 4), ("down-two", 2), ("down-one", 1))
-    exchanges, stays = [], []
+    exchanges, stays = [], {}
     keep = WITH.split(";")[0].split(",") if WITH else []
+    side = {sec: WITH.split(";")[1] for sec in keep}
+    lift = {sec: float(WITH.split(";")[3]) for sec in keep}
+    if EIGHT:                                   # v25: and through eight's one lap of the keys
+        keep, side["eight"], lift["eight"] = keep + ["eight"], EIGHT.split(";")[0], float(EIGHT.split(";")[2])
     for sec, period in sections:
         a = AT[sec]
         b = a + next(n for name, n, _ in DIAL if name == sec)
@@ -520,7 +524,7 @@ def periodic_tines():
             end = (start + period) * 2
             exchanges.append((start * 2, end))
             if sec in keep:
-                stays.append((start * 2, end))
+                stays[(start * 2, end)] = G[0] if side[sec] == "l" else G[1]
             for hand, choose in (("high", max), ("low", min)):
                 if period == 1 and hand == "low":
                     continue
@@ -532,11 +536,20 @@ def periodic_tines():
                 pitch = note(r) + gup(c) + (24 if hand == "high" else 12)
                 T.setdefault("tine-" + hand, []).append({"at": beat, "len": round((end - beat) * .97, 5),
                                                        "pitch": nm(pitch), "vel": .86 if hand == "high" else .82,
-                                                       **({"gain": f"{float(WITH.split(';')[3]):g}dB"} if sec in keep and float(WITH.split(";")[3]) else {})})
-    stay = (G[0] if WITH.split(";")[1] == "l" else G[1]) if WITH else None
+                                                       **({"gain": f"{lift[sec]:g}dB"} if sec in keep and lift[sec] else {})})
+    back = set()                                # v25: the other guitar's own strokes on the accents the second half of eight moves
+    if EIGHT and EIGHT.split(";")[1] == "moved":
+        a = AT["eight"] + 8
+        for c in range(a + 4, a + 8):
+            now, then = cell(CELLS[c][3]), cell(CELLS[c - 4][3])
+            if now != then:
+                back.add(round((c * 6 + now[0][now[1]]) / 3, 5))
+        other = G[1] if side["eight"] == "l" else G[0]
+        assert len(back) == 3 and all(any(n["at"] == at for n in T[other]) for at in back), back
     for tr in G:
-        gone = [span for span in exchanges if not (tr == stay and span in stays)]     # v23: one guitar plays on
-        T[tr] = [n for n in T[tr] if not any(a <= n["at"] < b for a, b in gone)]
+        gone = [span for span in exchanges if stays.get(span) != tr]                  # v23: one guitar plays on
+        mine = back if EIGHT and tr != stays.get((AT["eight"] * 2 + 16, AT["eight"] * 2 + 32)) else ()
+        T[tr] = [n for n in T[tr] if n["at"] in mine or not any(a <= n["at"] < b for a, b in gone)]
     if FORK:
         hold_the_split()
 
@@ -879,6 +892,19 @@ WITH = os.environ.get("C10T6_WITH", "two,four;l;-9.966;2") if SETTLE and TINES e
 # voice's eq (high-pass / peaks, Hz:q:dB) ; its ring ; dB on 'room'. "" = v23.
 ROOM = os.environ.get("C10T6_ROOM", "-11dB;-14dB;again,top,down;-9.925;0,-2,0,-2.5,-6,-3.5,-3,0;190/330:0.9:-7/2600:0.6:7;0.5;4") if WITH and LAST_TOUCH and FIVE and LOCK and UP and KEYS else ""
 ROOM_PARTS = set(ROOM.split(";")[2].split(",")) if ROOM else set()
+# v25 (chirper-three; section round, w3 0:55.7-1:23.5: 'eight'): THE LEFT HAND GOES ON THROUGH THE LONGEST LAP
+# (Harry, 19 Nov 02:25: "Keep one guitar with the keys"). v23 built his answer in 'two' and 'four'. The exchange's
+# longest lap, the seven seconds of 'eight' at 1:02.6 where the riff is eight half bars long, still lost both
+# guitars. Now the left guitar plays on through it: the 32 strokes the rule writes there, which v9 took out. The
+# right guitar still leaves, and comes back before the wall on the three accents that the lap's second half moves
+# (v16's: 1:07.4, 1:08.6, 1:09.0): its own strokes there and nothing else. The cadence the second pair marked in
+# the lap before is pointed at again from the right, over a left hand that has not stopped. With a guitar under
+# them the keys lost 1.9 dB of their place and the chip's two voices 2.3 (raw, K), so the keys' two notes are
+# 2 dB up and the chip's second voice 3: the keys stand where they did, the chip 1.2 dB under.
+# which guitar stays through eight's lap of the keys (l or r) ; how the other comes back ("moved" = on the three
+# accents the lap's second half moves ; "" = at the wall, as before) ; dB on the keys' two notes there ; the
+# song's loudness target ; dB on the chip's second voice (it plays only in that lap). "" = v24.
+EIGHT = os.environ.get("C10T6_EIGHT", "l;moved;2;-9.868;3") if ROOM else ""
 MAKE_SOME_ROOM = (["M EY1 K", "_", "S AH1 M", "R UW1 M", "_"], [3, 8, 13, 18, 24], [.94, .88, .90, .95, .90])
 NO_MORE_ROOM = (["N OW1", "M AO1 R", "R UW1 M"], [4, 6, 14], [.90, .92, .95])
 
@@ -1103,7 +1129,7 @@ def song():
          "sends": {"hall": "-12dB"}, "gen": [g[3] for g in gens]},
         *([{"name": "echo", "patch": "nes-pulse-lead layers.0.chip.duty=0.125", "gain": LOCK.split(";")[2], "pan": float(LOCK.split(";")[4]),
             "sends": {"hall": "-12dB"}}] if LOCK else []),
-        *([{"name": "lead2", "patch": "nes-pulse-lead", "gain": UP.split(";")[4], "pan": float(UP.split(";")[5]), "at": f"{second_voice()[0] * 2}b",
+        *([{"name": "lead2", "patch": "nes-pulse-lead", "gain": f"{float(UP.split(';')[4][:-2]) + float(EIGHT.split(';')[4]):g}dB" if EIGHT and float(EIGHT.split(";")[4]) else UP.split(";")[4], "pan": float(UP.split(";")[5]), "at": f"{second_voice()[0] * 2}b",
             "sends": {"hall": "-12dB"}, "gen": [second_voice()[1]]}] if UP else []),
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
         {"name": "boom", "patch": kit, "gain": os.environ.get("C10T6_BOOM", "0dB"), "out": "drums"},
@@ -1180,7 +1206,7 @@ def song():
                   "and back down: the riff settles, splits in two, four, eight, stops repeating, locks by itself on five half "
                   "bars and then on three, fills the whole range, and dies out. Triplets at 138, on E, with a drum machine; "
                   "the lead has no notes, only the rule (the engine's own logistic generator). v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(ROOM.split(";")[3]) if ROOM else float(WITH.split(";")[2]) if WITH else float(SETTLE.split(";")[3]) if SETTLE else float(FLIP.split(";")[2]) if FLIP else float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(EIGHT.split(";")[3]) if EIGHT else float(ROOM.split(";")[3]) if ROOM else float(WITH.split(";")[2]) if WITH else float(SETTLE.split(";")[3]) if SETTLE else float(FLIP.split(";")[2]) if FLIP else float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"cc-machine": machine,
                     **({"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}}} if KIT else {})},
         "buses": {
