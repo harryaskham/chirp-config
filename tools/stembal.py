@@ -346,18 +346,50 @@ def canonical(pin, song, env):
         return {}
 
 
-def guess_groups(pin, song, env):
+def strung_and_amped(patch):
+    """A resolved patch that is a plucked string through an amp: a guitar, whatever its track is called."""
     try:
-        tracks = canonical(pin, song, env)["tracks"]
+        layers = [x.get("type") for x in patch["synth"]["layers"] if isinstance(x, dict)]
+        fx = [x.get("type") if isinstance(x, dict) else str(x).split()[0] for x in patch.get("fx") or []]
+    except (KeyError, TypeError, AttributeError):
+        return False
+    return "pluck" in layers and "amp" in fx
+
+
+def guess_groups(pin, song, env, notes=None):
+    """{group: [track, ...]} for drums, bass and guitar, from track and patch names; and, for a track no name places, from
+    its resolved chain (a plucked string through an amp is a guitar). `notes`, when given, is filled with what a reader
+    must know: which tracks were placed by their chain, and which are in NO group (they are read only in the whole mix).
+    chirper-zero, 19 Nov, Still Owing: its riff guitars are the tracks `left` and `right` on `ct-twin`; `right` was taken
+    for a guitar because the word holds "rig", `left` was in no group, and the song's read by part was of one guitar:
+    2.6 to 3.3 dB short where, with both, it was 5.0 over."""
+    try:
+        can = canonical(pin, song, env)
+        tracks = can["tracks"]
     except KeyError:
         sys.exit("stembal: could not read the song's tracks to guess groups; give --groups name=track,track ...")
-    out = {}
+    patches = can.get("patches") if isinstance(can.get("patches"), dict) else {}
+    out, chain, loose = {}, [], []
     for t in tracks:
-        hay = f"{t.get('name', '')} {t.get('patch', '') if isinstance(t.get('patch'), str) else ''}".lower()
+        patch = t.get("patch", "") if isinstance(t.get("patch"), str) else ""
+        hay = f"{t.get('name', '')} {patch}".lower()
         for g in ("drums", "bass", "guitar"):
             if re.search(GUESS[g], hay):
                 out.setdefault(g, []).append(t["name"])
                 break
+        else:
+            if strung_and_amped(patches.get(patch)):
+                out.setdefault("guitar", []).append(t["name"])
+                chain.append(t["name"])
+            else:
+                loose.append(f"{t.get('name')} ({patch.split()[0] if patch else '?'})")
+    if notes is not None:
+        if chain:
+            notes.append(f"groups: {', '.join(chain)} counted with the guitars by the chain (a plucked string through an amp): "
+                         "the name did not say so")
+        if loose:
+            notes.append(f"groups: in NO group, so read only in the whole mix: {', '.join(loose)}. If one of these is a "
+                         "guitar, a bass or a drum, the read by part is short of it: place it with --groups NAME=track,track")
     return out
 
 
@@ -399,8 +431,15 @@ def cmd_song(a):
         sys.exit("stembal: --windows FROM-TO[:label] ... (bars, 1-indexed, or seconds as 30s-90s): two or three heavy stretches")
     groups = {}
     if not a.mix_only:
-        groups = dict((g.split("=")[0], g.split("=")[1].split(",")) for g in a.groups) if a.groups else guess_groups(pin, a.song, env)
+        said = []
+        groups = dict((g.split("=")[0], g.split("=")[1].split(",")) for g in a.groups) if a.groups \
+            else guess_groups(pin, a.song, env, said)
         print("groups: " + "; ".join(f"{g} = {', '.join(t)}" for g, t in groups.items()))
+        for line in said:
+            print(line)
+        # chirper-zero, Still Owing v20: a part's figure is its share of the whole mix, and the records' mixes are sung
+        print("(by part: a figure is a share of the whole mix, and the records' mixes have a VOICE in them: at 500 Hz-1 kHz "
+              "every part's figure carries about 2 dB of it.)")
     outdir = a.out or tempfile.mkdtemp(prefix="stembal-", dir="/tmp/lt" if os.path.isdir("/tmp/lt") else None)
     M = stats(R, "mix")[0]
     mixes, names, acc = [], [], {g: [] for g in groups}

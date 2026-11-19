@@ -204,6 +204,29 @@ class Stembal(unittest.TestCase):
         self.assertEqual(S.guess_groups(self.engine, self.song, dict(os.environ)),
                          {"drums": ["kick"], "bass": ["bass"], "guitar": ["gl"]})
 
+    def test_a_guitar_is_known_by_its_chain_and_a_track_in_no_group_is_named(self):
+        """chirper-zero, 19 Nov, Still Owing: riff guitars on tracks `left` and `right`; `right` passed for a guitar by the
+        letters "rig", `left` was in no group, and the read by part was of one guitar."""
+        twin = {"synth": {"layers": [{"type": "pluck"}, {"type": "noise"}]},
+                "fx": [{"type": "compressor"}, {"type": "amp"}, {"type": "cab"}]}
+        can = {"tracks": [{"name": "left", "patch": "ct-twin fx.2.cone=81"}, {"name": "right", "patch": "ct-twin"},
+                          {"name": "kick", "patch": "ct-kit"}, {"name": "rule", "patch": "piano-additive"},
+                          {"name": "low", "patch": "ct-bass"}, {"name": "tally", "patch": "owing-key"}],
+               "patches": {"ct-twin fx.2.cone=81": twin, "ct-twin": twin,
+                           "piano-additive": {"synth": {"layers": [{"type": "additive"}]}, "fx": [{"type": "reverb"}]},
+                           "owing-key": {"synth": {"layers": [{"type": "pluck"}]}, "fx": ["reverb mix=0.2"]}}}
+        old = S.canonical
+        S.canonical = lambda pin, song, env: can
+        self.addCleanup(setattr, S, "canonical", old)
+        notes = []
+        self.assertEqual(S.guess_groups("pin", "song", {}, notes), {"guitar": ["left", "right"], "drums": ["kick"], "bass": ["low"]})
+        self.assertIn("left counted with the guitars by the chain", notes[0])
+        self.assertNotIn("right", notes[0])                                 # its name placed it (by luck, as before)
+        self.assertIn("in NO group, so read only in the whole mix: rule (piano-additive), tally (owing-key)", notes[1])
+        self.assertEqual(S.guess_groups("pin", "song", {}), {"guitar": ["left", "right"], "drums": ["kick"], "bass": ["low"]})
+        self.assertFalse(S.strung_and_amped(None))
+        self.assertFalse(S.strung_and_amped({"synth": {"layers": [{"type": "pluck"}]}}))     # a string and no amp: a harp
+
     def test_a_song_like_the_references_reads_level_with_them(self):
         text = self.run_tool("song", self.song, "--refs", "recA,recB", "--from", "0", "--dur", "2", "--windows", "1-4:all",
                              "--out", self.root)
