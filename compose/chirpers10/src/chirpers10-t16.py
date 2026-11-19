@@ -407,6 +407,28 @@ HAT = os.environ.get("C10T16_HAT", "filters.0.cutoff.value=4.5k amp.d=35ms;17dB;
 # band section, all nine bands 1.522 -> 1.372.
 # overrides inside each tom's patch ; the tom tracks' fader ; their eq, band,band ; the loudness target. "" = v12.
 STROKE = os.environ.get("C10T16_STROKE", "synth.layers.0.decay=0.6s synth.amp.d=0.8s;0dB;peak cutoff=330 q=1 gain=-6dB,peak cutoff=75 q=0.9 gain=5dB;-9.87" if HAT else "")
+# v14 (chirper-one; section round, w6, 2:25-2:54): THE HANDPAN NAMES THE FIVE. The rule gives the band four pulses:
+# the kick has the pair's own, the guitars the second overtone's, the toms the third's, the hat the fourth's. The
+# handpan says them as notes, the pair's own series: as the hair opens it names one and two, then three, then four
+# (F3, F4, C5, F5), and it has been silent since the band came in. The series does not stop at four. The pair's
+# FIFTH overtone pulses five times to the pulse, and nobody plays it. When the band comes back to common time
+# ('square again': the same eight bars as 'square') the handpan comes back inside the band, for the first time, and
+# names the next one: A5, five times the still reed (873.07 Hz), five strokes to the pulse, each where that overtone
+# swells. It is the song's first major third on F (the series' own, 14 cents under the piano's), and with it the
+# cell inside each kick is two against three against four against FIVE. It comes as it came at the top: said, then
+# left to the pair: two bars without it, two with the five on the bar's first pulse, two on the first and third,
+# two on every pulse; and when the peg begins to close it is the first to go, as the fours are first in the close.
+# Its strokes are high-passed: the handpan's shell (on F2 in this song) would otherwise thump under every one.
+# AND THEY ARE STOPPED. The handpan rings five seconds and sits in a three-second hall: at five and a half strokes a
+# second on one note the first build was a drone whose level wandered 12 dB from stroke to stroke as the tails
+# added and cancelled (read alone), not five strokes. So each stroke is damped by the next finger, as a player
+# re-striking one field does: a short decay, a 50 ms release, and a tenth of the hall.
+# the section ; for each of its bars the pulses of that bar on which the five is said (digits; 0 = none) ; the
+# track's fader ; its pan ; its eq bands (| between) ; the five strokes' velocities ; how long each rings, in
+# fifths of a pulse ; the loudness target ('' = unchanged) ; overrides on the handpan's patch for these strokes.
+# '' = v13 byte for byte.
+FIFTH = os.environ.get("C10T16_FIFTH", "square again;0,0,1,1,13,13,1234,1234;-11dB;0.3;hp cutoff=500;0.85,0.5,0.6,0.5,0.6;1;;"
+                                       "synth.amp.d=300ms synth.amp.r=50ms fx.0.mix=0.1" if STROKE else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -754,7 +776,32 @@ def build():
         a_hat_with_a_body(doc)
     if STROKE:
         the_toms_count(doc)
+    if FIFTH:
+        the_fifth(doc, marks)
     return doc, marks, end
+
+
+def the_fifth(doc, marks):
+    """v14: the handpan says the pair's fifth overtone, five strokes to the pulse, in one section of constant width."""
+    sec, plan, gain, pan, eq, vels, ring, target, damped = FIFTH.split(";")
+    name, b, r, bars = next(m for m in marks if m[0] == sec)
+    ground = next(x[3] for x in FORM if x[0] == sec)
+    pulse, f = 1 / Fr(r), hz(REED + ground)
+    plan, vels = plan.split(","), [float(v) for v in vels.split(",")]
+    assert len(plan) == bars and len(vels) == 5 and (4 / pulse).denominator == 1, (len(plan), bars)
+    notes = []
+    for bar, said in enumerate(plan):
+        for d in said:
+            if d == "0":
+                continue
+            at = b + 4 * bar + (int(d) - 1) * pulse
+            for j in range(5):
+                notes.append({"at": round(float(at + Fr(j, 5) * pulse), 5), "len": round(float(pulse / 5) * float(ring), 5),
+                              "pitch": f"{5 * f:.3f}hz", "vel": vels[j]})
+    doc["tracks"].append({"name": "pan-five", "patch": PAN.split(";")[0] + (" " + damped if damped else ""), "gain": gain, "pan": float(pan), "notes": notes,
+                          **({"fx": [{"type": "eq", "bands": eq.split("|")}]} if eq else {})})
+    if target:
+        doc["loudness"] = float(target)
 
 
 def the_toms_count(doc):
