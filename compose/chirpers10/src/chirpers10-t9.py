@@ -239,6 +239,19 @@ WALL = os.environ.get('C10T9_WALL', '0.4;74,75;0.15;-1.3;-10.038' if GATHER else
 # tin's ; dB on the three tabla faders ; the loudness target ('' = unchanged) ; dB on the bass drum's two pieces (it
 # is not changed, so it gives back what the faders add). Empty restores v21 byte for byte.
 FINGERS = os.environ.get('C10T9_FINGERS', '250ms;300ms;16;40ms;0.8,0.65,0.45;0.65,0.45,0.25;4.5;-10.064;-4.5' if WALL and KHANDA else '')
+# v23 (chirper-one; instrument round: the main pair of guitars, gl and gr, which play the song from its first note to
+# its last and are alone with a hat for the first twenty seconds): THE LOW MIDDLE CHANGES HANDS. No note changes.
+# Alone, against the eleven records' guitars, the pair's SHAPE was 4.7 dB short at 120-250 Hz: a guitar with no chest.
+# And in the band that band was not empty: the bass held it. The bass alone on low F had its TWELFTH (C, 131 Hz) as
+# its loudest partial in the lock (the octave 1.5 under it, the fundamental 3.3) and level with its octave elsewhere,
+# and that one partial was 51 to 52% of the mix's 120-250 Hz. So the bass was saying C and the guitars had no body.
+# (1) The pair's rig is tight at 150 Hz where the stock rig is at 220 (as Take Up the Slack's guitars are): the pair
+# alone reads 1.3 short at 120-250 where it read 4.7. (2) The bass's twelfth is dipped 5 dB, keyed to the root as the
+# bus's other bands are: the octave is its loudest partial again, and its share of 120-250 Hz is 21%.
+# the main pair's tight filter, Hz ; dB at 700 Hz on the pair's tracks (2.5 is what it was: not changed) ; the pair's
+# fader, dB (not changed) ; the loudness target ('' = unchanged) ; the dip on the bass's bus, Hz:q:dB ('' = none).
+# '' = v22. It is on only while none of the fader switches (MAIN, DBL, MASTER) is set, so each still gives what it gave.
+BODY = os.environ.get('C10T9_BODY', '150;2.5;0.7;;131:2:-5' if FINGERS and not any('C10T9_' + x in os.environ for x in ('MAIN', 'DBL', 'MASTER')) else '')
 WALK = []
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
@@ -799,13 +812,14 @@ def song():
     assert total % 4 == 0 and all(m[1] % 4 == 0 for m in MARKS)
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
-    main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
+    main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}" + (f" fx.1.tight={BODY.split(';')[0]}" if BODY else "")
     dbl = "ct-twin fx.1.model=modern fx.2.mic=0.35 fx.2.cone={}"            # each side is two takes from three to the beat on
     mids = {"fx": [{"type": "eq", "bands": ["peak cutoff=700 q=0.9 gain=2.5dB"]}]}
     wall = {"fx": [{"type": "eq", "bands": ["peak cutoff=380 q=1 gain=-3dB"]}]}
+    body = ({"fx": [{"type": "eq", "bands": [f"peak cutoff=700 q=0.9 gain={BODY.split(';')[1]}dB"]}]} if float(BODY.split(";")[1]) else {}) if BODY else mids
     tracks = [
-        {"name": "gl", "patch": main.format(70), "gain": os.environ.get("C10T9_MAIN", "0.7dB"), "pan": -1, "out": "gtrs", **mids},
-        {"name": "gr", "patch": main.format(71), "gain": os.environ.get("C10T9_MAIN", "0.7dB"), "pan": 1, "out": "gtrs", **mids},
+        {"name": "gl", "patch": main.format(70), "gain": BODY.split(";")[2] + "dB" if BODY else os.environ.get("C10T9_MAIN", "0.7dB"), "pan": -1, "out": "gtrs", **body},
+        {"name": "gr", "patch": main.format(71), "gain": BODY.split(";")[2] + "dB" if BODY else os.environ.get("C10T9_MAIN", "0.7dB"), "pan": 1, "out": "gtrs", **body},
         {"name": "dl", "patch": dbl.format(72), "gain": os.environ.get("C10T9_DBL", "-2.5dB"), "pan": -0.75, "out": "gtrs", **mids},
         {"name": "dr", "patch": dbl.format(73), "gain": os.environ.get("C10T9_DBL", "-2.5dB"), "pan": 0.75, "out": "gtrs", **mids},
         *([{"name": tr, "patch": f"ct-wall-stop-{side} fx.3.mix=0" + "".join(f" fx.4.bands.{i}.gain=0dB" for i in range(4)),
@@ -921,7 +935,9 @@ def song():
             "low": {"fx": [{"type": "eq", "bands": [{"kind": "peak", "cutoff": key_f(44), "q": 1.5, "gain": "-7dB"}, {"kind": "peak", "cutoff": key_f(90), "q": 1.0, "gain": "7.5dB"},
                                                     {"kind": "peak", "cutoff": 350, "q": 1.0, "gain": "-8dB"}, {"kind": "peak", "cutoff": 1500, "q": 1.0, "gain": "4dB"}]},
                            {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
-                           {"type": "eq", "bands": [{"kind": "peak", "cutoff": key_f(170), "q": 1.2, "gain": "-3dB"}]}],
+                           {"type": "eq", "bands": [{"kind": "peak", "cutoff": key_f(170), "q": 1.2, "gain": "-3dB"}]
+                            + ([{"kind": "peak", "cutoff": key_f(float(BODY.split(";")[4].split(":")[0])), "q": float(BODY.split(";")[4].split(":")[1]),
+                                 "gain": BODY.split(";")[4].split(":")[2] + "dB"}] if BODY and BODY.split(";")[4:] and BODY.split(";")[4] else [])}],
                     "auto": {"key": {"points": pts, "curve": 0}}},
         },
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": os.environ.get("C10T9_MASTER", "2.7dB")}]},
