@@ -60,6 +60,20 @@ CREW_GAIN = os.environ.get('C10T15_CREW', '-6dB')
 # Track gain ; how far left and right ; the slide's time ; the loudness target (the rope adds a little to the
 # song; every bar without it keeps v1's mastering gain). Empty restores v1.
 ROPE = os.environ.get('C10T15_ROPE', '-9.5dB;0.5;350ms;-9.947')
+# v3, whole song (chirper-one): THE CREW SINGS IN THE BAND. Read against the eleven records' voices (tools/voxref.py,
+# while they sing): theirs sit 9.2 dB under their mix, ours 2.6 under in a verse and 0.9 under in a chorus, where
+# shantyman and crew together stood 5.7 dB OVER the whole band; and ours were far darker than theirs: by band, against
+# the voice's own level, 19 dB more under 250 Hz, 7 more at 250-500, 11 less at 2-4 kHz and 16 less above. A voice
+# with no top has to be loud to be heard, and a loud dark voice is the 9 dB at 250-500 Hz that chirper-two's read
+# found. So the three voice tracks get one eq (a high-pass, a dip in the body, a shelf for the consonants) and
+# then come down: a trim everywhere, and a further ride in the choruses, where five men and the shantyman hold long
+# notes over the band's heaviest riff. No note changes.
+# AND THE BAND CARRIES THE CHORUS. In v2 the chorus was 3.5 dB louder than the verse and all of it was voices: the
+# band alone is half a dB QUIETER there (long chords, fewer strokes). With the voices in their place the chorus did
+# not lift at all (benched: verse -20.4, chorus -20.5), so the band's faders go up in the choruses instead.
+# the eq's bands, | between them ; the trim on all three, dB ; the voices' ride in the choruses, dB ; the band's
+# lift in the choruses, dB ; the loudness target. "" = v2. It is on only while the three older switches are.
+INBAND = os.environ.get('C10T15_INBAND', 'hp cutoff=190|peak cutoff=330 q=0.9 gain=-5dB|peak cutoff=2600 q=0.6 gain=7dB;-3.5;-2.5;2;-10' if ROPE and SHANTY_GAIN and CREW_GAIN else '')
 # one bow, the pitch sliding inside the note (mono, legato); no chance detuning from note to note and less than half
 # of the library's unsteady bowing (12 cents either way there, 5 here): taut is in tune
 HAWSER = ('tagelharpa-bass play.mono=true play.legato=true play.glide={} play.glide_smooth=true '
@@ -339,6 +353,32 @@ for _s, _n in FORM:
     _t += _n * BAR
 
 
+def in_the_choruses(db):
+    """A fader ride: `db` through each chorus, moving over the half beat before it and the last half beat of it."""
+    points, beat = [['0b', 0]], 0
+    for name_, bars in FORM:
+        if name_ in ('all together', 'all together again', 'home'):
+            points += [[f'{beat - 0.5:g}b', 0], [f'{beat:g}b', db], [f'{beat + 4 * bars - 0.5:g}b', db], [f'{beat + 4 * bars:g}b', 0]]
+        beat += 4 * bars
+    return points
+
+
+def voices(tr):
+    """The shantyman and the two crews: as v2, or (v3) with one eq, a trim, and a ride down in the choruses."""
+    out = [tr('shanty', SHANTY, SHANTY_GAIN, -.08, sends={'hall': '-16dB'}), tr('crew', CREW, CREW_GAIN, .1),
+           tr('crew-high', CREW, CREW_GAIN, -.2)]
+    if not INBAND:
+        return out
+    bands, trim, ride = INBAND.split(';')[:3]
+    eq = [{'type': 'eq', 'bands': bands.split('|')}]
+    points = in_the_choruses(float(ride))
+    for t in out:
+        t['fx'] = eq
+        t['gain'] = {'value': f"{float(t['gain'][:-2]) + float(trim):g}dB", 'mod': [{'src': 'auto.ride', 'amount': 1}]}
+        t['auto'] = {'ride': {'points': points, 'curve': 0}}
+    return out
+
+
 def tracks_of(ev):
     def tr(name_, patch, gain, pan=0, out=None, fx=None, sends=None):
         d = {'name': name_, 'patch': patch, 'gain': gain, 'pan': pan, 'notes': sorted(ev[name_], key=lambda n: n['at'])}
@@ -361,9 +401,7 @@ def tracks_of(ev):
         tr('toms', 'ct-kit', '4dB', 0, 'drums', sends={'oh': '-1.5dB'}),
         tr('cym', 'ct-kit', '-4.5dB', .3, 'drums', air, {'oh': '4.5dB'}),
         tr('hat', 'ct-kit', '14dB', -.4, 'drums', air, {'oh': '4.5dB'}),
-        tr('shanty', SHANTY, SHANTY_GAIN, -.08, sends={'hall': '-16dB'}),
-        tr('crew', CREW, CREW_GAIN, .1),
-        tr('crew-high', CREW, CREW_GAIN, -.2),
+        *voices(tr),
         # (the big lyre played this high is mostly fundamental: at a pull it stood over the whole band at 120-250 Hz
         # and 8 to 14 dB under it from 500 Hz up. Eight dB off its body, so that what is heard is the hair)
         *([tr('rope-l', HAWSER.format(ROPE.split(';')[2]), ROPE.split(';')[0], -float(ROPE.split(';')[1]), fx=hair),
@@ -387,8 +425,12 @@ def build():
         'gtrs': {'fx': [{'type': 'eq', 'bands': ['peak cutoff=330 q=1.2 gain=-2dB']}, 'reverb kind=room decay=0.35s mix=0.06 predelay=6ms']},
         'low': {'fx': low},
     }
+    if INBAND and float(INBAND.split(';')[3]):
+        for name_ in ('gtrs', 'low', 'drums', 'oh', 'snr'):
+            buses[name_]['fx'] = buses[name_]['fx'] + [{'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.lift', 'amount': 1}]}}]
+            buses[name_]['auto'] = {'lift': {'points': in_the_choruses(float(INBAND.split(';')[3])), 'curve': 0}}
     doc = {'about': 'Take Up the Slack — chirpers, Common Time, track fifteen. A hauling song: the crew pulls in four, the riff is fifteen long, then seventeen, and each verse the slack between them is taken up.',
-           'tempo': BPM, 'seed': 1, 'length': f'{end // GRID}b', 'tail': '3s', 'ceiling': '-1dB', 'loudness': float(ROPE.split(';')[3]) if ROPE else -10, 'event_stable': True,
+           'tempo': BPM, 'seed': 1, 'length': f'{end // GRID}b', 'tail': '3s', 'ceiling': '-1dB', 'loudness': float(INBAND.split(';')[4]) if INBAND else float(ROPE.split(';')[3]) if ROPE else -10, 'event_stable': True,
            'buses': buses, 'master': {'fx': [{'type': 'eq', 'bands': ['hp cutoff=24']}, {'type': 'gain', 'gain': '2.7dB'}]},
            'tracks': tracks_of(ev)}
     return doc, marks
