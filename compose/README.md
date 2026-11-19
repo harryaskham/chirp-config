@@ -354,6 +354,11 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     or `tools/presence.py`'s "whose band is it") before moving a grouped part on it.
   - THE MIX on the NO-VOICE rows for a window where nobody sings. A change is kept when the mix agrees: the records'
     stems do not sum to their mixes, and a rig fitted to a record's lone guitar can be wrong in the mix (chirper-zero).
+  - THE BARS YOU DID NOT TOUCH SHOULD NULL against the last version: a tone change moves the master's gain, so the
+    practice is to re-fit the song's loudness target until an untouched passage nulls. The master's gain is NOT
+    continuous in the target on a song with quiet stretches (bd-dab22a, The Other Hand v18: targets -10.3075 and
+    -10.305 gave an untouched passage 0.113 dB under and 0.098 dB over, with nothing between): when two targets
+    0.0025 apart straddle zero, take the nearer and say so in the note (chirper-zero).
   - a MASTERED render before `done`: the master limiter turns down bowed and sawtooth-like parts, and sparse passages
     come up; a new voice's HARMONICS before its loudness (chirper-zero).
   - the recogniser ALONE, not under render load (`asr.py` exits 3 when a window did not finish), on the FINISHED
