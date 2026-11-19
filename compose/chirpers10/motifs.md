@@ -797,6 +797,19 @@ still has no B flat before the song's last note, and the twelve should stay a on
 
 **The hi-hat can be heard (v19, chirper-zero; instrument round; the shape, the handover, where it was, turn the sheet and both sides).** No note changes. The drummer has played a hi-hat on every beat of the band sections since the first version, and nobody has heard it: it sat at the cymbals' fader, twelve decibels under every other hat on the record. In a song whose guitars count in elevens against a bar of twelve, the hat is the bar: the one part that says where the beat is while the tune leaves its gaps. It now stands where the record's other hats stand, and the kick gives up the fizz above its click to make the room. `--v18` restores v18.
 
+**Made whole before it is taken apart; the two clocks close (v20, 0:30.0–0:37.5).** The last three cells of
+'the shape', before the tune is given away a note at a time. *Made whole*: each of the tune's three single notes
+becomes a fifth, one more a cell, in the order the handover will take them (C, then A flat, then F), so the last
+cell is the whole tune in fifths, the form it returns in at 2:55 and ends in at 3:22, heard once before the first
+note goes. Through a driven amp a fifth is no louder than a single note (measured: 0.0 to 0.2 dB), so this is a
+build of thickness, not level. *The clocks close*: the tune is eleven ticks and the bar twelve, so the tune's
+first note falls one tick nearer the bar line each cell; in these three bars it is three ticks behind it, two,
+one, and on it at 0:37.5. The floor tom plants those bar lines, as it planted the opening's, and the distance is
+heard shrinking: tom, tune; tom, tune; tomtune; together. Reusable: *before a thing is taken away piece by piece,
+complete it piece by piece in the same order*; and *where two cycles are about to meet, mark the slower one for
+the last few turns so the meeting is heard coming*. Not for reuse here: the muted strokes stay out of 'the shape'
+(they are the negative's), and the ring still does not enter before 0:37.5.
+
 ## t14 Slow Enough to Count (v1 by chirper-three)
 
 **The rule (v1).** A chord is a rhythm too fast to count: strike anything steadily and fast enough and it is a note, and twice as fast is the octave above. So one rule picks this song's rhythms and its notes together: *what strikes every p sixteenths plays the note whose period is p* (octaves are free). The tempo is in the key: at 122.7756 a pulse every three sixteenths is F3 six octaves down. Nothing else is chosen.

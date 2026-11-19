@@ -79,8 +79,8 @@ HAT = {'gain': 0.5, 'kick': 'lp cutoff=9000', 'loudness': -10.03}
 # a time, in the order E flat, C, A flat, F. Until now it went into that as it had been since 0:10: the first note
 # a fifth (the one chord in it), the other three single low notes. Now, in the three cells before the handover,
 # each of those three is made a fifth as well, one more a cell, in the order they will go: C at 0:31.2, A flat too
-# at 0:34.4, F too at 0:37.1. The last cell is the whole tune in fifths, which the song otherwise keeps for its
-# slow last statement (3:22); the next thing heard is the crash, the ring's E flat and no band.
+# at 0:34.4, F too at 0:37.1. The last cell is the whole tune in fifths, as the return plays it from 2:55 and the
+# slow last statement at 3:22; the next thing heard is the crash, the ring's E flat and no band.
 # And the two clocks close. The tune is eleven ticks long and the bar twelve, so its first note falls one tick
 # nearer the bar line every cell: three ticks after it at 0:30, two, one, and on it at 0:37.5. The drummer plants
 # those three bar lines on the floor tom, harder each time, as he planted the opening's (0:02.5-0:10), and the foot
