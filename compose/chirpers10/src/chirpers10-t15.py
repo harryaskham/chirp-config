@@ -129,6 +129,16 @@ CALL = os.environ.get('C10T15_CALL', '3' if BUILT else '')
 # 0.1 less; "" = v4's floor tom) ; the velocity of the one foot a bar in 'easy' ("" = the floor tom) ; the
 # loudness target ("" = as it was). "" = v5.
 DECK = os.environ.get('C10T15_DECK', '-10.5dB;30;;0.6;' if SQUEEZE and CALL else '')
+# v7, instrument (chirper-three; the crew, and how it sits): THE BAND GIVES WAY WHEN THE CREW ANSWERS. The crew
+# alone reads (12 words of 15 on verse one's first three answers); with the band playing it read 2. It was not
+# its diction: it stood 8 dB under everything else in its answers (K; 10 under at 2-4 kHz), where the shantyman
+# stands 4. So through each of the ten verse answers (the third bar of a couplet and the pull) the crew's fader
+# comes up 3 dB and the guitars' bus comes down 3: the crew stands 4.6 to 2.9 under, and the answer's own level
+# is what it was (within 0.2 dB). Six changes to the crew's patch each moved that by 1 dB or less; consonants up
+# 4 dB (field one) read no more words and is off.
+# dB on the crew's consonants (the patch; "" = as it was) ; the crew's lift through each verse answer, dB ; the
+# guitars' bus under each verse answer, dB ; the loudness target ("" = unchanged). "" = v6.
+ANSWER = os.environ.get('C10T15_ANSWER', ';3;-3;' if DECK else '')
 # five men: the kit piece, where in the spread his foot lands (0..1), how hard against the others, his board's
 # note, where he stands, how long his board rings (ms)
 BOOTS = [('b1', 0.0, 1.0, 'D2', -0.15, 150), ('b2', 0.23, 0.88, 'C2', 0.4, 170), ('b3', 0.47, 0.94, 'Eb2', -0.5, 135),
@@ -475,10 +485,25 @@ def in_the_choruses(db, also=None):
     return points
 
 
+def answers(db):
+    """A lane: `db` through each of the ten verse answers (the third bar of a couplet and the pull after it),
+    moving over the half beat before it and the half beat after."""
+    points, at = [['0b', 0]], 0
+    for name_, bars in FORM:
+        if name_ in ('late hand', 'early hand', 'both hands'):
+            for i in range(2 if name_ == 'both hands' else 4):
+                c = at + i * 4 * BAR
+                points += [[f'{(c + 30) / GRID:g}b', 0], [f'{(c + 32) / GRID:g}b', db], [f'{(c + 54) / GRID:g}b', db], [f'{(c + 56) / GRID:g}b', 0]]
+        at += bars * BAR
+    return points
+
+
 def voices(tr):
     """The shantyman and the two crews: as v2, or (v3) with one eq, a trim, and a ride down in the choruses."""
-    out = [tr('shanty', SHANTY, SHANTY_GAIN, -.08, sends={'hall': '-16dB'}), tr('crew', CREW, CREW_GAIN, .1),
-           tr('crew-high', CREW, CREW_GAIN, -.2)]
+    said = ANSWER.split(';') if ANSWER else None
+    crew = CREW + (f' synth.layers.0.consonant_level={said[0]}dB' if said and said[0] else '')
+    out = [tr('shanty', SHANTY, SHANTY_GAIN, -.08, sends={'hall': '-16dB'}), tr('crew', crew, CREW_GAIN, .1),
+           tr('crew-high', crew, CREW_GAIN, -.2)]
     if not INBAND:
         return out
     bands, trim, ride = INBAND.split(';')[:3]
@@ -492,6 +517,10 @@ def voices(tr):
         t = out[0]
         t['gain'] = {**t['gain'], 'value': f"{float(SHANTY_GAIN[:-2]) + float(trim) + float(CALL):g}dB"}
         t['auto'] = {'ride': {'points': in_the_choruses(float(ride) - float(CALL), {k: -float(CALL) for k in ('count', 'first call', 'easy', 'made fast')}), 'curve': 0}}
+    if said and said[1] and float(said[1]):  # v7: the crew comes up through its verse answers
+        t = out[1]
+        t['gain'] = {**t['gain'], 'mod': t['gain']['mod'] + [{'src': 'auto.answer', 'amount': 1}]}
+        t['auto'] = {**t['auto'], 'answer': {'points': answers(float(said[1])), 'curve': 0}}
     return out
 
 
@@ -549,6 +578,10 @@ def build():
         for name_ in ('gtrs', 'low', 'drums', 'oh', 'snr'):
             buses[name_]['fx'] = buses[name_]['fx'] + [{'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.lift', 'amount': 1}]}}]
             buses[name_]['auto'] = {'lift': {'points': in_the_choruses(lift), 'curve': 0}}
+    said = ANSWER.split(';') if ANSWER else None
+    if said and said[2] and float(said[2]):   # v7: the guitars give way under each verse answer
+        buses['gtrs']['fx'] = buses['gtrs']['fx'] + [{'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.duck', 'amount': 1}]}}]
+        buses['gtrs']['auto'] = {**buses['gtrs'].get('auto', {}), 'duck': {'points': answers(float(said[2])), 'curve': 0}}
     doc = {'about': 'Take Up the Slack — chirpers, Common Time, track fifteen. A hauling song: the crew pulls in four, the riff is fifteen long, then seventeen, and each verse the slack between them is taken up.',
            'tempo': BPM, 'seed': 1, 'length': f'{end // GRID}b', 'tail': '3s', 'ceiling': '-1dB', 'loudness': float(BUILT.split(';')[5]) if BUILT else float(INBAND.split(';')[4]) if INBAND else float(ROPE.split(';')[3]) if ROPE else -10, 'event_stable': True,
            'buses': buses, 'master': {'fx': [{'type': 'eq', 'bands': ['hp cutoff=24']}, {'type': 'gain', 'gain': '2.7dB'}]},
@@ -560,6 +593,8 @@ def build():
                                          f"clip drive=0dB ceiling={os.environ.get('C10T15_DECKCLIP', '-12dB')}"]}
         if DECK.split(';')[4]:
             doc['loudness'] = float(DECK.split(';')[4])
+    if said and said[3]:
+        doc['loudness'] = float(said[3])
     return doc, marks
 
 
