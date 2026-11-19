@@ -323,6 +323,24 @@ RIG = os.environ.get("C10T14_RIG", "180;peak cutoff=330 q=1.2 gain=-2dB;0.45;-10
 # shell, Hz ; its level ; the bands after the 150 Hz high-pass (| between) ; the piece's gain, dB ; the loudness
 # target ("" = unchanged). "" = v8 byte for byte.
 SNARE = os.environ.get("C10T14_SNARE", "m58.18;1.5;500;0.3;peak cutoff=262 q=1 gain=1dB|peak cutoff=650 q=1 gain=-3dB;0.65;-10.365" if RIG else "")
+# v10 (chirper-alpha; instrument round: THE KICK). The foot plays the threes, and the threes are an F: the last
+# drum not on its note (v9: its thump is an A, a major third over the F, in a minor song). And the album's kick,
+# read against the kicks in the eleven records' drum stems, has nothing at 90-120 Hz (-28.9 dB of its own 35-250
+# Hz; theirs -13.6) and rings 84 ms to 20 dB down (theirs 37 to 49).
+# THE RULE'S NOTE WAS TRIED FIRST AND THE BASS SAID NO: the drum on F1 is on the bass's own line, and two tones on
+# one line add by phase: stroke by stroke the level at 30-60 Hz went from a spread of 2.4-3.1 dB to 4.7-5.4 (full
+# renders, both seeds), the weakest stroke 0.5 to 1.4 dB weaker. So the DRUM goes to the chord's own third, a pure
+# A flat (52.38 Hz, 6:5 over the bass; kit pieces are not retuned, so it is written as a key number), and the F IS
+# THE CHEST: a bare sine on F2, 90 ms, on its own track with every kick stroke, straight to the mix (not a layer of
+# the kick's patch: its drive is one ceiling; not through the kit's bus: its clip holds the kick's top). The kick
+# alone then reads -16.1 at 90-120 Hz and 49 ms. The click's eq goes 10 -> 11.5 dB for what the lower drum lost.
+# In 'common' the foot plays twos, a C: the chest on C2 there falls under the hole and on the bass's C (benched:
+# 60-120 Hz 1.1 dB further under), so the seventh field is empty and the chest is F2 all through.
+# the drum's note ; the kick's fader, dB ("" = as it was, 2) ; the chest's note ("" = no chest) ; its gain ; its
+# decay, ms ; the kick's click, dB at 4.5 kHz on its track ("" = as it was, 10) ; the chest's note in 'common',
+# where the foot plays twos and the twos are a C ("" = the same note all through) ; the loudness target ("" =
+# unchanged). "" = v9.
+KICK = os.environ.get("C10T14_KICK", "m32.1564;;F2;-3dB;90;11.5;;-10.388" if SNARE else "")
 AT = starts()
 
 
@@ -643,6 +661,24 @@ def song():
     assert {t["name"] for t in tracks} >= set(T), set(T) - {t["name"] for t in tracks}
     for t in tracks:
         t["notes"] = T.get(t["name"], [])
+    chest_patch = {}
+    if KICK:
+        _, fader, note, gain, decay, click, twos, _ = KICK.split(";")
+        at = next(i for i, t in enumerate(tracks) if t["name"] == "kick")
+        if fader:
+            tracks[at]["gain"] = f"{fader}dB"
+        a, z = AT["common"] / 4, AT["home"] / 4
+        if click:
+            tracks[at]["fx"] = [{"type": "eq", "bands": [f"peak cutoff=4500 q=0.8 gain={click}dB"]}]
+        if note:
+            # a bare sine an octave over the drum, struck with every kick at its velocity, straight to the mix (past the
+            # kit bus's clip, which holds the kick's top, and outside the kick's own drive, which shares one ceiling)
+            chest_patch["sc-chest"] = {"extends": "808", "synth": {"layers": ["sine"], "pitch": {"value": 0, "mod": []}, "drive": 0, "filters": [],
+                                                                  "amp": {"a": "2ms", "d": f"{decay}ms", "s": 0, "r": "20ms", "curve": 3}},
+                                        "play": {"mono": False, "glide": "0ms", "gate": 1}}
+            tracks.insert(at + 1, {"name": "chest", "patch": "sc-chest", "gain": gain, "pan": 0,
+                                   "notes": [{"at": n["at"], "len": round(float(decay) / 1000 * BPM / 60, 4), "pitch": twos if twos and a <= n["at"] < z else note, "vel": n["vel"]}
+                                             for n in tracks[at]["notes"]]})
     low = [
         {"type": "eq", "bands": [
             {"kind": "peak", "cutoff": {"value": 44, "mod": [{"src": "auto.key", "amount": 0.08333}]}, "q": 1.5, "gain": "-7dB"},
@@ -664,6 +700,8 @@ def song():
                         "reso_level": 0.7, "shell": float(shell), "shell_hz": float(shell_hz), "wires": 0.85, "gap": 0.1, "wire_tone": "7k",
                         "strike": 0.3, "damp": 0.3, "slap": 1.2}],
             "filters": ["hp cutoff=150"] + [x for x in body.split("|") if x]}}}
+    if KICK:
+        kit_here["k"] = {"pitch": KICK.split(";")[0]}
     if FOOT:
         # three wood blocks an octave apart, each the library kit's wood block at the fives' own note: a triangle at the
         # note through a band-pass there, and three milliseconds of stick
@@ -679,7 +717,7 @@ def song():
                   "six octaves until they can be counted, handed to the band a pulse at a time, and wound back up into the chord at the end. "
                   + ("The band is tuned to the pulses' own notes, and a lead plays a tune in which every note lasts as long as its period." if TUNED and TUNE else "v1 is the skeleton.")),
         "tempo": BPM, "ceiling": "-1dB", "loudness": float(WHEELS.split(";")[5]) if WHEELS else float(LEAD.split(";")[3]) if LEAD and TUNE else -10, "seed": 1, "tail": "5s", "length": f"{end // 4}b", "event_stable": True,
-        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": kit_here}} | wheel_patches,
+        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": kit_here}} | wheel_patches | chest_patch,
         "buses": {
             "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
                              {"type": "glue", "threshold": "-24dB", "ratio": 2.5, "attack": "20ms", "release": "140ms", "knee": 6.0},
@@ -701,6 +739,8 @@ def song():
         doc["loudness"] = float(RIG.split(";")[3])
     if SNARE and SNARE.split(";")[6]:
         doc["loudness"] = float(SNARE.split(";")[6])
+    if KICK and KICK.split(";")[7]:
+        doc["loudness"] = float(KICK.split(";")[7])
     if TUNED:
         doc = {k: v for k, v in list(doc.items())[:2]} | {"tuning": {"steps": JUST, "root": "F3", "map": "keys"}} | {k: v for k, v in list(doc.items())[2:]}
     return doc
