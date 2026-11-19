@@ -175,6 +175,36 @@ BODY = (180, -5, -0.85, -9.839)
 # the first walk that remembers ; the hat's fader, dB ; its velocity ; the double-time snare's velocity ; its
 # trim, dB ; the loudness target. --without-memory gives v7.
 MEMORY = (7, 15, 0.5, 0.9, -2.5, -9.826)
+# v9 (chirper-zero; section round, 4:10.8 to the end of the fifteenth walk and the sixteenth, 3:56-4:25; and what
+# follows from it on the wheel): SOMEBODY COUNTS THE WAY HOME. The song is its rule and nobody has said the rule. A
+# number has been a length, a height and a riff; here, for the first time, it is also a WORD. The fifteenth walk
+# spends sixty-eight seconds where no walk has been (46, 23, 70, 35, 106, 53, 160, 80). At forty it lands on ground
+# five walks have crossed, the hands go to double time (v8), and a voice says the numbers as they come, each on
+# the sixteenth where its number begins: forty. twenty. ten. five. sixteen. eight. four. two. Each word has as long
+# as its number, so the count is the ball coming to rest, said: 4.6 seconds, 2.3, 1.2, 0.6, then 1.8, 0.9, 0.5, 0.2.
+# The sixteenth walk is the one everybody knows (it is the end of every walk since three), and FIVE MORE VOICES
+# say it with the first: sixteen, eight, four, two, one.
+# THE VOICE IS IN THE RULE FOR ITS NOTE: a number is the n-th harmonic of the low F, so the voice says it on that
+# harmonic brought into its own octave. Forty, twenty, ten and five are one note (five, the pure third over F3:
+# a halving is an octave, and an octave is the same note to a voice), and sixteen to one are F. The count is two
+# notes, and the step between them is the song's "twelfth and a hair" at 5 -> 16.
+# THE WHEEL (four, two, one, seven sixteenths a turn, fifteen turns) cannot stop, and neither can the count: the
+# wheel turns twice without a word, then the one voice says it, ONE WORD A TURN, each where its number is in the
+# turn (four . . | . two . | . . one), three tellings, each further off. Fifteen turns are three times five, so the
+# last word of the song is "one", a sixteenth before the last bar line.
+# The fifteenth walk's own "one" is a sixteenth long and is not said: the next walk's "sixteen" is on its heels.
+# first number said ; the one voice (patch ; track gain, dB) ; the five (patch ; gain, dB) ; their eqs ; dB more on the
+# words whose vowels have nothing over 1 kHz on this engine ("four", "two") ; the wheel's three tellings, dB ;
+# the last word, dB ; the loudness target. --without-count gives v8.
+COUNT = {'from': 40,
+         'one': ('voice-hook synth.layers.0.diction=3 synth.layers.0.effort.value=0.8 synth.layers.0.speech=0.6', -10),
+         'five': ('voice-choir synth.layers.0.diction=3 synth.layers.0.effort.value=0.8 synth.layers.0.speech=0.6 fx.0.mix=0.05', -14),
+         'eq': ['hp cutoff=220', 'peak cutoff=380 q=0.9 gain=-7dB', 'peak cutoff=2600 q=0.6 gain=7dB'],
+         'eq five': ['hp cutoff=240', 'peak cutoff=380 q=0.9 gain=-10dB', 'peak cutoff=2600 q=0.6 gain=7dB'],
+         'lift': {'F AO1 R': 2, 'T UW1': 3}, 'wheel': (-3, -4, -5), 'last': -2, 'loudness': -9.781}
+# a number as it is said: syllables (ARPAbet) and how long each has, in beats (they touch; the last rings)
+SAY = {40: [('F AO1 R', 1.0), ('T IY0', .7)], 20: [('T W EH1 N', .75), ('T IY0', .6)], 10: [('T EH1 N', 1.0)], 5: [('F AY1 V', 1.0)],
+       16: [('S IH0 K', .5), ('S T IY1 N', 1.1)], 8: [('EY1 T', 1.0)], 4: [('F AO1 R', .85)], 2: [('T UW1', .5)], 1: [('W AH1 N', .9)]}
 
 
 def true(ratio):
@@ -224,12 +254,13 @@ def phrase(m):
     return [(u * unit, ((strokes[i + 1] if i + 1 < len(strokes) else odd) - u) * unit, u % len(bits) == 0) for i, u in enumerate(strokes)]
 
 
-def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, body=True, tuned=True, memory=True):
+def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, body=True, tuned=True, memory=True, count=True):
     low_bus = low_bus and storeys  # --without-storeys still gives v1
     sized = sized and kit and low_bus
     body = body and sized
     tuned = tuned and body
     memory = memory and tuned
+    count = COUNT if count and memory else None
     T = {k: [] for k in ('left', 'right', 'bass', 'kick', 'snare', 'metal', 'stone') + (('wall-left', 'wall-right') if storeys else ()) + (('hat',) if memory else ())}
     lifted = []
 
@@ -434,6 +465,26 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
               track('metal', drum, KIT['metal gain'] if kit else 1.5, out='drums', **({'fx': [{'type': 'eq', 'bands': KIT['metal']}]} if kit and KIT['metal'] else {})),
               *([track('hat', drum, MEMORY[1], out='drums', fx=[{'type': 'eq', 'bands': KIT['metal']}])] if memory else [])]
     assert not T
+    if count:
+        def word(at, n, trim=0, ring=None):
+            """The number n said from sixteenth `at`, on its own harmonic in the voice's octave (F3 up)."""
+            out, t = [], at / SUB
+            for ph, ln in SAY[n]:
+                g = trim + count['lift'].get(ph, 0)
+                out.append({'at': round(t, 6), 'len': ring or ln, 'pitch': true(4 * over(n)), 'vel': 0.9, 'ph': ph, **({'gain': f'{g:g}dB'} if g else {})})
+                t += ln
+            return out
+        said = [(at, n, k) for at, n, k, _ in cells if k in (15, 16)]
+        said = said[[n for _, n, _ in said].index(count['from']):]
+        one = [e for at, n, k in said if not (k == 15 and n == 1) for e in word(at, n)]
+        five = [e for at, n, k in said if k == 16 for e in word(at, n)]
+        for turn in range(TURNS):                             # the wheel: two turns of nothing, then a word a turn
+            if turn % 5 >= 2:
+                i = turn % 5 - 2
+                last = turn == TURNS - 1
+                one += word(wheel + 7 * turn + (0, 4, 6)[i], (4, 2, 1)[i], count['last'] if last else count['wheel'][turn // 5], ring=.85 if i == 0 else .6 if i == 1 else None)
+        tracks += [{'name': 'count', 'patch': count['one'][0], 'gain': f"{count['one'][1]}dB", 'pan': 0, 'notes': one, 'fx': [{'type': 'eq', 'bands': count['eq']}]},
+                   {'name': 'crowd', 'patch': count['five'][0], 'gain': f"{count['five'][1]}dB", 'pan': 0, 'notes': five, 'fx': [{'type': 'eq', 'bands': count['eq five']}]}]
     doc = {'about': 'So Far. Halve it if it is even; treble it and add one if it is odd. The first sixteen numbers, each walked to one: '
                     'a number is its length in sixteenths, its harmonic over the low F and its own riff. Common Time t17 v1.'
                     + (' v2: at the top of the fifteenth walk (160) two more guitars and the bass already say the phrases of 80 and 40.' if storeys else ''),
@@ -450,6 +501,9 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
         doc['loudness'] = BODY[3]
     if memory:
         doc['loudness'] = MEMORY[5]
+    if count:
+        doc['loudness'] = count['loudness']
+        doc['about'] += ' v9: from forty in the fifteenth walk a voice says the numbers as they come; five more say the sixteenth walk; one word a turn on the wheel.'
     return doc, marks, wheel, end
 
 
@@ -459,6 +513,7 @@ if __name__ == '__main__':
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
+    ap.add_argument('--without-count', action='store_true', help="regenerate v8: nobody says the numbers")
     ap.add_argument('--without-memory', action='store_true', help="regenerate v7: the hands keep the feel v1 gave each walk, whatever has been said before")
     ap.add_argument('--equal', action='store_true', help='regenerate v6: every number at the nearest semitone to its harmonic, not at the harmonic')
     ap.add_argument('--without-body', action='store_true', help="regenerate v5: the first pair's tight filter at 220 Hz and the bass's 170 Hz cut at 3 dB")
@@ -466,7 +521,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-kit', action='store_true', help="regenerate v3: the kit before the kick was retuned and the cymbals and the bus had the album's eq")
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
-    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory)
+    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count)
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
