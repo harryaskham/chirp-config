@@ -298,6 +298,8 @@ The bare lead is in both cycles on purpose: with it in the first only, the score
 
 **The band rings down (v28, chirper-three; 5:12.9–5:18.0).** Bells are not stopped, they are lowered: the rows come round quicker and the strokes close up until the bells strike all but together. The landing's first ten rounds stand; its last five seconds are the same rounds coming down: a row to seven sixteenths (the tenor gives up its second stroke), to six (the treble its length), to a beat (a sextuplet), to an eighth, to a sixteenth four times, then the chord. Twenty-three rounds where there were sixteen. From the eighth on the row is dealt out as a ring is hung, one bell to each of the six guitars, treble far left and tenor far right: at an eighth the row crosses the room, at a sixteenth the six fire. The same could open the song (a ring is rung up before it is rung). `C10T3_LOWER=''` restores v27.
 
+**The conductor calls (v30, chirper-two; section w2, the change is 0:53.0–0:54.0).** Since v6 the band breaks wherever a ringing conductor would call a bob or a single, and nobody ever called. At the song’s first call a man now does: as the treble’s bell strikes in second place, a row before the lead end, he shouts “Bob!”, and the band stops to hear it (the guitars for the whole row; the bass and kit for all but the tenor’s two low F’s, which ring behind as a tenor does and lead back in). Then the call’s two rows, as they were. Once only: the other eight calls stay uncalled.
+
 ## t4 Running Total (chirper-zero)
 
 Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber". The album's fourth kind of long cycle: a SUM.

@@ -495,6 +495,32 @@ NEARLY_PTS = [[f"{NEAR_AT - 1:g}b", 0], [f"{NEAR_AT:g}b", float(NEARLY.split(';'
               [f"{NEAR_END + 4.5:g}b", float(NEARLY.split(';')[1])], [f"{NEAR_END + 5:g}b", 0]] if NEARLY else []
 
 
+# v30 (chirper-two, section round, w2 0:32-1:04, which nobody had marked; the change is 0:53.0-0:54.0): THE CONDUCTOR
+# CALLS. Since v6 the band breaks wherever a ringing conductor would call a bob or a single: nine times, and nobody
+# has ever called. A method does not change course by itself: one ringer, the conductor, shouts "Bob!" as the treble
+# strikes in second place on its way down to lead, a row before the lead end, and the ringers change what they would
+# have rung. Here he does, once: at the song's FIRST call. As the treble's bell strikes in seconds in the row before
+# the call (row 37 of the first extent, 0:53.125) a man shouts the word. The band stops to hear it: the four guitars
+# rest for the whole row, and the bass and the kit for all of it but the tenor's two low F's (0:53.75), which ring
+# behind as the tenor always does and are the way back in. Then the call's two rows, in unison, as they were. The
+# treble's own bell rings on through the stop, so the row is still marked where the hunt has reached.
+# ONCE: the other eight calls are not called (praise is local; and a word said nine times is a tic). The voice is the
+# engine's SPEAKING voice (`voice-speech`, which the album had not used: a spoken, not sung, glottis), pressed, on C4
+# with a shout's pitch (up 160 cents, then down to 450 under where it began), into the tower's hall.
+# MEASURED (raw, while he speaks): he stands at the level of the band he replaces (K -18.7 against -18.9, his peak
+# -6.6 against -6.8) and 11.7 dB over what still sounds under him (the bell). THE RECOGNISER reads the word alone as
+# "Bob!"; cut from the song it writes "Oh", whatever rests under him (tried: guitars only; guitars and bass; all of
+# the band; a 3 kHz lift; a rap voice; a longer vowel). So: a man is heard to call, and the vowel; the two b's are
+# not proven in the song.
+# his patch ; his gain ; the row of the first extent he calls in (the four guitars rest for it) ; his note ; its
+# length, sixteenths ; from which sixteenth of the row ; the pitch's path through the word, cents ; his send to the
+# hall ; the word (ARPAbet) ; his eq's bands (comma between; empty: none) ; who else rests besides the guitars
+# (tracks, comma between; empty: nobody) : for how many of the row's sixteenths (6 leaves the tenor's two chugs).
+# "" = v29.
+CALLED = os.environ.get('C10T3_CALLED', 'voice-speech synth.layers.0.join=true synth.layers.0.effort.value=0.7 synth.layers.0.effort_tilt=1 synth.layers.0.ring=0.6;'
+                        '-18dB;37;C4;3.2;1;0,120,160,100,-50,-250,-450;-14dB;B AA1 B;;bass,kick,snare,cym,hat,toms:6' if LOUDER and FORM and W1 == (2, 2) else '')
+
+
 def lead_mode(k, calls):
     """What row k of an extent is: `call` (the two rows of a called lead end), `home` (of a plain one), or neither."""
     if not FORM or k % 10 < 8:
@@ -844,9 +870,16 @@ def compose():
         # row 100 are left alone: the four strings fall back into unison there.
         split = HANDSTROKE and 80 <= k < 100 and k % 10 < 8
         slow = bool(SLOW) and int(SLOW.split(";")[0].split(":")[0]) <= k < int(SLOW.split(";")[0].split(":")[1])
+        called = bool(CALLED) and k == int(CALLED.split(";")[2])
         row_notes(row, s16, root, W1, kicks="all" if k >= 80 else "hunt",
                   mode=lead_mode(k, CALLS_1) or ("bare" if bare[0] <= k < bare[1] else ""),
-                  trs=G4[:2] if split or slow else None, pairs=coming_pairs(EXTENT_1, k))
+                  trs=G4[:2] if split or slow else None, pairs=coming_pairs(EXTENT_1, k), **({"gtrs": False} if called else {}))
+        if called:                       # v30: the conductor calls the bob; the guitars rest for the row he calls in
+            f = CALLED.split(";")
+            assert lead_mode(k, CALLS_1) == "" and lead_mode(k + 1, CALLS_1) == "call0", "he calls in the row before the call"
+            path = [float(c) for c in f[6].split(",")]
+            T.setdefault("conductor", []).append({"at": round((s16 + float(f[5])) / 4, 4), "len": round(float(f[4]) / 4, 4), "pitch": f[3], "vel": 1.0, "ph": f[8],
+                                                  "expr": {"f0": path[0]}, "expr_path": {"f0": path[1:]}})
         if split:
             handstroke(k, s16, root)
     if SLOW:                             # v23: the inner pair rings one lead at half speed over two
@@ -1061,6 +1094,13 @@ def song():
         tracks.append({**treble,'name':'wrapped','sends':{'hall':'-18dB'},
                        'fx':[*treble['fx'],f'gain gain={MUFFLE}dB'],
                        'patch':'modal-bell synth.layers.0.bright.value=0.18 synth.layers.0.bright.mod.0.amount=0.12 synth.layers.0.damp=0.46 synth.layers.0.decay=420ms synth.amp.r=140ms synth.amp.d=600ms'})
+    if CALLED:
+        s16 = PART1 * 16 + int(CALLED.split(";")[2]) * L1                    # whoever else rests while he calls (the kit's beat is written after the rows)
+        who, _, n16 = CALLED.split(";")[10].partition(":")
+        for tr in [x for x in who.split(",") if x]:
+            T[tr] = [n for n in T.get(tr, []) if not (s16 / 4 <= n["at"] < (s16 + int(n16 or L1)) / 4)]
+        tracks.append({"name": "conductor", "patch": CALLED.split(";")[0], "gain": CALLED.split(";")[1], "pan": 0, "sends": {"hall": CALLED.split(";")[7]},
+                       **({"fx": [{"type": "eq", "bands": CALLED.split(";")[9].split(",")}]} if CALLED.split(";")[9] else {})})
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
     return {
