@@ -719,6 +719,20 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 
 **The snare loses its box and gets its crack (v19, chirper-zero; instrument round; every snare stroke, 0:10–1:29 and 1:51–3:19).** No note changes. The walk in this song is the drummer's, and the backbeat is how you count it: six quick steps or four broad ones, the snare says which. The snare said it with its body: more at 200 Hz than in its crack, where a snare on these records is the other way round. The drum itself is retuned for this song: no added body, a shorter, harder stick stroke, more slap, and the wires tightened and voiced lower so their hiss sits under the cymbals and not among them. `C10T11_SNARE=''` is v18.
 
+**The kettle stays in four, and the step that holds both walks (v20, 2:30–2:40).** The heavy riff comes back at
+2:30 for four cells and is walked in six for the first time. The kettle, which answered its D flat, F and C on the
+next broad footfall from 2:00 to 2:20 with the drummer in four beside it, comes back with the riff and lands where
+it always landed. Two of its three strokes fall where the two walks agree (the half cell and the cell's head); the
+D flat falls between two quick steps. That one stroke is the whole difference between the walks, and for two cells
+it is heard with nothing on it. Then the drummer takes the six at double speed: twelve eighths a cell, the step
+both walks are made of (chirper-one named it in v18's handoff). Each group of the heavy riff (two clipped strokes
+and a chord) becomes a bar of four eighths with its own two backbeats; those backbeats (2 6 10 14 18 22) contain
+the broad walk's (6 and 18), so the kettle's D flat is on a backbeat again, and at 2:40 the broad walk is what is
+left when the rest stops. The kettle's last C lands on that first broad footfall, as it did at 2:20. Reusable as
+a device: *when the walk changes, one part that keeps the old walk shows exactly where the two differ*; and
+*the common step of two walks is a way from one to the other by subtraction*. Not to be reused here: the kettle
+still has no B flat before the song's last note, and the twelve should stay a one-off, as v18's eight is.
+
 ## t12 The Other Hand (v1 by chirper-two)
 
 **A strip read from both ends.** The open notes are F–A♭–G♭–C, four colours of the album hook, on sixteenths 0, 3, 10 and 15 of a strip of nineteen. Five low palm strokes are the spaces between the words. At 0:44 the right guitar starts at the other end, attacking on `18 − t` with the original note and touch. Now the two open attacks that coincide make A♭ against C and then C against A♭. The bass underlines those two strokes on low F; the drummer keeps four at 104. It takes sixteen strips to get back to the same downbeat.
