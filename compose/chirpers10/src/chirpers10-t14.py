@@ -341,6 +341,39 @@ SNARE = os.environ.get("C10T14_SNARE", "m58.18;1.5;500;0.3;peak cutoff=262 q=1 g
 # where the foot plays twos and the twos are a C ("" = the same note all through) ; the loudness target ("" =
 # unchanged). "" = v9.
 KICK = os.environ.get("C10T14_KICK", "m32.1564;;F2;-3dB;90;11.5;;-10.388" if SNARE else "")
+# v11 (chirper-three, section round: 'sixth', 1:12.3-1:41.6, the map's first flag "static, little new"): THE BAR IS
+# A NOTE TOO, AND THE D FLAT IS A SEMITONE OVER IT. 'Sixth' is the section of the fifteens: the D flat that sounds
+# every bar less a sixteenth, "so the band's biggest stroke slides a sixteenth earlier every bar and is home after
+# fifteen". Slides against what? The bar. And by the rule the bar is a note as well: every sixteen is a C. Fifteen
+# against sixteen is D flat against C, the semitone (16:15), and the fifteen bars the two take to meet again are
+# one beat of that semitone: the section is as long as its own interval. Until now only one of the two was played.
+# The D flat had both wall guitars and the bass; the bar line had a slightly louder cymbal; and the fifteens were
+# one of the two counts in the song still without a drum (the nines are the other).
+#   THE FIFTEENS GET THEIR DRUM: the kit's floor tom, tuned a pure fifth under the A flat tom (D flat 2, 69.8 Hz),
+#     on every fifteen. With the three toms of the chord that is D flat, A flat, C, F: the section's own chord.
+#   THE BAR GETS ITS DRUM AND ITS NOTE: the C tom on every bar line (the fours' drum, two octaves down in time),
+#     and the LEFT wall guitar leaves the D flat for C on every bar line. The right wall keeps the D flat, as it
+#     will through the quiet middle that follows, so its fifteens run unbroken from 1:12.3 to 2:11.
+# So the two slowest things in the section are both struck, by a drum and a guitar each: together at 1:12.3, then
+# the D flat a sixteenth before the bar line, then two, three ... half a bar apart at 1:27, and closing again
+# (under the fill) to meet on the first stroke of 'fourth'. The gap can be counted.
+# THE CHORD: C3 and C4, read against C4 alone and C4 with C5 (raw): only with the C3 does the wall give the mix
+# anything at 120-250 Hz, where 'sixth' stood 2.4 dB short of the records (0.6 of it back). The band now plays the
+# whole of D flat, F, A flat, C; until now the C was the kit's alone.
+# (Held, that C3 and the right's D flat 3 are 8.73 Hz apart, which is the section's 29.3 seconds 256 times over.
+# I looked for that beat in the two walls alone and in the mix and no line stands out there: every stroke restarts
+# its strings. The round claims the gap you can count, not a flutter.)
+# THE DRUMS' LEVEL: at the kit's own level a stroke's first 80 ms stood 10.2 (floor tom) and 8.0 dB (C tom) under
+# everything else; with 4 and 2 dB on the strokes they stand 7.9 and 7.1 under, where the song's blocks stand (7.8).
+# THE HANDS. The right hand keeps the china's quarters and the left has the backbeat, so the left is free on every
+# bar line (the C tom) and on all but two of the fifteens (the floor tom). On those two (1:19.7 and 1:34.3) the D
+# flat lands on a backbeat: there the right hand leaves the china for the floor tom, and it leaves it once more
+# under the crash at 1:12.3. In the fill before 'fourth' the C tom is already rolled, so it has the bar lines
+# there; the floor tom keeps its fifteens under it. No other note changes.
+# the bar's chord on a wall guitar ("" = both walls stay on the D flat) ; which wall, l or r ; the floor tom's
+# note, a key number ("" = no drum on the fifteens) ; its velocity ; dB on its strokes ; the bar line's drum ("" =
+# none) ; its velocity ; dB on its strokes ; the loudness target ("" = unchanged). "" = v10 byte for byte.
+SEMITONE = os.environ.get("C10T14_SEMITONE", f"C3,C4;l;m{53 + 12 * math.log2(8 / 5) - 24:.4f};0.85;4;t2;0.8;2;" if KICK else "")
 AT = starts()
 
 
@@ -352,7 +385,7 @@ def add(tr, s, length, pitch, vel, **more):
 
 
 def drum(piece, s, vel, **more):
-    tr = {"k": "kick", "s": "snare", "t1": "toms", "t2": "toms", "t3": "toms", "c": "cym", "x": "cym", "h": "hat"}[piece]
+    tr = {"k": "kick", "s": "snare", "t1": "toms", "t2": "toms", "t3": "toms", "ft": "toms", "c": "cym", "x": "cym", "h": "hat"}[piece]
     T.setdefault(tr, []).append({"at": round(s / 4, 5), "len": 2.0 if tr == "cym" else 0.25, "pitch": piece, "vel": round(vel, 3), **more})
 
 
@@ -486,6 +519,28 @@ def hands_off(a, end, which=("cym", "hat", "snare")):
             T[tr] = [n for n in T[tr] if n["pitch"] == "c" or not a / 4 - 1e-6 <= n["at"] < end / 4 - 1e-6]
 
 
+def bar_and_d_flat():
+    """v11: in 'sixth' the fifteens get a drum and the bar gets a drum and a note: see SEMITONE."""
+    chord, side, ft, ft_vel, ft_db, bar_drum, bar_vel, bar_db = SEMITONE.split(";")[:8]
+    a = AT["sixth"]
+    z = a + dict(FORM)["sixth"]
+    rolled = min([n["at"] * 4 for n in T.get("toms", []) if a <= n["at"] * 4 < z], default=z)   # the fill before 'fourth'
+    lift = lambda db: {"gain": f"{float(db):.2f}dB"} if float(db or 0) else {}
+    if chord:
+        tr = "w" + side
+        T[tr] = [n for n in T[tr] if not a / 4 - 1e-6 <= n["at"] < z / 4 - 1e-6]
+        every(a, z, BAR, lambda s, i: add(tr, s, BAR - 1, chord, 0.95))
+    if bar_drum:
+        for s in range(a + BAR, z, BAR):
+            if s < rolled - 1e-9:
+                drum(bar_drum, s, float(bar_vel), **lift(bar_db))
+    if ft:
+        every(a, z, 15, lambda s, i: drum("ft", s, float(ft_vel), **lift(ft_db)))
+        # the right hand leaves the china where the floor tom lands with the crash or on a backbeat
+        taken = {s for s in range(a, z, 15) if s == a or s % BAR in (4, 12)}
+        T["cym"] = [n for n in T["cym"] if not (n["pitch"] == "x" and any(abs(n["at"] * 4 - s) < 1e-6 for s in taken))]
+
+
 def compose():
     T.clear()
     rolls()
@@ -570,6 +625,8 @@ def compose():
         add("tune-still" if STILL and STILL.split(";")[2] else "tune", AT["one chord"], FORM[-1][1] - 4, "Ab4", vel)
     if FILLS:
         fills()
+    if SEMITONE:
+        bar_and_d_flat()
     if FOOT:                                                      # v7: wherever the A flat pair chugs the fives, the left foot strikes them
         vel = float(FOOT.split(";")[3])
         # (in 'counted' the A flat tom has the fives until +120, in 'home' it has them again from +180: one drum at a time)
@@ -702,6 +759,9 @@ def song():
             "filters": ["hp cutoff=150"] + [x for x in body.split("|") if x]}}}
     if KICK:
         kit_here["k"] = {"pitch": KICK.split(";")[0]}
+    if SEMITONE and SEMITONE.split(";")[2]:
+        # the floor tom, a pure fifth under the A flat tom: the fifteens' D flat
+        kit_here["ft"] = {"pitch": SEMITONE.split(";")[2]}
     if FOOT:
         # three wood blocks an octave apart, each the library kit's wood block at the fives' own note: a triangle at the
         # note through a band-pass there, and three milliseconds of stick
@@ -741,6 +801,8 @@ def song():
         doc["loudness"] = float(SNARE.split(";")[6])
     if KICK and KICK.split(";")[7]:
         doc["loudness"] = float(KICK.split(";")[7])
+    if SEMITONE and SEMITONE.split(";")[8]:
+        doc["loudness"] = float(SEMITONE.split(";")[8])
     if TUNED:
         doc = {k: v for k, v in list(doc.items())[:2]} | {"tuning": {"steps": JUST, "root": "F3", "map": "keys"}} | {k: v for k, v in list(doc.items())[2:]}
     return doc
