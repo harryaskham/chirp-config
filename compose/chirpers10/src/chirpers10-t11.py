@@ -152,13 +152,26 @@ SECOND = os.getenv('C10T11_SECOND', '0.4;14,15;0.15;-1.4' if RETURN else '')
 # track gain ; the four bow notes' lengths in beats (the last ends at the cadence) ; 1 = the outer guitars give up
 # the answers the bow has alone ; the swell in dB, ms to its peak, the string's level at rest in dB. '' = v15.
 BOW = os.getenv('C10T11_BOW', '-6dB;1.75,1.75,1.75,1.2;1;8,300,-2' if SECOND and ROD else '')
+# v17: THE STRING, NOT ITS HOOT (chirper-zero, 19 Nov, half an hour after v16, on v16's own stamped read). The read
+# against the records caught what my bench had not asked: the stretch 3:00-3:20 went from +0.8 to +3.1 dB at
+# 250-500 Hz, from four notes. The bowed string's first harmonic (349 Hz) stood 10 to 19 dB over its others (2 to 7:
+# -10 -12 -13 -15 -17 -19), so most of what v16 added was one low tone: a hoot with a string behind it, and the same
+# fault as the waterphone's in kind. A low shelf in the patch (-8 dB below 600 Hz) brings the string forward: at F4
+# harmonics 2 to 7 now read -6 -5 -6 -8 -10 -12 (a bowed string's sawtooth, near enough), and the fader comes up 4 dB so
+# the answer the bow has alone is as loud as it was (-20.6 then -19.1 LUFS momentary, raw bench; v16 -20.6, -19.0).
+# Over the bench's ten seconds 250-500 Hz is +1.7 dB on v15 where v16 was +3.8; the last C sits 1.3 LU lower than at
+# v16 (-21.1 before the cadence), which a swell into a cadence can afford. Tried: a high-pass at 500 Hz (the C, an
+# octave under its corner, lost 2.6 LU) and at 700 (thin: the first four harmonics level).
+# the shelf's corner in Hz ; its gain in dB ; the track's gain. '' = v16.
+STRING = os.getenv('C10T11_STRING', '600;-8;-2dB' if BOW else '')
 
 
 def BOW_PATCH():
     swell,rise,rest=BOW.split(';')[3].split(',')
     return {'about':'chirper-zero: a bowed string for On Its Hinge (the engine\'s bowed waveguide on the cello\'s body). Each stroke starts soft and swells to its peak, '
                     'then eases; the vibrato comes in early because the notes are short. Not a library patch.',
-            'synth':{'layers':[{'type':'bowed','body':0.8,'body_size':2.2,'bow_attack':'50ms','bow_pos':0.12,'bow_speed':0.55,'bright':0.5,'pressure':0.78,'rosin':0.2,'speak':0.6,
+            'synth':{**({'filters':['lowshelf cutoff=%g gain=%gdB'%tuple(float(v) for v in STRING.split(';')[:2])]} if STRING else {}),
+                     'layers':[{'type':'bowed','body':0.8,'body_size':2.2,'bow_attack':'50ms','bow_pos':0.12,'bow_speed':0.55,'bright':0.5,'pressure':0.78,'rosin':0.2,'speak':0.6,
                                 'level':{'value':f'{float(rest):g}dB','mod':[{'src':'env.swell','amount':float(swell)}]}}],
                      'env':{'swell':{'a':f'{float(rise):g}ms','d':'900ms','s':0.5,'r':'150ms'}},
                      'lfo':{'vib':{'wave':'sine','rate':'5.6hz','delay':'80ms','fade':'180ms','retrig':True}},
@@ -556,7 +569,7 @@ def make():
         # Shorter bow and smaller water movement than the ambient patch: the
         # dissonant upper partials carry the sound, not a detuned six-second hall.
         if BOW:
-            tracks.append(tr('rod','oih-bow',BOW.split(';')[0],-.15))
+            tracks.append(tr('rod','oih-bow',STRING.split(';')[2] if STRING else BOW.split(';')[0],-.15))
         else:
             tracks.append(tr('rod','waterphone synth.amp.a=150ms synth.amp.r=135ms synth.pitch.mod.0.amount=0.12 synth.pitch.mod.1.amount=0.18 fx.0.decay=0.8s fx.0.mix=0.09',ROD,-.15))
     doc={'about':'On Its Hinge — chirpers, Common Time, track eleven. A twelve-eighth riff in B flat; the drummer swaps six quick steps for four broad ones, on an unchanged riff. The reed organ breathes the broad walk before the kit takes it.' + (' The kettledrum answers the heavy riff on the next broad steps, then takes its last C.' if KETTLE else ''),
