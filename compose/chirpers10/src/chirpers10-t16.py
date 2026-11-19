@@ -391,6 +391,22 @@ ALONE = os.environ.get("C10T16_ALONE", "synth.layers.0.tune_sounding=true synth.
 # overrides on the library's closed hat (haake-hat) ; the hat track's fader ; its send to the overheads' room ;
 # its eq, band,band ; the loudness target ("" = unchanged). "" = v11 byte for byte.
 HAT = os.environ.get("C10T16_HAT", "filters.0.cutoff.value=4.5k amp.d=35ms;17dB;2.5dB;highshelf cutoff=9000 gain=-4dB,peak cutoff=6000 q=0.8 gain=4dB;-9.861" if ALONE else "")
+# v13 (chirper-zero; instrument round: the counting toms, all 609 strokes; no stroke moves): THE TOMS COUNT. They
+# play twelve to the bar on the ground's own notes, a stroke every 0.3 s round three drums, and they are the
+# album's tom with its 1.3 s head: when the next stroke landed the last had fallen 10 dB, so the three rang as one
+# low chord with a ripple on it, and in the band a tom stroke alone on its tick raised the mix by 1.1 dB at
+# 100-400 Hz (a quarter of them by nothing). chirper-two's v12 handoff named the round: shorter, and a cut for
+# their box.
+#   SHORTER AND LOUDER: the head's decay 1.3 -> 0.6 s and the amp's 1.8 -> 0.8 s (a stroke is 24 dB down when the
+#       next lands), the fader -3 -> 0 dB: the weight goes into the stroke and not the ring.
+#   THE BOX OUT, THE NOTE IN: their cut at 330 Hz 3 -> 6 dB, and 5 dB at 75 Hz, where the heads' own notes are (C2,
+#       F2 and their fellows in the other keys): shortened alone, the toms took 0.1 dB from the one band this song
+#       is shortest in, 60-120 Hz, which their ring had been helping to hold.
+# A tom stroke alone on its tick now raises the mix 2.9 dB at 100-400 Hz, and three in four of them by 1.8 or more.
+# By part the kit against the records' kits: 250-500 Hz +4.1 -> +2.7, 60-120 Hz -0.9 -> +0.5. The mix: 60-120 Hz 0.3 to 0.5 nearer in every
+# band section, all nine bands 1.522 -> 1.372.
+# overrides inside each tom's patch ; the tom tracks' fader ; their eq, band,band ; the loudness target. "" = v12.
+STROKE = os.environ.get("C10T16_STROKE", "synth.layers.0.decay=0.6s synth.amp.d=0.8s;0dB;peak cutoff=330 q=1 gain=-6dB,peak cutoff=75 q=0.9 gain=5dB;-9.87" if HAT else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -736,7 +752,24 @@ def build():
         in_tune(doc, end)
     if HAT:
         a_hat_with_a_body(doc)
+    if STROKE:
+        the_toms_count(doc)
     return doc, marks, end
+
+
+def the_toms_count(doc):
+    """v13: the counting toms are shorter and louder; their box cut deeper, their own notes lifted."""
+    patch, fader, band, target = STROKE.split(";")
+    for t in doc["tracks"]:
+        if t["name"].startswith("skins"):
+            if patch:
+                t["patch"] += "".join(f" kit.{piece}.patch.{o}" for piece in ("ft", "t2", "t1") for o in patch.split())
+            if band:
+                t["fx"] = [{"type": "eq", "bands": band.split(",")}]
+            if fader:
+                t["gain"] = fader
+    if target:
+        doc["loudness"] = float(target)
 
 
 def in_tune(doc, end):
