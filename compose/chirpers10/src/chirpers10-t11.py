@@ -212,6 +212,35 @@ SNARE = os.getenv('C10T11_SNARE', '-2;0.35;1.6;5000;0.95;-9.98' if DOUBLE else '
 # kettle's strokes there ; the china's velocity in the twelve, times ; the loudness target ('' = unchanged).
 # Empty restores v19 byte for byte.
 TWELVE = os.getenv('C10T11_TWELVE', '2;4;0;1;-9.965' if SNARE and KETTLE else '')
+# v21 (chirper-two, section w5, 1:46-2:13; the change is 1:47.5-1:50, the bridge's last cell): THE SECOND RIFF
+# COMES IN BY ITS CLIPPED STROKES. The song's first riff was heard on skins before it was picked (v5, 0:02.5-0:10:
+# "nothing invented for a fill"). The second riff, the heavier one, had no such door: at 1:50 the quiet bridge
+# stopped and four guitars, bass and kit began at once, the biggest step in the song, with nothing before it. Its
+# shape is two clipped strokes and a chord, three times a cell. So in the bridge's last cell:
+#   - THE TOMS SAY ITS SIX CLIPPED STROKES, the three pairs that head its three groups, high tom, middle, floor,
+#     each stroke harder than the last. The two toms that kept the broad count through the bridge (one on each
+#     half cell) give way to them: two becomes three one cell before the drummer walks in three (1:50, v13);
+#   - THE SECOND PAIR OF GUITARS COMES IN A HAND AT A TIME: the left one alone with the second pair of strokes
+#     (1:48.3), the right one with it for the third (1:49.2), then all four at 1:50. (Harry, on this song's
+#     guitars: "Let one come in early".) They play the riff's own clipped strokes on the open string and nothing
+#     else; the chord, the bass and the kick still wait for 1:50;
+#   - the last half second is left as it was: the clean guitar's leading note (v6) rings on after the last
+#     stroke, and then the riff. The organ, the bass, the hat's six and the clean guitar are not touched.
+# MEASURED (raw, seed 0; the cell in its three groups, K-weighted): the mix -24.4, -26.1, -27.6 before and -24.3,
+# -24.2, -23.4 now, so the cell no longer dies away into the riff, it holds; the riff's first group is -20.3
+# either way (4.1 dB over the bridge's cell heads, as it was). The toms stand 5.8, 1.5 and 2.6 dB under
+# everything else; the guitars 7.0 under (the left alone, 10 dB to the left) and 4.1 under (both). The leading
+# note stands 6.3 dB under everything else in its half second where it stood 4.7 (the floor tom's ring). The
+# shoulder's first cell is within 0.01 dB of v20's.
+# Rendered and not kept: the toms beginning a group earlier, on the last pair of the cell before (the walk in
+# three then runs unbroken for four groups into the riff): the scorer's cost grows by half and the quiet cell
+# before loses its ending. Not built in (reasoned, not rendered; `all` in the third field gives it): the riff's
+# own last note (C) on the early guitars, which would sound over the leading note.
+# groups of the second riff's clipped strokes the toms say before it (4 = from the last pair of the cell before;
+# 3 = the last cell; 1 = its last pair only; 0 = none) ; the guitars that say them early, in the order they come
+# in, the last with the last group ('' = none) ; `m` = clipped strokes only, `all` = and the riff's last note ;
+# the toms' first and last velocity ; the loudness target ('' = unchanged). Empty restores v20 byte for byte.
+TAIL = os.getenv('C10T11_TAIL', '3;wallL,wallR;m;0.42,0.86;' if TWELVE else '')
 
 
 def BOW_PATCH():
@@ -392,9 +421,34 @@ def make():
                 # fifth, major seventh, ninth, then root; it never transposes.
                 turn = 4*i//count
                 floor = HOME + ((0,-4,-7,-5)[turn] if PIVOT else 0)
+                # v21: the second riff's clipped strokes (three pairs, the heads of its three groups) on the toms
+                # before it is picked, high to low; the two toms that kept the broad count give way to them.
+                said = []
+                if TAIL:
+                    pairs = [(t,u) for (t,_,_,k),(u,_,_,k2) in zip(LIFT,LIFT[1:]) if k=='m' and k2=='m']
+                    assert pairs==[(0,2),(8,10),(16,18)]
+                    groups = int(TAIL.split(';')[0])
+                    back = (count-1-i)*len(pairs)             # groups between this cell's end and the shoulder
+                    said = [(g,pr) for g,pr in enumerate(pairs) if back+len(pairs)-g<=groups]
                 for t in (0,12):
                     put('bass',a+t,9.5,floor+(0 if t==0 else 7),.76)
-                    drum('ft' if t==0 else 't2',a+t,.57)
+                    if not said or t<said[0][1][0]:
+                        drum('ft' if t==0 else 't2',a+t,.57)
+                if said:
+                    v0,v1 = (float(x) for x in TAIL.split(';')[3].split(','))
+                    for g,pr in said:
+                        for k,t in enumerate(pr):
+                            n = 2*(groups-(back+len(pairs)-g))+k          # 0 .. 2*groups-1 through the whole fill
+                            drum(('t1','t2','ft')[g] if back==0 else 'ft',a+t,round(v0+(v1-v0)*n/(2*groups-1),3))
+                    if i==count-1 and TAIL.split(';')[1]:
+                        # the guitars come in a hand at a time: the last named with the last group, each one
+                        # before it a group earlier (Harry on this song's guitars: "Let one come in early")
+                        hands = TAIL.split(';')[1].split(',')
+                        for h,name in enumerate(hands):
+                            first = pairs[max(0,len(pairs)-len(hands)+h)][0]
+                            for t,d,sm,k in LIFT:
+                                if t>=first and (k=='m' or (TAIL.split(';')[2]=='all' and t>pairs[-1][1])):
+                                    put(name,a+t,d,HOME+sm,.87 if k=='m' else .96,k=='m')
                 if PIVOT:
                     put('glass',a,CELL-1,HOME+19,.80)
                     # Answer below the harmonic at the riff's original Db/F
@@ -639,7 +693,7 @@ def make():
         else:
             tracks.append(tr('rod','waterphone synth.amp.a=150ms synth.amp.r=135ms synth.pitch.mod.0.amount=0.12 synth.pitch.mod.1.amount=0.18 fx.0.decay=0.8s fx.0.mix=0.09',ROD,-.15))
     doc={'about':'On Its Hinge — chirpers, Common Time, track eleven. A twelve-eighth riff in B flat; the drummer swaps six quick steps for four broad ones, on an unchanged riff. The reed organ breathes the broad walk before the kit takes it.' + (' The kettledrum answers the heavy riff on the next broad steps, then takes its last C.' if KETTLE else ''),
-         'tempo':BPM,'seed':1,'length':f'{start//SUB+marks.pop("close",0)}b','tail':'4s','ceiling':'-1dB','loudness':float(TWELVE.split(';')[4]) if TWELVE and TWELVE.split(';')[4] else float(SNARE.split(';')[5]) if SNARE else -10,'event_stable':True,
+         'tempo':BPM,'seed':1,'length':f'{start//SUB+marks.pop("close",0)}b','tail':'4s','ceiling':'-1dB','loudness':float(TAIL.split(';')[4]) if TAIL and TAIL.split(';')[4] else float(TWELVE.split(';')[4]) if TWELVE and TWELVE.split(';')[4] else float(SNARE.split(';')[5]) if SNARE else -10,'event_stable':True,
          'buses':{'drums':{'fx':['reverb kind=room decay=0.62s mix=0.13 predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'20ms','release':'135ms'},'clip drive=0dB ceiling=-13dB',{'type':'eq','bands':['peak cutoff=400 q=0.8 gain=-5dB','highshelf cutoff=9000 gain=-2dB']}]},
                   'gtrs':{'fx':[{'type':'eq','bands':['peak cutoff=350 q=1 gain=-2dB','peak cutoff=720 q=0.9 gain=2dB']},'reverb kind=room decay=0.35s mix=0.06 predelay=6ms']},
                   'low':{'fx':[{'type':'eq','bands':['peak cutoff=58 q=1.5 gain=-6dB','peak cutoff=116 q=1 gain=5dB','peak cutoff=350 q=1 gain=-6dB','peak cutoff=1500 q=1 gain=3dB']},{'type':'compressor','threshold':'-26dB','ratio':6,'attack':'12ms','release':'120ms','makeup':'2dB'}]}},
