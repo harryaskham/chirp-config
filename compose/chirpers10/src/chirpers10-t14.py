@@ -156,6 +156,37 @@ NOTE_OF = {3: "F5", 6: "F4", 12: "F3", 2: "C6", 4: "C5", 8: "C4", 16: "C3", 2.5:
 STILL = os.environ.get("C10T14_STILL", "synth.pitch.mod.2.amount=0 synth.pitch.mod.1.amount=0;2.7:3.7:4.1:5.4;lead") if TUNED else ""
 
 
+# v4 (chirper-one, whole song): THE DRUMMER FILLS, AND THE FILL IS THE CYCLE. The song had no fill anywhere (v1, v2
+# and v3 all list it). Under the rule a fill needs no invention: twice as fast is the octave above, so the three
+# drums of the chord (F every 3, C every 4, A flat every 5, which meet every 60 sixteenths) can say the WHOLE cycle
+# in half the time or a quarter of it and still be playing their own notes. Every 1.5, 2 and 2.5 they meet after
+# 30; every 0.75, 1 and 1.25 after 15. So a fill is the cycle in miniature, landing on the meeting it comes before:
+# the band has taken 60 sixteenths to get there, the drums take 15. Two of them join end to end are the song's own
+# beginning and end at one-fortieth the size: 30 then 15 (twice as fast, then four times) is the wind-up, an octave
+# a step, as the last minute winds the drums up to the chord; 15 then 30 is the unwinding the song opens with.
+#   0:55.8  the cycle in 15, into the meeting where the tune comes in (0:57.7)
+#   1:06.8  the wind-up, 30 then 15, into 'sixth' (1:12.3)
+#   1:36.2  the unwinding, 15 then 30, falling away into the quiet middle (1:41.6)
+#   2:37.6  the cycle in 30, at the middle of 'home'; from 2:48.6 the drums are back at the band's own speed (v1)
+#           and at 2:55.9 they wind up for good: so 'home' has them at twice the speed, then at speed, then gone
+# The snare leaves for the fill, and the cymbal too while the drums go four times as fast (the feet keep the F
+# pulse). With no cymbal through a whole fill the song read 10 to 14 dB under the records at 8-16 kHz for up to five
+# and a half seconds: now never for more than 1.9. A stroke loses what the rolls'
+# strokes lose for each octave of speed (C10T14_ROLL), so a fill is as loud as the counted drums, and it swells
+# toward the meeting (or fades, where it unwinds). No other note is changed. Nothing in the quiet middle or in
+# 'common' (there every voice is on C: only the C drum could speak).
+# AND ONE DRUM WINDS UP ALONE, in 'common', where every voice is on C and only the C drum may speak. In the last
+# bar before 'home' (2:24.7) v2's tune says eight 2s, the quickest thing a guitar can say here; the C drum goes on
+# from there: eight strokes a sixteenth apart, eight at half that, eight at a quarter, eight at an eighth, and then
+# its own note (131 strokes a second, the rate it was rolled at when the song began) until the bar line: six
+# octaves in one bar, the song's ending a minute early and on one drum, and it lands on 'home'.
+# velocity at the far end ; at the near end ; the fills, | between: SECTION+SIXTEENTH it lands on = the speeds in
+# order ; the toms' gain in a fill, dB ; the one drum's wind-up: SECTION+SIXTEENTH it lands on : the drum : its
+# first period in sixteenths : its gain, dB (empty = none). "" = v3. It is on only while STILL, TUNE and the toms'
+# fader are, so each older switch still gives what it gave.
+FILLS = os.environ.get("C10T14_FILLS", "0.6;0.92;minor+120=4|minor+240=2,4|sixth+240=4,2|home+120=2;0;common+128:t2:1:5.5") if STILL and TUNE and os.environ.get("C10T14_TOMS", "x") else ""
+
+
 def still(patch, who):
     """The patch standing still, tuned down by its own sharpness. who: 0 the F pair, 1 the A flat pair, 2 the walls, 3 the lead."""
     if not STILL:
@@ -298,6 +329,49 @@ def meet(s, chord=None, ring=12):
             add(tr, s, ring, chord, 0.95)
 
 
+def fills():
+    """The cycle in miniature before a meeting: see FILLS."""
+    far, near, where, trim, alone = FILLS.split(";")
+    per_octave, f_tom = (float(v) for v in ROLL.split(";")[1:3])
+    for item in where.split("|"):
+        spot, speeds = item.split("=")
+        sec, off = spot.split("+")
+        speeds = [int(k) for k in speeds.split(",")]
+        assert all(60 % k == 0 for k in speeds) and int(off) % 60 == 0
+        end = AT[sec] + int(off)
+        a = end - sum(60 // k for k in speeds)
+        swell = speeds == sorted(speeds)                      # faster and faster swells; slower and slower fades
+        t = a
+        for k in speeds:
+            for piece, p in DRUMS.items():
+                def stroke(s, i, piece=piece, k=k):
+                    x = (s - a) / (end - a)
+                    v = float(far) + (float(near) - float(far)) * (x if swell else 1 - x)
+                    drum(piece, s, v, gain=f"{float(trim) - (f_tom if piece == 't1' else per_octave) * math.log2(k):.2f}dB")
+                every(t, t + 60 // k, p / k, stroke)
+            hands_off(t, t + 60 // k, ("cym", "hat", "snare") if k >= 4 else ("snare",))
+            t += 60 // k
+    if alone:
+        spot, piece, first, lift = alone.split(":")
+        sec, off = spot.split("+")
+        end = AT[sec] + int(off)
+        own, p, t = DRUMS[piece] / 2 ** OCTAVES, float(first), end - BAR
+        a = t
+        while t < end - 1e-9:
+            n = min(8 * p, end - t) if p > own + 1e-12 else end - t        # eight strokes, then twice as fast
+            g = f"{float(lift) - (f_tom if piece == 't1' else per_octave) * math.log2(DRUMS[piece] / p):.2f}dB"
+            every(t, t + n, p, lambda s, i, g=g: drum(piece, s, float(far) + (float(near) - float(far)) * (s - a) / BAR, gain=g))
+            t, p = t + n, max(p / 2, own)
+        hands_off(a, end)
+
+
+def hands_off(a, end, which=("cym", "hat", "snare")):
+    """The hands are on the toms from a to end: no cymbal (the crash at a meeting stays), hat or snare."""
+    for tr in which:
+        if tr in T:
+            T[tr] = [n for n in T[tr] if n["pitch"] == "c" or not a / 4 - 1e-6 <= n["at"] < end / 4 - 1e-6]
+
+
 def compose():
     T.clear()
     rolls()
@@ -380,6 +454,8 @@ def compose():
         # among the six strongest lines: under a power chord the guitars' minor third does not carry. The tune
         # holds it: the fives' note, over the chord the drums wound up to
         add("tune-still" if STILL and STILL.split(";")[2] else "tune", AT["one chord"], FORM[-1][1] - 4, "Ab4", vel)
+    if FILLS:
+        fills()
     for tr in T:
         T[tr].sort(key=lambda n: (n["at"], n["pitch"]))
     return AT["end"]
