@@ -307,6 +307,18 @@ SUB = os.environ.get("C10T7_SUB", "-10dB;12;8:3;0.9;-10.118") if HANDS else ""
 # their fader ; the loudness target (four brighter guitars measure louder, and at v22's target the master turned
 # everything down 0.64 dB: at -9.763 the two quiet sections, where none of the four plays, keep v22's gain). "" = v22.
 TEETH = os.environ.get("C10T7_TEETH", "0.35;-2;0.4;52,53;0.15;-0.7;-9.763") if SUB else ""
+# v24 (chirper-alpha; section w6, 2:00-2:24, the tutti in A flat: the change is 2:00.7-2:11.1): THE BACKBEAT CLOSES IN.
+# The kit keeps common time whatever the riff does, and the ratio the song is named for is only in the sizes of
+# things: nothing in it moves by that ratio. Ten seconds before the tutti opens into its held chords the riff runs
+# through three cells that shrink by it (21, 13, 8). So the snare leaves its backbeat there, strikes the head of
+# each, and keeps going down the rule inside the last cell of 13: 5, 3, 2, 1, 1, 1; the next sixteenth is the crash
+# and the chords. Eight of its nine strokes are strokes the riff already had (the riff is the rule); the ninth falls
+# in the riff's rest. In the last 13 the band plays only the strokes the snare plays (two palm strokes are left out).
+# The china keeps its quarters: common time is never gone, only the backbeat. No stroke moves.
+# the section : the sixteenth of it on which the figure lands ; the gaps between the snare's strokes, sixteenths ; the
+# snare's velocity, first : last ; how many sixteenths before the landing the band plays only the strokes the snare
+# plays (0 = the riff as written) ; the loudness target ("" = unchanged). "" = v23.
+BOUNCE = os.environ.get("C10T7_BOUNCE", "3:89;21,13,8,5,3,2,1,1,1;0.95:1;13;") if TEETH else ""
 
 
 def nm(n):
@@ -931,6 +943,33 @@ def the_rests_grow():
     return rests
 
 
+def the_backbeat_closes_in():
+    """The snare leaves its backbeat and strikes at gaps of 21, 13, 8, 5, 3, 2, 1 (the riff's own sizes, each to the
+    next as the whole to its larger part) into the head of a cell; in the last 13 the band plays only the strokes the
+    snare plays. Every stroke but the last is one the riff already had; no stroke moves."""
+    where, gaps, vel, only = BOUNCE.split(";")[:4]
+    i, land = (int(x) for x in where.split(":"))
+    land += SECS[i][0]
+    gaps = [int(g) for g in gaps.split(",")]
+    v0, v1 = (float(x) for x in vel.split(":"))
+    start = land - sum(gaps)
+    assert RANK[start] >= 3 and RANK[land] >= 5                                      # from the head of a cell to the head of a bigger one
+    tick = lambda note: round(note["at"] * 4)
+    strokes = [start + sum(gaps[:j]) for j in range(len(gaps))]
+    riff = {tick(n) for n in T["kick"]}
+    assert all(p in riff for p in strokes[:-1]) and strokes[-1] not in riff          # found in the riff; the last fills its rest
+    T["snare"] = [n for n in T["snare"] if not start <= tick(n) < land]
+    for j, p in enumerate(strokes):
+        drum("s", p, v0 + (v1 - v0) * j / (len(strokes) - 1))
+    if int(only):
+        gone = {}
+        for tr in ("gl", "gr", "wl", "wr", "bass", "kick"):
+            keep = [n for n in T[tr] if not (land - int(only) <= tick(n) < land and tick(n) not in strokes)]
+            gone[tr] = len(T[tr]) - len(keep)
+            T[tr] = keep
+        assert len(set(gone.values())) == 1 and gone["kick"] > 0, gone
+
+
 def the_floor_falls():
     """An 808 under each stroke that heads a cell of 8 or 5 in the breakdowns, falling an octave as the stroke sounds;
     and one slow fall where the band comes back."""
@@ -994,6 +1033,8 @@ def song():
         the_bass_does_not_rest()
     if BREAK:
         the_rests_grow()                 # before the stroke stops: the bass's last note before each new rest is let go in time too
+    if BOUNCE:
+        the_backbeat_closes_in()         # before the stroke stops, for the same reason
     if TIGHT:
         the_stroke_stops()
     if SUB:
