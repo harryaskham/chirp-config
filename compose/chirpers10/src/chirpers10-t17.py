@@ -314,6 +314,43 @@ SAY.update({3: [('TH R IY1', .7)], 6: [('S IH1 K S', 1.0)], 7: [('S EH1', .45), 
             22: [('T W EH1 N', .6), ('T IY0', .45), ('T UW1', 1.0)], 26: [('T W EH1 N', .6), ('T IY0', .45), ('S IH1 K S', 1.0)],
             34: [('TH ER1', .55), ('T IY0', .45), ('F AO1 R', 1.0)], 52: [('F IH1 F', .55), ('T IY0', .45), ('T UW1', 1.0)]})
 
+# v13 (chirper-two, instrument: the two voices): THE VOICES GET THE RECORDS' VOICE. v12 made the two voices speak
+# for two minutes, and the read stamped after it showed what they are made of: the counted stretches stood 3.5 to
+# 5.5 dB over the eleven records at 250-500 Hz where v11 had 2.0 to 2.5, and v9's own passage had the same mark (3.4
+# and 5.6). Read alone against the records' voices (tools/voxref.py, their eleven vocal stems; v12, raw):
+#   TONE, the voice's own energy by band, ours minus theirs: +19 dB under 250 Hz, +5.2 at 250-500, +0.2 at 500-1k,
+#   -6.5 at 1-2 kHz, +0.2 at 2-4, +3.8 to +7.0 at 4-8. A voice of body with no middle: where words are told apart
+#   it was 6 dB short, and it was loud by what is under them.
+#   LEVEL while it sings, voice minus the whole mix: -4.8 dB (the records' -9.2, their middle half -9.7 to -8.9);
+#   at 1-4 kHz -4.4 (theirs -7.1). In the counted stretches the two voices held as much of the mix's 250-500 Hz as
+#   everything else together (-0.4 to -1.3 dB against the rest) and MORE of 500 Hz-1 kHz (+0.1 to +3.7).
+# So, on both voices, after v9's bands: a high-pass at 450 Hz, 6 dB out at 450, 7 dB in at 1.3 kHz (the middle that
+# was missing), 3 dB back out of v9's lift at 2.8 kHz, and the top eased at 6.5 kHz (3 dB on the one, 6 on the
+# five, whose top was 7 over); both faders down 3.5 dB. And THE WORDS ARE EVENED, by number: with the body gone a
+# word is as loud as its vowel has middle, and "two", whose vowel has nothing over 1 kHz on this engine (v9), fell
+# to 13.8 dB under everything else where "ten" stood 3.7 under. Twelve words are trimmed (two +6 ... ten -3.5).
+# AS SET (real renders, raw, seed 0). TONE minus the records' voices, 250 Hz to 4 kHz: -1.1, +0.1, -1.5, +1.6 (both,
+# the fourteenth walk); -0.5, +0.1, -0.9, +1.5 (the one, the ninth); +0.5, +0.1, -2.0, +1.8 (v9's passage). Still
+# apart: under 250 Hz +5 to +8 (it is 25 dB under the voice's own total there) and 4-8 kHz +3.1 to +5.7 (a count
+# needs its consonants; the records scream). LEVEL: -8.9, -9.4, -9.4 whole; -5.9, -6.4, -6.9 at 1-4 kHz.
+# EVERY WORD against everything else while it sounds (K): -10.8 to -5.2, median -7.6; by word, the medians lie
+# between -8.1 and -6.9 (v12: -5.2 to -0.4). To a recogniser the voices alone read better than v12's: the opening
+# 17 of 18 (15: both "sixteen" are now read), seven's landing 10 of 10, the ninth walk's recital all of it.
+# THE MIX'S READ, before recording this time (ours minus the records, 250-500 Hz ; 500 Hz-1 kHz), v12 -> v13:
+#   the ninth walk from seven +3.5 ; +2.1 -> +2.1 ; +0.5 (v11 +2.0 ; -0.3)   the fourteenth +4.0 ; +2.5 -> +2.3 ; +1.0
+#   (v11 +2.3 ; +0.1)   ten and eleven +5.5 ; +2.4 -> +3.5 ; +0.5   the opening +5.3 ; +3.1 -> +4.1 ; +0.3
+#   v9's passage: 40 to 1 +3.4 ; +2.6 -> +2.6 ; +1.0   sixteen to one +5.6 ; +3.1 -> +3.6 ; +1.5
+# What is left over at 250-500 Hz is the band's own, as v11 had it. THE COST: on the wheel the voice had been
+# filling a hole in the band, and the read there goes from +0.6 ; -0.6 to -1.7 ; -3.4.
+# THE FINISHED FILE: the loudness target moves -9.48 -> -9.64 (the voices carry less), so the wordless stretches
+# are v12's within 0.02 dB; the counted ones are 0.2 to 0.5 dB quieter than v12 (0.2 to 0.5 over v11).
+# more eq bands on the one voice, after v9's ; on the five ; dB on both faders ; dB on whole words, by number,
+# wherever they are said (v9's words and v12's) ; the loudness target.
+# --without-clear gives v12.
+CLEAR = {'one': ['hp cutoff=450', 'peak cutoff=450 q=0.8 gain=-6dB', 'peak cutoff=1300 q=0.8 gain=7dB', 'peak cutoff=2800 q=1 gain=-3dB', 'peak cutoff=6500 q=0.8 gain=-3dB'],
+         'five': ['hp cutoff=450', 'peak cutoff=450 q=0.8 gain=-6dB', 'peak cutoff=1300 q=0.8 gain=7dB', 'peak cutoff=2800 q=1 gain=-3dB', 'peak cutoff=6500 q=0.8 gain=-6dB'],
+         'gain': -3.5, 'even': {2: 6, 3: 1, 5: -2, 7: -2, 10: -3.5, 11: -1, 14: 1.5, 16: 1.5, 17: 1, 20: 1.5, 22: 2.5, 34: 2.5}, 'loudness': -9.64}
+
 
 def true(ratio):
     """A pitch as its exact ratio over the low F: the engine's fractional key number (a whole one is written as its name)."""
@@ -362,7 +399,7 @@ def phrase(m):
     return [(u * unit, ((strokes[i + 1] if i + 1 < len(strokes) else odd) - u) * unit, u % len(bits) == 0) for i, u in enumerate(strokes)]
 
 
-def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, body=True, tuned=True, memory=True, count=True, still=True, one=True, ceiling=True, said=True):
+def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, body=True, tuned=True, memory=True, count=True, still=True, one=True, ceiling=True, said=True, clear=True):
     low_bus = low_bus and storeys  # --without-storeys still gives v1
     sized = sized and kit and low_bus
     body = body and sized
@@ -373,6 +410,7 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
     one = ONE if one and count else None
     ceiling = CEILING if ceiling and one and still else None  # every older switch still gives what it gave
     told = SAID if said and ceiling else None                 # (`said` is v9's own list below)
+    clear = CLEAR if clear and told else None
     T = {k: [] for k in ('left', 'right', 'bass', 'kick', 'snare', 'metal', 'stone') + (('wall-left', 'wall-right') if storeys else ()) + (('hat',) if memory else ())}
     lifted = []
 
@@ -611,7 +649,7 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
             """The number n said from sixteenth `at`, on its own harmonic in the voice's octave (F3 up)."""
             out, t = [], at / SUB
             for ph, ln in SAY[n]:
-                g = trim + count['lift'].get(ph, 0)
+                g = trim + count['lift'].get(ph, 0) + (clear['even'].get(n, 0) if clear else 0)
                 out.append({'at': round(t, 6), 'len': ring or ln, 'pitch': true(4 * over(n)), 'vel': 0.9, 'ph': ph, **({'gain': f'{g:g}dB'} if g else {})})
                 t += ln
             return out
@@ -636,7 +674,7 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
             def tell(at, n, trim):
                 out, t = [], at / SUB
                 for ph, ln in SAY[n]:
-                    g = trim + told['lift'].get(n, 0) + count['lift'].get(ph, 0)
+                    g = trim + told['lift'].get(n, 0) + count['lift'].get(ph, 0) + (clear['even'].get(n, 0) if clear else 0)
                     out.append({'at': round(t, 6), 'len': ln, 'pitch': true(4 * over(n)), 'vel': 0.9, 'ph': ph, **({'gain': f'{g:g}dB'} if g else {})})
                     t += ln
                 return out
@@ -649,8 +687,10 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
             for part in (one, five):
                 part.sort(key=lambda e: e['at'])
                 assert all(a['at'] + a['len'] <= b['at'] + 1e-6 for a, b in zip(part, part[1:])), 'a word runs into the next'
-        tracks += [{'name': 'count', 'patch': count['one'][0], 'gain': f"{count['one'][1]}dB", 'pan': 0, 'notes': one, 'fx': [{'type': 'eq', 'bands': count['eq']}]},
-                   {'name': 'crowd', 'patch': count['five'][0], 'gain': f"{count['five'][1]}dB", 'pan': 0, 'notes': five, 'fx': [{'type': 'eq', 'bands': count['eq five']}]}]
+        tracks += [{'name': 'count', 'patch': count['one'][0], 'gain': f"{count['one'][1] + (clear['gain'] if clear else 0):g}dB", 'pan': 0, 'notes': one,
+                    'fx': [{'type': 'eq', 'bands': count['eq'] + (clear['one'] if clear else [])}]},
+                   {'name': 'crowd', 'patch': count['five'][0], 'gain': f"{count['five'][1] + (clear['gain'] if clear else 0):g}dB", 'pan': 0, 'notes': five,
+                    'fx': [{'type': 'eq', 'bands': count['eq five'] + (clear['five'] if clear else [])}]}]
     doc = {'about': 'So Far. Halve it if it is even; treble it and add one if it is odd. The first sixteen numbers, each walked to one: '
                     'a number is its length in sixteenths, its harmonic over the low F and its own riff. Common Time t17 v1.'
                     + (' v2: at the top of the fifteenth walk (160) two more guitars and the bass already say the phrases of 80 and 40.' if storeys else ''),
@@ -674,6 +714,8 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
         doc['loudness'] = ceiling[1]
     if told:
         doc['loudness'] = told['loudness']
+    if clear:
+        doc['loudness'] = clear['loudness']
     return doc, marks, wheel, end
 
 
@@ -683,6 +725,7 @@ if __name__ == '__main__':
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
+    ap.add_argument('--without-clear', action='store_true', help="regenerate v12: the two voices' eq and faders as v9 set them")
     ap.add_argument('--without-said', action='store_true', help="regenerate v11: nobody says a number before forty in the fifteenth walk")
     ap.add_argument('--without-ceiling', action='store_true', help="regenerate v10: the ondes rests while the number is over the top of its ribbon (70, 106, 160, 80)")
     ap.add_argument('--without-one', action='store_true', help="the ondes's notes of v9: it lands on a trebled number at once")
@@ -695,7 +738,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-kit', action='store_true', help="regenerate v3: the kit before the kick was retuned and the cymbals and the bus had the album's eq")
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
-    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said)
+    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
