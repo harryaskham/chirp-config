@@ -154,6 +154,50 @@ ANSWER = os.environ.get('C10T10_ANSWER', '1' if ROOM else '')
 # three pairs keeps v16's mastering gain: at v16's target they came out 0.004 dB louder) ; one eq band on its track
 # (leave the field out for none). Empty restores v16; it is on only while ANSWER and STRIDE are.
 BOOM = os.environ.get('C10T10_BOOM', '808-dist;-18.5;0;-9.98;peak cutoff=95 q=1.2 gain=5dB' if ANSWER and STRIDE else '')
+# v18: THE BOW GETS A STRING AND A BODY (instrument round, chirper-zero, 19 Nov). Harry on the card so-bow, "Does
+# trading the answer between pick and bow work?": "bow instr sounds not great, improve".
+# THE INSTRUMENT: the bow of 'across the line' (2:22-2:52: sixteen notes, the answer Gb-F-C-Eb four times, alone on the
+# left over a held bass and a quarter-note hat). It was the library's body-less tagelharpa string, which its own
+# description calls experimental ("short notes barely speak").
+# WHAT WAS WRONG, read alone on its first two phrases: (1) IT COULD NOT HOLD ITS OCTAVE. On the long notes the string
+# sat in its second mode: at F3 the first harmonic stood 17 dB UNDER the second the first time and 3 over it the
+# second; Gb3 -6 then +2; C3 0 then -12. The same four notes came out in a different register each phrase.
+# (2) THE SHORT NOTES WERE A QUARTER SCRATCH: on the C and the E flat (0.5 and 0.3 s) only 76 to 78% of the power was
+# on the note's harmonics. (3) THE TOP WAS NEARLY AS LOUD AS THE NOTE: above 2 kHz it stood 3 to 8 dB under everything
+# below. In the mix the first phrase read +8.1 dB over the records at 250-500 Hz (the octave-up tone) and +4.3 at
+# 8-16 kHz (the scratch).
+# NOW: a bowed string on a body (the engine's bowed waveguide with the cello's string and box: this register is the
+# cello's own), song-local patch `owing-bow`. The first harmonic leads the second by 4 to 5 dB on all eight notes
+# read; 96 to 99% of the power is on the harmonics; harmonics 2 to 6 fall -5 -10 -12 -13 -14, a bowed string's
+# sawtooth. Each stroke swells 5 dB in 200 ms and eases; vibrato (15 cents each way, 5.3 Hz) only from 200 ms in, so
+# only the two long notes have it. The body alone gave too much first harmonic (2 to 6: -9 -14 -17 -18 -19), so a
+# low shelf in the patch holds it back 6 dB below 300 Hz.
+# ITS LEVEL IS SET BY THE MASTER'S LIMITER, a thing I learned the hard way: a bowed string's wave is a spike every
+# period, and this song's limiter turns down anything whose spikes pass about -10 dBFS before the loudness gain. A
+# brighter voicing I tried (shelves of -9 and +5 dB; crest 19.7 dB) matched the old bow's loudness on the bench and came
+# out 4.5 LU under it in the full render; this voicing at the old bow's loudness came out 2 under. So the fader puts
+# the bow's highest sample at -10.5 dBFS raw (crest 15.9 dB): the limiter leaves it alone, and the bow answers about
+# 2 LU softer than the old one did. (A short room ahead of the hall smears the spikes, crest 14.9, but colours each
+# note differently; tape drive does little: both benched, neither kept.)
+# track gain dB ; the low shelf's corner Hz ; its gain dB. '' = v17 (the tagelharpa at TRADE's gain).
+BOW = os.environ.get('C10T10_BOW', '-0.7;300;-6' if BOOM and TRADE else '')
+
+
+def bow_patch():
+    lo, lo_gain = (float(v) for v in BOW.split(';')[1:3])
+    return {'about':'chirper-zero: the bow of Still Owing: a bowed string on a body (the engine\'s bowed waveguide, the cello\'s string and box), in place of the '
+                    'body-less tagelharpa string. Each stroke swells a little and eases; vibrato only on notes long enough to have it; a low shelf keeps the '
+                    'first harmonic from leading too far. Not a library patch.',
+            'synth':{'filters':['lowshelf cutoff=%g gain=%gdB'%(lo,lo_gain)],
+                     'layers':[{'type':'bowed','body':0.8,'body_size':2.2,'bow_attack':'50ms','bow_pos':0.1,'bow_speed':0.55,'bright':0.6,'pressure':0.78,'rosin':0.2,'speak':0.7,
+                                'level':{'value':'0dB','mod':[{'src':'env.swell','amount':5.0}]}}],
+                     'env':{'swell':{'a':'200ms','d':'800ms','s':0.6,'r':'150ms'}},
+                     'lfo':{'vib':{'wave':'sine','rate':'5.3hz','delay':'200ms','fade':'300ms','retrig':True}},
+                     'pitch':{'value':0,'mod':[{'src':'lfo.vib','amount':0.15}]},
+                     'amp':{'a':'25ms','d':'0s','s':1,'r':'160ms'}},
+            'fx':['reverb kind=hall decay=1.8s mix=0.1'],'gain':'0dB'}
+
+
 # Offset in an ordinary bar, gate, semitones, open / palm / single note.
 CALL = [(0,2.50,0,'o'), (3,.64,0,'m'), (4,.78,0,'m'), (6,2.25,7,'n'),
         (9,.62,0,'m'), (10,.78,0,'m'), (13,2.12,2,'n')]
@@ -649,8 +693,11 @@ def build():
                             auto={'tongue':{'points':air_points,'curve':0}},
                             fx=[{'type':'gain','gain':{'value':'0dB','mod':[{'src':'auto.tongue','amount':1}]}}]))
     if TRADE:
-        tracks.append(track('bow','tagelharpa-bass-bowed synth.amp.r=80ms fx.0.mix=0.035',
-                            float(TRADE),-.66,fx=['hp cutoff=120']))
+        if BOW:
+            tracks.append(track('bow','owing-bow',float(BOW.split(';')[0]),-.66,fx=['hp cutoff=120']))
+        else:
+            tracks.append(track('bow','tagelharpa-bass-bowed synth.amp.r=80ms fx.0.mix=0.035',
+                                float(TRADE),-.66,fx=['hp cutoff=120']))
     for name in fold_patches:
         tracks.append(track(name,name,float(ADVANCE),.66))
     if CHANGE:
@@ -684,7 +731,7 @@ def build():
         'tempo':BPM,'seed':1,'event_stable':True,'length':f'{t//SUB}b','tail':'3s','loudness':float(BOOM.split(';')[3]) if BOOM else ROOM_LUFS if ROOM else -10,'ceiling':'-1dB','true_peak':True,
         **({'songs':fold_sources} if fold_sources else {}),
         'patches':{'owing-key':key_patch,**fold_patches,**({'owing-skin':pressure_skin()} if PRESS else {}),
-                   **({'owing-kept':kept_key()} if KEPT else {})},
+                   **({'owing-kept':kept_key()} if KEPT else {}),**({'owing-bow':bow_patch()} if BOW and TRADE else {})},
         'buses':{'spring':{'fx':['reverb kind=spring drip=0.65 mix=1 decay=1.2s low_cut=350 predelay=18ms']},
         'drums':{'fx':['reverb kind=room decay=0.48s mix=0.08','glue threshold=-23dB ratio=2.2 attack=18ms release=130ms',
                      {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14900']}]}},
