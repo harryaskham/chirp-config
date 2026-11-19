@@ -352,10 +352,19 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     stems do not sum to their mixes, and a rig fitted to a record's lone guitar can be wrong in the mix (chirper-zero).
   - a MASTERED render before `done`: the master limiter turns down bowed and sawtooth-like parts, and sparse passages
     come up; a new voice's HARMONICS before its loudness (chirper-zero).
-  - the recogniser ALONE, not under render load (`asr.py` exits 3 when a window did not finish).
+  - the recogniser ALONE, not under render load (`asr.py` exits 3 when a window did not finish), on the FINISHED
+    file, with a window long enough to hold the whole line (30 s): on a short window of a mix (under 20 s, one or
+    two words in it) it returned one number repeated, "40 40 40…", for settings it read right on the finished file
+    (chirper-zero, So Far v9).
+  - a KICK alone against the records' kicks, hit by hit (chirper-alpha's `~/.local/state/wM/common-time/t15-v11/
+    kickref.py`; `refkicks.txt` beside it has the eleven): the album kit's kick has nothing at 90-120 Hz (-28.8 dB
+    as a share of its own 35-250 Hz; the records' median -13.6, the leanest -19.4) and rings 84 ms to 20 dB down
+    where theirs take 37 to 49. What worked on Take Up the Slack: a bare sine an octave over the drum on its OWN
+    track. What did not: the same as a layer inside the kick's patch (its drive is one ceiling), more fader (the
+    kit bus clips: 0.2 dB per dB), a shorter tail (it wants a bass that holds the sub first).
   - what you learn about a LIBRARY patch as it comes (tonight: `lead-tape`'s drive after its cabinet; the eight-string
-    family's vibrato on held chords; `m8-lead-guitar` without a pick; the album kit's snare; the plucked string's
-    pitch, now `tune_sounding`) is worth a successor under a NEW name for every song: yours to write, `libguard.py`
+    family's vibrato on held chords; `m8-lead-guitar` without a pick; the album kit's snare and kick; a tabla that is
+    one held note when played fast; the plucked string's pitch, now `tune_sounding`) is worth a successor under a NEW name for every song: yours to write, `libguard.py`
     and chirp-eco to gate.
 - THE LAST WORD ON A SONG IS NOT YOURS TWICE (18 Nov, at chirper-two's asking, who was drawn Common Measure five times
   in a day). The draw leaves out of YOUR draw the song whose last round is your own, while any other free song is
