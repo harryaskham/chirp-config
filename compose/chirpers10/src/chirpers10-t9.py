@@ -204,6 +204,20 @@ REPRISE = os.environ.get('C10T9_REPRISE', '-7dB;-6dB;3dB;-10.085' if RUPAK and G
 # (v19 -10.1 to -11.2; the F chord it lands on -8.0). on ; the loudness target (every other bar keeps v19's
 # mastering gain: level within 0.003 dB, both seeds). Empty restores v19.
 GATHER = os.environ.get('C10T9_GATHER', '1;-10.029' if REPRISE and RING else '')
+# v21: THE WALL PAIR GETS A SPEAKER (chirper-zero, 19 Nov, instrument round: wl and wr, 2:00 to the end; no note
+# changes). The third pair was on the album's old wall rig: captured cabinet files, the patch's eq taking 10 dB off
+# the top from 5 kHz, a 3 dB trim at 380 Hz. Alone against a record's guitar alone (tools/cabspec.py, 2:00-2:10):
+# +5.9 at 630 Hz, +6.9 at 800, -12.3 at 8 kHz, -18.2 at 10 kHz: body and no string. It now stops at its amp and goes
+# through the engine's cabinet, as the title track's wall and On Its Hinge's second pair do (Harry, 17 Nov, on a
+# guitar heard alone: "The engine's cabinet is nearer"): -1.7 / +3.4 at 630 / 800 Hz, -1.3 / -3.2 at 8 / 10 kHz,
+# mean distance 3.57 -> 1.89 dB. In the mix, against the records' passages without a voice, 250-500 Hz falls 0.1 to
+# 1.2 dB in every stretch the pair plays (the six together at 2:55: +3.6 -> +2.4) and 500 Hz-1 kHz 0.3 to 0.8;
+# 2-4 kHz rises 0.3 to 0.4.
+# microphone (0 the cone's centre to 1 its edge; 0.3 was brighter still at 2.5-5 kHz, 0.5 takes the mix's short
+# 4-8 kHz down further) ; the two cones (this song's own: the other pairs have 70 to 73) ; distance ; track gain
+# (alone the pair is as loud as it was, -23.4 LUFS) ; the song's loudness target (the first two minutes null against
+# v20). Empty restores v20.
+WALL = os.environ.get('C10T9_WALL', '0.4;74,75;0.15;-1.3;-10.038' if GATHER else '')
 WALK = []
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
@@ -773,8 +787,12 @@ def song():
         {"name": "gr", "patch": main.format(71), "gain": os.environ.get("C10T9_MAIN", "0.7dB"), "pan": 1, "out": "gtrs", **mids},
         {"name": "dl", "patch": dbl.format(72), "gain": os.environ.get("C10T9_DBL", "-2.5dB"), "pan": -0.75, "out": "gtrs", **mids},
         {"name": "dr", "patch": dbl.format(73), "gain": os.environ.get("C10T9_DBL", "-2.5dB"), "pan": 0.75, "out": "gtrs", **mids},
-        {"name": "wl", "patch": "ct-wall-stop-l", "gain": "-3.5dB", "pan": -0.75, "out": "gtrs", **wall},
-        {"name": "wr", "patch": "ct-wall-stop-r", "gain": "-3.5dB", "pan": 0.75, "out": "gtrs", **wall},
+        *([{"name": tr, "patch": f"ct-wall-stop-{side} fx.3.mix=0" + "".join(f" fx.4.bands.{i}.gain=0dB" for i in range(4)),
+            "gain": WALL.split(";")[3] + "dB", "pan": pan, "out": "gtrs",
+            "fx": [{"type": "cab", "model": "4x12-modern", "mic": float(WALL.split(";")[0]), "distance": float(WALL.split(";")[2]), "cone": int(cone)}]}
+           for tr, side, pan, cone in zip(("wl", "wr"), "lr", (-0.75, 0.75), WALL.split(";")[1].split(","))] if WALL else
+          [{"name": "wl", "patch": "ct-wall-stop-l", "gain": "-3.5dB", "pan": -0.75, "out": "gtrs", **wall},
+           {"name": "wr", "patch": "ct-wall-stop-r", "gain": "-3.5dB", "pan": 0.75, "out": "gtrs", **wall}]),
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
         {"name": "kick", "patch": kit, "gain": "2dB", "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]},
         {"name": "snare", "patch": kit, "gain": "3.5dB", "out": "drums", "sends": {"oh": "-1.5dB", "snr": "-10dB"},
@@ -838,7 +856,7 @@ def song():
                   "v1 is the skeleton.") + (" At four to the beat the two hook notes pass between a baritone guitar and a clavinet; they exchange roles halfway." if HANDS else "")
                  + ((" One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then all six play the last cell as one before landing on F." if GATHER else
                      " One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then the original two guitars play the last cell before everyone lands on F.") if RING else ""),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(GATHER.split(";")[1]) if GATHER else float(REPRISE.split(";")[3]) if REPRISE else float(RUPAK.split(";")[3]) if RUPAK else float(SHAPE.split(";")[3]) if SHAPE else float(SIX.split(";")[2]) if SIX else float(KHANDA.split(";")[1]) if KHANDA else PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(WALL.split(";")[4]) if WALL else float(GATHER.split(";")[1]) if GATHER else float(REPRISE.split(";")[3]) if REPRISE else float(RUPAK.split(";")[3]) if RUPAK else float(SHAPE.split(";")[3]) if SHAPE else float(SIX.split(";")[2]) if SIX else float(KHANDA.split(";")[1]) if KHANDA else PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}, **({'hp': {'gain': CROSS.split(';')[1]}} if CROSS else {}),
                             **({'oh': {'patch':'haake-hat amp.d=1.05s amp.r=180ms amp.curve=2.2',
                                        'gain':CLUTCH,'pan':-.45,'choke':'hat'}} if CLUTCH else {})}},
