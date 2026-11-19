@@ -153,13 +153,40 @@ TURNED = (2, 6, 0.8, -10.185)
 # louder where the band is loud and 0.065 where it is quiet. Asking for 0.065 less overshot by as much again: here
 # a decibel of target moves a quiet bar 1.9 dB and a loud one 0.9. So 0.035 less.)
 READING = (1, True, True, -10.22)
+# v18 (chirper-zero, instrument round): THE TWO HANDS GET A CHEST. The song is two guitars, and for 2.7 s at 0:41 and
+# 16 s at the close it is ONE guitar and a count. Read three ways at v17:
+#   ALONE against the records' guitar heard alone (tools/cabspec.py, the pair in 'opposite'): 8.3 dB short at
+#     141-282 Hz, the worst band it has; mean distance 3.34 dB.
+#   BY PART against the eleven records' guitar stems, with the groups named (guitar=left,right,copy; four stretches):
+#     120-250 Hz 7.5 dB short (the records' middle half is 1.5 wide), while the KIT stood 3.0 over there and 5.1 over
+#     at 250-500: the foot held half of the mix's 120-250 Hz and the guitars about a sixth.
+#   THE MIX on the no-voice rows: within 1.2 dB at 120-250 Hz everywhere: the kick was standing in for the guitars'
+#     chest, so the mix did not show it. (v15's amp voicing took 3.2 dB out of the guitars there; its read was
+#     against the records' passages WITH a voice, the only read there was that night.)
+# So the band changes hands, and the mix stays where it is:
+#   the two hands   after the cabinet, before v15's cut: +7 dB at 180 Hz (q 1), and 1.5 dB off at 800 Hz, which is
+#                   the rig's nose (6.7 over the record's lone guitar) and gives back what the chest's share took
+#                   from the mix's 500 Hz-1 kHz
+#   the kit's bus   3 dB off at 190 Hz (q 1.2), after the album's eq: the foot gives the guitars their band
+# AFTER: alone 141-282 Hz -8.3 -> -3.2, mean distance 3.34 -> about 2.4. By part the guitars 120-250 Hz -7.5 ->
+# -1.8, 250-500 -2.5 -> -0.2; the kit 120-250 +3.0 -> +0.7, 250-500 +5.1 -> +3.7. The mix: see the round note.
+# Benched and not kept: the amp's tight filter at 150 Hz (141-282 Hz only 2.8 dB better, the rest as it was); the
+# rig as it was before v15 (nearer the record alone, 2.34, but it brings back the honk v15 cut and is 1.8 dB darker
+# where the mix is already short); the strings bus's lift at 730 Hz taken out (the mix went 0.7 short at 500 Hz-
+# 1 kHz in 'ink' and 'turn over'); the chest with no give from the kit (the mix 1.0 to 1.7 over at 120-250).
+# the bands before v15's on each hand ; one more band on the kit's bus ; the loudness target (with the kit 3 dB
+# lighter at 190 Hz the song measures quieter and at v17's target the master lifted everything 0.31 dB: 'pencil',
+# which has neither guitar nor kit, is the yardstick. THE MASTER'S GAIN JUMPS here: at -10.3075 'pencil' is 0.11 dB
+# under v17's, at -10.305 it is 0.10 over, and nothing between; -10.32 is the low side, clear of the jump).
+# --without-chest gives v17.
+CHEST = (['peak cutoff=180 q=1 gain=7dB', 'peak cutoff=800 q=1.2 gain=-1.5dB'], 'peak cutoff=190 q=1.2 gain=-3dB', -10.32)
 
 
 def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, turned=True, rig=HANDS_RIG, reading=True):
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, turned=True, rig=HANDS_RIG, reading=True, chest=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
@@ -596,7 +623,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                 t['patch'] = t['patch'].replace('ct-twin ', 'ct-twin '+rig[0]+' ')
                 if rig[1] and isinstance(t['gain'], dict): t['gain']['value'] = rig[1]   # the right hand's fader has a lane (v7's ties)
                 elif rig[1]: t['gain'] = rig[1]
-                if rig[2]: t['fx'] = [{'type':'eq','bands':rig[2]}]
+                if rig[2]: t['fx'] = [{'type':'eq','bands':(CHEST[0] if chest and reading else [])+rig[2]}]
     if thumbs:
         for side,way in [('left',-1),('right',1)]:
             tracks.append(track('tines-'+side,TINES[0],TINES[1],way*TINES[2],fx=room))
@@ -630,8 +657,8 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
     buses={'strings':{'fx':[{'type':'eq','bands':['peak cutoff=360 q=0.8 gain=-2dB','peak cutoff=730 q=1 gain=1.5dB']}]},
            'drums':{'fx':['reverb kind=room mix=0.10 decay=0.53s predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'18ms','release':'120ms'},'clip ceiling=-13dB']},
            'low':{'fx':[{'type':'eq','bands':['peak cutoff=48 q=1.4 gain=-4dB','peak cutoff=98 q=1 gain=3dB','peak cutoff=310 q=0.9 gain=-4dB']},{'type':'compressor','threshold':'-24dB','ratio':5,'attack':'14ms','release':'115ms'}]}}
-    if album_kit: buses['drums']['fx'].append({'type':'eq','bands':KIT_EQ})
-    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(READING[3] if reading else HEAVY_LOUDNESS if heavy else COPY_LOUDNESS if copy else THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
+    if album_kit: buses['drums']['fx'].append({'type':'eq','bands':KIT_EQ+([CHEST[1]] if chest and reading and rig else [])})
+    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(CHEST[2] if chest and reading and rig else READING[3] if reading else HEAVY_LOUDNESS if heavy else COPY_LOUDNESS if copy else THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
     return doc,sections
 
 def dump(d):
@@ -652,8 +679,9 @@ if __name__=='__main__':
     ap.add_argument('--with-steel',action='store_true',help="regenerate v14, the pedal steel reading back in 'turn over'")
     ap.add_argument('--without-turned-page',action='store_true',help="regenerate v15, 'turn over' read the right way up throughout")
     ap.add_argument('--without-first-reading',action='store_true',help="regenerate v16, the last strip of 'ink' in unison")
+    ap.add_argument('--without-chest',action='store_true',help="regenerate v17, the two hands without their chest and the kit's bus without its cut at 190 Hz")
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading)
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
