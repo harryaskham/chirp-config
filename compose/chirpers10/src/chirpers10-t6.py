@@ -458,9 +458,11 @@ def lead_gens():
         sec, r, x0, _ = CELLS[c]
         pool = " ".join(nm(note(r_) + 36 + gup(c)) for r_ in range(16))
         n = 1
-        while c + n < NC and CELLS[c + n][0] == sec and CELLS[c + n][1] == r and keyof(c + n) == keyof(c):
+        while (c + n < NC and CELLS[c + n][0] == sec and CELLS[c + n][1] == r and keyof(c + n) == keyof(c)
+               and (c + n in ROOM_CELLS) == (c in ROOM_CELLS)):
             n += 1
-        gens.append((c, n, sec, {"type": "logistic", "r": r, "x0": x0, "n": n, "len": "/2", "notes": pool, "rest": round(1 / 7, 6)}))
+        gens.append((c, n, sec, {"type": "logistic", "r": r, "x0": x0, "n": n, "len": "/2", "notes": pool,
+                                 "rest": 1 if c in ROOM_CELLS else round(1 / 7, 6)}))       # v24: the chip rests while somebody sings
         c += n
     return gens
 
@@ -746,7 +748,8 @@ def hand_on_the_dial():
                                               **({} if wall or not lean else {"gain": f"{lean:g}dB"})})
         turns.append((after, up, wall))
     # (v20: the bar before the top is no longer a wall, so by this function's own rule its fill carries the lean trim)
-    assert len(turns) == 12 and [u for _, u, _ in turns] == [True] * 9 + [False] * 3 and sum(w for _, _, w in turns) == (4 if UNWIND else 5)
+    assert len(turns) == 12 and [u for _, u, _ in turns] == [True] * 9 + [False] * 3 and sum(w for _, _, w in turns) == (4 if UNWIND else 5) - ('again' in ROOM_PARTS)
+    # (v24: nor is the bar before the six, where the second pair waits for the singers: by the same rule its fill is trimmed)
 
 
 # v18 (whole song): at the top the drummer is the population. The top of
@@ -849,6 +852,100 @@ SETTLE = os.environ.get("C10T6_SETTLE", "4;2;r;-10.049") if FLIP and LAST_TOUCH 
 # notes in those laps (with a guitar under them they lost 2 dB of their place against everything else). "" = v22.
 # (The exchange also runs at 'one', 'eight' and on the way down: those are as they were. See the round note.)
 WITH = os.environ.get("C10T6_WITH", "two,four;l;-9.966;2") if SETTLE and TINES else ""
+# v24 (chirper-zero, whole song): THE SONG IS SUNG, AND THE LINE IS AS LONG AS THE CYCLE (Harry, 19 Nov 02:25, on the
+# card "Should Carrying Capacity have a sung line?": "Develop both lines"; the others were "Keep it instrumental" and
+# "Keep just the first line"). chirper-alpha's trial (round 14, not adopted until he answered) had one singer take
+# the chip's five notes at 1:36 as "make some room" and the three's three notes at 2:09 as "no more room", the
+# guitars leaving the space. Both are in now, as he heard them, and developed by the song's own rules:
+#   - A BAND THAT HAS HEARD A RIFF TWICE ARRANGES IT (v2), so each line is sung twice, on the last two laps of its
+#     lock, and the second time a second singer is two rungs higher: in this scale always a minor third (v4's rule
+#     for the chip's second voice). The guitars stay out for both laps and their cue back in follows the second.
+#   - AT THE TOP (2:24) THERE IS NO ROOM EXCEPT IN THE HOLES. The rule crashes to nothing three half bars long twice
+#     up there (2:25, 2:46); both singers say "no more room" into each, the three's own notes moved to the top's
+#     key, well under the screams around them. The two shorter holes stay empty.
+#   - ON THE WAY DOWN THE LINE IS AS LONG AS THE CYCLE. The lock on five had five notes and the lock on three had
+#     three. Coming down, on the keys' laps, where no guitar plays: at four, "make some more room", a syllable to
+#     the half bar (the two lines made one); at two, "more room"; at one, where the rule comes to rest (3:23.5),
+#     "room", on the note it rests on. Every pitch is the half bar's own accent, folded into one octave.
+#   - THE VOICE. As on the card (`voice-near`, a bigger tract) it was 8 to 10 dB over the records' sung passages at
+#     250-500 Hz and 6 to 10 under at 1-4 kHz in the mix, and 'room', the word, was its quietest syllable (10 dB
+#     under 'some', nearly all of it under 500 Hz). So: the eq this record's other sung song uses (t15) with a deeper
+#     cut at 330, half of the singer's ring, and 4 dB on 'room' wherever it is sung (not on the note it is carried over).
+# NOTHING IS ADDED TO THE RULE'S RIFF: the guitars lose 56 strokes each in the four sung laps, the second pair 20,
+# the chip's answer six and the lead chip rests in the sung half bars; the bass and both kits keep every place.
+# the first singer's gain ; the second's ; which developments (again, top, down) ; the song's loudness target ; dB on
+# each line (five once, again ; three once, again ; the top ; four, two, one: set on finished files so that a sung
+# lap weighs what the band's lap before it does, and the top's holes stay 3 to 5 LU under the screams) ; the
+# voice's eq (high-pass / peaks, Hz:q:dB) ; its ring ; dB on 'room'. "" = v23.
+ROOM = os.environ.get("C10T6_ROOM", "-11dB;-14dB;again,top,down;-9.925;0,-2,0,-2.5,-6,-3.5,-3,0;190/330:0.9:-7/2600:0.6:7;0.5;4") if WITH and LAST_TOUCH and FIVE and LOCK and UP and KEYS else ""
+ROOM_PARTS = set(ROOM.split(";")[2].split(",")) if ROOM else set()
+MAKE_SOME_ROOM = (["M EY1 K", "_", "S AH1 M", "R UW1 M", "_"], [3, 8, 13, 18, 24], [.94, .88, .90, .95, .90])
+NO_MORE_ROOM = (["N OW1", "M AO1 R", "R UW1 M"], [4, 6, 14], [.90, .92, .95])
+
+
+def sung(c, key=None):
+    """The accent's note at half bar c, folded into one singer's octave (G3 to G flat 4), in the key of half bar `key`."""
+    return 55 + (note(cell(CELLS[c][3])[2]) + gup(c if key is None else key) - 55) % 12
+
+
+def room_lines():
+    """-> [(first half bar, half bars, [(place, syllable, velocity, pitch)], singers, what the guitars do)]."""
+    if not ROOM:
+        return []
+    five = lambda a: [(s, ph, v, sung(a + j)) for j, (ph, s, v) in enumerate(zip(*MAKE_SOME_ROOM))]
+    three = lambda a, src, last=None: [(last if last and j == 2 else s, ph, v, sung(src + j, a)) for j, (ph, s, v) in enumerate(zip(*NO_MORE_ROOM))]
+    on = lambda a, words: [(6 * j, ph, .93, sung(a + j)) for j, ph in enumerate(words)]       # a syllable to the half bar, on its first beat
+    trim = [float(v) for v in ROOM.split(";")[4].split(",")]      # five once, again ; three once, again ; the top ; four, two, one
+    once = "out" if "again" in ROOM_PARTS else "leave"            # the guitars' cue back in comes after the last sung lap
+    lines = [(HEAD5 + 10, 5, five(HEAD5 + 10), 1, once, trim[0]), (HEAD3 + 9, 3, three(HEAD3 + 9, HEAD3 + 9), 1, once, trim[2])]
+    if "again" in ROOM_PARTS:
+        lines += [(HEAD5 + 15, 5, five(HEAD5 + 15), 2, "leave", trim[1]), (HEAD3 + 12, 3, three(HEAD3 + 12, HEAD3 + 12), 2, "leave", trim[3])]
+    if "top" in ROOM_PARTS:
+        empty = lambda c: not cell(CELLS[c][3])[0]
+        holes = [c for c in range(AT["full"] + 1, AT["down-four"] - 3)
+                 if all(empty(c + i) for i in range(3)) and not empty(c - 1) and not empty(c + 3)]
+        assert len(holes) == 2, holes
+        # (in the hole there is no accent for 'room' to wait for: it comes on the beat and has the rest of the hole)
+        lines += [(c, 3, three(c, HEAD3, 12), 2, "hole", trim[4]) for c in holes]
+    if "down" in ROOM_PARTS:
+        four, two, one = HEAD4D + 4, AT["down-two"] + 6, AT["down-one"] + 8
+        lines += [(four, 4, on(four, ["M EY1 K", "S AH1 M", "M AO1 R", "R UW1 M"]), 1, "hole", trim[5]),
+                  (two, 2, on(two, ["M AO1 R", "R UW1 M"]), 1, "hole", trim[6]),
+                  (one, 2, on(one, ["R UW1 M"]), 1, "hole", trim[7])]
+    return sorted(lines)
+
+
+ROOM_CELLS = {c for first, n, *_ in room_lines() for c in range(first, first + n)}
+
+
+def sing_room():
+    lift = float(ROOM.split(";")[7]) if ROOM.split(";")[7:] else 0
+    for first, n, words, singers, guitars, trim in room_lines():
+        for j, (at, ph, v, p) in enumerate(words):
+            stop = words[j + 1][0] if j + 1 < len(words) else n * 6 - .35
+            gain = trim + (lift if ph == "R UW1 M" else 0)              # 'room' is the word, and 'oo' is this voice's quietest vowel
+            for tr, up in (("room", 0), ("room2", 3))[:singers]:        # the second singer two rungs up: always a minor third
+                add(tr, first, at, (stop - at) / .96, p + up, v)
+                T[tr][-1]["ph"] = ph
+                if gain:
+                    T[tr][-1]["gain"] = f"{gain:g}dB"
+        inside = lambda e: first * 2 <= e["at"] < (first + n) * 2
+        if guitars in ("leave", "out"):
+            # (chirper-alpha's trial.) The bass and both kits keep every place. The guitars make room: the first pair
+            # keeps only its last fretted accent, as the cue back in ("leave"; none while another sung lap follows:
+            # "out"); the second pair waits until the line is over; the chip's answer leaves its space to 'more'.
+            for tr in G:
+                T[tr] = [e for e in T[tr] if not (inside(e) and (guitars == "out" or e.get("expr", {}).get("pm") or e["at"] < (first + n - 1) * 2))]
+            for tr in G2 + ("echo",):
+                T[tr] = [e for e in T.get(tr, []) if not inside(e)]
+
+
+def room_is_there():
+    """The lines in the holes and on the keys' laps take nobody's place: no guitar plays under them."""
+    for first, n, words, _, guitars, _ in room_lines():
+        if guitars == "hole":
+            a, b = first * 2 + words[0][0] / 3 - 1e-6, (first + n) * 2 - 1e-6
+            assert not [e for tr in G + G2 + G3 for e in T.get(tr, []) if a <= e["at"] < b], (first, "a guitar plays under the line")
 
 
 def wobble_before_the_doubling():
@@ -961,6 +1058,8 @@ def last_string():
 
 def song():
     compose()
+    if ROOM:
+        sing_room()
     if FLIP:
         wobble_before_the_doubling()
     if CREST:
@@ -1033,6 +1132,17 @@ def song():
                            "pan": pan, "fx": ["hp cutoff=120"]})
     if TOMS:
         tracks.append({"name": "dtoms", "patch": "ct-kit-here", "gain": TOMS.split(";")[0], "out": "kit", "sends": {"oh": "-1.5dB"}})
+    if ROOM:
+        room_is_there()
+        voice = ("voice-near synth.layers.0.tract={} synth.layers.0.breath.value=0.13 synth.layers.0.effort.value=0.55 "
+                 "synth.layers.0.diction=3 synth.layers.0.inhale=0.1 play.glide=35ms"
+                 + (f" synth.layers.0.ring={ROOM.split(';')[6]}" if ROOM.split(";")[6:] and ROOM.split(";")[6] else ""))
+        hp, *peaks = ROOM.split(";")[5].split("/") if ROOM.split(";")[5:] and ROOM.split(";")[5] else ("", )
+        tone = ([{"type": "eq", "bands": [f"hp cutoff={hp}"] + ["peak cutoff={} q={} gain={}dB".format(*b.split(":")) for b in peaks]}]
+                if hp else ["hp cutoff=150 q=0.7"])
+        tracks.append({"name": "room", "patch": voice.format(1.04), "gain": ROOM.split(";")[0], "pan": 0, "fx": tone})
+        if "room2" in T:
+            tracks.append({"name": "room2", "patch": voice.format(0.98), "gain": ROOM.split(";")[1], "pan": 0.25, "fx": tone})
     for t in tracks:
         if "gen" not in t:
             t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
@@ -1070,7 +1180,7 @@ def song():
                   "and back down: the riff settles, splits in two, four, eight, stops repeating, locks by itself on five half "
                   "bars and then on three, fills the whole range, and dies out. Triplets at 138, on E, with a drum machine; "
                   "the lead has no notes, only the rule (the engine's own logistic generator). v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(WITH.split(";")[2]) if WITH else float(SETTLE.split(";")[3]) if SETTLE else float(FLIP.split(";")[2]) if FLIP else float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(ROOM.split(";")[3]) if ROOM else float(WITH.split(";")[2]) if WITH else float(SETTLE.split(";")[3]) if SETTLE else float(FLIP.split(";")[2]) if FLIP else float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"cc-machine": machine,
                     **({"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}}} if KIT else {})},
         "buses": {
