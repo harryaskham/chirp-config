@@ -111,12 +111,40 @@ WHOLE = {'cells': 3, 'tom': (.70, .77, .84), 'foot': .9, 'loudness': -10.03}
 # the boxes' strokes in the four rests of each of those cells (0 = left empty) ; the foot's on the first note
 # and the rest ; the loudness target. --v20 restores v20 byte for byte.
 FUSED = {'every': 8, 'cells': (9, 10), 'wood': (0, .95), 'foot': (.95, .84), 'loudness': -10.03}
+# v22 (chirper-alpha; section w4, 'under glass', 1:32.5-2:00, the quiet middle; the window least recently worked):
+# THE TITLE IS SUNG, A WORD AT A TIME, FROM ITS END. In 'under glass' the bass finds the tune again from its last
+# note: F; then A flat, F; then C, A flat, F; then all four. Each find is said three times (three cells): the bass
+# alone, then with the ring remembering, then with the ring caught up. The tune is four notes and so is a line of
+# four words. Now the middle cell of each three is SUNG, on the notes found so far, each note its own word, and
+# since the notes come back last first so do the words: "was"; "it was"; "where it was"; "right where it was".
+# The song says its name once, at 1:55.4, in the cell after the tune is whole again, and it is the first voice in
+# the song (the record asks for voices, different ones in different parts: a close, soft one here).
+# THE BASS AND THE RING REST WHILE IT IS SUNG. Sung over them the words did not survive: the recogniser read 3 of
+# the 10 words with the fretless under the voice (0 of 10 with the voice and the fretless alone; 9 of 10 with the
+# voice alone, where only the lone first "was" is missed), and with the bass out but the ring striking the same
+# notes in the same octave it read 5 of 10 on two seeds of three. So each find is now said by three in turn: the
+# bass finds it, the voice names it (over the toms and the held glass), the bass and the ring keep it. Ten
+# fretless notes and six ring notes are left out; nothing else is touched (the toms keep bar time under the voice).
+# THE WORDS were chosen by the recogniser, voice alone: "right" read on every voice tried; "back", "still" and
+# "there" did not ("back" -> egg, make, take). THE VOICE: the library's close voice with its clearest diction,
+# on the tune's notes two octaves over the bass (F3 to E flat 4), behind a 150 Hz high-pass and 4 dB less at
+# 330 Hz (the section already stood 4.8 dB over the records at 250-500 Hz), at the level the bass's own statement
+# of the same notes has the cell before (-1.9 to +1.8 dB, the line growing as it fills).
+# the tune's four words, first note to last ; how each is sung ; which of a group's three cells is sung (0 the cell
+# where the bass finds the note, 1 the next, 2 the cell where the ring has caught it) ; the voice ; its fader, dB ;
+# its place ; how far over the bass it sings, semitones ; how hard ; how long the last word is held, ticks ; its
+# send to the chamber ; its eq ; the loudness target. --v21 restores v21 byte for byte.
+SAID = {'words': ('right', 'where', 'it', 'was'),
+        'ph': {'right': 'R AY1 T', 'where': 'W EH1 R', 'it': 'IH1 T', 'was': 'W AA1 Z'},
+        'takes': (1,), 'alone': True, 'patch': 'voice-near synth.layers.0.diction=3', 'gain': -12.5, 'pan': 0, 'up': 24, 'vel': .8,
+        'last': 2.5, 'send': '-12dB',
+        'fx': [{'type': 'eq', 'bands': ['hp cutoff=150', 'peak cutoff=330 q=0.9 gain=-4dB']}], 'loudness': -10.03}
 
 
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
             rim=True, rim_gain=-18, turned=True, hole=True, mold=True, fretless=True, fretless_gain=-10.0,
             lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True, refill=True, whole_scale=True, trades=True, band=True,
-            hat=True, made_whole=True, fused=True):
+            hat=True, made_whole=True, fused=True, said=True, said_gain=None, said_takes=None):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -137,6 +165,10 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     hat = HAT if hat and band else None
     made_whole = WHOLE if made_whole and hat else None
     fused = FUSED if fused and made_whole else None
+    said = SAID if said and fused else None
+    if said and (said_gain is not None or said_takes):
+        said = {**said, **({'gain': said_gain} if said_gain is not None else {}),
+                **({'takes': tuple(int(x) for x in said_takes.split(','))} if said_takes else {})}
     marks = {}
     # v12: THE NEGATIVE IN PITCH. The tune takes four of the scale's seven
     # notes; the three it leaves out lie one between each pair it steps
@@ -172,9 +204,11 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
         if spin and 9 <= i <= 10: return 1 - j % 2   # right, left, right, left
         return i % 2
     parts = defaultdict(list)
-    def put(tr, at, dur, p, v, mute=False, slide=False):
+    def put(tr, at, dur, p, v, mute=False, slide=False, ph=None):
         event = dict(at=round(at / SUB, 6), len=round(dur / SUB, 6),
                      pitch=name(p) if isinstance(p, int) else p, vel=round(v, 3))
+        if ph:
+            event['ph'] = ph                    # a sung syllable
         if mute:
             event['expr'] = {'pm': 1.0}
         if slide:
@@ -345,13 +379,21 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                 # (v13: no breath; the F is held into the pickup, so the one
                 # string slides up from it.)
                 sounding = end-k+.30 if fretless and pickup and j==len(HEADS)-1 else end-k-.20
-                put(low,a+k,sounding,F+TUNE[j], .93 if j==first else .84)
+                if not (said and said['alone'] and take in said['takes']):     # v22: the bass rests while it is sung
+                    put(low,a+k,sounding,F+TUNE[j], .93 if j==first else .84)
                 # First time, the bassist says it alone. The ring remembers the
                 # old tail on the second turn and catches the newest note last.
-                if take and (j>first or take==repeats-1):
+                # (v22: in the cell that is sung the voice takes the ring's turn)
+                if take and (j>first or take==repeats-1) and not (said and said['alone'] and take in said['takes']):
                     put('ring',a+k,min(1.7,end-k-.25),F+TUNE[j]+24,.71)
             if pickup:
                 put(low,a+CELL-1,.78,F+TUNE[first-1],.86,slide=fretless)
+            if said and take in said['takes']:
+                # v22: the notes found so far are sung, each on its own word; touching, so one breath
+                for j in range(first, len(HEADS)):
+                    k = HEADS[j]; end = (HEADS+(CELL,))[j+1]
+                    put('said', a+k, end-k if j < len(HEADS)-1 else said['last'], F+TUNE[j]+said['up'], said['vel'],
+                        ph=said['ph'][said['words'][j]])
         for beat in range(span//SUB):
             i,k = divmod(beat*SUB,CELL); group,take = divmod(i,repeats)
             first = len(HEADS)-1-group
@@ -682,6 +724,9 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
         # records: so -10, and the picked bass's own dip at 320 Hz.
         tracks.append(track('fretless','fretless-bass play.glide=150ms fx.2.mix=0',fretless_gain,0,
                             fx=[{'type':'eq','bands':['hp cutoff=29','peak cutoff=320 q=1 gain=-4dB','lp cutoff=1800 q=0.6']}]))
+    if said:
+        tracks.append(track('said', said['patch'], said['gain'], said['pan'], sends={'chamber': said['send']},
+                            **({'fx': said['fx']} if said['fx'] else {})))
     patches = {}
     if band:
         patches['ct-kit-where-it-was'] = {'extends': 'ct-kit', 'kit': {'k': band['kick'][0]}}
@@ -718,7 +763,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
             # (the five card excerpts among them) came out 0.008 to 0.011 dB quieter: the target moves by that.
             # v17: the trade is quieter to the meter than the long statement it replaces; -10.035 keeps every other
             # bar at v16's mastering gain (within 0.002 dB, both seeds).
-            'ceiling':'-1dB', 'true_peak':True, 'loudness':fused['loudness'] if fused else made_whole['loudness'] if made_whole else hat['loudness'] if hat else band['loudness'] if band else -10.035 if trades else -9.99 if refill else -10,
+            'ceiling':'-1dB', 'true_peak':True, 'loudness':said['loudness'] if said else fused['loudness'] if fused else made_whole['loudness'] if made_whole else hat['loudness'] if hat else band['loudness'] if band else -10.035 if trades else -9.99 if refill else -10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
                                      'glue threshold=-22dB ratio=2 attack=18ms release=120ms',
                                      {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14800']}]},
@@ -750,6 +795,9 @@ if __name__ == '__main__':
     previous.add_argument('--v18', action='store_true', help='restore the hi-hat at the cymbals\' fader, 25 dB under the mix, and the kick with its top')
     previous.add_argument('--v19', action='store_true', help='restore the single notes of the tune in the three cells before the handover, and their bar lines unmarked')
     previous.add_argument('--v20', action='store_true', help='restore the side-to-side trade turning twice a cell for two cells and at every note for two, one face at a time')
+    previous.add_argument('--v21', action='store_true', help="restore the quiet middle with nobody singing")
+    parser.add_argument('--said-gain', type=float, default=None, help="the sung voice's track gain in dB (default: SAID's)")
+    parser.add_argument('--said-takes', default=None, help="which of each group's three cells is sung, e.g. 1 or 1,2 (default: SAID's)")
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     parser.add_argument('--rim-gain', type=float, default=-18, help='held glass track gain in dB')
     parser.add_argument('--fretless-gain', type=float, default=-10.0, help='fretless bass track gain in dB')
@@ -760,7 +808,7 @@ if __name__ == '__main__':
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
                   not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11, not args.v12, args.fretless_gain,
                   not args.v13, args.held_gain, args.grip, not args.v14, not args.v15, not args.strokes_on_f, not args.v16, not args.v17,
-                  not args.v18, not args.v19, not args.v20)
+                  not args.v18, not args.v19, not args.v20, not args.v21, args.said_gain, args.said_takes)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
