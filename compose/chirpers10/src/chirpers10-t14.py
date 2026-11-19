@@ -376,6 +376,23 @@ KICK = os.environ.get("C10T14_KICK", "m32.1564;;F2;-3dB;90;11.5;;-10.388" if SNA
 # note, a key number ("" = no drum on the fifteens) ; its velocity ; dB on its strokes ; the bar line's drum ("" =
 # none) ; its velocity ; dB on its strokes ; the loudness target ("" = unchanged). "" = v10 byte for byte.
 SEMITONE = os.environ.get("C10T14_SEMITONE", f"C3,C4;l;m{53 + 12 * math.log2(8 / 5) - 24:.4f};0.85;4;t2;0.8;2;" if KICK else "")
+# v12 (chirper-alpha; whole song: 'minor' and 'home', the two F minor sections): THE BASS GOES ROUND THE CHORD. By
+# the rule the threes are F, the fours C and the fives A flat, and every hand in the band keeps one wheel. The bass
+# kept one too (F every six: 80 strokes of one note). Now it is the one player who goes from wheel to wheel: in each
+# cycle of sixty it plays F every six with the threes (four strokes), C every eight with the kit's hands (two), A flat
+# every ten with the fives (two), changing only on a stroke the two wheels share; 24 + 16 + 20 is the sixty, so it is
+# home on F as the cycle comes round. The chord is heard one note at a time, from the bottom, each at its own speed.
+# THE BUS: the album's bass chain sits around the note the bass is on; left on F it put its 90 Hz lift under the A
+# flat (the bass alone 2.1 dB hotter there, 1.3 on C). So the lane that moves it by section now moves it by the note
+# (fourth field): the bass alone reads within 0.3 dB of v11's over each stretch.
+# COST: under 60 Hz the two sections are 0.7 to 0.9 dB further short of the records (1.2 to 1.6 while the bass is
+# up); the scorer's 83 Hz band, the F's second line, 0.7 further under.
+# NOT the A flat an octave down: 51.9 Hz is the kick's own line (52.4), and the strokes' spread at 30-60 Hz went
+# 2.7 -> 5.6 dB (v10's finding from the other side).
+# the bass's round of the chord, one cycle of sixty: note : its stroke's period : how long it stays (sixteenths),
+# in turn ; the sections it is played in ; the loudness target ("" = unchanged) ; where the bass's bus stands for
+# each of those notes, semitones over F ("" = it stays on F, the section's ground). "" = v11.
+TURN = os.environ.get("C10T14_TURN", "F1:6:24,C2:8:16,Ab2:10:20;minor,home;;0,7,15" if SEMITONE else "")
 AT = starts()
 
 
@@ -471,6 +488,21 @@ def bass(a, z, p, pitch, ring):
     every(a, z, p, lambda s, i: add("bass", s, ring, pitch, 0.95 if i % 2 == 0 else 0.85))
 
 
+def turning_bass(a, sec):
+    """v12: the bass goes round the chord. In each cycle of sixty it plays with one wheel at a time, each note struck
+    at its own period, and changes wheel on a stroke the two wheels share."""
+    if not TURN or sec not in TURN.split(";")[1].split(","):
+        return bass(a, a + 240, 6, "F1", 5)
+    steps = [(n, int(p), int(span)) for n, p, span in (x.split(":") for x in TURN.split(";")[0].split(","))]
+    assert sum(span for _, _, span in steps) == 60
+    for c in range(a, a + 240, 60):
+        s = c
+        for note, p, span in steps:
+            assert (s - a) % (p // 2) == 0, (note, s - a)                          # it enters on a stroke of its own wheel
+            every(s, s + span, p, lambda t, i, note=note, p=p, z=s + span: add("bass", t, min(p, z - t) - 1, note, 0.95 if i % 2 == 0 else 0.85))
+            s += span
+
+
 def meet(s, chord=None, ring=12):
     drum("c", s, 0.9)
     if chord:
@@ -560,7 +592,7 @@ def compose():
     # minor: the whole chord, one whole cycle
     a = AT["minor"]
     f_pulse(a, a + 240)
-    bass(a, a + 240, 6, "F1", 5)
+    turning_bass(a, "minor")
     chug(G_AB, a, a + 240, 5, "Ab2", "Ab2,Ab3")
     common_time(a, a + 240)
     for s in (0, 60, 120, 180):
@@ -594,7 +626,7 @@ def compose():
     # home: F minor, everything; the three drums again for the last meeting
     a = AT["home"]
     f_pulse(a, a + 240)
-    bass(a, a + 240, 6, "F1", 5)
+    turning_bass(a, "home")
     chug(G_AB, a, a + 240, 5, "Ab2", "Ab2,Ab3")
     common_time(a, a + 240)
     every(a, a + 240, 12, lambda s, i: [add(tr, s, 11, "F2,C3,F3", 0.95) for tr in WALL])
@@ -659,8 +691,20 @@ def compose():
 def song():
     end = compose()
     key = []                                    # the low bus's eq follows the bass's ground, in semitones over F
-    for name, semis in (("sixth", -4), ("fourth", 5), ("common", 7), ("home", 0)):
-        b = AT[name] / 4
+    grounds = [(AT[name], semis) for name, semis in (("sixth", -4), ("fourth", 5), ("common", 7), ("home", 0))]
+    if TURN and TURN.split(";")[3]:             # v12: and, where the bass goes round the chord, each note of the round
+        spans = [int(x.split(":")[2]) for x in TURN.split(";")[0].split(",")]
+        for sec in TURN.split(";")[1].split(","):
+            for c in range(AT[sec], AT[sec] + 240, 60):
+                s = c
+                for span, semis in zip(spans, TURN.split(";")[3].split(",")):
+                    if not any(at == s for at, _ in grounds):
+                        grounds.append((s, float(semis)))
+                    s += span
+            if not any(at == AT[sec] + 240 for at, _ in grounds):
+                grounds.append((AT[sec] + 240, float(TURN.split(";")[3].split(",")[0])))
+    for at, semis in sorted(grounds):
+        b = at / 4
         key += [[f"{b - 0.02:g}b", key[-1][1] if key else 0], [f"{b:g}b", semis]]
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
     dbl = "ct-twin fx.1.model=modern fx.2.mic=0.35 fx.2.cone={}"
@@ -805,6 +849,8 @@ def song():
         doc["loudness"] = float(KICK.split(";")[7])
     if SEMITONE and SEMITONE.split(";")[8]:
         doc["loudness"] = float(SEMITONE.split(";")[8])
+    if TURN and TURN.split(";")[2]:
+        doc["loudness"] = float(TURN.split(";")[2])
     if TUNED:
         doc = {k: v for k, v in list(doc.items())[:2]} | {"tuning": {"steps": JUST, "root": "F3", "map": "keys"}} | {k: v for k, v in list(doc.items())[2:]}
     return doc
