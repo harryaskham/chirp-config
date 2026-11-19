@@ -12,6 +12,7 @@ import io
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import types
 import unittest
@@ -197,6 +198,100 @@ class Publish(unittest.TestCase):
                 self.assertIn("--no-autostash", c, c)
             self.assertNotIn("--autostash", c)
         self.assertNothingStashed()
+
+    # ── commit --pick: only your hunks of a file everyone writes (chirper-zero, 19 Nov) ──
+    DOC = "# motifs\n\n## Track 7\nold seven\n\n## Track 11\nold eleven\n\n## Track 12\nold twelve\n"
+    OPEN = ("# motifs\n\n## Track 7\nold seven\nt7 v19: the stroke stops (another composer's, round not recorded)\n\n"
+            "## Track 11\nold eleven\noih v16: the bow is a bow\n\n## Track 12\nold twelve, see oih v16\n")
+
+    def seed_doc(self):
+        self.write(self.tree, "doc.md", self.DOC)
+        run(self.tree, "add", "doc.md")
+        run(self.tree, "commit", "-q", "-m", "doc")
+        run(self.tree, "push", "-q", "origin", "HEAD:main")
+
+    def pick(self, pattern, *paths):
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            ok = self.C.commit_picked(list(paths), "picked", pattern, [])
+        return ok, out.getvalue(), err.getvalue()
+
+    def test_pick_commits_only_the_matching_hunks_and_leaves_the_rest_open(self):
+        self.seed_doc()
+        run(self.other, "pull", "-q", "origin", "main")
+        self.upstream("upstream.txt", "upstream v1\n")                 # origin moved meanwhile: the pick is replayed onto it
+        self.write(self.tree, "foreign.txt", "staged draft\n")
+        run(self.tree, "add", "foreign.txt")
+        staged = run(self.tree, "diff", "--cached", "--", "foreign.txt")
+        self.write(self.tree, "doc.md", self.OPEN)
+        ok, out, err = self.pick("oih", "doc.md")
+        self.assertTrue(ok, err)
+        self.assertIn("doc.md: 2 of 3 open hunk(s) match 'oih'", out)
+        self.assertIn("left open in the tree: +1 -0  \"t7 v19: the stroke stops", out)
+        want = self.DOC.replace("old eleven\n", "old eleven\noih v16: the bow is a bow\n").replace("old twelve", "old twelve, see oih v16")
+        self.assertEqual(self.origin_file("doc.md"), want.strip())
+        self.assertEqual(run(self.tree, "show", "HEAD:doc.md"), want.strip())
+        self.assertEqual(self.read(self.tree, "doc.md"), self.OPEN)                 # the working file is not written
+        left = run(self.tree, "diff", "HEAD", "--", "doc.md")
+        self.assertIn("+t7 v19: the stroke stops", left)
+        self.assertNotIn("oih", "".join(ln for ln in left.splitlines() if ln[:1] in "+-" and ln[:3] not in ("+++", "---")))
+        self.assertEqual(run(self.tree, "diff", "--cached", "--name-only"), "foreign.txt")   # doc.md's index entry follows HEAD
+        self.assertEqual(run(self.tree, "diff", "--cached", "--", "foreign.txt"), staged, "a staged edit is not read or moved")
+        self.assertEqual(self.origin_file("foreign.txt"), "foreign.txt v0")
+        self.assertEqual(self.origin_file("upstream.txt"), "upstream v1")
+        self.assertEqual(run(self.tree, "log", "-1", "--format=%s"), "picked")
+        self.assertEqual(os.listdir(os.path.join(self.tree, ".git")).count("climb-pick-index.%d" % os.getpid()), 0)
+        self.assertNothingStashed()
+
+    def test_pick_commits_nothing_when_nothing_matches(self):
+        self.seed_doc()
+        self.write(self.tree, "doc.md", self.OPEN)
+        head = run(self.tree, "rev-parse", "HEAD")
+        ok, out, err = self.pick("no such words", "doc.md")
+        self.assertFalse(ok)
+        self.assertIn("0 of 3 open hunk(s) match", out)
+        self.assertIn("not committed", err)
+        self.assertEqual(run(self.tree, "rev-parse", "HEAD"), head)
+        self.assertEqual(self.read(self.tree, "doc.md"), self.OPEN)
+        with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
+            self.C.commit_picked(["doc.md"], "m", "(", [])                          # not a regular expression
+        self.write(self.tree, "new.md", "oih\n")
+        with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
+            self.C.commit_picked(["new.md"], "m", "oih", [])                        # a new file is committed whole
+
+    def test_pick_says_when_lines_that_touch_go_in_together(self):
+        self.seed_doc()
+        self.write(self.tree, "doc.md", self.DOC.replace("old eleven\n", "old eleven\nt7 v19: someone else's\noih v16: mine\n"))
+        ok, out, err = self.pick("oih", "doc.md")
+        self.assertTrue(ok, err)
+        self.assertIn("NOTE a committed hunk also carries 1 added line(s) that do not match", out)
+        self.assertIn("t7 v19: someone else's", out)
+        self.assertIn("t7 v19: someone else's", self.origin_file("doc.md"))         # one hunk: it cannot be split by this tool
+
+    def test_pick_through_the_command_line_and_never_on_the_library(self):
+        self.seed_doc()
+        self.write(self.tree, "doc.md", self.OPEN)
+        sys.path.insert(0, TOOLS)                                                   # cmd_commit imports libguard, as the script does
+        self.addCleanup(sys.path.remove, TOOLS)
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            self.C.cmd_commit(["-m", "from the command line", "--pick", "t7 v19", "doc.md"])
+            self.assertIn("t7 v19", self.origin_file("doc.md"))
+            self.assertNotIn("oih", self.origin_file("doc.md"))
+            with self.assertRaises(SystemExit):
+                self.C.cmd_commit(["-m", "m", "--pick", "x", "patches/a.yaml"])
+
+    def test_pick_hunks_builds_from_heads_own_lines(self):
+        head = b"a\nb\nc\nd\n"
+        diff = (b"diff --git a/f b/f\n--- a/f\n+++ b/f\n@@ -0,0 +1 @@\n+TOP\n@@ -2 +3 @@\n-b\n+B\n@@ -3 +3,0 @@\n-c\n"
+                b"@@ -4,0 +5 @@\n+END\n\\ No newline at end of file\n")
+        every, seen = self.C.pick_hunks(head, diff, lambda add, rem: True)
+        self.assertEqual(every, b"TOP\na\nB\nd\nEND")
+        self.assertEqual([(k, len(a), len(r)) for k, a, r in seen], [(True, 1, 0), (True, 1, 1), (True, 0, 1), (True, 1, 0)])
+        self.assertEqual(self.C.pick_hunks(head, diff, lambda add, rem: False)[0], head)
+        self.assertEqual(self.C.pick_hunks(head, diff, lambda add, rem: rem == [b"c\n"])[0], b"a\nb\nd\n")       # a deletion alone
+        self.assertEqual(self.C.pick_hunks(head, diff, lambda add, rem: add == [b"END"])[0], b"a\nb\nc\nd\nEND")  # the last alone
+        self.assertEqual(self.C.pick_hunks(head, diff, lambda add, rem: add == [b"B\n"])[0], b"a\nB\nc\nd\n")     # the middle alone
+        self.assertEqual(self.C.pick_hunks(head, b"", lambda add, rem: True), (head, []))
 
     def test_the_mocked_control_flow_never_stashes(self):
         # chirper-zero's repro shape: every git call mocked, a foreign tracked draft present

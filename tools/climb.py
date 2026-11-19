@@ -369,6 +369,118 @@ def commit(paths, msg, args):
         return True
 
 
+def pick_hunks(head, diff, keep):
+    """One file's committed bytes with only some of its uncommitted hunks applied. `diff` is `git diff -U0 HEAD -- FILE`
+    (bytes: no context lines, so a hunk is one unbroken run of changed lines); keep(added, removed) says whether a hunk
+    goes in. → (the new bytes, [(kept, added lines, removed lines)]). Built from HEAD's own lines, not by `git apply`,
+    so leaving a hunk out cannot shift the ones after it."""
+    lines = head.splitlines(keepends=True)
+    hunks, cur, last = [], None, None
+    for ln in diff.splitlines(keepends=True):
+        m = re.match(rb"@@ -(\d+)(?:,(\d+))? \+\d+(?:,\d+)? @@", ln)
+        if m:
+            cur = {"a": int(m.group(1)), "m": 1 if m.group(2) is None else int(m.group(2)), "add": [], "rem": []}
+            hunks.append(cur)
+            last = None
+        elif cur is None:
+            continue                                  # the file header
+        elif ln[:1] == b"+":
+            cur["add"].append(ln[1:])
+            last = "add"
+        elif ln[:1] == b"-":
+            cur["rem"].append(ln[1:])
+            last = "rem"
+        elif ln[:1] == b"\\" and last == "add":       # "\ No newline at end of file" after an added line
+            cur["add"][-1] = cur["add"][-1].rstrip(b"\n")
+    out, pos, seen = [], 0, []
+    for h in hunks:
+        at = h["a"] if h["m"] == 0 else h["a"] - 1    # -a,0 inserts AFTER line a; -a,m replaces m lines from line a
+        k = bool(keep(h["add"], h["rem"]))
+        out += lines[pos:at] + (h["add"] if k else lines[at:at + h["m"]])
+        pos = at + h["m"]
+        seen.append((k, h["add"], h["rem"]))
+    return b"".join(out + lines[pos:]), seen
+
+
+def commit_picked(paths, msg, pattern, args):
+    """`climb.py commit -m MSG --pick REGEX PATH …`: of each PATH, commit only the hunks whose added or removed lines
+    match REGEX, and leave every other uncommitted line where it is, uncommitted. For the files everyone writes
+    (motifs.md, sounds.md, features.md): chirper-zero, 19 Nov, found another composer's open lines for a round not yet
+    recorded in two of them when he published, and `commit` and `done --with` take a file whole. He did this by hand
+    (hash-object, update-index --cacheinfo). The commit is made beside the index, from HEAD's tree and the picked
+    blobs: no working file is written and no other index entry is read. True when committed, False when not."""
+    if "--no-git" in args or not os.path.isdir(os.path.join(ROOT, ".git")):
+        return True
+    try:
+        rx = re.compile(pattern)
+    except re.error as e:
+        die(f"climb.py commit --pick: {pattern!r} is not a regular expression ({e})")
+
+    def gitb(*a, env=None, stdin=None):
+        return subprocess.run(["git", *a], cwd=ROOT, capture_output=True, input=stdin, env=env)
+
+    def first(ls):
+        return ls[0].decode("utf-8", "replace").strip()[:90] if ls else ""
+
+    rel = [os.path.relpath(os.path.join(ROOT, p) if not os.path.isabs(p) else p, ROOT) for p in paths]
+    with locked("climb-git.lock"):
+        head = git("rev-parse", "HEAD").stdout.strip()
+        entries = []
+        for p in rel:
+            ls = git("ls-tree", head, "--", p).stdout.split()
+            if len(ls) < 3 or ls[1] != "blob":
+                die(f"climb.py commit --pick: {p} is not a file in the last commit. A new file has nobody else's lines in "
+                    "it: commit it whole.")
+            diff = gitb("diff", "-U0", "--no-color", "--no-ext-diff", "--no-textconv", "--no-renames", head, "--", p).stdout
+            new, seen = pick_hunks(gitb("cat-file", "blob", ls[2]).stdout, diff,
+                                   lambda add, rem: any(rx.search(x.decode("utf-8", "replace")) for x in add + rem))
+            kept = [h for h in seen if h[0]]
+            print(f"climb: {p}: {len(kept)} of {len(seen)} open hunk(s) match {pattern!r}"
+                  + ("" if kept else ": nothing of this file is committed"))
+            for _, add, rem in kept:
+                stray = [x for x in add if not rx.search(x.decode("utf-8", "replace")) and x.strip()]
+                if stray:
+                    print(f"climb:   NOTE a committed hunk also carries {len(stray)} added line(s) that do not match (lines "
+                          f"that touch are one hunk): {first(stray)!r}")
+            for k, add, rem in seen:
+                if not k:
+                    print(f"climb:   left open in the tree: +{len(add)} -{len(rem)}  {first(add or rem)!r}")
+            if kept:
+                sha = gitb("hash-object", "-w", "--stdin", stdin=new).stdout.decode().strip()
+                entries.append((ls[0], sha, p, ls[2]))
+        if not entries:
+            print("climb: not committed: no open hunk of these files matches", file=sys.stderr)
+            return False
+        tmp = os.path.join(ROOT, ".git", f"climb-pick-index.{os.getpid()}")
+        env = dict(os.environ, GIT_INDEX_FILE=tmp)
+        try:
+            steps = [gitb("read-tree", head, env=env)]
+            steps += [gitb("update-index", "--cacheinfo", f"{mode},{sha},{p}", env=env) for mode, sha, p, _ in entries]
+            tree = gitb("write-tree", env=env)
+            made = gitb("commit-tree", tree.stdout.decode().strip(), "-p", head, "-m", msg) if not tree.returncode else tree
+            bad = next((x for x in steps + [tree, made] if x.returncode), None)
+            if bad is not None:
+                print(f"climb: not committed: {bad.stderr.decode('utf-8', 'replace').strip()[:200]}", file=sys.stderr)
+                return False
+        finally:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+        new_head = made.stdout.decode().strip()
+        u = git("update-ref", "-m", "climb commit --pick", "HEAD", new_head, head)
+        if u.returncode:
+            print(f"climb: not committed: {u.stderr.strip()[:200]}", file=sys.stderr)
+            return False
+        for mode, sha, p, was in entries:     # the index follows HEAD where it stood at HEAD; a staged edit is left alone
+            cur = git("ls-files", "-s", "--", p).stdout.split()
+            if len(cur) >= 2 and cur[1] == was:
+                git("update-index", "--cacheinfo", f"{mode},{sha},{p}")
+        ok, why = publish()
+        if not ok:
+            print(f"climb: committed locally as {new_head[:9]} but NOT pushed: {why}. The record is safe in git; retry "
+                  "with `python3 tools/climb.py publish` - do not re-run this command", file=sys.stderr)
+        return True
+
+
 def song_differs_from_head(rel):
     """True when the working copy of a song differs from the committed one (or is not committed yet)."""
     r = subprocess.run(["git", "-C", ROOT, "diff", "--quiet", "HEAD", "--", rel], capture_output=True)
@@ -1681,9 +1793,10 @@ def cmd_focus(a):
 
 
 def cmd_commit(a):
-    """climb.py commit -m MSG PATH …: commit exactly those paths and publish them (no stash, honest receipt)."""
+    """climb.py commit -m MSG [--pick REGEX] PATH …: commit exactly those paths and publish them (no stash, honest
+    receipt). With --pick, only the hunks of each path whose changed lines match REGEX (commit_picked)."""
     if "-m" not in a or a.index("-m") + 1 >= len(a):
-        die("usage: climb.py commit -m MSG PATH …")
+        die("usage: climb.py commit -m MSG [--pick REGEX] PATH …")
     i = a.index("-m")
     msg, rest = a[i + 1], a[:i] + a[i + 2:]
     # --as NAME: who is committing, as `done` reads it (12 Nov: commit read $CLIMB_AS only, so a composer who passed
@@ -1693,9 +1806,21 @@ def cmd_commit(a):
     if "--as" in rest:
         j = rest.index("--as")
         del rest[j:j + 2]
+    # --pick REGEX: only the hunks whose changed lines match (a shared document with someone else's open lines in it)
+    pick = opt(rest, "--pick")
+    if "--pick" in rest:
+        j = rest.index("--pick")
+        del rest[j:j + 2]
     paths = [p for p in rest if p not in ("--no-git", "--library-ok")]
     if not paths:
         die("climb.py commit: name the paths to commit")
+    if pick is not None:
+        import libguard
+        if any(libguard.is_library(p, ROOT) for p in paths):
+            die("climb.py commit --pick is for shared documents; a library file is gated and committed whole")
+        if not commit_picked(paths, msg, pick, a):
+            die("NOT committed (see above)", 4)
+        return
     library_gate(paths, a, me=who or os.environ.get("CLIMB_AS"))
     picture_notice(paths, a)
     commit_or_die(paths, msg, a)

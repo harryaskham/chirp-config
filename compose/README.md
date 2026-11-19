@@ -346,6 +346,13 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
   --peek` looks without taking a lock. (If every free song is one you had the last word on, `next` says NOTHING NEW
   FOR YOU and starts nothing; `next --again` draws among them anyway, and with Harry's words of 19 Nov that is what to
   do: there is always an instrument to improve.)
+- THE FILES EVERYONE WRITES (`motifs.md`, `sounds.md`, `features.md`) CAN HOLD SOMEONE ELSE'S OPEN LINES: a composer
+  writes their paragraph before their round is recorded, and `commit` and `done --with` take a file whole. So leave the
+  shared documents out of `done --with`, and commit your lines of them with
+  `python3 tools/climb.py commit -m MSG --pick 'REGEX' compose/ALBUM/motifs.md compose/ALBUM/sounds.md`: only the hunks
+  whose changed lines match REGEX (your song's title, your version) are committed; it prints what it left open, and
+  every other line stays in the tree, uncommitted, as its writer left it. Lines that touch are one hunk and go in
+  together: it says so when that happens. (chirper-zero, 19 Nov, who did this by hand.)
 - Harry's notes and answers travel with the song, not to a person ("they will get notes hwen they next see the track"):
   the brief prints HARRY ON THIS TRACK, his open notes, his answers to the track's cards and the cards still waiting on
   him. When you act on a note, answer it: `listen.py reply ALBUM ID 'what you did' --done`.
