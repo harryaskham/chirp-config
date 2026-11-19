@@ -799,7 +799,7 @@ NEARER = os.environ.get("C10T1_NEARER", "363:383:-6:-3:-10.093" if REBUILD and H
 # bars from the section's first ; the bell's velocity ; the bells' fader ; dB on the strokes of each pair (five and seven,
 # five and eleven, seven and eleven) ; where each pair's bell stands (pan) ; the loudness target ('' = unchanged).
 # "" = v62. It is on only while no older switch of this song is set, so each of those still gives what it gave.
-MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE") for k in os.environ) else "")
+MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE", "C10T1_FINISH") for k in os.environ) else "")
 # v44: THE ENGINE, EXPOSED (9:19, in the hardest stretch). For twenty-eight bars everything runs at once: four guitars
 # and the bass on seven, the china on every eighth, the bark, and under it all the kick in unbroken sixteenths. The one
 # event inside it is the ground moving up a semitone at 9:20. Now, for the half bar before that, everything stops
@@ -2233,7 +2233,7 @@ def hold_still(doc):
 # well ("" = neither; "2" = the second) ; the flute's velocity when it was recorded ; the deck's wow and flutter in
 # cents and its drift (in units of the wow) ; the loudness target ("" = unchanged) ; settings added to the recorded
 # flute's patch ("" = the library's flute as it comes). "" = v63. On only while no older switch of this song is set.
-TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE") for k in os.environ) else "")
+TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE", "C10T1_FINISH") for k in os.environ) else "")
 
 
 def the_eye_on_tape(doc):
@@ -2268,10 +2268,59 @@ def the_eye_on_tape(doc):
     return notes
 
 
+# v65 (chirper-two; section round, the landing, 12:13-12:47: the map's w25, flagged 'little new' and never worked on by a
+# section round): THE TUNE IS FINISHED, IN COMMON TIME. The lead's tune is sixteen notes on the eleven wheel (a note a turn;
+# the fourth, eighth and twelfth held two turns, the last three). Its last pass, in the approach, is cut off by the stop at
+# bar 383: the eighth note sounds for one sixteenth. The other eight notes were never played: the landing had the riff, the
+# word and no tune. Now the lead comes back over the landing riff's third and last four-bar phrase (12:36.2) and plays the
+# eight notes it was owed, D flat, C, A flat, G flat, F, A flat, G flat, F, in the tune's own rhythm with its unit changed
+# from eleven sixteenths to EIGHT, the riff's cell: a note on every one and three, the fourth held a bar. Nothing is placed
+# by hand: counted back from the last chord, where the tune's last F belongs, the eight notes begin on the phrase's first
+# sixteenth (asserted). FOUND, NOT ARRANGED: the riff's hook under those cells is B, C, E flat, D flat, B, G flat, A flat,
+# G flat, then the F chord. The tune over it stands a tone, a UNISON, a fourth, a fourth, a fifth, a major seventh, a UNISON,
+# a UNISON, and the chord: the tune and the riff end on the same three notes, A flat, G flat, F, cell for cell (the hook
+# sounds on the second beat of its cell, a beat after the tune's note begins).
+# THE LEVEL (raw, K, the lead against everything else over each note): in riff B, where the tune is first played, -7.0 dB;
+# with all three wheels at 7:47, -7.4; over the landing riff at the fader it had, -8.5. So its fader rides 1.5 dB up for these
+# eight notes and it stands where it does the first time it is heard.
+# the tune's unit at the landing, sixteenths (eleven everywhere else) ; the lead's velocity ; dB on the lead's fader while it
+# plays there ; semitones on the notes ; the last note's length in units ('' = the tune's own three) ; the loudness target
+# ('' = unchanged). "" = v64 byte for byte.
+FINISH = os.environ.get("C10T1_FINISH", "8;0.85;1.5;0;;" if TAPE else "")
+
+
+def the_tune_is_finished(doc):
+    """The lead's last pass of the tune is cut off at the stop before the landing, eight notes in. The other eight are played
+    over the landing riff's last four bars, a note to each cell of EIGHT, and the last one falls on the last chord."""
+    unit, vel, db, semis, last, target = FINISH.split(";")
+    unit = int(unit)
+    lead = next(t for t in doc["tracks"] if t["name"] == "lead")
+    cut = lead["notes"][-1]                                           # where it broke off: the eighth note, one sixteenth of it
+    assert cut["pitch"] == nm(LONG_WAIT[7][0]) and cut["at"] == (383 * 16 - 1) / 4 and cut["len"] == 0.25, cut
+    owed = LONG_WAIT[8:]                                              # D flat, C, A flat, G flat (two units), F, A flat, G flat, F (three)
+    chord = (385 + 16) * 16                                           # the last chord
+    t = chord - sum(turns for _, turns in owed[:-1]) * unit           # counted back from it: the last note is the chord's
+    assert unit != 8 or t == (385 + 12) * 16                          # in units of eight that is the riff's last four-bar phrase, to the sixteenth
+    start = t
+    for i, (pitch, turns) in enumerate(owed):
+        if i == len(owed) - 1 and last:
+            turns = float(last)
+        lead["notes"].append({"at": round(t / 4, 4), "len": round(turns * unit / 4, 4), "pitch": nm(pitch + int(semis)), "vel": float(vel)})
+        t += turns * unit
+    if float(db):
+        pts = lead["auto"]["eye"]["points"]
+        base = pts[-1][1]
+        lead["auto"]["eye"]["points"] = pts + [[f"{start / 4 - 0.5:g}b", base], [f"{start / 4:g}b", base + float(db)]]
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if STILL:
         hold_still(doc)
     if TAPE:
         the_eye_on_tape(doc)
+    if FINISH:
+        the_tune_is_finished(doc)
     open(OUT, "w").write(dump(doc))
