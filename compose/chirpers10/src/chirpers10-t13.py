@@ -140,11 +140,45 @@ SAID = {'words': ('right', 'where', 'it', 'was'),
         'last': 2.5, 'send': '-12dB',
         'fx': [{'type': 'eq', 'bands': ['hp cutoff=150', 'peak cutoff=330 q=0.9 gain=-4dB']}], 'loudness': -10.03}
 
+# v23 (chirper-two; section w7, 3:00-3:27, 'both sides' and the close; the change is 3:06.0-3:12.8 and one word at
+# 3:26.25): THE WORD LEFT OUT. Two earlier rounds meet. v16: over the four short negatives the ring brings the tune
+# back into its holes last note first (F; A flat, F; C, A flat, F), and in the fourth cell it has E flat, C, A flat
+# and leaves the F out: the one hole left empty, where it was. v22: in the quiet middle the title is sung a note a
+# word, from its end. Now each note the ring brings back is SUNG ON ITS WORD (nine notes, nine syllables, an octave
+# under the ring): "was" (3:06.0); "it was" (3:07.9); "where it was" (3:09.4); "right where it" (3:11.0) - and where
+# the ring leaves its F out, the voice leaves out "was" (3:12.9). The line has been heard whole once, at 1:55; the
+# listener finishes it. The band answers with the tune at 3:13.3, as before. The word is given back once, on the
+# song's last note (3:26.25, the slow close's low F): "was".
+# No other note changes. It is a second voice, not the first (Harry, 12 Nov: different voices in different
+# parts): the middle's is the library's close, soft one; this is its legato voice with the ring and the effort
+# turned up, and DRY, so that nothing of "it" rings into the hole.
+# FITTED TO THE RECORDS' VOICES, as So Far's were (its v13; tools/voxref.py). Five library voices alone, as they
+# come, all read as body with no middle: +13 to +18 dB under 250 Hz, -6 to -13 at 1-2 kHz, -8 to -15 at 2-4 kHz
+# against the records' vocal stems. With a high-pass at 350 Hz, a low shelf of -12 dB at 900 Hz and 3 dB out at
+# 420 Hz, this one is within 2.6 dB of them from 250 Hz to 8 kHz (+1.1, +0.9, -2.4, +1.0, +2.6). "It" is lifted
+# 4.5 dB (a short closed vowel: 5 dB under the others once the body is gone): the nine syllables then lie within
+# 2.7 dB of one another.
+# THE LEVEL WAS SET ON THE FINISHED FILE, NOT THE BENCH. Raw, at -14 dB, the voice read -9.3 dB against the mix
+# while it sings (the records' voices: -9.2). In the finished file the same voice read -5.6 to -6.1: the limiter
+# takes the band's strokes down and leaves what lies between them, so a voice between strokes comes UP when
+# mastered. At -16 dB it reads, as mastered, -7.2 to -7.7 whole and -5.5 to -5.9 at 1-4 kHz (records -9.2 and
+# -7.1) on three seeds: 1.5 to 2 dB over the records' place, and left there (the words are the whole point of
+# these seven seconds, and the records' voices are screams that need less). The median syllable, as mastered,
+# stands 6.5 to 7.0 dB under everything else over its length and 0.6 to 1.3 under in the band's rest where it begins.
+# The last word has 2 dB more than the others (as mastered -7.5 to -7.7 against the last chord).
+# the voice ; its fader, dB ; its place ; semitones over the bass ; how hard ; how long a cell's last word is held,
+# ticks ; how long the last word before the hole is, ticks ; dB on single words ; the word on the song's last note:
+# how long, ticks, and dB (None: it is never said) ; its eq ; the loudness target.
+# --v22 restores v22.
+UNSAID = {'patch': 'voice-legato synth.layers.0.diction=3 synth.layers.0.ring=1.0 synth.layers.0.effort.value=0.9 fx.0.mix=0', 'gain': -16.0, 'pan': 0,
+          'up': 24, 'vel': .9, 'last': 2.0, 'cut': 1.5, 'lift': {'it': 4.5}, 'end': (5.5, 2.0),
+          'fx': [{'type': 'eq', 'bands': ['hp cutoff=350', 'lowshelf cutoff=900 gain=-12dB', 'peak cutoff=420 q=1 gain=-3dB']}], 'loudness': -10.03}
+
 
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
             rim=True, rim_gain=-18, turned=True, hole=True, mold=True, fretless=True, fretless_gain=-10.0,
             lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True, refill=True, whole_scale=True, trades=True, band=True,
-            hat=True, made_whole=True, fused=True, said=True, said_gain=None, said_takes=None):
+            hat=True, made_whole=True, fused=True, said=True, said_gain=None, said_takes=None, unsaid=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -166,6 +200,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     made_whole = WHOLE if made_whole and hat else None
     fused = FUSED if fused and made_whole else None
     said = SAID if said and fused else None
+    unsaid = UNSAID if unsaid and said else None
     if said and (said_gain is not None or said_takes):
         said = {**said, **({'gain': said_gain} if said_gain is not None else {}),
                 **({'takes': tuple(int(x) for x in said_takes.split(','))} if said_takes else {})}
@@ -323,6 +358,12 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                 for j in range(3-i, len(HEADS) - (i == 3)):
                     last = i == 3 and j == 2
                     put('ring', start + (4+i)*CELL + HEADS[j], .8 if last else 1.45, F + TUNE[j] + 36, .91 if j == 3-i else .79)
+                    if unsaid:              # v23: each note the ring brings back is sung on its word; the fourth cell's F is not
+                        gap = (HEADS + (CELL,))[j+1] - HEADS[j]
+                        put('unsaid', start + (4+i)*CELL + HEADS[j], unsaid['cut'] if last else unsaid['last'] if j == 3 else gap,
+                            F + TUNE[j] + unsaid['up'], unsaid['vel'], ph=said['ph'][said['words'][j]])
+                        if unsaid['lift'].get(said['words'][j]):
+                            parts['unsaid'][-1]['gain'] = f"{unsaid['lift'][said['words'][j]]:g}dB"
         # then in two cells, then in one: and since v10 that last quick one
         # is the other side of the sheet, rising, so the slow close answers it.
         # v17: wiw-turned, "The tune now also runs backwards, rising: keep it?": "Keep it at 2:30, not before the
@@ -510,6 +551,10 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                 drums('k', t, 1)
                 if j == 3:
                     drums('c', t, .85)
+                    if unsaid and unsaid['end']:        # v23: the word left out at 3:12.9 is the song's last
+                        put('unsaid', t, unsaid['end'][0], p + unsaid['up'], unsaid['vel'], ph=said['ph'][said['words'][3]])
+                        if unsaid['end'][1]:
+                            parts['unsaid'][-1]['gain'] = f"{unsaid['end'][1]:g}dB"
         else:
             assert span % CELL == 0 and span % BAR == 0
             # Kit is on bar time, not cell time. Two distinct feels either side of the break.
@@ -727,6 +772,8 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     if said:
         tracks.append(track('said', said['patch'], said['gain'], said['pan'], sends={'chamber': said['send']},
                             **({'fx': said['fx']} if said['fx'] else {})))
+    if unsaid:
+        tracks.append(track('unsaid', unsaid['patch'], unsaid['gain'], unsaid['pan'], **({'fx': unsaid['fx']} if unsaid['fx'] else {})))
     patches = {}
     if band:
         patches['ct-kit-where-it-was'] = {'extends': 'ct-kit', 'kit': {'k': band['kick'][0]}}
@@ -763,7 +810,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
             # (the five card excerpts among them) came out 0.008 to 0.011 dB quieter: the target moves by that.
             # v17: the trade is quieter to the meter than the long statement it replaces; -10.035 keeps every other
             # bar at v16's mastering gain (within 0.002 dB, both seeds).
-            'ceiling':'-1dB', 'true_peak':True, 'loudness':said['loudness'] if said else fused['loudness'] if fused else made_whole['loudness'] if made_whole else hat['loudness'] if hat else band['loudness'] if band else -10.035 if trades else -9.99 if refill else -10,
+            'ceiling':'-1dB', 'true_peak':True, 'loudness':unsaid['loudness'] if unsaid else said['loudness'] if said else fused['loudness'] if fused else made_whole['loudness'] if made_whole else hat['loudness'] if hat else band['loudness'] if band else -10.035 if trades else -9.99 if refill else -10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
                                      'glue threshold=-22dB ratio=2 attack=18ms release=120ms',
                                      {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14800']}]},
@@ -796,6 +843,7 @@ if __name__ == '__main__':
     previous.add_argument('--v19', action='store_true', help='restore the single notes of the tune in the three cells before the handover, and their bar lines unmarked')
     previous.add_argument('--v20', action='store_true', help='restore the side-to-side trade turning twice a cell for two cells and at every note for two, one face at a time')
     previous.add_argument('--v21', action='store_true', help="restore the quiet middle with nobody singing")
+    previous.add_argument('--v22', action='store_true', help="restore 'both sides' with nobody singing as the ring brings the tune back")
     parser.add_argument('--said-gain', type=float, default=None, help="the sung voice's track gain in dB (default: SAID's)")
     parser.add_argument('--said-takes', default=None, help="which of each group's three cells is sung, e.g. 1 or 1,2 (default: SAID's)")
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
@@ -808,7 +856,7 @@ if __name__ == '__main__':
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
                   not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11, not args.v12, args.fretless_gain,
                   not args.v13, args.held_gain, args.grip, not args.v14, not args.v15, not args.strokes_on_f, not args.v16, not args.v17,
-                  not args.v18, not args.v19, not args.v20, not args.v21, args.said_gain, args.said_takes)
+                  not args.v18, not args.v19, not args.v20, not args.v21, args.said_gain, args.said_takes, not args.v22)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
