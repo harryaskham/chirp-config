@@ -140,7 +140,8 @@ def reduce_notes(events):
 def reduce_questions(events):
     """Fold the questions.jsonl event log into questions (oldest first). ask creates (and retires an earlier open
     question with the same key: a new version of the same passage); answer keeps each person's latest; retire takes
-    one off the page; told marks the answers already sent to the asker."""
+    one off the page; told marks the answers already sent to the asker; built says what was made of an answer, and
+    in which version (a list on the question, oldest first; no key when nothing was)."""
     qs = {}
     for e in events:
         op, qid = e.get("op"), e.get("id")
@@ -156,6 +157,11 @@ def reduce_questions(events):
                                                "text": e.get("text") or "", "told": False}
         elif qid in qs and op == "retire":
             qs[qid]["retired"] = {"at": e.get("at"), "reason": e.get("reason") or ""}
+        elif qid in qs and op == "built":
+            # chirper-zero, 19 Nov: Harry said "I can't hear the bow", it was built in the next version, and the page
+            # had nowhere to say so (reply is for notes): the answer stood there as if nothing had come of it.
+            qs[qid].setdefault("built", []).append({"by": e.get("by") or "", "at": e.get("at"),
+                                                    "version": e.get("version") or "", "text": e.get("text") or ""})
         elif op == "told":
             for qid2, who, at in e.get("answers") or []:
                 a = (qs.get(qid2) or {"answers": {}})["answers"].get(str(who).lower())
@@ -259,6 +265,24 @@ def question_event(album, ev):
     line = json.dumps(ev, ensure_ascii=False) + "\n"
     with _LOCK, open(os.path.join(album_dir(album), "questions.jsonl"), "a") as f:
         f.write(line)
+
+
+def built(album, card, text, version="", by=None, at=None):
+    """Say on the page what was made of an ANSWERED question: `card` is its id or its key (the newest answered question
+    with that key, retired or not: a card asked again keeps its key). Returns the question. No new card is needed to
+    tell Harry that what he asked for is done (his, 19 Nov: "try not to raise so many cards")."""
+    qs = questions(album)
+    q = next((x for x in qs if x["id"] == card), None) \
+        or next((x for x in reversed(qs) if card and x.get("key") == card and x["answers"]), None)
+    if q is None:
+        raise ValueError(f"no question {card!r} on {album} (an id, or the key of an answered one: `listen.py questions {album}`)")
+    if not q["answers"]:
+        raise ValueError(f"question {q['id']} has no answer yet: there is nothing of his to have built")
+    if not str(text).strip():
+        raise ValueError("say what was built, in a line")
+    question_event(album, {"op": "built", "id": q["id"], "at": at or now_iso(), "by": by or whoami(),
+                           "version": version or current_versions(album).get(q.get("n"), ""), "text": str(text).strip()})
+    return q
 
 
 def questions(album):
@@ -1433,6 +1457,12 @@ def main(argv=None):
     p.add_argument("--moved", action="store_true",
                    help="only live questions whose passage of the song has moved since their clips were cut, the furthest first")
     p.add_argument("--focus", action="store_true", help="each live question's takes and the seconds the card plays first")
+    p = sub.add_parser("built", help="say beside an answer what was made of it, and in which version (no new card)")
+    p.add_argument("album")
+    p.add_argument("card", help="the question's id, or its key")
+    p.add_argument("text", help="what you did, in a line, with where to hear it")
+    p.add_argument("--version", default="", help="the version it is in (default: the track's kept version now)")
+    p.add_argument("--by", help="who built it (default: this shell's caco agent)")
     p = sub.add_parser("retire", help="take a question off the page")
     p.add_argument("album")
     p.add_argument("id")
@@ -1517,7 +1547,15 @@ def main(argv=None):
             for ans in q["answers"].values():
                 said = " | ".join(x for x in (ans["choice"], ans["text"]) if x)
                 print(f"    -> {ans['by']} ({ans['at']}): {said}")
+            for b in q.get("built") or []:
+                print(f"    => BUILT {('in ' + b['version'] + ' ') if b['version'] else ''}by {b['by']} ({b['at']}): {b['text']}")
         print(f"listen: {len(qs)} question(s), {sum(1 for q in qs if not q['answers'] and not q['retired'])} open")
+    elif a.cmd == "built":
+        try:
+            q = built(a.album, a.card, a.text, a.version, a.by)
+        except ValueError as e:
+            raise SystemExit(f"listen: {e}") from None
+        print(f"listen: the page now says so beside his answer: {PUBLIC}#a={a.album}&v=questions&q={q['id']}")
     elif a.cmd == "retire":
         if not any(q["id"] == a.id and not q["retired"] for q in questions(a.album)):
             raise SystemExit(f"no open question {a.id}")

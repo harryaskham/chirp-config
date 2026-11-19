@@ -364,7 +364,8 @@ function qTakes(root,x){const keys=[...root.querySelectorAll(".take")],sc=root.q
   turn(){if(!bt.hidden)bt.click();},focus(){if(!bf.hidden)bf.click();},stop(){dead=true;token++;halt();cancelAnimationFrame(raf);}};}
 function qState(x){const a=myAns(x),oth=Object.values(x.answers||{}).filter(o=>String(o.by).toLowerCase()!==me());
  const said=o=>[o.choice?esc(o.choice):"",o.text?`&ldquo;${esc(o.text)}&rdquo;`:""].filter(Boolean).join(" &middot; ");
- return (a?`<b>&#10003; saved</b> ${hhmm(a.at)}`:"")+oth.map(o=>`<div class=oth>${esc(o.by)}: ${said(o)}</div>`).join("");}
+ return (a?`<b>&#10003; saved</b> ${hhmm(a.at)}`:"")+oth.map(o=>`<div class=oth>${esc(o.by)}: ${said(o)}</div>`).join("")
+  +(x.built||[]).map(b=>`<div class="oth built">&#9654; built${b.version?` in ${esc(b.version)}`:""} by ${esc(b.by)}, ${dayOf(b.at)} ${hhmm(b.at)}: ${esc(b.text)}</div>`).join("");}
 function qShow(id,dir=0){if(qtk){qtk.stop();qtk=null;}clearTimeout(qadv);qcur=id;const x=id&&qGet(id),pane=$("#pane");
  $$("#side .qr-item").forEach(e=>{const on=e.dataset.q===id;e.classList.toggle("cur",on);if(on)e.scrollIntoView({block:"nearest"});});
  if(!x){const live=qLive(),done=live.filter(myAns).length;setHash({});

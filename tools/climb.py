@@ -917,7 +917,11 @@ ROUND_TYPES = {
                    "renders at both seeds. KEEP A TONE CHANGE ON THE MIX'S READ, not the part's alone (`stembal.py song … "
                    "--voice`): the records' stems do not sum to their mixes, so a rig fitted to a record's lone guitar can "
                    "be right alone and wrong in the mix (chirper-zero, Common Time round 63: a 760 Hz cut fitted the rig "
-                   "alone and left the mix 2.2 dB under). A gain in a LIBRARY patch goes under a NEW name (`tools/libguard.py`: released "
+                   "alone and left the mix 2.2 dB under). READ THE CHANGED WINDOW BEFORE `done`, not "
+                   "after, and a new voice's HARMONICS before its loudness (chirper-zero, On Its Hinge v16 to v17: a bowed "
+                   "string whose first harmonic stood 10 to 19 dB over the rest was mostly one low tone, +3.1 dB at "
+                   "250-500 Hz, and the read that caught it was stamped after publishing). "
+                   "A gain in a LIBRARY patch goes under a NEW name (`tools/libguard.py`: released "
                    "albums are frozen); say in your round note which other songs could take it. Where the engine is what "
                    "falls short, say so in a bead with numbers (chirper-zero builds engine features; chirp-eco gates). The "
                    "notes need not change at all."),
@@ -1149,6 +1153,8 @@ def heard_lines(album_id, c, limit=12, days=14):
         said = " / ".join(x for x in (a.get("choice"), a.get("text")) if x)
         out.append(f"  ANSWER {at[:16]} {a.get('by')}, card {q.get('key') or q.get('id')} (asked at {q.get('version') or '?'}): "
                    f"\"{q.get('title')}\" -> \"{said}\"")
+        for b in q.get("built") or []:
+            out.append(f"      BUILT {('in ' + b['version'] + ' ') if b.get('version') else ''}by {b.get('by')}: {b.get('text')}")
     if len(ans) > limit:
         out.append(f"  ... and {len(ans) - limit} earlier answers: `python3 tools/listen.py questions {album_id}`")
     for q in waiting:
@@ -1156,7 +1162,8 @@ def heard_lines(album_id, c, limit=12, days=14):
                    f"{q.get('by') or '?'}): \"{q.get('title')}\"")
     if out:
         out.insert(0, "  HARRY ON THIS TRACK, from the review page (whoever draws the song acts on these; nothing is sent to "
-                      "an owner, there is none):")
+                      "an owner, there is none). When you have built what an answer asks, say so beside it, with no new card: "
+                      f"`python3 tools/listen.py built {album_id} CARD 'what you did, and where to hear it'`:")
     return out
 
 

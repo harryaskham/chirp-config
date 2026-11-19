@@ -324,6 +324,7 @@ class Heard(unittest.TestCase):
         qs = [{"op": "ask", "id": "q1", "at": now, "by": "chirper-zero", "n": 2, "version": "v2", "key": "riff",
                "title": "A hook, or an exercise?", "choices": ["A hook", "An exercise"]},
               {"op": "answer", "id": "q1", "at": now, "by": "harry", "choice": "A hook", "text": "louder though"},
+              {"op": "built", "id": "q1", "at": now, "by": "chirper-two", "version": "v3", "text": "the hook is 3 dB up at 1:15"},
               {"op": "ask", "id": "q2", "at": now, "by": "chirper-one", "n": 2, "version": "v3", "key": "wall",
                "title": "Bigger, or muddier?", "choices": ["Bigger", "Muddier"]},
               {"op": "ask", "id": "q3", "at": "2020-01-01T00:00:00Z", "by": "chirper-zero", "n": 2, "version": "v1",
@@ -339,6 +340,8 @@ class Heard(unittest.TestCase):
         text = "\n".join(climb.heard_lines("alb", {"id": "alb-t2", "meta": {"track": 2}}))
         self.assertIn("HARRY ON THIS TRACK", text)
         self.assertIn("NOTE ", text)
+        self.assertIn("listen.py built alb CARD", text)             # how to say an answer was acted on, with no new card
+        self.assertIn("BUILT in v3 by chirper-two: the hook is 3 dB up at 1:15", text)
         self.assertIn("at 1:15 of v3: the bass is lost here", text)
         self.assertIn("listen.py reply alb n1 'what you did' --done", text)
         self.assertNotIn("done already", text)                     # a note marked done is not carried

@@ -81,6 +81,45 @@ class Questions(unittest.TestCase):
         self.assertEqual([(x["id"], a["by"]) for x, a in L.untold([q])], [("q1", "harry")])
         self.assertIsNone(q["retired"])
 
+    def test_what_was_built_on_an_answer_is_said_beside_it(self):
+        """chirper-zero, 19 Nov: Harry said "I can't hear the bow", the next version gave it one, and the page could not
+        say so. `built` is an event on the question: it changes no answer and retires nothing."""
+        ans = {"op": "answer", "id": "q1", "at": "2026-11-14T10:00:00Z", "by": "harry", "choice": "No", "text": "the band covers them"}
+        ev = [self.ASK, ans,
+              {"op": "built", "id": "q1", "at": "2026-11-14T11:00:00Z", "by": "chirper-two", "version": "v6",
+               "text": "the band ducks under them, 1:10"},
+              {"op": "built", "id": "nope", "at": "2026-11-14T11:01:00Z", "by": "chirper-two", "version": "v6", "text": "lost"}]
+        (q,) = L.reduce_questions(ev)
+        self.assertEqual(q["built"], [{"by": "chirper-two", "at": "2026-11-14T11:00:00Z", "version": "v6",
+                                       "text": "the band ducks under them, 1:10"}])
+        self.assertEqual(q["answers"]["harry"]["choice"], "No")
+        self.assertIsNone(q["retired"])
+        self.assertNotIn("built", L.reduce_questions([self.ASK, ans])[0])              # nothing built: the key is not there
+
+    def test_built_finds_the_card_by_its_key_and_wants_an_answer(self):
+        d = tempfile.mkdtemp(prefix="listen-built-")
+        self.addCleanup(shutil.rmtree, d, True)
+        old = L.album_dir
+        L.album_dir = lambda album: os.path.join(d, album)
+        self.addCleanup(setattr, L, "album_dir", old)
+        L.question_event("alb", self.ASK)
+        with self.assertRaises(ValueError) as e:
+            L.built("alb", "words", "done", version="v6", by="chirper-two")
+        self.assertIn("no question 'words'", str(e.exception))                         # a key finds only an ANSWERED card
+        with self.assertRaises(ValueError) as e:
+            L.built("alb", "q1", "done", version="v6", by="chirper-two")
+        self.assertIn("no answer yet", str(e.exception))
+        L.question_event("alb", {"op": "answer", "id": "q1", "at": "2026-11-14T10:00:00Z", "by": "harry", "choice": "No"})
+        # the card is asked again on its key (q1 is retired by it) and that one is not answered: the key still finds q1
+        L.question_event("alb", {**self.ASK, "id": "q2", "at": "2026-11-14T10:30:00Z", "version": "v6"})
+        with self.assertRaises(ValueError):
+            L.built("alb", "words", "  ", version="v6", by="chirper-two")
+        self.assertEqual(L.built("alb", "words", "the band ducks under them", version="v6", by="chirper-two")["id"], "q1")
+        got = {q["id"]: q for q in L.questions("alb")}
+        self.assertEqual([(b["by"], b["version"], b["text"]) for b in got["q1"]["built"]],
+                         [("chirper-two", "v6", "the band ducks under them")])
+        self.assertNotIn("built", got["q2"])
+
     def test_a_new_version_of_the_same_passage_replaces_the_question(self):
         newer = {**self.ASK, "id": "q2", "at": "2026-11-14T11:00:00Z", "version": "v7"}
         other = {**self.ASK, "id": "q3", "at": "2026-11-14T11:30:00Z", "key": "", "title": "Another"}
