@@ -265,6 +265,54 @@ ONE = (1, False)
 # at 106) then read 1.0 to 1.8 dB further over the records in the finished file.
 # dB on the ondes's notes under the ceiling ; the loudness target. --without-ceiling gives v10.
 CEILING = (0.0, -9.75)
+# v12 (chirper-two, whole song): SAID SO FAR. v9 gave the song a voice where the fifteenth walk "lands on ground five
+# walks have crossed", and five more voices for the sixteenth, "the one everybody knows". That is a law, and it was
+# kept for the last thirty seconds. Here it runs from the first bar, and nothing is placed by hand:
+#   A NUMBER IS SAID WHEREVER AN EARLIER WALK HAS CROSSED IT. Nobody says a number no walk has reached yet.
+#   The one voice says it; once three earlier walks have crossed it, the five say it as well.
+# (v8's hands already play by the same count.) The words are v9's, on v9's two tracks, in v9's voices, each on its
+# number's harmonic in the voice's octave, each on the sixteenth where its number begins.
+# WHAT COMES OF IT:
+#   the opening teaches the rule in seventeen seconds. 0:00.3 "one". 0:05.8 "two". Then "four, two", and the five's
+#   first word, ONE (0:06.8): one has been crossed three times. "five, sixteen, eight, four, TWO, ONE". "three, ten,
+#   five, sixteen, eight, FOUR, TWO, ONE": the five learn the ending from its last word backwards, a word a walk,
+#   and their FOUR, TWO, ONE (0:16.6) is the count-in to the seventh walk, where the band comes in whole (0:17.4).
+#   the seventh walk is 28 seconds of new ground and nobody speaks. At 0:45.3 it meets ten: "ten", and everyone,
+#   FIVE, SIXTEEN, EIGHT, FOUR, TWO: the end of every walk is the song's refrain, and from here everyone says it
+#   (the ends of 7, 8, 9, 10, 11 and 14).
+#   the ninth walk says nothing for 9, 28, 14, and at 0:58.3 it meets seven: the one voice recites seven's walk
+#   alone (seven, twenty-two, eleven, thirty-four, seventeen, fifty-two, twenty-six, thirteen, forty, twenty) and
+#   everyone has it from ten. Ten is everyone's from its first number; eleven is the one voice's to twenty.
+#   by the fourteenth walk everyone has it from eleven (2:33.1) to one: thirty seconds.
+#   the fifteenth walk is 68 seconds where no walk has been, the climb and the top, and nobody speaks, as before:
+#   v9's "forty" at 4:10.8 (not a note of it changed) is no longer the first word in the song. It is the voice
+#   coming back when the ground is known again.
+# TWO THINGS OUTSIDE THE LAW, both chosen: the two quiet walks (twelve, thirteen) stay wordless, "the rule heard
+# plain" (v1), though all but the 12 of them is known ground (the 'quiet' field gives the one voice there; it made
+# the song's one quiet place 1.2 dB louder); and from forty in the fifteenth walk the one voice is alone, as v9
+# has it, though everyone knows that ground. And a walk's last "one" is a sixteenth long: a voice that has the next
+# walk's first number to say leaves it out (v9's own rule: "the next walk's 'sixteen' is on its heels").
+# MEASURED (raw, seed 0; each word while it sounds, against everything else, K): the one voice alone -5.3 to +0.9
+# dB, median -3.3; with the five -5.9 to +0.3, median -2.5; v9's own thirteen words read the same way -5.8 to
+# -0.8, median -3.4. So they stand where v9 set its words. Six of the new words came out 3 to 5 dB under the rest
+# (three, thirteen, fourteen, seventeen, twenty-two, fifty-two) and are lifted, a word at a time. The five stand
+# 5.7 dB under the one where both speak (v9: 7.2): 1.5 dB more of them, so that "everyone" is a little more than
+# one. THE WORDS, to a recogniser: the voices alone, the first twelve numbers of the ninth walk right, the ten
+# words where seven lands right, the opening 15 of 18 ("sixteen" twice written "6", as v9 found). Under the band
+# its count is not a measure: v9's own passage, the same audio, read 12, 8 and 3 of 13 in three cuts.
+# THE FINISHED FILE (seed 0): the counted stretches are 0.4 to 1.0 dB louder (K). The loudness target moves -9.75
+# -> -9.48 for that, so the band keeps its mastering gain: from the top to the last chord within 0.002 dB of v11
+# (-79 dB or lower gain-matched), the climb and the seventh walk's new ground within 0.01.
+# THE COST: the scorer reads 1.5 / 0.7 lower (level range 4.8 -> 4.4 dB: the opening is 0.9 dB louder); and v9's
+# "for the first time it is also a WORD" at forty is given up for a voice that has been there all along.
+# how many earlier walks must have crossed a number before the five say it with the one ; dB on the one voice's
+# words ; on the five's ; on the one voice's words in the two quiet walks ; dB on whole words, by number (over COUNT's
+# 'lift', which is by syllable) ; the loudness target. --without-said gives v11.
+SAID = {'everyone': 3, 'one': 0, 'five': 1.5, 'quiet': None, 'lift': {3: 2.5, 13: 3, 14: 1, 17: 2.5, 22: 2, 52: 3.5}, 'loudness': -9.48}
+SAY.update({3: [('TH R IY1', .7)], 6: [('S IH1 K S', 1.0)], 7: [('S EH1', .45), ('V AH0 N', .8)], 11: [('IH0', .3), ('L EH1', .5), ('V AH0 N', .8)],
+            13: [('TH ER1', .5), ('T IY1 N', 1.1)], 14: [('F AO1 R', .6), ('T IY1 N', 1.1)], 17: [('S EH1', .45), ('V AH0 N', .5), ('T IY1 N', 1.1)],
+            22: [('T W EH1 N', .6), ('T IY0', .45), ('T UW1', 1.0)], 26: [('T W EH1 N', .6), ('T IY0', .45), ('S IH1 K S', 1.0)],
+            34: [('TH ER1', .55), ('T IY0', .45), ('F AO1 R', 1.0)], 52: [('F IH1 F', .55), ('T IY0', .45), ('T UW1', 1.0)]})
 
 
 def true(ratio):
@@ -314,7 +362,7 @@ def phrase(m):
     return [(u * unit, ((strokes[i + 1] if i + 1 < len(strokes) else odd) - u) * unit, u % len(bits) == 0) for i, u in enumerate(strokes)]
 
 
-def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, body=True, tuned=True, memory=True, count=True, still=True, one=True, ceiling=True):
+def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, body=True, tuned=True, memory=True, count=True, still=True, one=True, ceiling=True, said=True):
     low_bus = low_bus and storeys  # --without-storeys still gives v1
     sized = sized and kit and low_bus
     body = body and sized
@@ -324,6 +372,7 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
     still = STILL if still and count else {}                 # --without-count still gives v8
     one = ONE if one and count else None
     ceiling = CEILING if ceiling and one and still else None  # every older switch still gives what it gave
+    told = SAID if said and ceiling else None                 # (`said` is v9's own list below)
     T = {k: [] for k in ('left', 'right', 'bass', 'kick', 'snare', 'metal', 'stone') + (('wall-left', 'wall-right') if storeys else ()) + (('hat',) if memory else ())}
     lifted = []
 
@@ -575,6 +624,31 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
                 i = turn % 5 - 2
                 last = turn == TURNS - 1
                 one += word(wheel + 7 * turn + (0, 4, 6)[i], (4, 2, 1)[i], count['last'] if last else count['wheel'][turn // 5], ring=.85 if i == 0 else .6 if i == 1 else None)
+        if told:
+            # v12: a number is said wherever an earlier walk has crossed it: by the one voice, and by the five as
+            # well once `everyone` walks have. Nobody says a number no walk has reached yet. In the two quiet walks
+            # the one voice says it alone and lower. A walk's last "one" is a sixteenth long: a voice that has the
+            # next walk's first number to say leaves it out (v9: "the next walk's 'sixteen' is on its heels").
+            crossed = lambda k, n: sum(n in paths[j] for j in range(FIRST, k))
+            who = lambda k, n: (() if not crossed(k, n) or (k in QUIET and told['quiet'] is None) else
+                                ('one',) if k in QUIET or crossed(k, n) < told['everyone'] else ('one', 'five'))
+
+            def tell(at, n, trim):
+                out, t = [], at / SUB
+                for ph, ln in SAY[n]:
+                    g = trim + told['lift'].get(n, 0) + count['lift'].get(ph, 0)
+                    out.append({'at': round(t, 6), 'len': ln, 'pitch': true(4 * over(n)), 'vel': 0.9, 'ph': ph, **({'gain': f'{g:g}dB'} if g else {})})
+                    t += ln
+                return out
+            for at, n, k, _ in cells:
+                if 0 < k < 15:
+                    for v in who(k, n):
+                        if n == 1 and v in who(k + 1, k + 1):
+                            continue
+                        (one if v == 'one' else five).extend(tell(at, n, told['quiet'] if k in QUIET else told[v]))
+            for part in (one, five):
+                part.sort(key=lambda e: e['at'])
+                assert all(a['at'] + a['len'] <= b['at'] + 1e-6 for a, b in zip(part, part[1:])), 'a word runs into the next'
         tracks += [{'name': 'count', 'patch': count['one'][0], 'gain': f"{count['one'][1]}dB", 'pan': 0, 'notes': one, 'fx': [{'type': 'eq', 'bands': count['eq']}]},
                    {'name': 'crowd', 'patch': count['five'][0], 'gain': f"{count['five'][1]}dB", 'pan': 0, 'notes': five, 'fx': [{'type': 'eq', 'bands': count['eq five']}]}]
     doc = {'about': 'So Far. Halve it if it is even; treble it and add one if it is odd. The first sixteen numbers, each walked to one: '
@@ -598,6 +672,8 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
         doc['about'] += ' v9: from forty in the fifteenth walk a voice says the numbers as they come; five more say the sixteenth walk; one word a turn on the wheel.'
     if ceiling:
         doc['loudness'] = ceiling[1]
+    if told:
+        doc['loudness'] = told['loudness']
     return doc, marks, wheel, end
 
 
@@ -607,6 +683,7 @@ if __name__ == '__main__':
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
+    ap.add_argument('--without-said', action='store_true', help="regenerate v11: nobody says a number before forty in the fifteenth walk")
     ap.add_argument('--without-ceiling', action='store_true', help="regenerate v10: the ondes rests while the number is over the top of its ribbon (70, 106, 160, 80)")
     ap.add_argument('--without-one', action='store_true', help="the ondes's notes of v9: it lands on a trebled number at once")
     ap.add_argument('--without-still', action='store_true', help="the rigs of v9: vibrato and a random detune on the strings and the bass, the ondes's wide vibrato (with --without-one: regenerate v9)")
@@ -618,7 +695,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-kit', action='store_true', help="regenerate v3: the kit before the kick was retuned and the cymbals and the bus had the album's eq")
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
-    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling)
+    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said)
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
