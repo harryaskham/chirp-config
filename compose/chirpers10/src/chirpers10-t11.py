@@ -195,6 +195,23 @@ DOUBLE = os.getenv('C10T11_DOUBLE', '2;1' if STRING and ORGAN and PUMP else '')
 # the body's dB at 200 Hz ; the stick's contact ; slap ; the wires' tone Hz ; wires ; the loudness target (what
 # plays without the snare keeps the gain it had). '' = v18.
 SNARE = os.getenv('C10T11_SNARE', '-2;0.35;1.6;5000;0.95;-9.98' if DOUBLE else '')
+# v20 (chirper-three, section w6, 2:30-2:40): THE KETTLE STAYS IN FOUR, AND THE DRUMMER FINDS THE STEP THAT HOLDS
+# BOTH. The heavy riff comes back at 2:30 for four cells, walked in six for the first time. From 2:00 to 2:20 the
+# kettle answered its D flat, F and C on the next BROAD footfall, with the drummer in four beside it. Now it comes
+# back with the riff and lands where it always landed, though the drummer has gone to six: the F and the C fall
+# where the two walks agree (the half cell and the cell's head), and the D flat falls between two quick steps. That
+# one stroke is the whole difference between the walks, and it is heard alone.
+# In the last two cells the drummer takes the quick six at double speed: twelve steps a cell, an eighth each, the
+# step both walks are made of (chirper-one's v18 handoff named it). Each group of the heavy riff (two clipped
+# strokes and a chord) becomes a bar of four eighths with its own two backbeats, and those backbeats (2 6 10 14
+# 18 22) contain the broad walk's (6 and 18): the kettle's D flat is on a backbeat again. At 2:40 the broad walk
+# is what is left, and the kettle's last C lands on its first footfall, as it did at 2:20.
+# Guitars, bass and kick are as written. The kettle keeps to D flat, F and C: its first B flat is still the last
+# note of the song.
+# cells of the phrase's end walked in twelve ; cells of the phrase the kettle answers in, from its head ; dB on the
+# kettle's strokes there ; the china's velocity in the twelve, times ; the loudness target ('' = unchanged).
+# Empty restores v19 byte for byte.
+TWELVE = os.getenv('C10T11_TWELVE', '2;4;0;1;-9.965' if SNARE and KETTLE else '')
 
 
 def BOW_PATCH():
@@ -472,13 +489,25 @@ def make():
                         steps,first = 8,count-1-two-int(DOUBLE.split(';')[0])
                     elif section=='shoulder' and i<three:
                         steps,first = 3,0
+                phrase = TWELVE and section=='swing' and 4<=i<8     # v20: the first quick phrase of the swing
+                if phrase:
+                    assert lifted and not slow and swing_slow(3) and swing_slow(8)
+                    fast,stay,trim,ring = TWELVE.split(';')[:4]
+                    if i>=8-int(fast):
+                        steps,first = 12,8-int(fast)
+                    if i<4+int(stay):
+                        for t,_,s,k in LIFT:
+                            if k=='m': continue
+                            put('kettle',a+(t//BROAD+1)*BROAD,2.1 if k=='p' else 3.7,
+                                HOME+answer(i,s)+int(KETTLE.split(';')[1]), .93 if k=='p' else .98)
+                            if float(trim): notes['kettle'][-1]['gain'] = f'{float(trim):g}dB'
                 if steps:
                     hit = False
                     for j,t in enumerate(range(0,CELL,CELL//steps)):
-                        bar = j%4==0 if steps==8 else j==0          # at double speed each half of the riff is a bar
-                        drum(bronze,a+t,(.68 if bar else .52) if bronze=='h' else (.65 if bar else .54))
+                        bar = j%4==0 if steps in (8,12) else j==0   # at double speed each half of the riff is a bar
+                        drum(bronze,a+t,(.68 if bar else .52) if bronze=='h' else (.65 if bar else .54)*(float(ring) if steps==12 else 1))
                         if (steps*(i-first)+j)%2:
-                            drum('s',a+t,(.98 if j%4==1 else .91) if steps==8 else .91 if hit else .98); hit = True
+                            drum('s',a+t,(.98 if j%4==1 else .91) if steps in (8,12) else .91 if hit else .98); hit = True
                 else:
                     walk(a,6 if slow else 4,bronze)
                 if COUNTER and ORGAN and section=='lean' and i<2:
@@ -610,7 +639,7 @@ def make():
         else:
             tracks.append(tr('rod','waterphone synth.amp.a=150ms synth.amp.r=135ms synth.pitch.mod.0.amount=0.12 synth.pitch.mod.1.amount=0.18 fx.0.decay=0.8s fx.0.mix=0.09',ROD,-.15))
     doc={'about':'On Its Hinge — chirpers, Common Time, track eleven. A twelve-eighth riff in B flat; the drummer swaps six quick steps for four broad ones, on an unchanged riff. The reed organ breathes the broad walk before the kit takes it.' + (' The kettledrum answers the heavy riff on the next broad steps, then takes its last C.' if KETTLE else ''),
-         'tempo':BPM,'seed':1,'length':f'{start//SUB+marks.pop("close",0)}b','tail':'4s','ceiling':'-1dB','loudness':float(SNARE.split(';')[5]) if SNARE else -10,'event_stable':True,
+         'tempo':BPM,'seed':1,'length':f'{start//SUB+marks.pop("close",0)}b','tail':'4s','ceiling':'-1dB','loudness':float(TWELVE.split(';')[4]) if TWELVE and TWELVE.split(';')[4] else float(SNARE.split(';')[5]) if SNARE else -10,'event_stable':True,
          'buses':{'drums':{'fx':['reverb kind=room decay=0.62s mix=0.13 predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'20ms','release':'135ms'},'clip drive=0dB ceiling=-13dB',{'type':'eq','bands':['peak cutoff=400 q=0.8 gain=-5dB','highshelf cutoff=9000 gain=-2dB']}]},
                   'gtrs':{'fx':[{'type':'eq','bands':['peak cutoff=350 q=1 gain=-2dB','peak cutoff=720 q=0.9 gain=2dB']},'reverb kind=room decay=0.35s mix=0.06 predelay=6ms']},
                   'low':{'fx':[{'type':'eq','bands':['peak cutoff=58 q=1.5 gain=-6dB','peak cutoff=116 q=1 gain=5dB','peak cutoff=350 q=1 gain=-6dB','peak cutoff=1500 q=1 gain=3dB']},{'type':'compressor','threshold':'-26dB','ratio':6,'attack':'12ms','release':'120ms','makeup':'2dB'}]}},
