@@ -271,6 +271,29 @@ BODY = os.environ.get('C10T9_BODY', '150;2.5;0.7;;131:2:-5' if FINGERS and not a
 # patch overrides for the bass ; the loudness target ("" = unchanged). "" = v23 byte for byte.
 LEAN = os.environ.get('C10T9_LEAN', 'fx.2.bands.0.gain=12dB fx.2.bands.1.gain=6dB fx.2.bands.2.cutoff=540 fx.2.bands.2.q=0.7 fx.2.bands.2.gain=-6dB '
                                     'fx.2.bands.3.cutoff=1150 fx.2.bands.3.q=1.2 fx.2.bands.3.gain=6dB synth.layers.1.level=-14dB;-10.036' if BODY else '')
+# v25 (chirper-one, whole song: its shape): THE SLOW TUNE IS PLAYED CLEAN, AND THE AMP COMES BACK BY STEPS. The song
+# is one riff at seven speeds, and through 24 versions it was also one guitar sound: the same high-gain pair from the
+# first bar to the last (the scorer's timbre spread across sections 2.4 dB, its level range 4.4, and every band
+# section within a decibel of the next from 0:40 to the end). The form already says where the band thins: 'one to
+# the beat' is two guitars and a hat, and at five it is 'two guitars again'. Those two places are now two CLEAN
+# guitars (ct-clean on the left, ct-glass on the right: two different instruments, as the main pair is two cones),
+# so the riff is first heard as what the docstring calls it, a slow tune, and the band's entrance at 0:20 is the
+# amps coming on; at five the clean pair comes back, with the tabla, and the kit and the bass come down 3 dB under
+# it: the song's valley. At six the pair is on the album's small amp (ct-crunch, the low-gain one that answers the
+# pick; only Common Time itself uses it), and at seven the six high-gain guitars lock: clean, crunch, wall. Every
+# note is the note it was, on the same side; only who plays it changes.
+# The clean guitars do not mute by themselves (a muted stroke read as loud as an open one), so their muted strokes
+# are 5 dB down. Their eq is set against two reads: with a low lift 250-500 Hz stood 5.3 dB over the records, so
+# 350 Hz comes down; and alone their LARGEST band was 4-8 kHz (the pick and the string, 32% of their power), so the
+# top is shelved 12 dB from 3.5 kHz. The small amp was 8 dB thinner than the main pair at 120-250 Hz: it has 5 dB
+# at 180 Hz and 3 dB less at 2.2 kHz.
+# section : the left guitar's patch : the right's : the left's fader : the right's : their eq bands (, between) :
+# a reverb on them ('' = none) : dB on the kit's and the bass's buses through the section ('' = none) : dB on the
+# muted strokes ('' = none; the clean guitars do not mute by themselves), one such entry for each section played on
+# other guitars (| between) ; the loudness target ('' = unchanged). '' = v24 byte for byte.
+CLEAN = 'ct-clean:ct-glass:{0}dB:{0}dB:peak cutoff=350 q=0.9 gain=-4dB,peak cutoff=2800 q=0.8 gain=3dB,highshelf cutoff=3500 gain=-12dB:reverb kind=hall decay=1.6s mix=0.12 predelay=20ms'
+AMPS = os.environ.get('C10T9_AMPS', 'one to the beat:' + CLEAN.format(14.5) + '::-5|five:' + CLEAN.format(14.5) + ':-3:-5'
+                                    '|six:ct-crunch-l:ct-crunch-r:-1.5dB:-1.5dB:peak cutoff=180 q=0.8 gain=5dB,peak cutoff=750 q=0.8 gain=3dB,peak cutoff=2200 q=0.7 gain=-3dB:::;-10.4' if LEAN else '')
 WALK = []
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
@@ -890,6 +913,17 @@ def song():
             if t["name"] in ("tabla", "rupak", "tabla-ab"):
                 t["patch"] += " " + hands
                 t["gain"] = f"{float(t['gain'][:-2]) + float(lift):g}dB"
+    if AMPS:                                    # v25: in these sections the main pair's notes are played on other guitars
+        marks = MARKS + [("end", total)]
+        for entry in AMPS.split(";")[0].split("|"):
+            sec, pl, pr, gl_, gr_, bands, verb, _, soft = entry.split(":")
+            a, z = next((b0, marks[i + 1][1]) for i, (name_, b0) in enumerate(MARKS) if name_ == sec)
+            fx = ([{"type": "eq", "bands": bands.split(",")}] if bands else []) + ([verb] if verb else [])
+            for tr, patch, gain, pan in (("gl", pl, gl_, -1), ("gr", pr, gr_, 1)):
+                moved = [n for n in T.get(tr, []) if a <= n["at"] < z]
+                T[tr] = [n for n in T[tr] if not (a <= n["at"] < z)]
+                T[f"{tr}-{sec.split()[0]}"] = [{**n, "gain": f"{float(soft):g}dB"} if soft and float(soft) and (n.get("expr") or {}).get("pm") else n for n in moved]
+                tracks.append({"name": f"{tr}-{sec.split()[0]}", "patch": patch, "gain": gain, "pan": pan, "out": "gtrs", **({"fx": fx} if fx else {})})
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
 
@@ -985,4 +1019,18 @@ if __name__ == "__main__":
         doc = song()
         if LEAN and LEAN.split(";")[1]:
             doc["loudness"] = float(LEAN.split(";")[1])
+        if AMPS:                                # v25: the kit and the bass come down with the guitars
+            marks, pts = MARKS + [("end", 0)], [["0b", 0]]
+            for entry in AMPS.split(";")[0].split("|"):
+                ride = entry.split(":")[7]
+                if ride and float(ride):
+                    a, z = next((b0, marks[i + 1][1]) for i, (name_, b0) in enumerate(MARKS) if name_ == entry.split(":")[0])
+                    pts += [[f"{a - 0.05:g}b", 0], [f"{a:g}b", float(ride)], [f"{z - 0.05:g}b", float(ride)], [f"{z:g}b", 0]]
+            if len(pts) > 1:
+                for name_ in ("drums", "oh", "snr", "low"):
+                    bus = doc["buses"][name_]
+                    bus["fx"] = bus["fx"] + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.amps", "amount": 1}]}}]
+                    bus["auto"] = {**bus.get("auto", {}), "amps": {"points": pts, "curve": 0}}
+            if AMPS.split(";")[1]:
+                doc["loudness"] = float(AMPS.split(";")[1])
         open(OUT, "w").write(dump(doc))
