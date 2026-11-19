@@ -263,6 +263,22 @@ BREAK = os.environ.get("C10T7_BREAK", "2:89:1,1,1;7:89:1,2,3;-10.153") if TIGHT 
 # out of a breakdown that ends at rest ; the loudness target (at v20's -10.153 every other bar came out 0.06 dB
 # lower: the fill and the hands' harder strokes measure louder than the count they replace). "" = v20.
 HANDS = os.environ.get("C10T7_HANDS", "x;s;0.8;0.95;fill;-10.118") if BREAK and os.environ.get("C10T7_MASTER", "x") else ""
+# v22 (chirper-alpha, palette): THE FLOOR FALLS. The part a breakdown has on every record that has one, and this
+# song did not: a sub. The library's `808` (a sine and a little of its octave, driven; no song on this record uses
+# it) plays with the band in both breakdowns and nowhere else: under each chord or ringing string that heads a cell
+# there (v20: the band rests where the riff two sizes up rests) it strikes an octave over the bass and FALLS that
+# octave while the stroke sounds, landing on the bass's own note as the stroke stops; then it rests with the band
+# (it lets go as the guitars do, in a fiftieth of a second: the silences v19 to v21 made stay silent). And once,
+# where the band comes back after the harp has been alone (4:42.8, the ground risen to A flat), it falls the same
+# octave slowly, over the first cell of eight, under the riff that chugs right through.
+# The patch is the song's own (`em-floor`): the 808 with a pitch that follows a note's `drop`, in semitones.
+# (Level, benched raw under its own strokes: at -6 dB it stood 4.8 dB under the rest of the band in the first
+# breakdown, K-weighted, and pulled the mix there 1.7 dB over the records at 60-120 Hz and 2 dB under from 500 Hz
+# up. At -10 it stands 8.8 under in the first breakdown and 10.8 under in the second, and every band of the
+# band's bars reads within 2.2 dB of the records; the slow fall at the return, under four guitars, has 3 dB more.)
+# gain ; semitones it falls ; the fall at the return: sixteenths it takes : dB on that note ("" = no fall there) ;
+# velocity ; the loudness target. "" = v21.
+SUB = os.environ.get("C10T7_SUB", "-10dB;12;8:3;0.9;-10.118") if HANDS else ""
 
 
 def nm(n):
@@ -887,6 +903,33 @@ def the_rests_grow():
     return rests
 
 
+def the_floor_falls():
+    """An 808 under each stroke that heads a cell of 8 or 5 in the breakdowns, falling an octave as the stroke sounds;
+    and one slow fall where the band comes back."""
+    _, fall, back, vel, _ = SUB.split(";")
+    fall, vel = float(fall), float(vel)
+    tick = lambda note: round(note["at"] * 4)
+    low = {tick(n): n for n in T["bass"]}
+    path = lambda: [round(-fall * (k + 1) / 8, 3) for k in range(8)]
+    def drop(p, ln, more=None):
+        root = low[p]["pitch"]                               # the bass's note there: the fall lands on it
+        up = NAMES.index(root[:-1]) + 12 * (int(root[-1]) + 1) + int(fall)
+        T.setdefault("floor", []).append({"at": round(p / 4, 4), "len": round(ln / 4 * 0.98, 4), "pitch": nm(up), "vel": vel,
+                                          "expr": {"drop": 0.0}, "expr_path": {"drop": path()}, **({"gain": more} if more else {})})
+    heads = 0
+    for spec in BREAK.split(";")[:-1]:
+        i, off, _ = spec.split(":")
+        s0 = SECS[int(i)][0] + int(off)
+        for p, _, _ in LEV[2]:
+            if s0 <= p < s0 + SIZE[6][0] and p in low and any(tick(n) == p for n in T["gl"]):
+                drop(p, at_size(0, p)[2])                    # as long as the stroke: a chord of 3, or a ringing string of 2
+                heads += 1
+    assert heads == 12, heads
+    if back:
+        assert LIFT and LIFT_SPAN[0] in low
+        drop(LIFT_SPAN[0], int(back.split(":")[0]), back.split(":")[1] + "dB")
+
+
 def letters_on_two_sides():
     """Long cells left, short cells right, for the song's first cell of 55. Nothing is added."""
     s0, end = SECS[0][0], SECS[0][0] + SIZE[6][0]
@@ -925,6 +968,8 @@ def song():
         the_rests_grow()                 # before the stroke stops: the bass's last note before each new rest is let go in time too
     if TIGHT:
         the_stroke_stops()
+    if SUB:
+        the_floor_falls()
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}" + (" synth.amp.r=" + TIGHT.split(";")[0] if TIGHT else "")
@@ -999,6 +1044,8 @@ def song():
                        "fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*ARCO.split(";")[3].split(":"))]}]})
     if IRON:
         tracks.append({"name": "iron", "patch": "em-iron", "gain": IRON.split(";")[0], "pan": float(IRON.split(";")[1])})
+    if SUB:
+        tracks.append({"name": "floor", "patch": "em-floor", "gain": SUB.split(";")[0], "pan": 0})
     for t in tracks:
         if "gen" not in t:
             t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
@@ -1021,13 +1068,18 @@ def song():
                   "is the same at every size, so the band plays it at many sizes at once: muted strokes, open notes, chords, crashes, "
                   "the root, and the song's own sections (long ones heavy, short ones quiet). The kit keeps common time against it. In "
                   "the quiet sections a wire harp has no notes, only the rule (the engine's L-system). The slow song: 80. v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(HANDS.split(";")[5]) if HANDS else float(BREAK.split(";")[-1]) if BREAK else float(TIGHT.split(";")[3]) if TIGHT else float(CHUG.split(";")[2]) if CHUG else float(HOLD.split(";")[1]) if HOLD else REST_LUFS if REST else -10, "seed": 1, "tail": "5s", "length": f"{(TOTAL + 32) / 4:g}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(SUB.split(";")[4]) if SUB else float(HANDS.split(";")[5]) if HANDS else float(BREAK.split(";")[-1]) if BREAK else float(TIGHT.split(";")[3]) if TIGHT else float(CHUG.split(";")[2]) if CHUG else float(HOLD.split(";")[1]) if HOLD else REST_LUFS if REST else -10, "seed": 1, "tail": "5s", "length": f"{(TOTAL + 32) / 4:g}b", "event_stable": True,
         "patches": {
             **({"em-steel": {
                 "extends": "pedal-steel synth.amp.a=75ms synth.amp.r=140ms fx.0.mix=0.08 fx.1.mix=0 fx.2.mix=0 play.glide=0ms",
                 "about": "The moving bar against the two fretted guitars. Keep the pedal steel's vibrato, bend by hand within each note, and damp it before the band answers.",
                 "synth": {"pitch": {"value": 0, "mod": [{"src": "lfo.vib", "amount": 0.06}, {"src": "expr.bend", "amount": 1}]}},
             }} if STEEL else {}),
+            **({"em-floor": {
+                "about": "chirper-alpha: the library's 808 sub (a sine and a little of its octave, driven) with a pitch that follows a note's `drop`, in semitones, "
+                         "and a release as short as this song's guitars': the floor that falls under a breakdown's strokes.",
+                "extends": "808 synth.amp.r=20ms",
+                "synth": {"pitch": {"value": 0, "mod": [{"src": "env.p", "amount": 12}, {"src": "expr.drop", "amount": 1}]}}}} if SUB else {}),
             **({"em-kettle": {
                 "about": ("Extreme and Mean's kettledrums (chirper-alpha, 18 Nov): the modal layer's `kettle` set (Rossing's 65 cm drum: the "
                           "air in the kettle tunes the head's modes near 1 : 1.5 : 2 : 2.44, so it sings the note it is given), struck a "
