@@ -1095,6 +1095,34 @@ def speaker_for_the_lead(doc):
             t["gain"] = f"{float(t['gain'][:-2]) + by:g}dB"
 
 
+# v26 (chirper-alpha, whole song: where the whole climb lands). Harry, 19 Nov, on the last chord (the card asked
+# at v17, 'What do you hear as the bass lets go of the last chord?'): "Only the upper strings". The afterimage did
+# not happen: two strings, an F on one amp and a C on the other, are a fifth, and a fifth is what he heard. A low
+# note that is not there needs more than two of its overtones, and it needs them as ONE sound. The song already
+# owns that sound: the pole's bass 'that is only its overtones' (the library's phantom-bass: the second to the
+# sixth harmonic of its note and nothing at the note itself). So the last chord now has it too. It is struck WITH
+# the chord, under the real bass, where it cannot be told from it; at three beats the bass lets go as before and
+# what is left of the low F is five of its overtones in a row (87, 131, 175, 218, 262 Hz) with the two strings
+# ringing inside them, to the end. Nothing sounds at 44 Hz and the F should still be there.
+# its level once the bass has let go, dB against the ghost's track ; its length in beats (the patch sounds 0.85 of
+# it) ; how far under that it stands while the real bass still holds (it rises over the half beat in which the bass
+# lets go, so the band of the overtones keeps its level through the release). Empty restores v25.
+PHANTOM = os.environ.get("C10T5_PHANTOM", "2.5;10.5;8" if LEADCAB and AFTERIMAGE else "")
+
+
+def root_that_is_not_there(doc):
+    level, length, under = (float(v) for v in PHANTOM.split(";"))
+    at = END * 4
+    ghost = next(t for t in doc["tracks"] if t["name"] == "ghost")
+    assert all(n["at"] < at for n in ghost["notes"])
+    ghost["notes"].append({"at": at, "len": length, "pitch": nm(F1), "vel": 0.85, "gain": f"{level - under:g}dB"})
+    # the fader, after the patch: up as the bass's hand lifts (its note is three beats), down with the guitars' own
+    # fade at the end (theirs is 9 dB over the ninth beat)
+    ghost["gain"] = {"value": ghost["gain"], "mod": [{"src": "auto.takeover", "amount": 1}]}
+    ghost["auto"] = {"takeover": {"curve": 0, "points": [["0b", 0], [f"{at + 2.5:g}b", 0], [f"{at + 3:g}b", under],
+                                                         [f"{at + 8:g}b", under], [f"{at + 9:g}b", under - 9]]}}
+
+
 def song():
     compose()
     key_lane = [["0b", 0]]
@@ -1233,6 +1261,8 @@ def song():
         roll_into_the_note(doc)
     if LEADCAB:
         speaker_for_the_lead(doc)
+    if PHANTOM:
+        root_that_is_not_there(doc)
     return doc
 
 
