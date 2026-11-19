@@ -353,6 +353,23 @@ BOUNCE = os.environ.get("C10T7_BOUNCE", "3:89;21,13,8,5,3,2,1,1,1;0.95:1;13;") i
 SUNG = os.environ.get("C10T7_SUNG", "1;voice-legato synth.layers.0.diction=3 synth.layers.0.ring=1.0 synth.layers.0.effort.value=0.9 fx.0.mix=0 synth.layers.0.tract=1.1;"
                                     "-5.7dB;0;-12;0.85;hp cutoff=300|lowshelf cutoff=900 gain=-9dB|peak cutoff=350 q=0.9 gain=-6dB|peak cutoff=3000 q=0.8 gain=6dB|peak cutoff=6500 q=0.8 gain=-2dB;"
                                     "-14dB;-0.5,1.9,-2.1,2.7,0.3,2.0,-0.1,7.1,0.5,0.0,-1.0,-4.3,-1.4,-2.5,-1.0,6.0,0.8,-2.2,-4.1;-9.667;-12dB") if BOUNCE else ""
+# v26 (chirper-zero; instrument round: the snare, all 78 strokes; no stroke moves): THE SNARE IS TUNED DOWN TO WHERE
+# THE RECORDS' SNARES ARE. v25's handoff: the kit by part +7.3 at 500 Hz-1 kHz, the album kit's snare. Read alone
+# against the snare strokes of six records by thirds of an octave (snarespec.py, new this round), the album's snare
+# has its note in the 250 Hz band where theirs have it at 200, nothing at 200 at all, a hump of 7 dB at 1 to
+# 1.25 kHz and another of 6 to 8 at 2 to 2.5 kHz, where theirs dip: a box and a honk. So: the drum a tone lower
+# (A3 -> G3), a harder, shorter stroke on a damped head (contact 0.6 -> 0.45, damp 0.3 -> 0.9, the amp's decay
+# 140 -> 110 ms), and three bands on its track. Its shape against theirs, mean distance 160 Hz-5 kHz: 5.62 -> 3.18;
+# body against crack -4.7 -> -3.3 (records -2.9); punch 12.0 -> 13.2 dB (13.8); it falls 20 dB in 79 -> 65 ms (72).
+# THE MIX DECIDED THE AMOUNT, AND IT IS HALF: at the full cure (distance 2.5) the passages with two guitars, which
+# are short from 250 Hz to 4 kHz, read 0.3 to 0.45 dB shorter there: the snare's box had been standing in for
+# guitars that are not there. At half, weighted by where the snare plays: the four-guitar passages (55 strokes)
+# 0.782 -> 0.739, the two-guitar ones (18 strokes) 0.922 -> 1.092, all 0.817 -> 0.826. The fader 3.5 -> 6 dB keeps
+# a stroke standing as far out of the band as it did (+9.4 -> +9.2 dB, K).
+# the drum's note ; overrides inside the snare's patch ; its track's eq, band|band ; its fader ; the loudness
+# target ('' = unchanged). "" = v25 byte for byte.
+SNARE = os.environ.get("C10T7_SNARE", "G3;synth.layers.0.wires=0.9 synth.filters.1.gain=0.5dB synth.layers.0.damp=0.9 synth.layers.0.contact=0.45 synth.amp.d=110ms;"
+                                      "peak cutoff=1000 q=1.5 gain=-3dB|peak cutoff=1600 q=2.5 gain=3dB|peak cutoff=2250 q=1.2 gain=-4.5dB|highshelf cutoff=7000 gain=-3dB;6dB;") if SUNG else ""
 # Euclid's definition in nineteen syllables, cut by the rule: phrases of 1, 2, 3, 5 and 8 syllables
 WORDS = [("B R EY1 K",), ("W AH1 N", "L AY1 N"), ("S OW1", "DH AH0", "HH OW1 L"), ("IH1 Z", "T UW1", "DH AH0", "L AO1 NG", "G ER0"),
          ("AE1 Z", "DH AH0", "L AO1 NG", "G ER0", "T UW1", "W AH1 T", "R IH0", "M EY1 N Z")]
@@ -1251,7 +1268,22 @@ def song():
     }
     if SUNG:
         the_rule_is_sung(doc)
+    if SNARE:
+        the_snare_is_tuned_down(doc)
     return doc
+
+
+def the_snare_is_tuned_down(doc):
+    """v26: the album kit's snare a tone lower, struck harder and shorter on a damped head, its box and honk cut by half."""
+    note, patch, eq, fader, loud = SNARE.split(";")
+    t = next(t for t in doc["tracks"] if t["name"] == "snare")
+    t["patch"] += "".join(f" kit.s.patch.{o}" for o in patch.split()) + (f" kit.s.pitch={note}" if note else "")
+    if eq:
+        t["fx"] = [{"type": "eq", "bands": eq.split("|")}]
+    if fader:
+        t["gain"] = fader
+    if loud:
+        doc["loudness"] = float(loud)
 
 
 def the_rule_is_sung(doc):
