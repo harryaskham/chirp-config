@@ -722,6 +722,40 @@ FAST = os.environ.get("C10T2_FAST", "br=48:50,56:58;mr=74:96;1;F5=-4.2,F6=-6,A5=
 # the bar the right-hand clock is set going : the bar it is in step ; how late it starts, beats ; dB on the right
 # box's tick : its tock, against the left box's ("" = no box). "" = v35.
 SETGOING = os.environ.get("C10T2_SETGOING", "4:8;0.25;-2:-5.5" if FAST else "")
+# v37 (chirper-two; section round, w6 2:57-3:33, the drift's middle; the change is 2:57.8-3:20): ONLY THE FLOOR
+# BETWEEN US MOVES. The drift is the song's quiet middle: two music boxes saying the riff for 49 seconds while the
+# right one slides to half a bar ahead, and under them the ground steps down (F, E flat, D flat, C: v2). The song's
+# four lines are sung in step (0:36) and a beat apart (2:13), and the last is barked when the clocks are against each
+# other (3:46). In the drift nobody sang; and it is the one place where what the second line says is simply so: the
+# band has let go, there is no beam, and the only thing that moves under the two clocks is the floor.
+# So the two singers sing one line each there, SLOWLY: a syllable to each attack of the riff, as everywhere in this
+# song, on the riff's own notes (F F F B A-flat F F C: the tune of 0:36), four times slower. The riff's sixteenths
+# are beats; an unstressed syllable is not held; the last word rings.
+#   the LEFT voice, on the song's clock: "only the floor between us moves", from 2:57.8, as the floor moves to E flat;
+#   the RIGHT voice, on the right-hand clock (the track `warp`: nothing is placed by hand), so in time with its own
+#   music box and a beat and a half before the ink: "whatever way you lean I lean", sounding 3:09.7 to 3:19.
+# Then six bars of the boxes alone into the lock, the landing, and the last line barked by both.
+# THEY ARE HEARD THROUGH THE WALL (the first line: "I cannot hear you through the wall"): the song's own singer
+# (`voice-talk`, sung, as at 0:36), low-passed at 700 Hz, so they stay under the boxes' band: a murmur, not a lead.
+# Harry on this passage's pulse: "Too much: it buries the boxes". So the voices were set by reading them against the
+# boxes, syllable by syllable (raw, each part alone):
+#   first bench (-12 dB, a 1.5 kHz filter): the voices stood 5.8 dB OVER the boxes on "only the", and the boxes' lead
+#   over everything else in their own band (600 Hz-2.5 kHz) fell from +10.5 to -3.9 dB. This voice's syllables also
+#   differ by 13 dB ("floor", on B, the loudest; "lean" on A flat the softest), so one fader could not hold them under;
+#   as set: a fader ride, syllable by syllable (the last field), puts every syllable within 1 dB of the middle one
+#   but "lean" (2.7 under); each stands 3.7 to 8.7 dB under the boxes (K) while it sounds; the boxes' lead in their
+#   own band is +6.0 to +11.3 dB during the syllables (+7.9 to +10.6 by two bars, where v36 read +10.5 to +12.3);
+#   the passage is 0.3 dB louder (K). The pulse, the bed, the swarm and the boxes are not touched.
+# THE WORDS: a recogniser reads the two voices alone 4 words of 12 as set (8 before the ride; 7 with the filter at 1
+# or 1.5 kHz) and none under the boxes. They are not there to be read: both lines have been sung twice by then, on
+# these notes.
+# Not done: the right voice does not run sharp with its clock, as its box does (v35): the ninth field gives it
+# (it plans; not rendered).
+# left voice's bar:line , right voice's bar:line (lines counted from 0) ; how many times slower than the riff ; the
+# patch ; gain ; pan ; hall send ; eq bands ; the MIDI note the riff's F is sung on ; 1 = the right voice's pitch goes
+# with its clock, as its box's does (v35) ; the loudness target ('' = unchanged) ; a fader ride, dB on each of the
+# left voice's eight syllables : the right's ('' = none). "" = v36.
+FLOOR = os.environ.get("C10T2_FLOOR", "80:1,86:2;4;voice-talk;-19dB;0.5;-10dB;hp cutoff=150|lp cutoff=700 q=0.7;53;0;;-3,2,0,-6.5,0,1.5,-1.5,4:-2,-3,-1.5,0,4,4,-2.5,2.5" if SETGOING else "")
 if SETGOING:
     _g0, _g1 = (int(x) for x in SETGOING.split(";")[0].split(":"))
     assert WARP[0] == {"over": "96b", "to": 0} and 0 < _g0 < _g1 <= 24
@@ -782,6 +816,33 @@ def run_sharp():
                     n["pitch"] = f"m{midi + cents / 100:.3f}"
                     if tr == "mr" and name in trim:      # the box's spring answers some of the sharp notes more than the true ones
                         n["gain"] = f"{trim[name]:g}dB"
+
+
+def the_floor_moves():
+    """v37: one line each for two slow voices in the drift, a syllable to each attack of the riff as everywhere, the
+    riff FLOOR's second field times slower; the right voice is written like the left and is on the right-hand clock."""
+    f = FLOOR.split(";")
+    slow, base = float(f[1]), int(f[7])
+    rides = [[float(x) for x in r.split(",")] if r else [0.0] * 8 for r in (f[10].split(":") if len(f) > 10 and f[10] else ["", ""])]
+    for (tr, part), ride in zip(zip(("fl", "fr"), f[0].split(",")), rides):
+        if not part:
+            continue
+        bar, line = (int(x) for x in part.split(":"))
+        phs, how = VOICE_LINES[line]
+        pos = ATTACKS if how == "down" else [-1] + ATTACKS[:-1]
+        for i, ph in enumerate(phs.split("|")):
+            gap = (pos[i + 1] - pos[i]) if i < 7 else 3
+            weak = any(x[-1] == "0" for x in ph.split() if x[-1].isdigit())      # an unstressed syllable is not held
+            ln = min(gap, 1) if weak else 3 if i == 7 else min(gap, 2)           # in the riff's sixteenths; the last word rings
+            T.setdefault(tr, []).append({"at": round(bar * 4 + pos[i] * slow / 4, 4), "len": round(ln * slow / 4 * 0.96, 4),
+                                         "pitch": nm(base + RIFF_NOTE[pos[i]]), "vel": 0.8, "ph": ph, **({"gain": f"{ride[i]:g}dB"} if ride[i] else {})})
+        if tr == "fr" and f[8] == "1":
+            for n in T[tr]:
+                cents = 1200 * math.log2(clock_speed(n["at"]))
+                if abs(cents) >= 0.5:
+                    name = n["pitch"]
+                    midi = NAMES.index(name.rstrip("-0123456789")) + 12 * (int(name[len(name.rstrip("-0123456789")):]) + 1)
+                    n["pitch"] = f"m{midi + cents / 100:.3f}"
 
 
 def sing_the_lock():
@@ -1115,6 +1176,8 @@ def compose():
         lean("gr")
     if FAST:                             # v35: and the right-hand music boxes' pitch goes with their clock, in every slip and through the drift
         run_sharp()
+    if FLOOR:                            # v37: two slow voices in the drift, a line each
+        the_floor_moves()
     if WALL and TWIN:                    # v32: the left guitar's notes in those bars are played behind the wall
         w0, w1 = (int(v) for v in WALL.split(";")[0].split(":"))
         T["wl"] = [n for n in T["gl"] if w0 * 4 <= n["at"] < w1 * 4]
@@ -1252,6 +1315,10 @@ def song():
             "auto": {"wall": {"curve": 0, "points": [["0b", 0], [b(int(WALL.split(";")[0].split(":")[0])), 0],
                                                       [b(float(WALL.split(";")[2])), round(math.log2(16000 / float(WALL.split(";")[1])), 3)],
                                                       [b(NB), round(math.log2(16000 / float(WALL.split(";")[1])), 3)]]}}}] if WALL and TWIN else []),
+        # v37: the drift's two slow voices, left and right, the right one on the right-hand clock
+        *([{"name": tr, "patch": FLOOR.split(";")[2], "gain": FLOOR.split(";")[3], "pan": sgn * float(FLOOR.split(";")[4]), "sends": {"hall": FLOOR.split(";")[5]},
+            "fx": [{"type": "eq", "bands": FLOOR.split(";")[6].split("|")}], **({"warp": WARP} if tr == "fr" else {})}
+           for tr, sgn in (("fl", -1), ("fr", 1))] if FLOOR else []),
     ]
     tracks = []
     for t in spec:
