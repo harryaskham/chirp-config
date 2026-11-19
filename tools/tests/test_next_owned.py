@@ -95,6 +95,13 @@ class NextOwned(unittest.TestCase):
         self.assertEqual(self.next_("--take", "mine", who="chirp-climb1").returncode, 0)     # the same climber: its own lock
         for seed in range(30):                                     # and the draw leaves a held song out while others are free
             self.assertNotEqual(json.loads(self.next_("--seed", str(seed), "--peek").stdout)["climb"]["id"], "mine")
+        env = {**os.environ, "CLIMB_ROOT": self.root, "CLIMB_STARTS": self.starts}
+
+        def now_on(cid):                                           # `status` says who is on a song as the draw reads it
+            r = subprocess.run([sys.executable, os.path.join(TOOLS, "climb.py"), "status", "--json", "--as", "chirper-zero"],
+                               capture_output=True, text=True, env=env)
+            return next(x["now"] for x in json.loads(r.stdout) if x["id"] == cid)
+        self.assertEqual(now_on("mine"), ["chirp-climb1", "chirper-one"])
         with open(os.path.join(self.root, "climbs.json")) as f:
             reg = json.load(f)
         for c in reg["climbs"]:
@@ -104,6 +111,7 @@ class NextOwned(unittest.TestCase):
             json.dump(reg, f)
         self.assertEqual(climb.holders({"id": "mine", "last": {"at": climb.now_iso(), "who": "chirper-one"}}, "chirper-zero",
                                        st=[{"id": "mine", "who": "chirper-one", "t": __import__("time").time() - 60}]), [])
+        self.assertEqual(now_on("mine"), [])                       # the round is recorded (both names are one climber): nobody is on it
         self.assertEqual(self.next_("--take", "mine").returncode, 0)
         self.assertEqual(self.next_("--take", "theirs", who="chirper-two", ).returncode, 0)
         self.assertEqual(self.next_("--take", "theirs", "--force").returncode, 0)             # --force takes a held one

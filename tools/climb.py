@@ -1628,7 +1628,9 @@ def cmd_status(a):
     for c in reg["climbs"]:
         hist = history(c["id"])
         last = hist[-1] if hist else None
-        on = sorted({s["who"] for s in st if s["id"] == c["id"] and t - s.get("t", 0) < ROUND_HOLD})
+        # "now" is who HOLDS it, as the draw reads it: a start whose round is recorded is not work in hand (chirper-two,
+        # 19 Nov: status showed three composers on Take Up the Slack with all three recorded, for ninety minutes each)
+        on = sorted({s["who"] for s in st if s["id"] == c["id"] and t - s.get("t", 0) < ROUND_HOLD and not released(c, s)})
         rows.append({"id": c["id"], "status": c["status"], "rounds": c["rounds"], "best": (c.get("best") or {}).get("score"),
                      "genre": c.get("genre"), "playlist": bool(c.get("enabled")), "odds": round(w.get(c["id"], 0) / tot, 3),
                      "last": f"{age(last['at'])} ago by {last['who']}" if last else None, "now": on})
