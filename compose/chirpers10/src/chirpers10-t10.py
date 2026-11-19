@@ -283,6 +283,31 @@ OUTSTANDING = os.environ.get('C10T10_OUTSTANDING', '3;16;-20;0.72;18;' if LEDGER
 # the loudness target ('' = unchanged). "" = v22 byte for byte.
 TOP = os.environ.get('C10T10_TOP', 'kit.h.gain=0dB kit.hs.gain=-1dB kit.h1.gain=-1.5dB kit.h2.gain=-5.5dB kit.h3.gain=-7dB kit.oh.gain=-5dB kit.hp.gain=-4dB;'
                                    '9000;9000:-2;-10.229' if OUTSTANDING else '')
+# v24 (chirper-three; the draw was a palette round, taken as ONE instrument changed: the snare, all 98 strokes; no
+# stroke moves): THE SNARE IS FITTED TO THIS SONG. Three songs had the album's physical snare fitted to them (On Its
+# Hinge v19, The Other Hand v20, Plain Hunt v33); this one had it as it comes, and louder than any of them.
+#   ALONE at its 42 clean strokes in 0:10-1:35 (tools/drumpunch.py's measures; six records' snares in brackets): the
+#       body (150-300 Hz) stood 5.0 dB OVER the crack (1.5-5 kHz) where the records' stand 3.2 under; the wires
+#       2.4 over the crack (level); the stroke fell 16.4 dB in its first 50 ms (13.8) and rose in 2.0 ms (2.5 to 12).
+#   IN THE BAND (raw, 0:13-1:30): the kit held 38% of everything at 250-500 Hz, the snare alone 23% (the kick 17%);
+#       by part the kit read 4.8 dB over the records' kits at 250-500 Hz and 4.2 at 500 Hz-1 kHz. A stroke's first
+#       30 ms stood 8.3 dB over everything else (K); The Other Hand's stood 4.2 over at its v19.
+#   THE FIT: the +5 dB at 200 Hz the kit gives its snare becomes -5; the wires' buzz is centred at 5 kHz, not 7; a
+#       slightly softer stick (contact 0.6 -> 0.9) and a head that rings a little longer (0.18 -> 0.24 s under a
+#       200 ms envelope, was 140), which is what brings the fall after the stroke to the records'; a broad cut at
+#       700 Hz on the track; the fader 1 dB down.
+#   AFTER: alone, the body 3.5 dB under the crack, the wires 1.0 over, the fall 14.4 dB, the rise 2.5 ms: all five
+#       measures inside the records' ranges (two were). By part the kit reads 2.5 over at 250-500 Hz and 2.9 at
+#       500 Hz-1 kHz; a stroke stands 6.0 dB over everything else; the master pulls the band down 3.1 dB under a
+#       stroke where it pulled 4.5. The mix against the records' voiceless passages: 0.772 -> 0.711, nearer in all
+#       six stretches. COST: against the records' mixes with voices the top (8-16 kHz) reads 0.1 to 0.4 dB further
+#       off in all six. No loudness target moved: the bars no stroke touches are within 0.014 dB on three seeds.
+# kit overrides on the snare's track ; eq bands added to the track's eq (comma between bands) ; the fader, dB ;
+# the loudness target ('' = unchanged). "" = v23 byte for byte.
+SNARE = os.environ.get('C10T10_SNARE', 'kit.s.patch.synth.filters.1.gain=-5dB kit.s.patch.synth.layers.0.wire_tone=5000 '
+                                       'kit.s.patch.synth.layers.0.contact=0.9 kit.s.patch.synth.amp.d=200ms '
+                                       'kit.s.patch.synth.layers.0.decay=0.24s;'
+                                       'peak cutoff=700 q=0.6 gain=-5dB;2;' if TOP else '')
 
 
 def bow_patch():
@@ -931,6 +956,25 @@ def the_top_changes_hands(song):
         song['loudness'] = float(target)
 
 
+def the_snare_is_fitted(song):
+    """v24: the album's snare fitted to this song: its body under its crack, as on the records; 1 dB down."""
+    over, bands, fader, target = SNARE.split(';')
+    for t in song['tracks']:
+        if t['name'] == 'snare':
+            if over:
+                t['patch'] += ' ' + over
+            if bands:
+                eq = next((f for f in t.get('fx') or [] if isinstance(f, dict) and f.get('type') == 'eq'), None)
+                if eq is None:
+                    t['fx'] = (t.get('fx') or []) + [{'type': 'eq', 'bands': []}]
+                    eq = t['fx'][-1]
+                eq['bands'] = eq['bands'] + [b.strip() for b in bands.split(',')]
+            if fader:
+                t['gain'] = f'{float(fader):g}dB'
+    if target:
+        song['loudness'] = float(target)
+
+
 def dump(song):
     return '\n'.join('tracks:\n'+'\n'.join('  - '+json.dumps(x) for x in v) if k=='tracks' else k+': '+json.dumps(v) for k,v in song.items())+'\n'
 
@@ -940,6 +984,7 @@ if __name__=='__main__':
     parser.add_argument('--out',type=Path,default=OUT); parser.add_argument('--form',action='store_true')
     args=parser.parse_args(); song, marks=build()
     if TOP: the_top_changes_hands(song)
+    if SNARE: the_snare_is_fitted(song)
     if args.form:
         for n,t in marks: print(f'{n:18} {t/BAR+1:5.0f}  {t/SUB*60/BPM:6.2f}s')
     else: args.out.write_text(dump(song))
