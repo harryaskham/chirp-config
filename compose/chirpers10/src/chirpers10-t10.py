@@ -249,6 +249,19 @@ CHEST = os.environ.get('C10T10_CHEST', '195:1.3:6.5,560:1:-1.5;185:1:-6;-10.239'
 # buses come down by where the borrowing starts (0 = no build) ; the loudness target ('' = unchanged). '' = v20; it
 # is on only while CHEST is.
 LEDGER = os.environ.get('C10T10_LEDGER', 'h,h,hs,h1,h2,h3,oh;0,0,0,0,0,0,0;on account;2;' if CHEST else '')
+# v22 (chirper-alpha; whole song: its ending, 3:17.1-3:21.4): THE LAST CALL GETS NO ANSWER. The song is called Still
+# Owing and nothing in it ever is: every pair pays inside two bars, 'square' squares it and 'the receipt' closes the
+# account. It begins with a call that is answered (the reed's E flat, B flat, F at 0:00; the pick's four notes; the
+# piano and the struck key on the bar line where the answer comes) and every call since has had its answer. So it
+# ends on the one that does not: after the receipt's chord is damped the reed calls once more, the piano marks the
+# bar line where the answer is due, the struck key (which marks where the answer arrives) does not strike, and the
+# reed holds its last note through the bar the answer would have filled, falling away. Four notes; nothing before
+# 3:17.1 changes. The call is 3 dB over the first one's: it follows the loudest chord in the song.
+# dB on the last call against the first ; sixteenths the reed holds its last note past the bar line where the answer
+# is due (0 = it stops short of it, as at 0:00) ; dB that note has fallen by when it lets go ; the piano's mark on
+# that bar line, velocity ('' = none) ; sixteenths the song runs past that bar line ; the loudness target ('' =
+# unchanged). '' = v21.
+OUTSTANDING = os.environ.get('C10T10_OUTSTANDING', '3;16;-20;0.72;18;' if LEDGER and BREATH else '')
 
 
 def bow_patch():
@@ -743,6 +756,22 @@ def build():
         lo, hi = (first-pair)/SUB, (first-pair+BAR)/SUB
         air_points.extend([[f'{float(at[:-1])+pair/SUB:g}b', db] for at, db in list(air_points)
                            if isinstance(at, str) and lo <= float(at[:-1]) < hi])
+
+    if OUTSTANDING:
+        # v22: after the receipt the reed calls once more, as at 0:00. The piano marks the bar line where the answer
+        # is due, and nobody answers: the one call in the song that is never paid.
+        lift, wait, fall, mark, run = OUTSTANDING.split(';')[:5]
+        sections.append(('outstanding', t))
+        for p0,_,semi,how in CALL:
+            if how=='m': continue
+            following = next((pos for pos in call_heads if pos>p0), BAR+float(wait))
+            note('breath',t+p0,following-p0-.25,HOME+semi+12,(.99 if p0==0 else .92)-.09,sub=.12)
+            if float(lift): voices['breath'][-1]['gain'] = f'{float(lift):g}dB'
+        if float(wait) and float(fall):
+            air_points.extend([[f'{(t+BAR)/SUB:g}b',0],[f'{(t+BAR+float(wait)-.25)/SUB:g}b',float(fall)]])
+        if mark:
+            note('rule',t+BAR,2.2,HOME+31,float(mark))
+        t += BAR+int(run)
 
     def track(tr,patch,db,pan=0,**more):
         ns=sorted(voices.pop(tr),key=lambda e:e['at']); assert ns
