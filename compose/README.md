@@ -382,6 +382,14 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     record's stems together hold only 60 to 81% of its 8-16 kHz power: trust a stem's SHAPE, never set a level
     against it. On the modal plate BRIGHT fills the top octave, not TILT; the kit's DRIVE on the china is its
     ring (drive 0 is a splash: 21 dB down in a quarter of a second).
+  - a SNARE alone against the records' snares: `tools/snarespec.py NAME=SOLO.wav[:FROM:TO] … [--each]` (thirds of
+    an octave, as a shape, with body and wires against crack and the stroke's fall; chirper-zero). What it shows
+    that the two ratios did not: the album kit's snare has its NOTE in the 250 Hz band where the records have
+    theirs at 200, and humps at 1-1.25 kHz and 2-2.5 kHz where theirs dip. `kit.s.pitch=G3` moves the note;
+    `shell`, `shell_hz` and `reso_level` move nothing (the humps are the head's modes); `damp` 0.9 takes 2.5 dB
+    off 1 kHz; the rest is eq. Two cautions: the drums' bus glue and clip make a snare's measures depend on its
+    FADER; and a snare's box can be standing in for guitars that are short at 250 Hz-4 kHz: let the MIX say
+    how much of the cure to keep (Extreme and Mean v26 kept half).
   - BY PART (`stembal.py song … --voice`, the group rows): read the two `groups:` lines first; until 08:18 on 19 Nov
     the default groups left guitars out on sixteen of seventeen songs. A figure is a share of the whole mix.
     `OUTSIDE THE GROUPS` under a window's table names a band where half or more of the mix is in NO group's tracks
