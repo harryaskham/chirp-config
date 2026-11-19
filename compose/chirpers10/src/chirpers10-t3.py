@@ -820,7 +820,8 @@ def slow_kit():
                 drum(f[1], t, float(f[2]))
             elif b == 6:
                 for j in range(n):
-                    drum("s", t + 2 * j, sv[j])
+                    if not any(x["at"] == round((t + 2 * j) / 4, 4) for x in T["snare"]):     # (a backbeat left in keeps its own stroke on four)
+                        drum("s", t + 2 * j, sv[j])
             else:
                 T.setdefault("slowtoms", []).append({"at": round(t / 4, 4), "len": 0.25, "pitch": {2: "t1", 3: "t2", 4: "t3", 5: "ft"}[b], "vel": float(f[0])})
             t += 2 * n
