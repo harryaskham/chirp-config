@@ -799,7 +799,7 @@ NEARER = os.environ.get("C10T1_NEARER", "363:383:-6:-3:-10.093" if REBUILD and H
 # bars from the section's first ; the bell's velocity ; the bells' fader ; dB on the strokes of each pair (five and seven,
 # five and eleven, seven and eleven) ; where each pair's bell stands (pan) ; the loudness target ('' = unchanged).
 # "" = v62. It is on only while no older switch of this song is set, so each of those still gives what it gave.
-MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET") for k in os.environ) else "")
+MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE") for k in os.environ) else "")
 # v44: THE ENGINE, EXPOSED (9:19, in the hardest stretch). For twenty-eight bars everything runs at once: four guitars
 # and the bass on seven, the china on every eighth, the bark, and under it all the kick in unbroken sixteenths. The one
 # event inside it is the ground moving up a semitone at 9:20. Now, for the half bar before that, everything stops
@@ -2217,8 +2217,61 @@ def hold_still(doc):
     return done
 
 
+# v64 (chirper-alpha; palette round: one instrument swapped, in the eye, 5:35.2-6:30.2): IN THE EYE THE TUNE IS PLAYED
+# FROM TAPE, AT HALF SPEED AND THEN AT SPEED. The tune is the lead guitar's everywhere, and the eye is the one place it
+# is played whole, twice: low, then an octave up. There the driven lead was the only amp left in the room, 10 dB down
+# so as not to spoil it. Now it rests for the eye and a keyboard of tapes plays the tune: one flute note recorded for
+# each of the tune's six keys (the library's blown flute, 4.2 s, dry), a nested song per key and a `sample` patch per
+# key. The second pass plays each tape at speed. The FIRST pass plays the same tapes an octave down, which on a tape is
+# half speed: the flute's vibrato is 2.6 Hz there and 5 Hz when the tape comes up to speed, and the octave the tune
+# rises at 6:02.7 is the deck doubling its speed. In a piece about time kept, the calm is time slowed. One deck turns
+# all the tapes (the track's `tape` fx: 4 cents of wow, so every note sits within 10 cents); the fader puts the tape
+# where the guitar stood on the loudness meter (-33.7 and -32.9 K raw against -32.7 and -33.5), which for a flute is
+# its fundamental 10 dB clear of everything else in its third-octave (the guitar's read -13 and -2: it was heard by
+# its harmonics). NB `--solo tape` renders silence (bd-4942f3): bench it as its own little song (the round's bench).
+# the bars whose lead notes go to the tape ; the tape's fader ; the passes of the tune the lead guitar still plays as
+# well ("" = neither; "2" = the second) ; the flute's velocity when it was recorded ; the deck's wow and flutter in
+# cents and its drift (in units of the wow) ; the loudness target ("" = unchanged) ; settings added to the recorded
+# flute's patch ("" = the library's flute as it comes). "" = v63. On only while no older switch of this song is set.
+TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE") for k in os.environ) else "")
+
+
+def the_eye_on_tape(doc):
+    """In the eye the tune is played from tape: one flute note recorded for each key, at half speed and then at speed."""
+    bars, fader, keeps, vel, deck, target, blown = TAPE.split(";")
+    b0, b1 = (int(x) for x in bars.split(":"))
+    lead = next(t for t in doc["tracks"] if t["name"] == "lead")
+    eye = [n for n in lead["notes"] if b0 * 4 <= n["at"] < b1 * 4]
+    second = (176 * 16 + LONG_WAIT_TURNS * 11) / 4                    # the beat the tune's second pass begins on
+    lead["notes"] = [n for n in lead["notes"] if n not in eye or ("1" if n["at"] < second else "2") in keeps]
+    songs, patches, notes = {}, {}, []
+    for n in eye:
+        m = NOTE.index(n["pitch"][:-1]) + 12 * (int(n["pitch"][-1]) + 1)
+        rec = m if n["at"] >= second else m + 12                      # what the flute played: the second pass's octave
+        key = NOTE[m % 12]
+        songs[f"ct-tape-{nm(rec)}"] = {"tempo": 60, "length": "4.3b", "tail": "0.2s", "seed": 1, "tracks": [
+            {"name": "flute", "patch": ("flute fx.0.mix=0 play.humanize.time=0ms play.humanize.vel=0 " + blown).strip(), "gain": "0dB",
+             "notes": [{"at": 0, "len": 4.25, "pitch": nm(rec), "vel": float(vel)}]}]}
+        patches[f"ct-tape-{key}"] = {"about": f"chirper-alpha: the tape under the {key} keys - one flute note ({nm(rec)}, 4.2 s), played at speed on {nm(rec)} and at half speed an octave below (see the generator, v64)",
+                                     "play": {"gate": 1}, "synth": {"amp": {"a": "6ms", "s": 1, "r": "140ms"},
+                                     "layers": [{"type": "sample", "song": f"ct-tape-{nm(rec)}", "root": nm(rec)}]}}
+        notes.append({**n, "patch": f"ct-tape-{key}"})
+    wow, flutter, drift = deck.split(",")
+    doc["patches"].update(dict(sorted(patches.items())))
+    tracks = doc.pop("tracks")
+    doc["songs"] = dict(sorted(songs.items()))
+    doc["tracks"] = tracks + [{"name": "tape", "patch": notes[0]["patch"], "gain": fader, "pan": 0, "sends": dict(lead.get("sends") or {}),
+                               "fx": [{"type": "eq", "bands": ["hp cutoff=110", "lp cutoff=6500"]}, f"tape wow={wow} flutter={flutter} drift={drift} tone=7kHz"],
+                               "notes": notes}]
+    if target:
+        doc["loudness"] = float(target)
+    return notes
+
+
 if __name__ == "__main__":
     doc = song()
     if STILL:
         hold_still(doc)
+    if TAPE:
+        the_eye_on_tape(doc)
     open(OUT, "w").write(dump(doc))
