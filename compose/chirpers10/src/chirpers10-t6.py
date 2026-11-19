@@ -471,12 +471,14 @@ def hair_gens():
     """v26: the second voice. The tune's own runs from the lock on five to the end of the second wall (same dial,
     same ladder, the same rests under the singers), walked from a number HAIR's first field away and never reset."""
     x, out = CELLS[AT["five"]][2] + float(HAIR.split(";")[0]), []
+    end = AT[HOME.split(";")[0]] if HOME else AT["three"]                 # v27: it goes on, and the window of three brings it home
+    unheard = set(HOME.split(";")[1].split(",")) if HOME else set()
     for c, n, sec, g in lead_gens():
-        if AT["five"] <= c < AT["three"]:
-            out.append({**g, "x0": x})
+        if AT["five"] <= c < end:
+            out.append({**g, "x0": x, **({"rest": 1} if sec in unheard else {})})
             for i in range(n):
                 x = CELLS[c + i][1] * x * (1 - x)
-    assert sum(g["n"] for g in out) == AT["three"] - AT["five"]
+    assert sum(g["n"] for g in out) == end - AT["five"]
     return out
 
 
@@ -942,6 +944,31 @@ EIGHT = os.environ.get("C10T6_EIGHT", "l;moved;2;-9.868;3") if ROOM else ""
 # (Level, benched raw: at the tune's own fader, -18 dB, and off to the right; at -20 it stood 3.9 dB under the tune
 # and 17 to 18 under the band, K-weighted, where the tune stands 13 to 14 under.)
 HAIR = os.environ.get("C10T6_HAIR", "-0.005;-18dB;0.45;-9.84") if EIGHT else ""
+# v27 (chirper-two; section round, w5 1:51.3-2:19.1, and on to the top at 2:24.3): THE STRANGER COMES HOME, A STEP
+# AHEAD. v26 started the rule twice, a hair apart, and by the end of the second wall the two were strangers; there
+# the second voice stopped. It is the other half of what the rule is known for that had not been said: a window
+# that repeats CATCHES whatever comes into it. So the second voice does not stop at 1:58.3. It walks on, never
+# reset, from wherever the wall left it (0.725, where the tune is at 0.775), into the window of three. Computed,
+# and nothing in it is put there:
+#   - the tune locks at once (the dial was set for the tune's number). The second voice does not: for twelve half
+#     bars it circles the three and misses, Db6 B5 D6, B5 Ab6 D5, Db6 F6 G5, G6 D5 Db6, against the tune's
+#     Ab6 Db5 Ab5. Its high note comes a half bar AFTER the tune's (2:01.7, 2:04.3), then WITH it and a semitone
+#     under (2:06.1); for three half bars running it is a semitone off the tune (2:05.2, 2:06.1, 2:07.0). Once
+#     it is near, what is off shrinks by 0.56 a lap, on alternate sides;
+#   - (through the two sung laps both chips rest, as they have since v24 and v26; it locks there, unheard, at 2:10.4);
+#   - at the six (2:13.9) it comes back, and it is HOME: the tune's own three notes, one half bar AHEAD of the
+#     tune. Db5 Bb5 Ab6, then Db5 Ab5 Ab6 three times, against Ab6 Db5 Ab5: a round, in fifths and octaves (the
+#     one note still out, Bb5 for Ab5 at 2:14.8, a sixth, is the last to come in). Its Ab6 falls on the half bar BEFORE
+#     each of the band's screams (2:15.7, 2:18.3, 2:20.9), and the last of them, 2:23.5, is the pick-up into the
+#     top. The rule decides the phase, not the song: the same tune, but nobody chose which step it would be on.
+# So the window holds the whole of it: two strangers in the wall, one home and one circling, the singers, a round.
+# MEASURED (raw, seed 0; home.py reads the notes back from the audio: they are the computed ones). The second
+# voice stands 13.0 to 17.8 dB under everything else, half bar by half bar (K), the tune 10.4 to 15.2; it is 1.9
+# dB under the tune in the three and in the six, as v26 set it in the wall. In the finished file every section
+# before 1:58.3 and from 2:24.8 on is within 0.02 dB of v26; the target is not moved.
+# the section at which the second voice stops (it walks on from the wall, never reset) ; sections in which it walks
+# but is not heard ; the song's loudness target ("" = unchanged). "" = v26.
+HOME = os.environ.get("C10T6_HOME", "full;;") if HAIR else ""
 MAKE_SOME_ROOM = (["M EY1 K", "_", "S AH1 M", "R UW1 M", "_"], [3, 8, 13, 18, 24], [.94, .88, .90, .95, .90])
 NO_MORE_ROOM = (["N OW1", "M AO1 R", "R UW1 M"], [4, 6, 14], [.90, .92, .95])
 
@@ -1246,7 +1273,7 @@ def song():
                   "and back down: the riff settles, splits in two, four, eight, stops repeating, locks by itself on five half "
                   "bars and then on three, fills the whole range, and dies out. Triplets at 138, on E, with a drum machine; "
                   "the lead has no notes, only the rule (the engine's own logistic generator). v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(HAIR.split(";")[3]) if HAIR and HAIR.split(";")[3] else float(EIGHT.split(";")[3]) if EIGHT else float(ROOM.split(";")[3]) if ROOM else float(WITH.split(";")[2]) if WITH else float(SETTLE.split(";")[3]) if SETTLE else float(FLIP.split(";")[2]) if FLIP else float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(HOME.split(";")[2]) if HOME and HOME.split(";")[2] else float(HAIR.split(";")[3]) if HAIR and HAIR.split(";")[3] else float(EIGHT.split(";")[3]) if EIGHT else float(ROOM.split(";")[3]) if ROOM else float(WITH.split(";")[2]) if WITH else float(SETTLE.split(";")[3]) if SETTLE else float(FLIP.split(";")[2]) if FLIP else float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"cc-machine": machine,
                     **({"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}}} if KIT else {})},
         "buses": {
