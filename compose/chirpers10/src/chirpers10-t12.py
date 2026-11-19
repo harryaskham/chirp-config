@@ -135,13 +135,31 @@ HANDS_RIG = ('fx.1.model=gojira fx.2.mic=0.25', None, ['peak cutoff=2600 q=1.4 g
 # The strips of 'turn over' read upside down (first, one past the last) ; the crash's velocity on each turn (0: no
 # crash) ; the loudness target. --without-turned-page gives v15.
 TURNED = (2, 6, 0.8, -10.185)
+# v17 (chirper-alpha, section w2, 0:27-0:55; the change is one strip, 0:41.1-0:43.85): THE OTHER HAND READS IT ALONE
+# FIRST. 'Opposite' (0:43.85) is the song's subject arriving: the right hand reads the strip from the far end while
+# the left reads on. But the listener has never heard the strip read backwards by itself: at the first note of it
+# both readings are already going, and for the three strips before it the two guitars are in plain unison (the
+# map's most static stretch of this window). The backwards strip is only ever heard alone at 3:52.9, on the facing
+# page, when the song is over.
+# So on the last strip of 'ink' the band gives the downbeat (the left hand's F, the bass, the foot) and lifts off.
+# The right guitar, on its own side, reads the whole strip from the far end, alone: C, G flat, A flat, F where the
+# riff goes F, A flat, G flat, C, and its five palm strokes in their mirrored places. Only the hat goes on counting
+# quarters in four, as it does all song: the count the strip turns against, heard bare for once. Then the crash,
+# and both hands read at once. What is played in the break is note for note what the right hand plays in every
+# strip of 'opposite'; nothing is new but the silence round it.
+# How many of ink's last strips the right hand reads alone ; the hat keeps counting through them ; the band gives
+# the downbeat ; the loudness target. --without-first-reading gives v16.
+# (One guitar for 2.6 s lowers the song's integrated loudness: at v16's target every other bar came out 0.03 dB
+# louder where the band is loud and 0.065 where it is quiet. Asking for 0.065 less overshot by as much again: here
+# a decibel of target moves a quiet bar 1.9 dB and a loud one 0.9. So 0.035 less.)
+READING = (1, True, True, -10.22)
 
 
 def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, turned=True, rig=HANDS_RIG):
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, turned=True, rig=HANDS_RIG, reading=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
@@ -156,6 +174,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
     heavy = heavy and copy                       # --without-carbon-copy still gives v13
     rig = rig if heavy else None                 # --with-steel still gives v14
     turned = turned and heavy and rig is not None  # --stock-rig is v15's notes on the old rig
+    reading = reading and turned                 # --without-turned-page still gives v15
     ev = defaultdict(list); sections = []; tie_gains = {}; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -221,6 +240,8 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
             # backwards: one note, two, then all four. In 'one hand' the drummer
             # answers two full strips, at the guitarists' timing this time.
             tom_reply = drum_hand and sec=='one hand' and i in (count-3,count-1)
+            # v17: the last strip(s) of 'ink' are the other hand's first reading, alone
+            alone = reading and sec=='ink' and i >= count-READING[0]
             if sec=='signed':
                 # No counting-out: the last two chord changes are read right to left.
                 if i==0: cadence=[(0,7,5),(8,1,7)]
@@ -266,7 +287,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                         put('steel-'+tr,a+t,root+24+opens[1][t],until-t-.12,.87)
                         if lifted: ev['steel-'+tr][-1]['gain'] = STEEL_ON_C
                     continue
-                r = back if rev else front
+                r = back if rev or (alone and tr=='right') else front
                 if picking_hand and sec=='ink' and tr=='right':
                     lap = i - count//2
                     if 0 <= lap < 3:
@@ -274,6 +295,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                 last_open = max(t for t,_,k in r if k=='o')
                 for j,(t,p,k) in enumerate(r):
                     if not inside(t): continue
+                    if alone and tr=='left' and (t or not READING[2]): continue      # v17: the downbeat, then the hand lifts off
                     if pivot and t > last_open: continue     # v12: nothing damps the C that is about to be the ground
                     if tom_reply and not (i==count-1 and t==STRIP-1): continue
                     if sec=='one hand' and k=='m' and (i>=4 or t%2): continue
@@ -285,7 +307,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                     n = root+p
                     if turned and sec=='turn over' and TURNED[0] <= i < TURNED[1]:
                         n = root+(12-p)%12       # v16: the page upside down
-                    if picking_hand and sec=='ink' and tr=='right' and k=='m' and t not in by_centre:
+                    if picking_hand and sec=='ink' and tr=='right' and k=='m' and t not in by_centre and not alone:
                         # The travelling strokes are up-picks. Keep them short,
                         # but lift the palm a little so they cut through the note
                         # still ringing on the left. Ordinary down-picks stay put.
@@ -312,6 +334,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                 rb = opens[1 if leftback else 0]
                 for t,p in rb.items():
                     if not inside(t): continue
+                    if alone and (t or not READING[2]): continue
                     if sec=='turn over' and i==count-1 and t>=10: continue
                     if tom_reply:
                         put('drum-hand',a+t,'head'+str(root+12+p),2.3,.92)
@@ -360,6 +383,9 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                 if sec=='carbon':
                     if beat%4==2: kit('snare',t,'s',.76)
                 else:
+                    if alone:
+                        if READING[1]: kit('hat',t,'h',.65 if beat%4==0 else .48)
+                        continue
                     if beat%4==(2 if sec in ('ink','one hand') else 1) or (sec not in ('ink','one hand') and beat%4==3): kit('snare',t,'s',.94)
                     if sec in ('raised','turn over'): kit('brass',t,'x' if sec=='turn over' else 'rde',.72 if beat%4==0 else .60)
                     elif not tom_reply or t-a not in opens[1]: kit('hat',t,'h',.65 if beat%4==0 else .48)
@@ -605,7 +631,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
            'drums':{'fx':['reverb kind=room mix=0.10 decay=0.53s predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'18ms','release':'120ms'},'clip ceiling=-13dB']},
            'low':{'fx':[{'type':'eq','bands':['peak cutoff=48 q=1.4 gain=-4dB','peak cutoff=98 q=1 gain=3dB','peak cutoff=310 q=0.9 gain=-4dB']},{'type':'compressor','threshold':'-24dB','ratio':5,'attack':'14ms','release':'115ms'}]}}
     if album_kit: buses['drums']['fx'].append({'type':'eq','bands':KIT_EQ})
-    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(HEAVY_LOUDNESS if heavy else COPY_LOUDNESS if copy else THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
+    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(READING[3] if reading else HEAVY_LOUDNESS if heavy else COPY_LOUDNESS if copy else THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
     return doc,sections
 
 def dump(d):
@@ -625,8 +651,9 @@ if __name__=='__main__':
     ap.add_argument('--without-carbon-copy',action='store_true',help="regenerate v13, the copy strips of 'carbon' on the ink's own amp")
     ap.add_argument('--with-steel',action='store_true',help="regenerate v14, the pedal steel reading back in 'turn over'")
     ap.add_argument('--without-turned-page',action='store_true',help="regenerate v15, 'turn over' read the right way up throughout")
+    ap.add_argument('--without-first-reading',action='store_true',help="regenerate v16, the last strip of 'ink' in unison")
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG)
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
