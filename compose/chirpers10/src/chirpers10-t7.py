@@ -279,6 +279,34 @@ HANDS = os.environ.get("C10T7_HANDS", "x;s;0.8;0.95;fill;-10.118") if BREAK and 
 # gain ; semitones it falls ; the fall at the return: sixteenths it takes : dB on that note ("" = no fall there) ;
 # velocity ; the loudness target. "" = v21.
 SUB = os.environ.get("C10T7_SUB", "-10dB;12;8:3;0.9;-10.118") if HANDS else ""
+# v23 (chirper-zero, instrument round: the chug's own guitars, all four, every heavy section; no note changes).
+# THE CHUG GETS ITS TEETH. Harry, 19 Nov: "really make it chug if slow", and "better guitars". v19 to v22 made the
+# stroke stop, the breakdowns and the floor under them; this is the stroke's own sound. Three reads, and they agree:
+#   THE STROKE against the records' strokes (tools/riffpunch.py's measures, six records' guitar stems at their own
+#     chugs): 400 Hz-1 kHz against 1-4 kHz through the stroke, records -11.3 dB (-12.7 to -6.5); the twins -4.4, the
+#     four together -3.2. Seven dB more box than bite: a thud where the records have the clank the style is named for.
+#   BY PART against the records' guitar stems (groups named, six heavy stretches): 500 Hz-1 kHz 5.4 over, 2-4 kHz
+#     1.7 short.
+#   THE MIX on the no-voice rows: 2-4 kHz 0.9 to 2.8 short in all six; with four guitars 250-500 Hz 1.6 to 2.8 over
+#     and 500 Hz-1 kHz 1.6 to 3.1 over.
+# Why: a muted stroke on this rig is low-passed at 1 kHz before the amp (the patch moves its filter 3.4 octaves
+# with the palm), and its microphone sat halfway out the cone; and the wall pair was still on the album's old rig
+# (captured cabinet files, 10 dB off the top from 5 kHz): alone against a record's lone guitar +6 to +9 from 315 to
+# 800 Hz and -13 / -18 at 8 / 10 kHz, body and no string.
+#   the twins   the palm closes the filter 2 octaves, not 3.4 (2.75 kHz at a full mute), and the microphone moves in
+#               (0.5 -> 0.35). The +2.5 dB at 700 Hz STAYS: without it the two-guitar sections read 1.6 short at
+#               500 Hz-1 kHz in the mix (with it 0.5); the part alone would lose it, and the mix decides.
+#   the walls   stop at their amp and go through the engine's cabinet, as In the Time Of's wall pair (v21), On Its
+#               Hinge's second pair and the title track's wall do (Harry, 17 Nov, on a guitar heard alone: "The
+#               engine's cabinet is nearer"). Alone, mean distance from the record's lone guitar 4.86 -> 2.04 dB.
+#               Their fader gives back what the pair alone lost (-23.9 LUFS as before).
+# Benched and not kept: the palm as a hand on the string (`mute`, `mute_width`: no nearer on any measure here); the
+# amp's mids down (0.55, 0.4: nearer alone, but it is the two-guitar sections' 500 Hz-1 kHz again); the palm's
+# filter opened on the walls too (alone 2.14 against 2.04); the 700 Hz lift taken off the twins (above).
+# the twins' microphone ; octaves the palm closes their filter ; the walls' microphone ; their two cones ; distance ;
+# their fader ; the loudness target (four brighter guitars measure louder, and at v22's target the master turned
+# everything down 0.64 dB: at -9.763 the two quiet sections, where none of the four plays, keep v22's gain). "" = v22.
+TEETH = os.environ.get("C10T7_TEETH", "0.35;-2;0.4;52,53;0.15;-0.7;-9.763") if SUB else ""
 
 
 def nm(n):
@@ -973,6 +1001,8 @@ def song():
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}" + (" synth.amp.r=" + TIGHT.split(";")[0] if TIGHT else "")
+    if TEETH:
+        main += " fx.2.mic=" + TEETH.split(";")[0] + " synth.filters.0.cutoff.mod.0.amount=" + TEETH.split(";")[1]
     let_go = lambda patch, field: patch + (" synth.amp.r=" + TIGHT.split(";")[field] if TIGHT else "")
     mids = {"fx": [{"type": "eq", "bands": ["peak cutoff=700 q=0.9 gain=2.5dB"]}]}
     wall = {"fx": [{"type": "eq", "bands": ["peak cutoff=380 q=1 gain=-3dB"]}]}
@@ -983,8 +1013,12 @@ def song():
     tracks = [
         {"name": "gl", "patch": main.format(50), "gain": "-0.7dB", "pan": -1, "out": "gtrs", **mids},
         {"name": "gr", "patch": main.format(51), "gain": "-0.7dB", "pan": 1, "out": "gtrs", **mids},
-        {"name": "wl", "patch": let_go("ct-wall-stop-l", 1), "gain": "-3.5dB", "pan": -0.75, "out": "gtrs", **wall},
-        {"name": "wr", "patch": let_go("ct-wall-stop-r", 1), "gain": "-3.5dB", "pan": 0.75, "out": "gtrs", **wall},
+        *([{"name": tr, "patch": let_go(f"ct-wall-stop-{side} fx.3.mix=0" + "".join(f" fx.4.bands.{i}.gain=0dB" for i in range(4)), 1),
+            "gain": TEETH.split(";")[5] + "dB", "pan": pan, "out": "gtrs",
+            "fx": [{"type": "cab", "model": "4x12-modern", "mic": float(TEETH.split(";")[2]), "distance": float(TEETH.split(";")[4]), "cone": int(cone)}]}
+           for tr, side, pan, cone in zip(("wl", "wr"), "lr", (-0.75, 0.75), TEETH.split(";")[3].split(","))] if TEETH else
+          [{"name": "wl", "patch": let_go("ct-wall-stop-l", 1), "gain": "-3.5dB", "pan": -0.75, "out": "gtrs", **wall},
+           {"name": "wr", "patch": let_go("ct-wall-stop-r", 1), "gain": "-3.5dB", "pan": 0.75, "out": "gtrs", **wall}]),
         *[{"name": f"harp{i + 1}", "patch": "em-harp", "gain": g, "pan": 0.25, "at": f"{s0 / 4:g}b", "sends": {"hall": hh},
            "gen": [harp_gen(d, n, pool)]} for i, s0, d, n, pool, g in harps],
         *([{"name": f"harp{i + 1}{'bc'[k - 1]}", "patch": "em-harp", "gain": CANON.split(";")[k - 1], "pan": (-0.3, 0.0)[k - 1],
@@ -1068,7 +1102,7 @@ def song():
                   "is the same at every size, so the band plays it at many sizes at once: muted strokes, open notes, chords, crashes, "
                   "the root, and the song's own sections (long ones heavy, short ones quiet). The kit keeps common time against it. In "
                   "the quiet sections a wire harp has no notes, only the rule (the engine's L-system). The slow song: 80. v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(SUB.split(";")[4]) if SUB else float(HANDS.split(";")[5]) if HANDS else float(BREAK.split(";")[-1]) if BREAK else float(TIGHT.split(";")[3]) if TIGHT else float(CHUG.split(";")[2]) if CHUG else float(HOLD.split(";")[1]) if HOLD else REST_LUFS if REST else -10, "seed": 1, "tail": "5s", "length": f"{(TOTAL + 32) / 4:g}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(TEETH.split(";")[6]) if TEETH else float(SUB.split(";")[4]) if SUB else float(HANDS.split(";")[5]) if HANDS else float(BREAK.split(";")[-1]) if BREAK else float(TIGHT.split(";")[3]) if TIGHT else float(CHUG.split(";")[2]) if CHUG else float(HOLD.split(";")[1]) if HOLD else REST_LUFS if REST else -10, "seed": 1, "tail": "5s", "length": f"{(TOTAL + 32) / 4:g}b", "event_stable": True,
         "patches": {
             **({"em-steel": {
                 "extends": "pedal-steel synth.amp.a=75ms synth.amp.r=140ms fx.0.mix=0.08 fx.1.mix=0 fx.2.mix=0 play.glide=0ms",
