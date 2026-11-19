@@ -467,6 +467,19 @@ def lead_gens():
     return gens
 
 
+def hair_gens():
+    """v26: the second voice. The tune's own runs from the lock on five to the end of the second wall (same dial,
+    same ladder, the same rests under the singers), walked from a number HAIR's first field away and never reset."""
+    x, out = CELLS[AT["five"]][2] + float(HAIR.split(";")[0]), []
+    for c, n, sec, g in lead_gens():
+        if AT["five"] <= c < AT["three"]:
+            out.append({**g, "x0": x})
+            for i in range(n):
+                x = CELLS[c + i][1] * x * (1 - x)
+    assert sum(g["n"] for g in out) == AT["three"] - AT["five"]
+    return out
+
+
 def low_bus():
     """ct-bass's bus. v6: the three bands that sit on the bass's own notes go with the bass from key to key."""
     comp = {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"}
@@ -905,6 +918,30 @@ ROOM_PARTS = set(ROOM.split(";")[2].split(",")) if ROOM else set()
 # accents the lap's second half moves ; "" = at the wall, as before) ; dB on the keys' two notes there ; the
 # song's loudness target ; dB on the chip's second voice (it plays only in that lap). "" = v24.
 EIGHT = os.environ.get("C10T6_EIGHT", "l;moved;2;-9.868;3") if ROOM else ""
+# v26 (chirper-alpha; section round, w4 1:23.5-1:51, and on to the end of the second wall at 1:58.3): A HAIR UNDER.
+# What this rule is known for has not been said in the song: start it twice from almost the same number and, where
+# it repeats, nothing comes of the difference; where it does not, the two are soon strangers. This window holds one
+# of each, the lock on five (1:27) and the second wall (1:44.3). So from the lock the chip's tune has a SECOND VOICE:
+# the rule again, started five thousandths under the tune's own number and never reset (like the tune it has no
+# notes in the song: it is the engine's generator, with a different x0). What the rule does with it, computed:
+#   - in the lock it plays the five with the tune, note for note, once round; the second time its last note is a
+#     step under the tune's (F under G). It has fallen onto a five of its own, one note different.
+#   - (through the two sung laps both chips rest, as the tune has since v24);
+#   - at the wall the two start together, four notes in unison; then the second voice goes on saying the five for
+#     four half bars while the tune does not, then runs the tune's own figure two half bars ahead of it, and ends
+#     on one note three times (it has come close to the rule's resting number, 0.737, and a number that close
+#     stays a while before it is thrown off).
+# A FINDING, in the arithmetic and not put there: the five the song has played since v1 is the rule's UNSTABLE
+# five. At this dial setting there are two five-cycles side by side (the window has only just opened); the song's
+# number sits on the one that repels (anything near it moves away 2.7 times a lap; the tune itself drifts 0.0017
+# in four laps and the dial moves on before it shows), and the second voice, a hair under, falls onto the one
+# that holds (0.674 a lap), whose last note is that step lower. A hair OVER the tune's number plays the five once
+# and then wanders for the rest of the lock: so the hair goes under.
+# how far from the tune's number the second voice starts at the lock ; its gain ; its pan ; the song's loudness
+# target ("" = unchanged). "" = v25.
+# (Level, benched raw: at the tune's own fader, -18 dB, and off to the right; at -20 it stood 3.9 dB under the tune
+# and 17 to 18 under the band, K-weighted, where the tune stands 13 to 14 under.)
+HAIR = os.environ.get("C10T6_HAIR", "-0.005;-18dB;0.45;-9.84") if EIGHT else ""
 MAKE_SOME_ROOM = (["M EY1 K", "_", "S AH1 M", "R UW1 M", "_"], [3, 8, 13, 18, 24], [.94, .88, .90, .95, .90])
 NO_MORE_ROOM = (["N OW1", "M AO1 R", "R UW1 M"], [4, 6, 14], [.90, .92, .95])
 
@@ -1169,6 +1206,9 @@ def song():
         tracks.append({"name": "room", "patch": voice.format(1.04), "gain": ROOM.split(";")[0], "pan": 0, "fx": tone})
         if "room2" in T:
             tracks.append({"name": "room2", "patch": voice.format(0.98), "gain": ROOM.split(";")[1], "pan": 0.25, "fx": tone})
+    if HAIR:
+        tracks.append({"name": "hair", "patch": "nes-pulse-lead", "gain": HAIR.split(";")[1], "pan": float(HAIR.split(";")[2]),
+                       "at": f"{AT['five'] * 2}b", "sends": {"hall": "-12dB"}, "gen": hair_gens()})
     for t in tracks:
         if "gen" not in t:
             t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
@@ -1206,7 +1246,7 @@ def song():
                   "and back down: the riff settles, splits in two, four, eight, stops repeating, locks by itself on five half "
                   "bars and then on three, fills the whole range, and dies out. Triplets at 138, on E, with a drum machine; "
                   "the lead has no notes, only the rule (the engine's own logistic generator). v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(EIGHT.split(";")[3]) if EIGHT else float(ROOM.split(";")[3]) if ROOM else float(WITH.split(";")[2]) if WITH else float(SETTLE.split(";")[3]) if SETTLE else float(FLIP.split(";")[2]) if FLIP else float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(HAIR.split(";")[3]) if HAIR and HAIR.split(";")[3] else float(EIGHT.split(";")[3]) if EIGHT else float(ROOM.split(";")[3]) if ROOM else float(WITH.split(";")[2]) if WITH else float(SETTLE.split(";")[3]) if SETTLE else float(FLIP.split(";")[2]) if FLIP else float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"cc-machine": machine,
                     **({"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}}} if KIT else {})},
         "buses": {
