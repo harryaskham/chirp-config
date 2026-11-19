@@ -1042,6 +1042,59 @@ def halfway(doc):
                           "gain": GONG, "pan": .35, "fx": ["hp cutoff=150"], "notes": notes})
 
 
+# v25: THE LEAD GETS A SPEAKER (instrument round, chirper-zero, 19 Nov; Harry: "improving our instruments, better guitars").
+# THE INSTRUMENT: the lead guitar (the library's `lead-tape`): the one honest line that comes down over the stair
+# (0:57.6-1:12) and the three leads that climb at the pole and in "both" (2:53-4:00). Every other guitar in this song
+# goes through the engine's cabinet; the lead went through captured cabinet files, and after them through a tape
+# saturator (`tape drive=0.3`) that put back, AFTER the speaker, the harmonics a speaker takes away.
+# READ ALONE (the honest line, raw; third-octaves against its own 2-3.15 kHz; in brackets a guitar heard alone on the
+# records, tools/guitarbench.py: three records agree to 0.7-1.6 dB): 4 kHz -3.0 (-3.6), 5 kHz -4.4 (-9.9), 6.3 kHz
+# -6.9 (-16.4), 8 kHz -9.6 (-22.4), 10 kHz -12.5 (-26.7), 12.5 kHz -15.9 (-34.8). It fell 6 dB an octave where a
+# guitar speaker falls 18: 10 to 19 dB of fizz from 6.3 kHz up, on the song's most exposed guitar. The eight guitars
+# of the stair, through the engine's cabinet, read -6.2 -10.4 -17.6 -25.3 -31.3 -38.6.
+# WHAT WAS TRIED (each benched alone): the engine's cabinet in place of the files, the saturator left on: -4.8 -7.3
+# -10.5 -14.9 -19.6 -25.7 (half the fizz stays: it is the saturator's). The saturator moved ahead of the speaker, with
+# the echo, as in an amp's loop: -5.6 -9.7 -19.6 -28.0 -35.6 -44.3 and the line's body thins (630 Hz 7.9 dB down).
+# KEPT: the engine's cabinet with the microphone near the cone's centre, and the saturator's drive at nothing (its
+# warmth, the echo and the hall as they were): -5.1 -9.3 -16.2 -21.5 -28.7 -38.6.
+# ONLY THE TOP CHANGES. The cabinet alone also took 3.4 to 4 dB out of the lead at 630 Hz (its scoop, right for a
+# riff) and put 3.4 to 4 in at 2.5 kHz. Two peaks in the patch's own eq hand those back, so the lead keeps the voice
+# it had: against v24 at the same loudness the honest line is within 1.6 dB in every third-octave from 160 Hz to
+# 4 kHz but one (500 Hz, +2.3), and then -3.2 at 5 kHz, -8.2 at 6.3, -11.6 at 8, -16.3 at 10, -23.2 at 12.5. Its top
+# against its own 2-3.15 kHz: -3.8 -7.5 -15.0 -21.2 -28.7 -38.9, within 2.4 dB of the record's guitar from 4 to
+# 10 kHz. Song-local patch `fs-lead`; no library patch is touched and no note changes.
+# microphone (0 the cone's centre) ; cone ; distance ; the saturator's drive ; trim on the honest line's fader, dB ;
+# trim on the three climbing leads' (each as loud alone as it was, -26.1 and -26.0 LUFS) ; the two peaks. "" = v24.
+LEADCAB = os.environ.get("C10T5_LEADCAB", "0.1;50;0.15;0;-0.6;-0.7;670:3:3.5,2400:2:-3" if REV and os.environ.get("C10T5_DOUBLE", "1") and os.environ.get("C10T5_TOMRISE", "1") else "")
+
+
+def speaker_for_the_lead(doc):
+    mic, cone, dist, drive, trim, trim3, body = LEADCAB.split(";")
+    doc["patches"]["fs-lead"] = {
+        "about": "chirper-zero: the library's lead-tape with a speaker on top: its captured cabinet files replaced by the engine's cabinet, "
+                 "the microphone near the cone's centre, and its tape saturator's drive at nothing (the saturator sat after the speaker and "
+                 "put back the top a speaker takes away); two peaks in its eq keep the voice it had below 4 kHz. The same string, amp, echo and hall.",
+        "extends": "lead-tape",
+        "fx": [{"type": "sympathetic", "notes": "F1,Bb1,Eb2,Ab2,Db3,Gb3,Bb3,Eb4", "decay": "1.2s", "mix": 0.06},
+               {"type": "amp", "model": "5150", "gain": 0.9, "ts": 0.7, "tight": 140, "boost": "6dB", "bass": 0.5, "mid": 0.68, "treble": 0.58,
+                "presence": 0.6, "resonance": 0.55, "sag": 0.3, "bloom": 0.3},
+               {"type": "cab", "model": "4x12-modern", "mic": float(mic), "distance": float(dist), "cone": int(cone)},
+               {"type": "eq", "bands": ["peak cutoff=800 q=0.9 gain=2dB", "peak cutoff=250 q=1.2 gain=-2dB"]
+                + ["peak cutoff=%s q=%s gain=%sdB" % tuple(x.split(":")) for x in body.split(",") if x]},
+               {"type": "delay", "time": "1/4", "mix": 0.2, "feedback": 0.38, "tone": 2400},
+               f"tape drive={float(drive):g} warmth=0.6",
+               "reverb kind=hall decay=2.8s mix=0.22 predelay=30ms width=1.3"]}
+    for t in doc["tracks"]:
+        if t.get("patch") != "lead-tape":
+            continue
+        t["patch"] = "fs-lead"
+        by = float(trim if t["name"] == "lead" else trim3)
+        if isinstance(t["gain"], dict):
+            t["gain"] = {**t["gain"], "value": f"{float(t['gain']['value'][:-2]) + by:g}dB"}
+        else:
+            t["gain"] = f"{float(t['gain'][:-2]) + by:g}dB"
+
+
 def song():
     compose()
     key_lane = [["0b", 0]]
@@ -1178,6 +1231,8 @@ def song():
         contrary_stairs(doc)
     if REV:
         roll_into_the_note(doc)
+    if LEADCAB:
+        speaker_for_the_lead(doc)
     return doc
 
 
