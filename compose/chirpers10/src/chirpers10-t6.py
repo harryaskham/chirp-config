@@ -1006,6 +1006,40 @@ HOME = os.environ.get("C10T6_HOME", "full;;") if HAIR else ""
 # unheard, from where HOME leaves it) ; dB on its fader where it becomes the tune : where it stops ; the loudness
 # target ("" = unchanged). "" = v27.
 ONE = os.environ.get("C10T6_ONE", "down-two;28;-6:-20;") if HOME else ""
+# v29 (chirper-two; drawn as a whole-song round, on the sung voice, which three handoffs name as the next thing
+# here; what is kept is 1:35.7-1:44.3, the two sung laps of the lock on five): "MAKE SOME ROOM" CAN BE MADE OUT.
+# The read against the records (v27, v28) has the sung laps 5 to 10 dB over at 250-500 Hz and 5 to 9 under at
+# 2-4 kHz. WHAT THE SINGERS ARE (tools/voxref.py, each line alone against the records' vocal stems, v28):
+# "make some room" is within 2.4 dB of them from 500 Hz to 4 kHz and 6 over at 250-500; "no more room" is three
+# dark vowels between nasals, 12 to 14 dB short at 1-2 kHz and 20 short at 2-4 kHz. And a sung lap weighs what
+# the band's lap before it does (v24's rule), so the voice carries the lap, by its body.
+# TRIED ON EVERY LINE, AND NOT KEPT THERE:
+#   the singer's own controls (ring, effort, a smaller tract, rasp): the dark lines' top moves 2 to 3 dB.
+#   eq at the same lap loudness: 1.3 to 2.9 dB off 250-500 Hz and nothing else (take the body out and the fader
+#     has to put it back); a lift at 1.3 kHz made 500 Hz-1 kHz worse.
+#   AN EDGE: each singer's body (200-700 Hz) driven hard on a bus of its own and only 1.8-3.5 kHz of that kept:
+#     upper harmonics made from the voice itself. On every line the read came right (the three's sung laps:
+#     250-500 Hz +5.1 -> +1.8, 2-4 kHz -9.4 -> -2.5), but on the dark lines the edge was as loud as the voice
+#     (1 dB under, K): they have no top of their own for it to lean on, and it is a buzz with no vowel in it.
+#     Alone, a recogniser that read 19 of the nine lines' 25 words on v28 read 10 and 12 on two builds ("No, no
+#     room", "They said No"), and the score fell 4.6 and 3.9.
+# KEPT: the edge and a leaner eq where the line has consonants and bright vowels for it to sit behind: "make some
+# room", both times. The two laps' ten and five notes move to a pair of tracks of their own (the same singers, the
+# same notes): hp 220, 9 dB out at 330 Hz, a low shelf of -6 dB at 800 Hz (v24's 7 dB lift at 2.6 kHz is not
+# needed: the edge is there), the edge 6 to 7 dB under the voice (K), the faders 3.6 dB up so that the laps weigh
+# what they did (as mastered, two seeds: -0.3 to +0.3 dB). Every other sung line is v28's, sample for sample
+# before the master.
+# IN THOSE TWO LAPS, the mix against the records: 250-500 Hz +7.2 -> +4.2, 500 Hz-1 kHz +2.4 -> +1.1, 2-4 kHz
+# -1.7 -> -0.3 (1-2 kHz +2.8 -> +3.1). ALONE, the recogniser wrote "Makes a broom. Makes a broom." on v28 and on
+# every build without the edge or with a weaker one (nine), and "Make some room. Make some room." on every build
+# with it at this strength (five, this one among them): 25 of the nine lines' 25 words now, where v28 read 19.
+# the lines' eq (engine bands, | between) ; dB on both singers' faders for them ; the loudness target ('' =
+# unchanged) ; dB on each line (five once, again ; three once, again ; the top ; four, two, one), added to v24's ;
+# WHICH LINES: the half bars of the lock on five they start in, first-last ; THE EDGE ('' = none): the band of the
+# voice it is made from, Hz : how hard that is driven (0..1) : its bias : the band kept of it (high-pass xN - low-pass
+# xM) : how much of it is added, dB. "" = v28.
+BODY = os.environ.get("C10T6_BODY", "hp cutoff=220|peak cutoff=330 q=0.9 gain=-9dB|lowshelf cutoff=800 gain=-6dB;3.6;;0.8,-0.1,0,0,0,0,0,0;10-20;200-700:0.82:0.3:1800x2-3500x2:-7") if ONE and ROOM else ""
+EDGE = BODY.split(";")[5] if BODY else ""
 MAKE_SOME_ROOM = (["M EY1 K", "_", "S AH1 M", "R UW1 M", "_"], [3, 8, 13, 18, 24], [.94, .88, .90, .95, .90])
 NO_MORE_ROOM = (["N OW1", "M AO1 R", "R UW1 M"], [4, 6, 14], [.90, .92, .95])
 
@@ -1023,6 +1057,8 @@ def room_lines():
     three = lambda a, src, last=None: [(last if last and j == 2 else s, ph, v, sung(src + j, a)) for j, (ph, s, v) in enumerate(zip(*NO_MORE_ROOM))]
     on = lambda a, words: [(6 * j, ph, .93, sung(a + j)) for j, ph in enumerate(words)]       # a syllable to the half bar, on its first beat
     trim = [float(v) for v in ROOM.split(";")[4].split(",")]      # five once, again ; three once, again ; the top ; four, two, one
+    if BODY and BODY.split(";")[3]:                               # v29: each line weighs what it did with the new chain
+        trim = [round(a + float(b), 2) for a, b in zip(trim, BODY.split(";")[3].split(","))]
     once = "out" if "again" in ROOM_PARTS else "leave"            # the guitars' cue back in comes after the last sung lap
     lines = [(HEAD5 + 10, 5, five(HEAD5 + 10), 1, once, trim[0]), (HEAD3 + 9, 3, three(HEAD3 + 9, HEAD3 + 9), 1, once, trim[2])]
     if "again" in ROOM_PARTS:
@@ -1051,7 +1087,11 @@ def sing_room():
         for j, (at, ph, v, p) in enumerate(words):
             stop = words[j + 1][0] if j + 1 < len(words) else n * 6 - .35
             gain = trim + (lift if ph == "R UW1 M" else 0)              # 'room' is the word, and 'oo' is this voice's quietest vowel
-            for tr, up in (("room", 0), ("room2", 3))[:singers]:        # the second singer two rungs up: always a minor third
+            apart = ""
+            if BODY:                                                    # v29: the lines that get the new chain, on a pair of their own
+                a, b = (AT["five"] + int(v) for v in BODY.split(";")[4].split("-"))
+                apart = "-e" if a <= first < b else ""
+            for tr, up in (("room" + apart, 0), ("room2" + apart, 3))[:singers]:   # the second singer two rungs up: always a minor third
                 add(tr, first, at, (stop - at) / .96, p + up, v)
                 T[tr][-1]["ph"] = ph
                 if gain:
@@ -1279,6 +1319,15 @@ def song():
             met, end = (one_voice() - AT["five"]) * 2, (AT[ONE.split(";")[0]] - AT["five"]) * 2      # a lane's beats count from the track's `at`
             tracks[-1]["gain"] = {"value": HAIR.split(";")[1], "mod": [{"src": "auto.melt", "amount": 1}]}
             tracks[-1]["auto"] = {"melt": {"points": [["0b", 0], [f"{met - 0.02:g}b", 0], [f"{met}b", a], [f"{end}b", z]], "curve": 0}}
+    if BODY:    # v29: the same two singers on a second pair of tracks, for the lines named: their own eq, and a send
+        e = BODY.split(";")     # each to a bus that makes upper harmonics out of the voice's body
+        tone = [{"type": "eq", "bands": e[0].split("|")}]
+        fader = lambda g: f"{float(g[:-2]) + float(e[1]):g}dB"
+        tracks.append({"name": "room-e", "patch": voice.format(1.04), "gain": fader(ROOM.split(";")[0]), "pan": 0, "fx": tone,
+                       **({"sends": {"edge": "0dB"}} if EDGE else {})})
+        if "room2-e" in T:
+            tracks.append({"name": "room2-e", "patch": voice.format(0.98), "gain": fader(ROOM.split(";")[1]), "pan": 0.25, "fx": tone,
+                           **({"sends": {"edge2": "0dB"}} if EDGE else {})})
     for t in tracks:
         if "gen" not in t:
             t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
@@ -1316,7 +1365,7 @@ def song():
                   "and back down: the riff settles, splits in two, four, eight, stops repeating, locks by itself on five half "
                   "bars and then on three, fills the whole range, and dies out. Triplets at 138, on E, with a drum machine; "
                   "the lead has no notes, only the rule (the engine's own logistic generator). v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(ONE.split(";")[3]) if ONE and ONE.split(";")[3] else float(HOME.split(";")[2]) if HOME and HOME.split(";")[2] else float(HAIR.split(";")[3]) if HAIR and HAIR.split(";")[3] else float(EIGHT.split(";")[3]) if EIGHT else float(ROOM.split(";")[3]) if ROOM else float(WITH.split(";")[2]) if WITH else float(SETTLE.split(";")[3]) if SETTLE else float(FLIP.split(";")[2]) if FLIP else float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(BODY.split(";")[2]) if BODY and BODY.split(";")[2] else float(ONE.split(";")[3]) if ONE and ONE.split(";")[3] else float(HOME.split(";")[2]) if HOME and HOME.split(";")[2] else float(HAIR.split(";")[3]) if HAIR and HAIR.split(";")[3] else float(EIGHT.split(";")[3]) if EIGHT else float(ROOM.split(";")[3]) if ROOM else float(WITH.split(";")[2]) if WITH else float(SETTLE.split(";")[3]) if SETTLE else float(FLIP.split(";")[2]) if FLIP else float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"cc-machine": machine,
                     **({"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}}} if KIT else {})},
         "buses": {
@@ -1334,10 +1383,26 @@ def song():
                                {"type": "eq", "bands": ["peak cutoff=400 q=0.8 gain=-6dB", "peak cutoff=5500 q=0.9 gain=1dB", f"highshelf cutoff=9000 gain={kt[10] if kt[10:] else -2}dB", "lp cutoff=14250 q=0.8"]}]},
                 "oh": {"fx": ["reverb kind=room decay=0.7s mix=1 predelay=4ms low_cut=5000 high_cut=12000 spread=0.6", {"type": "eq", "bands": ["lp cutoff=14250 q=0.8"]}]},
                 "snr": {"fx": [{"type": "eq", "bands": ["peak cutoff=300 q=0.7 gain=-12dB"]}]}} if KIT else {}),
+            **(edge_buses() if EDGE else {}),
         },
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": os.environ.get("C10T6_MASTER", "2.7dB")}]},
         "tracks": tracks,
     }
+
+
+def edge_buses():
+    """v29: one bus a singer (two voices through one would beat against each other in it): the voice's body, driven
+    hard, and only the band over it kept."""
+    band, drive, bias, kept, added = EDGE.split(":")
+    lo, hi = band.split("-")
+    out, lp = kept.split("-")
+    hp, _, n = out.partition("x")
+    lp, _, m = lp.partition("x")
+    bus = {"fx": [{"type": "eq", "bands": [f"hp cutoff={lo}", f"lp cutoff={hi}"]},
+                  {"type": "drive", "drive": float(drive), "bias": float(bias)},
+                  {"type": "eq", "bands": [f"hp cutoff={hp}"] * int(n or 1) + [f"lp cutoff={lp}"] * int(m or 1)},
+                  {"type": "gain", "gain": f"{added}dB"}]}
+    return {"edge": bus, **({"edge2": json.loads(json.dumps(bus))} if "room2-e" in T else {})}
 
 
 def dump(doc):
