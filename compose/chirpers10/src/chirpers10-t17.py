@@ -54,6 +54,25 @@ QUIET = (12, 13)               # two walks without the guitars: the rule heard p
 SUMMIT = (160, 80)             # the numbers of the fifteenth walk that carry the storeys under them
 STOREY = ('ct-wall-stop-{}', -1, .5, -1, -6)  # the second pair: rig ; track gain ; pan ; octaves from the left guitar's chord ; dB at 380 Hz
 SUMMIT_LOUDNESS = -9.81        # the loudness target with the storeys in: at -10 every other bar came out 0.17 to 0.18 dB quieter
+# v4 (chirper-one, instrument): THE KIT. Read alone against the eleven records' drums (their drum stems, as a share
+# of their mixes) and in the mix against their mixes, on the ninth walk and on the climb to 160 (raw), then on
+# the finished song. What the read said of v3: the kit as a whole stood 1.3 to 1.8 dB over the records' drums, and
+# the KICK alone was 44 to 50% of the whole mix's power: 77 to 88% of everything under 60 Hz, where the song read
+# 1.4 to 1.7 dB over the records, with its drum on the low A (55 Hz) and so almost all under 60. The CYMBALS were
+# 95% and more of 8-16 kHz, 1.2 to 1.5 over (3.2 in the climb). The kit held 6.6 dB more of 250-500 Hz than the
+# records' drums do, where the song read 2.2 to 2.6 over. So:
+#   the kick's drum is tuned a semitone up, to B flat (58 Hz: the fourth of the key, and it straddles 60 Hz as the
+#     records' kicks do, half its weight on either side), and its fader comes down 1.5 dB
+#   the cymbals get the album's shelf (2 dB off over 9 kHz); their fader stays where it was
+#   the drums bus gets the album's top (2 dB off over 9 kHz, low-pass at 14.25 kHz, where this one had a low-pass
+#     at 14.8 only) and a deeper, narrower cut for the box (7 dB at 340 Hz, q 1.2: the song is SHORT at 500 Hz to
+#     1 kHz, so the album's wide cut at 400 Hz would have taken from the wrong place too)
+# Tried and not kept: the kick's drum on C (65 Hz): the song went from 1.6 over to 2.6 UNDER below 60 Hz; and 3 dB
+# off the cymbals over 9 kHz, or 1 dB off their fader: the long walks came out 0.6 to 1.3 and 0.2 to 0.8 under
+# at 8-16 kHz, and the top (160) and the last walk, which were not over, lost the most.
+# The kick's drum (its pitch) ; its fader ; the cymbals' fader ; their eq ; the drums bus's eq ; the loudness target.
+KIT = {'kick': {'pitch': 'A#1'}, 'kick gain': 0.5, 'metal gain': 1.5, 'metal': ['highshelf cutoff=9000 gain=-2dB'],
+       'bus': ['peak cutoff=340 q=1.2 gain=-7dB', 'highshelf cutoff=9000 gain=-2dB', 'lp cutoff=14250 q=0.8'], 'loudness': -9.81}
 # v3 (chirper-alpha, instrument): THE BASS. See the note above the bass's track. Track gain ; the album's chain.
 BASS = (0, [{'type': 'eq', 'bands': ['hp cutoff=29', 'peak cutoff=44 q=1.5 gain=-7dB', 'peak cutoff=90 q=1 gain=7.5dB',
                                        'peak cutoff=350 q=1 gain=-8dB', 'peak cutoff=1500 q=1 gain=4dB']},
@@ -99,7 +118,7 @@ def phrase(m):
     return [(u * unit, ((strokes[i + 1] if i + 1 < len(strokes) else odd) - u) * unit, u % len(bits) == 0) for i, u in enumerate(strokes)]
 
 
-def compose(lead_gain=-7.0, storeys=True, low_bus=True):
+def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True):
     low_bus = low_bus and storeys  # --without-storeys still gives v1
     T = {k: [] for k in ('left', 'right', 'bass', 'kick', 'snare', 'metal', 'stone') + (('wall-left', 'wall-right') if storeys else ())}
     lifted = []
@@ -237,6 +256,7 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True):
         a, z = (dict(marks)[QUIET[0]] / SUB, dict(marks)[QUIET[-1] + 1] / SUB)
         quiet = {'auto': {'quiet': {'curve': 0, 'points': [['0b', 0], [f'{a - 0.02:g}b', 0], [f'{a:g}b', BASS_QUIET],
                                                            [f'{z - 0.02:g}b', BASS_QUIET], [f'{z:g}b', 0]]}}}
+    drum = 'ct-kit-so-far' if kit else 'ct-kit'
     tracks = [track('left', 'ct-twin fx.2.cone=97' + palm, 1, -.9),
               track('right', 'ct-twin fx.1.model=gojira fx.2.cone=98' + palm, 1, .9),
               *([track('wall-' + side, STOREY[0].format(side[0]), STOREY[1], sign * STOREY[2],
@@ -256,9 +276,9 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True):
               # its low notes sit there too: in the seventh walk it held 45% of 250-500 Hz, where the song read 3.1 to
               # 3.8 dB over the records. Half the halo, and 3 dB off the track at 350 Hz.
               track('stone', 'ondes fx.0.mix=0.15', lead_gain, .1, fx=[{'type': 'eq', 'bands': ['peak cutoff=350 q=0.9 gain=-3dB']}]),
-              track('kick', 'ct-kit', 2, out='drums', fx=[{'type': 'eq', 'bands': ['peak cutoff=4300 q=0.8 gain=7dB']}]),
-              track('snare', 'ct-kit', 3, out='drums'),
-              track('metal', 'ct-kit', 1.5, out='drums')]
+              track('kick', drum, KIT['kick gain'] if kit else 2, out='drums', fx=[{'type': 'eq', 'bands': ['peak cutoff=4300 q=0.8 gain=7dB']}]),
+              track('snare', drum, 3, out='drums'),
+              track('metal', drum, KIT['metal gain'] if kit else 1.5, out='drums', **({'fx': [{'type': 'eq', 'bands': KIT['metal']}]} if kit and KIT['metal'] else {}))]
     assert not T
     doc = {'about': 'So Far. Halve it if it is even; treble it and add one if it is odd. The first sixteen numbers, each walked to one: '
                     'a number is its length in sixteenths, its harmonic over the low F and its own riff. Common Time t17 v1.'
@@ -267,8 +287,11 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True):
            'ceiling': '-1dB', 'true_peak': True, 'loudness': BASS_LOUDNESS if low_bus else SUMMIT_LOUDNESS if storeys else -10,
            'buses': {'drums': {'fx': ['reverb kind=room decay=0.45s mix=0.07',
                                       'glue threshold=-22dB ratio=2 attack=18ms release=120ms',
-                                      {'type': 'eq', 'bands': ['peak cutoff=390 q=0.9 gain=-4dB', 'lp cutoff=14800']}]}},
+                                      {'type': 'eq', 'bands': KIT['bus'] if kit else ['peak cutoff=390 q=0.9 gain=-4dB', 'lp cutoff=14800']}]}},
+           **({'patches': {'ct-kit-so-far': {'extends': 'ct-kit', 'kit': {'k': KIT['kick']}}}} if kit else {}),
            'master': {'fx': [{'type': 'eq', 'bands': ['hp cutoff=25']}]}, 'tracks': tracks}
+    if kit:
+        doc['loudness'] = KIT['loudness']
     return doc, marks, wheel, end
 
 
@@ -278,9 +301,10 @@ if __name__ == '__main__':
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
+    ap.add_argument('--without-kit', action='store_true', help="regenerate v3: the kit before the kick was retuned and the cymbals and the bus had the album's eq")
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
-    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus)
+    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys)
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
