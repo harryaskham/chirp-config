@@ -134,8 +134,8 @@ DECK = os.environ.get('C10T15_DECK', '-10.5dB;30;;0.6;' if SQUEEZE and CALL else
 # its diction: it stood 8 dB under everything else in its answers (K; 10 under at 2-4 kHz), where the shantyman
 # stands 4. So through each of the ten verse answers (the third bar of a couplet and the pull) the crew's fader
 # comes up 3 dB and the guitars' bus comes down 3: the crew stands 4.6 to 2.9 under, and the answer's own level
-# is what it was (within 0.2 dB). Six changes to the crew's patch each moved that by 1 dB or less; consonants up
-# 4 dB (field one) read no more words and is off.
+# is what it was (within 0.2 dB). Five changes to the crew's patch each moved that by 1 dB or less on the 'Take
+# up the slack' answers; consonants up 4 dB (field one) read no more words and is off.
 # dB on the crew's consonants (the patch; "" = as it was) ; the crew's lift through each verse answer, dB ; the
 # guitars' bus under each verse answer, dB ; the loudness target ("" = unchanged). "" = v6.
 ANSWER = os.environ.get('C10T15_ANSWER', ';3;-3;' if DECK else '')
