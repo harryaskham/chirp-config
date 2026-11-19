@@ -45,6 +45,7 @@ harmonics of F). chirper-one recorded So Far on the same rule in track seventeen
 is the other song.
 """
 import json
+import math
 import os
 from collections import defaultdict
 from fractions import Fraction as Fr
@@ -105,6 +106,55 @@ NAMED = {"a hair": ((1, 2), (1, 2, 3), (1, 2, 3, 4), ()), "wider": ((1, 2, 3, 4)
          "a quarter": ((1, 2, 3, 4), (1, 2, 3)), "an eighth": ((1, 2),)}
 TOUCH = {1: 0.8, 2: 0.68, 3: 0.6, 4: 0.54}
 STILL = "harmonium fx.0.depth=0 synth.layers.1.cents=0"       # see the tracks
+# v3 (chirper-three; section round, w4: bars 25-26, 1:27.3-1:34.5): THE PEG IS TURNED. v1's second want: every change
+# of width was a cut at a bar line, and tuning is not done in cuts. For the last two bars of 'five' the sharp reed
+# is no longer struck at one width and held: it is struck once and GLIDES, from a hair and a quarter to a hair and
+# three quarters (1.375 to 1.925 Hz over A flat), as a peg is turned. The pair's pulse quickens under the hand, five
+# to the bar becoming seven, and the band does what it always does: it plays the pulse. So the kick, the bass, the
+# guitars, the toms and the hat ACCELERATE together over two bars (twelve pulses where there were ten; the guitars
+# twenty-four strokes, the toms thirty-six, the hat forty-eight), each stroke where the pair's own swell falls,
+# and arrive at 'seven' already at its speed: the key changes at 1:34.5 and the pulse does not. The snare and the
+# china are not in the rule: they stay on two and four and on the bar line, so for seven seconds the band pulls
+# away from a backbeat that does not move.
+# The stroke times are not counted, they are solved: the phase of the pair's beat is the integral of the hair's
+# width, and a stroke falls where that phase is a whole number (the guitars' at halves, the toms' at thirds, the
+# hat's at quarters). The glide's far end is fitted so that the two bars hold a whole number of pulses.
+# which section's last bars slide to the next section's width : how many bars (several: "five:2,seven:1"; a slide
+# must hold a whole number of pulses). "" = v2.
+SLIDE = os.environ.get("C10T16_SLIDE", "five:2" if PAN else "")
+SLIDES = {s.split(":")[0]: int(s.split(":")[1]) for s in SLIDE.split(",")} if SLIDE else {}
+GLIDER = "ce-turned-reed"                    # the still reed with a pitch that follows a note's `slide`, in semitones
+
+
+def turned(f, r0, r1, beats, held):
+    """The pair's beat while the sharp reed glides from f + r0 to f + r1 hairs over a note `held` beats long (a
+    straight line in semitones, as the engine draws a note's expression): the glide's size in semitones, fitted so
+    that `beats` beats hold a whole number of pulses, and a function from a phase in pulses to a time in beats."""
+    n = (r0 + r1) / 2 * beats
+    assert n.denominator == 1, (r0, r1, beats, n)
+    lo, sec, steps = f + float(r0) * HAIR, 60.0 / BPM, 4000
+
+    def phases(size):                        # the beat's phase (pulses) at each of `steps` + 1 points along `beats`
+        out, total = [0.0], 0.0
+        for i in range(steps):
+            mid = (i + 0.5) * beats / steps
+            total += (lo * 2 ** (size * min(1.0, mid / held) / 12) - f) * sec * beats / steps
+            out.append(total)
+        return out
+
+    a, z = 0.0, 2 * 12 * math.log2((f + float(r1) * HAIR) / lo)
+    for _ in range(60):                      # the far end that makes the count whole
+        size = (a + z) / 2
+        a, z = (size, z) if phases(size)[-1] < n else (a, size)
+    table = phases(size)
+
+    def when(p):
+        if p >= table[-1]:
+            return float(beats)
+        i = max(j for j in range(steps) if table[j] <= p)
+        return (i + (p - table[i]) / (table[i + 1] - table[i])) * beats / steps
+
+    return size, int(n), when
 
 
 def build():
@@ -121,12 +171,42 @@ def build():
         put(tr, at, piece, 0.95 if piece in ("c", "x") else 0.29, vel)
 
     b = 0                                    # in beats
-    for name, r, bars, ground, who in FORM:
+    for num, (name, r, bars, ground, who) in enumerate(FORM):
         marks.append((name, b, r, bars))
         f = hz(REED + ground)
         # how often the pair is struck again: a bar (two when the pulse is that slow; once when there is no pulse at all)
         span = 4 * bars if not r else 8 if r == Fr(1, 8) else 4
-        for a in range(b, b + 4 * bars, span):
+        tail = 4 * SLIDES.get(name, 0)       # v3: beats at the section's end in which the hair glides to the next width
+        if tail:
+            a = b + 4 * bars - tail
+            size, n, when = turned(f, r, FORM[num + 1][1], tail, tail - 0.04)
+            put("reed", a, f"{f:.3f}hz", tail - 0.04, 0.8)
+            put("hair", a, f"{f + float(r) * HAIR:.3f}hz", tail - 0.04, 0.8)
+            ev["hair"][-1].update(patch=GLIDER, expr={"slide": 0.0}, expr_end={"slide": round(size, 6)})
+            root = 29 + ground
+            for layer, mult in (("k", 1), ("g", 2), ("t", 3), ("h", 4)):
+                for j in range(n * mult):
+                    at, gap = a + when(Fr(j, mult)), when(Fr(j + 1, mult)) - when(Fr(j, mult))
+                    if layer == "k":
+                        kit("foot", at, "k", 0.98 if j == 0 else 0.88)
+                        put("bass", at, nm(root), gap - 0.1, 0.95 if j == 0 else 0.9)
+                    elif layer == "g":
+                        for tr in ("left", "right"):
+                            if j == 0:       # the bar line's open chord, as every bar of the section begins
+                                put(tr, at, f"{nm(root)},{nm(root + 7)},{nm(root + 12)}", gap - 0.08, 0.96)
+                            elif j % 2 == 0:
+                                put(tr, at, f"{nm(root)},{nm(root + 7)}", gap - 1 / 12, 0.92)
+                            else:
+                                put(tr, at, nm(root), min(0.3, gap * 0.6), 0.82, mute=True)
+                    elif layer == "t":
+                        kit("skins", at, ("ft", "t2", "t1")[j % 3], 0.8 if j % 3 == 0 else 0.62)
+                    else:
+                        kit("hat", at, "h", 0.62 if j % 4 == 0 else 0.42)
+            for bar in range(a, a + tail, 4):  # what is not in the rule keeps the bar: the china on its line, the snare on two and four
+                kit("brass", bar, "c" if (bar - b) % 16 == 0 else "x", 0.72)
+                kit("snare", bar + 1, "s", 0.9)
+                kit("snare", bar + 3, "s", 0.95)
+        for a in range(b, b + 4 * bars - tail, span):
             put("reed", a, f"{f:.3f}hz", span - 0.04, 0.8)
             put("hair", a, f"{f + float(r) * HAIR:.3f}hz", span - 0.04, 0.8)
             n = r * span                     # pulses of the notes themselves in this span
@@ -250,7 +330,9 @@ def build():
                "the hair is as wide in cycles as the tempo is in beats, so the pair pulses in time, and each overtone pulses twice, "
                "three times, four times as fast. The band plays those pulses. The metre is a tuning; the snare keeps four."),
         tempo=BPM, seed=1, length=f"{end:g}b", tail="5s", ceiling="-1dB", loudness=float(PAN.split(";")[3]) if PAN else -10, event_stable=True,
-        buses=buses, master={"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}]}, tracks=tracks)
+        buses=buses, master={"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}]}, tracks=tracks,
+        **({"patches": {GLIDER: {"about": "chirper-three: Close Enough's still reed (one harmonium reed, steady bellows) with a pitch that follows a note's `slide`, in semitones: the peg being turned",
+                                 "extends": STILL, "synth": {"pitch": {"value": 0, "mod": [{"src": "expr.slide", "amount": 1}]}}}}} if SLIDES else {}))
     return doc, marks, end
 
 
