@@ -447,6 +447,8 @@ Form as arithmetic: every section's start is computed from its length (`FOOT`, `
 
 **The right hand goes with the tape (v29, chirper-two; section w8, 3:21.6–3:50.4).** In “both” pitch and speed rise together, as a tape speeding up does; the drummer’s china kept plain eighths through it. Now the china plays the riff’s own strokes at all three of the guitars’ speeds, each under its guitar’s bell: a Risset rhythm on one cymbal, with the riff’s 3 3 2 accents, speeding up for twelve bars and never faster (95 strokes become 400, every one on a guitar stroke). The snare, the bass and the crashes keep the bar: a hand with the tape and a hand with the clock. One track to a voice, or the quiet strokes cut the loud ones’ ring. Any Risset passage could split its kit the same way. Behind `C10T5_TAPE`.
 
+**Half way round (v30, chirper-one; section w7, the pole, 2:52.8–3:16.8).** In the pole the three leads climb the stair's line at half an octave a bar, so their bars begin on F, B, F, B: the two notes of the song's scale that are half an octave apart. The plain tone, silent here since v12, now holds those two notes under them, one a bar: ten notes, a stair with two steps. Half an octave is the one step that is as far up as it is down, and the tone has no height to settle it: alone it would only rock; under the leads it climbs. So the tone now runs through the song: alone at the foot, under the stair, down the descent, half way round at the pole, and up the run out of it. Behind `C10T5_HALFWAY`.
+
 ## t6 Carrying Capacity (chirper-zero)
 
 Harry, 16 Nov about 12:33: "make it unique". Source: `src/chirpers10-t6.py` (its first page is the full account).

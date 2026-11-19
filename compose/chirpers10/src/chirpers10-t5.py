@@ -755,6 +755,10 @@ def compose():
     line(POLE, BOTH - R, gtrs=False, slow=2, synth=not POLELEAD)
     if POLELEAD:                         # v12: the slow line on the three leads
         slow_leads(POLE, BOTH - R)
+        if HALFWAY:                             # v30: the tone says each half octave the leads climb, one held note a bar: F, B, F, B
+            h0, h1 = (int(x) for x in HALFWAY.split(";")[1].split(":"))
+            for b in range(h0, h1):
+                add("stair", b * 16, 16, 65 + 6 * ((b - h0) % 2), 0.9)
     if TICK:                             # v2: a tick that speeds up for ever (the track's `risset`; these three strokes are its pattern)
         for at, ln, v in ((0.0, 0.5, float(TICK.split(";")[1])), (0.5, 0.5, float(TICK.split(";")[2])), (1.0, 1.0, float(TICK.split(";")[2]))):
             T.setdefault("tick", []).append({"at": at, "len": ln, "pitch": "h", "vel": v})
@@ -1184,6 +1188,18 @@ FALLTONE = os.environ.get("C10T5_FALLTONE", "1;68;-9.975" if TICKTONE else "")
 # riff's accents ; elsewhere ; strokes under this level of the bell are left out, dB ; the loudness target ("" =
 # unchanged). "" = v28.
 TAPE = os.environ.get("C10T5_TAPE", "1;84:96;-1;0.575;0.41;-24;" if FALLTONE else "")
+# v30 (chirper-one; section w7, the pole, 2:52.8-3:16.8): HALF WAY ROUND. In the pole the three leads climb the stair's
+# line at half an octave a bar, so their bars begin on F, B, F, B: the two notes of the song's scale that are half an
+# octave apart. The plain tone (silent here since v12 gave its line to the leads) now says those two notes under them,
+# ONE HELD NOTE A BAR, on the fader it has under the stair: ten notes, F B F B ... A stair with two steps. Half an
+# octave is the one step that is as far up as it is down, and the tone has no height to settle it (alone, F's two
+# loudest octaves, 349 and 698 Hz, are within 0.4 to 3 dB of each other, and B's loudest, 494 Hz, lies between them:
+# up a tritone from one, down a tritone from the other). Under the leads it climbs; by itself it would only rock.
+# So the tone now runs through the song: alone at the foot, under the stair, down the descent (v28), half way round at
+# the pole, and up the run out of it. No other part changes.
+# dB on the tone against its level under the stair ; bars from:to ; the loudness target ('' = unchanged). '' = v29.
+# It is on only while no other C10T5_ switch is set, so every older switch gives exactly what it gave.
+HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY") for k in os.environ) else "")
 
 
 def the_right_hand_goes_with_the_tape(doc):
@@ -1273,7 +1289,7 @@ def song():
     under = float(bandonly) if bandonly else 0.0
     syn_lane = [(0.0, float(synth[2]))]
     falls = [(FALL, under + float(FALLTONE.split(";")[0])), (int(FALLTONE.split(";")[1]), under)] if FALLTONE and float(FALLTONE.split(";")[0]) else []
-    for bar, lvl in ((FOOT + 4, float(synth[3])), (RISE, under), *falls, (POLE, float(synth[4])), (BOTH - (int(RUNS.split(";")[0]) if RUNS else 0), under)):
+    for bar, lvl in ((FOOT + 4, float(synth[3])), (RISE, under), *falls, (POLE, under + float(HALFWAY.split(";")[0]) if HALFWAY else float(synth[4])), (BOTH - (int(RUNS.split(";")[0]) if RUNS else 0), under)):
         step(syn_lane, bar * 4, lvl)
     tracks = [
         {"name": "gl", "patch": heavy.format(30), "gain": GH, "pan": -1, "out": "gtrs"},
@@ -1391,6 +1407,8 @@ def song():
         doc["loudness"] = float(FALLTONE.split(";")[2])
     if TAPE:
         the_right_hand_goes_with_the_tape(doc)
+    if HALFWAY and HALFWAY.split(";")[2]:
+        doc["loudness"] = float(HALFWAY.split(";")[2])
     return doc
 
 
