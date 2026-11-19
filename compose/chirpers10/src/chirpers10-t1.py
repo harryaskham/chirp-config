@@ -2148,5 +2148,44 @@ def dump(doc):
     return "\n".join(lines) + "\n"
 
 
+# v62 (chirper-two; whole song, the instrument under all of it): THE RHYTHM GUITARS HOLD STILL.
+# Every string in the library's eight-string family grows a vibrato when a note is held: a fifth of a semitone
+# either way at 5.3 Hz, beginning 0.38 s after the stroke and full by 0.83 s. On a lead that is a hand on the neck.
+# On a rhythm guitar holding a chord it is nobody: and this piece BEGINS with fourteen guitars holding one chord for
+# 3.8 s and ENDS with the same fourteen holding it until it dies, lands on four chords of 1.7 s at 12:13, and its
+# wall guitars hold 124 chords of about a second or more in all. Every one wavered, every guitar at the same rate.
+# Track fourteen's held chords were stood still in its v3 and the same bench says the same here. So the tight rig,
+# seven's rig and the walls, with their doubles (16 tracks: every rhythm guitar that holds a note longer than the
+# vibrato's delay; 602 held notes), hold without it. Each take is still struck up to 5 cents off (the library's
+# random detune, left on: that is what two takes of one part are), so the pairs still shimmer; they no longer wobble.
+# NOT TOUCHED: the leads (a lead sings), the spoken guitars at 6:42 and the one harmonic at 8:52 (the third field),
+# and every note shorter than 0.38 s, which never had it. No note, fader or fx is changed.
+# MEASURED, by how wide a held chord's spectral lines are (cents holding the middle 80% of the energy round each of
+# the six strongest lines between 150 Hz and 1.3 kHz; median). The first chord, the wall guitars alone: 42 -> 10.
+# All fourteen guitars on it: 44 -> 17. In the finished file: the first chord 27.5 -> 14.2 (its 392 Hz line 45 -> 10.5),
+# a landing chord 38 -> 28, the last chord 30 -> 22. On the records' guitar stems the stretches that are plainly a
+# held chord read 3 to 13 (The Faultless 3.1, 3.8, 11.0; Lethargica 13.2). The one-second chords barely show it on
+# this measure (51 -> 42 where half a second can resolve 17). Every section's level is within 0.06 dB of v61's and
+# the passages with no held guitar null against it (-70 dB or lower); the loudness target is not moved.
+# the setting ; the shortest note, in seconds, that counts as held (the library vibrato's delay) ; tracks left as they are. "" = v61.
+STILL = os.environ.get("C10T1_STILL", "synth.pitch.mod.2.amount=0;0.38;wsl,wsr,ql,qr" if NEARER else "")
+
+
+def hold_still(doc):
+    """Every rhythm guitar that holds a note long enough for the library's vibrato to begin holds it without one."""
+    setting, held, spare = STILL.split(";")
+    beat = 60 / doc["tempo"]
+    done = []
+    for t in doc["tracks"]:
+        if (t["patch"].split()[0].rsplit("-", 1)[0] in ("ct-chug", "ct-bite", "ct-wall") and t["name"] not in spare.split(",")
+                and any(n["len"] * beat > float(held) for n in t.get("notes") or [])):
+            t["patch"] += " " + setting
+            done.append(t["name"])
+    return done
+
+
 if __name__ == "__main__":
-    open(OUT, "w").write(dump(song()))
+    doc = song()
+    if STILL:
+        hold_still(doc)
+    open(OUT, "w").write(dump(doc))
