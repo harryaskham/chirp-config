@@ -503,7 +503,7 @@ def groove_one(b0, b1, tomv, kv):
     for b in range(b0, b1):
         for p in union:
             drum("k", b * 16 + p, 0.92 if p % 4 == 0 else kv)
-        if HOLE_FILL:
+        if HOLE_FILL and not ON_THREE:
             # High tom, middle, floor, snare. The crack therefore lands on
             # beat two, just BEFORE beat three, then ON three to close the fill.
             strokes = (("t1", tomv), ("t2", tomv * .94), ("ft", tomv * 1.07), ("s", .95))
@@ -662,6 +662,17 @@ VARI = os.environ.get("C10T2_VARI", "56:58;1")
 # bars from:to ; the low-pass's cutoff as the hold begins, Hz ; the bar by which it is fully open (16 kHz) ; its q.
 # "" = v31.
 WALL = os.environ.get("C10T2_WALL", "36:42;300;42;0.7")
+# v33: THE SNARE STAYS ON THREE (Harry, 19 Nov 02:20, on the card for v29's fill, "Keep the moving snare on C?":
+# "Keep it on three"; he was played the same fill each bar and then the fill across the bars). So in the hold on C
+# the drummer fills the three holes the same way in every bar again, middle tom, floor tom, and the snare ON three,
+# as up to v28. v29's four strokes across three holes are behind this switch. "" = v32. It is on only while none
+# of the older switches is set, so each of those still gives exactly what it gave.
+# The switches there were at v32. With any of them set in the environment this one is off unless it is set too.
+OLDER = """
+         AGREE BOX BRAID CHIME CLOCK CLOCKS DRIFT DTOP EARLY EIGHTH END FOUR GBODY HEARD HOLE_FILL HOLES KEYEQ
+         L2 LETGO LOCK LOWRIDE MACHINE MIDS MIX NAKED ONE OPEN PEND PULSE QUARTER SHAKE SLIPCLOCK SNARE
+         SNAREEQ SUNG SUNG2 TALKEQ TALKFX THREE TRADE TWIN V14MAKEUP VARI VOICE WALL""".split()
+ON_THREE = os.environ.get("C10T2_ON_THREE", "" if any("C10T2_" + k in os.environ for k in OLDER) else "1")
 
 
 def clock_speed(tau):
