@@ -206,6 +206,46 @@ COUNT = {'from': 40,
 SAY = {40: [('F AO1 R', 1.0), ('T IY0', .7)], 20: [('T W EH1 N', .75), ('T IY0', .6)], 10: [('T EH1 N', 1.0)], 5: [('F AY1 V', 1.0)],
        16: [('S IH0 K', .5), ('S T IY1 N', 1.1)], 8: [('EY1 T', 1.0)], 4: [('F AO1 R', .85)], 2: [('T UW1', .5)], 1: [('W AH1 N', .9)]}
 
+# v10 (chirper-two, whole song): THE ONE THAT WAS ADDED. The rule's odd step is "three times the number, AND ONE".
+# v1 wrote that the ondes then "leaps up a twelfth and a hair". The twelfth could be heard. The hair could not: the
+# ondes landed on the new number at once, and nothing in the band held still enough to show a hair anyway. v7 put
+# every note on its exact harmonic (moves of 14 to 49 cents), and then the rigs took it back: the ondes's vibrato
+# swung 18 cents either way, a held string grew one of 20, every stroke was detuned at random by up to 5 cents (the
+# bass by 4), and the strings sounded 2 to 4 cents sharp of the note they were given (these chords; bd-d2ee40).
+# (1) THE ONE (`ONE`). Where a number is trebled-and-one, the ondes arrives on THREE TIMES THE LAST NUMBER, a new
+#     note, stays there for one sixteenth, and its ribbon is pushed up the hair to the number itself, which it holds
+#     for the other 3n sixteenths. The one added to the length is the one added to the height. Three times a number
+#     is that number's own twelfth: the ondes lands in tune with the chord the band has just left and is pushed off
+#     it onto the one the band has just struck. THE HAIR SHRINKS AS THE NUMBERS GROW, and that is the rule heard:
+#     9 to 10 is a tone (182 cents, 3 times), 15 to 16 a semitone (112, the leading note into every walk's last
+#     halvings: 11 times), then 21 to 22 (80.5, 3 times), 27 to 28 (63.0, once), 33 to 34 (51.7, 4 times), 39 to 40
+#     (43.8, 5 times), 45 to 46 (38.1, once), 51 to 52 (33.6, 4 times): 32 in all, from 0:00.8 to 4:19.5. On the
+#     piano's notes the same slides are a semitone or nothing (into 22 a semitone; into 34 and 52 nothing): the
+#     shrinking hair exists only at the true heights. No note of the band, the kit or the voices is changed.
+#     NOT IN IT: 70, 106 and 160 are above the ribbon's top, so the hairs of 23, 35 and 53 (25, 16 and 11 cents)
+#     are still unheard; and the wheel's four ("three ones and one") is a fourth, not a hair, and the count has the
+#     wheel now (v9): ONE's second field gives it (it plans; not rendered).
+# (2) THE RIGS STAND ON THE NUMBER (`STILL`). The four guitars: `tune_sounding` (engine batch 64, new today: the
+#     string sounds the note it is given), no vibrato on a held note, no random detune. The bass: no random detune.
+#     The ondes: its vibrato 5 cents either way where it was 18 (it stays a voice; with none its line was 0.4 to 1.1
+#     cents wide, a test tone: benched alone, not put in the song). No note changes: 308 held guitar notes lose the
+#     vibrato, all 2171 notes of the guitars and the bass the random detune.
+# MEASURED (raw, each alone unless said; 0.6 to 3.2 s into a held note; cents from the written harmonic, and the
+# width that holds the middle 80% of a line's energy). First pair, the chord at 3:43.2: -2.7 and -0.3, lines 38 and
+# 39 wide; now -0.2 and -0.6, 5 and 3 wide. Second pair, the same chord: +5.6, +4.8, +7.8, lines 39 to 44 wide; now
+# +2.8, +1.5, +1.4, 6 to 17 wide (its lowest note is 55 Hz, where the reading itself is 48 wide). The bass's last F:
+# -3.8, now 0.0. The four guitars and the bass together on that chord: the fifth's lines 39 wide, now 9. The ondes
+# (the seventh walk, pitch read back from the audio): held, 31 to 35 cents from its 10th to its 90th percentile,
+# now 9 to 11; and at each trebling it is within 1.3 cents of three times the last number 60 to 110 ms in, within 13
+# of the number at 200 ms, within 0.6 from half a second on.
+# THE FINISHED FILE (seed 0): every walk within 0.08 dB of v9 (K), the last chord 0.21 lower; the target is not moved.
+# STILL: what each pitched rig is given so that it sounds the number it is written. --without-still gives the rigs of v9.
+STILL = {'strings': ' synth.layers.0.tune_sounding=true synth.pitch.mod.1.amount=0 synth.pitch.mod.2.amount=0',
+         'bass': ' synth.pitch.mod.1.amount=0', 'ondes': ' synth.pitch.mod.0.amount=0.05'}
+# ONE: sixteenths the ondes stays on three times the number before it is pushed up to three times and one ; whether the
+# wheel's four (three ones and one) is entered that way too. --without-one gives the ondes's notes of v9.
+ONE = (1, False)
+
 
 def true(ratio):
     """A pitch as its exact ratio over the low F: the engine's fractional key number (a whole one is written as its name)."""
@@ -254,13 +294,15 @@ def phrase(m):
     return [(u * unit, ((strokes[i + 1] if i + 1 < len(strokes) else odd) - u) * unit, u % len(bits) == 0) for i, u in enumerate(strokes)]
 
 
-def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, body=True, tuned=True, memory=True, count=True):
+def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, body=True, tuned=True, memory=True, count=True, still=True, one=True):
     low_bus = low_bus and storeys  # --without-storeys still gives v1
     sized = sized and kit and low_bus
     body = body and sized
     tuned = tuned and body
     memory = memory and tuned
     count = COUNT if count and memory else None
+    still = STILL if still and count else {}                 # --without-count still gives v8
+    one = ONE if one and count else None
     T = {k: [] for k in ('left', 'right', 'bass', 'kick', 'snare', 'metal', 'stone') + (('wall-left', 'wall-right') if storeys else ()) + (('hat',) if memory else ())}
     lifted = []
 
@@ -348,9 +390,20 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
         nxt = cells[j + 1][1] if j + 1 < len(cells) else None
         leap = nxt is None or nxt > n or F1 + height(nxt) > TOP
         if p <= TOP:
-            put('stone', at, n - (0.5 if leap and n > 1 else 0), true(n) if tuned else p, 0.82 if first else 0.74)
+            # v10: a trebled number is three times the last one AND ONE. The ondes arrives on three times the last
+            # number (a new note: it lifted off before the leap), stays there for the one sixteenth that was added
+            # to the length, and its ribbon is pushed up the hair to the number itself.
+            was = cells[j - 1] if j else None
+            trebled = bool(one and was and was[1] % 2 and n == 3 * was[1] + 1 and (was[2] == k and k or one[1]))
+            lift = 0.5 if leap and n > 1 else 0
+            if trebled:
+                put('stone', at, one[0], true(n - 1), 0.74)
+                put('stone', at + one[0], n - one[0] - lift, true(n), 0.74)
+            else:
+                put('stone', at, n - lift, true(n) if tuned else p, 0.82 if first else 0.74)
             if p > 60:
-                T['stone'][-1]['gain'] = f'{-TILT * (p - 60) / 12:.1f}dB'
+                for e in T['stone'][-2 if trebled else -1:]:
+                    e['gain'] = f'{-TILT * (p - 60) / 12:.1f}dB'
 
     for s in lifted:                                          # the foot goes with the second pair's chords
         hit = [e for e in T['kick'] if e['at'] == round(s / SUB, 6)]
@@ -441,9 +494,10 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
         return t
     tight = f' fx.1.tight={BODY[0]}' if body else ''                 # v6: more of the low string into the amp
     chain = BASS[1][:-1] + [{'type': 'eq', 'bands': [f'peak cutoff=170 q=1.2 gain={BODY[1]}dB']}] if body else BASS[1]
-    tracks = [sized_track(track('left', 'ct-twin fx.2.cone=97' + tight + palm, 1, -.9)),
-              sized_track(track('right', 'ct-twin fx.1.model=gojira fx.2.cone=98' + tight + palm, 1, .9)),
-              *([sized_track(track('wall-' + side, STOREY[0].format(side[0]), STOREY[1], sign * STOREY[2],
+    strings = still.get('strings', '')
+    tracks = [sized_track(track('left', 'ct-twin fx.2.cone=97' + tight + palm + strings, 1, -.9)),
+              sized_track(track('right', 'ct-twin fx.1.model=gojira fx.2.cone=98' + tight + palm + strings, 1, .9)),
+              *([sized_track(track('wall-' + side, STOREY[0].format(side[0]) + strings, STOREY[1], sign * STOREY[2],
                                    fx=[{'type': 'eq', 'bands': [f'peak cutoff=380 q=1 gain={STOREY[4]}dB']}]))   # the album's cut for this rig, deeper
                  for side, sign in (('left', -1), ('right', 1))] if storeys else []),
               # v3: THE BASS GETS THE ALBUM'S CHAIN (the `low` bus of tracks 1, 7, 8 and 14, here on the bass's own track). v1 and v2 had the bass on a bare track. Read against the album's
@@ -453,13 +507,13 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
               # fundamental (44 Hz, the low F) to the octave above (90 Hz), the box out at 350 Hz, 4 dB of string at
               # 1.5 kHz, and a compressor at 8:1. With it the bass stands 9.0 dB under the rest, steadier (3.3 dB), and
               # it holds more of 60-120 Hz and less of 20-60. It cannot mend 20-60 Hz alone: the kick is 78% of it.
-              sized_track({**track('bass', 'ct-bass', BASS[0], fx=chain, **quiet),
+              sized_track({**track('bass', 'ct-bass' + still.get('bass', ''), BASS[0], fx=chain, **quiet),
                            'gain': {'value': f'{BASS[0]}dB', 'mod': [{'src': 'auto.quiet', 'amount': 1}]}}) if low_bus else
               track('bass', 'ct-bass', -.5, fx=[{'type': 'eq', 'bands': ['hp cutoff=29', 'peak cutoff=320 q=1 gain=-4dB']}]),
               # The ondes' diffuser is an octave of strings from middle C up (262-494 Hz) that ring with every note, and
               # its low notes sit there too: in the seventh walk it held 45% of 250-500 Hz, where the song read 3.1 to
               # 3.8 dB over the records. Half the halo, and 3 dB off the track at 350 Hz.
-              track('stone', 'ondes fx.0.mix=0.15', lead_gain, .1, fx=[{'type': 'eq', 'bands': ['peak cutoff=350 q=0.9 gain=-3dB']}]),
+              track('stone', 'ondes fx.0.mix=0.15' + still.get('ondes', ''), lead_gain, .1, fx=[{'type': 'eq', 'bands': ['peak cutoff=350 q=0.9 gain=-3dB']}]),
               sized_track(track('kick', drum, KIT['kick gain'] if kit else 2, out='drums', fx=[{'type': 'eq', 'bands': ['peak cutoff=4300 q=0.8 gain=7dB']}]), cap=0),
               track('snare', drum, 3, out='drums'),
               track('metal', drum, KIT['metal gain'] if kit else 1.5, out='drums', **({'fx': [{'type': 'eq', 'bands': KIT['metal']}]} if kit and KIT['metal'] else {})),
@@ -513,6 +567,8 @@ if __name__ == '__main__':
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
+    ap.add_argument('--without-one', action='store_true', help="the ondes's notes of v9: it lands on a trebled number at once")
+    ap.add_argument('--without-still', action='store_true', help="the rigs of v9: vibrato and a random detune on the strings and the bass, the ondes's wide vibrato (with --without-one: regenerate v9)")
     ap.add_argument('--without-count', action='store_true', help="regenerate v8: nobody says the numbers")
     ap.add_argument('--without-memory', action='store_true', help="regenerate v7: the hands keep the feel v1 gave each walk, whatever has been said before")
     ap.add_argument('--equal', action='store_true', help='regenerate v6: every number at the nearest semitone to its harmonic, not at the harmonic')
@@ -521,7 +577,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-kit', action='store_true', help="regenerate v3: the kit before the kick was retuned and the cymbals and the bus had the album's eq")
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
-    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count)
+    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one)
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
