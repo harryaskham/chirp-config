@@ -181,6 +181,32 @@ BOOM = os.environ.get('C10T10_BOOM', '808-dist;-18.5;0;-9.98;peak cutoff=95 q=1.
 # note differently; tape drive does little: both benched, neither kept.)
 # track gain dB ; the low shelf's corner Hz ; its gain dB. '' = v17 (the tagelharpa at TRADE's gain).
 BOW = os.environ.get('C10T10_BOW', '-0.7;300;-6' if BOOM and TRADE else '')
+# v19 (chirper-two, whole song): THE LOUD BAND MOVES INTO THE RECORD'S ROOM. This song was stood up before the
+# record's band staging settled, and it still had its first one: guitars and bass straight to the master, a kit bus
+# with a shallow cut. Read against the eleven records at v18, every loud section said the same three things: 2.5 to
+# 4.3 dB too much at 250-500 Hz, 1.0 to 2.0 too much under 60 Hz, 0.8 to 1.6 too little at 60-120 Hz (the scorer's
+# worst band on every seed is 97 Hz). By part: the bass guitar stood 13.7 dB over the records' basses under 60 Hz,
+# 3.7 under them at 60-120 and 9.0 over at 250-500; the kit 5.7 and 6.0 over the records' kits at 250-500 Hz and
+# 500 Hz-1 kHz. So:
+#   the bass guitar goes through the record's low bus (as In the Time Of and Close Enough carry it): an eq that
+#     follows the ground under each pair (less at the ground's own octave, more an octave up, a cut at 350 Hz, a
+#     little growl at 1.5 kHz) and a compressor;
+#   the two riff guitars and the wall get the record's guitar bus (a cut at 330 Hz, a short room) and the riff
+#     guitars its 700 Hz lift;
+#   the kit's bus cut is deeper and wider (450 Hz, -7 dB, was 390 Hz, -4) with 0.8 dB given back after it (the kit
+#     had fallen 0.9 dB under the records' kits' share of the mix), and the kick loses 3.5 dB at 42 Hz.
+# Tried on the way and not kept (each read against the records): the record's kit clip (4-8 kHz fell to 0.6 to 2.5
+# dB under the records; it was within 1.0), its kick click (4.5 kHz +10 dB: 4-8 kHz up to 2.9 over), and the low
+# bus's third band (-3 dB at 170 Hz) with a kit cut centred at 400 Hz (120-250 Hz fell 1.0 to 1.5 short).
+# AFTER (the six loud sections, ours minus the records): under 60 Hz +1.0..+2.0 -> -0.3..+1.1; 60-120 Hz
+# -0.8..-1.6 -> +0.7..-0.6; 250-500 Hz +2.5..+4.3 -> +1.0..+3.3 (what is left is 'called in', where the right
+# guitar plays an octave up, and 'across the line', the bow's own octave). The scorer's 97 Hz: 8.7 -> 6.7 under.
+# THE QUIET BAND IS NOT TOUCHED: the brush kit keeps the old kit bus under its own name; the upright, the sax, the
+# clean guitar, the piano, the keys, the bow, the twelve-string and the 808 are where they were.
+# the guitar bus's cut dB ; the riff guitars' 700 Hz lift dB ; the kit bus's cut ('cutoff q gain') ; the kick's sub
+# cut (an eq band, or nothing) ; the low bus's makeup dB ; the loudness target (the quiet band keeps the gain it had) ;
+# dB given back to the kit after its cut. '' = v18.
+STAGE = os.environ.get('C10T10_STAGE', '-3;2.5;450 0.8 -7;peak cutoff=42 q=1.2 gain=-3.5dB;2.5;-9.941;0.8' if BOW and BOOM else '')
 
 
 def bow_patch():
@@ -674,18 +700,23 @@ def build():
         assert all(0<=n['at']<t/SUB and n['at']+n['len']<=t/SUB+.00001 for n in ns)
         return {'name':tr,'patch':patch,'gain':f'{db}dB','pan':pan,'notes':ns,**more}
     palm=' synth.layers.0.mute=expr.pm*0.6 synth.layers.0.mute_width=0.1'
-    tracks=[track('left','ct-twin fx.2.cone=81'+palm,1,-.93),
-            track('right','ct-twin fx.1.model=gojira fx.2.cone=84'+palm,1,.93),
-            track('weight','ct-wall-stop-l',-5,.05,fx=['hp cutoff=130']),
+    stage = STAGE.split(';') if STAGE else None
+    riff = dict(out='gtrs', fx=[{'type':'eq','bands':[f'peak cutoff=700 q=0.9 gain={stage[1]}dB']}]) if stage else {}
+    tracks=[track('left','ct-twin fx.2.cone=81'+palm,1,-.93,**riff),
+            track('right','ct-twin fx.1.model=gojira fx.2.cone=84'+palm,1,.93,**riff),
+            track('weight','ct-wall-stop-l',-5,.05,fx=['hp cutoff=130']+([{'type':'eq','bands':['peak cutoff=380 q=1 gain=-3dB']}] if stage else []),
+                  **({'out':'gtrs'} if stage else {})),
             track('clean','ct-clean synth.layers.0.inharm=0.00008',-2,-.26,sends={'spring':'-15dB'}),
+            track('bass','ct-bass',-.8,out='low') if stage else
             track('bass','ct-bass',-.8,fx=[{'type':'eq','bands':['hp cutoff=27','peak cutoff=330 q=1 gain=-4dB']}]),
             track('rule','piano-additive',-9,-.35), track('tally','owing-key',-9,.38,sends={'spring':'-15dB'}),
-            track('kick','ct-kit',2,out='drums',fx=['peak cutoff=4100 q=0.85 gain=6dB']),
+            track('kick','ct-kit',2,out='drums',fx=[{'type':'eq','bands':['peak cutoff=4100 q=0.85 gain=6dB']+([stage[3]] if stage[3] else [])}])
+            if stage else track('kick','ct-kit',2,out='drums',fx=['peak cutoff=4100 q=0.85 gain=6dB']),
             track('snare','ct-kit',3,out='drums'), track('metal','ct-kit',2,out='drums'),track('skins','ct-kit',2,out='drums')]
     if BRUSH:
         tracks.append(track('sweep','brush-kit kit.sw.patch.synth.amp.a=28ms kit.sw.patch.synth.amp.r=32ms '
                             'play.humanize.time=0ms play.humanize.vel=0 fx.3.mix=0',
-                            float(BRUSH),-.18,out='drums'))
+                            float(BRUSH),-.18,out='brush' if stage else 'drums'))
     if ROOM:
         tracks.append(track('room',ROOM.split(';')[0],float(ROOM.split(';')[1]),.08))
     if BREATH:
@@ -727,14 +758,50 @@ def build():
       'synth':{'amp':{'a':'2ms','d':'450ms','s':.2,'r':'95ms'},'layers':[{'type':'terrain','terrain':{
           'surface':'sines','k':1.7,'cx':.13,'cy':-.18,'rx':{'value':.16,'mod':[{'src':'expr.owing','amount':.46}]},
           'ry':{'value':.12,'mod':[{'src':'expr.owing','amount':.34}]}}}]},'fx':['hp cutoff=185']}
+    old_kit_bus = {'fx':['reverb kind=room decay=0.48s mix=0.08','glue threshold=-23dB ratio=2.2 attack=18ms release=130ms',
+                         {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14900']}]}
+    staged = {}
+    if stage:
+        # The ground under each pair, for the low bus's eq: the bass guitar's lowest note there (where it rests, the
+        # 808's or the upright's; else the pair before), as semitones from F1, where the record's low bus is centred.
+        pair_beats = 2*BAR/SUB
+        low_of = lambda n: min(12*(int(p[-1])+1)+NOTES.index(p[:-1]) for p in n['pitch'].split(','))
+        ground = {}
+        for name in ('room', 'boom', 'bass'):                      # the bass guitar has the last word
+            seen = {}
+            for tr in tracks:
+                if tr['name'] == name:
+                    for n in tr['notes']:
+                        i = int(n['at']//pair_beats); seen[i] = min(seen.get(i, 999), low_of(n))
+            ground.update(seen)
+        points, was, here = [], None, HOME
+        for i in range(int(t/SUB/pair_beats)):
+            here = ground.get(i, here)
+            semis = (here-29+6)%12-6
+            if semis != was:
+                if was is not None: points.append([f'{i*pair_beats-.02:g}b', was])
+                points.append([f'{i*pair_beats:g}b', semis]); was = semis
+        keyed = lambda hz: {'value':hz,'mod':[{'src':'auto.key','amount':0.08333}]}
+        cutoff, q, cut = stage[2].split()
+        staged = {
+            'gtrs':{'fx':[{'type':'eq','bands':[f'peak cutoff=330 q=1.2 gain={stage[0]}dB']},'reverb kind=room decay=0.35s mix=0.06 predelay=6ms']},
+            'low':{'fx':[{'type':'eq','bands':[{'kind':'peak','cutoff':keyed(44),'q':1.5,'gain':'-7dB'},
+                                               {'kind':'peak','cutoff':keyed(90),'q':1.0,'gain':'7.5dB'},
+                                               {'kind':'peak','cutoff':350,'q':1.0,'gain':'-8dB'},
+                                               {'kind':'peak','cutoff':1500,'q':1.0,'gain':'4dB'}]},
+                         {'type':'compressor','threshold':'-26dB','ratio':8.0,'attack':'12ms','release':'120ms','makeup':f'{stage[4]}dB'}],
+                   'auto':{'key':{'points':points,'curve':0}}},
+            'brush':old_kit_bus,
+            'drums':{'fx':old_kit_bus['fx'][:2]+[{'type':'eq','bands':[f'peak cutoff={cutoff} q={q} gain={cut}dB','lp cutoff=14900']},
+                                                {'type':'gain','gain':f'{stage[6]}dB'}]},
+        }
     return {'about':'Still Owing, Common Time track 10: a low call borrows time from a higher answer and pays it back within each two-bar phrase.',
-        'tempo':BPM,'seed':1,'event_stable':True,'length':f'{t//SUB}b','tail':'3s','loudness':float(BOOM.split(';')[3]) if BOOM else ROOM_LUFS if ROOM else -10,'ceiling':'-1dB','true_peak':True,
+        'tempo':BPM,'seed':1,'event_stable':True,'length':f'{t//SUB}b','tail':'3s','loudness':float(stage[5]) if stage else float(BOOM.split(';')[3]) if BOOM else ROOM_LUFS if ROOM else -10,'ceiling':'-1dB','true_peak':True,
         **({'songs':fold_sources} if fold_sources else {}),
         'patches':{'owing-key':key_patch,**fold_patches,**({'owing-skin':pressure_skin()} if PRESS else {}),
                    **({'owing-kept':kept_key()} if KEPT else {}),**({'owing-bow':bow_patch()} if BOW and TRADE else {})},
         'buses':{'spring':{'fx':['reverb kind=spring drip=0.65 mix=1 decay=1.2s low_cut=350 predelay=18ms']},
-        'drums':{'fx':['reverb kind=room decay=0.48s mix=0.08','glue threshold=-23dB ratio=2.2 attack=18ms release=130ms',
-                     {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14900']}]}},
+        'drums':old_kit_bus, **staged},
         'master':{'fx':['hp cutoff=25']},'tracks':tracks}, sections
 
 
