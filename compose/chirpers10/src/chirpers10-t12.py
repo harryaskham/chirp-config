@@ -232,8 +232,42 @@ CRACK = (' kit.s.patch.synth.filters.1.gain=1.5dB kit.s.patch.synth.layers.0.con
          ' kit.s.patch.synth.layers.0.wire_tone=5000 kit.s.patch.synth.layers.0.wires=0.95',
          'peak cutoff=650 q=1 gain=-3dB', '1dB', None, 0, None)
 
+# v21 (chirper-two, section w3, 0:55-1:23, and on to the end of 'opposite' at 1:27.7): THE OTHER FOOT. In 'opposite'
+# everything has come to be read from both ends: the strip by the two hands, the meetings by the bass and the thumb,
+# the count by the clapper (v19). One thing still sided with the left hand: the drummer's foot. The bass drum plays
+# the forward reading's four open notes (ticks 0, 3, 10, 15) and nothing of the right hand's. A drummer has two feet.
+# FROM STRIP 4 (0:54.8, where the ribbon starts to draw the line both hands make) the other foot reads from the far
+# end: the right hand's open notes, 3, 8, 15, 18. The hands meet at 3 and 15 and one foot is enough there, so what
+# is new is two strokes a strip, at 8 and 18. The six kicks, 0 3 8 10 15 18, are their own mirror, and they are the
+# six moments the ribbon's line stands on. To the ear: a stroke into every strip's first beat (18, then 0), which
+# marks the seam, and a pair either side of the centre nobody plays (8, then 10).
+# FROM STRIP 12 (1:16.7, where the thumb's pops change ends) each foot plays its hand's palm strokes too. The two
+# readings between them strike every sixteenth of the strip but three: 4, 9 and 14. So for the last four strips the
+# feet run in sixteenths with three holes, and two of the holes are where the thumb pops (4 and 14: Harry, "Keep the
+# pops"); the third is the centre. It stops with the right hand, on the tie at tick 15 of the last strip.
+# THE OTHER DRUM is a second bass drum, a minor third up (the album kit's kick at C2 where the left foot's is at A1),
+# a little right of centre, beside the hand it follows. At C2 it fills the band this song has been short in since
+# v11: read as chirper-one read v20 (the finished file, each band's share against the eleven records), 60-120 Hz in
+# 'opposite' goes -1.0 -> -0.1 and under 60 Hz does not move; the same drum at A1 or G1 put its weight under 60 Hz
+# instead (+1.2, +1.4 dB there in strips 4-11, benched). THE SHORT STROKES are the same two drums struck lighter
+# and stopped sooner (each note carries its own patch: the drum's decay 210 -> 90 ms; 4 and 1 dB down), so that
+# sixteen kicks a strip do not sit on the band: with full-length strokes the run read 0.6 dB heavier under 60 Hz.
+# MEASURED (raw, a stroke's first 70 ms, K): the left foot's open stroke -20.6 dB, 1.2 over everything else at that
+# moment; the other foot's -21.4, 3.5 over (less is playing at 8 and 18); a short stroke -28.7 and -28.9, 4.2 and
+# 6.1 UNDER everything else (v19's clap between the beats: 6.1 under). The snare under the run: 0.4 dB lower (the
+# kit bus's compressor). As mastered the run is 0.01 dB louder than the same strips of v20 and the band's 1-4 kHz
+# in it 0.4 dB lower; strips 4-11 0.05 louder. The target is not moved: every other bar is within 0.011 dB on
+# seed 0 and 0.002 on the song's own seed; on seed 11 the master sits 0.08 to 0.12 dB higher throughout (this
+# song's master jumps: v18, v19 and v20 each met it).
+# the other drum (its patch, its fader, where it stands, the band on its track) ; the strip of 'opposite' from which
+# the other foot plays its hand's open notes ; the strip from which each foot plays its hand's palm strokes too ;
+# how those are struck (velocity ; dB on the left foot's ; dB on the other's ; what makes the stroke a short one) ;
+# the loudness target (None: unchanged). --without-other-foot gives v20.
+FEET = {'patch': 'ct-kit kit.k.pitch=C2', 'gain': '0.5dB', 'pan': .3, 'eq': 'peak cutoff=4400 q=0.84 gain=6dB',
+        'from': 4, 'run': 12, 'mute': (.6, -4, -1, 'kit.k.patch.synth.amp.d=90ms'), 'loudness': None}
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, turned=True, rig=HANDS_RIG, reading=True, chest=True, palmas=True, crack=True):
+
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, turned=True, rig=HANDS_RIG, reading=True, chest=True, palmas=True, crack=True, feet=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
@@ -251,6 +285,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
     reading = reading and turned                 # --without-turned-page still gives v15
     palmas = PALMAS if palmas and chest and reading and rig is not None else None   # --without-chest still gives v17
     crack = CRACK if crack and palmas and all([drum_hand, crease, mirror_bass, picking_hand, signature, ties, facing, palindrome, album_kit, dominant, thumbs, copy, heavy, turned]) else None   # every older flag gives exactly what it gave
+    feet = FEET if feet and crack else None      # --without-crack still gives v19
     ev = defaultdict(list); sections = []; tie_gains = {}; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -625,6 +660,25 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
         assert round(ev['mouth'][-1]['at']*GRID) == last
         start = last + 8
     assert all(0<=e['at']<start/GRID and e['at']+e['len'] <= start/GRID for tr in ev.values() for e in tr)
+    if feet:
+        # v21: after everything else is written, so that each foot reads what its hand plays in the end (the
+        # right hand's last strip stops on the tie at tick 15, and so does its foot).
+        _, opp, strips = next(s for s in sections if s[0]=='opposite')
+        for i in range(feet['from'], strips):
+            a = opp + i*STRIP
+            kicked = {round(e['at']*GRID) for e in ev['foot'] if a <= round(e['at']*GRID) < a+STRIP}
+            for hand,drum in (('left','foot'),('right','other-foot')):
+                for e in list(ev[hand]):
+                    t = round(e['at']*GRID)
+                    if not a <= t < a+STRIP or t in kicked: continue     # where the hands meet, one foot is enough
+                    muted = bool(e.get('expr',{}).get('pm'))
+                    if muted and i < feet['run']: continue
+                    kicked.add(t)
+                    # an open note is struck as hard as the left foot strikes its mirror
+                    kit(drum,t,'k',feet['mute'][0] if muted else .98 if STRIP-1-(t-a) in (0,3,15,18) else .83)
+                    if muted:
+                        ev[drum][-1]['gain'] = f"{feet['mute'][1 if hand=='left' else 2]:g}dB"
+                        ev[drum][-1]['patch'] = ('ct-kit' if hand=='left' else feet['patch'])+' '+feet['mute'][3]
     def track(name,patch,gain,pan=0,out=None,fx=None):
         d=dict(name=name,patch=patch,gain=gain,pan=pan,notes=sorted(ev[name],key=lambda e:e['at']))
         if out: d['out']=out
@@ -710,11 +764,12 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
         left = next(t for t in tracks if t['name']=='left')
         tracks.append(track('copy',COPY[0]+palm,COPY[1],left['pan'],'strings'))
     if palmas: tracks.append(track('palmas',palmas[0],palmas[1],palmas[2]))
+    if feet: tracks.append(track('other-foot',feet['patch'],feet['gain'],feet['pan'],'drums',[{'type':'eq','bands':[feet['eq']]}]))
     buses={'strings':{'fx':[{'type':'eq','bands':['peak cutoff=360 q=0.8 gain=-2dB','peak cutoff=730 q=1 gain=1.5dB']}]},
            'drums':{'fx':['reverb kind=room mix=0.10 decay=0.53s predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'18ms','release':'120ms'},'clip ceiling=-13dB']},
            'low':{'fx':[{'type':'eq','bands':['peak cutoff=48 q=1.4 gain=-4dB','peak cutoff=98 q=1 gain=3dB','peak cutoff=310 q=0.9 gain=-4dB']},{'type':'compressor','threshold':'-24dB','ratio':5,'attack':'14ms','release':'115ms'}]}}
     if album_kit: buses['drums']['fx'].append({'type':'eq','bands':KIT_EQ+([CHEST[1]] if chest and reading and rig else [])})
-    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(crack[5] if crack and crack[5] else palmas[4] if palmas and palmas[4] else CHEST[2] if chest and reading and rig else READING[3] if reading else HEAVY_LOUDNESS if heavy else COPY_LOUDNESS if copy else THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
+    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(feet['loudness'] if feet and feet['loudness'] else crack[5] if crack and crack[5] else palmas[4] if palmas and palmas[4] else CHEST[2] if chest and reading and rig else READING[3] if reading else HEAVY_LOUDNESS if heavy else COPY_LOUDNESS if copy else THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
     return doc,sections
 
 def dump(d):
@@ -738,8 +793,9 @@ if __name__=='__main__':
     ap.add_argument('--without-chest',action='store_true',help="regenerate v17, the two hands without their chest and the kit's bus without its cut at 190 Hz")
     ap.add_argument('--without-palmas',action='store_true',help="regenerate v18, the count in 'opposite' without its other hand")
     ap.add_argument('--without-crack',action='store_true',help="regenerate v19, the album kit's snare as it comes and the two hands with their top")
+    ap.add_argument('--without-other-foot',action='store_true',help="regenerate v20, the foot in 'opposite' with the left hand only")
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack)
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
