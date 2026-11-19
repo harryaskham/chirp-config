@@ -267,7 +267,21 @@ FEET = {'patch': 'ct-kit kit.k.pitch=C2', 'gain': '0.5dB', 'pan': .3, 'eq': 'pea
         'from': 4, 'run': 12, 'mute': (.6, -4, -1, 'kit.k.patch.synth.amp.d=90ms'), 'loudness': None}
 
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, turned=True, rig=HANDS_RIG, reading=True, chest=True, palmas=True, crack=True, feet=True):
+# v22 (chirper-alpha; palette round: one new sound, on the facing page, 3:52.9-3:58.4): THE WET INK'S IMAGE IS PLAYED
+# BACKWARDS. "Close a book on wet ink and the other page takes its mirror image": on the facing page the right hand
+# reads the strip from its far end, so the NOTES are mirrored; the SOUND never was. A mirror image of a sound is that
+# sound backwards. So the left hand is there after all, on tape: its strip as ink first wrote it (alone, forwards, on
+# its own rig), recorded inside the song (the engine's resampling: a `songs` entry and a `sample` layer) and played
+# in reverse on its own side, one sixteenth early. Backwards it has the right hand's notes in the right hand's
+# order, and with that sixteenth each of them ENDS on the instant the right hand strikes the same note: the left side
+# holds each ringing note until the right hand takes it, and swells into each palm stroke. Nothing leaves the song.
+# NB `chirp render --solo blot` is silent (a sample of a song inside the song does not render alone): subtract mixes.
+# how many of the facing page's strips carry it ; its fader against the left hand's own level ; how many sixteenths
+# before the strip the tape starts ; the loudness target (None: unchanged). --without-blot gives v21.
+BLOT = {'strips': 2, 'gain': '-2.5dB', 'ahead': 1, 'loudness': None}
+
+
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, turned=True, rig=HANDS_RIG, reading=True, chest=True, palmas=True, crack=True, feet=True, blot=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
@@ -286,6 +300,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
     palmas = PALMAS if palmas and chest and reading and rig is not None else None   # --without-chest still gives v17
     crack = CRACK if crack and palmas and all([drum_hand, crease, mirror_bass, picking_hand, signature, ties, facing, palindrome, album_kit, dominant, thumbs, copy, heavy, turned]) else None   # every older flag gives exactly what it gave
     feet = FEET if feet and crack else None      # --without-crack still gives v19
+    blot = BLOT if blot and feet else None       # --without-other-foot still gives v20
     ev = defaultdict(list); sections = []; tie_gains = {}; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -765,11 +780,36 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
         tracks.append(track('copy',COPY[0]+palm,COPY[1],left['pan'],'strings'))
     if palmas: tracks.append(track('palmas',palmas[0],palmas[1],palmas[2]))
     if feet: tracks.append(track('other-foot',feet['patch'],feet['gain'],feet['pan'],'drums',[{'type':'eq','bands':[feet['eq']]}]))
+    tape = None
+    if blot:
+        # v22: the left hand's strip as ink first wrote it, alone and forwards, recorded on its own rig and PLAYED
+        # BACKWARDS on its own side, a sixteenth early: each note of it swells up to the instant the right hand, reading
+        # the strip from the far end, strikes the same note.
+        left = next(t for t in tracks if t['name']=='left')
+        _, page, mirrored = next(s for s in sections if s[0]=='facing page')
+        fwd = strip()
+        notes = []
+        for i,(t,p,k) in enumerate(fwd):
+            gap = (fwd[i+1][0] if i+1<len(fwd) else STRIP)-t
+            notes.append({'at':round(t/GRID,5),'len':round((.64 if k=='m' else min(gap-.23,3.45))/GRID,5),'pitch':pitch(29+p),
+                          'vel':.94 if k=='o' else .79,**({'expr':{'pm':1}} if k=='m' else {})})
+        tape = {'the-ink-on-tape':{'tempo':BPM,'length':f'{STRIP/GRID:g}b','tail':'0s','seed':1,
+                                   'tracks':[{'name':'left','patch':left['patch']+' play.humanize.time=0ms play.humanize.vel=0',
+                                              'gain':left['gain'],**({'fx':left['fx']} if left.get('fx') else {}),'notes':notes}]}}
+        for j in range(blot['strips']):
+            put('blot',page+j*STRIP-blot['ahead'],'C4',STRIP,1)
+        tracks.append(track('blot',{'about':"The Other Hand: the left hand's strip on tape, played backwards (the wet ink's image on the facing page).",
+                                    'play':{'gate':1},'synth':{'amp':{'a':'3ms','s':1,'r':'6ms'},
+                                    'layers':[{'type':'sample','song':'the-ink-on-tape','root':'C4','reverse':True}]}},
+                            blot['gain'],left['pan'],'strings'))
     buses={'strings':{'fx':[{'type':'eq','bands':['peak cutoff=360 q=0.8 gain=-2dB','peak cutoff=730 q=1 gain=1.5dB']}]},
            'drums':{'fx':['reverb kind=room mix=0.10 decay=0.53s predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'18ms','release':'120ms'},'clip ceiling=-13dB']},
            'low':{'fx':[{'type':'eq','bands':['peak cutoff=48 q=1.4 gain=-4dB','peak cutoff=98 q=1 gain=3dB','peak cutoff=310 q=0.9 gain=-4dB']},{'type':'compressor','threshold':'-24dB','ratio':5,'attack':'14ms','release':'115ms'}]}}
     if album_kit: buses['drums']['fx'].append({'type':'eq','bands':KIT_EQ+([CHEST[1]] if chest and reading and rig else [])})
     doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(feet['loudness'] if feet and feet['loudness'] else crack[5] if crack and crack[5] else palmas[4] if palmas and palmas[4] else CHEST[2] if chest and reading and rig else READING[3] if reading else HEAVY_LOUDNESS if heavy else COPY_LOUDNESS if copy else THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
+    if tape:
+        doc = {**{k:v for k,v in doc.items() if k!='tracks'},'songs':tape,'tracks':doc['tracks']}
+        if blot['loudness']: doc['loudness'] = blot['loudness']
     return doc,sections
 
 def dump(d):
@@ -794,8 +834,9 @@ if __name__=='__main__':
     ap.add_argument('--without-palmas',action='store_true',help="regenerate v18, the count in 'opposite' without its other hand")
     ap.add_argument('--without-crack',action='store_true',help="regenerate v19, the album kit's snare as it comes and the two hands with their top")
     ap.add_argument('--without-other-foot',action='store_true',help="regenerate v20, the foot in 'opposite' with the left hand only")
+    ap.add_argument('--without-blot',action='store_true',help="regenerate v21, the facing page without the left hand's tape played backwards")
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot)
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot,not a.without_blot)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
