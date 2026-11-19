@@ -339,6 +339,32 @@ def publish(attempts=5):
     return False, "push lost every race"
 
 
+SHARED_BOARDS = re.compile(r"^compose/[^/]+/(motifs|sounds|features)\.md$")
+
+
+def shared_board_notes(rel):
+    """What to say when a file everyone writes is about to be committed WHOLE with more than one open hunk in it: each
+    hunk's first words, so that lines which are not the committer's are seen at once. It stops nothing. (19 Nov: twice
+    in five hours a composer's commit took another composer's uncommitted rows of motifs.md with it, because `commit`
+    and `done --with` take a file whole; `commit --pick REGEX` takes only your hunks.)"""
+    out = []
+    for p in rel:
+        if not SHARED_BOARDS.match(p.replace(os.sep, "/")):
+            continue
+        d = subprocess.run(["git", "diff", "-U0", "--no-color", "--no-ext-diff", "--no-textconv", "HEAD", "--", p], cwd=ROOT,
+                           capture_output=True).stdout
+        _, seen = pick_hunks(b"", d, lambda add, rem: False)
+        if len(seen) < 2:
+            continue
+        out.append(f"climb: NOTE {p} goes in WHOLE, with {len(seen)} open hunks. If one of them is not yours, tell its "
+                   "writer now (their `done` will then show no change for it), and next time take only your own: "
+                   f"`climb.py commit -m MSG --pick 'REGEX' {p}`.")
+        for _, add, rem in seen[:6]:
+            first = (add or rem)[0].decode("utf-8", "replace").strip()[:100] if (add or rem) else ""
+            out.append(f"climb:   +{len(add)} -{len(rem)}  {first!r}")
+    return out
+
+
 def commit(paths, msg, args):
     """True when the change is in a commit (pushed, or local with an honest receipt and `climb.py publish` to retry);
     False when nothing was committed - callers must then fail loudly, or the registry edit can be lost to the next
@@ -347,6 +373,8 @@ def commit(paths, msg, args):
         return True
     rel = [os.path.relpath(os.path.join(ROOT, p) if not os.path.isabs(p) else p, ROOT) for p in paths]
     with locked("climb-git.lock"):
+        for line in shared_board_notes(rel):
+            print(line, file=sys.stderr)
         for attempt in range(6):
             git("add", "--", *rel)
             c = git("commit", "-q", "-m", msg, "--", *rel)

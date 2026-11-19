@@ -280,6 +280,30 @@ class Publish(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 self.C.cmd_commit(["-m", "m", "--pick", "x", "patches/a.yaml"])
 
+    def test_a_shared_board_committed_whole_says_what_went_in(self):
+        """19 Nov, twice in five hours: a commit took another composer's uncommitted rows of motifs.md with it. It is
+        not stopped (a composer may have two places of their own), but each open hunk's first words are printed."""
+        os.makedirs(os.path.join(self.tree, "compose", "alb"))
+        self.write(self.tree, "compose/alb/motifs.md", self.DOC)
+        run(self.tree, "add", "compose/alb/motifs.md")
+        run(self.tree, "commit", "-q", "-m", "board")
+        run(self.tree, "push", "-q", "origin", "HEAD:main")
+        self.write(self.tree, "compose/alb/motifs.md", self.DOC.replace("old seven\n", "old seven\nmine\n"))
+        self.assertEqual(self.C.shared_board_notes(["compose/alb/motifs.md"]), [])           # one open hunk: nothing to say
+        self.write(self.tree, "compose/alb/motifs.md", self.OPEN)
+        notes = self.C.shared_board_notes(["compose/alb/motifs.md", "ours.txt"])
+        self.assertIn("compose/alb/motifs.md goes in WHOLE, with 3 open hunks", notes[0])
+        self.assertIn("--pick 'REGEX' compose/alb/motifs.md", notes[0])
+        self.assertEqual(len(notes), 4)
+        self.assertIn("t7 v19: the stroke stops", notes[1])
+        self.write(self.tree, "doc.md", self.OPEN)                                             # not a board: never noted
+        self.assertEqual(self.C.shared_board_notes(["doc.md"]), [])
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            self.assertTrue(self.C.commit(["compose/alb/motifs.md"], "whole", []))            # and the commit goes ahead
+        self.assertIn("goes in WHOLE, with 3 open hunks", err.getvalue())
+        self.assertIn("t7 v19", self.origin_file("compose/alb/motifs.md"))
+
     def test_pick_hunks_builds_from_heads_own_lines(self):
         head = b"a\nb\nc\nd\n"
         diff = (b"diff --git a/f b/f\n--- a/f\n+++ b/f\n@@ -0,0 +1 @@\n+TOP\n@@ -2 +3 @@\n-b\n+B\n@@ -3 +3,0 @@\n-c\n"
