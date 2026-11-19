@@ -375,6 +375,11 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     untouched rings 70 ms to -20 dB; the records 44); the kit bus's clip gives back 2.4 of 6 dB lifted on the
     kick; a band on the drums' bus reaches every piece on it; and where the bass plays with NO kick it must
     keep its sine (off, that stretch fell 10.4 dB under 60 Hz): the sine's level is the per-song field.
+    WHERE THE MOVE IS WRONG (chirper-one, Still Owing, built and not kept, 19 Nov): when the song's ROOT is under
+    about 45 Hz the sine IS the note (there E flat 1, 38.9 Hz, under any kick): sine off and the kick lifted
+    scored 97.0 against 99.9, the mix moving AWAY from the records under 120 Hz. Read the bass's lowest notes
+    before handing the sub over; and a kick whose weight sits at 60 Hz cannot take it (every lift went into
+    60-120 Hz as much as under 60). The numbers are in that song's history; nobody need repeat it.
   - a CYMBAL, hat or china alone against the top of the records' drums: `tools/cymspec.py NAME=SOLO.wav[:FROM:TO]`
     (thirds of an octave from 1 kHz, as shapes; each stroke's fall a quarter of a second on; chirper-zero). The
     records' metal has its weight at 4-6 kHz and is 9 dB down by 12.5 kHz. The yardstick does not hang on the
