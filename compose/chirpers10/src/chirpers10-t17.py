@@ -105,6 +105,29 @@ BASS_QUIET = -1.5              # dB on the bass's fader through the two quiet wa
 # the song by time, is then what it was, so the kit v4 set against them keeps its place) ; the last chord's size in
 # dB (it is the bar line, not a number in a walk). Empty: v4.
 SIZE = (1.25, 32, 0)
+# v6 (chirper-three, instrument): THE GUITARS' BODY. The first pair had not been read. Read alone against the
+# records' guitar heard alone (tools/cabspec.py) and in the mix against the eleven records' guitar stems, on the
+# ninth walk and the climb (raw): the pair was 5 to 6 dB SHORT at 120-280 Hz both ways (141-282 Hz -6.3 and -4.9
+# alone; -5.3 and -3.1 as a share of the mix), and the mix did not show it because the bass (2.9 dB over the
+# records' basses there) and the foot were holding that band for them: at 120-250 Hz the bass had 35% of the mix
+# and the two guitars 16%, where on the records the guitars stand 4.8 dB OVER the bass. A low-tuned guitar's
+# weight is there (the low F's third to sixth harmonics), and this rig cuts it before the amp: its `tight` filter
+# is at 220 Hz. So:
+#   the pair's tight filter comes down to 180 Hz: more of the low string reaches the amp
+#   the bass gives the band up: the last cut of its chain (170 Hz) goes from 3 dB to 5
+# and the mix's own 120-250 Hz stays where it was in the long walks. Benched and not kept: the amp's mid, bass and
+# resonance and the microphone's distance (none moved 141-282 Hz by more than 0.6 dB); an eq lift at 200 Hz (it put
+# 1.3 dB into the pair's 250-500 Hz); the album's guitar bus (a 330 Hz cut and a short room: the pair is not over
+# the records' guitars at 250-500 Hz, and the room filled the riff's rests, which are its noughts, to -28 dB); a
+# scoop at 600 Hz (the mix is already short there in the climb); hard left and right (0.7 dB off the pair in the
+# mix's read for a width the records' widest pair already has).
+# IN THE TWO QUIET WALKS there are no guitars to give the band to, and the deeper cut took 0.66 dB off the bass
+# alone there (K): its fader trim in those walks goes from -1.5 dB to -0.85, so it stands where v3 set it.
+# the pair's tight filter, Hz (the library's is 220) ; the bass's cut at 170 Hz, dB (v3's chain has -3) ; the
+# bass's fader in the quiet walks, dB (v3's BASS_QUIET is -1.5) ; the loudness target (raw, the whole song came
+# out 0.029 LU quieter: the target moves by that, so the kit and the ondes keep their level). --without-body
+# gives v5.
+BODY = (180, -5, -0.85, -9.839)
 
 
 def name(p):
@@ -141,9 +164,10 @@ def phrase(m):
     return [(u * unit, ((strokes[i + 1] if i + 1 < len(strokes) else odd) - u) * unit, u % len(bits) == 0) for i, u in enumerate(strokes)]
 
 
-def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True):
+def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, body=True):
     low_bus = low_bus and storeys  # --without-storeys still gives v1
     sized = sized and kit and low_bus
+    body = body and sized
     T = {k: [] for k in ('left', 'right', 'bass', 'kick', 'snare', 'metal', 'stone') + (('wall-left', 'wall-right') if storeys else ())}
     lifted = []
 
@@ -278,8 +302,9 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True):
         # the same way (tried: 1.5 dB off each note moved the stretch 0.02 dB). So the trim is on the fader, after
         # the chain, for those two walks only.
         a, z = (dict(marks)[QUIET[0]] / SUB, dict(marks)[QUIET[-1] + 1] / SUB)
-        quiet = {'auto': {'quiet': {'curve': 0, 'points': [['0b', 0], [f'{a - 0.02:g}b', 0], [f'{a:g}b', BASS_QUIET],
-                                                           [f'{z - 0.02:g}b', BASS_QUIET], [f'{z:g}b', 0]]}}}
+        trim = BODY[2] if body else BASS_QUIET
+        quiet = {'auto': {'quiet': {'curve': 0, 'points': [['0b', 0], [f'{a - 0.02:g}b', 0], [f'{a:g}b', trim],
+                                                           [f'{z - 0.02:g}b', trim], [f'{z:g}b', 0]]}}}
     drum = 'ct-kit-so-far' if kit else 'ct-kit'
     size = None
     if sized:
@@ -300,8 +325,10 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True):
             t['gain']['mod'].append({'src': 'auto.size', 'amount': 1})
             t.setdefault('auto', {})['size'] = size if cap is None else {'curve': 0, 'points': [[b, min(v, cap)] for b, v in size['points']]}
         return t
-    tracks = [sized_track(track('left', 'ct-twin fx.2.cone=97' + palm, 1, -.9)),
-              sized_track(track('right', 'ct-twin fx.1.model=gojira fx.2.cone=98' + palm, 1, .9)),
+    tight = f' fx.1.tight={BODY[0]}' if body else ''                 # v6: more of the low string into the amp
+    chain = BASS[1][:-1] + [{'type': 'eq', 'bands': [f'peak cutoff=170 q=1.2 gain={BODY[1]}dB']}] if body else BASS[1]
+    tracks = [sized_track(track('left', 'ct-twin fx.2.cone=97' + tight + palm, 1, -.9)),
+              sized_track(track('right', 'ct-twin fx.1.model=gojira fx.2.cone=98' + tight + palm, 1, .9)),
               *([sized_track(track('wall-' + side, STOREY[0].format(side[0]), STOREY[1], sign * STOREY[2],
                                    fx=[{'type': 'eq', 'bands': [f'peak cutoff=380 q=1 gain={STOREY[4]}dB']}]))   # the album's cut for this rig, deeper
                  for side, sign in (('left', -1), ('right', 1))] if storeys else []),
@@ -312,7 +339,7 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True):
               # fundamental (44 Hz, the low F) to the octave above (90 Hz), the box out at 350 Hz, 4 dB of string at
               # 1.5 kHz, and a compressor at 8:1. With it the bass stands 9.0 dB under the rest, steadier (3.3 dB), and
               # it holds more of 60-120 Hz and less of 20-60. It cannot mend 20-60 Hz alone: the kick is 78% of it.
-              sized_track({**track('bass', 'ct-bass', BASS[0], fx=BASS[1], **quiet),
+              sized_track({**track('bass', 'ct-bass', BASS[0], fx=chain, **quiet),
                            'gain': {'value': f'{BASS[0]}dB', 'mod': [{'src': 'auto.quiet', 'amount': 1}]}}) if low_bus else
               track('bass', 'ct-bass', -.5, fx=[{'type': 'eq', 'bands': ['hp cutoff=29', 'peak cutoff=320 q=1 gain=-4dB']}]),
               # The ondes' diffuser is an octave of strings from middle C up (262-494 Hz) that ring with every note, and
@@ -335,6 +362,8 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True):
            'master': {'fx': [{'type': 'eq', 'bands': ['hp cutoff=25']}]}, 'tracks': tracks}
     if kit:
         doc['loudness'] = KIT['loudness']
+    if body:
+        doc['loudness'] = BODY[3]
     return doc, marks, wheel, end
 
 
@@ -344,11 +373,12 @@ if __name__ == '__main__':
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
+    ap.add_argument('--without-body', action='store_true', help="regenerate v5: the first pair's tight filter at 220 Hz and the bass's 170 Hz cut at 3 dB")
     ap.add_argument('--without-size', action='store_true', help="regenerate v4: every number at one level")
     ap.add_argument('--without-kit', action='store_true', help="regenerate v3: the kit before the kick was retuned and the cymbals and the bus had the album's eq")
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
-    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size)
+    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body)
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
