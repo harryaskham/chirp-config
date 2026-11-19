@@ -352,7 +352,11 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     11.3 dB more at 1-4 kHz than at 400 Hz-1 kHz (scoop -11.3; -12.7 to -6.5); the album's `ct-twin` chug read
     -4.4 on Extreme and Mean and -5.1 on In the Time Of: EVERY song's muted strokes are written at a full palm
     (pm 1.0), which closes the string's filter to 1 kHz before the amp, and the 700 Hz lifts on the twins date
-    from the yardstick with voices in it (chirper-zero, Extreme and Mean v23: -7.7 after). The records give NO
+    from the yardstick with voices in it (chirper-zero, Extreme and Mean v23: -7.7 after). Take Up the Slack v12: -4.6 to
+    -11.5 with the same cure, and two songs now agree on what a `ct-twin` successor wants: the palm two octaves
+    not 3.4, the microphone about 0.4, no 700 Hz lift. Do NOT cut a guitar's top on `fizz_db` or a by-part
+    8-16 kHz figure: the separator takes the guitar's top (the records' guitars ALONE read -22.5 to -25.4, their
+    stems -33 to -36 under a band; the tool prints it); for the top trust `cabspec.py`. The records give NO
     figure for how empty the rest after a stroke should be: a stroke "followed by a rest" in our transcriptions
     is not followed by one on their guitar stems (-4 to 0 dB under the stroke).
   - BY PART (`stembal.py song … --voice`, the group rows): read the two `groups:` lines first; until 08:18 on 19 Nov
