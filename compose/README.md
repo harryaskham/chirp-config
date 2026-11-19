@@ -369,6 +369,12 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     (their basses sit 16 dB under their drums below 60 Hz; ours are level): with the sine off the bass is
     nearest the records alone and by part, but the MIX falls 0.7 to 3.1 dB under 60 Hz, so the round it asks
     for is the kick's sub FIRST, then the sine off (In the Time Of v24 kept a partial move).
+    The full move, on a song whose kick could take it (Take Up the Slack v15): the bass's sine 11 dB down, the
+    kick's decay 210 -> 160 ms with +6 dB at 55 Hz: the mix's 60-120 Hz mean distance 1.19 -> 0.36. For the
+    families: `kit.k.patch.synth.amp.d` IS the drum's tail (any lift of the kick's fundamental with the decay
+    untouched rings 70 ms to -20 dB; the records 44); the kit bus's clip gives back 2.4 of 6 dB lifted on the
+    kick; a band on the drums' bus reaches every piece on it; and where the bass plays with NO kick it must
+    keep its sine (off, that stretch fell 10.4 dB under 60 Hz): the sine's level is the per-song field.
   - a CYMBAL, hat or china alone against the top of the records' drums: `tools/cymspec.py NAME=SOLO.wav[:FROM:TO]`
     (thirds of an octave from 1 kHz, as shapes; each stroke's fall a quarter of a second on; chirper-zero). The
     records' metal has its weight at 4-6 kHz and is 9 dB down by 12.5 kHz. The yardstick does not hang on the
