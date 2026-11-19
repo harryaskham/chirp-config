@@ -9156,7 +9156,7 @@
     {
       "id": "chirpers10-t16",
       "song": "songs/chirpers10-t16.yaml",
-      "reference": "chirpers — Track 16 (untitled)",
+      "reference": "chirpers — Close Enough",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers10-t16 OUT.wav",
@@ -9172,7 +9172,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Common Time",
-        "title": "Track 16 (untitled)",
+        "title": "Close Enough",
         "track": 16,
         "year": 2026
       },
