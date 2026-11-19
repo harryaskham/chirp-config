@@ -262,6 +262,27 @@ LEDGER = os.environ.get('C10T10_LEDGER', 'h,h,hs,h1,h2,h3,oh;0,0,0,0,0,0,0;on ac
 # that bar line, velocity ('' = none) ; sixteenths the song runs past that bar line ; the loudness target ('' =
 # unchanged). '' = v21.
 OUTSTANDING = os.environ.get('C10T10_OUTSTANDING', '3;16;-20;0.72;18;' if LEDGER and BREATH else '')
+# v23 (chirper-zero; instrument round: the hi-hat, all 175 of its strokes, the whole song): THE HAT CAN BE HEARD, AND
+# THE TOP IS THE CYMBALS'. No stroke moves. v21 made the drummer keep the account: in 'on account' the hat opens a
+# notch with every sixteenth borrowed. But this song's hat sat on the cymbals' track at the cymbals' fader, as Where
+# It Was's did until its v19: each closed stroke read 25 to 27 dB under the mix in its own tenth of a second, where
+# the album's other hats read 12 to 15 under. The ladder began under the floor: its first three rungs (-25, -22, -21)
+# were not there to be heard, and the hat of 'in hand', 'called in' and 'square' was not there at all.
+#   THE HAT COMES UP TO THE ALBUM'S: the closed tip 10 dB (16 under the mix in 'in hand', 15 in 'square', 17 in the
+#       half-time). THE LADDER STANDS ON IT, every rung louder than the last in its first tenth and ringing longer
+#       (-15.0, -14.5, -13.6, -13.2, -12.4, -12.0 where -24.8, -22.4, -21.0, -17.6, -15.3, -16.9): the open hat at
+#       the top comes up 5 dB, not 10, so it is a cymbal opening and not hiss arriving.
+#   THE TOP CHANGES HANDS. Raised alone, the hat put the mix 0.7 to 2.2 dB further over the records at 8-16 kHz in
+#       five stretches, because that band was already full and nothing in it was metal: the snare's wires held 56% of it and the
+#       kick's click 21% (39% in 'square'), the cymbals 10%. So the kick is low-passed at 9 kHz, above its click (its
+#       share of 4-8 kHz is where it was), and the snare gives 2 dB above 9 kHz (its wires stood 2.9 dB over its
+#       crack where six records' snares stand level; 2.3 now). The cymbals hold 40 to 52% of the band now and the mix
+#       is where it was against the records (mean distance at 8-16 kHz 1.21 > 1.19: nearer in four stretches,
+#       further in three; the half-time 'called in' goes 1.0 under).
+# kit overrides on the cymbals' track ; the kick's low-pass, Hz ('' = none) ; the snare's shelf, Hz:dB ('' = none) ;
+# the loudness target ('' = unchanged). "" = v22 byte for byte.
+TOP = os.environ.get('C10T10_TOP', 'kit.h.gain=0dB kit.hs.gain=-1dB kit.h1.gain=-1.5dB kit.h2.gain=-5.5dB kit.h3.gain=-7dB kit.oh.gain=-5dB kit.hp.gain=-4dB;'
+                                   '9000;9000:-2;-10.229' if OUTSTANDING else '')
 
 
 def bow_patch():
@@ -896,6 +917,20 @@ def build():
         'master':{'fx':['hp cutoff=25']},'tracks':tracks}, sections
 
 
+def the_top_changes_hands(song):
+    """v23: the hat at the album's level with its ladder on it; the kick and the snare give the cymbals the top."""
+    kit, kick_lp, shelf, target = TOP.split(';')
+    for t in song['tracks']:
+        if t['name'] == 'metal' and kit:
+            t['patch'] += ' ' + kit
+        if t['name'] == 'kick' and kick_lp:
+            t['fx'] = (t.get('fx') or []) + [f'lp cutoff={kick_lp}']
+        if t['name'] == 'snare' and shelf:
+            t['fx'] = (t.get('fx') or []) + [{'type': 'eq', 'bands': ['highshelf cutoff={} gain={}dB'.format(*shelf.split(':'))]}]
+    if target:
+        song['loudness'] = float(target)
+
+
 def dump(song):
     return '\n'.join('tracks:\n'+'\n'.join('  - '+json.dumps(x) for x in v) if k=='tracks' else k+': '+json.dumps(v) for k,v in song.items())+'\n'
 
@@ -904,6 +939,7 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out',type=Path,default=OUT); parser.add_argument('--form',action='store_true')
     args=parser.parse_args(); song, marks=build()
+    if TOP: the_top_changes_hands(song)
     if args.form:
         for n,t in marks: print(f'{n:18} {t/BAR+1:5.0f}  {t/SUB*60/BPM:6.2f}s')
     else: args.out.write_text(dump(song))
