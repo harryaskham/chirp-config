@@ -423,6 +423,38 @@ TURN = os.environ.get("C10T14_TURN", "F1:6:24,C2:8:16,Ab2:10:20;minor,home;;0,7,
 # the drums make the room, so each passage is as loud as it was. '' = v12.
 COUNT = os.environ.get("C10T14_COUNT", "voice-hook synth.layers.0.diction=3 synth.layers.0.effort_tilt=1;-15dB;0.86;-21dB;hp cutoff=150;"
                        "reverb kind=hall decay=2.2s mix=0.14 predelay=30ms;0.85;0.4;down,named,up;;-4.5;3;-1.6" if TURN else "")
+# v14 (chirper-two; whole song: its shape): THE QUIET MIDDLE IS QUIET. The header has called 'fourth' (1:41.6-2:11.0)
+# "the quiet middle" since v1, and it was played by the two loudest rigs in the song: the wall guitars, one chord
+# each, with the snare on the backbeat. Measured on v13's finished file it stood 2.4 dB under 'sixth' before it and
+# 2.8 under 'common' after it: the song had no valley, and its plainest, loudest stretch ('common', everyone on C)
+# came in on nothing. Now:
+#   THE NINES AND THE FIFTEENS ARE A CLEAN PAIR. The walls rest for the section; the same 43 strokes (B flat every
+#     nine on the left, D flat every fifteen on the right, the same lengths) go to two clean guitars, an octave up
+#     (octaves are free), strummed over 20 ms. It is the song's first clean guitar. Under this song's rule a clean
+#     chord must stand on its note, so the library's ct-clean is made still: no chorus, no vibrato, no random detune,
+#     and `tune_sounding` (the string on its note). Its six notes read -0.9 to +0.3 cents from the just B flat, F,
+#     D flat and A flat (as it comes: +1.9 to +4.5). The pair's last B flat stops at the bar line (the wall's rang two
+#     sixteenths on under the band's first C).
+#   THE BACKBEAT GOES TO THE RIM: the snare's 30 strokes there are the kit's cross-stick (its own knock and wood, not
+#     tuned: overriding its two frequencies changed nothing I could measure), 3.7 dB under everything else in its
+#     first 60 ms where the snare stood 2.0 over.
+#   THE FOOT, THE HAT AND THE TUNE COME DOWN: 5 dB off the kick's (and its chest's) strokes, 2 off the hat's, 3 more
+#     on the lead's ride. The bass is as it was, so the middle now rests on it.
+# NO NOTE'S TIME OR PITCH CLASS CHANGES: the rule is played as before, by other hands.
+# MEASURED (raw, seed 0, 'fourth'): the guitars -25.9 -> -29.0 dB K, the lead -27.2 -> -30.2, the kit -26.7 -> -31.5,
+# the bass -29.6 as it was; the mix -21.1 -> -23.9. A clean stroke falls 11.2 (the nines) and 15.3 dB (the fifteens)
+# before the next one; the walls' fell 8.2 and 11.5: the two wheels are plainer as strokes.
+# FINISHED (three seeds): 'fourth' 2.6 dB quieter (K); it stands 5.0 to 5.1 under 'sixth' and 5.3 to 5.5
+# under 'common' (v13: 2.4 to 2.5 and 2.8 to 2.9). The target -10.388 -> -10.62 (the quieter middle made the file
+# measure quieter and the master lifted every other bar 0.37 dB; 1.6 dB of gain for each dB of target): every other
+# section is v13's within 0.005 dB.
+# the clean pair's patch ; its fader ; semitones over the walls' chords (octaves are free) ; velocity ; its eq, band|band
+# ('' = none) ; a reverb of its own ('' = none) ; dB on each stroke in 'fourth' of the kick and its chest : the snare :
+# the hat ; the backbeat's piece there : overrides on the kit for it : dB on its strokes ('' = it stays on the snare) ;
+# dB more on the lead's ride through 'fourth' ; the loudness target ('' = unchanged). "" = v13 byte for byte.
+CLEAN = os.environ.get("C10T14_CLEAN", "ct-clean fx.3.mix=0 synth.pitch.mod.0.amount=0 synth.pitch.mod.1.amount=0 synth.layers.0.tune_sounding=true strum=20ms;"
+                       "7.3dB;12;0.9;peak cutoff=350 q=0.9 gain=-5dB|peak cutoff=2800 q=0.8 gain=3dB;reverb kind=hall decay=1.6s mix=0.1 predelay=20ms;"
+                       "-5:-5:-2;ss::14;-3;-10.62" if COUNT else "")
 # a number is as long as it says, on the note of that length (the tune's own notes, NOTE_OF); two syllables share it
 NUMBER = {3: [("TH R IY1", 3)], 4: [("F AO1 R", 4)], 5: [("F AY1 V", 5)], 6: [("S IH1 K S", 6)], 7: [("S EH1", 3), ("V AH0 N", 4)],
           8: [("EY1 T", 8)], 9: [("N AY1 N", 9)], 10: [("T EH1 N", 10)], 11: [("IH0", 2), ("L EH1", 4), ("V AH0 N", 5)],
@@ -928,9 +960,50 @@ def song():
         doc["loudness"] = float(TURN.split(";")[2])
     if COUNT and COUNT.split(";")[9]:
         doc["loudness"] = float(COUNT.split(";")[9])
+    if CLEAN:
+        the_quiet_middle(doc)
     if TUNED:
         doc = {k: v for k, v in list(doc.items())[:2]} | {"tuning": {"steps": JUST, "root": "F3", "map": "keys"}} | {k: v for k, v in list(doc.items())[2:]}
     return doc
+
+
+def the_quiet_middle(doc):
+    """v14: in 'fourth' the nines and the fifteens leave the two wall guitars for a clean pair; the kit and the lead come down."""
+    patch, gain, semis, vel, eq, verb, kit, rim, ride, loud = CLEAN.split(";")
+    a, z = AT["fourth"] / 4, AT["common"] / 4
+    track = {t["name"]: t for t in doc["tracks"]}
+    names = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
+    up = lambda chord: ",".join(names[(names.index(n[:-1]) + int(semis)) % 12] + str(int(n[-1]) + (names.index(n[:-1]) + int(semis)) // 12) for n in chord.split(","))
+    for wall, name, chord, period in (("wl", "clean-l", "Bb1,F2,Bb2", 9), ("wr", "clean-r", "Db2,Ab2,Db3", 15)):
+        t = track[wall]
+        moved = [n for n in t["notes"] if a <= n["at"] < z]
+        # every stroke the wall has in the quiet middle is this chord on this wheel, and all of them go
+        assert moved and all(n["pitch"] == chord for n in moved) and all(abs((n["at"] - a) * 4 % period) < 1e-6 for n in moved), wall
+        t["notes"] = [n for n in t["notes"] if not a <= n["at"] < z]
+        fx = ([{"type": "eq", "bands": eq.split("|")}] if eq else []) + ([verb] if verb else [])
+        doc["tracks"].append({"name": name, "patch": patch, "gain": gain, "pan": t["pan"], "out": "gtrs", **({"fx": fx} if fx else {}),
+                              # (a clean chord does not ring on under the band's first stroke of 'common': the wall's last one did)
+                              "notes": [{**n, "pitch": up(chord), "vel": float(vel), "len": round(min(n["len"], z - n["at"] - 0.05), 5)} for n in moved]})
+    kick, snare, hat = kit.split(":")
+    for who, db in ((("kick", "chest"), kick), (("snare",), snare), (("hat",), hat)):
+        for name in who:
+            for n in track[name]["notes"]:
+                if a <= n["at"] < z and float(db) and not (name == "snare" and rim):
+                    n["gain"] = f"{float(n.get('gain', '0dB').rstrip('dB')) + float(db):g}dB"
+    if rim:
+        piece, over, db = rim.split(":")
+        for n in track["snare"]["notes"]:
+            if a <= n["at"] < z:
+                assert n["pitch"] == "s" and "gain" not in n and "patch" not in n
+                n.update({"pitch": piece, "gain": f"{float(db):g}dB"}, **({"patch": f"{track['snare']['patch']} {over}"} if over else {}))
+    if float(ride or 0):
+        lead = track["tune"]
+        was = float(LEAD.split(";")[2])
+        pts = lead["auto"]["ride"]["points"]
+        assert sum(1 for q in pts if q[1] == was) == 2
+        lead["auto"]["ride"]["points"] = [[q[0], q[1] + float(ride) if q[1] == was else q[1]] for q in pts]
+    if loud:
+        doc["loudness"] = float(loud)
 
 
 def dump(doc):
