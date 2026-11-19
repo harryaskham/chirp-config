@@ -47,6 +47,46 @@ class Keep(unittest.TestCase):
         self.assertTrue(os.path.exists(self.files["kept/jobs/b.wav"]), "a marked 8 h render stays")
         self.assertFalse(os.path.exists(self.files["kept/jobs/c.wav"]), "a marked render past 72 h goes")
 
+    def make(self, name, hours, size=1000):
+        p = os.path.join(self.root, name)
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with open(p, "wb") as f:
+            f.write(b"\0" * size)
+        t = time.time() - hours * 3600
+        os.utime(p, (t, t))
+        return p
+
+    def test_marked_audio_holds_at_most_half_the_cap(self):
+        """19 Nov: marked directories filled the cap (8.8 of 10 GB, one composer's finished rounds) and every unmarked
+        render of everyone else went at thirty minutes idle."""
+        import shutil
+        shutil.rmtree(os.path.join(self.root, "plain"))
+        shutil.rmtree(os.path.join(self.root, "kept"))
+        live = self.make("live/base.wav", 1)                       # nobody marked it: a round's base render, an hour idle
+        old = self.make("round-a/x.wav", 5)                        # marked, a finished round
+        new = self.make("round-b/y.wav", 2)                        # marked, the round before this one
+        hot = self.make("round-c/z.wav", 0.1)                      # marked, six minutes idle: in use
+        for d in ("round-a", "round-b", "round-c"):
+            open(os.path.join(self.root, d, T.KEEP), "w").close()
+        marks = {os.path.relpath(f[0], self.root): f[4] for f in self.only_mine([self.root])}
+        self.assertEqual(marks, {"live/base.wav": False, "round-a/x.wav": True, "round-b/y.wav": True, "round-c/z.wav": True})
+        with mock.patch.object(T, "candidates", self.only_mine):
+            # the cap holds 3500 of the 4000 bytes; the marked three are 3000, over half of it (1750)
+            line = T.run([self.root], age=6, stems_age=72, cap=3500e-9, min_free=0, min_age=30, dry=False)
+        self.assertIn("marked 2", line)
+        self.assertFalse(os.path.exists(old), "the least recently used marked audio goes first")
+        self.assertFalse(os.path.exists(new), "... until the marked audio is within half the cap")
+        self.assertTrue(os.path.exists(hot), "audio used in the last --min-age minutes is never deleted, marked or not")
+        self.assertTrue(os.path.exists(live), "the unmarked render stays: before, it was the first to go")
+        with mock.patch.object(T, "candidates", self.only_mine):   # --keep-share 1: the rule of before 19 Nov
+            self.make("round-d/w.wav", 3)
+            self.make("round-e/v.wav", 2)
+            for d in ("round-d", "round-e"):
+                open(os.path.join(self.root, d, T.KEEP), "w").close()
+            T.run([self.root], age=6, stems_age=72, cap=3500e-9, min_free=0, min_age=30, dry=False, keep_share=1.0)
+        self.assertFalse(os.path.exists(live), "with the old rule the unmarked render is deleted first")
+        self.assertTrue(os.path.exists(os.path.join(self.root, "round-d", "w.wav")))
+
 
 if __name__ == "__main__":
     unittest.main()
