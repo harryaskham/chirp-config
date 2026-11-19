@@ -243,6 +243,24 @@ RULE = os.environ.get('C10T8_RULE', '96.01955;52:2:0.7,20:1:0.4,8:0:0,4:0:-1.2;3
 OWN_NOTE = {side: {int(x.split(':')[0]): (int(x.split(':')[1]), float(x.split(':')[2])) for x in RULE.split(';')[k].split(',')}
             for side, k in (('l', 1), ('r', 2))} if RULE else {}
 
+# v24 (chirper-zero; instrument round: the guitars' muted strokes): THE RIFFS GET THEIR TEETH. The cure of Extreme
+# and Mean v23 and Take Up the Slack v12 on a third song, read with `riffpunch.py --strokes`. Not one note moves.
+# This song is two riffs said against each other in muted strokes, and the strokes were a thud: their scoop (how far
+# 400 Hz-1 kHz sits under 1-4 kHz on the stroke) read -5.4 on the two main guitars, -7.7 on their doubles and -4.7
+# on the walls, where six records' strokes read -11.3 (-12.7 to -6.5).
+#   THE PALM comes off the string a little: `ct-twin`'s palm closes its string's filter 3.4 octaves at a full mute
+#       (to 1 kHz); now 2, on the four guitars that say the riffs.
+#   THE 700 Hz LIFT GOES from all four (it was put there on a read that had the records' voices in it), and the two
+#       main guitars take 3 dB out at 800 Hz; each gets 2.5 dB at 185 Hz, the chest the opener string costs.
+#   THE WALLS (the measure, 2:13.5) go onto the engine's cabinet (Harry, 17 Nov: "The engine's cabinet is nearer"),
+#       as in five songs before: the recorded cabinet file and the patch's eq after it off, `cab 4x12-modern`, with
+#       3 dB at 220 Hz for what the file's low mids gave; their cut at 380 Hz goes.
+# The two microphones stay where they were (at 0.42 on the main pair the mix stood 0.9 over at 2-4 kHz).
+# the palm's octaves ; the main pair's eq, band|band ; the doubles' eq ; the walls' cabinet, microphone,cone left,cone
+# right,distance ; the walls' fader ; the walls' eq ; the loudness target. "" = v23 byte for byte.
+TEETH = os.environ.get('C10T8_TEETH', '-2;peak cutoff=185 q=1.2 gain=2.5dB|peak cutoff=800 q=1.2 gain=-3dB;peak cutoff=185 q=1.2 gain=2.5dB;'
+                                      '0.5,64,65,0.15;-1.2dB;peak cutoff=220 q=1 gain=3dB;-10.14' if RULE else '')
+
 
 
 def nm(n):
@@ -866,6 +884,23 @@ def the_foot_crosses_over():
     assert len(inside) - len([n for n in T['kick'] if start <= place(n) < end]) == 6 * int(CROSS) - 1
 
 
+def teeth(doc):
+    """v24: the muted strokes' teeth (the palm, the mids, the walls' cabinet)."""
+    palm, main_eq, dbl_eq, cab, fader, wall_eq, target = TEETH.split(';')
+    mic, cone_l, cone_r, dist = cab.split(',')
+    for t in doc['tracks']:
+        if t['name'] in ('gl', 'gr', 'dl', 'dr'):
+            t['patch'] += f' synth.filters.0.cutoff.mod.0.amount={palm}'
+            t['fx'] = [{"type": "eq", "bands": (main_eq if t['name'] in ('gl', 'gr') else dbl_eq).split('|')}]
+        elif t['name'] in ('wl', 'wr'):
+            t['patch'] += ' fx.3.mix=0 ' + ' '.join(f'fx.4.bands.{k}.gain=0dB' for k in range(4))
+            t['gain'] = fader
+            t['fx'] = [{"type": "cab", "model": "4x12-modern", "mic": float(mic), "distance": float(dist), "cone": int(cone_l if t['name'] == 'wl' else cone_r)},
+                       {"type": "eq", "bands": wall_eq.split('|')}]
+    if target:
+        doc['loudness'] = float(target)
+
+
 def song():
     total = compose()
     if CONVERGE:
@@ -995,6 +1030,8 @@ def song():
         the_answer_passes_by(doc)
     if RULE and RULE.split(';')[4]:
         doc['loudness'] = float(RULE.split(';')[4])
+    if TEETH:
+        teeth(doc)
     return doc
 
 
