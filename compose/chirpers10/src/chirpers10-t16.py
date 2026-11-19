@@ -190,6 +190,43 @@ DRUM = os.environ.get("C10T16_DRUM", f"-18dB;{OUTSIDE};1400 1.5;-4:4;0.15;0.6;13
 # shimmer's level (body shimmer dB) ; ms an open stroke rings ; a closed one ; brightness ; damping ; the sections ;
 # high-pass, Hz ; send to the overheads' room ("" = none) ; dB on the closed stroke. "" = the hat keeps those strokes.
 CYMBALS = os.environ.get("C10T16_CYMBALS", f"-13dB;-0.3;2793.82;bell cymbal -12;1500;150;0.8;0.1;{OUTSIDE};1500;;4" if DRUM else "")
+# v7 (chirper-one, whole song): THE GUITARS TAKE SIDES. v1's first want, open through six versions: "the cell has no
+# tune and the guitars say only its twos: one guitar could say the whole cell". Inside each kick is one cell, two
+# against three against four; the guitars had the twos (open with the kick, a muted stroke half way), the toms the
+# threes, the hat the fours. So through two and a half minutes of band the album's two guitars played the plainest
+# part in the song. Now each guitar also says one of the other numbers, on the low string, muted, with the drum
+# that has it, and the song's sections differ in who says what:
+#   square        the twos, both guitars, as written: the rule stated
+#   five          the LEFT guitar takes the threes as well (with the toms): 0, 1/3, 1/2, 2/3 of each pulse
+#   seven         and the RIGHT takes the fours (with the hat): 0, 1/4, 1/2, 3/4. Three against four, left against
+#                 right, meeting on the kick and half way
+#   three         the slow one, on the lowest ground: BOTH say the WHOLE cell together: 0, 1/4, 1/3, 1/2, 2/3, 3/4.
+#                 It is the song's one unison riff, at the width where its closest strokes are still a tenth of a
+#                 second apart
+#   square again  the sides again, now in common time
+#   the close     the twos, as written, and then nothing
+# No new sound and no new time: every stroke added is on a stroke a drum already plays. The open chord with the
+# kick is let go a little sooner, before that guitar's next stroke. The glide of v3 (five's last two bars) carries
+# the left guitar's threes with it: they are solved from the same phase as everything else.
+# THE PAIR KEEPS ITS LINE. The reeds' note is the fourth harmonic of the guitars' low string, and every added stroke
+# is that string, muted: benched, the first take left the pair's own line 1.0 to 1.8 dB less clear of the band at
+# its note (a third of an octave round it: +5.1, +5.5, +4.5, +5.2 dB over everything else in five, seven, three and
+# square again; then +4.1, +3.9, +2.7, +3.8). The song is about that line. So the added strokes are on tracks of
+# their own (the same guitars, rigs, faders and sides) with one narrow cut at the reeds' note, which follows the
+# ground as the bass's eq does. The strokes the guitars already had are not touched by it.
+# section=left:right (the overtones each guitar says), ... ; the added strokes' velocity ; the loudness target
+# ("" = unchanged) ; the cut at the reeds' note on the added strokes, q:dB ("" = none, and they stay on the
+# guitars' own tracks). "" = v6 byte for byte.
+SIDES = os.environ.get("C10T16_SIDES", "five=23:2,seven=23:24,three=234:234,square again=23:24;0.78;-9.861;3:-6" if CYMBALS else "")
+ALSO = "-said" if SIDES and SIDES.split(";")[3] else ""     # where the added strokes go
+SAID = {x.split("=")[0]: tuple(x.split("=")[1].split(":")) for x in SIDES.split(";")[0].split(",")} if SIDES else {}
+
+
+def places(said):
+    """Where in one pulse a guitar that says these overtones strikes: '2' -> 0, 1/2 ; '23' -> 0, 1/3, 1/2, 2/3 ; ..."""
+    return sorted({Fr(i, int(m)) for m in said for i in range(int(m))})
+
+
 GLIDER = "ce-turned-reed"                    # the still reed with a pitch that follows a note's `slide`, in semitones
 
 
@@ -258,8 +295,19 @@ def build():
                         kit("foot", at, "k", 0.98 if j == 0 else 0.88)
                         put("bass", at, nm(root), gap - 0.1, 0.95 if j == 0 else 0.9)
                     elif layer == "g":
-                        for tr in ("left", "right"):
-                            if j == 0:       # the bar line's open chord, as every bar of the section begins
+                        for tr, said in zip(("left", "right"), SAID.get(name, ("2", "2"))):
+                            if said != "2":  # v7: this guitar says another number too, on the same phase
+                                fr, half = places(said), Fr(j % 2, 2)
+                                for i, x in enumerate(fr):
+                                    if not half <= x < half + Fr(1, 2):
+                                        continue
+                                    t0 = a + when(j // 2 + x)
+                                    g2 = a + when(j // 2 + (fr[i + 1] if i + 1 < len(fr) else 1)) - t0
+                                    if x == 0:
+                                        put(tr, t0, f"{nm(root)},{nm(root + 7)}" + (f",{nm(root + 12)}" if j == 0 else ""), g2 - min(1 / 12, g2 * 0.3), 0.96 if j == 0 else 0.92)
+                                    else:
+                                        put(tr if x == Fr(1, 2) else tr + ALSO, t0, nm(root), min(0.3, g2 * 0.6), 0.82 if x == Fr(1, 2) else float(SIDES.split(";")[1]), mute=True)
+                            elif j == 0:     # the bar line's open chord, as every bar of the section begins
                                 put(tr, at, f"{nm(root)},{nm(root + 7)},{nm(root + 12)}", gap - 0.08, 0.96)
                             elif j % 2 == 0:
                                 put(tr, at, f"{nm(root)},{nm(root + 7)}", gap - 1 / 12, 0.92)
@@ -279,8 +327,9 @@ def build():
             n = r * span                     # pulses of the notes themselves in this span
             if "c" in who and a % 4 == 0:    # the open chord on the bar line
                 root = 29 + ground
-                for tr in ("left", "right"):
-                    put(tr, a, f"{nm(root)},{nm(root + 7)},{nm(root + 12)}", (1 / (2 * float(r)) - 0.08) if r and "g" in who else 7.6, 0.96)
+                for tr, said in zip(("left", "right"), SAID.get(name, ("2", "2"))):
+                    first = float(places(said)[1] / r) if r and "g" in who and said != "2" else 0   # v7: to this guitar's next stroke
+                    put(tr, a, f"{nm(root)},{nm(root + 7)},{nm(root + 12)}", first - min(0.08, first * 0.3) if first else (1 / (2 * float(r)) - 0.08) if r and "g" in who else 7.6, 0.96)
                 if not r:
                     put("bass", a, nm(root), 7.6, 0.95)
                 kit("brass", a, "c" if a == b or (a - b) % 16 == 0 else "x", 0.86 if a == b else 0.72)
@@ -298,11 +347,22 @@ def build():
                         if "g" in who:        # the bass is the notes' own pulse too: it holds from one kick to the next
                             put("bass", at, nm(29 + ground), Fr(span, int(count)) - Fr(1, 10), 0.95 if j == 0 else 0.9)
                     elif layer == "g":
-                        if j == 0 and "c" in who and a % 4 == 0:
-                            continue          # the chord is there
+                        there = j == 0 and "c" in who and a % 4 == 0      # the chord is there
                         gap = Fr(span, int(count))
-                        for tr in ("left", "right"):
-                            if j % 2 == 0:    # with the kick: the low string and its fifth, open, cut before the muted stroke
+                        for tr, said in zip(("left", "right"), SAID.get(name, ("2", "2"))):
+                            if said != "2":   # v7: this guitar says another number too
+                                fr, half = places(said), Fr(j % 2, 2)
+                                for i, x in enumerate(fr):
+                                    if not half <= x < half + Fr(1, 2):
+                                        continue
+                                    g2 = ((fr[i + 1] if i + 1 < len(fr) else 1) - x) * 2 * gap
+                                    if x == 0 and not there:
+                                        put(tr, at, f"{nm(29 + ground)},{nm(36 + ground)}", g2 - min(Fr(1, 12), g2 * Fr(3, 10)), 0.92)
+                                    elif x:
+                                        put(tr if x == Fr(1, 2) else tr + ALSO, at + (x - half) * 2 * gap, nm(29 + ground), min(Fr(3, 10), g2 * Fr(3, 5)), 0.82 if x == Fr(1, 2) else float(SIDES.split(";")[1]), mute=True)
+                            elif there:
+                                continue
+                            elif j % 2 == 0:  # with the kick: the low string and its fifth, open, cut before the muted stroke
                                 put(tr, at, f"{nm(29 + ground)},{nm(36 + ground)}", gap - Fr(1, 12), 0.92)
                             else:
                                 put(tr, at, nm(29 + ground), min(Fr(3, 10), gap * Fr(3, 5)), 0.82, mute=True)
@@ -386,6 +446,10 @@ def build():
         track("hair", STILL, "-9.5dB", 0.12, fx=[{"type": "eq", "bands": ["peak cutoff=300 q=0.8 gain=-6dB"]}]),
         track("left", "ct-twin fx.2.cone=37" + palm, "0.5dB", -0.92, "strings", mid),
         track("right", "ct-twin fx.2.cone=41" + palm, "0.5dB", 0.92, "strings", mid),
+        *([{**track(side + ALSO, "ct-twin fx.2.cone=" + cone + palm, "0.5dB", pan, "strings",
+                    mid + [{"type": "eq", "bands": [{"kind": "peak", "cutoff": keyed(round(hz(REED), 3)), "q": float(SIDES.split(";")[3].split(":")[0]),
+                                                     "gain": SIDES.split(";")[3].split(":")[1] + "dB"}]}]),
+            "auto": {"key": {"points": key, "curve": 0}}} for side, cone, pan in (("left", "37", -0.92), ("right", "41", 0.92))] if ALSO else []),
         # the bass holds its notes here (on the other songs it chugs): half of 120-250 Hz was its overtones
         track("bass", "ct-bass", "0.5dB", 0, "low", [{"type": "eq", "bands": ["peak cutoff=180 q=1 gain=-3dB"]}]),
         track("foot", "ct-kit", "3.5dB", 0, "drums", [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]),
@@ -432,6 +496,8 @@ def build():
         great_drum(doc)
     if CYMBALS:
         finger_cymbals(doc)
+    if SIDES and SIDES.split(";")[2]:
+        doc["loudness"] = float(SIDES.split(";")[2])
     return doc, marks, end
 
 

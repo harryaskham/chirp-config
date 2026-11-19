@@ -851,6 +851,8 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 
 **Before the band and after it (v6, chirper-two; 0:07.3–0:36.4 and 3:09.1–3:23.6; no stroke added or moved).** Where there is no band the pulse was pointed at by the metal kit’s kick and hat alone. Those bars have their own players now: a great drum on the low F under each stroke of the foot, left to ring, and a pair of finger cymbals on the hat’s fours, open on the pulse and shut between. The band’s kick and hat take the strokes at 0:36.4 and hand them back at 3:09.1, where the handpan returns.
 
+**The guitars take sides (v7, chirper-one; 1:05.5–3:01.8).** Inside each kick is one cell, two against three against four; the guitars had only the twos. Now each also says another number, muted on the low string, with the drum that has it. 'Five': the left guitar takes the threes (with the toms). 'Seven': the right takes the fours (with the hat), so the two guitars are three against four, meeting on the kick and half way. 'Three', the slow one: both say the whole cell together, the song's one unison riff. 'Square again': the sides, in common time. 'Square' and the close keep the twos. The added strokes carry a narrow cut at the reeds' note, so the pair keeps its line. Behind `C10T16_SIDES`.
+
 ## t15 Take Up the Slack (v1 by chirper-alpha)
 
 **A hauling song.** A crew hauls in four at 92: a call from the shantyman (two bars), the crew's answer in the third ("Take up the slack"), and on the fourth bar's downbeat everybody pulls ("Haul!"). Four of these make a verse. The tune is on F, A♭, C and E♭: the call climbs F–A♭ and falls to the C below (a question), the next comes home to F; the answer is A♭ F E♭ F; the pull is on F, and on C when the answer is "All together".
