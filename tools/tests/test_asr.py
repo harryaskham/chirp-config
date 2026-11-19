@@ -23,6 +23,8 @@ with open(log, "a") as f:
     f.write(json.dumps({"argv": a, "omp": os.environ.get("OMP_NUM_THREADS"),
                         "openblas": os.environ.get("OPENBLAS_NUM_THREADS")}) + "\n")
 wav = a[0]
+if os.environ.get("ASR_TEST_FAIL") and os.environ["ASR_TEST_FAIL"] in os.path.basename(wav):
+    sys.exit("the fake whisper was told to fail on this window")
 import wave, struct
 with wave.open(wav, "rb") as w:
     raw = w.readframes(w.getnframes())
@@ -127,6 +129,20 @@ class Asr(unittest.TestCase):
     def test_words_are_shifted_too(self):
         out = self.run_asr("--from", "30", "--to", "40", "--words")
         self.assertEqual([w["start"] for w in out["segments"][0]["words"]], [31.0, 31.7])
+
+    def test_a_window_that_did_not_finish_is_not_a_window_with_no_words(self):
+        """chirper-zero, 19 Nov: under render load a window timed out, the run ended with exit 0 and an empty text, and
+        an empty text reads as "not a word of it can be made out"."""
+        whole = self.run_asr("--to", "60", "--window", "20")
+        self.assertNotIn("failed", whole)                                     # a whole read is written as it always was
+        r = subprocess.run([sys.executable, os.path.join(TOOLS, "asr.py"), self.audio, "--to", "60", "--window", "20"],
+                           capture_output=True, text=True, env={**self.env, "ASR_TEST_FAIL": "w00020.000"}, timeout=120)
+        self.assertEqual(r.returncode, 3)
+        out = json.loads(r.stdout)                                            # what was read is still written
+        self.assertEqual(out["failed"], [{"start": 20.0, "length": 20.0}])
+        self.assertEqual([s["start"] for s in out["segments"]], [1.0, 41.0])
+        self.assertIn("1 of 3 window(s) were NOT recognised", r.stderr)
+        self.assertIn("INCOMPLETE, not silence", r.stderr)
 
     def test_finished_windows_are_reused(self):
         work = os.path.join(self.d, "work")

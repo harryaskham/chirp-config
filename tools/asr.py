@@ -13,6 +13,10 @@ per audio second (at least 5 min). --words adds word timestamps (the heavy part;
 Finished windows are kept in --work (default: a temp dir, removed unless given) and reused, so an interrupted run
 resumes. Prints the JSON to stdout unless -o.
 
+A WINDOW THAT DID NOT FINISH IS NOT A WINDOW WITH NO WORDS. When whisper times out or fails on a window (it does under
+render load: run it alone), the JSON is still written, with a "failed" list of those windows, a line on stderr says
+the text is incomplete, and the exit code is 3. Until 19 Nov such a run ended with exit 0 and an empty text.
+
 --cores (or $ASR_CORES): the CPUs whisper is held to. The default is the machine's LAST four (20-23 on pocket4), not
 0-3 as it was until 13 Nov: CPUs 0-3 are the groove's render threads' (chirp-eco's cpu-reserve), which moved whisper
 off them and, until the same day, onto all twenty others, so the hard limit was not one.
@@ -66,7 +70,8 @@ def env():
 
 
 def window(audio, start, length, work, model, words, cores, norm=False):
-    """One window's segments shifted to AUDIO's timeline ([] on failure, with a note on stderr)."""
+    """One window's segments shifted to AUDIO's timeline: [] when the recogniser heard no words, None when it did not
+    finish (timed out or failed, with a note on stderr). The two are not the same reading: see main."""
     tag = f"w{start:09.3f}-{length:g}{'-words' if words else ''}{'-norm' if norm else ''}-{model}"
     done = os.path.join(work, tag + ".json")
     if not os.path.exists(done):
@@ -80,11 +85,11 @@ def window(audio, start, length, work, model, words, cores, norm=False):
                                timeout=max(300, 15 * length))
         except subprocess.TimeoutExpired:
             print(f"asr: window {start:g}+{length:g} s timed out", file=sys.stderr)
-            return []
+            return None
         out = os.path.join(work, tag + ".json")       # whisper names its output after the input
         if r.returncode or not os.path.exists(out):
             print(f"asr: window {start:g}+{length:g} s failed: {r.stderr[-300:]}", file=sys.stderr)
-            return []
+            return None
         os.remove(wav)
     with open(done) as f:
         d = json.load(f)
@@ -119,19 +124,34 @@ def main(argv=None):
     os.makedirs(work, exist_ok=True)
     os.environ["ASR_CORES"] = a.cores
     try:
-        segs = []
+        segs, failed, count = [], [], 0
         t = a.t0
         while t < t1 - 0.05:
             n = min(a.window, t1 - t)
-            segs += window(a.audio, round(t, 3), round(n, 3), work, a.model, a.words, a.cores, a.norm)
+            got = window(a.audio, round(t, 3), round(n, 3), work, a.model, a.words, a.cores, a.norm)
+            count += 1
+            if got is None:
+                failed.append({"start": round(t, 3), "length": round(n, 3)})
+            else:
+                segs += got
             t += a.window
         res = {"audio": os.path.abspath(a.audio), "from": a.t0, "to": t1, "model": a.model,
                "text": " ".join(s["text"] for s in segs), "segments": segs}
+        if failed:
+            res["failed"] = failed          # only when there are any: a whole read is written as it always was
         if a.out:
             with open(a.out, "w") as f:
                 json.dump(res, f, indent=1)
         else:
             print(json.dumps(res, indent=1))
+        if failed:
+            # chirper-zero, 19 Nov: under render load whisper (four CPUs, nice 15) timed out, the text came back empty
+            # with exit 0, and an empty text reads as "no word of it can be made out".
+            print(f"asr: {len(failed)} of {count} window(s) were NOT recognised (timed out or failed): the text is "
+                  "INCOMPLETE, not silence, and must not be read as words that cannot be heard. Whisper is held to four "
+                  "CPUs at nice 15 and starves under render load: run it alone, when no render is going. Exit 3.",
+                  file=sys.stderr)
+            sys.exit(3)
     finally:
         if not a.work:
             shutil.rmtree(work, ignore_errors=True)
