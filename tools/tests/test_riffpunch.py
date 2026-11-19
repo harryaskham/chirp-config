@@ -71,6 +71,13 @@ class Parts(unittest.TestCase):
         self.assertIn("ours - records", text)
         self.assertIn("+1.00", text)
         self.assertIn("median of 6 records' guitar stems", text)
+        self.assertNotIn("FIZZ", text)
+        lone = R.lone_fizz()                                            # the records' guitars alone: no separator
+        self.assertEqual(sorted(lone), ["bleed", "combustion", "obzen"])
+        self.assertTrue(all(-26 < v < -22 for v in lone.values()))      # ... 9 to 12 dB over what their stems read
+        text = "\n".join(R.strokes_lines(res, st, len(recs), lone))
+        self.assertIn("FIZZ: do NOT judge fizz_db against the records' row above", text)
+        self.assertIn("-24.6, -25.4, -22.5 (obzen, combustion, bleed; whole passage)", text)
 
     def test_a_guitar_by_its_chain_only_when_asked(self):
         twin = {"synth": {"layers": [{"type": "pluck"}]}, "fx": [{"type": "amp"}, {"type": "cab"}]}

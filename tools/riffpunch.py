@@ -43,7 +43,12 @@ says guitar, or whose resolved patch is a plucked string through an amp, less th
 their range and the difference. What it found on the album: through a stroke the records' guitars carry 11.3 dB more
 at 1-4 kHz than at 400 Hz-1 kHz (scoop_db -11.3; -12.7 to -6.5), and a `ct-twin` chug written at a full palm
 (pm 1.0, which closes the string's filter to 1 kHz before the amp) read -4.4: no teeth. Nothing is scored: it is a
-read. fizz_db is to be trusted only as far as the separator (see below). What the records CANNOT give: how empty the
+read. FIZZ IS NOT TO BE JUDGED AGAINST THE STEMS' ROW: on the three passages where a record's guitar plays alone the
+record itself reads -22.5 to -25.4 (6-10 kHz less 1-4 kHz), its stems 0 to 5 dB less there, and -33 to -36 under a
+full band; our twins read -25 to -28 (a stroke's 20-120 ms against a whole passage: a rough comparison), so they are
+about level with the records at the top, not 7 to 10 dB over (asked by chirper-zero, who trusted cabspec, the record's
+lone guitar, and did not cut; cabspec is the yardstick for the top). The tool prints the lone-guitar figures under the
+table. What the records CANNOT give: how empty the
 rest after a stroke should be. A stroke "followed by a rest" in our transcriptions is not followed by a rest on the
 records' guitar stems (-4 to 0 dB under the stroke on obZen, Pravus, Lethargica, This Spiteful Snake).
 """
@@ -181,13 +186,20 @@ def records_table(path=None):
         return json.load(f)["records"]
 
 
+def lone_fizz(path=None):
+    """{record id: fizz_db} where the record's guitar plays alone, read on the record itself (no separator); {} if the
+    table has none."""
+    with open(path or os.path.join(HERE, "riffpunch-records.json")) as f:
+        return ((json.load(f).get("lone_guitar") or {}).get("fizz_db") or {}).get("record") or {}
+
+
 def records_stats(recs):
     """{measure: (median, lowest, highest)} over the records."""
     return {k: (float(np.median([r[k] for r in recs.values()])), min(r[k] for r in recs.values()),
                 max(r[k] for r in recs.values())) for k in TOL}
 
 
-def strokes_lines(res, stats, nrec):
+def strokes_lines(res, stats, nrec, lone=None):
     row = lambda name, f: f"  {name:14s}" + "".join(f"{f(k):>14s}" for k in TOL)   # noqa: E731
     o = res["ours"]
     return [row("", lambda k: k),
@@ -196,8 +208,13 @@ def strokes_lines(res, stats, nrec):
             row("  low..high", lambda k: f"{stats[k][1]:.1f}..{stats[k][2]:.1f}"),
             row("ours - records", lambda k: f"{o[k] - stats[k][0]:+.2f}"),
             "  scoop_db is 400 Hz-1 kHz less 1-4 kHz through a stroke: MORE negative is more teeth. rise_ms and punch_db are "
-            "the attack; tight_db the low end's fall; grain the noise between the harmonics. A read, not a score; fizz_db only "
-            "as far as the separator. The records give no figure for the rest after a stroke."]
+            "the attack; tight_db the low end's fall; grain the noise between the harmonics. A read, not a score. The records "
+            "give no figure for the rest after a stroke."] + ([
+                "  FIZZ: do NOT judge fizz_db against the records' row above. Those are separated stems, and the separator takes "
+                "the guitar's top: where the record's guitar plays ALONE (no separator) the record itself reads "
+                + ", ".join(f"{v:.1f}" for v in lone.values()) + f" ({', '.join(lone)}; whole passage), and ours here "
+                f"{res['ours']['fizz_db']:.1f} (a stroke's 20-120 ms). For the top of a guitar trust tools/cabspec.py."]
+                if lone else [])
 
 
 def compare(ref, ours, ts, shift):
@@ -280,7 +297,7 @@ def main(argv=None):
             print(json.dumps(res))
             return
         print(f"riffpunch strokes {res['label']} (tracks {','.join(tracks)}): {res['n']} clean strokes read of {res['of']} onsets")
-        print("\n".join(strokes_lines(res, stats, len(recs))))
+        print("\n".join(strokes_lines(res, stats, len(recs), lone_fizz())))
         return
     if a.clip:
         cl = next((c for c in json.load(open(os.path.join(ROOT, "micro", "clips.json")))["clips"] if c["id"] == a.clip), None)

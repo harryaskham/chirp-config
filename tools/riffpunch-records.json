@@ -55,5 +55,39 @@
    "grain": 0.312,
    "n": 220
   }
+ },
+ "lone_guitar": {
+  "about": "Where the record's guitar plays ALONE (cabspec's three passages: no separator in the way), the whole passage's 6-10 kHz less 1-4 kHz, read on the record itself and on its separated guitar stems over the same seconds (chirp-eco, 19 Nov 2026, ~/.local/state/chirp-eco/common-time/fizzread/fizzread.py). The stems lose 0 to 5 dB of fizz even there (bs_roformer_sw; htdemucs_6s up to 12.6), and under a full band they read -33 to -36: judge fizz against `record`, not against the stems' row.",
+  "passages": {
+   "obzen": [
+    183.5,
+    8
+   ],
+   "combustion": [
+    44.6,
+    2.5
+   ],
+   "bleed": [
+    386.9,
+    1.5
+   ]
+  },
+  "fizz_db": {
+   "record": {
+    "obzen": -24.6,
+    "combustion": -25.4,
+    "bleed": -22.5
+   },
+   "bs_roformer_sw": {
+    "obzen": -24.6,
+    "combustion": -30.7,
+    "bleed": -25.7
+   },
+   "htdemucs_6s": {
+    "obzen": -24.8,
+    "combustion": -30.0,
+    "bleed": -35.1
+   }
+  }
  }
 }
