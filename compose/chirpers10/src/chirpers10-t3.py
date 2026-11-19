@@ -584,7 +584,20 @@ STRUCK = os.environ.get('C10T3_STRUCK', '1.2;3;4s;2s;-9.982' if TREBLE and CHORD
 # was 'highshelf cutoff=7000 gain=-3dB') ; its fader (3.5dB) ; the loudness target ('' = unchanged). '' = v32.
 # It is on only while no other C10T3_ switch is set, so every older switch gives exactly what it gave.
 SNARE = os.environ.get('C10T3_SNARE', '3.5;1.1;peak cutoff=2500 q=0.7 gain=-4dB,peak cutoff=650 q=1 gain=-3dB;1.5dB;-10.067' if STRUCK and not any(
-    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE') for k in os.environ) else '')
+    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE') for k in os.environ) else '')
+# v34 (chirper-alpha; whole song: its frame; the change is the band's entrance, 0:08-0:12): THE BAND IS RUNG UP.
+# The song is a ringing performance from end to end, and since v28 the band is LOWERED at the end. But ringers do not
+# start by ringing: a ring is RAISED first, the bells chiming fast and close while they hang low, each stroke taking
+# longer as they swing higher, until they are up and ringing rounds at full length. The song had the end of that
+# and not the beginning. Now the band's first four rounds are v28's strokes in the other order: the six guitars one
+# stroke, four times, with the snare (a ring that fires); the row dealt across the room at an eighth, twice; once
+# to the beat; a row of six sixteenths, two of seven; and at 0:12 the row is its full eight and is the riff. The
+# kit's bar (china, backbeat, crash) is the same bar; the tower, the men and v21's wrapped rows are untouched.
+# how many of the band's first rounds are rung up ; each row's length in sixteenths (they fill those rows' time, and
+# never shorten) ; the dealt strokes' velocity ; their height over the riff's own notes, semitones ; how much of its
+# row a bell dealt at an eighth rings for ; the loudness target ("" = unchanged). "" = v33 (and, like SNARE, setting
+# it does not switch SNARE off).
+RAISE = os.environ.get('C10T3_RAISE', '4;1,1,1,1,2,2,4,6,7,7;0.97;0;0.5;' if SNARE and LOWER and W1 == (2, 2) else '')
 CHORD_ROWS = []
 
 
@@ -885,6 +898,39 @@ def ring_down():
     assert t == END * 16
 
 
+def ring_up():
+    """v34: the band's first rows as rounds raised in peal: the strokes of ring_down() in the other order (see RAISE)."""
+    f = RAISE.split(';')
+    rows, sizes, vel, up, hold = int(f[0]), [int(x) for x in f[1].split(',')], float(f[2]), int(f[3]), float(f[4])
+    assert sum(sizes) == rows * L1 and sizes == sorted(sizes) and rows <= ROUNDS_N // 2, (sum(sizes), rows * L1)
+    gl, gr, gl2, gr2 = G4
+    jl, jr = HOME.split(';')[0].split(',')
+    ring = (gl, gl2, jl, jr, gr2, gr)                       # as a ring is hung: the treble far left, the tenor far right
+    t = BAND * 16
+    for j, n in enumerate(sizes):
+        if n >= 6:                                          # nearly the riff: 6 = the treble and the tenor short, 7 = the tenor short
+            row_notes(ROUNDS, t, 0, (n - 5, 1))
+        else:
+            step = n / 6 if n > 1 else n / 12               # at a sixteenth the six are all but one stroke
+            for i, b in enumerate(ROUNDS + (6,)):
+                if n >= 4:                                  # a row to the beat: the first speed a hand can pick, in unison
+                    for tr in G4:
+                        add(tr, t + i * step, step, F1 + PITCH[b], 1.0 if b == 1 else 0.9, **({} if b == 1 else {'pm': 1}))
+                    add('bass', t + i * step, step, F1 + PITCH[b], 0.95 if b in (1, 6) else 0.85)
+                else:                                       # one bell to a guitar, struck in its turn
+                    add(ring[i], t + i * step, n * (hold if n > 1 else 1), F1 + PITCH[b] + up, vel)
+            drum('k', t, 0.95)
+            if n > 1:
+                drum('k', t + 5 * step, 0.9)                # the foot goes with the tenor once the tenor is a stroke of its own
+            if n < 4:
+                add('bass', t, n, F1, 0.95)                 # the tenor under the dealt rows
+            if n == 1:                                      # the snare strikes with the rows that are all but one stroke
+                T['snare'] = [e for e in T['snare'] if e['at'] != round(t / 4, 4)]
+                drum('s', t, round(0.98 - 0.04 * j, 3))
+        t += n
+    assert t == BAND * 16 + rows * L1
+
+
 def rounds_on_the_toms(b):
     """The last row before bar `b` is rounds on the tower. The kit rings it too, as it rings a call: the treble is
     left to the bell, then a tom to each bell between, high to low, and the snare for the tenor."""
@@ -957,9 +1003,11 @@ def compose():
     else:
         T.setdefault("home", []).append({"at": 0, "len": 15.5, "pitch": "F1", "vel": 0.5})
     # the band takes the row up at twice the speed: rounds, sixteen times, the row turning against the bar
-    for r in range(ROUNDS_N):
+    for r in range(int(RAISE.split(';')[0]) if RAISE else 0, ROUNDS_N):
         row_notes(ROUNDS, BAND * 16 + r * L1, 0, W1)
     beat(BAND, PART1, "a", meet(L1))
+    if RAISE:                            # v34: the band's first rounds are rung up, as its last are rung down
+        ring_up()
     fill(PART1)
     # the first extent: Plain Bob Doubles. Forty rows on F, forty on Ab, forty on B
     bare = [int(x) for x in FORM.split(";")[2].split(":")] if FORM else [0, 0]

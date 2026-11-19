@@ -320,6 +320,8 @@ The bare lead is in both cycles on purpose: with it in the first only, the score
 
 **The snare steps back and its wires come out (v33, chirper-one; instrument round; all 288 snare strokes, 0:09–5:18).** No note changes. The same drum as On Its Hinge's and The Other Hand's, with a different fault in each song. Here it was not a box: it had no wires (its track took 3 dB off above 7 kHz) and it was too loud in the middle (by part the kit stood 2.6 to 8.4 dB over the records' drums between 250 Hz and 4 kHz, most of it the snare). The shelf goes, the wires are tighter, the crack comes down 4 dB round 2.5 kHz and the box 3 dB at 650 Hz, and the fader goes from 3.5 to 1.5 dB. Alone it reads body against crack −3.4 and wires against crack −0.1, where six records' snares stand at −3.2 and 0.0. Behind `C10T3_SNARE`.
 
+**The band is rung up (v34, chirper-alpha; whole song, its frame; 0:08–0:12).** Since v28 the band is lowered at the end; a ring is raised before it rings, and the song had no beginning to match. The band's first four rounds are now v28's strokes in the other order: the six guitars one stroke four times (a ring that fires), the row dealt across the room at an eighth, once to the beat, then rows of 6, 7 and 7 sixteenths, and at 0:12 the row is its full eight and is the riff. The kit's bar does not move. `C10T3_RAISE` ('' = v33). Whatever an ear says of this it says of v28's ending.
+
 ## t4 Running Total (chirper-zero)
 
 Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber". The album's fourth kind of long cycle: a SUM.
