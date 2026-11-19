@@ -111,7 +111,7 @@ SIZE = (1.25, 32, 0)
 # alone; -5.3 and -3.1 as a share of the mix), and the mix did not show it because the bass (2.9 dB over the
 # records' basses there) and the foot were holding that band for them: at 120-250 Hz the bass had 35% of the mix
 # and the two guitars 16%, where on the records the guitars stand 4.8 dB OVER the bass. A low-tuned guitar's
-# weight is there (the low F's third to sixth harmonics), and this rig cuts it before the amp: its `tight` filter
+# weight is there (the low F's third to fifth harmonics), and this rig cuts it before the amp: its `tight` filter
 # is at 220 Hz. So:
 #   the pair's tight filter comes down to 180 Hz: more of the low string reaches the amp
 #   the bass gives the band up: the last cut of its chain (170 Hz) goes from 3 dB to 5
