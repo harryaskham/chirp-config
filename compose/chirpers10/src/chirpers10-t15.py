@@ -92,6 +92,23 @@ INBAND = os.environ.get('C10T15_INBAND', 'hp cutoff=190|peak cutoff=330 q=0.9 ga
 # china ("" = none) ; the stomp's velocity on one (three is 0.1 less; "" = none) ; the buses' lift in the
 # choruses, dB (v3's) ; the loudness target. "" = v3.
 BUILT = os.environ.get('C10T15_BUILT', '1;0;0.78;0.62;2;-9.937' if INBAND else '')
+# v5, palette (chirper-one): THE SQUEEZEBOX, AND THE CALL IS HEARD. Two switches.
+# SQUEEZE: in 'easy' (2:21-2:42), the song's one quiet place, the two clean guitars that turn the fifteen against the
+# seventeen are two concertinas: the fo'c'sle's own instrument, and one no other song on the record has (the clean
+# guitar is on seven). The local `accordion` with its two reeds closer together (5 cents where the musette has 14: a
+# concertina does not shimmer), two octaves over the guitars' notes (F4 to B4: the treble concertina's own
+# register, clear of the shantyman, who sings an octave under it; one octave up it sat on his notes), the fifteen on
+# the left and the seventeen on the right as before. Not one note is added, moved or dropped. The guitars stood
+# 18.9 dB under the rest of 'easy' (K): the fifteen against the seventeen was written there and hardly sounded.
+# the patch ; the two tracks' gain ; octaves over the guitars' notes ; their send to the hall. "" = the clean guitars.
+SQUEEZE = os.environ.get('C10T15_SQUEEZE', 'accordion synth.layers.1.cents=5;-13dB;2;-12dB' if BUILT else '')
+# CALL: v3 put the voices in the band and its own check said what that may have cost: with the band playing the
+# recogniser read 12 words of 38 in verse one's calls at v2 and 5 at v3. Read again here, three ways: as v4, 5 of 38;
+# the shantyman 1.5 dB up, 6; 3 dB up, 11. So 3: he stands 4.1 dB under everything else in verse one (K; v4 7.1),
+# still 1.6 dB lower than v2 had him, with v3's edge making up the rest. The shantyman's fader comes up in the
+# three verses only (dB): it stays where v3 put it in the choruses, and in the first call, 'easy' and the close,
+# where there is no band to sing over and the song's quiet places should stay quiet. "" = v4's voices.
+CALL = os.environ.get('C10T15_CALL', '3' if BUILT else '')
 WALK = {(0, 0): {14: 12}, (0, 3): {14: 1}, (3, 7): {14: 5}, (7, 0): {12: 3, 14: 1}}     # eighth: semitones over low F
 # one bow, the pitch sliding inside the note (mono, legato); no chance detuning from note to note and less than half
 # of the library's unsteady bowing (12 cents either way there, 5 here): taut is in tune
@@ -331,7 +348,7 @@ def make():
                     for pos, kind, semi, dur in riff:
                         t = land + k * length + pos
                         if kind != 'm' and a <= t < b:
-                            put(tr, t, 3.4, F1 + 12 + semi, .7)
+                            put(tr, t, 3.4, F1 + 12 + semi + (12 * int(SQUEEZE.split(';')[2]) if SQUEEZE else 0), .7)
                     k += 1
             for k, semi in enumerate((0, 0, 1, 1, 0, 0, 3, 1)):
                 put('bass', a + k * BAR, 15, F1 + semi, .7)
@@ -385,13 +402,17 @@ for _s, _n in FORM:
     _t += _n * BAR
 
 
-def in_the_choruses(db):
-    """A fader ride: `db` through each chorus, moving over the half beat before it and the last half beat of it."""
-    points, beat = [['0b', 0]], 0
-    for name_, bars in FORM:
-        if name_ in ('all together', 'all together again', 'home'):
-            points += [[f'{beat - 0.5:g}b', 0], [f'{beat:g}b', db], [f'{beat + 4 * bars - 0.5:g}b', db], [f'{beat + 4 * bars:g}b', 0]]
-        beat += 4 * bars
+def in_the_choruses(db, also=None):
+    """A fader ride: `db` through each chorus, moving over the half beat before it and the last half beat of it
+    (and through the sections of `also`, each by its own figure)."""
+    value = lambda name_: db if name_ in ('all together', 'all together again', 'home') else (also or {}).get(name_, 0)
+    was = value(FORM[0][0])
+    points, beat = [['0b', was]], 0
+    for name_, bars in FORM + [('end', 0)]:
+        v = value(name_)
+        if v != was:
+            points += [[f'{beat - 0.5:g}b', was], [f'{beat:g}b', v]]
+        beat, was = beat + 4 * bars, v
     return points
 
 
@@ -408,6 +429,10 @@ def voices(tr):
         t['fx'] = eq
         t['gain'] = {'value': f"{float(t['gain'][:-2]) + float(trim):g}dB", 'mod': [{'src': 'auto.ride', 'amount': 1}]}
         t['auto'] = {'ride': {'points': points, 'curve': 0}}
+    if CALL:                                # the shantyman: up outside the choruses, where v3 left him inside them
+        t = out[0]
+        t['gain'] = {**t['gain'], 'value': f"{float(SHANTY_GAIN[:-2]) + float(trim) + float(CALL):g}dB"}
+        t['auto'] = {'ride': {'points': in_the_choruses(float(ride) - float(CALL), {k: -float(CALL) for k in ('count', 'first call', 'easy', 'made fast')}), 'curve': 0}}
     return out
 
 
@@ -426,7 +451,9 @@ def tracks_of(ev):
         tr('gl', 'ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone=92', '0.7dB', -1, 'gtrs', lift),
         tr('gr', 'ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone=93', '0.7dB', 1, 'gtrs', lift),
         tr('wl', 'ct-wall-stop-l', '-3.5dB', -.75, 'gtrs', dip), tr('wr', 'ct-wall-stop-r', '-3.5dB', .75, 'gtrs', dip),
-        tr('clean-l', 'ct-clean', '-6dB', -.6, sends={'hall': '-12dB'}), tr('clean-r', 'ct-clean', '-6dB', .6, sends={'hall': '-12dB'}),
+        *([{**tr('clean-' + side, SQUEEZE.split(';')[0], SQUEEZE.split(';')[1], pan, sends={'hall': SQUEEZE.split(';')[3]}), 'name': 'squeeze-' + side}
+           for side, pan in (('l', -.6), ('r', .6))] if SQUEEZE else
+          [tr('clean-l', 'ct-clean', '-6dB', -.6, sends={'hall': '-12dB'}), tr('clean-r', 'ct-clean', '-6dB', .6, sends={'hall': '-12dB'})]),
         tr('bass', 'ct-bass', '0.5dB', 0, 'low'),
         tr('kick', 'ct-kit', '2dB', 0, 'drums', [{'type': 'eq', 'bands': ['peak cutoff=4500 q=0.8 gain=10dB']}]),
         tr('snare', 'ct-kit', '3.5dB', 0, 'drums', [{'type': 'eq', 'bands': ['highshelf cutoff=7000 gain=-3dB']}], {'oh': '-1.5dB', 'snr': '-10dB'}),
