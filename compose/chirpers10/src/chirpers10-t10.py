@@ -207,6 +207,24 @@ BOW = os.environ.get('C10T10_BOW', '-0.7;300;-6' if BOOM and TRADE else '')
 # cut (an eq band, or nothing) ; the low bus's makeup dB ; the loudness target (the quiet band keeps the gain it had) ;
 # dB given back to the kit after its cut. '' = v18.
 STAGE = os.environ.get('C10T10_STAGE', '-3;2.5;450 0.8 -7;peak cutoff=42 q=1.2 gain=-3.5dB;2.5;-9.941;0.8' if BOW and BOOM else '')
+# v20 (chirper-zero, instrument round): THE RIFF GUITARS GET A CHEST. Read alone against a record's guitar heard
+# alone (cabspec, 'on account'), the two riff guitars stood 8.0 dB under it from 141 to 282 Hz and 4.5 to 6.5 over
+# it from 400 to 800 Hz: no chest, all nose. The records' guitar stems said the same (120-250 Hz 6.2 under, their
+# middle half 1.5 wide), and the band the guitars did not hold was held by the bass (3.4 over the records' basses
+# there). With no voice in this song the mix itself stood 0.3 to 2.0 over the records at 500 Hz-1 kHz (mean 1.1).
+# (v19's read by part had left the left guitar out of the guitars, so they looked short and got 2.5 dB at 700 Hz.)
+# So, after each riff guitar's cabinet: a chest (6.5 dB near 195 Hz) and 1.5 dB off near 560 Hz in place of the
+# 700 Hz lift; and the bass makes room with one more band on its bus (6 dB off at 185 Hz, before its compressor;
+# v19 had tried that band alone and the mix fell short there: the guitars were not yet in it). Nothing before the
+# cabinet is touched: the amp is as tight as it was. A deeper cut (3.5 dB) read better alone and by part and took
+# the mix to 0.5 UNDER at 500 Hz-1 kHz ('in hand' 2.0 under): the mix decided.
+# AFTER: alone, mean distance from the record's guitar 3.03 -> 1.79 dB, 141-282 Hz -8.0 -> -3.0; by part the
+# guitars at 120-250 Hz -6.2 -> -1.8 and the bass +3.4 -> -0.1; the mix at 500 Hz-1 kHz, six sections, mean +1.1
+# -> 0.0 (120-250 Hz +0.8 -> +1.0, 1-2 kHz 0.0 -> -0.4).
+# the riff guitars' eq bands 'Hz:q:dB,...' ; one more band on the low bus 'Hz:q:dB' (or nothing) ; the loudness
+# target (what plays without the riff guitars and the bass guitar keeps the gain it had: the song reads 0.3 LU
+# lower, because the 700 Hz lift was loudness). '' = v19.
+CHEST = os.environ.get('C10T10_CHEST', '195:1.3:6.5,560:1:-1.5;185:1:-6;-10.239' if STAGE else '')
 
 
 def bow_patch():
@@ -701,7 +719,11 @@ def build():
         return {'name':tr,'patch':patch,'gain':f'{db}dB','pan':pan,'notes':ns,**more}
     palm=' synth.layers.0.mute=expr.pm*0.6 synth.layers.0.mute_width=0.1'
     stage = STAGE.split(';') if STAGE else None
-    riff = dict(out='gtrs', fx=[{'type':'eq','bands':[f'peak cutoff=700 q=0.9 gain={stage[1]}dB']}]) if stage else {}
+    chest = CHEST.split(';') if CHEST and stage else None
+    band = lambda b: 'peak cutoff=%s q=%s gain=%sdB' % tuple(b.split(':'))
+    room = chest[1].split(':') if chest and chest[1] else None      # the bass makes room for the chest
+    riff = dict(out='gtrs', fx=[{'type':'eq','bands':[band(b) for b in chest[0].split(',')] if chest else
+                                 [f'peak cutoff=700 q=0.9 gain={stage[1]}dB']}]) if stage else {}
     tracks=[track('left','ct-twin fx.2.cone=81'+palm,1,-.93,**riff),
             track('right','ct-twin fx.1.model=gojira fx.2.cone=84'+palm,1,.93,**riff),
             track('weight','ct-wall-stop-l',-5,.05,fx=['hp cutoff=130']+([{'type':'eq','bands':['peak cutoff=380 q=1 gain=-3dB']}] if stage else []),
@@ -788,7 +810,8 @@ def build():
             'low':{'fx':[{'type':'eq','bands':[{'kind':'peak','cutoff':keyed(44),'q':1.5,'gain':'-7dB'},
                                                {'kind':'peak','cutoff':keyed(90),'q':1.0,'gain':'7.5dB'},
                                                {'kind':'peak','cutoff':350,'q':1.0,'gain':'-8dB'},
-                                               {'kind':'peak','cutoff':1500,'q':1.0,'gain':'4dB'}]},
+                                               {'kind':'peak','cutoff':1500,'q':1.0,'gain':'4dB'}]+
+                                              ([{'kind':'peak','cutoff':float(room[0]),'q':float(room[1]),'gain':room[2]+'dB'}] if room else [])},
                          {'type':'compressor','threshold':'-26dB','ratio':8.0,'attack':'12ms','release':'120ms','makeup':f'{stage[4]}dB'}],
                    'auto':{'key':{'points':points,'curve':0}}},
             'brush':old_kit_bus,
@@ -796,7 +819,7 @@ def build():
                                                 {'type':'gain','gain':f'{stage[6]}dB'}]},
         }
     return {'about':'Still Owing, Common Time track 10: a low call borrows time from a higher answer and pays it back within each two-bar phrase.',
-        'tempo':BPM,'seed':1,'event_stable':True,'length':f'{t//SUB}b','tail':'3s','loudness':float(stage[5]) if stage else float(BOOM.split(';')[3]) if BOOM else ROOM_LUFS if ROOM else -10,'ceiling':'-1dB','true_peak':True,
+        'tempo':BPM,'seed':1,'event_stable':True,'length':f'{t//SUB}b','tail':'3s','loudness':float(chest[2]) if chest else float(stage[5]) if stage else float(BOOM.split(';')[3]) if BOOM else ROOM_LUFS if ROOM else -10,'ceiling':'-1dB','true_peak':True,
         **({'songs':fold_sources} if fold_sources else {}),
         'patches':{'owing-key':key_patch,**fold_patches,**({'owing-skin':pressure_skin()} if PRESS else {}),
                    **({'owing-kept':kept_key()} if KEPT else {}),**({'owing-bow':bow_patch()} if BOW and TRADE else {})},
