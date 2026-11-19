@@ -122,11 +122,26 @@ HEAVY_LOUDNESS = -10.185
 # (the cut under it ate it). The second amp of 'carbon' (the copy) is not touched. --stock-rig keeps the old rig.
 HANDS_RIG = ('fx.1.model=gojira fx.2.mic=0.25', None, ['peak cutoff=2600 q=1.4 gain=-3.5dB'])
 
+# v16 (chirper-one, section w7, 2:55.4-3:06.3): THE PAGE IS TURNED OVER. The song reads its strip from both ends; it
+# had never turned it upside down. In 'turn over', after the first pair of strips, the page is turned top to bottom
+# for two pairs (four strips): every open chord stands as far BELOW the low F as it stood above it, brought up an
+# octave so it stays on the neck. A flat (a minor third up) becomes D (a minor third down), G flat (a semitone up)
+# becomes E (a semitone down), C (a fifth up) becomes B flat (a fifth down). The rhythm, the palm strokes, the
+# chairs, the bass's F and the kit are as written; both hands are heavy, as Harry chose. What turns is the colour:
+# the strip's F, A flat, G flat, C is the dark side of F; F, D, E, B flat is its bright side. Where the two hands
+# meet (ticks 3 and 15) they used to make A flat major seventh over the bass's F; turned over they make B flat
+# major seventh over it. Then the page is turned back for the last pair on F, whose closing C is left ringing and
+# becomes the ground (v12), and the section ends on C as before. A crash marks each turn of the page.
+# The strips of 'turn over' read upside down (first, one past the last) ; the crash's velocity on each turn (0: no
+# crash) ; the loudness target. --without-turned-page gives v15.
+TURNED = (2, 6, 0.8, -10.185)
+
+
 def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, rig=HANDS_RIG):
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, turned=True, rig=HANDS_RIG):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
@@ -140,6 +155,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
     copy = copy and thumbs                       # --without-thumbs still gives v12
     heavy = heavy and copy                       # --without-carbon-copy still gives v13
     rig = rig if heavy else None                 # --with-steel still gives v14
+    turned = turned and heavy and rig is not None  # --stock-rig is v15's notes on the old rig
     ev = defaultdict(list); sections = []; tie_gains = {}; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -267,6 +283,8 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                     if pivot and t == last_open: gap = STRIP-t
                     dur = .64 if k=='m' else min(gap-.23, 3.45)
                     n = root+p
+                    if turned and sec=='turn over' and TURNED[0] <= i < TURNED[1]:
+                        n = root+(12-p)%12       # v16: the page upside down
                     if picking_hand and sec=='ink' and tr=='right' and k=='m' and t not in by_centre:
                         # The travelling strokes are up-picks. Keep them short,
                         # but lift the palm a little so they cut through the note
@@ -346,6 +364,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                     if sec in ('raised','turn over'): kit('brass',t,'x' if sec=='turn over' else 'rde',.72 if beat%4==0 else .60)
                     elif not tom_reply or t-a not in opens[1]: kit('hat',t,'h',.65 if beat%4==0 else .48)
             if sec in ('ink','opposite','raised','one hand') and i==0: kit('brass',a,'c',.88)
+            if turned and sec=='turn over' and i in TURNED[:2] and TURNED[2]: kit('brass',a,'c',TURNED[2])
         start+=count*STRIP
     if ties:
         # At each key change the two transpositions of this four-note hook
@@ -605,8 +624,9 @@ if __name__=='__main__':
     ap.add_argument('--without-thumbs',action='store_true',help="regenerate v12, the clean guitar answering the voice in 'thumbprint'")
     ap.add_argument('--without-carbon-copy',action='store_true',help="regenerate v13, the copy strips of 'carbon' on the ink's own amp")
     ap.add_argument('--with-steel',action='store_true',help="regenerate v14, the pedal steel reading back in 'turn over'")
+    ap.add_argument('--without-turned-page',action='store_true',help="regenerate v15, 'turn over' read the right way up throughout")
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,None if a.stock_rig else HANDS_RIG)
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
