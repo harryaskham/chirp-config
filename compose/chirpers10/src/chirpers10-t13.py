@@ -30,7 +30,7 @@ def name(n):
 
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
             rim=True, rim_gain=-18, turned=True, hole=True, mold=True, fretless=True, fretless_gain=-10.0,
-            lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True, refill=True, whole_scale=True):
+            lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True, refill=True, whole_scale=True, trades=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -46,6 +46,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     lit = lit and fretless
     spin = spin and lit
     refill = refill and spin
+    trades = trades and refill
     marks = {}
     # v12: THE NEGATIVE IN PITCH. The tune takes four of the scale's seven
     # notes; the three it leaves out lie one between each pair it steps
@@ -115,6 +116,23 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                 put('bass', t, gap-.37, p, .93)
                 drums('k', t, .97 if j in (0,3) else .88)
 
+        def trade(first, pairs):
+            """v1's return: the tune for a cell on both guitars' ringing fifths, then its negative for a cell."""
+            for i in range(2 * pairs):
+                for j, k in enumerate(HEADS):
+                    end = (HEADS + (CELL,))[j+1]
+                    t = start + (first+i)*CELL + k
+                    if i % 2 == 0:
+                        guitars(t, F + TUNE[j], end-k-.35, .99, fifth=True)
+                        put('bass', t, end-k-.3, F + TUNE[j], .90)
+                        drums('k', t, .98)
+                        continue
+                    for n in range(k+1, end):
+                        a = start + (first+i)*CELL + n
+                        guitars(a, F, .61, .94 if n == k+1 else .76, mute=True)
+                        put('bass', a, .65, F, .82 if n == k+1 else .68)
+                        drums('k', a, .93 if n == k+1 else .73)
+
         def answer(first, count, stop=False, scale_last=False):
             for i in range(count):
                 for j,k in enumerate(HEADS):
@@ -133,7 +151,17 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                         put('bass', t, .65, p, v-.1)
                         drums('k', t, v)
 
-        say(0,4); answer(4,4,scale_last=refill and whole_scale)       # one long statement; four short negatives
+        if trades:
+            # v17 (chirper-zero, 19 Nov), TWO OF HARRY'S ANSWERS. wiw-return, "Which return makes the four
+            # notes stick?": "Short trades". So the return opens as it did at v1, the take he chose: the tune
+            # a cell, its negative a cell, twice (2:55.0-3:04.2), every stroke as v1 wrote it. The one long
+            # statement (v2: the tune four times as broad on ringing chords) is gone. The four negatives the
+            # ring refills (v16) follow as they were, so the band is on the negative side for five cells
+            # running while the ring brings the tune back into the holes.
+            trade(0, 2)
+        else:
+            say(0,4)                                                  # one long statement
+        answer(4,4,scale_last=refill and whole_scale)                 # four short negatives
         if refill:
             # v16: THE RING COMES BACK INTO THE HOLES, LAST ONE FIRST (3:06-3:13).
             # The tune left the band a note at a time from its front (the
@@ -169,7 +197,9 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                     put('ring', start + (4+i)*CELL + HEADS[j], .8 if last else 1.45, F + TUNE[j] + 36, .91 if j == 3-i else .79)
         # then in two cells, then in one: and since v10 that last quick one
         # is the other side of the sheet, rising, so the slow close answers it.
-        say(8,2); say(10,1,back=turned)
+        # v17: wiw-turned, "The tune now also runs backwards, rising: keep it?": "Keep it at 2:30, not before the
+        # close". The quick last statement (3:17.9) falls again, as before v10; the trade at 2:30 keeps its rising answers.
+        say(8,2); say(10,1,back=turned and not trades)
         answer(11,1,stop=True)
 
     def old_fourth_beat(start):
@@ -547,11 +577,13 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                             auto={'hand': {'curve': 0, 'points': [['0b', soft], [b(1), soft], [b(cells//2), firm],
                                                                     [b(cells-2), most], [b(cells-1), most]]}}))
     assert not parts
-    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v16.' if refill else 'v15.' if spin else 'v14.' if lit else 'v13.' if fretless else 'v12.' if mold else 'v11.' if hole else 'v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
+    return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v17.' if trades else 'v16.' if refill else 'v15.' if spin else 'v14.' if lit else 'v13.' if fretless else 'v12.' if mold else 'v11.' if hole else 'v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
             # v16: nine ring notes make the whole song 0.01 LU louder to the meter, so at -10 every other bar
             # (the five card excerpts among them) came out 0.008 to 0.011 dB quieter: the target moves by that.
-            'ceiling':'-1dB', 'true_peak':True, 'loudness':-9.99 if refill else -10,
+            # v17: the trade is quieter to the meter than the long statement it replaces; -10.035 keeps every other
+            # bar at v16's mastering gain (within 0.002 dB, both seeds).
+            'ceiling':'-1dB', 'true_peak':True, 'loudness':-10.035 if trades else -9.99 if refill else -10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
                                      'glue threshold=-22dB ratio=2 attack=18ms release=120ms',
                                      {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14800']}]},
@@ -578,6 +610,7 @@ if __name__ == '__main__':
     previous.add_argument('--v13', action='store_true', help="restore the struck ring through 'lit through'")
     previous.add_argument('--v14', action='store_true', help='restore one side a cell through the whole side-to-side trade')
     previous.add_argument('--v15', action='store_true', help='restore the empty holes in the four short negatives of the last exchange')
+    previous.add_argument('--v16', action='store_true', help='restore the one long statement at the return and the rising phrase before the close')
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     parser.add_argument('--rim-gain', type=float, default=-18, help='held glass track gain in dB')
     parser.add_argument('--fretless-gain', type=float, default=-10.0, help='fretless bass track gain in dB')
@@ -587,7 +620,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
                   not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11, not args.v12, args.fretless_gain,
-                  not args.v13, args.held_gain, args.grip, not args.v14, not args.v15, not args.strokes_on_f)
+                  not args.v13, args.held_gain, args.grip, not args.v14, not args.v15, not args.strokes_on_f, not args.v16)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
