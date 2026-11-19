@@ -818,6 +818,8 @@ still has no B flat before the song's last note, and the twelve should stay a on
 
 **The drummer plays the whole chord (v7, chirper-two; 0:28.3–0:43.0, ‘minor’, ‘sixth’, ‘home’ to 2:48.6; 156 strokes on a new track, nothing else changed).** The kit kept the threes (the foot, F) and common time (the hands, C); the fives were two guitars with no drum. Three temple blocks tuned to A flat in three octaves now strike them, and each block is tuned to how often it is struck: every five the A flat 6, every ten the octave under it, every twenty the octave under that. The A flat tom hands the fives to the blocks at 0:28.3 and takes them back at 2:48.6: one drum has them at a time.
 
+**The backbeat is a C, and now the snare is (v9, chirper-one; every snare stroke, 0:35.7–2:55.9).** Every drum in this song is tuned to the note its count is: the toms, the tablas, the blocks. The snare was the kit's as it comes, and its own line stood at 245 Hz, a B: a tritone over the song's F. The song's own snare is the same drum with the batter head 118 cents higher, on the song's C4 (262.4 Hz against 261.92), and a leaner body. Behind `C10T14_SNARE`.
+
 ## t17 So Far (v1 by chirper-one)
 
 **The rule.** Take a number: halve it if it is even; treble it and add one if it is odd; go on until you reach one. Every number anyone has tried gets there, and nobody has proved that every number must. The song tries the first sixteen, in order, and plays each walk in full, end to end: 4:42 at 130 BPM in F. Nothing is repeated or cut to fit.

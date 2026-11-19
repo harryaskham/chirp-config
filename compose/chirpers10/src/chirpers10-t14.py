@@ -306,6 +306,23 @@ FOOT = os.environ.get("C10T14_FOOT", "8dB;-0.3;1676.3:838.15:419.07;0.9;-10.333;
 # the amp's tight filter, Hz ; the band on each of the four tracks, in place of the 700 Hz lift ; dB on the four
 # faders ; the loudness target ("" = unchanged). "" = v7.
 RIG = os.environ.get("C10T14_RIG", "180;peak cutoff=330 q=1.2 gain=-2dB;0.45;-10.386" if FOOT else "")
+# v9 (chirper-one, palette): THE BACKBEAT IS A C, AND NOW THE SNARE IS. The rule of this song is that what strikes
+# every p sixteenths plays the note whose period is p, and its drums obey it: the three toms are tuned to the notes
+# their rolls are (v2), the two tablas to the sevens' D and the elevens' G flat (v6), the three blocks to the fives'
+# A flat (v7). The header says "the backbeat is a C". The snare that plays it was the album kit's, as it comes: its
+# strongest line (the drum alone, before the kit's bus) stood at 245.0 Hz, a B: a tritone over the song's F and 116
+# cents under its C, on every one of its 124 strokes. (The kit writes the head as A3, which this song's tuning reads
+# as its own A, 218.27 Hz; the two heads and the air between them put the drum's line 11% over the head's.)
+# THE SWAP: the song's own snare in place of the kit's (the staple all seventeen songs share). The same drum, the
+# same heads, wires, shell and stick, with the batter head 118 cents higher: its line is 262.4 Hz, 3 cents over the
+# song's C4 (261.92). And its body follows it: the kit lifts 5 dB at 200 Hz, under the old line; here that is 1 dB
+# at 262 Hz, because the line now lies in 250-500 Hz where this song already reads over the records, and 3 dB comes
+# off at 650 Hz, where the kit is furthest over the records' drums. The piece's own gain is set so the snare alone
+# is as loud as it was (K, within 0.1 dB).
+# the batter head (a key number: this song's tuning table reads it) ; the resonant head, times the batter ; the
+# shell, Hz ; its level ; the bands after the 150 Hz high-pass (| between) ; the piece's gain, dB ; the loudness
+# target ("" = unchanged). "" = v8 byte for byte.
+SNARE = os.environ.get("C10T14_SNARE", "m58.18;1.5;500;0.3;peak cutoff=262 q=1 gain=1dB|peak cutoff=650 q=1 gain=-3dB;0.65;-10.365" if RIG else "")
 AT = starts()
 
 
@@ -640,6 +657,13 @@ def song():
         # C3 a pure fourth under the F tom and A flat 2 a pure sixth under it: the notes their rolls are
         kit_here["t2"]["pitch"] = f"m{48 + 12 * math.log2(3 / 2) - 7:.4f}"
         kit_here["t3"]["pitch"] = f"m{44 + 12 * math.log2(6 / 5) - 3:.4f}"
+    if SNARE:
+        note, reso, shell_hz, shell, body, own = SNARE.split(";")[:6]
+        kit_here["s"] = {"pitch": note, "gain": f"{own}dB", "patch": {"synth": {
+            "layers": [{"type": "drum", "beater": "stick", "contact": 0.6, "decay": "0.18s", "sharp": 30, "reso": float(reso), "cavity": 0.3,
+                        "reso_level": 0.7, "shell": float(shell), "shell_hz": float(shell_hz), "wires": 0.85, "gap": 0.1, "wire_tone": "7k",
+                        "strike": 0.3, "damp": 0.3, "slap": 1.2}],
+            "filters": ["hp cutoff=150"] + [x for x in body.split("|") if x]}}}
     if FOOT:
         # three wood blocks an octave apart, each the library kit's wood block at the fives' own note: a triangle at the
         # note through a band-pass there, and three milliseconds of stick
@@ -675,6 +699,8 @@ def song():
         doc["loudness"] = float(FOOT.split(";")[4])
     if RIG and RIG.split(";")[3]:
         doc["loudness"] = float(RIG.split(";")[3])
+    if SNARE and SNARE.split(";")[6]:
+        doc["loudness"] = float(SNARE.split(";")[6])
     if TUNED:
         doc = {k: v for k, v in list(doc.items())[:2]} | {"tuning": {"steps": JUST, "root": "F3", "map": "keys"}} | {k: v for k, v in list(doc.items())[2:]}
     return doc
