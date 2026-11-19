@@ -475,7 +475,7 @@ def hair_gens():
     unheard = set(HOME.split(";")[1].split(",")) if HOME else set()
     home = since = end
     if ONE:                                                               # v28: and on, unheard, to the top's last bars
-        since, end = AT["full"] + int(ONE.split(";")[1]), AT[ONE.split(";")[0]]
+        since, end = AT["full"] + int(HEARD.split(";")[4] if HEARD and HEARD.split(";")[4] else ONE.split(";")[1]), AT[ONE.split(";")[0]]   # v30: heard from the top's first bar
     for c, n, sec, g in lead_gens():
         if AT["five"] <= c < end:
             k = min(n, max(0, since - c)) if c >= home else 0                    # this many half bars of the run are walked and not heard
@@ -1405,6 +1405,67 @@ def edge_buses():
     return {"edge": bus, **({"edge2": json.loads(json.dumps(bus))} if "room2-e" in T else {})}
 
 
+# v30 (chirper-alpha; whole song, 0:27.8-3:16): THE RULE IS HEARD. The chip tune is the rule said plainly, one note for
+# each half bar's number, and three rounds built on it (v26, v27, v28). Its fader was set in v1 (-18 dB) and never read.
+# Read raw, the tune alone against everything else: 12.4 to 16.4 dB under the band (K) in every section, and in the
+# third-octave round its own note a median 0.6 to 2.7 dB UNDER everything else there (the edge of being heard, for the
+# whole song); at the top 6.1 under, 20 of its 26 notes at -4 or lower: not heard, in the song's climax. So:
+#   - the three chips that are the rule (lead, lead2, hair) come up 3 dB in every half bar where a guitar plays and 7
+#     through the top, on a lane stepped at the half bars; where the guitars rest (the keys' laps, the sung laps, the
+#     holes) they stay where they were, because there they were already heard. The answers (echo) are not touched.
+#   - the second voice is heard from the top's FIRST bar (v28: only from its last four half bars), so the top says the
+#     whole of it: two strangers (2:24.3-2:39.1; at 2:33.9 and 2:34.8 it sings alone into the rule's hole), the chance
+#     meeting (2:40.0-2:45.2: one line; the second voice 6 dB down while it is the tune's own note), the parting
+#     (2:48.7, v28) and one voice (2:55.7, v28).
+# After: the tune 9.4 to 13.4 under the band, 8.7 at the top; its median note -0.6 to +2.3 against everything else in
+# its third-octave, 0.0 at the top (2 of 26 at -4 or lower). First take, not kept: 4 and 8-9 dB with the answers too
+# (the two chips only 3 to 5 dB under the whole band at the top). The target is not moved: the band gives 0.16 to 0.31 dB.
+# dB on the chips wherever a guitar is playing ; dB more through the top ; the chips ; the loudness target ("" =
+# unchanged) ; the half bar of the top from which the second voice is heard ("" = ONE's own, 28) ; dB on the second
+# voice in the half bars of the top where it plays the tune's own note (the chance meeting). "" = v29.
+HEARD = os.environ.get("C10T6_HEARD", "3;4;lead,lead2,hair;;0;-6") if BODY else ""
+
+
+def the_rule_is_heard(doc):
+    """The chips come forward wherever a guitar is playing (most at the top), and stay where they were in every hole."""
+    base, top, chips, target, since, met = HEARD.split(";")
+    by = {t["name"]: t for t in doc["tracks"]}
+    n = sum(d[1] for d in DIAL)
+    busy = [False] * (n + 1)
+    for g in ("gl", "gr", "gl2", "gr2", "gl3", "gr3"):
+        for note_ in by.get(g, {}).get("notes") or []:
+            for h in range(int(note_["at"] // 2), int((note_["at"] + note_["len"] - 1e-6) // 2) + 1):
+                busy[min(h, n)] = True
+    up = [(float(base) + (float(top) if AT["full"] <= h < AT["down-four"] else 0)) if busy[h] else 0. for h in range(n + 1)]
+    for name in chips.split(","):
+        t = by.get(name)
+        if t is None:
+            continue
+        at = float(str(t.get("at", "0b")).rstrip("b"))
+        h0 = int(at // 2)
+        pts = [["0b", up[h0]]]
+        for h in range(h0 + 1, n + 1):
+            if up[h] != up[h - 1]:
+                pts += [[f"{round(2 * h - at - 0.02, 5):g}b", up[h - 1]], [f"{round(2 * h - at, 5):g}b", up[h]]]
+        own = list(up)
+        if name == "hair" and since and float(met):                 # the chance meeting: where the two play one note, the second is taken in
+            x = CELLS[AT["five"]][2] + float(HAIR.split(";")[0])
+            for c in range(AT["five"], AT["full"] + int(ONE.split(";")[1])):
+                x, tune = CELLS[c][1] * x * (1 - x), CELLS[c][3]
+                if c >= AT["full"] + int(since) and x >= 1 / 7 and tune >= 1 / 7 and min(15, int(x * 16)) == min(15, int(tune * 16)):
+                    own[c] += float(met)
+        pts = [["0b", own[h0]]]
+        for h in range(h0 + 1, n + 1):
+            if own[h] != own[h - 1]:
+                pts += [[f"{round(2 * h - at - 0.02, 5):g}b", own[h - 1]], [f"{round(2 * h - at, 5):g}b", own[h]]]
+        gain = t["gain"] if isinstance(t["gain"], dict) else {"value": t["gain"], "mod": []}
+        t["gain"] = {"value": gain["value"], "mod": list(gain["mod"]) + [{"src": "auto.heard", "amount": 1}]}
+        t["auto"] = {**(t.get("auto") or {}), "heard": {"points": pts, "curve": 0}}
+    if target:
+        doc["loudness"] = float(target)
+    return up
+
+
 def dump(doc):
     lines = []
     for k, v in doc.items():
@@ -1430,4 +1491,7 @@ if __name__ == "__main__":
             a = AT[name]
             print(f"{name:10s} bar {a // 2:3d} r {CELLS[a][1]:.4f}..{CELLS[a + n - 1][1]:.4f}  " + " ".join(show(c[3]) for c in CELLS[a:a + n]))
     else:
-        open(OUT, "w").write(dump(song()))
+        doc = song()
+        if HEARD:
+            the_rule_is_heard(doc)
+        open(OUT, "w").write(dump(doc))
