@@ -286,6 +286,49 @@ PAIR = STILL + (f" fx.1.mix={AIR.split(';')[0]}" if AIR else "")
 # the octave's lift: Hz on F : q : dB ; the dip on the twelfth: Hz on F : q : dB (both follow the ground) ; the
 # bass's fader, dB ; the loudness target (fitted so the opening, which has no bass, is at v8's gain). "" = v8.
 BASS = os.environ.get("C10T16_BASS", "87.3:1.6:9.5;131:2:-6;1.5;-9.91" if AIR else "")
+# v10 (chirper-zero, palette: the part the song lacked, on an instrument no other song has): THE UNISON BEND.
+# The song says what a tuner does: turn the peg until the wobble slows, and stops. Every guitarist does that with
+# the left hand too: hold a note on one string, bend the string beside it up to the same note, and listen to the
+# two of them wobble slower and slower until they are one. A unison bend is this whole song in one gesture, and the
+# band had no lead guitar to make it.
+# So there is one now, and its rule is the song's: THE LEAD PLAYS ONLY WHILE THE PEG IS TURNED, and what it plays
+# is the pair, an octave up, on two strings through one amplifier. One string holds twice the still reed. The
+# other is written as twice the hair, with the hair's own slide, so the two are a hair apart at the octave and
+# their wobble is the pair's second overtone exactly: twice to the pulse, the guitars' own number, quickening and
+# slowing as the peg turns. Through an amplifier a wobble is less a swell in loudness than a slow wah: the note's
+# own line falls 25 to 35 dB twice a pulse and the tone thins to its octave and fills again, while the lead's
+# loudness moves 5 dB (K-weighted, the middle 90% of the close).
+#   the four turns between sections (two bars each: 0:58.2, 1:27.3, 1:56.4, 2:25.5)   the lead holds the pair's
+#       note of that ground while the band quickens or slows under it, and stops at the bar line where the ground
+#       changes and the new width begins
+#   THE CLOSE (3:01.8-3:23.6)   struck ONCE where the last turn begins, and held: twenty-two seconds of one bend,
+#       the wobble coming further apart with the band's strokes
+#   the last chord (3:23.6)     the bend has arrived: the lead lets go as the chord is struck, and the chord is the
+#       band's, as it was. (Benched with the lead holding the unison through it: the chord's own line at 349 Hz then
+#       wobbled 15.5 dB where it wobbles 5.5 without the lead, because the band's strings are not on the reeds' note:
+#       the guitars' open strings read 2.6 cents sharp of it and wander 3 either side, stroke by stroke. With the
+#       strings put on their notes it was 8.7. So that is the next round's, not this one's: see the round note.)
+# It is a new patch of the song's own, `ce-bend`: the library's fluid lead (`m8-lead`, which no song on the record
+# uses) as ONE saw: its detuned second oscillator, its vibrato, its echo and its room all wobble or smear and are
+# out; then the album's lead amplifier at half gain and the engine's cabinet. A plucked string was benched first
+# (the album's lead rig, also with `tune_sounding` and no variation) and cannot do this: the lows of its own line
+# fell at 0.50, 0.88, 0.54, 0.82, 0.15, 0.31 of the half pulse, where a steady wobble falls at the same place every
+# time, and with BOTH strings on the same note its line still swung 18 to 23 dB (a plucked string's two planes
+# beat with each other, so it is never still). The oscillator's lows fall at 0.49 to 0.53 and in tune its line
+# moves 0.2 dB. It is on its note (read: within 0.02 cent of the written line through the whole close), provided
+# the patch plays each note to its end: at the engine's default gate a note's slide finishes at 95% of its length,
+# and the lead reached the unison a second early (read: 0.5 cent flat of the line at 20 s, its wobble a third of
+# a turn behind the pair's by 3:13).
+# MEASURED (raw, the lead alone against the pair alone): through the close the lead's own line is lowest where
+# the pair's second overtone is lowest, within 51 ms (median 8) over the 22 lows; in the turn out of seven, within
+# 19 ms (median 12) over 20.
+# which turned notes: 'all', or 'close' (the last turn only) ; the lead's fader ; its filter, Hz
+# ; the amplifier's gain ; dB before the amplifier ; the cabinet's cone ; attack, ms ; the loudness target ; the
+# track's eq, Hz:q:dB,... (a held note at 311 to 494 Hz is mostly its own first line: at -12 dB with no eq the lead
+# was 52 to 57% of the mix's whole 250-500 Hz band wherever it played; the eq takes 4 dB off that line, 5 off
+# 700 Hz, where the mix already stood 3.7 over the records in the close, and gives 4 back at 2.2 kHz, where a lead
+# is heard: 24 to 30% of 250-500 Hz now, 15 to 20% of 2-4 kHz). "" = v9.
+BEND = os.environ.get("C10T16_BEND", "all;-11.5dB;1200;0.5;-20;45;60;-9.851;380:0.8:-4,700:1:-5,2200:0.7:4" if BASS else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -625,7 +668,47 @@ def build():
         doc["loudness"] = float(PEG.split(";")[2])
     if BASS and BASS.split(";")[3]:
         doc["loudness"] = float(BASS.split(";")[3])
+    if BEND:
+        unison_bend(doc)
     return doc, marks, end
+
+
+def unison_bend(doc):
+    """v10: a lead on two strings an octave over the pair, wherever the peg is turned once the band is in; appended LAST."""
+    which, gain, cut, drive, pre, cone, attack, target, eq = BEND.split(";")
+    band_in = 0
+    for name, r, bars, ground, who in FORM:
+        if "g" in who:
+            break
+        band_in += 4 * bars
+    by = {t["name"]: t for t in doc["tracks"]}
+    still = {n["at"]: n for n in by["reed"]["notes"]}
+    twice = lambda pitch: f"{2 * float(pitch[:-2]):.3f}hz"
+    turned = [n for n in by["hair"]["notes"] if "expr_end" in n and n["at"] >= band_in]
+    if which == "close":
+        turned = turned[-1:]
+    notes = []
+    for n in turned:
+        notes.append({"at": n["at"], "len": n["len"], "pitch": twice(still[n["at"]]["pitch"]), "vel": 0.9})
+        notes.append({"at": n["at"], "len": n["len"], "pitch": twice(n["pitch"]), "vel": 0.9, "expr": n["expr"], "expr_end": n["expr_end"]})
+    doc.setdefault("patches", {})["ce-bend"] = {
+        "about": ("chirper-zero: Close Enough's unison bend: a sustaining lead on two strings a hair apart through one amp. The library's m8-lead as one saw "
+                  "(no detuned layer, no vibrato, no echo, no room: each of those wobbles or smears), the album's lead amp at half gain and the engine's "
+                  "cabinet; its pitch follows a note's `slide`, in semitones, as the turned reed's does, and it plays each note to its end (gate 1: at the "
+                  "default a slide finishes at 95% of the note)"),
+        "extends": "m8-lead",
+        "synth": {"pitch": {"value": 0, "mod": [{"src": "expr.slide", "amount": 1}]}, "layers": ["saw"],
+                  "filters": [{"kind": "lp", "cutoff": float(cut), "q": 0.8}], "amp": {"a": attack + "ms", "r": "150ms", "s": 1}},
+        "play": {"legato": False, "glide": "0ms", "gate": 1},
+        "fx": [{"type": "gain", "gain": pre + "dB"},
+               {"type": "amp", "model": "5150", "gain": float(drive), "ts": 0.3, "tight": 140, "boost": "0dB", "bass": 0.5, "mid": 0.68, "treble": 0.58,
+                "presence": 0.6, "resonance": 0.55, "sag": 0.3, "bloom": 0.3},
+               {"type": "cab", "model": "4x12-modern", "mic": 0.1, "distance": 0.15, "cone": int(cone)}]}
+    doc["tracks"].append({"name": "bend", "patch": "ce-bend", "gain": gain, "pan": 0,
+                          **({"fx": [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*b.split(":")) for b in eq.split(",")]}]} if eq else {}),
+                          "notes": notes})
+    if target:
+        doc["loudness"] = float(target)
 
 
 def spans_of(names):
