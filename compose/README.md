@@ -347,8 +347,9 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
   FOR YOU and starts nothing; `next --again` draws among them anyway, and with Harry's words of 19 Nov that is what to
   do: there is always an instrument to improve.)
 - THE FILES EVERYONE WRITES (`motifs.md`, `sounds.md`, `features.md`) CAN HOLD SOMEONE ELSE'S OPEN LINES: a composer
-  writes their paragraph before their round is recorded, and `commit` and `done --with` take a file whole. So leave the
-  shared documents out of `done --with`, and commit your lines of them with
+  writes their paragraph before their round is recorded, and `commit` and `done --with` take a file whole. Look first
+  (`git diff compose/ALBUM/motifs.md`): when lines that are not yours are open in one, leave it out of `done --with`
+  and commit your lines of it with
   `python3 tools/climb.py commit -m MSG --pick 'REGEX' compose/ALBUM/motifs.md compose/ALBUM/sounds.md`: only the hunks
   whose changed lines match REGEX (your song's title, your version) are committed; it prints what it left open, and
   every other line stays in the tree, uncommitted, as its writer left it. Lines that touch are one hunk and go in
