@@ -180,13 +180,33 @@ READING = (1, True, True, -10.22)
 # under v17's, at -10.305 it is 0.10 over, and nothing between; -10.32 is the low side, clear of the jump).
 # --without-chest gives v17.
 CHEST = (['peak cutoff=180 q=1 gain=7dB', 'peak cutoff=800 q=1.2 gain=-1.5dB'], 'peak cutoff=190 q=1.2 gain=-3dB', -10.32)
+# v19 (chirper-three, palette): THE COUNT HAS ANOTHER HAND TOO. In 'opposite' (0:43.85-1:27.7) everything is read
+# from both ends at once: the strip, by the two guitars; the meetings, by the bass and then the thumb. One thing is
+# not: the count. The drummer's hat counts quarters in four straight through, from outside the strip. Read each
+# strip's count from its far end, as the right hand reads its notes (a stroke on tick t goes to tick 18 - t), and
+# because a strip is nineteen sixteenths the answer is not the count again. On every other strip it falls exactly
+# BETWEEN the beats, and on the strips between those it falls exactly ON them. So for one strip (2.7 s) count and
+# mirror make eighths, hat and answer in turn, and for the next they strike together in quarters; eight times.
+# The seam of every strip, which nothing in the kit has ever marked, can now be heard as that change.
+# THE PART is clapped: one pair of hands, on the right, beside the guitar that reads backwards. No other song on
+# the record has a handclap. THE PATCH is the song's own (the library's cajon kit has a clap, a 70 ms burst of
+# noise over 900 Hz; a single clap is shorter and has a note of its own, the air between the palms): 20 ms of
+# noise through a peak where cupped hands sound, in a small room.
+# the patch ; the fader ; where the clapper stands ; velocity on the mirror of the bar's first beat and elsewhere ;
+# the loudness target (None: unchanged). --without-palmas gives v18.
+PALMAS = ({'kit': {'pa': {'patch': {'synth': {'amp': {'a': '0.1ms', 'curve': 3, 'd': '20ms', 'r': '10ms', 's': 0},
+                                              'filters': ['hp cutoff=500', 'peak cutoff=1300 q=1.6 gain=10dB', 'lp cutoff=7000'],
+                                              'layers': [{'type': 'noise'}]}}}},
+           'play': {'vel_sens': 0.6, 'humanize': {'time': '4ms', 'vel': 0.06}},
+           'fx': ['reverb kind=room decay=0.3s mix=0.18 predelay=3ms']},
+          '-4dB', .45, (.9, .74), -10.34)
 
 
 def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, turned=True, rig=HANDS_RIG, reading=True, chest=True):
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, turned=True, rig=HANDS_RIG, reading=True, chest=True, palmas=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
@@ -202,6 +222,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
     rig = rig if heavy else None                 # --with-steel still gives v14
     turned = turned and heavy and rig is not None  # --stock-rig is v15's notes on the old rig
     reading = reading and turned                 # --without-turned-page still gives v15
+    palmas = PALMAS if palmas and chest and reading and rig is not None else None   # --without-chest still gives v17
     ev = defaultdict(list); sections = []; tie_gains = {}; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -415,7 +436,10 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                         continue
                     if beat%4==(2 if sec in ('ink','one hand') else 1) or (sec not in ('ink','one hand') and beat%4==3): kit('snare',t,'s',.94)
                     if sec in ('raised','turn over'): kit('brass',t,'x' if sec=='turn over' else 'rde',.72 if beat%4==0 else .60)
-                    elif not tom_reply or t-a not in opens[1]: kit('hat',t,'h',.65 if beat%4==0 else .48)
+                    elif not tom_reply or t-a not in opens[1]:
+                        kit('hat',t,'h',.65 if beat%4==0 else .48)
+                        # v19: the count read from the strip's far end, clapped
+                        if palmas and sec=='opposite': put('palmas',a+STRIP-1-(t-a),'pa',1,palmas[3][0 if beat%4==0 else 1])
             if sec in ('ink','opposite','raised','one hand') and i==0: kit('brass',a,'c',.88)
             if turned and sec=='turn over' and i in TURNED[:2] and TURNED[2]: kit('brass',a,'c',TURNED[2])
         start+=count*STRIP
@@ -654,11 +678,12 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
         # The same guitar, the same chair and the same cabinet as the left hand; only the amp differs.
         left = next(t for t in tracks if t['name']=='left')
         tracks.append(track('copy',COPY[0]+palm,COPY[1],left['pan'],'strings'))
+    if palmas: tracks.append(track('palmas',palmas[0],palmas[1],palmas[2]))
     buses={'strings':{'fx':[{'type':'eq','bands':['peak cutoff=360 q=0.8 gain=-2dB','peak cutoff=730 q=1 gain=1.5dB']}]},
            'drums':{'fx':['reverb kind=room mix=0.10 decay=0.53s predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'18ms','release':'120ms'},'clip ceiling=-13dB']},
            'low':{'fx':[{'type':'eq','bands':['peak cutoff=48 q=1.4 gain=-4dB','peak cutoff=98 q=1 gain=3dB','peak cutoff=310 q=0.9 gain=-4dB']},{'type':'compressor','threshold':'-24dB','ratio':5,'attack':'14ms','release':'115ms'}]}}
     if album_kit: buses['drums']['fx'].append({'type':'eq','bands':KIT_EQ+([CHEST[1]] if chest and reading and rig else [])})
-    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(CHEST[2] if chest and reading and rig else READING[3] if reading else HEAVY_LOUDNESS if heavy else COPY_LOUDNESS if copy else THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
+    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(palmas[4] if palmas and palmas[4] else CHEST[2] if chest and reading and rig else READING[3] if reading else HEAVY_LOUDNESS if heavy else COPY_LOUDNESS if copy else THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
     return doc,sections
 
 def dump(d):
@@ -680,8 +705,9 @@ if __name__=='__main__':
     ap.add_argument('--without-turned-page',action='store_true',help="regenerate v15, 'turn over' read the right way up throughout")
     ap.add_argument('--without-first-reading',action='store_true',help="regenerate v16, the last strip of 'ink' in unison")
     ap.add_argument('--without-chest',action='store_true',help="regenerate v17, the two hands without their chest and the kit's bus without its cut at 190 Hz")
+    ap.add_argument('--without-palmas',action='store_true',help="regenerate v18, the count in 'opposite' without its other hand")
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest)
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
