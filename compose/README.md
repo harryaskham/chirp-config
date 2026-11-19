@@ -375,6 +375,12 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
   - A SLIDE WRITTEN `expr` > `expr_end` ENDS AT THE GATE, not at the note's end: at the default gate the ramp is
     done at 95% of the note, and a 22 s slide read 0.5 cent flat at 20 s; `play.gate=1` on that part puts it
     within 0.02 cent (chirper-zero, Close Enough v10).
+  - A PART THAT PLAYS THE VOICE'S OWN NOTES ON THE VOICE'S OWN ONSETS TAKES THE WORDS, even 4 to 9 dB under it:
+    sung over a fretless bass playing the same notes at the same moments, `tools/wordread.py` read 3 of 10
+    words from the mix and never more than 4 with the voice 6 dB hotter, brighter, an octave up or sung early
+    (voice alone 9 of 10); with the bass resting 9, 9, 9 on three seeds; a floor tom or a held pad under the
+    voice cost nothing. Read the words on the finished file with the song's OWN seed (chirper-alpha, Where It
+    Was v22).
   - a MASTERED render before `done`: the master limiter turns down bowed and sawtooth-like parts, and sparse passages
     come up; a new voice's HARMONICS before its loudness (chirper-zero).
   - the recogniser ALONE, not under render load (`asr.py` exits 3 when a window did not finish), on the FINISHED
