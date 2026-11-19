@@ -130,6 +130,38 @@ SIZE = (1.25, 32, 0)
 BODY = (180, -5, -0.85, -9.839)
 
 
+# v7 (chirper-two; the draw was a palette round and this is the song's whole palette of pitches: I chose it, and
+# say so in the round note): THE NUMBERS ARE AT THEIR TRUE HEIGHT. The rule says a number is "the n-th harmonic of
+# the low F", and the ondes "IS the number, at its true height". Until now it was the semitone NEAREST that harmonic
+# (`height`), and so were the guitars' chords and the bass. The nearest semitone is 31 cents off for 7, 14 and 28; 49
+# off for 11 and 22; 41 off for 13, 26 and 52; 45 off for 35 and 70; 28 for 23 and 46; 27 for 53 and 106; 14 for 5 and
+# its doublings up to 160. Now every pitched note is the harmonic itself (the engine's fractional key numbers, which
+# the album had not used): the ondes at n times the low F, exactly; the guitars' chord and the bass on the same
+# harmonic brought down by octaves, the chord's fifth a pure 3:2 over it. The low string's muted strokes are the
+# fundamental, as they were, so every chord and every note of the ondes is now an overtone of the string the band
+# is chugging on. 986 notes move, by up to 49 cents; no note is added, dropped, moved in time or changed in length
+# or level.
+# WHAT IT DOES TO THE WALK. "When a number is trebled-and-one it leaps up a twelfth and a hair." In semitones the hair
+# was either a semitone or nothing, by the luck of the rounding. True, it is 1/(3n) of the number: a tone at 3 -> 10,
+# a semitone at 5 -> 16, 80 cents at 7 -> 22, 63 at 9 -> 28, 52 at 11 -> 34, 44 at 13 -> 40, 34 at 17 -> 52, 25 at
+# 23 -> 70, 16 at 35 -> 106, 11 at 53 -> 160: the bigger the number, the finer the hair, and a halving is a pure
+# octave every time. The size of the number can be heard in the size of the hair.
+# MEASURED (the pitched band alone, raw): the ondes's line against the harmonic, for 10, 11, 13, 14, 15: +13.7,
+# +49.2, -40.9, +31.3, +11.8 cents before; 0.0, -0.3, -0.2, -0.1, 0.0 after. Every walk's level is within 0.10 dB
+# (K) of v6's and the loudness target is not moved. --equal gives v6.
+def true(ratio):
+    """A pitch as its exact ratio over the low F: the engine's fractional key number (a whole one is written as its name)."""
+    m = F1 + 12 * math.log2(ratio)
+    return name(round(m)) if abs(m - round(m)) < 1e-9 else f'm{m:.3f}'
+
+
+def over(n):
+    """Harmonic n brought down into the octave over the low F: its ratio, from 1 up to 2."""
+    while n >= 2:
+        n /= 2
+    return n
+
+
 def name(p):
     return NOTES[p % 12] + str(p // 12 - 1)
 
@@ -164,10 +196,11 @@ def phrase(m):
     return [(u * unit, ((strokes[i + 1] if i + 1 < len(strokes) else odd) - u) * unit, u % len(bits) == 0) for i, u in enumerate(strokes)]
 
 
-def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, body=True):
+def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, body=True, tuned=True):
     low_bus = low_bus and storeys  # --without-storeys still gives v1
     sized = sized and kit and low_bus
     body = body and sized
+    tuned = tuned and body
     T = {k: [] for k in ('left', 'right', 'bass', 'kick', 'snare', 'metal', 'stone') + (('wall-left', 'wall-right') if storeys else ())}
     lifted = []
 
@@ -198,6 +231,10 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
         strokes = [u for u in range(odd) if bits[u % len(bits)] == '1']
         pc = height(n) % 12
         root = F1 + pc + (12 if n >= 16 else 0)             # the guitars fall an octave with the number, once
+        ratio = over(n) * (2 if n >= 16 else 1)             # v7: the same place, exactly
+        assert abs(12 * math.log2(ratio) - (root - F1)) <= 0.5, n
+        chord = true(ratio) + ',' + true(ratio * 1.5) if tuned else name(root) + ',' + name(root + 7)
+        low_note = true(over(n)) if tuned else F1 + pc      # the bass's
         sides = () if k in QUIET else ('left',) if 0 < k < 7 else ('left', 'right')   # the second guitar comes in with the first long walk
         # Where a phrase is said in half notes or slower (40, 80, 160: stroke, rest, stroke at eight, sixteen and
         # thirty-two sixteenths a place) the right guitar says the SAME phrase small under it, in sixteenths, muted on
@@ -212,9 +249,9 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
             if head:
                 ring = min(gap, 32) * (0.93 if gap > 1 else 1.0)
                 for g in sides:
-                    put(g, s, min(ring, 1.8) if under and g == 'right' else ring, name(root) + ',' + name(root + 7), 0.99 if u == 0 else 0.93)
+                    put(g, s, min(ring, 1.8) if under and g == 'right' else ring, chord, 0.99 if u == 0 else 0.93)
                 if (k == 0 or k >= 3) and not storey:
-                    put('bass', s, ring, F1 + pc, 0.95 if u == 0 else 0.9)
+                    put('bass', s, ring, low_note, 0.95 if u == 0 else 0.9)
                     if k in QUIET:
                         T['bass'][-1].update(vel=0.7, gain='-5dB')
             else:                                            # every other stroke is the low string, muted: the fundamental
@@ -227,13 +264,14 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
         if storey:
             for c in range(n // 40):
                 for off, gap, head in phrase(40):            # exactly what the bass plays at 40 itself
-                    put('bass', at + 40 * c + off, *((min(gap, 32) * 0.93, F1 + pc, 0.95 if off == 0 else 0.9) if head else (1.6, F1, 0.82)))
+                    put('bass', at + 40 * c + off, *((min(gap, 32) * 0.93, low_note, 0.95 if off == 0 else 0.9) if head else (1.6, F1, 0.82)))
             low = root + 12 * STOREY[3]
             for c in range(n // 80):
                 for off, gap, head in phrase(80):
                     for g in ('wall-left', 'wall-right'):
                         if head:
-                            put(g, at + 80 * c + off, min(gap, 32) * 0.93, ','.join(name(low + i) for i in (0, 7, 12)), 0.97 if off == 0 else 0.93)
+                            put(g, at + 80 * c + off, min(gap, 32) * 0.93, ','.join(true(ratio * 2 ** STOREY[3] * q) for q in (1, 1.5, 2)) if tuned else
+                                ','.join(name(low + i) for i in (0, 7, 12)), 0.97 if off == 0 else 0.93)
                         else:
                             put(g, at + 80 * c + off, 1.8, F1, 0.84)
                     if head:
@@ -250,7 +288,7 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
         nxt = cells[j + 1][1] if j + 1 < len(cells) else None
         leap = nxt is None or nxt > n or F1 + height(nxt) > TOP
         if p <= TOP:
-            put('stone', at, n - (0.5 if leap and n > 1 else 0), p, 0.82 if first else 0.74)
+            put('stone', at, n - (0.5 if leap and n > 1 else 0), true(n) if tuned else p, 0.82 if first else 0.74)
             if p > 60:
                 T['stone'][-1]['gain'] = f'{-TILT * (p - 60) / 12:.1f}dB'
 
@@ -284,7 +322,7 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
         put('metal', top, 3.6, 'c', 0.9)
     # the last bar line: four again
     for g in ('left', 'right'):
-        put(g, end, 30, name(F1) + ',' + name(F1 + 7) + ',' + name(F1 + 12), 1.0)
+        put(g, end, 30, name(F1) + ',' + (true(1.5) if tuned else name(F1 + 7)) + ',' + name(F1 + 12), 1.0)
     put('bass', end, 30, F1, 0.97); put('kick', end, 0.8, 'k', 1.0); put('metal', end, 3.6, 'c', 0.95)
     put('stone', end, 28, F1 + 24, 0.8)
     length = end + 2 * BAR
@@ -373,12 +411,13 @@ if __name__ == '__main__':
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
+    ap.add_argument('--equal', action='store_true', help='regenerate v6: every number at the nearest semitone to its harmonic, not at the harmonic')
     ap.add_argument('--without-body', action='store_true', help="regenerate v5: the first pair's tight filter at 220 Hz and the bass's 170 Hz cut at 3 dB")
     ap.add_argument('--without-size', action='store_true', help="regenerate v4: every number at one level")
     ap.add_argument('--without-kit', action='store_true', help="regenerate v3: the kit before the kick was retuned and the cymbals and the bus had the album's eq")
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
-    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body)
+    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal)
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
