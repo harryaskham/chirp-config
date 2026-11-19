@@ -1110,6 +1110,41 @@ def speaker_for_the_lead(doc):
 PHANTOM = os.environ.get("C10T5_PHANTOM", "2.5;10.5;8" if LEADCAB and AFTERIMAGE else "")
 
 
+# v27 (chirper-two, instrument round: the pole's tick): THE TICK IS A TICK. The kit's own illusion, the hat that
+# speeds up for ever under the pole (2:52.8-3:16.8), was not a tick. v25's handoff: "the pole reads 6.3 dB over the
+# records at 8-16 kHz and the leads are not what holds it: find what does". Read by part: the tick IS that band (all
+# of 8-16 kHz at the pole and 77% of 4-8 kHz; the mix there 5.5 dB over the eleven records at 8-16 kHz). The kit's
+# closed hat is noise through a high-pass at 8 kHz, the fader was at +22 dB to be heard at all, and it was sent to
+# the kit's overhead room 4.5 dB UP (a room that passes only 5 to 12 kHz). Alone at the pole, above 2 kHz, it was
+# within 12 dB of its own strokes' peaks 23% of the time: with the room off, 8%. So what was heard between the
+# strokes was the room, and three copies of a pattern an octave of speed apart were being told apart through it.
+# NOW, on this track only: the hat's high-pass at 5 kHz (a stick on a closed hat has its weight at 4 to 8 kHz),
+# its decay 25 ms (was 45: with three copies running, a tenth of the strokes follow the one before by less than
+# 45 ms), the room 10.5 dB down, 7 dB off above
+# 8 kHz and 2 dB on at 5.2 kHz. Alone: 2-4 kHz +2.6 dB, 4-8 kHz -0.7, 8-16 kHz -5.6; on 6% of the time; and each
+# stroke's peak is within 0.5 dB of where it was, so the tick is as loud when it ticks. In the finished mix above
+# 4 kHz: on 25% -> 7% of the time, the strokes' peaks 0.5 dB lower, the level between them 1.9 dB lower. The pole
+# then reads +0.1 against the records at 8-16 kHz (was +5.5) and -0.9 at 4-8 kHz (was -0.4).
+# THE BRAKE (the same hat slowing down under the descent, 2:00-2:48) is NOT changed: Harry on its card, "Yes, keep
+# the pull". Nor is the foot's hat.
+# the hat's settings ; the track's fader ; its send to the overhead room ; its eq bands (comma between) ; the
+# loudness target (empty: as it was). '' = v26.
+TICKTONE = os.environ.get("C10T5_TICKTONE", "filters.0.cutoff.value=5k amp.d=25ms amp.r=10ms;24dB;-6dB;"
+                          "highshelf cutoff=8000 gain=-7dB,peak cutoff=5200 q=1.2 gain=2dB;" if PHANTOM and TICK else "")
+
+
+def the_tick_is_a_tick(doc):
+    hat, fader, room, bands, lufs = TICKTONE.split(";")
+    # a kit of its own, so the brake and the foot's hat keep the hat they had
+    doc["patches"]["fs-tick-kit"] = {"extends": "ct-kit-here", "kit": {"h": {"patch": f"haake-hat {hat}", "gain": "-10dB", "pan": -0.45, "choke": "hat"}}}
+    tick = next(t for t in doc["tracks"] if t["name"] == "tick")
+    tick["patch"], tick["gain"] = "fs-tick-kit", fader
+    tick["sends"] = {"oh": room}                        # new objects: the brake was copied from this track and shares the old ones
+    tick["fx"] = [{"type": "eq", "bands": bands.split(",")}]
+    if lufs:
+        doc["loudness"] = float(lufs)
+
+
 def root_that_is_not_there(doc):
     level, length, under = (float(v) for v in PHANTOM.split(";"))
     at = END * 4
@@ -1263,6 +1298,8 @@ def song():
         speaker_for_the_lead(doc)
     if PHANTOM:
         root_that_is_not_there(doc)
+    if TICKTONE:
+        the_tick_is_a_tick(doc)
     return doc
 
 

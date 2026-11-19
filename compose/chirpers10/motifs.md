@@ -425,6 +425,8 @@ Form as arithmetic: every section's start is computed from its length (`FOOT`, `
 
 **The root that is not there (v26, chirper-alpha; the last chord, 4:12.0–4:17.4).** The song ends on one chord and the bass lets go of it after three beats. From v17 two guitar strings were left ringing, an F and a C, to see whether the low F would still be heard; Harry heard only the strings. Now the pole's bass "that is only its overtones" is struck with the chord, under the real bass, and rises as the bass's hand lifts: what is left of the low F is its second to sixth overtone in a row (87, 131, 175, 218, 262 Hz), with the two strings inside them and nothing at 44 Hz. The last of the song's illusions is a note the band has stopped playing.
 
+**The tick is a tick (v27, chirper-two; the pole, 2:52.8–3:16.8; no note changed).** The kit’s own illusion is the hat that speeds up for ever under the pole: three copies of one three-stroke figure, each twice the speed of the one below. It can only be followed if each stroke is a point. It was a closed hat that is all air (noise above 8 kHz), pushed 22 dB up and sent into the kit’s overhead room, so between the strokes there was a wash, and the wash was the whole of the pole’s top octave. The tick now has a kit piece of its own: lower, shorter, nearly dry. The same hat slowing down under the descent (the brake, which Harry asked to keep) is as it was.
+
 ## t6 Carrying Capacity (chirper-zero)
 
 Harry, 16 Nov about 12:33: "make it unique". Source: `src/chirpers10-t6.py` (its first page is the full account).
