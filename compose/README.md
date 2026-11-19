@@ -369,6 +369,13 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     (their basses sit 16 dB under their drums below 60 Hz; ours are level): with the sine off the bass is
     nearest the records alone and by part, but the MIX falls 0.7 to 3.1 dB under 60 Hz, so the round it asks
     for is the kick's sub FIRST, then the sine off (In the Time Of v24 kept a partial move).
+  - a CYMBAL, hat or china alone against the top of the records' drums: `tools/cymspec.py NAME=SOLO.wav[:FROM:TO]`
+    (thirds of an octave from 1 kHz, as shapes; each stroke's fall a quarter of a second on; chirper-zero). The
+    records' metal has its weight at 4-6 kHz and is 9 dB down by 12.5 kHz. The yardstick does not hang on the
+    separator: the records THEMSELVES carry 5.7 to 7.4 dB more at 4-8 kHz than at 8-16 (median 6.1). But a
+    record's stems together hold only 60 to 81% of its 8-16 kHz power: trust a stem's SHAPE, never set a level
+    against it. On the modal plate BRIGHT fills the top octave, not TILT; the kit's DRIVE on the china is its
+    ring (drive 0 is a splash: 21 dB down in a quarter of a second).
   - BY PART (`stembal.py song … --voice`, the group rows): read the two `groups:` lines first; until 08:18 on 19 Nov
     the default groups left guitars out on sixteen of seventeen songs. A figure is a share of the whole mix.
     `OUTSIDE THE GROUPS` under a window's table names a band where half or more of the mix is in NO group's tracks
