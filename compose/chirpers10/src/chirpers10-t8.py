@@ -196,6 +196,30 @@ FULL = os.environ.get('C10T8_FULL', '1;-4;-10.045' if CROSS and BASS_BREAK and B
 # (Level: benched raw at -12 dB the two strings stood 6.2 and 5.4 dB under the rest of the band, K-weighted; he asked
 # for the reed 'quieter' from there, and it now stands 10.4 to 12.6 under. At -17 dB the strings stand 11.2 and 10.4 under.)
 OWN = os.environ.get('C10T8_OWN', '-17dB;96.01955;3.5:6.0:9.3;0.85;-10.015' if FULL else '')
+# v22 (chirper-two; section w1, the opening half minute, which the map calls static and no round had worked; the
+# same joint comes once more 5.6 s into w2): THE ANSWER PASSES BY.
+# The two riffs end with the same four sixteenths, the cell, and the song takes two minutes to find that this one
+# beat is their common measure. But the answer is in the first cycle already. Three times 52 is 156 and five times
+# 32 is 160: at 0:26.6 the left riff ends and one beat later the right riff ends. Eight times 32 is 256 and five
+# times 52 is 260: at 0:36.0 the right ends and one beat later the left. Two such riffs can never come closer than
+# that without meeting (every distance between their endings is a multiple of their measure, and the measure is the
+# least of them), so twice in the 39 seconds the two endings are said back to back: the cell on one side, then the
+# cell on the other. It was always in the notes; under a full band nobody could hear it.
+# NOW THE BAND STOPS FOR IT, as it does for what is left over at every cut. For the beat in which the first riff
+# ends, its two guitars play the cell ALONE: the other side, the bass, the foot and the hands all rest. For the
+# next beat the other side answers with the same cell, as written (the bass and the foot are back; the first side
+# has begun its riff again), and the hands still rest. Then the hands come back.
+#   0:26.25  the left pair alone   0:26.625 the right pair answers   0:27.0   the kit's hands return, with the shekere
+#   0:35.625 the right pair alone  0:36.0   the left pair answers    0:36.375 the snare's backbeat, the left riff's head
+# BY SUBTRACTION: 26 strokes are taken out and three notes end early (the right riff's B before the first break:
+# it is one stroke now, and the C after it is the one note of either riff that is not said); nothing is added. The
+# bells are untouched, so at each place the two of them ring one beat apart in the open.
+# MEASURED (finished file, seed 0, K-weighted, the bare beat): at 0:26.25 the left channel stands 6.8 dB over the
+# right (0.6 under before) and what is over 6 kHz falls 11.6 dB; at 0:35.625 the right stands 8.8 dB over the left
+# (level before) and over 6 kHz falls 13.8 dB. Every other bar keeps v21's gain within 0.018 dB (both seeds).
+# which of the two places get the break (1 = 0:26.25, 2 = 0:35.6; comma list) ; the loudness target ("" = unchanged).
+# Empty restores v21.
+PASS = os.environ.get('C10T8_PASS', '1,2;' if OWN else '')
 
 
 
@@ -936,7 +960,53 @@ def song():
         the_timeline(doc)
     if SHAKER:
         the_shekere(doc)
+    if PASS:
+        the_answer_passes_by(doc)
     return doc
+
+
+def the_answer_passes_by(doc):
+    """Where the two riffs end one beat apart, the band stops and the two endings are heard: one side, then the other."""
+    which, target = PASS.split(';')
+    left, right = PAIRS[0]
+    start = dict(MARKS)[f'{len(left)} against {len(right)}']
+    cyc = lcm(len(left), len(right))
+    # every place in the cycle where a statement of one riff ends exactly one cell before a statement of the other
+    near = sorted((start + min(i * len(left), j * len(right)), 'l' if i * len(left) < j * len(right) else 'r')
+                  for i in range(1, cyc // len(left)) for j in range(1, cyc // len(right))
+                  if abs(i * len(left) - j * len(right)) == len(G))
+    assert near == [(start + 156, 'l'), (start + 256, 'r')] and left[-len(G):] == right[-len(G):] == G
+    side = {'l': ('gl', 'dl', 'wl'), 'r': ('gr', 'dr', 'wr')}
+    low = ('bass', 'kick')                      # they go with the shorter riff, the right; for the one beat they rest
+    hands = ('snare', 'hat', 'toms', 'cym', 'shaker')
+    track = {t['name']: t for t in doc['tracks']}
+    place = lambda n: round(n['at'] * 4)
+    gone = 0
+    for k, (end, first) in enumerate(near):
+        if str(k + 1) not in which.split(','):
+            continue
+        a = end - len(G)
+        for name in side['r' if first == 'l' else 'l'] + low + hands:   # the first beat: the two guitars whose riff is ending, alone
+            t = track.get(name)
+            if not t or 'notes' not in t:
+                continue
+            gone += sum(1 for n in t['notes'] if a <= place(n) < end)
+            t['notes'] = [n for n in t['notes'] if not a <= place(n) < end]
+            for n in t['notes']:                                     # what was still ringing stops where the break begins
+                if name not in hands + ('kick',) and place(n) < a < n['at'] * 4 + n['len'] * 4:
+                    n['len'] = round((a - place(n)) / 4 * 0.98, 4)
+        for name in hands:                                           # the second beat: the other side answers; still no hands
+            t = track.get(name)
+            if t and 'notes' in t:
+                gone += sum(1 for n in t['notes'] if end <= place(n) < end + len(G))
+                t['notes'] = [n for n in t['notes'] if not end <= place(n) < end + len(G)]
+        # what is heard in the first beat is the cell and nothing else: an open root and two muted strokes
+        for name in side[first][:2]:
+            cell = [(place(n) - a, n['pitch']) for n in track[name]['notes'] if a <= place(n) < end]
+            assert cell == [(0, nm(F1)), (2, nm(F1)), (3, nm(F1))], (name, cell)
+    if target:
+        doc['loudness'] = float(target)
+    return gone
 
 
 def the_timeline(doc):
