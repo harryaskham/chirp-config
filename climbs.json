@@ -9089,7 +9089,7 @@
     {
       "id": "chirpers10-t14",
       "song": "songs/chirpers10-t14.yaml",
-      "reference": "chirpers — Track 14 (untitled)",
+      "reference": "chirpers — Slow Enough to Count",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers10-t14 OUT.wav",
@@ -9105,7 +9105,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Common Time",
-        "title": "Track 14 (untitled)",
+        "title": "Slow Enough to Count",
         "track": 14,
         "year": 2026
       },
