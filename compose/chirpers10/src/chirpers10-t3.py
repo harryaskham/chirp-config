@@ -571,6 +571,20 @@ CHORDS = os.environ.get('C10T3_CHORDS', '60:78;12;0.95;2;' if CALLED and HARM an
 # no other band moves more than 0.3; the landing (no treble) is as it was.
 # the modes' damp ; their tilt, dB an octave ; the bell's decay ; its release ; the loudness target. "" = v31.
 STRUCK = os.environ.get('C10T3_STRUCK', '1.2;3;4s;2s;-9.982' if TREBLE and CHORDS else '')
+# v33 (chirper-one, instrument round: the snare drum, all 288 strokes; v32's handoff named it): THE SNARE STEPS BACK
+# AND ITS WIRES COME OUT. The same drum as On Its Hinge's and The Other Hand's, and a different fault in each song.
+# Here, read alone at its strokes the way tools/drumpunch.py reads a snare on a record, it was not a box (body
+# against crack -4.7; six records -3.2): it had NO WIRES (wires against crack -5.6; records 0.0, -0.6 to +1.4),
+# because its track took 3 dB off above 7 kHz, and it was TOO LOUD IN THE MIDDLE: by part against the records' drums
+# the kit stood 2.6, 5.0, 3.3 and 3.9 dB over from 250 Hz to 4 kHz in the first cycle (4.5, 8.4, 4.2, 2.8 in the
+# second), 62 to 96% of it the snare. So: the track's shelf at 7 kHz goes; the wires are tighter (0.85 -> 1.1); the
+# crack comes down 4 dB round 2.5 kHz and the box 3 dB at 650 Hz; the body's lift at 200 Hz is 3.5 dB (5); the
+# fader 3.5 -> 1.5 dB. No note changes; the send to the snare's dry bus and the kit's bus are as they were.
+# the body's lift at 200 Hz, dB (the kit's is 5) ; the wires (0.85) ; the snare track's eq bands, comma between (it
+# was 'highshelf cutoff=7000 gain=-3dB') ; its fader (3.5dB) ; the loudness target ('' = unchanged). '' = v32.
+# It is on only while no other C10T3_ switch is set, so every older switch gives exactly what it gave.
+SNARE = os.environ.get('C10T3_SNARE', '3.5;1.1;peak cutoff=2500 q=0.7 gain=-4dB,peak cutoff=650 q=1 gain=-3dB;1.5dB;-10.067' if STRUCK and not any(
+    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE') for k in os.environ) else '')
 CHORD_ROWS = []
 
 
@@ -1147,8 +1161,9 @@ def song():
                                          [f"{PART2 * 4 + int(FUZZ.split(';')[3]) * L2 / 4:g}b", 0]], "curve": 0}}}] if FUZZ else []),
         {"name": "kick", "patch": kit, "gain": {"value": "2dB", "mod": [{"src": "auto.all", "amount": 1}]}, "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}],
          "auto": {"all": {"points": [["0b", 0]] + [pt for b0, n in ((PART1 + 2 * T1, T1), (PART2 + 2 * T2, T2)) for pt in ([f"{b0 * 4 - 0.5}b", 0], [f"{b0 * 4}b", KICK_ALL], [f"{(b0 + n) * 4 - 0.5}b", KICK_ALL], [f"{(b0 + n) * 4}b", 0])], "curve": 0}}},
-        {"name": "snare", "patch": kit, "gain": "3.5dB", "out": "drums", "sends": {"oh": "-1.5dB", "snr": "-10dB"},
-         "fx": [{"type": "eq", "bands": ["highshelf cutoff=7000 gain=-3dB"]}]},
+        {"name": "snare", "patch": kit + (" kit.s.patch.synth.filters.1.gain={}dB kit.s.patch.synth.layers.0.wires={}".format(*SNARE.split(";")[:2]) if SNARE else ""),
+         "gain": SNARE.split(";")[3] if SNARE else "3.5dB", "out": "drums", "sends": {"oh": "-1.5dB", "snr": "-10dB"},
+         "fx": [{"type": "eq", "bands": SNARE.split(";")[2].split(",") if SNARE else ["highshelf cutoff=7000 gain=-3dB"]}]},
         {"name": "toms", "patch": kit, "gain": "4dB", "out": "drums", "sends": {"oh": "-1.5dB"}},
         # the cymbals' fader: down where the china plays eighths (the last third of each extent, and the landing)
         {"name": "cym", "patch": kit, "gain": {"value": "-4.5dB", "mod": [{"src": "auto.busy", "amount": 1}]}, "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air,
@@ -1215,7 +1230,7 @@ def song():
                   "highest note walks through the row and back all piece long, with the kick and a church bell on it. "
                   + ("Since v5 the highest note is long and the low F repeated, so the row is a riff: eight sixteenths in the first "
                      "extent, ten in the second." if RHYTHM else "v1 is the skeleton.")),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(STRUCK.split(";")[4]) if STRUCK else float(CHORDS.split(";")[4]) if CHORDS and CHORDS.split(";")[4] else float(LOUDER.split(";")[4]) if LOUDER else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(SNARE.split(";")[4]) if SNARE and SNARE.split(";")[4] else float(STRUCK.split(";")[4]) if STRUCK else float(CHORDS.split(";")[4]) if CHORDS and CHORDS.split(";")[4] else float(LOUDER.split(";")[4]) if LOUDER else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
                     **({"ph-monks": {"about": "chirper-zero: Plain Hunt's chant - the library's voice-choir (five singers on a line) with basses' tracts, and a second five a fifth above sized to their part: ten men singing words",
                                      "extends": MONKS.split(";")[0]}} if MONKS else {}),
