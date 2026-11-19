@@ -128,6 +128,43 @@ RETURN = os.getenv('C10T11_RETURN', '1' if HALFSPEED else '')
 # pair alone as loud as the album's trim would have made it: -25.1 LUFS).
 # Empty restores v14 byte for byte.
 SECOND = os.getenv('C10T11_SECOND', '0.4;14,15;0.15;-1.4' if RETURN else '')
+# v16: THE BOW IS A BOW (chirper-zero, 19 Nov). Harry on the card oih-rod, "Which last note suits the returning
+# riff?": "I can't hear the bow". He was right twice over. (1) WHAT PLAYED IT was the library's waterphone with its
+# bow cut to 150 ms: at F4 one sine and one partial at 848 Hz (every other harmonic 60 dB down), flat from 150 ms
+# to its end. Nothing in it is a bow: no stroke, no swell, no vibrato, no string. (2) WHERE IT PLAYED: under the outer
+# guitars' chord it stood within 4 dB of the band in three third-octaves (315, 400, 800 Hz) and added 0.3 to 0.4 LU.
+# NOW: (a) THE INSTRUMENT is a bowed string on a body, the engine's waveguide (stick and slip, the cello's
+# string and box): at F4 its harmonics 2 to 7 stand -10 -12 -13 -15 -17 -19 dB under the first; each stroke starts
+# 8 dB down and swells to its peak in 300 ms; vibrato 20 cents each way at 5.6 Hz from 150 ms in (measured on its
+# fifth harmonic). Song-local patch `oih-bow`; the track is still `rod`. (b) THE NOTE CHANGES HANDS ALL THE WAY: v3
+# took the inner pair of guitars off the delayed answer. On the two answers the bow has alone (3:17 and 3:19.5) the
+# outer pair now lets go of it too: the bass and the kick keep the answer, the bow carries it, and the band comes
+# back on the next beat (on the last one, the cadence). The six answers at 3:07-3:20 are now: pluck over two
+# guitars, the same, pluck and bow over two guitars twice, then the bow alone twice.
+# MEASURED (raw bench, 3:10.8-3:20.8; momentary loudness, the band's chords at -17 LUFS): the answer the bow has
+# alone reads -20.6 then -19.0 where v15 (two guitars and the waterphone) read -19.3 then -19.0; the last C -20.9
+# then -19.8 (v15 -19.8, -20.0): the bow carries what the guitars carried. Without the bow those holes read -22.4
+# and -26.0. Under the pluck and the outer guitars the bow adds 0.9 to 1.5 LU (the waterphone 0.3 to 0.4) and stands
+# within 4 dB of the band in five third-octaves. Tried and dropped: the bow an octave up (the engine's string jumps
+# to its second mode there unless it has a violin's body, and the violin's first harmonic stood 18 dB over the
+# band); a string with no body (thin: Harry on Still Owing's, "bow instr sounds not great"); a longer hold across the
+# next chord (it added 1.8 LU on top of the full band).
+# track gain ; the four bow notes' lengths in beats (the last ends at the cadence) ; 1 = the outer guitars give up
+# the answers the bow has alone ; the swell in dB, ms to its peak, the string's level at rest in dB. '' = v15.
+BOW = os.getenv('C10T11_BOW', '-6dB;1.75,1.75,1.75,1.2;1;8,300,-2' if SECOND and ROD else '')
+
+
+def BOW_PATCH():
+    swell,rise,rest=BOW.split(';')[3].split(',')
+    return {'about':'chirper-zero: a bowed string for On Its Hinge (the engine\'s bowed waveguide on the cello\'s body). Each stroke starts soft and swells to its peak, '
+                    'then eases; the vibrato comes in early because the notes are short. Not a library patch.',
+            'synth':{'layers':[{'type':'bowed','body':0.8,'body_size':2.2,'bow_attack':'50ms','bow_pos':0.12,'bow_speed':0.55,'bright':0.5,'pressure':0.78,'rosin':0.2,'speak':0.6,
+                                'level':{'value':f'{float(rest):g}dB','mod':[{'src':'env.swell','amount':float(swell)}]}}],
+                     'env':{'swell':{'a':f'{float(rise):g}ms','d':'900ms','s':0.5,'r':'150ms'}},
+                     'lfo':{'vib':{'wave':'sine','rate':'5.6hz','delay':'80ms','fade':'180ms','retrig':True}},
+                     'pitch':{'value':0,'mod':[{'src':'lfo.vib','amount':0.2}]},
+                     'amp':{'a':'25ms','d':'0s','s':1,'r':'160ms'}},
+            'fx':['reverb kind=hall decay=1.8s mix=0.18'],'gain':'0dB'}
 BROAD = CELL // 4
 # Offset, duration, semitones, open power chord / single ringing note / palm mute.
 # The two short strokes before the Db and the delayed F are the tell in both walks.
@@ -320,7 +357,10 @@ def make():
                     # high answer only, the outer guitars stay and the second
                     # pair give up their chord to a different kind of metal.
                     late = bool(ROD) and i>=count//4 and t==LAST_ANSWER
-                    strings(a+t,dur,m,'m' if k=='m' else 'p',.94,not late)
+                    # v16: where the bow has the note to itself, the outer
+                    # guitars let go of it too; the bass and the kick keep it.
+                    alone = late and bool(BOW) and BOW.split(';')[2]=='1' and i>=3*count//4
+                    if not alone: strings(a+t,dur,m,'m' if k=='m' else 'p',.94,not late)
                     if late:
                         if i<3*count//4:
                             # Same octave and touch as the note in 'latch'.
@@ -329,7 +369,10 @@ def make():
                             # Its bow swells an octave below the sounding
                             # harmonic; carry through the next downbeat, but
                             # lift early on the last C so the cadence is clear.
-                            put('rod',a+t,CELL-t+2 if i<count-1 else CELL-t-1.6,m+24,.88)
+                            if BOW:
+                                put('rod',a+t,float(BOW.split(';')[1].split(',')[i-count//2])*SUB,m+24,.88)
+                            else:
+                                put('rod',a+t,CELL-t+2 if i<count-1 else CELL-t-1.6,m+24,.88)
                     if k!='m': put('bass',a+t,dur,m,.94); drum('k',a+t,.98)
                 walk(a,6,'rde')
                 if i in (0,4): drum('c',a,.84)
@@ -512,13 +555,18 @@ def make():
     if ROD:
         # Shorter bow and smaller water movement than the ambient patch: the
         # dissonant upper partials carry the sound, not a detuned six-second hall.
-        tracks.append(tr('rod','waterphone synth.amp.a=150ms synth.amp.r=135ms synth.pitch.mod.0.amount=0.12 synth.pitch.mod.1.amount=0.18 fx.0.decay=0.8s fx.0.mix=0.09',ROD,-.15))
+        if BOW:
+            tracks.append(tr('rod','oih-bow',BOW.split(';')[0],-.15))
+        else:
+            tracks.append(tr('rod','waterphone synth.amp.a=150ms synth.amp.r=135ms synth.pitch.mod.0.amount=0.12 synth.pitch.mod.1.amount=0.18 fx.0.decay=0.8s fx.0.mix=0.09',ROD,-.15))
     doc={'about':'On Its Hinge — chirpers, Common Time, track eleven. A twelve-eighth riff in B flat; the drummer swaps six quick steps for four broad ones, on an unchanged riff. The reed organ breathes the broad walk before the kit takes it.' + (' The kettledrum answers the heavy riff on the next broad steps, then takes its last C.' if KETTLE else ''),
          'tempo':BPM,'seed':1,'length':f'{start//SUB+marks.pop("close",0)}b','tail':'4s','ceiling':'-1dB','loudness':-10,'event_stable':True,
          'buses':{'drums':{'fx':['reverb kind=room decay=0.62s mix=0.13 predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'20ms','release':'135ms'},'clip drive=0dB ceiling=-13dB',{'type':'eq','bands':['peak cutoff=400 q=0.8 gain=-5dB','highshelf cutoff=9000 gain=-2dB']}]},
                   'gtrs':{'fx':[{'type':'eq','bands':['peak cutoff=350 q=1 gain=-2dB','peak cutoff=720 q=0.9 gain=2dB']},'reverb kind=room decay=0.35s mix=0.06 predelay=6ms']},
                   'low':{'fx':[{'type':'eq','bands':['peak cutoff=58 q=1.5 gain=-6dB','peak cutoff=116 q=1 gain=5dB','peak cutoff=350 q=1 gain=-6dB','peak cutoff=1500 q=1 gain=3dB']},{'type':'compressor','threshold':'-26dB','ratio':6,'attack':'12ms','release':'120ms','makeup':'2dB'}]}},
          'master':{'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2.7dB']},'tracks':tracks}
+    if BOW and ROD:
+        doc['patches']={'oih-bow':BOW_PATCH()}
     return doc,marks
 
 
