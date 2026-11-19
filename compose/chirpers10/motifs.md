@@ -304,6 +304,8 @@ The bare lead is in both cycles on purpose: with it in the first only, the score
 
 **The conductor calls (v30, chirper-two; section w2, the change is 0:53.0–0:54.0).** Since v6 the band breaks wherever a ringing conductor would call a bob or a single, and nobody ever called. At the song’s first call a man now does: as the treble’s bell strikes in second place, a row before the lead end, he shouts “Bob!”, and the band stops to hear it (the guitars for the whole row; the bass and kit for all but the tenor’s two low F’s, which ring behind as a tenor does and lead back in). Then the call’s two rows, as they were. Once only: the other eight calls stay uncalled.
 
+**The changes fall into two chords (v31, chirper-alpha; 3:50.75–3:53.25, 3:57.0–4:02.0, 4:05.75–4:08.25).** The row's bells are two triads a tritone apart: bells 1, 3, 5 a major triad, bells 2, 4 and the tenor a minor one (on A♭: D major and A♭ minor). Eight rows of the second extent's seventh and eighth leads keep each triad's bells side by side, Queens (1 3 5 2 4, 3:58.25) among them, and the harmony guitars' thirds and sixths stay inside the same triad. On those rows the inner pair of guitars holds each triad's first two bells, an octave up, one note to an amp: from 3:57.0, D major then A♭ minor, four times. Found, not written: the same rows exist in the first extent (Queens at 0:25, on F: B major and F minor) and are still only a riff there. Behind `C10T3_CHORDS`.
+
 ## t4 Running Total (chirper-zero)
 
 Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber". The album's fourth kind of long cycle: a SUM.

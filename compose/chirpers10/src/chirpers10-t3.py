@@ -521,6 +521,67 @@ CALLED = os.environ.get('C10T3_CALLED', 'voice-speech synth.layers.0.join=true s
                         '-18dB;37;C4;3.2;1;0,120,160,100,-50,-250,-450;-14dB;B AA1 B;;bass,kick,snare,cym,hat,toms:6' if LOUDER and FORM and W1 == (2, 2) else '')
 
 
+# v31 (chirper-alpha; section round, w8 3:44-4:16, the map's first flagged window; the changes are at
+# 3:50.75-3:53.25, 3:57.0-4:02.0 and 4:05.75-4:08.25): THE CHANGES FALL INTO TWO CHORDS. The row's bells are the
+# scale's every other note twice over: bells 1, 3 and 5 are a major triad, and bells 2 and 4 with the tenor are a
+# minor triad a tritone away (on this ground D major and A flat minor). Mostly the changes shuffle the two
+# together. But eight rows of this lead and the next keep the odd bells side by side and the even bells side by
+# side, and one of them is the row every ringer knows by name: QUEENS, 1 3 5 2 4 (3:58.25), the two triads
+# running down; its mirror, 4 2 5 3 1, is here too (3:52.0). Since v7 the harmony guitars play each bell's
+# next-but-one note of the scale (from 3:59.5 the next-but-three: thirds, then sixths), which on these rows is
+# another note of the SAME triad: so for those eight rows everything the band sounds is one chord, then the
+# other. Nobody wrote that; the method and the harmony Harry kept ("Sixths: keep them") do it. But every note is a
+# muted sixteenth, gone before the next, and it goes by as a riff like any other.
+# On those rows the INNER pair of guitars now lets the chords ring. In each run of bells that makes a triad, the
+# left inner guitar holds the first bell struck and the right inner guitar the second, an octave up: one note to
+# an amp, as in v27. Where the odd bells lead (the four rows from 3:57.0, Queens the second): D major held for
+# five sixteenths, then A flat minor's third and fifth held for five, over the tenor's three strokes, which are
+# its root. Four times: D, A flat minor, D, A flat minor... Where the even bells lead (the two rows at 3:50.75
+# and the two at 4:05.75, the last before the bob): the even pair is two quick notes, then D major is held
+# through the treble's long note up to the tenor, which the pair then plays as written.
+# The outer guitars, the bass, the harmony guitars, the bells and the kit play what they played.
+# (Level, benched raw on rows 63-71: as written the pair stands 6.2 to 7.1 dB under everything else row by row,
+# K-weighted; holding, at the same fader, it stood 6.0 to 8.3 under and the rows were 0.06 dB quieter: an inner
+# voice. With the pair's fader 2 dB up on those rows it stands 4.8 to 5.1 under and the rows read 0.3 to 0.4 dB
+# louder.)
+# the rows of the second extent it may happen in ; semitones over the written note ; the held notes' velocity ;
+# the inner pair's fader on those rows, dB ; the loudness target ("" = unchanged). "" = v30.
+CHORDS = os.environ.get('C10T3_CHORDS', '60:78;12;0.95;2;' if CALLED and HARM and W1 == (2, 2) else '')
+CHORD_ROWS = []
+
+
+def two_chords():
+    """v31: on the rows that keep the odd bells together and the even bells together, the inner pair holds each
+    triad's first two bells until its last is struck (after the even pair, that is the tenor)."""
+    r0, r1 = (int(x) for x in CHORDS.split(';')[0].split(':'))
+    up, vel = int(CHORDS.split(';')[1]), float(CHORDS.split(';')[2])
+    done = []
+    for k in range(r0, r1):
+        row = EXTENT_2[k]
+        odd = [i for i, b in enumerate(row) if b % 2]
+        if odd not in ([0, 1, 2], [2, 3, 4]):
+            continue
+        a = PART2 * 4 + k * L2 / 4                           # the row's first beat
+        n = 3 if odd == [0, 1, 2] else 2                     # the places of the first run
+        for tr in ('gl2', 'gr2'):
+            mine = sorted((x for x in T[tr] if a <= x['at'] < a + L2 / 4), key=lambda x: x['at'])
+            bells, tenor = mine[:5], mine[5:]
+            assert len(mine) == 8 and len({x['pitch'] for x in tenor}) == 1, (k, tr, len(mine))
+            ends = (bells[n]['at'], a + L2 / 4 if n == 3 else tenor[0]['at'])     # after the even pair the tenor completes it
+            first = 0 if tr == 'gl2' else 1                  # which bell of each run this guitar holds
+            keep = [] if tr == 'gl2' else [bells[0], bells[n]]
+            for run, end in zip((0, n), ends):
+                x = bells[run + first]
+                midi = NAMES.index(x['pitch'][:-1]) + 12 * (int(x['pitch'][-1]) + 1) + up
+                keep.append({'at': x['at'], 'len': round((end - x['at']) * 0.98, 5), 'pitch': nm(midi), 'vel': vel})
+            if n == 2:
+                keep += tenor                                # the odd run ends at the tenor, which the pair then plays as written
+            T[tr] = [x for x in T[tr] if not a <= x['at'] < a + L2 / 4] + keep
+        done.append(k)
+    assert 69 in done and EXTENT_2[69] == (1, 3, 5, 2, 4), 'Queens'
+    CHORD_ROWS[:] = done
+
+
 def lead_mode(k, calls):
     """What row k of an extent is: `call` (the two rows of a called lead end), `home` (of a plain one), or neither."""
     if not FORM or k % 10 < 8:
@@ -1016,6 +1077,8 @@ def compose():
         ringers_time(*(int(x) for x in ROWTIME.split(":")))
     if MUFFLE and TREBLE:
         half_muffled()
+    if CHORDS:
+        two_chords()
 
 
 def key_f(hz):
@@ -1089,6 +1152,23 @@ def song():
                 t["gain"] = {"value": GD, "mod": [{"src": "auto.slow", "amount": 1}]}
                 t["auto"] = {"slow": {"points": [["0b", 0], [f"{s0 - 0.02:g}b", 0], [f"{s0:g}b", float(SLOW.split(";")[3])],
                                                  [f"{s1 - 0.02:g}b", float(SLOW.split(";")[3])], [f"{s1:g}b", 0]], "curve": 0}}
+    if CHORD_ROWS and float(CHORDS.split(";")[3]):                          # v31: and while it holds the two chords
+        up, pts = float(CHORDS.split(";")[3]), []
+        for k in CHORD_ROWS:
+            a, z = PART2 * 4 + k * L2 / 4, PART2 * 4 + (k + 1) * L2 / 4
+            if pts and pts[-1][0] == a:
+                pts[-2:] = [[z - 0.02, up], [z, 0]]
+            else:
+                pts += [[a - 0.02, 0], [a, up], [z - 0.02, up], [z, 0]]
+        pts = [[f"{b:g}b", v] for b, v in pts]
+        for t in tracks:
+            if t["name"] in G4[2:]:
+                if isinstance(t["gain"], dict):
+                    assert float(t["auto"]["slow"]["points"][-1][0][:-1]) < PART2 * 4 and t["auto"]["slow"]["points"][-1][1] == 0
+                    t["auto"]["slow"]["points"] += pts
+                else:
+                    t["gain"] = {"value": GD, "mod": [{"src": "auto.slow", "amount": 1}]}
+                    t["auto"] = {"slow": {"points": [["0b", 0]] + pts, "curve": 0}}
     if MUFFLE and TREBLE:
         treble = next(t for t in tracks if t['name']=='treble')
         tracks.append({**treble,'name':'wrapped','sends':{'hall':'-18dB'},
@@ -1110,7 +1190,7 @@ def song():
                   "highest note walks through the row and back all piece long, with the kick and a church bell on it. "
                   + ("Since v5 the highest note is long and the low F repeated, so the row is a riff: eight sixteenths in the first "
                      "extent, ten in the second." if RHYTHM else "v1 is the skeleton.")),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(LOUDER.split(";")[4]) if LOUDER else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(CHORDS.split(";")[4]) if CHORDS and CHORDS.split(";")[4] else float(LOUDER.split(";")[4]) if LOUDER else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
                     **({"ph-monks": {"about": "chirper-zero: Plain Hunt's chant - the library's voice-choir (five singers on a line) with basses' tracts, and a second five a fifth above sized to their part: ten men singing words",
                                      "extends": MONKS.split(";")[0]}} if MONKS else {}),
