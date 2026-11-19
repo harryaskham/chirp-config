@@ -262,6 +262,35 @@ TEETH = os.environ.get('C10T8_TEETH', '-2;peak cutoff=185 q=1.2 gain=2.5dB|peak 
                                       '0.5,64,65,0.15;-1.2dB;peak cutoff=220 q=1 gain=3dB;-10.14' if RULE else '')
 
 
+# v25 (chirper-two; section w7, 3:00-3:24, the one window no round had worked: the afterword, 3:12-3:24): THE BELLS
+# PUT IT BACK. All through the song the two bells ring where a riff begins again, so they come closer and closer
+# (39 s apart, then every beat), and since v23 each rings its riff's own note, so the cuts are a cadence: 13:8, 8:5,
+# 5:3, 3:2, 2:1, and at the measure one note. Then the afterword (v11) puts the two riffs back together by addition,
+# 4, 8, 12, 20, 32, 52 sixteenths on a muted piano, a reed and the bass, and the bells, who told the whole way down,
+# say nothing on the way back. Now they do. EACH PHRASE IS RUNG IN BY THE PAIR IT REBUILDS: the bell of the length
+# that is made there, and, softer and on the other side, the bell of the length that was lent to make it (v11: "each
+# new head has the other riff's length"). So a bell is struck twice, firmly when its length is made and softly when
+# it is lent. Twelve strokes, six a side, at 3:12.0, 3:12.4, 3:13.1, 3:14.3, 3:16.1 and 3:19.1: ONE, TWO, THREE,
+# FIVE, EIGHT beats apart, and thirteen from the last to the end. The song's whole acceleration, backwards, in twelve
+# seconds; and the cadence backwards, as chords of two: one note (the measure's), an octave, a fourth, 5:3, a major
+# third, and last 13:8, the two given: the rough interval the left bell made against the right at 0:12.
+# THE BELLS ARE THE RULE'S (v23's notes for each length), an octave lower, and for the first time LEFT TO RING: each
+# is the song's bell with a decay two and a half times its phrase (a patch a phrase; the song's own bell is stopped
+# after a tenth of a second), stopped over 1.2 s when its side strikes again, with a little of the hall. An octave
+# down because the thirteen's bell would otherwise strike E flat 5, 61 cents sharp, on the very E flat 5 the reed
+# begins the last phrase with; an octave under it, it is the bell against the other bell's C that is heard.
+# They mark where a phrase BEGINS, not the cut inside it, which v11 leaves unmarked on purpose.
+# MEASURED (raw, a stroke's first 300 ms, K): the pairs -30.5 to -31.1 dB; the piano's notes there -26.9, the reed's
+# -30.8 (medians); against everything else at that moment -0.3 to -4.8. The newer bell of a pair stands 2.5 to 5 dB
+# over the older. The last pair is 3.7 dB down after 0.75 s, 7.6 after 1.5 s, 15 after 3 s, 23 after 4.5 s.
+# The afterword is 0.7 dB louder as mastered. That lifts twelve quiet seconds over the loudness measure's gate and
+# the master turned everything else up 0.02 to 0.03 dB: the target goes -10.14 -> -10.155 and every other bar is
+# within 0.018 dB of v24 on three seeds (the last chord 0.022).
+# octaves on the rule's bells ; how long a stroke rings, in lengths of its phrase ; how long a stopped bell takes to go ; the two tracks' fader ;
+# dB on the older bell of each pair ; hall send ; velocity ; dB on each of the two that open it on one note ;
+# the loudness target ("" = unchanged). "" = v24 byte for byte.
+TOLL = os.environ.get('C10T8_TOLL', '-1;2.5;1.2s;-19.5dB;-6;-14dB;0.8;-3;-10.155' if TEETH and AFTER else '')
+
 
 def nm(n):
     return f"{NAMES[n % 12]}{n // 12 - 1}"
@@ -1032,6 +1061,8 @@ def song():
         doc['loudness'] = float(RULE.split(';')[4])
     if TEETH:
         teeth(doc)
+    if TOLL:
+        the_bells_put_back(doc)
     return doc
 
 
@@ -1098,6 +1129,39 @@ def the_timeline(doc):
     score = ' '.join([f'{pitch}({b},{a})/4@100'] * (whole - int(first)) + [f'{pitch}({nxt},{b})/4@100'])
     doc['tracks'].append({'name': 'clave', 'patch': 'cm-clave', 'gain': gain, 'pan': float(pan),
                           'at': f'{(start + int(first) * len(left)) // 4}b', 'score': score})
+
+
+def the_bells_put_back(doc):
+    """v25: the afterword's six phrases (4, 8, 12, 20, 32, 52) each rung in by the two bells of the pair it rebuilds."""
+    octs, ring, stop, gain, older, hall, vel, both, loud = TOLL.split(';')
+    lengths = [len(G)] + [len(max(pair, key=len)) for pair in reversed(PAIRS)]
+    assert lengths == [4, 8, 12, 20, 32, 52] and all(a + b == c for a, b, c in zip(lengths, lengths[1:], lengths[2:]))
+    sides = lambda n: [sd for sd in 'lr' if n in OWN_NOTE[sd]]
+    key = lambda sd, n: float(RULE.split(';')[0]) - 12 * log2(n / 4) + 12 * (OWN_NOTE[sd][n][0] + float(octs))
+    notes, t = {'l': [], 'r': []}, dict(MARKS)['put back']
+    for i, n in enumerate(lengths):
+        # the bell of the length that is made here; and, softer, the bell of the length that is lent to make it
+        # (the phrase's head has the other riff's length): the pair's own interval, struck as one
+        strokes = [(sd, n, float(both) if len(sides(n)) == 2 else 0.0) for sd in sides(n)]
+        if i:
+            strokes += [(sd, lengths[i - 1], float(older)) for sd in sides(lengths[i - 1]) if sd not in sides(n)]
+        assert sorted(sd for sd, _, _ in strokes) == ['l', 'r']
+        for sd, m, trim in strokes:
+            notes[sd].append({'at': t / 4, 'len': round(n / 4 * 0.98, 4), 'pitch': f'm{key(sd, m):.4f}', 'vel': float(vel),
+                              'patch': f'cm-toll-{n}', **({'gain': f'{trim:g}dB'} if trim else {})})
+        t += n
+    assert t == int(doc['length'].rstrip('b')) * 4
+    for n in lengths:
+        # one bell a phrase: the longer the phrase, the longer its bells ring
+        toll = json.loads(json.dumps(doc['patches']['cm-bell']))
+        toll['about'] = (f"Common Measure's bell left to ring (chirper-two, 19 Nov): cm-bell with a decay {ring} times as long as "
+                         f"a phrase of {n} sixteenths, stopped slowly: for the afterword, where nothing is over it.")
+        toll['synth']['amp'].update({'d': f'{float(ring) * n * 15 / BPM:.3f}s', 'r': stop})
+        doc['patches'][f'cm-toll-{n}'] = toll
+    for sd, pan in (('l', -0.6), ('r', 0.6)):
+        doc['tracks'].append({'name': 'toll-' + sd, 'patch': f'cm-toll-{lengths[0]}', 'gain': gain, 'pan': pan, 'sends': {'hall': hall}, 'notes': notes[sd]})
+    if loud:
+        doc['loudness'] = float(loud)
 
 
 def the_shekere(doc):
