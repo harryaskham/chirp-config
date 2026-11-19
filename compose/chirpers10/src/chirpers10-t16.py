@@ -162,6 +162,34 @@ TOMS_EQ = [{"type": "eq", "bands": ["peak cutoff=330 q=1 gain=-3dB"]}]
 THIRD = os.environ.get("C10T16_THIRD", "-11dB;0;-9.898;peak cutoff=330 q=0.8 gain=-9dB;-1,0.5,-3,0.5,-6,-4,-4" if TOMS else "")
 # section: (bar of the section, bars held, the harmonic of the ground's low string), ... The pair's own note is 4.
 WALK = {"five": ((2, 4, 10),), "seven": ((0, 4, 10), (4, 4, 7), (4, 4, 10)), "three": ((0, 2, 14), (0, 2, 20), (2, 2, 20))}
+# v6 (chirper-two; palette: two instruments of the song's own, where the band is not): BEFORE THE BAND AND AFTER IT.
+# For the first 36 seconds and the last 14 there is no band, or hardly any: two harmoniums, a handpan, and the pulse
+# pointed at by the metal kit's kick and hi-hat alone, the album's two most-used sounds standing bare beside reeds.
+# Those bars now have their own two players. A GREAT DRUM under each stroke of the foot: a low drum that takes a
+# pitch, on the low F (43.65 Hz), struck every 3.6 s as the hair opens and every 1.8 s as it widens, and left to
+# ring (20 dB down in 0.9 s). And A PAIR OF FINGER CYMBALS on the hat's strokes (the fours): the small brass pair
+# that keeps time beside a harmonium, tuned to the reed's own F four octaves up, struck and left to ring on the
+# pulse, struck and held shut between. When the band comes in (0:36.4) the kick and the hat take the strokes as
+# before; when it has thinned to nothing (3:09.1, where the handpan comes back) the drum and the cymbals return.
+# No stroke is added or moved: 15 strokes of the foot gain a drum; 56 strokes move from the hat to the cymbals.
+# MEASURED (the opening, raw, seed 0): the drum's line is within 1.1 cents of the low F; under 60 Hz the opening
+# reads 4.8 dB more (the drum alone stands 2.5 dB under what the whole band carries there in 'square'). A cymbal
+# left to ring falls 20 dB in 0.32 s, one held shut in 33 ms; on the pulse it stands 6.3 dB over what the hat's
+# stroke had from 2 to 16 kHz, between pulses 0.7 under. THE HAIR IS NOT TOUCHED: the strongest slow pulse of each of
+# the pair's first four overtones, read in the MIX, is where it was and as deep (within 0.3 dB) with the two new
+# instruments sounding: the drum has nothing above 130 Hz and the cymbals nothing below 1.4 kHz.
+# NOT KEPT, benched first: the drum under the band too. On the bass's own note its sine adds or cancels by phase
+# (under 60 Hz: 'five' 1.5 dB LESS, 'square' 0.0, 'three' +0.7) and the eleven records leave 1 to 2 dB of room.
+# THE GREAT DRUM: gain ; the sections it plays in ; ms it rings and the fall's curve (ms curve) ; the note's own sine
+# and the head's level, dB (sine:head) ; the head's damping ; brightness ; low-pass (Hz q) ; semitones the stroke
+# starts sharp ; the beater's noise, dB ; the share of the gap to the next stroke it is held for ; loudness target
+# ("" = unchanged) ; eq bands.
+OUTSIDE = "a hair,wider,a quarter,an eighth"
+DRUM = os.environ.get("C10T16_DRUM", f"-18dB;{OUTSIDE};1400 1.5;-4:4;0.15;0.6;130 0.7;5;-6;0.92;;hp cutoff=28" if THIRD else "")
+# THE FINGER CYMBALS: gain ; pan ; their note, Hz ; the modes of the body and of the shimmer over it, and the
+# shimmer's level (body shimmer dB) ; ms an open stroke rings ; a closed one ; brightness ; damping ; the sections ;
+# high-pass, Hz ; send to the overheads' room ("" = none) ; dB on the closed stroke. "" = the hat keeps those strokes.
+CYMBALS = os.environ.get("C10T16_CYMBALS", f"-13dB;-0.3;2793.82;bell cymbal -12;1500;150;0.8;0.1;{OUTSIDE};1500;;4" if DRUM else "")
 GLIDER = "ce-turned-reed"                    # the still reed with a pitch that follows a note's `slide`, in semitones
 
 
@@ -400,7 +428,79 @@ def build():
         doc["patches"] = {**doc.get("patches", {}), **tuned}
     if THIRD and THIRD.split(";")[2]:
         doc["loudness"] = float(THIRD.split(";")[2])
+    if DRUM:
+        great_drum(doc)
+    if CYMBALS:
+        finger_cymbals(doc)
     return doc, marks, end
+
+
+def spans_of(names):
+    out, at = [], 0
+    for name, r, bars, ground, who in FORM:
+        if name in names.split(","):
+            out.append((at, at + 4 * bars, ground))
+        at += 4 * bars
+    return out
+
+
+def great_drum(doc):
+    """Under every stroke of the foot where the band is not playing: a big drum on the ground's own note, rung until
+    just before the next stroke."""
+    gain, where, ring, levels, damp, bright, lp, drop, beater, share, target, eq = DRUM.split(";")
+    sine, head = levels.split(":")
+    spans = spans_of(where)
+    foot = sorted((n for n in next(t for t in doc["tracks"] if t["name"] == "foot")["notes"] if n["pitch"] == "k"), key=lambda n: n["at"])
+    notes = []
+    for n, nxt in zip(foot, foot[1:] + [None]):
+        ground = next((g for a, z, g in spans if a <= n["at"] < z), None)
+        if ground is None:
+            continue
+        gap = (nxt["at"] - n["at"]) if nxt else 4.0
+        notes.append({"at": n["at"], "len": round(min(gap, 4.0) * float(share), 5), "pitch": nm(29 + ground), "vel": n["vel"]})
+    doc.setdefault("patches", {})["ce-great-drum"] = {
+        "about": ("Close Enough's great drum (chirper-two, 19 Nov): a bass drum that takes a pitch. A sine on the note, starting sharp and "
+                  "settling as the head gives; a damped membrane over it; a soft beater. Nothing above the low-pass: it stays under the reeds."),
+        "synth": {
+            "amp": {"a": "1ms", "d": f"{ring.split()[0]}ms", "s": 0, "r": "70ms", "curve": float(ring.split()[1])},
+            "env": {"p": {"a": "0.3ms", "d": "50ms", "s": 0}, "s": {"a": "0.3ms", "d": "12ms", "s": 0}},
+            "layers": [{"wave": "sine", "level": f"{sine}dB"},
+                       {"type": "modal", "modes": "membrane", "decay": f"{float(ring.split()[0]) / 1000:g}s", "damp": float(damp), "bright": float(bright),
+                        "strike": 0.4, "level": f"{head}dB"},
+                       {"type": "noise", "color": "pink", "level": {"value": "-60dB", "mod": [{"src": "env.s", "amount": 60 + float(beater)}]}}],
+            "filters": [f"lp cutoff={lp.split()[0]} q={lp.split()[1]}"],
+            "pitch": {"value": 0, "mod": [{"src": "env.p", "amount": float(drop)}]}},
+        "play": {"vel_sens": 0.5}}
+    doc["tracks"].append({"name": "drum", "patch": "ce-great-drum", "gain": gain, "pan": 0, "notes": notes,
+                          **({"fx": [{"type": "eq", "bands": eq.split("|")}]} if eq else {})})
+    if target:
+        doc["loudness"] = float(target)
+
+
+def finger_cymbals(doc):
+    """Where the band is not playing, the hat's strokes (the fours) are a pair of finger cymbals: open on the pulse,
+    closed between. No stroke is added or moved."""
+    gain, pan, note, modes, ring, shut, bright, damp, where, hp, oh, lift = CYMBALS.split(";")
+    spans = spans_of(where)
+    hat = next(t for t in doc["tracks"] if t["name"] == "hat")
+    inside = lambda n: any(a <= n["at"] < z for a, z, g in spans)
+    moved = [n for n in hat["notes"] if inside(n)]
+    assert moved and all(n["pitch"] == "h" for n in moved)
+    hat["notes"] = [n for n in hat["notes"] if not inside(n)]
+    loud = max(n["vel"] for n in moved)                      # the hat's stroke on the pulse is its loudest
+    piece = lambda ms, db=0: {"gain": f"{db:g}dB", "pitch": f"{float(note):.3f}hz", "patch": {"synth": {
+        "amp": {"a": "0.2ms", "d": f"{ms}ms", "s": 0, "r": "40ms"},
+        "layers": [{"type": "modal", "modes": modes.split()[0], "decay": f"{float(ms) / 1000:g}s", "damp": float(damp), "bright": float(bright), "strike": 0.7},
+                   {"type": "modal", "modes": modes.split()[1], "decay": f"{float(ms) / 2000:g}s", "damp": float(damp), "bright": 1.0, "strike": 0.9,
+                    "level": f"{modes.split()[2]}dB"}],
+        "filters": [f"hp cutoff={hp}"]}}}
+    doc.setdefault("patches", {})["ce-finger-cymbals"] = {
+        "about": ("Close Enough's finger cymbals (chirper-two, 19 Nov): the small brass pair that keeps time beside a harmonium. "
+                  "`o` struck and left to ring, `c` struck and held shut."),
+        "kit": {"o": piece(ring), "c": piece(shut, float(lift))}, "play": {"humanize": {"time": "4ms", "vel": 0.06}, "vel_sens": 0.6}}
+    doc["tracks"].append({"name": "cymbals", "patch": "ce-finger-cymbals", "gain": gain, "pan": float(pan),
+                          **({"sends": {"oh": oh}} if oh else {}),
+                          "notes": [{**n, "pitch": "o" if n["vel"] == loud else "c"} for n in moved]})
 
 
 def dump(doc):
