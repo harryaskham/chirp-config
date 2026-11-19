@@ -584,7 +584,7 @@ STRUCK = os.environ.get('C10T3_STRUCK', '1.2;3;4s;2s;-9.982' if TREBLE and CHORD
 # was 'highshelf cutoff=7000 gain=-3dB') ; its fader (3.5dB) ; the loudness target ('' = unchanged). '' = v32.
 # It is on only while no other C10T3_ switch is set, so every older switch gives exactly what it gave.
 SNARE = os.environ.get('C10T3_SNARE', '3.5;1.1;peak cutoff=2500 q=0.7 gain=-4dB,peak cutoff=650 q=1 gain=-3dB;1.5dB;-10.067' if STRUCK and not any(
-    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE') for k in os.environ) else '')
+    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT') for k in os.environ) else '')
 # v34 (chirper-alpha; whole song: its frame; the change is the band's entrance, 0:08-0:12): THE BAND IS RUNG UP.
 # The song is a ringing performance from end to end, and since v28 the band is LOWERED at the end. But ringers do not
 # start by ringing: a ring is RAISED first, the bells chiming fast and close while they hang low, each stroke taking
@@ -598,6 +598,28 @@ SNARE = os.environ.get('C10T3_SNARE', '3.5;1.1;peak cutoff=2500 q=0.7 gain=-4dB,
 # row a bell dealt at an eighth rings for ; the loudness target ("" = unchanged). "" = v33 (and, like SNARE, setting
 # it does not switch SNARE off).
 RAISE = os.environ.get('C10T3_RAISE', '4;1,1,1,1,2,2,4,6,7,7;0.97;0;0.5;' if SNARE and LOWER and W1 == (2, 2) else '')
+# v35 (chirper-one; section round, the window 1:04-1:36; the change is 1:06-1:26): THE DRUMMER RINGS THE SLOW LEAD.
+# v23 put one lead at two speeds here: the outer pair and the bass ring two leads fast while the inner pair rings the
+# first of them once, slowly, two octaves up, a bar to a row. The kit did not know: it kept the backbeat and the hat in
+# eighths through it, as before and after, and the map still called the window static, its rhythm the most repeated
+# in the song (0.070 bar to bar; the song's median 0.150). The kit already rings the row in every call (a crash for
+# the treble, a tom for each of the four bells between, the snare on the tenor), at full speed, for one bar. NOW IT
+# RINGS THIS WHOLE LEAD AT THE INNER PAIR'S SPEED, ten bars, stroke for stroke with them: a tom to each of the four
+# bells between (t1 t2 t3 ft, high to low as the bells are), so each bar is the four toms in a new order, by the
+# ringers' rule; the treble on the RIDE'S BELL (the kit's one bell, not struck anywhere else in the song), which
+# walks through the bar an eighth later each bar, to beat three, and back to the downbeat; the tenor's two eighths
+# on the snare, on four and its 'and', every bar ('the tenor behind'). The backbeat and the hat's eighths rest for
+# the ten bars (two hands); the hat's foot keeps the quarters. The kick, written with the fast rows, the crashes at
+# the fast riff's homes, and every guitar and bass note are untouched. At 1:26 the backbeat and the hat come back
+# with the harmony guitars.
+# The ringing toms are on a track of their own, 3.5 dB under the song's toms and 3 dB down at 350 Hz: at the fills'
+# level they stood level with the whole band at 120-500 Hz (the mix +2.4 dB there; now +1.3 and +0.7).
+# the toms' velocity ; the piece that is the treble ; its velocity ; the tenor's two snare strokes' velocities ; the
+# kit's tracks whose beat rests while he rings (comma-separated) ; the ride track's fader ; the ringing toms' fader
+# (a track of their own: the song's toms, 4dB, are its fills and calls) ; their eq bands (| between) ; the velocity of
+# the hat's foot on the quarters ('' = none) ; the loudness target ('' = unchanged). '' = v34 (and, like RAISE,
+# setting it does not switch SNARE off).
+SLOWKIT = os.environ.get('C10T3_SLOWKIT', '0.8;rb;0.9;0.9,0.95;snare,hat;-3dB;0.5dB;peak cutoff=350 q=1 gain=-3dB;0.75;' if RAISE and SLOW else '')
 CHORD_ROWS = []
 
 
@@ -775,6 +797,37 @@ def slow_ring(r0, r1, up, vel):
                     add(tr, t, 2 * n, F1 + root + PITCH[b] + up, 1.0 if b == 1 else vel)
             t += 2 * n
     assert t == PART1 * 16 + r1 * L1
+
+
+def slow_kit():
+    """v35: while the inner pair rings one lead at half speed (v23), the kit rings it with them: a bar to a row, the
+    treble on the ride's bell, a tom to each of the four bells between (high to low as the bells are, as in a call),
+    the snare on the tenor's two eighths. Its backbeat and its hat rest; the kick, written with the fast rows, and the
+    crashes at the fast riff's homes are untouched."""
+    f = SLOWKIT.split(";")
+    r0, r1 = (int(x) for x in SLOW.split(";")[0].split(":"))
+    half = (r1 - r0) // 2
+    a, z = PART1 * 16 + r0 * L1, PART1 * 16 + r1 * L1
+    assert a % 16 == 0 and z - a == half * 16 and W1 == (2, 2), "a bar to a slow row"
+    assert not any(lead_mode(k, CALLS_1).startswith("call") for k in range(r0, r1))
+    for tr in [x for x in f[4].split(",") if x]:
+        T[tr] = [n for n in T[tr] if not (a / 4 <= n["at"] < z / 4 and n["pitch"] in ("s", "h"))]
+    t, sv = a, [float(x) for x in f[3].split(",")]
+    for k in range(r0, r0 + half):
+        for b in EXTENT_1[k] + (6,):
+            n = W1[0] if b == 1 else W1[1] if b == 6 else 1
+            if b == 1:
+                drum(f[1], t, float(f[2]))
+            elif b == 6:
+                for j in range(n):
+                    drum("s", t + 2 * j, sv[j])
+            else:
+                T.setdefault("slowtoms", []).append({"at": round(t / 4, 4), "len": 0.25, "pitch": {2: "t1", 3: "t2", 4: "t3", 5: "ft"}[b], "vel": float(f[0])})
+            t += 2 * n
+    assert t == z
+    if f[8]:                             # the hand has left the hat: the foot keeps it
+        for q in range(a, z, 4):
+            T["hat"].append({"at": round(q / 4, 4), "len": 0.5, "pitch": "hf", "vel": float(f[8])})
 
 
 def ringers_time(r0, r1):
@@ -1161,6 +1214,8 @@ def compose():
             drum("c", z, 0.8)
     if ROWTIME:
         ringers_time(*(int(x) for x in ROWTIME.split(":")))
+    if SLOWKIT:
+        slow_kit()
     if MUFFLE and TREBLE:
         half_muffled()
     if CHORDS:
@@ -1269,6 +1324,11 @@ def song():
             T[tr] = [n for n in T.get(tr, []) if not (s16 / 4 <= n["at"] < (s16 + int(n16 or L1)) / 4)]
         tracks.append({"name": "conductor", "patch": CALLED.split(";")[0], "gain": CALLED.split(";")[1], "pan": 0, "sends": {"hall": CALLED.split(";")[7]},
                        **({"fx": [{"type": "eq", "bands": CALLED.split(";")[9].split(",")}]} if CALLED.split(";")[9] else {})})
+    if SLOWKIT and T.get("ride"):                                           # v35: the ride's bell, on a track of its own
+        tracks.append({"name": "ride", "patch": kit, "gain": SLOWKIT.split(";")[5], "out": "drums", "sends": {"oh": "4.5dB"}, "fx": air})
+    if SLOWKIT and T.get("slowtoms"):
+        tracks.append({"name": "slowtoms", "patch": kit, "gain": SLOWKIT.split(";")[6], "out": "drums", "sends": {"oh": "-1.5dB"},
+                       **({"fx": [{"type": "eq", "bands": SLOWKIT.split(";")[7].split("|")}]} if SLOWKIT.split(";")[7] else {})})
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
     return {
@@ -1278,7 +1338,7 @@ def song():
                   "highest note walks through the row and back all piece long, with the kick and a church bell on it. "
                   + ("Since v5 the highest note is long and the low F repeated, so the row is a riff: eight sixteenths in the first "
                      "extent, ten in the second." if RHYTHM else "v1 is the skeleton.")),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(SNARE.split(";")[4]) if SNARE and SNARE.split(";")[4] else float(STRUCK.split(";")[4]) if STRUCK else float(CHORDS.split(";")[4]) if CHORDS and CHORDS.split(";")[4] else float(LOUDER.split(";")[4]) if LOUDER else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(SLOWKIT.split(";")[9]) if SLOWKIT and SLOWKIT.split(";")[9] else float(SNARE.split(";")[4]) if SNARE and SNARE.split(";")[4] else float(STRUCK.split(";")[4]) if STRUCK else float(CHORDS.split(";")[4]) if CHORDS and CHORDS.split(";")[4] else float(LOUDER.split(";")[4]) if LOUDER else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
                     **({"ph-monks": {"about": "chirper-zero: Plain Hunt's chant - the library's voice-choir (five singers on a line) with basses' tracts, and a second five a fifth above sized to their part: ten men singing words",
                                      "extends": MONKS.split(";")[0]}} if MONKS else {}),
