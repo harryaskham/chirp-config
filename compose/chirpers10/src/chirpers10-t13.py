@@ -37,7 +37,7 @@ def name(n):
 # the records' basses at 1-2 kHz, where a bass line is followed. So, of So Far's three moves, the two this
 # song's read supports, each fitted here:
 #   the bass goes through the album's chain (tracks 1, 7, 8, 14, 17) with a smaller lift at 90 Hz (5.5 dB for
-#     7.5: this song was not short at 60-120 Hz) and its fader at -1
+#     7.5: in the two sections read raw the song was not short at 60-120 Hz) and its fader at -1
 #   the kick's drum is tuned a semitone up, to B flat (its weight straddles 60 Hz as the records' kicks do), its
 #     fader comes down 1.5 dB, and the kick and the snare each lose 4 dB of box at 340 Hz
 # NOT TAKEN, on this song's read: the cymbals' shelf and the bus's lower low-pass (the song is 2.2 to 2.7 dB SHORT
