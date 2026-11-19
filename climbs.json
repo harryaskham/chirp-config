@@ -9176,7 +9176,7 @@
     {
       "id": "chirpers10-t17",
       "song": "songs/chirpers10-t17.yaml",
-      "reference": "chirpers — Track 17 (untitled)",
+      "reference": "chirpers — So Far",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers10-t17 OUT.wav",
@@ -9192,7 +9192,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Common Time",
-        "title": "Track 17 (untitled)",
+        "title": "So Far",
         "track": 17,
         "year": 2026
       },
