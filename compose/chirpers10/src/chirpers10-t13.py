@@ -89,12 +89,34 @@ HAT = {'gain': 0.5, 'kick': 'lp cutoff=9000', 'loudness': -10.03}
 # cells before the handover whose tune is made whole ; the floor tom's three strokes ; the foot's on the bar line ;
 # the loudness target. --v19 restores v19 byte for byte.
 WHOLE = {'cells': 3, 'tom': (.70, .77, .84), 'foot': .9, 'loudness': -10.03}
+# v21 (chirper-one, section w6, the map's first flag; the change is 2:45.8-2:52.7, the last of the side-to-side
+# trade before its closing statement): SPUN FAST ENOUGH, BOTH FACES SHOW AT ONCE. v15 spun the sheet: the tune
+# changes side once a cell, then twice a cell, then at every note, "a card with a picture on each face, spun
+# fast enough, shows both at once". It never did show both: at every note there was still one face a cell. Now
+# the turning goes one step further each cell (a cell a side, two notes a side, a note a side) and then the two
+# faces are played TOGETHER for two cells: the left guitar the front (E flat, C, A flat, F on 0, 3, 7, 9), the
+# right guitar the back (F, A flat, C, E flat on 0, 2, 4, 8), in the one cell.
+# What that makes was already in the tune and has not been heard: the two faces strike seven of the cell's
+# eleven places between them and leave FOUR. The tune was four notes in seven rests; its negative seven strokes
+# round four holes; the two faces at once are seven notes round four rests of their own (1, 5, 6, 10). And it is
+# one riff: after the first chord the sides alternate at every note, right left right, left right left, and the
+# pitches go up the record's hook and come back down the tune: A flat, C, C, A flat, E flat, F.
+# The bass and the foot play all seven (the lower note where both strike). Nothing plays the muted strokes: the
+# first time the four rests are EMPTY but for the ride and the backbeat; the second time the two wooden boxes,
+# together for the only time in the song, say the four rests (v4: "a different material for the holes").
+# The ring rings the front in both cells, as it does wherever the front is said. The closing statement on the
+# right (2:52.7), the fill and the return are as written; so are the six cells on the wiw-turned card and the
+# cell after them.
+# the cell (of the trade's twelve) that turns at every note ; the cells where both faces are played at once ;
+# the boxes' strokes in the four rests of each of those cells (0 = left empty) ; the foot's on the first note
+# and the rest ; the loudness target. --v20 restores v20 byte for byte.
+FUSED = {'every': 8, 'cells': (9, 10), 'wood': (0, .95), 'foot': (.95, .84), 'loudness': -10.03}
 
 
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
             rim=True, rim_gain=-18, turned=True, hole=True, mold=True, fretless=True, fretless_gain=-10.0,
             lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True, refill=True, whole_scale=True, trades=True, band=True,
-            hat=True, made_whole=True):
+            hat=True, made_whole=True, fused=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -114,6 +136,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     band = BAND if band and trades else None
     hat = HAT if hat and band else None
     made_whole = WHOLE if made_whole and hat else None
+    fused = FUSED if fused and made_whole else None
     marks = {}
     # v12: THE NEGATIVE IN PITCH. The tune takes four of the scale's seven
     # notes; the three it leaves out lie one between each pair it steps
@@ -141,6 +164,10 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     # only its side. In mono the passage keeps its notes and its level
     # (0.1 dB); all that is left there is each note's change of amplifier.
     def face(i, j):
+        if spin and fused:                            # v21: one step faster each cell
+            if i == fused['every'] - 1: return 1 - j // 2
+            if i == fused['every']: return 1 - j % 2
+            return i % 2
         if spin and 7 <= i <= 8: return 1 - j // 2   # right, right, left, left
         if spin and 9 <= i <= 10: return 1 - j % 2   # right, left, right, left
         return i % 2
@@ -334,6 +361,30 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
         for off,piece in zip((3,2,1),('t1','t2','ft')):
             drums(piece,start+span-off,.59+(3-off)*.1)
 
+    def both_faces(a, n):
+        """v21: one cell with the front on the left guitar and the back on the right, and nothing in the gaps."""
+        front, turned_over = dict(zip(HEADS, TUNE)), dict(zip(BACK_HEADS, BACK_TUNE))
+        struck = sorted(set(front) | set(turned_over))
+        rests = [k for k in range(CELL) if k not in struck]
+        assert len(struck) == CELL - len(HEADS) and len(rests) == len(HEADS)   # seven notes round four rests
+        for k in struck:
+            # no note rings into a rest: the trade's stab (1.4 ticks), or up to the next rest
+            stop = min(q for q in rests if q > k) - k - .1
+            for rig, side in (('left', front), ('right', turned_over)):
+                if k in side:
+                    guitars(a + k, F + side[k], min(1.4, stop), .94, rigs=(rig,), fifth=list(side).index(k) in (0, 3))
+            nxt = min([q for q in struck if q > k] + [CELL])
+            put('bass', a + k, min(nxt - k - .3, stop), F + min(side[k] for side in (front, turned_over) if k in side), .90)
+            drums('k', a + k, fused['foot'][0] if k == 0 else fused['foot'][1])
+        for j, k in enumerate(HEADS):
+            put('ring', a + k, 1.45, F + TUNE[j] + 36, .91 if j == 0 else .79)
+        if fused['wood'][n]:
+            for q, k in enumerate(rests):
+                # v4's sticking for the gaps: the centre of the box for a rest, the slap for the second of two
+                piece = 'cs' if k - 1 in rests else 'cb'
+                for side in sides:
+                    put('box-' + side, a + k, .65, piece, fused['wood'][n] if piece == 'cs' else fused['wood'][n] - .15)
+
     def box_stroke(cell, cells, head, slot, end):
         """The box borrows the negative; it never doubles the borrowed chug.
         Let the last pair of cells return to two guitars before the cadence card.
@@ -490,6 +541,9 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                 # with no band the negative is on F again, for the bass to start
                 # the tune from in the quiet middle.
                 learned = (i - 3) // 2 if mold and section == 'where it was' and 3 <= i <= 8 else -1
+                if fused and spin and section == 'turn the sheet' and i in fused['cells']:
+                    both_faces(start + i*CELL, fused['cells'].index(i))
+                    continue
                 heads, tune = (BACK_HEADS, BACK_TUNE) if back else (HEADS, TUNE)
                 for j, k in enumerate(heads):
                     t, p = start + i*CELL + k, F + tune[j]
@@ -664,7 +718,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
             # (the five card excerpts among them) came out 0.008 to 0.011 dB quieter: the target moves by that.
             # v17: the trade is quieter to the meter than the long statement it replaces; -10.035 keeps every other
             # bar at v16's mastering gain (within 0.002 dB, both seeds).
-            'ceiling':'-1dB', 'true_peak':True, 'loudness':made_whole['loudness'] if made_whole else hat['loudness'] if hat else band['loudness'] if band else -10.035 if trades else -9.99 if refill else -10,
+            'ceiling':'-1dB', 'true_peak':True, 'loudness':fused['loudness'] if fused else made_whole['loudness'] if made_whole else hat['loudness'] if hat else band['loudness'] if band else -10.035 if trades else -9.99 if refill else -10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
                                      'glue threshold=-22dB ratio=2 attack=18ms release=120ms',
                                      {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14800']}]},
@@ -695,6 +749,7 @@ if __name__ == '__main__':
     previous.add_argument('--v17', action='store_true', help='restore the band before it was read part by part (the bare bass, the library kick, the guitars as the rig comes)')
     previous.add_argument('--v18', action='store_true', help='restore the hi-hat at the cymbals\' fader, 25 dB under the mix, and the kick with its top')
     previous.add_argument('--v19', action='store_true', help='restore the single notes of the tune in the three cells before the handover, and their bar lines unmarked')
+    previous.add_argument('--v20', action='store_true', help='restore the side-to-side trade turning twice a cell for two cells and at every note for two, one face at a time')
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     parser.add_argument('--rim-gain', type=float, default=-18, help='held glass track gain in dB')
     parser.add_argument('--fretless-gain', type=float, default=-10.0, help='fretless bass track gain in dB')
@@ -705,7 +760,7 @@ if __name__ == '__main__':
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
                   not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11, not args.v12, args.fretless_gain,
                   not args.v13, args.held_gain, args.grip, not args.v14, not args.v15, not args.strokes_on_f, not args.v16, not args.v17,
-                  not args.v18, not args.v19)
+                  not args.v18, not args.v19, not args.v20)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
