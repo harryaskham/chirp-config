@@ -84,6 +84,29 @@ BASS_LOUDNESS = -9.81
 BASS_QUIET = -1.5              # dB on the bass's fader through the two quiet walks, where it is half the band (see the track)
 
 
+# v5 (chirper-alpha, whole song): THE BAND IS AS BIG AS THE NUMBER. A number was three things here: its length, its
+# note and its riff. It had no SIZE: every walk was one level from its first number to its last (the loud walks all
+# within a decibel of each other, the scorer's variety 62 to 72), so 160 was no bigger than 13 and a walk reached one
+# at the level it had left 52. v1 asked that the climb grow and 160 be the biggest thing in the song; v2 found the
+# climb did not grow. Now it follows from the rule: the guitars' and the bass's faders stand at 1.25 dB for every
+# doubling of the number being said. A halving is a step down, a trebling a step and a half up. So every walk
+# RISES AND SETTLES AS ITS NUMBERS DO: seven climbs to 52 and is loudest there; fifteen's climb zigzags upward (46,
+# 23, 70, 35, 106, 53) to 160, which is the biggest thing in the song because it is the biggest number in it; and
+# every walk ends the same way, sixteen, eight, four, two, one, each a step smaller: the ball coming to rest. The
+# song therefore opens small (one to six are small numbers) and grows into seven. The wheel at the end turns small.
+# THE FOOT IS IN THE RULE (it plays the riff's strokes) and settles with the walk: sixteen, eight, four, two, one
+# is a ball bouncing, each bounce sooner and lower. It never goes over its v4 level (its lane is capped at 0: at
+# the top the limiter is already at work). The hands are outside the rule, as v1 has it, and keep their level:
+# common time goes on while the walk settles. (First take, the foot at one level too: the finished file moved
+# only 0.33 dB for each dB on the faders, the kit being half the mix; and 52, the top of the seventh walk, was
+# still its quietest cell, because a big number's phrase is sparse.)
+# The ondes keeps its own law (it is quieter the higher it is). No note is changed.
+# dB for each doubling ; the number at which the band is as loud as it was (32: the guitars' power, averaged over
+# the song by time, is then what it was, so the kit v4 set against them keeps its place) ; the last chord's size in
+# dB (it is the bar line, not a number in a walk). Empty: v4.
+SIZE = (1.25, 32, 0)
+
+
 def name(p):
     return NOTES[p % 12] + str(p // 12 - 1)
 
@@ -118,8 +141,9 @@ def phrase(m):
     return [(u * unit, ((strokes[i + 1] if i + 1 < len(strokes) else odd) - u) * unit, u % len(bits) == 0) for i, u in enumerate(strokes)]
 
 
-def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True):
+def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True):
     low_bus = low_bus and storeys  # --without-storeys still gives v1
+    sized = sized and kit and low_bus
     T = {k: [] for k in ('left', 'right', 'bass', 'kick', 'snare', 'metal', 'stone') + (('wall-left', 'wall-right') if storeys else ())}
     lifted = []
 
@@ -257,10 +281,29 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True):
         quiet = {'auto': {'quiet': {'curve': 0, 'points': [['0b', 0], [f'{a - 0.02:g}b', 0], [f'{a:g}b', BASS_QUIET],
                                                            [f'{z - 0.02:g}b', BASS_QUIET], [f'{z:g}b', 0]]}}}
     drum = 'ct-kit-so-far' if kit else 'ct-kit'
-    tracks = [track('left', 'ct-twin fx.2.cone=97' + palm, 1, -.9),
-              track('right', 'ct-twin fx.1.model=gojira fx.2.cone=98' + palm, 1, .9),
-              *([track('wall-' + side, STOREY[0].format(side[0]), STOREY[1], sign * STOREY[2],
-                       fx=[{'type': 'eq', 'bands': [f'peak cutoff=380 q=1 gain={STOREY[4]}dB']}])   # the album's cut for this rig, deeper
+    size = None
+    if sized:
+        pts, prev = [], None
+        for at, n, _, _ in cells:
+            v = round(SIZE[0] * math.log2(n / SIZE[1]), 2)
+            if v != prev:
+                pts += ([[f'{at / SUB - 0.02:g}b', prev]] if prev is not None and at else []) + [[f'{at / SUB:g}b', v]]
+                prev = v
+        pts += [[f'{end / SUB - 0.02:g}b', prev], [f'{end / SUB:g}b', SIZE[2]]]
+        size = {'curve': 0, 'points': pts}
+
+    def sized_track(t, cap=None):
+        """The fader follows the number: after the amp and after the bass's chain, where a level is still a level.
+        With `cap` the lane never goes over it (the foot settles with the walk and does not hit harder at the top)."""
+        if size:
+            t['gain'] = t['gain'] if isinstance(t['gain'], dict) else {'value': t['gain'], 'mod': []}
+            t['gain']['mod'].append({'src': 'auto.size', 'amount': 1})
+            t.setdefault('auto', {})['size'] = size if cap is None else {'curve': 0, 'points': [[b, min(v, cap)] for b, v in size['points']]}
+        return t
+    tracks = [sized_track(track('left', 'ct-twin fx.2.cone=97' + palm, 1, -.9)),
+              sized_track(track('right', 'ct-twin fx.1.model=gojira fx.2.cone=98' + palm, 1, .9)),
+              *([sized_track(track('wall-' + side, STOREY[0].format(side[0]), STOREY[1], sign * STOREY[2],
+                                   fx=[{'type': 'eq', 'bands': [f'peak cutoff=380 q=1 gain={STOREY[4]}dB']}]))   # the album's cut for this rig, deeper
                  for side, sign in (('left', -1), ('right', 1))] if storeys else []),
               # v3: THE BASS GETS THE ALBUM'S CHAIN (the `low` bus of tracks 1, 7, 8 and 14, here on the bass's own track). v1 and v2 had the bass on a bare track. Read against the album's
               # eleven records the long walks stood 1.9 to 2.3 dB over at 20-60 Hz and 1.5 to 2.0 short at 60-120, and
@@ -269,14 +312,14 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True):
               # fundamental (44 Hz, the low F) to the octave above (90 Hz), the box out at 350 Hz, 4 dB of string at
               # 1.5 kHz, and a compressor at 8:1. With it the bass stands 9.0 dB under the rest, steadier (3.3 dB), and
               # it holds more of 60-120 Hz and less of 20-60. It cannot mend 20-60 Hz alone: the kick is 78% of it.
-              {**track('bass', 'ct-bass', BASS[0], fx=BASS[1], **quiet),
-               'gain': {'value': f'{BASS[0]}dB', 'mod': [{'src': 'auto.quiet', 'amount': 1}]}} if low_bus else
+              sized_track({**track('bass', 'ct-bass', BASS[0], fx=BASS[1], **quiet),
+                           'gain': {'value': f'{BASS[0]}dB', 'mod': [{'src': 'auto.quiet', 'amount': 1}]}}) if low_bus else
               track('bass', 'ct-bass', -.5, fx=[{'type': 'eq', 'bands': ['hp cutoff=29', 'peak cutoff=320 q=1 gain=-4dB']}]),
               # The ondes' diffuser is an octave of strings from middle C up (262-494 Hz) that ring with every note, and
               # its low notes sit there too: in the seventh walk it held 45% of 250-500 Hz, where the song read 3.1 to
               # 3.8 dB over the records. Half the halo, and 3 dB off the track at 350 Hz.
               track('stone', 'ondes fx.0.mix=0.15', lead_gain, .1, fx=[{'type': 'eq', 'bands': ['peak cutoff=350 q=0.9 gain=-3dB']}]),
-              track('kick', drum, KIT['kick gain'] if kit else 2, out='drums', fx=[{'type': 'eq', 'bands': ['peak cutoff=4300 q=0.8 gain=7dB']}]),
+              sized_track(track('kick', drum, KIT['kick gain'] if kit else 2, out='drums', fx=[{'type': 'eq', 'bands': ['peak cutoff=4300 q=0.8 gain=7dB']}]), cap=0),
               track('snare', drum, 3, out='drums'),
               track('metal', drum, KIT['metal gain'] if kit else 1.5, out='drums', **({'fx': [{'type': 'eq', 'bands': KIT['metal']}]} if kit and KIT['metal'] else {}))]
     assert not T
@@ -301,10 +344,11 @@ if __name__ == '__main__':
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
+    ap.add_argument('--without-size', action='store_true', help="regenerate v4: every number at one level")
     ap.add_argument('--without-kit', action='store_true', help="regenerate v3: the kit before the kick was retuned and the cymbals and the bus had the album's eq")
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
-    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys)
+    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size)
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
