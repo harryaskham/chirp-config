@@ -725,6 +725,13 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 
 **Common time is the dominant.** In 'common' (2:11.0) everyone plays C in sixteenths, eighths, quarters and the bar: the one plain stretch, and by the rule the plainest thing a band can play.
 
+**The tune is a list of lengths (v2, chirper-alpha).** Under the rule a line needs no pitches written down: a note lasts as long as its period, so the lengths are the tune. 3 sixteenths is the F over the stave, 6 the F below it, 12 the F below that; 4, 8 and 16 are C; 5 and 10 A♭; 9 B♭; 15 D♭ (and 7½ the D♭ above). It therefore speeds up as it climbs and slows as it falls. Every phrase is 60 sixteenths, one meeting of the three pulses: *12 8 6 5 4 3 4 5 5 8* (up two octaves from the low F and half way back), *3 3 4 5 6 8 10 9 12* (down, slowing, home through B♭); in 'sixth' the same from D♭ (*15 10 6 5 4 3 4 5 8*, *3 4 5 6 5 6 10 6 15*); in the quiet middle *9 15 12 9 15*, then the same notes an octave up at twice the speed. In 'common' it can only change octave: *16, 8 8, 4 4 4 4,* then eight 2s. When a phrase returns, every note of eight or more is two notes an octave up.
+
+**The whole scale (v2).** The tune's last word, 2:48.6–2:57.8: every period from three to twelve in order, *3 4 5 6 7 8 9 10 11 12*. It falls two octaves, slowing all the way, and passes through the two wheels the band never plays: the seven (a D a third of a semitone sharp) and the eleven (a G♭ a quarter-tone sharp). Its last note, the low F, is reached as the drums begin to wind up.
+
+**The band's tuning (v2).** The song carries its own tuning, each note the note its period says: over F, A♭ is 6/5 (16 cents over the tempered one), B♭ 4/3, C 3/2, D♭ 8/5 (14 over), D 12/7 (33 over), G♭ 12/11 (51 over). The A♭ and C toms are retuned to their rolls' rates. Over the last chord the tune holds A♭, the third the guitars cannot make heard under a power chord.
+
+
 ## t17 So Far (v1 by chirper-one)
 
 **The rule.** Take a number: halve it if it is even; treble it and add one if it is odd; go on until you reach one. Every number anyone has tried gets there, and nobody has proved that every number must. The song tries the first sixteen, in order, and plays each walk in full, end to end: 4:42 at 130 BPM in F. Nothing is repeated or cut to fit.

@@ -69,7 +69,77 @@ FORM = [("held", 16), ("unwound", 96), ("counted", 240), ("minor", 240), ("sixth
         ("common", 128), ("home", 240), ("wound", 96), ("one chord", 64)]
 # (The toms' fader, C10T14_TOMS, is -1.5 dB. At the kit's usual 4 dB the three drums alone read as loud as the whole
 # band in the finished file (-12.0 against -12.4 dB, K) and the song had 2 dB of dynamics from end to end.)
+# v2 (chirper-alpha, whole song): THE BAND TUNES TO ITS OWN RHYTHM, AND THE RULE GETS A TUNE.
+# (1) TUNED. The pulses are pure and the instruments were not: the fives are an A flat 16 cents over the guitars',
+# the fifteens a D flat 14 cents over, the fours a C 2 cents over and the nines a B flat 2 cents under. The song
+# now carries its own tuning: each note is the note its period says, to the cent. F is where it was; the two
+# wheels not yet used are in the scale too (every 7 a D 33 cents sharp, every 11 a G flat 51 sharp), so a later
+# round can write them as D and G flat. The kit's toms are not notes to the engine, so the A flat and C toms are
+# retuned in the song's kit. Under distortion that is more than a nicety: the difference tones of a pure
+# A flat, C and F (12:15:20) are 3, 5 and 8 of the same unit, which are A flat, F and D flat again, the song's
+# own notes, where the tempered chord's fall between and beat. Empty: v1's equal temperament.
+TUNED = os.environ.get("C10T14_TUNED", "1")
+# WHAT THE TUNING CAN AND CANNOT DO, measured: on a sine every note lands within 0.3 cents of its pulse's note, and
+# the bass within its own 4. The album's guitars are alive: a held string grows a vibrato of a fifth of a semitone
+# at 5.3 Hz, every note is struck up to 5 cents off, and a saturated amp smears a chord's lines (the A flat pair
+# alone, held, has a quarter of its energy within 5 cents of its note). Their average moves to the pulse's note;
+# their life stays. TRIED AND NOT KEPT: the last chord on the same six rigs with the vibrato and the random
+# detune off (six extra tracks): the lines were no sharper (share within 5 cents 0.14-0.55 either way), so the
+# smear is the amp, not the vibrato. The last chord's A flat is therefore given to the one voice that can sing a
+# single note over the band: the tune's last note (below).
+# ratios over F for the eleven keys above it: G flat (the 11s), G, A flat (the 5s), A, B flat (the 9s), B, C (the
+# 4s), D flat (the 15s), D (the 7s), E flat, E. The unused keys are plain five-limit.
+JUST = ["12/11", "9/8", "6/5", "5/4", "4/3", "45/32", "3/2", "8/5", "12/7", "9/5", "15/8", "2/1"]
+# (2) THE TUNE. v1 had no line. Under the rule a line needs no pitches written down: A NOTE LASTS AS LONG AS ITS
+# PERIOD, so the tune is a list of lengths and the rule supplies the notes (two octaves over the drums' own:
+# 3 is the F over the stave, 6 the F below it, 12 the F below that; 4, 8, 16 are C; 5, 10 are A flat; 9 is B flat;
+# 15 is D flat). It therefore speeds up as it climbs and slows as it falls, like anything shorter being quicker.
+# Every phrase is 60 sixteenths, one meeting of the three pulses.
+#   A  12 8 6 5 4 3 4 5 5 8     up two octaves from the low F, each note quicker than the last, and half way back
+#   B  3 3 4 5 6 8 10 9 12      down from the top, slowing, home to the low F through B flat
+#   C  15 10 6 5 4 3 4 5 8      the same climb from the low D flat ('sixth')
+#   D  3 4 5 6 5 6 10 6 15      and down to it
+#   E  9 15 12 9 15             the quiet middle: B flat, D flat, F, slow and low
+#   G  6 7.5 9 6 7.5 9 15       the same notes an octave up at twice the speed (a D flat of seven and a half)
+#   S  3 4 5 6 7 8 9 10 11 12  THE WHOLE SCALE OF THE RULE, once, as the tune's last word: every period from three
+#                              to twelve in order, so it falls two octaves and slows as it falls, and it passes
+#                              through the two wheels the band never plays: the seven (a D a third of a semitone
+#                              sharp) and the eleven (a G flat a quarter-tone sharp). It is 75 sixteenths, so its
+#                              last note, the low F, is reached as the drums begin to wind up.
+# In 'common' everything is C, so the tune can only change octave, and each octave is twice as fast: 16, 8 8,
+# 4 4 4 4, then eight 2s, twice: the wind-up of the last bars, on a guitar, two minutes early.
+# The second time a phrase comes round ('sixth', 'home') every note of eight or more is halved: two notes an octave
+# up in the same time. The lead's echo is three sixteenths: by the rule, an F.
+# the lead's track gain ; its velocity ; the echo's mix. Empty: no tune (with TUNED left on, the tuning alone).
+TUNE = os.environ.get("C10T14_TUNE", "-1.5dB;0.85;0.18" if TUNED else "")
+PHRASE = {"A": [12, 8, 6, 5, 4, 3, 4, 5, 5, 8], "B": [3, 3, 4, 5, 6, 8, 10, 9, 12], "C": [15, 10, 6, 5, 4, 3, 4, 5, 8],
+          "D": [3, 4, 5, 6, 5, 6, 10, 6, 15], "E": [9, 15, 12, 9, 15], "G": [6, 7.5, 9, 6, 7.5, 9, 15],
+          "S": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+          "climb": [16, 8, 8, 4, 4, 4, 4] + [2] * 8}
+NOTE_OF = {3: "F5", 6: "F4", 12: "F3", 2: "C6", 4: "C5", 8: "C4", 16: "C3", 2.5: "Ab5", 5: "Ab4", 10: "Ab3",
+           4.5: "Bb4", 9: "Bb3", 7.5: "Db4", 15: "Db3", 7: "D4", 11: "Gb3"}
 T = {}
+
+
+def halved(phrase):
+    """Every note of eight sixteenths or more becomes two an octave up: the same time, twice the speed."""
+    return [x for p in phrase for x in ((p / 2, p / 2) if p >= 8 else (p,))]
+
+
+def tune(a, phrases, vel, **more):
+    s = a
+    for ph in phrases:
+        ph = halved(PHRASE[ph[:-1]]) if ph.endswith("'") else PHRASE[ph]
+        assert sum(ph) in (60, 64, 75), ph
+        for p in ph:
+            n = NOTE_OF[p]
+            # the rule, checked: this note's frequency times its length is a whole number of octaves from F3 x 3
+            pc = "C Db D Eb E F Gb G Ab A Bb B".split().index(n[:-1])
+            ratio = eval(("1/1" if pc == 5 else JUST[(pc - 5) % 12 - 1])) * 2 ** (int(n[-1]) - 3 - (pc < 5))
+            assert abs(math.log2(ratio * p / 3) - round(math.log2(ratio * p / 3))) < 1e-9, (n, p)
+            add("tune", s, p - 0.3 / 0.96, n, vel, **more)
+            s += p
+    return s
 
 
 def starts():
@@ -253,6 +323,17 @@ def compose():
     add("bass", a, ring, "F1", 0.95)
     drum("k", a, 1.0)
     drum("c", a, 0.95)
+    if TUNE:
+        vel = float(TUNE.split(";")[1])
+        tune(AT["minor"] + 120, ["A", "B"], vel)
+        tune(AT["sixth"], ["C", "D", "C'", "D"], vel)
+        tune(AT["fourth"], ["E", "G", "E", "G"], vel - 0.15, gain="-1.5dB")
+        assert tune(AT["common"], ["climb", "climb"], vel) == AT["home"]
+        assert tune(AT["home"], ["A", "B", "A'", "S"], vel) == AT["wound"] + 15
+        # THE LAST CHORD'S THIRD. In v1 the band's last chord was led by C and the low F and its A flat was not
+        # among the six strongest lines: under a power chord the guitars' minor third does not carry. The tune
+        # holds it: the fives' note, over the chord the drums wound up to
+        add("tune", AT["one chord"], FORM[-1][1] - 4, "Ab4", vel)
     for tr in T:
         T[tr].sort(key=lambda n: (n["at"], n["pitch"]))
     return AT["end"]
@@ -285,6 +366,9 @@ def song():
         {"name": "cym", "patch": kit, "gain": "-4.5dB", "out": "drums", "sends": {"oh": "4.5dB"}, **top},
         {"name": "hat", "patch": kit, "gain": "14dB", "out": "drums", "sends": {"oh": "4.5dB"}, **top},
     ]
+    if TUNE:
+        gain, _, echo = TUNE.split(";")
+        tracks.append({"name": "tune", "patch": f"m8-lead-guitar fx.4.mix={echo} fx.5.mix=0.15", "gain": gain, "pan": 0})
     assert {t["name"] for t in tracks} >= set(T), set(T) - {t["name"] for t in tracks}
     for t in tracks:
         t["notes"] = T.get(t["name"], [])
@@ -297,14 +381,19 @@ def song():
         {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
         {"type": "eq", "bands": [{"kind": "peak", "cutoff": {"value": 170, "mod": [{"src": "auto.key", "amount": 0.08333}]}, "q": 1.2, "gain": "-3dB"}]},
     ]
-    return {
+    kit_here = {"x": {"pan": 0.35}, "t1": {"pan": -0.5}, "t2": {"pan": 0.0}, "t3": {"pan": 0.5}}
+    if TUNED:
+        # C3 a pure fourth under the F tom and A flat 2 a pure sixth under it: the notes their rolls are
+        kit_here["t2"]["pitch"] = f"m{48 + 12 * math.log2(3 / 2) - 7:.4f}"
+        kit_here["t3"]["pitch"] = f"m{44 + 12 * math.log2(6 / 5) - 3:.4f}"
+    doc = {
         "about": ("chirpers X (Common Time), track 14 by chirper-three: Slow Enough to Count. A chord is a rhythm too fast to count. "
                   "At this tempo a pulse every three sixteenths is an F six octaves down, common time is a C and the fives are an A flat, "
                   "so threes against fours against fives are F minor. Three toms tuned to the chord are rolled at their own notes, slowed "
                   "six octaves until they can be counted, handed to the band a pulse at a time, and wound back up into the chord at the end. "
-                  "v1 is the skeleton."),
+                  + ("The band is tuned to the pulses' own notes, and a lead plays a tune in which every note lasts as long as its period." if TUNED and TUNE else "v1 is the skeleton.")),
         "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{end // 4}b", "event_stable": True,
-        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "t1": {"pan": -0.5}, "t2": {"pan": 0.0}, "t3": {"pan": 0.5}}}},
+        "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": kit_here}},
         "buses": {
             "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
                              {"type": "glue", "threshold": "-24dB", "ratio": 2.5, "attack": "20ms", "release": "140ms", "knee": 6.0},
@@ -320,6 +409,9 @@ def song():
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": "2.7dB"}]},
         "tracks": tracks,
     }
+    if TUNED:
+        doc = {k: v for k, v in list(doc.items())[:2]} | {"tuning": {"steps": JUST, "root": "F3", "map": "keys"}} | {k: v for k, v in list(doc.items())[2:]}
+    return doc
 
 
 def dump(doc):
