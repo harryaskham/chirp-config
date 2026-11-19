@@ -245,6 +245,26 @@ STILL = {'strings': ' synth.layers.0.tune_sounding=true synth.pitch.mod.1.amount
 # ONE: sixteenths the ondes stays on three times the number before it is pushed up to three times and one ; whether the
 # wheel's four (three ones and one) is entered that way too. --without-one gives the ondes's notes of v9.
 ONE = (1, False)
+# v11 (chirper-one, whole song: the lead): UNDER THE CEILING. v1: "where the number climbs past the top of the ribbon
+# (70, 106, 160, 80) it is out of sight and the band goes on without it." So the lead was silent for 48 of the 68
+# seconds of the fifteenth walk's climb and top (3:12.7-3:20.8, 3:24.8-3:37.0 and 3:43.2-4:10.8): the song's biggest
+# numbers had no voice, and the top, the biggest thing in the song, was 27.7 seconds of band alone.
+# Now the ondes presses against the top of its ribbon: a number over the top is sung in the highest octave of it
+# the ribbon reaches. A number over the top is always even here, so that octave is a number the walk is about to
+# come down to: 70 is sung where 35 will be, 106 where 53 will be, 160 and 80 where 40 will be. The ondes gets
+# there first and is struck again each time the number changes. At the top that is one note three times, 18.5,
+# 9.2 and 4.6 seconds long (160, 80, 40: a ball bouncing under a ceiling), and only then does the ribbon fall its
+# octaves (20, 10, 5). When the voice says "forty" (v9) the ondes has been singing forty for 27.7 seconds.
+# AND THE THREE SMALLEST HAIRS ARE IN THE SONG (v10 left them "above the ribbon's top and unheard"): a trebled
+# number over the top gets v10's push an octave or two down, where a hair is the same hair in cents: into 70 from
+# 69 (25 cents), into 106 from 105 (16), into 160 from 159 (11: at the summit the hair is the finest there is,
+# about the width of the ondes's own vibrato, so it is in the song and very likely not in the ear).
+# Seven notes are added to the ondes; no other part changes. Under the ceiling the ondes keeps its own law (v1:
+# quieter the higher it is) and stands 13.4 to 14.9 dB under everything else (K, raw), where its true notes
+# around them stand 10.4 to 14.3. Benched 1.5 dB up and not kept: the band its note is in (1-2 kHz, or 2-4 kHz
+# at 106) then read 1.0 to 1.8 dB further over the records in the finished file.
+# dB on the ondes's notes under the ceiling ; the loudness target. --without-ceiling gives v10.
+CEILING = (0.0, -9.75)
 
 
 def true(ratio):
@@ -294,7 +314,7 @@ def phrase(m):
     return [(u * unit, ((strokes[i + 1] if i + 1 < len(strokes) else odd) - u) * unit, u % len(bits) == 0) for i, u in enumerate(strokes)]
 
 
-def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, body=True, tuned=True, memory=True, count=True, still=True, one=True):
+def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, body=True, tuned=True, memory=True, count=True, still=True, one=True, ceiling=True):
     low_bus = low_bus and storeys  # --without-storeys still gives v1
     sized = sized and kit and low_bus
     body = body and sized
@@ -303,6 +323,7 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
     count = COUNT if count and memory else None
     still = STILL if still and count else {}                 # --without-count still gives v8
     one = ONE if one and count else None
+    ceiling = CEILING if ceiling and one and still else None  # every older switch still gives what it gave
     T = {k: [] for k in ('left', 'right', 'bass', 'kick', 'snare', 'metal', 'stone') + (('wall-left', 'wall-right') if storeys else ()) + (('hat',) if memory else ())}
     lifted = []
 
@@ -404,6 +425,23 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
             if p > 60:
                 for e in T['stone'][-2 if trebled else -1:]:
                     e['gain'] = f'{-TILT * (p - 60) / 12:.1f}dB'
+        elif ceiling:
+            # v11: the number is over the top of the ribbon. The ondes sings it in the highest octave it can reach
+            # (a number over the top is always even, so that is where the walk will come down to), struck as a new
+            # note for every number, with v10's push where the number was trebled-and-one: the hair is the same hair.
+            m, down = n, 1
+            while F1 + height(m) > TOP:
+                assert m % 2 == 0, n
+                m, down = m // 2, down * 2
+            was = cells[j - 1]
+            trebled = bool(was[1] % 2 and n == 3 * was[1] + 1 and was[2] == k)
+            if trebled:
+                put('stone', at, one[0], true((n - 1) / down), 0.74)
+                put('stone', at + one[0], n - one[0] - 0.5, true(m), 0.74)
+            else:
+                put('stone', at, n - 0.5, true(m), 0.74)
+            for e in T['stone'][-2 if trebled else -1:]:
+                e['gain'] = f'{-TILT * (F1 + height(m) - 60) / 12 + ceiling[0]:.1f}dB'
 
     for s in lifted:                                          # the foot goes with the second pair's chords
         hit = [e for e in T['kick'] if e['at'] == round(s / SUB, 6)]
@@ -558,6 +596,8 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
     if count:
         doc['loudness'] = count['loudness']
         doc['about'] += ' v9: from forty in the fifteenth walk a voice says the numbers as they come; five more say the sixteenth walk; one word a turn on the wheel.'
+    if ceiling:
+        doc['loudness'] = ceiling[1]
     return doc, marks, wheel, end
 
 
@@ -567,6 +607,7 @@ if __name__ == '__main__':
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
+    ap.add_argument('--without-ceiling', action='store_true', help="regenerate v10: the ondes rests while the number is over the top of its ribbon (70, 106, 160, 80)")
     ap.add_argument('--without-one', action='store_true', help="the ondes's notes of v9: it lands on a trebled number at once")
     ap.add_argument('--without-still', action='store_true', help="the rigs of v9: vibrato and a random detune on the strings and the bass, the ondes's wide vibrato (with --without-one: regenerate v9)")
     ap.add_argument('--without-count', action='store_true', help="regenerate v8: nobody says the numbers")
@@ -577,7 +618,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-kit', action='store_true', help="regenerate v3: the kit before the kick was retuned and the cymbals and the bus had the album's eq")
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
-    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one)
+    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling)
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
