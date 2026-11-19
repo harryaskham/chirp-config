@@ -352,6 +352,31 @@ CLEAR = {'one': ['hp cutoff=450', 'peak cutoff=450 q=0.8 gain=-6dB', 'peak cutof
          'gain': -3.5, 'even': {2: 6, 3: 1, 5: -2, 7: -2, 10: -3.5, 11: -1, 14: 1.5, 16: 1.5, 17: 1, 20: 1.5, 22: 2.5, 34: 2.5}, 'loudness': -9.64}
 
 
+# v14 (chirper-zero; instrument round: the china, 314 of the cymbals' 620 strokes, the timekeeper wherever the band is loud):
+# THE CHINA IS A PLATE, NOT AIR. No stroke moves. The song stood 2.1 to 3.4 dB over the eleven records at 8-16 kHz in
+# nine of its ten stretches, and one instrument held that band: the cymbals' track was 95% of the mix's 8-16 kHz in
+# 'seven' and 74% in 'fourteen', and on that track the china's strokes read 4 to 6 dB under the whole mix in their own
+# tenth of a second where the ride's edge and the crashes read 12 to 15 under. Alone, beside the top of the records'
+# drum stems (thirds of an octave, cspec.py), the kit's china was 4.1, 4.9 and 8.2 dB over at 10, 12.5 and 16 kHz:
+# their metal has its weight at 4 to 6 kHz and falls 9 dB by 12.5 kHz; ours was flat to 10 kHz.
+#   THE PLATE: its brightness 1 -> 0.65 (that, not its tilt, is what fills the top octave: tilt 3 -> 1 alone moved
+#       16 kHz by 0.8 dB), tilt 3 -> 1, the patch's lift at 8 kHz moved to 5 kHz (3 -> 3.5 dB), its 2.2 kHz honk
+#       flat. Alone it is within 0.7 dB of the records' top from 10 to 16 kHz and its distance over 2-16 kHz is 0.69
+#       where 2.33. The stroke rings as long as it did (11.4 dB down a quarter of a second on where 12.0).
+#   ITS LEVEL: with its weight in the band the ear weighs most it is 1.2 dB louder (K) at the same fader, so the
+#       piece comes down 2 dB: 0.8 dB quieter than it was on that measure, 4.6 to 7.0 under the mix on its strokes.
+# The ride's edge and the crashes share the track and are untouched. The kit's drive on the china stays (without it
+# the stroke is 21 dB down in a quarter of a second, a splash).
+#   UNDER THE WALLS: in '160 and 80' the wall pair comes in and the band is 3 dB louder against one cymbal; that
+#       stretch was the one place the song was not over the records at the top (-0.6 at 8-16 kHz). There the china's
+#       strokes get 4 dB (a note gain, on the 40 strokes while the walls play), so it keeps the place against the
+#       band that it has everywhere else, and the stretch stays where it was.
+# kit overrides on the cymbals' track ; dB on the china's strokes while the walls play ; the loudness target.
+# --without-china gives v13.
+CHINA = {'kit': 'kit.x.patch.synth.layers.0.tilt=1 kit.x.patch.synth.layers.0.bright=0.65 kit.x.patch.synth.filters.2.cutoff=5000 '
+                'kit.x.patch.synth.filters.2.gain=3.5dB kit.x.patch.synth.filters.1.gain=0dB kit.x.gain=-8.5dB', 'walls': 4, 'loudness': -9.65}
+
+
 def true(ratio):
     """A pitch as its exact ratio over the low F: the engine's fractional key number (a whole one is written as its name)."""
     m = F1 + 12 * math.log2(ratio)
@@ -725,6 +750,7 @@ if __name__ == '__main__':
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
+    ap.add_argument('--without-china', action='store_true', help="regenerate v13: the kit's own china at the kit's level")
     ap.add_argument('--without-clear', action='store_true', help="regenerate v12: the two voices' eq and faders as v9 set them")
     ap.add_argument('--without-said', action='store_true', help="regenerate v11: nobody says a number before forty in the fifteenth walk")
     ap.add_argument('--without-ceiling', action='store_true', help="regenerate v10: the ondes rests while the number is over the top of its ribbon (70, 106, 160, 80)")
@@ -739,6 +765,15 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
+    if not a.without_china and not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k != 'without_china'):
+        metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
+        metal['patch'] += ' ' + CHINA['kit']
+        walls = [n['at'] for t in doc['tracks'] if t['name'] == 'wall-left' for n in t['notes']]
+        under = [n for n in metal['notes'] if n['pitch'] == 'x' and min(walls) <= n['at'] < min(walls) + 40]   # 160 sixteenths: the top
+        assert len(under) == 40, len(under)
+        for n in under:
+            n['gain'] = f"{CHINA['walls']}dB"
+        doc['loudness'] = CHINA['loudness']
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
