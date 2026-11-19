@@ -74,12 +74,27 @@ BAND = {'bass': (-1, [{'type': 'eq', 'bands': ['hp cutoff=29', 'peak cutoff=44 q
 # the hi-hat's gain in the kit on the metal track, dB ; one more band on the kick's eq ; the loudness target.
 # --v18 restores v18.
 HAT = {'gain': 0.5, 'kick': 'lp cutoff=9000', 'loudness': -10.03}
+# v20 (chirper-three, section w2: 0:30.0-0:37.5, the last three bars of 'the shape', which the map flags and no
+# round had worked): THE TUNE IS MADE WHOLE BEFORE IT IS TAKEN APART. From 0:37.5 the tune is given away a note at
+# a time, in the order E flat, C, A flat, F. Until now it went into that as it had been since 0:10: the first note
+# a fifth (the one chord in it), the other three single low notes. Now, in the three cells before the handover,
+# each of those three is made a fifth as well, one more a cell, in the order they will go: C at 0:31.2, A flat too
+# at 0:34.4, F too at 0:37.1. The last cell is the whole tune in fifths, which the song otherwise keeps for its
+# slow last statement (3:22); the next thing heard is the crash, the ring's E flat and no band.
+# And the two clocks close. The tune is eleven ticks long and the bar twelve, so its first note falls one tick
+# nearer the bar line every cell: three ticks after it at 0:30, two, one, and on it at 0:37.5. The drummer plants
+# those three bar lines on the floor tom, harder each time, as he planted the opening's (0:02.5-0:10), and the foot
+# goes with it. So the distance is heard: tom, (F), tune; tom with the F, tune; (F), tom, tune; and together.
+# Both guitars only gain the upper note of each fifth; no note moves. The bass, the snare and the hat are as written.
+# cells before the handover whose tune is made whole ; the floor tom's three strokes ; the foot's on the bar line ;
+# the loudness target. --v19 restores v19 byte for byte.
+WHOLE = {'cells': 3, 'tom': (.70, .77, .84), 'foot': .9, 'loudness': -10.03}
 
 
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
             rim=True, rim_gain=-18, turned=True, hole=True, mold=True, fretless=True, fretless_gain=-10.0,
             lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True, refill=True, whole_scale=True, trades=True, band=True,
-            hat=True):
+            hat=True, made_whole=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -98,6 +113,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     trades = trades and refill
     band = BAND if band and trades else None
     hat = HAT if hat and band else None
+    made_whole = WHOLE if made_whole and hat else None
     marks = {}
     # v12: THE NEGATIVE IN PITCH. The tune takes four of the scale's seven
     # notes; the three it leaves out lie one between each pair it steps
@@ -482,8 +498,10 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                     overt = section == 'the shape' or (section == 'the handover' and not hand)
                     shadow = section == 'where it was' or hand
                     if overt:
+                        # v20: in the last cells of 'the shape' one more note a cell is a fifth, top down
+                        whole = made_whole and section == 'the shape' and 0 < j <= i - (span//CELL - 1 - made_whole['cells'])
                         guitars(t, p, min(2, end-k-.25), .98 if j == 0 else .89,
-                                fifth=(j == 0))
+                                fifth=(j == 0) or bool(whole))
                         put('bass', t, min(2, end-k-.2), p, .92)
                         drums('k', t, .99 if j == 0 else .86)
                     empty = given and j == i // 3
@@ -555,6 +573,13 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                                 drums('k', a, .93 if n == k+1 else .73)
             if held_back and section=='the shape':
                 old_fourth_beat(start)
+            if made_whole and section == 'the shape':
+                # v20: the last bar lines before the landing, on the floor tom and the foot
+                for n, vel in enumerate(made_whole['tom']):
+                    t = start + span - (len(made_whole['tom']) - n) * BAR
+                    drums('ft', t, vel)
+                    if not any(abs(e['at'] * SUB - t) < 1e-6 for e in parts['kick']):
+                        drums('k', t, made_whole['foot'])
             if section in ('the shape','under glass','turn the sheet'):
                 for off, piece in zip((3,2,1), ('t1','t2','ft')):
                     drums(piece, start + span - off, .59+(3-off)*.1)
@@ -639,7 +664,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
             # (the five card excerpts among them) came out 0.008 to 0.011 dB quieter: the target moves by that.
             # v17: the trade is quieter to the meter than the long statement it replaces; -10.035 keeps every other
             # bar at v16's mastering gain (within 0.002 dB, both seeds).
-            'ceiling':'-1dB', 'true_peak':True, 'loudness':hat['loudness'] if hat else band['loudness'] if band else -10.035 if trades else -9.99 if refill else -10,
+            'ceiling':'-1dB', 'true_peak':True, 'loudness':made_whole['loudness'] if made_whole else hat['loudness'] if hat else band['loudness'] if band else -10.035 if trades else -9.99 if refill else -10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
                                      'glue threshold=-22dB ratio=2 attack=18ms release=120ms',
                                      {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14800']}]},
@@ -669,6 +694,7 @@ if __name__ == '__main__':
     previous.add_argument('--v16', action='store_true', help='restore the one long statement at the return and the rising phrase before the close')
     previous.add_argument('--v17', action='store_true', help='restore the band before it was read part by part (the bare bass, the library kick, the guitars as the rig comes)')
     previous.add_argument('--v18', action='store_true', help='restore the hi-hat at the cymbals\' fader, 25 dB under the mix, and the kick with its top')
+    previous.add_argument('--v19', action='store_true', help='restore the single notes of the tune in the three cells before the handover, and their bar lines unmarked')
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     parser.add_argument('--rim-gain', type=float, default=-18, help='held glass track gain in dB')
     parser.add_argument('--fretless-gain', type=float, default=-10.0, help='fretless bass track gain in dB')
@@ -679,7 +705,7 @@ if __name__ == '__main__':
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
                   not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11, not args.v12, args.fretless_gain,
                   not args.v13, args.held_gain, args.grip, not args.v14, not args.v15, not args.strokes_on_f, not args.v16, not args.v17,
-                  not args.v18)
+                  not args.v18, not args.v19)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
