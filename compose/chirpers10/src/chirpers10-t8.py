@@ -169,6 +169,33 @@ CROSS = os.environ.get('C10T8_CROSS', '2' if SHAKER else '')
 # the loudness target (every other bar keeps v19's mastering gain: within 0.01 dB, both seeds). Empty restores v19.
 # The scorer falls 7.5 and 3.3 points (it counted the break as a returning section); kept on his answer.
 FULL = os.environ.get('C10T8_FULL', '1;-4;-10.045' if CROSS and BASS_BREAK and BREATH else '')
+# v21 (chirper-alpha; section w3, 1:06-1:32): EACH RIFF HAS ITS OWN NOTE. Since v20 gave the riff back to the
+# guitars the thirty seconds from 1:00 are the song's static window (its map says so, and v20's handoff). The
+# song's own arithmetic has something to say there that it has not said yet. Two lengths are also two NOTES: a
+# thing that comes round every 20 sixteenths and a thing that comes round every 32 stand to each other as two
+# strings whose lengths are 20 and 32, and two strings 5 to 8 sound a minor sixth. So every pair in this song is
+# an interval, and Euclid's steps are a cadence: 52 against 32 is 13 to 8 (a sixth between the minor and the
+# major, the roughest); 20 against 32 is 5 to 8, a minor sixth; 20 against 12 is 5 to 3, a major sixth; 8 against
+# 12 a fifth; 8 against 4 an octave; and the measure is a unison. The argument comes to rest in pitch as it does
+# in time. THIS ROUND SAYS TWO OF THOSE STEPS, the two in this window: from 1:06, where the two riffs meet
+# again, each side has a bowed guitar string that sounds THE RIFF'S OWN NOTE once for each time the riff comes
+# round, and holds it as long as the riff lasts: on the left A flat (every 20), on the right the C below it
+# (every 32): the longer riff is the lower note and the slower pulse. At the cut (1:21) the left riff is what
+# it was, so its note stays; the right riff is cut from 32 to 12, so its note goes up an octave and a fourth,
+# to the F above the A flat, and comes round nearly three times as often. They stop where the bass takes the
+# riff (1:32). No riff, bell, bass or drum stroke is changed: all four guitars keep both riffs (his answer).
+# The notes are the pure ones (8:5, then 5:3), set so that the F is the band's own F.
+# THE STRINGS STAND STILL AND ARE TUNED DOWN, as track fourteen's held chords are (v3 there): an interval is only
+# pure between notes that do not move. The library's e-bow has a vibrato of 18 cents either way from 0.9 s and
+# strikes each note up to 3 cents off; both are off here. And it reads SHARP, as every string of this engine does
+# (bead bd-d2ee40): alone and still, C4 +3.5 cents, A flat 4 +6.0, F5 +9.3. So each note is written that much flat
+# (the third field, cents for the 32's, the 20's and the 12's note); after it they read within 1.2 cents of the
+# pure notes (a first trim, taken with the random detune still on, was 3 cents too much on two of them).
+# gain ; the note the measure itself would have (MIDI; a riff's note is that, lower by its length over four) ;
+# cents each note is written flat, by riff length 32 : 20 : 12 ; velocity ; the loudness target. "" = v20.
+# (Level: benched raw at -12 dB the two strings stood 6.2 and 5.4 dB under the rest of the band, K-weighted; he asked
+# for the reed 'quieter' from there, and it now stands 10.4 to 12.6 under. At -17 dB the strings stand 11.2 and 10.4 under.)
+OWN = os.environ.get('C10T8_OWN', '-17dB;96.01955;3.5:6.0:9.3;0.85;-10.015' if FULL else '')
 
 
 
@@ -748,6 +775,24 @@ def ring_the_lifted():
                 add(who, p, end - p - 0.3, midi + int(up), 0.9)
 
 
+def each_riff_has_its_note():
+    """From the second meeting of 20 against 32 to the bass break in 20 against 12: a bowed string a side, the
+    riff's own note for the riff's own length, every time it comes round."""
+    top, vel = float(OWN.split(';')[1]), float(OWN.split(';')[3])
+    flat = dict(zip((32, 20, 12), (float(c) / 100 for c in OWN.split(';')[2].split(':'))))
+    at = dict(MARKS)
+    t1, t2 = at['20 against 32'], at['20 against 12']
+    note = lambda length: f'm{top - 12 * log2(length / 4) - flat[length]:.4f}'
+    own = lambda length: top - 12 * log2(length / 4)
+    assert t2 - t1 == 320 and all(abs(own(x) - y) < 0.001 for x, y in ((20, 68.1564), (32, 60.0196), (12, 77.0)))   # A flat 4, C4, F5
+    spans = [(t1 + 160, t2 - 12, 20, 32),          # the second cycle, up to the tail that is heard alone
+             (t2, t2 + 120, 20, 12)]               # the first half of the next pair, up to the bass's break
+    for start, stop, left, right in spans:
+        for tr, length in (('own-l', left), ('own-r', right)):
+            for q in range(start, stop, length):
+                add(tr, q, min(length, stop - q), note(length), vel)
+
+
 def the_foot_crosses_over():
     """The last meetings of 8 against 12: the kick with the right riff, the bass still with the left."""
     left, right = PAIRS[3]
@@ -774,6 +819,8 @@ def song():
         ring_the_lifted()
     if CROSS:
         the_foot_crosses_over()
+    if OWN:
+        each_riff_has_its_note()
     assert total % 16 == 0 and all(m[1] % 16 == 0 for m in MARKS)
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
@@ -826,6 +873,12 @@ def song():
                        'auto':{'tone':holds([log2(h) for h in (4,3,2,1)]),
                                'trim':holds([0,0,12,5])},
                        'fx':[{'type':'eq','bands':[{'kind':'lp','cutoff':pole,'q':1.05}]}]})
+    if OWN:
+        # the e-bow of v7, dry, a little closer to the bridge; one a side, where each riff's bell is
+        bowed = ('ebow synth.layers.0.pick=0.11 synth.layers.0.pickup=0.13 fx.1.gain=0.20 synth.amp.a=135ms synth.amp.r=42ms fx.3.mix=0 fx.4.mix=0'
+                 ' synth.pitch.mod.0.amount=0 synth.pitch.mod.1.amount=0')
+        tracks += [{'name': 'own-l', 'patch': bowed, 'gain': OWN.split(';')[0], 'pan': -.6},
+                   {'name': 'own-r', 'patch': bowed, 'gain': OWN.split(';')[0], 'pan': .6}]
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
 
@@ -846,7 +899,7 @@ def song():
         # The quiet afterword adds 12 seconds to the loudness measurement.
         # Don't turn the existing 3:12 up to compensate: the four comparison
         # clips on that stretch have already been put in front of Harry.
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(FULL.split(';')[2]) if FULL else -10.17 if AFTER else -10,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(OWN.split(';')[4]) if OWN else float(FULL.split(';')[2]) if FULL else -10.17 if AFTER else -10,
         "seed": 1, "tail": "5s", "length": f"{total // 4}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
                     **({"cm-bell": {
