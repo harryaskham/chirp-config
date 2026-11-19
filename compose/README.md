@@ -353,8 +353,10 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     -4.4 on Extreme and Mean and -5.1 on In the Time Of: EVERY song's muted strokes are written at a full palm
     (pm 1.0), which closes the string's filter to 1 kHz before the amp, and the 700 Hz lifts on the twins date
     from the yardstick with voices in it (chirper-zero, Extreme and Mean v23: -7.7 after). Take Up the Slack v12: -4.6 to
-    -11.5 with the same cure, and two songs now agree on what a `ct-twin` successor wants: the palm two octaves
-    not 3.4, the microphone about 0.4, no 700 Hz lift. Do NOT cut a guitar's top on `fizz_db` or a by-part
+    -11.5 with the same cure; Common Measure v24: -5.0 to -10.0 on six guitars. THREE songs agree on what a
+    `ct-twin` successor wants: the palm two octaves not 3.4, and no 700 Hz lift. The microphone and the 800 Hz
+    cut are NOT part of it: they are the mix choosing the amount (a song with no voice kept the microphone at
+    0.5; the cut was 0, -3 and -4 dB on three rigs). Do NOT cut a guitar's top on `fizz_db` or a by-part
     8-16 kHz figure: the separator takes the guitar's top (the records' guitars ALONE read -22.5 to -25.4, their
     stems -33 to -36 under a band; the tool prints it); for the top trust `cabspec.py`. The records give NO
     figure for how empty the rest after a stroke should be: a stroke "followed by a rest" in our transcriptions
