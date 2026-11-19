@@ -686,6 +686,27 @@ ON_THREE = os.environ.get("C10T2_ON_THREE", "" if any("C10T2_" + k in os.environ
 # tritone, which closes when the left lets go a beat later (v11: "the last thing the canon does").
 # the first bar : the ground of each bar from there, in semitones over F. "" = v33 (and it is on only while ON_THREE is).
 STOOD = os.environ.get("C10T2_STOOD", "71:7,3,6" if ON_THREE else "")
+# v35 (chirper-one; whole song): THE RIGHT CLOCK RUNS SHARP WHEN IT RUNS FAST. v31 gave one slip the law of a tape
+# machine: what runs fast sounds sharp by exactly as much as it gains (the right guitar, 2:04). The song's CLOCKS are
+# its music boxes ("A clock: keep it"), and wherever the right-hand clock runs free one of them is on it: the right
+# tick through each slip (v22: "The slip made plain: keep them"), and the right box through the whole drift. They
+# kept perfect pitch while their clock ran fast. Now their notes are tuned by how fast their clock is running when
+# they are struck, read off the track's `warp` as v31's guitar is:
+#   the drift         the right box is 19.8 cents sharp for the 22 bars it drifts (2:44.4-3:33.3: its clock is 1.15%
+#                     fast, steadily), and in tune from the bar the two clocks stand exactly against each other, two
+#                     bars before the band lands on it. Out of sympathy is out of tune; locked is in tune
+#   the quick slips   (1:46, 2:04) the right tick leans sharp as it pulls ahead and comes back as it locks: 61, 87,
+#                     61 cents. At 2:04 the right guitar leans with it (v31). The left tick stays true, so the two
+#                     ticks are heard apart in time AND in pitch
+# NOT the two slow slips (0:53, 1:11; 43 cents at most): built and benched, and not kept. The tick's spring answers
+# an F6 that is 30 to 43 cents sharp 5 to 10 dB more than a true one and rings on, so three ticks in each stood out
+# of the passage Harry signed off ("A thrill"). Not the shake at 3:56 ("Yes: a thrill") either.
+# No note moves in time; no guitar, voice, bass or drum is touched. The box's spring also answers some of the
+# drift's sharp notes more than the true ones (F most), so those carry a trim: the right box alone reads 0.5 dB
+# over what it was through the drift (K), 2.0 in its first four bars, within 0.65 after.
+# track=bars from:to,... ; track=... ; how much of the clock's true shift (1 = exactly the clock's) ; dB on the
+# right box's sharp notes, by the note written. "" = v34.
+FAST = os.environ.get("C10T2_FAST", "br=48:50,56:58;mr=74:96;1;F5=-4.2,F6=-6,A5=-4.8,B5=-2.2,Gb5=-2.1,C6=-2,C5=-1.2,Db6=-1,Db5=1.5" if STOOD else "")
 
 
 def stood():
@@ -721,6 +742,24 @@ def lean(tr="gr"):
                 name = n["pitch"]
                 midi = NAMES.index(name.rstrip("-0123456789")) + 12 * (int(name[len(name.rstrip("-0123456789")):]) + 1)
                 n["pitch"] = f"m{midi + cents / 100:.3f}"
+
+
+def run_sharp():
+    """v35: each note of a music box on the right-hand clock, in the bars named, takes its clock's speed as pitch."""
+    depth = float(FAST.split(";")[2])
+    trim = {k: float(v) for k, v in (x.split("=") for x in FAST.split(";")[3].split(",") if x)}
+    for part in FAST.split(";")[:2]:
+        tr, bars = part.split("=")
+        spans = [tuple(int(v) for v in s.split(":")) for s in bars.split(",")]
+        for n in T.get(tr, []):
+            if any(b0 * 4 <= n["at"] < b1 * 4 for b0, b1 in spans):
+                cents = 1200 * math.log2(clock_speed(n["at"])) * depth
+                if abs(cents) >= 0.5:
+                    name = n["pitch"]
+                    midi = NAMES.index(name.rstrip("-0123456789")) + 12 * (int(name[len(name.rstrip("-0123456789")):]) + 1)
+                    n["pitch"] = f"m{midi + cents / 100:.3f}"
+                    if tr == "mr" and name in trim:      # the box's spring answers some of the sharp notes more than the true ones
+                        n["gain"] = f"{trim[name]:g}dB"
 
 
 def sing_the_lock():
@@ -1047,6 +1086,8 @@ def compose():
         T.setdefault("home", []).append({"at": 126 * 4, "len": 16.0, "pitch": "F1", "vel": 0.5})
     if VARI:                             # v31: in the last slip before the hold a beat apart the right guitar's pitch goes with its clock
         lean("gr")
+    if FAST:                             # v35: and the right-hand music boxes' pitch goes with their clock, in every slip and through the drift
+        run_sharp()
     if WALL and TWIN:                    # v32: the left guitar's notes in those bars are played behind the wall
         w0, w1 = (int(v) for v in WALL.split(";")[0].split(":"))
         T["wl"] = [n for n in T["gl"] if w0 * 4 <= n["at"] < w1 * 4]
