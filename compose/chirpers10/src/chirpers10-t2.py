@@ -673,6 +673,27 @@ OLDER = """
          L2 LETGO LOCK LOWRIDE MACHINE MIDS MIX NAKED ONE OPEN PEND PULSE QUARTER SHAKE SLIPCLOCK SNARE
          SNAREEQ SUNG SUNG2 TALKEQ TALKFX THREE TRADE TWIN V14MAKEUP VARI VOICE WALL""".split()
 ON_THREE = os.environ.get("C10T2_ON_THREE", "" if any("C10T2_" + k in os.environ for k in OLDER) else "1")
+# v34 (chirper-three; section round, w5 2:22-2:57; the change is bars 71-73, 2:37.8-2:44.4): WHERE IT HAS STOOD.
+# The hold a beat apart is the longest in the song, sixteen bars on F, and its last three, after the last sung
+# line ("against you until we agree") and before the band lets go, were plain. Each earlier hold stood on a note of
+# the hook: a sixteenth apart on C, an eighth apart on A flat, three sixteenths apart on B. Now those three bars
+# stand where the song has stood, a bar each, in that order: C, A flat, B, and the band lets go on F. The riff, the
+# kick, the snare, the ride and the fill are as written; only the ground moves (78 notes of the two guitars and the
+# bass change pitch, none moves in time), and the bass's eq follows it as it does in the holds.
+# AND THE CANON SHOWS AS HARMONY: each guitar changes on its own clock, so the right one gets to every ground a
+# beat before the left. For one beat in each bar the two sides stand on different notes: C over the left's F under
+# the word "agree" (a fifth), then A flat, then B, and at last the right guitar's F under the left's B, the hook's
+# tritone, which closes when the left lets go a beat later (v11: "the last thing the canon does").
+# the first bar : the ground of each bar from there, in semitones over F. "" = v33 (and it is on only while ON_THREE is).
+STOOD = os.environ.get("C10T2_STOOD", "71:7,3,6" if ON_THREE else "")
+
+
+def stood():
+    """-> [(bar, semitones over F), ...]: the bars of the hold a beat apart that stand where the earlier holds stood."""
+    if not STOOD:
+        return []
+    first, grounds = STOOD.split(":")
+    return [(int(first) + i, int(x)) for i, x in enumerate(grounds.split(","))]
 
 
 def clock_speed(tau):
@@ -1030,6 +1051,11 @@ def compose():
         w0, w1 = (int(v) for v in WALL.split(";")[0].split(":"))
         T["wl"] = [n for n in T["gl"] if w0 * 4 <= n["at"] < w1 * 4]
         T["gl"] = [n for n in T["gl"] if not (w0 * 4 <= n["at"] < w1 * 4)]
+    for bar_, semi in stood():           # v34: each guitar on its own clock, so the right one gets to each ground a beat early
+        for tr in ("gl", "gr", "bass"):
+            for n in T[tr]:
+                if bar_ * 4 <= n["at"] < (bar_ + 1) * 4:
+                    n["pitch"] = nm(NAMES.index(n["pitch"][:-1]) + 12 * (int(n["pitch"][-1]) + 1) + semi)
 
 
 # the heavy rig: Common Time's tight rig on the engine's own cabinet (sounds.md), one a side
@@ -1079,7 +1105,7 @@ def song():
             lowride += [[f"{92 * 4}b", float(LOCK.split(";")[2])], [f"{98 * 4}b", 0]] if LOCK else [[f"{90 * 4}b", 0]]      # v12: the bass's pedal swells into the lock
     lowride = lowride if len(lowride) > 1 else None
     key_lane = [["0b", 0]]                   # v23: the ground under the bass's eq, semitones over F
-    for seg in (KEYEQ.split(",") if KEYEQ else []):
+    for seg in (KEYEQ.split(",") + [f"{b_}:{b_ + 1}:{semi}" for b_, semi in stood()] if KEYEQ else []):
         k0, k1, semi = [float(x) for x in seg.split(":")]
         if key_lane[-1][0] == f"{k0 * 4:g}b":     # one hold straight into the next
             key_lane = key_lane[:-2] + [[f"{k0 * 4 - 0.02:g}b", key_lane[-2][1]], [f"{k0 * 4:g}b", semi]]
