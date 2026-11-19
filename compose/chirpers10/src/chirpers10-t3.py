@@ -547,6 +547,30 @@ CALLED = os.environ.get('C10T3_CALLED', 'voice-speech synth.layers.0.join=true s
 # the rows of the second extent it may happen in ; semitones over the written note ; the held notes' velocity ;
 # the inner pair's fader on those rows, dB ; the loudness target ("" = unchanged). "" = v30.
 CHORDS = os.environ.get('C10T3_CHORDS', '60:78;12;0.95;2;' if CALLED and HARM and W1 == (2, 2) else '')
+# v32 (chirper-zero, instrument round): THE TREBLE BELL IS STRUCK. Through the band's passages a church bell rings
+# the treble's place in every row (v15 took its hum out and gave the second cycle a second bell). It is the song's
+# accent: the one note whose place in the riff slides. READ ALONE AND IN THE MIX at v31: the bell held 37% of
+# everything the mix has between 500 Hz and 1 kHz in the first cycle and 32% in the second (-4.3 and -4.9 dB re
+# the whole mix's band: as much as the four rhythm guitars together), and the mix read 2.2 to 2.7 dB over the
+# records there in every band passage. And it was not heard as strikes: a note every 0.9 s on a bell that rang
+# seven seconds, every partial as long as every other, so a strike stood 9.7 dB over the ring it landed on in the
+# first cycle and 7.1 in the second (two bells), and tools/presence.py could tell only 14 of 37 strikes from the
+# ring in the first cycle and 3 of 40 in the second. The strike was no brighter than the ring (a third of its
+# power over 1.2 kHz in both): a bell that is hummed, not struck.
+# A BELL'S UPPER PARTIALS DIE FIRST, and a treble is the lightest bell of the ring. So, on this track only (the
+# tower's bells at the opening, the middle, 3:10 and the landing are the ones Harry called ominous and are not
+# touched): the higher a partial the sooner it dies (`damp` 0.03 -> 1.2: the nominal rings 1.8 s, the partial two
+# octaves over the note 0.9 s, where each rang 7), the strike is brighter (`tilt` -1 -> +3 dB an octave: the
+# nominal as loud as the prime at the strike, as on a cast bell), and the bell is a small one (4 s where it rang
+# 7; let go after 2 s where it was 4). The fader is not moved.
+# AFTER: a strike stands 17.9 and 16.0 dB over the ring it lands on; presence.py tells every strike in the first
+# cycle and 19 of 40 in the second; each against the mix -11.6 -> -12.3 and -10.9 -> -12.5 dB (K); the strike has
+# 55% of its power over 1.2 kHz and the ring 27%. The bell's share of the mix's 500 Hz-1 kHz: -4.3 -> -7.0 and
+# -4.9 -> -7.9 dB. THE MIX against the records (no-voice rows) at 500 Hz-1 kHz: first cycle +2.2 -> +1.2, its
+# third lead +2.2 -> +1.3, second cycle +2.7 -> +1.7, the harmony +2.6 -> +1.8, the last stretch +2.2 -> +1.1;
+# no other band moves more than 0.3; the landing (no treble) is as it was.
+# the modes' damp ; their tilt, dB an octave ; the bell's decay ; its release ; the loudness target. "" = v31.
+STRUCK = os.environ.get('C10T3_STRUCK', '1.2;3;4s;2s;-9.982' if TREBLE and CHORDS else '')
 CHORD_ROWS = []
 
 
@@ -1134,7 +1158,8 @@ def song():
         # the bells' fader: down in the landing, where twelve slow rows of six ring into one another over the full band
         {"name": "bell", "patch": "modal-bell", "gain": {"value": os.environ.get("C10T3_BELL", "-18dB"), "mod": [{"src": "auto.lvl", "amount": 1}]}, "pan": 0.1, "sends": {"hall": "-8dB"},
          "auto": {"lvl": {"points": [["0b", 0], *NEARLY_PTS, [f"{LAND * 4 - 1}b", 0], [f"{LAND * 4}b", BELL_LAND], [f"{END * 4 - 1}b", BELL_LAND], [f"{END * 4}b", 0]], "curve": 0}}},
-        *([{"name": "treble", "patch": "modal-bell", "gain": os.environ.get("C10T3_BELL", "-18dB"), "pan": 0.1, "sends": {"hall": "-8dB"},
+        *([{"name": "treble", "patch": "modal-bell" + ((lambda d, t, dc, r: f" synth.layers.0.damp={d} synth.layers.0.tilt={t} synth.layers.0.decay={dc} synth.amp.r={r}")(*STRUCK.split(";")[:4]) if STRUCK else ""),
+            "gain": os.environ.get("C10T3_BELL", "-18dB"), "pan": 0.1, "sends": {"hall": "-8dB"},
             "fx": [{"type": "eq", "bands": [{"kind": "hp", "cutoff": key_f(float(TREBLE.split(";")[0].split(":")[0])) if KEYEQ else float(TREBLE.split(";")[0].split(":")[0]),
                                              "q": float(TREBLE.split(";")[0].split(":")[1])}]}],
             **({"auto": {"key": {"points": KEY_LANE, "curve": 0}}} if KEYEQ else {})}] if TREBLE else []),
@@ -1190,7 +1215,7 @@ def song():
                   "highest note walks through the row and back all piece long, with the kick and a church bell on it. "
                   + ("Since v5 the highest note is long and the low F repeated, so the row is a riff: eight sixteenths in the first "
                      "extent, ten in the second." if RHYTHM else "v1 is the skeleton.")),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(CHORDS.split(";")[4]) if CHORDS and CHORDS.split(";")[4] else float(LOUDER.split(";")[4]) if LOUDER else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(STRUCK.split(";")[4]) if STRUCK else float(CHORDS.split(";")[4]) if CHORDS and CHORDS.split(";")[4] else float(LOUDER.split(";")[4]) if LOUDER else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
                     **({"ph-monks": {"about": "chirper-zero: Plain Hunt's chant - the library's voice-choir (five singers on a line) with basses' tracts, and a second five a fifth above sized to their part: ten men singing words",
                                      "extends": MONKS.split(";")[0]}} if MONKS else {}),
