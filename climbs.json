@@ -9127,7 +9127,7 @@
     {
       "id": "chirpers10-t15",
       "song": "songs/chirpers10-t15.yaml",
-      "reference": "chirpers — Track 15 (untitled)",
+      "reference": "chirpers — Take Up the Slack",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers10-t15 OUT.wav",
@@ -9143,7 +9143,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Common Time",
-        "title": "Track 15 (untitled)",
+        "title": "Take Up the Slack",
         "track": 15,
         "year": 2026
       },
