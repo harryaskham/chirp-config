@@ -74,6 +74,25 @@ ROPE = os.environ.get('C10T15_ROPE', '-9.5dB;0.5;350ms;-9.947')
 # the eq's bands, | between them ; the trim on all three, dB ; the voices' ride in the choruses, dB ; the band's
 # lift in the choruses, dB ; the loudness target. "" = v2. It is on only while the three older switches are.
 INBAND = os.environ.get('C10T15_INBAND', 'hp cutoff=190|peak cutoff=330 q=0.9 gain=-5dB|peak cutoff=2600 q=0.6 gain=7dB;-3.5;-2.5;2;-10' if ROPE and SHANTY_GAIN and CREW_GAIN else '')
+# v4, whole song (chirper-three): THE CHORUS HAS A FLOOR. v3 found that the band alone is no louder in the chorus
+# than in the verse (long chords, fewer strokes) and carried the chorus by lifting the guitar, bass and drum buses
+# 2 dB through it; its note says the size should come from the arrangement. Three parts of one, in all three chorus
+# passages (0:54.8, 2:00.0, 3:02.6), under the same voices, the same riff and the same chords:
+#   THE BASS WALKS. It doubled the guitars (a long note, two palm strokes, a long note, two more). Now it heaves in
+#     eighths on the chord's root, eight to the bar, and on the last eighth it steps towards the next chord: F to its
+#     octave, F up through G flat to A flat, A flat up through B flat to C, and under 'home' down C, A flat, G flat
+#     to the F the next line starts on. The guitars' chords ring over a floor that moves.
+#   A CRASH ON EVERY 'HAUL'. The chorus pulls once a bar; a crash now strikes with the china on each pull.
+#   THE CREW'S FEET COME BACK. The song opens on a stomp (floor tom and foot on one and three) and loses it when
+#     the band comes in. In the chorus the floor tom stamps one and three again, under the foot that is there.
+# WHAT IT DID NOT DO is make the band louder (see the round note: a tenth of a decibel), so v3's lift stays.
+# NOT KEPT: the octave on the chorus's chords (field two): it added half a decibel at 250-500 Hz, where the song is
+# already over the records, and nothing to the level.
+# the bass in eighths (1) ; the octave on the chords (1 = on) ; the crash's velocity on the pulls that had only a
+# china ("" = none) ; the stomp's velocity on one (three is 0.1 less; "" = none) ; the buses' lift in the
+# choruses, dB (v3's) ; the loudness target. "" = v3.
+BUILT = os.environ.get('C10T15_BUILT', '1;0;0.78;0.62;2;-9.937' if INBAND else '')
+WALK = {(0, 0): {14: 12}, (0, 3): {14: 1}, (3, 7): {14: 5}, (7, 0): {12: 3, 14: 1}}     # eighth: semitones over low F
 # one bow, the pitch sliding inside the note (mono, legato); no chance detuning from note to note and less than half
 # of the library's unsteady bowing (12 cents either way there, 5 here): taut is in tune
 HAWSER = ('tagelharpa-bass play.mono=true play.legato=true play.glide={} play.glide_smooth=true '
@@ -164,10 +183,11 @@ def make():
                 d = nxt - t
             put(tr, t0 + t, d - (0 if nxt is not None and nxt - t == d else .4), p, .98 if w in loud else v, ph=PH[w])
 
-    def stroke(trs, t, kind, semi, dur, root=F1, bass=True, kick=True):
+    def stroke(trs, t, kind, semi, dur, root=F1, bass=True, kick=True, whole=False):
         p = root + semi
         for tr in trs:
-            put(tr, t, dur, name(p) + ',' + name(p + 7) if kind == 'o' else p, .96 if kind == 'o' else .94 if kind == 'n' else .86, kind == 'm')
+            put(tr, t, dur, name(p) + ',' + name(p + 7) + (',' + name(p + 12) if whole else '') if kind == 'o' else p,
+                .96 if kind == 'o' else .94 if kind == 'n' else .86, kind == 'm')
         if bass:
             put('bass', t, dur, p, .92 if kind != 'm' else .86, kind == 'm')
         if kick:
@@ -212,10 +232,18 @@ def make():
             t0 = a + b * BAR
             root = F1 + CHORDS[b % 8]
             final = b % 8 == 7
+            built = BUILT.split(';') if BUILT else None
+            ends = last_long and b == bars - 1                        # the song's last chorus bar: one long chord, as it was
+            walks = bool(built and built[0] == '1') and not ends
             for pos, kind, semi, dur in RIFF16:
                 if final and pos:
                     continue          # the last bar is one held chord under 'home'
-                stroke(gtrs, t0 + pos, kind, semi, (15.5 if last_long and b == bars - 1 else 11.5) if final else dur, root)
+                stroke(gtrs, t0 + pos, kind, semi, (15.5 if last_long and b == bars - 1 else 11.5) if final else dur, root,
+                       bass=not walks, whole=bool(built and built[1] == '1'))
+            if walks:                 # v4: the bass in eighths on the root, stepping to the next chord on the last
+                step = WALK.get((CHORDS[b % 8], CHORDS[(b + 1) % 8]), {})
+                for q in range(0, BAR, 2):
+                    put('bass', t0 + q, 1.8, F1 + step[q] if q in step else root, .92 if q % 4 == 0 else .84)
             words = CHORUS[b % 8]
             sing('crew', t0, words, .9, loud=('haul',))
             mine = words
@@ -229,6 +257,10 @@ def make():
                 if w == 'haul':
                     put('crew-high', t0 + t, d - .4, {'C4': 'F4', 'Eb4': 'Ab4'}[p], .9, ph=PH[w])
             kit(t0, 'c' if b % 4 == 0 else 'x', .9 if b % 4 == 0 else .74)
+            if built and built[2] and b % 4 and words[0][0] == 'haul':
+                kit(t0, 'c', float(built[2]))                         # v4: a crash on every pull, over the china that was there
+            if built and built[3] and not ends:
+                kit(t0, 'ft', float(built[3])), kit(t0 + 8, 'ft', float(built[3]) - .1)     # v4: the crew's feet
             for q in (4, 8, 12):
                 if not (final and q == 12):
                     kit(t0 + q, 'x', .6)
@@ -425,12 +457,13 @@ def build():
         'gtrs': {'fx': [{'type': 'eq', 'bands': ['peak cutoff=330 q=1.2 gain=-2dB']}, 'reverb kind=room decay=0.35s mix=0.06 predelay=6ms']},
         'low': {'fx': low},
     }
-    if INBAND and float(INBAND.split(';')[3]):
+    lift = float(BUILT.split(';')[4]) if BUILT else float(INBAND.split(';')[3]) if INBAND else 0
+    if lift:
         for name_ in ('gtrs', 'low', 'drums', 'oh', 'snr'):
             buses[name_]['fx'] = buses[name_]['fx'] + [{'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.lift', 'amount': 1}]}}]
-            buses[name_]['auto'] = {'lift': {'points': in_the_choruses(float(INBAND.split(';')[3])), 'curve': 0}}
+            buses[name_]['auto'] = {'lift': {'points': in_the_choruses(lift), 'curve': 0}}
     doc = {'about': 'Take Up the Slack — chirpers, Common Time, track fifteen. A hauling song: the crew pulls in four, the riff is fifteen long, then seventeen, and each verse the slack between them is taken up.',
-           'tempo': BPM, 'seed': 1, 'length': f'{end // GRID}b', 'tail': '3s', 'ceiling': '-1dB', 'loudness': float(INBAND.split(';')[4]) if INBAND else float(ROPE.split(';')[3]) if ROPE else -10, 'event_stable': True,
+           'tempo': BPM, 'seed': 1, 'length': f'{end // GRID}b', 'tail': '3s', 'ceiling': '-1dB', 'loudness': float(BUILT.split(';')[5]) if BUILT else float(INBAND.split(';')[4]) if INBAND else float(ROPE.split(';')[3]) if ROPE else -10, 'event_stable': True,
            'buses': buses, 'master': {'fx': [{'type': 'eq', 'bands': ['hp cutoff=24']}, {'type': 'gain', 'gain': '2.7dB'}]},
            'tracks': tracks_of(ev)}
     return doc, marks
