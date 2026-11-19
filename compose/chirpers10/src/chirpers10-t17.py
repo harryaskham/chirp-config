@@ -375,6 +375,27 @@ CLEAR = {'one': ['hp cutoff=450', 'peak cutoff=450 q=0.8 gain=-6dB', 'peak cutof
 # --without-china gives v13.
 CHINA = {'kit': 'kit.x.patch.synth.layers.0.tilt=1 kit.x.patch.synth.layers.0.bright=0.65 kit.x.patch.synth.filters.2.cutoff=5000 '
                 'kit.x.patch.synth.filters.2.gain=3.5dB kit.x.patch.synth.filters.1.gain=0dB kit.x.gain=-8.5dB', 'walls': 4, 'loudness': -9.65}
+# v15 (chirper-alpha; instrument round: the two guitars' muted stroke, 841 strokes on the low string): THE HAND ON
+# THE STRING. No stroke moves. Read beside six records' strokes (riffpunch --strokes) the chug had no teeth (the
+# stroke's 1-4 kHz 6.0 dB over its 400 Hz-1 kHz; the records 11.3) and, a measure nobody had acted on, its low end
+# died: 100-250 Hz in the first 20 ms stood 2.3 to 2.5 dB OVER 40-80 ms, where on every record it holds or grows
+# (-1.1; -2.2 to +0.3). The album's cure for the teeth (the palm closes the filter 2 octaves, not 3.4) made that
+# worse alone (+3.5, and more noise between the harmonics than any record). What moves it is the palm's WEIGHT:
+# every muted stroke was written at a full palm (pm 1.0); at 0.55 the low end holds (+0.3 to +0.6) and all five
+# measures are in the records' range or a third of a decibel off it. So:
+#   - the palm closes the string's filter 2 octaves;
+#   - THE HAND'S WEIGHT FOLLOWS THE NUMBER: each muted stroke's pm is 1 at one and `light` at `top`, linear in the
+#     number's octaves (as v5's size): 0.88 at three, 0.75 at ten, 0.6 at forty, 0.45 at 160. A walk's chug opens
+#     as it climbs and closes as it settles;
+#   - the microphone 0.4 -> 0.45: with it at 0.4 the mix's 2-4 kHz went past the records in five stretches of seven.
+# After, on 342 clean muted strokes: low end +2.65 -> +0.34, teeth 5.2 -> 8.7, grain 0.43 -> 0.37. The mix is where
+# it was (mean distance 0.85 -> 0.81). Costs: the guitars' 120-250 Hz 1.9 dB further short by part (the mix did not
+# ask for it back); the open chords a little darker. The target -9.65 -> -9.606 holds the two quiet walks still.
+# octaves the palm closes the string's filter at a full mute (the rig's own: -3.4) ; the microphone (the rig's: 0.4;
+# lower is brighter) ; the palm's weight at one ; at
+# `top` and over ; the number at which the hand is lightest ; the loudness target (None: unchanged).
+# --without-hand gives v14.
+HAND = {'palm': -2, 'mic': 0.45, 'heavy': 1.0, 'light': 0.45, 'top': 160, 'loudness': -9.606}
 
 
 def true(ratio):
@@ -750,6 +771,7 @@ if __name__ == '__main__':
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
+    ap.add_argument('--without-hand', action='store_true', help="regenerate v14: every muted stroke at a full palm, which closes the string's filter to 1 kHz")
     ap.add_argument('--without-china', action='store_true', help="regenerate v13: the kit's own china at the kit's level")
     ap.add_argument('--without-clear', action='store_true', help="regenerate v12: the two voices' eq and faders as v9 set them")
     ap.add_argument('--without-said', action='store_true', help="regenerate v11: nobody says a number before forty in the fifteenth walk")
@@ -765,7 +787,8 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
-    if not a.without_china and not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k != 'without_china'):
+    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand'))
+    if not a.without_china and newest:
         metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
         metal['patch'] += ' ' + CHINA['kit']
         walls = [n['at'] for t in doc['tracks'] if t['name'] == 'wall-left' for n in t['notes']]
@@ -774,6 +797,19 @@ if __name__ == '__main__':
         for n in under:
             n['gain'] = f"{CHINA['walls']}dB"
         doc['loudness'] = CHINA['loudness']
+    if not a.without_hand and not a.without_china and newest:
+        said = [(at + sum(walk(k)[:i]), n) for k, at in marks for i, n in enumerate(walk(k))]      # (sixteenth, the number being said)
+        said += [(wheel + 7 * turn + off, n) for turn in range(TURNS) for off, n in ((0, 4), (4, 2), (6, 1))]
+        assert said == sorted(said) and said[-1][0] + 1 == end, (said[-1], end)
+        for t in doc['tracks']:
+            if t['name'] in ('left', 'right'):
+                t['patch'] += f" synth.filters.0.cutoff.mod.0.amount={HAND['palm']} fx.2.mic={HAND['mic']}"
+                for e in t['notes']:
+                    if 'expr' in e:
+                        n = next(n for at, n in reversed(said) if at <= round(e['at'] * SUB))
+                        e['expr'] = {'pm': round(HAND['heavy'] - (HAND['heavy'] - HAND['light']) * min(1.0, math.log2(n) / math.log2(HAND['top'])), 3)}
+        if HAND['loudness'] is not None:
+            doc['loudness'] = HAND['loudness']
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
