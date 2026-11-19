@@ -715,9 +715,9 @@ FAST = os.environ.get("C10T2_FAST", "br=48:50,56:58;mr=74:96;1;F5=-4.2,F6=-6,A5=
 # 139 ms after the left's at bar 4, 118 at bar 5, 69 at bar 6, 20 at bar 7 and 1 at the fill, and the band lands in
 # step at bar 8. A second music box (the drift's right-hand one) ticks on that clock from bar 4, so the two ticks
 # close as the two guitars do. The bass, kick and hat stay with the left. From bar 8 the clock is the one it was.
-# Measured (each part alone): the chugs within 10 ms of what is written; the right box 1.5 to 4.4 dB under the left
+# Measured (each part alone): the chugs within 11 ms of what is written; the right box 1.5 to 4.4 dB under the left
 # tick by tick with -2 dB on its ticks and -5.5 on its tocks (the patch deals each note its level: as it came the
-# right tocks were 3 to 4 dB over the left's). Two boxes on one note add by phase where they nearly meet: one tock
+# right tocks were 2.5 to 4 dB over the left's). Two boxes on one note add by phase where they nearly meet: one tock
 # can read 4 dB under a single box.
 # the bar the right-hand clock is set going : the bar it is in step ; how late it starts, beats ; dB on the right
 # box's tick : its tock, against the left box's ("" = no box). "" = v35.
