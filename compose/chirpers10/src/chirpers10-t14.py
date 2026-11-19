@@ -295,6 +295,17 @@ def starts():
 # the block track's gain ; where the blocks stand (pan) ; the three blocks' notes in Hz, for a plain stroke : every
 # second : every fourth ; velocity ; the loudness target ("" = unchanged) ; the three blocks' own gains, dB. "" = v6.
 FOOT = os.environ.get("C10T14_FOOT", "8dB;-0.3;1676.3:838.15:419.07;0.9;-10.333;-5:-8:-8" if WHEELS else "")
+# v8 (chirper-three; instrument round: the four chord guitars' rig, the F pair and the A flat pair, and their
+# still twins in the last chord). Read first against the eleven records (raw, 'minor' and 'home'): against the
+# records' guitars the four stood 6.3 and 5.0 dB SHORT at 120-250 Hz and 4.7 and 6.2 OVER at 500 Hz-1 kHz, and held
+# 36 to 38% of the mix's 250-500 Hz, where the mix stood 2.0 and 3.1 over. Three moves, each from that read:
+#   the amp's tight filter 220 -> 180 Hz (body: the low string's own octave is let into the amp);
+#   the 2.5 dB lift at 700 Hz on each track taken out (it was the box);
+#   in its place 2 dB off at 330 Hz on each track (on the tracks, so the wall guitars keep what they had);
+# and 0.45 dB on the four faders, so that the guitars stand where they stood against everything else.
+# the amp's tight filter, Hz ; the band on each of the four tracks, in place of the 700 Hz lift ; dB on the four
+# faders ; the loudness target ("" = unchanged). "" = v7.
+RIG = os.environ.get("C10T14_RIG", "180;peak cutoff=330 q=1.2 gain=-2dB;0.45;-10.386" if FOOT else "")
 AT = starts()
 
 
@@ -560,14 +571,19 @@ def song():
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
     dbl = "ct-twin fx.1.model=modern fx.2.mic=0.35 fx.2.cone={}"
     mids = {"fx": [{"type": "eq", "bands": ["peak cutoff=700 q=0.9 gain=2.5dB"]}]}
+    f_pair, a_pair = "0.7dB", "-2.5dB"
+    if RIG:                                     # v8: the chord guitars' body, box and fader
+        main, dbl = (r + f" fx.1.tight={RIG.split(';')[0]}" for r in (main, dbl))
+        mids = {"fx": [{"type": "eq", "bands": [RIG.split(";")[1]]}]}
+        f_pair, a_pair = (f"{float(g[:-2]) + float(RIG.split(';')[2]):g}dB" for g in (f_pair, a_pair))
     wall = {"fx": [{"type": "eq", "bands": ["peak cutoff=380 q=1 gain=-3dB"]}]}
     top = {"fx": [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]}
     kit = "ct-kit-here"
     tracks = [
-        {"name": "gl", "patch": main.format(140), "gain": "0.7dB", "pan": -1, "out": "gtrs", **mids},
-        {"name": "gr", "patch": main.format(141), "gain": "0.7dB", "pan": 1, "out": "gtrs", **mids},
-        {"name": "dl", "patch": dbl.format(142), "gain": "-2.5dB", "pan": -0.75, "out": "gtrs", **mids},
-        {"name": "dr", "patch": dbl.format(143), "gain": "-2.5dB", "pan": 0.75, "out": "gtrs", **mids},
+        {"name": "gl", "patch": main.format(140), "gain": f_pair, "pan": -1, "out": "gtrs", **mids},
+        {"name": "gr", "patch": main.format(141), "gain": f_pair, "pan": 1, "out": "gtrs", **mids},
+        {"name": "dl", "patch": dbl.format(142), "gain": a_pair, "pan": -0.75, "out": "gtrs", **mids},
+        {"name": "dr", "patch": dbl.format(143), "gain": a_pair, "pan": 0.75, "out": "gtrs", **mids},
         {"name": "wl", "patch": still("ct-wall-stop-l", 2), "gain": "-3.5dB", "pan": -0.75, "out": "gtrs", **wall},
         {"name": "wr", "patch": still("ct-wall-stop-r", 2), "gain": "-3.5dB", "pan": 0.75, "out": "gtrs", **wall},
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
@@ -657,6 +673,8 @@ def song():
     }
     if FOOT and FOOT.split(";")[4]:
         doc["loudness"] = float(FOOT.split(";")[4])
+    if RIG and RIG.split(";")[3]:
+        doc["loudness"] = float(RIG.split(";")[3])
     if TUNED:
         doc = {k: v for k, v in list(doc.items())[:2]} | {"tuning": {"steps": JUST, "root": "F3", "map": "keys"}} | {k: v for k, v in list(doc.items())[2:]}
     return doc
