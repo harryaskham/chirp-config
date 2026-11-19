@@ -473,13 +473,32 @@ def hair_gens():
     x, out = CELLS[AT["five"]][2] + float(HAIR.split(";")[0]), []
     end = AT[HOME.split(";")[0]] if HOME else AT["three"]                 # v27: it goes on, and the window of three brings it home
     unheard = set(HOME.split(";")[1].split(",")) if HOME else set()
+    home = since = end
+    if ONE:                                                               # v28: and on, unheard, to the top's last bars
+        since, end = AT["full"] + int(ONE.split(";")[1]), AT[ONE.split(";")[0]]
     for c, n, sec, g in lead_gens():
         if AT["five"] <= c < end:
-            out.append({**g, "x0": x, **({"rest": 1} if sec in unheard else {})})
-            for i in range(n):
-                x = CELLS[c + i][1] * x * (1 - x)
+            k = min(n, max(0, since - c)) if c >= home else 0                    # this many half bars of the run are walked and not heard
+            for at, m, quiet in ((c, k, True), (c + k, n - k, sec in unheard)):
+                if m:
+                    out.append({**g, "x0": x, "n": m, **({"rest": 1} if quiet else {})})
+                    for i in range(m):
+                        x = CELLS[at + i][1] * x * (1 - x)
     assert sum(g["n"] for g in out) == end - AT["five"]
     return out
+
+
+def one_voice():
+    """v28: the half bar of the way down from which the second voice plays the tune's own note and never another (computed)."""
+    x = CELLS[AT["five"]][2] + float(HAIR.split(";")[0])
+    for c in range(AT["five"], AT["full"]):
+        x = CELLS[c][1] * x * (1 - x)
+    last = AT["full"]
+    for c in range(AT["full"], NC):
+        x, t = CELLS[c][1] * x * (1 - x), CELLS[c][3]          # what each plays in half bar c: the number after the step
+        if (x < 1 / 7) != (t < 1 / 7) or (x >= 1 / 7 and min(15, int(x * 16)) != min(15, int(t * 16))):
+            last = c + 1
+    return last
 
 
 def low_bus():
@@ -969,6 +988,24 @@ HAIR = os.environ.get("C10T6_HAIR", "-0.005;-18dB;0.45;-9.84") if EIGHT else ""
 # the section at which the second voice stops (it walks on from the wall, never reset) ; sections in which it walks
 # but is not heard ; the song's loudness target ("" = unchanged). "" = v26.
 HOME = os.environ.get("C10T6_HOME", "full;;") if HAIR else ""
+# v28 (chirper-alpha; section round, w7 2:46-3:14): TWO VOICES BECOME ONE. v26: started a hair apart, where the rule
+# does not repeat the two are soon strangers. v27: a window that repeats catches whatever comes into it, on some
+# step of its round. What was left (chirper-two computed it and left it for the song's last minute): where the
+# rule SETTLES, two starts end as one voice. The second voice walks on from where v27 stops it, unheard, through
+# the top. Computed, and nothing in it is put there (what each plays in a half bar is the number after the step):
+#   - in the top the two are strangers, meet by chance at 2:40.0 (0.00007 apart) and, the top being what it is,
+#     are apart again eight half bars later;
+#   - 2:48.7, where it is heard again: G5 under the tune's A flat 5, A flat 6 under its B flat 6, B5 over its
+#     B flat 5 (a semitone, a tone, a semitone), and both land on the top's last note, B6 (2:51.3);
+#   - on the way down the tune goes alone for two notes (the second voice's number is under the rest line), the
+#     second voice has one last note of its own (A flat 4 under B flat 5, 2:54.8), and from 2:55.7 it plays the
+#     tune's note in every half bar to the end of the song: one voice (0.00045 apart there, nothing by 3:02).
+# Once it is the tune it is taken in: its fader falls from 6 dB under where it was to 20 under by the end of the
+# four (3:06.1), where it stops; the song's last minute is the tune alone, as it was.
+# the section at which the second voice stops ; the half bar of the top from which it is heard again (it walks on,
+# unheard, from where HOME leaves it) ; dB on its fader where it becomes the tune : where it stops ; the loudness
+# target ("" = unchanged). "" = v27.
+ONE = os.environ.get("C10T6_ONE", "down-two;28;-6:-20;") if HOME else ""
 MAKE_SOME_ROOM = (["M EY1 K", "_", "S AH1 M", "R UW1 M", "_"], [3, 8, 13, 18, 24], [.94, .88, .90, .95, .90])
 NO_MORE_ROOM = (["N OW1", "M AO1 R", "R UW1 M"], [4, 6, 14], [.90, .92, .95])
 
@@ -1236,6 +1273,12 @@ def song():
     if HAIR:
         tracks.append({"name": "hair", "patch": "nes-pulse-lead", "gain": HAIR.split(";")[1], "pan": float(HAIR.split(";")[2]),
                        "at": f"{AT['five'] * 2}b", "sends": {"hall": "-12dB"}, "gen": hair_gens()})
+        if ONE and ONE.split(";")[2]:
+            # once it is the tune it is taken in: its fader falls from the half bar the two become one to where it stops
+            a, z = (float(v) for v in ONE.split(";")[2].split(":"))
+            met, end = (one_voice() - AT["five"]) * 2, (AT[ONE.split(";")[0]] - AT["five"]) * 2      # a lane's beats count from the track's `at`
+            tracks[-1]["gain"] = {"value": HAIR.split(";")[1], "mod": [{"src": "auto.melt", "amount": 1}]}
+            tracks[-1]["auto"] = {"melt": {"points": [["0b", 0], [f"{met - 0.02:g}b", 0], [f"{met}b", a], [f"{end}b", z]], "curve": 0}}
     for t in tracks:
         if "gen" not in t:
             t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
@@ -1273,7 +1316,7 @@ def song():
                   "and back down: the riff settles, splits in two, four, eight, stops repeating, locks by itself on five half "
                   "bars and then on three, fills the whole range, and dies out. Triplets at 138, on E, with a drum machine; "
                   "the lead has no notes, only the rule (the engine's own logistic generator). v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(HOME.split(";")[2]) if HOME and HOME.split(";")[2] else float(HAIR.split(";")[3]) if HAIR and HAIR.split(";")[3] else float(EIGHT.split(";")[3]) if EIGHT else float(ROOM.split(";")[3]) if ROOM else float(WITH.split(";")[2]) if WITH else float(SETTLE.split(";")[3]) if SETTLE else float(FLIP.split(";")[2]) if FLIP else float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(ONE.split(";")[3]) if ONE and ONE.split(";")[3] else float(HOME.split(";")[2]) if HOME and HOME.split(";")[2] else float(HAIR.split(";")[3]) if HAIR and HAIR.split(";")[3] else float(EIGHT.split(";")[3]) if EIGHT else float(ROOM.split(";")[3]) if ROOM else float(WITH.split(";")[2]) if WITH else float(SETTLE.split(";")[3]) if SETTLE else float(FLIP.split(";")[2]) if FLIP else float(UNWIND.split(";")[3]) if UNWIND else float(SIX.split(";")[4]) if SIX else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"cc-machine": machine,
                     **({"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}}} if KIT else {})},
         "buses": {
