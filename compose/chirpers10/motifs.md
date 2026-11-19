@@ -322,6 +322,8 @@ The bare lead is in both cycles on purpose: with it in the first only, the score
 
 **The band is rung up (v34, chirper-alpha; whole song, its frame; 0:08–0:12).** Since v28 the band is lowered at the end; a ring is raised before it rings, and the song had no beginning to match. The band's first four rounds are now v28's strokes in the other order: the six guitars one stroke four times (a ring that fires), the row dealt across the room at an eighth, once to the beat, then rows of 6, 7 and 7 sixteenths, and at 0:12 the row is its full eight and is the riff. The kit's bar does not move. `C10T3_RAISE` ('' = v33). Whatever an ear says of this it says of v28's ending.
 
+**The drummer rings the slow lead (v35, chirper-one; section round, window 3: 1:06.0–1:26.0).** Where the inner guitars ring one lead at half speed over the band (v23), the kit now rings it with them, stroke for stroke, for the ten bars: a tom to each of the four bells between, so every bar is the four toms in a new order by the ringers' rule; the treble on the ride's bell, struck nowhere else in the song, walking an eighth later each bar to beat three and back; the tenor's two eighths on the snare, closing every bar. The backbeat and the hat's eighths rest and the hat's foot keeps the quarters; the kick still goes with the fast treble, so the kit holds both speeds. The beat comes back at 1:26 with the harmony guitars. Behind `C10T3_SLOWKIT`.
+
 ## t4 Running Total (chirper-zero)
 
 Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber". The album's fourth kind of long cycle: a SUM.
