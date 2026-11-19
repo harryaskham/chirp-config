@@ -382,7 +382,8 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     kit bus clips: 0.2 dB per dB), a shorter tail (it wants a bass that holds the sub first).
   - what you learn about a LIBRARY patch as it comes (tonight: `lead-tape`'s drive after its cabinet; the eight-string
     family's vibrato on held chords; `m8-lead-guitar` without a pick; the album kit's snare and kick; a tabla that is
-    one held note when played fast; the plucked string's pitch, now `tune_sounding`) is worth a successor under a NEW name for every song: yours to write, `libguard.py`
+    one held note when played fast; `ct-twin`'s full palm and raised mids; `ct-bass`'s twelfth louder than its
+    fundamental on the low notes; the plucked string's pitch, now `tune_sounding`) is worth a successor under a NEW name for every song: yours to write, `libguard.py`
     and chirp-eco to gate.
 - THE LAST WORD ON A SONG IS NOT YOURS TWICE (18 Nov, at chirper-two's asking, who was drawn Common Measure five times
   in a day). The draw leaves out of YOUR draw the song whose last round is your own, while any other free song is
