@@ -141,6 +141,27 @@ SLIDES = {s.split(":")[0]: int(s.split(":")[1]) for s in SLIDE.split(",")} if SL
 # ground in semitones over F = floor tom, middle, top ; ... "" = v3.
 TOMS = os.environ.get("C10T16_TOMS", "0=C2,F2,C3;3=Eb2,Ab2,Eb3;6=B1,Gb2,B2;-2=Bb1,Eb2,Bb2") if SLIDE else ""
 TOMS_EQ = [{"type": "eq", "bands": ["peak cutoff=330 q=1 gain=-3dB"]}]
+# v5 (chirper-three; whole song): THE NUMBERS STAY IN THE AIR. For two and a half minutes the band counted and
+# nothing sang: each section was one bare fifth. The pair's own note is the FOURTH harmonic of the guitars' low
+# string, and in 'square' the band plays four to the bar. So when the band plays five to the bar a third reed
+# sings the low string's FIFTH harmonic, and when it plays seven, the SEVENTH: the song's own still harmonium, in
+# the middle, struck once and held, exactly in tune with the still reed (whole-number ratios: 14 cents under the
+# piano's major third, 31 under its seventh), each note brought by octaves into the octave from A4 up. With the
+# pair's four and the guitars' fifth that is 4:5:6:7, the low string's own overtones.
+#   bar 21 (1:12.7)  the fifth over A flat (C5), four bars; it rests while the peg is turned
+#   bar 27 (1:34.5)  the fifth over B (D sharp 5)
+#   bar 31 (1:49.1)  the seventh joins under it (A4): four bars of the whole chord
+#   bar 35 (2:03.6)  on the low E flat both stay (D flat 5 and G5); bar 37 the seventh has gone; bar 39 the fifth
+# ONLY FIVE AND SEVEN. A reed in tune with the still reed puts its overtones exactly on the still reed's wherever
+# they meet, and drowns the hair's wobble there. The third harmonic and the sixth both land on the pair's third
+# overtone, the toms' pulse (benched: with the third harmonic sounding that pulse fell from 25 dB deep to 4). Five
+# and seven meet nothing below the pair's fifth overtone: with them the pair's four pulses read as they do alone.
+# So 'three' cannot have its own number sung, and the chord leaves there instead.
+# the third reed's gain ; its pan ; the loudness target ("" = unchanged) ; its eq bands ; dB on each note, in the
+# order they are struck ("" = none). "" = v4.
+THIRD = os.environ.get("C10T16_THIRD", "-11dB;0;-9.898;peak cutoff=330 q=0.8 gain=-9dB;-1,0.5,-3,0.5,-6,-4,-4" if TOMS else "")
+# section: (bar of the section, bars held, the harmonic of the ground's low string), ... The pair's own note is 4.
+WALK = {"five": ((2, 4, 10),), "seven": ((0, 4, 10), (4, 4, 7), (4, 4, 10)), "three": ((0, 2, 14), (0, 2, 20), (2, 2, 20))}
 GLIDER = "ce-turned-reed"                    # the still reed with a pitch that follows a note's `slide`, in semitones
 
 
@@ -277,6 +298,12 @@ def build():
         if PAN and PAN.split(";")[2] and name == "close enough":   # in tune: all four at once
             for k in (1, 2, 3, 4):
                 put("pan-out", b, f"{k * f:.3f}hz", 6, round(1.06 - 0.06 * k, 2))
+        if THIRD and name in WALK:
+            for bar0, held, n in WALK[name]:
+                put("third", b + 4 * bar0, f"{f * n / 4:.3f}hz", 4 * held - 0.04, 0.8)
+                trims = [float(x) for x in THIRD.split(";")[4].split(",")] if THIRD.split(";")[4] else []
+                if len(ev["third"]) <= len(trims) and trims[len(ev["third"]) - 1]:
+                    ev["third"][-1]["gain"] = f"{trims[len(ev['third']) - 1]:g}dB"
         b += 4 * bars
     end = b
     # the bass bus's eq follows the ground, as the album's does (its notch and lift sit on the note's first two harmonics)
@@ -342,6 +369,8 @@ def build():
     if PAN:
         patch, opens, closes, _ = PAN.split(";")
         tracks += [track("pan", patch, opens, 0.0)] + ([track("pan-out", patch, closes, 0.0)] if closes else [])
+    if THIRD:
+        tracks += [track("third", STILL, THIRD.split(";")[0], float(THIRD.split(";")[1]), fx=[{"type": "eq", "bands": THIRD.split(";")[3].split("|")}])]
     buses = {
         "strings": {"fx": [{"type": "eq", "bands": ["peak cutoff=330 q=1.2 gain=-2dB"]}, "reverb kind=room decay=0.35s mix=0.06 predelay=6ms"]},
         "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
@@ -369,6 +398,8 @@ def build():
                                  "extends": STILL, "synth": {"pitch": {"value": 0, "mod": [{"src": "expr.slide", "amount": 1}]}}}}} if SLIDES else {}))
     if tuned:
         doc["patches"] = {**doc.get("patches", {}), **tuned}
+    if THIRD and THIRD.split(";")[2]:
+        doc["loudness"] = float(THIRD.split(";")[2])
     return doc, marks, end
 
 
