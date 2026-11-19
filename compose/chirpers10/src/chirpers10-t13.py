@@ -28,9 +28,40 @@ def name(n):
     return PITCH[n % 12] + str(n // 12 - 1)
 
 
+# v18 (chirper-three, whole song: the mix; no note changes): THE BAND, READ PART BY PART. This song's band is the
+# one So Far (track seventeen) began with: the bass on a bare track, the library's kick, one cut on the drums bus.
+# So Far's was read against the eleven records part by part over three rounds (its v3, v4 and v6); this one never
+# was. The same read here, on 'where it was' and 'the shape' (raw), said: the KICK alone was 53% of the whole
+# mix's power in 'where it was' (75% of everything under 60 Hz, where the song stood 2.5 dB over the records), the
+# kit 6.5 dB over the records' drums at 250-500 Hz, and the BASS 10.4 dB under everything else and 7 dB short of
+# the records' basses at 1-2 kHz, where a bass line is followed. So, of So Far's three moves, the two this
+# song's read supports, each fitted here:
+#   the bass goes through the album's chain (tracks 1, 7, 8, 14, 17) with a smaller lift at 90 Hz (5.5 dB for
+#     7.5: this song was not short at 60-120 Hz) and its fader at -1
+#   the kick's drum is tuned a semitone up, to B flat (its weight straddles 60 Hz as the records' kicks do), its
+#     fader comes down 1.5 dB, and the kick and the snare each lose 4 dB of box at 340 Hz
+# NOT TAKEN, on this song's read: the cymbals' shelf and the bus's lower low-pass (the song is 2.2 to 2.7 dB SHORT
+# at 8-16 kHz as it is); the guitars' lower tight filter (they are 2.1 dB under the records' guitars at 120-250 Hz
+# in 'where it was', not 5.3, and the mix is already 0.9 over there).
+# The box cut is on the two tracks, not on the drums bus, so that the toms, which play alone in 'chalk' and 'under
+# glass', are not touched: those two sections have no bass, kick, snare or guitar, and before the master they are
+# sample for sample v17's (raw residual -98 dB). AFTER THE MASTER THEY ARE QUIETER: v17's kick was driving the
+# limiter, and the loudness target was being reached by turning everything up under it; with the kick in its
+# place the same target needs less gain (see the round note for how much).
+# the bass's fader and chain ; the kick's drum and fader ; the box cut on the kick and the snare ; the loudness
+# target. --v17 restores v17.
+BAND = {'bass': (-1, [{'type': 'eq', 'bands': ['hp cutoff=29', 'peak cutoff=44 q=1.5 gain=-7dB', 'peak cutoff=90 q=1 gain=5.5dB',
+                                               'peak cutoff=350 q=1 gain=-8dB', 'peak cutoff=1500 q=1 gain=4dB']},
+                      {'type': 'compressor', 'threshold': '-26dB', 'ratio': 8.0, 'attack': '12ms', 'release': '120ms', 'makeup': '2.5dB'},
+                      {'type': 'eq', 'bands': ['peak cutoff=170 q=1.2 gain=-3dB']}]),
+        'kick': ({'pitch': 'A#1'}, 0.5),
+        'box': 'peak cutoff=340 q=1.2 gain=-4dB',
+        'loudness': -10.035}   # v17's own (see the round note: the master's gain is NOT what it was, and cannot be)
+
+
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
             rim=True, rim_gain=-18, turned=True, hole=True, mold=True, fretless=True, fretless_gain=-10.0,
-            lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True, refill=True, whole_scale=True, trades=True):
+            lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True, refill=True, whole_scale=True, trades=True, band=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -47,6 +78,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     spin = spin and lit
     refill = refill and spin
     trades = trades and refill
+    band = BAND if band and trades else None
     marks = {}
     # v12: THE NEGATIVE IN PITCH. The tune takes four of the scale's seven
     # notes; the three it leaves out lie one between each pair it steps
@@ -517,15 +549,17 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
         return dict(name=tr, patch=patch, gain=f'{gain}dB', pan=pan, notes=ns, **kw)
     tracks = [track('left','ct-twin fx.2.cone=73',1,-.9),
               track('right','ct-twin fx.1.model=gojira fx.2.cone=74',1,.9),
+              track('bass','ct-bass',band['bass'][0],fx=band['bass'][1]) if band else
               track('bass','ct-bass',-.5,fx=[{'type':'eq','bands':['hp cutoff=29','peak cutoff=320 q=1 gain=-4dB']}]),
               track('ring','scanned-mallet',-13,.06,sends={'chamber':'-12dB'}),
               track('glass','ct-clean',-2,-.18,sends={'chamber':'-9dB'}),
-              track('kick','ct-kit',2,out='drums',fx=[{'type':'eq','bands':['peak cutoff=4300 q=0.8 gain=7dB']}]),
+              track('kick','ct-kit-where-it-was' if band else 'ct-kit',band['kick'][1] if band else 2,
+                    out='drums',fx=[{'type':'eq','bands':['peak cutoff=4300 q=0.8 gain=7dB']+([band['box']] if band else [])}]),
               # The short wooden click and the flam grace were 21–26 dB
               # under the accent on the stock kit. Bring up those two pieces
               # only; the old backbeat and its fader stay where they were.
               track('snare','ct-kit'+(' kit.ss.gain=7dB kit.g.gain=-5dB' if drum_memory else ''),3,
-                    out='drums',sends={'chamber':'-14dB'}),
+                    out='drums',sends={'chamber':'-14dB'},**({'fx':[{'type':'eq','bands':[band['box']]}]} if band else {})),
               track('metal','ct-kit',1.5,out='drums'), track('skins','ct-kit',3,out='drums')]
     if rim:
         # The library's FM glass pad, made to speak and stop like a rubbed rim:
@@ -550,6 +584,8 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
         tracks.append(track('fretless','fretless-bass play.glide=150ms fx.2.mix=0',fretless_gain,0,
                             fx=[{'type':'eq','bands':['hp cutoff=29','peak cutoff=320 q=1 gain=-4dB','lp cutoff=1800 q=0.6']}]))
     patches = {}
+    if band:
+        patches['ct-kit-where-it-was'] = {'extends': 'ct-kit', 'kit': {'k': band['kick'][0]}}
     if lit:
         # The song's own ring (the library's scanned-mallet: the same strike,
         # speed and smoothing) with the one thing a mallet has not got: a hand.
@@ -583,7 +619,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
             # (the five card excerpts among them) came out 0.008 to 0.011 dB quieter: the target moves by that.
             # v17: the trade is quieter to the meter than the long statement it replaces; -10.035 keeps every other
             # bar at v16's mastering gain (within 0.002 dB, both seeds).
-            'ceiling':'-1dB', 'true_peak':True, 'loudness':-10.035 if trades else -9.99 if refill else -10,
+            'ceiling':'-1dB', 'true_peak':True, 'loudness':band['loudness'] if band else -10.035 if trades else -9.99 if refill else -10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
                                      'glue threshold=-22dB ratio=2 attack=18ms release=120ms',
                                      {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14800']}]},
@@ -611,6 +647,7 @@ if __name__ == '__main__':
     previous.add_argument('--v14', action='store_true', help='restore one side a cell through the whole side-to-side trade')
     previous.add_argument('--v15', action='store_true', help='restore the empty holes in the four short negatives of the last exchange')
     previous.add_argument('--v16', action='store_true', help='restore the one long statement at the return and the rising phrase before the close')
+    previous.add_argument('--v17', action='store_true', help='restore the band before it was read part by part (the bare bass, the library kick, the guitars as the rig comes)')
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     parser.add_argument('--rim-gain', type=float, default=-18, help='held glass track gain in dB')
     parser.add_argument('--fretless-gain', type=float, default=-10.0, help='fretless bass track gain in dB')
@@ -620,7 +657,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
                   not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11, not args.v12, args.fretless_gain,
-                  not args.v13, args.held_gain, args.grip, not args.v14, not args.v15, not args.strokes_on_f, not args.v16)
+                  not args.v13, args.held_gain, args.grip, not args.v14, not args.v15, not args.strokes_on_f, not args.v16, not args.v17)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
