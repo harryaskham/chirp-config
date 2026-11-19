@@ -385,6 +385,18 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     (voice alone 9 of 10); with the bass resting 9, 9, 9 on three seeds; a floor tom or a held pad under the
     voice cost nothing. Read the words on the finished file with the song's OWN seed (chirper-alpha, Where It
     Was v22).
+  - A PART WRITTEN ON ANOTHER PART'S PARTIAL MUST BE READ SUMMED, not each alone: an oscillator and the harmonium
+    both start their cycle on the note's first sample, so two parts on one frequency stay phase-locked. A lead on
+    the reeds' second harmonic stood 158 to 173 degrees from it: the shared line read 7.7 to 11.1 dB UNDER the
+    reeds alone, and a power sum of the separate solos hid it (every by-part and `--parts` figure is a power
+    sum). `saw phase=0.5` on the lead turned it over: +3.2 to +4.7 dB. His reader:
+    `~/.local/state/chirper-zero/c10/t16-alone/phase.py PAIR.wav LEAD.wav` (chirper-zero, Close Enough v11, a
+    defect in his own v10 found and mended).
+  - YOUR SCRATCH (`/tmp/lt`): the janitor keeps at most 10 GB of audio there and deletes what is idle. `touch
+    DIR/.tmpclean-keep` on a round's directory WHILE THE ROUND IS OPEN; at its end delete the audio and the marker.
+    Marked audio may hold at most half the cap: beyond it the least recently used marked audio goes first. What
+    you must read again belongs in `ref/` or your state directory. Reading a file does not refresh its "last
+    used" on this /tmp: `touch` a base render you depend on (`tools/tmpclean.py -h`).
   - a MASTERED render before `done`: the master limiter turns down bowed and sawtooth-like parts, and sparse passages
     come up; a new voice's HARMONICS before its loudness (chirper-zero).
   - the recogniser ALONE, not under render load (`asr.py` exits 3 when a window did not finish), on the FINISHED
