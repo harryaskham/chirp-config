@@ -1137,15 +1137,17 @@ TICKTONE = os.environ.get("C10T5_TICKTONE", "filters.0.cutoff.value=5k amp.d=25m
 
 # v28 (chirper-alpha, whole song: the descent, 1:55.2-2:52.8, a quarter of the song): THE FALL HAS ITS TONE.
 # Harry, 17 Nov 00:28, on the stair: "It climbed better with the tone under it". The plain Shepard tone states
-# the illusion alone at the foot and has been back under the stair since v14, under the pole and at the summit.
+# the illusion alone at the foot and has been back under the stair since v14 and at the summit (in the pole it
+# plays only the run out, at 3:16.8).
 # But the descent is "the stair the other way, and all of it", twenty-four bars of a tuning that keeps dropping
-# and is never lower, and it has had no tone: the one illusion of pitch in the song the band carries alone. Now
+# and is never lower, and it has had no tone: the one stair in the song the band carries alone ('both' has none
+# either: see the round's handoff). Now
 # the tone says the fall as plainly as it says the climb: ONE HELD NOTE FOR EACH STEP THE RIFF FALLS, the step's
 # own note (F, E flat, C, B, A flat, G flat, and round), on the same fader and the same lane as under the stair.
 # So it also tells how steep the fall is, which nothing but the riff's own notes did: a step a bar for twelve
 # bars (2.4 s a note), two a bar from 2:24 (where since v21 the right-hand guitars climb against it: the tone
 # goes with the fall), three from 2:38.4, and from 2:43.2 six a bar: the stair's own line and rhythm, backwards,
-# through the guitars' run into the pole, where the tone is alone again.
+# through the guitars' run into the pole, where it stops (its tail rings about two seconds into the pole).
 # (Level, benched raw: under the stair, where he chose it, the tone stands 12.8 dB under the band, K-weighted. A
 # held note sits lower than the stair's short ones: at the same fader it stood 15.1 under where the fall is a step a
 # bar and 14.9 at two, and 13.7 at six, where its notes are the stair's own. So it has 1 dB more until the fall
