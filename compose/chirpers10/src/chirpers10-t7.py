@@ -173,6 +173,21 @@ REST = os.environ.get("C10T7_REST", "0.8,0.68,0.93,0.86,1") if IRON else ""
 REST_LUFS = -10.028
 
 
+# v18 (whole song): THE BASS DOES NOT REST. The song's card asks whether a slow song at 80 is heavy or only slow.
+# In the riff a long cell is two strokes and a rest and a short cell one stroke and a rest, and every part that
+# played the strokes kept the rests: guitars, kick and bass together. So wherever the strokes are muted (three cells
+# in five) a third to a half of the cell was silence in every part, the low end included: at this tempo a rest is
+# 0.19 s. The rests are the rule and stay where they are, in the guitars and the foot. But the bass no
+# longer keeps them: the stroke before a rest is held through it, to the next stroke. The low string sounds from the
+# head of a cell to the head of the next, and what is cut into strokes and rests is cut over a floor that does not
+# go away. It starts when the kit arrives: the first nine bars (to 0:27) are the bare rule, every part resting, as
+# before; from the bar where the snare and the china come in, in every heavy section, the bass holds. The rest of
+# v17 at 1:51.9 (thirteen sixteenths) is still a rest for everyone: only a rest of one sixteenth is held through.
+# Sixteenths into the song where the bass starts to hold ; the loudness target (every quiet bar keeps v17's
+# mastering gain). "" = v17; it is on only while REST is.
+HOLD = os.environ.get("C10T7_HOLD", "144;-10.028") if REST else ""
+
+
 def nm(n):
     return f"{NAMES[n % 12]}{n // 12 - 1}"
 
@@ -712,6 +727,23 @@ def one_stroke_and_a_rest():
         drum(piece, p, vel)
 
 
+def the_bass_does_not_rest():
+    """In the heavy sections the bass holds the stroke before each one-sixteenth rest through it."""
+    start = int(HOLD.split(";")[0])
+    notes = sorted(T["bass"], key=lambda n: n["at"])
+    held = 0
+    for i, (s0, kind, n) in enumerate(SECS):
+        if kind != "L":
+            continue
+        inside = [x for x in notes if max(s0, start) <= round(x["at"] * 4) < s0 + n]
+        for a, b in zip(inside, inside[1:]):
+            gap = round(b["at"] * 4) - round(a["at"] * 4)
+            if gap == 2 and abs(a["len"] - round(1 / 4 * 0.98, 4)) < 1e-6:     # one stroke, one rest
+                a["len"] = round(2 / 4 * 0.98, 4)
+                held += 1
+    assert held > 200, held
+
+
 def letters_on_two_sides():
     """Long cells left, short cells right, for the song's first cell of 55. Nothing is added."""
     s0, end = SECS[0][0], SECS[0][0] + SIZE[6][0]
@@ -744,6 +776,8 @@ def song():
         the_iron_says_five_and_three()
     if REST:
         one_stroke_and_a_rest()
+    if HOLD:
+        the_bass_does_not_rest()
     kit = "ct-kit-here"
     air = [{"type": "eq", "bands": ["highshelf cutoff=9000 gain=-2dB"]}]
     main = "ct-twin fx.1.model=gojira fx.2.mic=0.5 fx.2.cone={}"
@@ -839,7 +873,7 @@ def song():
                   "is the same at every size, so the band plays it at many sizes at once: muted strokes, open notes, chords, crashes, "
                   "the root, and the song's own sections (long ones heavy, short ones quiet). The kit keeps common time against it. In "
                   "the quiet sections a wire harp has no notes, only the rule (the engine's L-system). The slow song: 80. v1 is the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": REST_LUFS if REST else -10, "seed": 1, "tail": "5s", "length": f"{(TOTAL + 32) / 4:g}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(HOLD.split(";")[1]) if HOLD else REST_LUFS if REST else -10, "seed": 1, "tail": "5s", "length": f"{(TOTAL + 32) / 4:g}b", "event_stable": True,
         "patches": {
             **({"em-steel": {
                 "extends": "pedal-steel synth.amp.a=75ms synth.amp.r=140ms fx.0.mix=0.08 fx.1.mix=0 fx.2.mix=0 play.glide=0ms",
