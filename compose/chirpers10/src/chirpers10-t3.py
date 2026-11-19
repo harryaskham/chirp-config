@@ -459,6 +459,24 @@ NEARLY = os.environ.get('C10T3_NEARLY', '6;-9' if FIRST and TOWERHUNT and TREBLE
 # to grind. No note is added, removed or moved: sixteen notes on each inner guitar change pitch.
 # the rows of the second extent ; semitones over the partner's written note ; trim on those notes, dB. "" = v26.
 PAIR = os.environ.get('C10T3_PAIR', '10:18;12;0' if NEARLY and HUNT2 and CROSS else '')
+# v28 (chirper-three; section round, w10; the change is the landing's last three bars, 5:12.0-5:18.0): THE BAND
+# RINGS DOWN. Bells are not stopped, they are LOWERED: the ringers let them swing a little less at every stroke, the
+# rows come round quicker and the strokes close up, until the bells strike all but together and then hang still.
+# The landing was rounds sixteen times, the last as the first, and then one chord. Now its first ten rounds stand as
+# they were (the arrival Harry heard is untouched), and the last six seconds are the same rounds coming down: a row
+# to seven sixteenths (the tenor gives up its second stroke), to six (the treble gives up its length: six even
+# strokes), to a beat (the row as a sextuplet), to an eighth, and last to a sixteenth, four times. Down to the
+# sextuplets it is the band's unison, as the whole landing is. Faster than that no hand can pick it and no amp can
+# say it, so the row is dealt out as a ring is hung: ONE BELL TO EACH OF THE SIX GUITARS, the treble on the far left
+# and the tenor on the far right, each struck in its turn, so the row crosses the room twice; at a sixteenth they are
+# all but together (a ring 'fires'). The foot follows the treble and the tenor as it always has
+# (so it ends in sixteenths), the snare strikes with the four last rows, and the chord at 5:18 is what it was.
+# The tower's own bells, the lead's last note, the china and the backbeat are untouched; no row of either extent is
+# touched: these are rounds. Sixteen rounds become twenty-three, in the same eight bars.
+# how many of the landing's last rows are rung down ; each row's length in sixteenths (they fill those rows' time) ;
+# the dealt strokes' velocity ; their height over the riff's own notes, semitones ; how much of its row a bell dealt
+# at an eighth rings for (1 = the whole row: all six ringing at once, and nothing crosses the room). "" = v27.
+LOWER = os.environ.get('C10T3_LOWER', '6;7,7,6,6,6,4,4,2,2,1,1,1,1;0.97;0;0.5' if PAIR and HOME and W1 == (2, 2) else '')
 NEAR_END = PART2 * 4 + 38 * L2 / 4                 # beats: where the fourth lead's bob starts
 NEAR_AT = NEAR_END - 3 * int(NEARLY.split(';')[0]) if NEARLY else NEAR_END
 NEARLY_PTS = [[f"{NEAR_AT - 1:g}b", 0], [f"{NEAR_AT:g}b", float(NEARLY.split(';')[1])],
@@ -696,6 +714,40 @@ def nearly_home():
     T['treble'] = [n for n in T['treble'] if not NEAR_AT <= n['at'] < NEAR_END]
 
 
+def ring_down():
+    """v28: the landing's last rows as rounds lowered in peal (see LOWER)."""
+    out, sizes, vel = int(LOWER.split(';')[0]), [int(x) for x in LOWER.split(';')[1].split(',')], float(LOWER.split(';')[2])
+    up, hold = int(LOWER.split(';')[3]), float(LOWER.split(';')[4])
+    assert sum(sizes) == out * L1, (sum(sizes), out * L1)
+    gl, gr, gl2, gr2 = G4
+    jl, jr = HOME.split(';')[0].split(',')
+    ring = (gl, gl2, jl, jr, gr2, gr)                       # as a ring is hung: the treble far left, the tenor far right
+    t = END * 16 - out * L1
+    for n in sizes:
+        if n >= 6:                                          # still the riff: 7 = the tenor struck once, 6 = the treble short too
+            row_notes(ROUNDS, t, 0, (n - 5, 1), bell=False, trs=ring)
+        else:
+            step = n / 6 if n > 1 else n / 12               # at a sixteenth the six are all but one stroke
+            for i, b in enumerate(ROUNDS + (6,)):
+                if n >= 4:                                  # a row to the beat: the last speed a hand can pick, still in unison
+                    for tr in ring:
+                        add(tr, t + i * step, step, F1 + PITCH[b], 1.0 if b == 1 else 0.9, **({} if b == 1 else {'pm': 1}))
+                    add('bass', t + i * step, step, F1 + PITCH[b], 0.95 if b in (1, 6) else 0.85)
+                else:                                       # one bell to a guitar, struck in its turn: at an eighth each rings half
+                    # a row, so the sound crosses the room; at a sixteenth they are together and ring the whole stroke
+                    add(ring[i], t + i * step, min(n * (hold if n > 1 else 1), END * 16 - t - i * step), F1 + PITCH[b] + up, vel)
+            drum('k', t, 0.95)
+            if n > 1:
+                drum('k', t + 5 * step, 0.9)                # the foot goes with the tenor while the tenor is a stroke of its own
+            if n < 4:
+                add('bass', t, n, F1, 0.95)                 # the tenor under the dealt rows
+            if n == 1:                                      # the snare strikes with the rows that are all but one stroke
+                T['snare'] = [e for e in T['snare'] if e['at'] != round(t / 4, 4)]
+                drum('s', t, round(0.86 + 0.04 * (t - (END * 16 - 4)), 3))
+        t += n
+    assert t == END * 16
+
+
 def rounds_on_the_toms(b):
     """The last row before bar `b` is rounds on the tower. The kit rings it too, as it rings a call: the treble is
     left to the bell, then a tom to each bell between, high to low, and the snare for the tenor."""
@@ -891,11 +943,13 @@ def compose():
             for q in (0, 8):
                 drum("s", b * 16 + q, sv)
     # the landing: rounds on F, twenty-four times, and the bells ring rounds over the band at half its speed
-    for r in range(LAND_N):
+    for r in range(LAND_N - (int(LOWER.split(';')[0]) if LOWER else 0)):
         row_notes(ROUNDS, LAND * 16 + r * L1, 0, W1, bell=False, **({"trs": G4 + tuple(HOME.split(";")[0].split(","))} if HOME else {}))
     if HOME and float(HOME.split(";")[1]):          # v16: the climb's last note, struck on the landing and let ring
         T.setdefault("lead", []).append({"at": LAND * 4, "len": float(HOME.split(";")[1]), "pitch": nm(int(CLIMB.split(";")[2]) + 12), "vel": float(HOME.split(";")[2])})
     beat(LAND, END, "c", meet(L1))
+    if LOWER:
+        ring_down()
     slow_rounds(LAND, int((END - LAND) * 4 / 3) if RHYTHM else 12, vel=0.9)
     # the end: one chord, and the tenor tolls
     hit(END, 10)
