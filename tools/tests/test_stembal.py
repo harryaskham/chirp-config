@@ -227,6 +227,25 @@ class Stembal(unittest.TestCase):
         self.assertFalse(S.strung_and_amped(None))
         self.assertFalse(S.strung_and_amped({"synth": {"layers": [{"type": "pluck"}]}}))     # a string and no amp: a harp
 
+    def test_a_band_held_outside_the_groups_is_named(self):
+        """chirper-zero, 19 Nov, Plain Hunt v32: one bell in no group held half of the mix's 500 Hz-1 kHz."""
+        mix = [0, 10, 10, 10, 10, 10, 0.001, 0, 0]
+        drums, bass, guitar = [0, 4, 1, 1, 1, 0, 0, 0, 0], [0, 5, 2, 0, 0, 0, 0, 0, 0], [0, 1, 7, 6, 4, 0, 0.0001, 0, 0]
+        got = S.outside(mix, [drums, bass, guitar])
+        self.assertEqual([n for n, _ in got], ["-1k", "-2k"])               # 500 Hz-1 kHz half outside; 1-2 kHz all of it
+        self.assertAlmostEqual(got[0][1], 0.5)
+        self.assertAlmostEqual(got[1][1], 1.0)                              # ... and 2-4 kHz is too quiet to judge
+        self.assertEqual(S.outside(mix, [drums, bass, guitar], least=0.25), [("-500", 0.30000000000000004), *got])
+        self.assertEqual(S.outside(mix, [[0, 6, 6, 6, 6, 6, 0, 0, 0], [0, 6, 6, 6, 6, 6, 0, 0, 0]]), [])   # solos over the mix
+        self.assertEqual([n for n, _ in S.outside(mix, [])], ["-120", "-250", "-500", "-1k", "-2k"])
+        text = self.run_tool("song", self.song, "--refs", "recA,recB", "--from", "0", "--dur", "2", "--windows", "1-4:all",
+                             "--out", self.root)
+        self.assertNotIn("OUTSIDE THE GROUPS", text)                         # the stand-in's three parts ARE its mix
+        text = self.run_tool("song", self.song, "--refs", "recA,recB", "--from", "0", "--dur", "2", "--windows", "1-4:all",
+                             "--groups", "drums=kick", "bass=bass", "--out", self.root)
+        # the guitar (1500 Hz) is in no group now
+        self.assertIn("OUTSIDE THE GROUPS: 1-2 kHz 100% of the mix's own band is in NO group's tracks", text)
+
     def test_a_song_like_the_references_reads_level_with_them(self):
         text = self.run_tool("song", self.song, "--refs", "recA,recB", "--from", "0", "--dur", "2", "--windows", "1-4:all",
                              "--out", self.root)

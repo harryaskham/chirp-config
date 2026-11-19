@@ -129,6 +129,7 @@ while not os.path.isdir(os.path.join(ROOT, "ref")) and ROOT != "/":
     ROOT = os.path.dirname(ROOT)
 EDGES = [20, 60, 120, 250, 500, 1000, 2000, 4000, 8000, 16000]
 NAMES = ["<60", "-120", "-250", "-500", "-1k", "-2k", "-4k", "-8k", "-16k"]
+FULL = ["under 60 Hz", "60-120 Hz", "120-250 Hz", "250-500 Hz", "500 Hz-1 kHz", "1-2 kHz", "2-4 kHz", "4-8 kHz", "8-16 kHz"]
 STEMS = ("drums", "guitar", "bass", "vocals", "other", "piano")
 GUESS = {"drums": r"kit|drum|hat|snare|kick|tom|cymbal|ride|crash|china|splash", "bass": r"bass",
          "guitar": r"gtr|guitar|chug|wall|rig|lead|m8"}
@@ -314,6 +315,24 @@ def cmd_refs(a):
         vocsplit.ROOT = ROOT
         print("references, their loud passages with the voice and without it (4 s frames; tools/vocsplit.py)")
         vocsplit.report(ref_ids(a), model=a.model)
+
+
+def outside(mix, groups, floor=30.0, least=0.5):
+    """[(band name, share)] for the bands where `least` or more of the mix's OWN band is in none of the groups: the
+    share is one less the groups' powers together over the mix's band. mix: the mix's nine band powers; groups: each
+    group's nine band powers alone. A band the mix has next to nothing in (`floor` dB under its total) is not judged.
+    chirper-zero, 19 Nov, Plain Hunt v32: the three groups summed to about half of the mix's 500 Hz-1 kHz; the rest
+    was one church bell, a track in no group, and the kit's and guitars' by-part figures there said nothing of it."""
+    mix = np.asarray(mix, dtype=float)
+    held = np.sum([np.asarray(g, dtype=float) for g in groups], axis=0) if len(groups) else np.zeros(len(mix))
+    out = []
+    for i, name in enumerate(NAMES):
+        if mix[i] <= 0 or 10 * np.log10(mix[i] / mix.sum()) < -floor:
+            continue
+        share = 1.0 - min(1.0, held[i] / mix[i])
+        if share >= least:
+            out.append((name, float(share)))
+    return out
 
 
 def whose(mix, parts, floor=30.0):
@@ -514,6 +533,12 @@ def cmd_song(a):
                 acc[g].append(v)
                 rows.append((g, v))
             show(f"== ours, {label or span} ({span}; dB re the whole mix)", rows)
+            out = outside(w["mix"], [w[g] for g in groups])
+            if out:
+                print("   OUTSIDE THE GROUPS: " + ", ".join(f"{FULL[NAMES.index(n)]} {sh:.0%}" for n, sh in out) + " of the mix's own "
+                      "band is in NO group's tracks (a voice, keys, a bell: the `groups:` lines above name them). A "
+                      "group's figure in such a band is not the band: read whose it is before moving a grouped part on "
+                      "it (--parts TRACK,TRACK here, or tools/presence.py).")
         if parts:
             print(f"== whose band is it, {label or span} ({span}): each part alone, dB under the mix's OWN band (0 = it is the band)")
             print("\n".join(whose(w["mix"], [(n, w["part-" + n]) for n in parts])))
