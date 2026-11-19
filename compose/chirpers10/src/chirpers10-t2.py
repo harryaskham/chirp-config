@@ -707,6 +707,28 @@ STOOD = os.environ.get("C10T2_STOOD", "71:7,3,6" if ON_THREE else "")
 # track=bars from:to,... ; track=... ; how much of the clock's true shift (1 = exactly the clock's) ; dB on the
 # right box's sharp notes, by the note written. "" = v34.
 FAST = os.environ.get("C10T2_FAST", "br=48:50,56:58;mr=74:96;1;F5=-4.2,F6=-6,A5=-4.8,B5=-2.2,Gb5=-2.1,C6=-2,C5=-1.2,Db6=-1,Db5=1.5" if STOOD else "")
+# v36 (chirper-alpha; section round, w1 0:00-0:35; the change is bars 4 to 8): THE SECOND CLOCK IS SET GOING. Every
+# slip in the song is the right-hand clock sliding against the left, but the song BEGAN in step: at bar 4 the right
+# guitar simply came in with the left, and 'in step' was never something heard to happen. Now the right-hand clock
+# is set going a sixteenth LATE and the beam pulls it in over four bars: the first slip (bars 24 to 28: a sixteenth
+# ahead, on half a cosine) played backwards. The right guitar's sixteen chugs are the notes they were; they sound
+# 139 ms after the left's at bar 4, 118 at bar 5, 69 at bar 6, 20 at bar 7 and 1 at the fill, and the band lands in
+# step at bar 8. A second music box (the drift's right-hand one) ticks on that clock from bar 4, so the two ticks
+# close as the two guitars do. The bass, kick and hat stay with the left. From bar 8 the clock is the one it was.
+# Measured (each part alone): the chugs within 10 ms of what is written; the right box 1.5 to 4.4 dB under the left
+# tick by tick with -2 dB on its ticks and -5.5 on its tocks (the patch deals each note its level: as it came the
+# right tocks were 3 to 4 dB over the left's). Two boxes on one note add by phase where they nearly meet: one tock
+# can read 4 dB under a single box.
+# the bar the right-hand clock is set going : the bar it is in step ; how late it starts, beats ; dB on the right
+# box's tick : its tock, against the left box's ("" = no box). "" = v35.
+SETGOING = os.environ.get("C10T2_SETGOING", "4:8;0.25;-2:-5.5" if FAST else "")
+if SETGOING:
+    _g0, _g1 = (int(x) for x in SETGOING.split(";")[0].split(":"))
+    assert WARP[0] == {"over": "96b", "to": 0} and 0 < _g0 < _g1 <= 24
+    # the same device as every slip (the engine's `warp`; nothing is shifted by hand): the right-hand clock is late
+    # when it starts and is in step by bar _g1. Before bar _g0 nothing on that clock sounds.
+    WARP = [{"over": f"{_g0 * 4}b", "to": float(SETGOING.split(";")[1])}, {"over": f"{(_g1 - _g0) * 4}b", "to": 0, "curve": "smooth"},
+            *([{"over": f"{(24 - _g1) * 4}b", "to": 0}] if _g1 < 24 else [])] + WARP[1:]
 
 
 def stood():
@@ -861,6 +883,11 @@ def compose():
     riff("gl", 0, 8, vel=0.85)
     if OPEN:                             # v9: the other guitar's chugs join with the bass and the kick: the riff's skeleton, on the right
         riff("gr", int(OPEN.split(";")[0]), 8, vel=0.85, only=CHUGS)
+    if SETGOING and SETGOING.split(";")[2] and CLOCK:     # v36: and the right-hand clock has its own tick from the bar it is set going
+        g1, g2 = SETGOING.split(";")[2].split(":")
+        for b in range(int(SETGOING.split(";")[0].split(":")[0]), 8):
+            T.setdefault(TICKS[1], []).append({"at": b * 4, "len": 0.5, "pitch": nm(F1 + int(CLOCK.split(";")[1])), "vel": float(CLOCK.split(";")[3]), "gain": f"{g1}dB"})
+            T.setdefault(TICKS[1], []).append({"at": b * 4 + 2, "len": 0.5, "pitch": nm(F1 + int(CLOCK.split(";")[2])), "vel": float(CLOCK.split(";")[4]), "gain": f"{g2}dB"})
     bass(4, 8)
     for b in range(4, 8):
         for p in CHUGS:
