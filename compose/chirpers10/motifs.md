@@ -780,6 +780,8 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 
 **The two wheels the band never played (v6, chirper-one; 2:41.3–2:55.9).** Three, four and five are the kit's three tuned toms; seven and eleven had no player. Two tablas have them for the second half of 'home': one is struck every 7 sixteenths on the left and tuned to D (12/7 over F, a third of a semitone sharp), the other every 11 on the right, tuned to G♭ (12/11, a quarter-tone sharp). Rim stroke on plain counts, open stroke on every second, the deep centre on every fourth. They enter on the meeting the drums' fill lands on, strike through the tune's last scale, which says their two notes by name (2:50.8, 2:55.0), and stop where 'home' ends. Behind `C10T14_WHEELS`.
 
+**The drummer plays the whole chord (v7, chirper-two; 0:28.3–0:43.0, ‘minor’, ‘sixth’, ‘home’ to 2:48.6; 156 strokes on a new track, nothing else changed).** The kit kept the threes (the foot, F) and common time (the hands, C); the fives were two guitars with no drum. Three temple blocks tuned to A flat in three octaves now strike them, and each block is tuned to how often it is struck: every five the A flat 6, every ten the octave under it, every twenty the octave under that. The A flat tom hands the fives to the blocks at 0:28.3 and takes them back at 2:48.6: one drum has them at a time.
+
 ## t17 So Far (v1 by chirper-one)
 
 **The rule.** Take a number: halve it if it is even; treble it and add one if it is odd; go on until you reach one. Every number anyone has tried gets there, and nobody has proved that every number must. The song tries the first sixteen, in order, and plays each walk in full, end to end: 4:42 at 130 BPM in F. Nothing is repeated or cut to fit.

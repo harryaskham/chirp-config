@@ -270,6 +270,31 @@ def starts():
     return at
 
 
+# v7 (chirper-two, palette: the part the song lacked): THE DRUMMER PLAYS THE WHOLE CHORD.
+# In this song three, four and five are drums: three toms, when it begins and when it ends. In between the band has
+# them, and the kit kept two of the three: the foot has the threes (F), the hands have common time (C). THE FIVES HAD
+# NO DRUM: from the moment the A flat tom hands them over (0:28.3) they were two guitars and nothing else, the third
+# of the chord with no stroke under it. Now they have one: three temple blocks, tuned to A flat in three octaves, on
+# a new track. Like every voice here the part marks its count's octaves, and here the rule says how: a pulse every
+# ten is the A flat an octave under a pulse every five, every twenty the octave under that. So the block struck every
+# five is A flat 6 (1676.3 Hz, a pure minor third over F6), every second stroke is the block an octave lower, every
+# fourth the one two octaves lower. Each block is tuned to how often it is struck.
+# WHERE: wherever the A flat pair chugs the fives and no tom has them: 0:28.3-0:43.0 (the last half of 'counted'),
+# 'minor', 'sixth', and 'home' until 2:48.6, where the A flat tom comes back and takes them: 156 strokes. One drum
+# has the fives at a time. Not in the quiet middle (it has no fives), 'common' (everything is C) or the last chord.
+# THE BLOCK is the library kit's wood block (a triangle at the note through a band-pass there, three milliseconds of
+# stick) at the fives' notes, as three pieces of this song's kit: no library patch is touched. No other song on the
+# album strikes a wood block.
+# MEASURED (raw, seed 0). Alone the three read 1677.4, 839.1 and 419.2 Hz (+1.1, +1.9, +0.3 cents) and fall 20 dB
+# in 31, 33 and 60 ms. In 'minor' each stroke lifts what is already within a third of an octave of its note by a
+# median 4.1 dB (the high block), 5.8 and 7.2; in 'home' 4.4, 4.0 and 8.0. FIRST TAKE, all three at the kit's own
+# -8 dB: the high block lifted its band 2.9 dB and half its strokes less than 3 (it sits where the tune and the F
+# guitars are): it is 3 dB higher now (its peak rose 1.5: the drum bus clips at -13 dB and it touches that). A
+# stroke's own tenth of a second is 8.0 dB under the mix's (the A flat guitars' strokes 7.8 each, the cymbal's 7.4).
+# The loudness target goes from -10.36 to -10.333 so that every bar without a block keeps its gain (within 0.011 dB).
+# the block track's gain ; where the blocks stand (pan) ; the three blocks' notes in Hz, for a plain stroke : every
+# second : every fourth ; velocity ; the loudness target ("" = unchanged) ; the three blocks' own gains, dB. "" = v6.
+FOOT = os.environ.get("C10T14_FOOT", "8dB;-0.3;1676.3:838.15:419.07;0.9;-10.333;-5:-8:-8" if WHEELS else "")
 AT = starts()
 
 
@@ -499,6 +524,13 @@ def compose():
         add("tune-still" if STILL and STILL.split(";")[2] else "tune", AT["one chord"], FORM[-1][1] - 4, "Ab4", vel)
     if FILLS:
         fills()
+    if FOOT:                                                      # v7: wherever the A flat pair chugs the fives, the left foot strikes them
+        vel = float(FOOT.split(";")[3])
+        # (in 'counted' the A flat tom has the fives until +120, in 'home' it has them again from +180: one drum at a time)
+        for sec, off, to in (("counted", 120, 240), ("minor", 0, 240), ("sixth", 0, 240), ("home", 0, 180)):
+            every(AT[sec] + off, AT[sec] + to, 5, lambda s, i: T.setdefault("block", []).append(
+                {"at": round(s / 4, 5), "len": 0.25, "pitch": "b3" if i % 4 == 0 else "b2" if i % 2 == 0 else "b1",
+                 "vel": round(vel * (1.0 if i % 4 == 0 else 0.93 if i % 2 == 0 else 0.85), 3)}))
     if WHEELS:
         sec, off = (WHEELS.split(";")[3].split("+") + ["0"])[:2]
         vel = float(WHEELS.split(";")[4])
@@ -573,6 +605,8 @@ def song():
                 tracks.append({"name": name, "patch": "sc-" + name, "gain": gain})
         else:
             tracks += [{"name": "seven", "patch": patch, "gain": gain, "pan": -float(pan)}, {"name": "eleven", "patch": patch, "gain": gain, "pan": float(pan)}]
+    if FOOT:
+        tracks.append({"name": "block", "patch": kit, "gain": FOOT.split(";")[0], "out": "drums"})
     assert {t["name"] for t in tracks} >= set(T), set(T) - {t["name"] for t in tracks}
     for t in tracks:
         t["notes"] = T.get(t["name"], [])
@@ -590,6 +624,14 @@ def song():
         # C3 a pure fourth under the F tom and A flat 2 a pure sixth under it: the notes their rolls are
         kit_here["t2"]["pitch"] = f"m{48 + 12 * math.log2(3 / 2) - 7:.4f}"
         kit_here["t3"]["pitch"] = f"m{44 + 12 * math.log2(6 / 5) - 3:.4f}"
+    if FOOT:
+        # three wood blocks an octave apart, each the library kit's wood block at the fives' own note: a triangle at the
+        # note through a band-pass there, and three milliseconds of stick
+        for piece, hz, ring, own in zip(("b1", "b2", "b3"), (float(x) for x in FOOT.split(";")[2].split(":")), (70, 80, 95), FOOT.split(";")[5].split(":")):
+            kit_here[piece] = {"gain": f"{own}dB", "pan": float(FOOT.split(";")[1]), "patch": {"synth": {
+                "amp": {"a": "0.1ms", "curve": 4, "d": f"{ring}ms", "r": "15ms", "s": 0}, "env": {"c": {"a": "0.1ms", "d": "3ms", "s": 0}},
+                "filters": [f"bp cutoff={hz:g} q=2"],
+                "layers": [f"triangle fixed={hz:g}", {"type": "noise", "level": {"value": "-66dB", "mod": [{"src": "env.c", "amount": 50}]}}]}}}
     doc = {
         "about": ("chirpers X (Common Time), track 14 by chirper-three: Slow Enough to Count. A chord is a rhythm too fast to count. "
                   "At this tempo a pulse every three sixteenths is an F six octaves down, common time is a C and the fives are an A flat, "
@@ -613,6 +655,8 @@ def song():
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": "2.7dB"}]},
         "tracks": tracks,
     }
+    if FOOT and FOOT.split(";")[4]:
+        doc["loudness"] = float(FOOT.split(";")[4])
     if TUNED:
         doc = {k: v for k, v in list(doc.items())[:2]} | {"tuning": {"steps": JUST, "root": "F3", "map": "keys"}} | {k: v for k, v in list(doc.items())[2:]}
     return doc
