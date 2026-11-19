@@ -57,11 +57,29 @@ BAND = {'bass': (-1, [{'type': 'eq', 'bands': ['hp cutoff=29', 'peak cutoff=44 q
         'kick': ({'pitch': 'A#1'}, 0.5),
         'box': 'peak cutoff=340 q=1.2 gain=-4dB',
         'loudness': -10.035}   # v17's own (see the round note: the master's gain is NOT what it was, and cannot be)
+# v19 (chirper-zero, instrument round): THE HI-HAT CAN BE HEARD. The drummer plays a hi-hat on every beat of the
+# shape, the handover, where it was and both sides (162 strokes), on the cymbals' track at the cymbals' fader: 12.5
+# dB under where every other song on the record has its hat. On its own strokes it stood 25 dB under the mix
+# (tools/presence.py calls a part buried at -25; the record's other hats stand 12 to 15 under: Odd Sympathy -12.0,
+# Common Measure -14.3, Plain Hunt -14.4, On Its Hinge -15.2). Nothing was missing from the band it lives in: the
+# mix read within 1 dB of the records at 8-16 kHz there, because the snare's wires and the kick's click held it
+# (in 'where it was' the kick alone held 41% of 8-16 kHz). So the top of the song was a click and a crack and no
+# metal. The hat comes up to the record's own level (the kit's hi-hat -10 -> +0.5 dB on this track only; the ride,
+# the china and the crashes on the same track are not touched), and the kick gives up what it has above 9 kHz,
+# which is not its click (that is at 4.3 kHz) and is where the hat lives.
+# AFTER: the hat on its strokes -24.7 / -25.2 -> -14.3 / -14.8 dB against the mix (the shape / where it was), 44% of
+# the mix's 8-16 kHz; the kick's strokes -3.1 -> -3.1, its share of 4-8 kHz unchanged. The mix against the records
+# at 8-16 kHz: the shape -1.0 -> -0.1, where it was -0.5 -> -0.1, the handover +0.5 -> +1.4 (the cost), lit through
+# +1.4 -> +0.6, turn the sheet +1.8 -> +1.3 (the kick's fizz gone from under the ride).
+# the hi-hat's gain in the kit on the metal track, dB ; one more band on the kick's eq ; the loudness target.
+# --v18 restores v18.
+HAT = {'gain': 0.5, 'kick': 'lp cutoff=9000', 'loudness': -10.03}
 
 
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
             rim=True, rim_gain=-18, turned=True, hole=True, mold=True, fretless=True, fretless_gain=-10.0,
-            lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True, refill=True, whole_scale=True, trades=True, band=True):
+            lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True, refill=True, whole_scale=True, trades=True, band=True,
+            hat=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -79,6 +97,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     refill = refill and spin
     trades = trades and refill
     band = BAND if band and trades else None
+    hat = HAT if hat and band else None
     marks = {}
     # v12: THE NEGATIVE IN PITCH. The tune takes four of the scale's seven
     # notes; the three it leaves out lie one between each pair it steps
@@ -554,13 +573,14 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
               track('ring','scanned-mallet',-13,.06,sends={'chamber':'-12dB'}),
               track('glass','ct-clean',-2,-.18,sends={'chamber':'-9dB'}),
               track('kick','ct-kit-where-it-was' if band else 'ct-kit',band['kick'][1] if band else 2,
-                    out='drums',fx=[{'type':'eq','bands':['peak cutoff=4300 q=0.8 gain=7dB']+([band['box']] if band else [])}]),
+                    out='drums',fx=[{'type':'eq','bands':['peak cutoff=4300 q=0.8 gain=7dB']+([band['box']] if band else [])+
+                                                 ([hat['kick']] if hat else [])}]),
               # The short wooden click and the flam grace were 21–26 dB
               # under the accent on the stock kit. Bring up those two pieces
               # only; the old backbeat and its fader stay where they were.
               track('snare','ct-kit'+(' kit.ss.gain=7dB kit.g.gain=-5dB' if drum_memory else ''),3,
                     out='drums',sends={'chamber':'-14dB'},**({'fx':[{'type':'eq','bands':[band['box']]}]} if band else {})),
-              track('metal','ct-kit',1.5,out='drums'), track('skins','ct-kit',3,out='drums')]
+              track('metal','ct-kit'+(f" kit.h.gain={hat['gain']}dB" if hat else ''),1.5,out='drums'), track('skins','ct-kit',3,out='drums')]
     if rim:
         # The library's FM glass pad, made to speak and stop like a rubbed rim:
         # 160 ms in, 220 ms out, its own long hall nearly shut (the song's
@@ -619,7 +639,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
             # (the five card excerpts among them) came out 0.008 to 0.011 dB quieter: the target moves by that.
             # v17: the trade is quieter to the meter than the long statement it replaces; -10.035 keeps every other
             # bar at v16's mastering gain (within 0.002 dB, both seeds).
-            'ceiling':'-1dB', 'true_peak':True, 'loudness':band['loudness'] if band else -10.035 if trades else -9.99 if refill else -10,
+            'ceiling':'-1dB', 'true_peak':True, 'loudness':hat['loudness'] if hat else band['loudness'] if band else -10.035 if trades else -9.99 if refill else -10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
                                      'glue threshold=-22dB ratio=2 attack=18ms release=120ms',
                                      {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14800']}]},
@@ -648,6 +668,7 @@ if __name__ == '__main__':
     previous.add_argument('--v15', action='store_true', help='restore the empty holes in the four short negatives of the last exchange')
     previous.add_argument('--v16', action='store_true', help='restore the one long statement at the return and the rising phrase before the close')
     previous.add_argument('--v17', action='store_true', help='restore the band before it was read part by part (the bare bass, the library kick, the guitars as the rig comes)')
+    previous.add_argument('--v18', action='store_true', help='restore the hi-hat at the cymbals\' fader, 25 dB under the mix, and the kick with its top')
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
     parser.add_argument('--rim-gain', type=float, default=-18, help='held glass track gain in dB')
     parser.add_argument('--fretless-gain', type=float, default=-10.0, help='fretless bass track gain in dB')
@@ -657,7 +678,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
                   not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11, not args.v12, args.fretless_gain,
-                  not args.v13, args.held_gain, args.grip, not args.v14, not args.v15, not args.strokes_on_f, not args.v16, not args.v17)
+                  not args.v13, args.held_gain, args.grip, not args.v14, not args.v15, not args.strokes_on_f, not args.v16, not args.v17,
+                  not args.v18)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
