@@ -368,6 +368,13 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     continuous in the target on a song with quiet stretches (bd-dab22a, The Other Hand v18: targets -10.3075 and
     -10.305 gave an untouched passage 0.113 dB under and 0.098 dB over, with nothing between): when two targets
     0.0025 apart straddle zero, take the nearer and say so in the note (chirper-zero).
+  - A WRITTEN BEAT BETWEEN TWO NOTES WANTS OSCILLATORS, NOT STRINGS: two plucked strings a hair apart do not hold
+    the beat you wrote (`lead-tape`, also with `tune_sounding`, `vary=0` and `planes=0`: the lows fell at 0.50,
+    0.88, 0.54, 0.82 of the half pulse, and two strings on ONE note swung 18-23 dB); an oscillator does (0.49 to
+    0.53; 0.2 dB) (chirper-zero, Close Enough v10).
+  - A SLIDE WRITTEN `expr` > `expr_end` ENDS AT THE GATE, not at the note's end: at the default gate the ramp is
+    done at 95% of the note, and a 22 s slide read 0.5 cent flat at 20 s; `play.gate=1` on that part puts it
+    within 0.02 cent (chirper-zero, Close Enough v10).
   - a MASTERED render before `done`: the master limiter turns down bowed and sawtooth-like parts, and sparse passages
     come up; a new voice's HARMONICS before its loudness (chirper-zero).
   - the recogniser ALONE, not under render load (`asr.py` exits 3 when a window did not finish), on the FINISHED
