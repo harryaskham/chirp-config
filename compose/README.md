@@ -332,29 +332,32 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
   song's LOCK: for 90 minutes, or until you record the round, the draw leaves it out for everyone else and
   `next --take ID` refuses it to them (`--force` overrides; use it only when the holder has plainly gone).
 - `climb.py done` records the round and releases the song. The next composer to draw it may change anything in it.
+- DO NOT PASS, AND DO NOT WAIT FOR AN EAR (Harry, 19 Nov, verbatim: "can we stop passing on songs. ill add card replies
+  but please we have so much we could do re: improving our instruments, better guitars, etc and just general
+  improvements"; and: "try not to raise so many cards, just be creative"). On 18 Nov every song had been passed on as
+  "full until heard". Versions he has not heard and cards still waiting are no reason to hold a round back. When a
+  song's notes are settled, there are its INSTRUMENTS: the draw has a round type for it (`next --type instrument`): make
+  one instrument sound better, heard alone and in the mix against the album's records; a gain in a library patch goes
+  under a new name (`tools/libguard.py`); where the engine falls short, a bead with numbers. `climb.py pass` refuses
+  now; `pass ID 'why' --anyway` is only for a song that cannot be touched (its files mid-change under someone else).
 - THE LAST WORD ON A SONG IS NOT YOURS TWICE (18 Nov, at chirper-two's asking, who was drawn Common Measure five times
   in a day). The draw leaves out of YOUR draw the song whose last round is your own, while any other free song is
-  queued: after your round it is for someone else. If you draw a song and there is no round to make (every passage
-  is waiting on Harry's ear, say), do not record a no-change round and do not sit on the lock:
-  `climb.py pass ID 'why'` records the note, releases the song at once, and leaves it out of your draw until someone
-  records a version on it. A song everyone has passed on rests until it is heard. `next --take ID` brings you back
-  to a song on purpose.
-  When every free song is one you had the last word on, `next` says NOTHING NEW FOR YOU and starts nothing: that
-  tick is one command; idle. A version from another composer, or Harry's answer or note on the track, reopens a song
-  to you by itself. `next --peek` looks without taking a lock: never draw to see what the pool holds.
-  Read the song's last notes first: its `next` line and what it was holding back for Harry's ear are in the brief.
+  queued: after your round it is for someone else. `next --take ID` brings you back to a song on purpose; `next
+  --peek` looks without taking a lock. (If every free song is one you had the last word on, `next` says NOTHING NEW
+  FOR YOU and starts nothing; `next --again` draws among them anyway, and with Harry's words of 19 Nov that is what to
+  do: there is always an instrument to improve.)
 - Harry's notes and answers travel with the song, not to a person ("they will get notes hwen they next see the track"):
   the brief prints HARRY ON THIS TRACK, his open notes, his answers to the track's cards and the cards still waiting on
   him. When you act on a note, answer it: `listen.py reply ALBUM ID 'what you did' --done`.
 - An empty slot is stood up by whoever draws it first (a title, a skeleton); from its first kept version it is in the
   draw for all.
-- Do not change a passage that has a card WAITING ON HARRY unless the round is about that passage; if you do, ask the
-  card again on its key with the new clips.
-  The rule protects the QUESTION, not the samples (chirp-eco's reading, 18 Nov, at chirper-alpha's asking). A
-  whole-song mix or tone round whose measured fault lies in such a passage is about it: leave what the card asks about
-  as written, ask the card again on its key with clips from the new version (a before/after's "before" rendered in the
-  new mix too, so the pair differs only in what is asked), and say so in the round note. If the round would change the
-  very thing the card asks about (a level, a balance, that instrument's sound), leave that stretch for his answer.
+- FEWER CARDS, AND A WAITING CARD FREEZES NOTHING (Harry, 19 Nov: "try not to raise so many cards, just be creative").
+  A card is for what only his ear can settle; most rounds need none. From 18 Nov to 19 Nov this guide said to leave a
+  passage with a card waiting alone; that rule was chirp-eco's and is withdrawn. If your round changes a carded
+  passage: ask the card again on its key with clips from the new version if its question still stands (that replaces
+  the card and adds none; a before/after's "before" rendered in the new mix too), or retire it
+  (`listen.py retire ALBUM ID`) if your round answered or removed what it asked. `listen.py questions ALBUM --moved`
+  lists the cards whose passage has changed since their clips were cut.
 - The `owner` field older climbs carry, and "its name and its shape are X's" in an older track's role, say who composed
   the song first. They gate nothing.
 - Album-wide alignment (a motif reprised, the album's palette) still goes in `motifs.md` first, and a change you would

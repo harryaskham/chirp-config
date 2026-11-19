@@ -152,7 +152,11 @@ class Pass(unittest.TestCase):
         self.assertEqual(self.run_("next", "--take", "a", "--json").returncode, 0)
         held = self.run_("next", "--take", "a", "--json", who="chirper-one")
         self.assertEqual(held.returncode, 3, held.stderr)                                  # chirper-two holds it
-        r = self.run_("pass", "a", "full until it is heard:", "four cards wait", "--no-git")
+        no = self.run_("pass", "a", "full until it is heard:", "four cards wait", "--no-git")
+        self.assertEqual(no.returncode, 2)                                                 # Harry, 19 Nov: do not pass
+        self.assertIn("can we stop passing on songs", no.stderr)
+        self.assertNotIn("passed_by", self.reg()["a"])
+        r = self.run_("pass", "a", "full until it is heard:", "four cards wait", "--anyway", "--no-git")
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("released", r.stdout)
         self.assertEqual([p["who"] for p in self.reg()["a"]["passed_by"]], ["chirper-two"])
@@ -165,7 +169,7 @@ class Pass(unittest.TestCase):
             got = json.loads(self.run_("next", "--peek", "--json", "--seed", str(seed)).stdout)["climb"]["id"]
             self.assertNotEqual(got, "a")
         self.assertEqual(self.run_("next", "--take", "a", "--json", "--force").returncode, 0)   # but he may come back
-        self.run_("pass", "a", "again", "--no-git")
+        self.run_("pass", "a", "again", "--anyway", "--no-git")
         self.assertEqual(len(self.reg()["a"]["passed_by"]), 1)                               # one pass a composer
 
     def test_your_own_last_round_is_for_someone_else_and_a_kept_version_voids_the_passes(self):

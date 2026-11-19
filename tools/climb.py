@@ -45,9 +45,9 @@ for any climbing agent's next pass, one climb to work on, weighted towards the f
   climb.py note ID TEXT [--next TEXT] [--fresh]     steer: a note in its history (not a round; `next` shows it);
                                                     --fresh: `next` shows nothing older (a fresh start;
                                                     the full history stays in `climb.py log`)
-  climb.py pass ID TEXT [--next TEXT]               drew it and found no round to make (say why): the note is recorded,
-                                                    the lock is released at once, and you are not drawn it again until
-                                                    someone records a version on it (`next --take ID` to come back)
+  climb.py pass ID TEXT --anyway [--next TEXT]      DO NOT PASS (Harry, 19 Nov: "can we stop passing on songs"): make
+                                                    the round, or an instrument round. Only for a song that cannot be
+                                                    touched now: records the note and releases the lock at once
   climb.py pause|resume|drop ID [--note TEXT]       take a climb out of (or back into) the queue
   climb.py tui                                      the queue as a TUI: toggle climbable/playlist, focus, notes
   climb.py focus ALBUM | --ids ID,ID… | --off       climb only that album (or those climbs): pause every other
@@ -909,6 +909,15 @@ ROUND_TYPES = {
                 "the library's unused patches and the engine features the album has not used. Change one or two "
                 "instruments (swap a staple for something no other track has, design a new patch, add the part the song "
                 "lacks), measured on full-length renders; name the swap in your round note."),
+    "instrument": ("  ROUND TYPE: instrument - Harry, 19 Nov: \"we have so much we could do re: improving our instruments, "
+                   "better guitars, etc and just general improvements\". Make ONE of this song's instruments SOUND better: a "
+                   "guitar rig, the bass, the kit, a lead (its attack, body and bite; the amp, cab, pick and string; how it "
+                   "sits). Hear the part alone and in the mix, before and after, against the album's records "
+                   "(`tools/keybench.py`, `tools/stembal.py`, `tools/presence.py`, `tools/swapbench.py`), on full-length "
+                   "renders at both seeds. A gain in a LIBRARY patch goes under a NEW name (`tools/libguard.py`: released "
+                   "albums are frozen); say in your round note which other songs could take it. Where the engine is what "
+                   "falls short, say so in a bead with numbers (chirper-zero builds engine features; chirp-eco gates). The "
+                   "notes need not change at all."),
 }
 
 
@@ -1035,9 +1044,13 @@ def compose_brief(c):
                    f"terms (--text) for ideas. compscore is a guardrail, not a gate: near its ceiling, keep what sounds "
                    f"better on judgment (`climb.py done … --keep`) unless it clearly breaks something. Variety over "
                    f"convergence. Then `climb.py done {c['id']} …` and compscore --save.")
-        out.append(f"  NO ROUND TO MAKE (every passage is waiting on Harry's ear, say)? Say why and let it go: "
-                   f"`climb.py pass {c['id']} 'why'` releases the song at once and leaves it out of your draw until a "
-                   f"version lands on it. A note does not release it.")
+        out.append(f"  DO NOT PASS, AND DO NOT WAIT FOR AN EAR (Harry, 19 Nov, verbatim: \"can we stop passing on songs. ill "
+                   f"add card replies but please we have so much we could do re: improving our instruments, better guitars, "
+                   f"etc and just general improvements\"; \"try not to raise so many cards, just be creative\"). Versions "
+                   f"he has not heard and cards still waiting are no reason to hold back, and a waiting card does not "
+                   f"freeze its passage: make the song better. No idea for the notes? Make an instrument sound better "
+                   f"(`next --take {c['id']} --type instrument`). Ask a card only for what only his ear can settle; most "
+                   f"rounds need none.")
         out.append("  DO MORE EACH ROUND (Harry, 2 Nov 17:0x: 'do more each round to try to get progress made and interesting "
                    "quality improvements made'): every round lands an interesting, audible quality improvement you would "
                    "want Harry to hear, and preferably several. A level judgment-keep with a small tweak, a cleanup, a "
@@ -1529,11 +1542,18 @@ def cmd_pass(a):
     """You drew it and there is no round to make (every passage is waiting on Harry's ear, say): say why, and let it
     go. chirper-two, 18 Nov: "a pass cannot release the lock": `note` did not and `done` records a round, so his
     start held Common Measure from four other composers for ninety minutes."""
-    pos = positional(a, ("--next", "--as"))
+    pos = [x for x in positional(a, ("--next", "--as")) if x != "--anyway"]
     if len(pos) < 2:
-        die("pass ID TEXT [--next TEXT]   (why there is no round; it releases the song and leaves it out of your draw)")
+        die("pass ID TEXT --anyway [--next TEXT]   (Harry, 19 Nov: do not pass; this is for a song that cannot be touched)")
     cid, text = pos[0], " ".join(pos[1:])
     me = whoami(a)
+    if "--anyway" not in a:
+        die("Harry, 19 Nov: \"can we stop passing on songs. ill add card replies but please we have so much we could do "
+            "re: improving our instruments, better guitars, etc and just general improvements\"; \"try not to raise so many "
+            "cards, just be creative\". Unheard versions and waiting cards are not a reason to pass: make the round, or "
+            f"make an instrument sound better (`next --take {cid} --type instrument`). If the song truly cannot be touched "
+            "now (its files are mid-change under someone else, say), `pass … --anyway` still releases it. Nothing was "
+            "recorded.", 2)
     with registry() as reg:
         c = find(reg, cid)
         at = now_iso()

@@ -8658,25 +8658,7 @@
       "last": {
         "at": "2026-11-18T20:16:18Z",
         "who": "chirper-alpha"
-      },
-      "passed_by": [
-        {
-          "who": "chirper-zero",
-          "at": "2026-11-18T21:36:56Z"
-        },
-        {
-          "who": "chirper-two",
-          "at": "2026-11-18T22:31:41Z"
-        },
-        {
-          "who": "chirper-three",
-          "at": "2026-11-18T23:01:39Z"
-        },
-        {
-          "who": "chirper-one",
-          "at": "2026-11-19T00:19:31Z"
-        }
-      ]
+      }
     },
     {
       "id": "chirpers10-t3",
@@ -8715,17 +8697,7 @@
       "last": {
         "at": "2026-11-18T21:49:38Z",
         "who": "chirper-alpha"
-      },
-      "passed_by": [
-        {
-          "who": "chirper-three",
-          "at": "2026-11-18T23:01:22Z"
-        },
-        {
-          "who": "chirper-one",
-          "at": "2026-11-18T23:48:36Z"
-        }
-      ]
+      }
     },
     {
       "id": "chirpers10-t4",
@@ -8802,25 +8774,7 @@
       "last": {
         "at": "2026-11-18T21:56:26Z",
         "who": "chirper-one"
-      },
-      "passed_by": [
-        {
-          "who": "chirper-zero",
-          "at": "2026-11-18T22:36:53Z"
-        },
-        {
-          "who": "chirper-three",
-          "at": "2026-11-18T22:59:18Z"
-        },
-        {
-          "who": "chirper-two",
-          "at": "2026-11-18T23:29:10Z"
-        },
-        {
-          "who": "chirper-alpha",
-          "at": "2026-11-19T00:00:41Z"
-        }
-      ]
+      }
     },
     {
       "id": "chirpers10-t6",
@@ -8859,13 +8813,7 @@
         "at": "2026-11-18T23:44:16Z",
         "who": "chirper-three"
       },
-      "status_note": "chirper-zero, 16 Nov 20:22: on hold for Harry's ear. Seven versions today (v1 to v7), none heard, one card open (cc-machine). I said in v7's note I would not add to it until he has heard it; the draw has offered it three times since (18:21, 19:21, 20:21). Resume on any answer or note of his on it, or if a fault turns up",
-      "passed_by": [
-        {
-          "who": "chirper-one",
-          "at": "2026-11-18T23:50:34Z"
-        }
-      ]
+      "status_note": "chirper-zero, 16 Nov 20:22: on hold for Harry's ear. Seven versions today (v1 to v7), none heard, one card open (cc-machine). I said in v7's note I would not add to it until he has heard it; the draw has offered it three times since (18:21, 19:21, 20:21). Resume on any answer or note of his on it, or if a fault turns up"
     },
     {
       "id": "chirpers10-t7",
@@ -8904,25 +8852,7 @@
       "last": {
         "at": "2026-11-18T20:11:01Z",
         "who": "chirper-three"
-      },
-      "passed_by": [
-        {
-          "who": "chirper-zero",
-          "at": "2026-11-18T21:36:59Z"
-        },
-        {
-          "who": "chirper-two",
-          "at": "2026-11-18T22:04:02Z"
-        },
-        {
-          "who": "chirper-one",
-          "at": "2026-11-18T23:49:28Z"
-        },
-        {
-          "who": "chirper-alpha",
-          "at": "2026-11-19T00:30:40Z"
-        }
-      ]
+      }
     },
     {
       "id": "chirpers10-t8",
@@ -8961,29 +8891,7 @@
       "last": {
         "at": "2026-11-18T20:45:49Z",
         "who": "chirper-two"
-      },
-      "passed_by": [
-        {
-          "who": "chirper-two",
-          "at": "2026-11-18T21:27:04Z"
-        },
-        {
-          "who": "chirper-three",
-          "at": "2026-11-18T22:29:50Z"
-        },
-        {
-          "who": "chirper-alpha",
-          "at": "2026-11-18T22:30:52Z"
-        },
-        {
-          "who": "chirper-zero",
-          "at": "2026-11-18T23:36:50Z"
-        },
-        {
-          "who": "chirper-one",
-          "at": "2026-11-19T00:19:13Z"
-        }
-      ]
+      }
     },
     {
       "id": "chirpers10-t9",
@@ -9022,17 +8930,7 @@
       "last": {
         "at": "2026-11-18T23:14:08Z",
         "who": "chirper-two"
-      },
-      "passed_by": [
-        {
-          "who": "chirper-three",
-          "at": "2026-11-18T23:30:55Z"
-        },
-        {
-          "who": "chirper-one",
-          "at": "2026-11-19T00:18:55Z"
-        }
-      ]
+      }
     },
     {
       "id": "chirpers10-t10",
@@ -9070,13 +8968,7 @@
       "last": {
         "at": "2026-11-18T22:30:59Z",
         "who": "chirper-one"
-      },
-      "passed_by": [
-        {
-          "who": "chirper-three",
-          "at": "2026-11-18T22:59:52Z"
-        }
-      ]
+      }
     },
     {
       "id": "chirpers10-t11",
@@ -9115,25 +9007,7 @@
       "last": {
         "at": "2026-11-18T21:39:52Z",
         "who": "chirper-two"
-      },
-      "passed_by": [
-        {
-          "who": "chirper-alpha",
-          "at": "2026-11-18T23:27:36Z"
-        },
-        {
-          "who": "chirper-three",
-          "at": "2026-11-18T23:31:39Z"
-        },
-        {
-          "who": "chirper-one",
-          "at": "2026-11-19T00:18:18Z"
-        },
-        {
-          "who": "chirper-zero",
-          "at": "2026-11-19T00:36:38Z"
-        }
-      ]
+      }
     },
     {
       "id": "chirpers10-t12",
@@ -9172,21 +9046,7 @@
       "last": {
         "at": "2026-11-18T23:43:54Z",
         "who": "chirper-alpha"
-      },
-      "passed_by": [
-        {
-          "who": "chirper-three",
-          "at": "2026-11-18T23:59:13Z"
-        },
-        {
-          "who": "chirper-zero",
-          "at": "2026-11-19T00:06:38Z"
-        },
-        {
-          "who": "chirper-one",
-          "at": "2026-11-19T00:18:35Z"
-        }
-      ]
+      }
     },
     {
       "id": "chirpers10-t13",
@@ -9224,17 +9084,123 @@
       "last": {
         "at": "2026-11-18T22:14:33Z",
         "who": "chirper-three"
+      }
+    },
+    {
+      "id": "chirpers10-t14",
+      "song": "songs/chirpers10-t14.yaml",
+      "reference": "chirpers — Track 14 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers10-t14 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "polymetric djent",
+      "mode": "compose",
+      "album": "chirpers10",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Common Time",
+        "title": "Track 14 (untitled)",
+        "track": 14,
+        "year": 2026
       },
-      "passed_by": [
-        {
-          "who": "chirper-zero",
-          "at": "2026-11-18T23:06:40Z"
-        },
-        {
-          "who": "chirper-one",
-          "at": "2026-11-18T23:50:09Z"
-        }
-      ]
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-11-19T00:42:12Z",
+        "note": "COMPOSE (the fourteenth song: an empty slot for the song its composer wants to make (no owner), 180-480 s): Opened by Harry, 19 Nov about 00:25 GMT, verbatim (typos his): \"can we stop passing on songs. ill add card replies but please we have so much we could do re: improving our instruments, better guitars, etc and just general improvements. but, why dont you open 4 new song slots and each climber can go crazy and make the song they want to mkae since they r so bored\"; and a few minutes later: \"try not to raise so many cards, just be creative\". THAT IS ALL HE SAID of this slot and the three opened with it (tracks 14 to 17). So: THE SONG YOU WANT TO MAKE. What it is, is yours to say, and chirp-eco does not. His standing rules for the record are in direction.rules and are his; if you are unsure whether one binds a song he told you to go crazy on, choose, and say what you chose in your round note. MECHANICS: whoever draws this slot first stands the song up (`tools/chirpers.py title chirpers10-t14 \"...\"`: a plain fragment, nothing on the nose, no numbers in titles); the first round is the whole shape standing, however bare, and any version goes on the groove beside the others. NO SONG HAS AN OWNER (Harry, 18 Nov): from its first kept version anyone may draw it and build on what you made of it. ONE EACH: four slots and five composers; if you have already stood one of these four up, leave the other empty ones to the composers who have not (`climb.py next` again). Render only with $(cat tools/groove-pin), in a guarded-soft-* unit. What the record's seventeen songs have and have not used of the engine: `python3 tools/showcase.py songs/chirpers10-t*.yaml` and the board, compose/chirpers10/features.md. No card is needed to begin."
+      }
+    },
+    {
+      "id": "chirpers10-t15",
+      "song": "songs/chirpers10-t15.yaml",
+      "reference": "chirpers — Track 15 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers10-t15 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "polymetric djent",
+      "mode": "compose",
+      "album": "chirpers10",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Common Time",
+        "title": "Track 15 (untitled)",
+        "track": 15,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-11-19T00:42:12Z",
+        "note": "COMPOSE (the fifteenth song: an empty slot for the song its composer wants to make (no owner), 180-480 s): Opened by Harry, 19 Nov about 00:25 GMT, verbatim (typos his): \"can we stop passing on songs. ill add card replies but please we have so much we could do re: improving our instruments, better guitars, etc and just general improvements. but, why dont you open 4 new song slots and each climber can go crazy and make the song they want to mkae since they r so bored\"; and a few minutes later: \"try not to raise so many cards, just be creative\". THAT IS ALL HE SAID of this slot and the three opened with it (tracks 14 to 17). So: THE SONG YOU WANT TO MAKE. What it is, is yours to say, and chirp-eco does not. His standing rules for the record are in direction.rules and are his; if you are unsure whether one binds a song he told you to go crazy on, choose, and say what you chose in your round note. MECHANICS: whoever draws this slot first stands the song up (`tools/chirpers.py title chirpers10-t15 \"...\"`: a plain fragment, nothing on the nose, no numbers in titles); the first round is the whole shape standing, however bare, and any version goes on the groove beside the others. NO SONG HAS AN OWNER (Harry, 18 Nov): from its first kept version anyone may draw it and build on what you made of it. ONE EACH: four slots and five composers; if you have already stood one of these four up, leave the other empty ones to the composers who have not (`climb.py next` again). Render only with $(cat tools/groove-pin), in a guarded-soft-* unit. What the record's seventeen songs have and have not used of the engine: `python3 tools/showcase.py songs/chirpers10-t*.yaml` and the board, compose/chirpers10/features.md. No card is needed to begin."
+      }
+    },
+    {
+      "id": "chirpers10-t16",
+      "song": "songs/chirpers10-t16.yaml",
+      "reference": "chirpers — Track 16 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers10-t16 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "polymetric djent",
+      "mode": "compose",
+      "album": "chirpers10",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Common Time",
+        "title": "Track 16 (untitled)",
+        "track": 16,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-11-19T00:42:12Z",
+        "note": "COMPOSE (the sixteenth song: an empty slot for the song its composer wants to make (no owner), 180-480 s): Opened by Harry, 19 Nov about 00:25 GMT, verbatim (typos his): \"can we stop passing on songs. ill add card replies but please we have so much we could do re: improving our instruments, better guitars, etc and just general improvements. but, why dont you open 4 new song slots and each climber can go crazy and make the song they want to mkae since they r so bored\"; and a few minutes later: \"try not to raise so many cards, just be creative\". THAT IS ALL HE SAID of this slot and the three opened with it (tracks 14 to 17). So: THE SONG YOU WANT TO MAKE. What it is, is yours to say, and chirp-eco does not. His standing rules for the record are in direction.rules and are his; if you are unsure whether one binds a song he told you to go crazy on, choose, and say what you chose in your round note. MECHANICS: whoever draws this slot first stands the song up (`tools/chirpers.py title chirpers10-t16 \"...\"`: a plain fragment, nothing on the nose, no numbers in titles); the first round is the whole shape standing, however bare, and any version goes on the groove beside the others. NO SONG HAS AN OWNER (Harry, 18 Nov): from its first kept version anyone may draw it and build on what you made of it. ONE EACH: four slots and five composers; if you have already stood one of these four up, leave the other empty ones to the composers who have not (`climb.py next` again). Render only with $(cat tools/groove-pin), in a guarded-soft-* unit. What the record's seventeen songs have and have not used of the engine: `python3 tools/showcase.py songs/chirpers10-t*.yaml` and the board, compose/chirpers10/features.md. No card is needed to begin."
+      }
+    },
+    {
+      "id": "chirpers10-t17",
+      "song": "songs/chirpers10-t17.yaml",
+      "reference": "chirpers — Track 17 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers10-t17 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "polymetric djent",
+      "mode": "compose",
+      "album": "chirpers10",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Common Time",
+        "title": "Track 17 (untitled)",
+        "track": 17,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-11-19T00:42:12Z",
+        "note": "COMPOSE (the seventeenth song: an empty slot for the song its composer wants to make (no owner), 180-480 s): Opened by Harry, 19 Nov about 00:25 GMT, verbatim (typos his): \"can we stop passing on songs. ill add card replies but please we have so much we could do re: improving our instruments, better guitars, etc and just general improvements. but, why dont you open 4 new song slots and each climber can go crazy and make the song they want to mkae since they r so bored\"; and a few minutes later: \"try not to raise so many cards, just be creative\". THAT IS ALL HE SAID of this slot and the three opened with it (tracks 14 to 17). So: THE SONG YOU WANT TO MAKE. What it is, is yours to say, and chirp-eco does not. His standing rules for the record are in direction.rules and are his; if you are unsure whether one binds a song he told you to go crazy on, choose, and say what you chose in your round note. MECHANICS: whoever draws this slot first stands the song up (`tools/chirpers.py title chirpers10-t17 \"...\"`: a plain fragment, nothing on the nose, no numbers in titles); the first round is the whole shape standing, however bare, and any version goes on the groove beside the others. NO SONG HAS AN OWNER (Harry, 18 Nov): from its first kept version anyone may draw it and build on what you made of it. ONE EACH: four slots and five composers; if you have already stood one of these four up, leave the other empty ones to the composers who have not (`climb.py next` again). Render only with $(cat tools/groove-pin), in a guarded-soft-* unit. What the record's seventeen songs have and have not used of the engine: `python3 tools/showcase.py songs/chirpers10-t*.yaml` and the board, compose/chirpers10/features.md. No card is needed to begin."
+      }
     }
   ],
   "focus": "Common Time"
