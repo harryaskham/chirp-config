@@ -252,6 +252,25 @@ FINGERS = os.environ.get('C10T9_FINGERS', '250ms;300ms;16;40ms;0.8,0.65,0.45;0.6
 # fader, dB (not changed) ; the loudness target ('' = unchanged) ; the dip on the bass's bus, Hz:q:dB ('' = none).
 # '' = v22. It is on only while none of the fader switches (MAIN, DBL, MASTER) is set, so each still gives what it gave.
 BODY = os.environ.get('C10T9_BODY', '150;2.5;0.7;;131:2:-5' if FINGERS and not any('C10T9_' + x in os.environ for x in ('MAIN', 'DBL', 'MASTER')) else '')
+# v24 (chirper-zero; instrument round: the bass, alone and in the band, the whole song): THE BASS LEANS ON ITS
+# OCTAVE. No note changes. The album's bass (`ct-bass`, mine, 12 Nov, fitted to two records) read beside ELEVEN
+# records' basses, in thirds of an octave (bassspec.py), is a sub and a box: 18 dB over them at 40 Hz (its low F
+# itself, which is a sine under the string), 3 to 10 SHORT from 80 to 160 Hz (the octave and the twelfth, where their
+# basses have their weight: their 80 Hz band stands 26 dB over their 40 Hz band; our octave 1.4 over our fundamental), and 6 to 11 over from 315
+# to 800 Hz, with its grind at 630 Hz where theirs is at 1 to 1.25 kHz. By part it read +13.3 under 60 Hz, +7.0 at
+# 250-500 Hz and +4.8 at 500 Hz-1 kHz against their basses. Every handoff on the album that names the bass says so.
+#   THE SINE UNDER THE STRING comes down 5 dB (and the two compressors, which it drove, let the string up).
+#   THE STRING'S LOWS come up: 12 dB at 110 Hz where 6, and 6 at 220 Hz where 8.
+#   THE BOX goes: the patch's small lift at 450 Hz becomes a 6 dB cut at 540 Hz.
+#   THE GRIND MOVES UP: the 5 dB lift at 900 Hz becomes 6 dB at 1150 Hz, narrower.
+# On every low F in the lock the octave (87 Hz) is 2.7 dB louder and the fundamental 4.0 quieter: 8 dB apart where
+# 1.4; and the octave is steadier from note to note (6.5 dB between the 10th and 90th of them where 9.5).
+# THE MIX DECIDED HOW FAR THE SINE COMES DOWN: with it off altogether the bass alone is nearest the records' (and by
+# part within 1.4 dB of them under 250 Hz) but the mix falls 0.7 to 3.1 dB under 60 Hz, because on those records
+# the KICK holds that band and ours does not yet. So the sine stays, 5 dB down. The kick's sub is the next round.
+# patch overrides for the bass ; the loudness target ("" = unchanged). "" = v23 byte for byte.
+LEAN = os.environ.get('C10T9_LEAN', 'fx.2.bands.0.gain=12dB fx.2.bands.1.gain=6dB fx.2.bands.2.cutoff=540 fx.2.bands.2.q=0.7 fx.2.bands.2.gain=-6dB '
+                                    'fx.2.bands.3.cutoff=1150 fx.2.bands.3.q=1.2 fx.2.bands.3.gain=6dB synth.layers.1.level=-14dB;-10.036' if BODY else '')
 WALK = []
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
@@ -828,7 +847,7 @@ def song():
            for tr, side, pan, cone in zip(("wl", "wr"), "lr", (-0.75, 0.75), WALL.split(";")[1].split(","))] if WALL else
           [{"name": "wl", "patch": "ct-wall-stop-l", "gain": "-3.5dB", "pan": -0.75, "out": "gtrs", **wall},
            {"name": "wr", "patch": "ct-wall-stop-r", "gain": "-3.5dB", "pan": 0.75, "out": "gtrs", **wall}]),
-        {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
+        {"name": "bass", "patch": "ct-bass" + (" " + LEAN.split(";")[0] if LEAN else ""), "gain": "0.5dB", "pan": 0, "out": "low"},
         {"name": "kick", "patch": kit, "gain": "2dB", "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]},
         {"name": "snare", "patch": kit, "gain": "3.5dB", "out": "drums", "sends": {"oh": "-1.5dB", "snr": "-10dB"},
          "fx": [{"type": "eq", "bands": ["highshelf cutoff=7000 gain=-3dB"]}]},
@@ -963,4 +982,7 @@ if __name__ == "__main__":
         for (name, b0), (_, b1) in zip(MARKS, MARKS[1:] + [("", end)]):
             print(f"{name:16s} bars {b0 // 4 + 1:3d}-{b1 // 4 + 1:3d}  {int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f}")
     else:
-        open(OUT, "w").write(dump(song()))
+        doc = song()
+        if LEAN and LEAN.split(";")[1]:
+            doc["loudness"] = float(LEAN.split(";")[1])
+        open(OUT, "w").write(dump(doc))
