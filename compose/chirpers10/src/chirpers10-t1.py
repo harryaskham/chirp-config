@@ -777,6 +777,29 @@ REBUILD = os.environ.get("C10T1_REBUILD", "210:220:-8")
 # -10.138 it came out 0.084 dB lower than v60 and at -10.054 0.072 higher; the gain moves 1.86 dB for each dB of
 # target, the limiter being inside the loop). "" = v60.
 NEARER = os.environ.get("C10T1_NEARER", "363:383:-6:-3:-10.093" if REBUILD and HANDS else "")
+# v63 (chirper-one; section round, the map's w16, 7:37-8:07, flagged static and "little new" and never focused; the change
+# is 7:46.7-8:15.0): WHERE ALL THREE WHEELS ARE PLAYED, THEIR MEETINGS RING. The glock marks every coincidence of two
+# wheels (five and seven C, five and eleven A flat, seven and eleven F) wherever the wheels only TICK: the wait, the
+# eye (on the vibraphone since v56), the approach, the ending. Section 15 is the one place the band plays all three at
+# once (five in the left guitar, seven in the right, eleven in the bass and the tune), and there the meetings went by
+# unmarked: fifteen of them in its first fifteen bars, while the tune is played alone. Now each rings, and rings
+# BETWEEN THE TWO THAT MET: five and seven in the middle (the guitars are hard left and right), five and eleven half
+# left (the left guitar and the bass), seven and eleven half right. The section's first bar line is itself a meeting
+# of five and seven, so the first bell is its downbeat. And the tune is 21 turns of eleven long, which is 33 turns of
+# seven: so the seven-and-eleven bell (F) rings on the tune's first note, a third of the way through it, two thirds,
+# and on the first note of its second pass (8:15.0), where the second lead joins in thirds (v52) and the bells stop.
+# Every A flat and F bell falls where a turn of eleven begins, which is where the tune's notes begin.
+# The stroke is the opening's (velocity 0.5); it stands 7 dB over the opening's fader because here it has a band to be
+# heard through. Benched raw, the bells alone against everything else, stroke by stroke: the bell's strongest partial
+# stands a median 3.1 dB OVER everything else in the third-octave round it (-6.9 to +4.4), and the stroke 7.8 dB UNDER
+# the whole band (K, first 100 ms; v59's sequencer, the section before, stands 10.6 to 13.1 under). At the opening's
+# fader they read -4.6 and -15.4: at the edge of being heard at all. The A flat bells carry 1.5 dB more: their
+# third-octave (830 Hz) is where the guitars are thickest.
+# Three new tracks (meet57, meet511, meet711: the glock, one seat each), fifteen strokes; nothing else is changed.
+# bars from the section's first ; the bell's velocity ; the bells' fader ; dB on the strokes of each pair (five and seven,
+# five and eleven, seven and eleven) ; where each pair's bell stands (pan) ; the loudness target ('' = unchanged).
+# "" = v62. It is on only while no older switch of this song is set, so each of those still gives what it gave.
+MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET") for k in os.environ) else "")
 # v44: THE ENGINE, EXPOSED (9:19, in the hardest stretch). For twenty-eight bars everything runs at once: four guitars
 # and the bass on seven, the china on every eighth, the bark, and under it all the kick in unbroken sixteenths. The one
 # event inside it is the ground moving up a semitone at 9:20. Now, for the half bar before that, everything stops
@@ -1153,6 +1176,13 @@ def compose():
     harm(G2, 5, FIVE_B, a + 15, z, 12, hook=H1, vel=0.72)
     for t in landings(5, a * 16 + 1, z * 16):
         crash(t, 0.8)
+    if MEET:                                                          # v63: where all three wheels are played, their meetings ring
+        s0, s1 = s16(a), s16(a + int(MEET.split(";")[0]))
+        for k, (p, q) in enumerate(((5, 7), (5, 11), (7, 11))):
+            for t in range(s0 + (-s0) % (p * q), s1, p * q):
+                add(f"meet{p}{q}", t, 8, {(5, 7): 84, (5, 11): 80, (7, 11): 89}[p, q], float(MEET.split(";")[1]))
+                if float(MEET.split(";")[3].split(",")[k]):
+                    T[f"meet{p}{q}"][-1]["gain"] = MEET.split(";")[3].split(",")[k] + "dB"
 
     # 16. 275-280  five meets eleven: stop-time again, with a dissonant chord and the toms in the gaps
     a, z = B[15], B[16]
@@ -2013,6 +2043,9 @@ def song():
             pan = {"value": 0, "mod": [{"src": "auto.seat", "amount": 1}]}
             lane = {"points": [["0b", side], [f"{BOUNDS[8] * 4}b", side], [f"{BOUNDS[18] * 4}b", -side]], "curve": 0}
             spec.append((name, patch + REALS, f"{db:g}dB", pan, {"auto": {"seat": lane}}))
+    if MEET:
+        for k, name in enumerate(("meet57", "meet511", "meet711")):
+            spec.append((name, "modal-glock", MEET.split(";")[2], float(MEET.split(";")[4].split(",")[k]), {"sends": {"hall": "-6dB", "dly": "-14dB"}}))
     if SEQ:
         spec.append(("seq", "moog-seq fx.0.mix=0.1", SEQ.split(';')[0], float(SEQ.split(';')[2]), {"fx": [{"type": "eq", "bands": [f"hp cutoff={SEQ.split(';')[5]}"]}]}))
     if HANDS:
@@ -2071,7 +2104,7 @@ def song():
         tracks.append(t)
     return {
         "about": "chirpers X (Common Time), track 1 by chirper-zero: one steady pulse in 4/4 and three wheels (cells five, seven and eleven sixteenths long) that turn under it for the whole piece and meet, all three on a bar line, only at bar 1 and at the landing 385 bars later. Generated by compose/chirpers10/src/chirpers10-t1.py.",
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(NEARER.split(":")[4]) if NEARER else -10, "seed": 1, "tail": "4s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(MEET.split(";")[5]) if MEET and MEET.split(";")[5] else float(NEARER.split(":")[4]) if NEARER else -10, "seed": 1, "tail": "4s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {**STOP_PATCHES,
             **({"ct-hands": {"about": "chirper-three: the library's congas and bongos tuned to the held chord of Common Time's bass break (A flat and E flat): see the generator, v60",
                              "extends": "congas", "kit": {pc: {"pitch": n, "gain": f"{float(g):g}dB"} for pc, n, g in zip(("lo", "mu", "o", "sl", "bl", "bh"), HANDS.split(';')[2].split(','), HANDS.split(';')[3].split(','))}}} if HANDS else {}),
