@@ -290,6 +290,29 @@ TEETH = os.environ.get('C10T8_TEETH', '-2;peak cutoff=185 q=1.2 gain=2.5dB|peak 
 # dB on the older bell of each pair ; hall send ; velocity ; dB on each of the two that open it on one note ;
 # the loudness target ("" = unchanged). "" = v24 byte for byte.
 TOLL = os.environ.get('C10T8_TOLL', '-1;2.5;1.2s;-19.5dB;-6;-14dB;0.8;-3;-10.155' if TEETH and AFTER else '')
+# v26 (chirper-three; instrument round: the bass, every note it plays with the band, 0:06-3:12; no note moves):
+# THE BASS LEANS ON ITS OCTAVE, AND GRINDS. The cure of In the Time Of v24 and Take Up the Slack v15 on a third song,
+# fitted to this one, and only where this song's reads ask for it: the four pairs and the opening (0:06-2:01.5).
+#   ALONE against eleven records' basses (tools/bassspec.py, shapes): `ct-bass` here was a sub and a box, 40 Hz 13.4 dB
+#       over, 80 and 100 Hz 7.5 and 6.4 under, 400-800 Hz 4.9 to 9.4 over, the grind at 1-1.25 kHz 6.3 and 9.8 under;
+#       distance 5.91. BY PART in the four pairs: +11.4 under 60 Hz, -1.2 at 60-120, +6.2 at 250-500, -2.7 at 1-2 kHz.
+#       THE MIX there stood 0.7 to 1.8 dB OVER the records under 60 Hz and 0.4 to 1.0 under at 60-120 Hz.
+#   THE CURE: the sine under the string 11 dB down (-9 -> -20, Take Up the Slack's); the patch's eq 110 Hz +6 -> +12 and
+#       220 Hz +8 -> +6 (In the Time Of's); its 450 Hz +2 becomes 540 Hz -3 (theirs is -6: it left this song's mix
+#       further off at 500 Hz-1 kHz); its 900 Hz +5 becomes 1150 Hz +9 (theirs +6: this bass was short of grind).
+#   AFTER: alone 40 Hz +7.6, 80 and 100 Hz -4.1 and -2.2, 400-800 Hz +1.1 to +5.7, 1-1.25 kHz -3.2 and -4.8; distance
+#       3.96. By part +7.2, 0.0, +2.0, +0.2. In the raw mix the bass holds 5% of what is under 60 Hz (15), 51% of
+#       60-120 Hz (42) and 12% of 1-2 kHz (6.5); the mix's own sub at the strokes is as loud as it was (the kick's)
+#       and steadier stroke to stroke (5th to 95th: 4.0 -> 3.2 dB). The mix against the records' voiceless passages:
+#       nearer in three of the four pairs, level in the fourth (0.72, 0.61, 0.71, 0.78 -> 0.66, 0.48, 0.62, 0.79).
+#   FROM THE MEASURE ON THE BASS IS AS IT WAS (old track `bass`; the new voicing is track `bass-pairs`): there the mix
+#       was already on the records under 60 Hz and the cure read worse ('the measure' 0.88 -> 1.01, 'measured' 0.56 ->
+#       0.59 on the whole-band trial); and the afterword's bass plays with no kick, so it keeps its sub.
+# overrides on the bass's patch ; its fader ('' = unchanged) ; the section from which the bass stays as it was, on the
+# old track ('' = the new voicing to the end) ; the loudness target ('' = unchanged). "" = v25 byte for byte.
+OCTAVE = os.environ.get('C10T8_OCTAVE', 'fx.2.bands.0.gain=12dB fx.2.bands.1.gain=6dB fx.2.bands.2.cutoff=540 fx.2.bands.2.q=0.7 '
+                                        'fx.2.bands.2.gain=-3dB fx.2.bands.3.cutoff=1150 fx.2.bands.3.q=1.2 fx.2.bands.3.gain=9dB '
+                                        'synth.layers.1.level=-20dB;;the measure;-10.12' if TOLL else '')
 
 
 def nm(n):
@@ -1063,7 +1086,29 @@ def song():
         teeth(doc)
     if TOLL:
         the_bells_put_back(doc)
+    if OCTAVE:
+        the_bass_leans_on_its_octave(doc)
     return doc
+
+
+def the_bass_leans_on_its_octave(doc):
+    """v26: the bass of the four pairs (new track `bass-pairs`) with its weight on the octave and its grind up; from
+    `the measure` on the bass is as it was, on its old track."""
+    over, fader, upto, target = OCTAVE.split(';')
+    i = next(k for k, t in enumerate(doc['tracks']) if t['name'] == 'bass')
+    bass = doc['tracks'][i]
+    t0 = dict(MARKS)[upto] / 4 if upto else float('inf')
+    early = [n for n in bass['notes'] if n['at'] < t0]
+    assert early and all(n['at'] + n['len'] <= t0 for n in early)
+    new = {**{k: v for k, v in bass.items() if k != 'notes'}, 'name': 'bass-pairs', 'notes': early}
+    if over:
+        new['patch'] += ' ' + over
+    if fader:
+        new['gain'] = fader
+    bass['notes'] = [n for n in bass['notes'] if n['at'] >= t0]
+    doc['tracks'][i:i + 1] = [new] + ([bass] if bass['notes'] else [])
+    if target:
+        doc['loudness'] = float(target)
 
 
 def the_answer_passes_by(doc):
