@@ -139,6 +139,26 @@ DECK = os.environ.get('C10T15_DECK', '-10.5dB;30;;0.6;' if SQUEEZE and CALL else
 # dB on the crew's consonants (the patch; "" = as it was) ; the crew's lift through each verse answer, dB ; the
 # guitars' bus under each verse answer, dB ; the loudness target ("" = unchanged). "" = v6.
 ANSWER = os.environ.get('C10T15_ANSWER', ';3;-3;' if DECK else '')
+# v8, whole song (chirper-alpha): THE BAND LETS GO OF THE ROPE, AND THE SLACK IS HEARD. The song's one idea is
+# that the riff's head falls later than the crew's pull by three beats, two, one, none (verse one), earlier by
+# less each time (verse two), and one hand each way and then together (verse three). Until now that was true and
+# not audible: the riff ran on under everything, and a head twelve sixteenths after a pull is one chord among
+# many. Three composers' notes also asked for the same move from the other side (v5, v6, v7: the crew's answer
+# is under the band; "the band stopping under the answer"). It is one move. WHEN THE CREW ANSWERS, EACH HAND LETS
+# GO, AND TAKES THE ROPE UP AGAIN AT ITS OWN HEAD: the late hand (the fifteen) at its first head at or after the
+# pull, the early hand (the seventeen) at its last head at or before it. Nothing is written: the riff's cycle
+# goes on counting and its strokes inside the rest are left out, the kit's time with them; the pull keeps its
+# drum and its china; and while the whole band is out the crew answers over its own boots (v6's deck), two to the
+# bar, as it does in the first call. So verse one: the crew sings 'Take up the slack', pulls, and the band comes
+# in three beats late; then two; then one; and on the fourth pull, 'All together', it lands WITH the pull. Verse
+# two: the band waits a little longer each time (the first time it does not wait at all) and comes in before the
+# pull: ten sixteenths early, six, two. Verse three: the right guitar a beat early and alone, the pull, the left
+# guitar and the bass a beat late; then both on the pull.
+# v7's ride stays where the band is still under the crew (verse two); in verses one and three the guitars' dip
+# goes (there is nothing under the answer to dip, and the head is not to arrive 3 dB down).
+# the shortest rest a hand takes, sixteenths ; the boots' velocity on one ; on three ; the loudness target
+# ("" = unchanged). "" = v7.
+LETGO = os.environ.get('C10T15_LETGO', '4;0.72;0.62;-10.084' if ANSWER else '')
 # five men: the kit piece, where in the spread his foot lands (0..1), how hard against the others, his board's
 # note, where he stands, how long his board rings (ms)
 BOOTS = [('b1', 0.0, 1.0, 'D2', -0.15, 150), ('b2', 0.23, 0.88, 'C2', 0.4, 170), ('b3', 0.47, 0.94, 'Eb2', -0.5, 135),
@@ -266,14 +286,30 @@ def make():
         if kick:
             kit(t, 'k', .98 if kind != 'm' else .82)
 
-    def cycle(trs, riff, length, a, b, head, **kw):
+    def cycle(trs, riff, length, a, b, head, rests=(), **kw):
         # every stroke of the riff between a and b, the cycle placed so that a head falls on `head`
+        # (v8: but none inside a rest, and the stroke before a rest stops where it begins)
         k0 = -((head - a) // length) - 1
         for k in range(k0, (b - head) // length + 2):
             for pos, kind, semi, dur in riff:
                 t = head + k * length + pos
-                if a <= t < b:
-                    stroke(trs, t, kind, semi, min(dur, b - t - .1), **kw)
+                if a <= t < b and not any(r0 <= t < r1 for r0, r1 in rests):
+                    stroke(trs, t, kind, semi, min([dur, b - t - .1] + [r0 - t - .1 for r0, _ in rests if t < r0]), **kw)
+
+    def hand(c, length, anchor, late):
+        """v8: one hand's rest in the couplet at c: from the answer's start to its own head, the first at or after the
+        pull for a late hand, the last at or before it for an early one (`anchor` is any head). None if too short."""
+        if not LETGO:
+            return None
+        pull = c + 3 * BAR
+        head = anchor + length * (-((anchor - pull) // length) if late else (pull - anchor) // length)
+        return (c + 2 * BAR, head) if head - (c + 2 * BAR) >= float(LETGO.split(';')[0]) else None
+
+    def feet(a, spans):
+        """v8: the crew's boots, two to the bar, wherever the whole band has let go."""
+        for r0, r1 in spans:
+            for t in range(r0, r1, BAR // 2):
+                stamp(t, float(LETGO.split(';')[1 if (t - a) % BAR == 0 else 2]))
 
     def haul(tr, t, slack, was=None, dur=9, v=.9):
         """The rope at a pull: found where the last pull left it (`was`), then hauled to `slack` semitones from the crew's F."""
@@ -356,17 +392,18 @@ def make():
                 kit(t0 + 4, 's', .94)
                 kit(t0 + 12, 's', .94)
 
-    def beat(a, bars, bronze, back=(8,), skip_last_beat=True):
+    def beat(a, bars, bronze, back=(8,), skip_last_beat=True, rests=()):
+        out = lambda t: any(r0 <= t < r1 for r0, r1 in rests)        # v8: the kit's time rests with the hands
         for b in range(bars):
             t0 = a + b * BAR
             last = b == bars - 1
             step = 2 if bronze == 'h' else 4
             for q in range(0, BAR, step):
-                if last and skip_last_beat and q >= 12:
+                if last and skip_last_beat and q >= 12 or out(t0 + q):
                     continue
                 kit(t0 + q, bronze, (.65 if q % 4 == 0 else .48) if bronze == 'h' else (.72 if q == 0 else .58))
             for q in back:
-                if not (last and skip_last_beat and q >= 12):
+                if not (last and skip_last_beat and q >= 12) and not out(t0 + q):
                     kit(t0 + q, 's', .94)
 
     start = 0
@@ -382,21 +419,25 @@ def make():
             haul('rope-l', a + 48, -4, -5)
         elif sec == 'late hand':
             # 15 against 16: the head is 12, 8, 4 and 0 sixteenths after the four pulls
-            cycle(('gl', 'gr'), RIFF15, 15, a, b, a)
+            rests = [r for r in (hand(a + i * 4 * BAR, 15, a, True) for i in range(4)) if r]
+            cycle(('gl', 'gr'), RIFF15, 15, a, b, a, rests=rests)
             couplets(sec, a, 4, [SLACK, SLACK, SLACK, ALL])
             for i in range(4):
                 haul('rope-l', a + i * 4 * BAR + 48, i - 3, i - 4)
-            beat(a, bars, 'h')
+            beat(a, bars, 'h', rests=rests)
+            feet(a, rests)
             for t, p in ((12, 't1'), (13, 't1'), (14, 't2'), (15, 'ft')):
                 kit(b - BAR + t, p, .82)
         elif sec == 'early hand':
             # 17 against 16: 3, 7, 11 and 15 after; one more bar and it lands on the chorus
-            cycle(('gl', 'gr'), RIFF17, 17, a, b, a)
+            rests = [r for r in (hand(a + i * 4 * BAR, 17, a, False) for i in range(4)) if r]
+            cycle(('gl', 'gr'), RIFF17, 17, a, b, a, rests=rests)
             couplets(sec, a, 4, [SLACK, SLACK, SLACK, SLACK])
             for i in range(4):
                 haul('rope-r', a + i * 4 * BAR + 48, 4 - i, 5 - i)
             haul('rope-r', b, 0, 1)                    # the seventeen lands on the chorus
-            beat(a, bars - 1, 'x', skip_last_beat=False)
+            beat(a, bars - 1, 'x', skip_last_beat=False, rests=rests)
+            feet(a, rests)
             hold = b - BAR
             sing('shanty', hold, line('hold fast', [(0, 6), (8, 6)], 'Ab3 C4'), .95)
             kit(hold, 'x', .8)
@@ -434,8 +475,10 @@ def make():
                 put('crew', a + 2 * k * BAR, 2 * BAR - 2, p, .42, ph=PH['oo'])
         elif sec == 'both hands':
             land = a + 7 * BAR
-            cycle(('gl',), RIFF15, 15, a, land, land)                      # the late hand, with the bass
-            cycle(('gr',), RIFF17, 17, a, land, land, bass=False, kick=False)   # the early hand
+            late = [r for r in (hand(a + i * 4 * BAR, 15, land, True) for i in range(2)) if r]
+            early = [r for r in (hand(a + i * 4 * BAR, 17, land, False) for i in range(2)) if r]
+            cycle(('gl',), RIFF15, 15, a, land, land, rests=late)                      # the late hand, with the bass
+            cycle(('gr',), RIFF17, 17, a, land, land, bass=False, kick=False, rests=early)   # the early hand
             for k in range(-8, 1):                                          # the foot marks its heads too
                 if a <= land + 17 * k < land:
                     kit(land + 17 * k, 'k', .98)
@@ -445,7 +488,8 @@ def make():
             for i in range(2):
                 haul('rope-l', a + i * 4 * BAR + 48, i - 1, i - 2, v=.75)
                 haul('rope-r', a + i * 4 * BAR + 48, 1 - i, 2 - i, v=.75)
-            beat(a, bars, 'x', back=(4, 12))
+            beat(a, bars, 'x', back=(4, 12), rests=late)     # v8: the kit's time is back when both hands are
+            feet(a, early)                                   # and the boots stamp while both are out
             for t, p in ((12, 't1'), (13, 't2'), (14, 'ft'), (15, 'ft')):
                 kit(b - BAR + t, p, .84)
         elif sec == 'made fast':
@@ -485,12 +529,12 @@ def in_the_choruses(db, also=None):
     return points
 
 
-def answers(db):
+def answers(db, only=('late hand', 'early hand', 'both hands')):
     """A lane: `db` through each of the ten verse answers (the third bar of a couplet and the pull after it),
     moving over the half beat before it and the half beat after."""
     points, at = [['0b', 0]], 0
     for name_, bars in FORM:
-        if name_ in ('late hand', 'early hand', 'both hands'):
+        if name_ in only:
             for i in range(2 if name_ == 'both hands' else 4):
                 c = at + i * 4 * BAR
                 points += [[f'{(c + 30) / GRID:g}b', 0], [f'{(c + 32) / GRID:g}b', db], [f'{(c + 54) / GRID:g}b', db], [f'{(c + 56) / GRID:g}b', 0]]
@@ -581,7 +625,8 @@ def build():
     said = ANSWER.split(';') if ANSWER else None
     if said and said[2] and float(said[2]):   # v7: the guitars give way under each verse answer
         buses['gtrs']['fx'] = buses['gtrs']['fx'] + [{'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.duck', 'amount': 1}]}}]
-        buses['gtrs']['auto'] = {**buses['gtrs'].get('auto', {}), 'duck': {'points': answers(float(said[2])), 'curve': 0}}
+        under = answers(float(said[2]), ('early hand',)) if LETGO else answers(float(said[2]))   # v8: only where the band is still under the crew
+        buses['gtrs']['auto'] = {**buses['gtrs'].get('auto', {}), 'duck': {'points': under, 'curve': 0}}
     doc = {'about': 'Take Up the Slack — chirpers, Common Time, track fifteen. A hauling song: the crew pulls in four, the riff is fifteen long, then seventeen, and each verse the slack between them is taken up.',
            'tempo': BPM, 'seed': 1, 'length': f'{end // GRID}b', 'tail': '3s', 'ceiling': '-1dB', 'loudness': float(BUILT.split(';')[5]) if BUILT else float(INBAND.split(';')[4]) if INBAND else float(ROPE.split(';')[3]) if ROPE else -10, 'event_stable': True,
            'buses': buses, 'master': {'fx': [{'type': 'eq', 'bands': ['hp cutoff=24']}, {'type': 'gain', 'gain': '2.7dB'}]},
@@ -595,6 +640,8 @@ def build():
             doc['loudness'] = float(DECK.split(';')[4])
     if said and said[3]:
         doc['loudness'] = float(said[3])
+    if LETGO and LETGO.split(';')[3]:
+        doc['loudness'] = float(LETGO.split(';')[3])
     return doc, marks
 
 
