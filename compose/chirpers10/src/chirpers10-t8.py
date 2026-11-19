@@ -157,6 +157,18 @@ SHAKER = os.environ.get('C10T8_SHAKER', '3dB;-0.45;14000;-5dB' if TIMELINE else 
 # card's clip runs to 1:57.3. The value is the number of meetings. Empty
 # restores v18.
 CROSS = os.environ.get('C10T8_CROSS', '2' if SHAKER else '')
+# v20: TWO OF HARRY'S ANSWERS, built as given (chirper-zero, 19 Nov).
+# cm-bass-break, "Does the riff come through better on the bass?": "Prefer the full riff". The first bass break
+# (1:06-1:21, the second half of 20 against 32) gives the riff back: the four guitars play both riffs to the cut,
+# the bass is back under them, and v15's ringing line over that break is not called. The second break (1:32) and
+# the bass tails in 'measured' stay: he was asked about the first only, and called the tails "good".
+# cm-reed, "Does the reed bring out the guitar riff?": "Keep it, but quieter". 4 dB off the reed while it shadows
+# the right guitar (it stood 6.4 to 8.6 dB under the rest of the raw mix; now 10.4 to 12.6); the afterword's reed
+# keeps its level (a gain on a lane, not the fader).
+# which bass breaks give way (1 = 1:06, 2 = 1:32; comma list, or nothing) ; dB on the reed up to 8 against 4 ;
+# the loudness target (every other bar keeps v19's mastering gain: within 0.01 dB, both seeds). Empty restores v19.
+# The scorer falls 7.5 and 3.3 points (it counted the break as a returning section); kept on his answer.
+FULL = os.environ.get('C10T8_FULL', '1;-4;-10.045' if CROSS and BASS_BREAK and BREATH else '')
 
 
 
@@ -473,7 +485,7 @@ def compose():
             bell("r", cell_at)
         if last and TWICE:
             twice_under_one(t, left, right)
-        if BASS_BREAK and k in (1, 2):
+        if BASS_BREAK and k in (1, 2) and str(k) not in FULL.split(';')[0].split(','):
             # On the second half of each pair the measuring hand switches side:
             # A's twenty places against B's twelve-place answer, then the reverse
             # subtraction with twelve in the bass and eight in the answer.
@@ -758,7 +770,7 @@ def song():
     total = compose()
     if CONVERGE:
         meet_the_bow()
-    if RING:
+    if RING and '1' not in FULL.split(';')[0].split(','):   # v20: no first break, so nothing is lifted there to ring
         ring_the_lifted()
     if CROSS:
         the_foot_crosses_over()
@@ -792,6 +804,11 @@ def song():
     if BREATH:
         timbre, gain = BREATH.split(";")
         tracks.append({"name": "breath", "patch": timbre, "gain": gain, "pan": 0.12})
+        if FULL and float(FULL.split(';')[1]):
+            # v20: quieter where it shadows the right guitar (to the end of 8 against 12); its lines in the afterword keep their level
+            upto = dict(MARKS)['8 against 4'] / 4
+            tracks[-1]['fx'] = [{'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.quieter', 'amount': 1}]}}]
+            tracks[-1]['auto'] = {'quieter': {'points': [['0b', float(FULL.split(';')[1])], [f'{upto:g}b', float(FULL.split(';')[1])], [f'{upto + 0.01:g}b', 0]], 'curve': 0}}
     if KOTO:
         # Opposite the piano (-0.10), a little wider. Less of the patch's hall: the guitars' room is short.
         tracks.append({'name': 'koto', 'patch': 'koto fx.0.mix=0.08', 'gain': KOTO.split(';')[1], 'pan': .28})
@@ -829,7 +846,7 @@ def song():
         # The quiet afterword adds 12 seconds to the loudness measurement.
         # Don't turn the existing 3:12 up to compensate: the four comparison
         # clips on that stretch have already been put in front of Harry.
-        "tempo": BPM, "ceiling": "-1dB", "loudness": -10.17 if AFTER else -10,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(FULL.split(';')[2]) if FULL else -10.17 if AFTER else -10,
         "seed": 1, "tail": "5s", "length": f"{total // 4}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
                     **({"cm-bell": {
