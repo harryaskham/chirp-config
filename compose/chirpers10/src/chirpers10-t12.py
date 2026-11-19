@@ -216,7 +216,8 @@ def strip(back=False):
 # +0.2 on five of them) and wires against crack +2.8 (records 0.0, -0.6 to +1.4): a box with hiss over it. By part
 # against the records' drums the kit was 4.1 over at 250-500 Hz and 5.4 over at 500 Hz-1 kHz, 70 and 78% of it the
 # snare, and 2.1 short at 4-8 kHz. On Its Hinge's snare (its v19: the same drum, the same fault) read TOO THIN here
-# with that song's settings (body against crack -6.3): this song strikes it differently. So, fitted here: the body's
+# with that song's settings (body against crack -6.3; -4.1 with this kit bus's cut at 190 Hz taken out: v18's chest
+# round took 2.2 dB of the snare's body with it, and the strokes are no softer here). So, fitted here: the body's
 # lift at 200 Hz 5 -> 1.5 dB; a harder stroke (contact 0.6 -> 0.35) with more slap (1.2 -> 1.6); the wires tighter
 # and voiced lower (0.85 -> 0.95, 7 kHz -> 5 kHz), so they fill 4-8 kHz; 3 dB off the drum's box at 650 Hz on its
 # track; its fader 2 -> 1 dB, so a stroke is as loud as it was. No note changes; nothing else is touched.
