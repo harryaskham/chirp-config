@@ -173,12 +173,31 @@ SAID = {'words': ('right', 'where', 'it', 'was'),
 UNSAID = {'patch': 'voice-legato synth.layers.0.diction=3 synth.layers.0.ring=1.0 synth.layers.0.effort.value=0.9 fx.0.mix=0', 'gain': -16.0, 'pan': 0,
           'up': 24, 'vel': .9, 'last': 2.0, 'cut': 1.5, 'lift': {'it': 4.5}, 'end': (5.5, 2.0),
           'fx': [{'type': 'eq', 'bands': ['hp cutoff=350', 'lowshelf cutoff=900 gain=-12dB', 'peak cutoff=420 q=1 gain=-3dB']}], 'loudness': -10.03}
+# v24 (chirper-one; section w5, 'lit through', 2:00-2:30, the window longest without a round; the change is
+# 2:02.3-2:13.7, its five cells on F): THE POINTS MELT INTO THE LINE. Since v14 the tune comes back here as a LINE:
+# the first cell struck as it always was (four points), then a hand on the ring and each note held until the next.
+# The change from points to a line was a cut: struck at 2:00.0, held from 2:02.3. Now it is heard happening. Each
+# held note of the five cells on F begins with a touched harmonic on the clean guitar (the opening's guitar, which
+# has not played since 0:10), at the held note's own pitch: a point with the line growing out of it. In the first
+# of the five cells the harmonic is a little over the held note's start; it gives way cell by cell as the hand
+# firms, and by the fifth the line has taken it in. Over A flat (2:13.7) the line is alone, as v14 wrote it.
+# Benched raw, the harmonics alone against the held line alone, each note's first 150 ms: see the round note.
+# The harmonic is the string touched at its quarter (two octaves over the stopped note: E flat 3, C3, A flat 2 and
+# F2 stopped, sounding the line's E flat 5, C5, A flat 4, F4). The patch's compressor is opened (it flattened the
+# fade) and its body under 500 Hz is cut: this is a glint, not a second guitar.
+# the cells of 'lit through' it sounds in (first, last) ; the guitar ; its fader ; its side ; its room ; the node (4:
+# the string touched at its quarter) ; how hard ; dB on the first cell's notes and the last's (the strike gives way) ;
+# dB on each of the tune's four notes, E flat C A flat F (the lowest string's harmonic is the weakest here) ; its eq ;
+# the loudness target. --v23 restores v23.
+GLINT = {'cells': (1, 5), 'patch': 'ct-clean synth.layers.0.pinch=1 synth.layers.0.node=4 fx.0.threshold=0dB', 'gain': 0.0, 'pan': .06,
+         'send': '-9dB', 'node': 4, 'vel': .8, 'grow': (-2.5, -7.0), 'lift': (0.0, 0.0, 0.0, 4.0),
+         'fx': [{'type': 'eq', 'bands': ['hp cutoff=500']}], 'loudness': -10.03}
 
 
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
             rim=True, rim_gain=-18, turned=True, hole=True, mold=True, fretless=True, fretless_gain=-10.0,
             lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True, refill=True, whole_scale=True, trades=True, band=True,
-            hat=True, made_whole=True, fused=True, said=True, said_gain=None, said_takes=None, unsaid=True):
+            hat=True, made_whole=True, fused=True, said=True, said_gain=None, said_takes=None, unsaid=True, glint=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -201,6 +220,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     fused = FUSED if fused and made_whole else None
     said = SAID if said and fused else None
     unsaid = UNSAID if unsaid and said else None
+    glint = GLINT if glint and unsaid else None
     if said and (said_gain is not None or said_takes):
         said = {**said, **({'gain': said_gain} if said_gain is not None else {}),
                 **({'takes': tuple(int(x) for x in said_takes.split(','))} if said_takes else {})}
@@ -656,6 +676,14 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                         # the last the hand lets go, so the sheet turns on a struck
                         # ring and its tail, as it did.
                         put('held', t, end-k-.04, p+36, .91 if j == 0 else .79)
+                        if glint and glint['cells'][0] <= i <= glint['cells'][1]:
+                            # v24: each held note begins as a touched harmonic on the clean guitar, at the
+                            # held note's own pitch, and rings under the hand until the next
+                            first, last = glint['cells']
+                            put('glint', t, end-k-.1, p + 36 - 12 * {2: 1, 4: 2}[glint['node']], glint['vel'])
+                            g = glint['grow'][0] + (glint['grow'][1] - glint['grow'][0]) * (i - first) / max(1, last - first) + glint['lift'][j]
+                            if g:
+                                parts['glint'][-1]['gain'] = f'{g:g}dB'
                     elif hand or section == 'lit through' or (section == 'turn the sheet' and i % 2 == 0):
                         # across a hole the ring is let ring up to the next note
                         put('ring', t, end-k-.25 if empty else 1.45, p+36, .91 if j == 0 else .79)
@@ -772,6 +800,9 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     if said:
         tracks.append(track('said', said['patch'], said['gain'], said['pan'], sends={'chamber': said['send']},
                             **({'fx': said['fx']} if said['fx'] else {})))
+    if glint:
+        tracks.append(track('glint', glint['patch'], glint['gain'], glint['pan'], sends={'chamber': glint['send']},
+                            **({'fx': glint['fx']} if glint['fx'] else {})))
     if unsaid:
         tracks.append(track('unsaid', unsaid['patch'], unsaid['gain'], unsaid['pan'], **({'fx': unsaid['fx']} if unsaid['fx'] else {})))
     patches = {}
@@ -810,7 +841,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
             # (the five card excerpts among them) came out 0.008 to 0.011 dB quieter: the target moves by that.
             # v17: the trade is quieter to the meter than the long statement it replaces; -10.035 keeps every other
             # bar at v16's mastering gain (within 0.002 dB, both seeds).
-            'ceiling':'-1dB', 'true_peak':True, 'loudness':unsaid['loudness'] if unsaid else said['loudness'] if said else fused['loudness'] if fused else made_whole['loudness'] if made_whole else hat['loudness'] if hat else band['loudness'] if band else -10.035 if trades else -9.99 if refill else -10,
+            'ceiling':'-1dB', 'true_peak':True, 'loudness':glint['loudness'] if glint else unsaid['loudness'] if unsaid else said['loudness'] if said else fused['loudness'] if fused else made_whole['loudness'] if made_whole else hat['loudness'] if hat else band['loudness'] if band else -10.035 if trades else -9.99 if refill else -10,
             'buses':{'drums':{'fx':['reverb kind=room decay=0.45s mix=0.07',
                                      'glue threshold=-22dB ratio=2 attack=18ms release=120ms',
                                      {'type':'eq','bands':['peak cutoff=390 q=0.9 gain=-4dB','lp cutoff=14800']}]},
@@ -844,6 +875,7 @@ if __name__ == '__main__':
     previous.add_argument('--v20', action='store_true', help='restore the side-to-side trade turning twice a cell for two cells and at every note for two, one face at a time')
     previous.add_argument('--v21', action='store_true', help="restore the quiet middle with nobody singing")
     previous.add_argument('--v22', action='store_true', help="restore 'both sides' with nobody singing as the ring brings the tune back")
+    previous.add_argument('--v23', action='store_true', help="restore the held line of 'lit through' without a harmonic on each of its notes")
     parser.add_argument('--said-gain', type=float, default=None, help="the sung voice's track gain in dB (default: SAID's)")
     parser.add_argument('--said-takes', default=None, help="which of each group's three cells is sung, e.g. 1 or 1,2 (default: SAID's)")
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
@@ -856,7 +888,7 @@ if __name__ == '__main__':
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
                   not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11, not args.v12, args.fretless_gain,
                   not args.v13, args.held_gain, args.grip, not args.v14, not args.v15, not args.strokes_on_f, not args.v16, not args.v17,
-                  not args.v18, not args.v19, not args.v20, not args.v21, args.said_gain, args.said_takes, not args.v22)
+                  not args.v18, not args.v19, not args.v20, not args.v21, args.said_gain, args.said_takes, not args.v22, not args.v23)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
