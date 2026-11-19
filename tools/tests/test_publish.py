@@ -304,6 +304,42 @@ class Publish(unittest.TestCase):
         self.assertIn("goes in WHOLE, with 3 open hunks", err.getvalue())
         self.assertIn("t7 v19", self.origin_file("compose/alb/motifs.md"))
 
+    def test_done_refuses_a_board_that_holds_someone_elses_open_hunks(self):
+        """19 Nov: three times in six hours `done --with motifs.md` took another composer's unrecorded rows with it."""
+        os.makedirs(os.path.join(self.tree, "compose", "alb"))
+        self.write(self.tree, "compose/alb/motifs.md", self.DOC)
+        run(self.tree, "add", "compose/alb/motifs.md")
+        run(self.tree, "commit", "-q", "-m", "board")
+        board = lambda text: self.write(self.tree, "compose/alb/motifs.md", text)                                   # noqa: E731
+        gate = lambda *x, args=(): self.C.board_gate(["compose/alb/motifs.md", "ours.txt"], *x, list(args))   # noqa: E731
+        zero, one = ("alb-t11", "On Its Hinge", 11, "chirper-zero"), ("alb-t7", "Extreme and Mean", 7, "chirper-one")
+        self.assertIsNone(gate(*zero))                                                       # nothing open: nothing held
+        seven, eleven = "old seven\nt7 v19: the stroke stops\n", "old eleven\nt11 v16: the bow is a bow\n"
+        board(self.DOC.replace("old seven\n", seven).replace("old eleven\n", eleven))        # one row each, both open
+        for who, theirs in ((zero, "t7 v19: the stroke stops"), (one, "t11 v16: the bow is a bow")):
+            err = io.StringIO()
+            with self.assertRaises(SystemExit) as e, contextlib.redirect_stderr(err):
+                gate(*who)
+            self.assertEqual(e.exception.code, 5)
+            self.assertIn("shared board HELD: compose/alb/motifs.md holds 1 open hunk(s)", err.getvalue())
+            self.assertIn(theirs, err.getvalue())
+            self.assertIn("Nothing was committed or recorded", err.getvalue())
+            self.assertIn("--pick 'REGEX' compose/alb/motifs.md", err.getvalue())
+            self.assertIsNone(gate(*who, args=["--whole"]))                                  # --whole: as it stands
+        board(self.DOC.replace("old eleven\n", eleven))                                      # only t11's row is open
+        self.assertIsNone(gate(*zero))
+        board(self.DOC.replace("old eleven\n", "old eleven\na line that names nobody\n"))
+        with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
+            gate(*zero)                                                                      # it could be anyone's: held
+        board(self.DOC.replace("old eleven\n", "old eleven\nthe hinge turns (chirper-one)\n"))
+        self.assertIsNone(gate(*one))                                                        # his name is on it
+        board(self.DOC.replace("old eleven\n", "old eleven\nOn its hinge, again\n"))
+        self.assertIsNone(gate(*zero))                                                       # the title, whatever the case
+        board(self.DOC.replace("old eleven\n", "old eleven\nfor ALB-T11 only\n"))
+        self.assertIsNone(gate(*zero))                                                       # the id
+        self.write(self.tree, "ours.txt", "anything\n")                                      # not a board: never held
+        self.assertIsNone(self.C.board_gate(["ours.txt"], *zero, []))
+
     def test_pick_hunks_builds_from_heads_own_lines(self):
         head = b"a\nb\nc\nd\n"
         diff = (b"diff --git a/f b/f\n--- a/f\n+++ b/f\n@@ -0,0 +1 @@\n+TOP\n@@ -2 +3 @@\n-b\n+B\n@@ -3 +3,0 @@\n-c\n"

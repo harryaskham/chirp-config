@@ -365,6 +365,45 @@ def shared_board_notes(rel):
     return out
 
 
+def board_gate(paths, cid, title, track, me, args):
+    """`done --with` REFUSES, before anything is recorded, a file everyone writes that holds open hunks naming neither
+    the song (its id, its title, its tN) nor the caller: `done` takes a file whole and would commit them under this
+    round. (19 Nov: three times in six hours a composer's `done` took another composer's unrecorded rows of motifs.md or
+    sounds.md; the third came with a warning printed as it happened, and its author asked for a refusal: "I would have
+    been stopped".) --whole takes the file as it stands. Lines that touch your own are one hunk and still go in with
+    them: the commit's note says so."""
+    if "--whole" in args or "--no-git" in args or not os.path.isdir(os.path.join(ROOT, ".git")):
+        return
+    words = [re.escape(cid)] + [re.escape(x) for x in sorted(agent_names(me))]
+    if title and len(str(title)) >= 4:
+        words.append(re.escape(str(title)))
+    if track is not None:
+        words.append(rf"\bt{track}\b")
+    rx = re.compile("|".join(words), re.I)
+    held = []
+    for p in paths:
+        rel = os.path.relpath(os.path.join(ROOT, p) if not os.path.isabs(p) else p, ROOT)
+        if not SHARED_BOARDS.match(rel.replace(os.sep, "/")):
+            continue
+        d = subprocess.run(["git", "diff", "-U0", "--no-color", "--no-ext-diff", "--no-textconv", "HEAD", "--", rel], cwd=ROOT,
+                           capture_output=True).stdout
+        _, seen = pick_hunks(b"", d, lambda add, rem: any(rx.search(x.decode("utf-8", "replace")) for x in add + rem))
+        for k, add, rem in seen:
+            if not k:
+                first = (add or rem)[0].decode("utf-8", "replace").strip()[:110] if (add or rem) else ""
+                held.append((rel, f"+{len(add)} -{len(rem)}  {first!r}"))
+    if not held:
+        return
+    files = sorted({r for r, _ in held})
+    for r, line in held[:8]:
+        print(f"climb:   {r}: {line}", file=sys.stderr)
+    die(f"shared board HELD: {', '.join(files)} hold{'s' if len(files) == 1 else ''} {len(held)} open hunk(s) that name "
+        f"neither this song ({cid}{', ' + repr(title) if title else ''}{', t' + str(track) if track is not None else ''}) nor "
+        f"you ({me}); `done --with` takes a file whole and would commit them under your round. Nothing was committed or "
+        f"recorded. If they are another composer's, leave {' and '.join(files)} out of --with, run done, then commit your "
+        f"own lines: `climb.py commit -m MSG --pick 'REGEX' {' '.join(files)}`. If they ARE yours, repeat with --whole.", 5)
+
+
 def commit(paths, msg, args):
     """True when the change is in a commit (pushed, or local with an honest receipt and `climb.py publish` to retry);
     False when nothing was committed - callers must then fail loudly, or the registry edit can be lost to the next
@@ -1514,7 +1553,7 @@ def cmd_done(a):
     pos = positional(a, ("--note", "--score", "--version", "--next", "--engine", "--as", "--with", "--render",
                          "--best-now"))
     if not pos:
-        die("done ID --note TEXT [--score S --version vN [--keep | --refused] [--best-now S]] [--next TEXT] [--with FILE …]  "
+        die("done ID --note TEXT [--score S --version vN [--keep | --refused] [--best-now S]] [--next TEXT] [--with FILE … [--whole]]  "
             "(--keep: a composition kept on musical judgment though it does not outscore the best; --refused: a trial "
             "refused by ear, logged but never the best however it scored; --best-now: the current best re-measured like "
             "for like, after a rating made it stale)")
@@ -1527,6 +1566,9 @@ def cmd_done(a):
     # Files others may have written: another agent on this climb since (or shortly before) you started it.
     withs = multi(a, "--with")
     library_gate(withs, a, me=me, mine=(cid,))      # before anything is recorded
+    if withs and "--whole" not in a:
+        meta0 = (find(load(), cid).get("meta") or {})
+        board_gate(withs, cid, meta0.get("title"), meta0.get("track"), me, a)
     picture_notice(withs, a)
     if withs and "--force" not in a:
         others = collided(cid, me)
