@@ -248,6 +248,22 @@ KICK = os.environ.get('C10T15_KICK', 'Ab1;Ab2;-4dB;90;11.5;-10.08' if MAN else '
 # bands ; the loudness target. "" = v11.
 TEETH = os.environ.get('C10T15_TEETH', '-2;0.42;1.7dB;peak cutoff=185 q=1.2 gain=2.5dB|peak cutoff=800 q=1.2 gain=-4dB;0.5;94,95;0.15;-0.7dB;'
                                        'peak cutoff=220 q=1 gain=3dB;-9.944' if KICK else '')
+# v13 (chirper-alpha; whole song: the last chorus, 'home', 3:02.6-3:41.7): SEVENTEEN, SIXTEEN AND FIFTEEN PULLS LAND
+# ON ONE CHORD. The song is three counts: the crew pulls every sixteen, the left hand's riff is fifteen long, the
+# right hand's seventeen. The verses play one against another for a few bars and the choruses throw the riffs away
+# (all four guitars play the crew's four), so the record's own rule, long cycles over one pulse that land together
+# after a long wait, had never happened in this song: no stretch was long enough. Fifteen bars is 240 sixteenths:
+# sixteen fifteens exactly, and fourteen seventeens and two. So in the last chorus the two hands go back to their
+# own lengths under the crew: the left hand hauls its fifteen from the downbeat (a sixteenth earlier against the
+# pull every bar), the right hand its seventeen from an eighth after it (a sixteenth later every bar), and fifteen
+# bars on the left has pulled seventeen times, the crew sixteen, the right fifteen, and all land on the one long
+# chord under 'haul her home', which was already there. The second pair of guitars, the bass and the foot keep the
+# chorus in four as written; each hand's stroke takes the chord of the bar it falls in. Nothing else changes.
+# 'Home' reads 0.2 dB louder after the master at the same raw level (the hands' strokes no longer pile on the
+# walls'), so the target moves and every other section has the gain it had.
+# the left hand's riff length ; the right hand's ; the bar of 'home' (from 0) on whose downbeat both land ; dB on the
+# two hands' faders through it ; dB on the wall pair's ; the loudness target ("" = unchanged). "" = v12.
+LONG = os.environ.get('C10T15_LONG', '15;17;15;0;0;-9.9' if TEETH else '')
 BARK = 'kidman synth.layers.0.diction=2 synth.layers.0.speech=1'
 # five men: the kit piece, where in the spread his foot lands (0..1), how hard against the others, his board's
 # note, where he stands, how long his board rings (ms)
@@ -444,12 +460,25 @@ def make():
             kit(c + 48, 'ft', .92)
             kit(c + 48, 'x', .9)
 
-    def chorus(a, bars, wide, last_long=False, high=False, pickup=False):
+    def chorus(a, bars, wide, last_long=False, high=False, pickup=False, hands=None):
         gtrs = ('gl', 'gr', 'wl', 'wr') if wide else ('gl', 'gr')
+        if hands:
+            # v13: the two hands haul their own lengths under the crew's four, each stroke on the chord of the bar
+            # it falls in, and both land on the downbeat of bar `land`; the walls, the bass and the foot stay in four
+            left, right, land = hands
+            for tr, riff, length in (('gl', RIFF15 if left == 15 else RIFF17, left), ('gr', RIFF17 if right == 17 else RIFF15, right)):
+                head = a + land * BAR
+                first = head - length * ((head - a) // length)         # its first head at or after the section's start
+                for k in range((head - first) // length):
+                    for pos, kind, semi, dur in riff:
+                        t = first + k * length + pos
+                        stroke((tr,), t, kind, semi, min(dur, head - t - .1), F1 + CHORDS[((t - a) // BAR) % 8], bass=False, kick=False)
         for b in range(bars):
             t0 = a + b * BAR
             root = F1 + CHORDS[b % 8]
             final = b % 8 == 7
+            if hands:
+                gtrs = ('wl', 'wr') if b < hands[2] else ('gl', 'gr', 'wl', 'wr')
             built = BUILT.split(';') if BUILT else None
             ends = last_long and b == bars - 1                        # the song's last chorus bar: one long chord, as it was
             walks = bool(built and built[0] == '1') and not ends
@@ -554,7 +583,7 @@ def make():
         elif sec in ('all together', 'all together again'):
             chorus(a, bars, wide=sec != 'all together', pickup=sec == 'all together')
         elif sec == 'home':
-            chorus(a, bars, wide=True, last_long=True, high=True)
+            chorus(a, bars, wide=True, last_long=True, high=True, hands=tuple(int(x) for x in LONG.split(';')[:3]) if LONG else None)
         elif sec == 'easy':
             land = marks_next['both hands'] + 7 * BAR
             for tr, riff, length in (('clean-l', RIFF15, 15), ('clean-r', RIFF17, 17)):
@@ -810,6 +839,18 @@ def build():
             doc['loudness'] = float(target)
     if TEETH and TEETH.split(';')[9]:
         doc['loudness'] = float(TEETH.split(';')[9])
+    if LONG:
+        home = sum(n for s_, n in FORM[:[s_ for s_, _ in FORM].index('home')]) * BAR
+        for names, db in ((('gl', 'gr'), float(LONG.split(';')[3])), (('wl', 'wr'), float(LONG.split(';')[4]))):
+            if db:
+                span = [['0b', 0], [f'{(home - 2) / GRID:g}b', 0], [f'{home / GRID:g}b', db],
+                        [f'{(home + int(LONG.split(";")[2]) * BAR - 2) / GRID:g}b', db], [f'{(home + int(LONG.split(";")[2]) * BAR) / GRID:g}b', 0]]
+                for t in doc['tracks']:
+                    if t['name'] in names:
+                        t['gain'] = {'value': t['gain'], 'mod': [{'src': 'auto.long', 'amount': 1}]}
+                        t['auto'] = {**t.get('auto', {}), 'long': {'points': span, 'curve': 0}}
+        if LONG.split(';')[5]:
+            doc['loudness'] = float(LONG.split(';')[5])
     return doc, marks
 
 
