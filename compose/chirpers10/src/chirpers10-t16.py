@@ -271,6 +271,21 @@ if PEG:
 # which is what the room took from their level. "" = as v7.
 AIR = os.environ.get("C10T16_AIR", "0.06;-0.5" if PEG else "")
 PAIR = STILL + (f" fx.1.mix={AIR.split(';')[0]}" if AIR else "")
+# v9 (chirper-one; instrument round: THE BASS SAYS ITS OWN NOTE). The song is one note, and what the band stands on
+# is the bass holding it (here it holds; on the other songs it chugs). Read alone, on low F the bass's loudest
+# partial was not the F but the twelfth, the C at 131 Hz: the fundamental 2.6 dB under it and the octave 2.1. On
+# the low E flat of 'three' the twelfth (B flat) stood 6.5 dB over both. So where the ground is lowest the bass
+# hummed the fifth of its note. That is the album chain's octave lift (7.5 dB at 90 Hz, q 1): at q 1 it lifts the
+# twelfth nearly as much as the octave. (Not read on the other songs, where the bass chugs.) Against
+# the records the same thing read as the wrong band: the bass 2.7 dB under their basses at 60-120 Hz and 6.7 over
+# at 120-250, where it held 44% of a mix that stood 3.2 over, the band the two reeds' own note is in.
+# Now the lift is ON the octave and narrow (87.3 Hz on F, q 1.6, 9.5 dB) and the twelfth has a dip of its own (q 2,
+# -6 dB); both follow the ground as the chain's other bands do. The fader comes up 1 dB, which is what the bass
+# lost on B, where nothing was wrong. The octave is the loudest partial on F and on E flat; on A flat and B the
+# fundamental is, as it was. Nothing else in the chain moves and no note changes.
+# the octave's lift: Hz on F : q : dB ; the dip on the twelfth: Hz on F : q : dB (both follow the ground) ; the
+# bass's fader, dB ; the loudness target (fitted so the opening, which has no bass, is at v8's gain). "" = v8.
+BASS = os.environ.get("C10T16_BASS", "87.3:1.6:9.5;131:2:-6;1.5;-9.91" if AIR else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -557,7 +572,7 @@ def build():
                                                      "gain": SIDES.split(";")[3].split(":")[1] + "dB"}]}]),
             "auto": {"key": {"points": key, "curve": 0}}} for side, cone, pan in (("left", "37", -0.92), ("right", "41", 0.92))] if ALSO else []),
         # the bass holds its notes here (on the other songs it chugs): half of 120-250 Hz was its overtones
-        track("bass", "ct-bass", "0.5dB", 0, "low", [{"type": "eq", "bands": ["peak cutoff=180 q=1 gain=-3dB"]}]),
+        track("bass", "ct-bass", (BASS.split(";")[2] if BASS else "0.5") + "dB", 0, "low", [{"type": "eq", "bands": ["peak cutoff=180 q=1 gain=-3dB"]}]),
         track("foot", "ct-kit", "3.5dB", 0, "drums", [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]),
         track("snare", "ct-kit", "3.5dB", 0, "drums", [{"type": "eq", "bands": ["highshelf cutoff=7000 gain=-3dB"]}], {"oh": "-1.5dB"}),
         *(toms if TOMS else [track("skins", "ct-kit", "-3dB", 0, "drums")]),      # at 1.5 dB they were half of everything from 60 to 500 Hz
@@ -579,7 +594,9 @@ def build():
         "oh": {"fx": ["reverb kind=room decay=0.7s mix=1 predelay=4ms low_cut=5000 high_cut=12000 spread=0.6",
                       {"type": "eq", "bands": ["lp cutoff=14250 q=0.8"]}]},
         "low": {"fx": [{"type": "eq", "bands": [{"kind": "peak", "cutoff": keyed(44), "q": 1.5, "gain": "-7dB"},
-                                                {"kind": "peak", "cutoff": keyed(90), "q": 1.0, "gain": "7.5dB"},
+                                                *([{"kind": "peak", "cutoff": keyed(float(x.split(":")[0])), "q": float(x.split(":")[1]), "gain": x.split(":")[2] + "dB"}
+                                                   for x in BASS.split(";")[:2]] if BASS else
+                                                  [{"kind": "peak", "cutoff": keyed(90), "q": 1.0, "gain": "7.5dB"}]),
                                                 {"kind": "peak", "cutoff": 350, "q": 1.0, "gain": "-8dB"},
                                                 {"kind": "peak", "cutoff": 1500, "q": 1.0, "gain": "4dB"}]},
                        {"type": "compressor", "threshold": "-26dB", "ratio": 8.0, "attack": "12ms", "release": "120ms", "makeup": "2.5dB"},
@@ -606,6 +623,8 @@ def build():
         doc["loudness"] = float(SIDES.split(";")[2])
     if PEG and PEG.split(";")[2]:
         doc["loudness"] = float(PEG.split(";")[2])
+    if BASS and BASS.split(";")[3]:
+        doc["loudness"] = float(BASS.split(";")[3])
     return doc, marks, end
 
 
