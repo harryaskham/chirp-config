@@ -233,6 +233,25 @@ class Pass(unittest.TestCase):
         self.assertEqual(climb.holders({"id": "a", "passed_by": [{"who": "chirper-two", "at": iso(t0 + 60)}]}, "chirper-one",
                                        st=[s], t=t0 + 120), [])
         self.assertEqual(climb.holders({"id": "a"}, "chirper-one", st=[s], t=t0 + 120), ["chirper-two"])
+        # chirper-two, 19 Nov: her round was recorded, THEN someone else's: the climb's last round is no longer hers, and
+        # her start read as a lock again until it aged out. Any round of hers since the start releases it; a note does not.
+        os.makedirs(climb.HIST, exist_ok=True)
+        path = os.path.join(climb.HIST, "rel-hist.jsonl")
+        self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+        later = {"id": "rel-hist", "last": {"who": "chirper-one", "at": iso(t0 + 900)}}
+        s2 = {"id": "rel-hist", "who": "chirper-two", "t": t0}
+        with open(path, "w") as f:
+            f.write(json.dumps({"round": 3, "at": iso(t0 + 60), "who": "chirper-two", "steer": True, "note": "a note"}) + "\n")
+        self.assertFalse(climb.released(later, s2))
+        self.assertEqual(climb.holders(later, "chirper-three", st=[s2], t=t0 + 1000), ["chirper-two"])
+        with open(path, "a") as f:
+            f.write(json.dumps({"round": 3, "at": iso(t0 - 600), "who": "chirper-two", "version": "v3", "kept": True}) + "\n")
+        self.assertFalse(climb.released(later, s2))                                     # a round of hers BEFORE the start
+        with open(path, "a") as f:
+            f.write(json.dumps({"round": 4, "at": iso(t0 + 300), "who": "chirper-two", "version": "v4", "kept": True}) + "\n")
+            f.write(json.dumps({"round": 5, "at": iso(t0 + 900), "who": "chirper-one", "version": "v5", "kept": True}) + "\n")
+        self.assertTrue(climb.released(later, s2))
+        self.assertEqual(climb.holders(later, "chirper-three", st=[s2], t=t0 + 1000), [])
         st = [s, {"id": "a", "who": "chirper-alpha", "t": t0 + 460}]
         note = [{"round": 3, "who": "chirper-two", "at": iso(t0 + 230), "note": "a steering note", "steer": True}]
         self.assertEqual(len(climb.collided("a", "chirper-alpha", st=st, hist=note)), 1)   # a real note carries `round`

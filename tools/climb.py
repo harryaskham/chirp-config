@@ -452,9 +452,14 @@ def commit_or_die(paths, msg, args):
 # ── sampling ───────────────────────────────────────────────────────────────────────────────
 
 def released(c, s):
-    """Has the agent of start S let this climb go since: a round recorded on it, or a pass (`climb.py pass`)?"""
+    """Has the agent of start S let this climb go since: a round recorded on it, or a pass (`climb.py pass`)?
+    ANY round of theirs since the start, not only the climb's last one (chirper-two, 19 Nov: chirper-one started
+    Extreme and Mean at 02:17 and recorded v18 at 02:27; chirper-two recorded v19 at 02:58; the last round was then
+    chirper-two's, so chirper-one's start read as a lock again until it aged out at 03:47, and the song was out of
+    everyone's draw with nobody on it). A note finishes nothing: only recorded rounds are read from the history."""
     who = agent_names(s.get("who"))
-    for r in [c.get("last") or {}] + list(c.get("passed_by") or []):
+    rounds = [r for r in history(c["id"]) if not r.get("steer")] if c.get("id") else []
+    for r in [c.get("last") or {}] + list(c.get("passed_by") or []) + rounds:
         if not (agent_names(r.get("who")) & who):
             continue
         try:
@@ -917,7 +922,11 @@ ROUND_TYPES = {
                    "renders at both seeds. KEEP A TONE CHANGE ON THE MIX'S READ, not the part's alone (`stembal.py song … "
                    "--voice`): the records' stems do not sum to their mixes, so a rig fitted to a record's lone guitar can "
                    "be right alone and wrong in the mix (chirper-zero, Common Time round 63: a 760 Hz cut fitted the rig "
-                   "alone and left the mix 2.2 dB under). READ THE CHANGED WINDOW BEFORE `done`, not "
+                   "alone and left the mix 2.2 dB under). CHECK A BENCH MATCH ON A MASTERED "
+                   "RENDER: a bowed or sawtooth-like part is a spike every period, and one whose highest raw sample passes "
+                   "about -10 dBFS is turned down by the master limiter for as long as it plays (chirper-zero, Still Owing "
+                   "v18: a voicing that matched on the raw bench came out 4.5 LU under in the full render), so set such a "
+                   "part by its highest raw sample. READ THE CHANGED WINDOW BEFORE `done`, not "
                    "after, and a new voice's HARMONICS before its loudness (chirper-zero, On Its Hinge v16 to v17: a bowed "
                    "string whose first harmonic stood 10 to 19 dB over the rest was mostly one low tone, +3.1 dB at "
                    "250-500 Hz, and the read that caught it was stamped after publishing). "
