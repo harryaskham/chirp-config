@@ -319,6 +319,44 @@ TEETH = os.environ.get("C10T7_TEETH", "0.35;-2;0.4;52,53;0.15;-0.7;-9.763") if S
 # snare's velocity, first : last ; how many sixteenths before the landing the band plays only the strokes the snare
 # plays (0 = the riff as written) ; the loudness target ("" = unchanged). "" = v23.
 BOUNCE = os.environ.get("C10T7_BOUNCE", "3:89;21,13,8,5,3,2,1,1,1;0.95:1;13;") if TEETH else ""
+# v25 (chirper-two; palette round: the part the song lacked, a singer): THE RULE IS SUNG. The song's instruments say
+# the rule at every size and nobody has ever said what it is. In the first quiet section (0:43.7-1:10.7: the wire
+# harp, the clean guitar's five chords, a soft kick and ride) a low man's voice sings Euclid's definition, once:
+#     Break / one line / so the whole / is to the longer / as the longer to what remains.
+# Nineteen syllables in phrases of 1, 2, 3, 5 and 8, and nothing is placed by hand. EACH PHRASE IS A LINE OF THE RULE,
+# L, LS, LSL, LSLLS, LSLLSLSL, sung a syllable to a cell of the riff (a long cell three sixteenths, a short one two),
+# so the phrases last 3, 5, 8, 13 and 21 sixteenths; each begins where one of the section's five chords begins
+# (0:43.7, 0:50.1, 0:54.0, 1:00.4, 1:06.75), and the last, eight syllables, fills its chord's 21 sixteenths to the
+# sixteenth and ends where the band comes back. THE NOTES ARE THE HARP'S OWN for those cells (the L-system's turtle),
+# an octave under it: F; A flat, C; A flat, C, C; A flat, C, C, C, E flat; C, E flat, E flat, E flat, F, E flat, F, F.
+# So the tune is each line followed by the line before it a step up, as the harp's is.
+# AN OCTAVE UNDER, NOT ON, THE HARP: at the harp's own octave the harp plucks the singer's own note on every
+# syllable, and in the passage the recogniser wrote 'locker' and 'walker' for 'longer' in four reads of four (a
+# struck part on a voice's notes and onsets adds a consonant: Where It Was v23 found it). An octave under it read
+# 'longer' in four of nine.
+# THE VOICE: voice-legato with a longer tract (1.1: a bass), ring and effort up, dry, with a little of the hall the
+# harp has. Against the records' voices (voxref), 250 Hz to 8 kHz: +5.0, -0.3, -1.8, -0.2, +3.5 (a bass voice has its
+# body where they have none; under 250 Hz +11.6). Its syllables came 11 dB apart: evened by note to 4.3.
+# TWO THINGS THE MASTER DOES HERE, both found on finished files. (1) It lifts this quiet section 11.6 dB (raw K
+# -28.3, finished -16.7), until the harp's plucks touch the ceiling: so a low voice, whose every cycle is a spike,
+# was turned down by the limiter (bench +5.8 over everything else, finished +4.0 to +5.0) and took the harp down
+# with it. A ceiling on the voice's own track (clip at -12 dB before the fader) takes 8 to 10 dB off its highest
+# samples and leaves its level and tone within 0.5 dB. (2) Lifted so, a voice 5 dB over the harp measured LOUDER
+# than the band either side (its phrases K -10.4 to -11.4, the band -11.7): so it is set level with what plays
+# under it. As mastered, three seeds: the voice's syllables -14.7 dB K, +0.9 to +1.6 over everything else; the
+# phrases with the voice in them -12.0 to -12.6 (v24: -14.5 to -16.9; the band either side -11.4 to -11.8); the
+# section +2.0 to +2.1 dB (K). The target -9.763 -> -9.667 keeps every other section within 0.03 dB of v24.
+# the quiet section it is sung in (from 0) ; the voice ; its fader ; pan ; semitones against the harp's own notes ;
+# velocity ; its eq, band|band ; hall send ('' = none) ; dB on each of the nineteen syllables, in order ('' = none) ;
+# the loudness target ('' = unchanged) ; a ceiling for the voice's own peaks, before its fader ('' = none).
+# "" = v24 byte for byte.
+SUNG = os.environ.get("C10T7_SUNG", "1;voice-legato synth.layers.0.diction=3 synth.layers.0.ring=1.0 synth.layers.0.effort.value=0.9 fx.0.mix=0 synth.layers.0.tract=1.1;"
+                                    "-5.7dB;0;-12;0.85;hp cutoff=300|lowshelf cutoff=900 gain=-9dB|peak cutoff=350 q=0.9 gain=-6dB|peak cutoff=3000 q=0.8 gain=6dB|peak cutoff=6500 q=0.8 gain=-2dB;"
+                                    "-14dB;-0.5,1.9,-2.1,2.7,0.3,2.0,-0.1,7.1,0.5,0.0,-1.0,-4.3,-1.4,-2.5,-1.0,6.0,0.8,-2.2,-4.1;-9.667;-12dB") if BOUNCE else ""
+# Euclid's definition in nineteen syllables, cut by the rule: phrases of 1, 2, 3, 5 and 8 syllables
+WORDS = [("B R EY1 K",), ("W AH1 N", "L AY1 N"), ("S OW1", "DH AH0", "HH OW1 L"), ("IH1 Z", "T UW1", "DH AH0", "L AO1 NG", "G ER0"),
+         ("AE1 Z", "DH AH0", "L AO1 NG", "G ER0", "T UW1", "W AH1 T", "R IH0", "M EY1 N Z")]
+SAID = [("break",), ("one", "line"), ("so", "the", "whole"), ("is", "to", "the", "long", "er"), ("as", "the", "long", "er", "to", "what", "re", "mains")]
 
 
 def nm(n):
@@ -1137,7 +1175,7 @@ def song():
     for s0, kind, n in SECS:
         if kind == "S":
             qpts += [[f"{s0 / 4 - 0.02:g}b", 0], [f"{s0 / 4:g}b", float(QBASS)], [f"{(s0 + n) / 4 - 0.02:g}b", float(QBASS)], [f"{(s0 + n) / 4:g}b", 0]]
-    return {
+    doc = {
         "about": ("chirpers X (Common Time), track 7 by chirper-zero: Extreme and Mean. Two cells, a long of three sixteenths and a short "
                   "of two, and one rule: a long becomes a long and a short, a short becomes a long. The pattern it makes never loops and "
                   "is the same at every size, so the band plays it at many sizes at once: muted strokes, open notes, chords, crashes, "
@@ -1211,6 +1249,38 @@ def song():
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}, {"type": "gain", "gain": os.environ.get("C10T7_MASTER", "2.7dB")}]},
         "tracks": tracks,
     }
+    if SUNG:
+        the_rule_is_sung(doc)
+    return doc
+
+
+def the_rule_is_sung(doc):
+    """v25: in a quiet section a voice sings Euclid's definition. Each of the section's five chords begins a phrase, and the
+    phrases are the rule's first five lines: L, LS, LSL, LSLLS, LSLLSLSL, a syllable to a cell of the riff (a long cell
+    three sixteenths, a short one two), on the harp's own note for that cell."""
+    sec, patch, gain, pan, semis, vel, eq, hall, trims, loud, top = SUNG.split(";")
+    s0, kind, n = SECS[int(sec)]
+    assert kind == "S"
+    chords = [c for c in LEV[5] if s0 <= c[0] < s0 + n]
+    riff = [c for c in LEV[0] if s0 <= c[0] < s0 + n]
+    first = {c[0]: i for i, c in enumerate(riff)}
+    tune = harp_tune(8)
+    assert len(chords) == len(WORDS) == 5 and len(riff) == len(tune) == 55
+    trim = [float(x) for x in trims.split(",")] if trims else [0.0] * sum(map(len, WORDS))
+    assert len(trim) == sum(map(len, WORDS)) == 19
+    notes = []
+    for (p, _, ln), phrase, said, line in zip(chords, WORDS, SAID, range(1, 6)):
+        cells = riff[first[p]:first[p] + len(phrase)]
+        # each phrase IS a line of the rule, and (the last) fills its chord to the sixteenth
+        assert "".join(c[1] for c in cells) == word(line) and sum(c[2] for c in cells) <= ln
+        for (q, _, m), ph, w, step in zip(cells, phrase, said, tune[first[p]:]):
+            notes.append({"at": round(q / 4, 4), "len": round(m / 4 * 0.98, 4), "pitch": nm(POOL[step] + KEY[int(sec)] + int(semis)),
+                          "vel": float(vel), "ph": ph, **({"gain": f"{trim[len(notes)]:g}dB"} if trim[len(notes)] else {})})
+    assert notes[-1]["at"] * 4 + riff[-1][2] == s0 + n            # the last word ends where the band comes back
+    doc["tracks"].append({"name": "sung", "patch": patch, "gain": gain, "pan": float(pan), **({"sends": {"hall": hall}} if hall else {}),
+                          "fx": ([{"type": "eq", "bands": eq.split("|")}] if eq else []) + ([f"clip drive=0dB ceiling={top}"] if top else []), "notes": notes})
+    if loud:
+        doc["loudness"] = float(loud)
 
 
 def dump(doc):
