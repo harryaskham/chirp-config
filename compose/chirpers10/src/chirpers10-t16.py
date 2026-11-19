@@ -37,6 +37,9 @@ the band has one chord left.
 Inside each kick, then, there is one cell: two against three against four (guitar, toms, hat). It is the same cell at
 every width; only how many of them fit the snare's bar changes.
 
+(Since v8 the hair is never moved in a step: between these widths the peg is turned, and the band follows the
+pair's swell as it quickens or slows. See PEG below.)
+
 v1 is the SKELETON: the whole shape standing, bare (Harry, 19 Nov: "each climber can go crazy and make the song they
 want to mkae"). The pair's pitches are written in hertz, so that the hair is a number of cycles and not of cents.
 
@@ -220,6 +223,57 @@ CYMBALS = os.environ.get("C10T16_CYMBALS", f"-13dB;-0.3;2793.82;bell cymbal -12;
 SIDES = os.environ.get("C10T16_SIDES", "five=23:2,seven=23:24,three=234:234,square again=23:24;0.78;-9.861;3:-6" if CYMBALS else "")
 ALSO = "-said" if SIDES and SIDES.split(";")[3] else ""     # where the added strokes go
 SAID = {x.split("=")[0]: tuple(x.split("=")[1].split(":")) for x in SIDES.split(";")[0].split(",")} if SIDES else {}
+# v8 (chirper-two, whole song): ONE HAND ON THE PEG. v1's second want, and v3's unfinished one: "every change of
+# width was a cut at a bar line, and tuning is not done in cuts". v3 turned the peg once, for two bars (five into
+# seven). Nine changes of width were still cuts: the opening went in two steps and the close in three, as if the
+# tuner let go of the peg and took it up again somewhere else. Now the hair's width is ONE LINE through the whole
+# song, with no step in it anywhere:
+#   in tune       still (0:00)
+#   THE OPENING   one turn, eight bars (0:07.3-0:36.4): the hair opens from nothing to one pulse a beat. The pair is
+#                 struck once and its swell quickens under the hand: 7.3 seconds to the first return, then 3.0,
+#                 2.3, 1.9 ... 0.92, and the sixteenth swell IS the band's first beat. Kick, great drum, cymbals,
+#                 toms and handpan fall where the swell does, so the song begins as one long accelerando that
+#                 nobody counts, into a tempo that was there all along (the snare, from 0:21.8, keeps it)
+#   square        six bars, then two in which it quickens into five (nine pulses for eight)
+#   five          six bars, then v3's two into seven
+#   seven         six bars, then two in which it SLOWS into three (ten pulses for fourteen: 0.53 s apart to 1.10)
+#   three         six bars, then two in which it quickens back to square (seven pulses for six)
+#   square again  eight bars
+#   THE CLOSE     one turn, six bars (3:01.8-3:23.6): the hair closes from one pulse a beat to nothing. Twelve
+#                 pulses, each further from the last (0.93 s, 0.97 ... 2.0, 2.6, and 6.3 to the last chord), the
+#                 toms and snare leaving at 3:09.1 and the hat at 3:16.4 as before. The song ends as tuning ends:
+#                 the peg is turned until the wobble slows, and stops
+# 22 of the 58 bars are turned now (2 before). Nothing new plays: the strokes are solved from the pair's phase, as
+# v3's are (the integral of the hair's width; a stroke where it is whole, the guitars' at halves, the toms' at
+# thirds, the hat's at quarters), who plays a pulse is who played the section it begins in, the handpan says and
+# listens in v2's order a pulse at a time, and the snare and china keep the bar. The third reed is not touched.
+# MEASURED (the pair alone, raw: the swell of its fundamental against the written kicks): the opening's fifteen
+# within 11 ms (median 5); into five within 6; into three within 19; out of three within 6; the close's eleven
+# within 13 (median 5). v3's own two bars read up to 37 ms and are not touched.
+# AND THE PAIR'S ROOM NO LONGER FILLS THE SWELL (AIR). Found while measuring the turns: each reed carried the
+# library harmonium's own room (1.3 s, a fifth of the signal), and a room rings on through the moment the two reeds
+# cancel. Alone, the swell's depth (how far the pair falls between pulses; overtones 1 to 4, both ears summed) read
+# 34, 20, 17, 17 dB in 'square', 16, 23, 27, 19 in 'five' and 19, 21, 17, 19 in 'seven', and in the left ear as
+# little as 11; with no room at all it is 30 to 35 everywhere. The same room at a third of the level (0.06) gives
+# 35, 26, 27, 28 / 25, 32, 32, 28 / 27, 28, 25, 28 (the left ear 18 to 30), and the reeds' faders come down 0.5 dB,
+# which is what the room had taken (the pair alone within 0.1 dB of v7, K). Eleven of the twelve readings are 5 to
+# 11 dB deeper (the twelfth, the first overtone in 'square', was 34 already).
+# the long turns: sections+sections=width at the start>width at the end, ... ; further two-bar turns, as SLIDE ;
+# the loudness target ("" = unchanged). "" = v7.
+PEG = os.environ.get("C10T16_PEG", "a hair+wider=0>1,a half+a quarter+an eighth=1>0;square:2,seven:2,three:2;-9.821" if SIDES else "")
+RAMPS, RAMPED = {}, {}
+if PEG:
+    for x in filter(None, PEG.split(";")[0].split(",")):
+        RAMPS[x.split("=")[0].split("+")[0]] = (tuple(x.split("=")[0].split("+")), Fr(x.split("=")[1].split(">")[0]), Fr(x.split("=")[1].split(">")[1]))
+        RAMPED.update({n: x.split("=")[0].split("+")[0] for n in x.split("=")[0].split("+")})
+    SLIDES = {**SLIDES, **{x.split(":")[0]: int(x.split(":")[1]) for x in filter(None, PEG.split(";")[1].split(","))}}
+# THE PAIR'S ROOM: how much of the reeds' own room is heard (the library's is 0.2) ; dB on the two reeds' faders,
+# which is what the room took from their level. "" = as v7.
+AIR = os.environ.get("C10T16_AIR", "0.06;-0.5" if PEG else "")
+PAIR = STILL + (f" fx.1.mix={AIR.split(';')[0]}" if AIR else "")
+# what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
+TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
+                "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
 
 
 def places(said):
@@ -247,12 +301,13 @@ def turned(f, r0, r1, beats, held):
         return out
 
     a, z = 0.0, 2 * 12 * math.log2((f + float(r1) * HAIR) / lo)
-    for _ in range(60):                      # the far end that makes the count whole
+    for _ in range(60):                      # the far end that makes the count whole (v8: a peg may be turned down too)
         size = (a + z) / 2
-        a, z = (size, z) if phases(size)[-1] < n else (a, size)
+        a, z = (size, z) if (phases(size)[-1] < n) == (r1 > r0) else (a, size)
     table = phases(size)
 
     def when(p):
+        p = float(p)                         # (a Fraction against 4000 floats, a thousand times over, took most of a minute)
         if p >= table[-1]:
             return float(beats)
         i = max(j for j in range(steps) if table[j] <= p)
@@ -274,10 +329,61 @@ def build():
     def kit(tr, at, piece, vel):
         put(tr, at, piece, 0.95 if piece in ("c", "x") else 0.29, vel)
 
+    def turn(b0, names, r0, r1):
+        """v8: one turn of the peg through several sections. The hair goes from r0 to r1 pulses a beat in a straight
+        line, the pair is struck once, and every stroke falls where the pair's own swell does (as in v3's two bars).
+        Who plays a pulse is who played the section it begins in."""
+        secs, at = [], 0
+        for name, r, bars, ground, who in FORM:
+            if name in names:
+                secs.append((at, at + 4 * bars, name, who, ground))
+            at += 4 * bars
+        assert secs[0][0] == b0 and all(x[1] == y[0] for x, y in zip(secs, secs[1:])), names
+        total, f, root = secs[-1][1] - b0, hz(REED + secs[0][4]), 29 + secs[0][4]
+        size, n, when = turned(f, r0, r1, total, total - 0.04)
+        put("reed", b0, f"{f:.3f}hz", total - 0.04, 0.8)
+        put("hair", b0, f"{f + float(r0) * HAIR:.3f}hz", total - 0.04, 0.8)
+        ev["hair"][-1].update(patch=GLIDER, expr={"slide": 0.0}, expr_end={"slide": round(size, 6)})
+        seen = defaultdict(int)
+        for p in range(n):
+            t0, t1 = when(Fr(p)), when(Fr(p + 1))
+            _, _, name, who, _ = next(x for x in secs if x[0] <= b0 + t0 < x[1])
+            i, seen[name] = seen[name], seen[name] + 1               # this section's i-th pulse
+            if "k" in who:
+                kit("foot", b0 + t0, "k", 0.98 if i == 0 else 0.88)
+                if "g" in who:
+                    put("bass", b0 + t0, nm(root), t1 - t0 - 0.1, 0.95 if i == 0 else 0.9)
+            if "g" in who:
+                half = when(Fr(2 * p + 1, 2))
+                for tr in ("left", "right"):
+                    put(tr, b0 + t0, f"{nm(root)},{nm(root + 7)}", half - t0 - 1 / 12, 0.92)
+                    put(tr, b0 + half, nm(root), min(0.3, (t1 - half) * 0.6), 0.82, mute=True)
+            if "t" in who:
+                for j in range(3):
+                    kit("skins", b0 + when(Fr(3 * p + j, 3)), ("ft", "t2", "t1")[j], 0.8 if j == 0 else 0.62)
+            if "h" in who:
+                for j in range(4):
+                    kit("hat", b0 + when(Fr(4 * p + j, 4)), "h", 0.62 if j == 0 else 0.42)
+            if PAN and name in TURNED_NAMED and (b0 < 40 or PAN.split(";")[2]):
+                for k in TURNED_NAMED[name][i]:                      # overtone k, k times to the pulse
+                    for j in range(k):
+                        put("pan" if b0 < 40 else "pan-out", b0 + when(Fr(k * p + j, k)), f"{k * f:.3f}hz", min(2, (t1 - t0) / 2),
+                            round(TOUCH[k] + (0.2 if name == "an eighth" else 0), 2))
+        assert all(seen[x] == len(TURNED_NAMED[x]) for x in seen if x in TURNED_NAMED), dict(seen)
+
     b = 0                                    # in beats
     for num, (name, r, bars, ground, who) in enumerate(FORM):
         marks.append((name, b, r, bars))
         f = hz(REED + ground)
+        if name in RAMPED:                   # v8: the peg is turned through this section (the whole turn is written at its first)
+            if name in RAMPS:
+                turn(b, *RAMPS[name])
+            if "s" in who:                   # the snare is not in the rule
+                for bar in range(b, b + 4 * bars, 4):
+                    kit("snare", bar + 1, "s", 0.9)
+                    kit("snare", bar + 3, "s", 0.95)
+            b += 4 * bars
+            continue
         # how often the pair is struck again: a bar (two when the pulse is that slow; once when there is no pulse at all)
         span = 4 * bars if not r else 8 if r == Fr(1, 8) else 4
         tail = 4 * SLIDES.get(name, 0)       # v3: beats at the section's end in which the hair glides to the next width
@@ -442,8 +548,8 @@ def build():
         # at F3, twice that an octave up) and its bellows tremble at 1.3 Hz: three slow pulses that are not in tempo,
         # under the one that is. Here the second reed is in unison and the bellows are steady, so the only wobble in
         # the song is the hair.
-        track("reed", STILL, "-9.5dB", -0.12, fx=[{"type": "eq", "bands": ["peak cutoff=300 q=0.8 gain=-6dB"]}]),
-        track("hair", STILL, "-9.5dB", 0.12, fx=[{"type": "eq", "bands": ["peak cutoff=300 q=0.8 gain=-6dB"]}]),
+        track("reed", PAIR, f"{-9.5 + (float(AIR.split(';')[1]) if AIR else 0):g}dB", -0.12, fx=[{"type": "eq", "bands": ["peak cutoff=300 q=0.8 gain=-6dB"]}]),
+        track("hair", PAIR, f"{-9.5 + (float(AIR.split(';')[1]) if AIR else 0):g}dB", 0.12, fx=[{"type": "eq", "bands": ["peak cutoff=300 q=0.8 gain=-6dB"]}]),
         track("left", "ct-twin fx.2.cone=37" + palm, "0.5dB", -0.92, "strings", mid),
         track("right", "ct-twin fx.2.cone=41" + palm, "0.5dB", 0.92, "strings", mid),
         *([{**track(side + ALSO, "ct-twin fx.2.cone=" + cone + palm, "0.5dB", pan, "strings",
@@ -487,7 +593,7 @@ def build():
         tempo=BPM, seed=1, length=f"{end:g}b", tail="5s", ceiling="-1dB", loudness=float(PAN.split(";")[3]) if PAN else -10, event_stable=True,
         buses=buses, master={"fx": [{"type": "eq", "bands": ["hp cutoff=24"]}]}, tracks=tracks,
         **({"patches": {GLIDER: {"about": "chirper-three: Close Enough's still reed (one harmonium reed, steady bellows) with a pitch that follows a note's `slide`, in semitones: the peg being turned",
-                                 "extends": STILL, "synth": {"pitch": {"value": 0, "mod": [{"src": "expr.slide", "amount": 1}]}}}}} if SLIDES else {}))
+                                 "extends": PAIR, "synth": {"pitch": {"value": 0, "mod": [{"src": "expr.slide", "amount": 1}]}}}}} if SLIDES else {}))
     if tuned:
         doc["patches"] = {**doc.get("patches", {}), **tuned}
     if THIRD and THIRD.split(";")[2]:
@@ -498,6 +604,8 @@ def build():
         finger_cymbals(doc)
     if SIDES and SIDES.split(";")[2]:
         doc["loudness"] = float(SIDES.split(";")[2])
+    if PEG and PEG.split(";")[2]:
+        doc["loudness"] = float(PEG.split(";")[2])
     return doc, marks, end
 
 
