@@ -241,6 +241,20 @@ TWELVE = os.getenv('C10T11_TWELVE', '2;4;0;1;-9.965' if SNARE and KETTLE else ''
 # in, the last with the last group ('' = none) ; `m` = clipped strokes only, `all` = and the riff's last note ;
 # the toms' first and last velocity ; the loudness target ('' = unchanged). Empty restores v20 byte for byte.
 TAIL = os.getenv('C10T11_TAIL', '3;wallL,wallR;m;0.42,0.86;' if TWELVE else '')
+# v22 (chirper-alpha; section w8, 3:06-3:29, the one window nobody had worked; the change is 3:07.5-3:20, the last
+# five cells of 'home', and one stroke at 3:20): THE STRIDE LENGTHENS UNTIL THE DOOR SHUTS. The riff never changes
+# and the walk under it does: six quick steps to a cell or four broad ones, and each at half speed (three, two:
+# v13). Home came back on four and stayed on four for all eight cells, then three chords. Now its last five cells
+# are every walk the song has, in order of stride, a cell each: six (one last quick turn), four (with the crash,
+# as written), three, two, one. Only the drummer's hands change (the ride on each step, the backbeat on every
+# second step): the chords, the bass, the kick under them and the bow are as written. The walk of one step has its
+# backbeat a whole cell later, which is the first of the three closing chords: the song's last snare falls there.
+# The backbeat's gaps from 3:05, in sixteenths: 12, 10, 8, 8, 10, 12, 14, 28, 36, and the last is the chord.
+# (The snare stroke a sixteenth before each of the bow's last three answers is among those that leave: the half
+# second before each is 0.5 to 0.7 dB quieter; the bow as it enters stands where v17 left it.)
+# the walks of home's last cells, steps a cell, one a cell, ending with its last ('' in the list = none) ; 1 = the
+# one-step walk's backbeat falls on the first chord of 'shut' ; the loudness target ('' = unchanged). '' = v21.
+STRIDE = os.getenv('C10T11_STRIDE', '6,4,3,2,1;1;' if TAIL else '')
 
 
 def BOW_PATCH():
@@ -405,6 +419,8 @@ def make():
                         strings(a+t,dur,HOME+s,'p',.96,True)
                         put('bass',a+t,dur,HOME+s,.94); drum('k',a+t,.9)
                     put('glass',a+12,CELL+11.5,HOME+31,.82); drum('c',a+12,.92)
+                    if STRIDE and STRIDE.split(';')[1]=='1':
+                        drum('s',a,.98)             # v22: the backbeat of the walk of one step
                     if BREATH and ORGAN:
                         # No new attack after the band's last one: the reeds
                         # start under the chord and are simply left sounding.
@@ -489,7 +505,9 @@ def make():
                             else:
                                 put('rod',a+t,CELL-t+2 if i<count-1 else CELL-t-1.6,m+24,.88)
                     if k!='m': put('bass',a+t,dur,m,.94); drum('k',a+t,.98)
-                walk(a,6,'rde')
+                # v22: in the last cells the stride lengthens a cell at a time
+                strides = [int(x) for x in STRIDE.split(';')[0].split(',')] if STRIDE else []
+                walk(a,CELL//strides[i-(count-len(strides))] if i>=count-len(strides) else 6,'rde')
                 if i in (0,4): drum('c',a,.84)
             else:
                 slow=section in ('broad','shoulder')
@@ -693,7 +711,7 @@ def make():
         else:
             tracks.append(tr('rod','waterphone synth.amp.a=150ms synth.amp.r=135ms synth.pitch.mod.0.amount=0.12 synth.pitch.mod.1.amount=0.18 fx.0.decay=0.8s fx.0.mix=0.09',ROD,-.15))
     doc={'about':'On Its Hinge — chirpers, Common Time, track eleven. A twelve-eighth riff in B flat; the drummer swaps six quick steps for four broad ones, on an unchanged riff. The reed organ breathes the broad walk before the kit takes it.' + (' The kettledrum answers the heavy riff on the next broad steps, then takes its last C.' if KETTLE else ''),
-         'tempo':BPM,'seed':1,'length':f'{start//SUB+marks.pop("close",0)}b','tail':'4s','ceiling':'-1dB','loudness':float(TAIL.split(';')[4]) if TAIL and TAIL.split(';')[4] else float(TWELVE.split(';')[4]) if TWELVE and TWELVE.split(';')[4] else float(SNARE.split(';')[5]) if SNARE else -10,'event_stable':True,
+         'tempo':BPM,'seed':1,'length':f'{start//SUB+marks.pop("close",0)}b','tail':'4s','ceiling':'-1dB','loudness':float(STRIDE.split(';')[2]) if STRIDE and STRIDE.split(';')[2] else float(TAIL.split(';')[4]) if TAIL and TAIL.split(';')[4] else float(TWELVE.split(';')[4]) if TWELVE and TWELVE.split(';')[4] else float(SNARE.split(';')[5]) if SNARE else -10,'event_stable':True,
          'buses':{'drums':{'fx':['reverb kind=room decay=0.62s mix=0.13 predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'20ms','release':'135ms'},'clip drive=0dB ceiling=-13dB',{'type':'eq','bands':['peak cutoff=400 q=0.8 gain=-5dB','highshelf cutoff=9000 gain=-2dB']}]},
                   'gtrs':{'fx':[{'type':'eq','bands':['peak cutoff=350 q=1 gain=-2dB','peak cutoff=720 q=0.9 gain=2dB']},'reverb kind=room decay=0.35s mix=0.06 predelay=6ms']},
                   'low':{'fx':[{'type':'eq','bands':['peak cutoff=58 q=1.5 gain=-6dB','peak cutoff=116 q=1 gain=5dB','peak cutoff=350 q=1 gain=-6dB','peak cutoff=1500 q=1 gain=3dB']},{'type':'compressor','threshold':'-26dB','ratio':6,'attack':'12ms','release':'120ms','makeup':'2dB'}]}},
