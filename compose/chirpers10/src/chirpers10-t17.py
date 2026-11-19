@@ -54,6 +54,15 @@ QUIET = (12, 13)               # two walks without the guitars: the rule heard p
 SUMMIT = (160, 80)             # the numbers of the fifteenth walk that carry the storeys under them
 STOREY = ('ct-wall-stop-{}', -1, .5, -1, -6)  # the second pair: rig ; track gain ; pan ; octaves from the left guitar's chord ; dB at 380 Hz
 SUMMIT_LOUDNESS = -9.81        # the loudness target with the storeys in: at -10 every other bar came out 0.17 to 0.18 dB quieter
+# v3 (chirper-alpha, instrument): THE BASS. See the note above the bass's track. Track gain ; the album's chain.
+BASS = (0, [{'type': 'eq', 'bands': ['hp cutoff=29', 'peak cutoff=44 q=1.5 gain=-7dB', 'peak cutoff=90 q=1 gain=7.5dB',
+                                       'peak cutoff=350 q=1 gain=-8dB', 'peak cutoff=1500 q=1 gain=4dB']},
+             {'type': 'compressor', 'threshold': '-26dB', 'ratio': 8.0, 'attack': '12ms', 'release': '120ms', 'makeup': '2.5dB'},
+             {'type': 'eq', 'bands': ['peak cutoff=170 q=1.2 gain=-3dB']}])
+# (The album's bass is at 0.5 dB into that chain on a bus. Here the chain is on the track and the fader comes after
+# it, so the fader is 0: benched, the bass alone then stands within 0.1 dB of the bus arrangement.)
+BASS_LOUDNESS = -9.81
+BASS_QUIET = -1.5              # dB on the bass's fader through the two quiet walks, where it is half the band (see the track)
 
 
 def name(p):
@@ -90,7 +99,8 @@ def phrase(m):
     return [(u * unit, ((strokes[i + 1] if i + 1 < len(strokes) else odd) - u) * unit, u % len(bits) == 0) for i, u in enumerate(strokes)]
 
 
-def compose(lead_gain=-7.0, storeys=True):
+def compose(lead_gain=-7.0, storeys=True, low_bus=True):
+    low_bus = low_bus and storeys  # --without-storeys still gives v1
     T = {k: [] for k in ('left', 'right', 'bass', 'kick', 'snare', 'metal', 'stone') + (('wall-left', 'wall-right') if storeys else ())}
     lifted = []
 
@@ -217,11 +227,30 @@ def compose(lead_gain=-7.0, storeys=True):
         assert ns and all(0 <= e['at'] < length / SUB for e in ns)
         return dict(name=tr, patch=patch, gain=f'{gain}dB', pan=pan, notes=ns, **kw)
     palm = ' synth.layers.0.mute=expr.pm*0.6 synth.layers.0.mute_width=0.1'
+    quiet = {}
+    if low_bus:
+        # In the two quiet walks (twelve, thirteen) the bass and the ondes are alone, and v1 plays the bass 5 dB down
+        # there. The chain's compressor gives most of that back (the stretch came out 0.6 dB louder in the finished
+        # file: the song's one quiet place would have lost a tenth of its drop), and a trim on the notes is undone
+        # the same way (tried: 1.5 dB off each note moved the stretch 0.02 dB). So the trim is on the fader, after
+        # the chain, for those two walks only.
+        a, z = (dict(marks)[QUIET[0]] / SUB, dict(marks)[QUIET[-1] + 1] / SUB)
+        quiet = {'auto': {'quiet': {'curve': 0, 'points': [['0b', 0], [f'{a - 0.02:g}b', 0], [f'{a:g}b', BASS_QUIET],
+                                                           [f'{z - 0.02:g}b', BASS_QUIET], [f'{z:g}b', 0]]}}}
     tracks = [track('left', 'ct-twin fx.2.cone=97' + palm, 1, -.9),
               track('right', 'ct-twin fx.1.model=gojira fx.2.cone=98' + palm, 1, .9),
               *([track('wall-' + side, STOREY[0].format(side[0]), STOREY[1], sign * STOREY[2],
                        fx=[{'type': 'eq', 'bands': [f'peak cutoff=380 q=1 gain={STOREY[4]}dB']}])   # the album's cut for this rig, deeper
                  for side, sign in (('left', -1), ('right', 1))] if storeys else []),
+              # v3: THE BASS GETS THE ALBUM'S CHAIN (the `low` bus of tracks 1, 7, 8 and 14, here on the bass's own track). v1 and v2 had the bass on a bare track. Read against the album's
+              # eleven records the long walks stood 1.9 to 2.3 dB over at 20-60 Hz and 1.5 to 2.0 short at 60-120, and
+              # the bass sat 10.8 dB under the rest of the band (K, the ninth walk), its level moving 4.7 dB from note
+              # to note. Tracks 1, 7, 8 and 14 put this same bass through one chain: its weight moved from the
+              # fundamental (44 Hz, the low F) to the octave above (90 Hz), the box out at 350 Hz, 4 dB of string at
+              # 1.5 kHz, and a compressor at 8:1. With it the bass stands 9.0 dB under the rest, steadier (3.3 dB), and
+              # it holds more of 60-120 Hz and less of 20-60. It cannot mend 20-60 Hz alone: the kick is 78% of it.
+              {**track('bass', 'ct-bass', BASS[0], fx=BASS[1], **quiet),
+               'gain': {'value': f'{BASS[0]}dB', 'mod': [{'src': 'auto.quiet', 'amount': 1}]}} if low_bus else
               track('bass', 'ct-bass', -.5, fx=[{'type': 'eq', 'bands': ['hp cutoff=29', 'peak cutoff=320 q=1 gain=-4dB']}]),
               # The ondes' diffuser is an octave of strings from middle C up (262-494 Hz) that ring with every note, and
               # its low notes sit there too: in the seventh walk it held 45% of 250-500 Hz, where the song read 3.1 to
@@ -235,7 +264,7 @@ def compose(lead_gain=-7.0, storeys=True):
                     'a number is its length in sixteenths, its harmonic over the low F and its own riff. Common Time t17 v1.'
                     + (' v2: at the top of the fifteenth walk (160) two more guitars and the bass already say the phrases of 80 and 40.' if storeys else ''),
            'tempo': BPM, 'seed': 1, 'event_stable': True, 'length': f'{length // SUB}b', 'tail': '4s',
-           'ceiling': '-1dB', 'true_peak': True, 'loudness': SUMMIT_LOUDNESS if storeys else -10,
+           'ceiling': '-1dB', 'true_peak': True, 'loudness': BASS_LOUDNESS if low_bus else SUMMIT_LOUDNESS if storeys else -10,
            'buses': {'drums': {'fx': ['reverb kind=room decay=0.45s mix=0.07',
                                       'glue threshold=-22dB ratio=2 attack=18ms release=120ms',
                                       {'type': 'eq', 'bands': ['peak cutoff=390 q=0.9 gain=-4dB', 'lp cutoff=14800']}]}},
@@ -249,8 +278,9 @@ if __name__ == '__main__':
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
+    ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
-    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys)
+    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus)
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
