@@ -264,6 +264,35 @@ TEETH = os.environ.get('C10T15_TEETH', '-2;0.42;1.7dB;peak cutoff=185 q=1.2 gain
 # the left hand's riff length ; the right hand's ; the bar of 'home' (from 0) on whose downbeat both land ; dB on the
 # two hands' faders through it ; dB on the wall pair's ; the loudness target ("" = unchanged). "" = v12.
 LONG = os.environ.get('C10T15_LONG', '15;17;15;0;0;-9.9' if TEETH else '')
+# v14 (chirper-one, whole song): THE SQUEEZEBOX PLAYS THE CHORUS. The song's hook is the chorus ('Haul away, haul
+# away home'), and it was carried by the crew's voices alone, whose words a reader makes nothing of with the band
+# playing (0 of the chorus's words, every round that has read them). The fo'c'sle's instrument was already in the
+# song, in one place: the two concertinas of 'easy' (v5), which came from nowhere at 2:21 and were not heard again.
+# Now it has the tune. CHORUS ONE is the crew alone, as it was. In CHORUS TWO (2:00.0) a concertina, half left,
+# plays the chorus's tune an octave over the crew: their notes where they sing them, a passing note in the breath
+# after 'haul' and two sixteenths up into the next bar, so the eight bars are one line. Then 'easy' is the two
+# concertinas alone, as it was: the instrument has been heard coming. In 'HOME' (3:02.6) it plays the tune through
+# the whole last chorus, and the second time round (3:23.5) the other concertina joins it a third higher, in the
+# song's own scale, to the last long 'home'. So the chorus grows each time it comes: voices; voices and a
+# squeezebox; and two in thirds over v13's two hands coming apart, with something beside the crew that stays in four.
+# Two new tracks (the patch of 'easy'), 180 notes. Nothing else is changed.
+# Benched raw against everything else and against the voices alone (K, whole stretch): see the round note. The
+# box's own weight (its fundamentals, 350-620 Hz) is cut 8 dB at 430 Hz: the choruses already stand 2.4 to 2.9 dB
+# over the records there, and what a concertina is heard by over a band is its reed (1-8 kHz).
+TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE') for k in os.environ)
+                      else '-4.5dB;0.35;-12dB;-3;hp cutoff=300|peak cutoff=430 q=0.8 gain=-8dB|peak cutoff=2500 q=0.7 gain=3dB;-9.85')
+# the chorus's tune as a concertina plays it, an octave over the crew: their notes where they sing them, a passing
+# note in the breath after 'haul', and two sixteenths up into the next bar. (sixteenth, length, note), a bar a line.
+BOX_TUNE = [[(0, 6, 'C5'), (6, 2, 'Bb4'), (8, 2, 'Ab4'), (10, 4, 'F4'), (14, 1, 'Ab4'), (15, 1, 'Bb4')],
+            [(0, 6, 'C5'), (6, 2, 'Bb4'), (8, 2, 'Ab4'), (10, 2, 'C5'), (12, 2, 'F4'), (14, 1, 'C5'), (15, 1, 'Db5')],
+            [(0, 6, 'Eb5'), (6, 2, 'Db5'), (8, 2, 'C5'), (10, 6, 'Ab4')],
+            [(0, 4, 'Gb4'), (4, 2, 'Gb4'), (6, 2, 'Ab4'), (8, 4, 'Gb4'), (12, 2, 'F4'), (14, 1, 'Ab4'), (15, 1, 'Bb4')],
+            [(0, 6, 'C5'), (6, 2, 'Bb4'), (8, 2, 'Ab4'), (10, 4, 'F4'), (14, 1, 'Ab4'), (15, 1, 'Bb4')],
+            [(0, 6, 'C5'), (6, 2, 'Bb4'), (8, 2, 'Ab4'), (10, 2, 'C5'), (12, 2, 'F4'), (14, 1, 'C5'), (15, 1, 'Db5')],
+            [(0, 6, 'Eb5'), (6, 2, 'Db5'), (8, 2, 'C5'), (10, 4, 'Ab4'), (14, 2, 'Bb4')],
+            [(0, 4, 'C5'), (4, 4, 'Eb5'), (8, 8, 'F5')]]
+# the same a third higher, in the song's own scale (F G flat A flat B flat C D flat E flat)
+BOX_THIRD = {'F4': 'Ab4', 'Gb4': 'Bb4', 'Ab4': 'C5', 'Bb4': 'Db5', 'C5': 'Eb5', 'Db5': 'F5', 'Eb5': 'Gb5', 'F5': 'Ab5'}
 BARK = 'kidman synth.layers.0.diction=2 synth.layers.0.speech=1'
 # five men: the kit piece, where in the spread his foot lands (0..1), how hard against the others, his board's
 # note, where he stands, how long his board rings (ms)
@@ -460,7 +489,7 @@ def make():
             kit(c + 48, 'ft', .92)
             kit(c + 48, 'x', .9)
 
-    def chorus(a, bars, wide, last_long=False, high=False, pickup=False, hands=None):
+    def chorus(a, bars, wide, last_long=False, high=False, pickup=False, hands=None, box=()):
         gtrs = ('gl', 'gr', 'wl', 'wr') if wide else ('gl', 'gr')
         if hands:
             # v13: the two hands haul their own lengths under the crew's four, each stroke on the chord of the bar
@@ -493,6 +522,9 @@ def make():
                     put('bass', t0 + q, 1.8, F1 + step[q] if q in step else root, .92 if q % 4 == 0 else .84)
             words = CHORUS[b % 8]
             sing('crew', t0, words, .9, loud=('haul',))
+            for who in (box[b // 8] if b // 8 < len(box) else ()):          # v14: the squeezebox plays the chorus
+                for pos, dur, note in BOX_TUNE[b % 8]:
+                    put('tune-' + who, t0 + pos, dur - .15, BOX_THIRD[note] if who == 'r' else note, .8)
             mine = words
             if final and pickup:
                 # he lets the last word go early: his next call starts before the bar is out
@@ -581,9 +613,10 @@ def make():
             for t, p in ((8, 's'), (9, 's'), (10, 't1'), (11, 't1'), (12, 't2'), (13, 't2'), (14, 'ft'), (15, 'ft')):
                 kit(hold + t, p, .7 + .03 * (t - 8))
         elif sec in ('all together', 'all together again'):
-            chorus(a, bars, wide=sec != 'all together', pickup=sec == 'all together')
+            chorus(a, bars, wide=sec != 'all together', pickup=sec == 'all together', box=(('l',),) if TUNE and sec != 'all together' else ())
         elif sec == 'home':
-            chorus(a, bars, wide=True, last_long=True, high=True, hands=tuple(int(x) for x in LONG.split(';')[:3]) if LONG else None)
+            chorus(a, bars, wide=True, last_long=True, high=True, hands=tuple(int(x) for x in LONG.split(';')[:3]) if LONG else None,
+                   box=(('l',), ('l', 'r')) if TUNE else ())
         elif sec == 'easy':
             land = marks_next['both hands'] + 7 * BAR
             for tr, riff, length in (('clean-l', RIFF15, 15), ('clean-r', RIFF17, 17)):
@@ -755,6 +788,9 @@ def tracks_of(ev):
         *([{**tr('clean-' + side, SQUEEZE.split(';')[0], SQUEEZE.split(';')[1], pan, sends={'hall': SQUEEZE.split(';')[3]}), 'name': 'squeeze-' + side}
            for side, pan in (('l', -.6), ('r', .6))] if SQUEEZE else
           [tr('clean-l', 'ct-clean', '-6dB', -.6, sends={'hall': '-12dB'}), tr('clean-r', 'ct-clean', '-6dB', .6, sends={'hall': '-12dB'})]),
+        *([{**tr('tune-' + side, SQUEEZE.split(';')[0], TUNE.split(';')[0] if side == 'l' else f"{float(TUNE.split(';')[0][:-2]) + float(TUNE.split(';')[3]):g}dB",
+                 sign * float(TUNE.split(';')[1]), fx=[{'type': 'eq', 'bands': TUNE.split(';')[4].split('|')}] if TUNE.split(';')[4] else None,
+                 sends={'hall': TUNE.split(';')[2]})} for side, sign in (('l', -1), ('r', 1))] if TUNE else []),
         tr('bass', 'ct-bass', '0.5dB', 0, 'low'),
         tr('kick', 'ct-kit', '2dB', 0, 'drums', [{'type': 'eq', 'bands': ['peak cutoff=4500 q=0.8 gain=10dB']}]),
         tr('snare', 'ct-kit', '3.5dB', 0, 'drums', [{'type': 'eq', 'bands': ['highshelf cutoff=7000 gain=-3dB']}], {'oh': '-1.5dB', 'snr': '-10dB'}),
@@ -851,6 +887,8 @@ def build():
                         t['auto'] = {**t.get('auto', {}), 'long': {'points': span, 'curve': 0}}
         if LONG.split(';')[5]:
             doc['loudness'] = float(LONG.split(';')[5])
+    if TUNE and TUNE.split(';')[5]:
+        doc['loudness'] = float(TUNE.split(';')[5])
     return doc, marks
 
 
