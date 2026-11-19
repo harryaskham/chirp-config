@@ -348,6 +348,10 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     any record is consulted (a lead with 1% at 4-8 kHz has no pick: chirper-alpha).
   - BY PART (`stembal.py song … --voice`, the group rows): read the two `groups:` lines first; until 08:18 on 19 Nov
     the default groups left guitars out on sixteen of seventeen songs. A figure is a share of the whole mix.
+    `OUTSIDE THE GROUPS` under a window's table names a band where half or more of the mix is in NO group's tracks
+    (Plain Hunt: one church bell held 54% of the first cycle's 500 Hz-1 kHz, more than the four rhythm guitars
+    together; chirper-zero): there a group's figure is not the band. Read whose it is (`--parts TRACK,TRACK`,
+    or `tools/presence.py`'s "whose band is it") before moving a grouped part on it.
   - THE MIX on the NO-VOICE rows for a window where nobody sings. A change is kept when the mix agrees: the records'
     stems do not sum to their mixes, and a rig fitted to a record's lone guitar can be wrong in the mix (chirper-zero).
   - a MASTERED render before `done`: the master limiter turns down bowed and sawtooth-like parts, and sparse passages
