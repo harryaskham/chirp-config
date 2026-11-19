@@ -118,6 +118,51 @@ PHRASE = {"A": [12, 8, 6, 5, 4, 3, 4, 5, 5, 8], "B": [3, 3, 4, 5, 6, 8, 10, 9, 1
           "climb": [16, 8, 8, 4, 4, 4, 4] + [2] * 8}
 NOTE_OF = {3: "F5", 6: "F4", 12: "F3", 2: "C6", 4: "C5", 8: "C4", 16: "C3", 2.5: "Ab5", 5: "Ab4", 10: "Ab3",
            4.5: "Bb4", 9: "Bb3", 7.5: "Db4", 15: "Db3", 7: "D4", 11: "Gb3"}
+# v3 (chirper-two, instrument round: the held-chord rig): THE HELD CHORD STANDS STILL.
+# v2's handoff: "a held chord on these rigs is a smear whatever the tuning ... an instrument round could give this
+# song a held-chord rig that stands still ... and then the tuning would be heard; do not just turn the vibrato off,
+# that was tried". Benched again, each rig alone on one held chord, 0.5 to 3.5 s after the stroke: the share of the
+# energy from 80 Hz to 1.5 kHz that lies within 5 cents of the chord's own notes and their harmonics.
+#   the wall on F2, A flat 2, C3 (the 'minor' meetings)    as written 27.6%   vibrato off 65.6%   and random detune off 75.7%
+#   the F pair's rig on F1, C2, F2 (the last chord)        15.0%              66.8%               73.5%
+#   the A flat pair's rig on A flat 2, C3, F3 (the same)   26.9%              61.8%               65.7%
+#   all six on the last chord                              24.9%                                  78.4%
+# So it is the vibrato after all, not the amp. On the m8 string the pitch's modulators are, in order, the pick's
+# bite (0), the random detune (1) and the vibrato (2); with number 0 off instead, the share does not move (13.5%).
+# And once the strings are still the tuning shows: the same still wall on the same chord in equal temperament has
+# 59.6% on its lines, because there what the amp makes of three notes (their sums and differences) falls between
+# them; tuned, it falls on them. Also benched on the still wall, and not kept (the chord's share moved 2 points at
+# most): the string's second plane off, the plate off, half the amp's gain.
+# WHO STANDS STILL. The wall pair plays nothing but held chords in this song, so its rig is simply still. The other
+# four guitars chug, and a chug is over before a vibrato begins (380 ms); their strokes keep their life (each one
+# struck up to 5 cents off). Only the last chord is held on them, seven seconds of it: that one chord moves to four
+# more tracks, the same rigs standing still, so the band's chord is the chord the drums wound up to, note for note.
+# THE CHORD'S THIRD. v2 gave the last chord's A flat to the tune's last note, and in the finished chord that one
+# note is two thirds of everything between 250 Hz and 1 kHz (read against the records, by part). The lead's vibrato
+# is wider than the rigs' (0.3 of a semitone at 6 Hz from 200 ms), so over seven seconds the chord's third was the
+# least still thing in it: at the written A flat 4 the finished chord had a line 26.7 dB under its strongest. So
+# the tune's last note, and only that one, goes to a fifth track: the same lead, holding still. Every other note
+# of the tune keeps its vibrato: a line is sung, a chord is held.
+# AND THEN THEY CAN BE TUNED. With the strings still, where each one sits can be read to a tenth of a cent, and
+# the album's guitar string plays SHARP of the note it is given, more the higher (each note alone and still,
+# harmonics 2 to 10, cents over the tuned note): the wall B flat 1 +3.5, F2 +3.9, C3 +4.6, F3 +4.9; the F pair's
+# rig F1 to F2 +1.8 to +3.2; the A flat pair's A flat 2 +2.9, C3 +3.9, F3 +4.4; the lead F3 +3.3, A flat 4 +5.4,
+# F4 +6.2, C5 +7.4. (The bass: +0.7. A sine: 0.3. It is the string, not the tuning; not its pick's bite and not
+# its stiffness either: with each off the lead's A flat 4 reads +5.4 and +5.0. A bead for the engine.) So each
+# still rig is tuned down by what it reads, and the held chords stand on the pulses' own notes: after the trim
+# the lead's A flat 4 reads 0.0 and the wall's F2 -0.5.
+# the strings' setting ; cents each still rig is tuned down (the F pair : the A flat pair : the walls : the lead),
+# empty for none ; 'lead' if the tune's last note stands still too. Empty: v2.
+STILL = os.environ.get("C10T14_STILL", "synth.pitch.mod.2.amount=0 synth.pitch.mod.1.amount=0;2.7:3.7:4.1:5.4;lead") if TUNED else ""
+
+
+def still(patch, who):
+    """The patch standing still, tuned down by its own sharpness. who: 0 the F pair, 1 the A flat pair, 2 the walls, 3 the lead."""
+    if not STILL:
+        return patch
+    setting, trims, _ = STILL.split(";")
+    down = f" synth.pitch.value={-float(trims.split(':')[who]) / 100:.3f}" if trims else ""
+    return f"{patch} {setting}{down}"
 T = {}
 
 
@@ -314,10 +359,11 @@ def compose():
         every(a + 180, a + 240, p, lambda s, i, piece=piece: drum(piece, s, 0.8))
     # one chord: what the drums have become, on the band
     a, ring = AT["one chord"], FORM[-1][1] - 4
+    held = "-still" if STILL else ""
     for tr in G_F:
-        add(tr, a, ring, "F1,C2,F2", 1.0)
+        add(tr + held, a, ring, "F1,C2,F2", 1.0)
     for tr in G_AB:
-        add(tr, a, ring, "Ab2,C3,F3", 1.0)
+        add(tr + held, a, ring, "Ab2,C3,F3", 1.0)
     for tr in WALL:
         add(tr, a, ring, "F2,C3,F3", 1.0)
     add("bass", a, ring, "F1", 0.95)
@@ -333,7 +379,7 @@ def compose():
         # THE LAST CHORD'S THIRD. In v1 the band's last chord was led by C and the low F and its A flat was not
         # among the six strongest lines: under a power chord the guitars' minor third does not carry. The tune
         # holds it: the fives' note, over the chord the drums wound up to
-        add("tune", AT["one chord"], FORM[-1][1] - 4, "Ab4", vel)
+        add("tune-still" if STILL and STILL.split(";")[2] else "tune", AT["one chord"], FORM[-1][1] - 4, "Ab4", vel)
     for tr in T:
         T[tr].sort(key=lambda n: (n["at"], n["pitch"]))
     return AT["end"]
@@ -356,8 +402,8 @@ def song():
         {"name": "gr", "patch": main.format(141), "gain": "0.7dB", "pan": 1, "out": "gtrs", **mids},
         {"name": "dl", "patch": dbl.format(142), "gain": "-2.5dB", "pan": -0.75, "out": "gtrs", **mids},
         {"name": "dr", "patch": dbl.format(143), "gain": "-2.5dB", "pan": 0.75, "out": "gtrs", **mids},
-        {"name": "wl", "patch": "ct-wall-stop-l", "gain": "-3.5dB", "pan": -0.75, "out": "gtrs", **wall},
-        {"name": "wr", "patch": "ct-wall-stop-r", "gain": "-3.5dB", "pan": 0.75, "out": "gtrs", **wall},
+        {"name": "wl", "patch": still("ct-wall-stop-l", 2), "gain": "-3.5dB", "pan": -0.75, "out": "gtrs", **wall},
+        {"name": "wr", "patch": still("ct-wall-stop-r", 2), "gain": "-3.5dB", "pan": 0.75, "out": "gtrs", **wall},
         {"name": "bass", "patch": "ct-bass", "gain": "0.5dB", "pan": 0, "out": "low"},
         {"name": "kick", "patch": kit, "gain": "2dB", "out": "drums", "fx": [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]},
         {"name": "snare", "patch": kit, "gain": "3.5dB", "out": "drums", "sends": {"oh": "-1.5dB", "snr": "-10dB"},
@@ -369,6 +415,11 @@ def song():
     if TUNE:
         gain, _, echo = TUNE.split(";")
         tracks.append({"name": "tune", "patch": f"m8-lead-guitar fx.4.mix={echo} fx.5.mix=0.15", "gain": gain, "pan": 0})
+    if STILL:
+        # the last chord's four other guitars: the same rigs, faders, sides and eq, standing still
+        tracks += [{**t, "name": t["name"] + "-still", "patch": still(t["patch"], i // 2)} for i, t in enumerate(tracks[:4])]
+        if TUNE and STILL.split(";")[2]:
+            tracks += [{**t, "name": "tune-still", "patch": still(t["patch"], 3)} for t in tracks if t["name"] == "tune"]
     assert {t["name"] for t in tracks} >= set(T), set(T) - {t["name"] for t in tracks}
     for t in tracks:
         t["notes"] = T.get(t["name"], [])

@@ -746,6 +746,8 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 **The band's tuning (v2).** The song carries its own tuning, each note the note its period says: over F, A♭ is 6/5 (16 cents over the tempered one), B♭ 4/3, C 3/2, D♭ 8/5 (14 over), D 12/7 (33 over), G♭ 12/11 (51 over). The A♭ and C toms are retuned to their rolls' rates. Over the last chord the tune holds A♭, the third the guitars cannot make heard under a power chord.
 
 
+**The held chord stands still (v3, chirper-two; every held chord from 0:43, and the last chord 3:07.7–3:15.5).** A chord here is a rhythm too fast to count, so a held chord should be as steady as the roll it came from. The wall pair, which only holds chords, has no vibrato and no chance in its tuning; for the last chord the other four guitars and the tune’s last note stand still too (the same rigs on tracks of their own), and each still rig is tuned down by the few cents its string reads sharp. The chug and the rest of the tune keep their life. Measured: the last chord had 39% of its energy on its own notes and their harmonics, and has 90%; its third, the tune’s A flat, was a smear around 422 Hz and is one line at 419.1.
+
 ## t17 So Far (v1 by chirper-one)
 
 **The rule.** Take a number: halve it if it is even; treble it and add one if it is odd; go on until you reach one. Every number anyone has tried gets there, and nobody has proved that every number must. The song tries the first sixteen, in order, and plays each walk in full, end to end: 4:42 at 130 BPM in F. Nothing is repeated or cut to fit.
