@@ -104,6 +104,30 @@ HALFSPEED = os.getenv('C10T11_HALFSPEED', '3;4' if BONES else '')
 # and the feet change, broad to quick. The single quick cells after it keep
 # the heavy riff and the wall. Empty restores v13.
 RETURN = os.getenv('C10T11_RETURN', '1' if HALFSPEED else '')
+# v15 (instrument: the second pair of guitars, wallL and wallR; chirper-alpha
+# found the fault at v14 and benched the album's own trim for it). The pair
+# joins at 1:50 on the album's wall rig, which was still on captured cabinet
+# files with a 10 dB shelf cut from 5 kHz: under the twin pair it was all
+# body and no string. Alone, against a guitar heard alone on the records
+# (tools/cabspec.py, third-octaves, 2:20-2:30): +9.6 at 315 Hz, +6.8 at 400,
+# +8.2 at 500, +11.6 at 630; -13 at 8 kHz and -19 at 10 kHz. In the song it
+# held two thirds to three quarters of 250-500 Hz, and every stretch from
+# 1:50 read 2.7 to 4.1 dB over the records there (their passages without a
+# voice; this song has none) and 0.8 to 1.9 over at 500 Hz-1 kHz.
+# Now the pair stops at its amp (the files and the patch's own eq are off)
+# and goes through the engine's cabinet, as the title track's wall rig does
+# and as the twin pair here already did (Harry, 17 Nov, on the title track's
+# guitar heard alone: "The engine's cabinet is nearer"). Same amp, same
+# notes. Alone it reads +1.3 / +2.2 / +3.1 / +3.3 at 315 / 400 / 500 /
+# 630 Hz and -1.1 / -3.0 at 8 / 10 kHz: no third-octave from 315 Hz to
+# 12.5 kHz further than 3.4 dB from the record's guitar (it was 18.9).
+# microphone, 0 the cone's centre to 1 its edge (0.3 put the pair 3 to 4.5 dB
+# over the record's guitar at 2.5-5 kHz and home 1.8 over at 2-4 kHz; 0.5
+# left the mix's 4-8 kHz, already short, shorter) ; the left and right
+# speakers' cones (the title track's wall pair) ; distance ; track gain (the
+# pair alone as loud as the album's trim would have made it: -25.1 LUFS).
+# Empty restores v14 byte for byte.
+SECOND = os.getenv('C10T11_SECOND', '0.4;14,15;0.15;-1.4' if RETURN else '')
 BROAD = CELL // 4
 # Offset, duration, semitones, open power chord / single ringing note / palm mute.
 # The two short strokes before the Db and the delayed F are the tell in both walks.
@@ -440,16 +464,23 @@ def make():
         assert window(tr,hinge-span,hinge)==window(tr,hinge,hinge+span),tr
     assert [len(window('hat',a,a+span)) for a in (hinge-span,hinge)]==[24,16]
     assert [len(window('snare',a,a+span)) for a in (hinge-span,hinge)]==[12,8]
+    SECOND_PATCH=(' fx.3.mix=0'+''.join(f' fx.4.bands.{i}.gain=0dB' for i in range(4))) if SECOND else ''
+    SECOND_GAIN=(SECOND.split(';')[3]+'dB') if SECOND else '-3dB'
+    def second_fx(right):
+        if not SECOND:return None
+        mic,cones,dist=SECOND.split(';')[:3]
+        return [{'type':'cab','model':'4x12-modern','mic':float(mic),'distance':float(dist),'cone':int(cones.split(',')[right])}]
     def tr(name,patch,gain,pan=0,out=None,fx=None):
         d={'name':name,'patch':patch,'gain':gain,'pan':pan,'notes':sorted(notes[name],key=lambda n:n['at'])}
         if out:d['out']=out
         if fx:d['fx']=fx
         return d
     # The twin pair supplies the pick; the second pair joins after the exposed
-    # bellows, on a wider-bodied amp. Both play actual rests.
+    # bellows, on a wider-bodied amp. Both play actual rests. Since v15 both
+    # pairs go through the engine's cabinet (SECOND).
     tracks=[tr('gl','ct-twin fx.1.model=gojira fx.2.cone=81','0.5dB',-1,'gtrs'),
             tr('gr','ct-twin fx.1.model=gojira fx.2.cone=82','0.5dB',1,'gtrs'),
-            tr('wallL','ct-wall-stop-l','-3dB',-.72,'gtrs'),tr('wallR','ct-wall-stop-r','-3dB',.72,'gtrs'),
+            tr('wallL','ct-wall-stop-l'+SECOND_PATCH,SECOND_GAIN,-.72,'gtrs',second_fx(0)),tr('wallR','ct-wall-stop-r'+SECOND_PATCH,SECOND_GAIN,.72,'gtrs',second_fx(1)),
             tr('latch','ct-bell','6.5dB',0),tr('glass','ct-bell','-1.5dB',-.20),
             tr('bass','ct-bass','0.7dB',0,'low'),tr('kick','ct-kit','2dB',0,'drums',[{'type':'eq','bands':['peak cutoff=4500 q=0.8 gain=8dB']}]),
             tr('snare','ct-kit','3dB',0,'drums'),tr('hat','ct-kit','12dB',-.28,'drums'),
