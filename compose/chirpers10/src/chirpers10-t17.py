@@ -39,6 +39,21 @@ TURNS = 15                     # of the wheel four, two, one at the end
 TOP = 98                       # the top of the ribbon (D7): above it the number is out of sight and the ondes rests
 TILT = 2.5                     # dB off the ondes for every octave over middle C (a sine up there stood 2.5 dB under the band, 8 down low)
 QUIET = (12, 13)               # two walks without the guitars: the rule heard plain on the ondes and the bass
+# v2 (chirper-three; section round, 3:43.2-4:10.9, the top of the fifteenth walk and its first step down): THE SUMMIT
+# HAS ITS FALL INSIDE IT. v1's note asked that 160 be the biggest thing in the song. It was ten bars on one chord and
+# mostly air: the left guitar struck twice and rang for half of it. But 160 is not one number. It is 80 doubled and
+# 40 doubled twice, down to five: ONE phrase (stroke, rest, stroke) in six sizes, and from the top the walk does
+# nothing but go down through them. v1 played two sizes there (the number's own, two bars a place, on the left
+# guitar; the smallest, in sixteenths, on the right guitar and the kick). Now the sizes between are heard too, each
+# on what will have it next: TWO MORE GUITARS say eighty's phrase (a bar a place) a storey under the number, on the
+# low A; the BASS says forty's (half a bar a place). At 80 the left guitar comes down to what the new pair is
+# already playing; at 40 the pair stops and the whole band is on the riff the bass has had since the top. So the top
+# is four guitars, every chord of the next thirty seconds already going, and the fall takes a storey off at a time.
+# The hands stay in common time and go to the china for the ten bars of 160; a crash marks the top.
+# Nothing is cut, repeated or moved: 18 notes are added on two new tracks, the bass's six notes become eighteen.
+SUMMIT = (160, 80)             # the numbers of the fifteenth walk that carry the storeys under them
+STOREY = ('ct-wall-stop-{}', -1, .5, -1, -6)  # the second pair: rig ; track gain ; pan ; octaves from the left guitar's chord ; dB at 380 Hz
+SUMMIT_LOUDNESS = -9.81        # the loudness target with the storeys in: at -10 every other bar came out 0.17 to 0.18 dB quieter
 
 
 def name(p):
@@ -67,8 +82,17 @@ def height(n):
     return round(12 * math.log2(n))
 
 
-def compose(lead_gain=-7.0):
-    T = {k: [] for k in ('left', 'right', 'bass', 'kick', 'snare', 'metal', 'stone')}
+def phrase(m):
+    """Number m's phrase, once round: [(sixteenths in, sixteenths to its next stroke, whether it is a head)]."""
+    odd, unit = parts_of(m)
+    bits = bin(odd)[2:]
+    strokes = [u for u in range(odd) if bits[u % len(bits)] == '1']
+    return [(u * unit, ((strokes[i + 1] if i + 1 < len(strokes) else odd) - u) * unit, u % len(bits) == 0) for i, u in enumerate(strokes)]
+
+
+def compose(lead_gain=-7.0, storeys=True):
+    T = {k: [] for k in ('left', 'right', 'bass', 'kick', 'snare', 'metal', 'stone') + (('wall-left', 'wall-right') if storeys else ())}
+    lifted = []
 
     def put(tr, at, dur, p, v, mute=False):
         e = dict(at=round(at / SUB, 6), len=round(dur / SUB, 6), pitch=name(p) if isinstance(p, int) else p, vel=round(v, 3))
@@ -103,6 +127,7 @@ def compose(lead_gain=-7.0):
         # the low string, with the kick: five against the kit's four, the number's fast self under its slow one.
         # A power of two has no phrase but its one stroke, and keeps its silence.
         under = unit >= 8 and odd > 1 and 'right' in sides
+        storey = storeys and k == 15 and n in SUMMIT        # v2: forty's phrase is the bass's here, eighty's the second pair's
         for i, u in enumerate(strokes):
             s = at + u * unit
             gap = ((strokes[i + 1] if i + 1 < len(strokes) else odd) - u) * unit
@@ -111,17 +136,31 @@ def compose(lead_gain=-7.0):
                 ring = min(gap, 32) * (0.93 if gap > 1 else 1.0)
                 for g in sides:
                     put(g, s, min(ring, 1.8) if under and g == 'right' else ring, name(root) + ',' + name(root + 7), 0.99 if u == 0 else 0.93)
-                if k == 0 or k >= 3:
+                if (k == 0 or k >= 3) and not storey:
                     put('bass', s, ring, F1 + pc, 0.95 if u == 0 else 0.9)
                     if k in QUIET:
                         T['bass'][-1].update(vel=0.7, gain='-5dB')
             else:                                            # every other stroke is the low string, muted: the fundamental
                 for g in sides:
                     put(g, s, min(unit, 2) * 0.9, F1, 0.84, mute=True)
-                if (k == 0 or k >= 3) and k not in QUIET:
+                if (k == 0 or k >= 3) and k not in QUIET and not storey:
                     put('bass', s, min(unit, 2) * 0.8, F1, 0.82)
             if k not in QUIET:
                 put('kick', s, 0.8, 'k', 0.97 if u == 0 else 0.86)
+        if storey:
+            for c in range(n // 40):
+                for off, gap, head in phrase(40):            # exactly what the bass plays at 40 itself
+                    put('bass', at + 40 * c + off, *((min(gap, 32) * 0.93, F1 + pc, 0.95 if off == 0 else 0.9) if head else (1.6, F1, 0.82)))
+            low = root + 12 * STOREY[3]
+            for c in range(n // 80):
+                for off, gap, head in phrase(80):
+                    for g in ('wall-left', 'wall-right'):
+                        if head:
+                            put(g, at + 80 * c + off, min(gap, 32) * 0.93, ','.join(name(low + i) for i in (0, 7, 12)), 0.97 if off == 0 else 0.93)
+                        else:
+                            put(g, at + 80 * c + off, 1.8, F1, 0.84)
+                    if head:
+                        lifted.append(at + 80 * c + off)
         if under:
             taken = {u * unit for u in strokes} | {u * unit + 1 for u in strokes if u % len(bits) == 0}
             for q in range(n):
@@ -138,6 +177,11 @@ def compose(lead_gain=-7.0):
             if p > 60:
                 T['stone'][-1]['gain'] = f'{-TILT * (p - 60) / 12:.1f}dB'
 
+    for s in lifted:                                          # the foot goes with the second pair's chords
+        hit = [e for e in T['kick'] if e['at'] == round(s / SUB, 6)]
+        assert hit, s
+        hit[0]['vel'] = max(hit[0]['vel'], 0.95)
+    top = next(at for at, n, k, _ in cells if n == 160)
     # ---- the kit keeps common time, whatever the walks do
     walks_at = {at: k for k, at in marks}
     feel = lambda k: 'back' if k in (9, 10, 11, 15) else 'half'
@@ -147,7 +191,7 @@ def compose(lead_gain=-7.0):
         beat = (s % BAR) // 4
         slow = parts_of(next(n for at, n, _, _ in reversed(cells) if at <= s))[1] >= 4
         if s >= marks[2][1]:                                 # the cymbals come in with three
-            put('metal', s, 3.6, 'rde' if slow or k in QUIET else 'x', (0.62 if beat == 0 else 0.5) - (0.12 if k in QUIET else 0))
+            put('metal', s, 3.6, 'x' if storeys and top <= s < top + 160 else 'rde' if slow or k in QUIET else 'x', (0.62 if beat == 0 else 0.5) - (0.12 if k in QUIET else 0))
             if k in QUIET:
                 if beat == 2:
                     put('snare', s, 0.8, 'ss', 0.72)         # a stick across the rim
@@ -159,6 +203,8 @@ def compose(lead_gain=-7.0):
         if k >= 3:
             put('metal', at, 3.6, 'c', 0.9 if k in (7, 9, 14, 15) else 0.5 if k in QUIET else 0.78)
     put('metal', wheel, 3.6, 'c', 0.85)
+    if storeys:
+        put('metal', top, 3.6, 'c', 0.9)
     # the last bar line: four again
     for g in ('left', 'right'):
         put(g, end, 30, name(F1) + ',' + name(F1 + 7) + ',' + name(F1 + 12), 1.0)
@@ -173,6 +219,9 @@ def compose(lead_gain=-7.0):
     palm = ' synth.layers.0.mute=expr.pm*0.6 synth.layers.0.mute_width=0.1'
     tracks = [track('left', 'ct-twin fx.2.cone=97' + palm, 1, -.9),
               track('right', 'ct-twin fx.1.model=gojira fx.2.cone=98' + palm, 1, .9),
+              *([track('wall-' + side, STOREY[0].format(side[0]), STOREY[1], sign * STOREY[2],
+                       fx=[{'type': 'eq', 'bands': [f'peak cutoff=380 q=1 gain={STOREY[4]}dB']}])   # the album's cut for this rig, deeper
+                 for side, sign in (('left', -1), ('right', 1))] if storeys else []),
               track('bass', 'ct-bass', -.5, fx=[{'type': 'eq', 'bands': ['hp cutoff=29', 'peak cutoff=320 q=1 gain=-4dB']}]),
               # The ondes' diffuser is an octave of strings from middle C up (262-494 Hz) that ring with every note, and
               # its low notes sit there too: in the seventh walk it held 45% of 250-500 Hz, where the song read 3.1 to
@@ -183,9 +232,10 @@ def compose(lead_gain=-7.0):
               track('metal', 'ct-kit', 1.5, out='drums')]
     assert not T
     doc = {'about': 'So Far. Halve it if it is even; treble it and add one if it is odd. The first sixteen numbers, each walked to one: '
-                    'a number is its length in sixteenths, its harmonic over the low F and its own riff. Common Time t17 v1.',
+                    'a number is its length in sixteenths, its harmonic over the low F and its own riff. Common Time t17 v1.'
+                    + (' v2: at the top of the fifteenth walk (160) two more guitars and the bass already say the phrases of 80 and 40.' if storeys else ''),
            'tempo': BPM, 'seed': 1, 'event_stable': True, 'length': f'{length // SUB}b', 'tail': '4s',
-           'ceiling': '-1dB', 'true_peak': True, 'loudness': -10,
+           'ceiling': '-1dB', 'true_peak': True, 'loudness': SUMMIT_LOUDNESS if storeys else -10,
            'buses': {'drums': {'fx': ['reverb kind=room decay=0.45s mix=0.07',
                                       'glue threshold=-22dB ratio=2 attack=18ms release=120ms',
                                       {'type': 'eq', 'bands': ['peak cutoff=390 q=0.9 gain=-4dB', 'lp cutoff=14800']}]}},
@@ -198,8 +248,9 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
+    ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
     a = ap.parse_args()
-    doc, marks, wheel, end = compose(a.lead_gain)
+    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys)
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
