@@ -751,3 +751,17 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 | close enough | 3:23.6 | none | F | one chord |
 
 **For later rounds.** The cell has no tune and the guitars do not yet say the whole of it; the section changes are cuts at a bar line, with no way in or out; the pair steps from width to width and never slides (a slide would be the band speeding up as a string is tuned). The tools for the pair are in the v1 round note: on the pair alone, each of its first four overtones' strongest slow pulse must sit at one, two, three and four times the hair.
+
+## t15 Take Up the Slack (v1 by chirper-alpha)
+
+**A hauling song.** A crew hauls in four at 92: a call from the shantyman (two bars), the crew's answer in the third ("Take up the slack"), and on the fourth bar's downbeat everybody pulls ("Haul!"). Four of these make a verse. The tune is on F, A♭, C and E♭: the call climbs F–A♭ and falls to the C below (a question), the next comes home to F; the answer is A♭ F E♭ F; the pull is on F, and on C when the answer is "All together".
+
+**The riff is fifteen long (the first verse).** On the low F string: an open chord (the head), then palm strokes in twos with A♭ and G♭ ringing between them, 3+3+2+3+2+2 sixteenths. Against the crew's sixteen it comes round one sixteenth sooner every bar, so at the four pulls the head falls three beats after the pull, then two, then one, and on the fourth it lands with them. That is the slack being taken up, and the chorus that follows is in four, band and crew together: common time as something arrived at.
+
+**Seventeen (the second verse).** The same riff with the tritone, B, added at its end. Now the head falls 3, 7, 11 and 15 sixteenths after the four pulls: the rope pays out. The shantyman calls "Hold fast" for one bar more and it lands on the chorus.
+
+**Both hands (the third verse).** The left guitar plays the fifteen and the right the seventeen, placed so that both land on the second pull. At the first pull the right hand is a beat early and the left a beat late: "a man too soon and a man too late". In the quiet before it ('easy') two clean guitars have already been turning the two cycles against each other, an octave up.
+
+**The chorus.** "Haul away, haul away home": a chord on every pull, C falling through A♭ to F; F, F, A♭, G♭, then F, F, A♭ and a held C under "haul her home". The last chorus has a second gang a fourth over the pulls.
+
+**The words were chosen by a recogniser.** 'Hand' never read (the engine's H before a short A), 'man' always did; 'haul' is sung with AA, which reads, where the dictionary's AO read as 'home'.
