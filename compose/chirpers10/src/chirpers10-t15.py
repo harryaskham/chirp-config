@@ -109,6 +109,52 @@ SQUEEZE = os.environ.get('C10T15_SQUEEZE', 'accordion synth.layers.1.cents=5;-13
 # three verses only (dB): it stays where v3 put it in the choruses, and in the first call, 'easy' and the close,
 # where there is no band to sing over and the song's quiet places should stay quiet. "" = v4's voices.
 CALL = os.environ.get('C10T15_CALL', '3' if BUILT else '')
+# v6, palette (chirper-two): THE CREW'S FEET ARE FEET. The song opens on the crew stamping, alone with the
+# shantyman, and closes on it. That stamp was the drummer: the metal kit's kick (with the 10 dB of click at 4.5 kHz
+# that lets it cut through eight-strings) and floor tom, struck together. So the kit was in the song from its first
+# beat, and the one thing the band has to bring at 0:13 was already there. Now the stamp is a patch of its own, on a
+# bus of its own, and no other song has it: FIVE BOOTS ON A DECK. Each is a heel (a sine that drops a minor third as
+# the board gives), a board (the engine's struck plate, heavily damped: wood, not a drum head) and a sole (a few ms
+# of noise); the five have boards a semitone apart (C2 to E2), stand across the stage, and land within 30 ms of each
+# other, the first on the beat. A short room, then the kit bus's clip, so no one stamp stands over the rest.
+# WHERE: the count and the first call (0:00-0:13, ten stamps), the close (3:44-3:50, four), and the one foot a bar
+# in 'easy' (2:21-2:42, eight, soft). The kit's first stroke is now the pull at 0:10.4 and its first bar verse one.
+# NOT in the choruses: v4's floor tom on one and three stays. Tried (field three): the boots there put 1.2 dB into
+# 120-250 Hz under the band and took the stick's attack away (250 Hz-2 kHz 1.4 to 6 dB less): a dull thud under a
+# full band is mud, and where the band plays the drummer stamps for the crew.
+# MEASURED, a stamp alone against the old one (raw, the median of eight): 4-8 kHz -26 dB and 8-16 kHz -26 (the
+# click is gone), under 60 Hz -9.6 (it is not a kick drum), 60-120 Hz +1.3, 120-250 Hz +4.1 (the boards); it falls
+# 20 dB in 96 ms (121); as loud (K +0.4 dB) with the same peak (-0.3).
+# the deck track's gain ; ms from the first boot to the last ; the velocity of the choruses' feet on one (three is
+# 0.1 less; "" = v4's floor tom) ; the velocity of the one foot a bar in 'easy' ("" = the floor tom) ; the
+# loudness target ("" = as it was). "" = v5.
+DECK = os.environ.get('C10T15_DECK', '-10.5dB;30;;0.6;' if SQUEEZE and CALL else '')
+# five men: the kit piece, where in the spread his foot lands (0..1), how hard against the others, his board's
+# note, where he stands, how long his board rings (ms)
+BOOTS = [('b1', 0.0, 1.0, 'D2', -0.15, 150), ('b2', 0.23, 0.88, 'C2', 0.4, 170), ('b3', 0.47, 0.94, 'Eb2', -0.5, 135),
+         ('b4', 0.7, 0.82, 'Db2', 0.15, 160), ('b5', 1.0, 0.9, 'E2', 0.6, 125)]
+
+
+# the boot itself: the board's level ; its brightness ; its damping ; the low-pass over all three ; the sole's
+# level at its peak, dB ; the amp curve ; the heel's level ; how far the heel's note drops, semitones
+BOOT = os.environ.get('C10T15_BOOT', '6dB;0.9;0.7;6k;-4;2;1dB;3')
+
+
+def boot(ring):
+    """One boot on a deck board: the heel's thud (a sine that drops as the board gives), the board itself (a
+    struck plate, heavily damped: wood, not a drum head) and the sole (a few ms of noise)."""
+    board, bright, damp, lp, sole, curve, heel, drop = BOOT.split(';')
+    return {'synth': {
+        'amp': {'a': '0.5ms', 'd': f'{ring}ms', 's': 0, 'r': '40ms', 'curve': float(curve)},
+        'env': {'p': {'a': '0.3ms', 'd': '30ms', 's': 0}, 's': {'a': '0.3ms', 'd': '10ms', 's': 0}},
+        'layers': [{'wave': 'sine', 'level': heel},
+                   {'type': 'modal', 'modes': 'plate', 'decay': f'{ring / 1000:g}s', 'damp': float(damp), 'bright': float(bright), 'strike': 0.3, 'level': board},
+                   {'type': 'noise', 'color': 'pink', 'level': {'value': '-60dB', 'mod': [{'src': 'env.s', 'amount': 60 + float(sole)}]}}],
+        'filters': [f'lp cutoff={lp} q=0.5'],
+        'pitch': {'value': 0, 'mod': [{'src': 'env.p', 'amount': float(drop)}, {'src': 'rand', 'amount': 0.3}]}},
+        'play': {'vel_sens': 0.6}}
+
+
 WALK = {(0, 0): {14: 12}, (0, 3): {14: 1}, (3, 7): {14: 5}, (7, 0): {12: 3, 14: 1}}     # eighth: semitones over low F
 # one bow, the pitch sliding inside the note (mono, legato); no chance detuning from note to note and less than half
 # of the library's unsteady bowing (12 cents either way there, 5 here): taut is in tune
@@ -229,7 +275,15 @@ def make():
         else:
             put(tr, t, dur, F1 + 24 + slack, v)
 
+    def stamp(t, v):
+        """v6: five boots on the deck, not quite together."""
+        spread = float(DECK.split(';')[1]) / (60000 / BPM / GRID)        # ms -> sixteenths
+        for piece, where, hard, _, _, _ in BOOTS:
+            put('deck', t + where * spread, 1.15, piece, v * hard)
+
     def stomp(t, v=.7):
+        if DECK:
+            return stamp(t, v)
         kit(t, 'ft', v)
         kit(t, 'k', v)
 
@@ -276,7 +330,9 @@ def make():
             kit(t0, 'c' if b % 4 == 0 else 'x', .9 if b % 4 == 0 else .74)
             if built and built[2] and b % 4 and words[0][0] == 'haul':
                 kit(t0, 'c', float(built[2]))                         # v4: a crash on every pull, over the china that was there
-            if built and built[3] and not ends:
+            if built and built[3] and not ends and DECK and DECK.split(';')[2]:
+                stamp(t0, float(DECK.split(';')[2])), stamp(t0 + 8, float(DECK.split(';')[2]) - .1)     # v6: the feet are feet
+            elif built and built[3] and not ends:
                 kit(t0, 'ft', float(built[3])), kit(t0 + 8, 'ft', float(built[3]) - .1)     # v4: the crew's feet
             for q in (4, 8, 12):
                 if not (final and q == 12):
@@ -352,7 +408,10 @@ def make():
                     k += 1
             for k, semi in enumerate((0, 0, 1, 1, 0, 0, 3, 1)):
                 put('bass', a + k * BAR, 15, F1 + semi, .7)
-                kit(a + k * BAR, 'ft', .6)
+                if DECK and DECK.split(';')[3]:
+                    stamp(a + k * BAR, float(DECK.split(';')[3]))
+                else:
+                    kit(a + k * BAR, 'ft', .6)
                 for q in (0, 4, 8, 12):
                     kit(a + k * BAR + q, 'hp', .42)
             sing('shanty', a, line('ea sy', [(0, 4), (4, 10)], 'F3 Eb3'), .55)
@@ -465,6 +524,7 @@ def tracks_of(ev):
         # and 8 to 14 dB under it from 500 Hz up. Eight dB off its body, so that what is heard is the hair)
         *([tr('rope-l', HAWSER.format(ROPE.split(';')[2]), ROPE.split(';')[0], -float(ROPE.split(';')[1]), fx=hair),
            tr('rope-r', HAWSER.format(ROPE.split(';')[2]), ROPE.split(';')[0], float(ROPE.split(';')[1]), fx=hair)] if ROPE else []),
+        *([tr('deck', 'deck', DECK.split(';')[0], 0, 'boards')] if DECK else []),
     ]
 
 
@@ -493,6 +553,13 @@ def build():
            'tempo': BPM, 'seed': 1, 'length': f'{end // GRID}b', 'tail': '3s', 'ceiling': '-1dB', 'loudness': float(BUILT.split(';')[5]) if BUILT else float(INBAND.split(';')[4]) if INBAND else float(ROPE.split(';')[3]) if ROPE else -10, 'event_stable': True,
            'buses': buses, 'master': {'fx': [{'type': 'eq', 'bands': ['hp cutoff=24']}, {'type': 'gain', 'gain': '2.7dB'}]},
            'tracks': tracks_of(ev)}
+    if DECK:
+        doc['patches'] = {'deck': {'kit': {piece: {'patch': boot(ring), 'pitch': note, 'pan': pan} for piece, _, _, note, pan, ring in BOOTS}}}
+        # the deck: a short room, then the kit bus's clip, so no one stamp stands over the rest (five thuds add up by chance)
+        doc['buses']['boards'] = {'fx': [{'type': 'eq', 'bands': ['hp cutoff=38']}, 'reverb kind=room decay=0.45s mix=0.14 predelay=5ms',
+                                         f"clip drive=0dB ceiling={os.environ.get('C10T15_DECKCLIP', '-12dB')}"]}
+        if DECK.split(';')[4]:
+            doc['loudness'] = float(DECK.split(';')[4])
     return doc, marks
 
 
