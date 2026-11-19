@@ -88,7 +88,7 @@ class Shape(unittest.TestCase):
         d = [float(line[16 + 6 * i:22 + 6 * i]) for i in range(25)]
         for band in ("40", "500"):                                           # the same shape as theirs where anything sounds
             self.assertLess(abs(d[B.LAB.index("80")] - d[B.LAB.index(band)]), 1.5)
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(SystemExit), contextlib.redirect_stdout(io.StringIO()):
             B.main(["nothing"])
 
 
