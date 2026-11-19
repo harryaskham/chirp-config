@@ -207,6 +207,21 @@ WEIGHT = os.environ.get('C10T15_WEIGHT', '150;peak cutoff=400 q=0.8 gain=-3.5dB;
 # the loudness target ("" = unchanged) ; eq bands (| between) ; send to the hall ; dB more where one man shouts
 # with the crew, and where both do (one:both). "" = v9.
 MAN = os.environ.get('C10T15_MAN', '5.5dB;0.5;F4;3;0.9;0.9;1.06:0.96;-10.06;hp cutoff=440|peak cutoff=700 q=1.2 gain=-3dB|peak cutoff=1800 q=0.7 gain=6dB|peak cutoff=5500 q=1.2 gain=-2dB;-18dB;4:1' if WEIGHT else '')
+# v11 (chirper-alpha; an instrument round: THE KICK). Read alone against the kicks in the eleven records' drum
+# stems (hit by hit, 5 to 125 ms after each): the album's kick has its line at 54 Hz (theirs 50), NOTHING at 90-120 Hz
+# (-28.8 dB as a share of its 35-250 Hz; theirs -13.6, their leanest -19.4) and rings 84 ms to 20 dB down (theirs
+# 37 to 49). So the drum is tuned to the song (A flat, 52 Hz: its own third, where the stock drum is an A the album
+# has no use for) and gets a CHEST: a bare sine an octave over the drum, a sixteenth of a second long, on its own
+# track, struck with every kick at the kick's velocity and sent straight to the mix. With it the kick alone reads
+# -13.8 at 90-120 Hz, its click -9.1 against the low band (theirs -10.2), 52 ms to 20 dB down.
+# Why a track and not a layer of the kick's patch: the patch's drive shares one ceiling among its layers (a chest
+# inside it took 2.4 dB off the click and 1.0 off the sub), and the kit bus's clip holds the kick's top (a decibel
+# of fader bought 0.2). Why the drum's tail is not shortened to the records' 44 ms: here the kick is 62% of the mix
+# under 60 Hz, and alone the short one has 4.2 dB less there; that waits for a bass that holds the sub.
+# The click's eq goes 10 -> 11.5 dB: a semitone down the drum has 1.4 dB less of it.
+# the drum's note ; the chest's note ("" = no chest) ; its gain ; its decay, ms ; the kick's click, dB at 4.5 kHz
+# on its track ("" = as it was, 10) ; the loudness target ("" = unchanged). "" = v10.
+KICK = os.environ.get('C10T15_KICK', 'Ab1;Ab2;-4dB;90;11.5;-10.08' if MAN else '')
 BARK = 'kidman synth.layers.0.diction=2 synth.layers.0.speech=1'
 # five men: the kit piece, where in the spread his foot lands (0..1), how hard against the others, his board's
 # note, where he stands, how long his board rings (ms)
@@ -736,6 +751,25 @@ def build():
         doc['loudness'] = float(WEIGHT.split(';')[3])
     if MAN and MAN.split(';')[7]:
         doc['loudness'] = float(MAN.split(';')[7])
+    if KICK:
+        drum, note, gain, decay, click, target = KICK.split(';')
+        doc['patches'] = {**doc.get('patches', {}), 'slack-kit': {'extends': 'ct-kit', 'kit': {'k': {'pitch': drum}}}}
+        at = next(i for i, t in enumerate(doc['tracks']) if t['name'] == 'kick')
+        doc['tracks'][at]['patch'] = 'slack-kit'
+        if click:
+            doc['tracks'][at]['fx'] = [{'type': 'eq', 'bands': [f'peak cutoff=4500 q=0.8 gain={click}dB']}]
+        if note:
+            doc['patches']['slack-chest'] = {'extends': '808', 'synth': {'layers': ['sine'], 'pitch': {'value': 0, 'mod': []}, 'drive': 0, 'filters': [],
+                                                                       'amp': {'a': '2ms', 'd': f'{decay}ms', 's': 0, 'r': '20ms', 'curve': 3}},
+                                             'play': {'mono': False, 'glide': '0ms', 'gate': 1}}
+            chest = {'name': 'chest', 'patch': 'slack-chest', 'gain': gain, 'pan': 0,
+                     'notes': [{'at': n['at'], 'len': round(float(decay) / 1000 * BPM / 60, 4), 'pitch': note, 'vel': n['vel']} for n in doc['tracks'][at]['notes']]}
+            if lift:                         # it goes straight to the mix, past the kit's bus and its clip: so it takes the choruses' lift itself
+                chest['gain'] = {'value': gain, 'mod': [{'src': 'auto.lift', 'amount': 1}]}
+                chest['auto'] = {'lift': {'points': in_the_choruses(lift), 'curve': 0}}
+            doc['tracks'].insert(at + 1, chest)
+        if target:
+            doc['loudness'] = float(target)
     return doc, marks
 
 
