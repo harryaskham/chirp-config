@@ -94,12 +94,39 @@ COPY = ('ct-twin fx.1.model=clean fx.1.gain=0.6 fx.1.boost=0dB fx.2.cone=37', '3
 # The copy strips are quieter to the meter (the fizz is most of what it hears), so at v13's target every other bar
 # came out 0.042 dB louder (seed 0). Ask for that much less.
 COPY_LOUDNESS = -10.185
+# v15 (chirper-alpha): HARRY'S THREE ANSWERS, 19 Nov 02:31, and the guitars.
+# (1) 'Can you follow the ringing line as it changes hands?' (the pedal steel in 'turn over', my v2; asked at v11
+# beside the same bars with the steel taken out): "Prefer both heavy". So in 'turn over' (2:49.9-3:22.8) the hand
+# reading back is a heavy guitar again, as it was in v1: both hands heavy, one reading the strip forwards and one
+# back, changing chairs on every strip. The steel is out of the song. v12's move to C on the last four strips
+# stands, now on both guitars. --with-steel gives v14.
+# (2) 'Do the bass pops help you follow the two guitars?' -> "Keep the pops": kept. (3) 'Can you follow both
+# guitars when one turns back?' -> "I can follow both": kept.
+HEAVY_LOUDNESS = -10.185
+# THE TWO HANDS' RIG (the round was drawn as an instrument round; Harry, 19 Nov: "better guitars"). With both hands
+# heavy the song is two guitars from end to end, and against the album's eleven records its guitar stretches all
+# read the same way (finished file, each band as a share of the mix): 500 Hz-1 kHz 1.6 to 2.0 dB short, 2-4 kHz 2.2
+# to 2.7 over, 4-8 kHz 0.6 to 1.4 short. In those stretches the two guitars ARE those bands (raw, 'ink': within 0.8
+# dB of the whole mix from 500 Hz to 4 kHz, two thirds of 4-8 kHz), so it is the rig: a honk at 3 kHz with too
+# little body under it and too little edge over it. Three changes, each benched on the guitars alone and then read
+# in the mix:
+#   the amp     the album's own voicing (`gojira`, as tracks 4, 7, 8, 9, 14 and 15 have it): +1.5 dB at 500 Hz-1 kHz,
+#               -3.2 at 120-250 and -1.7 at 250-500 (the boxiness under the body)
+#   the mic     nearer the cone's centre (0.4 -> 0.25): +1.8 dB at 4-8 kHz. (The album's usual 0.5 goes the other
+#               way: benched, it cost this song a further 1.1 dB there.)
+#   the honk    one cut at 2.6 kHz after the cabinet: 2-4 kHz -1.5 dB net of the brighter mic
+#   THE FADERS STAY where they were. The pair alone reads 1.07 dB quieter on the new rig; a first take gave that
+#   back at the fader and the mix read worse for it (2-4 kHz only 0.5 dB better, and the stretches were already
+#   1 to 2.5 dB short at 60-120 Hz, which is the kit and bass the guitars stand over).
+# Not kept: the amp's presence at 0.7 (0.1 dB); treble 0.35 (took 4-8 kHz down with 2-4); a shelf over 5 kHz
+# (the cut under it ate it). The second amp of 'carbon' (the copy) is not touched. --stock-rig keeps the old rig.
+HANDS_RIG = ('fx.1.model=gojira fx.2.mic=0.25', None, ['peak cutoff=2600 q=1.4 gain=-3.5dB'])
 
 def pitch(m): return PITCH[m % 12] + str(m // 12 - 1)
 def strip(back=False):
     return sorted(((STRIP-1-t if back else t), p, k) for t,p,k in ROW)
 
-def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True):
+def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, rig=HANDS_RIG):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
     picking_hand = picking_hand and mirror_bass  # --without-mirror-bass still gives v4
@@ -111,6 +138,8 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
     dominant = dominant and album_kit            # --without-album-kit still gives v10
     thumbs = thumbs and dominant                 # --without-dominant still gives v11
     copy = copy and thumbs                       # --without-thumbs still gives v12
+    heavy = heavy and copy                       # --without-carbon-copy still gives v13
+    rig = rig if heavy else None                 # --with-steel still gives v14
     ev = defaultdict(list); sections = []; tie_gains = {}; start = 0
     def put(tr, t, n, dur, v, mute=False, **expr):
         e = {'at':round(t/GRID, 5), 'len':round(dur/GRID, 5), 'pitch':pitch(n) if isinstance(n,int) else n, 'vel':v}
@@ -209,8 +238,8 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
                 # Carbon is one guitarist with a delayed memory, not a stereo solo.
                 if sec=='carbon' and tr=='right': continue
                 if sec=='ink' and i<4 and tr=='right': continue
-                if sec=='turn over' and rev:
-                    # The hand reading back picks up a volume steel. First hold just
+                if sec=='turn over' and rev and not heavy:
+                    # (v2 to v14) The hand reading back picks up a volume steel. First hold just
                     # the two meeting notes (C, Ab); then fill in the reflected tune.
                     # The other hand still chugs. Swap chairs on every new strip.
                     stops = [t for t in sorted(opens[1]) if i>=4 or t in (3,15)]
@@ -514,7 +543,15 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
     # sixteenth. No echo crossing into the other player's chair, or over the stop.
     steel = 'pedal-steel synth.amp.a=85ms synth.amp.r=80ms fx.1.mix=0 fx.2.mix=0 play.glide=65ms'
     for side,pan in [('left',-.77),('right',.77)]:
-        tracks.append(track('steel-'+side,steel,'-5.5dB',pan,'strings'))
+        if not heavy: tracks.append(track('steel-'+side,steel,'-5.5dB',pan,'strings'))
+    assert heavy == (not ev['steel-left'] and not ev['steel-right'])
+    if rig:
+        for t in tracks:
+            if t['name'] in ('left','right'):
+                t['patch'] = t['patch'].replace('ct-twin ', 'ct-twin '+rig[0]+' ')
+                if rig[1] and isinstance(t['gain'], dict): t['gain']['value'] = rig[1]   # the right hand's fader has a lane (v7's ties)
+                elif rig[1]: t['gain'] = rig[1]
+                if rig[2]: t['fx'] = [{'type':'eq','bands':rig[2]}]
     if thumbs:
         for side,way in [('left',-1),('right',1)]:
             tracks.append(track('tines-'+side,TINES[0],TINES[1],way*TINES[2],fx=room))
@@ -549,7 +586,7 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
            'drums':{'fx':['reverb kind=room mix=0.10 decay=0.53s predelay=7ms',{'type':'glue','threshold':'-22dB','ratio':2.5,'attack':'18ms','release':'120ms'},'clip ceiling=-13dB']},
            'low':{'fx':[{'type':'eq','bands':['peak cutoff=48 q=1.4 gain=-4dB','peak cutoff=98 q=1 gain=3dB','peak cutoff=310 q=0.9 gain=-4dB']},{'type':'compressor','threshold':'-24dB','ratio':5,'attack':'14ms','release':'115ms'}]}}
     if album_kit: buses['drums']['fx'].append({'type':'eq','bands':KIT_EQ})
-    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(COPY_LOUDNESS if copy else THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
+    doc=dict(about='The Other Hand — chirpers, Common Time, track twelve. One strip of attacks read forwards and back under an unbroken count of four.',tempo=BPM,seed=1,length=f'{start/GRID:g}b',tail='1.3s',ceiling='-1dB',loudness=(HEAVY_LOUDNESS if heavy else COPY_LOUDNESS if copy else THUMBS_LOUDNESS if thumbs else PAGE_LOUDNESS) if facing else -10,event_stable=True,buses=buses,master={'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2dB']},tracks=tracks)
     return doc,sections
 
 def dump(d):
@@ -566,8 +603,10 @@ if __name__=='__main__':
     ap.add_argument('--without-album-kit',action='store_true',help="regenerate v10, the kit's bus without the album's eq")
     ap.add_argument('--without-dominant',action='store_true',help="regenerate v11, 'turn over' on F throughout")
     ap.add_argument('--without-thumbs',action='store_true',help="regenerate v12, the clean guitar answering the voice in 'thumbprint'")
-    ap.add_argument('--without-carbon-copy',action='store_true',help="regenerate v13, the copy strips of 'carbon' on the ink's own amp"); a=ap.parse_args()
-    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy)
+    ap.add_argument('--without-carbon-copy',action='store_true',help="regenerate v13, the copy strips of 'carbon' on the ink's own amp")
+    ap.add_argument('--with-steel',action='store_true',help="regenerate v14, the pedal steel reading back in 'turn over'")
+    ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
+    doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,None if a.stock_rig else HANDS_RIG)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
