@@ -765,6 +765,26 @@ if SETGOING:
             *([{"over": f"{(24 - _g1) * 4}b", "to": 0}] if _g1 < 24 else [])] + WARP[1:]
 
 
+# v38 (chirper-one; section round, w7 3:33-4:08, the window longest without a section round; the change is the
+# shake, 3:55.5-4:03.3): THE SHAKE IS HEARD ON THE TWO CLOCKS. In each of the four slips two music boxes tick, one on
+# each clock (v22; Harry: "The slip made plain: keep them"). The shake (v18; "Yes: a thrill"), where the locked
+# guitars are disturbed and fall back, was the one slip without them: a hat counted its quarters. Now the hat goes
+# and the two boxes tick through it. The left one ticks on one and tocks on three, on the song's clock. The right one
+# is written the same way on the right-hand clock (the track `warp`; nothing is placed by hand), which stands half a
+# bar ahead there: so where the left says tick the right says tock, the first time the song says "against" with its
+# clocks. Shaken, the right box runs ahead of the left by 40 ms, a sixteenth, most of an eighth, an eighth, and falls
+# back the same way; its eighth note lands exactly on the left's, at the tom fill, half a bar before the crash.
+# And its pitch goes with its clock (v35's law): 125, 179, 125 cents SHARP while it gains, true at the turn, then 116,
+# 162, 116 cents FLAT while it falls back (the only place in the song a clock runs slow), and true again when it
+# locks. Read alone, the three flat notes came 1.6 to 4.1 dB louder than true ones (the box's spring answers them),
+# so they carry a trim. The guitars, the bass, the kick and the fill are v37's.
+# dB on the left box's notes there against the slips' ; dB on the right box's eight notes, comma between ; how much of
+# the clock's true shift its pitch takes (1 = exactly the clock's; 0 = in tune) ; the hat's velocity there ('' = no
+# hat; v37 had 0.45) ; how much of the clock's shift the right GUITARS' pitch takes (0 = none: v37's guitars) ; the
+# loudness target ('' = unchanged). "" = v37.
+SHOOK = os.environ.get("C10T2_SHOOK", "0;0,0,0,0,-1.5,-3.5,-2.5,0;1;;0;" if FLOOR and SHAKE and SLIPCLOCK else "")
+
+
 def stood():
     """-> [(bar, semitones over F), ...]: the bars of the hold a beat apart that stand where the earlier holds stood."""
     if not STOOD:
@@ -843,6 +863,50 @@ def the_floor_moves():
                     name = n["pitch"]
                     midi = NAMES.index(name.rstrip("-0123456789")) + 12 * (int(name[len(name.rstrip("-0123456789")):]) + 1)
                     n["pitch"] = f"m{midi + cents / 100:.3f}"
+
+
+def cents_of(n):
+    """The cents a right-hand note's clock gives it where it is written (v31's and v35's law)."""
+    return 1200 * math.log2(clock_speed(n["at"]))
+
+
+def retune(n, cents):
+    name = n["pitch"]
+    midi = NAMES.index(name.rstrip("-0123456789")) + 12 * (int(name[len(name.rstrip("-0123456789")):]) + 1)
+    n["pitch"] = f"m{midi + cents / 100:.3f}"
+
+
+def shake_on_the_clocks():
+    """v38: the two music boxes tick through the shake. The left one ticks on one and tocks on three, on the song's
+    clock. The right one is written the same way on the right-hand clock, which is half a bar ahead there: so its tock
+    sounds with the left's tick. Its eight notes are those that SOUND in the shake's four bars; each is tuned by how
+    fast its clock is running where it is written."""
+    f = SHOOK.split(";")
+    s0, s1 = _sb, _sb + 2 * _sn
+    lg, rg, depth, gdepth = float(f[0]), [float(x) for x in f[1].split(",")], float(f[2]), float(f[4] or 0)
+    v1, v2 = float(SLIPCLOCK.split(";")[3]), float(SLIPCLOCK.split(";")[4])
+    tick, tock = nm(F1 + 60), nm(F1 + 55)
+    T["hat"] = [n for n in T["hat"] if not (s0 * 4 <= n["at"] < s1 * 4)]
+    if f[3]:
+        for b in range(s0, s1):
+            for q in range(0, 16, 4):
+                drum("h", b * 16 + q, float(f[3]))
+    for b in range(s0, s1):
+        for at, pitch, v in ((b * 4, tick, v1), (b * 4 + 2, tock, v2)):
+            T.setdefault("bl", []).append({"at": at, "len": 0.5, "pitch": pitch, "vel": v, **({"gain": f"{lg:g}dB"} if lg else {})})
+    i = 0
+    for b in range(s0, s1):              # written half a bar after where it sounds when the clocks are locked
+        for at, pitch, v in ((b * 4 + 2, tock, v2), (b * 4 + 4, tick, v1)):
+            n = {"at": at, "len": 0.5, "pitch": pitch, "vel": v, **({"gain": f"{rg[i]:g}dB"} if rg[i] else {})}
+            if depth and abs(cents_of(n) * depth) >= 0.5:
+                retune(n, cents_of(n) * depth)
+            T.setdefault("br", []).append(n)
+            i += 1
+    if gdepth:                           # (off: the guitars of the shake are the ones Harry heard)
+        for tr in ("gr", "gr2"):
+            for n in T.get(tr, []):
+                if (s0 - 1) * 4 <= n["at"] < (s1 + 1) * 4 and abs(cents_of(n) * gdepth) >= 0.5:
+                    retune(n, cents_of(n) * gdepth)
 
 
 def sing_the_lock():
@@ -1176,6 +1240,8 @@ def compose():
         lean("gr")
     if FAST:                             # v35: and the right-hand music boxes' pitch goes with their clock, in every slip and through the drift
         run_sharp()
+    if SHOOK:                            # v38: the shake is heard on the two clocks
+        shake_on_the_clocks()
     if FLOOR:                            # v37: two slow voices in the drift, a line each
         the_floor_moves()
     if WALL and TWIN:                    # v32: the left guitar's notes in those bars are played behind the wall
@@ -1330,7 +1396,7 @@ def song():
                   "engine's track warp), holding at each distance, until it is half a bar ahead, exactly against the left, and "
                   "there the riff's two halves fit: every sixteenth has one guitar on it and never both. After Huygens's two "
                   "pendulum clocks on one beam (1665), which always ended swinging against each other. v1: the skeleton."),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(MACHINE.split(";")[4]) if MACHINE and float(MACHINE.split(";")[4]) != -10 else -10, "seed": 1, "tail": "4s", "length": f"{int(float(END.split(';')[3])) if END else NB * 4 + (4 if CLOCKS else 0)}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(SHOOK.split(";")[5]) if SHOOK and SHOOK.split(";")[5] else float(MACHINE.split(";")[4]) if MACHINE and float(MACHINE.split(";")[4]) != -10 else -10, "seed": 1, "tail": "4s", "length": f"{int(float(END.split(';')[3])) if END else NB * 4 + (4 if CLOCKS else 0)}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
                     "ot-swarm": SWARM,
                     **({"ot-clock": {"about": "chirper-zero: a clock's tick - a drum machine's rim-shot circuit (the `machine` layer, part rim), 16-20 ms long; it follows the note's pitch (C5 the tick, F4 the tock)",
