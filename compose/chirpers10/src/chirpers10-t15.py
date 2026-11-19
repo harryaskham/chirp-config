@@ -222,6 +222,32 @@ MAN = os.environ.get('C10T15_MAN', '5.5dB;0.5;F4;3;0.9;0.9;1.06:0.96;-10.06;hp c
 # the drum's note ; the chest's note ("" = no chest) ; its gain ; its decay, ms ; the kick's click, dB at 4.5 kHz
 # on its track ("" = as it was, 10) ; the loudness target ("" = unchanged). "" = v10.
 KICK = os.environ.get('C10T15_KICK', 'Ab1;Ab2;-4dB;90;11.5;-10.08' if MAN else '')
+# v12 (chirper-zero; instrument round: the guitars; no stroke, word, stop or other fader of v11 is changed): THE
+# HANDS GET TEETH. The song's two guitars are the two hands on the rope, and a hand that hauls should bite. Read by
+# the stroke against six records' guitar stems at their own chugs (tools/riffpunch.py --strokes; "scoop" is how much
+# more a stroke carries at 1-4 kHz than at 400 Hz-1 kHz): the records 11.3 dB (6.5 to 12.7); the first pair 4.6,
+# the wall pair 4.8. A thud where the records clank, and for the reason found on Extreme and Mean (v23): every
+# muted stroke is written at a full palm, which closes the string's own filter 3.4 octaves, to 1 kHz, BEFORE the
+# amp; then the pair's eq lifted 700 Hz by 2.5 dB (a lift that dates from a yardstick with the records' voices in
+# it), and the wall pair ran through captured cabinet files with nothing over 6 kHz (10 kHz 18 dB under the
+# record's lone guitar).
+#   the first pair   the palm closes the filter 2 octaves (2.75 kHz); the microphone a little nearer the cone's
+#       centre (0.5 -> 0.42); the 700 Hz lift goes and 800 Hz comes DOWN 4 dB (alone, 630 and 800 Hz stood 6.6 and
+#       8.4 dB over the record's lone guitar; now 0.9 and 2.3); 2.5 dB at 185 Hz gives back the chest the brighter
+#       string cost; the fader comes up 1 dB, because a guitar with less at 700 Hz covers less of the shantyman
+#   the wall pair    stops at its amp and plays through the engine's cabinet (as on In the Time Of, On Its Hinge,
+#       Common Time and Extreme and Mean), its microphone further out than the first pair's (0.5), as a second
+#       pair's is; 3 dB at 220 Hz for the chest the cabinet files had; its 380 Hz trim goes with the old rig
+# MEASURED, alone: the stroke's scoop 4.6 -> 11.5 (first pair), 4.8 -> 8.2 (wall pair), 5.0 -> 11.0 (all four in
+# chorus two); against the record's lone guitar, third-octave by third-octave (tools/cabspec.py, mean distance
+# 100 Hz-10 kHz): the first pair 2.88 -> 1.85 dB, the wall pair 3.61 -> 1.87, all four together 2.78 -> 1.65.
+# TWO READS GO THE OTHER WAY and are in the round note: by the stroke the guitars carry more over 6 kHz than the
+# records' separated stems (which lose their top), and the stroke's low end falls faster than any record's.
+# the palm's reach, octaves (the rig's own is -3.4) ; the first pair's microphone ; its fader ; its eq bands (|
+# between) ; the wall pair's microphone ; its cones, left,right ; the microphone's distance ; its fader ; its eq
+# bands ; the loudness target. "" = v11.
+TEETH = os.environ.get('C10T15_TEETH', '-2;0.42;1.7dB;peak cutoff=185 q=1.2 gain=2.5dB|peak cutoff=800 q=1.2 gain=-4dB;0.5;94,95;0.15;-0.7dB;'
+                                       'peak cutoff=220 q=1 gain=3dB;-9.944' if KICK else '')
 BARK = 'kidman synth.layers.0.diction=2 synth.layers.0.speech=1'
 # five men: the kit piece, where in the spread his foot lands (0..1), how hard against the others, his board's
 # note, where he stands, how long his board rings (ms)
@@ -681,10 +707,22 @@ def tracks_of(ev):
     dip = [{'type': 'eq', 'bands': ['peak cutoff=380 q=1 gain=-3dB']}]
     air = [{'type': 'eq', 'bands': ['highshelf cutoff=9000 gain=-2dB']}]
     hair = [{'type': 'eq', 'bands': ['peak cutoff=180 q=0.8 gain=-8dB']}]
+    if TEETH:                                # v12: the palm opens, the lift goes, the wall pair on the engine's cabinet
+        palm, mic, tgain, teq, wmic, wcones, wdist, wgain, weq, _ = TEETH.split(';')
+        twin = lambda cone: f'ct-twin fx.1.model=gojira{tight} fx.2.mic={mic} fx.2.cone={cone} synth.filters.0.cutoff.mod.0.amount={palm}'
+        wall = lambda side: f'ct-wall-stop-{side} fx.3.mix=0 ' + ' '.join(f'fx.4.bands.{i}.gain=0dB' for i in range(4))
+        speaker = lambda cone: [{'type': 'cab', 'model': '4x12-modern', 'mic': float(wmic), 'distance': float(wdist), 'cone': int(cone)},
+                                {'type': 'eq', 'bands': weq.split('|')}]
+        lift = [{'type': 'eq', 'bands': teq.split('|')}]
+        cl, cr = wcones.split(',')
+        guitars = [tr('gl', twin(92), tgain, -1, 'gtrs', lift), tr('gr', twin(93), tgain, 1, 'gtrs', lift),
+                   tr('wl', wall('l'), wgain, -.75, 'gtrs', speaker(cl)), tr('wr', wall('r'), wgain, .75, 'gtrs', speaker(cr))]
+    else:
+        guitars = [tr('gl', 'ct-twin fx.1.model=gojira' + tight + ' fx.2.mic=0.5 fx.2.cone=92', '0.7dB', -1, 'gtrs', lift),
+                   tr('gr', 'ct-twin fx.1.model=gojira' + tight + ' fx.2.mic=0.5 fx.2.cone=93', '0.7dB', 1, 'gtrs', lift),
+                   tr('wl', 'ct-wall-stop-l', '-3.5dB', -.75, 'gtrs', dip), tr('wr', 'ct-wall-stop-r', '-3.5dB', .75, 'gtrs', dip)]
     return [
-        tr('gl', 'ct-twin fx.1.model=gojira' + tight + ' fx.2.mic=0.5 fx.2.cone=92', '0.7dB', -1, 'gtrs', lift),
-        tr('gr', 'ct-twin fx.1.model=gojira' + tight + ' fx.2.mic=0.5 fx.2.cone=93', '0.7dB', 1, 'gtrs', lift),
-        tr('wl', 'ct-wall-stop-l', '-3.5dB', -.75, 'gtrs', dip), tr('wr', 'ct-wall-stop-r', '-3.5dB', .75, 'gtrs', dip),
+        *guitars,
         *([{**tr('clean-' + side, SQUEEZE.split(';')[0], SQUEEZE.split(';')[1], pan, sends={'hall': SQUEEZE.split(';')[3]}), 'name': 'squeeze-' + side}
            for side, pan in (('l', -.6), ('r', .6))] if SQUEEZE else
           [tr('clean-l', 'ct-clean', '-6dB', -.6, sends={'hall': '-12dB'}), tr('clean-r', 'ct-clean', '-6dB', .6, sends={'hall': '-12dB'})]),
@@ -770,6 +808,8 @@ def build():
             doc['tracks'].insert(at + 1, chest)
         if target:
             doc['loudness'] = float(target)
+    if TEETH and TEETH.split(';')[9]:
+        doc['loudness'] = float(TEETH.split(';')[9])
     return doc, marks
 
 
