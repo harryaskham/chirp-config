@@ -728,3 +728,26 @@ Everything pitched goes with the key (the riff's ladder, the harmony, the chips;
 **The walks.** 3 at 0:00.5, 6 at 0:11.1, 7 at 0:17.4, 9 at 0:52.4, 11 at 1:36.8, 12 at 2:06.7, 14 at 2:28.2 (seven said at half speed, then seven's whole walk again), 15 at 3:03.0 (eighty seconds: it climbs to 160, ten bars on one chord), 16 at 4:23.1. One is not an end: three ones and one is four, and four, two, one goes round for ever at seven sixteenths a turn. The song ends on that wheel (4:26.7), fifteen turns, which is what brings it back to a bar line.
 
 **The summit has its fall inside it (v2, chirper-three; 3:43.2–4:10.9).** 160 is not one number: it is 80 doubled and 40 doubled twice, down to five, one phrase (stroke, rest, stroke) in six sizes, and from the top the walk only goes down through them. At the top two more guitars say eighty's phrase a storey under the number (a bar a place, on the low A) and the bass says forty's (half a bar a place), beside the number's own on the left guitar and the smallest on the right guitar and the kick. At 80 the left guitar comes down to what the new pair is already playing; at 40 the pair stops and the band is on the riff the bass has had since the top. The hands stay in common time and go to the china for 160. The sizes not yet heard at the top are 20 and 10. `--without-storeys` restores v1.
+
+## t16 Close Enough (v1 by chirper-two)
+
+**The idea.** Two notes a hair apart make a third thing that is not a note: a pulse, as many times a second as the hair is wide in cycles. Each overtone of the pair is twice, three times, four times as far apart as the notes themselves, so the second harmonic pulses twice for each pulse of the first, the third three times, the fourth four. One mistuned unison is a polyrhythm, 1 : 2 : 3 : 4, with nobody playing it. Here the hair is chosen in cycles so that the pulse is in tempo (at 66 to the minute a hair of 1.1 Hz, eleven cents at F3, pulses once a beat) and the band plays what the pair is already doing. The metre is a tuning, and the form is a list of widths.
+
+**Who plays what.** Two harmoniums, one still reed each (`reed` and `hair`, pitches written in hertz), hold one note; the second is sharp by the width. The kick is the pulse of the notes themselves, and the bass holds a note from each kick to the next. The guitars go twice as fast (the low string and its fifth open with the kick, the low string muted between); the toms three times (floor tom with the kick, then the two rack toms); the hat four times. The snare is outside the rule: two and four of every bar, with an open chord and a cymbal on each bar line. So inside each kick there is one CELL, two against three against four, and it is the same cell at every width: only how many of them fit the snare's bar changes.
+
+**The widths.**
+
+| section | from | the hair | ground | to the bar: kick, guitars, toms, hat |
+|---|---|---|---|---|
+| in tune | 0:00.0 | none | F | the pair alone |
+| a hair | 0:07.3 | 0.275 Hz (2.7 cents) | F | 1, -, -, 4 |
+| wider | 0:21.8 | 0.55 Hz (5.4 cents) | F | 2, -, 6, 8; the snare comes in |
+| square | 0:36.4 | 1.1 Hz (10.9 cents) | F | 4, 8, 12, 16: common time, from a tuning. The band comes in |
+| five | 1:05.5 | 1.375 Hz (11.4 cents) | A♭ | 5, 10, 15, 20 |
+| seven | 1:34.5 | 1.925 Hz (13.4 cents) | B | 7, 14, 21, 28 |
+| three | 2:03.6 | 0.825 Hz (9.2 cents) | E♭, below | 3, 6, 9, 12 |
+| square again | 2:32.7 | 1.1 Hz | F | 4, 8, 12, 16 |
+| a half, a quarter, an eighth | 3:01.8, 3:09.1, 3:16.4 | 0.55, 0.275, 0.1375 Hz | F | 2, 1, a half: two bars each, every stroke ringing to the next |
+| close enough | 3:23.6 | none | F | one chord |
+
+**For later rounds.** The cell has no tune and the guitars do not yet say the whole of it; the section changes are cuts at a bar line, with no way in or out; the pair steps from width to width and never slides (a slide would be the band speeding up as a string is tuned). The tools for the pair are in the v1 round note: on the pair alone, each of its first four overtones' strongest slow pulse must sit at one, two, three and four times the hair.
