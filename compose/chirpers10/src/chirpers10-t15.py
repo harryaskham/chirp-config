@@ -279,7 +279,7 @@ LONG = os.environ.get('C10T15_LONG', '15;17;15;0;0;-9.9' if TEETH else '')
 # Benched raw against everything else and against the voices alone (K, whole stretch): see the round note. The
 # box's own weight (its fundamentals, 350-620 Hz) is cut 8 dB at 430 Hz: the choruses already stand 2.4 to 2.9 dB
 # over the records there, and what a concertina is heard by over a band is its reed (1-8 kHz).
-TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB') for k in os.environ)
+TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL') for k in os.environ)
                       else '-4.5dB;0.35;-12dB;-3;hp cutoff=300|peak cutoff=430 q=0.8 gain=-8dB|peak cutoff=2500 q=0.7 gain=3dB;-9.85')
 # the chorus's tune as a concertina plays it, an octave over the crew: their notes where they sing them, a passing
 # note in the breath after 'haul', and two sixteenths up into the next bar. (sixteenth, length, note), a bar a line.
@@ -317,6 +317,23 @@ BOX_THIRD = {'F4': 'Ab4', 'Gb4': 'Bb4', 'Ab4': 'C5', 'Bb4': 'Db5', 'C5': 'Eb5', 
 SUB = os.environ.get('C10T15_SUB', 'fx.2.bands.0.gain=12dB fx.2.bands.1.gain=6dB fx.2.bands.2.cutoff=540 fx.2.bands.2.q=0.7 fx.2.bands.2.gain=-6dB '
                                    'fx.2.bands.3.cutoff=1150 fx.2.bands.3.q=1.2 fx.2.bands.3.gain=6dB synth.layers.1.level=-20dB;160ms;'
                                    'peak cutoff=55 q=0.7 gain=6dB;13;-9.8' if TUNE else '')
+# v16 (chirper-zero; instrument round: the kit's metal, the china and crash and the verse's hat; no stroke moves):
+# THE METAL COMES UP. v15's handoff: the song's top is missing. The mix read 1.0 to 2.0 dB short at 4-8 kHz and 2.8 to
+# 3.7 short at 8-16 kHz in every sung stretch, the kit by part 3.0 and 2.6 under the records' kits there, and a china
+# stroke stood 10 to 12 dB under the band (So Far's 5 to 7; K, the stroke's first tenth of a second).
+#   THE CHINA AND CRASH 4 dB UP (fader -4.5 -> -0.5 dB): a stroke 6.3 to 7.4 dB under the band.
+#   THE CHINA A LITTLE MORE PLATE: its 8 kHz peak moved to 5 kHz, its 2.2 kHz peak +2 -> -3 dB, bright 1 -> 0.72
+#       (cymspec, against the top of eleven records' drum stems: 1.61 -> 1.09; +1.8 +2.1 +5.1 at 10, 12.5 and 16 kHz
+#       -> +1.3 +1.3 +3.0).
+#   THE VERSE'S HAT HAS A BODY (as Close Enough v12's, chirper-two): the library's closed hat is noise over an 8 kHz
+#       high-pass; here the high-pass is 3.5 kHz, its 10 kHz peak at 6, 35 ms (cymspec 8.42 -> 2.77), fader 14 -> 17 dB:
+#       a stroke 15.7 -> 11.2 dB under the band. The pedal in 'easy' is where it was (its piece 3 dB down).
+# The mix, 4-8 kHz, the five band stretches after verse one: -1.0 to -2.0 -> -0.5 to +0.2; verse one -1.9 -> -1.2;
+# 8-16 kHz -2.8 to -3.7 -> -1.6 to -3.2; all nine bands 2.096 -> 1.879.
+# overrides inside the china's patch ; the cymbals' fader ; overrides on the library's closed hat ; the hat's fader ;
+# the pedal's piece gain ; the loudness target ('' = unchanged). '' = v15 byte for byte.
+METAL = os.environ.get('C10T15_METAL', 'synth.layers.0.bright=0.72 synth.filters.2.cutoff=5000 synth.filters.1.gain=-3dB;-0.5dB;'
+                                       'filters.0.cutoff.value=3.5k filters.1.cutoff=6000 amp.d=35ms;17dB;-17dB;-9.69' if SUB else '')
 BARK = 'kidman synth.layers.0.diction=2 synth.layers.0.speech=1'
 # five men: the kit piece, where in the spread his foot lands (0..1), how hard against the others, his board's
 # note, where he stands, how long his board rings (ms)
@@ -935,6 +952,31 @@ def the_sub_changes_hands(doc):
         doc['loudness'] = float(target)
 
 
+def the_metal_comes_up(doc):
+    """v16: the china and crash up, the china a little more plate; the verse's hat with a body, and up."""
+    china, cym_fader, hat, hat_fader, pedal, target = METAL.split(';')
+    for t in doc['tracks']:
+        if t['name'] == 'cym':
+            t['patch'] += ''.join(f' kit.x.patch.{o}' for o in china.split())
+            if cym_fader:
+                t['gain'] = cym_fader
+        if t['name'] == 'hat':
+            if hat or pedal:
+                t['patch'] = 'slack-hat-kit'
+            if hat_fader:
+                t['gain'] = hat_fader
+    if hat or pedal:
+        kit = {}
+        if hat:
+            kit['h'] = {'patch': 'haake-hat ' + hat}
+        if pedal:
+            kit['hp'] = {'gain': pedal}
+        doc['patches']['slack-hat-kit'] = {'about': "Take Up the Slack's hat: the album kit with the library's closed hat opened downwards.",
+                                           'extends': 'ct-kit', 'kit': kit}
+    if target:
+        doc['loudness'] = float(target)
+
+
 def dump(d):
     return '\n'.join('tracks:\n' + '\n'.join('  - ' + json.dumps(t) for t in v) if k == 'tracks' else k + ': ' + json.dumps(v) for k, v in d.items()) + '\n'
 
@@ -943,6 +985,8 @@ if __name__ == '__main__':
     doc, marks = build()
     if SUB:
         the_sub_changes_hands(doc)
+    if METAL:
+        the_metal_comes_up(doc)
     if os.environ.get('C10T15_SHOW'):
         for sec, bars in FORM:
             t = marks[sec]
