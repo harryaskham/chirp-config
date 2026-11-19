@@ -329,6 +329,42 @@ BASS = os.environ.get("C10T16_BASS", "87.3:1.6:9.5;131:2:-6;1.5;-9.91" if AIR el
 # 700 Hz, where the mix already stood 3.7 over the records in the close, and gives 4 back at 2.2 kHz, where a lead
 # is heard: 24 to 30% of 250-500 Hz now, 15 to 20% of 2-4 kHz). "" = v9.
 BEND = os.environ.get("C10T16_BEND", "all;-11.5dB;1200;0.5;-20;45;60;-9.851;380:0.8:-4,700:1:-5,2200:0.7:4" if BASS else "")
+# v11 (chirper-zero; section round: the ending, 2:54-3:31, and one repair of v10): THE NOTE IS LEFT ALONE.
+# The song is a tuning, and it ends when the two reeds are one note. That note was never heard by itself: the
+# band's last chord lay over it for 6.7 of its 8 beats, 5 dB louder, and a held chord through an amplifier is not
+# still (at the reeds' own lines the last bar wobbled 4.0 dB at 349 Hz, 14.4 at 524, 8.7 at 1048; the two reeds
+# alone 2.9, 0.5, 0.1). Three things, the first two in the ending only:
+#   THE BAND LETS GO AT THE BAR LINE (3:27.3). The last chord is struck by everyone as before, held ONE bar, and
+#       let go together; for the last bar (3.6 s) the two reeds are alone, in tune and still. Guitars and bass
+#       only; the handpan's four notes and the crash ring as they did.
+#   THE BAND IS ON THE REEDS' NOTE. Read against the still reed (the sixteenth harmonic of low F, the 33 open
+#       strokes from 0:36 to 1:05), the guitars sounded 2.6 cents sharp and wandered from -0.7 to +5.5 stroke by
+#       stroke (the plucked string's own sharpness, and the rig's random pitch); the bass +0.8 (-1.6 to +2.7).
+#       Now the strings are on their written notes (the engine's `tune_sounding`) and nothing is random: -0.5
+#       (-1.1 to +0.5) and +0.1 (-0.3 to +0.9). And every chord's fifth is the reeds' own twelfth, 3:2 of its root
+#       (an equal-tempered fifth is 2 cents flat of it, which is 0.6 Hz at 524 Hz: a wobble nobody wrote, in a
+#       song whose wobbles are all written). In the last chord's first bar the mix's line at 349 Hz wobbles 2.1 dB
+#       where it wobbled 7.7, at 698 Hz 7.7 where 13.0. This is for the whole song and is small anywhere but
+#       there (the pair's swell through 'square' is followed as before, 0.68 > 0.70).
+#   THE LEAD NO LONGER CANCELS THE NOTE IT DOUBLES (a repair of my v10). Its still string is the reeds' second
+#       overtone, the same frequency, and in this engine both start their cycle on the note's first sample: I
+#       read each alone and never the sum. Summed, they were 158 to 173 degrees apart on F and E flat and nearly
+#       the same size: the line they share came out 7.7 to 11.1 dB BELOW the reeds' alone (turn 1, turn 4, the
+#       close; -1.7 on A flat, +0.7 on B), and through the close the mix followed the pair's swell at 349 Hz
+#       WORSE than before there was a lead (r 0.41 at v9, 0.07 at v10). The lead's oscillator now starts half a
+#       cycle on, which turns its odd harmonics over and leaves the even ones (its second and the reeds' fourth
+#       already added). The shared line is 3.2 to 4.7 dB ABOVE the reeds' alone in all five places; the close
+#       reads r 0.52 and the first turn 0.91 (0.26). After ANY change to the lead's chain (its filter, amp,
+#       cabinet, eq) run phase.py again.
+#       AND ITS OWN NOTE COMES DOWN 5 dB (the cut at 380 Hz, 4 -> 9 dB): two parts that add on one line are louder
+#       than either. With the two adding and v10's eq the mix stood 5.5 dB over the records at 250-500 Hz in the
+#       close (3.6 at v9, before the lead; the 2.5 I reported at v10 was the cancellation); now 4.6, and the
+#       lead's own line is 4 dB under the reeds' overtone it doubles.
+# patch overrides for the four guitars ; for the bass ; fifths as 3:2 ('1', or '' = as written) ; how long the
+# guitars and bass hold the last chord, beats as written ('' = as it was, 7.6; they sound 0.88 of it) ; the
+# lead's oscillator ('' = as v10) ; the lead's eq, Hz:q:dB,... ('' = as v10) ; the loudness target. "" = v10.
+ALONE = os.environ.get("C10T16_ALONE", "synth.layers.0.tune_sounding=true synth.pitch.mod.1.amount=0;synth.pitch.mod.1.amount=0;1;4.5;saw phase=0.5;"
+                                       "380:0.8:-9,700:1:-5,2200:0.7:4;-9.891" if BEND else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -670,7 +706,39 @@ def build():
         doc["loudness"] = float(BASS.split(";")[3])
     if BEND:
         unison_bend(doc)
+    if ALONE:
+        in_tune(doc, end)
     return doc, marks, end
+
+
+def in_tune(doc, end):
+    """v11: the band's strings on the reeds' note, its fifths pure, the last chord let go after a bar, the lead's oscillator half a cycle on."""
+    strings, low, pure, hold, osc, eq, target = ALONE.split(";")
+    names = "C Db D Eb E F Gb G Ab A Bb B".split()
+    midi = lambda n: names.index(n[:-1]) + 12 * (int(n[-1]) + 1)
+    last = end - 8                                       # the last chord's beat
+    for t in doc["tracks"]:
+        guitar = t["name"] in ("left", "right", "left-said", "right-said")
+        if guitar and strings:
+            t["patch"] += " " + strings
+        if t["name"] == "bass" and low:
+            t["patch"] += " " + low
+        if guitar and pure:
+            for n in t["notes"]:
+                ps = str(n["pitch"]).split(",")
+                if len(ps) > 1:                          # root first; an octave stays a name, a fifth or twelfth becomes 3:2 or 3:1 of the root
+                    root = midi(ps[0])
+                    n["pitch"] = ",".join([ps[0]] + [q if (midi(q) - root) % 12 == 0 else "m%.4f" % (root + 12 * math.log2({7: 1.5, 19: 3}[midi(q) - root])) for q in ps[1:]])
+        if (guitar or t["name"] == "bass") and hold:
+            for n in t["notes"]:
+                if n["at"] == last:
+                    n["len"] = float(hold)
+    if osc and "ce-bend" in doc.get("patches", {}):
+        doc["patches"]["ce-bend"]["synth"]["layers"] = [osc]
+    if eq:
+        next(t for t in doc["tracks"] if t["name"] == "bend")["fx"] = [{"type": "eq", "bands": ["peak cutoff={} q={} gain={}dB".format(*b.split(":")) for b in eq.split(",")]}]
+    if target:
+        doc["loudness"] = float(target)
 
 
 def unison_bend(doc):
