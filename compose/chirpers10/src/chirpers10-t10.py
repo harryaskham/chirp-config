@@ -225,6 +225,30 @@ STAGE = os.environ.get('C10T10_STAGE', '-3;2.5;450 0.8 -7;peak cutoff=42 q=1.2 g
 # target (what plays without the riff guitars and the bass guitar keeps the gain it had: the song reads 0.3 LU
 # lower, because the 700 Hz lift was loudness). '' = v19.
 CHEST = os.environ.get('C10T10_CHEST', '195:1.3:6.5,560:1:-1.5;185:1:-6;-10.239' if STAGE else '')
+# v21 (chirper-one, whole song): THE DRUMMER KEEPS THE ACCOUNT, AND THE BAND BUILDS AS IT BORROWS. The drummer never
+# follows the guitars' private tempo (the song's first rule), and until now he did not show the debt at all: the same
+# closed hat, tip of the stick, at par and at six owed, 31 dB under the band. And the loud band played one level:
+# 'in hand', 'on account' and 'still owing' read -13.4, -13.5 and -13.1 (K) in the finished file.
+# (1) HIS HAT IS AS FAR OPEN AS THE DEBT in 'on account' (0:34-1:04), where the debt grows a sixteenth a pair: tip,
+# tip, shank, a quarter open, half, three-quarters, open, for none to six sixteenths owed; the ride's edge takes
+# over at the crest as it always has. An opened hat rings until the next stroke closes it. He still plays every
+# stroke where he played it.
+# (2) THE BAND BUILDS. Its three buses (guitars, bass, kit) ease down 2 dB through the two brush pairs that end 'in
+# hand', and come back a sixth of the way with each sixteenth borrowed: full again on the pair that owes six. The
+# quiet band's instruments (brush, piano, the keys) are not on those buses, so they stand a little clearer while
+# little is owed.
+# Benched raw, each alone: the hat goes from -57.9 dB (K) at one owed to -45.1 at six, 31 under the band to 20 under,
+# and from 19 dB under everything else's own 4-16 kHz to 8 under. The master takes back more than half of the
+# band's 2 dB: finished, the build is about 1.2 dB.
+# BUILT, RENDERED AND NOT KEPT: the same hat through 'called in' (1:47-2:17, half-time: open at six, closing to the
+# tip at par, opening again on credit). That section's dry closed hat is part of what sets it apart: with the hat
+# opened there the scorer cut five sections where it cut six on both seeds read (96.7 / 96.8 -> 95.6 / 95.6), while
+# the hat in 'on account' alone read 97.4 / 98.3. The third field takes it back ('on account,called in').
+# the hat's stroke by sixteenths owed, 0 to 6, comma between (the kit's h tip, hs shank, h1/h2/h3 quarter, half and
+# three-quarter open, oh open) ; dB on each of those strokes ; the sections it is kept in ; dB the loud band's three
+# buses come down by where the borrowing starts (0 = no build) ; the loudness target ('' = unchanged). '' = v20; it
+# is on only while CHEST is.
+LEDGER = os.environ.get('C10T10_LEDGER', 'h,h,hs,h1,h2,h3,oh;0,0,0,0,0,0,0;on account;2;' if CHEST else '')
 
 
 def bow_patch():
@@ -358,9 +382,11 @@ def build():
     pair = 2*BAR
     crest_roots = (0,0,3,3,5,5)
     t = 0
+    pair_start = {}
     for s, debts in FORM:
         sections.append((s,t))
         for j,d in enumerate(debts):
+            pair_start[s,j] = t
             width = BAR+d
             turn = t+width
             assert width+(BAR-d)==pair and 0<width<pair
@@ -618,6 +644,11 @@ def build():
                     note('sweep',q,SUB+(spread if i<4 else -spread),'sw',.88)
                 elif BRUSH and spread is not None and i%4==2:
                     kit('hp',q,.64)  # the foot counts three while the hands brush and strike
+                elif LEDGER and s in LEDGER.split(';')[2].split(',') and LEDGER.split(';')[0].split(',')[abs(d)] != 'h':
+                    # v21: the hat is as far open as the debt; an opened hat rings until the next stroke closes it
+                    note('metal',q,2*SUB if s=='called in' else SUB,LEDGER.split(';')[0].split(',')[abs(d)],.57 if i%4==0 else .47)
+                    trim = float(LEDGER.split(';')[1].split(',')[abs(d)])
+                    if trim: voices['metal'][-1]['gain'] = f'{trim:g}dB'
                 else:
                     kit('x' if s=='across the line' else 'rde' if s=='still owing' else 'h',q,.57 if i%4==0 else .47)
                 snare_beats = (1,3) if s in ('still owing','across the line') else (2,)
@@ -818,8 +849,16 @@ def build():
             'drums':{'fx':old_kit_bus['fx'][:2]+[{'type':'eq','bands':[f'peak cutoff={cutoff} q={q} gain={cut}dB','lp cutoff=14900']},
                                                 {'type':'gain','gain':f'{stage[6]}dB'}]},
         }
+    if LEDGER and staged and float(LEDGER.split(';')[3]):
+        # v21: the loud band comes down through the two brush pairs and builds with the debt, a sixth of the way for
+        # each sixteenth borrowed; full again on the pair that owes six. One lane on each of its three buses.
+        depth = float(LEDGER.split(';')[3])
+        lean = [['0b',0],[f"{pair_start['in hand',3]/SUB:g}b",0],[f"{pair_start['on account',0]/SUB:g}b",-depth],[f"{pair_start['on account',MAX_DEBT]/SUB:g}b",0]]
+        for name in ('gtrs','low','drums'):
+            staged[name]['fx'] = staged[name]['fx']+[{'type':'gain','gain':{'value':'0dB','mod':[{'src':'auto.lean','amount':1}]}}]
+            staged[name].setdefault('auto',{})['lean'] = {'points':lean,'curve':0}
     return {'about':'Still Owing, Common Time track 10: a low call borrows time from a higher answer and pays it back within each two-bar phrase.',
-        'tempo':BPM,'seed':1,'event_stable':True,'length':f'{t//SUB}b','tail':'3s','loudness':float(chest[2]) if chest else float(stage[5]) if stage else float(BOOM.split(';')[3]) if BOOM else ROOM_LUFS if ROOM else -10,'ceiling':'-1dB','true_peak':True,
+        'tempo':BPM,'seed':1,'event_stable':True,'length':f'{t//SUB}b','tail':'3s','loudness':float(LEDGER.split(';')[4]) if LEDGER and LEDGER.split(';')[4] else float(chest[2]) if chest else float(stage[5]) if stage else float(BOOM.split(';')[3]) if BOOM else ROOM_LUFS if ROOM else -10,'ceiling':'-1dB','true_peak':True,
         **({'songs':fold_sources} if fold_sources else {}),
         'patches':{'owing-key':key_patch,**fold_patches,**({'owing-skin':pressure_skin()} if PRESS else {}),
                    **({'owing-kept':kept_key()} if KEPT else {}),**({'owing-bow':bow_patch()} if BOW and TRADE else {})},
