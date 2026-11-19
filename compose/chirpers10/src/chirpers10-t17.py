@@ -149,6 +149,34 @@ BODY = (180, -5, -0.85, -9.839)
 # MEASURED (the pitched band alone, raw): the ondes's line against the harmonic, for 10, 11, 13, 14, 15: +13.7,
 # +49.2, -40.9, +31.3, +11.8 cents before; 0.0, -0.3, -0.2, -0.1, 0.0 after. Every walk's level is within 0.10 dB
 # (K) of v6's and the loudness target is not moved. --equal gives v6.
+# v8 (chirper-one, whole song): THE HANDS REMEMBER. The walks merge. Seven's walk (7, 22, 11, 34, 17, 52, 26, 13, 40,
+# 20, 10, 5, 16, 8, 4, 2, 1) is the whole of nine's after three numbers, of fourteen's after one, and eleven's is its
+# last fifteen: between 0:58 and 3:03 the song says that one thirty-second passage three more times, and from 1:37 to
+# 3:03 the only number it has not said before is twelve. Then the fifteenth walk's first nine numbers (68 seconds, the climb
+# and the top) are all new, and its last nine are the oldest ground there is. The band is in the rule and plays a
+# number the same way every time. The hands are not in the rule and kept one count through all of it (v1 gave each
+# walk a feel by hand). NOW THE HANDS KNOW WHERE THEY HAVE BEEN: from the seventh walk on, what they play under a
+# number depends on how many walks have said it before.
+#   a number never said before: half time, the snare on three alone. Nobody knows where this goes.
+#   said once before:           the backbeat, two and four.
+#   said twice before:          the backbeat, and a closed hat fills in the eighths between the cymbal's quarters.
+#   said three times or more:   double time, the snare on every off-beat.
+#   a power of two (16, 8, 4, 2, 1), however often said: the backbeat. Every walk ends there; the ball comes to rest.
+# They never leave common time: every stroke is on a beat or half way between two.
+# WHAT THAT MAKES OF THE SONG: seven is found in half time; at 10 (said by three and six) the hands recognise the
+# way home. Nine finds 9, 28, 14 in half time and at 7 the backbeat comes in: we have been here. Eleven is the
+# third telling and gets the hat; fourteen the fourth, double time: the passage is fastest when it is best known.
+# Then fifteen: 68 seconds no walk has trodden, in half time, climbing to 160 and its china; and at 40, said by five
+# walks before, double time to the bottom. The two quiet walks keep their stick on the rim.
+# BENCHED (raw): the hat at 10 dB stood 25.8 dB (K) under everything else in the eleventh walk, not a part anyone
+# would hear; at 15 it is set where it reads. The double-time snare at the backbeat's own weight stood 6.6 dB under
+# everything else in the fourteenth walk (v7's snare there: 12.0) and held 46% of 250-500 Hz and 54% of 8-16 kHz:
+# four strokes a bar are each 2.5 dB lighter than the backbeat's two.
+# the first walk that remembers ; the hat's fader, dB ; its velocity ; the double-time snare's velocity ; its
+# trim, dB ; the loudness target. --without-memory gives v7.
+MEMORY = (7, 15, 0.5, 0.9, -2.5, -9.826)
+
+
 def true(ratio):
     """A pitch as its exact ratio over the low F: the engine's fractional key number (a whole one is written as its name)."""
     m = F1 + 12 * math.log2(ratio)
@@ -196,12 +224,13 @@ def phrase(m):
     return [(u * unit, ((strokes[i + 1] if i + 1 < len(strokes) else odd) - u) * unit, u % len(bits) == 0) for i, u in enumerate(strokes)]
 
 
-def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, body=True, tuned=True):
+def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, body=True, tuned=True, memory=True):
     low_bus = low_bus and storeys  # --without-storeys still gives v1
     sized = sized and kit and low_bus
     body = body and sized
     tuned = tuned and body
-    T = {k: [] for k in ('left', 'right', 'bass', 'kick', 'snare', 'metal', 'stone') + (('wall-left', 'wall-right') if storeys else ())}
+    memory = memory and tuned
+    T = {k: [] for k in ('left', 'right', 'bass', 'kick', 'snare', 'metal', 'stone') + (('wall-left', 'wall-right') if storeys else ()) + (('hat',) if memory else ())}
     lifted = []
 
     def put(tr, at, dur, p, v, mute=False):
@@ -301,15 +330,31 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
     walks_at = {at: k for k, at in marks}
     feel = lambda k: 'back' if k in (9, 10, 11, 15) else 'half'
     which = lambda s: max((k for k, at in marks if at <= s), default=1) if s < wheel else 0
+    paths = {k: set(walk(k)) for k in range(FIRST, LAST + 1)}
+
+    def known(k, n):
+        """How the hands play number n in walk k (v8): 1 new, 2 said once before, 3 twice, 4 three times or more."""
+        said = 1 + sum(n in paths[j] for j in range(FIRST, k))
+        return min(said, 2 if n & (n - 1) == 0 else 4)
     for s in range(0, end, 4):                               # quarters
         k = which(s)
         beat = (s % BAR) // 4
-        slow = parts_of(next(n for at, n, _, _ in reversed(cells) if at <= s))[1] >= 4
+        now = next(n for at, n, _, _ in reversed(cells) if at <= s)
+        slow = parts_of(now)[1] >= 4
         if s >= marks[2][1]:                                 # the cymbals come in with three
             put('metal', s, 3.6, 'x' if storeys and top <= s < top + 160 else 'rde' if slow or k in QUIET else 'x', (0.62 if beat == 0 else 0.5) - (0.12 if k in QUIET else 0))
             if k in QUIET:
                 if beat == 2:
                     put('snare', s, 0.8, 'ss', 0.72)         # a stick across the rim
+            elif memory and k >= MEMORY[0]:
+                lv = known(k, now)
+                if (lv == 1 and beat == 2) or (lv in (2, 3) and beat in (1, 3)):
+                    put('snare', s, 0.8, 's', 0.96)
+                if lv == 3:
+                    put('hat', s + 2, 0.8, 'h', MEMORY[2])
+                if lv == 4:
+                    put('snare', s + 2, 0.8, 's', MEMORY[3])
+                    T['snare'][-1]['gain'] = f'{MEMORY[4]}dB'
             elif (feel(k) == 'half' and beat == 2) or (feel(k) == 'back' and beat in (1, 3)):
                 put('snare', s, 0.8, 's', 0.96)
         if beat == 0 and s >= marks[2][1] and k not in QUIET and not any(e['at'] == s / SUB for e in T['kick']):
@@ -386,7 +431,8 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
               track('stone', 'ondes fx.0.mix=0.15', lead_gain, .1, fx=[{'type': 'eq', 'bands': ['peak cutoff=350 q=0.9 gain=-3dB']}]),
               sized_track(track('kick', drum, KIT['kick gain'] if kit else 2, out='drums', fx=[{'type': 'eq', 'bands': ['peak cutoff=4300 q=0.8 gain=7dB']}]), cap=0),
               track('snare', drum, 3, out='drums'),
-              track('metal', drum, KIT['metal gain'] if kit else 1.5, out='drums', **({'fx': [{'type': 'eq', 'bands': KIT['metal']}]} if kit and KIT['metal'] else {}))]
+              track('metal', drum, KIT['metal gain'] if kit else 1.5, out='drums', **({'fx': [{'type': 'eq', 'bands': KIT['metal']}]} if kit and KIT['metal'] else {})),
+              *([track('hat', drum, MEMORY[1], out='drums', fx=[{'type': 'eq', 'bands': KIT['metal']}])] if memory else [])]
     assert not T
     doc = {'about': 'So Far. Halve it if it is even; treble it and add one if it is odd. The first sixteen numbers, each walked to one: '
                     'a number is its length in sixteenths, its harmonic over the low F and its own riff. Common Time t17 v1.'
@@ -402,6 +448,8 @@ def compose(lead_gain=-7.0, storeys=True, low_bus=True, kit=True, sized=True, bo
         doc['loudness'] = KIT['loudness']
     if body:
         doc['loudness'] = BODY[3]
+    if memory:
+        doc['loudness'] = MEMORY[5]
     return doc, marks, wheel, end
 
 
@@ -411,13 +459,14 @@ if __name__ == '__main__':
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
+    ap.add_argument('--without-memory', action='store_true', help="regenerate v7: the hands keep the feel v1 gave each walk, whatever has been said before")
     ap.add_argument('--equal', action='store_true', help='regenerate v6: every number at the nearest semitone to its harmonic, not at the harmonic')
     ap.add_argument('--without-body', action='store_true', help="regenerate v5: the first pair's tight filter at 220 Hz and the bass's 170 Hz cut at 3 dB")
     ap.add_argument('--without-size', action='store_true', help="regenerate v4: every number at one level")
     ap.add_argument('--without-kit', action='store_true', help="regenerate v3: the kit before the kick was retuned and the cymbals and the bus had the album's eq")
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
-    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal)
+    doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory)
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
