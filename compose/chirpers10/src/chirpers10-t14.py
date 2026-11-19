@@ -186,6 +186,26 @@ STILL = os.environ.get("C10T14_STILL", "synth.pitch.mod.2.amount=0 synth.pitch.m
 # fader are, so each older switch still gives what it gave.
 FILLS = os.environ.get("C10T14_FILLS", "0.6;0.92;minor+120=4|minor+240=2,4|sixth+240=4,2|home+120=2;0;common+128:t2:1:5.5") if STILL and TUNE and os.environ.get("C10T14_TOMS", "x") else ""
 
+# v5 (chirper-alpha, instrument: THE LEAD). The tune's guitar is the library's `m8-lead-guitar` as it comes. Read alone
+# (raw, 'sixth') it is all middle: of its own power 27% lies at 500 Hz-1 kHz, 45% at 1-2 kHz, 25% at 2-4 kHz, and
+# ONE PERCENT above 4 kHz, where a pick is heard. In the quiet middle, on its lower notes, half of it is 500 Hz-1 kHz.
+# v3's read against the album's eleven records found the same from the other side: wherever the tune plays the mix
+# stands 2.8 dB over the records at 500 Hz-1 kHz ('sixth') and 4.6 over in the quiet middle, and the tune alone is 56%
+# and 85% of that band, while 4-8 kHz and 8-16 kHz stand under. A lead that is a box and no pick.
+# So, on the lead's track, after its amp, speaker, echo and room: THE BOX OUT (a peak at 700 Hz) and THE PICK IN (a
+# shelf from 4 kHz). And THE FADER RIDES: v2 wrote -1.5 dB on the quiet middle's notes and v3 measured that it does
+# nothing (a note's gain sits ahead of a saturated amp); the same 1.5 dB is now a ride on the fader through
+# 'fourth', where it is a level. No note changes; the amp, the string and the vibrato are the library's.
+# Benched first and not kept (the lead alone in both windows, and the mix read again with it):
+#   the speaker's microphone at the cone's centre (0.15): 4-8 kHz +1.0 dB on the lead, nothing in the mix
+#   the amp's mid at 0.45: 500 Hz-1 kHz -0.5 in the mix, but 1-2 and 2-4 kHz, already over, +0.2 and +0.4
+#   the engine's modern speaker, microphone 0.1, with the box out: 500 Hz-1 kHz -1.6, but 2-4 kHz 1.1 further over
+#   a gentler pair (-3 dB at 750, +3 dB at 4.5 kHz): half of this
+# the box (Hz : q : dB) ; the pick (shelf Hz : dB) ; the fader's ride through 'fourth', dB ; the loudness target
+# (a quieter lead makes the file measure quieter: at -10 every bar without the tune came out 0.4 dB louder, at
+# -10.25 0.13; 1.12 dB of gain for each dB of target). "" = v4.
+LEAD = os.environ.get("C10T14_LEAD", "700:0.8:-5;4000:5;-1.5;-10.36") if FILLS else ""
+
 
 def still(patch, who):
     """The patch standing still, tuned down by its own sharpness. who: 0 the F pair, 1 the A flat pair, 2 the walls, 3 the lead."""
@@ -490,7 +510,16 @@ def song():
     ]
     if TUNE:
         gain, _, echo = TUNE.split(";")
-        tracks.append({"name": "tune", "patch": f"m8-lead-guitar fx.4.mix={echo} fx.5.mix=0.15", "gain": gain, "pan": 0})
+        lead = {"name": "tune", "patch": f"m8-lead-guitar fx.4.mix={echo} fx.5.mix=0.15", "gain": gain, "pan": 0}
+        if LEAD:
+            box, pick, ride = (x.split(":") for x in LEAD.split(";")[:3])
+            lead["fx"] = [{"type": "eq", "bands": [f"peak cutoff={box[0]} q={box[1]} gain={box[2]}dB", f"highshelf cutoff={pick[0]} gain={pick[1]}dB"]}]
+            if ride[0] and float(ride[0]):
+                a, z = AT["fourth"] / 4, AT["common"] / 4
+                lead["gain"] = {"value": gain, "mod": [{"src": "auto.ride", "amount": 1}]}
+                lead["auto"] = {"ride": {"curve": 0, "points": [["0b", 0], [f"{a - 0.25:g}b", 0], [f"{a:g}b", float(ride[0])],
+                                                               [f"{z - 0.25:g}b", float(ride[0])], [f"{z:g}b", 0]]}}
+        tracks.append(lead)
     if STILL:
         # the last chord's four other guitars: the same rigs, faders, sides and eq, standing still
         tracks += [{**t, "name": t["name"] + "-still", "patch": still(t["patch"], i // 2)} for i, t in enumerate(tracks[:4])]
@@ -519,7 +548,7 @@ def song():
                   "so threes against fours against fives are F minor. Three toms tuned to the chord are rolled at their own notes, slowed "
                   "six octaves until they can be counted, handed to the band a pulse at a time, and wound back up into the chord at the end. "
                   + ("The band is tuned to the pulses' own notes, and a lead plays a tune in which every note lasts as long as its period." if TUNED and TUNE else "v1 is the skeleton.")),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": -10, "seed": 1, "tail": "5s", "length": f"{end // 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(LEAD.split(";")[3]) if LEAD and TUNE else -10, "seed": 1, "tail": "5s", "length": f"{end // 4}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": kit_here}},
         "buses": {
             "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
