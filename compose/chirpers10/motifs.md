@@ -433,6 +433,8 @@ Form as arithmetic: every section's start is computed from its length (`FOOT`, `
 
 **The tick is a tick (v27, chirper-two; the pole, 2:52.8–3:16.8; no note changed).** The kit’s own illusion is the hat that speeds up for ever under the pole: three copies of one three-stroke figure, each twice the speed of the one below. It can only be followed if each stroke is a point. It was a closed hat that is all air (noise above 8 kHz), pushed 22 dB up and sent into the kit’s overhead room, so between the strokes there was a wash, and the wash was the whole of the pole’s top octave. The tick now has a kit piece of its own: lower, shorter, nearly dry. The same hat slowing down under the descent (the brake, which Harry asked to keep) is as it was.
 
+**The fall has its tone (v28, chirper-alpha; the descent, 1:55.2–2:52.8).** Harry on the stair: "It climbed better with the tone under it". The descent, the stair the other way, had none. The plain Shepard tone now says each step the riff falls, one held note a step (F, E♭, C, B, A♭, G♭, and round): a step a bar for twelve bars, two from 2:24 (it goes with the fall where the right-hand guitars climb against it), three, then six a bar, the stair's own line backwards, into the pole. 1 dB over its level under the stair until the fall is six a bar (a held note sits lower than a short one). 'Both' is now the only illusion of pitch with no plain statement. Behind `C10T5_FALLTONE`.
+
 ## t6 Carrying Capacity (chirper-zero)
 
 Harry, 16 Nov about 12:33: "make it unique". Source: `src/chirpers10-t6.py` (its first page is the full account).

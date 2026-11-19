@@ -450,6 +450,8 @@ def descent(b0, b1, gend=None):
             lad = 12 * (n // 6) + SCALE[n % 6]
             pc = lad % 12
             ground(b * 4 + s0 / 4, 0 if FALLKEY == "0" else pc - 12 if FALLKEY == "wrap" and pc > 6 else pc)
+            if FALLTONE:                       # v28: the tone says the step, held (the Shepard patch has no octave to fall out of)
+                add("stair", b * 16 + s0, s1 - s0, 65 + SCALE[n % 6], 0.85 if n % 6 else 1.0)
             for v in range(VOICES):
                 p = (lad + 12 * v) % (12 * VOICES)
                 g = db(bell(p / (12 * VOICES))) + TRIM["fall"]
@@ -1133,6 +1135,26 @@ TICKTONE = os.environ.get("C10T5_TICKTONE", "filters.0.cutoff.value=5k amp.d=25m
                           "highshelf cutoff=8000 gain=-7dB,peak cutoff=5200 q=1.2 gain=2dB;" if PHANTOM and TICK else "")
 
 
+# v28 (chirper-alpha, whole song: the descent, 1:55.2-2:52.8, a quarter of the song): THE FALL HAS ITS TONE.
+# Harry, 17 Nov 00:28, on the stair: "It climbed better with the tone under it". The plain Shepard tone states
+# the illusion alone at the foot and has been back under the stair since v14, under the pole and at the summit.
+# But the descent is "the stair the other way, and all of it", twenty-four bars of a tuning that keeps dropping
+# and is never lower, and it has had no tone: the one illusion of pitch in the song the band carries alone. Now
+# the tone says the fall as plainly as it says the climb: ONE HELD NOTE FOR EACH STEP THE RIFF FALLS, the step's
+# own note (F, E flat, C, B, A flat, G flat, and round), on the same fader and the same lane as under the stair.
+# So it also tells how steep the fall is, which nothing but the riff's own notes did: a step a bar for twelve
+# bars (2.4 s a note), two a bar from 2:24 (where since v21 the right-hand guitars climb against it: the tone
+# goes with the fall), three from 2:38.4, and from 2:43.2 six a bar: the stair's own line and rhythm, backwards,
+# through the guitars' run into the pole, where the tone is alone again.
+# (Level, benched raw: under the stair, where he chose it, the tone stands 12.8 dB under the band, K-weighted. A
+# held note sits lower than the stair's short ones: at the same fader it stood 15.1 under where the fall is a step a
+# bar and 14.9 at two, and 13.7 at six, where its notes are the stair's own. So it has 1 dB more until the fall
+# is six steps a bar: 14.1, 13.9, 13.1, then 13.7 and, over the guitars' run, 12.8.)
+# dB on the tone under the descent, against its level under the stair ; the bar from which it is at the stair's
+# own level again ; the loudness target ("" = unchanged). "" = v27.
+FALLTONE = os.environ.get("C10T5_FALLTONE", "1;68;-9.975" if TICKTONE else "")
+
+
 def the_tick_is_a_tick(doc):
     hat, fader, room, bands, lufs = TICKTONE.split(";")
     # a kit of its own, so the brake and the foot's hat keep the hat they had
@@ -1186,7 +1208,8 @@ def song():
     bandonly = os.environ.get("C10T5_BANDONLY", "")
     under = float(bandonly) if bandonly else 0.0
     syn_lane = [(0.0, float(synth[2]))]
-    for bar, lvl in ((FOOT + 4, float(synth[3])), (RISE, under), (POLE, float(synth[4])), (BOTH - (int(RUNS.split(";")[0]) if RUNS else 0), under)):
+    falls = [(FALL, under + float(FALLTONE.split(";")[0])), (int(FALLTONE.split(";")[1]), under)] if FALLTONE and float(FALLTONE.split(";")[0]) else []
+    for bar, lvl in ((FOOT + 4, float(synth[3])), (RISE, under), *falls, (POLE, float(synth[4])), (BOTH - (int(RUNS.split(";")[0]) if RUNS else 0), under)):
         step(syn_lane, bar * 4, lvl)
     tracks = [
         {"name": "gl", "patch": heavy.format(30), "gain": GH, "pan": -1, "out": "gtrs"},
@@ -1300,6 +1323,8 @@ def song():
         root_that_is_not_there(doc)
     if TICKTONE:
         the_tick_is_a_tick(doc)
+    if FALLTONE and FALLTONE.split(";")[2]:
+        doc["loudness"] = float(FALLTONE.split(";")[2])
     return doc
 
 
