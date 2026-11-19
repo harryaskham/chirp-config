@@ -361,6 +361,14 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     stems -33 to -36 under a band; the tool prints it); for the top trust `cabspec.py`. The records give NO
     figure for how empty the rest after a stroke should be: a stroke "followed by a rest" in our transcriptions
     is not followed by one on their guitar stems (-4 to 0 dB under the stroke).
+  - a BASS alone against the records' basses: `tools/bassspec.py NAME=SOLO.wav[:FROM:TO] …` (a raw solo render;
+    thirds of an octave, as shapes; chirper-zero). The records have their weight at the OCTAVE (the 80 Hz band
+    26 dB over 40 Hz); the album's `ct-bass` was a sub and a box (+16 to +18 dB at 40 Hz, -8 at 80, +5 to +11
+    at 400-800 Hz). Two things about it: its sine sub DRIVES the bass's two compressors (moved an octave up at
+    -12 dB it left nothing else: the string's twelfth fell 21 dB); and THE SUB BELONGS TO THE KICK on the records
+    (their basses sit 16 dB under their drums below 60 Hz; ours are level): with the sine off the bass is
+    nearest the records alone and by part, but the MIX falls 0.7 to 3.1 dB under 60 Hz, so the round it asks
+    for is the kick's sub FIRST, then the sine off (In the Time Of v24 kept a partial move).
   - BY PART (`stembal.py song … --voice`, the group rows): read the two `groups:` lines first; until 08:18 on 19 Nov
     the default groups left guitars out on sixteen of seventeen songs. A figure is a share of the whole mix.
     `OUTSIDE THE GROUPS` under a window's table names a band where half or more of the mix is in NO group's tracks
