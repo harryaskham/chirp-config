@@ -172,6 +172,31 @@ SHAPE = os.environ.get('C10T9_SHAPE', '7;dl,dr,wl,wr;0.5;-10.062' if SIX and FOR
 # 2.4 over the records, and the scorer stopped hearing the drums come back (89.863/86.324 against 91.068/91.746 on
 # seeds 0/11). With '-12dB' the target is -10.055. A gain written on each note moved them only 0.4 dB for a dB.)
 RUPAK = os.environ.get('C10T9_RUPAK', '14;7;-9dB;-10.047' if SHAPE and KHANDA else '')
+# v19, section w7 (the gears, 2:35.0-2:40.0): EVERY TIME ONCE MORE. The gears play every speed of the song for one
+# beat each, fastest first: seven strokes, six, five, four, three, two, one. Until now all six guitars played all
+# of it, so it was the lock slowing down. On the way up each speed had its own band and its own guest, and none of
+# them came back (the tabla alone, at seven, v18). Now each beat of the gears is that speed AS IT WAS, band and
+# guest, the song run backwards in five seconds (chirper-zero's idea, his note of 18 Nov 22:06):
+#   seven   six guitars, the wall                                   (as it was)
+#   six     the main pair, and the nylon guitar's pass across its six strings, a string to a stroke
+#   five    the main pair, and the tabla: dhin na dhin dhin na, half a turn of jhaptal
+#   four    four guitars, and the answer that falls in that beat taken from them by the baritone and the clavinet
+#           (TOGETHER, for the only time: on the way up they took the answers in turn)
+#   three   four guitars, and the bell of the ride on all three strokes over the hat's foot
+#   two     the main pair, the hat's foot and then the hat left open, as at 0:22
+#   one     the main pair's one muted stroke and a closed hat, as the song began: no snare, no cymbal
+# and then the slow chords with the pipes, as before. By subtraction for the band (no guitar stroke is added or
+# moved; the bass and the foot are as they were) and sixteen strokes for the guests, every one of them the notes
+# its player had on the way up, moved to A flat, the gears' ground. The nylon and the tabla are second instruments
+# on tracks of their own (`six-ab`, `tabla-ab`): a guitar whose six open strings are the six places in A flat, and
+# a pair of drums a minor third up (a tabla player retunes with a hammer, not in a beat).
+# The A flat nylon's track gain ; the A flat tabla's ; the gain on the baritone's, the clavinet's and the open
+# hat's one note each ; the loudness target (the gears are quieter by the guitars that rest; every other bar
+# keeps v18's mastering gain). Empty restores v18.
+# (At their faders from the way up, raw seed 0, each guest stood 9.2 to 10.2 dB under the rest of its beat, as it
+# did there; but there it had twenty seconds to be noticed and here it has one beat. A gain written on a nylon,
+# baritone or clavinet note moves it 0.3 dB for a dB, as chirper-one found of the tabla: hence the two tracks.)
+REPRISE = os.environ.get('C10T9_REPRISE', '-7dB;-6dB;3dB;-10.085' if RUPAK and GEAR and SIX and KHANDA and HANDS and CROSS and CLUTCH else '')
 WALK = []
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
@@ -593,6 +618,45 @@ def seven_by_hand(b):
     assert abs(T['rupak'][-1]['at'] - end) < 1e-9
 
 
+def every_time_once_more(b0, root, cell0):
+    """The gears from beat b0, each beat with the band and the guest its speed had on the way up."""
+    strokes = []
+    for step, k in enumerate(range(N, 0, -1)):
+        for j in range(k):
+            i = len(strokes)
+            strokes.append((b0 + step + j / k, k, CELLS[(cell0 + i // N) % len(CELLS)][i % N]))
+    for step, k in enumerate(range(N, 0, -1)):          # the band each speed had
+        band = ALL if k == N else ("gl", "gr", "dl", "dr") if k in (3, 4) else ("gl", "gr")
+        for tr in ALL:
+            if tr not in band:
+                T[tr] = [n for n in T[tr] if not b0 + step <= n["at"] < b0 + step + 1 - 1e-9]
+    at6, at5, at4, at3, at2, at1 = (b0 + N - k for k in (6, 5, 4, 3, 2, 1))
+    for j, place in enumerate(PLACES):                  # six: one pass across the nylon's strings
+        add("six-ab", at6 + j / 6, 2 / 6, F1 + int(SIX.split(";")[1]) + root + place, 0.95 if j == 0 else 0.82)
+    first = 4 * RUNG                                    # five: the first five strokes the tabla played, on A flat drums
+    T["tabla-ab"] = [{**n, "at": round(n["at"] - first + at5, 5)} for n in T["tabla"] if first <= n["at"] < first + 1 - 1e-9]
+    assert len({n["at"] for n in T["tabla-ab"]}) == 5
+    for at, k, kind in strokes:                         # four: both hands on the answer; the guitars leave it to them
+        if k == 4 and kind not in ("o", "c"):
+            midi = F1 + root + int(kind)
+            for tr in ALL:
+                T[tr] = [n for n in T[tr] if abs(n["at"] - at) > 1e-6]
+            add("picked", at, 1.55 / k, midi + 12, 0.94)
+            T["picked"][-1]["gain"] = REPRISE.split(";")[2]
+            add("keyed", at, 0.85 / k, midi + 24, 0.96)
+            T["keyed"][-1]["gain"] = REPRISE.split(";")[2]
+    drop = lambda tr, piece, beats: [n for n in T[tr] if not (n["pitch"] == piece and any(abs(n["at"] - q) < 1e-6 for q in beats))]
+    T["cym"] = drop("cym", "x", (at3, at2, at1))        # where the sticks were on the bell and the hat, not the china
+    T["snare"] = drop("snare", "s", (at1,))             # the song began without a snare
+    drum("hp", at3, 0.85)                               # three: the bell of the ride on every stroke, over the foot
+    for j in range(3):
+        drum("rbs", at3 + j / 3, 0.88 if j == 0 else 0.81)
+    drum("hp", at2, 0.60)                               # two: the foot, then the hat left open across the next beat
+    add("hat", at2 + 0.5, 1.25, "oh", 0.53)
+    T["hat"][-1]["gain"] = REPRISE.split(";")[2]
+    drum("h", at1, 0.45)                                # one: the opening's closed hat (it shuts the open one)
+
+
 def fill(b):
     """The last two beats before beat b."""
     for i, pc in enumerate(["t1", "t1", "t2", "t2", "ft", "ft", "s", "s"]):
@@ -662,6 +726,8 @@ def compose():
         if j != 32:
             drum("c", b + j, 0.65)
     beat(b, b + 56)
+    if REPRISE:
+        every_time_once_more(b + 56 - N, 3, 24 - N)
     b += 56
     # one to the beat again, every note a chord
     MARKS.append(("one again", b))
@@ -725,6 +791,9 @@ def song():
         tracks.append({"name": "six", "patch": "it-six", "gain": SIX.split(";")[0], "pan": 0.3})
     if RUPAK:
         tracks.append({"name": "rupak", "patch": "it-tabla", "gain": RUPAK.split(";")[2], "pan": 0.2})
+    if REPRISE:
+        tracks.append({"name": "tabla-ab", "patch": "it-tabla-ab", "gain": REPRISE.split(";")[1], "pan": 0.2})
+        tracks.append({"name": "six-ab", "patch": "it-six-ab", "gain": REPRISE.split(";")[0], "pan": 0.3})
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
 
@@ -759,7 +828,7 @@ def song():
                   "and locks. The bass and kick walk in quarters underneath. Then once more at one to the beat, every stroke a chord. "
                   "v1 is the skeleton.") + (" At four to the beat the two hook notes pass between a baritone guitar and a clavinet; they exchange roles halfway." if HANDS else "")
                  + (" One guitar lets the two answers ring across the pedal on the opening repeat. At the return the wide pair takes them, then the original two guitars play the last cell before everyone lands on F." if RING else ""),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(RUPAK.split(";")[3]) if RUPAK else float(SHAPE.split(";")[3]) if SHAPE else float(SIX.split(";")[2]) if SIX else float(KHANDA.split(";")[1]) if KHANDA else PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(REPRISE.split(";")[3]) if REPRISE else float(RUPAK.split(";")[3]) if RUPAK else float(SHAPE.split(";")[3]) if SHAPE else float(SIX.split(";")[2]) if SIX else float(KHANDA.split(";")[1]) if KHANDA else PIPE_LUFS if WIND else -10, "seed": 1, "tail": "5s", "length": f"{total}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}, **({'hp': {'gain': CROSS.split(';')[1]}} if CROSS else {}),
                             **({'oh': {'patch':'haake-hat amp.d=1.05s amp.r=180ms amp.curve=2.2',
                                        'gain':CLUTCH,'pan':-.45,'choke':'hat'}} if CLUTCH else {})}},
@@ -771,6 +840,10 @@ def song():
                     # the library's tabla, its treble drum on F and its bass drum on the riff's low F
                     **({"it-tabla": {"extends": "tabla-kit", "kit": {**{pc: {"pitch": "F4"} for pc in ("na", "tin", "te")},
                                                                     "re": {"pitch": "Eb4"}, "ge": {"pitch": "F2"}, "gem": {"pitch": "F2"}}}} if KHANDA else {}),
+                    # the same drums a minor third up, for the one beat of fives in the gears (which are on A flat)
+                    **({"it-tabla-ab": {"extends": "tabla-kit", "kit": {**{pc: {"pitch": "Ab4"} for pc in ("na", "tin", "te")},
+                                                                       "re": {"pitch": "Gb4"}, "ge": {"pitch": "Ab2"}, "gem": {"pitch": "Ab2"}}}} if REPRISE else {}),
+                    **({"it-six-ab": {"extends": "nylon", "play": {"tuning": " ".join(nm(F1 + int(SIX.split(";")[1]) + 3 + j) for j in PLACES)}}} if REPRISE else {}),
                     # the library's nylon-string guitar, its six open strings the six places in the beat
                     **({"it-six": {"extends": "nylon", "play": {"tuning": " ".join(nm(F1 + int(SIX.split(";")[1]) + j) for j in PLACES)}}} if SIX else {})},
         "buses": {
