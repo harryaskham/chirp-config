@@ -508,6 +508,36 @@ HEADS = os.environ.get("C10T14_HEADS", "synth.layers.0.tilt=-6 synth.layers.0.de
 # velocities in (A flat, C, F) ; the meeting's (all three; '' = none) ; the first three out (F, C, A flat; '' = none)
 # ; velocity off for each stroke further back ; the loudness target ('' = unchanged). "" = v16 byte for byte.
 GATHER = os.environ.get("C10T14_GATHER", "minor:60,180|sixth:60,120,180|home:60,180<:2;gl,gr,dl,dr,wl,wr,bass;0.85,0.92,1;1;0.8,0.7,0.6;0.15;" if HEADS else "")
+# v18 (chirper-three; whole-song round, 20 Nov). THE FIFTEEN BECOMES THE BAR. The song says a pulse and a note are one
+# thing, and until now it said so with one tempo: whatever was struck, the count itself never moved. From 'common'
+# (2:10.97, beat 268) to the end the sixteenth is 15/16 as long. So every pulse is 16/15 as fast, and by the song's
+# own rule every note is 16/15 as high: a just semitone (111.7 cents), the step from C to D flat. One pulse crosses
+# the change untouched. The D flat that 'sixth' and 'fourth' strike every fifteen sixteenths (1832.6 ms) is sixteen
+# of the new sixteenths: it becomes the bar, and the bar-line chord of 'common', written C, sounds its D flat. The
+# band comes in around a pulse that was already there and counts sixteen to it where it counted fifteen. 'home' is
+# then the whole chord a semitone up and a fifteenth faster, the rolls wind up to the notes of the faster count, and
+# the last chord stands a semitone over the chord the song opened on: the count went up, so the chord did.
+# HOW: on the finished document. Each part that plays on both sides is parted at the change (its later notes go to
+# NAME-up, appended last). A pitched part there keeps its written notes and takes a tuning of its own (the song's
+# scale, every step times the ratio); the kit's tuned pieces (kick, snare, the three toms, the floor tom, the blocks,
+# the two tablas) are retuned in song-local copies of their kits; cymbals and hat are not notes and stay. Positions,
+# lengths and automation points from the change on are written 15/16 as far from it; the song's declared tempo stays
+# one number. No stroke is added, dropped or reordered: 7,780 notes before and after.
+# MEASURED (t14-r18): the bass's C of 'common' 69.832 Hz (written 69.846; the old C2 +111.4 cents); the kick's strokes
+# there 229.00 ms apart (written 229.08; 244.35 before); the D flat pulse repeats every 1830 ms on both sides of the
+# change, 139.64 Hz on the clean guitar before and 139.82 Hz on the wall pair after (written 139.69); each lifted
+# part alone lies on its old self when moved down 110 to 116 cents (toms 110, guitars 110, lead 112, voices 112,
+# snare 114, blocks 114, kick 116); the last chord's F, C and A flat, eight lines from F1 to A flat 5, within 3.1 cents
+# of the written notes times 16/15 on the song's own seed. Everything before the change is v17: within 0.016 dB and -63 dB or lower on seeds 0, 11
+# and 1 (not bit for bit: parting a track moves its later random draws). After it the same strokes are another take.
+# THE SCORER FALLS TWELVE POINTS AND IT IS THE KEY AND THE TEMPO ALONE: 98.262 / 98.767 / 98.725 -> 85.998 / 86.436
+# / 86.644 on seeds 0 / 11 / 1, all of it recurrence (100 -> 19.66 / 22.02 / 21.77): it matches sections by their
+# pitch classes and no longer finds 'home' to be 'minor' come back. Proof (undo.py): v18's own render with everything
+# from the change on played back at 15/16 speed, which takes the tempo and the key back out by tape, scores 98.307,
+# recurrence 100. Kept on judgment.
+# the section from which the song is lifted ; the ratio, new tempo over old (and so new pitch over old) ; the
+# loudness target ("" = unchanged). "" = v17 byte for byte.
+GEAR = os.environ.get("C10T14_GEAR", "common;16/15;" if GATHER else "")
 # a number is as long as it says, on the note of that length (the tune's own notes, NOTE_OF); two syllables share it
 NUMBER = {3: [("TH R IY1", 3)], 4: [("F AO1 R", 4)], 5: [("F AY1 V", 5)], 6: [("S IH1 K S", 6)], 7: [("S EH1", 3), ("V AH0 N", 4)],
           8: [("EY1 T", 8)], 9: [("N AY1 N", 9)], 10: [("T EH1 N", 10)], 11: [("IH0", 2), ("L EH1", 4), ("V AH0 N", 5)],
@@ -1174,18 +1204,125 @@ def the_three_gather(doc):
         doc["loudness"] = float(loud)
 
 
+def the_fifteen_becomes_the_bar(doc):
+    """v18: from `where` on, the tempo is `ratio` times what it was and, because in this song a pulse IS a note, so is
+    every pitch. Runs last, on the finished document: every beat position stays where it was written (the tempo is a
+    map), each part that plays on both sides is parted in two (the part after the change goes to a track of its own,
+    appended last, transposed; a kit's tuned pieces are retuned), and the bass bus's eq follows."""
+    import copy
+    where, ratio, loud = GEAR.split(";")
+    num, den = (int(x) for x in ratio.split("/"))
+    semis = round(12 * math.log2(num / den), 5)
+    at = AT[where] / 4                                                   # beats
+    # THE LIFTED PARTS KEEP THEIR WRITTEN NOTES AND TAKE A TUNING OF THEIR OWN: the song's just scale, every step times
+    # the ratio. (A `transpose` counts keys through the scale, whose steps are not equal: read on the last chord, F
+    # and C came out 165 cents up and A flat 84. A tuning's root must be a written note at its equal-tempered pitch
+    # and a chord cannot be written in hertz. So the root is moved to a key the lifted parts never play, E, a semitone
+    # under F: each step is then the old step over F, times the ratio, plus that semitone; E flat, also never played,
+    # takes what is left under the octave.)
+    old = [1.0] + [float(x.split("/")[0]) / float(x.split("/")[1]) for x in doc["tuning"]["steps"][:-1]]     # F, G flat ... E, over F
+    assert doc["tuning"]["root"] == "F3" and doc["tuning"]["map"] == "keys" and len(old) == 12
+    cents = [round(100 + 1200 * math.log2(r * num / den), 3) for r in old[:10]]                               # F ... D, over E
+    cents.append(round((cents[-1] + 1200) / 2, 3))                                                            # E flat (unplayed)
+    assert all(a < b for a, b in zip(cents, cents[1:])) and cents[-1] < 1200
+    lifted_tuning = {"steps": cents + ["2/1"], "root": "E3", "map": "keys"}
+    lifted_kits = {}
+
+    def lifted_kit(name):
+        if name not in lifted_kits:
+            kit = copy.deepcopy(doc["patches"][name])
+            if name == "ct-kit-here":
+                kit["kit"]["t1"]["pitch"] = "m53"                        # the album kit's F3, said as a number so it can move
+            for piece, v in kit["kit"].items():
+                if str(v.get("pitch", "")).startswith("m") and piece not in ("x", "c", "h"):
+                    v["pitch"] = f"m{float(v['pitch'][1:]) + semis:.4f}"
+                if piece in ("b1", "b2", "b3"):                          # the blocks are tuned by a fixed frequency and a band-pass on it
+                    hz = float(v["patch"]["synth"]["layers"][0].split("fixed=")[1])
+                    v["patch"]["synth"]["layers"][0] = f"triangle fixed={hz * num / den:.2f}"
+                    v["patch"]["synth"]["filters"][0] = f"bp cutoff={hz * num / den:.2f} q=2"
+            doc["patches"][name + "-up"] = kit
+            lifted_kits[name] = name + "-up"
+        return lifted_kits[name]
+
+    def lift(tr):
+        first, _, rest = tr["patch"].partition(" ")
+        if "kit" in doc["patches"].get(first, {}):
+            tr["patch"] = lifted_kit(first) + (" " + rest if rest else "")
+        else:
+            assert not any(w[:2] in ("Eb", "E0", "E1", "E2", "E3", "E4", "E5", "E6", "D#") for n in tr["notes"] for w in str(n["pitch"]).split(",")), tr["name"]
+            tr["tuning"] = lifted_tuning
+
+    twins = []
+    for tr in doc["tracks"]:
+        after = [n for n in tr["notes"] if n["at"] >= at - 1e-9]
+        if not after or tr["name"] in ("cym", "hat"):                    # a cymbal is not a note
+            continue
+        if len(after) == len(tr["notes"]):
+            lift(tr)
+            continue
+        twin = copy.deepcopy(tr)
+        twin["name"], twin["notes"] = tr["name"] + "-up", after
+        tr["notes"] = [n for n in tr["notes"] if n["at"] < at - 1e-9]
+        lift(twin)
+        twins.append(twin)
+    doc["tracks"] += twins
+    for p in doc["buses"]["low"]["auto"]["key"]["points"]:               # the bass bus's eq is keyed to the ground, in semitones over F
+        if float(p[0].rstrip("b")) >= at - 1e-9:
+            p[1] = round(p[1] + semis, 4)
+    # THE TEMPO IS WRITTEN INTO THE POSITIONS, NOT INTO A TEMPO MAP: the song keeps its one declared tempo (the album's
+    # tools read beats as seconds at one tempo: rests, presence, the palette, the cards' "who plays here"), and from
+    # the change on every stroke, length and automation point stands den/num as far from it as it was written.
+    # (Rendered both ways: the same audio.) From there a bar is 3.75 beats of the declared tempo.
+    def moved(b):
+        return b if b < at - 1e-9 else round(at + (b - at) * den / num, 6)
+
+    for tr in doc["tracks"]:
+        for n in tr["notes"]:
+            if n["at"] >= at - 1e-9:
+                n["at"], n["len"] = moved(n["at"]), round(n["len"] * den / num, 6)
+
+    def lanes(o):
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if k == "points":
+                    for p in v:
+                        p[0] = f"{moved(float(p[0].rstrip('b'))):g}b"
+                else:
+                    lanes(v)
+        elif isinstance(o, list):
+            for v in o:
+                lanes(v)
+    lanes(doc["tracks"])
+    lanes(doc["buses"])
+    doc["length"] = f"{moved(float(doc['length'].rstrip('b'))):g}b"
+    doc["about"] += (f" From {int(at * 60 / BPM // 60)}:{at * 60 / BPM % 60:04.1f} the count is {num}/{den} as fast, so by the song's own rule"
+                     " every note is too: the D flat struck every fifteen becomes the bar, and the song ends a just semitone"
+                     " above the chord it began on.")
+    if loud:
+        doc["loudness"] = float(loud)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T14_SHOW"):
         beat = 60 / BPM
         print(f"tempo {BPM}: a sixteenth {beat / 4 * 1000:.3f} ms")
         for p in (1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15, 16):
             print(f"  every {p:2d} sixteenths = {4 / (p * beat) * 2 ** OCTAVES:8.2f} Hz, six octaves up")
+        gear = GEAR.split(";") if GEAR else None
+
+        def secs(s16):                                             # v18: from the change on a sixteenth is den/num as long
+            if not gear or s16 <= AT[gear[0]]:
+                return s16 / 4 * beat
+            num, den = (int(x) for x in gear[1].split("/"))
+            return (AT[gear[0]] + (s16 - AT[gear[0]]) * den / num) / 4 * beat
         for name, n in FORM:
-            print(f"  {name:10s} bar {AT[name] / 16:6.2f}  {AT[name] / 4 * beat:7.2f}s  {n} sixteenths")
+            print(f"  {name:10s} bar {AT[name] / 16:6.2f}  {secs(AT[name]):7.2f}s  {n} sixteenths")
         compose()
         print({k: len(v) for k, v in T.items()})
     else:
         doc = song()
         if GATHER:
             the_three_gather(doc)
+        if GEAR:
+            the_fifteen_becomes_the_bar(doc)
         open(OUT, "w").write(dump(doc))
