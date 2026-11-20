@@ -1302,6 +1302,70 @@ def the_fifteen_becomes_the_bar(doc):
         doc["loudness"] = float(loud)
 
 
+# v19 (chirper-one; section round, w5, 2:05-2:36, the window that holds v18's change of gear and had never been
+# focused; the change is 2:10.97-2:12.80, one bar): SIXTEEN IS SAID. chirper-three's v18: the D flat struck every
+# fifteen sixteenths through the quiet middle is sixteen of the faster sixteenths, so it becomes the bar. Through
+# the middle (v15) the two voices sing the tune's long notes as their numbers, each as long as it says, and the last
+# thing they sing is "fifteen", on that D flat, ending on the change. Now they sing it once more: the same note,
+# the same length to the millisecond, and its new name: "six-teen" (six of the new sixteenths and ten). The same
+# sound twice, counted two ways: v18's change, in the song's own words.
+# And the band lets it be heard. In the first bar of 'common' everyone strikes the bar line once, the D flat's
+# pulse come round on time and for the first time on the whole band (the crash, the kick, the guitars, the walls,
+# the bass), and stops; the lead, whose note this is, leaves it to the voices, and they hold the D flat alone for
+# the bar. At the next bar line, one more turn of the D flat's own clock, the band comes in on a crash, counting
+# sixteen to it. So the pulse that crosses the change is heard crossing it, is named, and then the band gathers
+# round it (v18's open list: "the seam is not prepared ... a bar on the D flat's own clock would announce the bar").
+# (First bench: the wall pair's chord held through the bar under the voices, as written. It is the voices' own note
+# and its octave, and it took the word: the recogniser wrote "16" only with the voices 10 dB up, as loud as the
+# band. So the walls strike and stop with everyone else.)
+# 67 strokes are taken out of the bar, four voice notes and one crash put in; the voices are on their own tracks
+# of the middle (`said`, `said-high`: the unlifted scale, where D flat is D flat), so nothing else of theirs moves.
+# bars of the section the band waits ; the longest a stroke on its first bar line may ring, new sixteenths ('' = as
+# written) ; who leaves the bar wholly ; the word, `phonemes:new sixteenths` | ... ; who sings it and on what,
+# `track=note` , ... ; dB on its notes ; the cymbal's piece and velocity where the band comes in ('' = none) ;
+# the loudness target ('' = unchanged). '' = v18 byte for byte.
+SIXTEEN = os.environ.get("C10T14_SIXTEEN", "1;2;tune-up;S IH1 K S:6|T IY1 N:10;said=Db3,said-high=280.68hz;3;c:0.9;" if GEAR else "")
+
+
+def sixteen_is_said(doc):
+    """v19: the first bar of the lifted section is the D flat's pulse alone, and the voices give it its new name."""
+    bars, ring, leave, word, who, gain, crash, target = SIXTEEN.split(";")
+    num, den = (int(x) for x in GEAR.split(";")[1].split("/"))
+    t0, six = AT[GEAR.split(";")[0]] / 4, den / num / 4               # the change, in declared beats ; a new sixteenth
+    t1 = t0 + int(bars) * 16 * six
+    tr = {t["name"]: t for t in doc["tracks"]}
+    singers = dict(x.split("=") for x in who.split(","))
+    out = 0
+    for name, t in tr.items():
+        if name in singers or not t.get("notes"):
+            continue
+        keep = [n for n in t["notes"] if not (t0 - 1e-6 <= n["at"] < t1 - 1e-6) or (abs(n["at"] - t0) < 1e-6 and name not in leave.split(","))]
+        out += len(t["notes"]) - len(keep)
+        t["notes"] = keep
+        for n in keep:
+            if ring and abs(n["at"] - t0) < 1e-6 and n["len"] > float(ring) * six:
+                n["len"] = round(float(ring) * six, 4)
+    assert sum(1 for t in tr.values() for n in t.get("notes") or [] if abs(n["at"] - t0) < 1e-6 and t["name"] not in singers) >= 8, "the band strikes the change"
+    for name, pitch in singers.items():
+        assert not any(n["at"] + n["len"] > t0 + 1e-6 for n in tr[name]["notes"]), "the singers have finished 'fifteen' at the change"
+        at = t0
+        for part in word.split("|"):
+            ph, n16 = part.split(":")
+            last = part == word.split("|")[-1]
+            tr[name]["notes"].append({"at": round(at, 4), "len": round((int(n16) - (0.4 if last else 0)) * six, 4), "pitch": pitch, "vel": 0.85, "ph": ph,
+                                      **({"gain": f"{float(gain):g}dB"} if float(gain) else {})})
+            at += int(n16) * six
+        assert abs(at - t1) < 1e-6 or int(bars) != 1, "the word is as long as the bar"
+    if crash:
+        piece, vel = crash.split(":")
+        assert any(abs(n["at"] - t1) < 1e-4 for n in tr["cym"]["notes"]), "the cymbal already strikes where the band comes in"
+        tr["cym"]["notes"].append({"at": round(t1, 4), "len": 2 * six * 4, "pitch": piece, "vel": float(vel)})
+        tr["cym"]["notes"].sort(key=lambda n: n["at"])
+    if target:
+        doc["loudness"] = float(target)
+    return out
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T14_SHOW"):
         beat = 60 / BPM
@@ -1325,4 +1389,6 @@ if __name__ == "__main__":
             the_three_gather(doc)
         if GEAR:
             the_fifteen_becomes_the_bar(doc)
+        if SIXTEEN:
+            sixteen_is_said(doc)
         open(OUT, "w").write(dump(doc))
