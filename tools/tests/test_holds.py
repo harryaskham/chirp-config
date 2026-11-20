@@ -177,7 +177,23 @@ class Tool(unittest.TestCase):
             f.write(src.replace('"tempo": 120.0', '"tempo": [[0, 120], [64, 90]]'))
         with self.assertRaises(SystemExit) as e:
             self.run_tool()
-        self.assertIn("fixed-tempo", str(e.exception))
+        self.assertIn("one tempo, or a map in beats", str(e.exception))
+
+    def test_a_tempo_map_is_followed(self):
+        """bd-10e881: 120 for 16 beats (8 s), then 60. A hold at beat 20, 8 beats long, starts at 12 s and lasts 8 s."""
+        import tempoclock
+        gear = [{"at": 0, "bpm": 120, "meter": None, "ramp": False}, {"at": "16b", "bpm": 60, "meter": None, "ramp": False}]
+        secs, dur, spb = H.timing(tempoclock.of(gear))
+        self.assertEqual((secs(8), secs(20), dur(20, 8), spb(4), spb(28)), (4.0, 12.0, 8.0, 0.5, 1.0))
+        self.assertEqual(dur(12, 8), 6.0)                                               # across the change: 2 s and 4 s
+        secs, dur, spb = H.timing(tempoclock.of(120.0))                                 # one tempo: as it always was
+        self.assertEqual((secs(8), secs(20), dur(20, 8), spb(4), spb(28)), (4.0, 10.0, 4.0, 0.5, 0.5))
+        with open(self.pin) as f:                                                       # a flat map reads as its one tempo
+            src = f.read()
+        with open(self.pin, "w") as f:
+            f.write(src.replace('"tempo": 120.0', '"tempo": [{"at": 0, "bpm": 120.0}, {"at": "64b", "bpm": 120.0}]'))
+        d = json.loads(self.run_tool("--json"))
+        self.assertEqual((d["tempo"], {r["track"]: r["holds"][0]["seconds"] for r in d["tracks"]}["wall"]), (120.0, 4.0))
 
 
 if __name__ == "__main__":

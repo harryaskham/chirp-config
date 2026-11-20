@@ -20,8 +20,8 @@ and flags FLAT (fall less than --flat dB, default 6: saturated rigs fall 1-4, a 
 and "cut" (20 dB or more gone within half a beat of the end).
 Listed: the flat holds with a rest after them, the ones a listener hears stop. A flat hold that runs into the track's
 next note is counted ("run on") and not listed: a pad, a drone, a sustained lead. --all lists every hold. The list
-says where to look; what should die is the composer's call. Fixed-tempo songs only; a track with a `warp` is read
-where its notes sound (tools/warp.py). Read-only.
+says where to look; what should die is the composer's call. One tempo, or a tempo map placed in beats (a hold is then
+found and timed on the map); a track with a `warp` is read where its notes sound (tools/warp.py). Read-only.
 """
 import argparse
 import json
@@ -38,6 +38,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import likeness as L  # noqa: E402
+import wincut  # noqa: E402
 
 SILENT = -90.0
 CUT = -20.0
@@ -109,6 +110,16 @@ def measure(x, sr, start, dur, spb):
     return {"silent": False, "fall": round(last - first, 1), "then": round(after - last, 1), "sounds": round(end * FRAME, 2)}
 
 
+def timing(clock):
+    """(secs(beat), dur(at, len), spb(beat)) for a song's tempoclock: where a beat falls in seconds, how long a note
+    of `len` beats at `at` lasts, and the seconds a beat lasts there. One tempo: the arithmetic this tool always
+    used; a tempo map: read off the map (bd-10e881)."""
+    if clock.mapped:
+        return clock.secs, (lambda at, ln: clock.secs(at + ln) - clock.secs(at)), (lambda b: 60.0 / clock.bpm_at(b))
+    spb = 60.0 / clock.bpm
+    return (lambda b: b * spb), (lambda at, ln: ln * spb), (lambda b: spb)
+
+
 def plan(pin, song):
     env = dict(os.environ)
     env.pop("LD_LIBRARY_PATH", None)
@@ -155,10 +166,12 @@ def main(argv=None):
         raise SystemExit("holds: give a climb ID (songs/ID.yaml) or --song FILE")
     pin = a.pin or open(os.path.join(HERE, "groove-pin")).read().strip()
     canon = plan(pin, song)
-    tempo = canon.get("tempo", 120.0)          # the plan leaves out a tempo of 120, the engine's default
-    if not isinstance(tempo, (int, float)) or tempo <= 0:
-        raise SystemExit("holds: this song's tempo changes; holds.py reads fixed-tempo songs only")
-    spb = 60.0 / tempo
+    tclock = wincut.clock_of(canon.get("tempo", 120.0))    # the plan leaves out a tempo of 120, the engine's default
+    if tclock is None:
+        raise SystemExit("holds: this song's tempo map cannot be placed here (a change of meter, or points not in beats): "
+                         "only one tempo, or a map in beats, is read")
+    tempo = tclock.bpm                             # the opening tempo: it matters only for a warp written in seconds
+    secs, dur, spb_at = timing(tclock)
     want = re.compile(a.tracks) if a.tracks else None
     jobs = []
     for t in walk(canon.get("tracks")):
@@ -179,9 +192,9 @@ def main(argv=None):
             os.remove(wav)
             out = []
             for h in hs:
-                m = measure(x, L.SR, h["at"] * spb, h["len"] * spb, spb)
+                m = measure(x, L.SR, secs(h["at"]), dur(h["at"], h["len"]), spb_at(h["at"] + h["len"]))
                 flat = (not m["silent"]) and m["fall"] > -a.flat
-                out.append(dict(h, **m, seconds=round(h["at"] * spb, 1), flat=flat,
+                out.append(dict(h, **m, seconds=round(secs(h["at"]), 1), flat=flat,
                                 cut=bool(flat and not h["next"] and m["then"] <= CUT)))
             return {"track": t["name"], "patch": str(t.get("patch", "")), "out": t.get("out"), "holds": out}
         with ThreadPoolExecutor(max(1, a.j)) as ex:
@@ -191,7 +204,8 @@ def main(argv=None):
             os.remove(os.path.join(work, f))
         os.rmdir(work)
     if a.json:
-        print(json.dumps({"song": song, "tempo": tempo, "min_beats": a.min, "flat_db": a.flat, "tracks": rows}))
+        print(json.dumps({"song": song, "tempo": canon.get("tempo", 120.0) if tclock.mapped else tempo, "min_beats": a.min,
+                          "flat_db": a.flat, "tracks": rows}))
         return
     total = sum(len(r["holds"]) for r in rows)
     print(f"{os.path.basename(song)} (seed {a.seed}; each track solo, unmastered, through its bus): {total} notes of "
