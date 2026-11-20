@@ -1049,6 +1049,44 @@ def the_bass_grinds(doc):
         doc['loudness'] = GRIND['loudness']
 
 
+# v30 (chirper-one; instrument round: THE TWO GUITARS, their muted stroke: 224 of the left's 346 notes and 195 of
+# the right's 316 are under the palm). THE GAPS GET EDGES. The song is a tune turned into rests, and what stands
+# round a rest is a muted stroke. Both guitars were the album's rig as it comes, the one pair on the record nobody
+# had read (v28's and v29's handoffs). Read alone beside six records' guitars at their own chugs
+# (riffpunch --strokes; 'both sides' 2:57-3:17, 49 strokes; 'where it was' 1:06-1:26, 60): the low end DIED after a
+# stroke (+2.98 and +3.12 dB; the records -1.1, none over +0.3), few teeth (-6.0, -5.8; the records -11.3), and in
+# 'where it was' a tick for an attack (rise 9 ms; their quickest 13.5).
+# THE LADDER ('both sides', the fall): as it comes +2.98 ; the pick at half the palm's softening +1.02 ; with the
+# palm's filter at two octaves +1.29 (teeth -6.0 -> -9.9) ; with the thump off and the amp's tight at 150 Hz +0.71 ;
+# the pick at 0.3 -0.93 (punch 3.83, teeth -9.6: all five measures inside the records' ranges). The same without
+# the pick +2.38: on this rig the fall is the PICK first (as on Still Owing), then the thump and the amp.
+# THE EQ IS THE MIX'S: the hard stroke alone took 1.1 to 2.7 dB of the pair under 500 Hz and left the mix 2.4 short
+# at 500 Hz-1 kHz and 2.5 over at 2-4 kHz ('both sides', raw; the guitars are two thirds and seven eighths of those
+# bands). So 180 Hz +1.5, 700 Hz +2, 3 kHz -1.5 after each cabinet, faders -0.4 dB. That eq costs the yardstick
+# 0.27 of punch and 2.3 to 2.4 of teeth; the mix reads nearer the records in all six sections with guitars.
+# Benched and not kept: a lighter palm in the notes (0.7: -0.76, but it touches notes); the filter at -2.4 (punch
+# +0.07 in 'where it was', teeth -0.4 to -0.5, the mix level); the front compressor's attack at 15 ms (no punch here: 3.30); no 3 kHz band
+# (punch 3.47 / 3.69 and teeth -8.8 / -8.2, but the mix further off in all six sections).
+# --v29 restores; --guitars '{...}' changes fields for a bench.
+EDGE = {'tracks': ('left', 'right'),
+        'rig': 'synth.layers.0.soft=expr.pm*0.3 synth.filters.0.cutoff.mod.0.amount=-2 synth.layers.0.thump.mod.0.amount=0 fx.1.tight=150',
+        'eq': ('peak cutoff=180 q=1 gain=1.5dB', 'peak cutoff=700 q=1 gain=2dB', 'peak cutoff=3000 q=0.8 gain=-1.5dB'), 'trim': -0.4, 'loudness': None}
+
+
+def the_gaps_get_edges(doc):
+    """v30: the two guitars' muted stroke: a hard pick, no thump, a looser amp, the palm's filter at two octaves;
+    an eq after each cabinet for what that takes; the faders down so the pair alone is as loud as it was."""
+    for t in doc['tracks']:
+        if t['name'] in EDGE['tracks']:
+            assert t['patch'].startswith('ct-twin') and not t.get('fx') and isinstance(t['gain'], str)
+            t['patch'] += ' ' + EDGE['rig']
+            if EDGE['eq']:
+                t['fx'] = [{'type': 'eq', 'bands': list(EDGE['eq'])}]
+            t['gain'] = f"{float(t['gain'][:-2]) + EDGE['trim']:g}dB"
+    if EDGE['loudness']:
+        doc['loudness'] = EDGE['loudness']
+
+
 def the_hat_gets_a_body(doc):
     """v28: the closed hat's strokes leave the cymbals' track for one of their own, on a kit of the song's own whose
     hat is opened downwards; the kick's click gives up the room the hat's body takes. A spared section keeps both
@@ -1117,6 +1155,8 @@ if __name__ == '__main__':
     previous.add_argument('--v26', action='store_true', help="restore the album's bass drum as it comes: no chest, its long tail")
     previous.add_argument('--v27', action='store_true', help="restore the closed hat as the library has it (nothing under 8 kHz), on the cymbals' track, and the kick's click at +7 dB")
     previous.add_argument('--v28', action='store_true', help="restore the bass on the album's chain as it comes: its grind at 900 Hz, the sine at -9 dB, no cut at 630 Hz")
+    previous.add_argument('--v29', action='store_true', help="restore the two guitars on the album's rig as it comes: the soft pick, the palm's thump, the amp at 220 Hz, no eq")
+    parser.add_argument('--guitars', help='a bench: EDGE fields to change, as a JSON object')
     parser.add_argument('--bass', help='a bench: GRIND fields to change, as a JSON object')
     parser.add_argument('--hat', help='a bench: HATBODY fields to change, as a JSON object')
     parser.add_argument('--verso', help='a bench: VERSO fields to change, as a JSON object')
@@ -1143,7 +1183,7 @@ if __name__ == '__main__':
             doc['loudness'] = VERSO['loudness']
     if args.kick:
         KICK.update(json.loads(args.kick))
-    older = any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit() and k not in ('v27', 'v28'))
+    older = any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit() and k not in ('v27', 'v28', 'v29'))
     if not older and any(t['name'] == 'bars' for t in doc['tracks']):   # only on the whole song as v26 has it
         the_kick_gets_a_chest(doc)
         if not args.v27:
@@ -1154,6 +1194,10 @@ if __name__ == '__main__':
                 if args.bass:
                     GRIND.update(json.loads(args.bass))
                 the_bass_grinds(doc)
+                if not args.v29:                              # only on the whole song as v29 has it
+                    if args.guitars:
+                        EDGE.update(json.loads(args.guitars))
+                    the_gaps_get_edges(doc)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
