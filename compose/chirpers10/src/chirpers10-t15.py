@@ -279,7 +279,7 @@ LONG = os.environ.get('C10T15_LONG', '15;17;15;0;0;-9.9' if TEETH else '')
 # Benched raw against everything else and against the voices alone (K, whole stretch): see the round note. The
 # box's own weight (its fundamentals, 350-620 Hz) is cut 8 dB at 430 Hz: the choruses already stand 2.4 to 2.9 dB
 # over the records there, and what a concertina is heard by over a band is its reed (1-8 kHz).
-TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL') for k in os.environ)
+TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW') for k in os.environ)
                       else '-4.5dB;0.35;-12dB;-3;hp cutoff=300|peak cutoff=430 q=0.8 gain=-8dB|peak cutoff=2500 q=0.7 gain=3dB;-9.85')
 # the chorus's tune as a concertina plays it, an octave over the crew: their notes where they sing them, a passing
 # note in the breath after 'haul', and two sixteenths up into the next bar. (sixteenth, length, note), a bar a line.
@@ -334,6 +334,20 @@ SUB = os.environ.get('C10T15_SUB', 'fx.2.bands.0.gain=12dB fx.2.bands.1.gain=6dB
 # the pedal's piece gain ; the loudness target ('' = unchanged). '' = v15 byte for byte.
 METAL = os.environ.get('C10T15_METAL', 'synth.layers.0.bright=0.72 synth.filters.2.cutoff=5000 synth.filters.1.gain=-3dB;-0.5dB;'
                                        'filters.0.cutoff.value=3.5k filters.1.cutoff=6000 amp.d=35ms;17dB;-17dB;-9.69' if SUB else '')
+# v17 (chirper-one; section round, w4, 1:33-2:05: verse two's second half into chorus two): THE BOX DRAWS BREATH
+# BEFORE THE ANSWER. Since v8 the two hands rest in verse two when the crew answers, and the crew stands alone with
+# the boots; and at 2:00 the concertina came in with the chorus's tune from nowhere. Now the squeezebox is in the
+# verse: in the two beats before each of the last three answers (after the shantyman's line, over the riff) it
+# draws one breath, swelling from nothing and cut where the crew comes in, so the hands' rest opens on the crew
+# alone; and each breath is a note fuller (F; F and A flat; F, A flat and C). On 'hold fast' it holds one C
+# through the bar, and that C is the first note of its tune. (Built first and dropped: the breath INSIDE the rest,
+# under the crew: the recogniser read 3 of the crew's 5 words without it and 0 or 1 with it.)
+# the fader ; the chord of each breath in order, '|' between (the last answers of the verse take them) ; the note
+# held on 'hold fast' ('' = none) ; dB under the fader a breath starts from ; eq bands, ',' between ; the hall
+# send ; pan ; the loudness target ('' = unchanged) ; dB on the held note (fader + this = -4.5, the fader the tune
+# begins on) ; beats a breath lasts.
+# "" = v16 byte for byte.
+DRAW = os.environ.get('C10T15_DRAW', '0dB;F4|F4,Ab4|F4,Ab4,C5;C5;-14;hp cutoff=300,peak cutoff=430 q=0.8 gain=-8dB,highshelf cutoff=2500 gain=-4dB;-12dB;-0.35;;-4.5;2' if METAL else '')
 BARK = 'kidman synth.layers.0.diction=2 synth.layers.0.speech=1'
 # five men: the kit piece, where in the spread his foot lands (0..1), how hard against the others, his board's
 # note, where he stands, how long his board rings (ms)
@@ -977,6 +991,32 @@ def the_metal_comes_up(doc):
         doc['loudness'] = float(target)
 
 
+def the_box_draws(doc, marks):
+    """v17: in verse two the concertina draws one breath before each of the crew's last answers, and holds a C on 'hold fast'."""
+    fader, chords, held, low, eq, hall, pan, target, held_db, beats = DRAW.split(';')
+    tr = {t['name']: t for t in doc['tracks']}
+    a, b = marks['early hand'] / GRID, marks['all together again'] / GRID      # verse two; chorus two
+    answers = [n['at'] for n in tr['crew']['notes'] if a <= n['at'] < b and n.get('ph') == 'T EY1 K']
+    chords = chords.split('|')
+    rests = [(t - float(beats), t) for t in answers[-len(chords):]]
+    assert len(rests) == len(chords), (rests, chords)
+    assert not any(t < n['at'] + n['len'] and n['at'] < h for t, h in rests for v in ('shanty', 'crew') for n in tr[v]['notes']), 'a breath under a voice'
+    notes, points = [], [['0b', float(low)]]
+    for (t, h), chord in zip(rests, chords):
+        notes.append({'at': round(t, 4), 'len': round(h - t - .05, 4), 'pitch': chord, 'vel': 0.8})
+        points += [[f'{t - .02:g}b', float(low)], [f'{h - .05:g}b', 0]]
+    if held:
+        t = [n['at'] for n in tr['shanty']['notes'] if a <= n['at'] < b and n.get('ph') == 'HH OW1 L D'][-1]      # 'hold fast', not 'we hold our own'
+        notes.append({'at': round(t, 4), 'len': round(b - t - .05, 4), 'pitch': held, 'vel': 0.8, **({'gain': f'{float(held_db):g}dB'} if held_db and float(held_db) else {})})
+        points += [[f'{t - .02:g}b', float(low)], [f'{b - .05:g}b', 0]]
+    doc['tracks'].append({'name': 'draw', 'patch': tr['tune-l']['patch'], 'gain': {'value': fader, 'mod': [{'src': 'auto.breath', 'amount': 1}]},
+                          'pan': float(pan), **({'sends': {'hall': hall}} if hall else {}),
+                          **({'fx': [{'type': 'eq', 'bands': [x.strip() for x in eq.split(',')]}]} if eq else {}),
+                          'auto': {'breath': {'points': points, 'curve': 0}}, 'notes': notes})
+    if target:
+        doc['loudness'] = float(target)
+
+
 def dump(d):
     return '\n'.join('tracks:\n' + '\n'.join('  - ' + json.dumps(t) for t in v) if k == 'tracks' else k + ': ' + json.dumps(v) for k, v in d.items()) + '\n'
 
@@ -987,6 +1027,8 @@ if __name__ == '__main__':
         the_sub_changes_hands(doc)
     if METAL:
         the_metal_comes_up(doc)
+    if DRAW:
+        the_box_draws(doc, marks)
     if os.environ.get('C10T15_SHOW'):
         for sec, bars in FORM:
             t = marks[sec]
