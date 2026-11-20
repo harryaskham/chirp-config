@@ -36,6 +36,7 @@ out again by itself and the generator checks that the two agree.
 v1 is the skeleton: the whole dial, played bare.
 """
 import json
+import math
 import os
 import re
 
@@ -1522,6 +1523,87 @@ def the_six_get_their_teeth(doc):
         doc["loudness"] = float(target)
 
 
+# v32 (chirper-alpha; whole-song round; 1:35 to 3:05, six places; no note is written): THE AMP IS LEFT ON.
+# The rule is x <- r x (1 - x), once every half bar, and the clock is what makes it double and run wild. The same
+# rule with NO clock (dP/dt = r P (1 - P / K)) can only do one thing: grow to its ceiling and stay. A guitar amp
+# left on does exactly that. Its output reaches the strings, comes back through the pickup, and is amplified again:
+# a loop with gain and a soft ceiling, and the power of what it howls obeys that equation. So wherever all six
+# guitars take their hands off (a rest of 2.6 beats or more: twelve, of which ten with the dial past 3), the right guitar's amp is
+# such a loop, and the engine works it out: one bus per root, whose own output comes back into it one period of the
+# last root struck later (`returns`, the engine's feedback routing: its first use on this record), through a
+# band-pass (Q 24) on that root's 64th harmonic and a tanh. THE DIAL IS THE LOOP'S GAIN: k dB over unity for each
+# unit r stands past 3 (five 0.19, three 0.22, the top 0.26, down-four 0.13, down-two 0.05); at 3 or under it is
+# stable and never opens (0:24, 3:23), which is the rule's own first threshold. The loop opens on the right
+# guitar's last stroke (the seed) and shuts on the next stroke of any guitar: the chord cuts it off.
+# THE PITCH is the root just struck, six octaves up: G7 (3135 Hz) in the lock on five, B flat 7 (3728) in the
+# three, B7 (3949) in the top's holes (the scream is on B), E7 (2637) on the way down.
+# THE PLAYER sets one thing, the head start (how much of the guitar reaches the loop, per root): so that under the
+# two sung laps of five and of three the howl is at half its ceiling as the SECOND singer comes in (5.3 s of 8.5;
+# 3.65 s of 5.0): what a band does the second time round (v2, v24).
+# MEASURED (raw; the right guitar with what it feeds, less the right guitar): the amp's power against the logistic
+# curve K / (1 + (K/P0 - 1) exp(-r t)): median miss 0.35 dB in five (r 1.94 a second), 0.18 in three (r 2.61).
+# Outside the rests the amp stands 57 to 60 dB under the mix. The numbers of each rest are in the round note.
+# THE FIRST PITCH TRIED WAS THE 24TH HARMONIC (D6 1176 Hz at five, F6, G flat 6: a fifth over the root) AND IT TOOK
+# THE WORDS: a recogniser given the six sung lines in the mix read 9 of 18 words without the amp and 5 with it; the
+# top's first hole lost "more room" at every level tried, down to 10 dB lower. It sat on the vowels' second
+# formant. Six octaves over the root it is above them: the lines read the same with it and without.
+# dB of loop gain over unity for each unit the dial stands past 3 ; which harmonic of the last root struck the loop
+# is tuned to ; the loop's band-pass Q ; the shortest rest of all six guitars that opens it, in beats ; whose amp
+# (the track that feeds the loop) ; the amp's fader ; its pan ; its colour (effects after the loop, '|' between) ;
+# how much of the guitar reaches the loop (the seed) ; sections where the amp stays shut (names, comma between) ;
+# the loudness target ("" = unchanged). "" = v31 byte for byte.
+AMP = os.environ.get("C10T6_AMP", "0.26;64;24;2.6;gr;-30dB;0.5;drive shape=tanh drive=0.3 bias=0.3|cab model=4x12-modern mic=0.5 distance=0.15;g=-30,bb=-25,b=0,e=-14;;" if TEETH else "")
+RATE = 48000
+
+
+def the_amp_is_left_on(doc):
+    """v32: wherever all six guitars rest, the right guitar's amp is a loop with gain: its own output comes back
+    into it one period of the last root later, through a band-pass on that root's 24th harmonic and a tanh. The
+    loop's gain over unity is the dial: k dB for each unit r stands past 3, half bar by half bar. Nothing is written."""
+    k, harm, q, least, who, fader, pan, colour, seed, shut, target = AMP.split(";")
+    k, harm, q, least = float(k), int(harm), float(q), float(least)
+    midi = lambda name: NAMES.index(name[:-1]) + 12 * (int(name[-1]) + 1)
+    ev = sorted((n["at"], n["at"] + n["len"]) for t in doc["tracks"] if t["name"] in G + G2 + G3 for n in t["notes"])
+    mine = sorted((n["at"], n["pitch"]) for t in doc["tracks"] if t["name"] == who for n in t["notes"])
+    rests, end = [], 0
+    for a, b in ev:
+        if end and a - end >= least:
+            struck = [x for x in mine if x[0] < end]
+            if struck:
+                rests.append((struck[-1][0], a, min(midi(v) for v in struck[-1][1].split(","))))
+        end = max(end, b)
+    unity = -20 * math.log10(q / math.tanh(1))       # the band-pass passes its centre at Q; tanh(x) / tanh(1) at 1.313
+    lanes = {}
+    for a, b, root in rests:
+        c0, c1 = int(a // 2), int(math.ceil(b / 2))
+        over = [(max(a, 2 * c), k * (CELLS[c][1] - 3)) for c in range(c0, c1) if 2 * c < b]
+        if max(v for _, v in over) <= 0 or CELLS[c0][0] in shut.split(","):
+            continue                                     # at or under 3 the loop never passes unity: it stays shut
+        lane = lanes.setdefault((root - 28) % 12 + 28, [])
+        for at, v in over:
+            lane += [[round(at - .02, 5), lane[-1][1] if lane else 0], [round(at, 5), round(20 + v, 4)]]
+        lane += [[round(b - .02, 5), lane[-1][1]], [round(b, 5), 0]]
+    feeds = {}
+    for root, lane in sorted(lanes.items()):
+        name = "howl-" + NAMES[root % 12].lower()
+        frames = round(RATE / (440 * 2 ** ((root - 69) / 12)))
+        f0 = harm * RATE / frames
+        doc["buses"][name] = {
+            "fx": [{"type": "eq", "bands": [f"bp cutoff={f0:.2f} q={q:g}"]},
+                   {"type": "gain", "gain": {"value": f"{unity - 20:.4f}dB", "mod": [{"src": "auto.open", "amount": 1}]}},
+                   {"type": "drive", "shape": "tanh", "drive": 0, "oversample": 1}],
+            "returns": [{"from": name, "gain": "0dB", "time": f"{(frames + .2) * 1000 / RATE:.4f}ms"}],
+            "auto": {"open": {"points": [["0b", 0]] + [[f"{at:g}b", v] for at, v in lane], "curve": 0}},
+            "out": "amp"}
+        feeds[name] = dict(v.split("=") for v in seed.split(","))[name[5:]] + "dB"
+    if feeds:
+        doc["buses"]["amp"] = {"fx": [f for f in colour.split("|") if f], "gain": fader, "pan": float(pan), "out": "gtrs"}
+        t = next(t for t in doc["tracks"] if t["name"] == who)
+        t["sends"] = {**t.get("sends", {}), **feeds}
+    if target:
+        doc["loudness"] = float(target)
+
+
 def dump(doc):
     lines = []
     for k, v in doc.items():
@@ -1552,4 +1634,6 @@ if __name__ == "__main__":
             the_rule_is_heard(doc, *(float(v or 0) for v in (TEETH.split(";")[6].split(",") if TEETH else ())))
         if TEETH:
             the_six_get_their_teeth(doc)
+        if AMP:
+            the_amp_is_left_on(doc)
         open(OUT, "w").write(dump(doc))
