@@ -436,6 +436,31 @@ AJAR = os.getenv('C10T11_AJAR', '0:8;-4,-1;12;0dB;;1200,6000;-3;0:4;-4,-14' if P
 # the tracks ; what is added to each one's patch ; bands on each track's eq after its cabinet, band|band ; dB on each
 # fader ; the loudness target ('' = unchanged). '' = v28 byte for byte. On only while AJAR is.
 WALLS = os.getenv('C10T11_WALLS', 'wallL,wallR;synth.layers.0.thump.mod.0.amount=0.2 synth.filters.0.cutoff.mod.0.amount=-2;peak cutoff=170 q=0.9 gain=3dB|peak cutoff=700 q=1 gain=1.5dB;-0.5;' if AJAR else '')
+# v30 (chirper-zero; the draw was a whole-song round and I spent it on the one drum that plays in every section the
+# band does and that nobody had read: the KICK, 332 strokes. No note changes; the fader is not moved). THE FOOT HAS A
+# BEATER. Alone beside the six records' bass drums (tools/kickspec.py, shapes) the album kit's kick as it comes stood
+# 7.54 away and its click read -28.1 where theirs read -12.5: a thud and a box (+9 to +14 dB at 250-630 Hz) with
+# nothing on the front, though the track already lifted 4.5 kHz by 8 dB: there was nothing there to lift. The kick
+# plays the riff's own accents (its first, fifth, eighth, thirteenth and eighteenth sixteenths), so the riff's low
+# strokes had no edge either. The drum's beater is its third layer, a 4 ms burst of noise, 64 dB down as it comes:
+# here it is 24 dB up, and a low-pass at 7 kHz follows the track's eq.
+# WHAT THE MIX REFUSED, AND WHY IT IS THIS RUNG (all read stretch by stretch beside the records with nobody singing):
+#   the beater at -34 dB with no low-pass (alone 3.65 with the drive down, the best read alone): every stretch
+#     worse, ten stretches' sum 7.94 -> 10.46: the noise reaches 16 kHz and the mix's top octave went 2.4 dB over.
+#   the drum's drive down (0.35 -> 0.1: the box out, alone 2 dB nearer): the mix lost 0.7 dB at 120-250 Hz where
+#     the riff stretches are already short; the box is filling that band for the band. Left.
+#   the drum's tick (its fourth layer, a 4.4 kHz triangle): alone WORSE (8.07): a spike. Left where it was.
+#   the drum TUNED TO THE RIFF'S B FLAT (a semitone up, its wander out): the low end got LESS even, not more: at
+#     the thirty kicks struck with the bass's B flat in 'quick' the 40-80 Hz level's spread stroke to stroke went
+#     from 0.99 dB (SD; 3.4 from loudest to quietest) to 2.15 (6.4): on one note the drum and the string add or
+#     cancel by their phase; a semitone apart they slide past each other inside every stroke. Left on its A.
+#   with the low-pass: -44 dB sum 7.91, -40 dB 7.98, -36 dB (low-pass 6 kHz) 8.04, against 7.94: LEVEL. Four
+#     stretches closer (lean, broad, kettle, home: 4-8 kHz was short there), two the same, four further (the swing
+#     and the shoulder, where the china already fills it). Alone 5.77 / 5.39 / 5.03. THE MIX IS NEUTRAL; -40 is
+#     kept on the drum's own read, and that is said in the note.
+# what is added to the kick's patch ; bands added to its track's eq, band|band ; dB on its fader ; the loudness
+# target ('' = unchanged). '' = v29 byte for byte. On only while WALLS is.
+BEATER = os.getenv('C10T11_BEATER', 'kit.k.patch.synth.layers.2.level.value=-40dB;lp cutoff=7000 q=0.7;;-9.753' if WALLS else '')
 
 
 def BOW_PATCH():
@@ -1032,6 +1057,16 @@ def make():
             if over: t['patch']=t['patch']+' '+over
             if bands: t['fx']=list(t.get('fx') or [])+[{'type':'eq','bands':bands.split('|')}]
             if fader: t['gain']=f"{float(t['gain'][:-2])+float(fader):g}dB"
+        if target:
+            doc['loudness']=float(target)
+    if BEATER:
+        # v30: the kick's beater, band-limited (see BEATER).
+        over,bands,fader,target=BEATER.split(';')
+        t=next(t for t in doc['tracks'] if t['name']=='kick')
+        assert t['patch']=='ct-kit' and isinstance(t['gain'],str) and len(t.get('fx') or [])==1 and t['fx'][0]['type']=='eq',(t['patch'],t['gain'],t.get('fx'))
+        if over: t['patch']=t['patch']+' '+over
+        if bands: t['fx']=[{'type':'eq','bands':list(t['fx'][0]['bands'])+bands.split('|')}]
+        if fader: t['gain']=f"{float(t['gain'][:-2])+float(fader):g}dB"
         if target:
             doc['loudness']=float(target)
     return doc,marks
