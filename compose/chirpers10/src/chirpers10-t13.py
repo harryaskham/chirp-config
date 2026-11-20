@@ -1005,6 +1005,50 @@ HATBODY = {'over': 'filters.0.cutoff.value=4k amp.d=60ms', 'fader': 15.5, 'eq': 
            'click': 5, 'click_stays': ('where it was',), 'spare': (), 'loudness': None}
 
 
+# v29 (chirper-zero; instrument round: the bass, 365 notes): THE BASS IS A NOTE YOU CAN FOLLOW.
+# Read alone beside eleven records' basses (tools/bassspec.py) this was one of the album's furthest: 5.96 in 'the
+# handover' (the long run on low F), 6.01 / 5.86 / 6.15 in the other keys. Its shape: the fundamental +14 dB over
+# theirs at 40 Hz, the box +5 to +10.6 dB from 315 to 800 Hz, and where their string GRINDS (a peak at 1.25 kHz
+# that lets you hear which note the bass is on under two guitars) ours stood 5.5 and 8.3 dB short, with the lift
+# the album's low chain gives it a third too high (1.6 kHz +2.8). In the MIX, over the six stretches the bass
+# plays, the octave from 1 to 2 kHz was the shortest band (-0.93 dB against the records) and 120-250 Hz was over.
+# One control at a time (the bass alone in 'the handover'; then the whole mix, stembal --voice, the no-voice rows
+# weighted by the bass's notes):
+#   the grind to 1150 Hz, +10 dB (ct-bass has it at 900 Hz, +5)       alone 5.70    the mix 0.785 -> 0.754
+#   and the sine under the string -9 -> -13 dB                         alone 5.69    the mix 0.719
+#     (the sine drives the patch's compressor: with less of it the string above comes up, and the mix's 120-250
+#      Hz falls +0.46 -> +0.09. MORE sine, -6 dB, read worse on both, 0.810.)
+#   the box cut where the other songs have it (540 Hz wide, -6 dB, before the compressor)
+#                                                                       alone 4.70    the mix 0.781: THE MIX SAYS NO
+#     (here the bass's box is part of the band's middle: 250 Hz-1 kHz falls 0.3 dB short of where it was)
+#   a narrower cut AFTER the compressor, 630 Hz q 1.2 -4 dB, where the bass is furthest over and the mix has room
+#                                                                       alone 5.17    the mix 0.732
+#   the fader -0.5 dB, so the bass alone is as loud as it was (-31.9 LUFS)            the mix 0.715
+#   the low chain's own lift from 1.5 kHz to 1.2 kHz, and the grind a little narrower (q 1.6, +11 dB)
+#                                                                       alone 4.94
+#   the whole lean chain as on Odd Sympathy (octave +12 dB, sine -12)  alone 4.36    the mix 0.896: no (60-120 Hz
+#     is already +0.9 over here: the bass drum's chest is there since v27)
+# THE FLOOR IS LEFT WHERE THE MIX CAN BEAR IT: the root is F at 44 Hz, so the sine IS the note; -13 dB costs the
+# mix 0.2 dB under 60 Hz (-0.44 -> -0.66; the bass drum holds three quarters of that band). --v28 restores.
+GRIND = {'patch': 'fx.2.bands.3.cutoff=1150 fx.2.bands.3.q=1.6 fx.2.bands.3.gain=11dB synth.layers.1.level=-13dB',
+         'pre': {'4': 'peak cutoff=1200 q=1.4 gain=4dB'}, 'post': ['peak cutoff=630 q=1.2 gain=-4dB'], 'trim': -0.5, 'loudness': None}
+
+
+def the_bass_grinds(doc):
+    """v29: the bass's grind where the records have it, less of the sine under the string, a narrow cut at 630 Hz
+    after its compressor; the fader down so the bass alone is as loud as it was."""
+    bass = next(t for t in doc['tracks'] if t['name'] == 'bass')
+    bass['patch'] += ' ' + GRIND['patch']
+    fx = json.loads(json.dumps(bass['fx']))
+    for i, band in GRIND['pre'].items():
+        fx[0]['bands'][int(i)] = band                     # the low chain's first eq, before its compressor
+    fx[2]['bands'] = fx[2]['bands'] + list(GRIND['post'])  # its last eq, after the compressor
+    bass['fx'] = fx
+    bass['gain'] = f"{float(bass['gain'][:-2]) + GRIND['trim']:g}dB"
+    if GRIND['loudness']:
+        doc['loudness'] = GRIND['loudness']
+
+
 def the_hat_gets_a_body(doc):
     """v28: the closed hat's strokes leave the cymbals' track for one of their own, on a kit of the song's own whose
     hat is opened downwards; the kick's click gives up the room the hat's body takes. A spared section keeps both
@@ -1072,6 +1116,8 @@ if __name__ == '__main__':
     previous.add_argument('--v25', action='store_true', help="restore the back of the sheet with no struck voice of its own (no wooden bars)")
     previous.add_argument('--v26', action='store_true', help="restore the album's bass drum as it comes: no chest, its long tail")
     previous.add_argument('--v27', action='store_true', help="restore the closed hat as the library has it (nothing under 8 kHz), on the cymbals' track, and the kick's click at +7 dB")
+    previous.add_argument('--v28', action='store_true', help="restore the bass on the album's chain as it comes: its grind at 900 Hz, the sine at -9 dB, no cut at 630 Hz")
+    parser.add_argument('--bass', help='a bench: GRIND fields to change, as a JSON object')
     parser.add_argument('--hat', help='a bench: HATBODY fields to change, as a JSON object')
     parser.add_argument('--verso', help='a bench: VERSO fields to change, as a JSON object')
     parser.add_argument('--kick', help='a bench: KICK fields to change, as a JSON object')
@@ -1097,13 +1143,17 @@ if __name__ == '__main__':
             doc['loudness'] = VERSO['loudness']
     if args.kick:
         KICK.update(json.loads(args.kick))
-    older = any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit() and k != 'v27')
+    older = any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit() and k not in ('v27', 'v28'))
     if not older and any(t['name'] == 'bars' for t in doc['tracks']):   # only on the whole song as v26 has it
         the_kick_gets_a_chest(doc)
         if not args.v27:
             if args.hat:
                 HATBODY.update(json.loads(args.hat))
             the_hat_gets_a_body(doc)
+            if not args.v28:                                  # only on the whole song as v28 has it
+                if args.bass:
+                    GRIND.update(json.loads(args.bass))
+                the_bass_grinds(doc)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
