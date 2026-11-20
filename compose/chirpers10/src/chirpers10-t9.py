@@ -312,6 +312,16 @@ AMPS = os.environ.get('C10T9_AMPS', 'one to the beat:' + CLEAN.format(14.5) + ':
 SNARE = os.environ.get('C10T9_SNARE', 'G3;synth.layers.0.mode_count=10 synth.layers.0.damp=0.9 synth.amp.d=110ms synth.layers.0.contact=0.45 '
                                       'synth.filters.1.gain=-3dB synth.layers.0.slap=0.8;'
                                       'peak cutoff=630 q=2 gain=-3dB|peak cutoff=1600 q=2.5 gain=3dB|highshelf cutoff=7000 gain=-5dB;5.5dB;' if AMPS else '')
+# v27 (chirper-one; palette round): THE OPENING HAS A CLOCK. The song is In the Time Of; its first twenty seconds
+# are the riff as a slow tune, one note to the beat, on two clean guitars (v25), and the only other thing in them
+# was the album's closed hat, which seventeen songs of seventeen play. The beat there is now kept by a clock: a
+# small wooden tick and tock, a patch of this song's own (it-clock: two struck bars a fifth apart, C and F, the
+# song's key note, with a click on the front; dry but for a small room). Tick, tock: two to the riff's seven, so
+# the tune comes round on the tick one time and on the tock the next. The hat is first heard at 0:20, when the
+# amps, the bass and the kick come in: one more thing that arrives there.
+# the section ; the tick's note ; the tock's ; the tick's decay ; the tock's ; the fader ; velocity over the hat's ;
+# the track's fx ('' = dry) ; pan ; the loudness target ('' = unchanged). "" = v26 byte for byte.
+CLOCK = os.environ.get('C10T9_CLOCK', 'one to the beat;C7;F6;60ms;90ms;-17dB;0.3;reverb kind=room decay=0.4s mix=0.12;0;' if SNARE else '')
 WALK = []
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
@@ -1040,6 +1050,28 @@ def the_snare_at_the_head(doc):
         doc["loudness"] = float(loud)
 
 
+def the_opening_has_a_clock(doc):
+    """v27: in the named section the hat's strokes go to a clock of the song's own: tick on the even beats, tock on the odd."""
+    section, tick, tock, d_tick, d_tock, fader, more, fx, pan, loud = CLOCK.split(";")
+    a, z = next((b0, (MARKS[i + 1][1] if i + 1 < len(MARKS) else 10 ** 9)) for i, (name_, b0) in enumerate(MARKS) if name_ == section)
+    hat = next(t for t in doc["tracks"] if t["name"] == "hat")
+    moved = [n for n in hat["notes"] if a <= n["at"] < z]
+    assert moved and all(n["at"] == int(n["at"]) for n in moved), "the clock takes whole beats"
+    hat["notes"] = [n for n in hat["notes"] if not a <= n["at"] < z]
+
+    def bar(note, decay):
+        return {"pitch": note, "patch": {"synth": {
+            "amp": {"a": "0.2ms", "curve": 4, "d": decay, "s": 0, "r": "10ms"}, "env": {"h": {"a": "0.2ms", "d": "3ms", "s": 0}},
+            "layers": ["sine", {"wave": "sine", "ratio": 2.76, "level": "-8dB"}, {"wave": "sine", "ratio": 5.4, "level": "-14dB"},
+                       {"type": "noise", "level": {"value": "-60dB", "mod": [{"src": "env.h", "amount": 48}]}}]}}}
+    doc["patches"]["it-clock"] = {"about": "In the Time Of's clock (chirper-one, 20 Nov): a small wooden tick (ti) and tock (to), two struck bars with a click on the front.",
+                                  "kit": {"ti": bar(tick, d_tick), "to": bar(tock, d_tock)}, "play": {"vel_sens": 0.5}}
+    doc["tracks"].append({"name": "clock", "patch": "it-clock", "gain": fader, "pan": float(pan), **({"fx": [fx]} if fx else {}),
+                          "notes": [{**n, "pitch": "ti" if int(n["at"] - a) % 2 == 0 else "to", "len": 0.25, "vel": round(n["vel"] + float(more), 3)} for n in moved]})
+    if loud:
+        doc["loudness"] = float(loud)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T9_SHOW"):
         end = compose()
@@ -1066,4 +1098,6 @@ if __name__ == "__main__":
                 doc["loudness"] = float(AMPS.split(";")[1])
         if SNARE:
             the_snare_at_the_head(doc)
+        if CLOCK:
+            the_opening_has_a_clock(doc)
         open(OUT, "w").write(dump(doc))
