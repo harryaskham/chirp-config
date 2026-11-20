@@ -799,7 +799,7 @@ NEARER = os.environ.get("C10T1_NEARER", "363:383:-6:-3:-10.093" if REBUILD and H
 # bars from the section's first ; the bell's velocity ; the bells' fader ; dB on the strokes of each pair (five and seven,
 # five and eleven, seven and eleven) ; where each pair's bell stands (pan) ; the loudness target ('' = unchanged).
 # "" = v62. It is on only while no older switch of this song is set, so each of those still gives what it gave.
-MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM") for k in os.environ) else "")
+MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE") for k in os.environ) else "")
 # v44: THE ENGINE, EXPOSED (9:19, in the hardest stretch). For twenty-eight bars everything runs at once: four guitars
 # and the bass on seven, the china on every eighth, the bark, and under it all the kick in unbroken sixteenths. The one
 # event inside it is the ground moving up a semitone at 9:20. Now, for the half bar before that, everything stops
@@ -2233,7 +2233,7 @@ def hold_still(doc):
 # well ("" = neither; "2" = the second) ; the flute's velocity when it was recorded ; the deck's wow and flutter in
 # cents and its drift (in units of the wow) ; the loudness target ("" = unchanged) ; settings added to the recorded
 # flute's patch ("" = the library's flute as it comes). "" = v63. On only while no older switch of this song is set.
-TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM") for k in os.environ) else "")
+TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE") for k in os.environ) else "")
 
 
 def the_eye_on_tape(doc):
@@ -2361,6 +2361,57 @@ def the_tune_is_hummed(doc):
         doc["loudness"] = float(target)
 
 
+# v68 (chirper-zero; instrument round: the SEVEN wheel's guitar, `ct-bite`, four tracks: sl, sr and their second takes
+# dsl, dsr; 2906 palm-muted strokes of 4686 notes; no note changes). THE SEVEN'S CHUG HOLDS.
+# Read one track alone beside the records' muted strokes (tools/riffpunch.py --strokes, `sl`, 2:30-3:20) this rig
+# stood furthest of the piece's four: its low end was a thump on the front of the stroke that fell away, where the
+# records' chug holds its 100-250 Hz through the stroke (tight +4.80; theirs -1.10, from -2.2 to +0.3), and it had
+# little front (punch 2.93; theirs 3.63, from 3.5 to 4.2). (The five's rig, `gl`: +3.08 / 3.09. The wall, `wl`:
+# +3.38 / 3.37. The eye's pair, `rl`, the five's rig with a harder pick and a tighter amp: +0.40 / 3.21.) Each
+# control benched alone first, one track, the same bars:
+#   the string's thump out (0.4 -> 0): tight +2.63, punch held (2.94)
+#   the amp's tight (80 Hz as it comes) 190: +2.31 ; with the thump out 150: +1.95, 190: +1.78, 260: +1.00, 330: +1.14
+#   the stroke rounder under the palm (soft 0 -> pm x 0.4: from a pick's burst of noise part-way to a displaced
+#       string): punch 3.30, tight +4.40 ; with the two above: +0.74
+#   the palm's filter two octaves instead of 3.4: more teeth (scoop -7.2 -> -9.5) but punch 2.75: NOT taken
+#   the compressor's attack 15 ms, the amp's sag 0.5, the compressor's threshold up: nothing that mattered
+# THE COST OF THE TIGHT AMP IS THE CHEST: alone beside the records' guitars (tools/cabspec.py) 2.70 -> 3.84, the
+# third-octave at 160 Hz 6.3 dB down. A lift at 170 Hz AFTER the cabinet gives it back (2.71), and a transient
+# shaper after that gives the stroke its front (punch 3.54, rise 15 ms; theirs 19.75, from 13.5 to 23.5). With a
+# tight of 150-220 and a smaller lift, or with a lift of 8 dB, the stroke rose in 8 to 11.5 ms: a click, outside
+# the records' range. Not taken.
+# the tracks ; what is added to each one's patch ; bands of a new eq after each one's cabinet and eq, band|band ; fx
+# after that, fx|fx ; dB on each fader (so the four alone are as loud as before) ; the loudness target ('' =
+# unchanged). "" = v67 byte for byte. On only while HUM is.
+STROKE = os.environ.get("C10T1_STROKE", "sl,sr,dsl,dsr;synth.layers.0.thump.mod.0.amount=0 fx.2.tight=260 synth.layers.0.soft=expr.pm*0.4;peak cutoff=170 q=0.9 gain=6dB;transient attack=8 sustain=-1;-2;" if HUM else "")
+
+
+def the_seven_s_chug_holds(doc):
+    """v68: the bite rig's muted stroke, on the rig's own controls (see STROKE). No note changes."""
+    names, over, bands, after, fader, target = STROKE.split(";")
+    for name in names.split(","):
+        t = next(t for t in doc["tracks"] if t["name"] == name)
+        assert t["patch"].startswith("ct-bite"), (name, t["patch"])
+        if over:
+            t["patch"] = t["patch"] + " " + over
+        fx = list(t.get("fx") or [])
+        if bands:
+            fx.append({"type": "eq", "bands": bands.split("|")})
+        if after:
+            fx += after.split("|")
+        t["fx"] = fx
+        if fader:
+            g = t["gain"]
+            if isinstance(g, dict):
+                g = dict(g)
+                g["value"] = f"{float(g['value'][:-2]) + float(fader):g}dB"
+            else:
+                g = f"{float(g[:-2]) + float(fader):g}dB"
+            t["gain"] = g
+    if target:
+        doc["loudness"] = float(target)
+
+
 def the_tune_is_finished(doc):
     """The lead's last pass of the tune is cut off at the stop before the landing, eight notes in. The other eight are played
     over the landing riff's last four bars, a note to each cell of EIGHT, and the last one falls on the last chord."""
@@ -2399,4 +2450,6 @@ if __name__ == "__main__":
         the_snare_s_skin(doc)
     if HUM:
         the_tune_is_hummed(doc)
+    if STROKE:
+        the_seven_s_chug_holds(doc)
     open(OUT, "w").write(dump(doc))
