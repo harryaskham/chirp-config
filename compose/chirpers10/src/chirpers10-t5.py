@@ -1199,7 +1199,96 @@ TAPE = os.environ.get("C10T5_TAPE", "1;84:96;-1;0.575;0.41;-24;" if FALLTONE els
 # the pole, and up the run out of it. No other part changes.
 # dB on the tone against its level under the stair ; bars from:to ; the loudness target ('' = unchanged). '' = v29.
 # It is on only while no other C10T5_ switch is set, so every older switch gives exactly what it gave.
-HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY") for k in os.environ) else "")
+HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID") for k in os.environ) else "")
+
+# v31 (chirper-two; palette: the song had no voice, and no song on the album had used the engine's speech to song):
+# WE HAVE BEEN HERE BEFORE. A song "all about the illusions" (Harry, 15 Nov) had every illusion of pitch and of speed
+# and none of the voice. Deutsch's is the best known: a few spoken words, repeated, begin to sound sung. The engine has
+# it made real (`chirp tts --repeat --melodize`): the words are said again from a bar line, and each time their pitches
+# have moved further onto a tune and their syllables further onto the grid.
+#   WHERE: the pole, the song's one breath (2:52.8), one saying at each of its first five chords (F, F, A flat, E flat,
+#       F: bars 72, 74, 76, 78, 80), in the chord's first bar; its second bar is left to the tone's B and the leads.
+#   WHAT HE SAYS: "we have been here before". It is true of the saying itself the second time, and truer each time;
+#       the chord under the fifth saying is the F the pole began on; and the song ends where it began.
+#   WHAT IT TURNS INTO: the first two sayings are speech, and the same take (the illusion's own form: one recording,
+#       repeated). The third and fourth are 0.35 and 0.7 of the way. The fifth is sung, and what he sings is THE STAIR'S
+#       BAR: F, G flat, A flat, B, C, E flat on the bar's 3 3 3 3 2 2, the first bar of the song (the tone alone at
+#       0:00) with words; six syllables for six notes, at speech's own speed (the spoken phrase lasts 3.4 beats of the
+#       bar's four). He sings it ONCE: a voice has a height, and a second bar would drop back to F in the open, which
+#       is what the stair hides (Harry on the stair: "It climbed better with the tone under it").
+#   THE VOICE: the library's `voice-speech`, joined (one breath a saying), firmer and with more ring than it comes;
+#       spoken at 125 to 171 Hz, sung F3 to E flat 4. Like every library voice it is body with no middle: alone it
+#       read +17.1 dB under 250 Hz and -12.8 and -10.7 at 1-2 and 2-4 kHz against the records' voices; with the eq
+#       +3.2 -0.1 +0.5 -2.7 +3.4 -9.6 -9.9 (under 250 Hz .. 8-16 kHz). Its open syllables stood 5 to 13 dB over its
+#       closed ones ("have", and the sung "fore" on E flat 4); with a gain on each syllable, 2.1 to 3.3.
+#   THE LEVEL IS WHERE THE WORDS COME THROUGH. At the level the records' voices stand in their mixes (-7.1 dB at
+#       1-4 kHz; -6.1 to -6.7 here) the recogniser wrote 1, 2, 2, 1 and 0 of the five words from the pole's mix. At
+#       this level (-4.1 to -4.6) it wrote 1, 5, 4, 4 and 2; 1.5 dB louder was no better; with half the lift at 3.2 kHz
+#       it was worse (2, 5, 2, 3, 2). Alone, all five sayings are written exactly. The first is not made out in the
+#       mix on any build: it comes up out of the descent's tail and both guitars' chord.
+#   THE WHEEL GIVES 3 dB (-9 to -12 dB): it held 47% of the pole's 500 Hz-1 kHz, the band the voice needs.
+#   COST, on the read against the eleven records' passages with a voice (the pole's ten bars): 2.96 -> 3.31, from
+#       +0.9 dB at 2-4 kHz and the half dB that takes from every band below 250 Hz. At the records' level it was 3.03.
+#   The first of the engine's five takes is not used: on four builds the recogniser wrote it 'We have plenty with all'.
+# the voice's patch overrides ; fader ; pan ; send to the hall ; eq, band|band ; clip ceiling ('' = none) ; dB on each of the six
+# syllables, one set for every time it is said ('' = none) ; the wheel's fader while he is in the song ('' = unchanged) ;
+# the loudness target ('' = unchanged). '' = v30 byte for byte.
+SAID = os.environ.get("C10T5_SAID", "synth.layers.0.join=true synth.layers.0.effort.value=0.75 synth.layers.0.ring=0.8 synth.layers.0.diction=2;"
+                      "-18.5dB;0;-14dB;hp cutoff=200|lowshelf cutoff=400 gain=-8dB|peak cutoff=1500 q=0.7 gain=12dB|"
+                      "peak cutoff=3200 q=0.8 gain=6dB|highshelf cutoff=6000 gain=12dB;;"
+                      "2,-3.5,2,3,3,1.5,1,-4.5,1,2,2,0.5,2,-3.5,1.5,1,2,-1,0,-5.5,-0.5,0,0,-5.5,1,-6,-1,0,-0.5,-6.5;-12dB;" if HALFWAY else "")
+SAID_TAKES = tuple(int(k) for k in os.environ.get("C10T5_SAID_TAKES", "1,1,2,3,4").split(","))   # which row below each saying is
+SAID_BARS = (72, 74, 76, 78, 80)                    # the pole's first five chords: F, F, A flat, E flat, F
+SAID_SUNG = (0.0, 0.0, 0.35, 0.7, 1.0)              # how far each saying has gone from speech (0) to the stair's bar (1)
+# The engine's own speech to song, baked in so the generator needs no engine: `chirp tts "we have been here before" --key C3
+# --bpm 100 --humanize 0.5 --seed 3 --repeat 5 --melodize 0,0,0.35,0.7,1 --melody "F3 Gb3 Ab3 B3 C4 Eb4" --join --rhythm --print`
+# (engine 7138d6d5). One row a saying; a syllable is [beat in its bar, beats long, pitch, velocity, sounds, the pitch's path
+# inside the syllable in cents, the length the path was made for]. Only the places and lengths are worked again below.
+SAID_REPS = [
+    [[0.253,0.443,"m52.473",0.763,"W IY1",[0,9,18,24,27,28,24,18,9,-3,-15],0.443],[0.696,0.752,"m52.139",0.785,"HH AE1 V",[0,5,10,15,19,22,24,27,30,32,30,23,15,10,8,7,4,-3,-14],0.752],[1.463,0.537,"m51.238",0.75,"B IH1 N",[0,7,14,20,24,25,25,25,27,24,16,4,-10,-21],0.537],[1.981,0.535,"m50.916",0.755,"HH IY1 R",[0,7,14,20,24,25,24,25,27,24,16,4,-10,-21],0.535],[2.523,0.345,"m47.961",0.858,"B IH0",[0,-3,-5,-8,-10,-13,-15,-18,-20],0.345],[2.881,0.748,"m47.701",0.774,"F AO1 R",[0,3,5,7,9,10,9,9,10,9,5,-4,-14,-22,-27,-30,-36,-45,-59],0.748]],
+    [[0.248,0.443,"m52.632",0.846,"W IY1",[0,9,18,24,27,28,24,18,9,-3,-15],0.443],[0.69,0.752,"m52.166",0.774,"HH AE1 V",[0,5,10,15,19,22,24,27,30,32,30,23,15,10,8,7,4,-3,-14],0.752],[1.433,0.537,"m51.379",0.805,"B IH1 N",[0,7,14,20,24,25,25,25,27,24,16,4,-10,-21],0.537],[1.964,0.535,"m50.923",0.814,"HH IY1 R",[0,7,14,20,24,25,24,25,27,24,16,4,-10,-21],0.535],[2.505,0.345,"m47.609",0.818,"B IH0",[0,-3,-5,-8,-10,-13,-15,-18,-20],0.345],[2.855,0.748,"m47.281",0.823,"F AO1 R",[0,3,5,7,9,10,9,9,10,9,5,-4,-14,-22,-27,-30,-36,-45,-59],0.748]],
+    [[0.25,0.444,"m52.616",0.764,"W IY1",[0,6,11,15,18,18,16,12,6,-2,-10],0.444],[0.709,0.744,"m52.692",0.775,"HH AE1 V",[0,3,7,10,12,14,14,16,22,27,25,15,4,-2,0,7,11,6,-6],0.744],[1.461,0.528,"m52.996",0.797,"B IH1 N",[0,5,10,14,15,12,11,17,24,21,7,-10,-22],0.528],[1.987,0.523,"m53.625",0.865,"HH IY1 R",[0,5,10,14,15,12,11,17,23,21,8,-9,-22],0.523],[2.504,0.334,"m51.838",0.769,"B IH0",[0,-2,-4,-6,-7,-9,-11,-13],0.334],[2.827,0.827,"m52.806",0.778,"F AO1 R",[0,2,3,4,6,6,5,6,9,12,10,1,-11,-18,-16,-10,-6,-11,-25,-40,-52],0.827]],
+    [[0.252,0.46,"m52.805",0.854,"W IY1",[0,3,5,7,8,8,8,7,5,2,-1,-5],0.46],[0.733,0.736,"m53.316",0.801,"HH AE1 V",[0,2,3,5,6,5,3,6,13,22,22,9,-7,-14,-9,4,16,16,4],0.736],[1.485,0.508,"m54.535",0.804,"B IH1 N",[0,2,5,6,6,0,-3,5,19,23,13,-6,-22],0.508],[1.995,0.507,"m56.469",0.836,"HH IY1 R",[0,2,5,6,6,0,-4,5,19,23,13,-6,-22],0.507],[2.506,0.291,"m56.247",0.825,"B IH0",[0,-1,-2,-3,-4,-5,-6],0.291],[2.782,0.905,"m58.316",0.84,"F AO1 R",[0,1,1,2,2,3,2,2,6,11,11,2,-11,-19,-13,1,12,11,-2,-20,-32,-31,-20],0.905]],
+    [[0.25,0.485,"m53",0.881,"W IY1",[0,0,0,1,-4,-14,-15,3,21,23,7,-15],0.485],[0.75,0.728,"m54",0.902,"HH AE1 V",[0,0,0,0,0,-2,-6,-4,6,17,19,5,-15,-25,-19,0,19,25,15],0.728],[1.5,0.485,"m56",0.873,"B IH1 N",[0,0,0,1,-4,-14,-15,3,21,23,7,-15],0.485],[2.0,0.485,"m59",0.896,"HH IY1 R",[0,0,0,1,-4,-14,-15,3,21,23,7,-15],0.485],[2.5,0.243,"m60",0.846,"B IH0",[],None],[2.75,0.972,"m63",0.807,"F AO1 R",[0,0,0,0,0,0,0,-1,3,9,10,3,-11,-21,-17,1,19,25,14,-6,-22,-23,-9,11,24],0.972]],
+]
+
+
+def we_have_been_here_before(doc):
+    """A man says it at each of the pole's first five chords. The first two times he says it; by the fifth he sings it,
+    and what he sings is the stair's bar: its six notes at its six places."""
+    patch, fader, pan, hall, bands, ceiling, gains, wheel, lufs = SAID.split(";")
+    stair = [n for n in next(t for t in doc["tracks"] if t["name"] == "stair")["notes"] if n["at"] < 4]
+    places = [n["at"] for n in stair]
+    assert places == [0.0, 0.75, 1.5, 2.25, 3.0, 3.5] and [n["pitch"][:-1] for n in stair] == ["F", "Gb", "Ab", "B", "C", "Eb"]
+    assert [nm(int(n[2][1:]))[:-1] for n in SAID_REPS[-1]] == [n["pitch"][:-1] for n in stair]      # fully sung = the stair's notes
+    said = [n[0] for n in SAID_REPS[0]]
+    trim = [float(g) for g in gains.split(",")] if gains else [0.0] * 6
+    trim = trim * 5 if len(trim) == 6 else trim         # six: the same for every saying; thirty: saying by saying
+    assert len(trim) == 30
+    notes = []
+    for bar, m, rep in zip(SAID_BARS, SAID_SUNG, (SAID_REPS[k] for k in SAID_TAKES)):
+        at = [n[0] if m == 0 else round((1 - m) * a + m * b, 3) for n, a, b in zip(rep, said, places)]
+        for i, (_, length, pitch, vel, ph, path, made) in enumerate(rep):
+            if m and i < 5:                           # joined as the engine joins a sung line (0.97), in the new places
+                fill = (1 - m) * min(1.0, SAID_REPS[0][i][1] / (said[i + 1] - said[i])) + m * 0.97
+                length = round((at[i + 1] - at[i]) * fill, 3)
+            elif m:                                    # the last word is held as the saying turns to song
+                length = round((1 - m) * SAID_REPS[0][5][1] + m * 1.5, 3)
+            n = {"at": round(bar * 4 + at[i], 3), "len": length, "pitch": pitch, "vel": vel, "ph": ph}
+            if path:
+                n["expr_path"], n["path_len"] = {"f0": path}, made
+            if trim[len(notes)]:
+                n["gain"] = f"{trim[len(notes)]:g}dB"
+            notes.append(n)
+    assert POLE == SAID_BARS[0] and all(a["at"] < b["at"] for a, b in zip(notes, notes[1:]))
+    assert all(notes[6 * k + 5]["at"] + notes[6 * k + 5]["len"] < notes[6 * k + 6]["at"] - 2 for k in range(4))   # a breath between sayings
+    fx = ([{"type": "eq", "bands": bands.split("|")}] if bands else []) + ([f"clip drive=0dB ceiling={ceiling}"] if ceiling else [])
+    doc["tracks"].append({"name": "said", "patch": ("voice-speech " + patch).strip(), "gain": fader, "pan": float(pan),
+                          **({"sends": {"hall": hall}} if hall else {}), **({"fx": fx} if fx else {}), "notes": notes})
+    if wheel:
+        next(t for t in doc["tracks"] if t["name"] == "wheel")["gain"] = wheel
+    if lufs:
+        doc["loudness"] = float(lufs)
 
 
 def the_right_hand_goes_with_the_tape(doc):
@@ -1409,6 +1498,8 @@ def song():
         the_right_hand_goes_with_the_tape(doc)
     if HALFWAY and HALFWAY.split(";")[2]:
         doc["loudness"] = float(HALFWAY.split(";")[2])
+    if SAID:
+        we_have_been_here_before(doc)
     return doc
 
 
