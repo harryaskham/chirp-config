@@ -1272,6 +1272,8 @@ def song():
         the_tune_is_as_long(doc)
     if CHUG:
         the_chug_holds(doc)
+    if STRIKE:
+        the_bell_is_struck(doc)
     return doc
 
 
@@ -1606,6 +1608,47 @@ CHUG = os.environ.get('C10T8_CHUG', 'synth.layers.0.soft=expr.pm*0.5 synth.layer
                                     'synth.layers.0.thump.mod.0.amount=0 synth.filters.0.cutoff.mod.0.amount=-2 synth.layers.0.choke=120ms;'
                                     'transient attack=3 sustain=-1;transient attack=5 sustain=-1;transient attack=4 sustain=-1;'
                                     'peak cutoff=160 q=0.8 gain=4.5dB|peak cutoff=800 q=1.2 gain=-3dB;;;-1.05,-1.5,-0.75;' if SCALE else '')
+
+
+# v34 (chirper-zero; instrument round: the song's bell, patch `cm-bell`, all 322 strokes of the two bells from 0:00
+# to 3:09; no stroke, note or trim moves, and the afterword's bells, which are their own patches, are untouched):
+# THE BELL IS STRUCK AND RINGS. The bell that tells every cut was the first thing this song was given (v2) and no
+# round had listened to it alone since. Read alone, a stroke was not a bell: its note is 92 ms long and the patch let
+# go of it in 30, so it fell 9 dB and was then cut dead (silence 120 ms after the strike), and its three partials
+# kept one balance from the first millisecond to the last (the 2.4x partial 8.0 dB under the fundamental at the strike
+# and 8.3 in the ring): a gated tone, 85 % of it one sine. v25 said as much when it let the afterword's bells ring
+# "for the first time".
+#   IT RINGS: the patch lets go over 300 ms and its own decay is 400 (240): a stroke now dies away by itself, 20 dB
+#       down after 135 ms (95, and that by the cut), nothing left before the next stroke even at the measure, where
+#       they come every 375 ms.
+#   ITS BRIGHTNESS DIES BEFORE ITS TONE, as struck metal's does: the layer's `damp` 0.3 -> 8 (each partial falls
+#       faster by its ratio). The strike is as bright as it was (the 2.4x partial 8.7 dB under the fundamental); the
+#       ring is the note (15.8 under).
+#   NO FADER MOVES: the strike is as loud as it was (the two bells' peak at the measure -9.1 -> -9.3 dBFS) and the
+#       faster-falling partials make the bells 0.7 to 0.8 dB quieter alone (K over a stroke's first 200 ms, every
+#       section). Trimmed back up to equal loudness (+0.8 dB) the mix read level; left where they are it reads a
+#       little nearer the records where the bells come thickest. v23's trims, note by note, are as chirper-one
+#       set them.
+# the bell's decay ; how long it takes to let go ; damp ; dB on both bells' faders ; the loudness target ('' =
+# unchanged). On only while CHUG is. "" = v33 byte for byte.
+STRIKE = os.environ.get('C10T8_STRIKE', '400ms;300ms;8;0;' if CHUG else '')
+
+
+def the_bell_is_struck(doc):
+    """v34: the song's bell rings out by itself and its upper partials fall before its note."""
+    d, r, damp, fader, target = STRIKE.split(';')
+    bell = doc['patches']['cm-bell']['synth']
+    assert bell['amp']['d'] == '240ms' and bell['amp']['r'] == '30ms' and bell['layers'][0]['damp'] == 0.3
+    bell['amp'].update({'d': d, 'r': r})
+    bell['layers'][0]['damp'] = float(damp)
+    doc['patches']['cm-bell']['about'] += (" v34: struck and left to ring (it lets go over " + r + ", decays over " + d
+                                           + ") with the upper partials falling first (damp " + damp + ").")
+    for t in doc['tracks']:
+        if t['name'] in ('bell-l', 'bell-r') and fader and float(fader):
+            assert t['patch'] == 'cm-bell' and isinstance(t['gain'], str)
+            t['gain'] = f"{float(t['gain'].rstrip('dB')) + float(fader):g}dB"
+    if target:
+        doc['loudness'] = float(target)
 
 
 def the_chug_holds(doc):
