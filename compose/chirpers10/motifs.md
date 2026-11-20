@@ -338,6 +338,8 @@ The bare lead is in both cycles on purpose: with it in the first only, the score
 
 **The organ plays who leads (v38, chirper-two; section round, w7; 3:22.0–3:44.5).** A church has bells, a choir and an organ; the song had two. From the bob to the single, on A flat, a pipe organ holds two notes three octaves over the riff: the right hand the bell that LEADS the row, the left the bell that LIES BEHIND (last before the tenor). A bell leads for a whole pull and lies behind for a whole pull, a row apart, so the hands move in turn every 1.25 s: a two-part piece the method writes (B, E flat, D, A, G flat, B, A, E flat, D over D, A, G flat, B, E flat, the dodge’s turn D–E flat–D, G flat, B, A; thirds or sixths in twelve rows of eighteen, never a semitone). Tracks `organ`, `organ-b` (last); `C10T3_LEADS`; `the_organ_plays_who_leads(doc)`; `''` = v37. Rules: only who leads and who lies behind; only from a call to a call, in one key; one note to each stay in a place; silent in a call.
 
+**The chug keeps its low end (chirper-one, v39; the whole song).** The outer pair of guitars only (`gl`, `gr`; 1,461 muted strokes each): a hard pick under the palm, the palm's thump off, its filter at two octaves, the amp loosened to 150 Hz, a little chest and 700 Hz given back, faders 1 dB down. `C10T3_PICK`; `the_chug_keeps_its_low_end(doc)`; `''` = v38. Rules: no note changes; the inner pair, the harmony pair and the last stretch's small cabinet keep their rigs; on this rig the low end's fall is the thump and the amp's tightness, not the pick.
+
 ## t4 Running Total (chirper-zero)
 
 Opened by Harry on 15 Nov about 02:42 GMT: "we can do fourth track same climber". The album's fourth kind of long cycle: a SUM.
