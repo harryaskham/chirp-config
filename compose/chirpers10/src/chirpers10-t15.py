@@ -279,7 +279,7 @@ LONG = os.environ.get('C10T15_LONG', '15;17;15;0;0;-9.9' if TEETH else '')
 # Benched raw against everything else and against the voices alone (K, whole stretch): see the round note. The
 # box's own weight (its fundamentals, 350-620 Hz) is cut 8 dB at 430 Hz: the choruses already stand 2.4 to 2.9 dB
 # over the records there, and what a concertina is heard by over a band is its reed (1-8 kHz).
-TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW', 'C10T15_PICK', 'C10T15_SNARE') for k in os.environ)
+TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW', 'C10T15_PICK', 'C10T15_SNARE', 'C10T15_WAIT') for k in os.environ)
                       else '-4.5dB;0.35;-12dB;-3;hp cutoff=300|peak cutoff=430 q=0.8 gain=-8dB|peak cutoff=2500 q=0.7 gain=3dB;-9.85')
 # the chorus's tune as a concertina plays it, an octave over the crew: their notes where they sing them, a passing
 # note in the breath after 'haul', and two sixteenths up into the next bar. (sixteenth, length, note), a bar a line.
@@ -430,6 +430,74 @@ def the_snare_finds_its_note(doc):
         t['fx'] = [{'type': 'eq', 'bands': eq.split('|')}]
     if fader:
         t['gain'] = fader
+    if target:
+        doc['loudness'] = float(target)
+# v20 (chirper-alpha; whole song round; what changes is verse two's first 34 beats, 1:15.7-1:37.8).
+# THE KIT WAITS FOR THE CALL.
+#   Verse two's words are about waiting ("Oh the wait is long and the word comes soon / and a man too quick is a
+#   man alone / we wait for the call and we hold our own") and nothing in the band waited: it was verse one again
+#   with a longer riff, the kit flat out from its first bar, and the map has called the song's middle minute static
+#   since it was written. Now the kit is out from the verse's first beat. The two hands and the bass go on hauling
+#   their seventeen; THE CREW'S BOOTS keep the four under them, a stamp on every half bar (the song's first and
+#   last sound, and until now never under the band's riff); and of the kit only two things are left: the pull
+#   (floor tom and china with the crew's "Haul!", 1:23.5 and 1:33.9) and THE KICK ON THE RIFF'S HEAD.
+#   THE SUM: a head comes every seventeen sixteenths and a stamp every eight, so each head falls one sixteenth
+#   later after a stamp than the one before: on it, then 1, 2, 3, 4, 5, 6, 7 sixteenths late. Eight heads are 34
+#   beats, which is seventeen stamps: THE NINTH HEAD LANDS ON THE EIGHTEENTH STAMP (beat 150, 1:37.8), one beat after
+#   the shantyman has sung "we wait for the call", and THERE the kit comes back: floor tom a sixteenth before, then
+#   crash, snare, kick, the open chord and the boots on one stroke. The slack between the band's count and the
+#   crew's is heard in two low drums and nothing else, and it is taken up where the song says it is.
+#   The quick man's shout (v10, 1:32.3) and the squeezebox's first breath (v17, 1:30.0) now stand over guitars and
+#   boots alone. Lines three and four are as they were.
+#   MEASURED (raw bench, own seed): each stamp against everything else: 4.4 dB under over all bands (K), 11.1 over in
+#   its best third of an octave (63-80 Hz; +6 to +8 under 120 Hz): they are heard as weight, not as a click. The
+#   wait against v19 by band: 20-60 Hz -6.9 dB, 60-120 -1.9, 4-8 kHz -3.3, 8-16 kHz -4.0, the rest within 0.1 (2-4
+#   kHz -0.9). Finished, it is 0.5 dB lower (K -9.88 -> -10.38; by bar 0.2 to 0.9, the pulls' bars 0.3 to 0.4): the
+#   master makes most of the level up, so the change is of texture more than level. The target -9.71 -> -9.75
+#   holds the rest of the song where it was (within 0.035 dB on three seeds).
+#   THE WORDS ARE NOT BETTER FOR IT: the recogniser read 5 of the two calls' 19 words with the kit and 5 without;
+#   and 6 of 19 with the shantyman ALONE ("the way to look at the word kazoon"; "I'm the man who clickies the man
+#   alone"). In this verse it is the words that do not read, not the band (verse one alone read 26 of 38 at v13).
+#   RENDERED FIRST AND NOT KEPT: the kit back at the line (beat 148, 1:36.5): two beats before the counts meet.
+# the section ; how long the kit waits: 'heads=N' (it comes back on the riff's head number N, counted from 0) or
+# 'beats=N' ; what the kick keeps ('head' = the riff's open chord only ; '' = nothing) ; a cymbal stroke at or over
+# this velocity stays (the pull's) ; the boots on every half: velocity on the bar, on its third beat ('' = no boots) ;
+# dB on those boots ; how the kit comes back: piece@beats from the return:velocity, '|' between ; the loudness
+# target ('' = unchanged). "" = v19 byte for byte.
+WAIT = os.environ.get('C10T15_WAIT', 'early hand;heads=8;head;0.85;0.72,0.62;0;ft@-0.25:0.86|c@0:0.78;-9.75' if SNARE else '')
+
+
+def the_kit_waits(doc, marks):
+    """v20: through the first lines of a verse the kit is out but for the pull; the crew's boots keep the four."""
+    sec, how, keeps, pull, boots, lift, back, target = WAIT.split(';')
+    a = marks[sec] / GRID
+    by = {t['name']: t for t in doc['tracks']}
+    b = (a + float(how.split('=')[1]) if how.startswith('beats') else
+         sorted(n['at'] for n in by['gl']['notes'] if n['at'] >= a - 1e-6 and ',' in n['pitch'])[int(how.split('=')[1])])
+    inside = lambda n: a - 1e-6 <= n['at'] < b - 1e-6
+    heads = {round(n['at'], 3) for n in by['gl']['notes'] if inside(n) and ',' in n['pitch']} if keeps == 'head' else set()
+    for name in ('kick', 'chest'):
+        by[name]['notes'] = [n for n in by[name]['notes'] if not inside(n) or round(n['at'], 3) in heads]
+    by['snare']['notes'] = [n for n in by['snare']['notes'] if not inside(n)]
+    by['cym']['notes'] = [n for n in by['cym']['notes'] if not inside(n) or n['vel'] >= float(pull)]
+    if boots:
+        deck = by['deck']['notes']
+        stamp = [dict(n) for n in deck if 4 <= n['at'] < 5]         # the first call's first stamp: five boots
+        have = {round(n['at']) for n in deck if inside(n) and abs(n['at'] - round(n['at'])) < 1e-6}
+        for i, at in enumerate(range(round(a), int(b + 1e-6) + 1, 2)):        # and on the return itself, if it is a half
+            if at in have:
+                continue
+            v = float(boots.split(',')[i % 2])
+            for n in stamp:
+                deck.append({**n, 'at': round(at + n['at'] - 4, 5), 'vel': round(v * n['vel'] / stamp[0]['vel'], 3),
+                             **({'gain': f'{float(lift):g}dB'} if float(lift) else {})})
+        deck.sort(key=lambda n: n['at'])
+    for x in filter(None, back.split('|')):
+        piece, rest = x.split('@')
+        tr = by['cym' if piece in ('c', 'x') else 'toms']
+        tr['notes'].append({'at': round(b + float(rest.split(':')[0]), 5), 'len': 0.95 if piece in ('c', 'x') else 0.2875, 'pitch': piece,
+                            'vel': float(rest.split(':')[1])})
+        tr['notes'].sort(key=lambda n: n['at'])
     if target:
         doc['loudness'] = float(target)
 BARK = 'kidman synth.layers.0.diction=2 synth.layers.0.speech=1'
@@ -1117,6 +1185,8 @@ if __name__ == '__main__':
         the_pick_stays_hard(doc)
     if SNARE:
         the_snare_finds_its_note(doc)
+    if WAIT:
+        the_kit_waits(doc, marks)
     if os.environ.get('C10T15_SHOW'):
         for sec, bars in FORM:
             t = marks[sec]
