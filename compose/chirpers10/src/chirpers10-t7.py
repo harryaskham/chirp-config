@@ -395,6 +395,21 @@ SNARE = os.environ.get("C10T7_SNARE", "G3;synth.layers.0.wires=0.9 synth.filters
 MIDDLE = os.environ.get("C10T7_MIDDLE", "0.382,0.618;peak cutoff=700 q=0.9 gain=1.75dB|peak cutoff=300 q=1 gain=5dB|peak cutoff=1500 q=1 gain=2.5dB|"
                                         "peak cutoff=175 q=1.2 gain=4dB;fx.2.bands.1.gain=4dB;0.5;peak cutoff=650 q=0.7 gain=-7dB|peak cutoff=1500 q=1 gain=-4dB;-9.39"
                         ) if SNARE else ""
+# v28 (chirper-one; section round, w2, 0:24-0:48, never worked and flagged 'little new'): THE LINE BEFORE, AGAIN.
+# The rule makes each line out of the line before it followed by the line before that. The first heavy section is
+# a long of 233: a long of 144 (0:00-0:27.0) and then a short of 89 (0:27.0-0:43.7), and by the rule that 89 IS the
+# first 89 again. The band's strokes already were; nothing said so. Two things the first 89 had now come back in it,
+# each turned once: (1) THE TWO SIDES: in 0:00-0:10.3 the clipped strokes of long cells are the left guitar's alone
+# and those of short cells the right's (v14). In the same 55 again (0:27.0-0:37.3) they part again, the other way
+# round: long cells on the right, short on the left, thirteen to eight where it was eight to thirteen. (2) THE LOG:
+# its first phrase was five low strikes on the short children while the ground was on G flat (0:10.9-0:16.3). When
+# the ground is on G flat again (0:37.3-0:43.7) it says those five again, on the same strokes of the pattern, each
+# one step up the harp's scale (the harp's own rule: a short is born a step above the long that made it), in the
+# register it had reached: its highest notes, just before the band stops on 'Break'. No stroke is added or moved.
+# the sides in the second 55 ('mirror', 'same' as the opening, '' = both guitars play all) ; scale steps the log's
+# phrase rises ('' = no phrase) ; semitones under the scale it sounds (12: the register of its second phrase) ;
+# dB on its notes ; its velocity ; the loudness target ('' = unchanged). "" = v27 byte for byte.
+AGAIN = os.environ.get("C10T7_AGAIN", "mirror;1;12;3;0.88;") if MIDDLE else ""
 # Euclid's definition in nineteen syllables, cut by the rule: phrases of 1, 2, 3, 5 and 8 syllables
 WORDS = [("B R EY1 K",), ("W AH1 N", "L AY1 N"), ("S OW1", "DH AH0", "HH OW1 L"), ("IH1 Z", "T UW1", "DH AH0", "L AO1 NG", "G ER0"),
          ("AE1 Z", "DH AH0", "L AO1 NG", "G ER0", "T UW1", "W AH1 T", "R IH0", "M EY1 N Z")]
@@ -1376,6 +1391,39 @@ def dump(doc):
     return "\n".join(lines) + "\n"
 
 
+def the_line_before_again(doc):
+    """v28: in the first section's short 89 the two sides part again (mirrored) and the log says its first phrase a step higher."""
+    sides, steps, under, db, vel, loud = AGAIN.split(";")
+    tr = {t["name"]: t for t in doc["tracks"]}
+    s0 = SECS[0][0]
+    six = lambda n: round(n["at"] * 4) - s0
+    muted = lambda n: bool((n.get("expr") or {}).get("pm"))
+    whole, part, small = SIZE[8][0], SIZE[6][0], SIZE[6][1]              # 144, 55, 34
+    if sides:
+        long_ones = {six(n) for n in tr["gl"]["notes"] if 0 <= six(n) < part and muted(n)}
+        short_ones = {six(n) for n in tr["gr"]["notes"] if 0 <= six(n) < part and muted(n)}
+        assert not long_ones & short_ones and len(long_ones) == 13 and len(short_ones) == 8, (long_ones, short_ones)
+        again = {six(n) - whole for t in ("gl", "gr") for n in tr[t]["notes"] if whole <= six(n) < whole + part and muted(n)}
+        assert again == long_ones | short_ones, sorted(again ^ (long_ones | short_ones))
+        left, right = (short_ones, long_ones) if sides == "mirror" else (long_ones, short_ones)
+        for t, keep in (("gl", left), ("gr", right)):
+            tr[t]["notes"] = [n for n in tr[t]["notes"] if not (whole <= six(n) < whole + part and muted(n)) or six(n) - whole in keep]
+    if steps:
+        first = [n for n in tr["log"]["notes"] if part <= six(n) < part + small]
+        assert len(first) == 5, first
+        hands = {six(n) for n in tr["gl"]["notes"]} | {six(n) for n in tr["gr"]["notes"]}
+        for n in first:
+            at = six(n) + whole
+            assert at in hands, at                                        # no new strike time
+            m = next(k for k in range(128) if nm(k) == n["pitch"]) + 24 - (KEY[0] + 1)   # its scale note the first time (it sounded 24 under, on G flat)
+            m = POOL[POOL.index(m) + int(steps)] + KEY[0] + 1 - int(under)
+            tr["log"]["notes"].append({"at": (s0 + at) / 4, "len": n["len"], "pitch": nm(m), "vel": float(vel),
+                                       **({"gain": f"{float(db):g}dB"} if db and float(db) else {})})
+        tr["log"]["notes"].sort(key=lambda n: n["at"])
+    if loud:
+        doc["loudness"] = float(loud)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T7_SHOW"):
         sec = 15 / BPM
@@ -1386,4 +1434,7 @@ if __name__ == "__main__":
         print("their sizes:       ", "".join(str(min(RANK[c[0]], 9)) for c in LEV[0][:34]))
         print("the harp's steps:  ", "".join(str(x) for x in harp_tune(8)))
     else:
-        open(OUT, "w").write(dump(song()))
+        doc = song()
+        if AGAIN:
+            the_line_before_again(doc)
+        open(OUT, "w").write(dump(doc))
