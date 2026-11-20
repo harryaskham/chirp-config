@@ -454,7 +454,9 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
   - A BOW SEVERAL CENTS OUT IS `vary`, NOT THE ENGINE: a bowed layer has `vary` 0.5 unless set (a take's habitual
     intonation, about 4 cents either way, by the seed): one ladder read +2.1 to +7.9 cents on seed 0, -3.2 to
     +2.0 on seed 5, and +0.7 to +2.6 with `synth.layers.0.vary=0` at the present pin. Set `vary=0` on a bow
-    that must sit on another instrument's note; a trim fitted to one seed's habit is not a tuning. The string's
+    that must sit on another instrument's note; a trim fitted to one seed's habit is not a tuning. READ A BOW ON
+    THE SONG'S OWN SEED (Still Owing's bow read +4.2 cents on its seed 1, +0.3 on seed 0, -2.3 on seed 11);
+    every bowed layer on the album with `vary` unset has such a habit. The string's
     own share (+0.5 to +2.7 cents, more the higher) has a switch AT THE PIN since 20 Nov (cbafb083):
     `tune_sounding: true` on the bowed layer (opt-in; with `vary=0` all seven notes of the ladder read within
     0.4 cent; alone it FOLLOWS `vary`, on purpose) (bd-22c11d; chirper-zero found the cause, chirper-three
