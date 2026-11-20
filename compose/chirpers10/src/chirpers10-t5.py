@@ -1199,7 +1199,7 @@ TAPE = os.environ.get("C10T5_TAPE", "1;84:96;-1;0.575;0.41;-24;" if FALLTONE els
 # the pole, and up the run out of it. No other part changes.
 # dB on the tone against its level under the stair ; bars from:to ; the loudness target ('' = unchanged). '' = v29.
 # It is on only while no other C10T5_ switch is set, so every older switch gives exactly what it gave.
-HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE") for k in os.environ) else "")
+HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM") for k in os.environ) else "")
 
 # v31 (chirper-two; palette: the song had no voice, and no song on the album had used the engine's speech to song):
 # WE HAVE BEEN HERE BEFORE. A song "all about the illusions" (Harry, 15 Nov) had every illusion of pitch and of speed
@@ -1506,6 +1506,8 @@ def song():
         the_foot_is_on_the_ground(doc)
     if EXCHANGE:
         the_fall_neither_hand_plays(doc)
+    if PALM:
+        the_palm_lets_the_teeth_through(doc)
     return doc
 
 
@@ -1687,6 +1689,44 @@ def the_fall_neither_hand_plays(doc):
                 tr["notes"] = sorted([n for n in tr["notes"] if not a * 4 <= n["at"] < b * 4] + notes, key=lambda n: n["at"])
                 tr["auto"]["bell"]["points"] = ([p for p in was if beat(p) <= a * 4] + pts(lane[1:]) +
                                                 pts([(b * 4 - 0.01, lane[-1][1]), (b * 4, at(b * 4))]) + [p for p in was if beat(p) > b * 4])
+    if target:
+        doc["loudness"] = float(target)
+
+
+# v35 (chirper-zero; instrument round: THE EIGHT STAIR GUITARS' PALM-MUTED CHUG, which is the whole guitar band of
+# the turn 1:16.8-1:55.2, the descent 1:55.2-2:52.8 and 'both' 3:21.6-4:00: 3175 muted strokes. No note changes;
+# nothing but those eight tracks' sound, and their fader in those three stretches). THE PALM LETS THE TEETH THROUGH.
+# I read the whole band first (kick, snare, bass, cymbals, the two rigs, the mix by stretch). What stood furthest
+# from the records was the eight's chug: through a muted stroke the records' guitars keep their teeth (400 Hz-1 kHz
+# against 1-4 kHz: -11.3 dB, their range -12.7 to -6.5) and ours read -6.3 in the descent: at the edge, a box.
+# And the mix said the same of the descent with nobody singing: short at 2-4 kHz (-1.3 and -1.0), over at
+# 250-500 Hz (+2.3, +2.7). The palm of this rig closes a filter on the string (-3.4 as it comes) and adds a thump
+# under the stroke (0.4). Here the palm closes less (-2) and the thump is out: the string's own top reaches the
+# amp. Benched rung by rung on one of the eight alone, then in the mix.
+# what is added to the eight's patch ; dB on the eight's faders where they chug (it holds the chug's loudness alone:
+# the lighter palm is 0.45 LU louder) ; those stretches in beats ; the loudness target ('' = unchanged).
+# On only while EXCHANGE is; C10T5_PALM is in HALFWAY's list of names that do not turn it off. "" = v34 byte for byte.
+PALM = os.environ.get("C10T5_PALM", "synth.layers.0.thump.mod.0.amount=0 synth.filters.0.cutoff.mod.0.amount=-2;-0.45;128:288,336:400;-10.032" if EXCHANGE else "")
+
+
+def the_palm_lets_the_teeth_through(doc):
+    """v35: the eight stair guitars' palm closes less and loses its thump; their fader holds the chug's loudness."""
+    extra, trim, spans, target = PALM.split(";")
+    eight = [t for t in doc["tracks"] if len(t["name"]) == 3 and t["name"][0] == "v" and t["name"][1] in "0123" and t["name"][2] in "lr"]
+    assert len(eight) == 8, [t["name"] for t in eight]
+    for t in eight:
+        t["patch"] = t["patch"].rstrip() + " " + extra
+        if trim and float(trim):
+            pts = [["0b", 0]]
+            for sp in spans.split(","):
+                a, b = (float(x) for x in sp.split(":"))
+                assert all(a <= n["at"] < b for n in t["notes"] if (n.get("expr") or {}).get("pm")) or len(spans.split(",")) > 1
+                pts += [[f"{a - 0.01:g}b", 0], [f"{a:g}b", float(trim)], [f"{b - 0.01:g}b", float(trim)], [f"{b:g}b", 0]]
+            assert "palm" not in t.get("auto", {}) and isinstance(t["gain"], dict)
+            t.setdefault("auto", {})["palm"] = {"curve": 0, "points": pts}
+            t["gain"] = {**t["gain"], "mod": list(t["gain"].get("mod", [])) + [{"src": "auto.palm", "amount": 1}]}
+        ins = [(float(x.split(":")[0]), float(x.split(":")[1])) for x in spans.split(",")]
+        assert all(any(a <= n["at"] < b for a, b in ins) for n in t["notes"] if (n.get("expr") or {}).get("pm")), t["name"]   # every muted stroke is inside
     if target:
         doc["loudness"] = float(target)
 
