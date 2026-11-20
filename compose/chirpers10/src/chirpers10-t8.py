@@ -366,6 +366,43 @@ SNARE = os.environ.get('C10T8_SNARE', 'kit.s.pitch=G3 kit.s.patch.synth.layers.0
 # riffs share strokes, so side by side in the middle they ADD: untrimmed, 8 against 4 came out 1.4 dB louder and
 # the step up into the measure fell from 3.3 dB to 1.8). '' = v27 byte for byte.
 ROOM = os.environ.get('C10T8_ROOM', 'gl,dl,bell-l,own-l;gr,dr,bell-r,own-r;52:1,20:0.627,8:0.27;32:1,12:0.528,4:0;34:20,69:8|54:12,81:4;89:1.5;;gl,dl,gr,dr:-0.4,-0.85,-1.4,-2.5' if SNARE else '')
+# v29 (chirper-two; the draw was a whole-song round: the bass drum, all 1175 strokes, in every section from 0:06 to
+# the last chord; no stroke moves, nothing else is touched): THE BASS DRUM IS FITTED: TUNED TO THE SONG, SHORT ENOUGH
+# TO SAY TWO STROKES A SIXTEENTH APART, AND GIVEN A CHEST. v26's and v27's handoffs left it ('the kick's tail is
+# unread'). At 160 a sixteenth is 94 ms, and 647 of this drum's 1174 gaps are one sixteenth.
+#   WHAT WAS WRONG, ALONE (tools/kickspec.py: the drum at its own strokes beside six records' bass drums, by thirds
+#       of an octave, as a shape): a sub and a buzz with nothing between. Its line at 57.7 Hz (an A the song has no
+#       use for); 100 and 125 Hz 5.1 and 2.7 dB UNDER the records' shape; 160 and 250 Hz 10.4 and 12.0 OVER (the
+#       third and fifth harmonics its drive makes); a stroke took 87 ms to fall 20 dB (the records 37 to 49), so when
+#       the next stroke came a sixteenth later the first had fallen only 17.4 dB (12.4 under 150 Hz). Distance 6.81.
+#   IN THE BAND (raw, the four pairs): the drum is 96% of everything under 60 Hz (the bass there leans on its
+#       octave since v26), 47% of 60-120 Hz, 36% of 120-250 Hz, 31% of 4-8 kHz. And the MIX read 0.4 to 1.7 dB short
+#       of the records at 60-120 Hz in six sections (3.5 in 8 against 4, where the kick and the bass are out), and
+#       0.7 to 1.0 over under 60 Hz in three of the four pairs.
+#   THE CURE: the drum a semitone down (A flat 1, 53 Hz: the song's third, in both riffs); its tail 210 -> 170 ms;
+#       a CHEST, a bare sine an octave over the drum (A flat 2, 104 Hz), 90 ms, struck with every stroke at the
+#       stroke's velocity on a track of its own past the kit's bus (Take Up the Slack v11's and Where It Was v27's
+#       cure); two narrow cuts on the buzz, 2 dB at 158 Hz and 4 dB at 264 Hz; the click's 10 dB at 4.5 kHz spread
+#       down (5 dB at 3 kHz, wide, and 6 at 4.5 kHz).
+#   AFTER, ALONE: distance 5.53; the line at 53.0 Hz; 100 Hz +4.7, 125 Hz -1.1; 160 Hz +7.3, 250 Hz +8.1; the fall
+#       56 ms; at the next stroke 23.9 dB down (16.1 under 150 Hz); its middle against its thump -26.1 (the records
+#       -25.9: it was -26.3 and is not touched). Against everything else a stroke stands where it stood (first 30
+#       ms +0.3 -> +0.9 dB K; under 150 Hz +4.9 -> +5.2).
+#   THE MIX CHOSE THE DEPTHS (26 builds alone, 8 read in the mix; the passages with no voice are this song's
+#       yardstick). With the drive off the buzz is gone (distance 4.16) and so is the drum's middle (10 dB under the
+#       records'): the drive stays and the cuts take the two harmonics. Cuts of 8 dB read WORSE than v28 in the mix
+#       (0.795 -> 0.827: 120-250 Hz fell a decibel; the buzz is 36% of that band); 6 dB 0.776; 4 dB 0.756; 2 and 4:
+#       0.735; with the tail at 170: 0.724. The tail at 210 with the drum tuned down: 0.876 (a decibel over under
+#       60 Hz), so, unlike Where It Was, this mix wants the shorter drum.
+#   AFTER, IN THE MIX: 0.795 -> 0.724 (the records' mixes 1.008 -> 0.968); 60-120 Hz 1.19 -> 0.64; under 60 Hz 0.43
+#       -> 0.37; nearer in five sections, level in 8 against 4, 0.02 further in 8 against 12. COST: 250-500 Hz 0.84
+#       -> 0.93. The drum's share: 60-120 Hz 47 -> 56%, 120-250 Hz 36 -> 29%, 250-500 Hz 15 -> 10%.
+#   THE TARGET -10.236 -> -10.302: the bars with no kick stood 0.11 to 0.12 dB up on three seeds at the old one.
+# kit overrides on the kick's track ; the track's eq, band|band ('' = unchanged: the 4.5 kHz click alone) ; the
+# chest's note ('' = no chest) ; its fader ; its decay, ms ; the kick's fader ('' = unchanged) ; the loudness
+# target ('' = unchanged). "" = v28 byte for byte.
+KICK = os.environ.get('C10T8_KICK', 'kit.k.pitch=Ab1 kit.k.patch.synth.amp.d=170ms;peak cutoff=3000 q=0.5 gain=5dB|peak cutoff=4500 q=0.8 gain=6dB|'
+                                    'peak cutoff=158 q=3 gain=-2dB|peak cutoff=264 q=3 gain=-4dB;Ab2;-7dB;90;;-10.302' if ROOM else '')
 
 
 def nm(n):
@@ -1145,7 +1182,31 @@ def song():
         the_snare_is_fitted(doc)
     if ROOM:
         the_room_narrows(doc)
+    if KICK:
+        the_kick_is_fitted(doc)
     return doc
+
+
+def the_kick_is_fitted(doc):
+    """v29: the album's bass drum tuned to the song, shortened, its buzz trimmed, with a chest (a new last track)."""
+    over, bands, note, gain, decay, fader, target = KICK.split(';')
+    kick = next(t for t in doc['tracks'] if t['name'] == 'kick')
+    if over:
+        kick['patch'] += ' ' + over
+    if bands:
+        assert kick['fx'] == [{"type": "eq", "bands": ["peak cutoff=4500 q=0.8 gain=10dB"]}]
+        kick['fx'] = [{'type': 'eq', 'bands': bands.split('|')}]
+    if fader:
+        kick['gain'] = fader
+    if note:      # a bare sine an octave over the drum, struck with every kick at the kick's velocity, straight to the mix (Take Up the Slack v11)
+        doc['patches'] = {**doc['patches'], 'cm-chest': {'extends': '808', 'synth': {'layers': ['sine'], 'pitch': {'value': 0, 'mod': []}, 'drive': 0, 'filters': [],
+                                                                                    'amp': {'a': '2ms', 'd': f'{float(decay):g}ms', 's': 0, 'r': '20ms', 'curve': 3}},
+                                                         'play': {'mono': False, 'glide': '0ms', 'gate': 1}}}
+        doc['tracks'].append({'name': 'chest', 'patch': 'cm-chest', 'gain': gain, 'pan': 0,
+                              'notes': [{'at': n['at'], 'len': round(float(decay) / 1000 * BPM / 60, 4), 'pitch': note, 'vel': n['vel'],
+                                         **({'gain': n['gain']} if 'gain' in n else {})} for n in kick['notes']]})
+    if target:
+        doc['loudness'] = float(target)
 
 
 def the_room_narrows(doc):
