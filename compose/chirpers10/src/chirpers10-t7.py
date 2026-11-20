@@ -370,6 +370,31 @@ SUNG = os.environ.get("C10T7_SUNG", "1;voice-legato synth.layers.0.diction=3 syn
 # target ('' = unchanged). "" = v25 byte for byte.
 SNARE = os.environ.get("C10T7_SNARE", "G3;synth.layers.0.wires=0.9 synth.filters.1.gain=0.5dB synth.layers.0.damp=0.9 synth.layers.0.contact=0.45 synth.amp.d=110ms;"
                                       "peak cutoff=1000 q=1.5 gain=-3dB|peak cutoff=1600 q=2.5 gain=3dB|peak cutoff=2250 q=1.2 gain=-4.5dB|highshelf cutoff=7000 gain=-3dB;6dB;") if SUNG else ""
+# v27 (chirper-zero; instrument round: the two guitars that play all through, 787 muted strokes; no stroke moves):
+# THE HAND LIFTS BY THE RATIO, AND THE TWO GUITARS GET THEIR MIDDLE (v26's handoff, and chirper-alpha's finding on
+# So Far v15). Two reads. (1) THE STROKE: on six records a chug's 100-250 Hz HOLDS through the stroke (the first
+# 20 ms against 40-80 ms: -1.1 dB; -2.2 to +0.3); ours died, +2.2 (two guitars) and +1.9 (four), and the noise
+# between its harmonics read 0.46 and 0.43 (records 0.40; 0.3 to 0.4). The palm's weight moves both, and every
+# muted stroke here was written at a full palm. So the hand lifts, and by this song's own rule: a cell's first
+# stroke is muted by the lesser part of the hand (0.382), the stroke after it by the greater (0.618). Low end
+# +2.2 / +1.9 -> 0.0 / +0.7; grain 0.46 / 0.43 -> 0.34 / 0.31; the stroke's 1-4 kHz over its 400 Hz-1 kHz 7.7 /
+# 7.1 -> 8.7 / 8.1 dB (records 11.3). The wall pair keeps the full hand: lifted too, the four-guitar passages
+# read 0.4 dB over at 2-4 kHz. (2) THE PASSAGES WITH ONLY THE TWO read 1 to 2 dB short from 250 Hz to 4 kHz
+# against the records (v26 found the snare's box had been standing in for them). So the two get a chest and a
+# middle on their tracks (175 Hz +4, 300 Hz +5, 1.5 kHz +2.5; the old 700 Hz lift 2.5 -> 1.75), THE BASS GIVES UP
+# 4 dB AT 220 Hz (by part it stood +4.1 at 120-250 Hz where the guitars stood -4.5: the chest changes hands), and
+# THE WALL PAIR STEPS BACK where the two now stand (microphone 0.4 -> 0.5; 650 Hz -7 dB, 1.5 kHz -4 dB after its
+# cabinet). THE MIX against the eleven records, all nine bands: the three two-guitar stretches 1.085 -> 0.600
+# (250-500 Hz 1.57 -> 0.53; 1-2 kHz 1.77 -> 0.23); the five four-guitar stretches 0.669 -> 0.696 (the cost: 500 Hz-
+# 1 kHz 0.94 -> 1.10); all eight 0.825 -> 0.660. THE TWO ALONE against a record's lone guitar (cabspec): 3.11 ->
+# 3.07, no nearer (with the hand lifted and no chest: 3.68; the lift is what the 175 Hz band gives back).
+# the palm of a cell's first stroke , of the stroke after it (the two guitars) ; their track eq, band|band ;
+# overrides on the bass's patch ; the wall pair's microphone ; its eq after the cabinet, band|band ; the loudness
+# target (fuller guitars measure louder, and at v26's -9.667 the master turned the whole song down 0.78 dB: at
+# -9.39 the two quiet sections, where no guitar plays, keep v26's level). "" = v26 byte for byte.
+MIDDLE = os.environ.get("C10T7_MIDDLE", "0.382,0.618;peak cutoff=700 q=0.9 gain=1.75dB|peak cutoff=300 q=1 gain=5dB|peak cutoff=1500 q=1 gain=2.5dB|"
+                                        "peak cutoff=175 q=1.2 gain=4dB;fx.2.bands.1.gain=4dB;0.5;peak cutoff=650 q=0.7 gain=-7dB|peak cutoff=1500 q=1 gain=-4dB;-9.39"
+                        ) if SNARE else ""
 # Euclid's definition in nineteen syllables, cut by the rule: phrases of 1, 2, 3, 5 and 8 syllables
 WORDS = [("B R EY1 K",), ("W AH1 N", "L AY1 N"), ("S OW1", "DH AH0", "HH OW1 L"), ("IH1 Z", "T UW1", "DH AH0", "L AO1 NG", "G ER0"),
          ("AE1 Z", "DH AH0", "L AO1 NG", "G ER0", "T UW1", "W AH1 T", "R IH0", "M EY1 N Z")]
@@ -1270,7 +1295,32 @@ def song():
         the_rule_is_sung(doc)
     if SNARE:
         the_snare_is_tuned_down(doc)
+    if MIDDLE:
+        the_hand_lifts(doc)
     return doc
+
+
+def the_hand_lifts(doc):
+    """v27: the two guitars' muted strokes at the ratio's two parts of a palm; a chest and a middle on their tracks; the
+    bass gives up its 220 Hz; the wall pair steps back where the two now stand."""
+    palm, eq, bass, mic, weq, loud = MIDDLE.split(";")
+    first, after = (float(x) for x in palm.split(","))
+    for t in doc["tracks"]:
+        if t["name"] in ("gl", "gr"):
+            for n in t["notes"]:
+                if (n.get("expr") or {}).get("pm"):
+                    n["expr"]["pm"] = first if n["vel"] >= 0.88 else after       # a cell's first stroke is written at 0.88 or 0.95
+            if eq:
+                t["fx"] = [{"type": "eq", "bands": eq.split("|")}]
+        if t["name"] in ("wl", "wr"):
+            if mic:
+                t["fx"] = [{**f, "mic": float(mic)} if isinstance(f, dict) and f.get("type") == "cab" else f for f in t["fx"]]
+            if weq:
+                t["fx"] = t["fx"] + [{"type": "eq", "bands": weq.split("|")}]
+        if t["name"] == "bass" and bass:
+            t["patch"] += " " + bass
+    if loud:
+        doc["loudness"] = float(loud)
 
 
 def the_snare_is_tuned_down(doc):
