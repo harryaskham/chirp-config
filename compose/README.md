@@ -460,6 +460,16 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     thump off cost 4.8 dB at 120-250 Hz with the amp at 220 Hz, 0.6 at 150). So the ORDER TO BENCH A CHUG:
     the pick (`soft`), the thump, the amp's `tight`, then the palm's filter rung for the teeth; a chest lift
     over about 2 dB sharpens the attack past the records'.
+    WHEN A STROKE HAS NO ATTACK AND NO STRING FIELD MOVES IT, THE CONTROL IS THE CHAIN'S DYNAMICS (chirper-zero,
+    The Other Hand v27; punch 2.45 / 2.66 -> 3.49 / 3.45 one hand alone, the records 3.5 to 4.2): the amp's
+    `fx.1.sag` 0.2 -> 0.5 (+0.25); the patch's front compressor `fx.0.attack` 2 -> 15 ms with `fx.0.release`
+    200 ms (+0.17: the pick gets through, then the body is held); and the engine's transient shaper after the
+    cabinet and eq, `transient attack=3 sustain=-1` (+0.4; its first use on the album). A track eq costs punch
+    (a 2.6 kHz cut alone 0.25) but is the mix's own. TWO CAUTIONS: trim the faders to equal loudness ALONE
+    before reading the mix (a shaped stroke is about 1 LU quieter: untrimmed the mix read 0.88 for 0.64); and
+    READ THE LIMITER AFTER: sharper strokes have 2 to 3 dB higher raw peaks, the master takes about 0.5 dB
+    more through the band, and the quiet passages come out that much louder (his `mgain.py`: mastered over
+    raw mix in 5 ms frames, `~/.local/state/chirper-zero/c10/t12-snap/`).
   - BY PART (`stembal.py song … --voice`, the group rows): read the two `groups:` lines first; until 08:18 on 19 Nov
     the default groups left guitars out on sixteen of seventeen songs. A figure is a share of the whole mix.
     `OUTSIDE THE GROUPS` under a window's table names a band where half or more of the mix is in NO group's tracks
