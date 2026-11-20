@@ -1604,6 +1604,64 @@ def the_amp_is_left_on(doc):
         doc["loudness"] = float(target)
 
 
+# v33 (chirper-three; whole song: THE ROOM THAT IS LEFT). Nothing is written; no note, fader or sound of any part changes.
+# The rule has three factors: x, the count (how many places a half bar strikes, since v1); r, the dial (the form,
+# since v1); and (1 - x), "the room that is left". The third was never played, in a song called Carrying Capacity
+# whose singers sing "no more room". NOW IT IS THE ROOM. The players who play the rule (the six guitars, the string
+# touched at the first bass note, and the drummer's snare and toms; not the machine, which is in no room, nor the
+# bass, the chips or the singers) send into one hall, and what reaches it is multiplied, half bar by half bar, by
+# (1 - x): the rule's own factor, nothing chosen. A crowded half bar is dry and close; a sparse one rings.
+# SO THE FORM IS HEARD AS DEPTH. The string at 0:03.5 rings in an empty hall (x 0.19: the room 11.4 dB under the mix
+# and as loud as the string itself) and the room closes as the count grows (9 dB shut at 'one', and steady). At 3
+# it SPLITS with the riff: near, far, near, far (what is sent 1.5 dB apart at 0:28, 11.6 by 0:37), then four depths, eight; five
+# in the lock on five, three in the three. At the top the scream has no room at all (58 dB shut), its last ring
+# opens into all of it, and the climb back from nothing is the farthest thing in the song (the room 6 to 7 dB
+# under the mix on its first low notes, 2:28 and 2:31). On the way down the two depths close up again; and when the
+# dial reaches 1 and the count dies, the room is all there is: the last strokes stand 4 dB over their own room and
+# the file's last four seconds are 2.2 to 4.0 dB louder than v32's.
+# MEASURED (raw, the room alone = this mix less v32's; a half bar OPEN is one with (1 - x) over -6 dB, SHUT under
+# -14): the room against the mix, open / shut: two -13.5 / -20.8 ; four -13.0 / -20.8 ; eight -12.1 / -20.8 ; the
+# first wall -9.9 / -18.1 ; the second -8.8 / -23.1 ; six -9.4 / -27.4 ; down-four -14.6 / -24.5 ; the last four
+# half bars -6.7. A shut half bar's room is the tail of the open one before it (the hall is 2 s; a half bar 0.87).
+# THE HALL has nothing under 400 Hz or over 5 kHz: with 200 Hz the top read 0.5 dB further over at 250-500 Hz.
+# THE MIX'S READ is level: against the records' passages without a voice, mean of six stretches, 1.570 -> 1.598 ;
+# against all eleven 1.241 -> 1.235 (250 Hz-2 kHz, already over, is 0.0 to 0.3 dB further over).
+# THE TARGET moves -9.9 -> -9.71 so that what is NOT in the room stands where it stood: the machine alone before
+# the first string is within 0.026 dB of v32 on three seeds (at -9.9 it fell 0.36; a sparse stretch moves 1.96 dB
+# for a dB of target here, the band 1.1). The band's sections are 0.09 to 0.38 dB louder: that is the room.
+# THE SCORER: 86.733 / 83.716 / 83.512 -> 88.094 / 87.184 / 85.117 (seeds 0, 11, 1). NOT CLAIMED: 5.3 to 5.6 of its
+# rhythm term on every seed is the room's tails read as onsets between the grid's (the term wants more off the
+# grid than this song's triplets give it; no stroke moved), and seed 11's recurrence (+15.6) is this song's swing.
+# COSTS: a room on high-gain guitars is a wash if it is too loud, and nobody has heard this level (the if/thens are
+# in the round's next-note) ; the walls and the six are 0.2 to 0.4 dB louder ; the amp's howl (v32) now starts over a
+# ringing room, not a dead rest (the howl is not in the room; not re-read).
+VACANT = os.environ.get("C10T6_VACANT", "gl=0,gr=0,gl2=0,gr2=0,gl3=0,gr3=0,touch=0,dsnare=-6,dtoms=-6;"
+                        "reverb kind=hall decay=2s mix=1 predelay=25ms low_cut=400 high_cut=5000;-4dB;1;-60;-9.71" if AMP else "")
+
+
+def the_room_that_is_left(doc):
+    """v33: the rule's third factor is played. What each named part sends into one room is multiplied, half bar by
+    half bar, by (1 - x): the room that is left. Nothing is written and no part's own sound changes."""
+    who, room, fader, power, least, target = VACANT.split(";")
+    lane, last = [], None
+    for c in range(NC):
+        v = round(max(float(least), 20 * float(power) * math.log10(max(1 - CELLS[c][3], 1e-9))), 2)
+        if last is None:
+            lane.append(["0b", v])
+        elif v != last:
+            lane += [[f"{2 * c - .02:g}b", last], [f"{2 * c:g}b", v]]
+        last = v
+    doc["buses"]["vacant"] = {"fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.left", "amount": 1}]}}, room],
+                              "auto": {"left": {"points": lane, "curve": 0}}, "gain": fader}
+    sends = dict(v.split("=") for v in who.split(","))
+    for t in doc["tracks"]:
+        if t["name"] in sends:
+            t["sends"] = {**t.get("sends", {}), "vacant": f"{float(sends.pop(t['name'])):g}dB"}
+    assert not sends, sends
+    if target:
+        doc["loudness"] = float(target)
+
+
 def dump(doc):
     lines = []
     for k, v in doc.items():
@@ -1636,4 +1694,6 @@ if __name__ == "__main__":
             the_six_get_their_teeth(doc)
         if AMP:
             the_amp_is_left_on(doc)
+        if VACANT:
+            the_room_that_is_left(doc)
         open(OUT, "w").write(dump(doc))
