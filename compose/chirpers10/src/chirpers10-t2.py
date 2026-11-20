@@ -783,6 +783,26 @@ if SETGOING:
 # hat; v37 had 0.45) ; how much of the clock's shift the right GUITARS' pitch takes (0 = none: v37's guitars) ; the
 # loudness target ('' = unchanged). "" = v37.
 SHOOK = os.environ.get("C10T2_SHOOK", "0;0,0,0,0,-1.5,-3.5,-2.5,0;1;;0;" if FLOOR and SHAKE and SLIPCLOCK else "")
+# v39 (chirper-zero; instrument round: the guitars' muted stroke, on all five guitar tracks): THE PICK STAYS HARD
+# UNDER THE PALM. This is the song `ct-twin` was made for, and its rig was still as it came: on six records a
+# chug's low end (100-250 Hz) HOLDS through the stroke (riffpunch --strokes, `tight` -1.10; -2.2 to +0.3) and
+# ours fell: +1.04 on the two in step, +1.10 and +1.08 on one guitar of each pair read alone. The cause is
+# chirper-three's finding on Still Owing (v26): the rig softens its pick by the palm's weight
+# (`synth.layers.0.soft=expr.pm`), and that soft pick is a thud that dies. Half as soft: +0.25, -0.15, +0.15.
+# With it the palm closes the string's filter two octaves, not 3.4 (the album's other songs since their `teeth`
+# rounds): the stroke's scoop -6.8 -> -10.7 (the records -11.3).
+# THE MIX DECIDED THE EQ. This song reads closest to the records of any on the album (0.76 dB over nine bands)
+# WITH the rig's 700 Hz lift in it: taking the lift out and cutting 800 Hz 3 dB, as the other songs did, read
+# better alone (cabspec 2.21 -> 1.84) and left the mix 0.9 dB short at 500 Hz-1 kHz and 1.3 over at 2-4 kHz.
+# So: 800 Hz -2 dB, a little off 2.8 kHz where the open palm now speaks, the chest back at 185 Hz, and the
+# faders up so each pair alone is as loud as it was. No note is touched; the palm's weight is not lifted.
+# overrides added to all five guitar patches ; the track eq, '|' between (it replaces the 700 Hz lift) ; the
+# main pair's and the wall track's fader ; the second pair's fader ; the loudness target ('' = unchanged).
+# The target -10 -> -9.95: the new stroke counts 0.09 dB louder to the meter, and at -9.95 'let go' (the guitars
+# 30 dB down) is where it was.
+# "" = v38 byte for byte.
+PICK = os.environ.get("C10T2_PICK", "synth.filters.0.cutoff.mod.0.amount=-2 synth.layers.0.soft=expr.pm*0.5;"
+                      "peak cutoff=185 q=1.2 gain=2.5dB|peak cutoff=800 q=1.2 gain=-2dB|peak cutoff=2800 q=1 gain=-1.5dB;4.5dB;-1.0dB;-9.95" if SHOOK else "")
 
 
 def stood():
@@ -1431,6 +1451,25 @@ def song():
     }
 
 
+def the_pick_stays_hard(doc):
+    """v39: under the palm the pick is half as soft and the filter closes two octaves, on every guitar track; the
+    eq the mix chose in place of the 700 Hz lift; the faders hold each pair's loudness alone."""
+    over, eq, fader, fader2, target = PICK.split(";")
+    for t in doc["tracks"]:
+        if t["name"] in ("gl", "gr", "wl", "gl2", "gr2"):
+            if over:
+                t["patch"] += " " + over
+            if eq:
+                assert t["fx"][0]["type"] == "eq", t["fx"]
+                t["fx"][0] = {"type": "eq", "bands": eq.split("|")}
+            f = fader2 if t["name"] in ("gl2", "gr2") else fader
+            if f:
+                assert isinstance(t["gain"], str), t["gain"]
+                t["gain"] = f
+    if target:
+        doc["loudness"] = float(target)
+
+
 def dump(doc):
     lines = []
     for k, v in doc.items():
@@ -1443,4 +1482,7 @@ def dump(doc):
 
 
 if __name__ == "__main__":
-    open(OUT, "w").write(dump(song()))
+    doc = song()
+    if PICK:
+        the_pick_stays_hard(doc)
+    open(OUT, "w").write(dump(doc))
