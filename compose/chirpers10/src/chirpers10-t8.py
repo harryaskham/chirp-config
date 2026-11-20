@@ -405,6 +405,38 @@ KICK = os.environ.get('C10T8_KICK', 'kit.k.pitch=Ab1 kit.k.patch.synth.amp.d=170
                                     'peak cutoff=158 q=3 gain=-2dB|peak cutoff=264 q=3 gain=-4dB;Ab2;-7dB;90;;-10.302' if ROOM else '')
 
 
+# v30 (chirper-alpha; section round, w6, 2:30-3:00; 21 notes on the felt piano, 2:37.5-2:42.4 and 2:57.0-3:00.0;
+# nothing else changes): THE RIFFS ARE MEASURED ON A KEYBOARD.
+# The song's numbers are a keyboard's. In beats the riffs and their leftovers are 13, 8, 5, 3, 2, 1, and an octave
+# of a piano has thirteen keys counting both ends, eight of them white, five black, and the black lie in a three
+# and a two. Euclid's first step (13 less 8 leaves 5) is the octave less its white keys; his third (5 less 3
+# leaves 2) is how the black keys are grouped. The piano is already in 'measured' (v9). So when each riff first
+# comes back whole it is counted on the keys, a key a beat:
+#   A (thirteen beats): the eight white keys up one octave over its first eight beats, the part of A that is as
+#     long as B; then the five black keys over its last five, the leftover: three over the two six-sixteenth
+#     cells and two over the two gallops, which are the three beats and the two the song cuts A down to next.
+#     Thirteen keys, none twice. The white octave is reached on the eighth beat, where B would have ended.
+#   B (eight beats): the same eight white keys, alone, reaching the octave on B's last beat (the measure's cell).
+# So the scale heard over B is the one heard over A's head: A is B and five more.
+# WHICH KEYS. White = the white keys from E, moved to F: F, G flat, A flat, B flat, C, D flat, E flat, F (the
+# record's F, G flat, A flat, C, E flat are all in it). Black = G, A, B | D, E: the five notes that scale leaves
+# out, B (the riff's tritone) among them. The white keys go up as A's head comes down and they cross on A flat
+# (the third beat). The black keys are not in key, so each is put where the riff takes it: G over the open F, B
+# over the riff's held A flat, A where the E flat comes in under it (the song's tritone), E over the B gallop, D
+# over the last F: G, B, A | E, D. (In rising order A fell on the held A flat and E on the last F: a semitone
+# each.) The last, D, rises a semitone into the E flat the piano's tune begins on (v9).
+# The white keys grow to the octave (0.82 to 1.0); the black are level. Each key is struck 20 ms behind the beat:
+# on the beat the master turned the band down a median 0.7 to 1.1 dB for 60 ms at every key (three seeds); 20 ms
+# behind, 0.10 to 0.24 (Where It Was v26 found the same with a xylophone).
+# MEASURED (raw, each key against everything else in the third-octave round its note): over A 0 to +13 dB
+# (median +5), over B +5 to +11 (median +9); the piano's tune in the next three A's reads +1 to +18.
+# the keys that count A, a key a beat, semitones over the low key, in their groups ('|' between) ; the keys that
+# count B ; the low key ; the track that plays them ; velocities: the first group's from:to (it rises), then the
+# other groups' ; a key's length in beats ; how far behind the beat each key is struck, ms ; each key's own gain
+# ('' = the track's) ; the loudness target ('' = unchanged). '' = v29 byte for byte.
+KEYS = os.environ.get('C10T8_KEYS', '0,1,3,5,7,8,10,12|2,6,4|11,9;0,1,3,5,7,8,10,12;F4;felt;0.82:1.0,0.85;0.9;20;;' if KICK else '')
+
+
 def nm(n):
     return f"{NAMES[n % 12]}{n // 12 - 1}"
 
@@ -1184,7 +1216,36 @@ def song():
         the_room_narrows(doc)
     if KICK:
         the_kick_is_fitted(doc)
+    if KEYS:
+        the_keys_are_counted(doc)
     return doc
+
+
+def the_keys_are_counted(doc):
+    """v30: the first whole A of 'measured' is counted on the thirteen keys of one octave, a key a beat: the eight
+    white over its head (which is as long as B), the five black over its tail; the first whole B on the eight white."""
+    for_a, for_b, low, name, vels, length, late, trim, target = KEYS.split(';')
+    late = float(late or 0) / 1000 * BPM / 60
+    groups = [[int(x) for x in g.split(',')] for g in for_a.split('|')]
+    for_a, for_b = [k for g in groups for k in g], [int(x) for x in for_b.split(',')] if for_b else []      # '' = the short riff is not counted
+    assert len(for_a) <= len(A) // 4 and len(for_b) <= len(B) // 4 and len(set(for_a)) == len(for_a), (len(for_a), len(for_b))     # a key a beat, no key twice
+    names = 'C Db D Eb E F Gb G Ab A Bb B'.split()
+    base = names.index(low[:-1]) + 12 * (int(low[-1]) + 1)
+    rise, *rest = vels.split(',')
+    v0, v1 = (float(x) for x in rise.split(':'))
+    first = len(groups[0])
+    later = [float(rest[min(j, len(rest) - 1)]) for j, g in enumerate(groups[1:]) for _ in g]
+    def vel(i, n):          # the first group rises to its last key; each later group is level
+        return round(v0 + (v1 - v0) * i / (n - 1), 3) if i < n else later[i - n]
+    start = dict(MARKS)['measured'] // 4                       # in beats: the first whole A; the first whole B follows four A's
+    track = next(t for t in doc['tracks'] if t['name'] == name)
+    for at, keys, n in ((start, for_a, first), (start + len(A), for_b, len(for_b))):
+        assert not [x for x in track['notes'] if at <= x['at'] < at + len(keys)]
+        for i, k in enumerate(keys):
+            track['notes'].append({'at': round(at + i + late, 4), 'len': float(length), 'pitch': nm(base + k), 'vel': vel(i, n), **({'gain': trim} if trim else {})})
+    track['notes'].sort(key=lambda x: x['at'])
+    if target:
+        doc['loudness'] = float(target)
 
 
 def the_kick_is_fitted(doc):
