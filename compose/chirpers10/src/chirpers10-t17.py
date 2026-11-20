@@ -477,6 +477,35 @@ STRING = {'hz': 43.675, 'decay': '8s', 'mix': (0, 0.2, 0.4, 0.6), 'trim': (0, -1
 HORN = {'walks': (3, 4, 5, 6, 7, 8, 9, 10, 11, 14, 15, 16), 'patch': 'horn synth.pitch.mod.0.amount=0 fx.0.mix=0.2 synth.filters.1.cutoff.value=1100',
         'gain': -12.0, 'high': (12, 3.0), 'call': 3.0, 'pedal': -2.0, 'pan': -0.15, 'vel': 0.6, 'breath': 1, 'cap': 80,
         'eq': ['hp cutoff=110', 'lowshelf cutoff=450 gain=-6dB'], 'loudness': None}
+# v19 (chirper-two; section round, w10, 4:25-4:46: the wheel, never worked and flagged 'static in tone'). THE WHEEL IS
+# TURNED BY EVERYTHING THE SONG HAS GATHERED: THE HORN COMES TO REST AT THE WHEEL'S OWN SIZE, AND THE BELLS KEEP ITS
+# TIME. No stroke of the band, the ondes or the count changes. Two instruments the song found late (v16's two bells,
+# v18's horn) were both silent on its last twelve seconds; v18's note left the wheel alone.
+# (1) THE HORN. It reached sixteen (F5) at 4:23.1. Every walk ends sixteen, eight, four, two, one, 'a ball coming to
+# rest', and the wheel is FIFTEEN turns because that brings it back to a bar line; fifteen is also 8 + 4 + 2 + 1. So
+# the horn says eight, four, two, one down its tube (F4, F3, F2, and its pedal note, the low F itself) and each
+# number lasts that many TURNS of the wheel: 8, 4, 2, 1 (6.5, 3.2, 1.6, 0.8 s), ending on the last bar line. A number
+# here is a length and a height; this is the same law with a turn of the wheel for its unit. It is the one place the
+# song's ending gesture is heard slowly enough to follow.
+# (2) THE BELLS. v16's rule: an even number will be halved and rings F, an odd one will be trebled and rings C. On the
+# wheel that is F on four, F on two, C on one, every turn: low, low, high in 4 + 2 + 1 sixteenths, an agogo's timeline
+# in seven against the kit's common time, drifting across the bar and landing on the bar line. The C is the wheel's
+# hidden three: one is odd, so it is trebled (the twelfth) and one is added, which is four. On the last bar line the
+# bell rings the next four (F), as the ondes does: one is not an end.
+# MEASURED, raw (K, against everything else): the horn's notes stand -15.0, -16.0, -16.3, -17.5 (v18's calls -12.8 to
+# -18.3), in tune to 0.0 cents on F4 to F2; while it holds eight it is 57% of the mix's 250-500 Hz. The bells at
+# -21 dB: in their own third-octaves a stroke stands +3.3 (F) and +4.8 (C) over everything else (v16's edge of being
+# heard: +0.5); they are 23% of the wheel's 500 Hz-1 kHz. AGAINST THE ELEVEN RECORDS the wheel was hollow (v13's
+# cost): 250-500 Hz -2.6 -> +0.1, 500 Hz-1 kHz -4.9 -> -3.5 (the rows with a voice; without: -3.1 -> -0.3, -1.3 ->
+# +0.1); all nine bands 2.000 -> 1.578 (1.533 -> 1.100). FINISHED, seeds 1 / 0 / 11: the wheel +0.12 / +0.22 /
+# +0.28 dB (K); every other stretch within 0.02 dB, so the target is not moved. Scores 94.989 / 95.149 (v18
+# 95.020 / 95.101): level.
+# 'horn': the numbers the horn says on the wheel, each for that many TURNS (a turn is four, two, one: seven
+# sixteenths) ; 'gain': dB on each of them (the note's own gain; the track's fader is HORN's) ; 'breath': sixteenths
+# of rest before each ; 'bell': the wheel's numbers on which the bell rings (v16's two bells: the odd one, C, on an
+# odd number; the even one, F, on an even) ; 'bell gain': dB on those strokes ; 'bell vel' ; 'last': the bell rings
+# the next four on the last bar line, as the ondes does ; 'loudness' (None = unchanged). --without-wheel gives v18. (--wheel '{"gain": [0, 0, 0, 0]}': a bench.)
+WHEEL = {'horn': (8, 4, 2, 1), 'gain': (2.5, 4.5, 6.0, 8.0), 'breath': 1, 'bell': (4, 2, 1), 'bell gain': -2.0, 'bell vel': 0.8, 'last': True, 'loudness': None}
 
 
 def true(ratio):
@@ -854,6 +883,8 @@ if __name__ == '__main__':
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
     ap.add_argument('--string', help='a bench: STRING fields to change, as a JSON object')
     ap.add_argument('--horn', help='a bench: HORN fields to change, as a JSON object')
+    ap.add_argument('--wheel', help='a bench: WHEEL fields to change, as a JSON object')
+    ap.add_argument('--without-wheel', action='store_true', help="regenerate v18: on the wheel the horn is silent and no bell rings")
     ap.add_argument('--without-horn', action='store_true', help="regenerate v17: nothing holds the number a walk is trying")
     ap.add_argument('--without-string', action='store_true', help="regenerate v16: the ondes through its own palme only, a tempered octave of strings that its harmonics do not ring")
     ap.add_argument('--without-bell', action='store_true', help="regenerate v15: the album's snare as it comes, and a closed hat where a number has been said twice before")
@@ -873,7 +904,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
-    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn'))
+    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel'))
     if not a.without_china and newest:
         metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
         metal['patch'] += ' ' + CHINA['kit']
@@ -962,6 +993,30 @@ if __name__ == '__main__':
                                          **({'gain': f"{lift(s):g}dB"} if lift(s) else {})} for s, d in notes]})
         if HORN['loudness'] is not None:
             doc['loudness'] = HORN['loudness']
+    if not a.without_wheel and not a.without_horn and not a.without_string and not a.without_bell and not a.without_hand and not a.without_china and newest:
+        if a.wheel:
+            WHEEL.update(json.loads(a.wheel))
+        turn = sum(n for off, n in ((0, 4), (4, 2), (6, 1)))               # seven sixteenths
+        assert sum(WHEEL['horn']) <= TURNS and wheel + TURNS * turn == end
+        horn = next(t for t in doc['tracks'] if t['name'] == 'horn')
+        at = wheel + (TURNS - sum(WHEEL['horn'])) * turn                   # the last of them ends on the last bar line
+        for n, g in zip(WHEEL['horn'], WHEEL['gain']):
+            horn['notes'].append({'at': round(at / SUB, 6), 'len': round((n * turn - WHEEL['breath']) / SUB, 6), 'pitch': true(n), 'vel': HORN['vel'],
+                                  **({'gain': f'{g:g}dB'} if g else {})})
+            at += n * turn
+        assert at == end
+        if WHEEL['bell']:
+            bell = next(t for t in doc['tracks'] if t['name'] == 'bell')
+            for k in range(TURNS):
+                for off, n in ((0, 4), (4, 2), (6, 1)):
+                    if n in WHEEL['bell']:
+                        bell['notes'].append({'at': round((wheel + k * turn + off) / SUB, 6), 'len': 0.25, 'pitch': 'ah' if n % 2 else 'al', 'vel': WHEEL['bell vel'],
+                                              **({'gain': f"{WHEEL['bell gain']:g}dB"} if WHEEL['bell gain'] else {})})
+            if WHEEL['last'] and 4 in WHEEL['bell']:
+                bell['notes'].append({'at': round(end / SUB, 6), 'len': 0.25, 'pitch': 'al', 'vel': WHEEL['bell vel'],
+                                      **({'gain': f"{WHEEL['bell gain']:g}dB"} if WHEEL['bell gain'] else {})})
+        if WHEEL['loudness'] is not None:
+            doc['loudness'] = WHEEL['loudness']
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
