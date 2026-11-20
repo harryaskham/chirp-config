@@ -429,6 +429,21 @@ STROKE = os.environ.get("C10T16_STROKE", "synth.layers.0.decay=0.6s synth.amp.d=
 # '' = v13 byte for byte.
 FIFTH = os.environ.get("C10T16_FIFTH", "square again;0,0,1,1,13,13,1234,1234;-11dB;0.3;hp cutoff=500;0.85,0.5,0.6,0.5,0.6;1;;"
                                        "synth.amp.d=300ms synth.amp.r=50ms fx.0.mix=0.1" if STROKE else "")
+# v15 (chirper-alpha; section round, w5, 1:56-2:25; the change is bar 39, 2:18.2-2:21.8): THE PAIR IS STOPPED AT THE
+# FOURTH. Until now the metre changed only by the peg: the hair moves, the note stays. Here the note moves and the
+# peg is left alone. Stop both reeds a fourth higher and the hair is the same width in cents and a third wider in
+# cycles, so the pulse is a third faster: a fourth is 4:3, and three to the bar becomes FOUR. (A twelve-string's
+# wobble quickens up the neck.) For one bar of 'three' the band, which only plays what the pair does, is in common
+# time on A flat: each part in the rule plays the pulse it played in three quarters of the time, a fourth higher,
+# four times (kick and bass 3 -> 4, guitars 6 -> 8 and 12 -> 16, toms 9 -> 12 on A flat's own drums, hat 12 -> 16);
+# the reeds are struck on 207.652 and 208.752 Hz (1.100 Hz apart: 9.15 cents, where on E flat they are 9.16). The
+# snare and the crash are outside the rule and stay: the kick lands with the snare on two and four. Then the low
+# E flat and three again, and two bars later the peg turns to four the slow way.
+# The pair alone in that bar: its four overtones pulse 3.96, 8.00, 11.98, 16.00 to the bar, 23 to 29 dB deep, the
+# swells within 0.02 of a pulse of the strokes. Every other bar of the finished file is v14's (null, three seeds).
+# the section ; which of its bars (from 1; several with commas) ; the fret, in semitones ; the pulses to the bar
+# it gives ; the loudness target ('' = unchanged). '' = v14 byte for byte.
+FRET = os.environ.get("C10T16_FRET", "three;5;5;4;" if FIFTH else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -778,6 +793,8 @@ def build():
         the_toms_count(doc)
     if FIFTH:
         the_fifth(doc, marks)
+    if FRET:
+        fretted(doc, marks)
     return doc, marks, end
 
 
@@ -800,6 +817,49 @@ def the_fifth(doc, marks):
                               "pitch": f"{5 * f:.3f}hz", "vel": vels[j]})
     doc["tracks"].append({"name": "pan-five", "patch": PAN.split(";")[0] + (" " + damped if damped else ""), "gain": gain, "pan": float(pan), "notes": notes,
                           **({"fx": [{"type": "eq", "bands": eq.split("|")}]} if eq else {})})
+    if target:
+        doc["loudness"] = float(target)
+
+
+def fretted(doc, marks):
+    """v15: for a bar the pair is stopped a fret higher with the peg left alone. The hair keeps its width in cents,
+    so it is wider in cycles by the interval, and everything in the rule is that much faster and that much higher."""
+    sec, which, fret, n, target = FRET.split(";")
+    name, b, r, bars = next(m for m in marks if m[0] == sec)
+    ground = next(x[3] for x in FORM if x[0] == sec)
+    was, n, fret = Fr(r) * 4, int(n), int(fret)
+    assert was.denominator == 1, was
+    cell, scale = float(4 / was), float(was / n)
+    kits = {int(x.split("=")[0]): x.split("=")[1].split(",")[0].lower() for x in TOMS.split(";")}
+    skins = lambda g: "skins" if g == 0 else "skins-" + kits[g]
+    tracks = {t["name"]: t for t in doc["tracks"]}
+
+    def up(p):
+        return ",".join(f"m{float(q[1:]) + fret:.4f}" if q[0] == "m" else nm(NAMES.index(q[:-1]) + 12 * (int(q[-1]) + 1) + fret) for q in p.split(","))
+
+    for bar in map(int, which.split(",")):
+        assert 1 <= bar <= bars - SLIDES.get(sec, 0), bar            # a bar of constant width: not one the peg is turned in
+        a = b + 4 * (bar - 1)
+
+        def said(src, pitched):
+            """The bar's first pulse, then its second as often as it takes: each in three quarters of its time (a
+            kit stroke keeps its length, as at every width)."""
+            old = [e for e in tracks[src]["notes"] if a - 1e-6 <= e["at"] < a + 4 - 1e-6]
+            cells = [[e for e in old if a + k * cell - 1e-3 <= e["at"] < a + (k + 1) * cell - 1e-3] for k in (0, 1)]
+            new = [{**e, "at": round(a + j * 4 / n + (e["at"] - a - min(j, 1) * cell) * scale, 5),
+                    **({"len": round(e["len"] * scale, 5), "pitch": up(e["pitch"])} if pitched else {})} for j in range(n) for e in cells[min(j, 1)]]
+            assert old and all(cells), src
+            return old, new
+
+        for src, dst, pitched in [(t, t, t != "foot" and t != "hat") for t in ("foot", "left", "right", "left" + ALSO, "right" + ALSO, "bass", "hat")] + [(skins(ground), skins(ground + fret), False)]:
+            old, new = said(src, pitched)
+            tracks[src]["notes"] = [e for e in tracks[src]["notes"] if e not in old]
+            tracks[dst]["notes"] = sorted(tracks[dst]["notes"] + new, key=lambda e: e["at"])
+        f = hz(REED + ground + fret)
+        for tr, p in (("reed", f), ("hair", f + n / 4 * HAIR)):
+            held = [e for e in tracks[tr]["notes"] if abs(e["at"] - a) < 1e-6]
+            assert len(held) == 1 and set(held[0]) == {"at", "len", "pitch", "vel"} and abs(held[0]["len"] - 3.96) < 1e-6, held
+            held[0]["pitch"] = f"{p:.3f}hz"
     if target:
         doc["loudness"] = float(target)
 
