@@ -696,6 +696,26 @@ HEAD = os.environ.get("C10T16_HEAD", "1.15:0.162;220;"
 # PEG are.
 LAST = os.environ.get("C10T16_LAST", "3-15;synth.amp.d=1.5s synth.amp.r=1.5s synth.env.ring.d=2s synth.env.ring.r=2s play.humanize.time=0ms;"
                       "-9.5dB;0;0.8,-0.28,0.2;2;3;16:o:0.62:1.6;;4:0.72,14:0.2" if HEAD and PEG else "")
+# v25 (chirper-two; whole-song draw, taken as the two main guitars' stroke, 686 strokes from 0:36 to 3:28; no note
+# changes and no other track): THE STROKE LANDS. Read first, the whole song beside the records: the mix by part,
+# the bass alone, the guitars at the stroke (riffpunch --strokes, each guitar alone, six sections). The mix stands
+# within 0.8 of the records over the six band windows and what is over (250-500 Hz) is the reeds, the lead and the
+# handpan, which no record has; the bass's box is 8% of that band. ONE thing read outside the records' range on
+# nearly every read: the two main guitars' ATTACK. Punch 2.83 to 3.59, mean 3.20, inside their range (3.5 to 4.2)
+# in one read of twelve; the two 'said' guitars were inside already (3.47, 3.89) and are not touched.
+#   The front compressor lets the pick through (attack 2 -> 15 ms, release 60 -> 200 ms) and the engine's transient
+#   shaper follows each guitar's eq (attack 4); faders -1.3 dB, which holds the bars with no guitar in them where
+#   they were (within 0.012 dB, both seeds) without moving the target.
+#   AFTER, twelve reads: punch 3.42 to 4.24, mean 3.85, inside their range in ten. The low end's fall -0.74 ->
+#   -0.92 (theirs -1.10), teeth and grain as they were. The mix's read against the records does not move (1.043 ->
+#   1.041). What did NOT move, whatever was tried (the pick's softness, the palm's filter, the pick's click, the
+#   string's attack): the RISE, 2.5 to 12.5 ms where the records' strokes take 13.5 to 23.5.
+#   Tried and not kept: attack 5 (seven's strokes at and over the top of their range); the same on the 'said' pair
+#   (4.29 and 5.18); a softer pick (the low end's fall +1.24, or with a full soft pick +2.54 and grain 0.47).
+# the tracks, ',' between ; what is added to each one's rig ; effects after its eq, '|' between ; dB on its fader ;
+# the loudness target ('' = unchanged). '' = v24 byte for byte.
+LANDS = os.environ.get("C10T16_LANDS", "left,right;fx.0.attack=15ms fx.0.release=200ms;transient attack=4 sustain=-1;-1.3;"
+                       if LAST and HEAD else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -1106,7 +1126,24 @@ def build():
         the_snare_is_on_the_note(doc)
     if LAST:
         every_overtone_has_a_last_swell(doc, marks)
+    if LANDS:
+        the_stroke_lands(doc)
     return doc, marks, end
+
+
+def the_stroke_lands(doc):
+    names, rig, after, db, target = LANDS.split(";")
+    for name in names.split(","):
+        t = next(t for t in doc["tracks"] if t["name"] == name)
+        assert isinstance(t["patch"], str) and isinstance(t["gain"], str) and t.get("fx") and t["fx"][0]["type"] == "eq", (name, t["gain"])
+        if rig:
+            t["patch"] = t["patch"] + " " + rig
+        if after:
+            t["fx"] = list(t["fx"]) + after.split("|")
+        if db:
+            t["gain"] = f"{float(t['gain'].rstrip('dB')) + float(db):g}dB"
+    if target:
+        doc["loudness"] = float(target)
 
 
 def every_overtone_has_a_last_swell(doc, marks):
