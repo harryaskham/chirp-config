@@ -279,7 +279,7 @@ LONG = os.environ.get('C10T15_LONG', '15;17;15;0;0;-9.9' if TEETH else '')
 # Benched raw against everything else and against the voices alone (K, whole stretch): see the round note. The
 # box's own weight (its fundamentals, 350-620 Hz) is cut 8 dB at 430 Hz: the choruses already stand 2.4 to 2.9 dB
 # over the records there, and what a concertina is heard by over a band is its reed (1-8 kHz).
-TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW', 'C10T15_PICK') for k in os.environ)
+TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW', 'C10T15_PICK', 'C10T15_SNARE') for k in os.environ)
                       else '-4.5dB;0.35;-12dB;-3;hp cutoff=300|peak cutoff=430 q=0.8 gain=-8dB|peak cutoff=2500 q=0.7 gain=3dB;-9.85')
 # the chorus's tune as a concertina plays it, an octave over the crew: their notes where they sing them, a passing
 # note in the breath after 'haul', and two sixteenths up into the next bar. (sixteenth, length, note), a bar a line.
@@ -390,6 +390,48 @@ DRAW = os.environ.get('C10T15_DRAW', '0dB;F4|F4,Ab4|F4,Ab4,C5;C5;-14;hp cutoff=3
 # "" = v17 byte for byte.
 PICK = os.environ.get('C10T15_PICK', 'synth.layers.0.soft=expr.pm*0.5;synth.layers.0.thump.mod.0.amount=0.2 synth.filters.0.cutoff.mod.0.amount=-2;'
                       'peak cutoff=165 q=1 gain=7dB|peak cutoff=800 q=1.2 gain=-4dB;peak cutoff=190 q=1 gain=6.5dB;1.3dB;-1.3dB;-9.69' if DRAW else '')
+# v19 (chirper-zero; instrument round: the snare, 98 backbeats): THE SNARE FINDS ITS NOTE. Alone, against six
+# records' snares by thirds of an octave (tools/snarespec.py), the album snare here read 5.48 dB out on average:
+# NO NOTE where theirs is (200 Hz: -18.1; its own sat at 250, +6.1), a box at 1-1.25 kHz (+7.4, +7.6) and
+# again at 2-2.5 kHz (+6.8, +7.1), 2 to 4 dB short from 4 to 8 kHz, its wires 5 dB under its crack.
+# One control at a time (mean |d| 160 Hz-5 kHz):
+#   tuned a tone down, G3 (the note lands at 200 Hz)                      5.48 -> 4.33
+#   the head's upper modes out (mode_count 24 -> 10: the 1-1.25 kHz box)          4.19
+#   the stick slaps less (slap 1.2 -> 0.5: the 2-2.5 kHz box), wires full on      3.10
+#   690 Hz -5 dB (ten modes at G3 raise a hump at 630-800 Hz), 2.2 kHz -3 dB,
+#     5 kHz +4 dB                                                                  2.04
+#   slap 0.3                                                                       1.79
+#   the shell damped (0.6), 110 ms, the 200 Hz lift from +5 to +2 dB               1.64
+# THE MIX CHOSE THE STICK: at slap 0.3 the drum alone read best (1.64) but in the band its crack stood 1.2 dB
+# less at each backbeat (the mix's rise at 1.5-5 kHz, +4.94 -> +3.77); at 0.6 the crack stands where it did
+# (+4.8) and the mix reads the same (0.98 either way): 0.6 kept, the drum alone 2.4 (a snare may lose its box
+# and move its note; it keeps its crack).
+# THE FADER: the drum without its box is quieter to the ear at the same fader, and in the band its stroke
+# stood 0.9 dB less (the mix's rise at each backbeat, K-weighted: +4.75 -> +3.89 at slap 0.3). At +5.8 dB (from
+# +3.5) it stands as it did and the mix reads nearest the records. ITS FALL IS THE ROOM'S, NOT THE DRUM'S: 84 ms
+# before, 81 after (the records 66), and no shorter with the head damped to 0.9 and an 85 ms envelope: it is
+# the drums' room and the overheads' send. Left: the room is this kit's air.
+# pitch ; overrides inside the snare's patch ; the track's eq, '|' between ; its fader ; the loudness target
+# ('' = unchanged). "" = v18 byte for byte.
+SNARE = os.environ.get('C10T15_SNARE', 'G3;synth.layers.0.mode_count=10 synth.layers.0.slap=0.6 synth.layers.0.wires=1.0 '
+                       'synth.layers.0.damp=0.6 synth.amp.d=110ms synth.filters.1.gain=2dB;'
+                       'peak cutoff=690 q=1.5 gain=-5dB|peak cutoff=2200 q=1.5 gain=-3dB|peak cutoff=5000 q=0.8 gain=4dB|'
+                       'highshelf cutoff=7000 gain=-3dB;5.8dB;-9.71' if PICK else '')
+
+
+def the_snare_finds_its_note(doc):
+    """v19: the snare a tone lower, its box out at the head and the stick, its wires up; the fader holds its stroke in the band."""
+    pitch, over, eq, fader, target = SNARE.split(';')
+    t = next(t for t in doc['tracks'] if t['name'] == 'snare')
+    t['patch'] += ''.join(f' kit.s.patch.{o}' for o in over.split())
+    if pitch:
+        t['patch'] += f' kit.s.pitch={pitch}'
+    if eq:
+        t['fx'] = [{'type': 'eq', 'bands': eq.split('|')}]
+    if fader:
+        t['gain'] = fader
+    if target:
+        doc['loudness'] = float(target)
 BARK = 'kidman synth.layers.0.diction=2 synth.layers.0.speech=1'
 # five men: the kit piece, where in the spread his foot lands (0..1), how hard against the others, his board's
 # note, where he stands, how long his board rings (ms)
@@ -1073,6 +1115,8 @@ if __name__ == '__main__':
         the_box_draws(doc, marks)
     if PICK:
         the_pick_stays_hard(doc)
+    if SNARE:
+        the_snare_finds_its_note(doc)
     if os.environ.get('C10T15_SHOW'):
         for sec, bars in FORM:
             t = marks[sec]
