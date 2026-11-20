@@ -23,7 +23,8 @@ WHERE ELSE DOES THIS PART PLAY? TRACK:PIECE reads one piece of a kit's track (th
 the china on `cym`), so the first line, "plays bars ...", answers it for a single drum. When an ear turns a device
 down in one place, look there for the same piece on the same pattern elsewhere: a ride-bell pendulum was mended in
 the two passages Harry was asked about and left opening the song for seven hours (chirper-zero, Odd Sympathy v21).
-Only songs in one tempo. Read-only. Tests: tools/tests/test_rests.py.
+One tempo, or a tempo map placed in beats: the clock, a rest's milliseconds and a length given in ms or seconds are
+then measured where the rest falls; bars are fours. Read-only. Tests: tools/tests/test_rests.py.
 """
 import json
 import os
@@ -88,11 +89,13 @@ def sounding(canon, name):
     return [(a, b) for a, b in out]
 
 
-def rests(spans, least, lo=None, hi=None):
+def rests(spans, least, lo=None, hi=None, long=None):
     """(passages, rests) of one track's sounding spans (beats): passages are [(start, end)] runs with no gap of
     PASSAGE_BEATS or more; rests [(start, length)] the gaps of `least` beats or more INSIDE a passage, plus the gap
     after each passage's last note (its length to the next note, or None after the track's last), since that is where
-    a tail rings out. lo / hi (beats) keep the passages that reach into them and the rests that start inside them."""
+    a tail rings out. lo / hi (beats) keep the passages that reach into them and the rests that start inside them.
+    `long(end, next)`, when given, says whether the gap from beat END to beat NEXT is a rest, in place of `least`
+    beats (a length in seconds on a tempo map)."""
     passages, found = [], []
     for i, (a, b) in enumerate(spans):
         if not passages or a - passages[-1][1] >= PASSAGE_BEATS:
@@ -101,7 +104,7 @@ def rests(spans, least, lo=None, hi=None):
             passages[-1][1] = b
         nxt = spans[i + 1][0] if i + 1 < len(spans) else None
         gap = None if nxt is None else nxt - b
-        if gap is None or gap >= least:
+        if gap is None or (long(b, nxt) if long else gap >= least):
             found.append((b, gap))
     inside = lambda x: (lo is None or x >= lo) and (hi is None or x < hi)  # noqa: E731
     return ([tuple(p) for p in passages if (lo is None or p[1] > lo) and (hi is None or p[0] < hi)],
@@ -115,15 +118,31 @@ def others_in(all_spans, name, start, length):
 
 
 def where(beat, tempo):
-    """(clock "11:19.0", "357.1": bar and beat, both from 1, in 4/4)."""
-    s = beat * 60.0 / tempo
+    """(clock "11:19.0", "357.1": bar and beat, both from 1, in 4/4). `tempo`: a number, a tempo map or a tempoclock."""
+    s = wincut.clock_of(tempo).secs(beat)
     return f"{int(s) // 60}:{s % 60:04.1f}", f"{int(beat // 4) + 1}.{int(beat % 4) + 1}"
 
 
-def read(canon, tracks, least_s, tail_s, lo_s=None, hi_s=None):
-    """[{track, passages, rests: [{at_beat, at, bar, beats, ms, out, with}], notes}] for each track asked for."""
-    tempo = canon.get("tempo", 120.0)
-    to_b = lambda s: None if s is None else s * tempo / 60.0  # noqa: E731
+def read(canon, tracks, least_s, tail_s, lo_s=None, hi_s=None, least_b=None, tail_b=None):
+    """[{track, passages, rests: [{at_beat, at, bar, beats, ms, out, with}], notes}] for each track asked for.
+    A tempo map placed in beats is followed (bd-10e881): a length in seconds is measured where the rest falls;
+    least_b / tail_b give a length in BEATS on such a song (then least_s / tail_s is not used for it)."""
+    clock = wincut.clock_of(canon.get("tempo", 120.0))
+    if clock is None:
+        raise ValueError("a tempo map this cannot place")
+    tempo = clock.bpm
+    if clock.mapped:
+        to_b = lambda s: None if s is None else clock.beats(s)  # noqa: E731
+        long = None if least_b is not None else (lambda b, nxt: clock.secs(nxt) - clock.secs(b) >= least_s - 1e-9)
+        tail_at = lambda start: tail_b if tail_b is not None else clock.beats(clock.secs(start) + tail_s) - start  # noqa: E731
+        ms_of = lambda start, gap: round((clock.secs(start + gap) - clock.secs(start)) * 1000.0)  # noqa: E731
+        least = least_b
+    else:
+        to_b = lambda s: None if s is None else s * tempo / 60.0  # noqa: E731
+        long = None
+        tail_at = lambda start: to_b(tail_s)  # noqa: E731
+        ms_of = lambda start, gap: round(gap * 60000.0 / tempo)  # noqa: E731
+        least = to_b(least_s)
     lo, hi = to_b(lo_s), to_b(hi_s)
     all_spans = {n: sounding(canon, n) for n in names(canon)}
     out = []
@@ -131,15 +150,15 @@ def read(canon, tracks, least_s, tail_s, lo_s=None, hi_s=None):
         if name.partition(":")[0] not in all_spans or not (notes_of(canon, name) or []):
             raise KeyError(name)
         mine = all_spans[name] if name in all_spans else sounding(canon, name)       # a kit's piece: its own spans
-        passages, found = rests(mine, to_b(least_s), lo, hi)
+        passages, found = rests(mine, least, lo, hi, long)
         rows = []
         for start, gap in found:
             ends_passage = gap is None or gap >= PASSAGE_BEATS
-            listen = to_b(tail_s) if ends_passage else min(gap, to_b(tail_s))
-            clock, bar = where(start, tempo)
-            rows.append({"at_beat": round(start, 3), "at": clock, "bar": bar,
+            listen = tail_at(start) if ends_passage else min(gap, tail_at(start))
+            clock_, bar = where(start, clock)
+            rows.append({"at_beat": round(start, 3), "at": clock_, "bar": bar,
                          "beats": None if gap is None else round(gap, 3),
-                         "ms": None if gap is None else round(gap * 60000.0 / tempo),
+                         "ms": None if gap is None else ms_of(start, gap),
                          "out": ends_passage, "with": others_in(all_spans, name, start, listen)})
         out.append({"track": name, "passages": [[round(a, 3), round(b, 3)] for a, b in passages], "rests": rows,
                     "notes": len(notes_of(canon, name) or [])})
@@ -175,22 +194,30 @@ def main(argv=None):
         canon = json.loads(r.stdout)["data"]["canonical"]
     except (ValueError, KeyError, TypeError):
         raise SystemExit(f"rests: {os.path.basename(song)} does not plan") from None
-    tempo = canon.get("tempo", 120.0)
-    if not isinstance(tempo, (int, float)) or isinstance(tempo, bool) or tempo <= 0:
-        raise SystemExit("rests: the song's tempo changes: only songs in one tempo are read")
-    least, tail = span_s(opt["--min"], tempo), span_s(opt["--tail"], tempo)
+    tempo = wincut.clock_of(canon.get("tempo", 120.0))     # one tempo, or a tempo map placed in beats (bd-10e881)
+    if tempo is None:
+        raise SystemExit("rests: this song's tempo map cannot be placed here (a change of meter, or points not in beats): "
+                         "only one tempo, or a map in beats, is read")
+    least, tail = span_s(opt["--min"], tempo.bpm), span_s(opt["--tail"], tempo.bpm)
     if least is None or tail is None:
         raise SystemExit("rests: --min and --tail take a length, as in 150ms, 0.2s or 0.5b")
+    in_beats = {}
+    if tempo.mapped:                               # a length in beats stays in beats where the tempo changes
+        for k, name in (("--min", "least_b"), ("--tail", "tail_b")):
+            if re.fullmatch(r"[0-9.]+b", opt[k].strip()):
+                in_beats[name] = float(opt[k].strip()[:-1])
+        least = None if "least_b" in in_beats else least
+        tail = None if "tail_b" in in_beats else tail
     ends = [wincut.position(opt[k], tempo) if opt[k] else None for k in ("--from", "--to")]
     for k, v in zip(("--from", "--to"), ends):
         if opt[k] and v is None:
             raise SystemExit(f"rests: {k} {opt[k]}: a position as chirp render takes one (357, 1424b, 679s)")
     try:
-        table = read(canon, a[1:], least, tail, *ends)
+        table = read(canon, a[1:], least, tail, *ends, **in_beats)
     except KeyError as e:
         raise SystemExit(f"rests: {os.path.basename(song)} has no track {e.args[0]} with notes") from None
     if as_json:
-        print(json.dumps({"song": os.path.basename(song), "min_s": least, "tail_s": tail, "tracks": table}))
+        print(json.dumps({"song": os.path.basename(song), "min_s": least, "tail_s": tail, **in_beats, "tracks": table}))
         return 0
     stretch = (f", {opt['--from'] or 'the top'} to {opt['--to'] or 'the end'}" if opt["--from"] or opt["--to"] else "")
     for t in table:

@@ -148,10 +148,31 @@ class Song(unittest.TestCase):
             with self.assertRaises(SystemExit) as e:
                 self.run_tool(*argv)
             self.assertIn(said, str(e.exception))
-        self.write(dict(SONG, tempo=[[0, 120], [8, 90]]))
-        with self.assertRaises(SystemExit) as e:
-            self.run_tool("lone")
-        self.assertIn("one tempo", str(e.exception))
+        for cannot in ([[0, 120], [8, 90]], [{"at": 0, "bpm": 120}, {"at": "8b", "bpm": 90, "meter": "3/4"}]):
+            self.write(dict(SONG, tempo=cannot))
+            with self.assertRaises(SystemExit) as e:
+                self.run_tool("lone")
+            self.assertIn("one tempo, or a map in beats", str(e.exception))
+
+    def test_a_tempo_map_is_followed(self):
+        """bd-10e881: 120 for nine beats, then 60. `lone` rests from beat 8.5 to 9.5 (half a beat each side of the
+        change: 250 + 500 ms) and from 10 to 10.5 (500 ms at 60); at one tempo they were 500 and 250 ms."""
+        gear = [{"at": 0, "bpm": 120, "meter": None, "ramp": False}, {"at": "9b", "bpm": 60, "meter": None, "ramp": False}]
+        self.write(dict(SONG, tempo=gear))
+        rows = lambda *argv: [(r["at_beat"], r["ms"], r["out"])  # noqa: E731
+                              for r in json.loads(self.run_tool("lone", *argv, "--json")[1])["tracks"][0]["rests"]]
+        self.assertEqual(rows(), [(8.5, 750, False), (10.0, 500, False), (11.5, 20500, True), (33.0, None, True)])
+        self.assertEqual(rows("--min", "600ms"), [(8.5, 750, False), (11.5, 20500, True), (33.0, None, True)])
+        self.assertEqual(rows("--min", "0.75b"), [(8.5, 750, False), (11.5, 20500, True), (33.0, None, True)])   # beats stay beats
+        self.assertEqual(rows("--min", "0.5b"), [(8.5, 750, False), (10.0, 500, False), (11.5, 20500, True), (33.0, None, True)])
+        d = json.loads(self.run_tool("lone", "--min", "0.75b", "--json")[1])
+        self.assertEqual((d["min_s"], d["least_b"]), (None, 0.75))
+        self.assertEqual(R.where(9.0, gear)[0], "0:04.5")
+        self.assertEqual(R.where(13.0, gear), ("0:08.5", "4.2"))                  # one tempo would say 0:06.5
+        self.assertEqual(R.where(13.0, 120), ("0:06.5", "4.2"))
+        self.assertEqual(rows("--from", "5s"), [(10.0, 500, False), (11.5, 20500, True), (33.0, None, True)])    # 5 s is beat 9.5
+        self.write(dict(SONG))                                                    # ... and at one tempo, as it always read
+        self.assertEqual(rows(), [(8.5, 500, False), (10.0, 250, False), (11.5, 10250, True), (33.0, None, True)])
         self.write({"broken": True})
         with self.assertRaises(SystemExit) as e:
             self.run_tool("lone")
