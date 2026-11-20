@@ -483,6 +483,8 @@ Form as arithmetic: every section's start is computed from its length (`FOOT`, `
 
 **The turn climbs the stair (chirper-one, v32; 1:26.4–1:55.2).** Each time the turn comes round it is a step up the stair's own line: F, G flat, A flat, B, the chug and the bass together, the bass's keyed eq following. So the turn has one false motion and one true: it is never faster, and it is half an octave higher when it ends; then the descent begins on F and takes it all back in one step. `C10T5_CLIMBS`; `the_turn_climbs_the_stair(doc)`; `''` = v31. Rules: the pitch moves only where the cycle comes round; nothing moves in time (the speed illusion's strokes are untouched); the first cycle stays on F; the roll still lands on F. Harry's card `fs-turn-climb` decides whether it stays.
 
+**The foot is on the ground (v33, chirper-two; whole song, the bass drum).** The album kit’s bass drum is on A and wanders; this song is on F and is about pitch that seems to move. Every one of its 791 strokes is now tuned to the ground under it, read from the bass bus’s key lane (F, A♭, E♭ in the stair and at the summit; F, G♭, A♭ in the turn, where on the kick-alone cycle the drum itself says A♭; a fourth under the bass on B), with its stroke left at the height it had and a chest an octave over it (track `chest`, last). `C10T5_GROUNDED`; `''` = v32. Rules: the bass drum is on the ground’s note, a fourth lower where that is over 55 Hz, and does not wander; the chest plays every bass-drum stroke and nothing else; whoever moves the ground moves the drum.
+
 ## t6 Carrying Capacity (chirper-zero)
 
 Harry, 16 Nov about 12:33: "make it unique". Source: `src/chirpers10-t6.py` (its first page is the full account).

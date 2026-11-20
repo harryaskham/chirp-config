@@ -1199,7 +1199,7 @@ TAPE = os.environ.get("C10T5_TAPE", "1;84:96;-1;0.575;0.41;-24;" if FALLTONE els
 # the pole, and up the run out of it. No other part changes.
 # dB on the tone against its level under the stair ; bars from:to ; the loudness target ('' = unchanged). '' = v29.
 # It is on only while no other C10T5_ switch is set, so every older switch gives exactly what it gave.
-HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS") for k in os.environ) else "")
+HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED") for k in os.environ) else "")
 
 # v31 (chirper-two; palette: the song had no voice, and no song on the album had used the engine's speech to song):
 # WE HAVE BEEN HERE BEFORE. A song "all about the illusions" (Harry, 15 Nov) had every illusion of pitch and of speed
@@ -1502,6 +1502,8 @@ def song():
         we_have_been_here_before(doc)
     if CLIMBS:
         the_turn_climbs_the_stair(doc)
+    if GROUNDED:
+        the_foot_is_on_the_ground(doc)
     return doc
 
 
@@ -1548,6 +1550,73 @@ def the_turn_climbs_the_stair(doc):
     if i + 1 < len(pts) and at(pts[i + 1]) == FALL * 4:
         new.pop()
     pts[i + 1:i + 1] = new
+    if target:
+        doc["loudness"] = float(target)
+
+
+# v33 (chirper-two; whole song: the bass drum, all 791 strokes; no stroke is added, moved or taken out): THE FOOT IS
+# ON THE GROUND. The album kit's bass drum is on A (55 Hz) and wanders a sixth of a tone at random. This song is on
+# F, and its whole subject is pitch that seems to move: a stair on F, A flat, E flat; a turn that v32 made climb F,
+# G flat, A flat, B. Under all of it the one drum said A, a major third over the ground and a different interval
+# over every other note (chirper-one's v32 handoff names it: "the kick under the turn is tuned once (55 Hz) and now
+# stands under four notes"). Now every stroke is tuned to the ground under it, read from the bass bus's key lane,
+# which the stair, the turn and the summit all write: F1 530 strokes, A flat 1 101, E flat 1 42, G flat 1 118 (59
+# on G flat, and 59 on B, where the drum stands a fourth under the bass: on B1 itself, 61.7 Hz, the two cancel by
+# turns and the mix lost 1.5 to 1.6 dB under 60 Hz, as Close Enough v21 found). The turn's third cycle, where the
+# guitars and the bass drop out and the kick is alone, is the plainest place: the drum itself now says A flat.
+#   THE STROKE STAYS WHERE IT WAS. The drum's stroke is a fall of 31 semitones onto its note, so a drum tuned down a
+#       third lost its top with it (alone, 1.1 to 2.4 dB at 250 Hz-2 kHz and 2.0 at 4-8 kHz). The fall now starts
+#       from the height it always did (35 semitones over F1), and the track's 4.5 kHz band goes +10 -> +11.2 dB:
+#       alone, the drum is within 0.8 dB of v32's in every band from 120 Hz up, and level at 2-16 kHz.
+#   THE CHEST: a bare sine a tenth of a second long, an octave over the drum, on every stroke, with the stroke's own
+#       gain, on a track of its own past the drums' bus (the recipe of Common Measure v29). Its fader was chosen by
+#       the mix's read against the records (eleven windows, every section with the drum in it): -5.5 dB 1.281 /
+#       1.346 (their mixes / their passages with no voice; v32 1.269 / 1.447), -2.5 dB 1.243 / 1.291, -0.5 dB better
+#       again by 0.01 / 0.04. Kept -2.5: alone the drum is then already 5 dB over the records' kicks at 80-100 Hz.
+#   THE TARGET -9.975 -> -10.04: a drum whose weight is lower counts for less in the loudness measure, and the
+#       master brought everything else up 0.07 to 0.10 dB. At -10.04 the stretches with no bass drum in them (the
+#       foot, the pole between its six strokes, the last chord) are within 0.002 dB of v32's on seed 0 and 0.007 on
+#       seed 11.
+# overrides inside the kit's bass drum, after its note ; the highest note the drum may take, Hz (a ground over it:
+# the drum stands a fourth lower) ; the chest: semitones over the DRUM : its length, ms : its fader ('' = no chest)
+# ; how much of the way down the top of the stroke's fall does NOT come with the drum (0..1; '' = it all comes) ;
+# the kick track's eq, band|band ('' = unchanged) ; the loudness target ('' = unchanged). "" = v32 byte for byte.
+# On only while CLIMBS is; C10T5_GROUNDED is in HALFWAY's list of names that do not turn it off. It reads the key
+# lane, so it must run after anything that moves the ground.
+GROUNDED = os.environ.get("C10T5_GROUNDED", "kit.k.patch.synth.pitch.mod.1.amount=0;55;12:90:-2.5dB;1;peak cutoff=4500 q=0.8 gain=11.2dB;-10.04" if CLIMBS else "")
+
+
+def the_foot_is_on_the_ground(doc):
+    """v33: every bass-drum stroke is tuned to the ground under it (the bass bus's key lane, which the stair, the turn
+    and the summit all write), a fourth lower where the ground is over the highest note a drum may take; and a chest
+    (a bare sine, a tenth of a second) says the ground's octave on every stroke, on a track of its own past the
+    drums' bus, with the stroke's own gain. No stroke is added, moved or taken out."""
+    over, top, chest, stroke, eq, target = GROUNDED.split(";")
+    T = {t["name"]: t for t in doc["tracks"]}
+    kick = T["kick"]
+    kit = kick["patch"]
+    assert " " not in kit and all(n["pitch"] == "k" and "patch" not in n for n in kick["notes"])
+    lane = [(float(str(b).rstrip("b")), v) for b, v in doc["buses"]["low"]["auto"]["key"]["points"]]
+    ground = lambda at: F1 + [v for b, v in lane if b <= at + 1e-6][-1]
+    note = lambda at: ground(at) - 5 if 440.0 * 2 ** ((ground(at) - 69) / 12) > float(top) else ground(at)
+    # the kit's drum is on A1 and its stroke is a fall of 31 semitones onto the note: `stroke` (0..1) is how much of the way down the top of that fall does NOT come
+    fall = lambda m: f" kit.k.patch.synth.pitch.mod.0.amount={31 + float(stroke) * (33 - m):g}" if stroke and float(stroke) else ""
+    drum = lambda m: f"{kit} kit.k.pitch={nm(m)}" + (" " + over if over else "") + fall(m)
+    kick["patch"] = drum(F1)
+    for n in kick["notes"]:
+        if note(n["at"]) != F1:
+            n["patch"] = drum(note(n["at"]))
+    if chest:
+        semi, ms, fader = chest.split(":")
+        doc["patches"]["fs-chest"] = {"extends": "808", "synth": {"layers": ["sine"], "pitch": {"value": 0, "mod": []}, "drive": 0, "filters": [],
+                                                                 "amp": {"a": "2ms", "d": f"{ms}ms", "s": 0, "r": "20ms", "curve": 3}},
+                                      "play": {"mono": False, "glide": "0ms", "gate": 1}}
+        doc["tracks"].append({"name": "chest", "patch": "fs-chest", "gain": fader, "pan": 0,
+                              "notes": [{"at": n["at"], "len": 0.25, "pitch": nm(note(n["at"]) + int(semi)), "vel": n["vel"],
+                                         **({"gain": n["gain"]} if "gain" in n else {})} for n in kick["notes"]]})
+    if eq:
+        assert len(kick["fx"]) == 1 and kick["fx"][0]["type"] == "eq"
+        kick["fx"] = [{"type": "eq", "bands": eq.split("|")}]
     if target:
         doc["loudness"] = float(target)
 
