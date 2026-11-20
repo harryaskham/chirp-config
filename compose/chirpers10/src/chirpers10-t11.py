@@ -423,6 +423,19 @@ PICK = os.getenv('C10T11_PICK', 'synth.layers.0.soft=expr.pm*0.4 synth.filters.0
 # quick drummer is still heard, from the hinge ('' = he is not) ; dB on his first and last stroke there.
 # '' = v27 byte for byte.
 AJAR = os.getenv('C10T11_AJAR', '0:8;-4,-1;12;0dB;;1200,6000;-3;0:4;-4,-14' if PICK and ROOM and SNARE else '')
+# v29 (chirper-one; whole song from 1:48, on the one guitar rig nobody had read: the two WALL guitars, 235 and 231
+# notes, 136 and 132 of them under the palm, through the heavy riff, the swing and home): THE WALLS KEEP THEIR LOW END
+# TOO. v27 gave the riff pair its hard pick; the walls beside them were still the old stroke. Read alone beside six
+# records' guitars at their own chugs (riffpunch --strokes, 1:55-2:15, 69 strokes): their low end died after a stroke
+# (+2.25 dB; the records -1.1, none over +0.3) and they had few teeth (-8.7; the records -11.3). The wall rig has
+# no soft pick (chirper-zero, Take Up the Slack v18): its fall is the palm's THUMP. Thump 0.5 -> 0.2 with the palm's
+# filter at two octaves: fall -1.83, teeth -11.1, all five measures inside the records' ranges. (Thump 0 alone: fall
+# -1.96 but teeth -9.0; thump 0 with the filter: fall -3.08, past the records' lowest.) The harder stroke takes the
+# walls' chest (2.4 and 2.6 dB at 60-250 Hz alone) and 1.1 dB of their 500 Hz-1 kHz, where the mix is already short:
+# lifts at 170 and 700 Hz give them back, and the faders come down so the walls alone are as loud.
+# the tracks ; what is added to each one's patch ; bands on each track's eq after its cabinet, band|band ; dB on each
+# fader ; the loudness target ('' = unchanged). '' = v28 byte for byte. On only while AJAR is.
+WALLS = os.getenv('C10T11_WALLS', 'wallL,wallR;synth.layers.0.thump.mod.0.amount=0.2 synth.filters.0.cutoff.mod.0.amount=-2;peak cutoff=170 q=0.9 gain=3dB|peak cutoff=700 q=1 gain=1.5dB;-0.5;' if AJAR else '')
 
 
 def BOW_PATCH():
@@ -1008,6 +1021,17 @@ def make():
             f0,f1=(float(x) for x in shut.split(','))
             tracks[-1]['fx']=[{'type':'eq','bands':[{'kind':'lp','cutoff':{'value':f0,'mod':[{'src':'auto.open','amount':round(math.log2(f1/f0),4)}]},'q':0.7}]}]
             tracks[-1]['auto']={'open':{'points':lanes,'curve':0}}
+        if target:
+            doc['loudness']=float(target)
+    if WALLS:
+        # v29: the two wall guitars' muted stroke, on the wall rig's own controls (see WALLS).
+        names,over,bands,fader,target=WALLS.split(';')
+        for name in names.split(','):
+            t=next(t for t in doc['tracks'] if t['name']==name)
+            assert t['patch'].startswith('ct-wall') and isinstance(t['gain'],str),(name,t['patch'],t['gain'])
+            if over: t['patch']=t['patch']+' '+over
+            if bands: t['fx']=list(t.get('fx') or [])+[{'type':'eq','bands':bands.split('|')}]
+            if fader: t['gain']=f"{float(t['gain'][:-2])+float(fader):g}dB"
         if target:
             doc['loudness']=float(target)
     return doc,marks
