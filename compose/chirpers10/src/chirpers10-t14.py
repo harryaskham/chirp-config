@@ -1536,6 +1536,92 @@ def the_wall_comes_out_of_its_box(doc):
         doc["loudness"] = float(target)
 
 
+# v23 (chirper-three; instrument round: THE LEAD, the tune's guitar: 139 notes, 0:57.7-2:54.7, and the last chord's).
+# THE TUNE IS THE VOICE. Three reads, three cures; no note changes and no other track changes.
+# (1) ITS NOTES. The lead alone, echo and room off, every note of 0.3 s or longer against its written note in the
+#   song's tuning (108 notes; pitch.py): the median note stood 5.6, 4.1 and 5.6 cents SHARP on seeds 1, 0 and 11 (the
+#   high F 12.2), in a song whose notes are ratios of the count and whose clean guitars and still chords are on
+#   them. It is the plucked string (the bead v3 asked for; `tune_sounding` since engine batch 64). With the switch:
+#   -0.4, -1.4, -0.6; the mean distance 6.3, 6.1, 6.9 -> 3.4, 4.2, 3.5. What is left (-20 to +10 note to note) is the
+#   player: its vibrato and its random detune, kept. The last chord's note keeps v3's trim (read -2.8, -1.1, +0.5
+#   as it is; -3.5, -0.3, -1.1 with the switch and no trim: no better, left).
+# (2) ITS ECHO. v2 made the echo three sixteenths: by the rule, an F. v18 (mine) wrote the change of gear into the
+#   positions and left the tempo, so from 2:10.97 the echo was still three OLD sixteenths: 366.56 ms measured, where
+#   three of the lifted count are 343.61. Every repeat fell 22.9 ms behind the count, and by the rule it said the old
+#   F. Now 343.65 measured. (The echoes together are 21 dB under the dry lead: small, but the rule's. When the song
+#   goes back to a tempo map, bd-10e881, this override must come out: 3/16 then follows by itself.)
+# (3) ITS TONE AND LEVEL, read as what it is here, the song's voice (tools/voxref.py: the lead alone and the mix,
+#   beside eleven records' voices and their mixes). Its own shape less the records' voices', 'minor' and 'sixth' /
+#   'common' and 'home': 500 Hz-1 kHz -4.0 / -3.5, 2-4 kHz +5.1 / +5.7, 4-8 kHz +2.0 / +1.8. Its level against the
+#   whole mix while it plays: -6.6 / -6.6 dB (the records' voices -9.2, their middle half -9.7 to -8.9), and at
+#   1-4 kHz -3.4 / -3.3 (the records -7.1). So: a thin, biting lead, 2.6 dB louder than a record's voice and 3.8
+#   louder where the ear is sharpest; and the mix stood 1.3 to 2.5 dB over the records at 2-4 kHz in its four
+#   sections, with the lead 45 to 47% of that band. v5's eq (700 Hz -5 dB, a shelf of +5 dB from 4 kHz) was fitted
+#   when the wall pair was a box; v21 took the wall's box out. NOW: the 700 Hz cut eased to 2 dB, 6 dB out at
+#   2.8 kHz (q 0.8), the shelf moved to 6 kHz (+6 dB: the pick, without the bite), the fader -1.5 -> -2.5 dB.
+#   AFTER: shape 500 Hz-1 kHz -0.8 / -0.3, 2-4 kHz +0.8 / +1.8, 4-8 kHz -1.6 / -1.5; level -8.3 / -8.8, at 1-4 kHz
+#   -5.7 / -6.0. The mix beside the records with their voices, the lead's four sections: 0.800, 1.233, 1.478, 1.122
+#   -> 0.678, 0.922, 1.167, 0.856; its 2-4 kHz +1.3, +1.4, +2.5, +1.7 -> -0.3, +0.1, +1.1, +0.5. The lead's share of
+#   the mix's 2-4 kHz 45-47% -> 14-17%.
+# THE QUIET MIDDLE ('fourth') IS NOT RE-VOICED: nothing there was read, and it is chirper-two's. Wherever the fader
+#   already rides, lanes put the three bands and the fader back to v22's (the lead alone there nulls against v22's
+#   at -82 dB with the string as it was); only its notes are truer.
+# HELD: a quieter lead makes the file measure quieter and the master turned everything else up 0.30 to 0.54 dB, so
+#   the target goes -10.72 -> -11.05 (1.0 dB of gain per dB on the band, 1.6 on the sparse stretches): every stretch
+#   without the lead is within 0.021 dB of v22 on three seeds (-60.8 dB or lower), 'fourth' within 0.014.
+# COSTS: the tune is 2.8 to 4.0 dB less forward by the meter (-4.7, -4.8, -5.4, -4.7 -> -7.5, -7.8, -9.4, -8.1 dB K
+#   against everything else); beside the records' VOICELESS passages the mix is 1 dB further over at 500 Hz-1 kHz
+#   in 'minor', 'sixth' and 'home' (+1.7, +1.5, +1.8 -> +2.8, +2.4, +2.7); the last chord is 0.14 to 0.33 dB lower;
+#   the scorer's master term falls 4.5 points (the file's RMS is 0.14 dB lower): kept on judgment.
+# the string: overrides on the moving lead (`tune`, `tune-up`; the last note keeps v3's trim) ; the lifted lead's
+# echo in LIFTED sixteenths ('' = the old count's) ; its eq, three bands: the box | the bite | the pick (a shelf) ;
+# dB on its fader ; 'ride' = wherever the fader already rides (the quiet middle) the eq and the fader stay as they
+# were, on lanes ('' = the new eq everywhere) ; the loudness target ('' = unchanged). '' = v22 byte for byte. On
+# only while FLOOR is.
+VOICE = os.environ.get("C10T14_VOICE", "synth.layers.0.tune_sounding=true;3;peak cutoff=700 q=0.8 gain=-2dB|peak cutoff=2800 q=0.8 gain=-6dB|highshelf cutoff=6000 gain=6dB;-1;ride;-11.05" if FLOOR else "")
+
+
+def the_tune_is_the_voice(doc):
+    """v23: the lead on its notes, its echo on the lifted count, and its tone and level where the records put a voice."""
+    string, echo, eq, db, keep, target = VOICE.split(";")
+    spec = lambda band: dict(x.split("=") for x in band.split()[1:])
+    num = lambda v: float(v.rstrip("dB"))
+    old = None
+    for t in doc["tracks"]:
+        if t["name"] not in ("tune", "tune-up", "tune-still"):
+            continue
+        assert t["patch"].startswith("m8-lead-guitar") and len(t["fx"]) == 1 and t["fx"][0]["type"] == "eq", t["name"]
+        if string and t["name"] != "tune-still":
+            t["patch"] += " " + string
+        if echo and GEAR and t["name"] != "tune":                  # v18 wrote the tempo into the positions: the echo kept the old sixteenth
+            up, down = (int(x) for x in GEAR.split(";")[1].split("/"))
+            t["patch"] += f" fx.4.time={float(echo) * 60 / BPM / 4 * down / up * 1000:.3f}ms"
+        if eq:
+            old = old or [spec(b) for b in t["fx"][0]["bands"]]    # v5's: a peak and a shelf
+            assert len(old) == 2 and t["fx"][0]["bands"][1].startswith("highshelf"), t["fx"]
+            box, bite, pick = eq.split("|")
+            ride = t["auto"]["ride"]["points"]
+            if keep == "ride" and any(v for _, v in ride):
+                lane = lambda v: {"curve": 0, "points": [[at, round(v, 4) if was else 0] for at, was in ride]}
+                t["fx"] = [{"type": "eq", "bands": [
+                    {"kind": "peak", "cutoff": num(spec(box)["cutoff"]), "q": num(spec(box)["q"]), "gain": {"value": spec(box)["gain"], "mod": [{"src": "auto.box", "amount": 1}]}},
+                    {"kind": "peak", "cutoff": num(spec(bite)["cutoff"]), "q": num(spec(bite)["q"]), "gain": {"value": spec(bite)["gain"], "mod": [{"src": "auto.bite", "amount": 1}]}},
+                    {"kind": "highshelf", "cutoff": {"value": num(spec(pick)["cutoff"]), "mod": [{"src": "auto.pickhz", "amount": 1}]},
+                     "gain": {"value": spec(pick)["gain"], "mod": [{"src": "auto.pick", "amount": 1}]}}]}]
+                assert num(old[0]["cutoff"]) == num(spec(box)["cutoff"]) and num(old[0]["q"]) == num(spec(box)["q"]), "the box must stay where v5 put it for the lane to give v22 back"
+                t["auto"] = {**t["auto"], "box": lane(num(old[0]["gain"]) - num(spec(box)["gain"])), "bite": lane(-num(spec(bite)["gain"])),
+                             "pickhz": lane(math.log2(num(old[1]["cutoff"]) / num(spec(pick)["cutoff"]))),     # an eq's cutoff rides in octaves
+                             "pick": lane(num(old[1]["gain"]) - num(spec(pick)["gain"]))}
+                if db:
+                    t["auto"]["ride"] = {**t["auto"]["ride"], "points": [[at, round(was - float(db), 4) if was else 0] for at, was in ride]}
+            else:
+                t["fx"] = [{"type": "eq", "bands": [box, bite, pick]}]
+        if db:
+            t["gain"] = {**t["gain"], "value": f"{num(t['gain']['value']) + float(db):g}dB"}
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T14_SHOW"):
         beat = 60 / BPM
@@ -1567,4 +1653,6 @@ if __name__ == "__main__":
             the_wall_comes_out_of_its_box(doc)
         if FLOOR:
             the_chord_falls_through_the_floor(doc)
+        if VOICE:
+            the_tune_is_the_voice(doc)
         open(OUT, "w").write(dump(doc))
