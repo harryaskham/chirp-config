@@ -74,6 +74,18 @@ class Clock(unittest.TestCase):
         self.assertAlmostEqual(r.bpm_at(70), 150.0)                                      # the point with no bpm holds it
         self.assertAlmostEqual(r.bpm_at(100), 60.0)
 
+    def test_a_written_position_is_placed_on_the_map(self):
+        import warp
+        one, gear = T.of(96), T.of(GEAR)
+        for v in (12, 12.5, "96b", "8bar", "8bars", "1.5s", "200ms", "40"):
+            self.assertAlmostEqual(one.at(v), warp.beats(v, 96), places=9)               # one tempo: warp's arithmetic
+        self.assertEqual(gear.at("300b"), 300.0)
+        self.assertEqual(gear.at("75bar"), 300.0)
+        self.assertAlmostEqual(gear.at(f"{gear.secs(300)}s"), 300.0, places=6)           # seconds go through the map
+        self.assertLess(warp.beats(f"{gear.secs(300)}s", 122.7756), 298.1)               # ... where one tempo would be two beats out
+        with self.assertRaises(ValueError):
+            one.at(True)
+
     def test_what_it_cannot_place_it_says(self):
         for bad in ([{"at": "4bars", "bpm": 100}, {"at": "8bars", "bpm": 120}], [{"at": 0, "bpm": 0}, {"at": 4, "bpm": 9}],
                     [100, 120], [{"at": 0}, {"at": 8, "bpm": 100}]):

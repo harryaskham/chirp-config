@@ -151,6 +151,13 @@ class Questions(unittest.TestCase):
         self.assertEqual(line, "WHERE ITS PARTS PLAY NOW (ride:rb: bars 1-4, 26-28*; hat: bars 26-27*; gone: not in the song now; "
                                "* = where this question is). An answer about one place may be an answer about the device.")
         self.assertEqual(L.parts_play({**self.ASK, "track": "chirpers10-t2"}), {})          # it names none: nothing is planned
+        # a tempo MAP (bd-10e881): 120 for 80 beats (40 s), then 60. A question at 0:45 covers 0:45-0:57: beats 90-114 at
+        # one tempo (bar 26 is in it), beats 85-97 on the map (it is not); 1:02 on the map is beat 102
+        mapped = dict(canon, tempo=[{"at": 0, "bpm": 120}, {"at": "80b", "bpm": 60}])
+        self.assertEqual(L.parts_play({**q, "t": 45.0}, canon)["hat"], [(26, 27, True)])
+        self.assertEqual(L.parts_play({**q, "t": 45.0}, mapped),
+                         {"ride:rb": [(1, 4, False), (26, 28, False)], "hat": [(26, 27, False)], "gone": None})
+        self.assertEqual(L.parts_play({**q, "t": 62.0}, mapped)["hat"], [(26, 27, True)])
         self.assertIsNone(L.parts_line({**self.ASK, "track": "chirpers10-t2"}))
 
         self.assertIn("No need to ask again", L.parts_hint(line))                            # a part not in songs/ yet

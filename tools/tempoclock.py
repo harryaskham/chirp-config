@@ -6,6 +6,7 @@
     c.secs(beat)      seconds at a beat (a number or a list of numbers)
     c.beats(secs)     the beat at a time in seconds (a number or a list)
     c.bpm_at(beat)    the tempo in force at a beat
+    c.at(position)    the beat of a written position: 12, "96b", "8bar", "1.5s", "200ms"
     c.bpm             the tempo at beat 0 (for a tool that prints one figure)
     c.mapped          True when the tempo changes
     tempoclock.of_song(path)                   # the same, from a song file's top-level tempo (compscore.raw_tempo)
@@ -112,6 +113,20 @@ class Clock:
     def beats(self, secs):
         """The beat at SECS seconds (a number, or a list or tuple: then a list)."""
         return [self._beats(s) for s in secs] if isinstance(secs, (list, tuple)) else self._beats(secs)
+
+    def at(self, value):
+        """The beat of a POSITION written as an automation point or a mark is: a number (beats), "96b", "8bar" or
+        "8bars" (4/4, counted from 0), "1.5s", "200ms" (seconds from the song's start, through the map)."""
+        if isinstance(value, bool):
+            raise ValueError(f"not a position: {value!r}")
+        if isinstance(value, (int, float)):
+            return float(value)
+        s = str(value).strip()
+        for suffix in ("bars", "bar", "ms", "s", "b"):
+            if s.endswith(suffix):
+                v = float(s[:-len(suffix)])
+                return v * 4.0 if suffix in ("bars", "bar") else self._beats(v / 1000.0 if suffix == "ms" else v) if suffix != "b" else v
+        return float(s)
 
     def bpm_at(self, beat):
         """The tempo in force at BEAT (inside a ramp, the tempo reached there)."""

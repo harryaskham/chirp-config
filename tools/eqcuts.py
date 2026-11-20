@@ -125,10 +125,10 @@ def beat_set(rs):
     return {b for a, z in rs or [] for b in range(a, z)}
 
 
-def gain_at(t, tempo):
+def gain_at(t, clock):
     """beat -> the track's own gain there in dB (its `gain` and the lanes that move it), or None when it has no lane on
-    its gain or one of them cannot be placed."""
-    import warp
+    its gain or one of them cannot be placed. `clock` is the song's tempoclock (a lane's point written in seconds is
+    placed through the song's tempo MAP: bd-10e881; before, a mapped song was read at 120)."""
     static, srcs = db(t.get("gain"))
     mods = [m for m in (t.get("gain") or {}).get("mod") or [] if isinstance(m, dict)] if isinstance(t.get("gain"), dict) else []
     lanes = []
@@ -138,7 +138,7 @@ def gain_at(t, tempo):
         if not points:
             return None
         try:
-            pts = sorted((float(warp.beats(p[0], tempo)), float(p[1])) for p in points)
+            pts = sorted((float(clock.at(p[0])), float(p[1])) for p in points)
             lanes.append((float(m.get("amount", 1.0)), [p[0] for p in pts], [p[1] for p in pts]))
         except (TypeError, ValueError, IndexError):
             return None
@@ -161,8 +161,11 @@ def digest(canon):
     """What a version's plan says that this needs: each track's bus, patch, lowest note and the beats it sounds on;
     each bus's own bus; every cut and where it sits."""
     tracks, cuts = {}, []
-    tempo = canon.get("tempo")
-    tempo = float(tempo) if isinstance(tempo, (int, float)) and not isinstance(tempo, bool) and tempo > 0 else 120.0
+    import tempoclock
+    try:
+        clock = tempoclock.of(canon.get("tempo"))
+    except ValueError:                             # a map this cannot place: beats and bars still read, seconds as at 120
+        clock = tempoclock.of(None)
 
     def walk(ts):
         for t in ts if isinstance(ts, list) else []:
@@ -185,7 +188,7 @@ def digest(canon):
                     p = keyshape.lowest(n.get("pitch"))
                     if p is not None and (low is None or p < low):
                         low = p
-                gain = None if t.get("mute") is True else gain_at(t, tempo)
+                gain = None if t.get("mute") is True else gain_at(t, clock)
                 if t.get("mute") is True:
                     beats = set()
                 elif gain is not None and beats:

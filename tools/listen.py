@@ -598,11 +598,12 @@ def parts_play(q, canon=None):
         r = subprocess.run([chirpbin.resolve(), "plan", "-f", os.path.join(ROOT, "songs", f"{q['track']}.yaml"), "--json"],
                            capture_output=True, text=True, env=env, cwd=ROOT, timeout=120)
         canon = json.loads(r.stdout)["data"]["canonical"]
-    tempo = canon.get("tempo", 120.0)
     here = None
-    if q.get("t") is not None:                       # the stretch the question's clip covers, in beats
+    if q.get("t") is not None:                       # the stretch the question's clip covers, in beats (a tempo map
+        import tempoclock                            # is followed: bd-10e881; before, a mapped song had no line)
+        clock = tempoclock.of(canon.get("tempo"))
         t, dur = passage_window(q)
-        here = (t * tempo / 60.0, (t + dur) * tempo / 60.0)
+        here = (clock.beats(t), clock.beats(t + dur))
     out = {}
     for p in parts:
         spans = rests.sounding(canon, p) if rests.notes_of(canon, p) else []
