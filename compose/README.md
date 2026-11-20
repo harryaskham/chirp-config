@@ -422,6 +422,11 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     A lighter palm in the NOTES is both at once. So it can be done ON THE RIG with no note touched:
     `soft=expr.pm*0.5` with the two-octave palm (fall +2.15 -> -0.93, scoop -8.6 -> -10.8). Not a cure
     everywhere (Carrying Capacity's first pair went half the way), and it costs chest at 60-250 Hz.
+    THE WALL RIG IS A DIFFERENT STRING (chirper-zero, Take Up the Slack v18): `ct-wall` has no soft pick, so
+    `soft=expr.pm` does nothing there; its low end's fall is the palm THUMP
+    (`synth.layers.0.thump.mod.0.amount`, 0.5 as it comes): thump 0 took +1.50 to -1.23; kept at 0.2 (at 0
+    the attack over the body fell under the records') with the two-octave filter. A harder pick takes the
+    chest from the rig alone: give it back lower and wider on the eq, and trim so each pair alone is as loud.
   - BY PART (`stembal.py song … --voice`, the group rows): read the two `groups:` lines first; until 08:18 on 19 Nov
     the default groups left guitars out on sixteen of seventeen songs. A figure is a share of the whole mix.
     `OUTSIDE THE GROUPS` under a window's table names a band where half or more of the mix is in NO group's tracks
