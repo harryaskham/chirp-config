@@ -615,6 +615,56 @@ if TUNED:
     assert "in tune" not in RAMPED
     RAMPS["in tune"] = (("in tune",), Fr(TUNED.split(";")[0]), Fr(0))
     RAMPED["in tune"] = "in tune"
+# v23 (chirper-three; instrument round: THE SNARE, its 84 strokes; none is added, moved or struck harder).
+# THE READ. (1) ITS NOTE. The album kit's snare is written on A3 and its head sounds 243.5 Hz: B3, 20 to 28 cents
+#   flat, and it wanders stroke to stroke (-23 to +28 cents; the song's whole subject is a hair of 11). Its second
+#   mode stood a tritone and 30 cents over that (350 Hz, 7 dB under). So on F it rang a flat tritone over the
+#   ground, on A flat a flat minor third, on E flat a flat minor sixth, and on B the ground's own note a quarter of
+#   a semitone flat. v13 put the toms on the ground's notes and v21 the bass drum; this was the last drum that was not.
+# (2) ITS SHAPE, alone beside six records' snares (tools/snarespec.py; mean distance over 160 Hz-5 kHz): 5.3 to 5.7 in
+#   the five stretches, with humps of +5 to +10 dB at 1, 1.25, 2 and 2.5 kHz and 1 to 5 dB short from 4 to 8 kHz; body
+#   against crack -3.8 to -6.2 (the records -2.9, never under -4.4), wires against crack -5.1 to -6.7 (+0.4, never
+#   under -0.6). (3) WHOSE THE HUMPS ARE: with the snare's send to the kit's overhead room taken away the stroke's
+#   first 150 ms lose 10.7 dB, and 15 to 17 dB from 1.25 to 3.15 kHz. Most of what is heard of this snare is that
+#   room, whose low cut (5 kHz) is gentle; the bus's clip changes nothing in the shape and its glue about 1 dB of
+#   the humps (benched without each).
+# WHAT IS WRITTEN. THE HEAD SOUNDS THE GROUND'S NOTE, stroke by stroke: F3 on F (42 strokes), A flat 3 on A flat
+#   (14), E flat 3 on E flat (14), and on B a fourth lower, G flat 3 (14), as the toms and the foot stand there. It
+#   does not wander (the kit's two moves on the drum's pitch are off: the spread goes from 20 cents either way to
+#   3, and the note does not move). The head is written 1.15 semitones under the note
+#   it sounds, because the air between the two heads raises the pair; and that air is set (cavity 0.3 -> 0.162) so
+#   the second mode is A FIFTH over the note, not a tritone. Read dry, ground by ground: the note within 2 cents on
+#   all four, stroke to stroke -3 to +3 cents; the second mode within 4 cents of the fifth, 9.5 to 10.8 dB under.
+#   THE DRUM: ten head modes, not 24, and 6 dB out at 900 Hz inside the drum; the wires at 5 kHz and full; its low
+#   cut at 110 Hz and its body's lift on the note itself, so the body is the same on every ground. ITS ROOM IS ITS
+#   OWN: a copy of the kit's overhead room with 6 dB out at 1.05 kHz, 5 at 2.3 kHz and a shelf of +4 dB from 3.5 kHz
+#   after it (the cymbals keep the kit's room). The track's own shelf (-3 dB from 7 kHz) is gone; fader 3.5 -> 3.1.
+# AFTER. Alone: 5.48, 5.70, 5.31, 5.46, 5.57 -> 3.06, 3.69, 3.47, 4.55, 3.47 (F, A flat, B, E flat, F again); body
+#   against crack 0.0, -2.0, -0.8, -1.4, +0.2 (inside the records' range in all five; four were under it); wires
+#   against crack -1.0, -1.2, -1.0, -1.7, -0.8 (0.2 to 1.1 short of the range still). A stroke's first 150 ms is
+#   within 0.25 dB of v22's on every ground (K; its peak 0.1 to 0.7 dB higher), and inside the mix the snare stands where it stood (-6.2, -8.0,
+#   -7.9, -9.4, -8.3, -8.3 -> -6.1, -8.3, -8.0, -9.4, -8.0, -8.4 dB against everything). THE MIX against the
+#   records, six stretches: without a voice 1.106 -> 1.072, all eleven 0.928 -> 0.850, nearer in all six on both.
+#   The kit by part: 250-500 Hz +2.7 -> +1.2, 500 Hz-1 kHz +5.5 -> +3.5, 1-2 kHz +2.5 -> -1.0.
+# COSTS: the snare's ring after the stroke (0.15 to 0.6 s) is 2.0 to 3.7 dB lower on four of the five stretches (K:
+#   the room's cut bands are where the meter listens), so 'wider', where the snare is the loudest thing, is 0.15
+#   to 0.23 dB lower ; the kit by part 120-250 Hz +1.1 -> +2.0 (the note is lower) ; on E flat the note (156 Hz) is under
+#   where any record's snare sits (4.55, the least gain) ; a dip of 6 dB at 1.6 kHz in the first stretch on F ; the
+#   snare's ring is now a
+#   pitch you can name, and it steps with the peg: if that is heard as a tom, see the round's next-note.
+#   The target is not moved: where no snare plays the file is 0.02 to 0.04 dB over v22, the band within 0.05.
+# the head: semitones its written note stands under the note it sounds : the air between its two heads (`cavity`) ;
+# the highest note it may take, Hz (a ground over it: the drum stands a fourth lower, as the toms and the foot do) ;
+# what every stroke's drum takes besides its note ; the snare's own room: bands after a copy of the kit's overhead
+# room ('' = the kit's room, as before) ; what it sends there ; its track eq ('-' = none, '' = as it was) ; its
+# fader ; the loudness target ('' = unchanged). "" = v22 byte for byte.
+HEAD = os.environ.get("C10T16_HEAD", "1.15:0.162;220;"
+                      "kit.s.patch.synth.pitch.mod.0.amount=0 kit.s.patch.synth.pitch.mod.1.amount=0 kit.s.patch.synth.filters.0.cutoff=110 "
+                      "kit.s.patch.synth.layers.0.mode_count=10 kit.s.patch.synth.filters.2.kind=peak kit.s.patch.synth.filters.2.cutoff=900 "
+                      "kit.s.patch.synth.filters.2.q=1 kit.s.patch.synth.filters.2.gain=-6dB kit.s.patch.synth.layers.0.wire_tone=5000 "
+                      "kit.s.patch.synth.layers.0.wires=1;"
+                      "peak cutoff=1050 q=1.2 gain=-6dB|peak cutoff=2300 q=1.2 gain=-5dB|highshelf cutoff=3500 gain=4dB;-1.5dB;-;3.1dB;"
+                      if TUNED else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -1021,7 +1071,47 @@ def build():
         the_foot_is_on_the_note(doc)
     if TUNED and TUNED.split(";")[1]:
         doc["loudness"] = float(TUNED.split(";")[1])
+    if HEAD:
+        the_snare_is_on_the_note(doc)
     return doc, marks, end
+
+
+def the_snare_is_on_the_note(doc):
+    """v23: the snare's head sounds the ground's own note (the octave from E flat 3; a ground over the highest it may
+    take: a fourth lower), stroke by stroke, and does not wander; its second mode is the fifth over it. Its room is
+    its own: a copy of the kit's overhead room with an eq after it. No stroke is added, moved or struck harder."""
+    head, top, over, room, send, eq, fader, target = HEAD.split(";")
+    under, cavity = head.split(":")
+    snare = next(t for t in doc["tracks"] if t["name"] == "snare")
+    assert snare["patch"] == "ct-kit" and all(n["pitch"] == "s" and "patch" not in n for n in snare["notes"])
+    lane = [(float(b[:-1]), v) for b, v in doc["buses"]["low"]["auto"]["key"]["points"]]
+    F3 = 53                                # the key lane counts semitones from F
+
+    def note(at):
+        m = F3 + [v for b, v in lane if b <= at + 1e-6][-1]
+        return m - 5 if hz(m) > float(top) else m
+
+    P = "kit.s.patch.synth."
+    drum = lambda m: (f"ct-kit kit.s.pitch=m{m - float(under):.2f} {P}layers.0.cavity={cavity} {P}filters.1.cutoff={hz(m):.0f}"
+                      + (" " + over if over else ""))
+    snare["patch"] = drum(F3)
+    for n in snare["notes"]:
+        if note(n["at"]) != F3:
+            n["patch"] = drum(note(n["at"]))
+    if room:
+        oh = doc["buses"]["oh"]
+        doc["buses"]["snare-oh"] = {**oh, "fx": [oh["fx"][0], {"type": "eq", "bands": room.split("|") + list(oh["fx"][1]["bands"])}]}
+        snare["sends"] = {"snare-oh": send}
+    elif send:
+        snare["sends"] = {"oh": send}
+    if eq == "-":
+        snare.pop("fx", None)
+    elif eq:
+        snare["fx"] = [{"type": "eq", "bands": eq.split("|")}]
+    if fader:
+        snare["gain"] = fader
+    if target:
+        doc["loudness"] = float(target)
 
 
 def the_foot_is_on_the_note(doc):
