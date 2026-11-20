@@ -1063,6 +1063,55 @@ def snap(doc):
     if SNAP['loudness']: doc['loudness'] = SNAP['loudness']
 
 
+# v28 (chirper-one; palette round: ONE INSTRUMENT ADDED, the part the song lacked, on an engine feature the album
+# had not used: the drum layer's BRUSH, dragged). THE PENCIL. The song's first section is called 'pencil' and
+# everything in it is a metaphor for one: a voice finds a line from its two ends, a clean string marks where the
+# two readings meet (v26). Now each of those notes is also a MARK: under every note the voice and the string play
+# there, a pencil stroke of 0.3 s. The voice's strokes are drawn from the left edge to the middle, the string's
+# (the other hand's) from the right edge to the middle: the line is drawn from both ends, in the room as well.
+# ON THE FACING PAGE (3:58.4 on), whose last four strips are the pencil's four read by the other hand, the strokes
+# come back the other way round: the voice's from the right, the string's from the left. 15 strokes and 20.
+# THE SOUND: no noise generator: a wire brush DRAGGED (`beater: brush`, `sweep: 300ms`) over a small head tuned to
+# F5 that rings 40 ms, so what is heard is the friction, coloured by a surface: it swells in and fades out and
+# no two strokes are alike (their peaks fall 80 to 220 ms in). Through 600 Hz-6.5 kHz its weight is at 2-4 kHz
+# (centroid 3.1 kHz): under the foot's hat, which is above 8 kHz, and over the voice.
+# Benched: the same on G5 with the drum as it comes (a rubbed drum: as much at 500 Hz-1 kHz as at 2-4 kHz, centroid
+# 2.3 kHz) ; on C6, ringing 50 ms (its weight at 1-4 kHz, 2.8 kHz) ; on C6 unfiltered (a hiss, 6.7 kHz, the hat's place) ; and this
+# one 4 dB louder (the strokes 3 to 10 dB under the voice, hat and string, and 'pencil' 0.8 to 1.0 dB louder
+# finished: too much for a pencil).
+# 'patch' ; 'pitch': the head's note ; 'gain': the two tracks' fader ; 'eq' ; 'vel' ; 'stroke': the shortest and
+# longest stroke, beats ; 'reach': where a stroke starts and ends (pan; the voice's side is negative) ; 'pages':
+# the sections and which way round (1 as written, -1 mirrored) ; 'loudness' (None: unchanged).
+# --without-pencil gives v27 byte for byte. (--pencil '{...}': a bench.)
+PENCIL = {'patch': {'about': "The Other Hand: the pencil. A wire brush dragged across a small, tight, damped head: a mark being made on paper.",
+                    'synth': {'layers': [{'type': 'drum', 'beater': 'brush', 'sweep': '300ms', 'decay': '40ms', 'slap': 1.3}],
+                              'amp': {'a': '1ms', 'd': 0, 's': 1, 'r': '60ms'}}},
+          'pitch': 'F5', 'gain': '-14dB', 'eq': ('hp cutoff=600', 'lp cutoff=6500'), 'vel': 0.7, 'stroke': (0.5, 0.7),
+          'reach': (0.75, -0.05), 'pages': {'pencil': 1, 'facing page': -1}, 'loudness': None}
+
+
+def the_pencil(doc, sections):
+    """v28: under every note the voice and the clean string play in 'pencil' and on the facing page, a pencil stroke:
+    left to right under the voice and right to left under the string; on the facing page the other way."""
+    track = {t['name']: t for t in doc['tracks']}
+    assert 'pencil' not in track and 'pencil-back' not in track
+    for name, src, side in (('pencil', 'mouth', -1), ('pencil-back', 'wire', 1)):
+        notes, points = [], []
+        for page, way in PENCIL['pages'].items():
+            _, start, count = next(x for x in sections if x[0] == page)
+            a, b = start / GRID, (start + count * STRIP) / GRID
+            for n in sorted((n for n in track[src]['notes'] if a <= n['at'] < b), key=lambda n: n['at']):
+                ln = round(min(max(n['len'], PENCIL['stroke'][0]), PENCIL['stroke'][1]), 4)
+                notes.append({'at': n['at'], 'len': ln, 'pitch': PENCIL['pitch'], 'vel': PENCIL['vel']})
+                points += [[f"{n['at']:g}b", side * way * PENCIL['reach'][0]], [f"{n['at'] + ln - .002:g}b", side * way * PENCIL['reach'][1]]]
+        assert notes and all(y['at'] - x['at'] >= x['len'] for x, y in zip(notes, notes[1:])), name
+        new = {'name': name, 'patch': PENCIL['patch'], 'gain': PENCIL['gain'], 'pan': {'value': 0, 'mod': [{'src': 'auto.across', 'amount': 1}]},
+               'auto': {'across': {'points': points, 'curve': 0}}, 'notes': notes}
+        if PENCIL['eq']: new['fx'] = [{'type': 'eq', 'bands': list(PENCIL['eq'])}]
+        doc['tracks'].append(new)
+    if PENCIL['loudness']: doc['loudness'] = PENCIL['loudness']
+
+
 if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); ap.add_argument('--without-crease',action='store_true',help='regenerate v3')
     ap.add_argument('--without-mirror-bass',action='store_true',help='regenerate v4')
@@ -1092,6 +1141,8 @@ if __name__=='__main__':
     ap.add_argument('--ruled',help='a bench: RULED fields to change, as a JSON object')
     ap.add_argument('--without-snap',action='store_true',help="regenerate v26, the two hands' stroke without its front (the amp's sag, the compressor, the palm's filter, the transient shaper)")
     ap.add_argument('--snap',help='a bench: SNAP fields to change, as a JSON object')
+    ap.add_argument('--without-pencil',action='store_true',help="regenerate v27: no pencil strokes under the voice and the clean string in 'pencil' and on the facing page")
+    ap.add_argument('--pencil',help='a bench: PENCIL fields to change, as a JSON object')
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
     doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot,not a.without_blot)
     if not a.without_lean and 'songs' in doc: lean(doc)      # only on the whole song as v22 has it (the tape is there when every older switch is on)
@@ -1103,6 +1154,8 @@ if __name__=='__main__':
     if not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: ruled(doc, sections)      # only on the whole song as v25 has it
     if a.snap: SNAP.update(json.loads(a.snap))
     if not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: snap(doc)      # only on the whole song as v26 has it
+    if a.pencil: PENCIL.update(json.loads(a.pencil))
+    if not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_pencil(doc, sections)      # only on the whole song as v27 has it
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
