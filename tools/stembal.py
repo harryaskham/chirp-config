@@ -335,6 +335,33 @@ def outside(mix, groups, floor=30.0, least=0.5):
     return out
 
 
+def not_the_mixes(diff, share, over=3.0, small=0.10):
+    """[(band name, dB over the records' same part, share of our mix's band)] for the bands where a part reads `over`
+    dB or more above the records' same part and yet holds under `small` of OUR mix's own band: a by-part excess that
+    cannot be the mix's. diff: ours minus the records' median for the part (nine bands); share: the part's power
+    alone over the mix's, by band (the mean of the windows).
+    chirper-one, 20 Nov, So Far v21: four handoffs said "250-500 Hz: take it out of the bass" on a by-part +5.7 dB;
+    the bass was 3% of the mix's band there (the guitars 45%). The same misreading three more times that night: a
+    kit's +6 dB at 500 Hz-1 kHz laid on the snare, then on the kick (Where It Was v25, v27); a bass 12 dB over under
+    60 Hz where the MIX stood level with the records (Odd Sympathy v40)."""
+    return [(FULL[i], float(diff[i]), float(share[i])) for i in range(len(NAMES))
+            if diff[i] >= over and share[i] < small]
+
+
+def share_lines(g, diff, share):
+    """The lines printed under a group's by-part table: its share of our mix's own band, and any excess that is not
+    the mix's (see not_the_mixes)."""
+    out = [f"{'share of OUR mix band':22s}" + "".join(f"{100 * x:6.0f}%" for x in share[:len(NAMES)])
+           + "   | this part alone over the mix's own band (power; parts do not sum to 100%)"]
+    odd = not_the_mixes(diff, share)
+    if odd:
+        out.append("   NOT THE MIX'S: "
+                   + ", ".join(f"{n} {d:+.1f} dB over the records' {g}, {sh:.0%} of our mix's band" for n, d, sh in odd)
+                   + f". 'ours - refs' is this part's SHAPE beside the records' same part, not what it adds: taking the {g} out "
+                   "there altogether would not move the mix's band half a dB. Find whose band it is first (--parts NAME=track,track ...).")
+    return out
+
+
 def whose(mix, parts, floor=30.0):
     """The lines of the "whose band is it" table. mix: the mix's nine band powers; parts: [(name, its nine band
     powers alone)]. Each part in dB under the mix's own band, the parts together, the part holding most of each
@@ -462,6 +489,7 @@ def cmd_song(a):
     outdir = a.out or tempfile.mkdtemp(prefix="stembal-", dir="/tmp/lt" if os.path.isdir("/tmp/lt") else None)
     M = stats(R, "mix")[0]
     mixes, names, acc = [], [], {g: [] for g in groups}
+    held = {g: [] for g in groups}                    # each group's share of the mix's own band, window by window
     V = voice(a) if a.voice else None
     vt = [t for t in (a.voice_tracks or "").split(",") if t] if V and V[2] is not None else []
     if vt and "voice-tracks" in groups:
@@ -531,6 +559,7 @@ def cmd_song(a):
             for g in groups:
                 v = np.append(db(w[g] / tot), db(w[g].sum() / tot))
                 acc[g].append(v)
+                held[g].append(w[g] / np.maximum(w["mix"], w["mix"].sum() * 1e-9))
                 rows.append((g, v))
             show(f"== ours, {label or span} ({span}; dB re the whole mix)", rows)
             out = outside(w["mix"], [w[g] for g in groups])
@@ -594,6 +623,7 @@ def cmd_song(a):
         ours = np.mean(acc[g], axis=0)
         show(f"== {g}: ours (mean of the windows), the references' median, ours minus theirs, their middle half's width",
              [("ours", ours), ("refs median", med), ("ours - refs", ours - med), ("refs p75 - p25", hi - lo)])
+        print("\n".join(share_lines(g, (ours - med)[:len(NAMES)], np.mean(held[g], axis=0))))
 
 
 def main():

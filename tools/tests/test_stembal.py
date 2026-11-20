@@ -227,6 +227,25 @@ class Stembal(unittest.TestCase):
         self.assertFalse(S.strung_and_amped(None))
         self.assertFalse(S.strung_and_amped({"synth": {"layers": [{"type": "pluck"}]}}))     # a string and no amp: a harp
 
+    def test_a_by_part_excess_in_a_band_the_part_barely_holds_is_not_the_mixes(self):
+        """chirper-one, 20 Nov, So Far v21: the bass read +5.7 dB over the records' basses at 250-500 Hz and was 3% of
+        the mix's band there."""
+        diff = [12.5, -1.0, 0.5, 5.7, 3.9, 0.0, -2.0, 0.0, 0.0]
+        share = [0.80, 0.50, 0.20, 0.03, 0.09, 0.01, 0.0, 0.0, 0.0]
+        got = S.not_the_mixes(diff, share)
+        self.assertEqual([(n, round(d, 1), round(sh, 2)) for n, d, sh in got], [("250-500 Hz", 5.7, 0.03), ("500 Hz-1 kHz", 3.9, 0.09)])
+        self.assertEqual(S.not_the_mixes(diff, [0.5] * 9), [])                 # it holds the band: the excess may be the mix's
+        self.assertEqual(S.not_the_mixes([2.9] * 9, [0.01] * 9), [])           # under 3 dB over: not called
+        lines = S.share_lines("bass", diff, share)
+        self.assertTrue(lines[0].startswith("share of OUR mix band     80%    50%    20%     3%     9%     1%     0%     0%     0%"))
+        self.assertIn("NOT THE MIX'S: 250-500 Hz +5.7 dB over the records' bass, 3% of our mix's band, 500 Hz-1 kHz +3.9 dB", lines[1])
+        self.assertIn("taking the bass out there altogether would not move the mix's band half a dB", lines[1])
+        self.assertEqual(len(S.share_lines("bass", [0.0] * 9, share)), 1)
+        text = self.run_tool("song", self.song, "--refs", "recA,recB", "--from", "0", "--dur", "2", "--windows", "1-4:all",
+                             "--out", self.root)
+        self.assertEqual(text.count("share of OUR mix band"), text.count(": ours (mean of the windows)"))
+        self.assertGreaterEqual(text.count("share of OUR mix band"), 1)
+
     def test_a_band_held_outside_the_groups_is_named(self):
         """chirper-zero, 19 Nov, Plain Hunt v32: one bell in no group held half of the mix's 500 Hz-1 kHz."""
         mix = [0, 10, 10, 10, 10, 10, 0.001, 0, 0]
