@@ -584,7 +584,7 @@ STRUCK = os.environ.get('C10T3_STRUCK', '1.2;3;4s;2s;-9.982' if TREBLE and CHORD
 # was 'highshelf cutoff=7000 gain=-3dB') ; its fader (3.5dB) ; the loudness target ('' = unchanged). '' = v32.
 # It is on only while no other C10T3_ switch is set, so every older switch gives exactly what it gave.
 SNARE = os.environ.get('C10T3_SNARE', '3.5;1.1;peak cutoff=2500 q=0.7 gain=-4dB,peak cutoff=650 q=1 gain=-3dB;1.5dB;-10.067' if STRUCK and not any(
-    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS', 'C10T3_PICK', 'C10T3_COURSE') for k in os.environ) else '')
+    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS', 'C10T3_PICK', 'C10T3_COURSE', 'C10T3_INTUNE') for k in os.environ) else '')
 # v34 (chirper-alpha; whole song: its frame; the change is the band's entrance, 0:08-0:12): THE BAND IS RUNG UP.
 # The song is a ringing performance from end to end, and since v28 the band is LOWERED at the end. But ringers do not
 # start by ringing: a ring is RAISED first, the bells chiming fast and close while they hang low, each stroke taking
@@ -1606,6 +1606,40 @@ def the_climb_is_coursed(doc):
         doc['loudness'] = float(target)
 
 
+# v41 (chirper-zero; instrument round: the LEAD, `lead-slap`, on both lead tracks: 496 strokes of the first, 111 of
+# the second; no note changes, no fader moves). THE LEAD IS IN TUNE WITH THE BELLS. At v40 I wrote that both leads
+# sounded 7 to 16 cents sharp and left it for an instrument round. That reading was a poor one (a long window over
+# tremolo sixteenths reads the multiples of the stroke rate, 8.2 Hz, not the string), so it is read again here stroke
+# by stroke (each of the 495 strokes alone, its echo and room off, band-passed round its written note, its
+# instantaneous frequency averaged by energy): THE LEAD SOUNDS 10.5 CENTS SHARP (median; half the strokes between
+# +6.2 and +14.8; by note +7.2 to +13.7), front and back of the stroke alike (+10.2, +10.6). It is not the pick's
+# bite (a 15-cent blip, 45 ms): with the bite off it still reads +10.1. It is the plucked-string model's own
+# sounding pitch at these heights, and the engine has had the cure since bd-d2ee40: `tune_sounding` on the pluck
+# layer. With it the lead reads -0.1 cents (half the strokes between -3.9 and +3.9: the patch's own 5-cent wander
+# from stroke to stroke, kept; the bite kept).
+# WHAT IT IS OUT OF TUNE WITH: the treble bells, which ring in the lead's own octave and are on their notes (96
+# strokes while the lead plays, +0.7 cents, half of them between -0.9 and +1.8). At the top of the climb the two
+# share a note: 39 strokes of the first lead and 14 of the second are B flats played while a B flat bell is still
+# ringing (4:54-5:02): the lead's B flat was 12.8 cents over the bell's, 6.9 Hz apart; now 0.7 cents under, 0.4 Hz.
+# the tracks ; what is added to each one's patch ; dB on each fader ('' = none) ; the loudness target ('' =
+# unchanged). On only while COURSE is; like COURSE it is in SNARE's list. "" = v40 byte for byte.
+INTUNE = os.environ.get('C10T3_INTUNE', 'lead,lead2;synth.layers.0.tune_sounding=true;;' if COURSE else '')
+
+
+def the_lead_is_in_tune(doc):
+    """v41: the leads' plucked string sounds its written note (see INTUNE). No note changes."""
+    names, over, fader, target = INTUNE.split(';')
+    for name in names.split(','):
+        t = next(t for t in doc['tracks'] if t['name'] == name)
+        assert t['patch'].startswith('lead-slap') and isinstance(t['gain'], str), (name, t['patch'], t['gain'])
+        if over:
+            t['patch'] = t['patch'] + ' ' + over
+        if fader:
+            t['gain'] = f"{float(t['gain'][:-2]) + float(fader):g}dB"
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if TENOR:
@@ -1616,4 +1650,6 @@ if __name__ == "__main__":
         the_chug_keeps_its_low_end(doc)
     if COURSE:
         the_climb_is_coursed(doc)
+    if INTUNE:
+        the_lead_is_in_tune(doc)
     open(OUT, "w").write(dump(doc))
