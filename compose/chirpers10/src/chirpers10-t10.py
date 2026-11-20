@@ -309,6 +309,38 @@ SNARE = os.environ.get('C10T10_SNARE', 'kit.s.patch.synth.filters.1.gain=-5dB ki
                                        'kit.s.patch.synth.layers.0.decay=0.24s;'
                                        'peak cutoff=700 q=0.6 gain=-5dB;2;' if TOP else '')
 
+# v25 (chirper-two; whole song: it had no voice, and gets its title sung): THE TITLE IS SUNG. At the crest, the section
+# named 'still owing' (1:04.3-1:30.0), there are three grounds (E flat, G flat, A flat) and two pairs on each. In the
+# first pair of each the reed plays the call in the sixteen sixteenths it took at 0:00 while the guitars take
+# twenty-two (v12). In the SECOND pair a man now sings the title on the same three notes (E flat 3, B flat 3, F 3;
+# then a minor third and a fourth higher) at the places the GUITARS play them: sixteenths 0, 8.25 and 17.875 of the
+# pair, the reed's 0, 6 and 13 stretched by 22/16. The call has three notes and the title three syllables: 'still',
+# 'ow', 'ing'. He lets go as the answer arrives. So on each ground the call comes in time from the reed and then
+# late from the man, who says what the lateness is. 1:08.6, 1:17.1, 1:25.7. One new track (`sung`, the last), nine
+# notes; nothing else changes.
+#   THE VOICE: voice-legato, its reverb and its breath off; 'still' detached (0.7 of its place), 'ow-ing' one breath;
+#       a gain on each of the nine syllables, so that raw they stand -9.1 to -8.0 dB against everything else (K).
+#   THE LEVEL (raw, tools/voxref.py, the voice minus the mix while it sings): -9.3 dB, and -7.0 at 1-4 kHz; the
+#       records' voices' medians are -9.2 and -7.1. THE TONE against theirs, under 250 Hz to 8-16 kHz: +3.4 +1.9
+#       +0.7 -5.2 +3.1 +3.1 -2.4 (more body and less at 1-2 kHz, with an 8 dB lift at 1300 Hz already in).
+#   AGAINST THE RECORDS (stembal, the crest): 500 Hz-1 kHz, where v24's handoff found every stretch of this song
+#       short 'because the records have a voice there', -2.7 -> -1.2 against their mixes, -4.0 -> -2.5 against their
+#       passages with a voice; 250-500 Hz +0.4 -> +0.8. Every other window reads as it did.
+#   THE WORDS: the recogniser, on the singer alone, wrote 'Stay lowing' three times running in four builds like this
+#       one, and 'Still holding' in five with 'ow' and 'ing' detached; never the title as written.
+#   The target -10.229 -> -10.213: every other section is within 0.016 dB of v24 on three seeds.
+# the singer's patch ; fader ; pan ; velocity ; eq, band|band ('' = none) ; which pair of each ground of the crest is
+# sung (2 = the second, where the reed does not call; 1 = with the reed; 12 = both) ; dB on each of the nine
+# syllables (or three, for every title alike) ; dB on each of the three grounds ; how much of its place each syllable fills (1 = to the next) ; the
+# loudness target ('' = unchanged). "" = v24 byte for byte.
+TITLE = os.environ.get('C10T10_TITLE', 'voice-legato synth.layers.0.diction=3 synth.layers.0.ring=1.0 synth.layers.0.effort.value=0.9 fx.0.mix=0 '
+                                       'synth.layers.0.inhale=0;-11.5dB;0;0.9;'
+                                       'hp cutoff=400|lowshelf cutoff=900 gain=-12dB|peak cutoff=380 q=0.9 gain=-8dB|peak cutoff=1300 q=0.8 gain=8dB|'
+                                       'peak cutoff=2800 q=1 gain=-4dB|peak cutoff=6500 q=0.8 gain=-6dB;'
+                                       '2;4.2,-0.1,2.1,2.3,-5.4,0.7,3.2,-6.6,0.6;0,0,0;0.7,0.97,0.97;-10.213'
+                       if SNARE and RECALL else '')
+SAID = os.environ.get('C10T10_TITLE_SAID', 'S T IH1 L|OW1|IH0 NG').split('|')    # still | ow | ing
+
 
 def bow_patch():
     lo, lo_gain = (float(v) for v in BOW.split(';')[1:3])
@@ -975,6 +1007,31 @@ def the_snare_is_fitted(song):
         song['loudness'] = float(target)
 
 
+def the_title_is_sung(song):
+    """v25: at the crest, 'still owing', a man sings the title on the call's three notes at the places the GUITARS play
+    them (22 sixteenths where the reed takes 16), in the pair after each of the reed's straight calls."""
+    patch, fader, pan, vel, eq, which, trims, grounds, fills, target = TITLE.split(';')
+    reed = next(t for t in song['tracks'] if t['name'] == 'breath')
+    first = sum(len(debts) for name, debts in FORM[:[name for name, _ in FORM].index('still owing')])   # the crest's first pair
+    pair = 2 * BAR / SUB                                                # a pair, in beats
+    stretch = (BAR + MAX_DEBT) / BAR                                    # the guitars' call takes 22 sixteenths, not 16
+    notes = []
+    for g in range(3):                                                  # three grounds, two pairs on each
+        a = (first + 2 * g) * pair
+        call = [n for n in reed['notes'] if a <= n['at'] < a + pair]    # the reed's straight call on this ground: three notes
+        assert len(call) == 3 and call[0]['at'] == a, (g, call)
+        for k in ((0,) if which == '1' else (1,) if which == '2' else (0, 1)):
+            starts = [(n['at'] - a) * SUB * stretch for n in call] + [BAR + MAX_DEBT]   # ... at the guitars' places: 0, 8.25, 17.875; the reply comes at 22
+            for i, n in enumerate(call):
+                notes.append({'at': round(a + k * pair + starts[i] / SUB, 5), 'len': round((starts[i + 1] - starts[i]) / SUB * float(fills.split(',')[i]), 5),
+                              'pitch': n['pitch'], 'vel': float(vel), 'ph': SAID[i],
+                              'gain': f"{float(trims.split(',')[(3 * g + i) % len(trims.split(','))]) + float(grounds.split(',')[g]):g}dB"})
+    song['tracks'].append({'name': 'sung', 'patch': patch, 'gain': fader, 'pan': float(pan),
+                           **({'fx': [{'type': 'eq', 'bands': eq.split('|')}]} if eq else {}), 'notes': notes})
+    if target:
+        song['loudness'] = float(target)
+
+
 def dump(song):
     return '\n'.join('tracks:\n'+'\n'.join('  - '+json.dumps(x) for x in v) if k=='tracks' else k+': '+json.dumps(v) for k,v in song.items())+'\n'
 
@@ -985,6 +1042,7 @@ if __name__=='__main__':
     args=parser.parse_args(); song, marks=build()
     if TOP: the_top_changes_hands(song)
     if SNARE: the_snare_is_fitted(song)
+    if TITLE: the_title_is_sung(song)
     if args.form:
         for n,t in marks: print(f'{n:18} {t/BAR+1:5.0f}  {t/SUB*60/BPM:6.2f}s')
     else: args.out.write_text(dump(song))
