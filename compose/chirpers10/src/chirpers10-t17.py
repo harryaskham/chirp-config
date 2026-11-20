@@ -553,6 +553,41 @@ WHEEL = {'horn': (8, 4, 2, 1), 'gain': (2.5, 4.5, 6.0, 8.0), 'breath': 1, 'bell'
 # target (None = unchanged). --without-weight = v20 byte for byte ; --weight JSON changes fields for a bench.
 WEIGHT = {'tracks': ('left', 'right'), 'rig': 'fx.1.tight=150 synth.layers.0.thump.mod.0.amount=0',
           'eq': ('peak cutoff=350 q=1 gain=-2dB', 'peak cutoff=700 q=1 gain=-3dB', 'peak cutoff=150 q=1 gain=1.5dB'), 'gain': 0.6, 'loudness': None}
+# v22 (chirper-three; palette round, one instrument: the wall pair, 3:43.2-4:10.6, its nine chords): THE WALL AT 160
+# GETS A SPEAKER. The two wall guitars play only at the top of the song (160, then 80 and 40), and there they are most
+# of it: 78% of the mix's 250-500 Hz, 69% of its 500 Hz-1 kHz, 44% of 1-2 kHz. They were the last guitars on the album
+# (but the paused t4 and Still Owing's `weight`) still on the library rig's captured cabinet files; Harry's answer of
+# 17 Nov on the walls was "The engine's cabinet is nearer", and seven songs have made the swap. Read alone beside the
+# records' guitar alone (cabspec, after the bar): 4.31; nothing under 100 Hz (the 80 Hz third 15.6 dB short, where the
+# chord's fifth is: 81.9 Hz), a box (+9.4 at 315 Hz, +5.5, +5.9 at 400, 500) and no top (-12.1, -17.3, -12.9 at 8, 10,
+# 12.5 kHz). And the MIX at the top stood 2.5 dB short at 60-120 Hz (2.9 beside the voiceless records) and 2.2 over at
+# 250-500: the top's bass note is the fifth harmonic's (54.6 Hz), so the bass's weight is under 60 Hz there (alone:
+# 60-120 Hz 5 dB lower than in the climb, under 60 Hz 8 dB higher) and nothing held 60-120 but the kick.
+# NOW: the captured cabinet and the patch's own eq off, the engine's 4x12 (microphone 0.4, a cone each), then an eq:
+# +6 dB at 95 Hz (between the chord's fifth and its octave, 81.9 and 109.1 Hz), +2 at 700 Hz, -3 at 1.5 kHz; the old
+# track eq (6 dB out at 380 Hz, a cure for the captured cabinet's box) goes; fader +2 dB, which holds the pair's level
+# (alone +0.14 dB K; against everything else -2.0 -> -1.8 dB at the top).
+# READ: alone 4.31 -> 2.50 (80 Hz -15.6 -> -1.1; 315 Hz +9.4 -> +4.4; 8, 10, 12.5 kHz -> -2.5, -4.2, -3.2). The mix at
+# the top beside the voiceless records 1.211 -> 0.611 and beside all eleven 1.444 -> 1.044 (60-120 Hz -2.5 -> -0.3,
+# 250-500 +2.2 -> +0.2, 1-2 kHz +2.1 -> +1.0); in 80 and 40, 1.578 -> 1.156 and 1.778 -> 1.589. The pair's share of the
+# mix's 60-120 Hz 12% -> 53%, of 250-500 Hz 78% -> 71%, of 500 Hz-1 kHz 69% -> 51%. Outside 3:43.2-4:11 the finished
+# file is within 0.027 dB of v21 on three seeds (-58.9 dB or lower); the top is 0.01 to 0.13 dB lower; target unmoved.
+# COSTS: the pair now holds half of the mix's 60-120 Hz at the top, and alone it is 4.6 dB over the records' guitar
+# from 71 to 141 Hz (it was 3.1 short; the 80 Hz third is level, the 100 Hz third +9.7 because the chord's octave is
+# in it): the lift is set by the MIX's hole, not by the guitar alone. With no lift and the old fader (benched) the pair
+# alone is level with the records' there (+0.4); with a lift of 2 dB the mix is still about 1.6 to 2.0 short at 60-120 Hz
+# (the bench's arithmetic, less the 0.7 dB it proved too kind by on the one kept) and the pair a third of that band. 141-282 Hz alone -2.5 -> -5.2. The mix beside the records WITH a voice is 3.0 short at
+# 500 Hz-1 kHz at the top (was 1.1; beside the voiceless +1.2 -> -0.7). The pair's peaks are 3.1 dB higher alone.
+# NOT THE CURE (benched): the old cabinets with 8 dB at 95 Hz (there is nothing there to lift: the 80 Hz third still
+# 9.8 short, the top still 14 to 19 short) ; the bass, 5 dB at 109 Hz after its compressor (its octave is 7 dB under
+# its fundamental at the top: the mix's 60-120 Hz moved 0.7 dB and its under-60 0.6 the wrong way) ; microphone 0.5.
+# the tracks ; what is added to each one's patch (the captured cabinet and the patch's own eq off) ; the engine's
+# cabinet: its microphone and a cone for each track ; the bands of the eq after it ; dB on each fader ; the loudness
+# target (None = unchanged). --without-speaker = v21 byte for byte ; --speaker JSON changes fields for a bench.
+SPEAKER = {'tracks': ('wall-left', 'wall-right'),
+           'rig': 'fx.3.mix=0 fx.4.bands.0.gain=0dB fx.4.bands.1.gain=0dB fx.4.bands.2.gain=0dB fx.4.bands.3.gain=0dB',
+           'mic': 0.4, 'cones': (101, 102),
+           'eq': ('peak cutoff=95 q=1 gain=6dB', 'peak cutoff=700 q=1 gain=2dB', 'peak cutoff=1500 q=1 gain=-3dB'), 'gain': 2.0, 'loudness': None}
 
 TOUCH = {'per': 2.0, 'over': 16, 'crest': 0.625, 'points': 8, 'least': 1.0, 'loudness': -9.521}
 
@@ -934,6 +969,8 @@ if __name__ == '__main__':
     ap.add_argument('--horn', help='a bench: HORN fields to change, as a JSON object')
     ap.add_argument('--wheel', help='a bench: WHEEL fields to change, as a JSON object')
     ap.add_argument('--touch', help='a bench: TOUCH fields to change, as a JSON object')
+    ap.add_argument('--without-speaker', action='store_true', help="regenerate v21: the wall pair through the album's captured cabinets")
+    ap.add_argument('--speaker', help="JSON over SPEAKER's fields, for a bench")
     ap.add_argument('--without-weight', action='store_true', help="regenerate v20: the two guitars' rig and eq as they were")
     ap.add_argument('--weight', help="JSON over WEIGHT's fields, for a bench")
     ap.add_argument('--without-touch', action='store_true', help="regenerate v19: the ondes with one hand, every number at one level from its start to its end")
@@ -957,7 +994,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
-    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight'))
+    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight', 'without_speaker', 'speaker'))
     if not a.without_china and newest:
         metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
         metal['patch'] += ' ' + CHINA['kit']
@@ -1104,6 +1141,18 @@ if __name__ == '__main__':
                 t['gain'] = {**t['gain'], 'value': f"{float(t['gain']['value'].rstrip('dB')) + WEIGHT['gain']:g}dB"}
         if WEIGHT['loudness'] is not None:
             doc['loudness'] = WEIGHT['loudness']
+    if not a.without_speaker and not a.without_weight and not a.without_touch and not a.without_wheel and not a.without_horn and not a.without_string and not a.without_bell and not a.without_hand and not a.without_china and newest:
+        if a.speaker:
+            SPEAKER.update(json.loads(a.speaker))
+        for name, cone in zip(SPEAKER['tracks'], SPEAKER['cones']):
+            t = next(t for t in doc['tracks'] if t['name'] == name)
+            assert t['patch'].startswith('ct-wall-stop') and isinstance(t['gain'], dict), (name, t['patch'], t['gain'])
+            t['patch'] = t['patch'] + ' ' + SPEAKER['rig']
+            t['fx'] = [{'type': 'cab', 'model': '4x12-modern', 'mic': SPEAKER['mic'], 'distance': 0.15, 'cone': cone}] + ([{'type': 'eq', 'bands': list(SPEAKER['eq'])}] if SPEAKER['eq'] else [])
+            if SPEAKER['gain']:
+                t['gain'] = {**t['gain'], 'value': f"{float(t['gain']['value'].rstrip('dB')) + SPEAKER['gain']:g}dB"}
+        if SPEAKER['loudness'] is not None:
+            doc['loudness'] = SPEAKER['loudness']
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
