@@ -357,6 +357,54 @@ def lean(doc):
 # target (None: unchanged). --without-counted-copy gives v23. (--counted '{"copy": [...]}': fields for a bench.)
 COUNTED = {'page': (.65, .48), 'copy': ('hp', {'0': .6, '1': .5, '2': .5, '3': .5}, '3dB'), 'loudness': None}
 
+# v25 (chirper-one; section round, w7, 2:55.4-3:06.3 inside 'turn over'): THE DRUMMER TURNS THE PAGE OVER TOO.
+# For those four strips the two hands read the strip upside down (v16, mine: every chord as far below the low F as
+# it stood above). The drummer went on as if nothing had happened: his foot on the left hand's four open notes, his
+# sticks counting quarters on the china, the snare on two and four. Now HIS KIT IS TURNED TOP TO BOTTOM ABOUT THE
+# SNARE, as the page is about the low F: what was at the top (the count, on the china) is at the bottom, and what
+# was at the bottom (the strip's four open notes, on the bass drum) is at the top. So for eleven seconds THE FOOT
+# COUNTS, four to the bar, and THE STICKS READ THE STRIP on the china, a stroke on each of the left hand's open
+# chords. The snare is the fold and stays. In that no stroke is added, dropped or moved: 19 quarters and 16 open
+# notes change places. Then the page is turned back (3:06.3) and so is he.
+# It is the only place in the song where the bass drum keeps the bar: everywhere else it follows a hand.
+# AND THE TURN IS PLAYED, read from both ends as everything here is. Into the turned page the sticks come DOWN the
+# kit from the fold: the snare's backbeat that was already there (2:54.8), then three toms, high, middle, floor, on
+# the last three sixteenths before the crash. Out of it they come back UP: floor, middle, high on the last three
+# sixteenths, and the fourth stroke is the snare that was already on the first tick of the page turned back
+# (3:06.3). The same four drums, read from the other end. Six strokes, the round's only new ones.
+# 'foot': the turned bass drum's velocity on a bar's first beat and on the others ; 'sticks': the kit piece that
+# reads the strip, its velocity where the foot's stroke was full and where it was light, and each stroke's own gain
+# (None: the track's) ; 'turns': the three toms from the fold down, their velocities in that order, each stroke's
+# own gain (None: no toms at the turns) ; 'loudness' (None: unchanged). --without-turned-kit gives v24.
+# (--kit '{...}': a bench.)
+KIT_TURNED = {'foot': (.98, .9), 'sticks': ('x', .72, .6, None), 'turns': (('t1', 't3', 'ft'), (.82, .9, .98), None), 'loudness': None}
+
+
+def turned_kit(doc, sections):
+    """v25: over the strips of 'turn over' that are read upside down, the count and the strip change places on the kit."""
+    _, start, _ = next(s for s in sections if s[0] == 'turn over')
+    a, b = (start + TURNED[0] * STRIP) / GRID, (start + TURNED[1] * STRIP) / GRID
+    foot, brass = (next(t for t in doc['tracks'] if t['name'] == n) for n in ('foot', 'brass'))
+    strip_ = [n for n in foot['notes'] if a <= n['at'] < b]
+    count = [n for n in brass['notes'] if a <= n['at'] < b and n['pitch'] == 'x']
+    assert len(strip_) == 4 * (TURNED[1] - TURNED[0]) and all(n['at'] % 1 == 0 for n in count) and len(count) == int(-(-b // 1)) - int(-(-a // 1)), (len(strip_), len(count))
+    full = max(n['vel'] for n in strip_)
+    piece, hard, soft, trim = KIT_TURNED['sticks']
+    foot['notes'] = sorted([n for n in foot['notes'] if not a <= n['at'] < b] +
+                           [{**strip_[0], 'at': n['at'], 'vel': KIT_TURNED['foot'][0 if n['at'] % 4 == 0 else 1]} for n in count], key=lambda e: e['at'])
+    brass['notes'] = sorted([n for n in brass['notes'] if not (a <= n['at'] < b and n['pitch'] == 'x')] +
+                            [{**count[0], 'at': n['at'], 'pitch': piece, 'vel': hard if n['vel'] == full else soft, **({'gain': trim} if trim else {})} for n in strip_], key=lambda e: e['at'])
+    if KIT_TURNED['turns']:
+        toms, vels, trim = KIT_TURNED['turns']
+        skins, snare = (next(t for t in doc['tracks'] if t['name'] == n) for n in ('skins', 'snare'))
+        s16 = lambda n: round(n['at'] * GRID)
+        down, up = round(a * GRID), round(b * GRID)                       # the tick the page turns on, and turns back on
+        assert any(s16(n) == down - 4 for n in snare['notes']) and any(s16(n) == up for n in snare['notes'])   # the fold is already there, at both ends
+        assert not [n for n in skins['notes'] if down - 8 <= s16(n) < up + 8]
+        new = [(down - 3 + i, t, v) for i, (t, v) in enumerate(zip(toms, vels))] + [(up - 3 + i, t, v) for i, (t, v) in enumerate(zip(toms[::-1], vels[::-1]))]
+        skins['notes'] = sorted(skins['notes'] + [{**skins['notes'][0], 'at': k / GRID, 'pitch': t, 'vel': v, **({'gain': trim} if trim else {})} for k, t, v in new], key=lambda e: e['at'])
+    if KIT_TURNED['loudness']: doc['loudness'] = KIT_TURNED['loudness']
+
 
 def counted(doc, sections):
     """v24: in 'carbon' the drummer's bars go page, copy as the guitarist's strips do. A page bar is his count as
@@ -933,11 +981,15 @@ if __name__=='__main__':
     ap.add_argument('--without-lean',action='store_true',help="regenerate v22, the bass on the album's old chain and the two hands at a full palm")
     ap.add_argument('--without-counted-copy',action='store_true',help="regenerate v23, 'carbon' with one soft snare a bar and no count")
     ap.add_argument('--counted',help='a bench: COUNTED fields to change, as a JSON object')
+    ap.add_argument('--without-turned-kit',action='store_true',help="regenerate v24, the kit the right way up through 'turn over'")
+    ap.add_argument('--kit',help='a bench: KIT_TURNED fields to change, as a JSON object')
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
     doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot,not a.without_blot)
     if not a.without_lean and 'songs' in doc: lean(doc)      # only on the whole song as v22 has it (the tape is there when every older switch is on)
     if a.counted: COUNTED.update(json.loads(a.counted))
     if not a.without_counted_copy and not a.without_lean and 'songs' in doc: counted(doc, sections)      # only on the whole song as v23 has it
+    if a.kit: KIT_TURNED.update(json.loads(a.kit))
+    if not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: turned_kit(doc, sections)      # only on the whole song as v24 has it
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
