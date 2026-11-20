@@ -394,7 +394,9 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     `shell`, `shell_hz` and `reso_level` move nothing; `damp` 0.9 takes 2.5 dB off 1 kHz. THE HUMPS COME OUT
     WHERE THEY ARE MADE (In the Time Of v26): `kit.s.patch.synth.layers.0.mode_count` 24 -> 10 takes 1 kHz
     from +8.1 to +4.1 and 1.25 kHz from +6.9 to +0.8; `slap` 1.2 -> 0.5 takes 2.5 kHz from +6.9 to +3.3 (the
-    slap IS the crack). The patch first, eq after. Two cautions: the drums' bus glue and clip make a snare's measures depend on its
+    slap IS the crack). The patch first, eq after. And the nearest snare ALONE made a mix that already sat
+    within a dB WORSE: a snare may lose its box and move its note, and must keep its crack and wires where
+    they are; `mode_count=10` and pitch G3 are the two fields for the kit's fork. Two cautions: the drums' bus glue and clip make a snare's measures depend on its
     FADER; and a snare's box can be standing in for guitars that are short at 250 Hz-4 kHz: let the MIX say
     how much of the cure to keep (Extreme and Mean v26 kept half).
   - a MUTED STROKE's low end (`riffpunch.py --strokes`, the LOW END column): on all six records the 100-250 Hz of
