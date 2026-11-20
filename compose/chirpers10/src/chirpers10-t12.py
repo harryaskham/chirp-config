@@ -380,6 +380,71 @@ COUNTED = {'page': (.65, .48), 'copy': ('hp', {'0': .6, '1': .5, '2': .5, '3': .
 KIT_TURNED = {'foot': (.98, .9), 'sticks': ('x', .72, .6, None), 'turns': (('t1', 't3', 'ft'), (.82, .9, .98), None), 'loudness': None}
 
 
+# v26 (chirper-alpha; section round, w1, 0:00-0:27; the change is 'pencil', 0:00.0-0:10.96): THE PAGE IS RULED, AND
+# THE LINE IS DRAWN FROM BOTH ENDS.
+# (1) THE COUNT. The song is two readings of one strip "under an unbroken count of four", and the count began with
+# the ink, at 0:11. The song ENDS with the foot alone closing the hat in quarters under the facing page's last four
+# strips (v9: 19 strokes, the sticks down). It now BEGINS with those 19 strokes, at the same touch, under the
+# pencil's four: the first sound of the song and its last are the voice's F with the foot, on the first beat of
+# bar 1 and of bar 109, and the facing page is the image of a count that was there. The bar line the foot draws is
+# the one ink's hat goes on with (the ink begins on the fourth beat of bar 5, and now that is heard). With it the
+# sketch is heard as what it is: a line of nineteen sixteenths over bars of sixteen, starting three sixteenths
+# later in the bar each time it comes round. (The count is still not unbroken: 'thumbprint', 1:49.6-2:17.0, and
+# 'signed', 3:44.7-3:52.9, have nothing on the quarter, and this round leaves them so.)
+# (2) THE LINE. The voice sang the whole line three times alike. A pencil does not write a line three times, it
+# finds it, and here everything is read from both ends: so first the line's two ends (F ... C), then the next
+# note from the front (F, A flat ... C), then the last from the back, and the line is whole. "One note, two, then
+# all four" is how the mouth hands its line to the drummer in 'carbon'; here it is how the line is found. Every
+# note is where and as long as the finished line has it, so what is heard in the gaps is the foot: three counts
+# between the first two notes the song has. The ribbon's whole line in the fourth strip (v7) is as it was.
+# (3) THE OTHER HAND'S FIRST MARKS ARE THE TWO MEETINGS. The clean string answered with its whole reading twice.
+# The first time it now plays only ticks 3 and 15, where the two readings strike together: C under the voice's
+# A flat, A flat under its C. What the song is about is said before either hand has a guitar.
+# 19 strokes of the foot in; 3 of the voice's notes and 2 of the string's out; no other note changes.
+# The pencil is quieter (raw, strip by strip, K: -35.2, -35.6, -34.6, -34.6 becomes -38.2, -36.8, -34.6, -34.7), and
+# at the old target the master turned every other section down 0.02 dB (the loudness meter's gate, I take it: not
+# checked). The target goes -9.99 -> -9.966 and every other section is where it was (the slope here is 0.9).
+# FIRST TAKE NOT KEPT: each unfinished strip's notes HELD to the next one drawn and 4 and 3 dB lighter (a line
+# between two points): it hides where the missing notes will come and covers the count the round put there.
+# It is still reachable: --ruled '{"hold": true, "mouth": [[[0, 15], "-4dB"], [[0, 3, 15], "-3dB"], null], "loudness": -9.951}'.
+# 'foot': the kit piece that rules the page, its velocity on a bar's first beat and on the others, each stroke's own
+# gain (None for the whole field: no count in 'pencil') ; 'mouth': for the pencil's first three strips, the ticks
+# of the strip the voice sings and how lightly, as each note's own gain (None for a strip: all four, as written) ;
+# 'wire': the same for the clean string's two strips, the third and fourth ; 'hold': a note of an unfinished strip
+# is held to the next one drawn (False: every note as short as the finished line has it) ; 'loudness' (None:
+# unchanged). --without-ruled-page gives v25. (--ruled '{...}': a bench.)
+RULED = {'foot': ('hp', .5, .4, FOOT_COUNT), 'mouth': (((0, 15), None), ((0, 3, 15), None), None), 'wire': (((3, 15), None), None), 'hold': False, 'loudness': -9.966}
+
+
+def ruled(doc, sections):
+    """v26: in 'pencil' the foot keeps the count (as it does under the facing page), and the line is sketched from
+    its two ends inward: two notes, three, then all four; the other hand first marks the two places they meet."""
+    _, start, count = next(s for s in sections if s[0] == 'pencil')
+    a, b = start / GRID, (start + count * STRIP) / GRID
+    hat, mouth, wire = (next(t for t in doc['tracks'] if t['name'] == n) for n in ('hat', 'mouth', 'wire'))
+    assert not [n for n in hat['notes'] if a <= n['at'] < b]
+    if RULED['foot']:
+        piece, first, rest, trim = RULED['foot']
+        hat['notes'] = sorted(hat['notes'] + [{'at': float(beat), 'len': round(1.15 / GRID, 5), 'pitch': piece, 'vel': first if beat % 4 == 0 else rest,
+                                               **({'gain': trim} if trim else {})} for beat in range(int(-(-a // 1)), int(-(-b // 1)))], key=lambda e: e['at'])
+    for track, plan, first_strip in ((mouth, RULED['mouth'], 0), (wire, RULED['wire'], count - len(RULED['wire']))):
+        for i, strip_ in enumerate(plan):
+            if strip_ is None: continue
+            keep, light = strip_
+            s0 = start + (first_strip + i) * STRIP
+            there = [n for n in track['notes'] if s0 <= round(n['at'] * GRID) < s0 + STRIP]
+            ticks = [round(n['at'] * GRID) - s0 for n in there]
+            assert len(there) == 4 and set(keep) <= set(ticks), (track['name'], i, ticks)
+            track['notes'] = [n for n in track['notes'] if not (s0 <= round(n['at'] * GRID) < s0 + STRIP) or round(n['at'] * GRID) - s0 in keep]
+            drawn = [n for n in there if round(n['at'] * GRID) - s0 in keep]
+            for n, nxt in zip(drawn, drawn[1:] + [None]):
+                if RULED['hold'] and nxt:
+                    n['len'] = round((round(nxt['at'] * GRID) - round(n['at'] * GRID) - .23) / GRID, 5)
+                if light:
+                    n['gain'] = light
+    if RULED['loudness']: doc['loudness'] = RULED['loudness']
+
+
 def turned_kit(doc, sections):
     """v25: over the strips of 'turn over' that are read upside down, the count and the strip change places on the kit."""
     _, start, _ = next(s for s in sections if s[0] == 'turn over')
@@ -983,6 +1048,8 @@ if __name__=='__main__':
     ap.add_argument('--counted',help='a bench: COUNTED fields to change, as a JSON object')
     ap.add_argument('--without-turned-kit',action='store_true',help="regenerate v24, the kit the right way up through 'turn over'")
     ap.add_argument('--kit',help='a bench: KIT_TURNED fields to change, as a JSON object')
+    ap.add_argument('--without-ruled-page',action='store_true',help="regenerate v25, 'pencil' with no count and the line sung whole three times")
+    ap.add_argument('--ruled',help='a bench: RULED fields to change, as a JSON object')
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
     doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot,not a.without_blot)
     if not a.without_lean and 'songs' in doc: lean(doc)      # only on the whole song as v22 has it (the tape is there when every older switch is on)
@@ -990,6 +1057,8 @@ if __name__=='__main__':
     if not a.without_counted_copy and not a.without_lean and 'songs' in doc: counted(doc, sections)      # only on the whole song as v23 has it
     if a.kit: KIT_TURNED.update(json.loads(a.kit))
     if not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: turned_kit(doc, sections)      # only on the whole song as v24 has it
+    if a.ruled: RULED.update(json.loads(a.ruled))
+    if not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: ruled(doc, sections)      # only on the whole song as v25 has it
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
