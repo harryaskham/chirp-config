@@ -434,6 +434,13 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     (`synth.layers.0.thump.mod.0.amount`, 0.5 as it comes): thump 0 took +1.50 to -1.23; kept at 0.2 (at 0
     the attack over the body fell under the records') with the two-octave filter. A harder pick takes the
     chest from the rig alone: give it back lower and wider on the eq, and trim so each pair alone is as loud.
+    TWO CORRECTIONS OF HIS OWN (In the Time Of v29): the thump DOES matter on `ct-twin` when the amp is loose:
+    read `fx.1.tight` first (tight at 150 Hz, thump 0 moved the fall +1.24 -> -0.34; at 220 Hz, nothing). And
+    the palm's filter (`synth.filters.0.cutoff.mod.0.amount`) is the TRADE between the stroke's attack and its
+    scoop; two octaves is not a rule. Rung by rung: -3.4 (as it comes) punch 4.26, rise 6 ms, scoop -7.0;
+    -2.7: 3.62, 8.5, -9.2; -2.4: 3.34, 11, -9.9; -2: 3.20, 11.5, -10.4. A song set to -2 that reported a punch
+    cost (tracks 15, 2, 7, 12, 8) can have it back a rung toward -3. An eq cut at 2.8 kHz costs the attack;
+    a microphone further out costs less. READ ONE GUITAR AT A TIME (`riffpunch.py --tracks ONE`).
   - BY PART (`stembal.py song … --voice`, the group rows): read the two `groups:` lines first; until 08:18 on 19 Nov
     the default groups left guitars out on sixteen of seventeen songs. A figure is a share of the whole mix.
     `OUTSIDE THE GROUPS` under a window's table names a band where half or more of the mix is in NO group's tracks
