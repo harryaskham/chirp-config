@@ -1187,8 +1187,8 @@ def dump(d):
 #     STICK: it is the noise's floor, which sounds for as long as the drum rings. Raised to -40 dB it gave the
 #     same attack and a hiss under every stroke (4-12 kHz, 0.6-1.1 s after the stroke: 35 dB under the stroke,
 #     against 61 with the burst raised instead and 63 as the drum came): benched, read, not kept.
-#     (Slow Enough to Count v16 and Close Enough v13, mine, raised that field to -50 dB: a quieter hiss, 47 dB
-#     under, still there. The burst is the cure for them too.)
+#     (Slow Enough to Count v16, mine, raised that field to -50 dB: a quieter hiss, 47 dB under, still there.
+#     The burst is the cure for it too. Close Enough v13 shortened its toms and has no stick field: not it.)
 #   - the two small toms ring shorter (decay 1.3 s -> 0.55 s, amp 1.8 s -> 0.7 s, damp 0.8): in a fill a stroke has
 #     fallen 9.3 dB when the next lands, and stands 4.8 dB out of the band at 100-400 Hz (was 3.4). THE FLOOR TOM
 #     KEEPS ITS RING (20 dB in 0.36 s): on a pull the ring after the kick is what is heard of it.
