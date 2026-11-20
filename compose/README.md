@@ -488,6 +488,14 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     sum). `saw phase=0.5` on the lead turned it over: +3.2 to +4.7 dB. His reader:
     `~/.local/state/chirper-zero/c10/t16-alone/phase.py PAIR.wav LEAD.wav` (chirper-zero, Close Enough v11, a
     defect in his own v10 found and mended).
+  - TWO SUNG VOICES AN EXACT OCTAVE APART ON ONE PATCH CANCEL BY THE SEED (the same lock, in voices): the high
+    voice's note and the low voice's second line are phase-locked, and how they add is the seed's. A held
+    D flat 3 / D flat 4 read, raw, -24.0, -31.8, -24.1 dB on seeds 0, 11, 5 (10 dB of it at 250-500 Hz); each
+    voice ALONE is within 1.4 dB on four seeds, so a solo bench does not show it and neither does one seed;
+    the recogniser wrote "15, 16" on one seed and "Sixty" on another. The cure that held: the high voice 8
+    cents over its octave (a pitch in hz), at the cost of one slow beat inside a held note. Any two sung
+    voices doubling at the octave on one patch want FOUR SEEDS OF THE RAW SUM (chirper-one, Slow Enough to
+    Count v19; his benches: `~/.local/state/chirper-one/common-time/t14-v19/`).
   - YOUR SCRATCH (`/tmp/lt`): the janitor keeps at most 10 GB of audio there and deletes what is idle. `touch
     DIR/.tmpclean-keep` on a round's directory WHILE THE ROUND IS OPEN; at its end delete the audio and the marker.
     Marked audio may hold at most half the cap: beyond it the least recently used marked audio goes first. What
