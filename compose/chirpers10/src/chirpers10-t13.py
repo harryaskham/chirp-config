@@ -965,6 +965,82 @@ def the_kick_gets_a_chest(doc):
     if KICK['loudness']: doc['loudness'] = KICK['loudness']
 
 
+# v28 (chirper-three; instrument round: THE CLOSED HI-HAT, its 184 strokes). No stroke is added, moved or struck harder.
+# v19 made the hat heard by its level. Read alone as a SHAPE beside the metal of eleven records (tools/cymspec.py,
+# level on 2-8 kHz) it was the one cymbal here that was not a cymbal: the library's haake-hat is noise through an 8
+# kHz high-pass, so it stood +11.7, +17.7, +20.0, +23.6 dB over the records at 8, 10, 12.5, 16 kHz and 5.5 to 11.5
+# under them at 2 to 2.5 kHz (mean distance over 2-16 kHz 10.4; the ride 1.8; the china with the hat 3.6). In the
+# mix it was 2% of the power at 4-8 kHz and 49 to 56% of it at 8-16 kHz: all of it in the top octave.
+# NOW it has a body: its filter opened to 4 kHz, 60 ms long (45), a shelf of -8 dB over 8 kHz and +4 dB at 5.5 kHz,
+# on a track of its own (`hat`, a kit of the song's own, wiw-hat-kit; the ride, the china and the crashes stay on
+# `metal` with the album kit). These are the settings chirper-two fitted on On Its Hinge (v26). The fader, 15.5 dB,
+# is the one that leaves its top octave where v19 put it (over everything else at 8-16 kHz: +0.5, -0.6, -0.7 ->
+# +0.7, -0.1, -0.6 dB in the shape, the handover, where it was); what is new is under it.
+# AND THE KICK'S CLICK GIVES IT THE ROOM: the lift at 4.3 kHz 7 -> 5 dB, except in 'where it was' (a lane), the one
+# section short at 4-8 kHz. Its click against its thump -6.9 -> -8.9 dB (the records' median -10.2); its low end is
+# not touched.
+# AFTER. Alone: distance 10.4 -> 3.8 (3.7 to 4.3 in the five sections); +5.4, +5.6, +8.4 at 10, 12.5, 16 kHz; -0.9
+# and -0.3 at 2.5 and 3.15 kHz; its 4-8 kHz less its 8-16: -5.2 -> +3.6 dB. In the mix: 17 to 20% of the power at
+# 4-8 kHz, 50 to 58% at 8-16. At its own strokes (tools/presence.py) -14.3 -> -9.9 and -13.0 -> -9.5 dB against the
+# mix; On Its Hinge's stands -11.3 by the same read. The mix against the records' passages without a voice, mean
+# distance over nine bands: 0.989 -> 0.978, 0.422 -> 0.422, 1.233 -> 1.189, 0.656 -> 0.589, 0.744 -> 0.667, 0.589
+# -> 0.522 (the six band sections in order); at 4-8 kHz -0.3, +0.4, -1.2, +0.8, +0.7, +1.1 -> -0.4, +0.5, -0.5,
+# 0.0, +0.1, +0.5. (In 'lit through', which has no hat, that is the kick's click alone.)
+# THE SCORER: 98.960 / 99.220 / 99.623 -> 99.677 / 95.489 / 97.298 (seeds 0, 11, 1). KEPT ON JUDGMENT, neither
+# claimed. With the SAME hat left as it was in 'where it was' alone ('spare') it reads 99.677 / 99.078 / 99.478:
+# so the fall is one boundary, 1:06, that the scorer's two coarsest cuts of seven no longer find, because a steady
+# hat with a body ties the first three band sections together in the band where the kick's click and the guitars
+# had told them apart. Giving the kick its click back there did not bring it back. A hat that is a tick for 27
+# seconds for the scorer's sake is not a better hat.
+# NOT TAKEN: the nearest shape alone (opened to 3 kHz, a -10 dB shelf, no peak: 2.4) puts its body at 1.25-3 kHz,
+# where the guitars are 88% of the band and the mix is 1.2 over in 'the shape'; it was not read in the mix. The
+# fader at 17 (its top octave 1.5 dB more) read "nearer" in 'the shape' by its level, not by its shape.
+# THE TARGET IS NOT MOVED: every section within 0.061 dB of v27 on three seeds; chalk and under glass, which have
+# neither hat nor kick, 0.041 to 0.061 lower; 'lit through' 0.035 to 0.059 higher.
+# 'over': overrides on the library's closed hat ; 'fader': the hat's own track, dB (12 = the level v27 had it at) ;
+# 'eq': the bands on that track ; 'click': the kick's lift at 4.3 kHz, dB (it was 7; None: as it was) ;
+# 'click_stays': sections where the click stays at 7 ; 'spare': sections whose hat and click stay as v27 had them ;
+# 'loudness' (None: unchanged). --v27 restores v27 byte for byte. (--hat '{"fader": 14}': fields changed for a bench.)
+HATBODY = {'over': 'filters.0.cutoff.value=4k amp.d=60ms', 'fader': 15.5, 'eq': ('highshelf cutoff=8000 gain=-8dB', 'peak cutoff=5500 q=0.8 gain=4dB'),
+           'click': 5, 'click_stays': ('where it was',), 'spare': (), 'loudness': None}
+
+
+def the_hat_gets_a_body(doc):
+    """v28: the closed hat's strokes leave the cymbals' track for one of their own, on a kit of the song's own whose
+    hat is opened downwards; the kick's click gives up the room the hat's body takes. A spared section keeps both
+    as they were."""
+    at, spared, stays = 0, [], []
+    for section, span in FORM:                                      # spans are in ticks, SUB to the beat
+        if section in HATBODY['spare']: spared.append((at / SUB, (at + span) / SUB))
+        if section in HATBODY['click_stays'] or section in HATBODY['spare']: stays.append((at / SUB, (at + span) / SUB))
+        at += span
+    kept = lambda n: any(a <= n['at'] < z for a, z in spared)
+    metal = next(t for t in doc['tracks'] if t['name'] == 'metal')
+    assert metal['patch'] == f"ct-kit kit.h.gain={HAT['gain']}dB", metal['patch']
+    doc['patches'] = {**doc.get('patches', {}), 'wiw-hat-kit': {'extends': 'ct-kit', 'kit': {'h': {
+        'patch': ('haake-hat ' + HATBODY['over']).strip(), 'gain': '-10dB', 'choke': 'hat'}}}}
+    hat = {'name': 'hat', 'patch': 'wiw-hat-kit', 'gain': f"{HATBODY['fader']:g}dB", 'out': metal.get('out'),
+           'notes': [n for n in metal['notes'] if n['pitch'] == 'h' and not kept(n)]}
+    if HATBODY['eq']: hat['fx'] = [{'type': 'eq', 'bands': list(HATBODY['eq'])}]
+    metal['notes'] = [n for n in metal['notes'] if n['pitch'] != 'h' or kept(n)]      # the ride, the china and the crashes stay
+    if not any(n['pitch'] == 'h' for n in metal['notes']): metal['patch'] = 'ct-kit'
+    assert hat['notes'] and metal['notes']
+    doc['tracks'].insert(doc['tracks'].index(metal) + 1, hat)
+    if HATBODY['click'] is not None:
+        kick = next(t for t in doc['tracks'] if t['name'] == 'kick')
+        bands = kick['fx'][0]['bands']
+        assert bands[0] == 'peak cutoff=4300 q=0.8 gain=7dB', bands
+        if stays:                                                    # the lift comes back, by a lane, for as long as such a section lasts
+            points = [['0b', 0]]
+            for a, z in stays:
+                points += [[f'{a - .02:g}b', 0], [f'{a:g}b', 7 - HATBODY['click']], [f'{z - .02:g}b', 7 - HATBODY['click']], [f'{z:g}b', 0]]
+            bands[0] = {'kind': 'peak', 'cutoff': 4300, 'q': 0.8, 'gain': {'value': f"{HATBODY['click']:g}dB", 'mod': [{'src': 'auto.click', 'amount': 1}]}}
+            kick['auto'] = {'click': {'points': points, 'curve': 0}}
+        else:
+            bands[0] = f"peak cutoff=4300 q=0.8 gain={HATBODY['click']:g}dB"
+    if HATBODY['loudness']: doc['loudness'] = HATBODY['loudness']
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, default=OUT)
@@ -995,6 +1071,8 @@ if __name__ == '__main__':
     previous.add_argument('--v24', action='store_true', help="restore the album's snare as it comes: a tone higher, shorter, with its box")
     previous.add_argument('--v25', action='store_true', help="restore the back of the sheet with no struck voice of its own (no wooden bars)")
     previous.add_argument('--v26', action='store_true', help="restore the album's bass drum as it comes: no chest, its long tail")
+    previous.add_argument('--v27', action='store_true', help="restore the closed hat as the library has it (nothing under 8 kHz), on the cymbals' track, and the kick's click at +7 dB")
+    parser.add_argument('--hat', help='a bench: HATBODY fields to change, as a JSON object')
     parser.add_argument('--verso', help='a bench: VERSO fields to change, as a JSON object')
     parser.add_argument('--kick', help='a bench: KICK fields to change, as a JSON object')
     parser.add_argument('--said-gain', type=float, default=None, help="the sung voice's track gain in dB (default: SAID's)")
@@ -1019,8 +1097,13 @@ if __name__ == '__main__':
             doc['loudness'] = VERSO['loudness']
     if args.kick:
         KICK.update(json.loads(args.kick))
-    if not any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit()) and any(t['name'] == 'bars' for t in doc['tracks']):   # only on the whole song as v26 has it
+    older = any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit() and k != 'v27')
+    if not older and any(t['name'] == 'bars' for t in doc['tracks']):   # only on the whole song as v26 has it
         the_kick_gets_a_chest(doc)
+        if not args.v27:
+            if args.hat:
+                HATBODY.update(json.loads(args.hat))
+            the_hat_gets_a_body(doc)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
