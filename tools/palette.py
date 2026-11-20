@@ -148,11 +148,12 @@ def roles(canon):
     track where it sounds). A pitched track: {"lo", "hi" (pitch names), "lo_hz", "hi_hz", "bars" (it sounds in),
     "lowest" (bars where it is the lowest written part), "floor" (bars, 0-indexed, where it is an octave or more
     under every other pitched part, or the only one), "of" (the song's bars)}. A kit's track: {"kit": True, "hits",
-    "bars", "of"}. Bars are read in 4/4; a song whose tempo changes or whose meter is
-    another gets registers and hits only ("of" is None)."""
+    "bars", "of"}. Bars are read in 4/4: one tempo, or a tempo map placed in beats with no change of meter (a bar is
+    four beats whatever the tempo: bd-10e881); a song whose meter is another, or whose map changes meter or is not in
+    beats, gets registers and hits only ("of" is None)."""
     pats = canon.get("patches") or {}
-    tempo = canon.get("tempo", 120.0)
-    barred = (isinstance(tempo, (int, float)) and not isinstance(tempo, bool)
+    import wincut
+    barred = (wincut.clock_of(canon.get("tempo", 120.0)) is not None
               and str(canon.get("meter") or "4/4").replace(" ", "") == "4/4")
     got, sounding, total = {}, {}, 0
     for t in canon.get("tracks") or []:

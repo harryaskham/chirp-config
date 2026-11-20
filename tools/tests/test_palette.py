@@ -68,8 +68,18 @@ def test_role_lines_and_bar_ranges():
     assert P.note_name(29) == "F1" and P.note_name(63) == "Eb4"
 
 
+def test_roles_keep_their_bars_on_a_tempo_map_in_beats():
+    """bd-10e881: a bar is four beats whatever the tempo, so a map placed in beats reads as one tempo does."""
+    gear = [{"at": 0, "bpm": 96, "meter": None, "ramp": False}, {"at": "8b", "bpm": 120, "meter": None, "ramp": True}]
+    one, mapped = P.roles(_song()), P.roles(dict(_song(), tempo=gear))
+    assert mapped == one and mapped["drone"]["of"] is not None
+    assert [P.role_line(n, r) for n, r in mapped.items()] == [P.role_line(n, r) for n, r in one.items()]
+
+
 def test_roles_without_bars_when_the_song_is_not_in_one_tempo_and_four_four():
-    for change in ({"tempo": [[0, 120], [8, 90]]}, {"meter": "7/8"}):
+    for change in ({"tempo": [[0, 120], [8, 90]]}, {"meter": "7/8"},
+                   {"tempo": [{"at": 0, "bpm": 120}, {"at": "8b", "bpm": 90, "meter": "3/4"}]},
+                   {"tempo": [{"at": 0, "bpm": 120}, {"at": "2bars", "bpm": 90}]}):
         r = P.roles(dict(_song(), **change))
         assert r["drone"]["of"] is None and "floor" not in r["drone"]
         assert P.role_line("drone", r["drone"]) == "drone: F1 (43.7 Hz) as written"
