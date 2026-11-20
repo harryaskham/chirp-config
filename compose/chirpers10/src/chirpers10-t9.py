@@ -1130,6 +1130,54 @@ def the_opening_has_a_clock(doc):
         doc["loudness"] = float(loud)
 
 
+# v30 (chirper-alpha; section round, w3, 0:45-1:08; the change is 0:46.7-1:00, the last eight cells of 'three';
+# 32 notes of the second pair of guitars, dl and dr, are re-pitched; no note is added, moved or dropped and no
+# other part changes). AT THREE, THE ANSWERS ARE IN THIRDS.
+#   Every speed on the way up has a guest (the open hat at two, the bell and the foot at three, the baritone and
+#   the clavinet at four, the tabla, the sitar), and none of them is a harmony: for most of its first two minutes
+#   every pitched part plays the riff's five notes in unison or octaves. At three to the beat four guitars played
+#   the same seven strokes for twenty seconds (the map's stillest window by a factor of two).
+#   The riff has two answers in each cell: A flat and B, then G flat and C. From the cell at 0:46.7 the second pair
+#   plays each answer A THIRD HIGHER IN THE SONG'S OWN SIX NOTES, an octave up, while the main pair and the bass keep
+#   the answer itself: C over A flat and E flat over B (two major tenths), B over G flat and F over C (two
+#   elevenths). One cell is sweet and the next is hollow, and the open F between them is as it was. From 0:53.3
+#   the right guitar of the pair takes its notes an octave higher still (C4, E flat 4, B3, F4), which is where the
+#   clavinet picks the second answer up at 1:00 (B3, C4): the answers climb out of the riff before the guests
+#   take them.
+#   (The six notes hold three triads a minor third apart, F minor, A flat major and B major: the lifted answers
+#   spell the last two. A FIFTH over these roots was benched and adds no note: it is the root's own third
+#   harmonic, and over A flat and B the mix gained -4 to +5 dB at it.)
+#   MEASURED (raw, own seed; the mix with the lifted notes less the mix without, in a line 3% wide at each new
+#   note): 0:46.7-0:53.3 +18.0 dB at the fundamental (median; the least note +12.6 at its best partial);
+#   0:53.3-1:00 the left guitar's notes +13.7, the right's an octave up +4.9 at the fundamental and +10.4 at the
+#   best partial (E flat 4 over B and C4 over A flat lie on the root's fifth harmonic and fuse with it). At the
+#   low answers' own notes the mix is unchanged (+0.1 dB): the main pair and the bass hold them. The passage is
+#   0.07 dB lower (K), 250 Hz-1 kHz 0.3 up; the rest of the song is v29's within 0.01 dB on three seeds.
+# stages, '|' between: from beat ; to beat ; who lifts the answers ; low note=the note played for it, ',' between.
+# Then '#' and the loudness target ('' = unchanged). '' = v29 byte for byte. On only when PICK is on.
+THIRDS = os.environ.get('C10T9_THIRDS', '65.3;74.6;dl,dr;Ab1=C3,B1=Eb3,Gb1=B2,C2=F3|74.6;84;dl;Ab1=C3,B1=Eb3,Gb1=B2,C2=F3|'
+                        '74.6;84;dr;Ab1=C4,B1=Eb4,Gb1=B3,C2=F4#' if PICK else '')
+
+
+def the_answers_are_in_thirds(doc):
+    """v30: in the second half of 'three' the second pair of guitars plays each answer a third of the song's scale higher,
+    an octave up (a tenth over the main pair, which keeps the note)."""
+    stages, target = THIRDS.split('#')
+    done = set()
+    for stage in stages.split('|'):
+        a, b, who, pairs = stage.split(';')
+        lift = dict(x.split('=') for x in pairs.split(','))
+        for t in doc['tracks']:
+            if t['name'] in who.split(','):
+                for n in t['notes']:
+                    if float(a) <= n['at'] < float(b) and n['pitch'] in lift and not n.get('expr', {}).get('pm') and (t['name'], n['at']) not in done:
+                        n['pitch'] = lift[n['pitch']]
+                        done.add((t['name'], n['at']))
+    assert done, 'no answer was found to lift'
+    if target:
+        doc['loudness'] = float(target)
+
+
 def the_chug_keeps_its_low_end(doc):
     """v29: the four riff guitars' muted stroke: a harder pick, no thump, a string that rings a little under the palm,
     the palm's filter by the stroke's attack; the eq the mix would bear; the double's microphone out from the cap."""
@@ -1198,4 +1246,6 @@ if __name__ == "__main__":
             the_six_strings_are_a_sitars(doc)
         if PICK:
             the_chug_keeps_its_low_end(doc)
+        if THIRDS:
+            the_answers_are_in_thirds(doc)
         open(OUT, "w").write(dump(doc))
