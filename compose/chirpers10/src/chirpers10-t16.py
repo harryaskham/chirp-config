@@ -455,6 +455,24 @@ FRET = os.environ.get("C10T16_FRET", "three;5;5;4;" if FIFTH else "")
 # unchanged). The band rests in the section's first bar. "" = v15 byte for byte.
 SHOWN = os.environ.get("C10T16_SHOWN", "five=brass;seven=brass,hat;three=brass,skins-bb1;square again=brass,foot|"
                                        "reed,hair,third,drum,cymbals,pan,pan-out,pan-five,bend|-10.1" if FRET else "")
+# v17 (chirper-alpha; instrument round: the four guitars, every muted stroke, 906 of 1264 notes): THE HAND LIGHTENS.
+# Read alone beside six records' strokes (riffpunch --strokes, 342 clean muted strokes) the chug had three faults: its
+# low end died after the stroke (+2.36; records -1.10), it had no teeth (400 Hz-1 kHz less 1-4 kHz -5.42; records
+# -11.31), and by part the guitars stood 3.9 dB over the records' at 500 Hz-1 kHz, on the reeds' fourth overtone.
+# (1) The palm's weight was 1.0 on every muted stroke; it is 0.4 on a stroke that says two (half way between two
+# kicks), 0.5 on three (the thirds), 0.6 on four (the quarters). The weight is the low end: the album's cure alone
+# made it worse (+3.45), one weight of 0.6 gave +0.42, these three -0.64. The three read nearly alike; the ladder is
+# the best fit of five tried, not a thing an ear will follow. (2) A full hand closes the string's filter 2 octaves,
+# not 3.4. (3) The microphone 0.4 -> 0.5. (4) The +2.5 dB at 700 Hz is -1.5 dB, and +2.5 dB at 185 Hz gives back
+# some of the body the lighter hand takes (by part 120-250 Hz -3.4 -> -5.0; without the band -6.8).
+# After: teeth -11.70, grain 0.39 (0.40), rise 20.0 ms (19.75); the rig alone against a record's guitar 2.53 -> 1.95;
+# the mix against the records 1.58 -> 1.28, six stretches of six nearer; the reeds' fourth overtone 1.5 to 2 dB
+# more heard. The cost: leaner guitars, and the band up to 0.4 dB quieter where they lead.
+# the palm's reach on the string's filter, octaves ; the hand's weight on a muted stroke that says two, three, four
+# (half way between two kicks, on the thirds, on the quarters; anything else takes the last) ; the microphone ; the
+# bands on each guitar where the 700 Hz lift was ('|' between them; '' = none) ; the loudness target ('' =
+# unchanged). '' = v16 byte for byte.
+HAND = os.environ.get("C10T16_HAND", "-2;0.4,0.5,0.6;0.5;peak cutoff=700 q=0.9 gain=-1.5dB|peak cutoff=185 q=1.2 gain=2.5dB;-10.27" if SHOWN else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -806,8 +824,12 @@ def build():
         the_fifth(doc, marks)
     if FRET:
         fretted(doc, marks)
+    if HAND:
+        the_hand_says_the_count(doc)        # before the bars of rest are taken out: it reads the kicks as written
     if SHOWN:
         the_pair_shows_the_count(doc, marks)
+    if HAND and HAND.split(";")[4]:
+        doc["loudness"] = float(HAND.split(";")[4])
     return doc, marks, end
 
 
@@ -832,6 +854,36 @@ def the_fifth(doc, marks):
                           **({"fx": [{"type": "eq", "bands": eq.split("|")}]} if eq else {})})
     if target:
         doc["loudness"] = float(target)
+
+
+def the_hand_says_the_count(doc):
+    """v17: the four guitars' palm closes the string's filter less far, and its weight on each muted stroke is the
+    count that stroke says: two (half way between two kicks), three (on the thirds), four (on the quarters)."""
+    from bisect import bisect_right
+    reach, weights, mic, band, _ = HAND.split(";")
+    weights = [float(x) for x in weights.split(",")]
+    tracks = {t["name"]: t for t in doc["tracks"]}
+    kicks = sorted(n["at"] for n in tracks["foot"]["notes"])
+    places = [(Fr(1, 2), 0), (Fr(1, 3), 1), (Fr(2, 3), 1), (Fr(1, 4), 2), (Fr(3, 4), 2)]
+    for name in ("left", "right", "left" + ALSO, "right" + ALSO):
+        t = tracks[name]
+        t["patch"] += f" synth.filters.0.cutoff.mod.0.amount={reach} fx.2.mic={mic}"
+        assert t["fx"][0] == {"type": "eq", "bands": ["peak cutoff=700 q=0.9 gain=2.5dB"]}, t["fx"][0]
+        t["fx"] = ([{"type": "eq", "bands": band.split("|")}] if band else []) + t["fx"][1:]
+        if not t["fx"]:
+            del t["fx"]
+        for n in t["notes"]:
+            if n.get("expr", {}).get("pm"):
+                i, w = bisect_right(kicks, n["at"] + 1e-6), weights[-1]
+                if 0 < i < len(kicks):
+                    cell = kicks[i] - kicks[i - 1]
+                    if i >= 2 and cell > 1.5 * (kicks[i - 1] - kicks[i - 2]):     # the kick rests next: the pulse it was in
+                        cell = kicks[i - 1] - kicks[i - 2]
+                    p = (n["at"] - kicks[i - 1]) / cell
+                    d, k = min((abs(p - float(q)), k) for q, k in places)
+                    if d < 0.045:
+                        w = weights[k]
+                n["expr"] = {**n["expr"], "pm": w}
 
 
 def the_pair_shows_the_count(doc, marks):
