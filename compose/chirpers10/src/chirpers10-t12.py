@@ -279,6 +279,54 @@ FEET = {'patch': 'ct-kit kit.k.pitch=C2', 'gain': '0.5dB', 'pan': .3, 'eq': 'pea
 # how many of the facing page's strips carry it ; its fader against the left hand's own level ; how many sixteenths
 # before the strip the tape starts ; the loudness target (None: unchanged). --without-blot gives v21.
 BLOT = {'strips': 2, 'gain': '-2.5dB', 'ahead': 1, 'loudness': None}
+# v23 (chirper-zero, instrument round: the bass, 161 notes; no note moves): THE BASS LEANS ON ITS OCTAVE, AND THE
+# MIDDLE IT LEAVES GOES TO THE TWO HANDS. Alone, beside eleven records' bass stems (tools/bassspec.py), this bass
+# was the furthest on the album: 7.1 (In the Time Of's was 6.4 before its v24). It stood +14 dB at 40 and 50 Hz,
+# -10 and -8 at 80 and 100, where a record's bass has its weight, and +6 to +10 from 315 to 630 Hz: a sub and a
+# box. So the album's cure (In the Time Of v24, Take Up the Slack v15): the note's octave up 6 dB at 110 Hz, the
+# box cut (540 Hz -6), the grind moved to 1150 Hz and raised, the sine under the note down 8 dB (-9 -> -17: the
+# root here is F1, 43.7 Hz, so the sine IS the note's fundamental and it stays; -20 was benched and not taken),
+# and the patch's low-pass opened 4 -> 6 kHz. Alone 7.12 -> 4.28 ('ink'), 7.23 -> 4.67 ('raised').
+# BUT THE BOX HAD BEEN STANDING IN FOR THE GUITARS: with the bass cured and nothing else the mix read WORSE (1.102
+# -> 1.130; 'ink' and 'one hand' 0.3 to 0.6 further short from 250 Hz to 1 kHz). So the two hands take the middle: on
+# their tracks +2.5 dB at 330 Hz, the 800 Hz cut 1.5 -> 0.5, +2 dB at 1.3 kHz (the mix was 1.2 to 3.0 short at
+# 1-2 kHz in every stretch), the chest 7 -> 8 dB, v15's cut at 2.6 kHz 3.5 -> 4. AND THE HAND LIFTS (chirper-
+# alpha's finding, So Far v15; Extreme and Mean v27): the palm closes the string's filter 2 octaves, not 3.4, and
+# weighs 0.6 of what it did. A muted stroke's low end died through the stroke (+1.3 / +2.0 dB, the first 20 ms
+# against 40-80; six records -1.1, -2.2 to +0.3): now -0.6 / -0.2; the noise between its harmonics 0.43 / 0.45 ->
+# 0.37 / 0.42 (0.40). The tape of the left hand (v22) is the left hand's own rig, so it changes with it.
+# THE MIX against the eleven records, six stretches, all nine bands: 1.102 -> 0.950, every stretch nearer (0.881
+# before the hands and the bass were each trimmed to be as loud alone as they were).
+# overrides on the bass's patch ; octaves the palm closes the hands' filter ; the palm's weight ; the hands' track
+# eq ; dB on the hands' and the bass's faders (each is then as loud alone as it was) ; the loudness target (a fuller
+# middle measures louder: at v22's -10.34 the master turned 'pencil', which has neither guitar nor bass, down
+# 0.64 dB; at -9.99 it is where v22 had it). --without-lean gives v22.
+LEAN = {'bass': 'fx.2.bands.0.gain=12dB fx.2.bands.1.gain=6dB fx.2.bands.2.cutoff=540 fx.2.bands.2.q=0.7 fx.2.bands.2.gain=-6dB '
+                'fx.2.bands.3.cutoff=1150 fx.2.bands.3.q=1.2 fx.2.bands.3.gain=6dB synth.layers.1.level=-17dB fx.2.bands.3.gain=10dB fx.2.bands.5.cutoff=6000',
+        'palm': -2, 'weight': 0.6,
+        'eq': ['peak cutoff=180 q=1 gain=8dB', 'peak cutoff=330 q=1 gain=2.5dB', 'peak cutoff=800 q=1.2 gain=-0.5dB',
+               'peak cutoff=1300 q=1 gain=2dB', 'peak cutoff=2600 q=1.4 gain=-4dB'],
+        'trim': -1.1, 'loudness': -9.99}
+
+
+def lean(doc):
+    """v23: the bass on the album's leaner chain; the two hands (and the left hand's tape) with a lighter palm and the
+    middle the bass gave up."""
+    hands = [t for t in doc['tracks'] if t['name'] in ('left', 'right')] + [t for s in doc.get('songs', {}).values() for t in s['tracks']]
+    for t in hands:
+        if isinstance(t['patch'], str) and t['patch'].startswith('ct-twin '):
+            cut = t['patch'].find(' play.humanize.time=0ms')        # the tape's copy of the left hand ends with its own two play fields
+            t['patch'] = (t['patch'] + f" synth.filters.0.cutoff.mod.0.amount={LEAN['palm']}" if cut < 0 else
+                          t['patch'][:cut] + f" synth.filters.0.cutoff.mod.0.amount={LEAN['palm']}" + t['patch'][cut:])
+            for n in t['notes']:
+                if (n.get('expr') or {}).get('pm'): n['expr']['pm'] = round(n['expr']['pm'] * LEAN['weight'], 4)
+            t['fx'] = [{'type': 'eq', 'bands': LEAN['eq']}]
+    bass = next(t for t in doc['tracks'] if t['name'] == 'bass')
+    bass['patch'] += ' ' + LEAN['bass']
+    for t in hands + [bass]:                # each is as loud alone as it was (the hands +1.1 LU, the bass +1.0 to +1.2 before the trim)
+        if isinstance(t['gain'], dict): t['gain'] = dict(t['gain'], value=f"{float(t['gain']['value'][:-2]) + LEAN['trim']:g}dB")
+        else: t['gain'] = f"{float(t['gain'][:-2]) + LEAN['trim']:g}dB"
+    if LEAN['loudness']: doc['loudness'] = LEAN['loudness']
 
 
 def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, turned=True, rig=HANDS_RIG, reading=True, chest=True, palmas=True, crack=True, feet=True, blot=True):
@@ -835,8 +883,10 @@ if __name__=='__main__':
     ap.add_argument('--without-crack',action='store_true',help="regenerate v19, the album kit's snare as it comes and the two hands with their top")
     ap.add_argument('--without-other-foot',action='store_true',help="regenerate v20, the foot in 'opposite' with the left hand only")
     ap.add_argument('--without-blot',action='store_true',help="regenerate v21, the facing page without the left hand's tape played backwards")
+    ap.add_argument('--without-lean',action='store_true',help="regenerate v22, the bass on the album's old chain and the two hands at a full palm")
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
     doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot,not a.without_blot)
+    if not a.without_lean and 'songs' in doc: lean(doc)      # only on the whole song as v22 has it (the tape is there when every older switch is on)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
