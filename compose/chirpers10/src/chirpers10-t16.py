@@ -716,6 +716,69 @@ LAST = os.environ.get("C10T16_LAST", "3-15;synth.amp.d=1.5s synth.amp.r=1.5s syn
 # the loudness target ('' = unchanged). '' = v24 byte for byte.
 LANDS = os.environ.get("C10T16_LANDS", "left,right;fx.0.attack=15ms fx.0.release=200ms;transient attack=4 sustain=-1;-1.3;"
                        if LAST and HEAD else "")
+# v26 (chirper-zero; section round, w4 1:27-1:56, the window least recently worked, and on through the turn of the
+# peg that ends its section, to 2:03.6; the change is 1:45.5-2:03.6: one new track, the drummer's feet; no other note,
+# sound or fader changes): SEVEN SEVENS. The band plays what the pair's overtones do: the kick the first's pulse,
+# the guitars the second's, the toms the third's, the hat the fourth's; the handpan names the fifth (v14). Nobody
+# has gone further, and in the section called seven the next thing worth saying is the SEVENTH overtone, which
+# pulses seven times inside every one of the seven kicks: forty-nine to the bar, 13.5 a second. No hand in this
+# band can say that. A metal drummer's FEET can: it is a double-kick roll (sixteenths at 202 to the minute), the
+# one thing this record's kind of music always has and this song did not. 'Seven' was also the song's most
+# repeated stretch: after the bar where the pair shows the count, five bars alike (the map's rhythm figure 0.028,
+# the lowest in the song), at its fastest width. So the section now has a second half. Two bars of seven as it
+# was; then, from its fourth bar, the feet roll the seventh's pulse between the kicks, six light strokes to each
+# (the kick itself is the seventh: the cell inside a kick is now two against three against four against seven);
+# AND WHEN THE PEG IS TURNED DOWN TO THREE (v8: 1:56.4-2:03.6) THE ROLL SLOWS WITH THE PAIR, each stroke where the
+# seventh overtone swells, from 13.5 a second to 5.8: a roll running down, into the bar where the toms count nine.
+# The feet are the same drum on the same note as the kick under them (v21), shorter and lighter, so the seven
+# kicks still stand over the roll; the chest (v21) stays with the kicks alone.
+# the section ; its bar (1 = its first) at which the roll begins ; the overtone ; the feet's fader ; the
+# velocities of the strokes between two kicks (overtone - 1 of them) ; what is added to the drum for these strokes ;
+# the loudness target ('' = unchanged). On only while LANDS and FOOT are. "" = v25 byte for byte.
+# THE FEET ARE ALL BEATER (benched before the full renders). As the drum comes, at this touch, the roll was a rumble:
+# at its own strokes it added 2.3 dB under 60 Hz and 0.5 dB at 4-8 kHz, and the mix's beater band moved 1.6 dB at
+# the roll's rate. A soft stroke on this drum has almost no beater (its click follows velocity). So the feet's
+# beater is 10 dB up (the click and the tick, -64 -> -54 dB): +3.9 dB at 4-8 kHz at each stroke, the beater band's
+# line at 13.5 Hz +8.5 dB. THE MIX CHOSE THAT RUNG: beside the records' passages with no voice the roll reads
+# 0.856 -> 0.733 and the turn 1.167 -> 1.000 (4-8 kHz -0.9 -> +0.1 and -1.2 -> -0.3: these bars were short there);
+# with 16 dB it read 0.878 / 1.111 (over at 4-8 kHz), and with a lighter thump and 19 dB 0.856 / 1.111. Alone
+# against the six records' bass drums (kickspec): 5.49 as it came, 3.98 with 10 dB (click -11.1; theirs -12.5).
+SEVENS = os.environ.get("C10T16_SEVENS", "seven;4;7;-2dB;0.5,0.44,0.48,0.44,0.48,0.44;kit.k.patch.synth.amp.d=80ms kit.k.patch.synth.layers.2.level.value=-54dB "
+                        "kit.k.patch.synth.layers.3.level.value=-54dB;-10.38" if LANDS and FOOT and PEG else "")
+
+
+def seven_sevens(doc, marks):
+    """v26: the drummer's feet roll the pair's seventh overtone between the kicks, and slow with the peg."""
+    sec, first, n, fader, vels, short, target = SEVENS.split(";")
+    n, vels = int(n), [float(v) for v in vels.split(",")]
+    name, b, r, bars = next(m for m in marks if m[0] == sec)
+    num = next(i for i, x in enumerate(FORM) if x[0] == sec)
+    tail = 4 * SLIDES.get(sec, 0)
+    turn, pulse = b + 4 * bars - tail, 1 / Fr(r)
+    assert len(vels) == n - 1 and 1 <= int(first) and b + 4 * (int(first) - 1) < turn, (first, vels)
+    foot = next(t for t in doc["tracks"] if t["name"] == "foot")
+    assert not any(t["name"] == "feet" for t in doc["tracks"])
+    at = []
+    k = Fr(4 * (int(first) - 1)) / pulse
+    assert k.denominator == 1, k                 # the roll begins on a kick
+    while b + (k + 1) * pulse <= turn:
+        at += [(b + (k + Fr(j, n)) * pulse, j) for j in range(1, n)]
+        k += 1
+    if tail:
+        _, pulses, when = turned(hz(REED + FORM[num][3]), r, FORM[num + 1][1], tail, tail - 0.04)
+        at += [(turn + when(Fr(n * p + j, n)), j) for p in range(pulses) for j in range(1, n)]
+
+    def drum(t):                                 # the drum the kick under this stroke is (v21: its note follows the bass)
+        under = [x for x in foot["notes"] if x["at"] <= t + 1e-6][-1]
+        return under.get("patch", foot["patch"]) + (" " + short if short else "")
+
+    doc["tracks"].append({"name": "feet", "patch": foot["patch"] + (" " + short if short else ""), "gain": fader, "pan": 0, "out": foot.get("out"),
+                          **({"fx": foot["fx"]} if foot.get("fx") else {}),
+                          "notes": [{"at": round(float(t), 5), "len": 0.12, "pitch": "k", "vel": vels[j - 1], "patch": drum(float(t))} for t, j in at]})
+    if target:
+        doc["loudness"] = float(target)
+
+
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -1128,6 +1191,8 @@ def build():
         every_overtone_has_a_last_swell(doc, marks)
     if LANDS:
         the_stroke_lands(doc)
+    if SEVENS:
+        seven_sevens(doc, marks)
     return doc, marks, end
 
 
