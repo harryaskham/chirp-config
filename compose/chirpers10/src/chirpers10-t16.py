@@ -665,6 +665,37 @@ HEAD = os.environ.get("C10T16_HEAD", "1.15:0.162;220;"
                       "kit.s.patch.synth.layers.0.wires=1;"
                       "peak cutoff=1050 q=1.2 gain=-6dB|peak cutoff=2300 q=1.2 gain=-5dB|highshelf cutoff=3500 gain=4dB;-1.5dB;-;3.1dB;"
                       if TUNED else "")
+# v24 (chirper-alpha; section round, w7, 2:54-3:31, flagged static; the change is 3:20.0-3:22.1, between the band's
+# last stroke and the last chord: thirteen notes on a new track, `last` (the song's handpan, damped), and one
+# stroke of the finger cymbals; nothing else changes). EVERY OVERTONE HAS A LAST SWELL.
+#   In the ending the peg is turned down to the unison in one straight line (v8), twelve pulses long. Overtone n of
+#   the pair swells n times a pulse, so it swells for the LAST time one n-th of a pulse before the end: the higher
+#   the overtone, the later. The band already plays the first two: its last stroke is the fundamental's last swell
+#   (3:17.35) and the guitars' last muted stroke is the octave's (3:19.2). Then nobody played, for 4.4 seconds, while
+#   the pair went on settling overtone by overtone. Now the handpan, which has named the pair's overtones since v2,
+#   names each of the rest as it swells for the last time: 3 (C5, 3:20.0), 4 (F5, 3:20.5), 5 (A5), 6 (C6), 7, 8 (F6),
+#   9 ... 15, the gaps closing as a dropped ball's do (0.49 s, 0.33, 0.25 ... 0.06); and the sixteenth is the finger
+#   cymbals' own note (chirper-two tuned them to 2793.8 Hz, sixteen times the reed), so they ring it (3:22.1). After
+#   that nothing an ear can follow in the pair is still moving: a second and a half of the drone, and the chord
+#   (3:23.6). The band slows to a stop and the pair's settling runs UP the harmonic series, faster and faster.
+#   READ ON THE PAIR ALONE: the last swell of overtones 5 to 16 falls 0 to 44 ms from where the note is written
+#   (median 11 ms; 3 and 4 have flat tops the notes sit on).
+#   THE SOUND: the song's handpan with its ring damped (1.5 s; as it rings elsewhere, 5.5 s, thirteen notes stood
+#   1.8 dB under the drone through the stillness and there was none), no wander in time, each note 3 dB softer per
+#   octave over the first (the patch grows louder as it climbs; with the tilt the notes stand level, -3 to -5 dB
+#   against everything else, K). MEASURED (raw, own seed): at its own pitch a note is +4.4 dB over everything else
+#   (median; least +0.3); the mix at each note's own line gains +4 to +14 dB (median +8.4), and on the finished
+#   files of three seeds +4.3 or more on every note. Two strokes are written a fraction of a millisecond late (the
+#   last field): F5 0.72 ms and the fourteenth 0.2 ms, half a cycle each: as first written they fell against lines
+#   already sounding (the lead guitar's partials) and TOOK 3 and 6 dB from them.
+# the overtones named at their last swell, 'from-to' ; what the handpan's patch takes besides ; its fader ; its pan ;
+# the touch a * n ** b + c ; how long a note is held, beats ; dB a note loses for each octave over the first named ;
+# the finger cymbals' own overtone:piece:velocity:beats it is left to ring ('' = no stroke) ; the loudness target
+# ('' = unchanged) ; overtone:milliseconds a stroke is written later, ',' between (a stroke on a line another part
+# holds adds to it or takes from it by where in the cycle it falls). "" = v23 byte for byte. On only while HEAD and
+# PEG are.
+LAST = os.environ.get("C10T16_LAST", "3-15;synth.amp.d=1.5s synth.amp.r=1.5s synth.env.ring.d=2s synth.env.ring.r=2s play.humanize.time=0ms;"
+                      "-9.5dB;0;0.8,-0.28,0.2;2;3;16:o:0.62:1.6;;4:0.72,14:0.2" if HEAD and PEG else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -1073,7 +1104,37 @@ def build():
         doc["loudness"] = float(TUNED.split(";")[1])
     if HEAD:
         the_snare_is_on_the_note(doc)
+    if LAST:
+        every_overtone_has_a_last_swell(doc, marks)
     return doc, marks, end
+
+
+def every_overtone_has_a_last_swell(doc, marks):
+    """v24: while the peg is turned down to the unison (v8: one straight line, twelve pulses), overtone n of the pair
+    swells for the last time one n-th of a pulse before the end. The band already plays the first's (its last stroke)
+    and the second's (the guitars' last muted stroke); the handpan names the rest, each at its own last swell, and
+    the finger cymbals, which have stood on the sixteenth all song, ring theirs."""
+    span, add, fader, pan, law, hold, tilt, cym, target, nudge = LAST.split(";")
+    late = {int(x.split(":")[0]): float(x.split(":")[1]) * BPM / 60000.0 for x in filter(None, nudge.split(","))}
+    names, r0, r1 = RAMPS["a half"]
+    b0 = next(b for name, b, _, _ in marks if name == names[0])
+    total = sum(4 * bars for name, _, bars, _, _ in FORM if name in names)
+    f = hz(REED + next(ground for name, _, _, ground, _ in FORM if name == names[0]))
+    _, pulses, when = turned(f, r0, r1, total, total - 0.04)
+    a, b, c = (float(x) for x in law.split(","))
+    lo, hi = (int(x) for x in span.split("-"))
+    doc["tracks"].append({"name": "last", "patch": PAN.split(";")[0] + (" " + add if add else ""), "gain": fader, "pan": float(pan),
+                          "notes": [{"at": round(b0 + when(pulses - 1.0 / k) + late.get(k, 0), 6), "len": float(hold), "pitch": f"{k * f:.3f}hz",
+                                     "vel": round(a * k ** b + c, 2),
+                                     **({"gain": f"{-float(tilt) * math.log2(k / lo):.2f}dB"} if tilt and float(tilt) and k > lo else {})}
+                                    for k in range(lo, hi + 1)]})
+    if cym:
+        k, piece, vel, ring = cym.split(":")
+        tr = next(t for t in doc["tracks"] if t["name"] == "cymbals")
+        tr["notes"] = sorted(tr["notes"] + [{"at": round(b0 + when(pulses - 1.0 / int(k)), 5), "len": float(ring), "pitch": piece, "vel": float(vel)}],
+                             key=lambda n: n["at"])
+    if target:
+        doc["loudness"] = float(target)
 
 
 def the_snare_is_on_the_note(doc):
