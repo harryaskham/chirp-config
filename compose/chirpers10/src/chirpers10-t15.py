@@ -279,7 +279,7 @@ LONG = os.environ.get('C10T15_LONG', '15;17;15;0;0;-9.9' if TEETH else '')
 # Benched raw against everything else and against the voices alone (K, whole stretch): see the round note. The
 # box's own weight (its fundamentals, 350-620 Hz) is cut 8 dB at 430 Hz: the choruses already stand 2.4 to 2.9 dB
 # over the records there, and what a concertina is heard by over a band is its reed (1-8 kHz).
-TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW', 'C10T15_PICK', 'C10T15_SNARE', 'C10T15_WAIT', 'C10T15_TOMS') for k in os.environ)
+TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW', 'C10T15_PICK', 'C10T15_SNARE', 'C10T15_WAIT', 'C10T15_TOMS', 'C10T15_MUSTER') for k in os.environ)
                       else '-4.5dB;0.35;-12dB;-3;hp cutoff=300|peak cutoff=430 q=0.8 gain=-8dB|peak cutoff=2500 q=0.7 gain=3dB;-9.85')
 # the chorus's tune as a concertina plays it, an octave over the crew: their notes where they sing them, a passing
 # note in the breath after 'haul', and two sixteenths up into the next bar. (sixteenth, length, note), a bar a line.
@@ -1209,6 +1209,53 @@ def the_toms_get_a_stick(doc):
         doc['loudness'] = float(target)
 
 
+# v22 (chirper-zero; the draw was a whole-song round, taken as the song's first question, which it never answered:
+# the count, the first call and verse one, 0:00-0:52; nothing from the first chorus on changes). THE CREW GATHERS.
+# The song's first line is "Oh who will come and haul with me", and from the first second five men were already
+# there: five boots stamped the count before he asked, and five voices answered him. So the sections' names said
+# what the song did not: 'first call', then 'all together'. Now somebody comes. The count and the call are ONE
+# boot, his own. ONE man answers him "Take up the slack" (0:07.8) and shouts the first "Haul!" with him; the band
+# comes in; at the second answer there are two men and two boots, at the third three, at the fourth four; and the
+# fifth answer is the one whose words are "All together, haul!", where the fifth man and the whole crew are in,
+# as written since v1, and the chorus called 'all together' follows. No word, note or time changes: the same
+# answers on the same voice (the choir patch's own count of singers: its lead alone, then the others one at a
+# time, each where he stands), on four small tracks so that the crew's own track renders bit for bit from the
+# first chorus on. The men are trimmed so that they come in under the five and rise to them (read alone: one man
+# 2.7 dB under the five he replaces, two 2.1, three 2.0, four 0.8).
+# the trim, dB, of one man, of two, of three, of four ; '1' = the boots are as many as the men ('' = all five from
+# the first stamp, as before) ; the loudness target ('' = unchanged). On only while TOMS is. '' = v21 byte for byte.
+MUSTER = os.environ.get('C10T15_MUSTER', '-4.2,-4.2,-1.7,-0.9;1;-9.767' if TOMS else '')
+
+
+def the_crew_gathers(doc, marks):
+    """v22: before 'all together' the crew's answers are sung by one man, then two, three, four, and stamped by as many."""
+    trims, boots, target = MUSTER.split(';')
+    trims = [float(v) for v in trims.split(',')]
+    crew = next(t for t in doc['tracks'] if t['name'] == 'crew')
+    end = marks['all together'] / GRID                        # in beats
+    phrases = []                                              # each answer with its shout, in order
+    for n in sorted((n for n in crew['notes'] if n['at'] < end), key=lambda n: n['at']):
+        if phrases and n['at'] - (phrases[-1][-1]['at'] + phrases[-1][-1]['len']) <= 1.5:
+            phrases[-1].append(n)
+        else:
+            phrases.append([n])
+    assert len(phrases) == len(trims) + 1, [p[0]['at'] for p in phrases]          # the last is 'All together, haul': everybody
+    assert not any(t['name'].startswith('muster') for t in doc['tracks'])
+    base = {k: v for k, v in crew.items() if k not in ('name', 'notes', 'patch')}
+    for k, (phrase, trim) in enumerate(zip(phrases, trims), 1):
+        doc['tracks'].append({'name': f'muster-{k}', 'patch': crew['patch'] + f' synth.layers.0.singers={k}', **json.loads(json.dumps(base)),
+                              'notes': [{**n, 'gain': f'{trim}dB'} for n in phrase]})
+    gone = {id(n) for phrase in phrases[:-1] for n in phrase}
+    crew['notes'] = [n for n in crew['notes'] if id(n) not in gone]
+    if boots:
+        arrive = [phrase[0]['at'] for phrase in phrases]
+        men = lambda t: max(1, sum(1 for a in arrive if t >= a - 1e-6))
+        deck = next(t for t in doc['tracks'] if t['name'] == 'deck')
+        deck['notes'] = [n for n in deck['notes'] if n['at'] >= arrive[-1] - 0.5 or int(n['pitch'][1:]) <= men(n['at'] + 0.2)]
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__ == '__main__':
     doc, marks = build()
     if SUB:
@@ -1225,6 +1272,8 @@ if __name__ == '__main__':
         the_kit_waits(doc, marks)
     if TOMS:
         the_toms_get_a_stick(doc)
+    if MUSTER:
+        the_crew_gathers(doc, marks)
     if os.environ.get('C10T15_SHOW'):
         for sec, bars in FORM:
             t = marks[sec]
