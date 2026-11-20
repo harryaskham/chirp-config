@@ -414,6 +414,11 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     snare (`stembal.py … --parts kick=… snare=…` says whose band it is). Two cautions: the drums' bus glue and clip make a snare's measures depend on its
     FADER; and a snare's box can be standing in for guitars that are short at 250 Hz-4 kHz: let the MIX say
     how much of the cure to keep (Extreme and Mean v26 kept half).
+    THE MIX CHOOSES THE SLAP (Take Up the Slack v19): slap 0.3 read best alone (1.65) but the crack stood 1.2 dB
+    less at each backbeat IN THE BAND: read the raw mix's rise at each stroke before taking the drum-alone
+    optimum. And A SNARE'S FALL THAT WILL NOT SHORTEN IS THE ROOM: the drums' bus room and the send to the
+    overheads; it lengthens with the FADER (74 ms at +3.5 dB, 86-87 at +5 to +6.2). Read the fall at two faders
+    before chasing it at the drum (chirper-zero; his `stand.py`: `~/.local/state/chirper-zero/c10/t15-snare/`).
   - a MUTED STROKE's low end (`riffpunch.py --strokes`, the LOW END column): on all six records the 100-250 Hz of
     a chug HOLDS OR GROWS through the stroke (the first 20 ms against 40-80 ms: -1.1 dB; -2.2 to +0.3); ours
     died (+2.3 to +3.5). The string's mute, its decay and the amp's tight filter move that a decibel at most;
@@ -441,6 +446,11 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     -2.7: 3.62, 8.5, -9.2; -2.4: 3.34, 11, -9.9; -2: 3.20, 11.5, -10.4. A song set to -2 that reported a punch
     cost (tracks 15, 2, 7, 12, 8) can have it back a rung toward -3. An eq cut at 2.8 kHz costs the attack;
     a microphone further out costs less. READ ONE GUITAR AT A TIME (`riffpunch.py --tracks ONE`).
+    ON THE 5150 (Plain Hunt v39, chirper-one) the hard pick did nothing alone (+2.56 -> +2.16): the fall was the
+    thump (off: +1.05) and the amp's tightness (`fx.1.tight` 220 -> 150 Hz: +0.57, and the chest came back:
+    thump off cost 4.8 dB at 120-250 Hz with the amp at 220 Hz, 0.6 at 150). So the ORDER TO BENCH A CHUG:
+    the pick (`soft`), the thump, the amp's `tight`, then the palm's filter rung for the teeth; a chest lift
+    over about 2 dB sharpens the attack past the records'.
   - BY PART (`stembal.py song … --voice`, the group rows): read the two `groups:` lines first; until 08:18 on 19 Nov
     the default groups left guitars out on sixteen of seventeen songs. A figure is a share of the whole mix.
     `OUTSIDE THE GROUPS` under a window's table names a band where half or more of the mix is in NO group's tracks
