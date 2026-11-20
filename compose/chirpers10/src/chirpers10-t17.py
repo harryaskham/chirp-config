@@ -396,6 +396,36 @@ CHINA = {'kit': 'kit.x.patch.synth.layers.0.tilt=1 kit.x.patch.synth.layers.0.br
 # `top` and over ; the number at which the hand is lightest ; the loudness target (None: unchanged).
 # --without-hand gives v14.
 HAND = {'palm': -2, 'mic': 0.45, 'heavy': 1.0, 'light': 0.45, 'top': 160, 'loudness': -9.606}
+# v16 (chirper-three; palette round: two instruments of the kit, the two v8 gave the hands to remember with).
+# THE BELL KNOWS WHICH WAY. No stroke is added, dropped or moved.
+#   THE TICK. v8's sign for a number said twice before is a closed hat on the off-beat eighths (62 strokes). Read at
+#       its strokes in the eleventh walk it was not there: 14.9 dB (K) under everything else, and in its best
+#       third-octave (12.7 kHz, under the cymbals and the snare's wires) a median 6.1 dB UNDER what else was there;
+#       40 of 53 strokes at -4 or lower. Its strokes go to two agogo bells (`afro-perc`, on no other track of the
+#       album), tuned to the low string as everything pitched here is, and WHICH bell is the rule: an EVEN number
+#       will be halved, an octave, and rings F (the string's 16th harmonic, 698.5 Hz); an ODD one will be trebled, a
+#       twelfth, and rings C (the 24th, 1047.7 Hz). The hands know the ground, so they know which way it goes next.
+#       At -19 dB the bell is 13.6 dB under everything else (1.3 louder than the hat was) and reads +3.5 in its own
+#       third-octave; 29 of 53 strokes at +3 or more, 2 at -4 or lower.
+#   THE SNARE is the album kit's as it comes; four songs have fitted theirs. Here it held 72% of the kit's 250-500 Hz,
+#       71% of its 500 Hz-1 kHz and 51% of the MIX's 8-16 kHz in fourteen; alone its body stood 4.3 dB over its crack
+#       (six records' snares: 3.2 under) and its wires 2.8 over (level). Now: the 200 Hz lift +5 -> -3 dB, a cut of
+#       its own at 650 Hz (a third filter inside the drum, not on the track: the stick on the rim in the two quiet
+#       walks shares the track and nulls against v15 at -80 dB), the wires lower (0.85 -> 0.7) and darker (7 -> 5
+#       kHz), a longer contact. After: body 2.9 under the crack, wires 1.1 over; the kit by part +3.4 -> +1.5 at
+#       250-500 Hz, +6.8 -> +5.0 at 500 Hz-1 kHz, +1.6 -> +0.7 at 8-16 kHz. A backbeat stands 7.5 dB over everything
+#       else in its first 30 ms (9.3). BENCHED AND NOT KEPT: the drum retuned to the string's sixth harmonic (C4): its
+#       body left 120-250 Hz for 250 Hz-1 kHz, where the kit is over.
+#   COST: the two stretches in half time (seven, the climb) read 0.08 and 0.11 further from the eleven records (they
+#       were level or short at 250-500 Hz and 8-16 kHz already); eleven and fourteen 0.08 and 0.04 nearer.
+# 'snare': overrides on the snare drum (kit piece s; its third filter is new) ; 'fader': dB (None = as it was) ;
+# 'bell': the patch that takes the hat's strokes, with the two bells' notes ; 'gain', 'pan', 'vel': its track ;
+# 'loudness': the target (None = unchanged). --without-bell gives v15.
+BELL = {'snare': 'kit.s.patch.synth.filters.1.gain=-3dB kit.s.patch.synth.layers.0.wire_tone=5000 kit.s.patch.synth.layers.0.wires=0.7 '
+                 'kit.s.patch.synth.layers.0.contact=0.9 kit.s.patch.synth.filters.2.kind=peak kit.s.patch.synth.filters.2.cutoff=650 '
+                 'kit.s.patch.synth.filters.2.q=0.8 kit.s.patch.synth.filters.2.gain=-8dB', 'fader': None,
+        'bell': 'afro-perc kit.al.pitch=m77 kit.ah.pitch=m84.02 play.humanize.time=0ms play.humanize.vel=0', 'gain': -19, 'pan': -0.25, 'vel': 0.8,
+        'loudness': None}
 
 
 def true(ratio):
@@ -771,6 +801,7 @@ if __name__ == '__main__':
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
+    ap.add_argument('--without-bell', action='store_true', help="regenerate v15: the album's snare as it comes, and a closed hat where a number has been said twice before")
     ap.add_argument('--without-hand', action='store_true', help="regenerate v14: every muted stroke at a full palm, which closes the string's filter to 1 kHz")
     ap.add_argument('--without-china', action='store_true', help="regenerate v13: the kit's own china at the kit's level")
     ap.add_argument('--without-clear', action='store_true', help="regenerate v12: the two voices' eq and faders as v9 set them")
@@ -787,7 +818,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
-    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand'))
+    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell'))
     if not a.without_china and newest:
         metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
         metal['patch'] += ' ' + CHINA['kit']
@@ -810,6 +841,20 @@ if __name__ == '__main__':
                         e['expr'] = {'pm': round(HAND['heavy'] - (HAND['heavy'] - HAND['light']) * min(1.0, math.log2(n) / math.log2(HAND['top'])), 3)}
         if HAND['loudness'] is not None:
             doc['loudness'] = HAND['loudness']
+    if not a.without_bell and not a.without_hand and not a.without_china and newest:
+        said = [(at + sum(walk(k)[:i]), n) for k, at in marks for i, n in enumerate(walk(k))]      # (sixteenth, the number being said)
+        number = lambda beat: next(n for at, n in reversed(said) if at <= round(beat * SUB))
+        snare = next(t for t in doc['tracks'] if t['name'] == 'snare')
+        snare['patch'] += ' ' + BELL['snare']           # on the drum itself: the stick on the rim (the quiet walks) shares the track and is not touched
+        if BELL['fader'] is not None:
+            snare['gain'] = f"{BELL['fader']:g}dB"
+        j = next(j for j, t in enumerate(doc['tracks']) if t['name'] == 'hat')
+        hat = doc['tracks'][j]
+        # even: it will be halved, an octave: the string's sixteenth harmonic, F. Odd: it will be trebled, a twelfth: the twenty-fourth, C.
+        doc['tracks'][j] = {'name': 'bell', 'patch': BELL['bell'], 'gain': f"{BELL['gain']:g}dB", 'pan': BELL['pan'],
+                            'notes': [{'at': e['at'], 'len': 0.25, 'pitch': 'ah' if number(e['at']) % 2 else 'al', 'vel': BELL['vel']} for e in hat['notes']]}
+        if BELL['loudness'] is not None:
+            doc['loudness'] = BELL['loudness']
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
