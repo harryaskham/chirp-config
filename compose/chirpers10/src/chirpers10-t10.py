@@ -1346,6 +1346,38 @@ def the_bass_drum_gets_a_chest(song):
     if target: song['loudness'] = float(target)
 
 
+# v34 (chirper-zero; instrument round): THE WEIGHT COMES OUT OF ITS BOX. `weight`, the centre guitar, plays 26 stabs
+#   (the fifths under 'still owing', 'called in' and 'across the line') and was the album's last wall guitar still on
+#   the library's impulse response (Harry, 17 Nov: the walls onto the engine's cabinet; done on tracks 9, 11, 1, 7, 15,
+#   8 and 14). Alone beside a record's guitars (tools/cabspec.py) it stood 4.47 away: a box, +4.6 / +6.6 / +7.6 / +4.1
+#   dB at 400 / 500 / 630 / 800 Hz; fizz at 4-5 kHz (+4.2, +5.6) and then no top at all (-10.9 at 8 kHz, -19.5 at 10);
+#   its chest 6.4 dB short at 71-141 Hz. IN THE MIX (the same raw mix with and without it, at its stabs) what it
+#   added was that box: +1.3 dB at 250-500 Hz and +1.6 at 500 Hz-1 kHz, +0.3 at 120-250 Hz.
+#   The impulse response off (fx.3.mix=0, the patch's own eq flat); the engine's 4x12 after the track's high-pass,
+#   the microphone well off the cap (0.55: this guitar is the weight, not an edge), a cone no other track has; then
+#   the rig's own shape read AFTER the cabinet: a chest at 185 Hz, the last of the box at 480 Hz, 1.7 and 3 kHz eased.
+#   Alone 4.47 -> about 1.6. The cab'd guitar is 5 LU quieter at the old fader: the fader makes it as loud alone.
+# mic ; cone ; distance ; the track's eq after the cabinet ; its fader ; the loudness target ('' = unchanged).
+# '' = v33 byte for byte.
+WEIGHT = os.environ.get('C10T10_WEIGHT', '0.55;87;0.15;peak cutoff=185 q=0.8 gain=4.5dB|peak cutoff=480 q=1 gain=-2dB|'
+                        'peak cutoff=1700 q=1.5 gain=-2dB|peak cutoff=3000 q=1 gain=-2dB;-0.7dB;' if KICK else '')
+
+
+def the_weight_comes_out_of_its_box(song):
+    mic, cone, dist, eq, fader, target = WEIGHT.split(';')
+    t = next(t for t in song['tracks'] if t['name'] == 'weight')
+    head, _, rest = t['patch'].partition(' ')
+    t['patch'] = (head + ' fx.3.mix=0 fx.4.bands.0.gain=0dB fx.4.bands.1.gain=0dB fx.4.bands.2.gain=0dB fx.4.bands.3.gain=0dB'
+                  + (' ' + rest if rest else ''))
+    hp = [f for f in t['fx'] if isinstance(f, str) and f.startswith('hp ')]
+    t['fx'] = hp + [{'type': 'cab', 'model': '4x12-modern', 'mic': float(mic), 'distance': float(dist), 'cone': int(cone)}] \
+        + ([{'type': 'eq', 'bands': eq.split('|')}] if eq else [])
+    if fader:
+        t['gain'] = fader
+    if target:
+        song['loudness'] = float(target)
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out',type=Path,default=OUT); parser.add_argument('--form',action='store_true')
@@ -1360,6 +1392,7 @@ if __name__=='__main__':
     if SEAT: the_bow_is_seated(song)
     if UNBOX: the_bass_loses_its_honk(song)
     if KICK: the_bass_drum_gets_a_chest(song)
+    if WEIGHT: the_weight_comes_out_of_its_box(song)
     if args.form:
         for n,t in marks: print(f'{n:18} {t/BAR+1:5.0f}  {t/SUB*60/BPM:6.2f}s')
     else: args.out.write_text(dump(song))
