@@ -194,6 +194,38 @@ GLINT = {'cells': (1, 5), 'patch': 'ct-clean synth.layers.0.pinch=1 synth.layers
          'fx': [{'type': 'eq', 'bands': ['hp cutoff=500']}], 'loudness': -10.03}
 
 
+# v25 (chirper-zero; instrument round: the snare, 84 backbeats; no stroke moves): THE SNARE RINGS A TONE LOWER, AND
+# LONGER. By part the kit stood 6.4 dB over the records' kits at 500 Hz-1 kHz, the most on the album, and the
+# snare is why: alone, beside six records' snare strokes (tools/snarespec.py), it read 5.07: its note a band too
+# high (200 Hz -13.3, 250 Hz +9.1), a box at 1 kHz (+8.9), and it was a TICK: it fell 20 dB in 38 ms (the records'
+# 66) and stood 15.4 dB out of its own tail (13.8). In the Time Of v26 found the box in the head's mode count, so:
+# ten modes; the drum a tone lower (A3 -> G3); the kit's +5 dB at 200 Hz to -3 (the note itself is there now); the
+# stick's slap 1.2 -> 0.8. AND IT RINGS: a looser head (damp 0.3 -> 0.15), the head's decay 0.18 -> 0.38 s, the
+# amp's 140 -> 260 ms, the wires up and nearer (0.85 -> 0.95, gap 0.1 -> 0.05). With ten modes and a lower note a
+# new hump stood at 630-800 Hz (+7.3, +6.7): a cut there. THE MIX CHOSE THE TOP: with the wires longer and no
+# shelf the mix read 0.12 worse, 8-16 kHz 0.8 further over; with 4 dB off above 6 kHz it reads a little nearer
+# than v24 (0.799 -> 0.789, weighted by where the snare plays; 8-16 kHz +1.0 -> +0.1). ALONE: 5.07 -> 2.89; body
+# against crack +1.1 -> -1.4 (records -2.9); punch 15.4 -> 13.9 dB; it falls 20 dB in 38 -> 52 ms. Fader 3 ->
+# 1.5 dB: a stroke stands as far out of the band (+7.4 -> +7.5 dB, K). The side stick and the grace are left.
+# the drum's note ; overrides inside the snare's patch ; its track's eq ; its fader ; the loudness target (a longer
+# snare measures louder: at v24's -10.03 the stretches with no snare came out 0.05 to 0.06 dB quieter).
+# --v24 restores v24.
+SNARE = {'pitch': 'G3',
+         'patch': 'synth.layers.0.mode_count=10 synth.filters.1.gain=-3dB synth.layers.0.slap=0.8 synth.amp.d=260ms synth.layers.0.decay=0.38s '
+                  'synth.layers.0.damp=0.15 synth.layers.0.wires=0.95 synth.layers.0.gap=0.05',
+         'eq': ['peak cutoff=340 q=1.2 gain=-4dB', 'peak cutoff=690 q=1.5 gain=-5dB', 'peak cutoff=3500 q=1 gain=2dB', 'highshelf cutoff=6000 gain=-4dB'],
+         'gain': '1.5dB', 'loudness': -10.0}
+
+
+def the_snare_rings_lower(doc):
+    """v25: the album kit's snare with ten head modes, a tone lower, on a looser head with its wires nearer."""
+    t = next(t for t in doc['tracks'] if t['name'] == 'snare')
+    t['patch'] += ''.join(f' kit.s.patch.{o}' for o in SNARE['patch'].split()) + f" kit.s.pitch={SNARE['pitch']}"
+    t['fx'] = [{'type': 'eq', 'bands': SNARE['eq']}]
+    t['gain'] = SNARE['gain']
+    if SNARE['loudness']: doc['loudness'] = SNARE['loudness']
+
+
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
             rim=True, rim_gain=-18, turned=True, hole=True, mold=True, fretless=True, fretless_gain=-10.0,
             lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True, refill=True, whole_scale=True, trades=True, band=True,
@@ -876,6 +908,7 @@ if __name__ == '__main__':
     previous.add_argument('--v21', action='store_true', help="restore the quiet middle with nobody singing")
     previous.add_argument('--v22', action='store_true', help="restore 'both sides' with nobody singing as the ring brings the tune back")
     previous.add_argument('--v23', action='store_true', help="restore the held line of 'lit through' without a harmonic on each of its notes")
+    previous.add_argument('--v24', action='store_true', help="restore the album's snare as it comes: a tone higher, shorter, with its box")
     parser.add_argument('--said-gain', type=float, default=None, help="the sung voice's track gain in dB (default: SAID's)")
     parser.add_argument('--said-takes', default=None, help="which of each group's three cells is sung, e.g. 1 or 1,2 (default: SAID's)")
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
@@ -889,6 +922,8 @@ if __name__ == '__main__':
                   not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11, not args.v12, args.fretless_gain,
                   not args.v13, args.held_gain, args.grip, not args.v14, not args.v15, not args.strokes_on_f, not args.v16, not args.v17,
                   not args.v18, not args.v19, not args.v20, not args.v21, args.said_gain, args.said_takes, not args.v22, not args.v23)
+    if not args.v24 and any(t['name'] == 'glint' for t in doc['tracks']):     # only on the whole song as v24 has it
+        the_snare_rings_lower(doc)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
