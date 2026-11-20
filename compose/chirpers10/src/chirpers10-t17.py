@@ -426,6 +426,35 @@ BELL = {'snare': 'kit.s.patch.synth.filters.1.gain=-3dB kit.s.patch.synth.layers
                  'kit.s.patch.synth.filters.2.q=0.8 kit.s.patch.synth.filters.2.gain=-8dB', 'fader': None,
         'bell': 'afro-perc kit.al.pitch=m77 kit.ah.pitch=m84.02 play.humanize.time=0ms play.humanize.vel=0', 'gain': -19, 'pan': -0.25, 'vel': 0.8,
         'loudness': None}
+# v17 (chirper-alpha; palette round: the ondes's diffuser). THE LOW STRING ANSWERS. No note is added, dropped or moved.
+#   The ondes Martenot's third speaker, the palme, is a soundboard strung with strings that ring with what is played.
+#   The library's `ondes` strings it with a tempered octave, C4 to B4; this song's numbers are true harmonics of the
+#   low F, so they are not on those strings (5, 7, 11, 13 lie 14 to 49 cents off the keys), and the engine's strings
+#   ring 5 to 10 cents flat of even the notes they are given (bd-ce14dd). Nothing was answering.
+#   NOW ONE STRING is strung behind the ondes, tuned to the low F itself. Every number here is a harmonic of that
+#   string, so it answers every number at the number's own pitch, and nothing else. (Given 0.85 cents sharp, 43.675
+#   Hz, it reads 0.0 cents at harmonics 5 to 52; given as 43.6535 it rang 0.8 flat and 5 to 7.5 dB weaker up high.)
+#   HOW MUCH OF IT IS HEARD IS THE SONG'S MEMORY (v8's rule for the kit, here for the ondes): on a number no walk has
+#   said before the string is shut; said once before 0.2; twice 0.4; three times or more 0.6. So seven and the climb
+#   of fifteen are dry, and every walk's way home, and the whole of thirteen, rings on behind itself.
+#   THE NOTE IS NO LOUDER. The string sings in step with the note, so with it open the ondes read +3.4 to +5.0 dB;
+#   the fader comes down by ground (0, -1.1, -2.2, -3.3 dB; half that from 34 up, where the string answers less),
+#   and the two together read -1.1 to +2.4 dB on v16's note, the first 150 ms within 0.2. What is new is THE TRAIL:
+#   in the second after a number has gone, the ring against everything else at its pitch reads +1.8 to +11.5 in
+#   thirteen (the ondes and the bass alone: 13, 40, 20, 10, 5, 16, 8) and -7.7 to +2.2 on seven's way home under
+#   the full band (20, 10, 5, 16, 8, 4; -4 is about the edge of detection).
+#   THE WHEEL (4 2 1, fifteen turns, all on the string's own octaves) would build up: 0.3 there, -2.8 dB.
+#   COST: against the eleven records the seven stretches where it is open read 2.59 -> 2.89 at 250-500 Hz (nearer
+#   at 500 Hz-1 kHz, 1.31 -> 1.20); thirteen is 0.42 dB louder; short low numbers (1, 2, 4, 5) stand 1.5 to 2.6 dB
+#   lower against the band, the trim taking more than a string can give in under half a second.
+# 'hz': the string (the low F, less the 0.85 cents the engine's comb rings flat) ; 'decay': how long it rings ;
+# 'mix': how much of it is heard on ground that is new, said once before, twice, three times or more ; 'trim': dB on
+# the ondes's fader on the same four grounds (the string sings in step with the note, so the two together are
+# louder than the note was) ; 'high': from this number up the trim is this much of itself (the string answers a high
+# number less) ; 'wheel': the mix and the trim on the wheel and the last note ; 'ramp': beats over which both move ;
+# 'loudness': the target (None = unchanged). --without-string gives v16. (--string '{"mix": [...]}': a bench.)
+STRING = {'hz': 43.675, 'decay': '8s', 'mix': (0, 0.2, 0.4, 0.6), 'trim': (0, -1.1, -2.2, -3.3), 'high': (34, 0.5), 'wheel': (0.3, -2.8),
+          'ramp': 0.25, 'loudness': -9.589}
 
 
 def true(ratio):
@@ -801,6 +830,8 @@ if __name__ == '__main__':
     ap.add_argument('--lead-gain', type=float, default=-7.0, help="the ondes' track gain in dB")
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
+    ap.add_argument('--string', help='a bench: STRING fields to change, as a JSON object')
+    ap.add_argument('--without-string', action='store_true', help="regenerate v16: the ondes through its own palme only, a tempered octave of strings that its harmonics do not ring")
     ap.add_argument('--without-bell', action='store_true', help="regenerate v15: the album's snare as it comes, and a closed hat where a number has been said twice before")
     ap.add_argument('--without-hand', action='store_true', help="regenerate v14: every muted stroke at a full palm, which closes the string's filter to 1 kHz")
     ap.add_argument('--without-china', action='store_true', help="regenerate v13: the kit's own china at the kit's level")
@@ -818,7 +849,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
-    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell'))
+    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string'))
     if not a.without_china and newest:
         metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
         metal['patch'] += ' ' + CHINA['kit']
@@ -855,6 +886,33 @@ if __name__ == '__main__':
                             'notes': [{'at': e['at'], 'len': 0.25, 'pitch': 'ah' if number(e['at']) % 2 else 'al', 'vel': BELL['vel']} for e in hat['notes']]}
         if BELL['loudness'] is not None:
             doc['loudness'] = BELL['loudness']
+    if not a.without_string and not a.without_bell and not a.without_hand and not a.without_china and newest:
+        said = [(at + sum(walk(k)[:i]), n, k) for k, at in marks for i, n in enumerate(walk(k))]   # (sixteenth, the number being said, its walk)
+        said += [(wheel + 7 * turn + off, n, LAST + 1) for turn in range(TURNS) for off, n in ((0, 4), (4, 2), (6, 1))]
+        paths = {k: set(walk(k)) for k in range(FIRST, LAST + 1)}
+        told = lambda k, n: min(4, 1 + sum(n in paths[j] for j in range(FIRST, min(k, LAST + 1))))  # 1 new .. 4 said three times or more
+        if a.string:
+            STRING.update(json.loads(a.string))
+
+        def lane(values, wheel_v, high=1.0):
+            pts, was = [], None
+            for at, n, k in said:
+                v = wheel_v if k > LAST else round(values[told(k, n) - 1] * (high if n >= STRING['high'][0] else 1), 3)
+                if was is None:
+                    pts.append(['0b', v])
+                elif v != was:
+                    pts += [[f"{at / SUB - STRING['ramp']:g}b", was], [f'{at / SUB:g}b', v]]
+                was = v
+            return {'points': pts, 'curve': 0}
+        stone = next(t for t in doc['tracks'] if t['name'] == 'stone')
+        stone['fx'] = stone['fx'] + [{'type': 'sympathetic', 'notes': f"{STRING['hz']:g}hz", 'decay': STRING['decay'],
+                                      'mix': {'value': 0, 'mod': [{'src': 'auto.known', 'amount': 1}]}}]
+        stone['auto'] = {'known': lane(STRING['mix'], STRING['wheel'][0])}
+        if any(STRING['trim']) or STRING['wheel'][1]:
+            stone['gain'] = {'value': stone['gain'], 'mod': [{'src': 'auto.even', 'amount': 1}]}
+            stone['auto']['even'] = lane(STRING['trim'], STRING['wheel'][1], STRING['high'][1])
+        if STRING['loudness'] is not None:
+            doc['loudness'] = STRING['loudness']
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
