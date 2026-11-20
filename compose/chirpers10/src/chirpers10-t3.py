@@ -584,7 +584,7 @@ STRUCK = os.environ.get('C10T3_STRUCK', '1.2;3;4s;2s;-9.982' if TREBLE and CHORD
 # was 'highshelf cutoff=7000 gain=-3dB') ; its fader (3.5dB) ; the loudness target ('' = unchanged). '' = v32.
 # It is on only while no other C10T3_ switch is set, so every older switch gives exactly what it gave.
 SNARE = os.environ.get('C10T3_SNARE', '3.5;1.1;peak cutoff=2500 q=0.7 gain=-4dB,peak cutoff=650 q=1 gain=-3dB;1.5dB;-10.067' if STRUCK and not any(
-    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT') for k in os.environ) else '')
+    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER') for k in os.environ) else '')
 # v34 (chirper-alpha; whole song: its frame; the change is the band's entrance, 0:08-0:12): THE BAND IS RUNG UP.
 # The song is a ringing performance from end to end, and since v28 the band is LOWERED at the end. But ringers do not
 # start by ringing: a ring is RAISED first, the bells chiming fast and close while they hang low, each stroke taking
@@ -620,6 +620,26 @@ RAISE = os.environ.get('C10T3_RAISE', '4;1,1,1,1,2,2,4,6,7,7;0.97;0;0.5;' if SNA
 # the hat's foot on the quarters ('' = none) ; the loudness target ('' = unchanged). '' = v34 (and, like RAISE,
 # setting it does not switch SNARE off).
 SLOWKIT = os.environ.get('C10T3_SLOWKIT', '0.8;rb;0.9;0.9,0.95;snare,hat;-3dB;0.5dB;peak cutoff=350 q=1 gain=-3dB;0.75;' if RAISE and SLOW else '')
+# v36 (chirper-alpha; whole song: its summit, 5:02.0-5:17.9; one new track, `men`): FULGURA FRANGO. The tower's men
+# sing what is cast on bells: "vivos voco" at the opening, "mortuos plango, vivos voco" in the middle, "orate" after the
+# tolls (v18). The inscription has a third clause, fulgura frango (I break the lightning), and the men had never sung
+# with the band: since v1 the tower's bells come over the band at the landing and the men, who sing a note to each of
+# the tower's rows everywhere else, were silent there. Now they sing "fulgura frango", twice, over the full band: a
+# syllable to each of the ten slow rows, on the line they opened the song with and its way back down, the fifth above
+# as always, an octave above the tower's own, and hard; the last "go" holds through the ringing down and stops an
+# eighth before the last chord. The level is the tower's own balance: at 2:17 the men stand 1.0 dB over the bells (K),
+# here 0.5 over the landing's bells, which is 8.4 dB under everything else. Each syllable's strongest third-octave
+# reads +4.6 over everything else in it (-0.4 to +8.7); above 2 kHz the men are 26 to 33 dB under the band, so the
+# vowels are heard and the words are not. The "u" is the one in "book": with the one in "food" the first two
+# syllables stood 10 to 15 dB under the rest. The cut at 300 Hz is there because the landing's 250-500 Hz is already
+# 4.7 dB over the records' (62% of it the bells); with the men it is 6.0, and 500 Hz-1 kHz 0.2 -> 2.3.
+# the men's line over the landing, a note to each row the tower rings there (semitones over F) ; its words, a
+# syllable a note ; how far above the tower's men they sing, semitones ; what is added to the choir's patch ; their
+# fader ; their hall send ; their eq bands ('|' between; '' = none) ; how hard they sing, first note and last (a line
+# between) ; the loudness target ('' = unchanged). '' = v35 byte for byte.
+OVER = os.environ.get('C10T3_OVER', '0,1,0,3,0,3,1,0,1,0;F UH1 L|G UH0|R AA0|F R AA1 N|G OW0|F UH1 L|G UH0|R AA0|F R AA1 N|G OW0;12;'
+                      'synth.layers.0.effort.value=0.4 synth.layers.0.effort_tilt=1 synth.layers.0.consonant_level=-3dB synth.layers.0.tract=1.1;'
+                      '-11dB;-9dB;hp cutoff=250|peak cutoff=300 q=1 gain=-6dB;0.9,1.0;' if SLOWKIT and MONKS and LOUDER and LOWER and RHYTHM else '')
 CHORD_ROWS = []
 
 
@@ -1198,6 +1218,13 @@ def compose():
     if LOWER:
         ring_down()
     slow_rounds(LAND, int((END - LAND) * 4 / 3) if RHYTHM else 12, vel=0.9)
+    if OVER:                             # v36: the men sing over the band, a note to each of those rows
+        steps, words, v = [int(x) for x in OVER.split(";")[0].split(",")], OVER.split(";")[1].split("|"), [float(x) for x in OVER.split(";")[7].split(",")]
+        assert len(steps) == len(words) == int((END - LAND) * 4 / 3), (len(steps), len(words))
+        for i, (d, w) in enumerate(zip(steps, words)):
+            t0 = LAND * 4 + 3 * i
+            T.setdefault("men", []).append({"at": t0, "len": round((END * 4 - t0 if i == len(steps) - 1 else 3) - float(CHANT.split(";")[1]), 4),
+                                            "pitch": nm(41 + int(OVER.split(";")[2]) + d), "vel": round(v[0] + (v[1] - v[0]) * i / (len(steps) - 1), 3), "ph": w})
     # the end: one chord, and the tenor tolls
     hit(END, 10)
     if TOWER:
@@ -1330,6 +1357,9 @@ def song():
     if SLOWKIT and T.get("slowtoms"):
         tracks.append({"name": "slowtoms", "patch": kit, "gain": SLOWKIT.split(";")[6], "out": "drums", "sends": {"oh": "-1.5dB"},
                        **({"fx": [{"type": "eq", "bands": SLOWKIT.split(";")[7].split("|")}]} if SLOWKIT.split(";")[7] else {})})
+    if OVER:                                                                # v36: the men over the band, on a track of their own
+        tracks.append({"name": "men", "patch": "ph-monks-over", "gain": OVER.split(";")[4], "pan": -0.1, "sends": {"hall": OVER.split(";")[5]},
+                       **({"fx": [{"type": "eq", "bands": OVER.split(";")[6].split("|")}]} if OVER.split(";")[6] else {})})
     for t in tracks:
         t["notes"] = sorted(T.get(t["name"], []), key=lambda n: n["at"])
     return {
@@ -1339,12 +1369,14 @@ def song():
                   "highest note walks through the row and back all piece long, with the kick and a church bell on it. "
                   + ("Since v5 the highest note is long and the low F repeated, so the row is a riff: eight sixteenths in the first "
                      "extent, ten in the second." if RHYTHM else "v1 is the skeleton.")),
-        "tempo": BPM, "ceiling": "-1dB", "loudness": float(SLOWKIT.split(";")[9]) if SLOWKIT and SLOWKIT.split(";")[9] else float(SNARE.split(";")[4]) if SNARE and SNARE.split(";")[4] else float(STRUCK.split(";")[4]) if STRUCK else float(CHORDS.split(";")[4]) if CHORDS and CHORDS.split(";")[4] else float(LOUDER.split(";")[4]) if LOUDER else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
+        "tempo": BPM, "ceiling": "-1dB", "loudness": float(OVER.split(";")[8]) if OVER and OVER.split(";")[8] else float(SLOWKIT.split(";")[9]) if SLOWKIT and SLOWKIT.split(";")[9] else float(RAISE.split(";")[5]) if RAISE and RAISE.split(";")[5] else float(SNARE.split(";")[4]) if SNARE and SNARE.split(";")[4] else float(STRUCK.split(";")[4]) if STRUCK else float(CHORDS.split(";")[4]) if CHORDS and CHORDS.split(";")[4] else float(LOUDER.split(";")[4]) if LOUDER else -10, "seed": 1, "tail": "5s", "length": f"{NB * 4}b", "event_stable": True,
         "patches": {"ct-kit-here": {"extends": "ct-kit", "kit": {"x": {"pan": 0.35}, "rde": {"pan": 0.4}, "rb": {"pan": 0.35}, "h": {"pan": -0.45}}},
                     **({"ph-monks": {"about": "chirper-zero: Plain Hunt's chant - the library's voice-choir (five singers on a line) with basses' tracts, and a second five a fifth above sized to their part: ten men singing words",
                                      "extends": MONKS.split(";")[0]}} if MONKS else {}),
                     **({"ph-monks-forte": {"about": "chirper-three: Plain Hunt's ten men (ph-monks) singing out, on Harry's 'chant louder'",
-                                           "extends": MONKS.split(";")[0] + " " + LOUDER.split(";")[1]}} if LOUDER and LOUDER.split(";")[1] else {})},
+                                           "extends": MONKS.split(";")[0] + " " + LOUDER.split(";")[1]}} if LOUDER and LOUDER.split(";")[1] else {}),
+                    **({"ph-monks-over": {"about": "chirper-alpha: Plain Hunt's ten men (ph-monks) singing over the whole band at the landing, an octave up and hard",
+                                          "extends": MONKS.split(";")[0] + " " + OVER.split(";")[3]}} if OVER else {})},
         "buses": {
             "hall": {"fx": ["reverb kind=hall decay=4.5s mix=1 predelay=30ms low_cut=150"]},
             "drums": {"fx": ["reverb kind=room decay=0.7s mix=0.1 predelay=8ms",
