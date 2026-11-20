@@ -385,6 +385,19 @@ PICK = os.environ.get('C10T10_PICK', 'synth.layers.0.soft=expr.pm*0.5 synth.filt
 # the loudness target ('' = unchanged). '' = v26 byte for byte.
 HORNS = os.environ.get('C10T10_HORNS', 'sax-section synth.amp.r=65ms fx.0.mix=0.075 play.humanize.time=0ms;-14;0;36;0,0,0,2;'
                        '0.92,0.85;0.09;;-10.22' if PICK else '')
+# v28 (chirper-zero; instrument round: the bow, 16 notes, 2:22-2:52): THE BOW ANSWERS IN TUNE. Harry on this
+# instrument: "bow instr sounds not great, improve" (v18 gave it a bowed string on a body). On the song's own seed
+# every note of it sounded SHARP of the note the guitars had asked: +2.0 to +6.0 cents, mean +4.2 (read alone,
+# harmonics 1 to 4 and frame by frame), where the sung voice reads -0.2, the horns +0.6 and the reed -0.3. Two
+# causes, both found on On Its Hinge's bow (bd-22c11d): a bowed layer's `vary` is 0.5 unless set (a take's habit,
+# about 4 cents either way BY THE SEED: this seed's take is sharp, seed 0's is +0.3), and the string itself
+# sounds a little over its note. `vary: 0` and the engine's `tune_sounding` (pin cbafb083 on) put all sixteen
+# within a cent (mean -0.2, worst -1.0) on every seed. The vibrato (15 cents, on the long notes) is as it was:
+# the bow still moves, about the note and not above it. Nothing else changes: its level by note, how fast it
+# speaks and its tone read the same.
+# fields set on the bowed layer of `owing-bow`, name=value with spaces between ; the loudness target ('' =
+# unchanged). "" = v27 byte for byte.
+INTUNE = os.environ.get('C10T10_INTUNE', 'vary=0 tune_sounding=true;' if HORNS and BOW and TRADE else '')
 
 
 def bow_patch():
@@ -1116,6 +1129,18 @@ def the_debt_is_called_in(song):
         song['loudness'] = float(target)
 
 
+def the_bow_is_in_tune(song):
+    """v28: the bow's string sits on its note: no take's habit (`vary`), and the string held to pitch by the engine."""
+    fields, target = INTUNE.split(';')
+    layer = song['patches']['owing-bow']['synth']['layers'][0]
+    assert layer['type'] == 'bowed', layer
+    for f in fields.split():
+        k, v = f.split('=', 1)
+        layer[k] = {'true': True, 'false': False}[v] if v in ('true', 'false') else (float(v) if '.' in v else int(v))
+    if target:
+        song['loudness'] = float(target)
+
+
 def dump(song):
     return '\n'.join('tracks:\n'+'\n'.join('  - '+json.dumps(x) for x in v) if k=='tracks' else k+': '+json.dumps(v) for k,v in song.items())+'\n'
 
@@ -1129,6 +1154,7 @@ if __name__=='__main__':
     if TITLE: the_title_is_sung(song)
     if PICK: the_pick_stays_hard(song)
     if HORNS: the_debt_is_called_in(song)
+    if INTUNE: the_bow_is_in_tune(song)
     if args.form:
         for n,t in marks: print(f'{n:18} {t/BAR+1:5.0f}  {t/SUB*60/BPM:6.2f}s')
     else: args.out.write_text(dump(song))
