@@ -799,7 +799,7 @@ NEARER = os.environ.get("C10T1_NEARER", "363:383:-6:-3:-10.093" if REBUILD and H
 # bars from the section's first ; the bell's velocity ; the bells' fader ; dB on the strokes of each pair (five and seven,
 # five and eleven, seven and eleven) ; where each pair's bell stands (pan) ; the loudness target ('' = unchanged).
 # "" = v62. It is on only while no older switch of this song is set, so each of those still gives what it gave.
-MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN") for k in os.environ) else "")
+MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM") for k in os.environ) else "")
 # v44: THE ENGINE, EXPOSED (9:19, in the hardest stretch). For twenty-eight bars everything runs at once: four guitars
 # and the bass on seven, the china on every eighth, the bark, and under it all the kick in unbroken sixteenths. The one
 # event inside it is the ground moving up a semitone at 9:20. Now, for the half bar before that, everything stops
@@ -2233,7 +2233,7 @@ def hold_still(doc):
 # well ("" = neither; "2" = the second) ; the flute's velocity when it was recorded ; the deck's wow and flutter in
 # cents and its drift (in units of the wow) ; the loudness target ("" = unchanged) ; settings added to the recorded
 # flute's patch ("" = the library's flute as it comes). "" = v63. On only while no older switch of this song is set.
-TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN") for k in os.environ) else "")
+TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM") for k in os.environ) else "")
 
 
 def the_eye_on_tape(doc):
@@ -2310,6 +2310,57 @@ def the_snare_s_skin(doc):
         doc["loudness"] = float(target)
 
 
+# v67 (chirper-two; section round, w2, 0:30-1:00, flagged static and never worked on by a section round; the change
+# is 0:41.9-0:54.7): SOMEONE HUMS THE TUNE WHILE THEY WAIT. The piece is a wait, and there is a person in it: a
+# whisper says "wait" (0:25.7), "wait" (0:41.0), "not yet" (0:56.0), and 385 bars later "yes". The piece has one
+# tune, a note to each turn of the eleven wheel, and nobody plays it until 2:53. Now the person waiting hums it under
+# their breath: when the eleven wheel starts to tick (bar 22, 0:41.9, straight after the second "wait") a closed-
+# mouth voice hums the tune's first eight notes, a note to each turn of that wheel (C B A flat F -, a breath, G flat
+# A flat B C -), an octave under the lead's, and stops. "Not yet." Then the machine arrives. They are the same eight
+# notes the lead gets out before the stop cuts it off at 12:09; the other eight are the landing's (v65).
+# THE VOICE is the engine's hum (`hum`: the mouth shut, the voice through the nose; no song on this album has used
+# it) at 0.8, which keeps a little of the open voice's air: at 1 the hum read as a sine (everything over 1 kHz 32 to
+# 40 dB under its fundamental; at 0.8, 16 to 23). Each breath is one syllable carried over four notes (`_`).
+#   LEVEL (raw bench, the song's seed, K-weighted): at the first guess (-10 dB) it was as loud as everything else
+#       put together (+0.6). At -17 dB each note stands 7.9 to 8.5 dB under everything else, and 0.9 to 6.4 dB OVER
+#       everything else in the third of an octave round its own note. The eight notes are evened by note gain: as it
+#       comes the hum is 5.8 dB stronger on C4 than on F3 (its murmur resonates near 270 Hz).
+#   It adds 1.6 dB to the passage's 250-500 Hz and 0.6 dB to its level (raw; finished, 0.62 dB).
+#   THE TARGET -10.093 -> -10.15 is chirper-one's handoff from v66, done here: the new snare had brought every quiet
+#       passage up 0.11 dB. At -10.15 the four stretches with no snare in them (the wait before the hum, the eye,
+#       11:07-11:31, the end) are within 0.002 dB of v65's (seed 1; 76 to 79 dB left after matching).
+# the bar the hum starts on (the eleven wheel must land on it) ; how many of the tune's notes ; semitones from the
+# lead's octave ; the voice ; its fader ; its pan ; its eq, band|band ; what is sung on each note (phonemes, | between,
+# cycled; '' = the patch's own vowel) ; velocity ; each note's fill, comma separated (cycled) ; its send to the hall
+# ('' = none) ; dB on each note, comma separated ('' = none) ; the loudness target ('' = unchanged). "" = v66.
+HUM = os.environ.get("C10T1_HUM", "22;8;-12;voice-legato fx.0.mix=0 synth.layers.0.inhale=0 synth.layers.0.hum=0.8;-17dB;0.25;hp cutoff=120;AH1|_|_|_|AH1|_|_|_;0.7;"
+                                  "0.97,0.97,0.97,0.8,0.97,0.97,0.97,0.9;-8dB;-3,-1.5,1.5,3,0,1,0,-1.5;-10.15" if SKIN else "")
+
+
+def the_tune_is_hummed(doc):
+    """v67: in the wait, from the bar the eleven wheel comes in on, a voice hums the first half of the tune, a note to
+    each turn of eleven, and stops: the whisper says 'not yet'. A new last track; no other note changes."""
+    bar, count, semis, patch, fader, pan, bands, ph, vel, fills, hall, trims, target = HUM.split(";")
+    t = int(bar) * 16
+    assert t % 11 == 0, "the eleven wheel does not land on that bar line"
+    fills, phs = [float(x) for x in fills.split(",")], ph.split("|")
+    trims = [float(x) for x in trims.split(",")] if trims else [0.0]
+    notes = []
+    for i, (pitch, turns) in enumerate(LONG_WAIT[:int(count)]):
+        n = {"at": round(t / 4, 4), "len": round(turns * 11 * fills[i % len(fills)] / 4, 4), "pitch": nm(pitch + int(semis)), "vel": float(vel)}
+        if phs[i % len(phs)]:
+            n["ph"] = phs[i % len(phs)]
+        if trims[i % len(trims)]:
+            n["gain"] = f"{trims[i % len(trims)]:g}dB"
+        notes.append(n)
+        t += turns * 11
+    doc["tracks"].append({"name": "hum", "patch": patch, "gain": fader, "pan": float(pan),
+                          **({"fx": [{"type": "eq", "bands": bands.split("|")}]} if bands else {}),
+                          **({"sends": {"hall": hall}} if hall else {}), "notes": notes})
+    if target:
+        doc["loudness"] = float(target)
+
+
 def the_tune_is_finished(doc):
     """The lead's last pass of the tune is cut off at the stop before the landing, eight notes in. The other eight are played
     over the landing riff's last four bars, a note to each cell of EIGHT, and the last one falls on the last chord."""
@@ -2346,4 +2397,6 @@ if __name__ == "__main__":
         the_tune_is_finished(doc)
     if SKIN:
         the_snare_s_skin(doc)
+    if HUM:
+        the_tune_is_hummed(doc)
     open(OUT, "w").write(dump(doc))

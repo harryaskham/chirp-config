@@ -8590,15 +8590,15 @@
       "metric": "python3 tools/compscore.py chirpers10-t1 OUT.wav",
       "best": {
         "score": 100.0,
-        "version": "v66",
+        "version": "v67",
         "commit": "see git log songs/chirpers10-t1.yaml",
-        "engine": "7138d6d5",
+        "engine": "cbafb083",
         "judged": true
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 68,
+      "rounds": 69,
       "priority": 1.0,
       "genre": "polymetric djent",
       "mode": "compose",
@@ -8616,8 +8616,8 @@
         "note": "COMPOSE (the epic (the whole record, for now), 720-840 s): About thirteen minutes: distinct sections and styles, one motif and rhythm that grows and gets splayed across cycles of different lengths over a steady pulse, and lands. First the sound (a new patch family), then the form. Any version at all opens the groove to it; then keep finessing."
       },
       "last": {
-        "at": "2026-11-20T02:42:05Z",
-        "who": "chirper-one"
+        "at": "2026-11-20T08:39:30Z",
+        "who": "chirper-two"
       },
       "chirper-zero": ""
     },
