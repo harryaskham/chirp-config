@@ -435,6 +435,18 @@ KICK = os.environ.get('C10T8_KICK', 'kit.k.pitch=Ab1 kit.k.patch.synth.amp.d=170
 # other groups' ; a key's length in beats ; how far behind the beat each key is struck, ms ; each key's own gain
 # ('' = the track's) ; the loudness target ('' = unchanged). '' = v29 byte for byte.
 KEYS = os.environ.get('C10T8_KEYS', '0,1,3,5,7,8,10,12|2,6,4|11,9;0,1,3,5,7,8,10,12;F4;felt;0.82:1.0,0.85;0.9;20;;' if KICK else '')
+# v31 (chirper-one; palette round: ADD THE PART THE SONG LACKS, a voice, on an instrument no song of the album
+# has: the library's `mellotron-choir`): THE MEASURE IS SUNG. 'Common measure' is also the hymn's metre, and the one
+# place the song stops arguing and agrees is the measure (2:13.5-2:37.5), where the lead guitar plays the first
+# riff's six-note head, three seconds a note, over every guitar there is. A tape choir now sings those eight notes
+# with it. (A Mellotron's note is a length of tape: the song measures lengths.) The lead guitar steps back 3 dB and
+# stays as the tune's edge; the choir is its body.
+# Read first: the lead stood 9.2 dB under everything else (K), its notes from 11.3 to 7.4 under; and it is 65% of the
+# measure's 500 Hz-1 kHz, where everything else is 3.6 dB short of the records. So it is not swapped out.
+# the choir's patch ; its fader ; bands on its eq, band|band ; dB on the lead's fader ; octaves over the lead ('' =
+# its own) ; velocity ('' = the lead's) ; pan ; the loudness target ('' = unchanged). '' = v30 byte for byte. On
+# only while KEYS is.
+HYMN = os.environ.get('C10T8_HYMN', 'mellotron-choir fx.2.mix=0.15;-8dB;lowshelf cutoff=450 gain=-9dB;-3;;;0;' if KEYS else '')
 
 
 def nm(n):
@@ -1218,7 +1230,27 @@ def song():
         the_kick_is_fitted(doc)
     if KEYS:
         the_keys_are_counted(doc)
+    if HYMN:
+        the_measure_is_sung(doc)
     return doc
+
+
+def the_measure_is_sung(doc):
+    """v31: at the measure a tape choir sings the lead's tune with it (see HYMN)."""
+    patch, fader, bands, lead_db, octave, vel, pan, target = HYMN.split(';')
+    lead = next(t for t in doc['tracks'] if t['name'] == 'lead')
+    assert len(lead['notes']) == 8 and isinstance(lead['gain'], str), 'the lead plays the six-note head, F and the F above, and nothing else'
+    k = int(octave or 0)
+    assert all(n['pitch'][-1].isdigit() for n in lead['notes'])
+    notes = [{**n, 'pitch': n['pitch'][:-1] + str(int(n['pitch'][-1]) + k), **({'vel': float(vel)} if vel else {})} for n in lead['notes']]
+    t = {'name': 'hymn', 'patch': patch, 'gain': fader, 'pan': float(pan or 0), 'notes': notes}
+    if bands:
+        t['fx'] = [{'type': 'eq', 'bands': bands.split('|')}]
+    doc['tracks'].append(t)
+    if lead_db:
+        lead['gain'] = f"{float(lead['gain'][:-2]) + float(lead_db):g}dB"
+    if target:
+        doc['loudness'] = float(target)
 
 
 def the_keys_are_counted(doc):
