@@ -340,6 +340,22 @@ TITLE = os.environ.get('C10T10_TITLE', 'voice-legato synth.layers.0.diction=3 sy
                                        '2;4.2,-0.1,2.1,2.3,-5.4,0.7,3.2,-6.6,0.6;0,0,0;0.7,0.97,0.97;-10.213'
                        if SNARE and RECALL else '')
 SAID = os.environ.get('C10T10_TITLE_SAID', 'S T IH1 L|OW1|IH0 NG').split('|')    # still | ow | ing
+# v26 (chirper-three; instrument round: the two riff guitars' muted stroke, 421 strokes of their 907). THE PICK STAYS
+# HARD UNDER THE PALM. No note changes. Read beside six records' strokes (riffpunch --strokes) this song's chug had its
+# teeth already (scoop -8.1 to -8.8, in the records' range) but ITS LOW END DIED AFTER THE STROKE: 100-250 Hz in the
+# first 20 ms stood 1.3 to 2.2 dB OVER 40-80 ms, where on every record it holds or grows (-1.1; -2.2 to +0.3). Taken
+# apart on 'in hand', one control at a time: the rig softens its pick by the palm's weight (`soft=expr.pm`), and THAT
+# is the fall (the pick at 0.6 of that softness, alone: +2.15 -> +0.41); the palm's thump and the string's decay move nothing; the
+# filter closing two octaves, not 3.4, gives the teeth and makes the fall worse alone (+2.97). Together, on four
+# sections: the fall +2.15 +2.14 +1.30 +2.03 -> -0.93 -0.53 +0.15 -0.43; scoop -8.6 -8.8 -8.1 -8.8 -> -10.8 -10.9
+# -8.9 -11.1 (records -11.3); rise 13.5-18.5 -> 17-19.5 ms (19.75). The microphone 0.4 -> 0.45 holds the guitars' 2-4
+# kHz where it was. THE MIX is nearer the eleven records in five stretches of six (1.048 -> 0.993) and nearer their
+# voiceless passages in four (0.667 -> 0.646). COSTS: the guitars are 2.5 dB leaner at 120-250 Hz alone (by part -2.2
+# -> -4.3; the mix was over there and is nearer: it did not ask for the chest back); the stroke's punch 3.6 -> 3.3 to
+# 3.4 in three sections (records 3.5 to 4.2); the scorer's worst band, 97 Hz, 6.6 -> 7.0 under its envelope.
+# overrides on the two riff guitars' rigs ; dB on their two faders ('' = as they were) ; the loudness target ('' =
+# unchanged). '' = v25 byte for byte.
+PICK = os.environ.get('C10T10_PICK', 'synth.layers.0.soft=expr.pm*0.5 synth.filters.0.cutoff.mod.0.amount=-2 fx.2.mic=0.45;;-10.244' if TITLE else '')
 
 
 def bow_patch():
@@ -1032,6 +1048,20 @@ def the_title_is_sung(song):
         song['loudness'] = float(target)
 
 
+def the_pick_stays_hard(song):
+    """v26: under the palm the pick is half as soft as the rig makes it, and the palm closes the string's filter two
+    octaves, not 3.4: the muted stroke's low end holds after it, and it has its teeth."""
+    over, fader, target = PICK.split(';')
+    for t in song['tracks']:
+        if t['name'] in ('left', 'right'):
+            if over:
+                t['patch'] += ' ' + over
+            if fader:
+                t['gain'] = f"{float(t['gain'][:-2]) + float(fader):g}dB"
+    if target:
+        song['loudness'] = float(target)
+
+
 def dump(song):
     return '\n'.join('tracks:\n'+'\n'.join('  - '+json.dumps(x) for x in v) if k=='tracks' else k+': '+json.dumps(v) for k,v in song.items())+'\n'
 
@@ -1043,6 +1073,7 @@ if __name__=='__main__':
     if TOP: the_top_changes_hands(song)
     if SNARE: the_snare_is_fitted(song)
     if TITLE: the_title_is_sung(song)
+    if PICK: the_pick_stays_hard(song)
     if args.form:
         for n,t in marks: print(f'{n:18} {t/BAR+1:5.0f}  {t/SUB*60/BPM:6.2f}s')
     else: args.out.write_text(dump(song))
