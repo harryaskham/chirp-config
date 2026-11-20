@@ -1023,6 +1023,46 @@ def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, sign
 def dump(d):
     return '\n'.join('tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) if k=='tracks' else k+': '+json.dumps(v) for k,v in d.items())+'\n'
 
+# v27 (chirper-zero; instrument round: the two hands' muted stroke, 513 strokes): THE STROKE GETS ITS FRONT BACK.
+# v23 cured the stroke's low end by lifting the palm and said its cost: the attack over the body fell (both hands
+# together 3.37 / 3.65 -> 2.95 / 3.21 in 'ink' and 'raised'; six records 3.63, 3.5 to 4.2; riffpunch --strokes:
+# the attack's peak against 30 to 60 ms later). Read ONE HAND AT A TIME it was 2.45 / 2.66.
+# NOTHING AT THE STRING MOVES IT ON THIS RIG (one control at a time, the left hand, 'ink' / 'raised'): the pick
+# half as soft 2.41 / 2.56; the thump off 2.51 / 2.66; pick_hard, click, the pick's noise +8 dB, a deader string
+# under the palm: nothing; the palm's filter back to 3.4 octaves 2.53 / 2.73; a fuller palm (0.8) 2.75 / 2.93 but
+# the low end's fall +0.63 / +1.43 (v23's cure undone). The track's eq is part of it (with no eq 3.02 / 3.23;
+# the 2.6 kHz cut alone costs 0.25) but the eq is the mix's (v19, v23). WHAT MOVES IT IS AFTER THE STRING:
+#   the amp's sag 0.2 -> 0.5 (the supply gives under the hit and recovers)             2.70 / 2.88
+#   the front compressor let the pick through (attack 2 -> 15 ms) and held longer
+#     (release 60 -> 200 ms)                                                            2.60 / 2.84
+#   those and the palm's filter at 3.4 octaves                                          3.06 / 3.10
+#   and the engine's transient shaper after the eq, attack +3 dB, body -1 dB            3.49 / 3.45
+# Both hands together 2.96 / 3.21 -> 3.75 / 3.80. The low end's fall stays inside (-0.73 / +0.01 -> -0.64 /
+# -0.31), the rise 17.5 -> 14.5 / 15.25 ms (theirs 13.5 to 23.5), the scoop -7.5 / -7.7 -> -6.9 / -7.3 (theirs
+# to -6.5: the edge). The tone does not move (the rig alone against a record's, 2.46 -> 2.38 and 2.73 -> 2.67);
+# the faders come up 1.2 dB so the two hands alone are as loud as before (the shaped stroke is quieter between
+# its fronts). THE TAPE IS NOT RE-RECORDED: the left hand's strip on tape (the blot under the facing page) keeps
+# the sound it was taped with (it cannot be benched alone: bd-4942f3).
+# The shaper at attack +4 read 3.61 / 3.52 alone and 3.81 / 4.00 together (the top of the records' range).
+SNAP = {'patch': 'fx.1.sag=0.5 fx.0.attack=15ms fx.0.release=200ms synth.filters.0.cutoff.mod.0.amount=-3.4',
+        'shaper': 'transient attack=3 sustain=-1', 'trim': 1.2, 'tape': False, 'loudness': None}
+
+
+def snap(doc):
+    """v27: the two hands' stroke gets its front back: the amp sags, the compressor lets the pick through, the palm
+    closes the filter as far as it did, and a transient shaper after the eq lifts each front over its body."""
+    hands = [t for t in doc['tracks'] if t['name'] in ('left', 'right')]
+    if SNAP['tape']: hands += [t for s in doc.get('songs', {}).values() for t in s['tracks']]
+    for t in hands:
+        if isinstance(t['patch'], str) and t['patch'].startswith('ct-twin '):
+            cut = t['patch'].find(' play.humanize.time=0ms')        # the tape's copy ends with its own two play fields
+            t['patch'] = t['patch'] + ' ' + SNAP['patch'] if cut < 0 else t['patch'][:cut] + ' ' + SNAP['patch'] + t['patch'][cut:]
+            if SNAP['shaper']: t['fx'] = t['fx'] + [SNAP['shaper']]
+            if isinstance(t['gain'], dict): t['gain'] = dict(t['gain'], value=f"{float(t['gain']['value'][:-2]) + SNAP['trim']:g}dB")
+            else: t['gain'] = f"{float(t['gain'][:-2]) + SNAP['trim']:g}dB"
+    if SNAP['loudness']: doc['loudness'] = SNAP['loudness']
+
+
 if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); ap.add_argument('--without-crease',action='store_true',help='regenerate v3')
     ap.add_argument('--without-mirror-bass',action='store_true',help='regenerate v4')
@@ -1050,6 +1090,8 @@ if __name__=='__main__':
     ap.add_argument('--kit',help='a bench: KIT_TURNED fields to change, as a JSON object')
     ap.add_argument('--without-ruled-page',action='store_true',help="regenerate v25, 'pencil' with no count and the line sung whole three times")
     ap.add_argument('--ruled',help='a bench: RULED fields to change, as a JSON object')
+    ap.add_argument('--without-snap',action='store_true',help="regenerate v26, the two hands' stroke without its front (the amp's sag, the compressor, the palm's filter, the transient shaper)")
+    ap.add_argument('--snap',help='a bench: SNAP fields to change, as a JSON object')
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
     doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot,not a.without_blot)
     if not a.without_lean and 'songs' in doc: lean(doc)      # only on the whole song as v22 has it (the tape is there when every older switch is on)
@@ -1059,6 +1101,8 @@ if __name__=='__main__':
     if not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: turned_kit(doc, sections)      # only on the whole song as v24 has it
     if a.ruled: RULED.update(json.loads(a.ruled))
     if not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: ruled(doc, sections)      # only on the whole song as v25 has it
+    if a.snap: SNAP.update(json.loads(a.snap))
+    if not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: snap(doc)      # only on the whole song as v26 has it
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
