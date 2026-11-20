@@ -313,6 +313,53 @@ ROOM = os.getenv('C10T11_ROOM', '8;12,16,24,36;3;0,0,1,3.5;hall;800,6000;25;-9.8
 # bow: 24) ; 'mute' = each note held until the riff's next clipped stroke, 'next' = until the next note ; its track's
 # fader ; overrides on the bow for these long strokes ; the loudness target ('' = unchanged). '' = v24 byte for byte.
 LONG = os.getenv('C10T11_LONG', '8;24;mute;-10dB;synth.env.swell.a=1200ms synth.env.swell.d=1500ms synth.pitch.value=-0.05;-9.81' if ROOM and BOW and ROD else '')
+# v26 (chirper-two; instrument round: THE CYMBALS, the hand that keeps the walk). No stroke is added, moved or
+# struck harder; the crash, the snare, the kick and the toms are as they were.
+# The song's law is that the riff never changes and the walk under it does, and the walk is kept on metal: the
+# closed hat from 0:10 to 1:50, the china from 1:50 to 3:00, the ride at home. Four notes in a row named the
+# cymbals as the next instrument. Read alone and against everything else (raw, K, a stroke's first 60 ms):
+#   THE HAT stood 14.4 to 14.9 dB under the band (the snare 0 to 3.6 over, the kick 0 to 2 under) and was 3% of
+#       the mix's 4-8 kHz and 33 to 41% of its 8-16 kHz: the library's haake-hat is high-passed at 8 kHz, so it
+#       had 5.3 dB LESS of itself at 4-8 kHz than at 8-16, and was 25 dB down 30 ms after the stick: a tick.
+#   THE CHINA stood 11.0 to 11.4 under, 18 to 22% of the 4-8 kHz and 72 to 76% of the 8-16 kHz: as much at 8-16 as
+#       at 4-8 (+0.4 dB).
+#   THE RIDE stood 21.7 under: 28 strokes that keep the walk at home, and v22's lengthening stride, not heard.
+#   THE RECORDS: their drum stems carry 4.7 to 7.4 dB more at 4-8 kHz than at 8-16 (median 5.9); this kit 3.1 to
+#       4.7 (5.6 at home). The mix read 1.2 to 2.1 dB short at 4-8 kHz in every loud section but the swing (0.6),
+#       and level or over at 8-16 kHz except at home (-2.8). By part the kit was 1.0 to 2.2 short at 4-8 kHz in
+#       'broad', the shoulder and home; the guitars were level there. So the shortfall was the cymbals'.
+# WHAT CHANGED.
+#   THE HAT HAS A BODY: high-passed at 4 kHz, 60 ms long (45), a shelf of -8 dB over 8 kHz and +4 dB at 5.5 kHz,
+#       fader 12 -> 15.5 dB. Alone: +9.0 dB at 4-8 kHz, -0.1 at 8-16; 3.8 dB MORE at 4-8 than at 8-16 now; its
+#       centre 10.9 -> 6.6 kHz; 19.5 dB down after 30 ms. It stands 10.7 to 11.3 under the band. In the quiet
+#       bridge its strokes carry -3.5 dB, so that it stands where it stood beside the organ and the bow (11.1; 11.3).
+#   THE CHINA IS A LOWER, LOUDER PLATE: its peak 8 kHz +3 dB -> 5 kHz +6 dB, tilt 3 -> 0, bright 1 -> 0.6, its
+#       2.2 kHz honk off, high-pass 1.2 -> 3 kHz, 3 dB up in the kit. Alone: +5.9 dB at 4-8 kHz, +4.8 at 2-4,
+#       -0.3 at 8-16 (6.7 dB more at 4-8 than at 8-16 now; its centre 7.3 -> 5.6 kHz). It stands 7.6 and 8.1 under
+#       the band in the shoulder. In the swing, where it is struck most often, each stroke carries -1.5 dB (9.3
+#       under): at one level the kit read 1.7 dB over the records' kits at 4-8 kHz there and level at 1:50 (now
+#       1.3 over there by part, and the mix +0.3).
+#   THE RIDE IS HEARD: 9 dB up in the kit; it stands 12.9 under the band. Its tone is not touched.
+# THE READ against the records' voiceless passages: all nine loud windows nearer (the mean of eight 0.885 -> 0.785;
+# home 1.122 -> 0.867, the kettle 1.044 -> 0.922, the shoulder 0.722 -> 0.611, the swing 0.633 -> 0.533 and
+# 0.833 -> 0.700). 4-8 kHz: quick -1.2 -> -0.8, broad -1.9 -> -1.7, the shoulder -1.5 -> -0.5, the kettle -2.1 ->
+# -0.8, home -1.6 -> -1.1, the swing -0.6 -> +0.3 with its 8-16 kHz +1.3 -> +0.6. By part, the kit against the
+# records' kits at 4-8 kHz: -1.0 -> -0.7 ('broad'), -1.6 -> 0.0 and +0.1 (the shoulder), -2.2 -> -1.3 (home);
+# the kit's 4-8 minus 8-16 kHz: 5.5, 5.3, 4.6 (quick, lean, broad), 6.2, 5.9, 6.0 (the china's sections), 4.4 at
+# home (the ride is a wash with its top on).
+# COSTS: the kit's 2-4 kHz, already over the records' kits, is 0.4 to 0.5 further over where the china plays; the
+# quiet bridge has 3 dB less above 8 kHz (the hat was all of it); the five seconds at double speed (1:15) read 0.03
+# further; the swing is 0.06 dB louder and the twelve (2:35) 0.12 to 0.14. The bow's eight notes stand where they
+# stood, to 0.1 dB.
+# The target moves -9.81 -> -9.778 (slope 1.83, measured): the opening, which has no cymbal, is within 0.007 dB
+# of v25 on three seeds.
+# overrides on the closed hat (haake-hat) ; the hat's fader ; its eq, band|band ; a note gain on its strokes in the
+# quiet bridge ; overrides on the china (the kit's x) ; the china's gain in the kit ; a note gain on its strokes in
+# the swing (2:20-3:00, where it is struck most often) ; the ride edge's gain in the kit (rde) ; the loudness target
+# ('' = unchanged). '' = v25 byte for byte.
+CYMBALS = os.getenv('C10T11_CYMBALS', 'filters.0.cutoff.value=4k amp.d=60ms;15.5dB;highshelf cutoff=8000 gain=-8dB|peak cutoff=5500 q=0.8 gain=4dB;-3.5dB;'
+                    'synth.filters.0.cutoff=3000 synth.filters.1.gain=0dB synth.filters.2.cutoff=5k synth.filters.2.gain=6dB synth.layers.0.tilt=0 synth.layers.0.bright=0.6;'
+                    '-3.5dB;-1.5dB;0dB;-9.778' if LONG else '')
 
 
 def BOW_PATCH():
@@ -834,6 +881,28 @@ def make():
                 until=catch if hold=='mute' or t==opens[-1] else next(u for u in opens if u>t)-.25
                 put('longbow',a+slow*t,slow*(until-t),HOME+int(up)+semi,.88)
         tracks.append(tr('longbow','oih-bow'+(' '+over if over else ''),fader,-.15))
+        if target:
+            doc['loudness']=float(target)
+    if CYMBALS:
+        # v26: the same strokes on the same three cymbals; only how each one sounds, and how loud it is, changes.
+        hat,hat_fader,hat_eq,bridge,china,china_gain,china_swing,ride_gain,target=CYMBALS.split(';')
+        h=next(t for t in tracks if t['name']=='hat'); m=next(t for t in tracks if t['name']=='metal')
+        assert h['patch']=='ct-kit' and m['patch']=='ct-kit' and 'fx' not in h and 'fx' not in m
+        if hat:      # the kit's h is the library's haake-hat by name: a kit of this song's own gives it its overrides
+            doc.setdefault('patches',{})['oih-kit']={'extends':'ct-kit','kit':{'h':{'patch':'haake-hat '+hat,'gain':'-10dB','choke':'hat'}}}
+            h['patch']='oih-kit'
+        if hat_fader: h['gain']=hat_fader
+        if hat_eq: h['fx']=[{'type':'eq','bands':hat_eq.split('|')}]
+        if bridge:   # the quiet bridge keeps the hat where it stood against the organ, the clean guitar and the bow
+            a=marks['bellows']/SUB; b=a+dict(FORM)['bellows']*CELL/SUB
+            for n in h['notes']:
+                if a<=n['at']<b: n['gain']=bridge
+        if china_swing:   # the swing strikes the china most often: each stroke a little less, so the plate stands where it does at 1:50
+            a=marks['swing']/SUB; b=a+dict(FORM)['swing']*CELL/SUB
+            for n in m['notes']:
+                if n['pitch']=='x' and a<=n['at']<b: n['gain']=china_swing
+        over=['kit.x.patch.'+o for o in china.split()]+([f'kit.x.gain={china_gain}'] if china_gain else [])+([f'kit.rde.gain={ride_gain}'] if ride_gain else [])
+        if over: m['patch']=' '.join([m['patch']]+over)
         if target:
             doc['loudness']=float(target)
     return doc,marks
