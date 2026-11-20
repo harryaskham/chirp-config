@@ -1621,17 +1621,17 @@ def the_amp_is_left_on(doc):
 # the file's last four seconds are 2.2 to 4.0 dB louder than v32's.
 # MEASURED (raw, the room alone = this mix less v32's; a half bar OPEN is one with (1 - x) over -6 dB, SHUT under
 # -14): the room against the mix, open / shut: two -13.5 / -20.8 ; four -13.0 / -20.8 ; eight -12.1 / -20.8 ; the
-# first wall -9.9 / -18.1 ; the second -8.8 / -23.1 ; six -9.4 / -27.4 ; down-four -14.6 / -24.5 ; the last four
-# half bars -6.7. A shut half bar's room is the tail of the open one before it (the hall is 2 s; a half bar 0.87).
-# THE HALL has nothing under 400 Hz or over 5 kHz: with 200 Hz the top read 0.5 dB further over at 250-500 Hz.
+# first wall -9.9 / -18.1 ; the second -8.8 / -23.1 ; six -9.4 / -27.4 ; down-four -14.6 / -24.5 ; the last two
+# strokes' half bars -8.6, -10.4. A shut half bar's room is the tail of the open one before it (the hall is 2 s; a half bar 0.87).
+# THE HALL has nothing under 400 Hz or over 5 kHz: with 200 Hz the top read 0.5 dB further over at 250-500 Hz, now 0.3.
 # THE MIX'S READ is level: against the records' passages without a voice, mean of six stretches, 1.570 -> 1.598 ;
 # against all eleven 1.241 -> 1.235 (250 Hz-2 kHz, already over, is 0.0 to 0.3 dB further over).
 # THE TARGET moves -9.9 -> -9.71 so that what is NOT in the room stands where it stood: the machine alone before
 # the first string is within 0.026 dB of v32 on three seeds (at -9.9 it fell 0.36; a sparse stretch moves 1.96 dB
 # for a dB of target here, the band 1.1). The band's sections are 0.09 to 0.38 dB louder: that is the room.
 # THE SCORER: 86.733 / 83.716 / 83.512 -> 88.094 / 87.184 / 85.117 (seeds 0, 11, 1). NOT CLAIMED: 5.3 to 5.6 of its
-# rhythm term on every seed is the room's tails read as onsets between the grid's (the term wants more off the
-# grid than this song's triplets give it; no stroke moved), and seed 11's recurrence (+15.6) is this song's swing.
+# rhythm term on every seed is its off-grid share moving up towards the 0.10 the term wants (no stroke moved: the
+# room rings between the strokes; not separated further), and seed 11's recurrence (+15.6) is this song's swing.
 # COSTS: a room on high-gain guitars is a wash if it is too loud, and nobody has heard this level (the if/thens are
 # in the round's next-note) ; the walls and the six are 0.2 to 0.4 dB louder ; the amp's howl (v32) now starts over a
 # ringing room, not a dead rest (the howl is not in the room; not re-read).
