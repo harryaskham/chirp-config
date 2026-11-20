@@ -271,6 +271,24 @@ STRIDE = os.getenv('C10T11_STRIDE', '6,4,3,2,1;1;' if TAIL else '')
 # the bellows pedal's depth on them, as at 0:40 ; the loudness target ('' = unchanged) ; 1 = the D flat folds to C
 # where a guitar sounds C. '' = v22 byte for byte.
 ACROSS = os.getenv('C10T11_ACROSS', '10;-1.5,1.5;0.25;;1' if STRIDE else '')
+# v24 (chirper-alpha; whole song, 0:59.6-3:20): THE LONGER THE STEP, THE BIGGER THE ROOM. All that happens at 1:00 is a
+# different backbeat, and a slower step leaves a longer wait between backbeats. That wait was empty: the snare is a
+# crack of 40 ms. Now a backbeat that has longer to wait than the quick walk's (more than 8 sixteenths) is struck a
+# second time into a hall that only its echo comes back from, and the hall is as long as the wait: 12 sixteenths
+# (the broad four, 57 strokes), 16 (the walk in three, 8), 24 (the walk in two, 3), 36 or more (the stroke before the
+# bridge, home's last two and the song's last, on the first closing chord: 4). The quick walk's get nothing. So the
+# room opens at the hinge, opens and shuts with every change of feet in the swing, and grows as the stride lengthens
+# until the door shuts. No note is touched: the copies are four tracks (far-N) into four buses (room-N); the snare
+# track, its bus and everything else are v23's.
+# What is heard is half a second of room, not a tail to the next backbeat (a full band covers that): raw, against
+# everything else, the broad walk's room stands 3.0 dB under at 40-200 ms, 9.6 under at 200-600 ms, 23 under after.
+# The return is cut below 800 Hz because the bow (Harry: "I can't hear the bow") and v23's organ live at 230-350 Hz:
+# cut at 300 it took 2.4 dB off the bow in its own third-octave and 14 off one organ note; at 800 it takes nothing.
+# the longest wait, in sixteenths, that gets no room ; the rooms, by the wait each one fills (a stroke goes to the
+# first that is long enough, the last for anything longer) ; a room's decay, in waits ; the rooms' faders, dB, one
+# each ; the kind of room ; the return's low cut (24 dB an octave) and high cut, Hz ; its predelay, ms ; the
+# loudness target ('' = unchanged). '' = v23 byte for byte.
+ROOM = os.getenv('C10T11_ROOM', '8;12,16,24,36;3;0,0,1,3.5;hall;800,6000;25;-9.83' if ACROSS else '')
 
 
 def BOW_PATCH():
@@ -759,6 +777,26 @@ def make():
          'master':{'fx':[{'type':'eq','bands':['hp cutoff=24']},'gain gain=2.7dB']},'tracks':tracks}
     if BOW and ROD:
         doc['patches']={'oih-bow':BOW_PATCH()}
+    if ROOM:
+        # v24: a copy of each backbeat that waits longer than the quick walk's goes, wet only, into the room that is
+        # as long as its wait (the first listed that is long enough; the longest for anything longer).
+        dry,waits,scale,faders,kind,cuts,pre,target=ROOM.split(';')
+        waits=[int(x) for x in waits.split(',')]
+        faders=dict(zip(waits,faders.split(',')))
+        strokes=sorted(notes['snare'],key=lambda n:n['at'])
+        end=start/SUB
+        for n,nxt in zip(strokes,[m['at'] for m in strokes[1:]]+[end+CELL]):
+            wait=(nxt-n['at'])*SUB
+            if wait>float(dry)+1e-6:
+                notes[f"far-{next((w for w in waits if w>=wait-1e-6),waits[-1])}"].append(dict(n))
+        lo,hi=cuts.split(',')
+        for w in waits:
+            if notes[f'far-{w}']:
+                tracks.append(tr(f'far-{w}','ct-kit'+SNARE_PATCH,faders[w]+'dB',0,f'room-{w}'))
+                doc['buses'][f'room-{w}']={'fx':[f'reverb kind={kind} decay={w/SUB*60/BPM*float(scale):.4g}s mix=1 predelay={pre}ms high_cut={hi} width=1',
+                                                 {'type':'eq','bands':[f'hp cutoff={lo}',f'hp cutoff={lo}']}]}
+        if target:
+            doc['loudness']=float(target)
     return doc,marks
 
 
