@@ -584,7 +584,7 @@ STRUCK = os.environ.get('C10T3_STRUCK', '1.2;3;4s;2s;-9.982' if TREBLE and CHORD
 # was 'highshelf cutoff=7000 gain=-3dB') ; its fader (3.5dB) ; the loudness target ('' = unchanged). '' = v32.
 # It is on only while no other C10T3_ switch is set, so every older switch gives exactly what it gave.
 SNARE = os.environ.get('C10T3_SNARE', '3.5;1.1;peak cutoff=2500 q=0.7 gain=-4dB,peak cutoff=650 q=1 gain=-3dB;1.5dB;-10.067' if STRUCK and not any(
-    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR') for k in os.environ) else '')
+    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS') for k in os.environ) else '')
 # v34 (chirper-alpha; whole song: its frame; the change is the band's entrance, 0:08-0:12): THE BAND IS RUNG UP.
 # The song is a ringing performance from end to end, and since v28 the band is LOWERED at the end. But ringers do not
 # start by ringing: a ring is RAISED first, the bells chiming fast and close while they hang low, each stroke taking
@@ -1309,6 +1309,62 @@ def the_bass_rings_the_tenor(doc):
         doc['loudness'] = float(target)
 
 
+# v38 (chirper-two; section round, w7, 3:12-3:44, the map's first choice: "static in tone"; the change is
+# 3:22.0-3:44.5): THE ORGAN PLAYS WHO LEADS. A church has bells, a choir and an organ, and this song had two of the
+# three. In a row a bell LEADS (strikes first) for a whole pull, two rows, and then gives way; and a bell LIES
+# BEHIND (strikes last before the tenor) for a whole pull, a row later. From the bob to the single, where the key
+# has just lifted to A flat and the guitars leave the changing bells to the bass (rows 40-47) and then take them
+# back (50-57), a pipe organ holds those two bells: the right hand the note of the bell that leads, the left the
+# note of the bell that lies behind, three octaves over the guitars, where the treble bell rings. The hands change
+# in turn, a row (1.25 s) apart, so one of the two notes moves and the other is held, all the way: a slow two-part
+# piece that the method writes. The right hand: B, E flat, D, A, then G flat while the treble leads the home rows,
+# then B, A, E flat, D. Where two bells dodge behind at the lead end (3:33.2) the left hand turns D, E flat, D.
+# Twelve of the eighteen rows are thirds or sixths; none is a semitone. It stops as the single is called (v6: a
+# call is the kit's). Two new last tracks, `organ` (9 notes) and `organ-b` (11); nothing else changes.
+#   THE ORGAN: `organ-pipe` without its 16-foot stop or its flute, the 4-foot principal over the 8-foot, a little
+#       more mixture, its own cathedral off and the tower's hall on instead; high-passed at 300 Hz, -6 dB at 460 Hz.
+#       As it comes (16-foot off) at this pitch it added 1.9 dB to a 250-500 Hz band already over the records'.
+#   MEASURED (raw, K, against everything else): the organ 9.6 dB under in the bare rows, 10.4 in the home rows,
+#       10.6 in the full rows; the leading hand's notes 11.6 to 14.2 under, the other hand's 12.3 to 15.3. It is 29%
+#       / 33% of the mix at 500 Hz-1 kHz / 1-2 kHz in the bare rows, 42% / 24% in the full rows, 2% at 250-500 Hz.
+#       Every note within 2 cents of its pitch.
+#   AGAINST THE RECORDS (stembal, 3:22-3:44.5): 500 Hz-1 kHz -2.1 -> -0.2 against their mixes and -3.3 -> -1.5
+#       against their passages with a voice (+0.2 -> +2.1 against their voiceless ones); 1-2 kHz -0.6 -> +0.3;
+#       250-500 Hz +1.2 -> +1.0. Mean distance 0.878 -> 0.578 (mixes), 1.100 -> 0.800 (voice), 0.644 -> 0.956 (none).
+#   FINISHED, three seeds: the stretch +0.27 to +0.42 dB; every other section 0.01 to 0.03 dB lower: target unmoved.
+# the rows of the second extent (from:to, whole pulls) ; the organ's patch ; fader ; semitones over the guitars'
+# note for the hand that holds the bell that leads ; its pan (the other hand's is the opposite) ; send to the
+# tower's hall ('' = none) ; eq bands, | between ('' = none) ; velocity ; how much of its time a note fills ; dB on
+# the note of each bell, treble first (five) ; the loudness target ('' = unchanged) ; semitones over the guitars'
+# note for the hand that holds the bell that lies behind ('' = one hand only) ; dB on that hand's notes.
+# '' = v37 byte for byte. Like TENOR, setting it does not switch SNARE off.
+LEADS = os.environ.get('C10T3_LEADS', '40:58;organ-pipe synth.layers.0.level.value=-70dB fx.0.mix=0 synth.layers.1.level.value=-6dB synth.layers.2.level.value=-70dB synth.layers.3.level.value=0dB synth.layers.4.level.value=-8dB;-10dB;36;0.3;-9dB;hp cutoff=300|peak cutoff=460 q=1.2 gain=-6dB;0.8;0.97;0,0,0,0,0;;36;0' if TENOR else '')
+
+
+def the_organ_plays_who_leads(doc):
+    """v38: the organ holds, in one hand, the note of the bell that leads the row, and in the other the note of the bell that
+    lies behind (last before the tenor). Each bell leads for a whole pull and lies behind for a whole pull, a row apart."""
+    rows, patch, fader, over, pan, send, eq, vel, fill, trims, target, under, less = LEADS.split(';')
+    r0, r1 = (int(x) for x in rows.split(':'))
+    trims = [float(x) for x in trims.split(',')]
+    assert r0 % 2 == 0 and r1 % 2 == 0 and r0 // 40 == (r1 - 1) // 40, 'whole pulls, in one key'
+    assert all(EXTENT_2[k][0] == EXTENT_2[k + 1][0] for k in range(r0, r1, 2)), 'a bell leads for a whole pull: handstroke and backstroke'
+    for name, place, up, side, more in (('organ', 0, over, 1, 0.0),) + ((('organ-b', 4, under, -1, float(less or 0)),) if under else ()):
+        notes, k = [], r0
+        while k < r1:
+            b, n = EXTENT_2[k][place], 1
+            while k + n < r1 and EXTENT_2[k + n][place] == b:           # the same bell in the same place: one held note
+                n += 1
+            g = trims[b - 1] + more
+            notes.append({'at': PART2 * 4 + 2.5 * k, 'len': round(2.5 * n * float(fill), 4), 'pitch': nm(F1 + KEYS_2[k // 40] + PITCH[b] + int(up)), 'vel': float(vel),
+                          **({'gain': f'{g:g}dB'} if g else {})})
+            k += n
+        doc['tracks'].append({'name': name, 'patch': patch, 'gain': fader, 'pan': side * float(pan), **({'sends': {'hall': send}} if send else {}),
+                              **({'fx': [{'type': 'eq', 'bands': eq.split('|')}]} if eq else {}), 'notes': notes})
+    if target:
+        doc['loudness'] = float(target)
+
+
 def song():
     compose()
     # the ground, in semitones over F, from the bar each stretch begins
@@ -1472,4 +1528,6 @@ if __name__ == "__main__":
     doc = song()
     if TENOR:
         the_bass_rings_the_tenor(doc)
+    if LEADS:
+        the_organ_plays_who_leads(doc)
     open(OUT, "w").write(dump(doc))
