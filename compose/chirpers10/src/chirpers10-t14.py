@@ -1622,6 +1622,96 @@ def the_tune_is_the_voice(doc):
         doc["loudness"] = float(target)
 
 
+# v24 (chirper-zero; section round on the map's first flag, w3, 1:02-1:33, 'static, little new': the change is
+# 1:19.7-1:34.3, two turns of the sixty inside 'sixth'). HALF AS FAST IS AN OCTAVE DOWN. The song's first sentence
+# is that a pulse and a pitch are one thing at two speeds, and "twice as fast is the octave above". The drums prove
+# it at both ends of the song (the chord unwinds into a rhythm, the rhythm winds up into the chord); the BAND never
+# had: from its first stroke to its last chord every pulse runs at one speed. And the song had no breakdown.
+# By its rule they are the same thing. From one meeting of the three pulses to the next but one (the second and
+# third of the four turns of 'sixth'; both gathers of v17 are already there, and the band already stops before each)
+# the two riff pairs, the foot and the backbeat play AT HALF SPEED, and the pairs and the foot's chest play AN OCTAVE
+# LOWER, because that is what half speed is: the threes become sixes, an F an octave down (F1, the eight-string's
+# lowest string, which the riff had never used: it has sat on F2 all song); the fives become tens, the A flat an
+# octave down; the backbeat comes once a bar instead of twice, on three: still a C. Each pair plays its own four-
+# stroke figure (ring, mute, chord, mute) at half the rate, starting again at each meeting; the strokes are as long
+# as they were, so there is air between them (benched ringing twice as long: fuller, and the mix read further from
+# the records on both yardsticks; with the chest left on F2 the passage lost 1.4 dB under 60 Hz). NOTHING ELSE SLOWS: the D flat on the fifteens and the C on the bar lines (the walls, the bass, the
+# deep drum, the C tom: v11's semitone) walk on at their own speed and are heard better for it; the china keeps its
+# quarters; the blocks keep the fives; the tune sings over it; the three drums gather at full speed at both
+# meetings, and at 1:34.3 the band lands back at speed and at pitch, into the fill that was already there.
+# the section ; the meeting it starts at and the one it ends at, sixteenths from the section's start ; semitones on
+# the two riff pairs ; semitones on the chest ; the backbeat's place in sixteenths after a meeting's phase, once a
+# bar ('' = every second backbeat as written) ; how many times longer the ringing strokes last ; the loudness
+# target ('' = unchanged). '' = v23 byte for byte. On only while VOICE is.
+OCTAVE = os.environ.get("C10T14_OCTAVE", "sixth;60;180;-12;-12;12;1;-11.109" if VOICE else "")
+
+
+def half_as_fast_is_an_octave_down(doc):
+    """v24: between two meetings of the three pulses the riff pairs, the kick, its chest and the snare play at half
+    speed, the pairs and the chest an octave lower (see OCTAVE). Runs last, on the finished document."""
+    sect, m0, m1, semis, chest, backbeat, ring, target = OCTAVE.split(";")
+    a, z = AT[sect] + int(m0), AT[sect] + int(m1)
+    assert int(m0) % 60 == 0 and int(m1) % 60 == 0 and z > a, "it starts and ends where the three pulses meet"
+    names = "C Db D Eb E F Gb G Ab A Bb B".split()
+
+    def moved(pitch, st):
+        def one(q):
+            k = names.index(q.rstrip("0123456789")) + 12 * (int(q[len(q.rstrip("0123456789")):]) + 1) + st
+            return names[k % 12] + str(k // 12 - 1)
+        return ",".join(one(q) for q in pitch.split(","))
+
+    def s16(n):
+        return round(n["at"] * 4, 3)
+
+    def inside(n):
+        return a <= s16(n) < z
+
+    by = {t["name"]: t for t in doc["tracks"]}
+    for pair, p in (("gl", 3), ("gr", 3), ("dl", 5), ("dr", 5)):
+        t = by[pair]
+        was = [n for n in t["notes"] if inside(n)]
+        mute = next(n for n in was if (n.get("expr") or {}).get("pm"))
+        open_ = max((n for n in was if not (n.get("expr") or {}).get("pm")), key=lambda n: n["len"])
+        lens = sorted({round(n["len"], 4) for n in was if not (n.get("expr") or {}).get("pm")})[-2:]   # the chord's and the ringing stroke's, as written
+        new = []
+        for n in was:
+            rel = s16(n) - a
+            if rel % (2 * p):
+                continue
+            c = rel % 60                                               # the figure starts again at each meeting
+            k = round(c / (2 * p))
+            if k % 2:
+                m = {**mute, "at": n["at"], "pitch": moved(mute["pitch"], int(semis))}
+            else:
+                m = {"at": n["at"], "len": round(min((lens[-1] if k % 4 == 0 else lens[0]) * float(ring), (55 - c) / 4 - 0.01), 4),
+                     "pitch": moved(open_["pitch"], int(semis)), "vel": 1.0 if k % 4 == 0 else 0.95}
+            assert c + m["len"] * 4 <= 55, (pair, rel, m)                   # v17: the band rests from 55 to the meeting
+            new.append(m)
+        t["notes"] = sorted([n for n in t["notes"] if not inside(n)] + new, key=lambda n: n["at"])
+    for name in ("kick", "chest"):
+        t = by[name]
+        keep = []
+        for n in t["notes"]:
+            if inside(n):
+                rel = s16(n) - a
+                if rel % 6:
+                    continue
+                n = {**n, "vel": 1.0 if (rel % 60) % 24 == 0 else 0.86}
+                if name == "chest":
+                    n["pitch"] = moved(n["pitch"], int(chest))
+            keep.append(n)
+        t["notes"] = keep
+    t = by["snare"]
+    stroke = next(n for n in t["notes"] if inside(n))
+    if backbeat == "":
+        keep = [n for n in t["notes"] if not (a < s16(n) < z) or (s16(n) - a) % 16 == 0]
+    else:
+        keep = [n for n in t["notes"] if not (a < s16(n) < z)] + [{**stroke, "at": (a + r) / 4} for r in range(int(backbeat), z - a, 16)]
+    t["notes"] = sorted(keep, key=lambda n: n["at"])
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T14_SHOW"):
         beat = 60 / BPM
@@ -1655,4 +1745,6 @@ if __name__ == "__main__":
             the_chord_falls_through_the_floor(doc)
         if VOICE:
             the_tune_is_the_voice(doc)
+        if OCTAVE:
+            half_as_fast_is_an_octave_down(doc)
         open(OUT, "w").write(dump(doc))
