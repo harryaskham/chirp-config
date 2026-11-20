@@ -450,6 +450,34 @@ AGAIN = os.environ.get("C10T7_AGAIN", "mirror;1;12;3;0.88;") if MIDDLE else ""
 LARGER = os.environ.get("C10T7_LARGER", "6;2;voice-legato synth.layers.0.diction=3 synth.layers.0.ring=1.0 synth.layers.0.effort.value=0.8 fx.0.mix=0 synth.layers.0.tract=0.86;"
                                         "-16.6dB;0.2;0;0.8;hp cutoff=250|lowshelf cutoff=700 gain=-8dB|peak cutoff=2500 q=0.7 gain=5dB|highshelf cutoff=6000 gain=3dB;-12dB;"
                                         "3.2,2.6,-3.1,0.7,-2.4,0.5,-3.2,5.4,-6.4,-6.6,-11,-5.4,-4,-3.3,-3.2,5.5,-3.3,-0.3,-2.3;-12dB;0.6;0.8;1,5;-5.7;-4.2;-9.436") if AGAIN and SUNG and REVEAL and CANON else ""
+# v30 (chirper-alpha; whole song): THE STEEL COMES BACK. Eight notes on the steel (`bar`), from 4:43.3 to the end of
+# the last chord; nothing else changes.
+#   THE SONG IS ITS OWN RULE AT THE TOP SIZE: 1597 sixteenths = 987 + 610, and by the rule ("each line is the line
+#   before it followed by the line before that") the last 610 ARE the first 610 again: sections six, seven and eight
+#   are one, two and three. Two of the three already say so: the sentence of the second section is sung again in the
+#   seventh (v25, v29), and the breakdown of the third (1:27.4) comes again at the same place in the eighth (4:32.4:
+#   v20). The third thing the third section has did not come back: after its breakdown a steel bends a line over its
+#   last 89 sixteenths (v4; Harry, 19 Nov: "Keep the steel"), seven notes in sixteen seconds, and then is never heard
+#   again in a song five minutes long.
+#   NOW IT COMES BACK WHERE THE RULE PUTS IT: after the second breakdown, over the last 89 (4:42.8-4:59.4), the same
+#   seven notes at the same places, to the sixteenth. What is under it has changed, so the same line means something
+#   else: the ground is lifted to A flat there (v12), so its first bend (F up to A flat) now climbs to the root and
+#   arrives on the note the horn is holding; its second (E flat down to C) lands on C and lets go a sixteenth before
+#   the horn takes C; its long fourth note starts on the horn's C and bends away from it to E flat. All four guitars chug
+#   right through under it (Harry: "Chug right through"); the harp and the horn are as they were.
+#   AND THE LINE BEGINS A THIRD TIME. In the third section the steel told its line long (55: four bends) and then
+#   short (34: the first three). The next line of the rule after "long, short" is "long, short, long". So on the
+#   last chord (4:59.4), three sixteenths after its head as always, the steel begins the long telling again: F,
+#   bent up to A flat, the same bend in the same time. There is no song left for the rest, and it holds the A flat
+#   and stops with the band. The last chord is a bare fifth on F; the steel makes it F minor, the harp's key.
+#   LEVEL: the notes are 2 dB over their level at 1:37.7 (there are four guitars under it now, a harp and a horn):
+#   against everything else in the band its bend crosses they read -0.6, +3.0, -1.2, +1.0 | +6.0, +0.5, +1.7 (at
+#   1:37.7: +3.2, +6.6, +0.2, +5.1 | +4.4, +1.9), and 6.4 to 9.0 dB under everything (K; 6.8 to 9.5 there). The
+#   note on the last chord is at the line's own level: -0.2 in its band, 8.8 under the chord.
+# the section the line comes back in (from 0; 7 = the last) ; dB on its notes there, long telling , short telling ;
+# the line begins again on the last chord: sixteenths after the chord's head , its length in sixteenths , dB ('' = it
+# does not) ; the loudness target ('' = unchanged). "" = v29 byte for byte.
+RETURN = os.environ.get("C10T7_RETURN", "7;2,2;3,25,0;-9.42") if LARGER and STEEL else ""
 # Euclid's definition in nineteen syllables, cut by the rule: phrases of 1, 2, 3, 5 and 8 syllables
 WORDS = [("B R EY1 K",), ("W AH1 N", "L AY1 N"), ("S OW1", "DH AH0", "HH OW1 L"), ("IH1 Z", "T UW1", "DH AH0", "L AO1 NG", "G ER0"),
          ("AE1 Z", "DH AH0", "L AO1 NG", "G ER0", "T UW1", "W AH1 T", "R IH0", "M EY1 N Z")]
@@ -1536,6 +1564,42 @@ def the_rule_is_sung_larger(doc):
         doc["loudness"] = float(loud)
 
 
+def the_steel_comes_back(doc):
+    """v30: the song's last three sections are its first three again (1597 = 987 + 610: the rule), and the steel's
+    line, heard once in the third (its last 89 sixteenths), is played again in the last 89 of the eighth, note for
+    note; then it begins a third time on the last chord and is left on its first bend."""
+    sec, gains, again, loud = RETURN.split(";")
+    s0, kind, n = SECS[int(sec)]
+    was = SECS[2][0]
+    assert kind == "L" and int(sec) != 2 and n == SECS[2][2]
+    bar = next(t for t in doc["tracks"] if t["name"] == "bar")
+    line = [x for x in bar["notes"] if was + SIZE[8][0] <= round(4 * x["at"]) < was + n]
+    assert len(line) == len(bar["notes"]) == 7                              # four bends in the long telling, three in the short
+    long_db, short_db = (float(x) for x in gains.split(","))
+    for x in line:
+        off = round(4 * x["at"]) - was
+        db = long_db if off < SIZE[8][0] + SIZE[6][0] else short_db
+        bar["notes"].append({**x, "at": round((s0 + off) / 4, 4), **({"gain": f"{db:g}dB"} if db else {})})
+    assert round(4 * bar["notes"][-1]["at"]) + 5 <= s0 + n - 8                # it lets go before the last fill, as it did before the tutti
+    if again:
+        after, ln, db = (float(x) for x in again.split(","))
+        first = line[0]
+        shape, dur = first["expr_path"]["bend"], round(4 * first["len"] / 0.98)   # the first bend as written: its seven points over nine sixteenths
+        pts = max(len(shape), int(round(ln)))
+
+        def bend(t):                                                        # the same bend in the same time, then held
+            u = min(t / dur, 1.0) * len(shape) - 1
+            if u <= 0:
+                return shape[0] * max(u + 1, 0)
+            i = min(int(u), len(shape) - 2)
+            return shape[i] + (shape[i + 1] - shape[i]) * (u - i)
+        bar["notes"].append({**first, "at": round((TOTAL + after) / 4, 4), "len": round(ln / 4 * 0.98, 4),
+                             "expr_path": {"bend": [round(bend((i + 1) / pts * ln), 3) for i in range(pts)]},
+                             **({"gain": f"{db:g}dB"} if db else {})})
+    if loud:
+        doc["loudness"] = float(loud)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T7_SHOW"):
         sec = 15 / BPM
@@ -1551,4 +1615,6 @@ if __name__ == "__main__":
             the_line_before_again(doc)
         if LARGER:
             the_rule_is_sung_larger(doc)
+        if RETURN:
+            the_steel_comes_back(doc)
         open(OUT, "w").write(dump(doc))
