@@ -294,6 +294,24 @@ LEAN = os.environ.get('C10T9_LEAN', 'fx.2.bands.0.gain=12dB fx.2.bands.1.gain=6d
 CLEAN = 'ct-clean:ct-glass:{0}dB:{0}dB:peak cutoff=350 q=0.9 gain=-4dB,peak cutoff=2800 q=0.8 gain=3dB,highshelf cutoff=3500 gain=-12dB:reverb kind=hall decay=1.6s mix=0.12 predelay=20ms'
 AMPS = os.environ.get('C10T9_AMPS', 'one to the beat:' + CLEAN.format(14.5) + '::-5|five:' + CLEAN.format(14.5) + ':-3:-5'
                                     '|six:ct-crunch-l:ct-crunch-r:-1.5dB:-1.5dB:peak cutoff=180 q=0.8 gain=5dB,peak cutoff=750 q=0.8 gain=3dB,peak cutoff=2200 q=0.7 gain=-3dB:::;-10.4' if LEAN else '')
+# v26 (chirper-zero; instrument round: the snare, all 93 strokes; no stroke moves): THE SNARE'S BOX COMES OUT AT THE
+# HEAD. Extreme and Mean v26 found the album snare's note a band too high and a box at 1 to 1.25 kHz, and cut the
+# box with an eq. It is in the drum itself: the engine's head has 24 modes by default, and the upper ones ARE the
+# hump. mode_count 24 -> 10 takes 4 dB off 1 kHz and 6 off 1.25 kHz with no eq (tools/snarespec.py, the snare
+# alone beside six records' snares). So here: ten modes; the drum a tone lower (A3 -> G3), which puts its note in
+# the 200 Hz band where the records' is (-17.8 -> -0.1); a harder, shorter stroke on a damped head (contact 0.6 ->
+# 0.45, damp 0.3 -> 0.9, the amp's decay 140 -> 110 ms); the kit's +5 dB at 200 Hz to -3, because the note itself
+# is there now; the stick's slap 1.2 -> 0.8; on the track 3 dB off at 630 Hz, 3 on at 1.6 kHz, the shelf 3 -> 5 dB.
+# Fader 3.5 -> 5.5 dB: alone it is as loud as it was (K) and a stroke stands as far out of the band (+8.7 -> +9.0).
+# Its shape against the records' (160 Hz-5 kHz): 5.25 -> 3.32; at 630, 800, 1k, 1.25k Hz +2.9 +3.6 +8.1 +6.9 ->
+# +1.5 +0.5 +3.0 +0.8. THE MIX, weighted by where the snare plays: 0.979 -> 0.959 (250-500 Hz +1.4 -> +1.0, 500 Hz-
+# 1 kHz +1.5 -> +1.4, 8-16 kHz +0.3 -> 0.0). The mix chose among the builds: a lift at 4 kHz, where the records'
+# crack is, read 0.5 over at 4-8 kHz; a cut at the 2.5 kHz crack left 2-4 kHz short.
+# the drum's note ; overrides inside the snare's patch ; its track's eq, band|band ; its fader ; the loudness
+# target ('' = unchanged). '' = v25 byte for byte.
+SNARE = os.environ.get('C10T9_SNARE', 'G3;synth.layers.0.mode_count=10 synth.layers.0.damp=0.9 synth.amp.d=110ms synth.layers.0.contact=0.45 '
+                                      'synth.filters.1.gain=-3dB synth.layers.0.slap=0.8;'
+                                      'peak cutoff=630 q=2 gain=-3dB|peak cutoff=1600 q=2.5 gain=3dB|highshelf cutoff=7000 gain=-5dB;5.5dB;' if AMPS else '')
 WALK = []
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
@@ -1009,6 +1027,19 @@ def dump(doc):
     return "\n".join(lines) + "\n"
 
 
+def the_snare_at_the_head(doc):
+    """v26: the album kit's snare with ten head modes, a tone lower, struck harder and shorter on a damped head."""
+    note, patch, eq, fader, loud = SNARE.split(";")
+    t = next(t for t in doc["tracks"] if t["name"] == "snare")
+    t["patch"] += "".join(f" kit.s.patch.{o}" for o in patch.split()) + (f" kit.s.pitch={note}" if note else "")
+    if eq:
+        t["fx"] = [{"type": "eq", "bands": eq.split("|")}]
+    if fader:
+        t["gain"] = fader
+    if loud:
+        doc["loudness"] = float(loud)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T9_SHOW"):
         end = compose()
@@ -1033,4 +1064,6 @@ if __name__ == "__main__":
                     bus["auto"] = {**bus.get("auto", {}), "amps": {"points": pts, "curve": 0}}
             if AMPS.split(";")[1]:
                 doc["loudness"] = float(AMPS.split(";")[1])
+        if SNARE:
+            the_snare_at_the_head(doc)
         open(OUT, "w").write(dump(doc))
