@@ -584,7 +584,7 @@ STRUCK = os.environ.get('C10T3_STRUCK', '1.2;3;4s;2s;-9.982' if TREBLE and CHORD
 # was 'highshelf cutoff=7000 gain=-3dB') ; its fader (3.5dB) ; the loudness target ('' = unchanged). '' = v32.
 # It is on only while no other C10T3_ switch is set, so every older switch gives exactly what it gave.
 SNARE = os.environ.get('C10T3_SNARE', '3.5;1.1;peak cutoff=2500 q=0.7 gain=-4dB,peak cutoff=650 q=1 gain=-3dB;1.5dB;-10.067' if STRUCK and not any(
-    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS') for k in os.environ) else '')
+    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS', 'C10T3_PICK') for k in os.environ) else '')
 # v34 (chirper-alpha; whole song: its frame; the change is the band's entrance, 0:08-0:12): THE BAND IS RUNG UP.
 # The song is a ringing performance from end to end, and since v28 the band is LOWERED at the end. But ringers do not
 # start by ringing: a ring is RAISED first, the bells chiming fast and close while they hang low, each stroke taking
@@ -1524,10 +1524,53 @@ def dump(doc):
     return "\n".join(lines) + "\n"
 
 
+# v39 (chirper-one; whole song: the main pair of guitars, `gl` and `gr`, 1,875 strokes each, 1,461 of them under
+# the palm: the riff is the song, and four strokes in five of it are muted): THE CHUG KEEPS ITS LOW END. Read
+# beside six records' guitars at their own chugs (riffpunch --strokes, 28-48 s, 138 strokes): this pair's low end
+# DIED after each stroke (100-250 Hz in the first 20 ms over 40-80 ms: +2.56 dB; the records -1.1, none over
+# +0.3) and it had few teeth (400 Hz-1 kHz less 1-4 kHz: -6.1; the records -11.3). Three songs have had the cure
+# (Still Owing v26, On Its Hinge v27, In the Time Of v29) and each rig wanted its own. On this one (the 5150):
+#   the pick held hard under the palm (soft x0.5)                      +2.16   nothing, as on On Its Hinge
+#   and the palm's filter at two octaves                               +1.92   the teeth come (-9.9)
+#   and the palm's THUMP off                                           +1.05   the thump is this rig's
+#   and the amp let loose (tight 220 -> 150 Hz)                        +0.57   and the chest comes back with it
+#   a lighter palm in the notes instead (0.7, 0.55, 0.4)               +1.64, +1.52, +1.13
+# With the thump off and the amp at 220 the pair alone lost 4.8 dB at 120-250 Hz; at 150 it loses 0.6. A little
+# chest (190 Hz) and the 700 Hz the hard pick takes are given back on each track's eq, and the faders come down
+# 1 dB because a brighter stroke is a louder guitar on the meter (and the target goes -10.067 -> -10.0: with it
+# left, the master turned the passages that have no guitar down 0.1 to 0.2 dB). The inner pair, the harmony pair
+# and the last stretch's small cabinet (Harry: "Bite: keep it") are not touched; no note is.
+# AFTER (five stretches): the fall +2.56 +3.88 +2.33 +2.82 +2.92 -> +0.50 +1.14 +0.94 +0.52 +1.10 (still over the
+# records'); the teeth -6.1 -6.2 -6.6 -6.4 -6.0 -> -8.5 -7.8 -8.5 -7.7 -8.3 (inside the records' range).
+# the tracks ; what is added to each one's patch ; dB on each fader ; bands on each track's eq, band|band ; the
+# loudness target ('' = unchanged). '' = v38 byte for byte. On only while LEADS is; like TENOR and LEADS, setting
+# it does not switch SNARE off (it is in SNARE's list).
+PICK = os.environ.get('C10T3_PICK', 'gl,gr;synth.layers.0.soft=expr.pm*0.5 synth.layers.0.thump.mod.0.amount=0 synth.filters.0.cutoff.mod.0.amount=-2 fx.1.tight=150;'
+                      '-1;peak cutoff=190 q=1.2 gain=1.5dB|peak cutoff=700 q=1 gain=2dB;-10.0' if LEADS else '')
+
+
+def the_chug_keeps_its_low_end(doc):
+    """v39: the main pair's muted stroke: a hard pick, no thump, the palm's filter at two octaves, a looser amp."""
+    names, over, fader, bands, target = PICK.split(';')
+    for name in names.split(','):
+        t = next(t for t in doc['tracks'] if t['name'] == name)
+        assert isinstance(t['gain'], str) and t['patch'].startswith('ct-twin'), (name, t['gain'], t['patch'])
+        if over:
+            t['patch'] = t['patch'] + ' ' + over
+        if fader:
+            t['gain'] = f"{float(t['gain'].rstrip('dB')) + float(fader):g}dB"
+        if bands:
+            t['fx'] = list(t.get('fx') or []) + [{'type': 'eq', 'bands': bands.split('|')}]
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if TENOR:
         the_bass_rings_the_tenor(doc)
     if LEADS:
         the_organ_plays_who_leads(doc)
+    if PICK:
+        the_chug_keeps_its_low_end(doc)
     open(OUT, "w").write(dump(doc))
