@@ -37,6 +37,7 @@ v1 is the skeleton: the whole dial, played bare.
 """
 import json
 import os
+import re
 
 OUT = os.environ.get("C10T6_OUT", os.path.join(os.path.dirname(__file__), "..", "..", "..", "songs", "chirpers10-t6.yaml"))
 BPM = 138
@@ -1426,9 +1427,12 @@ def edge_buses():
 HEARD = os.environ.get("C10T6_HEARD", "3;4;lead,lead2,hair;;0;-6") if BODY else ""
 
 
-def the_rule_is_heard(doc):
-    """The chips come forward wherever a guitar is playing (most at the top), and stay where they were in every hole."""
+def the_rule_is_heard(doc, less=0., less_top=0.):
+    """The chips come forward wherever a guitar is playing (most at the top), and stay where they were in every hole.
+    `less`, `less_top` (v31): dB of that lift given back, away from the top and at it."""
     base, top, chips, target, since, met = HEARD.split(";")
+    if less or less_top:
+        base, top = float(base) - less, float(top) + less - less_top
     by = {t["name"]: t for t in doc["tracks"]}
     n = sum(d[1] for d in DIAL)
     busy = [False] * (n + 1)
@@ -1466,6 +1470,58 @@ def the_rule_is_heard(doc):
     return up
 
 
+# v31 (chirper-three; whole song, every guitar stroke from 0:07 to the end): THE SIX GET THEIR TEETH. The cure of
+# Extreme and Mean v23, Take Up the Slack v12 and Common Measure v24 on this song, on three rigs at once, read
+# with `riffpunch.py --strokes` and fitted to this song's own mix. Not one note moves.
+#   THE STROKES WERE A THUD. Their scoop (400 Hz-1 kHz less 1-4 kHz through a stroke) read -3.6 on the first pair,
+#       -6.7 on the second and -3.8 on the third, where six records' strokes read -11.3 (-12.7 to -6.5). Alone against
+#       a record's guitar alone (`cabspec.py`) the wall stood 5 to 8 dB over from 500 to 800 Hz.
+#   THE PALM comes off the string a little on all six (3.4 octaves closed at a full mute -> 2), the 700 Hz lift goes
+#       from all six, the first and third pairs take 2 dB out at 800 Hz, and each gets 2.5 dB at 185 Hz (the chest the
+#       opener string costs: by part the guitars' 120-250 Hz went -4.6 -> -6.4 without it).
+#   THE MICROPHONES are this song's own: the first pair's stays (it plays alone from 0:07 to 1:09 and on the way down,
+#       where the mix was 0.8 to 2.3 dB short at 2-4 kHz); the second pair's goes out 0.35 -> 0.47 and the third's
+#       0.55 -> 0.6, because where they join (the walls, the top) the mix was already over there.
+#   THE FADERS go up 0.5 dB: with the middle gone the six read 0.4 to 0.7 dB quieter alone (K); now +0.1 and -0.2.
+#   THE TUNE GIVES SOME BACK. The square-wave tune lives where the guitars' middle was, so with no other change v30's
+#       reading of it (its own third-octave against everything else) rose 0.6 to 3.8 dB. v30 lifted the chips 3 dB
+#       wherever a guitar plays (7 at the top) to make it heard; 1.5 dB of that is given back (0.5 at the top), and
+#       the tune reads where v30 left it (within 0.8 dB; `six` 2.1 over) while standing 1.1 to 1.6 dB lower against
+#       the band (0.4 at the top).
+# AFTER: scoop -8.8 / -9.1 (first pair, the wall / two), -10.3, -7.8: all inside the records' range. Alone, the wall
+#   2.84 -> 1.98 from the record's guitar and the top 3.50 -> 2.78. The mix against the records' passages with no
+#   voice 1.80 -> 1.57, nearer in all six stretches read (500 Hz-1 kHz 3.8 -> 2.3 over); against all eleven 1.33 ->
+#   1.24, the two walls 0.02 and 0.06 further (they read 1.4 and 1.5 over at 2-4 kHz; 0.4 and 0.8 before). The keys
+#   over the left guitar (Harry: "Keep one guitar with the keys") read -2.2 -> -0.6 in `two`. NOT CURED: the low
+#   end's fall after a stroke (tight: +2.1 to +2.8 where the records read -1.1).
+# the palm's octaves at a full mute ; the first pair's eq, band|band ; the second pair's ; the third pair's ; the three
+# rigs' microphones, first,second,third ("" in a place = as it was) ; dB on the six faders ; dB of v30's lift on the
+# chips given back, away from the top,at the top ; the loudness target ("" = unchanged). "" = v30 byte for byte.
+TEETH = os.environ.get("C10T6_TEETH", "-2;peak cutoff=185 q=1.2 gain=2.5dB|peak cutoff=800 q=1.2 gain=-2dB;peak cutoff=185 q=1.2 gain=2.5dB;"
+                       "peak cutoff=185 q=1.2 gain=2.5dB|peak cutoff=800 q=1.2 gain=-2dB;,0.47,0.6;0.5;1.5,0.5;-9.9" if HEARD else "")
+
+
+def the_six_get_their_teeth(doc):
+    """v31: the muted strokes' teeth on all three rigs (the palm, the mids, the microphones)."""
+    palm, *eqs, mics, fader, _, target = TEETH.split(";")
+    for t in doc["tracks"]:
+        if t["name"] in ("gl", "gr", "gl2", "gr2", "gl3", "gr3"):
+            k = int(t["name"][2:] or 1) - 1
+            mic = mics.split(",")[k]
+            if mic:
+                assert t["patch"].count("fx.2.mic=") == 1
+                t["patch"] = re.sub(r"fx\.2\.mic=[0-9.]+", f"fx.2.mic={mic}", t["patch"])
+            if palm:
+                t["patch"] += f" synth.filters.0.cutoff.mod.0.amount={palm}"
+            t["fx"] = [{"type": "eq", "bands": eqs[k].split("|")}] if eqs[k] else []
+            if not t["fx"]:
+                del t["fx"]
+            if fader and float(fader):
+                t["gain"] = f"{float(t['gain'][:-2]) + float(fader):g}dB"
+    if target:
+        doc["loudness"] = float(target)
+
+
 def dump(doc):
     lines = []
     for k, v in doc.items():
@@ -1493,5 +1549,7 @@ if __name__ == "__main__":
     else:
         doc = song()
         if HEARD:
-            the_rule_is_heard(doc)
+            the_rule_is_heard(doc, *(float(v or 0) for v in (TEETH.split(";")[6].split(",") if TEETH else ())))
+        if TEETH:
+            the_six_get_their_teeth(doc)
         open(OUT, "w").write(dump(doc))
