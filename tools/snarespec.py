@@ -22,7 +22,10 @@ build; it needs the six reproductions' song files and stems).
 WHAT IT SHOWED THAT THE TWO RATIOS DID NOT (the album kit's snare, `ct-kit` s, on A3): its NOTE is in the 250 Hz
 band where the records have theirs at 200 (ours -17 dB at 200, +6 at 250), with humps of +7.5 at 1-1.25 kHz and +6
 to +8 at 2-2.5 kHz where theirs dip. `kit.s.pitch=G3` moves the note; `shell`, `shell_hz` and `reso_level` move
-nothing (under 0.8 dB: the humps are the head's modes); `damp` 0.9 takes 2.5 dB off 1 kHz; the rest is eq. And two
+nothing (under 0.8 dB); `damp` 0.9 takes 2.5 dB off 1 kHz. NOT YET BENCHED (his correction, the same night): the
+head's `mode_count` (1..28, default 24: the 1-1.25 kHz hump is 4.3 to 5.4 times the head's note, its upper explicit
+modes) and `slap` (the dense modes above them; the kit has 1.2: probably the 2-2.5 kHz hump). Bench
+`kit.s.patch.synth.layers.0.mode_count=10..16` and `slap=0.4..0.8` against this before reaching for eq. And two
 cautions: the drums' bus glue and clip make a snare's measures depend on its FADER; and a snare's box can be
 standing in for guitars that are short at 250 Hz-4 kHz, so let the MIX say how much of the cure to keep. A read,
 not a score.

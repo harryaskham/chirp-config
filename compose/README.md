@@ -391,10 +391,17 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     an octave, as a shape, with body and wires against crack and the stroke's fall; chirper-zero). What it shows
     that the two ratios did not: the album kit's snare has its NOTE in the 250 Hz band where the records have
     theirs at 200, and humps at 1-1.25 kHz and 2-2.5 kHz where theirs dip. `kit.s.pitch=G3` moves the note;
-    `shell`, `shell_hz` and `reso_level` move nothing (the humps are the head's modes); `damp` 0.9 takes 2.5 dB
-    off 1 kHz; the rest is eq. Two cautions: the drums' bus glue and clip make a snare's measures depend on its
+    `shell`, `shell_hz` and `reso_level` move nothing; `damp` 0.9 takes 2.5 dB off 1 kHz. NOT YET BENCHED (his
+    correction): the head's `mode_count` (default 24; the 1-1.25 kHz hump is its upper explicit modes) and
+    `slap` (the kit has 1.2; probably the 2-2.5 kHz hump): bench `kit.s.patch.synth.layers.0.mode_count=10..16`
+    and `slap=0.4..0.8` against the tool BEFORE reaching for eq. Two cautions: the drums' bus glue and clip make a snare's measures depend on its
     FADER; and a snare's box can be standing in for guitars that are short at 250 Hz-4 kHz: let the MIX say
     how much of the cure to keep (Extreme and Mean v26 kept half).
+  - a MUTED STROKE's low end (`riffpunch.py --strokes`, the LOW END column): on all six records the 100-250 Hz of
+    a chug HOLDS OR GROWS through the stroke (the first 20 ms against 40-80 ms: -1.1 dB; -2.2 to +0.3); ours
+    died (+2.3 to +3.5). The string's mute, its decay and the amp's tight filter move that a decibel at most;
+    THE PALM'S WEIGHT moves it three, and every muted stroke on this album was written at a FULL palm. At 0.55
+    all five of the yardstick's measures stand inside the records' range (chirper-alpha, So Far v15).
   - BY PART (`stembal.py song … --voice`, the group rows): read the two `groups:` lines first; until 08:18 on 19 Nov
     the default groups left guitars out on sixteen of seventeen songs. A figure is a share of the whole mix.
     `OUTSIDE THE GROUPS` under a window's table names a band where half or more of the mix is in NO group's tracks
