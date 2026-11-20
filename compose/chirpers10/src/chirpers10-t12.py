@@ -1112,6 +1112,59 @@ def the_pencil(doc, sections):
     if PENCIL['loudness']: doc['loudness'] = PENCIL['loudness']
 
 
+# v29 (chirper-alpha; instrument round: the hi-hat, both its strokes, 255 strokes: 199 by the sticks, 56 by the
+# foot). THE COUNT IS STRUCK ON METAL. No note changes and no other part; the hat track's fader stays where it was.
+# The song is "one strip read forwards and back under an unbroken count of four", and the count was the album
+# kit's closed hat as it comes: white noise and three squares through an 8 kHz high-pass, 45 ms. READ ALONE (raw,
+# own seed): the sticks' stroke had 74% of its power over 8 kHz and 2% under 4 kHz (centroid 11.9 kHz) and was
+# 20 dB down in 20 ms: a tick of hiss. Beside the top of the eleven records' drums (tools/cymspec.py, shapes) it
+# stood 11.2 dB away on average, +20 dB at 12.5 kHz: the records' metal has its weight at 4-6 kHz. IN THE MIX it
+# stood 15 to 21 dB over everything else at 8-16 kHz and 3 to 7 dB UNDER everything else at 4-8 kHz: the count was
+# in the top octave and nowhere else.
+# NOW both strokes are a cymbal's plate (the engine's modal layer, `modes: cymbal`, which the album kit's crash and
+# china use and no hat on the album does), lightly damped and driven a little, as the china is:
+#   the sticks (`h`): the plate struck near its edge, with a stick's tick (4 ms of noise) on the front, 50 ms to
+#     fall 20 dB, through a 2.5 kHz high-pass and a shelf that takes 9 dB off the top from 9 kHz: centroid 7.0 kHz,
+#     20% / 54% / 26% under 4 kHz / at 4-8 / over 8; 3.2 dB from the records' top (11.2).
+#   the foot (`hp`): THE SAME PLATE, closed: no tick, a slower front, a darker strike, 32 ms, 1.5-9 kHz: centroid
+#     5.2 kHz, 39% / 48% / 13%; 1.0 from the records' top (8.1).
+# THE LEVEL is set on the mix: the top octave keeps what the old hat gave it ('ink', raw: 8-16 kHz -0.8 -> -0.9
+# against the records' rows with no voice) and the octave below gains (4-8 kHz -0.8 -> -0.4). At that level a
+# stick stroke stands 8.3 dB under everything else (K; it was 12.1) and 1 to 5 dB OVER everything else at 4-8 kHz.
+# Benched and not kept (cand.py): the plate at damping 0.1 to 0.5 with a 120-150 ms decay (10 to 21 ms, a tick
+# again; the 50 ms came with damping 0.02, a 400 ms decay, a gentler amp curve and the drive, changed together); the album's other recipe (the library hat opened to 4.5 kHz with
+# an eq: 6.3 from the records, 16 ms); the 808's six squares (7.5); the plate on F5, and two plates a fourth apart
+# (the same within 0.3 dB in every third of an octave from 2 kHz: the note does not tune this mode set); a
+# gentler shelf (the mix's two top bands within 0.2 dB) and a steeper one (half a decibel less top octave in the
+# mix); 2 dB lower and 1 dB higher.
+# 'h': the sticks' stroke, 'hp': the foot's (kit pieces over the album kit's; None leaves a piece as it comes) ;
+# 'gain': the hat track's fader (None: unchanged) ; 'loudness' (None: unchanged).
+# --without-plates gives v28 byte for byte. (--plates '{...}': a bench.)
+def _plate(bright, strike):
+    return {'type': 'modal', 'modes': 'cymbal', 'name': 'plate', 'bright': bright, 'damp': 0.02, 'decay': '400ms', 'strike': strike, 'tilt': 1, 'vary': 0.5}
+
+
+PLATES = {'h': {'pitch': 'C5', 'gain': '-16dB', 'choke': 'hat', 'patch': {'play': {'vel_sens': 0.6}, 'synth': {
+              'amp': {'a': '0.2ms', 'd': '70ms', 's': 0, 'r': '20ms', 'curve': 2}, 'env': {'att': {'a': '0.1ms', 'd': '4ms', 's': 0}},
+              'filters': ['hp cutoff=2500', 'peak cutoff=5500 q=0.8 gain=2dB', 'highshelf cutoff=9000 gain=-9dB'],
+              'layers': [_plate(0.9, 0.9), {'name': 'tick', 'type': 'noise', 'level': {'value': '-66dB', 'mod': [{'src': 'env.att', 'amount': 40}, {'src': 'vel', 'amount': 6}]}}],
+              'drive': 0.3}}},
+          'hp': {'pitch': 'C5', 'gain': '-23dB', 'choke': 'hat', 'patch': {'play': {'vel_sens': 0.6}, 'synth': {
+              'amp': {'a': '0.5ms', 'd': '45ms', 's': 0, 'r': '15ms', 'curve': 2}, 'filters': ['hp cutoff=1500', 'lp cutoff=9000'],
+              'layers': [_plate(0.6, 1.0)], 'drive': 0.3}}},
+          'gain': None, 'loudness': None}
+
+
+def the_count_is_struck_on_metal(doc):
+    """v29: the hat's two strokes are a cymbal's plate, struck (the sticks) and closed (the foot), not filtered noise."""
+    hat = next(t for t in doc['tracks'] if t['name'] == 'hat')
+    assert hat['patch'] == 'ct-kit' and {n['pitch'] for n in hat['notes']} <= {'h', 'hp'}
+    kit = {k: PLATES[k] for k in ('h', 'hp') if PLATES[k]}
+    if kit: hat['patch'] = {'extends': 'ct-kit', 'kit': kit}
+    if PLATES['gain']: hat['gain'] = PLATES['gain']
+    if PLATES['loudness']: doc['loudness'] = PLATES['loudness']
+
+
 if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); ap.add_argument('--without-crease',action='store_true',help='regenerate v3')
     ap.add_argument('--without-mirror-bass',action='store_true',help='regenerate v4')
@@ -1143,6 +1196,8 @@ if __name__=='__main__':
     ap.add_argument('--snap',help='a bench: SNAP fields to change, as a JSON object')
     ap.add_argument('--without-pencil',action='store_true',help="regenerate v27: no pencil strokes under the voice and the clean string in 'pencil' and on the facing page")
     ap.add_argument('--pencil',help='a bench: PENCIL fields to change, as a JSON object')
+    ap.add_argument('--without-plates',action='store_true',help="regenerate v28: the hat as the album kit's comes (noise through a high-pass)")
+    ap.add_argument('--plates',help='a bench: PLATES fields to change, as a JSON object')
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
     doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot,not a.without_blot)
     if not a.without_lean and 'songs' in doc: lean(doc)      # only on the whole song as v22 has it (the tape is there when every older switch is on)
@@ -1156,6 +1211,8 @@ if __name__=='__main__':
     if not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: snap(doc)      # only on the whole song as v26 has it
     if a.pencil: PENCIL.update(json.loads(a.pencil))
     if not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_pencil(doc, sections)      # only on the whole song as v27 has it
+    if a.plates: PLATES.update(json.loads(a.plates))
+    if not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_count_is_struck_on_metal(doc)      # only on the whole song as v28 has it
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
