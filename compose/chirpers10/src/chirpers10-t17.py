@@ -539,6 +539,21 @@ WHEEL = {'horn': (8, 4, 2, 1), 'gain': (2.5, 4.5, 6.0, 8.0), 'breath': 1, 'bell'
 # were ; 'crest': where in the note the hand is furthest down ; 'points': how many points draw the hand's path ;
 # 'least': the shortest note that is shaped, in beats ; 'loudness' (None = unchanged). --without-touch gives v19.
 # (--touch '{"per": 3}': a bench.)
+# v21 (chirper-one; whole song: the two guitars, 636 and 840 strokes, every walk): THE GUITARS' WEIGHT MOVES DOWN.
+# Four handoffs have called "250-500 Hz in seven to fourteen, the bass's" the real next round. Read by part first
+# (walk nine, each group alone, raw): of the mix's 250-500 Hz the guitars are 45%, the ondes 21%, the kit 14%, the
+# horn 12%, the voices 5% and the BASS 3%. The by-part read's "+5.7" is the bass's own shape, not what it adds;
+# nothing done to the bass can move that band. A third of it is the ondes and the horn, which no record has: the
+# song's own, left alone. What a guitar round CAN do is put the guitars where the records' guitars are: alone
+# against the six records' guitar stems they stood 3.2 dB short at 120-250 Hz and 4.2 over at 500 Hz-1 kHz (1.3
+# over at 250-500). So: the amp looser (tight 180 -> 150 Hz) and a little at 150 Hz for the chest; a cut at 700 Hz
+# and a smaller one at 350; the fader up 0.6 dB so the two are as loud. And with the amp loose the palm's THUMP
+# makes a muted stroke's low end die (In the Time Of v29's finding, true here): thump off.
+# the tracks ; what is added to each one's patch ; the bands of an eq on each ; dB on each fader ; the loudness
+# target (None = unchanged). --without-weight = v20 byte for byte ; --weight JSON changes fields for a bench.
+WEIGHT = {'tracks': ('left', 'right'), 'rig': 'fx.1.tight=150 synth.layers.0.thump.mod.0.amount=0',
+          'eq': ('peak cutoff=350 q=1 gain=-2dB', 'peak cutoff=700 q=1 gain=-3dB', 'peak cutoff=150 q=1 gain=1.5dB'), 'gain': 0.6, 'loudness': None}
+
 TOUCH = {'per': 2.0, 'over': 16, 'crest': 0.625, 'points': 8, 'least': 1.0, 'loudness': -9.521}
 
 
@@ -919,6 +934,8 @@ if __name__ == '__main__':
     ap.add_argument('--horn', help='a bench: HORN fields to change, as a JSON object')
     ap.add_argument('--wheel', help='a bench: WHEEL fields to change, as a JSON object')
     ap.add_argument('--touch', help='a bench: TOUCH fields to change, as a JSON object')
+    ap.add_argument('--without-weight', action='store_true', help="regenerate v20: the two guitars' rig and eq as they were")
+    ap.add_argument('--weight', help="JSON over WEIGHT's fields, for a bench")
     ap.add_argument('--without-touch', action='store_true', help="regenerate v19: the ondes with one hand, every number at one level from its start to its end")
     ap.add_argument('--without-wheel', action='store_true', help="regenerate v18: on the wheel the horn is silent and no bell rings")
     ap.add_argument('--without-horn', action='store_true', help="regenerate v17: nothing holds the number a walk is trying")
@@ -940,7 +957,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
-    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch'))
+    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight'))
     if not a.without_china and newest:
         metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
         metal['patch'] += ' ' + CHINA['kit']
@@ -1073,6 +1090,20 @@ if __name__ == '__main__':
                 e['expr_path'] = {'touch': [round(peak * shape((i + 1) / pts), 2) for i in range(pts)]}
         if TOUCH['loudness'] is not None:
             doc['loudness'] = TOUCH['loudness']
+    if not a.without_weight and not a.without_touch and not a.without_wheel and not a.without_horn and not a.without_string and not a.without_bell and not a.without_hand and not a.without_china and newest:
+        if a.weight:
+            WEIGHT.update(json.loads(a.weight))
+        for name in WEIGHT['tracks']:
+            t = next(t for t in doc['tracks'] if t['name'] == name)
+            assert t['patch'].startswith('ct-twin') and isinstance(t['gain'], dict) and not t.get('fx'), (name, t['patch'], t['gain'])
+            if WEIGHT['rig']:
+                t['patch'] = t['patch'] + ' ' + WEIGHT['rig']
+            if WEIGHT['eq']:
+                t['fx'] = [{'type': 'eq', 'bands': list(WEIGHT['eq'])}]
+            if WEIGHT['gain']:
+                t['gain'] = {**t['gain'], 'value': f"{float(t['gain']['value'].rstrip('dB')) + WEIGHT['gain']:g}dB"}
+        if WEIGHT['loudness'] is not None:
+            doc['loudness'] = WEIGHT['loudness']
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
