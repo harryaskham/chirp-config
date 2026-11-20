@@ -524,6 +524,31 @@ GIVES = os.environ.get("C10T16_GIVES", "square;3;1/2;;" if HAND else "")
 # the rank's ratio to the reed's note ; its wave ; its level in the reed (beside the reed's own -4 and -7 dB) ;
 # dB on the two reeds' faders ("" = as they were) ; the loudness target ("" = unchanged). "" = v18 byte for byte.
 TWELFTH = os.environ.get("C10T16_TWELFTH", "3;sine;-10.5dB;;-10.235" if GIVES else "")
+# v20 (chirper-three; section round, w3, 0:58-1:27; the change is bars 20-24, 1:12.0-1:24.4): THE BAND LEAVES EVERY
+# FOURTH PULSE TO THE PAIR. After the bar in which the pair is shown (v16) 'five' was five bars alike: 25 pulses of
+# one cell, the only stretch of the song where the rule was stated and nothing was done with it. Now the band counts
+# a four of its own inside the five. It plays three pulses and leaves the fourth to the reeds, five times: the rest
+# is the fifth pulse of bar 20, the fourth of bar 21, the third of 22, the second of 23 and the first of 24 (1:12.00,
+# 1:14.91, 1:17.82, 1:20.73, 1:23.64; 0.727 s each). Four and five share nothing, so a rest every fourth pulse
+# visits each of the bar's five places exactly once, a place earlier each bar; when it reaches the downbeat the
+# phrase is done, the band plays the last four pulses whole and the peg turns into seven as it did. In each rest
+# the pair is what v16 shows for a bar, a pulse at a time: the reeds, saying the cell the band has just stopped
+# saying. The snare and the crash are not in the rule and keep the bar: the snare is alone inside two of the rests
+# (1:15.45, 1:20.91) and the crash at the head of the last.
+# WRITTEN: 75 strokes taken out, 15 a pulse (the two guitars 2 each, the left guitar's threes 2, bass, kick, three
+# toms, four hats). Nothing added, nothing moved; every other note is v19's.
+# MEASURED (t16-r20; raw, the song's own seed): over each rest the three reeds stand over everything else by +16.6,
+# +0.6, +27.7, -2.0 and +0.1 dB K (they stood -8.8, -6.5, -5.0, -6.9, -7.2 under the band); the second and fourth
+# hold a snare stroke and the fifth the crash, and by quarters of the pulse those read +28.8 +47.2 +7.5 -4.8, +24.6
+# -8.5 +10.1 +24.4 and -4.0 -0.2 +10.9 +23.4. The mix falls 9.3 dB into the first rest (the pair alone) and 6.3 into
+# the third (the third reed is holding by then). Finished files, seeds 0 / 11 / 1: the five rests read -7.7 to -8.3,
+# -3.1 to -3.9, -4.9, -2.9 to -4.5 and -3.4 to -3.7 dB against the same pulses of v19, the twenty pulses the band
+# plays within 0.02 dB, the five bars -0.61 dB. The target goes -10.235 -> -10.295 (the song is 3.6 s of band
+# lighter and the master had raised everything else 0.04 to 0.11 dB): every other stretch within +0.002 to +0.009 dB
+# and -68 dB or lower.
+# the section ; every how many of its pulses the band leaves one ; the first pulse left, counted from the first the
+# band plays there (from 0) ; how many times ; who leaves ; the loudness target ("" = unchanged). "" = v19 byte for byte.
+LEAVES = os.environ.get("C10T16_LEAVES", "five;4;4;5;left,right,left-said,right-said,bass,foot,skins-eb2,hat;-10.295" if TWELFTH else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -924,7 +949,34 @@ def build():
         the_string_gives(doc)
     if TWELFTH:
         the_reeds_have_their_twelfth(doc)
+    if LEAVES:
+        the_band_leaves_every_fourth(doc, marks)
     return doc, marks, end
+
+
+def the_band_leaves_every_fourth(doc, marks):
+    """v20: in one section the parts that are in the rule rest for one whole pulse in every so many; the pair, and
+    whoever keeps the bar (the snare, the crash), go on."""
+    sec, every, first, times, who, target = LEAVES.split(";")
+    name, b, r, bars = next(m for m in marks if m[0] == sec)
+    pulse = 1 / Fr(r)                                                       # beats
+    shown = SHOWN and sec in [e.split("=")[0] for e in SHOWN.split("|")[0].split(";")]
+    start = b + (4 if shown else 0)                                          # the first pulse the band plays
+    held = b + 4 * (bars - SLIDES.get(sec, 0))                               # where the peg begins to turn
+    tracks = {t["name"]: t for t in doc["tracks"]}
+    for k in range(int(times)):
+        a = start + (int(first) + int(every) * k) * pulse
+        z = a + pulse
+        assert z <= held, (sec, k, float(a))                                 # never while the peg turns
+        gone = 0
+        for n in filter(tracks.get, who.split(",")):
+            before = len(tracks[n]["notes"])
+            tracks[n]["notes"] = [x for x in tracks[n]["notes"] if not float(a) - 1e-6 <= x["at"] < float(z) - 1e-6]
+            gone += before - len(tracks[n]["notes"])
+        assert gone, (sec, k)
+    assert all(t["notes"] for t in doc["tracks"])
+    if target:
+        doc["loudness"] = float(target)
 
 
 def the_reeds_have_their_twelfth(doc):
