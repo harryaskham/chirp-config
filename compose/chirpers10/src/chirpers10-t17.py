@@ -591,6 +591,39 @@ SPEAKER = {'tracks': ('wall-left', 'wall-right'),
 
 TOUCH = {'per': 2.0, 'over': 16, 'crest': 0.625, 'points': 8, 'least': 1.0, 'loudness': -9.521}
 
+# v23 (chirper-two; instrument round: the bass drum, 968 strokes, in every walk but twelve and thirteen; no stroke is
+# added, moved or removed): THE BASS DRUM IS FITTED. It is the album kit's stock drum, retuned to B flat by v4 and
+# never read at the stroke until v22's note did (and left it). Alone beside six records' kicks (kickspec, shapes):
+# 9.15 from them; nothing at 100-125 Hz (4 dB short) with 11 dB too much at 160-200 Hz and 16 at 315 (its drive's
+# third and fifth harmonics: 175 and 291 Hz); its low end 20 dB down only after 118 ms (79 by chirper-alpha's
+# measure; the records 37 to 49), and 368 of its strokes are a sixteenth (115 ms) from the next, so in a run each
+# stroke landed on the last one's tail (16.7 dB under its top). And in the MIX the song was over at 4-8 kHz in nine
+# of ten windows (+0.4 to +1.5), which was this drum's click as much as any cymbal.
+#   THE TAIL 210 -> 170 ms (20 dB down after 96 ms; 62 by the other measure; a run's strokes 20.0 dB apart). Shorter
+#       read better alone and WORSE in the mix (130 ms with a decibel more fader: the song 0.7 to 1.6 dB short
+#       under 60 Hz in six windows that had been within 0.5): this drum is most of the song's sub, so its tail is
+#       the mix's to choose, as on Common Measure.
+#   A CHEST: a bare sine an octave over the drum (B flat 2, 116.5 Hz, 90 ms), on every stroke with the stroke's own
+#       velocity and the drum's own size lane, its own track past the drums bus, -9 dB. -6, -9 and -13 dB read
+#       alike in the mix (within 0.03); no chest at all read 0.02 worse; the middle is kept.
+#   THE BUZZ: -5 dB at 175 Hz and -2 at 291, narrow. Deeper at 291 and a third cut at 408 Hz read the same over all
+#       and took 0.7 dB from the climb's 250-500 Hz, where the song is already 2.6 short: not kept.
+#   THE CLICK: the 4.3 kHz lift 7 -> 4 dB. By the mix: at 7 the song's 4-8 kHz is over in nine windows, at 3 under in
+#       three; at 4 it is within 0.6 in nine. The drum's first 30 ms then stand 0.1 to 0.4 dB lower against
+#       everything else (K), its first 90 ms under 150 Hz 0.0 to 0.3 higher.
+#   THE FADER +0.6 dB (for the shorter tail), and the target re-fitted on the walks with no bass drum (twelve and
+#       thirteen, 2:07-2:28): -9.521 -> -9.467.
+#   AFTER: alone 9.15 -> 8.31 (967 strokes: 9.16 -> 8.32); the song against the eleven records, ten windows:
+#       1.040 -> 0.919 beside their mixes (nearer in nine, one the same), 1.096 -> 1.044 beside their passages with
+#       no voice, 1.241 -> 1.087 with one (all ten nearer); under 250 Hz alone 0.910 -> 0.737.
+# what is added to the kick track's patch (overrides inside the kit's bass drum) ; the bands of the kick track's eq
+# (None = as they were) ; the chest: semitones over the drum, its length in ms, its fader in dB (None = no chest) ;
+# dB on the kick's fader ; the loudness target (None = unchanged). --without-fitted = v22 byte for byte ; --fitted
+# JSON changes fields for a bench.
+FITTED = {'kick': 'kit.k.patch.synth.amp.d=170ms',
+          'eq': ('peak cutoff=4300 q=0.8 gain=4dB', 'peak cutoff=175 q=3 gain=-5dB', 'peak cutoff=291 q=3 gain=-2dB'),
+          'chest': (12, 90, -9.0), 'gain': 0.6, 'loudness': -9.467}
+
 
 def true(ratio):
     """A pitch as its exact ratio over the low F: the engine's fractional key number (a whole one is written as its name)."""
@@ -969,6 +1002,8 @@ if __name__ == '__main__':
     ap.add_argument('--horn', help='a bench: HORN fields to change, as a JSON object')
     ap.add_argument('--wheel', help='a bench: WHEEL fields to change, as a JSON object')
     ap.add_argument('--touch', help='a bench: TOUCH fields to change, as a JSON object')
+    ap.add_argument('--without-fitted', action='store_true', help="regenerate v22: the album kit's bass drum as v4 tuned it, with no chest")
+    ap.add_argument('--fitted', help="JSON over FITTED's fields, for a bench")
     ap.add_argument('--without-speaker', action='store_true', help="regenerate v21: the wall pair through the album's captured cabinets")
     ap.add_argument('--speaker', help="JSON over SPEAKER's fields, for a bench")
     ap.add_argument('--without-weight', action='store_true', help="regenerate v20: the two guitars' rig and eq as they were")
@@ -994,7 +1029,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
-    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight', 'without_speaker', 'speaker'))
+    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight', 'without_speaker', 'speaker', 'without_fitted', 'fitted'))
     if not a.without_china and newest:
         metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
         metal['patch'] += ' ' + CHINA['kit']
@@ -1153,6 +1188,29 @@ if __name__ == '__main__':
                 t['gain'] = {**t['gain'], 'value': f"{float(t['gain']['value'].rstrip('dB')) + SPEAKER['gain']:g}dB"}
         if SPEAKER['loudness'] is not None:
             doc['loudness'] = SPEAKER['loudness']
+    if not a.without_fitted and not a.without_speaker and not a.without_weight and not a.without_touch and not a.without_wheel and not a.without_horn and not a.without_string and not a.without_bell and not a.without_hand and not a.without_china and newest:
+        if a.fitted:
+            FITTED.update(json.loads(a.fitted))
+        kick = next(t for t in doc['tracks'] if t['name'] == 'kick')
+        assert kick['patch'] == 'ct-kit-so-far' and isinstance(kick['gain'], dict) and len(kick['fx']) == 1 and kick['fx'][0]['type'] == 'eq'
+        if FITTED['kick']:
+            kick['patch'] += ' ' + FITTED['kick']
+        if FITTED['eq']:
+            kick['fx'] = [{'type': 'eq', 'bands': list(FITTED['eq'])}]
+        if FITTED['gain']:
+            kick['gain'] = {**kick['gain'], 'value': f"{float(kick['gain']['value'].rstrip('dB')) + FITTED['gain']:g}dB"}
+        if FITTED['chest']:
+            semis, ms, fader = FITTED['chest']
+            sharps = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+            drum = sharps.index(KIT['kick']['pitch'][:-1]) + 12 * (int(KIT['kick']['pitch'][-1]) + 1) + semis
+            doc['patches']['sf-chest'] = {'extends': '808', 'synth': {'layers': ['sine'], 'pitch': {'value': 0, 'mod': []}, 'drive': 0, 'filters': [],
+                                                                     'amp': {'a': '2ms', 'd': f'{ms:g}ms', 's': 0, 'r': '20ms', 'curve': 3}},
+                                          'play': {'mono': False, 'glide': '0ms', 'gate': 1}}
+            # the chest is as big as the number, as the drum is: it takes the kick's own lane
+            doc['tracks'].append({'name': 'chest', 'patch': 'sf-chest', 'gain': {**kick['gain'], 'value': f'{fader:g}dB'}, 'pan': 0, 'auto': kick['auto'],
+                                  'notes': [{'at': e['at'], 'len': 0.25, 'pitch': sharps[drum % 12] + str(drum // 12 - 1), 'vel': e['vel']} for e in kick['notes']]})
+        if FITTED['loudness'] is not None:
+            doc['loudness'] = FITTED['loudness']
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
