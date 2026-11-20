@@ -1639,6 +1639,58 @@ VACANT = os.environ.get("C10T6_VACANT", "gl=0,gr=0,gl2=0,gr2=0,gl3=0,gr3=0,touch
                         "reverb kind=hall decay=2s mix=1 predelay=25ms low_cut=400 high_cut=5000;-4dB;1;-60;-9.71" if AMP else "")
 
 
+# v34 (chirper-zero; section round, w3 0:55.7-1:23.5; the change is the two bars before the first wall, 1:06.1-
+# 1:09.6; nothing else in the song changes): THE DIAL DOES NOT JUMP. The form is the dial, and every turn of it is
+# played but one. From eight (3.555) to the first wall (3.6) the song stepped over the most famous stretch of the
+# rule: past 3.564407 the riff is sixteen half bars long, past 3.568759 thirty-two, past 3.569692 sixty-four, past
+# 3.569891 a hundred and twenty-eight, and at 3.569946 the doublings pile up against one point, beyond which it
+# never repeats. Each stretch is 4.67 times shorter than the one before (Feigenbaum's number). The band cannot
+# play it: a riff of sixteen half bars is eight said twice with differences smaller than a fret, and it would
+# need fourteen seconds to say once. THE CHIP CAN. Its second voice, which lives only in eight's last lap, says
+# four notes at the riff's pace and then the dial is turned steadily through the whole cascade in the two bars
+# that are left, and EVERY TIME THE CYCLE DOUBLES THE CHIP STEPS TWICE AS FAST, because that is the only way to
+# say a cycle twice as long in the time there is: 19 notes in triplets while the cycle is sixteen, 8 twice as
+# fast while it is thirty-two, 3 at four times, 2 at eight times (18 ms each), and the wall. The grid fits the
+# rule: read at each note's middle the dial is inside that note's own stretch, all 32 (asserted). Nothing is
+# written: the track still carries no notes, only the rule, the dial's setting for each step and where x stood,
+# and it is the same orbit, never reset. What it plays is the tune of eight folding up: the same eight pitches,
+# a third over the tune, faster and faster until an old console's trick happens by itself and the run is a chord.
+# beats before the wall in which the dial is turned through the cascade ; notes at each doubling (triplet
+# eighths, then twice as fast each time) ; dB on the second voice while it runs ('' = none) ; the loudness
+# target ('' = unchanged). On only while VACANT is. "" = v33 byte for byte.
+CASCADE = os.environ.get("C10T6_CASCADE", "8;19,8,3,2;;" if VACANT else "")
+FEIGENBAUM = (3.564407, 3.568759, 3.569692, 3.569891, 3.569946)   # the riff becomes 16, 32, 64, 128 half bars long ; the doublings pile up
+
+
+def the_dial_does_not_jump(doc):
+    """v34: the chip's second voice plays the period-doubling cascade between eight and the first wall."""
+    beats, counts, lift, target = CASCADE.split(";")
+    beats, counts = float(beats), [int(v) for v in counts.split(",")]
+    t = next(t for t in doc["tracks"] if t["name"] == "lead2")
+    assert len(t["gen"]) == 1 and t["gen"][0]["n"] == 8 and t["gen"][0]["len"] == "/2" and beats % 2 == 0, t["gen"]
+    first = t["gen"][0]
+    keep = 8 - int(beats // 2)                   # half bars the voice still says at the riff's pace
+    x = first["x0"]
+    for _ in range(keep):
+        x = first["r"] * x * (1 - x)
+    gens, at, div = [dict(first, n=keep)], 0.0, 12
+    for k, n in enumerate(counts):
+        for _ in range(n):
+            r = round(FEIGENBAUM[0] + (FEIGENBAUM[4] - FEIGENBAUM[0]) * (at + 2 / div) / beats, 6)
+            assert FEIGENBAUM[k] <= r < FEIGENBAUM[k + 1], (k, r)      # the dial, at this note's middle, is in this doubling
+            gens.append({**first, "r": r, "x0": x, "n": 1, "len": f"/{div}"})
+            x = r * x * (1 - x)
+            at += 4 / div
+        div *= 2
+    assert abs(at - beats) < 1e-9, at
+    t["gen"] = gens
+    if lift and float(lift):
+        t["gain"]["mod"].append({"src": "auto.run", "amount": 1})
+        t["auto"]["run"] = {"points": [["0b", 0], [f"{16 - beats - 0.02:g}b", 0], [f"{16 - beats:g}b", float(lift)], ["16b", float(lift)], ["16.02b", 0]], "curve": 0}
+    if target:
+        doc["loudness"] = float(target)
+
+
 def the_room_that_is_left(doc):
     """v33: the rule's third factor is played. What each named part sends into one room is multiplied, half bar by
     half bar, by (1 - x): the room that is left. Nothing is written and no part's own sound changes."""
@@ -1696,4 +1748,6 @@ if __name__ == "__main__":
             the_amp_is_left_on(doc)
         if VACANT:
             the_room_that_is_left(doc)
+        if CASCADE:
+            the_dial_does_not_jump(doc)
         open(OUT, "w").write(dump(doc))
