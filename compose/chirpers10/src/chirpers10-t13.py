@@ -1087,6 +1087,44 @@ def the_gaps_get_edges(doc):
         doc['loudness'] = EDGE['loudness']
 
 
+# v31 (chirper-zero; instrument round): THE SNARE IS ON A NOTE OF THE SONG. The song is in F minor (the tune is
+# E flat, C, A flat, F). The album's snare sounds 1.8 semitones over its written note (Close Enough v23 found it), so
+# v25's 'G3' rang at 218 Hz: A NATURAL, the major third, over a song whose third is A flat; and it wandered
+# stroke to stroke (the kit's random pitch, a quarter of a semitone: 45 cents between the highest and the lowest
+# stroke). That is not a detail under the band: read in the FINISHED file at the 28 backbeats of 'the handover' and
+# 'where it was', the sixth of an octave round the snare's line rises 6.6 dB at each stroke and holds about three
+# quarters of the mix's 150-320 Hz while the stroke sounds. The backbeat was the loudest thing in the low middle and
+# it was on the one note that contradicts the key.
+# Now (the engine's drum fields of 20 Nov, bd-d64c83: the written note IS the sounding note): A flat 3, 207.65 Hz,
+# every stroke within a few cents (read dry: +1.9 cents; the strokes' spread 12.3 -> 2.1 cents). The stroke's own
+# chirp (the pitch envelope, 16 ms) is KEPT: without it this is another drum (its fall 43 -> 77 ms). The whole
+# drum moves down 80 cents with its note, so the cuts v25 fitted to its humps move with them (340 -> 300 Hz,
+# 690 -> 660) and the line that lands at 434 Hz, where the records' snares are scooped, gets a narrow cut of its own.
+# THE MIX CHOSE HOW DEEP: deeper cuts (300 Hz -5, 434 Hz -4) read nearer v30's drum alone but took 0.25 dB from the
+# mix's 250-500 Hz, which is already short here; as kept the mix is level with v30 (0.715 -> 0.713 by the snare's
+# strokes). The fader -0.2 dB (alone as loud as it was).
+# --v30 restores; --snare '{...}' changes fields for a bench.
+KEYED = {'pitch': 'Ab3',
+         'patch': 'synth.layers.0.tune_sounding=true synth.layers.0.tune_exact=true synth.pitch.mod.1.amount=0',
+         'eq': ['peak cutoff=300 q=1.5 gain=-3dB', 'peak cutoff=434 q=3 gain=-2.5dB', 'peak cutoff=660 q=1.5 gain=-4dB',
+                'peak cutoff=3500 q=1 gain=2dB', 'highshelf cutoff=6000 gain=-4dB'],
+         'trim': -0.2, 'loudness': None}
+
+
+def the_snare_is_in_the_key(doc):
+    """v31: the snare's written note becomes its sounding note (tune_sounding + tune_exact), a note of the key; its
+    random pitch off, its chirp kept; the track's cuts follow the drum down."""
+    t = next(t for t in doc['tracks'] if t['name'] == 'snare')
+    assert t['patch'].count('kit.s.pitch=' + SNARE['pitch']) == 1 and isinstance(t['gain'], str)
+    t['patch'] = t['patch'].replace('kit.s.pitch=' + SNARE['pitch'], 'kit.s.pitch=' + KEYED['pitch'])
+    t['patch'] += ''.join(f' kit.s.patch.{o}' for o in KEYED['patch'].split())
+    if KEYED['eq']:
+        t['fx'] = [{'type': 'eq', 'bands': list(KEYED['eq'])}]
+    t['gain'] = f"{float(t['gain'][:-2]) + KEYED['trim']:g}dB"
+    if KEYED['loudness']:
+        doc['loudness'] = KEYED['loudness']
+
+
 def the_hat_gets_a_body(doc):
     """v28: the closed hat's strokes leave the cymbals' track for one of their own, on a kit of the song's own whose
     hat is opened downwards; the kick's click gives up the room the hat's body takes. A spared section keeps both
@@ -1156,7 +1194,9 @@ if __name__ == '__main__':
     previous.add_argument('--v27', action='store_true', help="restore the closed hat as the library has it (nothing under 8 kHz), on the cymbals' track, and the kick's click at +7 dB")
     previous.add_argument('--v28', action='store_true', help="restore the bass on the album's chain as it comes: its grind at 900 Hz, the sine at -9 dB, no cut at 630 Hz")
     previous.add_argument('--v29', action='store_true', help="restore the two guitars on the album's rig as it comes: the soft pick, the palm's thump, the amp at 220 Hz, no eq")
+    previous.add_argument('--v30', action='store_true', help="restore the snare a semitone sharp of the key (written G3, sounding A natural) with its wandering pitch")
     parser.add_argument('--guitars', help='a bench: EDGE fields to change, as a JSON object')
+    parser.add_argument('--snare', help='a bench: KEYED fields to change, as a JSON object')
     parser.add_argument('--bass', help='a bench: GRIND fields to change, as a JSON object')
     parser.add_argument('--hat', help='a bench: HATBODY fields to change, as a JSON object')
     parser.add_argument('--verso', help='a bench: VERSO fields to change, as a JSON object')
@@ -1183,7 +1223,7 @@ if __name__ == '__main__':
             doc['loudness'] = VERSO['loudness']
     if args.kick:
         KICK.update(json.loads(args.kick))
-    older = any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit() and k not in ('v27', 'v28', 'v29'))
+    older = any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit() and k not in ('v27', 'v28', 'v29', 'v30'))
     if not older and any(t['name'] == 'bars' for t in doc['tracks']):   # only on the whole song as v26 has it
         the_kick_gets_a_chest(doc)
         if not args.v27:
@@ -1198,6 +1238,10 @@ if __name__ == '__main__':
                     if args.guitars:
                         EDGE.update(json.loads(args.guitars))
                     the_gaps_get_edges(doc)
+                    if not args.v30:                          # only on the whole song as v30 has it
+                        if args.snare:
+                            KEYED.update(json.loads(args.snare))
+                        the_snare_is_in_the_key(doc)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
