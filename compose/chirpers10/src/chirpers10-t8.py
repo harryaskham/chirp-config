@@ -351,6 +351,21 @@ SNARE = os.environ.get('C10T8_SNARE', 'kit.s.pitch=G3 kit.s.patch.synth.layers.0
                                       'kit.s.patch.synth.layers.0.contact=0.45 kit.s.patch.synth.filters.1.gain=-1.5dB;'
                                       'highshelf cutoff=7000 gain=-3dB|peak cutoff=2500 q=1.5 gain=-3dB|peak cutoff=5000 q=1 gain=2dB;5dB;-10.236'
                       if OCTAVE else '')
+# v28 (chirper-one; whole song, 0:51-2:13.5: the staging; no note, sound or level changes): THE ARGUMENT NARROWS IN
+# THE ROOM. The left riff has stood hard left and the right hard right from the first bar to the measure, however
+# little was left of them. Now EACH RIFF STANDS AS FAR FROM THE MIDDLE AS IT IS FROM THE MEASURE: its place is the
+# logarithm of its length over four (the measure's), against the same for its first length. So the left riff is at
+# the edge while it is 52 long, 0.63 of the way out at 20, 0.27 at 8; the right at the edge at 32, 0.53 at 12, and
+# at 4 (the measure itself) IN THE MIDDLE. A riff moves when it is cut and only then (as its bell changes note,
+# v23), and it moves WHILE WHAT IS LEFT OF IT IS HEARD ALONE: the tail walks in as it is said. After the two beats
+# of nothing the measure has every guitar back at the edges: the room opens on the answer. Each side's second take,
+# its bell and its bowed string move with it, in proportion.
+# the left side's tracks ; the right's ; left: riff length:place,... ; right ; the bar where each cut falls and the
+# sixteenths the tail is heard alone before it, left cuts then right cuts ; the bar where the room opens and the
+# beats before it that it takes ; the loudness target ('' = unchanged) ; tracks:dB after each cut in turn (the two
+# riffs share strokes, so side by side in the middle they ADD: untrimmed, 8 against 4 came out 1.4 dB louder and
+# the step up into the measure fell from 3.3 dB to 1.8). '' = v27 byte for byte.
+ROOM = os.environ.get('C10T8_ROOM', 'gl,dl,bell-l,own-l;gr,dr,bell-r,own-r;52:1,20:0.627,8:0.27;32:1,12:0.528,4:0;34:20,69:8|54:12,81:4;89:1.5;;gl,dl,gr,dr:-0.4,-0.85,-1.4,-2.5' if SNARE else '')
 
 
 def nm(n):
@@ -1128,7 +1143,47 @@ def song():
         the_bass_leans_on_its_octave(doc)
     if SNARE:
         the_snare_is_fitted(doc)
+    if ROOM:
+        the_room_narrows(doc)
     return doc
+
+
+def the_room_narrows(doc):
+    """v28: each riff's side stands as far from the middle as the riff is from the measure; it walks in while its tail is heard alone."""
+    left, right, lplace, rplace, cuts, opens, target, trim = (ROOM.split(';') + [''])[:8]
+    tr = {t['name']: t for t in doc['tracks']}
+    obar, obeats = opens.split(':')
+    for names, places, mine in ((left, lplace, cuts.split('|')[0]), (right, rplace, cuts.split('|')[1])):
+        place = [float(x.split(':')[1]) for x in places.split(',')]
+        assert place[0] == 1 and len(place) == len(mine.split(',')) + 1, places
+        for name in names.split(','):
+            t = tr[name]
+            own = float(t['pan'])
+            pts, was = [['0b', 0]], 0.0
+            for (bar, tail), f in zip((x.split(':') for x in mine.split(',')), place[1:]):
+                at, new = int(bar) * 4, round(own * (f - 1), 4)                 # added to the track's own pan
+                pts += [[f'{at - int(tail) / 4:g}b', was], [f'{at:g}b', new]]   # it walks in while the tail is heard alone
+                was = new
+            at = int(obar) * 4
+            pts += [[f'{at - float(obeats):g}b', was], [f'{at - float(obeats) + 0.5:g}b', 0]]   # and in the silence before the measure the room opens
+            t['pan'] = {'value': own, 'mod': [{'src': 'auto.room', 'amount': 1}]}
+            t['auto'] = {**(t.get('auto') or {}), 'room': {'points': pts, 'curve': 0}}
+    if trim:
+        names, steps = trim.split(':')
+        every = sorted((int(b), int(tail)) for x in cuts.replace('|', ',').split(',') for b, tail in (x.split(':'),))
+        pts, was = [['0b', 0]], 0.0
+        for (bar, tail), v in zip(every, map(float, steps.split(','))):
+            pts += [[f'{bar * 4 - tail / 4:g}b', was], [f'{bar * 4:g}b', v]]
+            was = v
+        at = int(obar) * 4
+        pts += [[f'{at - float(obeats):g}b', was], [f'{at - float(obeats) + 0.5:g}b', 0]]
+        for name in names.split(','):
+            t = tr[name]
+            assert isinstance(t['gain'], str), name
+            t['gain'] = {'value': t['gain'], 'mod': [{'src': 'auto.even', 'amount': 1}]}
+            t['auto'] = {**(t.get('auto') or {}), 'even': {'points': pts, 'curve': 0}}
+    if target:
+        doc['loudness'] = float(target)
 
 
 def the_snare_is_fitted(doc):
