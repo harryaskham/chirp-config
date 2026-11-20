@@ -380,6 +380,8 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     scored 97.0 against 99.9, the mix moving AWAY from the records under 120 Hz. Read the bass's lowest notes
     before handing the sub over; and a kick whose weight sits at 60 Hz cannot take it (every lift went into
     60-120 Hz as much as under 60). The numbers are in that song's history; nobody need repeat it.
+    A BASS'S BOX CAN BE HOLDING UP THE GUITARS' MIDDLE, as a snare's can: on The Other Hand the bass cured and
+    nothing else made the mix worse (1.102 -> 1.130) until the guitars took the band it left (0.950).
   - a CYMBAL, hat or china alone against the top of the records' drums: `tools/cymspec.py NAME=SOLO.wav[:FROM:TO]`
     (thirds of an octave from 1 kHz, as shapes; each stroke's fall a quarter of a second on; chirper-zero). The
     records' metal has its weight at 4-6 kHz and is 9 dB down by 12.5 kHz. The yardstick does not hang on the
@@ -396,7 +398,13 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     from +8.1 to +4.1 and 1.25 kHz from +6.9 to +0.8; `slap` 1.2 -> 0.5 takes 2.5 kHz from +6.9 to +3.3 (the
     slap IS the crack). The patch first, eq after. And the nearest snare ALONE made a mix that already sat
     within a dB WORSE: a snare may lose its box and move its note, and must keep its crack and wires where
-    they are; `mode_count=10` and pitch G3 are the two fields for the kit's fork. Two cautions: the drums' bus glue and clip make a snare's measures depend on its
+    they are; `mode_count=10` and pitch G3 are the two fields for the kit's fork. READ THE FALL FIRST (Where It
+    Was v25): with ten modes the amp's decay and the head's decay do NOT lengthen the snare (the upper modes
+    were the tail); `damp` 0.1-0.15, `wires` 0.95-1.0 and `gap` 0.05 do (49-76 ms; the records 66). So In the
+    Time Of's short settings (`damp` 0.9, amp decay 110 ms) are that song's, not a recipe: there they gave 32
+    ms. Ten modes at G3 raise a new hump at 630-800 Hz: cut 690 Hz. And COUNT THE STROKES before naming the
+    piece from a kit's by-part read: on a song with 84 snare strokes and 368 kicks the kit's box was not the
+    snare (`stembal.py … --parts kick=… snare=…` says whose band it is). Two cautions: the drums' bus glue and clip make a snare's measures depend on its
     FADER; and a snare's box can be standing in for guitars that are short at 250 Hz-4 kHz: let the MIX say
     how much of the cure to keep (Extreme and Mean v26 kept half).
   - a MUTED STROKE's low end (`riffpunch.py --strokes`, the LOW END column): on all six records the 100-250 Hz of
@@ -421,6 +429,10 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     continuous in the target on a song with quiet stretches (bd-dab22a, The Other Hand v18: targets -10.3075 and
     -10.305 gave an untouched passage 0.113 dB under and 0.098 dB over, with nothing between): when two targets
     0.0025 apart straddle zero, take the nearer and say so in the note (chirper-zero).
+    EQUAL LOUDNESS ALONE FIRST, TARGET SECOND: a fuller middle measures louder (a rig +1.1 LU and a bass +1.0
+    to +1.2 alone made the master pull an untouched part down 1.9 dB, and the mix READ BETTER for being
+    louder): trim each changed part back to its old LUFS alone, then re-fit the target (chirper-zero, The
+    Other Hand v23).
   - A WRITTEN BEAT BETWEEN TWO NOTES WANTS OSCILLATORS, NOT STRINGS: two plucked strings a hair apart do not hold
     the beat you wrote (`lead-tape`, also with `tune_sounding`, `vary=0` and `planes=0`: the lows fell at 0.50,
     0.88, 0.54, 0.82 of the half pulse, and two strings on ONE note swung 18-23 dB); an oscillator does (0.49 to
