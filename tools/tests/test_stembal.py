@@ -489,6 +489,19 @@ class Stembal(unittest.TestCase):
         self.assertIsNone(S.window_seconds({}, ["1-3"]))                           # no plan read: do not guess
         self.assertEqual(S.window_seconds({"tracks": []}, ["1-3"]), [(0.0, 4.0)])  # the plan leaves out a tempo of 120
         self.assertIsNone(S.window_seconds({"tracks": [], "tempo": [[0, 120]]}, ["1-3"]))
+        # a tempo MAP placed in beats is followed (bd-10e881): 120 for 80 beats (40 s), then 60
+        gear = [{"at": 0, "bpm": 120, "meter": None, "ramp": False}, {"at": "80b", "bpm": 60, "meter": None, "ramp": False}]
+        self.assertEqual(S.position("21", gear), 40.0)                             # bar 21 is beat 80
+        self.assertEqual(S.position("22", gear), 44.0)                             # ... and a bar is four seconds after it
+        self.assertEqual(S.position("84b", gear), 44.0)
+        self.assertEqual(S.position("50s", gear), 50.0)
+        self.assertEqual(S.window_seconds({"tracks": [], "tempo": gear}, ["20-22:turn", "78b-82b", "30s-50s"]),
+                         [(38.0, 44.0), (39.0, 42.0), (30.0, 50.0)])
+        for cannot in ([{"at": 0, "bpm": 120}, {"at": "80b", "bpm": 60, "meter": "3/4"}],       # the bars are not fours
+                       [{"at": 0, "bpm": 120}, {"at": "20bars", "bpm": 60}], []):                # placed in bars; no map
+            self.assertIsNone(S.window_seconds({"tracks": [], "tempo": cannot}, ["1-3"]), cannot)
+            self.assertIsNone(S.position("3", cannot))
+        self.assertIsNone(S.position("3", True))
 
     def test_a_cut_is_the_frames_a_window_render_gives(self):
         src, dst = os.path.join(self.root, "ramp.wav"), os.path.join(self.root, "cut.wav")

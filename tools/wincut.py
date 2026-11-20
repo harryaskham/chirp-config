@@ -12,15 +12,38 @@ bit for bit on bars, beats and seconds.
   frames(s0, s1, rate)            the frame range of a window
   cut(src, dst, s0, s1)           that range of a WAV, written as a WAV
 
-Only songs it can place: a fixed tempo, 4/4, no embedded songs. For the rest window_seconds returns None and the caller
-renders window by window, as before. Tests: tools/tests/test_stembal.py, tools/tests/test_presence.py.
+Only songs it can place: one tempo or a tempo map placed in beats (tools/tempoclock.py), 4/4 throughout, no embedded
+songs. For the rest window_seconds returns None and the caller renders window by window, as before.
+Tests: tools/tests/test_stembal.py, tools/tests/test_presence.py.
 """
 import re
 import wave
 
 
+def clock_of(tempo):
+    """The tempoclock for a tempo as a plan gives it: a number, a tempo MAP placed in beats with no change of meter, or
+    a clock already; None for anything this cannot place (a map with a meter change: its bars are not fours; a map
+    placed in bars or seconds; no tempo at all)."""
+    import tempoclock
+    if isinstance(tempo, tempoclock.Clock):
+        return tempo
+    if isinstance(tempo, bool):
+        return None
+    if isinstance(tempo, (int, float)):
+        return tempoclock.of(tempo) if tempo > 0 else None
+    if isinstance(tempo, list) and tempo:
+        if any(not isinstance(p, dict) or p.get("meter") is not None for p in tempo):
+            return None
+        try:
+            return tempoclock.of(tempo)
+        except ValueError:
+            return None
+    return None
+
+
 def position(tok, tempo):
-    """A `chirp render --from/--to` position in seconds: a bar (49, 1-indexed, in 4/4), beats (12b) or seconds (30s)."""
+    """A `chirp render --from/--to` position in seconds: a bar (49, 1-indexed, in 4/4), beats (12b) or seconds (30s).
+    `tempo` is a number, a tempo map as the plan gives it, or a tempoclock (bd-10e881: a map is followed)."""
     m = re.fullmatch(r"(\d+(?:\.\d+)?)([bs]?)", tok.strip())
     if not m:
         return None
@@ -28,23 +51,26 @@ def position(tok, tempo):
     if m.group(2) == "s":
         return v
     beats = v if m.group(2) == "b" else (v - 1) * 4
-    return beats * 60.0 / tempo if beats >= 0 else None
+    clock = clock_of(tempo)
+    return clock.secs(beats) if clock is not None and beats >= 0 else None
 
 
 def window_seconds(canon, windows):
-    """[(start, end)] in seconds for --windows, or None when they cannot be worked out here (a tempo that changes, a
-    meter other than 4/4, embedded songs, a position in another form): then each window is rendered by itself."""
+    """[(start, end)] in seconds for --windows, or None when they cannot be worked out here (a tempo map with a change
+    of meter or placed in bars or seconds, a meter other than 4/4, embedded songs, a position in another form): then
+    each window is rendered by itself. A tempo map placed in beats is followed (checked against the engine bit for
+    bit across a change of tempo, 20 Nov)."""
     if "tracks" not in canon:                  # not a plan (it could not be read): do not guess
         return None
-    tempo = canon.get("tempo", 120.0)          # the plan leaves out a tempo of 120, the engine's default
-    if not isinstance(tempo, (int, float)) or isinstance(tempo, bool) or tempo <= 0:
+    clock = clock_of(canon.get("tempo", 120.0))    # the plan leaves out a tempo of 120, the engine's default
+    if clock is None:
         return None
     if str(canon.get("meter") or "4/4").replace(" ", "") != "4/4" or canon.get("songs"):
         return None
     out = []
     for win in windows:
         b0, _, b1 = win.partition(":")[0].partition("-")
-        s0, s1 = position(b0, tempo), position(b1, tempo)
+        s0, s1 = position(b0, clock), position(b1, clock)
         if s0 is None or s1 is None or s1 <= s0:
             return None
         out.append((s0, s1))
