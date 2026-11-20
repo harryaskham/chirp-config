@@ -473,6 +473,25 @@ CLEAN = os.environ.get("C10T14_CLEAN", "ct-clean fx.3.mix=0 synth.pitch.mod.0.am
 # "" = v14 byte for byte.
 MIDDLE = os.environ.get("C10T14_MIDDLE", "0,1,2,3,4,10,11;0,1;0;4:11;;synth.layers.0.consonant_level=6dB;-15.5dB,-21.5dB;"
                                          "hp cutoff=150|peak cutoff=2500 q=0.7 gain=5dB" if CLEAN else "")
+# v16 (chirper-zero; instrument round: THE THREE DRUMS OF THE CHORD, the toms on F, C and A flat; 4,361 strokes,
+# none moved). The song is these three drums: rolled at their own notes they are its first chord, slowed they are
+# its count, and nobody had given them a round. Read alone (lines.py, tom.py in the bench):
+#   THEY WERE HALF BOX. The held chord had a fifth of its energy at 500 Hz-1 kHz (-7.2 dB re the whole; its three
+#   notes' band, 90-220 Hz, -1.7) and nothing over 4 kHz (-36): a hum with a honk in it, and no stick. By part the
+#   kit stood 8.4 dB over the records' kits at 500 Hz-1 kHz, the most on the album, and of the kit's pieces the
+#   toms held the most of the mix there (-9.4 dB; the snare -12.1, the blocks -13.4).
+#   THEY COULD NOT BE COUNTED. The album tom rings 1.3 s and here a stroke lands about every 0.16 s: where the three
+#   arrive in tempo alone (0:14-0:21), a stroke had fallen 2.9 dB when the next landed.
+#   THE THREE NOTES WERE NOT LEVEL in the held chord: F 2.0 dB under the other two.
+# So, on the three drums only (the deep drum of 'sixth' is left): the head's upper modes roll off twice as fast
+# (tilt -2 > -6: the box goes at the head, not with an eq); the head rings 0.55 s (1.3) and the amp 0.7 s (1.8);
+# the stick is heard (its noise -66 > -50 dB, the 4 kHz band +2 > +5 dB). Fader -1.5 > +1 dB: the held chord is as
+# loud as it was (K -24.2 > -24.1), the count 0.5 dB under where it was.
+# overrides inside each of the three drums' patches ; the toms' fader ; the loudness target ('' = unchanged; the
+# shorter drums measure quieter, and at v15's -10.62 the quiet middle, where no tom plays, came out 0.04 dB louder).
+# "" = v15 byte for byte.
+HEADS = os.environ.get("C10T14_HEADS", "synth.layers.0.tilt=-6 synth.layers.0.decay=0.55s synth.amp.d=0.7s synth.layers.1.level.value=-50dB "
+                                       "synth.filters.1.gain=5dB;1dB;-10.66" if MIDDLE else "")
 # a number is as long as it says, on the note of that length (the tune's own notes, NOTE_OF); two syllables share it
 NUMBER = {3: [("TH R IY1", 3)], 4: [("F AO1 R", 4)], 5: [("F AY1 V", 5)], 6: [("S IH1 K S", 6)], 7: [("S EH1", 3), ("V AH0 N", 4)],
           8: [("EY1 T", 8)], 9: [("N AY1 N", 9)], 10: [("T EH1 N", 10)], 11: [("IH0", 2), ("L EH1", 4), ("V AH0 N", 5)],
@@ -982,9 +1001,22 @@ def song():
         the_quiet_middle(doc)
     if MIDDLE and COUNT:
         the_middle_is_counted(doc)
+    if HEADS:
+        the_three_drums(doc)
     if TUNED:
         doc = {k: v for k, v in list(doc.items())[:2]} | {"tuning": {"steps": JUST, "root": "F3", "map": "keys"}} | {k: v for k, v in list(doc.items())[2:]}
     return doc
+
+
+def the_three_drums(doc):
+    """v16: the chord's three drums (t1 F, t2 C, t3 A flat) lose their box at the head, ring shorter and get a stick."""
+    inside, fader, loud = HEADS.split(";")
+    t = next(t for t in doc["tracks"] if t["name"] == "toms")
+    t["patch"] += "".join(f" kit.{piece}.patch.{o}" for piece in ("t1", "t2", "t3") for o in inside.split())
+    if fader:
+        t["gain"] = dict(t["gain"], value=fader) if isinstance(t["gain"], dict) else fader
+    if loud:
+        doc["loudness"] = float(loud)
 
 
 def the_middle_is_counted(doc):
