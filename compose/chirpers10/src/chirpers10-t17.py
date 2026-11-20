@@ -644,6 +644,25 @@ FIFTH = {'pitch': 'm56.863',
          'patch': 'synth.layers.0.tune_sounding=true synth.layers.0.tune_exact=true synth.pitch.mod.1.amount=0',
          'eq': ('highshelf cutoff=7000 gain=2dB',), 'gain': 0.1, 'loudness': None}
 
+# v25 (chirper-zero; the draw was a whole-song round, taken as the one voice that plays from end to end: the ondes,
+# all 234 notes; no note is added, moved or retuned). THE LEAD STANDS THE SAME OVER THE BAND AT EVERY HEIGHT.
+# Read the whole song for what holds its most-heard passage away from the records. The cadence every walk ends on
+# (sixteen, eight, four, two, one) and the short walks made of it read 3.3 to 4.3 dB over the records' mixes at
+# 250-500 Hz (the opening, ten and eleven, sixteen to one) and 3.9 over at 120-250 Hz on the wheel. Muting each part
+# in turn in the raw mix: there the ONDES is 60 to 70% of the band by itself (it adds 4.0 to 5.2 dB; the guitars
+# add 0.3 to 0.6, the bass 0.1). Then note by note, the ondes alone against everything else in the third of an
+# octave round its own pitch: it stood 13 dB over the band round C3 and C4, 10.5 round C5, 9.3 round C6, 2.6 round
+# C7. v1 tilted it 2.5 dB an octave DOWN from middle C upward and left everything under middle C at full, by a
+# K-weighted level; but under 600 Hz nothing in this band competes with a sine, and its low notes stood far out in
+# front of the band the high ones sit in. So: the low register comes down to where the middle already is. Each
+# note's own gain moves by the law below (dB by key number, straight lines between, flat outside): 4 dB off up to
+# F sharp 4, 1.5 off at C5, nothing from C6 up. The lead then stands 9.0, 9.1, 9.0, 8.6 dB over the band round C3,
+# C4, C5, C6. THE TOP IS LEFT (2.6 round C7): three handoffs asked for the ondes up on the high numbers, and by
+# this measure it is 6 dB less over the band there; but benched 2 dB up from C6 to C7 the mix read FURTHER from
+# the records in the climb and at 160 (2-4 kHz and 1-2 kHz, 0.4 and 0.5 over what they were), so the two reads
+# disagree and it waits for an ear.
+REGISTER = {'law': ((66, -4.0), (72, -1.5), (84, 0.0)), 'loudness': -9.548}
+
 
 def true(ratio):
     """A pitch as its exact ratio over the low F: the engine's fractional key number (a whole one is written as its name)."""
@@ -1024,6 +1043,8 @@ if __name__ == '__main__':
     ap.add_argument('--touch', help='a bench: TOUCH fields to change, as a JSON object')
     ap.add_argument('--without-fifth', action='store_true', help="regenerate v23: the snare between two of the string's harmonics, a different pitch on every stroke")
     ap.add_argument('--fifth', help="JSON over FIFTH's fields, for a bench")
+    ap.add_argument('--without-register', action='store_true', help="regenerate v24: the ondes at v1's levels, full under middle C")
+    ap.add_argument('--register', help="JSON over REGISTER's fields, for a bench")
     ap.add_argument('--without-fitted', action='store_true', help="regenerate v22: the album kit's bass drum as v4 tuned it, with no chest")
     ap.add_argument('--fitted', help="JSON over FITTED's fields, for a bench")
     ap.add_argument('--without-speaker', action='store_true', help="regenerate v21: the wall pair through the album's captured cabinets")
@@ -1051,7 +1072,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
-    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight', 'without_speaker', 'speaker', 'without_fitted', 'fitted', 'without_fifth', 'fifth'))
+    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_register', 'register', 'without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight', 'without_speaker', 'speaker', 'without_fitted', 'fitted', 'without_fifth', 'fifth'))
     if not a.without_china and newest:
         metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
         metal['patch'] += ' ' + CHINA['kit']
@@ -1245,6 +1266,33 @@ if __name__ == '__main__':
                 snare['gain'] = f"{float(snare['gain'].rstrip('dB')) + FIFTH['gain']:g}dB"
             if FIFTH['loudness'] is not None:
                 doc['loudness'] = FIFTH['loudness']
+            if not a.without_register:                             # only on the whole song as v24 has it
+                if a.register:
+                    REGISTER.update(json.loads(a.register))
+                pts = sorted((float(k), float(d)) for k, d in REGISTER['law'])
+
+                def law(p):
+                    if p <= pts[0][0]:
+                        return pts[0][1]
+                    for (k0, d0), (k1, d1) in zip(pts, pts[1:]):
+                        if p <= k1:
+                            return d0 + (d1 - d0) * (p - k0) / (k1 - k0)
+                    return pts[-1][1]
+
+                def key(pitch):
+                    if pitch.startswith('m'):
+                        return float(pitch[1:])
+                    letter = pitch.rstrip('0123456789-')
+                    return NOTES.index(letter) + 12 * (int(pitch[len(letter):]) + 1)
+                stone = next(t for t in doc['tracks'] if t['name'] == 'stone')
+                for e in stone['notes']:
+                    g = float(e.get('gain', '0dB')[:-2]) + law(key(e['pitch']))
+                    if abs(g) < 0.05:
+                        e.pop('gain', None)
+                    else:
+                        e['gain'] = f'{g:.1f}dB'
+                if REGISTER['loudness'] is not None:
+                    doc['loudness'] = REGISTER['loudness']
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
