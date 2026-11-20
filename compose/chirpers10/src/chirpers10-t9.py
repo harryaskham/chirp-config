@@ -1214,6 +1214,52 @@ def the_six_strings_are_a_sitars(doc):
         doc["loudness"] = float(loud)
 
 
+# v31 (chirper-zero; palette round. THE SWAP, NAMED: nothing is taken out; ONE INSTRUMENT ADDED, the part the song
+# lacked: a TANPURA, the library's `tanpura`, which no song on this record uses. New track `drone`, 28 plucks,
+# 0:20-0:40; no other note, sound or fader changes): THE DRONE COMES FIRST. Every speed in this song has a guest of
+# its own, and from five on they come from one music: a tabla counts the fives (v14), a sitar's six strings the
+# sixes (v28), the tabla again the sevens (v18). The speed of two had a cymbal for a guest, and by the read it is
+# the emptiest stretch of the song: two guitars, a bass, a bass drum on every stroke and a hat, 2.4 to 3.6 dB
+# short of the records from 250 Hz to 8 kHz. And that music does not begin with its drum or its string: it begins
+# with the drone, which is there before anybody plays and does not change. This song has one thing that never
+# changes too, the beat. So at two, where the band comes in, a tanpura comes in with it and PLAYS THE BEAT: its
+# four strings one to a beat, Pa Sa Sa Sa (C3, F3, F3 and the low F2), so its cycle is exactly the bar the kit
+# keeps, seven times round while the riff goes eight times round its seven strokes: four against seven, the
+# song's own two numbers, on the instrument whose whole job is to stay. TWO NOTES for the speed of two, the F the
+# riff stands on and the C its second answer reaches; every note the riff plays is a note of the scale that drone
+# belongs to (v28 found it: Todi). It stops plucking where three begins and rings out under it.
+# AND IT IS THERE FIRST, as a drone is: the cycle's last two strings (F, F) are plucked alone in the last two beats
+# of the opening, under the clean guitars' C and F, so the first thing the tanpura does is finish the fifth the
+# riff's own answer began; then the band comes in on its Pa.
+# (Benched, raw, K, against everything else over 'two': at -12 dB it stands 10.2 dB under, 2.8 dB OVER in the gaps
+# between strokes; the mix beside the records' passages with no voice reads 1.600 -> 1.000. At -15: 1.267. At -10:
+# 0.978, and 500 Hz-2 kHz begins to pass the records. A brighter string or bloom read no nearer. So the library's
+# patch as it comes, at -12. A whole bar of lead-in put its first pluck, C, on the guitars' G flat.)
+# the patch ; its fader ; its strings in the order plucked ; the section it plays through ; beats a pluck ;
+# velocity ; pan ; the loudness target ('' = unchanged) ; beats a string is left to ring ('' = until it is plucked
+# again, the cycle's length) ; beats of the cycle plucked before the section : dB on those plucks ('' = none).
+# On only when THIRDS is on. "" = v30 byte for byte.
+DRONE = os.environ.get('C10T9_DRONE', 'tanpura;-12dB;C3,F3,F3,F2;two;1;0.7;-0.25;-10.369;;2:-3' if THIRDS else '')
+
+
+def the_drone_comes_first(doc):
+    """v31: a tanpura plucks one string a beat through the speed of two; its cycle is the bar."""
+    patch, fader, strings, sec, per, vel, pan, target, ring, first = (DRONE.split(';') + [''])[:10]
+    strings, per = strings.split(','), float(per)
+    ring = float(ring) if ring else per * len(strings)
+    lead, soft = (float(v) for v in first.split(':')) if first else (0., 0.)
+    marks = MARKS + [("end", int(doc["length"].rstrip("b")))]
+    a, z = next((b0, marks[i + 1][1]) for i, (name_, b0) in enumerate(MARKS) if name_ == sec)
+    assert (z - a) / per == int((z - a) / per) and a % 4 == 0, (a, z)        # the cycle starts on a bar line
+    assert not any(t["name"] == "drone" for t in doc["tracks"])
+    doc["tracks"].append({"name": "drone", "patch": patch, "gain": fader, "pan": float(pan),
+                          "notes": [{"at": a + i * per, "len": ring, "pitch": strings[i % len(strings)], "vel": float(vel),
+                                     **({"gain": f"{soft:g}dB"} if i < 0 and soft else {})}
+                                    for i in range(-int(lead / per), int((z - a) / per))]})
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T9_SHOW"):
         end = compose()
@@ -1248,4 +1294,6 @@ if __name__ == "__main__":
             the_chug_keeps_its_low_end(doc)
         if THIRDS:
             the_answers_are_in_thirds(doc)
+        if DRONE:
+            the_drone_comes_first(doc)
         open(OUT, "w").write(dump(doc))
