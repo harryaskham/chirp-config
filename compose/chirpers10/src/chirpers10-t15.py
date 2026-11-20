@@ -279,7 +279,7 @@ LONG = os.environ.get('C10T15_LONG', '15;17;15;0;0;-9.9' if TEETH else '')
 # Benched raw against everything else and against the voices alone (K, whole stretch): see the round note. The
 # box's own weight (its fundamentals, 350-620 Hz) is cut 8 dB at 430 Hz: the choruses already stand 2.4 to 2.9 dB
 # over the records there, and what a concertina is heard by over a band is its reed (1-8 kHz).
-TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW', 'C10T15_PICK', 'C10T15_SNARE', 'C10T15_WAIT') for k in os.environ)
+TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW', 'C10T15_PICK', 'C10T15_SNARE', 'C10T15_WAIT', 'C10T15_TOMS') for k in os.environ)
                       else '-4.5dB;0.35;-12dB;-3;hp cutoff=300|peak cutoff=430 q=0.8 gain=-8dB|peak cutoff=2500 q=0.7 gain=3dB;-9.85')
 # the chorus's tune as a concertina plays it, an octave over the crew: their notes where they sing them, a passing
 # note in the breath after 'haul', and two sixteenths up into the next bar. (sixteenth, length, note), a bar a line.
@@ -1173,6 +1173,42 @@ def dump(d):
     return '\n'.join('tracks:\n' + '\n'.join('  - ' + json.dumps(t) for t in v) if k == 'tracks' else k + ': ' + json.dumps(v) for k, v in d.items()) + '\n'
 
 
+# v21 (chirper-zero; instrument round): THE TOMS GET A STICK AND LOSE THEIR BOX. The three toms' 101 strokes (the
+#   floor tom on every pull, the two small ones in the fills), no stroke moved. As they came (the album kit's modal
+#   toms) the floor tom alone was one line at 87 Hz, a hump at 250-500 Hz and nothing over 1 kHz (2-6 kHz 41 to 57
+#   dB under the stroke). IN THE BAND (the same mix with and without them, raw, own seed): at a chorus pull, under
+#   the kick, the cymbal, four guitars and the crew, all they added was the hump (+1.2 dB at 250-500 Hz, where the
+#   mix already stands 1.5 to 2.1 over the records and the toms held 9% of the band) and +0.9 dB of ring at 60-120 Hz
+#   after the kick has gone; in a fill a stroke added nothing at 2-6 kHz and had fallen 3.8 dB when the next landed.
+#   - the box out at the head: tilt -2 -> -6 (250-630 Hz 3 to 7 dB down by third-octave; the note 0.9 dB up);
+#   - a stick: the patch's stick is a burst of noise at each stroke; its burst is made 26 dB louder (the level's
+#     attack amount 50 -> 76) and longer (5 -> 12 ms), with the patch's 4 kHz peak +2 -> +8 dB. A fill stroke now
+#     adds 2.9 dB at 2-6 kHz in the band (0.3 before). THE STICK'S LEVEL FIELD (layers.1.level.value) IS NOT THE
+#     STICK: it is the noise's floor, which sounds for as long as the drum rings. Raised to -40 dB it gave the
+#     same attack and a hiss under every stroke (4-12 kHz, 0.6-1.1 s after the stroke: 35 dB under the stroke,
+#     against 61 with the burst raised instead and 63 as the drum came): benched, read, not kept.
+#     (Slow Enough to Count v16 and Close Enough v13, mine, raised that field to -50 dB: a quieter hiss, 47 dB
+#     under, still there. The burst is the cure for them too.)
+#   - the two small toms ring shorter (decay 1.3 s -> 0.55 s, amp 1.8 s -> 0.7 s, damp 0.8): in a fill a stroke has
+#     fallen 9.3 dB when the next lands, and stands 4.8 dB out of the band at 100-400 Hz (was 3.4). THE FLOOR TOM
+#     KEEPS ITS RING (20 dB in 0.36 s): on a pull the ring after the kick is what is heard of it.
+# all three toms' patch ; the two small toms only ; the toms' fader ; the loudness target ('' = unchanged).
+# "" = v20 byte for byte.
+TOMS = os.environ.get('C10T15_TOMS', 'synth.layers.0.tilt=-6 synth.layers.1.level.mod.0.amount=76 synth.env.att.d=12ms synth.filters.1.gain=8dB;'
+                      'synth.layers.0.decay=0.55s synth.amp.d=0.7s synth.layers.0.damp=0.8;4dB;' if WAIT else '')
+
+
+def the_toms_get_a_stick(doc):
+    every, small, fader, target = TOMS.split(';')
+    toms = next(t for t in doc['tracks'] if t['name'] == 'toms')
+    toms['patch'] += ''.join(f' kit.{p}.patch.{o}' for p in ('ft', 't1', 't2') for o in every.split())
+    toms['patch'] += ''.join(f' kit.{p}.patch.{o}' for p in ('t1', 't2') for o in small.split())
+    if fader:
+        toms['gain'] = fader
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__ == '__main__':
     doc, marks = build()
     if SUB:
@@ -1187,6 +1223,8 @@ if __name__ == '__main__':
         the_snare_finds_its_note(doc)
     if WAIT:
         the_kit_waits(doc, marks)
+    if TOMS:
+        the_toms_get_a_stick(doc)
     if os.environ.get('C10T15_SHOW'):
         for sec, bars in FORM:
             t = marks[sec]
