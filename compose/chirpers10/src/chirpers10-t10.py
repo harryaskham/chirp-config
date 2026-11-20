@@ -358,6 +358,35 @@ SAID = os.environ.get('C10T10_TITLE_SAID', 'S T IH1 L|OW1|IH0 NG').split('|')   
 PICK = os.environ.get('C10T10_PICK', 'synth.layers.0.soft=expr.pm*0.5 synth.filters.0.cutoff.mod.0.amount=-2 fx.2.mic=0.45;;-10.244' if TITLE else '')
 
 
+# v27 (chirper-alpha; palette round; 'called in', 1:47.1-2:02.1): THE REED BRINGS ITS SECTION TO CALL THE DEBT IN.
+# One new instrument, the library's `sax-section` (an alto and two tenors, reeds on conical bores; on no other song
+# of the record), twelve notes; nothing else changes. The song's lone wind is a baritone sax: it gives the call at
+# 0:00 in one breath and plays it "in the bar it was given" over the crest (v12). In 'called in' the debt comes
+# down six, four, two, nothing, and one player has shown the call at its given length since v5: the right guitar,
+# straight, an octave over the left. But he is a second eight-string beside the first, and which of two guitars
+# is on time is hard to hear. Now the reed's own family says it: on each of the four pairs the section plays the
+# call where it was given (sixteenths 0, 6 and 13: E flat 4, B flat 4, F4, two octaves over the straight guitar)
+# and stops on the bar line. The left guitar's second and third notes come 0.30 and 0.65 s after the section's
+# while six are owed, 0.20 and 0.44 at four, 0.10 and 0.22 at two, and at 2:00.0, at par, with them. That is the
+# section's last call: like the 808 (v17) it has nothing to say once nothing is owed.
+# (Benched, raw, 'called in' pairs 1-4. A reed takes 0.11 s to reach half its level, most of a sixteenth here
+# (0.134 s), so each note is written 0.09 s ahead and speaks 27 ms after its place (median; -3 to +53). At -14 dB
+# the twelve notes stand 9.3 dB under the mix (K; the records' voices 9.2, this song's sung title 9.3) and their
+# strongest partial, the second, 6.6 dB over everything else in its third-octave (11 of 12 at +3 or more).
+# FIRST TAKES NOT KEPT. The library's `brass` (three players' lips): it speaks in 18 ms, but it is nearly all
+# fundamental (120-250 Hz within 0.7 dB of its total, 1-2 kHz 20 under) and no override of its brightness or
+# pressure moved that: at E flat 3 it put the mix 4.2 dB over the records at 120-250 Hz, and an octave up its
+# fundamental is at 250-500 Hz, where the straight guitar already is. The saxes an octave lower: their second partial lands at 311-466 Hz, where the straight
+# guitar already is (+4.5 at 250-500 Hz). Either at E flat 2: under the lips' range, and the reeds 13.8 under
+# the mix. The section blown harder with a 3 ms attack: 98 ms, no cure for the lateness; the lead is.)
+# the section's patch ; fader, dB ; pan ; semitones over the guitars' written call ; dB on each pair's notes, one
+# for every pair of 'called in' it plays, from the first ; velocity of the call's first note, of its others ;
+# seconds each note is written ahead of its place (a reed takes a tenth of a second to speak) ; eq, band|band ;
+# the loudness target ('' = unchanged). '' = v26 byte for byte.
+HORNS = os.environ.get('C10T10_HORNS', 'sax-section synth.amp.r=65ms fx.0.mix=0.075 play.humanize.time=0ms;-14;0;36;0,0,0,2;'
+                       '0.92,0.85;0.09;;-10.22' if PICK else '')
+
+
 def bow_patch():
     lo, lo_gain = (float(v) for v in BOW.split(';')[1:3])
     return {'about':'chirper-zero: the bow of Still Owing: a bowed string on a body (the engine\'s bowed waveguide, the cello\'s string and box), in place of the '
@@ -1062,6 +1091,31 @@ def the_pick_stays_hard(song):
         song['loudness'] = float(target)
 
 
+def the_debt_is_called_in(song):
+    """v27: in 'called in' a section of saxophones plays the call in the bar it was given (sixteenths 0, 6, 13) while
+    the debt is six, four, two and nothing; the left guitar's own call comes after it by less each time, and at par
+    with it."""
+    patch, fader, pan, register, pairs, vels, lead, eq, target = HORNS.split(';')
+    first = sum(len(debts) for name, debts in FORM[:[name for name, _ in FORM].index('called in')])
+    pair = 2 * BAR / SUB
+    straight = next(t for t in song['tracks'] if t['name'] == 'right')
+    heads = [(p0, semi) for p0, _, semi, how in CALL if how != 'm']
+    ahead = float(lead or 0) * BPM / 60
+    notes = []
+    for j, trim in enumerate(pairs.split(',')):
+        a = (first + j) * pair
+        for i, (p0, semi) in enumerate(heads):
+            following = heads[i + 1][0] if i + 1 < len(heads) else BAR
+            assert any(abs(n['at'] - (a + p0 / SUB)) < 1e-6 for n in straight['notes']), (j, p0)    # the straight player's own stroke
+            notes.append({'at': round(a + p0 / SUB - ahead, 5), 'len': round((following - p0 - .25) / SUB, 5),
+                          'pitch': nm(HOME + semi + int(register)), 'vel': float(vels.split(',')[0 if i == 0 else 1]),
+                          **({'gain': f'{float(trim):g}dB'} if float(trim) else {})})
+    song['tracks'].append({'name': 'horns', 'patch': patch, 'gain': f'{float(fader):g}dB', 'pan': float(pan),
+                           **({'fx': [{'type': 'eq', 'bands': eq.split('|')}]} if eq else {}), 'notes': notes})
+    if target:
+        song['loudness'] = float(target)
+
+
 def dump(song):
     return '\n'.join('tracks:\n'+'\n'.join('  - '+json.dumps(x) for x in v) if k=='tracks' else k+': '+json.dumps(v) for k,v in song.items())+'\n'
 
@@ -1074,6 +1128,7 @@ if __name__=='__main__':
     if SNARE: the_snare_is_fitted(song)
     if TITLE: the_title_is_sung(song)
     if PICK: the_pick_stays_hard(song)
+    if HORNS: the_debt_is_called_in(song)
     if args.form:
         for n,t in marks: print(f'{n:18} {t/BAR+1:5.0f}  {t/SUB*60/BPM:6.2f}s')
     else: args.out.write_text(dump(song))
