@@ -1270,6 +1270,8 @@ def song():
         the_measure_is_sung(doc)
     if SCALE:
         the_tune_is_as_long(doc)
+    if CHUG:
+        the_chug_holds(doc)
     return doc
 
 
@@ -1566,6 +1568,70 @@ def the_shekere(doc):
         'play': {'humanize': {'time': '5ms', 'vel': 0.08}, 'vel_sens': 0.6}}
     doc['tracks'].append({'name': 'shaker', 'patch': 'cm-shekere', 'gain': gain, 'pan': float(pan), 'out': 'drums', 'sends': {'oh': oh},
                           'notes': [{**n, 'pitch': 'sk'} for n in moved]})
+
+
+# v33 (chirper-two; palette round: the album's staple guitars, `ct-twin` and `ct-wall-stop`, re-voiced at the
+# stroke as this song's own; no note changes and no other track): THE CHUG HOLDS. Read first, each guitar alone
+# beside six records' guitars at their own chugs (`riffpunch.py --strokes`): this song's muted strokes had a low
+# end that DIES (100-250 Hz, the first 20 ms over 40-80 ms: +1.9 to +2.8 on the four twins, +4.6 and +5.2 on the
+# walls; the records -2.2 to +0.3, theirs holds or grows), an attack softer than the records' on the twins (punch
+# 2.8 to 3.4; theirs 3.5 to 4.2) and one faster than any of theirs on the walls (9 and 11 ms; theirs 13.5 to
+# 23.5). v24's teeth (the scoop) were already inside their range and stay.
+#   IN THE ORDER compose/README.md gives for benching a chug (about fifty builds, a guitar at a time):
+#   THE PICK: half as soft under the palm (`soft=expr.pm*0.5`): gl +2.71 -> +1.01, dl +2.79 -> +2.18. A lighter palm
+#       in the NOTES (0.55, 0.7) did no better than the rig's pick alone; no pick softening at all did worse.
+#   THE THUMP: halved on the main pair (gl +0.84), off on the doubles and the walls (walls +5.2 / +4.6 -> +2.0).
+#   THE AMP'S TIGHT 220 -> 150 Hz and THE CHOKE 55 -> 120 ms on the doubles only (dl +0.43; on the main pair the
+#       tighter amp read WORSE, +2.14). On the walls the choke alone; the tighter amp there read best at the stroke
+#       and took 6 dB from their 60-120 Hz, so it is not kept.
+#   THE PALM'S FILTER on the walls 3.4 -> 2 octaves (their attack 9 / 11 -> 14 ms, their scoop -9.0 / -9.6 ->
+#       -11.7 / -12.4, the records' median -11.3). The twins' was set by v24.
+#   THE CHAIN'S DYNAMICS for the attack: the front compressor's attack 2 -> 15 ms, release 60 -> 200 ms on the
+#       twins, and the engine's transient shaper after each guitar's eq (its first use in this song).
+#   Each pair alone is as loud as it was (K within 0.01 dB): faders -1.05, -1.5, -0.75 dB; the main pair's chest
+#       band 185 Hz +2.5 -> 160 Hz, wider, +4.5 (alone it is then within 0.3 dB of v32's from 60 to 250 Hz). The
+#       same lift on the walls put their attack back at 9 ms: not kept, so the walls are thinner (alone -3.6 /
+#       -3.2 dB at 60-250 Hz).
+#   AFTER, ten reads (four twins in the first pair, all six in the measure): the low end's fall, mean +3.08 ->
+#       +0.78 (none inside the records' range -> two; the rest +0.4 to +1.7); punch inside their range in one ->
+#       six; the attack's rise inside in eight -> nine (the right main guitar 15.25 -> 13.0 ms, half a millisecond
+#       outside); the scoop inside in all ten, before and after.
+# overrides on the main pair's rig (gl, gr), a later one replacing an earlier of the same name ; the same for the
+# doubles (dl, dr) ; the same for the walls (wl, wr) ; effects after the main pair's eq, '|' between ; the same for
+# the doubles ; the same for the walls ; the main pair's eq, band|band ('' = unchanged) ; the doubles' eq ; the
+# walls' eq ; dB on the faders, main,doubles,walls ; the loudness target ('' = unchanged). "" = v32 byte for byte.
+# On only while SCALE is.
+CHUG = os.environ.get('C10T8_CHUG', 'synth.layers.0.soft=expr.pm*0.5 synth.layers.0.thump=expr.pm*0.2 fx.0.attack=15ms fx.0.release=200ms;'
+                                    'synth.layers.0.soft=expr.pm*0.5 synth.layers.0.thump=0 synth.layers.0.choke=120ms fx.1.tight=150 fx.0.attack=15ms fx.0.release=200ms;'
+                                    'synth.layers.0.thump.mod.0.amount=0 synth.filters.0.cutoff.mod.0.amount=-2 synth.layers.0.choke=120ms;'
+                                    'transient attack=3 sustain=-1;transient attack=5 sustain=-1;transient attack=4 sustain=-1;'
+                                    'peak cutoff=160 q=0.8 gain=4.5dB|peak cutoff=800 q=1.2 gain=-3dB;;;-1.05,-1.5,-0.75;' if SCALE else '')
+
+
+def the_chug_holds(doc):
+    """v33: the six guitars' muted stroke: the pick, the thump, the amp's tightness, the chain's dynamics."""
+    main, dbl, wall, main_fx, dbl_fx, wall_fx, main_eq, dbl_eq, wall_eq, faders, target = CHUG.split(';')
+    faders = [float(x) for x in faders.split(',')] if faders else [0.0, 0.0, 0.0]
+    group = {'gl': 0, 'gr': 0, 'dl': 1, 'dr': 1, 'wl': 2, 'wr': 2}
+    for t in doc['tracks']:
+        if t['name'] not in group:
+            continue
+        k = group[t['name']]
+        name, *have = t['patch'].split()
+        keys = dict(x.split('=', 1) for x in have)
+        keys.update(x.split('=', 1) for x in (main, dbl, wall)[k].split())
+        t['patch'] = ' '.join([name] + [f'{a}={b}' for a, b in keys.items()])
+        assert t['fx'][-1]['type'] == 'eq' and len(t['fx']) == (2 if k == 2 else 1)
+        if (main_eq, dbl_eq, wall_eq)[k]:
+            t['fx'][-1] = {"type": "eq", "bands": (main_eq, dbl_eq, wall_eq)[k].split('|')}
+        t['fx'] += [x for x in (main_fx, dbl_fx, wall_fx)[k].split('|') if x]
+        if faders[k]:
+            if isinstance(t['gain'], dict):
+                t['gain'] = dict(t['gain'], value=f"{float(t['gain']['value'].rstrip('dB')) + faders[k]:g}dB")
+            else:
+                t['gain'] = f"{float(t['gain'].rstrip('dB')) + faders[k]:g}dB"
+    if target:
+        doc['loudness'] = float(target)
 
 
 def dump(doc):
