@@ -492,6 +492,22 @@ MIDDLE = os.environ.get("C10T14_MIDDLE", "0,1,2,3,4,10,11;0,1;0;4:11;;synth.laye
 # "" = v15 byte for byte.
 HEADS = os.environ.get("C10T14_HEADS", "synth.layers.0.tilt=-6 synth.layers.0.decay=0.55s synth.amp.d=0.7s synth.layers.1.level.value=-50dB "
                                        "synth.filters.1.gain=5dB;1dB;-10.66" if MIDDLE else "")
+# v17 (chirper-one; whole song): THE THREE GATHER. The threes, the fours and the fives come round together every 60
+# sixteenths, and the rule itself writes a figure there that nobody played: their LAST strokes before a meeting fall
+# on three sixteenths in a row (the fives at 55, the fours at 56, the threes at 57: A flat, C, F, the chord going up),
+# then two empty sixteenths, the meeting, two empty, and their FIRST strokes after it on three in a row (63, 64, 65:
+# F, C, A flat, the chord coming down). The three drums the song is made of had left the band after 'counted'; now at
+# each meeting inside 'minor', 'sixth' and 'home' that has no fill of its own they come back and say it, each on its
+# own pulse (no new strike time: the block, the china and the kick already land there), and the guitars, the walls and
+# the bass rest for those five sixteenths so that the kit gathers alone and the band lands on the meeting.
+# In 'home' they gather from TWO strokes back: the fives at 50 and 55, the fours at 52 and 56, the threes at 54 and
+# 57: A flat . C . F, A flat, C, F, the gaps closing (2, 2, 1, 1, 1): the wind-up in a second; and they leave the same
+# way, slowing: the unwinding. The band rests the whole ten sixteenths there.
+# where (section:meeting,meeting:strokes back|…; a meeting followed by < is gathered into but not left; strokes
+# back 1 if not given) ; who rests from the first of those strokes to the meeting ('' = nobody) ; the last three
+# velocities in (A flat, C, F) ; the meeting's (all three; '' = none) ; the first three out (F, C, A flat; '' = none)
+# ; velocity off for each stroke further back ; the loudness target ('' = unchanged). "" = v16 byte for byte.
+GATHER = os.environ.get("C10T14_GATHER", "minor:60,180|sixth:60,120,180|home:60,180<:2;gl,gr,dl,dr,wl,wr,bass;0.85,0.92,1;1;0.8,0.7,0.6;0.15;" if HEADS else "")
 # a number is as long as it says, on the note of that length (the tune's own notes, NOTE_OF); two syllables share it
 NUMBER = {3: [("TH R IY1", 3)], 4: [("F AO1 R", 4)], 5: [("F AY1 V", 5)], 6: [("S IH1 K S", 6)], 7: [("S EH1", 3), ("V AH0 N", 4)],
           8: [("EY1 T", 8)], 9: [("N AY1 N", 9)], 10: [("T EH1 N", 10)], 11: [("IH0", 2), ("L EH1", 4), ("V AH0 N", 5)],
@@ -1114,6 +1130,50 @@ def dump(doc):
     return "\n".join(lines) + "\n"
 
 
+def the_three_gather(doc):
+    """v17: at the meetings of three, four and five the three drums play the pulses' last strokes in and first strokes out; the band rests on the way in."""
+    where, rest, vin, vmeet, vout, back, loud = GATHER.split(";")
+    tr = {t["name"]: t for t in doc["tracks"]}
+    toms = tr["toms"]["notes"]
+    have = {(round(n["at"] * 4), n["pitch"]) for n in toms}
+    def stroke(s16, piece, vel):
+        if (s16, piece) not in have:
+            toms.append({"at": s16 / 4, "len": 0.25, "pitch": piece, "vel": round(float(vel), 3)})
+            have.add((s16, piece))
+    for entry in where.split("|"):
+        sec, offs, deep = (entry.split(":") + ["1"])[:3]
+        deep = int(deep)
+        for off in offs.split(","):
+            leave = not off.endswith("<")
+            m = AT[sec] + int(off.rstrip("<"))
+            for name, period in (("kick", 3), ("cym", 4), ("block", 5)):                     # a meeting of all three, and the kit is already there
+                at = {round(n["at"] * 4) for n in tr[name]["notes"]}
+                assert all(m - period * k in at and (not leave or m + period * k in at) for k in range(1, deep + 1)) and (name != "kick" or m in at), (sec, off, name)
+            for k in range(1, deep + 1):
+                for (piece, period), vel in zip((("t3", 5), ("t2", 4), ("t1", 3)), vin.split(",")):
+                    stroke(m - period * k, piece, float(vel) - float(back or 0) * (k - 1))    # each pulse's last strokes before
+            if vmeet:
+                for piece in ("t3", "t2", "t1"):
+                    stroke(m, piece, vmeet)
+            if leave and vout:
+                for k in range(1, deep + 1):
+                    for (piece, period), vel in zip((("t1", 3), ("t2", 4), ("t3", 5)), vout.split(",")):
+                        stroke(m + period * k, piece, float(vel) - float(back or 0) * (k - 1))   # and its first strokes after
+            for name in filter(None, rest.split(",")):
+                keep = []
+                for n in tr[name]["notes"]:
+                    a = round(n["at"] * 4); z = n["at"] * 4 + n["len"] * 4
+                    if m - 5 * deep <= a < m:
+                        continue                                                             # it rests
+                    if a < m - 5 * deep < z:
+                        n = dict(n, len=round((m - 5 * deep - a) * 0.96 / 4, 4))             # and lets go where the rest begins
+                    keep.append(n)
+                tr[name]["notes"] = keep
+    toms.sort(key=lambda n: n["at"])
+    if loud:
+        doc["loudness"] = float(loud)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T14_SHOW"):
         beat = 60 / BPM
@@ -1125,4 +1185,7 @@ if __name__ == "__main__":
         compose()
         print({k: len(v) for k, v in T.items()})
     else:
-        open(OUT, "w").write(dump(song()))
+        doc = song()
+        if GATHER:
+            the_three_gather(doc)
+        open(OUT, "w").write(dump(doc))
