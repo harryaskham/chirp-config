@@ -779,6 +779,48 @@ def seven_sevens(doc, marks):
         doc["loudness"] = float(target)
 
 
+# v27 (chirper-zero; palette round: the part the song lacked, on an instrument no song of the album has, a piano).
+# THE TUNER STRIKES THE TWO STRINGS. The song's first sentence is about strings: "Tune one string to another and
+# you do not listen to the notes: you listen to the wobble between them". Nothing in the song was a struck pair: the
+# two reeds are held, and a held pair beats for as long as you like. A tuner's pair is STRUCK, and the count is in
+# the ring as it dies. So: one new track, `struck`, a piano key whose two strings are the pair's own two pitches (the
+# reeds' notes, in hertz: a hair apart), struck on the first beat of the four bars where the band rests and the pair
+# shows the new count (v16): five, seven, three, square again. Its ring wobbles as the rule says with nobody playing
+# it: the note itself five times in the bar of five (seven, three, four), its octave ten, its twelfth fifteen, its
+# double octave twenty: the kick's, the guitars', the toms' and the hat's places, in one dying sound, in the bar
+# where none of them plays. And once more on the last chord, where the two strings are one pitch: no wobble.
+# THE SWAP, NAMED: nothing leaves; the library `piano` comes in as the song's own string: its three string layers'
+# built-in mistunings (0.7 flat, 0.9 and 3 cents sharp: a wobble of its own, out of tempo) and its stretch-tuning by
+# key (up to 7 cents: it would beat against the reeds) are zeroed, its humanised timing is off (the two hammers
+# land together, so the wobble starts at its top, on the beat), and its aftersound rings twice as long with half
+# the damping, so that the wobble lasts the bar (12 dB down over the bar where the piano as it comes fell 22).
+# And its overtones are made exact multiples (a piano's are stretched a little sharp): the strings' octave and
+# twelfth then sit ON the reeds', and add to their wobble; stretched, they fought it (in the bar of three the
+# octave's swells were 14 dB deep in the mix where the reeds alone make 23; exact, 20.5).
+# the piano ; its fader ; the sections whose first bar is struck ; velocity ; length in beats ; the section struck
+# in tune:length ('' = none) ; the loudness target ('' = unchanged). '' = v26 byte for byte. On only while SEVENS is.
+STRUCK = os.environ.get("C10T16_STRUCK", "piano synth.layers.0.cents=0 synth.layers.1.cents=0 synth.layers.2.cents=0 synth.pitch.mod.0.amount=0 "
+                        "play.humanize.time=0ms play.humanize.vel=0 synth.env.after.d=32s synth.layers.1.damp=0.15 synth.layers.0.stretch=0 synth.layers.1.stretch=0;-12dB;"
+                        "five,seven,three,square again;0.85;3.96;close enough:4.5;-10.345" if SEVENS else "")
+
+
+def the_tuner_strikes(doc, marks):
+    """v27: a piano's two strings on the pair's two pitches, struck where the pair shows the count, and once in tune."""
+    patch, fader, bars, vel, length, tuned, target = STRUCK.split(";")
+    start = {name: b for name, b, r, n in marks}
+    by = {t["name"]: t for t in doc["tracks"]}
+    assert "struck" not in by and "struck" not in doc.get("buses", {})
+    notes = []
+    for sec, ln in [(x, length) for x in bars.split(",") if x] + ([tuple(tuned.split(":"))] if tuned else []):
+        pair = [next(n for n in by[who]["notes"] if abs(n["at"] - start[sec]) < 1e-6) for who in ("reed", "hair")]
+        assert not any("patch" in n for n in pair), sec                # the peg is not being turned while they ring
+        assert (pair[0]["pitch"] == pair[1]["pitch"]) == (tuned.split(":")[0] == sec if tuned else False), sec
+        notes += [{"at": float(start[sec]), "len": float(ln), "pitch": n["pitch"], "vel": float(vel)} for n in pair]
+    doc["tracks"].append({"name": "struck", "patch": patch, "gain": fader, "pan": 0.0, "notes": notes})
+    if target:
+        doc["loudness"] = float(target)
+
+
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -1193,6 +1235,8 @@ def build():
         the_stroke_lands(doc)
     if SEVENS:
         seven_sevens(doc, marks)
+    if STRUCK:
+        the_tuner_strikes(doc, marks)
     return doc, marks, end
 
 
