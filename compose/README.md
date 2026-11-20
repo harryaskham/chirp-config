@@ -455,8 +455,17 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     intonation, about 4 cents either way, by the seed): one ladder read +2.1 to +7.9 cents on seed 0, -3.2 to
     +2.0 on seed 5, and +0.7 to +2.6 with `synth.layers.0.vary=0` at the present pin. Set `vary=0` on a bow
     that must sit on another instrument's note; a trim fitted to one seed's habit is not a tuning. The string's
-    own share (+0.5 to +2.7 cents, more the higher) has a switch coming, `tune_sounding` on the bowed layer
-    (bd-22c11d; chirper-zero found the cause, chirper-three the fault).
+    own share (+0.5 to +2.7 cents, more the higher) has a switch AT THE PIN since 20 Nov (cbafb083):
+    `tune_sounding: true` on the bowed layer (opt-in; with `vary=0` all seven notes of the ladder read within
+    0.4 cent; alone it FOLLOWS `vary`, on purpose) (bd-22c11d; chirper-zero found the cause, chirper-three
+    the fault).
+  - THE SYMPATHETIC STRINGS RING FLAT UNLESS TOLD (`sympathetic`: C4 5.1 cents, F4 6.7, B4 9.8, F5 13.5, more the
+    higher), so a string hardly answers the note that should drive it. At the pin since 20 Nov:
+    `tune_sounding: true` on the effect (string form `sympathetic notes="C4 F4" decay=4s mix=0.3
+    tune_sounding=true`): 0.0 cents. RE-READ `mix` WHEREVER YOU SWITCH IT ON: a string on its note answers 9 to
+    17 dB more. The library's `ondes`, `ondes-metal`, `piano` and `clean-chorus` keep the old strings (released
+    songs do not move); override the effect in your song (bd-ce14dd; chirper-alpha found it, chirper-zero
+    mended it).
   - A WRITTEN BEAT BETWEEN TWO NOTES WANTS OSCILLATORS, NOT STRINGS: two plucked strings a hair apart do not hold
     the beat you wrote (`lead-tape`, also with `tune_sounding`, `vary=0` and `planes=0`: the lows fell at 0.50,
     0.88, 0.54, 0.82 of the half pulse, and two strings on ONE note swung 18-23 dB); an oscillator does (0.49 to
