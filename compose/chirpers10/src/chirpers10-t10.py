@@ -398,6 +398,39 @@ HORNS = os.environ.get('C10T10_HORNS', 'sax-section synth.amp.r=65ms fx.0.mix=0.
 # fields set on the bowed layer of `owing-bow`, name=value with spaces between ; the loudness target ('' =
 # unchanged). "" = v27 byte for byte.
 INTUNE = os.environ.get('C10T10_INTUNE', 'vary=0 tune_sounding=true;' if HORNS and BOW and TRADE else '')
+# v29 (chirper-two; whole song): THE DEBT IS SAID THREE TIMES: I OWE YOU, STILL OWING, NO LONGER. Since v25 a man
+# sings the title at the crest, late, on the call's three notes at the guitars' places. That was the middle of a
+# sentence. Now the same man, same voice, says its beginning and its end, each once, each on those three notes at
+# the guitars' places: 'I owe you' in the first pair that borrows a sixteenth (0:38.6; the call takes seventeen, so
+# his second and third notes are a little late with the guitars'), and 'no longer' in the last pair of 'square'
+# (3:08.6; in time, because nothing is owed), where a WOMAN joins him an octave above: the one place in the song two
+# people sing together is the one place the two clocks agree. Then the receipt, as it was. All three lines are three
+# syllables with the weight on the middle one, which is the call's own shape (its second note is the longest and the
+# highest), and the first two share their vowel on that note: OWE, OW-ing.
+#   Two new last tracks: `owed` (the man: six notes; the crest's `sung` track is untouched, byte for byte) and
+#   `agreed` (the woman: three). No other note, sound or level changes.
+#   THE WORDS: the recogniser, on each voice alone, wrote 'I owe you' and then, with the syllables evened, 'I-O-U';
+#       'No longer.' / 'No, no, no longer.' (him) and 'No longer!' (her). Given the mix it wrote nothing.
+#   THE LEVELS (raw, K, each syllable against everything else): 'I owe you' -8.5 -8.3 -8.5 (the title stands -9.1
+#       to -8.0); 'no longer' him -10.5 each, her -13.5 each, the two together -7.8 -7.8 -9.3. By the album's
+#       yardstick (tools/voxref.py, voice minus mix; the records' voices -9.2 whole, -7.1 at 1-4 kHz): -8.6 / -7.2
+#       and, both together, -8.2 / -8.0. Alone 'you' was 15 dB under 'I': each syllable has its own gain.
+#   HER VOICE is Extreme and Mean v29's woman (a shorter tract) with 6 dB more at 1.4 kHz and 3 less at 750 Hz, for a
+#       loud band: against the records' voices she read 8.8 short at 1-2 kHz as she came, 4.3 now.
+#   FINISHED, three seeds: the two sung pairs +0.3 to +0.4 dB (K); every other section 0.01 to 0.03 dB lower, so
+#       the target is not moved.
+# the man's fader on his new track `owed` (his patch, eq, pan and velocity are the crest singer's) ; dB on each of
+# his six syllables (I, owe, you ; no, long, er) ; how much of its place each syllable fills, a,b,c/a,b,c ; the
+# woman's patch ('' = nobody joins him) ; her fader ; her pan ; her eq, band|band ; semitones over him ; dB on each
+# of her three syllables ; the loudness target ('' = unchanged). "" = v28 byte for byte.
+IOU = os.environ.get('C10T10_IOU', '-11.5dB;-6.6,-1.3,9.3,1.7,-3.4,-4.5;0.97,0.97,0.97/0.97,0.97,0.97;'
+                                   'voice-legato synth.layers.0.diction=3 synth.layers.0.ring=1.0 synth.layers.0.effort.value=0.8 fx.0.mix=0 '
+                                   'synth.layers.0.inhale=0 synth.layers.0.tract=0.86;-28.5dB;0.2;'
+                                   'hp cutoff=250|lowshelf cutoff=700 gain=-8dB|peak cutoff=750 q=1 gain=-3dB|peak cutoff=1400 q=0.8 gain=6dB|'
+                                   'peak cutoff=2500 q=0.7 gain=5dB|highshelf cutoff=6000 gain=3dB;'
+                                   '12;-0.3,-4.3,-1.4;' if INTUNE and TITLE else '')
+IOU_SAID = [x.split('|') for x in os.environ.get('C10T10_IOU_SAID', 'AY1|OW1|Y UW1;N OW1|L AO1 NG|G ER0').split(';')]   # I | owe | you ; no | long | er
+IOU_LINES = os.environ.get('C10T10_IOU_LINES', '12')      # which of the two lines are sung: '1' = only 'I owe you', '2' = only 'no longer'
 
 
 def bow_patch():
@@ -1145,6 +1178,51 @@ def dump(song):
     return '\n'.join('tracks:\n'+'\n'.join('  - '+json.dumps(x) for x in v) if k=='tracks' else k+': '+json.dumps(v) for k,v in song.items())+'\n'
 
 
+def the_debt_is_said(song):
+    """v29: the crest's singer says the debt twice more, on the call's three notes at the guitars' places: 'I owe you' in the
+    first pair that borrows a sixteenth ('on account'), 'no longer' in the last pair of 'square', where a woman joins him."""
+    fader, trims, fills, her, her_fader, her_pan, her_eq, over, her_trims, target = IOU.split(';')
+    sung = next(t for t in song['tracks'] if t['name'] == 'sung')
+    call = sung['notes'][:3]                                            # the call on E flat, as he sings it at the crest
+    places = (0, 6, 13, BAR)                                            # the call as it was given: three notes in sixteen sixteenths
+    pairs, at = {}, 0
+    for name, debts in FORM:
+        for k, d in enumerate(debts):
+            pairs[(name, k)] = (at, d)
+            at += 1
+    where = [next(v for (name, k), v in pairs.items() if name == 'on account' and v[1] == 1),      # the first borrowed sixteenth
+             pairs[('square', len(dict(FORM)['square']) - 1)]]                                    # the last pair before the receipt
+    pair = 2 * BAR / SUB
+    trims = [float(x) for x in trims.split(',')]
+    his, hers = [], []
+    for j, (n, d) in enumerate(where):
+        if str(j + 1) not in IOU_LINES:
+            continue
+        starts = [x * (BAR + d) / BAR for x in places]                  # at the guitars' places: with d owed the call takes 16 + d
+        fill = [float(x) for x in fills.split('/')[j].split(',')]
+        for i in range(3):
+            note = {'at': round(n * pair + starts[i] / SUB, 5), 'len': round((starts[i + 1] - starts[i]) / SUB * fill[i], 5),
+                    'pitch': call[i]['pitch'], 'vel': call[i]['vel'], 'ph': ' '.join(IOU_SAID[j][i].split())}
+            his.append({**note, **({'gain': f'{trims[3 * j + i]:g}dB'} if trims[3 * j + i] else {})})
+            if j == 1 and her:
+                g = float(her_trims.split(',')[i])
+                hers.append({**note, 'pitch': name_of(pitch_of(call[i]['pitch']) + int(over)), **({'gain': f'{g:g}dB'} if g else {})})
+    song['tracks'].append({'name': 'owed', 'patch': sung['patch'], 'gain': fader, 'pan': sung['pan'], **({'fx': sung['fx']} if 'fx' in sung else {}), 'notes': his})
+    if hers:
+        song['tracks'].append({'name': 'agreed', 'patch': her, 'gain': her_fader, 'pan': float(her_pan),
+                               **({'fx': [{'type': 'eq', 'bands': her_eq.split('|')}]} if her_eq else {}), 'notes': hers})
+    if target:
+        song['loudness'] = float(target)
+
+
+def pitch_of(name):
+    return NOTES.index(name[:-1]) + 12 * (int(name[-1]) + 1)
+
+
+def name_of(p):
+    return NOTES[p % 12] + str(p // 12 - 1)
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out',type=Path,default=OUT); parser.add_argument('--form',action='store_true')
@@ -1155,6 +1233,7 @@ if __name__=='__main__':
     if PICK: the_pick_stays_hard(song)
     if HORNS: the_debt_is_called_in(song)
     if INTUNE: the_bow_is_in_tune(song)
+    if IOU: the_debt_is_said(song)
     if args.form:
         for n,t in marks: print(f'{n:18} {t/BAR+1:5.0f}  {t/SUB*60/BPM:6.2f}s')
     else: args.out.write_text(dump(song))
