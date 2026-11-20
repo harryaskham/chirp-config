@@ -1662,6 +1662,53 @@ CASCADE = os.environ.get("C10T6_CASCADE", "8;19,8,3,2;;" if VACANT else "")
 FEIGENBAUM = (3.564407, 3.568759, 3.569692, 3.569891, 3.569946)   # the riff becomes 16, 32, 64, 128 half bars long ; the doublings pile up
 
 
+# v35 (chirper-zero; section round, w1 0:00-0:27, the map's first flag, 'static'; the change is 0:00-0:06.1, the
+# song's first seven half bars): WHAT IS NOT YET FILLED. The song is called Carrying Capacity and nothing in it
+# said the capacity. The rule x <- r x (1 - x) has a population it settles at, 1 - 1/r: what the dial can carry.
+# At the first bar the population is a fiftieth and the capacity a third, and for four half bars the count is
+# under one place, so nobody can play it: the machine's hat ticked the two beats alone for three and a half
+# seconds. Now the machine plays what is NOT there: in every half bar it ticks each place of the six that nobody
+# has taken (the band's places are the rule's; the two beats are its own hat's), and each tick is as loud as the
+# share of the capacity that is still unused, 1 - x / (1 - 1/r), in decibels (the law v33 gave the hall: twenty
+# times its logarithm). So the song begins on a full triplet roll, and the roll drains as the population comes
+# in under it: 91% unused, 88, 82, 73 while nobody plays; 58 under the first bass note and the first string; 38;
+# 16; and at 0:06.1, a half bar before the heavy guitar, the population is within 2% of what the dial carries
+# and the ticking has gone, by the rule and not by a fader. 28 ticks. The voice is one the machine has and the
+# record never used: its RIM (two short pings and a click), on the song's E like its kick, on the side opposite
+# its hat. No other note, fader or sound changes; the first string (Harry: "Keep the ring") is not touched.
+# the machine's voice ; its note ; the fader ; pan ; velocity on the pick-ups (places 2 and 5), on the middle
+# places (1 and 4) ; the least a tick may be, dB, before it is left out ; the loudness target ('' = unchanged).
+# On only while CASCADE is. "" = v34 byte for byte.
+SPARE = os.environ.get("C10T6_SPARE", "rim;E5;-10dB;0.3;0.85,0.68;-20;" if CASCADE else "")
+
+
+def what_is_not_yet_filled(doc):
+    """v35: through the growth the machine ticks the places nobody has taken, as loud as the capacity still unused."""
+    part, pitch, fader, pan, vels, least, target = SPARE.split(";")
+    pick, mid = (float(v) for v in vels.split(","))
+    assert "cc-tick" not in doc["patches"] and "tick" not in doc.get("buses", {}) and not any(t["name"] == "tick" for t in doc["tracks"])
+    notes = []
+    for c in range(AT["growth"], AT["one"]):
+        sec, r, x0, x = CELLS[c]
+        unused = 1 - x / (1 - 1 / r)                          # the share of what the dial can carry that is not yet there
+        if unused <= 0:
+            continue
+        db = 20 * math.log10(unused)
+        if db < float(least):
+            continue
+        taken = set(cell(x)[0]) | {0, 3}                      # the band's places, and the two beats where the machine's hat is
+        notes += [{"at": round(c * 2 + s / 3, 5), "len": 0.25, "pitch": pitch, "vel": pick if s in (2, 5) else mid, "gain": f"{db:.1f}dB"}
+                  for s in range(6) if s not in taken]
+    assert notes and max(n["at"] for n in notes) < 2 * 8      # all of it before the heavy guitar comes in
+    hat = next(t for t in doc["tracks"] if t["name"] == "hat")
+    doc["patches"]["cc-tick"] = {"about": "Carrying Capacity's vacancy tick (chirper-zero, 20 Nov): the drum machine's rim, one voice, on the song's E.",
+                                 "play": {"vel_sens": 0.5},
+                                 "synth": {"amp": {"a": "0.1ms", "d": "6s", "s": 1, "r": "2.5s"}, "layers": [{"type": "machine", "machine": {"part": part}}]}}
+    doc["tracks"].append({"name": "tick", "patch": "cc-tick", "gain": fader, "pan": float(pan), "out": hat["out"], "notes": notes})
+    if target:
+        doc["loudness"] = float(target)
+
+
 def the_dial_does_not_jump(doc):
     """v34: the chip's second voice plays the period-doubling cascade between eight and the first wall."""
     beats, counts, lift, target = CASCADE.split(";")
@@ -1750,4 +1797,6 @@ if __name__ == "__main__":
             the_room_that_is_left(doc)
         if CASCADE:
             the_dial_does_not_jump(doc)
+        if SPARE:
+            what_is_not_yet_filled(doc)
         open(OUT, "w").write(dump(doc))
