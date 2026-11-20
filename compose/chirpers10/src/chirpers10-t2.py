@@ -803,6 +803,24 @@ SHOOK = os.environ.get("C10T2_SHOOK", "0;0,0,0,0,-1.5,-3.5,-2.5,0;1;;0;" if FLOO
 # "" = v38 byte for byte.
 PICK = os.environ.get("C10T2_PICK", "synth.filters.0.cutoff.mod.0.amount=-2 synth.layers.0.soft=expr.pm*0.5;"
                       "peak cutoff=185 q=1.2 gain=2.5dB|peak cutoff=800 q=1.2 gain=-2dB|peak cutoff=2800 q=1 gain=-1.5dB;4.5dB;-1.0dB;-9.95" if SHOOK else "")
+# v40 (chirper-zero; instrument round: the bass, 1064 notes): THE BASS LEANS ON ITS OCTAVE. Alone, against eleven
+# records' basses by thirds of an octave (tools/bassspec.py), in each of the song's four keys: F 5.84 dB out on
+# average, C 5.13, A flat 5.09, B 5.40. The same shape in every key: a box (315-630 Hz +4 to +9 over theirs), no
+# weight at the octave (80-100 Hz 6 to 8 short on F), no grind (1-1.25 kHz 7 to 10 short). The cure In the Time
+# Of, Take Up the Slack and The Other Hand have: the patch's 110 Hz band +6 -> +12 dB, 220 Hz +8 -> +6, its box
+# band moved to 540 Hz and cut 6 dB, its grind band to 1150 Hz +9 dB. F 4.25, C 3.93, A flat 3.89, B 3.99.
+# THE SINE STAYS, 3 dB LOWER. This song's root is F at 43.65 Hz and its MIX is already at the records under 60 Hz
+# (+0.13 over the band stretches): the bass's fundamental is this mix's floor (the kick's weight is at 58 Hz and
+# up), so the sub is not handed to the kick as on Take Up the Slack. At -14 dB the mix read 0.26 short under
+# 60 Hz, at -9 (as it was) the bass alone read 4.54; -12 kept (the mix -0.13).
+# NOT TOUCHED: the `low` bus, whose eq follows the key (v23: Harry, the hold on C, "With its tone back: do it")
+# and whose ride gives the hold its 1.5 dB ("Enough") and holds the bass 15 to 24 dB down in the drift ("Too
+# much: it buries the boxes"): the bass alone is as loud as before in every key (within 0.2 LU), in the hold on
+# C (-24.0 -> -23.8 LUFS) and in the drift (-38.8 both).
+# overrides on the bass's patch ; the loudness target ('' = unchanged). "" = v39 byte for byte.
+LEAN = os.environ.get("C10T2_LEAN", "fx.2.bands.0.gain=12dB fx.2.bands.1.gain=6dB fx.2.bands.2.cutoff=540 fx.2.bands.2.q=0.7 "
+                      "fx.2.bands.2.gain=-6dB fx.2.bands.3.cutoff=1150 fx.2.bands.3.q=1.2 fx.2.bands.3.gain=9dB "
+                      "synth.layers.1.level=-12dB;-9.93" if PICK else "")
 
 
 def stood():
@@ -1481,8 +1499,19 @@ def dump(doc):
     return "\n".join(lines) + "\n"
 
 
+def the_bass_leans(doc):
+    """v40: the bass's weight moves from its box to its octave and its grind; the sine 3 dB lower. The bus is untouched."""
+    over, target = LEAN.split(";")
+    t = next(t for t in doc["tracks"] if t["name"] == "bass")
+    t["patch"] += " " + over
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if PICK:
         the_pick_stays_hard(doc)
+    if LEAN:
+        the_bass_leans(doc)
     open(OUT, "w").write(dump(doc))
