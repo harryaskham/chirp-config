@@ -549,6 +549,42 @@ TWELFTH = os.environ.get("C10T16_TWELFTH", "3;sine;-10.5dB;;-10.235" if GIVES el
 # the section ; every how many of its pulses the band leaves one ; the first pulse left, counted from the first the
 # band plays there (from 0) ; how many times ; who leaves ; the loudness target ("" = unchanged). "" = v19 byte for byte.
 LEAVES = os.environ.get("C10T16_LEAVES", "five;4;4;5;left,right,left-said,right-said,bass,foot,skins-eb2,hat;-10.295" if TWELFTH else "")
+# v21 (chirper-two; palette round: the bass drum, the album kit's as it comes, becomes a drum of the song's own; no
+# stroke moves): THE FOOT IS ON THE NOTE. The song is one note, and everything in it is on the ground or a hair off
+# it on purpose: the reeds, the guitars, the bass, the toms (v13: "on the ground's own notes"), the great drum, the
+# handpan. One thing was not. The bass drum was the album kit's on A (55 Hz) whatever the ground: the major third
+# over F, a semitone over A flat, a tone under B, the tritone of E flat; and the kit's drum wanders at random, so it
+# was never the same A twice (read: 14 cents under to 17 over, stroke to stroke). It plays the pair's slowest
+# pulse, 191 strokes, with the bass striking under 171 of them.
+#   THE DRUM TAKES THE BASS'S NOTE, stroke by stroke (alone, the ground's): F1 43.7 Hz, A flat 1 51.9, E flat 1
+#       38.9; it does not wander. So it is retuned when the peg turns: up a minor third into 'five', down into
+#       'three'. ON B IT STANDS A FOURTH LOWER (G flat 1, 46.2 Hz): on B1 itself (61.7 Hz, built) the mix lost 2.4
+#       dB under 60 Hz and drum and bass, on one frequency at one level, cancelled by turns (the stroke under 70
+#       Hz 2.5 dB down, its spread 1.1 -> 5.2 dB). v13's toms already stand a fourth lower there, for their reason.
+#   A CHEST: the kit's drum has nothing at its octave (its drive makes odd harmonics only). A bare sine an octave
+#       over the drum, 90 ms, on every stroke, on a track of its own past the drums' bus, -4 dB. (-7 read 0.2 to
+#       0.3 dB shorter at 60-120 Hz, the band this song is shortest in.)
+#   READ (cents.py, the drum's line 30-110 ms after the stroke): 1 to 9 cents over its note on F, A flat and G
+#       flat, 22 over on E flat (the end of the drum's own fall is still in it), 3 cents wide or less on the
+#       three notes it takes after the peg has turned.
+#   WITH THE BASS (sum.py, drum, chest and bass alone, the 250 ms after each stroke): under 70 Hz +1.4, +2.3, 0.0
+#       and +2.9 dB on F, A flat, B and E flat (drum and bass now add where they beat); 70-140 Hz +1.3 to +2.4.
+#   THE MIX AGAINST THE RECORDS (seven windows): 1.162 -> 1.127 (their mixes), 1.475 -> 1.314 (their voiceless
+#       passages); 60-120 Hz nearer in all seven (-0.5 -0.5 -0.7 -0.3 -0.6 -2.0 -3.0 -> -0.1 -0.2 -0.1 0.0 -0.2
+#       -1.5 -2.2); 250-500 Hz 0.1 to 0.6 nearer in six of the seven (the drum's fifth harmonic left it). Under
+#       60 Hz the five band sections went from -0.4 -0.1 +0.2 -0.5 -0.7 to +0.5 +0.8 +0.4 +0.7 +0.1: a little
+#       further, on the other side.
+#   NOT NEARER ALONE: by kickspec the drum is no nearer the records' bass drums (7.76 -> 8.12): theirs sit at 50 Hz.
+#   BUILT AND NOT KEPT: the bass ducked under the drum (4, 6, 9 dB; strokes evener, every window worse: six band
+#       windows 0.969 -> 1.094); the drum's drive 0.35 -> 0.2 (the mix the same to 0.02, the knock further from
+#       the records', -28 -> -34 against -25.9); the bass's sine handed to the drum (not built: the bass HOLDS
+#       here, and for three quarters of every beat the floor is the bass's alone).
+#   The target -10.295 -> -10.355: a lower drum weighs less on the meter, and the two stretches with no drum in
+#       them (0:00-0:07, 3:19 on) had come up 0.05 to 0.07 dB on three seeds.
+# overrides inside the kit's bass drum, after its note ; the highest note a foot may take, Hz (a ground over it: the
+# drum stands a fourth lower) ; the chest: semitones over the drum : its length, ms : its fader ('' = no chest) ;
+# the loudness target ('' = unchanged). "" = v20 byte for byte.
+FOOT = os.environ.get("C10T16_FOOT", "kit.k.patch.synth.pitch.mod.1.amount=0;55;12:90:-4dB;-10.355" if LEAVES else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -951,7 +987,45 @@ def build():
         the_reeds_have_their_twelfth(doc)
     if LEAVES:
         the_band_leaves_every_fourth(doc, marks)
+    if FOOT:
+        the_foot_is_on_the_note(doc)
     return doc, marks, end
+
+
+def the_foot_is_on_the_note(doc):
+    """v21: the bass drum takes the note the band stands on. Each stroke is tuned to the bass's note under it (alone, to
+    the ground's: the bass bus's own key lane); where that note is over the highest a foot may take, a fourth lower, as
+    v13's toms stand on B. A chest (a bare sine, a tenth of a second) says the drum's octave on every stroke, on a
+    track of its own past the drums' bus. No stroke is added, moved or taken out."""
+    over, top, chest, target = FOOT.split(";")
+    T = {t["name"]: t for t in doc["tracks"]}
+    foot, bass = T["foot"], T["bass"]
+    assert foot["patch"] == "ct-kit" and all(n["pitch"] == "k" and "patch" not in n for n in foot["notes"])
+    lane = [(float(b[:-1]), v) for b, v in doc["buses"]["low"]["auto"]["key"]["points"]]
+    midi = {nm(m): m for m in range(12, 60)}
+    F1 = midi["F1"]                       # the key lane counts semitones from F
+
+    def note(at):
+        m = F1 + [v for b, v in lane if b <= at + 1e-6][-1]
+        for b in bass["notes"]:
+            if b["at"] - 1e-3 <= at < b["at"] + b["len"]:
+                m = midi[b["pitch"]]
+        return m - 5 if hz(m) > float(top) else m
+
+    drum = lambda m: f"ct-kit kit.k.pitch={nm(m)}" + (" " + over if over else "")
+    foot["patch"] = drum(F1)
+    for n in foot["notes"]:
+        if note(n["at"]) != F1:
+            n["patch"] = drum(note(n["at"]))
+    if chest:
+        semi, ms, fader = chest.split(":")
+        doc["patches"]["ce-chest"] = {"extends": "808", "synth": {"layers": ["sine"], "pitch": {"value": 0, "mod": []}, "drive": 0, "filters": [],
+                                                                 "amp": {"a": "2ms", "d": f"{ms}ms", "s": 0, "r": "20ms", "curve": 3}},
+                                      "play": {"mono": False, "glide": "0ms", "gate": 1}}
+        doc["tracks"].append({"name": "chest", "patch": "ce-chest", "gain": fader, "pan": 0,
+                              "notes": [{"at": n["at"], "len": 0.25, "pitch": nm(note(n["at"]) + int(semi)), "vel": n["vel"]} for n in foot["notes"]]})
+    if target:
+        doc["loudness"] = float(target)
 
 
 def the_band_leaves_every_fourth(doc, marks):
