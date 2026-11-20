@@ -493,6 +493,37 @@ HAND = os.environ.get("C10T16_HAND", "-2;0.4,0.5,0.6;0.5;peak cutoff=700 q=0.9 g
 # pulses to the beat ; dB on the lead's notes in those two bars ("" = as at its other turns, "none" = no lead there) ;
 # the loudness target ("" = unchanged). "" = v17 byte for byte.
 GIVES = os.environ.get("C10T16_GIVES", "square;3;1/2;;" if HAND else "")
+# v19 (chirper-alpha; palette round: the two reeds, the whole song; no note changes): THE REEDS HAVE THEIR TWELFTH.
+# The song's rule is that the pair's overtones pulse two, three and four times to its one, and the band plays
+# them: guitars the twos, toms the threes, hat the fours. But the pair itself could not say three. The library
+# harmonium's reed is a pulse 0.35 of a cycle wide, and a pulse a THIRD of a cycle wide has no third harmonic at
+# all: at 0.35 it is 24.7 dB under the first by arithmetic, and on the pair alone it read 20.9 to 21.1 under (the
+# second 7.0 to 8.1 under, the fourth 6.2 to 7.3, the fifth 7.7 to 8.4). It swelled as the rule says, nine times
+# to the bar in 'three' and twelve in 'square', where nobody could hear it: 10.9 to 11.9 dB under everything else
+# in its third-octave with the band in, and 2.8 under even in the bar of 'three' where the band rests and the low
+# toms count its nine beside it (v16). So each reed gets what a reed organ gets when a stop is drawn: one more
+# rank, at three times its own note (the twelfth; an organ's 2 2/3 foot), a sine, 10.5 dB down in the patch beside
+# the reed's own two pulses at 4 and 7 down. Both reeds have it, each on its own note, so the rank beats as the
+# pair does, three times as fast; the turned reed (the sharp one while the peg moves) has it too and it follows
+# the slide. The third reed (v5), which is in tune with the still one, does not: there it would drown the wobble.
+# (Benched, raw, the pair alone and in the mix. The third overtone now stands 7.8 to 8.1 dB under the first, with
+# the second and the fourth; it swells 17.4 to 18.7 dB deep, 9.0 and 12.0 to the bar; with the band in it reads
+# +1.1 to +2.1 against everything else, and +9.4 in the bar where the toms count it. The other overtones read as
+# they did to 0.1 dB; the pair alone is 0.2 to 0.3 dB louder. THE HANDPAN strikes this overtone as a note, C5,
+# when it swells (v2): at its 24 strokes in the opening the pair now stands 1.5 dB under it there (it was 14.4
+# under), and the two together read 1.0 dB under the two apart (median; -6.6 to +2.6), as on the other three
+# overtones (-0.4, +1.4, -0.5; the worst stroke 5.0 to 5.9 under): no stroke-by-stroke lock, nothing to mend. THE
+# GUITARS' FIFTH has its eighth harmonic on the same hertz (pure since v11): read summed, the mix gains 3.2 to 3.8
+# dB in that third-octave with the band in, which is what a part 1 to 2 dB over the rest adds: no cancelling.
+# THE FIRST TAKE was the rank at -9 dB: +2.5 to +3.5 with the band in, but against the eleven records 500 Hz to
+# 1 kHz, where this song is already over, rose 0.5 to 1.2 dB; at -10.5 it rises 0.4 to 0.9. The target moves
+# -10.27 to -10.235: the reeds are louder, and the band's bars were coming out 0.05 to 0.10 dB lower.
+# NOT DONE: re-cutting the reed itself. A pulse 0.15 wide would have the second, third and fourth 1.0, 2.8 and
+# 5.6 dB under the first before the filters: every number present, and a much brighter instrument through the
+# whole song. One rank changes one partial.)
+# the rank's ratio to the reed's note ; its wave ; its level in the reed (beside the reed's own -4 and -7 dB) ;
+# dB on the two reeds' faders ("" = as they were) ; the loudness target ("" = unchanged). "" = v18 byte for byte.
+TWELFTH = os.environ.get("C10T16_TWELFTH", "3;sine;-10.5dB;;-10.235" if GIVES else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -891,7 +922,28 @@ def build():
         doc["loudness"] = float(HAND.split(";")[4])
     if GIVES:
         the_string_gives(doc)
+    if TWELFTH:
+        the_reeds_have_their_twelfth(doc)
     return doc, marks, end
+
+
+def the_reeds_have_their_twelfth(doc):
+    """v19: each of the two reeds (and the turned reed, which is the sharp one while the peg moves) gets one more rank
+    at three times its own note, so the pair's third overtone, the toms' number, sounds and swells as its others do."""
+    ratio, wave, level, fader, target = TWELFTH.split(";")
+    rank = f" synth.layers.4.wave={wave} synth.layers.4.ratio={ratio} synth.layers.4.level={level}"
+    for t in doc["tracks"]:
+        if t["name"] in ("reed", "hair"):
+            assert t["patch"] == PAIR, t["patch"]
+            t["patch"] += rank
+            if fader:
+                t["gain"] = f"{float(t['gain'][:-2]) + float(fader):g}dB"
+    turned_reed = doc.get("patches", {}).get(GLIDER)
+    if turned_reed:
+        assert turned_reed["extends"] == PAIR
+        turned_reed["extends"] += rank
+    if target:
+        doc["loudness"] = float(target)
 
 
 def the_string_gives(doc):
