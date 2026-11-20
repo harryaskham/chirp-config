@@ -584,7 +584,7 @@ STRUCK = os.environ.get('C10T3_STRUCK', '1.2;3;4s;2s;-9.982' if TREBLE and CHORD
 # was 'highshelf cutoff=7000 gain=-3dB') ; its fader (3.5dB) ; the loudness target ('' = unchanged). '' = v32.
 # It is on only while no other C10T3_ switch is set, so every older switch gives exactly what it gave.
 SNARE = os.environ.get('C10T3_SNARE', '3.5;1.1;peak cutoff=2500 q=0.7 gain=-4dB,peak cutoff=650 q=1 gain=-3dB;1.5dB;-10.067' if STRUCK and not any(
-    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER') for k in os.environ) else '')
+    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR') for k in os.environ) else '')
 # v34 (chirper-alpha; whole song: its frame; the change is the band's entrance, 0:08-0:12): THE BAND IS RUNG UP.
 # The song is a ringing performance from end to end, and since v28 the band is LOWERED at the end. But ringers do not
 # start by ringing: a ring is RAISED first, the bells chiming fast and close while they hang low, each stroke taking
@@ -1255,6 +1255,60 @@ def key_f(hz):
     return {"value": hz, "mod": [{"src": "auto.key", "amount": round(1 / 12, 5)}]}
 
 
+# v37 (chirper-one; section round, w6, 2:40-3:12, which the map still calls static after three rounds of fine work
+# on the inner guitars; the change is 2:57.0-3:07.0, the bass only): THE BASS RINGS THE TENOR. The row is five bells
+# that change places and a sixth that never does: "the tenor behind", the low F that covers every row, the thing
+# the changes are heard against. In a tower the tenor is the BASS bell. Here the bass has always played all six: it
+# doubles the riff note for note, so the song's ground is as busy as its changes. For ONE lead, the first rung with
+# the new bell in the hunt (the second extent's rows 20-27, after the first bob), the bass is the tenor and nothing
+# else: it rests while the five bells change places above it and strikes the tenor's three low F's at the end of
+# every row, a little harder. So each row is said twice over: the changes light (the guitars, the kick under the
+# treble, the tom on the bell in the hunt), the cover heavy (everyone). The lead's two home rows are in unison
+# again, as written, and then the tower comes over the band (3:10.5). And the inner guitars, which play the
+# crossings there (v20) and had only the last of the tenor's three strokes, strike all three with the outer pair:
+# the cover is everyone. 40 notes of the bass and 40 of its fuzz are taken out; 16 are added on each inner guitar,
+# every one at a time the outer guitars already strike; nothing is moved.
+# the rows of the second extent ; the tracks ; `rest`: they rest on the five changing bells (`hold`: they hold the
+# tenor's F under them from the row's first stroke) ; the velocities of the tenor's three strokes ; the loudness
+# target ('' = unchanged) ; who joins the cover, `track<the track whose three tenor strokes it takes` (the inner
+# guitars have only the last of the three in these rows; '' = nobody). '' = v36 byte for byte. Like RAISE, SLOWKIT
+# and OVER, setting it does not switch SNARE off.
+TENOR = os.environ.get('C10T3_TENOR', '20:28;bass,fuzz;rest;1.0,0.95,0.95;;gl2<gl,gr2<gr' if OVER else '')
+
+
+def the_bass_rings_the_tenor(doc):
+    """v37: over those rows the bass plays only the tenor's three strokes at the end of each row."""
+    rows, names, how, vels, target, join = TENOR.split(';')
+    r0, r1 = (int(x) for x in rows.split(':'))
+    vels = [float(x) for x in vels.split(',')]
+    for name in names.split(','):
+        t = next(t for t in doc['tracks'] if t['name'] == name)
+        for k in range(r0, r1):
+            a, b = PART2 * 4 + 2.5 * k, PART2 * 4 + 2.5 * (k + 1)
+            row = [n for n in t['notes'] if a - 1e-6 <= n['at'] < b - 1e-6]
+            tenor = row[-3:]
+            assert len(row) == 8 and all(n['pitch'] == nm(F1) for n in tenor) and not any(n['pitch'] == nm(F1) for n in row[:-3]), (name, k, row)
+            for n in row[:-3]:
+                t['notes'].remove(n)
+            for n, v in zip(tenor, vels):
+                n['vel'] = v
+            if how == 'hold':
+                t['notes'].append({'at': a, 'len': round(tenor[0]['at'] - a - 0.01, 4), 'pitch': nm(F1), 'vel': 0.85})
+        t['notes'].sort(key=lambda n: n['at'])
+    for pair in [x for x in join.split(',') if x]:
+        to, src = (next(t for t in doc['tracks'] if t['name'] == x) for x in pair.split('<'))
+        for k in range(r0, r1):
+            a, b = PART2 * 4 + 2.5 * k, PART2 * 4 + 2.5 * (k + 1)
+            tenor = [n for n in src['notes'] if a - 1e-6 <= n['at'] < b - 1e-6][-3:]
+            assert all(n['pitch'] == nm(F1) for n in tenor), (pair, k, tenor)
+            have = [n for n in to['notes'] if a - 1e-6 <= n['at'] < b - 1e-6]
+            assert all(n['at'] + n['len'] <= tenor[0]['at'] + 1e-6 or n['at'] >= tenor[0]['at'] for n in have), (pair, k)    # nothing of its own rings into the cover
+            to['notes'] += [dict(n) for n in tenor if not any(abs(m['at'] - n['at']) < 1e-6 for m in have)]
+        to['notes'].sort(key=lambda n: n['at'])
+    if target:
+        doc['loudness'] = float(target)
+
+
 def song():
     compose()
     # the ground, in semitones over F, from the bar each stretch begins
@@ -1415,4 +1469,7 @@ def dump(doc):
 
 
 if __name__ == "__main__":
-    open(OUT, "w").write(dump(song()))
+    doc = song()
+    if TENOR:
+        the_bass_rings_the_tenor(doc)
+    open(OUT, "w").write(dump(doc))
