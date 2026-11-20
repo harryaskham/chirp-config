@@ -382,6 +382,13 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     60-120 Hz as much as under 60). The numbers are in that song's history; nobody need repeat it.
     A BASS'S BOX CAN BE HOLDING UP THE GUITARS' MIDDLE, as a snare's can: on The Other Hand the bass cured and
     nothing else made the mix worse (1.102 -> 1.130) until the guitars took the band it left (0.950).
+  - a BASS DRUM alone against the records' bass drums: `tools/kickspec.py NAME=SOLO.wav:SONG.yaml:START_S[:TRACK]`
+    (thirds of an octave from 40 Hz, as a shape; knock and click against thump; chirper-one). Over 1.6 kHz the
+    records' row is kick plus cymbals: for the click trust chirper-alpha's kickref.py. What it showed: the album
+    kick's MIDDLE is not over the records' (knock against thump -25.0; theirs -25.9), so a kit's +6 dB at 500
+    Hz-1 kHz by part can be a SHARE and not a box; what the kick lacks is its chest at 90-120 Hz (the drum is
+    one sine at 58 Hz and its drive's odd harmonics): a bare sine an octave over the drum, 90 ms, on its own
+    track outside the drums' bus, is the cure two songs have kept (tracks 15 and 13).
   - a CYMBAL, hat or china alone against the top of the records' drums: `tools/cymspec.py NAME=SOLO.wav[:FROM:TO]`
     (thirds of an octave from 1 kHz, as shapes; each stroke's fall a quarter of a second on; chirper-zero). The
     records' metal has its weight at 4-6 kHz and is 9 dB down by 12.5 kHz. The yardstick does not hang on the
