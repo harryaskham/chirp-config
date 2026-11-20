@@ -1448,6 +1448,57 @@ def the_chug_bites(doc):
         doc["loudness"] = float(target)
 
 
+# v21 (chirper-zero; instrument round: the wall pair, 96 chords on wl, wr and their lifted halves): THE WALL COMES
+# OUT OF ITS BOX. The pair that holds the chord under the riff and the tune (minor, sixth, common, home, the last
+# chord) was the one guitar here still on the library's impulse response. Read alone beside a record's guitars
+# (tools/cabspec.py; 'home', F2 C3 F3) it stood 5.10 from them: a box, +8.9, +9.2, +11.3, +8.8 dB at 400, 500, 630
+# and 800 Hz, and no top at all (-12.7, -18.2, -13.8 dB at 8, 10 and 12.5 kHz). chirper-three's shares (v20) say
+# whose the mix's middle is: the pair holds 25 to 31% of the mix's 500 Hz-1 kHz in 'common' and 'home' and 18 to
+# 24% of its 250-500 Hz, where the mix stands +2.1 and +3.0 dB over the records.
+# Harry, 17 Nov, of the wall pairs: onto the engine's cabinet. Done on tracks 9, 11, 1, 7, 15 and 8; now here.
+#   the engine's 4x12 (mic 0.4, 15 cm, cones 144 / 145), the library IR off, the patch's own eq flat   3.51
+#   mic 0.5 / 0.3 / 30 cm                                                                           3.56 / 3.57 / 3.55
+#   and a chest, 190 Hz +5 dB                                                                           2.98
+#   and the rig's own middle out, 600 Hz q 0.9 -6 dB, the chest a little wider (200 Hz q 0.8 +6 dB)     2.40
+#   (the amp's mid control: nothing; a 2.6 kHz cut: 2.46; a notch at 400 Hz: 2.57)
+# THE FADER: at -0.3 dB the pair alone is as loud as it was (-24.1 LUFS); the mix read best a decibel under that
+# (the pair has a top now, and the mix's 2-4 kHz is already over): -1.3 dB.
+# THE MIX (stembal --voice, the four sections the pair plays in, weighted by its chords): the rows WITHOUT a voice
+# 1.329 -> about 1.17 (250-500 Hz +1.80 -> +1.17, 500 Hz-1 kHz +2.19 -> +1.3); the rows WITH a voice 1.271 ->
+# about 1.29, level: against sung records 500 Hz-1 kHz was already 1.4 dB short and is now 2.3. Nobody sings in
+# these sections (the tune is a guitar), so the first is the yardstick; the second is said because chirper-three
+# asked that the tune be read against it. If an ear wants that middle back it belongs to the TUNE (its eq cuts
+# 700 Hz by 5 dB), not to the wall's box.
+# THE TARGET -10.66 -> -10.72: with the pair a decibel down the master came up 0.07 dB where no wall plays; at
+# -10.72 'fourth' (the quiet middle) nulls against v20 at -0.004 dB.
+# C10T14_WALLCAB = the microphone ; the two cones ; its distance in metres ; the track's eq after the cabinet,
+# band|band ; the fader ; the loudness target. '' = v20 byte for byte. On only while BITE is.
+WALLCAB = os.environ.get("C10T14_WALLCAB", "0.4;144,145;0.15;peak cutoff=200 q=0.8 gain=6dB|peak cutoff=600 q=0.9 gain=-6dB;-1.3dB;-10.72" if BITE else "")
+
+
+def the_wall_comes_out_of_its_box(doc):
+    """v21: the wall pair on the engine's cabinet (the library IR off, the patch's eq flat), a chest and the rig's
+    middle out on the track; the fader a decibel under equal loudness alone."""
+    mic, cones, distance, eq, fader, target = WALLCAB.split(";")
+    cone = dict(zip("lr", (int(c) for c in cones.split(","))))
+    flat = " fx.3.mix=0 fx.4.bands.0.gain=0dB fx.4.bands.1.gain=0dB fx.4.bands.2.gain=0dB fx.4.bands.3.gain=0dB"
+    seen = 0
+    for t in doc["tracks"]:
+        if t["name"] not in ("wl", "wr", "wl-up", "wr-up"):
+            continue
+        seen += 1
+        head, _, rest = t["patch"].partition(" ")
+        t["patch"] = head + flat + (" " + rest if rest else "")
+        t["fx"] = [{"type": "cab", "model": "4x12-modern", "mic": float(mic), "distance": float(distance), "cone": cone[t["name"][1]]}]
+        if eq:
+            t["fx"].append({"type": "eq", "bands": eq.split("|")})
+        if fader:
+            t["gain"] = fader
+    assert seen == 4, seen
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T14_SHOW"):
         beat = 60 / BPM
@@ -1475,4 +1526,6 @@ if __name__ == "__main__":
             sixteen_is_said(doc)
         if BITE:
             the_chug_bites(doc)
+        if WALLCAB:
+            the_wall_comes_out_of_its_box(doc)
         open(OUT, "w").write(dump(doc))
