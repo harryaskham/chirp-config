@@ -504,6 +504,22 @@ RETURN = os.environ.get("C10T7_RETURN", "7;2,2;3,25,0;-9.42") if LARGER and STEE
 # number: both) ; velocity ; pan ; eq, band|band ('' = none) ; how much of the way to the next note each is held ;
 # the loudness target ('' = unchanged). On only when RETURN is. "" = v30 byte for byte.
 LEAD = os.environ.get("C10T7_LEAD", "5;0;55,144;lead-tape;-2dB;36,24;0.85;-0.12;;0.96;-9.4") if RETURN else ""
+
+# v32 (chirper-zero; instrument round): THE BACKBEAT IS A FLAT. The album's snare sounds 1.8 semitones over its
+# written note, so the G3 of v26 rang at 217.7 Hz: A natural, 18 cents flat, a different pitch on every stroke (the
+# kit's random pitch: 40 cents from the lowest stroke to the highest). It is heard: in the FINISHED file the mix
+# rises 12.5 dB round that line at a backbeat. This song's ground climbs by semitones (the bass under the 78
+# backbeats: F 30, G flat 23, A flat 14, A 7, others 4), so no note is right over all of it; I counted, at each
+# backbeat, the notes the band is sounding. With the snare on A natural something a semitone away is sounding at
+# 38 % of backbeats and a tritone at 33 %; on A FLAT 14 % and none (and a unison or octave at 37 %). No other
+# note in the snare's reach comes close (B flat 35 % / 6 %, F 41 % / 24 %, C 33 % / 36 %).
+# So: the written note is the sounding note (the engine's drum fields of 20 Nov, tune_sounding + tune_exact) and
+# it is A flat 3, 207.65 Hz (read dry +3 cents; the strokes' spread 12.6 -> 1.6 cents). The random pitch is off;
+# the stroke's 16 ms chirp stays. The eq, the fader and the room are as v26 and v27 left them: alone the drum is as
+# loud (-22.4 LUFS both) and reads as near the records' snares (2.78 -> 2.90), and the mix is level.
+# the snare's pitch ; what is added inside its patch (kit.s.patch.) ; its fader ('' = unchanged) ; the loudness
+# target ('' = unchanged). On only when LEAD is. "" = v31 byte for byte.
+KEYED = os.environ.get("C10T7_KEYED", "Ab3;synth.layers.0.tune_sounding=true synth.layers.0.tune_exact=true synth.pitch.mod.1.amount=0;;") if LEAD else ""
 # Euclid's definition in nineteen syllables, cut by the rule: phrases of 1, 2, 3, 5 and 8 syllables
 WORDS = [("B R EY1 K",), ("W AH1 N", "L AY1 N"), ("S OW1", "DH AH0", "HH OW1 L"), ("IH1 Z", "T UW1", "DH AH0", "L AO1 NG", "G ER0"),
          ("AE1 Z", "DH AH0", "L AO1 NG", "G ER0", "T UW1", "W AH1 T", "R IH0", "M EY1 N Z")]
@@ -1655,6 +1671,19 @@ def the_short_cells_sing(doc):
         doc["loudness"] = float(loud)
 
 
+def the_backbeat_is_a_flat(doc):
+    """v32: the snare's written note becomes its sounding note, the one note that sits with the climbing ground."""
+    pitch, inside, fader, target = KEYED.split(";")
+    t = next(t for t in doc["tracks"] if t["name"] == "snare")
+    old = [w for w in t["patch"].split() if w.startswith("kit.s.pitch=")]
+    assert len(old) == 1, t["patch"]
+    t["patch"] = t["patch"].replace(old[0], "kit.s.pitch=" + pitch) + "".join(f" kit.s.patch.{o}" for o in inside.split())
+    if fader:
+        t["gain"] = fader
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T7_SHOW"):
         sec = 15 / BPM
@@ -1674,4 +1703,6 @@ if __name__ == "__main__":
             the_steel_comes_back(doc)
         if LEAD:
             the_short_cells_sing(doc)
+        if KEYED:
+            the_backbeat_is_a_flat(doc)
         open(OUT, "w").write(dump(doc))
