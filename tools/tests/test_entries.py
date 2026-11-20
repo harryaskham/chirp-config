@@ -119,10 +119,33 @@ class Song(unittest.TestCase):
             with self.assertRaises(SystemExit) as e:
                 self.run_tool(*argv)
             self.assertIn(said, str(e.exception))
-        self.write(dict(SONG, tempo=[[0, 120], [8, 90]]))
-        with self.assertRaises(SystemExit) as e:
-            self.run_tool()
-        self.assertIn("one tempo", str(e.exception))
+        for cannot in ([[0, 120], [8, 90]], [{"at": 0, "bpm": 120}, {"at": "8b", "bpm": 90, "meter": "3/4"}]):
+            self.write(dict(SONG, tempo=cannot))
+            with self.assertRaises(SystemExit) as e:
+                self.run_tool()
+            self.assertIn("one tempo, or a map in beats", str(e.exception))
+
+    def test_a_tempo_map_is_followed(self):
+        """bd-10e881: 120 for 32 beats (16 s), then 60: a beat lasts a second from bar 9 on."""
+        gear = [{"at": 0, "bpm": 120, "meter": None, "ramp": False}, {"at": "32b", "bpm": 60, "meter": None, "ramp": False}]
+        self.assertEqual(E.where(32.0, gear), ("9.1", "0:16"))
+        self.assertEqual(E.where(36.0, gear), ("10.1", "0:20"))                   # one tempo would say 0:18
+        self.assertEqual(E.where(36.0, 120), ("10.1", "0:18"))
+        one = self.run_tool()[1]
+        self.write(dict(SONG, tempo=gear))
+        mapped = self.run_tool()[1]
+        bars = lambda text: [ln.split()[0] for ln in text.splitlines()[1:]]  # noqa: E731
+        self.assertEqual(bars(mapped), bars(one))                                 # the same bars
+        self.assertNotEqual(mapped, one)                                          # ... at other times
+        # a silence in SECONDS is measured on the map: 3 s is 6 beats before the change and 3 beats after it
+        song = {"tempo": gear, "tracks": [{"name": "a", "notes": [{"at": b, "len": 1.0, "pitch": "C3"} for b in (0.0, 6.0, 40.0, 45.0)]}]}
+        self.write(song)
+        d = json.loads(self.run_tool("--quiet", "3s", "--json")[1])
+        self.assertEqual([e["beat"] for e in d["events"] if e["enters"]], [0.0, 40.0, 45.0])     # 5 beats at 120 is 2.5 s: no entry at 6
+        self.assertEqual([e["at"] for e in d["events"] if e["enters"]], ["0:00", "0:24", "0:29"])
+        self.assertIsNone(d["quiet_beats"])
+        d = json.loads(self.run_tool("--quiet", "5b", "--from", "20s", "--json")[1])                # 20 s is beat 36 on the map
+        self.assertEqual([e["beat"] for e in d["events"] if e["enters"]], [40.0])
         self.write({"broken": True})
         with self.assertRaises(SystemExit) as e:
             self.run_tool()

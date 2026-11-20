@@ -17,7 +17,8 @@ playing when the stretch starts is listed first, so the entries are read against
 What it cannot say: whether an entry is HEARD (tools/presence.py over the bars it enters in; tools/sectionmap.py
 prints that command for a static window), or what a "landing" is: a wheel's meetings are in the song's generator,
 not in its plan. Entries within the same beat are one line.
-Only songs in one tempo. Read-only. Tests: tools/tests/test_entries.py.
+One tempo, or a tempo map placed in beats (the clock column and a --quiet in seconds follow it; bars are fours).
+Read-only. Tests: tools/tests/test_entries.py.
 """
 import json
 import math
@@ -70,15 +71,19 @@ def parts(canon):
     return out
 
 
-def events(canon, quiet, lo=None, hi=None):
+def events(canon, quiet, lo=None, hi=None, short=None):
     """(already, [(beat, entering labels, leaving labels)]) in order. A part ENTERS on a note that follows `quiet`
     beats of its own silence (or is its first) and LEAVES at the end of its last note before one (or its last).
-    lo / hi (beats) keep the events inside them; `already` is what entered before lo and has not left by it."""
+    lo / hi (beats) keep the events inside them; `already` is what entered before lo and has not left by it.
+    `short(end, start)`, when given, says whether the silence from beat END to beat START is too short to count, in
+    place of `quiet` beats (a length in seconds on a tempo map)."""
     marks, already = {}, []
+    if short is None:
+        short = lambda end, start: start - end < quiet  # noqa: E731
     for label, spans in parts(canon):
         runs = []                                   # the part's passages: spans joined across gaps shorter than quiet
         for a, b in spans:
-            if runs and a - runs[-1][1] < quiet:
+            if runs and short(runs[-1][1], a):
                 runs[-1][1] = b
             else:
                 runs.append([a, b])
@@ -93,8 +98,8 @@ def events(canon, quiet, lo=None, hi=None):
 
 
 def where(beat, tempo):
-    """("84.1": bar and beat from 1 in 4/4, "2:40")."""
-    s = beat * 60.0 / tempo
+    """("84.1": bar and beat from 1 in 4/4, "2:40"). `tempo`: a number, a tempo map or a tempoclock."""
+    s = wincut.clock_of(tempo).secs(beat)
     return f"{int(beat // 4) + 1}.{int(beat % 4) + 1}", f"{int(s) // 60}:{int(s) % 60:02d}"
 
 
@@ -121,19 +126,24 @@ def main(argv=None):
         canon = json.loads(r.stdout)["data"]["canonical"]
     except (ValueError, KeyError, TypeError):
         raise SystemExit(f"entries: {os.path.basename(song)} does not plan") from None
-    tempo = canon.get("tempo", 120.0)
-    if not isinstance(tempo, (int, float)) or isinstance(tempo, bool) or tempo <= 0:
-        raise SystemExit("entries: the song's tempo changes: only songs in one tempo are read")
-    quiet = quiet_beats(opt["--quiet"], tempo)
+    tempo = wincut.clock_of(canon.get("tempo", 120.0))     # one tempo, or a tempo map placed in beats (bd-10e881)
+    if tempo is None:
+        raise SystemExit("entries: this song's tempo map cannot be placed here (a change of meter, or points not in "
+                         "beats): only one tempo, or a map in beats, is read")
+    quiet = quiet_beats(opt["--quiet"], tempo.bpm)
     if quiet is None or quiet <= 0:
         raise SystemExit("entries: --quiet takes a length, as in 2bars, 8b or 4s")
+    short = None
+    if tempo.mapped and opt["--quiet"].strip().endswith("s") and not opt["--quiet"].strip().endswith("bars"):
+        secs, quiet = float(opt["--quiet"].strip()[:-1]), None                    # seconds of silence, wherever it falls
+        short = lambda end, start: tempo.secs(start) - tempo.secs(end) < secs  # noqa: E731
     ends = []
     for k in ("--from", "--to"):
         s = wincut.position(opt[k], tempo) if opt[k] else None
         if opt[k] and s is None:
             raise SystemExit(f"entries: {k} {opt[k]}: a position as chirp render takes one (77, 304b, 146s)")
-        ends.append(None if s is None else s * tempo / 60.0)
-    already, evs = events(canon, quiet, *ends)
+        ends.append(None if s is None else (tempo.beats(s) if tempo.mapped else s * tempo.bpm / 60.0))
+    already, evs = events(canon, quiet, *ends, short=short)
     if not flags["--leaves"]:
         evs = [(b, ins, []) for b, ins, _ in evs if ins]
     if flags["--json"]:
