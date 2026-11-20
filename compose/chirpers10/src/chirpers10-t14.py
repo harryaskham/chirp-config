@@ -1476,6 +1476,43 @@ def the_chug_bites(doc):
 WALLCAB = os.environ.get("C10T14_WALLCAB", "0.4;144,145;0.15;peak cutoff=200 q=0.8 gain=6dB|peak cutoff=600 q=0.9 gain=-6dB;-1.3dB;-10.72" if BITE else "")
 
 
+# v22 (chirper-one; section round, window 1, 0:00-0:31: the unwinding, 0:02.0-0:07.8). THE CHORD FALLS THROUGH THE
+# FLOOR. The song's first sentence is that a chord is a rhythm too fast to count, and it is said by three drums
+# alone: the rolls slow an octave a bar until they are threes, fours and fives. But a drum keeps its own pitch
+# while its roll slows, so the NOTE that the roll's speed is was never heard to fall. Three sines now sound each
+# roll's own stroke rate (174.6, 131.0 and 104.8 Hz when the unwinding starts) and fall with it, an octave a bar,
+# one note each with its pitch on a lane, through a high-pass at 40 Hz: the chord sinks, goes under hearing about
+# 0:06, and what is left is the strokes, by then slow enough to count (the voices begin "three" at 0:04.5).
+# NOT IN THE HELD BAR: a sine on a rolled drum's own note adds or cancels with it by phase (benched: the mix's
+# C3 line 6.8 dB DOWN with the sine there, its F3 1.8 up). So the sines come in over a second as the roll leaves
+# the drums' notes; from there the two add as powers within 0.6 dB.
+# HOW (for whoever wants a glide): `play.mono` with `glide` restarts the envelope at every note (a 1 s attack
+# never rose: the sines read 19 dB under what the fader gives); a lane on the TRACK (`auto`) riding the patch's
+# `synth.pitch` (in semitones) moves one held note exactly: the F sine read 160.4, 134.8, 113.5, 95.6, 80.2 Hz
+# where the roll's rate is 160.1, 134.7, 113.2, 95.2, 80.1.
+# the sines' fader ; their attack ; the floor: a high-pass on each, Hz ; bars the fall is written for ; their pans
+# (the F, the C, the A flat: the three drums' own places) ; the loudness target ('' = unchanged). '' = v21 byte for
+# byte. On only while WALLCAB is.
+FLOOR = os.environ.get("C10T14_FLOOR", "-14dB;1000ms;40;3;-0.5,0,0.5;" if WALLCAB else "")
+
+
+def the_chord_falls_through_the_floor(doc):
+    """v22: as the three rolls slow, three sines sound each roll's own stroke rate and fall with it, an octave a bar, until they are under hearing."""
+    fader, attack, floor, bars, pans, target = FLOOR.split(";")
+    start, bars = AT["unwound"] / 4, int(bars)
+    assert start == BAR / 4 * int(ROLL.split(";")[3]) and "sc-floor" not in doc["patches"]
+    doc["patches"]["sc-floor"] = {"extends": "808", "synth": {"layers": ["sine"], "pitch": {"value": 0, "mod": [{"src": "auto.fall", "amount": 1.0}]},
+                                                               "drive": 0, "filters": [], "amp": {"a": attack, "d": 0, "s": 1, "r": "80ms"}},
+                                  "play": {"mono": False, "glide": "0ms", "gate": 1}}
+    for (name, period), pan in zip((("floor-f", DRUMS["t1"]), ("floor-c", DRUMS["t2"]), ("floor-a", DRUMS["t3"])), pans.split(",")):
+        doc["tracks"].append({"name": name, "patch": "sc-floor", "gain": fader, "pan": float(pan),
+                              "notes": [{"at": start, "len": BAR / 4 * bars, "pitch": f"{F3 * 3 / period:.3f}hz", "vel": 0.8}],
+                              "auto": {"fall": {"points": [["0b", 0], [f"{start:g}b", 0], [f"{start + BAR / 4 * bars:g}b", -12 * bars]], "curve": 0}},
+                              "fx": [{"type": "eq", "bands": [f"hp cutoff={floor} q=0.7", f"hp cutoff={floor} q=0.7"]}]})
+    if target:
+        doc["loudness"] = float(target)
+
+
 def the_wall_comes_out_of_its_box(doc):
     """v21: the wall pair on the engine's cabinet (the library IR off, the patch's eq flat), a chest and the rig's
     middle out on the track; the fader a decibel under equal loudness alone."""
@@ -1528,4 +1565,6 @@ if __name__ == "__main__":
             the_chug_bites(doc)
         if WALLCAB:
             the_wall_comes_out_of_its_box(doc)
+        if FLOOR:
+            the_chord_falls_through_the_floor(doc)
         open(OUT, "w").write(dump(doc))
