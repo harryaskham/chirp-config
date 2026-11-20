@@ -752,11 +752,14 @@ def afterword(start):
 
 def compose():
     # the two given: B alone on the right, twice bare (a hat in quarters) and twice with the band
-    for i in range(4):
-        say(B, i * 32, ("gr", "dr") if i >= 2 else ("gr",), low=i >= 2)
-        bell("r", i * 32, length=32)
-    beat(0, 64, cym="h", step=4, vel=0.45, snare=())
-    beat(64, INTRO)
+    if OVERTURE:
+        the_two_are_given()
+    else:
+        for i in range(4):
+            say(B, i * 32, ("gr", "dr") if i >= 2 else ("gr",), low=i >= 2)
+            bell("r", i * 32, length=32)
+        beat(0, 64, cym="h", step=4, vel=0.45, snare=())
+        beat(64, INTRO)
     t = INTRO
     for (left, right), reps in zip(PAIRS, REPS):
         a, b = len(left), len(right)
@@ -1632,6 +1635,53 @@ CHUG = os.environ.get('C10T8_CHUG', 'synth.layers.0.soft=expr.pm*0.5 synth.layer
 # the bell's decay ; how long it takes to let go ; damp ; dB on both bells' faders ; the loudness target ('' =
 # unchanged). On only while CHUG is. "" = v33 byte for byte.
 STRIKE = os.environ.get('C10T8_STRIKE', '400ms;300ms;8;0;' if CHUG else '')
+
+
+# v35 (chirper-zero; whole-song round): THE TWO ARE GIVEN, AND ALL THAT IS LEFT OF THEM. The opening section is
+# called 'the two given' and gave ONE: the right guitar's riff four times; the left guitar's (the long one, whose
+# head is the record's hook coming down) was never heard by itself before it was set against the other at 0:12,
+# for 39 seconds. And the afterword (v11, chirper-alpha) puts the cut-off lengths back in order, 4, 8, 12, 20, 32,
+# 52 sixteenths, which is exactly eight bars; nothing earlier in the song said them that plainly, so it answered
+# nothing. The six lengths the algorithm passes through are 52, 32, 20, 12, 8, 4: thirteen beats, eight, five,
+# three, two, one, and THEY ADD UP TO EIGHT BARS EXACTLY (128 sixteenths): the opening's own length. So the opening
+# is now the proposition: the long riff once, alone, on the left; the short riff once, alone, on the right; then
+# what each cut will leave, turn about, left, right, left (the long riff's last 20, the short one's last 12, the
+# long one's last 8), and the four sixteenths both end with, on both sides. Each is a riff's own ending, so every
+# phrase closes on the same beat (open F held, two clipped Fs), and those closes fall 32, 20, 12, 8 and 4
+# sixteenths apart: the remainders again. On each of them the OTHER guitar joins for that one beat (chirper-one's
+# v14 does the same at every cut in the song: here it is taught first): one ear has the riff, both have what the
+# two share. Each phrase is rung in by its riff's bell on that length's own note (v23's rule, unchanged: the left
+# bell a sharp E flat, then A flat, then C; the right C, then F; the measure's C from both), so the bells play in
+# twelve seconds the notes they take over the next two minutes. The first two are bare, a hat in quarters under them (13 and 8 can be counted); from the third the band
+# is in (each side's second take, the bass and the kick on the phrase, the hat in eighths, the snare's backbeat:
+# the 20, the 8 and the last beat all begin on a backbeat), and the fill that was there runs under the last two.
+# the phrase the band joins at (0-5; 6 = never) ; '1' = the other side joins on each phrase's last beat ('' = no) ;
+# the bare hat's velocity ; the loudness target ('' = unchanged). '' = v34 byte for byte. On only while STRIKE is.
+OVERTURE = os.environ.get('C10T8_OVERTURE', '2;1;0.45;' if STRIKE else '')
+
+
+def the_two_are_given():
+    """v35: the opening's eight bars are the algorithm's six lengths, each said once (see OVERTURE). In compose()."""
+    band, share, hat, _ = OVERTURE.split(';')
+    t = joined = 0
+    for k, (riff, sides) in enumerate(((A, 'l'), (B, 'r'), (A[-20:], 'l'), (B[-12:], 'r'), (A[-8:], 'l'), (G, 'lr'))):
+        full = k >= int(band)
+        if not full:
+            joined = t + len(riff)
+        takes = lambda side: ('g' + side, 'd' + side) if full else ('g' + side,)
+        say(riff, t, [g for side in sides for g in takes(side)], low=full)
+        if share and len(sides) == 1:
+            say(G, t + len(riff) - len(G), takes('r' if sides == 'l' else 'l'))
+        for side in sides:
+            bell(side, t, length=len(riff), both=len(sides) == 2)
+        t += len(riff)
+    assert t == INTRO, 'the six lengths are eight bars'
+    for q in range(0, joined, 4):                                   # bare: the hat counts the beats
+        drum('h', q, float(hat) + (0.05 if q % 16 == 0 else 0))
+    for q in range(joined, INTRO, 2):                               # the band: the kit keeps common time
+        drum('h', q, 0.5 + (0.05 if q % 16 == 0 else 0))
+        if q % 8 == 4:
+            drum('s', q, 0.95)
 
 
 def the_bell_is_struck(doc):
