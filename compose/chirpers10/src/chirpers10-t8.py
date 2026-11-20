@@ -447,6 +447,42 @@ KEYS = os.environ.get('C10T8_KEYS', '0,1,3,5,7,8,10,12|2,6,4|11,9;0,1,3,5,7,8,10
 # its own) ; velocity ('' = the lead's) ; pan ; the loudness target ('' = unchanged). '' = v30 byte for byte. On
 # only while KEYS is.
 HYMN = os.environ.get('C10T8_HYMN', 'mellotron-choir fx.2.mix=0.15;-8dB;lowshelf cutoff=450 gain=-9dB;-3;;;0;' if KEYS else '')
+# v32 (chirper-alpha; whole song round; sixteen notes on a new track, `tune`, the lead guitar's own sound; no other
+# note, sound or fader changes). THE TUNE IS AS LONG AS WHAT IT MEASURES.
+#   The song had one tune and played it once: at the measure (2:13.5) the lead guitar holds the six notes the long
+#   riff begins with, then F and the F above, three seconds a note (v3), and since v31 a choir sings them. For the
+#   2:13 before that there was no line anywhere, only riffs; and the tune, when it came, came from nowhere.
+#   But those six notes ARE the head of the long riff, and the first pair plays that riff exactly eight times
+#   before anything is cut (8 x 52 = 13 x 32). So:
+#   THE FIRST PAIR (0:12.0-0:51.0): the lead holds ONE NOTE THROUGH EACH STATEMENT OF THE LONG RIFF, thirteen beats
+#     a note (4.9 s): E flat over the first, C over the second, B, A flat, G flat, F, then F and the F above. The
+#     n-th statement holds the n-th note of its own head: the riff is heard at the scale of itself.
+#   THE LAST PAIR (2:06.75-2:12.75): the same eight notes, a note to each statement of the eight-sixteenth riff that
+#     is left (two beats a note, 0.75 s), ending where the band stops for two beats before the measure.
+#   THE MEASURE (v3, v31; untouched): the eight notes again, eight beats a note, and now sung.
+#   The tune is cut down with the riffs (thirteen beats a note, then two), and what the measure holds up at the end
+#   has been heard since the twelfth second. It is the genre's own floating lead, and its lengths are the song's.
+#   IT RESTS WHERE THE BAND SHOWS THE ANSWER EARLY (v22: at 0:26.25 and 0:35.6 the band stops and one side says the
+#     cell alone, then the other): the third note stops a quarter of a beat before the first break and the fourth
+#     begins after it (0:27.0, a beat late); the fifth stops before the second. In the breaks the tune's tail is 20
+#     to 35 dB under the band.
+#   MEASURED (raw; the tune against everything else): first pair 10.0 dB under (K; notes -7.5 to -11.6), each note's
+#     pitch 4.4 dB over in its own third of an octave (median; the best partial +7.5) and still +4.3 over its last
+#     quarter (the first note, E flat, is the thinnest: +2.4, then -3.7). Last pair 9.2 under (K), best partial +5.3.
+#     The measure's own tune stands 8.3 under (v31).
+#   THE ONE RUB: over the fifth statement the tune holds G flat 4 (0:31.5-0:35.5), and for the first 2.9 s of it
+#     v7's bowed string holds F with its fourth partial open: an F4 that reads 8.4 dB over the tune's G flat (over
+#     the tune's whole note). It is the hook's own semitone (G flat falling to F, which the tune does at 0:36.4).
+#   The first pair's 500 Hz-1 kHz, 1.1 dB short of the records without a voice, is 1.9 over with the tune; against
+#     their sung rows 4.7 short -> 1.7 short. The master turns the band down 0.03 to 0.25 dB under the tune. The
+#     target -10.302 -> -10.22 holds the rest of the song where it was (within 0.025 dB on three seeds).
+# where the lead's eight notes are played again, 'section:beats a note:beats after the section begins:dB on the
+# fader there', '|' between ; the patch ; the fader ; pan ; the send to the hall ; bands on its eq, band|band ;
+# octaves over the measure's lead ; velocity ('' = the lead's) ; the loudness target ('' = unchanged) ; beats in
+# which the tune rests, 'from-to', '|' between (v22's two breaks, where the band stops and one side says the cell
+# alone, then the other: a note that would sound into one ends a quarter of a beat before it, a note that would
+# begin in one begins after it). '' = v31 byte for byte. On only while HYMN is.
+SCALE = os.environ.get('C10T8_SCALE', '52 against 32:13:0:1.5|8 against 4:2:14:0;lead-monster;-15dB;0;-12dB;;0;;-10.22;70-72|95-97' if HYMN else '')
 
 
 def nm(n):
@@ -1232,7 +1268,45 @@ def song():
         the_keys_are_counted(doc)
     if HYMN:
         the_measure_is_sung(doc)
+    if SCALE:
+        the_tune_is_as_long(doc)
     return doc
+
+
+def the_tune_is_as_long(doc):
+    """v32: the measure's tune is played before the measure, a note to each statement of the riff it measures (see SCALE)."""
+    said, patch, fader, pan, send, bands, octave, vel, target, rests = SCALE.split(';')
+    lead = next(t for t in doc['tracks'] if t['name'] == 'lead')
+    assert len(lead['notes']) == 8 and all(n['pitch'][-1].isdigit() for n in lead['notes'])
+    starts = [s0 / 4 for _, s0 in MARKS]
+    notes, lane = [], []
+    for x in said.split('|'):
+        name, per, after, db = x.split(':')
+        a = dict(MARKS)[name] / 4 + float(after)
+        lane += [[f'{max(0, a - 1):g}b', float(db)], [f'{a + 8 * float(per):g}b', float(db)]]
+        end = min(s0 for s0 in starts if s0 > dict(MARKS)[name] / 4)
+        assert a + 8 * float(per) <= end + 1e-9, (name, a, per, end)       # the eight notes end with the section, or before
+        for i, n in enumerate(lead['notes']):
+            notes.append({'at': round(a + i * float(per), 5), 'len': round(float(per) * 0.98, 5),
+                          'pitch': n['pitch'][:-1] + str(int(n['pitch'][-1]) + int(octave or 0)), 'vel': float(vel) if vel else n['vel']})
+    for x in filter(None, rests.split('|')):
+        r0, r1 = (float(v) for v in x.split('-'))
+        for n in notes:
+            if r0 <= n['at'] < r1:                                     # it would begin in the break: it begins after it
+                n['len'], n['at'] = round(n['len'] - (r1 - n['at']), 5), r1
+            elif n['at'] < r0 < n['at'] + n['len'] + 0.25:             # it would sound into the break: it stops before it
+                n['len'] = round(r0 - 0.25 - n['at'], 5)
+    t = {'name': 'tune', 'patch': patch, 'gain': fader, 'pan': float(pan or 0), 'notes': notes}
+    if any(v for _, v in lane):
+        t['gain'] = {'value': fader, 'mod': [{'src': 'auto.said', 'amount': 1}]}
+        t['auto'] = {'said': {'points': [['0b', lane[0][1]]] + lane if lane[0][0] != '0b' else lane, 'curve': 0}}
+    if send:
+        t['sends'] = {'hall': send}
+    if bands:
+        t['fx'] = [{'type': 'eq', 'bands': bands.split('|')}]
+    doc['tracks'].append(t)
+    if target:
+        doc['loudness'] = float(target)
 
 
 def the_measure_is_sung(doc):
