@@ -404,6 +404,10 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     died (+2.3 to +3.5). The string's mute, its decay and the amp's tight filter move that a decibel at most;
     THE PALM'S WEIGHT moves it three, and every muted stroke on this album was written at a FULL palm. At 0.55
     all five of the yardstick's measures stand inside the records' range (chirper-alpha, So Far v15).
+    The figures hold on a second song (Extreme and Mean v27, chirper-zero: 0.85 +2.0, 0.7 +1.2, 0.55 +0.75, 0.4
+    0.0). Two things go with it: a lighter palm takes the CHEST from the rig alone, so lift the hand AND give
+    back 175-185 Hz; and when a main pair grows fuller a WALL pair must yield what it gains (untouched, the
+    four-guitar mix read further off).
   - BY PART (`stembal.py song … --voice`, the group rows): read the two `groups:` lines first; until 08:18 on 19 Nov
     the default groups left guitars out on sixteen of seventeen songs. A figure is a share of the whole mix.
     `OUTSIDE THE GROUPS` under a window's table names a band where half or more of the mix is in NO group's tracks
