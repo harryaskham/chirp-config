@@ -391,10 +391,10 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     an octave, as a shape, with body and wires against crack and the stroke's fall; chirper-zero). What it shows
     that the two ratios did not: the album kit's snare has its NOTE in the 250 Hz band where the records have
     theirs at 200, and humps at 1-1.25 kHz and 2-2.5 kHz where theirs dip. `kit.s.pitch=G3` moves the note;
-    `shell`, `shell_hz` and `reso_level` move nothing; `damp` 0.9 takes 2.5 dB off 1 kHz. NOT YET BENCHED (his
-    correction): the head's `mode_count` (default 24; the 1-1.25 kHz hump is its upper explicit modes) and
-    `slap` (the kit has 1.2; probably the 2-2.5 kHz hump): bench `kit.s.patch.synth.layers.0.mode_count=10..16`
-    and `slap=0.4..0.8` against the tool BEFORE reaching for eq. Two cautions: the drums' bus glue and clip make a snare's measures depend on its
+    `shell`, `shell_hz` and `reso_level` move nothing; `damp` 0.9 takes 2.5 dB off 1 kHz. THE HUMPS COME OUT
+    WHERE THEY ARE MADE (In the Time Of v26): `kit.s.patch.synth.layers.0.mode_count` 24 -> 10 takes 1 kHz
+    from +8.1 to +4.1 and 1.25 kHz from +6.9 to +0.8; `slap` 1.2 -> 0.5 takes 2.5 kHz from +6.9 to +3.3 (the
+    slap IS the crack). The patch first, eq after. Two cautions: the drums' bus glue and clip make a snare's measures depend on its
     FADER; and a snare's box can be standing in for guitars that are short at 250 Hz-4 kHz: let the MIX say
     how much of the cure to keep (Extreme and Mean v26 kept half).
   - a MUTED STROKE's low end (`riffpunch.py --strokes`, the LOW END column): on all six records the 100-250 Hz of
