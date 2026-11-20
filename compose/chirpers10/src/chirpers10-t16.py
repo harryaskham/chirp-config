@@ -445,7 +445,7 @@ FIFTH = os.environ.get("C10T16_FIFTH", "square again;0,0,1,1,13,13,1234,1234;-11
 # it gives ; the loudness target ('' = unchanged). '' = v14 byte for byte.
 FRET = os.environ.get("C10T16_FRET", "three;5;5;4;" if FIFTH else "")
 # v16 (chirper-one; whole-song round): THE PAIR SHOWS THE COUNT. From bar 11 to bar 55 (0:36-3:20) the band played
-# without a rest, 45 bars inside 1.2 dB, with the two reeds 9 to 10 dB under it: the song says the band only plays what
+# without a rest, 45 bars inside 1.8 dB, with the two reeds 9 to 10 dB under it: the song says the band only plays what
 # the pair does, and after the opening nobody could hear the pair do it. Now, at each change of the hair, the band
 # rests for the first bar of the new count and the pair is heard pulsing it; then the band plays it. Each time one
 # drum stays and counts its own overtone beside the reeds, so the rule is laid out one line at a time: at 'five' the
