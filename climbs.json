@@ -8745,16 +8745,15 @@
       "owner": "chirper-zero",
       "metric": "python3 tools/compscore.py chirpers10-t5 OUT.wav",
       "best": {
-        "score": 98.273,
-        "version": "v31",
+        "score": 98.299,
+        "version": "v32",
         "commit": "see git log songs/chirpers10-t5.yaml",
-        "engine": "7138d6d5",
-        "judged": true
+        "engine": "7138d6d5"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 31,
+      "rounds": 32,
       "priority": 1.0,
       "genre": "polymetric djent",
       "mode": "compose",
@@ -8772,8 +8771,8 @@
         "note": "COMPOSE (the fifth song: true djent built on audio illusions (its name and its shape are chirper-zero's), 180-480 s): Opened by Harry on 15 Nov, about 12:38 GMT, in his words (typos his): \"when back, can ytou open one new climberslot - this would be true djent, but that leverages audio illusions throughout mainly risers/shpehers but in djent style, really make it a clear illlusory song, all about the illusions\". HE SAID WHAT THIS SONG IS, which he did not for tracks 2 to 4: TRUE DJENT; AUDIO ILLUSIONS THROUGHOUT; MAINLY RISERS AND SHEPARDS (chirp-eco reads \"shpehers\" as Shepard tones); IN DJENT STYLE; A CLEAR ILLUSORY SONG, ALL ABOUT THE ILLUSIONS. \"when back\" is chirper-zero back from a session that stopped at 04:55 that morning. The rest here is chirp-eco's reading, his or yours to overrule: \"climber slot\" is a fifth track on this record for the same climber (as \"we can do fourth track same climber\"); THE NAME IS YOURS (`tools/chirpers.py title chirpers10-t5 \"...\"`: a plain fragment, nothing on the nose, no numbers in titles); the FIRST ROUND IS A SKELETON (the whole shape standing, however bare; any version goes on the groove beside the other four), and from then on `climb.py next` draws among the five. WHAT THE ECOSYSTEM ALREADY HAS FOR ILLUSIONS (pointers, not a plan): the engine's README section \"Audio illusions\" (about line 1841): the `shepard` layer (`cycle`, `down`, `position`; library `shepard-pad`, `shepard-fall`); a track's `risset` (a rhythm that speeds up for ever: `cycle`, `layers`, `down`, `ratio`, `both`, `pitch`; any track, so a chug or a kit); the `barberpole` effect (an endless filter sweep, `rack:barberpole-up`), which can sit on a guitar bus; `fx-riser-endless`; `phantom` and `phantom-bass` (a fundamental that is heard and not played); `follow-noise`; `warp`. The measure of whether an illusion LEADS is `tools/chirpers.py illusion chirpers10 5 TRACK[,TRACK..]` (its level against the mix, the share of the song it is near the front, the longest gap). The Endless Stair (chirpers7) was the band's illusions record: its devices are in compose/chirpers7/motifs.md, and its lesson was Harry's \"most tracks have no illusion\": an accelerando 17 LU under its mix was not heard until it became the hook. Here he asks for the illusions to be the song. It starts from the same home as the other four: the album's direction (album.json direction.rules), its patch family (sounds.md, the ct-* rigs and kit) and everything landed in the engine since (features.md); new engine features are allowed as before (you build, chirp-eco gates). From its first rounds: its form as arithmetic, its first full section read against the records (stembal --id), keyshape.py at its first key change, and entries.py at v2 or v3 (compose/README.md). The slot's length (3 to 8 minutes) is chirp-eco's placeholder so the scorer has a range: set it to what the song is."
       },
       "last": {
-        "at": "2026-11-20T02:19:06Z",
-        "who": "chirper-two"
+        "at": "2026-11-20T05:30:25Z",
+        "who": "chirper-one"
       }
     },
     {

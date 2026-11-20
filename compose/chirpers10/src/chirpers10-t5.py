@@ -1199,7 +1199,7 @@ TAPE = os.environ.get("C10T5_TAPE", "1;84:96;-1;0.575;0.41;-24;" if FALLTONE els
 # the pole, and up the run out of it. No other part changes.
 # dB on the tone against its level under the stair ; bars from:to ; the loudness target ('' = unchanged). '' = v29.
 # It is on only while no other C10T5_ switch is set, so every older switch gives exactly what it gave.
-HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID") for k in os.environ) else "")
+HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS") for k in os.environ) else "")
 
 # v31 (chirper-two; palette: the song had no voice, and no song on the album had used the engine's speech to song):
 # WE HAVE BEEN HERE BEFORE. A song "all about the illusions" (Harry, 15 Nov) had every illusion of pitch and of speed
@@ -1500,7 +1500,56 @@ def song():
         doc["loudness"] = float(HALFWAY.split(";")[2])
     if SAID:
         we_have_been_here_before(doc)
+    if CLIMBS:
+        the_turn_climbs_the_stair(doc)
     return doc
+
+
+# v32 (chirper-one; section round, w4, 1:26-1:55, the turn's last three cycles; the map: "static in tone"): THE
+# TURN CLIMBS THE STAIR. The turn is sixteen bars of one note: the chug speeds up for ever on the low F and the bass
+# counts F under it, four cycles alike in pitch. Its cycles are the one place in the song where something comes
+# round and is plainly THE SAME AGAIN (every fourth bar line the three speeds and the kit are together). Now each
+# time it comes round it is a step up the stair's own line: F, G flat, A flat, B: the first four of the album's six
+# notes, the guitars' low string and the bass together, the bass's eq following. So the turn has two motions, one
+# false and one true: it is never faster, and it IS higher, by half an octave when it ends. B is the note half way
+# round from F (v30: "half way round"), the furthest the stair can be from home. And then the descent begins, on F:
+# the first thing the fall does is drop that half octave in one step, and go on falling for ever. The top the turn
+# reached was not the top: the song's title, said by the form. The roll under the last two bars (v22) still speeds
+# up to 43.65 strokes a second and arrives on the F the band lands on.
+# Nothing moves in time and no fader moves: 942 guitar strokes and 32 bass notes change pitch (the first cycle is
+# as it was), and the bass bus's two keyed bands follow.
+# semitones over F for each cycle of the turn in turn ; the tracks that climb ; the loudness target ("" =
+# unchanged). "" = v31 byte for byte. On only while SAID is; C10T5_CLIMBS is in HALFWAY's list of names that do
+# not turn it off.
+CLIMBS = os.environ.get("C10T5_CLIMBS", "0,1,3,6;v0l,v0r,v1l,v1r,v2l,v2r,v3l,v3r,bass;" if SAID else "")
+
+
+def the_turn_climbs_the_stair(doc):
+    """v32: each cycle of the turn is a step further up the stair's line; the bass and its keyed eq go with the guitars."""
+    semis, names, target = CLIMBS.split(";")
+    semis = [int(x) for x in semis.split(",")]
+    assert len(semis) == (FALL - TIME) // CYCLE and semis[0] == 0, semis
+    b0, tc = TIME * 4, CYCLE * 4
+    tr = {t["name"]: t for t in doc["tracks"]}
+    for name in names.split(","):
+        for n in tr[name]["notes"]:
+            if b0 <= n["at"] < FALL * 4:
+                c = int((n["at"] - b0 + 1e-6) // tc)
+                assert n["pitch"] == nm(F1) and n["at"] + n["len"] <= b0 + (c + 1) * tc + 1e-6, (name, n)   # every one is the low F, and none is held over a cycle's line
+                n["pitch"] = nm(F1 + semis[c])
+    pts = doc["buses"]["low"]["auto"]["key"]["points"]
+    at = lambda p: float(str(p[0]).rstrip("b"))
+    i = max(k for k, p in enumerate(pts) if at(p) <= b0)
+    assert pts[i][1] == 0 and (i + 1 == len(pts) or at(pts[i + 1]) >= FALL * 4), pts[i:i + 2]      # the ground is F all through the turn, and after it
+    new = []
+    for c in range(1, len(semis)):
+        new += [[f"{b0 + c * tc - 0.02:g}b", semis[c - 1]], [f"{b0 + c * tc:g}b", semis[c]]]
+    new += [[f"{FALL * 4 - 0.02:g}b", semis[-1]], [f"{FALL * 4:g}b", 0]]
+    if i + 1 < len(pts) and at(pts[i + 1]) == FALL * 4:
+        new.pop()
+    pts[i + 1:i + 1] = new
+    if target:
+        doc["loudness"] = float(target)
 
 
 def dump(doc):
