@@ -506,6 +506,40 @@ HORN = {'walks': (3, 4, 5, 6, 7, 8, 9, 10, 11, 14, 15, 16), 'patch': 'horn synth
 # odd number; the even one, F, on an even) ; 'bell gain': dB on those strokes ; 'bell vel' ; 'last': the bell rings
 # the next four on the last bar line, as the ondes does ; 'loudness' (None = unchanged). --without-wheel gives v18. (--wheel '{"gain": [0, 0, 0, 0]}': a bench.)
 WHEEL = {'horn': (8, 4, 2, 1), 'gain': (2.5, 4.5, 6.0, 8.0), 'breath': 1, 'bell': (4, 2, 1), 'bell gain': -2.0, 'bell vel': 0.8, 'last': True, 'loudness': None}
+# v20 (chirper-alpha; instrument round: the ondes; 40 of its notes are shaped, none is added, moved or retuned).
+# THE ONDES IS PLAYED WITH BOTH HANDS.
+#   An ondes Martenot is played with two hands: the right is on the ribbon and gives the pitch; the left is on a
+#   key in the drawer, the touche d'intensite, and gives the level: no sound comes out until it is pressed, and how
+#   it is pressed is the whole of the instrument's expression. This ondes had only the right. Every number was one
+#   level from its first sixteenth to its last, and here a number is as long as it is big: 160 was a sine standing
+#   still for eighteen and a half seconds.
+#   READ FIRST (the ondes alone against everything else, raw, in the third-octave round its note; about -4 is the
+#   edge of hearing): the numbers up to sixteen stand clear (+3 to +17), and the BIG ones, which are the song's high points,
+#   were at or under the edge: 52 -3.7 and -3.2, 46 -2.6, 106 -5.6, 53 -5.0, 160 -5.2, 80 -3.2. Two of the song's
+#   laws run against each other there: the band is as big as the number (v5: 1.25 dB a doubling) and the ondes is
+#   quieter the higher it is (v1: 2.5 dB an octave), and a big number is a high one.
+#   NOW THE LEFT HAND PLAYS, and it follows the song's own law: a number over sixteen swells and falls back, and
+#   the swell is 2 dB at its crest for every doubling of the number over sixteen (22: 0.9, 40: 2.6, 52: 3.4, 106:
+#   5.5, 160: 6.6). The crest is five eighths of the way through the note; it starts and ends where it did, so each
+#   new number still comes in under the last one's ring. Numbers up to sixteen are played as they were: the way
+#   home (16, 8, 4, 2, 1) is not touched.
+#   THE KEY IS AHEAD OF THE SPEAKERS, as on the instrument: both layers of the patch follow it (an inline patch,
+#   `expr.touch` in dB, a path of eight points on each note), so the low string (v17) and the hall ring with what
+#   the hand lets through. The ribbon is not touched: every note is where it was (Harry: 'True harmonics: keep
+#   them').
+#   MEASURED (same read; whole note, then the crest's quarter of it): 52 -3.7 -> -1.0, +1.2 at the crest (seven) and
+#   -3.2 -> -0.7, -2.0 (nine); 46 -2.6 -> -0.2, -0.6; 70 +0.4 -> +3.6, +5.0; 106 -5.6 -> -1.2, +0.4; 53 -5.0 ->
+#   -2.2, -2.1; 160 -5.2 -> +0.1, -0.6; 80 -3.2 -> +0.5, +1.0. The sixteen notes from 34 up: median -0.7 -> +1.6.
+#   COST, against the eleven records (the mix): at the top (160 and 80) 1-2 kHz stands 0.6 dB further over (+1.6 ->
+#   +2.2); the climb 2-4 kHz +0.5 -> +0.8; forty to one 1-2 kHz +0.1 -> +0.5; seven is 0.07 nearer; the ten
+#   stretches' mean distance 1.066 -> 1.078. A swell of 3 dB a doubling was not tried, for that reason.
+#   The song came out louder and the master turned everything else down 0.08 dB: the target goes -9.589 -> -9.521
+#   (two steps; 1.23 dB of level for each dB of target).
+# 'per': dB at the crest for each doubling of the number over 'over' ; 'over': numbers up to this are played as they
+# were ; 'crest': where in the note the hand is furthest down ; 'points': how many points draw the hand's path ;
+# 'least': the shortest note that is shaped, in beats ; 'loudness' (None = unchanged). --without-touch gives v19.
+# (--touch '{"per": 3}': a bench.)
+TOUCH = {'per': 2.0, 'over': 16, 'crest': 0.625, 'points': 8, 'least': 1.0, 'loudness': -9.521}
 
 
 def true(ratio):
@@ -884,6 +918,8 @@ if __name__ == '__main__':
     ap.add_argument('--string', help='a bench: STRING fields to change, as a JSON object')
     ap.add_argument('--horn', help='a bench: HORN fields to change, as a JSON object')
     ap.add_argument('--wheel', help='a bench: WHEEL fields to change, as a JSON object')
+    ap.add_argument('--touch', help='a bench: TOUCH fields to change, as a JSON object')
+    ap.add_argument('--without-touch', action='store_true', help="regenerate v19: the ondes with one hand, every number at one level from its start to its end")
     ap.add_argument('--without-wheel', action='store_true', help="regenerate v18: on the wheel the horn is silent and no bell rings")
     ap.add_argument('--without-horn', action='store_true', help="regenerate v17: nothing holds the number a walk is trying")
     ap.add_argument('--without-string', action='store_true', help="regenerate v16: the ondes through its own palme only, a tempered octave of strings that its harmonics do not ring")
@@ -904,7 +940,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
-    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel'))
+    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch'))
     if not a.without_china and newest:
         metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
         metal['patch'] += ' ' + CHINA['kit']
@@ -1017,6 +1053,26 @@ if __name__ == '__main__':
                                       **({'gain': f"{WHEEL['bell gain']:g}dB"} if WHEEL['bell gain'] else {})})
         if WHEEL['loudness'] is not None:
             doc['loudness'] = WHEEL['loudness']
+    if not a.without_touch and not a.without_wheel and not a.without_horn and not a.without_string and not a.without_bell and not a.without_hand and not a.without_china and newest:
+        if a.touch:
+            TOUCH.update(json.loads(a.touch))
+        said = [(at + sum(walk(k)[:i]), n) for k, at in marks for i, n in enumerate(walk(k))]      # (sixteenth, the number being said)
+        number = lambda beat: next((n for at, n in reversed(said) if at <= round(beat * SUB)), 0)
+        stone = next(t for t in doc['tracks'] if t['name'] == 'stone')
+        # the key is ahead of the speakers: both of the patch's layers follow it, so the string and the hall ring with what it lets through
+        stone['patch'] = {'extends': stone['patch'],
+                          'synth': {'layers': [{'name': 'main', 'wave': 'sine', 'level': {'value': '0dB', 'mod': [{'src': 'expr.touch', 'amount': 1}]}},
+                                               {'name': 'edge', 'wave': 'triangle', 'level': {'value': '-22dB', 'mod': [{'src': 'vel', 'amount': 12}, {'src': 'expr.touch', 'amount': 1}]}}]}}
+        crest, pts = TOUCH['crest'], TOUCH['points']
+        shape = lambda u: math.sin(math.pi / 2 * u / crest) ** 2 if u <= crest else math.cos(math.pi / 2 * (u - crest) / (1 - crest)) ** 2
+        for e in stone['notes']:
+            n = number(e['at'])
+            if round(e['at'] * SUB) < wheel and n > TOUCH['over'] and e['len'] >= TOUCH['least']:
+                peak = TOUCH['per'] * math.log2(n / TOUCH['over'])
+                e['expr'] = {**e.get('expr', {}), 'touch': 0}
+                e['expr_path'] = {'touch': [round(peak * shape((i + 1) / pts), 2) for i in range(pts)]}
+        if TOUCH['loudness'] is not None:
+            doc['loudness'] = TOUCH['loudness']
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
