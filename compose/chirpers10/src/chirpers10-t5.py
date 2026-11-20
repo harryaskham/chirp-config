@@ -1199,7 +1199,7 @@ TAPE = os.environ.get("C10T5_TAPE", "1;84:96;-1;0.575;0.41;-24;" if FALLTONE els
 # the pole, and up the run out of it. No other part changes.
 # dB on the tone against its level under the stair ; bars from:to ; the loudness target ('' = unchanged). '' = v29.
 # It is on only while no other C10T5_ switch is set, so every older switch gives exactly what it gave.
-HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED") for k in os.environ) else "")
+HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE") for k in os.environ) else "")
 
 # v31 (chirper-two; palette: the song had no voice, and no song on the album had used the engine's speech to song):
 # WE HAVE BEEN HERE BEFORE. A song "all about the illusions" (Harry, 15 Nov) had every illusion of pitch and of speed
@@ -1504,6 +1504,8 @@ def song():
         the_turn_climbs_the_stair(doc)
     if GROUNDED:
         the_foot_is_on_the_ground(doc)
+    if EXCHANGE:
+        the_fall_neither_hand_plays(doc)
     return doc
 
 
@@ -1617,6 +1619,74 @@ def the_foot_is_on_the_ground(doc):
     if eq:
         assert len(kick["fx"]) == 1 and kick["fx"][0]["type"] == "eq"
         kick["fx"] = [{"type": "eq", "bands": eq.split("|")}]
+    if target:
+        doc["loudness"] = float(target)
+
+
+# v34 (chirper-alpha; section round, w6, 2:24-2:52.8, flagged static and little new; the change is its steepest two
+# bars, 68 and 69, 2:43.2-2:48.0, where the fall takes six steps a bar; 107 of the eight guitars' 234 strokes there
+# change pitch; nothing moves in time; the basses, the tone, the kit and every other bar are as they were).
+# THE FALL THAT NEITHER HAND PLAYS.
+#   The song has the illusions of pitch (the stair), of speed (the turn), of both, of the missing root, of half way
+#   round, of speech turning to song. It had none of PLACE. The best known is Deutsch's scale illusion (1973): a
+#   scale going down and the same scale going up, played at once, every other note of each sent to the other ear.
+#   Each ear is given a line that leaps about; what is heard is two smooth lines. Tchaikovsky wrote the opening of
+#   the last movement of his sixth symphony that way: neither violin section plays the tune the hall hears.
+#   This song already has the two scales: at 2:24 (v21) the right side climbs the six notes while the left falls.
+#   Where the fall is steepest it was all eight guitars in unison. Now both stairs are played there, six steps a
+#   bar, and from step to step the two sides change places (they share the two notes where the lines meet):
+#       the left plays   F  G flat  C  B  A flat  E flat     (both, climb, fall, both, fall, climb)
+#       the right plays  F  E flat  A flat  B  C  G flat     (both, fall, climb, both, climb, fall)
+#   twice. Nobody plays the fall, F E flat C B A flat G flat, and nobody plays the climb: each is whole only in the
+#   two sides together. The two basses and the tone (v28) keep the fall under it; the kick is on every step.
+#   MEASURED (raw, own seed, the eight guitars alone, the two lines' own pitch classes in each ear step by step):
+#   in the left ear the climb stands 5.6 dB over the fall where the left has the climb and 5.1 under where it has
+#   the fall; in the right 5.7 over and 7.8 under (medians). Both ears summed, the two lines
+#   are level (climb less fall -1.3). In v33 the fall stood 5 to 9 dB over in both ears on every step. The two bars
+#   are 0.06 dB up (K), each ear within 0.13 dB of v33 and the mono sum within 0.10 on the finished files; the rest
+#   of the song is v33's within 0.003 dB.
+# the rates of the fall (steps a bar, as STEEP gives them) whose bars are exchanged, ',' between ; which steps the
+# LEFT side takes the climb on (1 = every second step from the second, 0 = from the first, '' = none: the right
+# climbs and the left falls, as at 2:24) ; the loudness target ('' = unchanged). "" = v33 byte for byte. On only
+# while GROUNDED and COUNTERFALL are; C10T5_EXCHANGE is in HALFWAY's list of names that do not turn it off.
+EXCHANGE = os.environ.get("C10T5_EXCHANGE", "6;1;" if GROUNDED and COUNTERFALL else "")
+
+
+def the_fall_neither_hand_plays(doc):
+    """v34: in the fall's steepest bars both stairs are played at once, the fall and its mirror, and every second step
+    the two sides change places: each side plays a line that leaps, and the fall and the climb are whole only in
+    the two together. The basses, the tone and the kit keep the fall."""
+    which, odd, target = EXCHANGE.split(";")
+    rates = sorted((int(x.split(":")[0]), int(x.split(":")[1])) for x in STEEP.split(","))
+    ends = [bar for bar, _ in rates[1:]] + [POLE - (int(RUNS.split(";")[0]) if RUNS else 0)]
+    beat = lambda p: float(p[0][:-1])
+    for (a, per), b in zip(rates, ends):
+        if str(per) not in which.split(","):
+            continue
+        start = -sum(([1] + [k for bar, k in rates if bar <= x])[-1] for x in range(FALL, a))
+        edges = [ACC[q * len(ACC) // per] for q in range(per)] + [16]
+        for v in range(VOICES):
+            for side in "lr":
+                tr = next(t for t in doc["tracks"] if t["name"] == f"v{v}{side}")
+                was = tr["auto"]["bell"]["points"]
+                at = lambda x: [p[1] for p in was if beat(p) <= x][-1]
+                lane, notes = [(a * 4.0, at(a * 4))], []
+                for m in range((b - a) * per):
+                    bar, q = a + m // per, m % per
+                    up = (side == "r") if odd == "" else ((m % 2 == int(odd)) == (side == "l"))
+                    d = start + m if up else start - m          # the fall's own ladder, walked up or down from where it stands
+                    p = (12 * (d // 6) + SCALE[d % 6] + 12 * v) % (12 * VOICES)
+                    g = db(bell(p / (12 * VOICES))) + TRIM["fall"]
+                    if g <= -45:
+                        continue
+                    step(lane, bar * 4 + edges[q] / 4, g)
+                    for i in range(edges[q], edges[q + 1]):
+                        o = i in ACC
+                        notes.append({"at": round(bar * 4 + i / 4, 4), "len": round(0.25 * 0.98, 4), "pitch": nm(RIFF_BASE + p),
+                                      "vel": 1.0 if o else 0.86, **({} if o else {"expr": {"pm": 1.0}})})
+                tr["notes"] = sorted([n for n in tr["notes"] if not a * 4 <= n["at"] < b * 4] + notes, key=lambda n: n["at"])
+                tr["auto"]["bell"]["points"] = ([p for p in was if beat(p) <= a * 4] + pts(lane[1:]) +
+                                                pts([(b * 4 - 0.01, lane[-1][1]), (b * 4, at(b * 4))]) + [p for p in was if beat(p) > b * 4])
     if target:
         doc["loudness"] = float(target)
 
