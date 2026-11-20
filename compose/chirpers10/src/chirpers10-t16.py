@@ -444,6 +444,17 @@ FIFTH = os.environ.get("C10T16_FIFTH", "square again;0,0,1,1,13,13,1234,1234;-11
 # the section ; which of its bars (from 1; several with commas) ; the fret, in semitones ; the pulses to the bar
 # it gives ; the loudness target ('' = unchanged). '' = v14 byte for byte.
 FRET = os.environ.get("C10T16_FRET", "three;5;5;4;" if FIFTH else "")
+# v16 (chirper-one; whole-song round): THE PAIR SHOWS THE COUNT. From bar 11 to bar 55 (0:36-3:20) the band played
+# without a rest, 45 bars inside 1.2 dB, with the two reeds 9 to 10 dB under it: the song says the band only plays what
+# the pair does, and after the opening nobody could hear the pair do it. Now, at each change of the hair, the band
+# rests for the first bar of the new count and the pair is heard pulsing it; then the band plays it. Each time one
+# drum stays and counts its own overtone beside the reeds, so the rule is laid out one line at a time: at 'five' the
+# reeds alone (five swells); at 'seven' the hat (the fourth overtone's 28); at 'three' the toms on the low ground
+# (the third's nine); at 'square again' the foot (the first's four). The crash stays on each downbeat.
+# section=tracks that stay (commas), ';' between sections | tracks that never rest | the loudness target ('' =
+# unchanged). The band rests in the section's first bar. "" = v15 byte for byte.
+SHOWN = os.environ.get("C10T16_SHOWN", "five=brass;seven=brass,hat;three=brass,skins-bb1;square again=brass,foot|"
+                                       "reed,hair,third,drum,cymbals,pan,pan-out,pan-five,bend|-10.1" if FRET else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -795,6 +806,8 @@ def build():
         the_fifth(doc, marks)
     if FRET:
         fretted(doc, marks)
+    if SHOWN:
+        the_pair_shows_the_count(doc, marks)
     return doc, marks, end
 
 
@@ -817,6 +830,22 @@ def the_fifth(doc, marks):
                               "pitch": f"{5 * f:.3f}hz", "vel": vels[j]})
     doc["tracks"].append({"name": "pan-five", "patch": PAN.split(";")[0] + (" " + damped if damped else ""), "gain": gain, "pan": float(pan), "notes": notes,
                           **({"fx": [{"type": "eq", "bands": eq.split("|")}]} if eq else {})})
+    if target:
+        doc["loudness"] = float(target)
+
+
+def the_pair_shows_the_count(doc, marks):
+    """v16: in the first bar of each named section the band rests and the pair is heard pulsing the new count."""
+    entries, kept, target = SHOWN.split("|")
+    kept = set(kept.split(","))
+    start = {name: b for name, b, r, bars in marks}
+    for entry in entries.split(";"):
+        section, stay = entry.split("=")
+        a, stay = start[section], {x for x in stay.split(",") if x}
+        for t in doc["tracks"]:
+            if t["name"] not in kept and t["name"] not in stay:
+                t["notes"] = [n for n in t["notes"] if not a <= n["at"] < a + 4]
+    assert all(t["notes"] for t in doc["tracks"])
     if target:
         doc["loudness"] = float(target)
 
