@@ -487,7 +487,7 @@ HAND = os.environ.get("C10T16_HAND", "-2;0.4,0.5,0.6;0.5;peak cutoff=700 q=0.9 g
 # MEASURED: the pair alone, the swell of its fundamental against the four written kicks inside the two bars: +3, +4,
 # +7, +2 ms (a plain bar's: +6, +7, +6). The lead 12.0 dB under everything else there (K; 12.6 at its turn into five)
 # and adding to the reeds' line at 349 Hz as it does there (+3.6 dB; +3.7). The two bars +2.2 to +2.5 dB at 250-500
-# Hz against v17 (the lead is +2.1 of it) and within 0.13 dB overall. Everything outside them within 0.007 dB of v17
+# Hz against v17 (the lead is +2.1 of it), up to 1.7 dB less at 60-120 Hz (two kicks fewer), within 0.13 dB overall. Everything outside them within 0.007 dB of v17
 # on three seeds with the target where it was. The map: w2's bar-to-bar rhythm 0.043 -> 0.078 and no flag.
 # the section ; the bar of it in which the string gives (the next brings it back) ; the hair's width at the bottom, in
 # pulses to the beat ; dB on the lead's notes in those two bars ("" = as at its other turns, "none" = no lead there) ;
