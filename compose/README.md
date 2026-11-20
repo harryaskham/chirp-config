@@ -436,6 +436,16 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     optimum. And A SNARE'S FALL THAT WILL NOT SHORTEN IS THE ROOM: the drums' bus room and the send to the
     overheads; it lengthens with the FADER (74 ms at +3.5 dB, 86-87 at +5 to +6.2). Read the fall at two faders
     before chasing it at the drum (chirper-zero; his `stand.py`: `~/.local/state/chirper-zero/c10/t15-snare/`).
+    THE KIT'S SNARE SOUNDS 1.77 SEMITONES OVER ITS WRITTEN NOTE AND WANDERS 20 CENTS (chirper-three, Close Enough
+    v23; chirp-eco read the same on two seeds: written A3 sounds 243.7 Hz): `pitch.mod.0.amount=0` and
+    `pitch.mod.1.amount=0` stop the wander (to 2 cents); tune by `kit.s.pitch`; `cavity` moves the note and
+    leaves the next line (the head's (1,1), 1.594 times the written note) where it is. DO NOT USE
+    `tune_sounding` ON THIS SNARE: with the resonant head tighter than the batter (`reso` 1.5) it tunes the
+    quieter mode and the loudest line lands 654 cents flat (bd-d64c83; it holds at `reso` 1 or under, 11 to
+    21 cents flat). READ A SNARE DRY (off the bus, no sends) to find its note: through the chain a
+    peak-picker finds the room's fixed lines. And MOST OF THE SNARE IS THE OVERHEAD ROOM: without its send the
+    stroke loses 15 to 17 dB at 1.25-3.15 kHz, so the humps a snare shows there are mostly the room's and a
+    cure inside the drum reaches little of them: give the snare a room of its own with the cuts after it.
   - a MUTED STROKE's low end (`riffpunch.py --strokes`, the LOW END column): on all six records the 100-250 Hz of
     a chug HOLDS OR GROWS through the stroke (the first 20 ms against 40-80 ms: -1.1 dB; -2.2 to +0.3); ours
     died (+2.3 to +3.5). The string's mute, its decay and the amp's tight filter move that a decibel at most;
