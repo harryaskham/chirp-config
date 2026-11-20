@@ -1165,6 +1165,76 @@ def the_count_is_struck_on_metal(doc):
     if PLATES['loudness']: doc['loudness'] = PLATES['loudness']
 
 
+# v30 (chirper-zero; palette round. THE SWAP, NAMED: none taken out; ONE INSTRUMENT ADDED, a sound no song on the
+# record has: a typewriter's MARGIN BELL. One new track, `bell`, 18 strokes: 12 in 'ink' (0:10.96-0:43.85) and 6 in
+# 'one hand' (3:22.8-3:44.7). No other note, sound or fader changes.) THE MARGIN BELL.
+# The song is a strip of nineteen sixteenths read from both ends under a count of four, and everything in it is
+# named for writing: pencil, ink, carbon, the ribbon, a thumbprint, signed, the facing page. A strip is a LINE. The
+# machine that writes a line in ink through a ribbon has a bell fixed near the right margin: it rings once, a few
+# characters before the line is full, and the other hand throws the carriage back. Nothing in the song marked the
+# line: the drummer counts four and never says nineteen, so the strip's length is something the listener has to
+# work out from the riff. Now the line has its bell, where a typewriter's is: on the row's last open note (its
+# fifteenth place, the C), four places before the end. And because the bell is fixed to a PLACE ON THE LINE, when it
+# rings tells which end the line is being read from: read forwards it rings late (the strip's sixteenth
+# sixteenth); read from the other end it rings early (the fourth), with the same C.
+#   'ink'       the line is read forwards eleven times: the bell rings late each time, on the left while the left
+#               hand reads alone (strips 1-4), in the middle once both hands read (5-11). On the twelfth strip the
+#               other hand reads it alone from the far end (v17): the bell rings EARLY, on the right. That is the
+#               first sign of what 'opposite' is about to do.
+#   'one hand'  both hands read from the far end as one: the bell rings early, in the middle, on the six strips
+#               where the hands play the C (the strip the drummer answers alone, and the last, have none).
+# It is not in 'opposite', 'raised' or 'turn over' (two readers at once would be two bells a strip over the pops,
+# the claps and the second foot; Harry: "I can follow both", "Prefer both heavy") nor on the pencilled pages.
+# The bell: a small steel cup struck once (four partials at 1, 2.32, 4.25 and 6.63, the upper ones falling first,
+# and a 4 ms clapper), on C7: the row's C, five octaves over the guitars' (2093 Hz, in the octave where 'one hand'
+# stood 2 to 3 dB short of the records). Where each stroke falls is READ FROM THE GUITARS' OWN NOTES (the higher of
+# a hand's open notes at the fourth and sixteenth sixteenths is the C), so it follows whatever the hands do.
+# --without-bell gives v29 byte for byte. (--bell '{...}': a bench.)
+BELL = {'patch': {'about': "The Other Hand: the margin bell. A typewriter's small steel cup bell, struck once by its clapper a few places before the end of the line.",
+                  'synth': {'amp': {'a': '0.2ms', 'curve': 3, 'd': '1500ms', 'r': '600ms', 's': 0}, 'env': {'h': {'a': '0.2ms', 'd': '4ms', 's': 0}},
+                            'layers': [{'type': 'additive', 'damp': 3.0, 'partials': [[1, 1], [2.32, 0.45], [4.25, 0.22], [6.63, 0.08]]},
+                                       {'type': 'noise', 'level': {'value': '-60dB', 'mod': [{'src': 'env.h', 'amount': 36}]}}]}},
+        'pitch': 'C7', 'gain': '-16dB', 'vel': .7, 'len': 2,
+        'lines': ('ink', 'one hand'),                       # the sections whose lines have the bell
+        'pan': {'left': -.45, 'right': .45, 'both': 0},     # who is reading: where the bell is
+        'room': 'reverb kind=room decay=0.5s mix=0.1 predelay=8ms',
+        # the bell's eighteen strokes lower the song's measured loudness a hair: with the target left at -9.966 every
+        # stretch it is not in came out 0.005 to 0.015 dB quieter. This much holds the loud ones where they were.
+        'loudness': -9.963}
+
+
+def the_margin_bell(doc, sections):
+    """v30: a typewriter's margin bell on the row's last open note, in 'ink' and 'one hand'; when it rings in the
+    strip tells which end the line is read from."""
+    track = {t['name']: t for t in doc['tracks']}
+    assert 'bell' not in track
+    low = lambda p: min(PITCH.index(x[:-1]) + 12 * int(x[-1]) for x in str(p).split(','))
+    notes, points = [], []
+    for sec in BELL['lines']:
+        _, start, count = next(x for x in sections if x[0] == sec)
+        for i in range(count):
+            a = start + i * STRIP
+            where = {}
+            for hand in ('left', 'right'):
+                opens = {round(n['at'] * GRID - a): low(n['pitch']) for n in track[hand]['notes']
+                         if a <= n['at'] * GRID < a + STRIP and not (n.get('expr') or {}).get('pm')}
+                if 3 in opens and 15 in opens: where[hand] = 15 if opens[15] > opens[3] else 3
+            if not where: continue                                   # nobody plays the C on this line: no bell
+            assert len(set(where.values())) == 1, (sec, i, where)     # two readers from two ends: not a line for one bell
+            t = (a + next(iter(where.values()))) / GRID
+            who = 'both' if len(where) == 2 else next(iter(where))
+            notes.append({'at': round(t, 5), 'len': BELL['len'], 'pitch': BELL['pitch'], 'vel': BELL['vel']})
+            if points: points.append([f"{t - .06:g}b", points[-1][1]])   # the bell stays where its last reader was until the next rings
+            points.append([f"{t - .05:g}b", BELL['pan'][who]])
+    for x, y in zip(notes, notes[1:]): x['len'] = round(min(x['len'], y['at'] - x['at'] - .05), 5)
+    assert notes and all(y['at'] - x['at'] > x['len'] > 1 for x, y in zip(notes, notes[1:]))
+    new = {'name': 'bell', 'patch': BELL['patch'], 'gain': BELL['gain'], 'pan': {'value': 0, 'mod': [{'src': 'auto.reader', 'amount': 1}]},
+           'auto': {'reader': {'points': [['0b', points[0][1]]] + points, 'curve': 0}}, 'notes': notes}
+    if BELL['room']: new['fx'] = [BELL['room']]
+    doc['tracks'].append(new)
+    if BELL['loudness']: doc['loudness'] = BELL['loudness']
+
+
 if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); ap.add_argument('--without-crease',action='store_true',help='regenerate v3')
     ap.add_argument('--without-mirror-bass',action='store_true',help='regenerate v4')
@@ -1198,6 +1268,8 @@ if __name__=='__main__':
     ap.add_argument('--pencil',help='a bench: PENCIL fields to change, as a JSON object')
     ap.add_argument('--without-plates',action='store_true',help="regenerate v28: the hat as the album kit's comes (noise through a high-pass)")
     ap.add_argument('--plates',help='a bench: PLATES fields to change, as a JSON object')
+    ap.add_argument('--without-bell',action='store_true',help="regenerate v29: no margin bell in 'ink' and 'one hand'")
+    ap.add_argument('--bell',help='a bench: BELL fields to change, as a JSON object')
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
     doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot,not a.without_blot)
     if not a.without_lean and 'songs' in doc: lean(doc)      # only on the whole song as v22 has it (the tape is there when every older switch is on)
@@ -1213,6 +1285,8 @@ if __name__=='__main__':
     if not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_pencil(doc, sections)      # only on the whole song as v27 has it
     if a.plates: PLATES.update(json.loads(a.plates))
     if not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_count_is_struck_on_metal(doc)      # only on the whole song as v28 has it
+    if a.bell: BELL.update(json.loads(a.bell))
+    if not a.without_bell and not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_margin_bell(doc, sections)      # only on the whole song as v29 has it
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
