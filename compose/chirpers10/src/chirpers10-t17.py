@@ -624,6 +624,26 @@ FITTED = {'kick': 'kit.k.patch.synth.amp.d=170ms',
           'eq': ('peak cutoff=4300 q=0.8 gain=4dB', 'peak cutoff=175 q=3 gain=-5dB', 'peak cutoff=291 q=3 gain=-2dB'),
           'chest': (12, 90, -9.0), 'gain': 0.6, 'loudness': -9.467}
 
+# v24 (chirper-zero; instrument round): THE SNARE IS ONE OF THE STRING'S HARMONICS. Every pitched thing in this song
+# is a true harmonic of the low F string (Harry on the heights: "True harmonics: keep them") except the drum that
+# lands on every backbeat. The album's snare sounds 1.8 semitones over its written note: 244.3 Hz, between the
+# string's fifth harmonic (218.27 Hz) and its sixth (261.9), 5.6 times the string, and a different pitch on each
+# stroke (the kit's random pitch, 43 cents from the lowest stroke to the highest). It is not hidden: in the FINISHED
+# file, at the 61 backbeats of walks nine to eleven, the mix rises 11.2 dB round that line when the snare lands.
+# Now the snare's written note is its sounding note (the engine's drum fields of 20 Nov, tune_sounding + tune_exact)
+# and that note is the string's FIFTH HARMONIC, 218.27 Hz (m56.863, the height the count sings most after F):
+# read dry 218.6 Hz, +3 cents, every stroke within 4 cents. The random pitch is off; the stroke's own 16 ms chirp
+# stays (without it this is another drum). The fifth and not the sixth, because there the drum's note also sits
+# where six records' snares have theirs: alone (tools/snarespec.py) 4.95 -> 3.11, its 200 Hz band from 16.7 dB
+# under theirs to 2.6 over (on the sixth harmonic it read 6.52, on the eleventh's octave 4.66). The whole drum moves
+# down 195 cents with its note, which took 2 dB off its top: a shelf at 7 kHz gives that back, and the fader
+# +0.1 dB makes it as loud alone as it was.
+# the snare's pitch ; what is added inside its patch (kit.s.patch.) ; its track's eq bands (None = none) ; dB on its
+# fader ; the loudness target (None = unchanged). --without-fifth = v23 byte for byte ; --fifth JSON for a bench.
+FIFTH = {'pitch': 'm56.863',
+         'patch': 'synth.layers.0.tune_sounding=true synth.layers.0.tune_exact=true synth.pitch.mod.1.amount=0',
+         'eq': ('highshelf cutoff=7000 gain=2dB',), 'gain': 0.1, 'loudness': None}
+
 
 def true(ratio):
     """A pitch as its exact ratio over the low F: the engine's fractional key number (a whole one is written as its name)."""
@@ -1002,6 +1022,8 @@ if __name__ == '__main__':
     ap.add_argument('--horn', help='a bench: HORN fields to change, as a JSON object')
     ap.add_argument('--wheel', help='a bench: WHEEL fields to change, as a JSON object')
     ap.add_argument('--touch', help='a bench: TOUCH fields to change, as a JSON object')
+    ap.add_argument('--without-fifth', action='store_true', help="regenerate v23: the snare between two of the string's harmonics, a different pitch on every stroke")
+    ap.add_argument('--fifth', help="JSON over FIFTH's fields, for a bench")
     ap.add_argument('--without-fitted', action='store_true', help="regenerate v22: the album kit's bass drum as v4 tuned it, with no chest")
     ap.add_argument('--fitted', help="JSON over FITTED's fields, for a bench")
     ap.add_argument('--without-speaker', action='store_true', help="regenerate v21: the wall pair through the album's captured cabinets")
@@ -1029,7 +1051,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
-    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight', 'without_speaker', 'speaker', 'without_fitted', 'fitted'))
+    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight', 'without_speaker', 'speaker', 'without_fitted', 'fitted', 'without_fifth', 'fifth'))
     if not a.without_china and newest:
         metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
         metal['patch'] += ' ' + CHINA['kit']
@@ -1211,6 +1233,18 @@ if __name__ == '__main__':
                                   'notes': [{'at': e['at'], 'len': 0.25, 'pitch': sharps[drum % 12] + str(drum // 12 - 1), 'vel': e['vel']} for e in kick['notes']]})
         if FITTED['loudness'] is not None:
             doc['loudness'] = FITTED['loudness']
+        if not a.without_fifth:                                    # only on the whole song as v23 has it
+            if a.fifth:
+                FIFTH.update(json.loads(a.fifth))
+            snare = next(t for t in doc['tracks'] if t['name'] == 'snare')
+            assert 'kit.s.pitch=' not in snare['patch'] and isinstance(snare['gain'], str) and not snare.get('fx'), (snare['patch'], snare['gain'])
+            snare['patch'] += ' kit.s.pitch=' + FIFTH['pitch'] + ''.join(f' kit.s.patch.{o}' for o in FIFTH['patch'].split())
+            if FIFTH['eq']:
+                snare['fx'] = [{'type': 'eq', 'bands': list(FIFTH['eq'])}]
+            if FIFTH['gain']:
+                snare['gain'] = f"{float(snare['gain'].rstrip('dB')) + FIFTH['gain']:g}dB"
+            if FIFTH['loudness'] is not None:
+                doc['loudness'] = FIFTH['loudness']
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
