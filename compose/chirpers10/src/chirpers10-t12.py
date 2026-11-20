@@ -329,6 +329,53 @@ def lean(doc):
     if LEAN['loudness']: doc['loudness'] = LEAN['loudness']
 
 
+# v24 (chirper-alpha; section round, w4, 'carbon', 1:27.7-1:49.6): THE COUNT IS COPIED TOO, AT ITS OWN LENGTH.
+# The song's first line says the strip is read "under an unbroken count of four", and in 'carbon' the count was
+# one soft snare a bar: no hat, and the bass drum follows the hand, not the bar. The hand's strips go page, copy,
+# page, copy; the drummer copied nothing. Now his bars do the same, and his page is a BAR, sixteen sixteenths,
+# where the hand's is a strip of nineteen. A page bar (bars 1, 3, 5, 7, 9) is the count as 'ink' has it: the
+# sticks on the hat, every quarter. On a copy bar (2, 4, 6, 8 and the half bar that ends the section) the sticks
+# are up and the FOOT's hat keeps the four quarters: fainter, no sizzle, the count on the sheet beneath. It is the
+# sound the song ends on (v9, the facing page: "the sticks are down; the foot goes on counting"), heard here two
+# minutes early, and for the same reason. 38 strokes, 20 of the sticks and 18 of the foot; nothing else changes.
+# Because sixteen is not nineteen the two sheets slip. Bar 1 lies wholly under a page strip of the hand and bar 2
+# 13 of 16 sixteenths under a copy strip; then 10, 7, 4 and 1; bar 7 (1:41.5) not at all: the drummer's page lies
+# under the hand's copy and the bar after it the other way about. Then they come back: the last half bar, a copy,
+# lies wholly under the hand's last copy strip, and 'thumbprint' begins.
+# (Benched, raw, stroke by stroke against everything else in the stroke's best third-octave, first 80 ms. The
+# sticks: +25.2 off the snare's beat (ink's hat under two guitars: +7.9). The foot at the facing page's own
+# setting (0.5 / 0.4, -3 dB) read -4.1 / -1.9, the edge of hearing: the facing page is far barer (+28.0 there).
+# At 0.6 / 0.5 and +3 dB it reads +4.3 on first beats and +6.1 on the others (+7.0 off the snare's beat). The
+# nine strokes on the snare's own beat are under it (-7.6 to -20.3), as on any kit.
+# FIRST TAKES NOT KEPT. A side stick on the copy bars' one and three, in place of their snare: the album kit's
+# side stick is a 5 ms click at 500 Hz and 1.3 kHz, and under one guitar and the voice it read -8.3 / -5.4 on the
+# kit's bus and +0.7 / +4.5 only at +12 dB. And the copy bar as the sticks' first beat alone, "only the stroke
+# that was pressed goes through" (rendered whole: 98.702 / 98.701 / 98.725): it reads (+10.0), but it leaves the
+# count broken every other bar, which is the one thing this song says the count is not.)
+# the sticks' velocity on a page bar's first beat and its others ; a copy bar: the kit piece, its velocity by the
+# beat of the bar ('0' is the first; a beat left out is not played) and each stroke's own gain ; the loudness
+# target (None: unchanged). --without-counted-copy gives v23. (--counted '{"copy": [...]}': fields for a bench.)
+COUNTED = {'page': (.65, .48), 'copy': ('hp', {'0': .6, '1': .5, '2': .5, '3': .5}, '3dB'), 'loudness': None}
+
+
+def counted(doc, sections):
+    """v24: in 'carbon' the drummer's bars go page, copy as the guitarist's strips do. A page bar is his count as
+    'ink' has it, the hat on every quarter; a copy bar is what went through: its first and third beats, fainter."""
+    _, start, count = next(s for s in sections if s[0] == 'carbon')
+    a, b = start / GRID, (start + count * STRIP) / GRID
+    hat = next(t for t in doc['tracks'] if t['name'] == 'hat')
+    assert not [n for n in hat['notes'] if a <= n['at'] < b]
+    for beat in range(int(-(-a // 1)), int(-(-b // 1))):
+        if (beat // 4 - int(a) // 4) % 2 == 0:
+            piece, v, trim = 'h', COUNTED['page'][0 if beat % 4 == 0 else 1], None
+        else:
+            piece, v, trim = COUNTED['copy'][0], COUNTED['copy'][1].get(str(beat % 4)), COUNTED['copy'][2]
+        if v:
+            hat['notes'].append({'at': float(beat), 'len': round(1.15 / GRID, 5), 'pitch': piece, 'vel': v, **({'gain': trim} if trim else {})})
+    hat['notes'].sort(key=lambda e: e['at'])
+    if COUNTED['loudness']: doc['loudness'] = COUNTED['loudness']
+
+
 def build(drum_hand=True, crease=True, mirror_bass=True, picking_hand=True, signature=True, ties=True, facing=True, palindrome=True, album_kit=True, dominant=True, thumbs=True, copy=True, heavy=True, turned=True, rig=HANDS_RIG, reading=True, chest=True, palmas=True, crack=True, feet=True, blot=True):
     crease = crease and drum_hand  # --without-drum-hand still reproduces v2
     mirror_bass = mirror_bass and crease  # --without-crease still reproduces v3
@@ -884,9 +931,13 @@ if __name__=='__main__':
     ap.add_argument('--without-other-foot',action='store_true',help="regenerate v20, the foot in 'opposite' with the left hand only")
     ap.add_argument('--without-blot',action='store_true',help="regenerate v21, the facing page without the left hand's tape played backwards")
     ap.add_argument('--without-lean',action='store_true',help="regenerate v22, the bass on the album's old chain and the two hands at a full palm")
+    ap.add_argument('--without-counted-copy',action='store_true',help="regenerate v23, 'carbon' with one soft snare a bar and no count")
+    ap.add_argument('--counted',help='a bench: COUNTED fields to change, as a JSON object')
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
     doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot,not a.without_blot)
     if not a.without_lean and 'songs' in doc: lean(doc)      # only on the whole song as v22 has it (the tape is there when every older switch is on)
+    if a.counted: COUNTED.update(json.loads(a.counted))
+    if not a.without_counted_copy and not a.without_lean and 'songs' in doc: counted(doc, sections)      # only on the whole song as v23 has it
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
