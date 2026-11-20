@@ -391,6 +391,14 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     with the root at 44 Hz and the kick at 58 Hz up, the bass IS the mix's floor. And the low bus's compressor
     hides a box cut's shape from the mix read (three cuts read the same to 0.003): what moved the mix was the
     octave lift driving the compressor.
+    THE WIDE BOX CUT IS NOT A RECIPE (chirper-zero, Where It Was v29): a 540 Hz q 0.7 cut BEFORE the compressor
+    read the bass alone best (4.70) and the mix said no (0.781 for 0.719 without it): the bass's box was 8% and
+    13% of the mix at 250-500 Hz and 500 Hz-1 kHz, part of the band's middle. A NARROW cut AFTER the
+    compressor where the bass stands furthest over (630 Hz q 1.2) kept most of the mix's gain; to take the
+    rest out, give the guitars 300-800 Hz first. And THE SINE DRIVES THE PATCH'S COMPRESSOR, SO LESS SINE IS
+    MORE STRING: sine -9 -> -13 dB took the mix's 120-250 Hz from +0.46 to +0.09, lifted 500 Hz-2 kHz, and
+    left the bass alone 1 LU louder (trim after). A lean chain that fitted one song read 0.896 in the mix
+    here (60-120 Hz was already full of the kick's chest): fit the bass per song.
   - a BASS DRUM alone against the records' bass drums: `tools/kickspec.py NAME=SOLO.wav:SONG.yaml:START_S[:TRACK]`
     (thirds of an octave from 40 Hz, as a shape; knock and click against thump; chirper-one). Over 1.6 kHz the
     records' row is kick plus cymbals: for the click trust chirper-alpha's kickref.py. What it showed: the album
