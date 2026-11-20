@@ -226,10 +226,36 @@ def the_snare_rings_lower(doc):
     if SNARE['loudness']: doc['loudness'] = SNARE['loudness']
 
 
+# v26 (chirper-alpha; palette round: one new instrument, on the back of the sheet, 2:29.8-2:52.7): THE BACK OF THE
+# SHEET IS WOOD. In 'turn the sheet' the front of the sheet (the tune falling, on the left) has always had a struck
+# voice over its guitar: the ring, a mallet on metal. The back (the tune read from its other end, rising F, A flat,
+# C, E flat on 0, 2, 4, 8: the record's own hook, and the place Harry chose for it) had its guitar, and wooden
+# boxes in its holes (v4: "a different material for the holes"), and no struck voice. Now it has: a XYLOPHONE, in
+# its lowest octave, the ring's own (F4 to E flat 5), strikes the back's four notes wherever the back is said: the
+# four back cells of the trade and the two cells where both faces are played at once, where ring and bars share
+# one line of seven notes between them (24 strokes). Metal says the front, wood says the back, notes and holes.
+# No other song on the record has a xylophone. Nothing else changes; no note of the band moves.
+#   THE READ THAT CHOSE IT (raw, stroke by stroke, a part alone against everything else): in this passage the ring
+#   stands 10.2 dB (K) under the mix at its strokes and -1.1 at its own pitch (in the handover: 0.0 and +2.7). The
+#   bars at -14 dB stand 8.1 under the mix, +3.0 at their pitch (-5.1 to +9.1) and +13.2 in their best third-octave
+#   (none of 24 under 0). An octave higher (F5 to E flat 6) the same bars read -1.0 at their pitch: not kept. A
+#   marimba read better still (+9.7 against +6.2 at one fader) and is the thing to try if the xylophone is a toy.
+#   TWENTY MILLISECONDS BEHIND THE STRING. Struck on the band's own stroke the bars raised the mix's peak there by
+#   a median 1.0 dB and the master took the band down 0.7 dB for a tenth of a second at each (worst 1.8). Twenty
+#   milliseconds behind, the peak rises 0.17 dB (the ring's own strokes: 0.31) and the band gives 0.3 to 0.4.
+#   AGAINST THE ELEVEN RECORDS 'turn the sheet' was short at 250 Hz-1 kHz (-1.3, -1.2); with the bars +0.4, -0.4,
+#   and all nine bands read 0.87 -> 0.68. Every other section is v25's within 0.01 dB.
+# the bars' patch ; fader, dB ; place ; semitones over the guitar's note ; velocity on a cell's first note and the
+# others ; length, ticks ; how far behind the string they strike, ticks (0.096 = 20 ms) ; send to the chamber ; track fx ; dB on the ring through 'turn the sheet' (0: as it was) ;
+# the loudness target (None: unchanged). --v25 restores v25. (--verso '{"gain": -9}': fields changed for a bench.)
+VERSO = {'patch': 'xylophone fx.0.mix=0', 'gain': -14, 'pan': .2, 'up': 36, 'vel': (.9, .8), 'len': 1.45, 'late': .096, 'send': '-12dB', 'fx': None,
+         'ring': 0, 'loudness': None}
+
+
 def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_back=True, afterimage=True, drum_memory=True, edges=True,
             rim=True, rim_gain=-18, turned=True, hole=True, mold=True, fretless=True, fretless_gain=-10.0,
             lit=True, held_gain=-16.0, grip='0.12:0.55:0.7', spin=True, refill=True, whole_scale=True, trades=True, band=True,
-            hat=True, made_whole=True, fused=True, said=True, said_gain=None, said_takes=None, unsaid=True, glint=True):
+            hat=True, made_whole=True, fused=True, said=True, said_gain=None, said_takes=None, unsaid=True, glint=True, verso=True):
     # Previous versions remain reproducible, including their track lists.
     recover = recover and phrase_return
     wood = wood and recover
@@ -253,6 +279,7 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
     said = SAID if said and fused else None
     unsaid = UNSAID if unsaid and said else None
     glint = GLINT if glint and unsaid else None
+    verso = VERSO if verso and glint else None
     if said and (said_gain is not None or said_takes):
         said = {**said, **({'gain': said_gain} if said_gain is not None else {}),
                 **({'takes': tuple(int(x) for x in said_takes.split(','))} if said_takes else {})}
@@ -513,6 +540,9 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
             drums('k', a + k, fused['foot'][0] if k == 0 else fused['foot'][1])
         for j, k in enumerate(HEADS):
             put('ring', a + k, 1.45, F + TUNE[j] + 36, .91 if j == 0 else .79)
+        if verso:                       # v26: and the bars ring the back, as they do wherever the back is said
+            for j, k in enumerate(BACK_HEADS):
+                put('bars', a + k + verso['late'], verso['len'], F + BACK_TUNE[j] + verso['up'], verso['vel'][0] if j == 0 else verso['vel'][1])
         if fused['wood'][n]:
             for q, k in enumerate(rests):
                 # v4's sticking for the gaps: the centre of the box for a rest, the slap for the second of two
@@ -719,6 +749,9 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
                     elif hand or section == 'lit through' or (section == 'turn the sheet' and i % 2 == 0):
                         # across a hole the ring is let ring up to the next note
                         put('ring', t, end-k-.25 if empty else 1.45, p+36, .91 if j == 0 else .79)
+                    if verso and back:
+                        # v26: the back of the sheet has a struck voice of its own, in wood
+                        put('bars', t + verso['late'], verso['len'], p + verso['up'], verso['vel'][0] if j == 0 else verso['vel'][1])
                     if section == 'under glass':
                         # Rebuild the tune from its LOW end while the clean string holds dyads.
                         if j >= 3 - i//3:
@@ -866,6 +899,15 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
         tracks.append(track('held', 'wiw-held', held_gain, .06, sends={'chamber': '-12dB'},
                             auto={'hand': {'curve': 0, 'points': [['0b', soft], [b(1), soft], [b(cells//2), firm],
                                                                     [b(cells-2), most], [b(cells-1), most]]}}))
+    if verso:
+        tracks.append(track('bars', verso['patch'], verso['gain'], verso['pan'], sends={'chamber': verso['send']},
+                            **({'fx': verso['fx']} if verso['fx'] else {})))
+        if verso['ring']:
+            a, span = marks['turn the sheet']
+            ring = next(t for t in tracks if t['name'] == 'ring')
+            ring['gain'] = {'value': ring['gain'], 'mod': [{'src': 'auto.face', 'amount': 1}]}
+            ring['auto'] = {'face': {'curve': 0, 'points': [['0b', 0], [f'{(a - 1) / SUB:g}b', 0], [f'{a / SUB:g}b', verso['ring']],
+                                                           [f'{(a + span - 1) / SUB:g}b', verso['ring']], [f'{(a + span) / SUB:g}b', 0]]}}
     assert not parts
     return {'about':'Where It Was. A four-note tune on eleven triplet eighths; the band learns to play its negative. Common Time t13 '+('v17.' if trades else 'v16.' if refill else 'v15.' if spin else 'v14.' if lit else 'v13.' if fretless else 'v12.' if mold else 'v11.' if hole else 'v10.' if turned else 'v9.' if rim else 'v8.' if edges else 'v7.' if drum_memory else 'v6.' if afterimage else 'v5.' if held_back else 'v4.' if wood else 'v3.' if recover else 'v2.' if phrase_return else 'v1.'),
             'tempo': BPM, 'seed': 1, 'event_stable': True, 'length':f'{start//SUB}b', 'tail':'3s',
@@ -909,6 +951,8 @@ if __name__ == '__main__':
     previous.add_argument('--v22', action='store_true', help="restore 'both sides' with nobody singing as the ring brings the tune back")
     previous.add_argument('--v23', action='store_true', help="restore the held line of 'lit through' without a harmonic on each of its notes")
     previous.add_argument('--v24', action='store_true', help="restore the album's snare as it comes: a tone higher, shorter, with its box")
+    previous.add_argument('--v25', action='store_true', help="restore the back of the sheet with no struck voice of its own (no wooden bars)")
+    parser.add_argument('--verso', help='a bench: VERSO fields to change, as a JSON object')
     parser.add_argument('--said-gain', type=float, default=None, help="the sung voice's track gain in dB (default: SAID's)")
     parser.add_argument('--said-takes', default=None, help="which of each group's three cells is sung, e.g. 1 or 1,2 (default: SAID's)")
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
@@ -918,12 +962,17 @@ if __name__ == '__main__':
     parser.add_argument('--grip', default='0.12:0.55:0.7', help="how firmly the hand holds the ring: at 2:02 : at the A-flat : at its most")
     parser.add_argument('--strokes-on-f', action='store_true', help="keep low F under every stroke of the fourth short negative (the ring's refill only)")
     args = parser.parse_args()
+    if args.verso:
+        VERSO.update(json.loads(args.verso))
     doc = compose(not args.v1, not args.v2, not args.v3, args.wood_gain, not args.v4, not args.v5, not args.v6, not args.v7,
                   not args.v8, args.rim_gain, not args.v9, not args.v10, not args.v11, not args.v12, args.fretless_gain,
                   not args.v13, args.held_gain, args.grip, not args.v14, not args.v15, not args.strokes_on_f, not args.v16, not args.v17,
-                  not args.v18, not args.v19, not args.v20, not args.v21, args.said_gain, args.said_takes, not args.v22, not args.v23)
+                  not args.v18, not args.v19, not args.v20, not args.v21, args.said_gain, args.said_takes, not args.v22, not args.v23,
+                  not (args.v24 or args.v25))
     if not args.v24 and any(t['name'] == 'glint' for t in doc['tracks']):     # only on the whole song as v24 has it
         the_snare_rings_lower(doc)
+        if not args.v25 and VERSO['loudness']:
+            doc['loudness'] = VERSO['loudness']
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
