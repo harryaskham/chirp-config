@@ -1300,6 +1300,52 @@ def the_bass_loses_its_honk(song):
     if target: song['loudness'] = float(target)
 
 
+# v33 (chirper-one; drawn as a whole-song round and spent on the one piece that plays in every loud bar and had
+# never been read alone here: THE BASS DRUM, 259 strokes. An instrument round, and a SMALL one, said plainly.
+# No stroke moves; nothing else changes.)
+# READ ALONE beside six records' bass drums (tools/kickspec.py, 'in hand') it stood 8.25 from them: the album
+# kit's drum is one driven sine at 58 Hz, so it has that note, the drive's odd harmonics (166 and 270-290 Hz: the
+# 160 and 250 Hz thirds +13.7 and +16.1 over the records' shape) and almost nothing between: its 125 Hz third
+# lay 20.6 dB under its 50 Hz third where the records' lies 12.1 under. A drum with a note and a buzz and no chest.
+# THE MIX SAID WHICH TO TOUCH (the finished file against eleven records, the six loud sections). 250-500 Hz is
+# over the records in all six (+0.4 to +2.6) and the drum was 14% of it in 'in hand': its FIFTH harmonic is cut,
+# 291 Hz q 3, -5 dB. 120-250 Hz is UNDER them in five of the six, and the same cut on the third harmonic (175 Hz,
+# -2 dB: first build) took it 0.2 to 0.4 further: left out. 60-120 Hz is level or a little under: THE CHEST goes
+# there, one sine an octave over the drum (B flat 2, 116.5 Hz, 90 ms) on every stroke, 7 dB down, past the drums'
+# bus, on the bus's own fader lane (v21: the kit leans back as the debt begins).
+# THAT NOTE LIES ON THE BASS'S PARTIALS (three times its E flat 1 is 116.7 Hz; twice its B flat 1 is 116.5), so it
+# was read summed: bass with drum and chest at 105-128 Hz reads 0.15 dB from the sum of their powers; it adds.
+# AFTER: alone 8.25 -> 7.79; the 250 and 315 Hz thirds +16.1 / +10.2 -> +11.7 / +5.4; the 125 Hz third 20.6 ->
+# 11.6 under its 50 Hz third (the records 12.1); the drum 14% -> 7% of the mix's 250-500 Hz in 'in hand'.
+# What it still lacks, by that read: its click (the top of the records' row is drum plus cymbals, so not judged
+# here), and the 100 Hz third (15 under where the records are 9).
+# bands added to the bass drum's eq, band|band ('' = none) ; the chest's note ('' = no chest) ; its fader ; the
+# loudness target ('' = unchanged). On only while UNBOX is. '' = v32 byte for byte.
+KICK = os.environ.get('C10T10_KICK', 'peak cutoff=291 q=3 gain=-5dB;Bb2;-7dB;' if UNBOX else '')
+
+
+def the_bass_drum_gets_a_chest(song):
+    """v33: a narrow cut on the bass drum's fifth harmonic, and a chest: one sine an octave over the drum on every
+    stroke, past the drums' bus, riding the bus's own fader lane."""
+    cuts, note, fader, target = KICK.split(';')
+    kick = next(t for t in song['tracks'] if t['name'] == 'kick')
+    assert not any(t['name'] == 'kick-chest' for t in song['tracks']) and kick['fx'][0]['type'] == 'eq'
+    if cuts: kick['fx'] = [dict(kick['fx'][0], bands=list(kick['fx'][0]['bands']) + cuts.split('|'))] + list(kick['fx'][1:])
+    if note:
+        chest = {'name': 'kick-chest', 'gain': fader, 'pan': 0,
+                 'patch': {'extends': '808', 'about': "Still Owing: the bass drum's chest, one sine an octave over the drum, 90 ms.",
+                           'synth': {'layers': ['sine'], 'pitch': {'value': 0, 'mod': []}, 'drive': 0, 'filters': [],
+                                     'amp': {'a': '2ms', 'd': '90ms', 's': 0, 'r': '20ms', 'curve': 3}},
+                           'play': {'mono': False, 'glide': '0ms', 'gate': 1}},
+                 'notes': [{'at': n['at'], 'len': 0.25, 'pitch': note, 'vel': n['vel']} for n in kick['notes']]}
+        lean = song['buses']['drums'].get('auto', {}).get('lean')            # v21: the kit leans back as the debt begins
+        if lean:
+            chest['gain'] = {'value': fader, 'mod': [{'src': 'auto.lean', 'amount': 1}]}
+            chest['auto'] = {'lean': json.loads(json.dumps(lean))}
+        song['tracks'].append(chest)
+    if target: song['loudness'] = float(target)
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out',type=Path,default=OUT); parser.add_argument('--form',action='store_true')
@@ -1313,6 +1359,7 @@ if __name__=='__main__':
     if IOU: the_debt_is_said(song)
     if SEAT: the_bow_is_seated(song)
     if UNBOX: the_bass_loses_its_honk(song)
+    if KICK: the_bass_drum_gets_a_chest(song)
     if args.form:
         for n,t in marks: print(f'{n:18} {t/BAR+1:5.0f}  {t/SUB*60/BPM:6.2f}s')
     else: args.out.write_text(dump(song))
