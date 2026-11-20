@@ -1270,6 +1270,36 @@ def the_bow_is_seated(song):
         song['loudness'] = float(target)
 
 
+# v32 (chirper-zero; instrument round: the bass guitar, 312 notes): THE BASS LOSES ITS HONK.
+# Read alone beside eleven records' basses (tools/bassspec.py) this was the album's furthest: 6.25 in 'on account',
+# 5.97 / 6.30 / 6.26 in 'still owing', 'across the line' and 'square'. Its shape: a honk, +8.7 and +10.8 dB at 500
+# and 630 Hz; nothing where their string grinds (1 and 1.25 kHz, 5.1 and 8.6 dB short); the fundamental +13 to
+# +16 dB over theirs. THE MIX SAYS WHICH OF THOSE TO TOUCH (stembal --voice, the six stretches the bass plays in,
+# weighted by its notes; the bass's share of the mix's own bands, by part):
+#   500 Hz-1 kHz: the mix stands over the records in every one of the six (+0.43 by notes, to +1.9), and the bass
+#     holds 13% of that band: the honk is the mix's too. CUT.
+#   under 60 Hz: the mix is LEVEL with the records (+0.16) and the bass holds 41% of the band: the root is E flat
+#     at 39 Hz and the fundamental is the floor. LEFT (Odd Sympathy v40's lesson; the sine 2 dB down read no
+#     better alone, 4.84).
+#   1-2 kHz: the mix is level (+0.03): the grind may come up only a little. +3 dB and moved up to 1150 Hz reads
+#     the mix +0.15 there; +6 dB reads +0.36 and the whole mix worse (0.832 against 0.813): the smaller.
+# One control at a time, the bass alone in 'on account': the box cut (540 Hz q 0.7, -6 dB where the patch has +2
+# at 450) 5.15 ; with the grind at 1150 Hz q 1.6 +8 dB (the patch: 900 Hz +5) 4.81 ; the cut narrower and higher,
+# 600 Hz q 1, 4.76: kept. The other three passages 4.43, 4.77, 4.82. The mix 0.846 -> 0.821 (500 Hz-1 kHz +0.43
+# -> -0.01): small, and the same way as the bass alone. The bass alone is as loud as it was in all four (to 0.1
+# LU). THE LOW BUS IS NOT TOUCHED (it follows the key).
+# C10T10_UNBOX = overrides on the bass's patch ; the loudness target ('' = unchanged). '' = v31 byte for byte.
+UNBOX = os.environ.get('C10T10_UNBOX', 'fx.2.bands.2.cutoff=600 fx.2.bands.2.q=1 fx.2.bands.2.gain=-6dB fx.2.bands.3.cutoff=1150 fx.2.bands.3.q=1.6 fx.2.bands.3.gain=8dB;' if SEAT else '')
+
+
+def the_bass_loses_its_honk(song):
+    """v32: the bass guitar's box cut at 600 Hz and its grind moved up to 1150 Hz, inside its own patch; the low bus as it was."""
+    over, target = UNBOX.split(';')
+    bass = next(t for t in song['tracks'] if t['name'] == 'bass')
+    bass['patch'] += ' ' + over
+    if target: song['loudness'] = float(target)
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out',type=Path,default=OUT); parser.add_argument('--form',action='store_true')
@@ -1282,6 +1312,7 @@ if __name__=='__main__':
     if INTUNE: the_bow_is_in_tune(song)
     if IOU: the_debt_is_said(song)
     if SEAT: the_bow_is_seated(song)
+    if UNBOX: the_bass_loses_its_honk(song)
     if args.form:
         for n,t in marks: print(f'{n:18} {t/BAR+1:5.0f}  {t/SUB*60/BPM:6.2f}s')
     else: args.out.write_text(dump(song))
