@@ -360,6 +360,38 @@ LONG = os.getenv('C10T11_LONG', '8;24;mute;-10dB;synth.env.swell.a=1200ms synth.
 CYMBALS = os.getenv('C10T11_CYMBALS', 'filters.0.cutoff.value=4k amp.d=60ms;15.5dB;highshelf cutoff=8000 gain=-8dB|peak cutoff=5500 q=0.8 gain=4dB;-3.5dB;'
                     'synth.filters.0.cutoff=3000 synth.filters.1.gain=0dB synth.filters.2.cutoff=5k synth.filters.2.gain=6dB synth.layers.0.tilt=0 synth.layers.0.bright=0.6;'
                     '-3.5dB;-1.5dB;0dB;-9.778' if LONG else '')
+# v27 (chirper-three; instrument round: the two riff guitars' muted stroke, 702 of their 1182 notes; and A REPAIR OF MY
+# OWN v25). No note changes.
+# THE GUITARS. gl and gr were the album rig as it ships. Beside six records' strokes (riffpunch --strokes; quick verse,
+# heavy riff, swing, home) the chug had NO TEETH (through a stroke, 1-4 kHz over 400 Hz-1 kHz: 5.0, 4.5, 4.8, 8.2 dB;
+# the records 11.3, never under 6.5) and ITS LOW END DIED AFTER THE STROKE (100-250 Hz in the first 20 ms over 40-80
+# ms: +1.66, +1.61, +2.70, -0.45; the records -1.1, never over +0.3). One control at a time on the heavy riff: the
+# palm closing the string's filter two octaves, not 3.4, gives teeth and makes the fall worse (+2.16); the pick half
+# as soft under the palm does NOTHING alone here (+1.76: on Still Owing it was the whole cure); together +0.72, and
+# with the pick at 0.4 and the chest lifted +0.16. AFTER: the fall -0.64, -0.02, -0.80, -1.50; teeth 7.4, 7.4, 7.4, 7.6: every section
+# inside the records' range on both, where three of four were outside on both. The brighter stroke read 0.96 dB
+# louder alone (K) and the master turned the whole song down 0.5 dB for it, so the two faders give 1 dB back and the
+# chest (190 Hz) is lifted to hold 120-250 Hz: alone the pair is level with v26 (K +0.06, 120-250 Hz 0.0) and the latch,
+# where no guitar plays, is within 0.01 dB of v26 on seeds 0 and 1 (0.10 under on seed 11) with the target unmoved.
+# THE MIX is where it was against the records' voiceless passages (0.752 -> 0.752: nearer in three stretches, further
+# in three) and 0.05 further against all eleven (the guitars are 1 dB lower at 500 Hz-1 kHz, where the mix was short).
+# Not kept: cancelling the bus's 720 Hz lift on these two (it fitted the pair alone and took 0.6 to 1.2 dB of the
+# mix's 500 Hz-1 kHz in every stretch); the faders left up (the mix read nearer, 0.719, and every quiet passage came out 0.5 dB lower).
+# COSTS: the stroke's punch in the swing and home 3.53, 3.51 -> 3.30, 3.39 (records 3.5 to 4.2); the noise between
+# its harmonics 0.39 -> 0.30 in three sections (0.40); the scorer's spectrum term 0.4 lower on each seed (its worst
+# band, 38 Hz, 10.1 -> 10.4 under; the pair has 4.3 dB less under 60 Hz, the likely reason, not separated).
+# THE REPAIR. v25 trimmed the long bow 5 cents down because the bowed string 'read 3 to 8 cents sharp'. Most of that
+# was not the string: a bowed layer has `vary` (a player's intonation, drawn by the seed), the patch does not set it,
+# and I read ONE seed (chirper-zero, 20 Nov). The four notes alone, cents off the written note: as v25 left them,
+# seed 0: -1.3 +2.8 +0.8 -0.7 (what I reported); seed 11: +0.4 -1.2 -0.6 +3.9; THE SONG'S OWN SEED, 1: -2.6 -3.2
+# -4.3 -0.5, flat. With `vary` 0 and no trim: +0.8 +1.1 +1.1 +1.6 on every seed (the string's own share; the engine's
+# `tune_sounding` for a bowed layer will take that when the pin moves). The D flat's level, which `vary` moved 3.5 dB
+# between seeds, is now the same on each (2.8 dB lower than it was at the song's seed).
+# overrides on the two riff guitars' rigs (gl, gr) ; an eq on each, band|band ('' = none) ; dB on their two faders
+# ('' = as they were) ; what the long bow's patch takes in place of v25's pitch trim ('' = the long bow as it was) ;
+# the loudness target ('' = unchanged). '' = v26 byte for byte.
+PICK = os.getenv('C10T11_PICK', 'synth.layers.0.soft=expr.pm*0.4 synth.filters.0.cutoff.mod.0.amount=-2;peak cutoff=190 q=1.2 gain=6.5dB;-1;'
+                 'synth.layers.0.vary=0;' if CYMBALS else '')
 
 
 def BOW_PATCH():
@@ -903,6 +935,19 @@ def make():
                 if n['pitch']=='x' and a<=n['at']<b: n['gain']=china_swing
         over=['kit.x.patch.'+o for o in china.split()]+([f'kit.x.gain={china_gain}'] if china_gain else [])+([f'kit.rde.gain={ride_gain}'] if ride_gain else [])
         if over: m['patch']=' '.join([m['patch']]+over)
+        if target:
+            doc['loudness']=float(target)
+    if PICK:
+        # v27: no note changes. The two riff guitars' rigs, and the long bow's intonation.
+        over,eq,fader,bow,target=PICK.split(';')
+        for t in tracks:
+            if t['name'] in ('gl','gr'):
+                assert 'fx' not in t
+                if over: t['patch']+=' '+over
+                if eq: t['fx']=[{'type':'eq','bands':eq.split('|')}]
+                if fader: t['gain']=f"{float(t['gain'][:-2])+float(fader):g}dB"
+            if t['name']=='longbow' and bow:
+                t['patch']=' '.join([x for x in t['patch'].split() if not x.startswith('synth.pitch.value=')]+[bow])
         if target:
             doc['loudness']=float(target)
     return doc,marks
