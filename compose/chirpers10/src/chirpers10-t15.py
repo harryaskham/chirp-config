@@ -279,7 +279,7 @@ LONG = os.environ.get('C10T15_LONG', '15;17;15;0;0;-9.9' if TEETH else '')
 # Benched raw against everything else and against the voices alone (K, whole stretch): see the round note. The
 # box's own weight (its fundamentals, 350-620 Hz) is cut 8 dB at 430 Hz: the choruses already stand 2.4 to 2.9 dB
 # over the records there, and what a concertina is heard by over a band is its reed (1-8 kHz).
-TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW') for k in os.environ)
+TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW', 'C10T15_PICK') for k in os.environ)
                       else '-4.5dB;0.35;-12dB;-3;hp cutoff=300|peak cutoff=430 q=0.8 gain=-8dB|peak cutoff=2500 q=0.7 gain=3dB;-9.85')
 # the chorus's tune as a concertina plays it, an octave over the crew: their notes where they sing them, a passing
 # note in the breath after 'haul', and two sixteenths up into the next bar. (sixteenth, length, note), a bar a line.
@@ -342,12 +342,54 @@ METAL = os.environ.get('C10T15_METAL', 'synth.layers.0.bright=0.72 synth.filters
 # alone; and each breath is a note fuller (F; F and A flat; F, A flat and C). On 'hold fast' it holds one C
 # through the bar, and that C is the first note of its tune. (Built first and dropped: the breath INSIDE the rest,
 # under the crew: the recogniser read 3 of the crew's 5 words without it and 0 or 1 with it.)
+def the_pick_stays_hard(doc):
+    """v18: under the palm the two hands' pick is half as soft, the walls' palm thumps less and closes two octaves;
+    the chest the harder pick takes comes back on each pair's eq."""
+    hands, walls, hands_eq, walls_eq, hands_fader, walls_fader, target = PICK.split(';')
+    for t in doc['tracks']:
+        if t['name'] in ('gl', 'gr'):
+            if hands:
+                t['patch'] += ' ' + hands
+            if hands_eq:
+                t['fx'] = [{'type': 'eq', 'bands': hands_eq.split('|')}]
+            if hands_fader:
+                t['gain'] = hands_fader
+        if t['name'] in ('wl', 'wr'):
+            if walls:
+                t['patch'] += ' ' + walls
+            if walls_eq:
+                assert t['fx'][0]['type'] == 'cab' and t['fx'][1]['type'] == 'eq', t['fx']
+                t['fx'] = [t['fx'][0], {'type': 'eq', 'bands': walls_eq.split('|')}]
+            if walls_fader:
+                t['gain'] = walls_fader
+    if target:
+        doc['loudness'] = float(target)
+
+
 # the fader ; the chord of each breath in order, '|' between (the last answers of the verse take them) ; the note
 # held on 'hold fast' ('' = none) ; dB under the fader a breath starts from ; eq bands, ',' between ; the hall
 # send ; pan ; the loudness target ('' = unchanged) ; dB on the held note (fader + this = -4.5, the fader the tune
 # begins on) ; beats a breath lasts.
 # "" = v16 byte for byte.
 DRAW = os.environ.get('C10T15_DRAW', '0dB;F4|F4,Ab4|F4,Ab4,C5;C5;-14;hp cutoff=300,peak cutoff=430 q=0.8 gain=-8dB,highshelf cutoff=2500 gain=-4dB;-12dB;-0.35;;-4.5;2' if METAL else '')
+# v18 (chirper-zero, instrument round: the guitars' stroke): THE PICK STAYS HARD UNDER THE PALM. On six records a
+# chug's low end (100-250 Hz) HOLDS through the stroke (riffpunch --strokes, `tight` -1.10; -2.2 to +0.3); ours
+# fell: +0.95 on the two hands in verse one, +1.61 on the four in chorus two, +1.50 on the wall pair alone.
+# chirper-three found why on Still Owing (v26): the rig softens its pick by the palm's weight
+# (`synth.layers.0.soft=expr.pm`), and that soft pick is the thud that dies. Here the same half-soft pick on the
+# two hands (0.3 of it reads +0.03, 0.7 +0.39, 0.5 -0.34). THE WALL PAIR IS ANOTHER STRING (ct-wall, no `soft`):
+# its fall is the palm's THUMP (`thump` = 0.5 of the palm; at 0: -1.23, punch 3.65 -> at 0.2: -0.88 and 3.57,
+# kept inside the records' 3.5 to 4.2) and its palm still closed the filter 3.4 octaves where the two hands' has
+# closed two since v12 (the walls' scoop -8.2 -> -11.0; the records' -11.3).
+# A harder pick takes the CHEST from the rig alone (cabspec, 71-141 Hz +1.2 -> -1.0, 141-282 Hz -2.3 -> -4.0), so
+# the track eq gives it back lower and wider (165 Hz +7 dB for 185 Hz +2.5; the walls 190 Hz +6.5 for 220 +3),
+# and the faders hold each pair's loudness alone (-20.7 / -21.2 LUFS before, -20.6 / -21.2 after).
+# No note is touched: every muted stroke keeps its full palm (the weight is not lifted here).
+# the two hands' patch, added ; the walls' patch, added ; the two hands' eq, '|' between ; the walls' eq after
+# their cabinet ; the two hands' fader ; the walls' fader ; the loudness target.
+# "" = v17 byte for byte.
+PICK = os.environ.get('C10T15_PICK', 'synth.layers.0.soft=expr.pm*0.5;synth.layers.0.thump.mod.0.amount=0.2 synth.filters.0.cutoff.mod.0.amount=-2;'
+                      'peak cutoff=165 q=1 gain=7dB|peak cutoff=800 q=1.2 gain=-4dB;peak cutoff=190 q=1 gain=6.5dB;1.3dB;-1.3dB;-9.69' if DRAW else '')
 BARK = 'kidman synth.layers.0.diction=2 synth.layers.0.speech=1'
 # five men: the kit piece, where in the spread his foot lands (0..1), how hard against the others, his board's
 # note, where he stands, how long his board rings (ms)
@@ -1029,6 +1071,8 @@ if __name__ == '__main__':
         the_metal_comes_up(doc)
     if DRAW:
         the_box_draws(doc, marks)
+    if PICK:
+        the_pick_stays_hard(doc)
     if os.environ.get('C10T15_SHOW'):
         for sec, bars in FORM:
             t = marks[sec]
