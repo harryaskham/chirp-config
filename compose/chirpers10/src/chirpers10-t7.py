@@ -410,6 +410,46 @@ MIDDLE = os.environ.get("C10T7_MIDDLE", "0.382,0.618;peak cutoff=700 q=0.9 gain=
 # phrase rises ('' = no phrase) ; semitones under the scale it sounds (12: the register of its second phrase) ;
 # dB on its notes ; its velocity ; the loudness target ('' = unchanged). "" = v27 byte for byte.
 AGAIN = os.environ.get("C10T7_AGAIN", "mirror;1;12;3;0.88;") if MIDDLE else ""
+# v29 (chirper-two; whole song): THE RULE IS SUNG AGAIN, TWO SIZES LARGER, AND THE TWO SINGERS END TOGETHER.
+# The song says one pattern at many sizes at once, and its harps say it in canon (v2: the same tune on cells of 3 and
+# 2, of 5 and 3, of 8 and 5). v25 gave the first quiet section a singer, at the smallest size. Nothing sang again. Now
+# the LAST quiet section (3:48.75-4:15.75, the three harps) has a second singer, a woman, and she sings the same
+# sentence ON THE SLOWEST HARP'S CELLS (8 and 5 sixteenths): each phrase is still a line of the rule (L, LS, LSL,
+# LSLLS, LSLLSLSL), so her lines last 8, 13, 21, 34 and 55 sixteenths where his lasted 3, 5, 8, 13 and 21: every line
+# of hers is his, two lines on (55 : 21 = the ratio twice over). 'Break' falls where the band stops, as at 0:43.7,
+# and the two say it together an octave apart; her other four lines run end to end and end with the section
+# (13 + 21 + 34 + 55 = 144 - 21), each ending where a chord ends. Her notes are the slowest harp's own for those
+# cells, an octave over it (the middle harp plucks her very note at every syllable: the canon's voices agree where
+# the big cells begin). For her last line the FIRST SINGER comes back at his own size, with the whole of his last
+# line (the last 21 sixteenths, 4:11.8): he sings 'as the longer to what remains' while she sings 'what remains',
+# and they end on the same syllable where the band comes in. The whole is to the longer as the longer to what
+# remains: her line, his line, the three words they share.
+# HER VOICE: voice-legato with a smaller tract (0.86), dry, a little of the harps' hall. Against the records' voices
+# (voxref), 250 Hz to 8 kHz: +0.7 +1.0 -1.3 -0.7 -2.7 (the first singer +6.0 -1.9 -1.1 +1.6 -0.2). Syllables evened
+# by note (they came 8.5 dB apart; 3.8 now, 1.5 within a line); the line over the one slow harp alone (3:59.1) is
+# sung 3 dB under the others, the last line 1.5 under. A line's last syllable is held 0.6 of its cell (her breath);
+# 'what' is cut to 0.8 (a stop needs its closure: the recogniser wrote 'remains' only so).
+# THE SECTION STAYS THE QUIET ONE. A voice that sings nearly all through raised this section 3.8 dB as mastered
+# (K -17.1 -> -13.3: louder than the other two quiet sections, 2.6 dB under the band). So what the singers add,
+# everything under them gives up: the three harps, the clean chords, the bass, the foot and the ride are 4.2 dB
+# lower here (3.9 as mastered), and the section reads K -17.09 for v28's -17.06 (seeds 0 and 11: -17.06 for
+# -17.25, -17.26 for -17.25). The target -9.39 -> -9.436 puts every other section within 0.02 dB of v28 on three
+# seeds. Raw, against everything else: her lines +1.8, +2.2, +4.3 (the exposed one), +0.7; in the last 21 he stands
+# 0.6 over her.
+# NOT MEASURED BY THE SCORER AS A GAIN: 99.838 / 99.859 -> 98.294 / 98.501, all of it one term, variety, and one
+# seam: at five of its seven cuts it no longer cuts the section where the fast harp returns (4:09.4), because a
+# voice now sings across it, so it scores the hush together with the band's return (level range 7.3 -> 4.3 dB;
+# at the two cuts that still fall there, 6.9). Kept on judgment.
+# the quiet section (from 0) ; the size of cell the new singer sings on (2: cells of 8 and 5 sixteenths, the slowest
+# harp's) ; her voice ; her fader ; pan ; semitones against the harp's scale as written (POOL) ; velocity ; her eq,
+# band|band ; hall send ('' = none) ; dB on each of her nineteen syllables ('' = none) ; a ceiling for her peaks,
+# before her fader ('' = none) ; how much of a line's last syllable she holds (the rest is her breath) ; how much of
+# a syllable that ends in a stop, inside a line ('' = all of it) ; the lines the first singer sings with her, at his own size ('' = none) ; dB on his syllables there ('' = as at 0:44) ; dB on
+# everything else in the section, the three harps, the clean chords, the bass, the foot and the ride ('' = as they were) ;
+# the loudness target ('' = unchanged). "" = v28 byte for byte.
+LARGER = os.environ.get("C10T7_LARGER", "6;2;voice-legato synth.layers.0.diction=3 synth.layers.0.ring=1.0 synth.layers.0.effort.value=0.8 fx.0.mix=0 synth.layers.0.tract=0.86;"
+                                        "-16.6dB;0.2;0;0.8;hp cutoff=250|lowshelf cutoff=700 gain=-8dB|peak cutoff=2500 q=0.7 gain=5dB|highshelf cutoff=6000 gain=3dB;-12dB;"
+                                        "3.2,2.6,-3.1,0.7,-2.4,0.5,-3.2,5.4,-6.4,-6.6,-11,-5.4,-4,-3.3,-3.2,5.5,-3.3,-0.3,-2.3;-12dB;0.6;0.8;1,5;-5.7;-4.2;-9.436") if AGAIN and SUNG and REVEAL and CANON else ""
 # Euclid's definition in nineteen syllables, cut by the rule: phrases of 1, 2, 3, 5 and 8 syllables
 WORDS = [("B R EY1 K",), ("W AH1 N", "L AY1 N"), ("S OW1", "DH AH0", "HH OW1 L"), ("IH1 Z", "T UW1", "DH AH0", "L AO1 NG", "G ER0"),
          ("AE1 Z", "DH AH0", "L AO1 NG", "G ER0", "T UW1", "W AH1 T", "R IH0", "M EY1 N Z")]
@@ -1424,6 +1464,78 @@ def the_line_before_again(doc):
         doc["loudness"] = float(loud)
 
 
+def the_rule_is_sung_larger(doc):
+    """v29: in the last quiet section a second singer sings the same sentence on the slowest harp's cells (8 and 5
+    sixteenths), each line a line of the rule at that size and each ending where a chord ends; the first singer says
+    the first word with her and joins her for the last line, at his own size. They end together where the band returns."""
+    sec, k, patch, gain, pan, semis, vel, eq, hall, trims, top, hold, stop, his, his_db, back, loud = LARGER.split(";")
+    s0, kind, n = SECS[int(sec)]
+    k = int(k)
+    assert kind == "S" and int(sec) != int(SUNG.split(";")[0])
+    chords = [c[0] - s0 for c in LEV[5] if s0 <= c[0] < s0 + n]            # 0, 34, 55, 89, 123
+    big = [c for c in LEV[k] if s0 <= c[0] < s0 + n]                       # her harp's cells: 21 of them
+    first = {c[0] - s0: i for i, c in enumerate(big)}
+    tune = harp_tune(8)
+    lens = [sum(SIZE[k][c == "S"] for c in word(line)) for line in range(1, 6)]      # 8, 13, 21, 34, 55
+    starts = [0] + [n - sum(lens[j:]) for j in range(1, 5)]                # the first word where the band stops; the rest end with the section
+    assert starts == [0, 21, 34, 55, 89] and all(p + ln in chords + [n] for p, ln in zip(starts[1:], lens[1:]))     # each line ends where a chord ends
+    trim = [float(x) for x in trims.split(",")] if trims else [0.0] * 19
+    assert len(trim) == 19
+    notes = []
+    for p, phrase, line in zip(starts, WORDS, range(1, 6)):
+        cs = big[first[p]:first[p] + len(phrase)]
+        assert "".join(c[1] for c in cs) == word(line)                     # each phrase IS a line of the rule, two sizes up
+        for j, ((q, _, m), ph) in enumerate(zip(cs, phrase)):
+            step = tune[first[p] + j]                                      # her harp's own note for that cell
+            fill = float(hold) if j == len(phrase) - 1 and line < 5 else float(stop) if stop and ph.split()[-1] in ("T", "K", "P", "D", "G", "B") and j < len(phrase) - 1 else 0.98
+            notes.append({"at": round(q / 4, 4), "len": round(m / 4 * fill, 4), "pitch": nm(POOL[step] + KEY[int(sec)] + int(semis)),
+                          "vel": float(vel), "ph": ph, **({"gain": f"{trim[len(notes)]:g}dB"} if trim[len(notes)] else {})})
+    assert round(notes[-1]["at"] * 4) + big[-1][2] == s0 + n               # her last word ends where the band comes back
+    doc["tracks"].append({"name": "sung2", "patch": patch, "gain": gain, "pan": float(pan), **({"sends": {"hall": hall}} if hall else {}),
+                          "fx": ([{"type": "eq", "bands": eq.split("|")}] if eq else []) + ([f"clip drive=0dB ceiling={top}"] if top else []), "notes": notes})
+    if his:
+        # the first singer, at his own size, on his own notes (the_rule_is_sung's, in this section): only the lines named
+        _, _, _, _, hsemis, hvel, _, _, htrims, _, _ = SUNG.split(";")
+        htrim = [float(x) for x in htrims.split(",")] if htrims else [0.0] * 19
+        riff = [c for c in LEV[0] if s0 <= c[0] < s0 + n]
+        rfirst = {c[0] - s0: i for i, c in enumerate(riff)}
+        track = next(t for t in doc["tracks"] if t["name"] == "sung")
+        base = [0, 1, 3, 6, 11]                                            # where each line's syllables begin among the nineteen
+        for item in his.split(","):                                        # LINE, or LINE@SIXTEENTH (where in the section it begins)
+            line = int(item.split("@")[0])
+            p, phrase = int(item.split("@")[1]) if "@" in item else chords[line - 1], WORDS[line - 1]
+            cs = riff[rfirst[p]:rfirst[p] + len(phrase)]
+            assert "".join(c[1] for c in cs) == word(line)
+            for j, ((q, _, m), ph) in enumerate(zip(cs, phrase)):
+                g = htrim[base[line - 1] + j] + (float(his_db) if his_db else 0.0)
+                track["notes"].append({"at": round(q / 4, 4), "len": round(m / 4 * 0.98, 4), "pitch": nm(POOL[tune[rfirst[p] + j]] + KEY[int(sec)] + int(hsemis)),
+                                       "vel": float(hvel), "ph": ph, **({"gain": f"{round(g, 2):g}dB"} if g else {})})
+        assert round(track["notes"][-1]["at"] * 4) + riff[-1][2] == s0 + n   # and so does his
+    if back:
+        # the section stays the quiet one: everything that plays under the singers steps back
+        b = float(back)
+        shift = lambda g: f"{float(g[:-2]) + b:g}dB"
+        for t in doc["tracks"]:
+            if t["name"] in ("sung", "sung2") or t.get("out") == "low":
+                continue                                                   # the bass: its bus's lane, below
+            if "gen" in t and t.get("at") == f"{s0 / 4:g}b":               # the three harps
+                if isinstance(t["gain"], dict):
+                    t["gain"]["value"] = shift(t["gain"]["value"])
+                else:
+                    t["gain"] = shift(t["gain"])
+            for x in t.get("notes", []):
+                if s0 <= round(x["at"] * 4, 3) < s0 + n:
+                    x["gain"] = shift(x.get("gain", "0dB"))
+        pts = doc["buses"]["low"]["auto"]["quiet"]["points"]
+        ends = (f"{s0 / 4:g}b", f"{(s0 + n) / 4 - 0.02:g}b")
+        assert sum(pt[0] in ends for pt in pts) == 2
+        for pt in pts:
+            if pt[0] in ends:
+                pt[1] += b
+    if loud:
+        doc["loudness"] = float(loud)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T7_SHOW"):
         sec = 15 / BPM
@@ -1437,4 +1549,6 @@ if __name__ == "__main__":
         doc = song()
         if AGAIN:
             the_line_before_again(doc)
+        if LARGER:
+            the_rule_is_sung_larger(doc)
         open(OUT, "w").write(dump(doc))
