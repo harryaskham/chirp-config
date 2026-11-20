@@ -289,6 +289,30 @@ ACROSS = os.getenv('C10T11_ACROSS', '10;-1.5,1.5;0.25;;1' if STRIDE else '')
 # each ; the kind of room ; the return's low cut (24 dB an octave) and high cut, Hz ; its predelay, ms ; the
 # loudness target ('' = unchanged). '' = v23 byte for byte.
 ROOM = os.getenv('C10T11_ROOM', '8;12,16,24,36;3;0,0,1,3.5;hall;800,6000;25;-9.83' if ACROSS else '')
+# v25 (chirper-three; section round on w4, 1:20-1:46, the one window nobody had marked; the change is the bridge,
+# 1:30-1:48.3): THE BOW SAYS THE RIFF ONCE, AS LONG AS THE BRIDGE. The song's law is that the riff never changes and
+# the walk under it does; the walks have gone at half speed (v13), double (v18), in twelve (v20) and down to one step
+# (v22). The riff itself had never been slowed. The bridge is eight cells and the riff is one, so the bow (four
+# notes at the very end, until now) plays the first riff's four open notes EIGHT TIMES SLOWER, each at its own place:
+# B flat at 1:30.0 (the chord at 0), D flat at 1:35.8 (the answer at 7), B flat at 1:40.0 (the chord at 12), F at
+# 1:45.8 (the delayed answer at 19). Each is held until the riff's next clipped stroke, eight times later, stops it;
+# the last of those falls at 1:48.33, which is where v21 brings the first guitar in on its clipped strokes. So the
+# slow riff's last mute IS the guitar's entry. Over the bridge's four grounds the same four notes are root, fifth,
+# fifth, root (B flat over B flat, D flat over G flat, B flat over E flat, F over F), and the two answers come in
+# 0.83 s after their grounds, as they are late in the riff. Nothing else is touched: a track of its own, last.
+# The bow's strokes here are 2.5 and 3.3 s long, not 0.7: the swell takes 1.2 s to its peak (the end's: 0.3), and
+# the string is trimmed 5 cents down (it read 3 to 8 cents sharp; now within 3).
+# MEASURED (raw, each note against everything else, K): -7.3, -9.7, -6.3, -9.7 dB; the organ's melody over the same
+# stretches -6.6 to -5.4 (it was -5.6 to -4.9), the clean guitar -11.0 to -8.9 (-10.5 to -8.4). The bow's first
+# harmonic stands 6 to 13 dB over what else is in its third-octave. The bridge is 0.4 to 0.5 dB louder; the target
+# moves -9.83 -> -9.81 so that every stretch the bow does not sound in is within 0.006 dB of v24 on three seeds.
+# THE SCORE FALLS (93.6 / 95.2 / 94.3 -> 92.3 / 94.4 / 91.7) and is kept on judgment: the recurrence term had been
+# counting the quiet bridge as a return of the quiet opening (0:00-0:10), and with a bow in it the two match less
+# (0.53 -> 0.50 on a ramp that starts at 0.45). It does not follow the bow's level (-13 dB: the same).
+# how many times slower (the bridge is eight cells) ; the bow's register over the low string, semitones (the end's
+# bow: 24) ; 'mute' = each note held until the riff's next clipped stroke, 'next' = until the next note ; its track's
+# fader ; overrides on the bow for these long strokes ; the loudness target ('' = unchanged). '' = v24 byte for byte.
+LONG = os.getenv('C10T11_LONG', '8;24;mute;-10dB;synth.env.swell.a=1200ms synth.env.swell.d=1500ms synth.pitch.value=-0.05;-9.81' if ROOM and BOW and ROD else '')
 
 
 def BOW_PATCH():
@@ -795,6 +819,21 @@ def make():
                 tracks.append(tr(f'far-{w}','ct-kit'+SNARE_PATCH,faders[w]+'dB',0,f'room-{w}'))
                 doc['buses'][f'room-{w}']={'fx':[f'reverb kind={kind} decay={w/SUB*60/BPM*float(scale):.4g}s mix=1 predelay={pre}ms high_cut={hi} width=1',
                                                  {'type':'eq','bands':[f'hp cutoff={lo}',f'hp cutoff={lo}']}]}
+        if target:
+            doc['loudness']=float(target)
+    if LONG:
+        # v25: the first riff's four open notes, each at its own place in the cell times `slow`, each held until the
+        # riff's next clipped stroke (times `slow`) stops it. A track of its own, last, so that no other part moves.
+        slow,up,hold,fader,over,target=LONG.split(';')
+        slow=int(slow); a=marks['bellows']
+        assert slow*CELL<=dict(FORM)['bellows']*CELL and hold in ('mute','next')
+        opens=[t for t,_,_,kind in RIFF if kind!='m']
+        for t,_,semi,kind in RIFF:
+            if kind!='m':
+                catch=next(u for u,_,_,k in RIFF if u>t and k=='m')
+                until=catch if hold=='mute' or t==opens[-1] else next(u for u in opens if u>t)-.25
+                put('longbow',a+slow*t,slow*(until-t),HOME+int(up)+semi,.88)
+        tracks.append(tr('longbow','oih-bow'+(' '+over if over else ''),fader,-.15))
         if target:
             doc['loudness']=float(target)
     return doc,marks
