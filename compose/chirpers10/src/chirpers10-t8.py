@@ -313,6 +313,44 @@ TOLL = os.environ.get('C10T8_TOLL', '-1;2.5;1.2s;-19.5dB;-6;-14dB;0.8;-3;-10.155
 OCTAVE = os.environ.get('C10T8_OCTAVE', 'fx.2.bands.0.gain=12dB fx.2.bands.1.gain=6dB fx.2.bands.2.cutoff=540 fx.2.bands.2.q=0.7 '
                                         'fx.2.bands.2.gain=-3dB fx.2.bands.3.cutoff=1150 fx.2.bands.3.q=1.2 fx.2.bands.3.gain=9dB '
                                         'synth.layers.1.level=-20dB;;the measure;-10.12' if TOLL else '')
+# v27 (chirper-two; the draw was a whole-song round, taken as the one instrument that is in every bar of the song but
+# the afterword: the snare, all 231 strokes; no stroke moves, nothing else is touched): THE SNARE IS TUNED TO THE
+# RECORDS'. v24's and v26's handoffs both left it: 'this song's snare has not been fitted'. Read with
+# tools/snarespec.py (the snare alone, at its own strokes, as a shape by thirds of an octave beside six records' snares).
+#   WHAT WAS WRONG, ALONE: its NOTE sat in the 250 Hz band (+6.3 dB over the records' shape) with nothing at 200 Hz,
+#       where theirs is (-17.5); humps at 1 and 1.25 kHz (+7.5, +7.0) and at 2 and 2.5 kHz (+4.6, +6.4); its wires 5.0 dB
+#       under its crack (theirs 0.4 over); a stroke took 86 ms to fall 20 dB (theirs 66). Mean distance from the
+#       records' shape, 160 Hz-5 kHz: 5.23.
+#   IN THE BAND (raw, the four pairs): the snare alone held 31% of everything at 250-500 Hz and 23%, 23%, 20% of the
+#       three octaves above; it is 63 to 89% of the kit from 250 Hz to 4 kHz, where the kit read +4.9, +7.7, +5.3,
+#       +3.7 dB over the records' kits by part.
+#   THE CURE, where each fault is made (In the Time Of v26's and Extreme and Mean v26's findings), then eq: the drum a
+#       tone lower (A3 -> G3: its note at 196 Hz); the head's modes 24 -> 10 (the hump at 1-1.25 kHz); slap 1.2 -> 0.5
+#       (the crack at 2.5 kHz); the head damped (0.3 -> 0.9: the knock at 630 Hz and 1 kHz) under a shorter touch of
+#       the stick (contact 0.6 -> 0.45); the kit's +5 dB at 200 Hz to -1.5 (the note is there now); a shorter drum
+#       (envelope 140 -> 110 ms, head 0.18 -> 0.15 s); on the track 3 dB off at 2.5 kHz and 2 dB on at 5 kHz, the
+#       7 kHz shelf kept; the fader 3.5 -> 5 dB.
+#   AFTER, ALONE: distance 2.82; 200 Hz +0.3 and 250 Hz -0.9; 1 and 1.25 kHz +3.9, +4.0; 2 and 2.5 kHz +1.2, +3.0;
+#       wires 1.8 under the crack; body against crack -3.2 (records -2.9; it was -4.2); the fall 70 ms; the fall in a
+#       stroke's first 50 ms 11.9 -> 13.4 dB (records 12.2 to 17.9: it was outside). COST: 630 and 800 Hz read
+#       +3.5 and +5.0 over the shape (they were +2.5, +3.2): see the next line.
+#   THE MIX CHOSE THE BUILD AND THE LEVEL (the README's caution: a snare's box can be standing in for a mix that is
+#       short there). 31 builds alone, 14 of them read in the mix. The two nearest the records ALONE (distance 2.20
+#       and 2.31, each with a cut at 700 Hz) left the MIX further from the records than v26 was (their passages
+#       with no voice: 0.817 -> 0.830 and 0.973). This one, with no cut there: 0.817 -> 0.776, and 1.084 -> 1.041
+#       against their mixes. The same drum 1 dB louder, its stroke back near where it stood: 0.819.
+#   AFTER, IN THE BAND: the snare's share 31 -> 19% at 250-500 Hz, 23 -> 8% at 1-2 kHz, 20 -> 9% at 2-4 kHz (23% at
+#       500 Hz-1 kHz, as before); by part the kit +4.9 -> +3.9, +7.7 -> +7.9, +5.3 -> +1.2, +3.7 -> +1.1. A stroke's
+#       first 30 ms stand 4.2 dB over everything else (5.6), its first 100 ms 0.9 (2.8).
+#   THE TARGET -10.12 -> -10.236: with less of the snare in the long-term level the same target gave every bar with
+#       no snare in it 0.2 dB more; this puts them back within 0.03 dB on three seeds (1.73 dB of gain per dB of target).
+# kit overrides on the snare's track ; the track's eq, band|band ('' = unchanged: the high shelf alone) ; its fader
+# ('' = unchanged) ; the loudness target ('' = unchanged). "" = v26 byte for byte.
+SNARE = os.environ.get('C10T8_SNARE', 'kit.s.pitch=G3 kit.s.patch.synth.layers.0.mode_count=10 kit.s.patch.synth.layers.0.slap=0.5 '
+                                      'kit.s.patch.synth.amp.d=110ms kit.s.patch.synth.layers.0.decay=0.15s kit.s.patch.synth.layers.0.damp=0.9 '
+                                      'kit.s.patch.synth.layers.0.contact=0.45 kit.s.patch.synth.filters.1.gain=-1.5dB;'
+                                      'highshelf cutoff=7000 gain=-3dB|peak cutoff=2500 q=1.5 gain=-3dB|peak cutoff=5000 q=1 gain=2dB;5dB;-10.236'
+                      if OCTAVE else '')
 
 
 def nm(n):
@@ -1088,7 +1126,24 @@ def song():
         the_bells_put_back(doc)
     if OCTAVE:
         the_bass_leans_on_its_octave(doc)
+    if SNARE:
+        the_snare_is_fitted(doc)
     return doc
+
+
+def the_snare_is_fitted(doc):
+    """v27: the album's snare tuned and shaped to the records' snares for this song (tools/snarespec.py)."""
+    over, bands, fader, target = SNARE.split(';')
+    snare = next(t for t in doc['tracks'] if t['name'] == 'snare')
+    if over:
+        snare['patch'] += ' ' + over
+    if bands:
+        assert snare['fx'] == [{"type": "eq", "bands": ["highshelf cutoff=7000 gain=-3dB"]}]
+        snare['fx'] = [{'type': 'eq', 'bands': bands.split('|')}]
+    if fader:
+        snare['gain'] = fader
+    if target:
+        doc['loudness'] = float(target)
 
 
 def the_bass_leans_on_its_octave(doc):
