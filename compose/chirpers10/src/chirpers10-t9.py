@@ -322,6 +322,34 @@ SNARE = os.environ.get('C10T9_SNARE', 'G3;synth.layers.0.mode_count=10 synth.lay
 # the section ; the tick's note ; the tock's ; the tick's decay ; the tock's ; the fader ; velocity over the hat's ;
 # the track's fx ('' = dry) ; pan ; the loudness target ('' = unchanged). "" = v26 byte for byte.
 CLOCK = os.environ.get('C10T9_CLOCK', 'one to the beat;C7;F6;60ms;90ms;-17dB;0.3;reverb kind=room decay=0.4s mix=0.12;0;' if SNARE else '')
+# v28 (chirper-two; palette: THE SWAP is the nylon-string guitar of 'six' for a sitar; no note changes).
+# Every speed in this song has a guest of its own. Read one by one against everything else while they sound (raw,
+# K-weighted), the six strings stood lowest of all the pitched guests: 11.1 dB under (the bell 5.9, the baritone and
+# the clavinet 6.1 and 5.0, the tap 5.3 and 8.4, the tabla 5.1 and 8.7, the organ 8.9), and they held no band: 19% of
+# the passage at 250 Hz-1 kHz, 10% at 2-4 kHz. A nylon string's energy is its body, and 'six' is 0.7 dB over the
+# records at 250-500 Hz and 1.3 short at 2-4 kHz. v16 turned it down 3 dB for that body.
+#   WHY A SITAR. (1) It is the same six strings (one school of the instrument strings it with six), and its buzz
+#       lies where the passage has room: alone it has 8.1 dB less of itself at 250-500 Hz than at 2-4 kHz (the nylon
+#       1.8 dB less). (2) The song already counts five and seven on a tabla (v14, v18); six lay between them with a
+#       Spanish guitar. (3) THE STRINGS WERE ALREADY TUNED TO IT: F, G flat, A flat, B, C, F is Sa, flat Re, flat Ga,
+#       sharp Ma, Pa, Sa, and the tap's E over the cadence is the Ni: every note of 'six' is a note of Todi, and only
+#       its sixth is missing. Nobody chose that; the riff's two answers did.
+#   BENCHED on the same notes at the same fader (K against everything else over its fourteen beats; share of the
+#       passage at 250-500 Hz / 2-4 kHz): the nylon -11.7, 19% / 10%; the library's steel-string acoustic -12.4,
+#       9% / 11% (its place is above 8 kHz); its six-string guitar -10.3, 41% / 11% (all body); the sitar -8.2,
+#       12% / 26%.
+#   THE SITAR HERE: damped to stop where the cadence starts as the guitar did (release 400 ms: 24 dB down half a
+#       beat after its last stroke; the library's rings 12 dB down there), less hall, its top rolled off (the
+#       library's is a third of the passage's 4-8 kHz), fader -10 dB. It stands 8.8 dB under everything else (the
+#       tap in the same bars 8.4) and holds 14, 36, 16, 25 and 16% of the passage from 250 Hz to 8 kHz. Its F3
+#       sounds 1.2 to 1.8 cents over the note on every one of its first eight harmonics. The return in A flat (one
+#       pass, 2:35.7) at -7 dB stands 5.7 under (7.8).
+#   THE READ, 'six' against the eleven records' passages with no voice: 0.500 -> 0.411 (its ten seconds 0.544 ->
+#       0.422): 250-500 Hz +0.7 -> +0.3, 2-4 kHz -1.3 -> -0.9; cost 500 Hz-1 kHz 0.0 -> +0.3, 4-8 kHz +0.2 -> +0.4.
+# the instrument and its overrides ; the fader of the six strings ; of their return in A flat ; eq on both tracks,
+# band|band ('' = none) ; the loudness target ('' = unchanged). "" = v27 byte for byte.
+SITAR = os.environ.get('C10T9_SITAR', 'sitar fx.0.mix=0.1 synth.amp.r=400ms synth.filters.3.cutoff=5k;-10dB;-7dB;'
+                                      'highshelf cutoff=4500 gain=-5dB;' if CLOCK else '')
 WALK = []
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
@@ -1072,6 +1100,23 @@ def the_opening_has_a_clock(doc):
         doc["loudness"] = float(loud)
 
 
+def the_six_strings_are_a_sitars(doc):
+    """The same six strings, the same tuning and every stroke where it was: only the instrument changes."""
+    spec, fader, fader_ab, bands, loud = SITAR.split(";")
+    for name in ("it-six", "it-six-ab"):
+        assert doc["patches"][name]["extends"] == "nylon"
+        doc["patches"][name] = {"extends": spec, "play": doc["patches"][name]["play"]}
+    for name, level in (("six", fader), ("six-ab", fader_ab)):
+        tr = next(t for t in doc["tracks"] if t["name"] == name)
+        assert "fx" not in tr
+        if level:
+            tr["gain"] = level
+        if bands:
+            tr["fx"] = [{"type": "eq", "bands": bands.split("|")}]
+    if loud:
+        doc["loudness"] = float(loud)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T9_SHOW"):
         end = compose()
@@ -1100,4 +1145,6 @@ if __name__ == "__main__":
             the_snare_at_the_head(doc)
         if CLOCK:
             the_opening_has_a_clock(doc)
+        if SITAR:
+            the_six_strings_are_a_sitars(doc)
         open(OUT, "w").write(dump(doc))
