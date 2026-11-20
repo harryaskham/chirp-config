@@ -455,6 +455,28 @@ BELL = {'snare': 'kit.s.patch.synth.filters.1.gain=-3dB kit.s.patch.synth.layers
 # 'loudness': the target (None = unchanged). --without-string gives v16. (--string '{"mix": [...]}': a bench.)
 STRING = {'hz': 43.675, 'decay': '8s', 'mix': (0, 0.2, 0.4, 0.6), 'trim': (0, -1.1, -2.2, -3.3), 'high': (34, 0.5), 'wheel': (0.3, -2.8),
           'ramp': 0.25, 'loudness': -9.589}
+# v18 (chirper-one, whole song): THE HORN HOLDS THE NUMBER BEING TRIED. A natural horn in F has no valves: its notes
+# are the harmonics of its tube, and the tube of a horn in F sounds this song's low F (43.65 Hz). Its sixteen open
+# notes ARE the first sixteen numbers, the seventh, eleventh, thirteenth and fourteenth as flat or sharp as the tube
+# makes them (Harry: 'True harmonics: keep them'). So a horn can say which number a walk is trying, and nothing in
+# the song did: a walk begins on its number and never comes back to it (no walk does; that is the conjecture's other
+# half), and thirty seconds in nobody could tell seven's walk from nine's. Now the horn sounds the walk's number as
+# the walk begins and HOLDS it to the walk's end, taking a new breath wherever the walk is trebled (the leap) and at
+# least every `cap` sixteenths. Over the song it climbs its own tube a step a walk: C3, F3, A3, C4, the flat seventh,
+# F4, G4, A4, the eleventh, [the two quiet walks stay plain], the fourteenth, E5, F5: the steps close as the numbers
+# rise. And when a walk comes home to one, the low F, the number it left is still sounding above it, as one of
+# that F's own harmonics: it was inside the one all along.
+# 'walks': which (one and two are over in half a second, and a horn cannot speak in a sixteenth; twelve and
+# thirteen are QUIET, "the rule heard plain"; the wheel tries nothing) ; 'patch' (no vibrato: a harmonic is where it
+# is; its filter a little open) ; 'gain' dB ; 'high': from this walk on, this many dB more (its note is then over
+# 500 Hz; under that the song is over the records at 250-500 Hz, hence the shelf) ; 'call': dB on a walk's first
+# note, the call ; 'pedal': dB on every breath after it (the long walks stood 0.7 to 1.1 dB further over at
+# 250-500 Hz with the pedal as loud as the call) ; 'pan' ; 'vel' ; 'breath' sixteenths of rest before a new note ;
+# 'cap' the longest held note where a number boundary allows ; 'eq' ; 'loudness' (None = unchanged).
+# --without-horn gives v17. (--horn '{"gain": -9}': a bench.)
+HORN = {'walks': (3, 4, 5, 6, 7, 8, 9, 10, 11, 14, 15, 16), 'patch': 'horn synth.pitch.mod.0.amount=0 fx.0.mix=0.2 synth.filters.1.cutoff.value=1100',
+        'gain': -12.0, 'high': (12, 3.0), 'call': 3.0, 'pedal': -2.0, 'pan': -0.15, 'vel': 0.6, 'breath': 1, 'cap': 80,
+        'eq': ['hp cutoff=110', 'lowshelf cutoff=450 gain=-6dB'], 'loudness': None}
 
 
 def true(ratio):
@@ -831,6 +853,8 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print where each walk starts')
     ap.add_argument('--without-storeys', action='store_true', help='regenerate v1: 160 and 80 without the phrases of 80 and 40 under them')
     ap.add_argument('--string', help='a bench: STRING fields to change, as a JSON object')
+    ap.add_argument('--horn', help='a bench: HORN fields to change, as a JSON object')
+    ap.add_argument('--without-horn', action='store_true', help="regenerate v17: nothing holds the number a walk is trying")
     ap.add_argument('--without-string', action='store_true', help="regenerate v16: the ondes through its own palme only, a tempered octave of strings that its harmonics do not ring")
     ap.add_argument('--without-bell', action='store_true', help="regenerate v15: the album's snare as it comes, and a closed hat where a number has been said twice before")
     ap.add_argument('--without-hand', action='store_true', help="regenerate v14: every muted stroke at a full palm, which closes the string's filter to 1 kHz")
@@ -849,7 +873,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
-    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string'))
+    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn'))
     if not a.without_china and newest:
         metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
         metal['patch'] += ' ' + CHINA['kit']
@@ -913,6 +937,31 @@ if __name__ == '__main__':
             stone['auto']['even'] = lane(STRING['trim'], STRING['wheel'][1], STRING['high'][1])
         if STRING['loudness'] is not None:
             doc['loudness'] = STRING['loudness']
+    if not a.without_horn and not a.without_string and not a.without_bell and not a.without_hand and not a.without_china and newest:
+        if a.horn:
+            HORN.update(json.loads(a.horn))
+        notes = []
+        for k, at in marks:
+            if k not in HORN['walks']:
+                continue
+            w, pos, start, held = walk(k), at, at, 0
+            for i, n in enumerate(w):
+                leapt = i > 0 and w[i - 1] % 2 == 1                        # this number was reached by trebling: a new breath
+                if i > 0 and (leapt or held + n > HORN['cap']):
+                    notes.append((start, pos - start))
+                    start, held = pos, 0
+                pos += n
+                held += n
+            notes.append((start, pos - start))
+        which = lambda s16: next(k for k, at in reversed(marks) if at <= s16)
+        firsts = {at for k, at in marks}
+        lift = lambda s: (HORN['high'][1] if HORN['high'] and which(s) >= HORN['high'][0] else 0) + (HORN['call'] if s in firsts else HORN['pedal'])
+        doc['tracks'].append({'name': 'horn', 'patch': HORN['patch'], 'gain': f"{HORN['gain']:g}dB", 'pan': HORN['pan'],
+                              **({'fx': [{'type': 'eq', 'bands': list(HORN['eq'])}]} if HORN['eq'] else {}),
+                              'notes': [{'at': round(s / SUB, 6), 'len': round(max(1, d - HORN['breath']) / SUB, 6), 'pitch': true(which(s)), 'vel': HORN['vel'],
+                                         **({'gain': f"{lift(s):g}dB"} if lift(s) else {})} for s, d in notes]})
+        if HORN['loudness'] is not None:
+            doc['loudness'] = HORN['loudness']
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
