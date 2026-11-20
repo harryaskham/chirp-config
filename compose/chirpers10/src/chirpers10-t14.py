@@ -455,6 +455,24 @@ COUNT = os.environ.get("C10T14_COUNT", "voice-hook synth.layers.0.diction=3 synt
 CLEAN = os.environ.get("C10T14_CLEAN", "ct-clean fx.3.mix=0 synth.pitch.mod.0.amount=0 synth.pitch.mod.1.amount=0 synth.layers.0.tune_sounding=true strum=20ms;"
                        "7.3dB;12;0.9;peak cutoff=350 q=0.9 gain=-5dB|peak cutoff=2800 q=0.8 gain=3dB;reverb kind=hall decay=1.6s mix=0.1 predelay=20ms;"
                        "-5:-5:-2;ss::14;-3;-10.62" if COUNT else "")
+# v15 (chirper-one; section round, w4, 1:33-2:05: the quiet middle, 'fourth', 1:41.6-2:11.0): THE MIDDLE IS COUNTED.
+# v13 gave the song two voices that count only where the drums are alone, at its two ends; v14 made the middle quiet
+# (two clean guitars, B flat every nine sixteenths and D flat every fifteen, a rim, a soft foot) and left "room" for
+# the tune there to be something other than the distorted lead. The tune in 'fourth' IS those numbers: its notes
+# last nine (B flat), fifteen (D flat) and twelve (F) sixteenths, with a quick turn of six and seven and a half
+# between. So in the one place the band is slow and quiet enough, the voices come back and sing the tune as what it
+# is: "nine, fifteen, twelve, nine, fifteen", each number as long as it says, on the tune's own note (the high voice
+# an octave over), while the left guitar strums B flat every nine and the right D flat every fifteen. The lead
+# rests on every note that is sung and answers with the quick turn, which has no whole number to say (seven and a
+# half). Per half of the section: five numbers sung, five notes played, two sung. The count is no longer a frame:
+# it is heard at the start, in the middle and at the end.
+# which of each half's twelve notes are sung ; octaves over the tune's note for the low voice and the high ; dB on
+# those notes ; how the two syllables of 'fifteen' share its fifteen sixteenths ; the loudness target ('' =
+# unchanged) ; overrides on the voice's patch here ; the two faders ; the eq here, band|band (any of the last three
+# puts the middle's singing on tracks of its own, said and said-high, so the frame's voices are not touched).
+# "" = v14 byte for byte.
+MIDDLE = os.environ.get("C10T14_MIDDLE", "0,1,2,3,4,10,11;0,1;0;4:11;;synth.layers.0.consonant_level=6dB;-15.5dB,-21.5dB;"
+                                         "hp cutoff=150|peak cutoff=2500 q=0.7 gain=5dB" if CLEAN else "")
 # a number is as long as it says, on the note of that length (the tune's own notes, NOTE_OF); two syllables share it
 NUMBER = {3: [("TH R IY1", 3)], 4: [("F AO1 R", 4)], 5: [("F AY1 V", 5)], 6: [("S IH1 K S", 6)], 7: [("S EH1", 3), ("V AH0 N", 4)],
           8: [("EY1 T", 8)], 9: [("N AY1 N", 9)], 10: [("T EH1 N", 10)], 11: [("IH0", 2), ("L EH1", 4), ("V AH0 N", 5)],
@@ -962,9 +980,56 @@ def song():
         doc["loudness"] = float(COUNT.split(";")[9])
     if CLEAN:
         the_quiet_middle(doc)
+    if MIDDLE and COUNT:
+        the_middle_is_counted(doc)
     if TUNED:
         doc = {k: v for k, v in list(doc.items())[:2]} | {"tuning": {"steps": JUST, "root": "F3", "map": "keys"}} | {k: v for k, v in list(doc.items())[2:]}
     return doc
+
+
+def the_middle_is_counted(doc):
+    """v15: in 'fourth' the voices sing the tune's long notes as their numbers, and the lead rests on them."""
+    sung, octaves, db, fif, loud, more, faders, eq = MIDDLE.split(";")
+    f = COUNT.split(";")
+    a, z = AT["fourth"] / 4, AT["common"] / 4
+    track = {t["name"]: t for t in doc["tracks"]}
+    notes = sorted((n for n in track["tune"]["notes"] if a <= n["at"] < z), key=lambda n: n["at"])
+    assert len(notes) % 12 == 0, len(notes)
+    said = {int(i) for i in sung.split(",")}
+    number = {**NUMBER, 15: [("F IH0 F", int(fif.split(":")[0])), ("T IY1 N", int(fif.split(":")[1]))]}
+    voices = [("count", int(octaves.split(",")[0]))] + ([("count-high", int(octaves.split(",")[1]))] if f[2] else [])
+    if more or faders or eq:                # the same two singers on tracks of their own: the frame's are not touched
+        for k, (tr, octave) in enumerate(list(voices)):
+            new = {**{x: y for x, y in track[tr].items() if x != "notes"}, "name": tr.replace("count", "said"), "notes": []}
+            if more:
+                new["patch"] += " " + more
+            if faders:
+                new["gain"] = faders.split(",")[k]
+            if eq:
+                new["fx"] = [{"type": "eq", "bands": eq.split("|")}] + [x for x in new.get("fx", []) if not (isinstance(x, dict) and x.get("type") == "eq")]
+            doc["tracks"].append(new); track[new["name"]] = new
+            voices[k] = (new["name"], octave)
+    gone = []
+    for i, n in enumerate(notes):
+        if i % 12 not in said:
+            continue
+        p = round(((notes[i + 1]["at"] if i + 1 < len(notes) else z) - n["at"]) * 4, 3)
+        assert p == int(p) and int(p) in number, p
+        p, s = int(p), n["at"] * 4
+        assert sum(k for _, k in number[p]) == p
+        for j, (ph, n16) in enumerate(number[p]):
+            end = j == len(number[p]) - 1
+            for tr, octave in voices:
+                track[tr]["notes"].append({"at": round(s / 4, 5), "len": round((n16 - (float(f[7]) if end else 0)) / 4, 5),
+                                           "pitch": n["pitch"][:-1] + str(int(n["pitch"][-1]) + octave), "vel": float(f[6]), "ph": ph,
+                                           **({"gain": f"{float(db):g}dB"} if db and float(db) else {})})
+            s += n16
+        gone.append(n)
+    track["tune"]["notes"] = [n for n in track["tune"]["notes"] if not any(n is g for g in gone)]
+    for tr, _ in voices:
+        track[tr]["notes"].sort(key=lambda n: n["at"])
+    if loud:
+        doc["loudness"] = float(loud)
 
 
 def the_quiet_middle(doc):
