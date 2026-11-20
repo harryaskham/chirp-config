@@ -478,6 +478,32 @@ LARGER = os.environ.get("C10T7_LARGER", "6;2;voice-legato synth.layers.0.diction
 # the line begins again on the last chord: sixteenths after the chord's head , its length in sixteenths , dB ('' = it
 # does not) ; the loudness target ('' = unchanged). "" = v29 byte for byte.
 RETURN = os.environ.get("C10T7_RETURN", "7;2,2;3,25,0;-9.42") if LARGER and STEEL else ""
+# v31 (chirper-one; section round, w9, 3:12-3:36; the change is 3:15.9-3:32.1): THE SHORT CELLS SING. ONE NEW TRACK,
+# `lead`, the song's first lead guitar: thirteen notes. No other note, sound or fader changes.
+# The song is its own rule at the top size (1597 = 987 + 610): its sixth, seventh and eighth sections are its first,
+# second and third again. The seventh sings the second's sentence (v25, v29); the eighth has the third's breakdown
+# and its steel (v20, v30). The first section's own thing is the tune of the short cells: thirteen strokes of a log
+# drum, five over G flat and eight over F (v9). It never came back, and the sixth section said it was the first
+# only by playing the same riff. Now the sixth has that tune on the same thirteen sixteenths of the pattern
+# (the generator asserts the place is the same at seven sizes), and as the sentence came back sung larger, the
+# tune comes back SUNG: where the log struck each note and let it go, a lead guitar holds it to the next. The
+# short cells' heads are 5 or 8 sixteenths apart, so its note lengths are the riff's long and short two sizes up,
+# under the walls' strokes three sizes up, and its notes fall between theirs.
+# ITS NOTES: the log's, D flat, E, E, E, G flat over G flat, then C, E flat, E flat, E flat, F, E flat, F, F over F.
+# The log told the first five low and leapt an octave when the ground fell. The lead plays both phrases in ONE
+# octave (D flat 5 to G flat 5, then C5 to F5), so the second is heard as the first a semitone lower, falling
+# with the ground, and going on. (Benched as the log has it, the first five an octave lower, D flat 4 to G flat 4:
+# four of the five stand 5 to 9 dB under the band in their own octave, inside the wall; sixth field '24'.)
+# THE SOUND: the library's `lead-tape` (the sustaining 8-string through a 5150, a dark quarter-note tape echo and
+# a hall), which no song on the album has used. At -2 dB a note stands 6.7 to 8.9 dB under everything else (K,
+# median 8.3; in its own octave +2.1 to -5.2): where the steel stands at 4:43 (v30: 6.4 to 9.0). At -9 dB, my
+# first fader, it stood 15 under. It is a third of the passage's 500 Hz-1 kHz and a quarter of its 1-2 kHz; its echo
+# is 12 dB under the band in the second after its last note, 21 under in the next two, and gone after three.
+# the section it is sung in (from 0; 5 = the sixth) ; the section the tune is read from ; the sixteenths of that
+# section it is read between ; the patch ; its fader ; semitones over the log's notes: over G flat , over F (one
+# number: both) ; velocity ; pan ; eq, band|band ('' = none) ; how much of the way to the next note each is held ;
+# the loudness target ('' = unchanged). On only when RETURN is. "" = v30 byte for byte.
+LEAD = os.environ.get("C10T7_LEAD", "5;0;55,144;lead-tape;-2dB;36,24;0.85;-0.12;;0.96;-9.4") if RETURN else ""
 # Euclid's definition in nineteen syllables, cut by the rule: phrases of 1, 2, 3, 5 and 8 syllables
 WORDS = [("B R EY1 K",), ("W AH1 N", "L AY1 N"), ("S OW1", "DH AH0", "HH OW1 L"), ("IH1 Z", "T UW1", "DH AH0", "L AO1 NG", "G ER0"),
          ("AE1 Z", "DH AH0", "L AO1 NG", "G ER0", "T UW1", "W AH1 T", "R IH0", "M EY1 N Z")]
@@ -1600,6 +1626,35 @@ def the_steel_comes_back(doc):
         doc["loudness"] = float(loud)
 
 
+def the_short_cells_sing(doc):
+    """v31: the sixth section is the first again (1597 = 987 + 610), and the first's tune, the thirteen notes the log
+    drum struck on its short cells, is sung in the sixth on the same sixteenths by a lead guitar, each note held to
+    the next."""
+    sec, src, span, patch, gain, up, vel, pan, eq, hold, loud = LEAD.split(";")
+    (s0, kind, n), (was, kind0, n0) = SECS[int(sec)], SECS[int(src)]
+    a, b = (int(x) for x in span.split(","))
+    assert kind == kind0 == "L" and n == n0 and KEY[int(sec)] == KEY[int(src)] and int(sec) != int(src)
+    assert not any(t["name"] == "lead" for t in doc["tracks"])
+    log = next(t for t in doc["tracks"] if t["name"] == "log")
+    tune = sorted((round(4 * x["at"]) - was, x["pitch"]) for x in log["notes"] if was + a <= round(4 * x["at"]) < was + b)
+    assert len(tune) == 13 and len({o for o, _ in tune}) == 13              # five over G flat, eight over F
+    for off, _ in tune:                                                     # the same place in the pattern, at seven sizes
+        assert at_size(0, s0 + off) == (s0 + off, "S", 2)                   # the one stroke of a short cell
+        assert all((at_size(k, was + off)[1], was + off - at_size(k, was + off)[0]) == (at_size(k, s0 + off)[1], s0 + off - at_size(k, s0 + off)[0])
+                   for k in range(7))
+    gaps = [y - x for x, y in zip([o for o, _ in tune], [o for o, _ in tune[1:]] + [b])]
+    assert set(gaps) == {5, 8}                                              # its notes are a long or a short of the riff two sizes up
+    notes = []
+    for (off, pitch), gap in zip(tune, gaps):
+        over_g_flat = at_size(6, s0 + off)[1] == "S"                        # the root's short cell: the ground a semitone up
+        number = NAMES.index(pitch[:-1]) + 12 * (int(pitch[-1]) + 1) + int(up.split(",")[0 if over_g_flat else -1])
+        notes.append({"at": round((s0 + off) / 4, 4), "len": round(gap * float(hold) / 4, 4), "pitch": nm(number), "vel": float(vel)})
+    doc["tracks"].append({"name": "lead", "patch": patch, "gain": gain, "pan": float(pan), "notes": notes,
+                          **({"fx": [{"type": "eq", "bands": eq.split("|")}]} if eq else {})})
+    if loud:
+        doc["loudness"] = float(loud)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T7_SHOW"):
         sec = 15 / BPM
@@ -1617,4 +1672,6 @@ if __name__ == "__main__":
             the_rule_is_sung_larger(doc)
         if RETURN:
             the_steel_comes_back(doc)
+        if LEAD:
+            the_short_cells_sing(doc)
         open(OUT, "w").write(dump(doc))
