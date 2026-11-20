@@ -1223,6 +1223,53 @@ def name_of(p):
     return NOTES[p % 12] + str(p // 12 - 1)
 
 
+# v30 (chirper-one; drawn as a whole-song round, spent on Harry's one standing complaint on this song: "bow instr
+# sounds not great, improve"; rebuilt in v18, tuned in v28, and four handoffs since have left how it SITS to an
+# ear): THE BOW IS SEATED. Its sixteen notes are a cello's low octave (C3 to G flat 3: 131 to 185 Hz), and while it
+# sounded it was the mix: 84% and 86% of 120-250 and 250-500 Hz, 73% of 500 Hz-1 kHz, and the mix stood 4.7 and
+# 6.8 dB over the eleven records' median there and 4.9 short at 2-4 kHz (3.30 away; 1.44 with the bow muted). It
+# was heard by its box. Now the box comes out of the band's low middle (a dip at 350 Hz over a shelf under 450) and
+# the string comes forward a little (a lift at 3 kHz), with its own notes (131 to 185 Hz) still its strongest
+# band: it is still a cello. The fader goes up to give back what the tone move takes. The double stop that ends
+# the last answer, which was the mix's peak there (v28's note), comes down; the first answer's notes come down a
+# little and the last two answers' up (the first stood 4.4 dB over the band and the last 0.9 under; the clip below
+# takes most of that evening back: read the note). No note, time, pitch or other part changes.
+# (The limiter decides how loud a bow is: its wave is spikes, 17.7 dB from its level to its highest sample, and a
+# lift at 2.5 kHz sharpened them to 21.7. A fader 1.5 dB higher then changed nothing in the finished file: the
+# master turned the passage down by as much. So a clip after the eq holds the spikes (15.7) and the fader does
+# the rest.)
+# (Built and not kept: a deeper shelf and a broad lift at 2.5 kHz. Nearer the records while the bow sounds (2.56
+# against 2.82, finished), but 1-2 kHz became the bow's strongest band, over its own notes: a nasal string.)
+# overrides on the bow's patch ('' = none) ; bands on its track's eq, band|band ; its fader ; dB on each of its four
+# answers' notes ; the loudness target ('' = unchanged) ; dB more on the double stop that ends the last answer
+# ('' = none) ; the ceiling of a clip after the eq, which holds the bow's peaks under the master's limiter ('' =
+# none). '' = v29 byte for byte. On only while IOU is and both its lines are sung (IOU_LINES as it stands).
+SEAT = os.environ.get('C10T10_SEAT', ';lowshelf cutoff=450 gain=-4dB|peak cutoff=350 q=1 gain=-5dB|peak cutoff=3000 q=1 gain=3dB;4.3dB;-1,0,1.5,2;;-3.5;-12dB' if IOU and IOU_LINES == '12' else '')
+
+
+def the_bow_is_seated(song):
+    """v30: the bow's box comes out of the band's low middle and its string comes forward."""
+    over, bands, fader, by_answer, target, stop, clip = SEAT.split(';')
+    bow = next(t for t in song['tracks'] if t['name'] == 'bow')
+    assert len(bow['notes']) == 16, 'four answers of four notes'
+    if over:
+        bow['patch'] = bow['patch'] + ' ' + over
+    if bands:
+        bow['fx'] = list(bow.get('fx') or []) + [{'type': 'eq', 'bands': bands.split('|')}]
+    if clip:
+        bow['fx'] = list(bow.get('fx') or []) + [f'clip drive=0dB ceiling={clip}']
+    if fader:
+        bow['gain'] = fader
+    for k, g in enumerate(float(x) for x in by_answer.split(',')):
+        for n in sorted(bow['notes'], key=lambda n: n['at'])[4 * k:4 * k + 4]:
+            g2 = g + (float(stop) if stop and ',' in str(n['pitch']) else 0)
+            if g2:
+                n['gain'] = f'{g2:g}dB'
+    assert not stop or sum(1 for n in bow['notes'] if ',' in str(n['pitch'])) == 1, 'one double stop, the last note'
+    if target:
+        song['loudness'] = float(target)
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out',type=Path,default=OUT); parser.add_argument('--form',action='store_true')
@@ -1234,6 +1281,7 @@ if __name__=='__main__':
     if HORNS: the_debt_is_called_in(song)
     if INTUNE: the_bow_is_in_tune(song)
     if IOU: the_debt_is_said(song)
+    if SEAT: the_bow_is_seated(song)
     if args.form:
         for n,t in marks: print(f'{n:18} {t/BAR+1:5.0f}  {t/SUB*60/BPM:6.2f}s')
     else: args.out.write_text(dump(song))
