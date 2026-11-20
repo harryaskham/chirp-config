@@ -799,7 +799,7 @@ NEARER = os.environ.get("C10T1_NEARER", "363:383:-6:-3:-10.093" if REBUILD and H
 # bars from the section's first ; the bell's velocity ; the bells' fader ; dB on the strokes of each pair (five and seven,
 # five and eleven, seven and eleven) ; where each pair's bell stands (pan) ; the loudness target ('' = unchanged).
 # "" = v62. It is on only while no older switch of this song is set, so each of those still gives what it gave.
-MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE", "C10T1_FINISH") for k in os.environ) else "")
+MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN") for k in os.environ) else "")
 # v44: THE ENGINE, EXPOSED (9:19, in the hardest stretch). For twenty-eight bars everything runs at once: four guitars
 # and the bass on seven, the china on every eighth, the bark, and under it all the kick in unbroken sixteenths. The one
 # event inside it is the ground moving up a semitone at 9:20. Now, for the half bar before that, everything stops
@@ -2233,7 +2233,7 @@ def hold_still(doc):
 # well ("" = neither; "2" = the second) ; the flute's velocity when it was recorded ; the deck's wow and flutter in
 # cents and its drift (in units of the wow) ; the loudness target ("" = unchanged) ; settings added to the recorded
 # flute's patch ("" = the library's flute as it comes). "" = v63. On only while no older switch of this song is set.
-TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE", "C10T1_FINISH") for k in os.environ) else "")
+TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN") for k in os.environ) else "")
 
 
 def the_eye_on_tape(doc):
@@ -2287,6 +2287,27 @@ def the_eye_on_tape(doc):
 # plays there ; semitones on the notes ; the last note's length in units ('' = the tune's own three) ; the loudness target
 # ('' = unchanged). "" = v64 byte for byte.
 FINISH = os.environ.get("C10T1_FINISH", "8;0.85;1.5;0;;" if TAPE else "")
+# v66 (chirper-one; instrument round: THE SNARE, 568 strokes; no stroke moves): the drum's note ; overrides inside the
+# snare's patch (space separated; 'synth…' is the kit's piece s) ; bands added to its track's eq, band|band ; its fader
+# ('' = unchanged) ; the loudness target ('' = unchanged). "" = v65 byte for byte. the_snare_s_skin(doc) runs last.
+SKIN = os.environ.get("C10T1_SKIN", "G3;synth.layers.0.mode_count=10 synth.layers.0.slap=0.5 synth.layers.0.decay=0.15s synth.layers.0.damp=0.9 "
+                                    "synth.layers.0.contact=0.45 synth.amp.d=125ms synth.filters.1.gain=-2.5dB;peak cutoff=2500 q=1.5 gain=-3dB|"
+                                    "peak cutoff=5000 q=1 gain=2dB|peak cutoff=700 q=1.2 gain=-3dB|peak cutoff=1250 q=2 gain=-3dB;8.75dB;" if FINISH else "")
+
+
+def the_snare_s_skin(doc):
+    """v66: the album kit's snare refitted on this song's strokes (tools/snarespec.py against six records' snares)."""
+    note, over, bands, fader, target = SKIN.split(";")
+    tr = next(t for t in doc["tracks"] if t["name"] == "snare")
+    extra = ([f"kit.s.pitch={note}"] if note else []) + [("kit.s.patch." + o if o.startswith("synth") else o) for o in over.split()]
+    tr["patch"] = " ".join([tr["patch"]] + extra)
+    if bands:
+        eq = next(f for f in tr["fx"] if isinstance(f, dict) and f.get("type") == "eq")
+        eq["bands"] = list(eq["bands"]) + bands.split("|")
+    if fader:
+        tr["gain"] = fader
+    if target:
+        doc["loudness"] = float(target)
 
 
 def the_tune_is_finished(doc):
@@ -2323,4 +2344,6 @@ if __name__ == "__main__":
         the_eye_on_tape(doc)
     if FINISH:
         the_tune_is_finished(doc)
+    if SKIN:
+        the_snare_s_skin(doc)
     open(OUT, "w").write(dump(doc))
