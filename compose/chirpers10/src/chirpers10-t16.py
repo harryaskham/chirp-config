@@ -585,6 +585,36 @@ LEAVES = os.environ.get("C10T16_LEAVES", "five;4;4;5;left,right,left-said,right-
 # drum stands a fourth lower) ; the chest: semitones over the drum : its length, ms : its fader ('' = no chest) ;
 # the loudness target ('' = unchanged). "" = v20 byte for byte.
 FOOT = os.environ.get("C10T16_FOOT", "kit.k.patch.synth.pitch.mod.1.amount=0;55;12:90:-4dB;-10.355" if LEAVES else "")
+# v22 (chirper-alpha; section round, w1, 0:00-0:29; the change is the first two bars, 0:00-0:07.3; one note of
+# the turned reed is rewritten and nothing else). THE REEDS ARE TUNED BEFORE THE SONG BEGINS.
+#   The song is about a peg, and it is named for what a tuner says when the wobble stops. It ends that way: the
+#   hair closes to nothing over six bars (v8) and the two reeds are left alone on one still note (v11). But it BEGAN
+#   with the job already done: two bars of the pair in tune, 7.3 seconds of one plain note, and then the peg was
+#   turned away so slowly that nothing wobbled until 0:14.6. The first quarter-minute of a song about beating had
+#   no beat in it, and the map called the window static in tone.
+#   NOW THE FIRST THING HEARD IS THE TUNING. The second reed comes in two pulses a beat sharp (2.2 Hz, 21.7 cents:
+#   wider than the song ever turns it afterwards; 'seven' is seven quarters) and is turned down to the first reed
+#   in one straight line over the two bars. So the pair's swell SLOWS: 0.47 s to the first return, then 0.50, 0.55,
+#   0.61, 0.69, 0.82, 1.07, and 2.57 s to the eighth, WHICH IS THE STROKE AT 0:07.3: the unison arrives on the song's
+#   first drum, and from there the peg is turned away as before. Eight swells in, sixteen out; the still point is
+#   the stroke itself. The overtones do what they do all song, here alone and slowing: the octave swells sixteen
+#   times, the twelfth twenty-four, the double octave thirty-two.
+#   NOBODY PLAYS ALONG: no drum, no handpan, no cymbal. Everywhere else in the song a pulse is pointed at; here the
+#   pair is heard doing it by itself, faster than a band could follow, before there is a band. And the one place
+#   the two reeds are heard still and alone is now the END (v11), which is where the song was going.
+#   It is one more turn of v8's peg ('in tune=2>0'), written with v8's own solver: the glide's size is fitted so the
+#   two bars hold a whole number of pulses, so the reeds meet in step.
+#   MEASURED (the pair alone, raw): the fundamental's swells at 0.46, 0.98, 1.54, 2.14, 2.82, 3.66, 4.70 s (written
+#   0.47, 0.97, 1.52, 2.13, 2.82, 3.64, 4.70), its dips 17 to 33 dB under the still note; over the last half second
+#   it is the still unison's level to 0.0 dB (the octave 0.6 under). Two reeds apart are 3 dB quieter than two
+#   in step: the first two bars read 2.8 dB lower in the finished file (K), rising into the stroke.
+# the width the pair begins at, pulses a beat (it is turned to nothing over the two bars of 'in tune') ; the loudness
+# target ('' = unchanged). "" = v21 byte for byte.
+TUNED = os.environ.get("C10T16_TUNED", "2;-10.373" if FOOT and PEG else "")
+if TUNED:
+    assert "in tune" not in RAMPED
+    RAMPS["in tune"] = (("in tune",), Fr(TUNED.split(";")[0]), Fr(0))
+    RAMPED["in tune"] = "in tune"
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -989,6 +1019,8 @@ def build():
         the_band_leaves_every_fourth(doc, marks)
     if FOOT:
         the_foot_is_on_the_note(doc)
+    if TUNED and TUNED.split(";")[1]:
+        doc["loudness"] = float(TUNED.split(";")[1])
     return doc, marks, end
 
 
