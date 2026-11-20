@@ -584,7 +584,7 @@ STRUCK = os.environ.get('C10T3_STRUCK', '1.2;3;4s;2s;-9.982' if TREBLE and CHORD
 # was 'highshelf cutoff=7000 gain=-3dB') ; its fader (3.5dB) ; the loudness target ('' = unchanged). '' = v32.
 # It is on only while no other C10T3_ switch is set, so every older switch gives exactly what it gave.
 SNARE = os.environ.get('C10T3_SNARE', '3.5;1.1;peak cutoff=2500 q=0.7 gain=-4dB,peak cutoff=650 q=1 gain=-3dB;1.5dB;-10.067' if STRUCK and not any(
-    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS', 'C10T3_PICK') for k in os.environ) else '')
+    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS', 'C10T3_PICK', 'C10T3_COURSE') for k in os.environ) else '')
 # v34 (chirper-alpha; whole song: its frame; the change is the band's entrance, 0:08-0:12): THE BAND IS RUNG UP.
 # The song is a ringing performance from end to end, and since v28 the band is LOWERED at the end. But ringers do not
 # start by ringing: a ring is RAISED first, the bells chiming fast and close while they hang low, each stroke taking
@@ -1565,6 +1565,47 @@ def the_chug_keeps_its_low_end(doc):
         doc['loudness'] = float(target)
 
 
+# v40 (chirper-zero; section round, w10 4:48-5:26, which the map calls "little new" against the window before it;
+# the change is 4:48.0-5:02.0, the climb's last two rungs; one new track, 112 strokes; no other note, sound or fader
+# changes, and the landing at 5:02 is not touched): THE CLIMB IS COURSED. The second extent is Grandsire, the method
+# in which TWO bells hunt: the bell in the hunt walks the treble's own path through the row, two rows behind it (a
+# ringer says it COURSES the treble). The song marks that pair everywhere but in one place: two small bells ring
+# them (v15), the toms and the open notes mark them, the inner guitars play them as an interval (v27). Only the lead,
+# which climbs the row's own notes over the last third (Harry: "It pulls, and it lands"), went alone: seven rungs,
+# 44 seconds, one voice, and by the map its last fourteen seconds bring little that the thirty before did not.
+# Now the lead is coursed. From its sixth rung a SECOND LEAD climbs the same ladder TWO RUNGS BEHIND it: it plays,
+# stroke for stroke, what the first lead played twelve seconds before. Nothing is chosen; the rule gives the harmony:
+#   first lead B flat, second G flat : a third, and with the band's C under them a tritone and a seventh: the
+#                                      tightest chord of the climb, on its last rung but one ;
+#   first lead C, second G           : a fourth, and with the band's C nothing but fifths: the climb opens out ;
+#   first lead C, second B FLAT      : the second lead reaches the sixth rung exactly where the band breaks for the
+#                                      last call (5:00), so through the call the two leads are C and B flat, the
+#                                      root and seventh of the chord that leads home, and at 5:02 the band lands on F.
+# It never arrives: the landing comes when it is one rung from the top, as the bell in the hunt is always behind.
+# It is on the lead's own instrument (two guitarists, one rig), a little to one side, 2 dB under.
+# the patch ; its fader ; rungs behind ; the first lead's rung at which it comes in ; pan ; dB on its strokes
+# ('' = none) ; the loudness target ('' = unchanged). On only while PICK and TREM are; like PICK it is in SNARE's
+# list (setting it does not switch SNARE off). "" = v39 byte for byte.
+COURSE = os.environ.get('C10T3_COURSE', 'lead-slap;-14dB;2;6;0.3;;-9.993' if PICK and TREM else '')
+
+
+def the_climb_is_coursed(doc):
+    """v40: a second lead plays what the first played `behind` rungs before, from the first lead's rung `rung` to the landing."""
+    patch, fader, behind, rung, pan, trim, target = COURSE.split(';')
+    per = float(CLIMB.split(';')[3]) * 4                      # beats to a rung
+    foot, land = CLIMB_B0 * 4, LAND * 4
+    a, d = foot + (int(rung) - 1) * per, int(behind) * per
+    lead = next(t for t in doc['tracks'] if t['name'] == 'lead')
+    assert not any(t['name'] == 'lead2' for t in doc['tracks'])
+    last = max(n['at'] for n in lead['notes'] if n['at'] < land)          # the first lead's last stroke: both rest before the landing
+    notes = [{**n, 'at': n['at'] + d, **({'gain': f'{float(trim):g}dB'} if trim and float(trim) else {})}
+             for n in lead['notes'] if n['at'] >= foot and a <= n['at'] + d <= last]
+    assert notes and notes[0]['at'] == a, (a, notes[:1])
+    doc['tracks'].append({'name': 'lead2', 'patch': patch, 'gain': fader, 'pan': float(pan), 'sends': dict(lead.get('sends', {})), 'notes': notes})
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if TENOR:
@@ -1573,4 +1614,6 @@ if __name__ == "__main__":
         the_organ_plays_who_leads(doc)
     if PICK:
         the_chug_keeps_its_low_end(doc)
+    if COURSE:
+        the_climb_is_coursed(doc)
     open(OUT, "w").write(dump(doc))
