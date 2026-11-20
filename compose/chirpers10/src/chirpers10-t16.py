@@ -473,6 +473,26 @@ SHOWN = os.environ.get("C10T16_SHOWN", "five=brass;seven=brass,hat;three=brass,s
 # bands on each guitar where the 700 Hz lift was ('|' between them; '' = none) ; the loudness target ('' =
 # unchanged). '' = v16 byte for byte.
 HAND = os.environ.get("C10T16_HAND", "-2;0.4,0.5,0.6;0.5;peak cutoff=700 q=0.9 gain=-1.5dB|peak cutoff=185 q=1.2 gain=2.5dB;-10.27" if SHOWN else "")
+# v18 (chirper-three; section round on w2, 0:29-0:58, which the map flags 'static': 'square', where the band comes in,
+# was six bars alike). THE STRING GIVES. A string that has just been brought up to pitch slips, and the hand brings it
+# up again. In the third bar of 'square' (0:43.6) the hair narrows from one pulse a beat to a half, which is how
+# wide it was half way through the opening (0:21.8), and in the fourth (0:47.3) it is pulled back; so 'square' reads two
+# bars in four, two that sag and recover, two in four, two that quicken into five. Nothing is invented: the pair is
+# struck at each bar line and the sharp reed glides (v3's two bars, down and then up), and everyone in the rule
+# plays where the pair's swell is: six kicks where there were eight, 0.97, 1.16, 1.51, 1.51, 1.16, 0.97 s apart (0.91
+# in four), the bass with them, the guitars twice to each, the toms three times, the hat four. The snare and the
+# china are not in the rule and keep the bar. THE LEAD COMES WITH IT by its own rule (v10: wherever the peg is
+# turned once the band is in): its bent string sags with the reed and comes back, at 0:43.6, where its first note
+# had been 0:58.2. 106 notes become 84 in the two bars; every note outside them is v17's on every track.
+# MEASURED: the pair alone, the swell of its fundamental against the four written kicks inside the two bars: +3, +4,
+# +7, +2 ms (a plain bar's: +6, +7, +6). The lead 12.0 dB under everything else there (K; 12.6 at its turn into five)
+# and adding to the reeds' line at 349 Hz as it does there (+3.6 dB; +3.7). The two bars +2.2 to +2.5 dB at 250-500
+# Hz against v17 (the lead is +2.1 of it) and within 0.13 dB overall. Everything outside them within 0.007 dB of v17
+# on three seeds with the target where it was. The map: w2's bar-to-bar rhythm 0.043 -> 0.078 and no flag.
+# the section ; the bar of it in which the string gives (the next brings it back) ; the hair's width at the bottom, in
+# pulses to the beat ; dB on the lead's notes in those two bars ("" = as at its other turns, "none" = no lead there) ;
+# the loudness target ("" = unchanged). "" = v17 byte for byte.
+GIVES = os.environ.get("C10T16_GIVES", "square;3;1/2;;" if HAND else "")
 # what the handpan says on each pulse of a section the peg is turned through (v2's order, a pulse each)
 TURNED_NAMED = {"a hair": NAMED["a hair"], "wider": ((1, 2, 3, 4), ()) * 6,
                 "a quarter": ((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3), (1, 2, 3)), "an eighth": ((1, 2),)}
@@ -702,6 +722,45 @@ def build():
                     ev["third"][-1]["gain"] = f"{trims[len(ev['third']) - 1]:g}dB"
         b += 4 * bars
     end = b
+    if GIVES:
+        # v18: two bars of a plain section are turned, down and back. Written as v3's two bars are: the pair is struck
+        # at each bar line, the sharp reed glides, and every stroke of the rule falls where the pair's swell does. The
+        # snare and the brass are not in the rule and stay where they were.
+        where, bar, low, _, _ = GIVES.split(";")
+        at, sec = 0, None
+        for name, r, bars, ground, who in FORM:
+            if name == where:
+                sec = (at, r, bars, ground, who)
+            at += 4 * bars
+        b0, r, bars, ground, who = sec
+        b0 += 4 * (int(bar) - 1)
+        assert 1 <= int(bar) < bars - SLIDES.get(where, 0) and all(x in who for x in "kgth") and SAID.get(where, ("2", "2")) == ("2", "2")
+        f, root = hz(REED + ground), 29 + ground
+        for tr in ("reed", "hair", "left", "right", "bass", "foot", "skins", "hat"):
+            ev[tr] = [e for e in ev[tr] if not b0 <= e["at"] < b0 + 8]
+        for a, r0, r1 in ((b0, r, Fr(low)), (b0 + 4, Fr(low), r)):
+            size, n, when = turned(f, r0, r1, 4, 4 - 0.04)
+            put("reed", a, f"{f:.3f}hz", 4 - 0.04, 0.8)
+            put("hair", a, f"{f + float(r0) * HAIR:.3f}hz", 4 - 0.04, 0.8)
+            ev["hair"][-1].update(patch=GLIDER, expr={"slide": 0.0}, expr_end={"slide": round(size, 6)})
+            for layer, mult in (("k", 1), ("g", 2), ("t", 3), ("h", 4)):
+                for j in range(n * mult):
+                    t, gap = a + when(Fr(j, mult)), when(Fr(j + 1, mult)) - when(Fr(j, mult))
+                    if layer == "k":
+                        kit("foot", t, "k", 0.98 if j == 0 else 0.88)
+                        put("bass", t, nm(root), gap - 0.1, 0.95 if j == 0 else 0.9)
+                    elif layer == "g":
+                        for tr in ("left", "right"):
+                            if j == 0:
+                                put(tr, t, f"{nm(root)},{nm(root + 7)},{nm(root + 12)}", gap - 0.08, 0.96)
+                            elif j % 2 == 0:
+                                put(tr, t, f"{nm(root)},{nm(root + 7)}", gap - 1 / 12, 0.92)
+                            else:
+                                put(tr, t, nm(root), min(0.3, gap * 0.6), 0.82, mute=True)
+                    elif layer == "t":
+                        kit("skins", t, ("ft", "t2", "t1")[j % 3], 0.8 if j % 3 == 0 else 0.62)
+                    else:
+                        kit("hat", t, "h", 0.62 if j % 4 == 0 else 0.42)
     # the bass bus's eq follows the ground, as the album's does (its notch and lift sit on the note's first two harmonics)
     key, at, last = [["0b", 0]], 0, 0
     for name, r, bars, ground, who in FORM:
@@ -830,7 +889,29 @@ def build():
         the_pair_shows_the_count(doc, marks)
     if HAND and HAND.split(";")[4]:
         doc["loudness"] = float(HAND.split(";")[4])
+    if GIVES:
+        the_string_gives(doc)
     return doc, marks, end
+
+
+def the_string_gives(doc):
+    """v18: the lead follows the peg into the two bars by its own rule (v10); here it is told how loudly."""
+    where, bar, _, lead, target = GIVES.split(";")
+    b0 = 0
+    for name, r, bars, ground, who in FORM:
+        if name == where:
+            break
+        b0 += 4 * bars
+    b0 += 4 * (int(bar) - 1)
+    t = next((t for t in doc["tracks"] if t["name"] == "bend"), None)
+    if t and lead == "none":
+        t["notes"] = [n for n in t["notes"] if not b0 <= n["at"] < b0 + 8]
+    elif t and lead:
+        for n in t["notes"]:
+            if b0 <= n["at"] < b0 + 8:
+                n["gain"] = f"{float(lead):g}dB"
+    if target:
+        doc["loudness"] = float(target)
 
 
 def the_fifth(doc, marks):
