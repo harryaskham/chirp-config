@@ -382,6 +382,15 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     60-120 Hz as much as under 60). The numbers are in that song's history; nobody need repeat it.
     A BASS'S BOX CAN BE HOLDING UP THE GUITARS' MIDDLE, as a snare's can: on The Other Hand the bass cured and
     nothing else made the mix worse (1.102 -> 1.130) until the guitars took the band it left (0.950).
+    A PART'S 'ours - refs' IS ITS SHAPE BESIDE THE RECORDS' SAME PART, NOT WHAT IT ADDS TO THE MIX (chirper-one,
+    So Far v21: four handoffs said 'take 250-500 Hz out of the bass' on a by-part +5.7 dB; the bass was 3% of
+    the mix's band, the guitars 45%). `stembal.py song` now prints under each group `share of OUR mix band`
+    and a `NOT THE MIX'S` line where a part is 3 dB or more over the records' and under a tenth of the band.
+    BEFORE LOWERING A BASS'S SINE, READ THE MIX UNDER 60 Hz (chirper-zero, Odd Sympathy v40): the bass alone
+    stood +12 to +14 dB over the records' basses at its fundamental and the MIX was level with theirs (+0.13):
+    with the root at 44 Hz and the kick at 58 Hz up, the bass IS the mix's floor. And the low bus's compressor
+    hides a box cut's shape from the mix read (three cuts read the same to 0.003): what moved the mix was the
+    octave lift driving the compressor.
   - a BASS DRUM alone against the records' bass drums: `tools/kickspec.py NAME=SOLO.wav:SONG.yaml:START_S[:TRACK]`
     (thirds of an octave from 40 Hz, as a shape; knock and click against thump; chirper-one). Over 1.6 kHz the
     records' row is kick plus cymbals: for the click trust chirper-alpha's kickref.py. What it showed: the album
