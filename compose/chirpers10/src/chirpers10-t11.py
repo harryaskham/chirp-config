@@ -394,6 +394,37 @@ PICK = os.getenv('C10T11_PICK', 'synth.layers.0.soft=expr.pm*0.4 synth.filters.0
                  'synth.layers.0.vary=0;' if CYMBALS else '')
 
 
+# v28 (chirper-two; section round on w2, 0:26-0:53, flagged static; the window worked is the hinge's own thirty
+# seconds, 0:40-1:10, so it runs on into w3): THE DOOR IS AJAR. The song has two drummers (its first line: the quick
+# drummer counts six, the broad drummer four) and a door between them: at 1:00 it swings and "all that happens is a
+# different backbeat" (v24). The organ is already in the other time from 0:40. Now so is the other drummer, heard
+# through the door. Through 'lean' the BROAD drummer's backbeat (the second and fourth of his four steps: sixteenths
+# 6 and 18 of the cell, where no quick step falls) is struck WET ONLY into the room that backbeat will have after
+# the hinge (v24's room-12): no stick, only the room, and through a door: a low-pass on what goes in, 1.2 kHz at
+# 0:40.6 opening to the room's own 6 kHz by 0:59.4, as the strokes come up. At 1:00 the snare itself lands where
+# its echo has been. Then the two change rooms: for four cells the QUICK drummer's backbeat (sixteenths 4, 12, 20)
+# is heard the same way, dying away as the door closes (1:00.4-1:09.6), and at 1:10 the organ takes the six, as it
+# always did. One new last track, `door`: 28 snare strokes into room-12; no other track, bus or note changes.
+#   MEASURED (raw, K, the room's return against everything else in the 40-200 ms after each stroke; v24's own
+#       room after the hinge reads -3.3 to -1.0 this way): BEFORE the hinge -16.1, -16.7, -14.6, -14.9, -13.5
+#       (0:40.6-0:45.6), then -9.2 to -11.1 (to 0:50.6), -5.0 to -8.5 (to 0:58.1), and -2.5 on the last (0:59.4).
+#       In the room's own band, 800 Hz-6 kHz: -10 rising to 0. AFTER the hinge: -7.5, -10.8, -11.4, -9.7, then
+#       -14 falling to -25 by 1:09.6: an afterimage of a cell and a half, 4 dB or more under the new backbeat's room.
+#   His second stroke of each cell in 'lean' carries 3 dB less: the band is thinner at three quarters of the cell
+#       and the same stroke stood 4 to 5 dB further forward there.
+#   FINISHED, three seeds: 0:50-1:00 +0.12 to +0.15 dB, 0:40-0:50 +0.03, 1:00-1:10 +0.04 to +0.05; every other
+#       section 0.01 to 0.03 dB lower: the target is not moved. AGAINST THE RECORDS: 'lean' 1.122 -> 1.056 (their
+#       mixes; 1-2 kHz -1.1 -> -0.8), 'broad' 1.178 -> 1.156; the other thirteen windows read as they did.
+# cells of 'lean' the broad drummer is heard in through the door (from:to, from its head) ; dB on his first and his
+# last stroke (a line between) ; the room he is in (one of v24's, by its wait in sixteenths) ; the track's fader ;
+# the loudness target ('' = unchanged) ; the door: a low-pass on what goes into that room, Hz when it is least open
+# and when it is widest (a straight line in octaves between; '' = no door, the room as v24 built it) ; dB on his
+# second stroke of each cell (three quarters through, where the band is thinner) ; cells of 'broad' in which the
+# quick drummer is still heard, from the hinge ('' = he is not) ; dB on his first and last stroke there.
+# '' = v27 byte for byte.
+AJAR = os.getenv('C10T11_AJAR', '0:8;-4,-1;12;0dB;;1200,6000;-3;0:4;-4,-14' if PICK and ROOM and SNARE else '')
+
+
 def BOW_PATCH():
     swell,rise,rest=BOW.split(';')[3].split(',')
     return {'about':'chirper-zero: a bowed string for On Its Hinge (the engine\'s bowed waveguide on the cello\'s body). Each stroke starts soft and swells to its peak, '
@@ -948,6 +979,35 @@ def make():
                 if fader: t['gain']=f"{float(t['gain'][:-2])+float(fader):g}dB"
             if t['name']=='longbow' and bow:
                 t['patch']=' '.join([x for x in t['patch'].split() if not x.startswith('synth.pitch.value=')]+[bow])
+        if target:
+            doc['loudness']=float(target)
+    if AJAR:
+        # v28: through 'lean' the broad drummer's backbeat (the second and fourth of his four steps) is struck, wet only,
+        # into the room that backbeat will have after the hinge: the other walk heard through a door that is opening.
+        # After the hinge the quick drummer's backbeat (his second, fourth and sixth steps) is heard the same way, dying
+        # away as the door closes: at the hinge the two drummers change rooms.
+        import math
+        cells,ramp,room,fader,target,shut,second,later,fade=AJAR.split(';')
+        assert f'room-{room}' in doc['buses']
+        near=lambda a: sorted((n for n in notes['snare'] if a/SUB<=n['at']<(a+CELL)/SUB),key=lambda n:n['at'])
+        quick,broad=near(marks['broad']-CELL),near(marks['broad'])                # the two backbeats, either side of the hinge
+        assert [round(n['at']*SUB-marks['broad']+CELL) for n in quick]==[CELL//6,CELL//2,5*CELL//6] and [round(n['at']*SUB-marks['broad']) for n in broad]==[CELL//4,3*CELL//4]
+        lanes=[]
+        for span,sect,model,(g0,g1),trim in ((cells,'lean',broad,[float(x) for x in ramp.split(',')],float(second or 0)),)+(((later,'broad',quick,[float(x) for x in fade.split(',')],0.0),) if later else ()):
+            c0,c1=(int(x) for x in span.split(':'))
+            assert 0<=c0<c1<=dict(FORM)[sect]
+            places=[round(n['at']*SUB)%CELL for n in model]
+            hits=[(marks[sect]+c*CELL+q)/SUB for c in range(c0,c1) for q in places]
+            assert not any(abs(n['at']-t)<1e-6 for n in notes['snare'] for t in hits), 'the near drummer does not strike there'
+            for i,t in enumerate(hits):
+                g=g0+(g1-g0)*i/max(1,len(hits)-1)+(trim if i%len(places)==1 else 0)
+                notes['door'].append({'at':round(t,4),'len':model[i%len(places)]['len'],'pitch':'s','vel':model[i%len(places)]['vel'],**({'gain':f'{g:.3g}dB'} if abs(g)>1e-9 else {})})
+            lanes+=[[f'{hits[0]:g}b',0 if sect=='lean' else 1],[f'{hits[-1]:g}b',1 if sect=='lean' else 0]]
+        tracks.append(tr('door','ct-kit'+SNARE_PATCH,fader,0,f'room-{room}'))
+        if shut:
+            f0,f1=(float(x) for x in shut.split(','))
+            tracks[-1]['fx']=[{'type':'eq','bands':[{'kind':'lp','cutoff':{'value':f0,'mod':[{'src':'auto.open','amount':round(math.log2(f1/f0),4)}]},'q':0.7}]}]
+            tracks[-1]['auto']={'open':{'points':lanes,'curve':0}}
         if target:
             doc['loudness']=float(target)
     return doc,marks
