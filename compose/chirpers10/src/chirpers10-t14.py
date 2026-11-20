@@ -1366,6 +1366,88 @@ def sixteen_is_said(doc):
     return out
 
 
+# v20 (chirper-three; instrument round: THE RIFF GUITARS' MUTED STROKE, both pairs: 688 of the 1236 notes on gl, gr, dl,
+# dr and their lifted halves). No note changes; the wall pair and the last chord's tracks are not touched.
+# THE READ (tools/riffpunch.py --strokes beside six records' strokes; the records: the low end's fall after a stroke
+# -1.1, never over +0.3; teeth, 1-4 kHz over 400 Hz-1 kHz through a stroke, 11.3, never under 6.5). The first pair
+# (the gojira rig as v8 left it): fall -0.22, +2.81, +3.36, +0.62 and teeth 7.7, 5.6, 5.8, 7.4 in 'minor', 'sixth',
+# 'common', 'home': the low end died after the stroke in three sections of four and there were no teeth in two, and
+# worst of all in 'common', the low C the whole song arrives at. The second pair (the modern rig, A flat and C an
+# octave higher; 'sixth', 'common', 'home'): fall -1.15, +0.80, -2.19, teeth 8.1, 7.6, 8.5, and a hit too large for
+# its body (punch 4.78, 4.21, 5.00; the records 3.5 to 4.2). By part the guitars stood 1.9 to 5.3 dB over the
+# records' guitars at 500 Hz-1 kHz.
+# ONE CONTROL AT A TIME (first pair; minor, sixth, home): the palm closing the string's filter two octaves, not 3.4,
+# alone: teeth 9.5, 7.1, 9.1 and the fall no better (+0.66, +2.69, +0.55) ; the pick half as soft under the palm
+# alone: the fall -0.56, +1.51, +0.46, teeth no better ; both: -1.20, +1.32, +0.01 and 9.9, 6.7, 8.4. On the second
+# pair the filter alone is the cure (punch 4.13, 4.32; teeth 10.3, 10.5) and the pick is a cost (the fall -2.06,
+# -2.66, under the records' range; in 'common' +2.04 at 0.7 and +1.94 at 0.85): so it has the filter and not the pick.
+# THEN THE BODY. The cure took 2.3 to 3.0 dB of the pairs' 60-250 Hz and made the stroke brighter. First pair: +5 dB
+# at 190 Hz gives its 120-250 Hz back (alone: 0.0, +0.1 against v19), -3 dB at 650 Hz takes the box (-2.4, -2.5),
+# and its microphone moves 0.5 -> 0.55 so its top is where it was in 'minor' and 'home' (within 0.5 dB at 2-16 kHz;
+# in 'common', where 84 of its 113 strokes are muted, 2-4 kHz is 1.5 dB up). In 'common' the low C's own fundamental
+# (70 Hz) had lost 4.5 dB: a band at 72 Hz comes up 4 dB for as long as 'common' lasts (a lane on the lifted
+# tracks: -1.9). Second pair: +2 dB at 105 Hz (its 60-120 Hz -2.2, -1.9 -> -0.6, -0.4) and its microphone 0.35 ->
+# 0.4; no fader moves (the second pair against the first -3.16 -> -3.00, -3.21 -> -3.22, -2.72 -> -2.57 dB K).
+# AFTER. First pair: the fall -1.20, +0.71, +1.20, -0.26 ; teeth 11.1, 7.8, 10.7, 9.7 ('minor' at the records'
+# median on both; teeth inside their range in all four; the fall inside it in two, NOT CURED in 'sixth', whose
+# stroke is an octave up, and 'common'). Second pair: teeth 9.9, 9.4, 10.1 ; punch 4.51, 3.75, 4.89. The eight
+# tracks alone beside a record's guitar alone (tools/cabspec.py, after the bar): 2.31 -> 1.97, 2.69 -> 2.40, 2.40
+# -> 2.08. By part at 500 Hz-1 kHz: +1.9, +2.2, +4.7, +4.4, +5.3 -> 0.0, +0.9, +3.9, +3.2, +4.9.
+# THE MIX'S READ IS LEVEL, and that is the truth of it: against the records' passages without a voice, mean of five
+# sections, 1.187 -> 1.171 ; against all eleven 1.238 -> 1.280. The first candidate, with the microphones where
+# they were, read further on both (2-4 kHz, already 0.8 to 1.6 over in the loud sections, rose 0.3 to 0.6). WHY the
+# mix does not follow the guitars: in 'common' and 'home' THE LEAD holds 39 to 42% of the mix's power at 500 Hz-1
+# kHz, 40 to 46% at 1-2 kHz and 42 to 44% at 2-4 kHz, and the wall pair 25 to 31% at 500 Hz-1 kHz; the eight riff
+# tracks 8 to 18% at 500 Hz-1 kHz (shares read on the first candidate). The mix's +3.0 and +2.5 dB at 500 Hz-1 kHz
+# and 1-2 kHz in 'home' are theirs.
+# COSTS: the second pair's low end falls faster in 'common' (+0.80 -> +1.72) ; the first pair's stroke is cleaner
+# (grain 0.39, 0.32, 0.37, 0.39 -> 0.35, 0.26, 0.26, 0.34; the records 0.3 to 0.4) and rises 1 to 1.75 ms sooner in
+# 'sixth' and 'home' (13.5, 13.25: the records' lower edge) ; 'common' is 0.15 to 0.21 dB louder in the finished
+# file ; the other guitar sections 0.07 dB lower to 0.01 higher. Where no riff guitar sounds (the opening, 'fourth',
+# 'wound', the last chord) the file is within 0.025 dB of v19 on three seeds; the target is not moved.
+BITE = os.environ.get("C10T14_BITE", "synth.filters.0.cutoff.mod.0.amount=-2 synth.layers.0.soft=expr.pm*0.5 fx.2.mic=0.55;"
+                      "peak cutoff=190 q=1 gain=5dB|peak cutoff=650 q=1 gain=-3dB;72:1.4:4:common;"
+                      "synth.filters.0.cutoff.mod.0.amount=-2 fx.2.mic=0.4;peak cutoff=105 q=1 gain=2dB;" if SIXTEEN else "")
+
+
+def the_chug_bites(doc):
+    """v20: the two riff pairs' muted stroke gets its teeth and keeps its low end; the last chord's tracks are not touched."""
+    over_a, eq_a, follow, over_b, eq_b, target = BITE.split(";")
+    pairs = {"gl": 0, "gr": 0, "gl-up": 0, "gr-up": 0, "dl": 1, "dr": 1, "dl-up": 1, "dr-up": 1}
+
+    def beat(s16):                                                 # a section's start in declared beats (v18's change of gear)
+        gear = GEAR.split(";") if GEAR else None
+        if not gear or s16 <= AT[gear[0]]:
+            return s16 / 4
+        num, den = (int(x) for x in gear[1].split("/"))
+        return (AT[gear[0]] + (s16 - AT[gear[0]]) * den / num) / 4
+    seen = 0
+    for t in doc["tracks"]:
+        k = pairs.get(t["name"])
+        if k is None:
+            continue
+        seen += 1
+        over, eq = ((over_a, eq_a), (over_b, eq_b))[k]
+        if over:
+            t["patch"] += " " + over
+        t["fx"] = json.loads(json.dumps(t["fx"]))                  # its own objects: the last chord's tracks share the old ones
+        assert t["fx"][0]["type"] == "eq", t["fx"]
+        if eq:
+            t["fx"][0]["bands"] += eq.split("|")
+        if k == 0 and follow:
+            hz, q, db, section = follow.split(":")
+            names = [n for n, _ in FORM]
+            a, z = beat(AT[section]), beat(AT[names[names.index(section) + 1]])
+            if any(a <= n["at"] < z for n in t["notes"]):          # only the track that plays there
+                t["fx"][0]["bands"].append({"kind": "peak", "cutoff": float(hz), "q": float(q),
+                                            "gain": {"value": "0dB", "mod": [{"src": "auto.chug", "amount": 1}]}})
+                t["auto"] = {**t.get("auto", {}), "chug": {"curve": 0, "points": [
+                    ["0b", 0], [f"{a - .02:g}b", 0], [f"{a:g}b", float(db)], [f"{z - .02:g}b", float(db)], [f"{z:g}b", 0]]}}
+    assert seen == len(pairs), seen
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T14_SHOW"):
         beat = 60 / BPM
@@ -1391,4 +1473,6 @@ if __name__ == "__main__":
             the_fifteen_becomes_the_bar(doc)
         if SIXTEEN:
             sixteen_is_said(doc)
+        if BITE:
+            the_chug_bites(doc)
         open(OUT, "w").write(dump(doc))
