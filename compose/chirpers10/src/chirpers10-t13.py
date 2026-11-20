@@ -923,6 +923,48 @@ def compose(phrase_return=True, recover=True, wood=True, wood_gain=-12, held_bac
             'master':{'fx':[{'type':'eq','bands':['hp cutoff=25']}]}, **({'patches': patches} if patches else {}), 'tracks':tracks}
 
 
+# v27 (chirper-one; instrument round: the bass drum, 368 strokes; no stroke moves): THE BASS DRUM GETS A CHEST.
+# v25's handoff put the kick first: "the kit is still +6.0 at 500 Hz-1 kHz by part and the snare is not why". Read
+# alone beside six records' bass drums by thirds of an octave (kickspec.py, new this round, a twin of
+# tools/snarespec.py; in ~/.local/state/chirper-one/common-time/t13-v27/), the kick's middle is NOT why either:
+# its knock against its thump (400 Hz-1.6 kHz less 40-125 Hz) reads -25.0 where the records' stems read -25.9 at
+# their kicks. What it lacks is what chirper-alpha found on Take Up the Slack (v11 there): NOTHING AT 90-120 Hz
+# (-31.3 dB as a share of its own 35-250 Hz; the records' median -13.6, the leanest -19.4). The drum is one sine
+# at 58 Hz and its odd harmonics (175, 291 Hz: the patch's drive), so on anything that cannot play 58 Hz it is a
+# click and a buzz. Now each stroke has a CHEST: a bare sine an octave over the drum (B flat 2, 116.5 Hz), 90 ms,
+# on a track of its own (`chest`), outside the drums' bus. Alone the drum reads -15.1 there now. THE LEVEL WAS
+# CHOSEN ON THE FINISHED FILE: at -6 dB a stroke lifted the mix's 90-140 Hz by 3.3 dB in 'the shape' and only 0.8
+# to 1.7 in the five denser sections; at -3 dB, 5.4 and 1.8 to 2.9. The mix's read against the eleven records is
+# the same either way (no section moves more than 0.05).
+# WHAT DID NOT WORK, so nobody tries again: the same as the patch's own knock layer (ratio 2, 70 ms, up to +10 dB:
+# 90-120 Hz stayed at -31 to -32: the patch's drive is one ceiling, as alpha found) ; a smaller pitch sweep or a
+# shorter one (the low middle rose) ; AND A SHORTER TAIL: the drum falls 20 dB in 79 ms where the records take 37
+# to 49, and at 140 ms of decay it fell in 45, but the finished mix lost 0.8 to 1.6 dB under 60 Hz in all six band
+# sections (four of them were already short there), read worse against the eleven records in four, and recurrence
+# fell 100 -> 95 on both seeds. The tail holds part of this song's sub (the bass's root is F1, under the drum): it
+# stays. A cut at 230 Hz went with that take and is not kept either (no gain on the mix's read).
+# 'chest': its note, its fader (dB), its decay (ms), its envelope's curve (None: no chest) ; 'tail': the drum's own
+# decay (None: the kit's 210 ms) ; 'eq': the kick's track eq (None: as it was) ; 'gain' ; 'loudness' (None:
+# unchanged). --v26 restores v26. (--kick '{"chest": ["A#2", -3, 90, 3]}': fields changed for a bench.)
+KICK = {'chest': ('A#2', -3.0, 90, 3), 'tail': None, 'eq': None, 'gain': None, 'loudness': None}
+
+
+def the_kick_gets_a_chest(doc):
+    """v27: each stroke of the bass drum has a chest: a bare sine an octave over the drum, on a track of its own."""
+    kick = next(t for t in doc['tracks'] if t['name'] == 'kick')
+    if KICK['tail']: kick['patch'] += f" kit.k.patch.synth.amp.d={KICK['tail']}"
+    if KICK['eq']: kick['fx'] = [{'type': 'eq', 'bands': list(KICK['eq'])}]
+    if KICK['gain']: kick['gain'] = KICK['gain']
+    if KICK['chest']:
+        note, gain, d, curve = KICK['chest']
+        doc['patches'] = {**doc.get('patches', {}), 'wiw-chest': {'extends': '808', 'synth': {'layers': ['sine'], 'pitch': {'value': 0, 'mod': []}, 'drive': 0, 'filters': [],
+                          'amp': {'a': '2ms', 'd': f'{d:g}ms', 's': 0, 'r': '20ms', 'curve': curve}}, 'play': {'mono': False, 'glide': '0ms', 'gate': 1}}}
+        chest = {'name': 'chest', 'patch': 'wiw-chest', 'gain': f'{gain:g}dB', 'pan': 0,
+                 'notes': [{'at': n['at'], 'len': round(d / 1000 * BPM / 60, 4), 'pitch': note, 'vel': n['vel']} for n in kick['notes']]}
+        doc['tracks'].insert(doc['tracks'].index(kick) + 1, chest)
+    if KICK['loudness']: doc['loudness'] = KICK['loudness']
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, default=OUT)
@@ -952,7 +994,9 @@ if __name__ == '__main__':
     previous.add_argument('--v23', action='store_true', help="restore the held line of 'lit through' without a harmonic on each of its notes")
     previous.add_argument('--v24', action='store_true', help="restore the album's snare as it comes: a tone higher, shorter, with its box")
     previous.add_argument('--v25', action='store_true', help="restore the back of the sheet with no struck voice of its own (no wooden bars)")
+    previous.add_argument('--v26', action='store_true', help="restore the album's bass drum as it comes: no chest, its long tail")
     parser.add_argument('--verso', help='a bench: VERSO fields to change, as a JSON object')
+    parser.add_argument('--kick', help='a bench: KICK fields to change, as a JSON object')
     parser.add_argument('--said-gain', type=float, default=None, help="the sung voice's track gain in dB (default: SAID's)")
     parser.add_argument('--said-takes', default=None, help="which of each group's three cells is sung, e.g. 1 or 1,2 (default: SAID's)")
     parser.add_argument('--wood-gain', type=float, default=-12, help='cajon track gain in dB')
@@ -973,6 +1017,10 @@ if __name__ == '__main__':
         the_snare_rings_lower(doc)
         if not args.v25 and VERSO['loudness']:
             doc['loudness'] = VERSO['loudness']
+    if args.kick:
+        KICK.update(json.loads(args.kick))
+    if not any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit()) and any(t['name'] == 'bars' for t in doc['tracks']):   # only on the whole song as v26 has it
+        the_kick_gets_a_chest(doc)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
