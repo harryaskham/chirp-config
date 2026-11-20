@@ -350,6 +350,36 @@ CLOCK = os.environ.get('C10T9_CLOCK', 'one to the beat;C7;F6;60ms;90ms;-17dB;0.3
 # band|band ('' = none) ; the loudness target ('' = unchanged). "" = v27 byte for byte.
 SITAR = os.environ.get('C10T9_SITAR', 'sitar fx.0.mix=0.1 synth.amp.r=400ms synth.filters.3.cutoff=5k;-10dB;-7dB;'
                                       'highshelf cutoff=4500 gain=-5dB;' if CLOCK else '')
+# v29 (chirper-zero; instrument round: the four riff guitars' muted stroke, gl gr dl dr, 1026 strokes): THE CHUG
+# KEEPS ITS LOW END. On six records a chug's 100-250 Hz HOLDS through the stroke (riffpunch --strokes, `tight`
+# -1.10; -2.2 to +0.3). Here, read ONE GUITAR AT A TIME (the song is guitars at different rates against each other):
+# the left guitar in 'two' +2.42, the double in 'four' +2.33, the album's worst; rise 9.5 and 5 ms (theirs 13.5
+# to 23.5): a click and a thud that dies. One control at a time (left guitar / the double):
+#   the pick half as soft under the palm (chirper-three's finding)            +2.42 -> +1.24 / +2.33 -> +1.30
+#   and NO THUMP (`thump` = 0.4 of the palm on ct-twin)                       -0.34 on the left (its amp is tight
+#       at 150 Hz, so the thump got through; the double's is at 220: +1.15, nothing)
+#   and the muted string let ring a little (`mute` = 0.6 of the palm, as Still Owing's rig)  the double +0.72
+#   all three, the pick at 0.4                                                 -0.42 / +0.04
+# THE PALM'S FILTER IS NOT THE OTHER SONGS' TWO OCTAVES HERE. It is the trade between the stroke's attack and
+# its scoop, and it was read rung by rung: the double at -3.4 (as it comes) punch 4.26, rise 6 ms, scoop -7.0;
+# -2.7: 3.62, 8.5 ms, -9.2; -2.4: 3.34, 11 ms, -9.9; -2: 3.20, 11.5 ms, -10.4. The left guitar at -3.4: punch
+# 3.29, the fall -1.04, scoop -6.3; -2.7: 3.18, -0.63, -7.5; -2: 3.07, -0.41, -8.2. Kept: -3 on the main pair,
+# -2.7 on the double (their punch 3.22 and 3.62: the records' 3.63; at two octaves both fell under their range).
+# THE MIX DECIDED THE EQ, as on Odd Sympathy: the 700 Hz lift is this mix's middle in 'two', 'three' and 'four'
+# (without it and with 800 Hz -3 dB the mix read 4.3, 1.4 and 1.8 dB short at 500 Hz-1 kHz) and too much only in
+# the lock (+2.6). Kept: the chest back at 160 Hz (the thump was the rig's 125-160 Hz), 330 Hz +1 / +1.5, the
+# main pair's lift at 700 Hz down from +2.5 to +1 dB, the double's lift out; THE DOUBLE'S MICROPHONE moves out
+# from the cap (0.35 -> 0.47) rather than take an eq cut at 2.8 kHz (the cut cost its stroke the attack: 2.84
+# against 3.20). Faders hold each pair's loudness alone.
+# No note is touched; the palm's weight is not lifted; the walls are as they were (their stroke already holds).
+# gl gr's patch, added ; dl dr's patch, added ; gl gr's eq, '|' between ; dl dr's eq ; gl gr's fader ; dl dr's
+# fader ; the loudness target ('' = unchanged). "" = v28 byte for byte.
+STROKE = ('synth.layers.0.soft=expr.pm*0.4 synth.layers.0.thump.mod.0.amount=0 '
+          'synth.layers.0.mute=expr.pm*0.6 synth.layers.0.mute_width=0.1')
+PICK = os.environ.get('C10T9_PICK', 'synth.filters.0.cutoff.mod.0.amount=-3 ' + STROKE + ';'
+                      'synth.filters.0.cutoff.mod.0.amount=-2.7 ' + STROKE + ' fx.2.mic=0.47;'
+                      'peak cutoff=160 q=1 gain=4dB|peak cutoff=330 q=1 gain=1dB|peak cutoff=700 q=0.9 gain=1dB;'
+                      'peak cutoff=160 q=1 gain=4dB|peak cutoff=330 q=1 gain=1.5dB;0.6dB;-2.2dB;' if SITAR else '')
 WALK = []
 ALL = ("gl", "gr", "dl", "dr", "wl", "wr")
 MARKS = []
@@ -1100,6 +1130,25 @@ def the_opening_has_a_clock(doc):
         doc["loudness"] = float(loud)
 
 
+def the_chug_keeps_its_low_end(doc):
+    """v29: the four riff guitars' muted stroke: a harder pick, no thump, a string that rings a little under the palm,
+    the palm's filter by the stroke's attack; the eq the mix would bear; the double's microphone out from the cap."""
+    main, double, main_eq, double_eq, main_fader, double_fader, target = PICK.split(';')
+    for t in doc['tracks']:
+        for names, over, eq, fader in ((('gl', 'gr'), main, main_eq, main_fader), (('dl', 'dr'), double, double_eq, double_fader)):
+            if t['name'] in names:
+                if over:
+                    t['patch'] += ' ' + over
+                if eq:
+                    assert t['fx'][0]['type'] == 'eq', t['fx']
+                    t['fx'][0] = {'type': 'eq', 'bands': eq.split('|')}
+                if fader:
+                    assert isinstance(t['gain'], str), t['gain']
+                    t['gain'] = fader
+    if target:
+        doc['loudness'] = float(target)
+
+
 def the_six_strings_are_a_sitars(doc):
     """The same six strings, the same tuning and every stroke where it was: only the instrument changes."""
     spec, fader, fader_ab, bands, loud = SITAR.split(";")
@@ -1147,4 +1196,6 @@ if __name__ == "__main__":
             the_opening_has_a_clock(doc)
         if SITAR:
             the_six_strings_are_a_sitars(doc)
+        if PICK:
+            the_chug_keeps_its_low_end(doc)
         open(OUT, "w").write(dump(doc))
