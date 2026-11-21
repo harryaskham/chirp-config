@@ -194,6 +194,68 @@ def wheels(tracks, spot, spot_track=None, plain=()):
     return {"vars": vars_, "env": env, "background": BLACK, "camera": CAM, "layers": backdrop() + layers + plates + ruler() + marks, "filters": finish(spot)}
 
 
+# ───────────────────────── the disc (a phenakistoscope turned by a riff) ─────────────────────────
+
+def disc_look(track, color, subject, slots, every=1, celled=True, r=1.4, tall_max=0.9):
+    """One disc for one track, on its own plate: as many figures round it as the riff has
+    sixteenths, each a little further through its stride than the one ahead. It turns once
+    per cell, so every sixteenth carries each figure exactly into the next one's place; the
+    plate is flashed by the track's notes, and so the ring stands still and the figures run on
+    the spot, as on a phenakistoscope. Where the riff rests, no flash: they hang, and fade.
+    `slots`: how many figures are made (the cell is read live, so the ring re-spaces itself if
+    the riff changes); `every`: a figure every so many sixteenths (long riffs)."""
+    rig, motion, tall, thick, strides, ry = SUBJECTS[subject]
+    T = clock(track, celled)
+    C = f"max({teeth(track, celled)}, 1)"
+    # A figure is as long as its share of the rim allows, and no taller than `tall_max`.
+    long_ = 1.5 if rig == "horse" else (0.9 if rig == "human" else 1.4)
+    size = f"min({tall_max / tall:.3f}, {0.8 * 6.2832 * r / long_:.3f}*{every}/{C})"
+    layers = []
+    for i in range(slots):
+        a = f"({T} + {i * every}/{C})"
+        fig = subject_layer(subject, f"(0 - {i * every}/{C})", f"track.{track}.hit", color,
+                            x=f"param.cx + {r}*sin({a})", y=f"param.cy + {r}*cos({a})", z=0, scale=size)
+        fig["rz"] = f"0 - {a}"
+        fig["opacity"] = f"step({i * every} + 0.5, {C})*step(0.5, {teeth(track, celled)})"
+        fig["emit"] = 1.2
+        if rig == "human":
+            fig["thick"] = thick * 1.7      # small figures: sticks would not read
+        layers.append(fig)
+    return {
+        "params": {"cx": 0, "cy": 0},
+        "background": BLACK, "camera": CAM, "layers": layers,
+        # Each flash lasts into the next, so the ring's light is steady and only the poses change.
+        "filters": [{"type": "expose", "on": f"track.{track}", "fade": "0.3/time.bpm", "live": 0.2}],
+    }
+
+
+def discs(tracks, spot, spot_track=None, subject="horse", plain=(), cells=None):
+    """Two or three discs side by side, each a track's riff, each with as many runners round it
+    as the riff is long. They all turn at the one pulse; a five and a seven show the same
+    stride at different lengths, and the hoops light where they come round together."""
+    # Three rings of horses fit; people are narrow and need the room of two.
+    tracks = tracks[:3 if SUBJECTS[subject][0] == "horse" else 2]
+    n = len(tracks)
+    cells = cells or {}
+    r = {1: 1.7, 2: 1.5, 3: 1.12}[n]
+    xs = {1: [0], 2: [-2.25, 2.25], 3: [-3.05, 0, 3.05]}[n]
+    cy = 0.28
+    env, layers, plates = {}, [], []
+    if n > 1:
+        env["all"] = {"when": together(tracks, plain), "decay": 2.4}
+    for i, (t, x) in enumerate(zip(tracks, xs)):
+        col = spot if t == spot_track else INK
+        cell = int(cells.get(t) or (16 if t in plain else 8))
+        every = 1 if cell <= 12 else (2 if cell <= 24 else 4)
+        slots = max(1, min(12, -(-cell // every)))
+        layers += wheel_rim(t, x, cy, 0.52 * r, celled=t not in plain, glow="env.all" if n > 1 else "0")
+        tall = (0.72 if SUBJECTS[subject][0] == "horse" else 0.95) * r
+        plates.append({"type": "actor", "use": disc_look(t, col, subject, slots, every, celled=t not in plain, r=r, tall_max=tall),
+                       "params": {"cx": x, "cy": cy}, "key": 0, "mask": "none"})
+    marks = border(spot) if n > 1 else []
+    return {"env": env, "background": BLACK, "camera": CAM, "layers": backdrop() + layers + plates + ruler() + marks, "filters": finish(spot)}
+
+
 # ───────────────────────── the strip (a photo-finish of the riffs) ─────────────────────────
 
 def strip(tracks, spot, spot_track=None, bars=4, plain=()):

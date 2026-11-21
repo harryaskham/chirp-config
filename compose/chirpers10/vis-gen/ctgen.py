@@ -279,11 +279,11 @@ def choose(n, title, song):
         elif not wheel:
             order = ["flight", "studio0", "walkers0"]
         elif len(set(cells)) >= 2 and odd:
-            order = ["wheels", "finish", "balls", "pendulums", "walkers", "studio", "sheet"]
+            order = ["wheels", "finish", "discs", "balls", "pendulums", "walkers", "studio", "sheet"]
         elif len(set(cells)) >= 2:
-            order = ["finish", "walkers", "balls", "pendulums", "studio", "wheels", "sheet"]
+            order = ["finish", "walkers", "balls", "discs", "pendulums", "studio", "wheels", "sheet"]
         else:
-            order = ["sheet", "walkers", "balls", "studio", "finish", "wheels", "pendulums"]
+            order = ["sheet", "walkers", "discs", "balls", "studio", "finish", "wheels", "pendulums"]
         if wheel and max(cells) <= 4:
             # Nothing but short common time here: bodies, not counting machines.
             order = ["sheet", "walkers", "studio", "finish"]
@@ -313,6 +313,12 @@ def choose(n, title, song):
         elif pick == "balls":
             use = names[:4]
             look = S.balls(use, spot, spot_track if spot_track in use else use[-1])
+        elif pick == "discs":
+            # Rings of runners, one ring a riff: only riffs with a length of their own (a ring
+            # of two or four says nothing), the longest cells left to the other studies.
+            use = [t.name for t in wheel if 3 <= (t.cell(a, b)[0] or 0) <= 48][:3] or names[:1]
+            look = S.discs(use, spot, spot_track if spot_track in use else use[-1], subject={"walker": "runner", "pacer": "horse"}.get(subject, subject),
+                           cells={t.name: t.cell(a, b)[0] for t in wheel})
         elif pick == "pendulums":
             use = names[:5]
             look = S.pendulums(use, spot, spot_track if spot_track in use else use[-1])
