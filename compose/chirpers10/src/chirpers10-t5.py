@@ -1199,7 +1199,7 @@ TAPE = os.environ.get("C10T5_TAPE", "1;84:96;-1;0.575;0.41;-24;" if FALLTONE els
 # the pole, and up the run out of it. No other part changes.
 # dB on the tone against its level under the stair ; bars from:to ; the loudness target ('' = unchanged). '' = v29.
 # It is on only while no other C10T5_ switch is set, so every older switch gives exactly what it gave.
-HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM") for k in os.environ) else "")
+HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM", "C10T5_SNARE") for k in os.environ) else "")
 
 # v31 (chirper-two; palette: the song had no voice, and no song on the album had used the engine's speech to song):
 # WE HAVE BEEN HERE BEFORE. A song "all about the illusions" (Harry, 15 Nov) had every illusion of pitch and of speed
@@ -1508,6 +1508,8 @@ def song():
         the_fall_neither_hand_plays(doc)
     if PALM:
         the_palm_lets_the_teeth_through(doc)
+    if SNARE:
+        the_snare_comes_out_of_its_box(doc)
     return doc
 
 
@@ -1727,6 +1729,74 @@ def the_palm_lets_the_teeth_through(doc):
             t["gain"] = {**t["gain"], "mod": list(t["gain"].get("mod", [])) + [{"src": "auto.palm", "amount": 1}]}
         ins = [(float(x.split(":")[0]), float(x.split(":")[1])) for x in spans.split(",")]
         assert all(any(a <= n["at"] < b for a, b in ins) for n in t["notes"] if (n.get("expr") or {}).get("pm")), t["name"]   # every muted stroke is inside
+    if target:
+        doc["loudness"] = float(target)
+
+
+# v36 (chirper-zero; instrument round: THE SNARE, the album kit's as it comes, all 180 strokes of it; chirper-two's
+# v33 handoff: "the snare is the album's: the next drum to fit"): THE SNARE COMES OUT OF ITS BOX.
+# In this song the snare makes the stair's claim in time: one stroke a bar, then two, then four (chirper-one's v24
+# under the stair, v10 under the fall), and runs of sixteenths into the turn and out of the pole. For that each
+# stroke has to be a point, as the tick had to be (v27). Alone, against six records' snares by thirds of an octave
+# (tools/snarespec.py), it read 5.31 dB out: a box at 1 and 1.25 kHz (+7.5, +7.2), a hump at 2 and 2.5 kHz (+5.6,
+# +6.3) where theirs dip, and 1.6 to 4.4 dB short from 4 kHz up, where theirs have their crack.
+# One field of the drum's own model at a time, alone, then five whole variants in the mix (seven stretches against
+# the eleven records' passages with nobody singing):
+#   damp 0.3 -> 0.9, decay 0.18 s -> 0.13 s, wires 0.85 -> 0.72 (Slow Enough to Count v27's three): the head stops
+#       ringing at its box without the energy going to its note. 5.31 -> 4.27 alone.
+#   slap 1.2 -> 0.9 and contact 0.6 -> 0.4: the dense upper modes (the 2 kHz hump) give a little and the stick's
+#       contact is shorter, so the stroke's own top reaches 4 to 5 kHz. (slap 0.6, Odd Sympathy's, read nearer the
+#       records alone, 4.21, and the descent refused it: its second half fell 0.3 to 0.5 dB shorter at 2-4 kHz. The
+#       mode count of ten, which cured the box at 1.25 kHz there, moved it to 1 kHz here and lengthened the ring.)
+#   the piece's own filters: the box cut where it stands (1150 Hz, -6 dB), a lift at 4.5 kHz (+2 dB: the mix is
+#       0.7 to 2.2 dB short at 4-8 kHz in every stretch), a shelf above 8 kHz (-2 dB: it holds the mix's top octave
+#       where it was; at -4 dB five stretches came out 0.3 to 0.5 dB shorter there and the run out of the pole 1.9),
+#       and the library's lift under the note (200 Hz, +5 dB) made 230 Hz, +2 dB: with it the note stands out of the
+#       band as far as it did (+7.8 dB against +7.7); without it the drum read thin against its own crack (-7.3 dB,
+#       the records -2.9, the old one -5.0; now -5.3).
+#   the piece's gain 1 -> 2.5 dB: what the damping took.
+# 4.07 alone. In the mix seven of the eight stretches it plays in read nearer the records, each by a little (the
+# snare is 0.4 to 1.1 dB of any band), and the descent's second half 0.02 further. Five other variants were read.
+# WHAT IT IS NOT: each stroke stands 0.6 dB LESS out of the finished file to a meter that favours the middle, because
+# the box was part of what stood. Alone the drum has fallen 1.4 dB further when the next stroke of a run comes.
+# The whole piece is written into the song's kit and the snare's TRACK is not touched: its eq, fader and sends are
+# shared by the nine rim strokes of chirper-three's false count-in (the piece `ss`), which stay as they were.
+# the drum's own fields (its `drum` layer) ; what follows the 150 Hz high-pass in the piece's own filter list, band|band
+# ("" = the library's 200 Hz lift) ; the piece's gain, dB ("" = the library's 1) ; the loudness target ("" = unchanged).
+# "" = v35 byte for byte. On only while PALM is; C10T5_SNARE is in HALFWAY's list of names that do not turn it off.
+SNARE = os.environ.get("C10T5_SNARE", "damp=0.9 decay=0.13s wires=0.72 slap=0.9 contact=0.4;peak cutoff=230 q=1 gain=2dB|peak cutoff=1150 q=1.6 gain=-6dB|peak cutoff=4500 q=1 gain=2dB|highshelf cutoff=8000 gain=-2dB;2.5;-10.0831" if PALM else "")
+# The library's piece `s` of ct-kit, written out (chirp patch show ct-kit --json, pin bffc1e5d). Written into the song's
+# kit unchanged it renders the same samples as the library's (checked on the 32 strokes of the descent, alone).
+SNARE_AS_IT_COMES = {"gain": "1dB", "patch": {"play": {"vel_sens": 0.65}, "synth": {"amp": {"a": "0.1ms", "curve": 1.5, "d": "140ms", "r": "30ms", "s": 0}, "drive": 0.2, "filters": ["hp cutoff=150", "peak cutoff=200 q=1 gain=5dB"], "layers": [{"beater": "stick", "cavity": 0.3, "contact": 0.6, "damp": 0.3, "decay": "0.18s", "gap": 0.1, "reso": 1.5, "reso_level": 0.7, "sharp": 30, "shell": 0.3, "shell_hz": 500, "slap": 1.2, "strike": 0.3, "type": "drum", "wire_tone": "7k", "wires": 0.85}]}}, "pitch": "A3"}
+
+
+def the_snare_comes_out_of_its_box(doc):
+    """v36: the snare's head is damped and shorter, its box is cut and its crack sits higher. Only the piece `s` of the
+    song's kit: no note, track, fader, bus or send changes, so the nine rim strokes of the count-in (the same track,
+    the piece `ss`) are as they were."""
+    fields, bands, own, target = SNARE.split(";")
+
+    def num(v):
+        try:
+            return float(v) if "." in v else int(v)
+        except ValueError:
+            return v
+    kit = doc["patches"]["ct-kit-here"]
+    assert "s" not in kit["kit"], kit["kit"].keys()
+    players = [t["name"] for t in doc["tracks"] if any(n.get("pitch") == "s" for n in t.get("notes", []))]
+    assert players == ["snare"], players                           # nobody else plays the piece
+    s = json.loads(json.dumps(SNARE_AS_IT_COMES))
+    layer = s["patch"]["synth"]["layers"][0]
+    assert layer["type"] == "drum" and s["patch"]["synth"]["filters"][0] == "hp cutoff=150"
+    for f in fields.split():
+        k, v = f.split("=", 1)
+        assert k in layer or k == "mode_count", k                  # a field of the drum's model
+        layer[k] = num(v)
+    if bands:
+        s["patch"]["synth"]["filters"] = ["hp cutoff=150"] + [x for x in bands.split("|") if x]
+    if own:
+        s["gain"] = f"{float(own):g}dB"
+    doc["patches"]["ct-kit-here"] = {**kit, "kit": {**kit["kit"], "s": s}}
     if target:
         doc["loudness"] = float(target)
 
