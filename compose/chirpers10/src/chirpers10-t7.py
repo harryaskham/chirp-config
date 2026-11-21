@@ -548,6 +548,45 @@ KEYED = os.environ.get("C10T7_KEYED", "Ab3;synth.layers.0.tune_sounding=true syn
 # the two guitars' patch ; fx after their eq ; dB on their faders ; the wall pair's patch ; the loudness target
 # ('' = unchanged). On only when KEYED is. "" = v32 byte for byte.
 FRONT = os.environ.get("C10T7_FRONT", "fx.0.attack=15ms;transient attack=8 sustain=0;-2.7;synth.layers.0.thump.mod.0.amount=0.2;-9.586") if KEYED else ""
+
+# v34 (chirper-zero; section round, window 4, 1:12-1:36, flagged static and never worked; the change is 1:21.0-1:27.4,
+# the 34 sixteenths on G flat that run into the first breakdown): THE RESTS CLOSE BEFORE THEY OPEN.
+# Harry, 19 Nov: "really make it chug if slow. play with breakdowns". The breakdowns are made of rests: the band rests
+# where the riff two sizes up rests (v20), and in the second one the rests grow until the band is gone. But the first
+# breakdown (1:27.4) came out of the plain riff: the same strokes, then fewer. Nothing wound it up. The rule says how.
+# The riff's smallest rest is one sixteenth: a long cell is stroke, stroke, REST and a short one stroke, REST. A cell
+# of 34 is a 21 and a 13 (chirper-three's v17 used exactly that at the other end of this section: the band plays its
+# 21 and rests its 13, the largest rest in the song). Here, in the section's first cell of 34:
+#   its 21 (1:21.0-1:24.9)  THE HANDS CLOSE THE RESTS. The two guitars play the riff as written, its chords and its
+#                           ringing string too, and strike each one-sixteenth rest as well, with the whole palm
+#                           down (the riff's own strokes keep the lifted hand of v27). Five strokes that were
+#                           silence. The bass and the foot still keep the rests: the riff goes on underneath, in
+#                           the low end, while above it the chug no longer stops.
+#   its 13 (1:24.9-1:27.2)  NOTHING BUT STROKES, AND NOTHING UNDER THEM. The chord and the ringing string go too:
+#                           twelve muted sixteenths in a row from the two guitars, the hand still saying long and
+#                           short (open, half, dead). And the bass and the foot REST THEIR THIRTEEN, as the whole
+#                           band does at the section's other end: the floor is taken away.
+#   the last sixteenth      is the one rest left: the snare's backbeat was already there (1:27.2).
+# Then the breakdown: a chord with the foot, the bass and the falling floor of v22 all back at once, a stroke, and
+# three sixteenths of nothing. The smallest rest is closed and the next thing heard is the larger one, open. So the
+# third section is the song's section about rests: closed, then the breakdown's, then (after the steel) the largest.
+# Ten strokes added to each guitar; one chord and one ringing string become strokes; seven notes of the bass and
+# seven strokes of the foot are left out. The hands of the kit keep common time (china in quarters, snare on three)
+# as everywhere but in a breakdown.
+# (Benched, finished files, seeds 0, 1 and 11. With the bass and the foot playing the twelve strokes too, a run from
+# the whole band, the breakdown's first chord landed with 1.0 to 2.6 dB LESS at 60-120 Hz than the run before it:
+# the wind-up was the peak and the breakdown a step down. With them resting it lands 10 dB over at 60-120 Hz and
+# 25 dB over under 60 Hz. With the bass and the foot striking the rests from the start, the 21 had no shape left in
+# any band.)
+# section (from 0) : the sixteenth of it where the cell of 34 begins ; sixteenths with the rests struck , sixteenths
+# with nothing but strokes ; a struck rest's palm , its velocity ; how many rests at the very end stay rests ; the
+# parts that strike the rests in the first stretch | the parts that play nothing but strokes in the second, and with
+# a - before its name a part that rests the second stretch ; the loudness target ("" = unchanged). "" = v33 byte for
+# byte. On only while FRONT is.
+# (The target: the stretch measures louder, and at v33's -9.586 every other bar came out 0.012 to 0.059 dB lower, the
+# quiet sections most. At -9.5642 every stretch outside the 34 sixteenths keeps v33's gain within 0.001 dB, 80 dB or
+# more left.)
+WIND = os.environ.get("C10T7_WIND", "2:55;21,13;1,0.8;1;gl,gr|gl,gr,-bass,-kick;-9.5642" if FRONT else "")
 # Euclid's definition in nineteen syllables, cut by the rule: phrases of 1, 2, 3, 5 and 8 syllables
 WORDS = [("B R EY1 K",), ("W AH1 N", "L AY1 N"), ("S OW1", "DH AH0", "HH OW1 L"), ("IH1 Z", "T UW1", "DH AH0", "L AO1 NG", "G ER0"),
          ("AE1 Z", "DH AH0", "L AO1 NG", "G ER0", "T UW1", "W AH1 T", "R IH0", "M EY1 N Z")]
@@ -1730,6 +1769,87 @@ def the_chug_gets_its_front(doc):
         doc["loudness"] = float(target)
 
 
+def the_rests_close(doc):
+    """v34: before the first breakdown the two guitars strike the riff's one-sixteenth rests, then play nothing but strokes while the bass and the foot rest."""
+    sec, parts, struck, keep, who, target = WIND.split(";")
+    i, off = (int(x) for x in sec.split(":"))
+    filled, run = (int(x) for x in parts.split(","))
+    palm, vel = (float(x) for x in struck.split(","))
+    a = SECS[i][0] + off
+    b, z = a + filled, a + filled + run
+    assert at_size(6, a) == (a, "S", filled + run), at_size(6, a)                    # the root's short cell: a semitone up
+    assert not filled or not run or (at_size(4, a) == (a, "L", filled) and at_size(4, b) == (b, "S", run))    # a 34 is a 21 and a 13
+    track = {t["name"]: t for t in doc["tracks"]}
+    tick = lambda n: round(n["at"] * 4)
+    # what each sixteenth of the stretch becomes: (sixteenth, 'rest' | 'first' | 'after', does it replace a chord or ringing string)
+    plan, heads = [], set()
+    for p, kind, ln in LEV[0]:
+        if not a <= p < z:
+            continue
+        r = RANK[p]
+        if r >= 2:                                    # a chord (the whole cell) or a ringing string (two sixteenths, then a stroke)
+            if p >= b:
+                heads.add(p)
+                plan += [(p, "first"), (p + 1, "after")] + ([(p + 2, "rest")] if r >= 3 else [])
+        else:
+            plan.append((p + ln - 1, "rest"))
+    rests = sorted(q for q, k in plan if k == "rest")
+    left = set(rests[len(rests) - int(keep):]) if int(keep) else set()
+    plan = sorted((q, k) for q, k in plan if q not in left)
+    assert all(q < z for q, _ in plan) and len({q for q, _ in plan}) == len(plan)
+    who1, who2 = (w.split(",") if w else [] for w in who.split("|"))
+    full, full_heads = plan, heads
+    out2 = [w[1:] for w in who2 if w.startswith("-")]          # parts that REST the second stretch
+    who2 = [w for w in who2 if not w.startswith("-")]
+    for name in out2:
+        t = track[name]
+        gone = [n for n in t["notes"] if b <= tick(n) < z]
+        assert gone, name
+        t["notes"] = [n for n in t["notes"] if not any(n is g for g in gone)]
+    for name in dict.fromkeys(who1 + who2):
+        t = track[name]
+        plan = [(q, k) for q, k in full if (q < b and name in who1) or (q >= b and name in who2)]
+        heads = full_heads if name in who2 else set()
+        notes = t["notes"]
+        assert all(x["at"] <= y["at"] for x, y in zip(notes, notes[1:])), name
+        here = [n for n in notes if a <= tick(n) < z]
+        if name in ("gl", "gr"):
+            muted = [n for n in here if (n.get("expr") or {}).get("pm")]
+            root = {n["pitch"] for n in muted}
+            assert len(root) == 1, root
+            first = {n["expr"]["pm"] for n in muted if n["vel"] >= 0.88}
+            after = {n["expr"]["pm"] for n in muted if n["vel"] < 0.88}
+            assert len(first) == 1 and len(after) == 1, (first, after)
+            ln = {n["len"] for n in muted}
+            assert len(ln) == 1, ln
+            make = lambda q, k: {"at": round(q / 4, 4), "len": next(iter(ln)), "pitch": next(iter(root)), "vel": {"rest": vel, "first": 0.95, "after": 0.8}[k],
+                                 "expr": {"pm": {"rest": palm, "first": next(iter(first)), "after": next(iter(after))}[k]}}
+        elif name == "bass":
+            ones = sorted({n["len"] for n in here if n["len"] < 0.3})
+            assert len(ones) == 2, ones                       # a stroke before a rest (v19: let go in time) and a stroke before a stroke
+            root = {n["pitch"] for n in here if n["len"] < 0.3}
+            assert len(root) == 1, root
+            make = lambda q, k: {"at": round(q / 4, 4), "len": ones[1], "pitch": next(iter(root)), "vel": {"rest": vel, "first": 0.95, "after": 0.8}[k]}
+        else:
+            assert name == "kick", name
+            ln = {n["len"] for n in here}
+            assert len(ln) == 1, ln
+            make = lambda q, k: {"at": round(q / 4, 4), "len": next(iter(ln)), "pitch": "k", "vel": {"rest": vel, "first": 0.95, "after": 0.8}[k]}
+        gone = [n for n in here if tick(n) in heads] if name != "kick" else []
+        assert name == "kick" or len(gone) == len(heads), (name, len(gone), len(heads))
+        have = {tick(n) for n in here if not any(n is g for g in gone)}
+        new = [make(q, k) for q, k in plan if q not in have]
+        assert len(new) == len(plan) - (len(heads) if name == "kick" else 0), (name, len(new), len(plan))
+        t["notes"] = sorted([n for n in notes if not any(n is g for g in gone)] + new, key=lambda n: n["at"])
+        if name == "bass":                                   # v19's rule again: a stroke with a rest after it is let go in time
+            inside = [n for n in t["notes"] if a <= tick(n) < z and n["len"] < 0.3]
+            struck_at = {tick(n) for n in t["notes"]}
+            for n in inside:
+                n["len"] = ones[1] if tick(n) + 1 in struck_at else ones[0]
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T7_SHOW"):
         sec = 15 / BPM
@@ -1753,4 +1873,6 @@ if __name__ == "__main__":
             the_backbeat_is_a_flat(doc)
         if FRONT:
             the_chug_gets_its_front(doc)
+        if WIND:
+            the_rests_close(doc)
         open(OUT, "w").write(dump(doc))
