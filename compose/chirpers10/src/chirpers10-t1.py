@@ -799,7 +799,7 @@ NEARER = os.environ.get("C10T1_NEARER", "363:383:-6:-3:-10.093" if REBUILD and H
 # bars from the section's first ; the bell's velocity ; the bells' fader ; dB on the strokes of each pair (five and seven,
 # five and eleven, seven and eleven) ; where each pair's bell stands (pan) ; the loudness target ('' = unchanged).
 # "" = v62. It is on only while no older switch of this song is set, so each of those still gives what it gave.
-MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE") for k in os.environ) else "")
+MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE", "C10T1_FIVE") for k in os.environ) else "")
 # v44: THE ENGINE, EXPOSED (9:19, in the hardest stretch). For twenty-eight bars everything runs at once: four guitars
 # and the bass on seven, the china on every eighth, the bark, and under it all the kick in unbroken sixteenths. The one
 # event inside it is the ground moving up a semitone at 9:20. Now, for the half bar before that, everything stops
@@ -2233,7 +2233,7 @@ def hold_still(doc):
 # well ("" = neither; "2" = the second) ; the flute's velocity when it was recorded ; the deck's wow and flutter in
 # cents and its drift (in units of the wow) ; the loudness target ("" = unchanged) ; settings added to the recorded
 # flute's patch ("" = the library's flute as it comes). "" = v63. On only while no older switch of this song is set.
-TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE") for k in os.environ) else "")
+TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE", "C10T1_FIVE") for k in os.environ) else "")
 
 
 def the_eye_on_tape(doc):
@@ -2412,6 +2412,70 @@ def the_seven_s_chug_holds(doc):
         doc["loudness"] = float(target)
 
 
+# v69 (chirper-zero; instrument round: the FIVE wheel's guitar before the eye, `ct-chug`, six tracks: gl, gr, their
+# second voices gl2, gr2 and their second takes dgl, dgr: the piece's first riff, 1:09-2:15, and its return against
+# the seven at 4:29; 2114 notes, 1284 of them palm-muted, none changed). THE FIVE'S CHUG HOLDS.
+# v68's survey left this rig second furthest from the records' muted strokes (riffpunch --strokes, `gl` alone,
+# 1:09-1:47): its low end was a thump on the front of the stroke that fell away, where the records' chug holds its
+# 100-250 Hz through the stroke (tight +3.08; theirs -1.10, from -2.2 to +0.3).
+# THE STRING AND THE PICK ARE NOT TOUCHED, AND THAT IS THE POINT. v29 gave the piece two strings on purpose: before
+# the eye the five wheel keeps v25's pick and its rough harmonic string, after it (rl, rr ...) the stiff one, 'so
+# the piece has both: riff A at 1:06 on the one, riff A's return at 10:28 on the other'. The eye's pair reads
+# +0.40, and its fields on this rig read +0.48 to +1.32: benched, and NOT taken, because they would make the two
+# halves one. What is taken is in the chain after the string, one track `gl`, the same bars (rise ms / punch / tight):
+#   as it was                                                    19.5 / 3.09 / +3.08
+#   the string's thump under the palm out (0.4 -> 0)             21.0 / 3.15 / +2.88
+#   the compressor's attack 2 -> 15 ms                           18.75 / 3.14 / +1.53   (8 ms: +1.57 with the thump out)
+#   BOTH                                                         20.0 / 3.15 / +0.66   <- KEPT (25 ms: +0.98; thump 0.2: +1.17)
+# The rig's compressor sat on every stroke 2 ms in and let the low end up again as it fell: at 15 ms the stroke's
+# own front goes through and the hold comes after. Tone alone beside the records' guitars (cabspec) 1.86 -> 1.88,
+# the six together -19.3 -> -19.4 LUFS (so 0.1 dB on the faders), their raw peak 0.3 dB lower.
+# Benched and left: the amp tighter (260: +3.31, worse on this rig); a rounder pick (soft pm x 0.4: +1.49, and 4.4 dB
+# of chest gone at 160 Hz); the amp's resonance, bloom and sag (nothing); a transient shaper after the cabinet
+# (punch 3.51, in the records' 3.5-4.2, for a raw peak 2 dB higher: waits for an ear on the album's other fronts).
+# the tracks ; fields of each one's patch (one already there is replaced) ; bands of a new eq after each one's
+# cabinet and eq, band|band ; fx after that, fx|fx ; dB on each fader (the six alone as loud as before) ; the
+# loudness target ('' = unchanged). "" = v68 byte for byte. On only while STROKE is. The target: with the strokes'
+# fronts through, the master gave the rest of the song 0.006 to 0.016 dB less (the quiet stretches most), so the
+# target goes from -10.15 to -10.1392 and every stretch the six do not play in is within 0.005 dB of v68.
+FIVE = os.environ.get("C10T1_FIVE", "gl,gr,gl2,gr2,dgl,dgr;fx.1.attack=15ms synth.layers.0.thump.mod.0.amount=0;;;0.1;-10.1392" if STROKE else "")
+
+
+def the_five_s_chug_holds(doc):
+    """v69: the five's rig before the eye: the compressor lets the stroke's front through and the palm's thump is out (see FIVE). No note changes; the string and the pick are v25's."""
+    names, over, bands, after, fader, target = FIVE.split(";")
+    for name in names.split(","):
+        t = next(t for t in doc["tracks"] if t["name"] == name)
+        assert t["patch"].startswith("ct-chug"), (name, t["patch"])
+        toks = t["patch"].split(" ")
+        keys = [x.split("=", 1)[0] for x in toks]
+        for f in over.split(" ") if over else []:
+            k = f.split("=", 1)[0]
+            if k in keys:
+                toks[keys.index(k)] = f
+            else:
+                toks.append(f)
+                keys.append(k)
+        t["patch"] = " ".join(toks)
+        fx = list(t.get("fx") or [])
+        if bands:
+            fx.append({"type": "eq", "bands": bands.split("|")})
+        if after:
+            fx += after.split("|")
+        if bands or after:
+            t["fx"] = fx
+        if fader:
+            g = t["gain"]
+            if isinstance(g, dict):
+                g = dict(g)
+                g["value"] = f"{float(g['value'][:-2]) + float(fader):g}dB"
+            else:
+                g = f"{float(g[:-2]) + float(fader):g}dB"
+            t["gain"] = g
+    if target:
+        doc["loudness"] = float(target)
+
+
 def the_tune_is_finished(doc):
     """The lead's last pass of the tune is cut off at the stop before the landing, eight notes in. The other eight are played
     over the landing riff's last four bars, a note to each cell of EIGHT, and the last one falls on the last chord."""
@@ -2452,4 +2516,6 @@ if __name__ == "__main__":
         the_tune_is_hummed(doc)
     if STROKE:
         the_seven_s_chug_holds(doc)
+    if FIVE:
+        the_five_s_chug_holds(doc)
     open(OUT, "w").write(dump(doc))
