@@ -150,6 +150,10 @@ class Track:
     def count(self, a, b):
         return sum(self.per_bar[a:b])
 
+    def cover(self, a, b):
+        """The share of bars a..b it plays in."""
+        return sum(1 for n in self.per_bar[a:b] if n) / max(b - a, 1)
+
     def cell(self, a, b):
         """The cell it mostly has over bars a..b (None: none), and for how much of its playing."""
         got = collections.Counter(c for c, n in zip(self.cells[a:b], self.per_bar[a:b]) if n)
@@ -238,7 +242,11 @@ def choose(n, title, song):
     scenes, plan, last = [], [], None
     used = collections.Counter()
     for k, (a, b) in enumerate(secs):
-        act = [t for t in tracks if t.count(a, b) >= max(4, (b - a) // 2)]
+        # Who is playing here: in most of its bars, and from near its start (a plate should
+        # not stand empty while its subject waits to come in).
+        act = [t for t in tracks if t.count(a, b) >= 4 and t.cover(a, b) >= 0.5 and t.count(a, min(a + 3, b))]
+        if not act:
+            act = [t for t in tracks if t.count(a, b) >= 4]
         by_notes = sorted(act, key=lambda t: -t.count(a, b))
         riffs = distinct([t for t in by_notes if t.role in ("riff", "bass")], a, b)
         drums = [t for t in by_notes if t.role == "drum"]
@@ -319,7 +327,9 @@ def choose(n, title, song):
             use = names[:3] + ([tune.name] if tune and tune.name not in names[:3] else names[3:4])
             if tune:
                 plain.add(tune.name)
-            look = S.studio(use, spot, spot_track if spot_track in use else use[-1], subject=subject, plain=tuple(plain), white=n in WHITE)
+            # The fast ones are followed (the camera runs beside them); the slow ones pass.
+            place = S.chase if subject in ("horse", "runner") else S.studio
+            look = place(use, spot, spot_track if spot_track in use else use[-1], subject=subject, plain=tuple(plain), white=n in WHITE)
         else:  # flight
             fl = [tune] + [t for t in tunes if t is not tune and t not in wheel][:2]
             use = [t.name for t in fl]
@@ -363,7 +373,8 @@ def main():
         head = (f"# chirpers10 t{n} \"{t['title']}\": written by compose/chirpers10/vis-gen/ctgen.py from the song's own notes\n"
                 f"# ({bars} bars; {len(scenes)} scenes). Do not edit: run ctgen.py {n} again when the song changes.\n")
         out = os.path.join(OUT, f"{song}.yaml")
-        prog = {"fade": ["1bar", "2bar"], "master": S.master(n, t["title"], white=n in WHITE), "scenes": scenes}
+        figures = [(a, b - a) for a, b, *_ in plan]
+        prog = {"fade": ["1bar", "2bar"], "master": S.master(n, t["title"], white=n in WHITE, figures=figures), "scenes": scenes}
         open(out, "w").write(head + json.dumps(prog, indent=1) + "\n")
         print(f"{song}: {len(scenes)} scenes: " + " ".join(p[2] for p in plan))
 

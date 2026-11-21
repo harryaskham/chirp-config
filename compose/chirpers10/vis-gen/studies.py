@@ -43,16 +43,28 @@ def backdrop(level=0.16, z=1.0):
     return out
 
 
+def border(spot, when="env.all"):
+    """The plate's border, in the spot colour, lit by `when`: every study lights it where all
+    its cycles meet, so the one sign means the same thing all through the film."""
+    w, h = HALF_W - 0.22, HALF_H - 0.18
+    out = []
+    for x, y, sx, sy in ((0, h, w, 0.008), (0, -h, w, 0.008), (-w, 0, 0.008, h), (w, 0, 0.008, h)):
+        out.append({"type": "mesh", "shape": "box", "round": 0.02, "detail": 2, "x": round(x, 3), "y": round(y, 3), "z": -0.2, "scale": 1,
+                    "sx": round(sx, 3), "sy": round(sy, 3), "sz": 0.004, "opacity": when, **lit(spot, 1.5)})
+    return out
+
+
 def finish(spot):
     """A plate's own finish: halation round the bright parts. (The print itself, its grain and
     dark corners, and whether it is a negative, belong to the song's master: see `master`.)"""
     return [{"type": "bloom", "threshold": 0.55, "amount": 0.35, "radius": 0.012}]
 
 
-def master(number, title, white=False):
-    """What lies over every scene of a song: the plate's label for its first seconds, and the
-    print. `white`: the song is printed as a negative, black figures on a pale ruled wall (the
-    spot colour turns to its complement, an ink)."""
+def master(number, title, white=False, figures=()):
+    """What lies over every scene of a song: the plate's name for its first bars, a legend in
+    the corner (the plate, and which figure of it this scene is: `figures` is each scene's
+    (first bar, bars)), and the print. `white`: the song is printed as a negative, black
+    figures on a pale ruled wall (the spot colour turns to its complement, an ink)."""
     label = [
         # The plate is veiled while its name is up.
         {"type": "shape", "sides": 4, "radius": 4, "width": 0, "fill": 1, "color": "#3a3a3a", "blend": "multiply", "opacity": "1 - smooth(3.0, 4.4, time.bar)"},
@@ -61,6 +73,9 @@ def master(number, title, white=False):
         {"type": "text", "text": title.upper(), "size": 0.17, "x": 0, "y": -0.07, "align": "center", "color": INK, "width": 0.12, "skew": 0,
          "opacity": "1 - smooth(3.2, 4.2, time.bar)", "reveal": "smooth(0.3, 1.6, time.bar)"},
     ]
+    if figures:
+        label.append({"type": "captions", "size": 0.034, "x": -1.7, "y": -0.955, "align": "left", "color": DIM, "width": 0.1, "skew": 0, "glow": 0, "typing": 0, "fade": 0.4,
+                      "opacity": 0.9, "lines": [[f"{a}bar" if a else 0, f"{b}bar", f"PL. {number:02d}   FIG. {k + 1}"] for k, (a, b) in enumerate(figures)]})
     filters = ([{"type": "invert"}, {"type": "color", "brightness": -0.05, "contrast": 0.94}] if white else []) + [
         {"type": "grain", "amount": 0.05},
         {"type": "vignette", "amount": 0.3 if white else 0.55},
@@ -113,8 +128,8 @@ def wheel_rim(track, x, y, r, celled=True, color=DIM, glow="0"):
     C = teeth(track, celled)
     N = f"max({C}, 1)"
     return [
-        {"type": "shape", "sides": 0, "radius": f"({r})*{K:.4f}", "width": 0.007, "x": round(x * K, 4), "y": round(y * K, 4), "color": color,
-         "opacity": f"0.75 + 0.25*({glow})", "glow": f"0.18*({glow})"},
+        {"type": "shape", "sides": 0, "radius": f"({r})*{K:.4f}", "width": f"0.007 + 0.006*({glow})", "x": round(x * K, 4), "y": round(y * K, 4), "color": color,
+         "opacity": f"0.6 + 0.4*({glow})"},
         {"type": "mesh", "shape": "box", "round": 0.02, "detail": 2, "count": 48,
          "opacity": f"step(inst.i + 0.5, {C})",
          "x": f"{x} + 1.07*({r})*sin(inst.i/{N})", "y": f"{y} + 1.07*({r})*cos(inst.i/{N})", "z": 0,
@@ -172,7 +187,8 @@ def wheels(tracks, spot, spot_track=None, plain=()):
             x2 = xs[i + 1]
             layers.append({"type": "mesh", "shape": "box", "round": 0.02, "detail": 2, "x": (x + x2) / 2, "y": cy, "z": 0.1, "scale": 1,
                            "sx": (x2 - x) / 2, "sy": 0.006, "sz": 0.006, "opacity": f"env.m{i}", **lit(spot, 1.4)})
-    return {"vars": vars_, "env": env, "background": BLACK, "camera": CAM, "layers": backdrop() + layers + plates + ruler(), "filters": finish(spot)}
+    marks = border(spot) if n > 1 else []
+    return {"vars": vars_, "env": env, "background": BLACK, "camera": CAM, "layers": backdrop() + layers + plates + ruler() + marks, "filters": finish(spot)}
 
 
 # ───────────────────────── the strip (a photo-finish of the riffs) ─────────────────────────
@@ -476,9 +492,9 @@ def studio(tracks, spot, spot_track=None, subject="walker", plain=(), white=Fals
         T = clock(t, t not in plain)
         # Common time carries each across; its own cell works its legs. Behind it, where it was
         # a moment ago and a moment before that: the plate, standing in the daylight.
-        fig = subject_layer(subject, T, f"track.{t}.hit", col, x=f"-5.5 + 11*fract(time.bar/{6 + 2*i} + {0.27*i:.2f})", y=round(tall * 0.9 / 2, 3), z=z, scale=0.9)
+        fig = subject_layer(subject, T, f"track.{t}.hit", col, x=f"-4.6 + 9.2*fract(time.bar/{5 + 2*i} + {0.27*i:.2f})", y=round(tall * 0.9 / 2, 3), z=z, scale=0.9)
         fig.update({"thick": 1.0, "melt": 0.05, "light": 1.0, "ambient": 0.2, "material": "pbr", "rough": 0.8, "metal": 0,
-                    "emit": f"{0.45 if t == spot_track else 0.05} + 0.3*track.{t}.hit", "echo": 4, "echo_gap": "0.25/time.bpm"})
+                    "emit": f"{0.7 if t == spot_track else 0.08} + 0.3*track.{t}.hit", "echo": 4, "echo_gap": "0.25/time.bpm"})
         layers.append(fig)
     return {
         "background": "#d8d5ce",
@@ -492,6 +508,55 @@ def studio(tracks, spot, spot_track=None, subject="walker", plain=(), white=Fals
             {"type": "aa"},
             # In a song printed as a negative the studio is still daylight: turned over here, it
             # comes out the right way through the master.
+        ] + ([{"type": "invert"}] if white else []),
+    }
+
+
+def chase(tracks, spot, spot_track=None, subject="horse", plain=(), white=False):
+    """The studio again, with the camera running alongside: the wall's threads stream past at
+    common time's own pace while the runners hold their places in the picture, each one's legs
+    going at its own cell and each surging and falling back once a turn, so they race without
+    any of them ever winning. Their earlier poses trail out behind them."""
+    tracks = tracks[:3]
+    rig, motion, tall, thick, strides, ry = SUBJECTS[subject]
+    horse = rig == "horse"
+    if white:
+        spot = negative(spot)
+    v = 3.0 if horse else 2.0                # units a bar
+    # How far the camera has run: so many units a bar since the scene began (places in the
+    # world stay small, and the earlier poses are truly behind).
+    cam = f"({v / 2}*scene.t*time.bpm)"
+    layers = [
+        {"type": "sky", "zenith": "#4a4a4c", "horizon": "#c4c2bc", "ground": "#5a5852", "sun": "#fff4e0", "sun_yaw": -0.14, "sun_height": 0.16, "sun_size": 0.03,
+         "glow": 0.5, "haze": 0.5, "clouds": 0.6, "cloud_height": 6, "cloud_scale": 0.12},
+        {"type": "mesh", "shape": "plane", "detail": 4, "x": cam, "y": 0, "z": 0, "scale": 40, "material": "pbr", "rough": 0.95, "metal": 0, "color": "#6f6c66", "cull": True},
+        # Chalk lines and the wall keep their places in the world: each is put down again a
+        # whole step ahead as the camera passes, so they stream by without end.
+        {"type": "mesh", "shape": "box", "round": 0.02, "detail": 2, "count": 13, "x": f"inst.i - 6 + floor({cam})", "y": 0.004, "z": -0.2, "scale": 1, "sx": 0.012, "sy": 0.003, "sz": 1.6,
+         "color": "#d8d4ca", "light": 0.8, "ambient": 0.5, "rim": 0},
+        {"type": "mesh", "shape": "box", "round": 0.01, "detail": 2, "x": f"2*floor({cam}/2)", "y": 1.6, "z": 1.3, "scale": 1, "sx": 30, "sy": 1.6, "sz": 0.05, "color": "#0b0b0b", "light": 0.5, "ambient": 0.3, "rim": 0,
+         "paint_fine": True, "paint_color": "#e8e4da",
+         "paint": "step(0.97, fract(vtx.x*60 + 0.5))*0.5 + step(0.97, fract(vtx.y*3.2 + 0.5))*0.5 + step(0.985, fract(vtx.x*15 + 0.5))*0.5"},
+    ]
+    size = 1.0 if horse else 0.95
+    for i, t in enumerate(tracks):
+        col = spot if t == spot_track else "#e9e6df"
+        T = clock(t, t not in plain)
+        x = f"{cam} + {(i - (len(tracks) - 1) / 2) * (2.0 if horse else 1.3):.2f} + 0.35*sin({T} + {0.3*i:.2f})"
+        fig = subject_layer(subject, T, f"track.{t}.hit", col, x=x, y=round(tall * size / 2, 3), z=round(0.55 - 0.6 * i, 2), scale=size)
+        fig.update({"thick": 1.0, "melt": 0.05, "light": 1.0, "ambient": 0.2, "material": "pbr", "rough": 0.8, "metal": 0,
+                    "emit": f"{0.7 if t == spot_track else 0.08} + 0.3*track.{t}.hit", "echo": 4, "echo_gap": "0.25/time.bpm"})
+        layers.append(fig)
+    return {
+        "background": "#d8d5ce",
+        "camera": {"x": f"{cam} + 0.5*sin(time.bar/16)", "y": 0.95, "z": -4.4, "look_at": [f"{cam} + 0.2", 0.8, 0.5], "zoom": 1.15},
+        "layers": layers,
+        "filters": [
+            {"type": "shadowmap", "amount": 0.55, "soft": 2, "size": 1024},
+            {"type": "ao", "amount": 0.6, "radius": 0.05},
+            {"type": "tonemap", "knee": 0.8},
+            {"type": "color", "contrast": 1.08},
+            {"type": "aa"},
         ] + ([{"type": "invert"}] if white else []),
     }
 
@@ -568,7 +633,7 @@ def pendulums(tracks, spot, spot_track=None, plain=()):
         layers.append({"type": "actor", "use": pendulum_look(t, col, celled=t not in plain),
                        "params": {"cx": round(x, 3), "top": 2.05, "length": f"1.6 + 2.4*sqrt(clamp({teeth(t, t not in plain)}/16, 0, 1))", "swing": 0.1}, "key": 0, "mask": "none"})
     return {"env": {"all": {"when": together(tracks, plain) if n > 1 else "0", "decay": 2.0}},
-            "background": BLACK, "camera": CAM, "layers": backdrop() + layers + ruler(), "filters": finish(spot)}
+            "background": BLACK, "camera": CAM, "layers": backdrop() + layers + ruler() + border(spot), "filters": finish(spot)}
 
 
 # ───────────────────────── the balls (Edgerton's strobe) ─────────────────────────
@@ -617,7 +682,7 @@ def balls(tracks, spot, spot_track=None, plain=()):
         layers.append({"type": "actor", "use": ball_look(t, col, celled=t not in plain),
                        "params": {"floor": floor, "height": f"clamp(var.h{i}, 0.4, 3.5)", "across": 4, "lead": round(0.21 * i, 2), "size": 0.07}, "key": 0, "mask": "none"})
     return {"vars": vars_, "env": {"all": {"when": together(tracks, plain) if n > 1 else "0", "decay": 1.6}},
-            "background": BLACK, "camera": CAM, "layers": backdrop() + layers + ruler(), "filters": finish(spot)}
+            "background": BLACK, "camera": CAM, "layers": backdrop() + layers + ruler() + border(spot), "filters": finish(spot)}
 
 
 # ───────────────────────── the finish (a photo-finish of the riffs) ─────────────────────────
@@ -640,6 +705,7 @@ def finish_line(tracks, spot, spot_track=None, subject="runner", bars=2, plain=(
     tall = min(0.74 * lane, 2.6)
     size = tall / rig_h
     layers = []
+    vars_ = {}
     for i, t in enumerate(tracks):
         foot = (HALF_H - 0.1) - (i + 1) * lane
         col = spot if t == spot_track else INK
@@ -657,7 +723,11 @@ def finish_line(tracks, spot, spot_track=None, subject="runner", bars=2, plain=(
                        "sx": 0.035, "sy": f"0.02 + 0.05*track.{t}.vel", "sz": 0.006, "opacity": f"step(0.5, track.{t}.hit)", **lit(col, 1.2)})
         fig = subject_layer(subject, T, f"track.{t}.hit", col, x=x, y=round(foot + rig_h / 2 * size, 3), z=0, scale=round(size, 3))
         fig["ry"] = -SUBJECTS[subject][5] if SUBJECTS[subject][5] else 0.5   # facing the way it runs: leftward
-        fig["opacity"] = f"step(0.5, {C})"
+        # Not while its wheel stands (a rest, or a riff waiting to come round again): a body
+        # standing on the line would be drawn out as a smear. The wheel is moving while it
+        # is ahead of where it was a moment ago.
+        vars_[f"was{i}"] = {"follow": T, "attack": "12ms", "release": "12ms"}
+        fig["opacity"] = f"step(0.5, {C})*step(0.001, {T} - var.was{i})"
         fig["emit"] = 1.1
         fig["thick"] = max(SUBJECTS[subject][3], 0.42)
         # Held in one pose while it crosses (so the film takes it clean), a little further
@@ -673,6 +743,6 @@ def finish_line(tracks, spot, spot_track=None, subject="runner", bars=2, plain=(
         layers.append({"type": "mesh", "shape": "box", "round": 0.02, "detail": 2, "x": xs - 0.012, "y": 0, "z": 0.1, "scale": 1, "sx": 0.012, "sy": 2.5, "sz": 0.006,
                        "opacity": "step(0.6, env.all)", **lit(spot, 1.5)})
     return {
-        "background": BLACK, "camera": CAM, "env": env, "layers": layers,
+        "background": BLACK, "camera": CAM, "vars": vars_, "env": env, "layers": layers,
         "filters": [{"type": "slit", "x": round(xs * K, 4), "speed": f"time.bpm/{2*bars}", "live": 0.8, "band": 1}] + finish(spot),
     }

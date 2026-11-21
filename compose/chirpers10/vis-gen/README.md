@@ -32,7 +32,8 @@ Each is a function of track names, so it fits any song and any version of it.
 | `walkers` | Marey's fixed plate | A lane per riff. Common time carries the figure across; its cell works its legs; each note is a flash. |
 | `sheet` | Muybridge's row of cameras | As many panels as the riff has sixteenths, one taken each sixteenth, so the sheet stands still while the riff repeats. |
 | `flight` | A plate flashed by the notes | A bird per tune, flying at the height of the note. |
-| `studio` | None: the place itself | The old techniques. A daylight 3D track with a ruled black wall, PBR figures with sun shadows, their earlier poses standing behind them, a tracking camera. |
+| `studio` | None: the place itself | The old techniques. A daylight 3D track with a ruled black wall, PBR figures with sun shadows, their earlier poses standing behind them, a slow camera. |
+| `chase` | None: the camera runs alongside | The studio with the wall streaming past. Horses or runners hold their places, each one's legs at its own cell, each surging and falling back once a turn. |
 
 Subjects are `walker`, `runner`, `horse` (gallop), `pacer` (a horse walking) and `bird`. The
 horse is built in `studies.py` from bones and poses; it needs nothing new in the engine.
