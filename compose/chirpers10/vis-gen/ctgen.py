@@ -283,7 +283,8 @@ def choose(n, title, song):
         elif len(set(cells)) >= 2:
             order = ["finish", "walkers", "gears", "balls", "discs", "pendulums", "studio", "wheels", "sheet"]
         else:
-            order = ["sheet", "walkers", "discs", "balls", "studio", "finish", "wheels", "pendulums"]
+            # One riff alone: bodies and a ring, not counting machines (a lone wheel says nothing).
+            order = ["sheet", "walkers", "discs", "studio", "finish", "balls"]
         if wheel and max(cells) <= 4:
             # Nothing but short common time here: bodies, not counting machines.
             order = ["sheet", "walkers", "studio", "finish"]
