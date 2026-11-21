@@ -371,10 +371,12 @@ def fence_look(track, color, subject, celled=True, y=0.0, tall=1.8, span=7.6):
         "background": BLACK, "camera": CAM,
         "layers": [
             # The lane's ground: a faint light behind, so the fence itself is seen.
-            {"type": "mesh", "shape": "box", "round": 0.01, "detail": 2, "x": 0, "y": y, "z": 0.3, "scale": 1, "sx": span / 2 + 0.5, "sy": tall * 0.62, "sz": 0.01, **lit(DIM, 0.075)},
+            {"type": "mesh", "shape": "box", "round": 0.01, "detail": 2, "x": 0, "y": y, "z": 0.3, "scale": 1, "sx": span / 2 + 0.5, "sy": tall * 0.62, "sz": 0.01, **lit(DIM, 0.035)},
             fig,
         ],
-        "filters": [{"type": "fence", "n": C, "slide": f"{T}*{C}", "width": 0.0056, "fence": 0.78, "gap": 1.4, "gain": f"min(0.9 + 0.3*{C}, 3.6)"}],
+        "filters": [{"type": "fence", "n": C, "slide": f"{T}*{C}", "width": 0.0056, "fence": 0.76,
+                     # A long riff is many pictures and few gaps: wider gaps keep it bright (two pictures show at once).
+                     "gap": f"clamp({C}/4.5, 1.4, 2.8)", "gain": f"min(1.2 + 0.4*{C}, 5)"}],
     }
 
 
@@ -933,8 +935,11 @@ def finish_line(tracks, spot, spot_track=None, subject="runner", bars=2, plain=(
         # Not while its wheel stands (a rest, or a riff waiting to come round again): a body
         # standing on the line would be drawn out as a smear. The wheel is moving while it
         # is ahead of where it was a moment ago.
-        vars_[f"was{i}"] = {"follow": T, "attack": "12ms", "release": "12ms"}
-        fig["opacity"] = f"step(0.5, {C})*step(0.001, {T} - var.was{i})"
+        # (A slow follower: it lags a turning wheel by a seventh of a second's turn at any
+        # frame rate, and catches a standing one up. A quick one fell under the mark for
+        # slow wheels, and long riffs in slow songs had no runners at all.)
+        vars_[f"was{i}"] = {"follow": T, "attack": "150ms", "release": "150ms"}
+        fig["opacity"] = f"step(0.5, {C})*step(0.003, {T} - var.was{i})"
         fig["emit"] = 1.1
         fig["thick"] = max(SUBJECTS[subject][3], 0.42)
         # Held in one pose while it crosses (so the film takes it clean), a little further

@@ -40,6 +40,9 @@ SPOTS = ["#ff5a2a", "#ffb000", "#39c5ff", "#ff3d6e", "#7dff6a", "#ff7a00", "#b28
          "#ff4040", "#4aa8ff", "#ff9ec4", "#c8ff3c", "#ff6a3d", "#5ce0ff", "#ffb86a", "#ff5a2a"]
 
 # Which songs are printed as negatives (black figures on the pale wall): never three alike in a row.
+# The longest riff a picket fence can hold at draft size (720p: a strip is two pixels). At 4K
+# the strips are three times finer on the horse: raise this to 16.
+FENCE_MAX = 9
 WHITE = {2, 5, 7, 10, 12, 14, 17}
 
 DRUM_WORDS = ("kick", "snare", "tom", "cym", "hat", "ride", "foot", "skin", "metal", "rim", "chest", "tabla", "clave", "shaker",
@@ -288,7 +291,7 @@ def choose(n, title, song):
         # A fence wants short riffs (a long one is too many pictures for the strips to hold
         # at draft size); a train of gears wants two.
         fits = lambda t, top: 3 <= (t.cell(a, b)[0] or 0) <= top  # noqa: E731
-        short = sorted((t for t in wheel if fits(t, 12) and not common(t.cell(a, b)[0])), key=lambda t: t.cell(a, b)[0])[:2]
+        short = sorted((t for t in wheel if fits(t, FENCE_MAX) and not common(t.cell(a, b)[0])), key=lambda t: t.cell(a, b)[0])[:2]
         if len(short) == 1:     # one odd riff: common time runs beside it
             short += [t for t in wheel if fits(t, 8) and common(t.cell(a, b)[0])][:1]
         if not short:
