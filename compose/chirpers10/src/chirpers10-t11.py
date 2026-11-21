@@ -473,6 +473,27 @@ ABOVE = os.getenv('C10T11_ABOVE', '7,19;4;2,2;-9.759' if BEATER else '')
 # '' = v31 byte for byte. On only while ABOVE is.
 SPEAKS = os.getenv('C10T11_SPEAKS', 'fx.2.bands.3.cutoff=1150 fx.2.bands.3.q=1.2 fx.2.bands.3.gain=9dB fx.2.bands.1.gain=11dB '
                    'fx.2.bands.0.gain=9dB synth.layers.1.level=-12dB;0:210;bass-first;' if ABOVE else '')
+# v33 (chirper-zero; section round on w1, 0:00-0:26, the window longest unworked (v5, 18 Nov); the change is 'latch',
+# 0:00-0:10): THE DOOR OPENS AS IT SHUTS. chirper-alpha's v22 ends the song on every walk it has, in order of stride,
+# a cell each (six, four, three, two, one, and the last backbeat is the latch), and his handoff named the same
+# thought at the other end as not built: the song began on four cells with no walk at all. Now the walks arrive in
+# those four cells in the reverse order: ONE step (a tick with the first bell note), TWO, THREE, FOUR, and the quick
+# SIX is the band at 0:10, as written. Only the drummer's hands are new (walk(), as everywhere: the closed hat on
+# each step, the backbeat on every second step): ten ticks and four backbeats. The bell, the toms' and the guitars'
+# clipped strokes (v5) and everything from 0:10 are as written.
+# AND THE ROOM COMES WITH IT, by v24's rule and v24's own code (the longer the step, the bigger the room): the new
+# backbeats wait 20, 22, 12 and 10 sixteenths, so the first two are struck into the hall of the walk in two and the
+# next two into the broad walk's; from 0:10 the quick walk is dry. The door opens on the big room and the room closes
+# as the walk finds its feet; at the end it does the opposite.
+# IT ARRIVES, it is not there: the backbeats come in at about a third of the band's stroke and rise (alone, K, 120 ms:
+# -32.7, -29.6, -25.6, -29.3 dB; the band's first three -21.5, -24.1, -22.4), the ticks at 0.7 of the band's rising to
+# it. Raw, the four cells read -30.9, -28.9, -28.1, -27.2 dB (K; they read -31.0, -29.1, -28.4, -27.9): the step up
+# into the band at 0:10 is 4.1 dB where it was 4.8.
+# the walks of the latch's cells, steps a cell, a cell each ('' in the list = none) ; the piece that keeps the steps ;
+# the backbeats' velocity as a share of the band's walk, in the first cell and the last (a line between) ; the same
+# for the ticks ; the loudness target ('' = unchanged). On only while SPEAKS is. '' = v32 byte for byte.
+# (Backbeats at '0,0' are not struck: the ticks alone, and so no room.)
+OPENS = os.getenv('C10T11_OPENS', '1,2,3,4;h;0.32,0.58;0.7,1;-9.7535' if SPEAKS else '')
 
 
 def BOW_PATCH():
@@ -520,11 +541,11 @@ def make():
     def drum(p, at, v):
         tr = {'k':'kick', 's':'snare', 'h':'hat', 'rde':'metal', 'x':'metal', 'c':'metal'}.get(p,'skins')
         put(tr, at, 4.5 if p in ('x','rde','c') else 1.2, p, v)
-    def walk(start, period, bronze, back=True):
+    def walk(start, period, bronze, back=True, soft=1.0, tick=1.0):
         for j,t in enumerate(range(0,CELL,period)):
-            drum(bronze, start+t, (.68 if j==0 else .52) if bronze=='h' else (.65 if j==0 else .54))
+            drum(bronze, start+t, ((.68 if j==0 else .52) if bronze=='h' else (.65 if j==0 else .54))*tick)
             if back and j%2==1:
-                drum('s',start+t,.98 if j==1 else .91)
+                drum('s',start+t,(.98 if j==1 else .91)*soft)
     def answer(i,semi):
         # Every fourth cell its high fifth folds down to the major second instead.
         return 2 if i%4==3 and semi==7 else semi
@@ -644,6 +665,12 @@ def make():
                             drum(piece,a+t,(.32 if t in (4,15) else .23) + .16*(i-1))
                 elif not PICKUP and i>=2:
                     for t,p in ((0,'t1'),(CELL//2,'ft')): drum(p,a+t,.60)
+                if OPENS:
+                    # v33: the walks arrive in order of stride, a cell each, before the quick six at 0:10
+                    strides=[int(x) if x else 0 for x in OPENS.split(';')[0].split(',')]
+                    if i<len(strides) and strides[i]:
+                        line=lambda f:(lambda lo,hi:lo+(hi-lo)*i/max(1,count-1))(*(float(x) for x in OPENS.split(';')[f].split(',')))
+                        walk(a,CELL//strides[i],OPENS.split(';')[1],back=line(2)>0,soft=line(2),tick=line(3))
             elif section=='shut':
                 if i==0:
                     for t,s in ((0,3),(6,2),(12,0)):
@@ -1146,6 +1173,8 @@ def make():
         doc['tracks'].append({**{k:v for k,v in t.items() if k!='notes'},'name':name,'patch':t['patch']+(' '+over if over else ''),'notes':mine})
         if target:
             doc['loudness']=float(target)
+    if OPENS and OPENS.split(';')[4]:
+        doc['loudness']=float(OPENS.split(';')[4])      # v33 (the walk itself is dealt in the latch, above)
     return doc,marks
 
 
