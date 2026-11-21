@@ -107,7 +107,7 @@ def teeth(track, celled=True):
 
 # ───────────────────────── the wheel (a riff draws its own necklace) ─────────────────────────
 
-def wheel_look(track, color=INK, fade="1.2", live=0.3, celled=True):
+def wheel_look(track, color=INK, fade="24/time.bpm", live=0.3, celled=True, each=0.1):
     """One wheel's pointer for one track, on its own plate. It goes round once per cell; the
     plate is flashed by the track's notes, so the pointer prints where in the cell each note
     falls: the riff draws its own necklace, and holds it still for as long as it repeats.
@@ -127,7 +127,9 @@ def wheel_look(track, color=INK, fade="1.2", live=0.3, celled=True):
             {"type": "mesh", "shape": "sphere", "detail": 12, "x": f"param.cx + param.r*sin({T})", "y": f"param.cy + param.r*cos({T})", "z": 0,
              "scale": "0.07 + 0.03*track.%s.hit" % track, "opacity": has, **lit(color, 1.6)},
         ],
-        "filters": [{"type": "expose", "on": f"track.{track}", "fade": fade, "live": live}],
+        # Each note dims the older prints a little, so the plate keeps the riff's last twenty
+        # notes or so however fast they come, and holds them while the riff rests.
+        "filters": [{"type": "expose", "on": f"track.{track}", "fade": fade, "each": each, "live": live}],
     }
 
 
@@ -234,7 +236,9 @@ def disc_look(track, color, subject, slots, every=1, celled=True, r=1.4, tall_ma
         "params": {"cx": 0, "cy": 0},
         "background": BLACK, "camera": CAM, "layers": layers,
         # Each flash lasts into the next, so the ring's light is steady and only the poses change.
-        "filters": [{"type": "expose", "on": f"track.{track}", "fade": "0.3/time.bpm", "live": 0.2}],
+        # Each note takes a fresh plate (no two poses on one), which then stands, dimming
+        # slowly: a ring whose riff rests keeps its last picture.
+        "filters": [{"type": "expose", "on": f"track.{track}", "each": 1, "fade": "5/time.bpm", "live": 0.2}],
     }
 
 
@@ -538,7 +542,7 @@ def subject_layer(subject, turn, hit, color, **place):
     return fig
 
 
-def walker_look(track, color=INK, fade="8/time.bpm", live=0.3, subject="walker", celled=True):
+def walker_look(track, color=INK, fade="20/time.bpm", live=0.3, subject="walker", celled=True, each=0.05):
     """One walker for one track, on its own plate. Common time carries it across (once every
     `param.across` bars); its own cell works its legs (a stride, two steps, for every turn);
     and every note is a flash. So the plate holds a row of the walker, spaced as the riff's
@@ -558,7 +562,7 @@ def walker_look(track, color=INK, fade="8/time.bpm", live=0.3, subject="walker",
             subject_layer(subject, T, f"track.{track}.hit", color, x="-4.7 + 9.4*fract(time.bar/param.across + param.lead)",
                           y=f"param.y + {SUBJECTS[subject][2] / 2:.2f}*param.size", z=0, scale="param.size"),
         ],
-        "filters": [{"type": "expose", "on": f"track.{track}", "fade": fade, "live": live}],
+        "filters": [{"type": "expose", "on": f"track.{track}", "fade": fade, "each": each, "live": live}],
     }
 
 
@@ -574,7 +578,7 @@ def walkers(tracks, spot, spot_track=None, subject="walker", plain=()):
         y = (HALF_H - 0.2) - (i + 1) * (2 * HALF_H - 0.3) / n
         col = spot if t == spot_track else INK
         # A horse is long: it crosses in two bars, not four, and its prints fade sooner.
-        look = walker_look(t, col, subject=subject, celled=t not in plain, fade="4/time.bpm" if horse else "8/time.bpm")
+        look = walker_look(t, col, subject=subject, celled=t not in plain, fade="10/time.bpm" if horse else "20/time.bpm", each=0.09 if horse else 0.05)
         layers.append({"type": "actor", "use": look, "params": {"y": round(y, 3), "size": round(size, 3), "across": 2 if horse else 4, "lead": round(0.37 * i, 2)}, "key": 0, "mask": "none"})
     return {"background": BLACK, "camera": CAM, "layers": backdrop() + layers, "filters": finish(spot)}
 
@@ -850,7 +854,7 @@ def flight_look(track, color=INK, bars=2, fade=None, lo=0.3, hi=0.7, phase=0.0):
              "x": f"-4.7 + 9.4*fract(time.bar/{bars} + {phase:.2f})", "y": "-1.6 + 3.3*var.h", "z": 0, "ry": 0.06, "scale": "param.size",
              "emit": f"0.9 + 0.7*track.{track}.hit", "light": 0.2, "ambient": 0.9, "rim": 0},
         ],
-        "filters": [{"type": "expose", "on": f"track.{track}", "fade": fade or f"{4*bars:g}/time.bpm", "live": 0.45}],
+        "filters": [{"type": "expose", "on": f"track.{track}", "fade": fade or f"{8*bars:g}/time.bpm", "each": 0.06, "live": 0.45}],
     }
 
 
@@ -868,7 +872,7 @@ def flight(tracks, spot, spot_track=None, ranges=None, bars=2):
 
 # ───────────────────────── the pendulums (odd sympathy) ─────────────────────────
 
-def pendulum_look(track, color=INK, celled=True, fade="1.6"):
+def pendulum_look(track, color=INK, celled=True, fade="16/time.bpm"):
     """One pendulum for one track, on its own plate: it swings out and back once per cell, and
     each note is a flash, so the plate holds the bob wherever in the swing the riff's notes
     fall: a fan with the riff's rhythm in it. params: cx (the pivot), top, length, swing."""
@@ -885,7 +889,7 @@ def pendulum_look(track, color=INK, celled=True, fade="1.6"):
             {"type": "mesh", "shape": "sphere", "detail": 14, "x": bx, "y": by, "z": 0, "scale": f"0.14 + 0.06*track.{track}.hit", **lit(color, 1.3)},
             {"type": "mesh", "shape": "sphere", "detail": 8, "x": "param.cx", "y": "param.top", "z": 0, "scale": 0.035, **lit(DIM, 1.0)},
         ],
-        "filters": [{"type": "expose", "on": f"track.{track}", "fade": fade, "live": 0.35}],
+        "filters": [{"type": "expose", "on": f"track.{track}", "fade": fade, "each": 0.1, "live": 0.35}],
     }
 
 
