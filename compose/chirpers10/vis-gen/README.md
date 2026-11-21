@@ -64,6 +64,8 @@ What every plate shares:
 every song over its WAV, long songs in parts cut at scene starts, and joins the album;
 `draft_and_post.sh TAG BIN` also puts the result on the review page. About an hour at 720p.
 Do not regenerate `film/` while a draft is drawing: parts read the programme when they start.
+Run nothing else heavy beside it. `reel.py TAG BIN 3840x2160 60 N` (env `FROM`, `TO` in bars)
+draws a sampler at delivery size.
 
 ## The generator (`ctgen.py`)
 
@@ -71,12 +73,15 @@ Do not regenerate `film/` while a draft is drawing: parts read the programme whe
 python3 ctgen.py            # every song: writes ../film/chirpers10-tN.yaml
 python3 ctgen.py 3 7        # only those
 python3 ctgen.py --plan 3   # what it found in the song and what it chose
+python3 ctgen.py --reel=1:188:236 --out=DIR   # a sampler: bars 188 to 236 of song 1, a study every four bars
 ```
 
 For each song it reads the notes (`tools/songmap.py`) and works out:
 
 1. What each track is (riff, bass, drum, tune, voice), from its notes.
-2. Each track's cell, bar by bar (the same reading as the engine's).
+2. Each track's cell, bar by bar. It asks the engine (`chirp --json vis cells -f SONG`, from
+   `$CHIRP` or the chirp-video build), which reads the notes as played; without such a
+   binary it reads the written notes the same way, and `--plan` says so.
 3. Where the song changes: who plays, and which cells. Scenes change there, and at least every
    26 seconds or so.
 4. Which tracks carry a distinct cell in each stretch (riffs first, one wheel per cell), and
