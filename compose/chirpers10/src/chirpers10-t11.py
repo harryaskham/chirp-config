@@ -466,6 +466,13 @@ BEATER = os.getenv('C10T11_BEATER', 'kit.k.patch.synth.layers.2.level.value=-40d
 # semitones the wall pair's chords go up, phrase by phrase ; first cell of the swing ; cells in each phrase ; the
 # loudness target ('' = unchanged). '' = v30 byte for byte. On only while BEATER is.
 ABOVE = os.getenv('C10T11_ABOVE', '7,19;4;2,2;-9.759' if BEATER else '')
+# v32 (chirper-zero; a whole-song draw spent on the bass, the last instrument of the band still as the album ships
+# it; 352 notes, none moved): THE BASS SPEAKS UNDER THE FIRST RIFF. (The notes are below, beside the switch's use.)
+# overrides on the bass's patch ; the beats that get them, from:to (to not included): those notes go to a last track
+# of their own, and `bass` keeps the rest untouched ; that track's name ; the loudness target ('' = unchanged).
+# '' = v31 byte for byte. On only while ABOVE is.
+SPEAKS = os.getenv('C10T11_SPEAKS', 'fx.2.bands.3.cutoff=1150 fx.2.bands.3.q=1.2 fx.2.bands.3.gain=9dB fx.2.bands.1.gain=11dB '
+                   'fx.2.bands.0.gain=9dB synth.layers.1.level=-12dB;0:210;bass-first;' if ABOVE else '')
 
 
 def BOW_PATCH():
@@ -1098,6 +1105,45 @@ def make():
                     if a0<=n['at']<a1 and not (n.get('expr') or {}).get('pm') and low:
                         n['pitch']=','.join(up(q,semi) for q in n['pitch'].split(','))
             a0=a1
+        if target:
+            doc['loudness']=float(target)
+    if SPEAKS:
+        # v32: THE BASS SPEAKS UNDER THE FIRST RIFF. The guitars (v27, v29), the snare (v19), the cymbals (v26) and
+        # the kick (v30) have each been read beside the records' own and fitted; the bass was the album's as it
+        # ships. Alone beside eleven records' basses (tools/bassspec.py) it read 6.1 to 6.9 dB out: a sub (50-63 Hz
+        # +8 to +11), a box (315-630 Hz +5 to +9) and no string (1-1.25 kHz 8 and 12 short).
+        # WHO HOLDS WHAT WAS READ BY MUTING (in 'lean'): the bass gives the mix 1.6 dB under 60 Hz (the kick 7.4),
+        # 4.9 at 60-120, 3.2 at 120-250 and 0.2 at most above that; the mix's excess at 250 Hz-1 kHz there is the
+        # organ's (3.6, 3.1), not the bass's. So the cure the other songs' basses took (the box cut out) is REFUSED
+        # HERE BY THE MIX: with the box 6 dB down the bass read 4.2 to 5.4 alone and the five band stretches read
+        # 0.33 FURTHER from the records in sum. What both reads accept, and the mix chose the amounts of:
+        #   the patch's 220 Hz band +8 -> +11 dB and its 110 Hz band +6 -> +9 (under the first riff the mix was 1.1
+        #   to 1.4 short at 120-250 Hz, and the bass is what holds that band);
+        #   the sine under the string 3 dB lower (the root is B flat at 58 Hz: the string has a fundamental of its
+        #   own there, and under 60 Hz the mix stood 1.1 to 1.7 over);
+        #   its upper band moved from 900 Hz to a grind at 1150 Hz, +9 dB: the string's own noise, where a record's
+        #   bass has it (13 dB, or the shelf above it opened, read better alone and worse in the mix: it stops at 9).
+        # ONLY UNDER THE FIRST RIFF (0:10-1:27.5: 'quick', 'lean', 'broad'), where two guitars are all that is over
+        # it. The bridge's walk (B flat, G flat, E flat, F under the organ) lost 1.4 dB of floor with this voice in
+        # the first bench, because its lowest notes ARE the sine. The rest of the song was then given it and read in
+        # all fifteen stamp windows: those three passages came 0.11 to 0.14 closer to the records and six later ones
+        # went further (the wall pair arrives at 1:50 with a low end of its own, so 120-250 Hz went over; 'bones'
+        # and 'shut' lost too).
+        # A fit made under one kind of passage is not carried into another. So the 186 notes of the first riff are
+        # on a track of their own (`bass-first`, last: every older track keeps its seed) and `bass` keeps the other
+        # 166 untouched: from 1:29 to the end the raw mix is v31's sample for sample (the first stroke of 'bones', at
+        # 1:27.5, measures 0.45 dB quieter in the finished file, 0.7 in the low end, for half a second: the old
+        # track's chain meets it from rest; second field '0:204' would hand over a cell earlier: not rendered).
+        # The target stays -9.759: the master gives everything else 0.003 dB less (measured; within what is left).
+        # NOT TOUCHED: every note; the `low` bus; the kick.
+        over,span,name,target=SPEAKS.split(';')
+        t=next(t for t in doc['tracks'] if t['name']=='bass')
+        assert t['patch']=='ct-bass' and not any(x['name']==name for x in doc['tracks']),t['patch']
+        a,z=(float(x) for x in span.split(':'))
+        mine=[n for n in t['notes'] if a-1e-6<=n['at']<z-1e-6]
+        assert mine,span
+        t['notes']=[n for n in t['notes'] if n not in mine]
+        doc['tracks'].append({**{k:v for k,v in t.items() if k!='notes'},'name':name,'patch':t['patch']+(' '+over if over else ''),'notes':mine})
         if target:
             doc['loudness']=float(target)
     return doc,marks

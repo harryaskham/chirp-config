@@ -8977,8 +8977,8 @@
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers10-t11 OUT.wav",
       "best": {
-        "score": 94.5,
-        "version": "v31",
+        "score": 93.34,
+        "version": "v32",
         "commit": "see git log songs/chirpers10-t11.yaml",
         "engine": "cbafb083",
         "judged": true
@@ -8986,7 +8986,7 @@
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 33,
+      "rounds": 34,
       "priority": 1.0,
       "genre": "polymetric djent",
       "mode": "compose",
@@ -9004,7 +9004,7 @@
         "note": "COMPOSE (the eleventh song: an empty slot (no owner), 180-480 s): Opened by Harry on 18 Nov, about 03:27 GMT, in his words: \"okay actually when you are done, open 3 more empty slots cos i also just woke two, three and alpha so all are back online\". THAT IS ALL HE SAID of this one and of the other two opened with it (tracks 11, 12 and 13): they are EMPTY, and what each is, is its first composer's to say. His words a few minutes before, of tracks 9 and 10, are the nearest thing to a direction for new songs on this record: \"Can  you open up another 2 new song slots for brand new songs, skewing towards the interesting time-play heavy djent with interesting new elemnts - lets try out some new engine features\". NO SONG HAS AN OWNER (Harry, 18 Nov, verbatim: \"wait, climbing should not have owenrs, owners should be able to take the lock on any song\"; \"a new round should release for anyuone to improve\"; \"tha tis hos we maintain variaety\"). `climb.py next` draws among every song of the record for whoever asks; starting a round takes that song's lock, and `climb.py done` releases it for anyone to improve. So whoever draws this slot first stands the song up, and from its first kept version anyone may draw it. THE NAME is its first composer's (`tools/chirpers.py title chirpers10-t11 \"...\"`: a plain fragment, nothing on the nose, no numbers in titles); the FIRST ROUND IS A SKELETON (the whole shape standing, however bare; any version goes on the groove beside the others). Five slots opened within ten minutes and five composers are drawing: before you write, read the titles and first notes of the others (`climb.py status`, compose/chirpers10/motifs.md) so two new songs are not the same idea. WHAT THE EIGHT SONGS SO FAR HAVE IN COMMON AND LEAVE UNUSED, measured on 18 Nov (pointers, not a plan; chirp-eco does not say what a song should be). TEMPO: 126, 108, 120, 116, 100, 138, 80, 160. ONSET DENSITY (the scorer's): 5.9 to 6.6 a second in the first six, and 6.0 in the slow one at 80: slow is not sparse by that measure. LENGTH: 3:12 to 5:29 but for the epic (13:03). THE ENGINE (`python3 tools/showcase.py songs/chirpers10-t{1,2,3,4,5,6,7,8}.yaml`; kept at ~/.local/state/chirp-eco/common-time/showcase-eight-1118.txt): between them the eight use 16 of the engine's 26 sound sources, 27 of its 48 effects and TWO of its eight generative systems (logistic, lsystem). NO SONG USES the sources wavetable, sample, crowd, bytebeat, gendyn, vosim, terrain, scanned, shaper or fof; the effects pan, filter, limiter, phantom, radio, follow-noise, lpc, waveset, pvoc, vinyl, ott, crush, ring, chop, cloud, formant, pitch, freeze, vocoder, autolevel or transient; the generative systems lorenz, ca, markov, life, henon or walk; the chamber or classic reverbs; the beaters felt, plastic, rimshot or brush. (Harry's rule on this record: A SHOWCASE OF ALL FEATURES.) WHAT HE HAS HEARD AND CHOSEN: his thirty answers of 17 Nov, by song, are at ~/.local/state/chirp-eco/common-time/answers-1117.md; what each round learned is on the board, compose/chirpers10/features.md. Harry's own rules for the record (album.json direction.rules) and the band (compose/README.md) are his and stand. NEW ENGINE FEATURES: his rule of 13 Nov stands (\"chirper-zero builds them\"; chirp-eco gates, lands and adopts): if your song needs one the engine lacks, say so in a bead with numbers, or to chirper-zero. The slot's length (3 to 8 minutes) is chirp-eco's placeholder so the scorer has a range: set it to what the song is."
       },
       "last": {
-        "at": "2026-11-21T01:19:38Z",
+        "at": "2026-11-21T09:43:19Z",
         "who": "chirper-zero"
       }
     },
