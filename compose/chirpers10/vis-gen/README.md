@@ -52,24 +52,30 @@ What every plate shares:
   two only lights the border. The look keeps the time itself; nothing is told it.
 - **Exposure** (`finish`): halation that grows with the low end, so heavy passages burn and
   quiet ones are thin hard lines.
-- **The cutting keeps the riff's time** (`cutting`, `rostrum`): inside a scene the film cuts
-  from the whole plate to its details and back, as a film is made from photographs on a
-  rostrum: a wheel, a ring, a lane, the line of a photo-finish. A cut comes each time the
-  scene's first riff has come round so many times (about forty sixteenths: a five every
-  eight turns, an eleven every four), so the cuts fall across the bar lines as the riff
-  does. The plate itself is not touched: the camera is a filter over the finished picture.
-  The knot and the gears are real bodies and have real second cameras (the knot from its
-  side and close; the gears where two wheels mesh), cut the same way, as the daylight track
-  always was.
-  - A scene opens and closes on its whole plate (the film goes from plate to plate), and the
-    whole plate is taken up and let go only AT one of the riff's cuts, so no shot is a
-    scrap: `var.free` is a latch, set by a cut and cleared by an event.
-  - A meeting of the plate's cycles that was long in coming (seven seconds apart or more)
-    brings the whole plate back, burning; meetings that come round every bar or two do not
-    cut.
+- **The cutting keeps the riff's time** (`shot_list`, `cutting`, `rostrum`): inside a scene
+  the film cuts from the whole plate to its details and back, as a film is made from
+  photographs on a rostrum: a wheel, a ring, a lane, the line of a photo-finish. A cut comes
+  where the scene's first riff begins a turn, each time it has come round as often as takes
+  about four and a half seconds (at 126 bpm a five every eight turns, an eleven every three),
+  so the cuts fall across the bar lines as the riff does. The plate itself is not touched:
+  the camera is a filter over the finished picture. The knot and the gears are real bodies
+  and have real second cameras (the knot from its side and close; the gears where two wheels
+  mesh), cut the same way, as the daylight track is.
+  - The shots are worked out here, from the engine's reading of where the riff's turns
+    begin (`Track.anchor`), and written into the look against the song's own clock: a scene
+    is cut the same however it is drawn. `python3 ctgen.py --cuts [--plan] [N…]` prints them
+    (view:seconds) with the shortest and the share of time away from the whole plate.
+  - A scene opens on its whole plate (about three seconds, until the riff next begins a
+    turn), goes through its details in order, comes back to the whole, and round; it closes
+    on the whole plate, from the last cut that leaves two and a half seconds. No shot is
+    shorter than that.
+  - One thing is not known beforehand: a meeting of the plate's cycles that was long in
+    coming (seven seconds apart or more). It brings the whole plate back, burning, until
+    the next cut; meetings that come round every bar or two do not cut.
   - `CT_SHOW_CUTS=1 python3 ctgen.py --out=DIR` writes programmes whose black is lifted a
-    step per view, so a tool can read every frame's view and each shot's length off a clip
-    (never for a film).
+    step per view, so a tool can read every frame's view off a clip (never for a film).
+- **A plate's subject is there from the start:** a part gets a body only if it plays within
+  about the scene's first four seconds (three bars of a quick song, one of a slow one).
 - **A camera already running** (`lead` on a scene; `LEAD` in `ctgen.py`): a plate, a strip, a
   sheet or a fence is started a bar or two before its cut and drawn unseen, so the cut lands
   on a picture already made. Only a song's first plate develops in view, under its title.

@@ -65,8 +65,8 @@ CHIRP = os.environ.get("CHIRP") or next((p for p in (
 
 
 def engine_cells(song):
-    """Each track's cells as the engine reads them: {track: [(from, to, cell)]} in sixteenths
-    from the song's start. None if this engine cannot say (then the reading below is used: the
+    """Each track's cells as the engine reads them: {track: [(from, to, cell, anchor)]} in
+    sixteenths from the song's start (`anchor`: where a turn of that cell begins). None if this engine cannot say (then the reading below is used: the
     same method, but on the written notes, where the engine has the played ones)."""
     path = os.path.join(CFG, "songs", song + ".yaml")
     os.makedirs(CACHE, exist_ok=True)
@@ -75,7 +75,7 @@ def engine_cells(song):
     except OSError:
         stamp = "path"
     key = hashlib.sha1(open(path, "rb").read() + stamp.encode()).hexdigest()[:16]
-    c = os.path.join(CACHE, f"{song}-cells-{key}.json")
+    c = os.path.join(CACHE, f"{song}-cells2-{key}.json")
     if os.path.exists(c):
         return json.load(open(c))
     try:
@@ -83,9 +83,9 @@ def engine_cells(song):
         data = json.loads(r.stdout)["data"]["tracks"]
     except (OSError, ValueError, KeyError, subprocess.TimeoutExpired):
         return None
-    out = {t["name"]: [(sp["from"], sp["to"], sp["cell"]) for sp in t["spans"]] for t in data}
+    out = {t["name"]: [(sp["from"], sp["to"], sp["cell"], sp["anchor"]) for sp in t["spans"]] for t in data}
     for old in os.listdir(CACHE):
-        if old.startswith(song + "-cells-") and old != os.path.basename(c):
+        if old.startswith(song + "-cells") and old != os.path.basename(c):
             os.remove(os.path.join(CACHE, old))
     json.dump(out, open(c, "w"))
     return out
@@ -149,6 +149,9 @@ def cell_of(grid, lo, hi, longest=48):
 class Track:
     def __init__(self, name, notes, sung, bars, bar_steps, spans=None):
         self.name, self.notes, self.sung = name, notes, sung
+        # (The engine's spans come with the sixteenth at which a turn begins: kept apart.)
+        self.anchors = sorted(tuple(sp) for sp in (spans or []) if len(sp) > 3)
+        spans = None if spans is None else [tuple(sp[:3]) for sp in spans]
         self.spans = sorted(spans or [])
         keys = [n[2] for n in notes]
         self.lo, self.hi = min(keys), max(keys)
@@ -215,6 +218,16 @@ class Track:
             return None, 0.0
         c, n = got.most_common(1)[0]
         return c, n / sum(got.values())
+
+    def anchor(self, a16, b16, cell):
+        """A sixteenth at which this track's riff of `cell` begins a turn, by the engine's
+        span of that length that covers most of a16..b16; None if it has none there."""
+        best = None
+        for a, z, c, at in self.anchors:
+            over = min(z, b16) - max(a, a16)
+            if c == cell and over > 0 and (best is None or over > best[0]):
+                best = (over, at)
+        return best[1] if best else None
 
     def hold(self, cell, lo, hi):
         """The longest stretch within sixteenths lo..hi through which it keeps this cell (the
@@ -403,7 +416,10 @@ def choose(n, title, song, reel=None):
         those that carry a cell, best first."""
         # In most of its bars, and from near its start (a plate should not stand empty while
         # its subject waits to come in).
-        act = [t for t in tracks if t.count(a, b) >= 4 and t.cover(a, b) >= 0.5 and t.count(a, min(a + 3, b))]
+        # (Within about four seconds: three bars of a quick song, one of a slow one.)
+        # (A song's first plate comes up under its title: there, within the title's bars.)
+        soon = 3 if a == 0 else max(1, min(3, int(4.0 / bar_s + 0.5)))
+        act = [t for t in tracks if t.count(a, b) >= 4 and t.cover(a, b) >= 0.5 and t.count(a, min(a + soon, b))]
         if not act:
             act = [t for t in tracks if t.count(a, b) >= 4]
         by_notes = sorted(act, key=lambda t: -t.count(a, b))
@@ -498,9 +514,12 @@ def choose(n, title, song, reel=None):
             wheel, cells = [t for t, _ in pairs], [c for _, c in pairs]
         cell = dict(zip(wheel, cells))
         S.HELD = {t.name: c for t, c in cell.items() if c}
-        S.HOLD = 24 if scenes else 76        # (a song's first plate is seen whole while its title is up)
         S.SIXTEENTH = bar_s / 16
-        S.END = b16
+        # A scene keeps its whole plate for about three seconds before its first cut (a song's
+        # first plate while its title is up).
+        S.HOLD = max(16, int(2.8 / S.SIXTEENTH + 0.5)) if scenes else 76
+        S.START, S.END = a16, b16
+        S.ANCHOR = {t.name: at for t, c in cell.items() if c for at in [t.anchor(a16, b16, c)] if at is not None}
         odd = sum(1 for c in set(cells) if not common(c))
         # A tune worth a bird: one that sings at least a note a bar here.
         tune = next((t for t in tunes if t not in wheel and t.count(a, b) >= (b - a)), None)
@@ -655,6 +674,7 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     only = [int(a) for a in args] or [int(t["n"]) for t in ALBUM["tracks"]]
     show = "--plan" in sys.argv
+    cuts = "--cuts" in sys.argv          # print each scene's shots (seconds) and the shortest
     reel = next((tuple(int(x) for x in a[7:].split(":")) for a in sys.argv[1:] if a.startswith("--reel=")), None)
     if reel:
         only, reel = [reel[0]], (reel[1], reel[2], reel[3] if len(reel) > 3 else 4)
@@ -663,7 +683,19 @@ def main():
         if n not in only:
             continue
         song = t["id"]
+        S.SHOTS = []
         d, bars, tracks, scenes, plan = choose(n, t["title"], song, reel)
+        if cuts:
+            six = d["bar_beats"] * 60 / d["bpm"] / 16
+            lens = [(b - a) * six for _, _, shots in S.SHOTS for a, b, _ in shots if len(shots) > 1]
+            views = sum(len(shots) for _, _, shots in S.SHOTS)
+            away = sum((b - a) for _, _, shots in S.SHOTS for a, b, v in shots if v) / max(1, sum(z - a for a, z, _ in S.SHOTS))
+            print(f"{song}: {len(S.SHOTS)} scenes cut into {views} shots; shortest {min(lens, default=0):.1f} s, median {sorted(lens)[len(lens) // 2] if lens else 0:.1f} s; "
+                  f"{100 * away:.0f}% of the time away from the first view")
+            if "--plan" in sys.argv:
+                for a, z, shots in S.SHOTS:
+                    print(f"  {a / 16:7.2f}-{z / 16:<7.2f} " + " ".join(f"{v}:{(y - x) * six:.1f}" for x, y, v in shots))
+            continue
         if show:
             print(f"{song} \"{t['title']}\": {bars} bars, {d['bpm']:.0f} bpm, {len(tracks)} tracks"
                   + ("" if d.get("engine") else "  (cells read here, not by the engine: build the chirp-video branch or set $CHIRP)"))

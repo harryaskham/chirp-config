@@ -222,8 +222,17 @@ longer for a song's first scene, while the title is over it)."""
 SIXTEENTH = 0.125
 """A sixteenth of the song, in seconds (ctgen sets it)."""
 
+START = None
 END = None
-"""Sixteenths into the song at which the scene being written ends (ctgen sets it)."""
+"""Sixteenths into the song at which the scene being written begins and ends (ctgen sets
+them)."""
+
+ANCHOR = {}
+"""Track: a sixteenth at which its riff begins a turn in this scene (ctgen sets it, from the
+engine's reading of the notes)."""
+
+SHOTS = []
+"""What `cutting` made of each scene, for ctgen to check: (start, end, [(from, to, view)])."""
 
 
 def apart(tracks, plain=()):
@@ -236,49 +245,82 @@ def apart(tracks, plain=()):
     return n * SIXTEENTH
 
 
-def cutting(look, lead, plain=(), slots=4, tracks=(), tail=20):
-    """The cutting of a scene, kept in the lead riff's own time: `var.slot` counts 0, 1, …
-    `slots` - 1 and round again, a step each time the riff has come round so many times
-    (about forty sixteenths: a five every eight turns, an eleven every four), so the cuts
-    fall across the bar lines as the riff does. `var.along` is how far through the shot.
+def shot_list(lead, plain=(), slots=2, tail=0):
+    """The scene's shots, [(from, to, view)] in sixteenths of the song, kept in the lead
+    riff's own time: a cut each time the riff has come round so many times (as many as take
+    about four and a half seconds: at 126 bpm a five every eight turns, an eleven every
+    three), always where the riff begins a turn, so the cuts fall across the bar lines as
+    the riff does.
+    - The scene opens on view 0 (the whole plate) and keeps it for `HOLD` sixteenths, until
+      the riff next begins a turn.
+    - Then the other views in order, then view 0 again, and round.
+    - It closes on view 0, from the last cut that leaves about two and a half seconds (and
+      `tail` sixteenths more). So the film goes from whole plate to whole plate.
+    No shot is shorter than that. In a short scene the riff may be let round a turn or two
+    fewer (shots of three seconds or more) if that gets every view in."""
+    if START is None or END is None or slots < 2:
+        return [(START or 0, END or 10 ** 6, 0)]
+    c = 16 if lead in plain else int(HELD.get(lead) or 16)
+    c = max(2, c)
+    a0 = START if lead in plain else ANCHOR.get(lead, START)
+    tail += max(16, int(2.5 / SIXTEENTH + 0.5))
+    first = int(a0 + -(-(START + HOLD - a0) // c) * c)
+    order = list(range(1, slots)) + [0]
 
-    `var.whole` is 1 where the scene's first view (the whole plate) is kept whatever the
-    slot. It is taken up and let go AT a cut of the riff's wherever that can be, so that no
-    shot is a scrap:
-    - from the scene's start, until the first cut after its first bar and a half;
-    - from a meeting of all `tracks`' cycles that was long in coming (they meet seven seconds
-      apart or more, and the plate burns: see `waited`), until the first cut two and a half
-      seconds later. Meetings that come round every bar or two do not cut: the border is
-      enough;
-    - to the scene's end, from the last cut of the riff's that leaves at least `tail`
-      sixteenths (or from there, if no cut came in the forty before it). So a scene opens
-      and closes on its whole plate, and the film goes from plate to plate.
-    `var.free` is 1 - `var.whole`. Returns the test for slot k."""
-    T = clock(lead, lead not in plain)
-    # (By the length the scene has for the riff, not the one its notes give at this moment:
-    # a bar's variation must not move the cuts about.)
-    every = 2 if lead in plain else max(1, int(40 / max(2, HELD.get(lead) or 16) + 0.5))
+    def build(every):
+        cuts = list(range(first, int(END - tail) + 1, c * every))
+        out = [(START, cuts[0] if cuts else END, 0)]
+        for i, at in enumerate(cuts):
+            last = i == len(cuts) - 1
+            view = 0 if last else order[i % len(order)]
+            if i == len(cuts) - 2 and view == 0 and slots > 2:
+                view = 1            # (not the first view twice running at the end)
+            out.append((at, END if last else cuts[i + 1], view))
+        merged = []
+        for a, b, v in out:
+            if merged and merged[-1][2] == v:
+                merged[-1] = (merged[-1][0], b, v)
+            else:
+                merged.append((a, b, v))
+        return merged
+
+    best = max(1, int(4.5 / SIXTEENTH / c + 0.5))
+    fits = [e for e in range(1, best + 1) if 3.0 <= e * c * SIXTEENTH] or [best]
+    # The most views seen; then the riff's turns nearest four and a half seconds.
+    every = max(fits, key=lambda e: (len({v for _, _, v in build(e)}), -abs(e - best)))
+    return build(every)
+
+
+def cutting(look, lead, plain=(), slots=2, tracks=(), tail=0):
+    """The cutting of a scene (see `shot_list`), written into the look: `var.slot` is the view
+    (0 the first, the whole plate), `var.along` how far through the shot, both by the song's
+    own clock, so a scene is cut the same however it is drawn.
+
+    One thing is not known beforehand: a meeting of all `tracks`' cycles that was long in
+    coming (they meet seven seconds apart or more, and the plate burns: see `waited`). It
+    brings the first view back, until the next cut that is two and a half seconds later.
+    (Meetings that come round every bar or two do not cut: the border is enough.)
+    `var.free` is 0 while it does. Returns the test for view k."""
+    shots = shot_list(lead, plain, slots, tail)
+    SHOTS.append((START, END, shots))
     now = {"attack": "0ms", "release": "0ms"}
-    edge = "(1 - step(0.06, var.along))"            # a cut of the riff's has just come
-    events = []
-    if END is not None:
-        events.append(f"max(step({END - tail}, time.beat*4), step({END - tail - 40}, time.beat*4)*{edge})")
-    if "flash" in look.get("env", {}) and apart(tracks, plain) >= 7:
-        events.append("step(0.3, env.flash*(1 - var.lag)*min(1, var.age/8))")
-    event = "0"
-    for e in events:
-        event = e if event == "0" else f"max({event}, {e})"
+    on = lambda a, b: f"(step({a:g}, var.b16) - step({b:g}, var.b16))"   # noqa: E731
+    slot = " + ".join(f"{v}*{on(a, b)}" for a, b, v in shots if v) or "0"
+    along = " + ".join(f"{on(a, b)}*(var.b16 - {a:g})/{b - a:g}" for a, b, v in shots[1:]) or "0"
     v = look.setdefault("vars", {})
-    v.update({
-        "slot": {"follow": f"{slots}*fract(floor({T}/{every})/{slots})", **now},
-        "along": {"follow": f"fract({T}/{every})", **now},
-        # (About two and a half seconds after an event, cuts are not taken.)
-        "recent": {"follow": event, "attack": "0ms", "release": "1500ms"},
-        # A latch: set by a cut (once the scene has been up long enough, and not just after
-        # an event), cleared by an event.
-        "free": {"integrate": f"400*({edge}*step({HOLD}, scene.t*8*time.bpm)*(1 - step(0.2, var.recent)) - ({event}))", "lo": 0, "hi": 1},
-        "whole": {"follow": "1 - var.free", **now},
-    })
+    v.update({"b16": {"follow": "time.beat*4", **now}, "slot": {"follow": slot, **now}, "along": {"follow": along, **now}})
+    if "flash" in look.get("env", {}) and apart(tracks, plain) >= 7 and len(shots) > 1:
+        event = "step(0.3, env.flash*(1 - var.lag)*min(1, var.age/8))"
+        edge = f"(1 - step(0.04, var.along))*step({shots[1][0]:g}, var.b16)"     # a cut has just come
+        v.update({
+            # (About two and a half seconds after a meeting, cuts are not taken.)
+            "recent": {"follow": event, "attack": "0ms", "release": "1500ms"},
+            # A latch: set by the meeting, let go by a cut.
+            "held": {"integrate": f"400*({event} - {edge}*(1 - step(0.2, var.recent)))", "lo": 0, "hi": 1},
+            "free": {"follow": "1 - var.held", **now},
+        })
+    else:
+        v["free"] = {"follow": "1", **now}
     return lambda k: f"(step({k - 0.5}, var.slot) - step({k + 0.5}, var.slot))"
 
 
@@ -314,8 +356,8 @@ def rostrum(look, lead, details, plain=(), tracks=()):
         xs.append(f"{on(i + 1)}*{num(x)}")
         ys.append(f"{on(i + 1)}*{num(y)}")
     look["filters"] = look.get("filters", []) + [{
-        "type": "camera", "zoom": f"1 + (1 - var.whole)*({' + '.join(zs)})",
-        "x": f"(1 - var.whole)*({' + '.join(xs)})", "y": f"(1 - var.whole)*({' + '.join(ys)})"}]
+        "type": "camera", "zoom": f"1 + var.free*({' + '.join(zs)})",
+        "x": f"var.free*({' + '.join(xs)})", "y": f"var.free*({' + '.join(ys)})"}]
     return show_cuts(look)
 
 
@@ -536,8 +578,8 @@ def gears(tracks, spot, spot_track=None, plain=(), white=False):
     if n > 1:
         look = waited(look, together(tracks, plain))
     if len(cams) > 1:
-        on = cutting(look, tracks[0], plain, slots=2 * (len(cams) - 1), tracks=tracks)
-        look["shot"] = f"var.free*({' + '.join(f'{k + 1}*{on(2 * k + 1)}' for k in range(len(cams) - 1))})"
+        cutting(look, tracks[0], plain, slots=len(cams), tracks=tracks)
+        look["shot"] = "var.free*var.slot"
     return look
 
 
@@ -953,9 +995,9 @@ def loops(tracks, spot, spot_track=None, plain=(), cells=None, shadow=True, tie=
         look = waited(look, together(ts, plain))
     side = "0"
     if ROSTRUM:
-        on = cutting(look, ts[0], plain, slots=4, tracks=ts, tail=28 if tie else 20)
+        on = cutting(look, ts[0], plain, slots=3, tracks=ts, tail=8 if tie else 0)
         side = f"var.free*{on(1)}"
-        look["shot"] = f"var.free*{on(3)}"
+        look["shot"] = f"var.free*{on(2)}"
         show_cuts(look)
     look["vars"]["side"] = {"follow": side, "attack": "0ms", "release": "0ms"}
     return look
