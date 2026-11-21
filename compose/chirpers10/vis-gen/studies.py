@@ -62,7 +62,7 @@ def finish(spot):
     return [{"type": "bloom", "threshold": 0.5, "amount": "0.2 + 1.0*audio.low", "radius": "0.012 + 0.016*audio.low"}]
 
 
-def master(number, title, white=False, figures=()):
+def master(number, title, white=False, figures=(), bars=0):
     """What lies over every scene of a song: the plate's name for its first bars, a legend in
     the corner (the plate, and which figure of it this scene is: `figures` is each scene's
     (first bar, bars)), and the print. `white`: the song is printed as a negative, black
@@ -79,6 +79,11 @@ def master(number, title, white=False, figures=()):
     if figures:
         label.append({"type": "captions", "size": 0.034, "x": -1.7, "y": -0.955, "align": "left", "color": DIM, "width": 0.1, "skew": 0, "glow": 0, "typing": 0, "fade": 0.4,
                       "opacity": 0.9, "lines": [[f"{a}bar" if a else 0, f"{b}bar", f"PL. {number:02d}   FIG. {k + 1}"] for k, (a, b) in enumerate(figures)]})
+    if white and bars:
+        # A negative comes up from black and goes back to it: a programme's own fade is taken
+        # before the print is turned over, and would leave a blank white page at each end.
+        label.append({"type": "shape", "sides": 4, "radius": 4, "width": 0, "fill": 1, "color": "#ffffff",
+                      "opacity": f"max(1 - smooth(0, 1, time.bar), smooth({1 - 2 / bars:.5f}, 1, time.progress))"})
     filters = ([{"type": "invert"}, {"type": "color", "brightness": -0.05, "contrast": 0.94}] if white else []) + [
         {"type": "grain", "amount": 0.05},
         {"type": "vignette", "amount": 0.3 if white else 0.55},

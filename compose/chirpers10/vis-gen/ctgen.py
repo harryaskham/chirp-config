@@ -317,7 +317,9 @@ def choose(n, title, song):
         elif pick == "discs":
             # Rings of runners, one ring a riff: only riffs with a length of their own (a ring
             # of two or four says nothing), the longest cells left to the other studies.
-            use = [t.name for t in wheel if 3 <= (t.cell(a, b)[0] or 0) <= 48][:3] or names[:1]
+            # Short riffs first (their figures are bigger); three rings only if all are short.
+            fit = sorted((t for t in wheel if 3 <= (t.cell(a, b)[0] or 0) <= 16), key=lambda t: t.cell(a, b)[0])
+            use = [t.name for t in fit][:3 if all(t.cell(a, b)[0] <= 8 for t in fit[:3]) else 2] or names[:1]
             look = S.discs(use, spot, spot_track if spot_track in use else use[-1], subject={"walker": "runner", "pacer": "horse"}.get(subject, subject),
                            cells={t.name: t.cell(a, b)[0] for t in wheel})
         elif pick == "pendulums":
@@ -382,7 +384,8 @@ def main():
                 f"# ({bars} bars; {len(scenes)} scenes). Do not edit: run ctgen.py {n} again when the song changes.\n")
         out = os.path.join(OUT, f"{song}.yaml")
         figures = [(a, b - a) for a, b, *_ in plan]
-        prog = {"fade": ["1bar", "2bar"], "master": S.master(n, t["title"], white=n in WHITE, figures=figures), "scenes": scenes}
+        white = n in WHITE
+        prog = {"fade": [0, 0] if white else ["1bar", "2bar"], "master": S.master(n, t["title"], white=white, figures=figures, bars=bars), "scenes": scenes}
         open(out, "w").write(head + json.dumps(prog, indent=1) + "\n")
         print(f"{song}: {len(scenes)} scenes: " + " ".join(p[2] for p in plan))
 
