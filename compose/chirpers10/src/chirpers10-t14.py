@@ -1762,6 +1762,51 @@ def the_chord_rises_out_of_the_floor(doc):
         doc["loudness"] = float(target)
 
 
+# v26 (chirper-zero; instrument round: the two sung octave pairs still exact: the count at the opening, 0:04.5-0:21,
+# and the middle's numbers, 1:41.6-2:12.8; no note changes). THE OCTAVE HOLDS.
+# Two voices of one patch an exact octave apart share every partial the upper one has, and each note's two streams
+# start by the draw: so where their partials meet they add or cancel for the WHOLE note, by luck. Read alone on eight
+# seeds (0 1 2 3 5 7 11 13), note by note: the count's level moved 3.08 dB with the seed on the average note (5.8 at
+# worst; 13 of 28 notes over 3 dB), the middle's 4.13 (9.0 at worst; 14 of 22). AND AT THE SONG'S OWN SEED the luck
+# is in the file: the middle says "fifteen" six times, and in the finished file its held "teen" stood 5.6 dB apart
+# from one saying to the next (-18.7 -23.1 -18.1 -20.3 -17.5 -18.8 in the voices' band).
+# EACH PAIR BY ITS OWN READ; the cures differ because the fault sits in different places.
+#   THE COUNT: short notes on many pitches. The upper voice 12 cents over the octave (v25's cure, read here on 3, 5,
+#   8, 12, 16 and 20 cents: 12 is where it is steady): 3.08 -> 1.81 dB with the seed, 13 notes over 3 dB -> 1.
+#   THE MIDDLE: twelve of its 22 notes are D flat and held for more than a second, and on "teen" the vowel's low
+#   formant (about 280 Hz) IS the upper voice's fundamental lying on the lower voice's second partial: one pair of
+#   partials carries the word. The cents alone even the words (4.13 -> 1.72) but turn that pair through itself INSIDE
+#   each held note: a "teen" in the finished file then swung 6.0 dB where it swung 1.9. A high-pass alone (the upper
+#   voice gives the low note to the lower: 150 -> 500 Hz, its fader +2 dB so the pair is as loud as it was on the
+#   average seed) stops the swing but is half a cure (2.38). BOTH TOGETHER: 4.13 -> 1.51 dB with the seed (worst 9.0
+#   -> 2.5; none over 3), and a held note swings 2.9 dB where it swung 3.2 as shipped.
+# BENCHED AND NOT TAKEN: the upper voice with a vibrato of its own (half a cure); both voices' draws switched off
+# (the two streams still start apart: no cure); the high-pass on the count back up (no cure there: read). The count
+# back up (v25, 8 cents) is not touched.
+# per upper voice, | between: track : cents over ('' = none) : its high-pass in Hz ('' = as it was) : dB on its fader
+# ('' = none) ; the loudness target ('' = unchanged). On only while RISE is. '' = v25 byte for byte.
+PAIRS = os.environ.get("C10T14_PAIRS", "count-high:12::|said-high:12:500:2;-11.1128" if RISE else "")
+
+
+def the_octave_holds(doc):
+    """v26: each exact octave pair's upper voice, by its own read (see PAIRS). No note changes."""
+    specs, target = PAIRS.split(";")
+    for spec in specs.split("|"):
+        name, cents, hp, db = spec.split(":")
+        t = next(t for t in doc["tracks"] if t["name"] == name)
+        assert t["patch"].startswith("voice-hook") and "synth.pitch.value" not in t["patch"] and isinstance(t["gain"], str), (name, t["patch"])
+        if cents:
+            t["patch"] += f" synth.pitch.value={float(cents) / 100:g}"
+        if hp:
+            e = t["fx"][0]
+            assert e["type"] == "eq" and e["bands"][0] == "hp cutoff=150", e
+            t["fx"] = [{**e, "bands": [f"hp cutoff={float(hp):g}"] + list(e["bands"][1:])}] + list(t["fx"][1:])   # new objects: tracks may share theirs
+        if db:
+            t["gain"] = f"{float(t['gain'][:-2]) + float(db):g}dB"
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T14_SHOW"):
         beat = 60 / BPM
@@ -1799,4 +1844,6 @@ if __name__ == "__main__":
             half_as_fast_is_an_octave_down(doc)
         if RISE:
             the_chord_rises_out_of_the_floor(doc)
+        if PAIRS:
+            the_octave_holds(doc)
         open(OUT, "w").write(dump(doc))
