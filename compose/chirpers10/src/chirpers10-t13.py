@@ -1125,6 +1125,62 @@ def the_snare_is_in_the_key(doc):
         doc['loudness'] = KEYED['loudness']
 
 
+# v32 (chirper-zero, palette round: the box of 'turn the sheet', 2:32-2:53; 43 strokes on two tracks, none moved).
+# THE BOX IS WOOD. chirper-two's v4 gave the seven spaces of the tune "a different material": a cajon picks them
+# out, centre-slap, centre-ghost-slap, centre, slap, and for four cells it takes all seven from the palm-muted
+# guitar. chirper-alpha's v26 put wooden bars on the back of the sheet and left a line in the handoff: the boxes
+# read by their low thud and "a harder slap would be an instrument round on the cajon". Read stroke by stroke
+# against everything else (boxread.py), the library's box was not wood at all. Its CENTRE stroke, four of every
+# seven, is one sine on F2 and nothing else: against the band it stood -5.4 dB at 60-120 Hz and -20, -34, -46,
+# -56 dB in the octaves from 250 Hz to 4 kHz, where the palm stroke it replaces stands -9.0, -2.8, +0.2, +0.5:
+# on anything without a low end those four strokes were not there, and the seven spaces were three. Its SLAP was
+# a second sine, a C4 that stood 13.3 dB OVER everything else at 250-500 Hz: a pitched blip in a gap of the tune.
+# Now the box is the song's own (`wiw-box`, the library's cajon with a front): the centre stroke is the box's air
+# (the same sine on F2, a decibel lower) and its FRONT, a struck plate (the engine's modal plate, twelve modes,
+# 100 ms, its cluster of lines round A flat 4, 386 to 447 Hz, no one of them a note); the slap's sine is a plate
+# struck at its edge (sixteen modes, 60 ms) under the same wires, which last 80 ms for 60. The ghost is the
+# library's. Alone the two tracks are as loud as they were (-36.1 LUFS for -36.2) and the faders do not move.
+# Against everything else, each stroke's first 80 ms: the centre -6.3, +0.5, -11.0, -8.1, -14.8 dB at 60-120 Hz,
+# 250-500 Hz, 500 Hz-1 kHz, 1-2 kHz, 2-4 kHz (K-weighted -8.8, as it was); the slap +5.4 at 250-500 Hz (was
+# +13.3), -1.9 and +1.2 at 1-2 and 2-4 kHz (were -6.1 and -1.0).
+# --v31 restores; --box '{...}' changes fields for a bench.
+BOX = {'centre': {'sine': -1.0, 'front': 2.0, 'ratio': 2.36, 'decay': '100ms', 'tilt': -1.5, 'bright': 0.5, 'damp': 0.5,
+                  'modes': 12, 'strike': 0.25, 'lp': 4000},
+       'slap': {'edge': -6.0, 'ratio': 0.944, 'decay': '60ms', 'tilt': 0.0, 'bright': 0.7, 'modes': 16, 'strike': 0.85,
+                'wires': -38.0, 'burst': 32.0, 'wire_decay': '80ms', 'peak': 'peak cutoff=2.5k q=1 gain=5dB', 'gain': 3},
+       'loudness': None}
+
+
+def the_box_is_wood(doc):
+    """v32: the two boxes leave the library's cajon for the song's own, `wiw-box`: the centre stroke gets a struck
+    front plate over its sine, the slap a plate struck at its edge for its sine. No stroke, fader or pan changes."""
+    c, s = BOX['centre'], BOX['slap']
+    centre = {'amp': {'a': '0.5ms', 'curve': 4, 'd': '220ms', 'r': '30ms', 's': 0},
+              'env': {'p': {'a': '0.5ms', 'd': '30ms', 's': 0}, 's': {'a': '0.5ms', 'd': '15ms', 's': 0}},
+              'filters': [f"lp cutoff={c['lp']:g}"],
+              'layers': [{'type': 'osc', 'wave': 'sine', 'level': f"{c['sine']:g}dB"},
+                         {'type': 'modal', 'name': 'front', 'modes': 'plate', 'mode_count': c['modes'], 'ratio': c['ratio'], 'decay': c['decay'],
+                          'damp': c['damp'], 'bright': c['bright'], 'tilt': c['tilt'], 'strike': c['strike'], 'vary': 0.2, 'sharp': 0,
+                          'level': f"{c['front']:g}dB"},
+                         {'type': 'noise', 'color': 'brown', 'level': {'value': '-60dB', 'mod': [{'src': 'env.s', 'amount': 38}]}}],
+              'pitch': {'value': 0, 'mod': [{'src': 'env.p', 'amount': 4}]}}
+    slap = {'amp': {'a': '0.2ms', 'curve': 4, 'd': '140ms', 'r': '20ms', 's': 0}, 'env': {'s': {'a': '0.2ms', 'd': s['wire_decay'], 's': 0}},
+            'filters': ['hp cutoff=400', s['peak']],
+            'layers': [{'type': 'modal', 'name': 'edge', 'modes': 'plate', 'mode_count': s['modes'], 'ratio': s['ratio'], 'decay': s['decay'],
+                        'damp': 0.5, 'bright': s['bright'], 'tilt': s['tilt'], 'strike': s['strike'], 'vary': 0.2, 'sharp': 0,
+                        'level': f"{s['edge']:g}dB"},
+                       {'type': 'noise', 'level': {'value': f"{s['wires']:g}dB", 'mod': [{'src': 'env.s', 'amount': s['burst']}]}}]}
+    assert 'wiw-box' not in doc['patches']
+    doc['patches']['wiw-box'] = {'extends': 'cajon', 'kit': {'cb': {'patch': {'synth': centre}}, 'cs': {'patch': {'synth': slap}}}}
+    boxes = [t for t in doc['tracks'] if t['name'] in ('box-left', 'box-right')]
+    assert len(boxes) == 2
+    for t in boxes:
+        assert t['patch'].startswith('cajon ') and t['patch'].count('kit.cs.gain=4dB') == 1, t['patch']
+        t['patch'] = 'wiw-box ' + t['patch'][len('cajon '):].replace('kit.cs.gain=4dB', f"kit.cs.gain={s['gain']:g}dB")
+    if BOX['loudness']:
+        doc['loudness'] = BOX['loudness']
+
+
 def the_hat_gets_a_body(doc):
     """v28: the closed hat's strokes leave the cymbals' track for one of their own, on a kit of the song's own whose
     hat is opened downwards; the kick's click gives up the room the hat's body takes. A spared section keeps both
@@ -1195,8 +1251,10 @@ if __name__ == '__main__':
     previous.add_argument('--v28', action='store_true', help="restore the bass on the album's chain as it comes: its grind at 900 Hz, the sine at -9 dB, no cut at 630 Hz")
     previous.add_argument('--v29', action='store_true', help="restore the two guitars on the album's rig as it comes: the soft pick, the palm's thump, the amp at 220 Hz, no eq")
     previous.add_argument('--v30', action='store_true', help="restore the snare a semitone sharp of the key (written G3, sounding A natural) with its wandering pitch")
+    previous.add_argument('--v31', action='store_true', help="restore the library's cajon in 'turn the sheet': one sine for its centre stroke, a sine under its slap")
     parser.add_argument('--guitars', help='a bench: EDGE fields to change, as a JSON object')
     parser.add_argument('--snare', help='a bench: KEYED fields to change, as a JSON object')
+    parser.add_argument('--box', help='a bench: BOX fields to change, as a JSON object ({"centre": {...}, "slap": {...}})')
     parser.add_argument('--bass', help='a bench: GRIND fields to change, as a JSON object')
     parser.add_argument('--hat', help='a bench: HATBODY fields to change, as a JSON object')
     parser.add_argument('--verso', help='a bench: VERSO fields to change, as a JSON object')
@@ -1223,7 +1281,7 @@ if __name__ == '__main__':
             doc['loudness'] = VERSO['loudness']
     if args.kick:
         KICK.update(json.loads(args.kick))
-    older = any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit() and k not in ('v27', 'v28', 'v29', 'v30'))
+    older = any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit() and k not in ('v27', 'v28', 'v29', 'v30', 'v31'))
     if not older and any(t['name'] == 'bars' for t in doc['tracks']):   # only on the whole song as v26 has it
         the_kick_gets_a_chest(doc)
         if not args.v27:
@@ -1242,6 +1300,11 @@ if __name__ == '__main__':
                         if args.snare:
                             KEYED.update(json.loads(args.snare))
                         the_snare_is_in_the_key(doc)
+                        if not args.v31:                      # only on the whole song as v31 has it
+                            if args.box:
+                                for k, v in json.loads(args.box).items():
+                                    BOX[k].update(v) if isinstance(v, dict) else BOX.__setitem__(k, v)
+                            the_box_is_wood(doc)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
