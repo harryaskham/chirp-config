@@ -1277,6 +1277,8 @@ def song():
         the_chug_holds(doc)
     if STRIKE:
         the_bell_is_struck(doc)
+    if FILLS:
+        the_hands_count_what_is_left(doc)
     return doc
 
 
@@ -1723,6 +1725,51 @@ def the_chug_holds(doc):
                 t['gain'] = dict(t['gain'], value=f"{float(t['gain']['value'].rstrip('dB')) + faders[k]:g}dB")
             else:
                 t['gain'] = f"{float(t['gain'].rstrip('dB')) + faders[k]:g}dB"
+    if target:
+        doc['loudness'] = float(target)
+
+
+# v36 (chirper-zero; whole-song round: the kit's hands at the four cuts, 0:47-2:01): @@TITLE@@
+# @@WHY@@
+# the drums from the top, one for each beat of a fill ; the fill's first , last velocity ; the new track's fader ;
+# what is added to the new track's kit (the toms' fit) ; the cuts that get a fill (0 = 0:47, 1 = 1:19, 2 = 1:42,
+# 3 = 2:01) ; the loudness target ("" = unchanged). "" = v35 byte for byte. On only while OVERTURE is.
+TOMFIT = " ".join(f"kit.{p}.patch.synth.{f}" for p in ("t1", "t2", "t3", "ft") for f in (
+    "layers.0.tilt=-6", "layers.1.level.mod.0.amount=76", "env.att.d=12ms", "filters.1.gain=8dB",
+    "layers.0.decay=0.35s", "amp.d=0.4s", "layers.0.damp=0.8"))
+FILLS = os.environ.get('C10T8_FILLS', 's,t1,t2,t3,ft;0.62,0.95;2dB;' + TOMFIT + ';0,1,2,3;-10.21' if OVERTURE else '')
+
+
+def the_hands_count_what_is_left(doc):
+    """v36: before each cut the drummer's hands leave the cymbal and the backbeat and play one drum for each beat of
+    what the cut will leave over, from the snare down. A new LAST track for the toms; the snare's strokes are the
+    snare's. No guitar, bass, bell or kick note changes."""
+    pieces, vels, fader, fit, cuts, target = FILLS.split(';')
+    cuts = {int(c) for c in cuts.split(',') if c}
+    order = pieces.split(',')
+    v0, v1 = (float(x) for x in vels.split(','))
+    tr = {t['name']: t for t in doc['tracks']}
+    assert 'fills' not in tr
+    place = lambda n: round(n['at'] * 4)
+    new, t = [], INTRO
+    for k, ((left, right), reps) in enumerate(zip(PAIRS, REPS)):
+        a, b = len(left), len(right)
+        n = lcm(a, b) * reps
+        if k < len(PAIRS) - 1 and k in cuts:                # the last pair leaves nothing over
+            over = abs(a - b)                               # what is left over, in sixteenths: 20, 12, 8, 4
+            stop = t + n - over                             # where the band stops and the tail is heard alone
+            assert over % 4 == 0 and over // 4 <= len(order) and dict(MARKS)[f'{a} against {b}'] == t
+            for name in ('snare', 'cym', 'hat'):            # the hands cannot be in two places
+                gone = [x for x in tr[name]['notes'] if stop - over <= place(x) < stop]
+                assert all(x['pitch'] in 'sxh' for x in gone), gone        # a backbeat, the china or the hat: no crash
+                tr[name]['notes'] = [x for x in tr[name]['notes'] if not stop - over <= place(x) < stop]
+            for i in range(over):
+                piece = order[i // 4]
+                note = {'at': round((stop - over + i) / 4, 4), 'len': 0.25, 'pitch': piece, 'vel': round(v0 + (v1 - v0) * i / (over - 1), 3)}
+                (tr['snare']['notes'] if piece == 's' else new).append(note)
+        t += n
+    doc['tracks'].append({'name': 'fills', 'patch': 'ct-kit-here' + (' ' + fit if fit else ''), 'gain': fader, 'out': 'drums',
+                          'sends': {'oh': '-1.5dB'}, 'notes': new})
     if target:
         doc['loudness'] = float(target)
 
