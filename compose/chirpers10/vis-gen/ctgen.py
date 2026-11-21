@@ -435,7 +435,9 @@ def choose(n, title, song, reel=None):
         for r in sorted(rounds, key=lambda r: -r[2]):
             i = rounds.index(r)
             near = [rounds[j] for j in (i - 1, i + 1) if 0 <= j < len(rounds) and (rounds[j][1] == r[0] or rounds[j][0] == r[1])]
-            if r[2] <= budget and not any(x in knots for x in near):
+            # (The same lengths tie the same knot: not again within thirty-two bars.)
+            again = any(sorted(x[5]) == sorted(r[5]) and min(abs(x[0] - r[1]), abs(r[0] - x[1])) < 32 * 16 for x in knots)
+            if r[2] <= budget and not again and not any(x in knots for x in near):
                 knots.append(r)
                 budget -= r[2]
         cuts = [a * 16 for a, _ in sections(bars, tracks, short=max(4, long // 2), long=None)] + [bars * 16]
