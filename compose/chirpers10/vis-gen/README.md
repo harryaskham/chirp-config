@@ -39,6 +39,26 @@ Each is a function of track names, so it fits any song and any version of it.
 Subjects are `walker`, `runner`, `horse` (gallop), `pacer` (a horse walking) and `bird`. The
 horse is built in `studies.py` from bones and poses; it needs nothing new in the engine.
 
+What every plate shares:
+
+- **The ruler** along the foot: sixteen ticks a bar and a cursor. That is common time.
+- **The border** (`border`): lit in the spot colour where all the plate's cycles come round
+  together. The same sign in every study; nothing else announces a meeting.
+- **Exposure** (`finish`): halation that grows with the low end, so heavy passages burn and
+  quiet ones are thin hard lines.
+- **The print** (`master`): the plate's number and title for the first bars while the first
+  plate develops under it, a small `PL. NN  FIG. N` legend, grain, dark corners. Seven songs
+  are printed as negatives (`WHITE` in `ctgen.py`); those come up from black and go back to
+  it by a veil in the master, because a programme's own fade is taken before the print is
+  turned over.
+
+## Drawing a draft
+
+`~/.local/state/chirp-video/cv/draft.py TAG BIN 1280x720 30` (run it in a guarded unit) draws
+every song over its WAV, long songs in parts cut at scene starts, and joins the album;
+`draft_and_post.sh TAG BIN` also puts the result on the review page. About an hour at 720p.
+Do not regenerate `film/` while a draft is drawing: parts read the programme when they start.
+
 ## The generator (`ctgen.py`)
 
 ```
