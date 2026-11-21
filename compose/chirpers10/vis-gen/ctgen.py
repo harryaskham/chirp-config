@@ -20,6 +20,7 @@ import hashlib
 import json
 import os
 import pickle
+import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -47,6 +48,40 @@ WHITE = {2, 5, 7, 10, 12, 14, 17}
 
 DRUM_WORDS = ("kick", "snare", "tom", "cym", "hat", "ride", "foot", "skin", "metal", "rim", "chest", "tabla", "clave", "shaker",
               "block", "knock", "wood", "tick", "palmas", "drum", "kettle", "log", "gourd", "struck", "feet", "china", "crash")
+
+
+# The engine that will draw the film: asked for each track's cells (`chirp vis cells`), so the
+# generator deals by what the picture will find. $CHIRP, else the chirp-video build.
+CHIRP = os.environ.get("CHIRP") or next((p for p in (
+    os.path.expanduser("~/.local/state/pi-daemon/worktrees/tools/chirp-video/cli/chirp/target/release/chirp"),
+    "/tmp/cv/ct/bin/chirp") if os.path.exists(p)), "chirp")
+
+
+def engine_cells(song):
+    """Each track's cells as the engine reads them: {track: [(from, to, cell)]} in sixteenths
+    from the song's start. None if this engine cannot say (then the reading below is used: the
+    same method, but on the written notes, where the engine has the played ones)."""
+    path = os.path.join(CFG, "songs", song + ".yaml")
+    os.makedirs(CACHE, exist_ok=True)
+    try:
+        stamp = f"{os.path.getmtime(CHIRP):.0f}"
+    except OSError:
+        stamp = "path"
+    key = hashlib.sha1(open(path, "rb").read() + stamp.encode()).hexdigest()[:16]
+    c = os.path.join(CACHE, f"{song}-cells-{key}.json")
+    if os.path.exists(c):
+        return json.load(open(c))
+    try:
+        r = subprocess.run([CHIRP, "--json", "vis", "cells", "-f", path], capture_output=True, text=True, timeout=600, cwd=os.path.join(CFG, "songs"))
+        data = json.loads(r.stdout)["data"]["tracks"]
+    except (OSError, ValueError, KeyError, subprocess.TimeoutExpired):
+        return None
+    out = {t["name"]: [(sp["from"], sp["to"], sp["cell"]) for sp in t["spans"]] for t in data}
+    for old in os.listdir(CACHE):
+        if old.startswith(song + "-cells-") and old != os.path.basename(c):
+            os.remove(os.path.join(CACHE, old))
+    json.dump(out, open(c, "w"))
+    return out
 
 
 def load(song):
@@ -105,7 +140,7 @@ def cell_of(grid, lo, hi, longest=48):
 
 
 class Track:
-    def __init__(self, name, notes, sung, bars, bar_steps):
+    def __init__(self, name, notes, sung, bars, bar_steps, spans=None):
         self.name, self.notes, self.sung = name, notes, sung
         keys = [n[2] for n in notes]
         self.lo, self.hi = min(keys), max(keys)
@@ -126,8 +161,16 @@ class Track:
                 self.steps_in_bar[int(s // bar_steps)].add(s)
         # The cell bar by bar (16 steps at a time, as the engine reads it).
         self.cells = [None] * bars
+        if spans is not None:
+            # The engine's own reading: the cell it has through most of each bar.
+            for b in range(bars):
+                lo, got = b * bar_steps, collections.Counter()
+                for a, z, c in spans:
+                    got[c] += max(0, min(z, lo + bar_steps) - max(a, lo))
+                if got and got.most_common(1)[0][1] >= bar_steps / 2:
+                    self.cells[b] = got.most_common(1)[0][0]
         for b in range(bars):
-            if not self.per_bar[b]:
+            if spans is not None or not self.per_bar[b]:
                 continue
             lo = b * 16
             best = cell_of(self.grid, lo - 64, lo + 64)
@@ -174,7 +217,10 @@ def analyse(song):
     bar_steps = int(round(d["bar_beats"] * 4))
     last = max(n[1] for ns in d["notes"].values() for n in ns)
     bars = int(last // d["bar_beats"]) + 1
-    tracks = [Track(name, ns, name in d["sung"], bars, bar_steps) for name, ns in d["notes"].items() if ns]
+    found = engine_cells(song)
+    tracks = [Track(name, ns, name in d["sung"], bars, bar_steps, None if found is None else found.get(name, []))
+              for name, ns in d["notes"].items() if ns]
+    d["engine"] = found is not None
     return d, bars, tracks
 
 
@@ -407,7 +453,8 @@ def main():
         song = t["id"]
         d, bars, tracks, scenes, plan = choose(n, t["title"], song)
         if show:
-            print(f"{song} \"{t['title']}\": {bars} bars, {d['bpm']:.0f} bpm, {len(tracks)} tracks")
+            print(f"{song} \"{t['title']}\": {bars} bars, {d['bpm']:.0f} bpm, {len(tracks)} tracks"
+                  + ("" if d.get("engine") else "  (cells read here, not by the engine: build the chirp-video branch or set $CHIRP)"))
             roles = collections.defaultdict(list)
             for tr in tracks:
                 roles[tr.role].append(tr.name)
