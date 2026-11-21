@@ -1811,6 +1811,39 @@ def the_hat_comes_down(doc):
         doc["loudness"] = float(target)
 
 
+# v37 (chirper-zero; instrument round, the same hat: the cure of a cost v36 left and I found after publishing it).
+# THE HAT MAKES ROOM FOR THE WORDS. v36 read nine stretches where the band plays and none where somebody sings.
+# Under the singers (30 half bars: the laps of five and three, the two holes at the top, the three lines on the way
+# down) the guitars rest, and the machine's closed hat was the only thing in the top octave; by the records' sung
+# passages those laps were already short there and v36 took 0.7 to 1.9 dB more (8-16 kHz +0.2 -> -0.5, -2.5 -> -4.4,
+# -1.1 -> -2.1, -2.3 -> -3.0; the four sung rows summed 12.09 -> 12.43). The same hat is 3 dB too much where the
+# band is full and all there is where it is not: one colour does not fit both. So in every half bar in which
+# somebody sings the hat is the hat as it came (7.1 kHz, its own fader): its 60 strokes there move to a second
+# track, `hat-air`, on the plain machine; everywhere else it stays down (v36). Its band goes back up out of the
+# words' way and comes down again when the band comes back.
+# MEASURED: the four sung rows 12.43 -> 12.09, which is v35's to the third place; the band's nine stretches 11.745
+# -> 11.756 (the top 1.756 -> 1.767: the two holes); the hat track's other strokes are v36's (-86 to -98 dB left).
+# Left out: only the open hat down everywhere and the closed hat as it came (band 12.24, sung 12.12): half the gain.
+# the new track ; overrides on its `cc-machine` ('' = the hat as it came) ; dB on its fader against the hat's own
+# before v36's trim ; which strokes move ('all', or 'closed': the open ones stay down) ; the loudness target
+# ('' = unchanged). '' = v36 byte for byte. On only while HATBAND is.
+WORDS = os.environ.get("C10T6_WORDS", "hat-air;;0;all;" if HATBAND else "")
+
+
+def the_hat_makes_room_for_the_words(doc):
+    """v37: the hat's strokes in the half bars where somebody sings play on a second track, on the hat as it came."""
+    name, over, db, which, target = WORDS.split(";")
+    hat = next(t for t in doc["tracks"] if t["name"] == "hat")
+    assert name not in doc["buses"] and all(t["name"] != name for t in doc["tracks"]), name
+    moved = [n for n in hat["notes"] if int(n["at"] // 2) in ROOM_CELLS and (which == "all" or n["pitch"] == "h")]
+    hat["notes"] = [n for n in hat["notes"] if n not in moved]
+    trim = float(HATBAND.split(";")[2] or 0)
+    fader = f"{float(hat['gain'][:-2]) - trim + float(db or 0):g}dB" if hat["gain"] else hat["gain"]
+    doc["tracks"].append({"name": name, "patch": " ".join(["cc-machine"] + ([over] if over else [])), "gain": fader, "out": hat["out"], "notes": moved})
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T6_SHOW"):
         for name, n, _ in DIAL:
@@ -1832,4 +1865,6 @@ if __name__ == "__main__":
             what_is_not_yet_filled(doc)
         if HATBAND:
             the_hat_comes_down(doc)
+        if WORDS:
+            the_hat_makes_room_for_the_words(doc)
         open(OUT, "w").write(dump(doc))
