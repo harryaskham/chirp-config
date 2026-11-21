@@ -559,11 +559,11 @@ def studio(tracks, spot, spot_track=None, subject="walker", plain=(), white=Fals
         # a moment ago and a moment before that: the plate, standing in the daylight.
         fig = subject_layer(subject, T, f"track.{t}.hit", col, x=f"-4.6 + 9.2*fract(time.bar/{5 + 2*i} + {0.27*i:.2f})", y=round(tall * 0.9 / 2, 3), z=z, scale=0.9)
         fig.update({"thick": 1.0, "melt": 0.05, "light": 1.0, "ambient": 0.2, "material": "pbr", "rough": 0.8, "metal": 0,
-                    "emit": f"{0.7 if t == spot_track else 0.08} + 0.3*track.{t}.hit", "echo": 4, "echo_gap": "0.25/time.bpm"})
+                    "emit": f"{0.75 if t == spot_track else 0.5} + 0.35*track.{t}.hit", "echo": 4, "echo_gap": "0.25/time.bpm"})
         layers.append(fig)
     return {
         "background": "#d8d5ce",
-        "camera": {"x": "1.6*sin(time.bar/32)", "y": 1.0, "z": -3.9, "look_at": ["1.0*sin(time.bar/32)", 0.95, 0.6], "zoom": 1.1},
+        "camera": {"x": "1.6*sin(time.bar/32)", "y": 0.95, "z": -3.9, "look_at": ["1.0*sin(time.bar/32)", 0.8, 0.6], "zoom": 1.3},
         "layers": layers,
         "filters": [
             {"type": "shadowmap", "amount": 0.55, "soft": 2, "size": 1024},
@@ -607,14 +607,14 @@ def chase(tracks, spot, spot_track=None, subject="horse", plain=(), white=False)
     for i, t in enumerate(tracks):
         col = spot if t == spot_track else "#e9e6df"
         T = clock(t, t not in plain)
-        x = f"{cam} + {(i - (len(tracks) - 1) / 2) * (2.0 if horse else 1.3):.2f} + 0.35*sin({T} + {0.3*i:.2f})"
+        x = f"{cam} + {(i - (len(tracks) - 1) / 2) * (1.5 if horse else 1.0):.2f} + 0.35*sin({T} + {0.3*i:.2f})"
         fig = subject_layer(subject, T, f"track.{t}.hit", col, x=x, y=round(tall * size / 2, 3), z=round(0.55 - 0.6 * i, 2), scale=size)
         fig.update({"thick": 1.0, "melt": 0.05, "light": 1.0, "ambient": 0.2, "material": "pbr", "rough": 0.8, "metal": 0,
-                    "emit": f"{0.7 if t == spot_track else 0.08} + 0.3*track.{t}.hit", "echo": 4, "echo_gap": "0.25/time.bpm"})
+                    "emit": f"{0.75 if t == spot_track else 0.5} + 0.35*track.{t}.hit", "echo": 4, "echo_gap": "0.25/time.bpm"})
         layers.append(fig)
     return {
         "background": "#d8d5ce",
-        "camera": {"x": f"{cam} + 0.5*sin(time.bar/16)", "y": 0.95, "z": -4.4, "look_at": [f"{cam} + 0.2", 0.8, 0.5], "zoom": 1.15},
+        "camera": {"x": f"{cam} + 0.5*sin(time.bar/16)", "y": 0.85, "z": -4.4, "look_at": [f"{cam} + 0.2", 0.66, 0.5], "zoom": 1.5},
         "layers": layers,
         "filters": [
             {"type": "shadowmap", "amount": 0.55, "soft": 2, "size": 1024},
