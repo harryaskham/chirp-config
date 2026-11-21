@@ -584,7 +584,7 @@ STRUCK = os.environ.get('C10T3_STRUCK', '1.2;3;4s;2s;-9.982' if TREBLE and CHORD
 # was 'highshelf cutoff=7000 gain=-3dB') ; its fader (3.5dB) ; the loudness target ('' = unchanged). '' = v32.
 # It is on only while no other C10T3_ switch is set, so every older switch gives exactly what it gave.
 SNARE = os.environ.get('C10T3_SNARE', '3.5;1.1;peak cutoff=2500 q=0.7 gain=-4dB,peak cutoff=650 q=1 gain=-3dB;1.5dB;-10.067' if STRUCK and not any(
-    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS', 'C10T3_PICK', 'C10T3_COURSE', 'C10T3_INTUNE') for k in os.environ) else '')
+    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS', 'C10T3_PICK', 'C10T3_COURSE', 'C10T3_INTUNE', 'C10T3_HAT') for k in os.environ) else '')
 # v34 (chirper-alpha; whole song: its frame; the change is the band's entrance, 0:08-0:12): THE BAND IS RUNG UP.
 # The song is a ringing performance from end to end, and since v28 the band is LOWERED at the end. But ringers do not
 # start by ringing: a ring is RAISED first, the bells chiming fast and close while they hang low, each stroke taking
@@ -1640,6 +1640,42 @@ def the_lead_is_in_tune(doc):
         doc['loudness'] = float(target)
 
 
+# v42 (chirper-zero; instrument round: the closed hat, 252 strokes, 0:40-1:40 and 2:20-3:20; no note changes).
+# THE HAT HAS ITS METAL. The song keeps its time on three cymbals in turn and two had been read: the china alone
+# stands 1.60 dB from the shape of eleven records' drum stems (tools/cymspec.py), the hat stood 8.58: the album kit's
+# closed hat as it comes is noise through an 8 kHz high-pass, +9 to +18 dB over the records' metal from 8 kHz up and
+# 11 to 18 under it from 1 to 2 kHz. Its own metal (three square waves at 540, 800 and 1170 Hz, whose overtones are
+# the clank of a hat) is inside the patch and was filtered away. WHO HOLDS THE TOP, by muting (2:50-3:06): the hat
+# gave the mix 1.5 dB at 8-16 kHz and 0.3 at 4-8 kHz; and with nobody singing the mix stood 1.6 to 1.9 over the
+# records at 8-16 kHz where the hat plays.
+# NOW: the high-pass opens to 2.5 kHz, the patch's lift moves from 10 kHz to 5 kHz (where the records' metal has
+# its weight), the stroke is a touch shorter (45 -> 40 ms), the track's shelf is 6 dB down from 8 kHz (it was 2 from
+# 9), and the fader comes down 2.2 dB, which makes the hat EXACTLY AS LOUD ALONE as it was (-33.8 LUFS both; a
+# stroke stands 13.3 dB under the band, K-weighted, where it stood 13.1 and the records' hats stand 12 to 15).
+# Alone 8.58 -> 1.41. The half-open stroke (`hf`, 40 strokes) is the kit's own and already has a body: not touched.
+# overrides on the kit's closed hat (`haake-hat`) ; the hat track's eq bands, | between ('' = as it was) ; dB on its
+# fader ; the loudness target ('' = unchanged). On only while INTUNE is; it is in SNARE's list. '' = v41 byte for byte.
+HAT = os.environ.get('C10T3_HAT', 'filters.0.cutoff.value=2.5k filters.1.cutoff=5000 amp.d=40ms;highshelf cutoff=8000 gain=-6dB;-2.2;' if INTUNE else '')
+
+
+def the_hat_has_its_metal(doc):
+    """v42: the closed hat's own patch, fitted (see HAT). A song patch `ph-hat-kit` (the song's kit with that hat) on the hat's track only. No note changes."""
+    over, bands, fader, target = HAT.split(';')
+    t = next(t for t in doc['tracks'] if t['name'] == 'hat')
+    assert t['patch'] == 'ct-kit-here' and isinstance(t['gain'], str) and 'ph-hat-kit' not in doc['patches'], (t['patch'], t['gain'])
+    if over:
+        doc['patches']['ph-hat-kit'] = {'extends': 'ct-kit-here', 'kit': {'h': {'patch': 'haake-hat ' + over}}}
+        t['patch'] = 'ph-hat-kit'
+    if bands:
+        # a NEW list and a new dict: the cymbals', the hat's and the ride's tracks share one eq object in song()
+        assert len(t['fx']) == 1 and t['fx'][0].get('type') == 'eq', t['fx']
+        t['fx'] = [{**t['fx'][0], 'bands': bands.split('|')}]
+    if fader:
+        t['gain'] = f"{float(t['gain'][:-2]) + float(fader):g}dB"
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if TENOR:
@@ -1652,4 +1688,6 @@ if __name__ == "__main__":
         the_climb_is_coursed(doc)
     if INTUNE:
         the_lead_is_in_tune(doc)
+    if HAT:
+        the_hat_has_its_metal(doc)
     open(OUT, "w").write(dump(doc))
