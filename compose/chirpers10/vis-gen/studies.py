@@ -277,7 +277,10 @@ def gears(tracks, spot, spot_track=None, plain=(), white=False):
     faster than a seven and a seven than an eleven, and they mesh truly, each turning against
     its neighbour. One tooth of each carries a jewel in the spot colour; the jewels come to the
     top together only where the riffs do. Steel on a black plate, shadows from a lamp.
-    The teeth are counted live, and the train is scaled to fill the plate whatever they are."""
+    The teeth are counted live, and the train is scaled to fill the plate whatever they are.
+    A short riff's wheel is cut finer (two, three or four teeth to the sixteenth, the same for
+    the whole train, so the ratios hold) and carries a stud on each tooth that is a sixteenth:
+    a wheel of five is then ten teeth and five studs, not five paddles."""
     tracks = tracks[:3]
     n = len(tracks)
     if white:
@@ -287,7 +290,12 @@ def gears(tracks, spot, spot_track=None, plain=(), white=False):
     # The pitch: how much rim a tooth takes, so that the train is 8 units across, its biggest
     # gear no more than 4.1 high, and no tooth absurdly large.
     biggest = C[0] if n == 1 else f"max({', '.join(C)})" if n == 2 else f"max({C[0]}, max({C[1]}, {C[2]}))"
-    vars_["p"] = {"follow": f"min(min(25.13/({' + '.join(C)}), 12.88/{biggest}), 1.3)", "attack": "400ms", "release": "400ms"}
+    least = C[0] if n == 1 else f"min({', '.join(C)})" if n == 2 else f"min({C[0]}, min({C[1]}, {C[2]}))"
+    # Teeth to the sixteenth: enough that the smallest wheel has a dozen or so, and no wheel
+    # more than the forty-eight there are to hand out.
+    vars_["k"] = {"follow": f"min(max(1, floor(14/{least})), max(1, floor(48/{biggest})))", "attack": "0ms", "release": "0ms"}
+    vars_["p"] = {"follow": f"min(min(25.13/({' + '.join(C)}), 12.88/{biggest}), 0.8*var.k)", "attack": "400ms", "release": "400ms"}
+    vars_["q"] = {"follow": "var.p/var.k", "attack": "0ms", "release": "0ms"}      # a tooth's share of the rim
     for i in range(n):
         vars_[f"g{i}"] = {"follow": f"var.p*{C[i]}/6.2832", "attack": "0ms", "release": "0ms"}
     # Where each stands: side by side, pitch circles touching, the train centred.
@@ -300,7 +308,7 @@ def gears(tracks, spot, spot_track=None, plain=(), white=False):
     off = ["0"]
     for i in range(1, n):
         sign = "0.5" if i % 2 else "0 - 0.5"
-        off.append(f"fract({sign} - ({off[i - 1]}) + 0.25*{C[i - 1]} + 0.75*{C[i]} + 8)")
+        off.append(f"fract({sign} - ({off[i - 1]}) + var.k*(0.25*{C[i - 1]} + 0.75*{C[i]}) + 8)")
     if n > 1:
         env["all"] = {"when": together(tracks, plain), "decay": 2.4}
     steel = {"material": "pbr", "rough": 0.42, "metal": 0.7, "color": "#d8d8d4", "env_sky": "#e4e7ee", "env_ground": "#2c2c30", "light": 0.85, "ambient": 0.3, "rim": 0}
@@ -311,7 +319,7 @@ def gears(tracks, spot, spot_track=None, plain=(), white=False):
         # the gears together (that is what keeps them in mesh).
         vars_[f"s{i}"] = {"follow": f"{T}*{C[i]}", "attack": "0ms", "release": "0ms"}
         tick = f"(floor(var.s{i}) + smooth(0, 0.55, fract(var.s{i})))"
-        turn = f"(({'' if i % 2 == 0 else '0 - '}{tick} + ({off[i]}))/{C[i]})"
+        turn = f"(({'' if i % 2 == 0 else '0 - '}var.k*{tick} + ({off[i]}))/({C[i]}*var.k))"
         r, x = f"var.g{i}", f"var.x{i}"
         # A riff that rests drops out of mesh: its gear sinks back toward the plate and dims.
         vars_[f"w{i}"] = {"follow": f"clamp(track.{t}.level*8, 0, 1)", "attack": "60ms", "release": "700ms"}
@@ -319,19 +327,24 @@ def gears(tracks, spot, spot_track=None, plain=(), white=False):
         back = f"0.13*(1 - var.w{i})"
         # The rim (at the roots of the teeth; a torus of scale 1 has its ring at about 0.74),
         # three spokes and a hub.
-        layers.append({"type": "mesh", "shape": "torus", "detail": 40, "x": x, "y": cy, "z": back, "rx": 0.25, "scale": f"({r} - 0.2*var.p)/0.82", "tube": 0.13, "sy": 0.6, **steel})
+        layers.append({"type": "mesh", "shape": "torus", "detail": 40, "x": x, "y": cy, "z": back, "rx": 0.25, "scale": f"({r} - 0.2*var.q)/0.82", "tube": 0.13, "sy": 0.6, **steel})
         for k in range(3):
             layers.append({"type": "mesh", "shape": "box", "round": 0.3, "detail": 3, "x": x, "y": cy, "z": back, "rz": f"0 - {turn} + {k / 6:.4f}", "scale": 1,
-                           "sx": 0.045, "sy": f"{r} - 0.3*var.p", "sz": 0.03, **steel})
+                           "sx": 0.045, "sy": f"{r} - 0.3*var.q", "sz": 0.03, **steel})
         layers.append({"type": "mesh", "shape": "sphere", "detail": 14, "x": x, "y": cy, "z": f"{back} - 0.02", "scale": 0.13, "sz": 0.6, **steel})
-        # The teeth: as many as the riff has sixteenths.
-        layers.append({"type": "mesh", "shape": "box", "round": 0.35, "detail": 3, "count": 48, "opacity": f"step(inst.i + 0.5, {C[i]})",
-                       "x": f"{x} + {r}*sin({turn} + inst.i/{C[i]})", "y": f"{cy} + {r}*cos({turn} + inst.i/{C[i]})", "z": back,
-                       "rz": f"0 - ({turn} + inst.i/{C[i]})", "scale": "var.p", "sx": 0.2, "sy": 0.2, "sz": 0.06, **steel})
+        # The teeth: as many as the riff has sixteenths, times the cut.
+        Ck = f"({C[i]}*var.k)"
+        layers.append({"type": "mesh", "shape": "box", "round": 0.35, "detail": 3, "count": 48, "opacity": f"step(inst.i + 0.5, {Ck})",
+                       "x": f"{x} + {r}*sin({turn} + inst.i/{Ck})", "y": f"{cy} + {r}*cos({turn} + inst.i/{Ck})", "z": back,
+                       "rz": f"0 - ({turn} + inst.i/{Ck})", "scale": "var.q", "sx": 0.2, "sy": 0.24, "sz": 0.07, **steel})
+        # A stud on each tooth that is a sixteenth (where the wheel is cut finer than that).
+        layers.append({"type": "mesh", "shape": "sphere", "detail": 8, "count": 48, "opacity": f"step(inst.i + 0.5, {C[i]})*step(1.5, var.k)",
+                       "x": f"{x} + ({r} - 0.38*var.q)*sin({turn} + inst.i/{C[i]})", "y": f"{cy} + ({r} - 0.38*var.q)*cos({turn} + inst.i/{C[i]})", "z": f"{back} - 0.05",
+                       "scale": "0.1*var.q + 0.014", **lit(INK, 1.3)})
         # The jewel on the first tooth: the riff's own colour, lit by its notes.
         col = spot if t == spot_track or n == 1 else INK
         layers.append({"type": "mesh", "shape": "sphere", "detail": 12, "x": f"{x} + {r}*sin({turn})", "y": f"{cy} + {r}*cos({turn})", "z": f"{back} - 0.07",
-                       "scale": f"0.12*var.p*{awake}", **lit(col, f"0.9 + 1.2*track.{t}.hit")})
+                       "scale": f"(0.17*var.q + 0.02)*{awake}", **lit(col, f"0.9 + 1.2*track.{t}.hit")})
     plate = [
         # The plate behind: black, taking the shadows.
         {"type": "mesh", "shape": "box", "round": 0.01, "detail": 2, "x": 0, "y": 0, "z": 0.24, "scale": 1, "sx": 7, "sy": 4, "sz": 0.05,
