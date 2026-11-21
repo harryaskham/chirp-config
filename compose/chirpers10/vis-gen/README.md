@@ -32,12 +32,12 @@ Each is a function of track names, so it fits any song and any version of it.
 | `walkers` | Marey's fixed plate | A lane per riff. Common time carries the figure across; its cell works its legs; each note is a flash. |
 | `sheet` | Muybridge's row of cameras | As many panels as the riff has sixteenths, one taken each sixteenth, so the sheet stands still while the riff repeats. |
 | `flight` | A plate flashed by the notes | A bird per tune, flying at the height of the note. |
-| `studio` | None: the place itself | The old techniques. A daylight 3D track with a ruled black wall, PBR figures with sun shadows, their earlier poses standing behind them, a slow camera. |
+| `studio`, `chase` (`daylight`) | None: the place itself | The old techniques. A daylight 3D track: a black wall ruled in threads, a chalked floor, plaster figures with sun shadows and the poses they have just left. The camera goes alongside at common time's pace, so a chalk line and a thread pass each beat while the feet come down at each riff's own length. Cut between three views (side on, the feet, from ahead and low) when the first riff comes round, not on the bar. `studio` is at a walk, `chase` at a run. |
+| `knot` (`loops` with `tie`) | The same lamp, the shutter open for one whole round | Where the music runs a long cycle right round, the scene is that round exactly and the wire is all of the lamp's path since it began: the knot is tied before your eyes, a thread at first and a close weave by the end, and the last strand closes it as the round ends. Three riffs weave a block; two weave a sheet. |
 | `discs` | Phenakistoscope: a ring flashed by its riff | A ring per riff with as many runners or horses round it as the riff has sixteenths, turning once per cell. Each note's flash finds every figure in the next one's place, so the ring stands still and they run on the spot. |
 | `gears` | None: clockwork in real light | A steel gear per riff with a tooth for every sixteenth, all in mesh and all let go a tooth at a time, so a five turns faster than a seven. A jewel on each first tooth; they come to the top together only where the riffs do. |
 | `loops` | A lamp on an open shutter, and the wire model made of its path (Gilbreth's chronocyclegraphs) | One lamp swung across by one riff, up and down by the next, in and out by a third (or by the bar): riffs of different lengths tie a knot, and it stands for as long as they repeat. The last five bars of the path are the wire; the box turns slowly. A resting riff's side of the box goes flat. Where the riffs begin together the lamp is at the centre. |
 | `fence` | A picket-fence picture (the Ombro-Cinéma) | A lane per riff under its own fence. The plate holds as many pictures as the riff has sixteenths, in strips; the fence has a gap every that many and slides a strip a sixteenth. The horse of now shows bright in the gaps, and where it was at every other sixteenth of the turn shows faintly between the pales. |
-| `chase` | None: the camera runs alongside | The studio with the wall streaming past. Horses or runners hold their places, each one's legs at its own cell, each surging and falling back once a turn. |
 
 Subjects are `walker`, `runner`, `horse` (gallop), `pacer` (a horse walking) and `bird`. The
 horse is built in `studies.py` from bones and poses; it needs nothing new in the engine.
@@ -47,6 +47,9 @@ What every plate shares:
 - **The ruler** along the foot: sixteen ticks a bar and a cursor. That is common time.
 - **The border** (`border`): lit in the spot colour where all the plate's cycles come round
   together. The same sign in every study; nothing else announces a meeting.
+- **The wait** (`waited`): if the cycles had been long apart, the plate is overexposed for a
+  moment as well, the more the longer they had been apart. A meeting that comes every bar or
+  two only lights the border. The look keeps the time itself; nothing is told it.
 - **Exposure** (`finish`): halation that grows with the low end, so heavy passages burn and
   quiet ones are thin hard lines.
 - **What a plate keeps:** its last twenty notes or so, by count and not by the clock (`each`
@@ -82,11 +85,20 @@ For each song it reads the notes (`tools/songmap.py`) and works out:
 2. Each track's cell, bar by bar. It asks the engine (`chirp --json vis cells -f SONG`, from
    `$CHIRP` or the chirp-video build), which reads the notes as played; without such a
    binary it reads the written notes the same way, and `--plan` says so.
-3. Where the song changes: who plays, and which cells. Scenes change there, and at least every
-   26 seconds or so.
-4. Which tracks carry a distinct cell in each stretch (riffs first, one wheel per cell), and
-   which tune sings over them.
-5. Which study suits the stretch, taking the one used least so far in the song.
+3. Where the music runs a long cycle right round (`find_cycles`): two or three parts keeping
+   cells of different lengths together for as long as those lengths take to come round (their
+   least common multiple), where that is a wait of nine seconds to a minute. Such a round is
+   one scene, to the sixteenth: a plate lasts as long as its cycle. The longest are tied as
+   knots (up to a fifth of the song, never two running); the rest get the other studies
+   (`name*` in a plan). A scene can therefore begin a sixteenth off the bar line.
+4. Where else the song changes: who plays, and which cells. Scenes change there, and at least
+   every 26 seconds or so.
+5. Which tracks carry a distinct cell in each stretch (riffs first, one wheel per cell), and
+   which tune sings over them. A part counts only if it plays a note a bar and keeps its cell
+   through about half the stretch.
+6. Which study suits the stretch, taking the one used least so far in the song. A song opens
+   on lines and bodies on black, not on daylight, steel or a strip that starts empty; a train
+   of gears is dealt only to riffs within four times of each other's length.
 
 `try.py STUDY OUT.yaml [key=value …] TRACK…` writes one study as a programme, to look at.
 
@@ -103,3 +115,7 @@ For each song it reads the notes (`tools/songmap.py`) and works out:
 
 The picture is clearest where a riff repeats exactly for several bars, and where two parts
 with different cells play together. Nothing needs marking in the song.
+
+Where parts of different lengths play together for one whole round (five, seven and eleven
+for 385 sixteenths, say), the film gives that round one plate and ties its knot. A round cut
+short by a bar, or a part that drops out near its end, loses that.
