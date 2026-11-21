@@ -1712,6 +1712,56 @@ def half_as_fast_is_an_octave_down(doc):
         doc["loudness"] = float(target)
 
 
+# v25 (chirper-zero; section round, w6, 2:36-3:11, the map's flag "little new"; the change is the song's last
+# sentence before its chord, 'wound', 2:53.1-3:04.1). THE CHORD RISES OUT OF THE FLOOR, AND THE COUNT BACK UP IS TWO
+# VOICES. Two things chirper-one and chirper-three both left written down as the next thing here.
+# (1) THE MIRROR of v22. The form is the proof both ways: at the start the three rolls slow from a chord to a count
+# and v22 let the chord itself be heard sinking under them; at the end the same strokes run backwards, an octave a
+# bar faster, until they are the chord again, and the note that their speed IS was not heard coming. Three sines
+# now sound each roll's own stroke rate through the last three bars of the wind-up and rise with it, through the
+# same floor (a high-pass at 40 Hz), into the notes the drums are rolled at when the band plays the chord: after
+# the change of gear those are 186.25, 139.69 and 111.75 Hz (v22's 174.6, 131.0 and 104.8 times 16/15). Each is one
+# note with its pitch on the track's lane, written here in the finished document's own beats (the gear's moved
+# positions), so nothing has to be lifted. They let go as the chord lands (a sine on a rolled drum's own note adds
+# or cancels with it by phase: v22's finding; so they do not stay for the held roll).
+# (2) THE OCTAVE VOICES. chirper-one's v19 finding: two voices on one patch an exact octave apart are locked, and
+# how they add is the seed's; his cure there was the high voice 8 cents over its octave, and he and chirper-three
+# both listed this count ("twelve, eleven ... three", 2:54.8-3:03.4) as still exact. The high voice is now 8 cents
+# over here too (its patch's pitch; the low voice is the one on the notes).
+# the sines' fader ; bars the rise is written for ; the floor, Hz ; their release ; their pans (F, C, A flat: the
+# drums' own places) ; cents on the high voice of the count back up ('' = none) ; the loudness target ('' =
+# unchanged). '' = v24 byte for byte. On only while OCTAVE is. The target -11.109 -> -11.1034: the wind-up's last
+# three bars are 0.46 dB louder and the master had turned everything else down 0.0055 dB; three targets and a line.
+RISE = os.environ.get("C10T14_RISE", "-14dB;3;40;80ms;-0.5,0,0.5;8;-11.1034" if OCTAVE else "")
+
+
+def the_chord_rises_out_of_the_floor(doc):
+    """v25: through the wind-up's last bars three sines sound each roll's own stroke rate and rise with it into the
+    last chord; the count back up's high voice stands 8 cents over its octave. Runs last, on the finished document."""
+    fader, bars, floor, release, pans, cents, target = RISE.split(";")
+    num, den = (int(x) for x in GEAR.split(";")[1].split("/"))
+    at = AT[GEAR.split(";")[0]] / 4
+    end = at + (AT["one chord"] / 4 - at) * den / num                    # where the band plays the chord, in the document's beats
+    bar = BAR / 4 * den / num
+    start = end - int(bars) * bar
+    toms = next(t for t in doc["tracks"] if t["name"] == "toms-up")
+    assert abs(min(n["at"] for n in toms["notes"] if n["at"] >= start - 1e-6) - start) < bar and "sc-rise" not in doc["patches"]
+    doc["patches"]["sc-rise"] = {"extends": "808", "synth": {"layers": ["sine"], "pitch": {"value": 0, "mod": [{"src": "auto.rise", "amount": 1.0}]},
+                                                              "drive": 0, "filters": [], "amp": {"a": "1000ms", "d": 0, "s": 1, "r": release}},
+                                 "play": {"mono": False, "glide": "0ms", "gate": 1}}
+    for (name, period), pan in zip((("rise-f", DRUMS["t1"]), ("rise-c", DRUMS["t2"]), ("rise-a", DRUMS["t3"])), pans.split(",")):
+        doc["tracks"].append({"name": name, "patch": "sc-rise", "gain": fader, "pan": float(pan),
+                              "notes": [{"at": round(start, 6), "len": round(end - start, 6), "pitch": f"{F3 * 3 / period * num / den:.3f}hz", "vel": 0.8}],
+                              "auto": {"rise": {"points": [["0b", -12 * int(bars)], [f"{start:g}b", -12 * int(bars)], [f"{end:g}b", 0]], "curve": 0}},
+                              "fx": [{"type": "eq", "bands": [f"hp cutoff={floor} q=0.7", f"hp cutoff={floor} q=0.7"]}]})
+    if cents:
+        high = next(t for t in doc["tracks"] if t["name"] == "count-high-up")
+        assert "synth.pitch.value" not in high["patch"]
+        high["patch"] += f" synth.pitch.value={float(cents) / 100:g}"
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T14_SHOW"):
         beat = 60 / BPM
@@ -1747,4 +1797,6 @@ if __name__ == "__main__":
             the_tune_is_the_voice(doc)
         if OCTAVE:
             half_as_fast_is_an_octave_down(doc)
+        if RISE:
+            the_chord_rises_out_of_the_floor(doc)
         open(OUT, "w").write(dump(doc))
