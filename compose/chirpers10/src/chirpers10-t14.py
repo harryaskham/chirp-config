@@ -1807,6 +1807,43 @@ def the_octave_holds(doc):
         doc["loudness"] = float(target)
 
 
+# v27 (chirper-zero; instrument round: THE SNARE, 85 full strokes, none moved; the rim strokes of 'fourth' are another
+# piece and are not touched): THE BACKBEAT STOPS RINGING AT ITS BOX. The notes are beside the function.
+# fields of the snare's own drum model (kit.s.patch.synth.layers.0), space between ; its filter list after the 150 Hz
+# high-pass, | between ('' = as v9 left it) ; the piece's gain, dB ('' = as it is) ; the loudness target ('' =
+# unchanged). In both kits (the lifted half's too). On only while PAIRS is. '' = v26 byte for byte.
+DAMPED = os.environ.get("C10T14_DAMPED", "decay=0.13s damp=0.9 wires=0.72;peak cutoff=262 q=1 gain=-1dB|peak cutoff=650 q=1 gain=-3dB;2.65;-11.16" if PAIRS else "")
+
+
+def the_backbeat_stops_ringing(doc):
+    """v27: the snare's head is damped and shorter. No note, track, bus or send changes: only the piece `s` of the
+    song's two kits (new objects: nothing else that shares them is changed in place)."""
+    fields, body, own, target = DAMPED.split(";")
+
+    def num(v):
+        try:
+            return float(v) if "." in v else int(v)
+        except ValueError:
+            return v
+    for name in ("ct-kit-here", "ct-kit-here-up"):
+        if name not in doc["patches"]:
+            continue
+        kit = doc["patches"][name]
+        s = kit["kit"]["s"]
+        layer = dict(s["patch"]["synth"]["layers"][0])
+        assert layer["type"] == "drum" and s["patch"]["synth"]["filters"][0] == "hp cutoff=150", s
+        for f in fields.split():
+            k, v = f.split("=", 1)
+            assert k in layer or k == "mode_count", k              # a field of the drum's model
+            layer[k] = num(v)
+        synth = {**s["patch"]["synth"], "layers": [layer] + list(s["patch"]["synth"]["layers"][1:])}
+        if body:
+            synth["filters"] = ["hp cutoff=150"] + [x for x in body.split("|") if x]
+        doc["patches"][name] = {**kit, "kit": {**kit["kit"], "s": {**s, "patch": {**s["patch"], "synth": synth}, **({"gain": f"{float(own):g}dB"} if own else {})}}}
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T14_SHOW"):
         beat = 60 / BPM
@@ -1846,4 +1883,6 @@ if __name__ == "__main__":
             the_chord_rises_out_of_the_floor(doc)
         if PAIRS:
             the_octave_holds(doc)
+        if DAMPED:
+            the_backbeat_stops_ringing(doc)
         open(OUT, "w").write(dump(doc))
