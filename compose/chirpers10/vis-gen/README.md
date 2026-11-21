@@ -35,6 +35,7 @@ Each is a function of track names, so it fits any song and any version of it.
 | `studio` | None: the place itself | The old techniques. A daylight 3D track with a ruled black wall, PBR figures with sun shadows, their earlier poses standing behind them, a slow camera. |
 | `discs` | Phenakistoscope: a ring flashed by its riff | A ring per riff with as many runners or horses round it as the riff has sixteenths, turning once per cell. Each note's flash finds every figure in the next one's place, so the ring stands still and they run on the spot. |
 | `gears` | None: clockwork in real light | A steel gear per riff with a tooth for every sixteenth, all in mesh and all let go a tooth at a time, so a five turns faster than a seven. A jewel on each first tooth; they come to the top together only where the riffs do. |
+| `fence` | A picket-fence picture (the Ombro-Cinéma) | A lane per riff under its own fence. The plate holds as many pictures as the riff has sixteenths, in strips; the fence has a gap every that many and slides a strip a sixteenth. The horse of now shows bright in the gaps, and where it was at every other sixteenth of the turn shows faintly between the pales. |
 | `chase` | None: the camera runs alongside | The studio with the wall streaming past. Horses or runners hold their places, each one's legs at its own cell, each surging and falling back once a turn. |
 
 Subjects are `walker`, `runner`, `horse` (gallop), `pacer` (a horse walking) and `bird`. The
@@ -82,7 +83,7 @@ For each song it reads the notes (`tools/songmap.py`) and works out:
 
 ## What it needs
 
-- The `chirp-video` branch of chirp (cells, the `expose`, `slit` and `panels` filters). No
+- The `chirp-video` branch of chirp (cells, the `expose`, `slit`, `panels` and `fence` filters). No
   released binary draws these programmes yet, which is why they are written to `film/` and not
   to `vis/`. Move them when the branch lands.
 - Check one with `chirp --json vis check ../compose/chirpers10/film/chirpers10-tN.yaml -f

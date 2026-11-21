@@ -135,11 +135,13 @@ def wheel_rim(track, x, y, r, celled=True, color=DIM, glow="0"):
     `r` may be an expression (a wheel that grows with its riff); `glow` lights the hoop."""
     C = teeth(track, celled)
     N = f"max({C}, 1)"
+    # A wheel whose riff rests stands faint (an empty hoop should not hold the plate).
+    awake = f"(0.3 + 0.7*clamp(track.{track}.level*8, 0, 1))"
     return [
         {"type": "shape", "sides": 0, "radius": f"({r})*{K:.4f}", "width": f"0.007 + 0.006*({glow})", "x": round(x * K, 4), "y": round(y * K, 4), "color": color,
-         "opacity": f"0.6 + 0.4*({glow})"},
+         "opacity": f"(0.6 + 0.4*({glow}))*{awake}"},
         {"type": "mesh", "shape": "box", "round": 0.02, "detail": 2, "count": 48,
-         "opacity": f"step(inst.i + 0.5, {C})",
+         "opacity": f"step(inst.i + 0.5, {C})*{awake}",
          "x": f"{x} + 1.07*({r})*sin(inst.i/{N})", "y": f"{y} + 1.07*({r})*cos(inst.i/{N})", "z": 0,
          "rz": f"0 - inst.i/{N}", "scale": 0.05, "sx": 0.18, "sy": "1 + step(inst.i, 0.5)*1.2", "sz": 0.18, **lit(color, 0.8)},
         {"type": "mesh", "shape": "sphere", "detail": 10, "x": x, "y": y, "z": 0, "scale": 0.05, **lit(color, 1.0)},
@@ -343,6 +345,57 @@ def gears(tracks, spot, spot_track=None, plain=(), white=False):
             {"type": "bloom", "threshold": 0.92, "amount": "0.25 + 0.5*audio.low", "radius": 0.012},
         ] + ([{"type": "invert"}] if white else []),
     }
+
+
+# ───────────────────────── the fence (a whole turn of a riff on one plate) ─────────────────────────
+
+def fence_look(track, color, subject, celled=True, y=0.0, tall=1.8, span=7.6):
+    """One lane on its own plate, under its own fence. The runner crosses the lane once per
+    turn of the riff. The plate holds as many pictures as the riff has sixteenths, cut into
+    strips and laid side by side in turn, and the fence over it has a gap every that many
+    strips and slides a strip a sixteenth: so the gaps show the runner where it is now, whole,
+    and between the pales, faintly, where it was at every other sixteenth of the turn. While
+    the riff repeats, the plate stands still and only the fence moves."""
+    rig, motion, rig_h, thick, strides, ry = SUBJECTS[subject]
+    T = clock(track, celled)
+    C = f"max({teeth(track, celled)}, 2)"
+    long_ = 1.5 if rig == "horse" else 0.8
+    # Big enough to be cut into many strips: with long riffs the runners overlap on the plate.
+    size = f"min({tall / rig_h:.3f}, {0.9 * span / long_:.3f}/min({C}, 6))"
+    fig = subject_layer(subject, T, f"track.{track}.hit", color,
+                        x=f"{-span / 2:.2f} + {span}*(0.5/{C} + fract({T})*(1 - 1/{C}))", y=y, z=0, scale=size)
+    fig["emit"] = 1.3
+    if rig == "human":
+        fig["thick"] = thick * 1.5
+    return {
+        "background": BLACK, "camera": CAM,
+        "layers": [
+            # The lane's ground: a faint light behind, so the fence itself is seen.
+            {"type": "mesh", "shape": "box", "round": 0.01, "detail": 2, "x": 0, "y": y, "z": 0.3, "scale": 1, "sx": span / 2 + 0.5, "sy": tall * 0.62, "sz": 0.01, **lit(DIM, 0.075)},
+            fig,
+        ],
+        "filters": [{"type": "fence", "n": C, "slide": f"{T}*{C}", "width": 0.0056, "fence": 0.78, "gap": 1.4, "gain": f"min(0.9 + 0.3*{C}, 3.6)"}],
+    }
+
+
+def fence(tracks, spot, spot_track=None, subject="horse", plain=()):
+    """One or two lanes, each a riff under its own fence: a five's fence has a gap every five
+    strips and a seven's every seven, and both slide at the one pulse. The whole turn of each
+    riff is on its plate at once. Horses only: a body cut into strips must be solid to read."""
+    tracks = tracks[:2]
+    if SUBJECTS[subject][0] != "horse":
+        subject = "horse"
+    n = len(tracks)
+    lane = (2 * HALF_H - 0.9) / n
+    env, plates = {}, []
+    if n > 1:
+        env["all"] = {"when": together(tracks, plain), "decay": 2.4}
+    for i, t in enumerate(tracks):
+        col = spot if t == spot_track else INK
+        y = (HALF_H - 0.25) - (i + 0.5) * lane
+        plates.append({"type": "actor", "use": fence_look(t, col, subject, celled=t not in plain, y=round(y, 3), tall=round(min(0.78 * lane, 2.3), 3)), "key": 0, "mask": "none"})
+    marks = border(spot) if n > 1 else []
+    return {"env": env, "background": BLACK, "camera": CAM, "layers": backdrop() + plates + ruler() + marks, "filters": finish(spot)}
 
 
 # ───────────────────────── the strip (a photo-finish of the riffs) ─────────────────────────

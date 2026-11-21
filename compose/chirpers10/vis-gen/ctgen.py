@@ -279,12 +279,22 @@ def choose(n, title, song):
         elif not wheel:
             order = ["flight", "studio0", "walkers0"]
         elif len(set(cells)) >= 2 and odd:
-            order = ["wheels", "finish", "gears", "discs", "balls", "pendulums", "walkers", "studio", "sheet"]
+            order = ["wheels", "finish", "gears", "fence", "discs", "balls", "pendulums", "walkers", "studio", "sheet"]
         elif len(set(cells)) >= 2:
-            order = ["finish", "walkers", "gears", "balls", "discs", "pendulums", "studio", "wheels", "sheet"]
+            order = ["finish", "walkers", "gears", "balls", "fence", "discs", "pendulums", "studio", "wheels", "sheet"]
         else:
             # One riff alone: bodies and a ring, not counting machines (a lone wheel says nothing).
-            order = ["sheet", "walkers", "discs", "studio", "finish", "balls"]
+            order = ["sheet", "walkers", "discs", "fence", "studio", "finish", "balls"]
+        # A fence wants short riffs (a long one is too many pictures for the strips to hold
+        # at draft size); a train of gears wants two.
+        fits = lambda t, top: 3 <= (t.cell(a, b)[0] or 0) <= top  # noqa: E731
+        short = sorted((t for t in wheel if fits(t, 12) and not common(t.cell(a, b)[0])), key=lambda t: t.cell(a, b)[0])[:2]
+        if len(short) == 1:     # one odd riff: common time runs beside it
+            short += [t for t in wheel if fits(t, 8) and common(t.cell(a, b)[0])][:1]
+        if not short:
+            order = [o for o in order if o != "fence"]
+        if sum(1 for t in wheel if 3 <= (t.cell(a, b)[0] or 0) <= 32) < 2:
+            order = [o for o in order if o != "gears"]
         if wheel and max(cells) <= 4:
             # Nothing but short common time here: bodies, not counting machines.
             order = ["sheet", "walkers", "studio", "finish"]
@@ -320,6 +330,9 @@ def choose(n, title, song):
             fit = sorted((t for t in wheel if 3 <= (t.cell(a, b)[0] or 0) <= 32), key=lambda t: t.cell(a, b)[0])
             use = [t.name for t in fit][:3] or names[:1]
             look = S.gears(use, spot, spot_track if spot_track in use else use[-1], white=n in WHITE)
+        elif pick == "fence":
+            use = [t.name for t in short[:2]]
+            look = S.fence(use, spot, spot_track if spot_track in use else use[-1], subject="pacer" if subject in ("walker", "pacer") else "horse")
         elif pick == "discs":
             # Rings of runners, one ring a riff: only riffs with a length of their own (a ring
             # of two or four says nothing), the longest cells left to the other studies.
