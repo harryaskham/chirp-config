@@ -57,7 +57,9 @@ def border(spot, when="env.all"):
 def finish(spot):
     """A plate's own finish: halation round the bright parts. (The print itself, its grain and
     dark corners, and whether it is a negative, belong to the song's master: see `master`.)"""
-    return [{"type": "bloom", "threshold": 0.55, "amount": 0.35, "radius": 0.012}]
+    # The low end overexposes: the heavier the music, the more the light spreads in the
+    # emulsion. A quiet passage is drawn in hard thin lines; a heavy one burns.
+    return [{"type": "bloom", "threshold": 0.5, "amount": "0.2 + 1.0*audio.low", "radius": "0.012 + 0.016*audio.low"}]
 
 
 def master(number, title, white=False, figures=()):
@@ -66,8 +68,9 @@ def master(number, title, white=False, figures=()):
     (first bar, bars)), and the print. `white`: the song is printed as a negative, black
     figures on a pale ruled wall (the spot colour turns to its complement, an ink)."""
     label = [
-        # The plate is veiled while its name is up.
-        {"type": "shape", "sides": 4, "radius": 4, "width": 0, "fill": 1, "color": "#3a3a3a", "blend": "multiply", "opacity": "1 - smooth(3.0, 4.4, time.bar)"},
+        # The plate is all but blank while its name is up, then comes up under it as a print
+        # does in the tray.
+        {"type": "shape", "sides": 4, "radius": 4, "width": 0, "fill": 1, "color": "#161616", "blend": "multiply", "opacity": "1 - smooth(2.4, 4.6, time.bar)"},
         {"type": "text", "text": f"PLATE {number:02d}", "size": 0.05, "x": 0, "y": 0.2, "align": "center", "color": DIM, "width": 0.11, "skew": 0,
          "opacity": "smooth(0.1, 0.6, time.bar)*(1 - smooth(3.2, 4.2, time.bar))"},
         {"type": "text", "text": title.upper(), "size": 0.17, "x": 0, "y": -0.07, "align": "center", "color": INK, "width": 0.12, "skew": 0,
