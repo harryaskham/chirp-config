@@ -52,6 +52,16 @@ What every plate shares:
   two only lights the border. The look keeps the time itself; nothing is told it.
 - **Exposure** (`finish`): halation that grows with the low end, so heavy passages burn and
   quiet ones are thin hard lines.
+- **The cutting keeps the riff's time** (`cutting`, `rostrum`): inside a scene the film cuts
+  between the whole plate and details of it, as a film is made from photographs on a rostrum:
+  a wheel, a ring, a lane, the line of a photo-finish. The cut comes each time the scene's
+  first riff has come round so many times (about forty sixteenths: a five every eight turns,
+  an eleven every four), so the cuts fall across the bar lines as the riff does. The whole
+  plate is always shown for a scene's first bar and a half, and wherever all its cycles meet
+  (the border is at the frame's edge). The plate itself is not touched: the camera is a
+  filter over the finished picture. The knot and the gears are real bodies and have real
+  second cameras (the knot from its side and close; the gears where two wheels mesh), cut
+  the same way; the daylight track always did.
 - **A camera already running** (`lead` on a scene; `LEAD` in `ctgen.py`): a plate, a strip, a
   sheet or a fence is started a bar or two before its cut and drawn unseen, so the cut lands
   on a picture already made. Only a song's first plate develops in view, under its title.

@@ -207,6 +207,66 @@ def together(tracks, plain=(), within=0.035):
     return "*".join(parts) if parts else "0"
 
 
+def num(v):
+    """A number as the expressions take it (no leading minus)."""
+    return f"(0 - {-v:.4f})" if v < 0 else f"{v:.4f}"
+
+
+HOLD = 24
+"""Sixteenths for which a scene keeps to the whole plate before its first cut (ctgen makes it
+longer for a song's first scene, while the title is over it)."""
+
+
+def cutting(look, lead, plain=(), slots=4, also=None):
+    """The cutting of a scene, kept in the lead riff's own time: `var.slot` counts 0, 1, …
+    `slots` - 1 and round again, a step each time the riff has come round so many times
+    (about forty sixteenths: a five every eight turns, an eleven every four), so the cuts
+    fall across the bar lines as the riff does. `var.along` is how far through the shot.
+    `var.whole` is 1 where the whole plate must be seen whatever the slot: for the scene's
+    first bar and a half, wherever all its cycles meet (the border is the sign of that, and
+    it is at the frame's edge), and where `also` says. Returns the test for slot k."""
+    T, C = clock(lead, lead not in plain), teeth(lead, lead not in plain)
+    every = "2" if lead in plain else f"max(1, floor(40/max(2, {C}) + 0.5))"
+    whole = f"(1 - step({HOLD}, scene.t*8*time.bpm))"
+    if "all" in look.get("env", {}):
+        whole = f"max({whole}, step(0.3, env.all))"
+    if also:
+        whole = f"max({whole}, {also})"
+    now = {"attack": "0ms", "release": "0ms"}
+    look.setdefault("vars", {}).update({
+        "slot": {"follow": f"{slots}*fract(floor({T}/{every})/{slots})", **now},
+        "along": {"follow": f"fract({T}/{every})", **now},
+        "whole": {"follow": whole, **now},
+    })
+    return lambda k: f"(step({k - 0.5}, var.slot) - step({k + 0.5}, var.slot))"
+
+
+ROSTRUM = True
+
+
+def rostrum(look, lead, details, plain=()):
+    """A rostrum camera over the finished plate, as a film is made from photographs: the whole
+    plate, then a detail of it, the whole again, the next detail, cut in the lead riff's time
+    (see `cutting`). A detail is (how many times closer, x, y of its middle in the plate's
+    own units). The plate goes on being made underneath: nothing on it depends on the view.
+    In a detail the camera moves in a little more, slowly, until the next cut."""
+    if not (ROSTRUM and details):
+        return look
+    on = cutting(look, lead, plain, slots=2 * len(details))
+    zs, xs, ys = [], [], []
+    for i, (z, x, y) in enumerate(details):
+        # Kept inside the plate: a detail at the edge looks no further than the edge.
+        x = max(-(16 / 9) * (1 - 1 / z), min((16 / 9) * (1 - 1 / z), x * K))
+        y = max(-(1 - 1 / z), min(1 - 1 / z, y * K))
+        zs.append(f"{on(2 * i + 1)}*({z - 1:.3f} + {0.05 * z:.3f}*var.along)")
+        xs.append(f"{on(2 * i + 1)}*{num(x)}")
+        ys.append(f"{on(2 * i + 1)}*{num(y)}")
+    look["filters"] = look.get("filters", []) + [{
+        "type": "camera", "zoom": f"1 + (1 - var.whole)*({' + '.join(zs)})",
+        "x": f"(1 - var.whole)*({' + '.join(xs)})", "y": f"(1 - var.whole)*({' + '.join(ys)})"}]
+    return look
+
+
 def ruler(y=-2.15, color=DIM):
     """Common time, ruled along the foot of the plate: sixteen ticks a bar and a cursor that
     crosses them once a bar, whatever the wheels above are doing."""
@@ -244,7 +304,9 @@ def wheels(tracks, spot, spot_track=None, plain=()):
                            "sx": (x2 - x) / 2, "sy": 0.006, "sz": 0.006, "opacity": f"env.m{i}", **lit(spot, 1.4)})
     marks = border(spot) if n > 1 else []
     look = {"vars": vars_, "env": env, "background": BLACK, "camera": CAM, "layers": backdrop() + layers + plates + ruler() + marks, "filters": finish(spot)}
-    return waited(look, together(tracks, plain)) if n > 1 else look
+    look = waited(look, together(tracks, plain)) if n > 1 else look
+    # Details: each wheel in turn (a wheel alone: its upper half, where the necklace is read).
+    return rostrum(look, tracks[0], [(1.5, 0.9, 0.9)] if n == 1 else [({2: 1.7, 3: 2.0, 4: 2.3}[n], x, cy) for x in xs], plain)
 
 
 # ───────────────────────── the disc (a phenakistoscope turned by a riff) ─────────────────────────
@@ -309,7 +371,9 @@ def discs(tracks, spot, spot_track=None, subject="horse", plain=(), cells=None):
                        "params": {"cx": x, "cy": cy}, "key": 0, "mask": "none"})
     marks = border(spot) if n > 1 else []
     look = {"env": env, "background": BLACK, "camera": CAM, "layers": backdrop() + layers + plates + ruler() + marks, "filters": finish(spot)}
-    return waited(look, together(tracks, plain)) if n > 1 else look
+    look = waited(look, together(tracks, plain)) if n > 1 else look
+    # Details: each ring in turn (a ring alone: one side of it, then the other).
+    return rostrum(look, tracks[0], [(1.7, 1.3, 0.9), (1.7, -1.3, -0.3)] if n == 1 else [({2: 1.6, 3: 2.0}[n], x, cy) for x in xs], plain)
 
 
 # ───────────────────────── the train (riffs as gears in mesh) ─────────────────────────
@@ -395,9 +459,18 @@ def gears(tracks, spot, spot_track=None, plain=(), white=False):
          "material": "pbr", "rough": 0.85, "metal": 0, "color": "#151516", "env_sky": "#6a6e76", "env_ground": "#060606", "light": 1, "ambient": 0.15, "rim": 0},
     ]
     marks = border(spot) if n > 1 else []
+    # The cameras: the whole train; then close and from below on where two wheels mesh (a
+    # wheel alone: on its jewel's side), and the next pair from above.
+    cams = [{"x": "1.1*sin(time.bar/24)", "y": "0.25 + 0.3*cos(time.bar/32)", "z": -9, "look_at": [0, 0, 0], "zoom": 2.2}]
+    if ROSTRUM:
+        for i in range(max(1, n - 1)):
+            at = f"var.x{i} + var.g{i}" if n > 1 else "var.x0"
+            up = cy if n > 1 else f"{cy} + 0.8*var.g0"
+            side = -1 if i % 2 == 0 else 1
+            cams.append({"x": f"{at} + {num(1.5 * side)}", "y": f"{cy} + {num(1.7 * side)}", "z": -4.4, "look_at": [at, up, 0], "zoom": 2.0})
     look = {
         "vars": vars_, "env": env, "background": BLACK,
-        "camera": {"x": "1.1*sin(time.bar/24)", "y": "0.25 + 0.3*cos(time.bar/32)", "z": -9, "look_at": [0, 0, 0], "zoom": 2.2},
+        "camera": cams if len(cams) > 1 else cams[0],
         "layers": [{"type": "light", "x": -2.5, "y": 3.5, "z": -7, "power": 1.6, "reach": 40, "color": "#fff6e8"}] + plate + backdrop(0.02, 0.18) + layers + ruler() + marks,
         "filters": [
             {"type": "shadowmap", "amount": 0.7, "soft": 3, "size": 1024, "sun": 0, "x": -2.5, "y": 3.5, "z": -7, "zoom": 2.2},
@@ -408,6 +481,9 @@ def gears(tracks, spot, spot_track=None, plain=(), white=False):
             {"type": "bloom", "threshold": 0.92, "amount": "0.25 + 0.5*audio.low", "radius": 0.012},
         ] + ([{"type": "invert"}] if white else []),
     }
+    if len(cams) > 1:
+        on = cutting(look, tracks[0], plain, slots=2 * (len(cams) - 1))
+        look["shot"] = f"(1 - var.whole)*({' + '.join(f'{k + 1}*{on(2 * k + 1)}' for k in range(len(cams) - 1))})"
     return waited(look, together(tracks, plain)) if n > 1 else look
 
 
@@ -635,14 +711,17 @@ def walkers(tracks, spot, spot_track=None, subject="walker", plain=()):
     tall = SUBJECTS[subject][2]
     horse = SUBJECTS[subject][0] == "horse"
     size = ({1: 3.0, 2: 2.0, 3: 1.35}[n] if horse else {1: 4.0, 2: 2.2, 3: 1.5}[n]) / tall
-    layers = []
+    layers, ys = [], []
     for i, t in enumerate(tracks):
         y = (HALF_H - 0.2) - (i + 1) * (2 * HALF_H - 0.3) / n
         col = spot if t == spot_track else INK
         # A horse is long: it crosses in two bars, not four, and its prints fade sooner.
         look = walker_look(t, col, subject=subject, celled=t not in plain, fade="10/time.bpm" if horse else "20/time.bpm", each=0.09 if horse else 0.05)
         layers.append({"type": "actor", "use": look, "params": {"y": round(y, 3), "size": round(size, 3), "across": 2 if horse else 4, "lead": round(0.37 * i, 2)}, "key": 0, "mask": "none"})
-    return {"background": BLACK, "camera": CAM, "layers": backdrop() + layers, "filters": finish(spot)}
+        ys.append(y + size * tall / 2)
+    look = {"background": BLACK, "camera": CAM, "layers": backdrop() + layers, "filters": finish(spot)}
+    # Details: each lane in turn, left of the middle and then right of it.
+    return rostrum(look, tracks[0], [({1: 1.5, 2: 1.8, 3: 2.2}[n], 1.3 * (-1) ** i, y) for i, y in enumerate(ys)], plain)
 
 
 # ───────────────────────── the sheet (Muybridge's row of cameras) ─────────────────────────
@@ -682,12 +761,14 @@ def sheet(tracks, spot, spot_track=None, subject="walker", plain=()):
         cy = 1.55 if wide else 1.2
         layers.append({"type": "mesh", "shape": "sphere", "detail": 10, "x": f"{r:.2f}*sin({clock(t, t not in plain)})", "y": f"{cy} + {r:.2f}*cos({clock(t, t not in plain)})", "z": 0.3,
                        "scale": f"0.04 + 0.07*track.{t}.hit", **lit(col, 1.3)})
-    return {
+    look = {
         "background": BLACK, "camera": CAM, "layers": backdrop(0.2) + layers,
         "filters": [
             {"type": "panels", "cols": cols, "rows": rows, "count": f"max({c}, 2)", "every": 0.25, "gap": 0.014, "flash": 0.12, "border": "#000000"},
         ] + finish(spot),
     }
+    # Details: the sheet read across, its left half and then its right.
+    return rostrum(look, t0, [(1.5, -1.6, 0.3), (1.5, 1.6, -0.3)], plain)
 
 
 # ───────────────────────── the loops (a lamp left open) ─────────────────────────
@@ -713,7 +794,9 @@ def loops(tracks, spot, spot_track=None, plain=(), cells=None, shadow=True, tie=
     cells = [c for c in (cells or [])[:3] if c] or [16]
     R, RY, Y0 = 1.8, 1.42, 0.2
     back = "(var.nowb - time.beat)*4"            # sixteenths back along the wire
-    rot = "(var.nowb/112 + 0.06)"                # the box turns once in twenty-eight bars
+    # The box turns once in twenty-eight bars; and it is seen from its side for a shot (a
+    # quarter turn at a cut: the figure the second and third riffs make by themselves).
+    rot = "(var.nowb/112 + 0.06 + 0.25*var.side)"
     # Each riff's length as it is now; where the engine finds none, or a stutter of one or
     # two, the length it has for most of this stretch.
     live = [("16" if t in plain else f"mix({c}, track.{t}.cell, step(2.5, track.{t}.cell))") for t, c in zip(ts, cells + [16] * 3)]
@@ -798,16 +881,25 @@ def loops(tracks, spot, spot_track=None, plain=(), cells=None, shadow=True, tie=
         env["all"] = {"when": f"step({tie}, time.beat*4 - {start})", "decay": 2.4}
         env["shut"] = {"when": f"step({tie}, time.beat*4 - {start})", "decay": 0.9}
         marks, burst = border(spot), "env.shut"
+    # Three views, cut in the first riff's time: the box from in front; from its side; and
+    # close, the wire filling the frame and the lamp flying through (a steady camera: one
+    # that followed the lamp would be thrown about). A round is closed in the first.
+    cams = [CAM, {"x": 0, "y": Y0, "z": -9, "look_at": [0, Y0, 0], "zoom": 3.9}]
     look = {
         "vars": {"nowb": {"follow": "time.beat", "attack": "0ms", "release": "0ms"},
                  # (A round's knot keeps its size between a drum's strokes: only a part that
                  # has stopped lets its side go.)
                  **{f"lv{i}": {"follow": "1" if t in plain else f"clamp(track.{t}.level*{14 if tie else 8}, 0, 1)", "attack": "250ms", "release": "7s" if tie else "1800ms"}
                     for i, t in enumerate(ts)}},
-        "env": env, "background": BLACK, "camera": CAM,
+        "env": env, "background": BLACK, "camera": cams if ROSTRUM else CAM,
         "layers": layers + ruler() + marks,
         "filters": finish(spot, burst),
     }
+    look["vars"]["side"] = {"follow": "0", "attack": "0ms", "release": "0ms"}
+    if ROSTRUM:
+        on = cutting(look, ts[0], plain, slots=4, also=f"step({tie - 28}, time.beat*4 - {start})" if tie else None)
+        look["vars"]["side"]["follow"] = f"(1 - var.whole)*{on(1)}"
+        look["shot"] = f"(1 - var.whole)*{on(3)}"
     return waited(look, together(ts, plain)) if len(ts) > 1 and not tie else look
 
 
@@ -881,7 +973,7 @@ def daylight(tracks, spot, spot_track=None, subject="runner", plain=(), white=Fa
 
     layers = [
         {"type": "sky", "zenith": "#4a4a4b", "horizon": "#c3c3c1", "ground": "#595958", "sun": "#fffcf6", "sun_yaw": 0.46, "sun_height": 0.12, "sun_size": 0.03,
-         "glow": 0.5, "haze": 0.5, "clouds": 0.6, "cloud_height": 6, "cloud_scale": 0.12},
+         "glow": 0.5, "haze": 0.5, "clouds": 0},        # (a plain sky: it is hardly seen, and clouds are not free)
         # The floor, chalked: a line across the track each beat, and one along it between lanes.
         {"type": "mesh", "shape": "plane", "detail": 4, "x": cam, "y": 0, "z": 0, "scale": 40, "material": "pbr", "rough": 0.95, "metal": 0, "color": "#b4b4b2", "rim": 0, "cull": True,
          "paint_fine": True, "paint_color": "#ebe7dd",
@@ -905,6 +997,8 @@ def daylight(tracks, spot, spot_track=None, subject="runner", plain=(), white=Fa
         # body of now is the one in front (two bodies of one size fight for the same surface).
         for g in (2, 1):
             ghost = subject_layer(subject, T, "0", col, **place)
+            # (Melted smooth like the bodies: unmelted, a faint pose shows its joints darker,
+            # as a lay figure does. It is five sixths of a figure's cost at 4K.)
             ghost.update({**skin, "phase": ghost["phase"] + f" - {g * gap:g}", "thick": 0.9, "emit": 0.4, "opacity": round(0.5 * (1 - g / 3) + 0.08, 3), "shadow": 0})
             layers.append(ghost)
         fig = subject_layer(subject, T, f"track.{t}.hit", col, **place)
@@ -980,7 +1074,10 @@ def flight(tracks, spot, spot_track=None, ranges=None, bars=2):
         lo, hi = (ranges or {}).get(t, (0.3, 0.7))
         col = spot if (t == spot_track or len(tracks) == 1) else INK
         layers.append({"type": "actor", "use": flight_look(t, col, bars=bars, lo=lo, hi=hi, phase=0.31 * i), "params": {"size": {1: 1.5, 2: 1.2, 3: 1.0}[len(tracks)]}, "key": 0, "mask": "none"})
-    return {"background": BLACK, "camera": CAM, "layers": backdrop() + layers + ruler(), "filters": finish(spot)}
+    look = {"background": BLACK, "camera": CAM, "layers": backdrop() + layers + ruler(), "filters": finish(spot)}
+    # A tune has no riff to cut on: the camera goes in on the middle of the plate every other
+    # two bars.
+    return rostrum(look, tracks[0], [(1.5, 0, 0.1)], plain=tuple(tracks))
 
 
 # ───────────────────────── the pendulums (odd sympathy) ─────────────────────────
@@ -1023,7 +1120,9 @@ def pendulums(tracks, spot, spot_track=None, plain=()):
                        "params": {"cx": round(x, 3), "top": 2.05, "length": f"1.6 + 2.4*sqrt(clamp({teeth(t, t not in plain)}/16, 0, 1))", "swing": 0.1}, "key": 0, "mask": "none"})
     look = {"env": {"all": {"when": together(tracks, plain) if n > 1 else "0", "decay": 2.0}},
             "background": BLACK, "camera": CAM, "layers": backdrop() + layers + ruler() + border(spot), "filters": finish(spot)}
-    return waited(look, together(tracks, plain)) if n > 1 else look
+    look = waited(look, together(tracks, plain)) if n > 1 else look
+    # Details: the bobs, where the fans are (the left of them and the right, if there are many).
+    return rostrum(look, tracks[0], [(1.6, 0, -0.95)] if n < 3 else [(1.9, -1.7, -0.9), (1.9, 1.7, -0.9)], plain)
 
 
 # ───────────────────────── the balls (Edgerton's strobe) ─────────────────────────
@@ -1073,7 +1172,9 @@ def balls(tracks, spot, spot_track=None, plain=()):
                        "params": {"floor": floor, "height": f"clamp(var.h{i}, 0.4, 3.5)", "across": 4, "lead": round(0.21 * i, 2), "size": 0.07}, "key": 0, "mask": "none"})
     look = {"vars": vars_, "env": {"all": {"when": together(tracks, plain) if n > 1 else "0", "decay": 1.6}},
             "background": BLACK, "camera": CAM, "layers": backdrop() + layers + ruler() + border(spot), "filters": finish(spot)}
-    return waited(look, together(tracks, plain)) if n > 1 else look
+    look = waited(look, together(tracks, plain)) if n > 1 else look
+    # Details: the floor, where they land, left and right.
+    return rostrum(look, tracks[0], [(1.7, -1.7, -0.7), (1.7, 1.7, -0.7)], plain)
 
 
 # ───────────────────────── the finish (a photo-finish of the riffs) ─────────────────────────
@@ -1143,7 +1244,11 @@ def finish_line(tracks, spot, spot_track=None, subject="runner", bars=2, plain=(
         env["all"] = {"when": together(tracks, plain), "decay": 0.02}
         layers.append({"type": "mesh", "shape": "box", "round": 0.02, "detail": 2, "x": xs, "y": 0, "z": 0.1, "scale": 1, "sx": 0.02, "sy": 2.5, "sz": 0.006,
                        "opacity": "step(0.6, env.all)", **lit(spot, 1.5)})
-    return {
+    look = {
         "background": BLACK, "camera": CAM, "vars": vars_, "env": env, "layers": layers,
         "filters": [{"type": "slit", "x": round(xs * K, 4), "speed": f"time.bpm/{2*bars}", "live": 0.8, "band": 1}] + finish(spot),
     }
+    # Details: the line itself, lane by lane (the runners come through it large), and the
+    # strip a bar back.
+    lanes = [(HALF_H - 0.1) - (i + 0.5) * lane for i in range(n)]
+    return rostrum(look, tracks[0], [(1.8, xs - 0.6, y) for y in lanes[:2]] + [(1.5, -1.5, lanes[-1])], plain)
