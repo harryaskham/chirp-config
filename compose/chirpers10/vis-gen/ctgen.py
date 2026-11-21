@@ -300,6 +300,10 @@ def choose(n, title, song):
             order = ["sheet", "walkers", "studio", "finish"]
         if tune and "flight" not in order:
             order.insert(2, "flight")
+        # Each song begins its round of the studies somewhere else, so no two songs go
+        # through them in the same order.
+        turn = (n * 3) % len(order)
+        order = order[turn:] + order[:turn]
         # The one used least so far in this song (never the same twice running); ties go to
         # what suits best.
         base = lambda o: o.rstrip("0")  # noqa: E731
