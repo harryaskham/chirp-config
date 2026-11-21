@@ -300,7 +300,8 @@ def gears(tracks, spot, spot_track=None, plain=(), white=False):
     # Teeth to the sixteenth: enough that the smallest wheel has a dozen or so, and no wheel
     # more than the forty-eight there are to hand out.
     vars_["k"] = {"follow": f"min(max(1, floor(14/{least})), max(1, floor(48/{biggest})))", "attack": "0ms", "release": "0ms"}
-    vars_["p"] = {"follow": f"min(min(25.13/({' + '.join(C)}), 12.88/{biggest}), 0.8*var.k)", "attack": "400ms", "release": "400ms"}
+    # (Quick to grow, so a scene does not open on a train the size of a watch.)
+    vars_["p"] = {"follow": f"min(min(25.13/({' + '.join(C)}), 12.88/{biggest}), 0.8*var.k)", "attack": "40ms", "release": "400ms"}
     vars_["q"] = {"follow": "var.p/var.k", "attack": "0ms", "release": "0ms"}      # a tooth's share of the rim
     for i in range(n):
         vars_[f"g{i}"] = {"follow": f"var.p*{C[i]}/6.2832", "attack": "0ms", "release": "0ms"}
@@ -1021,11 +1022,11 @@ def finish_line(tracks, spot, spot_track=None, subject="runner", bars=2, plain=(
         # Not while its wheel stands (a rest, or a riff waiting to come round again): a body
         # standing on the line would be drawn out as a smear. The wheel is moving while it
         # is ahead of where it was a moment ago.
-        # (A slow follower: it lags a turning wheel by a seventh of a second's turn at any
-        # frame rate, and catches a standing one up. A quick one fell under the mark for
-        # slow wheels, and long riffs in slow songs had no runners at all.)
-        vars_[f"was{i}"] = {"follow": T, "attack": "150ms", "release": "150ms"}
-        fig["opacity"] = f"step(0.5, {C})*step(0.003, {T} - var.was{i})"
+        # (A quick follower, so the body is gone within a frame or two of the wheel stopping:
+        # a slow one left it standing on the line for half a second, drawn out as a block.
+        # The mark is low enough for the slowest wheel, a riff of 48 at 80 to the minute.)
+        vars_[f"was{i}"] = {"follow": T, "attack": "12ms", "release": "12ms"}
+        fig["opacity"] = f"step(0.5, {C})*step(0.0004, {T} - var.was{i})"
         fig["emit"] = 1.1
         fig["thick"] = max(SUBJECTS[subject][3], 0.42)
         # Held in one pose while it crosses (so the film takes it clean), a little further
