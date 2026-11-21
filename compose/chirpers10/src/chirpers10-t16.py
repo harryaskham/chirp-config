@@ -890,6 +890,128 @@ def turned(f, r0, r1, beats, held):
     return size, int(n), when
 
 
+# v29 (chirper-zero; whole-song round: chirper-alpha's tune on the pair, which he wrote down under v15 and v17 as "a
+# whole-song round nobody has written"). THE PAIR PLAYS A TUNE. For twenty-eight versions the metre has changed
+# by the peg: the hair moves and the note stays. chirper-alpha's v15 found the other way for one bar: stop both
+# reeds a fourth higher with the peg left alone and the hair, the same width in cents, is a third wider in cycles:
+# three to the bar becomes four. And he wrote down the rest: the song's whole form, three, four, five and seven,
+# is the HARMONICS three, four, five and seven of one low string (the low A flat, 51.9 Hz, of which three's E flat
+# is the third); a tune on those four notes would play the form without touching the peg, and nobody had written
+# it. This is that tune, where his bar stood, in 'three', the song's slowest and lowest place:
+#   bars 35-37 (2:03.6)  E flat    three to the bar (as before: the pair alone, then the band, two bars)
+#   bar 38 (2:14.5)      A flat    FOUR   (his bar, a bar earlier, every note of it as he wrote it)
+#   bar 39 (2:18.2)      C         FIVE   (259.565 Hz: the fifth harmonic, 14 cents under the piano's C)
+#   bar 40 (2:21.8)      G flat    SEVEN  (363.391 Hz: the seventh, 31 cents under the piano's)
+#   bars 41-42 (2:25.5)  E flat again, and the peg turns three into four the slow way, as before
+# Each note is as many pulses to the bar as its number in the series, because the peg is where it was: the hair is
+# 9.15 cents on every one of them (1.1, 1.375 and 1.925 Hz). The band only plays what the pair does, so it climbs
+# with it and quickens with it: every part in the rule says the bar's first pulse and then its second as often as
+# the count asks, at the new note (chirper-alpha's own way of making his bar), the bass, the guitars, the foot and
+# its chest on C2 and then G flat 2, the toms on two new kits tuned to those grounds. The snare and the cymbals
+# are outside the rule and stay. So the song's four counts go by in four bars as a rising arpeggio of one string's
+# overtones, the band a little faster and higher at each, and then it drops an octave and a third to the low
+# E flat and the tuner's hand goes back to the peg.
+# THE THIRD REED (chirper-three's v5) held the low E flat's twentieth harmonic through bar 38: against the A flat
+# that is a major seventh (chirper-alpha's warning under v15), so that one note is held a bar less and the chord
+# has left when the tune begins.
+# READ (the pair alone, raw; pulses to the bar on its first four overtones): A flat 4.00, 7.99, 12.00, 15.99 ;
+# C 4.86 (the reader's least exact line: his own bar read 3.90 on it), 10.01, 14.97, 19.98 ; the seventh 6.99,
+# 14.00, 21.04, 28.02. And the pair is heard through the band there better than on the E flat: round its four
+# overtones it stands over everything else by 7.7 / 6.1 / 5.6 / 2.9 dB (A flat), 6.4 / 6.2 / 5.4 / 3.4 (C) and
+# 10.0 / 7.9 / 6.4 / 0.8 (the seventh), where the plain bars before read 3.2 / 5.1 / 2.9 / 3.8.
+# BENCHED, the band an octave lower on the seventh (G flat 1, 45 Hz): the bar had 4.3 dB more under 60 Hz than the
+# E flat bars and the low E flat that follows landed 3.6 dB UNDER it; with the band on G flat 2 the landing is a
+# step up of 8.6 dB there. The climb goes up all the way.
+# the section ; the plain bar of it the new bars are made from (from 1) ; chirper-alpha's stopped bar > the bar it
+# is played in now ; the new bars, commas between: the section's bar : pulses to the bar : the still reed's hertz :
+# octaves on the band's strings and foot : the three toms as root, fifth, root (r) or fifth, root, fifth (f) ; the
+# third reed's note struck at this bar of the section is held one bar less ('' = as written) ; the fader of the two
+# new tom tracks ; the loudness target ('' = unchanged).
+# '' = v28 byte for byte. On only while THREES is.
+TUNE = os.environ.get("C10T16_TUNE", "three;3;5>4;5:5:259.565:0:r,6:7:363.391:0:f;3;0dB;-10.373" if THREES else "")
+
+
+def the_pair_plays_a_tune(doc, marks):
+    """v29: three bars of one section are the pair stopped at the fourth, fifth and seventh harmonics of the low
+    string its own note is the third of, the peg left alone: four, five and seven to the bar, and the band with it."""
+    sec, plain, move, new_bars, trim, fader, target = TUNE.split(";")
+    name, b, r, bars = next(m for m in marks if m[0] == sec)
+    was = Fr(r) * 4
+    assert was.denominator == 1
+    was = int(was)
+    cell = 4 / was
+    tracks = {t["name"]: t for t in doc["tracks"]}
+    ground = next(x[3] for x in FORM if x[0] == sec)
+    kits = {int(x.split("=")[0]): x.split("=")[1].split(",")[0].lower() for x in TOMS.split(";")}
+    own = "skins" if ground == 0 else "skins-" + kits[ground]              # the section's own drums
+    rule = ["foot", "chest", "left", "right", "left" + ALSO, "right" + ALSO, "bass", "hat", "reed", "hair"]
+    toms = [n for n in tracks if n.startswith("skins")]
+    start = lambda bar: b + 4 * (bar - 1)
+    inbar = lambda e, a: a - 1e-6 <= e["at"] < a + 4 - 1e-6
+    names = "C Db D Eb E F Gb G Ab A Bb B".split()
+
+    def midi(q):
+        return float(q[1:]) if q[0] == "m" else names.index(q.rstrip("0123456789")) + 12 * (int(q[len(q.rstrip("0123456789")):]) + 1)
+
+    t0 = start(int(plain))
+    template = {n: [dict(e) for e in tracks[n]["notes"] if inbar(e, t0)] for n in rule + [own]}
+    assert all(template.values()), "a plain bar: everyone in the rule plays in it"
+    still = float(template["reed"][0]["pitch"][:-2])
+    src, dst = (int(x) for x in move.split(">"))
+    moved = {n: [{**e, "at": round(e["at"] + 4 * (dst - src), 5)} for e in tracks[n]["notes"] if inbar(e, start(src))] for n in rule + toms}
+    spec = [(int(x.split(":")[0]), int(x.split(":")[1]), float(x.split(":")[2]), int(x.split(":")[3]), x.split(":")[4]) for x in new_bars.split(",")]
+    gone = {dst, src} | {x[0] for x in spec}
+    assert all(1 < bar <= bars - SLIDES.get(sec, 0) for bar in gone), "bars of constant width, after the one the pair shows alone"
+    for n in rule + toms:
+        tracks[n]["notes"] = [e for e in tracks[n]["notes"] if not any(inbar(e, start(bar)) for bar in gone)]
+        tracks[n]["notes"] += moved[n]
+    for bar, n, f, octave, shells in spec:
+        a = start(bar)
+        note = 12 * math.log2(f / still)                                   # the stop, in semitones over the section's note
+        semis = note + 12 * octave
+        up = lambda p: ",".join(f"m{midi(q) + semis:.4f}" for q in p.split(","))
+        scale = was / n
+        kit = f"ce-toms-tune-{n}"
+        drums = f"skins-tune-{n}"
+        root = midi(nm(REED + ground - 24)) + note                         # the low string's note in that bar
+        fifth = 12 * math.log2(1.5)
+        three = {"r": (root, root + fifth, root + 12), "f": (root - fifth, root, root + fifth)}[shells]
+        doc["patches"][kit] = {"about": f"chirper-zero: the counting toms where the pair is stopped at its {n}th harmonic", "extends": "ct-kit",
+                               "kit": {piece: {"pitch": f"m{p:.4f}"} for piece, p in zip(("ft", "t2", "t1"), three)}}
+        like = tracks[own]
+        doc["tracks"].append({**{k: v for k, v in like.items() if k != "notes"}, "name": drums, "patch": like["patch"].replace("ce-toms-" + kits[ground], kit),
+                              "gain": fader, "notes": []})
+        tracks[drums] = doc["tracks"][-1]
+        for src_name in rule + [own]:
+            old = template[src_name]
+            if src_name in ("reed", "hair"):
+                e = dict(old[0])
+                e["at"], e["pitch"] = a, f"{f + (n / 4 * HAIR if src_name == 'hair' else 0):.3f}hz"
+                tracks[src_name]["notes"].append(e)
+                continue
+            cells = [[e for e in old if t0 + k * cell - 1e-3 <= e["at"] < t0 + (k + 1) * cell - 1e-3] for k in (0, 1)]
+            assert all(cells), src_name
+            for j in range(n):
+                for e in cells[min(j, 1)]:
+                    m = {**e, "at": round(a + j * 4 / n + (e["at"] - t0 - min(j, 1) * cell) * scale, 5)}
+                    if src_name in ("left", "right", "left" + ALSO, "right" + ALSO, "bass"):
+                        m["len"], m["pitch"] = round(e["len"] * scale, 5), up(e["pitch"])
+                    elif src_name == "chest":
+                        m["pitch"] = up(e["pitch"])
+                    elif src_name == "foot":
+                        was_pitch = e["patch"].split("kit.k.pitch=")[1].split()[0]
+                        m["patch"] = e["patch"].replace("kit.k.pitch=" + was_pitch, "kit.k.pitch=" + up(was_pitch))
+                    tracks[drums if src_name == own else src_name]["notes"].append(m)
+    if trim:
+        held = [e for e in tracks["third"]["notes"] if abs(e["at"] - start(int(trim))) < 1e-6]
+        assert len(held) == 1 and abs(held[0]["len"] - 7.96) < 1e-6, held
+        held[0]["len"] = 3.96
+    for n in rule + toms:
+        tracks[n]["notes"].sort(key=lambda e: e["at"])
+    if target:
+        doc["loudness"] = float(target)
+
+
 def build():
     ev = defaultdict(list)
     marks = []
@@ -1263,6 +1385,8 @@ def build():
         the_tuner_strikes(doc, marks)
     if THREES:
         the_band_leaves_every_fourth(doc, marks, THREES)                   # v28: last, on the finished document
+    if TUNE:
+        the_pair_plays_a_tune(doc, marks)                                  # v29: last, on the finished document
     return doc, marks, end
 
 
