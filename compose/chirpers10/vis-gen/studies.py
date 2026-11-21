@@ -744,16 +744,18 @@ def loops(tracks, spot, spot_track=None, plain=(), cells=None, shadow=True, tie=
     least = live[0]
     for c in live[1:]:
         least = f"min({least}, {c})"
-    n = f"clamp({length * 44}/{least}, 96, 2000)"    # forty-four points to a turn of the shortest riff
+    # A hundred and ten points to a turn of the shortest riff: at 4K a turn is a thousand
+    # pixels across, and fewer show as corners.
+    n = f"clamp({length * 110}/{least}, 96, 8000)"
     secs = f"{length * 0.125:.4f}/time.bpm"
     look = {"width": 0.021, "taper": 0.45, "fade": 0.82}
     glow = "0.75 + 0.5*audio.level"
     if tie:
-        # So many sixteenths of wire so far; forty-four points to a turn of the shortest riff
-        # (a trail takes eight thousand; before chirp-video 4d66a5fa two, and is then a
-        # little angular where three short riffs go a long way round).
+        # So many sixteenths of wire so far, at the same hundred and ten points to a turn, or
+        # as many as eight thousand allow (a trail took two thousand before chirp-video
+        # 4d66a5fa, and a long knot was then angular).
         so_far = f"clamp(time.beat*4 - {start}, 0.5, {tie})"
-        n = f"clamp({so_far}*{min(44, 8000 * min(cells) / tie):.2f}/{least}, 96, 8000)"
+        n = f"clamp({so_far}*{min(110, 8000 * min(cells) / tie):.2f}/{least}, 96, 8000)"
         secs = f"{so_far}*0.125/time.bpm"
         # A long round is a close weave: the wire is bold while there is little of it and
         # fine by the end, and all of it is kept (the oldest a little dimmer).
