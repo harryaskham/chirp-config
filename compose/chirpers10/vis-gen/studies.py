@@ -165,7 +165,7 @@ def wheels(tracks, spot, spot_track=None, plain=()):
         C = teeth(t, t not in plain)
         vars_[f"r{i}"] = {"follow": f"{rmax}*(0.5 + 0.5*sqrt(clamp(({C} - 3)/13, 0, 1)))", "attack": "500ms", "release": "500ms"}
         layers += wheel_rim(t, x, cy, f"var.r{i}", celled=t not in plain, glow="env.all" if n > 1 else "0")
-        plates.append({"type": "actor", "use": wheel_look(t, col, celled=t not in plain), "params": {"cx": x, "cy": cy, "r": f"var.r{i}"}, "key": 0, "mask": "rect"})
+        plates.append({"type": "actor", "use": wheel_look(t, col, celled=t not in plain), "params": {"cx": x, "cy": cy, "r": f"var.r{i}"}, "key": 0, "mask": "none"})
         if i + 1 < n:
             # The thread between this wheel and the next, lit when they come round together.
             env[f"m{i}"] = {"when": together(tracks[i:i + 2], plain), "decay": 1.2}
@@ -348,7 +348,7 @@ def walkers(tracks, spot, spot_track=None, subject="walker", plain=()):
         col = spot if t == spot_track else INK
         # A horse is long: it crosses in two bars, not four, and its prints fade sooner.
         look = walker_look(t, col, subject=subject, celled=t not in plain, fade="4/time.bpm" if horse else "8/time.bpm")
-        layers.append({"type": "actor", "use": look, "params": {"y": round(y, 3), "size": round(size, 3), "across": 2 if horse else 4, "lead": round(0.37 * i, 2)}, "key": 0})
+        layers.append({"type": "actor", "use": look, "params": {"y": round(y, 3), "size": round(size, 3), "across": 2 if horse else 4, "lead": round(0.37 * i, 2)}, "key": 0, "mask": "none"})
     return {"background": BLACK, "camera": CAM, "layers": backdrop() + layers, "filters": finish(spot)}
 
 
@@ -459,11 +459,13 @@ def studio(tracks, spot, spot_track=None, subject="walker", plain=(), white=Fals
     layers = [
         {"type": "sky", "zenith": "#4a4a4c", "horizon": "#c4c2bc", "ground": "#5a5852", "sun": "#fff4e0", "sun_yaw": -0.14, "sun_height": 0.16, "sun_size": 0.03,
          "glow": 0.5, "haze": 0.5, "clouds": 0.6, "cloud_height": 6, "cloud_scale": 0.12},
-        # The floor: pale, ruled across every unit.
-        {"type": "mesh", "shape": "plane", "detail": 4, "x": 0, "y": 0, "z": 0, "scale": 40, "material": "pbr", "rough": 0.95, "metal": 0, "color": "#6f6c66", "cull": True,
-         # Chalk lines across the track, one a unit.
-         "paint_fine": True, "paint_color": "#d8d4ca", "paint": "0.35*step(0.985, fract(vtx.x*40 + 0.5))*step(vtx.z*40, 1.2)*step(-1.6, vtx.z*40)"},
-        # The wall: black, with white threads every half unit and a heavier one every two.
+        # The floor: pale.
+        {"type": "mesh", "shape": "plane", "detail": 4, "x": 0, "y": 0, "z": 0, "scale": 40, "material": "pbr", "rough": 0.95, "metal": 0, "color": "#6f6c66", "cull": True},
+        # Chalk lines across the track, one a unit (thin boxes lying on the floor).
+        {"type": "mesh", "shape": "box", "round": 0.02, "detail": 2, "count": 13, "x": "inst.i - 6", "y": 0.004, "z": -0.2, "scale": 1, "sx": 0.012, "sy": 0.003, "sz": 1.4,
+         "color": "#d8d4ca", "light": 0.8, "ambient": 0.5, "rim": 0},
+        # The wall: black, with white threads every half unit and a heavier one every two
+        # (painted on: threads as separate bodies would each be drawn again for the shadows).
         {"type": "mesh", "shape": "box", "round": 0.01, "detail": 2, "x": 0, "y": 1.6, "z": 1.3, "scale": 1, "sx": 30, "sy": 1.6, "sz": 0.05, "color": "#0b0b0b", "light": 0.5, "ambient": 0.3, "rim": 0,
          "paint_fine": True, "paint_color": "#e8e4da",
          "paint": "step(0.97, fract(vtx.x*60 + 0.5))*0.5 + step(0.97, fract(vtx.y*3.2 + 0.5))*0.5 + step(0.985, fract(vtx.x*15 + 0.5))*0.5"},
@@ -476,14 +478,14 @@ def studio(tracks, spot, spot_track=None, subject="walker", plain=(), white=Fals
         # a moment ago and a moment before that: the plate, standing in the daylight.
         fig = subject_layer(subject, T, f"track.{t}.hit", col, x=f"-5.5 + 11*fract(time.bar/{6 + 2*i} + {0.27*i:.2f})", y=round(tall * 0.9 / 2, 3), z=z, scale=0.9)
         fig.update({"thick": 1.0, "melt": 0.05, "light": 1.0, "ambient": 0.2, "material": "pbr", "rough": 0.8, "metal": 0,
-                    "emit": f"{0.45 if t == spot_track else 0.05} + 0.3*track.{t}.hit", "echo": 5, "echo_gap": "0.25/time.bpm"})
+                    "emit": f"{0.45 if t == spot_track else 0.05} + 0.3*track.{t}.hit", "echo": 4, "echo_gap": "0.25/time.bpm"})
         layers.append(fig)
     return {
         "background": "#d8d5ce",
         "camera": {"x": "1.6*sin(time.bar/32)", "y": 1.0, "z": -3.9, "look_at": ["1.0*sin(time.bar/32)", 0.95, 0.6], "zoom": 1.1},
         "layers": layers,
         "filters": [
-            {"type": "shadowmap", "amount": 0.55, "soft": 2, "size": 1536},
+            {"type": "shadowmap", "amount": 0.55, "soft": 2, "size": 1024},
             {"type": "ao", "amount": 0.6, "radius": 0.05},
             {"type": "tonemap", "knee": 0.8},
             {"type": "color", "contrast": 1.08},
@@ -523,7 +525,7 @@ def flight(tracks, spot, spot_track=None, ranges=None, bars=2):
     for i, t in enumerate(tracks):
         lo, hi = (ranges or {}).get(t, (0.3, 0.7))
         col = spot if (t == spot_track or len(tracks) == 1) else INK
-        layers.append({"type": "actor", "use": flight_look(t, col, bars=bars, lo=lo, hi=hi, phase=0.31 * i), "params": {"size": {1: 1.5, 2: 1.2, 3: 1.0}[len(tracks)]}, "key": 0})
+        layers.append({"type": "actor", "use": flight_look(t, col, bars=bars, lo=lo, hi=hi, phase=0.31 * i), "params": {"size": {1: 1.5, 2: 1.2, 3: 1.0}[len(tracks)]}, "key": 0, "mask": "none"})
     return {"background": BLACK, "camera": CAM, "layers": backdrop() + layers + ruler(), "filters": finish(spot)}
 
 
@@ -564,7 +566,7 @@ def pendulums(tracks, spot, spot_track=None, plain=()):
         x = (i - (n - 1) / 2) * min(2.6, 8.0 / n)
         col = spot if t == spot_track else INK
         layers.append({"type": "actor", "use": pendulum_look(t, col, celled=t not in plain),
-                       "params": {"cx": round(x, 3), "top": 2.05, "length": f"1.6 + 2.4*sqrt(clamp({teeth(t, t not in plain)}/16, 0, 1))", "swing": 0.1}, "key": 0})
+                       "params": {"cx": round(x, 3), "top": 2.05, "length": f"1.6 + 2.4*sqrt(clamp({teeth(t, t not in plain)}/16, 0, 1))", "swing": 0.1}, "key": 0, "mask": "none"})
     return {"env": {"all": {"when": together(tracks, plain) if n > 1 else "0", "decay": 2.0}},
             "background": BLACK, "camera": CAM, "layers": backdrop() + layers + ruler(), "filters": finish(spot)}
 
@@ -613,7 +615,7 @@ def balls(tracks, spot, spot_track=None, plain=()):
         # the longest riff among them has the full height.
         vars_[f"h{i}"] = {"follow": f"3.5*pow({C}/max({longest}, 4), 2)", "attack": "400ms", "release": "400ms"}
         layers.append({"type": "actor", "use": ball_look(t, col, celled=t not in plain),
-                       "params": {"floor": floor, "height": f"clamp(var.h{i}, 0.4, 3.5)", "across": 4, "lead": round(0.21 * i, 2), "size": 0.07}, "key": 0})
+                       "params": {"floor": floor, "height": f"clamp(var.h{i}, 0.4, 3.5)", "across": 4, "lead": round(0.21 * i, 2), "size": 0.07}, "key": 0, "mask": "none"})
     return {"vars": vars_, "env": {"all": {"when": together(tracks, plain) if n > 1 else "0", "decay": 1.6}},
             "background": BLACK, "camera": CAM, "layers": backdrop() + layers + ruler(), "filters": finish(spot)}
 
