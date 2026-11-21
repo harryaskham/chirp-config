@@ -663,6 +663,38 @@ FIFTH = {'pitch': 'm56.863',
 # disagree and it waits for an ear.
 REGISTER = {'law': ((66, -4.0), (72, -1.5), (84, 0.0)), 'loudness': -9.548}
 
+# v26 (chirper-zero; palette round: THE SWAP, NAMED: none; the part the song lacked. The kit had a bass drum, a
+# snare, cymbals and two bells, and in four and three quarter minutes not one tom and not one fill). THE HANDS KNOW
+# THE WAY DOWN. Nobody can say how long a number will take, but everybody knows how it ends: sixteen, eight, four,
+# two, one. v8 gave the hands a memory for the ground they have trodden and v16 let the bell say which way a known
+# number goes next. The one thing the hands can know BEFORE it happens is the ending, and they have played it once
+# more every walk. So they start to play it: one new track, four toms of the album's kit, and a fill down them on
+# the last numbers of a walk. Everything about the fill is the number:
+#   WHICH TOM: the number being said. Sixteen is the small tom, eight the next, four the next, two (and one) the
+#       floor tom: a halving is a step down the kit.
+#   THEIR NOTES: the low string's sixth, fourth, third and second harmonics (C4, F3, C3, F2: 261.9, 174.6, 131.0,
+#       87.3 Hz), as everything pitched here is a harmonic of that string. Not the numbers' own notes: the band
+#       plays those, and the kit is not the number (v1, v23).
+#   HOW LOUD: the track takes the bass drum's own lane (v5: the band is as big as the number), so each tom down is
+#       1.25 dB quieter than the last. It is not a fill that swells into the next bar; it is the ball coming to rest.
+#   HOW LONG: one eighth note for every ending the hands have already played (they came in with three): one tap
+#       before five begins, two before six, ... eight before twelve, eleven before fifteen, twelve after the long
+#       fall from 160, thirteen as sixteen runs into the wheel: a bar and a half. The two quiet walks keep their
+#       stick on the rim and have none, but they count.
+#   WHEN: on the hands' own eighths (v8: they never leave common time), so the same fall is cut differently each
+#       time, by where the walk happens to lie across the bar.
+# No other stroke changes: the backbeat and the cymbal go on under the toms (these are a third and fourth hand).
+# The wheel is left as v19 made it.
+# 'from': the walk the hands came in with ; 'toms': number -> kit piece ; 'pitch': piece -> note ; 'patch': added
+# inside each piece (kit.PIECE.patch.) ; 'rack': more, on the three rack toms only ; 'trim': dB on a piece ; 'eq':
+# bands on the track (None = none) ; 'gain': the track's fader, dB over the lane ; 'vel', 'len': each stroke ;
+# 'loudness': the target (None = unchanged). --without-fill = v25 byte for byte ; --fill JSON for a bench.
+FILL = {'from': 3, 'toms': {16: 't1', 8: 't2', 4: 't3', 2: 'ft', 1: 'ft'},
+        'pitch': {'t1': 'm60.02', 't2': 'm53', 't3': 'm48.02', 'ft': 'm41'},
+        'patch': 'synth.layers.0.tilt=-6 synth.layers.1.level.mod.0.amount=76 synth.env.att.d=12ms synth.filters.1.gain=8dB',
+        'rack': 'synth.layers.0.decay=0.55s synth.amp.d=0.7s synth.layers.0.damp=0.8',
+        'trim': {}, 'eq': None, 'gain': 2.0, 'vel': 0.85, 'len': 1.2, 'loudness': -9.5245}
+
 
 def true(ratio):
     """A pitch as its exact ratio over the low F: the engine's fractional key number (a whole one is written as its name)."""
@@ -1043,6 +1075,8 @@ if __name__ == '__main__':
     ap.add_argument('--touch', help='a bench: TOUCH fields to change, as a JSON object')
     ap.add_argument('--without-fifth', action='store_true', help="regenerate v23: the snare between two of the string's harmonics, a different pitch on every stroke")
     ap.add_argument('--fifth', help="JSON over FIFTH's fields, for a bench")
+    ap.add_argument('--without-fill', action='store_true', help="regenerate v25: a kit with no toms, and no fill anywhere")
+    ap.add_argument('--fill', help="JSON over FILL's fields, for a bench")
     ap.add_argument('--without-register', action='store_true', help="regenerate v24: the ondes at v1's levels, full under middle C")
     ap.add_argument('--register', help="JSON over REGISTER's fields, for a bench")
     ap.add_argument('--without-fitted', action='store_true', help="regenerate v22: the album kit's bass drum as v4 tuned it, with no chest")
@@ -1072,7 +1106,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
-    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_register', 'register', 'without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight', 'without_speaker', 'speaker', 'without_fitted', 'fitted', 'without_fifth', 'fifth'))
+    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_fill', 'fill', 'without_register', 'register', 'without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight', 'without_speaker', 'speaker', 'without_fitted', 'fitted', 'without_fifth', 'fifth'))
     if not a.without_china and newest:
         metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
         metal['patch'] += ' ' + CHINA['kit']
@@ -1293,6 +1327,35 @@ if __name__ == '__main__':
                         e['gain'] = f'{g:.1f}dB'
                 if REGISTER['loudness'] is not None:
                     doc['loudness'] = REGISTER['loudness']
+                if not a.without_fill:                             # only on the whole song as v25 has it
+                    if a.fill:
+                        FILL.update(json.loads(a.fill))
+                    kick = next(t for t in doc['tracks'] if t['name'] == 'kick')
+                    assert not any(t['name'] == 'toms' for t in doc['tracks']) and 'toms' not in doc.get('buses', {}) and 'size' in kick['auto']
+                    toms = {int(n): piece for n, piece in FILL['toms'].items()}
+                    pieces = sorted(set(toms.values()))
+                    over = ''.join(f" kit.{piece}.pitch={FILL['pitch'][piece]}" for piece in pieces)
+                    over += ''.join(f' kit.{piece}.gain={db:g}dB' for piece, db in sorted(FILL['trim'].items()))
+                    over += ''.join(f' kit.{piece}.patch.{o}' for piece in pieces for o in FILL['patch'].split())
+                    over += ''.join(f' kit.{piece}.patch.{o}' for piece in pieces if piece != 'ft' for o in FILL['rack'].split())
+                    strokes = []
+                    for k, at in marks:
+                        eighths = k - FILL['from']
+                        if eighths < 1 or k in QUIET:
+                            continue
+                        w, t0 = walk(k), at
+                        last = at + sum(w)
+                        for n in w:                                    # each number of the walk, and the hands' eighths inside it
+                            for s in range(t0, t0 + n):
+                                if s % 2 == 0 and last - 2 * eighths <= s and n in toms:
+                                    strokes.append({'at': round(s / SUB, 6), 'len': round(FILL['len'] / SUB, 6), 'pitch': toms[n], 'vel': FILL['vel']})
+                            t0 += n
+                    doc['tracks'].append({'name': 'toms', 'patch': 'ct-kit-so-far' + over, 'gain': {**kick['gain'], 'value': f"{FILL['gain']:g}dB"}, 'pan': 0,
+                                          'out': 'drums', 'auto': kick['auto'], 'notes': strokes})
+                    if FILL['eq']:
+                        doc['tracks'][-1]['fx'] = [{'type': 'eq', 'bands': list(FILL['eq'])}]
+                    if FILL['loudness'] is not None:
+                        doc['loudness'] = FILL['loudness']
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
