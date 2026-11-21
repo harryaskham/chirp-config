@@ -1844,6 +1844,91 @@ def the_backbeat_stops_ringing(doc):
         doc["loudness"] = float(target)
 
 
+# v28 (chirper-zero; section round, w2, 0:31-1:02, the one window no round had worked: the change is 0:50.3-0:57.7,
+# the second turn of the sixty inside 'minor'). TWICE AS FAST IS THE OCTAVE ABOVE. The mirror of v24, and the half
+# of the song's first sentence the band had never played: "twice as fast is the octave above". The drums say it at
+# both ends and in every fill; since v24 the band says "half as fast is an octave down" in 'sixth'. In 'minor',
+# which is the chord at speed, nothing ever left that speed: from the C's handover (0:35.7) to the tune (0:57.7)
+# the band played three turns alike. Now, from the meeting the three drums gather into (0:50.3) to the meeting
+# the tune comes in on (0:57.7), the two riff pairs, the foot and the foot's chest SAY THE WHOLE TURN TWICE IN THE
+# TIME OF ONE, AN OCTAVE HIGHER: the threes become a stroke every sixteenth and a half on F2 (the riff's own four-
+# stroke figure, ring, mute, chord, mute, each stroke half as long), the fives a stroke every two and a half on
+# A flat 3, the chest F3 (the F drum's own note), and the backbeat comes every four instead of every eight, on the
+# off-beats of the china's quarters: still a C. By the rule every one of them is still on its own note. The first
+# strokes after the meeting fall at 1.5 (F), 2 (C, the snare) and 2.5 (A flat): v17's figure of three in a row,
+# which the three drums say at 3, 4 and 5 over them, said at twice the speed under it. NOTHING ELSE SPEEDS UP: the
+# bass goes round the chord at its own speed (chirper-alpha's v12), the wall holds, the china keeps its quarters,
+# the blocks keep the fives, and chirper-one's fill (the cycle in fifteen: four times as fast) comes where it
+# came: so the last second and a half is the band at twice the speed under the drums at four times, an octave a
+# step, and the band lands at speed and at pitch as the tune begins.
+# READ (raw, by band): the kick's band repeats at a sixteenth and a half (the envelope's likeness to itself at that
+# lag, 30-60 Hz: -0.41 -> +0.89); the snare's at four (500 Hz-1 kHz +0.07 -> +0.30). The guitars' stroke rate is
+# NOT read in the mix's envelope (a saturated chug is flat); alone each pair's figure repeats twice as often (the F
+# pair at 3 where it was 6: +0.28 -> +0.85; the A flat pair at 2.5: -0.43 -> +0.50). BENCHED with the chest left
+# on F2: 60-120 Hz +1.1 dB instead of -0.4, 120-250 +0.2 instead of +1.8; the rule's octave kept.
+# the section ; the meeting it starts at and the one it ends at, sixteenths from the section's start ; semitones on
+# the two riff pairs ; semitones on the foot's chest ; the backbeat's place in sixteenths after the meeting, then
+# every four ; how many times as long each stroke lasts ; dB on the four riff tracks' strokes there ('' = none: a
+# note's gain goes into the amp) ; the loudness target ('' = unchanged). '' = v27 byte for byte. On only while
+# DAMPED is.
+TWICE = os.environ.get("C10T14_TWICE", "minor;60;120;12;12;2;0.5;;-11.142" if DAMPED else "")
+
+
+def twice_as_fast_is_the_octave_above(doc):
+    """v28: between two meetings of the three pulses the riff pairs, the kick and its chest say the whole turn of sixty
+    twice in the time of one, the pairs and the chest an octave higher, and the backbeat comes twice as often (see
+    TWICE). Runs last, on the finished document; the mirror of half_as_fast_is_an_octave_down."""
+    sect, m0, m1, semis, chest, backbeat, short, gain, target = TWICE.split(";")
+    a, z = AT[sect] + int(m0), AT[sect] + int(m1)
+    assert int(m0) % 60 == 0 and z - a == 60, "one turn of the sixty, from a meeting to the next"
+    names = "C Db D Eb E F Gb G Ab A Bb B".split()
+
+    def moved(pitch, st):
+        def one(q):
+            k = names.index(q.rstrip("0123456789")) + 12 * (int(q[len(q.rstrip("0123456789")):]) + 1) + st
+            return names[k % 12] + str(k // 12 - 1)
+        return ",".join(one(q) for q in pitch.split(","))
+
+    def s16(n):
+        return round(n["at"] * 4, 3)
+
+    def inside(n):
+        return a <= s16(n) < z
+
+    def twice(n, st, length=1.0):
+        """One written stroke, said at half its distance from the meeting, and again half a turn later."""
+        out = []
+        for again in (0, 30):
+            m = {**n, "at": round((a + (s16(n) - a) / 2 + again) / 4, 5), "len": round(n["len"] * length, 4)}
+            if st:
+                m["pitch"] = moved(n["pitch"], st)
+            out.append(m)
+        return out
+
+    by = {t["name"]: t for t in doc["tracks"]}
+    for pair, p in (("gl", 3), ("gr", 3), ("dl", 5), ("dr", 5)):
+        t = by[pair]
+        was = [n for n in t["notes"] if inside(n)]
+        assert [s16(n) - a for n in was] == list(range(0, 60, p)), (pair, "the whole turn, every stroke of it")
+        new = [m for n in was for m in twice(n, int(semis), float(short))]
+        if gain:
+            new = [{**m, "gain": gain} for m in new]
+        t["notes"] = sorted([n for n in t["notes"] if not inside(n)] + new, key=lambda n: n["at"])
+    for name in ("kick", "chest"):
+        t = by[name]
+        was = [n for n in t["notes"] if inside(n)]
+        assert [s16(n) - a for n in was] == list(range(0, 60, 3)), name
+        new = [m for n in was for m in twice(n, int(chest) if name == "chest" else 0)]
+        t["notes"] = sorted([n for n in t["notes"] if not inside(n)] + new, key=lambda n: n["at"])
+    t = by["snare"]
+    was = [n for n in t["notes"] if a < s16(n) < z]
+    stroke, last = was[0], max(s16(n) for n in was)                    # v4: the snare leaves for the fill; it still does
+    new = [{**stroke, "at": q / 4} for q in range(a + int(backbeat), int(last) + 4, 4) if q > a]   # the meeting's own stroke stays
+    t["notes"] = sorted([n for n in t["notes"] if not (a < s16(n) < z)] + new, key=lambda n: n["at"])
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T14_SHOW"):
         beat = 60 / BPM
@@ -1885,4 +1970,6 @@ if __name__ == "__main__":
             the_octave_holds(doc)
         if DAMPED:
             the_backbeat_stops_ringing(doc)
+        if TWICE:
+            twice_as_fast_is_the_octave_above(doc)
         open(OUT, "w").write(dump(doc))
