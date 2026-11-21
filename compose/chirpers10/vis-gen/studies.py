@@ -131,9 +131,19 @@ def clock(track, celled=True, per_bar=1.0):
     return f"track.{track}.turn" if celled else f"time.bar*{per_bar:g}"
 
 
+HELD = {}
+"""Track: the cell the generator found for it in the scene being written (set by ctgen). Where
+the engine reads no cell from the notes for a while (the riff rests, or is varied for a bar),
+a body keeps this one, so it stands where it was instead of leaving its plate empty."""
+
+
 def teeth(track, celled=True):
-    """How many sixteenths its wheel has: its cell, or a bar of common time."""
-    return f"track.{track}.cell" if celled else "16"
+    """How many sixteenths its wheel has: its cell (the scene's own while the notes give
+    none, see HELD), or a bar of common time."""
+    if not celled:
+        return "16"
+    live = f"track.{track}.cell"
+    return f"mix({HELD[track]}, {live}, step(0.5, {live}))" if HELD.get(track) else live
 
 
 # ───────────────────────── the wheel (a riff draws its own necklace) ─────────────────────────
@@ -403,7 +413,7 @@ def gears(tracks, spot, spot_track=None, plain=(), white=False):
 
 # ───────────────────────── the fence (a whole turn of a riff on one plate) ─────────────────────────
 
-def fence_look(track, color, subject, celled=True, y=0.0, tall=1.8, span=7.6):
+def fence_look(track, color, subject, celled=True, y=0.0, tall=1.8, span=7.6, across=6):
     """One lane on its own plate, under its own fence. The runner crosses the lane once per
     turn of the riff. The plate holds as many pictures as the riff has sixteenths, cut into
     strips and laid side by side in turn, and the fence over it has a gap every that many
@@ -414,8 +424,9 @@ def fence_look(track, color, subject, celled=True, y=0.0, tall=1.8, span=7.6):
     T = clock(track, celled)
     C = f"max({teeth(track, celled)}, 2)"
     long_ = 1.5 if rig == "horse" else 0.8
-    # Big enough to be cut into many strips: with long riffs the runners overlap on the plate.
-    size = f"min({tall / rig_h:.3f}, {0.9 * span / long_:.3f}/min({C}, 6))"
+    # Big enough to be cut into many strips: with long riffs the runners overlap on the plate
+    # (`across`: how many would stand nose to tail across it).
+    size = f"min({tall / rig_h:.3f}, {0.9 * span / long_:.3f}/min({C}, {across}))"
     fig = subject_layer(subject, T, f"track.{track}.hit", color,
                         x=f"{-span / 2:.2f} + {span}*(0.5/{C} + fract({T})*(1 - 1/{C}))", y=y, z=0, scale=size)
     fig["emit"] = 1.3
@@ -449,7 +460,9 @@ def fence(tracks, spot, spot_track=None, subject="horse", plain=()):
     for i, t in enumerate(tracks):
         col = spot if t == spot_track else INK
         y = (HALF_H - 0.25) - (i + 0.5) * lane
-        plates.append({"type": "actor", "use": fence_look(t, col, subject, celled=t not in plain, y=round(y, 3), tall=round(min(0.78 * lane, 2.3), 3)), "key": 0, "mask": "none"})
+        # (A lane alone has the plate to itself: its horse is half as big again.)
+        plates.append({"type": "actor", "use": fence_look(t, col, subject, celled=t not in plain, y=round(y, 3), tall=round(min(0.78 * lane, 2.6), 3), across=4 if n == 1 else 5),
+                       "key": 0, "mask": "none"})
     marks = border(spot) if n > 1 else []
     look = {"env": env, "background": BLACK, "camera": CAM, "layers": backdrop() + plates + ruler() + marks, "filters": finish(spot)}
     return waited(look, together(tracks, plain)) if n > 1 else look
@@ -736,14 +749,16 @@ def loops(tracks, spot, spot_track=None, plain=(), cells=None, shadow=True, tie=
     look = {"width": 0.021, "taper": 0.45, "fade": 0.82}
     glow = "0.75 + 0.5*audio.level"
     if tie:
-        # So many sixteenths of wire so far; as many points to a turn as two thousand allow.
+        # So many sixteenths of wire so far; forty-four points to a turn of the shortest riff
+        # (a trail takes eight thousand; before chirp-video 4d66a5fa two, and is then a
+        # little angular where three short riffs go a long way round).
         so_far = f"clamp(time.beat*4 - {start}, 0.5, {tie})"
-        n = f"clamp({so_far}*{min(44, 2000 * min(cells) / tie):.2f}/{least}, 96, 2000)"
+        n = f"clamp({so_far}*{min(44, 8000 * min(cells) / tie):.2f}/{least}, 96, 8000)"
         secs = f"{so_far}*0.125/time.bpm"
         # A long round is a close weave: the wire is bold while there is little of it and
         # fine by the end, and all of it is kept (the oldest a little dimmer).
         # (Two riffs weave a sheet, not a block: closer still.)
-        fine = min(1, max(0.42, (120 / tie) ** 0.5)) * (1 if len(ts) > 2 else 0.62)
+        fine = min(1, max(0.42, (120 / tie) ** 0.5)) * (1 if len(ts) > 2 else 0.8)
         look = {"width": f"{0.021 * fine:.4f}*mix(1.7, 0.8, {so_far}/{tie})", "taper": 0.12, "fade": 0.3}
         glow = f"({glow})*mix(1, {0.35 + 0.4 * fine:.2f}, {so_far}/{tie})"
     tx, ty, tz = path(then)
@@ -863,10 +878,10 @@ def daylight(tracks, spot, spot_track=None, subject="runner", plain=(), white=Fa
         return f"step(1 - {width / period:.4f}*(1 + {widen}*abs({far})), fract(({coord})/{period} + {width / period / 2:.4f}))"
 
     layers = [
-        {"type": "sky", "zenith": "#4a4a4c", "horizon": "#c4c2bc", "ground": "#5a5852", "sun": "#fff4e0", "sun_yaw": 0.46, "sun_height": 0.12, "sun_size": 0.03,
+        {"type": "sky", "zenith": "#4a4a4b", "horizon": "#c3c3c1", "ground": "#595958", "sun": "#fffcf6", "sun_yaw": 0.46, "sun_height": 0.12, "sun_size": 0.03,
          "glow": 0.5, "haze": 0.5, "clouds": 0.6, "cloud_height": 6, "cloud_scale": 0.12},
         # The floor, chalked: a line across the track each beat, and one along it between lanes.
-        {"type": "mesh", "shape": "plane", "detail": 4, "x": cam, "y": 0, "z": 0, "scale": 40, "material": "pbr", "rough": 0.95, "metal": 0, "color": "#77746d", "cull": True,
+        {"type": "mesh", "shape": "plane", "detail": 4, "x": cam, "y": 0, "z": 0, "scale": 40, "material": "pbr", "rough": 0.95, "metal": 0, "color": "#b4b4b2", "rim": 0, "cull": True,
          "paint_fine": True, "paint_color": "#ebe7dd",
          "paint": f"{near('vtx.x*40')}*max({line(f'vtx.x*40 + {cam}', beat, 0.026, 'vtx.x*40', 0.45)}*step(abs(vtx.z*40 - {mid}), {lane * n / 2 + 0.25}), "
                   f"{line(f'vtx.z*40 - {z0 + lane / 2}', lane, 0.026, 'vtx.x*40', 0.45)}*step(abs(vtx.z*40 - {mid}), {lane * n / 2 + 0.05}))"},
@@ -1111,13 +1126,20 @@ def finish_line(tracks, spot, spot_track=None, subject="runner", bars=2, plain=(
         # through the stride each time.
         fig["phase"] = f"0.3*floor(({T})/{m} + 0.5) - time.beat"
         layers.append(fig)
+    # Common time, written by the film itself: a mark along the foot of the strip for the
+    # first half of every sixteenth (taller on the beat), and a hairline up the strip at each
+    # bar. They stand ON the line (the slit takes one column there), and they run whether or
+    # not anyone does, so an empty lane is still a measured one.
     env = {"bar": {"on": "bar", "attack": "0ms", "decay": "20ms"}}
-    layers.append({"type": "mesh", "shape": "box", "round": 0.02, "detail": 2, "x": xs - 0.012, "y": 0, "z": 0.2, "scale": 1, "sx": 0.008, "sy": 2.5, "sz": 0.006,
-                   "opacity": "step(0.6, env.bar)", **lit(DIM, 0.7)})
+    layers.append({"type": "mesh", "shape": "box", "round": 0.02, "detail": 2, "x": xs, "y": 0, "z": 0.2, "scale": 1, "sx": 0.02, "sy": 2.5, "sz": 0.006,
+                   "opacity": "step(0.6, env.bar)", **lit(DIM, 0.9)})
+    layers.append({"type": "mesh", "shape": "box", "round": 0.02, "detail": 2, "x": xs, "y": f"{-HALF_H + 0.1:.3f} + 0.02 + 0.03*(1 - step(0.25, fract(time.beat)))", "z": 0.2,
+                   "scale": 1, "sx": 0.02, "sy": "0.02 + 0.03*(1 - step(0.25, fract(time.beat)))", "sz": 0.006,
+                   "opacity": "1 - step(0.5, fract(time.beat*4))", **lit(DIM, 0.9)})
     if n > 1 and meet:
         # One frame long, so the film takes it once: a single line.
         env["all"] = {"when": together(tracks, plain), "decay": 0.02}
-        layers.append({"type": "mesh", "shape": "box", "round": 0.02, "detail": 2, "x": xs - 0.012, "y": 0, "z": 0.1, "scale": 1, "sx": 0.012, "sy": 2.5, "sz": 0.006,
+        layers.append({"type": "mesh", "shape": "box", "round": 0.02, "detail": 2, "x": xs, "y": 0, "z": 0.1, "scale": 1, "sx": 0.02, "sy": 2.5, "sz": 0.006,
                        "opacity": "step(0.6, env.all)", **lit(spot, 1.5)})
     return {
         "background": BLACK, "camera": CAM, "vars": vars_, "env": env, "layers": layers,

@@ -300,6 +300,12 @@ def recut(a, b, long):
 
 COMMON = (2, 4, 8, 16, 32)
 
+# How long before its cut each study's camera is started (needs chirp-video 7c0e1799; an
+# engine without `lead` refuses the programme). The strip of a photo-finish is two bars long.
+# The knot, the lamp, the gears and the daylight track keep nothing: they need none.
+LEAD = {"finish": "2bar", "sheet": "2bar", "fence": "1bar", "wheels": "1bar", "discs": "2b", "walkers": "1bar",
+        "pendulums": "1bar", "balls": "1bar", "flight": "1bar"}
+
 
 def find_cycles(tracks, bars, bar_s):
     """Where the music runs a long cycle right round: two or three parts, each keeping a cell
@@ -491,6 +497,7 @@ def choose(n, title, song, reel=None):
             pairs = sorted(zip(cyc["tracks"], cyc["cells"]), key=lambda tc: tc[0].role == "drum")
             wheel, cells = [t for t, _ in pairs], [c for _, c in pairs]
         cell = dict(zip(wheel, cells))
+        S.HELD = {t.name: c for t, c in cell.items() if c}
         odd = sum(1 for c in set(cells) if not common(c))
         # A tune worth a bird: one that sings at least a note a bar here.
         tune = next((t for t in tunes if t not in wheel and t.count(a, b) >= (b - a)), None)
@@ -618,6 +625,13 @@ def choose(n, title, song, reel=None):
             names = use
             cells = [None] * len(use)
         scene = {"at": 0 if not scenes else f"{a16 // 16}bar" if a16 % 16 == 0 else f"{a16 / 4:g}b", "look": look}
+        # A camera that holds time has been running before the cut: its plate, strip or sheet
+        # is started early and drawn unseen (the scene's `lead`), so the cut lands on a
+        # picture already made and not on an empty plate. A song's first plate develops in
+        # view, under its title.
+        lead = LEAD.get(last)
+        if lead and scenes:
+            scene["lead"] = lead
         if shut:
             # The knot before this closed on its last sixteenth: it stands a moment more,
             # border lit, while this plate comes up through it.

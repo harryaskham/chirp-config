@@ -52,6 +52,12 @@ What every plate shares:
   two only lights the border. The look keeps the time itself; nothing is told it.
 - **Exposure** (`finish`): halation that grows with the low end, so heavy passages burn and
   quiet ones are thin hard lines.
+- **A camera already running** (`lead` on a scene; `LEAD` in `ctgen.py`): a plate, a strip, a
+  sheet or a fence is started a bar or two before its cut and drawn unseen, so the cut lands
+  on a picture already made. Only a song's first plate develops in view, under its title.
+- **A body keeps its riff's length** (`HELD`): where the notes give no cell for a while (a
+  rest, a bar that varies), the body keeps the scene's own and stands where it was. A plate
+  is not emptied by a riff that pauses.
 - **What a plate keeps:** its last twenty notes or so, by count and not by the clock (`each`
   on the `expose` filter). A slow riff fills its plate as a fast one does, and a riff that
   rests leaves its plate standing rather than empty.
@@ -105,7 +111,7 @@ For each song it reads the notes (`tools/songmap.py`) and works out:
 ## What it needs
 
 - The `chirp-video` branch of chirp (cells; the `expose` (with `each`), `slit`, `panels` and
-  `fence` filters; `mask: none`). No
+  `fence` filters; `mask: none`; a scene's `lead`; long trails). No
   released binary draws these programmes yet, which is why they are written to `film/` and not
   to `vis/`. Move them when the branch lands.
 - Check one with `chirp --json vis check ../compose/chirpers10/film/chirpers10-tN.yaml -f
