@@ -802,6 +802,30 @@ def seven_sevens(doc, marks):
 STRUCK = os.environ.get("C10T16_STRUCK", "piano synth.layers.0.cents=0 synth.layers.1.cents=0 synth.layers.2.cents=0 synth.pitch.mod.0.amount=0 "
                         "play.humanize.time=0ms play.humanize.vel=0 synth.env.after.d=32s synth.layers.1.damp=0.15 synth.layers.0.stretch=0 synth.layers.1.stretch=0;-12dB;"
                         "five,seven,three,square again;0.85;3.96;close enough:4.5;-10.345" if SEVENS else "")
+# v28 (chirper-zero; section round, w6, 2:25-2:54; the change is bars 44-47, 2:39.1-2:48.2): THE BAND STILL COUNTS
+# THREE. The line every handoff since v20 has carried ("'square again' could answer v20's rests": chirper-three,
+# "a rest every third pulse of four would walk the same way"), built. In 'five' the band counts a four of its own
+# inside the five (v20), and four is the count it had just left ('square'). 'Square again' comes out of 'three', and
+# it was 'square' again and nothing more: seven bars of the cell in common time under the handpan. Now the three is
+# still in the hands: the band plays two pulses and leaves the third to the pair, four times. Three and four share
+# nothing, so the rest visits each of the bar's four places once, a place earlier each bar: the fourth beat of bar
+# 44, the third of 45, the second of 46, the first of 47 (2:39.09, 2:41.82, 2:44.55, 2:47.27; 0.909 s each); when it
+# reaches the downbeat the phrase is done and the band plays whole to the close. The snare and the crash are
+# outside the rule and keep the bar: a lone snare in the first and third rests, the crash at the head of the last.
+# AND THE LAST REST IS THE HANDPAN'S: v14's five (chirper-one) steps up to twice a bar exactly there, so on that
+# downbeat the five strokes on A are alone with the pair and the crash, the fifth overtone said with no band over
+# it, once. Nothing of v14 is moved to make that so: three against four lands on its downbeat by itself.
+# WRITTEN: 72 strokes out, 18 a pulse (each guitar 2, each guitar's said strokes 2, bass, kick and its chest,
+# three toms, four hats). Nothing added, nothing moved. The reeds, the snare, the brass, the handpan and the
+# struck strings' ring are as they were.
+# The target -10.345 -> -10.4161: the song is 3.6 s of band lighter and the master had raised everything else 0.04
+# to 0.09 dB; at -10.4161 (two renders and a line) every stretch without a rest is where it was.
+# RULES (v20's, kept): a rest is one whole pulse; never while the peg turns; no drum stays in a rest to count.
+# One more, for whoever goes on: THE COUNT LEFT INSIDE A SECTION IS THE ONE THE BAND HAS JUST COME FROM (four
+# inside five, three inside four); 'seven' would hold a five (places 7, 5, 3, 1) and has not got it.
+# the section ; every how many of its pulses the band leaves one ; the first pulse left, from 0 ; how many times ;
+# who leaves ; the loudness target ("" = unchanged). "" = v27 byte for byte. On only while STRUCK is.
+THREES = os.environ.get("C10T16_THREES", "square again;3;3;4;left,right,left-said,right-said,bass,foot,chest,skins,hat;-10.4161" if STRUCK else "")
 
 
 def the_tuner_strikes(doc, marks):
@@ -1237,6 +1261,8 @@ def build():
         seven_sevens(doc, marks)
     if STRUCK:
         the_tuner_strikes(doc, marks)
+    if THREES:
+        the_band_leaves_every_fourth(doc, marks, THREES)                   # v28: last, on the finished document
     return doc, marks, end
 
 
@@ -1357,10 +1383,10 @@ def the_foot_is_on_the_note(doc):
         doc["loudness"] = float(target)
 
 
-def the_band_leaves_every_fourth(doc, marks):
+def the_band_leaves_every_fourth(doc, marks, spec=None):
     """v20: in one section the parts that are in the rule rest for one whole pulse in every so many; the pair, and
-    whoever keeps the bar (the snare, the crash), go on."""
-    sec, every, first, times, who, target = LEAVES.split(";")
+    whoever keeps the bar (the snare, the crash), go on. v28 calls it again with its own fields (THREES)."""
+    sec, every, first, times, who, target = (spec or LEAVES).split(";")
     name, b, r, bars = next(m for m in marks if m[0] == sec)
     pulse = 1 / Fr(r)                                                       # beats
     shown = SHOWN and sec in [e.split("=")[0] for e in SHOWN.split("|")[0].split(";")]
