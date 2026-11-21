@@ -282,9 +282,9 @@ def choose(n, title, song):
         elif not wheel:
             order = ["flight", "studio0", "walkers0"]
         elif len(set(cells)) >= 2 and odd:
-            order = ["wheels", "finish", "gears", "fence", "discs", "balls", "pendulums", "walkers", "studio", "sheet"]
+            order = ["wheels", "loops", "finish", "gears", "fence", "discs", "balls", "pendulums", "walkers", "studio", "sheet"]
         elif len(set(cells)) >= 2:
-            order = ["finish", "walkers", "gears", "balls", "fence", "discs", "pendulums", "studio", "wheels", "sheet"]
+            order = ["finish", "walkers", "gears", "loops", "balls", "fence", "discs", "pendulums", "studio", "wheels", "sheet"]
         else:
             # One riff alone: bodies and a ring, not counting machines (a lone wheel says nothing).
             order = ["sheet", "walkers", "discs", "fence", "studio", "finish", "balls"]
@@ -298,6 +298,15 @@ def choose(n, title, song):
             order = [o for o in order if o != "fence"]
         if sum(1 for t in wheel if 3 <= (t.cell(a, b)[0] or 0) <= 32) < 2:
             order = [o for o in order if o != "gears"]
+        # A knot wants two or three riffs of different lengths, none so long that five bars
+        # of wire is a bare arc.
+        knot, had = [], set()
+        for t in sorted((t for t in wheel if fits(t, 24)), key=lambda t: (common(t.cell(a, b)[0]), t.cell(a, b)[0])):
+            if t.cell(a, b)[0] not in had:
+                had.add(t.cell(a, b)[0]), knot.append(t)
+        knot = knot[:3]
+        if len(knot) < 2:
+            order = [o for o in order if o != "loops"]
         if wheel and max(cells) <= 4:
             # Nothing but short common time here: bodies, not counting machines.
             order = ["sheet", "walkers", "studio", "finish"]
@@ -337,6 +346,9 @@ def choose(n, title, song):
             fit = sorted((t for t in wheel if 3 <= (t.cell(a, b)[0] or 0) <= 32), key=lambda t: t.cell(a, b)[0])
             use = [t.name for t in fit][:3] or names[:1]
             look = S.gears(use, spot, spot_track if spot_track in use else use[-1], white=n in WHITE)
+        elif pick == "loops":
+            use = [t.name for t in knot]
+            look = S.loops(use, spot, spot_track if spot_track in use else use[-1], cells=[t.cell(a, b)[0] for t in knot])
         elif pick == "fence":
             use = [t.name for t in short[:2]]
             look = S.fence(use, spot, spot_track if spot_track in use else use[-1], subject="pacer" if subject in ("walker", "pacer") else "horse")

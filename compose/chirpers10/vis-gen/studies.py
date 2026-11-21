@@ -12,6 +12,8 @@ by the engine from the notes). So the same studies fit any version of any song.
 Silver on black, with one spot colour a song.
 """
 
+import math
+
 INK = "#f2efe6"      # the silver
 DIM = "#8f8c84"
 BLACK = "#000000"
@@ -624,24 +626,85 @@ def sheet(tracks, spot, spot_track=None, subject="walker", plain=()):
 
 # ───────────────────────── the loops (a lamp left open) ─────────────────────────
 
-def loops(tracks, spot, spot_track=None):
-    """Lamps on a long exposure. Each lamp is carried across by one track's wheel and up and
-    down by the next one's, so two riffs of different lengths draw their own knot (five against
-    seven is a figure of five lobes by seven); where they are the same length it is a ring.
-    The lamp flares on its notes, so the path is beaded with them."""
-    n = len(tracks)
-    layers = []
-    pairs = [(tracks[i], tracks[(i + 1) % n]) for i in range(min(n - 1, 2))] if n > 1 else [(tracks[0], tracks[0])]
-    for i, (a, b) in enumerate(pairs):
-        r = 2.0 - 0.75 * i
-        col = spot if a == spot_track else INK
-        layers.append({"type": "mesh", "shape": "sphere", "detail": 10, "x": f"{r*1.75:.2f}*sin(track.{a}.turn)", "y": f"{r:.2f}*cos(track.{b}.turn + {0.25 if a == b else 0})", "z": 0,
-                       "scale": f"0.018 + 0.045*track.{a}.hit", **lit(col, "0.7 + 1.2*track.%s.hit" % a)})
+def loops(tracks, spot, spot_track=None, plain=(), cells=None, shadow=True):
+    """A lamp on an open shutter, and the wire model made from its path (Gilbreth's
+    chronocyclegraphs). The lamp is swung across by one riff, up and down by the next and in
+    and out by a third (or by the bar, where there are two), once per turn of each: so riffs
+    of different lengths tie a knot, and the knot is the same for as long as they repeat. The
+    lamp runs along it; behind it the last few bars of its path stand as a wire, in a box
+    that turns slowly to show its depth. A riff that rests lets its side of the box go flat.
+    Where the riffs all begin together the lamp is at the box's centre, going out along the
+    long diagonal: nothing says so but the border."""
+    ts = list(tracks[:3])
+    cells = [c for c in (cells or [])[:3] if c] or [16]
+    R, RY, Y0 = 1.8, 1.42, 0.2
+    back = "(var.nowb - time.beat)*4"            # sixteenths back along the wire
+    rot = "(var.nowb/112 + 0.06)"                # the box turns once in twenty-eight bars
+    # Each riff's length as it is now; where the engine finds none, or a stutter of one or
+    # two, the length it has for most of this stretch.
+    live = [("16" if t in plain else f"mix({c}, track.{t}.cell, step(2.5, track.{t}.cell))") for t, c in zip(ts, cells + [16] * 3)]
+    then = [("time.bar" if t in plain else f"(track.{t}.turn - {back}/{c})") for t, c in zip(ts, live)]
+    now = [clock(t, t not in plain) for t in ts]
+    amp = [f"(0.12 + 0.88*var.lv{i})" for i in range(len(ts))]
+    while len(then) < 3:                         # common time is the depth
+        then.append("time.bar"), now.append("time.bar"), amp.append("0.6")
+
+    def spin(x, y, z):
+        """A point of the box, turned with it."""
+        return (f"({x})*cos({rot}) + ({z})*sin({rot})", f"{Y0} + {y}", f"({z})*cos({rot}) - ({x})*sin({rot})")
+
+    def path(a, flat=None):
+        pt = [f"{R}*{amp[0]}*sin({a[0]})", f"{RY}*{amp[1]}*sin({a[1]})", f"{R}*{amp[2]}*sin({a[2]})"]
+        if flat is not None:
+            pt[flat[0]] = str(flat[1])
+        return spin(*pt)
+
+    whole = 1
+    for c in cells:
+        whole = whole * c // math.gcd(whole, c)
+    # Sixteenths of wire: the whole knot if it closes within five bars; if not, five bars
+    # of it, or four turns of the longest riff.
+    length = min(whole, max(80, 4 * max(cells)), 176)
+    least = live[0]
+    for c in live[1:]:
+        least = f"min({least}, {c})"
+    n = f"clamp({length * 44}/{least}, 96, 2000)"    # forty-four points to a turn of the shortest riff
+    tx, ty, tz = path(then)
+    hx, hy, hz = path(now)
+    hit = " + ".join(f"track.{t}.hit" for t in ts)
+    wire = {"type": "trail", "x": tx, "y": ty, "z": tz, "length": f"{length * 0.125:.4f}/time.bpm", "samples": n,
+            "width": 0.021, "taper": 0.45, "glow": "0.75 + 0.5*audio.level", "fade": 0.82, "color": INK}
+    layers = backdrop(z=3.0)                     # the wall stands clear behind the box's far corner
+    # The box: twelve edges, four along each axis.
+    s1, s2 = "(4*fract(inst.i/2) - 1)", "(2*floor(inst.i/2) - 1)"
+    for ax in range(3):
+        lo, hi = [None] * 3, [None] * 3
+        o1, o2 = [k for k in range(3) if k != ax]
+        ext = [R, RY, R]
+        for pt, sign in ((lo, -1), (hi, 1)):
+            pt[ax] = f"{sign * ext[ax]}"
+            pt[o1] = f"{ext[o1]}*{s1}"
+            pt[o2] = f"{ext[o2]}*{s2}"
+        layers.append({"type": "beam", "count": 4, "from": list(spin(*lo)), "to": list(spin(*hi)), "samples": 24, "width": 0.006, "glow": 0.5, "color": DIM})
+    if shadow:
+        # Its shadow on the box's floor: the figure two of the riffs make by themselves.
+        fx, fy, fz = path(then, flat=(1, -RY))
+        layers.append({"type": "trail", "x": fx, "y": fy, "z": fz, "length": f"{length * 0.125:.4f}/time.bpm", "samples": n,
+                       "width": 0.01, "taper": 0.3, "glow": 0.3, "fade": 0.7, "color": DIM})
+    layers += [
+        wire,
+        {"type": "mesh", "shape": "sphere", "detail": 12, "x": hx, "y": hy, "z": hz, "scale": f"0.055 + 0.06*min({hit}, 1)", **lit(spot, 1.8)},
+    ]
+    env, marks = {}, []
+    if len(ts) > 1:
+        env["all"] = {"when": together(ts, plain), "decay": 2.4}
+        marks = border(spot)
     return {
-        "background": BLACK, "camera": CAM, "layers": layers + ruler(),
-        # A flash every eighth of a beat: the path is drawn in beads, eight to the beat, so the
-        # odd loops can be counted in common time (two bars of them hang on the plate).
-        "filters": [{"type": "expose", "every": 0.125, "fade": "5/time.bpm", "live": 1.0}] + finish(spot),
+        "vars": {"nowb": {"follow": "time.beat", "attack": "0ms", "release": "0ms"},
+                 **{f"lv{i}": {"follow": "1" if t in plain else f"clamp(track.{t}.level*8, 0, 1)", "attack": "250ms", "release": "1800ms"} for i, t in enumerate(ts)}},
+        "env": env, "background": BLACK, "camera": CAM,
+        "layers": layers + ruler() + marks,
+        "filters": finish(spot),
     }
 
 
