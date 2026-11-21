@@ -49,6 +49,9 @@ What every plate shares:
   together. The same sign in every study; nothing else announces a meeting.
 - **Exposure** (`finish`): halation that grows with the low end, so heavy passages burn and
   quiet ones are thin hard lines.
+- **What a plate keeps:** its last twenty notes or so, by count and not by the clock (`each`
+  on the `expose` filter). A slow riff fills its plate as a fast one does, and a riff that
+  rests leaves its plate standing rather than empty.
 - **The print** (`master`): the plate's number and title for the first bars while the first
   plate develops under it, a small `PL. NN  FIG. N` legend, grain, dark corners. Seven songs
   are printed as negatives (`WHITE` in `ctgen.py`); those come up from black and go back to
@@ -84,7 +87,8 @@ For each song it reads the notes (`tools/songmap.py`) and works out:
 
 ## What it needs
 
-- The `chirp-video` branch of chirp (cells, the `expose`, `slit`, `panels` and `fence` filters). No
+- The `chirp-video` branch of chirp (cells; the `expose` (with `each`), `slit`, `panels` and
+  `fence` filters; `mask: none`). No
   released binary draws these programmes yet, which is why they are written to `film/` and not
   to `vis/`. Move them when the branch lands.
 - Check one with `chirp --json vis check ../compose/chirpers10/film/chirpers10-tN.yaml -f
