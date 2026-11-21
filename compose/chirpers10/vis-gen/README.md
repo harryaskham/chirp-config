@@ -53,15 +53,23 @@ What every plate shares:
 - **Exposure** (`finish`): halation that grows with the low end, so heavy passages burn and
   quiet ones are thin hard lines.
 - **The cutting keeps the riff's time** (`cutting`, `rostrum`): inside a scene the film cuts
-  between the whole plate and details of it, as a film is made from photographs on a rostrum:
-  a wheel, a ring, a lane, the line of a photo-finish. The cut comes each time the scene's
-  first riff has come round so many times (about forty sixteenths: a five every eight turns,
-  an eleven every four), so the cuts fall across the bar lines as the riff does. The whole
-  plate is always shown for a scene's first bar and a half, and wherever all its cycles meet
-  (the border is at the frame's edge). The plate itself is not touched: the camera is a
-  filter over the finished picture. The knot and the gears are real bodies and have real
-  second cameras (the knot from its side and close; the gears where two wheels mesh), cut
-  the same way; the daylight track always did.
+  from the whole plate to its details and back, as a film is made from photographs on a
+  rostrum: a wheel, a ring, a lane, the line of a photo-finish. A cut comes each time the
+  scene's first riff has come round so many times (about forty sixteenths: a five every
+  eight turns, an eleven every four), so the cuts fall across the bar lines as the riff
+  does. The plate itself is not touched: the camera is a filter over the finished picture.
+  The knot and the gears are real bodies and have real second cameras (the knot from its
+  side and close; the gears where two wheels mesh), cut the same way, as the daylight track
+  always was.
+  - A scene opens and closes on its whole plate (the film goes from plate to plate), and the
+    whole plate is taken up and let go only AT one of the riff's cuts, so no shot is a
+    scrap: `var.free` is a latch, set by a cut and cleared by an event.
+  - A meeting of the plate's cycles that was long in coming (seven seconds apart or more)
+    brings the whole plate back, burning; meetings that come round every bar or two do not
+    cut.
+  - `CT_SHOW_CUTS=1 python3 ctgen.py --out=DIR` writes programmes whose black is lifted a
+    step per view, so a tool can read every frame's view and each shot's length off a clip
+    (never for a film).
 - **A camera already running** (`lead` on a scene; `LEAD` in `ctgen.py`): a plate, a strip, a
   sheet or a fence is started a bar or two before its cut and drawn unseen, so the cut lands
   on a picture already made. Only a song's first plate develops in view, under its title.

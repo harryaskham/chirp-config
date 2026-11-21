@@ -13,6 +13,7 @@ Silver on black, with one spot colour a song.
 """
 
 import math
+import os
 
 INK = "#f2efe6"      # the silver
 DIM = "#8f8c84"
@@ -118,6 +119,8 @@ def master(number, title, white=False, figures=(), bars=0, window=None):
         {"type": "grain", "amount": 0.05},
         {"type": "vignette", "amount": 0.3 if white else 0.55},
     ]
+    if SHOW_CUTS:
+        filters = [f for f in filters if f["type"] not in ("grain", "vignette")]
     if window:
         # Over the print, so a negative's excerpt goes to black too.
         filters.append({"type": "color", "brightness": f"0 - 2*max(1 - smooth(0, 0.5, {bar}), smooth({window[1] - window[0] - 1}, {window[1] - window[0]}, {bar}))"})
@@ -216,55 +219,104 @@ HOLD = 24
 """Sixteenths for which a scene keeps to the whole plate before its first cut (ctgen makes it
 longer for a song's first scene, while the title is over it)."""
 
+SIXTEENTH = 0.125
+"""A sixteenth of the song, in seconds (ctgen sets it)."""
 
-def cutting(look, lead, plain=(), slots=4, also=None):
+END = None
+"""Sixteenths into the song at which the scene being written ends (ctgen sets it)."""
+
+
+def apart(tracks, plain=()):
+    """How long these riffs go between meetings, in seconds, by the lengths the scene has for
+    them (the least number of sixteenths all their lengths divide)."""
+    n = 1
+    for t in tracks:
+        c = 16 if t in plain else int(HELD.get(t) or 16)
+        n = n * c // math.gcd(n, c)
+    return n * SIXTEENTH
+
+
+def cutting(look, lead, plain=(), slots=4, tracks=(), tail=20):
     """The cutting of a scene, kept in the lead riff's own time: `var.slot` counts 0, 1, …
     `slots` - 1 and round again, a step each time the riff has come round so many times
     (about forty sixteenths: a five every eight turns, an eleven every four), so the cuts
     fall across the bar lines as the riff does. `var.along` is how far through the shot.
-    `var.whole` is 1 where the whole plate must be seen whatever the slot: for the scene's
-    first bar and a half, wherever all its cycles meet (the border is the sign of that, and
-    it is at the frame's edge), and where `also` says. Returns the test for slot k."""
-    T, C = clock(lead, lead not in plain), teeth(lead, lead not in plain)
-    every = "2" if lead in plain else f"max(1, floor(40/max(2, {C}) + 0.5))"
-    whole = f"(1 - step({HOLD}, scene.t*8*time.bpm))"
-    if "all" in look.get("env", {}):
-        whole = f"max({whole}, step(0.3, env.all))"
-    if also:
-        whole = f"max({whole}, {also})"
+
+    `var.whole` is 1 where the scene's first view (the whole plate) is kept whatever the
+    slot. It is taken up and let go AT a cut of the riff's wherever that can be, so that no
+    shot is a scrap:
+    - from the scene's start, until the first cut after its first bar and a half;
+    - from a meeting of all `tracks`' cycles that was long in coming (they meet seven seconds
+      apart or more, and the plate burns: see `waited`), until the first cut two and a half
+      seconds later. Meetings that come round every bar or two do not cut: the border is
+      enough;
+    - to the scene's end, from the last cut of the riff's that leaves at least `tail`
+      sixteenths (or from there, if no cut came in the forty before it). So a scene opens
+      and closes on its whole plate, and the film goes from plate to plate.
+    `var.free` is 1 - `var.whole`. Returns the test for slot k."""
+    T = clock(lead, lead not in plain)
+    # (By the length the scene has for the riff, not the one its notes give at this moment:
+    # a bar's variation must not move the cuts about.)
+    every = 2 if lead in plain else max(1, int(40 / max(2, HELD.get(lead) or 16) + 0.5))
     now = {"attack": "0ms", "release": "0ms"}
-    look.setdefault("vars", {}).update({
+    edge = "(1 - step(0.06, var.along))"            # a cut of the riff's has just come
+    events = []
+    if END is not None:
+        events.append(f"max(step({END - tail}, time.beat*4), step({END - tail - 40}, time.beat*4)*{edge})")
+    if "flash" in look.get("env", {}) and apart(tracks, plain) >= 7:
+        events.append("step(0.3, env.flash*(1 - var.lag)*min(1, var.age/8))")
+    event = "0"
+    for e in events:
+        event = e if event == "0" else f"max({event}, {e})"
+    v = look.setdefault("vars", {})
+    v.update({
         "slot": {"follow": f"{slots}*fract(floor({T}/{every})/{slots})", **now},
         "along": {"follow": f"fract({T}/{every})", **now},
-        "whole": {"follow": whole, **now},
+        # (About two and a half seconds after an event, cuts are not taken.)
+        "recent": {"follow": event, "attack": "0ms", "release": "1500ms"},
+        # A latch: set by a cut (once the scene has been up long enough, and not just after
+        # an event), cleared by an event.
+        "free": {"integrate": f"400*({edge}*step({HOLD}, scene.t*8*time.bpm)*(1 - step(0.2, var.recent)) - ({event}))", "lo": 0, "hi": 1},
+        "whole": {"follow": "1 - var.free", **now},
     })
     return lambda k: f"(step({k - 0.5}, var.slot) - step({k + 0.5}, var.slot))"
 
 
 ROSTRUM = True
+SHOW_CUTS = bool(os.environ.get("CT_SHOW_CUTS"))
+"""For measuring the cutting (never in a film): the black of the picture is lifted a step for
+each slot, so a tool can read off which view every frame has and how long each shot is."""
 
 
-def rostrum(look, lead, details, plain=()):
+def show_cuts(look):
+    if SHOW_CUTS:
+        look["filters"] = look.get("filters", []) + [{"type": "color", "brightness": "0.04 + 0.04*var.free*var.slot"}]
+    return look
+
+
+def rostrum(look, lead, details, plain=(), tracks=()):
     """A rostrum camera over the finished plate, as a film is made from photographs: the whole
-    plate, then a detail of it, the whole again, the next detail, cut in the lead riff's time
-    (see `cutting`). A detail is (how many times closer, x, y of its middle in the plate's
-    own units). The plate goes on being made underneath: nothing on it depends on the view.
-    In a detail the camera moves in a little more, slowly, until the next cut."""
+    plate, then its details one after another, then the whole again, cut in the lead riff's
+    time (see `cutting`). A detail is (how many times closer, x, y of its middle in the
+    plate's own units). The plate goes on being made underneath: nothing on it depends on the view.
+    In a detail the camera moves in a little more, slowly, until the next cut. The whole
+    plate comes back for a meeting of `tracks` that was long in coming."""
     if not (ROSTRUM and details):
         return look
-    on = cutting(look, lead, plain, slots=2 * len(details))
+    # (Slot 0 is the whole plate; the details are slots 1, 2, ….)
+    on = cutting(look, lead, plain, slots=len(details) + 1, tracks=tracks)
     zs, xs, ys = [], [], []
     for i, (z, x, y) in enumerate(details):
         # Kept inside the plate: a detail at the edge looks no further than the edge.
         x = max(-(16 / 9) * (1 - 1 / z), min((16 / 9) * (1 - 1 / z), x * K))
         y = max(-(1 - 1 / z), min(1 - 1 / z, y * K))
-        zs.append(f"{on(2 * i + 1)}*({z - 1:.3f} + {0.05 * z:.3f}*var.along)")
-        xs.append(f"{on(2 * i + 1)}*{num(x)}")
-        ys.append(f"{on(2 * i + 1)}*{num(y)}")
+        zs.append(f"{on(i + 1)}*({z - 1:.3f} + {0.05 * z:.3f}*var.along)")
+        xs.append(f"{on(i + 1)}*{num(x)}")
+        ys.append(f"{on(i + 1)}*{num(y)}")
     look["filters"] = look.get("filters", []) + [{
         "type": "camera", "zoom": f"1 + (1 - var.whole)*({' + '.join(zs)})",
         "x": f"(1 - var.whole)*({' + '.join(xs)})", "y": f"(1 - var.whole)*({' + '.join(ys)})"}]
-    return look
+    return show_cuts(look)
 
 
 def ruler(y=-2.15, color=DIM):
@@ -306,7 +358,7 @@ def wheels(tracks, spot, spot_track=None, plain=()):
     look = {"vars": vars_, "env": env, "background": BLACK, "camera": CAM, "layers": backdrop() + layers + plates + ruler() + marks, "filters": finish(spot)}
     look = waited(look, together(tracks, plain)) if n > 1 else look
     # Details: each wheel in turn (a wheel alone: its upper half, where the necklace is read).
-    return rostrum(look, tracks[0], [(1.5, 0.9, 0.9)] if n == 1 else [({2: 1.7, 3: 2.0, 4: 2.3}[n], x, cy) for x in xs], plain)
+    return rostrum(look, tracks[0], [(1.5, 0.9, 0.9)] if n == 1 else [({2: 1.7, 3: 2.0, 4: 2.3}[n], x, cy) for x in xs], plain, tracks)
 
 
 # ───────────────────────── the disc (a phenakistoscope turned by a riff) ─────────────────────────
@@ -373,7 +425,7 @@ def discs(tracks, spot, spot_track=None, subject="horse", plain=(), cells=None):
     look = {"env": env, "background": BLACK, "camera": CAM, "layers": backdrop() + layers + plates + ruler() + marks, "filters": finish(spot)}
     look = waited(look, together(tracks, plain)) if n > 1 else look
     # Details: each ring in turn (a ring alone: one side of it, then the other).
-    return rostrum(look, tracks[0], [(1.7, 1.3, 0.9), (1.7, -1.3, -0.3)] if n == 1 else [({2: 1.6, 3: 2.0}[n], x, cy) for x in xs], plain)
+    return rostrum(look, tracks[0], [(1.7, 1.3, 0.9), (1.7, -1.3, -0.3)] if n == 1 else [({2: 1.6, 3: 2.0}[n], x, cy) for x in xs], plain, tracks)
 
 
 # ───────────────────────── the train (riffs as gears in mesh) ─────────────────────────
@@ -481,10 +533,12 @@ def gears(tracks, spot, spot_track=None, plain=(), white=False):
             {"type": "bloom", "threshold": 0.92, "amount": "0.25 + 0.5*audio.low", "radius": 0.012},
         ] + ([{"type": "invert"}] if white else []),
     }
+    if n > 1:
+        look = waited(look, together(tracks, plain))
     if len(cams) > 1:
-        on = cutting(look, tracks[0], plain, slots=2 * (len(cams) - 1))
-        look["shot"] = f"(1 - var.whole)*({' + '.join(f'{k + 1}*{on(2 * k + 1)}' for k in range(len(cams) - 1))})"
-    return waited(look, together(tracks, plain)) if n > 1 else look
+        on = cutting(look, tracks[0], plain, slots=2 * (len(cams) - 1), tracks=tracks)
+        look["shot"] = f"var.free*({' + '.join(f'{k + 1}*{on(2 * k + 1)}' for k in range(len(cams) - 1))})"
+    return look
 
 
 # ───────────────────────── the fence (a whole turn of a riff on one plate) ─────────────────────────
@@ -895,12 +949,16 @@ def loops(tracks, spot, spot_track=None, plain=(), cells=None, shadow=True, tie=
         "layers": layers + ruler() + marks,
         "filters": finish(spot, burst),
     }
-    look["vars"]["side"] = {"follow": "0", "attack": "0ms", "release": "0ms"}
+    if len(ts) > 1 and not tie:
+        look = waited(look, together(ts, plain))
+    side = "0"
     if ROSTRUM:
-        on = cutting(look, ts[0], plain, slots=4, also=f"step({tie - 28}, time.beat*4 - {start})" if tie else None)
-        look["vars"]["side"]["follow"] = f"(1 - var.whole)*{on(1)}"
-        look["shot"] = f"(1 - var.whole)*{on(3)}"
-    return waited(look, together(ts, plain)) if len(ts) > 1 and not tie else look
+        on = cutting(look, ts[0], plain, slots=4, tracks=ts, tail=28 if tie else 20)
+        side = f"var.free*{on(1)}"
+        look["shot"] = f"var.free*{on(3)}"
+        show_cuts(look)
+    look["vars"]["side"] = {"follow": side, "attack": "0ms", "release": "0ms"}
+    return look
 
 
 # ───────────────────────── the tracer (a tune drawn by its lamp) ─────────────────────────
@@ -1015,12 +1073,12 @@ def daylight(tracks, spot, spot_track=None, subject="runner", plain=(), white=Fa
     }
     # The cut comes when the first riff comes round, every so many of its turns (about two and
     # a half bars' worth): the cutting keeps the riff's time, not the bar's.
-    lead = tracks[0]
-    every = "2" if lead in plain else f"max(1, floor(40/max(2, {teeth(lead)}) + 0.5))"
-    return {
+    # (And the scene's first view is held until the first of those cuts after its first bar
+    # and a half: see `cutting`.)
+    look = {
         "background": "#d8d5ce",
         "camera": [cameras[k] for k in views],
-        "shot": f"{len(views)}*fract(floor({clock(lead, lead not in plain)}/{every})/{len(views)})",
+        "shot": "var.free*var.slot",
         "layers": layers,
         "filters": [
             {"type": "shadowmap", "amount": 0.6, "soft": 2, "size": 1024},
@@ -1032,6 +1090,8 @@ def daylight(tracks, spot, spot_track=None, subject="runner", plain=(), white=Fa
             # comes out the right way through the master.
         ] + ([{"type": "invert"}] if white else []),
     }
+    cutting(look, tracks[0], plain, slots=len(views))
+    return look
 
 
 def studio(tracks, spot, spot_track=None, subject="walker", plain=(), white=False, bars=12, start=None):
@@ -1122,7 +1182,7 @@ def pendulums(tracks, spot, spot_track=None, plain=()):
             "background": BLACK, "camera": CAM, "layers": backdrop() + layers + ruler() + border(spot), "filters": finish(spot)}
     look = waited(look, together(tracks, plain)) if n > 1 else look
     # Details: the bobs, where the fans are (the left of them and the right, if there are many).
-    return rostrum(look, tracks[0], [(1.6, 0, -0.95)] if n < 3 else [(1.9, -1.7, -0.9), (1.9, 1.7, -0.9)], plain)
+    return rostrum(look, tracks[0], [(1.6, 0, -0.95)] if n < 3 else [(1.9, -1.7, -0.9), (1.9, 1.7, -0.9)], plain, tracks)
 
 
 # ───────────────────────── the balls (Edgerton's strobe) ─────────────────────────
@@ -1174,7 +1234,7 @@ def balls(tracks, spot, spot_track=None, plain=()):
             "background": BLACK, "camera": CAM, "layers": backdrop() + layers + ruler() + border(spot), "filters": finish(spot)}
     look = waited(look, together(tracks, plain)) if n > 1 else look
     # Details: the floor, where they land, left and right.
-    return rostrum(look, tracks[0], [(1.7, -1.7, -0.7), (1.7, 1.7, -0.7)], plain)
+    return rostrum(look, tracks[0], [(1.7, -1.7, -0.7), (1.7, 1.7, -0.7)], plain, tracks)
 
 
 # ───────────────────────── the finish (a photo-finish of the riffs) ─────────────────────────

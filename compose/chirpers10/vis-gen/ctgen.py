@@ -499,6 +499,8 @@ def choose(n, title, song, reel=None):
         cell = dict(zip(wheel, cells))
         S.HELD = {t.name: c for t, c in cell.items() if c}
         S.HOLD = 24 if scenes else 76        # (a song's first plate is seen whole while its title is up)
+        S.SIXTEENTH = bar_s / 16
+        S.END = b16
         odd = sum(1 for c in set(cells) if not common(c))
         # A tune worth a bird: one that sings at least a note a bar here.
         tune = next((t for t in tunes if t not in wheel and t.count(a, b) >= (b - a)), None)
