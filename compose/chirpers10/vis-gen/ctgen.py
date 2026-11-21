@@ -304,6 +304,7 @@ def choose(n, title, song):
             names = [t.name for t in distinct(riffs + tunes + drums + others, a, b)[:3]] or [(by_notes[0] if by_notes else tracks[0]).name]
             plain = set(names)
         spot_track = tune.name if tune else (names[-1] if names else None)
+        shown = pick
         if pick == "wheels":
             use = names[:4]
             look = S.wheels(use, spot, spot_track if spot_track in use else use[-1])
@@ -335,6 +336,7 @@ def choose(n, title, song):
                 plain.add(tune.name)
             # The fast ones are followed (the camera runs beside them); the slow ones pass.
             place = S.chase if subject in ("horse", "runner") else S.studio
+            shown = "chase" if place is S.chase else pick
             look = place(use, spot, spot_track if spot_track in use else use[-1], subject=subject, plain=tuple(plain), white=n in WHITE)
         else:  # flight
             fl = [tune] + [t for t in tunes if t is not tune and t not in wheel][:2]
@@ -344,7 +346,7 @@ def choose(n, title, song):
             names = use
             cells = [None] * len(use)
         scenes.append({"at": f"{a}bar" if a else 0, "look": look})
-        plan.append((a, b, pick, names[:4], cells[:4], tune.name if tune else "-"))
+        plan.append((a, b, shown, names[:4], cells[:4], tune.name if tune else "-"))
     return d, bars, tracks, scenes, plan
 
 
