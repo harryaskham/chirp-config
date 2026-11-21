@@ -1378,6 +1378,36 @@ def the_weight_comes_out_of_its_box(song):
         song['loudness'] = float(target)
 
 
+# v35 (chirper-zero; instrument round: the china, the 49 strokes that keep the time of 'across the line', 2:17-2:51;
+# it plays nowhere else). THE CHINA GIVES THE TOP BACK. Four handoffs running (v30, v32, v33, v34) carried the same
+# line: 'across the line' stands 4.2 dB over our eleven records at 8-16 kHz, "the china". Read at last, not named:
+# with the metal muted the raw mix of that stretch loses 8.2 dB at 8-16 kHz and 2.2 at 4-8 kHz and nothing else, so
+# the china IS that band; and alone, beside the records' drum stems as a shape (tools/cymspec.py), it stood +6.1,
+# +7.9 and +12.1 dB over them at 10, 12.5 and 16 kHz (3.42 dB from them over 2-16 kHz). It is the kit's china as it
+# comes: a plate with every mode it has (`bright` 1) and a 3 dB lift at 8 kHz on top. Two fields of the piece: the
+# plate keeps fewer of its highest modes (`bright` 0.6) and the lift sits at 5 kHz, where the records' cymbals have
+# theirs. Alone it is then 1.02 dB from the records (+1.3, +0.6, +3.1 at 10, 12.5, 16 kHz); it is 0.5 dB quieter on
+# its fader, which is the same loudness alone (-28.6 LUFS both), so it keeps its place in the kit: its level under
+# 8 kHz is up 1 to 2.5 dB, its top down 3.9. The mix of the stretch beside the records, the row without a voice
+# (nobody sings there): 1.111 -> 0.811 (8-16 kHz +4.2 -> +1.3; 4-8 kHz +0.1 -> +0.5; 2-4 kHz -1.3 -> -1.1); the row
+# with: 1.333 -> 1.178. Benched and not taken: a darker plate (`bright` 0.55: 0.722 without a voice but 1.244 with)
+# and the same plate 1 dB lower (0.722 / 1.211): each row wants a different one, so the tone change stops at equal
+# loudness. Also benched alone: the plate's `tilt` and the 2.2 kHz band (So Far's china) read no closer in the mix.
+# The loudness target goes from -10.22 to -10.2136: the darker china let the master turn the rest of the song down
+# 0.0065 dB; with the target the song outside the stretch fits v34 again (two trial targets and a line).
+# the piece's tone ; its level ; the loudness target ('' = unchanged). On only while WEIGHT is. '' = v34.
+CHINA = os.environ.get('C10T10_CHINA', 'kit.x.patch.synth.layers.0.bright=0.6 kit.x.patch.synth.filters.2.cutoff=5000;kit.x.gain=-7dB;-10.2136'
+                       if WEIGHT else '')
+
+
+def the_china_gives_the_top_back(song):
+    tone, level, target = CHINA.split(';')
+    t = next(t for t in song['tracks'] if t['name'] == 'metal')
+    t['patch'] += ''.join(' ' + o for o in tone.split() + level.split())
+    if target:
+        song['loudness'] = float(target)
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out',type=Path,default=OUT); parser.add_argument('--form',action='store_true')
@@ -1393,6 +1423,7 @@ if __name__=='__main__':
     if UNBOX: the_bass_loses_its_honk(song)
     if KICK: the_bass_drum_gets_a_chest(song)
     if WEIGHT: the_weight_comes_out_of_its_box(song)
+    if CHINA: the_china_gives_the_top_back(song)
     if args.form:
         for n,t in marks: print(f'{n:18} {t/BAR+1:5.0f}  {t/SUB*60/BPM:6.2f}s')
     else: args.out.write_text(dump(song))
