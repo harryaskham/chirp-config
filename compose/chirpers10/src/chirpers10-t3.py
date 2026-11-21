@@ -584,7 +584,7 @@ STRUCK = os.environ.get('C10T3_STRUCK', '1.2;3;4s;2s;-9.982' if TREBLE and CHORD
 # was 'highshelf cutoff=7000 gain=-3dB') ; its fader (3.5dB) ; the loudness target ('' = unchanged). '' = v32.
 # It is on only while no other C10T3_ switch is set, so every older switch gives exactly what it gave.
 SNARE = os.environ.get('C10T3_SNARE', '3.5;1.1;peak cutoff=2500 q=0.7 gain=-4dB,peak cutoff=650 q=1 gain=-3dB;1.5dB;-10.067' if STRUCK and not any(
-    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS', 'C10T3_PICK', 'C10T3_COURSE', 'C10T3_INTUNE', 'C10T3_HAT') for k in os.environ) else '')
+    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS', 'C10T3_PICK', 'C10T3_COURSE', 'C10T3_INTUNE', 'C10T3_HAT', 'C10T3_COVER') for k in os.environ) else '')
 # v34 (chirper-alpha; whole song: its frame; the change is the band's entrance, 0:08-0:12): THE BAND IS RUNG UP.
 # The song is a ringing performance from end to end, and since v28 the band is LOWERED at the end. But ringers do not
 # start by ringing: a ring is RAISED first, the bells chiming fast and close while they hang low, each stroke taking
@@ -1676,6 +1676,51 @@ def the_hat_has_its_metal(doc):
         doc['loudness'] = float(target)
 
 
+# v43 (chirper-zero; section round on w8, 3:44-4:16, the map's first flag; the change is 4:12.0-4:18.25, where the
+# key moves to C, and runs two seconds into w9; the bass and its fuzz only): THE NEW KEY IS RUNG IN BY ITS TENOR.
+# chirper-one's v37 made the bass the tenor for one lead (rows 20-27, 2:57: it rests on the five changing bells and
+# strikes only the three low notes that cover every row) and wrote that the figure should return. The second extent
+# is one block of six leads rung twice (plain, bob, plain, bob, plain, single), and v37's lead is the third of the
+# block; the third lead of the block's second time is rows 80-89, which open on C at 4:12 on the new rig (v8) with
+# the kick's roll. There the bass is the tenor again, for the five rows in which the treble hunts up to the back
+# (80-84): the two rigs and the roll ring the changes, and the new key's low C lands three times at the end of every
+# row with everyone. When the treble turns for home (row 85, 4:18.25) the bass takes the changes back, and that is
+# the row the lead guitar comes in on: its two pick-up strokes are in the fifth cover.
+# 25 notes of the bass and 25 of its fuzz go; the fifteen cover strokes are struck at 1.0, 0.95, 0.95 (they were
+# 0.95, 0.9, 0.9). Nothing is added. The tenor is read from each row (the three like notes at its end), not assumed
+# to be F, so the pass works in any key.
+# FINISHED (seed 1): the step into each cover -0.6 -> +0.9 dB (K), +0.3 -> +2.4 under 120 Hz. Where the lead comes
+# in there was no step (+0.2 dB): now +1.1 dB, +3.4 at 60-120 Hz. THE COST: the five rows are 0.9 dB quieter, so the
+# arrival in C after the bob is a step down of 2.1 dB where it was 1.2.
+# NOT HERE: chirper-one named the last lead before the landing (rows 110-117, 4:49.5) for this. Benched raw there it
+# takes 0.9 dB (K) and 3.0 dB at 60-120 Hz from under the top of the climb (Harry: "It pulls, and it lands"); the
+# switch takes those rows ('110:118;…') for whoever hears otherwise.
+# rows of the second extent, from:to ; the tracks that ring only the cover there ; the velocities of the cover's
+# three strokes ; the loudness target ('' = unchanged). On only while HAT is; in SNARE's list. '' = v42 byte for byte.
+COVER = os.environ.get('C10T3_COVER', '80:85;bass,fuzz;1.0,0.95,0.95;-10.0025' if HAT else '')
+
+
+def the_cover_returns(doc):
+    """v43: over those rows the named tracks rest on the five changing bells and ring only the tenor's three strokes."""
+    rows, names, vels, target = COVER.split(';')
+    r0, r1 = (int(x) for x in rows.split(':'))
+    vels = [float(x) for x in vels.split(',')]
+    for name in names.split(','):
+        t = next(t for t in doc['tracks'] if t['name'] == name)
+        out = []
+        for k in range(r0, r1):
+            a, b = PART2 * 4 + 2.5 * k, PART2 * 4 + 2.5 * (k + 1)
+            row = [n for n in t['notes'] if a - 1e-6 <= n['at'] < b - 1e-6]
+            tenor = row[-3:]
+            assert len(row) == 8 and len({n['pitch'] for n in tenor}) == 1 and not any(n['pitch'] == tenor[0]['pitch'] for n in row[:-3]), (name, k, row)
+            out += row[:-3]
+            for n, v in zip(tenor, vels):
+                n['vel'] = v
+        t['notes'] = [n for n in t['notes'] if not any(n is m for m in out)]
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if TENOR:
@@ -1690,4 +1735,6 @@ if __name__ == "__main__":
         the_lead_is_in_tune(doc)
     if HAT:
         the_hat_has_its_metal(doc)
+    if COVER:
+        the_cover_returns(doc)
     open(OUT, "w").write(dump(doc))
