@@ -821,6 +821,32 @@ PICK = os.environ.get("C10T2_PICK", "synth.filters.0.cutoff.mod.0.amount=-2 synt
 LEAN = os.environ.get("C10T2_LEAN", "fx.2.bands.0.gain=12dB fx.2.bands.1.gain=6dB fx.2.bands.2.cutoff=540 fx.2.bands.2.q=0.7 "
                       "fx.2.bands.2.gain=-6dB fx.2.bands.3.cutoff=1150 fx.2.bands.3.q=1.2 fx.2.bands.3.gain=9dB "
                       "synth.layers.1.level=-12dB;-9.93" if PICK else "")
+# v41 (chirper-zero; instrument round: the snare, 164 strokes): THE SNARE LOSES ITS BOX. Alone, against six
+# records' snares by thirds of an octave (tools/snarespec.py), the album kit's snare read 5.32 dB out on average:
+# no drum at 200 Hz where theirs have their note (-17.4: ours rang at 259 Hz, wandering 240 to 262 from stroke to
+# stroke), a box at 1-1.25 kHz (+7.1, +6.8) and a second hump at 2-2.5 kHz (+6.8, +5.9) where theirs dip, and it
+# took 84 ms to fall 20 dB (theirs 66). The cure is made where the fault is made, in the drum's own model, one field
+# at a time: its written note A3 -> G3 (it sounds 223.5 Hz now, every stroke within 3 Hz) and ten modes in the head
+# for twenty-four (the box at 1 kHz is the head's upper modes: 5.32 -> 4.03); the slap 1.2 -> 0.6 (the hump at
+# 2 kHz: 3.32); the head damped 0.3 -> 0.6; the patch's own 200 Hz lift 5 -> 2 dB now that the note stands in it.
+# Then the track's eq for what the model leaves (1.1 kHz -4 dB, 2.5 kHz -3 dB, 4 kHz +2 dB, the shelf at 7 kHz
+# -3 -> -4). 2.30 alone; the stroke falls 20 dB in 80 ms (the fall is its room, kept). THE TOP IS LEFT WHERE IT WAS: with the wires up and
+# the shelf off it read 2.05 alone and the mix read 0.8 FURTHER (4-16 kHz up 1.1 to 2 dB): refused.
+# THE LEVEL IS THE MIX'S: at the old fader the new stroke is 2.6 dB quieter to a K-weighted meter (its energy went
+# from 1-2.5 kHz to 200 Hz); the fader 3.5 -> 5.5 dB puts each stroke nearly as far over the band as it stood
+# (+6.3 -> +5.9 dB K-weighted in its first 60 ms; 150-300 Hz +1.9, 300 Hz-1.5 kHz -1.1). The four stretches
+# the snare is thickest in, eight rows summed: v40 7.17 ; fader 5.0 6.73 ; 5.5 6.79 ; 6.1 6.91.
+# The target -9.93 -> -9.9715: the new stroke counts quieter to the meter and the master gave everything else
+# 0.04 to 0.07 dB more; at -9.9715 (two renders and a line) the stretches with no snare are where they were.
+# NOT TOUCHED: the snare's sends (the cymbals' room and the dry bus: Harry, "Now: the air is back"), every stroke
+# and its place ("Keep it on three"), the ghost strokes (their own patch), the rest of the kit. THE NOTE IS NOT
+# TUNED TO THE SONG: G3 is where the records' drums stand, not a pitch of the riff (that waits for an ear on the
+# three songs whose snares are tuned).
+# overrides inside the snare piece's patch ; raw kit overrides ; the snare track's eq, '|' between (it replaces
+# the shelf) ; the track's fader ; the loudness target ('' = unchanged). "" = v40 byte for byte.
+BACKBEAT = os.environ.get("C10T2_BACKBEAT", "synth.layers.0.mode_count=10 synth.layers.0.slap=0.6 synth.layers.0.damp=0.6 "
+                          "synth.filters.1.gain=2dB;kit.s.pitch=G3;peak cutoff=1100 q=1.4 gain=-4dB|peak cutoff=2500 q=2 gain=-3dB|"
+                          "peak cutoff=4000 q=1 gain=2dB|highshelf cutoff=7000 gain=-4dB;5.5dB;-9.9715" if LEAN else "")
 
 
 def stood():
@@ -1508,10 +1534,28 @@ def the_bass_leans(doc):
         doc["loudness"] = float(target)
 
 
+def the_snare_loses_its_box(doc):
+    """v41: the snare's note a tone lower, ten modes in its head, half the slap, more damping; the track's eq and
+    fader as the mix read them. Its sends, its strokes and the ghost strokes are untouched."""
+    over, kit, eq, fader, target = BACKBEAT.split(";")
+    t = next(t for t in doc["tracks"] if t["name"] == "snare")
+    t["patch"] += "".join(f" kit.s.patch.{o}" for o in over.split()) + (" " + kit if kit else "")
+    if eq:
+        assert [f["type"] for f in t["fx"]] == ["eq"], t["fx"]
+        t["fx"] = [{"type": "eq", "bands": eq.split("|")}]
+    if fader:
+        assert isinstance(t["gain"], str), t["gain"]
+        t["gain"] = fader
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if PICK:
         the_pick_stays_hard(doc)
     if LEAN:
         the_bass_leans(doc)
+    if BACKBEAT:
+        the_snare_loses_its_box(doc)
     open(OUT, "w").write(dump(doc))
