@@ -261,6 +261,90 @@ def discs(tracks, spot, spot_track=None, subject="horse", plain=(), cells=None):
     return {"env": env, "background": BLACK, "camera": CAM, "layers": backdrop() + layers + plates + ruler() + marks, "filters": finish(spot)}
 
 
+# ───────────────────────── the train (riffs as gears in mesh) ─────────────────────────
+
+def gears(tracks, spot, spot_track=None, plain=(), white=False):
+    """Clockwork, in real light: a gear per riff with a tooth for every sixteenth of it, all in
+    mesh. Every gear is let go one tooth a sixteenth (the one pulse they share), so a five turns
+    faster than a seven and a seven than an eleven, and they mesh truly, each turning against
+    its neighbour. One tooth of each carries a jewel in the spot colour; the jewels come to the
+    top together only where the riffs do. Steel on a black plate, shadows from a lamp.
+    The teeth are counted live, and the train is scaled to fill the plate whatever they are."""
+    tracks = tracks[:3]
+    n = len(tracks)
+    if white:
+        spot = negative(spot)
+    vars_, env, layers = {}, {}, []
+    C = [f"max({teeth(t, t not in plain)}, 3)" for t in tracks]
+    # The pitch: how much rim a tooth takes, so that the train is 8 units across, its biggest
+    # gear no more than 4.1 high, and no tooth absurdly large.
+    biggest = C[0] if n == 1 else f"max({', '.join(C)})" if n == 2 else f"max({C[0]}, max({C[1]}, {C[2]}))"
+    vars_["p"] = {"follow": f"min(min(25.13/({' + '.join(C)}), 12.88/{biggest}), 1.3)", "attack": "400ms", "release": "400ms"}
+    for i in range(n):
+        vars_[f"g{i}"] = {"follow": f"var.p*{C[i]}/6.2832", "attack": "0ms", "release": "0ms"}
+    # Where each stands: side by side, pitch circles touching, the train centred.
+    total = " + ".join(f"var.g{i}" for i in range(n))
+    for i in range(n):
+        before = " + ".join(f"2*var.g{j}" for j in range(i))
+        vars_[f"x{i}"] = {"follow": f"0 - ({total}) + {before + ' + ' if before else ''}var.g{i}", "attack": "0ms", "release": "0ms"}
+    # How far each is turned, in teeth, so that every pair meshes (a tooth of one in a gap of
+    # the next) whatever the two counts are.
+    off = ["0"]
+    for i in range(1, n):
+        sign = "0.5" if i % 2 else "0 - 0.5"
+        off.append(f"fract({sign} - ({off[i - 1]}) + 0.25*{C[i - 1]} + 0.75*{C[i]} + 8)")
+    if n > 1:
+        env["all"] = {"when": together(tracks, plain), "decay": 2.4}
+    steel = {"material": "pbr", "rough": 0.42, "metal": 0.7, "color": "#d8d8d4", "env_sky": "#e4e7ee", "env_ground": "#2c2c30", "light": 0.85, "ambient": 0.3, "rim": 0}
+    cy = 0.12
+    for i, t in enumerate(tracks):
+        T = clock(t, t not in plain)
+        # It goes by the tooth, as an escapement lets a wheel go: a tick every sixteenth, all
+        # the gears together (that is what keeps them in mesh).
+        vars_[f"s{i}"] = {"follow": f"{T}*{C[i]}", "attack": "0ms", "release": "0ms"}
+        tick = f"(floor(var.s{i}) + smooth(0, 0.55, fract(var.s{i})))"
+        turn = f"(({'' if i % 2 == 0 else '0 - '}{tick} + ({off[i]}))/{C[i]})"
+        r, x = f"var.g{i}", f"var.x{i}"
+        # A riff that rests drops out of mesh: its gear sinks back toward the plate and dims.
+        vars_[f"w{i}"] = {"follow": f"clamp(track.{t}.level*8, 0, 1)", "attack": "60ms", "release": "700ms"}
+        awake = f"(0.4 + 0.6*var.w{i})"
+        back = f"0.13*(1 - var.w{i})"
+        # The rim (at the roots of the teeth; a torus of scale 1 has its ring at about 0.74),
+        # three spokes and a hub.
+        layers.append({"type": "mesh", "shape": "torus", "detail": 40, "x": x, "y": cy, "z": back, "rx": 0.25, "scale": f"({r} - 0.2*var.p)/0.82", "tube": 0.13, "sy": 0.6, **steel})
+        for k in range(3):
+            layers.append({"type": "mesh", "shape": "box", "round": 0.3, "detail": 3, "x": x, "y": cy, "z": back, "rz": f"0 - {turn} + {k / 6:.4f}", "scale": 1,
+                           "sx": 0.045, "sy": f"{r} - 0.3*var.p", "sz": 0.03, **steel})
+        layers.append({"type": "mesh", "shape": "sphere", "detail": 14, "x": x, "y": cy, "z": f"{back} - 0.02", "scale": 0.13, "sz": 0.6, **steel})
+        # The teeth: as many as the riff has sixteenths.
+        layers.append({"type": "mesh", "shape": "box", "round": 0.35, "detail": 3, "count": 48, "opacity": f"step(inst.i + 0.5, {C[i]})",
+                       "x": f"{x} + {r}*sin({turn} + inst.i/{C[i]})", "y": f"{cy} + {r}*cos({turn} + inst.i/{C[i]})", "z": back,
+                       "rz": f"0 - ({turn} + inst.i/{C[i]})", "scale": "var.p", "sx": 0.2, "sy": 0.2, "sz": 0.06, **steel})
+        # The jewel on the first tooth: the riff's own colour, lit by its notes.
+        col = spot if t == spot_track or n == 1 else INK
+        layers.append({"type": "mesh", "shape": "sphere", "detail": 12, "x": f"{x} + {r}*sin({turn})", "y": f"{cy} + {r}*cos({turn})", "z": f"{back} - 0.07",
+                       "scale": f"0.12*var.p*{awake}", **lit(col, f"0.9 + 1.2*track.{t}.hit")})
+    plate = [
+        # The plate behind: black, taking the shadows.
+        {"type": "mesh", "shape": "box", "round": 0.01, "detail": 2, "x": 0, "y": 0, "z": 0.24, "scale": 1, "sx": 7, "sy": 4, "sz": 0.05,
+         "material": "pbr", "rough": 0.85, "metal": 0, "color": "#151516", "env_sky": "#6a6e76", "env_ground": "#060606", "light": 1, "ambient": 0.15, "rim": 0},
+    ]
+    marks = border(spot) if n > 1 else []
+    return {
+        "vars": vars_, "env": env, "background": BLACK,
+        "camera": {"x": "1.1*sin(time.bar/24)", "y": "0.25 + 0.3*cos(time.bar/32)", "z": -9, "look_at": [0, 0, 0], "zoom": 2.2},
+        "layers": [{"type": "light", "x": -2.5, "y": 3.5, "z": -7, "power": 1.6, "reach": 40, "color": "#fff6e8"}] + plate + backdrop(0.02, 0.18) + layers + ruler() + marks,
+        "filters": [
+            {"type": "shadowmap", "amount": 0.7, "soft": 3, "size": 1024, "sun": 0, "x": -2.5, "y": 3.5, "z": -7, "zoom": 2.2},
+            {"type": "ao", "amount": 0.5, "radius": 0.04},
+            {"type": "tonemap", "knee": 0.7},
+            {"type": "aa"},
+            # Steel does not burn as a plate does: only the jewels and the border glow.
+            {"type": "bloom", "threshold": 0.92, "amount": "0.25 + 0.5*audio.low", "radius": 0.012},
+        ] + ([{"type": "invert"}] if white else []),
+    }
+
+
 # ───────────────────────── the strip (a photo-finish of the riffs) ─────────────────────────
 
 def strip(tracks, spot, spot_track=None, bars=4, plain=()):

@@ -34,6 +34,7 @@ Each is a function of track names, so it fits any song and any version of it.
 | `flight` | A plate flashed by the notes | A bird per tune, flying at the height of the note. |
 | `studio` | None: the place itself | The old techniques. A daylight 3D track with a ruled black wall, PBR figures with sun shadows, their earlier poses standing behind them, a slow camera. |
 | `discs` | Phenakistoscope: a ring flashed by its riff | A ring per riff with as many runners or horses round it as the riff has sixteenths, turning once per cell. Each note's flash finds every figure in the next one's place, so the ring stands still and they run on the spot. |
+| `gears` | None: clockwork in real light | A steel gear per riff with a tooth for every sixteenth, all in mesh and all let go a tooth at a time, so a five turns faster than a seven. A jewel on each first tooth; they come to the top together only where the riffs do. |
 | `chase` | None: the camera runs alongside | The studio with the wall streaming past. Horses or runners hold their places, each one's legs at its own cell, each surging and falling back once a turn. |
 
 Subjects are `walker`, `runner`, `horse` (gallop), `pacer` (a horse walking) and `bird`. The
