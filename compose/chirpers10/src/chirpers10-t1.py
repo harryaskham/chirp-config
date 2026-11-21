@@ -799,7 +799,7 @@ NEARER = os.environ.get("C10T1_NEARER", "363:383:-6:-3:-10.093" if REBUILD and H
 # bars from the section's first ; the bell's velocity ; the bells' fader ; dB on the strokes of each pair (five and seven,
 # five and eleven, seven and eleven) ; where each pair's bell stands (pan) ; the loudness target ('' = unchanged).
 # "" = v62. It is on only while no older switch of this song is set, so each of those still gives what it gave.
-MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE", "C10T1_FIVE") for k in os.environ) else "")
+MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE", "C10T1_FIVE", "C10T1_COUNT") for k in os.environ) else "")
 # v44: THE ENGINE, EXPOSED (9:19, in the hardest stretch). For twenty-eight bars everything runs at once: four guitars
 # and the bass on seven, the china on every eighth, the bark, and under it all the kick in unbroken sixteenths. The one
 # event inside it is the ground moving up a semitone at 9:20. Now, for the half bar before that, everything stops
@@ -2233,7 +2233,7 @@ def hold_still(doc):
 # well ("" = neither; "2" = the second) ; the flute's velocity when it was recorded ; the deck's wow and flutter in
 # cents and its drift (in units of the wow) ; the loudness target ("" = unchanged) ; settings added to the recorded
 # flute's patch ("" = the library's flute as it comes). "" = v63. On only while no older switch of this song is set.
-TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE", "C10T1_FIVE") for k in os.environ) else "")
+TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE", "C10T1_FIVE", "C10T1_COUNT") for k in os.environ) else "")
 
 
 def the_eye_on_tape(doc):
@@ -2502,6 +2502,76 @@ def the_tune_is_finished(doc):
         doc["loudness"] = float(target)
 
 
+# v70 (chirper-zero; palette round: an instrument no other song on the record has, on the wheel that had none of its
+# own; 9:02.9-9:44.8, inside the hardest stretch; a new LAST track `anvil` and a song patch `ct-anvil`; nothing else
+# changes): THE FIVE KEEPS ITS OWN COUNT. Every section is made of the two wheels that have just met. chirper-two gave
+# the eleven a sequencer where it was only held chords (v59); chirper-three gave the seven a pair of hands where it
+# was only the section's length (v60). The five had no instrument of its own, and the one long section it should
+# share and does not is section 17: "five meets seven", seven everywhere for 28 bars, while the voice screams "Each
+# one keeps its own count. None of them wrong." Nothing else was counting. (Its mirror, riff B, has had a second
+# clock since v49; the map calls 9:08-9:39 static, "nothing enters in it".)
+# From the first bar line the five lands on after that line is said (bar 285) an anvil strikes the five's own tick
+# (TICK5, on CL5's notes: F, C, F over the section's ground, a semitone up while the riff is), left of centre like
+# the five's clean guitar. It grows by riff A's rule (the five lands on a bar line every five bars and something
+# joins): the first stroke of each turn; from bar 290 the hook's place too; from 295 the whole tick; from 300, at
+# "Keep count", a larger anvil an octave under on each first stroke. It rests in v44's gasp with the whole band and
+# stops at bar 307, where the snare's roll begins, a bar before the hands take the seven.
+# THE ANVIL: a free steel bar struck hard near its end (the modal layer's `glock` set, short) over the clank of the
+# block (a plate of 24 modes); 300 Hz high-pass; low-passed at 5.5 kHz because the stretch already reads 1.9 dB over
+# the records at 4-8 kHz. Alone: strongest line on its note, the bar's second partial 6 dB under, the block's lines 8
+# to 15 under; -20 dB in 0.24 s.
+# LEVEL (raw, each stroke's first 80 ms against everything else, K): the first stroke of a turn 10.5 dB under, 8.4
+# with the larger anvil; the hook's place 12.0 to 10.1; the middle stroke 12.5, 12.0. (The sequencer: 13.1 to 10.6;
+# the hands: 5 to 10.) Benched 2 dB lower first and brought up. FINISHED: +2.8 to +4.6 dB in the third of an octave
+# round each first stroke's note, 0.0 a sixteenth earlier; the stretch +0.28 dB at 500 Hz-1 kHz, +0.21 at 1-2 kHz,
+# +0.20 at 4-8 kHz, and -0.19 / -0.13 dB at 60-120 / 120-250 Hz (the limiter); everything else nulls (-84 dB).
+# bars from:to (the five must land on the first) ; the bar lines where the hook's place, the middle stroke and the
+# larger anvil join (the five must land on each) ; fader ; pan ; semitones over F3 for the tick's root ; velocities
+# of a turn's three strokes ; the velocity ramp, first,last ; the larger anvil: semitones under, dB ('' = none) ;
+# the loudness target ('' = unchanged). '' = v69 byte for byte. On only while FIVE is; in MEET's and TAPE's lists.
+COUNT = os.environ.get("C10T1_COUNT", "285:307;290,295,300;-18.5dB;-0.45;24;0.9,0.7,0.8;0.8,1.0;12,-4;" if FIVE else "")
+ANVIL = {"about": "chirper-zero: a tuned anvil for Common Time's five wheel (a struck steel bar, hard and short, and the clank of the block under it): see the generator, v70",
+         "play": {"vel_sens": 0.6},
+         "synth": {"amp": {"a": "0.5ms", "d": "900ms", "s": 0, "r": "40ms"}, "filters": ["hp cutoff=300", "lp cutoff=5500 q=0.7"],
+                   "layers": [{"type": "modal", "modes": "glock", "decay": "1.5s", "damp": 0.1, "bright": {"value": 0.8, "mod": [{"src": "vel", "amount": 0.2}]}, "strike": 0.7, "tilt": -1.0, "vary": 0.3},
+                              {"type": "modal", "modes": "plate", "mode_count": 24, "decay": "0.5s", "damp": 0.1, "bright": 0.8, "tilt": -1.0, "level": "3dB", "vary": 0.4}]},
+         "fx": ["reverb kind=room decay=0.5s mix=0.12 predelay=5ms"]}
+
+
+def the_five_keeps_its_own_count(doc):
+    """v70: in the hardest stretch (five meets seven, and only seven is played) the five wheel's tick is struck on an
+    anvil, from the first bar line the five lands on after the voice has said 'each one keeps its own count'. It
+    grows as riff A's hook did: at each later landing something joins. A new last track; no other note changes."""
+    bars, gains, fader, pan, up, vels, ramp, low, target = COUNT.split(";")
+    b0, b1 = (int(x) * 16 for x in bars.split(":"))
+    a = BOUNDS[16]
+    assert a * 16 <= b0 < b1 <= BOUNDS[17] * 16 and b0 % 5 == 0, "the five wheel does not land on that bar line"
+    g_hook, g_second, g_low = (int(x) * 16 for x in gains.split(","))
+    assert all(g % 5 == 0 for g in (g_hook, g_second, g_low)), "something joins only where the five lands on a bar line"
+    vels, (r0, r1) = [float(x) for x in vels.split(",")], (float(x) for x in ramp.split(","))
+    low_semis, low_db = (low.split(",") + [""])[:2] if low else ("", "")
+    hole = None
+    if HOLE:                                    # v44's gasp is the whole band's: the anvil rests in it too
+        hb, h16 = [int(v) for v in HOLE.split(":")[:2]]
+        hole = (hb * 16 + h16, (hb + 1) * 16)
+    notes = []
+    for t, ln, kind, j, hi in strikes(5, TICK5, b0, b1):
+        if hole and hole[0] <= t < hole[1] or j == 2 and t < g_hook or j == 1 and t < g_second:
+            continue
+        root = 53 + int(up) + (1 if (a + 14) * 16 <= t < (a + 21) * 16 else 0)      # the ground moves up a semitone for seven bars, as the riff does
+        ln = 3 if not hole or not t < hole[0] < t + 3 else hole[0] - t
+        v = round(vels[j] * (r0 + (r1 - r0) * (t - b0) / (b1 - b0)), 3)
+        notes.append({"at": round(t / 4, 4), "len": round(ln / 4, 4), "pitch": nm(root + CL5[j]), "vel": v})
+        if j == 0 and low_semis and t >= g_low:
+            notes.append({"at": round(t / 4, 4), "len": round(ln / 4, 4), "pitch": nm(root - int(low_semis)), "vel": v, **({"gain": f"{float(low_db):g}dB"} if low_db and float(low_db) else {})})
+    assert "ct-anvil" not in doc["patches"] and not any(t["name"] == "anvil" for t in doc["tracks"])
+    doc["patches"]["ct-anvil"] = ANVIL
+    doc["tracks"].append({"name": "anvil", "patch": "ct-anvil", "gain": fader, "pan": float(pan), "notes": notes})
+    if target:
+        doc["loudness"] = float(target)
+    return len(notes)
+
+
 if __name__ == "__main__":
     doc = song()
     if STILL:
@@ -2518,4 +2588,6 @@ if __name__ == "__main__":
         the_seven_s_chug_holds(doc)
     if FIVE:
         the_five_s_chug_holds(doc)
+    if COUNT:
+        the_five_keeps_its_own_count(doc)
     open(OUT, "w").write(dump(doc))
