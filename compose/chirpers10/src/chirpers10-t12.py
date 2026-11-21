@@ -1235,6 +1235,42 @@ def the_margin_bell(doc, sections):
     if BELL['loudness']: doc['loudness'] = BELL['loudness']
 
 
+# v31 (chirper-zero; instrument round: THE CHINA, the 52 strokes the sticks play in 'turn over', 2:49.9-3:22.8, and
+# nowhere else in the song. No note, velocity or fader changes.) THE CHINA IS A PLATE, NOT A HISS.
+# chirper-alpha's v29 handoff named it: "THE NEXT INSTRUMENT HERE IS THE CHINA": 'turn over' the one section over
+# the records at 8-16 kHz, and the china alone far from their top. Read this round (bench t12-china):
+#   WHO HOLDS THE BAND (the raw mix of 'turn over' with the `brass` track muted): the china adds 4.4 dB at 8-16 kHz
+#   and 1.1 at 4-8 kHz. It is most of the top octave there; nobody else can be the excess.
+#   THE CHINA ALONE beside the top of the eleven records' drum stems (tools/cymspec.py, a shape): +5.0, +6.9 and
+#   +14.2 dB at 10, 12.5 and 16 kHz, 3.31 away on average. The kit's china is a modal plate with `bright` 1 and a
+#   lift at 8 kHz: its upper modes are as loud as its body, so above 8 kHz it reads as air rather than as metal.
+#   THE FIT is the one Still Owing's china took at v35 (the same kit piece; read here before it was believed, since
+#   on Plain Hunt the same fields made the china worse): the plate's `bright` 1 -> 0.6 and its 8 kHz lift moved to
+#   5 kHz, where the records' drum tops have their weight. Alone: +0.0, -0.7, +4.6 at 10, 12.5, 16 kHz; 1.08 away.
+#   Its level is NOT moved: alone it is 0.3 dB louder (K), and each stroke stands 7.0 dB under the band (7.2 before;
+#   the records' chinas 4.8 to 7.4). A decibel less (benched) read a hair better beside the records and put the
+#   stroke under their range: not taken.
+#   THE MIX of 'turn over' beside the records (nobody sings there): 0.689 -> 0.500; 8-16 kHz +2.9 -> +1.0, and
+#   4-8 kHz +0.7 -> +1.0 (the cost: the energy moves down an octave, to where the section was already a little
+#   over). `bright` 0.7 (benched) left 8-16 kHz at +2.1.
+# The sticks' two jobs in the section are untouched: the count in quarters, and the strip's four open notes while
+# the page is upside down (chirper-one's v25). The crashes and the ride's edge on the same track are other pieces
+# and are not changed.
+# 'kit': overrides on the kit's china (piece x) for the `brass` track ; 'loudness': the target (None: unchanged).
+# --without-china gives v30 byte for byte. (--china '{...}': fields for a bench.)
+# The darker plate asks 0.01 dB less of the master: with the target left at -9.963 every other stretch came out 0.010
+# to 0.028 dB quieter. This much holds them where they were (each within 0.001 dB, 77 to 85 dB left).
+CHINA = {'kit': 'kit.x.patch.synth.layers.0.bright=0.6 kit.x.patch.synth.filters.2.cutoff=5000', 'loudness': -9.9525}
+
+
+def the_china_is_a_plate(doc):
+    """v31: the china's own tone (see CHINA): overrides on piece x of the `brass` track's kit. No note changes."""
+    t = next(t for t in doc['tracks'] if t['name'] == 'brass')
+    assert t['patch'] == 'ct-kit' and any(n['pitch'] == 'x' for n in t['notes']), t['patch']
+    if CHINA['kit']: t['patch'] = t['patch'] + ' ' + CHINA['kit']
+    if CHINA['loudness']: doc['loudness'] = CHINA['loudness']
+
+
 if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); ap.add_argument('--without-crease',action='store_true',help='regenerate v3')
     ap.add_argument('--without-mirror-bass',action='store_true',help='regenerate v4')
@@ -1270,6 +1306,8 @@ if __name__=='__main__':
     ap.add_argument('--plates',help='a bench: PLATES fields to change, as a JSON object')
     ap.add_argument('--without-bell',action='store_true',help="regenerate v29: no margin bell in 'ink' and 'one hand'")
     ap.add_argument('--bell',help='a bench: BELL fields to change, as a JSON object')
+    ap.add_argument('--without-china',action='store_true',help="regenerate v30: the china in 'turn over' as the album kit's comes")
+    ap.add_argument('--china',help='a bench: CHINA fields to change, as a JSON object')
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
     doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot,not a.without_blot)
     if not a.without_lean and 'songs' in doc: lean(doc)      # only on the whole song as v22 has it (the tape is there when every older switch is on)
@@ -1287,6 +1325,8 @@ if __name__=='__main__':
     if not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_count_is_struck_on_metal(doc)      # only on the whole song as v28 has it
     if a.bell: BELL.update(json.loads(a.bell))
     if not a.without_bell and not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_margin_bell(doc, sections)      # only on the whole song as v29 has it
+    if a.china: CHINA.update(json.loads(a.china))
+    if not a.without_china and not a.without_bell and not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_china_is_a_plate(doc)      # only on the whole song as v30 has it
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
