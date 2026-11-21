@@ -1260,6 +1260,63 @@ def the_drone_comes_first(doc):
         doc["loudness"] = float(target)
 
 
+# v32 (chirper-zero; whole-song round). THE FOOT AND THE BASS TURN LAST.
+# The song says its speeds one after another: three, then four, then five. Its name is what a musician says when two
+# of them sound at once: five in the time of four. Seven beats hold the riff k times round at k strokes to the beat,
+# whatever k is, so two speeds that start together meet again after exactly seven beats: k + 1 rounds in the time of k.
+# v5 let the bass keep the old speed for one such round at the first turn (0:40), and Harry's answer to the card on it
+# was "Let the bass hold its time". This is that, at the three turns after it (1:00, 1:20, 1:40): for one round of the
+# riff after the guitars change speed, the foot and the bass go on playing what they were playing; then they turn.
+#   1:00-1:05  the guitars at four ; the foot and the bass at three
+#   1:20-1:25  the guitars and the tabla at five ; the foot at four ; the bass on the slow tune at two, as in the
+#              round before (v8's one, two and four together goes on for a round as two, four and five)
+#   1:40-1:45  the guitars and the sitar at six ; the foot and the bass at five
+# AT THE LOCK NOBODY IS LATE (2:00): seven lands with everyone, and that is what makes it the lock. Not built there.
+# WHY THE FOOT TOO (v5 held the bass alone): read on the raw mix, the step in level at each speed's own accents.
+# With the bass alone holding, the low band (40-150 Hz) still said the NEW speed (+7.4 to +8.4 dB at its accents, -1.4
+# to +2.2 at the old one's): the kick is the low band's rhythm, and the bass under it is not heard to lag. With both,
+# the low band says the old speed (+7.0 to +8.1; the new -2.6 to +1.4) and the picks (1.5-6 kHz) say the new one
+# (+3.9 to +7.1): two speeds at once, one in each register. (v5's own seam reads +5.4 old, +7.3 new: its bass notes
+# are long and exposed. It is not touched.)
+# No stroke is new: at 1:00 and 1:40 the foot and the bass play the round before again (the cells go on in turn);
+# at 1:20 each plays exactly what it played in the round before. v6's hole is kept: no held stroke falls in the half
+# beat after the bell's top tap (1:44.2).
+# seams, | between: beat : the foot's speed : the bass's speed ; the loudness target ('' = unchanged).
+# On only while DRONE is. '' = v31 byte for byte.
+TURNS = os.environ.get('C10T9_TURNS', '84:3:3|112:4:2|140:5:5;' if DRONE else '')
+
+
+def the_foot_and_the_bass_turn_last(doc):
+    """v32: for one round of the riff after each seam the kick and the bass keep the speed they had (see TURNS)."""
+    seams, target = TURNS.split(";")
+    tracks = {t["name"]: t for t in doc["tracks"]}
+    taps = [p for p in tracks["pawl"]["notes"] if p["len"] > 0.3]            # v6's top taps: the low riff leaves them alone
+    for name in ("bass", "kick"):
+        notes = list(tracks[name]["notes"])
+        for seam in seams.split("|"):
+            s, kk, kb = (int(x) for x in seam.split(":"))
+            k = kb if name == "bass" else kk
+            notes = [n for n in notes if not s <= n["at"] < s + N]
+            for j in range(k):
+                cell = CELLS[j % len(CELLS)]
+                heads = [i for i, stroke in enumerate(cell) if stroke != "c"]
+                for i, end in zip(heads, heads[1:] + [N]):
+                    at = round(s + (j * N + i) / k, 5)
+                    if any(p["at"] <= at < p["at"] + 0.5 for p in taps if s <= p["at"] < s + N):
+                        continue
+                    if name == "kick":
+                        notes.append({"at": at, "len": 0.25, "pitch": "k", "vel": 0.97 if i == 0 else 0.86})
+                    elif k == 2:                                # v5's phrase, as the bass plays it in the round before
+                        midi = F1 if i == 0 else F1 + int(cell[i]) + (12 if i == heads[1] else 0)
+                        notes.append({"at": at, "len": round(((end - i) / 2 - .09) * 0.98, 5), "pitch": nm(midi), "vel": 0.97 if i == 0 else 0.9})
+                    else:                                       # the section's own three accents: 3 + 2 + 2 strokes long
+                        midi = F1 + (0 if i == 0 else int(cell[i]))
+                        notes.append({"at": at, "len": round((3 if i == 0 else 2) / k * 0.98, 5), "pitch": nm(midi), "vel": 0.93})
+        tracks[name]["notes"] = sorted(notes, key=lambda n: n["at"])
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T9_SHOW"):
         end = compose()
@@ -1296,4 +1353,6 @@ if __name__ == "__main__":
             the_answers_are_in_thirds(doc)
         if DRONE:
             the_drone_comes_first(doc)
+        if TURNS:
+            the_foot_and_the_bass_turn_last(doc)
         open(OUT, "w").write(dump(doc))
