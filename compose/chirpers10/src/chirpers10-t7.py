@@ -520,6 +520,34 @@ LEAD = os.environ.get("C10T7_LEAD", "5;0;55,144;lead-tape;-2dB;36,24;0.85;-0.12;
 # the snare's pitch ; what is added inside its patch (kit.s.patch.) ; its fader ('' = unchanged) ; the loudness
 # target ('' = unchanged). On only when LEAD is. "" = v31 byte for byte.
 KEYED = os.environ.get("C10T7_KEYED", "Ab3;synth.layers.0.tune_sounding=true synth.layers.0.tune_exact=true synth.pitch.mod.1.amount=0;;") if LEAD else ""
+# v33 (chirper-zero; instrument round: the chug's own guitars, the two that play all through and the wall pair; 1567
+# strokes, 1074 of them muted, in every heavy section). THE CHUG GETS ITS FRONT. Harry on this song: "really make it chug if slow".
+# v23 gave the stroke its teeth and v27 its low end; nobody had read its ATTACK. Against six records' strokes
+# (tools/riffpunch.py --strokes): the two guitars' attack peak stood 2.94 dB (two guitars, 0:04-0:40) and 3.07 dB
+# (four, 1:54-2:38) over the stroke 30-60 ms later, where the records' stands 3.63 (3.5 to 4.2): a stroke with no
+# front, and v27's lighter hand had cost it some. The wall pair had the front (4.06) but its low end swelled through
+# the stroke (+0.92 where the records' holds or falls: -1.1; -2.2 to +0.3).
+#   THE TWO GUITARS: the compressor before the amp waits 15 ms before it closes (it closed in 2), so the pick goes
+#   into the amp whole; and after the cabinet and the eq the stroke's first milliseconds are lifted (`transient
+#   attack=8`). Attack 2.94 / 3.07 -> 3.54 / 3.88; the low end's fall -0.29 / +0.08 -> -0.77 / -0.73 (nearer the
+#   records' -1.1). Their tone alone is the same (tools/cabspec.py 2.93 -> 2.85). They came out 2.7 dB louder, so
+#   2.7 dB comes off their faders: as loud alone as they were.
+#   THE WALL PAIR: the thump under each stroke 0.5 -> 0.2 (the cure Take Up the Slack and On Its Hinge already
+#   carry): the low end's fall +0.92 -> -0.49, attack 4.06 -> 3.91, tone and loudness alone unchanged.
+#   Benched on the two guitars and not taken: the lift alone (attack 3.56 / 3.88 but the low end then swells, +0.22 /
+#   +0.73); a softer pick with it (no more front, less grain); more sag in the amp (nothing); a bigger lift
+#   (`attack=10`: 4.07 / 4.16, the top of the records' range); a smaller (`attack=6`: 3.31 with two guitars, still
+#   short). On the walls: the slower compressor does nothing (+1.11).
+#   THE MIX beside the records is where it was in all seven heavy stretches (no row moves more than 0.06): this is
+#   the stroke's shape in time, not its tone. IN THE FINISHED FILE the two guitars are hard left and right and the
+#   kick, snare and bass in the middle, so the side signal shows them under the band: the stroke's front there
+#   +0.73 -> +1.29 dB (two guitars) and +0.45 -> +1.10 (four): about two thirds of what the guitars gained alone
+#   arrives; the master's limiter, which already ducked 3.4 dB at every muted stroke, ducks 3.6.
+#   THE COST: the loudness target -9.4 -> -9.586 keeps the three quiet sections, where no guitar plays, at the level
+#   they had (they came up 0.46 dB otherwise); the heavy sections are then 0.1 to 0.3 dB quieter than they were.
+# the two guitars' patch ; fx after their eq ; dB on their faders ; the wall pair's patch ; the loudness target
+# ('' = unchanged). On only when KEYED is. "" = v32 byte for byte.
+FRONT = os.environ.get("C10T7_FRONT", "fx.0.attack=15ms;transient attack=8 sustain=0;-2.7;synth.layers.0.thump.mod.0.amount=0.2;-9.586") if KEYED else ""
 # Euclid's definition in nineteen syllables, cut by the rule: phrases of 1, 2, 3, 5 and 8 syllables
 WORDS = [("B R EY1 K",), ("W AH1 N", "L AY1 N"), ("S OW1", "DH AH0", "HH OW1 L"), ("IH1 Z", "T UW1", "DH AH0", "L AO1 NG", "G ER0"),
          ("AE1 Z", "DH AH0", "L AO1 NG", "G ER0", "T UW1", "W AH1 T", "R IH0", "M EY1 N Z")]
@@ -1684,6 +1712,24 @@ def the_backbeat_is_a_flat(doc):
         doc["loudness"] = float(target)
 
 
+def the_chug_gets_its_front(doc):
+    """v33: the two guitars' stroke gets an attack, the wall pair's low end holds through the stroke."""
+    patch, after, trim, walls, target = FRONT.split(";")
+    for t in doc["tracks"]:
+        if t["name"] in ("gl", "gr"):
+            if patch:
+                t["patch"] += " " + patch
+            if after:
+                t["fx"] = list(t.get("fx") or []) + after.split("|")
+            if trim:
+                assert isinstance(t["gain"], str), t["gain"]
+                t["gain"] = f"{float(t['gain'][:-2]) + float(trim):g}dB"
+        elif t["name"] in ("wl", "wr") and walls:
+            t["patch"] += " " + walls
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T7_SHOW"):
         sec = 15 / BPM
@@ -1705,4 +1751,6 @@ if __name__ == "__main__":
             the_short_cells_sing(doc)
         if KEYED:
             the_backbeat_is_a_flat(doc)
+        if FRONT:
+            the_chug_gets_its_front(doc)
         open(OUT, "w").write(dump(doc))
