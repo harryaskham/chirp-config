@@ -687,13 +687,13 @@ def main():
         d, bars, tracks, scenes, plan = choose(n, t["title"], song, reel)
         if cuts:
             six = d["bar_beats"] * 60 / d["bpm"] / 16
-            lens = [(b - a) * six for _, _, shots in S.SHOTS for a, b, _ in shots if len(shots) > 1]
-            views = sum(len(shots) for _, _, shots in S.SHOTS)
-            away = sum((b - a) for _, _, shots in S.SHOTS for a, b, v in shots if v) / max(1, sum(z - a for a, z, _ in S.SHOTS))
+            lens = [(b - a) * six for _, _, shots, _ in S.SHOTS for a, b, _ in shots if len(shots) > 1]
+            views = sum(len(shots) for _, _, shots, _ in S.SHOTS)
+            away = sum((b - a) for _, _, shots, _ in S.SHOTS for a, b, v in shots if v) / max(1, sum(z - a for a, z, *_ in S.SHOTS))
             print(f"{song}: {len(S.SHOTS)} scenes cut into {views} shots; shortest {min(lens, default=0):.1f} s, median {sorted(lens)[len(lens) // 2] if lens else 0:.1f} s; "
                   f"{100 * away:.0f}% of the time away from the first view")
             if "--plan" in sys.argv:
-                for a, z, shots in S.SHOTS:
+                for a, z, shots, _ in S.SHOTS:
                     print(f"  {a / 16:7.2f}-{z / 16:<7.2f} " + " ".join(f"{v}:{(y - x) * six:.1f}" for x, y, v in shots))
             continue
         if show:
@@ -714,9 +714,11 @@ def main():
                 f"# ({bars} bars; {len(scenes)} scenes). Do not edit: run ctgen.py {n} again when the song changes.\n")
         out = os.path.join(OUT, f"{song}{'-reel' if reel else ''}.yaml")
         figures = [(round(a, 4), round(b - a, 4)) for a, b, *_ in plan]
+        # Which detail of the figure is on screen (where the shots are certain).
+        details = [(x / 4, (y - x) / 4, "ABCDEFGH"[v - 1]) for _, _, shots, sure in S.SHOTS if sure for x, y, v in shots if v] if not reel else []
         white = n in WHITE
         prog = {"fade": [0, 0] if white or reel else ["1bar", "2bar"],
-                "master": S.master(n, t["title"], white=white, figures=figures, bars=bars, window=reel[:2] if reel else None), "scenes": scenes}
+                "master": S.master(n, t["title"], white=white, figures=figures, bars=bars, window=reel[:2] if reel else None, details=details), "scenes": scenes}
         open(out, "w").write(head + json.dumps(prog, indent=1) + "\n")
         print(f"{song}: {len(scenes)} scenes: " + " ".join(p[2] for p in plan))
     # (In a plan, `knot` is a round tied as a knot and `name*` another study given a whole round.)

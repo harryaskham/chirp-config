@@ -90,10 +90,11 @@ def waited(look, when):
     return look
 
 
-def master(number, title, white=False, figures=(), bars=0, window=None):
+def master(number, title, white=False, figures=(), bars=0, window=None, details=()):
     """What lies over every scene of a song: the plate's name for its first bars, a legend in
     the corner (the plate, and which figure of it this scene is: `figures` is each scene's
-    (first bar, bars)), and the print. `white`: the song is printed as a negative, black
+    (first bar, bars)), in the other corner which detail of the figure is shown, while one is
+    (`details`: (first beat, beats, letter)), and the print. `white`: the song is printed as a negative, black
     figures on a pale ruled wall (the spot colour turns to its complement, an ink).
     `window` (first bar, last bar): an excerpt, which opens on the name at its own first bar
     and comes up from black and goes back to it by itself."""
@@ -110,6 +111,9 @@ def master(number, title, white=False, figures=(), bars=0, window=None):
     if figures:
         label.append({"type": "captions", "size": 0.034, "x": -1.7, "y": -0.955, "align": "left", "color": DIM, "width": 0.1, "skew": 0, "glow": 0, "typing": 0, "fade": 0.4,
                       "opacity": 0.9, "lines": [[f"{a}bar" if a else 0, f"{b}bar", f"PL. {number:02d}   FIG. {k + 1}"] for k, (a, b) in enumerate(figures)]})
+    if details:
+        label.append({"type": "captions", "size": 0.034, "x": 1.7, "y": -0.955, "align": "right", "color": DIM, "width": 0.1, "skew": 0, "glow": 0, "typing": 0, "fade": 0.04,
+                      "opacity": 0.9, "lines": [[f"{a:g}b", f"{n:g}b", f"DET. {x}"] for a, n, x in details]})
     if white and bars:
         # A negative comes up from black and goes back to it: a programme's own fade is taken
         # before the print is turned over, and would leave a blank white page at each end.
@@ -232,7 +236,8 @@ ANCHOR = {}
 engine's reading of the notes)."""
 
 SHOTS = []
-"""What `cutting` made of each scene, for ctgen to check: (start, end, [(from, to, view)])."""
+"""What `cutting` made of each scene, for ctgen: (start, end, [(from, to, view)], sure). `sure`:
+the shots are certain (no meeting can bring the first view back out of turn)."""
 
 
 def apart(tracks, plain=()):
@@ -302,14 +307,15 @@ def cutting(look, lead, plain=(), slots=2, tracks=(), tail=0):
     (Meetings that come round every bar or two do not cut: the border is enough.)
     `var.free` is 0 while it does. Returns the test for view k."""
     shots = shot_list(lead, plain, slots, tail)
-    SHOTS.append((START, END, shots))
+    meets = "flash" in look.get("env", {}) and apart(tracks, plain) >= 7 and len(shots) > 1
+    SHOTS.append((START, END, shots, not meets))
     now = {"attack": "0ms", "release": "0ms"}
     on = lambda a, b: f"(step({a:g}, var.b16) - step({b:g}, var.b16))"   # noqa: E731
     slot = " + ".join(f"{v}*{on(a, b)}" for a, b, v in shots if v) or "0"
     along = " + ".join(f"{on(a, b)}*(var.b16 - {a:g})/{b - a:g}" for a, b, v in shots[1:]) or "0"
     v = look.setdefault("vars", {})
     v.update({"b16": {"follow": "time.beat*4", **now}, "slot": {"follow": slot, **now}, "along": {"follow": along, **now}})
-    if "flash" in look.get("env", {}) and apart(tracks, plain) >= 7 and len(shots) > 1:
+    if meets:
         event = "step(0.3, env.flash*(1 - var.lag)*min(1, var.age/8))"
         edge = f"(1 - step(0.04, var.along))*step({shots[1][0]:g}, var.b16)"     # a cut has just come
         v.update({
@@ -399,8 +405,9 @@ def wheels(tracks, spot, spot_track=None, plain=()):
     marks = border(spot) if n > 1 else []
     look = {"vars": vars_, "env": env, "background": BLACK, "camera": CAM, "layers": backdrop() + layers + plates + ruler() + marks, "filters": finish(spot)}
     look = waited(look, together(tracks, plain)) if n > 1 else look
-    # Details: each wheel in turn (a wheel alone: its upper half, where the necklace is read).
-    return rostrum(look, tracks[0], [(1.5, 0.9, 0.9)] if n == 1 else [({2: 1.7, 3: 2.0, 4: 2.3}[n], x, cy) for x in xs], plain, tracks)
+    # Details: each wheel in turn, as close as holds the biggest wheel whole (a wheel alone:
+    # its upper half, where the necklace is read).
+    return rostrum(look, tracks[0], [(1.5, 0.9, 0.9)] if n == 1 else [(min({2: 1.7, 3: 2.0, 4: 2.3}[n], HALF_H / (rmax + 0.06)), x, cy) for x in xs], plain, tracks)
 
 
 # ───────────────────────── the disc (a phenakistoscope turned by a riff) ─────────────────────────
@@ -1296,14 +1303,28 @@ def finish_line(tracks, spot, spot_track=None, subject="runner", bars=2, plain=(
     v = 2 * HALF_W / (16 * bars)              # world units a sixteenth: the film's speed
     lane = (2 * HALF_H - 0.35) / n
     rig_h = SUBJECTS[subject][2]
-    tall = min(0.74 * lane, 2.6)
-    size = tall / rig_h
+    long = 1.55 if SUBJECTS[subject][0] == "horse" else 0.8      # a body's length, in heights
     layers = []
     vars_ = {}
+    talls = []
+    for t in tracks:
+        # As tall as the lane lets it be, and no longer than the strip gives it between one
+        # crossing and the next (a short riff's runners come close together: nose to tail,
+        # not through one another).
+        c = max(1, int(HELD.get(t) or 16)) if t not in plain else 16
+        gap = v * c * (1 + (c <= 4) + (c <= 2)) / (1 + (c >= 17) + (c >= 33))
+        talls.append(max(0.45 * min(0.74 * lane, 2.6), min(0.74 * lane, 2.6, gap / long)))
+    top = HALF_H - 0.1
+    if n == 1 and lane > 1.5 * talls[0] + 0.5:
+        # A lone lane is no taller than its runners need, and lies across the middle.
+        lane = 1.5 * talls[0] + 0.5
+        top = lane / 2 + 0.1
     for i, t in enumerate(tracks):
-        foot = (HALF_H - 0.1) - (i + 1) * lane
+        foot = top - (i + 1) * lane
         col = spot if t == spot_track else INK
         celled = t not in plain
+        tall = talls[i]
+        size = tall / rig_h
         T, C = clock(t, celled), teeth(t, celled)
         # A riff shorter than five sixteenths is counted in twos or threes, so a body still
         # fits; a very long one sends two or three runners a turn, so the lane is not bare.
@@ -1351,6 +1372,8 @@ def finish_line(tracks, spot, spot_track=None, subject="runner", bars=2, plain=(
         "filters": [{"type": "slit", "x": round(xs * K, 4), "speed": f"time.bpm/{2*bars}", "live": 0.8, "band": 1}] + finish(spot),
     }
     # Details: the line itself, lane by lane (the runners come through it large), and the
-    # strip a bar back.
-    lanes = [(HALF_H - 0.1) - (i + 0.5) * lane for i in range(n)]
-    return rostrum(look, tracks[0], [(1.8, xs - 0.6, y) for y in lanes[:2]] + [(1.5, -1.5, lanes[-1])], plain)
+    # strip a bar back. Each is centred on the runner, who stands at the foot of the lane,
+    # and no closer than holds the runner whole.
+    bodies = [top - (i + 1) * lane + talls[i] / 2 for i in range(n)]
+    close = min(2.0, 2 * HALF_H / (1.5 * max(talls)))
+    return rostrum(look, tracks[0], [(close, xs - 0.6, y) for y in bodies[:2]] + [(min(1.5, close), -1.5, bodies[-1])], plain)

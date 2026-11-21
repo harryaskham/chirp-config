@@ -74,6 +74,12 @@ What every plate shares:
     the next cut; meetings that come round every bar or two do not cut.
   - `CT_SHOW_CUTS=1 python3 ctgen.py --out=DIR` writes programmes whose black is lifted a
     step per view, so a tool can read every frame's view off a clip (never for a film).
+  - The legend names what is on screen: `PL. 06  FIG. 2` in one corner, and `DET. A`, `B`,
+    … in the other while a detail is (only where the shots are certain).
+- **A photo-finish runner fits its strip:** as tall as its lane lets it be, and no longer
+  than the strip gives it between one crossing and the next (a short riff's runners come
+  nose to tail, not through one another). A lone lane is no taller than its runners need
+  and lies across the middle. The details are centred on the runners.
 - **A plate's subject is there from the start:** a part gets a body only if it plays within
   about the scene's first four seconds (three bars of a quick song, one of a slow one).
 - **A camera already running** (`lead` on a scene; `LEAD` in `ctgen.py`): a plate, a strip, a
