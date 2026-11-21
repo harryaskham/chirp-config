@@ -1780,6 +1780,37 @@ def show(x):
     return "".join(s)
 
 
+# v36 (chirper-zero; instrument round: the machine's hat, 572 strokes, none moved). THE MACHINE'S HAT COMES DOWN OUT
+# OF THE TOP OCTAVE. Three handoffs (v30, v32, v33) carried "8-16 kHz 1.0 to 2.2 over in every stretch" and nobody
+# had read whose it was. Muted in turn (mu.sh + mur.py; what each adds to the raw mix at 8-16 kHz): in the walls the
+# machine's hat 3.0 dB, the chips 0.3, the cymbals 0.3; in 'four' the hat 1.8; at the top the hat 1.4, the chips 1.5,
+# the cymbals 1.2. So everywhere but the top it is the hat, and the hat is the machine's as it comes: six squares
+# through a band-pass at 7.1 kHz, never fitted. Alone beside the records' metal as a shape it stood +11.8, +10.6 and
+# +10.7 dB at 8, 10 and 12.5 kHz. The machine layer has its own control for that, `tone`, the band-pass's centre:
+# at 4.5 kHz, where the records' metal has its own centre (4 to 6.3 kHz), the hat stands +4.1, +2.4, +3.0 there
+# (alone 6.76 -> 5.34), and the nine band stretches read beside the records go 12.82 -> 11.75 summed (8-16 kHz in
+# the walls +3.2 / +3.3 -> +1.1 / +1.5; 4-8 kHz +0.2 to +0.3, the cost). The fader comes up 0.3 dB: alone it is as
+# loud as it was. Further down reads closer still on both yardsticks (4 kHz: 5.01 and 11.44) and so does the hat
+# 1.5 dB quieter; both were left: the hat is this song's pulse and its open stroke is the song's sign for news, and
+# how dark or how quiet that may be is an ear's to say.
+# the closed hat's `tone` (Hz) ; the open hat's ; dB on the track's fader ; the loudness target ('' = unchanged).
+# '' = v35 byte for byte. On only while SPARE is.
+HATBAND = os.environ.get("C10T6_HATBAND", "4500;4500;0.3;" if SPARE else "")
+
+
+def the_hat_comes_down(doc):
+    """v36: the machine's hat (closed and open) has its band-pass centre moved down by the machine layer's own `tone`."""
+    closed, opened, trim, target = HATBAND.split(";")
+    t = next(t for t in doc["tracks"] if t["name"] == "hat")
+    assert t["patch"] == "cc-machine", t["patch"]
+    t["patch"] = " ".join(["cc-machine"] + ([f"kit.h.patch.synth.layers.0.machine.tone={closed}"] if closed else [])
+                          + ([f"kit.o.patch.synth.layers.0.machine.tone={opened}"] if opened else []))
+    if trim and t["gain"]:                                 # on top of the hat's own fader (C10T6_HAT)
+        t["gain"] = f"{float(t['gain'][:-2]) + float(trim):g}dB"
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T6_SHOW"):
         for name, n, _ in DIAL:
@@ -1799,4 +1830,6 @@ if __name__ == "__main__":
             the_dial_does_not_jump(doc)
         if SPARE:
             what_is_not_yet_filled(doc)
+        if HATBAND:
+            the_hat_comes_down(doc)
         open(OUT, "w").write(dump(doc))
