@@ -5,6 +5,8 @@
     ctgen.py 3 7             only those tracks
     ctgen.py --plan 3        print what it found in the song and what it chose, write nothing
     ctgen.py --out=DIR …     write the programmes to DIR instead of vis/
+    ctgen.py --reel=N:A:B[:E]  a sampler: song N from bar A to bar B with a scene every E bars
+                             (4), each a different study; writes chirpers10-tN-reel.yaml
 
 The songs are still being written, so nothing here is fixed to a bar by hand. For each song the
 generator reads the notes (tools/songmap.py: `chirp plan` and a MIDI render), and works out:
@@ -281,13 +283,17 @@ def distinct(tracks, a, b):
     return kept
 
 
-def choose(n, title, song):
+def choose(n, title, song, reel=None):
     d, bars, tracks = analyse(song)
     spot = SPOTS[(n - 1) % len(SPOTS)]
     # A scene lasts about 26 seconds: so many bars at this song's tempo, in fours.
     bar_s = d["bar_beats"] * 60 / d["bpm"]
     long = int(min(16, max(8, round(26 / bar_s / 4) * 4)))
     secs = sections(bars, tracks, short=max(4, long // 2), long=long)
+    if reel:
+        # A sampler: a scene every so many bars through one stretch of the song.
+        first, end, every = reel
+        secs = [(a, min(a + every, end)) for a in range(first, min(end, bars), every)]
     scenes, plan, last = [], [], None
     used = collections.Counter()
     for k, (a, b) in enumerate(secs):
@@ -360,7 +366,7 @@ def choose(n, title, song):
             order.insert(2, "flight")
         # Each song begins its round of the studies somewhere else, so no two songs go
         # through them in the same order.
-        turn = (n * 3) % len(order)
+        turn = 0 if reel else (n * 3) % len(order)
         order = order[turn:] + order[:turn]
         # The one used least so far in this song (never the same twice running); ties go to
         # what suits best.
@@ -431,7 +437,7 @@ def choose(n, title, song):
             look = S.flight(use, spot, use[0], ranges=rng)
             names = use
             cells = [None] * len(use)
-        scenes.append({"at": f"{a}bar" if a else 0, "look": look})
+        scenes.append({"at": f"{a}bar" if a and scenes else 0, "look": look})
         plan.append((a, b, shown, names[:4], cells[:4], tune.name if tune else "-"))
     return d, bars, tracks, scenes, plan
 
@@ -446,12 +452,15 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     only = [int(a) for a in args] or [int(t["n"]) for t in ALBUM["tracks"]]
     show = "--plan" in sys.argv
+    reel = next((tuple(int(x) for x in a[7:].split(":")) for a in sys.argv[1:] if a.startswith("--reel=")), None)
+    if reel:
+        only, reel = [reel[0]], (reel[1], reel[2], reel[3] if len(reel) > 3 else 4)
     for t in ALBUM["tracks"]:
         n = int(t["n"])
         if n not in only:
             continue
         song = t["id"]
-        d, bars, tracks, scenes, plan = choose(n, t["title"], song)
+        d, bars, tracks, scenes, plan = choose(n, t["title"], song, reel)
         if show:
             print(f"{song} \"{t['title']}\": {bars} bars, {d['bpm']:.0f} bpm, {len(tracks)} tracks"
                   + ("" if d.get("engine") else "  (cells read here, not by the engine: build the chirp-video branch or set $CHIRP)"))
@@ -467,10 +476,11 @@ def main():
             continue
         head = (f"# chirpers10 t{n} \"{t['title']}\": written by compose/chirpers10/vis-gen/ctgen.py from the song's own notes\n"
                 f"# ({bars} bars; {len(scenes)} scenes). Do not edit: run ctgen.py {n} again when the song changes.\n")
-        out = os.path.join(OUT, f"{song}.yaml")
+        out = os.path.join(OUT, f"{song}{'-reel' if reel else ''}.yaml")
         figures = [(a, b - a) for a, b, *_ in plan]
         white = n in WHITE
-        prog = {"fade": [0, 0] if white else ["1bar", "2bar"], "master": S.master(n, t["title"], white=white, figures=figures, bars=bars), "scenes": scenes}
+        prog = {"fade": [0, 0] if white or reel else ["1bar", "2bar"],
+                "master": S.master(n, t["title"], white=white, figures=figures, bars=bars, window=reel[:2] if reel else None), "scenes": scenes}
         open(out, "w").write(head + json.dumps(prog, indent=1) + "\n")
         print(f"{song}: {len(scenes)} scenes: " + " ".join(p[2] for p in plan))
 

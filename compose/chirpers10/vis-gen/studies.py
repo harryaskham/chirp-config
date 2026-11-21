@@ -64,19 +64,22 @@ def finish(spot):
     return [{"type": "bloom", "threshold": 0.5, "amount": "0.2 + 1.0*audio.low", "radius": "0.012 + 0.016*audio.low"}]
 
 
-def master(number, title, white=False, figures=(), bars=0):
+def master(number, title, white=False, figures=(), bars=0, window=None):
     """What lies over every scene of a song: the plate's name for its first bars, a legend in
     the corner (the plate, and which figure of it this scene is: `figures` is each scene's
     (first bar, bars)), and the print. `white`: the song is printed as a negative, black
-    figures on a pale ruled wall (the spot colour turns to its complement, an ink)."""
+    figures on a pale ruled wall (the spot colour turns to its complement, an ink).
+    `window` (first bar, last bar): an excerpt, which opens on the name at its own first bar
+    and comes up from black and goes back to it by itself."""
+    bar = f"(time.bar - {window[0]})" if window else "time.bar"
     label = [
         # The plate is all but blank while its name is up, then comes up under it as a print
         # does in the tray.
-        {"type": "shape", "sides": 4, "radius": 4, "width": 0, "fill": 1, "color": "#161616", "blend": "multiply", "opacity": "1 - smooth(2.4, 4.6, time.bar)"},
+        {"type": "shape", "sides": 4, "radius": 4, "width": 0, "fill": 1, "color": "#161616", "blend": "multiply", "opacity": f"1 - smooth(2.4, 4.6, {bar})"},
         {"type": "text", "text": f"PLATE {number:02d}", "size": 0.05, "x": 0, "y": 0.2, "align": "center", "color": DIM, "width": 0.11, "skew": 0,
-         "opacity": "smooth(0.1, 0.6, time.bar)*(1 - smooth(3.2, 4.2, time.bar))"},
+         "opacity": f"smooth(0.1, 0.6, {bar})*(1 - smooth(3.2, 4.2, {bar}))"},
         {"type": "text", "text": title.upper(), "size": 0.17, "x": 0, "y": -0.07, "align": "center", "color": INK, "width": 0.12, "skew": 0,
-         "opacity": "1 - smooth(3.2, 4.2, time.bar)", "reveal": "smooth(0.3, 1.6, time.bar)"},
+         "opacity": f"1 - smooth(3.2, 4.2, {bar})", "reveal": f"smooth(0.3, 1.6, {bar})"},
     ]
     if figures:
         label.append({"type": "captions", "size": 0.034, "x": -1.7, "y": -0.955, "align": "left", "color": DIM, "width": 0.1, "skew": 0, "glow": 0, "typing": 0, "fade": 0.4,
@@ -90,6 +93,9 @@ def master(number, title, white=False, figures=(), bars=0):
         {"type": "grain", "amount": 0.05},
         {"type": "vignette", "amount": 0.3 if white else 0.55},
     ]
+    if window:
+        # Over the print, so a negative's excerpt goes to black too.
+        filters.append({"type": "color", "brightness": f"0 - 2*max(1 - smooth(0, 0.5, {bar}), smooth({window[1] - window[0] - 1}, {window[1] - window[0]}, {bar}))"})
     return {"layers": label, "filters": filters}
 
 
