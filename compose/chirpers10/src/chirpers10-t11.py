@@ -461,6 +461,11 @@ WALLS = os.getenv('C10T11_WALLS', 'wallL,wallR;synth.layers.0.thump.mod.0.amount
 # what is added to the kick's patch ; bands added to its track's eq, band|band ; dB on its fader ; the loudness
 # target ('' = unchanged). '' = v29 byte for byte. On only while WALLS is.
 BEATER = os.getenv('C10T11_BEATER', 'kit.k.patch.synth.layers.2.level.value=-40dB;lp cutoff=7000 q=0.7;;-9.753' if WALLS else '')
+# v31 (chirper-zero; section round, w6, 2:13-2:40: flagged static; the change is 2:30-2:40). THE WALK IS AN INTERVAL.
+# (The notes are below, beside the switch's use in make().)
+# semitones the wall pair's chords go up, phrase by phrase ; first cell of the swing ; cells in each phrase ; the
+# loudness target ('' = unchanged). '' = v30 byte for byte. On only while BEATER is.
+ABOVE = os.getenv('C10T11_ABOVE', '7,19;4;2,2;-9.759' if BEATER else '')
 
 
 def BOW_PATCH():
@@ -1067,6 +1072,32 @@ def make():
         if over: t['patch']=t['patch']+' '+over
         if bands: t['fx']=[{'type':'eq','bands':list(t['fx'][0]['bands'])+bands.split('|')}]
         if fader: t['gain']=f"{float(t['gain'][:-2])+float(fader):g}dB"
+        if target:
+            doc['loudness']=float(target)
+    if ABOVE:
+        # v31: THE WALK IS AN INTERVAL. The riff never changes and the walk does: four steps to the cell, or six, and
+        # from 2:35 twelve (v20). Six steps against four is three against two, and three against two is a fifth;
+        # twelve against four is three against one, a twelfth (an octave and a fifth): the walks stand to each other
+        # as the riff's own B flat stands to its F. From 2:30, where the heavy riff is walked in six for the first
+        # time, the wall pair plays the riff's chords a fifth above the twin pair for the two cells of the six, and
+        # a twelfth above for the two cells of the twelve; at 2:40 the broad four is what is left and the pair is
+        # back on the riff. (v8 had already sent its answers up an octave over the three broad phrases before, and
+        # an octave is the same walk.) The twin pair, the bass and the kick keep the riff as written; the wall
+        # pair's clipped strokes stay on the low string; v8's D flat 3 at 2:30.3 is not touched. 23 chords re-voiced;
+        # no note is added, dropped or moved in time.
+        semis,first,cells,target=ABOVE.split(';')
+        a0=(marks['swing']+int(first)*CELL)/SUB
+        def up(pitch,semi):
+            m=PITCH.index(pitch[:-1])+12*(int(pitch[-1])+1)+semi; return f'{PITCH[m%12]}{m//12-1}'
+        for semi,n_cells in zip((int(x) for x in semis.split(',')),(int(x) for x in cells.split(','))):
+            a1=a0+n_cells*CELL/SUB
+            for name in ('wallL','wallR'):
+                t=next(t for t in doc['tracks'] if t['name']==name)
+                for n in t['notes']:
+                    low=min(PITCH.index(q[:-1])+12*(int(q[-1])+1) for q in n['pitch'].split(','))<48   # not v8's D flat 3
+                    if a0<=n['at']<a1 and not (n.get('expr') or {}).get('pm') and low:
+                        n['pitch']=','.join(up(q,semi) for q in n['pitch'].split(','))
+            a0=a1
         if target:
             doc['loudness']=float(target)
     return doc,marks
