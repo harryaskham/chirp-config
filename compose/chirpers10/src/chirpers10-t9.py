@@ -1317,6 +1317,65 @@ def the_foot_and_the_bass_turn_last(doc):
         doc["loudness"] = float(target)
 
 
+# v33 (chirper-zero; section round, w2, 0:22-0:45; the change is 0:22.5-0:32.5): THE RIFF IS DEALT.
+# The song's rule is that every seven bars the guitars fit one more stroke to the beat. At two the one more stroke
+# can be the OTHER GUITAR'S. For the four cells where the hat has two jobs (chirper-two's v9, 0:22.5-0:32.5) each of
+# the two guitars plays ONE stroke to the beat, as both did in the opening: the left on the beats, the right between
+# them. Together they are the riff at two to the beat, every stroke of it, and neither hand has sped up.
+# WHAT EACH PLAYS. The riff is seven strokes and its pitches come round every fourteen, so the deal comes out the
+# same every seven beats: each guitar has a figure seven beats long, an open F, four muted strokes and two answers
+# side by side. The right has A flat and B; the left has G flat and C. The riff's answers are "the album hook in two
+# bites" (v1): each bite is now said whole by one guitar, on one side, at the opening's pace.
+# THE HAT ALREADY SAID IT. In v9 the stick follows the riff's open F and answers: where one falls on the beat it is
+# a dry closed stroke, where one falls between the beats it opens a wash. Counted: the six open strokes are the
+# right guitar's six accents and the six dry ones are the left guitar's six. The hat told the two apart; the
+# guitars now are the two.
+# BY SUBTRACTION: 28 of the 56 guitar strokes are left out (14 from each); none is added or moved. The bass and the
+# foot still play every stroke, so the riff is whole underneath. The 28 that stay are on two new last tracks,
+# gl-dealt and gr-dealt: the same two rigs 3 dB up, because one guitar alone on a stroke is half of what two were.
+# Benched without that (on their own tracks): the passage 1.05 dB down (2.0 at 2-4 kHz, where 'two' is already
+# short of the records) and the mix's read of 'two' 1.000 -> 1.300. With it: +0.04 dB raw, every band within 0.22,
+# the read 1.000 -> 0.967.
+# the section ; the first stroke of it dealt : the first not dealt (strokes from 0, two to the beat) ; who keeps the
+# strokes on the beat ; who keeps the strokes between ; dB on those two guitars' faders for the dealt strokes ('' =
+# by subtraction alone, on their own tracks) ; the loudness target ('' = unchanged).
+# '' = v32 byte for byte. On only while TURNS is.
+DEALT = os.environ.get('C10T9_DEALT', 'two;7:35;gl;gr;3;-10.378' if TURNS else '')
+
+
+def the_riff_is_dealt(doc):
+    """v33: through the four cells where the hat has two jobs (v9) each of the two guitars plays one stroke to the
+    beat, as in the opening: one on the beats, the other between them. By subtraction; no stroke is new or moved."""
+    sec, span, on, off, lift, target = DEALT.split(";")
+    a = next(b0 for name_, b0 in MARKS if name_ == sec)
+    s0, s1 = (int(x) for x in span.split(":"))
+    tracks = {t["name"]: t for t in doc["tracks"]}
+    stroke = lambda n: (n["at"] - a) * 2
+    whole = lambda n: abs(stroke(n) - round(stroke(n))) < 1e-6
+    inside = lambda n: s0 <= round(stroke(n)) < s1 and whole(n)
+    before = {nm: [n for n in tracks[nm]["notes"] if inside(n)] for nm in (on, off)}
+    assert all(len(v) == s1 - s0 for v in before.values()), {k: len(v) for k, v in before.items()}   # both play every stroke
+    assert [(n["at"], n["pitch"]) for n in before[on]] == [(n["at"], n["pitch"]) for n in before[off]]   # and the same ones
+    moved = {}
+    for nm, parity in ((on, 0), (off, 1)):
+        keep = [n for n in tracks[nm]["notes"] if not inside(n) or round(stroke(n)) % 2 == parity]
+        if lift:
+            mine = [n for n in keep if inside(n)]
+            keep = [n for n in keep if not inside(n)]
+            moved[nm] = mine
+        tracks[nm]["notes"] = keep
+    if lift:
+        for nm in (on, off):
+            t = {k: v for k, v in tracks[nm].items() if k != "notes"}
+            t["name"] = nm + "-dealt"
+            assert not any(x["name"] == t["name"] for x in doc["tracks"])
+            t["gain"] = f"{float(t['gain'].rstrip('dB')) + float(lift):g}dB"
+            t["notes"] = moved[nm]
+            doc["tracks"].append(t)
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T9_SHOW"):
         end = compose()
@@ -1355,4 +1414,6 @@ if __name__ == "__main__":
             the_drone_comes_first(doc)
         if TURNS:
             the_foot_and_the_bass_turn_last(doc)
+        if DEALT:
+            the_riff_is_dealt(doc)
         open(OUT, "w").write(dump(doc))
