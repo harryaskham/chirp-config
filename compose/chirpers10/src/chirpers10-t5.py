@@ -1199,7 +1199,7 @@ TAPE = os.environ.get("C10T5_TAPE", "1;84:96;-1;0.575;0.41;-24;" if FALLTONE els
 # the pole, and up the run out of it. No other part changes.
 # dB on the tone against its level under the stair ; bars from:to ; the loudness target ('' = unchanged). '' = v29.
 # It is on only while no other C10T5_ switch is set, so every older switch gives exactly what it gave.
-HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM", "C10T5_SNARE", "C10T5_LEAN") for k in os.environ) else "")
+HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM", "C10T5_SNARE", "C10T5_LEAN", "C10T5_ASCENT") for k in os.environ) else "")
 
 # v31 (chirper-two; palette: the song had no voice, and no song on the album had used the engine's speech to song):
 # WE HAVE BEEN HERE BEFORE. A song "all about the illusions" (Harry, 15 Nov) had every illusion of pitch and of speed
@@ -1512,6 +1512,8 @@ def song():
         the_snare_comes_out_of_its_box(doc)
     if LEAN:
         the_bass_leans_on_its_octave(doc)
+    if ASCENT:
+        the_lead_goes_back_up(doc)
     return doc
 
 
@@ -1845,6 +1847,57 @@ def the_bass_leans_on_its_octave(doc):
     if fall:
         for n in ("bs0", "bs1"):
             by[n]["patch"] += " " + fall
+    if target:
+        doc["loudness"] = float(target)
+
+
+# v38 (chirper-zero; section round, w5, 1:55.2-2:24, the fall at a step a bar; no section round had worked on it):
+# THE LEAD GOES BACK UP.
+# The descent is "the stair, downwards, and all of it", and one by one the stair's things were given their mirror
+# there: its tone (chirper-alpha, v28), its kit that changes gear (v10 for v24), its tom fill that never arrives (v5,
+# which chirper-three's v23 took back up the stair), the two sides going opposite ways (v21 for v8). One thing of the
+# stair's had no mirror: THE LEAD (v4), "the one honest line": over a stair that climbs for ever and is no higher,
+# one guitar really comes down, two octaves, F5 to F3, a note to the half bar. The fall's first twelve bars had no
+# line at all: one note a bar on eight guitars.
+# Now the same guitar answers itself: over the fall that is never lower it really CLIMBS, the same thirteen notes
+# backwards, F3 to F5, the same twelve half bars and the short thirteenth on the bar line. So the honest line has
+# gone down two octaves and come back up two and is where it began: by walking. The band gets back to where it
+# began by never having left.
+# WHERE: bars 54-60 (2:09.6-2:24), and nothing was moved to fit it:
+#   it comes in where the fall has gone round once and is on F again, on the low F it landed on in the stair;
+#   the two tom fills that never land (v5: eight strokes into bar 54, twelve into bar 60) already stand at its two
+#   ends, as chirper-three's stand at the two ends of the lead's first octave in the stair, and a crash is on each;
+#   it reaches its top F on the bar line where the fall steepens and the right-hand guitars take up a climb of their
+#   own (v21): the lead hands the way up to them, as in the stair it handed the way down to the guitars' run.
+#   The lead goes up two steps of the scale a bar and the band comes down one, so every second bar line they are on
+#   one note: F (bar 54), C (56), A flat (58), F (60).
+# HOW LOUD: on the lead's own patch, pan and fader (a new last track, `ascent`). Read against the band note by note
+# (raw, the mix with it less the mix without): it stands +0.45 dB (K) over the fall where the lead stands +0.44 over
+# the stair; +2.6 dB at 700 Hz-1.4 kHz for +2.2. Nothing of it is above 8 kHz: the slowing hat (chirper-one, v15;
+# Harry: "Yes, keep the pull") stands as it did. The notes are read from the `lead` track as it stands, so whoever
+# changes the lead changes its answer.
+# first bar ; the new track's fader ("" = the lead's own) ; the loudness target ("" = unchanged).
+# "" = v37 byte for byte. On only while LEAN and LEAD are; C10T5_ASCENT is in HALFWAY's list of names that do not turn
+# it off.
+ASCENT = os.environ.get("C10T5_ASCENT", "54;;-10.0379" if LEAN and LEAD else "")
+
+
+def the_lead_goes_back_up(doc):
+    """v38: the stair's lead, the same thirteen notes backwards, over the fall: the same form (twelve notes a half bar
+    each and a short thirteenth on the bar line), read from the `lead` track as it stands, so whoever moves the lead
+    moves its answer. A new last track on the lead's own patch and pan."""
+    b0, fader, target = ASCENT.split(";")
+    assert LEAD, "the ascent answers the stair's lead: there is none"
+    lead = next(t for t in doc["tracks"] if t["name"] == "lead")
+    assert all(t["name"] != "ascent" for t in doc["tracks"]) and "ascent" not in doc.get("buses", {})
+    down = sorted(lead["notes"], key=lambda n: n["at"])
+    assert len(down) == 13 and all(set(n) == {"at", "len", "pitch", "vel"} for n in down), len(down)
+    start = down[0]["at"]
+    notes = [{"at": round(int(b0) * 4 + (n["at"] - start), 4), "len": n["len"], "pitch": back["pitch"], "vel": n["vel"]}
+             for n, back in zip(down, reversed(down))]
+    assert notes[-1]["at"] == int(b0) * 4 + 24 and notes[0]["pitch"] == down[-1]["pitch"]
+    doc["tracks"].append({"name": "ascent", "patch": lead["patch"], "gain": f"{float(fader):g}dB" if fader else lead["gain"],
+                          "pan": lead["pan"], "notes": notes})
     if target:
         doc["loudness"] = float(target)
 
