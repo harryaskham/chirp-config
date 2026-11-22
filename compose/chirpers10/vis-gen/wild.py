@@ -1620,42 +1620,87 @@ def cube(c):
     return {"background": c.bg, "camera": cam(f"6.2*sin({spin})", 3.2, f"0 - 6.2*cos({spin})", zoom=1.55), "layers": layers, "filters": post3d(-3, 5, -6, shadow=0.5)}
 
 
+def _laid_walk(c, segs, hit):
+    """A walk laid out to fill the frame. `segs` are its legs in order, (from, to, heading,
+    length), times in sixteenths and headings in turns; each leg is drawn as it is walked,
+    and a lamp goes along it. Nothing is kept from frame to frame: the walk is worked out
+    here, so it can be made to fit."""
+    pts = [(0.0, 0.0)]
+    for _, _, h, ln in segs:
+        x, y = pts[-1]
+        pts.append((x + ln * math.cos(2 * math.pi * h), y + ln * math.sin(2 * math.pi * h)))
+    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    sc = min(7.6 / max(max(xs) - min(xs), 1e-6), 4.1 / max(max(ys) - min(ys), 1e-6))
+    ox, oy = -(max(xs) + min(xs)) / 2 * sc, -(max(ys) + min(ys)) / 2 * sc
+    mean = sum(ln for _, _, _, ln in segs) / len(segs) * sc
+    thick = max(0.016, min(0.05, 0.06 * mean))
+    now = "(time.beat*4)"
+    layers, px, py = [], [f"{pts[0][0] * sc + ox:g}"], [f"{pts[0][1] * sc + oy:g}"]
+    for (t0, t1, h, ln), (x, y) in zip(segs, pts):
+        g = f"clamp(({now} - {t0:g})/{max(t1 - t0, 1e-3):g}, 0, 1)"
+        on = f"step({t0:g}, {now})"
+        dx, dy = ln * sc * math.cos(2 * math.pi * h), ln * sc * math.sin(2 * math.pi * h)
+        layers.append(box(f"{x * sc + ox:g} + {dx / 2:g}*{g}", f"{y * sc + oy:g} + {dy / 2:g}*{g}", 0, f"({ln * sc / 2:g}*{g} + {thick:g})*{on}", f"{thick:g}*{on}", 0.01, rz=round(h % 1, 5),
+                          **glow(c.ink, f"0.5 + 1.7*exp(0 - 0.1*max({now} - {t0:g}, 0))")))
+        px.append(f"{dx:g}*{g}")
+        py.append(f"{dy:g}*{g}")
+    layers.append(ball("var.px", "var.py", -0.05, f"{2.2 * thick:g} + 0.12*{hit}", 10, **glow(c.a, 3)))
+    return {"background": c.bg, "camera": FLAT,
+            "vars": {"px": {"follow": " + ".join(px), "attack": "0ms", "release": "0ms"}, "py": {"follow": " + ".join(py), "attack": "0ms", "release": "0ms"}},
+            "layers": layers, "filters": [bloom(c, 0.4, 0.016, 0.6)]}
+
+
 @idiom(needs=1, fam="curve")
 def turtle(c):
     """A lamp that walks straight and turns a corner each time a riff comes round, right for
-    one riff and left for the other; the plate keeps its whole walk."""
+    one riff and left for the other; its whole walk stays drawn, and is laid out beforehand
+    so that it fills the frame."""
     A = c.riffs[0]
     B = c.riffs[1] if len(c.riffs) > 1 else None
-    t0 = math.floor((c.a16 - A.anchor) / A.cell)
-    if not B:
-        # One riff alone: the sides grow as it goes, so the walk winds outward (a square, a
-        # three-cornered or a five-pointed winding, by turns).
-        step, reach, g_ = ((0.25, 1.0, 0.22), (1 / 3, 0.8, 0.55), (0.4, 0.62, 0.5), (0.2, 1.0, 0.22), (1 / 6, 1.0, 0.22))[c.variant % 5]
-        per = max(1, math.ceil((c.b16 - c.a16) / A.cell / 22))     # a corner every so many turns: no more than a score of corners
-        turns = max(2.0, (c.b16 - c.a16) / (A.cell * per))
-        k = f"floor(({A.turn} - {t0})/{per})"
-        s0 = 3.6 * reach / (1 + g_ * turns)
-        v = f"{s0:g}*(1 + {g_}*{k})/{A.cell * per * c.six:g}"
-        h = f"{step:g}*{k}"
-        thick = max(0.018, min(0.05, 0.3 * s0 * g_))
-        return {"background": c.bg, "camera": FLAT,
-                "vars": {"h": {"follow": h, "attack": "0ms", "release": "0ms"}, "px": {"integrate": f"{v}*cos(var.h)"}, "py": {"integrate": f"{v}*sin(var.h)"}},
-                "layers": [ball("var.px", "var.py", 0, thick, 8, **glow(c.ink, 0.5)), ball("var.px", "var.py", -0.05, f"{thick:g} + 0.06*{A.hit}", 8, **glow(c.a, 1.2))],
-                "filters": [{"type": "expose", "open": 1, "fade": 0, "live": 1, "mode": "light"}, bloom(c, 0.35, 0.016, 0.55)]}
-    h = f"0.25*floor({A.turn})"
+    a0, b0 = c.a16, c.b16
+
+    def comes(p, per):
+        """The sixteenths at which the riff comes round (every `per` turns) within the scene."""
+        try:
+            lag = float(getattr(p, "lag", None) or 0)
+        except ValueError:
+            lag = 0.0
+        step_, first = p.cell * per, p.anchor - lag
+        k = math.floor((a0 - first) / step_) + 1
+        out = []
+        while first + k * step_ < b0 - 0.01:
+            out.append(first + k * step_)
+            k += 1
+        return out
+
+    best = None
     if B:
-        # Turn the second riff whichever way keeps the walk on the plate.
-        r_opp = 1 / (1.57 * abs(1 - A.cell / B.cell)) if A.cell != B.cell else 99
-        r_same = 1 / (1.57 * (1 + A.cell / B.cell))
-        sgn = "-" if abs(r_opp - 1.4) < abs(r_same - 1.4) else "+"
-        h = f"0.25*(floor({A.turn}) {sgn} floor({B.turn}))"
-    turns = max(2.0, (c.b16 - c.a16) / A.cell)
-    v = max(0.9, min(1.9, 11.0 / turns)) / (A.cell * c.six)     # a side: longer where there are few
-    look = {"background": c.bg, "camera": FLAT,
-            "vars": {"h": {"follow": h, "attack": "0ms", "release": "0ms"}, "px": {"integrate": f"{v:g}*cos(var.h)"}, "py": {"integrate": f"{v:g}*sin(var.h)"}},
-            "layers": [ball("var.px", "var.py", 0, 0.09, 8, **glow(c.ink, 2.2)), ball("var.px", "var.py", -0.05, f"0.05 + 0.14*{A.hit}", 8, **glow(c.a, 3))],
-            "filters": [{"type": "expose", "open": 1, "fade": 0, "live": 1, "mode": "light"}, bloom(c, 0.35, 0.016, 0.55)]}
-    return look
+        per = max(1, math.ceil(((b0 - a0) / A.cell + (b0 - a0) / B.cell) / 36))
+        ea, eb = comes(A, per), comes(B, per)
+        cuts = sorted(set([a0] + ea + eb + [b0]))
+        for sign in (1, -1):
+            segs = [(t0, t1, 0.25 * (sum(1 for e in ea if e <= t0) + sign * sum(1 for e in eb if e <= t0)), t1 - t0) for t0, t1 in zip(cuts, cuts[1:])]
+            x = y = 0.0
+            xs, ys = [0.0], [0.0]
+            for _, _, h, ln in segs:
+                x, y = x + ln * math.cos(2 * math.pi * h), y + ln * math.sin(2 * math.pi * h)
+                xs.append(x)
+                ys.append(y)
+            # (the walk that opens out the most for its length: turn the second riff that way)
+            spread = math.sqrt(max(max(xs) - min(xs), 0) * max(max(ys) - min(ys), 0)) / max(sum(ln for _, _, _, ln in segs), 1e-6)
+            if best is None or spread > best[0]:
+                best = (spread, segs)
+    if best and best[0] >= 0.06 and len(best[1]) >= 3:
+        return _laid_walk(c, best[1], A.hit)
+    # One riff alone (or two that turn together): the sides grow as it goes, so the walk
+    # winds outward (a square, a three-cornered or a five-pointed winding, by turns).
+    step, g_ = ((0.25, 0.22), (1 / 3, 0.55), (0.4, 0.5), (0.2, 0.22), (1 / 6, 0.22))[c.variant % 5]
+    per = max(1, math.ceil((b0 - a0) / A.cell / 22))     # a corner every so many turns: no more than a score of corners
+    cuts = sorted(set([a0] + comes(A, per) + [b0]))
+    segs = [(t0, t1, step * k, (t1 - t0) * (1 + g_ * k)) for k, (t0, t1) in enumerate(zip(cuts, cuts[1:]))]
+    if len(segs) < 2:
+        raise ValueError("the riff does not come round here")
+    return _laid_walk(c, segs, A.hit)
 
 
 # ───────────────────────── a fifth lot ─────────────────────────
