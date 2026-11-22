@@ -1,5 +1,54 @@
 # Common Time: the film
 
+There are two films here. The **second** (`wild.py`, `wildgen.py`) is the current one; the
+first (motion studies: `studies.py`, `ctgen.py`, described from "The idea" on) survives in it
+as one family of pictures among many.
+
+## The second film: many small machines (`wild.py`, `wildgen.py`)
+
+The first film was one idea held for 78 minutes. This one never shows the same picture twice.
+
+- **Idioms** (`wild.py`, the `@idiom` functions: 124 so far). Each is a small machine, scene or
+  diagram built from the notes themselves, and each keeps one rule: *what the music counts, the
+  picture counts*. A note is a thing (a domino, a lantern, a car reaching a crossing, a hole in
+  a tape); a riff's cell is a width or a number of things (bells in a ring of changes, oars on
+  a galley, fingers on a hand); a turn of the riff is a turn of something. So the odd lengths
+  are seen sliding against the bar without being announced.
+- **Scenes of a few bars** (`wildgen.cut`). A scene begins where the music has a joint (who
+  plays changes, a riff's length changes) or where a long round ends, to the sixteenth; between
+  those it lasts whole rounds of its own riffs where they come round quickly enough, so cuts
+  fall where riffs meet and not on the bar. Full passages are cut faster (four to eight
+  seconds) than thin ones (six to eleven).
+- **No picture twice** (`wildgen.Deal`, album-wide). An idiom is seen plain once. After that it
+  comes through a **treatment** it has not had (`@treat`: kaleidoscope with as many mirrors as
+  the riff has sixteenths, a slit-scan with a strip a sixteenth, stop motion on the riff's
+  notes, halftone, engraving, one-bit, blueprint, a line drawing, a sheet of as many frames as
+  the riff is long …) or shares the frame with another idiom (`@combo`: double exposure,
+  intercut on the riff's turns, a round window, a diptych, difference, lighten, a corner that
+  changes places half way). Never the same family twice running, never the same idiom within
+  twelve scenes. Calm pictures go to thin passages and full ones to full passages.
+- **One picture turns into the next** in nineteen ways (`transition`), each in its turn: melt,
+  push, strips of a sixteenth, by the new picture's lights, and so on.
+- **A round's end burns out:** where a scene ends on the end of a long round the picture
+  overexposes into it.
+- **Each song** has its own colours (`PALS`) and four idioms that suit its name, taken
+  sideways (`FEATURE`): bells rung in changes for Plain Hunt, Huygens's two clocks for Odd
+  Sympathy, a dish of cells for Carrying Capacity, squares laid round one another for Extreme
+  and Mean.
+
+Commands (from this directory; `CHIRP` must be a binary with the engine of chirp-video
+d5ed1011 or later):
+
+    wildgen.py --plan --tally          what would be dealt, and the totals
+    wildgen.py --out=/tmp/cv/ct/genw   write all seventeen programmes there
+    wtry.py 1 190 194 OUT.jpg NAME…    draw idioms over bars 190-194 of song 1, a strip each
+
+Programmes are written as generated; do not edit them. The engine features they need
+(`notes:` and `note.*`, `timeslice`, `step`, `halftone`, `outline`, the new transitions) are
+on the `chirp-video` branch and not yet in a pinned binary, so they are not in `vis/`.
+
+## The first film: motion studies
+
 Draft stage. The songs are still changing, so the film is **generated from the songs**: nothing
 is placed by hand on a bar. Run the generator again when a song changes and its programme
 follows.
