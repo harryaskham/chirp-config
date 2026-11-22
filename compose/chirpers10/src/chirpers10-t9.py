@@ -1434,6 +1434,50 @@ def the_foot_is_heavier_where_it_walks(doc):
         doc['loudness'] = float(target)
 
 
+# v35 (chirper-zero; instrument round: the main guitar pair's stroke, gl gr and their dealt copies; no note moves).
+# THE PICK SHOWS IN TWO. Harry, 22 Nov: "even harder sounding guitars". 'two' (0:20-0:40) is the riff on the main
+# pair alone over the bass and the kit, and the song's open line since v29: the mix there 2.3 dB short of the
+# eleven records at 2-4 kHz. Read today, the pair in 'two' (both guitars and their dealt cells): punch 3.58 (the
+# records 3.63; 3.5 to 4.2), teeth -6.82 (theirs -11.31; -12.7 to -6.5: at the edge), and the rig alone against a
+# record's guitar alone 1.5 to 2.7 dB short at 3 to 4 kHz. So, in 'two' only, on a lane: a band at 3.5 kHz (q 1,
+# +4 dB) on the pair's eq, where the pick is, and a transient shaper after it (attack +2 dB: the stroke's first
+# milliseconds; Extreme and Mean's way at a quarter of its amount). The pair alone: punch 3.58 -> 4.04, teeth
+# -6.82 -> -8.38, fall -0.19 -> -0.07, rise 13.5 -> 12.5 ms; cabspec 2.79 -> 2.56. The mix, all nine windows read
+# on the candidate: two 0.967 -> 0.644 (2-4 kHz -2.3 -> +0.3); the other eight identical. The pair simply 2 dB
+# louder gave 0.887: it is the pick, not the level. RUNGS: the shaper at +4 put the punch past the records' top
+# (4.23 to 4.38) and at +8 the fall outside (+0.67); the band at 3 kHz q 0.8 spilled into 1-2 kHz (+0.9); a shelf
+# from 2.4 kHz read 0.684 and lifted the fizz. NOT ELSEWHERE: with the shaper on every passage the mix read
+# further in three, four, the lock, A flat and one again (the mix is over at 1-4 kHz there), and on the lock's
+# fast strokes it does nothing (punch 3.38 -> 3.37). COSTS: the pair is 2.5 dB louder alone in 'two' (the mix was
+# short of what it adds), so the step up into 'three' is smaller; the rise is a millisecond under the records';
+# the kit's hits stand 1.1 dB less clear of the band at 2-6 kHz there (the guitars fill it); a lane on a track eq
+# and a track fx: the bank will not carry them.
+# the tracks (one rig) ; from:to in beats ; the eq band at a full lane, Hz:q:dB ; the transient shaper's attack, dB ;
+# the loudness target ('' = unchanged). '' = v34 byte for byte. On only while HEAVY is.
+# the_pick_shows_in_two(doc) runs last.
+SHOWS = os.environ.get('C10T9_SHOWS', 'gl,gr,gl-dealt,gr-dealt;28:56;3500:1:4;2;-10.276' if HEAVY else '')
+
+
+def the_pick_shows_in_two(doc):
+    """v35: in 'two' the pair's pick is lifted: a band at 3.5 kHz on the track eq and a transient shaper after it, both on a lane."""
+    names, span, band, attack, target = SHOWS.split(';')
+    num = lambda x: int(float(x)) if float(x) == int(float(x)) else float(x)
+    a, b = (num(x) for x in span.split(':'))
+    hz, q, db = (num(x) for x in band.split(':'))
+    pts = [['0b', 0], [f'{a - 0.25:g}b', 0], [f'{a:g}b', 1], [f'{b - 0.25:g}b', 1], [f'{b:g}b', 0]]
+    for name in names.split(','):
+        t = next(t for t in doc['tracks'] if t['name'] == name)
+        assert not t.get('auto') and len(t['fx']) == 1 and t['fx'][0]['type'] == 'eq', (name, t['fx'])
+        fx = [{**t['fx'][0], 'bands': list(t['fx'][0]['bands']) + [
+            {'kind': 'peak', 'cutoff': hz, 'q': q, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.shows', 'amount': db}]}}]}]
+        if float(attack):
+            fx.append({'type': 'transient', 'attack': num(attack), 'sustain': 0, 'mix': {'value': 0, 'mod': [{'src': 'auto.shows', 'amount': 1}]}})
+        t['fx'] = fx
+        t['auto'] = {'shows': {'points': pts, 'curve': 0}}
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T9_SHOW"):
         end = compose()
@@ -1476,4 +1520,6 @@ if __name__ == "__main__":
             the_riff_is_dealt(doc)
         if HEAVY:
             the_foot_is_heavier_where_it_walks(doc)
+        if SHOWS:
+            the_pick_shows_in_two(doc)
         open(OUT, "w").write(dump(doc))
