@@ -4067,7 +4067,7 @@ def t_kaleido(c, look):
 # that changes what it is made of, then one that works on it in time.
 STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0,
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
-         "leaded": 1, "infra": 1, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2}
+         "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2}
 
 # Pairs of guises that leave only texture: a picture already made many, then drawn in line or set in type.
 STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched")}
@@ -4346,6 +4346,36 @@ def t_combed(c, look):
     return _pre(look, {"type": "sort", "lo": 0.07, "dir": ("right", "down", "left", "up")[c.seed % 4], "length": "0.04 + 0.96*env.comb", "amount": c.arr})
 
 
+@treat("woven", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+def t_woven(c, look):
+    """Woven of its own strips, over one and under one: every note of the riff draws the
+    strips along themselves, and they come back into register after it."""
+    p = _lead(c)
+    look.setdefault("env", {})["weft"] = {"on": f"track.{p.name}", "attack": "20ms", "decay": "500ms"}
+    count = p.cell or 12
+    while count < 8:
+        count *= 2
+    return _pre(look, {"type": "weave", "count": min(count, 24), "slip": "1.6*env.weft", "shade": 0.55, "gap": 0.1, "amount": c.arr})
+
+
+@treat("screen", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+def t_screen(c, look):
+    """On a folding screen with a leaf for each sixteenth of the riff: it folds up and is
+    opened flat again once in every turn."""
+    p = _lead(c)
+    count = p.cell or 8
+    while count < 6:
+        count *= 2
+    return _pre(look, {"type": "pleat", "count": min(count, 20), "fold": f"0.12 + 0.44*(1 - cos({p.turn}))" if p.cell else 0.5, "shade": 0.6, "amount": c.arr})
+
+
+@treat("delayed", ok=lambda c, info: info["fam"] not in ("sign", "plate"))
+def t_delayed(c, look):
+    """The colours arrive one after another: whatever moves leads red and trails blue."""
+    look["filters"] = look.get("filters", []) + [{"type": "lag", "green": 0.11, "blue": 0.28, "amount": c.arr}, {"type": "color", "saturation": 1.25}]
+    return look
+
+
 @treat("blown", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
 def t_blown(c, look):
     """In a wind that gusts with the riff's notes: every light has a tail."""
@@ -4402,7 +4432,7 @@ def t_negative(c, look):
 
 
 ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief", "poster", "flood", "combed", "blown", "leaded",
-           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra")
+           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed")
 
 # Idioms drawn in hair lines and points, made bolder so that they read at any size: how far
 # each thing in them is spread (a fraction of the frame's height).
@@ -4413,7 +4443,7 @@ BOLD = {"numerals": 0.004, "orrery": 0.004, "kelvin": 0.004, "galton": 0.004, "s
 
 
 # Guises that add to a picture (copies, echoes, mirrors) rather than print it.
-FILLS = ("kaleido", "mirror", "wall", "planet", "tunnel", "echo", "slices", "fringe", "spin", "roll", "wound", "water", "torn", "hole", "lines", "warp", "solar", "blown", "overgrown", "combed", "falling", "ball", "smoked", "dripping", "tracking")
+FILLS = ("kaleido", "mirror", "wall", "planet", "tunnel", "echo", "slices", "fringe", "spin", "roll", "wound", "water", "torn", "hole", "lines", "warp", "solar", "blown", "overgrown", "combed", "falling", "ball", "smoked", "dripping", "tracking", "screen", "delayed")
 
 
 def bolder(name, look):
