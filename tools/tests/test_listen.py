@@ -814,6 +814,11 @@ class Studio(unittest.TestCase):
         hostile = L.studio_page("clips", os.path.join(self.root, "clips"), {"q": ['"><script>']})
         self.assertNotIn("<script>", hostile)
 
+    def test_a_notes_links_are_live_and_come_here(self):
+        got = L.studio_links("on its page (http://pocket4:8790/common-time/), <b> & see https://example.org/a?b=1&c=2.")
+        self.assertEqual(got, 'on its page (<a href="/studio/common-time/">http://pocket4:8790/common-time/</a>), &lt;b&gt; &amp; see '
+                              '<a href="https://example.org/a?b=1&amp;c=2">https://example.org/a?b=1&amp;c=2</a>.')
+
     def test_sizes(self):
         self.assertEqual([L.human_size(n) for n in (12, 2048, 5 << 20, 1237946771)], ["12 B", "2.0 kB", "5.0 MB", "1.2 GB"])
 

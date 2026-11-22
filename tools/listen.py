@@ -1364,6 +1364,14 @@ def _u(name):
     return urllib.parse.quote(name)
 
 
+def studio_links(text):
+    """A note's text for a page: escaped, its links live, and those to the old port or to this app made paths here."""
+    def link(m):
+        url = m.group(0).replace("&amp;", "&")
+        return f'<a href="{_h(studio_href(url))}">{m.group(0)}</a>'
+    return re.sub(r"https?://[^\s<>\"')]+[^\s<>\"').,;:]", link, _h(text))
+
+
 STUDIO_CSS = """:root{--bg:#0b0d12;--panel:#12151d;--line:#262b38;--amber:#e8c27a;--hi:#ffd58a;--dim:#8f98aa;--text:#d6dbe6}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,sans-serif}
@@ -1449,7 +1457,7 @@ def studio_page(rel, d, query, roots=None):
         when = time.strftime("%a %d %b %H:%M", time.localtime(g["mtime"]))
         out.append(f'<div class=g><div class=hd><b>{_h(g["stem"])}</b><span class=m>{when} &middot; {human_size(g["size"])}</span></div>')
         if g["note"]:
-            out.append(f'<div class=note>{_h(g["note"])}</div>')
+            out.append(f'<div class=note>{studio_links(g["note"])}</div>')
         names = [e["name"] for e in g["files"]]
         poster = next((n for n in names if os.path.splitext(n)[1].lower() in (".jpg", ".jpeg", ".png", ".webp")), None)
         for e in g["files"]:

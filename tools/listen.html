@@ -129,6 +129,9 @@ main.qmode #pane{max-width:none;padding:30px 32px 64px;color:var(--text)}
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// a note's text with its links live; one to the old file server (:8790) or to this app by its tailnet name is a path here
+const here=u=>u.replace(/^https?:\/\/(?:pocket4(?:\.miku-owl\.ts\.net)?|100\.104\.0\.14):8790\//,"studio/").replace(/^https?:\/\/(?:pocket4(?:\.miku-owl\.ts\.net)?|100\.104\.0\.14):8791\//,"./");
+const lnk=s=>esc(s).replace(/https?:\/\/[^\s<>"')]+[^\s<>"').,;:]/g,u=>{const h=here(u.replace(/&amp;/g,"&"));return `<a href="${esc(h)}" target=_blank rel=noopener>${h.startsWith("studio/")?esc(h.slice(7)):u}</a>`;});
 const mmss=t=>{t=Math.max(0,+t||0);const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=Math.floor(t%60);return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(s).padStart(2,"0");};
 const secs=v=>{const p=String(v).trim().split(":").map(Number);return p.some(isNaN)?NaN:p.reduce((a,b)=>a*60+b,0);};
 const HUES=["#e8c27a","#7fd1c3","#e79a8f","#9fb7f0","#b9a3f0","#9fe3a0","#f0a3d0","#f0d38f","#8fe0f0","#c9b08f","#a3f0c4","#f0b38f"];
@@ -199,7 +202,7 @@ function pick(n,t,play){const tr=S.tracks.find(x=>x.n===n)||S.tracks[0];N=tr.n;t
  ${tr.video?`<video id=med controls preload=metadata src="${src}"></video>`:`<audio id=med controls preload=metadata src="${src}"></audio>`}
  <div id=bar></div><div class=row><textarea id=noteText placeholder="Note at the playhead (N). Enter saves, Shift+Enter for a new line. It goes to ${esc(tr.owner||"the composer")}."></textarea><button id=save>Note at 0:00</button></div>
  <p class=m><a href="web/${A}/${S.id}/${N}" target=_blank>open live in chirp web &#8599;</a> &middot; <a href="${src}" download>download</a> &middot; <a href="#" id=toHist>how this track developed &rarr;</a></p>
- <div id=nl></div><h3>the composer's note on this version</h3><div class=compnote>${esc(tr.note)}</div>`;
+ <div id=nl></div><h3>the composer's note on this version</h3><div class=compnote>${lnk(tr.note)}</div>`;
  $("#toHist").onclick=e=>{e.preventDefault();hist.n=N;show("history",{n:N});};
  bindMedia(t,play,()=>(S.tracks.find(x=>x.n===N)||{}).dur);
  media.addEventListener("ended",()=>{if($("#cont")?.checked){const i=S.tracks.findIndex(x=>x.n===N);if(S.tracks[i+1])pick(S.tracks[i+1].n,0,true);}});
@@ -390,7 +393,7 @@ function qShow(id,dir=0){if(qtk){qtk.stop();qtk=null;}clearTimeout(qadv);qcur=id
  <section class=fq-opts>${(x.choices||[]).map((c,j)=>`<button class="opt${a.choice===c?" on":""}" data-c="${esc(c)}"><kbd>${j+1}</kbd><span>${esc(c)}</span></button>`).join("")}</section>
  <div class=fq-note><textarea rows=1 placeholder="${(x.choices||[]).length?"or in your own words":"in your own words"}" aria-label="your answer in your own words">${esc(a.text||"")}</textarea><button class=qsave>Save</button></div>
  <div class=fq-state>${qState(x)}</div>
- ${ld.rest?`<details class=fq-notes${localStorage.getItem("listen_qnotes")==="1"?" open":""}><summary>${esc(x.by)}'s notes<span>${dayOf(x.at)} ${hhmm(x.at)}</span></summary><div class=body>${esc(ld.rest)}</div></details>`:""}
+ ${ld.rest?`<details class=fq-notes${localStorage.getItem("listen_qnotes")==="1"?" open":""}><summary>${esc(x.by)}'s notes<span>${dayOf(x.at)} ${hhmm(x.at)}</span></summary><div class=body>${lnk(ld.rest)}</div></details>`:""}
  <div class=fq-nav><button class=qprev${i>0?"":" disabled"} aria-label="the question before">&lsaquo;</button>
   <button class="pref${qOn("auto")?" on":""}" id=qauto aria-pressed="${qOn("auto")}">next when answered</button>
   <span class=fq-legend>${k?`<span><kbd>A</kbd>${k>1?`&ndash;<kbd>${String.fromCharCode(64+k)}</kbd>`:""} take</span><span><kbd>space</kbd> pause</span>`:""}${(x.choices||[]).length?`<span><kbd>1</kbd>&ndash;<kbd>${x.choices.length}</kbd> answer</span>`:""}<span><kbd>J</kbd><kbd>K</kbd> move</span></span>
@@ -452,14 +455,14 @@ async function worklogView(h){const w=await needW();
   xs.forEach((e,i)=>{const d=dayOf(e.at);if(d!==day){day=d;out+=`<div class=day>${esc(d)}</div>`;}out+=evHtml(e,i);});
   if(total>lim)out+=`<p><button id=wmore>show ${Math.min(150,total-lim)} more (${total-lim} left)</button></p>`;
   $("#wl").innerHTML=out||"<p class=m>Nothing matches.</p>";$("#wmore")&&($("#wmore").onclick=()=>{lim+=150;draw();});
-  $$("#wl .more").forEach(m=>m.onclick=()=>{const b=m.previousElementSibling;b.textContent=b.dataset.full;m.remove();});
+  $$("#wl .more").forEach(m=>m.onclick=()=>{const b=m.previousElementSibling;b.innerHTML=lnk(b.dataset.full);m.remove();});
   $$("#wl [data-go]").forEach(g=>g.onclick=()=>{const [s,n,t]=g.dataset.go.split("|");show("listen",{s,n,t});});
   $("#wsec").innerHTML=tf?sectionsPanel(w.tracks.find(t=>t.n===tf)):"";};
  $$("#wt .chip").forEach(c=>c.onclick=()=>{$$("#wt .chip").forEach(x=>x.classList.toggle("on",x===c));tf=+c.dataset.n;lim=150;draw();setHash({n:tf||""});});
  if(tf)$$("#wt .chip").forEach(x=>x.classList.toggle("on",+x.dataset.n===tf));
  $("#wo").onchange=e=>{of=e.target.value;draw();};$("#wk").onchange=e=>{kept=e.target.checked;draw();};
  let tmo;$("#wq").oninput=e=>{clearTimeout(tmo);tmo=setTimeout(()=>{qq=e.target.value;lim=150;draw();},200);};draw();setHash({n:tf||""});}
-function clip(s,n=340){s=String(s||"");return s.length>n?`<div class=body data-full="${esc(s)}">${esc(s.slice(0,n))}&hellip;</div><span class=more>more</span>`:`<div class=body>${esc(s)}</div>`;}
+function clip(s,n=340){s=String(s||"");return s.length>n?`<div class=body data-full="${esc(s)}">${esc(s.slice(0,n))}&hellip;</div><span class=more>more</span>`:`<div class=body>${lnk(s)}</div>`;}
 function evHtml(e){const tb=t=>`<span class=pill style="color:${col(t.n)};border-color:${col(t.n)}55">${t.n}. ${esc(t.title)}</span>`;
  if(e.k==="round"){const r=e.r,ty=rtype(r.note),d=r.delta;
   return `<div class=ev><div class=tm>${hhmm(r.at)}</div><div><div class=hd style="display:flex;gap:6px;flex-wrap:wrap;align-items:baseline">${tb(e.t)}
