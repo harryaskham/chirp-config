@@ -122,12 +122,12 @@ class Song:
 # What each song leans on: idioms that suit its name, dealt there first (and still once only
 # in each guise).
 FEATURE = {
-    1: ("loom", "remainder", "crystal", "helix", "billiard"), 2: ("sympathy", "pendwave", "strings", "cradle", "seesaw"), 3: ("changes", "maypole", "chorus", "stringart", "drill"),
-    4: ("dominoes", "automaton", "tally", "abacus", "odometer"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava"),
-    7: ("golden", "spiral", "sunflower", "mandala", "star"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen"), 9: ("henge", "orrery", "moons", "grove", "snow"),
-    10: ("balance", "coins", "tape", "galton", "duel"), 11: ("doors", "blinds", "press", "hammers", "tesla"), 12: ("hands", "juggle", "semaphore", "chorus", "fan"),
-    13: ("eclipse", "pond", "spiral", "lanterns", "rink"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader"), 15: ("slack", "ropes", "wires", "swings", "switchboard"),
-    16: ("moire", "chladni", "eclipse", "lighthouse", "billiard"), 17: ("railway", "highway", "gates", "constellation", "searchlights"),
+    1: ("loom", "remainder", "crystal", "helix", "billiard", "riley"), 2: ("sympathy", "pendwave", "strings", "cradle", "seesaw", "ink"), 3: ("changes", "maypole", "chorus", "stringart", "drill", "vasarely"),
+    4: ("dominoes", "automaton", "tally", "abacus", "odometer", "hanoi"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling"),
+    7: ("golden", "spiral", "sunflower", "mandala", "star", "kandinsky"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial"),
+    10: ("balance", "coins", "tape", "galton", "duel", "hourglass"), 11: ("doors", "blinds", "press", "hammers", "tesla", "albers"), 12: ("hands", "juggle", "semaphore", "chorus", "fan", "shadowplay"),
+    13: ("eclipse", "pond", "spiral", "lanterns", "rink", "zen"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader", "hourglass"), 15: ("slack", "ropes", "wires", "swings", "switchboard", "rothko"),
+    16: ("moire", "chladni", "eclipse", "lighthouse", "billiard", "candles"), 17: ("railway", "highway", "gates", "constellation", "searchlights", "sundial"),
 }
 # Each song's house: the guises and the ways of sharing the frame it leans to, so the songs
 # differ from one another as well as from bar to bar. (The first song, the album's argument, has none.)
