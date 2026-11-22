@@ -704,13 +704,13 @@ def lighthouse(c):
               lamp(-6, 8, -6, 0.25, "#8090b0"), {"type": "mesh", "shape": "plane", "detail": 4, "x": 0, "y": 0, "z": 0, "scale": 60, "material": "pbr", "rough": 0.25, "metal": 0.2, "color": "#0a0f18", "rim": 0, "cull": True}]
     for i, p in enumerate(parts):
         x, z = (i - (len(parts) - 1) / 2) * 3.4, 3 + 2.2 * i
-        hgt = 1.5 - 0.15 * i
+        hgt = 2.3 - 0.2 * i
         th = f"(0.75 - {p.turn})"
-        layers.append({"type": "mesh", "shape": "cylinder", "detail": 12, "x": x, "y": hgt / 2, "z": z, "scale": 1, "sx": 0.14, "sy": hgt / 2, "sz": 0.14, **solid("#d8d4cc", 0.7)})
-        layers.append(ball(x, hgt + 0.1, z, 0.13, 10, **glow(c.col(i), f"1.5 + 3*{p.hit}")))
+        layers.append({"type": "mesh", "shape": "cylinder", "detail": 12, "x": x, "y": hgt / 2, "z": z, "scale": 1, "sx": 0.14, "sy": hgt / 2, "sz": 0.14, **solid("#d8d4cc", 0.7), "emit": 0.12})
+        layers.append(ball(x, hgt + 0.1, z, 0.2, 10, **glow(c.col(i), f"1.5 + 3*{p.hit}")))
         for sgn in (1, -1):
-            layers.append({"type": "beam", "from": [x, hgt + 0.1, z], "to": [f"{x} + {sgn}*7*cos({th})", hgt + 0.1, f"{z} + {sgn}*7*sin({th})"], "width": 0.03, "taper": -7, "glow": 0.5, "fade": 0.9, "color": c.col(i), "samples": 60})
-    return {"background": "#020308", "camera": cam("0.6*sin(time.bar/12)", 1.0, -6.5, look=(0, 1.0, 3), zoom=1.3), "layers": layers,
+            layers.append({"type": "beam", "from": [x, hgt + 0.1, z], "to": [f"{x} + {sgn}*7*cos({th})", hgt + 0.1, f"{z} + {sgn}*7*sin({th})"], "width": 0.05, "taper": -8, "glow": 1.0, "fade": 0.85, "color": c.col(i), "samples": 80})
+    return {"background": "#020308", "camera": cam("0.6*sin(time.bar/12)", 1.2, -6.0, look=(0, 1.35, 3), zoom=1.75), "layers": layers,
             "filters": [{"type": "reflect", "y": 0, "amount": 0.5}, {"type": "tonemap", "knee": 0.7}, {"type": "aa"}, bloom(c, 0.6, 0.03, 0.6)]}
 
 
@@ -3184,7 +3184,7 @@ def rothko(c):
     return {"background": c.bg, "env": env, "camera": FLAT, "layers": layers, "filters": [{"type": "blur", "radius": 0.022}, {"type": "grain", "amount": 0.06}]}
 
 
-@idiom(needs=1, fam="art", max_cell=64)
+@idiom(needs=2, fam="art", max_cell=64)
 def albers(c):
     """Squares one inside another, one for each riff, the outermost the slowest: each takes
     its next colour when its riff comes round, and gives a little on its notes."""
@@ -3343,7 +3343,7 @@ def shadowplay(c):
             "filters": [{"type": "blur", "radius": 0.003}, {"type": "vignette", "amount": 0.5}, {"type": "grain", "amount": 0.07}]}
 
 
-@idiom(needs=1, fam="light", max_cell=24)
+@idiom(needs=1, fam="light", max_cell=16)
 def candles(c):
     """Candles in a row, one for each sixteenth of the riff: each is lit afresh as its
     sixteenth comes, and burns lower until it comes again. A second riff has the row behind."""
@@ -4317,7 +4317,8 @@ def t_ball(c, look):
     """Wrapped round a ball that turns once for every few turns of the riff."""
     p = _lead(c)
     per = max(2, math.ceil(7.0 / ((p.cell or 16) * c.six)))
-    look["filters"] = look.get("filters", []) + [{"type": "orb", "radius": 0.93, "turn": f"{p.turn}/{per}", "wrap": 2, "tilt": 0.035, "shade": 0.55, "ground": 0.0, "amount": c.arr}]
+    look["filters"] = look.get("filters", []) + [{"type": "orb", "radius": 0.93, "turn": f"{p.turn}/{per}", "wrap": 2, "tilt": 0.035, "shade": 0.4, "ground": 0.0, "amount": c.arr},
+                                              {"type": "color", "exposure": 1.3}]
     return look
 
 
@@ -4423,17 +4424,28 @@ def t_water(c, look):
     return _pre(look, {"type": "ripple", "on": f"track.{p.name}", "amount": 0.05, "speed": 1.3, "width": 0.16, "decay": 1.4, "x": (-0.6, 0.5, 0, 0.9)[c.seed % 4], "y": (0.2, -0.3, 0, 0.4)[c.seed % 4]})
 
 
+def _lum(hexcol):
+    """How light a colour is, 0..1."""
+    h = hexcol.lstrip("#")
+    r, g_, b = (int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))
+    return 0.2126 * r + 0.7152 * g_ + 0.0722 * b
+
+
 @treat("poster", ok=lambda c, info: info["fam"] not in ("sign", "plate", "ground", "place") and info["f"].__name__ not in BRIGHT)
 def t_poster(c, look):
     """A two-colour print: the ground is the song's colour, flat, and whatever was light is black on it."""
-    look["filters"] = [f for f in look.get("filters", []) if f.get("type") != "bloom"] + [{"type": "remap", "gain": 1.8, "palette": [c.a, "#141418", "#0c0c10"], "amount": c.arr}]
+    # (On a dark ground black would not show: there the lights are printed pale.)
+    inks = [c.a, "#141418", "#0c0c10"] if _lum(c.a) > 0.3 else [c.a, "#efe8d6", "#fffaf0"]
+    look["filters"] = [f for f in look.get("filters", []) if f.get("type") != "bloom"] + [{"type": "remap", "gain": 1.8, "palette": inks, "amount": c.arr}]
     return look
 
 
 @treat("flood", ok=lambda c, info: info["fam"] not in ("sign", "plate", "ground", "place") and info["f"].__name__ not in BRIGHT)
 def t_flood(c, look):
     """The other print: a deep ground of the song's second colour, and whatever was light is cream on it."""
-    look["filters"] = [f for f in look.get("filters", []) if f.get("type") != "bloom"] + [{"type": "remap", "gain": 1.8, "palette": [c.b, "#f3ecd8", "#fffaf0"], "amount": c.arr}]
+    # (On a pale ground cream would not show: there the lights are printed dark, as in the poster.)
+    inks = [c.b, "#f3ecd8", "#fffaf0"] if _lum(c.b) < 0.55 else [c.b, "#2a2630", "#121016"]
+    look["filters"] = [f for f in look.get("filters", []) if f.get("type") != "bloom"] + [{"type": "remap", "gain": 1.8, "palette": inks, "amount": c.arr}]
     return look
 
 
