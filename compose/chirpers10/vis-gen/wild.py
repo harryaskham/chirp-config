@@ -625,10 +625,14 @@ def strings(c):
     P = P[:7]
     env = hit_env(P, "500ms")
     layers = []
-    for i, p in enumerate(P):
-        y = (i - (len(P) - 1) / 2) * min(0.62, 4.2 / len(P))
-        layers.append({"type": "beam", "from": [-4.1, y, 0], "to": [4.1, y, 0], "samples": 220, "width": 0.045, "glow": f"0.8 + 1.6*env.h{i}", "wave": f"0.3*env.h{i}", "waves": min(p.cell or 4, 14), "speed": 3,
-                       "color": c.col(i)})
+    # Where there are few parts each has sympathetic strings as well, standing in twice and
+    # three times as many loops and sounding more faintly.
+    over = max(1, 5 // len(P))
+    rows = [(i, p, h) for i, p in enumerate(P) for h in range(1, over + 1)]
+    for r, (i, p, h) in enumerate(rows):
+        y = ((len(rows) - 1) / 2 - r) * min(0.62, 4.2 / len(rows))
+        layers.append({"type": "beam", "from": [-4.1, y, 0], "to": [4.1, y, 0], "samples": 220, "width": 0.045 / h ** 0.5, "glow": f"{0.8 / h:g} + {1.6 / h ** 0.5:g}*env.h{i}", "wave": f"{0.3 / h ** 0.5:g}*env.h{i}",
+                       "waves": min((p.cell or 4) * h, 28), "speed": 3, "color": c.col(i) if h == 1 else c.col(i + h - 1)})
         for x in (-4.1, 4.1):
             layers.append(ball(x, y, 0, 0.05, 8, **glow(c.dim, 0.8)))
     return {"background": c.bg, "env": env, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.02, 0.5)]}
@@ -1265,11 +1269,11 @@ def mobile(c):
         ex, ez = f"({px} + {Lk[i]}*cos({th}))", f"({pz} + {Lk[i]}*sin({th}))"
         fx, fz = f"({px} - {Lk[i] * 0.6:g}*cos({th}))", f"({pz} - {Lk[i] * 0.6:g}*sin({th}))"
         layers.append({"type": "beam", "from": [fx, y, fz], "to": [ex, y, ez], "width": 0.016, "glow": 0.7, "color": c.ink})
-        layers.append({"type": "mesh", "shape": "sphere", "detail": 14, "x": fx, "y": y - 0.02, "z": fz, "scale": 0.5 - 0.08 * i, "sy": 0.08, "ry": f"0 - {th}", **solid(c.col(i), 0.5), "emit": f"0.25 + 0.5*{p.hit}"})
+        layers.append({"type": "mesh", "shape": "sphere", "detail": 14, "x": fx, "y": y - 0.02, "z": fz, "scale": 0.68 - 0.1 * i, "sy": 0.08, "ry": f"0 - {th}", **solid(c.col(i), 0.5), "emit": f"0.3 + 0.6*{p.hit}"})
         px, py, pz = ex, y, ez
     layers.append({"type": "mesh", "shape": "sphere", "detail": 14, "x": px, "y": py - 0.4, "z": pz, "scale": 0.2, "sy": 0.08, **solid(c.ink, 0.5)})
     layers.append({"type": "beam", "from": [px, py, pz], "to": [px, py - 0.4, pz], "width": 0.008, "glow": 0.5, "color": c.dim})
-    return {"background": c.bg, "camera": cam("1.2*sin(time.bar/9)", 2.6, -6, look=(0, 1.0, 0), zoom=1.6), "layers": layers,
+    return {"background": c.bg, "camera": cam("1.2*sin(time.bar/9)", 2.9, -6.5, look=(0, 0.9, 0), zoom=1.75), "layers": layers,
             "filters": [{"type": "shadowmap", "amount": 0.6, "soft": 3, "size": 1024, "sun": 0, "x": -2, "y": 5, "z": -6}, {"type": "tonemap", "knee": 0.8}, {"type": "aa"}, bloom(c, 0.3, 0.014, 0.8)]}
 
 
@@ -2646,19 +2650,19 @@ def fruit(c):
     P = c.riffs[:3]
     layers = []
     for i, p in enumerate(P):
-        x = (i - (len(P) - 1) / 2) * 0.72
+        x = (i - (len(P) - 1) / 2) * 0.98
         nn = p.cell
         off = f"(fract((inst.i - floor(fract({p.turn})*{nn} + 0.01) - smooth(0.6, 1, fract(fract({p.turn})*{nn})))/{nn} + 0.5) - 0.5)*{nn}"
         kind = f"(inst.i - 5*floor(inst.i/5))"
-        layers.append({"type": "shape", "sides": 4, "rotate": 0.125, "radius": 0.47, "width": 0, "fill": 1, "color": "#eeeae0", "blend": "normal", "x": x, "y": 0})
-        layers.append({"type": "shape", "repeat": nn, "sides": f"3 + {kind}", "radius": f"0.15*step(abs({off}), 1.4)", "width": 0, "fill": 1, "x": x, "y": f"({off})*0.36", "blend": "normal",
+        layers.append({"type": "shape", "sides": 4, "rotate": 0.125, "radius": 0.64, "width": 0, "fill": 1, "color": "#eeeae0", "blend": "normal", "x": x, "y": 0})
+        layers.append({"type": "shape", "repeat": nn, "sides": f"3 + {kind}", "radius": f"0.2*step(abs({off}), 1.4)", "width": 0, "fill": 1, "x": x, "y": f"({off})*0.49", "blend": "normal",
                        "palette": [c.a, c.b, c.c, "#222226", c.a], "pos": f"{kind}/5", "star": f"0.5*step({kind}, 0.5)", "rotate": 0.25})
-        layers.append({"type": "shape", "sides": 4, "rotate": 0.125, "radius": 0.5, "width": 0.012, "fill": 0, "color": c.dim, "x": x, "y": 0})
+        layers.append({"type": "shape", "sides": 4, "rotate": 0.125, "radius": 0.68, "width": 0.012, "fill": 0, "color": c.dim, "x": x, "y": 0})
     for y in (-1, 1):
-        layers.append({"type": "shape", "sides": 4, "rotate": 0.125, "radius": 2.4, "width": 0, "fill": 1, "color": c.bg, "blend": "normal", "x": 0, "y": y * (0.34 + 1.7)})
+        layers.append({"type": "shape", "sides": 4, "rotate": 0.125, "radius": 2.4, "width": 0, "fill": 1, "color": c.bg, "blend": "normal", "x": 0, "y": y * (0.46 + 1.7)})
     meet = " * ".join(f"step(fract({p.turn})*{p.cell}, 1.0)" for p in P)
     layers.append({"type": "shape", "sides": 4, "rotate": 0.125, "radius": 1.2, "width": 0.01, "fill": 0, "color": c.ink, "x": 0, "y": 0, "opacity": 0})
-    layers.append(box(0, 0, -0.2, 3.3, 0.012, 0.01, **glow(c.ink, f"0.6 + 4*{meet}")))
+    layers.append(box(0, 0, -0.2, 4.3, 0.012, 0.01, **glow(c.ink, f"0.6 + 4*{meet}")))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, f"0.25 + 1.5*{meet}", 0.02, 0.75)]}
 
 
