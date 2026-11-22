@@ -1963,6 +1963,58 @@ def the_string_is_bent(doc):
         doc["loudness"] = float(target)
 
 
+# v37 (chirper-zero; instrument round: THE TWO GUITARS THAT PLAY ALL THROUGH, gl and gr, where the wall pair plays
+# with them: 244 muted strokes and 90 open ones a guitar, in the four-guitar passages 1:54.4-2:38.1, 3:05.1-3:48.8,
+# 4:15.8-4:32.4 and 4:42.8-4:59.4. No note changes.) Harry, 22 Nov: "even harder sounding guitars"; and on this song,
+# "yeah but really make it chug if slow". THE TWO SHOW THEIR TEETH WHEN THE WALLS COME IN.
+# v27 gave the two a middle on their tracks (300 Hz +5, 700 Hz +1.75) because the passages where they play ALONE read
+# 1 to 2 dB short of the records from 250 Hz to 4 kHz, and it said what that cost: the four-guitar passages went
+# further at 500 Hz-1 kHz. Read again stroke by stroke beside six records: the two are already harder than the
+# records at the attack (punch 4.0 to 4.55, theirs 3.5 to 4.2; rise 11 to 13.5 ms, theirs 13.5 to 23.5) and their low
+# end holds in four passages of five, but they have few TEETH (400 Hz-1 kHz less 1-4 kHz through a stroke: -7.9 to
+# -8.8; the records -11.3): the middle they were given is box where the walls already fill the room. By mute, in the
+# four-guitar passages the two hold 2.4 dB of the mix at 250-500 Hz and at 500 Hz-1 kHz, where the mix reads 0.7 to
+# 3.7 dB OVER the records. So the middle is theirs only while they are alone: on a lane, where the wall pair plays,
+# the 700 Hz band goes from +1.75 to -3 dB and the 300 Hz band from +5 to +2, and the fader comes up 0.83 dB so the
+# two alone are as loud there as they were (K 0.00). Alone in those passages: teeth -7.96 -> -11.54 (the records'
+# median), punch 4.45 -> 4.63, rise 13.5 -> 12.75 ms, the low end's fall as it was. Where the two play alone, and in
+# both breakdowns, the lane is 0 and they are bit for bit what they were.
+# the tracks ; the beats the lane is on, FROM:TO,... (it rises over the quarter beat before FROM and falls over the
+# quarter beat before TO) ; for the track eq's band at INDEX, the dB added while it is on, INDEX:dB|... ; the dB added
+# to the fader while it is on ; the loudness target ('' = unchanged). "" = v36 byte for byte. On only while BENT is.
+EDGE = os.environ.get("C10T7_EDGE", "gl,gr;152.5:210.75,246.75:305,341:363.25,377:399.25;0:-4.75|1:-3;0.83;-9.605" if BENT else "")
+
+
+def the_two_show_their_teeth(doc):
+    """v37: a lane `walls` on each of the two guitars (1 while the wall pair plays with them): two bands of their
+    track eq and their fader move by it."""
+    names, spans, moves, fader, target = EDGE.split(";")
+    pts = [["0b", 0]]
+    for sp in spans.split(","):
+        a, b = (float(x) for x in sp.split(":"))
+        pts += [[f"{a - 0.25:g}b", 0], [f"{a:g}b", 1], [f"{b - 0.25:g}b", 1], [f"{b:g}b", 0]]
+    found = 0
+    for t in doc["tracks"]:
+        if t["name"] not in names.split(","):
+            continue
+        assert "auto" not in t and isinstance(t["gain"], str) and t["fx"][0]["type"] == "eq", t["name"]
+        bands = list(t["fx"][0]["bands"])
+        for mv in moves.split("|"):
+            i, db = mv.split(":")
+            kind, *rest = bands[int(i)].split()
+            d = dict(x.split("=") for x in rest)
+            bands[int(i)] = {"kind": kind, "cutoff": float(d["cutoff"]), "q": float(d["q"]),
+                             "gain": {"value": d["gain"], "mod": [{"src": "auto.walls", "amount": float(db)}]}}
+        t["fx"] = [{**t["fx"][0], "bands": bands}] + list(t["fx"][1:])
+        if fader and float(fader):
+            t["gain"] = {"value": t["gain"], "mod": [{"src": "auto.walls", "amount": float(fader)}]}
+        t["auto"] = {"walls": {"curve": 0, "points": [list(p) for p in pts]}}
+        found += 1
+    assert found == len(names.split(","))
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T7_SHOW"):
         sec = 15 / BPM
@@ -1992,4 +2044,6 @@ if __name__ == "__main__":
             the_snare_closes_each_line(doc)
         if BENT:
             the_string_is_bent(doc)
+        if EDGE:
+            the_two_show_their_teeth(doc)
         open(OUT, "w").write(dump(doc))
