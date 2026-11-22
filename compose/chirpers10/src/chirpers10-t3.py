@@ -584,7 +584,7 @@ STRUCK = os.environ.get('C10T3_STRUCK', '1.2;3;4s;2s;-9.982' if TREBLE and CHORD
 # was 'highshelf cutoff=7000 gain=-3dB') ; its fader (3.5dB) ; the loudness target ('' = unchanged). '' = v32.
 # It is on only while no other C10T3_ switch is set, so every older switch gives exactly what it gave.
 SNARE = os.environ.get('C10T3_SNARE', '3.5;1.1;peak cutoff=2500 q=0.7 gain=-4dB,peak cutoff=650 q=1 gain=-3dB;1.5dB;-10.067' if STRUCK and not any(
-    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS', 'C10T3_PICK', 'C10T3_COURSE', 'C10T3_INTUNE', 'C10T3_HAT', 'C10T3_COVER') for k in os.environ) else '')
+    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS', 'C10T3_PICK', 'C10T3_COURSE', 'C10T3_INTUNE', 'C10T3_HAT', 'C10T3_HOLDS', 'C10T3_COVER') for k in os.environ) else '')
 # v34 (chirper-alpha; whole song: its frame; the change is the band's entrance, 0:08-0:12): THE BAND IS RUNG UP.
 # The song is a ringing performance from end to end, and since v28 the band is LOWERED at the end. But ringers do not
 # start by ringing: a ring is RAISED first, the bells chiming fast and close while they hang low, each stroke taking
@@ -1721,6 +1721,53 @@ def the_cover_returns(doc):
         doc['loudness'] = float(target)
 
 
+# v44 (chirper-zero; drawn whole-song, taken as one instrument: the inner pair of guitars, `gl2` and `gr2`, the nolly
+# rig; 853 and 866 muted strokes from 0:08 to 4:16 and on the landing; no note changes): THE INNER PAIR HOLDS.
+# chirper-one's v39 gave the OUTER pair's chug its low end and wrote the next step down: "THE INNER PAIR (gl2 gr2, the
+# nolly rig, 853 and 866 muted strokes) ...: each rig wants its own read; start with the thump and fx.1.tight, not the
+# pick". Read alone beside six records' guitars at their own chugs (tools/riffpunch.py --strokes; 0:28, 1:40, 2:40,
+# 3:48) this pair's low end DIED after each stroke: 100-250 Hz in a stroke's first 20 ms over its 40-80 ms +2.26,
+# +3.19, +3.03, +2.80 dB (the records -1.1, none over +0.3). Its attack, teeth and grain were inside their ranges.
+# WHICH CONTROL, ON THIS RIG (0:28-0:48, 127 strokes; the fall): as it was +2.26 ; the thump off +2.51 (nothing: on
+# the 5150 it was most of the cure) ; the amp let loose as well, tight 220 > 150 Hz, +1.60 ; a hard pick under the
+# palm as well (soft x0.5) and the palm's filter at two octaves +1.05 ; then THE STRING'S DECAY UNDER THE PALM (the
+# patch's palm takes 3.8 octaves off the decay): at 3.2, 2.6, 2.0, 1.4 the fall reads +0.65, +0.35, +0.37, +0.29:
+# it stops at 2.6. Each is needed once the others are in (the thump back +1.29, the amp at 220 Hz +0.77, the stock
+# pick +1.66).
+# THE PALM'S FILTER IS LEFT WHERE THE PATCH HAS IT. Opened to two octaves, as on the outer pair, the stroke alone
+# reads best (+0.35, -0.10, +0.39, +0.19; teeth -10.4 to -11.0, the records' -11.3), but it takes 2.2 dB of the
+# pair's 250-500 Hz and the mix against the records reads further where this pair is most of the band (the first
+# cycle 0.567 > 0.767, the landing 1.989 > 2.067; with an eq putting the body back 0.644 and 2.044). Without it the
+# fall is +0.86, +0.40, +0.56, +0.35, the pair alone is within 0.9 dB in every band, and the nine stamp stretches'
+# sum is 13.578 > 13.578: the mix is level and the round is kept on the stroke. For an ear: add
+# synth.filters.0.cutoff.mod.0.amount=-2 to the second field and make the third -0.8.
+# the tracks ; what is added to each one's patch ; dB on each fader ; bands for an eq put first on each track,
+# band|band ('' = none) ; the loudness target ('' = unchanged). '' = v43 byte for byte. On only while COVER is.
+HOLDS = os.environ.get('C10T3_HOLDS', 'gl2,gr2;synth.layers.0.thump.mod.0.amount=0 fx.1.tight=150 synth.layers.0.soft=expr.pm*0.5 '
+                       'synth.layers.0.decay.mod.0.amount=-2.6;-0.15;;-10.011' if COVER else '')
+
+
+def the_inner_pair_holds(doc):
+    """v44: the inner pair's muted stroke keeps its low end: no thump, a looser amp, a harder pick under the palm, and
+    the string under the palm dies more slowly. The palm's filter is left where it was (see HOLDS)."""
+    names, over, fader, bands, target = HOLDS.split(';')
+    for name in names.split(','):
+        t = next(t for t in doc['tracks'] if t['name'] == name)
+        assert t['patch'].startswith('ct-twin') and 'synth.layers.0.decay' not in t['patch'], (name, t['patch'])
+        if over:
+            t['patch'] = t['patch'] + ' ' + over
+        if fader:
+            g = t['gain']
+            if isinstance(g, dict):
+                t['gain'] = {**g, 'value': f"{float(g['value'].rstrip('dB')) + float(fader):g}dB"}
+            else:
+                t['gain'] = f"{float(g.rstrip('dB')) + float(fader):g}dB"
+        if bands:
+            t['fx'] = [{'type': 'eq', 'bands': bands.split('|')}] + list(t.get('fx') or [])
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if TENOR:
@@ -1737,4 +1784,6 @@ if __name__ == "__main__":
         the_hat_has_its_metal(doc)
     if COVER:
         the_cover_returns(doc)
+    if HOLDS:
+        the_inner_pair_holds(doc)
     open(OUT, "w").write(dump(doc))
