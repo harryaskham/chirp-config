@@ -479,6 +479,35 @@ class Deal:
                 note(name, tag, f"{name}/canon {how} {far:g}")
                 self.last["canon"] = True
                 return name, "canon", look
+        # Two parts answer one another: a picture each, and the line between them goes to and fro as they do.
+        talk = talkers(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 4.0 else None
+        if talk and rnd(S.n, k, "tug?") < 0.65 and not (last and last.get("tug")):
+            pa, pb = talk
+            both = [n_ for n_ in ranked if W.REG[n_]["fam"] not in NO_PAIR and W.REG[n_]["cost"] <= 2 and n_ not in self.recent[-12:] and n_ not in W.FED]
+            done = False
+            for A in both[:8]:
+                ca = copy.copy(base)
+                ca.riffs, ca.tunes = [pa] + [p for p in c.riffs if p.name != pa.name], [pa] + list(c.tunes)
+                one = make(A, ctx=ca)
+                if not one:
+                    continue
+                for B in both:
+                    if B == A or W.REG[B]["fam"] == W.REG[A]["fam"] or (A, f"tug+{B}") in self.combos or (B, f"tug+{A}") in self.combos:
+                        continue
+                    cb = copy.copy(base)
+                    cb.riffs, cb.tunes = [pb] + [p for p in c.riffs if p.name != pb.name], [pb] + list(c.tunes)
+                    cb.a, cb.b, cb.c = cb.b, cb.c, cb.a
+                    two = make(B, ctx=cb)
+                    if not two:
+                        continue
+                    c.talk = f"{pa.name} and {pb.name} answer one another"
+                    look = W.tug(c, one[1], two[1], pa, pb)
+                    self.kinds["tug"] += 1
+                    self.treats["tug"] += 1
+                    note(A, f"tug+{B}", f"{A}+{B}/tug", partner=B)
+                    self.last["tug"] = True
+                    self.used[B] += 1
+                    return A, f"tug+{B}", look
         # The band gains a part, or loses one, and nothing else changes: so does the picture.
         now = frozenset((p.name, p.cell) for p in c.riffs)
         if last and not flash and not prefer and kind != "hush" and not last.get("partner") and last.get("ending") and last.get("riffs") and now \
@@ -718,6 +747,55 @@ def stereo(S, c, whole=False):
     return best[:3] if best else None
 
 
+def talkers(S, c):
+    """Two parts of the scene that answer one another (each plays where the other rests, and
+    they change over at least twice): the two as parts, the one that plays more first; or None."""
+    a, b = c.a16 // 16, min(S.bars, max(c.a16 // 16 + 1, -(-c.b16 // 16)))
+    slots = (c.b16 - c.a16) // 2          # eighths
+    if slots < 12:
+        return None
+    sound = {}
+    for t in S.tracks:
+        if t.role == "drum":
+            continue
+        on = [0] * slots
+        k = 0
+        for s, e, _ in t.notes:
+            if s * 4 < c.b16 and e * 4 > c.a16:
+                k += c.a16 <= s * 4 < c.b16
+                for i in range(max(0, int((s * 4 - c.a16) // 2)), min(slots, int((max(e, s + 0.5) * 4 - c.a16 + 1.999) // 2))):
+                    on[i] = 1
+        if k >= 3:
+            sound[t.name] = on
+    best = None
+    names = sorted(sound)
+    for i, x in enumerate(names):
+        for y in names[i + 1:]:
+            if x[:-1] == y[:-1]:
+                continue
+            ox = sum(p and not q for p, q in zip(sound[x], sound[y]))
+            oy = sum(q and not p for p, q in zip(sound[x], sound[y]))
+            both = sum(p and q for p, q in zip(sound[x], sound[y]))
+            turns, who = 0, None
+            for p, q in zip(sound[x], sound[y]):
+                now = x if p and not q else y if q and not p else None
+                if now and now != who:
+                    turns += who is not None
+                    who = now
+            if (turns >= 2 and min(ox, oy) >= max(3, slots // 8) or turns >= 1 and min(ox, oy) >= max(4, slots // 5)) and both <= 0.3 * min(ox + both, oy + both):
+                score = turns * min(ox, oy)
+                if best is None or score > best[0]:
+                    best = (score, x if ox >= oy else y, y if ox >= oy else x)
+    if not best:
+        return None
+    T = {t.name: t for t in S.tracks}
+    out = []
+    for name in best[1:]:
+        cell = T[name].cell(a, b)[0] or 16
+        out.append(S.part(T[name], c.a16, c.b16, cell))
+    return out
+
+
 def fits(kind, A, B):
     """Whether two pictures can share the frame this way: one picture works on the other in
     three of them, and that needs something to work on and something to work with."""
@@ -915,6 +993,7 @@ def main():
             for a, b, name, treat, _, c in scenes:
                 print(f"  {a / 16:7.2f}-{b / 16:<7.2f} {(b - a) * six:5.1f}s  {name:12s} {treat:9s} {' '.join(f'{p.name}:{p.cell}' for p in c.riffs[:4])}"
                       + (f"  [{getattr(c, 'canon', '')}]" if getattr(c, "canon", "") else "")
+                      + (f"  [{getattr(c, 'talk', '')}]" if getattr(c, "talk", "") else "")
                       + (f"  tune {c.tunes[0].name}" if c.tunes else "") + ("  paper" if c.paper else ""))
             continue
         os.makedirs(out_dir, exist_ok=True)

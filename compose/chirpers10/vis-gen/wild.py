@@ -3701,6 +3701,21 @@ def canon(c, A, B, how):
     return _two(c, A, B, **cut)
 
 
+def tug(c, A, B, pa, pb):
+    """Two parts that answer one another: each has a picture, and the line between them is
+    pushed across the frame by whichever is playing, as far as it plays for (so the frame
+    keeps the account of who has had how much of the time)."""
+    rate = 1.1 / c.bar_s
+    look = {"background": "#000000",
+            "env": {"ta": {"on": f"track.{pa.name}", "attack": "0ms", "decay": "600ms"}, "tb": {"on": f"track.{pb.name}", "attack": "0ms", "decay": "600ms"}},
+            "vars": {"tug": {"integrate": f"{rate:.3f}*(max(track.{pa.name}.gate, step(0.25, env.ta)) - max(track.{pb.name}.gate, step(0.25, env.tb)))", "lo": -0.8, "hi": 0.8},
+                     "line": {"follow": "var.tug", "attack": "120ms", "release": "120ms"}},
+            "layers": [_act(A, blend="normal", cut="half", cut_at="var.line", cut_take=0), _act(B, blend="normal", cut="half", cut_at="var.line", cut_take=1),
+                       box(f"{FW}*var.line", 0, -0.1, 0.012, 2.6, 0.01, **glow(c.ink, f"0.6 + 1.4*max(env.ta, env.tb)"))],
+            "camera": FLAT, "filters": []}
+    return look
+
+
 def _step(p, per=1):
     """A count that goes up by one each time the riff comes round (sliding the last of the way)."""
     return f"(floor({p.turn}/{per}) + smooth(0.8, 1, fract({p.turn}/{per})))"
