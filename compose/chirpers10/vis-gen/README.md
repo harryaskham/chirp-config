@@ -117,10 +117,11 @@ Commands (from this directory; `CHIRP` reads the cells and may be any recent bin
                                        (NAME/TREATMENT and A+B/COMBINATION work too)
 
 Programmes are written as generated; do not edit them. They need the engine of the
-`chirp-video` branch at 976661da or later (`notes:` and `note.*`, `timeslice`, `step`,
+`chirp-video` branch at 2ceeb87f or later (`notes:` and `note.*`, `timeslice`, `step`,
 `halftone`, `outline`, `bold`, `remap`, the warps, `droste`, `orb`, `sort`, `wind`, `glass`,
 `grow`, `flow`, `weave`, `pleat`, `lag`, `papercut`, `terrain`, `stitch`, `pieces`, `mosaic`, `mosh`, `pick:`,
-`repeat:`, an actor's `cut:` and `as:`, the new transitions),
+`repeat:`, an actor's `cut:` and `as:`, the new transitions, among them the three that
+keep the old picture from frame to frame: `mosh`, `smoke`, `overgrow`),
 which is not yet in a pinned binary, so they are not in `vis/`.
 
 ## The first film: motion studies

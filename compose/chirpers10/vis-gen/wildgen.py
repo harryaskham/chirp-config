@@ -153,7 +153,9 @@ HOUSE = {n_: set(v.split()) for n_, v in HOUSE.items()}
 OPEN = {1: "stringart"}     # the picture a song opens on, where it is not the first of its featured ones (the album's first picture, and the one the landing brings back)
 TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weave", "spiral", "rings", "checker", "split", "wipe", "iris", "blinds", "clock", "diamond", "rise", "dissolve",
                "flip", "squeeze", "shred", "stretch", "whip", "fall", "whirl", "ripple", "glitch", "pixel", "tiles", "doors", "spin", "scan", "diagonal", "slats", "interlace", "star", "dither", "corners", "wave",
-               "fan", "shutter")
+               "fan", "shutter", "mosh", "smoke", "overgrow")
+# Ways that keep something of the old picture from frame to frame: they take longer (about two seconds).
+CARRIED = ("mosh", "smoke", "overgrow")
 NO_PAIR = ("room", "sheet", "plate", "travel")      # families that are not put in a frame with another
 
 
@@ -1434,6 +1436,11 @@ def plan(S, deal):
             deal.trans[tr] += 1
             scene["xfade"] = "1b" if tr in ("push", "strips", "blocks", "split", "weave", "checker", "flip", "squeeze", "whip", "fall", "glitch", "pixel", "doors", "scan", "slats", "interlace", "shutter") else "2b"
             scene["transition"] = tr
+            if tr in CARRIED:
+                beats = max(2, min(4, round(1.9 / (c.six * 4))))
+                while beats > 2 and beats * 4 * 2.5 > b16 - a16:
+                    beats -= 1
+                scene["xfade"] = f"{beats}b"
         if cyc:
             # The scene lies in a long round: the frame keeps count of it across the cuts.
             whole = next((r for r in S.rounds if r[0] <= a16 and b16 <= r[1]), None)
