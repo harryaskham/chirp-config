@@ -125,6 +125,13 @@ Commands (from this directory; `CHIRP` reads the cells and may be any recent bin
     wildgen.py --out=/tmp/cv/ct/genw   write all seventeen programmes there
     wtry.py 1 190 194 OUT.jpg NAME…    draw idioms over bars 190-194 of song 1, a strip each
                                        (NAME/TREATMENT and A+B/COMBINATION work too)
+    CT_SONGS=DIR wildgen.py --out=…    read the songs from DIR (copies frozen with a draft)
+
+The songs are still being written, and the dealing runs through the whole album (no
+picture twice), so one changed song changes every song after it. A draft therefore freezes
+its songs beside its programmes; to draw one song of a draft again after a fix, generate
+with `CT_SONGS` set to that folder: the plan comes out as it was, and only the programmes
+the fix touches differ.
 
 Programmes are written as generated; do not edit them. They need the engine of the
 `chirp-video` branch at 2ceeb87f or later (`notes:` and `note.*`, `timeslice`, `step`,
