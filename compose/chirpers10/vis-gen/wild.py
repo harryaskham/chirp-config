@@ -648,7 +648,7 @@ def hammers(c):
     """A rank of hammers for each riff, one to a sixteenth of it that sounds; each lifts
     before its note and comes down on it."""
     parts = c.riffs[:3]
-    layers = [lamp(-2, 5, -5, 1.3), floor(c, -0.12, "#17171a", 0.6)]
+    layers = [lamp(-2, 5, -5, 1.5), lamp(3.5, 2.5, -3, 0.8, c.a), floor(c, -0.12, "#22222a", 0.6)]
     for i, p in enumerate(parts):
         nn = p.cell
         dx = min(0.42, 6.4 / nn)
@@ -2115,7 +2115,7 @@ def crossing(c):
     riffs' cars go through each other's gaps until they meet."""
     A, B = c.riffs[0], c.riffs[1]
     v = 2.4
-    layers = [lamp(0, 6, 0, 0.6), floor(c, 0, "#0c0c0f", 0.7), box(0, 0.01, 0, 12, 0.005, 0.5, **solid("#1d1d22", 0.9)), box(0, 0.011, 0, 0.5, 0.005, 12, **solid("#1d1d22", 0.9)),
+    layers = [lamp(0, 6, 0, 1.3), lamp(-5, 3, -5, 0.7, c.c), floor(c, 0, "#16161c", 0.7), box(0, 0.01, 0, 12, 0.005, 0.5, **solid("#34343e", 0.9)), box(0, 0.011, 0, 0.5, 0.005, 12, **solid("#34343e", 0.9)),
               {"type": "light", "x": 0, "y": 0.6, "z": 0, "power": f"0.3 + 2.5*{A.hit}*{B.hit}", "reach": 5, "color": "#ffffff"},
               box(f"{v}*note.age", 0.1, 0.12, 0.2, 0.07, 0.1, notes={"track": A.name, "past": 4, "ahead": 4}, round=0.3, **glow(c.a, "0.7 + 2*exp(0 - 6*abs(note.age))")),
               box(-0.12, 0.1, f"0 - {v}*note.age", 0.1, 0.07, 0.2, notes={"track": B.name, "past": 4, "ahead": 4}, round=0.3, **glow(c.b, "0.7 + 2*exp(0 - 6*abs(note.age))"))]
@@ -2129,18 +2129,18 @@ def press(c):
     sounds."""
     P = _cast(c, 2)
     env = {f"p{i}": {"on": f"track.{p.name}", "attack": "0ms", "decay": "170ms"} for i, p in enumerate(P)}
-    layers = [lamp(-3, 5, -6, 1.1), lamp(3, 2, -5, 0.5, c.a), floor(c, 0, "#121216", 0.6)]
+    layers = [lamp(-3, 5, -6, 1.8), lamp(3, 2, -5, 1.0, c.a), lamp(0, 3, 5, 0.8, c.b), floor(c, 0, "#20202a", 0.6)]
     for i, p in enumerate(P):
         z = 1.7 * i
-        layers.append(box(0, 0.35, z, 5.5, 0.05, 0.42, **solid("#2a2c33", 0.6, 0.5)))
+        layers.append(box(0, 0.35, z, 5.5, 0.05, 0.42, **solid("#454854", 0.6, 0.5)))
         layers.append({"type": "mesh", "shape": "cylinder", "detail": 10, "count": 16, "x": "(inst.i - 7.5)*0.7", "y": 0.25, "z": z, "scale": 1, "sx": 0.09, "sy": 0.42, "sz": 0.09, "rx": 0.25, "ry": 0,
-                       "rz": "time.beat*0.5", **solid("#55585f", 0.4, 0.8)})
+                       "rz": "time.beat*0.5", **solid("#7d818c", 0.4, 0.8)})
         done = "step(0, note.age)"
         layers.append(box("0 - 1.5*note.age", f"0.4 + 0.17*(1 - 0.75*{done})", z, 0.17, f"0.17*(1 - 0.75*{done})", 0.17, notes={"track": p.name, "past": 4, "ahead": 4}, round=0.2,
                           **solid(c.col(i), 0.5), emit=f"0.2 + 1.2*exp(0 - 5*abs(note.age))"))
-        layers.append(box(0, f"1.5 - 0.92*env.p{i}", z, 0.34, 0.4, 0.34, **solid("#8d9099", 0.3, 0.9)))
-        layers.append(box(0, 2.3, z, 0.12, 0.6, 0.12, **solid("#55585f", 0.4, 0.8)))
-        layers.append(box(0, 2.9, z, 0.7, 0.08, 0.5, **solid("#3a3d44", 0.5, 0.6)))
+        layers.append(box(0, f"1.5 - 0.92*env.p{i}", z, 0.34, 0.4, 0.34, **solid("#b4b8c2", 0.3, 0.9)))
+        layers.append(box(0, 2.3, z, 0.12, 0.6, 0.12, **solid("#7d818c", 0.4, 0.8)))
+        layers.append(box(0, 2.9, z, 0.7, 0.08, 0.5, **solid("#5a5e68", 0.5, 0.6)))
     look = {"background": c.bg, "env": env, "layers": layers, "filters": post3d(-3, 5, -6, shadow=0.6)}
     return shots(c, look, [cam("1.0*sin(time.bar/8)", 2.2, -6.5, look=(0, 1.0, 0.6), zoom=1.5), cam(4.5, 1.3, -3.2, look=(0, 0.9, 0.6), zoom=1.5), cam(-2.2, 3.4, -3.0, look=(0, 0.6, 0.5), zoom=1.5)], P[0])
 

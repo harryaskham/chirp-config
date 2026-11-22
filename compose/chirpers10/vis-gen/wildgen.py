@@ -420,7 +420,7 @@ class Deal:
                 continue
             if first and (info["cost"] >= 3 or info["fam"] in ("plate", "room", "travel")):
                 continue
-            if name == "numerals" and S.n != 14:
+            if name in FIGURES and S.n not in FIGURES[name]:
                 continue        # figures only where the song is about counting
             if flash and (info["cost"] >= 3 or info["fam"] in ("plate", "travel", "sheet", "trace", "grow") or name in W.PLATES or name in W.SLOW):
                 continue        # a flash has no time to draw anything out
@@ -854,7 +854,7 @@ class Deal:
                            key=lambda t: self.treats[t] + 2 * rnd(S.n, k, t) - 6 * (t in HOUSE.get(S.n, ())))
             if info["fam"] == "plate":
                 order = []          # the first film's studies come as they were, and once
-            if name in W.BOLD:
+            if name in W.BOLD or name in W.THIN:
                 # Pictures made of lines and points keep to guises that add to them: a print of a hair line is nothing.
                 order = [t for t in order if t in W.FILLS]
             if first:
@@ -896,7 +896,7 @@ class Deal:
             # Where the music is full a picture may wear two guises at once.
             second = None
             if treat in W.STACK and not flash and not first and name != hand_on and c.full >= 0.55 and rnd(S.n, k, "stack?") < 0.5:
-                more = sorted((t for t in W.STACK if W.STACK[t] != W.STACK[treat] and (name, t) not in self.combos and W.TREAT[t][1](c, info) and (name not in W.BOLD or t in W.FILLS) and not (name in W.THIN and t in W.SHRINKS)
+                more = sorted((t for t in W.STACK if W.STACK[t] != W.STACK[treat] and (name, t) not in self.combos and W.TREAT[t][1](c, info) and ((name not in W.BOLD and name not in W.THIN) or t in W.FILLS) and not (name in W.THIN and t in W.SHRINKS)
                                and (treat, t) not in W.STACK_BAD and (t, treat) not in W.STACK_BAD),
                               key=lambda t: self.stacks[t] + 2 * rnd(S.n, k, "st" + t))
                 if more:
@@ -1118,6 +1118,9 @@ def fitting(S, c):
 LEDGER_GUISES = ("plain", "relief", "infra", "fringe", "papercut", "duotone", "echo", "delayed", "blueprint", "solar", "tracking", "onebit", "water")
 ROLL_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "water", "tracking", "relief", "kaleido", "smoked")
 MEASURE_GUISES = ("plain", "relief", "papercut", "infra", "fringe", "bricks", "duotone", "echo", "delayed", "solar", "blueprint", "onebit")
+# Pictures with figures in them, and the songs that count (Running Total adds up, Slow Enough
+# to Count counts, So Far says its numbers): nowhere else is a number written.
+FIGURES = {"numerals": (14,), "leader": (14,), "odometer": (4, 14, 17)}
 ROW_GUISES = ("plain", "relief", "infra", "fringe", "echo", "delayed", "duotone", "solar", "blueprint", "tracking", "water", "papercut", "onebit", "drawn")
 WALK_GUISES = ("plain", "relief", "papercut", "itself", "infra", "fringe", "duotone", "echo", "delayed", "solar", "blueprint", "tracking", "water", "onebit")
 ZIP_GUISES = ("plain", "relief", "papercut", "infra", "fringe", "duotone", "echo", "delayed", "solar", "tracking", "blown", "water")
