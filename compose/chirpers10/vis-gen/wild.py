@@ -4247,6 +4247,8 @@ THIN = set("crystal candles strange teletype odometer loom inset slack discs hou
 SHRINKS = set("ball woven tracking roll wound screen planet hole mirror water flood poster knitted sampler".split())
 # Pictures on a white ground: laid over another by its lights, the white would be all there is.
 WHITE = set("braille barcode kandinsky suprematist mondrian score blots marbling ink sundial zen tape riley vasarely testcard thermal courses".split())
+# Pictures that take a good while to become anything: not for a scene under five and a half seconds.
+LONG = set("turtle strange harmonograph tetris hanoi marbling ink rink galton".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("barcode braille dice candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
 MIRROR_BAD = set("dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
@@ -4596,13 +4598,13 @@ def t_sampler(c, look):
     return _stitch(c, look, "cross", 72, ground=0.05, paper="#141210")
 
 
-@treat("bricks", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in THIN)
+@treat("bricks", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type"))
 def t_bricks(c, look):
     """Built of studded bricks, as many across as three bars have sixteenths."""
     return _stitch(c, look, "brick", 48, ground=1.0)
 
 
-@treat("beaded", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in THIN)
+@treat("beaded", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type"))
 def t_beaded(c, look):
     """Threaded as beads on a dark ground."""
     return _stitch(c, look, "bead", 56, ground=0.03)

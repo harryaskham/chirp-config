@@ -374,6 +374,8 @@ class Deal:
                 continue        # figures only where the song is about counting
             if flash and (info["cost"] >= 3 or info["fam"] in ("plate", "travel", "sheet", "trace", "grow") or name in W.PLATES or name in W.SLOW):
                 continue        # a flash has no time to draw anything out
+            if not flash and (name in W.SLOW and secs < 3.8 or name in W.LONG and secs < 5.5):
+                continue        # it takes longer than this to become anything
             if name in W.FED and (first or final or busiest < max(5, 1.4 * secs)):
                 continue        # it is made of notes, and here there are too few (or the song is ringing out)
             score = 4.0 * self.used[name] + 1.5 * (info["cost"] - 1) - 2.0 * min(info["needs"], 3) + 3.0 * rnd(S.n, k, name)
