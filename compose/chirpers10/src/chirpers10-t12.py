@@ -1317,6 +1317,70 @@ def the_feet_are_short(doc):
     if SHORT_FEET['loudness']: doc['loudness'] = SHORT_FEET['loudness']
 
 
+# v33 (chirper-zero; instrument round: the two hands' guitars, `left` and `right`; no note moves).
+# ONE LINE STANDS FORWARD. Harry, 22 Nov: "even harder sounding guitars". The cut at 2.6 kHz on the two hands
+# (chirper-alpha's, v15; 4 dB since v23) was made for the stretches where the hands play AGAINST each other: two
+# guitars, a line each, and the mix 1.4 to 2.1 dB over at 2-4 kHz. Where the guitars are ONE line it was never over:
+# 'carbon' (one guitarist), 'one hand' (the two in unison) and the facing page (the right hand alone) read 1.0, 2.0
+# and 2.1 dB SHORT at 2-4 kHz against the eleven records, and v23 left 'one hand' open for exactly this.
+#   THE CUT rides a lane (`open`) on each hand's own track: five eighths of it lifts in 'carbon' (the left; 2-4 kHz
+#   then reads -0.1; all of it read +0.6 over at the same distance), all of it on the facing page (the right), half
+#   in 'one hand' (both).
+#   THE FADERS of both hands come up 2 dB in 'one hand' (lane `forward`, in dB). Read by part, the guitars there
+#   were -6.8 dB of the mix where they are -4.7 in 'opposite' and -4.5 in 'raised' and the records' guitars -5.3:
+#   the unison sat 2 dB further back than the argument. In the mix the level alone read nearer than the tone alone
+#   (0.794 against 0.848) and the two together nearest (0.656 by arithmetic; +3 dB with no lift 0.669).
+# The stroke alone (riffpunch; teeth = 400 Hz-1 kHz less 1-4 kHz; the records -11.3, -12.7 to -6.5): carbon -5.98
+# (outside) -> -7.15 ; one hand -8.03 -> -9.02 ; the facing page -7.64 -> -9.60. The mix, all eight windows read on
+# the candidate: carbon 1.200 -> 1.033, one hand 1.100 -> 0.689, the facing page 1.067 -> 0.733 ; ink, opposite,
+# thumbprint, raised and turn over identical. NOT in the descent between (3:45-3:53, both hands holding four chords
+# over the bass): read on its own it is +0.2 at 2-4 kHz and +1.2 at 1-2 kHz already, so the cut stays there and the
+# lanes turn in the gaps either side. NOT BUILT: a cut at 450 or 650 Hz with the lift (nearer in carbon and on the
+# facing page by arithmetic, further in 'one hand'; and half of what is over there is the voice's, by mute).
+# COSTS: the hands are louder alone where they are one line (1.3, 3.0 and 1.9 dB; the mix was short of what they
+# add); the master gives the low end less under them (in 'one hand' 1.1 dB at 30-60 Hz, 0.5 at 60-120 Hz); the left
+# hand's tape under the facing page keeps the sound it was taped with; lanes on a track eq and on two faders: the
+# bank will not carry them.
+# 'band': which band of the hands' track eq (the cut at 2.6 kHz) ; 'left', 'right': that hand's passages, beats
+# (from, to, how much of the cut lifts: 1 = all of it, the fader: dB) ; 'ramp': beats ; 'loudness': the target (None:
+# unchanged). --without-one-line gives v32 byte for byte. (--one-line '{...}': a bench.)
+ONE_LINE = {'band': 4, 'left': ((152, 190, 0.625, 0), (351.5, 389.5, 0.5, 2.0)), 'right': ((351.5, 389.5, 0.5, 2.0), (403.75, 434, 1.0, 0)), 'ramp': 0.25,
+            'loudness': -9.87}
+
+
+def one_line_stands_forward(doc):
+    """v33: where a hand's guitar is the only line, its cut at 2.6 kHz lifts (lane `open`) and its fader may rise (lane `forward`, in dB)."""
+    tr = {t['name']: t for t in doc['tracks']}
+    end = float(str(doc['length']).rstrip('b'))
+
+    def lane(spans, k):
+        steps = {}
+        for sp in sorted(tuple(x) for x in spans):
+            steps[sp[0]] = sp[k]
+            if sp[1] < end: steps.setdefault(sp[1], 0)
+        pts, was = [['0b', 0]], 0
+        for at in sorted(steps):
+            if steps[at] != was:
+                pts += [[f"{at - ONE_LINE['ramp']:g}b", was], [f'{at:g}b', steps[at]]]
+                was = steps[at]
+        return pts if len(pts) > 1 else None
+
+    for name in ('left', 'right'):
+        if not ONE_LINE[name]: continue
+        t = tr[name]; eq = t['fx'][0]; i = ONE_LINE['band']; auto = dict(t.get('auto') or {})
+        assert eq['type'] == 'eq' and eq['bands'][i] == 'peak cutoff=2600 q=1.4 gain=-4dB' and 'open' not in auto and 'forward' not in auto, eq
+        opens, fwd = lane(ONE_LINE[name], 2), lane(ONE_LINE[name], 3)
+        if opens:
+            bands = list(eq['bands'])
+            bands[i] = {'kind': 'peak', 'cutoff': 2600, 'q': 1.4, 'gain': {'value': '-4dB', 'mod': [{'src': 'auto.open', 'amount': 4}]}}
+            t['fx'] = [{**eq, 'bands': bands}] + list(t['fx'][1:]); auto['open'] = {'points': opens, 'curve': 0}
+        if fwd:
+            g = t['gain'] if isinstance(t['gain'], dict) else {'value': t['gain'], 'mod': []}
+            t['gain'] = {**g, 'mod': list(g['mod']) + [{'src': 'auto.forward', 'amount': 1}]}; auto['forward'] = {'points': fwd, 'curve': 0}
+        t['auto'] = auto
+    if ONE_LINE['loudness']: doc['loudness'] = ONE_LINE['loudness']
+
+
 if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); ap.add_argument('--without-crease',action='store_true',help='regenerate v3')
     ap.add_argument('--without-mirror-bass',action='store_true',help='regenerate v4')
@@ -1356,6 +1420,8 @@ if __name__=='__main__':
     ap.add_argument('--china',help='a bench: CHINA fields to change, as a JSON object')
     ap.add_argument('--without-short-feet',action='store_true',help="regenerate v31: both bass drums as the album kit's comes (210 ms), no chest")
     ap.add_argument('--short-feet',help='a bench: SHORT_FEET fields to change, as a JSON object')
+    ap.add_argument('--without-one-line',action='store_true',help="regenerate v32: the two hands' cut at 2.6 kHz and their faders the same in every passage")
+    ap.add_argument('--one-line',help='a bench: ONE_LINE fields to change, as a JSON object')
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
     doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot,not a.without_blot)
     if not a.without_lean and 'songs' in doc: lean(doc)      # only on the whole song as v22 has it (the tape is there when every older switch is on)
@@ -1377,6 +1443,8 @@ if __name__=='__main__':
     if not a.without_china and not a.without_bell and not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_china_is_a_plate(doc)      # only on the whole song as v30 has it
     if a.short_feet: SHORT_FEET.update(json.loads(a.short_feet))
     if not a.without_short_feet and not a.without_china and not a.without_bell and not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_feet_are_short(doc)      # only on the whole song as v31 has it
+    if a.one_line: ONE_LINE.update(json.loads(a.one_line))
+    if not a.without_one_line and not a.without_short_feet and not a.without_china and not a.without_bell and not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: one_line_stands_forward(doc)      # only on the whole song as v32 has it
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
