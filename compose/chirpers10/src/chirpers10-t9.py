@@ -1376,6 +1376,64 @@ def the_riff_is_dealt(doc):
         doc["loudness"] = float(target)
 
 
+# v34 (chirper-zero; instrument round: the bass drum, the album kit's `k` as it comes, 338 strokes; no stroke moves).
+# THE FOOT IS HEAVIER WHERE IT WALKS. The song's open line since v24: the lock's floor (2.5 dB short of the eleven
+# records under 60 Hz; 'one again' 1.9, 'three' 0.8), "the kick's sub". Read today: alone the drum's sub is the
+# records' (35-60 Hz -1.1 of its low end, theirs -1.1) and what it lacks is its chest (90-120 Hz -28.8, theirs
+# -13.6) and a short fall (84 ms, theirs 37 to 49). In the mix the floor is short only where the drum is sparse and
+# the bass is on F (its fundamental is cut by the low bus): by mute the drum is 3.9 dB of the lock's 30-60 Hz and
+# 7.7 of two's. So, by passage: (1) THE CHEST, the album's (one sine an octave over the drum, A2, 90 ms, -7 dB, its
+# own track past the drums bus), under every stroke but two's and five's, where the mix read further with it
+# (0.967 -> 1.022, 1.589 -> 1.647); alone the drum then falls in 48 ms and has its 90-120 Hz (-15.8). (2) THE SUB:
+# a band at 52 Hz (q 1.2) on the drum's track eq rides a lane: +4 dB in the lock and 'one again', +2 in 'three',
+# nothing elsewhere (every stroke at +4 read further in two, five, six and 'A flat': 0.967 -> 1.806, 1.589 ->
+# 1.760, 0.422 -> 1.040, 0.422 -> 0.617; +7 read worse than +4 everywhere). The mix, all nine windows read on the
+# candidate: three 0.856 -> 0.611, four 0.567 -> 0.500, six 0.422 -> 0.389, the lock 1.433 -> 1.156, A flat 0.422
+# -> 0.400, one again 1.522 -> 1.222; one, two and five are v33. REFUSED: a sub sine on the drum's own note added
+# past the bus (it does not add to the drum's own: further in seven windows of eight). COSTS: where the sub is up
+# the drum alone is no shorter (84 ms) and its click stands lower against its low end (-8.4 -> -11.8, inside the
+# records' range): heavier, not sharper; the finished file's top octave is half a decibel down in the lock and
+# 'one again' (the master ducks what strikes with a heavier drum); the chest is a pitched thump on A.
+# the sub band on the kick's track eq, Hz:q:dB at a full lane ; where the lane is up, from:to:height in beats, | between ;
+# the chest, note:fader dB:decay ms ; where it is struck, from:to in beats, | between ; the loudness target ('' =
+# unchanged). '' = v33 byte for byte. On only while DEALT is. the_foot_is_heavier_where_it_walks(doc) runs last.
+HEAVY = os.environ.get('C10T9_HEAVY', '52:1.2:4;56:84:0.5|168:200:1|224:253:1;A2:-7:90;56:112|140:253;-10.386' if DEALT else '')
+
+
+def the_foot_is_heavier_where_it_walks(doc):
+    """v34: the bass drum's sub rides a lane on its track eq, and a short sine an octave over the drum is struck with it."""
+    sub, lanes, chest, struck, target = HEAVY.split(';')
+    kick = next(t for t in doc['tracks'] if t['name'] == 'kick')
+    assert all(t['name'] != 'chest' for t in doc['tracks']) and 'chest' not in doc['buses'] and 'it-chest' not in doc['patches']
+    assert not kick.get('auto') and len(kick['fx']) == 1 and kick['fx'][0]['type'] == 'eq', kick['fx']
+    num = lambda x: int(float(x)) if float(x) == int(float(x)) else float(x)
+    if sub and lanes:
+        hz, q, db = (num(x) for x in sub.split(':'))
+        steps = {}                                          # beat -> the lane's height from there on (spans may touch)
+        for a, b, h in sorted(tuple(num(x) for x in span.split(':')) for span in lanes.split('|')):
+            steps[a] = h
+            steps.setdefault(b, 0)
+        pts, was = [['0b', 0]], 0
+        for at in sorted(steps):
+            if steps[at] != was:
+                pts += [[f'{at - 0.25:g}b', was], [f'{at:g}b', steps[at]]]
+                was = steps[at]
+        kick['fx'] = [{**kick['fx'][0], 'bands': list(kick['fx'][0]['bands']) + [
+            {'kind': 'peak', 'cutoff': hz, 'q': q, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.heavy', 'amount': db}]}}]}]
+        kick['auto'] = {'heavy': {'points': pts, 'curve': 0}}
+    if chest and struck:
+        note, fader, ms = chest.split(':')
+        spans = [tuple(float(x) for x in span.split(':')) for span in struck.split('|')]
+        doc['patches']['it-chest'] = {'extends': '808', 'synth': {'layers': ['sine'], 'pitch': {'value': 0, 'mod': []}, 'drive': 0, 'filters': [],
+                                                                  'amp': {'a': '2ms', 'd': f'{num(ms)}ms', 's': 0, 'r': '20ms', 'curve': 3}},
+                                      'play': {'mono': False, 'glide': '0ms', 'gate': 1}}
+        doc['tracks'].append({'name': 'chest', 'patch': 'it-chest', 'gain': f'{float(fader):g}dB', 'pan': 0,
+                              'notes': [{**{k: v for k, v in n.items() if k in ('at', 'vel', 'gain')}, 'len': 0.25, 'pitch': note}
+                                        for n in kick['notes'] if any(a <= n['at'] < b for a, b in spans)]})
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T9_SHOW"):
         end = compose()
@@ -1416,4 +1474,6 @@ if __name__ == "__main__":
             the_foot_and_the_bass_turn_last(doc)
         if DEALT:
             the_riff_is_dealt(doc)
+        if HEAVY:
+            the_foot_is_heavier_where_it_walks(doc)
         open(OUT, "w").write(dump(doc))
