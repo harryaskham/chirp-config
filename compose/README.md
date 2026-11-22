@@ -439,10 +439,11 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
     THE KIT'S SNARE SOUNDS 1.77 SEMITONES OVER ITS WRITTEN NOTE AND WANDERS 20 CENTS (chirper-three, Close Enough
     v23; chirp-eco read the same on two seeds: written A3 sounds 243.7 Hz): `pitch.mod.0.amount=0` and
     `pitch.mod.1.amount=0` stop the wander (to 2 cents); tune by `kit.s.pitch`; `cavity` moves the note and
-    leaves the next line (the head's (1,1), 1.594 times the written note) where it is. DO NOT USE
-    `tune_sounding` ON THIS SNARE: with the resonant head tighter than the batter (`reso` 1.5) it tunes the
-    quieter mode and the loudest line lands 654 cents flat (bd-d64c83; it holds at `reso` 1 or under, 11 to
-    21 cents flat). READ A SNARE DRY (off the bus, no sends) to find its note: through the chain a
+    leaves the next line (the head's (1,1), 1.594 times the written note) where it is. `tune_sounding` IS SAFE ON
+    THIS SNARE SINCE ENGINE BATCH 66 (pin bffc1e5d, 20 Nov; bd-d64c83, chirper-zero): it tunes the LOUDER mode
+    (2 to 3 cents flat at `reso` 1.5 on two seeds; before, the quieter mode, 654 cents flat), and with
+    `tune_exact: true` beside it the loudest line is within 1.1 cents of the written note at five settings.
+    Keep the two `pitch.mod` amounts at 0, or the note still wanders. READ A SNARE DRY (off the bus, no sends) to find its note: through the chain a
     peak-picker finds the room's fixed lines. And MOST OF THE SNARE IS THE OVERHEAD ROOM: without its send the
     stroke loses 15 to 17 dB at 1.25-3.15 kHz, so the humps a snare shows there are mostly the room's and a
     cure inside the drum reaches little of them: give the snare a room of its own with the cuts after it.
@@ -606,6 +607,37 @@ any song"; "a new round should release for anyuone to improve"; "tha tis hos we 
 - Album-wide alignment (a motif reprised, the album's palette) still goes in `motifs.md` first, and a change you would
   rather offer than make can still be built as a candidate (`tools/rngsafe.py`, `tools/scoreedit.py`) and left in a
   climb note for the next round.
+
+## The bank: what a record learns goes into the library (Harry, 22 Nov)
+
+Harry: "banking patches, why were these not committed? we should ensure we persist changes". Every instrument
+round on Common Time mended its instrument inside its song: an override on a library patch, a patch of the song's
+own, an effect on a track. The song keeps all of it; `patches/` had none of it, so a new song that asked for
+`ct-kit` got the kit of 12 November. `tools/patchbank.py` closes that. chirp-eco runs it (after rounds, and before
+every cut: `~/.local/state/chirp-eco/bank.sh ALBUM`); a composer need do nothing.
+
+- **`promote ALBUM`**: EACH SONG'S KIT AS PLAYED (`ct-kit-so-far`: one kit, each piece as the track that plays it
+  has it: the fitted bass drum, the snare on its note, the mended hat) and EVERY INSTRUMENT OF A SONG'S OWN
+  (`owing-bow`, `fs-lead`, `cm-bell`), each resolved and self-contained. The index: `compose/ALBUM/bank.md`.
+- **`succeed ALBUM`**: A SUCCESSOR, `NAME-2`, for a shared patch the songs agree about: every setting that more than
+  half of its tracks carry, in three songs or more. On Common Time: `ct-twin-2` (the palm filter at -2: 49 of 76
+  tracks), `ct-wall-stop-l-2` and `-r-2` (the engine's cabinet in place of the impulse response: 9 of 10 tracks),
+  `voice-hook-2`, `voice-legato-2`, `kidman-2`. A RULE'S SUCCESSOR, NOT AN EAR'S: it holds what the songs agree
+  about and nothing else. `compose/ALBUM/successors.md`.
+- **`census ALBUM --md`**: field by field, what each song set on each shared patch (`compose/ALBUM/patches.md`):
+  where no value is agreed (`ct-bass`: a method, not a chain; a cabinet's cone and microphone) each song chose.
+- **`take ID TRACK NAME [--fx]`**: one track's instrument by hand, when a round makes something worth its own name.
+
+START A NEW SONG FROM THE BANK: `ct-kit-so-far`, not `ct-kit`; `ct-twin-2`, not `ct-twin`.
+THE RULES. A banked name is new: nothing here edits a song or another's library file. A song's own patch of the
+same name still wins inside that song, so no song changes (libguard: 0 of 243). The bank follows its song until
+another song uses the name; from then a changed sound is HELD and goes under a new name. NOT BANKED: a patch that
+plays a song inside the song; what a track adds after its patch (its eq, a transient shaper: the mix's) unless
+`take --fx`; the buses (`archive ALBUM` writes each song's whole resolved state at a cut).
+CHECKED, 22 Nov: 199 tracks in the 17 songs, pointed at their banked names, resolve to the same instrument, and six
+songs render bit for bit the same that way (`~/.local/state/chirp-eco/bank/swapcheck.py`); the successors render
+bit for bit as the song once its other overrides are kept, the walls within 91 dB once the song's own cone and
+microphone are set (`succheck.py`).
 
 ## Principles
 
