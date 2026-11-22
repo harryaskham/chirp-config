@@ -11,14 +11,14 @@ about 940 scenes on the album, every one different.
 
 **What is drawn**
 
-- **Idioms** (`wild.py`, the `@idiom` functions: 177 so far). Each is a small machine, place,
+- **Idioms** (`wild.py`, the `@idiom` functions: 181 so far). Each is a small machine, place,
   game or diagram built from the notes themselves, and each keeps one rule: *what the music
   counts, the picture counts*. A note is a thing (a domino, a lantern, a lit window, a letter
   typed, a block dropped into a well); a riff's cell is a width or a number of things (bells
   in a ring of changes, oars on a galley, fingers on a hand, pictures on a reel); a turn of
   the riff is a turn of something. So the odd lengths are seen sliding against the bar
   without being announced.
-- **Guises** (`@treat`, 48): an idiom is seen plain once, and after that through something it
+- **Guises** (`@treat`, 55): an idiom is seen plain once, and after that through something it
   has not been seen through. Prints (halftone, newsprint, engraving, one-bit, type, a line
   drawing, a blueprint, relief, two-ink posters, solarised); cameras that hold time (a
   slit-scan with a strip a sixteenth, stop motion on the riff's notes, a sheet of as many
@@ -28,7 +28,10 @@ about 940 scenes on the album, every one different.
   without end, round a ball, on a folding screen with a leaf for each sixteenth); what the
   picture is made of (combed into streaks, blown, set in leaded glass, overgrown, smoking,
   running, woven of its own strips, seen as heat, a worn tape, its colours arriving one
-  after another).
+  after another); made by hand (cut from sheets of coloured paper with the light going
+  round, drawn as a range of ridges that the notes heave, knitted, cross-stitched, built of
+  studded bricks, threaded as beads, a puzzle put together a piece a sixteenth and taken
+  apart again).
 - **Combinations** (`@combo`, 21; also a round window that circles, a nest of frames, an
   iris thrown open on the riff's turn, a card dealt over the picture; and three in which
   one picture works on the other: seen through it as through glass, shown only through its
