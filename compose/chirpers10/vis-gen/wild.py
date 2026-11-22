@@ -3463,6 +3463,15 @@ def measure(c):
         inside = f"step({sx_}, {X})*step({X}, {sx_ + s_})*step({sy_}, {Y})*step({Y}, {sy_ + s_})"
         lit = f"0.32 + 0.68*{inside}" if cut is None else ("0.85" if q < cut else f"{0.34 if q == cut else 0.14} + 0.75*{inside}")
         layers.append(box((sx_ + s_ / 2 - W / 2) * u, (sy_ + s_ / 2 - H / 2) * u, 0.1, s_ * u / 2 - 0.035, s_ * u / 2 - 0.035, 0.01, **glow(cols[(q if cut is not None else st) % 4], lit)))
+    last = sq[-1][2]
+    if cut is not None and cut >= len(sq) - 1 and W % last == 0 and H % last == 0 and (W // last) * (H // last) <= 400:
+        # What is left is a square: the measure is found. It is laid over the whole oblong,
+        # as many times as it goes, and a wave crosses the tiles on every beat.
+        cols_, rows_ = W // last, H // last
+        col, row = f"(inst.i - {cols_}*floor(inst.i/{cols_}))", f"floor(inst.i/{cols_})"
+        wave = f"exp(0 - 4*fract(time.beat - ({col} + {row})/{cols_ + rows_}))"
+        layers.append(box(f"(({col} + 0.5)*{last} - {W / 2})*{u:g}", f"(({row} + 0.5)*{last} - {H / 2})*{u:g}", -0.05, last * u / 2 * 0.62, last * u / 2 * 0.62, 0.01, count=cols_ * rows_,
+                          **glow("#ffffff", f"0.12 + 1.5*{wave}")))
     layers.append(ball(f"({X} - {W / 2})*{u:g}", f"({Y} - {H / 2})*{u:g}", -0.1, max(0.06, min(0.14, 0.3 * u)), 10, **glow("#ffffff", 1.6)))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.35, 0.016, 0.75)]}
 
