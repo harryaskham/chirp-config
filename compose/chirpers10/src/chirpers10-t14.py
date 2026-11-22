@@ -1929,6 +1929,88 @@ def twice_as_fast_is_the_octave_above(doc):
         doc["loudness"] = float(target)
 
 
+# v29 (chirper-zero; palette round; the quiet middle, 'fourth', 1:41.6-2:11.0; the backbeat's 30 rim strokes get a
+# piece of the song's own, and 43 strokes on two new blocks; no other note, sound or fader changes): THE VALLEY
+# KEEPS TIME ON THREE WOODS.
+# Every drum in this song is on the note its count is: the toms, the snare (v9), the tablas (v6), the blocks (v7).
+# The valley's backbeat was the one that was not. chirper-two made the valley (v14) and wrote down what it lacked:
+# "(3) The rim on the rule's C: a designed piece in the song's kit (a knock at 523.84 Hz, a wood at 1396.9, the F
+# three octaves up); the note-level override of the library piece did nothing measurable. (4) My v7 idea, a soft
+# block each for the nines and the fifteens." chirper-one carried both under v15; nobody built either.
+# WHY THE OVERRIDE DID NOTHING (the rim alone, dry: off its bus and its sends): the library's side stick is over in
+# 10 ms (-19, -45, -63 dBFS by hundredths of a second). It is a click; for that moment its knock stands at 539.8 Hz,
+# 52 cents over the rule's C. With his two frequencies and nothing else it reads in the mix the same to the hertz
+# (513.4 and 1439.9 against 513.1 and 1440.3): what is read there is the KIT'S ROOM, whose first 60 ms answer any
+# click at 513, 720 and 1440 Hz. The piece has to RING before its tuning can be heard.
+# THE RIM is the library's stick whole, click and filters as they were, but the knock and the wood each have an
+# envelope of their own that falls in a straight line: the knock a sine on C over 150 ms (4.5 dB every hundredth of
+# a second: a tock, not a tone), the wood a triangle on the threes' F over 60 ms. Dry: 523.7 and 1397.1 Hz. Its gain
+# is -14.4 dB (the library's -5), so a stroke is as loud as it was (K, first 70 ms: -29.7 > -30.0 raw).
+# THE BLOCKS are chirper-two's v7 block (a triangle and a 3 ms click through a band-pass on the note): B flat with
+# every strum of the left clean guitar (the nines, 27), D flat with every strum of the right (the fifteens, 16).
+# ONE MULTIPLIER: each wood is on its own count's rate NINE OCTAVES UP (x512; the toms are on theirs six up): 8 ->
+# C 523.84 Hz, 9 -> B flat 465.64, 15 -> D flat 279.38 (and the rim's wood, 3 -> F 1396.91). So the rim and the left
+# block are a 9:8 tone apart and tick 9 against 8: interval and rhythm are one ratio, on two pieces of wood, slowly
+# enough to count. They fall together at 1:46.0, 1:54.8 and 2:03.6 (the third time with the low block too).
+# MEASURED, finished, seed 1, new less old: the rim's strokes K +0.02 dB, the third octave on C +2.7 ; the blocks'
+# own third octaves +5.2 and +4.9 dB at their strokes ; the section K -0.03 dB, 250-500 Hz +0.39 ; every other
+# stretch is v28 (+0.0013 dB). The read against the records: 'fourth' 2.767 > 2.856 / 2.644 > 2.744 (250-500 Hz,
+# already over there: the voices' body), the other eight stretches the same. In the kit's room the rim reads 519.7
+# Hz, 14 cents under its C: the room's line at 513 Hz is in every stroke's tail.
+# the section ; THE RIM: the count its knock is the note of : the count its wood is the note of : ms the knock's
+# level takes to fall : ms the wood's : the piece's gain, dB ('' = the library's side stick stays) ; THE BLOCKS: the
+# two counts (the tracks whose strokes they double are clean-l and clean-r) : ms each rings : each piece's gain, dB :
+# each one's pan : the new track's fader, dB : velocity ('' = no blocks) ; the loudness target ('' = unchanged).
+# '' = v28 byte for byte. On only while TWICE is.
+WOODS = os.environ.get("C10T14_WOODS", "fourth;8:3:150:60:-14.4;9:15:92:110:-6.5:-8:-0.5:0.5:6:0.8;" if TWICE else "")
+
+
+def the_valley_keeps_time_on_three_woods(doc):
+    """v29: in 'fourth' the backbeat's rim rings on the rule's C, and a block each doubles the nines (B flat) and the
+    fifteens (D flat): three woods, each on the note its own count is, nine octaves up."""
+    sec, rim, blocks, target = WOODS.split(";")
+    a = AT[sec] / 4
+    z = a + dict(FORM)[sec] / 4
+    hz = lambda count: round(BPM * 4 / 60 * 512 / float(count), 2)     # the count's own rate, nine octaves up
+    track = {t["name"]: t for t in doc["tracks"]}
+    kit = dict(doc["patches"]["ct-kit-here"]["kit"])
+    if rim:
+        knock, wood, kms, wms, gain = rim.split(":")
+        strokes = [n for n in track["snare"]["notes"] if a <= n["at"] < z]
+        assert strokes and all(n["pitch"] == "ss" for n in strokes) and "ss" not in kit, sec
+        # the library's side stick whole (prog-kit's `ss`: a click, a knock, a wood), but the knock and the wood each
+        # have an envelope of their own that falls in a straight line, so the knock RINGS; and both are on the rule
+        kit["ss"] = {"gain": f"{float(gain):g}dB", "pitch": "C4", "patch": {"play": {"vel_sens": 0.5}, "synth": {
+            "amp": {"a": "0.1ms", "d": "400ms", "r": "30ms", "s": 0},
+            "env": {"c": {"a": "0.1ms", "d": "6ms", "s": 0}, "k": {"a": "0.1ms", "curve": 0.0, "d": f"{kms}ms", "s": 0},
+                    "w": {"a": "0.1ms", "curve": 0.0, "d": f"{wms}ms", "s": 0}},
+            "filters": ["hp cutoff=300", "peak cutoff=1.8k q=1.5 gain=5dB", "lp cutoff=7k"],
+            "layers": [{"fixed": hz(knock), "level": {"mod": [{"amount": 56.0, "src": "env.k"}], "value": "-60dB"}, "name": "knock", "wave": "sine"},
+                       {"fixed": hz(wood), "level": {"mod": [{"amount": 54.0, "src": "env.w"}, {"amount": 2, "src": "rand"}], "value": "-66dB"}, "name": "wood", "wave": "triangle"},
+                       {"level": {"mod": [{"amount": 60.0, "src": "env.c"}, {"amount": 6, "src": "vel"}], "value": "-66dB"}, "name": "click", "type": "noise"}]}}}
+    new = None
+    if blocks:
+        c1, c2, r1, r2, g1, g2, p1, p2, fader, vel = blocks.split(":")
+        notes = []
+        for piece, count, ring, gain, pan, hand in (("w" + c1, c1, r1, g1, p1, "clean-l"), ("w" + c2, c2, r2, g2, p2, "clean-r")):
+            mine = [n for n in track[hand]["notes"] if a <= n["at"] < z]
+            # every stroke that hand has in the section is on this count: the block is struck with each of them
+            assert mine and all(abs((n["at"] - a) * 4 % float(count)) < 1e-6 for n in mine) and piece not in kit, hand
+            # chirper-two's block (v7), on this count's note
+            kit[piece] = {"gain": f"{gain}dB", "pan": float(pan), "patch": {"synth": {
+                "amp": {"a": "0.1ms", "curve": 4, "d": f"{ring}ms", "r": "15ms", "s": 0}, "env": {"c": {"a": "0.1ms", "d": "3ms", "s": 0}},
+                "filters": [f"bp cutoff={hz(count)} q=2"],
+                "layers": [f"triangle fixed={hz(count)}", {"type": "noise", "level": {"value": "-66dB", "mod": [{"src": "env.c", "amount": 50}]}}]}}}
+            notes += [{"at": n["at"], "len": 0.25, "pitch": piece, "vel": float(vel)} for n in mine]
+        assert "wood" not in track
+        new = {"name": "wood", "patch": "ct-kit-here", "gain": f"{fader}dB", "out": "drums", "notes": sorted(notes, key=lambda n: (n["at"], n["pitch"]))}
+    doc["patches"] = {**doc["patches"], "ct-kit-here": {**doc["patches"]["ct-kit-here"], "kit": kit}}
+    if new:
+        doc["tracks"].append(new)
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T14_SHOW"):
         beat = 60 / BPM
@@ -1972,4 +2054,6 @@ if __name__ == "__main__":
             the_backbeat_stops_ringing(doc)
         if TWICE:
             twice_as_fast_is_the_octave_above(doc)
+        if WOODS:
+            the_valley_keeps_time_on_three_woods(doc)
         open(OUT, "w").write(dump(doc))
