@@ -7,11 +7,11 @@ as one family of pictures among many.
 ## The second film: many small machines (`wild.py`, `wildgen.py`)
 
 The first film was one idea held for 78 minutes. This one never shows the same picture twice:
-about 940 scenes on the album, every one different.
+about 930 scenes on the album, every one different.
 
 **What is drawn**
 
-- **Idioms** (`wild.py`, the `@idiom` functions: 185 so far). Each is a small machine, place,
+- **Idioms** (`wild.py`, the `@idiom` functions: 189 so far). Each is a small machine, place,
   game or diagram built from the notes themselves, and each keeps one rule: *what the music
   counts, the picture counts*. A note is a thing (a domino, a lantern, a lit window, a letter
   typed, a block dropped into a well); a riff's cell is a width or a number of things (bells
@@ -89,8 +89,13 @@ about 940 scenes on the album, every one different.
 | The song ends | On the picture it began with, changed. |
 
 Each song has a house (`HOUSE`): the guises and ways of sharing the frame it leans to, so
-the songs differ from one another as well as from bar to bar; and five featured idioms
-(`FEATURE`). Where the music is full a picture may wear two guises at once (`STACK`: one
+the songs differ from one another as well as from bar to bar; and six to nine featured
+idioms (`FEATURE`). Every song also has at least one picture for its own structure, found
+from its notes (the table above): the landing, canons, the ringing of rows, the sum, the
+deal, the reprise, the half-bar sheet, the rule worked out, the common measure, the ledger,
+the hinge, the other hand, parts that fit, the rolls, the slack between two guitars, the
+beating of two notes, the walk. Figures are written only in the songs that count
+(`FIGURES`). Where the music is full a picture may wear two guises at once (`STACK`: one
 that moves it, one that changes what it is made of, one that works on it in time).
 
 Some songs are printed on a stock of their own (`STOCK`: grainy and pale for In the Time
