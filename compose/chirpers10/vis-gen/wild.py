@@ -2764,6 +2764,269 @@ def leader(c):
                                                                              {"type": "color", "brightness": f"0.04*noise(time.t*19)", "contrast": 1.05, "saturation": 0.2}]}
 
 
+# ───────────────────────── a tenth lot: lights, cables, and people at play ─────────────────────────
+
+def _zig(u):
+    """Over and back: −1 at a whole number, 1 half way to the next."""
+    return f"(1 - 2*abs(2*fract({u}) - 1))"
+
+
+@idiom(needs=2, fam="game", max_cell=48)
+def billiard(c):
+    """One ball on a table: across it once for every turn of one riff, along it once for
+    every turn of the other. It finds a corner only where the two riffs begin together."""
+    A, B = c.riffs[0], c.riffs[1]
+    Wt, Ht = 3.7, 1.95
+    x, y = f"{Wt}*{_zig(f'{A.turn}/2')}", f"{Ht}*{_zig(f'{B.turn}/2')}"
+    meet = f"exp(0 - 2.5*fract({A.turn})*{A.cell})*exp(0 - 2.5*fract({B.turn})*{B.cell})"
+    felt = "#0f2a22" if c.variant % 2 == 0 else "#1a1830"
+    layers = [box(0, 0, 0.3, Wt + 0.25, Ht + 0.25, 0.05, **glow("#2a1c12", 1)), box(0, 0, 0.2, Wt, Ht, 0.05, **glow(felt, 1)),
+              ball(f"(inst.i - 2*floor(inst.i/2) - 0.5)*{2 * Wt}", f"(floor(inst.i/2) - 0.5)*{2 * Ht}", 0, f"0.16 + 0.5*{meet}", 10, count=4, **glow(c.ink, f"0.25 + 6*{meet}")),
+              {"type": "trail", "x": x, "y": y, "z": 0, "length": f"clamp(scene.t, 0.05, {min(40.0, (c.b16 - c.a16) * c.six):g})", "samples": 1600, "width": 0.014, "taper": 0, "glow": 0.75, "fade": 0.55, "color": c.b},
+              ball(x, y, -0.05, f"0.11 + 0.05*{A.hit}", 12, **glow(c.a, f"1.6 + 2*{A.hit}"))]
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.35, 0.016, 0.6)]}
+
+
+@idiom(needs=1, fam="thread", max_cell=24)
+def star(c):
+    """As many pins round a ring as the riff has sixteenths, and a thread laid a stroke a
+    sixteenth: to the next pin in its first turn, to the next but one in its second, so each
+    turn of the riff draws the next star that many points can make."""
+    P = [p for p in c.riffs[:2] if 5 <= p.cell <= 24]
+    if not P:
+        raise ValueError("too few points for a star")
+    layers = []
+    for i, p in enumerate(P):
+        n_, R = p.cell, (2.15, 1.05)[i]
+        kmax = max(1, (n_ - 1) // 2)
+        t0 = math.floor((c.a16 - p.anchor) / n_)
+        turn = f"(floor({p.turn}) - {t0})"
+        ph = f"(fract({p.turn})*{n_})"
+        pin = lambda j: (f"{R}*sin(({j})/{n_})", f"{R}*cos(({j})/{n_})")  # noqa: E731
+        for back, op in ((1, f"0.3*(1 - fract({p.turn}))"), (0, f"step(inst.i, {ph})*(0.4 + 0.6*exp(0 - 0.7*({ph} - inst.i)))")):
+            kk = f"(1 + fract(({turn} - {back} + {kmax * 64})/{kmax} + 0.001)*{kmax} - 0.001*{kmax})"
+            kk = f"floor({kk} + 0.01)"
+            x1, y1 = pin("inst.i")
+            x2, y2 = pin(f"inst.i + {kk}")
+            layers.append({"type": "beam", "repeat": n_, "from": [x1, y1, 0], "to": [x2, y2, 0], "width": 0.022 if not back else 0.014, "glow": 1.0, "samples": 24, "color": c.col(i) if not back else c.dim, "opacity": op})
+        x, y = pin("inst.i")
+        layers.append(ball(x, y, -0.02, f"0.05 + 0.07*exp(0 - 1.5*fract({p.turn} - inst.i/{n_})*{n_})", 8, count=n_, **glow(c.ink, f"0.6 + 2.5*exp(0 - 1.5*fract({p.turn} - inst.i/{n_})*{n_})")))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.018, 0.55)]}
+
+
+@idiom(needs=0, fam="fall")
+def snow(c):
+    """Snow: a flake for every note, as big as the note was loud, and the drift at the foot
+    of the frame deepens through the scene."""
+    P = _cast(c, 3)
+    layers = [{"type": "gradient", "palette": ["#0b1226", "#141c38", "#27325a"], "angle": 0.25, "spread": 0.6, "res": 0.5}]
+    for i, p in enumerate(P):
+        sway = f"0.07*sin(note.age/5 + hash(note.i*3.1 + {i}))"
+        layers.append({"type": "shape", "notes": {"track": p.name, "past": 11}, "sides": 6, "star": 0.55, "radius": f"0.03 + 0.045*note.vel + {0.012 * i}", "width": 0.005, "fill": 0.15,
+                       "rotate": f"(hash(note.i*1.7) - 0.5)*note.age*0.08", "x": f"(hash(note.i*7.31 + {i * 5})*2 - 1)*1.72 + {sway}", "y": f"1.08 - (0.19 + 0.05*hash(note.i*2.3))*note.age",
+                       "color": ("#f4f6ff", c.a, c.b)[i], "opacity": "1 - smooth(9, 11, note.age)"})
+    layers.append({"type": "shape", "sides": 4, "rotate": 0.125, "radius": 2.6, "width": 0, "fill": 1, "color": "#e9edf7", "blend": "normal", "x": 0, "y": f"0 - 2.838 + 0.06 + 0.3*{c.prog}"})
+    return {"background": "#0b1226", "layers": layers, "filters": [bloom(c, 0.35, 0.02, 0.6)]}
+
+
+@idiom(needs=1, fam="engine")
+def lifts(c):
+    """Lifts: a shaft for each part, and its car goes to the floor of whatever note it plays;
+    the counterweight goes the other way."""
+    P = _cast(c, 5)
+    floors = 7
+    vars_ = {f"y{i}": {"follow": f"floor(track.{p.name}.key*{floors - 1} + 0.5)/{floors - 1}", "attack": "110ms", "release": "110ms"} for i, p in enumerate(P)}
+    env = hit_env(P, "400ms")
+    span, gapx = 3.9, min(1.7, 7.6 / len(P))
+    layers = [box(0, 0, 0.4, len(P) * gapx / 2 + 0.3, span / 2 + 0.35, 0.05, **glow("#101116", 1)),
+              box(0, f"(inst.i - {(floors - 1) / 2})*{span / (floors - 1):g} - 0.27", 0.3, len(P) * gapx / 2 + 0.3, 0.012, 0.02, count=floors, **glow(c.dim, 0.6))]
+    for i, p in enumerate(P):
+        x = (i - (len(P) - 1) / 2) * gapx
+        y = f"(var.y{i} - 0.5)*{span}"
+        for dx in (-0.36, 0.36):
+            layers.append(box(x + dx, 0, 0.2, 0.012, span / 2 + 0.3, 0.02, **glow(c.dim, 0.8)))
+        layers.append({"type": "beam", "from": [x, span / 2 + 0.3, 0.1], "to": [x, y, 0.1], "width": 0.012, "glow": 0.5, "samples": 4, "color": c.ink})
+        layers.append(box(x, y, 0, 0.27, 0.23, 0.05, **glow(c.col(i), f"0.45 + 1.8*env.h{i}")))
+        layers.append(box(x, y, -0.06, 0.012, 0.23, 0.02, **glow("#000000", 1)))
+        layers.append(box(x + 0.31, f"0 - {y}", 0.15, 0.03, 0.2, 0.03, **glow(c.ink, 0.5)))
+    return {"background": c.bg, "camera": FLAT, "vars": vars_, "env": env, "layers": layers, "filters": [bloom(c, 0.35, 0.016, 0.6)]}
+
+
+@idiom(needs=1, fam="game", max_cell=24)
+def fan(c):
+    """A hand of cards, one for each sixteenth of the riff, fanned out: the card of the
+    sixteenth now sounding stands up out of the hand."""
+    P = [p for p in c.riffs[:2] if p.cell <= 24]
+    if not P:
+        raise ValueError("too many cards to hold")
+    layers = []
+    for i, p in enumerate(P):
+        n_ = p.cell
+        up = 1 if i == 0 else -1
+        step = min(0.03, 0.34 / n_)
+        a = f"((inst.i - {(n_ - 1) / 2})*{step:g})"
+        d = f"(fract({p.turn} - inst.i/{n_})*{n_})"
+        R = f"(3.2 + 0.55*exp(0 - 1.1*{d}))"
+        py = -3.6 if len(P) == 1 else (-3.75 if up > 0 else 3.75)
+        layers.append(box(f"{R}*sin({a})", f"{py} + {up}*{R}*cos({a})", f"0 - inst.i*0.012", 0.36, 0.56, 0.004, rz=f"0 - {up}*{a}", count=n_, **glow("#efe9dc", f"0.55 + 0.45*exp(0 - 1.1*{d})")))
+        layers.append(box(f"{R}*sin({a})", f"{py} + {up}*{R}*cos({a})", f"0 - inst.i*0.012 - 0.006", 0.26, 0.44, 0.004, rz=f"0 - {up}*{a}", count=n_, **glow(c.col(i), f"0.25 + 1.6*exp(0 - 1.1*{d})")))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.3, 0.014, 0.75)]}
+
+
+@idiom(needs=1, fam="string", max_cell=32)
+def switchboard(c):
+    """An exchange: sixteen sockets along the top for the sixteenths of the bar, and along
+    the bottom one for each sixteenth of the riff. Every note is a cord plugged from where it
+    falls in the bar to where it falls in the riff, so the cords lean further over each bar."""
+    P = [p for p in c.riffs[:2] if p.cell <= 32]
+    if not P:
+        raise ValueError("too long a riff for the board")
+    A = P[0]
+    n_ = A.cell
+    dx_t, dx_b = 0.5, min(0.5, 8.0 / n_)
+    layers = [box(0, 0, 0.3, 4.4, 2.4, 0.05, **glow("#15120f", 1)),
+              ball(f"(inst.i - 7.5)*{dx_t}", 1.75, 0.1, 0.075, 8, count=16, **glow(c.dim, f"0.5 + 2*exp(0 - 2*fract(time.bar - inst.i/16)*16)")),
+              ball(f"(inst.i - {(n_ - 1) / 2})*{dx_b:g}", -1.75, 0.1, 0.075, 8, count=n_, **glow(c.dim, f"0.5 + 2*exp(0 - 2*fract({A.turn} - inst.i/{n_})*{n_})"))]
+    for i, p in enumerate(P):
+        keep = max(4, 2 * p.cell / 4)
+        x1 = f"(floor({NOTE16}) - 7.5)*{dx_t}"
+        x2 = f"(floor(fract((note.beat*4 - {A.anchor:g} + {n_ * 4096})/{n_} + 0.0006)*{n_}) - {(n_ - 1) / 2})*{dx_b:g}"
+        layers.append({"type": "beam", "notes": {"track": p.name, "past": keep}, "from": [x1, 1.75, 0], "to": [x2, -1.75, 0], "sag": "0.35 + 0.25*hash(note.i*1.3)", "width": 0.022, "samples": 28,
+                       "glow": f"0.5 + 1.6*exp(0 - 2*note.age)", "color": c.col(i), "opacity": f"1 - smooth({keep * 0.6:g}, {keep:g}, note.age)"})
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.35, 0.016, 0.6)]}
+
+
+@idiom(needs=0, fam="field")
+def lava(c):
+    """Warm wax: a gout for every note rises from where it fell in the bar, and they run
+    into one another as they go up."""
+    P = _cast(c, 2)
+    layers = [{"type": "shape", "sides": 1, "radius": 0.9, "fill": 1, "width": 0, "color": "#ffffff", "x": f"0.9*sin(time.bar/7)", "y": -1.75, "opacity": 0.6}]
+    for i, p in enumerate(P):
+        layers.append({"type": "shape", "notes": {"track": p.name, "past": 9}, "sides": 1, "radius": f"(0.07 + 0.1*note.vel)*(1 - 0.6*smooth(4, 9, note.age))", "fill": 1, "width": 0, "color": "#ffffff",
+                       "x": f"({NOTE16} - 8)*0.2 + 0.12*sin(note.age/4 + hash(note.i))", "y": f"0 - 1.05 + (0.2 + 0.1*hash(note.i*3.7 + {i}))*note.age", "opacity": 0.5})
+    return {"background": "#000000", "layers": layers,
+            "filters": [{"type": "blur", "radius": 0.05}, {"type": "posterize", "levels": 6}, {"type": "remap", "gain": 1.25, "palette": [c.bg, c.b, c.a, "#fff3d6"]}, bloom(c, 0.25, 0.02, 0.8)]}
+
+
+@idiom(needs=1, fam="light")
+def searchlights(c):
+    """Lights on the ground at night, one for each riff: each sweeps over and back once in
+    its turn, so they cross where the riffs do."""
+    P = c.riffs[:4]
+    layers = [{"type": "stars", "count": 500, "speed": 0, "size": 0.8, "light": 0.5, "twinkle": 0.3, "streak": 0},
+              {"type": "shape", "sides": 1, "radius": 0.14, "fill": 1, "width": 0, "color": "#e8e4d4", "x": 1.2, "y": 0.62, "opacity": 0.8}]
+    for i, p in enumerate(P):
+        x = (i - (len(P) - 1) / 2) * (7.2 / max(len(P), 2))
+        th = f"(0.105*sin({p.turn}))"
+        layers.append({"type": "beam", "from": [x, -2.35, 0], "to": [f"{x} + 8*sin({th})", f"0 - 2.35 + 8*cos({th})", 0], "width": 0.05, "taper": -7, "glow": f"0.35 + 0.5*{p.hit}", "fade": 0.75, "samples": 60, "color": c.col(i)})
+        layers.append(ball(x, -2.3, -0.05, 0.12, 8, **glow(c.col(i), f"1.5 + 3*{p.hit}")))
+    layers.append(box(f"(inst.i - 9.5)*0.5", f"0 - 2.6 + 0.25*hash(inst.i*3.3)", -0.1, 0.24, 0.45, 0.02, count=20, **glow("#020203", 1)))
+    return {"background": "#03040a", "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.5, 0.03, 0.5)]}
+
+
+@idiom(needs=1, fam="light", max_cell=32)
+def tesla(c):
+    """A globe with a stud for each sixteenth of the riff round its rim: every note is a
+    spark from the middle to the stud of its sixteenth."""
+    P = [p for p in c.riffs[:2] if p.cell <= 32]
+    if not P:
+        raise ValueError("too many studs")
+    layers = [ball(0, 0, 0, 0.26, 12, **glow(c.ink, f"1.2 + 3*{P[0].hit}"))]
+    for i, p in enumerate(P):
+        n_, R = p.cell, (2.2, 1.3)[i]
+        layers.append({"type": "shape", "sides": 0, "radius": R / FH * 1.0, "width": 0.004, "fill": 0, "color": c.dim, "opacity": 0.7})
+        layers.append(ball(f"{R}*sin(inst.i/{n_})", f"{R}*cos(inst.i/{n_})", 0, 0.06, 8, count=n_, **glow(c.dim, f"0.6 + 3*exp(0 - 1.5*fract({p.turn} - inst.i/{n_})*{n_})")))
+        a = f"(floor({p.nstep} + 0.01)/{n_})"
+        for wdt, col, op in ((0.05, c.col(i), 0.8), (0.018, "#ffffff", 1.0)):
+            layers.append({"type": "beam", "notes": {"track": p.name, "past": 1.2}, "from": [0, 0, 0], "to": [f"{R}*sin({a})", f"{R}*cos({a})", 0], "width": wdt, "jag": 0.22, "bolt": "floor(time.t*14) + note.i", "samples": 40,
+                           "glow": "2.2*exp(0 - 3.5*note.age)", "color": col, "opacity": f"{op}*step(note.age, 1.1)"})
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.6, 0.025, 0.45)]}
+
+
+@idiom(needs=2, fam="body", cost=2)
+def duel(c):
+    """Two with foils: each lunges on the notes of a riff of its own, and steel meets only
+    where the riffs do."""
+    A, B = c.riffs[0], c.riffs[1]
+    env = hit_env([A, B], "300ms")
+    both = "env.h0*env.h1"
+    layers = [lamp(0, 5, -5, 1.4), lamp(0, 1.4, -1.5, 0.6, c.a, 6), floor(c, 0, "#17171b", 0.7), box(0, 0.01, 0, 4.2, 0.01, 0.55, **solid("#2a2a31", 0.6)),
+              ball(0, 1.75, -0.2, f"0.02 + 0.3*{both}", 8, **glow("#fff6d0", f"8*{both}"))]
+    for i, (p, sgn) in enumerate(((A, -1), (B, 1))):
+        e = f"env.h{i}"
+        layers.append({"type": "figure", "rig": "human", "motion": "none", "x": f"{sgn}*(1.45 - 0.5*{e})", "y": f"1.3 - 0.12*{e}", "z": 0, "scale": 1.25, "ry": sgn * 0.25, **skin(("#e8e4da", "#3a3d48")[i], 0.05),
+                       "extra": [{"name": "foil", "parent": "forearm_r", "length": 0.95, "dir": [0, -1, 0], "width": 0.012}],
+                       "pose": {"arm_r": [f"0.17 + 0.08*{e}", 0, 0.02], "forearm_r": [f"0.06 - 0.05*{e}", 0, 0], "arm_l": ["0 - 0.12", 0, -0.06], "forearm_l": [0.2, 0, 0],
+                                "thigh_r": [f"0.08 + 0.14*{e}", 0, 0], "shin_r": [f"0 - 0.06 - 0.1*{e}", 0, 0], "thigh_l": [f"0 - 0.05 - 0.1*{e}", 0, 0], "shin_l": ["0 - 0.03", 0, 0], "spine": [f"0.02 + 0.04*{e}", 0, 0]}})
+    look = {"background": c.bg, "env": env, "layers": layers, "filters": post3d(0, 5, -5)}
+    return shots(c, look, [cam("0.4*sin(time.bar/8)", 1.6, -6.2, look=(0, 1.4, 0), zoom=1.9), cam(-4.6, 1.9, -2.6, look=(0.4, 1.4, 0), zoom=1.7), cam(0, 5.6, -2.8, look=(0, 1.0, 0), zoom=1.7)], A)
+
+
+@idiom(needs=2, fam="body", cost=2)
+def seesaw(c):
+    """A plank over a trestle with somebody at each end: each end is sent down by the notes of
+    its own riff."""
+    A, B = c.riffs[0], c.riffs[1]
+    env = hit_env([A, B], "500ms")
+    L, h0 = 2.6, 1.0
+    th = "(0.045*var.tilt)"
+    layers = [{"type": "sky", "zenith": "#31456f", "horizon": c.a, "ground": "#33302a", "sun": "#fff0d0", "sun_yaw": 0.4, "sun_height": 0.09, "sun_size": 0.04, "clouds": 0.15}, floor(c, 0, "#57503f", 0.95),
+              {"type": "mesh", "shape": "cone", "detail": 12, "x": 0, "y": h0 / 2, "z": 0, "scale": h0 * 0.52, **solid("#3c4350", 0.6, 0.4)},
+              box(0, h0, 0, L + 0.3, 0.04, 0.2, rz=th, **solid("#8a6238", 0.7))]
+    for i, sgn in enumerate((-1, 1)):
+        x, y = f"{sgn}*{L}*cos({th})", f"{h0} + {sgn}*{L}*sin({th}) + 0.12"
+        e = f"env.h{i}"
+        layers.append({"type": "figure", "rig": "human", "motion": "none", "x": x, "y": y, "z": 0, "scale": 0.95, "ry": sgn * 0.25, **skin(c.col(i), 0.15),
+                       "pose": {"thigh_l": [0.2, 0, 0], "thigh_r": [0.2, 0, 0], "shin_l": [f"0 - 0.1 - 0.1*{e}", 0, 0], "shin_r": [f"0 - 0.1 - 0.1*{e}", 0, 0], "arm_l": [0.16, 0, -0.03], "arm_r": [0.16, 0, 0.03],
+                                "forearm_l": [0.12, 0, 0], "forearm_r": [0.12, 0, 0], "spine": [f"0.02 + 0.03*{e}", 0, 0]}})
+    look = {"background": "#31456f", "vars": {"tilt": {"follow": "env.h1 - env.h0", "attack": "110ms", "release": "380ms"}}, "env": env, "layers": layers,
+            "filters": [{"type": "shadowmap", "amount": 0.6, "soft": 2, "size": 1024}, {"type": "ao", "amount": 0.4, "radius": 0.05}, {"type": "tonemap", "knee": 0.8}, {"type": "aa"}]}
+    return shots(c, look, [cam(0, 1.5, -8.2, look=(0, 1.3, 0), zoom=1.9), cam(6.0, 2.2, -5.5, look=(0, 1.2, 0), zoom=1.7), cam(-5.5, 0.7, -3.5, look=(0, 1.4, 0), zoom=1.5)], A)
+
+
+@idiom(needs=1, fam="body", cost=2, max_cell=40)
+def trampoline(c):
+    """Somebody on a trampoline for each riff, coming down as it begins each turn: the longer
+    the riff, the higher they go."""
+    P = c.riffs[:3]
+    layers = [lamp(-3, 7, -6, 1.5), lamp(2, 1, -4, 0.5, c.b, 9), floor(c, 0, "#1b1b20", 0.8)]
+    for i, p in enumerate(P):
+        x = (i - (len(P) - 1) / 2) * 2.5
+        T = p.cell * c.six
+        H = max(0.5, min(3.4, 1.25 * T * T))
+        u = f"fract({p.turn})"
+        up = f"(4*{u}*(1 - {u}))"
+        land = f"exp(0 - 14*{u}) + exp(0 - 14*(1 - {u}))"
+        layers.append({"type": "mesh", "shape": "cylinder", "detail": 20, "x": x, "y": f"0.42 - 0.07*({land})", "z": 0, "scale": 1, "sx": 0.95, "sy": 0.03, "sz": 0.95, **solid("#22252d", 0.5)})
+        layers.append({"type": "mesh", "shape": "torus", "detail": 20, "tube": 0.05, "x": x, "y": 0.45, "z": 0, "scale": 0.98, **solid(c.col(i), 0.5, 0.3)})
+        layers.append({"type": "figure", "rig": "human", "motion": "none", "x": x, "y": f"1.42 + {H:g}*{up} - 0.1*({land})", "z": 0, "scale": 1.0, "rx": f"0 - {(0, 1, 0)[(i + c.variant) % 3]}*smooth(0.15, 0.85, {u})",
+                       **skin(("#e2ddd2", c.col(i), "#cfd6e2")[i], 0.05),
+                       "pose": {"thigh_l": [f"0.2*{up}", 0, 0], "thigh_r": [f"0.2*{up}", 0, 0], "shin_l": [f"0 - 0.25*{up}", 0, 0], "shin_r": [f"0 - 0.25*{up}", 0, 0],
+                                "arm_l": [f"0.1 + 0.3*{up}", 0, -0.05], "arm_r": [f"0.1 + 0.3*{up}", 0, 0.05], "spine": [f"0.05*{up}", 0, 0]}})
+    look = {"background": c.bg, "layers": layers, "filters": post3d(-3, 7, -6)}
+    return shots(c, look, [cam("0.5*sin(time.bar/9)", 2.4, -8.5, look=(0, 2.2, 0), zoom=1.7), cam(5.5, 1.0, -5.0, look=(0, 2.3, 0), zoom=1.5), cam(-1.0, 0.5, -5.5, look=(0, 2.6, 0), zoom=1.4)], P[0])
+
+
+@idiom(needs=2, fam="trace", cost=2)
+def rink(c):
+    """A skater on clean ice: across the rink in time with one riff and along it with the
+    other, and the ice keeps the line."""
+    A, B = c.riffs[0], c.riffs[1]
+    ma, mb = max(1, math.ceil(2.4 / (A.cell * c.six))), max(1, math.ceil(2.4 / (B.cell * c.six)))
+    ua, ub = f"({A.turn}/{ma})", f"({B.turn}/{mb})"
+    x, z = f"3.3*sin({ua})", f"1.9*sin({ub} + 0.125)"
+    face = f"atan2({1 / (A.cell * ma):g}*3.3*cos({ua}), {1 / (B.cell * mb):g}*1.9*cos({ub} + 0.125))"
+    layers = [lamp(0, 9, -3, 1.0), lamp(-6, 3, -6, 0.35, "#cfe2ff"),
+              {"type": "mesh", "shape": "plane", "detail": 4, "x": 0, "y": 0, "z": 0, "scale": 30, "material": "pbr", "rough": 0.5, "metal": 0.0, "color": "#4f6f8f", "rim": 0, "cull": True},
+              box(0, 0.25, 2.6, 4.2, 0.25, 0.06, **solid("#b33a3a", 0.6)), box(0, 0.25, -2.6, 4.2, 0.25, 0.06, **solid("#b33a3a", 0.6)),
+              {"type": "trail", "x": x, "y": 0.02, "z": z, "length": f"clamp(scene.t, 0.05, {min(30.0, (c.b16 - c.a16) * c.six):g})", "samples": 900, "width": 0.035, "taper": 0, "glow": 0.9, "fade": 0.3, "color": "#ffffff"},
+              {"type": "figure", "rig": "human", "motion": "none", "x": x, "y": 1.4, "z": z, "scale": 1.35, "ry": face, **skin(c.a, 0.25),
+               "pose": {"thigh_l": ["0 - 0.14", 0, 0], "shin_l": ["0 - 0.08", 0, 0], "thigh_r": [0.05, 0, 0], "spine": [0.06, 0, 0], "arm_l": [0, 0, -0.17], "arm_r": [0, 0, 0.17]}}]
+    look = {"background": "#2c3f55", "layers": layers, "filters": [{"type": "shadowmap", "amount": 0.5, "soft": 2.5, "size": 1024, "sun": 0, "x": 0, "y": 9, "z": -3}, {"type": "ao", "amount": 0.3, "radius": 0.05}, {"type": "tonemap", "knee": 0.8}, {"type": "aa"}]}
+    return shots(c, look, [cam(0, 6.5, -6.0, look=(0, 0.3, 0), zoom=1.9), cam(5.5, 2.4, -5.5, look=(0, 0.8, 0), zoom=1.6), cam(0, 10, -0.5, look=(0, 0, 0), zoom=1.9)], A)
+
+
 # ───────────────────────── pictures of pictures ─────────────────────────
 
 SMALL = ("spiral", "sunflower", "stringart", "moire", "strings", "clockshop", "combs", "vortex", "epicycle", "harmonograph", "mandala", "table", "tally", "slack", "sonar", "remainder", "kelvin", "chladni")
@@ -3152,14 +3415,14 @@ def t_kaleido(c, look):
 
 
 # Pictures that stand to one side, or are a line of things: half of one is not a picture.
-MIRROR_BAD = set("kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
+MIRROR_BAD = set("duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())
 # Pictures that are mostly light: a print of their lights is a blank sheet.
-BRIGHT = set("maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm".split())
+BRIGHT = set("maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
-FED = set("letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins".split())
+FED = set("letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph".split())
+SLOW = set("bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)
@@ -3432,9 +3695,19 @@ def rostrum(c, look, kind):
 MOVES = ("push", "punch", "across", "pull", "release", "lean")
 
 
+# The stock a song is printed on, where it has one of its own: filters over the whole song.
+STOCK = {
+    5: [{"type": "color", "contrast": 1.12}],
+    9: [{"type": "color", "saturation": 0.82, "contrast": 1.06}, {"type": "grain", "amount": 0.07}],
+    13: [{"type": "color", "saturation": 0.78}, {"type": "vignette", "amount": 0.3}],
+    14: [{"type": "scanlines", "amount": 0.1, "count": 240, "speed": 0}],
+    16: [{"type": "chroma", "amount": 0.003, "angle": 0.08}],
+}
+
+
 def master(title, style=0):
     """Over every scene of a song: its name for the first bars (each song's in its own
-    way), and the print's grain."""
+    way), the stock it is printed on, and the print's grain."""
     bar = "time.bar"
     name = title.upper()
     words = name.split()
@@ -3442,13 +3715,13 @@ def master(title, style=0):
     gone = f"(1 - smooth(2.6, 3.3, {bar}))"
     black = lambda y, op=1: {"type": "shape", "sides": 4, "rotate": 0.125, "radius": 2.6, "width": 0, "fill": 1, "color": "#000000", "blend": "normal", "x": 0, "y": y, "opacity": op}  # noqa: E731
     veil = black(0, f"0.6*(1 - smooth(2.0, 2.8, {bar}))")
-    style %= 8
-    if style == 0:
+    kind = style % 8
+    if kind == 0:
         # The picture is seen through a slit behind its name; then the slit opens.
         label = [black(f"0 - 2.03 - 1.9*smooth(2.4, 3.8, {bar})"), black(f"2.03 + 1.9*smooth(2.4, 3.8, {bar})"), veil,
                  {"type": "text", "text": name, "size": 0.17, "x": 0, "y": -0.07, "align": "center", "color": cream, "width": 0.12, "skew": 0, "blend": "normal",
                   "opacity": f"1 - smooth(2.4, 3.2, {bar})", "reveal": f"smooth(0.3, 1.6, {bar})"}]
-    elif style == 1:
+    elif kind == 1:
         # Every letter turns over through the alphabet and falls into place, left to right.
         n_ = len(name)
         w = min(0.2, 3.1 / n_)
@@ -3456,33 +3729,33 @@ def master(title, style=0):
         scr = f"floor(hash(floor(time.beat*4 + 0.01)*1.7 + inst.i*7.3)*26)"
         label = [veil, {"type": "text", "repeat": n_, "text": name + "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "pick": f"mix({n_} + {scr}, inst.i, {settled})", "size": w * 1.05, "align": "center", "width": 0.13, "skew": 0,
                         "x": f"(inst.i - {(n_ - 1) / 2})*{w:g}", "y": -w * 0.5, "color": cream, "blend": "normal", "opacity": f"{gone}*(0.5 + 0.5*{settled})"}]
-    elif style == 2:
+    elif kind == 2:
         # A word at a time, as big as the frame, cut out of the picture.
         each = 2.6 / len(words)
         label = [{"type": "text", "text": wd, "size": min(0.62, 2.9 / (len(wd) * 0.72)), "x": 0, "y": -min(0.62, 2.9 / (len(wd) * 0.72)) * 0.45, "align": "center", "color": "#ffffff", "width": 0.2, "skew": 0, "blend": "difference",
                   "opacity": f"step({0.3 + k * each:g}, {bar})*step({bar}, {0.3 + (k + 1) * each:g})"} for k, wd in enumerate(words)]
-    elif style == 3:
+    elif kind == 3:
         # Spaced out across the foot of the frame, a letter landing each sixteenth.
         n_ = len(name)
         label = [black(-2.32 - 1.2 * 0, f"0.75*{gone}") if False else {"type": "shape", "sides": 4, "rotate": 0.125, "radius": 2.6, "width": 0, "fill": 1, "color": "#000000", "blend": "normal", "x": 0, "y": -2.45,
                                                                       "opacity": f"0.8*{gone}"},
                  {"type": "text", "repeat": n_, "text": name, "pick": "inst.i", "size": 0.11, "align": "center", "width": 0.13, "skew": 0, "x": f"(inst.i - {(n_ - 1) / 2})*{3.2 / n_:g}",
                   "y": f"0 - 0.86 + 0.5*pow(1 - smooth(0, 0.25, {bar}*4 - 1.2 - inst.i*0.25), 2)", "color": cream, "blend": "normal", "opacity": f"{gone}*step(1.2 + inst.i*0.25, {bar}*4)"}]
-    elif style == 4:
+    elif kind == 4:
         # Down the left-hand edge, a letter under a letter.
         n_ = len(name)
         h = min(0.2, 1.9 / n_)
         label = [{"type": "shape", "sides": 4, "rotate": 0.125, "radius": 2.6, "width": 0, "fill": 1, "color": "#000000", "blend": "normal", "x": -3.78, "y": 0, "opacity": f"0.9*{gone}"},
                  {"type": "text", "repeat": n_, "text": name, "pick": "inst.i", "size": h * 0.95, "align": "center", "width": 0.16, "skew": 0, "x": -1.56, "y": f"({(n_ - 1) / 2} - inst.i)*{h:g} - {h * 0.47:g}", "color": cream,
                   "blend": "normal", "opacity": f"{gone}*smooth(0, 0.3, {bar}*3 - 0.9 - inst.i*{2.4 / n_:g})"}]
-    elif style == 5:
+    elif kind == 5:
         # Round a ring that turns once in the three bars.
         n_ = len(name) + 3
         a = f"(0.25 - inst.i/{n_} + {bar}/6)"
         label = [veil, {"type": "shape", "sides": 0, "radius": 0.5, "width": 0.004, "fill": 0, "color": cream, "opacity": f"0.6*{gone}"},
                  {"type": "text", "repeat": len(name), "text": name, "pick": "inst.i", "size": 0.13, "align": "center", "width": 0.13, "skew": 0, "x": f"0.66*cos({a})", "y": f"0.66*sin({a}) - 0.065", "color": cream,
                   "blend": "normal", "opacity": f"{gone}*smooth(0.2, 0.9, {bar})"}]
-    elif style == 6:
+    elif kind == 6:
         # Written and then struck out, letter by letter.
         label = [veil, {"type": "text", "text": name, "size": 0.15, "x": 0, "y": -0.07, "align": "center", "color": cream, "width": 0.12, "skew": 0.12, "blend": "normal", "opacity": gone, "reveal": f"smooth(0.3, 1.4, {bar})"},
                  {"type": "shape", "sides": 4, "rotate": 0.125, "radius": 1.0, "width": 0, "fill": 1, "color": cream, "blend": "normal", "x": f"0 - 2.9 + 1.5*smooth(2.0, 2.7, {bar})", "y": -1.41 + 0.005, "opacity": 0}]
@@ -3491,7 +3764,7 @@ def master(title, style=0):
         label = [{"type": "text", "text": name, "size": 0.12, "x": -1.62, "y": -0.83, "align": "left", "color": cream, "width": 0.15, "skew": 0, "blend": "normal", "opacity": gone, "reveal": f"smooth(0.2, 1.0, {bar})"},
                  {"type": "shape", "repeat": 48, "sides": 4, "rotate": 0.125, "radius": 0.012, "width": 0, "fill": 1, "color": cream, "blend": "normal", "x": "(inst.i + 0.5)*0.0675 - 1.62", "y": -0.9,
                   "opacity": f"{gone}*step(inst.i + 1, {bar}*16)"}]
-    return {"layers": label, "filters": [{"type": "grain", "amount": 0.04}, {"type": "vignette", "amount": 0.4}]}
+    return {"layers": label, "filters": STOCK.get(style + 1, []) + [{"type": "grain", "amount": 0.04}, {"type": "vignette", "amount": 0.4}]}
 
 
 for _n in ("sonar", "constellation", "seismo", "blots", "grove", "skein", "coins", "balance", "anemone"):
@@ -3506,6 +3779,10 @@ for _n in ("maze", "ropes", "galley", "storm", "crossing", "press", "zoetrope", 
 
 for _n in ("galton", "musicbox", "changes", "sympathy", "colony", "score"):
     REG[_n]["mood"] = -1
+for _n in ("snow", "lava", "searchlights", "lifts", "switchboard", "rink"):
+    REG[_n]["mood"] = -1
+for _n in ("tesla", "duel", "trampoline", "billiard"):
+    REG[_n]["mood"] = 1
 for _n in ("kit", "hive"):
     REG[_n]["mood"] = 1
 

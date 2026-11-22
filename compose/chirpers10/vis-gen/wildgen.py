@@ -286,6 +286,7 @@ class Deal:
         self.last = None
         self.chains = 0
         self.grown = collections.Counter()
+        self.ruled = 0
 
     @staticmethod
     def motif_key(c):
@@ -470,6 +471,45 @@ class Deal:
         raise RuntimeError(f"nothing fits t{S.n} scene {k}")
 
 
+def ruled(S, rnd_, look):
+    """The frame keeps count of a long round. While the round lasts, whatever the pictures
+    do, a line is ruled round the edge of the frame a sixteenth at a time, and each of the
+    round's riffs leaves a mark on it wherever it begins a turn: one riff's marks outside
+    the line, the next one's inside. The corner where the line began is where the riffs
+    meet: the only place where their marks fall together."""
+    a, z, per, _, tracks, cells = rnd_
+    anchors = [t.anchor(a, z, c) for t, c in zip(tracks, cells)]
+    if any(x is None for x in anchors):
+        return look
+    # The sixteenth at which the most of them begin a turn together (all, if they ever do).
+    m = max(range(a, a + per), key=lambda x: (sum((x - an) % c == 0 for an, c in zip(anchors, cells)), -x))
+    Wd, Hd = 1.71, 0.93
+
+    def at(u, d=0.0):
+        w, h = Wd + d, Hd + d
+        s = f"(fract({u})*{4 * w + 4 * h:g})"
+        return (f"0 - {w:g} + clamp({s}, 0, {2 * w:g}) - clamp({s} - {2 * w + 2 * h:g}, 0, {2 * w:g})",
+                f"{h:g} - clamp({s} - {2 * w:g}, 0, {2 * h:g}) + clamp({s} - {4 * w + 2 * h:g}, 0, {2 * h:g})")
+    now = "time.beat*4"
+    gone = f"(1 - smooth({z / 4:g}, {z / 4 + 1:g}, time.beat))"
+    n_ = min(z - a, per)
+    x, y = at(f"({a - m} + inst.i)/{per}")
+    over = [{"type": "shape", "repeat": n_, "sides": 1, "radius": 0.006, "fill": 1, "width": 0, "color": "#f2efe6", "x": x, "y": y, "opacity": f"0.85*step({a} + inst.i, {now})*{gone}"}]
+    pal = PALS[S.n]
+    for i, (t, c, an) in enumerate(zip(tracks, cells, anchors)):
+        first = an + -(-(a - an) // c) * c
+        count = min((z - 1 - first) // c + 1, per // c)
+        if count < 1:
+            continue
+        when = f"({first} + inst.i*{c})"
+        x, y = at(f"({first - m} + inst.i*{c})/{per}", (0.034, -0.034, -0.068)[i % 3])
+        size = f"*(1 + 1.4*exp(0 - 0.6*max({now} - {when}, 0)))"
+        seen = f"step({when}, {now})*{gone}"
+        over.append({"type": "shape", "repeat": count, "sides": 4, "rotate": 0.125, "radius": f"0.023{size}", "fill": 1, "width": 0, "color": "#000000", "blend": "normal", "x": x, "y": y, "opacity": seen})
+        over.append({"type": "shape", "repeat": count, "sides": 4, "rotate": 0.125, "radius": f"0.017{size}", "fill": 1, "width": 0, "color": pal[3 + i % 3], "blend": "normal", "x": x, "y": y, "opacity": seen})
+    return {"background": "#000000", "layers": [W._act(look, blend="normal")] + over, "filters": []}
+
+
 def plan(S, deal):
     """A song's scenes: [(a16, b16, idiom, treatment, scene dict, context)]."""
     deal.song_used = collections.Counter()
@@ -529,6 +569,12 @@ def plan(S, deal):
             deal.trans[tr] += 1
             scene["xfade"] = "1b" if tr in ("push", "strips", "blocks", "split", "weave", "checker") else "2b"
             scene["transition"] = tr
+        if cyc:
+            # The scene lies in a long round: the frame keeps count of it across the cuts.
+            whole = next((r for r in S.rounds if r[0] <= a16 and b16 <= r[1]), None)
+            if whole:
+                scene["look"] = ruled(S, whole, look)
+                deal.ruled += 1
         out.append((a16, b16, name, treat, scene, c))
         was_flash = bool(kind)
     return out
@@ -575,7 +621,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 
