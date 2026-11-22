@@ -4064,6 +4064,65 @@ def ledger(c):
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.014, 0.7)]}
 
 
+@idiom(needs=0, fam="count")
+def sizes(c):
+    """One rule played at several sizes at once. Each part that plays only a long and a short
+    (three sixteenths and two; five and three; eight and five) is a course of bricks, a brick
+    for each note, as long as the time to the next: long bricks one colour, short ones
+    another. The courses lie one over the other on one scale of time, the biggest size at the
+    top, so it can be seen that a long of one course is a long and a short of the course
+    below, and a short is its long: the same wall at every size. A brick lights as its note
+    is struck and stays lit; a line shows where the music is. Where only one size is played,
+    the sizes the rule implies stand over it, dimly, and fill in as it goes. The frame holds
+    the stretch of the wall the scene plays, and a bar to either side."""
+    R = getattr(c, "sizes", None)
+    if not R:
+        raise ValueError("nothing is played at several sizes here")
+    rows = R[2]
+    # (the stretch shown: the scene and a bar before and after, four bars at least, within the passage)
+    a, b = max(R[0], c.a16 - 16), min(R[1], c.b16 + 16)
+    if b - a < 64:
+        a = max(R[0], min(a, b - 64))
+        b = min(R[1], max(b, a + 64))
+    now = "(time.beat*4)"
+    courses = [(L, S, [(on, gap) for on, gap, _ in ns], True) for _, L, S, ns in rows]
+    while len(courses) < 3:
+        # The next size up: a long and the short after it are its long; a long alone is its short.
+        L, S, ns, _ = courses[0]
+        up, i = [], 0
+        while i < len(ns):
+            on, gap = ns[i]
+            if gap == L and i + 1 < len(ns) and ns[i + 1][1] == S:
+                up.append((on, L + S))
+                i += 2
+            else:
+                up.append((on, gap))
+                i += 1
+        if len(up) < 4:
+            break
+        courses.insert(0, (L + S, L, up, False))
+    wide = 7.9
+    u = wide / max(b - a, 1)
+    n_ = len(courses)
+    hh = min(1.25, 4.4 / n_ - 0.14)
+    layers = []
+    for k, (L, S, ns, played) in enumerate(courses):
+        y = ((n_ - 1) / 2 - k) * (hh + 0.14)
+        for on, gap in ns:
+            x0, x1 = max(on, a), min(on + gap, b)
+            if x1 - x0 < 0.25:
+                continue            # (not in the stretch shown)
+            half = (x1 - x0) * u / 2
+            col = c.a if gap == L else c.b if gap == S else c.dim
+            struck = f"step({on:g}, {now})"
+            emit = (f"0.16 + {struck}*(0.5 + 1.7*exp(0 - 0.45*max({now} - {on:g}, 0)))" if played
+                    else f"0.09 + 0.24*{struck}")
+            layers.append(box((x0 - a) * u - wide / 2 + half, y, 0, max(half - 0.02, 0.01), hh / 2, 0.01, **glow(col, emit)))
+    cur = f"clamp(({now} - {a:g})/{max(b - a, 1):g}, 0, 1)*{wide:g} - {wide / 2:g}"
+    layers.append(box(cur, 0, -0.03, 0.012, n_ * (hh + 0.14) / 2 + 0.1, 0.01, **glow(c.ink, 1.3)))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.014, 0.7)]}
+
+
 # ───────────────────────── grounds: the rest of the band, dimly ─────────────────────────
 
 GROUNDS = ("halo", "footlights", "stars", "floor", "plasma", "smoke", "scope", "skyline", "ripples", "horizon")
@@ -4071,7 +4130,7 @@ GROUNDS = ("halo", "footlights", "stars", "floor", "plasma", "smoke", "scope", "
 # frame to frame, no room or sky of their own): these may stand on a ground.
 GROUNDED = set("searchlights solkattu numerals hailstone membrane mobile pong combs star tesla breakout armillary tally crystal strange teletype odometer loom slack hourglass metro bifurcate turtle fractal fireworks tetris moons "
                "lanterns kelvin constellation sonar treerings strings harmonograph contour letters keys abacus splitflap helix epicycle quad stringart remainder spiral "
-               "orrery pendwave sunflower juggle radial clockshop venn switchboard star rain fountain echoes skein coins".split())
+               "orrery pendwave sunflower juggle radial clockshop venn switchboard star rain fountain echoes skein coins fan invaders golden fireflies candles".split())
 # Guises a grounded picture may wear (they leave a dim ground a dim ground).
 GROUND_OK = set("solar stop combed blown plain kaleido mirror wall planet tunnel echo slices fringe spin roll wound water torn hole lines warp falling ball tracking screen delayed puzzle smoked dripping "
                 "coiled halves".split())
@@ -4699,7 +4758,7 @@ HANDS = ("riley", "blinds", "dominoes", "breakout", "kandinsky", "vortex", "moon
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
            "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava".split())
-BROAD = FULL | set("ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
+BROAD = FULL | set("sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("breakout searchlights solkattu remainder rain seismo metro epicycle pond tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
@@ -4714,14 +4773,14 @@ WANTS = {"rabbits": lambda c: any(p.cell in (34, 55) for p in c.riffs),
 LONG = set("turtle strange harmonograph tetris hanoi marbling ink rink galton".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("barcode braille dice candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
-MIRROR_BAD = set("ledger ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
+MIRROR_BAD = set("sizes ledger ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())
 # Pictures that are mostly light: a print of their lights is a blank sheet.
 BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("rolls zipper loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
+SLOW = set("sizes ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)
@@ -5287,7 +5346,9 @@ def master(title, style=0):
     cream = "#f2efe6"
     gone = f"(1 - smooth(2.6, 3.3, {bar}))"
     black = lambda y, op=1: {"type": "shape", "sides": 4, "rotate": 0.125, "radius": 2.6, "width": 0, "fill": 1, "color": "#000000", "blend": "normal", "x": 0, "y": y, "opacity": op}  # noqa: E731
-    veil = black(0, f"0.6*(1 - smooth(2.0, 2.8, {bar}))")
+    # (The veil comes down over the first half bar: a song that another passes into is
+    # landed on at its first frame, and that frame is the picture, not the veil.)
+    veil = black(0, f"0.6*smooth(0, 0.5, {bar})*(1 - smooth(2.0, 2.8, {bar}))")
     kind = style % 17
     n_ = len(name)
     w = min(0.2, 3.1 / n_)

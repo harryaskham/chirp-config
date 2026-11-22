@@ -153,9 +153,18 @@ HOUSE = {n_: set(v.split()) for n_, v in HOUSE.items()}
 OPEN = {1: "stringart"}     # the picture a song opens on, where it is not the first of its featured ones (the album's first picture, and the one the landing brings back)
 TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weave", "spiral", "rings", "checker", "split", "wipe", "iris", "blinds", "clock", "diamond", "rise", "dissolve",
                "flip", "squeeze", "shred", "stretch", "whip", "fall", "whirl", "ripple", "glitch", "pixel", "tiles", "doors", "spin", "scan", "diagonal", "slats", "interlace", "star", "dither", "corners", "wave",
-               "fan", "shutter", "mosh", "smoke", "overgrow")
+               "fan", "shutter", "mosh", "smoke", "overgrow",
+               "phase", "canon", "rung", "sum", "barber", "halving", "golden", "euclid", "dealt", "owed", "leaf", "negative", "ritard", "haul", "beats", "stairs")
 # Ways that keep something of the old picture from frame to frame: they take longer (about two seconds).
 CARRIED = ("mosh", "smoke", "overgrow")
+# Ways that count (the engine's counted.rs): the dense ones need about two seconds to be read, the rest a second and a half.
+COUNTED = {"rung": 1.9, "sum": 1.9, "euclid": 1.9, "dealt": 1.9, "golden": 1.9, "halving": 1.9, "ritard": 1.9, "stairs": 1.9,
+           "phase": 1.4, "canon": 1.4, "barber": 1.4, "owed": 1.4, "leaf": 1.4, "negative": 1.4, "haul": 1.4, "beats": 1.4}
+# How each song passes into the next: its own idea, counted out over its last two bars
+# (the wheels going round at their own rates; the row rung; the oblong cut into its squares).
+# After the last song the walk comes up in black.
+SEAMS = {1: "phase", 2: "canon", 3: "rung", 4: "sum", 5: "barber", 6: "halving", 7: "golden", 8: "euclid", 9: "dealt", 10: "owed", 11: "leaf",
+         12: "flip", 13: "negative", 14: "ritard", 15: "haul", 16: "beats", 17: "stairs"}
 NO_PAIR = ("room", "sheet", "plate", "travel")      # families that are not put in a frame with another
 
 
@@ -389,6 +398,7 @@ class Deal:
         self.ledgers = 0
         self.owed = collections.defaultdict(set)
         self.rolls_in = collections.Counter()
+        self.sized = collections.Counter()
         self.measured = collections.defaultdict(set)
         self.rung = collections.defaultdict(set)
         self.walked = collections.defaultdict(set)
@@ -613,6 +623,29 @@ class Deal:
                 self.owed[S.n].add(ow[3:5])
                 note("ledger", t, "ledger/owing" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
                 return "ledger", t, look
+        # One rule played at several sizes at once: the parts that play only a long and a short
+        # are courses of one wall, the biggest size at the top. Twice in each such passage,
+        # not twice running, in another guise each time.
+        sz = sizes_here(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 3.5 else None
+        # (A passage at one size is shown once for each size and length; at several, twice.)
+        szk = (S.n, sz[0]) if sz and len(sz[2]) > 1 else (S.n,) + tuple(sz[2][0][1:3]) + (len(sz[2][0][3]) // 30,) if sz else None
+        if sz and self.sized[szk] < (2 if len(sz[2]) > 1 else 1) and "sizes" not in self.recent[-1:]:
+            cd = copy.copy(base)
+            cd.sizes = sz
+            got = make("sizes", ctx=cd, keep=True)
+            t = next((t for t in SIZE_GUISES if ("sizes", t) not in self.combos and W.TREAT[t][1](cd, W.REG["sizes"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = "one rule at " + ", ".join(f"{L}:{S_} ({name})" for name, L, S_, _ in sz[2])
+                gk = min((x for x in ("halo", "footlights", "plasma", "smoke", "horizon", "stars") if x not in self.grounds_last[S.n][-2:]), key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
+                self.grounds[gk] += 1
+                self.grounds_last[S.n].append(gk)
+                look = W.TREAT[t][0](c, W.ground(c, got[1], gk) if t in W.GROUND_OK else got[1])
+                self.treats[t] += 1
+                self.sized[szk] += 1
+                note("sizes", t, "sizes/rule" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "sizes", t, look
         # A roll slowed until it can be counted, or wound up until it cannot: a ring for each
         # drum, every stroke a dot at its place in the beat. Through the whole of the slowing,
         # scene after scene in another guise (also on a song's first scene: it is what the
@@ -1127,6 +1160,8 @@ def fitting(S, c):
 
 
 LEDGER_GUISES = ("plain", "relief", "infra", "fringe", "papercut", "duotone", "echo", "delayed", "blueprint", "solar", "tracking", "onebit", "water")
+# (not papercut or onebit: they lose the bricks still to be played)
+SIZE_GUISES = ("plain", "relief", "fringe", "echo", "infra", "duotone", "delayed", "solar", "blueprint", "tracking", "water", "bricks")
 ROLL_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "water", "tracking", "relief", "kaleido", "smoked")
 MEASURE_GUISES = ("plain", "relief", "papercut", "fringe", "bricks", "duotone", "echo", "delayed", "solar", "blueprint", "onebit")
 # Pictures with figures in them, and the songs that count (Running Total adds up, Slow Enough
@@ -1233,6 +1268,86 @@ def owing_here(S, c):
     was = before[-1][1] if before else L / 2
     owed = here[-1][1] - L / 2
     return name, near, L, owed, ((here[-1][1] > was) - (here[-1][1] < was)) if owed else 0
+
+
+def _rule_ok(word, depth=2):
+    """True if a word of longs and shorts could have been made by the rule long -> long
+    short, short -> long: no two shorts together, no three longs, and the same of the word
+    it was made from (a long and its short taken back to a long, a long alone to a short)."""
+    for _ in range(depth + 1):
+        s = "".join(word)
+        if "SS" in s or "LLL" in s:
+            return False
+        was, i = [], 1 if word[:1] == ["S"] else 0
+        while i < len(word):
+            if word[i] != "L":
+                return False
+            if i + 1 < len(word) and word[i + 1] == "S":
+                was.append("L")
+                i += 2
+            elif i + 1 == len(word):
+                break               # (the last long may have lost its short)
+            else:
+                was.append("S")
+                i += 1
+        word = was
+        if len(word) < 4:
+            break
+    return True
+
+
+def sizing(S):
+    """One rule played at several sizes: a part whose notes are only ever a long or a short
+    apart (the long less than twice the short: three and two, five and three, eight and
+    five), on the sixteenth, for a dozen notes or more. Found from the notes. Returns the
+    passages [(from, to, [(part, long, short, [(sixteenth, gap, key)…])…])]: the parts of a
+    passage are those that play through the same stretch, the biggest size first. The longs
+    and shorts must be in an order the rule long -> long short, short -> long can make."""
+    if hasattr(S, "_sizing"):
+        return S._sizing
+    runs = []
+    for t in S.tracks:
+        ons = {}
+        for s, z, key in t.notes:
+            q = round(s * 4)
+            if abs(s * 4 - q) < 0.06:
+                ons.setdefault(q, (key, max(1, round((z - s) * 4))))
+        if len(ons) < 12 or len(ons) < 0.9 * len({round(s * 4, 1) for s, _, _ in t.notes}):
+            continue
+        seq = sorted(ons)
+        run = [seq[0]]
+        for x in seq[1:] + [None]:
+            if x is not None and x - run[-1] <= 13:
+                run.append(x)
+                continue
+            gaps = [q - p for p, q in zip(run, run[1:])]
+            kinds = sorted(set(gaps))
+            if len(run) >= 12 and len(kinds) == 2 and kinds[0] < kinds[1] < 2 * kinds[0] and 1.4 < kinds[1] / kinds[0] < 1.8 \
+                    and _rule_ok(["L" if x_ == kinds[1] else "S" for x_ in gaps]):
+                S_, L_ = kinds
+                last = min(L_, max(S_, ons[run[-1]][1]))
+                runs.append((run[0], run[-1] + last, t.name, L_, S_, [(p, gp, ons[p][0]) for p, gp in zip(run, gaps + [last])]))
+            run = [x] if x is not None else []
+    out = []
+    for r in sorted(runs):
+        for p in out:
+            both = min(p[1], r[1]) - max(p[0], r[0])
+            if both >= 0.6 * min(p[1] - p[0], r[1] - r[0]):
+                p[0], p[1] = min(p[0], r[0]), max(p[1], r[1])
+                p[2].append(r[2:])
+                break
+        else:
+            out.append([r[0], r[1], [r[2:]]])
+    S._sizing = [(a, b, sorted(rows, key=lambda x: -x[1])) for a, b, rows in out]
+    return S._sizing
+
+
+def sizes_here(S, c):
+    """The passage played at several sizes that the scene lies in (at least half of it), or None."""
+    for a, b, rows in sizing(S):
+        if min(b, c.b16) - max(a, c.a16) >= 0.5 * (c.b16 - c.a16):
+            return a, b, rows
+    return None
 
 
 def rolling(S):
@@ -1801,7 +1916,7 @@ def plan(S, deal):
         scene = {"at": 0 if k == 0 else f"{a16 // 16}bar" if a16 % 16 == 0 else f"{a16 / 4:g}b", "look": look}
         still = any(t in ("roll", "spin", "hole", "sheet", "kaleido", "mirror", "tunnel", "slices", "wall", "planet", "wound") for t in treat.split(",")) or name in W.PLATES or W.REG[name]["fam"] in ("plate", "sheet", "sign")
         # A picture that is there to be read (a sum, a ledger, rows, an oblong cut into squares) is not moved about.
-        still = still or name in ("measure", "ledger", "ringing", "total", "squares", "rolls", "zipper", "dice", "rabbits", "barcode", "braille")
+        still = still or name in ("sizes", "measure", "ledger", "ringing", "total", "squares", "rolls", "zipper", "dice", "rabbits", "barcode", "braille")
         if k and not flash and not still and treat not in ("more", "less", "hinge") and (b16 - a16) * c.six >= 4.5 and rnd(S.n, k, "move?") < 0.5:
             # The camera over the picture does one thing in the scene, each kind in its turn.
             bars_ = S.full[a16 // 16:max(a16 // 16 + 1, b16 // 16)]
@@ -1859,8 +1974,8 @@ def plan(S, deal):
             deal.trans[tr] += 1
             scene["xfade"] = "1b" if tr in ("push", "strips", "blocks", "split", "weave", "checker", "flip", "squeeze", "whip", "fall", "glitch", "pixel", "doors", "scan", "slats", "interlace", "shutter") else "2b"
             scene["transition"] = tr
-            if tr in CARRIED:
-                beats = max(2, min(4, round(1.9 / (c.six * 4))))
+            if tr in CARRIED or tr in COUNTED:
+                beats = max(2, min(4 if tr in CARRIED else 6, round(COUNTED.get(tr, 1.9) / (c.six * 4))))
                 while beats > 2 and beats * 4 * 2.5 > b16 - a16:
                     beats -= 1
                 scene["xfade"] = f"{beats}b"
@@ -1877,6 +1992,7 @@ def plan(S, deal):
 
 def main():
     out_dir = os.path.join(HERE, "..", "film")
+    bar_s, titles = {}, {}
     for a in sys.argv[1:]:
         if a.startswith("--out="):
             out_dir = a[6:]
@@ -1890,6 +2006,7 @@ def main():
         if "--solo" in sys.argv and args and num not in args:
             continue
         S = Song(num)
+        bar_s[num], titles[num] = S.bar_s, S.title
         scenes = plan(S, deal)
         for *_, name, treat, _, _ in scenes:
             total[name] += 1
@@ -1913,6 +2030,12 @@ def main():
     if not show and not args:
         # What was dealt, scene by scene (for the proof sheets).
         json.dump(deal.log, open(os.path.join(out_dir, "plan.json"), "w"))
+        # The film as an album file's `songs:` and `transitions:` (how the songs pass into
+        # one another: each over the last two bars of the song it leaves, between 3.2 and
+        # 4.4 seconds). Whoever draws it adds where the songs and their recordings are.
+        json.dump({"songs": [{"n": n_, "title": titles[n_], "vis": f"chirpers10-t{n_}.yaml"} for n_ in sorted(bar_s)],
+                   "transitions": [{"after": n_, "kind": SEAMS[n_], "dur": f"{min(4.4, max(3.2, 2 * bar_s[n_])):.2f}s"} for n_ in sorted(bar_s) if n_ in SEAMS]},
+                  open(os.path.join(out_dir, "film.json"), "w"), indent=1)
     if show or "--tally" in sys.argv:
         print(f"album: {deal.count} scenes, {len(total)} idioms, {len(deal.combos)} different pictures")
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))

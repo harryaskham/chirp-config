@@ -11,7 +11,7 @@ about 930 scenes on the album, every one different.
 
 **What is drawn**
 
-- **Idioms** (`wild.py`, the `@idiom` functions: 189 so far). Each is a small machine, place,
+- **Idioms** (`wild.py`, the `@idiom` functions: 190 so far). Each is a small machine, place,
   game or diagram built from the notes themselves, and each keeps one rule: *what the music
   counts, the picture counts*. A note is a thing (a domino, a lantern, a lit window, a letter
   typed, a block dropped into a well); a riff's cell is a width or a number of things (bells
@@ -83,6 +83,7 @@ about 930 scenes on the album, every one different.
 | The song takes the less from the greater (`euclid`: section by section the longer of two parts' riffs is cut down by the length of the other; Common Measure's 52 against 32, 20 against 32, 20 against 12, 8 against 12, 8 against 4, found from the notes) | The oblong of the two first lengths stands whole (`measure`), cut into its squares; the squares taken so far are lit and a lamp goes over what is left, a sixteenth along for one riff and a sixteenth up for the other. Once for each step, in another guise (`measure/less 20:12`). |
 | A roll slows until it can be counted, or winds up until it cannot (`rolling`: one of a part's notes struck about half, or twice, as often bar after bar, from or to more than 64 strokes a bar: the toms of Slow Enough to Count, at its beginning and its end) | A ring for each drum (`rolls`); every stroke is a dot at its place in the beat, drifting outward for four beats. Rolled, a ring is a whole band; slowing, the dots draw apart into arms that open out; slow enough to count, the pulses stand on spokes. Twice for each roll (`rolls/roll`). |
 | A phrase's first half borrows time from its second, or the other way, and pays it back (`borrowing`: a part plays one two-bar phrase over and over, the same notes in the same order, but the note that belongs on the half comes late or early and every other note is stretched or squeezed to fit: Still Owing's left guitar, a sixteenth more each phrase up to six, back, then the other way) | The phrase is written out row by row (`ledger`), its notes blocks as long as they last, each half ruled off as long as it was given; a white line stands down the middle and what is owed is the lit block between it and where the second half begins. Once for each amount owed, borrowing and paying back apart, and once when it is paid (`ledger/owing`). |
+| One rule played at several sizes at once (`sizing`: parts whose notes are only ever a long or a short apart, three sixteenths and two, five and three, eight and five, in an order the rule long -> long short, short -> long can make: the wire harps of Extreme and Mean, one size, then two, then three together) | A wall (`sizes`): each such part is a course of bricks, a brick for each note as long as the time to the next, long bricks one colour and short ones another, the biggest size at the top. The courses lie on one scale of time, so a long of one course is a long and a short of the course below. A brick lights as it is struck. Where one size is played alone, the sizes the rule implies stand over it dimly. Once for each size played alone, twice where several are played together, another guise each time. |
 | Few notes, or the song ringing out | Pictures made of notes (`FED`) are kept away. |
 | A picture that leaves most of the frame dark (`GROUNDED`), alone, plain or in a guise that leaves a dim ground dim (`GROUND_OK`) | It stands on a ground (`ground`, ten kinds): what the picture does not show of the band, dimly. A glow that swells with the kick, footlights lifted by the sound, stars the hats set twinkling, a ruled floor going away a line a beat, a slow field the sound stirs, smoke the snare lights, the waveform round the picture, the sound's bands along the foot, rings going out a ring a beat, a band of light the kick lifts. A song never has the same kind twice in four. |
 | The riff comes round part way through a scene | A treatment arrives or leaves there; the camera cuts in or out there; 3D scenes change camera there. |
@@ -92,7 +93,8 @@ Each song has a house (`HOUSE`): the guises and ways of sharing the frame it lea
 the songs differ from one another as well as from bar to bar; and six to nine featured
 idioms (`FEATURE`). Every song also has at least one picture for its own structure, found
 from its notes (the table above): the landing, canons, the ringing of rows, the sum, the
-deal, the reprise, the half-bar sheet, the rule worked out, the common measure, the ledger,
+deal, the reprise, the half-bar sheet, the rule worked out and its wall at several sizes,
+the common measure, the ledger,
 the hinge, the other hand, parts that fit, the rolls, the slack between two guitars, the
 beating of two notes, the walk. Figures are written only in the songs that count
 (`FIGURES`). Where the music is full a picture may wear two guises at once (`STACK`: one
@@ -100,6 +102,30 @@ that moves it, one that changes what it is made of, one that works on it in time
 
 Some songs are printed on a stock of their own (`STOCK`: grainy and pale for In the Time
 Of, out of register for Close Enough).
+
+**How one picture turns into the next.** About a fifth of the cuts go through a transition,
+each kind in its turn (`TRANSITIONS`, 61 kinds). Sixteen of them count (`COUNTED`; the
+engine's `counted.rs`): bands going round at their own rates that meet only at the end
+(`phase`), six strips rung in a plain hunt (`rung`), the frame cut into its squares as
+Euclid cuts an oblong (`euclid`), strips by the rule long -> long short (`golden`), the
+frame in two, four, eight, sixteen (`halving`), cards dealt quicker and quicker (`dealt`),
+a push that borrows and pays back (`owed`), and so on.
+
+**How one song passes into the next** (`SEAMS`, written to `film.json` as an album file's
+`songs:` and `transitions:`). No fade to black: over a song's last two bars its picture is
+taken apart by the song's own idea and put together as the next song's first frame. The
+wheels of Common Time go round at their own rates and meet (`phase`); Odd Sympathy leaves
+band by band, each a step behind (`canon`); Plain Hunt is rung (`rung`); Running Total is
+added up a column at a time (`sum`); False Summit climbs out for ever (`barber`); Carrying
+Capacity splits in two, four, eight (`halving`); Extreme and Mean by long and short
+(`golden`); Common Measure is cut into its squares (`euclid`); In the Time Of is dealt
+(`dealt`); Still Owing borrows and pays (`owed`); On Its Hinge turns on its hinge (`leaf`);
+The Other Hand is turned over (`flip`); Where It Was goes through its negative
+(`negative`); Slow Enough to Count is slats too fine to count, slowed (`ritard`); Take Up
+the Slack is hauled (`haul`); Close Enough beats (`beats`); and after So Far the walk from
+27 to one comes up in black (`stairs`). A film drawn song by song with `chirp video` keeps
+the fades; one drawn as an album (`chirp video --album`, with `film.json`'s lists and
+where the songs and recordings are) has the seams.
 
 Nothing is dealt twice (`Deal`, album-wide): never the same idiom in the same guise, never
 the same family twice running, never the same idiom within twelve scenes. Each song has its
@@ -140,11 +166,12 @@ with `CT_SONGS` set to that folder: the plan comes out as it was, and only the p
 the fix touches differ.
 
 Programmes are written as generated; do not edit them. They need the engine of the
-`chirp-video` branch at 2ceeb87f or later (`notes:` and `note.*`, `timeslice`, `step`,
+`chirp-video` branch at 52246491 or later (`notes:` and `note.*`, `timeslice`, `step`,
 `halftone`, `outline`, `bold`, `remap`, the warps, `droste`, `orb`, `sort`, `wind`, `glass`,
 `grow`, `flow`, `weave`, `pleat`, `lag`, `papercut`, `terrain`, `stitch`, `pieces`, `mosaic`, `mosh`, `pick:`,
 `repeat:`, an actor's `cut:` and `as:`, the new transitions, among them the three that
-keep the old picture from frame to frame: `mosh`, `smoke`, `overgrow`),
+keep the old picture from frame to frame: `mosh`, `smoke`, `overgrow`, and the sixteen
+that count),
 which is not yet in a pinned binary, so they are not in `vis/`.
 
 ## The first film: motion studies
