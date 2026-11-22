@@ -550,6 +550,12 @@ def choose(n, title, song, reel=None):
         train = max(([t for t in fit[i:] if cell[t] <= 4 * cell[fit[i]]][:3] for i in range(len(fit))), key=len, default=[])
         if len(train) < 2:
             order = [o for o in order if o != "gears"]
+        # Balls too: a bounce goes as the square of its riff's length, so one beside a riff
+        # six times as long does not leave the floor. The longest run within four times
+        # (the one with more notes, of two as long).
+        has = sorted((t for t in wheel if cell[t]), key=lambda t: cell[t])
+        bounce = max(([t for t in has[i:] if cell[t] <= 4 * cell[has[i]]][:4] for i in range(len(has))),
+                     key=lambda run: (len(run), sum(t.count(a, b) for t in run)), default=[])
         # A knot wants two or three riffs of different lengths, none so long that five bars
         # of wire is a bare arc.
         knot, had = [], set()
@@ -598,7 +604,7 @@ def choose(n, title, song, reel=None):
             use = names[:3]
             look = S.finish_line(use, spot, spot_track if spot_track in use else use[-1], subject={"walker": "runner", "pacer": "horse"}.get(subject, subject), plain=tuple(plain), meet=bool(odd))
         elif pick == "balls":
-            use = names[:4]
+            use = [t.name for t in bounce] or names[:4]
             look = S.balls(use, spot, spot_track if spot_track in use else use[-1])
         elif pick == "gears":
             use = [t.name for t in train]
