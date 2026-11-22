@@ -728,6 +728,96 @@ class FirstVersion(unittest.TestCase):
         self.assertFalse(L.first_version_pending("x", [], tracked=True))
 
 
+class Studio(unittest.TestCase):
+    """The file server that was on :8790, inside the app (Harry, 22 Nov)."""
+
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+        self.root = os.path.join(self.d, "review")
+        self.data = os.path.join(self.d, "listen")
+        os.makedirs(os.path.join(self.root, "clips"))
+        os.makedirs(os.path.join(self.data, "chirpers9", "joins"))
+        os.makedirs(os.path.join(self.d, "private"))
+        for name, text in (("clips/a-ab.mp3", "x" * 2000), ("clips/a-ab.txt", "the riff, before and after"),
+                           ("clips/b.mp3", "y"), ("clips/.hidden", "h"), ("clips/night.html", "<p>hi"),
+                           ("../listen/chirpers9/joins/j.mp3", "j"), ("../private/secret.txt", "s")):
+            with open(os.path.join(self.root, name), "w") as f:
+                f.write(text)
+        os.utime(os.path.join(self.root, "clips", "b.mp3"), (1_000_000, 1_000_000))
+        os.symlink(os.path.join(self.data, "chirpers9", "joins"), os.path.join(self.root, "clips", "joins"))
+        os.symlink(os.path.join(self.d, "private"), os.path.join(self.root, "out"))
+        os.symlink(os.path.join(self.d, "nowhere"), os.path.join(self.root, "dead"))
+
+    def path(self, *parts):
+        return L.studio_path(parts, self.root, [self.data])
+
+    def test_a_path_stays_inside_the_studio(self):
+        self.assertEqual(self.path("clips", "a-ab.mp3"), os.path.realpath(os.path.join(self.root, "clips", "a-ab.mp3")))
+        self.assertEqual(self.path(), os.path.realpath(self.root))
+        self.assertEqual(self.path("clips", "a%2Dab.mp3"), self.path("clips", "a-ab.mp3"))          # a quoted name
+        for bad in (("..", "private", "secret.txt"), ("clips", "..", "..", "private", "secret.txt"), ("clips", ".hidden"),
+                    ("%2e%2e", "private", "secret.txt"), ("clips", "..%2F..%2Fprivate%2Fsecret.txt"), ("clips", "a\\b"),
+                    ("clips", ""), ("clips", "no-such-file")):
+            self.assertIsNone(self.path(*bad), bad)
+
+    def test_a_link_may_lead_only_into_the_apps_own_data(self):
+        self.assertTrue(self.path("clips", "joins", "j.mp3").endswith("j.mp3"))          # the snapshots' joins
+        self.assertIsNone(self.path("out", "secret.txt"))                                 # anywhere else: no
+        self.assertIsNone(self.path("dead"))
+
+    def test_old_links_are_pointed_here(self):
+        page = (b'<a href="http://pocket4:8790/clips/a.mp3">a</a> <a href="http://pocket4:8791/#a=chirpers10&v=questions">q</a> '
+                b'<a href="https://pocket4.miku-owl.ts.net:8790/proto/">p</a> <a href="http://example.org:8790/x">x</a>')
+        self.assertEqual(L.studio_rewrite(page),
+                         b'<a href="/studio/clips/a.mp3">a</a> <a href="/#a=chirpers10&v=questions">q</a> '
+                         b'<a href="/studio/proto/">p</a> <a href="http://example.org:8790/x">x</a>')
+        self.assertEqual(L.studio_href("http://pocket4:8790/common-time/"), "/studio/common-time/")
+        self.assertEqual(L.studio_href("https://example.org/a"), "https://example.org/a")
+
+    def test_a_folder_is_grouped_newest_first_with_its_notes(self):
+        roots = L.studio_roots(self.root, [self.data])
+        self.assertEqual(sorted(e["name"] for e in L.studio_entries(self.root, roots)), ["clips"])   # not `out`, not `dead`
+        d = os.path.join(self.root, "clips")
+        entries = L.studio_entries(d, roots)
+        self.assertEqual(sorted(e["name"] for e in entries), ["a-ab.mp3", "a-ab.txt", "b.mp3", "joins", "night.html"])
+        dirs, groups = L.studio_groups(entries, d)
+        self.assertEqual([e["name"] for e in dirs], ["joins"])
+        self.assertEqual(groups[-1]["stem"], "b")                                       # the oldest is last
+        a = next(g for g in groups if g["stem"] == "a-ab")
+        self.assertEqual(([e["name"] for e in a["files"]], a["note"], a["size"]),
+                         (["a-ab.mp3", "a-ab.txt"], "the riff, before and after", 2026))
+        self.assertEqual([g["stem"] for g in L.studio_groups(entries, d, q="RIFF")[1]], ["a-ab"])      # found by its note
+        self.assertEqual([g["stem"] for g in L.studio_groups(entries, d, order="name")[1]], ["a-ab", "b", "night"])
+
+    def test_the_page(self):
+        roots = L.studio_roots(self.root, [self.data])
+        page = L.studio_page("clips", os.path.join(self.root, "clips"), {}, roots)
+        self.assertIn('<audio controls preload=none src="/studio/clips/a-ab.mp3">', page)
+        self.assertIn("the riff, before and after", page)
+        self.assertIn('<a href="/studio/clips/joins/">joins/</a>', page)
+        self.assertIn('href="/studio/clips/" class=on>Clips</a>', page)
+        self.assertNotIn(".hidden", page)
+        top = L.studio_page("", self.root, {}, roots)
+        self.assertIn('<a href="/studio/clips/"><b>Clips</b>', top)
+        self.assertNotIn("dead", top)
+        self.assertNotIn("/studio/out", top)
+        old, L.STUDIO_PER_PAGE = L.STUDIO_PER_PAGE, 1
+        try:
+            second = L.studio_page("clips", os.path.join(self.root, "clips"), {"p": ["2"], "s": ["name"]})
+        finally:
+            L.STUDIO_PER_PAGE = old
+        self.assertIn("page 2 of 3", second)
+        self.assertIn('href="?p=1&s=name"', second)
+        self.assertIn('href="?p=3&s=name"', second)
+        self.assertIn("<b>b</b>", second)                                               # by name: a-ab, b, night
+        self.assertNotIn("<b>a-ab</b>", second)
+        hostile = L.studio_page("clips", os.path.join(self.root, "clips"), {"q": ['"><script>']})
+        self.assertNotIn("<script>", hostile)
+
+    def test_sizes(self):
+        self.assertEqual([L.human_size(n) for n in (12, 2048, 5 << 20, 1237946771)], ["12 B", "2.0 kB", "5.0 MB", "1.2 GB"])
+
+
 class Server(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -775,6 +865,80 @@ class Server(unittest.TestCase):
             L.GZIP_LEAST = old
         r = self.get(f"media/chirpers9/{self.snap['id']}/t01.mp3", {"Range": "bytes=0-9", "Accept-Encoding": "gzip"})
         self.assertEqual((r.status, len(r.read()), r.headers.get("Content-Encoding")), (206, 10, None))   # audio is left alone
+
+    def test_the_studio_is_behind_the_same_code(self):
+        root = os.path.join(self.d, "review")
+        os.makedirs(os.path.join(root, "clips"), exist_ok=True)
+        os.makedirs(os.path.join(root, "film"), exist_ok=True)
+        for name, text in (("clips/a.mp3", "0123456789" * 10), ("clips/a.txt", "a note"),
+                           ("film/index.html", '<video src="latest.mp4"></video><a href="http://pocket4:8790/clips/a.mp3">a</a>')):
+            with open(os.path.join(root, name), "w") as f:
+                f.write(text)
+        old, L.STUDIO = L.STUDIO, root
+        try:
+            class NoRedirect(urllib.request.HTTPRedirectHandler):
+                def redirect_request(self, *a, **k):
+                    return None
+            opener = urllib.request.build_opener(NoRedirect)
+
+            def status(path, headers):
+                try:
+                    return opener.open(urllib.request.Request(self.base + path, headers=headers)).status, None
+                except urllib.error.HTTPError as e:
+                    return e.code, e.headers.get("Location")
+            self.assertEqual(status("studio/clips/a.mp3", {}), (401, None))                       # a file without the code
+            self.assertEqual(status("studio/clips/?q=a", {"Accept": "text/html"}),                # a page: sign in, come back
+                             (302, "/#next=%2Fstudio%2Fclips%2F%3Fq%3Da"))
+            self.assertEqual(status("studio/clips", {"X-Listen-Code": "solofury"}), (301, "/studio/clips/"))
+            self.assertEqual(status("studio/clips/../../x", {"X-Listen-Code": "solofury"})[0], 404)
+            page = self.get("studio/clips/", {"Cookie": "listen_code=solofury"}, code=False).read().decode()   # the cookie
+            self.assertIn('<audio controls preload=none src="/studio/clips/a.mp3">', page)
+            self.assertIn("a note", page)
+            self.assertIn("<b>Clips</b>", self.get("studio/").read().decode())
+            film = self.get("studio/film/").read()                                                # its own page, links here
+            self.assertIn(b'<a href="/studio/clips/a.mp3">a</a>', film)
+            self.assertIn(b"chirpers studio</a>", film)
+            self.assertIn(b"index.html", self.get("studio/film/?list").read())                    # and its files
+            r = self.get("studio/clips/a.mp3", {"Range": "bytes=10-19"})
+            self.assertEqual((r.status, r.read(), r.headers["Content-Type"], r.headers["Content-Range"]),
+                             (206, b"0123456789", "audio/mpeg", "bytes 10-19/100"))
+            whole = self.get("studio/clips/a.mp3")
+            self.assertEqual(status("studio/clips/a.mp3", {"X-Listen-Code": "solofury",
+                                                           "If-Modified-Since": whole.headers["Last-Modified"]})[0], 304)
+            self.assertEqual(self.get("studio/clips/a.txt").headers["Content-Type"], "text/plain; charset=utf-8")
+        finally:
+            L.STUDIO = old
+
+    def test_the_old_port_redirects_into_the_studio(self):
+        srv = L.http.server.ThreadingHTTPServer(("127.0.0.1", 0), type("Old", (L.OldPort,), {"app_port": 8791}))
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            class NoRedirect(urllib.request.HTTPRedirectHandler):
+                def redirect_request(self, *a, **k):
+                    return None
+            for path, to in (("/clips/a-ab.mp3", "/studio/clips/a-ab.mp3"), ("/", "/studio/"),
+                             ("/common-time/?w19", "/studio/common-time/?w19")):
+                try:
+                    urllib.request.build_opener(NoRedirect).open(urllib.request.Request(
+                        f"http://127.0.0.1:{srv.server_address[1]}{path}", headers={"Host": "pocket4:8790"}))
+                    self.fail("expected a redirect")
+                except urllib.error.HTTPError as e:
+                    self.assertEqual((e.code, e.headers["Location"]), (302, "http://pocket4:8791" + to))
+        finally:
+            srv.shutdown()
+            srv.server_close()
+
+    def test_an_albums_links_to_the_old_port_come_here(self):
+        root = os.path.join(self.d, "compose-root")
+        os.makedirs(os.path.join(root, "compose", "chirpers9"), exist_ok=True)
+        with open(os.path.join(root, "compose", "chirpers9", "links.json"), "w") as f:
+            json.dump([{"title": "The film", "url": "http://pocket4:8790/common-time/", "by": "chirp-video"}], f)
+        old, L.ROOT = L.ROOT, root
+        try:
+            self.assertEqual(json.load(self.get("api/chirpers9"))["links"],
+                             [{"title": "The film", "url": "/studio/common-time/", "by": "chirp-video"}])
+        finally:
+            L.ROOT = old
 
     def test_app_api_notes_media_web(self):
         self.assertIn(b"chirpers studio", self.get("", code=False).read())          # the page itself needs no code

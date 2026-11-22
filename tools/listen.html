@@ -16,7 +16,7 @@ select,button,input{padding:4px 8px}button{cursor:pointer}button:hover{border-co
 kbd{border:1px solid var(--line);border-radius:3px;padding:0 4px;font-size:11px;color:var(--dim)}
 main{display:grid;grid-template-columns:minmax(220px,300px) 1fr;min-height:calc(100vh - 50px)}
 main.wide{grid-template-columns:1fr}@media(max-width:760px){main{grid-template-columns:1fr}
- body>header{padding:6px 10px;gap:4px 8px}#hint,body>header .sp{display:none}#me{margin-left:auto;order:1}#albums{order:2}#views{order:3}
+ body>header{padding:6px 10px;gap:4px 8px}#hint,body>header .sp{display:none}#me{margin-left:auto;order:1}#albums{order:2}#studio{order:3}#views{order:4}
  body>header .tabs{flex-basis:100%;overflow-x:auto;scrollbar-width:none}body>header .tabs button{white-space:nowrap;flex:none}}
 #side{border-right:1px solid var(--line);overflow:auto;max-height:calc(100vh - 50px);position:sticky;top:50px}#pane{padding:12px 18px;min-width:0;max-width:1100px}
 .tr{padding:7px 12px;border-bottom:1px solid var(--line);cursor:pointer}.tr:hover{background:#151a25}.tr.on{background:#1b2130;border-left:3px solid var(--hi)}
@@ -121,6 +121,7 @@ main.qmode #pane{max-width:none;padding:30px 32px 64px;color:var(--text)}
 <label class=m>Access code<input id=gCode type=password required></label>
 <div class=err id=gErr></div><button type=submit>Enter</button></form></div>
 <header><h1>chirpers</h1><div class=tabs id=albums></div>
+<div class=tabs id=studio title="the film, the video prototypes and the composers' clips (what was on :8790)"><a class=lk href="studio/common-time/">Film</a><a class=lk href="studio/proto/">Prototypes</a><a class=lk href="studio/clips/">Clips</a><a class=lk href="studio/">Studio</a></div>
 <div class="tabs views" id=views></div><span class=sp></span>
 <span id=hint class=m></span><span class=m id=me></span></header>
 <main id=main><div id=side></div><div id=pane></div></main>
@@ -158,6 +159,7 @@ async function boot(){if(!U()||!CODE())return gate();
  HUMANS.add(U().toLowerCase());$("#me").innerHTML=`as <b>${esc(U())}</b> <a href="#" id=swap>change</a>`;
  $("#swap").onclick=e=>{e.preventDefault();localStorage.removeItem("listen_code");gate();};
  ALB=await api("api/albums");const h=q();
+ if(h.next&&h.next.startsWith("/studio")&&!h.next.startsWith("//")){location.replace(h.next);return;}
  $("#albums").innerHTML=ALB.map(a=>`<button data-a="${a.id}">${esc(a.title)} <span class=m>${a.status==="released"?"released":"in progress"}</span></button>`).join("");
  $$("#albums button").forEach(b=>b.onclick=()=>openAlbum(b.dataset.a,view));
  await openAlbum(ALB.find(a=>a.id===h.a)?h.a:ALB[0].id,h.v||"listen",h);}

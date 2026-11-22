@@ -57,6 +57,13 @@ asker verbatim as ONE caco message once he has been quiet for two minutes (cc ch
       at every cut, and shown on the page's cards. Ask again with the same --key to replace a card's clips.
   listen.py retire ALBUM QUESTION_ID [--reason TEXT]          take a question off the page
 
+THE STUDIO (22 Nov, Harry: "one single studio preview app with one persistent login system ... move :8790 content into
+it, so i can see all in one place"): /studio/ serves $CHIRP_STUDIO_DIR (default ~/.local/state/chirp-eco/review: the
+film's page and drafts, the video prototypes, the composers' clips) behind the same access code, so through the funnel
+too. A folder is a page (newest first; a clip, its picture and its note together, with players; ?q= finds, ?p= pages,
+?list shows the files of a folder that has its own index.html); a file is served as it is, with ranges. The old
+port (--old-port, default 8790) redirects into /studio/, and absolute links to it inside served pages are rewritten.
+
 The page is tools/listen.html (read per request). Data: $CHIRP_LISTEN_DIR or ~/.local/state/chirp-eco/listen/ALBUM/
 {snapshots/ID/snapshot.json + tNN.mp3/.mp4/.web,
 notes.jsonl, questions.jsonl, questions/*.mp3}. notes.jsonl and questions.jsonl are append-only event logs (add /
@@ -64,6 +71,7 @@ reply / delete; ask / answer / retire / told), so concurrent writers never clobb
 """
 import argparse
 import base64
+import email.utils
 import gzip
 import hashlib
 import http.server
@@ -1223,6 +1231,270 @@ def worklog(album_id):
     return {"album": album_id, "tracks": tracks, "features": feats, "snapshots": snaps}
 
 
+# ── the studio: the file server that was on :8790, inside this app (22 Nov) ─────────────────────────────────────────
+# Harry, 22 Nov: "We have :8790 and :8791 - can we actually just merge these two things? just one single studio preview
+# app with one persistent login system (the any-user / solofury one) behind the funnel and just move :8790 content into
+# it, so i can see all in one place". :8790 was a bare file server (caddy) over ~/.local/state/chirp-eco/review: the
+# film's page and drafts, the video prototypes, every composer's clips and notes; tailnet only, no login. The files
+# stay where their writers put them; this app serves them under /studio/ behind its own gate, so they are also behind
+# the funnel. A folder is shown as a page: newest first, a clip beside its note, with players. The old port answers
+# with a redirect to here, and old absolute links inside pages are pointed here as they are served.
+
+STUDIO = os.environ.get("CHIRP_STUDIO_DIR") or os.path.expanduser("~/.local/state/chirp-eco/review")
+STUDIO_FILMS = os.path.expanduser("~/.local/state/chirp-video/film")   # the finished films: review.mp4 is a link into it
+STUDIO_OLD_PORT = 8790
+STUDIO_PER_PAGE = 60
+STUDIO_NAMES = {"common-time": ("The film", "Common Time: the latest draft, scene by scene"),
+                "proto": ("Video prototypes", "every draft, reel, sheet and study, with its note"),
+                "clips": ("Clips", "the composers' before-and-after clips and their notes"),
+                "accretion": ("Accretion", "the released film's page"),
+                "tracks": ("Standby Amber: tracks", ""), "thumbs": ("Standby Amber: thumbnails", ""),
+                "index.html": ("Standby Amber: the review page", "the old front page of :8790"),
+                "review.mp4": ("Standby Amber: the film at 720p", "")}
+STUDIO_KINDS = {".html": "text/html; charset=utf-8", ".txt": "text/plain; charset=utf-8", ".md": "text/plain; charset=utf-8",
+                ".yaml": "text/plain; charset=utf-8", ".yml": "text/plain; charset=utf-8", ".json": "application/json; charset=utf-8",
+                ".mp3": "audio/mpeg", ".opus": "audio/ogg", ".ogg": "audio/ogg", ".wav": "audio/wav", ".flac": "audio/flac",
+                ".mp4": "video/mp4", ".webm": "video/webm", ".mov": "video/quicktime",
+                ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".gif": "image/gif"}
+_OLD_URL = re.compile(rb"https?://(?:pocket4(?:\.miku-owl\.ts\.net)?|100\.104\.0\.14):8790/")
+_APP_URL = re.compile(rb"https?://(?:pocket4(?:\.miku-owl\.ts\.net)?|100\.104\.0\.14):8791/")
+STUDIO_IMG_INLINE = 1_500_000        # a picture this size or smaller is shown in the list; a larger one is a link
+
+
+def studio_rewrite(body):
+    """A page's absolute links to the old file server, and to this app by its tailnet name, as paths of this app: they
+    then work from anywhere the page is read (the tailnet, the funnel)."""
+    return _APP_URL.sub(b"/", _OLD_URL.sub(b"/studio/", body))
+
+
+def studio_href(url):
+    """One link (an album's links.json) the same way."""
+    return studio_rewrite(url.encode()).decode()
+
+
+def studio_roots(root=None, also=None):
+    """Where a studio path may end: the tree itself, and what a link in it may lead to (this app's own data: the
+    snapshots' joins; the video agent's finished films; $CHIRP_STUDIO_ALSO, colon-separated)."""
+    more = [DATA, STUDIO_FILMS, *[x for x in os.environ.get("CHIRP_STUDIO_ALSO", "").split(":") if x]] if also is None else also
+    return [os.path.realpath(x) for x in (root or STUDIO, *more)]
+
+
+def studio_inside(p, roots):
+    p = os.path.realpath(p)
+    return os.path.exists(p) and any(p == base or p.startswith(base + os.sep) for base in roots)
+
+
+def studio_path(parts, root=None, also=None):
+    """The file or folder for /studio/PARTS, or None. Every part is a plain name (no '..', no hidden file, no
+    separator); a link inside the tree is followed only to where studio_roots allows."""
+    roots = studio_roots(root, also)
+    names = [urllib.parse.unquote(x) for x in parts]
+    if any(not n or n.startswith(".") or "/" in n or "\\" in n or "\0" in n for n in names):
+        return None
+    p = os.path.join(roots[0], *names)
+    return os.path.realpath(p) if studio_inside(p, roots) else None
+
+
+def studio_entries(d, roots=None):
+    """[{name, dir, size, mtime}] for a folder: no hidden files, no dead links, no link to where it may not lead."""
+    roots = roots or studio_roots()
+    out = []
+    try:
+        names = os.listdir(d)
+    except OSError:
+        return out
+    for name in names:
+        if name.startswith("."):
+            continue
+        try:
+            st = os.stat(os.path.join(d, name))
+        except OSError:
+            continue
+        if os.path.islink(os.path.join(d, name)) and not studio_inside(os.path.join(d, name), roots):
+            continue
+        is_dir = os.path.isdir(os.path.join(d, name))
+        out.append({"name": name, "dir": is_dir, "size": 0 if is_dir else st.st_size, "mtime": st.st_mtime})
+    return out
+
+
+def studio_groups(entries, d=None, q="", order="new"):
+    """A folder as its page shows it: folders first, then files GROUPED BY NAME WITHOUT EXTENSION (a clip, its picture
+    and its note are one thing), newest first (order 'name': by name). Each group: {stem, mtime, size, files,
+    note}; the note is the group's .txt (its first 1500 characters). q keeps groups whose name or note has it."""
+    dirs = sorted((e for e in entries if e["dir"]), key=lambda e: e["name"])
+    groups = {}
+    for e in entries:
+        if e["dir"]:
+            continue
+        stem = os.path.splitext(e["name"])[0]
+        g = groups.setdefault(stem, {"stem": stem, "mtime": 0, "size": 0, "files": [], "note": ""})
+        g["files"].append(e)
+        g["mtime"] = max(g["mtime"], e["mtime"])
+        g["size"] += e["size"]
+    for g in groups.values():
+        g["files"].sort(key=lambda e: e["name"])
+        txt = next((e for e in g["files"] if e["name"].endswith(".txt")), None)
+        if txt and d and len(g["files"]) > 1:
+            try:
+                with open(os.path.join(d, txt["name"]), errors="replace") as f:
+                    g["note"] = f.read(1500).strip()
+            except OSError:
+                pass
+    out = list(groups.values())
+    if q:
+        ql = q.lower()
+        out = [g for g in out if ql in g["stem"].lower() or ql in g["note"].lower()]
+        dirs = [e for e in dirs if ql in e["name"].lower()]
+    out.sort(key=(lambda g: g["stem"]) if order == "name" else (lambda g: (-g["mtime"], g["stem"])))
+    return dirs, out
+
+
+def human_size(n):
+    for unit, k in (("GB", 1 << 30), ("MB", 1 << 20), ("kB", 1 << 10)):
+        if n >= k:
+            return f"{n / k:.1f} {unit}" if n < 10 * k else f"{n / k:.0f} {unit}"
+    return f"{n} B"
+
+
+def _h(text):
+    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+def _u(name):
+    return urllib.parse.quote(name)
+
+
+STUDIO_CSS = """:root{--bg:#0b0d12;--panel:#12151d;--line:#262b38;--amber:#e8c27a;--hi:#ffd58a;--dim:#8f98aa;--text:#d6dbe6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,sans-serif}
+a{color:var(--hi)}
+header{
+display:flex;gap:6px 14px;align-items:center;flex-wrap:wrap;padding:8px 14px;border-bottom:1px solid var(--line);
+position:sticky;top:0;background:var(--bg);z-index:5}
+header b{color:var(--hi);font-size:16px}
+header a{text-decoration:none;white-space:nowrap}
+header a.on{color:var(--bg);background:var(--amber);border-radius:5px;padding:2px 8px}
+header form{margin-left:auto;display:flex;gap:6px}
+input,select,button{
+background:var(--panel);color:var(--amber);border:1px solid var(--line);border-radius:5px;font:inherit;padding:4px 8px}
+main{padding:12px 16px;max-width:1100px}
+.m{color:var(--dim);font-size:12px}
+h2{font-size:16px;color:var(--hi);margin:0 0 4px}
+.g{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:9px 12px;margin:8px 0}
+.g .hd{display:flex;gap:10px;flex-wrap:wrap;align-items:baseline}
+.g .hd b{color:var(--amber);font:13px ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.g .note{white-space:pre-wrap;margin:6px 0;overflow-wrap:anywhere}
+.g audio,.g video{width:100%;max-width:900px;display:block;margin:6px 0;background:#000;border-radius:4px}
+.g img{max-width:100%;max-height:340px;display:block;margin:6px 0;border-radius:4px}
+.g .fs a{margin-right:12px;font-size:12px;white-space:nowrap}
+.hub{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin:10px 0}
+.hub a{display:block;text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:12px 14px}
+.hub a:hover{border-color:var(--amber)}
+.hub a b{display:block;font-size:16px}
+.hub a span{display:block;color:var(--text)}
+.pg{display:flex;gap:14px;margin:14px 0;align-items:center}"""
+
+
+def studio_bar(rel):
+    top = rel.split("/")[0] if rel else ""
+    links = [("/", "Review", None), ("/studio/common-time/", "Film", "common-time"), ("/studio/proto/", "Prototypes", "proto"),
+             ("/studio/clips/", "Clips", "clips"), ("/studio/", "All", "")]
+    return ("<header><b>chirpers</b>"
+            + "".join(f'<a href="{href}"{" class=on" if key is not None and key == top else ""}>{label}</a>' for href, label, key in links))
+
+
+def studio_page(rel, d, query, roots=None):
+    """The page for a folder of the studio (rel: its path under /studio/, '' for the top)."""
+    q = (query.get("q") or [""])[0].strip()[:80]
+    order = "name" if (query.get("s") or [""])[0] == "name" else "new"
+    try:
+        page = max(1, int((query.get("p") or ["1"])[0]))
+    except ValueError:
+        page = 1
+    dirs, groups = studio_groups(studio_entries(d, roots), d, q, order)
+    here = "/studio/" + (rel + "/" if rel else "")
+    out = [f'<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+           f"<title>chirpers - studio{': ' + _h(rel) if rel else ''}</title><style>{STUDIO_CSS}</style>", studio_bar(rel),
+           f'<form method=get action="{_h(here)}"><input name=q value="{_h(q)}" placeholder="find in this folder" size=18>'
+           f'<select name=s onchange="this.form.submit()"><option value=new>newest first</option>'
+           f'<option value=name{" selected" if order == "name" else ""}>by name</option></select></form></header><main>']
+    crumbs, path = ['<a href="/studio/">studio</a>'], "/studio/"
+    for part in [x for x in rel.split("/") if x]:
+        path += _u(part) + "/"
+        crumbs.append(f'<a href="{path}">{_h(part)}</a>')
+    out.append(f'<div class=m>{" / ".join(crumbs)}</div>')
+    if not rel and not q:                                       # the top: what is here, by name
+        out.append("<h2>Studio</h2><div class=m>Everything that was on :8790, in one place and behind the same sign-in: "
+                   "the film, the video prototypes, the composers' clips. Old links to :8790 come here.</div><div class=hub>")
+        known = list(STUDIO_NAMES)
+        for e in sorted(studio_entries(d, roots), key=lambda e: (known.index(e["name"]) if e["name"] in known else 99, e["name"])):
+            title, what = STUDIO_NAMES.get(e["name"], (e["name"], ""))
+            inside = studio_entries(os.path.join(d, e["name"]), roots) if e["dir"] else []
+            newest = max((x["mtime"] for x in inside), default=e["mtime"])
+            count = f"{len(inside)} files, " if e["dir"] else ""
+            out.append(f'<a href="{here}{_u(e["name"])}{"/" if e["dir"] else ""}"><b>{_h(title)}</b><span>{_h(what)}</span>'
+                       f'<span class=m>{count}newest {time.strftime("%d %b %H:%M", time.localtime(newest))}</span></a>')
+        out.append("</div></main>")
+        return "".join(out)
+    total = len(groups)
+    groups = groups[(page - 1) * STUDIO_PER_PAGE:page * STUDIO_PER_PAGE]
+    index = os.path.exists(os.path.join(d, "index.html"))
+    pages = max(1, -(-total // STUDIO_PER_PAGE))
+    out.append(f'<h2>{_h(STUDIO_NAMES.get(rel, (rel or "studio", ""))[0])}</h2><div class=m>{total} item{"s" if total != 1 else ""}'
+               + (f' matching "{_h(q)}"' if q else "") + (f", page {page} of {pages}" if pages > 1 else "")
+               + (f' &middot; <a href="{_h(here)}">this folder&#39;s own page</a>' if index else "") + "</div>")
+    for e in dirs:
+        out.append(f'<div class=g><div class=hd><b><a href="{here}{_u(e["name"])}/">{_h(e["name"])}/</a></b></div></div>')
+    for g in groups:
+        when = time.strftime("%a %d %b %H:%M", time.localtime(g["mtime"]))
+        out.append(f'<div class=g><div class=hd><b>{_h(g["stem"])}</b><span class=m>{when} &middot; {human_size(g["size"])}</span></div>')
+        if g["note"]:
+            out.append(f'<div class=note>{_h(g["note"])}</div>')
+        names = [e["name"] for e in g["files"]]
+        poster = next((n for n in names if os.path.splitext(n)[1].lower() in (".jpg", ".jpeg", ".png", ".webp")), None)
+        for e in g["files"]:
+            ext, href = os.path.splitext(e["name"])[1].lower(), here + _u(e["name"])
+            if STUDIO_KINDS.get(ext, "").startswith("audio/"):
+                out.append(f'<audio controls preload=none src="{href}"></audio>')
+            elif STUDIO_KINDS.get(ext, "").startswith("video/"):
+                small = poster and next(x["size"] for x in g["files"] if x["name"] == poster) <= STUDIO_IMG_INLINE
+                still = f' poster="{here}{_u(poster)}"' if small else ""
+                out.append(f'<video controls preload=none{still} src="{href}"></video>')
+            elif STUDIO_KINDS.get(ext, "").startswith("image/") and e["size"] <= STUDIO_IMG_INLINE:
+                out.append(f'<a href="{href}"><img loading=lazy decoding=async src="{href}" alt=""></a>')
+        files = "".join(f'<a href="{here}{_u(e["name"])}">{_h(e["name"])} <span class=m>{human_size(e["size"])}</span></a>'
+                        for e in g["files"])
+        out.append(f"<div class=fs>{files}</div></div>")
+    if total > STUDIO_PER_PAGE:
+        keep = "".join(f"&{k}={_u(v)}" for k, v in (("q", q), ("s", "name" if order == "name" else "")) if v)
+        out.append("<div class=pg>" + (f'<a href="?p={page - 1}{keep}">&larr; newer</a>' if page > 1 else "")
+                   + (f'<a href="?p={page + 1}{keep}">older &rarr;</a>' if page * STUDIO_PER_PAGE < total else "") + "</div>")
+    out.append("</main>")
+    return "".join(out)
+
+
+STUDIO_BACK = (b'<a href="/studio/" style="position:fixed;right:10px;bottom:10px;z-index:99;background:#12151d;color:#ffd58a;'
+               b'border:1px solid #262b38;border-radius:14px;padding:4px 10px;font:12px system-ui;text-decoration:none">'
+               b"chirpers studio</a>")
+
+
+class OldPort(http.server.BaseHTTPRequestHandler):
+    """The old file server's port: every address there is now under /studio/ of the app."""
+    app_port = 8791
+
+    def log_message(self, fmt, *args):
+        pass
+
+    def do_GET(self):
+        host = (self.headers.get("Host") or self.server.server_address[0]).rsplit(":", 1)[0]
+        self.send_response(302)
+        self.send_header("Location", f"http://{host}:{self.app_port}/studio{self.path if self.path.startswith('/') else '/'}")
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
+    do_HEAD = do_GET
+
+
 # ── server ─────────────────────────────────────────────────────────────────────────────────
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -1276,13 +1548,21 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if parts == ["favicon.ico"]:
             return self.send_error(404)
         if not self.authed():
+            if parts[0] == "studio" and "text/html" in (self.headers.get("Accept") or ""):
+                self.send_response(302)                         # a page of the studio: sign in on the app's page, then come back
+                self.send_header("Location", "/#next=" + urllib.parse.quote(self.path, safe=""))
+                self.send_header("Content-Length", "0")
+                return self.end_headers()
             return self.send_json({"error": "access code"}, 401)
+        if parts[0] == "studio":
+            return self.studio(parts[1:], path, urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query, keep_blank_values=True))
         if parts == ["api", "albums"]:
             return self.send_json([album_info(a) for a in ALBUMS
                                    if os.path.exists(os.path.join(ROOT, "compose", a, "album.json")) or snapshots(a)])
         if len(parts) == 2 and parts[0] == "api":
             snaps = snapshots(parts[1])
-            return self.send_json({"album": parts[1], "snapshots": snaps, "notes": notes(parts[1]), "links": album_links(parts[1]),
+            links = [dict(x, url=studio_href(x["url"])) for x in album_links(parts[1])]
+            return self.send_json({"album": parts[1], "snapshots": snaps, "notes": notes(parts[1]), "links": links,
                                    "questions": with_focus(with_now(questions(parts[1]), current_versions(parts[1]),
                                                                     snaps, read_moved(parts[1])), read_focus(parts[1]))})
         if len(parts) == 3 and parts[0] == "api" and parts[2] == "log" and re.fullmatch(r"[\w-]+", parts[1]):
@@ -1301,15 +1581,48 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return self.end_headers()
         self.send_error(404)
 
-    def send_media(self, p):
+    def studio(self, parts, path, query):
+        """/studio/…: a folder as a page (its own index.html when it has one, unless ?list or a search), a file as it is."""
+        p = studio_path(parts)
+        if p is None:
+            return self.send_error(404)
+        rel = "/".join(urllib.parse.unquote(x) for x in parts)
+        if os.path.isdir(p):
+            if not path.endswith("/"):                          # so that a page's relative links resolve inside it
+                self.send_response(301)
+                self.send_header("Location", path + "/")
+                self.send_header("Content-Length", "0")
+                return self.end_headers()
+            index = os.path.join(p, "index.html")
+            if rel and os.path.exists(index) and not any(k in query for k in ("list", "q", "p", "s")):
+                p = index
+            else:
+                return self.send_body(studio_page(rel, p, query).encode(), "text/html; charset=utf-8")
+        kind = STUDIO_KINDS.get(os.path.splitext(p)[1].lower(), "application/octet-stream")
+        if kind.startswith(("text/", "application/json")) and os.path.getsize(p) <= 8 << 20:
+            with open(p, "rb") as f:
+                body = f.read()
+            if kind.startswith("text/html"):
+                body = studio_rewrite(body) + STUDIO_BACK
+            return self.send_body(body, kind)
+        return self.send_media(p, kind, True)
+
+    def send_media(self, p, kind=None, cache=False):
         if ".." in p or not os.path.exists(p):
             return self.send_error(404)
         size = os.path.getsize(p)
+        stamp = email.utils.formatdate(os.path.getmtime(p), usegmt=True)
+        if cache and self.headers.get("If-Modified-Since") == stamp and not self.headers.get("Range"):
+            self.send_response(304)
+            return self.end_headers()
         rng = byte_range(self.headers.get("Range"), size)
         a, b = rng or (0, size - 1)
         self.send_response(206 if rng else 200)
         kinds = {".mp3": "audio/mpeg", ".opus": "audio/ogg", ".ogg": "audio/ogg", ".wav": "audio/wav"}
-        self.send_header("Content-Type", kinds.get(os.path.splitext(p)[1], "video/mp4"))
+        self.send_header("Content-Type", kind or kinds.get(os.path.splitext(p)[1], "video/mp4"))
+        if cache:
+            self.send_header("Last-Modified", stamp)
+            self.send_header("Cache-Control", "private, max-age=60")
         self.send_header("Accept-Ranges", "bytes")
         self.send_header("Content-Length", str(b - a + 1))
         if rng:
@@ -1389,10 +1702,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.send_error(404)
 
 
-def serve(hosts, port):
-    """One server per host (e.g. the tailnet address and 127.0.0.1, which a Tailscale funnel proxies to)."""
+def serve(hosts, port, old_port=0):
+    """One server per host (e.g. the tailnet address and 127.0.0.1, which a Tailscale funnel proxies to). old_port: the
+    file server's old port (8790), answered on every host but the loopback with a redirect into /studio/; if something
+    still holds it, the app starts without it and says so."""
     hosts = [hosts] if isinstance(hosts, str) else list(hosts)
     srvs = [http.server.ThreadingHTTPServer((h, port), Handler) for h in hosts]
+    for h in hosts if old_port else []:
+        if h.startswith("127.") or h == "localhost":
+            continue
+        try:
+            old = http.server.ThreadingHTTPServer((h, old_port), type("OldPortFor", (OldPort,), {"app_port": port}))
+        except OSError as e:
+            print(f"listen: the old port {h}:{old_port} is not free ({e}); no redirect from it", flush=True)
+            continue
+        threading.Thread(target=old.serve_forever, daemon=True).start()
+        print(f"listen: http://{h}:{old_port}/… redirects to http://{h}:{port}/studio/…", flush=True)
     for h in hosts:
         print(f"listen: serving {DATA} on http://{h}:{port}/ (albums {','.join(ALBUMS)}; access code {'on' if CODE else 'off'})",
               flush=True)
@@ -1423,6 +1748,8 @@ def main(argv=None):
     p = sub.add_parser("serve")
     p.add_argument("--host", action="append", help="listen address (repeatable; default 127.0.0.1)")
     p.add_argument("--port", type=int, default=8791)
+    p.add_argument("--old-port", type=int, default=STUDIO_OLD_PORT,
+                   help="the old file server's port, redirected into /studio/ (default 8790; 0: none)")
     p = sub.add_parser("notes")
     p.add_argument("album")
     p.add_argument("--track", type=int)
@@ -1475,7 +1802,7 @@ def main(argv=None):
     elif a.cmd == "video":
         videos(a.album, a.snap, {int(x) for x in a.ids.split(",")} if a.ids else None, a.look, redo=a.redo, stale=a.stale, lod=a.lod)
     elif a.cmd == "serve":
-        serve(a.host or ["127.0.0.1"], a.port)
+        serve(a.host or ["127.0.0.1"], a.port, a.old_port)
     elif a.cmd == "notes":
         ns = [n for n in notes(a.album) if (a.track is None or n["n"] == a.track) and not (a.open and n["done"])]
         if a.json:
