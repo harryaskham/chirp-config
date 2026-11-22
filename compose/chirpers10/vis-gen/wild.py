@@ -3883,6 +3883,42 @@ def squares(c):
             "filters": [bloom(c, 0.4, 0.014, 0.75)]}
 
 
+@idiom(needs=0, fam="trace")
+def ringing(c):
+    """Rows as they are rung: the same few notes, each time in a new order, no note moving
+    more than one place. Each row is written across as it is played, a dot a note, and every
+    note has a line that runs down through its places from row to row; the highest note's
+    line is white. A row in which the notes stand in order of pitch is ruled across."""
+    R = getattr(c, "rows", None)
+    if not R:
+        raise ValueError("nothing is being rung in changes here")
+    rows, part = R                                  # [(sixteenth, length, ((sixteenth, key), ...))]
+    bells = sorted({k for _, _, row in rows for _, k in row}, reverse=True)
+    N = len(bells)
+    now = "(time.beat*4)"
+    dx, gap, ynow = min(1.4, 8.2 / N), 0.3, -1.95
+    xs = lambda j: (j - (N - 1) / 2) * dx                                     # noqa: E731
+    tint = lambda b: "#ffffff" if b == bells[0] else (c.dim if b == bells[-1] else (c.a, c.b, c.c, c.ink)[bells.index(b) % 4])   # noqa: E731
+    layers = []
+    for k, (s0, L, row) in enumerate(rows):
+        y = f"({ynow} + ({now} - {s0})*{gap / L:g})"
+        order = [key for _, key in row]
+        for j, (on, key) in enumerate(row):
+            fresh = f"step({on}, {now})*exp(0 - 0.7*({now} - {on}))"
+            layers.append(ball(xs(j), y, -0.05, f"{0.085 if key == bells[0] else 0.062}*step({on}, {now})*(1 + 0.8*{fresh})", 6, **glow(tint(key), f"0.5 + 2.2*{fresh}")))
+            if k + 1 < len(rows) and rows[k + 1][0] == s0 + L and key in [q for _, q in rows[k + 1][2]]:
+                s1, L1, nxt = rows[k + 1]
+                j1 = [q for _, q in nxt].index(key)
+                y1 = f"({ynow} + ({now} - {s1})*{gap / L1:g})"
+                # The line to its place in the next row is drawn as that row is rung.
+                g = f"clamp(({now} - {s1})/{L1}*1.6, 0, 1)"
+                layers.append({"type": "beam", "from": [xs(j), y, 0], "to": [f"{xs(j):g} + {n(xs(j1) - xs(j))}*{g}", f"{y} + ({y1} - {y})*{g}", 0],
+                               "width": 0.05 if key == bells[0] else 0.02, "samples": 2, "glow": f"(1.3 if 0 else 1)*step({s1}, {now})*{1.3 if key == bells[0] else 0.75}".replace("(1.3 if 0 else 1)*", ""), "fade": 0, "color": tint(key)})
+        if order == bells and k:
+            layers.append(box(0, y, 0.03, xs(N - 1) + 0.45, 0.006, 0.01, **glow("#ffffff", f"0.9*step({s0 + L}, {now})")))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.014, 0.7)]}
+
+
 # ───────────────────────── pictures of pictures ─────────────────────────
 
 SMALL = ("spiral", "sunflower", "stringart", "moire", "strings", "clockshop", "combs", "vortex", "epicycle", "harmonograph", "mandala", "table", "tally", "slack", "sonar", "remainder", "kelvin", "chladni")
@@ -4477,14 +4513,14 @@ WANTS = {"rabbits": lambda c: any(p.cell in (34, 55) for p in c.riffs),
 LONG = set("turtle strange harmonograph tetris hanoi marbling ink rink galton".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("barcode braille dice candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
-MIRROR_BAD = set("squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
+MIRROR_BAD = set("ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())
 # Pictures that are mostly light: a print of their lights is a blank sheet.
 BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("zipper loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
+SLOW = set("ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)

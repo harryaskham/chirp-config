@@ -381,6 +381,8 @@ class Deal:
         self.dealt = collections.defaultdict(set)
         self.sums = 0
         self.walks = 0
+        self.rings = 0
+        self.rung = collections.defaultdict(set)
         self.walked = collections.defaultdict(set)
         self.hinges = 0
         self.period = {}
@@ -578,6 +580,28 @@ class Deal:
                 note(name, "hands", f"{name}/hands {how}")
                 self.last["canon"] = True
                 return name, "hands", look
+        # Rows rung in changes: the rows as they are rung, every note's line running down
+        # through its places. It comes back once in each run of rows and when the run ends
+        # (when the notes come round to the order they set out in).
+        rg = rows_here(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 3.5 else None
+        if rg and ((rg[2], rg[3]) not in self.rung[S.n]) and "ringing" not in self.recent[-2:]:
+            cd = copy.copy(base)
+            cd.rows = (rg[1], rg[0])
+            got = make("ringing", ctx=cd, keep=True)
+            t = next((t for t in ROW_GUISES if ("ringing", t) not in self.combos and W.TREAT[t][1](cd, W.REG["ringing"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = f"{rg[0]} rings rows of {rg[1][0][1]}" + (", and the run ends" if rg[3] else "")
+                look = W.TREAT[t][0](c, got[1])
+                if rg[3] and rg[4] <= c.b16:
+                    # The last row of the run: the notes have come round, and the picture is struck with light.
+                    white(look, f"0.75*step({rg[4] / 4:g}, time.beat)*exp(0 - 1.6*max(time.beat - {rg[4] / 4:g}, 0))")
+                self.treats[t] += 1
+                self.rings += 1
+                self.rung[S.n].add((rg[2], rg[3]))
+                note("ringing", t, "ringing/rows" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "ringing", t, look
         # The walk: in a song that goes from number to number by a rule, each number lasting as
         # long as it is, the numbers are squares on a line; the picture comes back once in
         # each long walk, in another guise.
@@ -1008,6 +1032,7 @@ def fitting(S, c):
     return S.part(x, c.a16, c.b16, x.cell(*ab)[0]), S.part(y, c.a16, c.b16, y.cell(*ab)[0]), med
 
 
+ROW_GUISES = ("plain", "relief", "infra", "fringe", "echo", "delayed", "duotone", "solar", "blueprint", "tracking", "water", "papercut", "onebit", "drawn")
 WALK_GUISES = ("plain", "relief", "papercut", "itself", "infra", "fringe", "duotone", "echo", "delayed", "solar", "blueprint", "tracking", "water", "onebit")
 ZIP_GUISES = ("plain", "relief", "papercut", "infra", "fringe", "duotone", "echo", "delayed", "solar", "tracking", "blown", "water")
 
@@ -1028,6 +1053,85 @@ def period(S, c):
         return None
     cell = c.riffs[0].cell
     return cell // 8 if cell % 8 == 0 and 2 <= cell // 8 <= 6 else None
+
+
+def ringing(S):
+    """Rows rung in changes: a part that plays the same few notes over and over, each time in
+    a new order, no note moving more than one place from one row to the next. Found from the
+    notes. Returns (the part's name, [run]) with a run a list of rows
+    (sixteenth, length, ((sixteenth, key), ...)), or None. A run is in one key and at one
+    length of row; it is at least 24 rows, at least 20 of them different."""
+    if hasattr(S, "_rows"):
+        return S._rows
+    import bisect
+    best = None
+    for t in (S.tracks.values() if isinstance(S.tracks, dict) else S.tracks):
+        if t.role == "drum" or len(t.notes) < 150:
+            continue
+        seq = []                                    # (sixteenth, key), repeats of a note dropped
+        for b0, _, key in sorted(t.notes):
+            if not seq or seq[-1][1] != key:
+                seq.append((round(b0 * 4), key))
+        ons = [x for x, _ in seq]
+
+        def row(s0, L):
+            i, j = bisect.bisect_left(ons, s0), bisect.bisect_left(ons, s0 + L)
+            keys = [k_ for _, k_ in seq[i:j]]
+            return tuple(seq[i:j]) if 4 <= len(keys) <= 8 and len(set(keys)) == len(keys) else None
+
+        def run_from(s0, L):
+            out = []
+            while True:
+                r = row(s0, L)
+                if not r or (out and {k_ for _, k_ in r} != {k_ for _, k_ in out[-1][2]}):
+                    return out
+                out.append((s0, L, r))
+                s0 += L
+
+        runs, s0, end = [], ons[0], ons[-1]
+        while s0 < end:
+            cands = []
+            for L in range(5, 17):
+                for d in range(L):                  # (a row may be cut anywhere: prefer one that starts on a bar line, then a beat)
+                    r = run_from(s0 + d, L)
+                    if len(r) >= 24:
+                        cands.append((len(r), r))
+                if cands:
+                    break
+            if not cands:
+                s0 += 1
+                continue
+            most = max(n_ for n_, _ in cands)
+            run = min((r for n_, r in cands if n_ >= most - 2), key=lambda r: (r[0][0] % 16 != 0, r[0][0] % 4 != 0, r[0][0]))
+            runs.append(run)
+            s0 = run[-1][0] + run[-1][1]
+        good = []
+        for run in runs:
+            orders = [tuple(k_ for _, k_ in r[2]) for r in run]
+            moved = sum(1 for a, b in zip(orders, orders[1:]) if all(abs(a.index(p) - b.index(p)) <= 1 for p in a))
+            if len(set(orders)) >= 20 and moved >= 0.9 * (len(run) - 1):
+                good.append(run)
+        total = sum(len(r) for r in good)
+        if total >= 60 and (best is None or total > best[0]):
+            best = (total, t.name, good)
+    S._rows = (best[1], best[2]) if best else None
+    return S._rows
+
+
+def rows_here(S, c):
+    """(the part, the rows about the scene, which run, whether the run ends in the scene)
+    where at least half the scene lies in a run of rows; or None."""
+    rg = ringing(S)
+    if not rg:
+        return None
+    name, runs = rg
+    for i, run in enumerate(runs):
+        a, b = run[0][0], run[-1][0] + run[-1][1]
+        if min(b, c.b16) - max(a, c.a16) >= 0.5 * (c.b16 - c.a16):
+            L = run[0][1]
+            near = [r for r in run if c.a16 - 13 * L <= r[0] < c.b16]
+            return name, near, i, c.a16 < b <= c.b16 + L, b
+    return None
 
 
 def walking(S):
@@ -1495,7 +1599,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}  hinges: {deal.hinges}  reprises: {deal.reprises}  walks: {deal.walks}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}  hinges: {deal.hinges}  reprises: {deal.reprises}  walks: {deal.walks}  rows rung: {deal.rings}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 
