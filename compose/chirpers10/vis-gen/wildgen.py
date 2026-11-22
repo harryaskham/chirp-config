@@ -150,7 +150,9 @@ HOUSE = {
     17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil infra",
 }
 HOUSE = {n_: set(v.split()) for n_, v in HOUSE.items()}
-TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weave", "spiral", "rings", "checker", "split", "wipe", "iris", "blinds", "clock", "diamond", "rise", "dissolve")
+TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weave", "spiral", "rings", "checker", "split", "wipe", "iris", "blinds", "clock", "diamond", "rise", "dissolve",
+               "flip", "squeeze", "shred", "stretch", "whip", "fall", "whirl", "ripple", "glitch", "pixel", "tiles", "doors", "spin", "scan", "diagonal", "slats", "interlace", "star", "dither", "corners", "wave",
+               "fan", "shutter")
 NO_PAIR = ("room", "sheet", "plate", "travel")      # families that are not put in a frame with another
 
 
@@ -674,7 +676,7 @@ def plan(S, deal):
             # One picture turns into the next: each way in its turn, over a beat or two.
             tr = min(TRANSITIONS, key=lambda t_: deal.trans[t_] + 1.5 * rnd(S.n, k, t_))
             deal.trans[tr] += 1
-            scene["xfade"] = "1b" if tr in ("push", "strips", "blocks", "split", "weave", "checker") else "2b"
+            scene["xfade"] = "1b" if tr in ("push", "strips", "blocks", "split", "weave", "checker", "flip", "squeeze", "whip", "fall", "glitch", "pixel", "doors", "scan", "slats", "interlace", "shutter") else "2b"
             scene["transition"] = tr
         if cyc:
             # The scene lies in a long round: the frame keeps count of it across the cuts.
