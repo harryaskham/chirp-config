@@ -11,7 +11,7 @@ about 940 scenes on the album, every one different.
 
 **What is drawn**
 
-- **Idioms** (`wild.py`, the `@idiom` functions: 157 so far). Each is a small machine, place,
+- **Idioms** (`wild.py`, the `@idiom` functions: 163 so far). Each is a small machine, place,
   game or diagram built from the notes themselves, and each keeps one rule: *what the music
   counts, the picture counts*. A note is a thing (a domino, a lantern, a lit window, a letter
   typed, a block dropped into a well); a riff's cell is a width or a number of things (bells
@@ -83,9 +83,9 @@ Commands (from this directory; `CHIRP` reads the cells and may be any recent bin
                                        (NAME/TREATMENT and A+B/COMBINATION work too)
 
 Programmes are written as generated; do not edit them. They need the engine of the
-`chirp-video` branch at 5064f15c or later (`notes:` and `note.*`, `timeslice`, `step`,
+`chirp-video` branch at 662d2b8e or later (`notes:` and `note.*`, `timeslice`, `step`,
 `halftone`, `outline`, `bold`, `remap`, the warps, `droste`, `orb`, `sort`, `wind`, `glass`,
-`grow`, `pick:`, `repeat:`, an actor's `cut:` and `as:`, the new transitions),
+`grow`, `flow`, `pick:`, `repeat:`, an actor's `cut:` and `as:`, the new transitions),
 which is not yet in a pinned binary, so they are not in `vis/`.
 
 ## The first film: motion studies

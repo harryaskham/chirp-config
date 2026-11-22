@@ -3086,6 +3086,118 @@ def drill(c):
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.3, 0.014, 0.7)]}
 
 
+# ───────────────────────── a twelfth lot: paintings ─────────────────────────
+
+@idiom(needs=1, fam="art", max_cell=48)
+def riley(c):
+    """Bands of waves across the whole frame, black and white: a swell travels along them
+    once for every turn of the riff, and a second riff sets how deep it runs."""
+    A = c.riffs[0]
+    B = c.riffs[1] if len(c.riffs) > 1 else A
+    rows, per = 24, 170
+    line = f"floor(inst.i/{per})"
+    u = f"(inst.i/{per} - {line})"                      # 0..1 along the line
+    waves = max(2, min(7, A.cell // 2))
+    depth = f"(0.045 + 0.05*(0.5 + 0.5*sin({B.turn}/2 + {line}/{rows})))"
+    y = f"({line} - {(rows - 1) / 2})*0.088 + {depth}*sin({u}*{waves} - {A.turn} + 0.35*sin({line}/{rows} + {A.turn}/3))"
+    thick = f"0.014 + 0.016*(0.5 + 0.5*sin({u}*{waves} - {A.turn} + 0.25))"
+    ink = c.ink if c.variant % 2 == 0 else c.a
+    return {"background": "#08080a", "layers": [{"type": "shape", "repeat": rows * per, "sides": 1, "radius": thick, "width": 0, "fill": 1, "color": ink, "blend": "max", "x": f"({u} - 0.5)*3.62", "y": y}], "filters": []}
+
+
+@idiom(needs=1, fam="art", max_cell=48)
+def vasarely(c):
+    """A board of squares over a swelling that wanders with the riffs: across in the time of
+    one, up and down in the time of the other, and deeper on every note."""
+    A = c.riffs[0]
+    B = c.riffs[1] if len(c.riffs) > 1 else A
+    cols, rows = 26, 15
+    env = hit_env([A], "350ms")
+    gx, gy = f"((inst.i - {cols}*floor(inst.i/{cols})) - {(cols - 1) / 2})*0.142", f"(floor(inst.i/{cols}) - {(rows - 1) / 2})*0.142"
+    bx, by = f"1.1*sin({A.turn}/2)", f"0.55*sin({B.turn}/2 + 0.125)"
+    dx, dy = f"({gx} - {bx})", f"({gy} - {by})"
+    swell = f"((0.7 + 0.5*env.h0)*exp(0 - ({dx}*{dx} + {dy}*{dy})*2.6))"
+    odd = f"fract((inst.i - {cols}*floor(inst.i/{cols}) + floor(inst.i/{cols}))/2)*2"
+    return {"background": "#0a0a10", "env": env,
+            "layers": [{"type": "shape", "repeat": cols * rows, "sides": 4, "rotate": f"0.125 + 0.12*{swell}", "radius": f"0.07*(1 + 1.25*{swell})", "width": 0, "fill": 1, "blend": "normal",
+                        "palette": [c.a, c.ink, c.b, c.ink], "pos": f"{odd}*0.25 + 0.5*step(0.5, {swell})", "x": f"{bx} + {dx}*(1 + 0.9*{swell})", "y": f"{by} + {dy}*(1 + 0.9*{swell})"}], "filters": []}
+
+
+@idiom(needs=1, fam="art", paper=True, max_cell=28)
+def kandinsky(c):
+    """Squares with circles in them, a square for every sixteenth of the riff: the rings of
+    the square now sounding swell, and the colours move one ring inward each turn."""
+    A = c.riffs[0]
+    n_ = A.cell
+    r_ = 1 if n_ <= 6 else 2 if n_ <= 12 else 3 if n_ <= 21 else 4
+    cols = math.ceil(n_ / r_)
+    s_ = min(3.45 / cols, 1.92 / r_)
+    reps = max(1, int(1.95 / (s_ * r_)))         # a short riff's row of squares comes again below, a step on
+    r_ *= reps
+    total = cols * r_ if reps > 1 else n_
+    sq = "floor(inst.i/4)"
+    ring = "(inst.i - 4*floor(inst.i/4))"
+    x = lambda j: f"(({j}) - {cols}*floor(({j})/{cols}) - {(cols - 1) / 2})*{s_:g}"      # noqa: E731
+    y = lambda j: f"({(r_ - 1) / 2} - floor(({j})/{cols}))*{s_:g}"                      # noqa: E731
+    d = f"(fract({A.turn} - ({sq} + floor({sq}/{cols}))/{n_})*{n_})"
+    paints = ["#d6281a", "#f2c21a", "#1b4f9c", "#16171a", "#e8792b", "#2a8a5a", "#ece6d6", "#7a3b8f"]
+    layers = [{"type": "shape", "repeat": total, "sides": 4, "rotate": 0.125, "radius": s_ * 0.5 * 1.36, "width": 0, "fill": 1, "blend": "normal", "palette": paints, "pos": "hash(inst.i*3.3 + 1)", "x": x("inst.i"), "y": y("inst.i")},
+              {"type": "shape", "repeat": total * 4, "sides": 1, "radius": f"{s_ * 0.46:g}*(1 - {ring}*0.23)*(1 + 0.07*exp(0 - 1.2*{d}))", "width": 0, "fill": 1, "blend": "normal", "palette": paints,
+               "pos": f"hash({sq}*7.1 + ({ring} + floor({A.turn}))*1.3)", "x": x(sq), "y": y(sq)}]
+    return {"background": "#ece6d6", "layers": layers, "filters": [{"type": "grain", "amount": 0.05}]}
+
+
+@idiom(needs=1, fam="art", paper=True)
+def suprematist(c):
+    """Bars and blocks on a white ground, one for each part: each slides along its own slant
+    once over and back in a turn, and jumps on its notes."""
+    P = _cast(c, 6)
+    env = hit_env(P, "300ms")
+    paints = ("#16171a", "#d6281a", "#1b4f9c", "#f2c21a", "#16171a", "#e8792b")
+    layers = [box(0, 0, 0.3, 4.6, 2.6, 0.01, **glow("#ece6d6", 1)), box(-1.5 + 3.0 * c.r(40), 0.9 - 1.6 * c.r(41), 0.2, 0.85, 0.85, 0.01, rz=0.03, **glow("#16171a", 1)),
+              ball(2.6 - 5.0 * c.r(42), -1.2 + 2.2 * c.r(43), 0.15, 0.42, 14, **glow("#d6281a", 1))]
+    for i, p in enumerate(P):
+        tilt = (c.r(i + 50) - 0.5) * 0.3
+        long_, wide = 0.6 + 1.6 * c.r(i + 60), 0.06 + 0.22 * c.r(i + 70)
+        ox, oy = (i - (len(P) - 1) / 2) * (7.0 / len(P)) + (c.r(i + 80) - 0.5) * 1.2, (c.r(i + 90) - 0.5) * 3.4
+        slide = f"(1.1*sin({p.turn}/2) + 0.25*env.h{i})" if p.cell else f"0.5*env.h{i}"
+        layers.append(box(f"{ox:.3f} + {math.cos(tilt * 6.2832):.4f}*{slide}", f"{oy:.3f} + {math.sin(tilt * 6.2832):.4f}*{slide}", 0.1 - 0.02 * i, long_, wide, 0.01, rz=tilt, **glow(paints[i], 1)))
+    return {"background": "#ece6d6", "env": env, "camera": FLAT, "layers": layers, "filters": [{"type": "grain", "amount": 0.05}]}
+
+
+@idiom(needs=1, fam="art")
+def rothko(c):
+    """Two or three fields of colour, one over another, their edges soft: each belongs to a
+    part and breathes with it."""
+    P = _cast(c, 3)
+    env = hit_env(P, "1200ms")
+    n_ = len(P)
+    layers = [box(0, 0, 0.3, 4.6, 2.6, 0.01, **glow(c.bg, 1))]
+    top = 2.2
+    share = [(1.6, 2.4), (1.0, 1.9, 1.3), (0.9, 1.5, 1.0, 0.8)][min(n_, 3) - 1]
+    for i, p in enumerate(P):
+        h = share[i]
+        swell = f"(1 + 0.06*env.h{i} + 0.03*sin({p.turn}/2))" if p.cell else f"(1 + 0.06*env.h{i})"
+        layers.append(box(0, top - h / 2, 0.1, f"3.9*{swell}", f"{h / 2 - 0.12:g}*{swell}", 0.01, **glow(c.col(i), f"0.75 + 0.5*env.h{i}")))
+        top -= h
+    return {"background": c.bg, "env": env, "camera": FLAT, "layers": layers, "filters": [{"type": "blur", "radius": 0.022}, {"type": "grain", "amount": 0.06}]}
+
+
+@idiom(needs=1, fam="art", max_cell=64)
+def albers(c):
+    """Squares one inside another, one for each riff, the outermost the slowest: each takes
+    its next colour when its riff comes round, and gives a little on its notes."""
+    P = sorted(c.riffs[:4], key=lambda p: -p.cell)
+    env = hit_env(P, "300ms")
+    paints = [c.a, c.b, c.c, c.ink, c.dim, c.a]
+    layers = []
+    for i, p in enumerate(P):
+        size = 2.35 * (0.74 ** i)
+        t0 = math.floor((c.a16 - p.anchor) / p.cell)
+        layers.append(box(0, f"0 - {0.11 * i:g}", 0.3 - 0.05 * i, f"{size:g}*(1 + 0.03*env.h{i})", f"{size:g}*(1 + 0.03*env.h{i})", 0.01, palette=paints, pos=f"fract((floor({p.turn}) - {t0} + {i * 2})/6)", emit=1, light=0, ambient=1, rim=0))
+    return {"background": c.bg, "env": env, "camera": FLAT, "layers": layers, "filters": [{"type": "grain", "amount": 0.05}]}
+
+
 # ───────────────────────── pictures of pictures ─────────────────────────
 
 SMALL = ("spiral", "sunflower", "stringart", "moire", "strings", "clockshop", "combs", "vortex", "epicycle", "harmonograph", "mandala", "table", "tally", "slack", "sonar", "remainder", "kelvin", "chladni")
@@ -3608,7 +3720,7 @@ def t_kaleido(c, look):
 # that changes what it is made of, then one that works on it in time.
 STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0,
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
-         "leaded": 1, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2}
+         "leaded": 1, "infra": 1, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2}
 
 # Pairs of guises that leave only texture: a picture already made many, then drawn in line or set in type.
 STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched")}
@@ -3617,7 +3729,7 @@ STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling"
 MIRROR_BAD = set("duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())
 # Pictures that are mostly light: a print of their lights is a blank sheet.
-BRIGHT = set("maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
+BRIGHT = set("kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
@@ -3849,6 +3961,35 @@ def t_ball(c, look):
     return look
 
 
+@treat("smoked", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+def t_smoked(c, look):
+    """Every light smokes: it is carried off in eddies and fades as it goes."""
+    return _pre(look, {"type": "flow", "speed": 0.22, "decay": 2.2, "scale": 2.5 + (c.seed % 3), "change": 0.3, "amount": c.arr})
+
+
+@treat("dripping", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+def t_dripping(c, look):
+    """The picture runs: every light is drawn out downward (or, every other time, upward like flame)."""
+    return _pre(look, {"type": "flow", "field": ("fall", "rise")[c.seed % 2], "speed": 0.3, "decay": 1.6, "amount": c.arr})
+
+
+@treat("tracking", ok=lambda c, info: info["fam"] not in ("sign", "plate"))
+def t_tracking(c, look):
+    """A worn tape: the colours out of register, lines across it, and the picture slips on
+    the riff's notes."""
+    p = _lead(c)
+    look["filters"] = look.get("filters", []) + [{"type": "chroma", "amount": 0.007, "angle": 0}, {"type": "tear", "on": f"track.{p.name}", "amount": 0.05, "bands": 48, "decay": 0.18},
+                                                 {"type": "scanlines", "amount": 0.3, "count": 200, "speed": 3}, {"type": "color", "saturation": 1.3, "contrast": 1.1}]
+    return look
+
+
+@treat("infra", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and not info.get("paper"))
+def t_infra(c, look):
+    """As a heat camera sees it: the dark cold, the lights hot."""
+    look["filters"] = look.get("filters", []) + [{"type": "blur", "radius": 0.006}, {"type": "remap", "gain": 1.3, "palette": ["#05051a", "#2a0a5e", "#8a1a6a", "#d93a2a", "#f59a1a", "#fff27a", "#ffffff"], "amount": c.arr}]
+    return look
+
+
 @treat("combed", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
 def t_combed(c, look):
     """Combed: along every line the lights are put in order, further each time the riff's
@@ -3914,7 +4055,7 @@ def t_negative(c, look):
 
 
 ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief", "poster", "flood", "combed", "blown", "leaded",
-           "overgrown", "falling", "coiled", "ball")
+           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra")
 
 # Idioms drawn in hair lines and points, made bolder so that they read at any size: how far
 # each thing in them is spread (a fraction of the frame's height).
@@ -3925,7 +4066,7 @@ BOLD = {"numerals": 0.004, "orrery": 0.004, "kelvin": 0.004, "galton": 0.004, "s
 
 
 # Guises that add to a picture (copies, echoes, mirrors) rather than print it.
-FILLS = ("kaleido", "mirror", "wall", "planet", "tunnel", "echo", "slices", "fringe", "spin", "roll", "wound", "water", "torn", "hole", "lines", "warp", "solar", "blown", "overgrown", "combed", "falling", "ball")
+FILLS = ("kaleido", "mirror", "wall", "planet", "tunnel", "echo", "slices", "fringe", "spin", "roll", "wound", "water", "torn", "hole", "lines", "warp", "solar", "blown", "overgrown", "combed", "falling", "ball", "smoked", "dripping", "tracking")
 
 
 def bolder(name, look):
@@ -4097,6 +4238,10 @@ for _n in ("galton", "musicbox", "changes", "sympathy", "colony", "score"):
 for _n in ("snow", "lava", "searchlights", "lifts", "switchboard", "rink"):
     REG[_n]["mood"] = -1
 for _n in ("tesla", "duel", "trampoline", "billiard", "drill", "specimen"):
+    REG[_n]["mood"] = 1
+for _n in ("rothko", "albers", "kandinsky"):
+    REG[_n]["mood"] = -1
+for _n in ("riley", "vasarely", "suprematist"):
     REG[_n]["mood"] = 1
 for _n in ("kit", "hive"):
     REG[_n]["mood"] = 1

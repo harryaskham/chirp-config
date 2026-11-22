@@ -132,22 +132,22 @@ FEATURE = {
 # Each song's house: the guises and the ways of sharing the frame it leans to, so the songs
 # differ from one another as well as from bar to bar. (The first song, the album's argument, has none.)
 HOUSE = {
-    2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout",
+    2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout smoked",
     3: "lines engraved hatched typed sheet blueprint leaded strips bands intercut triptych stencil",
-    4: "typed onebit newsprint dots blocks combed poster board corner card strips",
-    5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout",
-    6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass",
+    4: "typed onebit newsprint dots blocks combed poster board corner card strips tracking",
+    5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout infra",
+    6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass dripping",
     7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite glass",
-    8: "leaded engraved newsprint poster flood duotone mirror triptych diptych window board",
-    9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout",
-    10: "onebit dots torn combed typed poster negative difference card bands corner stencil",
-    11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut",
+    8: "leaded engraved newsprint poster flood duotone mirror triptych diptych window board infra",
+    9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout smoked",
+    10: "onebit dots torn combed typed poster negative difference card bands corner stencil dripping",
+    11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking",
     12: "mirror drawn blueprint hatched ball echo water diptych intercut lighten satellite cutout",
-    13: "echo stop slices fringe water overgrown hole double window iris difference glass",
+    13: "echo stop slices fringe water overgrown hole double window iris difference glass smoked",
     14: "typed dots lines blocks sheet onebit stop strips board wedges triptych stencil",
-    15: "warp wound blown torn water combed tunnel sweep bands double satellite",
-    16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass",
-    17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil",
+    15: "warp wound blown torn water combed tunnel sweep bands double satellite dripping",
+    16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass tracking",
+    17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil infra",
 }
 HOUSE = {n_: set(v.split()) for n_, v in HOUSE.items()}
 TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weave", "spiral", "rings", "checker", "split", "wipe", "iris", "blinds", "clock", "diamond", "rise", "dissolve")
