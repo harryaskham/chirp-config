@@ -349,6 +349,7 @@ class Deal:
         self.canon_far = collections.defaultdict(set)
         self.dealt = collections.defaultdict(set)
         self.sums = 0
+        self.hinges = 0
         self.period = {}
         self.fits = 0
         self.hands = 0
@@ -436,7 +437,8 @@ class Deal:
 
         def note(name, treat, label, partner=None, raw=0, ending=None):
             if not flash:
-                self.last = {"name": name, "partner": partner, "ending": ending, "riffs": frozenset((p.name, p.cell) for p in c.riffs), "size": raw}
+                self.last = {"name": name, "partner": partner, "ending": ending, "riffs": frozenset((p.name, p.cell) for p in c.riffs), "size": raw,
+                             "lead": next((p.cell for p in c.riffs if p.role != "drum"), None), "drum": next((p.cell for p in c.riffs if p.role == "drum"), None)}
             if not flash and c.riffs:
                 self.motif.setdefault(self.motif_key(c), name)
             self.used[name] += 1
@@ -459,6 +461,29 @@ class Deal:
                         grows.add(name)
             cands = [(score - 16 * (name in grows), name) for score, name in cands]
         ranked = [name for _, name in sorted(cands)]
+        # The hinge: the riff carries on unchanged while the drummer changes step between twos and
+        # threes (six quick steps for four broad ones). The picture carries on too, and swings
+        # round: it is seen from its other side.
+        lead_now = next((p.cell for p in c.riffs if p.role != "drum"), None)
+        drum_now = next((p.cell for p in c.riffs if p.role == "drum"), None)
+        if last and not flash and not prefer and kind != "hush" and not last.get("partner") and last.get("ending") and lead_now and drum_now \
+                and last.get("lead") == lead_now and last.get("drum") and (last["drum"] % 3 == 0) != (drum_now % 3 == 0):
+            name = last["name"]
+            key = next((w_ for w_ in ("hinge", "hinge2", "hinge3") if (name, w_) not in self.combos), None)
+            got = make(name, keep=True) if key and W.REG[name]["fam"] != "plate" and name not in W.PLATES else None
+            if got and W.TREAT[last["ending"]][1](got[0], W.REG[name]):
+                d, look = got
+                d.arrive = "1"
+                look = W.TREAT[last["ending"]][0](d, look)
+                side = not last.get("flipped")
+                if side:
+                    look = W.flipped(look)
+                c.__dict__.update(d.__dict__)
+                c.talk = f"the drums change step from {last['drum']} to {drum_now} under the same riff"
+                self.hinges += 1
+                note(name, key, f"{name}/hinge", raw=len(json.dumps(look)), ending=last["ending"])
+                self.last["flipped"] = side
+                return name, "hinge", look
         # The song's own canon (the first it is dealt, one of its featured pictures if it can
         # be) is shown whole once while the parts are still in step, and comes back each time
         # they are a whole sixteenth further apart than it has been seen.
@@ -1228,7 +1253,7 @@ def plan(S, deal):
         # colours are, each new length a step round from them, and back when a length returns.
         cell = c.riffs[0].cell if c.riffs else 16
         shift = shifts.setdefault(cell, (0, 0.07, -0.07, 0.14, -0.14, 0.21, -0.21, 0.28)[len(shifts) % 8])
-        if treat in ("more", "less"):
+        if treat in ("more", "less", "hinge"):
             shift = last_shift      # the same picture with a part more or less: in the same colours
         if not flash:
             last_shift = shift
@@ -1237,7 +1262,7 @@ def plan(S, deal):
         deal.flashes += flash
         scene = {"at": 0 if k == 0 else f"{a16 // 16}bar" if a16 % 16 == 0 else f"{a16 / 4:g}b", "look": look}
         still = any(t in ("roll", "spin", "hole", "sheet", "kaleido", "mirror", "tunnel", "slices", "wall", "planet", "wound") for t in treat.split(",")) or name in W.PLATES or W.REG[name]["fam"] in ("plate", "sheet", "sign")
-        if k and not flash and not still and treat not in ("more", "less") and (b16 - a16) * c.six >= 4.5 and rnd(S.n, k, "move?") < 0.5:
+        if k and not flash and not still and treat not in ("more", "less", "hinge") and (b16 - a16) * c.six >= 4.5 and rnd(S.n, k, "move?") < 0.5:
             # The camera over the picture does one thing in the scene, each kind in its turn.
             bars_ = S.full[a16 // 16:max(a16 // 16 + 1, b16 // 16)]
             after = S.full[min(b16 // 16, S.bars - 1):min(b16 // 16 + 2, S.bars)] or bars_
@@ -1281,7 +1306,9 @@ def plan(S, deal):
             since = f"max(time.beat - {a16 / 4:g}, 0)"
             look.setdefault("filters", []).extend([{"type": "camera", "zoom": f"1 + 0.22*exp(0 - 2.5*{since})"}, {"type": "color", "exposure": f"1 + 3.5*exp(0 - 4*{since})"}])
             white(look, f"0.45*exp(0 - 5*{since})")
-        if k and name in W.PLATES and "+" not in treat:
+        if treat == "hinge":
+            scene["xfade"], scene["transition"] = "1b", "flip"      # it swings round
+        elif k and name in W.PLATES and "+" not in treat:
             scene["lead"] = "2bar" if name == "photofinish" else "1bar"
         elif k and not kind and not was_flash and treat not in ("more", "less") and rnd(S.n, k, "x") < 0.34:
             # One picture turns into the next: each way in its turn, over a beat or two.
@@ -1343,7 +1370,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}  hinges: {deal.hinges}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 
