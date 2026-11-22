@@ -3799,6 +3799,35 @@ def total(c):
             "filters": [bloom(c, 0.4, 0.014, 0.75)]}
 
 
+@idiom(needs=0, fam="engine")
+def zipper(c):
+    """A zip fastener being closed: the teeth of one side are one part's notes and the teeth
+    of the other side another's, each as wide as the pulse they share. Where each plays only
+    where the other rests the teeth mesh and the zip closes without a gap."""
+    fit = getattr(c, "fit", None)
+    if not fit:
+        raise ValueError("no two parts here fit into one another")
+    P = list(fit[:2])
+    step = fit[2]                                  # beats to a tooth
+    u = min(0.42 / step, 1.9)                      # frame units a beat
+    tw = step * u
+    xs = 1.6                                       # where the slider is
+    layers = []
+    for side, p in ((1, P[0]), (-1, P[1])):
+        x = f"({xs} - note.age*{u:g} + {tw / 2:g})"
+        apart = f"smooth(0, 1, (0 - note.age)*{u:g}/2.6)"
+        y = f"({side}*(0.34 + 1.25*{apart}))"
+        col = c.col(0 if side > 0 else 1)
+        layers.append(box(x, y, 0, tw * 0.43, 0.52, 0.02, notes={"track": p.name, "past": 9.5 / u, "ahead": 3.6 / u}, rz=f"{side}*0.09*{apart}", **glow(col, f"0.75 + 1.8*exp(0 - 3*abs(note.age))")))
+        # (The tape each side's teeth are sewn to.)
+        xi = f"(inst.i/59*9.4 - 4.7)"
+        ap = f"smooth(0, 1, ({xi} - {xs})/2.6)"
+        layers.append(box(xi, f"{side}*(1.0 + 1.25*{ap})", 0.05, 0.085, 0.16, 0.01, count=60, rz=f"{side}*0.09*{ap}", **glow(c.dim, 0.9)))
+    layers.append(box(xs + 0.12, 0, -0.1, 0.2, 0.62, 0.04, round=0.12, **glow(c.ink, f"0.8 + 0.9*max({P[0].hit}, {P[1].hit})")))
+    layers.append(box(xs - 0.25, 0, -0.12, 0.16, 0.1, 0.02, round=0.06, **glow(c.ink, 0.7)))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.016, 0.7)]}
+
+
 # ───────────────────────── pictures of pictures ─────────────────────────
 
 SMALL = ("spiral", "sunflower", "stringart", "moire", "strings", "clockshop", "combs", "vortex", "epicycle", "harmonograph", "mandala", "table", "tally", "slack", "sonar", "remainder", "kelvin", "chladni")
@@ -4378,7 +4407,7 @@ HANDS = ("riley", "blinds", "dominoes", "breakout", "kandinsky", "vortex", "moon
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
            "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava".split())
-BROAD = FULL | set("total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
+BROAD = FULL | set("zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
@@ -4393,12 +4422,12 @@ WANTS = {"rabbits": lambda c: any(p.cell in (34, 55) for p in c.riffs),
 LONG = set("turtle strange harmonograph tetris hanoi marbling ink rink galton".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("barcode braille dice candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
-MIRROR_BAD = set("total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
+MIRROR_BAD = set("zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())
 # Pictures that are mostly light: a print of their lights is a blank sheet.
 BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
-FED = set("loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
+FED = set("zipper loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
 SLOW = set("total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 

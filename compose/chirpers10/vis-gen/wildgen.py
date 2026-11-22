@@ -349,6 +349,7 @@ class Deal:
         self.canon_far = collections.defaultdict(set)
         self.dealt = collections.defaultdict(set)
         self.sums = 0
+        self.fits = 0
         self.hands = 0
         self.deals = 0
         self.ruled = 0
@@ -518,6 +519,23 @@ class Deal:
                 note(name, "hands", f"{name}/hands {how}")
                 self.last["canon"] = True
                 return name, "hands", look
+        # Two parts fit into one another (one plays the other's negative): a zip is closed, one
+        # part's notes the teeth of one side and the other's the teeth of the other.
+        fit = fitting(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 3.5 else None
+        if fit and "zipper" not in self.recent[-2:] and rnd(S.n, k, "zip?") < 0.8:
+            cd = copy.copy(base)
+            cd.fit = fit
+            got = make("zipper", ctx=cd)
+            t = next((t for t in ZIP_GUISES if ("zipper", t) not in self.combos and W.TREAT[t][1](cd, W.REG["zipper"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = f"{fit[0].name} and {fit[1].name} fit into one another, {1 / fit[2]:.3g} to the beat"
+                look = W.TREAT[t][0](c, got[1])
+                self.treats[t] += 1
+                self.fits += 1
+                note("zipper", t, "zipper/fit" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "zipper", t, look
         # The sum: while a riff is being added up, a place at a time, its triangle keeps coming
         # back, a few rows further on each time, and is there when the sum closes.
         add = summing(S, c) if not flash and not prefer and not first and kind != "hush" else None
@@ -858,6 +876,50 @@ def hands(S, c):
                 pr.anchor = pl.anchor + shift
                 return pl, pr
     return None
+
+
+def fitting(S, c):
+    """Two parts of the scene that fit into one another: they never play together, and
+    together they make an unbroken pulse of at least two to the beat that neither makes
+    alone (one plays the other's negative). (The one that plays more, the other, the pulse
+    in beats); or None."""
+    a, b = c.a16 / 4, c.b16 / 4
+
+    def onsets(t):
+        out = []
+        for s_, *_ in sorted(t.notes):
+            if a - 0.02 <= s_ < b - 0.02 and (not out or s_ - out[-1] > 0.05):
+                out.append(s_)
+        return out
+    tracks = [(t, onsets(t)) for t in (S.tracks.values() if isinstance(S.tracks, dict) else S.tracks)]
+    tracks = [(t, o) for t, o in tracks if len(o) >= max(4, (b - a) * 0.5)]
+    best = None
+    for i, (x, ox) in enumerate(tracks):
+        for y, oy in tracks[i + 1:]:
+            if x.role == "drum" and y.role == "drum":
+                continue
+            both = sorted(ox + oy)
+            gaps = [q - p for p, q in zip(both, both[1:])]
+            med = sorted(gaps)[len(gaps) // 2]
+            if min(gaps) < 0.08 or med > 0.51 or sum(1 for g_ in gaps if abs(g_ - med) < 0.15 * med) < 0.85 * len(gaps):
+                continue
+            broken = True
+            for o in (ox, oy):
+                own = [q - p for p, q in zip(o, o[1:])]
+                kinds = collections.Counter(round(g_ / med) for g_ in own)
+                if len(kinds) < 2 or kinds.most_common(1)[0][1] > 0.8 * len(own):
+                    broken = False      # it only takes every other place (or every third): no riff to it
+            if broken and (best is None or len(both) > best[0]):
+                first, second = (x, y) if len(ox) >= len(oy) else (y, x)
+                best = (len(both), first, second, med)
+    if not best:
+        return None
+    _, x, y, med = best
+    ab = (c.a16 // 16, min(S.bars, max(c.a16 // 16 + 1, -(-c.b16 // 16))))
+    return S.part(x, c.a16, c.b16, x.cell(*ab)[0]), S.part(y, c.a16, c.b16, y.cell(*ab)[0]), med
+
+
+ZIP_GUISES = ("plain", "relief", "papercut", "infra", "fringe", "duotone", "echo", "delayed", "solar", "tracking", "blown", "water")
 
 
 def even(notes, a, b):
@@ -1251,7 +1313,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 

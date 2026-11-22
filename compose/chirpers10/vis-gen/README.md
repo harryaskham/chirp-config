@@ -11,7 +11,7 @@ about 940 scenes on the album, every one different.
 
 **What is drawn**
 
-- **Idioms** (`wild.py`, the `@idiom` functions: 184 so far). Each is a small machine, place,
+- **Idioms** (`wild.py`, the `@idiom` functions: 185 so far). Each is a small machine, place,
   game or diagram built from the notes themselves, and each keeps one rule: *what the music
   counts, the picture counts*. A note is a thing (a domino, a lantern, a lit window, a letter
   typed, a block dropped into a well); a riff's cell is a width or a number of things (bells
@@ -72,6 +72,7 @@ about 940 scenes on the album, every one different.
 | A part is given one more note to the beat, time after time (`dealing`: two to the beat, then three, then four) | The dice come back at each new number and show it: a die for each beat of the bar, a pip for each note, set out as on a real die. At seven there is no such face. |
 | A riff is added up (`adding`: statement after statement of one line, each a place longer than the last, found from the notes) | Its triangle (`total`): a row for each statement, a column for each place of the riff, each cell lit as it is played and the bar lines marked as they wander through. It keeps coming back while the sum lasts, some rows further on each time and in another guise, and is there when the sum closes on a bar line. |
 | A right part plays the left's riff backwards (`hands`: the same strip of attacks read from the other end; riffs that read the same both ways are not counted) | The picture is drawn for each, the right one's turned round left to right (`flipped`), and the two are joined as a canon is: it is one picture where it stands still, and whatever moves in it goes both ways at once. |
+| Two parts fit into one another (`fitting`: never together, and together an unbroken pulse that neither makes alone: one plays the other's negative) | A zip is closed (`zipper`): one part's notes are the teeth of one side and the other's the teeth of the other, each as wide as the pulse they share. |
 | Few notes, or the song ringing out | Pictures made of notes (`FED`) are kept away. |
 | The riff comes round part way through a scene | A treatment arrives or leaves there; the camera cuts in or out there; 3D scenes change camera there. |
 | The song ends | On the picture it began with, changed. |
