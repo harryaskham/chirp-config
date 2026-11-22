@@ -930,7 +930,8 @@ class Deal:
                 order = [t for t in order if t in W.FILLS]
             if first:
                 # A song opens on its picture as it is, or in a guise that leaves it whole.
-                order = [t for t in order if t in ("fringe", "relief", "solar", "leaded", "echo", "water", "blown", "ball", "falling", "mirror", "kaleido", "smoked", "infra", "tracking")]
+                # (not on a ball or falling away: before anything has been played those are a dark frame)
+                order = [t for t in order if t in ("fringe", "relief", "solar", "leaded", "echo", "water", "blown", "mirror", "kaleido", "smoked", "infra", "tracking")]
             plain_ok = (name, "plain") not in self.combos
             treat = "plain" if (plain_ok and (self.used[name] == 0 or first or name == hand_on or rnd(S.n, k, "plain?") < 0.25)) or not order else order[0]
             # A song whose riff keeps changing its length in half bars (two, four, five, three):
