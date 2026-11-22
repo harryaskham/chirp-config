@@ -840,15 +840,22 @@ def gathering(look, t, need):
     at the sixteenth `t`. They come up over the eight bars before."""
     cells = sorted(need) + [16]
     up = f"smooth({t / 4 - 44:g}, {t / 4 - 30:g}, time.beat)"
+    close = f"smooth({t / 4 - 20:g}, {t / 4 - 2:g}, time.beat)"        # the last five bars
+    tints = ["#ff7a59", "#45d9c5", "#ffd65a", "#c59bff", "#8fd0ff"]
     over = []
     for i, cell in enumerate(cells):
         r = 0.34 + 0.13 * i
+        tint = "#ffffff" if i == len(cells) - 1 else tints[i % len(tints)]
         ph = f"(0.25 - (time.beat*4 - {t})/{cell})"
         near = f"exp(0 - 6*abs(fract((time.beat*4 - {t})/{cell} + 0.5) - 0.5))"
-        over.append({"type": "shape", "sides": 0, "radius": r, "width": 0.003, "fill": 0, "color": "#ffffff", "blend": "add", "opacity": f"0.35*{up}"})
-        over.append({"type": "shape", "sides": 1, "radius": f"0.022 + 0.02*{near}", "width": 0, "fill": 1, "color": "#ffffff", "blend": "add", "x": f"{r}*cos({ph})", "y": f"{r}*sin({ph})", "opacity": f"{up}"})
-    over.append({"type": "shape", "repeat": 12, "sides": 1, "radius": 0.005, "width": 0, "fill": 1, "color": "#ffffff", "blend": "add", "x": 0, "y": f"0.3 + inst.i*{(0.34 + 0.13 * (len(cells) - 1) - 0.26) / 11:g}", "opacity": f"0.5*{up}"})
-    return {"background": "#000000", "layers": [W._act(look, blend="normal")] + over, "filters": []}
+        over.append({"type": "shape", "sides": 0, "radius": r, "width": f"0.004 + 0.004*{close}", "fill": 0, "color": tint, "blend": "add", "opacity": f"(0.3 + 0.4*{close})*{up}"})
+        over.append({"type": "shape", "sides": 1, "radius": f"0.03 + 0.012*{close} + 0.028*{near}", "width": 0, "fill": 1, "color": tint, "blend": "add", "x": f"{r}*cos({ph})", "y": f"{r}*sin({ph})", "opacity": f"{up}"})
+        # (Each mark draws a short tail behind it, so its going round is seen in a still.)
+        over.append({"type": "shape", "repeat": 7, "sides": 1, "radius": "0.016 - 0.0018*inst.i", "width": 0, "fill": 1, "color": tint, "blend": "add",
+                     "x": f"{r}*cos({ph} + 0.012*(inst.i + 1))", "y": f"{r}*sin({ph} + 0.012*(inst.i + 1))", "opacity": f"(0.6 - 0.07*inst.i)*{up}"})
+    top = 0.34 + 0.13 * (len(cells) - 1)
+    over.append({"type": "shape", "repeat": 24, "sides": 1, "radius": f"0.005 + 0.004*{close}", "width": 0, "fill": 1, "color": "#ffffff", "blend": "add", "x": 0, "y": f"0.28 + inst.i*{(top - 0.22) / 23:g}", "opacity": f"(0.45 + 0.5*{close})*{up}"})
+    return {"background": "#000000", "layers": [W._act(look, blend="normal", fade=f"1 - 0.3*{close}")] + over, "filters": []}
 
 
 def plan(S, deal):
