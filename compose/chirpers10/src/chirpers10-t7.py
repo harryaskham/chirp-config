@@ -1908,6 +1908,61 @@ def the_snare_closes_each_line(doc):
         doc["loudness"] = float(target)
 
 
+# v36 (chirper-zero; whole-song round): THE SHORT CELL'S STRING IS BENT.
+# chirper-alpha's list under v30: "Guitar vocabulary nobody has used here: ... a slow bend on the ringing string of
+# the short cells (a short is born a step up)". The ringing string (`heavy()`, r == 2) is the head of each short cell
+# of five that heads nothing larger: thirteen in every heavy section. At every other size the short cell already
+# stands over the long one: the root a semitone up on the short cells of 34, the chord a tritone up on the short
+# cells of 8 from the third section, the harp's short cells born a step up the pool. Here it stood where the long one
+# stood. From the fourth section on (the sections with four guitars; the third ends with the steel bending over the
+# riff, and Harry kept the steel) the string is pulled up as it rings: struck on the root, a semitone over it when the
+# hand lets go, the next stroke on the root again. Guitars and bass together. It is left straight under the steel
+# (chirper-alpha's return in the eighth section) and where the floor falls in the second breakdown.
+# MEASURED in the finished file: 12, 22, 40, 62, 92 cents over the root through each of the 33 (0 before); every
+# other note bit for bit (the appended pitch mod is 0 on them: raw null -200 dB).
+# the sections (from 0) ; semitones ; the curve's power (2: the bend is the square of the time, so at the golden cut of
+# the note it has gone the smaller part of the way) ; the tracks whose ringing string is bent ; the tracks under which
+# it is not ('' = everywhere) ; the loudness target ('' = unchanged). '' = v35 byte for byte. On only while WIDENS is.
+BENT = os.environ.get("C10T7_BENT", "3,5,7;1;2;gl,gr,wl,wr,bass;bar,floor;-9.567" if WIDENS else "")
+BEND_MOD = {"ct-twin": 3, "ct-wall-stop-l": 3, "ct-wall-stop-r": 3, "ct-bass": 2}     # each patch's own pitch mods: the hand's is appended after them
+
+
+def the_string_is_bent(doc):
+    """v36: in the chosen sections the ringing string of each short cell of five is pulled up as it rings: it starts on
+    the root and is a semitone over it when the hand lets go. Only notes the riff already has; none added, moved or
+    re-struck. Each bent track's patch gets one more pitch mod (`expr.bend`, in semitones), which is 0 on every other note."""
+    secs, semis, power, tracks, under, target = BENT.split(";")
+    by = {t["name"]: t for t in doc["tracks"]}
+    path = [round(float(semis) * (k / 8) ** float(power), 4) for k in range(1, 9)]
+    ring = round(2 / 4 * 0.98, 4)
+    spared = [m for name in under.split(",") if name for m in by[name].get("notes", [])]
+    bent = {}
+    for i in (int(x) for x in secs.split(",")):
+        s0, kind, n = SECS[i]
+        assert kind == "L", "a heavy section"
+        heads = [p for p in STARTS[0] if s0 <= p < s0 + n and RANK[p] == 2]
+        assert len(heads) == 13 and all(at_size(2, p)[1] == "S" for p in heads)        # thirteen short cells of five to a section
+        for p in heads:
+            at = round(p / 4, 4)
+            if any(m["at"] < at + 0.5 and m["at"] + m["len"] > at for m in spared):
+                continue
+            for name in tracks.split(","):
+                for m in by[name]["notes"]:
+                    if m["at"] == at and m["len"] == ring and "," not in m["pitch"] and "pm" not in m.get("expr", {}):
+                        assert "expr_path" not in m
+                        m["expr"] = {**m.get("expr", {}), "bend": 0.0}
+                        m["expr_path"] = {"bend": path}
+                        bent[name] = bent.get(name, 0) + 1
+    for name in bent:
+        t = by[name]
+        assert "synth.pitch.mod" not in t["patch"], t["patch"]
+        k = BEND_MOD[t["patch"].split()[0]]
+        t["patch"] += f" synth.pitch.mod.{k}.src=expr.bend synth.pitch.mod.{k}.amount=1"
+    assert bent, "nothing to bend"
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T7_SHOW"):
         sec = 15 / BPM
@@ -1935,4 +1990,6 @@ if __name__ == "__main__":
             the_rests_close(doc)
         if WIDENS:
             the_snare_closes_each_line(doc)
+        if BENT:
+            the_string_is_bent(doc)
         open(OUT, "w").write(dump(doc))
