@@ -668,7 +668,12 @@ class Deal:
                 c.__dict__.update(got[0].__dict__)
                 c.arrive = "1"
                 c.talk = f"{rg[0]} rings rows of {rg[1][0][1]}" + (", and the run ends" if rg[3] else "")
-                look = W.TREAT[t][0](c, got[1])
+                under = got[1]
+                if t in W.GROUND_OK:
+                    # (a quiet ground: the diagram begins as a few lines on an empty frame)
+                    gk = min((x for x in ("halo", "footlights", "horizon", "smoke", "plasma", "stars") if x not in self.grounds_last[S.n][-2:]), key=lambda x: rnd(S.n, k, "rg" + x))
+                    under = W.ground(c, under, gk)
+                look = W.TREAT[t][0](c, under)
                 if rg[3] and rg[4] <= c.b16:
                     # The last row of the run: the notes have come round, and the picture is struck with light.
                     white(look, f"0.75*step({rg[4] / 4:g}, time.beat)*exp(0 - 1.6*max(time.beat - {rg[4] / 4:g}, 0))")
