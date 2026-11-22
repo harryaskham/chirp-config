@@ -2015,6 +2015,50 @@ def the_two_show_their_teeth(doc):
         doc["loudness"] = float(target)
 
 
+# v38 (chirper-zero; instrument round: THE BASS DRUM, the album kit's as it comes, all 592 strokes; no stroke moves, one
+# track is added, `chest`, last). Harry, 22 Nov: "even harder sounding guitars, bass drums"; and here, "really make it
+# chug if slow". THE BASS DRUM GETS A CHEST.
+# Read first, every bass drum on the album beside the records' (kickref; each drum alone): their click is inside the
+# records' range on every song (read at the song's own strokes), so no drum wants more beater. What still differs is
+# the drum's SHAPE on the six songs that play the album kit's drum as it comes, this one among them: a record's bass
+# drum carries 90-120 Hz 13.6 dB under its whole low end; this one 29.0 dB under (a sub line at 55 Hz, a buzz at
+# 166 Hz, nothing between), and its low band takes 84 ms to fall 20 dB where theirs take 37 to 49.
+#   A SHORTER DRUM IS REFUSED BY THE MIX (benched: decay 210 -> 150 / 120 ms with a chest): the raw mix loses 1.2 to
+#       1.7 / 1.8 to 2.6 dB at 30-60 Hz, further from the records in the arco, the last and 'chug right through'.
+#       On this song the low bus takes 7 dB off the bass at its own fundamental on purpose: the drum's tail IS the floor.
+#   SO THE CHEST ALONE, the cure Common Measure v29 (chirper-two), Take Up the Slack v11 (chirper-alpha) and Still
+#       Owing v33 (chirper-one) kept: one sine an octave over the drum (A2, 110 Hz), 90 ms, struck with every stroke at
+#       the stroke's velocity, on a track of its own past the kit's bus. The drum with it: 90-120 Hz -29.0 -> -15.8 dB
+#       of its low end (the records -13.6); its low band 20 dB down in 58 ms (84), because more of the stroke's weight
+#       is at its front; its click against the low band -6.4 -> -7.1 (the records -10.2). And the mix is SHORT at
+#       60-120 Hz in six of its eight band stretches: the chest gives 0.5 to 0.75 dB there.
+#   BY PASSAGE, because the mix said so (the thirteen stamp windows read on the chest at every stroke): nearer the
+#       records where the mix was short at 60-120 Hz (two again, four guitars, the last, the second breakdown, chug
+#       right through), FURTHER where it was not (the opening two guitars, where the drum already stands 15 dB out of
+#       the riff's rests and the mix is bottom-heavy; the first breakdown; the arco, a little). So the chest is struck
+#       only in the spans the fifth field names, and the other strokes are the drum as it was.
+# the chest's note ; its fader, dB ; its decay, ms ; the loudness target ('' = unchanged) ; the spans it plays in, in
+# beats, FROM:TO,... ('' = every stroke). "" = v37 byte for byte. On only while EDGE is.
+CHEST = os.environ.get("C10T7_CHEST", "A2;-7;90;-9.614;58.5:116.75,130.5:210.75,305:371.75,377:408" if EDGE else "")
+
+
+def the_bass_drum_gets_a_chest(doc):
+    """v38: a song patch `em-chest` (a bare sine with a short straight fall) and a new last track `chest`, to the mix:
+    one note for every bass-drum note, at its velocity and its own gain."""
+    note, fader, ms, target, where = CHEST.split(";")
+    spans = [tuple(float(x) for x in w.split(":")) for w in where.split(",") if w]
+    struck = lambda n: not spans or any(a <= n["at"] < b for a, b in spans)
+    assert "em-chest" not in doc["patches"] and all(t["name"] != "chest" for t in doc["tracks"]) and "chest" not in doc.get("buses", {})
+    kick = next(t for t in doc["tracks"] if t["name"] == "kick")
+    doc["patches"] = {**doc["patches"], "em-chest": {"extends": "808", "synth": {"layers": ["sine"], "pitch": {"value": 0, "mod": []}, "drive": 0, "filters": [],
+                                                                   "amp": {"a": "2ms", "d": f"{ms}ms", "s": 0, "r": "20ms", "curve": 3}},
+                                                 "play": {"mono": False, "glide": "0ms", "gate": 1}}}
+    doc["tracks"].append({"name": "chest", "patch": "em-chest", "gain": f"{float(fader):g}dB",
+                          "notes": [{**{k: v for k, v in n.items() if k in ("at", "vel", "gain")}, "len": 0.25, "pitch": note} for n in kick["notes"] if struck(n)]})
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T7_SHOW"):
         sec = 15 / BPM
@@ -2046,4 +2090,6 @@ if __name__ == "__main__":
             the_string_is_bent(doc)
         if EDGE:
             the_two_show_their_teeth(doc)
+        if CHEST:
+            the_bass_drum_gets_a_chest(doc)
         open(OUT, "w").write(dump(doc))
