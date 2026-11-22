@@ -25,8 +25,13 @@ about 940 scenes on the album, every one different.
   frames as the riff is long); the picture moved (a kaleidoscope with as many mirrors as the
   riff has sixteenths, a wall of as many copies, wrapped round a circle, wound up, torn into
   sixteen bands on the riff's notes, a stone dropped into it on every note).
-- **Combinations** (`@combo`, 18; also a round window that circles, a nest of frames, an
-  iris thrown open on the riff's turn, and a card dealt over the picture): two idioms share the frame, each reading its own part:
+- **Combinations** (`@combo`, 21; also a round window that circles, a nest of frames, an
+  iris thrown open on the riff's turn, a card dealt over the picture; and three in which
+  one picture works on the other: seen through it as through glass, shown only through its
+  lights, or with its bodies cut out in black). Where three riffs run and the band is full,
+  three pictures (`@trio`): a colour separation with one picture in each of red, green and
+  blue, thirds, bands that change places, one inside another inside a third.
+  Two pictures: two idioms share the frame, each reading its own part:
   double exposure, intercut on the riff's turns, a round window, a diptych, a triptych,
   difference, lighten, a corner that changes places half way, one sweeping the other off;
   and the frame cut into as many strips (or bands, squares, cake slices, rings) as the riff
@@ -78,9 +83,9 @@ Commands (from this directory; `CHIRP` reads the cells and may be any recent bin
                                        (NAME/TREATMENT and A+B/COMBINATION work too)
 
 Programmes are written as generated; do not edit them. They need the engine of the
-`chirp-video` branch at 1b3b20e2 or later (`notes:` and `note.*`, `timeslice`, `step`,
+`chirp-video` branch at 5064f15c or later (`notes:` and `note.*`, `timeslice`, `step`,
 `halftone`, `outline`, `bold`, `remap`, the warps, `droste`, `orb`, `sort`, `wind`, `glass`,
-`grow`, `pick:`, `repeat:`, an actor's `cut:`, the new transitions),
+`grow`, `pick:`, `repeat:`, an actor's `cut:` and `as:`, the new transitions),
 which is not yet in a pinned binary, so they are not in `vis/`.
 
 ## The first film: motion studies

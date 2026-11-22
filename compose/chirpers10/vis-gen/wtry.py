@@ -43,7 +43,10 @@ def main():
         base, _, how = name.partition("/")
         name = name.replace("/", "_").replace("+", "-")
         try:
-            if "+" in base:
+            if base.count("+") == 2:
+                x, y_, z_ = base.split("+")
+                look = W.TRIOS[how or "separation"](c, W.bolder(x, W.REG[x]["f"](c)), W.bolder(y_, W.REG[y_]["f"](c.sub(1 if len(c.riffs) > 1 else 0, 2))), W.bolder(z_, W.REG[z_]["f"](c.sub(2 if len(c.riffs) > 2 else 0, 3))))
+            elif "+" in base:
                 x, y_ = base.split("+")
                 look = W.COMBOS[how or "double"](c, W.bolder(x, W.REG[x]["f"](c)), W.bolder(y_, W.REG[y_]["f"](c.sub(1 if len(c.riffs) > 1 else 0, 2))))
             else:

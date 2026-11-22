@@ -3336,6 +3336,80 @@ def c_card(c, A, B):
                                                                 _act(B, x=x, y=y, scale=0.66, mask="rect", blend="normal")], "filters": []}
 
 
+@combo("glass")
+def c_glass(c, A, B):
+    """One picture seen through the other, which is made of glass: it bends what lies under
+    it, and catches the light on its edges."""
+    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "lens", "bend": 0.09})], "filters": []}
+
+
+@combo("stencil")
+def c_stencil(c, A, B):
+    """One picture shows only through the lights of the other, which is itself seen faintly."""
+    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "stencil", "gain": 5}), _act(B, blend="add", fade=0.22)], "filters": []}
+
+
+@combo("cutout")
+def c_cutout(c, A, B):
+    """Whatever is lit in one picture is cut out of the other in black."""
+    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "shadow", "gain": 5}), _act(B, blend="add", fade=0.12)], "filters": []}
+
+
+TRIOS = {}
+
+
+def trio(name):
+    def deco(f):
+        TRIOS[name] = f
+        return f
+    return deco
+
+
+def _ink(look, color, gain=1.6):
+    """The look printed in one ink on black."""
+    import copy
+    look = copy.deepcopy(look)
+    look["filters"] = look.get("filters", []) + [{"type": "remap", "gain": gain, "palette": ["#000000", color]}]
+    return look
+
+
+@trio("separation")
+def c_separation(c, A, B, C):
+    """Three pictures printed one over another, one in red, one in green, one in blue: where
+    all three are lit the print is white."""
+    return {"background": "#000000", "layers": [_act(_ink(A, "#ff0000"), blend="normal"), _act(_ink(B, "#00ff00"), blend="add"), _act(_ink(C, "#0000ff"), blend="add")], "filters": []}
+
+
+@trio("thirds")
+def c_thirds(c, A, B, C):
+    """Three pictures, a third of the frame each."""
+    cut = dict(cut="strips", cut_n=3, cut_mod=3)
+    return {"background": "#000000", "camera": FLAT,
+            "layers": [_act(A, x=-1.185, blend="normal", cut_take=0, **cut), _act(B, blend="normal", cut_take=1, **cut), _act(C, x=1.185, blend="normal", cut_take=2, **cut),
+                       box(-1.515, 0, -0.1, 0.012, 2.6, 0.01, **glow(c.ink, 1)), box(1.515, 0, -0.1, 0.012, 2.6, 0.01, **glow(c.ink, 1))], "filters": []}
+
+
+@trio("russian")
+def c_russian(c, A, B, C):
+    """One picture, a second inside it, a third inside that."""
+    layers = [_act(A, blend="normal")]
+    for k, (L, col) in enumerate(((B, c.ink), (C, c.a)), 1):
+        sc = 0.6 ** k
+        layers.append(box(0, 0, -0.1 * k, 4.545 * sc + 0.035, 2.557 * sc + 0.035, 0.01, **glow(col, 1)))
+        layers.append(_act(L, scale=sc, mask="rect", blend="normal"))
+    return {"background": "#000000", "camera": FLAT, "layers": layers, "filters": []}
+
+
+@trio("flags")
+def c_flags(c, A, B, C):
+    """Three pictures in three bands across the frame, which change places each time the riff comes round."""
+    p = _lead(c)
+    per = max(1, round(1.8 / c.six / (p.cell or 16)))
+    at = f"floor({p.turn}/{per})"
+    cut = dict(cut="bands", cut_n=3, cut_mod=3, cut_at=at)
+    return {"background": "#000000", "layers": [_act(A, blend="normal", cut_take=0, **cut), _act(B, blend="normal", cut_take=1, **cut), _act(C, blend="normal", cut_take=2, **cut)], "filters": []}
+
+
 @combo("lighten")
 def c_lighten(c, A, B):
     """Both pictures at once: at each point, whichever is the lighter."""
@@ -3905,16 +3979,67 @@ def master(title, style=0):
     gone = f"(1 - smooth(2.6, 3.3, {bar}))"
     black = lambda y, op=1: {"type": "shape", "sides": 4, "rotate": 0.125, "radius": 2.6, "width": 0, "fill": 1, "color": "#000000", "blend": "normal", "x": 0, "y": y, "opacity": op}  # noqa: E731
     veil = black(0, f"0.6*(1 - smooth(2.0, 2.8, {bar}))")
-    kind = style % 8
-    if kind == 0:
+    kind = style % 17
+    n_ = len(name)
+    w = min(0.2, 3.1 / n_)
+    place = f"(inst.i - {(n_ - 1) / 2})*{w:g}"
+    letter = lambda **kw: {"type": "text", "repeat": n_, "text": name, "pick": "inst.i", "size": w * 1.05, "align": "center", "width": 0.13, "skew": 0, "x": place, "y": -w * 0.5, "color": cream,  # noqa: E731
+                           "blend": "normal", "opacity": gone, **kw}
+    if kind == 8:
+        # The letters come down like snow, each in its own time, and settle.
+        t = f"clamp(({bar} - 0.2 - 1.3*hash(inst.i*3.7))*1.6, 0, 1)"
+        label = [veil, letter(y=f"{-w * 0.5:g} + 1.25*pow(1 - {t}, 2)", x=f"{place} + 0.1*sin({bar}*0.7 + hash(inst.i*1.9))*(1 - {t})", opacity=f"{gone}*step(0.001, {t})")]
+    elif kind == 9:
+        # Entered like a line in a ledger, a letter a sixteenth, then ruled off twice.
+        typed = f"step(inst.i + 1, ({bar} - 0.25)*16)"
+        rule = lambda y, at: {"type": "shape", "repeat": 64, "sides": 4, "rotate": 0.125, "radius": 0.006, "width": 0, "fill": 1, "color": cream, "blend": "normal", "x": f"(inst.i + 0.5)*{w * n_ / 64:g} - {w * n_ / 2:g}", "y": y,  # noqa: E731
+                              "opacity": f"{gone}*step(inst.i + 1, ({bar} - {at})*64)"}
+        label = [veil, letter(opacity=f"{gone}*{typed}"),
+                 {"type": "shape", "sides": 4, "rotate": 0.125, "radius": w * 0.45, "width": 0, "fill": 1, "color": cream, "blend": "normal", "x": f"(min(floor(({bar} - 0.25)*16), {n_}) - {(n_ - 1) / 2})*{w:g}", "y": 0,
+                  "opacity": f"{gone}*step(0.25, {bar})*step(fract({bar}*8), 0.5)*step({bar}, 2.0)"},
+                 rule(-w * 0.8, 1.6), rule(-w * 0.8 - 0.025, 1.9)]
+    elif kind == 10:
+        # It swings to on its hinge, over and back, and comes to rest.
+        swing = f"(1.3*exp(0 - 1.6*{bar})*cos({bar}*1.25))"
+        label = [veil, {"type": "text", "text": name, "size": 0.2, "x": -1.0, "y": -0.1, "align": "left", "color": cream, "width": 0.12, "skew": swing, "blend": "normal", "opacity": f"{gone}*smooth(0.1, 0.5, {bar})"},
+                 {"type": "shape", "sides": 4, "rotate": 0.125, "radius": 0.006, "repeat": 3, "width": 0, "fill": 1, "color": cream, "blend": "normal", "x": -1.07, "y": "(inst.i - 1)*0.12", "opacity": f"{gone}*smooth(0.1, 0.5, {bar})"}]
+    elif kind == 11:
+        # Dealt out by two hands: every other letter from above, the rest from below.
+        odd = "(inst.i - 2*floor(inst.i/2))"
+        t = f"smooth(0, 1, ({bar} - 0.2)*8 - inst.i*0.5)"
+        label = [veil, letter(y=f"{-w * 0.5:g} + (1 - 2*{odd})*0.9*(1 - {t})", palette=[cream, "#ffd9c2"], pos=f"{odd}*0.5", color=None, opacity=f"{gone}*step(0.001, {t})")]
+        label[1].pop("color")
+    elif kind == 12:
+        # It is shown, and then it is somewhere else, and where it was a trace of it stays.
+        move = f"smooth(1.2, 1.5, {bar})"
+        label = [veil, {"type": "text", "text": name, "size": 0.15, "x": -0.35, "y": 0.12, "align": "center", "color": cream, "width": 0.12, "skew": 0, "blend": "normal", "opacity": f"{gone}*smooth(0.2, 0.5, {bar})*(1 - 0.78*{move})"},
+                 {"type": "text", "text": name, "size": 0.15, "x": 0.35, "y": -0.3, "align": "center", "color": cream, "width": 0.12, "skew": 0, "blend": "normal", "opacity": f"{gone}*{move}"}]
+    elif kind == 13:
+        # A letter to a beat, and a stroke under each as it is counted.
+        on = f"step(inst.i + 1, ({bar} - 0.2)*{max(4.0, n_ / 2.3):g})"
+        label = [veil, letter(opacity=f"{gone}*{on}"),
+                 {"type": "shape", "repeat": n_, "sides": 4, "rotate": 0.125, "radius": 0.02, "width": 0, "fill": 1, "color": cream, "blend": "normal", "x": place, "y": -w * 0.5 - 0.06, "opacity": f"0.8*{gone}*{on}"}]
+    elif kind == 14:
+        # Strung out right across the frame, and then the slack is taken up.
+        taut = f"smooth(0.8, 2.0, {bar})"
+        label = [veil, letter(x=f"(inst.i - {(n_ - 1) / 2})*mix({3.3 / n_:g}, {w:g}, {taut})", y=f"{-w * 0.5:g} - 0.25*(1 - {taut})*sin(inst.i/{2 * (n_ - 1)})", opacity=f"{gone}*smooth(0.1, 0.5, {bar})")]
+    elif kind == 15:
+        # Two printings that all but lie one over the other.
+        off = f"(0.012 + 0.5*(1 - smooth(0.2, 2.0, {bar})))"
+        both = lambda sgn, col: {"type": "text", "text": name, "size": 0.16, "x": f"{sgn}*{off}", "y": f"0 - 0.08 + {sgn}*0.3*{off}", "align": "center", "color": col, "width": 0.12, "skew": 0, "blend": "screen", "opacity": gone}  # noqa: E731
+        label = [veil, both(-1, "#ff5a4f"), both(1, "#4fd8ff")]
+    elif kind == 16:
+        # A long way off, and coming on.
+        near = f"smooth(0.1, 2.6, {bar})"
+        label = [veil, {"type": "text", "text": name, "size": f"0.012 + 0.42*pow({near}, 2.2)", "x": 0, "y": f"0 - (0.012 + 0.42*pow({near}, 2.2))*0.5", "align": "center", "color": cream, "width": 0.12, "skew": 0, "blend": "normal",
+                         "opacity": f"{gone}*smooth(0.05, 0.3, {bar})"}]
+    elif kind == 0:
         # The picture is seen through a slit behind its name; then the slit opens.
         label = [black(f"0 - 2.03 - 1.9*smooth(2.4, 3.8, {bar})"), black(f"2.03 + 1.9*smooth(2.4, 3.8, {bar})"), veil,
                  {"type": "text", "text": name, "size": 0.17, "x": 0, "y": -0.07, "align": "center", "color": cream, "width": 0.12, "skew": 0, "blend": "normal",
                   "opacity": f"1 - smooth(2.4, 3.2, {bar})", "reveal": f"smooth(0.3, 1.6, {bar})"}]
     elif kind == 1:
         # Every letter turns over through the alphabet and falls into place, left to right.
-        n_ = len(name)
-        w = min(0.2, 3.1 / n_)
         settled = f"step(inst.i + 1, ({bar} - 0.25)*{n_ / 1.6:g})"
         scr = f"floor(hash(floor(time.beat*4 + 0.01)*1.7 + inst.i*7.3)*26)"
         label = [veil, {"type": "text", "repeat": n_, "text": name + "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "pick": f"mix({n_} + {scr}, inst.i, {settled})", "size": w * 1.05, "align": "center", "width": 0.13, "skew": 0,

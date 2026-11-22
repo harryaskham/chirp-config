@@ -132,22 +132,22 @@ FEATURE = {
 # Each song's house: the guises and the ways of sharing the frame it leans to, so the songs
 # differ from one another as well as from bar to bar. (The first song, the album's argument, has none.)
 HOUSE = {
-    2: "echo water blown mirror stop slices ball double lighten diptych satellite",
-    3: "lines engraved hatched typed sheet blueprint leaded strips bands intercut triptych",
+    2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout",
+    3: "lines engraved hatched typed sheet blueprint leaded strips bands intercut triptych stencil",
     4: "typed onebit newsprint dots blocks combed poster board corner card strips",
-    5: "relief planet hole tunnel falling blown duotone sweep window nest bands",
-    6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings",
-    7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite",
+    5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout",
+    6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass",
+    7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite glass",
     8: "leaded engraved newsprint poster flood duotone mirror triptych diptych window board",
-    9: "stop slices echo fringe roll relief drawn double iris sweep corner",
-    10: "onebit dots torn combed typed poster negative difference card bands corner",
+    9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout",
+    10: "onebit dots torn combed typed poster negative difference card bands corner stencil",
     11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut",
-    12: "mirror drawn blueprint hatched ball echo water diptych intercut lighten satellite",
-    13: "echo stop slices fringe water overgrown hole double window iris difference",
-    14: "typed dots lines blocks sheet onebit stop strips board wedges triptych",
+    12: "mirror drawn blueprint hatched ball echo water diptych intercut lighten satellite cutout",
+    13: "echo stop slices fringe water overgrown hole double window iris difference glass",
+    14: "typed dots lines blocks sheet onebit stop strips board wedges triptych stencil",
     15: "warp wound blown torn water combed tunnel sweep bands double satellite",
-    16: "fringe duotone solar relief falling planet leaded lighten difference nest window",
-    17: "tunnel falling planet roll blown ball flood wedges rings nest card",
+    16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass",
+    17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil",
 }
 HOUSE = {n_: set(v.split()) for n_, v in HOUSE.items()}
 TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weave", "spiral", "rings", "checker", "split", "wipe", "iris", "blinds", "clock", "diamond", "rise", "dissolve")
@@ -308,6 +308,7 @@ class Deal:
         self.chains = 0
         self.grown = collections.Counter()
         self.stacks = collections.Counter()
+        self.trios = 0
         self.ruled = 0
         self.album_first = None
 
@@ -440,6 +441,26 @@ class Deal:
                     other = make(B, sub=1 if len(c.riffs) > 1 else 0)
                     if not other:
                         continue
+                    # Where three riffs run and the band is full, now and then three pictures.
+                    if len(c.riffs) >= 3 and c.full >= 0.5 and rnd(S.n, k, "trio?") < 0.45:
+                        for C in pair:
+                            if C in (A, B) or W.REG[C]["fam"] in (W.REG[A]["fam"], W.REG[B]["fam"]):
+                                continue
+                            third = make(C, sub=2)
+                            if not third:
+                                continue
+                            kind = min(W.TRIOS, key=lambda kd: self.kinds[kd] + 2 * rnd(S.n, k, kd))
+                            if (A, f"{kind}+{B}+{C}") in self.combos:
+                                continue
+                            look = W.TRIOS[kind](got[0], got[1], other[1], third[1])
+                            self.kinds[kind] += 1
+                            self.treats[kind] += 1
+                            self.trios += 1
+                            note(A, f"{kind}+{B}+{C}", f"{A}+{B}+{C}/{kind}", partner=B)
+                            self.chains += A == carry
+                            self.used[B] += 1
+                            self.used[C] += 1
+                            return A, f"{kind}+{B}+{C}", look
                     kind = kinds[0]
                     look = W.COMBOS[kind](got[0], got[1], other[1])
                     self.kinds[kind] += 1
@@ -674,7 +695,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 
