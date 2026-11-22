@@ -426,11 +426,13 @@ def chladni(c):
     return {"background": c.bg, "camera": cam(0, 0, -9, zoom=2.3, roll=f"0.01*sin(time.bar/8)"), "layers": [plate], "filters": [bloom(c, 0.3, 0.012)]}
 
 
-@idiom(needs=2, fam="orbit")
+@idiom(needs=0, fam="orbit")
 def eclipse(c):
     """A sun, and a moon for each riff going over it once a turn. All of them cover it at once
     only where the riffs meet."""
-    parts = c.riffs[:3]
+    parts = c.riffs[:3] or _cast(c, 1)
+    if not parts:
+        raise ValueError("no one to be a moon")
     cover = " * ".join(f"smooth(0.2, 0.02, abs(fract({p.turn} + 0.5) - 0.5))" for p in parts)
     layers = [{"type": "stars", "count": 400, "speed": 0, "size": 0.9, "light": f"0.25 + 1.5*({cover})", "twinkle": 0.3, "streak": 0},
               {"type": "shape", "sides": 1, "radius": 0.34, "width": 0, "fill": 1, "color": "#fff3d4", "glow": f"0.25 + 0.9*({cover})"}]
@@ -3617,7 +3619,9 @@ def dice(c):
 def barcode(c):
     """The riff as a bar code: a bar for each note, as wide as the note is long, laid down
     by a light that reads across once in a turn and gone when the light comes again."""
-    P = [p for p in c.riffs if p.cell][:2]
+    P = [p for p in c.riffs if p.cell and p.rate >= 6][:2]
+    if not P:
+        raise ValueError("too few notes for a code")
     wide = 7.8
     layers = [box(0, 0, 0.3, FW + 0.1, FH + 0.1, 0.01, **glow("#f1ede2", 1))]
     for i, p in enumerate(P):
@@ -4229,18 +4233,20 @@ STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling"
 # Pictures that can be drawn twice and joined (flat, and filling the frame or centred, so that
 # a break along the joins shows): for two parts playing one riff out of step. `STRONG`: the
 # ones a break shows best in; a song's own canon is one of these.
-CANON = set("riley vortex moire blinds hive interference vasarely mandala albers hourglass specimen spiral eye golden tiles automaton kandinsky sundial moons zen dominoes breakout".split())
-STRONG = ("riley", "vortex", "moire", "blinds", "hive", "interference", "vasarely", "albers", "automaton", "mandala")
+CANON = set("riley vortex moire blinds hive interference vasarely mandala albers hourglass specimen spiral eye golden tiles kandinsky sundial moons zen dominoes breakout".split())
+STRONG = ("riley", "vortex", "moire", "blinds", "hive", "interference", "vasarely", "albers", "mandala")
 # Pictures that fill the frame with light (cutting their lights out of another picture leaves nothing),
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
-           "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink breakout measure lava".split())
+           "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava".split())
 BROAD = FULL | set("reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
-THIN = set("slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
+THIN = set("crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
            "searchlights pong constellation sonar treerings strings harmonograph contour letters mobile keys trampoline".split())
 SHRINKS = set("ball woven tracking roll wound screen planet hole mirror water flood poster knitted sampler".split())
+# Pictures on a white ground: laid over another by its lights, the white would be all there is.
+WHITE = set("braille barcode kandinsky suprematist mondrian score blots marbling ink sundial zen tape riley vasarely testcard thermal courses".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("barcode braille dice candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
 MIRROR_BAD = set("dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
@@ -4248,7 +4254,7 @@ MIRROR_BAD = set("dice barcode braille trampoline hailstone hanoi breakout duel 
 # Pictures that are mostly light: a print of their lights is a blank sheet.
 BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
-FED = set("barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
+FED = set("loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
 SLOW = set("dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 

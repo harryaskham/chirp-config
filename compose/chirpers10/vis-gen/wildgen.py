@@ -150,6 +150,7 @@ HOUSE = {
     17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil infra screen puzzle ridged",
 }
 HOUSE = {n_: set(v.split()) for n_, v in HOUSE.items()}
+OPEN = {1: "stringart"}     # the picture a song opens on, where it is not the first of its featured ones (the album's first picture, and the one the landing brings back)
 TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weave", "spiral", "rings", "checker", "split", "wipe", "iris", "blinds", "clock", "diamond", "rise", "dissolve",
                "flip", "squeeze", "shred", "stretch", "whip", "fall", "whirl", "ripple", "glitch", "pixel", "tiles", "doors", "spin", "scan", "diagonal", "slats", "interlace", "star", "dither", "corners", "wave",
                "fan", "shutter")
@@ -373,7 +374,7 @@ class Deal:
                 continue        # figures only where the song is about counting
             if flash and (info["cost"] >= 3 or info["fam"] in ("plate", "travel", "sheet", "trace", "grow") or name in W.PLATES or name in W.SLOW):
                 continue        # a flash has no time to draw anything out
-            if name in W.FED and (final or busiest < max(5, 1.4 * secs)):
+            if name in W.FED and (first or final or busiest < max(5, 1.4 * secs)):
                 continue        # it is made of notes, and here there are too few (or the song is ringing out)
             score = 4.0 * self.used[name] + 1.5 * (info["cost"] - 1) - 2.0 * min(info["needs"], 3) + 3.0 * rnd(S.n, k, name)
             if name == prefer:
@@ -390,6 +391,10 @@ class Deal:
                 score += 8
             if name in FEATURE.get(S.n, ()) and in_song[name] < 2:
                 score -= 7
+                if first:
+                    score -= 30 - 2 * FEATURE[S.n].index(name)     # a song opens on a picture of what it is about
+            if first and name == OPEN.get(S.n):
+                score -= 80
             if info["fam"] == "plate":
                 score += 3          # the first film's studies: now and then
             if not any((name, t) not in self.combos and ok(c, info) for t, (_, ok) in W.TREAT.items()) or (info["fam"] == "plate" and self.used[name]):
@@ -805,6 +810,8 @@ def fits(kind, A, B):
         return A in W.BROAD and B in W.BROAD
     if kind == "glass":         # A is seen through B
         return A in W.BROAD
+    if kind in ("lighten", "double"):      # both pictures on the one plate
+        return A not in W.WHITE and B not in W.WHITE
     return True
 
 
