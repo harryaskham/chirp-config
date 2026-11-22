@@ -3756,6 +3756,49 @@ def beats(c):
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.45, 0.018, 0.6)]}
 
 
+@idiom(needs=0, fam="count")
+def total(c):
+    """A riff added up: its first place, its first two, its first three. A row for each
+    statement, one place longer than the last, so every place of the riff has a column of
+    its own, and each cell is lit as it is played. The cells that fall on a bar line carry a
+    white mark: they wander, and one stands at the end of a row only when the riff is whole.
+    The frame holds as much of the triangle as has been played, and draws back as it grows."""
+    A = getattr(c, "adding", None)
+    if not A:
+        raise ValueError("nothing is being added up here")
+    kind, s0, k0, L, keys = A
+    W_, H_ = 8.7, 4.85
+    w0, h0 = W_ / L, H_ / L
+    now = "(time.beat*4)"
+    pitched = [k for k in keys if k is not None] or [0]
+    lo, hi = min(pitched), max(pitched)
+    end = s0 + L * (L + 1) // 2
+    done = f"step({end}, {now})*exp(0 - 0.35*max({now} - {end}, 0))"
+    rows = f"((sqrt(8*max({now} - {s0}, 0) + 1) - 1)/2)"
+    z = "var.z"
+    layers = []
+    for j in range(L):
+        first = j + 1 if kind == "head" else L - j
+        k = f"({first} + inst.i)"
+        idx = f"{j}" if kind == "head" else f"({j - L} + {k})"
+        when = f"({s0} + {k}*({k} - 1)/2 + {idx})"
+        x = f"({-W_ / 2:g} + {(j + 0.5) * w0:g}*{z})" if kind == "head" else f"({W_ / 2:g} - {(L - j - 0.5) * w0:g}*{z})"
+        y = f"({H_ / 2:g} - ({k} - 0.5)*{h0:g}*{z})"
+        lit = f"step({when}, {now})"
+        fresh = f"exp(0 - 0.5*max({now} - {when}, 0))"
+        played = f"(0.3 + 0.7*step({k0 - 0.5}, {k}))"
+        sx, sy = f"{w0 * 0.42:g}*{z}", f"{h0 * 0.36:g}*{z}"
+        if keys[j] is None:
+            layers.append(box(x, y, 0, sx, sy, 0.01, count=L - first + 1, **glow(c.dim, f"0.12 + {lit}*(0.22 + 0.6*{fresh}) + 0.6*{done}")))
+        else:
+            layers.append(box(x, y, 0, sx, sy, 0.01, count=L - first + 1, palette=[c.a, c.b, c.c, c.ink], pos=0.999 * (keys[j] - lo) / max(hi - lo + 1, 1),
+                              emit=f"0.09 + {played}*{lit}*(0.8 + 2.4*{fresh}) + 1.2*{done}", light=0, ambient=1, rim=0))
+        bar = f"(1 - step(0.5, fract(({when})/16 + 0.001)*16))"
+        layers.append(ball(x, f"{y} + {h0 * 0.36:g}*{z}", -0.05, f"{min(h0 * 0.3, 0.06):g}*{z}*{bar}", 8, count=L - first + 1, **glow("#ffffff", f"0.55 + 1.6*{lit}")))
+    return {"background": c.bg, "camera": FLAT, "vars": {"z": {"follow": f"clamp({L}/({rows} + 3), 1, 3.2)", "attack": "0ms", "release": "0ms"}}, "layers": layers,
+            "filters": [bloom(c, 0.4, 0.014, 0.75)]}
+
+
 # ───────────────────────── pictures of pictures ─────────────────────────
 
 SMALL = ("spiral", "sunflower", "stringart", "moire", "strings", "clockshop", "combs", "vortex", "epicycle", "harmonograph", "mandala", "table", "tally", "slack", "sonar", "remainder", "kelvin", "chladni")
@@ -4327,7 +4370,7 @@ STRONG = ("riley", "vortex", "moire", "blinds", "hive", "interference", "vasarel
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
            "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava".split())
-BROAD = FULL | set("rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
+BROAD = FULL | set("total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
@@ -4342,14 +4385,14 @@ WANTS = {"rabbits": lambda c: any(p.cell in (34, 55) for p in c.riffs),
 LONG = set("turtle strange harmonograph tetris hanoi marbling ink rink galton".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("barcode braille dice candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
-MIRROR_BAD = set("rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
+MIRROR_BAD = set("total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())
 # Pictures that are mostly light: a print of their lights is a blank sheet.
 BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
+SLOW = set("total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)

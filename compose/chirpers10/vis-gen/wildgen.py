@@ -348,6 +348,7 @@ class Deal:
         self.canon_own = {}
         self.canon_far = collections.defaultdict(set)
         self.dealt = collections.defaultdict(set)
+        self.sums = 0
         self.deals = 0
         self.ruled = 0
         self.album_first = None
@@ -490,6 +491,24 @@ class Deal:
                 note(name, tag, f"{name}/canon {how} {far:g}")
                 self.last["canon"] = True
                 return name, "canon", look
+        # The sum: while a riff is being added up, a place at a time, its triangle keeps coming
+        # back, a few rows further on each time, and is there when the sum closes.
+        add = summing(S, c) if not flash and not prefer and not first and kind != "hush" else None
+        if add and (add[1] or "total" not in self.recent[-2:]):
+            cd = copy.copy(base)
+            cd.adding = add[0]
+            got = make("total", ctx=cd, keep=True)
+            t = next((t for t in TOTAL_GUISES if ("total", t) not in self.combos and W.TREAT[t][1](cd, W.REG["total"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                rows = (math.sqrt(8 * max(c.b16 - add[0][1], 0) + 1) - 1) / 2
+                c.talk = f"the sum is at {min(int(rows), add[0][3])} of {add[0][3]}" + (", and closes" if add[1] else "")
+                look = W.TREAT[t][0](c, got[1])
+                self.treats[t] += 1
+                self.sums += 1
+                note("total", t, "total/sum" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "total", t, look
         # The deal: in a song that gives a part one more note to the beat, time after time,
         # the dice come back at each new number and show it (a die for each beat of the bar).
         rate = dealing(S, c) if not flash and not prefer and not first and kind != "hush" else None
@@ -819,6 +838,79 @@ def dealing(S, c):
     return n_, S.part(t, c.a16, c.b16, t.cell(a, b)[0])
 
 
+def adding(S):
+    """Passages in which a riff is added up: statement after statement of one line, each
+    from the top (or to the tail) and one place longer than the last, with no gap between,
+    so that statement k begins k(k-1)/2 sixteenths after the sum began. Found from the
+    notes: [(head | tail, the sixteenth the sum began, the first statement played, the last
+    (the riff's length), the riff's keys place by place)]."""
+    if hasattr(S, "_adding"):
+        return S._adding
+    T = lambda k: k * (k + 1) // 2      # noqa: E731
+    end = S.bars * 16
+    tracks = [t for t in (S.tracks.values() if isinstance(S.tracks, dict) else S.tracks) if t.role != "drum" and len(t.notes) >= 40]
+
+    def pat(t, s0, k):
+        return [t.grid.get(s0 + T(k - 1) + j) is not None for j in range(k)]
+
+    def grows(A, B, kind):
+        return (B[:len(A)] == A) if kind == "head" else (B[2:] == A[1:])      # (a statement to the tail may begin on a note where the riff rests)
+    seeds = []
+    for t in tracks:
+        for kind in ("head", "tail"):
+            for s0 in range(0, end, 16):
+                k, run, best = 4, None, None
+                while s0 + T(k + 1) <= end and k < 70:
+                    A, B = pat(t, s0, k), pat(t, s0, k + 1)
+                    if grows(A, B, kind) and sum(A) >= max(2, k // 3) and sum(B) > sum(A) - 1 + 0 * k and (k < 8 or k - sum(A) >= 1):
+                        run = run or k
+                        if best is None or k + 1 - run > best[1] - best[0]:
+                            best = (run, k + 1)
+                    else:
+                        run = None
+                    k += 1
+                if best and best[1] - best[0] >= 8:
+                    seeds.append((best[1] - best[0], kind, s0, best[0], best[1], t))
+    out, taken = [], []
+    for _, kind, s0, k0, k1, t in sorted(seeds, key=lambda x: (-x[0], x[2])):
+        if any(not (s0 + T(k1) <= x or s0 + T(k0 - 1) >= y) for x, y in taken):
+            continue
+        # Other parts may carry the sum on, or have begun it.
+        cur, last = pat(t, s0, k1), t
+        while s0 + T(k1 + 1) <= end:
+            nxt = next((u for u in tracks if grows(cur, pat(u, s0, k1 + 1), kind) and sum(pat(u, s0, k1 + 1)) >= sum(cur)), None)
+            if not nxt:
+                break
+            k1, cur, last = k1 + 1, pat(nxt, s0, k1 + 1), nxt
+        cur = pat(t, s0, k0)
+        while k0 > 2:
+            prev = next((u for u in tracks if grows(pat(u, s0, k0 - 1), cur, kind) and sum(pat(u, s0, k0 - 1)) >= 1), None)
+            if not prev:
+                break
+            k0, cur = k0 - 1, pat(prev, s0, k0 - 1)
+        # It ends where the sum closes on a bar line, if it does near its end (after that the riff is only repeated).
+        close = next((k for k in range(k1, max(k1 - 3, k0), -1) if (s0 + T(k)) % 16 == 0), k1)
+        if close != k1:
+            k1, last = close, next((u for u in tracks if sum(pat(u, s0, close)) >= 2), last)
+        keys = [last.grid.get(s0 + T(k1 - 1) + j) for j in range(k1)]
+        taken.append((s0 + T(k0 - 1), s0 + T(k1)))
+        out.append((kind, s0, k0, k1, keys))
+    S._adding = sorted(out, key=lambda x: x[1])
+    return S._adding
+
+
+def summing(S, c):
+    """The sum this scene is in the middle of, and whether it closes here: (the passage, closes); or None."""
+    for A in adding(S):
+        kind, s0, k0, k1, _ = A
+        a, b = s0 + k0 * (k0 - 1) // 2, s0 + k1 * (k1 + 1) // 2
+        closes = c.a16 <= b - 12 and b <= c.b16 + 8
+        if closes or min(c.b16, b) - max(c.a16, a) >= 0.6 * (c.b16 - c.a16):
+            return A, closes
+    return None
+
+
+TOTAL_GUISES = ("plain", "relief", "infra", "papercut", "duotone", "fringe", "solar", "delayed", "echo", "tracking", "blueprint", "onebit", "water")
 DEAL_GUISES = ("plain", "relief", "papercut", "infra", "duotone", "solar", "fringe", "echo", "delayed", "tracking", "water")     # guises that leave the pips to be counted
 
 
@@ -1094,7 +1186,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 

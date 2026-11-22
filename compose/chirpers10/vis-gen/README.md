@@ -11,7 +11,7 @@ about 940 scenes on the album, every one different.
 
 **What is drawn**
 
-- **Idioms** (`wild.py`, the `@idiom` functions: 183 so far). Each is a small machine, place,
+- **Idioms** (`wild.py`, the `@idiom` functions: 184 so far). Each is a small machine, place,
   game or diagram built from the notes themselves, and each keeps one rule: *what the music
   counts, the picture counts*. A note is a thing (a domino, a lantern, a lit window, a letter
   typed, a block dropped into a well); a riff's cell is a width or a number of things (bells
@@ -70,6 +70,7 @@ about 940 scenes on the album, every one different.
 | Two parts play one riff, one of them ahead of the other (`slips`, `stereo`: a left and a right guitar; found from the notes, to a quarter of a sixteenth) | A canon: the picture is drawn once for each part and the two are joined (`JOINS`: down the middle, in strips, bands, rings, wedges, a board). In step that is one whole picture; out of step it breaks along the joins by exactly as much as the parts are apart, and further as they slip. A song's own canon is shown whole once while the parts are still together and comes back each time they are a sixteenth further apart (Odd Sympathy: at 1, 2, 3, 4, 5 and 8, where the halves fit; Take Up the Slack: as the slack is taken up). |
 | Two parts answer one another (`talkers`: each plays where the other rests, and they change over) | A picture each, side by side, and the line between them is pushed across the frame by whichever is playing for as long as it plays (`tug`): the frame keeps the account of who has had how much of the time. |
 | A part is given one more note to the beat, time after time (`dealing`: two to the beat, then three, then four) | The dice come back at each new number and show it: a die for each beat of the bar, a pip for each note, set out as on a real die. At seven there is no such face. |
+| A riff is added up (`adding`: statement after statement of one line, each a place longer than the last, found from the notes) | Its triangle (`total`): a row for each statement, a column for each place of the riff, each cell lit as it is played and the bar lines marked as they wander through. It keeps coming back while the sum lasts, some rows further on each time and in another guise, and is there when the sum closes on a bar line. |
 | Few notes, or the song ringing out | Pictures made of notes (`FED`) are kept away. |
 | The riff comes round part way through a scene | A treatment arrives or leaves there; the camera cuts in or out there; 3D scenes change camera there. |
 | The song ends | On the picture it began with, changed. |
