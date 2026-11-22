@@ -117,7 +117,13 @@ guises that leave less of a picture than there was (`SHRINKS`); hair-line pictur
 are thickened and take only guises that add (`FILLS`); pictures made of notes (`FED`) and
 pictures that take time to form (`SLOW`) keep out of flashes; `cutout`, `stencil` and
 `glass` need something to work on and something to work with (`FULL`, `BROAD`, `fits`);
-flames, bricks and paintings keep their own colours (`TRUE`).
+flames, bricks and paintings keep their own colours (`TRUE`); pictures that are dim as they
+stand have their shadows lifted before they are printed or made of themselves (`DIM`).
+
+Before a draft is posted every scene is read once on the sheets (`wscenes.py`) and every
+structural picture in motion (`wstruct.py TAG OUT.jpg KEY…`: frames across each scene whose
+label holds a key); a fault found there is fixed here and its song drawn again (`CT_SONGS`,
+below).
 
 Commands (from this directory; `CHIRP` reads the cells and may be any recent binary):
 
