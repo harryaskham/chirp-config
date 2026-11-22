@@ -468,7 +468,7 @@ class Deal:
                 if not got:
                     continue
                 for B in pair:
-                    kinds = sorted((kd for kd in W.COMBOS if (A, f"{kd}+{B}") not in self.combos and (B, f"{kd}+{A}") not in self.combos), key=lambda kd: self.kinds[kd] + 2 * rnd(S.n, k, kd) - 5 * (kd in HOUSE.get(S.n, ())))
+                    kinds = sorted((kd for kd in W.COMBOS if (A, f"{kd}+{B}") not in self.combos and (B, f"{kd}+{A}") not in self.combos and fits(kd, A, B)), key=lambda kd: self.kinds[kd] + 2 * rnd(S.n, k, kd) - 5 * (kd in HOUSE.get(S.n, ())))
                     if B == A or W.REG[B]["fam"] == W.REG[A]["fam"] or not kinds:
                         continue
                     other = make(B, sub=1 if len(c.riffs) > 1 else 0)
@@ -513,7 +513,7 @@ class Deal:
             d, look = got
             c.__dict__.update(d.__dict__)
             # Its first time it is seen plain; after that, through something it has not been seen through.
-            order = sorted((t for t, (_, ok) in W.TREAT.items() if t != "plain" and (name, t) not in self.combos and ok(c, info)),
+            order = sorted((t for t, (_, ok) in W.TREAT.items() if t != "plain" and (name, t) not in self.combos and ok(c, info) and not (name in W.THIN and t in W.SHRINKS)),
                            key=lambda t: self.treats[t] + 2 * rnd(S.n, k, t) - 6 * (t in HOUSE.get(S.n, ())))
             if info["fam"] == "plate":
                 order = []          # the first film's studies come as they were, and once
@@ -549,7 +549,7 @@ class Deal:
             # Where the music is full a picture may wear two guises at once.
             second = None
             if treat in W.STACK and not flash and not first and name != hand_on and c.full >= 0.55 and rnd(S.n, k, "stack?") < 0.5:
-                more = sorted((t for t in W.STACK if W.STACK[t] != W.STACK[treat] and (name, t) not in self.combos and W.TREAT[t][1](c, info) and (name not in W.BOLD or t in W.FILLS)
+                more = sorted((t for t in W.STACK if W.STACK[t] != W.STACK[treat] and (name, t) not in self.combos and W.TREAT[t][1](c, info) and (name not in W.BOLD or t in W.FILLS) and not (name in W.THIN and t in W.SHRINKS)
                                and (treat, t) not in W.STACK_BAD and (t, treat) not in W.STACK_BAD),
                               key=lambda t: self.stacks[t] + 2 * rnd(S.n, k, "st" + t))
                 if more:
@@ -607,6 +607,18 @@ def ruled(S, rnd_, look):
         over.append({"type": "shape", "repeat": count, "sides": 4, "rotate": 0.125, "radius": f"0.023{size}", "fill": 1, "width": 0, "color": "#000000", "blend": "normal", "x": x, "y": y, "opacity": seen})
         over.append({"type": "shape", "repeat": count, "sides": 4, "rotate": 0.125, "radius": f"0.017{size}", "fill": 1, "width": 0, "color": pal[3 + i % 3], "blend": "normal", "x": x, "y": y, "opacity": seen})
     return {"background": "#000000", "layers": [W._act(look, blend="normal")] + over, "filters": []}
+
+
+def fits(kind, A, B):
+    """Whether two pictures can share the frame this way: one picture works on the other in
+    three of them, and that needs something to work on and something to work with."""
+    if kind == "cutout":        # B's lights are cut out of A
+        return A in W.BROAD and B not in W.FULL
+    if kind == "stencil":       # A shows only through B's lights
+        return A in W.BROAD and B in W.BROAD
+    if kind == "glass":         # A is seen through B
+        return A in W.BROAD
+    return True
 
 
 def odd_turns(S, c):
@@ -700,7 +712,7 @@ def plan(S, deal):
             shift = last_shift      # the same picture with a part more or less: in the same colours
         if not flash:
             last_shift = shift
-        if shift and not flash and not any(L.get("type") == "sky" for L in look.get("layers", [])) and W.REG[name]["fam"] not in ("plate", "ground"):
+        if shift and not flash and not any(L.get("type") == "sky" for L in look.get("layers", [])) and W.REG[name]["fam"] not in ("plate", "ground") and name not in W.TRUE:
             look.setdefault("filters", []).append({"type": "hue", "shift": shift})
         deal.flashes += flash
         scene = {"at": 0 if k == 0 else f"{a16 // 16}bar" if a16 % 16 == 0 else f"{a16 / 4:g}b", "look": look}

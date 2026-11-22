@@ -417,7 +417,8 @@ def chladni(c):
     # (x, y run -1..1 over the plate; cos takes turns, so n/4 turns to the unit is n half waves.)
     f = lambda n_, m_: f"(cos({n_ / 4:g}*vtx.x)*cos({m_ / 4:g}*vtx.y) - cos({m_ / 4:g}*vtx.x)*cos({n_ / 4:g}*vtx.y))"  # noqa: E731
     mixv = f"smooth(0.3, 0.7, tri(time.bar/4)*0.5 + 0.5)"
-    field = f"abs(mix({f(a, b)}, {f(a + 1, b + 2)}, {mixv}))"
+    a2, b2 = (a + 1, b + 2) if a + 1 != b + 2 else (a + 2, b + 1)      # (equal numbers each way would be no figure at all)
+    field = f"abs(mix({f(a, b)}, {f(a2, b2)}, {mixv}))"
     sand = f"(1 - smooth(0.0, 0.1 + 0.25*{A.hit}, {field}))"
     plate = box(0, 0, 0, 2.2, 2.2, 0.02, color="#0b0b0d", light=0.2, ambient=0.6, rim=0, paint_fine=True, paint_color=c.ink, paint=sand)
     return {"background": c.bg, "camera": cam(0, 0, -9, zoom=2.3, roll=f"0.01*sin(time.bar/8)"), "layers": [plate], "filters": [bloom(c, 0.3, 0.012)]}
@@ -1397,12 +1398,12 @@ def slack(c):
             names.add(p.name), P.append(p)
     P = P[:6]
     env = {f"s{i}": {"on": f"track.{p.name}", "attack": "0ms", "decay": f"{max(0.25, min(2.0, (p.cell or 8) * c.six * 0.9)):.2f}"} for i, p in enumerate(P)}
-    w = min(1.35, 8.4 / len(P))
+    w = min(2.6, 8.4 / len(P))
     layers = []
     for i, p in enumerate(P):
         x = (i - (len(P) - 1) / 2) * w
         sag = f"(0.06 + 1.5*(1 - env.s{i}))"
-        layers.append({"type": "beam", "from": [x - w * 0.42, 1.6, 0], "to": [x + w * 0.42, 1.6, 0], "width": 0.014, "glow": f"0.5 + 1.2*env.s{i}", "sag": sag, "color": c.col(i), "samples": 48})
+        layers.append({"type": "beam", "from": [x - w * 0.42, 1.6, 0], "to": [x + w * 0.42, 1.6, 0], "width": 0.026, "glow": f"0.5 + 1.2*env.s{i}", "sag": sag, "color": c.col(i), "samples": 48})
         layers.append(box(x, f"1.6 - {sag} - 0.22", 0, 0.12, 0.2, 0.05, **glow(c.col(i), f"0.5 + 1.5*env.s{i}")))
         for sx in (-1, 1):
             layers.append(box(x + sx * w * 0.42, 1.7, 0.05, 0.02, 0.16, 0.02, **glow(c.dim, 0.7)))
@@ -3240,11 +3241,11 @@ def hourglass(c):
     riff comes round."""
     P = c.riffs[:3]
     env = hit_env(P, "220ms")
-    R = 0.36 if len(P) < 3 else 0.31
+    R = (0.58, 0.45, 0.31)[len(P) - 1]
     UP = 0.0              # the turn of a three-sided shape that stands on its base
     layers = []
     for i, p in enumerate(P):
-        cx = (i - (len(P) - 1) / 2) * (1.2 if len(P) < 3 else 1.1)
+        cx = (i - (len(P) - 1) / 2) * (1.45 if len(P) < 3 else 1.1)
         ph = f"fract({p.turn})"
         th = f"(0.5*smooth(0.86, 1, {ph}))"                 # turned over through the last of the turn
         at = lambda ly: (f"{cx:g} - ({ly})*sin({th})", f"({ly})*cos({th})")            # noqa: E731
@@ -3307,12 +3308,12 @@ def breakout(c):
     for i, p in enumerate(P):
         n_ = p.cell
         w = 8.3 / n_
-        y = 2.05 - 0.48 * i
+        y = 1.85 - 0.5 * i
         u = f"(fract({p.turn})*{n_})"
         d = f"(fract({p.turn} - inst.i/{n_})*{n_})"
         there = f"step({u}, inst.i)"
         col = c.col(i)
-        layers.append(box(f"(inst.i - {(n_ - 1) / 2})*{w:g}", y, 0, w / 2 - 0.05, 0.18, 0.01, count=n_, **glow(col, f"0.85 + 1.5*exp(0 - 5*{d})*(1 - {there})"), opacity=f"{there} + (1 - {there})*exp(0 - 3.5*{d})"))
+        layers.append(box(f"(inst.i - {(n_ - 1) / 2})*{w:g}", y, 0, w / 2 - 0.05, 0.18, 0.01, count=n_, **glow(col, f"0.85 + 1.5*exp(0 - 5*{d})*(1 - {there})"), opacity=f"{there} + (1 - {there})*(0.16 + 0.84*exp(0 - 3.5*{d}))"))
         bx = f"(({u} - {(n_ - 1) / 2})*{w:g})"
         by = f"({-2.0 + 0.0 * i:g} + {y + 2.0 - 0.3:g}*abs(cos({u}/2)))"
         layers.append(ball(bx, by, -0.05, 0.09, 10, **glow("#ffffff" if i == 0 else col, 1.3)))
@@ -4073,14 +4074,26 @@ STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall"
 STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched")}
 
 # Pictures that stand to one side, or are a line of things: half of one is not a picture.
-MIRROR_BAD = set("hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
+# Pictures that fill the frame with light (cutting their lights out of another picture leaves nothing),
+# and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
+FULL = set("courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
+           "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink breakout measure lava".split())
+BROAD = FULL | set("chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
+# Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
+# that leave less of a picture than there was: a thin picture does not take those.
+THIN = set("slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
+           "searchlights pong constellation sonar treerings strings harmonograph contour letters mobile keys trampoline".split())
+SHRINKS = set("ball woven tracking roll wound screen planet hole mirror water flood poster".split())
+# Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
+TRUE = set("candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
+MIRROR_BAD = set("trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())
 # Pictures that are mostly light: a print of their lights is a blank sheet.
 BRIGHT = set("marbling ink shadowplay sundial zen kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
+SLOW = set("strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)
@@ -4346,7 +4359,7 @@ def t_combed(c, look):
     return _pre(look, {"type": "sort", "lo": 0.07, "dir": ("right", "down", "left", "up")[c.seed % 4], "length": "0.04 + 0.96*env.comb", "amount": c.arr})
 
 
-@treat("woven", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+@treat("woven", ok=lambda c, info: info["f"].__name__ in BROAD)
 def t_woven(c, look):
     """Woven of its own strips, over one and under one: every note of the riff draws the
     strips along themselves, and they come back into register after it."""
