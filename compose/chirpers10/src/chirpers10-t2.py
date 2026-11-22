@@ -1550,6 +1550,53 @@ def the_snare_loses_its_box(doc):
         doc["loudness"] = float(target)
 
 
+# v42 (chirper-zero; section round, w3 1:11-1:46, flagged "little new"; the change is the hold an eighth apart,
+# 1:20-1:46.7, its ten bars of kit): THE SNARE ANSWERS. At this distance everything in the band is answered an
+# eighth later: the right guitar's hook note by the left's, the bass plays both, and since v4 the beat was written
+# the same way (groove_eighth: "the snare on two and four, each answered a ghost stroke an eighth later, as each
+# hook note is"). The answer was written on the kit's ghost piece at velocity 0.45 and has never been heard. Read
+# alone it stood 25.5 dB under the backbeat; in the raw mix, with the twenty strokes and without, they added
+# 0.01 dB (K) at their own places; they could be deleted and nothing but 0.15 dB at 4-8 kHz would know. So the
+# hold whose whole point is the echo had a kit that did not echo: two and four, as anywhere.
+# Now the answer is struck on the song's own snare (v41's), softer than the backbeat: alone, in the open bars,
+# 3.4 dB under it (K; the strokes vary 2 dB among themselves as the backbeats do). The backbeat falls on the right
+# guitar's hook note and the answer on the left guitar's same note an eighth later: the left guitar is the one
+# chirper-alpha put behind a wall for the hold's first six bars (v32), so the snare's answer comes through the
+# wall with it: the same dB under itself, bar by bar, that he measured on the walled guitar (5.7, 4.7, 2.8, 1.3,
+# 0.5, 0.2), and whole from then on. Without that the kit would say the echo at full before the guitar is through
+# and spend his reveal. No stroke is added or moved; the backbeat, the kit's other pieces and every other part are
+# untouched; the two bars of the guitars alone (v16) have no kit as before.
+# Benched first: the ghost piece itself 18 dB up (it is a tick: +4.5 dB at 4-8 kHz and nothing under 2 kHz, not
+# a snare answering a snare) ; the song's snare at velocity 0.45, 0.6, 0.75 and 0.95 (what the answer adds at its
+# stroke in the raw mix, K: +0.2, +0.7, +1.5, +2.6; the backbeat adds +3.4 at its own: at 0.95 the bar has four
+# backbeats, at 0.45 it is still not there).
+# bars from:to ; the piece the answer is struck on ; its velocity ; dB on the answers of each bar, from the first
+# (bars after the list: none) ; the loudness target ('' = unchanged). '' = v41 byte for byte. On only while
+# BACKBEAT is.
+ANSWER = os.environ.get("C10T2_ANSWER", "36:48;s;0.735;-5.7,-4.7,-2.8,-1.3,-0.5,-0.2;" if BACKBEAT else "")
+
+
+def the_snare_answers(doc):
+    """v42: the 20 strokes that answer the backbeat an eighth later, written at v4 on the kit's ghost piece and never
+    heard, are struck on the song's own snare, and come through the wall as the answering guitar does."""
+    bars, piece, vel, curve, target = ANSWER.split(";")
+    a, z = (int(x) for x in bars.split(":"))
+    curve = [float(x or 0) for x in curve.split(",")] if curve else []
+    t = next(t for t in doc["tracks"] if t["name"] == "snare")
+    n = 0
+    for e in t["notes"]:
+        if e["pitch"] == "g" and a * 4 <= e["at"] < z * 4:
+            bar = int(e["at"] // 4) - a
+            assert set(e) == {"at", "len", "pitch", "vel"}, e
+            e["pitch"], e["vel"] = piece, float(vel)
+            if bar < len(curve) and curve[bar]:
+                e["gain"] = f"{curve[bar]:g}dB"
+            n += 1
+    assert n == 20 or (n and bars != "36:48"), n     # strokes outside the bars stay the ghost piece, as at v41
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if PICK:
@@ -1558,4 +1605,6 @@ if __name__ == "__main__":
         the_bass_leans(doc)
     if BACKBEAT:
         the_snare_loses_its_box(doc)
+    if ANSWER:
+        the_snare_answers(doc)
     open(OUT, "w").write(dump(doc))
