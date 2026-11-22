@@ -1199,7 +1199,7 @@ TAPE = os.environ.get("C10T5_TAPE", "1;84:96;-1;0.575;0.41;-24;" if FALLTONE els
 # the pole, and up the run out of it. No other part changes.
 # dB on the tone against its level under the stair ; bars from:to ; the loudness target ('' = unchanged). '' = v29.
 # It is on only while no other C10T5_ switch is set, so every older switch gives exactly what it gave.
-HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM", "C10T5_SNARE") for k in os.environ) else "")
+HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM", "C10T5_SNARE", "C10T5_LEAN") for k in os.environ) else "")
 
 # v31 (chirper-two; palette: the song had no voice, and no song on the album had used the engine's speech to song):
 # WE HAVE BEEN HERE BEFORE. A song "all about the illusions" (Harry, 15 Nov) had every illusion of pitch and of speed
@@ -1510,6 +1510,8 @@ def song():
         the_palm_lets_the_teeth_through(doc)
     if SNARE:
         the_snare_comes_out_of_its_box(doc)
+    if LEAN:
+        the_bass_leans_on_its_octave(doc)
     return doc
 
 
@@ -1797,6 +1799,52 @@ def the_snare_comes_out_of_its_box(doc):
     if own:
         s["gain"] = f"{float(own):g}dB"
     doc["patches"]["ct-kit-here"] = {**kit, "kit": {**kit["kit"], "s": s}}
+    if target:
+        doc["loudness"] = float(target)
+
+
+# v37 (chirper-zero; instrument round: the bass. No note changes): THE BASS LEANS ON ITS OCTAVE.
+# The bass was the album's bass as it comes (`ct-bass`), on all three of its tracks. Read alone beside eleven records'
+# bass stems (tools/bassspec.py, a shape): under the stair 5.68 dB out: a box (+5.0, +5.0, +8.3, +10.5, +5.0 from 315
+# to 800 Hz), 7.5 dB short at 80-100 Hz (the octave over its low F, where a record's bass has its weight), 5 to 9 dB
+# short at 1-1.25 kHz (the string's grind); the descent's two basses 6.00 with the same box and the same missing grind.
+# By muting each part in the raw mix the bass holds 2.3 to 2.5 dB of everything under 250 Hz under the stair, and the
+# stair, the turn, both and the summit all read 1.2 to 1.3 dB SHORT of the records at 60-120 Hz: a line four handoffs
+# carried since v25 ("the stair's 60-120 Hz 1.3 to 1.9 short"). chirper-two's v33 named the other half: with the bass
+# drum on the ground's note "the sub is the kick's ... lowering the bass's sine a few dB would hand it over".
+# THE FIT is the one Odd Sympathy's bass has (v40 there), in the patch's own eq and sine and nowhere else:
+#   the lift at 110 Hz 6 -> 12 dB and at 220 Hz 8 -> 6 (the weight moves down to the octave over the low F);
+#   the 450 Hz band becomes a 6 dB CUT at 540 Hz (the box); the 900 Hz band becomes +9 dB at 1150 Hz (the grind);
+#   the sine under the string -9 -> -12 dB (the sub goes to the bass drum; it also drives the patch's compressor).
+# Alone the bass is 0.3 LU louder (the grind). The fader is left: it feeds the bus's 8:1 compressor, which swallows a
+# fader move (benched: 0.3 dB down on the fader read the same -26.3 LUFS alone). In the finished file no passage's
+# level moves (K within 0.04 dB); the loudness target moves -10.0831 -> -10.0681 so the stretches no bass plays in
+# (the foot, the pole) are where they were.
+# THE DESCENT'S TWO BASSES (an octave apart under their own bell) ARE LEFT AS THEY WERE. Benched with the box, the
+# grind and the sine (not the 110 Hz lift: the fall is already 1.0 to 1.1 dB over the records at 60-120 Hz): alone
+# 6.00 -> 4.57, but by mute they hold nothing of the fall between 250 Hz and 1 kHz, the two windows read 0.011 nearer
+# each and the finished file moved by no more than 0.05 dB in any band. A fault the mix does not show is not the
+# song's. The switch's third field takes it.
+# The bus `low` (the eq that follows the key, the compressor) is not touched.
+# overrides on `bass` ; dB on its fader ("" = left) ; overrides on `bs0` and `bs1` ; the loudness target ("" = unchanged).
+# "" = v36 byte for byte. On only while SNARE is; C10T5_LEAN is in HALFWAY's list of names that do not turn it off.
+LEAN = os.environ.get("C10T5_LEAN", "fx.2.bands.0.gain=12dB fx.2.bands.1.gain=6dB fx.2.bands.2.cutoff=540 fx.2.bands.2.q=0.7 fx.2.bands.2.gain=-6dB fx.2.bands.3.cutoff=1150 fx.2.bands.3.q=1.2 fx.2.bands.3.gain=9dB synth.layers.1.level=-12dB;;;-10.0681" if SNARE else "")
+
+
+def the_bass_leans_on_its_octave(doc):
+    """v37: the bass's own eq and sine are refitted (its weight on the octave, its box cut, its grind up). The two
+    basses of the descent only if the third field says so. A patch string: no note, fader, bus or send."""
+    own, trim, fall, target = LEAN.split(";")
+    by = {t["name"]: t for t in doc["tracks"]}
+    assert all(by[n]["patch"] == "ct-bass" for n in ("bass", "bs0", "bs1")), [by[n]["patch"] for n in ("bass", "bs0", "bs1")]
+    if own:
+        by["bass"]["patch"] += " " + own
+    if trim:
+        assert isinstance(by["bass"]["gain"], str) and by["bass"]["gain"].endswith("dB")
+        by["bass"]["gain"] = f"{float(by['bass']['gain'][:-2]) + float(trim):g}dB"
+    if fall:
+        for n in ("bs0", "bs1"):
+            by[n]["patch"] += " " + fall
     if target:
         doc["loudness"] = float(target)
 
