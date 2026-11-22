@@ -603,7 +603,10 @@ class Deal:
                 c.arrive = "1"
                 c.talk = (f"{ow[0]}: the first half owes the second {ow[3]:g}" if ow[3] > 0 else f"{ow[0]}: the second half owes the first {-ow[3]:g}" if ow[3] < 0 else f"{ow[0]}: paid back")
                 c.talk += ", and borrows" if ow[3] * ow[4] > 0 else ", and pays back" if ow[3] * ow[4] < 0 else ""
-                look = W.TREAT[t][0](c, got[1])
+                gk = min((x for x in ("halo", "footlights", "plasma", "smoke", "horizon", "stars") if x not in self.grounds_last[S.n][-2:]), key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
+                self.grounds[gk] += 1
+                self.grounds_last[S.n].append(gk)
+                look = W.TREAT[t][0](c, W.ground(c, got[1], gk) if t in W.GROUND_OK else got[1])
                 self.treats[t] += 1
                 self.ledgers += 1
                 self.owed[S.n].add(ow[3:5])
@@ -623,7 +626,10 @@ class Deal:
                 c.__dict__.update(got[0].__dict__)
                 c.arrive = "1"
                 c.talk = f"{rl[0]} is rolled, and slows or winds up"
-                look = W.TREAT[t][0](c, got[1])
+                gk = min((x for x in W.GROUNDS if x not in self.grounds_last[S.n][-3:] and x not in ("ripples", "scope")), key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
+                self.grounds[gk] += 1
+                self.grounds_last[S.n].append(gk)
+                look = W.TREAT[t][0](c, W.ground(c, got[1], gk))
                 self.treats[t] += 1
                 self.rolled += 1
                 self.rolls_in[(S.n, rl[0])] += 1
@@ -904,9 +910,8 @@ class Deal:
             # A picture that leaves most of the frame dark stands on a ground: the rest of the
             # band, dimly (a kind of ground the song has not just had).
             gk = None
-            if name in W.GROUNDED and not flash and treat in W.GROUND_OK and (second is None or second in W.GROUND_OK) and "layers" in look \
-                    and not any(f.get("type") in ("feedback", "expose", "slit", "fence", "panels", "timeslice", "step") for f in look.get("filters", [])) \
-                    and rnd(S.n, k, "ground?") < 0.85:
+            if name in W.GROUNDED and treat in W.GROUND_OK and (second is None or second in W.GROUND_OK) and "layers" in look \
+                    and not any(f.get("type") in ("feedback", "expose", "slit", "fence", "panels", "timeslice", "step") for f in look.get("filters", [])):
                 kinds = [x for x in W.GROUNDS if x not in self.grounds_last[S.n][-3:]]
                 gk = min(kinds, key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
                 look = W.ground(c, look, gk)

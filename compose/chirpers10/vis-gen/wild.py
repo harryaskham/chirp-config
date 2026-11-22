@@ -4015,7 +4015,7 @@ GROUNDED = set("searchlights solkattu numerals hailstone membrane mobile pong co
                "lanterns kelvin constellation sonar treerings strings harmonograph contour letters keys abacus splitflap helix epicycle quad stringart remainder spiral "
                "orrery pendwave sunflower juggle radial clockshop venn switchboard star rain fountain echoes skein coins".split())
 # Guises a grounded picture may wear (they leave a dim ground a dim ground).
-GROUND_OK = set("plain kaleido mirror wall planet tunnel echo slices fringe spin roll wound water torn hole lines warp falling ball tracking screen delayed puzzle smoked dripping "
+GROUND_OK = set("solar stop combed blown plain kaleido mirror wall planet tunnel echo slices fringe spin roll wound water torn hole lines warp falling ball tracking screen delayed puzzle smoked dripping "
                 "coiled halves".split())
 
 
