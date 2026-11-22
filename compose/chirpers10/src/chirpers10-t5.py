@@ -1199,7 +1199,7 @@ TAPE = os.environ.get("C10T5_TAPE", "1;84:96;-1;0.575;0.41;-24;" if FALLTONE els
 # the pole, and up the run out of it. No other part changes.
 # dB on the tone against its level under the stair ; bars from:to ; the loudness target ('' = unchanged). '' = v29.
 # It is on only while no other C10T5_ switch is set, so every older switch gives exactly what it gave.
-HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM", "C10T5_SNARE", "C10T5_LEAN", "C10T5_ASCENT") for k in os.environ) else "")
+HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM", "C10T5_SNARE", "C10T5_LEAN", "C10T5_ASCENT", "C10T5_SCRAPE") for k in os.environ) else "")
 
 # v31 (chirper-two; palette: the song had no voice, and no song on the album had used the engine's speech to song):
 # WE HAVE BEEN HERE BEFORE. A song "all about the illusions" (Harry, 15 Nov) had every illusion of pitch and of speed
@@ -1514,6 +1514,8 @@ def song():
         the_bass_leans_on_its_octave(doc)
     if ASCENT:
         the_lead_goes_back_up(doc)
+    if SCRAPE:
+        the_pick_is_dragged(doc)
     return doc
 
 
@@ -1898,6 +1900,74 @@ def the_lead_goes_back_up(doc):
     assert notes[-1]["at"] == int(b0) * 4 + 24 and notes[0]["pitch"] == down[-1]["pitch"]
     doc["tracks"].append({"name": "ascent", "patch": lead["patch"], "gain": f"{float(fader):g}dB" if fader else lead["gain"],
                           "pan": lead["pan"], "notes": notes})
+    if target:
+        doc["loudness"] = float(target)
+
+
+# v39 (chirper-zero; palette round: the swap): THE PICK IS DRAGGED.
+# The swap: the library's synth riser (`fx-riser-endless`, one note, 3:12.0-3:21.6) for a pick scrape on a patch of
+# the song's own (`fs-scrape`), on a new last track `scrape`.
+# The song's first sentence says the band plays the illusions, and one by one its synth swells have been given to
+# the band: the last riser to three lead guitars (v6), the pole's line to the leads (v12), the last swell to a gong
+# (chirper-one, v19, whose handoff says: "The earlier synth swell into the shared pitch/speed climb is still
+# there"). This is that one. Read alone it stood 27, 16, 15 and 12 dB under everything else in its four bars (K,
+# raw), a wash at 500 Hz-1 kHz under the guitars' run.
+# What a guitarist does there is drag the pick's edge along the low string toward the bridge. The windings click
+# under it faster and faster; when they are fast enough the clicks are a note, and the note goes on rising: in a
+# pick scrape speed and pitch are one thing, which is what 'both' (the next thirty-eight seconds) is about. The
+# patch is that and nothing else: one click train, from the song's sixteenth (6.67 a second) to the F three octaves
+# and a bit over the low string's octave (1397 a second), an octave every 0.29 s, into the song's 5150 and cabinet.
+# It plays through the run's second bar (3:19.2) and stops a sixteenth before the bar line, so the band lands alone.
+# Measured, raw: the scrape stands 13 dB under everything else (K) where it starts and 0.6 under where it stops, 2.7
+# OVER at 1-2 kHz in its last quarter; its peak is -14.5 dBFS. Finished: its last three sixteenths are 1.9 dB up (K),
+# 3.7 at 1-2 kHz; the sixteenth after it 0.8 dB DOWN; the landing as it was, so the step onto the downbeat is 2.7 dB
+# where it was 2.1 (20 dB under 120 Hz, as before). NOT HEARD IN THE MIX: the clicks you could count. The first
+# sixteen stand 0.8 dB over the old file on the click (1-4 kHz): the run covers them; what is there to be heard is
+# the last beat and a half, a rasp that rises. Alone, the whole of it is there.
+# the bar the scrape begins in ; its length, beats ; dB on its fader ; dB its fader rises across it ; its pan ;
+# "out" = the library's synth riser into 'both' is taken out (anything else: it stays) ; the loudness target ("" =
+# unchanged).
+# "" = v38 byte for byte. On only while ASCENT is; C10T5_SCRAPE is in HALFWAY's list of names that do not turn it off.
+SCRAPE = os.environ.get("C10T5_SCRAPE", "83;3.75;6;8;0;out;" if ASCENT else "")
+SCRAPE_HAND = [0.37, 0.73, 0.89, 1.33, 0.72, 1.27, -1.41, -0.1, 1.33, 0.45, 1.2, -1.16, -0.09, -0.76, 0.13, 0.22, -1.46, -0.85, -0.66, 1.25, 0.8, -1.02, 0.89, -1.08, 0.35, -1.12, -1.49, 1.11, -0.87, -0.85, 1.45]
+SCRAPE_PATCH = {
+    "about": "chirper-zero: a pick scrape for False Summit: the pick's edge dragged along a wound string toward the bridge. The windings click under it "
+             "faster and faster: one click train whose rate follows the note's `up` (0 to 1 across the note) from the song's sixteenth to the F three "
+             "octaves over the low string's octave (6.67 to 1397 clicks a second), a little unevenly (`lfo.hand`), through a peak that rises with it, "
+             "into the song's 5150 and cabinet. Write the note on F1. Not a library patch.",
+    "synth": {"lfo": {"hand": {"steps": SCRAPE_HAND, "rate": "83hz", "retrig": True}},
+              "layers": [{"wave": "saw", "semi": {"value": -32.53, "mod": [{"src": "expr.up", "amount": 92.53}, {"src": "lfo.hand", "amount": 1}]}, "level": "0dB"}],
+              "filters": [{"kind": "hp", "cutoff": 700}, {"kind": "peak", "cutoff": {"value": 700, "mod": [{"src": "expr.up", "amount": 3.0}]}, "q": 2.0, "gain": "12dB"},
+                          {"cutoff": "9k", "q": 0.6}],
+              "amp": {"a": "3ms", "d": "0ms", "s": 1, "r": "15ms"}},
+    "fx": [{"attack": "2ms", "makeup": "3dB", "release": "60ms", "threshold": "-20dB", "type": "compressor"},
+           {"bloom": 0.5, "boost": "6dB", "gain": 0.85, "mid": 0.74, "nfb": 18.0, "resonance": 0.72, "sag": 0.2, "tight": 220, "triode": True, "ts": 0.75, "type": "amp",
+            "model": "5150"},
+           {"mic": 0.5, "model": "4x12-modern", "type": "cab", "cone": 34},
+           {"attack": "0.3ms", "hold": "5ms", "release": "12ms", "threshold": "-42dB", "type": "gate"}],
+    "gain": "-23dB", "play": {"gate": 1.0, "vel_sens": 0.3}}
+
+
+def the_pick_is_dragged(doc):
+    """v39: one pick scrape on a new last track (the song's own patch `fs-scrape`, out to the guitars' bus), ending on
+    a bar line; with "out" the library's synth riser that swelled under the same bars is taken out, and its track
+    with it if nothing is left on it."""
+    bar, beats, fader, swell, pan, riser, target = SCRAPE.split(";")
+    at, ln = float(bar) * 4.0, float(beats)
+    assert all(t["name"] != "scrape" for t in doc["tracks"]) and "scrape" not in doc.get("buses", {}) and "fs-scrape" not in doc["patches"]
+    if riser == "out":
+        tr = next(t for t in doc["tracks"] if t["name"] == "riser")
+        tr["notes"] = [n for n in tr["notes"] if not (n["at"] < at + ln and n["at"] + n["len"] > at)]
+        if not tr["notes"]:
+            doc["tracks"] = [t for t in doc["tracks"] if t is not tr]
+    doc["patches"] = {**doc["patches"], "fs-scrape": SCRAPE_PATCH}
+    t = {"name": "scrape", "patch": "fs-scrape", "gain": f"{float(fader):g}dB", "pan": float(pan), "out": "gtrs",
+         "notes": [{"at": at, "len": ln, "pitch": "F1", "vel": 0.9, "expr": {"up": 0.0}, "expr_path": {"up": [0.5, 1.0]}}]}
+    if swell and float(swell):                 # the hand bears down: the fader rises across the scrape
+        t["gain"] = {"value": t["gain"], "mod": [{"src": "auto.swell", "amount": 1}]}
+        t["auto"] = {"swell": {"points": [["0b", -float(swell)], [f"{at:g}b", -float(swell)], [f"{at + ln:g}b", 0]], "curve": 0}}
+    t["fx"] = ["hp cutoff=400"]
+    doc["tracks"].append(t)
     if target:
         doc["loudness"] = float(target)
 
