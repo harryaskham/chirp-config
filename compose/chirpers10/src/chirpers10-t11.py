@@ -1259,6 +1259,42 @@ def the_bellows_draw_breath(doc):
         doc['loudness'] = float(target)
 
 
+# v35 (chirper-zero; instrument round: THE RIFF PAIR, gl and gr, where it is the song's only pair of guitars: 'quick',
+# 'lean', 'broad' and 'bones', 0:10-1:30. No note changes.) Harry, 22 Nov: "focus hard on instrument design and see
+# if you can get even harder sounding guitars, bass drums etc". Read beside six records' strokes (riffpunch --strokes)
+# the pair alone had, in 'lean' (0:40-1:00), a punch of 3.22 (the records 3.63, none under 3.5) and teeth of -7.8
+# (400 Hz-1 kHz less 1-4 kHz through a stroke; the records -11.3): v27 took it into their range, at the soft end.
+# And THE MIX SAID THE SAME THERE: 'lean' and 'broad' were 2.2 / 2.0 and 1.5 / 1.2 dB OVER the records at 250-500 Hz
+# and 500 Hz-1 kHz and 0.7 / 0.6 SHORT at 2-4 kHz. So the rig's voicing after the cabinet gets two bands, each on its
+# own lane so each plays only where the mix asks: a lift at 2.6 kHz from 'quick' on (the pick), and a cut at 650 Hz from
+# 'lean' on (in 'quick' the mix is short there, and the cut is left out). Both stop where the pair rests at 1:30:
+# from 1:50 the wall guitars stand beside the pair with teeth of their own (chirper-one's v29) and the mix has its
+# 2-4 kHz, so there the pair is as v34 had it (it nulls). What the amp's own controls gave, alone, in 'lean': presence
+# 0.8 nothing; the screamer at 1.0 and the microphone at 0.55 FEWER teeth (-6.9, -6.8); the mid at 0.5 teeth -9.4 and
+# no punch (3.17): the punch came only with the lift.
+# the tracks ; the bands, band|band, each FROM beat:TO beat:Hz:q:dB (a peak, 0 dB outside its beats, a sixteenth's
+# ramp each side) ; the loudness target ('' = unchanged).
+# '' = v34 byte for byte. On only while AIR is.
+BITE = os.getenv('C10T11_BITE', 'gl,gr;24:216:2600:0.8:1.5|96:216:650:0.9:-3;-9.628' if AIR else '')
+
+
+def the_riff_pair_bites(doc):
+    """v35: on each named track, peak bands appended to its eq, each riding its own lane."""
+    names, lanes, target = BITE.split(';')
+    for i, t in enumerate(doc['tracks']):
+        if t['name'] not in names.split(','): continue
+        assert 'auto' not in t and len(t['fx']) == 1 and t['fx'][0]['type'] == 'eq', t['name']
+        bands = list(t['fx'][0]['bands']); auto = {}
+        for k, f in enumerate(lanes.split('|')):
+            a_, z_, hz, q, db = (float(x) for x in f.split(':')); nm = f'bite{k + 1}'
+            bands.append({'kind': 'peak', 'cutoff': hz, 'q': q, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.' + nm, 'amount': 1}]}})
+            auto[nm] = {'curve': 0, 'points': [['0b', 0], [f'{a_ - 0.25:g}b', 0], [f'{a_:g}b', db], [f'{z_:g}b', db], [f'{z_ + 0.25:g}b', 0]]}
+        doc['tracks'][i] = {**t, 'fx': [{**t['fx'][0], 'bands': bands}], 'auto': auto}
+    assert sum(1 for t in doc['tracks'] if 'bite1' in (t.get('auto') or {})) == len(names.split(','))
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('-o','--out',type=Path,default=Path(os.environ.get('C10T11_OUT',OUT)));p.add_argument('--map',action='store_true'); a=p.parse_args(); doc,marks=make()
     if a.map:
@@ -1266,4 +1302,5 @@ if __name__=='__main__':
             t=marks[name];print(f'{name:10} {t/16+1:g}-{(t+CELL*cells)/16+1:g} bars; {t/SUB*60/BPM:g}s, {cells} cells')
     else:
         if AIR: the_bellows_draw_breath(doc)
+        if BITE: the_riff_pair_bites(doc)
         a.out.write_text(dump(doc))
