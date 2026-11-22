@@ -1850,6 +1850,64 @@ def the_rests_close(doc):
         doc["loudness"] = float(target)
 
 
+# v35 (chirper-zero; section round, w6, 2:00-2:24; the change is 2:11.1-2:21.4): THE SNARE CLOSES EACH LINE.
+# chirper-alpha's v24 made the song's ratio MOVE for the first time: before the tutti opens into its held chords the
+# snare leaves its backbeat and strikes the head of each of three shrinking cells (21, 13, 8) and on down the rule
+# (5, 3, 2, 1, 1, 1): an accelerando in the ratio, into the landing (2:11.06). His handoff named the other half and
+# left it: "NOT BUILT: the mirror, out of the landing: 1, 1, 2, 3, 5, 8, 13, 21 is 54 and the cell after the landing
+# is 55, so the same snare could open out again under the held chords".
+# Built as he wrote it, and it turns out to say something he did not write down. The riff is the rule's lines one
+# after another (L, LS, LSL, LSLLS ...: 3, 5, 8, 13, 21, 34, 55 sixteenths) and every cell ends in a rest. Gaps of
+# 1, 1, 2, 3, 5, 8, 13, 21 from the landing put the strokes on sixteenths 1, 2, 4, 7, 12, 20, 33 and 54: after the
+# first two (inside the landing's chord), each is THE LAST SIXTEENTH OF A LINE OF THE RULE, that line's closing
+# rest: the lines of 5, 8, 13, 21, 34 and 55. Going in, the snare struck the HEADS of the cells, strokes the riff
+# already had (his words: "it was already in the riff"); coming out it strikes what the riff leaves out. The foot
+# rests on every one of the eight, so the kick and the snare interlock: the foot says the strokes, the snare says
+# where each line ends, each line as long as the two before it together.
+# IT DIES AWAY: velocity 1 down to 0.45 (the album's ghost stroke). In the finished file the eight read -11.9,
+# -11.8, -13.4, -12.8, -13.4, -14.2, -16.5, -22.2 dBFS (K, first 120 ms) beside the band's own strokes at -11.3: under
+# the band from the first and falling. At full velocity the last two stood 16 and 28 dB over everything else
+# (benched raw): two cracks in a silence, not an opening out.
+# THE THREE BACKBEATS inside the figure (2:13.9, 2:16.9, 2:19.9) are left out, as his figure leaves out four: the
+# backbeat is back with the next cell (2:22.9). The china keeps its quarters. Nothing but the snare changes.
+# chirper-one's v10 (the two common tones) is under it. The seventh stroke (2:17.2) is the sixteenth before his
+# moved finger (E flat to E, 2:17.4); the eighth (2:21.2) is the last sixteenth of the room he left at the end of
+# the phrase, where a backbeat used to fall in the middle of it (2:19.9): the room now has eight sixteenths with no
+# snare and one soft stroke at its end.
+# section (from 0) : the sixteenth of it where the figure starts (the landing) ; the gaps from the landing to each
+# stroke, sixteenths ; the snare's velocity, first : last ; "rests" = every stroke must fall where the foot rests
+# ("" = anywhere) ; the loudness target ("" = unchanged).
+# "" = v34 byte for byte. On only while WIND and BOUNCE are.
+WIDENS = os.environ.get("C10T7_WIDENS", "3:89;1,1,2,3,5,8,13,21;1:0.45;rests;-9.5596" if WIND and BOUNCE else "")
+
+
+def the_snare_closes_each_line(doc):
+    """v35: out of the landing the snare strikes at gaps of 1, 1, 2, 3, 5, 8, 13, 21 sixteenths: the last sixteenth of
+    each line of the rule (5, 8, 13, 21, 34, 55), which is that line's closing rest. Its backbeats inside the figure
+    are left out. Only the snare's notes change."""
+    where, gaps, vel, must, target = WIDENS.split(";")
+    i, land = (int(x) for x in where.split(":"))
+    land += SECS[i][0]
+    gaps = [int(g) for g in gaps.split(",")]
+    v0, v1 = (float(x) for x in vel.split(":"))
+    assert RANK[land] >= 5, RANK[land]                                               # the head of a big cell
+    by = {t["name"]: t for t in doc["tracks"]}
+    tick = lambda note: round(note["at"] * 4)
+    strokes = [land + sum(gaps[:j + 1]) for j in range(len(gaps))]
+    foot = {tick(n) for n in by["kick"]["notes"]}
+    if must == "rests":
+        assert not any(p in foot for p in strokes), [p - land for p in strokes if p in foot]
+    snare = by["snare"]
+    was = [n for n in snare["notes"] if land <= tick(n) <= strokes[-1]]
+    assert was and all(set(n) == {"at", "len", "pitch", "vel"} and n["pitch"] == "s" for n in was), was
+    keep = [n for n in snare["notes"] if not land <= tick(n) <= strokes[-1]]
+    new = [{"at": round(p / 4, 4), "len": was[0]["len"], "pitch": "s", "vel": round(v0 + (v1 - v0) * j / max(1, len(strokes) - 1), 3)}
+           for j, p in enumerate(strokes)]
+    snare["notes"] = sorted(keep + new, key=lambda n: n["at"])
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T7_SHOW"):
         sec = 15 / BPM
@@ -1875,4 +1933,6 @@ if __name__ == "__main__":
             the_chug_gets_its_front(doc)
         if WIND:
             the_rests_close(doc)
+        if WIDENS:
+            the_snare_closes_each_line(doc)
         open(OUT, "w").write(dump(doc))
