@@ -1199,7 +1199,7 @@ TAPE = os.environ.get("C10T5_TAPE", "1;84:96;-1;0.575;0.41;-24;" if FALLTONE els
 # the pole, and up the run out of it. No other part changes.
 # dB on the tone against its level under the stair ; bars from:to ; the loudness target ('' = unchanged). '' = v29.
 # It is on only while no other C10T5_ switch is set, so every older switch gives exactly what it gave.
-HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM", "C10T5_SNARE", "C10T5_LEAN", "C10T5_ASCENT", "C10T5_SCRAPE") for k in os.environ) else "")
+HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM", "C10T5_SNARE", "C10T5_LEAN", "C10T5_ASCENT", "C10T5_SCRAPE", "C10T5_HAND") for k in os.environ) else "")
 
 # v31 (chirper-two; palette: the song had no voice, and no song on the album had used the engine's speech to song):
 # WE HAVE BEEN HERE BEFORE. A song "all about the illusions" (Harry, 15 Nov) had every illusion of pitch and of speed
@@ -1516,6 +1516,8 @@ def song():
         the_lead_goes_back_up(doc)
     if SCRAPE:
         the_pick_is_dragged(doc)
+    if HAND:
+        the_descent_gets_a_hand(doc)
     return doc
 
 
@@ -1981,6 +1983,59 @@ def dump(doc):
         else:
             lines.append(f"{k}: {json.dumps(v)}")
     return "\n".join(lines) + "\n"
+
+
+# v40 (chirper-zero; instrument round: THE EIGHT STAIR GUITARS' muted stroke in the descent, 1:55.2-2:52.8, 1614
+# strokes. No pitch, time or length changes.) Harry, 22 Nov: "focus hard on instrument design and see if you can get
+# even harder sounding guitars, bass drums etc". Read beside six records' strokes (riffpunch --strokes, the eight
+# together) the descent's chug was the album's softest by one measure: ITS LOW END DIED AFTER THE STROKE (100-250 Hz in
+# a stroke's first 20 ms over its 40-80 ms: +1.88 dB; the records -1.1, none over +0.3; my v35 left it at "still
+# slow: said"). What cured that on other rigs did nothing on this one (the mark amp, four octaves at once): the
+# string's decay under the palm +1.68, the amp's tight at 150 +2.09, both +2.25, the amp's sag out +1.73, a faster
+# compressor +1.92. What does it is the engine's PHYSICAL PALM (`mute`: a hand of some width resting on the string near
+# the bridge, so a muted note is a thud with a short low-mid body, not a filtered open string) with the pick half as
+# soft under it: fall -1.62, punch 3.78 > 4.31, teeth -6.4 > -8.4, rise 18.5 > 10 ms. THE HAND IS ON ONLY IN THE
+# DESCENT, by the note: each muted stroke there carries `expr.hand`, and the patch binds the hand to it. In the turn
+# the mix refused it (the eight lose 3.9 dB at 120-250 Hz there; the mix 1.1 further at 120-500 Hz) and in 'both' it
+# took 0.9 dB of the mix's 60-120 Hz from the song's climax: those two are bit for bit as they were.
+# what is added to the eight's patch strings ; the beats the hand is on (FROM:TO; the descent's muted strokes run
+# from beat 192.25 to 279.75: the run into the pole, 280-288, is open strings and keeps its level) ; the eight's `palm`
+# lane inside them, dB ('' = left: the hand is 0.3 dB louder alone) ; the loudness target ('' = unchanged).
+# "" = v39 byte for byte. On only while SCRAPE and PALM are; C10T5_HAND is in HALFWAY's list of names that do not turn it off.
+HAND = os.environ.get("C10T5_HAND", "synth.layers.0.mute=expr.hand*0.8 synth.layers.0.mute_width=0.1 synth.layers.0.soft.mod.1.src=expr.hand synth.layers.0.soft.mod.1.amount=-0.5;192:280;-0.75;-10.0244" if SCRAPE and PALM else "")
+
+
+def the_descent_gets_a_hand(doc):
+    """v40: the eight stair guitars' muted strokes inside the span carry expr.hand = 1; the patch string binds the
+    physical palm and a harder pick to it; the `palm` lane holds the eight's loudness there."""
+    extra, span, trim, target = HAND.split(";")
+    a, b = (float(x) for x in span.split(":"))
+    eight = [i for i, t in enumerate(doc["tracks"]) if len(t["name"]) == 3 and t["name"][0] == "v" and t["name"][1] in "0123" and t["name"][2] in "lr"]
+    assert len(eight) == 8
+    for i in eight:
+        t = doc["tracks"][i]
+        assert "expr.hand" not in t["patch"] and not any("hand" in (n.get("expr") or {}) for n in t["notes"]), t["name"]
+        new = {**t, "patch": t["patch"].rstrip() + " " + extra,
+               "notes": [({**n, "expr": {**n["expr"], "hand": 1}} if a <= n["at"] < b and (n.get("expr") or {}).get("pm") else n) for n in t["notes"]]}
+        assert sum(1 for n in new["notes"] if (n.get("expr") or {}).get("hand")) > 0, t["name"]
+        if trim:
+            pts, on, off, was = [], False, False, 0
+            for q, v in t["auto"]["palm"]["points"]:
+                x = float(q[:-1])
+                if not on and x >= a:
+                    if x > a:
+                        pts += [[f"{a - 0.01:g}b", was], [f"{a:g}b", float(trim)]]
+                    on = True
+                if not off and x >= b:
+                    if x > b:
+                        pts += [[f"{b - 0.01:g}b", float(trim)], [f"{b:g}b", was]]
+                    off = True
+                pts.append([q, float(trim) if a <= x < b else v]); was = v
+            assert on and off, t["name"]
+            new["auto"] = {**t["auto"], "palm": {**t["auto"]["palm"], "points": pts}}
+        doc["tracks"][i] = new
+    if target:
+        doc["loudness"] = float(target)
 
 
 if __name__ == "__main__":
