@@ -3948,6 +3948,11 @@ def canon(c, A, B, how):
     return _two(c, A, B, **cut)
 
 
+def flipped(look):
+    """The picture the other way round, left to right."""
+    return {**look, "filters": list(look.get("filters", [])) + [{"type": "tile", "cols": 1, "rows": 1, "x": 1, "flip": "mirror"}]}
+
+
 def tug(c, A, B, pa, pb):
     """Two parts that answer one another: each has a picture, and the line between them is
     pushed across the frame by whichever is playing, as far as it plays for (so the frame
@@ -4366,6 +4371,9 @@ STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling"
 # ones a break shows best in; a song's own canon is one of these.
 CANON = set("riley vortex moire blinds hive interference vasarely mandala albers hourglass specimen spiral eye tiles kandinsky sundial moons zen dominoes breakout".split())
 STRONG = ("riley", "vortex", "moire", "blinds", "hive", "interference", "vasarely", "albers", "mandala")
+# Pictures that go one way across the frame, so that the same picture turned round and run by a
+# part that plays backwards is seen to go both ways at once.
+HANDS = ("riley", "blinds", "dominoes", "breakout", "kandinsky", "vortex", "moons", "interference", "spiral", "sundial", "vasarely", "mandala")
 # Pictures that fill the frame with light (cutting their lights out of another picture leaves nothing),
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "

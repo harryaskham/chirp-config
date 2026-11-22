@@ -349,6 +349,7 @@ class Deal:
         self.canon_far = collections.defaultdict(set)
         self.dealt = collections.defaultdict(set)
         self.sums = 0
+        self.hands = 0
         self.deals = 0
         self.ruled = 0
         self.album_first = None
@@ -491,6 +492,32 @@ class Deal:
                 note(name, tag, f"{name}/canon {how} {far:g}")
                 self.last["canon"] = True
                 return name, "canon", look
+        # The other hand: a right part plays the left's riff backwards. The picture is drawn for
+        # each, the right one's turned round left to right, and the two are joined: it is one
+        # picture where it stands still, and whatever moves in it moves both ways at once.
+        pair3 = hands(S, c) if not flash and not prefer and not first and kind != "hush" else None
+        if pair3 and rnd(S.n, k, "hands?") < 0.75:
+            pl, pr = pair3
+            rest = [p for p in c.riffs if p.name not in (pl.name, pr.name)]
+            how = min(W.JOINS, key=lambda j: (self.joins[(S.n, j)], self.joins[j], rnd(S.n, k, j)))
+            for name in sorted(W.HANDS, key=lambda n_: (self.used[n_] + 3 * (n_ in self.recent[-6:]), W.HANDS.index(n_))):
+                if name not in W.HANDS or (name, "hands") in self.combos:
+                    continue
+                cl, cr = copy.copy(base), copy.copy(base)
+                cl.riffs, cr.riffs = [pl] + rest, [pr] + rest
+                one, two = make(name, ctx=cl), make(name, ctx=cr)
+                if not one or not two:
+                    continue
+                c.__dict__.update(one[0].__dict__)
+                c.canon = f"{pr.name} plays {pl.name} backwards, joined in {how}"
+                look = W.canon(c, one[1], W.flipped(two[1]), how)
+                self.hands += 1
+                self.joins[(S.n, how)] += 1
+                self.joins[how] += 1
+                self.treats["hands"] += 1
+                note(name, "hands", f"{name}/hands {how}")
+                self.last["canon"] = True
+                return name, "hands", look
         # The sum: while a riff is being added up, a place at a time, its triangle keeps coming
         # back, a few rows further on each time, and is there when the sum closes.
         add = summing(S, c) if not flash and not prefer and not first and kind != "hush" else None
@@ -793,6 +820,44 @@ def stereo(S, c, whole=False):
         if best is None or T[left].count(a, b) > best[3]:
             best = (behind, ahead, far, T[left].count(a, b))
     return best[:3] if best else None
+
+
+def hands(S, c):
+    """Two parts of the scene, a left and a right, of which the right plays the left's riff
+    backwards (the same strip of attacks read from the other end): (the left, the right with
+    its turns begun where its strip is the left's reversed); or None."""
+    T = {t.name: t for t in (S.tracks.values() if isinstance(S.tracks, dict) else S.tracks)}
+    a, b = c.a16 // 16, min(S.bars, max(c.a16 // 16 + 1, -(-c.b16 // 16)))
+    pairs = [(n_, n_[:-1] + "r") for n_ in T if n_.endswith("l")] + [("left", "right")]
+    for left, right in pairs:
+        if left not in T or right not in T or T[left].role == "drum" or any(T[n_].count(a, b) < 3 * (b - a) for n_ in (left, right)):
+            continue
+        cell = T[left].cell(a, b)[0]
+        if not cell or cell < 6 or T[right].cell(a, b)[0] != cell:
+            continue
+        pl = S.part(T[left], c.a16, c.b16, cell)
+
+        def strip(t, anchor):
+            hits = [0] * cell
+            turns = 0
+            x = anchor + -(-(a * 16 - anchor) // cell) * cell
+            while x + cell <= b * 16:
+                for j in range(cell):
+                    hits[j] += t.grid.get(x + j) is not None
+                turns, x = turns + 1, x + cell
+            return [h * 2 > turns for h in hits] if turns else None
+        sl = strip(T[left], pl.anchor)
+        if not sl or sum(sl) < 3 or sl == sl[::-1]:
+            continue
+        turned = [strip(T[right], pl.anchor + shift) for shift in range(cell)]
+        if any(sr == sl for sr in turned):
+            continue        # the right plays the left's riff as it is (in step or out of it): a riff that reads the same both ways proves nothing
+        for shift, sr in enumerate(turned):
+            if sr and sr[::-1] == sl:
+                pr = S.part(T[right], c.a16, c.b16, cell)
+                pr.anchor = pl.anchor + shift
+                return pl, pr
+    return None
 
 
 def even(notes, a, b):
@@ -1186,7 +1251,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 
