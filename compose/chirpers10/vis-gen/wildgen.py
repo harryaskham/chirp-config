@@ -81,7 +81,7 @@ class Song:
         a, b = a16 // 16, max(a16 // 16 + 1, -(-b16 // 16))
         keys = [k for s, _, k in t.notes if a16 / 4 <= s < b16 / 4] or [t.med]
         anchor = t.anchor(a16, b16, cell) if cell else None
-        return W.P(t.name, cell, a16 if anchor is None else anchor, t.role, min(keys), max(keys), t.count(a, b) / max(b - a, 1))
+        return W.P(t.name, cell, a16 if anchor is None else anchor, t.role, min(keys), max(keys), t.count(a, b) / max(b - a, 1), n=sum(1 for s, *_ in t.notes if a16 / 4 <= s < b16 / 4))
 
     def cx(self, a16, b16, k=0, variant=0, paper=False, cyc=None):
         a = a16 // 16
@@ -285,15 +285,18 @@ class Deal:
         self.dyn = collections.Counter()
         self.last = None
         self.chains = 0
+        self.grown = collections.Counter()
 
     @staticmethod
     def motif_key(c):
         return tuple((p.name, p.cell) for p in c.riffs[:2])
 
-    def choose(self, S, c, k, first, flash=False, prefer=None, kind=None):
+    def choose(self, S, c, k, first, flash=False, prefer=None, kind=None, ahead=None, final=False):
         in_song = self.song_used
         fams = [W.REG[i]["fam"] for i in self.recent[-3:]]
         cands = []
+        secs = (c.b16 - c.a16) * c.six
+        busiest = max([p.n for p in c.riffs[:2] + c.tunes[:1]] or [0])
         # Chains: a picture is joined by a second, and then the second stands alone.
         last = self.last if not flash else None
         hand_on = last["partner"] if last and last.get("partner") and not prefer and kind != "hush" and rnd(S.n, k, "hand?") < 0.7 else None
@@ -304,8 +307,10 @@ class Deal:
                 continue
             if first and (info["cost"] >= 3 or info["fam"] in ("plate", "room", "travel")):
                 continue
-            if flash and (info["cost"] >= 3 or info["fam"] in ("plate", "travel", "sheet", "trace", "grow") or name in W.PLATES):
+            if flash and (info["cost"] >= 3 or info["fam"] in ("plate", "travel", "sheet", "trace", "grow") or name in W.PLATES or name in W.SLOW):
                 continue        # a flash has no time to draw anything out
+            if name in W.FED and (final or busiest < max(5, 1.4 * secs)):
+                continue        # it is made of notes, and here there are too few (or the song is ringing out)
             score = 4.0 * self.used[name] + 1.5 * (info["cost"] - 1) - 2.0 * min(info["needs"], 3) + 3.0 * rnd(S.n, k, name)
             if name == prefer:
                 score -= 60         # the song ends on the picture it began with, changed
@@ -338,10 +343,10 @@ class Deal:
         import copy
         base = copy.copy(c)
 
-        def make(name, sub=None, keep=False):
+        def make(name, sub=None, keep=False, ctx=None):
             """The idiom's look for this scene (as part `sub` sees it), or None if it does not fit.
             `keep`: as it was last time (the same camera and colours), for a picture that carries on."""
-            d = copy.copy(base) if sub is None else base.sub(sub, 2)
+            d = copy.copy(ctx or base) if sub is None else base.sub(sub, 2)
             d.variant = max(self.used[name] - keep, 0)
             rot = d.variant % 3
             d.a, d.b, d.c = (d.a, d.b, d.c)[rot:] + (d.a, d.b, d.c)[:rot]
@@ -350,9 +355,9 @@ class Deal:
             except (ValueError, IndexError, ZeroDivisionError, TypeError):
                 return None
 
-        def note(name, treat, label, partner=None):
+        def note(name, treat, label, partner=None, raw=0, ending=None):
             if not flash:
-                self.last = {"name": name, "partner": partner}
+                self.last = {"name": name, "partner": partner, "ending": ending, "riffs": frozenset((p.name, p.cell) for p in c.riffs), "size": raw}
             if not flash and c.riffs:
                 self.motif.setdefault(self.motif_key(c), name)
             self.used[name] += 1
@@ -362,9 +367,39 @@ class Deal:
             self.count += 1
             self.log.setdefault(str(S.n), []).append(label)
 
+        grows = set()
+        if ahead is not None and not flash and not first:
+            # The band is about to gain or lose a part: favour a picture that can do the same.
+            for _, name in sorted(cands)[:36]:
+                if W.REG[name]["fam"] == "plate" or name in W.PLATES or W.REG[name]["cost"] >= 3:
+                    continue
+                one, two = make(name), make(name, ctx=ahead)
+                if one and two:
+                    n1, n2 = len(json.dumps(one[1])), len(json.dumps(two[1]))
+                    if abs(n1 - n2) > 0.03 * n1:
+                        grows.add(name)
+            cands = [(score - 16 * (name in grows), name) for score, name in cands]
         ranked = [name for _, name in sorted(cands)]
+        # The band gains a part, or loses one, and nothing else changes: so does the picture.
+        now = frozenset((p.name, p.cell) for p in c.riffs)
+        if last and not flash and not prefer and kind != "hush" and not last.get("partner") and last.get("ending") and last.get("riffs") and now \
+                and (last["riffs"] < now or now < last["riffs"]) and rnd(S.n, k, "grow?") < 0.75:
+            name = last["name"]
+            way = "more" if last["riffs"] < now else "less"
+            key = next((w_ for w_ in (way, way + "2", way + "3") if (name, w_) not in self.combos), None)
+            got = make(name, keep=True) if key and W.REG[name]["fam"] != "plate" and name not in W.PLATES else None
+            if got and W.TREAT[last["ending"]][1](got[0], W.REG[name]):
+                d, look = got
+                raw = len(json.dumps(look))
+                if abs(raw - last["size"]) > 0.03 * last["size"]:
+                    d.arrive = "1"
+                    look = W.TREAT[last["ending"]][0](d, look)
+                    c.__dict__.update(d.__dict__)
+                    self.grown[way] += 1
+                    note(name, key, f"{name}/{way}", raw=raw, ending=last["ending"])
+                    return name, way, look
         # Now and then two pictures share the frame.
-        if not first and not flash and not prefer and rnd(S.n, k, "pair?") < 0.08 + 0.3 * c.full:
+        if not first and not flash and not prefer and not grows and rnd(S.n, k, "pair?") < 0.12 + 0.34 * c.full:
             pair = [n_ for n_ in ranked if W.REG[n_]["fam"] not in NO_PAIR and W.REG[n_]["cost"] <= 2 and n_ not in self.recent[-12:]]
             # The picture before, if it stood alone, carries on and is joined by a new one.
             carry = last["name"] if last and not last.get("partner") and W.REG[last["name"]]["fam"] not in NO_PAIR and W.REG[last["name"]]["cost"] <= 2 else None
@@ -417,6 +452,7 @@ class Deal:
                 if treat is None:
                     continue
             c.arrive = "1"
+            raw = len(json.dumps(look))
             if treat in W.ARRIVES and not flash and (c.b16 - c.a16) * c.six >= 5.5 and rnd(S.n, k, "arrive?") < 0.45:
                 # It begins as itself, and the treatment comes on where the riff comes round
                 # part way through (or it begins treated and comes out of it).
@@ -429,7 +465,7 @@ class Deal:
                 self.arrivals += 1
             look = W.TREAT[treat][0](c, look)
             self.treats[treat] += 1
-            note(name, treat, name if treat == "plain" else f"{name}/{treat}")
+            note(name, treat, name if treat == "plain" else f"{name}/{treat}", raw=raw, ending="plain" if c.arrive.startswith("(1 -") else treat)
             return name, treat, look
         raise RuntimeError(f"nothing fits t{S.n} scene {k}")
 
@@ -446,7 +482,15 @@ def plan(S, deal):
     for k, (a16, b16, cyc, kind) in enumerate(cuts):
         flash = kind == "flash"
         c = S.cx(a16, b16, k=k, cyc=cyc)
-        name, treat, look = deal.choose(S, c, k, first=(k == 0), flash=flash, prefer=out[0][2] if k and k == len(cuts) - 1 and len(cuts) > 12 else None, kind=kind)
+        # The next scene that is not a flash: does the band only gain or lose a part there?
+        ahead = None
+        j = next((j for j in range(k + 1, len(cuts)) if cuts[j][3] != "flash"), None)
+        if j is not None and not flash and cuts[j][3] != "hush" and j < len(cuts) - 1:
+            c2 = S.cx(cuts[j][0], cuts[j][1], k=j, cyc=cuts[j][2])
+            r1, r2 = frozenset((p.name, p.cell) for p in c.riffs), frozenset((p.name, p.cell) for p in c2.riffs)
+            if r1 and r2 and (r1 < r2 or r2 < r1):
+                ahead = c2
+        name, treat, look = deal.choose(S, c, k, first=(k == 0), flash=flash, prefer=out[0][2] if k and k == len(cuts) - 1 and len(cuts) > 12 else None, kind=kind, ahead=ahead, final=(k == len(cuts) - 1))
         deal.dyn[kind] += 1
         # Each length of riff has its own cast of colour in a song: the first as the song's
         # colours are, each new length a step round from them, and back when a length returns.
@@ -457,7 +501,7 @@ def plan(S, deal):
         deal.flashes += flash
         scene = {"at": 0 if k == 0 else f"{a16 // 16}bar" if a16 % 16 == 0 else f"{a16 / 4:g}b", "look": look}
         still = treat in ("roll", "spin", "hole", "sheet", "kaleido", "mirror", "tunnel", "slices", "wall", "planet", "wound") or name in W.PLATES or W.REG[name]["fam"] in ("plate", "sheet", "sign")
-        if k and not flash and not still and (b16 - a16) * c.six >= 4.5 and rnd(S.n, k, "move?") < 0.5:
+        if k and not flash and not still and treat not in ("more", "less") and (b16 - a16) * c.six >= 4.5 and rnd(S.n, k, "move?") < 0.5:
             # The camera over the picture does one thing in the scene, each kind in its turn.
             mv = min(W.MOVES, key=lambda m_: deal.moves[m_] + 1.5 * rnd(S.n, k, m_))
             deal.moves[mv] += 1
@@ -479,7 +523,7 @@ def plan(S, deal):
             look.setdefault("filters", []).extend([{"type": "camera", "zoom": f"1 + 0.22*exp(0 - 2.5*{since})"}, {"type": "color", "exposure": f"1 + 3.5*exp(0 - 4*{since})"}])
         if k and name in W.PLATES and "+" not in treat:
             scene["lead"] = "2bar" if name == "photofinish" else "1bar"
-        elif k and not kind and not was_flash and rnd(S.n, k, "x") < 0.34:
+        elif k and not kind and not was_flash and treat not in ("more", "less") and rnd(S.n, k, "x") < 0.34:
             # One picture turns into the next: each way in its turn, over a beat or two.
             tr = min(TRANSITIONS, key=lambda t_: deal.trans[t_] + 1.5 * rnd(S.n, k, t_))
             deal.trans[tr] += 1
@@ -531,7 +575,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 

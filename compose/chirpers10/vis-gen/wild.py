@@ -25,8 +25,9 @@ def idiom(needs=1, fam="", paper=False, drums=False, tune=False, cost=1, min_bar
 class P:
     """A part in a scene: its track, its cell (sixteenths; None: none), the sixteenth at which
     a turn of it begins, its pitch range here (MIDI) and its notes a bar."""
-    def __init__(self, name, cell, anchor, role, lo, hi, rate):
+    def __init__(self, name, cell, anchor, role, lo, hi, rate, n=0):
         self.name, self.cell, self.anchor, self.role, self.lo, self.hi, self.rate = name, cell, anchor, role, lo, hi, rate
+        self.n = n          # how many notes it plays in the scene
 
     # Expressions.
     @property
@@ -231,7 +232,7 @@ def crystal(c):
     L = math.lcm(*cells)
     if L > 2400:
         P, cells = P[:2] + [P[2]], cells
-    u = 5.6 / max(cells)
+    u = 4.5 / max(cells)
     now = f"(time.beat*4 - {P[0].anchor:g})"
 
     def co(k, i="inst.i"):
@@ -240,6 +241,12 @@ def crystal(c):
     age = f"fract(({now} - inst.i)/{L})*{L}"
     count = min(L, 4000)
     layers = [ball(co(0), co(1), co(2), f"{0.14 * u:g}*(1 + 2.2*exp(0 - 9*{age}/{L}))", detail=6, count=count, **glow(c.ink, f"0.3 + 2.2*exp(0 - 7*{age}/{L})"))]
+    n1, n2, n3 = cells
+    if L < n1 * n2 * n3 <= 4096:
+        # The lengths share a measure, so the lamp never visits most of the block: show it all, faintly.
+        g = [f"(fract((inst.i + 0.5)/{n1})*{n1} - 0.5 - {(n1 - 1) / 2:g})*{u:g}", f"(fract((floor(inst.i/{n1}) + 0.5)/{n2})*{n2} - 0.5 - {(n2 - 1) / 2:g})*{u:g}",
+             f"(floor(inst.i/{n1 * n2}) - {(n3 - 1) / 2:g})*{u:g}"]
+        layers.insert(0, ball(g[0], g[1], g[2], 0.07 * u, detail=4, count=n1 * n2 * n3, **glow(c.dim, 0.5)))
     s = f"floor({now} + 0.001)"
     layers.append(ball(co(0, s), co(1, s), co(2, s), 0.42 * u, detail=10, **glow(c.a, 3)))
     spin = f"time.bar/{max(8, int(c.bars * 2))}"
@@ -873,8 +880,10 @@ def solkattu(c):
     layers = []
     for i, p in enumerate(parts):
         syl = syllables(p.cell)
-        size = min(0.26, 3.4 / (len(syl) * 2.7))
-        y = (len(parts) - 1) / 2 * 0.56 - 0.56 * i - size / 2
+        cap = (0.6, 0.36, 0.26)[len(parts) - 1]
+        size = min(cap, 3.4 / (len(syl) * 2.7))
+        gap = cap * 2.15
+        y = (len(parts) - 1) / 2 * gap - gap * i - size / 2
         for k, sy in enumerate(syl):
             d = f"(fract({p.turn} - {k / p.cell:.5f})*{p.cell})"
             for col, op in ((c.ink, "0.5"), (c.col(i), f"exp(0 - 1.6*{d})")):
@@ -895,7 +904,7 @@ def ridges(c):
     """A range of hills made of the sound: each ridge is the spectrum a moment ago, the
     nearest the newest."""
     layers = [{"type": "gradient", "palette": [c.bg, c.bg, c.a], "angle": 0.25, "spread": 0.35, "light": 0.5, "res": 0.5},
-              {"type": "lines", "every": f"{c.six * 2:g}", "height": 0.9, "y": 0.5, "size": 1.7, "spacing": 0.036, "width": 0.006, "rows": 44, "palette": [c.dim, c.ink, c.ink], "spread": 0.5}]
+              {"type": "lines", "every": f"{c.six * 2:g}", "height": 1.5, "y": 0.5, "size": 1.7, "spacing": 0.036, "width": 0.007, "rows": 44, "palette": [c.dim, c.ink, c.ink], "spread": 0.5}]
     return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.25, 0.012, 0.7)]}
 
 
@@ -1604,6 +1613,22 @@ def turtle(c):
     one riff and left for the other; the plate keeps its whole walk."""
     A = c.riffs[0]
     B = c.riffs[1] if len(c.riffs) > 1 else None
+    t0 = math.floor((c.a16 - A.anchor) / A.cell)
+    if not B:
+        # One riff alone: the sides grow as it goes, so the walk winds outward (a square, a
+        # three-cornered or a five-pointed winding, by turns).
+        step, reach, g_ = ((0.25, 1.0, 0.22), (1 / 3, 0.8, 0.55), (0.4, 0.62, 0.5), (0.2, 1.0, 0.22), (1 / 6, 1.0, 0.22))[c.variant % 5]
+        per = max(1, math.ceil((c.b16 - c.a16) / A.cell / 22))     # a corner every so many turns: no more than a score of corners
+        turns = max(2.0, (c.b16 - c.a16) / (A.cell * per))
+        k = f"floor(({A.turn} - {t0})/{per})"
+        s0 = 3.6 * reach / (1 + g_ * turns)
+        v = f"{s0:g}*(1 + {g_}*{k})/{A.cell * per * c.six:g}"
+        h = f"{step:g}*{k}"
+        thick = max(0.018, min(0.05, 0.3 * s0 * g_))
+        return {"background": c.bg, "camera": FLAT,
+                "vars": {"h": {"follow": h, "attack": "0ms", "release": "0ms"}, "px": {"integrate": f"{v}*cos(var.h)"}, "py": {"integrate": f"{v}*sin(var.h)"}},
+                "layers": [ball("var.px", "var.py", 0, thick, 8, **glow(c.ink, 0.5)), ball("var.px", "var.py", -0.05, f"{thick:g} + 0.06*{A.hit}", 8, **glow(c.a, 1.2))],
+                "filters": [{"type": "expose", "open": 1, "fade": 0, "live": 1, "mode": "light"}, bloom(c, 0.35, 0.016, 0.55)]}
     h = f"0.25*floor({A.turn})"
     if B:
         # Turn the second riff whichever way keeps the walk on the plate.
@@ -1612,7 +1637,7 @@ def turtle(c):
         sgn = "-" if abs(r_opp - 1.4) < abs(r_same - 1.4) else "+"
         h = f"0.25*(floor({A.turn}) {sgn} floor({B.turn}))"
     turns = max(2.0, (c.b16 - c.a16) / A.cell)
-    v = max(0.5, min(1.7, 9.0 / turns)) / (A.cell * c.six)      # a side: longer where there are few
+    v = max(0.9, min(1.9, 11.0 / turns)) / (A.cell * c.six)     # a side: longer where there are few
     look = {"background": c.bg, "camera": FLAT,
             "vars": {"h": {"follow": h, "attack": "0ms", "release": "0ms"}, "px": {"integrate": f"{v:g}*cos(var.h)"}, "py": {"integrate": f"{v:g}*sin(var.h)"}},
             "layers": [ball("var.px", "var.py", 0, 0.09, 8, **glow(c.ink, 2.2)), ball("var.px", "var.py", -0.05, f"0.05 + 0.14*{A.hit}", 8, **glow(c.a, 3))],
@@ -2153,14 +2178,14 @@ def globe(c):
     B = c.riffs[1] if len(c.riffs) > 1 else None
     R = 1.9
     layers = [{"type": "stars", "count": 400, "speed": 0, "size": 0.8, "light": 0.4, "twinkle": 0.2, "streak": 0}, lamp(-5, 3, -6, 0.9, "#bcd0ff"),
-              {"type": "mesh", "shape": "sphere", "detail": 18, "mode": "wire", "x": 0, "y": 0, "z": 0, "scale": R, "ry": f"0 - {A.turn}", "color": c.ink, "emit": 0.5, "light": 0, "ambient": 0, "rim": 0, "width": 0.004},
-              ball(0, 0, 0, R * 0.97, 24, **solid("#0a0f1a", 0.8))]
+              {"type": "mesh", "shape": "sphere", "detail": 18, "mode": "wire", "x": 0, "y": 0, "z": 0, "scale": R, "ry": f"0 - {A.turn}", "color": c.ink, "emit": 1.1, "light": 0, "ambient": 0, "rim": 0, "width": 0.009},
+              ball(0, 0, 0, R * 0.97, 24, **solid("#16233f", 0.8))]
     for i, (p, rr) in enumerate(((A, R * 1.01), (B, R * 1.22))):
         if not p:
             continue
         lon = f"({p.nph} - fract({p.turn}))"
         lat = p.pitch(-0.16, 0.16)
-        layers.append(ball(f"{rr}*cos({lat})*sin({lon})", f"{rr}*sin({lat})", f"0 - {rr}*cos({lat})*cos({lon})", "0.045 + 0.07*exp(0 - 2*note.age)", 8, notes={"track": p.name, "past": max(4, p.cell / 4 * 2)},
+        layers.append(ball(f"{rr}*cos({lat})*sin({lon})", f"{rr}*sin({lat})", f"0 - {rr}*cos({lat})*cos({lon})", "0.075 + 0.1*exp(0 - 2*note.age)", 8, notes={"track": p.name, "past": max(4, p.cell / 4 * 2)},
                           **glow(c.col(i), "0.8 + 3*exp(0 - 1.5*note.age)")))
     return {"background": "#020205", "camera": cam("0.6*sin(time.bar/11)", 0.8, -7, zoom=1.6), "layers": layers, "filters": [{"type": "aa"}, bloom(c, 0.5, 0.02, 0.55)]}
 
@@ -2261,10 +2286,10 @@ def hive(c):
     x, y = f"(({col} + 0.5*{odd}) - {(W - 1) / 2 + 0.25})*0.196", f"({(H - 1) / 2} - {row})*0.17"
     q = f"({col} - floor({row}/2))"
     axes = (q, row, f"({q} + {row})")
-    layers = [{"type": "shape", "sides": 6, "rotate": 0.0833, "repeat": W * H, "radius": 0.106, "width": 0, "fill": 1, "color": c.dim, "opacity": 0.22, "x": x, "y": y}]
+    layers = [{"type": "shape", "sides": 6, "rotate": 0.0833, "repeat": W * H, "radius": 0.106, "width": 0, "fill": 1, "color": c.dim, "opacity": 0.42, "x": x, "y": y}]
     for i, p in enumerate(P):
         d = f"(fract({p.turn} - {axes[i]}/{p.cell})*{p.cell})"
-        layers.append({"type": "shape", "sides": 6, "rotate": 0.0833, "repeat": W * H, "radius": 0.1 - 0.018 * i, "width": 0, "fill": 1, "color": c.col(i), "blend": "add", "opacity": f"0.85*exp(0 - 1.3*{d})", "x": x, "y": y})
+        layers.append({"type": "shape", "sides": 6, "rotate": 0.0833, "repeat": W * H, "radius": 0.1 - 0.018 * i, "width": 0, "fill": 1, "color": c.col(i), "blend": "add", "opacity": f"exp(0 - 1.0*{d})", "x": x, "y": y})
     return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.3, 0.014, 0.7)]}
 
 
@@ -2391,9 +2416,9 @@ def letters(c):
         top = 0.95 - i * 1.9 / len(P)                      # each part falls through its own band of the frame
         fall = 1.9 / len(P) - 0.26
         for e, (lag, op) in enumerate(((0, 1.0), (0.3, 0.4))):
-            layers.append({"type": "text", "notes": {"track": p.name, "past": 1.6}, "text": _letters(c), "pick": f"floor(note.midi + {e} + 0.5)", "size": 0.24, "align": "center", "width": 0.17, "skew": 0,
+            layers.append({"type": "text", "notes": {"track": p.name, "past": 6.1}, "text": _letters(c), "pick": f"floor(note.midi + {e} + 0.5)", "size": 0.24, "align": "center", "width": 0.17, "skew": 0,
                            "x": f"(({NOTE16} + 0.5 - 8)*0.21)", "y": f"{top:g} - {fall:g}*min((note.age - {lag})/1.2, 1) - 0.24", "color": c.ink if e else c.col(i),
-                           "opacity": f"{op}*step({lag}, note.age)*step(note.age, 1.5)"})
+                           "opacity": f"{op}*step({lag}, note.age)*(1 - 0.6*step(1.5, note.age))*(1 - smooth(3.5, 6, note.age))"})
     return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.4, 0.016, 0.6)]}
 
 
@@ -2603,9 +2628,11 @@ def splitflap(c):
         y = ((len(P) - 1) / 2 - i) * 0.4
         home = f"step(fract({p.turn})*{p.cell}, 1.0)"       # the riff's first sixteenth
         scr = f"floor(hash(floor(time.beat*4 + 0.01)*1.7 + inst.i*7.3 + {i * 13})*26)"
-        layers.append({"type": "shape", "repeat": n_, "sides": 4, "rotate": 0.125, "radius": w * 0.62, "width": 0, "fill": 1, "color": "#15161a", "blend": "normal", "x": f"(inst.i - {(n_ - 1) / 2})*{w:g}", "y": y})
+        layers.append({"type": "shape", "repeat": n_, "sides": 4, "rotate": 0.125, "radius": w * 0.62, "width": 0, "fill": 1, "color": "#26282f", "blend": "normal", "x": f"(inst.i - {(n_ - 1) / 2})*{w:g}", "y": y})
         layers.append({"type": "text", "repeat": n_, "text": name + "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "pick": f"mix({n_} + {scr}, inst.i, {home})", "size": w * 1.05, "align": "center", "width": 0.14, "skew": 0,
-                       "x": f"(inst.i - {(n_ - 1) / 2})*{w:g}", "y": y - w * 0.52, "color": c.col(i) if len(P) > 1 else c.ink, "opacity": f"0.55 + 0.45*{home}"})
+                       "x": f"(inst.i - {(n_ - 1) / 2})*{w:g}", "y": y - w * 0.52, "color": c.ink, "opacity": f"0.8 + 0.2*{home}"})
+        layers.append({"type": "shape", "repeat": n_, "sides": 4, "rotate": 0.125, "radius": w * 0.62, "width": 0, "fill": 1, "color": c.col(i), "blend": "add", "opacity": f"0.45*{home}",
+                       "x": f"(inst.i - {(n_ - 1) / 2})*{w:g}", "y": y})
         layers.append({"type": "shape", "repeat": n_, "sides": 4, "rotate": 0.125, "radius": w * 0.62, "width": 0, "fill": 1, "color": c.bg, "blend": "normal", "x": f"(inst.i - {(n_ - 1) / 2})*{w:g}", "y": y, "scale": 1,
                        "opacity": 0} if False else
                       box(0, y * 2.557, -0.1, n_ * w * 2.557 / 2 + 0.1, 0.008, 0.01, **glow(c.bg, 1)))
@@ -2784,13 +2811,13 @@ def inset(c):
 def gallery(c):
     """A dark room with pictures on the wall, each a different instrument reading a part;
     someone stands before them."""
-    layers = [lamp(0, 4, -3, 0.5), floor(c, 0, "#101013", 0.25), box(0, 2, 3.05, 9, 2.2, 0.05, **solid("#1c1c20", 0.9))]
+    layers = [lamp(0, 4, -3, 1.1), floor(c, 0, "#16161a", 0.25), box(0, 2, 3.05, 9, 2.2, 0.05, **solid("#2c2c33", 0.9))]
     used = []
     for k in range(3):
         name, look = _small(c, k % max(len(c.riffs), 1), skip=used)
         used.append(name)
         x = (k - 1) * 3.3
-        layers.append({"type": "screen", "use": look, "x": x, "y": 1.75, "z": 3.0, "w": 2.9, "h": 1.63, "glow": 1.15, "res": 270})
+        layers.append({"type": "screen", "use": look, "x": x, "y": 1.75, "z": 3.0, "w": 2.9, "h": 1.63, "glow": 1.6, "res": 270})
         layers.append(lamp(x, 1.7, 1.6, 0.5, c.col(k), 4))
     layers.append({"type": "figure", "rig": "human", "motion": "sway", "energy": 0.3, "x": "2.2*sin(time.bar/12)", "y": 1.0, "z": 1.3, "scale": 0.95, "ry": 0.5, "color": "#060608", "light": 0.15, "ambient": 0.05, "rim": 0})
     return {"background": "#060608", "camera": cam("1.6*sin(time.bar/10)", 1.5, -3.2, look=("1.0*sin(time.bar/10)", 1.55, 3), zoom=1.9), "layers": layers,
@@ -2857,9 +2884,77 @@ def c_window(c, A, B):
 
 @combo("diptych")
 def c_diptych(c, A, B):
-    """Two pictures side by side, each drawn whole in its half."""
-    return {"background": "#000000", "layers": [_act(A, x=-0.889, y=0, scale=0.49, mask="rect"), _act(B, x=0.889, y=0, scale=0.49, mask="rect")],
-            "filters": []}
+    """Two pictures side by side, the middle of each filling its half of the frame."""
+    return {"background": "#000000", "layers": [_act(A, x=-0.889, blend="normal", cut="half", cut_take=0), _act(B, x=0.889, blend="normal", cut="half", cut_take=1),
+                                                box(0, 0, -0.1, 0.012, 2.6, 0.01, **glow(c.ink, 1))], "camera": FLAT, "filters": []}
+
+
+def _two(c, A, B, **cut):
+    """Both pictures whole, each shown in its own share of the frame."""
+    return {"background": "#000000", "layers": [_act(A, blend="normal", cut_take=0, **cut), _act(B, blend="normal", cut_take=1, **cut)], "filters": []}
+
+
+def _step(p, per=1):
+    """A count that goes up by one each time the riff comes round (sliding the last of the way)."""
+    return f"(floor({p.turn}/{per}) + smooth(0.8, 1, fract({p.turn}/{per})))"
+
+
+@combo("strips")
+def c_strips(c, A, B):
+    """The frame in as many upright strips as the riff has sixteenths, one picture in the odd
+    ones and the other in the even; each time the riff comes round they change strips."""
+    p = _lead(c)
+    nn = p.cell or 16
+    nn = nn if nn <= 16 else next((nn // k for k in (2, 3, 4) if nn % k == 0 and nn // k <= 16), 8)
+    return _two(c, A, B, cut="strips", cut_n=nn, cut_at=_step(p))
+
+
+@combo("bands")
+def c_bands(c, A, B):
+    """The same, lying down: bands across the frame, as many as the second riff has sixteenths (or six)."""
+    p = c.riffs[1] if len(c.riffs) > 1 else _lead(c)
+    nn = p.cell if p.cell and 3 <= p.cell <= 12 else 6
+    return _two(c, A, B, cut="bands", cut_n=nn, cut_at=_step(p))
+
+
+@combo("board")
+def c_board(c, A, B):
+    """A board of squares, one picture on the black and the other on the white; they change
+    squares each time the riff comes round."""
+    p = _lead(c)
+    return _two(c, A, B, cut="checker", cut_n=(8, 6, 10, 4)[c.seed % 4], cut_at=_step(p))
+
+
+@combo("wedges")
+def c_wedges(c, A, B):
+    """The frame cut like a cake into as many slices as the riff has sixteenths, turning a slice a turn."""
+    p = _lead(c)
+    nn = p.cell or 16
+    nn = (nn if nn % 2 == 0 else nn * 2) if nn <= 12 else 8
+    return _two(c, A, B, cut="wedges", cut_n=nn, cut_at=f"{_step(p)}/{nn}")
+
+
+@combo("rings")
+def c_rings(c, A, B):
+    """Rings out from the middle, one picture and the other by turns, moving out a ring each time the riff comes round."""
+    p = _lead(c)
+    return _two(c, A, B, cut="rings", cut_n=(6, 8, 5, 10)[c.seed % 4], cut_at=_step(p))
+
+
+@combo("triptych")
+def c_triptych(c, A, B):
+    """Three panels: the middle of one picture, with the middle of the other on either side of it."""
+    return {"background": "#000000", "layers": [_act(A, x=-1.185, blend="normal", cut="strips", cut_n=3, cut_mod=3, cut_take=0), _act(B, blend="normal", cut="strips", cut_n=3, cut_mod=3, cut_take=1),
+                                                _act(A, x=1.185, blend="normal", cut="strips", cut_n=3, cut_mod=3, cut_take=2),
+                                                box("(inst.i - 0.5)*3.03", 0, -0.1, 0.012, 2.6, 0.01, count=2, **glow(c.ink, 1))], "camera": FLAT, "filters": []}
+
+
+@combo("sweep")
+def c_sweep(c, A, B):
+    """One picture gives way to the other from left to right through the scene, and the line between them shows."""
+    at = f"(2.2*{c.prog} - 1.1)"
+    return {"background": "#000000", "layers": [_act(B, blend="normal"), _act(A, blend="normal", cut="half", cut_at=at, cut_take=1),
+                                                box(f"{at}*4.545", 0, -0.1, 0.012, 2.6, 0.01, **glow(c.ink, 1))], "camera": FLAT, "filters": []}
 
 
 @combo("lighten")
@@ -3042,7 +3137,7 @@ def t_plain(c, look):
 
 KALEIDO_UP = -0.55      # the camera filter's y that puts the picture's middle 0.55 above the frame's
 
-KALEIDO_OK = set("spiral sunflower stringart moire vortex epicycle harmonograph strange eclipse armillary radial cube fireflies pond chladni tiles table strings slack combs tally blinds loom crystal orrery blots "
+KALEIDO_OK = set("spiral sunflower stringart moire vortex epicycle harmonograph strange eclipse armillary radial cube fireflies pond chladni tiles table strings slack combs tally blinds loom orrery "
                  "sonar mondrian maypole carousel ferris helix anemone membrane shatter interference hive maze venn tartan colony treerings eye".split())
 
 
@@ -3056,7 +3151,18 @@ def t_kaleido(c, look):
     return _pre(look, {"type": "camera", "zoom": 0.75, "y": KALEIDO_UP}, {"type": "kaleido", "n": nn, "rotate": f"0.25 - {0.25 / nn:.4f} + {0.12 / nn:.4f}*sin({p.turn}/4)", "zoom": 1.0})
 
 
-@treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror"))
+# Pictures that stand to one side, or are a line of things: half of one is not a picture.
+MIRROR_BAD = set("kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
+                 "marquee odometer numerals tape score".split())
+# Pictures that are mostly light: a print of their lights is a blank sheet.
+BRIGHT = set("maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm".split())
+# Pictures that are nothing until notes come: not for a passage where few do.
+FED = set("letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins".split())
+# Pictures that take time to become anything: not for a flash.
+SLOW = set("bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph".split())
+
+
+@treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)
 def t_mirror(c, look):
     return _pre(look, {"type": "mirror", "axis": ("x", "y", "xy")[c.seed % 3]})
 
@@ -3260,14 +3366,14 @@ def t_water(c, look):
     return _pre(look, {"type": "ripple", "on": f"track.{p.name}", "amount": 0.05, "speed": 1.3, "width": 0.16, "decay": 1.4, "x": (-0.6, 0.5, 0, 0.9)[c.seed % 4], "y": (0.2, -0.3, 0, 0.4)[c.seed % 4]})
 
 
-@treat("poster", ok=lambda c, info: info["fam"] not in ("sign", "plate", "ground", "place"))
+@treat("poster", ok=lambda c, info: info["fam"] not in ("sign", "plate", "ground", "place") and info["f"].__name__ not in BRIGHT)
 def t_poster(c, look):
     """A two-colour print: the ground is the song's colour, flat, and whatever was light is black on it."""
     look["filters"] = [f for f in look.get("filters", []) if f.get("type") != "bloom"] + [{"type": "remap", "gain": 1.8, "palette": [c.a, "#141418", "#0c0c10"], "amount": c.arr}]
     return look
 
 
-@treat("flood", ok=lambda c, info: info["fam"] not in ("sign", "plate", "ground", "place"))
+@treat("flood", ok=lambda c, info: info["fam"] not in ("sign", "plate", "ground", "place") and info["f"].__name__ not in BRIGHT)
 def t_flood(c, look):
     """The other print: a deep ground of the song's second colour, and whatever was light is cream on it."""
     look["filters"] = [f for f in look.get("filters", []) if f.get("type") != "bloom"] + [{"type": "remap", "gain": 1.8, "palette": [c.b, "#f3ecd8", "#fffaf0"], "amount": c.arr}]
@@ -3365,9 +3471,9 @@ def master(title, style=0):
     elif style == 4:
         # Down the left-hand edge, a letter under a letter.
         n_ = len(name)
-        h = min(0.16, 1.7 / n_)
-        label = [{"type": "shape", "sides": 4, "rotate": 0.125, "radius": 2.6, "width": 0, "fill": 1, "color": "#000000", "blend": "normal", "x": -3.86, "y": 0, "opacity": f"0.85*{gone}"},
-                 {"type": "text", "repeat": n_, "text": name, "pick": "inst.i", "size": h * 0.8, "align": "center", "width": 0.13, "skew": 0, "x": -1.6, "y": f"({(n_ - 1) / 2} - inst.i)*{h:g} - {h * 0.4:g}", "color": cream,
+        h = min(0.2, 1.9 / n_)
+        label = [{"type": "shape", "sides": 4, "rotate": 0.125, "radius": 2.6, "width": 0, "fill": 1, "color": "#000000", "blend": "normal", "x": -3.78, "y": 0, "opacity": f"0.9*{gone}"},
+                 {"type": "text", "repeat": n_, "text": name, "pick": "inst.i", "size": h * 0.95, "align": "center", "width": 0.16, "skew": 0, "x": -1.56, "y": f"({(n_ - 1) / 2} - inst.i)*{h:g} - {h * 0.47:g}", "color": cream,
                   "blend": "normal", "opacity": f"{gone}*smooth(0, 0.3, {bar}*3 - 0.9 - inst.i*{2.4 / n_:g})"}]
     elif style == 5:
         # Round a ring that turns once in the three bars.
@@ -3382,7 +3488,7 @@ def master(title, style=0):
                  {"type": "shape", "sides": 4, "rotate": 0.125, "radius": 1.0, "width": 0, "fill": 1, "color": cream, "blend": "normal", "x": f"0 - 2.9 + 1.5*smooth(2.0, 2.7, {bar})", "y": -1.41 + 0.005, "opacity": 0}]
     else:
         # In the corner, small, with a rule that grows a sixteenth at a time across the frame.
-        label = [{"type": "text", "text": name, "size": 0.085, "x": -1.62, "y": -0.84, "align": "left", "color": cream, "width": 0.13, "skew": 0, "blend": "normal", "opacity": gone, "reveal": f"smooth(0.2, 1.0, {bar})"},
+        label = [{"type": "text", "text": name, "size": 0.12, "x": -1.62, "y": -0.83, "align": "left", "color": cream, "width": 0.15, "skew": 0, "blend": "normal", "opacity": gone, "reveal": f"smooth(0.2, 1.0, {bar})"},
                  {"type": "shape", "repeat": 48, "sides": 4, "rotate": 0.125, "radius": 0.012, "width": 0, "fill": 1, "color": cream, "blend": "normal", "x": "(inst.i + 0.5)*0.0675 - 1.62", "y": -0.9,
                   "opacity": f"{gone}*step(inst.i + 1, {bar}*16)"}]
     return {"layers": label, "filters": [{"type": "grain", "amount": 0.04}, {"type": "vignette", "amount": 0.4}]}
