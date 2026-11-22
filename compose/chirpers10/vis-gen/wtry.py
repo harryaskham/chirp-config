@@ -58,6 +58,7 @@ def main():
                 d.riffs[0].lag = f"({lag})"
                 look = W.canon(c, W.bolder(base, W.REG[base]["f"](c)), W.bolder(base, W.REG[base]["f"](d)), join)
             else:
+                c.idiom = base
                 look = W.bolder(base, W.REG[base]["f"](c))
                 if how:
                     for h in how.split(","):

@@ -471,6 +471,7 @@ class Deal:
             `keep`: as it was last time (the same camera and colours), for a picture that carries on."""
             d = copy.copy(ctx or base) if sub is None else base.sub(sub, 2)
             d.variant = max(self.used[name] - keep, 0)
+            d.idiom = name
             rot = d.variant % 3
             d.a, d.b, d.c = (d.a, d.b, d.c)[rot:] + (d.a, d.b, d.c)[:rot]
             try:

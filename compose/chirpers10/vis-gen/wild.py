@@ -3717,14 +3717,15 @@ def barcode(c):
     wide = 7.8
     layers = [box(0, 0, 0.3, FW + 0.1, FH + 0.1, 0.01, **glow("#f1ede2", 1))]
     for i, p in enumerate(P):
-        n_ = p.cell
+        m_ = math.ceil(12 / p.cell) if p.cell < 5 else 1      # (a riff of two or three sixteenths is read several turns at a time: two bars are no code)
+        n_ = p.cell * m_
         u = wide / n_
         hh = 1.75 if len(P) == 1 else 0.95
         y = (len(P) - 1) * 1.15 - 2.3 * i
         k = f"(floor(fract((note.beat*4 - {p.anchor:g})/{n_} + 0.0005)*{n_}*4 + 0.01)/4)"
         half = f"({u:g}*{p.pitch(0.08, 0.4)})"
         layers.append(box(f"({k} - {n_ / 2:g})*{u:g} + {half}", y, 0, half, hh, 0.01, notes={"track": p.name, "past": n_ / 4 - 0.02}, **glow("#131210", 1)))
-        layers.append(box(f"(fract({p.turn}) - 0.5)*{wide:g}", y, -0.05, 0.022, hh + 0.14, 0.01, **glow(("#ff2f2f", c.a)[i], 2.2)))
+        layers.append(box(f"(fract({p.turn}/{m_}) - 0.5)*{wide:g}", y, -0.05, 0.022, hh + 0.14, 0.01, **glow(("#ff2f2f", c.a)[i], 2.2)))
         layers.append(box(0, y - hh - 0.16, 0, wide / 2, 0.012, 0.01, **glow("#131210", 1)))
     return {"background": "#f1ede2", "camera": FLAT, "layers": layers, "filters": [{"type": "grain", "amount": 0.05}]}
 
@@ -4114,6 +4115,10 @@ def ground(c, look, kind):
     out["layers"] = g + list(look["layers"])
     return out
 
+
+# Pictures that are dim as they stand (rooms at night, things on black): their shadows are
+# lifted before they are printed in the paper or made of small copies of themselves.
+DIM = set("gallery cinema railway doors cradle ropes highway press golden venn kit globe ferris skyline lanterns candles coins sympathy".split())
 
 # ───────────────────────── pictures of pictures ─────────────────────────
 
@@ -4807,7 +4812,8 @@ def t_dots(c, look):
 @treat("newsprint", ok=lambda c, info: info["fam"] not in ("sign", "plate"))
 def t_newsprint(c, look):
     """Printed in the paper: dark dots on a pale ground."""
-    look["filters"] = [f for f in look.get("filters", []) if f.get("type") != "bloom"] + [{"type": "invert", "amount": 1}, {"type": "halftone", "count": 110, "angle": 0.125, "gain": 1.0, "ink": "#16161a", "paper": "#e9e4d6"}]
+    look["filters"] = [f for f in look.get("filters", []) if f.get("type") != "bloom"] + ([{"type": "color", "exposure": 1.3, "gamma": 1.8}] if getattr(c, "idiom", None) in DIM else []) + [     # (a dim room's shadows are lifted first: it printed as an empty page)
+                                                                                                  {"type": "invert", "amount": 1}, {"type": "halftone", "count": 110, "angle": 0.125, "gain": 1.0, "ink": "#16161a", "paper": "#e9e4d6"}]
     return look
 
 
@@ -5116,8 +5122,9 @@ def t_itself(c, look):
     while nn < 7:
         nn *= 2
     look = _unbloomed(look)
-    look["filters"] += [{"type": "color", "exposure": 1.2},
-                        {"type": "mosaic", "count": nn, "gain": 2.6, "floor": 0.16, "tint": 0.7, "amount": f"({c.arr})*(1 - 0.85*pow(fract({p.turn}/2), 6))"}]
+    dim = getattr(c, "idiom", None) in DIM      # (a dim picture's shadows are lifted first: its copies were darker still)
+    look["filters"] += [{"type": "color", "exposure": 1.35, "gamma": 1.7} if dim else {"type": "color", "exposure": 1.2},
+                        {"type": "mosaic", "count": nn, "gain": 2.6, "floor": 0.22 if dim else 0.16, "tint": 0.7, "amount": f"({c.arr})*(1 - 0.85*pow(fract({p.turn}/2), 6))"}]
     return look
 
 
