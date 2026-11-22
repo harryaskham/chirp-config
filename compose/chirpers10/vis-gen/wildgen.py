@@ -124,7 +124,7 @@ class Song:
 FEATURE = {
     1: ("loom", "remainder", "crystal", "helix", "billiard", "riley", "reels"), 2: ("sympathy", "pendwave", "strings", "cradle", "seesaw", "ink", "strobe"), 3: ("changes", "maypole", "chorus", "stringart", "drill", "vasarely"),
     4: ("dominoes", "automaton", "tally", "abacus", "odometer", "hanoi", "barcode", "dice"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist", "barber"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling"),
-    7: ("golden", "spiral", "sunflower", "mandala", "star", "kandinsky", "courses"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout", "measure", "reels"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial"),
+    7: ("golden", "spiral", "sunflower", "mandala", "star", "kandinsky", "courses"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout", "measure", "reels"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial", "dice"),
     10: ("balance", "coins", "tape", "galton", "duel", "hourglass", "barcode"), 11: ("doors", "blinds", "press", "hammers", "tesla", "albers"), 12: ("hands", "juggle", "semaphore", "chorus", "fan", "shadowplay", "braille"),
     13: ("eclipse", "pond", "spiral", "lanterns", "rink", "zen", "braille"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader", "hourglass", "strobe", "dice"), 15: ("slack", "ropes", "wires", "swings", "switchboard", "rothko"),
     16: ("moire", "chladni", "eclipse", "lighthouse", "billiard", "candles"), 17: ("railway", "highway", "gates", "constellation", "searchlights", "sundial", "hailstone"),
@@ -347,6 +347,8 @@ class Deal:
         self.joins = collections.Counter()
         self.canon_own = {}
         self.canon_far = collections.defaultdict(set)
+        self.dealt = collections.defaultdict(set)
+        self.deals = 0
         self.ruled = 0
         self.album_first = None
 
@@ -486,6 +488,24 @@ class Deal:
                 note(name, tag, f"{name}/canon {how} {far:g}")
                 self.last["canon"] = True
                 return name, "canon", look
+        # The deal: in a song that gives a part one more note to the beat, time after time,
+        # the dice come back at each new number and show it (a die for each beat of the bar).
+        rate = dealing(S, c) if not flash and not prefer and not first and kind != "hush" else None
+        if rate and rate[0] >= 2 and rate[0] not in self.dealt[S.n] and "dice" not in self.recent[-1:]:
+            cd = copy.copy(base)
+            cd.riffs, cd.every, cd.drums, cd.tunes, cd.parts = [rate[1]], [], [], [], []
+            got = make("dice", ctx=cd)
+            t = next((t for t in DEAL_GUISES if ("dice", t) not in self.combos and W.TREAT[t][1](cd, W.REG["dice"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = f"{rate[1].name} is given {rate[0]} to the beat"
+                look = W.TREAT[t][0](c, got[1])
+                self.dealt[S.n].add(rate[0])
+                self.treats[t] += 1
+                self.deals += 1
+                note("dice", t, f"dice/deal {rate[0]}" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "dice", t, look
         # Two parts answer one another: a picture each, and the line between them goes to and fro as they do.
         talk = talkers(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 4.0 else None
         if talk and rnd(S.n, k, "tug?") < 0.65 and not (last and last.get("tug")):
@@ -752,6 +772,52 @@ def stereo(S, c, whole=False):
         if best is None or T[left].count(a, b) > best[3]:
             best = (behind, ahead, far, T[left].count(a, b))
     return best[:3] if best else None
+
+
+def even(notes, a, b):
+    """The whole number of notes to the beat that a part plays, evenly, over beats a..b; or None."""
+    st = sorted(s for s, *_ in notes if a - 0.02 <= s < b - 0.02)
+    gaps = [y - x for x, y in zip(st, st[1:]) if y - x > 0.05]
+    if len(gaps) < max(2, (b - a) * 0.6):
+        return None
+    med = sorted(gaps)[len(gaps) // 2]
+    n_ = round(1 / med)
+    if not 1 <= n_ <= 9 or abs(med - 1 / n_) > 0.012 + 0.05 / n_:
+        return None
+    if sum(1 for g_ in gaps if abs(g_ - med) < 0.2 * med) < 0.65 * len(gaps):
+        return None
+    return n_
+
+
+def dealing(S, c):
+    """In a song that gives its parts one more note to the beat time after time (two to the
+    beat, then three, then four), what this scene is being given: (how many to the beat, the
+    part); or None. Bar by bar the fastest part that plays evenly counts."""
+    if not hasattr(S, "_deal"):
+        S._deal = []
+        for bar in range(S.bars):
+            best = None
+            for t in (S.tracks.values() if isinstance(S.tracks, dict) else S.tracks):
+                n_ = even(t.notes, bar * 4, bar * 4 + 4) if t.role != "drum" else None
+                if n_ and (best is None or n_ > best[0]):
+                    best = (n_, t)
+            S._deal.append(best)
+        runs = []
+        for b_ in S._deal:
+            if b_ and (not runs or runs[-1] != b_[0]):
+                runs.append(b_[0])
+        S._ramp = any(x + 1 == y and y + 1 == z for x, y, z in zip(runs, runs[1:], runs[2:]))
+    if not S._ramp:
+        return None
+    a, b = c.a16 // 16, min(S.bars, max(c.a16 // 16 + 1, -(-c.b16 // 16)))
+    here = [x for x in S._deal[a:b] if x]
+    if len(here) * 2 < b - a:
+        return None
+    n_, t = max(here, key=lambda x: x[0])
+    return n_, S.part(t, c.a16, c.b16, t.cell(a, b)[0])
+
+
+DEAL_GUISES = ("plain", "relief", "papercut", "infra", "duotone", "solar", "fringe", "echo", "delayed", "tracking", "water")     # guises that leave the pips to be counted
 
 
 def talkers(S, c):
@@ -1026,7 +1092,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 

@@ -3589,11 +3589,29 @@ def reels(c):
             "filters": [bloom(c, 0.5, 0.02, 0.7)]}
 
 
+FACES = {1: [(0, 0)], 2: [(-1, 1), (1, -1)], 3: [(-1, 1), (0, 0), (1, -1)], 4: [(-1, 1), (1, 1), (-1, -1), (1, -1)], 5: [(-1, 1), (1, 1), (0, 0), (-1, -1), (1, -1)],
+         6: [(-1, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (1, -1)], 7: [(-1, 1), (1, 1), (-1, 0), (0, 0), (1, 0), (-1, -1), (1, -1)],
+         8: [(-1, 1), (0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1), (1, -1)], 9: [(-1, 1), (0, 1), (1, 1), (-1, 0), (0, 0), (1, 0), (-1, -1), (0, -1), (1, -1)]}
+
+
+def _face(count, idx):
+    """Where on a die the pip `idx` of a face of `count` goes: two expressions, each -1..1."""
+    out = []
+    for axis in (0, 1):
+        terms = []
+        for k, cells in FACES.items():
+            inner = [f"{'(0 - 1)' if cell[axis] < 0 else '1'}*(1 - step(0.5, abs({idx} - {j})))" for j, cell in enumerate(cells) if cell[axis]]
+            if inner:
+                terms.append(f"(1 - step(0.5, abs({count} - {k})))*({' + '.join(inner)})")
+        out.append("(" + " + ".join(terms) + ")")
+    return out
+
+
 @idiom(needs=0, fam="game")
 def dice(c):
     """Four dice for the four beats of the bar, a row for each of two parts: every note is a
-    pip on the die of its beat, and the dice are thrown again at each bar line. A riff that
-    does not fit the bar throws differently every time."""
+    pip on the die of its beat, set out as on a real die for as many notes as the beat is
+    being given, and the dice are thrown again at each bar line."""
     P = _cast(c, 2)
     rows = len(P)
     s = 0.8 if rows == 2 else 1.02
@@ -3606,11 +3624,14 @@ def dice(c):
         toss = "exp(0 - 9*fract(time.beat/4))"
         layers.append(box(f"(inst.i - 1.5)*{gap:g}", f"{y0:g} + 0.25*{toss}*(1 - 2*fract(inst.i/2))", 0, s, s, 0.02, count=4, round=0.16, rz=f"0.06*{toss}*(1 - 2*fract(inst.i/2))",
                           **glow(("#f3ecd9", "#e9dfc6")[r], f"0.62 + 0.38*{on}")))
-        beat = f"floor(({NOTE16})/4)"
-        pos = f"floor(({NOTE16}) - 4*{beat} + 0.01)"
-        px = f"(({beat} - 1.5)*{gap:g} + (2*fract({pos}/2) - 0.5)*{s * 0.92:g})"
-        py = f"({y0:g} + (0.5 - floor({pos}/2))*{s * 0.92:g})"
-        layers.append(ball(px, py, -0.1, f"{s * 0.19:g}*(1 + 0.7*exp(0 - 7*note.age))", 12, notes={"track": p.name, "past": 4.3}, palette=[c.col(r), "#17151a", "#17151a"], pos="clamp(note.age*1.2, 0, 0.5)",
+        beat = f"floor(({NOTE16})/4 + 0.01)"
+        # (How many the beat is being given: one over the wait for the next note; which of them this one is.)
+        count = "clamp(floor(1/max(min(note.gap, note.len + 4), 0.1) + 0.5), 1, 9)"
+        idx = f"floor(fract(note.beat + 0.002)*{count} + 0.02)"
+        fx, fy = _face(count, idx)
+        px = f"(({beat} - 1.5)*{gap:g} + {fx}*{s * 0.56:g})"
+        py = f"({y0:g} + {fy}*{s * 0.56:g})"
+        layers.append(ball(px, py, -0.1, f"{s * 0.17:g}*(1 + 0.7*exp(0 - 7*note.age))", 12, notes={"track": p.name, "past": 4.3}, palette=[c.col(r), "#17151a", "#17151a"], pos="clamp(note.age*1.2, 0, 0.5)",
                            emit=1, light=0, ambient=1, rim=0, opacity=f"step(floor(time.beat/4), {NBAR})"))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.3, 0.014, 0.85)]}
 
@@ -4233,7 +4254,7 @@ STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling"
 # Pictures that can be drawn twice and joined (flat, and filling the frame or centred, so that
 # a break along the joins shows): for two parts playing one riff out of step. `STRONG`: the
 # ones a break shows best in; a song's own canon is one of these.
-CANON = set("riley vortex moire blinds hive interference vasarely mandala albers hourglass specimen spiral eye golden tiles kandinsky sundial moons zen dominoes breakout".split())
+CANON = set("riley vortex moire blinds hive interference vasarely mandala albers hourglass specimen spiral eye tiles kandinsky sundial moons zen dominoes breakout".split())
 STRONG = ("riley", "vortex", "moire", "blinds", "hive", "interference", "vasarely", "albers", "mandala")
 # Pictures that fill the frame with light (cutting their lights out of another picture leaves nothing),
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
@@ -4242,7 +4263,7 @@ FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko 
 BROAD = FULL | set("reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
-THIN = set("crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
+THIN = set("tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
            "searchlights pong constellation sonar treerings strings harmonograph contour letters mobile keys trampoline".split())
 SHRINKS = set("ball woven tracking roll wound screen planet hole mirror water flood poster knitted sampler".split())
 # Pictures on a white ground: laid over another by its lights, the white would be all there is.
