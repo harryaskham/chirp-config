@@ -696,6 +696,63 @@ FILL = {'from': 3, 'toms': {16: 't1', 8: 't2', 4: 't3', 2: 'ft', 1: 'ft'},
         'trim': {}, 'eq': None, 'gain': 2.0, 'vel': 0.85, 'len': 1.2, 'loudness': -9.5245}
 
 
+# v27 (chirper-zero; instrument round: the first pair, and only where a walk is on new ground).
+# THE GUITARS FILL NEW GROUND. Where a long walk says numbers nobody has said (seven's first ten, 0:17-0:45; fifteen's
+# nine up to 160 and 80, 3:03-4:11) the hands go to half time, nobody counts, and the mix read 1.4 and 3.4 dB SHORT
+# of the eleven records at 250-500 Hz (on known ground it reads level or over: the voices, the ondes and the snare
+# fill it). There the two guitars are the largest part of that band (3.8 dB of the mix's in the climb), and alone,
+# against the records' guitar alone (cabspec), they have a hole of 4.8 dB at 250 Hz and 2.2 at 315. So on new ground
+# their track eq opens a band at 250 Hz (q 1.4, +6 dB) and takes its 150 Hz lift from +1.5 to -1.5 dB, on a lane
+# (`ground`, a quarter beat each way); alone the pair is as loud as it was (K +0.00 to +0.04): no fader moves.
+# BOTH yardsticks say closer: the mix (seven 0.522 -> 0.356, the climb 0.889 -> 0.633; 160 and 80 level at 0.633)
+# and the rig alone (the climb 1.90 -> 1.80, seven 2.21 -> 1.99). Tried first and REFUSED: the eq's own 350 Hz cut
+# opened (the mix liked it best, 0.889 -> 0.39 by arithmetic; the rig alone went 1.90 -> 2.40, a 7 dB box at
+# 400 Hz). On known ground the same band reads FURTHER (fourteen 0.744 -> 0.841, the opening 1.289 -> 1.340), so it
+# goes by the song's own law and not by the clock. LEFT OUT: nine's three new numbers (0:52-0:58). They read closer
+# too (0.844 -> 0.711), but six seconds of another tone seven seconds after the first is a blip, and the scorer
+# heard it as one (a seam on two seeds of three): 'least' is 4.
+# 'tracks' ; 'from': the first walk it applies to ; 'least': how many new numbers in a row make new ground (nine
+# has three; eleven and fourteen one each) ; 'band': Hz, q, dB at a full lane ; 'low': which band of the track's
+# eq moves with it, and by how many dB (None = none) ; 'trim': dB on the faders at a full lane ; 'ramp': beats ;
+# 'loudness': the target (None = unchanged). --without-ground = v26 byte for byte ; --ground JSON for a bench.
+GROUND = {'tracks': ('left', 'right'), 'from': 7, 'least': 4, 'band': (250, 1.4, 6.0), 'low': (2, -3.0), 'trim': 0.0,
+          'ramp': 0.25, 'loudness': -9.5022}
+
+
+def the_guitars_fill_new_ground(doc, marks):
+    """v27: on new ground (a walk's leading run of numbers never said before) the first pair's eq fills 250 Hz."""
+    paths = {k: set(walk(k)) for k in range(FIRST, LAST + 1)}
+    pts = [['0b', 0]]
+    for k, at in marks:
+        if k < GROUND['from'] or k in QUIET:
+            continue
+        w, run = walk(k), 0
+        while run < len(w) and not any(w[run] in paths[j] for j in range(FIRST, k)):
+            run += 1
+        if run >= GROUND['least']:
+            a0, b0 = at / SUB, (at + sum(w[:run])) / SUB
+            pts += [[f"{a0 - GROUND['ramp']:g}b", 0], [f'{a0:g}b', 1], [f"{b0 - GROUND['ramp']:g}b", 1], [f'{b0:g}b', 0]]
+    num = lambda x: int(float(x)) if float(x) == int(float(x)) else float(x)
+    for t in doc['tracks']:
+        if t['name'] in GROUND['tracks']:
+            assert 'ground' not in t['auto'] and len(t['fx']) == 1 and t['fx'][0]['type'] == 'eq' and isinstance(t['gain'], dict), t['name']
+            bands = list(t['fx'][0]['bands'])
+            if GROUND['low']:
+                i, db = GROUND['low']
+                kind, *fields = bands[i].split()
+                f = dict(x.split('=') for x in fields)
+                bands[i] = {'kind': kind, 'cutoff': num(f['cutoff']), 'q': num(f['q']), 'gain': {'value': f['gain'], 'mod': [{'src': 'auto.ground', 'amount': db}]}}
+            if GROUND['band']:
+                hz, q, db = GROUND['band']
+                bands.append({'kind': 'peak', 'cutoff': hz, 'q': q, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.ground', 'amount': db}]}})
+            t['fx'] = [{**t['fx'][0], 'bands': bands}]
+            t['auto'] = {**t['auto'], 'ground': {'points': [list(pt) for pt in pts], 'curve': 0}}
+            if GROUND['trim']:
+                t['gain'] = {**t['gain'], 'mod': list(t['gain']['mod']) + [{'src': 'auto.ground', 'amount': GROUND['trim']}]}
+    if GROUND['loudness'] is not None:
+        doc['loudness'] = GROUND['loudness']
+
+
 def true(ratio):
     """A pitch as its exact ratio over the low F: the engine's fractional key number (a whole one is written as its name)."""
     m = F1 + 12 * math.log2(ratio)
@@ -1075,6 +1132,8 @@ if __name__ == '__main__':
     ap.add_argument('--touch', help='a bench: TOUCH fields to change, as a JSON object')
     ap.add_argument('--without-fifth', action='store_true', help="regenerate v23: the snare between two of the string's harmonics, a different pitch on every stroke")
     ap.add_argument('--fifth', help="JSON over FIFTH's fields, for a bench")
+    ap.add_argument('--without-ground', action='store_true', help="regenerate v26: the first pair with one eq the whole song through")
+    ap.add_argument('--ground', help="JSON over GROUND's fields, for a bench")
     ap.add_argument('--without-fill', action='store_true', help="regenerate v25: a kit with no toms, and no fill anywhere")
     ap.add_argument('--fill', help="JSON over FILL's fields, for a bench")
     ap.add_argument('--without-register', action='store_true', help="regenerate v24: the ondes at v1's levels, full under middle C")
@@ -1106,7 +1165,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
-    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_fill', 'fill', 'without_register', 'register', 'without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight', 'without_speaker', 'speaker', 'without_fitted', 'fitted', 'without_fifth', 'fifth'))
+    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_ground', 'ground', 'without_fill', 'fill', 'without_register', 'register', 'without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight', 'without_speaker', 'speaker', 'without_fitted', 'fitted', 'without_fifth', 'fifth'))
     if not a.without_china and newest:
         metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
         metal['patch'] += ' ' + CHINA['kit']
@@ -1356,6 +1415,10 @@ if __name__ == '__main__':
                         doc['tracks'][-1]['fx'] = [{'type': 'eq', 'bands': list(FILL['eq'])}]
                     if FILL['loudness'] is not None:
                         doc['loudness'] = FILL['loudness']
+                    if not a.without_ground:                       # only on the whole song as v26 has it
+                        if a.ground:
+                            GROUND.update(json.loads(a.ground))
+                        the_guitars_fill_new_ground(doc, marks)
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
