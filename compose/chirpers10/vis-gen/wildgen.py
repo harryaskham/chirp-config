@@ -383,6 +383,8 @@ class Deal:
         self.walks = 0
         self.rings = 0
         self.measures = 0
+        self.rolled = 0
+        self.rolls_in = collections.Counter()
         self.measured = collections.defaultdict(set)
         self.rung = collections.defaultdict(set)
         self.walked = collections.defaultdict(set)
@@ -582,6 +584,26 @@ class Deal:
                 note(name, "hands", f"{name}/hands {how}")
                 self.last["canon"] = True
                 return name, "hands", look
+        # A roll slowed until it can be counted, or wound up until it cannot: a ring for each
+        # drum, every stroke a dot at its place in the beat. Through the whole of the slowing,
+        # scene after scene in another guise (also on a song's first scene: it is what the
+        # song sets out from).
+        rl = rolling_here(S, c) if not flash and not prefer and kind != "hush" else None
+        if rl and self.rolls_in[(S.n, rl[0])] < 2:
+            cd = copy.copy(base)
+            cd.roll = rl
+            got = make("rolls", ctx=cd, keep=True)
+            t = next((t for t in ROLL_GUISES if ("rolls", t) not in self.combos and W.TREAT[t][1](cd, W.REG["rolls"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = f"{rl[0]} is rolled, and slows or winds up"
+                look = W.TREAT[t][0](c, got[1])
+                self.treats[t] += 1
+                self.rolled += 1
+                self.rolls_in[(S.n, rl[0])] += 1
+                note("rolls", t, "rolls/roll" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "rolls", t, look
         # The common measure: in a song that cuts the longer of two riffs down by the other,
         # section by section, the oblong of the two lengths stands whole, the squares taken so
         # far are lit, and the lamp goes over what is left. Once for each step.
@@ -1054,6 +1076,7 @@ def fitting(S, c):
     return S.part(x, c.a16, c.b16, x.cell(*ab)[0]), S.part(y, c.a16, c.b16, y.cell(*ab)[0]), med
 
 
+ROLL_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "water", "tracking", "relief", "kaleido", "smoked")
 MEASURE_GUISES = ("plain", "relief", "papercut", "infra", "fringe", "bricks", "duotone", "echo", "delayed", "solar", "blueprint", "onebit")
 ROW_GUISES = ("plain", "relief", "infra", "fringe", "echo", "delayed", "duotone", "solar", "blueprint", "tracking", "water", "papercut", "onebit", "drawn")
 WALK_GUISES = ("plain", "relief", "papercut", "itself", "infra", "fringe", "duotone", "echo", "delayed", "solar", "blueprint", "tracking", "water", "onebit")
@@ -1076,6 +1099,50 @@ def period(S, c):
         return None
     cell = c.riffs[0].cell
     return cell // 8 if cell % 8 == 0 and 2 <= cell // 8 <= 6 else None
+
+
+def rolling(S):
+    """Rolls that slow until they can be counted, or wind up until they cannot: a part one of
+    whose notes is struck about half as often (or twice as often) bar after bar, for at least
+    three bars, from or to more than 64 strokes a bar. Found from the notes. Returns
+    [(the part, its lowest and highest note, from bar, to bar)], with a few bars after a
+    slowing and before a winding up in which the strokes can be counted."""
+    if hasattr(S, "_rolling"):
+        return S._rolling
+    out = {}
+    for t in (S.tracks.values() if isinstance(S.tracks, dict) else S.tracks):
+        keys = collections.Counter(k for _, _, k in t.notes)
+        for key, cnt in keys.items():
+            if cnt < 100:
+                continue
+            per = [0] * (S.bars + 1)
+            for a, _, k in t.notes:
+                if k == key and int(a // 4) < S.bars:
+                    per[int(a // 4)] += 1
+            b = 0
+            while b < S.bars - 1:
+                for way in (1, -1):
+                    e = b
+                    while e + 1 < S.bars and per[e] > 0 and per[e + 1] > 0 and (per[e] / per[e + 1] if way == 1 else per[e + 1] / per[e]) >= 1.5:
+                        e += 1
+                    if e - b >= 3 and max(per[b], per[e]) >= 64:
+                        a0, b0 = (max(0, b - 1), min(S.bars, e + 5)) if way == 1 else (max(0, b - 4), min(S.bars, e + 2))
+                        lo, hi, x, y = out.get(t.name, (key, key, a0, b0))
+                        out[t.name] = (min(lo, key), max(hi, key), min(x, a0), max(y, b0))
+                        b = e
+                        break
+                b += 1
+    S._rolling = [(name, lo, hi, a, b) for name, (lo, hi, a, b) in out.items()]
+    return S._rolling
+
+
+def rolling_here(S, c):
+    """(the part, its lowest note, its highest) where at least half the scene lies in a roll
+    that is slowing or winding up; or None."""
+    for name, lo, hi, a, b in rolling(S):
+        if min(b * 16, c.b16) - max(a * 16, c.a16) >= 0.5 * (c.b16 - c.a16):
+            return name, lo, hi
+    return None
 
 
 def euclid(S):
@@ -1704,7 +1771,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}  hinges: {deal.hinges}  reprises: {deal.reprises}  walks: {deal.walks}  rows rung: {deal.rings}  measures: {deal.measures}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}  hinges: {deal.hinges}  reprises: {deal.reprises}  walks: {deal.walks}  rows rung: {deal.rings}  measures: {deal.measures}  rolls: {deal.rolled}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 

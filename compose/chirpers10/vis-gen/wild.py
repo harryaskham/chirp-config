@@ -3936,6 +3936,35 @@ def ringing(c):
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.014, 0.7)]}
 
 
+@idiom(needs=0, fam="wave")
+def rolls(c):
+    """A roll too fast to count, slowed until it can be (or wound up until it cannot): a ring
+    for each drum of the roll, and every stroke a dot on its ring at its place in the beat.
+    Rolled, a ring is whole: a note. Slowing, its dots draw apart into arms that turn. Slow
+    enough to count, a stroke on every beat stands still, and strokes that cross the beat
+    step round it."""
+    R = getattr(c, "roll", None)
+    if not R:
+        raise ValueError("nothing is being rolled here")
+    part, lo, hi = R
+    span = max(hi - lo, 1)
+    # A stroke is born on its drum's ring and drifts outward for four beats: a steady pulse
+    # leaves a line of dots, a roll a whole band, a slowing roll arms that open out.
+    rad = f"(0.17 + 0.5*(note.midi - {lo})/{span} + 0.25*clamp(note.age/4, 0, 1))"
+    ang = "fract(note.beat + 0.0005)"
+    fresh = "exp(0 - 5*max(note.age, 0))"
+    size = "clamp(0.011 + 0.035*min(note.gap, 1), 0.011, 0.046)"
+    layers = [{"type": "shape", "repeat": 4, "sides": 0, "radius": "0.17 + 0.25*inst.i", "width": 0.0025, "fill": 0, "color": c.dim, "opacity": 0.6, "blend": "normal", "x": 0, "y": 0},
+              # One beat round: a mark at the top where the beat falls.
+              {"type": "shape", "sides": 4, "rotate": 0.125, "radius": 0.022, "width": 0, "fill": 1, "color": "#ffffff", "x": 0, "y": 0.96, "opacity": "0.5 + 0.5*pow(1 - time.phase, 4)"},
+              {"type": "shape", "notes": {"track": part, "past": 4, "ahead": 0}, "count": 4000, "sides": 1, "radius": f"{size}*(1 + 1.1*{fresh})", "width": 0, "fill": 1,
+               "palette": [c.a, c.b, c.c], "pos": f"0.999*(note.midi - {lo})/{span}", "x": f"{rad}*sin({ang})", "y": f"{rad}*cos({ang})",
+               "opacity": f"clamp(0.55 + 0.45*{fresh}, 0, 1)*(1 - 0.75*clamp(note.age/4, 0, 1))"},
+              {"type": "shape", "notes": {"track": part, "past": 0.5, "ahead": 0}, "count": 600, "sides": 1, "radius": f"{size}*2*{fresh}", "width": 0, "fill": 1, "color": "#ffffff",
+               "x": f"{rad}*sin({ang})", "y": f"{rad}*cos({ang})", "opacity": f"0.8*{fresh}"}]
+    return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.5, 0.012, 0.6)]}
+
+
 # ───────────────────────── pictures of pictures ─────────────────────────
 
 SMALL = ("spiral", "sunflower", "stringart", "moire", "strings", "clockshop", "combs", "vortex", "epicycle", "harmonograph", "mandala", "table", "tally", "slack", "sonar", "remainder", "kelvin", "chladni")
@@ -4535,7 +4564,7 @@ MIRROR_BAD = set("ringing squares zipper total rabbits dice barcode braille tram
 # Pictures that are mostly light: a print of their lights is a blank sheet.
 BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
-FED = set("zipper loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
+FED = set("rolls zipper loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
 SLOW = set("ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 
