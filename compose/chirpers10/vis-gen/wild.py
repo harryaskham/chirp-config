@@ -3027,6 +3027,61 @@ def rink(c):
     return shots(c, look, [cam(0, 6.5, -6.0, look=(0, 0.3, 0), zoom=1.9), cam(5.5, 2.4, -5.5, look=(0, 0.8, 0), zoom=1.6), cam(0, 10, -0.5, look=(0, 0, 0), zoom=1.9)], A)
 
 
+@idiom(needs=1, fam="type", max_cell=48)
+def specimen(c):
+    """A type specimen: one letter of the song's name as big as the frame, the next each
+    time the riff comes round; the ink rises up it through the turn."""
+    A = c.riffs[0]
+    name = _letters(c)
+    t0 = math.floor((c.a16 - A.anchor) / A.cell)
+    k = f"(floor({A.turn}) - {t0})"
+    ph = f"fract({A.turn})"
+    n_ = min(A.cell, 32)
+    d = f"(fract({A.turn} - inst.i/{n_})*{n_})"
+    layers = [{"type": "text", "text": name, "pick": k, "size": 1.5, "x": 0, "y": -0.72, "align": "center", "width": 0.2, "skew": 0, "color": c.ink},
+              {"type": "text", "text": name, "pick": f"{k} + 1", "size": 0.3, "x": 1.35, "y": -0.72, "align": "center", "width": 0.16, "skew": 0, "color": c.dim, "opacity": 0.9},
+              {"type": "shape", "sides": 4, "rotate": 0.125, "radius": 2.6, "width": 0, "fill": 1, "color": c.a, "blend": "difference", "x": 0, "y": f"0 - 2.838 - 0.74 + 1.5*{ph}"},
+              {"type": "shape", "sides": 1, "repeat": n_, "radius": f"0.012 + 0.014*exp(0 - 1.5*{d})", "width": 0, "fill": 1, "color": c.ink, "opacity": f"0.35 + 0.65*exp(0 - 1.5*{d})",
+               "x": f"(inst.i - {(n_ - 1) / 2})*{min(0.09, 3.0 / n_):g}", "y": -0.88}]
+    return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.2, 0.012, 0.8)]}
+
+
+@idiom(needs=1, fam="flock", max_cell=48)
+def drill(c):
+    """A drill team seen from above: each time the riff comes round they move off into the
+    next figure (a ring, a rank, two files, a wedge, a coil), and are in it half a turn later."""
+    A = c.riffs[0]
+    B = c.riffs[1] if len(c.riffs) > 1 else None
+    n_ = 36
+    t0 = math.floor((c.a16 - A.anchor) / A.cell)
+    per = max(1, math.ceil(1.8 / (A.cell * c.six)))         # a figure lasts at least a couple of seconds
+    turn = f"(({A.turn} - {t0})/{per})"
+    f = f"floor({turn})"
+    u = f"smooth(0, 0.55, fract({turn}))"
+    t = f"(inst.i/{n_})"
+    forms = [(f"2.1*sin({t})", f"2.1*cos({t})"),
+             (f"({t} - 0.5)*7.6", "0"),
+             (f"(floor(inst.i/2)/{n_ // 2} - 0.5)*7.2", f"(inst.i - 2*floor(inst.i/2) - 0.5)*1.6"),
+             (f"({t} - 0.5)*6.4", f"abs({t} - 0.5)*5.2 - 1.3"),
+             (f"(0.5 + 1.9*{t})*sin(2.5*{t})", f"(0.5 + 1.9*{t})*cos(2.5*{t})"),
+             (f"(fract(inst.i/6) - 0.42)*6.4", f"(floor(inst.i/6)/6 - 0.42)*3.6")]
+    nf = len(forms)
+
+    def pos(axis, which):
+        # The figure numbered `which` (wrapped), as a sum over the figures with one weight at 1.
+        w = f"fract(({which})/{nf} + 0.001)*{nf}"
+        return " + ".join(f"(1 - min(abs(floor({w} + 0.01) - {j}), 1))*({forms[j][axis]})" for j in range(nf))
+    x = f"mix({pos(0, f)}, {pos(0, f + ' + 1')}, {u})"
+    y = f"mix({pos(1, f)}, {pos(1, f + ' + 1')}, {u})"
+    beat = f"exp(0 - 1.5*fract({A.turn} - inst.i/{n_})*{A.cell})"
+    layers = [box(0, 0, 0.3, 4.6, 2.6, 0.05, **glow("#10261a" if c.variant % 2 == 0 else "#1c1a2c", 1)),
+              ball(f"({x}) + 0.07", f"({y}) - 0.07", 0.1, 0.1, 6, count=n_, **glow("#000000", 1)),
+              ball(x, y, 0, f"0.085 + 0.05*{beat}", 8, count=n_, **glow(c.ink, f"0.8 + 1.5*{beat}"))]
+    if B:
+        layers.append(ball(x, y, -0.05, f"0.045*step(0.5, fract(inst.i/2))*(1 + {B.hit})", 6, count=n_, **glow(c.b, f"1.5 + 2*{B.hit}")))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.3, 0.014, 0.7)]}
+
+
 # ───────────────────────── pictures of pictures ─────────────────────────
 
 SMALL = ("spiral", "sunflower", "stringart", "moire", "strings", "clockshop", "combs", "vortex", "epicycle", "harmonograph", "mandala", "table", "tally", "slack", "sonar", "remainder", "kelvin", "chladni")
@@ -3422,7 +3477,7 @@ BRIGHT = set("maypole railway stairs henge turbines tide escalator grove skein s
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
+SLOW = set("drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)
@@ -3781,7 +3836,7 @@ for _n in ("galton", "musicbox", "changes", "sympathy", "colony", "score"):
     REG[_n]["mood"] = -1
 for _n in ("snow", "lava", "searchlights", "lifts", "switchboard", "rink"):
     REG[_n]["mood"] = -1
-for _n in ("tesla", "duel", "trampoline", "billiard"):
+for _n in ("tesla", "duel", "trampoline", "billiard", "drill", "specimen"):
     REG[_n]["mood"] = 1
 for _n in ("kit", "hive"):
     REG[_n]["mood"] = 1

@@ -287,6 +287,7 @@ class Deal:
         self.chains = 0
         self.grown = collections.Counter()
         self.ruled = 0
+        self.album_first = None
 
     @staticmethod
     def motif_key(c):
@@ -308,6 +309,8 @@ class Deal:
                 continue
             if first and (info["cost"] >= 3 or info["fam"] in ("plate", "room", "travel")):
                 continue
+            if name == "numerals" and S.n != 14:
+                continue        # figures only where the song is about counting
             if flash and (info["cost"] >= 3 or info["fam"] in ("plate", "travel", "sheet", "trace", "grow") or name in W.PLATES or name in W.SLOW):
                 continue        # a flash has no time to draw anything out
             if name in W.FED and (final or busiest < max(5, 1.4 * secs)):
@@ -531,7 +534,10 @@ def plan(S, deal):
             r1, r2 = frozenset((p.name, p.cell) for p in c.riffs), frozenset((p.name, p.cell) for p in c2.riffs)
             if r1 and r2 and (r1 < r2 or r2 < r1):
                 ahead = c2
-        name, treat, look = deal.choose(S, c, k, first=(k == 0), flash=flash, prefer=out[0][2] if k and k == len(cuts) - 1 and len(cuts) > 12 else None, kind=kind, ahead=ahead, final=(k == len(cuts) - 1))
+        name, treat, look = deal.choose(S, c, k, first=(k == 0), flash=flash, prefer=(deal.album_first if S.n == 17 else out[0][2]) if k and k == len(cuts) - 1 and len(cuts) > 12 else None, kind=kind, ahead=ahead,
+                                       final=(k == len(cuts) - 1))
+        if deal.album_first is None:
+            deal.album_first = name     # the album ends on the picture it began with, changed
         deal.dyn[kind] += 1
         # Each length of riff has its own cast of colour in a song: the first as the song's
         # colours are, each new length a step round from them, and back when a length returns.
