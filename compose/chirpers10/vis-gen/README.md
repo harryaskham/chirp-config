@@ -11,7 +11,7 @@ about 940 scenes on the album, every one different.
 
 **What is drawn**
 
-- **Idioms** (`wild.py`, the `@idiom` functions: 142 so far). Each is a small machine, place,
+- **Idioms** (`wild.py`, the `@idiom` functions: 155 so far). Each is a small machine, place,
   game or diagram built from the notes themselves, and each keeps one rule: *what the music
   counts, the picture counts*. A note is a thing (a domino, a lantern, a lit window, a letter
   typed, a block dropped into a well); a riff's cell is a width or a number of things (bells
@@ -25,9 +25,14 @@ about 940 scenes on the album, every one different.
   frames as the riff is long); the picture moved (a kaleidoscope with as many mirrors as the
   riff has sixteenths, a wall of as many copies, wrapped round a circle, wound up, torn into
   sixteen bands on the riff's notes, a stone dropped into it on every note).
-- **Combinations** (`@combo`, 7): two idioms share the frame, each reading its own part:
-  double exposure, intercut on the riff's turns, a round window, a diptych, difference,
-  lighten, a corner that changes places half way. More of these where the music is fuller.
+- **Combinations** (`@combo`, 14): two idioms share the frame, each reading its own part:
+  double exposure, intercut on the riff's turns, a round window, a diptych, a triptych,
+  difference, lighten, a corner that changes places half way, one sweeping the other off;
+  and the frame cut into as many strips (or bands, squares, cake slices, rings) as the riff
+  has sixteenths, the two pictures changing places each time the riff comes round. More of
+  these where the music is fuller.
+- **Chains**: a picture is joined by a second, then the second stands alone or is joined by
+  a third, so through a full passage something always carries over the cut.
 - **Titles** (`master`): each song's name comes on in its own way (through a slit, turning
   over like a departures board, a word at a time as big as the frame, spaced along the foot,
   down the edge, round a ring …).
@@ -44,8 +49,14 @@ about 940 scenes on the album, every one different.
 | The band comes in after a thin bar (`dynamics`) | A cut on it; the new picture is struck with light and comes forward. |
 | The band stops for a bar | That bar stands alone, drained and dim. |
 | A riff comes back | Its cast of colour comes back (each length of riff has a hue of its own in a song), and now and then the picture it had, changed. |
+| The band gains a part, or loses one, and nothing else changes | The picture stays and gains or loses that part (`more`, `less`): a second wheel, a third row. The dealer looks a scene ahead for a picture that can. |
+| A long round (two or three riffs running until they come round together) | The frame is ruled round its edge a sixteenth at a time for as long as the round lasts, across every cut and flash, with a mark wherever each riff begins a turn (`ruled`). The marks fall together only at the corner where the riffs meet. |
+| Few notes, or the song ringing out | Pictures made of notes (`FED`) are kept away. |
 | The riff comes round part way through a scene | A treatment arrives or leaves there; the camera cuts in or out there; 3D scenes change camera there. |
 | The song ends | On the picture it began with, changed. |
+
+Some songs are printed on a stock of their own (`STOCK`: grainy and pale for In the Time
+Of, out of register for Close Enough).
 
 Nothing is dealt twice (`Deal`, album-wide): never the same idiom in the same guise, never
 the same family twice running, never the same idiom within twelve scenes. Each song has its
@@ -61,8 +72,9 @@ Commands (from this directory; `CHIRP` reads the cells and may be any recent bin
                                        (NAME/TREATMENT and A+B/COMBINATION work too)
 
 Programmes are written as generated; do not edit them. They need the engine of the
-`chirp-video` branch at 6ec49094 or later (`notes:` and `note.*`, `timeslice`, `step`,
-`halftone`, `outline`, `bold`, `remap`, the warps, `pick:`, `repeat:`, the new transitions),
+`chirp-video` branch at 116db6d4 or later (`notes:` and `note.*`, `timeslice`, `step`,
+`halftone`, `outline`, `bold`, `remap`, the warps, `pick:`, `repeat:`, an actor's `cut:`,
+the new transitions),
 which is not yet in a pinned binary, so they are not in `vis/`.
 
 ## The first film: motion studies

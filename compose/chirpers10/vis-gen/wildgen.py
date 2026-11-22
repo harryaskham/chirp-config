@@ -405,7 +405,7 @@ class Deal:
             # The picture before, if it stood alone, carries on and is joined by a new one.
             carry = last["name"] if last and not last.get("partner") and W.REG[last["name"]]["fam"] not in NO_PAIR and W.REG[last["name"]]["cost"] <= 2 else None
             for A in ([carry] if carry else []) + pair[:6]:
-                got = make(A, keep=(A == carry))
+                got = make(A, keep=(A == carry or A == hand_on))
                 if not got:
                     continue
                 for B in pair:
@@ -517,6 +517,7 @@ def plan(S, deal):
     deal.last = None
     out = []
     was_flash = False
+    last_shift = 0
     cuts = cut(S)
     shifts = {}
     for k, (a16, b16, cyc, kind) in enumerate(cuts):
@@ -536,6 +537,10 @@ def plan(S, deal):
         # colours are, each new length a step round from them, and back when a length returns.
         cell = c.riffs[0].cell if c.riffs else 16
         shift = shifts.setdefault(cell, (0, 0.07, -0.07, 0.14, -0.14, 0.21, -0.21, 0.28)[len(shifts) % 8])
+        if treat in ("more", "less"):
+            shift = last_shift      # the same picture with a part more or less: in the same colours
+        if not flash:
+            last_shift = shift
         if shift and not flash and not any(L.get("type") == "sky" for L in look.get("layers", [])) and W.REG[name]["fam"] not in ("plate", "ground"):
             look.setdefault("filters", []).append({"type": "hue", "shift": shift})
         deal.flashes += flash
