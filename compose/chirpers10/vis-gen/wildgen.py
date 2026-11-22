@@ -283,6 +283,8 @@ class Deal:
         self.flashes = 0
         self.motif = {}
         self.dyn = collections.Counter()
+        self.last = None
+        self.chains = 0
 
     @staticmethod
     def motif_key(c):
@@ -292,6 +294,11 @@ class Deal:
         in_song = self.song_used
         fams = [W.REG[i]["fam"] for i in self.recent[-3:]]
         cands = []
+        # Chains: a picture is joined by a second, and then the second stands alone.
+        last = self.last if not flash else None
+        hand_on = last["partner"] if last and last.get("partner") and not prefer and kind != "hush" and rnd(S.n, k, "hand?") < 0.7 else None
+        if hand_on:
+            fams = fams[:-1]        # (its family was the last one seen: that is the point)
         for name, info in W.REG.items():
             if info["needs"] > len(c.riffs) or (info["tune"] and not c.tunes):
                 continue
@@ -302,6 +309,8 @@ class Deal:
             score = 4.0 * self.used[name] + 1.5 * (info["cost"] - 1) - 2.0 * min(info["needs"], 3) + 3.0 * rnd(S.n, k, name)
             if name == prefer:
                 score -= 60         # the song ends on the picture it began with, changed
+            elif name == hand_on:
+                score -= 45         # the picture that came in beside the last one now stands alone
             elif name in self.recent[-(9 if flash else 12):]:
                 score += 100
             if flash and in_song[name] and name not in self.recent[-9:]:
@@ -329,18 +338,21 @@ class Deal:
         import copy
         base = copy.copy(c)
 
-        def make(name, sub=None):
-            """The idiom's look for this scene (as part `sub` sees it), or None if it does not fit."""
+        def make(name, sub=None, keep=False):
+            """The idiom's look for this scene (as part `sub` sees it), or None if it does not fit.
+            `keep`: as it was last time (the same camera and colours), for a picture that carries on."""
             d = copy.copy(base) if sub is None else base.sub(sub, 2)
-            d.variant = self.used[name]
-            rot = self.used[name] % 3
+            d.variant = max(self.used[name] - keep, 0)
+            rot = d.variant % 3
             d.a, d.b, d.c = (d.a, d.b, d.c)[rot:] + (d.a, d.b, d.c)[:rot]
             try:
                 return d, W.bolder(name, W.REG[name]["f"](d))
             except (ValueError, IndexError, ZeroDivisionError, TypeError):
                 return None
 
-        def note(name, treat, label):
+        def note(name, treat, label, partner=None):
+            if not flash:
+                self.last = {"name": name, "partner": partner}
             if not flash and c.riffs:
                 self.motif.setdefault(self.motif_key(c), name)
             self.used[name] += 1
@@ -354,8 +366,10 @@ class Deal:
         # Now and then two pictures share the frame.
         if not first and not flash and not prefer and rnd(S.n, k, "pair?") < 0.08 + 0.3 * c.full:
             pair = [n_ for n_ in ranked if W.REG[n_]["fam"] not in NO_PAIR and W.REG[n_]["cost"] <= 2 and n_ not in self.recent[-12:]]
-            for A in pair[:6]:
-                got = make(A)
+            # The picture before, if it stood alone, carries on and is joined by a new one.
+            carry = last["name"] if last and not last.get("partner") and W.REG[last["name"]]["fam"] not in NO_PAIR and W.REG[last["name"]]["cost"] <= 2 else None
+            for A in ([carry] if carry else []) + pair[:6]:
+                got = make(A, keep=(A == carry))
                 if not got:
                     continue
                 for B in pair:
@@ -369,7 +383,8 @@ class Deal:
                     look = W.COMBOS[kind](got[0], got[1], other[1])
                     self.kinds[kind] += 1
                     self.treats[kind] += 1
-                    note(A, f"{kind}+{B}", f"{A}+{B}/{kind}")
+                    note(A, f"{kind}+{B}", f"{A}+{B}/{kind}", partner=B)
+                    self.chains += A == carry
                     self.used[B] += 1
                     self.count -= 0
                     return A, f"{kind}+{B}", look
@@ -378,6 +393,8 @@ class Deal:
             got = make(name)
             if not got:
                 continue
+            if name == hand_on:
+                got = make(name, keep=True) or got
             d, look = got
             c.__dict__.update(d.__dict__)
             # Its first time it is seen plain; after that, through something it has not been seen through.
@@ -389,7 +406,7 @@ class Deal:
                 # Pictures made of lines and points keep to guises that add to them: a print of a hair line is nothing.
                 order = [t for t in order if t in W.FILLS]
             plain_ok = (name, "plain") not in self.combos
-            treat = "plain" if (plain_ok and (self.used[name] == 0 or rnd(S.n, k, "plain?") < 0.25)) or not order else order[0]
+            treat = "plain" if (plain_ok and (self.used[name] == 0 or name == hand_on or rnd(S.n, k, "plain?") < 0.25)) or not order else order[0]
             if treat == "plain" and not plain_ok:
                 continue            # it has been seen every way it can be
             if flash:
@@ -421,6 +438,7 @@ def plan(S, deal):
     """A song's scenes: [(a16, b16, idiom, treatment, scene dict, context)]."""
     deal.song_used = collections.Counter()
     deal.motif = {}
+    deal.last = None
     out = []
     was_flash = False
     cuts = cut(S)
@@ -513,7 +531,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 

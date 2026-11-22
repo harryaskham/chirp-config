@@ -2213,20 +2213,20 @@ def musicbox(c):
     every note; the pins come under the comb as they sound."""
     P = c.riffs[:2]
     big = max(p.cell for p in P)
-    layers = [lamp(-3, 5, -6, 1.2), lamp(3, 1, -5, 0.5, c.a), floor(c, -1.6, "#131317", 0.5)]
+    layers = [lamp(-3, 5, -6, 1.5), lamp(3, 1, -5, 0.7, c.a), floor(c, -1.6, "#1d1d24", 0.5)]
     for i, p in enumerate(P):
         R = 1.25 * p.cell / big
         y0 = -1.5 + R + 0.02
         x0 = (i - (len(P) - 1) / 2) * 4.2
         ang = f"({p.nph} - fract({p.turn}))"                 # the pin's place round the drum: at the comb (the top, nearest us) as it sounds
         px = f"{x0:g} + {p.pitch(-1.3, 1.3)}"
-        layers.append({"type": "mesh", "shape": "cylinder", "detail": 40, "x": x0, "y": y0, "z": 0, "scale": 1, "sx": R, "sy": 1.5, "sz": R, "rz": 0.25, **solid("#8c7a4a", 0.45, 0.8)})
-        layers.append(ball(px, f"{y0:g} + {R * 1.03:g}*cos({ang})", f"0 - {R * 1.03:g}*sin({ang})", 0.085, 8, notes={"track": p.name, "past": p.cell / 4 - 0.05}, **solid("#e6d7a8", 0.3, 0.9),
-                           emit="0.7 + 2.5*exp(0 - 4*note.age)"))
+        layers.append({"type": "mesh", "shape": "cylinder", "detail": 40, "x": x0, "y": y0, "z": 0, "scale": 1, "sx": R, "sy": 1.5, "sz": R, "rz": 0.25, **solid("#8f7436", 0.5, 0.4)})
+        layers.append(ball(px, f"{y0:g} + {R * 1.04:g}*cos({ang})", f"0 - {R * 1.04:g}*sin({ang})", 0.12, 8, notes={"track": p.name, "past": p.cell / 4 - 0.05}, **glow("#fff3cf", "1.1 + 2.5*exp(0 - 4*note.age)")))
         layers.append(box(f"{x0:g} + (inst.i - 11.5)*0.113", y0 + R + 0.12, -0.5, 0.045, 0.012, 0.5, count=24, **solid("#c9cdd4", 0.25, 0.9)))
         layers.append(box(px, y0 + R + 0.14, -0.5, 0.05, 0.012, 0.5, notes={"track": p.name, "past": 0.5}, **glow(c.col(i), "3*exp(0 - 5*note.age)")))
     look = {"background": c.bg, "layers": layers, "filters": post3d(-3, 5, -6, shadow=0.6)}
-    return shots(c, look, [cam("1.0*sin(time.bar/9)", 1.6, -6.5, look=(0, -0.4, 0), zoom=1.5), cam(-5.5, 0.6, -2.5, look=(0, -0.4, 0), zoom=1.4), cam(0, 5.5, -2.5, look=(0, -0.3, 0), zoom=1.5)], P[0])
+    wide = 1.9 if len(P) == 1 else 1.45
+    return shots(c, look, [cam("1.0*sin(time.bar/9)", 1.4, -6.0, look=(0, -0.4, 0), zoom=wide), cam(-5.0, 0.6, -2.5, look=(0, -0.4, 0), zoom=wide * 0.9), cam(0, 5.0, -2.5, look=(0, -0.3, 0), zoom=wide)], P[0])
 
 
 @idiom(needs=0, drums=True, fam="body", cost=3)
@@ -3292,7 +3292,7 @@ BOLD = {"numerals": 0.004, "orrery": 0.004, "kelvin": 0.004, "galton": 0.004, "s
 
 
 # Guises that add to a picture (copies, echoes, mirrors) rather than print it.
-FILLS = ("kaleido", "mirror", "wall", "planet", "tunnel", "echo", "slices", "fringe", "spin", "roll", "wound", "water", "torn", "hole", "lines", "warp", "solar", "flood", "poster")
+FILLS = ("kaleido", "mirror", "wall", "planet", "tunnel", "echo", "slices", "fringe", "spin", "roll", "wound", "water", "torn", "hole", "lines", "warp", "solar")
 
 
 def bolder(name, look):
