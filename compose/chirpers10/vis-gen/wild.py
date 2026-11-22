@@ -3992,8 +3992,11 @@ def ledger(c):
     lo = min(k for _, _, ns in rows for _, _, k, _ in ns)
     hi = max(k for _, _, ns in rows for _, _, k, _ in ns)
     layers = [box(0, 0, 0.05, 0.008, 2.6, 0.01, **glow("#ffffff", 0.75))]
-    for s0, B, ns in rows:
-        y = f"({ynow} + ({now} - {s0})*{gap / L:g})"
+    for i, (s0, B, ns) in enumerate(rows):
+        # A row rises as it is played, and again as each later row is: so the ledger stands
+        # still while the phrase is not being played, and what was owed before stays written.
+        rise = " + ".join(f"clamp(({now} - {r[0]})/{L}, 0, 1)" for r in rows[i:])
+        y = f"({ynow} + ({rise})*{gap:g})"
         seen = f"step({s0}, {now})"
         for on, ln, key, second in ns:
             w = max(ln, 0.35) * u / 2
@@ -4010,7 +4013,7 @@ def ledger(c):
             layers.append(box(((x0 + x1) / 2 - L / 2) * u, f"{y} + {0.08 * k:g}", -0.01, (x1 - x0) * u / 2, 0.075 * k, 0.01,
                               **glow("#ffffff", f"step({s0 + x0:g}, {now})*(0.8 + 1.4*exp(0 - 0.25*max({now} - {s0 + x0:g}, 0)))")))
     # Where the phrase is now.
-    cur = f"(fract(({now} - {rows[0][0]})/{L}) - 0.5)*{L * u:g}"
+    cur = f"(fract(({now} - {rows[-1][0]})/{L}) - 0.5)*{L * u:g}"
     layers.append(box(cur, ynow + 0.4 * k, -0.03, 0.014, 0.4 * k, 0.01, **glow(c.ink, 1.3)))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.014, 0.7)]}
 

@@ -1222,7 +1222,7 @@ def owing_here(S, c):
     here = [r for r in rows if c.a16 - L < r[0] < c.b16]
     if len(here) < max(1, (c.b16 - c.a16) // L - 1):
         return None
-    near = [r for r in rows if c.a16 - 7 * L <= r[0] < c.b16]
+    near = [r for r in rows if r[0] < c.b16][-8:]      # (the ledger keeps what was written before a rest)
     before = [r for r in rows if r[0] < here[0][0]]
     was = before[-1][1] if before else L / 2
     owed = here[-1][1] - L / 2

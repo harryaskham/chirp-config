@@ -38,7 +38,10 @@ import songmap  # noqa: E402
 import studies as S  # noqa: E402
 
 ALBUM = json.load(open(os.path.join(HERE, "..", "album.json")))
-CACHE = os.path.expanduser("~/.cache/chirp/ctgen")
+# The songs are read from the album's own folder, or from $CT_SONGS: a folder of copies frozen
+# with a draft, so that one song of a draft can be drawn again as the songs then stood.
+SONGS = os.environ.get("CT_SONGS") or os.path.join(CFG, "songs")
+CACHE = os.path.expanduser("~/.cache/chirp/ctgen" + ("-frozen" if os.environ.get("CT_SONGS") else ""))
 # Where the programmes go. Not vis/ yet: they use engine features (cells, plates) that are on
 # the chirp-video branch only, and vis/ is read by every released binary. --out=DIR overrides.
 OUT = os.path.join(HERE, "..", "film")
@@ -68,7 +71,7 @@ def engine_cells(song):
     """Each track's cells as the engine reads them: {track: [(from, to, cell, anchor)]} in
     sixteenths from the song's start (`anchor`: where a turn of that cell begins). None if this engine cannot say (then the reading below is used: the
     same method, but on the written notes, where the engine has the played ones)."""
-    path = os.path.join(CFG, "songs", song + ".yaml")
+    path = os.path.join(SONGS, song + ".yaml")
     os.makedirs(CACHE, exist_ok=True)
     try:
         stamp = f"{os.path.getmtime(CHIRP):.0f}"
@@ -93,13 +96,13 @@ def engine_cells(song):
 
 def load(song):
     """The song's notes: {track: [(start beat, end beat, key)]}, seconds, beats a bar, tempo."""
-    path = os.path.join(CFG, "songs", song + ".yaml")
+    path = os.path.join(SONGS, song + ".yaml")
     os.makedirs(CACHE, exist_ok=True)
     key = hashlib.sha1(open(path, "rb").read()).hexdigest()[:16]
     c = os.path.join(CACHE, f"{song}-{key}.pkl")
     if os.path.exists(c):
         return pickle.load(open(c, "rb"))
-    data, ppq, tempo, metre, notes = songmap.load(song)
+    data, ppq, tempo, metre, notes = songmap.load(path if os.environ.get("CT_SONGS") else song)
     clk = songmap.Clock(ppq, tempo, metre)
     canon = {t.get("name"): t for t in (data["canonical"].get("tracks") or []) if isinstance(t, dict)}
     out = {
