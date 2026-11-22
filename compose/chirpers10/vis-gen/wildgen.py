@@ -435,7 +435,7 @@ class Deal:
                     score -= 30 - 2 * FEATURE[S.n].index(name)     # a song opens on a picture of what it is about
             if first and name == OPEN.get(S.n):
                 score -= 80
-            if name in W.WANTS and in_song[name] < 3 and W.WANTS[name](c):
+            if name in W.WANTS and in_song[name] < 3 and W.WANTS[name](c) and (name != "beats" or name in FEATURE.get(S.n, ())):
                 score -= 18         # it is at its best here
             if info["fam"] == "plate":
                 score += 3          # the first film's studies: now and then
@@ -1332,6 +1332,10 @@ def plan(S, deal):
             r1, r2 = frozenset((p.name, p.cell) for p in c.riffs), frozenset((p.name, p.cell) for p in c2.riffs)
             if r1 and r2 and (r1 < r2 or r2 < r1):
                 ahead = c2
+        if k and k == len(cuts) - 1 and not c.riffs and not flash:
+            # The song rings out with nobody playing a riff: the picture has the parts the song
+            # began with, still turning though they have stopped sounding.
+            c.riffs = next((list(o[5].riffs) for o in out if o[5].riffs), [])
         landed = None
         if kind in ("landing", "reprise") and out:
             # The great round is over: everything is where it was when the song began, and so is the picture.
