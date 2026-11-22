@@ -466,8 +466,11 @@ class Deal:
             if name in W.BOLD:
                 # Pictures made of lines and points keep to guises that add to them: a print of a hair line is nothing.
                 order = [t for t in order if t in W.FILLS]
+            if first:
+                # A song opens on its picture as it is, or in a guise that leaves it whole.
+                order = [t for t in order if t in ("fringe", "duotone", "poster", "flood", "relief", "solar", "leaded", "echo", "water", "blown", "ball", "falling", "mirror", "kaleido")]
             plain_ok = (name, "plain") not in self.combos
-            treat = "plain" if (plain_ok and (self.used[name] == 0 or name == hand_on or rnd(S.n, k, "plain?") < 0.25)) or not order else order[0]
+            treat = "plain" if (plain_ok and (self.used[name] == 0 or first or name == hand_on or rnd(S.n, k, "plain?") < 0.25)) or not order else order[0]
             if treat == "plain" and not plain_ok:
                 continue            # it has been seen every way it can be
             if flash:
@@ -491,7 +494,7 @@ class Deal:
                 self.arrivals += 1
             # Where the music is full a picture may wear two guises at once.
             second = None
-            if treat in W.STACK and not flash and name != hand_on and c.full >= 0.55 and rnd(S.n, k, "stack?") < 0.5:
+            if treat in W.STACK and not flash and not first and name != hand_on and c.full >= 0.55 and rnd(S.n, k, "stack?") < 0.5:
                 more = sorted((t for t in W.STACK if W.STACK[t] != W.STACK[treat] and (name, t) not in self.combos and W.TREAT[t][1](c, info) and (name not in W.BOLD or t in W.FILLS)
                                and (treat, t) not in W.STACK_BAD and (t, treat) not in W.STACK_BAD),
                               key=lambda t: self.stacks[t] + 2 * rnd(S.n, k, "st" + t))
