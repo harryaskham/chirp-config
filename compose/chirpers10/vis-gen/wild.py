@@ -4469,6 +4469,15 @@ def t_sheet(c, look):
     return _pre(look, {"type": "panels", "cols": cols, "rows": math.ceil(nn / cols), "count": nn, "every": 0.25, "gap": 0.012, "flash": 0.3, "fit": "fill", "border": c.bg})
 
 
+@treat("halves", ok=lambda c, info: info["fam"] not in ("plate", "sign", "lattice") and c.riffs and c.riffs[0].cell and c.riffs[0].cell % 8 == 0 and 2 <= c.riffs[0].cell // 8 <= 6)
+def t_halves(c, look):
+    """The frame as a sheet of as many pictures as the riff has half bars, one taken each half
+    bar: while the riff comes round, each place on the sheet shows the same thing every time."""
+    nn = c.riffs[0].cell // 8
+    cols = {2: 2, 3: 3, 4: 2, 5: 3, 6: 3}[nn]
+    return _pre(look, {"type": "panels", "cols": cols, "rows": math.ceil(nn / cols), "count": nn, "every": 2, "gap": 0.014, "flash": 0.35, "fit": "fill", "border": c.bg})
+
+
 @treat("blocks", ok=lambda c, info: info["fam"] not in ("sign", "lattice", "plate"))
 def t_blocks(c, look):
     """Sixteen blocks across: the picture counted in common time, sharp again on the bar."""

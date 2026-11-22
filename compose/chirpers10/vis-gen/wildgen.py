@@ -134,11 +134,11 @@ FEATURE = {
 HOUSE = {
     2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout smoked delayed puzzle",
     3: "lines engraved hatched typed sheet blueprint leaded strips bands intercut triptych stencil woven sampler knitted",
-    4: "typed onebit newsprint dots blocks combed poster board corner card strips tracking puzzle beaded bricks",
+    4: "typed onebit newsprint dots blocks combed poster board corner card strips tracking puzzle beaded bricks halves",
     5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout infra screen ridged papercut",
-    6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass dripping beaded",
+    6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass dripping beaded halves",
     7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite glass woven bricks papercut",
-    8: "leaded engraved newsprint poster flood duotone mirror triptych diptych window board infra woven puzzle bricks",
+    8: "leaded engraved newsprint poster flood duotone mirror triptych diptych window board infra woven puzzle bricks halves",
     9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout smoked delayed papercut",
     10: "onebit dots torn combed typed poster negative difference card bands corner stencil dripping sampler beaded",
     11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking screen papercut puzzle",
@@ -349,6 +349,7 @@ class Deal:
         self.canon_far = collections.defaultdict(set)
         self.dealt = collections.defaultdict(set)
         self.sums = 0
+        self.period = {}
         self.fits = 0
         self.hands = 0
         self.deals = 0
@@ -667,6 +668,7 @@ class Deal:
                     self.used[B] += 1
                     self.count -= 0
                     return A, f"{kind}+{B}", look
+        passed = 0
         for name in ranked:
             info = W.REG[name]
             got = make(name)
@@ -689,6 +691,16 @@ class Deal:
                 order = [t for t in order if t in ("fringe", "relief", "solar", "leaded", "echo", "water", "blown", "ball", "falling", "mirror", "kaleido", "smoked", "infra", "tracking")]
             plain_ok = (name, "plain") not in self.combos
             treat = "plain" if (plain_ok and (self.used[name] == 0 or first or name == hand_on or rnd(S.n, k, "plain?") < 0.25)) or not order else order[0]
+            # A song whose riff keeps changing its length in half bars (two, four, five, three):
+            # each new length is seen on a sheet of that many pictures, one taken each half bar.
+            per = period(S, c) if not flash and not first else None
+            if per and per != self.period.get(S.n) and "halves" not in order and name != hand_on and passed < 10:
+                passed += 1
+                continue            # (one that can be put on such a sheet, if there is one near the top)
+            if per and per != self.period.get(S.n) and "halves" in order and name != hand_on:
+                treat = "halves"
+                self.period[S.n] = per
+                c.talk = f"the riff is {per} half bars long"
             if treat == "plain" and not plain_ok:
                 continue            # it has been seen every way it can be
             if flash:
@@ -920,6 +932,24 @@ def fitting(S, c):
 
 
 ZIP_GUISES = ("plain", "relief", "papercut", "infra", "fringe", "duotone", "echo", "delayed", "solar", "tracking", "blown", "water")
+
+
+def period(S, c):
+    """In a song whose riffs keep changing their length in half bars, how many this scene's
+    riff has (2..6); or None."""
+    if not hasattr(S, "_periods"):
+        seen = set()
+        for bar in range(0, S.bars - 1, 2):
+            for t in (S.tracks.values() if isinstance(S.tracks, dict) else S.tracks):
+                if t.role in ("riff", "bass") and t.count(bar, bar + 2) >= 4:
+                    cell = t.cell(bar, bar + 2)[0]
+                    if cell and cell % 8 == 0 and 1 <= cell // 8 <= 6:
+                        seen.add(cell // 8)
+        S._periods = seen
+    if len(S._periods - {1}) < 4 or not c.riffs or not c.riffs[0].cell:
+        return None
+    cell = c.riffs[0].cell
+    return cell // 8 if cell % 8 == 0 and 2 <= cell // 8 <= 6 else None
 
 
 def even(notes, a, b):

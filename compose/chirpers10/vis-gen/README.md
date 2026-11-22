@@ -18,11 +18,12 @@ about 940 scenes on the album, every one different.
   in a ring of changes, oars on a galley, fingers on a hand, pictures on a reel); a turn of
   the riff is a turn of something. So the odd lengths are seen sliding against the bar
   without being announced.
-- **Guises** (`@treat`, 55): an idiom is seen plain once, and after that through something it
+- **Guises** (`@treat`, 56): an idiom is seen plain once, and after that through something it
   has not been seen through. Prints (halftone, newsprint, engraving, one-bit, type, a line
   drawing, a blueprint, relief, two-ink posters, solarised); cameras that hold time (a
   slit-scan with a strip a sixteenth, stop motion on the riff's notes, a sheet of as many
-  frames as the riff is long); the picture moved (a kaleidoscope with as many mirrors as the
+  frames as the riff is long, or of as many as it has half bars, so that a riff whose length
+  doubles, as in Carrying Capacity, splits the frame in two, then four); the picture moved (a kaleidoscope with as many mirrors as the
   riff has sixteenths, a wall of as many copies, wrapped round a circle, wound up, torn into
   sixteen bands on the riff's notes, a stone dropped into it on every note, inside itself
   without end, round a ball, on a folding screen with a leaf for each sixteenth); what the
@@ -73,6 +74,7 @@ about 940 scenes on the album, every one different.
 | A riff is added up (`adding`: statement after statement of one line, each a place longer than the last, found from the notes) | Its triangle (`total`): a row for each statement, a column for each place of the riff, each cell lit as it is played and the bar lines marked as they wander through. It keeps coming back while the sum lasts, some rows further on each time and in another guise, and is there when the sum closes on a bar line. |
 | A right part plays the left's riff backwards (`hands`: the same strip of attacks read from the other end; riffs that read the same both ways are not counted) | The picture is drawn for each, the right one's turned round left to right (`flipped`), and the two are joined as a canon is: it is one picture where it stands still, and whatever moves in it goes both ways at once. |
 | Two parts fit into one another (`fitting`: never together, and together an unbroken pulse that neither makes alone: one plays the other's negative) | A zip is closed (`zipper`): one part's notes are the teeth of one side and the other's the teeth of the other, each as wide as the pulse they share. |
+| The riff's length in half bars changes, in a song where it keeps changing (`period`: Carrying Capacity's two, four, five, three, six) | Each new length is seen on a sheet of that many pictures, one taken each half bar (`halves`): while the riff comes round every place on the sheet holds still, and the frame splits in two, in four, in five, in three as the riff does. |
 | Few notes, or the song ringing out | Pictures made of notes (`FED`) are kept away. |
 | The riff comes round part way through a scene | A treatment arrives or leaves there; the camera cuts in or out there; 3D scenes change camera there. |
 | The song ends | On the picture it began with, changed. |
