@@ -1271,6 +1271,52 @@ def the_china_is_a_plate(doc):
     if CHINA['loudness']: doc['loudness'] = CHINA['loudness']
 
 
+# v32 (chirper-zero; instrument round: THE TWO BASS DRUMS, `foot` (274 strokes) and `other-foot` (42): the album
+# kit's drum as it comes. No stroke moves; one track is added, `chest`, last, 42 notes.) THE FEET ARE SHORT.
+# Harry, 22 Nov: "even harder sounding guitars, bass drums".
+#   Read first, every bass drum on the album beside the records' (kickref; each alone): this one is the softest and
+#   one of the longest. Its low band takes 83 ms to fall 20 dB (the records 37 to 49); 90-120 Hz stands 27.4 dB under
+#   its whole low end (theirs 13.6); its click against its low end -12.8 at its own strokes (theirs -13.0 to -4.0).
+#   And HERE THE MIX HAS ROOM FOR A SHORTER DRUM, which On Its Hinge and Extreme and Mean did not: the drum is nine
+#   to ten and a half decibels of the raw mix's 30-60 Hz (by mute; the bass 0.1: the low bus takes it off its own
+#   fundamental), and that band reads 0.7 to 1.2 dB OVER the records in seven of the eight stamp windows.
+#   THE FIT: both drums' decay 210 -> 170 ms (150 ms took the floor 2 dB down and read further in two windows of
+#   four). Alone: 20 dB down in 55 ms.
+#   THE CHEST the other fitted drums have (one sine a ninth of a second long under each stroke, past the kit's bus,
+#   -7 dB) I built under every stroke of the first foot and read all eight windows with and without it: this mix
+#   already has its 60-120 Hz (the kit bus's lift at 92 Hz, v11), and the chest read FURTHER in six windows and nearer
+#   in ONE: 'raised' (2:17-2:50), the section where that band is 0.9 short and the bass sits on its two lowest
+#   notes. So the first foot knocks in the chest there and nowhere else: 42 strokes, on A flat 2 (the song's third;
+#   6 Hz from the drum's own octave, less than so short a tone can tell). The second foot (chirper-two's, v21: a
+#   minor third up, to the right) is shortened with the first and plays nothing in 'raised'.
+# 'tracks': the drums ; 'kit': overrides on their patch strings ; 'chest': None, or {'under': the track whose notes it
+# doubles, 'note', 'gain' (dB), 'ms' (its decay), 'spans': None for every stroke, or beats ((from, to), ...)} ;
+# 'loudness': the target (None: unchanged). --without-short-feet gives v31 byte for byte. (--short-feet '{...}': a bench.)
+SHORT_FEET = {'tracks': ('foot', 'other-foot'), 'kit': 'kit.k.patch.synth.amp.d=170ms',
+              'chest': {'under': 'foot', 'note': 'Ab2', 'gain': -7.0, 'ms': 90, 'spans': ((237.5, 294.5),)}, 'loudness': -9.9637}
+
+
+def the_feet_are_short(doc):
+    """v32: both bass drums' tail (SHORT_FEET['kit']) and a chest under the first (SHORT_FEET['chest']): a new last track `chest`,
+    its patch a bare sine, to the mix: one note for every note of the doubled track at its velocity and its own gain."""
+    tr = {t['name']: t for t in doc['tracks']}
+    assert 'chest' not in tr and 'chest' not in doc.get('buses', {})
+    for name in SHORT_FEET['tracks']:
+        assert tr[name]['patch'].startswith('ct-kit') and 'amp.d' not in tr[name]['patch'], tr[name]['patch']
+        if SHORT_FEET['kit']: tr[name]['patch'] = tr[name]['patch'] + ' ' + SHORT_FEET['kit']
+    c = SHORT_FEET['chest']
+    if c:
+        struck = lambda n: not c['spans'] or any(a <= n['at'] < b for a, b in c['spans'])
+        doc['tracks'].append({'name': 'chest',
+                              'patch': {'extends': '808', 'synth': {'layers': ['sine'], 'pitch': {'value': 0, 'mod': []}, 'drive': 0, 'filters': [],
+                                                                  'amp': {'a': '2ms', 'd': f"{c['ms']:g}ms", 's': 0, 'r': '20ms', 'curve': 3}},
+                                        'play': {'mono': False, 'glide': '0ms', 'gate': 1}},
+                              'gain': f"{c['gain']:g}dB", 'pan': 0,
+                              'notes': [{**{k: v for k, v in n.items() if k in ('at', 'vel', 'gain')}, 'len': 0.25, 'pitch': c['note']}
+                                        for n in tr[c['under']]['notes'] if struck(n)]})
+    if SHORT_FEET['loudness']: doc['loudness'] = SHORT_FEET['loudness']
+
+
 if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); ap.add_argument('--without-crease',action='store_true',help='regenerate v3')
     ap.add_argument('--without-mirror-bass',action='store_true',help='regenerate v4')
@@ -1308,6 +1354,8 @@ if __name__=='__main__':
     ap.add_argument('--bell',help='a bench: BELL fields to change, as a JSON object')
     ap.add_argument('--without-china',action='store_true',help="regenerate v30: the china in 'turn over' as the album kit's comes")
     ap.add_argument('--china',help='a bench: CHINA fields to change, as a JSON object')
+    ap.add_argument('--without-short-feet',action='store_true',help="regenerate v31: both bass drums as the album kit's comes (210 ms), no chest")
+    ap.add_argument('--short-feet',help='a bench: SHORT_FEET fields to change, as a JSON object')
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
     doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot,not a.without_blot)
     if not a.without_lean and 'songs' in doc: lean(doc)      # only on the whole song as v22 has it (the tape is there when every older switch is on)
@@ -1327,6 +1375,8 @@ if __name__=='__main__':
     if not a.without_bell and not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_margin_bell(doc, sections)      # only on the whole song as v29 has it
     if a.china: CHINA.update(json.loads(a.china))
     if not a.without_china and not a.without_bell and not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_china_is_a_plate(doc)      # only on the whole song as v30 has it
+    if a.short_feet: SHORT_FEET.update(json.loads(a.short_feet))
+    if not a.without_short_feet and not a.without_china and not a.without_bell and not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_feet_are_short(doc)      # only on the whole song as v31 has it
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
