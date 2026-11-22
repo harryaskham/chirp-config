@@ -799,7 +799,7 @@ NEARER = os.environ.get("C10T1_NEARER", "363:383:-6:-3:-10.093" if REBUILD and H
 # bars from the section's first ; the bell's velocity ; the bells' fader ; dB on the strokes of each pair (five and seven,
 # five and eleven, seven and eleven) ; where each pair's bell stands (pan) ; the loudness target ('' = unchanged).
 # "" = v62. It is on only while no older switch of this song is set, so each of those still gives what it gave.
-MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE", "C10T1_FIVE", "C10T1_COUNT") for k in os.environ) else "")
+MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE", "C10T1_FIVE", "C10T1_COUNT", "C10T1_TOMS") for k in os.environ) else "")
 # v44: THE ENGINE, EXPOSED (9:19, in the hardest stretch). For twenty-eight bars everything runs at once: four guitars
 # and the bass on seven, the china on every eighth, the bark, and under it all the kick in unbroken sixteenths. The one
 # event inside it is the ground moving up a semitone at 9:20. Now, for the half bar before that, everything stops
@@ -2233,7 +2233,7 @@ def hold_still(doc):
 # well ("" = neither; "2" = the second) ; the flute's velocity when it was recorded ; the deck's wow and flutter in
 # cents and its drift (in units of the wow) ; the loudness target ("" = unchanged) ; settings added to the recorded
 # flute's patch ("" = the library's flute as it comes). "" = v63. On only while no older switch of this song is set.
-TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE", "C10T1_FIVE", "C10T1_COUNT") for k in os.environ) else "")
+TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE", "C10T1_FIVE", "C10T1_COUNT", "C10T1_TOMS") for k in os.environ) else "")
 
 
 def the_eye_on_tape(doc):
@@ -2572,6 +2572,47 @@ def the_five_keeps_its_own_count(doc):
     return len(notes)
 
 
+# v71 (chirper-zero; instrument round: THE TOMS, all 407 strokes; no stroke is added, moved or struck harder).
+# THE TOMS GET THROUGH. In this song the toms are not fills: they play the five wheel alone out of the eye (6:21),
+# lead the weight back in while the guitars are still 8 dB down (6:40), fill every gap of the second stop-time by
+# themselves (8:43), turn the eleven wheel with the bass (4:53) and keep the pulse under the swap (10:00). They were
+# the album kit's toms as they come. Read at their strokes in the raw mix (the mix with them less the mix without,
+# a stroke's first 80 ms), what they put into the band was mostly their BOX: in the rebuild +3.7 dB at 250-500 Hz
+# and +7.5 at 500 Hz-1 kHz, +0.5 above 2 kHz. And beside this kit's kick, whose click Harry said gets through, they
+# had no stick: in a stroke's first 15 ms the floor tom stood 12 to 30 dB under the kick's click from 2 to 14 kHz.
+#   the box: the modal head's `tilt` -2 -> -6 (alone, the floor tom's 250-630 Hz -10.4 -> -16.2 dB re its stroke,
+#     the high tom's 400 Hz-1 kHz -4.2 -> -8.5: it had as much box as note); the note under it is what carries now
+#   the stick: its burst 50 -> 76 dB, over 12 ms, and the 4 kHz peak +8 dB (the fit kept on Take Up the Slack,
+#     So Far and Common Measure's fills)
+#   NEW here, the track's low-pass at 7 kHz: the stick as fitted is white to the top; it stood 1 to 2 dB OVER the
+#     kick's click above 6 kHz and made the toms the top octave of every passage they play in. The kick's click is
+#     centred on 4.5 kHz and falls 7 to 8 dB above 6 kHz. With the low-pass the stick is the kick's click's size at
+#     2-4 kHz (within 0.6 dB on all three drums) and 2 to 7 dB under it above.
+# The fader is not moved (alone the drums are 1.4 to 2 dB louder, K: their notes are fuller; a trim of 1.5 dB read
+# a hair nearer the records over the thirteen stamp windows with toms, 18.52 -> 18.35 summed: not a reason to turn
+# down the part that leads). The ring is not shortened: the three main drums sound on F, C and F, the song's open
+# chord. The eleven wheel's own -4 dB (v51) stays.
+# the five toms' patch fields ; fields for the three rack toms only ('' = none) ; the toms' track eq, bands with |
+# between ('' = none) ; the fader ('' = as it was, 4 dB) ; the loudness target ('' = unchanged). '' = v70 byte for
+# byte. On only while COUNT is; in MEET's and TAPE's lists.
+TOMS = os.environ.get("C10T1_TOMS", "synth.layers.0.tilt=-6 synth.layers.1.level.mod.0.amount=76 synth.env.att.d=12ms synth.filters.1.gain=8dB;;lp cutoff=7000 q=0.7;;-10.127" if COUNT else "")
+
+
+def the_toms_get_through(doc):
+    """v71: the toms lose their box and get a stick, band-limited as the kit's kick click is."""
+    fields, rack, bands, fader, target = TOMS.split(";")
+    t = next(t for t in doc["tracks"] if t["name"] == "toms")
+    t["patch"] += "".join(f" kit.{piece}.patch.{f}" for piece in ("ft", "ft2", "t1", "t2", "t3") for f in fields.split())
+    t["patch"] += "".join(f" kit.{piece}.patch.{f}" for piece in ("t1", "t2", "t3") for f in rack.split())
+    if bands:
+        assert "fx" not in t
+        t["fx"] = [{"type": "eq", "bands": bands.split("|")}]
+    if fader:
+        t["gain"] = fader
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if STILL:
@@ -2590,4 +2631,6 @@ if __name__ == "__main__":
         the_five_s_chug_holds(doc)
     if COUNT:
         the_five_keeps_its_own_count(doc)
+    if TOMS:
+        the_toms_get_through(doc)
     open(OUT, "w").write(dump(doc))
