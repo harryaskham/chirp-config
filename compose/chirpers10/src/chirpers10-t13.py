@@ -1217,6 +1217,49 @@ def the_hat_gets_a_body(doc):
     if HATBODY['loudness']: doc['loudness'] = HATBODY['loudness']
 
 
+# v33 (chirper-zero; instrument round: THE TWO GUITARS, in the two sections where the mix has room for them:
+# 'lit through' and 'turn the sheet', 2:00-2:55. No note moves.) THE EDGES BITE WHERE THE TUNE COMES BACK.
+# Harry, 22 Nov: "even harder sounding guitars". chirper-one's v30 gave the pair its hard stroke and then an eq the
+# mix chose, ONE setting for the whole song; it said what that cost the yardstick ("0.27 of punch and 2.3 to 2.4 of
+# teeth": the 3 kHz band at -1.5 dB). Read by passage (the pair alone, riffpunch --strokes; rise ms, punch, fall,
+# teeth): 'where it was' 13.0, 3.35, -0.74, -7.89 ; 'lit through' 12.0, 3.52, -0.01, -5.75 ; 'turn the sheet' 13.75,
+# 2.79, -1.45, -7.33 ; 'both sides' 14.0, 3.51, -0.78, -7.51 (the records 19.75, 3.63, -1.10, -11.31; their softest
+# teeth -6.5, their quickest rise 13.5). And the mix, by its stamp windows, is SHORT at 2-4 kHz exactly where the
+# pair is softest: 'lit through' -1.2, 'turn the sheet' -1.5 (its three parts -1.3, -2.4, -1.3), with the two guitars
+# two thirds of that band (by mute: 4.7 and 4.9 dB of it). In 'the shape', 'the handover' and 'both sides' the same
+# band reads 0.0: v30's cut is right there and stays.
+# So v30's 3 kHz band rides a lane: -1.5 dB as it was, +1.5 dB from 2:00 to 2:55 (the cut turned over), and the two
+# faders 0.9 dB down while it is up (half of what the lift adds to the pair alone, K +1.8: the mix was short in the
+# band, so not all of it is taken back; rungs in the round's note). The eq is the last thing on each track and the
+# guitars go straight to the mix, so every rung was first put through the raw mix by arithmetic and then rendered.
+# NOT in 'where it was' (1:05-1:32): Harry's "the gaps sing it" is there, chirper-one counted that passage's level
+# as a cost of v30, and at equal loudness the mix reads further there. One field puts it in.
+# --v32 restores; --edges '{...}' changes fields for a bench.
+BITE = {'tracks': ('left', 'right'), 'spans': ((192, 280),), 'band': 2, 'lift': 3.0, 'trim': -0.9, 'loudness': -9.924}
+
+
+def the_edges_bite(doc):
+    """v33: on both guitars the eq band BITE['band'] (v30's cut at 3 kHz) gets BITE['lift'] dB inside the spans (beats)
+    on a lane `bite`, and the fader BITE['trim'] dB there. Outside the spans the lane is 0 and the track is as it was."""
+    def band(s):
+        d = dict(x.split('=') for x in s.split()[1:])
+        return {'kind': s.split()[0], 'cutoff': float(d['cutoff']), 'q': float(d['q']), 'gain': d['gain']}
+    pts = [['0b', 0]]
+    for a, b in BITE['spans']:
+        pts += [[f'{a - 0.25:g}b', 0], [f'{a:g}b', 1], [f'{b - 0.25:g}b', 1], [f'{b:g}b', 0]]
+    for t in doc['tracks']:
+        if t['name'] in BITE['tracks']:
+            assert 'auto' not in t and isinstance(t['gain'], str) and t['fx'][0]['type'] == 'eq'
+            fx = list(t['fx']); bands = list(fx[0]['bands']); bd = band(bands[BITE['band']])
+            bd['gain'] = {'value': bd['gain'], 'mod': [{'src': 'auto.bite', 'amount': float(BITE['lift'])}]}
+            bands[BITE['band']] = bd; fx[0] = {**fx[0], 'bands': bands}; t['fx'] = fx
+            if BITE['trim']:
+                t['gain'] = {'value': t['gain'], 'mod': [{'src': 'auto.bite', 'amount': float(BITE['trim'])}]}
+            t['auto'] = {'bite': {'curve': 0, 'points': pts}}
+    if BITE['loudness']:
+        doc['loudness'] = BITE['loudness']
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, default=OUT)
@@ -1252,9 +1295,11 @@ if __name__ == '__main__':
     previous.add_argument('--v29', action='store_true', help="restore the two guitars on the album's rig as it comes: the soft pick, the palm's thump, the amp at 220 Hz, no eq")
     previous.add_argument('--v30', action='store_true', help="restore the snare a semitone sharp of the key (written G3, sounding A natural) with its wandering pitch")
     previous.add_argument('--v31', action='store_true', help="restore the library's cajon in 'turn the sheet': one sine for its centre stroke, a sine under its slap")
+    previous.add_argument('--v32', action='store_true', help="restore the two guitars' eq as one setting for the whole song (v30's): no lane on its 3 kHz band")
     parser.add_argument('--guitars', help='a bench: EDGE fields to change, as a JSON object')
     parser.add_argument('--snare', help='a bench: KEYED fields to change, as a JSON object')
     parser.add_argument('--box', help='a bench: BOX fields to change, as a JSON object ({"centre": {...}, "slap": {...}})')
+    parser.add_argument('--edges', help='a bench: BITE fields to change, as a JSON object')
     parser.add_argument('--bass', help='a bench: GRIND fields to change, as a JSON object')
     parser.add_argument('--hat', help='a bench: HATBODY fields to change, as a JSON object')
     parser.add_argument('--verso', help='a bench: VERSO fields to change, as a JSON object')
@@ -1281,7 +1326,7 @@ if __name__ == '__main__':
             doc['loudness'] = VERSO['loudness']
     if args.kick:
         KICK.update(json.loads(args.kick))
-    older = any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit() and k not in ('v27', 'v28', 'v29', 'v30', 'v31'))
+    older = any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit() and k not in ('v27', 'v28', 'v29', 'v30', 'v31', 'v32'))
     if not older and any(t['name'] == 'bars' for t in doc['tracks']):   # only on the whole song as v26 has it
         the_kick_gets_a_chest(doc)
         if not args.v27:
@@ -1305,6 +1350,10 @@ if __name__ == '__main__':
                                 for k, v in json.loads(args.box).items():
                                     BOX[k].update(v) if isinstance(v, dict) else BOX.__setitem__(k, v)
                             the_box_is_wood(doc)
+                            if not args.v32:                  # only on the whole song as v32 has it
+                                if args.edges:
+                                    BITE.update(json.loads(args.edges))
+                                the_edges_bite(doc)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
