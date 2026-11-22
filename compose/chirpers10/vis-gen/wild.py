@@ -4108,10 +4108,10 @@ def t_kaleido(c, look):
 # that changes what it is made of, then one that works on it in time.
 STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0,
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
-         "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2}
+         "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "puzzle": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2}
 
 # Pairs of guises that leave only texture: a picture already made many, then drawn in line or set in type.
-STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched")}
+STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged")}
 
 # Pictures that stand to one side, or are a line of things: half of one is not a picture.
 # Pictures that can be drawn twice and joined (flat, and filling the frame or centred, so that
@@ -4128,7 +4128,7 @@ BROAD = FULL | set("chladni specimen numerals eclipse moons eye globe cube cryst
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
            "searchlights pong constellation sonar treerings strings harmonograph contour letters mobile keys trampoline".split())
-SHRINKS = set("ball woven tracking roll wound screen planet hole mirror water flood poster".split())
+SHRINKS = set("ball woven tracking roll wound screen planet hole mirror water flood poster knitted sampler".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
 MIRROR_BAD = set("trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
@@ -4428,6 +4428,96 @@ def t_screen(c, look):
     return _pre(look, {"type": "pleat", "count": min(count, 20), "fold": f"0.12 + 0.44*(1 - cos({p.turn}))" if p.cell else 0.5, "shade": 0.6, "amount": c.arr})
 
 
+def _unbloomed(look):
+    look["filters"] = [f for f in look.get("filters", []) if f.get("type") != "bloom"]
+    return look
+
+
+@treat("papercut", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type"))
+def t_papercut(c, look):
+    """Cut from sheets of coloured paper laid one on another, each casting a shadow; the
+    light goes round once for every few turns of the riff, and the shadows with it."""
+    p = _lead(c)
+    per = max(2, math.ceil(8.0 / ((p.cell or 16) * c.six)))
+    inks = ["#17141c", c.bg if _lum(c.bg) > 0.08 else "#2a2530", c.a, c.b, c.c, "#f6efe0"]
+    look = _unbloomed(look)
+    look["filters"] += [{"type": "blur", "radius": 0.004}, {"type": "papercut", "levels": 6, "depth": 0.022, "angle": f"0.375 + {p.turn}/{per}", "shade": 0.6, "gain": 1.5, "palette": inks, "amount": c.arr}]
+    return look
+
+
+@treat("ridged", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in THIN)
+def t_ridged(c, look):
+    """Drawn as a range of ridges, one line for each sixteenth of the riff (several times
+    over), each standing as high as the picture is light and hiding the ones behind; the
+    notes heave it."""
+    p = _lead(c)
+    look.setdefault("env", {})["heave"] = {"on": f"track.{p.name}", "attack": "10ms", "decay": "450ms"}
+    count = p.cell or 16
+    while count < 40:
+        count *= 2
+    look = _unbloomed(look)
+    look["filters"] += [{"type": "blur", "radius": 0.006}, {"type": "terrain", "count": min(count, 88), "height": "0.11 + 0.07*env.heave", "width": 0.0028, "gain": 1.6, "amount": c.arr}]
+    return look
+
+
+def _stitch(c, look, mode, count, **kw):
+    look = _unbloomed(look)
+    look["filters"] += [{"type": "color", "exposure": 1.25, "saturation": 1.2}, {"type": "stitch", "mode": mode, "count": count, "amount": c.arr, **kw}]
+    return look
+
+
+@treat("knitted", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type"))
+def t_knitted(c, look):
+    """Knitted: a stitch for every bit of the picture, four to a sixteenth of the bar across."""
+    return _stitch(c, look, "knit", 64, ground=0.1)
+
+
+@treat("sampler", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type"))
+def t_sampler(c, look):
+    """Cross-stitched on dark linen."""
+    return _stitch(c, look, "cross", 72, ground=0.05, paper="#141210")
+
+
+@treat("bricks", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in THIN)
+def t_bricks(c, look):
+    """Built of studded bricks, as many across as three bars have sixteenths."""
+    return _stitch(c, look, "brick", 48, ground=1.0)
+
+
+@treat("beaded", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in THIN)
+def t_beaded(c, look):
+    """Threaded as beads on a dark ground."""
+    return _stitch(c, look, "bead", 56, ground=0.03)
+
+
+def _grid(n, cap=40):
+    """A sheet of about n pieces, wider than tall: (cols, rows), cols*rows a multiple of n if it can be."""
+    best = None
+    for total in range(n, cap + 1, n):
+        for rows in range(1, 7):
+            if total % rows == 0:
+                cols = total // rows
+                fit = abs(math.log((cols / rows) / (16 / 9))) + 0.25 * (total < 10) + 0.02 * abs(total - 18)
+                if best is None or fit < best[0]:
+                    best = (fit, cols, rows)
+    return (best[1], best[2]) if best else (6, 3)
+
+
+@treat("puzzle", ok=lambda c, info: info["fam"] not in ("sign", "plate"))
+def t_puzzle(c, look):
+    """Cut into pieces, one for each sixteenth of a few turns of the riff: they lie about
+    loose and a piece is put in place on every sixteenth until the picture is whole; it
+    stands a while, and is taken apart again."""
+    p = _lead(c)
+    cols, rows = _grid(p.cell or 16)
+    total = cols * rows
+    span = 2.2 * total / (p.cell or 16)       # turns of the riff for one building and taking apart
+    ph = f"fract({p.turn}/{span:g})"
+    placed = f"{total}*min(clamp({ph}*2.3, 0, 1), clamp((1 - {ph})*7, 0, 1))"
+    order = ("rows", "spiral", "scatter", "columns")[c.seed % 4]
+    return _pre(look, {"type": "pieces", "cols": cols, "rows": rows, "placed": placed, "spread": 0.34, "gap": 0.003, "dim": 0.5, "order": order, "amount": c.arr})
+
+
 @treat("delayed", ok=lambda c, info: info["fam"] not in ("sign", "plate"))
 def t_delayed(c, look):
     """The colours arrive one after another: whatever moves leads red and trails blue."""
@@ -4502,7 +4592,7 @@ def t_negative(c, look):
 
 
 ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief", "poster", "flood", "combed", "blown", "leaded",
-           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed")
+           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded")
 
 # Idioms drawn in hair lines and points, made bolder so that they read at any size: how far
 # each thing in them is spread (a fraction of the frame's height).
@@ -4513,7 +4603,7 @@ BOLD = {"numerals": 0.004, "orrery": 0.004, "kelvin": 0.004, "galton": 0.004, "s
 
 
 # Guises that add to a picture (copies, echoes, mirrors) rather than print it.
-FILLS = ("kaleido", "mirror", "wall", "planet", "tunnel", "echo", "slices", "fringe", "spin", "roll", "wound", "water", "torn", "hole", "lines", "warp", "solar", "blown", "overgrown", "combed", "falling", "ball", "smoked", "dripping", "tracking", "screen", "delayed")
+FILLS = ("kaleido", "mirror", "wall", "planet", "tunnel", "echo", "slices", "fringe", "spin", "roll", "wound", "water", "torn", "hole", "lines", "warp", "solar", "blown", "overgrown", "combed", "falling", "ball", "smoked", "dripping", "tracking", "screen", "delayed", "puzzle")
 
 
 def bolder(name, look):
