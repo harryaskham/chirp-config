@@ -1,0 +1,121 @@
+{
+ "about": "A legato singing voice (wM, Accretion voice climb): `voice` with `join` (touching notes are one breath: the glottis and tract carry on, the formants glide from syllable to syllable, the vibrato runs on unbroken), a soft `inhale` before each phrase, a wandering vibrato (`wander: 0.7`) and S-shaped 110 ms slides (`glide_smooth`). Sing phonemes per note (`^ph=`) with the notes touching inside a phrase, and leave a rest before each phrase for its breath. Needs the voice engine with join/inhale/wander. BANKED by tools/patchbank.py (22 Nov 2026) from `voice-legato` as the songs left it: `fx.0.mix=0` (7 of 7 tracks, 4 songs); `synth.layers.0.diction=3` (6 of 7 tracks, 3 songs); `synth.layers.0.ring=1.0` (6 of 7 tracks, 3 songs); `synth.layers.0.effort.value=0.9` (4 of 7 tracks, 3 songs). The songs that use `voice-legato`: tracks 1, 7, 10, 13. A RULE'S SUCCESSOR, NOT HEARD: every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "decay": "1.6s",
+   "kind": "plate",
+   "mix": 0,
+   "predelay": "20ms",
+   "type": "reverb"
+  }
+ ],
+ "play": {
+  "glide": "110ms",
+  "glide_smooth": true,
+  "humanize": {
+   "time": "6ms",
+   "vel": 0.06
+  },
+  "mono": true
+ },
+ "synth": {
+  "amp": {
+   "a": "50ms",
+   "d": "0s",
+   "r": "200ms"
+  },
+  "layers": [
+   {
+    "breath": {
+     "mod": [
+      {
+       "amount": -0.12,
+       "src": "vel"
+      }
+     ],
+     "value": 0.22
+    },
+    "coda": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.off"
+      }
+     ],
+     "value": 0
+    },
+    "diction": 3,
+    "effort": {
+     "mod": [
+      {
+       "amount": 0.45,
+       "src": "vel"
+      }
+     ],
+     "value": 0.9
+    },
+    "inhale": 0.4,
+    "join": true,
+    "onset": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.on"
+      }
+     ],
+     "value": 0
+    },
+    "rasp": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.rasp"
+      }
+     ],
+     "value": 0
+    },
+    "ring": 1.0,
+    "type": "voice",
+    "vowel": {
+     "mod": [
+      {
+       "amount": -0.5,
+       "src": "expr.u"
+      },
+      {
+       "amount": -0.25,
+       "src": "expr.o"
+      },
+      {
+       "amount": 0.25,
+       "src": "expr.e"
+      },
+      {
+       "amount": 0.5,
+       "src": "expr.i"
+      }
+     ],
+     "value": 0.5
+    }
+   }
+  ],
+  "lfo": {
+   "vib": {
+    "delay": "280ms",
+    "fade": "450ms",
+    "rate": "5.4hz",
+    "retrig": true,
+    "wander": 0.7
+   }
+  },
+  "pitch": {
+   "mod": [
+    {
+     "amount": 0.22,
+     "src": "lfo.vib"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

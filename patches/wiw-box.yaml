@@ -1,0 +1,233 @@
+{
+ "about": "Caj\u00f3n and palmas: cb bass (deep centre hit), cs slap (edge crack with snare wires), cg ghost, pa palmas (crisp handclap). Flamenco, rumba, acoustic grooves. BANKED by tools/patchbank.py (22 Nov 2026) from Where It Was v32 (tracks box-left, box-right): every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "decay": "0.7s",
+   "kind": "room",
+   "mix": 0.06,
+   "type": "reverb"
+  }
+ ],
+ "gain": "2dB",
+ "kit": {
+  "cb": {
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.5ms",
+      "curve": 4.0,
+      "d": "220ms",
+      "r": "30ms",
+      "s": 0
+     },
+     "env": {
+      "p": {
+       "a": "0.5ms",
+       "d": "30ms",
+       "s": 0
+      },
+      "s": {
+       "a": "0.5ms",
+       "d": "15ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 4000
+      }
+     ],
+     "layers": [
+      {
+       "level": "-1dB"
+      },
+      {
+       "bright": 0.5,
+       "damp": 0.5,
+       "decay": "100ms",
+       "level": "2dB",
+       "mode_count": 12,
+       "modes": "plate",
+       "name": "front",
+       "ratio": 2.36,
+       "sharp": 0.0,
+       "strike": 0.25,
+       "tilt": -1.5,
+       "type": "modal",
+       "vary": 0.2
+      },
+      {
+       "color": "brown",
+       "level": {
+        "mod": [
+         {
+          "amount": 38.0,
+          "src": "env.s"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 4.0,
+        "src": "env.p"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "F2"
+  },
+  "cg": {
+   "gain": "1dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "curve": 4.0,
+      "d": "50ms",
+      "r": "10ms",
+      "s": 0
+     },
+     "filters": [
+      {
+       "cutoff": "1.8k",
+       "kind": "bp",
+       "q": 1
+      }
+     ],
+     "layers": [
+      {
+       "type": "noise"
+      }
+     ]
+    }
+   }
+  },
+  "cs": {
+   "gain": "3dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "curve": 4.0,
+      "d": "140ms",
+      "r": "20ms",
+      "s": 0
+     },
+     "env": {
+      "s": {
+       "a": "0.2ms",
+       "d": "80ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 400,
+       "kind": "hp"
+      },
+      {
+       "cutoff": "2.5k",
+       "gain": "5dB",
+       "kind": "peak",
+       "q": 1
+      }
+     ],
+     "layers": [
+      {
+       "bright": 0.7,
+       "damp": 0.5,
+       "decay": "60ms",
+       "level": "-6dB",
+       "mode_count": 16,
+       "modes": "plate",
+       "name": "edge",
+       "ratio": 0.944,
+       "sharp": 0.0,
+       "strike": 0.85,
+       "tilt": 0.0,
+       "type": "modal",
+       "vary": 0.2
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 32.0,
+          "src": "env.s"
+         }
+        ],
+        "value": "-38dB"
+       },
+       "type": "noise"
+      }
+     ]
+    }
+   }
+  },
+  "pa": {
+   "gain": "-4dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.1ms",
+      "d": "70ms",
+      "r": "15ms",
+      "s": 0
+     },
+     "env": {
+      "f": {
+       "a": "0.1ms",
+       "d": "10ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 900,
+       "kind": "hp"
+      },
+      {
+       "cutoff": "1.6k",
+       "gain": "6dB",
+       "kind": "peak",
+       "q": 1.2
+      }
+     ],
+     "layers": [
+      {
+       "type": "noise"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "play": {
+  "event_stable": true,
+  "humanize": {
+   "time": "5ms",
+   "vel": 0.08
+  },
+  "len": "/16",
+  "vel_sens": 0.6
+ }
+}

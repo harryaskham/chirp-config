@@ -1,0 +1,241 @@
+{
+ "about": "Sitar: a buzzing, nasal steel string over the jawari bridge, with sympathetic strings blooming behind it. The bright formant sweeps down as each note sings, and held notes sway (andolan). Meend (pulled slides) with bends (`D4/2 _ bend=1 _ bend=2 _ bend=`), grace notes with `^h`, `^dead` a damped stroke; ragas via `mode=` (`key=C#3 mode=phrygian-dominant`). Pair with `tanpura`. BANKED by tools/patchbank.py (22 Nov 2026) from In the Time Of v33 (track six): every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "decay": "2.2s",
+   "mix": 0.1,
+   "predelay": "20ms",
+   "type": "reverb"
+  }
+ ],
+ "gain": "-1dB",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "humanize": {
+   "time": "6ms",
+   "vel": 0.07
+  },
+  "tuning": [
+   "F3",
+   "Gb3",
+   "Ab3",
+   "B3",
+   "C4",
+   "F4"
+  ],
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "curve": -4.0,
+   "d": "4.5s",
+   "r": "400ms",
+   "s": 0
+  },
+  "env": {
+   "jw": {
+    "a": "1ms",
+    "curve": 2.0,
+    "d": "1.6s",
+    "r": "1.6s",
+    "s": 0
+   },
+   "m": {
+    "a": "0.1ms",
+    "curve": 0.0,
+    "d": "6ms",
+    "s": 0
+   },
+   "sym": {
+    "a": "350ms",
+    "curve": 0.0,
+    "d": "7s",
+    "r": "7s",
+    "s": 0
+   }
+  },
+  "filters": [
+   {
+    "cutoff": 110,
+    "kind": "hp"
+   },
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": 1.9,
+       "src": "env.jw"
+      },
+      {
+       "amount": 0.3,
+       "src": "vel"
+      }
+     ],
+     "value": "1.2k"
+    },
+    "gain": "6dB",
+    "kind": "peak",
+    "q": 2.2
+   },
+   {
+    "cutoff": "3.2k",
+    "gain": "3dB",
+    "kind": "peak",
+    "q": 1.4
+   },
+   {
+    "cutoff": "5k",
+    "q": 0.6
+   }
+  ],
+  "layers": [
+   {
+    "bright": {
+     "mod": [
+      {
+       "amount": 0.12,
+       "src": "vel"
+      },
+      {
+       "amount": -0.25,
+       "src": "expr.h"
+      },
+      {
+       "amount": 0.04,
+       "src": "rand"
+      }
+     ],
+     "value": 0.82
+    },
+    "buzz": {
+     "mod": [
+      {
+       "amount": -0.6,
+       "src": "expr.h"
+      }
+     ],
+     "value": 0.85
+    },
+    "decay": {
+     "mod": [
+      {
+       "amount": -0.9,
+       "src": "key"
+      },
+      {
+       "amount": 0.6,
+       "src": "vel"
+      },
+      {
+       "amount": -4.2,
+       "src": "expr.dead"
+      }
+     ],
+     "value": "4.5s"
+    },
+    "level": {
+     "mod": [
+      {
+       "amount": -4.0,
+       "src": "expr.h"
+      }
+     ],
+     "value": "0dB"
+    },
+    "name": "string",
+    "pick": 0.13,
+    "stiff": 0.1,
+    "type": "pluck"
+   },
+   {
+    "bright": 0.35,
+    "cents": 4.0,
+    "decay": "7s",
+    "level": {
+     "mod": [
+      {
+       "amount": 82.0,
+       "src": "env.sym"
+      },
+      {
+       "amount": -30.0,
+       "src": "expr.dead"
+      },
+      {
+       "amount": 2.0,
+       "src": "rand"
+      }
+     ],
+     "value": "-100dB"
+    },
+    "name": "tarab-octave",
+    "ratio": 2.0,
+    "type": "pluck"
+   },
+   {
+    "bright": 0.3,
+    "cents": -7.0,
+    "decay": "7s",
+    "level": {
+     "mod": [
+      {
+       "amount": 80.0,
+       "src": "env.sym"
+      },
+      {
+       "amount": -30.0,
+       "src": "expr.dead"
+      },
+      {
+       "amount": 2.0,
+       "src": "rand"
+      }
+     ],
+     "value": "-100dB"
+    },
+    "name": "tarab-unison",
+    "type": "pluck"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 120.0,
+       "src": "env.m"
+      },
+      {
+       "amount": 12.0,
+       "src": "vel"
+      },
+      {
+       "amount": -30.0,
+       "src": "expr.h"
+      }
+     ],
+     "value": "-157dB"
+    },
+    "name": "mizrab",
+    "type": "noise"
+   }
+  ],
+  "lfo": {
+   "andolan": {
+    "delay": "600ms",
+    "fade": "700ms",
+    "rate": "4.6hz",
+    "retrig": true
+   }
+  },
+  "pitch": {
+   "mod": [
+    {
+     "amount": 0.18,
+     "src": "lfo.andolan"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

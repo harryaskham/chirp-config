@@ -1,0 +1,103 @@
+{
+ "about": "In the Time Of's clock (chirper-one, 20 Nov): a small wooden tick (ti) and tock (to), two struck bars with a click on the front. BANKED by tools/patchbank.py (22 Nov 2026) from In the Time Of v33 (track clock): every extends and override resolved, so it stands by itself.",
+ "kit": {
+  "ti": {
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "curve": 4.0,
+      "d": "60ms",
+      "r": "10ms",
+      "s": 0
+     },
+     "env": {
+      "h": {
+       "a": "0.2ms",
+       "d": "3ms",
+       "s": 0
+      }
+     },
+     "layers": [
+      {},
+      {
+       "level": "-8dB",
+       "ratio": 2.76
+      },
+      {
+       "level": "-14dB",
+       "ratio": 5.4
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 48.0,
+          "src": "env.h"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "pitch": "C7"
+  },
+  "to": {
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "curve": 4.0,
+      "d": "90ms",
+      "r": "10ms",
+      "s": 0
+     },
+     "env": {
+      "h": {
+       "a": "0.2ms",
+       "d": "3ms",
+       "s": 0
+      }
+     },
+     "layers": [
+      {},
+      {
+       "level": "-8dB",
+       "ratio": 2.76
+      },
+      {
+       "level": "-14dB",
+       "ratio": 5.4
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 48.0,
+          "src": "env.h"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "pitch": "F6"
+  }
+ },
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ }
+}

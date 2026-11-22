@@ -1,0 +1,97 @@
+{
+ "about": "Close Enough's finger cymbals (chirper-two, 19 Nov): the small brass pair that keeps time beside a harmonium. `o` struck and left to ring, `c` struck and held shut. BANKED by tools/patchbank.py (22 Nov 2026) from Close Enough v29 (track cymbals): every extends and override resolved, so it stands by itself.",
+ "kit": {
+  "c": {
+   "gain": "4dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "d": "150ms",
+      "r": "40ms",
+      "s": 0
+     },
+     "filters": [
+      {
+       "cutoff": 1500,
+       "kind": "hp"
+      }
+     ],
+     "layers": [
+      {
+       "bright": 0.8,
+       "damp": 0.1,
+       "decay": "0.15s",
+       "modes": "bell",
+       "strike": 0.7,
+       "type": "modal"
+      },
+      {
+       "bright": 1,
+       "damp": 0.1,
+       "decay": "0.075s",
+       "level": "-12dB",
+       "modes": "cymbal",
+       "strike": 0.9,
+       "type": "modal"
+      }
+     ]
+    }
+   },
+   "pitch": "2793.820hz"
+  },
+  "o": {
+   "gain": "0dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "d": "1500ms",
+      "r": "40ms",
+      "s": 0
+     },
+     "filters": [
+      {
+       "cutoff": 1500,
+       "kind": "hp"
+      }
+     ],
+     "layers": [
+      {
+       "bright": 0.8,
+       "damp": 0.1,
+       "decay": "1.5s",
+       "modes": "bell",
+       "strike": 0.7,
+       "type": "modal"
+      },
+      {
+       "bright": 1,
+       "damp": 0.1,
+       "decay": "0.75s",
+       "level": "-12dB",
+       "modes": "cymbal",
+       "strike": 0.9,
+       "type": "modal"
+      }
+     ]
+    }
+   },
+   "pitch": "2793.820hz"
+  }
+ },
+ "play": {
+  "event_stable": true,
+  "humanize": {
+   "time": "4ms",
+   "vel": 0.06
+  },
+  "vel_sens": 0.6
+ }
+}

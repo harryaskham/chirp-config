@@ -1,0 +1,34 @@
+{
+ "about": "808 sub bass: sine with a pitch-drop punch, long decay, saturation and mono glide for slides (overlap notes to slide). BANKED by tools/patchbank.py (22 Nov 2026) from Slow Enough to Count v29 (tracks floor-f, floor-c, floor-a): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`fall`): give the track that plays it `auto: {fall: \u2026}`, as the song does.",
+ "gain": "-10dB",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "glide": "0ms"
+ },
+ "synth": {
+  "amp": {
+   "a": "1000ms",
+   "r": "80ms"
+  },
+  "env": {
+   "p": {
+    "a": "0.2ms",
+    "d": "25ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {}
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 1.0,
+     "src": "auto.fall"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

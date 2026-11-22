@@ -1,0 +1,76 @@
+{
+ "about": "chirper-zero: Close Enough's unison bend: a sustaining lead on two strings a hair apart through one amp. The library's m8-lead as one saw (no detuned layer, no vibrato, no echo, no room: each of those wobbles or smears), the album's lead amp at half gain and the engine's cabinet; its pitch follows a note's `slide`, in semitones, as the turned reed's does, and it plays each note to its end (gate 1: at the default a slide finishes at 95% of the note) BANKED by tools/patchbank.py (22 Nov 2026) from Close Enough v29 (track bend): every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "gain": "-20dB",
+   "type": "gain"
+  },
+  {
+   "bloom": 0.3,
+   "boost": "0dB",
+   "gain": 0.5,
+   "mid": 0.68,
+   "model": "5150",
+   "presence": 0.6,
+   "resonance": 0.55,
+   "tight": 140,
+   "treble": 0.58,
+   "ts": 0.3,
+   "type": "amp"
+  },
+  {
+   "cone": 45,
+   "mic": 0.1,
+   "model": "4x12-modern",
+   "type": "cab"
+  }
+ ],
+ "gain": "-16dB",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "glide": "0ms"
+ },
+ "synth": {
+  "amp": {
+   "a": "60ms",
+   "r": "150ms"
+  },
+  "env": {
+   "f": {
+    "a": "5ms",
+    "d": "400ms",
+    "s": 0.4
+   }
+  },
+  "filters": [
+   {
+    "cutoff": 1200,
+    "q": 0.8
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.5,
+    "wave": "saw"
+   }
+  ],
+  "lfo": {
+   "vib": {
+    "delay": "200ms",
+    "fade": "300ms",
+    "rate": "6hz",
+    "retrig": true
+   }
+  },
+  "pitch": {
+   "mod": [
+    {
+     "amount": 1.0,
+     "src": "expr.slide"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

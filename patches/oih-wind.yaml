@@ -1,0 +1,46 @@
+{
+ "about": "chirper-zero: the wind of On Its Hinge's pump organ: pink noise through the library harmonium's own filters and room, a short puff. Not a library patch. BANKED by tools/patchbank.py (22 Nov 2026) from On Its Hinge v34 (track wind): every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "decay": "1.3s",
+   "kind": "room",
+   "mix": 0.2,
+   "type": "reverb"
+  }
+ ],
+ "gain": "-12dB",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.4
+ },
+ "synth": {
+  "amp": {
+   "a": "60ms",
+   "d": "330ms",
+   "r": "120ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 180,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 1100,
+    "gain": "4dB",
+    "kind": "peak",
+    "q": 1.2
+   },
+   {
+    "cutoff": "4.5k"
+   }
+  ],
+  "layers": [
+   {
+    "color": "pink",
+    "level": "0dB",
+    "type": "noise"
+   }
+  ]
+ }
+}

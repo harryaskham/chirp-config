@@ -1,0 +1,21 @@
+{
+ "about": "The Other Hand: the pencil. A wire brush dragged across a small, tight, damped head: a mark being made on paper. BANKED by tools/patchbank.py (22 Nov 2026) from The Other Hand v31 (track pencil): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "r": "60ms"
+  },
+  "layers": [
+   {
+    "beater": "brush",
+    "decay": "40ms",
+    "slap": 1.3,
+    "sweep": "300ms",
+    "type": "drum"
+   }
+  ]
+ }
+}

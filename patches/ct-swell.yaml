@@ -1,0 +1,43 @@
+{
+ "about": "chirper-zero: a breath in before a landing - band-passed noise that swells for as long as the note is held (a slow attack), its band rising two octaves, cut off on the bar line BANKED by tools/patchbank.py (22 Nov 2026) from Common Time v71 (track rise): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "3.6s",
+   "d": "10ms",
+   "r": "40ms"
+  },
+  "env": {
+   "up": {
+    "a": "3.6s",
+    "d": "10ms"
+   }
+  },
+  "filters": [
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": 2.5,
+       "src": "env.up"
+      }
+     ],
+     "value": 500
+    },
+    "kind": "bp",
+    "q": 0.9
+   },
+   {
+    "cutoff": 250,
+    "kind": "hp"
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}

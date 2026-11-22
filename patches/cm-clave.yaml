@@ -1,0 +1,26 @@
+{
+ "about": "Common Measure's claves (chirper-two, 18 Nov): a rosewood stick as a free bar on the modal layer (the glock set's 1 : 2.76 : 5.40), struck hard and gone in a tenth of a second. A tock, not a bell: the second mode sits 10 dB under the first and the third 21 under. Takes a pitch (C7, 2.1 kHz, is a clave's). BANKED by tools/patchbank.py (22 Nov 2026) from Common Measure v38 (track clave): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "d": "300ms",
+   "r": "40ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "bright": 0.9,
+    "damp": 0.25,
+    "decay": "180ms",
+    "modes": "glock",
+    "strike": 0.5,
+    "tilt": 0.0,
+    "type": "modal"
+   }
+  ]
+ }
+}

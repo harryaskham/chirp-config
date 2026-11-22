@@ -1,0 +1,139 @@
+{
+ "about": "Tuned pressure drum: a fingertip strike, a lower thud and a ringing head. The wrist moves the head pitch without a second attack. BANKED by tools/patchbank.py (22 Nov 2026) from Still Owing v35 (track pressure): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.6
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "curve": 2.0,
+   "d": "2.4s",
+   "r": "45ms",
+   "s": 0.24
+  },
+  "env": {
+   "skin": {
+    "a": "0.4ms",
+    "d": "85ms",
+    "s": 0
+   },
+   "tap": {
+    "a": "0.3ms",
+    "d": "17ms",
+    "s": 0
+   },
+   "thud": {
+    "a": "1ms",
+    "d": "95ms",
+    "s": 0
+   }
+  },
+  "filters": [
+   {
+    "cutoff": 95,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 6000
+   }
+  ],
+  "layers": [
+   {
+    "damp": 0.38,
+    "partials": [
+     [
+      1.0,
+      0.85
+     ],
+     [
+      2.0,
+      0.88
+     ],
+     [
+      3.0,
+      0.55
+     ],
+     [
+      4.02,
+      0.38
+     ],
+     [
+      5.01,
+      0.21
+     ],
+     [
+      6.02,
+      0.13
+     ]
+    ],
+    "type": "additive"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 56.0,
+       "src": "env.skin"
+      }
+     ],
+     "value": "-65dB"
+    },
+    "partials": [
+     [
+      1.54,
+      1.0
+     ],
+     [
+      2.43,
+      0.68
+     ],
+     [
+      3.14,
+      0.33
+     ],
+     [
+      5.16,
+      0.22
+     ]
+    ],
+    "type": "additive"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 56.0,
+       "src": "env.thud"
+      }
+     ],
+     "value": "-65dB"
+    },
+    "ratio": 0.67
+   },
+   {
+    "color": "pink",
+    "level": {
+     "mod": [
+      {
+       "amount": 58.0,
+       "src": "env.tap"
+      }
+     ],
+     "value": "-66dB"
+    },
+    "type": "noise"
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 1.0,
+     "src": "expr.press"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

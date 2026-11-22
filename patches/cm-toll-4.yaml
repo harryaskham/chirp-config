@@ -1,0 +1,53 @@
+{
+ "about": "Common Measure's bell left to ring (chirper-two, 19 Nov): cm-bell with a decay 2.5 times as long as a phrase of 4 sixteenths, stopped slowly: for the afterword, where nothing is over it. BANKED by tools/patchbank.py (22 Nov 2026) from Common Measure v38 (tracks toll-l, toll-r): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "d": "0.938s",
+   "r": "1.2s",
+   "s": 0
+  },
+  "env": {
+   "h": {
+    "a": "0.2ms",
+    "d": "4ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {
+    "damp": 0.3,
+    "partials": [
+     [
+      1.0,
+      1.0
+     ],
+     [
+      2.4,
+      0.4
+     ],
+     [
+      3.9,
+      0.15
+     ]
+    ],
+    "type": "additive"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 40.0,
+       "src": "env.h"
+      }
+     ],
+     "value": "-60dB"
+    },
+    "type": "noise"
+   }
+  ]
+ }
+}

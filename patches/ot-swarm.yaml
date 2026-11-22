@@ -1,0 +1,44 @@
+{
+ "about": "chirper-zero: the swarm - sixteen saws to a note, each at its own pitch (60 cents' spread), pulled toward their common phase by a coupling the track's `sync` lane sets (0 a crowd, 1 the critical point, 3 locked); a low-pass opens as they agree. As in Common Time (track 1). BANKED by tools/patchbank.py (22 Nov 2026) from Odd Sympathy v42 (track swarm): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`sync`): give the track that plays it `auto: {sync: \u2026}`, as the song does.",
+ "gain": "-9.5dB",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "1.5s",
+   "r": "3s"
+  },
+  "filters": [
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": 2.6,
+       "src": "sync"
+      }
+     ],
+     "value": 350
+    }
+   }
+  ],
+  "layers": [
+   {
+    "kuramoto": {
+     "count": 16,
+     "coupling": {
+      "mod": [
+       {
+        "amount": 1.0,
+        "src": "auto.sync"
+       }
+      ],
+      "value": 0
+     },
+     "spread": 60.0
+    },
+    "type": "kuramoto"
+   }
+  ]
+ }
+}

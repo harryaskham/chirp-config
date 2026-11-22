@@ -1,0 +1,603 @@
+{
+ "kit": {
+  "head41": {
+   "pan": 0.45,
+   "patch": {
+    "about": "Tuned tom on the modal layer: circular-membrane modes (centre-ish strike: the fundamental family leads, the off-centre modes give the \"tone\"), stick contact whose hardness follows velocity, head pitch glide on hard hits, a short stick click, slight drive. Set the pitch per piece.",
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.55
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "d": "1.8s",
+      "r": "150ms",
+      "s": 0
+     },
+     "drive": 0.12,
+     "env": {
+      "att": {
+       "a": "0.1ms",
+       "d": "5ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 40,
+       "kind": "hp"
+      },
+      {
+       "cutoff": "4k",
+       "gain": "2dB",
+       "kind": "peak",
+       "q": 1
+      }
+     ],
+     "layers": [
+      {
+       "bright": {
+        "mod": [
+         {
+          "amount": 0.4,
+          "src": "vel"
+         }
+        ],
+        "value": 0.45
+       },
+       "damp": 0.45,
+       "decay": "1.3s",
+       "name": "head",
+       "sharp": 70.0,
+       "strike": {
+        "mod": [
+         {
+          "amount": 0.08,
+          "src": "rand"
+         }
+        ],
+        "value": 0.3
+       },
+       "tilt": -2.0,
+       "type": "modal",
+       "vary": 0.4
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 50.0,
+          "src": "env.att"
+         },
+         {
+          "amount": 8.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-66dB"
+       },
+       "name": "stick",
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "pitch": "F2"
+  },
+  "head42": {
+   "pan": 0.317,
+   "patch": {
+    "about": "Tuned tom on the modal layer: circular-membrane modes (centre-ish strike: the fundamental family leads, the off-centre modes give the \"tone\"), stick contact whose hardness follows velocity, head pitch glide on hard hits, a short stick click, slight drive. Set the pitch per piece.",
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.55
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "d": "1.8s",
+      "r": "150ms",
+      "s": 0
+     },
+     "drive": 0.12,
+     "env": {
+      "att": {
+       "a": "0.1ms",
+       "d": "5ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 40,
+       "kind": "hp"
+      },
+      {
+       "cutoff": "4k",
+       "gain": "2dB",
+       "kind": "peak",
+       "q": 1
+      }
+     ],
+     "layers": [
+      {
+       "bright": {
+        "mod": [
+         {
+          "amount": 0.4,
+          "src": "vel"
+         }
+        ],
+        "value": 0.45
+       },
+       "damp": 0.45,
+       "decay": "1.3s",
+       "name": "head",
+       "sharp": 70.0,
+       "strike": {
+        "mod": [
+         {
+          "amount": 0.08,
+          "src": "rand"
+         }
+        ],
+        "value": 0.3
+       },
+       "tilt": -2.0,
+       "type": "modal",
+       "vary": 0.4
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 50.0,
+          "src": "env.att"
+         },
+         {
+          "amount": 8.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-66dB"
+       },
+       "name": "stick",
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "pitch": "Gb2"
+  },
+  "head44": {
+   "pan": 0.183,
+   "patch": {
+    "about": "Tuned tom on the modal layer: circular-membrane modes (centre-ish strike: the fundamental family leads, the off-centre modes give the \"tone\"), stick contact whose hardness follows velocity, head pitch glide on hard hits, a short stick click, slight drive. Set the pitch per piece.",
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.55
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "d": "1.8s",
+      "r": "150ms",
+      "s": 0
+     },
+     "drive": 0.12,
+     "env": {
+      "att": {
+       "a": "0.1ms",
+       "d": "5ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 40,
+       "kind": "hp"
+      },
+      {
+       "cutoff": "4k",
+       "gain": "2dB",
+       "kind": "peak",
+       "q": 1
+      }
+     ],
+     "layers": [
+      {
+       "bright": {
+        "mod": [
+         {
+          "amount": 0.4,
+          "src": "vel"
+         }
+        ],
+        "value": 0.45
+       },
+       "damp": 0.45,
+       "decay": "1.3s",
+       "name": "head",
+       "sharp": 70.0,
+       "strike": {
+        "mod": [
+         {
+          "amount": 0.08,
+          "src": "rand"
+         }
+        ],
+        "value": 0.3
+       },
+       "tilt": -2.0,
+       "type": "modal",
+       "vary": 0.4
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 50.0,
+          "src": "env.att"
+         },
+         {
+          "amount": 8.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-66dB"
+       },
+       "name": "stick",
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "pitch": "Ab2"
+  },
+  "head45": {
+   "pan": 0.05,
+   "patch": {
+    "about": "Tuned tom on the modal layer: circular-membrane modes (centre-ish strike: the fundamental family leads, the off-centre modes give the \"tone\"), stick contact whose hardness follows velocity, head pitch glide on hard hits, a short stick click, slight drive. Set the pitch per piece.",
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.55
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "d": "1.8s",
+      "r": "150ms",
+      "s": 0
+     },
+     "drive": 0.12,
+     "env": {
+      "att": {
+       "a": "0.1ms",
+       "d": "5ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 40,
+       "kind": "hp"
+      },
+      {
+       "cutoff": "4k",
+       "gain": "2dB",
+       "kind": "peak",
+       "q": 1
+      }
+     ],
+     "layers": [
+      {
+       "bright": {
+        "mod": [
+         {
+          "amount": 0.4,
+          "src": "vel"
+         }
+        ],
+        "value": 0.45
+       },
+       "damp": 0.45,
+       "decay": "1.3s",
+       "name": "head",
+       "sharp": 70.0,
+       "strike": {
+        "mod": [
+         {
+          "amount": 0.08,
+          "src": "rand"
+         }
+        ],
+        "value": 0.3
+       },
+       "tilt": -2.0,
+       "type": "modal",
+       "vary": 0.4
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 50.0,
+          "src": "env.att"
+         },
+         {
+          "amount": 8.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-66dB"
+       },
+       "name": "stick",
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "pitch": "A2"
+  },
+  "head47": {
+   "pan": -0.083,
+   "patch": {
+    "about": "Tuned tom on the modal layer: circular-membrane modes (centre-ish strike: the fundamental family leads, the off-centre modes give the \"tone\"), stick contact whose hardness follows velocity, head pitch glide on hard hits, a short stick click, slight drive. Set the pitch per piece.",
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.55
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "d": "1.8s",
+      "r": "150ms",
+      "s": 0
+     },
+     "drive": 0.12,
+     "env": {
+      "att": {
+       "a": "0.1ms",
+       "d": "5ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 40,
+       "kind": "hp"
+      },
+      {
+       "cutoff": "4k",
+       "gain": "2dB",
+       "kind": "peak",
+       "q": 1
+      }
+     ],
+     "layers": [
+      {
+       "bright": {
+        "mod": [
+         {
+          "amount": 0.4,
+          "src": "vel"
+         }
+        ],
+        "value": 0.45
+       },
+       "damp": 0.45,
+       "decay": "1.3s",
+       "name": "head",
+       "sharp": 70.0,
+       "strike": {
+        "mod": [
+         {
+          "amount": 0.08,
+          "src": "rand"
+         }
+        ],
+        "value": 0.3
+       },
+       "tilt": -2.0,
+       "type": "modal",
+       "vary": 0.4
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 50.0,
+          "src": "env.att"
+         },
+         {
+          "amount": 8.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-66dB"
+       },
+       "name": "stick",
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "pitch": "B2"
+  },
+  "head48": {
+   "pan": -0.217,
+   "patch": {
+    "about": "Tuned tom on the modal layer: circular-membrane modes (centre-ish strike: the fundamental family leads, the off-centre modes give the \"tone\"), stick contact whose hardness follows velocity, head pitch glide on hard hits, a short stick click, slight drive. Set the pitch per piece.",
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.55
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "d": "1.8s",
+      "r": "150ms",
+      "s": 0
+     },
+     "drive": 0.12,
+     "env": {
+      "att": {
+       "a": "0.1ms",
+       "d": "5ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 40,
+       "kind": "hp"
+      },
+      {
+       "cutoff": "4k",
+       "gain": "2dB",
+       "kind": "peak",
+       "q": 1
+      }
+     ],
+     "layers": [
+      {
+       "bright": {
+        "mod": [
+         {
+          "amount": 0.4,
+          "src": "vel"
+         }
+        ],
+        "value": 0.45
+       },
+       "damp": 0.45,
+       "decay": "1.3s",
+       "name": "head",
+       "sharp": 70.0,
+       "strike": {
+        "mod": [
+         {
+          "amount": 0.08,
+          "src": "rand"
+         }
+        ],
+        "value": 0.3
+       },
+       "tilt": -2.0,
+       "type": "modal",
+       "vary": 0.4
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 50.0,
+          "src": "env.att"
+         },
+         {
+          "amount": 8.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-66dB"
+       },
+       "name": "stick",
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "pitch": "C3"
+  },
+  "head51": {
+   "pan": -0.35,
+   "patch": {
+    "about": "Tuned tom on the modal layer: circular-membrane modes (centre-ish strike: the fundamental family leads, the off-centre modes give the \"tone\"), stick contact whose hardness follows velocity, head pitch glide on hard hits, a short stick click, slight drive. Set the pitch per piece.",
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.55
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "d": "1.8s",
+      "r": "150ms",
+      "s": 0
+     },
+     "drive": 0.12,
+     "env": {
+      "att": {
+       "a": "0.1ms",
+       "d": "5ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 40,
+       "kind": "hp"
+      },
+      {
+       "cutoff": "4k",
+       "gain": "2dB",
+       "kind": "peak",
+       "q": 1
+      }
+     ],
+     "layers": [
+      {
+       "bright": {
+        "mod": [
+         {
+          "amount": 0.4,
+          "src": "vel"
+         }
+        ],
+        "value": 0.45
+       },
+       "damp": 0.45,
+       "decay": "1.3s",
+       "name": "head",
+       "sharp": 70.0,
+       "strike": {
+        "mod": [
+         {
+          "amount": 0.08,
+          "src": "rand"
+         }
+        ],
+        "value": 0.3
+       },
+       "tilt": -2.0,
+       "type": "modal",
+       "vary": 0.4
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 50.0,
+          "src": "env.att"
+         },
+         {
+          "amount": 8.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-66dB"
+       },
+       "name": "stick",
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "pitch": "Eb3"
+  }
+ },
+ "play": {
+  "event_stable": true
+ },
+ "about": "BANKED by tools/patchbank.py (22 Nov 2026) from The Other Hand v31 (track drum-hand): every extends and override resolved, so it stands by itself."
+}

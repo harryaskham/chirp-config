@@ -1,0 +1,1480 @@
+{
+ "about": "Brushes jazz kit: feathered kick, brushed snare taps, slaps and swishes, foot hi-hat chick and a dark, washy ride. For ballads, swing and bossa. Pieces: k kick, s brush tap, sl brush slap, sw swish (sustains while held \u2014 stir with `sw/2 sw`), sp sweep (one stroke), ss cross-stick, h closed / oh open hat (choke), hp pedal chick, rd ride / rb ride bell (one cymbal), sz sizzle, t tom, ft floor tom. Length defaults to 1/8; swing it (`swing=0.66`) and try `chirp -t 132 @beat-brushes`. BANKED by tools/patchbank.py (22 Nov 2026) from Still Owing v35 (track sweep): every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "attack": "10ms",
+   "makeup": "2dB",
+   "ratio": 2.0,
+   "release": "150ms",
+   "threshold": "-20dB",
+   "type": "compressor"
+  },
+  {
+   "gain": "-6dB",
+   "type": "gain"
+  },
+  {
+   "drive": 0.1,
+   "mix": 1,
+   "type": "tape",
+   "warmth": 0.4
+  },
+  {
+   "decay": "0.9s",
+   "kind": "room",
+   "mix": 0,
+   "predelay": "6ms",
+   "type": "reverb"
+  }
+ ],
+ "gain": "3dB",
+ "kit": {
+  "ft": {
+   "pan": 0.3,
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.55
+    },
+    "synth": {
+     "amp": {
+      "a": "1ms",
+      "curve": 4.0,
+      "d": "650ms",
+      "r": "60ms",
+      "s": 0
+     },
+     "env": {
+      "att": {
+       "a": "1ms",
+       "d": "25ms",
+       "s": 0
+      },
+      "p": {
+       "a": "1ms",
+       "d": "120ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 55,
+       "kind": "hp"
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "vel"
+         }
+        ],
+        "value": "2.5k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "name": "head"
+      },
+      {
+       "damp": 6.0,
+       "level": {
+        "mod": [
+         {
+          "amount": 5.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-12dB"
+       },
+       "name": "modes",
+       "partials": [
+        [
+         1.59,
+         0.45
+        ],
+        [
+         2.14,
+         0.25
+        ]
+       ],
+       "type": "additive"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 50.0,
+          "src": "env.att"
+         },
+         {
+          "amount": 8.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-66dB"
+       },
+       "name": "brush",
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 2.0,
+        "src": "env.p"
+       },
+       {
+        "amount": 0.2,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "G2"
+  },
+  "h": {
+   "choke": "hat",
+   "gain": "-6dB",
+   "pan": -0.35,
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.6
+    },
+    "synth": {
+     "amp": {
+      "a": "1ms",
+      "curve": 4.0,
+      "d": "60ms",
+      "r": "20ms",
+      "s": 0
+     },
+     "filters": [
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": -0.5,
+          "src": "vel"
+         },
+         {
+          "amount": 0.1,
+          "src": "rand"
+         }
+        ],
+        "value": "6k"
+       },
+       "kind": "hp",
+       "q": 0.7
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "vel"
+         }
+        ],
+        "value": "7k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "type": "noise"
+      },
+      {
+       "fixed": 512,
+       "level": "-18dB",
+       "wave": "square"
+      },
+      {
+       "fixed": 777,
+       "level": "-18dB",
+       "wave": "square"
+      },
+      {
+       "fixed": 1094,
+       "level": "-20dB",
+       "wave": "square"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.4,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   }
+  },
+  "hp": {
+   "choke": "hat",
+   "gain": "-1dB",
+   "pan": -0.35,
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.5
+    },
+    "synth": {
+     "amp": {
+      "a": "0.5ms",
+      "curve": 4.0,
+      "d": "45ms",
+      "r": "15ms",
+      "s": 0
+     },
+     "env": {
+      "c": {
+       "a": "0.3ms",
+       "d": "6ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": "1.8k",
+       "kind": "bp",
+       "q": 0.8
+      },
+      {
+       "cutoff": 700,
+       "kind": "hp"
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 0.8,
+          "src": "vel"
+         }
+        ],
+        "value": "5k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "type": "noise"
+      },
+      {
+       "fixed": 512,
+       "level": "-16dB",
+       "wave": "square"
+      },
+      {
+       "color": "pink",
+       "level": {
+        "mod": [
+         {
+          "amount": 60.0,
+          "src": "env.c"
+         },
+         {
+          "amount": 6.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-66dB"
+       },
+       "name": "clap",
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.3,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   }
+  },
+  "k": {
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.55
+    },
+    "synth": {
+     "amp": {
+      "a": "1.5ms",
+      "curve": 4.0,
+      "d": "600ms",
+      "r": "60ms",
+      "s": 0
+     },
+     "env": {
+      "click": {
+       "a": "0.5ms",
+       "d": "8ms",
+       "s": 0
+      },
+      "p": {
+       "a": "1ms",
+       "d": "50ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.5,
+          "src": "vel"
+         }
+        ],
+        "value": 500
+       }
+      }
+     ],
+     "layers": [
+      {
+       "name": "head"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 6.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-18dB"
+       },
+       "name": "mode",
+       "ratio": 1.52
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 50.0,
+          "src": "env.click"
+         },
+         {
+          "amount": 10.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-70dB"
+       },
+       "name": "felt",
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 4.0,
+        "src": "env.p"
+       },
+       {
+        "amount": 0.2,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "C2"
+  },
+  "oh": {
+   "choke": "hat",
+   "gain": "-8dB",
+   "pan": -0.35,
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.6
+    },
+    "synth": {
+     "amp": {
+      "a": "1ms",
+      "curve": 4.0,
+      "d": "600ms",
+      "r": "80ms",
+      "s": 0
+     },
+     "filters": [
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": -0.5,
+          "src": "vel"
+         },
+         {
+          "amount": 0.1,
+          "src": "rand"
+         }
+        ],
+        "value": "6k"
+       },
+       "kind": "hp",
+       "q": 0.7
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "vel"
+         }
+        ],
+        "value": "7k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "type": "noise"
+      },
+      {
+       "fixed": 512,
+       "level": "-18dB",
+       "wave": "square"
+      },
+      {
+       "fixed": 777,
+       "level": "-18dB",
+       "wave": "square"
+      },
+      {
+       "fixed": 1094,
+       "level": "-20dB",
+       "wave": "square"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.4,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   }
+  },
+  "rb": {
+   "choke": "ride",
+   "gain": "-14dB",
+   "pan": 0.4,
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.5
+    },
+    "synth": {
+     "amp": {
+      "a": "0.3ms",
+      "curve": 6.0,
+      "d": "1.6s",
+      "r": "200ms",
+      "s": 0
+     },
+     "filters": [
+      {
+       "cutoff": 500,
+       "kind": "hp"
+      },
+      {
+       "cutoff": "4k",
+       "gain": "3dB",
+       "kind": "peak",
+       "q": 0.7
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "vel"
+         }
+        ],
+        "value": "5k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "damp": 0.6,
+       "fixed": 690,
+       "level": "-4dB",
+       "partials": [
+        [
+         1.0,
+         0.8
+        ],
+        [
+         1.1,
+         0.7
+        ],
+        [
+         1.64,
+         0.65
+        ],
+        [
+         2.19,
+         0.6
+        ],
+        [
+         2.26,
+         0.45
+        ],
+        [
+         2.81,
+         0.5
+        ],
+        [
+         3.39,
+         0.45
+        ],
+        [
+         4.02,
+         0.4
+        ],
+        [
+         4.69,
+         0.35
+        ],
+        [
+         5.47,
+         0.3
+        ],
+        [
+         6.33,
+         0.25
+        ]
+       ],
+       "type": "additive"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 8.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-1dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.2,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   }
+  },
+  "rd": {
+   "choke": "ride",
+   "gain": "-6dB",
+   "pan": 0.4,
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.5
+    },
+    "synth": {
+     "amp": {
+      "a": "0.5ms",
+      "curve": 6.0,
+      "d": "3.5s",
+      "r": "300ms",
+      "s": 0
+     },
+     "env": {
+      "ping": {
+       "a": "0.1ms",
+       "d": "12ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": "1.2k",
+       "kind": "hp"
+      },
+      {
+       "cutoff": "3.5k",
+       "gain": "3dB",
+       "kind": "peak",
+       "q": 0.7
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "vel"
+         }
+        ],
+        "value": "5.5k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "damp": 0.35,
+       "fixed": 365,
+       "level": "-12dB",
+       "name": "shimmer",
+       "partials": [
+        [
+         1.0,
+         0.3
+        ],
+        [
+         1.43,
+         0.4
+        ],
+        [
+         1.97,
+         0.5
+        ],
+        [
+         2.53,
+         0.45
+        ],
+        [
+         3.18,
+         0.6
+        ],
+        [
+         3.71,
+         0.5
+        ],
+        [
+         4.47,
+         0.55
+        ],
+        [
+         5.13,
+         0.45
+        ],
+        [
+         6.06,
+         0.4
+        ],
+        [
+         7.29,
+         0.35
+        ],
+        [
+         8.4,
+         0.3
+        ],
+        [
+         9.87,
+         0.25
+        ]
+       ],
+       "type": "additive"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 8.0,
+          "src": "vel"
+         },
+         {
+          "amount": 1.0,
+          "src": "rand"
+         }
+        ],
+        "value": "-14dB"
+       },
+       "name": "wash",
+       "type": "noise"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 60.0,
+          "src": "env.ping"
+         }
+        ],
+        "value": "-66dB"
+       },
+       "name": "ping",
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.25,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   }
+  },
+  "s": {
+   "gain": "5dB",
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.6
+    },
+    "synth": {
+     "amp": {
+      "points": [
+       [
+        0,
+        0.0
+       ],
+       [
+        "0.8ms",
+        0.5
+       ],
+       [
+        "1.6ms",
+        0.25
+       ],
+       [
+        "2.8ms",
+        1.0
+       ],
+       [
+        "40ms",
+        0.3
+       ],
+       [
+        "220ms",
+        0.0
+       ]
+      ]
+     },
+     "env": {
+      "body": {
+       "a": "1ms",
+       "d": "60ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 300,
+       "kind": "hp"
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 0.6,
+          "src": "vel"
+         },
+         {
+          "amount": 0.15,
+          "src": "rand"
+         }
+        ],
+        "value": "3.2k"
+       },
+       "kind": "bp",
+       "q": 0.5
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "vel"
+         }
+        ],
+        "value": "5k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "name": "bristles",
+       "type": "noise"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 44.0,
+          "src": "env.body"
+         },
+         {
+          "amount": 8.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "name": "head",
+       "wave": "triangle"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.3,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "G3"
+  },
+  "sl": {
+   "gain": "3dB",
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.55
+    },
+    "synth": {
+     "amp": {
+      "points": [
+       [
+        0,
+        0.0
+       ],
+       [
+        "0.6ms",
+        0.7
+       ],
+       [
+        "1.5ms",
+        0.4
+       ],
+       [
+        "2.5ms",
+        1.0
+       ],
+       [
+        "60ms",
+        0.35
+       ],
+       [
+        "320ms",
+        0.0
+       ]
+      ]
+     },
+     "env": {
+      "body": {
+       "a": "0.5ms",
+       "curve": 4.0,
+       "d": "90ms",
+       "s": 0
+      },
+      "p": {
+       "a": "0.5ms",
+       "d": "15ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 180,
+       "kind": "hp"
+      },
+      {
+       "cutoff": "4k",
+       "gain": {
+        "mod": [
+         {
+          "amount": 5.0,
+          "src": "vel"
+         }
+        ],
+        "value": "0dB"
+       },
+       "kind": "peak",
+       "q": 0.7
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.2,
+          "src": "vel"
+         }
+        ],
+        "value": "4.5k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "name": "bristles",
+       "type": "noise"
+      },
+      {
+       "color": "pink",
+       "level": "-4dB",
+       "name": "wires",
+       "type": "noise"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 52.0,
+          "src": "env.body"
+         },
+         {
+          "amount": 6.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "name": "head",
+       "wave": "triangle"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 3.0,
+        "src": "env.p"
+       },
+       {
+        "amount": 0.3,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "G3"
+  },
+  "sp": {
+   "gain": "-4dB",
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.5
+    },
+    "synth": {
+     "amp": {
+      "curve": 2.0,
+      "points": [
+       [
+        0,
+        0.0
+       ],
+       [
+        "180ms",
+        0.8
+       ],
+       [
+        "270ms",
+        1.0
+       ],
+       [
+        "420ms",
+        0.0
+       ]
+      ]
+     },
+     "env": {
+      "sw": {
+       "a": "260ms",
+       "d": "120ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.4,
+          "src": "env.sw"
+         },
+         {
+          "amount": 0.4,
+          "src": "vel"
+         },
+         {
+          "amount": 0.15,
+          "src": "rand"
+         }
+        ],
+        "value": "1.6k"
+       },
+       "kind": "bp",
+       "q": 0.7
+      }
+     ],
+     "layers": [
+      {
+       "type": "noise"
+      },
+      {
+       "color": "pink",
+       "level": "-8dB",
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "pitch": "G3"
+  },
+  "ss": {
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.5
+    },
+    "synth": {
+     "amp": {
+      "a": "0.1ms",
+      "d": "90ms",
+      "r": "20ms",
+      "s": 0
+     },
+     "env": {
+      "c": {
+       "a": "0.1ms",
+       "d": "5ms",
+       "s": 0
+      },
+      "k": {
+       "a": "0.1ms",
+       "curve": 4.0,
+       "d": "45ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 280,
+       "kind": "hp"
+      },
+      {
+       "cutoff": "1.7k",
+       "gain": "4dB",
+       "kind": "peak",
+       "q": 1.4
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "vel"
+         }
+        ],
+        "value": "4k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "fixed": 520,
+       "level": {
+        "mod": [
+         {
+          "amount": 56.0,
+          "src": "env.k"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "name": "knock"
+      },
+      {
+       "fixed": 1340,
+       "level": {
+        "mod": [
+         {
+          "amount": 54.0,
+          "src": "env.k"
+         },
+         {
+          "amount": 2.0,
+          "src": "rand"
+         }
+        ],
+        "value": "-66dB"
+       },
+       "name": "wood",
+       "wave": "triangle"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 58.0,
+          "src": "env.c"
+         },
+         {
+          "amount": 8.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-70dB"
+       },
+       "name": "click",
+       "type": "noise"
+      }
+     ]
+    }
+   }
+  },
+  "sw": {
+   "gain": "-5dB",
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "gate": 1.0,
+     "vel_sens": 0.5
+    },
+    "synth": {
+     "amp": {
+      "a": "28ms",
+      "curve": 2.0,
+      "d": "250ms",
+      "r": "32ms",
+      "s": 0.65
+     },
+     "filters": [
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 0.5,
+          "src": "lfo.stir"
+         },
+         {
+          "amount": 0.25,
+          "src": "lfo.drift"
+         },
+         {
+          "amount": 0.5,
+          "src": "vel"
+         },
+         {
+          "amount": 0.2,
+          "src": "rand"
+         }
+        ],
+        "value": "2.6k"
+       },
+       "kind": "bp",
+       "q": 0.6
+      },
+      {
+       "cutoff": 450,
+       "kind": "hp"
+      }
+     ],
+     "layers": [
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 3.0,
+          "src": "lfo.stir"
+         }
+        ],
+        "value": "0dB"
+       },
+       "name": "bristles",
+       "type": "noise"
+      },
+      {
+       "color": "pink",
+       "level": "-9dB",
+       "name": "head",
+       "type": "noise"
+      }
+     ],
+     "lfo": {
+      "drift": {
+       "rate": "0.6hz",
+       "retrig": true,
+       "wave": "triangle"
+      },
+      "stir": {
+       "phase": 0.75,
+       "rate": "1.7hz",
+       "retrig": true
+      }
+     }
+    }
+   },
+   "pitch": "G3"
+  },
+  "sz": {
+   "choke": "sizzle",
+   "gain": "-11dB",
+   "pan": 0.15,
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.5
+    },
+    "synth": {
+     "amp": {
+      "a": "1ms",
+      "curve": 6.0,
+      "d": "4.5s",
+      "r": "400ms",
+      "s": 0
+     },
+     "filters": [
+      {
+       "cutoff": "1.5k",
+       "kind": "hp"
+      },
+      {
+       "cutoff": "6k",
+       "gain": "4dB",
+       "kind": "peak",
+       "q": 1
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 0.8,
+          "src": "vel"
+         }
+        ],
+        "value": "7k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "damp": 0.3,
+       "fixed": 330,
+       "level": "-12dB",
+       "name": "shimmer",
+       "partials": [
+        [
+         1.0,
+         0.3
+        ],
+        [
+         1.43,
+         0.4
+        ],
+        [
+         1.97,
+         0.5
+        ],
+        [
+         2.53,
+         0.45
+        ],
+        [
+         3.18,
+         0.6
+        ],
+        [
+         3.71,
+         0.5
+        ],
+        [
+         4.47,
+         0.55
+        ],
+        [
+         5.13,
+         0.45
+        ],
+        [
+         6.06,
+         0.4
+        ],
+        [
+         7.29,
+         0.35
+        ]
+       ],
+       "type": "additive"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 6.0,
+          "src": "lfo.buzz"
+         },
+         {
+          "amount": 6.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-10dB"
+       },
+       "name": "rivets",
+       "type": "noise"
+      }
+     ],
+     "lfo": {
+      "buzz": {
+       "rate": "63hz",
+       "wave": "square"
+      }
+     },
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.25,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   }
+  },
+  "t": {
+   "pan": -0.1,
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.55
+    },
+    "synth": {
+     "amp": {
+      "a": "1ms",
+      "curve": 4.0,
+      "d": "650ms",
+      "r": "60ms",
+      "s": 0
+     },
+     "env": {
+      "att": {
+       "a": "1ms",
+       "d": "25ms",
+       "s": 0
+      },
+      "p": {
+       "a": "1ms",
+       "d": "120ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 55,
+       "kind": "hp"
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "vel"
+         }
+        ],
+        "value": "2.5k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "name": "head"
+      },
+      {
+       "damp": 6.0,
+       "level": {
+        "mod": [
+         {
+          "amount": 5.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-12dB"
+       },
+       "name": "modes",
+       "partials": [
+        [
+         1.59,
+         0.45
+        ],
+        [
+         2.14,
+         0.25
+        ]
+       ],
+       "type": "additive"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 50.0,
+          "src": "env.att"
+         },
+         {
+          "amount": 8.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-66dB"
+       },
+       "name": "brush",
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 2.0,
+        "src": "env.p"
+       },
+       {
+        "amount": 0.2,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "D3"
+  }
+ },
+ "play": {
+  "event_stable": true,
+  "humanize": {
+   "time": "0ms"
+  },
+  "len": "/8",
+  "vel_sens": 0.5
+ }
+}

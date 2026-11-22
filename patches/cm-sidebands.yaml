@@ -1,0 +1,79 @@
+{
+ "about": "One struck electronic key. Two oscillators at the fifth and third harmonics of the written note; the ring circuit makes their sum and difference. BANKED by tools/patchbank.py (22 Nov 2026) from Common Measure v38 (track residue): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.6
+ },
+ "synth": {
+  "amp": {
+   "a": "2ms",
+   "curve": 2.0,
+   "d": "340ms",
+   "r": "45ms",
+   "s": 0.22
+  },
+  "env": {
+   "contact": {
+    "a": "0.2ms",
+    "d": "5ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {
+    "audible": false,
+    "name": "reference",
+    "ratio": 3.0
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 96.0,
+       "src": "expr.three"
+      }
+     ],
+     "value": "-96dB"
+    },
+    "ratio": 3.0
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 96.0,
+       "src": "expr.five"
+      }
+     ],
+     "value": "-96dB"
+    },
+    "ratio": 5.0,
+    "ringmod": {
+     "from": "reference",
+     "mix": {
+      "mod": [
+       {
+        "amount": 1.0,
+        "src": "expr.product"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 48.0,
+       "src": "env.contact"
+      }
+     ],
+     "value": "-76dB"
+    },
+    "type": "noise"
+   }
+  ]
+ }
+}

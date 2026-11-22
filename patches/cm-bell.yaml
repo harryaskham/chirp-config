@@ -1,0 +1,53 @@
+{
+ "about": "Common Measure's bell (chirper-zero, 17 Nov): the library's agogo bell (afro-perc's `ah`: three partials at 1, 2.4 and 3.9 and a 4 ms click) as a patch that takes a pitch, so the two bells can sit on the song's fifth and root and follow the chords. v34: struck and left to ring (it lets go over 300ms, decays over 400ms) with the upper partials falling first (damp 8). BANKED by tools/patchbank.py (22 Nov 2026) from Common Measure v38 (tracks bell-l, bell-r): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "d": "400ms",
+   "r": "300ms",
+   "s": 0
+  },
+  "env": {
+   "h": {
+    "a": "0.2ms",
+    "d": "4ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {
+    "damp": 8.0,
+    "partials": [
+     [
+      1.0,
+      1.0
+     ],
+     [
+      2.4,
+      0.4
+     ],
+     [
+      3.9,
+      0.15
+     ]
+    ],
+    "type": "additive"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 40.0,
+       "src": "env.h"
+      }
+     ],
+     "value": "-60dB"
+    },
+    "type": "noise"
+   }
+  ]
+ }
+}

@@ -1,0 +1,62 @@
+{
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "3ms",
+   "d": "105ms",
+   "r": "42ms",
+   "s": 0.22
+  },
+  "layers": [
+   {
+    "frames": [
+     [
+      [
+       1.0,
+       1.0
+      ],
+      [
+       4.0,
+       0.5359
+      ],
+      [
+       6.0,
+       0.4465
+      ]
+     ],
+     [
+      [
+       2.0,
+       0.732
+      ],
+      [
+       3.0,
+       0.61
+      ],
+      [
+       5.0,
+       0.4847
+      ],
+      [
+       7.0,
+       0.4166
+      ]
+     ]
+    ],
+    "position": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.turn"
+      }
+     ],
+     "value": 0
+    },
+    "type": "wavetable"
+   }
+  ]
+ },
+ "about": "BANKED by tools/patchbank.py (22 Nov 2026) from In the Time Of v33 (track pawl): every extends and override resolved, so it stands by itself."
+}

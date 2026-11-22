@@ -1,0 +1,388 @@
+{
+ "kit": {
+  "b1": {
+   "pan": -0.15,
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.6
+    },
+    "synth": {
+     "amp": {
+      "a": "0.5ms",
+      "curve": 2.0,
+      "d": "150ms",
+      "r": "40ms",
+      "s": 0
+     },
+     "env": {
+      "p": {
+       "a": "0.3ms",
+       "d": "30ms",
+       "s": 0
+      },
+      "s": {
+       "a": "0.3ms",
+       "d": "10ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": "6k",
+       "q": 0.5
+      }
+     ],
+     "layers": [
+      {
+       "level": "1dB"
+      },
+      {
+       "bright": 0.9,
+       "damp": 0.7,
+       "decay": "0.15s",
+       "level": "6dB",
+       "modes": "plate",
+       "type": "modal"
+      },
+      {
+       "color": "pink",
+       "level": {
+        "mod": [
+         {
+          "amount": 56.0,
+          "src": "env.s"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 3.0,
+        "src": "env.p"
+       },
+       {
+        "amount": 0.3,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "D2"
+  },
+  "b2": {
+   "pan": 0.4,
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.6
+    },
+    "synth": {
+     "amp": {
+      "a": "0.5ms",
+      "curve": 2.0,
+      "d": "170ms",
+      "r": "40ms",
+      "s": 0
+     },
+     "env": {
+      "p": {
+       "a": "0.3ms",
+       "d": "30ms",
+       "s": 0
+      },
+      "s": {
+       "a": "0.3ms",
+       "d": "10ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": "6k",
+       "q": 0.5
+      }
+     ],
+     "layers": [
+      {
+       "level": "1dB"
+      },
+      {
+       "bright": 0.9,
+       "damp": 0.7,
+       "decay": "0.17s",
+       "level": "6dB",
+       "modes": "plate",
+       "type": "modal"
+      },
+      {
+       "color": "pink",
+       "level": {
+        "mod": [
+         {
+          "amount": 56.0,
+          "src": "env.s"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 3.0,
+        "src": "env.p"
+       },
+       {
+        "amount": 0.3,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "C2"
+  },
+  "b3": {
+   "pan": -0.5,
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.6
+    },
+    "synth": {
+     "amp": {
+      "a": "0.5ms",
+      "curve": 2.0,
+      "d": "135ms",
+      "r": "40ms",
+      "s": 0
+     },
+     "env": {
+      "p": {
+       "a": "0.3ms",
+       "d": "30ms",
+       "s": 0
+      },
+      "s": {
+       "a": "0.3ms",
+       "d": "10ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": "6k",
+       "q": 0.5
+      }
+     ],
+     "layers": [
+      {
+       "level": "1dB"
+      },
+      {
+       "bright": 0.9,
+       "damp": 0.7,
+       "decay": "0.135s",
+       "level": "6dB",
+       "modes": "plate",
+       "type": "modal"
+      },
+      {
+       "color": "pink",
+       "level": {
+        "mod": [
+         {
+          "amount": 56.0,
+          "src": "env.s"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 3.0,
+        "src": "env.p"
+       },
+       {
+        "amount": 0.3,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "Eb2"
+  },
+  "b4": {
+   "pan": 0.15,
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.6
+    },
+    "synth": {
+     "amp": {
+      "a": "0.5ms",
+      "curve": 2.0,
+      "d": "160ms",
+      "r": "40ms",
+      "s": 0
+     },
+     "env": {
+      "p": {
+       "a": "0.3ms",
+       "d": "30ms",
+       "s": 0
+      },
+      "s": {
+       "a": "0.3ms",
+       "d": "10ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": "6k",
+       "q": 0.5
+      }
+     ],
+     "layers": [
+      {
+       "level": "1dB"
+      },
+      {
+       "bright": 0.9,
+       "damp": 0.7,
+       "decay": "0.16s",
+       "level": "6dB",
+       "modes": "plate",
+       "type": "modal"
+      },
+      {
+       "color": "pink",
+       "level": {
+        "mod": [
+         {
+          "amount": 56.0,
+          "src": "env.s"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 3.0,
+        "src": "env.p"
+       },
+       {
+        "amount": 0.3,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "Db2"
+  },
+  "b5": {
+   "pan": 0.6,
+   "patch": {
+    "play": {
+     "event_stable": true,
+     "vel_sens": 0.6
+    },
+    "synth": {
+     "amp": {
+      "a": "0.5ms",
+      "curve": 2.0,
+      "d": "125ms",
+      "r": "40ms",
+      "s": 0
+     },
+     "env": {
+      "p": {
+       "a": "0.3ms",
+       "d": "30ms",
+       "s": 0
+      },
+      "s": {
+       "a": "0.3ms",
+       "d": "10ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": "6k",
+       "q": 0.5
+      }
+     ],
+     "layers": [
+      {
+       "level": "1dB"
+      },
+      {
+       "bright": 0.9,
+       "damp": 0.7,
+       "decay": "0.125s",
+       "level": "6dB",
+       "modes": "plate",
+       "type": "modal"
+      },
+      {
+       "color": "pink",
+       "level": {
+        "mod": [
+         {
+          "amount": 56.0,
+          "src": "env.s"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 3.0,
+        "src": "env.p"
+       },
+       {
+        "amount": 0.3,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "E2"
+  }
+ },
+ "play": {
+  "event_stable": true
+ },
+ "about": "BANKED by tools/patchbank.py (22 Nov 2026) from Take Up the Slack v23 (track deck): every extends and override resolved, so it stands by itself."
+}

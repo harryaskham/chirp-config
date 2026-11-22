@@ -1,0 +1,81 @@
+{
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.55
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "d": "1.26s",
+   "r": "150ms",
+   "s": 0
+  },
+  "drive": 0.12,
+  "env": {
+   "att": {
+    "a": "0.1ms",
+    "d": "5ms",
+    "s": 0
+   }
+  },
+  "filters": [
+   {
+    "cutoff": 40,
+    "kind": "hp"
+   },
+   {
+    "cutoff": "4k",
+    "gain": "2dB",
+    "kind": "peak",
+    "q": 1
+   }
+  ],
+  "layers": [
+   {
+    "bright": {
+     "mod": [
+      {
+       "amount": 0.4,
+       "src": "vel"
+      }
+     ],
+     "value": 0.45
+    },
+    "damp": 0.45,
+    "decay": "0.9s",
+    "name": "head",
+    "sharp": 70.0,
+    "strike": {
+     "mod": [
+      {
+       "amount": 0.08,
+       "src": "rand"
+      }
+     ],
+     "value": 0.3
+    },
+    "tilt": -2.0,
+    "type": "modal",
+    "vary": 0.4
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 50.0,
+       "src": "env.att"
+      },
+      {
+       "amount": 8.0,
+       "src": "vel"
+      }
+     ],
+     "value": "-66dB"
+    },
+    "name": "stick",
+    "type": "noise"
+   }
+  ]
+ },
+ "about": "BANKED by tools/patchbank.py (22 Nov 2026) from False Summit v39 (tracks falls, roll): every extends and override resolved, so it stands by itself."
+}

@@ -1,0 +1,294 @@
+{
+ "about": "Carrying Capacity's drum machine (chirper-zero, 16 Nov): the engine's `machine` voices, the first on this record. k a 909-style kick resting on the song's E with its click up; s the two-oscillator snare; p the clap; b the 808's long boom on E; h and o the six-square hat, closed and open (they choke each other); c the cymbal. BANKED by tools/patchbank.py (22 Nov 2026) from Carrying Capacity v37 (track hat-air): every extends and override resolved, so it stands by itself.",
+ "kit": {
+  "b": {
+   "gain": "-5dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.1ms",
+      "d": "6s",
+      "r": "2.5s"
+     },
+     "layers": [
+      {
+       "machine": {
+        "decay": "5s",
+        "drive": 0.5,
+        "part": "boom"
+       },
+       "type": "machine"
+      }
+     ]
+    }
+   },
+   "pitch": "E1"
+  },
+  "b3": {
+   "gain": "-5dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.1ms",
+      "d": "6s",
+      "r": "2.5s"
+     },
+     "layers": [
+      {
+       "machine": {
+        "decay": "5s",
+        "drive": 0.5,
+        "part": "boom"
+       },
+       "type": "machine"
+      }
+     ]
+    }
+   },
+   "pitch": "Db1"
+  },
+  "c": {
+   "gain": "-8dB",
+   "pan": 0.3,
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.1ms",
+      "d": "6s",
+      "r": "2.5s"
+     },
+     "layers": [
+      {
+       "machine": {
+        "part": "cymbal"
+       },
+       "type": "machine"
+      }
+     ]
+    }
+   },
+   "pitch": "C6"
+  },
+  "h": {
+   "choke": "hat",
+   "gain": "0dB",
+   "pan": -0.3,
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.1ms",
+      "d": "6s",
+      "r": "2.5s"
+     },
+     "layers": [
+      {
+       "machine": {
+        "part": "hat"
+       },
+       "type": "machine"
+      }
+     ]
+    }
+   },
+   "pitch": "C6"
+  },
+  "k": {
+   "gain": "-16.5dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.1ms",
+      "d": "6s",
+      "r": "2.5s"
+     },
+     "layers": [
+      {
+       "machine": {
+        "click": 0.8,
+        "decay": "180ms",
+        "drive": 0.35
+       },
+       "type": "machine"
+      }
+     ]
+    }
+   },
+   "pitch": "E1"
+  },
+  "k1": {
+   "gain": "-16.5dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.1ms",
+      "d": "6s",
+      "r": "2.5s"
+     },
+     "layers": [
+      {
+       "machine": {
+        "click": 0.8,
+        "decay": "180ms",
+        "drive": 0.35
+       },
+       "type": "machine"
+      }
+     ]
+    }
+   },
+   "pitch": "G1"
+  },
+  "k2": {
+   "gain": "-16.5dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.1ms",
+      "d": "6s",
+      "r": "2.5s"
+     },
+     "layers": [
+      {
+       "machine": {
+        "click": 0.8,
+        "decay": "180ms",
+        "drive": 0.35
+       },
+       "type": "machine"
+      }
+     ]
+    }
+   },
+   "pitch": "F1"
+  },
+  "k3": {
+   "gain": "-16.5dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.1ms",
+      "d": "6s",
+      "r": "2.5s"
+     },
+     "layers": [
+      {
+       "machine": {
+        "click": 0.8,
+        "decay": "180ms",
+        "drive": 0.35
+       },
+       "type": "machine"
+      }
+     ]
+    }
+   },
+   "pitch": "Db1"
+  },
+  "o": {
+   "choke": "hat",
+   "gain": "-3dB",
+   "pan": -0.3,
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.1ms",
+      "d": "6s",
+      "r": "2.5s"
+     },
+     "layers": [
+      {
+       "machine": {
+        "decay": "380ms",
+        "part": "hat"
+       },
+       "type": "machine"
+      }
+     ]
+    }
+   },
+   "pitch": "C6"
+  },
+  "p": {
+   "gain": "0dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.1ms",
+      "d": "6s",
+      "r": "2.5s"
+     },
+     "layers": [
+      {
+       "machine": {
+        "part": "clap"
+       },
+       "type": "machine"
+      }
+     ]
+    }
+   },
+   "pitch": "C4"
+  },
+  "s": {
+   "gain": "-9.1dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.1ms",
+      "d": "6s",
+      "r": "2.5s"
+     },
+     "layers": [
+      {
+       "machine": {
+        "drive": 0.2,
+        "part": "snare",
+        "snappy": 0.5
+       },
+       "type": "machine"
+      }
+     ]
+    }
+   },
+   "pitch": "G3"
+  }
+ },
+ "play": {
+  "event_stable": true,
+  "len": "/16",
+  "vel_sens": 0.5
+ }
+}

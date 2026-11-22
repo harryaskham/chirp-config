@@ -1,0 +1,130 @@
+{
+ "about": "chirper-zero: the landing's choir - the library's voice-choir (five singers on a line) as a three-part open stack, a fourth below and a fifth above the note (fifteen voices), with a slightly smaller tract (0.95: a little brighter) BANKED by tools/patchbank.py (22 Nov 2026) from Common Time v71 (track word): every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "decay": "2.4s",
+   "kind": "plate",
+   "mix": 0.22,
+   "predelay": "25ms",
+   "type": "reverb"
+  }
+ ],
+ "play": {
+  "event_stable": true,
+  "glide": "110ms",
+  "glide_smooth": true,
+  "humanize": {
+   "time": "6ms",
+   "vel": 0.06
+  },
+  "mono": true
+ },
+ "synth": {
+  "amp": {
+   "a": "50ms",
+   "d": "0s",
+   "r": "200ms"
+  },
+  "layers": [
+   {
+    "breath": {
+     "mod": [
+      {
+       "amount": -0.12,
+       "src": "vel"
+      }
+     ],
+     "value": 0.22
+    },
+    "coda": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.off"
+      }
+     ],
+     "value": 0
+    },
+    "detune": 0.2,
+    "effort": {
+     "mod": [
+      {
+       "amount": 0.45,
+       "src": "vel"
+      }
+     ],
+     "value": 0.3
+    },
+    "even": 1.0,
+    "harmony": [
+     -5.0,
+     7.0
+    ],
+    "inhale": 0.4,
+    "join": true,
+    "onset": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.on"
+      }
+     ],
+     "value": 0
+    },
+    "rasp": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.rasp"
+      }
+     ],
+     "value": 0
+    },
+    "ring": 0.35,
+    "singers": 5,
+    "spread": 0.85,
+    "tract": 0.95,
+    "type": "voice",
+    "vowel": {
+     "mod": [
+      {
+       "amount": -0.5,
+       "src": "expr.u"
+      },
+      {
+       "amount": -0.25,
+       "src": "expr.o"
+      },
+      {
+       "amount": 0.25,
+       "src": "expr.e"
+      },
+      {
+       "amount": 0.5,
+       "src": "expr.i"
+      }
+     ],
+     "value": 0.5
+    }
+   }
+  ],
+  "lfo": {
+   "vib": {
+    "delay": "280ms",
+    "fade": "450ms",
+    "rate": "5.4hz",
+    "retrig": true,
+    "wander": 0.7
+   }
+  },
+  "pitch": {
+   "mod": [
+    {
+     "amount": 0.22,
+     "src": "lfo.vib"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

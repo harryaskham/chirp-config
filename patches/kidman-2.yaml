@@ -1,0 +1,121 @@
+{
+ "about": "Harsh barked metal vocal on the voice engine (scream 0.8 and false-fold 0.6 put its harmonic-to-noise ratio and subharmonics inside Jens Kidman's measured range; syllables via ^on=/^off= consonant codes and ^dvow= vowel offsets from its open a/e (0.62), e.g. from tools/stemvox.py --phones; notes without marks sing the open vowel \u2014 bd-f227d8: an unmarked closed 'u' separated as 12% drums)'s source\u2013filter layer (glottal pulse \u2192 5-formant tract; bd-4664e9): pressed effort, heavy rasp (symmetric period doubling keeps a bark on its note \u2014 strained shouts are strongly pitched), a strong singer's ring, an open 'a' that wanders a little per bark, a scoop up into each onset, drive and tight compression, upfront and nearly dry. Jens Kidman-style barks: play the shout rhythm on the shout's pitch (Bleed: Ab4 for this voice \u2014 A4 for the noisy bark stand-in; tools/stemvox.py transcribes a vocal stem's syllables). On Bleed's mix it measures below the noisier 'bark' stand-in (62.3 vs 63.0): soloed it is better pitched (A/E against bark's E/A; the reference reads A/Ab/G/Bb), but its clean harmonic series imprints its 3rd harmonic (E) on the mix's chroma. BANKED by tools/patchbank.py (22 Nov 2026) from `kidman` as the songs left it: `synth.layers.0.diction=2` (5 of 5 tracks, 3 songs); `synth.layers.0.speech=1` (5 of 5 tracks, 3 songs). The songs that use `kidman`: tracks 1, 2, 15. A RULE'S SUCCESSOR, NOT HEARD: every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "attack": "2ms",
+   "makeup": "6dB",
+   "ratio": 6.0,
+   "release": "80ms",
+   "threshold": "-24dB",
+   "type": "compressor"
+  },
+  {
+   "decay": "0.6s",
+   "kind": "room",
+   "mix": 0.08,
+   "predelay": "8ms",
+   "type": "reverb"
+  }
+ ],
+ "gain": "-12.4dB",
+ "play": {
+  "glide": "20ms",
+  "humanize": {
+   "time": "4ms",
+   "vel": 0.05
+  },
+  "mono": true
+ },
+ "synth": {
+  "amp": {
+   "a": "8ms",
+   "d": "0s",
+   "r": "70ms"
+  },
+  "drive": {
+   "mod": [
+    {
+     "amount": 0.25,
+     "src": "vel"
+    }
+   ],
+   "value": 0.5
+  },
+  "env": {
+   "scoop": {
+    "a": "0.5ms",
+    "d": "90ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {
+    "breath": 0.3,
+    "coda": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.off"
+      }
+     ],
+     "value": 0
+    },
+    "diction": 2,
+    "effort": {
+     "mod": [
+      {
+       "amount": 0.15,
+       "src": "vel"
+      }
+     ],
+     "value": 0.5
+    },
+    "fold": 0.6,
+    "onset": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.on"
+      }
+     ],
+     "value": 0
+    },
+    "rasp": {
+     "mod": [
+      {
+       "amount": 0.2,
+       "src": "vel"
+      }
+     ],
+     "value": 0.75
+    },
+    "ring": 0.1,
+    "scream": 0.8,
+    "speech": 1,
+    "type": "voice",
+    "vowel": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.dvow"
+      },
+      {
+       "amount": 0.08,
+       "src": "rand"
+      }
+     ],
+     "value": 0.62
+    }
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": -1.5,
+     "src": "env.scoop"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

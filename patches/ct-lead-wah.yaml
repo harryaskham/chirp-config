@@ -1,0 +1,348 @@
+{
+ "about": "chirper-zero: the library's m8-lead-guitar with a wah pedal between its compressor and its amp (the rest of the chain restated as it is there); the pedal follows the track's `wah` lane, and the playing opens it a little further BANKED by tools/patchbank.py (22 Nov 2026) from Common Time v71 (track leadw): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`wah`): give the track that plays it `auto: {wah: \u2026}`, as the song does.",
+ "fx": [
+  {
+   "makeup": "6dB",
+   "threshold": "-24dB",
+   "type": "compressor"
+  },
+  {
+   "env": 0.3,
+   "high": 2400,
+   "low": 450,
+   "pos": {
+    "mod": [
+     {
+      "amount": 1.0,
+      "src": "auto.wah"
+     }
+    ],
+    "value": 0
+   },
+   "q": 3.5,
+   "type": "wah"
+  },
+  {
+   "bass": 0.45,
+   "bloom": 0.4,
+   "boost": "6dB",
+   "gain": 0.9,
+   "mid": 0.7,
+   "model": "mark",
+   "presence": 0.55,
+   "resonance": 0.6,
+   "treble": 0.55,
+   "type": "amp"
+  },
+  {
+   "type": "cab"
+  },
+  {
+   "bands": [
+    {
+     "cutoff": "1.7k",
+     "gain": "-2.5dB",
+     "kind": "peak",
+     "q": 1.2
+    },
+    {
+     "cutoff": 340,
+     "gain": "2dB",
+     "kind": "peak",
+     "q": 1
+    }
+   ],
+   "type": "eq"
+  },
+  {
+   "feedback": 0.4,
+   "mix": 0.25,
+   "ping_pong": true,
+   "tone": "3k",
+   "type": "delay"
+  },
+  {
+   "mix": 0.3,
+   "size": 0.85,
+   "type": "reverb"
+  }
+ ],
+ "gain": "-14dB",
+ "play": {
+  "event_stable": true,
+  "frets": 24,
+  "gate": 0.88,
+  "glide": "45ms",
+  "humanize": {
+   "time": "4ms",
+   "vel": 0.07
+  },
+  "legato": true,
+  "strum": "7ms",
+  "tuning": [
+   "F1",
+   "Bb1",
+   "Eb2",
+   "Ab2",
+   "Db3",
+   "Gb3",
+   "Bb3",
+   "Eb4"
+  ],
+  "vel_sens": 0.35,
+  "voicing": "guitar"
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "r": "90ms"
+  },
+  "env": {
+   "bite": {
+    "a": "0.2ms",
+    "d": "45ms",
+    "s": 0
+   },
+   "pick": {
+    "a": "0.1ms",
+    "d": "6ms",
+    "s": 0
+   }
+  },
+  "filters": [
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": -3.4,
+       "src": "expr.pm"
+      },
+      {
+       "amount": 0.6,
+       "src": "vel"
+      }
+     ],
+     "value": "11k"
+    },
+    "q": 0.6
+   },
+   {
+    "cutoff": "3.2k",
+    "gain": "3dB",
+    "kind": "peak",
+    "q": 1.8
+   },
+   {
+    "cutoff": "7.5k",
+    "q": 0.6
+   }
+  ],
+  "layers": [
+   {
+    "bright": {
+     "mod": [
+      {
+       "amount": -0.42,
+       "src": "expr.pm"
+      },
+      {
+       "amount": 0.2,
+       "src": "vel"
+      },
+      {
+       "amount": -0.05,
+       "src": "expr.up"
+      },
+      {
+       "amount": -0.5,
+       "src": "expr.dead"
+      },
+      {
+       "amount": 0.04,
+       "src": "rand"
+      }
+     ],
+     "value": 0.76
+    },
+    "buzz": {
+     "mod": [
+      {
+       "amount": 0.6,
+       "src": "expr.thump"
+      },
+      {
+       "amount": 0.4,
+       "src": "expr.pop"
+      }
+     ],
+     "value": 0.22
+    },
+    "choke": "55ms",
+    "click": {
+     "mod": [
+      {
+       "amount": 0.15,
+       "src": "vel"
+      }
+     ],
+     "value": 0.15
+    },
+    "coil": 0.3,
+    "decay": {
+     "mod": [
+      {
+       "amount": -4.15,
+       "src": "expr.pm"
+      },
+      {
+       "amount": 0.3,
+       "src": "vel"
+      },
+      {
+       "amount": -4.44,
+       "src": "expr.dead"
+      }
+     ],
+     "value": "30s"
+    },
+    "fret": 0.3,
+    "grain": {
+     "mod": [
+      {
+       "amount": 0.5,
+       "src": "expr.pm"
+      }
+     ],
+     "value": 0.5
+    },
+    "level": {
+     "mod": [
+      {
+       "amount": -1.2,
+       "src": "expr.up"
+      },
+      {
+       "amount": 3.0,
+       "src": "expr.ph"
+      },
+      {
+       "amount": -5.0,
+       "src": "expr.dead"
+      }
+     ],
+     "value": "0dB"
+    },
+    "name": "string",
+    "node": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.nh"
+      }
+     ],
+     "value": 0
+    },
+    "pick": 0.11,
+    "pick_hard": 0.45,
+    "pickup": 0.09,
+    "pinch": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ph"
+      },
+      {
+       "amount": 1.0,
+       "src": "expr.nh"
+      }
+     ],
+     "value": 0
+    },
+    "polarity": {
+     "mod": [
+      {
+       "amount": -2.0,
+       "src": "expr.up"
+      }
+     ],
+     "value": 1
+    },
+    "scrape": {
+     "mod": [
+      {
+       "amount": 0.12,
+       "src": "vel"
+      }
+     ],
+     "value": 0.1
+    },
+    "squeak": {
+     "mod": [
+      {
+       "amount": 0.6,
+       "src": "expr.move"
+      }
+     ],
+     "value": 0
+    },
+    "stiff": 0.32,
+    "thump": {
+     "mod": [
+      {
+       "amount": 0.7,
+       "src": "expr.pm"
+      }
+     ],
+     "value": 0
+    },
+    "type": "pluck"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 44.0,
+       "src": "env.pick"
+      },
+      {
+       "amount": 10.0,
+       "src": "vel"
+      },
+      {
+       "amount": -3.0,
+       "src": "expr.up"
+      }
+     ],
+     "value": "-60dB"
+    },
+    "name": "pick",
+    "type": "noise"
+   }
+  ],
+  "lfo": {
+   "vib": {
+    "delay": "200ms",
+    "fade": "300ms",
+    "rate": "6hz",
+    "retrig": true
+   }
+  },
+  "pitch": {
+   "mod": [
+    {
+     "amount": 0.15,
+     "src": "env.bite"
+    },
+    {
+     "amount": 0.05,
+     "src": "rand"
+    },
+    {
+     "amount": 0.3,
+     "src": "lfo.vib"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

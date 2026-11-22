@@ -1,0 +1,30 @@
+{
+ "about": "chirper-zero: the tune's shadow in the approach - a Roessler attractor at the note's pitch whose `amount` (lane auto.lock) walks back from chaos: its period goes five, three, two, one BANKED by tools/patchbank.py (22 Nov 2026) from Common Time v71 (track att): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`lock`): give the track that plays it `auto: {lock: \u2026}`, as the song does.",
+ "gain": "-5.5dB",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "40ms",
+   "r": "400ms"
+  },
+  "layers": [
+   {
+    "chaos": {
+     "amount": {
+      "mod": [
+       {
+        "amount": 1.0,
+        "src": "auto.lock"
+       }
+      ],
+      "value": 0
+     },
+     "axis": "x"
+    },
+    "type": "chaos"
+   }
+  ]
+ }
+}

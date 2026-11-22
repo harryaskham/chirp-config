@@ -1,0 +1,54 @@
+{
+ "about": "Running Total's woodblock (chirper-zero, v8): the marimba's rosewood bar made short and hard, with a stick's click. BANKED by tools/patchbank.py (22 Nov 2026) from Running Total v13 (track knock): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.9
+ },
+ "synth": {
+  "amp": {
+   "a": "0.5ms",
+   "d": "400ms",
+   "r": "80ms",
+   "s": 0
+  },
+  "env": {
+   "c": {
+    "a": "0.2ms",
+    "d": "4ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {
+    "bright": {
+     "mod": [
+      {
+       "amount": 0.25,
+       "src": "vel"
+      }
+     ],
+     "value": 0.7
+    },
+    "damp": 0.5,
+    "decay": "0.3s",
+    "modes": "bar",
+    "strike": 0.6,
+    "tilt": 0.0,
+    "type": "modal",
+    "vary": 0.3
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 44.0,
+       "src": "env.c"
+      }
+     ],
+     "value": "-60dB"
+    },
+    "type": "noise"
+   }
+  ]
+ }
+}

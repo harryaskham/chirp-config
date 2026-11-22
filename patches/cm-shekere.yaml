@@ -1,0 +1,43 @@
+{
+ "about": "Common Measure's shekere (chirper-two, 18 Nov): the library's beaded gourd (afro-perc's `sk`: a soft-edged burst of noise between 3 kHz and its top) with the top opened, so it can stand where a closed hi-hat stood. BANKED by tools/patchbank.py (22 Nov 2026) from Common Measure v38 (track shaker): every extends and override resolved, so it stands by itself.",
+ "kit": {
+  "sk": {
+   "gain": "-6dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "6ms",
+      "d": "90ms",
+      "r": "30ms",
+      "s": 0
+     },
+     "filters": [
+      {
+       "cutoff": "3k",
+       "kind": "hp"
+      },
+      {
+       "cutoff": 14000
+      }
+     ],
+     "layers": [
+      {
+       "type": "noise"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "play": {
+  "event_stable": true,
+  "humanize": {
+   "time": "5ms",
+   "vel": 0.08
+  },
+  "vel_sens": 0.6
+ }
+}

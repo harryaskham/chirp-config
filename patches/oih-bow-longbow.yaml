@@ -1,0 +1,77 @@
+{
+ "about": "chirper-zero: a bowed string for On Its Hinge (the engine's bowed waveguide on the cello's body). Each stroke starts soft and swells to its peak, then eases; the vibrato comes in early because the notes are short. Not a library patch. BANKED by tools/patchbank.py (22 Nov 2026) from On Its Hinge v34 (track longbow): every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "decay": "1.8s",
+   "mix": 0.18,
+   "type": "reverb"
+  }
+ ],
+ "gain": "0dB",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "25ms",
+   "d": "0s",
+   "r": "160ms"
+  },
+  "env": {
+   "swell": {
+    "a": "1200ms",
+    "d": "1500ms",
+    "r": "150ms",
+    "s": 0.5
+   }
+  },
+  "filters": [
+   {
+    "cutoff": 600,
+    "gain": "-8dB",
+    "kind": "lowshelf"
+   }
+  ],
+  "layers": [
+   {
+    "body": 0.8,
+    "body_size": 2.2,
+    "bow_attack": "50ms",
+    "bow_pos": 0.12,
+    "bow_speed": 0.55,
+    "bright": 0.5,
+    "level": {
+     "mod": [
+      {
+       "amount": 8.0,
+       "src": "env.swell"
+      }
+     ],
+     "value": "-2dB"
+    },
+    "pressure": 0.78,
+    "rosin": 0.2,
+    "speak": 0.6,
+    "type": "bowed",
+    "vary": 0.0
+   }
+  ],
+  "lfo": {
+   "vib": {
+    "delay": "80ms",
+    "fade": "180ms",
+    "rate": "5.6hz",
+    "retrig": true
+   }
+  },
+  "pitch": {
+   "mod": [
+    {
+     "amount": 0.2,
+     "src": "lfo.vib"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

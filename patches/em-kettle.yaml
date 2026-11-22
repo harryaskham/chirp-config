@@ -1,0 +1,81 @@
+{
+ "about": "Extreme and Mean's kettledrums (chirper-alpha, 18 Nov): the modal layer's `kettle` set (Rossing's 65 cm drum: the air in the kettle tunes the head's modes near 1 : 1.5 : 2 : 2.44, so it sings the note it is given), struck a quarter of the way in from the rim, with a felt head's soft thud. `expr.pedal` is the pedal, in semitones: the head follows it while it rings. BANKED by tools/patchbank.py (22 Nov 2026) from Extreme and Mean v36 (track kettle): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "poly": 32,
+  "vel_sens": 0.6
+ },
+ "synth": {
+  "amp": {
+   "a": "0.3ms",
+   "curve": 2.0,
+   "d": "5s",
+   "r": "350ms",
+   "s": 0
+  },
+  "env": {
+   "att": {
+    "a": "0.5ms",
+    "d": "16ms",
+    "s": 0
+   }
+  },
+  "filters": [
+   {
+    "cutoff": 45,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 2400
+   }
+  ],
+  "layers": [
+   {
+    "damp": 0.2,
+    "decay": "5s",
+    "modes": "kettle",
+    "name": "head",
+    "sharp": 10.0,
+    "strike": {
+     "mod": [
+      {
+       "amount": 0.05,
+       "src": "rand"
+      }
+     ],
+     "value": 0.72
+    },
+    "type": "modal",
+    "vary": 0.3
+   },
+   {
+    "color": "brown",
+    "level": {
+     "mod": [
+      {
+       "amount": 36.0,
+       "src": "env.att"
+      },
+      {
+       "amount": 6.0,
+       "src": "vel"
+      }
+     ],
+     "value": "-60dB"
+    },
+    "name": "felt",
+    "type": "noise"
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 1.0,
+     "src": "expr.pedal"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

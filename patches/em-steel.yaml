@@ -1,0 +1,113 @@
+{
+ "about": "The moving bar against the two fretted guitars. Keep the pedal steel's vibrato, bend by hand within each note, and damp it before the band answers. BANKED by tools/patchbank.py (22 Nov 2026) from Extreme and Mean v36 (track bar): every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "depth": 0.25,
+   "mix": 0.08,
+   "rate": 0.5,
+   "type": "chorus"
+  },
+  {
+   "feedback": 0.25,
+   "mix": 0,
+   "time": "3/8",
+   "tone": 3000,
+   "type": "delay"
+  },
+  {
+   "decay": "3s",
+   "mix": 0,
+   "predelay": "25ms",
+   "type": "reverb"
+  }
+ ],
+ "gain": "0dB",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "glide": "0ms",
+  "legato": true,
+  "mono": true,
+  "vel_sens": 0.4
+ },
+ "synth": {
+  "amp": {
+   "a": "75ms",
+   "d": "600ms",
+   "r": "140ms",
+   "s": 0.85
+  },
+  "env": {
+   "twang": {
+    "a": "2ms",
+    "d": "250ms",
+    "r": "200ms",
+    "s": 0.3
+   }
+  },
+  "filters": [
+   {
+    "cutoff": 120,
+    "kind": "hp"
+   },
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": 0.9,
+       "src": "env.twang"
+      },
+      {
+       "amount": 0.5,
+       "src": "vel"
+      }
+     ],
+     "value": 2200
+    },
+    "q": 0.8
+   },
+   {
+    "cutoff": 2600,
+    "gain": "3dB",
+    "kind": "peak",
+    "q": 1.5
+   }
+  ],
+  "layers": [
+   {
+    "level": "-5dB",
+    "wave": "saw"
+   },
+   {
+    "level": "-11dB",
+    "wave": "pulse",
+    "width": 0.2
+   },
+   {
+    "level": "-14dB",
+    "ratio": 2.0
+   }
+  ],
+  "lfo": {
+   "vib": {
+    "delay": "500ms",
+    "fade": "600ms",
+    "rate": "4.8hz",
+    "retrig": true
+   }
+  },
+  "pitch": {
+   "mod": [
+    {
+     "amount": 0.06,
+     "src": "lfo.vib"
+    },
+    {
+     "amount": 1.0,
+     "src": "expr.bend"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

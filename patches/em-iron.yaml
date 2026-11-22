@@ -1,0 +1,109 @@
+{
+ "about": "Extreme and Mean's iron (chirper-three, 18 Nov): a struck bar whose overtones are cut in extreme and mean ratio. Each partial is to the next as 1.618 to 1 (1 : 1.618 : 2.618 : 4.236 : 6.854 : 11.09 : 17.94), so each partial's frequency is the sum of the two below it. `expr.cut` 1 is the bar a golden cut shorter (833 cents up): all of its partials are partials of the long bar. A hammer's click, a short ring, no sustain. BANKED by tools/patchbank.py (22 Nov 2026) from Extreme and Mean v36 (track iron): every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "decay": "0.5s",
+   "kind": "room",
+   "mix": 0.1,
+   "predelay": "6ms",
+   "type": "reverb"
+  }
+ ],
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "humanize": {
+   "time": "0ms"
+  },
+  "poly": 8,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.3ms",
+   "curve": 2.0,
+   "d": "650ms",
+   "r": "50ms",
+   "s": 0
+  },
+  "env": {
+   "tap": {
+    "a": "0.2ms",
+    "d": "5ms",
+    "s": 0
+   }
+  },
+  "filters": [
+   {
+    "cutoff": 300,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 9500
+   }
+  ],
+  "layers": [
+   {
+    "damp": 0.45,
+    "name": "bar",
+    "partials": [
+     [
+      1.0,
+      0.5
+     ],
+     [
+      1.618034,
+      1.0
+     ],
+     [
+      2.618034,
+      0.9
+     ],
+     [
+      4.236068,
+      0.75
+     ],
+     [
+      6.854102,
+      0.5
+     ],
+     [
+      11.09017,
+      0.3
+     ],
+     [
+      17.944272,
+      0.15
+     ]
+    ],
+    "type": "additive"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 44.0,
+       "src": "env.tap"
+      },
+      {
+       "amount": 6.0,
+       "src": "vel"
+      }
+     ],
+     "value": "-60dB"
+    },
+    "name": "hammer",
+    "type": "noise"
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 8.3309,
+     "src": "expr.cut"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

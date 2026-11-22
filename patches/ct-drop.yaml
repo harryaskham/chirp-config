@@ -1,0 +1,33 @@
+{
+ "about": "chirper-zero: the floor dropping on a landing - a sine that falls an octave to the note in 0.35 s and dies in 1.5 s BANKED by tools/patchbank.py (22 Nov 2026) from Common Time v71 (track drop): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "3ms",
+   "d": "1.5s",
+   "r": "200ms",
+   "s": 0
+  },
+  "env": {
+   "fall": {
+    "a": "1ms",
+    "d": "350ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {}
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 12.0,
+     "src": "env.fall"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

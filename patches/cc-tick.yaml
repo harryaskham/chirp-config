@@ -1,0 +1,22 @@
+{
+ "about": "Carrying Capacity's vacancy tick (chirper-zero, 20 Nov): the drum machine's rim, one voice, on the song's E. BANKED by tools/patchbank.py (22 Nov 2026) from Carrying Capacity v37 (track tick): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "6s",
+   "r": "2.5s"
+  },
+  "layers": [
+   {
+    "machine": {
+     "part": "rim"
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}

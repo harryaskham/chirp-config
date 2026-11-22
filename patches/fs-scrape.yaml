@@ -1,0 +1,134 @@
+{
+ "about": "chirper-zero: a pick scrape for False Summit: the pick's edge dragged along a wound string toward the bridge. The windings click under it faster and faster: one click train whose rate follows the note's `up` (0 to 1 across the note) from the song's sixteenth to the F three octaves over the low string's octave (6.67 to 1397 clicks a second), a little unevenly (`lfo.hand`), through a peak that rises with it, into the song's 5150 and cabinet. Write the note on F1. Not a library patch. BANKED by tools/patchbank.py (22 Nov 2026) from False Summit v39 (track scrape): every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "attack": "2ms",
+   "makeup": "3dB",
+   "release": "60ms",
+   "threshold": "-20dB",
+   "type": "compressor"
+  },
+  {
+   "bloom": 0.5,
+   "boost": "6dB",
+   "gain": 0.85,
+   "mid": 0.74,
+   "model": "5150",
+   "nfb": 18.0,
+   "resonance": 0.72,
+   "sag": 0.2,
+   "tight": 220,
+   "triode": true,
+   "ts": 0.75,
+   "type": "amp"
+  },
+  {
+   "cone": 34,
+   "mic": 0.5,
+   "model": "4x12-modern",
+   "type": "cab"
+  },
+  {
+   "attack": "0.3ms",
+   "hold": "5ms",
+   "release": "12ms",
+   "threshold": "-42dB",
+   "type": "gate"
+  }
+ ],
+ "gain": "-23dB",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "3ms",
+   "d": "0ms",
+   "r": "15ms"
+  },
+  "filters": [
+   {
+    "cutoff": 700,
+    "kind": "hp"
+   },
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": 3.0,
+       "src": "expr.up"
+      }
+     ],
+     "value": 700
+    },
+    "gain": "12dB",
+    "kind": "peak",
+    "q": 2
+   },
+   {
+    "cutoff": "9k",
+    "q": 0.6
+   }
+  ],
+  "layers": [
+   {
+    "level": "0dB",
+    "semi": {
+     "mod": [
+      {
+       "amount": 92.53,
+       "src": "expr.up"
+      },
+      {
+       "amount": 1.0,
+       "src": "lfo.hand"
+      }
+     ],
+     "value": -32.53
+    },
+    "wave": "saw"
+   }
+  ],
+  "lfo": {
+   "hand": {
+    "rate": "83hz",
+    "retrig": true,
+    "steps": [
+     0.37,
+     0.73,
+     0.89,
+     1.33,
+     0.72,
+     1.27,
+     -1.41,
+     -0.1,
+     1.33,
+     0.45,
+     1.2,
+     -1.16,
+     -0.09,
+     -0.76,
+     0.13,
+     0.22,
+     -1.46,
+     -0.85,
+     -0.66,
+     1.25,
+     0.8,
+     -1.02,
+     0.89,
+     -1.08,
+     0.35,
+     -1.12,
+     -1.49,
+     1.11,
+     -0.87,
+     -0.85,
+     1.45
+    ]
+   }
+  }
+ }
+}

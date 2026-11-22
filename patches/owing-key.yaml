@@ -1,0 +1,49 @@
+{
+ "about": "Still Owing: the reply marker. Its orbit opens in proportion to the sixteenths borrowed in this pair. BANKED by tools/patchbank.py (22 Nov 2026) from Still Owing v35 (track tally): every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "cutoff": 185,
+   "kind": "hp",
+   "type": "filter"
+  }
+ ],
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "2ms",
+   "d": "450ms",
+   "r": "95ms",
+   "s": 0.2
+  },
+  "layers": [
+   {
+    "terrain": {
+     "cx": 0.13,
+     "cy": -0.18,
+     "k": 1.7,
+     "rx": {
+      "mod": [
+       {
+        "amount": 0.46,
+        "src": "expr.owing"
+       }
+      ],
+      "value": 0.16
+     },
+     "ry": {
+      "mod": [
+       {
+        "amount": 0.34,
+        "src": "expr.owing"
+       }
+      ],
+      "value": 0.12
+     }
+    },
+    "type": "terrain"
+   }
+  ]
+ }
+}

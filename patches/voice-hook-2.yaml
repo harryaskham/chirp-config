@@ -1,0 +1,123 @@
+{
+ "about": "A sung hook that sits at one level in a mix (wM, Accretion voice climb): voice-legato (joined, breathing, a singer's vibrato, smooth slides) with `even: 1`, so an 'ee' or 'oo' no longer drops 10-20 dB under an 'ah' on high notes. Mid register, in tune, clear words: `^ph=` syllables per note, touching inside a phrase, a rest before each phrase. Add `synth.layers.0.harmony=[7]` for a fifth above, or `singers=3` to double it. BANKED by tools/patchbank.py (22 Nov 2026) from `voice-hook` as the songs left it: `synth.layers.0.diction=3` (9 of 11 tracks, 4 songs); `synth.layers.0.effort_tilt=1` (8 of 11 tracks, 3 songs). The songs that use `voice-hook`: tracks 2, 8, 14, 15, 17. A RULE'S SUCCESSOR, NOT HEARD: every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "decay": "1.6s",
+   "kind": "plate",
+   "mix": 0.12,
+   "predelay": "20ms",
+   "type": "reverb"
+  }
+ ],
+ "play": {
+  "glide": "110ms",
+  "glide_smooth": true,
+  "humanize": {
+   "time": "6ms",
+   "vel": 0.06
+  },
+  "mono": true
+ },
+ "synth": {
+  "amp": {
+   "a": "50ms",
+   "d": "0s",
+   "r": "200ms"
+  },
+  "layers": [
+   {
+    "breath": {
+     "mod": [
+      {
+       "amount": -0.12,
+       "src": "vel"
+      }
+     ],
+     "value": 0.22
+    },
+    "coda": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.off"
+      }
+     ],
+     "value": 0
+    },
+    "diction": 3,
+    "effort": {
+     "mod": [
+      {
+       "amount": 0.45,
+       "src": "vel"
+      }
+     ],
+     "value": 0.3
+    },
+    "effort_tilt": 1.0,
+    "even": 1.0,
+    "inhale": 0.4,
+    "join": true,
+    "onset": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.on"
+      }
+     ],
+     "value": 0
+    },
+    "rasp": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.rasp"
+      }
+     ],
+     "value": 0
+    },
+    "ring": 0.35,
+    "type": "voice",
+    "vowel": {
+     "mod": [
+      {
+       "amount": -0.5,
+       "src": "expr.u"
+      },
+      {
+       "amount": -0.25,
+       "src": "expr.o"
+      },
+      {
+       "amount": 0.25,
+       "src": "expr.e"
+      },
+      {
+       "amount": 0.5,
+       "src": "expr.i"
+      }
+     ],
+     "value": 0.5
+    }
+   }
+  ],
+  "lfo": {
+   "vib": {
+    "delay": "280ms",
+    "fade": "450ms",
+    "rate": "5.4hz",
+    "retrig": true,
+    "wander": 0.7
+   }
+  },
+  "pitch": {
+   "mod": [
+    {
+     "amount": 0.22,
+     "src": "lfo.vib"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

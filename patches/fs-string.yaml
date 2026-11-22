@@ -1,0 +1,56 @@
+{
+ "about": "Risset's harmonic arpeggio (wM, chirpers8): five copies of a ten-harmonic tone, each a hair apart (about 0.1 Hz at A2). The copies beat, harmonic k k times as fast as the first, so a held note plays a slow arpeggio across its own overtones, as in Risset's Mutations (1969). Hold notes for many seconds. BANKED by tools/patchbank.py (22 Nov 2026) from False Summit v39 (track string): every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "cutoff": 380,
+   "kind": "hp",
+   "type": "filter"
+  }
+ ],
+ "gain": "-2.4dB",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "100ms",
+   "r": "80ms"
+  },
+  "layers": [
+   {
+    "cents": -2.06678075,
+    "count": 10,
+    "level": 0.2,
+    "tilt": 0.0,
+    "type": "additive"
+   },
+   {
+    "cents": -1.03308195,
+    "count": 10,
+    "level": 0.2,
+    "tilt": 0.0,
+    "type": "additive"
+   },
+   {
+    "count": 10,
+    "level": 0.2,
+    "tilt": 0.0,
+    "type": "additive"
+   },
+   {
+    "cents": 1.03246585,
+    "count": 10,
+    "level": 0.2,
+    "tilt": 0.0,
+    "type": "additive"
+   },
+   {
+    "cents": 2.06431633,
+    "count": 10,
+    "level": 0.2,
+    "tilt": 0.0,
+    "type": "additive"
+   }
+  ]
+ }
+}

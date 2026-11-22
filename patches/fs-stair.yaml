@@ -1,0 +1,41 @@
+{
+ "gain": "-6dB",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "6ms",
+   "d": "500ms",
+   "r": "150ms",
+   "s": 0.55
+  },
+  "filters": [
+   {
+    "cutoff": "5k",
+    "q": 0.6
+   }
+  ],
+  "layers": [
+   {
+    "shepard": {
+     "center": "520hz",
+     "width": 1.1
+    },
+    "type": "shepard"
+   },
+   {
+    "cents": 6.0,
+    "level": "-5dB",
+    "shepard": {
+     "center": "520hz",
+     "width": 1.1
+    },
+    "type": "shepard"
+   }
+  ]
+ },
+ "about": "BANKED by tools/patchbank.py (22 Nov 2026) from False Summit v39 (track stair): every extends and override resolved, so it stands by itself."
+}

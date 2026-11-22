@@ -1,0 +1,353 @@
+{
+ "about": "Common Time the wall rig with rests that are rests (chirper-zero, 13 Nov): ct-wall-l without its `sympathetic` effect. That effect lets the other strings ring along, and its ring, however small, keeps a saturated amp at full output through every rest (the rig's own gate sits after the amp, where the level never falls): a half-beat stab sounded for 0.8 s. Without it a stab is 17 dB down within a sixteenth and 35 dB within three; riffs measure the same (on the Bleed and Faultless benches the attack measures move 0.5 dB at most), held chords ring as long (that is the string), and the guitar loses 2-3 dB at 315-500 Hz, which was the ring. Use this, not ct-wall-l, for anything with stops. (bd-42e146; tools/stops.py measures it.) BANKED by tools/patchbank.py (22 Nov 2026) from `ct-wall-stop-l` as the songs left it: `fx.3.mix=0` (9 of 10 tracks, 8 songs); `fx.4.bands.0.gain=0dB` (9 of 10 tracks, 8 songs); `fx.4.bands.1.gain=0dB` (9 of 10 tracks, 8 songs); `fx.4.bands.2.gain=0dB` (9 of 10 tracks, 8 songs); `fx.4.bands.3.gain=0dB` (9 of 10 tracks, 8 songs); a `cab` after the patch's own effects, as In the Time Of's `wl` has it ({\"cone\": 74, \"mic\": 0.4, \"model\": \"4x12-modern\"}). The songs that use `ct-wall-stop-l`: tracks 4, 7, 8, 9, 10, 11, 14, 15, 17. A RULE'S SUCCESSOR, NOT HEARD: every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "decay": "1.8s",
+   "mix": 0,
+   "type": "sympathetic"
+  },
+  {
+   "attack": "8ms",
+   "makeup": "3dB",
+   "ratio": 3.0,
+   "threshold": "-22dB",
+   "type": "compressor"
+  },
+  {
+   "bass": 0.55,
+   "bloom": 0.6,
+   "boost": "4dB",
+   "gain": 0.78,
+   "mid": 0.55,
+   "nfb": 8.0,
+   "presence": 0.45,
+   "resonance": 0.75,
+   "sag": 0.35,
+   "stack": "recto",
+   "tight": 65,
+   "triode": true,
+   "ts": 0.35,
+   "type": "amp"
+  },
+  {
+   "blend": 0.4,
+   "blend_file": "jester/kaiju-tamer",
+   "breakup": 0.4,
+   "file": "jester/kitten-slayer",
+   "length": "160ms",
+   "level": 1,
+   "mix": 0,
+   "room": 0.22,
+   "type": "ir"
+  },
+  {
+   "bands": [
+    {
+     "cutoff": 120,
+     "gain": "0dB",
+     "kind": "peak",
+     "q": 1
+    },
+    {
+     "cutoff": 300,
+     "gain": "0dB",
+     "kind": "peak",
+     "q": 0.9
+    },
+    {
+     "cutoff": 3300,
+     "gain": "0dB",
+     "kind": "peak",
+     "q": 1.2
+    },
+    {
+     "cutoff": 5000,
+     "gain": "0dB",
+     "kind": "highshelf"
+    }
+   ],
+   "type": "eq"
+  },
+  {
+   "attack": "0.5ms",
+   "hold": "40ms",
+   "release": "90ms",
+   "threshold": "-56dB",
+   "type": "gate"
+  },
+  {
+   "decay": "1.4s",
+   "kind": "plate",
+   "mix": 0.14,
+   "predelay": "14ms",
+   "type": "reverb"
+  },
+  {
+   "cone": 74,
+   "mic": 0.4,
+   "model": "4x12-modern",
+   "type": "cab"
+  }
+ ],
+ "gain": "-22dB",
+ "play": {
+  "frets": 24,
+  "gate": 0.88,
+  "humanize": {
+   "time": "4ms",
+   "vel": 0.07
+  },
+  "strum": "7ms",
+  "tuning": [
+   "F1",
+   "Bb1",
+   "Eb2",
+   "Ab2",
+   "Db3",
+   "Gb3",
+   "Bb3",
+   "Eb4"
+  ],
+  "vel_sens": 0.35,
+  "voicing": "guitar"
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "r": "90ms"
+  },
+  "env": {
+   "bite": {
+    "a": "0.2ms",
+    "d": "140ms",
+    "s": 0
+   },
+   "pick": {
+    "a": "0.1ms",
+    "d": "6ms",
+    "s": 0
+   }
+  },
+  "filters": [
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": -3.4,
+       "src": "expr.pm"
+      },
+      {
+       "amount": 0.6,
+       "src": "vel"
+      }
+     ],
+     "value": "11k"
+    },
+    "q": 0.6
+   },
+   {
+    "cutoff": "3.2k",
+    "gain": "3dB",
+    "kind": "peak",
+    "q": 1.8
+   },
+   {
+    "cutoff": "7.5k",
+    "q": 0.6
+   }
+  ],
+  "layers": [
+   {
+    "beat": 2.0,
+    "bright": {
+     "mod": [
+      {
+       "amount": -0.42,
+       "src": "expr.pm"
+      },
+      {
+       "amount": 0.2,
+       "src": "vel"
+      },
+      {
+       "amount": -0.05,
+       "src": "expr.up"
+      },
+      {
+       "amount": -0.5,
+       "src": "expr.dead"
+      },
+      {
+       "amount": 0.04,
+       "src": "rand"
+      }
+     ],
+     "value": 0.76
+    },
+    "buzz": {
+     "mod": [
+      {
+       "amount": 0.6,
+       "src": "expr.thump"
+      },
+      {
+       "amount": 0.4,
+       "src": "expr.pop"
+      }
+     ],
+     "value": 0.22
+    },
+    "choke": "55ms",
+    "click": 0.15,
+    "coil": 0.3,
+    "decay": {
+     "mod": [
+      {
+       "amount": -4.15,
+       "src": "expr.pm"
+      },
+      {
+       "amount": 0.3,
+       "src": "vel"
+      },
+      {
+       "amount": -4.44,
+       "src": "expr.dead"
+      }
+     ],
+     "value": "4.5s"
+    },
+    "fret": 0.3,
+    "grain": {
+     "mod": [
+      {
+       "amount": 0.5,
+       "src": "expr.pm"
+      }
+     ],
+     "value": 0.5
+    },
+    "level": {
+     "mod": [
+      {
+       "amount": -1.2,
+       "src": "expr.up"
+      },
+      {
+       "amount": 3.0,
+       "src": "expr.ph"
+      },
+      {
+       "amount": -5.0,
+       "src": "expr.dead"
+      }
+     ],
+     "value": "0dB"
+    },
+    "name": "string",
+    "node": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.nh"
+      }
+     ],
+     "value": 0
+    },
+    "pick": 0.143,
+    "pick_hard": 0.45,
+    "pickup": 0.085,
+    "pinch": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ph"
+      },
+      {
+       "amount": 1.0,
+       "src": "expr.nh"
+      }
+     ],
+     "value": 0
+    },
+    "planes": 0.4,
+    "polarity": {
+     "mod": [
+      {
+       "amount": -2.0,
+       "src": "expr.up"
+      }
+     ],
+     "value": 1
+    },
+    "scrape": 0.15,
+    "squeak": {
+     "mod": [
+      {
+       "amount": 0.6,
+       "src": "expr.move"
+      }
+     ],
+     "value": 0
+    },
+    "stiff": 0.45,
+    "thump": {
+     "mod": [
+      {
+       "amount": 0.5,
+       "src": "expr.pm"
+      }
+     ],
+     "value": 0
+    },
+    "type": "pluck"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 44.0,
+       "src": "env.pick"
+      },
+      {
+       "amount": 10.0,
+       "src": "vel"
+      },
+      {
+       "amount": -3.0,
+       "src": "expr.up"
+      }
+     ],
+     "value": "-60dB"
+    },
+    "name": "pick",
+    "type": "noise"
+   }
+  ],
+  "lfo": {
+   "vib": {
+    "delay": "380ms",
+    "fade": "450ms",
+    "rate": "5.3hz",
+    "retrig": true
+   }
+  },
+  "pitch": {
+   "mod": [
+    {
+     "amount": 0.6,
+     "src": "env.bite"
+    },
+    {
+     "amount": 0.05,
+     "src": "rand"
+    },
+    {
+     "amount": 0.2,
+     "src": "lfo.vib"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

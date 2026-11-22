@@ -1,0 +1,57 @@
+{
+ "about": "The Other Hand: the margin bell. A typewriter's small steel cup bell, struck once by its clapper a few places before the end of the line. BANKED by tools/patchbank.py (22 Nov 2026) from The Other Hand v31 (track bell): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "d": "1500ms",
+   "r": "600ms",
+   "s": 0
+  },
+  "env": {
+   "h": {
+    "a": "0.2ms",
+    "d": "4ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {
+    "damp": 3.0,
+    "partials": [
+     [
+      1.0,
+      1.0
+     ],
+     [
+      2.32,
+      0.45
+     ],
+     [
+      4.25,
+      0.22
+     ],
+     [
+      6.63,
+      0.08
+     ]
+    ],
+    "type": "additive"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 36.0,
+       "src": "env.h"
+      }
+     ],
+     "value": "-60dB"
+    },
+    "type": "noise"
+   }
+  ]
+ }
+}

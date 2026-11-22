@@ -1,0 +1,48 @@
+{
+ "about": "Still Owing: the bronze key the mallet has just struck, kept sounding with a bow on the edge of the bar. No attack of its own; the damped mallet stroke is its attack. BANKED by tools/patchbank.py (22 Nov 2026) from Still Owing v35 (track kept): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "humanize": {
+   "time": "0ms"
+  },
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "170ms",
+   "curve": 2.0,
+   "d": "1.2s",
+   "r": "120ms",
+   "s": 0.82
+  },
+  "filters": [
+   {
+    "cutoff": 150,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 5200
+   }
+  ],
+  "layers": [
+   {
+    "partials": [
+     [
+      1.0,
+      1.0
+     ],
+     [
+      2.52,
+      0.085
+     ],
+     [
+      4.95,
+      0.022
+     ]
+    ],
+    "type": "additive"
+   }
+  ]
+ }
+}

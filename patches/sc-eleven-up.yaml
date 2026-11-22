@@ -1,0 +1,1133 @@
+{
+ "about": "Tabla: the tuned dayan treble drum and the wrist-bent bayan bass, with the classic bols as pieces. The dayan is tuned to D4 and its black syahi patch makes the overtones ring in tune; retune with `kit.na.pitch=C#4` etc. Pieces: na (rim, bright ring), tin (ringing open), tun (open centre, deep), te / re (closed slaps), ge (open bass), gem (ge with a wrist slide up), ke (flat bass slap), dha (na+ge), dhin (tin+ge). Teental: `len=/8 dha dhin dhin dha dha dhin dhin dha dha tin tin na na dhin dhin dha`; tirakita: `te/16 re ke te`. BANKED by tools/patchbank.py (22 Nov 2026) from Slow Enough to Count v29 (track eleven): every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "attack": "4ms",
+   "makeup": "2dB",
+   "ratio": 2.5,
+   "type": "compressor"
+  },
+  {
+   "decay": "0.9s",
+   "kind": "room",
+   "mix": 0.12,
+   "predelay": "8ms",
+   "type": "reverb"
+  }
+ ],
+ "gain": "-4dB",
+ "kit": {
+  "dha": {
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.3ms",
+      "d": "1.4s",
+      "r": "250ms",
+      "s": 0
+     },
+     "env": {
+      "c": {
+       "a": "0.1ms",
+       "curve": 0.0,
+       "d": "6ms",
+       "s": 0
+      },
+      "g": {
+       "a": "1ms",
+       "curve": 0.0,
+       "d": "1.4s",
+       "r": "1.4s",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 45,
+       "kind": "hp"
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "vel"
+         }
+        ],
+        "value": "5k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "damp": 0.9,
+       "level": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "rand"
+         }
+        ],
+        "value": "-1dB"
+       },
+       "partials": [
+        [
+         2.0,
+         1.0
+        ],
+        [
+         3.0,
+         0.55
+        ],
+        [
+         4.0,
+         0.4
+        ],
+        [
+         5.0,
+         0.22
+        ],
+        [
+         1.0,
+         0.12
+        ]
+       ],
+       "type": "additive"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 120.0,
+          "src": "env.g"
+         },
+         {
+          "amount": 1.0,
+          "src": "rand"
+         }
+        ],
+        "value": "-120dB"
+       },
+       "ratio": 0.3333
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 104.0,
+          "src": "env.g"
+         },
+         {
+          "amount": 6.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-120dB"
+       },
+       "ratio": 0.6667
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 120.0,
+          "src": "env.c"
+         },
+         {
+          "amount": 10.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-148dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.06,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "D4"
+  },
+  "dhin": {
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.4ms",
+      "d": "1.6s",
+      "r": "250ms",
+      "s": 0
+     },
+     "env": {
+      "c": {
+       "a": "0.1ms",
+       "curve": 0.0,
+       "d": "10ms",
+       "s": 0
+      },
+      "g": {
+       "a": "1ms",
+       "curve": 0.0,
+       "d": "1.4s",
+       "r": "1.4s",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 45,
+       "kind": "hp"
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "vel"
+         }
+        ],
+        "value": "4k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "damp": 0.7,
+       "level": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "rand"
+         }
+        ],
+        "value": "-1dB"
+       },
+       "partials": [
+        [
+         1.0,
+         0.75
+        ],
+        [
+         2.0,
+         1.0
+        ],
+        [
+         3.0,
+         0.45
+        ],
+        [
+         4.0,
+         0.25
+        ],
+        [
+         5.0,
+         0.1
+        ]
+       ],
+       "type": "additive"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 120.0,
+          "src": "env.g"
+         },
+         {
+          "amount": 1.0,
+          "src": "rand"
+         }
+        ],
+        "value": "-120dB"
+       },
+       "ratio": 0.3333
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 104.0,
+          "src": "env.g"
+         },
+         {
+          "amount": 6.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-120dB"
+       },
+       "ratio": 0.6667
+      },
+      {
+       "color": "pink",
+       "level": {
+        "mod": [
+         {
+          "amount": 120.0,
+          "src": "env.c"
+         },
+         {
+          "amount": 10.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-150dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.06,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "D4"
+  },
+  "ge": {
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "1ms",
+      "d": "900ms",
+      "r": "150ms",
+      "s": 0
+     },
+     "env": {
+      "c": {
+       "a": "0.3ms",
+       "curve": 0.0,
+       "d": "30ms",
+       "s": 0
+      },
+      "w": {
+       "a": "140ms",
+       "r": "200ms"
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 45,
+       "kind": "hp"
+      },
+      {
+       "cutoff": "1.8k"
+      }
+     ],
+     "layers": [
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "rand"
+         }
+        ],
+        "value": "0dB"
+       }
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 6.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-14dB"
+       },
+       "ratio": 2.0
+      },
+      {
+       "color": "brown",
+       "level": {
+        "mod": [
+         {
+          "amount": 120.0,
+          "src": "env.c"
+         },
+         {
+          "amount": 10.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-146dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 2.0,
+        "src": "env.w"
+       },
+       {
+        "amount": 0.15,
+        "src": "rand"
+       }
+      ],
+      "value": -0.6
+     }
+    }
+   },
+   "pitch": "G2"
+  },
+  "gem": {
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "1ms",
+      "curve": 2.0,
+      "d": "1.4s",
+      "r": "200ms",
+      "s": 0
+     },
+     "env": {
+      "c": {
+       "a": "0.3ms",
+       "curve": 0.0,
+       "d": "30ms",
+       "s": 0
+      },
+      "w": {
+       "a": "420ms",
+       "delay": "40ms",
+       "r": "300ms"
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 45,
+       "kind": "hp"
+      },
+      {
+       "cutoff": "1.8k"
+      }
+     ],
+     "layers": [
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "rand"
+         }
+        ],
+        "value": "0dB"
+       }
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 6.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-14dB"
+       },
+       "ratio": 2.0
+      },
+      {
+       "color": "brown",
+       "level": {
+        "mod": [
+         {
+          "amount": 120.0,
+          "src": "env.c"
+         },
+         {
+          "amount": 10.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-146dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 6.0,
+        "src": "env.w"
+       },
+       {
+        "amount": 0.2,
+        "src": "rand"
+       }
+      ],
+      "value": -1
+     }
+    }
+   },
+   "pitch": "G2"
+  },
+  "ke": {
+   "gain": "8dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.3ms",
+      "d": "70ms",
+      "r": "20ms",
+      "s": 0
+     },
+     "env": {
+      "b": {
+       "a": "0.3ms",
+       "curve": 0.0,
+       "d": "70ms",
+       "s": 0
+      },
+      "n": {
+       "a": "0.2ms",
+       "curve": 0.0,
+       "d": "36ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 60,
+       "kind": "hp"
+      },
+      {
+       "cutoff": 400,
+       "gain": "4dB",
+       "kind": "peak",
+       "q": 1
+      },
+      {
+       "cutoff": "3k"
+      }
+     ],
+     "layers": [
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 120.0,
+          "src": "env.b"
+         },
+         {
+          "amount": 6.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-131dB"
+       }
+      },
+      {
+       "color": "pink",
+       "level": {
+        "mod": [
+         {
+          "amount": 120.0,
+          "src": "env.n"
+         },
+         {
+          "amount": 10.0,
+          "src": "vel"
+         },
+         {
+          "amount": 2.0,
+          "src": "rand"
+         }
+        ],
+        "value": "-136dB"
+       },
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "pitch": "G2"
+  },
+  "na": {
+   "pan": 0.45,
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.3ms",
+      "curve": 4.0,
+      "d": "1.3s",
+      "r": "200ms",
+      "s": 0
+     },
+     "env": {
+      "c": {
+       "a": "0.1ms",
+       "curve": 0.0,
+       "d": "6ms",
+       "s": 0
+      },
+      "p": {
+       "a": "0.1ms",
+       "d": "40ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 250,
+       "kind": "hp"
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "vel"
+         }
+        ],
+        "value": "5k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "damp": 0.9,
+       "level": {
+        "mod": [
+         {
+          "amount": 3.0,
+          "src": "vel"
+         },
+         {
+          "amount": 1.0,
+          "src": "rand"
+         }
+        ],
+        "value": "0dB"
+       },
+       "partials": [
+        [
+         2.0,
+         1.0
+        ],
+        [
+         3.0,
+         0.55
+        ],
+        [
+         4.0,
+         0.4
+        ],
+        [
+         5.0,
+         0.22
+        ],
+        [
+         1.0,
+         0.12
+        ]
+       ],
+       "type": "additive"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 120.0,
+          "src": "env.c"
+         },
+         {
+          "amount": 10.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-148dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.25,
+        "src": "env.p"
+       },
+       {
+        "amount": 0.06,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "m67.6237"
+  },
+  "re": {
+   "gain": "2dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "d": "80ms",
+      "r": "20ms",
+      "s": 0
+     },
+     "env": {
+      "b": {
+       "a": "0.2ms",
+       "curve": 0.0,
+       "d": "80ms",
+       "s": 0
+      },
+      "n": {
+       "a": "0.2ms",
+       "curve": 0.0,
+       "d": "50ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 200,
+       "kind": "hp"
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 0.15,
+          "src": "rand"
+         }
+        ],
+        "value": "1.6k"
+       },
+       "gain": "5dB",
+       "kind": "peak",
+       "q": 1.2
+      },
+      {
+       "cutoff": "6k"
+      }
+     ],
+     "layers": [
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 120.0,
+          "src": "env.b"
+         },
+         {
+          "amount": 6.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-133dB"
+       }
+      },
+      {
+       "color": "pink",
+       "level": {
+        "mod": [
+         {
+          "amount": 120.0,
+          "src": "env.n"
+         },
+         {
+          "amount": 10.0,
+          "src": "vel"
+         },
+         {
+          "amount": 2.0,
+          "src": "rand"
+         }
+        ],
+        "value": "-134dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.1,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "C4"
+  },
+  "te": {
+   "gain": "8dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "d": "80ms",
+      "r": "20ms",
+      "s": 0
+     },
+     "env": {
+      "b": {
+       "a": "0.2ms",
+       "curve": 0.0,
+       "d": "80ms",
+       "s": 0
+      },
+      "n": {
+       "a": "0.2ms",
+       "curve": 0.0,
+       "d": "50ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 200,
+       "kind": "hp"
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 0.15,
+          "src": "rand"
+         }
+        ],
+        "value": "1.6k"
+       },
+       "gain": "5dB",
+       "kind": "peak",
+       "q": 1.2
+      },
+      {
+       "cutoff": "6k"
+      }
+     ],
+     "layers": [
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 120.0,
+          "src": "env.b"
+         },
+         {
+          "amount": 6.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-133dB"
+       }
+      },
+      {
+       "color": "pink",
+       "level": {
+        "mod": [
+         {
+          "amount": 120.0,
+          "src": "env.n"
+         },
+         {
+          "amount": 10.0,
+          "src": "vel"
+         },
+         {
+          "amount": 2.0,
+          "src": "rand"
+         }
+        ],
+        "value": "-134dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.1,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "D4"
+  },
+  "tin": {
+   "gain": "-1dB",
+   "pan": 0.45,
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.4ms",
+      "curve": 4.0,
+      "d": "1.6s",
+      "r": "250ms",
+      "s": 0
+     },
+     "env": {
+      "c": {
+       "a": "0.1ms",
+       "curve": 0.0,
+       "d": "10ms",
+       "s": 0
+      },
+      "p": {
+       "a": "0.1ms",
+       "d": "50ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 180,
+       "kind": "hp"
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "vel"
+         }
+        ],
+        "value": "4k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "damp": 0.7,
+       "level": {
+        "mod": [
+         {
+          "amount": 3.0,
+          "src": "vel"
+         },
+         {
+          "amount": 1.0,
+          "src": "rand"
+         }
+        ],
+        "value": "0dB"
+       },
+       "partials": [
+        [
+         1.0,
+         0.75
+        ],
+        [
+         2.0,
+         1.0
+        ],
+        [
+         3.0,
+         0.45
+        ],
+        [
+         4.0,
+         0.25
+        ],
+        [
+         5.0,
+         0.1
+        ]
+       ],
+       "type": "additive"
+      },
+      {
+       "color": "pink",
+       "level": {
+        "mod": [
+         {
+          "amount": 120.0,
+          "src": "env.c"
+         },
+         {
+          "amount": 10.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-150dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.3,
+        "src": "env.p"
+       },
+       {
+        "amount": 0.06,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "m67.6237"
+  },
+  "tun": {
+   "gain": "1dB",
+   "pan": 0.45,
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.6ms",
+      "curve": 4.0,
+      "d": "2s",
+      "r": "300ms",
+      "s": 0
+     },
+     "env": {
+      "c": {
+       "a": "0.2ms",
+       "curve": 0.0,
+       "d": "20ms",
+       "s": 0
+      },
+      "p": {
+       "a": "0.1ms",
+       "d": "60ms",
+       "s": 0
+      }
+     },
+     "filters": [
+      {
+       "cutoff": 120,
+       "kind": "hp"
+      },
+      {
+       "cutoff": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "vel"
+         }
+        ],
+        "value": "2.5k"
+       }
+      }
+     ],
+     "layers": [
+      {
+       "damp": 0.45,
+       "level": {
+        "mod": [
+         {
+          "amount": 1.0,
+          "src": "rand"
+         }
+        ],
+        "value": "0dB"
+       },
+       "partials": [
+        [
+         1.0,
+         1.0
+        ],
+        [
+         2.0,
+         0.35
+        ],
+        [
+         3.0,
+         0.12
+        ]
+       ],
+       "type": "additive"
+      },
+      {
+       "color": "brown",
+       "level": {
+        "mod": [
+         {
+          "amount": 120.0,
+          "src": "env.c"
+         },
+         {
+          "amount": 10.0,
+          "src": "vel"
+         }
+        ],
+        "value": "-148dB"
+       },
+       "type": "noise"
+      }
+     ],
+     "pitch": {
+      "mod": [
+       {
+        "amount": 0.4,
+        "src": "env.p"
+       },
+       {
+        "amount": 0.05,
+        "src": "rand"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   "pitch": "m67.6237"
+  }
+ },
+ "play": {
+  "event_stable": true,
+  "humanize": {
+   "time": "4ms",
+   "vel": 0.07
+  },
+  "len": "/8",
+  "vel_sens": 0.55
+ }
+}

@@ -1,0 +1,307 @@
+{
+ "about": "Odd Sympathy's guitar (chirper-zero, 14 Nov): ONE patch for both sides, because the piece is one riff on two clocks and the two guitars are twins (give each side its own cone: `ct-twin fx.2.cone=4` left, `ct-twin fx.2.cone=5` right). ct-chug's string and pick (the string pick: `soft` follows the palm mute) into the engine's `modern` amp, tight at 220 Hz, a screamer in front, triode stages and an 18 dB feedback loop as on ct-chug; then the engine's own cabinet `4x12-modern` and a gate. NOTHING after the gate: no plate, no sympathetic strings, no eq. It is dry on purpose: a rest is silence (the quietest twentieth of a riff with rests reads below -90 dB where ct-chug reads -22), so two of them a canon apart take turns instead of smearing (one side alone 44% of the time half a bar apart, 18% on ct-chug). Give it a room on a bus if it wants one. The first library patch on the engine cabinet. The amp's mids are raised (0.74) and the microphone sits off the cap (0.4): in Odd Sympathy's mix the first voicing read 2 to 3 dB over the records at 2-4 kHz. Against a record's guitar heard alone (cabspec): 1.95 dB mean (ct-chug on the same cabinet 2.45). BANKED by tools/patchbank.py (22 Nov 2026) from `ct-twin` as the songs left it: `synth.filters.0.cutoff.mod.0.amount=-2` (49 of 76 tracks, 13 songs). The songs that use `ct-twin`: tracks 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17. A RULE'S SUCCESSOR, NOT HEARD: every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "attack": "2ms",
+   "makeup": "3dB",
+   "release": "60ms",
+   "threshold": "-20dB",
+   "type": "compressor"
+  },
+  {
+   "bloom": 0.5,
+   "boost": "6dB",
+   "gain": 0.85,
+   "mid": 0.74,
+   "nfb": 18.0,
+   "resonance": 0.72,
+   "sag": 0.2,
+   "tight": 220,
+   "triode": true,
+   "ts": 0.75,
+   "type": "amp"
+  },
+  {
+   "mic": 0.4,
+   "model": "4x12-modern",
+   "type": "cab"
+  },
+  {
+   "attack": "0.3ms",
+   "hold": "5ms",
+   "release": "12ms",
+   "threshold": "-42dB",
+   "type": "gate"
+  }
+ ],
+ "gain": "-23dB",
+ "play": {
+  "frets": 24,
+  "gate": 0.88,
+  "humanize": {
+   "time": "4ms",
+   "vel": 0.07
+  },
+  "strum": "7ms",
+  "tuning": [
+   "F1",
+   "Bb1",
+   "Eb2",
+   "Ab2",
+   "Db3",
+   "Gb3",
+   "Bb3",
+   "Eb4"
+  ],
+  "vel_sens": 0.35,
+  "voicing": "guitar"
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "r": "90ms"
+  },
+  "env": {
+   "bite": {
+    "a": "0.2ms",
+    "d": "110ms",
+    "s": 0
+   },
+   "pick": {
+    "a": "0.1ms",
+    "d": "6ms",
+    "s": 0
+   }
+  },
+  "filters": [
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": -2.0,
+       "src": "expr.pm"
+      },
+      {
+       "amount": 0.6,
+       "src": "vel"
+      }
+     ],
+     "value": "11k"
+    },
+    "q": 0.6
+   },
+   {
+    "cutoff": "3.2k",
+    "gain": "3dB",
+    "kind": "peak",
+    "q": 1.8
+   },
+   {
+    "cutoff": "7.5k",
+    "q": 0.6
+   }
+  ],
+  "layers": [
+   {
+    "beat": 1.5,
+    "bright": {
+     "mod": [
+      {
+       "amount": -0.2,
+       "src": "expr.pm"
+      },
+      {
+       "amount": 0.2,
+       "src": "vel"
+      },
+      {
+       "amount": -0.05,
+       "src": "expr.up"
+      },
+      {
+       "amount": -0.5,
+       "src": "expr.dead"
+      },
+      {
+       "amount": 0.04,
+       "src": "rand"
+      }
+     ],
+     "value": 0.76
+    },
+    "buzz": {
+     "mod": [
+      {
+       "amount": 0.6,
+       "src": "expr.thump"
+      },
+      {
+       "amount": 0.4,
+       "src": "expr.pop"
+      }
+     ],
+     "value": 0.22
+    },
+    "choke": "55ms",
+    "click": 0.2,
+    "coil": 0.3,
+    "decay": {
+     "mod": [
+      {
+       "amount": -3.8,
+       "src": "expr.pm"
+      },
+      {
+       "amount": 0.3,
+       "src": "vel"
+      },
+      {
+       "amount": -4.44,
+       "src": "expr.dead"
+      }
+     ],
+     "value": "4.5s"
+    },
+    "fret": 0.3,
+    "grain": {
+     "mod": [
+      {
+       "amount": 0.5,
+       "src": "expr.pm"
+      }
+     ],
+     "value": 0.5
+    },
+    "level": {
+     "mod": [
+      {
+       "amount": -1.2,
+       "src": "expr.up"
+      },
+      {
+       "amount": 3.0,
+       "src": "expr.ph"
+      },
+      {
+       "amount": -5.0,
+       "src": "expr.dead"
+      }
+     ],
+     "value": "0dB"
+    },
+    "name": "string",
+    "node": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.nh"
+      }
+     ],
+     "value": 0
+    },
+    "pick": 0.143,
+    "pick_hard": 0.45,
+    "pickup": 0.085,
+    "pinch": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ph"
+      },
+      {
+       "amount": 1.0,
+       "src": "expr.nh"
+      }
+     ],
+     "value": 0
+    },
+    "planes": 0.3,
+    "polarity": {
+     "mod": [
+      {
+       "amount": -2.0,
+       "src": "expr.up"
+      }
+     ],
+     "value": 1
+    },
+    "scrape": 0.2,
+    "soft": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.pm"
+      }
+     ],
+     "value": 0
+    },
+    "squeak": {
+     "mod": [
+      {
+       "amount": 0.6,
+       "src": "expr.move"
+      }
+     ],
+     "value": 0
+    },
+    "stiff": 0.32,
+    "thump": {
+     "mod": [
+      {
+       "amount": 0.4,
+       "src": "expr.pm"
+      }
+     ],
+     "value": 0
+    },
+    "type": "pluck"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 44.0,
+       "src": "env.pick"
+      },
+      {
+       "amount": 10.0,
+       "src": "vel"
+      },
+      {
+       "amount": -3.0,
+       "src": "expr.up"
+      }
+     ],
+     "value": "-60dB"
+    },
+    "name": "pick",
+    "type": "noise"
+   }
+  ],
+  "lfo": {
+   "vib": {
+    "delay": "380ms",
+    "fade": "450ms",
+    "rate": "5.3hz",
+    "retrig": true
+   }
+  },
+  "pitch": {
+   "mod": [
+    {
+     "amount": 0.8,
+     "src": "env.bite"
+    },
+    {
+     "amount": 0.05,
+     "src": "rand"
+    },
+    {
+     "amount": 0.2,
+     "src": "lfo.vib"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

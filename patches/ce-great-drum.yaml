@@ -1,0 +1,68 @@
+{
+ "about": "Close Enough's great drum (chirper-two, 19 Nov): a bass drum that takes a pitch. A sine on the note, starting sharp and settling as the head gives; a damped membrane over it; a soft beater. Nothing above the low-pass: it stays under the reeds. BANKED by tools/patchbank.py (22 Nov 2026) from Close Enough v29 (track drum): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "curve": 1.5,
+   "d": "1400ms",
+   "r": "70ms",
+   "s": 0
+  },
+  "env": {
+   "p": {
+    "a": "0.3ms",
+    "d": "50ms",
+    "s": 0
+   },
+   "s": {
+    "a": "0.3ms",
+    "d": "12ms",
+    "s": 0
+   }
+  },
+  "filters": [
+   {
+    "cutoff": 130,
+    "q": 0.7
+   }
+  ],
+  "layers": [
+   {
+    "level": "-4dB"
+   },
+   {
+    "damp": 0.15,
+    "decay": "1.4s",
+    "level": "4dB",
+    "strike": 0.4,
+    "type": "modal"
+   },
+   {
+    "color": "pink",
+    "level": {
+     "mod": [
+      {
+       "amount": 54.0,
+       "src": "env.s"
+      }
+     ],
+     "value": "-60dB"
+    },
+    "type": "noise"
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 5.0,
+     "src": "env.p"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

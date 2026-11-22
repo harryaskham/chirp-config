@@ -1,0 +1,23 @@
+{
+ "about": "Extreme and Mean's wire harp (chirper-zero, 17 Nov): the library's ks-harp (Karplus-Strong, stretch 3) with a release long enough for a sixteenth-long pluck to ring on. BANKED by tools/patchbank.py (22 Nov 2026) from Extreme and Mean v36 (tracks harp2, harp5, harp7, harp8, harp5b, harp7b, harp7c): every extends and override resolved, so it stands by itself.",
+ "gain": "-5dB",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "r": "2.5s"
+  },
+  "layers": [
+   {
+    "bright": 0.8,
+    "decay": "5s",
+    "ks": {
+     "stretch": 3.0
+    },
+    "type": "ks"
+   }
+  ]
+ }
+}

@@ -1,0 +1,57 @@
+{
+ "fx": [
+  {
+   "decay": "0.3s",
+   "kind": "room",
+   "mix": 0.18,
+   "predelay": "3ms",
+   "type": "reverb"
+  }
+ ],
+ "kit": {
+  "pa": {
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.1ms",
+      "d": "20ms",
+      "r": "10ms",
+      "s": 0
+     },
+     "filters": [
+      {
+       "cutoff": 500,
+       "kind": "hp"
+      },
+      {
+       "cutoff": 1300,
+       "gain": "10dB",
+       "kind": "peak",
+       "q": 1.6
+      },
+      {
+       "cutoff": 7000
+      }
+     ],
+     "layers": [
+      {
+       "type": "noise"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "play": {
+  "event_stable": true,
+  "humanize": {
+   "time": "4ms",
+   "vel": 0.06
+  },
+  "vel_sens": 0.6
+ },
+ "about": "BANKED by tools/patchbank.py (22 Nov 2026) from The Other Hand v31 (track palmas): every extends and override resolved, so it stands by itself."
+}

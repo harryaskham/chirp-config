@@ -1,0 +1,187 @@
+{
+ "about": "West African percussion: ah / al agog\u00f4 bells (high / low), sk shekere (beaded gourd), cl clave. Highlife, Afrobeat, 12/8 bell patterns. BANKED by tools/patchbank.py (22 Nov 2026) from So Far v26 (track bell): every extends and override resolved, so it stands by itself.",
+ "fx": [
+  {
+   "decay": "0.7s",
+   "kind": "room",
+   "mix": 0.12,
+   "type": "reverb"
+  }
+ ],
+ "gain": "0dB",
+ "kit": {
+  "ah": {
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "d": "220ms",
+      "r": "30ms",
+      "s": 0
+     },
+     "env": {
+      "h": {
+       "a": "0.2ms",
+       "d": "4ms",
+       "s": 0
+      }
+     },
+     "layers": [
+      {
+       "damp": 0.3,
+       "partials": [
+        [
+         1.0,
+         1.0
+        ],
+        [
+         2.4,
+         0.4
+        ],
+        [
+         3.9,
+         0.15
+        ]
+       ],
+       "type": "additive"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 40.0,
+          "src": "env.h"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "pitch": "m84.02"
+  },
+  "al": {
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "d": "260ms",
+      "r": "30ms",
+      "s": 0
+     },
+     "env": {
+      "h": {
+       "a": "0.2ms",
+       "d": "4ms",
+       "s": 0
+      }
+     },
+     "layers": [
+      {
+       "damp": 0.3,
+       "partials": [
+        [
+         1.0,
+         1.0
+        ],
+        [
+         2.4,
+         0.4
+        ],
+        [
+         3.9,
+         0.15
+        ]
+       ],
+       "type": "additive"
+      },
+      {
+       "level": {
+        "mod": [
+         {
+          "amount": 40.0,
+          "src": "env.h"
+         }
+        ],
+        "value": "-60dB"
+       },
+       "type": "noise"
+      }
+     ]
+    }
+   },
+   "pitch": "m77"
+  },
+  "cl": {
+   "gain": "-2dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "0.2ms",
+      "curve": 4.0,
+      "d": "60ms",
+      "r": "15ms",
+      "s": 0
+     },
+     "layers": [
+      {},
+      {
+       "level": "-10dB",
+       "ratio": 2.1
+      }
+     ]
+    }
+   },
+   "pitch": "G5"
+  },
+  "sk": {
+   "gain": "-6dB",
+   "patch": {
+    "play": {
+     "event_stable": true
+    },
+    "synth": {
+     "amp": {
+      "a": "6ms",
+      "d": "90ms",
+      "r": "30ms",
+      "s": 0
+     },
+     "filters": [
+      {
+       "cutoff": "3k",
+       "kind": "hp"
+      },
+      {
+       "cutoff": "11k"
+      }
+     ],
+     "layers": [
+      {
+       "type": "noise"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "play": {
+  "event_stable": true,
+  "humanize": {
+   "time": "0ms"
+  },
+  "len": "/16",
+  "vel_sens": 0.6
+ }
+}
