@@ -129,6 +129,27 @@ FEATURE = {
     13: ("eclipse", "pond", "spiral", "lanterns", "rink"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader"), 15: ("slack", "ropes", "wires", "swings", "switchboard"),
     16: ("moire", "chladni", "eclipse", "lighthouse", "billiard"), 17: ("railway", "highway", "gates", "constellation", "searchlights"),
 }
+# Each song's house: the guises and the ways of sharing the frame it leans to, so the songs
+# differ from one another as well as from bar to bar. (The first song, the album's argument, has none.)
+HOUSE = {
+    2: "echo water blown mirror stop slices ball double lighten diptych satellite",
+    3: "lines engraved hatched typed sheet blueprint leaded strips bands intercut triptych",
+    4: "typed onebit newsprint dots blocks combed poster board corner card strips",
+    5: "relief planet hole tunnel falling blown duotone sweep window nest bands",
+    6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings",
+    7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite",
+    8: "leaded engraved newsprint poster flood duotone mirror triptych diptych window board",
+    9: "stop slices echo fringe roll relief drawn double iris sweep corner",
+    10: "onebit dots torn combed typed poster negative difference card bands corner",
+    11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut",
+    12: "mirror drawn blueprint hatched ball echo water diptych intercut lighten satellite",
+    13: "echo stop slices fringe water overgrown hole double window iris difference",
+    14: "typed dots lines blocks sheet onebit stop strips board wedges triptych",
+    15: "warp wound blown torn water combed tunnel sweep bands double satellite",
+    16: "fringe duotone solar relief falling planet leaded lighten difference nest window",
+    17: "tunnel falling planet roll blown ball flood wedges rings nest card",
+}
+HOUSE = {n_: set(v.split()) for n_, v in HOUSE.items()}
 TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weave", "spiral", "rings", "checker", "split", "wipe", "iris", "blinds", "clock", "diamond", "rise", "dissolve")
 NO_PAIR = ("room", "sheet", "plate", "travel")      # families that are not put in a frame with another
 
@@ -413,7 +434,7 @@ class Deal:
                 if not got:
                     continue
                 for B in pair:
-                    kinds = sorted((kd for kd in W.COMBOS if (A, f"{kd}+{B}") not in self.combos and (B, f"{kd}+{A}") not in self.combos), key=lambda kd: self.kinds[kd] + 2 * rnd(S.n, k, kd))
+                    kinds = sorted((kd for kd in W.COMBOS if (A, f"{kd}+{B}") not in self.combos and (B, f"{kd}+{A}") not in self.combos), key=lambda kd: self.kinds[kd] + 2 * rnd(S.n, k, kd) - 5 * (kd in HOUSE.get(S.n, ())))
                     if B == A or W.REG[B]["fam"] == W.REG[A]["fam"] or not kinds:
                         continue
                     other = make(B, sub=1 if len(c.riffs) > 1 else 0)
@@ -439,7 +460,7 @@ class Deal:
             c.__dict__.update(d.__dict__)
             # Its first time it is seen plain; after that, through something it has not been seen through.
             order = sorted((t for t, (_, ok) in W.TREAT.items() if t != "plain" and (name, t) not in self.combos and ok(c, info)),
-                           key=lambda t: self.treats[t] + 2 * rnd(S.n, k, t))
+                           key=lambda t: self.treats[t] + 2 * rnd(S.n, k, t) - 6 * (t in HOUSE.get(S.n, ())))
             if info["fam"] == "plate":
                 order = []          # the first film's studies come as they were, and once
             if name in W.BOLD:

@@ -11,7 +11,7 @@ about 940 scenes on the album, every one different.
 
 **What is drawn**
 
-- **Idioms** (`wild.py`, the `@idiom` functions: 155 so far). Each is a small machine, place,
+- **Idioms** (`wild.py`, the `@idiom` functions: 157 so far). Each is a small machine, place,
   game or diagram built from the notes themselves, and each keeps one rule: *what the music
   counts, the picture counts*. A note is a thing (a domino, a lantern, a lit window, a letter
   typed, a block dropped into a well); a riff's cell is a width or a number of things (bells
@@ -25,7 +25,8 @@ about 940 scenes on the album, every one different.
   frames as the riff is long); the picture moved (a kaleidoscope with as many mirrors as the
   riff has sixteenths, a wall of as many copies, wrapped round a circle, wound up, torn into
   sixteen bands on the riff's notes, a stone dropped into it on every note).
-- **Combinations** (`@combo`, 14): two idioms share the frame, each reading its own part:
+- **Combinations** (`@combo`, 18; also a round window that circles, a nest of frames, an
+  iris thrown open on the riff's turn, and a card dealt over the picture): two idioms share the frame, each reading its own part:
   double exposure, intercut on the riff's turns, a round window, a diptych, a triptych,
   difference, lighten, a corner that changes places half way, one sweeping the other off;
   and the frame cut into as many strips (or bands, squares, cake slices, rings) as the riff
@@ -55,6 +56,11 @@ about 940 scenes on the album, every one different.
 | The riff comes round part way through a scene | A treatment arrives or leaves there; the camera cuts in or out there; 3D scenes change camera there. |
 | The song ends | On the picture it began with, changed. |
 
+Each song has a house (`HOUSE`): the guises and ways of sharing the frame it leans to, so
+the songs differ from one another as well as from bar to bar; and five featured idioms
+(`FEATURE`). Where the music is full a picture may wear two guises at once (`STACK`: one
+that moves it, one that changes what it is made of, one that works on it in time).
+
 Some songs are printed on a stock of their own (`STOCK`: grainy and pale for In the Time
 Of, out of register for Close Enough).
 
@@ -72,9 +78,9 @@ Commands (from this directory; `CHIRP` reads the cells and may be any recent bin
                                        (NAME/TREATMENT and A+B/COMBINATION work too)
 
 Programmes are written as generated; do not edit them. They need the engine of the
-`chirp-video` branch at 116db6d4 or later (`notes:` and `note.*`, `timeslice`, `step`,
-`halftone`, `outline`, `bold`, `remap`, the warps, `pick:`, `repeat:`, an actor's `cut:`,
-the new transitions),
+`chirp-video` branch at 1b3b20e2 or later (`notes:` and `note.*`, `timeslice`, `step`,
+`halftone`, `outline`, `bold`, `remap`, the warps, `droste`, `orb`, `sort`, `wind`, `glass`,
+`grow`, `pick:`, `repeat:`, an actor's `cut:`, the new transitions),
 which is not yet in a pinned binary, so they are not in `vis/`.
 
 ## The first film: motion studies

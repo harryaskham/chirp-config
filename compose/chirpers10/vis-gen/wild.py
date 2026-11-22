@@ -3279,6 +3279,63 @@ def c_sweep(c, A, B):
                                                 box(f"{at}*4.545", 0, -0.1, 0.012, 2.6, 0.01, **glow(c.ink, 1))], "camera": FLAT, "filters": []}
 
 
+@combo("satellite")
+def c_satellite(c, A, B):
+    """One picture whole; the other in a round window that goes round it once for each turn
+    of the riff, and swells on its notes."""
+    p = _lead(c)
+    per = max(1, math.ceil(2.6 / ((p.cell or 16) * c.six)))
+    u = f"({p.turn}/{per})"
+    x, y = f"1.05*sin({u})", f"0.52*cos({u})"
+    r = f"(0.3 + 0.07*{p.hit})"
+    return {"background": "#000000", "layers": [_act(A), {"type": "shape", "sides": 1, "radius": f"{r}*1.04", "width": 0, "fill": 1, "color": c.ink, "blend": "normal", "x": x, "y": y},
+                                                {"type": "shape", "sides": 1, "radius": r, "width": 0, "fill": 1, "color": "#000000", "blend": "normal", "x": x, "y": y},
+                                                _act(B, x=x, y=y, scale=r, mask="round")], "filters": []}
+
+
+@combo("nest")
+def c_nest(c, A, B):
+    """One picture, the other inside it, the first again inside that, and the second inside
+    that; the frames breathe with the riff."""
+    p = _lead(c)
+    layers = []
+    for k in range(4):
+        sc = f"({0.62 ** k:.4f}*(1 + {0.03 * k:g}*{p.hit}))"
+        if k:
+            layers.append(box(0, 0, -0.1 * k, f"4.545*{sc} + 0.035", f"2.557*{sc} + 0.035", 0.01, **glow(c.ink if k % 2 else c.a, 1)))
+        layers.append(_act(A if k % 2 == 0 else B, scale=sc, mask="rect" if k else "none", blend="normal"))
+    return {"background": "#000000", "camera": FLAT, "layers": layers, "filters": []}
+
+
+@combo("iris")
+def c_iris(c, A, B):
+    """One picture, and the other in an iris that is thrown wide open each time the riff
+    comes round and closes again through the turn."""
+    p = _lead(c)
+    per = max(1, math.ceil(1.8 / ((p.cell or 16) * c.six)))
+    r = f"(0.12 + 1.1*exp(0 - 3.2*fract({p.turn}/{per})))"
+    return {"background": "#000000", "layers": [_act(A), {"type": "shape", "sides": 1, "radius": f"{r}*1.025", "width": 0, "fill": 1, "color": c.ink, "blend": "normal"},
+                                                {"type": "shape", "sides": 1, "radius": r, "width": 0, "fill": 1, "color": "#000000", "blend": "normal"},
+                                                _act(B, scale=r, mask="round")], "filters": []}
+
+
+@combo("card")
+def c_card(c, A, B):
+    """One picture; the other is dealt over it like a card each time the riff comes round,
+    from a different side each time, and taken away."""
+    p = _lead(c)
+    per = max(1, math.ceil(2.2 / ((p.cell or 16) * c.six)))
+    u = f"fract({p.turn}/{per})"
+    k = f"floor({p.turn}/{per})"
+    away = f"(1 - smooth(0, 0.16, {u}) + smooth(0.8, 1, {u}))"      # 1 off the frame, 0 home
+    side = f"(fract({k}/4)*4)"
+    dx = f"(step({side}, 0.5) - step(1.5, {side})*step({side}, 2.5))"       # from the right, then (third) from the left
+    dy = f"(step(0.5, {side})*step({side}, 1.5) - step(2.5, {side}))"       # from above, then (fourth) from below
+    x, y = f"3.0*{away}*{dx}", f"1.7*{away}*{dy}"
+    return {"background": "#000000", "camera": FLAT, "layers": [_act(A), box(f"2.557*({x})", f"2.557*({y})", -0.1, 4.545 * 0.66 + 0.035, 2.557 * 0.66 + 0.035, 0.01, **glow(c.ink, 1)),
+                                                                _act(B, x=x, y=y, scale=0.66, mask="rect", blend="normal")], "filters": []}
+
+
 @combo("lighten")
 def c_lighten(c, A, B):
     """Both pictures at once: at each point, whichever is the lighter."""
@@ -3475,12 +3532,12 @@ def t_kaleido(c, look):
 
 # Two guises at once (dealt where the music is full): one that moves the picture, then one
 # that changes what it is made of, then one that works on it in time.
-STACK = {"kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0,
+STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0,
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
-         "torn": 2, "water": 2, "echo": 2, "stop": 2}
+         "leaded": 1, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2}
 
 # Pairs of guises that leave only texture: a picture already made many, then drawn in line or set in type.
-STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched")}
+STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched")}
 
 # Pictures that stand to one side, or are a line of things: half of one is not a picture.
 MIRROR_BAD = set("duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
@@ -3690,6 +3747,70 @@ def t_torn(c, look):
     return look
 
 
+@treat("falling", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+def t_falling(c, look):
+    """The picture holds itself in its middle, and that holds it again: we fall in, one
+    frame deeper for every turn (or two, or four) of the riff."""
+    p = _lead(c)
+    per = max(1, math.ceil(2.6 / ((p.cell or 16) * c.six)))
+    look["filters"] = look.get("filters", []) + [{"type": "droste", "ratio": (3, 2.5, 4)[c.seed % 3], "zoom": f"{p.turn}/{per}", "amount": c.arr}]
+    return look
+
+
+@treat("coiled", ok=lambda c, info: info["f"].__name__ in KALEIDO_OK)
+def t_coiled(c, look):
+    """Wound into a spiral that holds itself, and turning inward with the riff."""
+    p = _lead(c)
+    per = max(1, math.ceil(3.2 / ((p.cell or 16) * c.six)))
+    look["filters"] = look.get("filters", []) + [{"type": "droste", "shape": "round", "ratio": 4, "arms": (1, -1, 2)[c.seed % 3], "zoom": f"{p.turn}/{per}", "amount": c.arr}]
+    return look
+
+
+@treat("ball", ok=lambda c, info: info["fam"] not in ("sign", "plate"))
+def t_ball(c, look):
+    """Wrapped round a ball that turns once for every few turns of the riff."""
+    p = _lead(c)
+    per = max(2, math.ceil(7.0 / ((p.cell or 16) * c.six)))
+    look["filters"] = look.get("filters", []) + [{"type": "orb", "radius": 0.93, "turn": f"{p.turn}/{per}", "wrap": 2, "tilt": 0.035, "shade": 0.55, "ground": 0.0, "amount": c.arr}]
+    return look
+
+
+@treat("combed", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+def t_combed(c, look):
+    """Combed: along every line the lights are put in order, further each time the riff's
+    note sounds, and let go again."""
+    p = _lead(c)
+    look.setdefault("env", {})["comb"] = {"on": f"track.{p.name}", "attack": "20ms", "decay": "700ms"}
+    return _pre(look, {"type": "sort", "lo": 0.07, "dir": ("right", "down", "left", "up")[c.seed % 4], "length": "0.04 + 0.96*env.comb", "amount": c.arr})
+
+
+@treat("blown", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+def t_blown(c, look):
+    """In a wind that gusts with the riff's notes: every light has a tail."""
+    p = _lead(c)
+    look.setdefault("env", {})["gust"] = {"on": f"track.{p.name}", "attack": "30ms", "decay": "900ms"}
+    return _pre(look, {"type": "wind", "length": "0.05 + 0.5*env.gust", "ragged": 0.7, "dir": ("right", "up", "left", "down")[c.seed % 4], "amount": c.arr})
+
+
+@treat("leaded", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+def t_leaded(c, look):
+    """In leaded glass, with as many panes across as the riff has sixteenths (twice or four
+    times as many for a short riff)."""
+    p = _lead(c)
+    n_ = p.cell or 16
+    while n_ < 14:
+        n_ *= 2
+    look["filters"] = look.get("filters", []) + [{"type": "color", "exposure": 1.5}, {"type": "glass", "count": min(n_, 48), "lead": 0.14, "drift": 1.5, "amount": c.arr}]
+    return look
+
+
+@treat("overgrown", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+def t_overgrown(c, look):
+    """Overgrown: the picture's lights sow something that feeds and spreads from them."""
+    habit = ((0.055, 0.062), (0.029, 0.057), (0.035, 0.065), (0.046, 0.063))[c.seed % 4]
+    return _pre(look, {"type": "grow", "feed": habit[0], "kill": habit[1], "speed": 1200, "sow": 0.7, "size": 150, "amount": c.arr})
+
+
 @treat("water", ok=lambda c, info: info["fam"] not in ("sign", "plate"))
 def t_water(c, look):
     """Every note of the riff drops a stone into the picture."""
@@ -3718,7 +3839,8 @@ def t_negative(c, look):
     return look
 
 
-ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief", "poster", "flood")
+ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief", "poster", "flood", "combed", "blown", "leaded",
+           "overgrown", "falling", "coiled", "ball")
 
 # Idioms drawn in hair lines and points, made bolder so that they read at any size: how far
 # each thing in them is spread (a fraction of the frame's height).
@@ -3729,7 +3851,7 @@ BOLD = {"numerals": 0.004, "orrery": 0.004, "kelvin": 0.004, "galton": 0.004, "s
 
 
 # Guises that add to a picture (copies, echoes, mirrors) rather than print it.
-FILLS = ("kaleido", "mirror", "wall", "planet", "tunnel", "echo", "slices", "fringe", "spin", "roll", "wound", "water", "torn", "hole", "lines", "warp", "solar")
+FILLS = ("kaleido", "mirror", "wall", "planet", "tunnel", "echo", "slices", "fringe", "spin", "roll", "wound", "water", "torn", "hole", "lines", "warp", "solar", "blown", "overgrown", "combed", "falling", "ball")
 
 
 def bolder(name, look):
