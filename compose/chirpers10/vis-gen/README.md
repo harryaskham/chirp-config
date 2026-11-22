@@ -18,7 +18,7 @@ about 940 scenes on the album, every one different.
   in a ring of changes, oars on a galley, fingers on a hand, pictures on a reel); a turn of
   the riff is a turn of something. So the odd lengths are seen sliding against the bar
   without being announced.
-- **Guises** (`@treat`, 56): an idiom is seen plain once, and after that through something it
+- **Guises** (`@treat`, 58): an idiom is seen plain once, and after that through something it
   has not been seen through. Prints (halftone, newsprint, engraving, one-bit, type, a line
   drawing, a blueprint, relief, two-ink posters, solarised); cameras that hold time (a
   slit-scan with a strip a sixteenth, stop motion on the riff's notes, a sheet of as many
@@ -32,7 +32,8 @@ about 940 scenes on the album, every one different.
   after another); made by hand (cut from sheets of coloured paper with the light going
   round, drawn as a range of ridges that the notes heave, knitted, cross-stitched, built of
   studded bricks, threaded as beads, a puzzle put together a piece a sixteenth and taken
-  apart again).
+  apart again, made of small copies of itself, and carried: a clean picture only once a turn
+  or two, and between them the old one dragged along by whatever moves in the new).
 - **Combinations** (`@combo`, 21; also a round window that circles, a nest of frames, an
   iris thrown open on the riff's turn, a card dealt over the picture; and three in which
   one picture works on the other: seen through it as through glass, shown only through its
@@ -77,6 +78,7 @@ about 940 scenes on the album, every one different.
 | The riff's length in half bars changes, in a song where it keeps changing (`period`: Carrying Capacity's two, four, five, three, six) | Each new length is seen on a sheet of that many pictures, one taken each half bar (`halves`): while the riff comes round every place on the sheet holds still, and the frame splits in two, in four, in five, in three as the riff does. |
 | The riff carries on unchanged and the drummer changes step between twos and threes (six quick steps for four broad ones) | The picture carries on too and swings round on its hinge: it turns over (`flip`) and is seen from its other side, in mirror image (`NAME/hinge`). |
 | The song plays its opening again (`reprises`: past its middle, three parts or more play their own first two bars once more, note for note) | Its first picture is there again as it was, in the guise it wore (`NAME/reprise`): False Summit ends where it began, and is no higher. |
+| A part walks from number to number by a rule, each number lasting as many sixteenths as it is (`walking`: So Far's stone, found from the gaps between its notes) | The numbers are squares on a line (`squares`), as wide as they last and as high; the frame draws back when a number is trebled and comes in as they are halved down to one. It returns once in each long walk, in another guise (`squares/walk`). |
 | Few notes, or the song ringing out | Pictures made of notes (`FED`) are kept away. |
 | The riff comes round part way through a scene | A treatment arrives or leaves there; the camera cuts in or out there; 3D scenes change camera there. |
 | The song ends | On the picture it began with, changed. |
@@ -115,9 +117,9 @@ Commands (from this directory; `CHIRP` reads the cells and may be any recent bin
                                        (NAME/TREATMENT and A+B/COMBINATION work too)
 
 Programmes are written as generated; do not edit them. They need the engine of the
-`chirp-video` branch at 633f6e09 or later (`notes:` and `note.*`, `timeslice`, `step`,
+`chirp-video` branch at 976661da or later (`notes:` and `note.*`, `timeslice`, `step`,
 `halftone`, `outline`, `bold`, `remap`, the warps, `droste`, `orb`, `sort`, `wind`, `glass`,
-`grow`, `flow`, `weave`, `pleat`, `lag`, `papercut`, `terrain`, `stitch`, `pieces`, `pick:`,
+`grow`, `flow`, `weave`, `pleat`, `lag`, `papercut`, `terrain`, `stitch`, `pieces`, `mosaic`, `mosh`, `pick:`,
 `repeat:`, an actor's `cut:` and `as:`, the new transitions),
 which is not yet in a pinned binary, so they are not in `vis/`.
 

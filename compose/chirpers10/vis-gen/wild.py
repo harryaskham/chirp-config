@@ -3828,6 +3828,61 @@ def zipper(c):
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.016, 0.7)]}
 
 
+@idiom(needs=0, fam="count")
+def squares(c):
+    """A walk of numbers, each of which lasts as many sixteenths as it is: every number is a
+    square, as wide as it lasts and as high, standing on a line that goes by at one speed.
+    The frame fits the number being played, so it draws back when a number is trebled and
+    comes in as the numbers are halved, down to one. A number that is three times the last
+    and one more shows its three parts and, in white, the one."""
+    W = getattr(c, "walk", None)
+    if not W:
+        raise ValueError("no part here walks from number to number")
+    steps, part = W
+    now = "(time.beat*4)"
+    base, x0, cap = -2.05, -1.7, 0.6
+    def fit(k):
+        m = steps[k][1]
+        nx = steps[k + 1][1] if k + 1 < len(steps) else m
+        return min(cap, 3.5 / max(m, 0.8 * nx))
+    # How big a sixteenth is drawn: a step up or down at each new number, taken smoothly.
+    first = next((k for k in range(len(steps)) if steps[k][0] + steps[k][1] > c.a16), 0)
+    target = f"{fit(first):.4g}"
+    for k in range(first + 1, len(steps)):
+        d = fit(k) - fit(k - 1)
+        if abs(d) > 1e-4:
+            target += f" + {n(round(d, 4))}*step({steps[k][0] - 2}, {now})"      # (a little before, so it is seen coming)
+    u = "var.u"
+    layers = []
+    hit = f"track.{part}.hit"
+    for k, (s0, m, added) in enumerate(steps):
+        xl = f"({x0} + ({s0} - {now})*{u})"
+        side = f"({m}*{u})"
+        vis = f"step({xl}, 4.8)*step((0 - 4.8), {xl} + {side})"
+        col = "#ffffff" if m == 1 else (c.a if m % 2 == 0 else c.b)
+        cur = f"step({s0}, {now})*step({now}, {s0 + m})"
+        done = f"step({s0 + m}, {now})"
+        # The square: dim until it is played, and a little lighter once it has been.
+        layers.append(box(f"{xl} + {side}/2", f"{base} + {side}/2", 0.02, f"max({side}/2 - 0.014, 0.004)*{vis}", f"max({side}/2 - 0.014, 0.004)", 0.01, **glow(col, f"0.24 + 0.14*{done}")))
+        # As much of it as has been played.
+        w = f"(clamp({now} - {s0}, 0, {m})*{u})"
+        layers.append(box(f"{xl} + {w}/2", f"{base} + {side}/2", 0, f"max({w}/2 - 0.014, 0)*{vis}", f"max({side}/2 - 0.014, 0.004)", 0.01, **glow(col, f"0.42 + 0.65*{cur} + 1.5*{cur}*{hit} + 0.3*{done}*exp(0 - 0.08*({now} - {s0 + m}))")))
+        if added and m > 4:
+            # Three times the last number, and one: the one in white, and the three marked off.
+            prev = (m - 1) // 3
+            layers.append(box(f"{xl} + {u}/2", f"{base} + {side}/2", -0.02, f"{u}/2*{vis}", f"{side}/2", 0.01, **glow("#ffffff", f"0.45 + 0.9*{cur}")))
+            for j in (1, 2):
+                layers.append(box(f"{xl} + {1 + j * prev}*{u}", f"{base} + {side}/2", -0.02, f"0.012*{vis}", f"{side}/2", 0.01, **glow(c.bg, 1)))
+    # The line they stand on, ruled in sixteenths (where they are big enough to see) and in bars.
+    layers.append(box(0, base - 0.03, 0, 4.8, 0.012, 0.01, **glow(c.ink, 0.8)))
+    layers.append(box(f"{x0} + (inst.i - 24 - fract({now}))*{u}", base - 0.1, 0, 0.008, f"0.06*smooth(0.1, 0.3, {u})", 0.01, count=72, **glow(c.ink, 0.7)))
+    layers.append(box(f"{x0} + ((inst.i - 12)*16 - fract({now}/16)*16)*{u}", base - 0.16, 0, 0.014, 0.12, 0.01, count=40, **glow(c.ink, 0.9)))
+    # Now.
+    layers.append(box(x0, 0.25, -0.04, 0.01, 2.4, 0.01, **glow("#ffffff", f"0.5 + 1.2*{hit}")))
+    return {"background": c.bg, "camera": FLAT, "vars": {"u": {"follow": target, "attack": "260ms", "release": "260ms"}}, "layers": layers,
+            "filters": [bloom(c, 0.4, 0.014, 0.75)]}
+
+
 # ───────────────────────── pictures of pictures ─────────────────────────
 
 SMALL = ("spiral", "sunflower", "stringart", "moire", "strings", "clockshop", "combs", "vortex", "epicycle", "harmonograph", "mandala", "table", "tally", "slack", "sonar", "remainder", "kelvin", "chladni")
@@ -4389,10 +4444,10 @@ def t_kaleido(c, look):
 # that changes what it is made of, then one that works on it in time.
 STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0,
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
-         "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "puzzle": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2}
+         "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2}
 
 # Pairs of guises that leave only texture: a picture already made many, then drawn in line or set in type.
-STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged")}
+STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself")}
 
 # Pictures that stand to one side, or are a line of things: half of one is not a picture.
 # Pictures that can be drawn twice and joined (flat, and filling the frame or centred, so that
@@ -4407,7 +4462,7 @@ HANDS = ("riley", "blinds", "dominoes", "breakout", "kandinsky", "vortex", "moon
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
            "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava".split())
-BROAD = FULL | set("zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
+BROAD = FULL | set("squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
@@ -4422,14 +4477,14 @@ WANTS = {"rabbits": lambda c: any(p.cell in (34, 55) for p in c.riffs),
 LONG = set("turtle strange harmonograph tetris hanoi marbling ink rink galton".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("barcode braille dice candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
-MIRROR_BAD = set("zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
+MIRROR_BAD = set("squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())
 # Pictures that are mostly light: a print of their lights is a blank sheet.
 BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("zipper loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
+SLOW = set("squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)
@@ -4818,6 +4873,37 @@ def t_puzzle(c, look):
     return _pre(look, {"type": "pieces", "cols": cols, "rows": rows, "placed": placed, "spread": 0.34, "gap": 0.003, "dim": 0.5, "order": order, "amount": c.arr})
 
 
+@treat("itself", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type"))
+def t_itself(c, look):
+    """Made of small copies of itself, as many across as the riff has sixteenths: the same
+    at two sizes. Each turn of the riff it comes in from the copies to the whole."""
+    p = _lead(c)
+    nn = p.cell or 16
+    while nn > 16:
+        nn = math.ceil(nn / 2)
+    while nn < 7:
+        nn *= 2
+    look = _unbloomed(look)
+    look["filters"] += [{"type": "color", "exposure": 1.2},
+                        {"type": "mosaic", "count": nn, "gain": 2.2, "floor": 0.05, "tint": 0.7, "amount": f"({c.arr})*(1 - 0.85*pow(fract({p.turn}/2), 6))"}]
+    return look
+
+
+@treat("carried", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type", "art") and info["f"].__name__ not in THIN and info["f"].__name__ not in WHITE)
+def t_carried(c, look):
+    """A clean picture only once every turn or two of the riff: between them the old
+    picture is dragged along, block by block, by whatever moves in the new one."""
+    p = _lead(c)
+    beats = (p.cell or 16) / 4
+    while beats < 3:
+        beats *= 2
+    while beats > 9:
+        beats /= 2
+    look["filters"] = look.get("filters", []) + [{"type": "mosh", "every": f"{beats:g}", "hold": 0.97, "block": 0.045, "reach": 1.4, "residue": 0.7, "amount": c.arr},
+                                                 {"type": "color", "saturation": 1.2}]
+    return look
+
+
 @treat("delayed", ok=lambda c, info: info["fam"] not in ("sign", "plate"))
 def t_delayed(c, look):
     """The colours arrive one after another: whatever moves leads red and trails blue."""
@@ -4892,7 +4978,7 @@ def t_negative(c, look):
 
 
 ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief", "poster", "flood", "combed", "blown", "leaded",
-           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded")
+           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried")
 
 # Idioms drawn in hair lines and points, made bolder so that they read at any size: how far
 # each thing in them is spread (a fraction of the frame's height).

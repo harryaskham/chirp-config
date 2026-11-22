@@ -133,21 +133,21 @@ FEATURE = {
 # differ from one another as well as from bar to bar. (The first song, the album's argument, has none.)
 HOUSE = {
     2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout smoked delayed puzzle",
-    3: "lines engraved hatched typed sheet blueprint leaded strips bands intercut triptych stencil woven sampler knitted",
+    3: "lines engraved hatched typed sheet blueprint leaded strips bands intercut triptych stencil woven sampler knitted itself",
     4: "typed onebit newsprint dots blocks combed poster board corner card strips tracking puzzle beaded bricks halves",
     5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout infra screen ridged papercut",
     6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass dripping beaded halves",
-    7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite glass woven bricks papercut",
+    7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite glass woven bricks papercut itself",
     8: "leaded engraved newsprint poster flood duotone mirror triptych diptych window board infra woven puzzle bricks halves",
     9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout smoked delayed papercut",
-    10: "onebit dots torn combed typed poster negative difference card bands corner stencil dripping sampler beaded",
+    10: "onebit dots torn combed typed poster negative difference card bands corner stencil dripping sampler beaded carried",
     11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking screen papercut puzzle",
     12: "mirror drawn blueprint hatched ball echo water diptych intercut lighten satellite cutout screen papercut",
-    13: "echo stop slices fringe water overgrown hole double window iris difference glass smoked negative stencil ridged",
+    13: "echo stop slices fringe water overgrown hole double window iris difference glass smoked negative stencil ridged carried",
     14: "typed dots lines blocks sheet onebit stop strips board wedges triptych stencil delayed beaded bricks",
-    15: "warp wound blown torn water combed tunnel sweep bands double satellite dripping woven knitted sampler",
+    15: "warp wound blown torn water combed tunnel sweep bands double satellite dripping woven knitted sampler carried",
     16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass tracking delayed ridged",
-    17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil infra screen puzzle ridged",
+    17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil infra screen puzzle ridged itself",
 }
 HOUSE = {n_: set(v.split()) for n_, v in HOUSE.items()}
 OPEN = {1: "stringart"}     # the picture a song opens on, where it is not the first of its featured ones (the album's first picture, and the one the landing brings back)
@@ -378,6 +378,8 @@ class Deal:
         self.canon_far = collections.defaultdict(set)
         self.dealt = collections.defaultdict(set)
         self.sums = 0
+        self.walks = 0
+        self.walked = collections.defaultdict(set)
         self.hinges = 0
         self.period = {}
         self.fits = 0
@@ -574,6 +576,25 @@ class Deal:
                 note(name, "hands", f"{name}/hands {how}")
                 self.last["canon"] = True
                 return name, "hands", look
+        # The walk: in a song that goes from number to number by a rule, each number lasting as
+        # long as it is, the numbers are squares on a line; the picture comes back once in
+        # each long walk, in another guise.
+        wk = walk_here(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 3.5 else None
+        if wk and wk[2] not in self.walked[S.n] and "squares" not in self.recent[-2:]:
+            cd = copy.copy(base)
+            cd.walk = (wk[1], wk[0])
+            got = make("squares", ctx=cd, keep=True)
+            t = next((t for t in WALK_GUISES if ("squares", t) not in self.combos and W.TREAT[t][1](cd, W.REG["squares"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = f"the walk from {wk[2]}"
+                look = W.TREAT[t][0](c, got[1])
+                self.treats[t] += 1
+                self.walks += 1
+                self.walked[S.n].add(wk[2])
+                note("squares", t, "squares/walk" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "squares", t, look
         # Two parts fit into one another (one plays the other's negative): a zip is closed, one
         # part's notes the teeth of one side and the other's the teeth of the other.
         fit = fitting(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 3.5 else None
@@ -985,6 +1006,7 @@ def fitting(S, c):
     return S.part(x, c.a16, c.b16, x.cell(*ab)[0]), S.part(y, c.a16, c.b16, y.cell(*ab)[0]), med
 
 
+WALK_GUISES = ("plain", "relief", "papercut", "itself", "infra", "fringe", "duotone", "echo", "delayed", "solar", "blueprint", "tracking", "water", "onebit")
 ZIP_GUISES = ("plain", "relief", "papercut", "infra", "fringe", "duotone", "echo", "delayed", "solar", "tracking", "blown", "water")
 
 
@@ -1004,6 +1026,57 @@ def period(S, c):
         return None
     cell = c.riffs[0].cell
     return cell // 8 if cell % 8 == 0 and 2 <= cell // 8 <= 6 else None
+
+
+def walking(S):
+    """A part that walks from number to number by one rule (halve it if it is even; treble it
+    and add one if it is odd), each number lasting as many sixteenths as it is: found from
+    the gaps between its notes (the one that is added is a note of its own, a sixteenth into
+    the number). Returns (the part's name, [(sixteenth, number, trebled)]) or None."""
+    if not hasattr(S, "_walk"):
+        S._walk = None
+        for t in (S.tracks.values() if isinstance(S.tracks, dict) else S.tracks):
+            on = sorted({round(nt[0] * 4) for nt in t.notes})
+            gaps = [b - a for a, b in zip(on, on[1:])]
+            steps, i, prev = [], 0, None
+            while i < len(gaps):
+                gap = gaps[i]
+                if prev and prev % 2 == 1 and prev > 1 and i + 1 < len(gaps) and gap + gaps[i + 1] == 3 * prev + 1:
+                    steps.append((on[i], gap + gaps[i + 1], True))
+                    i += 2
+                else:
+                    steps.append((on[i], gap, False))
+                    i += 1
+                prev = steps[-1][1]
+            pairs = [(a[1], b[1]) for a, b in zip(steps, steps[1:]) if a[1] >= 5]
+            kept = sum(1 for a, b in pairs if (a % 2 == 0 and b == a // 2) or (a % 2 == 1 and b == 3 * a + 1))
+            if len(pairs) >= 24 and kept >= 0.9 * len(pairs):
+                S._walk = (t.name, steps)
+                break
+    return S._walk
+
+
+def walk_here(S, c):
+    """(the part, the steps about the scene, the number the walk here set out from) where the
+    scene lies in a walk of at least six numbers; or None."""
+    w = walking(S)
+    if not w:
+        return None
+    name, steps = w
+    mid = (c.a16 + c.b16) / 2
+    k = next((i for i, (s0, m, _) in enumerate(steps) if s0 <= mid < s0 + m), None)
+    if k is None:
+        return None
+    a = k
+    while a > 0 and steps[a - 1][1] != 1:
+        a -= 1
+    b = k
+    while b < len(steps) - 1 and steps[b][1] != 1:
+        b += 1
+    if b - a + 1 < 6:
+        return None
+    near = [st for st in steps if st[0] + st[1] >= c.a16 - 170 and st[0] <= c.b16 + 330]
+    return name, near, steps[a][1]
 
 
 def even(notes, a, b):
@@ -1411,7 +1484,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}  hinges: {deal.hinges}  reprises: {deal.reprises}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}  hinges: {deal.hinges}  reprises: {deal.reprises}  walks: {deal.walks}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 
