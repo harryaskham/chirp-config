@@ -32,8 +32,10 @@ class P:
     # Expressions.
     @property
     def turn(self):
-        """Turns of its riff since its anchor (unwrapped)."""
-        return f"((time.beat*4 - {self.anchor:g})/{self.cell or 16})"
+        """Turns of its riff since its anchor (unwrapped). A part that plays its riff ahead of
+        another's (`lag`, an expression in sixteenths) is that much further on."""
+        lag = getattr(self, "lag", None)
+        return f"((time.beat*4 - {self.anchor:g}{' + (' + lag + ')' if lag else ''})/{self.cell or 16})"
 
     @property
     def ph(self):
@@ -1534,12 +1536,16 @@ def moons(c):
     layers = [{"type": "stars", "count": 400, "speed": 0, "size": 0.8, "light": 0.4, "twinkle": 0.2, "streak": 0}]
     for i, p in enumerate(P):
         nn = p.cell
+        # (A long riff alone takes two rows, so that its moons are not beads.)
+        per = nn if nn <= 9 or len(P) > 1 else -(-nn // 2)
+        rows = -(-nn // per)
         y = (len(P) - 1) * 1.15 - 2.3 * i
-        w = min(1.0, 8.0 / nn)
+        w = min(1.0, 8.0 / per)
         th = f"(0.75 - {p.turn})"
         layers.append({"type": "light", "x": f"4.6*cos({th})", "y": y, "z": f"4.6*sin({th})", "power": 1.6, "reach": 14 if len(P) == 1 else 8, "color": ("#fff4e0", c.a)[i]})
         d = f"(fract({p.turn} - inst.i/{nn})*{nn})"
-        layers.append(ball(f"(inst.i - {(nn - 1) / 2})*{w:g}", y, 0, w * 0.4, 20, count=nn, **solid("#a7a39a", 0.95), emit=f"0.25*exp(0 - 1.5*{d})*{p.hit}"))
+        col_, row_ = f"(inst.i - {per}*floor(inst.i/{per}))", f"floor(inst.i/{per})"
+        layers.append(ball(f"({col_} - {(per - 1) / 2})*{w:g}", f"{y} + ({(rows - 1) / 2} - {row_})*{max(w * 1.25, 1.1):g}", 0, w * 0.4, 20, count=nn, **solid("#a7a39a", 0.95), emit=f"0.25*exp(0 - 1.5*{d})*{p.hit}"))
     return {"background": "#020204", "camera": FLAT, "layers": layers, "filters": [{"type": "tonemap", "knee": 0.75}, {"type": "aa"}, bloom(c, 0.3, 0.02, 0.8)]}
 
 
@@ -3676,6 +3682,25 @@ def _two(c, A, B, **cut):
     return {"background": "#000000", "layers": [_act(A, blend="normal", cut_take=0, **cut), _act(B, blend="normal", cut_take=1, **cut)], "filters": []}
 
 
+# Ways two readings of one riff are joined (a canon): in step every one of them is one whole
+# picture; out of step the picture breaks along the joins, by as much as the parts are apart.
+JOINS = ("half", "strips", "rings", "bands", "wedges", "board", "blocks", "ribs")
+
+
+def canon(c, A, B, how):
+    """One picture drawn for the part behind (A) and for the part ahead (B), joined `how`."""
+    cell = _lead(c).cell or 16
+    cut = {"half": dict(cut="half"),
+           "strips": dict(cut="strips", cut_n=cell if 6 <= cell <= 16 else 8),
+           "ribs": dict(cut="strips", cut_n=32),
+           "bands": dict(cut="bands", cut_n=7),
+           "rings": dict(cut="rings", cut_n=6),
+           "wedges": dict(cut="wedges", cut_n=8, cut_at=0.0625),
+           "board": dict(cut="checker", cut_n=6),
+           "blocks": dict(cut="checker", cut_n=3)}[how]
+    return _two(c, A, B, **cut)
+
+
 def _step(p, per=1):
     """A count that goes up by one each time the riff comes round (sliding the last of the way)."""
     return f"(floor({p.turn}/{per}) + smooth(0.8, 1, fract({p.turn}/{per})))"
@@ -4074,6 +4099,11 @@ STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall"
 STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched")}
 
 # Pictures that stand to one side, or are a line of things: half of one is not a picture.
+# Pictures that can be drawn twice and joined (flat, and filling the frame or centred, so that
+# a break along the joins shows): for two parts playing one riff out of step. `STRONG`: the
+# ones a break shows best in; a song's own canon is one of these.
+CANON = set("riley vortex moire blinds hive interference vasarely mandala albers hourglass specimen spiral eye golden tiles automaton kandinsky sundial moons zen dominoes breakout".split())
+STRONG = ("riley", "vortex", "moire", "blinds", "hive", "interference", "vasarely", "albers", "automaton", "mandala")
 # Pictures that fill the frame with light (cutting their lights out of another picture leaves nothing),
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "

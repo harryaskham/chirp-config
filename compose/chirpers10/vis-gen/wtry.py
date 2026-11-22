@@ -41,7 +41,7 @@ def main():
         # NAME, NAME/TREATMENT, or A+B/COMBINATION.
         spec = name
         base, _, how = name.partition("/")
-        name = name.replace("/", "_").replace("+", "-")
+        name = name.replace("/", "_").replace("+", "-").replace(":", "-")
         try:
             if base.count("+") == 2:
                 x, y_, z_ = base.split("+")
@@ -49,6 +49,14 @@ def main():
             elif "+" in base:
                 x, y_ = base.split("+")
                 look = W.COMBOS[how or "double"](c, W.bolder(x, W.REG[x]["f"](c)), W.bolder(y_, W.REG[y_]["f"](c.sub(1 if len(c.riffs) > 1 else 0, 2))))
+            elif how.startswith("canon"):
+                # NAME/canon:HOW:LAG: the picture drawn for the first riff and for the same riff LAG sixteenths on, joined HOW.
+                import copy
+                _, join, lag = (how.split(":") + ["half", "4"])[:3]
+                d = copy.copy(c)
+                d.riffs = [copy.copy(c.riffs[0])] + c.riffs[1:]
+                d.riffs[0].lag = f"({lag})"
+                look = W.canon(c, W.bolder(base, W.REG[base]["f"](c)), W.bolder(base, W.REG[base]["f"](d)), join)
             else:
                 look = W.bolder(base, W.REG[base]["f"](c))
                 if how:

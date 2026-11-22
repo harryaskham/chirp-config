@@ -342,6 +342,10 @@ class Deal:
         self.trios = 0
         self.odd = 0
         self.landings = 0
+        self.canons = 0
+        self.joins = collections.Counter()
+        self.canon_own = {}
+        self.canon_far = collections.defaultdict(set)
         self.ruled = 0
         self.album_first = None
 
@@ -440,6 +444,41 @@ class Deal:
                         grows.add(name)
             cands = [(score - 16 * (name in grows), name) for score, name in cands]
         ranked = [name for _, name in sorted(cands)]
+        # The song's own canon (the first it is dealt, one of its featured pictures if it can
+        # be) is shown whole once while the parts are still in step, and comes back each time
+        # they are a whole sixteenth further apart than it has been seen.
+        pair2, own = None, self.canon_own.get(S.n)
+        if not flash and not prefer and kind != "hush":
+            pair2 = stereo(S, c)
+            if not pair2 and not own and not first:
+                pair2 = stereo(S, c, whole=True)
+        if pair2 and (pair2[2] == 0 or rnd(S.n, k, "canon?") < 0.7) and not (last and last.get("canon") and rnd(S.n, k, "canon again?") < 0.35):
+            behind, ahead_, far = pair2
+            rest = [p for p in c.riffs if p.name[:-1] != behind.name[:-1]]
+            how = "half" if far == 0 else min(W.JOINS, key=lambda j: (self.joins[(S.n, j)], self.joins[j], rnd(S.n, k, j)))
+            again = own and far == int(far) and far not in self.canon_far[S.n] and own not in self.recent[-2:]
+            featured = [] if own else [f for f in ranked if f in W.STRONG][:2]
+            for name in ([own] if again else featured) + ranked:
+                tag = f"canon{far:g}" if name == own and again or far == 0 else "canon"
+                if name not in W.CANON or (name, tag) in self.combos or (first and W.REG[name]["cost"] >= 3):
+                    continue
+                cl, cr = copy.copy(base), copy.copy(base)
+                cl.riffs, cr.riffs = [behind] + rest, [ahead_] + rest
+                one, two = make(name, ctx=cl, keep=(tag != "canon")), make(name, ctx=cr, keep=(tag != "canon"))
+                if not one or not two:
+                    continue
+                c.__dict__.update(one[0].__dict__)
+                c.canon = f"{behind.name} and {ahead_.name} {far:g} apart, joined in {how}"
+                look = W.canon(c, one[1], two[1], how)
+                self.canons += 1
+                self.joins[(S.n, how)] += 1
+                self.joins[how] += 1
+                self.canon_own.setdefault(S.n, name)
+                self.canon_far[S.n].add(far)
+                self.treats["canon"] += 1
+                note(name, tag, f"{name}/canon {how} {far:g}")
+                self.last["canon"] = True
+                return name, "canon", look
         # The band gains a part, or loses one, and nothing else changes: so does the picture.
         now = frozenset((p.name, p.cell) for p in c.riffs)
         if last and not flash and not prefer and kind != "hush" and not last.get("partner") and last.get("ending") and last.get("riffs") and now \
@@ -458,6 +497,9 @@ class Deal:
                     self.grown[way] += 1
                     note(name, key, f"{name}/{way}", raw=raw, ending=last["ending"])
                     return name, way, look
+        # Two parts play one riff, one ahead of the other: the picture is drawn for each and
+        # joined down the middle. In step it is one picture; out of step it is broken there,
+        # by exactly as much as they are.
         # Now and then two pictures share the frame.
         if not first and not flash and not prefer and not grows and rnd(S.n, k, "pair?") < 0.12 + 0.34 * c.full:
             pair = [n_ for n_ in ranked if W.REG[n_]["fam"] not in NO_PAIR and W.REG[n_]["cost"] <= 2 and n_ not in self.recent[-12:]]
@@ -607,6 +649,73 @@ def ruled(S, rnd_, look):
         over.append({"type": "shape", "repeat": count, "sides": 4, "rotate": 0.125, "radius": f"0.023{size}", "fill": 1, "width": 0, "color": "#000000", "blend": "normal", "x": x, "y": y, "opacity": seen})
         over.append({"type": "shape", "repeat": count, "sides": 4, "rotate": 0.125, "radius": f"0.017{size}", "fill": 1, "width": 0, "color": pal[3 + i % 3], "blend": "normal", "x": x, "y": y, "opacity": seen})
     return {"background": "#000000", "layers": [W._act(look, blend="normal")] + over, "filters": []}
+
+
+def slips(S, L, R):
+    """How far part R plays ahead of part L, bar by bar, in sixteenths (to a quarter), where
+    they play the same thing; None where they do not, or are silent. Kept on the song."""
+    if not hasattr(S, "_slips"):
+        S._slips = {}
+    if (L, R) in S._slips:
+        return S._slips[(L, R)]
+    import bisect
+    T = {t.name: t for t in (S.tracks.values() if isinstance(S.tracks, dict) else S.tracks)}
+    ol, orr = sorted(a * 4 for a, *_ in T[L].notes), sorted(a * 4 for a, *_ in T[R].notes)
+    out = []
+    for bar in range(S.bars):
+        a, b = bar * 16, bar * 16 + 16
+        nl, xr = bisect.bisect_left(ol, b) - bisect.bisect_left(ol, a), orr[bisect.bisect_left(orr, a):bisect.bisect_left(orr, b)]
+        best = None
+        if nl >= 3 and len(xr) >= 3:
+            for q in range(0, 37):
+                hit = 0
+                for x in xr:
+                    i = bisect.bisect_left(ol, x + q * 0.25 - 0.13)
+                    hit += i < len(ol) and ol[i] <= x + q * 0.25 + 0.13
+                score = hit / max(nl, len(xr))
+                if best is None or score > best[0] + 1e-9:
+                    best = (score, q * 0.25)
+        out.append(best[1] if best and best[0] > 0.8 else None)
+    S._slips[(L, R)] = out
+    return out
+
+
+def stereo(S, c, whole=False):
+    """Two parts of the scene that play one riff, one of them ahead of the other (a left and
+    a right: gl and gr), where they are out of step: (the part behind, the part ahead with
+    its `lag`, how far ahead at most here); or None. `whole`: where they are still in step
+    and will go out of it within twenty-four bars."""
+    import copy
+    T = {t.name: t for t in (S.tracks.values() if isinstance(S.tracks, dict) else S.tracks)}
+    a, b = c.a16 // 16, min(S.bars, max(c.a16 // 16 + 1, -(-c.b16 // 16)))
+    best = None
+    for left in sorted(T):
+        right = left[:-1] + "r"
+        if not left.endswith("l") or right not in T or T[left].role == "drum" or any(T[n_].count(a, b) < 3 * (b - a) for n_ in (left, right)):
+            continue
+        lags = slips(S, left, right)
+        here = lags[a:b]
+        if sum(v is not None for v in here) * 2 < len(here):
+            continue
+        far = max(v for v in here if v is not None)
+        if whole:
+            if far or any(v is None for v in here) or not any(v and v >= 0.75 for v in lags[b:b + 24]):
+                continue
+        elif far < 0.75:
+            continue
+        cell = T[left].cell(a, b)[0] or 16      # (a line that does not repeat is taken a bar at a time)
+        first = next(v for v in here if v is not None)
+        expr, cur = [f"{first:g}"], first
+        for i, v in enumerate(here):
+            if v is not None and v != cur and i:
+                expr.append(f"{v - cur:g}*step({(a + i) * 4}, time.beat)")
+                cur = v
+        behind = S.part(T[left], c.a16, c.b16, cell)
+        ahead = copy.copy(behind)
+        ahead.name, ahead.lag = right, "(" + " + ".join(expr) + ")"
+        if best is None or T[left].count(a, b) > best[3]:
+            best = (behind, ahead, far, T[left].count(a, b))
+    return best[:3] if best else None
 
 
 def fits(kind, A, B):
@@ -805,6 +914,7 @@ def main():
             print(f"{S.id} \"{S.title}\": {S.bars} bars, {S.d['bpm']:.0f} bpm, {len(scenes)} scenes, {sum((b - a) for a, b, *_ in scenes) * six / len(scenes):.1f} s each")
             for a, b, name, treat, _, c in scenes:
                 print(f"  {a / 16:7.2f}-{b / 16:<7.2f} {(b - a) * six:5.1f}s  {name:12s} {treat:9s} {' '.join(f'{p.name}:{p.cell}' for p in c.riffs[:4])}"
+                      + (f"  [{getattr(c, 'canon', '')}]" if getattr(c, "canon", "") else "")
                       + (f"  tune {c.tunes[0].name}" if c.tunes else "") + ("  paper" if c.paper else ""))
             continue
         os.makedirs(out_dir, exist_ok=True)
@@ -821,7 +931,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 
