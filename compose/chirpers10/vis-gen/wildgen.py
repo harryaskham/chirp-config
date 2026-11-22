@@ -184,9 +184,42 @@ def cut(S):
             q = p + max(1, round(want / unit)) * unit
             if q >= y or y - q < 3.6 / six:
                 q = y
-            out.append((p, q, cyc, False))
+            out.append((p, q, cyc, None))
             p = q
-    return flurries(S, out, gap)
+    return flurries(S, dynamics(S, out), gap)
+
+
+def dynamics(S, scenes):
+    """Where the band comes in (a bar far fuller than the one before) the film cuts on it, to
+    the sixteenth; and the thin bar before it, where there is one, stands alone and hushed."""
+    f = S.full
+    S.drops = [b for b in range(2, S.bars - 2) if f[b] > 0.5 and f[b - 1] < 0.5 * f[b] and f[b] - f[b - 1] > 0.35]
+    S.stops = [b for b in range(2, S.bars - 2) if f[b] < 0.5 * min(f[b - 1], f[b + 1]) and f[b - 1] > 0.4]
+    for d in S.drops:
+        x = d * 16
+        i = next((i for i, (p, q, *_) in enumerate(scenes) if p <= x < q), None)
+        if i is None or i == 0:
+            continue
+        p, q, cyc, _ = scenes[i]
+        if p == x:
+            scenes[i] = (p, q, cyc, "drop")
+        elif x - p >= 16 and q - x >= 32:
+            scenes[i:i + 1] = [(p, x, cyc, None), (x, q, cyc, "drop")]
+        elif x - p < 16 and i > 1:
+            # A joint just before the drop: the drop takes the cut instead.
+            scenes[i - 1] = (scenes[i - 1][0], x, scenes[i - 1][2], scenes[i - 1][3])
+            scenes[i] = (x, q, cyc, "drop")
+    for s_ in S.stops:
+        x, y = s_ * 16, (s_ + 1) * 16
+        i = next((i for i, (p, q, *_) in enumerate(scenes) if p <= x and y <= q), None)
+        if i is None or i == 0 or scenes[i][3]:
+            continue
+        p, q, cyc, _ = scenes[i]
+        new = ([(p, x, cyc, None)] if x - p >= 24 else []) + [(x if x - p >= 24 else p, y, cyc, "hush")] + ([(y, q, cyc, None)] if q > y else [])
+        if q > y and q - y < 24:
+            continue
+        scenes[i:i + 1] = new
+    return scenes
 
 
 def fills(S):
@@ -225,11 +258,11 @@ def flurries(S, scenes, gap):
             y = q
         if y - x > 40:
             continue        # (that would be flashes for too long)
-        new = [(p, x, cyc, False)] if x > p else []
-        new += [(e, min(e + unit, y), cyc, True) for e in range(x, y, unit) if y - e >= unit // 2]
+        new = [(p, x, cyc, None)] if x > p else []
+        new += [(e, min(e + unit, y), cyc, "flash") for e in range(x, y, unit) if y - e >= unit // 2]
         new[-1] = (new[-1][0], y, cyc, new[-1][3])
         if y < q:
-            new.append((y, q, cyc, False))
+            new.append((y, q, cyc, None))
         scenes[i:i + 1] = new
     return scenes
 
@@ -248,8 +281,14 @@ class Deal:
         self.arrivals = 0
         self.moves = collections.Counter()
         self.flashes = 0
+        self.motif = {}
+        self.dyn = collections.Counter()
 
-    def choose(self, S, c, k, first, flash=False, prefer=None):
+    @staticmethod
+    def motif_key(c):
+        return tuple((p.name, p.cell) for p in c.riffs[:2])
+
+    def choose(self, S, c, k, first, flash=False, prefer=None, kind=None):
         in_song = self.song_used
         fams = [W.REG[i]["fam"] for i in self.recent[-3:]]
         cands = []
@@ -263,9 +302,9 @@ class Deal:
             score = 4.0 * self.used[name] + 1.5 * (info["cost"] - 1) - 2.0 * min(info["needs"], 3) + 3.0 * rnd(S.n, k, name)
             if name == prefer:
                 score -= 60         # the song ends on the picture it began with, changed
-            elif name in self.recent[-(3 if flash else 12):]:
+            elif name in self.recent[-(9 if flash else 12):]:
                 score += 100
-            if flash and in_song[name] and name not in self.recent[-3:]:
+            if flash and in_song[name] and name not in self.recent[-9:]:
                 score -= 6          # a flash looks back at what the song has shown, in another guise
             if fams and info["fam"] == fams[-1]:
                 score += 50
@@ -280,6 +319,12 @@ class Deal:
             mood = info.get("mood", 0)
             if (mood < 0 and c.full > 0.7) or (mood > 0 and c.full < 0.35):
                 score += 9          # a calm picture for a thin passage, a full one for a full one
+            if kind == "hush":
+                score += -10 * (mood < 0) + 20 * (mood > 0) + 30 * (info["cost"] >= 3)
+            if kind == "drop":
+                score += -10 * (mood > 0) + 14 * (mood < 0)
+            if name == self.motif.get(self.motif_key(c)) and name not in self.recent[-5:] and rnd(S.n, k, "motif?") < 0.4:
+                score -= 14         # the riff that had this picture has come back: so does the picture, changed
             cands.append((score, name))
         import copy
         base = copy.copy(c)
@@ -296,6 +341,8 @@ class Deal:
                 return None
 
         def note(name, treat, label):
+            if not flash and c.riffs:
+                self.motif.setdefault(self.motif_key(c), name)
             self.used[name] += 1
             self.combos.add((name, treat))
             self.recent.append(name)
@@ -338,6 +385,9 @@ class Deal:
                            key=lambda t: self.treats[t] + 2 * rnd(S.n, k, t))
             if info["fam"] == "plate":
                 order = []          # the first film's studies come as they were, and once
+            if name in W.BOLD:
+                # Pictures made of lines and points keep to guises that add to them: a print of a hair line is nothing.
+                order = [t for t in order if t in W.FILLS]
             plain_ok = (name, "plain") not in self.combos
             treat = "plain" if (plain_ok and (self.used[name] == 0 or rnd(S.n, k, "plain?") < 0.25)) or not order else order[0]
             if treat == "plain" and not plain_ok:
@@ -345,7 +395,7 @@ class Deal:
             if flash:
                 # Nothing that needs time to build.
                 order = [t for t in order if t in ("kaleido", "mirror", "duotone", "dots", "newsprint", "engraved", "hatched", "onebit", "drawn", "blueprint", "typed", "negative", "lines", "fringe", "wall", "planet",
-                                                   "solar", "relief")]
+                                                   "solar", "relief", "poster", "flood")]
                 treat = order[0] if order and (self.used[name] or not plain_ok) else "plain" if plain_ok else None
                 if treat is None:
                     continue
@@ -370,13 +420,16 @@ class Deal:
 def plan(S, deal):
     """A song's scenes: [(a16, b16, idiom, treatment, scene dict, context)]."""
     deal.song_used = collections.Counter()
+    deal.motif = {}
     out = []
     was_flash = False
     cuts = cut(S)
     shifts = {}
-    for k, (a16, b16, cyc, flash) in enumerate(cuts):
+    for k, (a16, b16, cyc, kind) in enumerate(cuts):
+        flash = kind == "flash"
         c = S.cx(a16, b16, k=k, cyc=cyc)
-        name, treat, look = deal.choose(S, c, k, first=(k == 0), flash=flash, prefer=out[0][2] if k and k == len(cuts) - 1 and len(cuts) > 12 else None)
+        name, treat, look = deal.choose(S, c, k, first=(k == 0), flash=flash, prefer=out[0][2] if k and k == len(cuts) - 1 and len(cuts) > 12 else None, kind=kind)
+        deal.dyn[kind] += 1
         # Each length of riff has its own cast of colour in a song: the first as the song's
         # colours are, each new length a step round from them, and back when a length returns.
         cell = c.riffs[0].cell if c.riffs else 16
@@ -399,16 +452,23 @@ def plan(S, deal):
         if cyc and b16 == min(S.bars * 16, a16 + ((b16 - a16) // cyc["round"] or 1) * cyc["round"]) and any(z == b16 for _, z, *_ in S.rounds):
             # The scene ends where a long round does: the picture burns out on the meeting.
             look.setdefault("filters", []).append({"type": "color", "exposure": f"1 + 5*pow(smooth({b16 / 4 - 1:g}, {b16 / 4:g}, time.beat), 3)"})
+        if kind == "hush":
+            # The band has stopped: the picture is drained and dim until it comes back in.
+            look.setdefault("filters", []).append({"type": "color", "saturation": 0.1, "exposure": 0.5})
+        if kind == "drop":
+            # The band comes in: the picture is struck with light and comes forward, then settles.
+            since = f"max(time.beat - {a16 / 4:g}, 0)"
+            look.setdefault("filters", []).extend([{"type": "camera", "zoom": f"1 + 0.22*exp(0 - 2.5*{since})"}, {"type": "color", "exposure": f"1 + 3.5*exp(0 - 4*{since})"}])
         if k and name in W.PLATES and "+" not in treat:
             scene["lead"] = "2bar" if name == "photofinish" else "1bar"
-        elif k and not flash and not was_flash and rnd(S.n, k, "x") < 0.34:
+        elif k and not kind and not was_flash and rnd(S.n, k, "x") < 0.34:
             # One picture turns into the next: each way in its turn, over a beat or two.
             tr = min(TRANSITIONS, key=lambda t_: deal.trans[t_] + 1.5 * rnd(S.n, k, t_))
             deal.trans[tr] += 1
             scene["xfade"] = "1b" if tr in ("push", "strips", "blocks", "split", "weave", "checker") else "2b"
             scene["transition"] = tr
         out.append((a16, b16, name, treat, scene, c))
-        was_flash = flash
+        was_flash = bool(kind)
     return out
 
 
@@ -453,6 +513,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 

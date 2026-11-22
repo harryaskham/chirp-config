@@ -239,11 +239,11 @@ def crystal(c):
         return f"(floor(fract(({i} - {off} + {n_ * 64} + 0.5)/{n_})*{n_}) - {(n_ - 1) / 2:g})*{u:g}"
     age = f"fract(({now} - inst.i)/{L})*{L}"
     count = min(L, 4000)
-    layers = [ball(co(0), co(1), co(2), f"{0.11 * u:g}*(1 + 2.2*exp(0 - 9*{age}/{L}))", detail=6, count=count, **glow(c.ink, f"0.12 + 2.2*exp(0 - 7*{age}/{L})"))]
+    layers = [ball(co(0), co(1), co(2), f"{0.14 * u:g}*(1 + 2.2*exp(0 - 9*{age}/{L}))", detail=6, count=count, **glow(c.ink, f"0.3 + 2.2*exp(0 - 7*{age}/{L})"))]
     s = f"floor({now} + 0.001)"
-    layers.append(ball(co(0, s), co(1, s), co(2, s), 0.3 * u, detail=10, **glow(c.a, 3)))
+    layers.append(ball(co(0, s), co(1, s), co(2, s), 0.42 * u, detail=10, **glow(c.a, 3)))
     spin = f"time.bar/{max(8, int(c.bars * 2))}"
-    return {"background": c.bg, "camera": cam(f"7.5*sin({spin})", "2.2 + 1.2*sin(time.bar/11)", f"0 - 7.5*cos({spin})", zoom=1.9),
+    return {"background": c.bg, "camera": cam(f"7.5*sin({spin})", "2.2 + 1.2*sin(time.bar/11)", f"0 - 7.5*cos({spin})", zoom=2.3),
             "layers": layers, "filters": [bloom(c, 0.5, 0.02, 0.5)]}
 
 
@@ -275,10 +275,10 @@ def spiral(c):
     layers = []
     for i, p in enumerate(parts):
         th = f"(0.25 - note.age*4/{wide})"
-        r = "(0.07 + 0.03*note.age)"
-        layers.append({"type": "shape", "notes": {"track": p.name, "past": 30}, "sides": 1, "radius": f"{0.03 - 0.004 * i:g}*(0.6 + note.vel)*(1 + 1.2*exp(0 - 4*note.age))", "width": 0, "fill": 1,
+        r = "(0.08 + 0.045*note.age)"
+        layers.append({"type": "shape", "notes": {"track": p.name, "past": 20}, "sides": 1, "radius": f"{0.05 - 0.006 * i:g}*(0.6 + note.vel)*(1 + 1.2*exp(0 - 4*note.age))", "width": 0, "fill": 1,
                        "color": c.col(i), "x": f"{r}*cos({th})", "y": f"{r}*sin({th})"})
-    layers.append({"type": "shape", "sides": 0, "radius": 0.97, "width": 0.003, "fill": 0, "color": c.dim})
+    layers.append({"type": "shape", "sides": 0, "radius": 0.97, "width": 0.008, "fill": 0, "color": c.dim})
     return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.15, 0.012, 0.8)]}
 
 
@@ -308,8 +308,9 @@ def orrery(c):
     for i, p in enumerate(parts):
         r = 1.25 + 0.85 * i
         th = f"(0.25 - {p.turn})"
-        layers.append({"type": "trail", "x": f"{r}*cos({th})", "y": 0, "z": f"{r}*sin({th})", "length": f"{p.cell * 0.9}*0.125/time.bpm", "samples": 90, "width": 0.012, "taper": 0.6, "glow": 0.8, "fade": 1, "color": c.col(i)})
-        layers.append(ball(f"{r}*cos({th})", 0, f"{r}*sin({th})", f"{0.13 + 0.035 * i:g}*(1 + 0.5*{p.hit})", 14, **solid(c.col(i), 0.6), emit=f"0.15 + 0.9*{p.hit}"))
+        layers.append({"type": "trail", "x": f"{r}*cos({th})", "y": 0, "z": f"{r}*sin({th})", "length": f"{p.cell * 0.9}*0.125/time.bpm", "samples": 90, "width": 0.03, "taper": 0.6, "glow": 0.8, "fade": 1, "color": c.col(i)})
+        layers.append(ball(f"{r}*cos({th})", 0, f"{r}*sin({th})", f"{0.2 + 0.05 * i:g}*(1 + 0.5*{p.hit})", 14, **solid(c.col(i), 0.6), emit=f"0.3 + 0.9*{p.hit}"))
+        layers.append({"type": "mesh", "shape": "torus", "detail": 64, "x": 0, "y": 0, "z": 0, "scale": r / 0.8, "tube": 0.006, **glow(c.dim, 0.5)})
     # The line they stand in.
     layers.append({"type": "beam", "from": [0, 0, 0], "to": [0, 0, 1.25 + 0.85 * len(parts)], "width": 0.006, "glow": 0.35, "color": c.dim})
     return {"background": "#020204", "camera": [cam("0.8*sin(time.bar/17)", 3.4, -5.4, look=(0, 0, 0.4), zoom=1.45), cam(0.01, 8.5, -0.2, look=(0, 0, 0), zoom=1.75), cam(0, 0.5, -7.5, look=(0, 0, 0), zoom=1.7)][c.variant % 3],
@@ -619,7 +620,7 @@ def strings(c):
     layers = []
     for i, p in enumerate(P):
         y = (i - (len(P) - 1) / 2) * min(0.62, 4.2 / len(P))
-        layers.append({"type": "beam", "from": [-4.1, y, 0], "to": [4.1, y, 0], "samples": 220, "width": 0.02, "glow": f"0.5 + 1.6*env.h{i}", "wave": f"0.3*env.h{i}", "waves": min(p.cell or 4, 14), "speed": 3,
+        layers.append({"type": "beam", "from": [-4.1, y, 0], "to": [4.1, y, 0], "samples": 220, "width": 0.045, "glow": f"0.8 + 1.6*env.h{i}", "wave": f"0.3*env.h{i}", "waves": min(p.cell or 4, 14), "speed": 3,
                        "color": c.col(i)})
         for x in (-4.1, 4.1):
             layers.append(ball(x, y, 0, 0.05, 8, **glow(c.dim, 0.8)))
@@ -872,12 +873,12 @@ def solkattu(c):
     layers = []
     for i, p in enumerate(parts):
         syl = syllables(p.cell)
-        size = min(0.2, 3.3 / (len(syl) * 2.7))
-        y = (len(parts) - 1) / 2 * 0.52 - 0.52 * i - size / 2
+        size = min(0.26, 3.4 / (len(syl) * 2.7))
+        y = (len(parts) - 1) / 2 * 0.56 - 0.56 * i - size / 2
         for k, sy in enumerate(syl):
             d = f"(fract({p.turn} - {k / p.cell:.5f})*{p.cell})"
             for col, op in ((c.ink, "0.5"), (c.col(i), f"exp(0 - 1.6*{d})")):
-                layers.append({"type": "text", "text": sy, "size": f"{size:g}*(1 + 0.25*exp(0 - 2*{d}))", "x": (k - (len(syl) - 1) / 2) * size * 2.7, "y": y, "align": "center", "width": 0.12, "skew": 0,
+                layers.append({"type": "text", "text": sy, "size": f"{size:g}*(1 + 0.25*exp(0 - 2*{d}))", "x": (k - (len(syl) - 1) / 2) * size * 2.7, "y": y, "align": "center", "width": 0.18, "skew": 0,
                                "color": col, "opacity": op})
     return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.25, 0.012, 0.7)]}
 
@@ -955,10 +956,10 @@ def clockshop(c):
         y0 = ((rows - 1) / 2 - i // cols) * (4.5 / rows)
         nn = p.cell
         col = c.col(i)
-        layers.append(box(f"{x0:g} + {R}*cos(inst.i/{nn} + 0.25)", f"{y0:g} + {R}*sin(inst.i/{nn} + 0.25)", 0, 0.02, 0.09 * R / 0.9, 0.01, count=nn, rz=f"inst.i/{nn}", **glow(c.ink, 0.7)))
+        layers.append(box(f"{x0:g} + {R}*cos(inst.i/{nn} + 0.25)", f"{y0:g} + {R}*sin(inst.i/{nn} + 0.25)", 0, 0.035, 0.11 * R / 0.9, 0.01, count=nn, rz=f"inst.i/{nn}", **glow(c.ink, 0.9)))
         a = f"(0.25 - floor({p.turn}*{nn} + 0.02)/{nn})"
-        layers.append(box(f"{x0:g} + {0.42 * R:g}*cos({a})", f"{y0:g} + {0.42 * R:g}*sin({a})", -0.05, 0.42 * R, 0.035, 0.01, rz=a, **glow(col, f"0.9 + 1.2*{p.hit}")))
-        layers.append(ball(x0, y0, -0.06, 0.05, 8, **glow(col, 1)))
+        layers.append(box(f"{x0:g} + {0.42 * R:g}*cos({a})", f"{y0:g} + {0.42 * R:g}*sin({a})", -0.05, 0.42 * R, 0.06, 0.01, rz=a, **glow(col, f"0.9 + 1.2*{p.hit}")))
+        layers.append(ball(x0, y0, -0.06, 0.1, 8, **glow(col, 1)))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.35, 0.014, 0.6)]}
 
 
@@ -1157,13 +1158,13 @@ def kelvin(c):
     pen_x, pen_y = xs[-1] + 1.6, f"(0 - 0.9 + 0.75*({total}))"
     layers = []
     for i, p in enumerate(P):
-        layers.append({"type": "mesh", "shape": "torus", "detail": 40, "x": xs[i], "y": 1.3, "z": 0, "scale": (r + 0.14) / 0.8, "tube": 0.03, "rx": 0.25, **glow(c.dim, 0.7)})
-        layers.append(ball(pins[i][0], pins[i][1], -0.05, 0.07, 8, **glow(c.col(i), f"1.2 + 1.5*{p.hit}")))
+        layers.append({"type": "mesh", "shape": "torus", "detail": 40, "x": xs[i], "y": 1.3, "z": 0, "scale": (r + 0.14) / 0.8, "tube": 0.07, "rx": 0.25, **glow(c.dim, 1.0)})
+        layers.append(ball(pins[i][0], pins[i][1], -0.05, 0.12, 8, **glow(c.col(i), f"1.2 + 1.5*{p.hit}")))
         layers.append({"type": "beam", "from": [xs[i], 1.3, 0], "to": [pins[i][0], pins[i][1], 0], "width": 0.01, "glow": 0.5, "color": c.dim})
     pts = [(f"{xs[0] - 1.3:g}", "1.3")] + pins + [(f"{pen_x:g}", pen_y)]
     for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
-        layers.append({"type": "beam", "from": [x0, y0, -0.02], "to": [x1, y1, -0.02], "width": 0.009, "glow": 0.9, "color": c.ink, "samples": 30})
-    layers.append({"type": "trail", "x": f"{pen_x:g} - 1.1*(var.nowb - time.beat)", "y": pen_y, "z": 0, "length": f"{6 * 0.5 / (c.bpm / 120):g}", "samples": 500, "width": 0.014, "taper": 0, "glow": 1.1, "fade": 0.5, "color": c.a})
+        layers.append({"type": "beam", "from": [x0, y0, -0.02], "to": [x1, y1, -0.02], "width": 0.022, "glow": 0.9, "color": c.ink, "samples": 30})
+    layers.append({"type": "trail", "x": f"{pen_x:g} - 1.1*(var.nowb - time.beat)", "y": pen_y, "z": 0, "length": f"{6 * 0.5 / (c.bpm / 120):g}", "samples": 500, "width": 0.035, "taper": 0, "glow": 1.1, "fade": 0.5, "color": c.a})
     layers.append(ball(pen_x, pen_y, -0.05, 0.07, 8, **glow(c.a, 2.5)))
     return {"background": c.bg, "vars": {"nowb": {"follow": "time.beat", "attack": "0ms", "release": "0ms"}}, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.35, 0.016, 0.55)]}
 
@@ -1536,9 +1537,10 @@ def lanterns(c):
     x = f"({T.pitch(-3.6, 3.6)} + 0.25*sin(note.age/5 + note.beat/3))"
     layers = [{"type": "stars", "count": 500, "speed": 0, "size": 0.8, "light": 0.5, "twinkle": 0.3, "streak": 0},
               {"type": "mesh", "shape": "plane", "detail": 4, "x": 0, "y": -1.6, "z": 0, "scale": 30, "material": "pbr", "rough": 0.15, "metal": 0.3, "color": "#05080e", "rim": 0, "cull": True},
-              box(x, "0 - 1.45 + 0.42*note.age", "0.5 + 2.5*hash(note.beat)", "0.16*(0.6 + note.vel)", "0.22*(0.6 + note.vel)", 0.16, notes={"track": T.name, "past": 12}, round=0.3,
-                  **glow(c.a, "2.4*exp(0 - 0.12*note.age)*(0.8 + 0.2*noise(time.t*7 + note.beat))"))]
-    return {"background": "#020308", "camera": cam("0.4*sin(time.bar/12)", 0.3, -7, look=(0, 0.4, 1), zoom=1.3), "layers": layers,
+              box(x, "0 - 1.45 + 0.34*note.age", "0.2 + 2.2*hash(note.beat)", "0.3*(0.6 + note.vel)", "0.4*(0.6 + note.vel)", 0.3, notes={"track": T.name, "past": 16}, round=0.3,
+                  **glow(c.a, "2.4*exp(0 - 0.07*note.age)*(0.8 + 0.2*noise(time.t*7 + note.beat))")),
+              box(x, "0 - 1.45 + 0.34*note.age - 0.42*(0.6 + note.vel)", "0.2 + 2.2*hash(note.beat)", "0.1*(0.6 + note.vel)", 0.03, 0.1, notes={"track": T.name, "past": 16}, **glow("#fff2c8", "3*exp(0 - 0.07*note.age)"))]
+    return {"background": "#020308", "camera": cam("0.4*sin(time.bar/12)", 0.3, -6, look=(0, 0.6, 1), zoom=1.3), "layers": layers,
             "filters": [{"type": "reflect", "y": -1.6, "amount": 0.6}, {"type": "tonemap", "knee": 0.75}, {"type": "aa"}, bloom(c, 0.6, 0.03, 0.5)]}
 
 
@@ -1613,7 +1615,7 @@ def turtle(c):
     v = max(0.5, min(1.7, 9.0 / turns)) / (A.cell * c.six)      # a side: longer where there are few
     look = {"background": c.bg, "camera": FLAT,
             "vars": {"h": {"follow": h, "attack": "0ms", "release": "0ms"}, "px": {"integrate": f"{v:g}*cos(var.h)"}, "py": {"integrate": f"{v:g}*sin(var.h)"}},
-            "layers": [ball("var.px", "var.py", 0, 0.055, 8, **glow(c.ink, 2.2)), ball("var.px", "var.py", -0.05, f"0.03 + 0.1*{A.hit}", 8, **glow(c.a, 3))],
+            "layers": [ball("var.px", "var.py", 0, 0.09, 8, **glow(c.ink, 2.2)), ball("var.px", "var.py", -0.05, f"0.05 + 0.14*{A.hit}", 8, **glow(c.a, 3))],
             "filters": [{"type": "expose", "open": 1, "fade": 0, "live": 1, "mode": "light"}, bloom(c, 0.35, 0.016, 0.55)]}
     return look
 
@@ -1654,8 +1656,8 @@ def constellation(c):
     y, yn = T.pitch(-2.0, 2.0), T.pitch(-2.0, 2.0, "(note.next_key*84 + 24)")
     N = {"track": T.name, "past": 15.5}
     layers = [{"type": "stars", "count": 350, "speed": 0, "size": 0.7, "light": 0.3, "twinkle": 0.3, "streak": 0},
-              {"type": "beam", "notes": N, "from": [x, y, 0], "to": [xn, yn, 0], "reach": "clamp(div(note.age, max(note.gap, 0.1)), 0, 1)", "width": 0.016, "glow": "1.2*exp(0 - 0.08*note.age)", "color": c.a, "samples": 16},
-              ball(x, y, -0.05, "0.075*(0.6 + note.vel)*(1 + 2*exp(0 - 3*note.age))", 8, notes=N, **glow(c.ink, "1.5 + 3*exp(0 - 2*note.age)"))]
+              {"type": "beam", "notes": N, "from": [x, y, 0], "to": [xn, yn, 0], "reach": "clamp(div(note.age, max(note.gap, 0.1)), 0, 1)", "width": 0.035, "glow": "1.4*exp(0 - 0.05*note.age)", "color": c.a, "samples": 16},
+              ball(x, y, -0.05, "0.13*(0.6 + note.vel)*(1 + 2*exp(0 - 3*note.age))", 8, notes=N, **glow(c.ink, "1.5 + 3*exp(0 - 2*note.age)"))]
     return {"background": "#020308", "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.5, 0.02, 0.5)]}
 
 
@@ -1668,8 +1670,8 @@ def seismo(c):
     for i, p in enumerate(P):
         y = ((len(P) - 1) / 2 - i) * min(1.0, 4.4 / len(P))
         layers.append(box(0, y, 0.05, 4.4, 0.004, 0.01, **glow(c.dim, 0.5)))
-        layers.append({"type": "mesh", "shape": "cone", "detail": 3, "notes": {"track": p.name, "past": 8}, "x": "4.0 - 1.02*note.age", "y": f"{y:g} + 0.2*(0.4 + note.vel)", "z": 0, "scale": 1,
-                       "sx": 0.035, "sy": "0.2*(0.4 + note.vel)", "sz": 0.02, **glow(c.col(i), "0.8 + 2*exp(0 - 3*note.age)")})
+        layers.append({"type": "mesh", "shape": "cone", "detail": 3, "notes": {"track": p.name, "past": 8}, "x": "4.0 - 1.02*note.age", "y": f"{y:g} + 0.32*(0.4 + note.vel)", "z": 0, "scale": 1,
+                       "sx": 0.07, "sy": "0.32*(0.4 + note.vel)", "sz": 0.02, **glow(c.col(i), "0.8 + 2*exp(0 - 3*note.age)")})
         layers.append(ball(4.0, y, -0.05, f"0.04 + 0.06*{p.hit}", 8, **glow(c.ink, 2)))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.35, 0.014, 0.6)]}
 
@@ -2191,17 +2193,17 @@ def galton(c):
     """A board of pegs: every note is a ball let fall through it, going left or right at
     each peg."""
     P = _cast(c, 2)
-    rows, dx, dy = 8, 0.6, 0.52
+    rows, dx, dy = 8, 0.86, 0.54
     rate = 1.0 / max(c.six * 4 * 2.2, 0.25)                # rows a beat: a ball is 2.2 s on the board
     layers = []
     for r in range(rows):
-        layers.append(ball(f"(inst.i - {r / 2})*{dx}", 2.1 - r * dy, 0.05, 0.035, 6, count=r + 1, **glow(c.dim, 0.8)))
+        layers.append(ball(f"(inst.i - {r / 2})*{dx}", 2.1 - r * dy, 0.05, 0.06, 6, count=r + 1, **glow(c.dim, 1.2)))
     for i, p in enumerate(P):
         row = f"(note.age*{rate:g})"
         x = " + ".join(f"smooth({r}, {r + 0.6}, {row})*(step(0.5, hash(note.beat*7.13 + {r + 3 * i})) - 0.5)" for r in range(rows))
         y = f"2.35 - {dy}*(floor({row}) + pow(fract({row}), 2)) + 0.12*sin(fract({row})/2)"
-        layers.append(ball(f"({x})*{dx}", y, 0, "0.075*(0.6 + note.vel)", 8, notes={"track": p.name, "past": (rows + 0.6) / rate}, **glow(c.col(i), "1 + 2*exp(0 - 3*note.age)")))
-    layers.append(box(f"(inst.i - {rows / 2})*{dx}", 2.1 - rows * dy - 0.15, 0.05, 0.008, 0.25, 0.01, count=rows + 1, **glow(c.dim, 0.7)))
+        layers.append(ball(f"({x})*{dx}", y, 0, "0.15*(0.6 + note.vel)", 8, notes={"track": p.name, "past": (rows + 0.6) / rate}, **glow(c.col(i), "1 + 2*exp(0 - 3*note.age)")))
+    layers.append(box(f"(inst.i - {rows / 2})*{dx}", 2.1 - rows * dy - 0.15, 0.05, 0.015, 0.25, 0.01, count=rows + 1, **glow(c.dim, 1.0)))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.016, 0.6)]}
 
 
@@ -2369,12 +2371,12 @@ def teletype(c):
     never falls in the same columns twice."""
     A = c.riffs[0]
     nn = A.cell
-    w = min(0.5, 8.4 / nn)
-    rows = 8
+    w = min(0.62, 8.6 / nn)
+    rows = 6
     turn_now = f"floor({A.turn})"
     row = f"({turn_now} - floor((note.beat*4 - {A.anchor:g} + 0.01)/{nn}))"       # lines ago
-    layers = [{"type": "text", "notes": {"track": A.name, "past": rows * nn / 4}, "text": _letters(c), "pick": "floor(note.beat*4 + 0.01)", "size": 0.15, "align": "center", "width": 0.13, "skew": 0,
-               "x": f"(({A.nstep} + 0.5 - {nn / 2})*{w / 2.557:g})", "y": f"0 - 0.72 + 0.2*{row} + 0.2*smooth(0, 0.15, fract({A.turn}))  - 0.2", "color": c.ink, "opacity": "0.45 + 0.55*exp(0 - 2*note.age)"},
+    layers = [{"type": "text", "notes": {"track": A.name, "past": rows * nn / 4}, "text": _letters(c), "pick": "floor(note.beat*4 + 0.01)", "size": min(0.26, w / 2.557 * 1.25), "align": "center", "width": 0.18, "skew": 0,
+               "x": f"(({A.nstep} + 0.5 - {nn / 2})*{w / 2.557:g})", "y": f"0 - 0.74 + 0.3*{row} + 0.3*smooth(0, 0.15, fract({A.turn})) - 0.3", "color": c.ink, "opacity": "0.55 + 0.45*exp(0 - 2*note.age)"},
               box(f"((fract({A.turn})*{nn} + 0.5 - {nn / 2})*{w:g})", -2.3, 0, w * 0.4, 0.02, 0.01, **glow(c.a, 1.5))]
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.25, 0.012, 0.75)]}
 
@@ -3099,7 +3101,7 @@ def t_blocks(c, look):
 
 @treat("duotone", ok=lambda c, info: info["fam"] not in ("plate",))
 def t_duotone(c, look):
-    return _pre(look, {"type": "color", "exposure": 2.2}, {"type": "posterize", "levels": 4}, {"type": "tint", "palette": [c.bg, c.b, c.a, c.ink], "amount": c.arr, "pos": 0})
+    return _pre(look, {"type": "color", "exposure": 1.8}, {"type": "posterize", "levels": 4}, {"type": "remap", "palette": [c.bg, c.b, c.a, c.ink], "amount": c.arr})
 
 
 @treat("fringe", ok=lambda c, info: True)
@@ -3258,6 +3260,20 @@ def t_water(c, look):
     return _pre(look, {"type": "ripple", "on": f"track.{p.name}", "amount": 0.05, "speed": 1.3, "width": 0.16, "decay": 1.4, "x": (-0.6, 0.5, 0, 0.9)[c.seed % 4], "y": (0.2, -0.3, 0, 0.4)[c.seed % 4]})
 
 
+@treat("poster", ok=lambda c, info: info["fam"] not in ("sign", "plate", "ground", "place"))
+def t_poster(c, look):
+    """A two-colour print: the ground is the song's colour, flat, and whatever was light is black on it."""
+    look["filters"] = [f for f in look.get("filters", []) if f.get("type") != "bloom"] + [{"type": "remap", "gain": 1.8, "palette": [c.a, "#141418", "#0c0c10"], "amount": c.arr}]
+    return look
+
+
+@treat("flood", ok=lambda c, info: info["fam"] not in ("sign", "plate", "ground", "place"))
+def t_flood(c, look):
+    """The other print: a deep ground of the song's second colour, and whatever was light is cream on it."""
+    look["filters"] = [f for f in look.get("filters", []) if f.get("type") != "bloom"] + [{"type": "remap", "gain": 1.8, "palette": [c.b, "#f3ecd8", "#fffaf0"], "amount": c.arr}]
+    return look
+
+
 @treat("negative", ok=lambda c, info: info["paper"])
 def t_negative(c, look):
     """Printed as a negative: dark figures on a pale ground."""
@@ -3265,14 +3281,18 @@ def t_negative(c, look):
     return look
 
 
-ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief")
+ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief", "poster", "flood")
 
 # Idioms drawn in hair lines and points, made bolder so that they read at any size: how far
 # each thing in them is spread (a fraction of the frame's height).
 BOLD = {"numerals": 0.004, "orrery": 0.004, "kelvin": 0.004, "galton": 0.004, "sonar": 0.004, "treerings": 0.003, "combs": 0.004, "pond": 0.003, "remainder": 0.004, "constellation": 0.004,
-        "tally": 0.003, "bifurcate": 0.003, "clockshop": 0.003, "strange": 0.002, "epicycle": 0.003, "seismo": 0.004, "harmonograph": 0.003, "crystal": 0.004, "strings": 0.004, "solkattu": 0.003,
+        "tally": 0.003, "bifurcate": 0.003, "clockshop": 0.003, "strange": 0.002, "epicycle": 0.003, "seismo": 0.003, "harmonograph": 0.003, "strings": 0.002, "solkattu": 0.003,
         "teletype": 0.003, "turtle": 0.004, "slack": 0.003, "table": 0.003, "letters": 0.003, "metro": 0.003, "spiral": 0.002, "stringart": 0.002, "kelvin": 0.004, "moons": 0.002, "radial": 0.002,
         "pong": 0.003, "contour": 0.003, "armillary": 0.003, "changes": 0.002, "loom": 0.002}
+
+
+# Guises that add to a picture (copies, echoes, mirrors) rather than print it.
+FILLS = ("kaleido", "mirror", "wall", "planet", "tunnel", "echo", "slices", "fringe", "spin", "roll", "wound", "water", "torn", "hole", "lines", "warp", "solar", "flood", "poster")
 
 
 def bolder(name, look):
