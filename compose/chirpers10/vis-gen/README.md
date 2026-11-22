@@ -50,6 +50,9 @@ about 940 scenes on the album, every one different.
 | A joint: who plays changes, or a riff's length changes | A cut (`cut`), to the sixteenth. Between joints a scene lasts whole rounds of its own riffs where they come round quickly enough, so cuts fall where riffs meet and not on the bar. |
 | A full passage / a thin one | Scenes of four to eight seconds / six to eleven; loud idioms / calm ones (`mood`); more pictures two at a time. |
 | A long round comes to its end | The scene ends there and the picture burns out into it. |
+| The great round ends (every length of riff the song keeps to comes round at once, on a bar line, once in the song and past its middle: bar 385 of the first song) | A hand for each length comes up over the pictures of the bars before, each going round once in its own turn; they reach the top together only then. The picture burns out to white, and out of the white comes the song's first picture, exactly as it stood at the first bar. It is the one picture the film shows twice. |
+| A riff is played differently for one turn among many alike | For that turn the picture is its negative. |
+| The band is building, or thinning | The camera goes in (push, punch, a step closer each turn), or draws back; level passages get a move across, a lean, a rock with the riff. |
 | Two riffs of the scene come round together | The picture catches the light for an instant. |
 | The drums break into a fill (`fills`) | That bar goes by in flashes, a beat each (`flurries`), each a different picture: mostly ones the song has shown, in another guise. |
 | The band comes in after a thin bar (`dynamics`) | A cut on it; the new picture is struck with light and comes forward. |

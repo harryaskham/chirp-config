@@ -162,6 +162,28 @@ def rnd(*key):
     return int(hashlib.sha1(repr(key).encode()).hexdigest()[:8], 16) / 0xffffffff
 
 
+def landings(S):
+    """The great round's end: the sixteenths (on a bar line) at which every length of riff
+    that the song keeps to, each from where it began, comes round at once, where that happens
+    only once or twice in the whole song. [(sixteenth, {cell: where its turns begin})]."""
+    end = S.bars * 16
+    cover, anc = collections.Counter(), collections.defaultdict(collections.Counter)
+    for t in (S.tracks.values() if isinstance(S.tracks, dict) else S.tracks):
+        for sp in t.anchors:
+            a, z, cell, anchor = sp[:4]
+            if 32 % cell:
+                cover[cell] += z - a
+                anc[cell][anchor % cell] += z - a
+    # A length the song keeps to: played (by all its parts together) for at least half the
+    # song's length, and seven times in ten from the same place.
+    need = {cell: anc[cell].most_common(1)[0][0] for cell, n in cover.items() if n >= 0.5 * end and anc[cell].most_common(1)[0][1] >= 0.7 * n}
+    if len(need) < 2:
+        return []
+    hits = [t for t in range(16 * 8, end - 16, 16) if all((t - r) % cell == 0 for cell, r in need.items())]
+    # (It is a landing only after a long wait: once or twice in the song, and past its middle.)
+    return [(t, need) for t in hits if t >= end / 2] if 1 <= len(hits) <= 2 else []
+
+
 def cut(S):
     """Where a song's scenes change: [(first sixteenth, last, round or None)].
 
@@ -178,6 +200,8 @@ def cut(S):
     edges = set()
     for a, z, *_ in rounds:
         edges |= {a, min(z, end)}
+    S.landings = landings(S)
+    edges |= {t for t, _ in S.landings}
     gap = max(24, int(4.0 / six))               # no stretch shorter than this (about four seconds)
     head = max(64, int(8.5 / six))              # the first scene stands under the song's name
     marks = sorted(m for m in edges | {j for j in joints if all(abs(j - e) >= gap for e in edges)} if m == 0 or m >= head)
@@ -209,7 +233,12 @@ def cut(S):
                 q = y
             out.append((p, q, cyc, None))
             p = q
-    return flurries(S, dynamics(S, out), gap)
+    out = flurries(S, dynamics(S, out), gap)
+    for t, _ in S.landings:
+        for i, (p, q, cyc, kind) in enumerate(out):
+            if p == t:
+                out[i] = (p, q, cyc, "landing")
+    return out
 
 
 def dynamics(S, scenes):
@@ -312,6 +341,7 @@ class Deal:
         self.stacks = collections.Counter()
         self.trios = 0
         self.odd = 0
+        self.landings = 0
         self.ruled = 0
         self.album_first = None
 
@@ -600,6 +630,28 @@ def odd_turns(S, c):
     return odd if 1 <= len(odd) <= max(1, len(pats) // 5) and len(odd) <= 2 else []
 
 
+def white(look, amount):
+    """Light over the whole picture (a burn-out, a flash), whatever it is made of."""
+    look.setdefault("layers", []).append({"type": "shape", "sides": 4, "rotate": 0.125, "radius": 2.7, "width": 0, "fill": 1, "color": "#ffffff", "blend": "add", "x": 0, "y": 0, "opacity": amount})
+
+
+def gathering(look, t, need):
+    """A look with the hands of the great round over it: one ring for each length of riff and
+    one for the bar, a mark going round each once a turn; they stand in a line at the top only
+    at the sixteenth `t`. They come up over the eight bars before."""
+    cells = sorted(need) + [16]
+    up = f"smooth({t / 4 - 44:g}, {t / 4 - 30:g}, time.beat)"
+    over = []
+    for i, cell in enumerate(cells):
+        r = 0.34 + 0.13 * i
+        ph = f"(0.25 - (time.beat*4 - {t})/{cell})"
+        near = f"exp(0 - 6*abs(fract((time.beat*4 - {t})/{cell} + 0.5) - 0.5))"
+        over.append({"type": "shape", "sides": 0, "radius": r, "width": 0.003, "fill": 0, "color": "#ffffff", "blend": "add", "opacity": f"0.35*{up}"})
+        over.append({"type": "shape", "sides": 1, "radius": f"0.022 + 0.02*{near}", "width": 0, "fill": 1, "color": "#ffffff", "blend": "add", "x": f"{r}*cos({ph})", "y": f"{r}*sin({ph})", "opacity": f"{up}"})
+    over.append({"type": "shape", "repeat": 12, "sides": 1, "radius": 0.005, "width": 0, "fill": 1, "color": "#ffffff", "blend": "add", "x": 0, "y": f"0.3 + inst.i*{(0.34 + 0.13 * (len(cells) - 1) - 0.26) / 11:g}", "opacity": f"0.5*{up}"})
+    return {"background": "#000000", "layers": [W._act(look, blend="normal")] + over, "filters": []}
+
+
 def plan(S, deal):
     """A song's scenes: [(a16, b16, idiom, treatment, scene dict, context)]."""
     deal.song_used = collections.Counter()
@@ -621,7 +673,21 @@ def plan(S, deal):
             r1, r2 = frozenset((p.name, p.cell) for p in c.riffs), frozenset((p.name, p.cell) for p in c2.riffs)
             if r1 and r2 and (r1 < r2 or r2 < r1):
                 ahead = c2
-        name, treat, look = deal.choose(S, c, k, first=(k == 0), flash=flash, prefer=(deal.album_first if S.n == 17 else out[0][2]) if k and k == len(cuts) - 1 and len(cuts) > 12 else None, kind=kind, ahead=ahead,
+        landed = None
+        if kind == "landing" and out:
+            # The great round is over: everything is where it was when the song began, and so is the picture.
+            try:
+                c0 = S.cx(a16, b16, k=0, cyc=cyc)
+                c0.riffs = out[0][5].riffs      # (the wheels as they were, though they have stopped sounding)
+                landed = (out[0][2], "landing", W.bolder(out[0][2], W.REG[out[0][2]]["f"](c0)))
+                deal.used[out[0][2]] += 1
+                deal.recent.append(out[0][2])
+                deal.last = None
+                deal.log.setdefault(str(S.n), []).append(f"{out[0][2]}/landing")
+                deal.landings += 1
+            except (ValueError, IndexError, ZeroDivisionError, TypeError):
+                landed = None
+        name, treat, look = landed or deal.choose(S, c, k, first=(k == 0), flash=flash, prefer=(deal.album_first if S.n == 17 else out[0][2]) if k and k == len(cuts) - 1 and len(cuts) > 12 else None, kind=kind, ahead=ahead,
                                        final=(k == len(cuts) - 1))
         if deal.album_first is None:
             deal.album_first = name     # the album ends on the picture it began with, changed
@@ -663,6 +729,18 @@ def plan(S, deal):
         if cyc and b16 == min(S.bars * 16, a16 + ((b16 - a16) // cyc["round"] or 1) * cyc["round"]) and any(z == b16 for _, z, *_ in S.rounds):
             # The scene ends where a long round does: the picture burns out on the meeting.
             look.setdefault("filters", []).append({"type": "color", "exposure": f"1 + 5*pow(smooth({b16 / 4 - 1:g}, {b16 / 4:g}, time.beat), 3)"})
+            white(look, f"0.7*pow(smooth({b16 / 4 - 1:g}, {b16 / 4:g}, time.beat), 3)")
+        for t, need in S.landings:
+            if a16 < t <= a16 + 16 * 12 and not flash and b16 <= t:
+                # The great round is nearly over: a hand for each length of riff comes up over the
+                # picture, each going round once in its own turn, and all of them reach the top
+                # together only at the landing.
+                look = scene["look"] = gathering(look, t, need)
+                if b16 == t:
+                    white(look, f"pow(smooth({t / 4 - 3:g}, {t / 4:g}, time.beat), 2.5)")
+        if kind == "landing":
+            since = f"max(time.beat - {a16 / 4:g}, 0)"
+            white(look, f"exp(0 - 0.9*{since})")
         if kind == "hush":
             # The band has stopped: the picture is drained and dim until it comes back in.
             look.setdefault("filters", []).append({"type": "color", "saturation": 0.1, "exposure": 0.5})
@@ -670,6 +748,7 @@ def plan(S, deal):
             # The band comes in: the picture is struck with light and comes forward, then settles.
             since = f"max(time.beat - {a16 / 4:g}, 0)"
             look.setdefault("filters", []).extend([{"type": "camera", "zoom": f"1 + 0.22*exp(0 - 2.5*{since})"}, {"type": "color", "exposure": f"1 + 3.5*exp(0 - 4*{since})"}])
+            white(look, f"0.45*exp(0 - 5*{since})")
         if k and name in W.PLATES and "+" not in treat:
             scene["lead"] = "2bar" if name == "photofinish" else "1bar"
         elif k and not kind and not was_flash and treat not in ("more", "less") and rnd(S.n, k, "x") < 0.34:
@@ -730,7 +809,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 
