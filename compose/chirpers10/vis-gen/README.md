@@ -78,9 +78,21 @@ Of, out of register for Close Enough).
 
 Nothing is dealt twice (`Deal`, album-wide): never the same idiom in the same guise, never
 the same family twice running, never the same idiom within twelve scenes. Each song has its
-own colours (`PALS`) and four idioms that suit its name, taken sideways (`FEATURE`): bells
-rung in changes for Plain Hunt, Huygens's two clocks for Odd Sympathy, a dish of cells for
-Carrying Capacity, squares laid round one another for Extreme and Mean.
+own colours (`PALS`) and some idioms built on what it is about, taken sideways (`FEATURE`):
+bells rung in changes for Plain Hunt, Huygens's two clocks for Odd Sympathy, a dish of
+cells for Carrying Capacity, squares laid round one another and a wall whose bricks are the
+waits between notes for Extreme and Mean, the oblong cut down to its common measure for
+Common Measure, the walks of the first sixteen numbers down to one for So Far, striped
+poles that climb for ever for False Summit, wheels seen only by the flash of another
+riff's notes for Slow Enough to Count.
+
+What a picture is like decides what may be done to it (sets at the end of `wild.py`,
+several of them measured on a proof with `wlight.py`): thin pictures (`THIN`) do not take
+guises that leave less of a picture than there was (`SHRINKS`); hair-line pictures (`BOLD`)
+are thickened and take only guises that add (`FILLS`); pictures made of notes (`FED`) and
+pictures that take time to form (`SLOW`) keep out of flashes; `cutout`, `stencil` and
+`glass` need something to work on and something to work with (`FULL`, `BROAD`, `fits`);
+flames, bricks and paintings keep their own colours (`TRUE`).
 
 Commands (from this directory; `CHIRP` reads the cells and may be any recent binary):
 
