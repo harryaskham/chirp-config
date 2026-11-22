@@ -3473,6 +3473,15 @@ def t_kaleido(c, look):
     return _pre(look, {"type": "camera", "zoom": 0.75, "y": KALEIDO_UP}, {"type": "kaleido", "n": nn, "rotate": f"0.25 - {0.25 / nn:.4f} + {0.12 / nn:.4f}*sin({p.turn}/4)", "zoom": 1.0})
 
 
+# Two guises at once (dealt where the music is full): one that moves the picture, then one
+# that changes what it is made of, then one that works on it in time.
+STACK = {"kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0,
+         "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
+         "torn": 2, "water": 2, "echo": 2, "stop": 2}
+
+# Pairs of guises that leave only texture: a picture already made many, then drawn in line or set in type.
+STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched")}
+
 # Pictures that stand to one side, or are a line of things: half of one is not a picture.
 MIRROR_BAD = set("duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())

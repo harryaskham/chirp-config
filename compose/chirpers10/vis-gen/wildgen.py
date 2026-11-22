@@ -122,12 +122,12 @@ class Song:
 # What each song leans on: idioms that suit its name, dealt there first (and still once only
 # in each guise).
 FEATURE = {
-    1: ("loom", "remainder", "crystal", "helix"), 2: ("sympathy", "pendwave", "strings", "cradle"), 3: ("changes", "maypole", "chorus", "stringart"),
-    4: ("dominoes", "automaton", "tally", "abacus"), 5: ("stairs", "ridges", "escalator", "flight"), 6: ("colony", "bifurcate", "automaton", "anemone"),
-    7: ("golden", "spiral", "sunflower", "mandala"), 8: ("loom", "tartan", "solkattu", "musicbox"), 9: ("henge", "orrery", "moons", "grove"),
-    10: ("balance", "coins", "tape", "galton"), 11: ("doors", "blinds", "press", "hammers"), 12: ("hands", "juggle", "semaphore", "chorus"),
-    13: ("eclipse", "pond", "spiral", "lanterns"), 14: ("numerals", "tally", "zoetrope", "seismo"), 15: ("slack", "ropes", "wires", "swings"),
-    16: ("moire", "chladni", "eclipse", "lighthouse"), 17: ("railway", "highway", "gates", "constellation"),
+    1: ("loom", "remainder", "crystal", "helix", "billiard"), 2: ("sympathy", "pendwave", "strings", "cradle", "seesaw"), 3: ("changes", "maypole", "chorus", "stringart", "drill"),
+    4: ("dominoes", "automaton", "tally", "abacus", "odometer"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava"),
+    7: ("golden", "spiral", "sunflower", "mandala", "star"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen"), 9: ("henge", "orrery", "moons", "grove", "snow"),
+    10: ("balance", "coins", "tape", "galton", "duel"), 11: ("doors", "blinds", "press", "hammers", "tesla"), 12: ("hands", "juggle", "semaphore", "chorus", "fan"),
+    13: ("eclipse", "pond", "spiral", "lanterns", "rink"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader"), 15: ("slack", "ropes", "wires", "swings", "switchboard"),
+    16: ("moire", "chladni", "eclipse", "lighthouse", "billiard"), 17: ("railway", "highway", "gates", "constellation", "searchlights"),
 }
 TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weave", "spiral", "rings", "checker", "split", "wipe", "iris", "blinds", "clock", "diamond", "rise", "dissolve")
 NO_PAIR = ("room", "sheet", "plate", "travel")      # families that are not put in a frame with another
@@ -286,6 +286,7 @@ class Deal:
         self.last = None
         self.chains = 0
         self.grown = collections.Counter()
+        self.stacks = collections.Counter()
         self.ruled = 0
         self.album_first = None
 
@@ -467,6 +468,23 @@ class Deal:
                 on = f"smooth({m - 0.12:g}, {m + 0.12:g}, time.beat)"
                 c.arrive = on if self.arrivals % 2 == 0 else f"(1 - {on})"
                 self.arrivals += 1
+            # Where the music is full a picture may wear two guises at once.
+            second = None
+            if treat in W.STACK and not flash and name != hand_on and c.full >= 0.55 and rnd(S.n, k, "stack?") < 0.5:
+                more = sorted((t for t in W.STACK if W.STACK[t] != W.STACK[treat] and (name, t) not in self.combos and W.TREAT[t][1](c, info) and (name not in W.BOLD or t in W.FILLS)
+                               and (treat, t) not in W.STACK_BAD and (t, treat) not in W.STACK_BAD),
+                              key=lambda t: self.stacks[t] + 2 * rnd(S.n, k, "st" + t))
+                if more:
+                    second = more[0]
+            if second:
+                first_, last_ = sorted((treat, second), key=lambda t: W.STACK[t])
+                look = W.TREAT[last_][0](c, W.TREAT[first_][0](c, look))
+                self.treats[treat] += 1
+                self.stacks[second] += 1
+                self.combos.add((name, second))
+                both = f"{first_},{last_}"
+                note(name, treat, f"{name}/{both}", raw=raw, ending=None)
+                return name, both, look
             look = W.TREAT[treat][0](c, look)
             self.treats[treat] += 1
             note(name, treat, name if treat == "plain" else f"{name}/{treat}", raw=raw, ending="plain" if c.arrive.startswith("(1 -") else treat)
@@ -551,7 +569,7 @@ def plan(S, deal):
             look.setdefault("filters", []).append({"type": "hue", "shift": shift})
         deal.flashes += flash
         scene = {"at": 0 if k == 0 else f"{a16 // 16}bar" if a16 % 16 == 0 else f"{a16 / 4:g}b", "look": look}
-        still = treat in ("roll", "spin", "hole", "sheet", "kaleido", "mirror", "tunnel", "slices", "wall", "planet", "wound") or name in W.PLATES or W.REG[name]["fam"] in ("plate", "sheet", "sign")
+        still = any(t in ("roll", "spin", "hole", "sheet", "kaleido", "mirror", "tunnel", "slices", "wall", "planet", "wound") for t in treat.split(",")) or name in W.PLATES or W.REG[name]["fam"] in ("plate", "sheet", "sign")
         if k and not flash and not still and treat not in ("more", "less") and (b16 - a16) * c.six >= 4.5 and rnd(S.n, k, "move?") < 0.5:
             # The camera over the picture does one thing in the scene, each kind in its turn.
             mv = min(W.MOVES, key=lambda m_: deal.moves[m_] + 1.5 * rnd(S.n, k, m_))
@@ -632,7 +650,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 
