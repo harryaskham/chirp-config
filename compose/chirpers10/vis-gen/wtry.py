@@ -29,6 +29,8 @@ def main():
     n, a, b, out = int(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3]), sys.argv[4]
     names = [x for x in sys.argv[5:] if "=" not in x] or sorted(W.REG)
     kw = dict(x.split("=", 1) for x in sys.argv[5:] if "=" in x)
+    if "arrive" in kw:      # arrive=1: the treatment comes on half way through
+        W.Cx.arrive = f"smooth({(a + b) * 2 - 0.12:g}, {(a + b) * 2 + 0.12:g}, time.beat)"
     song = f"chirpers10-t{n}"
     S = G.Song(n)
     bar_s = S.bar_s
@@ -36,10 +38,21 @@ def main():
 
     def one(name):
         c = S.cx(int(a * 16), int(b * 16), k=int(kw.get("k", 0)), variant=int(kw.get("v", 0)), paper=bool(int(kw.get("paper", 0))))
+        # NAME, NAME/TREATMENT, or A+B/COMBINATION.
+        spec = name
+        base, _, how = name.partition("/")
+        name = name.replace("/", "_").replace("+", "-")
         try:
-            look = W.REG[name]["f"](c)
+            if "+" in base:
+                x, y_ = base.split("+")
+                look = W.COMBOS[how or "double"](c, W.bolder(x, W.REG[x]["f"](c)), W.bolder(y_, W.REG[y_]["f"](c.sub(1 if len(c.riffs) > 1 else 0, 2))))
+            else:
+                look = W.bolder(base, W.REG[base]["f"](c))
+                if how:
+                    for h in how.split(","):
+                        look = W.TREAT[h][0](c, look) if h in W.TREAT else W.rostrum(c, look, h)
         except Exception as e:  # noqa: BLE001
-            return name, None, f"{type(e).__name__}: {e}"
+            return spec, None, f"{type(e).__name__}: {e}"
         prog = {"scenes": [{"at": 0, "look": {"layers": []}}, {"at": f"{a:g}bar", "look": look, "lead": "1bar"}]}
         y = f"{TMP}/{name}.yaml"
         json.dump(prog, open(y, "w"), indent=1)
