@@ -279,7 +279,7 @@ LONG = os.environ.get('C10T15_LONG', '15;17;15;0;0;-9.9' if TEETH else '')
 # Benched raw against everything else and against the voices alone (K, whole stretch): see the round note. The
 # box's own weight (its fundamentals, 350-620 Hz) is cut 8 dB at 430 Hz: the choruses already stand 2.4 to 2.9 dB
 # over the records there, and what a concertina is heard by over a band is its reed (1-8 kHz).
-TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW', 'C10T15_PICK', 'C10T15_SNARE', 'C10T15_WAIT', 'C10T15_TOMS', 'C10T15_MUSTER') for k in os.environ)
+TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW', 'C10T15_PICK', 'C10T15_SNARE', 'C10T15_WAIT', 'C10T15_TOMS', 'C10T15_MUSTER', 'C10T15_SAYS') for k in os.environ)
                       else '-4.5dB;0.35;-12dB;-3;hp cutoff=300|peak cutoff=430 q=0.8 gain=-8dB|peak cutoff=2500 q=0.7 gain=3dB;-9.85')
 # the chorus's tune as a concertina plays it, an octave over the crew: their notes where they sing them, a passing
 # note in the breath after 'haul', and two sixteenths up into the next bar. (sixteenth, length, note), a bar a line.
@@ -696,7 +696,7 @@ def make():
             kit(c + 48, 'ft', .92)
             kit(c + 48, 'x', .9)
 
-    def chorus(a, bars, wide, last_long=False, high=False, pickup=False, hands=None, box=()):
+    def chorus(a, bars, wide, last_long=False, high=False, pickup=False, hands=None, box=(), says=False):
         gtrs = ('gl', 'gr', 'wl', 'wr') if wide else ('gl', 'gr')
         if hands:
             # v13: the two hands haul their own lengths under the crew's four, each stroke on the chord of the bar
@@ -718,12 +718,20 @@ def make():
             built = BUILT.split(';') if BUILT else None
             ends = last_long and b == bars - 1                        # the song's last chorus bar: one long chord, as it was
             walks = bool(built and built[0] == '1') and not ends
+            said = says and ' '.join(w for w, *_ in CHORUS[b % 8]) == SAYS.split(';')[1]
+            if said:
+                # v23: the band says the line with the crew: one chord to a syllable, on the tune's own note, held for
+                # a share of the syllable, and nothing between (the riff's strokes and the bass's eighths are left out)
+                for _, t, d, p in CHORUS[b % 8]:
+                    over = (PITCH.index(p[:-1]) - PITCH.index('F')) % 12 if SAYS.split(';')[3] == 'tune' else CHORDS[b % 8]
+                    stroke(gtrs, t0 + t, 'o', 0, round(d * float(SAYS.split(';')[2]), 3), F1 + over,
+                           whole=bool(built and built[1] == '1'))
             for pos, kind, semi, dur in RIFF16:
-                if final and pos:
+                if said or (final and pos):
                     continue          # the last bar is one held chord under 'home'
                 stroke(gtrs, t0 + pos, kind, semi, (15.5 if last_long and b == bars - 1 else 11.5) if final else dur, root,
                        bass=not walks, whole=bool(built and built[1] == '1'))
-            if walks:                 # v4: the bass in eighths on the root, stepping to the next chord on the last
+            if walks and not said:    # v4: the bass in eighths on the root, stepping to the next chord on the last
                 step = WALK.get((CHORDS[b % 8], CHORDS[(b + 1) % 8]), {})
                 for q in range(0, BAR, 2):
                     put('bass', t0 + q, 1.8, F1 + step[q] if q in step else root, .92 if q % 4 == 0 else .84)
@@ -820,10 +828,11 @@ def make():
             for t, p in ((8, 's'), (9, 's'), (10, 't1'), (11, 't1'), (12, 't2'), (13, 't2'), (14, 'ft'), (15, 'ft')):
                 kit(hold + t, p, .7 + .03 * (t - 8))
         elif sec in ('all together', 'all together again'):
-            chorus(a, bars, wide=sec != 'all together', pickup=sec == 'all together', box=(('l',),) if TUNE and sec != 'all together' else ())
+            chorus(a, bars, wide=sec != 'all together', pickup=sec == 'all together', box=(('l',),) if TUNE and sec != 'all together' else (),
+                   says=bool(SAYS) and sec in SAYS.split(';')[0].split(','))
         elif sec == 'home':
             chorus(a, bars, wide=True, last_long=True, high=True, hands=tuple(int(x) for x in LONG.split(';')[:3]) if LONG else None,
-                   box=(('l',), ('l', 'r')) if TUNE else ())
+                   box=(('l',), ('l', 'r')) if TUNE else (), says=bool(SAYS) and sec in SAYS.split(';')[0].split(','))
         elif sec == 'easy':
             land = marks_next['both hands'] + 7 * BAR
             for tr, riff, length in (('clean-l', RIFF15, 15), ('clean-r', RIFF17, 17)):
@@ -1256,6 +1265,31 @@ def the_crew_gathers(doc, marks):
         doc['loudness'] = float(target)
 
 
+# v23 (chirper-zero; section round, w3, 1:02-1:33; the change is 1:02.6-1:05.2, and the same bar of the second
+# chorus, 2:07.8-2:10.4): THE BAND SAYS IT WITH THEM.
+# The chorus is the place where the band and the crew are in four together, and its fourth line is the crew saying so:
+# "All together now". Under it the band played the same bar of the riff as under every other line, and the bass its
+# eighths: the words said together and the band went on with its own figure. Now, in that one bar of the first two
+# choruses, the guitars, the bass and the kick play the crew's five syllables and nothing else: one chord to a
+# syllable, on the tune's own note (G flat, G flat, A flat, G flat, F: the F is the next bar's chord, a quarter early,
+# as the crew sing it), held for six tenths of the syllable and stopped. The snare, the feet and the cymbals were on
+# those syllables already (the line is on the beats and one eighth), so for one bar every stroke in the band is a
+# syllable, and between the syllables there is only the crew. Nothing is added: six strokes of the riff and eight
+# eighths of the bass become five. The last chorus ('home') is left as it is: there the two hands are still hauling
+# their fifteen and seventeen (v13) and the meeting is the last chord, not this line.
+# Measured (says.py, raw, the song's seed): in the rests after 'all', 'ther' and 'now' the band falls from -17…-21 to
+# -41…-44 dB (K) in the first chorus (-29…-31 in the second, where the squeezebox goes on with its tune and leads
+# into the next bar), and the voices stand 11 to 14 dB over it there where they stood 9 to 13 under; on the syllables
+# the band is within 1.5 dB of what it was. Finished (fin15.py): the rests read about 10 dB under the syllables (8), the
+# bar 1.3 and 0.9 dB quieter, the bars either side as they were, and the next downbeat is a step up of 10 and 9 dB
+# out of the last rest where there was none.
+# the sections ; the line (the chorus bar whose words are these) ; the share of each syllable the chord is held ;
+# 'tune' = each chord on its syllable's own note, anything else = all five on the bar's chord ; the loudness target
+# ('' = unchanged).
+# '' = v22 byte for byte. On only while MUSTER is; 'C10T15_SAYS' is in TUNE's exempt list.
+SAYS = os.environ.get('C10T15_SAYS', 'all together,all together again;all to ge ther now;0.6;tune;-9.791' if MUSTER else '')
+
+
 if __name__ == '__main__':
     doc, marks = build()
     if SUB:
@@ -1274,6 +1308,8 @@ if __name__ == '__main__':
         the_toms_get_a_stick(doc)
     if MUSTER:
         the_crew_gathers(doc, marks)
+    if SAYS and SAYS.split(';')[4]:
+        doc['loudness'] = float(SAYS.split(';')[4])
     if os.environ.get('C10T15_SHOW'):
         for sec, bars in FORM:
             t = marks[sec]
