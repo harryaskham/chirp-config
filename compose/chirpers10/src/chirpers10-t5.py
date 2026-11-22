@@ -1199,7 +1199,7 @@ TAPE = os.environ.get("C10T5_TAPE", "1;84:96;-1;0.575;0.41;-24;" if FALLTONE els
 # the pole, and up the run out of it. No other part changes.
 # dB on the tone against its level under the stair ; bars from:to ; the loudness target ('' = unchanged). '' = v29.
 # It is on only while no other C10T5_ switch is set, so every older switch gives exactly what it gave.
-HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM", "C10T5_SNARE", "C10T5_LEAN", "C10T5_ASCENT", "C10T5_SCRAPE", "C10T5_HAND") for k in os.environ) else "")
+HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM", "C10T5_SNARE", "C10T5_LEAN", "C10T5_ASCENT", "C10T5_SCRAPE", "C10T5_HAND", "C10T5_UNDER") for k in os.environ) else "")
 
 # v31 (chirper-two; palette: the song had no voice, and no song on the album had used the engine's speech to song):
 # WE HAVE BEEN HERE BEFORE. A song "all about the illusions" (Harry, 15 Nov) had every illusion of pitch and of speed
@@ -1518,6 +1518,8 @@ def song():
         the_pick_is_dragged(doc)
     if HAND:
         the_descent_gets_a_hand(doc)
+    if UNDER:
+        the_chug_under_the_stair_holds(doc)
     return doc
 
 
@@ -2033,6 +2035,46 @@ def the_descent_gets_a_hand(doc):
                 pts.append([q, float(trim) if a <= x < b else v]); was = v
             assert on and off, t["name"]
             new["auto"] = {**t["auto"], "palm": {**t["auto"]["palm"], "points": pts}}
+        doc["tracks"][i] = new
+    if target:
+        doc["loudness"] = float(target)
+
+
+# v41 (chirper-zero; instrument round: THE PAIR UNDER THE STAIR, gl and gr, the 5150 rig as the library ships it:
+# 560 muted strokes and 344 open ones, 0:19-1:17 and at the summit, 4:00-4:19. No note changes.) Harry, 22 Nov:
+# "even harder sounding guitars". This pair was the one rig on the song no round had fitted (v35 benched a brighter
+# palm on it and the mix refused the top), and stroke by stroke beside six records it was the softest on the album:
+# its low end died after the stroke (100-250 Hz, the first 20 ms over 40-80 ms: +2.37 in the stair, +2.80 at the
+# summit; the records -1.1, none over +0.3) and it had the fewest teeth (400 Hz-1 kHz less 1-4 kHz: -6.55; the
+# records -11.3, their dullest -6.5).
+#   THE STROKE HOLDS, on the rig: the engine's physical palm (a hand of some width on the string) with the pick half
+#       as soft under it, the palm's thump off, the amp's tight filter 220 -> 150 Hz. One at a time, the fall:
+#       hand and pick +1.62 ; thump off +1.37 ; the tighter amp +0.34. The same three without the hand: +0.98.
+#       None of it adds top (teeth -6.57), which is what the mix refused at v35.
+#   THE TEETH, by taking away: a cut of 4.5 dB at 650 Hz after the cabinet (teeth -9.33, punch 3.57 -> 3.80). The
+#       stair is 2 dB OVER the records at 250 Hz-1 kHz and level at 2-4 kHz, so the pair gives up its box and
+#       adds no top. Beside the record's lone guitar (cabspec) the pair alone goes from 2.46 dB off to 1.73.
+#   The pair alone is as loud as it was (K within 0.01 dB: faders +0.22 dB).
+# the tracks ; what is added to their patch strings ; an eq on each, band|band ('' = none) ; dB on their faders ;
+# the loudness target ('' = unchanged). "" = v40 byte for byte. On only while HAND is; C10T5_UNDER is in HALFWAY's
+# list of names that do not turn it off.
+UNDER = os.environ.get("C10T5_UNDER", "gl,gr;synth.layers.0.mute=expr.pm*0.8 synth.layers.0.mute_width=0.1 synth.layers.0.soft=expr.pm*0.5 synth.layers.0.thump.mod.0.amount=0 fx.1.tight=150;peak cutoff=650 q=0.9 gain=-4.5dB;0.22;-10.0381" if HAND else "")
+
+
+def the_chug_under_the_stair_holds(doc):
+    """v41: the pair under the stair: overrides on its rig, one eq after it, its faders trimmed to equal loudness."""
+    names, extra, eq, trim, target = UNDER.split(";")
+    idx = [i for i, t in enumerate(doc["tracks"]) if t["name"] in names.split(",")]
+    assert len(idx) == len(names.split(","))
+    for i in idx:
+        t = doc["tracks"][i]
+        new = {**t, "patch": t["patch"].rstrip() + " " + extra}
+        if eq:
+            assert not t.get("fx"), t["name"]
+            new["fx"] = [{"type": "eq", "bands": eq.split("|")}]
+        if trim and float(trim):
+            assert isinstance(t["gain"], dict)
+            new["gain"] = {**t["gain"], "value": f"{float(t['gain']['value'][:-2]) + float(trim):g}dB"}
         doc["tracks"][i] = new
     if target:
         doc["loudness"] = float(target)
