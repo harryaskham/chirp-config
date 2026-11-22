@@ -1597,6 +1597,44 @@ def the_snare_answers(doc):
         doc["loudness"] = float(target)
 
 
+# v43 (chirper-zero; instrument round: the bass drum, 597 strokes, the album kit's as it came; no note moves).
+# THE BASS DRUM MAKES ROOM UNDER THE CHUG. Taken for the guitars (Harry, 22 Nov: "focus on the guitars"). Each hand
+# alone is under the records' punch (2.80-3.34 against 3.5-4.2) and its low end dies after the stroke (the fall +0.03
+# to +2.14 ; theirs -1.10, which holds). The amp's own cure (fx.1.tight=150, no thump) holds the string's low end alone
+# (three: +2.14 -> -0.09) but the mix is already over at 120-250 Hz and reads further with it in every window (eight
+# windows 6.43 -> 7.42): NOT PUBLISHED. What stands on the chug in the mix is the bass drum: alone it is 2.1 dB over
+# the records' drum at 120-250 Hz (-11.3 against -13.4), a knock that strikes with the muted strokes and is gone 40 ms
+# later. 3 dB off at 170 Hz on its track eq puts it at -13.9 ; the mix's 120-250 Hz comes down 0.3-0.5 and the low end
+# at the guitars' muted strokes dies 0.6-1.3 dB less. And where the two guitars are a sixteenth apart (beats 112-128:
+# nothing else plays but bass and kit) they stood 1.5 dB further back than the records' guitars do (by part -6.8
+# against -5.3): both faders ride up 2 dB there (lane `apart`), to -5.2.
+# a band added to the bass drum's track eq ; a fader lane, tracks@from:to:dB (beats; '' = none) ; the loudness target
+# ('' = unchanged). '' = v42 byte for byte. On only while ANSWER is. the_drum_makes_room(doc) runs last.
+ROOM = os.environ.get("C10T2_ROOM", "peak cutoff=170 q=1.2 gain=-3dB;gl,gr@112:128:2;-9.939" if ANSWER else "")
+
+
+def the_drum_makes_room(doc):
+    """v43: the bass drum's track eq gives at 170 Hz ; gl and gr ride up over the hold a sixteenth apart (lane `apart`)."""
+    kband, lane, target = ROOM.split(";")
+    num = lambda x: int(float(x)) if float(x) == int(float(x)) else float(x)
+    tr = {t["name"]: t for t in doc["tracks"]}
+    if kband:
+        k = tr["kick"]
+        assert len(k["fx"]) == 1 and k["fx"][0]["type"] == "eq", k["fx"]
+        k["fx"] = [{**k["fx"][0], "bands": list(k["fx"][0]["bands"]) + [kband]}]
+    if lane:
+        names, span = lane.split("@")
+        a, b, db = (num(x) for x in span.split(":"))
+        pts = [["0b", 0], [f"{a - 0.25:g}b", 0], [f"{a:g}b", 1], [f"{b - 0.25:g}b", 1], [f"{b:g}b", 0]]
+        for name in names.split(","):
+            t = tr[name]
+            assert not t.get("auto") and isinstance(t["gain"], str), (name, t.get("auto"), t["gain"])
+            t["gain"] = {"value": t["gain"], "mod": [{"src": "auto.apart", "amount": db}]}
+            t["auto"] = {"apart": {"points": pts, "curve": 0}}
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if PICK:
@@ -1607,4 +1645,6 @@ if __name__ == "__main__":
         the_snare_loses_its_box(doc)
     if ANSWER:
         the_snare_answers(doc)
+    if ROOM:
+        the_drum_makes_room(doc)
     open(OUT, "w").write(dump(doc))
