@@ -1279,6 +1279,8 @@ def song():
         the_bell_is_struck(doc)
     if FILLS:
         the_hands_count_what_is_left(doc)
+    if HAT:
+        the_hat_has_its_metal(doc)
     return doc
 
 
@@ -1783,6 +1785,45 @@ def dump(doc):
         else:
             lines.append(f"{k}: {json.dumps(v)}")
     return "\n".join(lines) + "\n"
+
+
+# v37 (chirper-zero; instrument round: the closed hat, all 282 strokes): THE HAT HAS ITS METAL.
+# The hat is the first thing heard in this song: it counts the beats alone under the two riffs as they are given
+# (0:00-0:07.9), keeps eighths until the shekere takes them (0:26), comes back for the last two pairs (1:43.5-2:13)
+# and is quoted in the coda (2:57). It was the album kit's closed hat as it comes: white noise through an 8 kHz
+# high-pass. Alone beside eleven records' drum stems (tools/cymspec.py) it read 8.80 dB out: +14.6, +15.8, +18.3 at
+# 10, 12.5 and 16 kHz and 11 to 19 under from 1 to 2 kHz: a hiss on top of the band, with none of a hat's clank.
+# The patch has a metal of its own (three square waves at 540, 800 and 1170 Hz) and all of it was filtered away.
+# WHO HOLDS THE TOP, by muting each part: in '8 against 4' the mix stands 2.6 dB over the records at 8-16 kHz with
+# nobody singing, and the hat is 2.9 dB of that octave (the snare 1.8); in '8 against 12' the hat is 1.6 dB of it
+# (the mix +0.6 over). So here the hiss was both the hat's fault alone and the mix's excess.
+# The fit is Plain Hunt's (v42 there): the high-pass opened to 2.5 kHz, the patch's lift moved from 10 kHz to
+# 5 kHz, the stroke a touch shorter (45 -> 40 ms); the fader down 3.1 dB, which makes the hat exactly as loud alone
+# as it was (-33.7 LUFS both). 2.04 alone. The track's own shelf (-2 dB from 9 kHz) is left: with Plain Hunt's
+# deeper shelf the hat read better alone (1.50) but '8 against 12' then fell 0.8 dB SHORT at 8-16 kHz and read
+# further from the records; two milder fits (Take Up the Slack's kind: 2.4 and 2.9 alone) read a hair better in
+# the mix's sum (3.26 and 3.23 against 3.28 over the four hat windows; as it was 3.68) and worse alone. This is the
+# rung where the hat alone and every window it plays in agree.
+# Its stroke stands where it stood against the mix (K -14.2 -> -14.4; the records' hats -12 to -15).
+# overrides on the library's closed hat (it becomes a song patch, `cm-hat-kit`, the hat track's kit) ; the hat track's
+# eq, bands with | between ('' = as it was) ; dB on the hat's fader ; the loudness target ('' = unchanged).
+# '' = v36 byte for byte. On only while FILLS is.
+HAT = os.environ.get('C10T8_HAT', 'filters.0.cutoff.value=2.5k filters.1.cutoff=5000 amp.d=40ms;;-3.1;' if FILLS else '')
+
+
+def the_hat_has_its_metal(doc):
+    """v37: the closed hat opened downwards, at the loudness it had alone. No stroke changes; no other track changes."""
+    over, bands, trim, target = HAT.split(';')
+    hat = next(t for t in doc['tracks'] if t['name'] == 'hat')
+    assert hat['patch'] == 'ct-kit-here' and isinstance(hat['gain'], str), (hat['patch'], hat['gain'])
+    doc['patches'] = {**doc['patches'], 'cm-hat-kit': {'extends': 'ct-kit-here', 'kit': {'h': {'patch': 'haake-hat ' + over}}}}
+    hat['patch'] = 'cm-hat-kit'
+    if bands:                                           # a new list: the cymbals' track shares this one's eq object
+        hat['fx'] = [{'type': 'eq', 'bands': bands.split('|')}]
+    if trim:
+        hat['gain'] = f"{float(hat['gain'][:-2]) + float(trim):g}dB"
+    if target:
+        doc['loudness'] = float(target)
 
 
 if __name__ == "__main__":
