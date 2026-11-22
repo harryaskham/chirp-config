@@ -1182,9 +1182,88 @@ def dump(d):
     return '\n'.join('tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) if k=='tracks' else k+': '+json.dumps(v) for k,v in d.items())+'\n'
 
 
+# v34 (chirper-zero; palette round: the part the organ lacked, its wind; a new last track `wind` on a patch of the
+# song's own, `oih-wind`, 32 puffs; no note of the organ or of anything else is changed): THE BELLOWS DRAW BREATH.
+# The track is called bellows, and the song says the organ breathes (v1: "a harmonium breathes four times to the
+# riff"; v9: "the reeds are still breathing ... four breaths of the broad walk, alone"; v23). What breathes is a
+# pump on the track: at every broad step (a dotted quarter) the reeds drop about ten decibels and swell back over
+# 0.4 s. Read alone there was no air in it: between the reeds' harmonics the floor is 69 to 90 dB under them, and
+# in the pump's holes there was only less organ.
+# Now a stroke of the pump inside an organ note draws one puff of wind: pink noise through the library harmonium's
+# own filters and room, 60 ms up and a third of a second down, so it sounds in the hole and is gone when the reeds
+# are back. It is written only where no guitar is sounding (under the band it read 21 dB under everything: covered,
+# and it cost three windows one to three hundredths): the bridge (28 puffs) and the four breaths the organ is left alone
+# with at the end. A puff under a single reed is 4 dB quieter than one under two; where the pump is shallow (the
+# fingered lines of v7 and v23) it would be 12 dB quieter (none is written there now). The level is the hole's.
+# Measured (holes.py, raw, the song's seed): at the end, in the hole, the wind stands 4.2 dB under the reeds and
+# under everything (K), 1.0 and 5.2 OVER everything at 2-4 and 4-8 kHz, and a third of a second later 34 under the
+# reeds; in the bridge 2.5 under the reeds in the hole, 20 under everything, 10 to 12 under from 1 kHz up.
+# Finished (finh11.py): the four holes at the end read 1.4 dB up (K), 3.5 at 2-4 kHz and 6.2 at 4-8 kHz; the
+# bridge's 0.2 to 0.4 up from 1 to 8 kHz; nothing else moves (the target is unchanged).
+# NOT TAKEN, benched first: the organ's own wind layer raised as a steady air under the reeds (15 to 24 dB under
+# where the organ is alone: hardly there) and 6 dB off its chest below 700 Hz (every window it plays in read closer
+# to the records): chirper-alpha's standing line on this song is "Do not trim the organ at 250-500 Hz: that band is
+# its note".
+# the wind track's fader, dB ; a puff's length, beats ; the tracks that cover it (no puff while one of them sounds;
+# '' = a puff at every stroke of the pump) ; dB on a puff under a single reed ('' = none) ; overrides added to its
+# patch string ; the loudness target ('' = unchanged).
+# '' = v33 byte for byte. On only while OPENS is; nothing is added if the organ has no pump (C10T11_PUMP='').
+AIR = os.getenv('C10T11_AIR', '-9;1;gl,gr,wallL,wallR;-4;;' if OPENS else '')
+WIND_PATCH = {"about": "chirper-zero: the wind of On Its Hinge's pump organ: pink noise through the library harmonium's own filters and room, a short puff. Not a library patch.",
+              "synth": {"layers": [{"type": "noise", "color": "pink", "level": "0dB"}],
+                        "filters": [{"cutoff": 180, "kind": "hp"}, {"cutoff": 1100, "gain": "4dB", "kind": "peak", "q": 1.2}, {"cutoff": "4.5k"}],
+                        "amp": {"a": "60ms", "d": "330ms", "s": 0, "r": "120ms"}},
+              "fx": [{"type": "reverb", "kind": "room", "decay": "1.3s", "mix": 0.2}], "gain": "-12dB", "play": {"vel_sens": 0.4}}
+
+
+def the_bellows_draw_breath(doc):
+    """v34: one puff of wind at every stroke of the organ's pump (every 1.5 beats from 0) that falls inside an organ
+    note, on a new last track; where the pump's lane is shallow the puff is as much quieter."""
+    import math
+    db, length, cover, single, over, target = AIR.split(';')
+    by = {t['name']: t for t in doc['tracks']}
+    # a covering stroke counts for two beats at least: the rests inside a riff of clipped strokes are the riff's
+    covered = [(n['at'], n['at'] + max(n['len'], 2.0)) for c in cover.split(',') if c for n in by[c]['notes']]
+    organ = next(t for t in doc['tracks'] if t['name'] == 'bellows')
+    if not any(isinstance(f, dict) and f.get('type') == 'pump' for f in organ.get('fx', [])):
+        return
+    pts = [(float(b.rstrip('b')), v) for b, v in organ['auto']['hand']['points']] if 'auto' in organ else [(0.0, 1.0)]
+
+    def hand(b):
+        v = pts[0][1]
+        for bb, vv in pts:
+            if bb <= b:
+                v = vv
+        return v
+    seen = {}
+    for n in organ['notes']:
+        k = math.ceil(n['at'] / 1.5 - 1e-6)
+        while k * 1.5 < n['at'] + n['len'] - 0.25:
+            vel, reeds = seen.get(k, (n['vel'], 0))
+            seen[k] = (vel, reeds + len(str(n['pitch']).split(',')))
+            k += 1
+    notes = []
+    for k in sorted(seen):
+        b = k * 1.5
+        if any(a <= b + 0.5 and b < z for a, z in covered):
+            continue                      # a guitar is sounding: the wind is covered there (21 dB under), so it is not written
+        vel, reeds = seen[k]
+        e = {'at': b, 'len': float(length), 'pitch': 'C4', 'vel': vel}
+        g = 20 * math.log10(hand(b)) + (float(single) if single and reeds < 2 else 0)
+        if abs(g) > 0.05:
+            e['gain'] = f'{round(g, 1):g}dB'
+        notes.append(e)
+    doc['patches'] = {**doc['patches'], 'oih-wind': WIND_PATCH}
+    doc['tracks'].append({'name': 'wind', 'patch': ('oih-wind ' + over).strip(), 'gain': f'{float(db):g}dB', 'pan': organ['pan'], 'notes': notes})
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('-o','--out',type=Path,default=Path(os.environ.get('C10T11_OUT',OUT)));p.add_argument('--map',action='store_true'); a=p.parse_args(); doc,marks=make()
     if a.map:
         for name,cells in FORM:
             t=marks[name];print(f'{name:10} {t/16+1:g}-{(t+CELL*cells)/16+1:g} bars; {t/SUB*60/BPM:g}s, {cells} cells')
-    else: a.out.write_text(dump(doc))
+    else:
+        if AIR: the_bellows_draw_breath(doc)
+        a.out.write_text(dump(doc))
