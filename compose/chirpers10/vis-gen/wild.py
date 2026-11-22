@@ -4090,14 +4090,20 @@ def rostrum(c, look, kind):
     f = {"push": {"zoom": f"1 + 0.38*{g}"}, "pull": {"zoom": f"1.38 - 0.38*{g}"},
          "across": {"zoom": 1.3, "x": f"{0.4 * sx:g}*({g}*2 - 1)"}, "lean": {"zoom": 1.16, "rotate": f"{0.035 * sx:g}*({g}*2 - 1)"},
          "punch": {"zoom": f"1 + 0.75*step({m:g}, time.beat)", "x": f"{0.45 * sx:g}*step({m:g}, time.beat)", "y": f"{0.2 * sy:g}*step({m:g}, time.beat)"},
-         "release": {"zoom": f"1.75 - 0.75*step({m:g}, time.beat)", "x": f"{0.45 * sx:g}*(1 - step({m:g}, time.beat))", "y": f"{0.2 * sy:g}*(1 - step({m:g}, time.beat))"}}[kind]
+         "release": {"zoom": f"1.75 - 0.75*step({m:g}, time.beat)", "x": f"{0.45 * sx:g}*(1 - step({m:g}, time.beat))", "y": f"{0.2 * sy:g}*(1 - step({m:g}, time.beat))"},
+         # In a step closer each time the riff comes round; rocking with it; going across on a slant.
+         "step": {"zoom": f"1 + {min(0.14, 0.7 / max(1.0, (c.b16 - c.a16) / cell)):g}*floor((time.beat*4 - {c.a16:g})/{cell})"},
+         "rock": {"zoom": 1.14, "rotate": f"{0.022 * sx:g}*sin({lead.turn}/2)"},
+         "drift": {"zoom": 1.32, "x": f"{0.42 * sx:g}*({g}*2 - 1)", "y": f"{0.2 * sy:g}*({g}*2 - 1)"}}[kind]
     fs = look.setdefault("filters", [])
     at = max((i + 1 for i, x in enumerate(fs) if x.get("type") in DEPTH), default=0)
     look["filters"] = fs[:at] + [{"type": "camera", **f}] + fs[at:]
     return look
 
 
-MOVES = ("push", "punch", "across", "pull", "release", "lean")
+MOVES = ("push", "punch", "across", "pull", "release", "lean", "step", "rock", "drift")
+# What the camera does goes by what the band does: in as it builds, back as it thins.
+MOVES_FOR = {1: ("push", "punch", "step"), -1: ("pull", "release"), 0: ("across", "lean", "rock", "drift")}
 
 
 # The stock a song is printed on, where it has one of its own: filters over the whole song.

@@ -309,6 +309,7 @@ class Deal:
         self.grown = collections.Counter()
         self.stacks = collections.Counter()
         self.trios = 0
+        self.odd = 0
         self.ruled = 0
         self.album_first = None
 
@@ -489,7 +490,7 @@ class Deal:
                 order = [t for t in order if t in W.FILLS]
             if first:
                 # A song opens on its picture as it is, or in a guise that leaves it whole.
-                order = [t for t in order if t in ("fringe", "duotone", "poster", "flood", "relief", "solar", "leaded", "echo", "water", "blown", "ball", "falling", "mirror", "kaleido")]
+                order = [t for t in order if t in ("fringe", "relief", "solar", "leaded", "echo", "water", "blown", "ball", "falling", "mirror", "kaleido", "smoked", "infra", "tracking")]
             plain_ok = (name, "plain") not in self.combos
             treat = "plain" if (plain_ok and (self.used[name] == 0 or first or name == hand_on or rnd(S.n, k, "plain?") < 0.25)) or not order else order[0]
             if treat == "plain" and not plain_ok:
@@ -576,6 +577,27 @@ def ruled(S, rnd_, look):
     return {"background": "#000000", "layers": [W._act(look, blend="normal")] + over, "filters": []}
 
 
+def odd_turns(S, c):
+    """Where the scene's first riff is played differently for a turn or two among many that
+    are alike: the sixteenths at which those turns begin."""
+    if not c.riffs:
+        return []
+    p = c.riffs[0]
+    T = next((t for t in S.tracks if t.name == p.name), None) if not isinstance(S.tracks, dict) else S.tracks.get(p.name)
+    if T is None or not p.cell or p.cell * c.six < 0.45:
+        return []           # a turn too short to see
+    pats, t = {}, math.ceil((c.a16 - p.anchor) / p.cell)
+    while p.anchor + (t + 1) * p.cell <= c.b16:
+        lo = p.anchor + t * p.cell
+        pats[lo] = frozenset(int(s - lo) for s in T.grid if lo <= s < lo + p.cell)
+        t += 1
+    if len(pats) < 4:
+        return []
+    base = collections.Counter(pats.values()).most_common(1)[0][0]
+    odd = [lo for lo, q in pats.items() if q != base and q]
+    return odd if 1 <= len(odd) <= max(1, len(pats) // 5) and len(odd) <= 2 else []
+
+
 def plan(S, deal):
     """A song's scenes: [(a16, b16, idiom, treatment, scene dict, context)]."""
     deal.song_used = collections.Counter()
@@ -617,7 +639,11 @@ def plan(S, deal):
         still = any(t in ("roll", "spin", "hole", "sheet", "kaleido", "mirror", "tunnel", "slices", "wall", "planet", "wound") for t in treat.split(",")) or name in W.PLATES or W.REG[name]["fam"] in ("plate", "sheet", "sign")
         if k and not flash and not still and treat not in ("more", "less") and (b16 - a16) * c.six >= 4.5 and rnd(S.n, k, "move?") < 0.5:
             # The camera over the picture does one thing in the scene, each kind in its turn.
-            mv = min(W.MOVES, key=lambda m_: deal.moves[m_] + 1.5 * rnd(S.n, k, m_))
+            bars_ = S.full[a16 // 16:max(a16 // 16 + 1, b16 // 16)]
+            after = S.full[min(b16 // 16, S.bars - 1):min(b16 // 16 + 2, S.bars)] or bars_
+            slope = sum(after) / len(after) - sum(bars_) / len(bars_)
+            way = 1 if slope > 0.1 else -1 if slope < -0.1 else 0
+            mv = min(W.MOVES_FOR[way], key=lambda m_: deal.moves[m_] + 1.5 * rnd(S.n, k, m_))
             deal.moves[mv] += 1
             look = W.rostrum(c, look, mv)
         if not flash and "+" not in treat and len(c.riffs) >= 2 and c.riffs[0].cell != c.riffs[1].cell and 40 <= math.lcm(c.riffs[0].cell, c.riffs[1].cell) and name not in W.PLATES:
@@ -625,6 +651,13 @@ def plan(S, deal):
             A, B = c.riffs[0], c.riffs[1]
             meet = f"exp(0 - 2.5*fract({A.turn})*{A.cell})*exp(0 - 2.5*fract({B.turn})*{B.cell})"
             look.setdefault("filters", []).append({"type": "color", "exposure": f"1 + 1.6*{meet}"})
+        odd = odd_turns(S, c) if not flash and kind != "hush" else []
+        if odd:
+            # The riff is played differently once (or twice) in the scene: for that turn the picture is its negative.
+            p = c.riffs[0]
+            when = " + ".join(f"step({lo / 4:g}, time.beat)*step(time.beat, {(lo + p.cell) / 4 - 0.02:g})" for lo in odd)
+            look.setdefault("filters", []).append({"type": "invert", "amount": f"min({when}, 1)" if len(odd) > 1 else when})
+            deal.odd += len(odd)
         if cyc and b16 == min(S.bars * 16, a16 + ((b16 - a16) // cyc["round"] or 1) * cyc["round"]) and any(z == b16 for _, z, *_ in S.rounds):
             # The scene ends where a long round does: the picture burns out on the meeting.
             look.setdefault("filters", []).append({"type": "color", "exposure": f"1 + 5*pow(smooth({b16 / 4 - 1:g}, {b16 / 4:g}, time.beat), 3)"})
@@ -695,7 +728,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 
