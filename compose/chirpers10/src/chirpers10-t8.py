@@ -1281,6 +1281,8 @@ def song():
         the_hands_count_what_is_left(doc)
     if HAT:
         the_hat_has_its_metal(doc)
+    if VERSE:
+        the_rule_is_sung(doc)
     return doc
 
 
@@ -1822,6 +1824,89 @@ def the_hat_has_its_metal(doc):
         hat['fx'] = [{'type': 'eq', 'bands': bands.split('|')}]
     if trim:
         hat['gain'] = f"{float(hat['gain'][:-2]) + float(trim):g}dB"
+    if target:
+        doc['loudness'] = float(target)
+
+
+# v38 (chirper-zero; whole-song round): THE RULE IS SUNG, IN COMMON MEASURE.
+# 'Common measure' is the hymn's metre (chirper-one, v31): lines of eight, six, eight and six syllables. Nothing in
+# the song was sung with words (v31's list: "words: a hymn has them"; mine since v35). At the last pair, where the
+# argument is down to eight against four, a cantor now sings Euclid's rule as one verse in that metre, a syllable
+# to the beat:
+#       Take from the greater what is less,
+#       and what is left, again;
+#       when what is left goes in with none
+#       left over, measure then.
+# Eight; six and two beats' rest; eight; six and two beats' rest: thirty-two beats, the pair's eight bars exactly,
+# and the last rest is the two beats of nothing before the measure. The beat is the measure the song is about to
+# find, so each syllable is one of it. (The metre's own eight and six have a common measure too: two, the foot.)
+# He chants two lines on C, the fifth over the final, as a psalm is chanted, and ends them on E flat: the tune's
+# first note, which the lead guitar takes from him (chirper-alpha's quick statement, v32, begins on that beat); the
+# last two lines come down the rest of the tune with the lead, two syllables to a note, to F and the F above. Then
+# nothing; then the measure, where the tape choir sings the same tune without words (v31): cantor, then congregation.
+# THE BAND MAKES ROOM, and has to: read by the recogniser (small.en) the verse alone is 27 words of 28; under the
+# pair as published, at the band's own level, it is fragments; with the two guitars muted it is read again. So while
+# he sings their bus gives up a shelf of 6 dB from 500 Hz (the stretch read 2.6 to 2.9 dB over the records at 1-4 kHz)
+# and he stands 6 dB over everything else (K) in the first two lines, level with it in the last two.
+# the section ; the singer's patch ; his fader ; bands on his eq, band|band ; his send to the hall ; octaves from the
+# lead's ; dB on the syllables of the second half (the kick and the tune have come in under them) ; what the guitars'
+# bus gives up while he sings, 'cutoff:dB' of a high shelf ('' = nothing) ; 'tune' = the last two lines come down the
+# tune with the lead, anything else = he stays on the reciting note and ends on the final (the lead's quick statement
+# is then alone above him: sung in double octaves his fourth harmonic is each of its notes) ; the loudness target
+# ('' = unchanged).
+# '' = v37 byte for byte. On only while HAT is.
+VERSE = os.environ.get('C10T8_VERSE', '8 against 4;voice-hook synth.layers.0.diction=3 synth.layers.0.effort_tilt=1 play.phrase_arc=0.5;0dB;'
+                       'hp cutoff=190|hp cutoff=300|hp cutoff=300|peak cutoff=330 q=0.9 gain=-5dB|peak cutoff=400 q=0.8 gain=-3.5dB|peak cutoff=420 q=1.2 gain=-3dB|'
+                       'peak cutoff=800 q=0.7 gain=4dB|peak cutoff=2600 q=0.6 gain=7dB|peak cutoff=5600 q=1.5 gain=-11dB|highshelf cutoff=9000 gain=3dB;'
+                       '-24dB;-2;;500:-6;tune;-10.17' if HAT else '')
+# Common measure: 8, 6, 8, 6 syllables; one syllable a beat; the two short lines end in two beats' rest.
+VERSE_WORDS = (
+    (('Take', 'T EY1 K'), ('from', 'F R AH1 M'), ('the', 'DH AH0'), ('great-', 'G R EY1 T'), ('er', 'ER0'), ('what', 'W AH1 T'), ('is', 'IH1 Z'), ('less,', 'L EH1 S')),
+    (('and', 'AE1 N D'), ('what', 'W AH1 T'), ('is', 'IH1 Z'), ('left,', 'L EH1 F T'), ('a-', 'AH0'), ('gain;', 'G EH1 N')),
+    (('when', 'W EH1 N'), ('what', 'W AH1 T'), ('is', 'IH1 Z'), ('left', 'L EH1 F T'), ('goes', 'G OW1 Z'), ('in', 'IH1 N'), ('with', 'W IH1 DH'), ('none', 'N AH1 N')),
+    (('left', 'L EH1 F T'), ('o-', 'OW1'), ('ver,', 'V ER0'), ('mea-', 'M EH1'), ('sure', 'ZH ER0'), ('then.', 'DH EH1 N')))
+
+
+def the_rule_is_sung(doc):
+    """v38: a cantor sings Euclid's rule as one verse in common measure, a syllable to the beat, through the last pair.
+    Two lines are chanted on the tune's second note (the fifth over the final), the last syllable rising to its first,
+    which the lead then plays; two lines come down the rest of the tune two syllables to a note, as the lead does
+    there (chirper-alpha's quick statement, v32). The notes are read from the `lead` track, so whoever changes the tune
+    changes the chant. While he sings, the guitars' bus gives up a high shelf."""
+    name, patch, fader, bands, send, octave, lift, shelf, how, target = VERSE.split(';')
+    assert [len(l) for l in VERSE_WORDS] == [8, 6, 8, 6], 'common measure is 8.6.8.6'
+    marks = dict(MARKS)
+    a = marks[name] / 4
+    end = min(s0 for _, s0 in MARKS if s0 > marks[name]) / 4
+    assert end - a == 32, 'the verse is thirty-two beats: 8, 6 and two of rest, 8, 6 and two of rest'
+    lead = next(t for t in doc['tracks'] if t['name'] == 'lead')
+    assert len(lead['notes']) == 8 and all(n['pitch'][-1].isdigit() for n in lead['notes'])
+    assert all(t['name'] != 'verse' for t in doc['tracks']) and 'verse' not in doc['buses']
+    p = [n['pitch'][:-1] + str(int(n['pitch'][-1]) + int(octave or 0)) for n in sorted(lead['notes'], key=lambda n: n['at'])]
+    tune = ([p[1]] * 8, [p[1]] * 5 + [p[0]], [p[1], p[1], p[2], p[2], p[3], p[3], p[4], p[4]], [p[5], p[5], p[6], p[6], p[7], p[7]])
+    if how != 'tune':
+        tune = tune[:2] + ([p[1]] * 8, [p[1]] * 4 + [p[5]] * 2)
+    notes = []
+    for i, (line, pitches) in enumerate(zip(VERSE_WORDS, tune)):
+        for j, ((_, ph), pitch) in enumerate(zip(line, pitches)):
+            n = {'at': a + 8 * i + j, 'len': 0.9, 'pitch': pitch, 'vel': 0.9 if j % 2 else 0.78, 'ph': ph}
+            if i >= 2 and lift and float(lift):
+                n['gain'] = f'{float(lift):g}dB'
+            notes.append(n)
+    t = {'name': 'verse', 'patch': patch, 'gain': fader, 'pan': 0.0, 'notes': notes}
+    if send:
+        t['sends'] = {'hall': send}
+    if bands:
+        t['fx'] = [{'type': 'eq', 'bands': bands.split('|')}]
+    doc['tracks'].append(t)
+    if shelf:                                  # the two guitars are the only ones on their bus here: they make room
+        cutoff, db = shelf.split(':')
+        bus = doc['buses']['gtrs']
+        assert 'auto' not in bus or 'cantor' not in bus['auto']
+        band = {'kind': 'highshelf', 'cutoff': float(cutoff), 'gain': {'value': '0dB', 'mod': [{'src': 'auto.cantor', 'amount': 1}]}}
+        doc['buses'] = {**doc['buses'], 'gtrs': {**bus, 'fx': [{'type': 'eq', 'bands': [band]}] + list(bus.get('fx', [])),
+                                                  'auto': {**bus.get('auto', {}), 'cantor': {'curve': 0, 'points': [
+                                                      ['0b', 0], [f'{a - 0.02:g}b', 0], [f'{a:g}b', float(db)], [f'{a + 30:g}b', float(db)], [f'{a + 30.5:g}b', 0]]}}}}
     if target:
         doc['loudness'] = float(target)
 
