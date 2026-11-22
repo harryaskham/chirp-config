@@ -1117,7 +1117,7 @@ def fitting(S, c):
 
 LEDGER_GUISES = ("plain", "relief", "infra", "fringe", "papercut", "duotone", "echo", "delayed", "blueprint", "solar", "tracking", "onebit", "water")
 ROLL_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "water", "tracking", "relief", "kaleido", "smoked")
-MEASURE_GUISES = ("plain", "relief", "papercut", "infra", "fringe", "bricks", "duotone", "echo", "delayed", "solar", "blueprint", "onebit")
+MEASURE_GUISES = ("plain", "relief", "papercut", "fringe", "bricks", "duotone", "echo", "delayed", "solar", "blueprint", "onebit")
 # Pictures with figures in them, and the songs that count (Running Total adds up, Slow Enough
 # to Count counts, So Far says its numbers): nowhere else is a number written.
 FIGURES = {"numerals": (14,), "leader": (14,), "odometer": (4, 14, 17)}
@@ -1782,6 +1782,8 @@ def plan(S, deal):
         deal.flashes += flash
         scene = {"at": 0 if k == 0 else f"{a16 // 16}bar" if a16 % 16 == 0 else f"{a16 / 4:g}b", "look": look}
         still = any(t in ("roll", "spin", "hole", "sheet", "kaleido", "mirror", "tunnel", "slices", "wall", "planet", "wound") for t in treat.split(",")) or name in W.PLATES or W.REG[name]["fam"] in ("plate", "sheet", "sign")
+        # A picture that is there to be read (a sum, a ledger, rows, an oblong cut into squares) is not moved about.
+        still = still or name in ("measure", "ledger", "ringing", "total", "squares", "rolls", "zipper", "dice", "rabbits", "barcode", "braille")
         if k and not flash and not still and treat not in ("more", "less", "hinge") and (b16 - a16) * c.six >= 4.5 and rnd(S.n, k, "move?") < 0.5:
             # The camera over the picture does one thing in the scene, each kind in its turn.
             bars_ = S.full[a16 // 16:max(a16 // 16 + 1, b16 // 16)]

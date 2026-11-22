@@ -586,8 +586,8 @@ def doors(c):
     P = P[:6] or c.riffs[:1]
     nn = len(P)
     sp, w, h = 1.5, 0.5, 1.15
-    layers = [lamp(0, 3.0, 4.5, 2.6, "#ffe6b8", 16), lamp(-2, 5, -6, 0.25),
-              floor(c, 0, "#18181c", 0.35), box(0, h, 5.5, 12, h + 0.6, 0.1, **glow("#ffdca0", 1.4))]
+    layers = [lamp(0, 3.0, 4.5, 2.6, "#ffe6b8", 16), lamp(-2, 5, -6, 0.7),
+              floor(c, 0, "#22222a", 0.35), box(0, h, 5.5, 12, h + 0.6, 0.1, **glow("#ffdca0", 1.4))]
     # The wall: piers between the doorways and a lintel over them.
     layers.append(box(f"(inst.i - {nn / 2})*{sp}", h, 1.0, (sp - 2 * w) / 2, h, 0.08, count=nn + 1, **solid("#2a2a30", 0.8)))
     layers.append(box(0, 2 * h + 0.6, 1.0, nn * sp / 2 + 0.3, 0.6, 0.08, **solid("#2a2a30", 0.8)))
@@ -2005,7 +2005,7 @@ def ropes(c):
     """Two ropes turned against each other, one a turn to each riff; whoever is between them
     has to clear both."""
     A, B = c.riffs[0], c.riffs[1]
-    layers = [lamp(-2, 5, -6, 0.9), lamp(3, 2, -5, 0.5, c.c), floor(c, 0, "#17171b", 0.6)]
+    layers = [lamp(-2, 5, -6, 1.5), lamp(3, 2, -5, 0.9, c.c), floor(c, 0, "#24242c", 0.6)]
     u = "(inst.i/39)"
     for i, (p, sgn) in enumerate(((A, "1"), (B, "(0 - 1)"))):
         th = f"({sgn}*{p.turn} + {0.5 * i})"
@@ -4708,7 +4708,7 @@ def t_halves(c, look):
     return _pre(look, {"type": "panels", "cols": cols, "rows": math.ceil(nn / cols), "count": nn, "every": 2, "gap": 0.014, "flash": 0.35, "fit": "fill", "border": c.bg})
 
 
-@treat("blocks", ok=lambda c, info: info["fam"] not in ("sign", "lattice", "plate"))
+@treat("blocks", ok=lambda c, info: info["fam"] not in ("sign", "lattice", "plate") and info["f"].__name__ in BROAD)
 def t_blocks(c, look):
     """Sixteen blocks across: the picture counted in common time, sharp again on the bar."""
     return _pre(look, {"type": "pixelate", "size": f"0.003 + {2 * 16 / 9 / 16:g}*pow(1 - fract(time.bar/2), 6)"})
@@ -4955,7 +4955,7 @@ def t_screen(c, look):
     count = p.cell or 8
     while count < 6:
         count *= 2
-    return _pre(look, {"type": "pleat", "count": min(count, 20), "fold": f"0.12 + 0.44*(1 - cos({p.turn}))" if p.cell else 0.5, "shade": 0.6, "amount": c.arr})
+    return _pre(look, {"type": "pleat", "count": min(count, 20), "fold": f"0.1 + 0.3*(1 - cos({p.turn}))" if p.cell else 0.4, "shade": 0.42, "amount": c.arr})
 
 
 def _unbloomed(look):
