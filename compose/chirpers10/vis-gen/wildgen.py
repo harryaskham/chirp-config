@@ -384,6 +384,8 @@ class Deal:
         self.rings = 0
         self.measures = 0
         self.rolled = 0
+        self.grounds = collections.Counter()
+        self.grounds_last = collections.defaultdict(list)
         self.ledgers = 0
         self.owed = collections.defaultdict(set)
         self.rolls_in = collections.Counter()
@@ -515,7 +517,7 @@ class Deal:
             if got and W.TREAT[last["ending"]][1](got[0], W.REG[name]):
                 d, look = got
                 d.arrive = "1"
-                look = W.TREAT[last["ending"]][0](d, look)
+                look = W.TREAT[last["ending"]][0](d, W.ground(d, look, last.get("ground")))
                 side = not last.get("flipped")
                 if side:
                     look = W.flipped(look)
@@ -524,6 +526,7 @@ class Deal:
                 self.hinges += 1
                 note(name, key, f"{name}/hinge", raw=len(json.dumps(look)), ending=last["ending"])
                 self.last["flipped"] = side
+                self.last["ground"] = last.get("ground")
                 return name, "hinge", look
         # The song's own canon (the first it is dealt, one of its featured pictures if it can
         # be) is shown whole once while the parts are still in step, and comes back each time
@@ -782,10 +785,11 @@ class Deal:
                 raw = len(json.dumps(look))
                 if abs(raw - last["size"]) > 0.03 * last["size"]:
                     d.arrive = "1"
-                    look = W.TREAT[last["ending"]][0](d, look)
+                    look = W.TREAT[last["ending"]][0](d, W.ground(d, look, last.get("ground")))
                     c.__dict__.update(d.__dict__)
                     self.grown[way] += 1
                     note(name, key, f"{name}/{way}", raw=raw, ending=last["ending"])
+                    self.last["ground"] = last.get("ground")
                     return name, way, look
         # Two parts play one riff, one ahead of the other: the picture is drawn for each and
         # joined down the middle. In step it is one picture; out of step it is broken there,
@@ -897,6 +901,17 @@ class Deal:
                               key=lambda t: self.stacks[t] + 2 * rnd(S.n, k, "st" + t))
                 if more:
                     second = more[0]
+            # A picture that leaves most of the frame dark stands on a ground: the rest of the
+            # band, dimly (a kind of ground the song has not just had).
+            gk = None
+            if name in W.GROUNDED and not flash and treat in W.GROUND_OK and (second is None or second in W.GROUND_OK) and "layers" in look \
+                    and not any(f.get("type") in ("feedback", "expose", "slit", "fence", "panels", "timeslice", "step") for f in look.get("filters", [])) \
+                    and rnd(S.n, k, "ground?") < 0.85:
+                kinds = [x for x in W.GROUNDS if x not in self.grounds_last[S.n][-3:]]
+                gk = min(kinds, key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
+                look = W.ground(c, look, gk)
+                self.grounds[gk] += 1
+                self.grounds_last[S.n].append(gk)
             if second:
                 first_, last_ = sorted((treat, second), key=lambda t: W.STACK[t])
                 look = W.TREAT[last_][0](c, W.TREAT[first_][0](c, look))
@@ -909,6 +924,8 @@ class Deal:
             look = W.TREAT[treat][0](c, look)
             self.treats[treat] += 1
             note(name, treat, name if treat == "plain" else f"{name}/{treat}", raw=raw, ending="plain" if c.arrive.startswith("(1 -") else treat)
+            if not flash:
+                self.last["ground"] = gk
             return name, treat, look
         raise RuntimeError(f"nothing fits t{S.n} scene {k}")
 
@@ -1875,6 +1892,7 @@ def main():
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
         print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}  hinges: {deal.hinges}  reprises: {deal.reprises}  walks: {deal.walks}  rows rung: {deal.rings}  measures: {deal.measures}  rolls: {deal.rolled}  owing: {deal.ledgers}")
+        print("  grounds: " + "  ".join(f"{k}:{v}" for k, v in deal.grounds.most_common()))
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 

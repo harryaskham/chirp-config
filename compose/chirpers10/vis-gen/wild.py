@@ -4006,6 +4006,58 @@ def ledger(c):
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.014, 0.7)]}
 
 
+# ───────────────────────── grounds: the rest of the band, dimly ─────────────────────────
+
+GROUNDS = ("halo", "footlights", "stars", "floor", "plasma", "smoke", "scope", "skyline", "ripples", "horizon")
+# Pictures that leave most of the frame dark and are drawn straight onto it (nothing kept from
+# frame to frame, no room or sky of their own): these may stand on a ground.
+GROUNDED = set("pong combs star tesla breakout armillary tally crystal strange teletype odometer loom slack hourglass metro bifurcate turtle fractal fireworks tetris moons "
+               "lanterns kelvin constellation sonar treerings strings harmonograph contour letters keys abacus splitflap helix epicycle quad stringart remainder spiral "
+               "orrery pendwave sunflower juggle radial clockshop venn switchboard star rain fountain echoes skein coins".split())
+# Guises a grounded picture may wear (they leave a dim ground a dim ground).
+GROUND_OK = set("plain kaleido mirror wall planet tunnel echo slices fringe spin roll wound water torn hole lines warp falling ball tracking screen delayed puzzle smoked dripping "
+                "coiled halves".split())
+
+
+def ground(c, look, kind):
+    """A living ground behind a picture that leaves most of the frame dark: what the picture
+    does not show of the band (the kick, the snare, the hats, the sound itself), dimly, so
+    the dark is somewhere. It is laid under everything the picture draws."""
+    if not kind or "layers" not in look:
+        return look
+    kick = c.kick.hit if getattr(c, "kick", None) else "audio.low"
+    snare = c.snare.hit if getattr(c, "snare", None) else "audio.onset"
+    hat = c.hat.hit if getattr(c, "hat", None) else "audio.high"
+    black = "#000000"
+    g = {
+        # A glow behind the middle that swells with the kick.
+        "halo": [{"type": "gradient", "radial": 1, "palette": [c.a, black], "spread": 0.5, "light": f"0.10 + 0.22*{kick}", "blend": "add", "res": 0.25}],
+        # Light coming up from under the frame, lifted by the sound.
+        "footlights": [{"type": "gradient", "radial": 1, "y": -1.45, "palette": [c.b, black], "spread": 0.42, "light": f"0.16 + 0.5*audio.level + 0.2*{kick}", "blend": "add", "res": 0.25}],
+        # Stars the hats set twinkling; the kick shoves the view on.
+        "stars": [{"type": "stars", "count": 700, "speed": f"0.012 + 0.09*{kick}", "size": 1.3, "light": f"0.45 + 0.5*{hat}", "twinkle": 0.7, "streak": 1.5, "blend": "add"}],
+        # A ruled floor going away under the picture, a line a beat.
+        "floor": [{"type": "grid", "horizon": -0.12, "speed": "0.5*time.bpm", "density": 8, "width": 0.05, "depth": 1.4, "color": c.dim, "opacity": f"0.22 + 0.3*{kick}", "blend": "add"}],
+        # A slow field in the picture's two colours that the sound stirs.
+        "plasma": [{"type": "plasma", "palette": [black, c.a, black, c.b], "scale": 1.2, "speed": "0.04 + 0.5*audio.level", "warp": 0.8, "shade": 0.8, "light": 0.16, "res": 0.25, "blend": "add"}],
+        # Smoke lying in the room, lit a little by the snare.
+        "smoke": [{"type": "noise", "palette": [black, black, c.dim, black], "spread": 1, "scale": 1.0, "speed": 0.07, "warp": 0.9, "octaves": 3, "light": f"0.2 + 0.3*{snare}", "res": 0.25, "blend": "add"}],
+        # The sound itself, round the picture.
+        "scope": [{"type": "scope", "mode": "circle", "size": 3.3, "gain": 0.5, "width": 0.003, "glow": 0.6, "color": c.dim, "opacity": 0.6, "points": 1024, "blend": "add"},
+                  {"type": "scope", "mode": "circle", "size": 2.2, "gain": 0.35, "width": 0.002, "color": c.a, "opacity": 0.3, "points": 1024, "rotate": 0.25, "blend": "add"}],
+        # The sound's bands along the foot, like a town at night.
+        "skyline": [{"type": "spectrum", "mode": "bars", "bands": 48, "height": 0.42, "y": -1.0, "size": 3.56, "fill": 0.82, "floor": 0.1, "color": c.dim, "opacity": 0.55, "blend": "add"}],
+        # Rings going out from the middle, a ring a beat, brighter on the snare.
+        "ripples": [{"type": "shape", "repeat": 4, "sides": 0, "radius": "0.05 + 2.1*fract(time.beat/4 + inst.i/4)", "width": 0.006, "fill": 0, "x": 0, "y": 0, "color": c.a,
+                     "opacity": f"(0.16 + 0.4*{snare})*(1 - fract(time.beat/4 + inst.i/4))", "blend": "add"}],
+        # A band of light lying across the frame, like the last of a day; the kick lifts it.
+        "horizon": [{"type": "gradient", "angle": 0.25, "palette": [black, black, c.b, c.a, black, black, black], "spread": 1, "light": f"0.13 + 0.25*{kick}", "blend": "add", "res": 0.25}],
+    }[kind]
+    out = dict(look)
+    out["layers"] = g + list(look["layers"])
+    return out
+
+
 # ───────────────────────── pictures of pictures ─────────────────────────
 
 SMALL = ("spiral", "sunflower", "stringart", "moire", "strings", "clockshop", "combs", "vortex", "epicycle", "harmonograph", "mandala", "table", "tally", "slack", "sonar", "remainder", "kelvin", "chladni")

@@ -61,7 +61,7 @@ def main():
                 look = W.bolder(base, W.REG[base]["f"](c))
                 if how:
                     for h in how.split(","):
-                        look = W.TREAT[h][0](c, look) if h in W.TREAT else W.rostrum(c, look, h)
+                        look = W.ground(c, look, h[2:]) if h.startswith("g:") else W.TREAT[h][0](c, look) if h in W.TREAT else W.rostrum(c, look, h)
         except Exception as e:  # noqa: BLE001
             return spec, None, f"{type(e).__name__}: {e}"
         prog = {"scenes": [{"at": 0, "look": {"layers": []}}, {"at": f"{a:g}bar", "look": look, "lead": "1bar"}]}
