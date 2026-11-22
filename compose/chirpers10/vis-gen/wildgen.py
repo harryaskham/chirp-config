@@ -163,6 +163,28 @@ def rnd(*key):
     return int(hashlib.sha1(repr(key).encode()).hexdigest()[:8], 16) / 0xffffffff
 
 
+def reprises(S):
+    """Where a song plays its opening again: the bar lines (as sixteenths), past the song's
+    middle, at which three parts or more play their own first two bars once more, note for
+    note, after having played other things. The first such place only."""
+    tracks = [t for t in (S.tracks.values() if isinstance(S.tracks, dict) else S.tracks) if t.role != "drum"]
+    early = max(12, int(0.15 * S.bars))
+    votes = collections.Counter()
+    for t in tracks:
+        bars = [frozenset((j, t.grid.get(b * 16 + j)) for j in range(16) if t.grid.get(b * 16 + j) is not None) for b in range(S.bars)]
+        o = next((b for b in range(min(early, S.bars - 2)) if len(bars[b]) >= 2 and len(bars[b + 1]) >= 2), None)
+        if o is None:
+            continue
+        other = next((b for b in range(o + 2, S.bars - 1) if bars[b] != bars[o + (b - o) % 2]), None)
+        if other is None:
+            continue
+        for b in range(max(other + 8, int(0.6 * S.bars)), S.bars - 1):
+            if bars[b] == bars[o] and bars[b + 1] == bars[o + 1] and not (bars[b - 2] == bars[o] and bars[b - 1] == bars[o + 1]):
+                votes[b] += 1
+    best = [b for b, v in sorted(votes.items()) if v >= 3]
+    return [best[0] * 16] if best else []
+
+
 def landings(S):
     """The great round's end: the sixteenths (on a bar line) at which every length of riff
     that the song keeps to, each from where it began, comes round at once, where that happens
@@ -203,6 +225,8 @@ def cut(S):
         edges |= {a, min(z, end)}
     S.landings = landings(S)
     edges |= {t for t, _ in S.landings}
+    S.reprises = [t for t in reprises(S) if not any(abs(t - x) < 64 for x, _ in S.landings)]
+    edges |= set(S.reprises)
     gap = max(24, int(4.0 / six))               # no stretch shorter than this (about four seconds)
     head = max(64, int(8.5 / six))              # the first scene stands under the song's name
     marks = sorted(m for m in edges | {j for j in joints if all(abs(j - e) >= gap for e in edges)} if m == 0 or m >= head)
@@ -239,6 +263,10 @@ def cut(S):
         for i, (p, q, cyc, kind) in enumerate(out):
             if p == t:
                 out[i] = (p, q, cyc, "landing")
+    for t in S.reprises:
+        for i, (p, q, cyc, kind) in enumerate(out):
+            if p == t and kind in (None, "drop"):
+                out[i] = (p, q, cyc, "reprise")
     return out
 
 
@@ -343,6 +371,7 @@ class Deal:
         self.trios = 0
         self.odd = 0
         self.landings = 0
+        self.reprises = 0
         self.canons = 0
         self.joins = collections.Counter()
         self.canon_own = {}
@@ -1231,17 +1260,26 @@ def plan(S, deal):
             if r1 and r2 and (r1 < r2 or r2 < r1):
                 ahead = c2
         landed = None
-        if kind == "landing" and out:
+        if kind in ("landing", "reprise") and out:
             # The great round is over: everything is where it was when the song began, and so is the picture.
+            # (Or the song plays its opening again, note for note: its first picture is there again, as it was.)
             try:
                 c0 = S.cx(a16, b16, k=0, cyc=cyc)
-                c0.riffs = out[0][5].riffs      # (the wheels as they were, though they have stopped sounding)
-                landed = (out[0][2], "landing", W.bolder(out[0][2], W.REG[out[0][2]]["f"](c0)))
+                if kind == "landing":
+                    c0.riffs = out[0][5].riffs      # (the wheels as they were, though they have stopped sounding)
+                else:
+                    c0.__dict__.update({k_: v_ for k_, v_ in out[0][5].__dict__.items() if k_ in ("a", "b", "c", "bg", "ink", "dim", "variant", "seed")})
+                back = W.bolder(out[0][2], W.REG[out[0][2]]["f"](c0))
+                if kind == "reprise" and out[0][3] in W.TREAT and out[0][3] != "plain":
+                    c0.arrive = "1"
+                    back = W.TREAT[out[0][3]][0](c0, back)      # in the guise it wore
+                landed = (out[0][2], kind, back)
                 deal.used[out[0][2]] += 1
                 deal.recent.append(out[0][2])
                 deal.last = None
-                deal.log.setdefault(str(S.n), []).append(f"{out[0][2]}/landing")
-                deal.landings += 1
+                deal.log.setdefault(str(S.n), []).append(f"{out[0][2]}/{kind}")
+                deal.landings += kind == "landing"
+                deal.reprises += kind == "reprise"
             except (ValueError, IndexError, ZeroDivisionError, TypeError):
                 landed = None
         name, treat, look = landed or deal.choose(S, c, k, first=(k == 0), flash=flash, prefer=(deal.album_first if S.n == 17 else out[0][2]) if k and k == len(cuts) - 1 and len(cuts) > 12 else None, kind=kind, ahead=ahead,
@@ -1298,6 +1336,9 @@ def plan(S, deal):
         if kind == "landing":
             since = f"max(time.beat - {a16 / 4:g}, 0)"
             white(look, f"exp(0 - 0.9*{since})")
+        if kind == "reprise":
+            since = f"max(time.beat - {a16 / 4:g}, 0)"
+            white(look, f"0.6*exp(0 - 2.5*{since})")
         if kind == "hush":
             # The band has stopped: the picture is drained and dim until it comes back in.
             look.setdefault("filters", []).append({"type": "color", "saturation": 0.1, "exposure": 0.5})
@@ -1370,7 +1411,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}  hinges: {deal.hinges}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}  hinges: {deal.hinges}  reprises: {deal.reprises}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 
