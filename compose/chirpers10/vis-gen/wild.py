@@ -3689,6 +3689,73 @@ def braille(c):
     return {"background": "#d9d2c2", "camera": FLAT, "layers": layers, "filters": post3d(lx, ly, -1.6, shadow=0.75, ao=0.35, thr=0.95, glow=0.1)}
 
 
+# ───────────── a sixteenth lot: two more of what the songs are about ─────────────
+
+def _fib(g):
+    """The word the rule makes after g - 1 applications, from one long."""
+    w = "L"
+    for _ in range(g - 1):
+        w = "".join("LS" if ch == "L" else "L" for ch in w)
+    return w
+
+
+@idiom(needs=1, fam="tree", max_cell=64)
+def rabbits(c):
+    """One rule (a long becomes a long and a short, a short becomes a long) worked out as far
+    as the riff is long: each row is the row above with the rule applied once more, and it is
+    the same pattern at every size. A light goes across once a turn, and every bar sounds as
+    the light comes into it: the top row once a turn, the bottom row a note at a time."""
+    lens = {21: 5, 34: 6, 55: 7}
+    p = next((p for p in sorted(c.riffs, key=lambda p: -(p.cell or 0)) if p.cell in lens), None)
+    if not p:
+        raise ValueError("no riff the rule makes")
+    G = lens[p.cell]
+
+    def span(ch, k):
+        w = ch
+        for _ in range(k):
+            w = "".join("LS" if x == "L" else "L" for x in w)
+        return sum(3 if x == "L" else 2 for x in w)
+    wide = 8.3
+    unit = wide / p.cell
+    rowh = min(0.74, 4.6 / G)
+    u = f"(fract({p.turn})*{p.cell})"
+    layers = []
+    for g in range(1, G + 1):
+        y = (G - 1) / 2 * rowh - (g - 1) * rowh
+        x0 = 0
+        for ch in _fib(g):
+            w = span(ch, G - g)
+            lit = f"step({x0}, {u})*exp(0 - 1.1*({u} - {x0})/{max(w, 3) / 3:g})"
+            layers.append(box((x0 + w / 2 - p.cell / 2) * unit, y, 0, w * unit / 2 - 0.035, rowh / 2 - 0.05, 0.01, **glow(c.a if ch == "L" else c.b, f"0.28 + 1.7*{lit}")))
+            x0 += w
+    layers.append(box(f"({u} - {p.cell / 2})*{unit:g}", 0, -0.05, 0.014, G * rowh / 2 + 0.1, 0.01, **glow("#ffffff", 1.4)))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.016, 0.7)]}
+
+
+@idiom(needs=0, fam="wave")
+def beats(c):
+    """Two notes a hair apart, and what they do together: a row for the note and one for each
+    of its overtones, and the swelling goes by once a beat in the first row, twice in the
+    second, three times in the third. A part that plays lights the row nearest its own speed."""
+    P = _cast(c, 5)
+    K = 5
+    n_ = 150
+    rowh = 4.7 / K
+    wide = 8.6
+    layers = []
+    for k in range(1, K + 1):
+        y = (K - 1) / 2 * rowh - (k - 1) * rowh
+        x = f"((inst.i + 0.5)/{n_} - 0.5)"
+        # (Four beats across the frame; the swelling goes left a beat a beat.)
+        env = f"abs(cos(0.5*{k}*({x}*4 + time.beat)))"
+        fine = f"(0.55 + 0.45*sin(inst.i*0.31))"
+        loud = f"(0.75 + 1.3*{P[(k - 1) % len(P)].hit})" if P else "1"
+        layers.append(box(f"{x}*{wide:g}", y, 0, wide / n_ * 0.33, f"{rowh * 0.46:g}*{env}*{fine} + 0.006", 0.01, count=n_, opacity="step(0.5, inst.i)", **glow(c.col(k - 1), f"(0.35 + 0.9*{env})*{loud}")))
+    layers.append(box(0, 0, -0.05, 0.008, 2.45, 0.01, **glow(c.ink, 0.5)))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.45, 0.018, 0.6)]}
+
+
 # ───────────────────────── pictures of pictures ─────────────────────────
 
 SMALL = ("spiral", "sunflower", "stringart", "moire", "strings", "clockshop", "combs", "vortex", "epicycle", "harmonograph", "mandala", "table", "tally", "slack", "sonar", "remainder", "kelvin", "chladni")
@@ -4260,7 +4327,7 @@ STRONG = ("riley", "vortex", "moire", "blinds", "hive", "interference", "vasarel
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
            "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava".split())
-BROAD = FULL | set("reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
+BROAD = FULL | set("rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
@@ -4268,18 +4335,21 @@ THIN = set("tally crystal candles strange teletype odometer loom inset slack dis
 SHRINKS = set("ball woven tracking roll wound screen planet hole mirror water flood poster knitted sampler".split())
 # Pictures on a white ground: laid over another by its lights, the white would be all there is.
 WHITE = set("braille barcode kandinsky suprematist mondrian score blots marbling ink sundial zen tape riley vasarely testcard thermal courses".split())
+# Where an idiom is at its best: the dealer leans to it there.
+WANTS = {"rabbits": lambda c: any(p.cell in (34, 55) for p in c.riffs),
+         "beats": lambda c: c.full < 0.5}
 # Pictures that take a good while to become anything: not for a scene under five and a half seconds.
 LONG = set("turtle strange harmonograph tetris hanoi marbling ink rink galton".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("barcode braille dice candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
-MIRROR_BAD = set("dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
+MIRROR_BAD = set("rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())
 # Pictures that are mostly light: a print of their lights is a blank sheet.
 BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
+SLOW = set("rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)
@@ -4927,7 +4997,7 @@ for _n in ("rothko", "albers", "kandinsky", "marbling", "ink", "hourglass", "sun
     REG[_n]["mood"] = -1
 for _n in ("breakout", "hanoi", "shadowplay", "strobe", "courses"):
     REG[_n]["mood"] = 1
-for _n in ("barcode", "braille"):
+for _n in ("barcode", "braille", "beats"):
     REG[_n]["mood"] = -1
 for _n in ("reels", "dice"):
     REG[_n]["mood"] = 1

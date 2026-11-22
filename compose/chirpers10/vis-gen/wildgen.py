@@ -124,10 +124,10 @@ class Song:
 FEATURE = {
     1: ("loom", "remainder", "crystal", "helix", "billiard", "riley", "reels"), 2: ("sympathy", "pendwave", "strings", "cradle", "seesaw", "ink", "strobe"), 3: ("changes", "maypole", "chorus", "stringart", "drill", "vasarely"),
     4: ("dominoes", "automaton", "tally", "abacus", "odometer", "hanoi", "barcode", "dice"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist", "barber"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling"),
-    7: ("golden", "spiral", "sunflower", "mandala", "star", "kandinsky", "courses"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout", "measure", "reels"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial", "dice"),
+    7: ("rabbits", "golden", "spiral", "sunflower", "mandala", "star", "kandinsky", "courses"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout", "measure", "reels"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial", "dice"),
     10: ("balance", "coins", "tape", "galton", "duel", "hourglass", "barcode"), 11: ("doors", "blinds", "press", "hammers", "tesla", "albers"), 12: ("hands", "juggle", "semaphore", "chorus", "fan", "shadowplay", "braille"),
     13: ("eclipse", "pond", "spiral", "lanterns", "rink", "zen", "braille"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader", "hourglass", "strobe", "dice"), 15: ("slack", "ropes", "wires", "swings", "switchboard", "rothko"),
-    16: ("moire", "chladni", "eclipse", "lighthouse", "billiard", "candles"), 17: ("railway", "highway", "gates", "constellation", "searchlights", "sundial", "hailstone"),
+    16: ("beats", "moire", "chladni", "eclipse", "lighthouse", "billiard", "candles"), 17: ("railway", "highway", "gates", "constellation", "searchlights", "sundial", "hailstone"),
 }
 # Each song's house: the guises and the ways of sharing the frame it leans to, so the songs
 # differ from one another as well as from bar to bar. (The first song, the album's argument, has none.)
@@ -399,6 +399,8 @@ class Deal:
                     score -= 30 - 2 * FEATURE[S.n].index(name)     # a song opens on a picture of what it is about
             if first and name == OPEN.get(S.n):
                 score -= 80
+            if name in W.WANTS and in_song[name] < 3 and W.WANTS[name](c):
+                score -= 18         # it is at its best here
             if info["fam"] == "plate":
                 score += 3          # the first film's studies: now and then
             if not any((name, t) not in self.combos and ok(c, info) for t, (_, ok) in W.TREAT.items()) or (info["fam"] == "plate" and self.used[name]):
