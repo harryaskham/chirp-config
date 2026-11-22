@@ -4123,6 +4123,66 @@ def sizes(c):
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.014, 0.7)]}
 
 
+@idiom(needs=0, fam="count")
+def periods(c):
+    """A tune in which every note lasts as long as its period. Each note is one wave, as long
+    as the note lasts and as high as it is long, so that every wave is the same wave at
+    another size: the low notes are the big waves and the high notes the small ones, and the
+    higher a note stands the shorter it is. A wave is drawn as its note sounds, by a point
+    that rides it. Under the tune runs a ruler with a mark for every count of the song, each
+    mark in the colour of the note that holds it and lit as it is counted, and a taller
+    mark where a note begins. The frame holds the stretch of the tune the scene plays and a
+    bar to either side."""
+    R = getattr(c, "periods", None)
+    if not R:
+        raise ValueError("no tune of periods here")
+    _, A, B, grid, rows = R
+    g0 = rows[0][0]
+    a, b = max(A, c.a16 - 8), min(B, c.b16 + 8)
+    if b - a < 48:
+        a = max(A, min(a, b - 48))
+        b = min(B, max(b, a + 48))
+    rows = [r for r in rows if r[0] >= a - 0.01 and r[0] + r[1] <= b + 0.01]
+    if len(rows) < 4:
+        raise ValueError("too little of the tune")
+    now = "(time.beat*4)"
+    wide = 7.9
+    u = wide / max(b - a, 1)
+    sizes_ = sorted({r[3] for r in rows}, reverse=True)
+    keys = [r[2] for r in rows]
+    lo, hi = min(keys), max(keys)
+    big, small = max(r[1] for r in rows) * u, min(r[1] for r in rows) * u
+    amp = min(0.5, 1.45 / max(big, 0.01))            # (a wave is this many times as high as it is long)
+    top, base = 2.25, -1.45
+    layers = []
+    at = lambda key: base + big * amp + (top - small * amp - base - big * amp) * ((key - lo) / max(hi - lo, 1))  # noqa: E731
+    for i, (on, w, key, n_) in enumerate(rows):
+        x0, x1 = (on - a) * u - wide / 2, (on + w - a) * u - wide / 2
+        col = c.col(sizes_.index(n_))
+        h = amp * w * u
+        y = at(key)
+        reach = f"clamp(({now} - {on:g})/{w:g}, 0, 1)"
+        wave = {"type": "beam", "from": [x0, y, 0], "to": [x1, y, 0], "wave": h, "waves": 2, "speed": 0, "samples": 40, "color": col}
+        layers.append({**wave, "width": 0.018, "glow": 0.34})
+        layers.append({**wave, "width": 0.045, "glow": f"0.9 + 1.6*exp(0 - 0.5*max({now} - {on + w:g}, 0))", "reach": reach})
+        # (where the next note follows at once, a hair line carries the tune over to it)
+        if i + 1 < len(rows) and abs(rows[i + 1][0] - (on + w)) < 0.3:
+            layers.append({"type": "beam", "from": [x1, y, 0], "to": [x1, at(rows[i + 1][2]), 0], "width": 0.008, "glow": f"0.16 + 0.5*step({on + w:g}, {now})", "color": c.dim})
+        # The point that draws it (there only while the note sounds).
+        on_ = f"step({on:g}, {now})*step({now}, {on + w:g})"
+        layers.append(ball(f"{n(x0)} + {x1 - x0:g}*{reach}", f"{n(y)} + {h:g}*sin({reach})", -0.05, f"0.1*{on_}", 10, **glow("#ffffff", f"1.6*{on_}")))
+        # Its marks on the ruler: the counts of the song that fall in it, and a taller one where it begins.
+        j0 = math.ceil((on - g0) / grid - 0.02)
+        m = max(0, math.ceil((on + w - g0) / grid - 0.02) - j0)
+        if m and grid * u > 0.03:
+            lit = f"step({g0 + j0 * grid:g} + inst.i*{grid:g}, {now})"
+            layers.append(box(f"{n((g0 + j0 * grid - a) * u - wide / 2)} + inst.i*{grid * u:g}", -2.13, 0, min(0.018, grid * u * 0.25), 0.07, 0.01, count=m, **glow(col, f"0.22 + 1.3*{lit}")))
+        layers.append(box(x0, -2.04, -0.01, 0.012, 0.16, 0.01, **glow(col, f"0.3 + 1.4*step({on:g}, {now})")))
+    cur = f"clamp(({now} - {a:g})/{max(b - a, 1):g}, 0, 1)*{wide:g} - {wide / 2:g}"
+    layers.append(box(cur, -2.0, -0.03, 0.008, 0.26, 0.01, **glow(c.ink, 1.2)))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.45, 0.016, 0.7)]}
+
+
 # ───────────────────────── grounds: the rest of the band, dimly ─────────────────────────
 
 GROUNDS = ("halo", "footlights", "stars", "floor", "plasma", "smoke", "scope", "skyline", "ripples", "horizon")
@@ -4758,7 +4818,7 @@ HANDS = ("riley", "blinds", "dominoes", "breakout", "kandinsky", "vortex", "moon
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
            "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava".split())
-BROAD = FULL | set("sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
+BROAD = FULL | set("periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("breakout searchlights solkattu remainder rain seismo metro epicycle pond tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
@@ -4773,14 +4833,14 @@ WANTS = {"rabbits": lambda c: any(p.cell in (34, 55) for p in c.riffs),
 LONG = set("turtle strange harmonograph tetris hanoi marbling ink rink galton".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("barcode braille dice candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
-MIRROR_BAD = set("sizes ledger ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
+MIRROR_BAD = set("periods sizes ledger ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())
 # Pictures that are mostly light: a print of their lights is a blank sheet.
 BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("rolls zipper loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("sizes ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
+SLOW = set("periods sizes ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)

@@ -123,11 +123,11 @@ class Song:
 # in each guise).
 FEATURE = {
     1: ("loom", "remainder", "crystal", "helix", "billiard", "riley", "reels"), 2: ("sympathy", "pendwave", "strings", "cradle", "seesaw", "ink", "strobe"), 3: ("changes", "maypole", "chorus", "stringart", "drill", "vasarely"),
-    4: ("dominoes", "automaton", "tally", "abacus", "odometer", "hanoi", "barcode", "dice"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist", "barber"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling"),
+    4: ("abacus", "tally", "dominoes", "automaton", "odometer", "hanoi", "barcode", "dice"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist", "barber"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling"),
     7: ("rabbits", "golden", "spiral", "sunflower", "mandala", "star", "kandinsky", "courses"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout", "measure", "reels"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial", "dice"),
     10: ("balance", "coins", "tape", "galton", "duel", "hourglass", "barcode"), 11: ("doors", "blinds", "press", "hammers", "tesla", "albers"), 12: ("hands", "juggle", "semaphore", "chorus", "fan", "shadowplay", "braille"),
     13: ("eclipse", "pond", "spiral", "lanterns", "rink", "zen", "braille"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader", "hourglass", "strobe", "dice"), 15: ("slack", "ropes", "wires", "swings", "switchboard", "rothko"),
-    16: ("beats", "moire", "chladni", "eclipse", "lighthouse", "billiard", "candles"), 17: ("railway", "highway", "gates", "constellation", "searchlights", "sundial", "hailstone"),
+    16: ("beats", "moire", "chladni", "eclipse", "lighthouse", "billiard", "candles"), 17: ("hailstone", "railway", "highway", "gates", "constellation", "searchlights", "sundial"),
 }
 # Each song's house: the guises and the ways of sharing the frame it leans to, so the songs
 # differ from one another as well as from bar to bar. (The first song, the album's argument, has none.)
@@ -399,6 +399,7 @@ class Deal:
         self.owed = collections.defaultdict(set)
         self.rolls_in = collections.Counter()
         self.sized = collections.Counter()
+        self.tuned = collections.Counter()
         self.measured = collections.defaultdict(set)
         self.rung = collections.defaultdict(set)
         self.walked = collections.defaultdict(set)
@@ -428,6 +429,8 @@ class Deal:
         for name, info in W.REG.items():
             if info["needs"] > len(c.riffs) or (info["tune"] and not c.tunes):
                 continue
+            if info["max_cell"] < 64 and any((p_.cell or 0) > info["max_cell"] for p_ in c.riffs[:max(info["needs"], 1)]):
+                continue        # it was made for a shorter riff than this (a candle a sixteenth: not thirty-four)
             if first and (info["cost"] >= 3 or info["fam"] in ("plate", "room", "travel")):
                 continue
             if name in FIGURES and S.n not in FIGURES[name]:
@@ -454,7 +457,7 @@ class Deal:
             if name in FEATURE.get(S.n, ()) and in_song[name] < 2:
                 score -= 7
                 if first:
-                    score -= 30 - 2 * FEATURE[S.n].index(name)     # a song opens on a picture of what it is about
+                    score -= 70 - 6 * FEATURE[S.n].index(name)     # a song opens on a picture of what it is about: the first of these that can be drawn here
             if first and name == OPEN.get(S.n):
                 score -= 80
             if name in W.WANTS and in_song[name] < 3 and W.WANTS[name](c) and (name != "beats" or name in FEATURE.get(S.n, ())):
@@ -543,7 +546,9 @@ class Deal:
         # be) is shown whole once while the parts are still in step, and comes back each time
         # they are a whole sixteenth further apart than it has been seen.
         pair2, own = None, self.canon_own.get(S.n)
-        if not flash and not prefer and kind != "hush":
+        ms_ = measuring(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 3.5 else None
+        unmeasured = bool(ms_) and ms_[0] not in self.measured[S.n]
+        if not flash and not prefer and kind != "hush" and not unmeasured:
             pair2 = stereo(S, c)
             if not pair2 and not own and not first:
                 pair2 = stereo(S, c, whole=True)
@@ -646,6 +651,27 @@ class Deal:
                 self.sized[szk] += 1
                 note("sizes", t, "sizes/rule" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
                 return "sizes", t, look
+        # A tune in which every note lasts as long as its period: each note is one wave, as long
+        # as it lasts, on a ruler that counts it. A few times while the tune is played, not
+        # twice running, in another guise each time.
+        tn = tune_here(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 3.5 else None
+        if tn and self.tuned[(S.n, tn[0], tn[1])] < (3 if tn[2] - tn[1] > 24 * 16 else 2) and not any(x == "periods" for x in self.recent[-3:]):
+            cd = copy.copy(base)
+            cd.periods = tn
+            got = make("periods", ctx=cd, keep=True)
+            t = next((t for t in PERIOD_GUISES if ("periods", t) not in self.combos and W.TREAT[t][1](cd, W.REG["periods"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = f"{tn[0]}: every note lasts as long as its period (" + ", ".join(f"{n_ / 2:g}" for n_ in sorted({x[3] for x in tn[4]}, reverse=True)) + f" counts of {tn[3]:.3g})"
+                gk = min((x for x in ("halo", "footlights", "plasma", "smoke", "horizon", "stars") if x not in self.grounds_last[S.n][-2:]), key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
+                self.grounds[gk] += 1
+                self.grounds_last[S.n].append(gk)
+                look = W.TREAT[t][0](c, W.ground(c, got[1], gk) if t in W.GROUND_OK else got[1])
+                self.treats[t] += 1
+                self.tuned[(S.n, tn[0], tn[1])] += 1
+                note("periods", t, "periods/tune" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "periods", t, look
         # A roll slowed until it can be counted, or wound up until it cannot: a ring for each
         # drum, every stroke a dot at its place in the beat. Through the whole of the slowing,
         # scene after scene in another guise (also on a song's first scene: it is what the
@@ -673,7 +699,7 @@ class Deal:
         # section by section, the oblong of the two lengths stands whole, the squares taken so
         # far are lit, and the lamp goes over what is left. Once for each step.
         ms = measuring(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 3.5 else None
-        if ms and ms[0] not in self.measured[S.n] and "measure" not in self.recent[-2:]:
+        if ms and ms[0] not in self.measured[S.n]:          # (a new step, even straight after the last: that is the song)
             cd = copy.copy(base)
             cd.euclid = (ms[1], ms[2], ms[0], ms[3], ms[4])
             cd.riffs = [ms[3], ms[4]]
@@ -1161,6 +1187,7 @@ def fitting(S, c):
 
 LEDGER_GUISES = ("plain", "relief", "infra", "fringe", "papercut", "duotone", "echo", "delayed", "blueprint", "solar", "tracking", "onebit", "water")
 # (not papercut or onebit: they lose the bricks still to be played)
+PERIOD_GUISES = ("plain", "fringe", "echo", "delayed", "solar", "infra", "duotone", "blueprint", "water", "tracking", "relief")
 SIZE_GUISES = ("plain", "relief", "fringe", "echo", "infra", "duotone", "delayed", "solar", "blueprint", "tracking", "water", "bricks")
 ROLL_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "water", "tracking", "relief", "kaleido", "smoked")
 MEASURE_GUISES = ("plain", "relief", "papercut", "fringe", "bricks", "duotone", "echo", "delayed", "solar", "blueprint", "onebit")
@@ -1340,6 +1367,72 @@ def sizing(S):
             out.append([r[0], r[1], [r[2:]]])
     S._sizing = [(a, b, sorted(rows, key=lambda x: -x[1])) for a, b, rows in out]
     return S._sizing
+
+
+def tuned(S):
+    """A tune in which every note lasts as long as its period: the lower the note, the longer
+    it is held, in the proportion of the pitches (a fifth up lasts two thirds as long, an
+    octave up half). Found from the notes: a part of twenty notes or more at four pitches or
+    more whose lengths times their frequencies all come to the same. Returns the passages
+    [(part, from, to, count, [(sixteenth, length, key, units)…])], sixteenths as floats;
+    `count` is the song's count as the tune keeps it (a sixteenth, or what the song has made
+    of the sixteenth by then), and `units` a note's length in halves of it."""
+    if hasattr(S, "_tuned"):
+        return S._tuned
+    out = []
+    for t in S.tracks:
+        ns = sorted(t.notes)
+        if t.role == "drum" or len(ns) < 20 or len({k_ for _, _, k_ in ns}) < 4:
+            continue
+        # A note lasts until the next begins; before a rest, as long as its pitch says.
+        near = [(ns[i + 1][0] - a) * 4 * 2 ** (key / 12) for i, (a, z, key) in enumerate(ns[:-1]) if ns[i + 1][0] - a <= 1.45 * (z - a)]
+        if len(near) < 0.6 * len(ns) or min(near) <= 0:
+            continue            # (chords, or too many rests to tell)
+        K = sorted(near)[len(near) // 2]
+        if sum(abs(x / K - 1) < 0.06 for x in near) < 0.9 * len(near):
+            continue
+        rows = []
+        for i, (a, z, key) in enumerate(ns):
+            gap = (ns[i + 1][0] - a) * 4 if i + 1 < len(ns) else 999
+            rows.append((a * 4, gap if gap <= 1.45 * (z - a) * 4 else K / 2 ** (key / 12), key))
+        if len({round(w, 1) for _, w, _ in rows}) < 4:
+            continue
+        # The passages: the tune as far as it goes without a rest of four bars.
+        runs, run = [], [rows[0]]
+        for r in rows[1:]:
+            if r[0] - (run[-1][0] + run[-1][1]) > 64:
+                runs.append(run)
+                run = []
+            run.append(r)
+        runs.append(run)
+        for run in runs:
+            if len(run) < 12:
+                continue
+            # The unit: the longest all the lengths are whole numbers of (each pitch's usual length).
+            by = {}
+            for _, w, key in run:
+                by.setdefault(key, []).append(w)
+            usual = [sorted(v)[len(v) // 2] for v in by.values()]
+            unit = min(usual) / 8
+            for m in range(1, 9):
+                u0 = min(usual) / m
+                n_ = [max(1, round(w / u0)) for w in usual]
+                u1 = sum(w * q for w, q in zip(usual, n_)) / sum(q * q for q in n_)
+                if all(abs(w / u1 - round(w / u1)) < 0.16 for w in usual):
+                    unit = u1
+                    break
+            count = unit * max(1, round(1 / unit))
+            out.append((t.name, run[0][0], run[-1][0] + run[-1][1], count, [(on, w, key, max(1, round(w / unit))) for on, w, key in run]))
+    S._tuned = out
+    return out
+
+
+def tune_here(S, c):
+    """The tune of periods the scene lies in (at least half of it, eight of its notes or more), or None."""
+    for part, a, b, unit, rows in tuned(S):
+        if min(b, c.b16) - max(a, c.a16) >= 0.5 * (c.b16 - c.a16) and sum(c.a16 <= r[0] < c.b16 for r in rows) >= 6:
+            return part, a, b, unit, rows
+    return None
 
 
 def sizes_here(S, c):
@@ -1916,7 +2009,7 @@ def plan(S, deal):
         scene = {"at": 0 if k == 0 else f"{a16 // 16}bar" if a16 % 16 == 0 else f"{a16 / 4:g}b", "look": look}
         still = any(t in ("roll", "spin", "hole", "sheet", "kaleido", "mirror", "tunnel", "slices", "wall", "planet", "wound") for t in treat.split(",")) or name in W.PLATES or W.REG[name]["fam"] in ("plate", "sheet", "sign")
         # A picture that is there to be read (a sum, a ledger, rows, an oblong cut into squares) is not moved about.
-        still = still or name in ("sizes", "measure", "ledger", "ringing", "total", "squares", "rolls", "zipper", "dice", "rabbits", "barcode", "braille")
+        still = still or name in ("periods", "sizes", "measure", "ledger", "ringing", "total", "squares", "rolls", "zipper", "dice", "rabbits", "barcode", "braille")
         if k and not flash and not still and treat not in ("more", "less", "hinge") and (b16 - a16) * c.six >= 4.5 and rnd(S.n, k, "move?") < 0.5:
             # The camera over the picture does one thing in the scene, each kind in its turn.
             bars_ = S.full[a16 // 16:max(a16 // 16 + 1, b16 // 16)]
