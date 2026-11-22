@@ -756,7 +756,7 @@ class Deal:
                 if not one:
                     continue
                 for B in both:
-                    if B == A or W.REG[B]["fam"] == W.REG[A]["fam"] or (A, f"tug+{B}") in self.combos or (B, f"tug+{A}") in self.combos:
+                    if B == A or W.REG[B]["fam"] == W.REG[A]["fam"] or (A, f"tug+{B}") in self.combos or (B, f"tug+{A}") in self.combos or (A in W.THIN and B in W.THIN):
                         continue
                     cb = copy.copy(base)
                     cb.riffs, cb.tunes = [pb] + [p for p in c.riffs if p.name != pb.name], [pb] + list(c.tunes)
@@ -1122,7 +1122,7 @@ MEASURE_GUISES = ("plain", "relief", "papercut", "infra", "fringe", "bricks", "d
 # to Count counts, So Far says its numbers): nowhere else is a number written.
 FIGURES = {"numerals": (14,), "leader": (14,), "odometer": (4, 14, 17)}
 ROW_GUISES = ("plain", "relief", "infra", "fringe", "echo", "delayed", "duotone", "solar", "blueprint", "tracking", "water", "papercut", "onebit", "drawn")
-WALK_GUISES = ("plain", "relief", "papercut", "itself", "infra", "fringe", "duotone", "echo", "delayed", "solar", "blueprint", "tracking", "water", "onebit")
+WALK_GUISES = ("plain", "relief", "papercut", "itself", "fringe", "duotone", "echo", "delayed", "solar", "blueprint", "tracking", "water", "onebit")
 ZIP_GUISES = ("plain", "relief", "papercut", "infra", "fringe", "duotone", "echo", "delayed", "solar", "tracking", "blown", "water")
 
 
@@ -1425,6 +1425,8 @@ def rows_here(S, c):
         if min(b, c.b16) - max(a, c.a16) >= 0.5 * (c.b16 - c.a16):
             L = run[0][1]
             near = [r for r in run if c.a16 - 13 * L <= r[0] < c.b16]
+            if sum(1 for r in near if r[0] < (c.a16 + c.b16) / 2) < 6:
+                return None                         # (the run has only just begun: there is little to see yet)
             return name, near, i, c.a16 < b <= c.b16 + L, b
     return None
 
@@ -1651,6 +1653,8 @@ def talkers(S, c):
 def fits(kind, A, B):
     """Whether two pictures can share the frame this way: one picture works on the other in
     three of them, and that needs something to work on and something to work with."""
+    if A in W.THIN and B in W.THIN:
+        return False            # two pictures that are mostly dark make a dark frame
     if kind == "cutout":        # B's lights are cut out of A
         return A in W.BROAD and B not in W.FULL
     if kind == "stencil":       # A shows only through B's lights

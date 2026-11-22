@@ -4011,7 +4011,7 @@ def ledger(c):
 GROUNDS = ("halo", "footlights", "stars", "floor", "plasma", "smoke", "scope", "skyline", "ripples", "horizon")
 # Pictures that leave most of the frame dark and are drawn straight onto it (nothing kept from
 # frame to frame, no room or sky of their own): these may stand on a ground.
-GROUNDED = set("pong combs star tesla breakout armillary tally crystal strange teletype odometer loom slack hourglass metro bifurcate turtle fractal fireworks tetris moons "
+GROUNDED = set("searchlights solkattu numerals hailstone membrane mobile pong combs star tesla breakout armillary tally crystal strange teletype odometer loom slack hourglass metro bifurcate turtle fractal fireworks tetris moons "
                "lanterns kelvin constellation sonar treerings strings harmonograph contour letters keys abacus splitflap helix epicycle quad stringart remainder spiral "
                "orrery pendwave sunflower juggle radial clockshop venn switchboard star rain fountain echoes skein coins".split())
 # Guises a grounded picture may wear (they leave a dim ground a dim ground).
@@ -4640,7 +4640,7 @@ FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko 
 BROAD = FULL | set("ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
-THIN = set("tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
+THIN = set("breakout searchlights solkattu remainder rain seismo metro epicycle pond tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
            "searchlights pong constellation sonar treerings strings harmonograph contour letters mobile keys trampoline".split())
 SHRINKS = set("ball woven tracking roll wound screen planet hole mirror water flood poster knitted sampler".split())
 # Pictures on a white ground: laid over another by its lights, the white would be all there is.
@@ -5060,7 +5060,7 @@ def t_itself(c, look):
         nn *= 2
     look = _unbloomed(look)
     look["filters"] += [{"type": "color", "exposure": 1.2},
-                        {"type": "mosaic", "count": nn, "gain": 2.2, "floor": 0.05, "tint": 0.7, "amount": f"({c.arr})*(1 - 0.85*pow(fract({p.turn}/2), 6))"}]
+                        {"type": "mosaic", "count": nn, "gain": 2.6, "floor": 0.16, "tint": 0.7, "amount": f"({c.arr})*(1 - 0.85*pow(fract({p.turn}/2), 6))"}]
     return look
 
 
