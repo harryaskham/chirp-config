@@ -122,11 +122,11 @@ class Song:
 # What each song leans on: idioms that suit its name, dealt there first (and still once only
 # in each guise).
 FEATURE = {
-    1: ("loom", "remainder", "crystal", "helix", "billiard", "riley"), 2: ("sympathy", "pendwave", "strings", "cradle", "seesaw", "ink", "strobe"), 3: ("changes", "maypole", "chorus", "stringart", "drill", "vasarely"),
-    4: ("dominoes", "automaton", "tally", "abacus", "odometer", "hanoi"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist", "barber"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling"),
-    7: ("golden", "spiral", "sunflower", "mandala", "star", "kandinsky", "courses"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout", "measure"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial"),
-    10: ("balance", "coins", "tape", "galton", "duel", "hourglass"), 11: ("doors", "blinds", "press", "hammers", "tesla", "albers"), 12: ("hands", "juggle", "semaphore", "chorus", "fan", "shadowplay"),
-    13: ("eclipse", "pond", "spiral", "lanterns", "rink", "zen"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader", "hourglass", "strobe"), 15: ("slack", "ropes", "wires", "swings", "switchboard", "rothko"),
+    1: ("loom", "remainder", "crystal", "helix", "billiard", "riley", "reels"), 2: ("sympathy", "pendwave", "strings", "cradle", "seesaw", "ink", "strobe"), 3: ("changes", "maypole", "chorus", "stringart", "drill", "vasarely"),
+    4: ("dominoes", "automaton", "tally", "abacus", "odometer", "hanoi", "barcode", "dice"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist", "barber"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling"),
+    7: ("golden", "spiral", "sunflower", "mandala", "star", "kandinsky", "courses"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout", "measure", "reels"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial"),
+    10: ("balance", "coins", "tape", "galton", "duel", "hourglass", "barcode"), 11: ("doors", "blinds", "press", "hammers", "tesla", "albers"), 12: ("hands", "juggle", "semaphore", "chorus", "fan", "shadowplay", "braille"),
+    13: ("eclipse", "pond", "spiral", "lanterns", "rink", "zen", "braille"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader", "hourglass", "strobe", "dice"), 15: ("slack", "ropes", "wires", "swings", "switchboard", "rothko"),
     16: ("moire", "chladni", "eclipse", "lighthouse", "billiard", "candles"), 17: ("railway", "highway", "gates", "constellation", "searchlights", "sundial", "hailstone"),
 }
 # Each song's house: the guises and the ways of sharing the frame it leans to, so the songs
