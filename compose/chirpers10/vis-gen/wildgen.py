@@ -122,12 +122,12 @@ class Song:
 # What each song leans on: idioms that suit its name, dealt there first (and still once only
 # in each guise).
 FEATURE = {
-    1: ("loom", "remainder", "crystal", "helix", "billiard", "riley"), 2: ("sympathy", "pendwave", "strings", "cradle", "seesaw", "ink"), 3: ("changes", "maypole", "chorus", "stringart", "drill", "vasarely"),
-    4: ("dominoes", "automaton", "tally", "abacus", "odometer", "hanoi"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling"),
-    7: ("golden", "spiral", "sunflower", "mandala", "star", "kandinsky"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial"),
+    1: ("loom", "remainder", "crystal", "helix", "billiard", "riley"), 2: ("sympathy", "pendwave", "strings", "cradle", "seesaw", "ink", "strobe"), 3: ("changes", "maypole", "chorus", "stringart", "drill", "vasarely"),
+    4: ("dominoes", "automaton", "tally", "abacus", "odometer", "hanoi"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist", "barber"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling"),
+    7: ("golden", "spiral", "sunflower", "mandala", "star", "kandinsky", "courses"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout", "measure"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial"),
     10: ("balance", "coins", "tape", "galton", "duel", "hourglass"), 11: ("doors", "blinds", "press", "hammers", "tesla", "albers"), 12: ("hands", "juggle", "semaphore", "chorus", "fan", "shadowplay"),
-    13: ("eclipse", "pond", "spiral", "lanterns", "rink", "zen"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader", "hourglass"), 15: ("slack", "ropes", "wires", "swings", "switchboard", "rothko"),
-    16: ("moire", "chladni", "eclipse", "lighthouse", "billiard", "candles"), 17: ("railway", "highway", "gates", "constellation", "searchlights", "sundial"),
+    13: ("eclipse", "pond", "spiral", "lanterns", "rink", "zen"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader", "hourglass", "strobe"), 15: ("slack", "ropes", "wires", "swings", "switchboard", "rothko"),
+    16: ("moire", "chladni", "eclipse", "lighthouse", "billiard", "candles"), 17: ("railway", "highway", "gates", "constellation", "searchlights", "sundial", "hailstone"),
 }
 # Each song's house: the guises and the ways of sharing the frame it leans to, so the songs
 # differ from one another as well as from bar to bar. (The first song, the album's argument, has none.)
@@ -143,7 +143,7 @@ HOUSE = {
     10: "onebit dots torn combed typed poster negative difference card bands corner stencil dripping",
     11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking",
     12: "mirror drawn blueprint hatched ball echo water diptych intercut lighten satellite cutout",
-    13: "echo stop slices fringe water overgrown hole double window iris difference glass smoked",
+    13: "echo stop slices fringe water overgrown hole double window iris difference glass smoked negative stencil",
     14: "typed dots lines blocks sheet onebit stop strips board wedges triptych stencil",
     15: "warp wound blown torn water combed tunnel sweep bands double satellite dripping",
     16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass tracking",

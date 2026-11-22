@@ -3408,6 +3408,143 @@ def zen(c):
     return shots(c, look, [cam("2.5*sin(time.bar/14)", 4.4, -5.6, look=(0, 0, 0.3), zoom=1.9), cam(0, 9, -0.5, look=(0, 0, 0), zoom=2.1), cam(-4.2, 1.6, -3.4, look=(0.4, 0, 0.6), zoom=1.7)], P[0], secs=5)
 
 
+# ───────────────────────── a fourteenth lot: what the songs are about ─────────────────────────
+
+@idiom(needs=2, fam="count", max_cell=96)
+def measure(c):
+    """The old way to the common measure of two lengths: an oblong as wide as one riff and as
+    tall as the other, and the greatest square taken from it, again and again, until what is
+    left is itself a square. A lamp goes over it a sixteenth along and a sixteenth up at a
+    time and lights the square it is in."""
+    A, B = sorted(c.riffs[:2], key=lambda p: -p.cell)
+    if A.cell == B.cell:
+        raise ValueError("measure: two riffs of one length")
+    W, H = A.cell, B.cell
+    u = min(8.3 / W, 4.5 / H)
+    sq, x0, y0, w, h, stage, wide = [], 0, 0, W, H, 0, True
+    while w > 0 and h > 0 and len(sq) < 48:
+        if (w >= h) != wide:
+            stage, wide = stage + 1, w >= h
+        if w >= h:
+            sq.append((x0, y0, h, stage))
+            x0, w = x0 + h, w - h
+        else:
+            sq.append((x0, y0, w, stage))
+            y0, h = y0 + w, h - w
+    X, Y = f"(fract({A.turn})*{W})", f"(fract({B.turn})*{H})"
+    cols = [c.a, c.b, c.c, c.ink]
+    layers = [box(0, 0, 0.3, W * u / 2 + 0.06, H * u / 2 + 0.06, 0.01, **glow(c.dim, 0.5))]
+    for sx_, sy_, s_, st in sq:
+        inside = f"step({sx_}, {X})*step({X}, {sx_ + s_})*step({sy_}, {Y})*step({Y}, {sy_ + s_})"
+        layers.append(box((sx_ + s_ / 2 - W / 2) * u, (sy_ + s_ / 2 - H / 2) * u, 0.1, s_ * u / 2 - 0.035, s_ * u / 2 - 0.035, 0.01, **glow(cols[st % 4], f"0.32 + 0.68*{inside}")))
+    layers.append(ball(f"({X} - {W / 2})*{u:g}", f"({Y} - {H / 2})*{u:g}", -0.1, max(0.06, min(0.14, 0.3 * u)), 10, **glow("#ffffff", 1.6)))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.35, 0.016, 0.75)]}
+
+
+@idiom(needs=0, fam="place")
+def courses(c):
+    """A wall going up in courses, one for each part: every note is a brick as long as the
+    wait for the next one, laid as it sounds, and the wall goes by a sixteenth at a time."""
+    P = _cast(c, 7)
+    u = 0.19
+    rowh = min(0.66, 4.7 / len(P))
+    bricks = ["#b5533a", "#a2452e", "#c0623f", "#8f3a26", "#b86a48"]
+    layers = [box(0, 0, 0.3, 4.6, 2.6, 0.01, **glow("#2a211c", 1))]
+    for i, p in enumerate(P):
+        y = (len(P) - 1) / 2 * rowh - i * rowh
+        long_ = f"(min(min(note.gap, note.age), 6)*4*{u})"
+        layers.append(box(f"3.7 - note.age*4*{u} + {long_}/2", y, 0, f"max({long_}/2 - 0.03, 0.012)", rowh / 2 - 0.035, 0.01, notes={"track": p.name, "past": 10.5}, palette=bricks, pos=f"hash(note.i*1.7 + {i})",
+                          emit=f"0.75 + 1.6*exp(0 - 3*note.age)", light=0, ambient=1, rim=0))
+    layers.append(box(3.72, 0, -0.05, 0.012, 2.6, 0.01, **glow(c.ink, 0.8)))
+    return {"background": "#2a211c", "camera": FLAT, "layers": layers, "filters": [{"type": "grain", "amount": 0.06}, bloom(c, 0.25, 0.014, 0.85)]}
+
+
+def _walk(n, cap=48):
+    """A number walked down to one: halved if even, trebled and one more if odd."""
+    out = [n]
+    while n != 1 and len(out) < cap:
+        n = n // 2 if n % 2 == 0 else 3 * n + 1
+        out.append(n)
+    return out
+
+
+@idiom(needs=1, fam="tree", max_cell=64)
+def hailstone(c):
+    """Halve it if it is even; treble it and add one if it is odd. The walks of the first
+    sixteen numbers down to one, drawn as one tree, with the walk of the riff's own length
+    lit on it and a lamp that goes one step down the walk each time the riff comes round."""
+    A = c.riffs[0]
+    mine = _walk(max(A.cell, 2))
+    walks = [_walk(k) for k in range(2, 17)] + [mine]
+    if mine[-1] != 1:
+        raise ValueError("hailstone: too long a walk")
+    # A number stands as far along as it has steps still to go, and as high as it is big.
+    left, edges = {1: 0}, {}
+    for w in walks:
+        for d_, n_ in enumerate(w[::-1]):
+            left[n_] = d_
+        for a, b in zip(w, w[1:]):
+            edges[(b, a)] = True
+    far, top = max(left.values()), max(math.log2(n_) for n_ in left)
+    at = lambda n_: ((0.5 - left[n_] / far) * 8.3, (math.log2(n_) / top - 0.5) * 4.4)                 # noqa: E731
+    pos = left
+    on = {b: j for j, b in enumerate(mine)}                      # a number's place on the riff's walk
+    steps = len(mine)
+    here = f"(fract(floor({A.turn})/{steps} + 0.0005)*{steps})"   # which step of the walk the lamp is on
+    layers = []
+    for (a, b) in edges:
+        (x1, y1), (x2, y2) = at(a), at(b)
+        lit = b in on and a in on
+        glow_ = f"0.7 + 1.8*exp(0 - 0.8*abs({on[b]} - {here}))" if lit else 0.75
+        layers.append({"type": "beam", "from": [x1, y1, 0], "to": [x2, y2, 0], "width": 0.045 if lit else 0.022, "samples": 12, "glow": glow_, "color": c.a if lit else c.dim})
+    for n_ in pos:
+        x, y = at(n_)
+        if n_ in on:
+            layers.append(ball(x, y, -0.05, f"0.075 + 0.11*exp(0 - 1.5*abs({on[n_]} - {here}))", 8, **glow("#ffffff" if n_ != 1 else c.b, f"0.6 + 1.2*exp(0 - 1.5*abs({on[n_]} - {here}))")))
+        else:
+            layers.append(ball(x, y, -0.05, 0.055, 6, **glow(c.ink, 0.7)))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.45, 0.018, 0.6)]}
+
+
+@idiom(needs=2, fam="light", max_cell=64)
+def strobe(c):
+    """Two wheels in the dark, each turning once in its own riff and seen only by the flash
+    of the other's notes: where its hand is caught, time after time, is how the two riffs
+    lie against one another."""
+    A, B = c.riffs[0], c.riffs[1]
+    env = hit_env([A, B], "110ms")
+    layers = []
+    for i, p in enumerate((A, B)):
+        other = 1 - i
+        cx, R = (-0.86, 0.86)[i], 0.62
+        held = f"(0.25 - ({p.turn} - env.h{other}.age*time.bpm*8/{p.cell}))"          # where the hand was when the flash came
+        flash = f"env.h{other}"
+        col = c.col(i)
+        n_ = min(p.cell, 48)
+        layers.append({"type": "shape", "repeat": n_, "sides": 1, "radius": 0.012, "width": 0, "fill": 1, "color": c.dim, "x": f"{cx} + {R + 0.07}*cos(inst.i/{n_} + 0.25)", "y": f"{R + 0.07}*sin(inst.i/{n_} + 0.25)", "opacity": 0.8})
+        layers.append({"type": "shape", "repeat": 14, "sides": 1, "radius": "0.014 + 0.012*inst.i/14", "width": 0, "fill": 1, "color": col, "x": f"{cx} + {R}*(inst.i/13)*cos({held})", "y": f"{R}*(inst.i/13)*sin({held})", "opacity": flash})
+        layers.append({"type": "shape", "sides": 1, "radius": 0.055, "width": 0, "fill": 1, "color": "#ffffff", "x": f"{cx} + {R}*cos({held})", "y": f"{R}*sin({held})", "opacity": flash})
+        layers.append({"type": "shape", "sides": 0, "radius": R + 0.035, "width": 0.004, "fill": 0, "color": col, "x": cx, "y": 0, "opacity": f"0.15 + 0.5*{flash}"})
+    return {"background": "#000000", "env": env, "layers": layers, "filters": [{"type": "feedback", "zoom": 1, "decay": 0.955}, bloom(c, 0.4, 0.018, 0.6)]}
+
+
+@idiom(needs=1, fam="engine", cost=2)
+def barber(c):
+    """Striped poles, one for each riff: the stripes climb a stripe to the turn, for ever,
+    and are never any higher."""
+    P = c.riffs[:3]
+    layers = [lamp(-3, 5, -6, 1.3), lamp(4, 2, -4, 0.5, c.b), floor(c, 0, "#17171b", 0.6)]
+    for i, p in enumerate(P):
+        x = (i - (len(P) - 1) / 2) * 2.4
+        r = 0.42 - 0.07 * i
+        layers.append({"type": "mesh", "shape": "cylinder", "detail": 40, "x": x, "y": 1.75, "z": 0, "scale": 1, "sx": r, "sy": 1.5, "sz": r, **solid(c.col(i), 0.35), "paint_fine": True, "paint_color": "#fff6e6",
+                       "paint": f"0.85*step(0.5, fract(vtx.u*{2 + i} + vtx.y*{0.5 + 0.25 * i:g} - {p.turn}))"})
+        for y in (0.2, 3.3):
+            layers.append(ball(x, y, 0, r * 1.25, 14, sy=0.55, **solid("#b8a468", 0.3, 0.9)))
+    look = {"background": c.bg, "layers": layers, "filters": post3d(-3, 5, -6)}
+    return shots(c, look, [cam("1.5*sin(time.bar/10)", 1.9, -7.2, look=(0, 1.75, 0), zoom=2.1), cam(-4.2, 0.5, -4.6, look=(0.4, 2.0, 0), zoom=1.5), cam(0, 5.5, -5.2, look=(0, 1.6, 0), zoom=1.7)], P[0], secs=5)
+
+
 # ───────────────────────── pictures of pictures ─────────────────────────
 
 SMALL = ("spiral", "sunflower", "stringart", "moire", "strings", "clockshop", "combs", "vortex", "epicycle", "harmonograph", "mandala", "table", "tally", "slack", "sonar", "remainder", "kelvin", "chladni")
@@ -4457,8 +4594,10 @@ for _n in ("tesla", "duel", "trampoline", "billiard", "drill", "specimen"):
     REG[_n]["mood"] = 1
 for _n in ("rothko", "albers", "kandinsky", "marbling", "ink", "hourglass", "sundial", "zen", "candles"):
     REG[_n]["mood"] = -1
-for _n in ("breakout", "hanoi", "shadowplay"):
+for _n in ("breakout", "hanoi", "shadowplay", "strobe", "courses"):
     REG[_n]["mood"] = 1
+for _n in ("measure", "hailstone"):
+    REG[_n]["mood"] = -1
 for _n in ("riley", "vasarely", "suprematist"):
     REG[_n]["mood"] = 1
 for _n in ("kit", "hive"):

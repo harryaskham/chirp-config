@@ -11,7 +11,7 @@ about 940 scenes on the album, every one different.
 
 **What is drawn**
 
-- **Idioms** (`wild.py`, the `@idiom` functions: 172 so far). Each is a small machine, place,
+- **Idioms** (`wild.py`, the `@idiom` functions: 177 so far). Each is a small machine, place,
   game or diagram built from the notes themselves, and each keeps one rule: *what the music
   counts, the picture counts*. A note is a thing (a domino, a lantern, a lit window, a letter
   typed, a block dropped into a well); a riff's cell is a width or a number of things (bells
