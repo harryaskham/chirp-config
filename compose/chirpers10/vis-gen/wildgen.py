@@ -1531,7 +1531,14 @@ def dealing(S, c):
     here = [x for x in S._deal[a:b] if x]
     if len(here) * 2 < b - a:
         return None
-    n_, t = max(here, key=lambda x: x[0])
+    n_ = max(x[0] for x in here)
+
+    def carries(t):
+        """In how many of the scene's bars this part plays that many to the beat, and how many notes."""
+        return (sum(1 for bar in range(a, b) if even(t.notes, bar * 4, bar * 4 + 4) == n_), sum(1 for s, _, _ in t.notes if a * 4 <= s < b * 4))
+    # The part that carries the count through most of the scene (not merely in its first bar:
+    # the count is often handed from one part to another).
+    t = max((t for t in (S.tracks.values() if isinstance(S.tracks, dict) else S.tracks) if t.role != "drum"), key=carries)
     return n_, S.part(t, c.a16, c.b16, t.cell(a, b)[0])
 
 
