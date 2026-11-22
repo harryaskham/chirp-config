@@ -3965,6 +3965,47 @@ def rolls(c):
     return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.5, 0.012, 0.6)]}
 
 
+@idiom(needs=0, fam="count")
+def ledger(c):
+    """A phrase whose first half borrows time from its second and pays it back. A row for each
+    time the phrase is played, as long as the phrase: its notes are blocks as long as they
+    last, the first half's in one colour and the second's in another, and under them each
+    half is ruled off as long as it was given. A white line stands down the middle, where the
+    halves would meet if neither owed the other anything; what is owed is the lit block
+    between that line and where the second half begins."""
+    R = getattr(c, "owing", None)
+    if not R:
+        raise ValueError("nothing is owed here")
+    part, rows, L = R
+    now = "(time.beat*4)"
+    gap = max(0.8, min(1.5, 4.6 / max(len(rows), 1)))          # (few rows: taller ones)
+    u, ynow, k = 8.5 / L, -2.05, gap / 0.8
+    lo = min(k for _, _, ns in rows for _, _, k, _ in ns)
+    hi = max(k for _, _, ns in rows for _, _, k, _ in ns)
+    layers = [box(0, 0, 0.05, 0.008, 2.6, 0.01, **glow("#ffffff", 0.75))]
+    for s0, B, ns in rows:
+        y = f"({ynow} + ({now} - {s0})*{gap / L:g})"
+        seen = f"step({s0}, {now})"
+        for on, ln, key, second in ns:
+            w = max(ln, 0.35) * u / 2
+            fresh = f"step({s0 + on:g}, {now})*exp(0 - 0.5*({now} - {s0 + on:g}))"
+            layers.append(box((on - L / 2) * u + w, f"{y} + {k * (0.22 + 0.4 * (key - lo) / max(hi - lo, 1)):g}", 0, w - 0.012, 0.045 * k, 0.01,
+                              **glow(c.b if second else c.a, f"step({s0 + on:g}, {now})*(0.8 + 1.6*{fresh})")))
+        # Each half ruled off as long as it was given, drawn as the phrase goes by.
+        for x0, x1, col in ((0, B, c.a), (B, L, c.b)):
+            g = f"clamp(({now} - {s0 + x0:g})/{max(x1 - x0, 1):g}, 0, 1)"
+            layers.append(box(f"{(x0 - L / 2) * u:g} + {(x1 - x0) * u / 2:g}*{g}", f"{y} + {0.08 * k:g}", 0.01, f"{(x1 - x0) * u / 2 - 0.01:g}*{g}", 0.03 * k, 0.01, **glow(col, f"0.55*{seen}")))
+        if abs(B - L / 2) >= 0.4:
+            # What is owed: between the middle and where the second half begins.
+            x0, x1 = sorted((L / 2, B))
+            layers.append(box(((x0 + x1) / 2 - L / 2) * u, f"{y} + {0.08 * k:g}", -0.01, (x1 - x0) * u / 2, 0.075 * k, 0.01,
+                              **glow("#ffffff", f"step({s0 + x0:g}, {now})*(0.8 + 1.4*exp(0 - 0.25*max({now} - {s0 + x0:g}, 0)))")))
+    # Where the phrase is now.
+    cur = f"(fract(({now} - {rows[0][0]})/{L}) - 0.5)*{L * u:g}"
+    layers.append(box(cur, ynow + 0.4 * k, -0.03, 0.014, 0.4 * k, 0.01, **glow(c.ink, 1.3)))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.014, 0.7)]}
+
+
 # ───────────────────────── pictures of pictures ─────────────────────────
 
 SMALL = ("spiral", "sunflower", "stringart", "moire", "strings", "clockshop", "combs", "vortex", "epicycle", "harmonograph", "mandala", "table", "tally", "slack", "sonar", "remainder", "kelvin", "chladni")
@@ -4544,7 +4585,7 @@ HANDS = ("riley", "blinds", "dominoes", "breakout", "kandinsky", "vortex", "moon
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
            "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava".split())
-BROAD = FULL | set("squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
+BROAD = FULL | set("ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
@@ -4559,14 +4600,14 @@ WANTS = {"rabbits": lambda c: any(p.cell in (34, 55) for p in c.riffs),
 LONG = set("turtle strange harmonograph tetris hanoi marbling ink rink galton".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("barcode braille dice candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
-MIRROR_BAD = set("ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
+MIRROR_BAD = set("ledger ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())
 # Pictures that are mostly light: a print of their lights is a blank sheet.
 BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("rolls zipper loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
+SLOW = set("ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)

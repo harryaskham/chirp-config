@@ -384,6 +384,8 @@ class Deal:
         self.rings = 0
         self.measures = 0
         self.rolled = 0
+        self.ledgers = 0
+        self.owed = collections.defaultdict(set)
         self.rolls_in = collections.Counter()
         self.measured = collections.defaultdict(set)
         self.rung = collections.defaultdict(set)
@@ -584,6 +586,26 @@ class Deal:
                 note(name, "hands", f"{name}/hands {how}")
                 self.last["canon"] = True
                 return name, "hands", look
+        # Time borrowed and paid back: the phrase written out row by row, each half ruled off
+        # as long as it was given, and what is owed lit between the middle and where the
+        # second half begins. Once for each amount owed.
+        ow = owing_here(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 3.5 else None
+        if ow and ow[3:5] not in self.owed[S.n] and (ow[3] or self.owed[S.n]) and "ledger" not in self.recent[-1:]:
+            cd = copy.copy(base)
+            cd.owing = ow[:3]
+            got = make("ledger", ctx=cd, keep=True)
+            t = next((t for t in LEDGER_GUISES if ("ledger", t) not in self.combos and W.TREAT[t][1](cd, W.REG["ledger"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = (f"{ow[0]}: the first half owes the second {ow[3]:g}" if ow[3] > 0 else f"{ow[0]}: the second half owes the first {-ow[3]:g}" if ow[3] < 0 else f"{ow[0]}: paid back")
+                c.talk += ", and borrows" if ow[3] * ow[4] > 0 else ", and pays back" if ow[3] * ow[4] < 0 else ""
+                look = W.TREAT[t][0](c, got[1])
+                self.treats[t] += 1
+                self.ledgers += 1
+                self.owed[S.n].add(ow[3:5])
+                note("ledger", t, "ledger/owing" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "ledger", t, look
         # A roll slowed until it can be counted, or wound up until it cannot: a ring for each
         # drum, every stroke a dot at its place in the beat. Through the whole of the slowing,
         # scene after scene in another guise (also on a song's first scene: it is what the
@@ -1076,6 +1098,7 @@ def fitting(S, c):
     return S.part(x, c.a16, c.b16, x.cell(*ab)[0]), S.part(y, c.a16, c.b16, y.cell(*ab)[0]), med
 
 
+LEDGER_GUISES = ("plain", "relief", "infra", "fringe", "papercut", "duotone", "echo", "delayed", "blueprint", "solar", "tracking", "onebit", "water")
 ROLL_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "water", "tracking", "relief", "kaleido", "smoked")
 MEASURE_GUISES = ("plain", "relief", "papercut", "infra", "fringe", "bricks", "duotone", "echo", "delayed", "solar", "blueprint", "onebit")
 ROW_GUISES = ("plain", "relief", "infra", "fringe", "echo", "delayed", "duotone", "solar", "blueprint", "tracking", "water", "papercut", "onebit", "drawn")
@@ -1099,6 +1122,86 @@ def period(S, c):
         return None
     cell = c.riffs[0].cell
     return cell // 8 if cell % 8 == 0 and 2 <= cell // 8 <= 6 else None
+
+
+def borrowing(S, L=32):
+    """A phrase whose first half borrows time from its second (or the other way) and pays it
+    back: a part that plays one phrase of two bars over and over, the same notes in the same
+    order, but with the note that belongs on the half coming late or early and every other
+    note stretched or squeezed to fit. Found from the notes. Returns (the part,
+    [(sixteenth, where the second half begins, [(onset, length, key, second half?)])]),
+    or None."""
+    if hasattr(S, "_owing"):
+        return S._owing
+    import statistics
+    best = None
+    for t in (S.tracks.values() if isinstance(S.tracks, dict) else S.tracks):
+        if t.role == "drum" or len(t.notes) < 150:
+            continue
+        wins = collections.defaultdict(list)
+        for a, b, k in sorted(t.notes):
+            w = int((a * 4 + 0.3) // L)             # (a note a hair early belongs to the phrase it leads)
+            wins[w].append((a * 4 - w * L, (b - a) * 4, k))
+        # The phrase as written: the commonest window whose notes all fall on sixteenths.
+        shapes = collections.Counter()
+        for w, ns in wins.items():
+            if (len(ns) >= 8 and all(abs(o - round(o)) < 0.12 for o, _, _ in ns) and sum(1 for o, _, _ in ns if o < L / 2 - 0.5) >= 3
+                    and sum(1 for o, _, _ in ns if o > L / 2 - 0.5) >= 3):
+                low = min(k for _, _, k in ns)
+                shapes[tuple((round(o), k - low) for o, _, k in ns)] += 1
+        if not shapes:
+            continue
+        ref, seen = shapes.most_common(1)[0]
+        if seen < 3 or not any(o == L // 2 for o, _ in ref):
+            continue
+        out = []
+        for w in sorted(wins):
+            ns = wins[w]
+            low = min(k for _, _, k in ns)
+            pairs = []
+            if len(ns) == len(ref) and [k - low for _, _, k in ns] == [k for _, k in ref]:
+                pairs = list(zip(ns, ref))
+            else:                                   # the first half alone, or the second
+                for cand in (ref[:len(ns)], ref[len(ref) - len(ns):]):
+                    if len(cand) == len(ns) and len({k - low - r for (_, _, k), (_, r) in zip(ns, cand)}) == 1:
+                        pairs = list(zip(ns, cand))
+                        break
+            if not pairs:
+                continue
+            f1 = [o / r for (o, _, _), (r, _) in pairs if 0 < r < L // 2]
+            f2 = [(L - o) / (L - r) for (o, _, _), (r, _) in pairs if L // 2 <= r < L]
+            B1 = L / 2 * statistics.median(f1) if len(f1) >= 3 else None
+            B2 = L - L / 2 * statistics.median(f2) if len(f2) >= 3 else None
+            if B1 is not None and B2 is not None and abs(B1 - B2) > 0.6:
+                continue
+            B = B2 if B2 is not None else B1
+            if B is None or not L / 4 <= B <= 3 * L / 4:
+                continue
+            if max(abs(o - (r * B / (L / 2) if r < L // 2 else B + (r - L / 2) * (L - B) / (L / 2))) for (o, _, _), (r, _) in pairs) > 0.5:
+                continue
+            out.append((w * L, round(B * 2) / 2, [(max(o, 0), ln, k, r >= L // 2) for (o, ln, k), (r, _) in pairs]))
+        moved = sum(1 for _, B, _ in out if abs(B - L / 2) >= 0.75)
+        if moved >= 6 and len({B for _, B, _ in out}) >= 4 and (best is None or moved > best[0]):
+            best = (moved, t.name, out)
+    S._owing = (best[1], best[2], L) if best else None
+    return S._owing
+
+
+def owing_here(S, c):
+    """(the part, the phrases about the scene, the phrase's length, how much is owed at the
+    scene's end) where the scene lies among phrases that owe, or just after one; or None."""
+    bw = borrowing(S)
+    if not bw:
+        return None
+    name, rows, L = bw
+    here = [r for r in rows if c.a16 - L < r[0] < c.b16]
+    if len(here) < max(1, (c.b16 - c.a16) // L - 1):
+        return None
+    near = [r for r in rows if c.a16 - 7 * L <= r[0] < c.b16]
+    before = [r for r in rows if r[0] < here[0][0]]
+    was = before[-1][1] if before else L / 2
+    owed = here[-1][1] - L / 2
+    return name, near, L, owed, ((here[-1][1] > was) - (here[-1][1] < was)) if owed else 0
 
 
 def rolling(S):
@@ -1771,7 +1874,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}  hinges: {deal.hinges}  reprises: {deal.reprises}  walks: {deal.walks}  rows rung: {deal.rings}  measures: {deal.measures}  rolls: {deal.rolled}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}  hinges: {deal.hinges}  reprises: {deal.reprises}  walks: {deal.walks}  rows rung: {deal.rings}  measures: {deal.measures}  rolls: {deal.rolled}  owing: {deal.ledgers}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 
