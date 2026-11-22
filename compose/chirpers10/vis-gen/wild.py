@@ -3425,10 +3425,16 @@ def measure(c):
     tall as the other, and the greatest square taken from it, again and again, until what is
     left is itself a square. A lamp goes over it a sixteenth along and a sixteenth up at a
     time and lights the square it is in."""
-    A, B = sorted(c.riffs[:2], key=lambda p: -p.cell)
-    if A.cell == B.cell:
-        raise ValueError("measure: two riffs of one length")
-    W, H = A.cell, B.cell
+    E = getattr(c, "euclid", None)
+    if E:
+        # The song itself takes the less from the greater, section by section: the whole
+        # oblong stands, the squares already taken are lit, and the lamp goes over what is left.
+        W, H, cut, A, B = E
+    else:
+        A, B = sorted(c.riffs[:2], key=lambda p: -p.cell)
+        if A.cell == B.cell:
+            raise ValueError("measure: two riffs of one length")
+        W, H, cut = A.cell, B.cell, None
     u = min(8.3 / W, 4.5 / H)
     sq, x0, y0, w, h, stage, wide = [], 0, 0, W, H, 0, True
     while w > 0 and h > 0 and len(sq) < 48:
@@ -3440,12 +3446,23 @@ def measure(c):
         else:
             sq.append((x0, y0, w, stage))
             y0, h = y0 + w, h - w
-    X, Y = f"(fract({A.turn})*{W})", f"(fract({B.turn})*{H})"
+    if cut is None:
+        X, Y = f"(fract({A.turn})*{W})", f"(fract({B.turn})*{H})"
+    else:
+        # What is left after `cut` squares have been taken: the lamp keeps to it.
+        rx, ry, rw, rh = 0, 0, W, H
+        for sx_, sy_, s_, _ in sq[:cut]:
+            if rw >= rh:
+                rx, rw = rx + s_, rw - s_
+            else:
+                ry, rh = ry + s_, rh - s_
+        X, Y = f"({rx} + fract({A.turn})*{rw})", f"({ry} + fract({B.turn})*{rh})"
     cols = [c.a, c.b, c.c, c.ink]
     layers = [box(0, 0, 0.3, W * u / 2 + 0.06, H * u / 2 + 0.06, 0.01, **glow(c.dim, 0.5))]
-    for sx_, sy_, s_, st in sq:
+    for q, (sx_, sy_, s_, st) in enumerate(sq):
         inside = f"step({sx_}, {X})*step({X}, {sx_ + s_})*step({sy_}, {Y})*step({Y}, {sy_ + s_})"
-        layers.append(box((sx_ + s_ / 2 - W / 2) * u, (sy_ + s_ / 2 - H / 2) * u, 0.1, s_ * u / 2 - 0.035, s_ * u / 2 - 0.035, 0.01, **glow(cols[st % 4], f"0.32 + 0.68*{inside}")))
+        lit = f"0.32 + 0.68*{inside}" if cut is None else ("0.85" if q < cut else f"{0.34 if q == cut else 0.14} + 0.75*{inside}")
+        layers.append(box((sx_ + s_ / 2 - W / 2) * u, (sy_ + s_ / 2 - H / 2) * u, 0.1, s_ * u / 2 - 0.035, s_ * u / 2 - 0.035, 0.01, **glow(cols[(q if cut is not None else st) % 4], lit)))
     layers.append(ball(f"({X} - {W / 2})*{u:g}", f"({Y} - {H / 2})*{u:g}", -0.1, max(0.06, min(0.14, 0.3 * u)), 10, **glow("#ffffff", 1.6)))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.35, 0.016, 0.75)]}
 

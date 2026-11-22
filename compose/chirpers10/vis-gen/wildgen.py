@@ -382,6 +382,8 @@ class Deal:
         self.sums = 0
         self.walks = 0
         self.rings = 0
+        self.measures = 0
+        self.measured = collections.defaultdict(set)
         self.rung = collections.defaultdict(set)
         self.walked = collections.defaultdict(set)
         self.hinges = 0
@@ -580,6 +582,26 @@ class Deal:
                 note(name, "hands", f"{name}/hands {how}")
                 self.last["canon"] = True
                 return name, "hands", look
+        # The common measure: in a song that cuts the longer of two riffs down by the other,
+        # section by section, the oblong of the two lengths stands whole, the squares taken so
+        # far are lit, and the lamp goes over what is left. Once for each step.
+        ms = measuring(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 3.5 else None
+        if ms and ms[0] not in self.measured[S.n] and "measure" not in self.recent[-2:]:
+            cd = copy.copy(base)
+            cd.euclid = (ms[1], ms[2], ms[0], ms[3], ms[4])
+            cd.riffs = [ms[3], ms[4]]
+            got = make("measure", ctx=cd, keep=True)
+            t = next((t for t in MEASURE_GUISES if ("measure", t) not in self.combos and W.TREAT[t][1](cd, W.REG["measure"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = f"{ms[3].name} is {ms[5]} long and {ms[4].name} {ms[6]}: the less from the greater"
+                look = W.TREAT[t][0](c, got[1])
+                self.treats[t] += 1
+                self.measures += 1
+                self.measured[S.n].add(ms[0])
+                note("measure", t, f"measure/less {ms[5]}:{ms[6]}" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "measure", t, look
         # Rows rung in changes: the rows as they are rung, every note's line running down
         # through its places. It comes back once in each run of rows and when the run ends
         # (when the notes come round to the order they set out in).
@@ -1032,6 +1054,7 @@ def fitting(S, c):
     return S.part(x, c.a16, c.b16, x.cell(*ab)[0]), S.part(y, c.a16, c.b16, y.cell(*ab)[0]), med
 
 
+MEASURE_GUISES = ("plain", "relief", "papercut", "infra", "fringe", "bricks", "duotone", "echo", "delayed", "solar", "blueprint", "onebit")
 ROW_GUISES = ("plain", "relief", "infra", "fringe", "echo", "delayed", "duotone", "solar", "blueprint", "tracking", "water", "papercut", "onebit", "drawn")
 WALK_GUISES = ("plain", "relief", "papercut", "itself", "infra", "fringe", "duotone", "echo", "delayed", "solar", "blueprint", "tracking", "water", "onebit")
 ZIP_GUISES = ("plain", "relief", "papercut", "infra", "fringe", "duotone", "echo", "delayed", "solar", "tracking", "blown", "water")
@@ -1053,6 +1076,88 @@ def period(S, c):
         return None
     cell = c.riffs[0].cell
     return cell // 8 if cell % 8 == 0 and 2 <= cell // 8 <= 6 else None
+
+
+def euclid(S):
+    """A song that finds the common measure of two riffs' lengths the old way: section by
+    section the longer of two parts' riffs is cut down by the length of the other (52 against
+    32, 20 against 32, 20 against 12, 8 against 12, 8 against 4). Found from the notes.
+    Returns (one part, the other, [(from sixteenth, to sixteenth, one's length, the
+    other's)]) for the pair with the longest such chain (at least three steps), or None."""
+    if hasattr(S, "_euclid"):
+        return S._euclid
+    S._euclid = None
+    tracks = [t for t in (S.tracks.values() if isinstance(S.tracks, dict) else S.tracks) if t.role == "riff"]
+
+    def period(t, a16, b16, L):
+        same = tot = 0
+        for q in range(a16, b16 - L):
+            x, y = t.grid.get(q), t.grid.get(q + L)
+            if x is not None or y is not None:
+                tot += 1
+                same += x == y
+        return same / tot if tot >= 40 else 0
+
+    best = None
+    for X in tracks:
+        for Y in tracks:
+            if X is Y:
+                continue
+            spans = []                              # [bar, bar, X's cell, Y's]
+            for bar in range(0, S.bars - 1):
+                if X.count(bar, bar + 1) < 2 or Y.count(bar, bar + 1) < 2:
+                    continue
+                cx, cy = X.cell(bar, bar + 1)[0], Y.cell(bar, bar + 1)[0]
+                if not cx or not cy:
+                    continue
+                if spans and spans[-1][2:] == [cx, cy] and spans[-1][1] >= bar - 1:
+                    spans[-1][1] = bar + 1
+                else:
+                    spans.append([bar, bar + 1, cx, cy])
+            spans = [sp for sp in spans if sp[1] - sp[0] >= 3]
+            # The longest run of spans each one step on from the last (the greater less the less).
+            for i in range(len(spans)):
+                chain = [spans[i]]
+                for sp in spans[i + 1:]:
+                    a, b = chain[-1][2], chain[-1][3]
+                    if a != b and (sp[2], sp[3]) == ((a - b, b) if a > b else (a, b - a)):
+                        chain.append(sp)
+                    elif (sp[2], sp[3]) != (a, b) and sp[1] - sp[0] >= 8:
+                        break                       # (a short stretch read otherwise is passed over)
+                if len(chain) >= 4 and (best is None or len(chain) > len(best[2])):
+                    best = (X, Y, chain)
+    if best:
+        X, Y, chain = best
+        stages = [(sp[0] * 16, sp[1] * 16, sp[2], sp[3]) for sp in chain]
+        # The step before, where one riff was too long for its length to be read at a glance:
+        # the first stage's two lengths added together.
+        a0, b0, cx, cy = stages[0]
+        for T, L, pair in ((X, cx + cy, (cx + cy, cy)), (Y, cx + cy, (cx, cx + cy))):
+            for start in range(0, a0 // 16):
+                if period(T, start * 16, a0, L) >= 0.95 and period(T, start * 16, a0, pair[0] if T is Y else pair[1]) < 0.9:
+                    stages.insert(0, (start * 16, a0, pair[0], pair[1]))
+                    break
+            if stages[0][1] == a0 and stages[0][0] != a0:
+                break
+        S._euclid = (X, Y, stages)
+    return S._euclid
+
+
+def measuring(S, c):
+    """(which step of the measuring the scene is in, the oblong's sides, the two parts as they
+    are here) where at least 60 % of the scene lies in one step; or None."""
+    e = euclid(S)
+    if not e:
+        return None
+    X, Y, stages = e
+    for i, (a, b, cx, cy) in enumerate(stages):
+        if min(b, c.b16) - max(a, c.a16) >= 0.6 * (c.b16 - c.a16):
+            px, py = S.part(X, max(a, c.a16), c.b16, cx if cx <= 48 else None), S.part(Y, max(a, c.a16), c.b16, cy if cy <= 48 else None)
+            for p_, cell_ in ((px, cx), (py, cy)):
+                if p_.cell is None:
+                    p_.cell, p_.anchor = cell_, a       # (too long for the engine to read: it began with the section)
+            return i, stages[0][2], stages[0][3], px, py, cx, cy
+    return None
 
 
 def ringing(S):
@@ -1599,7 +1704,7 @@ def main():
         print("  " + "  ".join(f"{n_}:{k}" for n_, k in total.most_common()))
         print("  treatments: " + "  ".join(f"{n_}:{k}" for n_, k in deal.treats.most_common()))
         print("  turns into: " + "  ".join(f"{n_}:{k}" for n_, k in deal.trans.most_common()))
-        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}  hinges: {deal.hinges}  reprises: {deal.reprises}  walks: {deal.walks}  rows rung: {deal.rings}")
+        print(f"  the band comes in: {deal.dyn['drop']}  hushed bars: {deal.dyn['hush']}  pictures joined by the next: {deal.chains}  pictures that gain a part with the band: {deal.grown['more']}, lose one: {deal.grown['less']}  scenes in a ruled frame: {deal.ruled}  two guises at once: {sum(deal.stacks.values())}  three pictures at once: {deal.trios}  a turn played differently: {deal.odd}  landings: {deal.landings}  canons: {deal.canons}  deals: {deal.deals}  sums: {deal.sums}  the other hand: {deal.hands}  parts that fit: {deal.fits}  hinges: {deal.hinges}  reprises: {deal.reprises}  walks: {deal.walks}  rows rung: {deal.rings}  measures: {deal.measures}")
         print(f"  flashes: {deal.flashes}  treatments that arrive or leave: {deal.arrivals}  camera: " + "  ".join(f"{n_}:{k}" for n_, k in deal.moves.most_common()))
 
 
