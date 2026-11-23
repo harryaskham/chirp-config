@@ -401,6 +401,7 @@ class Deal:
         self.sized = collections.Counter()
         self.tuned = collections.Counter()
         self.hauls = collections.defaultdict(set)
+        self.spires = collections.defaultdict(set)
         self.measured = collections.defaultdict(set)
         self.rung = collections.defaultdict(set)
         self.walked = collections.defaultdict(set)
@@ -673,6 +674,32 @@ class Deal:
                 self.tuned[(S.n, tn[0], tn[1])] += 1
                 note("periods", t, "periods/tune" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
                 return "periods", t, look
+        # Voices an octave apart, climbing for ever (or parts an octave of speed apart, gaining
+        # for ever): the stair seen from the side and from above; the rows of ticks and
+        # their dial. Once for each passage of the first, once for every eight bars of the
+        # second; never twice running; another guise each time.
+        for name, here, bag in (("quicken", quick_here, "quick"), ("spire", climb_here, "climb")):
+            ps = here(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 3.5 else None
+            key = (name, ps[0], (c.a16 // 16 - ps[0]) // 8 if name == "quicken" else 0) if ps else None
+            if not ps or key in self.spires[S.n] or self.recent[-1:] in (["spire"], ["quicken"]):
+                continue
+            cd = copy.copy(base)
+            setattr(cd, bag, ps[2:])
+            got = make(name, ctx=cd, keep=True)
+            t = next((t for t in SPIRE_GUISES if (name, t) not in self.combos and W.TREAT[t][1](cd, W.REG[name])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = (f"{', '.join(ps[2])} an octave apart on one note, {ps[3]} to {ps[4]}" if name == "spire" else
+                          f"{', '.join(ps[2])} an octave of speed apart, a stroke every {ps[4]:.2g} to {ps[3]:.2g} sixteenths")
+                gk = min((x for x in ("halo", "footlights", "plasma", "smoke", "horizon", "stars") if x not in self.grounds_last[S.n][-2:]), key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
+                self.grounds[gk] += 1
+                self.grounds_last[S.n].append(gk)
+                look = W.TREAT[t][0](c, W.ground(c, got[1], gk) if t in W.GROUND_OK else got[1])
+                self.treats[t] += 1
+                self.spires[S.n].add(key)
+                note(name, t, f"{name}/{'climb' if name == 'spire' else 'gain'}" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return name, t, look
         # Slack taken up: one part answers another's pull late (or early), by less each time,
         # until they fall together. A rope for each answer, hanging by as much as it was
         # late. Once for each pull, as it comes; not twice running; another guise each time.
@@ -1214,6 +1241,7 @@ def fitting(S, c):
 
 LEDGER_GUISES = ("plain", "relief", "infra", "fringe", "papercut", "duotone", "echo", "delayed", "blueprint", "solar", "tracking", "onebit", "water")
 # (not papercut or onebit: they lose the bricks still to be played)
+SPIRE_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "duotone", "tracking", "blueprint", "relief", "water", "papercut", "onebit")
 HAUL_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "water", "duotone", "tracking", "blueprint", "relief", "papercut")
 PERIOD_GUISES = ("plain", "fringe", "echo", "delayed", "solar", "infra", "duotone", "blueprint", "water", "tracking", "relief")
 SIZE_GUISES = ("plain", "relief", "fringe", "echo", "infra", "duotone", "delayed", "solar", "blueprint", "tracking", "water", "bricks")
@@ -1395,6 +1423,158 @@ def sizing(S):
             out.append([r[0], r[1], [r[2:]]])
     S._sizing = [(a, b, sorted(rows, key=lambda x: -x[1])) for a, b, rows in out]
     return S._sizing
+
+
+def climbing(S):
+    """Voices an octave apart: three parts or more that sound one note in three octaves or
+    more, and go on doing so as the note moves. Found from the notes, bar by bar: the parts
+    that share a pitch class in at least three octaves for most of the bar. Returns the
+    passages [(from bar, to bar, parts, lowest key, highest key)]; of parts that play the
+    same thing (one a side) the first is kept."""
+    if hasattr(S, "_climbing"):
+        return S._climbing
+    cand = [t for t in S.tracks if t.role != "drum" and len(t.notes) >= 24]
+    sound = {}
+    for t in cand:
+        m = {}
+        for s, z, k in sorted(t.notes):
+            a = round(s * 4)
+            for q in range(a, min(a + 8, round(z * 4) + 1) if z > s else a + 1):
+                m[q] = k
+            m[a] = k
+        sound[t.name] = m
+    per = []
+    for b in range(S.bars):
+        votes, live = collections.Counter(), 0
+        for q in range(b * 16, b * 16 + 16):
+            by = collections.defaultdict(list)
+            for t in cand:
+                k = sound[t.name].get(q)
+                if k is not None:
+                    by[k % 12].append((t.name, k))
+            best = max(by.values(), key=lambda v: len({k // 12 for _, k in v}), default=[])
+            if len({k // 12 for _, k in best}) >= 3:
+                live += 1
+                votes.update(nm for nm, _ in best)
+        names = [nm for nm, v in votes.items() if live >= 8 and v >= 0.6 * live]
+        seen, keep = set(), []
+        for nm in sorted(names):
+            sig = tuple(sound[nm].get(q) for q in range(b * 16, b * 16 + 16))
+            if sig not in seen:
+                seen.add(sig), keep.append(nm)
+        per.append(keep if len(keep) >= 3 else [])
+    out = []
+    for b, names in enumerate(per):
+        if not names:
+            continue
+        if out and out[-1][1] == b and len(set(out[-1][2]) & set(names)) >= 2:
+            out[-1][1] = b + 1
+            out[-1][2] = sorted(set(out[-1][2]) | set(names))
+        else:
+            out.append([b, b + 1, names])
+    # One way only: parts that step up and down are a riff played in octaves, not this. The
+    # passage is cut where the way turns (a leap the other way of a fifth or more is a part
+    # coming round again, and no turn).
+    def steps(nm, a16, b16):
+        ks = [k for q, k in sorted(sound[nm].items()) if a16 <= q < b16 + 1]
+        return [y - x for x, y in zip(ks, ks[1:]) if y != x and abs(y - x) < 7]
+
+    res = []
+    for a, b, names in out:
+        ways = []
+        for bar in range(a, b):
+            st = [d for nm in names for d in steps(nm, bar * 16, bar * 16 + 16)]
+            up = sum(d > 0 for d in st)
+            ways.append(0 if not st else 1 if up >= 0.85 * len(st) else -1 if up <= 0.15 * len(st) else None)
+        runs, at = [], None
+        for i, w in enumerate(ways + [None]):
+            if at is not None and (w is None or (w and runs[-1][2] and w != runs[-1][2])):
+                runs[-1][1] = a + i
+                at = None
+            if w is not None and at is None:
+                at = a + i
+                runs.append([at, None, w])
+            elif w and at is not None and not runs[-1][2]:
+                runs[-1][2] = w
+        for ra, rb, w in runs:
+            if rb - ra < 2 or not w:
+                continue
+            keep = [nm for nm in names if sum(abs(d) for d in steps(nm, ra * 16, rb * 16)) >= 5 and any(ra * 16 <= q < rb * 16 for q in sound[nm])]
+            if len(keep) < 3:
+                continue
+            keep.sort(key=lambda nm: min(k for q, k in sound[nm].items() if ra * 16 <= q < rb * 16))
+            ks = [k for nm in keep for q, k in sound[nm].items() if ra * 16 <= q < rb * 16]
+            res.append((ra, rb, keep, min(ks), max(ks)))
+    S._climbing = res
+    return res
+
+
+def quickening(S):
+    """Parts an octave of speed apart: three or more whose strokes come twice as often from
+    one to the next, all of them gaining (or all losing). Found from the notes, bar by bar.
+    Returns the passages [(from bar, to bar, parts, shortest gap, longest gap)] (gaps in
+    sixteenths)."""
+    if hasattr(S, "_quickening"):
+        return S._quickening
+    cand = [t for t in S.tracks if t.role != "drum" and len(t.notes) >= 24]
+    starts = {t.name: sorted(s * 4 for s, _, _ in t.notes) for t in cand}
+    med = {}
+    for t in cand:
+        st = starts[t.name]
+        for b in range(S.bars):
+            g = [st[i + 1] - st[i] for i in range(len(st) - 1) if b * 16 <= st[i] < b * 16 + 16 and st[i + 1] - st[i] < 12]
+            if len(g) >= 2:
+                med[t.name, b] = (sorted(g)[len(g) // 2], g[0], g[-1])
+    per = []
+    for b in range(S.bars):
+        gain = [(med[t.name, b][0], t.name) for t in cand if (t.name, b) in med and med[t.name, b][2] < med[t.name, b][1] * 0.985]
+        seen, rows = set(), []
+        for m, nm in sorted(gain, key=lambda r: r[1]):      # (of two at one speed, one a side, the first by name)
+            if not any(abs(m - x) < 0.04 * x for x in seen):
+                seen.add(m), rows.append((m, nm))
+        rows.sort()
+        chain = [rows[0]] if rows else []
+        for m, nm in rows[1:]:
+            if 1.6 <= m / chain[-1][0] <= 2.5:
+                chain.append((m, nm))
+        per.append(chain if len(chain) >= 3 else [])
+    out = []
+    for b, chain in enumerate(per):
+        if not chain:
+            continue
+        names = [nm for _, nm in chain]
+        if out and out[-1][1] == b:
+            out[-1][1] = b + 1
+            out[-1][2] += names
+        else:
+            out.append([b, b + 1, list(names)])
+    res = []
+    for a, b, names in out:
+        if b - a < 2:
+            continue
+        names = sorted(nm for nm in set(names) if names.count(nm) >= 0.4 * (b - a))       # (those that are in it for a good part of it)
+        if len(names) < 3:
+            continue
+        gs = [med[nm, q][0] for nm in names for q in range(a, b) if (nm, q) in med]
+        res.append((a, b, names, min(gs), max(gs)))
+    S._quickening = res
+    return res
+
+
+def climb_here(S, c):
+    """The passage of voices climbing an octave apart that the scene lies in (most of it), or None."""
+    for a, b, names, lo, hi in climbing(S):
+        if min(b * 16, c.b16) - max(a * 16, c.a16) >= 0.7 * (c.b16 - c.a16):
+            return a, b, names, lo, hi
+    return None
+
+
+def quick_here(S, c):
+    """The passage of parts gaining an octave of speed apart that the scene lies in (most of it), or None."""
+    for a, b, names, g0, g1 in quickening(S):
+        if min(b * 16, c.b16) - max(a * 16, c.a16) >= 0.7 * (c.b16 - c.a16):
+            return a, b, names, g0, g1
+    return None
 
 
 def hauling(S):
@@ -2091,7 +2271,7 @@ def plan(S, deal):
         scene = {"at": 0 if k == 0 else f"{a16 // 16}bar" if a16 % 16 == 0 else f"{a16 / 4:g}b", "look": look}
         still = any(t in ("roll", "spin", "hole", "sheet", "kaleido", "mirror", "tunnel", "slices", "wall", "planet", "wound") for t in treat.split(",")) or name in W.PLATES or W.REG[name]["fam"] in ("plate", "sheet", "sign")
         # A picture that is there to be read (a sum, a ledger, rows, an oblong cut into squares) is not moved about.
-        still = still or name in ("haul", "periods", "sizes", "measure", "ledger", "ringing", "total", "squares", "rolls", "zipper", "dice", "rabbits", "barcode", "braille")
+        still = still or name in ("spire", "quicken", "haul", "periods", "sizes", "measure", "ledger", "ringing", "total", "squares", "rolls", "zipper", "dice", "rabbits", "barcode", "braille")
         if k and not flash and not still and treat not in ("more", "less", "hinge") and (b16 - a16) * c.six >= 4.5 and rnd(S.n, k, "move?") < 0.5:
             # The camera over the picture does one thing in the scene, each kind in its turn.
             bars_ = S.full[a16 // 16:max(a16 // 16 + 1, b16 // 16)]
