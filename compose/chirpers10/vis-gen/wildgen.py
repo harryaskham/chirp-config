@@ -707,7 +707,7 @@ class Deal:
         # of odd lengths together (five, seven, eleven), a wheel each, once in forty-five
         # bars: the album's first song is told the time by them.
         gr = gear_here(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 4.5 else None
-        gkey = ((tuple(P for P, _, _ in gr[2]), c.a16 // 16 // 12) if any(abs(P - gr[1]) == 1 for P, _, _ in gr[2]) else ("odd", c.a16 // 16 // 45)) if gr else None
+        gkey = ((tuple(w[0] for w in gr[2]), c.a16 // 16 // 12) if any(abs(w[0] - gr[1]) == 1 for w in gr[2]) else ("odd", c.a16 // 16 // 45)) if gr else None
         if gr and gkey not in self.gears[S.n] and "pinion" not in self.recent[-2:]:
             cd = copy.copy(base)
             cd.gear = gr
@@ -716,7 +716,7 @@ class Deal:
             if got and t:
                 c.__dict__.update(got[0].__dict__)
                 c.arrive = "1"
-                c.talk = " and ".join(f"{', '.join(parts[:2])} in {P} against the bar's {gr[1]}" for P, _, parts in gr[2])
+                c.talk = " and ".join(f"{', '.join(w[2][:2])} in {w[0]} against the bar's {gr[1]}" + (f", counted in {w[3]}" if len(w) > 3 else "") for w in gr[2])
                 gk = min((x for x in ("halo", "footlights", "plasma", "smoke", "horizon", "stars") if x not in self.grounds_last[S.n][-2:]), key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
                 self.grounds[gk] += 1
                 self.grounds_last[S.n].append(gk)
@@ -1695,6 +1695,14 @@ def gear_here(S, c):
     for a, b, sub, g, P, q0, parts in gearing(S):
         if min(b * 16, c.b16) - max(a * 16, c.a16) >= 0.7 * (c.b16 - c.a16) and (sub, g, P) not in got:
             got[sub, g, P] = (P, q0, parts)
+    rc = recounting(S)
+    if not got and rc and c.a16 >= rc[0] - 4:
+        # A band that has begun to count faster: its bar is a wheel shorter round than the
+        # old bar's ring, but with as many teeth (sixteen on a wheel fifteen round).
+        fit = [p for p in c.riffs + c.drums if p.cell and p.cell != 16 and abs(p.cell / rc[1] - 16) < 0.02 and p.n >= 4]
+        if fit:
+            fit.sort(key=lambda p: (p.role == "drum", -p.n))
+            return 4, 16, [(fit[0].cell, fit[0].anchor, [fit[0].name] + [p.name for p in fit[1:] if p.name[:2] != fit[0].name[:2]][:1], 16)]
     if not got:
         # Or two riffs or three of odd lengths shorter than the bar (five, seven, eleven):
         # a wheel each, one inside another, all touching the ring where the music is.
@@ -1801,6 +1809,36 @@ def rule_here(S, c):
         if min(b, c.b16) - max(a, c.a16) >= 0.7 * (c.b16 - c.a16):
             return nm, a, b, lo, hi, step
     return None
+
+
+def recounting(S):
+    """A band that starts to count faster (or slower) without the tempo changing: from some
+    bar on its strokes keep to a grid a little finer than the sixteenths they kept to
+    before (sixteen places where there were fifteen). Found from the notes: the unit that
+    the strokes of each few bars fit best, and where it changes. Returns (the sixteenth of
+    the change, the new unit in sixteenths), or None."""
+    if hasattr(S, "_recount"):
+        return S._recount
+    S._recount = None
+    units = (15 / 16, 16 / 15, 8 / 9, 9 / 8, 14 / 15, 15 / 14)
+
+    def off(on, u):
+        """How far a part's strokes lie from a grid of unit u, at its best phase (0 to 0.25)."""
+        return min(sum(abs(((q - on[0] - ph * u / 24) / u + 0.5) % 1 - 0.5) for q in on) / len(on) for ph in range(24))
+
+    last = None
+    for b in range(0, S.bars - 3):
+        got = [on for on in ([s * 4 for s, _, _ in t.notes if b * 16 <= s * 4 < b * 16 + 64] for t in S.tracks) if 6 <= len(on) <= 48]
+        if len(got) < 3:
+            continue
+        err = {u: sum(off(on, u) for on in got) / len(got) for u in (1.0,) + units}
+        u = min(err, key=err.get)
+        if u == 1.0 and err[u] < 0.08:
+            last = b
+        elif u != 1.0 and err[u] < 0.06 and err[1.0] > 0.15 and last is not None and b - last <= 8:
+            S._recount = (min(min(on) for on in got if off(on, u) < 0.06 and off(on, 1.0) > 0.15), u)
+            break
+    return S._recount
 
 
 def hauling(S):

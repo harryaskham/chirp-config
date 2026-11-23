@@ -4132,12 +4132,14 @@ def pinion(c):
     meets, so the wheel falls a tooth behind every bar. A note is a tooth lit where it
     was struck, and it stays lit for one turn of the wheel: the riff is seen going round,
     and what answers it lights the teeth between. One tooth is marked and draws its path:
-    it is back where it was after as many bars as the riff has places."""
+    it is back where it was after as many bars as the riff has places. (Where a band has
+    begun to count faster, its bar is a wheel shorter round than the ring but with as many
+    teeth: sixteen on a wheel fifteen round.)"""
     R = getattr(c, "gear", None)
     if not R:
         raise ValueError("no riff is a place off the bar here")
     sub, g, wheels = R
-    big = max(P for P, _, _ in wheels)
+    big = max(w[0] for w in wheels)
     rr = 3.05 if big < g else 2.8
     tau = f"(time.beat*{sub})"
     phi = f"({tau}/{g})"
@@ -4145,7 +4147,8 @@ def pinion(c):
     layers = [ball(f"{rr:g}*sin(inst.i/{g})", f"{rr:g}*cos(inst.i/{g})", 0, f"0.055 + 0.05*{beat}", 6, count=g, **glow(c.ink, f"0.6 + 0.8*{beat}")),
               ball(f"{rr:g}*sin(inst.i/240)", f"{rr:g}*cos(inst.i/240)", 0, 0.016, 4, count=240, **glow(c.dim, 1.1))]
     env = {}
-    for w, (P, q0, parts) in enumerate(wheels[:3]):
+    for w, (P, q0, parts, *more) in enumerate(wheels[:3]):
+        teeth = more[0] if more else P                     # (a wheel fifteen places round may carry sixteen teeth: a band that counts faster)
         rp = rr * P / g
         d = rr - rp
         psi = f"({tau}/{g} - ({tau} - {q0})/{P})"
@@ -4153,8 +4156,8 @@ def pinion(c):
         at = lambda ang, r=rp: (f"{hx} + {r:g}*sin({ang})", f"{hy} + {r:g}*cos({ang})")      # noqa: E731
         x, y = at(f"(inst.i/240 + {psi})")
         layers.append(ball(x, y, 0, 0.018, 4, count=240, **glow(c.col(2 * w), 0.9)))
-        x, y = at(f"(inst.i/{P} + {psi})")
-        layers.append(ball(x, y, 0, 0.075, 6, count=P, **glow(c.dim, 1.3)))
+        x, y = at(f"(inst.i/{teeth} + {psi})")
+        layers.append(ball(x, y, 0, 0.075, 6, count=teeth, **glow(c.dim, 1.3)))
         # the marked tooth's path over the whole cycle, and the tooth on it
         m = g * P
         ti = f"({q0} + inst.i*{m / 600:g})"
