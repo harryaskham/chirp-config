@@ -703,9 +703,11 @@ class Deal:
                 return "cobweb", t, look
         # A riff a place off the bar: a wheel of its places rolling in the ring of the bar's.
         # Once for every twelve bars, and whenever the wheels change (a second riff, the
-        # other way off the bar); never twice running; another guise each time.
+        # other way off the bar); never twice running; another guise each time. And riffs
+        # of odd lengths together (five, seven, eleven), a wheel each, once in forty-five
+        # bars: the album's first song is told the time by them.
         gr = gear_here(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 4.5 else None
-        gkey = (tuple(P for P, _, _ in gr[2]), c.a16 // 16 // 12) if gr else None
+        gkey = ((tuple(P for P, _, _ in gr[2]), c.a16 // 16 // 12) if any(abs(P - gr[1]) == 1 for P, _, _ in gr[2]) else ("odd", c.a16 // 16 // 45)) if gr else None
         if gr and gkey not in self.gears[S.n] and "pinion" not in self.recent[-2:]:
             cd = copy.copy(base)
             cd.gear = gr
@@ -1080,7 +1082,9 @@ class Deal:
             gk = None
             if name in W.GROUNDED and treat in W.GROUND_OK and (second is None or second in W.GROUND_OK) and "layers" in look \
                     and not any(f.get("type") in ("feedback", "expose", "slit", "fence", "panels", "timeslice", "step") for f in look.get("filters", [])):
-                kinds = [x for x in W.GROUNDS if x not in self.grounds_last[S.n][-3:]]
+                # (A song's first picture stands on a ground that is lit before anything has sounded:
+                # the frame the seam lands on is not a dark one.)
+                kinds = [x for x in W.GROUNDS if x not in self.grounds_last[S.n][-3:] and (not first or x in ("halo", "footlights", "plasma", "smoke", "horizon", "floor"))]
                 gk = min(kinds, key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
                 look = W.ground(c, look, gk)
                 self.grounds[gk] += 1
@@ -1291,7 +1295,8 @@ def fitting(S, c):
 LEDGER_GUISES = ("plain", "relief", "infra", "fringe", "papercut", "duotone", "echo", "delayed", "blueprint", "solar", "tracking", "onebit", "water")
 # (not papercut or onebit: they lose the bricks still to be played)
 RULE_GUISES = ("plain", "fringe", "echo", "infra", "delayed", "solar", "duotone", "blueprint", "tracking", "relief", "water", "papercut")
-GEAR_GUISES = ("plain", "echo", "fringe", "infra", "delayed", "solar", "duotone", "blueprint", "tracking", "relief", "water", "papercut", "onebit")
+GEAR_GUISES = ("plain", "echo", "fringe", "infra", "delayed", "solar", "duotone", "blueprint", "tracking", "relief", "water", "papercut", "onebit",
+               "negative", "drawn", "hatched", "dots", "screen", "blown", "smoked", "dripping", "lines", "stop", "coiled", "engraved", "typed", "torn")
 SPIRE_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "duotone", "tracking", "blueprint", "relief", "water", "papercut", "onebit")
 HAUL_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "water", "duotone", "tracking", "blueprint", "relief", "papercut")
 PERIOD_GUISES = ("plain", "fringe", "echo", "delayed", "solar", "infra", "duotone", "blueprint", "water", "tracking", "relief")
@@ -1691,7 +1696,21 @@ def gear_here(S, c):
         if min(b * 16, c.b16) - max(a * 16, c.a16) >= 0.7 * (c.b16 - c.a16) and (sub, g, P) not in got:
             got[sub, g, P] = (P, q0, parts)
     if not got:
-        return None
+        # Or two riffs or three of odd lengths shorter than the bar (five, seven, eleven):
+        # a wheel each, one inside another, all touching the ring where the music is.
+        # (Only in a song that runs on three such lengths or more: there they are its clock.)
+        if not hasattr(S, "_odd"):
+            bars = collections.Counter()
+            for t in S.tracks:
+                for a, z, cell in t.spans:
+                    if t.role != "drum" and cell and 5 <= cell < 16 and cell % 2:
+                        bars[cell] += z - a
+            S._odd = {cell for cell, n_ in bars.items() if n_ >= 0.1 * S.bars}
+        cells = {}
+        for p in c.riffs:
+            if p.cell in S._odd and p.cell not in cells:
+                cells[p.cell] = (p.cell, p.anchor, [p.name])
+        return (4, 16, sorted(cells.values())[:3]) if len(S._odd) >= 3 and len(cells) >= 2 else None
     sub, g = max(((sub, g) for sub, g, _ in got), key=lambda k: sum(1 for x in got if x[:2] == k))
     # Of a wheel's parts, the one that plays most here, and with it the one that least
     # plays what it plays (its negative, if there is one: a part that doubles it adds nothing).

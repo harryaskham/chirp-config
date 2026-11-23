@@ -4145,7 +4145,7 @@ def pinion(c):
     layers = [ball(f"{rr:g}*sin(inst.i/{g})", f"{rr:g}*cos(inst.i/{g})", 0, f"0.055 + 0.05*{beat}", 6, count=g, **glow(c.ink, f"0.6 + 0.8*{beat}")),
               ball(f"{rr:g}*sin(inst.i/240)", f"{rr:g}*cos(inst.i/240)", 0, 0.016, 4, count=240, **glow(c.dim, 1.1))]
     env = {}
-    for w, (P, q0, parts) in enumerate(wheels[:2]):
+    for w, (P, q0, parts) in enumerate(wheels[:3]):
         rp = rr * P / g
         d = rr - rp
         psi = f"({tau}/{g} - ({tau} - {q0})/{P})"
