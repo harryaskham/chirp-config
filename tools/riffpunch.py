@@ -209,7 +209,12 @@ def strokes_lines(res, stats, nrec, lone=None):
             row("ours - records", lambda k: f"{o[k] - stats[k][0]:+.2f}"),
             "  scoop_db is 400 Hz-1 kHz less 1-4 kHz through a stroke: MORE negative is more teeth. rise_ms and punch_db are "
             "the attack; tight_db the low end's fall; grain the noise between the harmonics. A read, not a score. The records "
-            "give no figure for the rest after a stroke."] + ([
+            "give no figure for the rest after a stroke.",
+            "  TIGHT: do NOT judge tight_db against the records' row above to the decibel. It hangs on where a stroke is said "
+            "to begin (0.03 to 0.44 dB a millisecond on a stem), and that row was read at our transcriptions' onsets. Read "
+            "where each record itself says its strokes begin, the same stems give -0.07 (-0.46..+0.60): the records' guitar "
+            "holds its low end LEVEL through the stroke; ours is read at the written note. What is heard is the mix: "
+            "tools/chugmix.py (the record itself +2.9, +2.4..+4.5)."] + ([
                 "  FIZZ: do NOT judge fizz_db against the records' row above. Those are separated stems, and the separator takes "
                 "the guitar's top: where the record's guitar plays ALONE (no separator) the record itself reads "
                 + ", ".join(f"{v:.1f}" for v in lone.values()) + f" ({', '.join(lone)}; whole passage), and ours here "
