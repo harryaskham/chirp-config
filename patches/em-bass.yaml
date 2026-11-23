@@ -1,0 +1,203 @@
+{
+ "about": "chirper-zero: the album's bass (ct-bass, layer for layer) with the level of the sine under its string on the track's lane `chug`: the sine goes through the amp WITH the string and it is the sine the amp works on, so each stroke was a thud and then less note. Where the lane is 1 the sine is lower into the amp ; the song's low bus gives the fundamental back after it. With no lane this is ct-bass. BANKED by tools/patchbank.py (23 Nov 2026) from Extreme and Mean v39 (track bass): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`chug`): give the track that plays it `auto: {chug: \u2026}`, as the song does.",
+ "fx": [
+  {
+   "bass": 0.7,
+   "boost": "3dB",
+   "mix": 0.6,
+   "model": "crunch",
+   "presence": 0.3,
+   "resonance": 0.75,
+   "sag": 0.4,
+   "tight": 30,
+   "treble": 0.4,
+   "type": "amp"
+  },
+  {
+   "distance": 0.12,
+   "mic": 0.4,
+   "model": "4x10",
+   "type": "cab"
+  },
+  {
+   "bands": [
+    {
+     "cutoff": 110,
+     "gain": "6dB",
+     "kind": "peak",
+     "q": 0.7
+    },
+    {
+     "cutoff": 220,
+     "gain": "4dB",
+     "kind": "peak",
+     "q": 0.7
+    },
+    {
+     "cutoff": 450,
+     "gain": "2dB",
+     "kind": "peak",
+     "q": 0.9
+    },
+    {
+     "cutoff": 900,
+     "gain": "5dB",
+     "kind": "peak",
+     "q": 0.8
+    },
+    {
+     "cutoff": 1500,
+     "gain": "-10dB",
+     "kind": "highshelf"
+    },
+    {
+     "cutoff": 4000
+    }
+   ],
+   "type": "eq"
+  },
+  {
+   "attack": "10ms",
+   "makeup": "3dB",
+   "ratio": 5.0,
+   "release": "140ms",
+   "threshold": "-24dB",
+   "type": "compressor"
+  },
+  {
+   "drive": 0.3,
+   "mix": 1,
+   "type": "tape",
+   "warmth": 0.6
+  },
+  {
+   "hold": "30ms",
+   "threshold": "-58dB",
+   "type": "gate"
+  }
+ ],
+ "gain": "-11dB",
+ "play": {
+  "event_stable": true,
+  "gate": 0.88,
+  "humanize": {
+   "time": "4ms",
+   "vel": 0.06
+  },
+  "mono": true,
+  "vel_sens": 0.45
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "r": "50ms"
+  },
+  "env": {
+   "pick": {
+    "a": "0.1ms",
+    "d": "5ms",
+    "s": 0
+   },
+   "tw": {
+    "a": "0.2ms",
+    "d": "70ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {
+    "bright": {
+     "mod": [
+      {
+       "amount": 0.25,
+       "src": "vel"
+      },
+      {
+       "amount": -0.35,
+       "src": "expr.pm"
+      },
+      {
+       "amount": 0.04,
+       "src": "rand"
+      }
+     ],
+     "value": 0.52
+    },
+    "buzz": 0.24,
+    "choke": "70ms",
+    "decay": {
+     "mod": [
+      {
+       "amount": -2.5,
+       "src": "expr.pm"
+      },
+      {
+       "amount": 0.4,
+       "src": "vel"
+      }
+     ],
+     "value": "5s"
+    },
+    "name": "string",
+    "pick": 0.2,
+    "polarity": {
+     "mod": [
+      {
+       "amount": -2.0,
+       "src": "expr.up"
+      }
+     ],
+     "value": 1
+    },
+    "stiff": 0.28,
+    "type": "pluck"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": -15.0,
+       "src": "auto.chug"
+      }
+     ],
+     "value": "-9dB"
+    },
+    "name": "sub"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 40.0,
+       "src": "env.pick"
+      },
+      {
+       "amount": 10.0,
+       "src": "vel"
+      }
+     ],
+     "value": "-60dB"
+    },
+    "name": "pick",
+    "type": "noise"
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 0.45,
+     "src": "env.tw"
+    },
+    {
+     "amount": 0.04,
+     "src": "rand"
+    },
+    {
+     "amount": 1.0,
+     "src": "expr.bend"
+    }
+   ],
+   "value": 0
+  }
+ }
+}
