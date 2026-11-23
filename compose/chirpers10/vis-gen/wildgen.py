@@ -402,6 +402,7 @@ class Deal:
         self.tuned = collections.Counter()
         self.hauls = collections.defaultdict(set)
         self.spires = collections.defaultdict(set)
+        self.gears = collections.defaultdict(set)
         self.measured = collections.defaultdict(set)
         self.rung = collections.defaultdict(set)
         self.walked = collections.defaultdict(set)
@@ -674,6 +675,28 @@ class Deal:
                 self.tuned[(S.n, tn[0], tn[1])] += 1
                 note("periods", t, "periods/tune" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
                 return "periods", t, look
+        # A riff a place off the bar: a wheel of its places rolling in the ring of the bar's.
+        # Once for every twelve bars, and whenever the wheels change (a second riff, the
+        # other way off the bar); never twice running; another guise each time.
+        gr = gear_here(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 4.5 else None
+        gkey = (tuple(P for P, _, _ in gr[2]), c.a16 // 16 // 12) if gr else None
+        if gr and gkey not in self.gears[S.n] and "pinion" not in self.recent[-2:]:
+            cd = copy.copy(base)
+            cd.gear = gr
+            got = make("pinion", ctx=cd, keep=True)
+            t = next((t for t in GEAR_GUISES if ("pinion", t) not in self.combos and W.TREAT[t][1](cd, W.REG["pinion"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = " and ".join(f"{', '.join(parts[:2])} in {P} against the bar's {gr[1]}" for P, _, parts in gr[2])
+                gk = min((x for x in ("halo", "footlights", "plasma", "smoke", "horizon", "stars") if x not in self.grounds_last[S.n][-2:]), key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
+                self.grounds[gk] += 1
+                self.grounds_last[S.n].append(gk)
+                look = W.TREAT[t][0](c, W.ground(c, got[1], gk) if t in W.GROUND_OK else got[1])
+                self.treats[t] += 1
+                self.gears[S.n].add(gkey)
+                note("pinion", t, "pinion/wheel" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "pinion", t, look
         # Voices an octave apart, climbing for ever (or parts an octave of speed apart, gaining
         # for ever): the stair seen from the side and from above; the rows of ticks and
         # their dial. Once for each passage of the first, once for every eight bars of the
@@ -1241,6 +1264,7 @@ def fitting(S, c):
 
 LEDGER_GUISES = ("plain", "relief", "infra", "fringe", "papercut", "duotone", "echo", "delayed", "blueprint", "solar", "tracking", "onebit", "water")
 # (not papercut or onebit: they lose the bricks still to be played)
+GEAR_GUISES = ("plain", "echo", "fringe", "infra", "delayed", "solar", "duotone", "blueprint", "tracking", "relief", "water", "papercut", "onebit")
 SPIRE_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "duotone", "tracking", "blueprint", "relief", "water", "papercut", "onebit")
 HAUL_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "water", "duotone", "tracking", "blueprint", "relief", "papercut")
 PERIOD_GUISES = ("plain", "fringe", "echo", "delayed", "solar", "infra", "duotone", "blueprint", "water", "tracking", "relief")
@@ -1575,6 +1599,85 @@ def quick_here(S, c):
         if min(b * 16, c.b16) - max(a * 16, c.a16) >= 0.7 * (c.b16 - c.a16):
             return a, b, names, g0, g1
     return None
+
+
+def gearing(S):
+    """A riff one place longer or shorter than the bar. Found from the notes: a part whose
+    strokes lie on the bar's grid (sixteenths, or triplet eighths: whichever its notes
+    keep to) and repeat after one place more or fewer than the bar has, and not with the
+    bar. Returns the passages [(from bar, to bar, places to the beat, places to the bar,
+    places to the riff, first place, parts)], the parts in order of how much they play;
+    the first place is where the riff begins, counted in places from the song's start."""
+    if hasattr(S, "_gearing"):
+        return S._gearing
+    runs = collections.defaultdict(list)
+    for t in S.tracks:
+        if len(t.notes) < 24:
+            continue
+        sub = next((d for d in (4, 3) if sum(abs(s * d - round(s * d)) < 0.12 for s, _, _ in t.notes) >= 0.92 * len(t.notes)), None)
+        if not sub:
+            continue
+        g = 4 * sub
+        on = {round(s * sub) for s, _, _ in t.notes}
+        for P in (g - 1, g + 1):
+            bars = []
+            for b in range(S.bars - 1):
+                win = [q for q in on if b * g <= q < b * g + 2 * g - P]
+                allq = [q for q in on if b * g <= q < b * g + 2 * g]
+                if len(win) >= 2 and len(allq) <= 2 * (P - 2) and sum(q + P in on for q in win) >= 0.85 * len(win) and sum(q + g in on for q in win) < 0.75 * len(win):
+                    bars.append(b)
+            for b in bars:
+                r = runs[sub, P]
+                r.append((b, b + 2, t.name))
+    out = []
+    for (sub, P), rr in runs.items():
+        g = 4 * sub
+        cover = collections.defaultdict(set)
+        for a, b, nm in rr:
+            for x in range(a, b):
+                cover[x].add(nm)
+        a = None
+        for x in sorted(cover) + [None]:
+            if a is not None and (x is None or x != last + 1):
+                names = collections.Counter(nm for y in range(a, last + 1) for nm in cover[y])
+                if last + 1 - a >= 4 or (last + 1 - a >= 3 and len(names) >= 2):
+                    parts = [nm for nm, _ in names.most_common()]
+                    lead = next(t for t in S.tracks if t.name == parts[0])
+                    q0 = min(round(s * sub) for s, _, _ in lead.notes if a * 4 <= s < (last + 1) * 4)
+                    out.append((a, last + 1, sub, g, P, q0, parts))
+                a = None
+            if x is not None and a is None:
+                a = x
+            last = x
+    S._gearing = sorted(out)
+    return S._gearing
+
+
+def gear_here(S, c):
+    """The riffs a place off the bar that the scene lies in (most of it): (places to the
+    beat, places to the bar, [(places to the riff, first place, parts)]), the shorter riff
+    first if there are two; or None."""
+    got = {}
+    for a, b, sub, g, P, q0, parts in gearing(S):
+        if min(b * 16, c.b16) - max(a * 16, c.a16) >= 0.7 * (c.b16 - c.a16) and (sub, g, P) not in got:
+            got[sub, g, P] = (P, q0, parts)
+    if not got:
+        return None
+    sub, g = max(((sub, g) for sub, g, _ in got), key=lambda k: sum(1 for x in got if x[:2] == k))
+    # Of a wheel's parts, the one that plays most here, and with it the one that least
+    # plays what it plays (its negative, if there is one: a part that doubles it adds nothing).
+    T = {t.name: t for t in S.tracks}
+    on = lambda nm: {round(s_ * sub) for s_, _, _ in T[nm].notes if c.a16 / 4 <= s_ < c.b16 / 4}       # noqa: E731
+    wheels = []
+    for P, q0, parts in sorted(v for k, v in got.items() if k[:2] == (sub, g)):
+        turns = lambda o: len(o) >= 3 and sum(q + P in o or q - P in o for q in o) >= 0.8 * len(o)      # noqa: E731  (it comes round with the wheel here)
+        live = sorted((nm for nm in parts if turns(on(nm))), key=lambda nm: (T[nm].role == "drum", -len(on(nm))))
+        if not live:
+            continue
+        a = on(live[0])
+        rest = sorted(((len(a & on(nm)) / len(a | on(nm)), nm) for nm in live[1:]), key=lambda r: r[0])
+        wheels.append((P, q0, live[:1] + [nm for sh, nm in rest[:1] if sh < 0.5]))
+    return (sub, g, wheels) if wheels else None
 
 
 def hauling(S):
@@ -2271,7 +2374,7 @@ def plan(S, deal):
         scene = {"at": 0 if k == 0 else f"{a16 // 16}bar" if a16 % 16 == 0 else f"{a16 / 4:g}b", "look": look}
         still = any(t in ("roll", "spin", "hole", "sheet", "kaleido", "mirror", "tunnel", "slices", "wall", "planet", "wound") for t in treat.split(",")) or name in W.PLATES or W.REG[name]["fam"] in ("plate", "sheet", "sign")
         # A picture that is there to be read (a sum, a ledger, rows, an oblong cut into squares) is not moved about.
-        still = still or name in ("spire", "quicken", "haul", "periods", "sizes", "measure", "ledger", "ringing", "total", "squares", "rolls", "zipper", "dice", "rabbits", "barcode", "braille")
+        still = still or name in ("pinion", "spire", "quicken", "haul", "periods", "sizes", "measure", "ledger", "ringing", "total", "squares", "rolls", "zipper", "dice", "rabbits", "barcode", "braille")
         if k and not flash and not still and treat not in ("more", "less", "hinge") and (b16 - a16) * c.six >= 4.5 and rnd(S.n, k, "move?") < 0.5:
             # The camera over the picture does one thing in the scene, each kind in its turn.
             bars_ = S.full[a16 // 16:max(a16 // 16 + 1, b16 // 16)]

@@ -4123,6 +4123,60 @@ def sizes(c):
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.014, 0.7)]}
 
 
+@idiom(needs=0, fam="count")
+def pinion(c):
+    """A riff one place shorter than the bar (or one longer). The bar is a ring of teeth,
+    one for every place in it, and the point where the music is goes round it once a bar.
+    The riff is a wheel with a tooth for every place in the riff, rolling inside the ring
+    (a hoop rolling round it, if the riff is the longer): at every place one tooth of each
+    meets, so the wheel falls a tooth behind every bar. A note is a tooth lit where it
+    was struck, and it stays lit for one turn of the wheel: the riff is seen going round,
+    and what answers it lights the teeth between. One tooth is marked and draws its path:
+    it is back where it was after as many bars as the riff has places."""
+    R = getattr(c, "gear", None)
+    if not R:
+        raise ValueError("no riff is a place off the bar here")
+    sub, g, wheels = R
+    big = max(P for P, _, _ in wheels)
+    rr = 3.05 if big < g else 2.8
+    tau = f"(time.beat*{sub})"
+    phi = f"({tau}/{g})"
+    beat = f"(1 - step(0.5, fract(inst.i/{sub})*{sub}))"
+    layers = [ball(f"{rr:g}*sin(inst.i/{g})", f"{rr:g}*cos(inst.i/{g})", 0, f"0.055 + 0.05*{beat}", 6, count=g, **glow(c.ink, f"0.6 + 0.8*{beat}")),
+              ball(f"{rr:g}*sin(inst.i/240)", f"{rr:g}*cos(inst.i/240)", 0, 0.016, 4, count=240, **glow(c.dim, 1.1))]
+    env = {}
+    for w, (P, q0, parts) in enumerate(wheels[:2]):
+        rp = rr * P / g
+        d = rr - rp
+        psi = f"({tau}/{g} - ({tau} - {q0})/{P})"
+        hx, hy = f"({d:g}*sin({phi}))", f"({d:g}*cos({phi}))"
+        at = lambda ang, r=rp: (f"{hx} + {r:g}*sin({ang})", f"{hy} + {r:g}*cos({ang})")      # noqa: E731
+        x, y = at(f"(inst.i/240 + {psi})")
+        layers.append(ball(x, y, 0, 0.018, 4, count=240, **glow(c.col(2 * w), 0.9)))
+        x, y = at(f"(inst.i/{P} + {psi})")
+        layers.append(ball(x, y, 0, 0.075, 6, count=P, **glow(c.dim, 1.3)))
+        # the marked tooth's path over the whole cycle, and the tooth on it
+        m = g * P
+        ti = f"({q0} + inst.i*{m / 600:g})"
+        layers.append(ball(f"{d:g}*sin({ti}/{g}) + {rp * 0.8:g}*sin({ti}/{g} - ({ti} - {q0})/{P})", f"{d:g}*cos({ti}/{g}) + {rp * 0.8:g}*cos({ti}/{g} - ({ti} - {q0})/{P})", 0.02, 0.013, 4, count=600,
+                           **glow(c.col(2 * w), 0.8)))
+        x, y = at(psi)
+        layers.append({"type": "beam", "from": [hx, hy, 0], "to": [x, y, 0], "width": 0.02, "samples": 8, "color": c.ink, "glow": 0.7})
+        x, y = at(psi, rp * 0.8)
+        layers.append(ball(x, y, -0.02, 0.1, 8, **glow(c.ink, 1.4)))
+        layers.append(ball(hx, hy, 0, 0.09, 8, **glow(c.col(2 * w), 1.0)))
+        for j, nm in enumerate(parts[:2]):
+            col = c.col(2 * w + j)
+            x, y = at(f"((note.beat*{sub} - {q0})/{P} + {psi})", rp * (1 - 0.07 * j))
+            layers.append(ball(x, y, -0.04, f"{0.21 - 0.04 * j:g}*(1 + 0.5*exp(0 - 5*max(note.age, 0)))", 10, notes={"track": nm, "past": P / sub - 0.02, "ahead": 0}, count=2 * P,
+                               **glow(col, "0.7 + 2*exp(0 - 4*max(note.age, 0))")))
+            env[f"g{w}{j}"] = {"on": f"track.{nm}", "attack": "0ms", "decay": "140ms"}
+    hit = " + ".join(f"env.{k}" for k in env)
+    layers.append(ball(f"{rr:g}*sin({phi})", f"{rr:g}*cos({phi})", -0.06, f"0.1 + 0.14*min({hit}, 1)", 8, **glow("#ffffff", f"0.8 + 2.2*min({hit}, 1)")))
+    # (The ring lies back: seen from below its near edge, it fills the width of the frame.)
+    return {"background": c.bg, "env": env, "camera": {"x": 0, "y": -6.0, "z": -6.8, "look_at": [0, -0.42, 0], "zoom": 2.2}, "layers": layers, "filters": [bloom(c, 0.45, 0.016, 0.6)]}
+
+
 def _log2(x):
     """log2 of an expression (there is no log: the limit of (x^e - 1)/e does for one)."""
     return f"((pow({x}, 0.002) - 1)*721.35)"
@@ -4959,7 +5013,7 @@ HANDS = ("riley", "blinds", "dominoes", "breakout", "kandinsky", "vortex", "moon
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
            "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava".split())
-BROAD = FULL | set("spire quicken haul periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
+BROAD = FULL | set("pinion spire quicken haul periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("breakout searchlights solkattu remainder rain seismo metro epicycle pond tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
@@ -4974,14 +5028,14 @@ WANTS = {"rabbits": lambda c: any(p.cell in (34, 55) for p in c.riffs),
 LONG = set("turtle strange harmonograph tetris hanoi marbling ink rink galton".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("barcode braille dice candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
-MIRROR_BAD = set("spire quicken haul periods sizes ledger ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
+MIRROR_BAD = set("pinion spire quicken haul periods sizes ledger ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())
 # Pictures that are mostly light: a print of their lights is a blank sheet.
 BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("rolls zipper loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("spire quicken haul periods sizes ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
+SLOW = set("pinion spire quicken haul periods sizes ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)
