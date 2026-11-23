@@ -403,6 +403,7 @@ class Deal:
         self.hauls = collections.defaultdict(set)
         self.spires = collections.defaultdict(set)
         self.gears = collections.defaultdict(set)
+        self.rules = collections.defaultdict(set)
         self.measured = collections.defaultdict(set)
         self.rung = collections.defaultdict(set)
         self.walked = collections.defaultdict(set)
@@ -675,6 +676,31 @@ class Deal:
                 self.tuned[(S.n, tn[0], tn[1])] += 1
                 note("periods", t, "periods/tune" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
                 return "periods", t, look
+        # A tune made by a rule: each note against the next, and the web between them. Once
+        # for every ten bars of it; never twice running; another guise each time.
+        rl = rule_here(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 4.5 else None
+        rkey = (rl[0], rl[1], (c.a16 - rl[1]) // 160) if rl else None
+        if rl and rkey not in self.rules[S.n] and "cobweb" not in self.recent[-2:]:
+            cd = copy.copy(base)
+            # (The plot is as wide as the tune has ranged lately: a tune that has settled is seen close to.)
+            near = [k_ for t_ in S.tracks if t_.name == rl[0] for s_, _, k_ in t_.notes if c.a16 - 128 <= s_ * 4 < c.b16 + rl[5]]
+            lo, hi = min(near), max(near)
+            pad = max(0, 7 - (hi - lo)) / 2
+            cd.rule = (rl[0], lo - pad, hi + pad, rl[5])
+            got = make("cobweb", ctx=cd, keep=True)
+            t = next((t for t in RULE_GUISES if ("cobweb", t) not in self.combos and W.TREAT[t][1](cd, W.REG["cobweb"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = f"{rl[0]} made by a rule: each note against the next"
+                gk = min((x for x in ("halo", "footlights", "plasma", "smoke", "horizon", "stars") if x not in self.grounds_last[S.n][-2:]), key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
+                self.grounds[gk] += 1
+                self.grounds_last[S.n].append(gk)
+                look = W.TREAT[t][0](c, W.ground(c, got[1], gk) if t in W.GROUND_OK else got[1])
+                self.treats[t] += 1
+                self.rules[S.n].add(rkey)
+                note("cobweb", t, "cobweb/rule" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "cobweb", t, look
         # A riff a place off the bar: a wheel of its places rolling in the ring of the bar's.
         # Once for every twelve bars, and whenever the wheels change (a second riff, the
         # other way off the bar); never twice running; another guise each time.
@@ -1264,6 +1290,7 @@ def fitting(S, c):
 
 LEDGER_GUISES = ("plain", "relief", "infra", "fringe", "papercut", "duotone", "echo", "delayed", "blueprint", "solar", "tracking", "onebit", "water")
 # (not papercut or onebit: they lose the bricks still to be played)
+RULE_GUISES = ("plain", "fringe", "echo", "infra", "delayed", "solar", "duotone", "blueprint", "tracking", "relief", "water", "papercut")
 GEAR_GUISES = ("plain", "echo", "fringe", "infra", "delayed", "solar", "duotone", "blueprint", "tracking", "relief", "water", "papercut", "onebit")
 SPIRE_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "duotone", "tracking", "blueprint", "relief", "water", "papercut", "onebit")
 HAUL_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "water", "duotone", "tracking", "blueprint", "relief", "papercut")
@@ -1680,6 +1707,81 @@ def gear_here(S, c):
         rest = sorted(((len(a & on(nm)) / len(a | on(nm)), nm) for nm in live[1:]), key=lambda r: r[0])
         wheels.append((P, q0, live[:1] + [nm for sh, nm in rest[:1] if sh < 0.5]))
     return (sub, g, wheels) if wheels else None
+
+
+def _arch(x, y):
+    """The curve a*x*x + b*x + c nearest the points (least squares), or None."""
+    m = sum(x) / len(x)
+    u = [p_ - m for p_ in x]                               # (about the middle: the sums stay small)
+    S_ = lambda k: sum(p_ ** k for p_ in u)               # noqa: E731
+    T_ = lambda k: sum(p_ ** k * q for p_, q in zip(u, y))    # noqa: E731
+    A = [[S_(4), S_(3), S_(2), T_(2)], [S_(3), S_(2), S_(1), T_(1)], [S_(2), S_(1), len(u), T_(0)]]
+    for i in range(3):
+        piv = max(range(i, 3), key=lambda r: abs(A[r][i]))
+        if abs(A[piv][i]) < 1e-9:
+            return None
+        A[i], A[piv] = A[piv], A[i]
+        for r in range(3):
+            if r != i:
+                f = A[r][i] / A[i][i]
+                A[r] = [p_ - f * q for p_, q in zip(A[r], A[i])]
+    a, b, c_ = (A[i][3] / A[i][i] for i in range(3))
+    return a, b - 2 * a * m, a * m * m - b * m + c_
+
+
+def ruling(S):
+    """A tune made by a rule: every note's pitch decides the next one's. Found from the
+    notes: a part that plays one note at a time at even spacing, whose pairs (a note's
+    pitch, the next note's) lie on one arched curve wherever enough different pitches
+    come to tell (a tune that only repeats lies on any curve one likes, and is not this).
+    Returns [(part, from 16th, to 16th, lowest key, highest key, sixteenths between notes)]."""
+    if hasattr(S, "_ruling"):
+        return S._ruling
+    out = []
+    for t in S.tracks:
+        ns = sorted(t.notes)
+        if t.role == "drum" or len(ns) < 40:
+            continue
+        gaps = [round((b[0] - a[0]) * 4) for a, b in zip(ns, ns[1:])]
+        step = collections.Counter(gaps).most_common(1)[0][0]
+        if step < 4 or sum(g == step for g in gaps) < 0.8 * len(gaps):
+            continue
+        # runs of evenly spaced notes
+        runs, at = [], 0
+        for i, g in enumerate(gaps + [None]):
+            if g != step:
+                if i - at >= 8:
+                    runs.append((at, i))
+                at = i + 1
+        arched = False
+        for a, z in runs:
+            ks = [k for _, _, k in ns[a:z + 1]]
+            for w in range(0, len(ks) - 24, 8):
+                x, y = ks[w:w + 24], ks[w + 1:w + 25]
+                if len(set(x)) < 6:
+                    continue
+                co = _arch(x, y)
+                if not co:
+                    continue
+                dev = lambda v: (sum((q - sum(v) / len(v)) ** 2 for q in v) / len(v)) ** 0.5       # noqa: E731
+                res = [q - (co[0] * p_ * p_ + co[1] * p_ + co[2]) for p_, q in zip(x, y)]
+                apex = -co[1] / (2 * co[0]) if co[0] else 1e9
+                if co[0] < 0 and min(x) < apex < max(x) and dev(res) < 0.35 * dev(y):
+                    arched = True
+        if arched:
+            for a, z in runs:
+                ks = [k for _, _, k in ns[a:z + 1]]
+                out.append((t.name, round(ns[a][0] * 4), round(ns[z][0] * 4) + step, min(ks), max(ks), step))
+    S._ruling = out
+    return out
+
+
+def rule_here(S, c):
+    """The tune made by a rule that the scene lies in (most of it): (part, lowest key, highest, sixteenths between notes), or None."""
+    for nm, a, b, lo, hi, step in ruling(S):
+        if min(b, c.b16) - max(a, c.a16) >= 0.7 * (c.b16 - c.a16):
+            return nm, a, b, lo, hi, step
+    return None
 
 
 def hauling(S):
@@ -2376,7 +2478,7 @@ def plan(S, deal):
         scene = {"at": 0 if k == 0 else f"{a16 // 16}bar" if a16 % 16 == 0 else f"{a16 / 4:g}b", "look": look}
         still = any(t in ("roll", "spin", "hole", "sheet", "kaleido", "mirror", "tunnel", "slices", "wall", "planet", "wound") for t in treat.split(",")) or name in W.PLATES or W.REG[name]["fam"] in ("plate", "sheet", "sign")
         # A picture that is there to be read (a sum, a ledger, rows, an oblong cut into squares) is not moved about.
-        still = still or name in ("pinion", "spire", "quicken", "haul", "periods", "sizes", "measure", "ledger", "ringing", "total", "squares", "rolls", "zipper", "dice", "rabbits", "barcode", "braille")
+        still = still or name in ("cobweb", "pinion", "spire", "quicken", "haul", "periods", "sizes", "measure", "ledger", "ringing", "total", "squares", "rolls", "zipper", "dice", "rabbits", "barcode", "braille")
         if k and not flash and not still and treat not in ("more", "less", "hinge") and (b16 - a16) * c.six >= 4.5 and rnd(S.n, k, "move?") < 0.5:
             # The camera over the picture does one thing in the scene, each kind in its turn.
             bars_ = S.full[a16 // 16:max(a16 // 16 + 1, b16 // 16)]

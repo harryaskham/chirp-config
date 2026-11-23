@@ -4177,6 +4177,46 @@ def pinion(c):
     return {"background": c.bg, "env": env, "camera": {"x": 0, "y": -6.0, "z": -6.8, "look_at": [0, -0.42, 0], "zoom": 2.2}, "layers": layers, "filters": [bloom(c, 0.45, 0.016, 0.6)]}
 
 
+@idiom(needs=0, fam="count")
+def cobweb(c):
+    """A tune made by a rule, in which every note's pitch decides the next one's. Across
+    is the pitch of a note, up is the pitch of the note after it; a slanting line marks
+    where the two are the same. Every note is a point, so the points lie on the rule
+    itself, an arch, and draw it. From each note a line goes up to its point and across to
+    the slant, where the next note starts: while the tune only goes to and fro the line
+    goes round one box, round two when it takes four notes to come back, and when it
+    never comes back it wanders all over the arch."""
+    R = getattr(c, "rule", None)
+    if not R:
+        raise ValueError("no tune is made by a rule here")
+    nm, lo, hi, step = R
+    lo, hi = lo - 1.5, hi + 1.5
+    w, h = 3.9, 2.2
+    gap = step / 4                                         # (beats between notes)
+    xa = f"({n(-w)} + {2 * w / (hi - lo):g}*(note.midi - {lo:g}))"
+    ya = f"({n(-h)} + {2 * h / (hi - lo):g}*(note.midi - {lo:g}))"
+    nx = "(note.next_key*84 + 24)"
+    xb = f"({n(-w)} + {2 * w / (hi - lo):g}*({nx} - {lo:g}))"
+    yb = f"({n(-h)} + {2 * h / (hi - lo):g}*({nx} - {lo:g}))"
+    tr = {"track": nm, "past": 96, "ahead": 0}
+    web = {"track": nm, "past": 7 * gap, "ahead": 0}
+    done = f"step({gap:g}, note.age)"
+    fade = f"exp(0 - {0.28 / gap:g}*max(note.age - {gap:g}, 0))"
+    layers = [box(0, -h - 0.06, 0, w + 0.1, 0.012, 0.012, **glow(c.dim, 1.3)), box(-w - 0.06, 0, 0, 0.012, h + 0.1, 0.012, **glow(c.dim, 1.3)),
+              ball(f"{n(-w)} + inst.i*{2 * w / 71:g}", f"{n(-h)} + inst.i*{2 * h / 71:g}", 0.02, 0.022, 4, count=72, **glow(c.dim, 1.5)),
+              # every pair there has been: the rule, drawn by the tune
+              ball(xa, yb, 0, f"0.085*{done}", 6, notes=tr, count=96, **glow(c.b, f"(0.8 + 1.0*exp(0 - 0.05*note.age))*{done}")),
+              # the web: up from the slant to the point, across to the slant again
+              {"type": "beam", "notes": web, "count": 8, "from": [xa, ya, 0], "to": [xa, yb, 0], "width": 0.04, "samples": 6, "color": c.a,
+               "reach": f"clamp(note.age*{2 / gap:g}, 0, 1)", "glow": f"(0.5 + 1.3*(1 - {done}))*{fade}"},
+              {"type": "beam", "notes": web, "count": 8, "from": [xa, yb, 0], "to": [xb, yb, 0], "width": 0.04, "samples": 6, "color": c.a,
+               "reach": f"clamp(note.age*{2 / gap:g} - 1, 0, 1)", "glow": f"(0.5 + 1.3*(1 - {done}))*{fade}*step({gap / 2:g}, note.age)"},
+              # the note that sounds, on the slant, and where it stands along the bottom
+              ball(xa, ya, -0.03, f"0.17*(1 - {done})*(1 + 0.6*exp(0 - 4*note.age))", 10, notes={"track": nm, "past": gap, "ahead": 0}, count=2, **glow(c.ink, f"1.6*(1 - {done})")),
+              box(xa, -h - 0.16, 0, 0.02, 0.09, 0.02, notes={"track": nm, "past": gap, "ahead": 0}, count=2, **glow(c.ink, f"1.4*(1 - {done})"))]
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.45, 0.016, 0.6)]}
+
+
 def _log2(x):
     """log2 of an expression (there is no log: the limit of (x^e - 1)/e does for one)."""
     return f"((pow({x}, 0.002) - 1)*721.35)"
@@ -5013,7 +5053,7 @@ HANDS = ("riley", "blinds", "dominoes", "breakout", "kandinsky", "vortex", "moon
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
            "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava".split())
-BROAD = FULL | set("pinion spire quicken haul periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
+BROAD = FULL | set("cobweb pinion spire quicken haul periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("breakout searchlights solkattu remainder rain seismo metro epicycle pond tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
@@ -5028,14 +5068,14 @@ WANTS = {"rabbits": lambda c: any(p.cell in (34, 55) for p in c.riffs),
 LONG = set("turtle strange harmonograph tetris hanoi marbling ink rink galton".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("barcode braille dice candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
-MIRROR_BAD = set("pinion spire quicken haul periods sizes ledger ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
+MIRROR_BAD = set("cobweb pinion spire quicken haul periods sizes ledger ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())
 # Pictures that are mostly light: a print of their lights is a blank sheet.
 BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("rolls zipper loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("pinion spire quicken haul periods sizes ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
+SLOW = set("cobweb pinion spire quicken haul periods sizes ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)
