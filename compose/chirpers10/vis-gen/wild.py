@@ -5468,7 +5468,8 @@ def t_puzzle(c, look):
     return _pre(look, {"type": "pieces", "cols": cols, "rows": rows, "placed": placed, "spread": 0.34, "gap": 0.003, "dim": 0.5, "order": order, "amount": c.arr})
 
 
-@treat("itself", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type"))
+# (Not a picture on paper: it is light all over, so its copies are all as light as one another and nothing is seen.)
+@treat("itself", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE)
 def t_itself(c, look):
     """Made of small copies of itself, as many across as the riff has sixteenths: the same
     at two sizes. Each turn of the riff it comes in from the copies to the whole."""

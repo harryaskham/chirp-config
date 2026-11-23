@@ -1673,7 +1673,7 @@ def gearing(S):
         a = None
         for x in sorted(cover) + [None]:
             if a is not None and (x is None or x != last + 1):
-                names = collections.Counter(nm for y in range(a, last + 1) for nm in cover[y])
+                names = collections.Counter(nm for y in range(a, last + 1) for nm in sorted(cover[y]))     # (sorted: a set's order is not the same from run to run)
                 if last + 1 - a >= 4 or (last + 1 - a >= 3 and len(names) >= 2):
                     parts = [nm for nm, _ in names.most_common()]
                     lead = next(t for t in S.tracks if t.name == parts[0])
