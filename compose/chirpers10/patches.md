@@ -13,7 +13,7 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `fx.2.bands.3.q` | 9 | 9 | `1.2` in 2, 5, 8, 9, 11, 12, 15; `1.6` in 10, 13 |  |
 | `fx.2.bands.3.gain` | 9 | 9 | `9dB` in 2, 5, 8, 11; `6dB` in 9, 15; `8dB` in 10; `10dB` in 12; `11dB` in 13 |  |
 | `fx.2.bands.1.gain` | 8 | 8 | `6dB` in 2, 5, 8, 9, 12, 15; `4dB` in 7; `11dB` in 11 |  |
-| `synth.layers.1.level` | 8 | 8 | `-12dB` in 2, 5, 11; `-20dB` in 8, 15; `-14dB` in 9; `-17dB` in 12; `-13dB` in 13 |  |
+| `synth.layers.1.level` | 8 | 8 | `-12dB` in 5, 11; `-20dB` in 8, 15; `-24dB` in 2; `-14dB` in 9; `-17dB` in 12; `-13dB` in 13 |  |
 | `fx.2.bands.0.gain` | 7 | 7 | `12dB` in 2, 5, 8, 9, 12, 15; `9dB` in 11 |  |
 | `fx.2.bands.2.cutoff` | 7 | 7 | `540` in 2, 5, 8, 9, 12, 15; `600` in 10 |  |
 | `fx.2.bands.2.q` | 7 | 7 | `0.7` in 2, 5, 8, 9, 12, 15; `1` in 10 |  |
@@ -50,6 +50,7 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `kit.t1.patch.synth.filters.1.gain` | 6 | 5 | `8dB` in 1, 8, 15, 17; `5dB` in 14 |  |
 | `kit.t2.patch.synth.layers.0.tilt` | 6 | 5 | `-6` in 1, 8, 14, 15, 17 |  |
 | `kit.t2.patch.synth.filters.1.gain` | 6 | 5 | `8dB` in 1, 8, 15, 17; `5dB` in 14 |  |
+| `kit.k.patch.synth.amp.d` | 6 | 5 | `170ms` in 8, 12, 17; `160ms` in 15; `80ms` in 16 |  |
 | `kit.t3.patch.synth.layers.0.tilt` | 5 | 4 | `-6` in 1, 8, 14, 17 |  |
 | `kit.t3.patch.synth.filters.1.gain` | 5 | 4 | `8dB` in 1, 8, 17; `5dB` in 14 |  |
 | `kit.k.pitch` | 5 | 4 | `F1` in 5, 16; `Ab1` in 8; `C2` in 12 |  |
@@ -65,7 +66,6 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `kit.t2.patch.synth.layers.1.level.mod.0.amount` | 4 | 4 | `76` in 1, 8, 15, 17 |  |
 | `kit.t2.patch.synth.env.att.d` | 4 | 4 | `12ms` in 1, 8, 15, 17 |  |
 | `kit.s.patch.synth.pitch.mod.1.amount` | 4 | 4 | `0` in 7, 13, 16, 17 |  |
-| `kit.k.patch.synth.amp.d` | 4 | 4 | `170ms` in 8, 17; `160ms` in 15; `80ms` in 16 |  |
 | `kit.t3.patch.synth.layers.0.decay` | 4 | 3 | `0.55s` in 14, 17; `0.35s` in 8 |  |
 | `kit.t3.patch.synth.amp.d` | 4 | 3 | `0.7s` in 14, 17; `0.4s` in 8 |  |
 | `kit.t3.patch.synth.layers.1.level.mod.0.amount` | 3 | 3 | `76` in 1, 8, 17 |  |
@@ -125,14 +125,16 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `fx.2.mic` | 71 | 14 | `0.5` in 2, 3, 4, 5, 6, 8, 9, 14, 16; `0.45` in 5, 10, 17; `0.35` in 3, 4, 7, 8, 14; `0.55` in 3, 14; `0.6` in 2, 6; `0.47` in 6, 9; `0.4` in 14; `0.25` in 12; and 1 more values |  |
 | `fx.1.model` | 66 | 15 | `gojira` in 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17; `modern` in 2, 4, 6, 8, 9, 14; `mark` in 3, 5, 6; `5150` in 3, 5; `nolly` in 3; `clean` in 12 |  |
 | `synth.filters.0.cutoff.mod.0.amount` | 57 | 15 | `-2` in 2, 3, 5, 6, 7, 8, 10, 11, 13, 14, 15, 16, 17; `-3` in 9; `-2.7` in 9; `-3.4` in 12 | AGREED |
-| `synth.layers.0.soft` | 31 | 9 | `expr.pm*0.5` in 2, 3, 8, 10, 14, 15; `expr.pm*0.4` in 9, 11; `expr.pm*0.3` in 13 |  |
-| `fx.1.tight` | 28 | 7 | `150` in 3, 8, 9, 13, 15, 17; `180` in 14 |  |
-| `synth.layers.0.thump.mod.0.amount` | 22 | 5 | `0` in 3, 5, 9, 13, 17 |  |
-| `synth.layers.0.mute` | 17 | 5 | `expr.pm*0.6` in 9, 10, 17; `expr.pm*0.56` in 12, 16 |  |
-| `synth.layers.0.mute_width` | 17 | 5 | `0.1` in 9, 10, 17; `0.10` in 12, 16 |  |
+| `synth.layers.0.soft` | 33 | 10 | `expr.pm*0.5` in 2, 3, 5, 8, 10, 14, 15; `expr.pm*0.4` in 9, 11; `expr.pm*0.3` in 13 |  |
+| `fx.1.tight` | 30 | 8 | `150` in 3, 5, 8, 9, 13, 15, 17; `180` in 14 |  |
+| `synth.layers.0.mute` | 27 | 6 | `expr.pm*0.6` in 9, 10, 17; `expr.hand*0.8` in 5; `expr.pm*0.56` in 12, 16; `expr.pm*0.8` in 5 |  |
+| `synth.layers.0.mute_width` | 27 | 6 | `0.1` in 5, 9, 10, 17; `0.10` in 12, 16 |  |
+| `synth.layers.0.thump.mod.0.amount` | 24 | 5 | `0` in 3, 5, 9, 13, 17 |  |
+| `+transient.attack` | 14 | 5 | `3.0` in 8, 12; `2.0` in 9; `8.0` in 7; `5.0` in 8; `4.0` in 16 |  |
 | `fx.0.attack` | 10 | 4 | `15ms` in 7, 8, 12, 16 |  |
-| `+transient.attack` | 10 | 4 | `3.0` in 8, 12; `8.0` in 7; `5.0` in 8; `4.0` in 16 |  |
 | `synth.pitch.mod.1.amount` | 10 | 3 | `0` in 14, 16, 17 |  |
+| `synth.layers.0.soft.mod.1.src` | 8 | 1 | `expr.hand` in 5 |  |
+| `synth.layers.0.soft.mod.1.amount` | 8 | 1 | `-0.5` in 5 |  |
 | `fx.0.release` | 8 | 3 | `200ms` in 8, 12, 16 |  |
 | `+transient.sustain` | 8 | 3 | `-1.0` in 8, 12, 16 |  |
 | `synth.pitch.mod.2.amount` | 6 | 2 | `0` in 14, 17 |  |
@@ -150,7 +152,7 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `fx.1.gain` | 1 | 1 | `0.6` in 12 |  |
 | `fx.1.boost` | 1 | 1 | `0dB` in 12 |  |
 
-## `808`: 9 songs, 16 tracks; as it comes in tracks 5, 8, 10, 13, 14, 15, 16, 17
+## `808`: 11 songs, 19 tracks; as it comes in tracks 5, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17
 
 | field | tracks | songs | values (the songs) | |
 |---|---|---|---|---|

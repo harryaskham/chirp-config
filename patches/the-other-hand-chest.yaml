@@ -1,0 +1,27 @@
+{
+ "about": "808 sub bass: sine with a pitch-drop punch, long decay, saturation and mono glide for slides (overlap notes to slide). BANKED by tools/patchbank.py (23 Nov 2026) from The Other Hand v33 (track chest): every extends and override resolved, so it stands by itself.",
+ "gain": "-10dB",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "glide": "0ms"
+ },
+ "synth": {
+  "amp": {
+   "a": "2ms",
+   "d": "90ms",
+   "r": "20ms",
+   "s": 0
+  },
+  "env": {
+   "p": {
+    "a": "0.2ms",
+    "d": "25ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {}
+  ]
+ }
+}
