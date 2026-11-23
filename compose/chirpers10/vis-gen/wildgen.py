@@ -1625,7 +1625,9 @@ def gearing(S):
                 win = [q for q in on if b * g <= q < b * g + 2 * g - P]
                 allq = [q for q in on if b * g <= q < b * g + 2 * g]
                 if len(win) >= 2 and len(allq) <= 2 * (P - 2) and sum(q + P in on for q in win) >= 0.85 * len(win) and sum(q + g in on for q in win) < 0.75 * len(win):
-                    bars.append(b)
+                    # (and not sooner: a riff of five comes round after fifteen too, and is no wheel of fifteen)
+                    if not any(P % d == 0 and sum(q + d in on for q in allq[:-1]) >= 0.85 * (len(allq) - 1) for d in range(2, P)):
+                        bars.append(b)
             for b in bars:
                 r = runs[sub, P]
                 r.append((b, b + 2, t.name))
