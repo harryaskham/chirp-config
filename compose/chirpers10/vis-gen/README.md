@@ -148,7 +148,9 @@ are thickened and take only guises that add (`FILLS`); pictures made of notes (`
 pictures that take time to form (`SLOW`) keep out of flashes; `cutout`, `stencil` and
 `glass` need something to work on and something to work with (`FULL`, `BROAD`, `fits`);
 flames, bricks and paintings keep their own colours (`TRUE`); pictures that are dim as they
-stand have their shadows lifted before they are printed or made of themselves (`DIM`).
+stand (rooms at night, things on black: `DIM`) have their shadows lifted before any guise
+that would take more light from them (every guise but those in `NO_LIFT`; once, however
+many guises): a dark room on a ball, or falling into itself, was nearly nothing.
 
 Before a draft is posted every scene is read once on the sheets (`wscenes.py`) and every
 structural picture in motion (`wstruct.py TAG OUT.jpg KEY…`: frames across each scene whose

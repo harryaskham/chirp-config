@@ -4237,7 +4237,8 @@ def ground(c, look, kind):
 
 # Pictures that are dim as they stand (rooms at night, things on black): their shadows are
 # lifted before they are printed in the paper or made of small copies of themselves.
-DIM = set("gallery cinema railway doors cradle ropes highway press golden venn kit globe ferris skyline lanterns candles coins sympathy".split())
+DIM = set("gallery cinema railway doors cradle ropes highway press golden venn kit globe ferris skyline lanterns candles coins sympathy "
+          "puppet storm keys sonar belfry clockshop strobe inset balance contour helix tetris crystal searchlights".split())
 
 # ───────────────────────── pictures of pictures ─────────────────────────
 
@@ -4756,9 +4757,21 @@ PLATES = ("wheels", "photofinish", "picket", "discs", "bounce", "pendulums", "ma
 TREAT = {}
 
 
+LIFT = {"type": "color", "exposure": 1.35, "gamma": 1.7}
+# Guises that do not darken or shrink what they are given (or that lift it themselves).
+NO_LIFT = {"plain", "itself", "newsprint", "negative", "flood", "relief", "blueprint", "solar", "infra", "carried", "kaleido", "mirror"}
+
+
 def treat(name, ok=lambda c, info: True):
     def deco(f):
-        TREAT[name] = (f, ok)
+        def lifted(c, look):
+            """A picture that is dim as it stands (a room at night, things on black) has its
+            shadows lifted before a guise that would take more light from it: a dark room
+            on a ball, or falling into itself, was nearly nothing. Once, however many guises."""
+            if name not in NO_LIFT and getattr(c, "idiom", None) in DIM and "layers" in look and LIFT not in look.get("filters", []):
+                look = _pre(look, dict(LIFT))
+            return f(c, look)
+        TREAT[name] = (lifted, ok)
         return f
     return deco
 
@@ -4931,7 +4944,7 @@ def t_dots(c, look):
 @treat("newsprint", ok=lambda c, info: info["fam"] not in ("sign", "plate"))
 def t_newsprint(c, look):
     """Printed in the paper: dark dots on a pale ground."""
-    look["filters"] = [f for f in look.get("filters", []) if f.get("type") != "bloom"] + ([{"type": "color", "exposure": 1.3, "gamma": 1.8}] if getattr(c, "idiom", None) in DIM else []) + [     # (a dim room's shadows are lifted first: it printed as an empty page)
+    look["filters"] = [f for f in look.get("filters", []) if f.get("type") != "bloom"] + ([{"type": "color", "exposure": 1.3, "gamma": 1.8}] if getattr(c, "idiom", None) in DIM and LIFT not in look.get("filters", []) else []) + [     # (a dim room's shadows are lifted first: it printed as an empty page)
                                                                                                   {"type": "invert", "amount": 1}, {"type": "halftone", "count": 110, "angle": 0.125, "gain": 1.0, "ink": "#16161a", "paper": "#e9e4d6"}]
     return look
 
@@ -5242,7 +5255,7 @@ def t_itself(c, look):
         nn *= 2
     look = _unbloomed(look)
     dim = getattr(c, "idiom", None) in DIM      # (a dim picture's shadows are lifted first: its copies were darker still)
-    look["filters"] += [{"type": "color", "exposure": 1.35, "gamma": 1.7} if dim else {"type": "color", "exposure": 1.2},
+    look["filters"] += [{"type": "color", "exposure": 1.35, "gamma": 1.7} if dim and LIFT not in look["filters"] else {"type": "color", "exposure": 1.2},
                         {"type": "mosaic", "count": nn, "gain": 2.6, "floor": 0.22 if dim else 0.16, "tint": 0.7, "amount": f"({c.arr})*(1 - 0.85*pow(fract({p.turn}/2), 6))"}]
     return look
 
