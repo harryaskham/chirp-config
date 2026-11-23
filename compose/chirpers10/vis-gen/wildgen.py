@@ -400,6 +400,7 @@ class Deal:
         self.rolls_in = collections.Counter()
         self.sized = collections.Counter()
         self.tuned = collections.Counter()
+        self.hauls = collections.defaultdict(set)
         self.measured = collections.defaultdict(set)
         self.rung = collections.defaultdict(set)
         self.walked = collections.defaultdict(set)
@@ -672,6 +673,31 @@ class Deal:
                 self.tuned[(S.n, tn[0], tn[1])] += 1
                 note("periods", t, "periods/tune" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
                 return "periods", t, look
+        # Slack taken up: one part answers another's pull late (or early), by less each time,
+        # until they fall together. A rope for each answer, hanging by as much as it was
+        # late. Once for each pull, as it comes; not twice running; another guise each time.
+        hl = haul_here(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 3.5 else None
+        seen = sum(min(r[0], r[1]) <= c.b16 for r in hl[0]) if hl else 0
+        # (The pull is in the scene; or it was the last, the taut one, and its rope still hums.)
+        newest = max((r for r in hl[0] if min(r[0], r[1]) <= c.b16), key=lambda r: min(r[0], r[1])) if seen else None
+        here = newest and (max(newest[0], newest[1]) >= c.a16 - 1 or (abs(newest[2]) < 0.5 and min(newest[0], newest[1]) >= c.a16 - 40))
+        if hl and seen and here and (hl[1], seen) not in self.hauls[S.n] and "haul" not in self.recent[-1:]:
+            cd = copy.copy(base)
+            cd.haul = hl
+            got = make("haul", ctx=cd, keep=True)
+            t = next((t for t in HAUL_GUISES if ("haul", t) not in self.combos and W.TREAT[t][1](cd, W.REG["haul"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = "the slack taken up: " + ", ".join(f"{who} {abs(sl):g} {'late' if sl > 0 else 'early' if sl < 0 else 'on it'}".replace(" 0 on", " on") for _, _, sl, who in hl[0])
+                gk = min((x for x in ("halo", "footlights", "plasma", "smoke", "horizon", "stars") if x not in self.grounds_last[S.n][-2:]), key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
+                self.grounds[gk] += 1
+                self.grounds_last[S.n].append(gk)
+                look = W.TREAT[t][0](c, W.ground(c, got[1], gk) if t in W.GROUND_OK else got[1])
+                self.treats[t] += 1
+                self.hauls[S.n].add((hl[1], seen))
+                note("haul", t, "haul/slack" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "haul", t, look
         # A roll slowed until it can be counted, or wound up until it cannot: a ring for each
         # drum, every stroke a dot at its place in the beat. Through the whole of the slowing,
         # scene after scene in another guise (also on a song's first scene: it is what the
@@ -1188,6 +1214,7 @@ def fitting(S, c):
 
 LEDGER_GUISES = ("plain", "relief", "infra", "fringe", "papercut", "duotone", "echo", "delayed", "blueprint", "solar", "tracking", "onebit", "water")
 # (not papercut or onebit: they lose the bricks still to be played)
+HAUL_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "water", "duotone", "tracking", "blueprint", "relief", "papercut")
 PERIOD_GUISES = ("plain", "fringe", "echo", "delayed", "solar", "infra", "duotone", "blueprint", "water", "tracking", "relief")
 SIZE_GUISES = ("plain", "relief", "fringe", "echo", "infra", "duotone", "delayed", "solar", "blueprint", "tracking", "water", "bricks")
 ROLL_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "water", "tracking", "relief", "kaleido", "smoked")
@@ -1368,6 +1395,60 @@ def sizing(S):
             out.append([r[0], r[1], [r[2:]]])
     S._sizing = [(a, b, sorted(rows, key=lambda x: -x[1])) for a, b, rows in out]
     return S._sizing
+
+
+def hauling(S):
+    """Slack taken up: one part answers another's pull late (or early), by less each time,
+    until they fall together. Found from the notes. The pull is a part of few notes that
+    falls on bar lines; the answer a part of few notes, each within a bar of a pull, three
+    or more running that come nearer every time and end on it (or two, in a song that has
+    such a three). Returns the passages [(rows, from, to)], rows (pull, answer, slack, part)
+    in sixteenths: the slack is how late the answer was (early, if less than nothing),
+    measured from where it falls when they are together (a singer's breath before the line
+    is not slack)."""
+    if hasattr(S, "_hauling"):
+        return S._hauling
+    refs = []
+    for t in S.tracks:
+        on = sorted({16 * round(s / 4) for s, _, _ in t.notes if abs(s * 4 - 16 * round(s / 4)) < 0.6})
+        if 3 <= len(on) and len(t.notes) <= 60:
+            refs.append((t.name, on))
+    runs = {}
+    for t in S.tracks:
+        ns = sorted(t.notes)
+        if t.role == "drum" or not 4 <= len(ns) <= 40:
+            continue
+        for rname, pulls in refs:
+            if rname == t.name:
+                continue
+            run = []
+            for s, _, _ in ns + [(None, 0, 0)]:
+                near = min(pulls, key=lambda p_: abs(s * 4 - p_)) if s is not None else None
+                off = s * 4 - near if s is not None and abs(s * 4 - near) <= 14 else None
+                if off is not None and (not run or (near > run[-1][0] and abs(off) < abs(run[-1][2]) - 0.75 and (off * run[-1][2] > 0 or abs(off) < 1))):
+                    run.append((near, s * 4, off))
+                    continue
+                if len(run) >= 2 and abs(run[0][2]) >= 2 and abs(run[-1][2]) < 1:
+                    runs.setdefault((t.name, tuple(r[0] for r in run)), [(pl, h, round((off_ - run[-1][2]) * 2) / 2, t.name) for pl, h, off_ in run])
+                run = [(near, s * 4, off)] if off is not None else []
+    long = {name for (name, pulls), rows in runs.items() if len(rows) >= 3}
+    rows = sorted(r for (name, _), rr in runs.items() if name in long for r in rr)
+    out = []
+    for r in rows:
+        if out and min(r[0], r[1]) - 80 <= max(max(x[0], x[1]) for x in out[-1]):       # (a verse apart, or less)
+            out[-1].append(r)
+        else:
+            out.append([r])
+    S._hauling = [(rr, min(min(x[0], x[1]) for x in rr) - 16, max(max(x[0], x[1]) for x in rr) + 40) for rr in out]
+    return S._hauling
+
+
+def haul_here(S, c):
+    """The passage in which slack is taken up that the scene lies in (at least half of it), or None."""
+    for rows, a, b in hauling(S):
+        if min(b, c.b16) - max(a, c.a16) >= 0.5 * (c.b16 - c.a16):
+            return rows, a, b
+    return None
 
 
 def tuned(S):
@@ -2010,7 +2091,7 @@ def plan(S, deal):
         scene = {"at": 0 if k == 0 else f"{a16 // 16}bar" if a16 % 16 == 0 else f"{a16 / 4:g}b", "look": look}
         still = any(t in ("roll", "spin", "hole", "sheet", "kaleido", "mirror", "tunnel", "slices", "wall", "planet", "wound") for t in treat.split(",")) or name in W.PLATES or W.REG[name]["fam"] in ("plate", "sheet", "sign")
         # A picture that is there to be read (a sum, a ledger, rows, an oblong cut into squares) is not moved about.
-        still = still or name in ("periods", "sizes", "measure", "ledger", "ringing", "total", "squares", "rolls", "zipper", "dice", "rabbits", "barcode", "braille")
+        still = still or name in ("haul", "periods", "sizes", "measure", "ledger", "ringing", "total", "squares", "rolls", "zipper", "dice", "rabbits", "barcode", "braille")
         if k and not flash and not still and treat not in ("more", "less", "hinge") and (b16 - a16) * c.six >= 4.5 and rnd(S.n, k, "move?") < 0.5:
             # The camera over the picture does one thing in the scene, each kind in its turn.
             bars_ = S.full[a16 // 16:max(a16 // 16 + 1, b16 // 16)]

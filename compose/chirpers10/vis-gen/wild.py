@@ -4124,6 +4124,54 @@ def sizes(c):
 
 
 @idiom(needs=0, fam="count")
+def haul(c):
+    """Slack taken up. One part pulls on the bar line; another answers late (or early), by
+    less each time, until they pull together. Each answer is a rope between two posts, the
+    pull's at the left and the answer's at the right, and it hangs by as much as the answer
+    was late: a knot on it for every sixteenth of slack. When the pull comes its post is
+    struck and a light sets off along the rope; it reaches the far post as the answer is
+    made (an early answer sends it the other way). The last rope is taut: both posts are
+    struck at once, and it hums. Ropes still to come hang dim."""
+    R = getattr(c, "haul", None)
+    if not R:
+        raise ValueError("no slack is taken up here")
+    rows = R[0]
+    n_ = len(rows)
+    now = "(time.beat*4)"
+    big = max(abs(r[2]) for r in rows) or 1
+    gap = min(1.3, 4.5 / n_)
+    x0, x1 = -3.5, 3.5
+    layers = []
+    for k, (pull, hl, slack, _) in enumerate(rows):
+        y = ((n_ - 1) / 2 - k) * gap + 0.3 * gap           # (a rope hangs below its posts)
+        late = slack >= 0
+        start, end = (pull, hl) if late else (hl, pull)
+        sag = 0.7 * gap * abs(slack) / big
+        col = c.a if late else c.b
+        come = f"step({start:g}, {now})"
+        struck = lambda at: f"exp(0 - 0.5*max({now} - {at:g}, 0))*step({at:g}, {now})"      # noqa: E731
+        rope = {"type": "beam", "from": [x0, y, 0], "to": [x1, y, 0], "sag": sag, "width": 0.024, "samples": 64, "color": col,
+                "glow": f"0.2 + 0.7*{come} + 1.3*{struck(end)}"}
+        if abs(slack) < 0.5:
+            # (a taut rope hums when it is struck, for a bar or two; a slack one cannot)
+            rope.update(wave=f"0.2*exp(0 - 0.032*max({now} - {end:g}, 0))*step({end:g}, {now})", waves=3, speed=5, samples=96,
+                        glow=f"0.2 + 0.7*{come} + 1.5*exp(0 - 0.04*max({now} - {end:g}, 0))*step({end:g}, {now})")
+        layers.append(rope)
+        m = round(abs(slack))
+        if m:
+            f_ = f"((inst.i + 1)/{m + 1})"
+            layers.append(ball(f"{n(x0)} + {x1 - x0:g}*{f_}", f"{n(y)} - {sag * 4:g}*{f_}*(1 - {f_})", -0.02, min(0.06, 2.2 / (m + 1)), 8, count=m, **glow(col, f"0.3 + 1.2*{come}")))
+        for x, at in ((x0, pull), (x1, hl)):
+            layers.append(box(x, y, 0, 0.045, 0.2 * gap, 0.02, **glow(c.ink, f"0.3 + 2.4*{struck(at)}")))
+        if m:
+            t = f"clamp(({now} - {start:g})/{max(end - start, 0.01):g}, 0, 1)"
+            u = t if late else f"(1 - {t})"
+            on = f"step({start:g}, {now})*step({now}, {end + 1.5:g})"
+            layers.append(ball(f"{n(x0)} + {x1 - x0:g}*{u}", f"{n(y)} - {sag * 4:g}*{u}*(1 - {u})", -0.05, f"0.12*{on}", 10, **glow("#ffffff", f"1.8*{on}")))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.45, 0.016, 0.7)]}
+
+
+@idiom(needs=0, fam="count")
 def periods(c):
     """A tune in which every note lasts as long as its period. Each note is one wave, as long
     as the note lasts and as high as it is long, so that every wave is the same wave at
@@ -4831,7 +4879,7 @@ HANDS = ("riley", "blinds", "dominoes", "breakout", "kandinsky", "vortex", "moon
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
            "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava".split())
-BROAD = FULL | set("periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
+BROAD = FULL | set("haul periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("breakout searchlights solkattu remainder rain seismo metro epicycle pond tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
@@ -4846,14 +4894,14 @@ WANTS = {"rabbits": lambda c: any(p.cell in (34, 55) for p in c.riffs),
 LONG = set("turtle strange harmonograph tetris hanoi marbling ink rink galton".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("barcode braille dice candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
-MIRROR_BAD = set("periods sizes ledger ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
+MIRROR_BAD = set("haul periods sizes ledger ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())
 # Pictures that are mostly light: a print of their lights is a blank sheet.
 BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("rolls zipper loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("periods sizes ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
+SLOW = set("haul periods sizes ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)
