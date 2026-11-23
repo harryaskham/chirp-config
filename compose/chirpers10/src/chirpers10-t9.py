@@ -1478,6 +1478,47 @@ def the_pick_shows_in_two(doc):
         doc['loudness'] = float(target)
 
 
+# v36 (chirper-zero; instrument round: the main guitar pair, `gl` `gr`, in the lock on F only, 2:00-2:23; no note moves).
+# THE MAIN PAIR SHOWS ITS TEETH IN THE LOCK. The lock is the song's arrival: six guitars seven to the beat, the rupak
+# tabla and the kit. Against the records the mix there is thick in the middle (500 Hz-1 kHz +2.1, 1-2 kHz +1.8) and
+# short above 4 kHz. Whose middle, by subtraction (exact here: after a guitar's track the path is an eq, a room and
+# the master's high-pass and gain): at 500 Hz-1 kHz the main pair stands 4.2 dB under the mix and the tabla 3.9; the
+# second pair 11.1, the walls 11.2, the snare 12.7. The pair and the tabla's ring hold that band between them.
+# The strokes alone (riffpunch; punch / teeth; the records 3.5 to 4.2 / -12.7 to -6.5, median -11.3): ALL SIX TOGETHER
+# 4.12 / -7.77: what is heard punches already (my handed-on list had the pair's 3.38 as a fault: read together it
+# is none). The main pair 3.38 / -6.82, the soft edge; the second pair 3.47 / -10.64; the walls 3.42 / -13.16, past
+# the toothiest record: neither is touched. No field of the rig moves a hand's punch (gl in three, 3.03: mute 0.8,
+# bloom 0, gain 0.7, compressor ratio 1.5, click, decay, tight 220: 2.94 to 3.05; ts 0.4: 3.17).
+# THE FIT: on gl and gr only, a band at 800 Hz (q 0.7) on the track eq, -4.5 dB on a lane that is 1 in the lock
+# (beats 168-200) and 0 everywhere else. The pair alone 3.38 / -6.82 -> 3.60 / -9.25 (gl 2.91 -> 3.36, gr 2.77 ->
+# 3.18); all six 4.12 / -7.77 -> 4.19 / -9.26. The mix in the lock: 500 Hz-1 kHz -1.2 dB, 1-2 kHz -0.9; the row +2.1
+# / +1.8 -> +1.5 / +1.4, its distance from the eleven records 1.156 -> 0.919 (predicted by arithmetic 0.918). The
+# tabla at 500 Hz-1 kHz against everything else: -1.7 -> +0.5 dB. The same cut on all six at 3 dB gives the six no
+# more teeth (-9.31) and takes the walls past the records; all six 1 dB down, no eq, reads 0.986.
+# the tracks ; from:to in beats ; the eq band at a full lane, Hz:q:dB ; the loudness target ('' = unchanged).
+# '' = v35 byte for byte. On only while SHOWS is. the_pair_shows_its_teeth(doc) runs last.
+TEETH = os.environ.get('C10T9_TEETH', 'gl,gr;168:200;800:0.7:-4.5;-10.3451' if SHOWS else '')
+
+
+def the_pair_shows_its_teeth(doc):
+    """v36: in the lock the main pair gives up its middle: a band on the track eq, on a lane of its own."""
+    names, span, band, target = TEETH.split(';')
+    num = lambda x: int(float(x)) if float(x) == int(float(x)) else float(x)
+    a, b = (num(x) for x in span.split(':'))
+    hz, q, db = (num(x) for x in band.split(':'))
+    pts = [['0b', 0], [f'{a - 0.25:g}b', 0], [f'{a:g}b', 1], [f'{b - 0.25:g}b', 1], [f'{b:g}b', 0]]
+    for name in names.split(','):
+        i = next(i for i, t in enumerate(doc['tracks']) if t['name'] == name)
+        t = dict(doc['tracks'][i])
+        assert t['fx'][0]['type'] == 'eq' and 'teeth' not in (t.get('auto') or {}), (name, t['fx'][0])
+        t['fx'] = [{**t['fx'][0], 'bands': list(t['fx'][0]['bands']) + [
+            {'kind': 'peak', 'cutoff': hz, 'q': q, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.teeth', 'amount': db}]}}]}] + list(t['fx'][1:])
+        t['auto'] = {**(t.get('auto') or {}), 'teeth': {'points': pts, 'curve': 0}}
+        doc['tracks'] = doc['tracks'][:i] + [t] + doc['tracks'][i + 1:]
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T9_SHOW"):
         end = compose()
@@ -1522,4 +1563,6 @@ if __name__ == "__main__":
             the_foot_is_heavier_where_it_walks(doc)
         if SHOWS:
             the_pick_shows_in_two(doc)
+        if TEETH:
+            the_pair_shows_its_teeth(doc)
         open(OUT, "w").write(dump(doc))
