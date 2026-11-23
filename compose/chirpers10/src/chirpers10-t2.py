@@ -1635,6 +1635,61 @@ def the_drum_makes_room(doc):
         doc["loudness"] = float(target)
 
 
+# v44 (chirper-zero; instrument round: the bass, 1,064 notes; no note moves and no track added).
+# THE BASS HOLDS ITS NOTE. Taken for what is heard under the guitars (Harry, 22 Nov: "focus on the guitars"): read with
+# tools/chugmix.py (new this night), the low end at a guitar stroke falls 2.4 to 4.5 dB on the six records themselves,
+# and their bass and guitar stems hold it level (-0.25, -0.07) while the bass drum dies under them. Here the mix fell
+# 3.9 to 6.7 dB in the fifteen windows that have strokes, and the two guitars alone are level (+0.17 in step): it was
+# the BASS (+4.54 alone in step; +5.28 in the slip at 1:11). Its 100-250 Hz stood 7 dB over its own held level 10 ms into
+# the stroke and had sagged under it by 30-40 ms: a thud, then less note. NOT the levers (the fall alone, in step):
+# the two compressors' attacks (bus 12 -> 2 ms +4.32; patch 10 -> 2 ms +4.04; both +3.77), both ratios 1.5 (+3.55 and
+# 7 LU louder), the amp's sag (+4.51), the pick noise, the buzz, the stiffness, the string's brightness, the envelope.
+# THE LEVER is the sine under the string (the patch's layer 1): it goes through the amp, the tape and the compressor
+# WITH the string, and it is the sine that the amp works on. Without it +1.00; at -18 dB +3.20; at -24 dB +1.74; at
+# -30 dB +1.58 (v40's lean fit had it at -12). At -24 the string comes 3.5 to 4.6 dB up from 400 Hz on and the sine 5
+# to 7 dB down at 40-50 Hz, so two things give them back AFTER the amp: the bus's key-following band at the bass's
+# fundamental, which was a 7 dB cut to hold that sine down, becomes +1.5 dB; and an eq on the bass's own track sets the
+# string back (a shelf from 300 Hz, -3.7 dB, and 2 dB off at 170 Hz). The bass alone is then the same bass by its
+# spectrum (in step: every third of an octave within 1 dB but 250 Hz -2.2 and 31.5 Hz +2.4; -26.7 -> -26.5 LUFS) and
+# holds: in step +4.54 -> +2.09, the slip at 1:11 +5.28 -> +3.45, a sixteenth apart +1.81 -> +0.15, an eighth +1.67 -> +0.00.
+# (The amp's `tight` at 60 or 90 Hz holds the bass alone as well, +2.22 / +1.66, but the mix did not follow: +6.66 /
+# +6.27 in step. A track of its own for the sine past the amp did, +5.15, but a new track would enter the film.)
+# the level of the sine under the string (the patch's layer 1) ; the gain of the bus's key-following band at 44 Hz ;
+# the bands of an eq on the bass's own track, after its patch ('|' between them) ; the loudness target ('' = unchanged).
+# '' = v43 byte for byte. On only while ROOM is. the_bass_holds(doc) runs last.
+HOLDS = os.environ.get("C10T2_HOLDS", "-24dB;1.5dB;highshelf cutoff=300 gain=-3.7dB|peak cutoff=170 q=0.9 gain=-2dB;-9.9099" if ROOM else "")
+
+
+def the_bass_holds(doc):
+    """v44: the sine under the bass's string goes 12 dB lower into the amp ; the bus gives it back ; a track eq sets the string's level."""
+    sub, cut, bands, target = HOLDS.split(";")
+    i = next(i for i, t in enumerate(doc["tracks"]) if t["name"] == "bass")
+    t = dict(doc["tracks"][i])
+    if sub:
+        toks = t["patch"].split(" ")
+        at = [k for k, x in enumerate(toks) if x.startswith("synth.layers.1.level=")]
+        assert len(at) == 1, t["patch"]
+        toks[at[0]] = f"synth.layers.1.level={sub}"
+        t["patch"] = " ".join(toks)
+    if bands:
+        assert not t.get("fx"), t.get("fx")
+        notes = t.pop("notes")
+        t["fx"] = [{"type": "eq", "bands": bands.split("|")}]
+        t["notes"] = notes
+    doc["tracks"] = doc["tracks"][:i] + [t] + doc["tracks"][i + 1:]
+    if cut:
+        low = dict(doc["buses"]["low"])
+        eq = dict(low["fx"][0])
+        b0 = dict(eq["bands"][0])
+        assert eq["type"] == "eq" and b0["cutoff"]["value"] == 44 and b0["gain"] == "-7dB", b0
+        b0["gain"] = cut
+        eq["bands"] = [b0] + list(eq["bands"][1:])
+        low["fx"] = [eq] + list(low["fx"][1:])
+        doc["buses"] = {**doc["buses"], "low": low}
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if PICK:
@@ -1647,4 +1702,6 @@ if __name__ == "__main__":
         the_snare_answers(doc)
     if ROOM:
         the_drum_makes_room(doc)
+    if HOLDS:
+        the_bass_holds(doc)
     open(OUT, "w").write(dump(doc))
