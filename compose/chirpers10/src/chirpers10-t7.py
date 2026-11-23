@@ -525,8 +525,12 @@ KEYED = os.environ.get("C10T7_KEYED", "Ab3;synth.layers.0.tune_sounding=true syn
 # v23 gave the stroke its teeth and v27 its low end; nobody had read its ATTACK. Against six records' strokes
 # (tools/riffpunch.py --strokes): the two guitars' attack peak stood 2.94 dB (two guitars, 0:04-0:40) and 3.07 dB
 # (four, 1:54-2:38) over the stroke 30-60 ms later, where the records' stands 3.63 (3.5 to 4.2): a stroke with no
-# front, and v27's lighter hand had cost it some. The wall pair had the front (4.06) but its low end swelled through
+# front, and v27's lighter hand had cost it some. The wall pair had the front (4.06) but its low end fell away through
 # the stroke (+0.92 where the records' holds or falls: -1.1; -2.2 to +0.3).
+# [CORRECTED 23 Nov, chirper-zero: this comment said the wall's low end 'swelled' and, below, 'swells'. A positive
+# figure is a low end that DIES after the stroke's front. And the records' -1.1 was a separated guitar read at a
+# transcribed onset: with the onsets aligned the records' guitars hold level, -0.07 (-0.46 to +0.60 ; tools/chugmix.py).
+# The fits below stand ; only the words were wrong.]
 #   THE TWO GUITARS: the compressor before the amp waits 15 ms before it closes (it closed in 2), so the pick goes
 #   into the amp whole; and after the cabinet and the eq the stroke's first milliseconds are lifted (`transient
 #   attack=8`). Attack 2.94 / 3.07 -> 3.54 / 3.88; the low end's fall -0.29 / +0.08 -> -0.77 / -0.73 (nearer the
@@ -534,7 +538,7 @@ KEYED = os.environ.get("C10T7_KEYED", "Ab3;synth.layers.0.tune_sounding=true syn
 #   2.7 dB comes off their faders: as loud alone as they were.
 #   THE WALL PAIR: the thump under each stroke 0.5 -> 0.2 (the cure Take Up the Slack and On Its Hinge already
 #   carry): the low end's fall +0.92 -> -0.49, attack 4.06 -> 3.91, tone and loudness alone unchanged.
-#   Benched on the two guitars and not taken: the lift alone (attack 3.56 / 3.88 but the low end then swells, +0.22 /
+#   Benched on the two guitars and not taken: the lift alone (attack 3.56 / 3.88 but the low end then dies sooner, +0.22 /
 #   +0.73); a softer pick with it (no more front, less grain); more sag in the amp (nothing); a bigger lift
 #   (`attack=10`: 4.07 / 4.16, the top of the records' range); a smaller (`attack=6`: 3.31 with two guitars, still
 #   short). On the walls: the slower compressor does nothing (+1.11).
@@ -2059,6 +2063,100 @@ def the_bass_drum_gets_a_chest(doc):
         doc["loudness"] = float(target)
 
 
+# v39 (chirper-zero; instrument round: the bass, `bass`, 571 notes; the fit is on the 555 under the heavy sections;
+# no note moves, no note gains a field). THE BASS STAYS UNDER THE CHUG. Harry on this song: "really make it chug if slow".
+# v27, v33 and v37 worked on the guitars' stroke and v38 on the bass drum; the bass was the album's as shipped. Read
+# alone at its own strokes (tools/chugmix.py's measure: 100-250 Hz in a stroke's first 20 ms over its 40-80 ms; the
+# records' bass stems -0.25, -2.17 to +0.43) it fell +3.75 dB: a thud at each stroke and then less note (10 ms in,
+# 5.3 dB over what it holds; 40 ms in, 1.8 under). The cause is the one found on Odd Sympathy (v44): the sine under
+# the string goes through the amp WITH the string, and it is the sine the amp works on. The same read on all
+# seventeen songs: the nine basses with the sine as shipped (-9 dB) fall +2.2 to +5.9; the six a round had already
+# leaned (-12 to -24 dB) -0.3 to +2.7; the two with a track of each +0.8 and +5.2.
+#   THE FIT, where the bass plays under the chug (the lane `chug`: 1 in the heavy sections, 0 in the three quiet
+#   ones and on the last note): the sine 15 dB lower into the amp (-24 dB); the bus's key-following band at the
+#   bass's fundamental, a 7 dB cut that held that sine down, becomes +1 dB; an eq on the bass's own track sets the
+#   string back (a shelf from 300 Hz -5.1 dB; 95 Hz -4.5; 142 Hz +2.5; 315 Hz -1). All three on the one lane: in
+#   the quiet sections the bass holds notes of four to six seconds and the sine IS those notes (the fit left on
+#   there: +3 to +5 dB under 60 Hz and -5 to -6 at 120-250 Hz), so there it is the published bass to the sample.
+#   THE BASS ALONE in the heavy sections: the fall at its own strokes +3.75 -> +0.24, at the guitars' +3.59 -> +0.01
+#   (by section +2.9 to +4.5 -> -1.1 to +0.8); 10 ms in it stands 0.4 dB over what it holds, not 5.3; as loud as it
+#   was (+0.15 LU); in the opening every third of an octave from 40 Hz to 8 kHz within 1.3 dB of itself but 125 Hz
+#   -2.2 (and 31.5 Hz +3), the other sections in F within 2.3; in the four-guitar sections (A flat) its octave and
+#   double octave are 3 dB up.
+#   THE MIX (raw) at the guitars' strokes: the low end's fall +8.07 -> +7.16 over the song (two guitars +8.92 ->
+#   +8.13; four +7.03 -> +6.01; two again +7.74 -> +6.89; the arco's section +7.72 -> +7.32; the last +6.86 -> +6.67;
+#   chug right through +7.40 -> +7.11); the two breakdowns 0.1 the other way (15 and 8 strokes). The records' mixes
+#   +2.4 to +4.5: what is left is the bass drum (alone +9 to +13), which v38 left long on purpose. No band of the
+#   mix moves 0.6 dB in any section.
+#   A song patch `em-bass`: a patch STRING cannot put a mod on a layer's level, so ct-bass's three layers are
+#   written out (they resolve to the library's, checked with `plan`) with the sine's level on the lane. If ct-bass's
+#   layers change in the library, this copy will not follow.
+# the level of the sine under the string where the fit is on (the patch's layer 1 ; -9 dB as the album ships it and
+# wherever the lane is 0) ; the gain there of the bus's key-following band at 44 Hz (-7 dB as published and
+# elsewhere) ; the bands of an eq on the bass's own track, after its patch, kind:Hz:q:dB at a full lane ('|' between
+# them) ; the spans the lane is 1 in, beats FROM:TO,... ; the loudness target ('' = unchanged).
+# "" = v38 byte for byte. On only while CHEST is. the_bass_stays_under_the_chug(doc) runs last.
+STAYS = os.environ.get("C10T7_STAYS", "-24;1;highshelf:300::-5.1|peak:95:1.2:-4.5|peak:142:1.5:2.5|peak:315:2:-1;0:58.25,94.25:210.75,246.75:305,341:399.25;-9.608" if CHEST else "")
+
+
+def the_bass_stays_under_the_chug(doc):
+    """v39: a song patch `em-bass` (ct-bass with the level of its sine on a lane), a lane `chug` on the bass's track and
+    on its bus: where it is 1 the sine goes 15 dB lower into the amp, the bus gives the fundamental back and a track eq
+    sets the string ; where it is 0 the bass is the published one."""
+    sub, cut, bands, spans, target = STAYS.split(";")
+    num = lambda x: int(float(x)) if float(x) == int(float(x)) else float(x)
+    spans = [tuple(num(x) for x in sp.split(":")) for sp in spans.split(",")]
+    pts = [["0b", 1 if spans[0][0] == 0 else 0]]
+    for a, b in spans:
+        if a > 0:
+            pts += [[f"{a - 0.02:g}b", 0], [f"{a:g}b", 1]]
+        pts += [[f"{b - 0.02:g}b", 1], [f"{b:g}b", 0]]
+    lane = {"points": pts, "curve": 0}
+    assert "em-bass" not in doc["patches"]
+    # ct-bass's three layers as the library resolves them (a song patch gives the whole list), the sine's level on the lane
+    doc["patches"] = {**doc["patches"], "em-bass": {
+        "extends": "ct-bass",
+        "about": "chirper-zero: the album's bass (ct-bass, layer for layer) with the level of the sine under its string on "
+                 "the track's lane `chug`: the sine goes through the amp WITH the string and it is the sine the amp works on, "
+                 "so each stroke was a thud and then less note. Where the lane is 1 the sine is lower into the amp ; the "
+                 "song's low bus gives the fundamental back after it. With no lane this is ct-bass.",
+        "synth": {"layers": [
+            {"name": "string", "type": "pluck",
+             "bright": {"value": 0.52, "mod": [{"src": "vel", "amount": 0.25}, {"src": "expr.pm", "amount": -0.35}, {"src": "rand", "amount": 0.04}]},
+             "buzz": 0.24, "choke": "70ms",
+             "decay": {"value": "5s", "mod": [{"src": "expr.pm", "amount": -2.5}, {"src": "vel", "amount": 0.4}]},
+             "pick": 0.2, "polarity": {"value": 1, "mod": [{"src": "expr.up", "amount": -2.0}]}, "stiff": 0.28},
+            {"name": "sub", "level": {"value": "-9dB", "mod": [{"src": "auto.chug", "amount": num(sub) + 9}]}},
+            {"name": "pick", "type": "noise", "level": {"value": "-60dB", "mod": [{"src": "env.pick", "amount": 40.0}, {"src": "vel", "amount": 10.0}]}}]}}}
+    i = next(i for i, t in enumerate(doc["tracks"]) if t["name"] == "bass")
+    t = dict(doc["tracks"][i])
+    assert isinstance(t["patch"], str) and t["patch"].startswith("ct-bass ") and "synth.layers" not in t["patch"], t["patch"]
+    assert not t.get("fx") and not t.get("auto"), (t.get("fx"), t.get("auto"))
+    t["patch"] = "em-bass" + t["patch"][len("ct-bass"):]
+    notes = t.pop("notes")
+    eq = []
+    for band in bands.split("|") if bands else []:
+        kind, hz, q, db = band.split(":")
+        eq.append({"kind": kind, "cutoff": num(hz), **({"q": num(q)} if q else {}),
+                   "gain": {"value": "0dB", "mod": [{"src": "auto.chug", "amount": num(db)}]}})
+    if eq:
+        t["fx"] = [{"type": "eq", "bands": eq}]
+    t["auto"] = {"chug": lane}
+    t["notes"] = notes
+    doc["tracks"] = doc["tracks"][:i] + [t] + doc["tracks"][i + 1:]
+    low = dict(doc["buses"]["low"])
+    eq0 = dict(low["fx"][0])
+    b0 = dict(eq0["bands"][0])
+    assert eq0["type"] == "eq" and b0["cutoff"]["value"] == 44 and b0["gain"] == "-7dB" and "chug" not in low["auto"], b0
+    b0["gain"] = {"value": "-7dB", "mod": [{"src": "auto.chug", "amount": num(cut) + 7}]}
+    eq0["bands"] = [b0] + list(eq0["bands"][1:])
+    low["fx"] = [eq0] + list(low["fx"][1:])
+    low["auto"] = {**low["auto"], "chug": lane}
+    doc["buses"] = {**doc["buses"], "low": low}
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T7_SHOW"):
         sec = 15 / BPM
@@ -2092,4 +2190,6 @@ if __name__ == "__main__":
             the_two_show_their_teeth(doc)
         if CHEST:
             the_bass_drum_gets_a_chest(doc)
+        if STAYS:
+            the_bass_stays_under_the_chug(doc)
         open(OUT, "w").write(dump(doc))
