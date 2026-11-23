@@ -1296,7 +1296,7 @@ LEDGER_GUISES = ("plain", "relief", "infra", "fringe", "papercut", "duotone", "e
 # (not papercut or onebit: they lose the bricks still to be played)
 RULE_GUISES = ("plain", "fringe", "echo", "infra", "delayed", "solar", "duotone", "blueprint", "tracking", "relief", "water", "papercut")
 GEAR_GUISES = ("plain", "echo", "fringe", "infra", "delayed", "solar", "duotone", "blueprint", "tracking", "relief", "water", "papercut", "onebit",
-               "negative", "drawn", "hatched", "dots", "screen", "blown", "smoked", "dripping", "lines", "stop", "coiled", "engraved", "typed", "torn")
+               "negative", "drawn", "hatched", "dots", "screen", "blown", "smoked", "dripping", "lines", "stop", "coiled", "engraved", "torn", "woven")
 SPIRE_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "duotone", "tracking", "blueprint", "relief", "water", "papercut", "onebit")
 HAUL_GUISES = ("plain", "fringe", "echo", "delayed", "infra", "solar", "water", "duotone", "tracking", "blueprint", "relief", "papercut")
 PERIOD_GUISES = ("plain", "fringe", "echo", "delayed", "solar", "infra", "duotone", "blueprint", "water", "tracking", "relief")
