@@ -4773,6 +4773,39 @@ def cinema(c):
     return {"background": "#020203", "camera": cam("0.3*sin(time.bar/12)", 1.6, -5.0, look=(0, 2.0, 5), zoom=2.2), "layers": layers, "filters": [{"type": "tonemap", "knee": 0.8}, {"type": "aa"}, bloom(c, 0.3, 0.02, 0.8)]}
 
 
+@idiom(needs=2, fam="space", cost=3)
+def portals(c):
+    """Architectural triptych of live 3D portals in space: three angled monolith screens
+    hovering above a dark reflective floor, each showing a live scene driven by its own
+    voice, pivoting subtly on the beat as the camera glides between them."""
+    P = c.riffs[:3]
+    while len(P) < 3:
+        P.append(P[0])
+    used = []
+    layers = [
+        lamp(0, 5.2, -3.5, 1.0),
+        lamp(-3.0, 2.2, -1.0, 0.55, c.a, 10),
+        lamp(3.0, 2.2, -1.0, 0.55, c.b, 10),
+        floor(c, 0, "#141826", 0.34),
+    ]
+    specs = [(-2.85, 1.55, 1.5, 0.065), (0.0, 1.72, 2.35, 0.0), (2.85, 1.55, 1.5, -0.065)]
+    for k, (px, py, pz, ry0) in enumerate(specs):
+        p_k = P[k]
+        name, look = _small(c, k % max(len(c.riffs), 1), skip=used)
+        used.append(name)
+        sway = f"{ry0:g} + 0.018*sin({p_k.turn}/2)"
+        lift = f"{py:g} + 0.12*{p_k.hit}"
+        layers.append(box(px, lift, pz + 0.08, 1.46, 0.86, 0.04, ry=sway, **glow(c.col(k), f"0.5 + 0.85*{p_k.hit}")))
+        layers.append({"type": "screen", "use": look, "x": px, "y": lift, "z": pz, "w": 2.8, "h": 1.58, "ry": sway, "glow": 1.4, "res": 180})
+        layers.append(lamp(px, py, pz - 1.1, f"0.55 + 0.35*{p_k.hit}", c.col(k), 5.5))
+    return {
+        "background": "#05070e",
+        "camera": cam("1.0*sin(time.bar/8)", "1.35 + 0.18*cos(time.bar/10)", -4.0, look=("0.35*sin(time.bar/8)", 1.38, 2.0), zoom=1.68),
+        "layers": layers,
+        "filters": [{"type": "reflect", "y": 0, "amount": 0.58}, {"type": "tonemap", "knee": 0.78}, {"type": "aa"}, bloom(c, 0.35, 0.018, 0.75)],
+    }
+
+
 # ───────────────────────── pictures made of two ─────────────────────────
 # Any two idioms can share the frame. Each is drawn as it would be alone (its own camera,
 # its own plate), reading its own part, and the frame is divided by the music.
@@ -5191,6 +5224,31 @@ def c_flags(c, A, B, C):
     return {"background": "#000000", "layers": [_act(A, blend="normal", cut_take=0, **cut), _act(B, blend="normal", cut_take=1, **cut), _act(C, blend="normal", cut_take=2, **cut)], "filters": []}
 
 
+@trio("stage3")
+def c_stage3(c, A, B, C):
+    """Three-voice 3D orbital stage: three distinct scenes circle each other in true depth
+    with normal-blend occlusion, each pulsing into foreground on its own riff's cadence."""
+    P = c.riffs[:3]
+    while len(P) < 3:
+        P.append(P[0])
+    p0 = _lead(c)
+    per = max(2, math.ceil(6.5 / ((p0.cell or 16) * c.six)))
+    u = f"({p0.turn}/{per})"
+    return {
+        "background": "#000000",
+        "layers": [{
+            "type": "stage", "blend": "normal",
+            "camera": {"x": f"0.12*sin({u})", "y": f"0.06*cos({u}/2)", "z": -1.15, "zoom": 1.28, "roll": f"0.01*sin({u})", "fog": 0.08},
+            "actors": [
+                {"use": A, "name": "a", "mask": "rect", "res": 0.6, "x": f"0.78*sin({u})", "y": f"0.12*sin({P[0].turn}/2)", "z": f"1.0 + 0.52*cos({u})", "scale": f"0.78 + 0.06*{P[0].hit}"},
+                {"use": B, "name": "b", "mask": "rect", "res": 0.6, "x": f"0.78*sin({u} + 0.3333)", "y": f"0.12*sin({P[1].turn}/2)", "z": f"1.0 + 0.52*cos({u} + 0.3333)", "scale": f"0.78 + 0.06*{P[1].hit}"},
+                {"use": C, "name": "c", "mask": "rect", "res": 0.6, "x": f"0.78*sin({u} + 0.6667)", "y": f"0.12*sin({P[2].turn}/2)", "z": f"1.0 + 0.52*cos({u} + 0.6667)", "scale": f"0.78 + 0.06*{P[2].hit}"},
+            ],
+        }],
+        "filters": [],
+    }
+
+
 @combo("lighten")
 def c_lighten(c, A, B):
     """Both pictures at once: at each point, whichever is the lighter."""
@@ -5399,14 +5457,14 @@ def t_kaleido(c, look):
 
 # Two guises at once (dealt where the music is full): one that moves the picture, then one
 # that changes what it is made of, then one that works on it in time.
-STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0, "hyperbolic": 0, "standing": 0,
+STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0, "hyperbolic": 0, "standing": 0, "anamorph": 0,
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
          "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0, "woodcut": 1, "riso": 1,
-         "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2}
+         "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2, "scanfold": 2}
 
 # Pairs of guises that leave only texture, or flood white (feedback+grow saturates to pale wash).
-STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso")}
-             | {("tunnel", "overgrown"), ("overgrown", "tunnel"), ("itself", "carried"), ("carried", "itself")})
+STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso")}
+             | {("tunnel", "overgrown"), ("overgrown", "tunnel"), ("itself", "carried"), ("carried", "itself"), ("scanfold", "delayed"), ("delayed", "scanfold")})
 
 # Pictures that stand to one side, or are a line of things: half of one is not a picture.
 # Pictures that can be drawn twice and joined (flat, and filling the frame or centred, so that
@@ -5845,6 +5903,26 @@ def t_riso(c, look):
     return look
 
 
+@treat("anamorph", ok=lambda c, info: info["f"].__name__ in KALEIDO_OK and info["f"].__name__ in BROAD and c.riffs)
+def t_anamorph(c, look):
+    """Cylindrical mirror anamorphosis: a vertical chrome cylinder sits at the centre
+    reflecting the picture while the surrounding panorama sweeps round it with the riff."""
+    p = _lead(c)
+    per = max(2, math.ceil(6.0 / ((p.cell or 16) * c.six)))
+    return _pre(look, {"type": "anamorph", "radius": f"0.26 + 0.05*{p.hit}", "turn": f"{p.turn}/{per}", "pull": 1.4, "sheen": 0.38, "amount": c.arr})
+
+
+@treat("scanfold", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and c.riffs)
+def t_scanfold(c, look):
+    """Spatiotemporal wave slit-scan: recent frames are folded across space along a moving
+    harmonic wave locked to the riff's period, with subtle RGB time-splitting."""
+    p = _lead(c)
+    depth = max(0.55, min(2.2, (p.cell or 16) * c.six))
+    folds = (2.0, 3.0, 2.5, 4.0)[c.seed % 4]
+    angle = (0.0, 0.125, 0.25, -0.125)[c.seed % 4]
+    return _pre(look, {"type": "scanfold", "depth": round(depth, 3), "folds": folds, "phase": f"{p.turn}/2", "angle": angle, "split": 0.22, "amount": c.arr})
+
+
 def _stitch(c, look, mode, count, **kw):
     look = _unbloomed(look)
     look["filters"] += [{"type": "color", "exposure": 1.25, "saturation": 1.2}, {"type": "stitch", "mode": mode, "count": count, "amount": c.arr, **kw}]
@@ -6011,7 +6089,7 @@ def t_negative(c, look):
 
 
 ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief", "poster", "flood", "combed", "blown", "leaded",
-           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried", "reeded", "louvers", "hyperbolic", "standing", "woodcut", "riso")
+           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried", "reeded", "louvers", "hyperbolic", "standing", "woodcut", "riso", "anamorph", "scanfold")
 
 # Idioms drawn in hair lines and points, made bolder so that they read at any size: how far
 # each thing in them is spread (a fraction of the frame's height).
