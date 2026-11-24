@@ -833,7 +833,7 @@ def automaton(c):
 def bifurcate(c):
     """One map, its one number turned slowly up: a single line splits in two, in four, in
     eight, and breaks into dust, with clear windows of three, five and seven in it."""
-    layers = [{"type": "attractor", "kind": "logistic", "lo": 2.9, "hi": 4.0, "upto": f"2.95 + 1.06*{c.prog}", "points": 60000, "size": 1.5, "gain": "1.2 + 1.5*audio.low", "spread": 0.4, "palette": [c.ink, c.a, c.b]}]
+    layers = [{"type": "attractor", "kind": "logistic", "lo": 2.9, "hi": 4.0, "upto": f"3.35 + 0.66*{c.prog}", "points": 70000, "size": 1.6, "gain": "1.6 + 1.8*audio.low", "spread": 0.45, "palette": [c.ink, c.a, c.b]}]
     return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.3, 0.012, 0.6)]}
 
 
@@ -846,8 +846,8 @@ def strange(c):
     sets = (("clifford", -1.4, 1.6, 1.0, 0.7), ("dejong", 1.4, -2.3, 2.4, -2.1), ("clifford", 1.7, 1.7, 0.6, 1.2), ("dejong", 2.01, -2.53, 1.61, -0.33),
             ("clifford", -1.7, 1.3, -0.1, -1.2), ("dejong", -2.7, -0.09, -0.86, -2.2), ("clifford", 1.5, -1.8, 1.6, 0.9), ("dejong", -0.827, -1.637, 1.659, -0.943))
     kind, a, b, cc, d = sets[c.variant % len(sets)]
-    layers = [{"type": "attractor", "kind": kind, "a": f"{n(a)} + 0.06*sin({A.turn}/4)", "b": f"{n(b)} + 0.06*cos({B.turn}/4)", "c": f"{n(cc)} + 0.05*{A.hit}", "d": f"{n(d)} + 0.05*{B.hit}", "points": 70000, "size": 0.78,
-               "gain": 1.4, "spread": 0.5, "rotate": "time.bar/32", "palette": [c.a, c.ink, c.b]}]
+    layers = [{"type": "attractor", "kind": kind, "a": f"{n(a)} + 0.08*sin({A.turn}/4)", "b": f"{n(b)} + 0.08*cos({B.turn}/4)", "c": f"{n(cc)} + 0.06*{A.hit}", "d": f"{n(d)} + 0.06*{B.hit}", "points": 80000, "size": 0.84,
+               "gain": "1.8 + 0.7*audio.low", "spread": 0.55, "rotate": "time.bar/32", "palette": [c.a, c.ink, c.b]}]
     return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.35, 0.014, 0.6)]}
 
 
@@ -1255,11 +1255,13 @@ def belfry(c):
     sw = f"(0.11*exp(0 - 0.35*{d})*cos({d}*0.8))"
     x = f"(inst.i - {(nn - 1) / 2})*{min(1.0, 7.6 / nn):g}"
     sz = min(0.42, 3.2 / nn)
-    layers = [lamp(-2, 5, -6, 0.8), lamp(3, 0, -5, 0.5, c.a), box(0, 1.55, 0, 4.4, 0.07, 0.1, **solid("#3a2a1c", 0.8)),
-              {"type": "mesh", "shape": "cone", "detail": 20, "count": nn, "x": f"{x} + 0.75*sin({sw})", "y": f"1.5 - 0.75*cos({sw})", "z": 0, "scale": sz * 1.25, "sy": 1.15, "rz": sw, **solid("#8a6a34", 0.4, 0.9),
-               "emit": f"0.5*exp(0 - 0.9*{d})*{A.hit}"},
-              {"type": "beam", "count": nn, "from": [x, 1.5, 0], "to": [f"{x} + 0.45*sin({sw})", f"1.5 - 0.45*cos({sw})", 0], "width": 0.012, "glow": 0.3, "color": c.dim}]
-    return {"background": c.bg, "camera": cam("0.6*sin(time.bar/8)", 0.6, -7.5, look=(0, 0.75, 0), zoom=2.3), "layers": layers, "filters": post3d(-2, 5, -6, shadow=0.5)}
+    layers = [lamp(-2, 5, -6, 1.35), lamp(3, 0.5, -5, 0.75, c.a), lamp(0, -1, -5, 0.35, c.b), floor(c, -0.35, "#15161c", 0.5),
+              box(0, 1.55, 0, 4.4, 0.08, 0.12, **solid("#4a3624", 0.75)),
+              {"type": "mesh", "shape": "cone", "detail": 20, "count": nn, "x": f"{x} + 0.75*sin({sw})", "y": f"1.5 - 0.75*cos({sw})", "z": 0, "scale": sz * 1.32, "sy": 1.18, "rz": sw, **solid("#a88240", 0.35, 0.88),
+               "emit": f"0.15 + 0.85*exp(0 - 0.9*{d})*{A.hit}"},
+              ball(f"{x} + 0.96*sin({sw})", f"1.5 - 0.96*cos({sw})", 0, sz * 0.22, 8, count=nn, **glow(c.ink, f"0.35 + 2.2*exp(0 - 1.2*{d})")),
+              {"type": "beam", "count": nn, "from": [x, 1.5, 0], "to": [f"{x} + 0.45*sin({sw})", f"1.5 - 0.45*cos({sw})", 0], "width": 0.016, "glow": 0.55, "color": c.dim}]
+    return {"background": c.bg, "camera": cam("0.6*sin(time.bar/8)", 0.95, -6.2, look=(0, 0.9, 0), zoom=2.45), "layers": layers, "filters": post3d(-2, 5, -6, shadow=0.5)}
 
 
 @idiom(needs=2, fam="swing", cost=2)
@@ -1459,7 +1461,7 @@ def hands(c):
     P = [p for p in c.riffs if 3 <= p.cell <= 13][:2]
     if not P:
         raise ValueError("no hand")
-    layers = [lamp(-2, 4, -6, 0.72), lamp(3, 1, -5, 0.45, c.a), lamp(0, -1, -6, 0.25, c.b), floor(c, -1.9, "#16161a", 0.5)]
+    layers = [lamp(-2, 4, -6, 0.65), lamp(3, 1, -5, 0.42, c.a), lamp(0, -1, -6, 0.2, c.b), floor(c, -1.9, "#16161a", 0.5)]
     for i, p in enumerate(P):
         nn = p.cell
         bones = [{"name": "wrist", "parent": None, "length": 0.45, "dir": [0, 1, 0], "width": 0.11}, {"name": "palm", "parent": "wrist", "length": 0.38, "dir": [0, 1, 0], "width": 0.15 + 0.012 * nn}]
@@ -1473,7 +1475,7 @@ def hands(c):
             pose[f"f{k}a"] = [f"0.03 + 0.17*{e}", 0, 0]
             pose[f"f{k}b"] = [f"0.04 + 0.2*{e}", 0, 0]
         x = (i - (len(P) - 1) / 2) * 3.4
-        layers.append({"type": "figure", "bones": bones, "motion": "none", "pose": pose, "x": x, "y": -1.8, "z": 0, "scale": 2.3, **skin(("#d8c7b4", "#c9b7a4")[i], f"0.15*{p.hit}"), "melt": 0.06})
+        layers.append({"type": "figure", "bones": bones, "motion": "none", "pose": pose, "x": x, "y": -1.8, "z": 0, "scale": 2.3, **skin(("#c4ad96", "#b09982")[i], f"0.12*{p.hit}"), "melt": 0.06})
     return {"background": c.bg, "camera": cam("0.5*sin(time.bar/9)", 0.2, -7, look=(0, -0.2, 0), zoom=2.0), "layers": layers, "filters": post3d(-2, 4, -6, shadow=0.5)}
 
 
@@ -2558,13 +2560,14 @@ def treerings(c):
     for every note."""
     A = c.riffs[0]
     turns = max(3, (c.b16 - c.a16) / A.cell)
-    dr = min(0.16, 0.86 / (turns + 1))
-    T = f"(time.beat*4 - {c.a16:g})/{A.cell}"
-    layers = [{"type": "shape", "repeat": int(turns) + 2, "sides": 0, "radius": f"{dr:g}*(inst.i + 1)*(1 + 0.012*noise(inst.i*3.1))", "width": f"{dr * 0.22:g}", "fill": 0, "color": c.dim,
-               "opacity": f"step(inst.i, {T})*(0.35 + 0.65*step({T} - 1, inst.i))"},
-              {"type": "shape", "sides": 0, "radius": f"{dr:g}*({T} + 1)", "width": f"{dr * 0.3:g}", "fill": 0, "color": c.a},
-              {"type": "shape", "notes": {"track": A.name, "past": turns * A.cell / 4 + 1}, "sides": 1, "radius": f"{dr * 0.3:g}*(0.6 + note.vel)*(1 + 1.5*exp(0 - 2*note.age))", "width": 0, "fill": 1, "color": c.ink,
-               "x": f"{dr:g}*((note.beat*4 - {c.a16:g})/{A.cell} + 1)*sin({A.nph})", "y": f"{dr:g}*((note.beat*4 - {c.a16:g})/{A.cell} + 1)*cos({A.nph})", "opacity": f"step({c.a16 / 4:g}, note.beat)"}]
+    seed_t = 2.0
+    dr = min(0.15, 0.86 / (turns + seed_t + 1))
+    T = f"({seed_t:g} + (time.beat*4 - {c.a16:g})/{A.cell})"
+    layers = [{"type": "shape", "repeat": int(turns + seed_t) + 2, "sides": 0, "radius": f"{dr:g}*(inst.i + 1)*(1 + 0.014*noise(inst.i*3.1))", "width": f"{dr * 0.28:g}", "fill": 0, "color": c.dim,
+               "opacity": f"step(inst.i, {T})*(0.45 + 0.55*step({T} - 1, inst.i))"},
+              {"type": "shape", "sides": 0, "radius": f"{dr:g}*({T} + 1)", "width": f"{dr * 0.36:g}", "fill": 0, "color": c.a},
+              {"type": "shape", "notes": {"track": A.name, "past": (turns + seed_t) * A.cell / 4 + 1}, "sides": 1, "radius": f"{dr * 0.25:g}*(0.65 + note.vel)*(1 + 1.1*exp(0 - 2*note.age))", "width": 0, "fill": 1, "color": c.ink,
+               "x": f"{dr:g}*({seed_t:g} + (note.beat*4 - {c.a16:g})/{A.cell} + 1)*sin({A.nph})", "y": f"{dr:g}*({seed_t:g} + (note.beat*4 - {c.a16:g})/{A.cell} + 1)*cos({A.nph})", "opacity": f"step({c.a16 / 4 - seed_t * A.cell / 4:g}, note.beat)"}]
     return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.3, 0.014, 0.7)]}
 
 
@@ -2956,15 +2959,17 @@ def switchboard(c):
     A = P[0]
     n_ = A.cell
     dx_t, dx_b = 0.5, min(0.5, 8.0 / n_)
-    layers = [box(0, 0, 0.3, 4.4, 2.4, 0.05, **glow("#15120f", 1)),
-              ball(f"(inst.i - 7.5)*{dx_t}", 1.75, 0.1, 0.075, 8, count=16, **glow(c.dim, f"0.5 + 2*exp(0 - 2*fract(time.bar - inst.i/16)*16)")),
-              ball(f"(inst.i - {(n_ - 1) / 2})*{dx_b:g}", -1.75, 0.1, 0.075, 8, count=n_, **glow(c.dim, f"0.5 + 2*exp(0 - 2*fract({A.turn} - inst.i/{n_})*{n_})"))]
+    layers = [box(0, 0, 0.3, 4.4, 2.4, 0.05, **glow("#181512", 1)),
+              box(0, 1.75, 0.2, 4.2, 0.02, 0.01, **glow(c.dim, 0.45)),
+              box(0, -1.75, 0.2, 4.2, 0.02, 0.01, **glow(c.dim, 0.45)),
+              ball(f"(inst.i - 7.5)*{dx_t}", 1.75, 0.1, 0.095, 8, count=16, **glow(c.dim, f"0.75 + 2.4*exp(0 - 2*fract(time.bar - inst.i/16)*16)")),
+              ball(f"(inst.i - {(n_ - 1) / 2})*{dx_b:g}", -1.75, 0.1, 0.095, 8, count=n_, **glow(c.dim, f"0.75 + 2.4*exp(0 - 2*fract({A.turn} - inst.i/{n_})*{n_})"))]
     for i, p in enumerate(P):
         keep = max(4, 2 * p.cell / 4)
         x1 = f"(floor({NOTE16}) - 7.5)*{dx_t}"
         x2 = f"(floor(fract((note.beat*4 - {A.anchor:g} + {n_ * 4096})/{n_} + 0.0006)*{n_}) - {(n_ - 1) / 2})*{dx_b:g}"
-        layers.append({"type": "beam", "notes": {"track": p.name, "past": keep}, "from": [x1, 1.75, 0], "to": [x2, -1.75, 0], "sag": "0.35 + 0.25*hash(note.i*1.3)", "width": 0.022, "samples": 28,
-                       "glow": f"0.5 + 1.6*exp(0 - 2*note.age)", "color": c.col(i), "opacity": f"1 - smooth({keep * 0.6:g}, {keep:g}, note.age)"})
+        layers.append({"type": "beam", "notes": {"track": p.name, "past": keep}, "from": [x1, 1.75, 0], "to": [x2, -1.75, 0], "sag": "0.35 + 0.25*hash(note.i*1.3)", "width": 0.032, "samples": 28,
+                       "glow": f"0.75 + 2.0*exp(0 - 2*note.age)", "color": c.col(i), "opacity": f"1 - smooth({keep * 0.6:g}, {keep:g}, note.age)"})
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.35, 0.016, 0.6)]}
 
 
@@ -3077,7 +3082,7 @@ def trampoline(c):
                        "pose": {"thigh_l": [f"0.2*{up}", 0, 0], "thigh_r": [f"0.2*{up}", 0, 0], "shin_l": [f"0 - 0.25*{up}", 0, 0], "shin_r": [f"0 - 0.25*{up}", 0, 0],
                                 "arm_l": [f"0.1 + 0.3*{up}", 0, -0.05], "arm_r": [f"0.1 + 0.3*{up}", 0, 0.05], "spine": [f"0.05*{up}", 0, 0]}})
     look = {"background": c.bg, "layers": layers, "filters": post3d(-3, 7, -6)}
-    return shots(c, look, [cam("0.5*sin(time.bar/9)", 2.4, -8.5, look=(0, 2.2, 0), zoom=1.7), cam(5.5, 1.0, -5.0, look=(0, 2.3, 0), zoom=1.5), cam(-1.0, 0.5, -5.5, look=(0, 2.6, 0), zoom=1.4)], P[0])
+    return shots(c, look, [cam("0.5*sin(time.bar/9)", 2.2, -9.2, look=(0, 1.55, 0), zoom=1.45), cam(5.8, 1.2, -5.6, look=(0, 1.65, 0), zoom=1.38), cam(-1.0, 0.9, -6.4, look=(0, 1.75, 0), zoom=1.35)], P[0])
 
 
 @idiom(needs=2, fam="trace", cost=2)
@@ -4707,7 +4712,7 @@ def ground(c, look, kind):
 # Pictures that are dim as they stand (rooms at night, things on black): their shadows are
 # lifted before they are printed in the paper or made of small copies of themselves.
 DIM = set("gallery cinema railway doors cradle ropes highway press golden venn kit globe ferris skyline lanterns candles coins sympathy "
-          "puppet storm keys sonar belfry clockshop strobe inset balance contour helix tetris crystal searchlights".split())
+          "puppet storm keys sonar belfry clockshop strobe inset balance contour helix tetris crystal searchlights hands splitflap".split())
 
 # ───────────────────────── pictures of pictures ─────────────────────────
 
@@ -4874,7 +4879,7 @@ def _two(c, A, B, **cut):
 
 # Ways two readings of one riff are joined (a canon): in step every one of them is one whole
 # picture; out of step the picture breaks along the joins, by as much as the parts are apart.
-JOINS = ("half", "strips", "rings", "bands", "wedges", "board", "blocks", "ribs", "diagonal", "diamond")
+JOINS = ("half", "strips", "rings", "bands", "wedges", "board", "blocks", "ribs", "diagonal", "diamond", "spiral", "hex")
 
 
 def canon(c, A, B, how):
@@ -4889,7 +4894,9 @@ def canon(c, A, B, how):
            "board": dict(cut="checker", cut_n=6),
            "blocks": dict(cut="checker", cut_n=3),
            "diagonal": dict(cut="diagonal", cut_n=8),
-           "diamond": dict(cut="diamond", cut_n=6)}[how]
+           "diamond": dict(cut="diamond", cut_n=6),
+           "spiral": dict(cut="spiral", cut_n=6, cut_at=0.08),
+           "hex": dict(cut="hex", cut_n=8)}[how]
     return _two(c, A, B, **cut)
 
 
@@ -5227,6 +5234,23 @@ def c_diamond(c, A, B):
     return _two(c, A, B, cut="diamond", cut_n=(5, 7, 6, 8)[c.seed % 4], cut_at=_step(p))
 
 
+@combo("spiralcut")
+def c_spiralcut(c, A, B):
+    """Twisted spiral arms radiating from the centre, alternating between the two pictures
+    and rotating continuously on the lead riff's turn."""
+    p = _lead(c)
+    per = max(2, math.ceil(6.0 / ((p.cell or 16) * c.six)))
+    return _two(c, A, B, cut="spiral", cut_n=(4, 6, 8, 6)[c.seed % 4], cut_at=f"{p.turn}/{per}")
+
+
+@combo("hexcut")
+def c_hexcut(c, A, B):
+    """Interlocking hexagonal honeycomb cells alternating between the two pictures, sliding
+    a cell across on each turn of the lead riff."""
+    p = _lead(c)
+    return _two(c, A, B, cut="hex", cut_n=(6, 8, 7, 10)[c.seed % 4], cut_at=_step(p))
+
+
 TRIOS = {}
 
 
@@ -5463,7 +5487,7 @@ TREAT = {}
 
 LIFT = {"type": "color", "exposure": 1.35, "gamma": 1.7}
 # Guises that do not darken or shrink what they are given (or that lift it themselves).
-NO_LIFT = {"plain", "itself", "newsprint", "negative", "flood", "relief", "blueprint", "solar", "infra", "carried", "kaleido", "mirror", "riso"}
+NO_LIFT = {"plain", "itself", "newsprint", "negative", "flood", "relief", "blueprint", "solar", "infra", "carried", "kaleido", "mirror", "riso", "etched"}
 
 
 def treat(name, ok=lambda c, info: True):
@@ -5517,11 +5541,13 @@ def t_kaleido(c, look):
 # that changes what it is made of, then one that works on it in time.
 STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0, "hyperbolic": 0, "standing": 0, "anamorph": 0,
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
-         "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0, "woodcut": 1, "riso": 1,
+         "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0, "woodcut": 1, "riso": 1, "etched": 1,
          "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2, "scanfold": 2}
 
 # Pairs of guises that leave only texture, or flood white (feedback+grow saturates to pale wash).
-STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso")}
+STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso", "etched", "dots")}
+             | {(a_, "blown") for a_ in ("newsprint", "riso", "etched", "negative")}
+             | {("blown", a_) for a_ in ("newsprint", "riso", "etched", "negative")}
              | {("tunnel", "overgrown"), ("overgrown", "tunnel"), ("itself", "carried"), ("carried", "itself"), ("scanfold", "delayed"), ("delayed", "scanfold")})
 
 # Pictures that stand to one side, or are a line of things: half of one is not a picture.
@@ -5789,7 +5815,7 @@ def t_coiled(c, look):
     return look
 
 
-@treat("ball", ok=lambda c, info: info["fam"] not in ("sign", "plate"))
+@treat("ball", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
 def t_ball(c, look):
     """Wrapped round a ball that turns once for every few turns of the riff."""
     p = _lead(c)
@@ -5920,7 +5946,7 @@ def t_louvers(c, look):
     return _pre(look, {"type": "louver", "count": count, "turn": f"0.11*sin({p.turn}/{per})", "twist": 0.07, "shade": 0.35, "angle": (0.0, 0.04, -0.04, 0.25)[c.seed % 4], "amount": c.arr})
 
 
-@treat("hyperbolic", ok=lambda c, info: info["f"].__name__ in KALEIDO_OK and info["f"].__name__ in BROAD and c.riffs)
+@treat("hyperbolic", ok=lambda c, info: info["f"].__name__ in KALEIDO_OK and info["f"].__name__ in BROAD and info["f"].__name__ not in WHITE and not info.get("paper") and c.riffs)
 def t_hyperbolic(c, look):
     """Projected onto a Poincare hyperbolic disc: mirrored copies pack infinitely toward
     the circular horizon, rotating and breathing radially with the riff."""
@@ -5979,6 +6005,16 @@ def t_scanfold(c, look):
     folds = (2.0, 3.0, 2.5, 4.0)[c.seed % 4]
     angle = (0.0, 0.125, 0.25, -0.125)[c.seed % 4]
     return _pre(look, {"type": "scanfold", "depth": round(depth, 3), "folds": folds, "phase": f"{p.turn}/2", "angle": angle, "split": 0.22, "amount": c.arr})
+
+
+@treat("etched", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE)
+def t_etched(c, look):
+    """Copperplate cross-hatch engraving on warm ivory stock: three burin hatch angles bite
+    progressively deeper into shadows, rotating subtly on each turn of the riff."""
+    p = _lead(c)
+    look = _unbloomed(look)
+    look["filters"] += [{"type": "etched", "count": (44, 52, 60, 48)[c.seed % 4], "angle": f"0.08 + floor({p.turn})/32", "gain": 1.35, "ink": "#15141c", "paper": "#efe9d8", "tint": 0.42, "amount": c.arr}]
+    return look
 
 
 def _stitch(c, look, mode, count, **kw):
@@ -6147,7 +6183,7 @@ def t_negative(c, look):
 
 
 ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief", "poster", "flood", "combed", "blown", "leaded",
-           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried", "reeded", "louvers", "hyperbolic", "standing", "woodcut", "riso", "anamorph", "scanfold")
+           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried", "reeded", "louvers", "hyperbolic", "standing", "woodcut", "riso", "anamorph", "scanfold", "etched")
 
 # Idioms drawn in hair lines and points, made bolder so that they read at any size: how far
 # each thing in them is spread (a fraction of the frame's height).
