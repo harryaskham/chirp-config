@@ -429,16 +429,21 @@ def chladni(c):
 @idiom(needs=0, fam="orbit")
 def eclipse(c):
     """A sun, and a moon for each riff going over it once a turn. All of them cover it at once
-    only where the riffs meet."""
+    only where the riffs meet. Every note is a ring thrown off the sun."""
     parts = c.riffs[:3] or _cast(c, 1)
     if not parts:
         raise ValueError("no one to be a moon")
     cover = " * ".join(f"smooth(0.2, 0.02, abs(fract({p.turn} + 0.5) - 0.5))" for p in parts)
     layers = [{"type": "stars", "count": 400, "speed": 0, "size": 0.9, "light": f"0.25 + 1.5*({cover})", "twinkle": 0.3, "streak": 0},
               {"type": "shape", "sides": 1, "radius": 0.34, "width": 0, "fill": 1, "color": "#fff3d4", "glow": f"0.25 + 0.9*({cover})"}]
+    # Each note is a ring thrown off the sun in its riff's colour (behind the moons: a moon in the way hides it).
+    for i, p in enumerate(parts):
+        layers.append({"type": "shape", "notes": {"track": p.name, "past": 0.9}, "sides": 0, "radius": "0.35 + 0.55*note.age", "width": "0.012*(1 - note.age/0.9)", "fill": 0, "color": c.col(i),
+                       "opacity": "(0.35 + 0.65*note.vel)*(1 - note.age/0.9)"})
     for i, p in enumerate(parts):
         x = f"{1.5 + 0.25 * i}*tri({p.turn} + 0.25)"
-        layers.append({"type": "shape", "sides": 1, "radius": 0.345 - 0.03 * i, "width": 0, "fill": 1, "color": "#000000", "x": x, "y": f"{0.05 * (i - 1)}*cos({p.turn})"})
+        # (A moon is in the way of the sun: it covers, where the other lights add.)
+        layers.append({"type": "shape", "sides": 1, "radius": 0.345 - 0.03 * i, "width": 0, "fill": 1, "color": "#000000", "blend": "normal", "x": x, "y": f"{0.05 * (i - 1)}*cos({p.turn})"})
         layers.append({"type": "shape", "sides": 0, "radius": 0.345 - 0.03 * i, "width": 0.004, "fill": 0, "color": c.col(i), "x": x, "y": f"{0.05 * (i - 1)}*cos({p.turn})", "opacity": 0.8})
     return {"background": "#010103", "layers": layers, "filters": [bloom(c, 0.3, 0.03, 0.7)]}
 
@@ -882,7 +887,7 @@ def syllables(n_):
 @idiom(needs=1, fam="sign", paper=True, max_cell=16)
 def solkattu(c):
     """Each riff said aloud: its sixteenths as spoken syllables in a row, the one sounding
-    now lit."""
+    now lit, and a mark under each syllable that has a note."""
     parts = [p for p in c.riffs if p.cell <= 16][:3]
     if not parts:
         raise ValueError("too long to say")
@@ -895,9 +900,12 @@ def solkattu(c):
         y = (len(parts) - 1) / 2 * gap - gap * i - size / 2
         for k, sy in enumerate(syl):
             d = f"(fract({p.turn} - {k / p.cell:.5f})*{p.cell})"
-            for col, op in ((c.ink, "0.5"), (c.col(i), f"exp(0 - 1.6*{d})")):
-                layers.append({"type": "text", "text": sy, "size": f"{size:g}*(1 + 0.25*exp(0 - 2*{d}))", "x": (k - (len(syl) - 1) / 2) * size * 2.7, "y": y, "align": "center", "width": 0.18, "skew": 0,
+            for col, op in ((c.ink, "0.42"), (c.col(i), f"exp(0 - 1.6*{d})")):
+                layers.append({"type": "text", "text": sy, "size": f"{size:g}*(1 + 0.4*exp(0 - 2*{d}))", "x": (k - (len(syl) - 1) / 2) * size * 2.7, "y": y, "align": "center", "width": 0.18, "skew": 0,
                                "color": col, "opacity": op})
+        # The syllables that are sounded: a note's mark under its own, struck bright and staying for a turn.
+        layers.append({"type": "shape", "notes": {"track": p.name, "past": p.cell / 4}, "sides": 1, "radius": f"{size * 0.16:g}*(1 + 0.9*exp(0 - 5*note.age))", "width": 0, "fill": 1,
+                       "x": f"({p.nstep} - {(len(syl) - 1) / 2:g})*{size * 2.7:g}", "y": y - size * 0.62, "color": c.col(i), "opacity": "0.4 + 0.6*exp(0 - 3*note.age)"})
     return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.25, 0.012, 0.7)]}
 
 
@@ -2453,11 +2461,12 @@ def sympathy(c):
     for i, (x, a) in enumerate(zip((-0.8, 0.8), th)):
         X = f"({shove} + {x})"
         layers.append(box(X, 2.15, 0, 0.3, 0.42, 0.12, **solid("#4a362c", 0.55)))
-        layers.append({"type": "mesh", "shape": "cylinder", "detail": 24, "x": X, "y": 2.2, "z": -0.13, "scale": 1, "sx": 0.22, "sy": 0.01, "sz": 0.22, "rx": 0.25, **solid("#f2ece0", 0.4), "emit": 0.25})
-        layers.append(box(f"{X} + 0.6*sin({a})", f"1.75 - 0.6*cos({a})", -0.05, 0.016, 0.6, 0.016, rz=a, **solid("#d8c07c", 0.28, 0.9)))
-        layers.append({"type": "mesh", "shape": "cylinder", "detail": 20, "x": f"{X} + 1.2*sin({a})", "y": f"1.75 - 1.2*cos({a})", "z": -0.06, "scale": 1, "sx": 0.19, "sy": 0.028, "sz": 0.19, "rx": 0.25,
-                       **solid("#e0c880", 0.28, 0.9), "emit": f"0.22 + 0.85*exp(0 - 5*abs(sin({A.turn}{' + ' + off if i else ''})))"})
-    return {"background": c.bg, "camera": cam("0.8*sin(time.bar/10)", 1.6, -7, look=(0, 1.5, 0), zoom=1.8), "layers": layers, "filters": post3d(-3, 5, -6, shadow=0.6)}
+        layers.append({"type": "mesh", "shape": "cylinder", "detail": 24, "x": X, "y": 2.2, "z": -0.13, "scale": 1, "sx": 0.22, "sy": 0.01, "sz": 0.22, "rx": 0.25, **solid("#f2ece0", 0.4), "emit": f"0.3 + 0.9*{A.hit}"})       # (the faces light on the riff's notes)
+        layers.append(box(f"{X} + 0.6*sin({a})", f"1.75 - 0.6*cos({a})", -0.05, 0.02, 0.6, 0.02, rz=a, **solid("#d8c07c", 0.28, 0.9), emit=0.35))
+        layers.append({"type": "mesh", "shape": "cylinder", "detail": 20, "x": f"{X} + 1.2*sin({a})", "y": f"1.75 - 1.2*cos({a})", "z": -0.06, "scale": 1, "sx": 0.25, "sy": 0.03, "sz": 0.25, "rx": 0.25,
+                       **solid("#e0c880", 0.28, 0.9), "emit": f"0.5 + 1.1*exp(0 - 5*abs(sin({A.turn}{' + ' + off if i else ''})))"})
+    # (Near enough that the two swings are the picture: the chairs' outer legs are at the frame's edge.)
+    return {"background": c.bg, "camera": cam("0.6*sin(time.bar/10)", 1.7, -7, look=(0, 1.6, 0), zoom=2.3), "layers": layers, "filters": post3d(-3, 5, -6, shadow=0.6)}
 
 
 @idiom(needs=1, fam="grow")
@@ -2789,12 +2798,15 @@ def tetris(c):
     P = [p for p in c.riffs if p.cell >= 5][:2]
     if not P:
         raise ValueError("no riff long enough to be a well")
-    rows = 11
+    # (The wells side by side fill the frame's width, and as many rows as its height holds.)
+    s_ = min(0.4, 6.6 / sum(q.cell for q in P))
+    rows = max(8, min(16, int(4.1 / s_)))
     layers = []
+    left = -(sum(q.cell for q in P) * s_ + 0.5 * (len(P) - 1)) / 2
     for i, p in enumerate(P):
         nn = p.cell
-        s_ = min(0.4, 3.6 / max(nn, sum(q.cell for q in P) / 1.0) * (1 if len(P) == 1 else 0.9))
-        x0 = (i - (len(P) - 1) / 2) * (4.3 if len(P) > 1 else 0) - nn * s_ / 2
+        x0 = left
+        left += nn * s_ + 0.5
         turn_of = f"floor((note.beat*4 - {p.anchor:g} + 0.01)/{nn})"
         now = f"floor({p.turn})"
         rest = f"({turn_of} - max({now} - {rows - 1}, 0))"                      # the row it comes to rest in (the well scrolls once it is full)
@@ -5260,6 +5272,91 @@ def sandpile(c):
     return {"background": "#05060a", "env": env, "layers": [lay] + marks, "filters": [{"type": "tonemap", "knee": 0.8}, bloom(c, 0.22, 0.01, 0.75)]}
 
 
+@idiom(needs=1, fam="field", cost=2)
+def eddies(c):
+    """Ink in water. Each riff is a jet: every note of it lets a puff of its ink in and
+    pushes the water the way the riff's hand points just then (the hand goes round once a
+    turn of the riff), so a riff of five stirs five ways and one of seven seven, and the
+    tank is stirred the same way again only when they all come round together. A drum, if
+    there is room for one, pushes up from below. What is seen is where the notes of the
+    last few bars have gone."""
+    P = list(c.riffs[:3])
+    drum = min(c.drums, key=lambda q: (abs(q.rate - 2), q.name)) if len(P) < 3 and c.drums else None
+    spots = ([(0, 0.12)], [(-0.85, 0.1), (0.85, 0.1)], [(-1.05, -0.3), (0, 0.42), (1.05, -0.3)])[len(P) - 1]
+    env = hit_env(P, "180ms")
+    cols = [c.col(0), c.col(1), c.col(2)]
+    lay = {"type": "fluid", "size": 135, "warm": 4, "force": 5.0, "dye": 1.1, "radius": 0.055, "fade": 0.2, "drag": 0.15, "curl": 18, "gain": 1.45, "relief": 0.6, "spread": 1.0, "palette": cols}
+    marks = []
+    for i, (p, (x, y)) in enumerate(zip(P, spots)):
+        k = "" if i == 0 else str(i + 1)
+        d = f"(0.25 - {p.turn})" if i % 2 == 0 else f"(0.25 + {p.turn})"          # (neighbours turn opposite ways)
+        lay.update({f"on{k}": f"track.{p.name}", f"x{k}": x, f"y{k}": y, f"dir{k}": d})
+        # The nozzle (a ring that jumps on its notes) and its hand.
+        marks.append({"type": "shape", "sides": 0, "radius": f"0.05 + 0.03*env.h{i}", "width": 0.006, "fill": 0, "x": x, "y": y, "color": c.ink, "opacity": f"0.45 + 0.55*env.h{i}"})
+        marks.append({"type": "shape", "sides": 1, "radius": f"0.016 + 0.014*env.h{i}", "width": 0, "fill": 1, "x": f"{x:g} + 0.085*cos({d})", "y": f"{y:g} + 0.085*sin({d})", "color": "#ffffff", "opacity": f"0.6 + 0.4*env.h{i}"})
+    if drum:
+        k = str(len(P) + 1)
+        lay.update({f"on{k}": f"track.{drum.name}", f"x{k}": 0, f"y{k}": -0.86, f"dir{k}": 0.25})
+        if len(P) == 1:
+            # (The drum's ink is the third colour, so the two do not read as one jet.)
+            lay["palette"] = [cols[0], cols[2], cols[1]]
+    return {"background": "#04050b", "env": env, "layers": [lay] + marks, "filters": [{"type": "tonemap", "knee": 0.8}, bloom(c, 0.3, 0.012, 0.7)]}
+
+
+@idiom(needs=1, fam="field", cost=2)
+def coral(c):
+    """Growth the notes sow. Each riff has a ring, and its hand goes round the ring once a
+    turn; every note clears the ground under the hand and sows a seed there, and what
+    grows from it (coral, spots that divide or a maze, by the scene) grows until it meets
+    what another note sowed. A riff's notes are a necklace of growths round its ring, each
+    as old as its note. What grows is its riff's colour, and a note that falls on
+    another's growth clears it and claims the patch, so where two rings cross the ground
+    changes hands with the notes."""
+    P = c.riffs[:3]
+    rings = ([(0, 0, 0.55)], [(-0.85, 0, 0.5), (0.85, 0, 0.5)], [(-1.1, -0.2, 0.42), (0, 0.25, 0.42), (1.1, -0.2, 0.42)])[len(P) - 1]
+    feed, kill = ((0.055, 0.062), (0.037, 0.065), (0.029, 0.057))[c.variant % 3]
+    env = hit_env(P, "180ms")
+    # (Bare ground at first: the scene is the growing. A note clears a patch and sows it, so the patch is that riff's.)
+    lay = {"type": "turing", "size": 150, "warm": 60, "rate": 400, "feed": feed, "kill": kill, "radius": 0.035, "clear": 0.17, "gain": 1.15, "relief": 0.9, "spread": 1.0, "core": 0.22,
+           "palette": [c.col(0), c.col(1), c.col(2)]}
+    marks = []
+    for i, (p, (x, y, r)) in enumerate(zip(P, rings)):
+        k = "" if i == 0 else str(i + 1)
+        th = f"(0.25 - {p.turn})" if i % 2 == 0 else f"(0.25 + {p.turn})"          # (neighbours go round opposite ways)
+        hx, hy = f"{x:g} + {r:g}*cos({th})", f"{y:g} + {r:g}*sin({th})"
+        lay.update({f"on{k}": f"track.{p.name}", f"x{k}": hx, f"y{k}": hy})
+        # The hand: where the next note will sow.
+        marks.append({"type": "shape", "sides": 1, "radius": f"0.018 + 0.022*env.h{i}", "width": 0, "fill": 1, "x": hx, "y": hy, "color": "#ffffff", "opacity": f"0.55 + 0.45*env.h{i}"})
+    return {"background": "#05060a", "env": env, "layers": [lay] + marks, "filters": [{"type": "tonemap", "knee": 0.8}, bloom(c, 0.25, 0.01, 0.7)]}
+
+
+@idiom(needs=1, fam="field", cost=2)
+def suminagashi(c):
+    """Ink floated on water (suminagashi). Each riff has a brush that stands at one place
+    over a black bath, and every note lets a drop fall from it, which pushes the last
+    drop's ink out into a ring round the new one: a riff leaves ring inside ring, a note
+    to a ring, the newest innermost. The ink goes by the note's place in the riff (every
+    other sixteenth dark), so the rings are a picture of the riff that repeats each turn,
+    and two riffs' rings push one another aside. Every bar a comb is drawn through the
+    lot, up one bar and down the next."""
+    P = list(c.riffs[:3])
+    spots = ([(0, 0)], [(-0.8, 0.05), (0.8, -0.05)], [(-1.05, -0.25), (0, 0.38), (1.05, -0.25)])[len(P) - 1]
+    dark, pale = "#1c1c26", "#f4efe6"
+    rate = sum(max(q.rate, 1) for q in P)
+    pull = round(max(0.1, min(0.24, 0.55 / rate ** 0.5)), 3)
+    f = {"type": "marble", "hold": 1, "size": 170, "pull": pull, "speed": 9, "heal": 0.04, "width": 0.1, "gap": 0.5}
+    layers = []
+    for i, (q, (x, y)) in enumerate(zip(P, spots)):
+        k = "" if i == 0 else str(i + 1)
+        # (A sixteenth of the riff to a colour: an eighth on, the other of the pair; between them, dark.)
+        layers.append({"type": "shape", "sides": 1, "radius": 0.05, "fill": 1, "width": 0, "x": x, "y": y,
+                       "palette": [c.col(i), dark, pale, dark, c.col(i + 1), dark, pale, dark], "pos": f"floor({q.ph}*{q.cell or 16} + 0.01)/8"})
+        f.update({f"on{k}": f"track.{q.name}", f"stroke{k}": "drop", f"x{k}": x, f"y{k}": y})
+    if len(P) < 3:
+        f.update({"on3": "bar", "stroke3": "comb", "x3": "0.25*floor(time.bar/2)", "y3": 0, "dir3": "0.25 + 0.5*floor(time.bar)", "pull3": 0.22})
+    return {"background": "#000000", "layers": layers, "filters": [f, {"type": "tonemap", "knee": 0.8}, bloom(c, 0.2, 0.01, 0.75)]}
+
+
 @idiom(needs=2, fam="field", cost=2)
 def ripplebath(c):
     """Live 2D wave-equation interference tank: two orbiting exciters follow the two riffs'
@@ -5884,10 +5981,10 @@ STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall"
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
          "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0, "woodcut": 1, "riso": 1, "etched": 1, "cathedral": 1,
          "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2, "scanfold": 2, "duochrono": 2, "metered": 2,
-         "recoil": 2, "looped": 2, "boomerang": 2, "receding": 2, "filmclock": 2, "exposed": 2, "janus": 2}
+         "recoil": 2, "looped": 2, "boomerang": 2, "receding": 2, "filmclock": 2, "exposed": 2, "janus": 2, "marbled": 2, "aftershock": 2}
 
 # The guises that work on a recording of the picture.
-TIMED = ("recoil", "looped", "boomerang", "receding", "filmclock", "exposed", "janus")
+TIMED = ("recoil", "looped", "boomerang", "receding", "filmclock", "exposed", "janus", "aftershock")
 # Pairs of guises that leave only texture, or flood white (feedback+grow saturates to pale wash).
 STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph", "conformal", "screen") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso", "etched", "dots", "cathedral")}
              | {(a_, "blown") for a_ in ("newsprint", "riso", "etched", "negative")}
@@ -5920,7 +6017,7 @@ HANDS = ("riley", "blinds", "dominoes", "breakout", "kandinsky", "vortex", "moon
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
            "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava clockfield ripplebath".split())
-BROAD = FULL | set("overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery hilbert worldlines mycelium sandpile".split())
+BROAD = FULL | set("overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery hilbert worldlines mycelium sandpile eddies coral suminagashi".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("breakout searchlights solkattu remainder rain seismo metro epicycle pond tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
@@ -6434,6 +6531,36 @@ def t_recoil(c, look):
     look.setdefault("env", {})["knock"] = {"on": f"track.{q.name}", "attack": "0ms", "decay": "300ms"}
     # (Thrown back at once, held there a tenth of a second, and caught up by half a second.)
     return _pre(look, {"type": "replay", "delay": "0.9*(1 - smooth(0.1, 0.5, env.knock.age))", "hold": 1.5, "wear": 0.5})
+
+
+@treat("marbled", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and c.riffs)
+def t_marbled(c, look):
+    """Paint on a bath. Every note of the riff draws a comb through the picture, each
+    note its own way (the way the riff's hand points just then, so a riff of five combs
+    five ways, and the picture is combed the same way again a turn later); every note of
+    another part lets a drop fall into it, or gives it a turn, where that part's hand
+    is. The picture is what the last few notes have made of it: it comes back to itself
+    in about a turn of the riff."""
+    p, q = _lead(c), _knocker(c)
+    heal = round(min(1.8, max(0.35, 1.0 / max((p.cell or 16) * c.six, 0.2))), 2)
+    f = {"type": "marble", "on": f"track.{p.name}", "dir": p.ph, "x": 0, "y": 0, "gap": (0, 0.7, 0.45)[c.seed % 3],
+         "pull": round(max(0.08, min(0.24, 0.9 / max(p.rate, 1))), 3), "width": 0.16, "speed": 7, "heal": heal}
+    if q is not None:
+        f.update({"on2": f"track.{q.name}", "stroke2": ("drop", "swirl")[c.variant % 2], "x2": f"0.9*cos({q.turn})", "y2": f"0.5*sin({q.turn})", "pull2": (0.3, 0.16)[c.variant % 2]})
+    return _pre(look, f)
+
+
+@treat("aftershock", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and c.riffs and _knocker(c) is not None)
+def t_aftershock(c, look):
+    """Waves in time. Every note of another part starts a ring where that part's hand is,
+    and the ring goes out through the picture; where it is, the picture is late, a beat
+    late at its crest. So what the riff did a beat ago is seen again in a ring that
+    widens, and the other part's rhythm is read off the rings: one part's notes are
+    the stones, the other's picture is the water, and what spreads is the past."""
+    p, q = _lead(c), _knocker(c)
+    f = {"type": "timequake", "on": f"track.{q.name}", "x": f"0.9*cos({q.turn})", "y": f"0.5*sin({q.turn})",
+         "depth": 1.5, "speed": round(max(0.6, min(1.6, 2.4 / max(q.rate, 1))), 2), "width": 0.28, "life": 2.5, "edge": 0.9}
+    return _pre(look, f)
 
 
 @treat("looped", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and c.riffs and 6 <= (_lead(c).cell or 16) <= 32)
