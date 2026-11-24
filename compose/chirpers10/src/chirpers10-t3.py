@@ -584,7 +584,7 @@ STRUCK = os.environ.get('C10T3_STRUCK', '1.2;3;4s;2s;-9.982' if TREBLE and CHORD
 # was 'highshelf cutoff=7000 gain=-3dB') ; its fader (3.5dB) ; the loudness target ('' = unchanged). '' = v32.
 # It is on only while no other C10T3_ switch is set, so every older switch gives exactly what it gave.
 SNARE = os.environ.get('C10T3_SNARE', '3.5;1.1;peak cutoff=2500 q=0.7 gain=-4dB,peak cutoff=650 q=1 gain=-3dB;1.5dB;-10.067' if STRUCK and not any(
-    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS', 'C10T3_PICK', 'C10T3_COURSE', 'C10T3_INTUNE', 'C10T3_HAT', 'C10T3_HOLDS', 'C10T3_COVER') for k in os.environ) else '')
+    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS', 'C10T3_PICK', 'C10T3_COURSE', 'C10T3_INTUNE', 'C10T3_HAT', 'C10T3_HOLDS', 'C10T3_COVER', 'C10T3_BELFRY') for k in os.environ) else '')
 # v34 (chirper-alpha; whole song: its frame; the change is the band's entrance, 0:08-0:12): THE BAND IS RUNG UP.
 # The song is a ringing performance from end to end, and since v28 the band is LOWERED at the end. But ringers do not
 # start by ringing: a ring is RAISED first, the bells chiming fast and close while they hang low, each stroke taking
@@ -1768,6 +1768,114 @@ def the_inner_pair_holds(doc):
         doc['loudness'] = float(target)
 
 
+# v45 (chirper-zero, 24 Nov; instrument round, on Harry's 24 Nov steer for interesting effects, guitar sound, and
+# synths/environment sound — no note moves, no track added): THE SIXTHS GET A RAT, AND THE BELFRY OPENS.
+# First ProCo RAT stompbox on the album (`pedal` on pin 882b35a1). Two sound-only additions:
+# 1) THE HARMONY GUITARS (`hl`, `hr`, Mark amp, playing the sixths Harry asked to keep in first cycle 1:26 and second
+#    cycle 3:44): song patches `ph-harm-l` and `ph-harm-r` (extending `ct-twin` with the same strings/play) insert a
+#    ProCo RAT stompbox (`pedal kind=rat drive=0.5 tone=0.68 level=3dB volts=0.85 mix=0.75`, amp `ts=0.25`, `boost=2dB`)
+#    ahead of each Mark amp, with track eq `peak cutoff=200 q=0.9 gain=4dB|peak cutoff=1400 q=1.0 gain=-3.5dB` and
+#    fader 0 -> +0.6 dB so the harmony pair sits at matched loudness alone (~0.0 dB) with singing RAT grit in 2-8 kHz
+#    and no 120-250 Hz hollowing.
+# 2) THE BELFRY AMBIENT SPACE (`belfry` bus, gated strictly to beats 272-301.45 = 'the tower' 2:16-2:30.7, before the
+#    bass solo at beat 304, AND beats 636-648 = 'final bells' 5:18-5:24): `bell` (+25 dB), `gong` (+22 dB) and `drone`
+#    (+16 dB) send to a gated ambient chamber: 3/8 ping-pong delay -> sympathetic F-phrygian tower strings
+#    (F4,Gb4,Ab4,B4,C5,Eb5,F5,C6) -> octave-up reverse granular cloud -> 4.2 s shimmer hall (shimmer 0.72) -> bright
+#    air eq (HP 3.6 kHz, 2.8 kHz -7 dB, 5.8 kHz +14 dB) -> duck -6 dB by `chant` so the monks stay commanding and clear
+#    (Harry: "chant louder") -> gate lane shutting to -96 dB by beat 301.45 (zero spill into the bass solo, -93 dB).
+# C10T3_BELFRY = pedal kind:drive:tone:level:volts:mix ; amp_ts:amp_boost ; hl_gain ; hl_eq | ; sends bell,gong,drone ;
+#   delay time:fb:tone:mix ; sympathetic notes:decay:mix ; cloud size:density:pos:spray:pitch:rev:spread:win:seed:mix ;
+#   reverb kind:decay:size:shimmer:lc:hc:mix ; eq bands | ; duck by:depth:att:rel ; spans a:z,... ; loudness target.
+# '' = v44 byte for byte. On only while HOLDS is; 'C10T3_BELFRY' is in SNARE's exempt list.
+BELFRY = os.environ.get(
+    'C10T3_BELFRY',
+    'rat:0.5:0.68:3dB:0.85:0.75;0.25:2dB;0.6dB;peak cutoff=200 q=0.9 gain=4dB|peak cutoff=1400 q=1.0 gain=-3.5dB;'
+    '25dB,22dB,16dB;3/8:0.44:14000:0.45;F4,Gb4,Ab4,B4,C5,Eb5,F5,C6:2.4s:0.22;'
+    '130ms:18:155ms:145ms:12.0:0.4:1.0:3s:3:0.88;hall:4.2s:0.9:0.72:3600:15500:0.92;'
+    'hp cutoff=3600|peak cutoff=2800 q=0.8 gain=-7dB|highshelf cutoff=5800 gain=14dB;'
+    'chant:-6dB:15ms:220ms;272:301.45,636:648;-9.9846'
+    if HOLDS else '',
+)
+
+
+def the_sixths_get_a_rat_and_belfry(doc):
+    """v45: ProCo RAT stompbox on hl/hr harmony guitars + gated 'belfry' ambient chamber in 'the tower' and 'final bells'."""
+    ped_s, amp_s, hg_s, heq_s, snd_s, dly_s, sym_s, cld_s, rev_s, eq_s, dck_s, spans_s, target = BELFRY.split(';')
+    if ped_s:
+        kind, drv, tone, lvl, volts, mix = ped_s.split(':')
+        ts_s, bst_s = amp_s.split(':')
+        ped = {'type': 'pedal', 'kind': kind, 'drive': float(drv), 'tone': float(tone),
+               'level': lvl, 'volts': float(volts), 'mix': float(mix)}
+        patches = dict(doc['patches'])
+        for side, cone in (('l', 18), ('r', 19)):
+            pnm = f'ph-harm-{side}'
+            assert pnm not in patches, pnm
+            patches[pnm] = {
+                'extends': 'ct-twin',
+                'about': f"Plain Hunt harmony guitar (cone {cone}) with a {kind} stompbox ahead of its Mark amp (chirper-zero, 24 Nov).",
+                'fx': [
+                    {'type': 'compressor', 'attack': '2ms', 'makeup': '3dB', 'release': '60ms', 'threshold': '-20dB'},
+                    dict(ped),
+                    {'type': 'amp', 'model': 'mark', 'bloom': 0.5, 'boost': bst_s, 'gain': 0.85, 'mid': 0.74,
+                     'nfb': 18.0, 'resonance': 0.72, 'sag': 0.2, 'tight': 220, 'triode': True, 'ts': float(ts_s)},
+                    {'type': 'cab', 'model': '4x12-modern', 'mic': 0.55, 'cone': cone},
+                    {'type': 'gate', 'attack': '0.3ms', 'hold': '5ms', 'release': '12ms', 'threshold': '-42dB'},
+                ],
+            }
+        doc['patches'] = patches
+        for i, t in enumerate(doc['tracks']):
+            if t['name'] in ('hl', 'hr'):
+                side = t['name'][1]
+                fx = list(t.get('fx') or [])
+                if heq_s:
+                    fx = [{'type': 'eq', 'bands': heq_s.split('|')}] + fx
+                doc['tracks'][i] = {**t, 'patch': f'ph-harm-{side}',
+                                    **({'gain': hg_s} if hg_s else {}), **({'fx': fx} if fx else {})}
+    if snd_s:
+        assert 'belfry' not in doc['buses'], 'belfry bus already exists'
+        bus_fx = []
+        if dly_s:
+            tm, fb, tn, mx = dly_s.split(':')
+            bus_fx.append({'type': 'delay', 'time': tm, 'feedback': float(fb), 'ping_pong': True,
+                           'tone': float(tn), 'mix': float(mx)})
+        if sym_s:
+            nts, dec, mx = sym_s.split(':')
+            bus_fx.append({'type': 'sympathetic', 'notes': nts, 'decay': dec, 'mix': float(mx), 'tune_sounding': True})
+        if cld_s:
+            sz, dn, ps, sp, pt, rv, sr, wn, sd, mx = cld_s.split(':')
+            bus_fx.append({'type': 'cloud', 'size': sz, 'density': float(dn), 'position': ps, 'spray': sp,
+                           'pitch': float(pt), 'reverse': float(rv), 'spread': float(sr), 'window': wn,
+                           'seed': int(sd), 'mix': float(mx)})
+        if rev_s:
+            kd, dec, sz, sh, lc, hc, mx = rev_s.split(':')
+            bus_fx.append({'type': 'reverb', 'kind': kd, 'decay': dec, 'size': float(sz), 'shimmer': float(sh),
+                           'low_cut': float(lc), 'high_cut': float(hc), 'width': 1.0, 'mix': float(mx)})
+        if eq_s:
+            bus_fx.append({'type': 'eq', 'bands': eq_s.split('|')})
+        if dck_s:
+            by, dep, att, rel = dck_s.split(':')
+            bus_fx.append({'type': 'duck', 'by': by, 'depth': dep, 'attack': att, 'release': rel})
+        bus_fx.append({'type': 'gain', 'gain': {'value': '-96dB', 'mod': [{'src': 'auto.open', 'amount': 96}]}})
+        spans = [tuple(float(x) for x in sp.split(':')) for sp in spans_s.split(',')]
+        pts = [['0b', 0]]
+        for a, z in spans:
+            pts += [[f'{a - 0.05:g}b', 0], [f'{a:g}b', 1]]
+            if z < 647.5:
+                pts += [[f'{z - 0.95:g}b', 1], [f'{z:g}b', 0]]
+            else:
+                pts.append([f'{z:g}b', 1])
+        doc['buses'] = {**doc['buses'], 'belfry': {
+            'fx': bus_fx,
+            'auto': {'open': {'curve': 0, 'points': pts}},
+        }}
+        smap = dict(zip(('bell', 'gong', 'drone'), snd_s.split(',')))
+        for i, t in enumerate(doc['tracks']):
+            if t['name'] in smap and smap[t['name']]:
+                doc['tracks'][i] = {**t, 'sends': {**(t.get('sends') or {}), 'belfry': smap[t['name']]}}
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if TENOR:
@@ -1786,4 +1894,6 @@ if __name__ == "__main__":
         the_cover_returns(doc)
     if HOLDS:
         the_inner_pair_holds(doc)
+    if BELFRY:
+        the_sixths_get_a_rat_and_belfry(doc)
     open(OUT, "w").write(dump(doc))
