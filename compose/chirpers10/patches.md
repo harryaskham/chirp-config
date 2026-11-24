@@ -158,18 +158,18 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 |---|---|---|---|---|
 | `synth.amp.r` | 1 | 1 | `20ms` in 7 |  |
 
-## `ct-wall-stop-l`: 9 songs, 10 tracks; as it comes in tracks 4
+## `ct-wall-stop-l`: 9 songs, 10 tracks; as it comes in tracks 4, 10
 
 | field | tracks | songs | values (the songs) | |
 |---|---|---|---|---|
 | `+cab.cone` | 9 | 8 | `144` in 14; `52` in 7; `64` in 8; `74` in 9; `87` in 10; `14` in 11; `94` in 15; `101` in 17 |  |
 | `+cab.mic` | 9 | 8 | `0.4` in 9, 11, 14, 17; `0.5` in 7, 8, 15; `0.55` in 10 |  |
 | `+cab.model` | 9 | 8 | `4x12-modern` in 7, 8, 9, 10, 11, 14, 15, 17 | AGREED |
-| `fx.3.mix` | 7 | 6 | `0` in 7, 9, 10, 14, 15, 17 | AGREED |
-| `fx.4.bands.0.gain` | 7 | 6 | `0dB` in 7, 9, 10, 14, 15, 17 | AGREED |
-| `fx.4.bands.1.gain` | 7 | 6 | `0dB` in 7, 9, 10, 14, 15, 17 | AGREED |
-| `fx.4.bands.2.gain` | 7 | 6 | `0dB` in 7, 9, 10, 14, 15, 17 | AGREED |
-| `fx.4.bands.3.gain` | 7 | 6 | `0dB` in 7, 9, 10, 14, 15, 17 | AGREED |
+| `fx.3.mix` | 6 | 5 | `0` in 7, 9, 14, 15, 17 | AGREED |
+| `fx.4.bands.0.gain` | 6 | 5 | `0dB` in 7, 9, 14, 15, 17 | AGREED |
+| `fx.4.bands.1.gain` | 6 | 5 | `0dB` in 7, 9, 14, 15, 17 | AGREED |
+| `fx.4.bands.2.gain` | 6 | 5 | `0dB` in 7, 9, 14, 15, 17 | AGREED |
+| `fx.4.bands.3.gain` | 6 | 5 | `0dB` in 7, 9, 14, 15, 17 | AGREED |
 | `synth.layers.0.thump.mod.0.amount` | 4 | 4 | `0.2` in 7, 11, 15; `0` in 8 |  |
 | `synth.filters.0.cutoff.mod.0.amount` | 3 | 3 | `-2` in 8, 11, 15 |  |
 | `synth.pitch.mod.2.amount` | 3 | 2 | `0` in 14, 17 |  |
@@ -194,15 +194,15 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `+reverb.predelay` | 5 | 3 | `20ms` in 9, 14; `12ms` in 12 |  |
 | `synth.layers.0.inharm` | 4 | 2 | `0.00008` in 1, 10 |  |
 | `fx.3.mix` | 3 | 2 | `0` in 6, 14 |  |
+| `+phaser.depth` | 3 | 2 | `0.55` in 10, 14 |  |
+| `+phaser.mix` | 3 | 2 | `0.35` in 10, 14 |  |
+| `+phaser.rate` | 3 | 2 | `0.16` in 10; `0.18` in 14; `0.11` in 14 |  |
 | `synth.layers.0.node` | 2 | 2 | `expr.node` in 6; `4` in 13 |  |
 | `synth.layers.0.pinch` | 2 | 2 | `expr.contact` in 6; `1` in 13 |  |
 | `synth.pitch.mod.0.amount` | 2 | 1 | `0` in 14 |  |
 | `synth.pitch.mod.1.amount` | 2 | 1 | `0` in 14 |  |
 | `synth.layers.0.tune_sounding` | 2 | 1 | `true` in 14 |  |
 | `strum` | 2 | 1 | `20ms` in 14 |  |
-| `+phaser.depth` | 2 | 1 | `0.55` in 14 |  |
-| `+phaser.mix` | 2 | 1 | `0.35` in 14 |  |
-| `+phaser.rate` | 2 | 1 | `0.18` in 14; `0.11` in 14 |  |
 | `+tremolo.depth` | 1 | 1 | `0.85` in 1 |  |
 | `+tremolo.rate` | 1 | 1 | `1.75b` in 1 |  |
 | `synth.layers.0.pickup` | 1 | 1 | `0.075` in 6 |  |
