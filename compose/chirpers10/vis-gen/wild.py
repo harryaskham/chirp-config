@@ -3162,7 +3162,13 @@ def drill(c):
     x = f"mix({pos(0, f)}, {pos(0, f + ' + 1')}, {u})"
     y = f"mix({pos(1, f)}, {pos(1, f + ' + 1')}, {u})"
     beat = f"exp(0 - 1.5*fract({A.turn} - inst.i/{n_})*{A.cell})"
+    line = "#24523a" if c.variant % 2 == 0 else "#3a3660"
     layers = [box(0, 0, 0.3, 4.6, 2.6, 0.05, **glow("#10261a" if c.variant % 2 == 0 else "#1c1a2c", 1)),
+              # The parade ground's lines: one every unit across, the halfway line and the touchlines heavier.
+              box("(inst.i - 4)*1.0", 0, 0.24, 0.007, 2.45, 0.01, count=9, **glow(line, 0.8)),
+              box(0, 0, 0.24, 0.016, 2.45, 0.01, **glow(line, 1.1)),
+              box(0, "(inst.i - 0.5)*4.9", 0.24, 4.45, 0.012, 0.01, count=2, **glow(line, 1.1)),
+              box("(inst.i - 0.5)*8.9", 0, 0.24, 0.012, 2.45, 0.01, count=2, **glow(line, 1.1)),
               ball(f"({x}) + 0.07", f"({y}) - 0.07", 0.1, 0.1, 6, count=n_, **glow("#000000", 1)),
               ball(x, y, 0, f"0.085 + 0.05*{beat}", 8, count=n_, **glow(c.ink, f"0.8 + 1.5*{beat}"))]
     if B:
@@ -5232,6 +5238,50 @@ def torusknot(c):
     else:           # low, looking along the ring
         camera = cam("5.4*sin(time.bar/14)", "1.15 + 0.35*sin(time.bar/9)", "0 - 5.4*cos(time.bar/14)", look=(0, -0.1, 0), zoom=1.9)
     return {"background": "#03040a", "camera": camera, "layers": layers, "filters": [{"type": "aa"}, bloom(c, 0.5, 0.02, 0.55)]}
+
+
+@idiom(needs=2, fam="spacetime", cost=2)
+def worldlines(c):
+    """Space one way and time the other. Each part goes round once in its riff, here and
+    now, at the front; where it has been runs off behind it into the distance, so the past
+    of each part is a coil as long as its riff, and the coils of two riffs cross where the
+    riffs agree. Every note is a bead on its part's line, carried off into the past; the
+    bar lines go with them along the floor."""
+    parts = _cast(c, 4, celled=True)
+    if len(parts) < 2:
+        raise ValueError("one line")
+    # Sixteenths of the past in view (two and a half turns of the longest riff), and how far off they run.
+    span, deep = int(max(40, min(96, 2.5 * max(p.cell for p in parts)))), 12.0
+    k = deep / span                                         # depth a sixteenth
+    layers = [lamp(0, 6, 2, 0.55), floor(c, -1.7, "#0b0e1a", 0.35)]
+    # Bar lines on the floor, running away at the speed of the past.
+    layers.append(box(0, -1.69, f"(inst.i + fract(time.beat/4))*{16 * k:g}", 3.6, 0.004, 0.012, count=math.ceil(span / 16) + 1, **glow(c.dim, 0.7)))
+    layers.append(box(0, -1.69, f"(inst.i + fract(time.beat))*{4 * k:g}", 0.5, 0.003, 0.008, count=span // 4 + 1, **glow(c.dim, 0.4)))
+    for i, p in enumerate(parts):
+        if len(parts) == 2:         # two coils, one inside the other: they cross where the riffs agree
+            x0, amp, rise, y0 = 0, 2.5 - 0.7 * i, 0.6 + 0.2 * i, -0.3 + 0.3 * i
+        else:                       # more: a coil to a lane, side by side, so their lengths are compared
+            x0, amp, rise, y0 = (i - (len(parts) - 1) / 2) * 6.2 / len(parts), 2.5 / len(parts) + 0.2, 0.78, -0.45
+
+        def at(t16, p=p, x0=x0, amp=amp, rise=rise, y0=y0):
+            th = f"(({t16}) - {p.anchor:g})/{p.cell}"
+            return f"{x0:g} + {amp:g}*sin({th})", f"{y0:g} + {rise:g}*cos({th})"
+        wx, wy = at("time.beat*4 - vtx.u*%d" % span)
+        layers.append({"type": "mesh", "shape": "path", "detail": max(14, min(60, math.ceil(span / p.cell * 5))), "path": [wx, wy, f"vtx.u*{deep:g}"],
+                       "radius": "0.034 - 0.02*vtx.u", "x": 0, "y": 0, "z": 0, "scale": 1, **glow(c.col(i), f"0.75 + 0.8*{p.hit}")})
+        bx, by = at("note.beat*4")
+        layers.append(ball(bx, by, f"note.age*{4 * k:g}", "0.085*(1 + 1.6*exp(0 - 3*note.age))", 8, notes={"track": p.name, "past": span / 4},
+                           **glow("#ffffff" if i == 0 else c.col(i), "0.9 + 2.6*exp(0 - 1.5*note.age)")))
+        nx, ny = at("time.beat*4")
+        layers.append(ball(nx, ny, 0, f"0.15 + 0.09*{p.hit}", 12, **glow(c.col(i), f"1.6 + 2*{p.hit}")))
+    # Now: a frame the lines pass through.
+    for sx_ in (-1, 1):
+        layers.append(box(sx_ * 3.3, -0.2, 0, 0.012, 1.5, 0.012, **glow(c.ink, 0.55)))
+    layers.append(box(0, 1.3, 0, 3.3, 0.012, 0.012, **glow(c.ink, 0.55)))
+    side = 1 if c.variant % 2 == 0 else -1
+    camera = cam(f"{side * -4.6:g} + 0.5*sin(time.bar/9)", "1.9 + 0.3*sin(time.bar/7)", -2.6, look=(side * 0.5, -0.4, 4.2), zoom=1.3)
+    return {"background": "#04060d", "camera": camera, "layers": layers,
+            "filters": [{"type": "reflect", "y": -1.7, "amount": 0.45}, {"type": "fog", "amount": 0.6, "density": 0.035, "color": "#04060d"}, {"type": "tonemap", "knee": 0.8}, {"type": "aa"}, bloom(c, 0.45, 0.018, 0.6)]}
 
 
 @idiom(needs=2, fam="space", cost=3)
