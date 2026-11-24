@@ -4220,21 +4220,21 @@ def cobweb(c):
     xb = f"({n(-w)} + {2 * w / (hi - lo):g}*({nx} - {lo:g}))"
     yb = f"({n(-h)} + {2 * h / (hi - lo):g}*({nx} - {lo:g}))"
     tr = {"track": nm, "past": 96, "ahead": 0}
-    web = {"track": nm, "past": 7 * gap, "ahead": 0}
+    web = {"track": nm, "past": 10 * gap, "ahead": 0}
     done = f"step({gap:g}, note.age)"
-    fade = f"exp(0 - {0.28 / gap:g}*max(note.age - {gap:g}, 0))"
-    layers = [box(0, -h - 0.06, 0, w + 0.1, 0.012, 0.012, **glow(c.dim, 1.3)), box(-w - 0.06, 0, 0, 0.012, h + 0.1, 0.012, **glow(c.dim, 1.3)),
-              ball(f"{n(-w)} + inst.i*{2 * w / 71:g}", f"{n(-h)} + inst.i*{2 * h / 71:g}", 0.02, 0.022, 4, count=72, **glow(c.dim, 1.5)),
+    fade = f"exp(0 - {0.22 / gap:g}*max(note.age - {gap:g}, 0))"
+    layers = [box(0, -h - 0.06, 0, w + 0.1, 0.014, 0.014, **glow(c.dim, 1.4)), box(-w - 0.06, 0, 0, 0.014, h + 0.1, 0.014, **glow(c.dim, 1.4)),
+              ball(f"{n(-w)} + inst.i*{2 * w / 71:g}", f"{n(-h)} + inst.i*{2 * h / 71:g}", 0.02, 0.024, 4, count=72, **glow(c.dim, 1.6)),
               # every pair there has been: the rule, drawn by the tune
-              ball(xa, yb, 0, f"0.085*{done}", 6, notes=tr, count=96, **glow(c.b, f"(0.8 + 1.0*exp(0 - 0.05*note.age))*{done}")),
+              ball(xa, yb, 0, f"0.10*{done}", 6, notes=tr, count=96, **glow(c.b, f"(0.95 + 1.1*exp(0 - 0.05*note.age))*{done}")),
               # the web: up from the slant to the point, across to the slant again
-              {"type": "beam", "notes": web, "count": 8, "from": [xa, ya, 0], "to": [xa, yb, 0], "width": 0.04, "samples": 6, "color": c.a,
-               "reach": f"clamp(note.age*{2 / gap:g}, 0, 1)", "glow": f"(0.5 + 1.3*(1 - {done}))*{fade}"},
-              {"type": "beam", "notes": web, "count": 8, "from": [xa, yb, 0], "to": [xb, yb, 0], "width": 0.04, "samples": 6, "color": c.a,
-               "reach": f"clamp(note.age*{2 / gap:g} - 1, 0, 1)", "glow": f"(0.5 + 1.3*(1 - {done}))*{fade}*step({gap / 2:g}, note.age)"},
+              {"type": "beam", "notes": web, "count": 12, "from": [xa, ya, 0], "to": [xa, yb, 0], "width": 0.048, "samples": 6, "color": c.a,
+               "reach": f"clamp(note.age*{2 / gap:g}, 0, 1)", "glow": f"(0.65 + 1.4*(1 - {done}))*{fade}"},
+              {"type": "beam", "notes": web, "count": 12, "from": [xa, yb, 0], "to": [xb, yb, 0], "width": 0.048, "samples": 6, "color": c.a,
+               "reach": f"clamp(note.age*{2 / gap:g} - 1, 0, 1)", "glow": f"(0.65 + 1.4*(1 - {done}))*{fade}*step({gap / 2:g}, note.age)"},
               # the note that sounds, on the slant, and where it stands along the bottom
-              ball(xa, ya, -0.03, f"0.17*(1 - {done})*(1 + 0.6*exp(0 - 4*note.age))", 10, notes={"track": nm, "past": gap, "ahead": 0}, count=2, **glow(c.ink, f"1.6*(1 - {done})")),
-              box(xa, -h - 0.16, 0, 0.02, 0.09, 0.02, notes={"track": nm, "past": gap, "ahead": 0}, count=2, **glow(c.ink, f"1.4*(1 - {done})"))]
+              ball(xa, ya, -0.03, f"0.18*(1 - {done})*(1 + 0.6*exp(0 - 4*note.age))", 10, notes={"track": nm, "past": gap, "ahead": 0}, count=2, **glow(c.ink, f"1.7*(1 - {done})")),
+              box(xa, -h - 0.16, 0, 0.024, 0.1, 0.02, notes={"track": nm, "past": gap, "ahead": 0}, count=2, **glow(c.ink, f"1.5*(1 - {done})"))]
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.45, 0.016, 0.6)]}
 
 
@@ -5347,7 +5347,7 @@ TREAT = {}
 
 LIFT = {"type": "color", "exposure": 1.35, "gamma": 1.7}
 # Guises that do not darken or shrink what they are given (or that lift it themselves).
-NO_LIFT = {"plain", "itself", "newsprint", "negative", "flood", "relief", "blueprint", "solar", "infra", "carried", "kaleido", "mirror"}
+NO_LIFT = {"plain", "itself", "newsprint", "negative", "flood", "relief", "blueprint", "solar", "infra", "carried", "kaleido", "mirror", "riso"}
 
 
 def treat(name, ok=lambda c, info: True):
@@ -5401,11 +5401,11 @@ def t_kaleido(c, look):
 # that changes what it is made of, then one that works on it in time.
 STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0, "hyperbolic": 0, "standing": 0,
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
-         "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0,
+         "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0, "woodcut": 1, "riso": 1,
          "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2}
 
 # Pairs of guises that leave only texture, or flood white (feedback+grow saturates to pale wash).
-STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself")}
+STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso")}
              | {("tunnel", "overgrown"), ("overgrown", "tunnel"), ("itself", "carried"), ("carried", "itself")})
 
 # Pictures that stand to one side, or are a line of things: half of one is not a picture.
@@ -5825,6 +5825,26 @@ def t_standing(c, look):
     return _pre(look, {"type": "slitwave", "waves": waves, "amp": "0.025 + 0.075*env.swv", "phase": f"{p.turn}/2", "angle": angle, "split": 0.45, "amount": c.arr})
 
 
+@treat("woodcut", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE)
+def t_woodcut(c, look):
+    """Linocut / woodblock print: bold carved grooves that swell and part around the lights,
+    leaning a notch each turn of the riff."""
+    p = _lead(c)
+    look = _unbloomed(look)
+    look["filters"] += [{"type": "woodcut", "count": (36, 48, 56, 42)[c.seed % 4], "angle": f"0.05 + floor({p.turn})/24", "bend": f"0.32 + 0.28*{p.hit}", "gain": 1.4, "paper": "#121014", "amount": c.arr}]
+    return look
+
+
+@treat("riso", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE)
+def t_riso(c, look):
+    """Two-plate risograph print on warm paper: spot-ink plates slip out of register on
+    each hit of the riff and snap back into overprint."""
+    p = _lead(c)
+    look = _unbloomed(look)
+    look["filters"] += [{"type": "riso", "misreg": f"0.008 + 0.024*{p.hit}", "angle": f"0.08 + {p.turn}/4", "grain": 0.2, "gain": 1.35, "ink_a": c.a, "ink_b": c.b, "paper": "#eee6d4", "amount": c.arr}]
+    return look
+
+
 def _stitch(c, look, mode, count, **kw):
     look = _unbloomed(look)
     look["filters"] += [{"type": "color", "exposure": 1.25, "saturation": 1.2}, {"type": "stitch", "mode": mode, "count": count, "amount": c.arr, **kw}]
@@ -5991,7 +6011,7 @@ def t_negative(c, look):
 
 
 ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief", "poster", "flood", "combed", "blown", "leaded",
-           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried", "reeded", "louvers", "hyperbolic", "standing")
+           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried", "reeded", "louvers", "hyperbolic", "standing", "woodcut", "riso")
 
 # Idioms drawn in hair lines and points, made bolder so that they read at any size: how far
 # each thing in them is spread (a fraction of the frame's height).
