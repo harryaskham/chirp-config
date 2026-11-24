@@ -2097,20 +2097,20 @@ def cradle(c):
     if not P:
         raise ValueError("too long")
     top, L, r = 3.0, 2.0, 0.21
-    layers = [lamp(-3, 5, -6, 1.2), lamp(3, 1, -5, 0.5, c.a), floor(c, 0, "#131317", 0.3)]
+    layers = [lamp(-3, 5, -6, 1.5), lamp(3, 1.5, -5, 0.85, c.a), floor(c, 0, "#1c1d24", 0.3)]
     for i, p in enumerate(P):
         nn = max(3, p.cell)
         z = 1.6 * i
         x0 = (nn - 1) * r
         s = f"sin({p.turn})"
         thL, thR = f"(0 - 0.11*max({s}, 0))", f"(0.11*max(0 - {s}, 0))"
-        layers.append(box(0, top, z, x0 + 0.5, 0.03, 0.03, **solid("#55595f", 0.4, 0.8)))
-        layers.append(ball(f"(inst.i + 1 - {(nn - 1) / 2})*{2 * r}", top - L, z, r, 14, count=nn - 2, **solid(c.col(i), 0.2, 0.9), emit=f"0.15*{p.hit}"))
-        layers.append(box(f"(inst.i + 1 - {(nn - 1) / 2})*{2 * r}", top - L / 2, z, 0.004, L / 2, 0.004, count=nn - 2, **glow(c.dim, 0.6)))
+        layers.append(box(0, top, z, x0 + 0.5, 0.035, 0.035, **solid("#727782", 0.35, 0.85), emit=0.12))
+        layers.append(ball(f"(inst.i + 1 - {(nn - 1) / 2})*{2 * r}", top - L, z, r, 14, count=nn - 2, **solid(c.col(i), 0.2, 0.9), emit=f"0.32 + 0.35*{p.hit}"))
+        layers.append(box(f"(inst.i + 1 - {(nn - 1) / 2})*{2 * r}", top - L / 2, z, 0.005, L / 2, 0.005, count=nn - 2, **glow(c.dim, 0.75)))
         for sx, th in ((-1, thL), (1, thR)):
             bx, by = f"({sx * x0} + {L}*sin({th}))", f"({top} - {L}*cos({th}))"
-            layers.append(ball(bx, by, z, r, 14, **solid(c.col(i), 0.2, 0.9), emit=f"0.15*{p.hit}"))
-            layers.append({"type": "beam", "from": [sx * x0, top, z], "to": [bx, by, z], "width": 0.008, "glow": 0.4, "color": c.dim, "samples": 4})
+            layers.append(ball(bx, by, z, r, 14, **solid(c.col(i), 0.2, 0.9), emit=f"0.35 + 0.45*{p.hit}"))
+            layers.append({"type": "beam", "from": [sx * x0, top, z], "to": [bx, by, z], "width": 0.009, "glow": 0.55, "color": c.dim, "samples": 4})
     return {"background": c.bg, "camera": cam("1.2*sin(time.bar/9)", 1.9, -6.5, look=(0, 1.75, 0.5), zoom=2.3), "layers": layers,
             "filters": [{"type": "shadowmap", "amount": 0.5, "soft": 2, "size": 1024, "sun": 0, "x": -3, "y": 5, "z": -6}, {"type": "reflect", "y": 0, "amount": 0.35}, {"type": "tonemap", "knee": 0.75}, {"type": "aa"},
                         bloom(c, 0.3, 0.016, 0.8)]}
@@ -2126,10 +2126,10 @@ def storm(c):
     x = f"(3.6*noise({cnt}*7.31 + 2))"
     layers = [{"type": "gradient", "palette": ["#04050a", "#0a0e1c", "#161c30"], "angle": 0.25, "spread": 0.8, "res": 0.5},
               {"type": "gradient", "palette": ["#000000", "#5a6a9a", "#c9d4ff"], "angle": 0.25, "spread": 0.7, "res": 0.5, "blend": "add", "opacity": "0.35*env.s + 0.5*env.k"},
-              {"type": "beam", "from": [x, 2.7, 0], "to": [f"{x} + 1.2*noise({cnt}*3.17)", -1.25, 0], "width": 0.06, "taper": 0.5, "glow": "5*env.k", "wave": 0.22, "waves": f"5 + 4*noise({cnt}*1.3)", "speed": 0, "color": "#e6ecff",
-               "samples": 70},
-              {"type": "beam", "from": [f"{x} + 0.3*noise({cnt}*3.17)", 1.2, 0], "to": [f"{x} + 1.6*noise({cnt}*5.9)", -0.3, 0], "width": 0.018, "taper": 0.8, "glow": "2.5*env.k", "wave": 0.15, "waves": 5, "speed": 0,
-               "color": "#e6ecff", "samples": 40},
+              {"type": "beam", "from": [x, 2.7, 0], "to": [f"{x} + 1.4*noise({cnt}*3.17)", -1.25, 0], "width": 0.048, "taper": 0.45, "glow": "5*env.k", "jag": 0.34, "bolt": f"{cnt}*3.1 + floor(time.t*12)", "color": "#e6ecff",
+               "samples": 56},
+              {"type": "beam", "from": [f"{x} + 0.35*noise({cnt}*3.17)", 1.15, 0], "to": [f"{x} + 1.8*noise({cnt}*5.9)", -0.35, 0], "width": 0.018, "taper": 0.75, "glow": "2.8*env.k", "jag": 0.28, "bolt": f"{cnt}*7.3 + floor(time.t*12)",
+               "color": "#c9dcff", "samples": 32},
               {"type": "motes", "mode": "drift", "count": 700, "w": 10, "h": 6, "d": 4, "y": 0, "z": 1, "fall": 7, "wind_x": -1.5, "wobble": 0, "size": 0.006, "glow": "0.3 + 0.7*env.k", "twinkle": 0,
                "color": "#aab8d8"},
               box(0, -2.0, -0.3, 6, 0.8, 0.1, color="#020203", light=0, ambient=0, rim=0),
@@ -2879,7 +2879,8 @@ def snow(c):
     """Snow: a flake for every note, as big as the note was loud, and the drift at the foot
     of the frame deepens through the scene."""
     P = _cast(c, 3)
-    layers = [{"type": "gradient", "palette": ["#0b1226", "#141c38", "#27325a"], "angle": 0.25, "spread": 0.6, "res": 0.5}]
+    layers = [{"type": "gradient", "palette": ["#0b1226", "#141c38", "#27325a"], "angle": 0.25, "spread": 0.6, "res": 0.5},
+              {"type": "motes", "mode": "drift", "count": 220, "w": 9, "h": 5, "d": 4, "y": 0, "z": 1, "fall": 0.55, "wind_x": 0.15, "wobble": 0.25, "size": 0.018, "glow": 0.45, "twinkle": 0.35, "color": "#dce4ff"}]
     for i, p in enumerate(P):
         sway = f"0.07*sin(note.age/5 + hash(note.i*3.1 + {i}))"
         layers.append({"type": "shape", "notes": {"track": p.name, "past": 11}, "sides": 6, "star": 0.55, "radius": f"0.03 + 0.045*note.vel + {0.012 * i}", "width": 0.005, "fill": 0.15,
