@@ -2688,12 +2688,10 @@ def splitflap(c):
         scr = f"floor(hash(floor(time.beat*4 + 0.01)*1.7 + inst.i*7.3 + {i * 13})*26)"
         layers.append({"type": "shape", "repeat": n_, "sides": 4, "rotate": 0.125, "radius": w * 0.62, "width": 0, "fill": 1, "color": "#26282f", "blend": "normal", "x": f"(inst.i - {(n_ - 1) / 2})*{w:g}", "y": y})
         layers.append({"type": "text", "repeat": n_, "text": name + "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "pick": f"mix({n_} + {scr}, inst.i, {home})", "size": w * 1.05, "align": "center", "width": 0.14, "skew": 0,
-                       "x": f"(inst.i - {(n_ - 1) / 2})*{w:g}", "y": y - w * 0.52, "color": c.ink, "opacity": f"0.8 + 0.2*{home}"})
+                       "x": f"(inst.i - {(n_ - 1) / 2})*{w:g}", "y": y - w * 0.52, "color": c.ink, "opacity": f"0.85 + 0.15*{home}"})
         layers.append({"type": "shape", "repeat": n_, "sides": 4, "rotate": 0.125, "radius": w * 0.62, "width": 0, "fill": 1, "color": c.col(i), "blend": "add", "opacity": f"0.45*{home}",
                        "x": f"(inst.i - {(n_ - 1) / 2})*{w:g}", "y": y})
-        layers.append({"type": "shape", "repeat": n_, "sides": 4, "rotate": 0.125, "radius": w * 0.62, "width": 0, "fill": 1, "color": c.bg, "blend": "normal", "x": f"(inst.i - {(n_ - 1) / 2})*{w:g}", "y": y, "scale": 1,
-                       "opacity": 0} if False else
-                      box(0, y * 2.557, -0.1, n_ * w * 2.557 / 2 + 0.1, 0.008, 0.01, **glow(c.bg, 1)))
+        layers.append(box(0, y * 2.557, -0.1, n_ * w * 2.557 / 2 + 0.1, 0.008, 0.01, **glow(c.bg, 1)))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.25, 0.012, 0.8)]}
 
 
@@ -5471,9 +5469,9 @@ def t_stop(c, look):
     return _pre(look, {"type": "step", "on": f"track.{p.name}", "melt": 0.15})
 
 
-@treat("tunnel", ok=lambda c, info: info["fam"] not in ("plate", "room", "body", "travel", "sign"))
+@treat("tunnel", ok=lambda c, info: info["fam"] not in ("plate", "room", "body", "travel", "sign") and info["f"].__name__ not in ("crystal",))
 def t_tunnel(c, look):
-    return _pre(look, {"type": "feedback", "zoom": 1.035, "rotate": 0.01, "decay": 0.9, "mode": "max"})
+    return _pre(look, {"type": "feedback", "zoom": 1.035, "rotate": 0.01, "decay": 0.86, "mode": "max"})
 
 
 @treat("sheet", ok=lambda c, info: info["fam"] not in ("plate", "sign", "lattice") and c.riffs and c.riffs[0].cell <= 16)
@@ -5722,7 +5720,7 @@ def t_combed(c, look):
     return _pre(look, {"type": "sort", "lo": 0.07, "dir": ("right", "down", "left", "up")[c.seed % 4], "length": "0.04 + 0.96*env.comb", "amount": c.arr})
 
 
-@treat("woven", ok=lambda c, info: info["f"].__name__ in BROAD)
+@treat("woven", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("type",))
 def t_woven(c, look):
     """Woven of its own strips, over one and under one: every note of the riff draws the
     strips along themselves, and they come back into register after it."""
@@ -5884,8 +5882,8 @@ def t_puzzle(c, look):
     return _pre(look, {"type": "pieces", "cols": cols, "rows": rows, "placed": placed, "spread": 0.34, "gap": 0.003, "dim": 0.5, "order": order, "amount": c.arr})
 
 
-# (Not a picture on paper: it is light all over, so its copies are all as light as one another and nothing is seen.)
-@treat("itself", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE)
+# (Not a picture on paper or bright sky/field: it is light all over, so its copies are all as light as one another and blow out.)
+@treat("itself", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE and info["f"].__name__ not in ("wheat", "skein", "grove", "murmur", "daylight", "aurora"))
 def t_itself(c, look):
     """Made of small copies of itself, as many across as the riff has sixteenths: the same
     at two sizes. Each turn of the riff it comes in from the copies to the whole."""
@@ -5897,8 +5895,9 @@ def t_itself(c, look):
         nn *= 2
     look = _unbloomed(look)
     dim = getattr(c, "idiom", None) in DIM      # (a dim picture's shadows are lifted first: its copies were darker still)
-    look["filters"] += [{"type": "color", "exposure": 1.35, "gamma": 1.7} if dim and LIFT not in look["filters"] else {"type": "color", "exposure": 1.2},
-                        {"type": "mosaic", "count": nn, "gain": 2.6, "floor": 0.22 if dim else 0.16, "tint": 0.7, "amount": f"({c.arr})*(1 - 0.85*pow(fract({p.turn}/2), 6))"}]
+    bright_ = getattr(c, "idiom", None) in BRIGHT
+    look["filters"] += [{"type": "color", "exposure": 1.35, "gamma": 1.7} if dim and LIFT not in look["filters"] else {"type": "color", "exposure": 0.92 if bright_ else 1.15},
+                        {"type": "mosaic", "count": nn, "gain": 1.8 if bright_ else 2.4, "floor": 0.22 if dim else 0.14, "tint": 0.72, "amount": f"({c.arr})*(1 - 0.85*pow(fract({p.turn}/2), 6))"}]
     return look
 
 
