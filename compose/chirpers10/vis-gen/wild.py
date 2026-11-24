@@ -4294,28 +4294,28 @@ def spire(c):
     th = "(note.midi/12)"
     y = f"((note.midi - {(lo + hi) / 2:g})*{4.4 / span:g})"
     out = f"({pr:g}*(0.2 + 0.8*clamp((note.midi - {lo:g})/{span:g}, 0, 1)))"
-    lit = "(0.3 + 0.7*exp(0 - 0.3*max(note.age, 0)))*(0.55 + 1.7*note.on)*(0.45 + 0.8*note.vel)"
+    lit = "(0.45 + 0.7*exp(0 - 0.3*max(note.age, 0)))*(0.7 + 1.7*note.on)*(0.5 + 0.8*note.vel)"
     nn = 6 * span + 1
     mi = f"({lo:g} + inst.i/6)"
-    layers = [box(ex, 0, 0, 0.012, 2.3, 0.012, **glow(c.dim, 0.9)),
+    layers = [box(ex, 0, 0, 0.02, 2.3, 0.02, **glow(c.dim, 1.2)),
               # the stair's rail: a thread round the column, dimmer where it goes behind
-              ball(f"{n(ex)} + {er:g}*sin({mi}/12)", f"({mi} - {(lo + hi) / 2:g})*{4.4 / span:g}", f"0 - {er:g}*cos({mi}/12)", 0.02, 4, count=nn,
-                   **glow(c.dim, f"0.5 + 0.9*(0.5 + 0.5*cos({mi}/12))")),
+              ball(f"{n(ex)} + {er:g}*sin({mi}/12)", f"({mi} - {(lo + hi) / 2:g})*{4.4 / span:g}", f"0 - {er:g}*cos({mi}/12)", 0.03, 4, count=nn,
+                   **glow(c.dim, f"0.8 + 1.2*(0.5 + 0.5*cos({mi}/12))")),
               # the dial: twelve places round, one for each note there is
-              ball(f"{px:g} + {pr * 1.07:g}*sin(inst.i/12)", f"{pr * 1.07:g}*cos(inst.i/12)", 0, 0.045, 6, count=12, **glow(c.dim, 1.3)),
-              ball(f"{px:g} + {pr:g}*sin(inst.i/120)", f"{pr:g}*cos(inst.i/120)", 0, 0.014, 4, count=120, **glow(c.dim, 0.8))]
+              ball(f"{px:g} + {pr * 1.07:g}*sin(inst.i/12)", f"{pr * 1.07:g}*cos(inst.i/12)", 0, 0.062, 6, count=12, **glow(c.dim, 1.6)),
+              ball(f"{px:g} + {pr:g}*sin(inst.i/120)", f"{pr:g}*cos(inst.i/120)", 0, 0.02, 4, count=120, **glow(c.dim, 1.1))]
     for i, nm in enumerate(names):
         col = c.col(i)
         tr = {"track": nm, "past": 12, "ahead": 0}
         # from the side: a tread from the column out to the rail, and a bead on its end
-        layers.append(box(f"{n(ex)} + {er / 2:g}*sin({th})", y, f"0 - {er / 2:g}*cos({th})", f"0.02 + {er / 2:g}*abs(sin({th}))", 0.028, 0.02, notes=tr, count=40,
+        layers.append(box(f"{n(ex)} + {er / 2:g}*sin({th})", y, f"0 - {er / 2:g}*cos({th})", f"0.02 + {er / 2:g}*abs(sin({th}))", 0.042, 0.02, notes=tr, count=40,
                           **glow(col, f"0.7*{lit}")))
-        layers.append(ball(f"{n(ex)} + {er:g}*sin({th})", y, f"0 - {er:g}*cos({th})", "0.085*(1 + 0.6*note.on)", 8, notes=tr, count=40, **glow(col, lit)))
+        layers.append(ball(f"{n(ex)} + {er:g}*sin({th})", y, f"0 - {er:g}*cos({th})", "0.115*(1 + 0.6*note.on)", 8, notes=tr, count=40, **glow(col, lit)))
         # from above: the same notes on one spoke
-        layers.append(ball(f"{px:g} + {out}*sin({th})", f"{out}*cos({th})", 0, "0.085*(1 + 0.6*note.on)", 8, notes=tr, count=40, **glow(col, lit)))
+        layers.append(ball(f"{px:g} + {out}*sin({th})", f"{out}*cos({th})", 0, "0.115*(1 + 0.6*note.on)", 8, notes=tr, count=40, **glow(col, lit)))
     k = f"((track.{names[0]}.key*84 + 24)/12)"
-    layers.append({"type": "beam", "from": [px, 0, 0], "to": [f"{px:g} + {pr:g}*sin({k})", f"{pr:g}*cos({k})", 0], "width": 0.02, "samples": 8, "color": c.ink,
-                   "glow": f"0.5 + 0.9*track.{names[0]}.level"})
+    layers.append({"type": "beam", "from": [px, 0, 0], "to": [f"{px:g} + {pr:g}*sin({k})", f"{pr:g}*cos({k})", 0], "width": 0.034, "samples": 8, "color": c.ink,
+                   "glow": f"0.8 + 1.1*track.{names[0]}.level"})
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.45, 0.016, 0.6)]}
 
 
@@ -4729,7 +4729,8 @@ def ground(c, look, kind):
 # Pictures that are dim as they stand (rooms at night, things on black): their shadows are
 # lifted before they are printed in the paper or made of small copies of themselves.
 DIM = set("gallery cinema railway doors cradle ropes highway press golden venn kit globe ferris skyline lanterns candles coins sympathy "
-          "puppet storm keys sonar belfry clockshop strobe inset balance contour helix tetris crystal searchlights hands splitflap".split())
+          "puppet storm keys sonar belfry clockshop strobe inset balance contour helix tetris crystal searchlights hands splitflap "
+          "fountain fireworks hammers turtle trampoline pong sunflower fan membrane torusknot".split())
 
 # ───────────────────────── pictures of pictures ─────────────────────────
 
@@ -6061,7 +6062,7 @@ def t_coiled(c, look):
     return look
 
 
-@treat("ball", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type", "body"))
+@treat("ball", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type", "body") and info["f"].__name__ not in ("fountain", "fireworks", "snow", "rain", "fireflies"))
 def t_ball(c, look):
     """Wrapped round a ball that turns once for every few turns of the riff."""
     p = _lead(c)
@@ -6253,7 +6254,7 @@ def t_scanfold(c, look):
     return _pre(look, {"type": "scanfold", "depth": round(depth, 3), "folds": folds, "phase": f"{p.turn}/2", "angle": angle, "split": 0.22, "amount": c.arr})
 
 
-@treat("etched", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE)
+@treat("etched", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE and info["f"].__name__ not in ("fruit", "dice", "reels"))
 def t_etched(c, look):
     """Copperplate cross-hatch engraving on warm ivory stock: three burin hatch angles bite
     progressively deeper into shadows, rotating subtly on each turn of the riff."""
@@ -6350,7 +6351,7 @@ def t_puzzle(c, look):
 
 
 # (Not a picture on paper or bright sky/field: it is light all over, so its copies are all as light as one another and blow out.)
-@treat("itself", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE and info["f"].__name__ not in ("wheat", "skein", "grove", "murmur", "daylight", "aurora"))
+@treat("itself", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE and info["f"].__name__ not in ("wheat", "skein", "grove", "murmur", "daylight", "aurora", "rink", "turbines", "zen", "sundial"))
 def t_itself(c, look):
     """Made of small copies of itself, as many across as the riff has sixteenths: the same
     at two sizes. Each turn of the riff it comes in from the copies to the whole."""
