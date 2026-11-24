@@ -123,31 +123,31 @@ class Song:
 # in each guise).
 FEATURE = {
     1: ("loom", "remainder", "crystal", "helix", "billiard", "riley", "reels", "torusknot"), 2: ("sympathy", "pendwave", "strings", "cradle", "seesaw", "ink", "strobe", "worldlines", "suminagashi"), 3: ("changes", "maypole", "chorus", "stringart", "drill", "vasarely"),
-    4: ("abacus", "tally", "dominoes", "automaton", "odometer", "hanoi", "barcode", "dice", "hilbert", "sandpile"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist", "barber"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling", "ripplebath", "mycelium", "eddies"),
-    7: ("rabbits", "golden", "spiral", "sunflower", "mandala", "star", "kandinsky", "courses", "coral"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout", "measure", "reels", "hilbert"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial", "dice", "torusknot", "clockfield", "coral"),
+    4: ("abacus", "tally", "dominoes", "automaton", "odometer", "hanoi", "barcode", "dice", "hilbert", "sandpile", "sandplate"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist", "barber"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling", "ripplebath", "mycelium", "eddies"),
+    7: ("rabbits", "golden", "spiral", "sunflower", "mandala", "star", "kandinsky", "courses", "coral"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout", "measure", "reels", "hilbert", "sandplate"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial", "dice", "torusknot", "clockfield", "coral"),
     10: ("balance", "coins", "tape", "galton", "duel", "hourglass", "barcode", "sandpile"), 11: ("doors", "blinds", "press", "hammers", "tesla", "albers", "portals"), 12: ("hands", "juggle", "semaphore", "chorus", "fan", "shadowplay", "braille"),
     13: ("eclipse", "pond", "spiral", "lanterns", "rink", "zen", "braille", "ripplebath", "worldlines", "eddies"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader", "hourglass", "strobe", "dice", "clockfield"), 15: ("slack", "ropes", "wires", "swings", "switchboard", "rothko", "mycelium"),
-    16: ("beats", "moire", "chladni", "eclipse", "lighthouse", "billiard", "candles", "ripplebath", "suminagashi"), 17: ("hailstone", "railway", "highway", "gates", "constellation", "searchlights", "sundial", "phasecorridor", "kaleidohall"),
+    16: ("beats", "moire", "chladni", "eclipse", "lighthouse", "billiard", "candles", "ripplebath", "suminagashi", "sandplate"), 17: ("hailstone", "railway", "highway", "gates", "constellation", "searchlights", "sundial", "phasecorridor", "kaleidohall"),
 }
 # Each song's house: the guises and the ways of sharing the frame it leans to, so the songs
 # differ from one another as well as from bar to bar. (The first song, the album's argument, has none.)
 HOUSE = {
-    2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout smoked delayed puzzle warpby timemap standing scanfold prismby spiralcut duochrono metered recoil boomerang receding exposed ringed janus marbled aftershock",
-    3: "lines engraved hatched typed sheet blueprint leaded strips bands intercut triptych stencil woven sampler knitted itself diagonal woodcut etched cathedral",
-    4: "typed onebit newsprint dots blocks combed poster board corner card strips tracking puzzle beaded bricks halves louvers riso hexcut",
-    5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout infra screen ridged papercut embossed stagepass anamorph spiralcut conformal metered receding",
-    6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass dripping beaded halves warpby hyperbolic anamorph prismby spiralcut conformal cathedral marbled",
-    7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite glass woven bricks papercut itself diamond hyperbolic anamorph hexcut conformal cathedral",
-    8: "leaded engraved newsprint poster flood duotone mirror triptych diptych window board infra woven puzzle bricks halves louvers woodcut riso etched cathedral",
-    9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout smoked delayed papercut reeded timemap scanfold hexcut duochrono metered looped boomerang filmclock ringed aftershock",
-    10: "onebit dots torn combed typed poster negative difference card bands corner stencil dripping sampler beaded carried negmask woodcut riso etched recoil looped",
-    11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking screen papercut puzzle louvers stagepass prismby hexcut mirrorby metered filmclock aftershock",
-    12: "mirror drawn blueprint hatched ball echo water diptych intercut lighten satellite cutout screen papercut diagonal negmask timemap woodcut scanfold etched mirrorby janus",
-    13: "echo stop slices fringe water overgrown hole double window iris difference glass smoked negative stencil ridged carried embossed timemap scanfold spiralcut duochrono cathedral metered boomerang exposed janus marbled aftershock",
-    14: "typed dots lines blocks sheet onebit stop strips board wedges triptych stencil delayed beaded bricks louvers reeded standing scanfold hexcut duochrono metered looped recoil filmclock exposed ringed",
-    15: "warp wound blown torn water combed tunnel sweep bands double satellite dripping woven knitted sampler carried warpby standing spiralcut duochrono exposed",
-    16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass tracking delayed ridged reeded embossed standing anamorph prismby conformal cathedral metered filmclock marbled",
-    17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil infra screen puzzle ridged itself diamond hyperbolic stagepass anamorph hexcut conformal metered receding aftershock",
+    2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout smoked delayed puzzle warpby timemap standing scanfold prismby spiralcut duochrono metered recoil boomerang receding exposed ringed janus marbled aftershock papered",
+    3: "lines engraved hatched typed sheet blueprint leaded strips bands intercut triptych stencil woven sampler knitted itself diagonal woodcut etched cathedral papered",
+    4: "typed onebit newsprint dots blocks combed poster board corner card strips tracking puzzle beaded bricks halves louvers riso hexcut papered",
+    5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout infra screen ridged papercut embossed stagepass anamorph spiralcut conformal metered receding papered",
+    6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass dripping beaded halves warpby hyperbolic anamorph prismby spiralcut conformal cathedral marbled papered",
+    7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite glass woven bricks papercut itself diamond hyperbolic anamorph hexcut conformal cathedral papered",
+    8: "leaded engraved newsprint poster flood duotone mirror triptych diptych window board infra woven puzzle bricks halves louvers woodcut riso etched cathedral papered",
+    9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout smoked delayed papercut reeded timemap scanfold hexcut duochrono metered looped boomerang filmclock ringed aftershock papered",
+    10: "onebit dots torn combed typed poster negative difference card bands corner stencil dripping sampler beaded carried negmask woodcut riso etched recoil looped papered",
+    11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking screen papercut puzzle louvers stagepass prismby hexcut mirrorby metered filmclock aftershock papered",
+    12: "mirror drawn blueprint hatched ball echo water diptych intercut lighten satellite cutout screen papercut diagonal negmask timemap woodcut scanfold etched mirrorby janus papered",
+    13: "echo stop slices fringe water overgrown hole double window iris difference glass smoked negative stencil ridged carried embossed timemap scanfold spiralcut duochrono cathedral metered boomerang exposed janus marbled aftershock papered",
+    14: "typed dots lines blocks sheet onebit stop strips board wedges triptych stencil delayed beaded bricks louvers reeded standing scanfold hexcut duochrono metered looped recoil filmclock exposed ringed papered",
+    15: "warp wound blown torn water combed tunnel sweep bands double satellite dripping woven knitted sampler carried warpby standing spiralcut duochrono exposed papered",
+    16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass tracking delayed ridged reeded embossed standing anamorph prismby conformal cathedral metered filmclock marbled papered",
+    17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil infra screen puzzle ridged itself diamond hyperbolic stagepass anamorph hexcut conformal metered receding aftershock papered",
 }
 HOUSE = {n_: set(v.split()) for n_, v in HOUSE.items()}
 OPEN = {1: "stringart"}     # the picture a song opens on, where it is not the first of its featured ones (the album's first picture, and the one the landing brings back)
@@ -158,7 +158,7 @@ TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weav
                "displace", "prism", "aperture", "accordion", "pendulum", "gear", "orbit", "chromatic",
                "cube", "shatter", "kaleido", "polar", "fold", "louver",
                "vortex", "carousel", "ribbon", "shockwave", "facet", "slitcurtain", "spiralwipe", "mosaicflip", "helixwipe", "parallax", "rhombus", "gravity", "tube", "nodal",
-               "rewind", "stutter", "flipbook", "timewipe", "timeiris", "notewise", "rainwise")
+               "rewind", "stutter", "flipbook", "timewipe", "timeiris", "notewise", "rainwise", "sandwise")
 # Ways that suit the music coming up over the cut (the next bars fuller than the last: a roll, a blow, a rush in)
 # and ways that suit it falling away (a wind-down, a letting go). A cut where the band neither gains nor loses takes any.
 TR_UP = set("stutter zoom whip shockwave burn shatter aperture tube spin whirl star prism chromatic glitch push rise iris vortex timeiris notewise".split())
@@ -167,7 +167,8 @@ TR_DOWN = set("melt fall drip smoke ritard rewind gravity dissolve inkbleed over
 CARRIED = ("mosh", "smoke", "overgrow", "echo", "drip", "inkbleed")
 # Ways that record the old picture as the change begins and play the recording (a tape wound back; a roll into the cut).
 # (And the ones the notes make, a tile of the frame or a drop to a note: long enough for a bar's notes to take it.)
-TAPED = {"rewind": 2.4, "stutter": 1.9, "flipbook": 1.9, "timewipe": 1.9, "timeiris": 1.9, "notewise": 2.4, "rainwise": 2.6}
+# (And the one that runs the picture together as sand and out again: long enough to see the figure.)
+TAPED = {"rewind": 2.4, "stutter": 1.9, "flipbook": 1.9, "timewipe": 1.9, "timeiris": 1.9, "notewise": 2.4, "rainwise": 2.6, "sandwise": 2.8}
 # Ways that count or move mechanically (counted.rs): the dense ones need about two seconds to be read, the rest a second and a half.
 COUNTED = {"rung": 1.9, "sum": 1.9, "euclid": 1.9, "dealt": 1.9, "golden": 1.9, "halving": 1.9, "ritard": 1.9, "stairs": 1.9,
            "phase": 1.4, "canon": 1.4, "barber": 1.4, "owed": 1.4, "leaf": 1.4, "negative": 1.4, "haul": 1.4, "beats": 1.4,
@@ -1062,7 +1063,8 @@ class Deal:
                     look = W.TREAT[last["ending"]][0](d, W.ground(d, look, last.get("ground")))
                     c.__dict__.update(d.__dict__)
                     self.grown[way] += 1
-                    note(name, key, f"{name}/{way}", raw=raw, ending=last["ending"])
+                    # (A second time for the same picture, in another song with other riffs, is named as the second.)
+                    note(name, key, f"{name}/{key}", raw=raw, ending=last["ending"])
                     self.last["ground"] = last.get("ground")
                     return name, way, look
         # Two parts play one riff, one ahead of the other: the picture is drawn for each and
@@ -2657,10 +2659,13 @@ def fits(kind, A, B):
     if kind == "ringed":        # A is seen small, in a ring of frames round B
         return A in W.BROAD and W.REG[A]["fam"] not in ("type", "sign", "plate") and B not in W.THIN
     if kind == "stencil":       # A shows only through B's lights
-        return A in W.BROAD and B in W.BROAD
+        # (A picture on a lit ground has few lights of its own: nothing would show through it.)
+        return A in W.BROAD and B in W.BROAD and B not in W.BRIGHT and B not in W.WHITE
     if kind == "timemap":         # B's lightness pulls A back in time; works best when A is broad and B is not thin
         return A in W.BROAD and B not in W.THIN
     if kind in ("glass", "warpby", "embossed", "prismby"):         # A is refracted/displaced/shaded/dispersed by B
+        if A in W.WHITE and B in ("suminagashi", "eddies", "coral", "mycelium", "sandpile", "sandplate"):
+            return False        # a white sheet worked on by a thing that lives on a black bath: the sheet is all there is
         return A in W.BROAD and W.REG[A]["fam"] != "type" and (kind != "warpby" or B in W.BROAD)
     if kind == "stagepass":
         return A not in W.THIN and B not in W.THIN
@@ -2837,7 +2842,7 @@ def plan(S, deal):
         if treat == "hinge":
             scene["xfade"], scene["transition"] = "1b", "flip"      # it swings round
         elif k and name in W.PLATES and "+" not in treat:
-            scene["lead"] = "2bar" if name == "photofinish" else "1bar"
+            scene["lead"] = "2bar" if name in ("photofinish", "suminagashi") else "1bar"
         elif k and not kind and not was_flash and treat not in ("more", "less") and rnd(S.n, k, "x") < 0.42:
             # One picture turns into the next: each way in its turn, over a beat or two.
             # (How the band's fullness goes over the cut: the way of changing leans with it.)

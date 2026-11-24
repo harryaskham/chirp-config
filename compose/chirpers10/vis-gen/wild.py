@@ -542,7 +542,9 @@ def juggle(c):
     parts = c.riffs[:3]
     env = hit_env(parts)
     S = 1.5
-    layers = [lamp(-2, 6, -5, 0.65), lamp(0, 0.4, -2, 0.5, c.a, 8), floor(c, 0, "#19191d", 0.8),
+    # (Against a low light in the song's colour, not a black wall; the balls are big enough to follow.)
+    layers = [{"type": "sky", "zenith": "#0b0c14", "horizon": c.a, "ground": "#15151a", "sun": c.b, "sun_yaw": 0.0, "sun_height": 0.03, "sun_size": 0.09, "clouds": 0},
+              lamp(-2, 6, -5, 0.6), lamp(0, 0.4, -2, 0.55, c.a, 8), lamp(3, 2.5, 2, 0.4, c.b, 8), floor(c, 0, "#26242c", 0.8),
               {"type": "figure", "rig": "human", "motion": "none", "x": 0, "y": 1.05 * S, "z": 0, "scale": S, **skin("#d9d2c4", 0.03),
                "pose": {"arm_r": ["0.1 + 0.05*env.h0", 0, 0.03], "forearm_r": ["0.15 + 0.1*env.h0", 0, 0], "arm_l": [f"0.1 + 0.05*env.h{min(1, len(parts) - 1)}", 0, -0.03],
                         "forearm_l": [f"0.15 + 0.1*env.h{min(1, len(parts) - 1)}", 0, 0], "head": ["0 - 0.05", 0, 0]}}]
@@ -551,8 +553,8 @@ def juggle(c):
         u = f"clamp(div(note.age, {gap}), 0, 1)"
         side = f"(1 - 2*step(0.5, fract({p.nstep}/2 + 0.01)))"
         w = 0.42 + 0.22 * i
-        layers.append(ball(f"{side}*{w}*(1 - 2*{u})", f"{1.02 * S:g} + (0.5 + 1.5*{gap})*4*{u}*(1 - {u})", f"-0.45 - {0.05 * i}", f"0.085*step(note.age, {gap})", 10,
-                           notes={"track": p.name, "past": 8}, **solid(c.col(i), 0.4), emit=0.6))
+        layers.append(ball(f"{side}*{w}*(1 - 2*{u})", f"{1.02 * S:g} + (0.5 + 1.5*{gap})*4*{u}*(1 - {u})", f"-0.45 - {0.05 * i}", f"0.115*step(note.age, {gap})", 12,
+                           notes={"track": p.name, "past": 8}, **solid(c.col(i), 0.4), emit=0.95))
     look = {"background": c.bg, "env": env, "layers": layers, "filters": post3d(-2, 6, -5)}
     return shots(c, look, [cam("0.5*sin(time.bar/7)", 2.3, -6.0, look=(0, 2.3, 0), zoom=2.2), cam(3.0, 3.6, -3.6, look=(0, 2.5, -0.3), zoom=1.7), cam(-3.4, 2.6, -3.2, look=(0, 2.4, -0.3), zoom=1.8)])
 
@@ -921,7 +923,8 @@ def ridges(c):
     """A range of hills made of the sound: each ridge is the spectrum a moment ago, the
     nearest the newest."""
     layers = [{"type": "gradient", "palette": [c.bg, c.bg, c.a], "angle": 0.25, "spread": 0.35, "light": 0.5, "res": 0.5},
-              {"type": "lines", "every": f"{c.six * 2:g}", "height": 1.5, "y": 0.5, "size": 1.7, "spacing": 0.036, "width": 0.007, "rows": 44, "palette": [c.dim, c.ink, c.ink], "spread": 0.5}]
+              {"type": "lines", "every": f"{c.six * 2:g}", "height": 1.5, "y": 0.5, "size": 1.7, "spacing": 0.036, "width": 0.007, "rows": 44, "palette": [c.dim, c.ink, c.ink], "spread": 0.5,
+               "full": 1}]         # (the whole range from the first frame, flat where the sound has not reached: it opens a song, and a few lines at the foot of a dark frame were all there was)
     return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.25, 0.012, 0.7)]}
 
 
@@ -1604,7 +1607,7 @@ def moons(c):
         per = nn if nn <= 9 or len(P) > 1 else -(-nn // 2)
         rows = -(-nn // per)
         y = (len(P) - 1) * 1.15 - 2.3 * i
-        w = min(1.0, 8.0 / per)
+        w = min(1.9 if len(P) == 1 and rows == 1 else 1.5, 8.0 / per)      # (a few moons are large ones: four small ones were lost in the dark)
         th = f"(0.75 - {p.turn})"
         layers.append({"type": "light", "x": f"4.6*cos({th})", "y": y, "z": f"4.6*sin({th})", "power": 1.6, "reach": 14 if len(P) == 1 else 8, "color": ("#fff4e0", c.a)[i]})
         d = f"(fract({p.turn} - inst.i/{nn})*{nn})"
@@ -1800,10 +1803,14 @@ def constellation(c):
     xn = "((fract(note.beat/16) + note.gap/16 - 0.5)*8.2)"
     y, yn = T.pitch(-2.0, 2.0), T.pitch(-2.0, 2.0, "(note.next_key*84 + 24)")
     N = {"track": T.name, "past": 15.5}
+    # (Stars are points with a flare, not discs: a small bright body, and two fine rays that are long while the note is new.)
+    size = "(0.6 + note.vel)"
     layers = [{"type": "stars", "count": 350, "speed": 0, "size": 0.7, "light": 0.3, "twinkle": 0.3, "streak": 0},
-              {"type": "beam", "notes": N, "from": [x, y, 0], "to": [xn, yn, 0], "reach": "clamp(div(note.age, max(note.gap, 0.1)), 0, 1)", "width": 0.035, "glow": "1.4*exp(0 - 0.05*note.age)", "color": c.a, "samples": 16},
-              ball(x, y, -0.05, "0.13*(0.6 + note.vel)*(1 + 2*exp(0 - 3*note.age))", 8, notes=N, **glow(c.ink, "1.5 + 3*exp(0 - 2*note.age)"))]
-    return {"background": "#020308", "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.5, 0.02, 0.5)]}
+              {"type": "beam", "notes": N, "from": [x, y, 0], "to": [xn, yn, 0], "reach": "clamp(div(note.age, max(note.gap, 0.1)), 0, 1)", "width": 0.016, "glow": "0.5 + 1.1*exp(0 - 0.08*note.age)", "color": c.a, "samples": 16},
+              box(x, y, -0.04, f"{size}*(0.07 + 0.34*exp(0 - 1.5*note.age))", 0.006, 0.006, notes=N, **glow(c.ink, "0.8 + 2.5*exp(0 - 2*note.age)")),
+              box(x, y, -0.04, 0.006, f"{size}*(0.07 + 0.34*exp(0 - 1.5*note.age))", 0.006, notes=N, **glow(c.ink, "0.8 + 2.5*exp(0 - 2*note.age)")),
+              ball(x, y, -0.05, f"0.05*{size}*(1 + 1.6*exp(0 - 3*note.age))", 14, notes=N, **glow(c.ink, "2.2 + 4*exp(0 - 2*note.age)"))]
+    return {"background": "#020308", "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.55, 0.03, 0.45)]}
 
 
 @idiom(needs=0, drums=True, fam="trace", paper=True)
@@ -2731,18 +2738,19 @@ def murmur(c):
     the one before, so its shape is the path it has just taken."""
     A = c.riffs[0]
     B = c.riffs[1] if len(c.riffs) > 1 else A
-    n_ = 420
-    lag = "(hash(inst.i*1.37)*2.4)"                          # beats behind the head of the flock
+    n_ = 640
+    lag = "(hash(inst.i*1.37)*3.6)"                          # beats behind the head of the flock
     tA = f"(((time.beat - {lag})*4 - {A.anchor:g})/{A.cell})"
     tB = f"(((time.beat - {lag})*4 - {B.anchor:g})/{B.cell * (2 if B is A else 1)})"
-    x = f"3.6*sin({tA}/2) + 0.5*noise3(inst.i*0.71, time.beat*0.2, 0)"
-    y = f"2.4 + 1.3*sin({tB}/2 + 0.1) + 0.4*noise3(inst.i*0.53, 7, time.beat*0.2)"
-    z = f"3 + 2.0*cos({tA}/2) + 0.6*noise3(3, inst.i*0.61, time.beat*0.2)"
+    # (A flock is a cloud as well as a path: the birds stand off from the line it took, and it fills a good part of the sky.)
+    x = f"3.6*sin({tA}/2) + 1.0*noise3(inst.i*0.71, time.beat*0.2, 0)"
+    y = f"2.5 + 1.3*sin({tB}/2 + 0.1) + 0.75*noise3(inst.i*0.53, 7, time.beat*0.2)"
+    z = f"2 + 2.2*cos({tA}/2) + 1.0*noise3(3, inst.i*0.61, time.beat*0.2)"
     layers = [{"type": "sky", "zenith": "#2c3f68", "horizon": c.a, "ground": "#0d0e14", "sun": "#ffe2b0", "sun_yaw": 0.02, "sun_height": 0.02, "sun_size": 0.05, "clouds": 0.25, "cloud_height": 5},
-              ball(x, y, z, f"0.035 + 0.02*hash(inst.i*3.1) + 0.02*{A.hit}", 4, count=n_, **glow("#07080c", 1), sx=1.8, sy=0.6),
+              ball(x, y, z, f"0.042 + 0.024*hash(inst.i*3.1) + 0.025*{A.hit}", 4, count=n_, **glow("#07080c", 1), sx=1.8, sy=0.6),
               box("(inst.i - 6)*1.6", 0.5, 9, 0.02, 0.5, 0.02, count=13, **glow("#07080c", 1)),
               box(0, 0.9, 9, 12, 0.008, 0.008, **glow("#07080c", 1))]
-    return {"background": "#2c3f68", "camera": cam(0, 0.5, -6, look=(0, 2.2, 3), zoom=1.2), "layers": layers, "filters": [{"type": "tonemap", "knee": 0.85}, {"type": "aa"}]}
+    return {"background": "#2c3f68", "camera": cam(0, 0.5, -6, look=(0, 2.3, 3), zoom=1.45), "layers": layers, "filters": [{"type": "tonemap", "knee": 0.85}, {"type": "aa"}]}
 
 
 @idiom(needs=1, fam="type")
@@ -3131,7 +3139,12 @@ def trampoline(c):
     """Somebody on a trampoline for each riff, coming down as it begins each turn: the longer
     the riff, the higher they go."""
     P = c.riffs[:3]
-    layers = [lamp(-3, 7, -6, 1.8), lamp(2, 1.8, -4.5, 0.85, c.b, 12), floor(c, 0, "#242630", 0.7)]
+    # (Against a low light in the song's colour, and as near as the jumpers leave room for: one alone was a speck on black.)
+    layers = [{"type": "sky", "zenith": "#0b0c14", "horizon": c.a, "ground": "#15151a", "sun": c.b, "sun_yaw": 0.0, "sun_height": 0.04, "sun_size": 0.08, "clouds": 0},
+              lamp(-3, 7, -6, 1.8), lamp(2, 1.8, -4.5, 0.85, c.b, 12), floor(c, 0, "#242630", 0.7)]
+    # (The camera stands back far enough to keep the highest jumper in the frame, and looks at the middle of the jump.)
+    top = 2.5 + max(max(0.5, min(3.4, 1.25 * (p.cell * c.six) ** 2)) for p in P)
+    back, mid = max(4.6, (top / 2 + 0.45) / 0.44, 3.4 + 1.1 * len(P)), top / 2 + 0.15
     for i, p in enumerate(P):
         x = (i - (len(P) - 1) / 2) * 2.5
         T = p.cell * c.six
@@ -3146,7 +3159,7 @@ def trampoline(c):
                        "pose": {"thigh_l": [f"0.2*{up}", 0, 0], "thigh_r": [f"0.2*{up}", 0, 0], "shin_l": [f"0 - 0.25*{up}", 0, 0], "shin_r": [f"0 - 0.25*{up}", 0, 0],
                                 "arm_l": [f"0.1 + 0.3*{up}", 0, -0.05], "arm_r": [f"0.1 + 0.3*{up}", 0, 0.05], "spine": [f"0.05*{up}", 0, 0]}})
     look = {"background": c.bg, "layers": layers, "filters": post3d(-3, 7, -6)}
-    return shots(c, look, [cam("0.5*sin(time.bar/9)", 2.2, -9.2, look=(0, 1.55, 0), zoom=1.45), cam(5.8, 1.2, -5.6, look=(0, 1.65, 0), zoom=1.38), cam(-1.0, 0.9, -6.4, look=(0, 1.75, 0), zoom=1.35)], P[0])
+    return shots(c, look, [cam("0.5*sin(time.bar/9)", 2.2, -back, look=(0, mid, 0), zoom=1.45), cam(0.66 * back, 1.2, -0.66 * back, look=(0, mid, 0), zoom=1.38), cam(-1.0, 0.9, -0.85 * back, look=(0, mid, 0), zoom=1.35)], P[0])
 
 
 @idiom(needs=2, fam="trace", cost=2)
@@ -5314,10 +5327,11 @@ def coral(c):
     changes hands with the notes."""
     P = c.riffs[:3]
     rings = ([(0, 0, 0.55)], [(-0.85, 0, 0.5), (0.85, 0, 0.5)], [(-1.1, -0.2, 0.42), (0, 0.25, 0.42), (1.1, -0.2, 0.42)])[len(P) - 1]
-    feed, kill = ((0.055, 0.062), (0.037, 0.065), (0.029, 0.057))[c.variant % 3]
+    # (Coral, or a maze. Spots that divide were tried: they take minutes to be anything.)
+    feed, kill = ((0.0545, 0.062), (0.029, 0.057))[c.variant % 2]
     env = hit_env(P, "180ms")
-    # (Bare ground at first: the scene is the growing. A note clears a patch and sows it, so the patch is that riff's.)
-    lay = {"type": "turing", "size": 150, "warm": 60, "rate": 400, "feed": feed, "kill": kill, "radius": 0.035, "clear": 0.17, "gain": 1.15, "relief": 0.9, "spread": 1.0, "core": 0.22,
+    # (A patch already grown round each riff's hand as the scene opens, and room left to grow into. A note clears a patch and sows it, so the patch is that riff's.)
+    lay = {"type": "turing", "size": 150, "warm": 900, "rate": 520, "feed": feed, "kill": kill, "radius": 0.035, "clear": 0.17, "gain": 1.15, "relief": 0.9, "spread": 1.0, "core": 0.22,
            "palette": [c.col(0), c.col(1), c.col(2)]}
     marks = []
     for i, (p, (x, y, r)) in enumerate(zip(P, rings)):
@@ -5355,6 +5369,41 @@ def suminagashi(c):
     if len(P) < 3:
         f.update({"on3": "bar", "stroke3": "comb", "x3": "0.25*floor(time.bar/2)", "y3": 0, "dir3": "0.25 + 0.5*floor(time.bar)", "pull3": 0.22})
     return {"background": "#000000", "layers": layers, "filters": [f, {"type": "tonemap", "knee": 0.8}, bloom(c, 0.2, 0.01, 0.75)]}
+
+
+@idiom(needs=1, fam="field", cost=2)
+def sandplate(c):
+    """Sand on a ringing plate, grain by grain. The plate bends as many times across as
+    one riff is long and as many up as the other, so the sand lies in the figure of that
+    pair of numbers. As the riffs slip past one another the still lines travel from one
+    of the plate's two figures for those numbers to the other and back, and the sand goes
+    after them: it lies in the first whenever the riffs come round together. Every note
+    of the first riff rings the plate (all the sand jumps, and runs back), and the
+    second riff's notes keep what is off the lines dancing."""
+    A = c.riffs[0]
+    B = c.riffs[1] if len(c.riffs) > 1 else None
+
+    def mode(k):
+        k = k or 16
+        while k > 9:
+            k = (k + 1) // 2
+        return max(k, 2)
+    m, n = mode(A.cell), (mode(B.cell) if B else 4)
+    if m == n:
+        n += 1                      # (equal numbers each way would be no figure at all)
+    # (Riffs that take many bars to come round together: the first riff's own turns instead.)
+    slips = B is not None and A.cell and B.cell and A.cell != B.cell and A.cell * B.cell / abs(A.cell - B.cell) <= 96
+    # (Riffs that slip past in under four bars are counted several slips to the figure's journey: sand cannot
+    # follow lines that travel faster, and is herded to the few points that both figures leave still.)
+    slow = math.ceil(64 / (A.cell * B.cell / abs(A.cell - B.cell))) if slips else 1
+    mix = f"cos(({A.turn} - {B.turn})/{slow})" if slips else f"cos({A.turn}/4)"
+    env = hit_env([A] + ([B] if B else []), "200ms")
+    # (The second riff's notes throw every grain a little way, or the bar line does: without that the sand is
+    # herded, as the lines travel, to the few points both figures leave still, and lies there in heaps.)
+    lay = {"type": "chladni", "count": 54000, "m": m, "n": n, "mix": mix, "on": f"track.{A.name}", "shake": 1.6, "ring": 0.22, "drive": "0.25 + 1.2*env.h1" if B else 0.3, "settle": 7,
+           "on2": f"track.{B.name}" if B else "bar", "scatter": 0.07 if B else 0.16,
+           "plate": 0.95, "aspect": 1.74, "grain": 0.0024, "gain": 0.55, "spread": 0.5, "core": 0.35, "palette": [c.a, c.b, c.ink]}
+    return {"background": "#06070a", "env": env, "layers": [lay], "filters": [{"type": "tonemap", "knee": 0.8}, bloom(c, 0.3, 0.012, 0.7)]}
 
 
 @idiom(needs=2, fam="field", cost=2)
@@ -5798,6 +5847,18 @@ def _old(c, tracks):
     return S
 
 
+def _pool(c, look):
+    """The first film's plates are silver on black. Here each stands in a pool of its song's
+    colour, brightest behind the middle of the plate, so the frame round a small figure is
+    not empty."""
+    if isinstance(look, dict) and look.get("background") in ("#000000", "#000"):
+        r, g, b = (int(c.a[i:i + 2], 16) for i in (1, 3, 5))
+        tint = lambda k: "#%02x%02x%02x" % (int(r * k), int(g * k), int(b * k))
+        # (Eight stops round the palette, falling away as a square: no edge to the pool.)
+        look["layers"] = [{"type": "gradient", "palette": [tint(0.3 * max(0.0, 1 - i / 5) ** 2) for i in range(8)], "radial": 1, "spread": 0.62, "res": 0.5}] + look["layers"]
+    return look
+
+
 def _names(c, k, cond=lambda p: True):
     return [p.name for p in c.riffs if cond(p)][:k]
 
@@ -5806,7 +5867,7 @@ def _names(c, k, cond=lambda p: True):
 def wheels(c):
     S = _old(c, None)
     use = _names(c, 3)          # (three: four in a row are too small to read)
-    return S.wheels(use, c.a, use[-1])
+    return _pool(c, S.wheels(use, c.a, use[-1]))
 
 
 @idiom(needs=1, fam="plate", max_cell=16)
@@ -5816,7 +5877,7 @@ def photofinish(c):
     use = _names(c, 3, cond=lambda p: p.cell and p.cell <= 16)
     if not use:
         raise ValueError("no riff short enough to cross the line")
-    return S.finish_line(use, c.a, use[-1], subject=("runner", "horse")[c.variant % 2], meet=bool(c.odd))
+    return _pool(c, S.finish_line(use, c.a, use[-1], subject=("runner", "horse")[c.variant % 2], meet=bool(c.odd)))
 
 
 @idiom(needs=2, fam="plate", cost=2, max_cell=32)
@@ -5837,7 +5898,7 @@ def picket(c):
     if not short:
         raise ValueError("no short odd riff")
     use = [p.name for p in short]
-    return S.fence(use, c.a, use[-1], subject=("pacer", "horse")[c.variant % 2])
+    return _pool(c, S.fence(use, c.a, use[-1], subject=("pacer", "horse")[c.variant % 2]))
 
 
 @idiom(needs=1, fam="plate", cost=2, max_cell=16)
@@ -5847,7 +5908,7 @@ def discs(c):
     if not fit:
         raise ValueError("no ring")
     use = [p.name for p in fit][:3 if all(p.cell <= 8 for p in fit[:3]) else 2]
-    return S.discs(use, c.a, use[-1], subject=("runner", "horse")[c.variant % 2], cells={p.name: p.cell for p in c.riffs})
+    return _pool(c, S.discs(use, c.a, use[-1], subject=("runner", "horse")[c.variant % 2], cells={p.name: p.cell for p in c.riffs}))
 
 
 @idiom(needs=1, fam="plate", cost=2)
@@ -5858,14 +5919,14 @@ def bounce(c):
     if not run or run[-1].cell < 4:
         raise ValueError("no riff long enough for a bounce to be seen")      # (a riff of a sixteenth or two only skims the floor)
     use = [p.name for p in run]
-    return S.balls(use, c.a, use[-1])
+    return _pool(c, S.balls(use, c.a, use[-1]))
 
 
 @idiom(needs=1, fam="plate", cost=2)
 def pendulums(c):
     S = _old(c, None)
     use = _names(c, 5)
-    return S.pendulums(use, c.a, use[-1])
+    return _pool(c, S.pendulums(use, c.a, use[-1]))
 
 
 @idiom(needs=1, fam="plate", cost=2)
@@ -5912,10 +5973,10 @@ def flight(c):
         raise ValueError("no tune")
     use = [p.name for p in fl]
     rng = {p.name: (max((p.lo - 24) / 84 - 0.01, 0), min((p.hi - 24) / 84 + 0.01, 1)) for p in fl}
-    return S.flight(use, c.a, use[0], ranges=rng)
+    return _pool(c, S.flight(use, c.a, use[0], ranges=rng))
 
 
-PLATES = ("wheels", "photofinish", "picket", "discs", "bounce", "pendulums", "marey", "muybridge", "flight", "ridges", "sonar", "harmonograph")       # these hold a plate (or build one up): they are started before they are seen: started a bar early
+PLATES = ("wheels", "photofinish", "picket", "discs", "bounce", "pendulums", "marey", "muybridge", "flight", "ridges", "sonar", "harmonograph", "suminagashi", "coral")       # these hold a plate (or build one up): they are started before they are seen: started a bar early
 
 
 # ───────────────────────── treatments: what the picture is seen through ─────────────────────────
@@ -5977,7 +6038,7 @@ def t_kaleido(c, look):
 
 # Two guises at once (dealt where the music is full): one that moves the picture, then one
 # that changes what it is made of, then one that works on it in time.
-STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0, "hyperbolic": 0, "standing": 0, "anamorph": 0, "conformal": 0,
+STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0, "hyperbolic": 0, "standing": 0, "anamorph": 0, "conformal": 0, "papered": 0,
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
          "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0, "woodcut": 1, "riso": 1, "etched": 1, "cathedral": 1,
          "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2, "scanfold": 2, "duochrono": 2, "metered": 2,
@@ -5986,7 +6047,7 @@ STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall"
 # The guises that work on a recording of the picture.
 TIMED = ("recoil", "looped", "boomerang", "receding", "filmclock", "exposed", "janus", "aftershock")
 # Pairs of guises that leave only texture, or flood white (feedback+grow saturates to pale wash).
-STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph", "conformal", "screen") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso", "etched", "dots", "cathedral")}
+STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph", "conformal", "screen", "papered") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso", "etched", "dots", "cathedral")}
              | {(a_, "blown") for a_ in ("newsprint", "riso", "etched", "negative")}
              | {("blown", a_) for a_ in ("newsprint", "riso", "etched", "negative")}
              | {("tunnel", "overgrown"), ("overgrown", "tunnel"), ("itself", "carried"), ("carried", "itself"),
@@ -5999,6 +6060,8 @@ STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling
              # (Small frames of a picture that is already small frames, or a print of them, is only texture; and a plate exposed over and over fills one that is already full.)
              # (Two halves of a picture that is already halves, or copies, of itself are no longer two.)
              | {(a_, "janus") for a_ in ("mirror", "kaleido", "wall", "itself", "tunnel", "hyperbolic", "screen", "nest", "anamorph", "conformal", "coiled", "falling", "wound", "leaded")}
+             # (Rings of lateness through a picture of pictures, or one fed back on itself, are lost in it.)
+             | {(a_, "aftershock") for a_ in ("tunnel", "wall", "kaleido", "itself", "screen", "nest", "papered")}
              | {(a_, "filmclock") for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph", "conformal", "screen", "nest", "itself", "typed", "newsprint", "dots")}
              | {(a_, "exposed") for a_ in ("wall", "kaleido", "itself", "screen", "typed", "newsprint", "dots", "flood", "poster", "woodcut", "riso", "etched", "papercut", "cathedral", "onebit", "hatched", "engraved")}
              # (Frames within frames of a picture that is already frames within frames, or a print of them, is only texture.)
@@ -6029,7 +6092,7 @@ WHITE = set("braille barcode kandinsky suprematist mondrian score blots marbling
 WANTS = {"rabbits": lambda c: any(p.cell in (34, 55) for p in c.riffs),
          "beats": lambda c: c.full < 0.5}
 # Pictures that take a good while to become anything: not for a scene under five and a half seconds.
-LONG = set("turtle strange harmonograph tetris hanoi marbling ink rink galton".split())
+LONG = set("turtle strange harmonograph tetris hanoi marbling ink rink galton suminagashi".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("barcode braille dice candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
 MIRROR_BAD = set("overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
@@ -6039,7 +6102,7 @@ BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky supr
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("rolls zipper loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
+SLOW = set("overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star suminagashi coral mycelium sandpile sandplate".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)
@@ -6103,7 +6166,7 @@ def t_halves(c, look):
     return _pre(look, {"type": "panels", "cols": cols, "rows": math.ceil(nn / cols), "count": nn, "every": 2, "gap": 0.014, "flash": 0.35, "fit": "fill", "border": c.bg})
 
 
-@treat("blocks", ok=lambda c, info: info["fam"] not in ("sign", "lattice", "plate") and info["f"].__name__ in BROAD)
+@treat("blocks", ok=lambda c, info: info["fam"] not in ("sign", "lattice", "plate") and info["f"].__name__ in BROAD and info["f"].__name__ not in ("doors",))
 def t_blocks(c, look):
     """Sixteen blocks across: the picture counted in common time, sharp again on the bar."""
     return _pre(look, {"type": "pixelate", "size": f"0.003 + {2 * 16 / 9 / 16:g}*pow(1 - fract(time.bar/2), 6)"})
@@ -6136,7 +6199,7 @@ def t_roll(c, look):
     return look
 
 
-@treat("dots", ok=lambda c, info: info["fam"] not in ("sign", "lattice", "plate") and info["f"].__name__ not in ("torusknot",))
+@treat("dots", ok=lambda c, info: info["fam"] not in ("sign", "lattice", "plate") and info["f"].__name__ not in ("torusknot", "press", "eclipse"))
 def t_dots(c, look):
     """Printed as a wall of lamps, a bar of sixty-four across."""
     return _pre(look, {"type": "halftone", "count": 64, "angle": 0, "gain": 1.6, "amount": c.arr})
@@ -6169,7 +6232,11 @@ def t_onebit(c, look):
     return look
 
 
-@treat("drawn", ok=lambda c, info: info["fam"] not in ("sign", "plate", "trace", "curve"))
+# Pictures that are smooth all over (water, ink in water): their outlines alone are next to nothing.
+DRAWN_BAD = {"ripplebath", "eddies"}
+
+
+@treat("drawn", ok=lambda c, info: info["fam"] not in ("sign", "plate", "trace", "curve") and info["f"].__name__ not in DRAWN_BAD)
 def t_drawn(c, look):
     """A line drawing of it."""
     return _pre(look, {"type": "outline", "gain": 8, "width": 0.004, "amount": c.arr}, {"type": "bold", "radius": 0.0025})
@@ -6226,7 +6293,11 @@ def t_wall(c, look):
     return _pre(look, {"type": "tile", "cols": cols, "flip": ("mirror", "brick", "turn", "mirror")[c.seed % 4], "x": f"floor({p.turn}) + smooth(0.75, 1, fract({p.turn}))", "amount": c.arr})
 
 
-@treat("planet", ok=lambda c, info: info["fam"] not in ("sign", "plate", "orbit"))
+# (Small things on a dark ground, wrapped round a ball, are a dark ball.)
+PLANET_BAD = {"abacus", "radial", "barber", "cube", "quad", "gates", "odometer"}
+
+
+@treat("planet", ok=lambda c, info: info["fam"] not in ("sign", "plate", "orbit") and info["f"].__name__ not in PLANET_BAD)
 def t_planet(c, look):
     """Wrapped round a circle: what went across goes round, once for so many turns of the riff."""
     p = _lead(c)
@@ -6264,7 +6335,7 @@ def t_torn(c, look):
     return look
 
 
-@treat("falling", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+@treat("falling", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in ("seismo", "harmonograph", "pond", "hourglass"))
 def t_falling(c, look):
     """The picture holds itself in its middle, and that holds it again: we fall in, one
     frame deeper for every turn (or two, or four) of the riff."""
@@ -6283,7 +6354,7 @@ def t_coiled(c, look):
     return look
 
 
-@treat("ball", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type", "body") and info["f"].__name__ not in ("fountain", "fireworks", "snow", "rain", "fireflies"))
+@treat("ball", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type", "body") and info["f"].__name__ not in ("fountain", "fireworks", "snow", "rain", "fireflies") and info["f"].__name__ not in PLANET_BAD)
 def t_ball(c, look):
     """Wrapped round a ball that turns once for every few turns of the riff."""
     p = _lead(c)
@@ -6533,7 +6604,37 @@ def t_recoil(c, look):
     return _pre(look, {"type": "replay", "delay": "0.9*(1 - smooth(0.1, 0.5, env.knock.age))", "hold": 1.5, "wear": 0.5})
 
 
-@treat("marbled", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and c.riffs)
+# The seventeen ways a flat pattern can repeat, in the order of the International Tables: a way to a song.
+GROUPS17 = "p1 p2 pm pg cm pmm pmg pgg cmm p4 p4m p4g p3 p3m1 p31m p6 p6m".split()
+
+
+@treat("papered", ok=lambda c, info: info["f"].__name__ in BROAD and info["f"].__name__ not in WHITE and info["f"].__name__ not in THIN and info["fam"] not in ("sign", "plate", "type", "orbit") and not info.get("paper") and c.riffs)
+def t_papered(c, look):
+    """The picture as wallpaper. There are seventeen ways a flat pattern can repeat, and
+    seventeen songs: each song's pictures are papered its own way (the first by sliding
+    alone, the last with sixths of a turn and mirrors). The paper slides a step for every
+    few turns of the riff, and sways a little with it."""
+    p = _lead(c)
+    g = GROUPS17[(c.n - 1) % 17]
+    per = max(2, math.ceil(6.0 / ((p.cell or 16) * c.six)))
+    # (The more copies a cell holds, the fewer cells across: the picture is still to be made out in each.)
+    cells = 2.4 if g in ("p1", "p2") else 2.0 if g in ("pm", "pg", "cm") else 1.6 if g in ("pmm", "pmg", "pgg", "cmm") else 1.3 if g in ("p6", "p6m", "p4m") else 1.5
+    f = {"type": "wallpaper", "group": g, "cells": cells, "x": f"{p.turn}/{per}", "turn": f"0.015*sin({p.turn}/{2 * per})", "zoom": 0.95, "amount": c.arr}
+    if g in ("p1", "p2"):
+        f.update({"ratio": 0.8, "skew": 0.3})
+    elif g in ("pm", "pg", "pmm", "pmg", "pgg"):
+        f["ratio"] = 0.75
+    elif g in ("cm", "cmm"):
+        f["ratio"] = 0.6
+    return _pre(look, f)
+
+
+# (A solid body on bare ground has nothing for a comb to draw through: it is seen only where there are lines and patterns.)
+# (A tank or a bath is paint already, and the wave tank is too dark to comb.)
+MARBLED_BAD = {"ripplebath", "eddies", "suminagashi", "coral", "mycelium", "sandplate", "sandpile"}
+
+
+@treat("marbled", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type", "body") and info["f"].__name__ not in MARBLED_BAD and c.riffs)
 def t_marbled(c, look):
     """Paint on a bath. Every note of the riff draws a comb through the picture, each
     note its own way (the way the riff's hand points just then, so a riff of five combs
@@ -6559,7 +6660,7 @@ def t_aftershock(c, look):
     the stones, the other's picture is the water, and what spreads is the past."""
     p, q = _lead(c), _knocker(c)
     f = {"type": "timequake", "on": f"track.{q.name}", "x": f"0.9*cos({q.turn})", "y": f"0.5*sin({q.turn})",
-         "depth": 1.5, "speed": round(max(0.6, min(1.6, 2.4 / max(q.rate, 1))), 2), "width": 0.28, "life": 2.5, "edge": 0.9}
+         "depth": 1.5, "speed": round(max(0.6, min(1.6, 2.4 / max(q.rate, 1))), 2), "width": 0.28, "life": 2.5, "edge": 0.7}
     return _pre(look, f)
 
 
@@ -6704,7 +6805,7 @@ def t_bricks(c, look):
     return _stitch(c, look, "brick", 48, ground=1.0)
 
 
-@treat("beaded", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type"))
+@treat("beaded", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in ("eclipse", "golden"))
 def t_beaded(c, look):
     """Threaded as beads on a dark ground."""
     return _stitch(c, look, "bead", 56, ground=0.03)
@@ -6739,7 +6840,7 @@ def t_puzzle(c, look):
 
 
 # (Not a picture on paper or bright sky/field: it is light all over, so its copies are all as light as one another and blow out.)
-@treat("itself", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE and info["f"].__name__ not in ("wheat", "skein", "grove", "murmur", "daylight", "aurora", "rink", "turbines", "zen", "sundial"))
+@treat("itself", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE and info["f"].__name__ not in ("wheat", "skein", "grove", "murmur", "daylight", "aurora", "rink", "turbines", "zen", "sundial", "clockfield"))
 def t_itself(c, look):
     """Made of small copies of itself, as many across as the riff has sixteenths: the same
     at two sizes. Each turn of the riff it comes in from the copies to the whole."""
@@ -6831,7 +6932,11 @@ def _has_floor(o):
     return isinstance(o, list) and any(_has_floor(v) for v in o)
 
 
-@treat("poster", ok=lambda c, info: info["fam"] not in ("sign", "plate", "ground", "place") and info["f"].__name__ not in BRIGHT)
+# (Rings of ink are their colours: in three flat ones they are spots.)
+POSTER_BAD = {"suminagashi"}
+
+
+@treat("poster", ok=lambda c, info: info["fam"] not in ("sign", "plate", "ground", "place") and info["f"].__name__ not in BRIGHT and info["f"].__name__ not in POSTER_BAD)
 def t_poster(c, look):
     """A two-colour print: the ground is the song's colour, flat, and whatever was light is black on it."""
     # (On a dark ground black would not show: there the lights are printed pale.)
@@ -6844,7 +6949,7 @@ def t_poster(c, look):
     return look
 
 
-@treat("flood", ok=lambda c, info: info["fam"] not in ("sign", "plate", "ground", "place") and info["f"].__name__ not in BRIGHT)
+@treat("flood", ok=lambda c, info: info["fam"] not in ("sign", "plate", "ground", "place") and info["f"].__name__ not in BRIGHT and info["f"].__name__ not in ("hammers",))
 def t_flood(c, look):
     """The other print: a deep ground of the song's second colour, and whatever was light is cream on it."""
     # (On a pale ground cream would not show: there the lights are printed dark, as in the poster.)
