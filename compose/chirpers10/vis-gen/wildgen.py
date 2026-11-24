@@ -122,32 +122,32 @@ class Song:
 # What each song leans on: idioms that suit its name, dealt there first (and still once only
 # in each guise).
 FEATURE = {
-    1: ("loom", "remainder", "crystal", "helix", "billiard", "riley", "reels"), 2: ("sympathy", "pendwave", "strings", "cradle", "seesaw", "ink", "strobe"), 3: ("changes", "maypole", "chorus", "stringart", "drill", "vasarely"),
+    1: ("loom", "remainder", "crystal", "helix", "billiard", "riley", "reels", "torusknot"), 2: ("sympathy", "pendwave", "strings", "cradle", "seesaw", "ink", "strobe"), 3: ("changes", "maypole", "chorus", "stringart", "drill", "vasarely"),
     4: ("abacus", "tally", "dominoes", "automaton", "odometer", "hanoi", "barcode", "dice"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist", "barber"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling", "ripplebath"),
-    7: ("rabbits", "golden", "spiral", "sunflower", "mandala", "star", "kandinsky", "courses"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout", "measure", "reels"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial", "dice"),
+    7: ("rabbits", "golden", "spiral", "sunflower", "mandala", "star", "kandinsky", "courses"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout", "measure", "reels"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial", "dice", "torusknot"),
     10: ("balance", "coins", "tape", "galton", "duel", "hourglass", "barcode"), 11: ("doors", "blinds", "press", "hammers", "tesla", "albers", "portals"), 12: ("hands", "juggle", "semaphore", "chorus", "fan", "shadowplay", "braille"),
     13: ("eclipse", "pond", "spiral", "lanterns", "rink", "zen", "braille", "ripplebath"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader", "hourglass", "strobe", "dice"), 15: ("slack", "ropes", "wires", "swings", "switchboard", "rothko"),
-    16: ("beats", "moire", "chladni", "eclipse", "lighthouse", "billiard", "candles", "ripplebath"), 17: ("hailstone", "railway", "highway", "gates", "constellation", "searchlights", "sundial", "phasecorridor"),
+    16: ("beats", "moire", "chladni", "eclipse", "lighthouse", "billiard", "candles", "ripplebath"), 17: ("hailstone", "railway", "highway", "gates", "constellation", "searchlights", "sundial", "phasecorridor", "kaleidohall"),
 }
 # Each song's house: the guises and the ways of sharing the frame it leans to, so the songs
 # differ from one another as well as from bar to bar. (The first song, the album's argument, has none.)
 HOUSE = {
-    2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout smoked delayed puzzle warpby timemap standing scanfold prismby spiralcut duochrono",
+    2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout smoked delayed puzzle warpby timemap standing scanfold prismby spiralcut duochrono metered",
     3: "lines engraved hatched typed sheet blueprint leaded strips bands intercut triptych stencil woven sampler knitted itself diagonal woodcut etched cathedral",
     4: "typed onebit newsprint dots blocks combed poster board corner card strips tracking puzzle beaded bricks halves louvers riso hexcut",
-    5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout infra screen ridged papercut embossed stagepass anamorph spiralcut conformal",
+    5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout infra screen ridged papercut embossed stagepass anamorph spiralcut conformal metered",
     6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass dripping beaded halves warpby hyperbolic anamorph prismby spiralcut conformal cathedral",
     7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite glass woven bricks papercut itself diamond hyperbolic anamorph hexcut conformal cathedral",
     8: "leaded engraved newsprint poster flood duotone mirror triptych diptych window board infra woven puzzle bricks halves louvers woodcut riso etched cathedral",
-    9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout smoked delayed papercut reeded timemap scanfold hexcut duochrono",
+    9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout smoked delayed papercut reeded timemap scanfold hexcut duochrono metered",
     10: "onebit dots torn combed typed poster negative difference card bands corner stencil dripping sampler beaded carried negmask woodcut riso etched",
-    11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking screen papercut puzzle louvers stagepass prismby hexcut mirrorby",
+    11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking screen papercut puzzle louvers stagepass prismby hexcut mirrorby metered",
     12: "mirror drawn blueprint hatched ball echo water diptych intercut lighten satellite cutout screen papercut diagonal negmask timemap woodcut scanfold etched mirrorby",
-    13: "echo stop slices fringe water overgrown hole double window iris difference glass smoked negative stencil ridged carried embossed timemap scanfold spiralcut duochrono cathedral",
-    14: "typed dots lines blocks sheet onebit stop strips board wedges triptych stencil delayed beaded bricks louvers reeded standing scanfold hexcut duochrono",
+    13: "echo stop slices fringe water overgrown hole double window iris difference glass smoked negative stencil ridged carried embossed timemap scanfold spiralcut duochrono cathedral metered",
+    14: "typed dots lines blocks sheet onebit stop strips board wedges triptych stencil delayed beaded bricks louvers reeded standing scanfold hexcut duochrono metered",
     15: "warp wound blown torn water combed tunnel sweep bands double satellite dripping woven knitted sampler carried warpby standing spiralcut duochrono",
-    16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass tracking delayed ridged reeded embossed standing anamorph prismby conformal cathedral",
-    17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil infra screen puzzle ridged itself diamond hyperbolic stagepass anamorph hexcut conformal",
+    16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass tracking delayed ridged reeded embossed standing anamorph prismby conformal cathedral metered",
+    17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil infra screen puzzle ridged itself diamond hyperbolic stagepass anamorph hexcut conformal metered",
 }
 HOUSE = {n_: set(v.split()) for n_, v in HOUSE.items()}
 OPEN = {1: "stringart"}     # the picture a song opens on, where it is not the first of its featured ones (the album's first picture, and the one the landing brings back)
@@ -157,7 +157,7 @@ TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weav
                "phase", "canon", "rung", "sum", "barber", "halving", "golden", "euclid", "dealt", "owed", "leaf", "negative", "ritard", "haul", "beats", "stairs",
                "displace", "prism", "aperture", "accordion", "pendulum", "gear", "orbit", "chromatic",
                "cube", "shatter", "kaleido", "polar", "fold", "louver",
-               "vortex", "carousel", "ribbon", "shockwave", "facet", "slitcurtain", "spiralwipe", "mosaicflip", "helixwipe", "parallax", "rhombus", "gravity")
+               "vortex", "carousel", "ribbon", "shockwave", "facet", "slitcurtain", "spiralwipe", "mosaicflip", "helixwipe", "parallax", "rhombus", "gravity", "tube", "nodal")
 # Ways that keep something of the old picture from frame to frame: they take longer (about two seconds).
 CARRIED = ("mosh", "smoke", "overgrow", "echo", "drip", "inkbleed")
 # Ways that count or move mechanically (counted.rs): the dense ones need about two seconds to be read, the rest a second and a half.
@@ -166,7 +166,7 @@ COUNTED = {"rung": 1.9, "sum": 1.9, "euclid": 1.9, "dealt": 1.9, "golden": 1.9, 
            "displace": 1.6, "prism": 1.6, "aperture": 1.6, "accordion": 1.7, "pendulum": 1.4, "gear": 1.7, "orbit": 1.8, "chromatic": 1.5,
            "cube": 1.5, "shatter": 1.6, "kaleido": 1.6, "polar": 1.6, "fold": 1.6, "louver": 1.6,
            "vortex": 1.6, "carousel": 1.7, "ribbon": 1.6, "shockwave": 1.5, "facet": 1.7, "slitcurtain": 1.6, "spiralwipe": 1.5, "mosaicflip": 1.7,
-           "helixwipe": 1.6, "parallax": 1.5, "rhombus": 1.6, "gravity": 1.6}
+           "helixwipe": 1.6, "parallax": 1.5, "rhombus": 1.6, "gravity": 1.6, "tube": 1.5, "nodal": 1.8}
 # How each song passes into the next: its own idea, counted out over its last two bars
 # (the wheels going round at their own rates; the row rung; the oblong cut into its squares).
 # After the last song the walk comes up in black.

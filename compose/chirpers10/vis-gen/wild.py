@@ -1366,20 +1366,28 @@ def contour(c):
 
 @idiom(needs=0, fam="body", cost=3)
 def choir(c):
-    """A row of heads, one to a part: each opens its mouth as its part sounds."""
+    """A choir on its risers, one singer to a part: each opens its mouth as its part sounds."""
     P = (c.tunes + c.riffs + c.drums + c.parts)
     names, Q = set(), []
     for p in P:
         if p.name not in names:
             names.add(p.name), Q.append(p)
     Q = Q[:6]
-    layers = [lamp(-2, 4, -6, 0.5), lamp(3, 2, -5, 0.5, c.a)]
+    # Up to three stand in one row; more stand in two, the back row a step up and in the gaps.
+    nf = len(Q) if len(Q) <= 3 else (len(Q) + 1) // 2
+    nb = len(Q) - nf
+    sp, off = 1.45, (1.45 / 4 if nb == nf else 0)
+    layers = [lamp(-2, 4, -6, 0.5), lamp(3, 2, -5, 0.5, c.a), lamp(0, 2.5, -4, 0.22, c.b)]
     for i, p in enumerate(Q):
-        x = (i - (len(Q) - 1) / 2) * 1.35
-        layers.append({"type": "figure", "rig": "human", "motion": "sway", "energy": 0.4, "phase": i * 0.7, "x": x, "y": f"-1.75 + 0.05*track.{p.name}.level", "z": 0.3 * (i % 2), "scale": 2.0,
+        back = i >= nf
+        x = ((i - nf) - (nb - 1) / 2) * sp + off if back else (i - (nf - 1) / 2) * sp - off
+        y0, z0 = (-1.17, 0.95) if back else (-1.75, 0)
+        layers.append({"type": "figure", "rig": "human", "motion": "sway", "energy": 0.4, "phase": i * 0.7, "x": x, "y": f"{y0} + 0.05*track.{p.name}.level", "z": z0, "scale": 2.0,
                        "mouth": f"clamp(1.6*track.{p.name}.level, 0, 1)", **skin(("#d9cdbb", "#c7b8a6")[i % 2], f"0.25*track.{p.name}.level"), "melt": 0.08,
                        "pose": {"arm_l": [0, 0, -0.02], "arm_r": [0, 0, 0.02], "head": [f"0 - 0.03 - 0.05*track.{p.name}.level", 0, 0]}})
-    return {"background": c.bg, "camera": cam("0.6*sin(time.bar/10)", -0.3, -6.5, look=(0, -0.55, 0), zoom=2.0), "layers": layers, "filters": post3d(-2, 4, -6, shadow=0.4)}
+    # From the waist up: the mouths are what move.
+    look_y, zoom = (-0.58, 2.75) if nb else (-0.62, 3.0 if nf <= 2 else 2.6)
+    return {"background": c.bg, "camera": cam("0.5*sin(time.bar/10)", -0.2, -6.5, look=(0, look_y, 0.3), zoom=zoom), "layers": layers, "filters": post3d(-2, 4, -6, shadow=0.4)}
 
 
 # ───────────────────────── more worlds ─────────────────────────
@@ -1411,11 +1419,14 @@ def slack(c):
     layers = []
     for i, p in enumerate(P):
         x = (i - (len(P) - 1) / 2) * w
-        sag = f"(0.06 + 1.5*(1 - env.s{i}))"
-        layers.append({"type": "beam", "from": [x - w * 0.42, 1.6, 0], "to": [x + w * 0.42, 1.6, 0], "width": 0.026, "glow": f"0.5 + 1.2*env.s{i}", "sag": sag, "color": c.col(i), "samples": 48})
-        layers.append(box(x, f"1.6 - {sag} - 0.22", 0, 0.12, 0.2, 0.05, **glow(c.col(i), f"0.5 + 1.5*env.s{i}")))
+        sag = f"(0.08 + 3.0*(1 - env.s{i}))"
+        layers.append({"type": "beam", "from": [x - w * 0.42, 2.0, 0], "to": [x + w * 0.42, 2.0, 0], "width": 0.032, "glow": f"0.6 + 1.3*env.s{i}", "sag": sag, "color": c.col(i), "samples": 56})
+        layers.append(box(x, f"2.0 - {sag} - 0.3", 0, 0.17, 0.28, 0.06, **glow(c.col(i), f"0.6 + 1.6*env.s{i}")))
+        # How far it has run slack is read off a rule behind it.
+        layers.append(box(x, 0.35, 0.2, 0.004, 1.75, 0.004, **glow(c.dim, 0.35)))
+        layers.append(box(x, "2.0 - 0.38 - 0.5*inst.i", 0.2, 0.05, 0.004, 0.004, count=7, **glow(c.dim, 0.5)))
         for sx in (-1, 1):
-            layers.append(box(x + sx * w * 0.42, 1.7, 0.05, 0.02, 0.16, 0.02, **glow(c.dim, 0.7)))
+            layers.append(box(x + sx * w * 0.42, 2.12, 0.05, 0.024, 0.19, 0.02, **glow(c.dim, 0.7)))
     return {"background": c.bg, "env": env, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.35, 0.016, 0.6)]}
 
 
@@ -5176,6 +5187,53 @@ def ripplebath(c):
             "filters": [{"type": "tonemap", "knee": 0.72}, bloom(c, 0.34, 0.016, 0.7)]}
 
 
+@idiom(needs=2, fam="knot", cost=2)
+def torusknot(c):
+    """Two riffs as the two ways round a ring: the long way round is one turn of the first
+    riff, the short way, round the tube, one turn of the second. Now is a lamp going both
+    ways at once, so its path winds round the ring, and every note is a bead left where the
+    lamp was when it sounded. The first riff's notes stand in hoops round the tube and the
+    second's in rings the long way round; the winding closes only when both come round
+    together."""
+    A, B = c.riffs[0], c.riffs[1]
+    parts = _cast(c, 4)
+    S, tube = 2.3, 0.4
+    R, r = 0.75 * S, 0.75 * S * tube
+
+    def at(t16, lift=0.0):
+        """Where on the ring the sixteenth t16 (an expression) lies."""
+        th = f"(({t16}) - {A.anchor:g})/{A.cell}"
+        ph = f"(({t16}) - {B.anchor:g})/{B.cell}"
+        rr = f"({R:g} + {r + lift:g}*cos({ph}))"
+        return f"{rr}*cos({th})", f"{r + lift:g}*sin({ph})", f"{rr}*sin({th})"
+
+    cyc = A.cell * B.cell // math.gcd(A.cell, B.cell)       # sixteenths until both come round
+    long_ = max(A.cell, B.cell)
+    back = min(2 * long_, 48)                               # the lamp's wake, in sixteenths
+    layers = [{"type": "stars", "count": 300, "speed": 0, "size": 0.8, "light": 0.35, "twinkle": 0.2, "streak": 0},
+              lamp(-4, 6, -5, 1.25), lamp(5, -2, -4, 0.55, c.a), lamp(0, 3, 6, 0.4, c.b),
+              {"type": "mesh", "shape": "torus", "detail": 44, "x": 0, "y": 0, "z": 0, "scale": S * 0.985, "tube": tube * 0.97, **solid("#141b30", 0.55), "emit": 0.05},
+              {"type": "mesh", "shape": "torus", "detail": 16, "mode": "wire", "x": 0, "y": 0, "z": 0, "scale": S, "tube": tube, "color": c.dim, "emit": 0.42, "light": 0, "ambient": 0, "rim": 0, "width": 1.0}]
+    # The wake: the lamp's path over the last turns, thick at the lamp and thinning back.
+    wx, wy, wz = at(f"time.beat*4 - (1 - vtx.u)*{back}", 0.03)
+    layers.append({"type": "mesh", "shape": "path", "detail": max(20, min(60, round(back / min(A.cell, B.cell) * 9))), "path": [wx, wy, wz], "radius": "0.006 + 0.03*vtx.u*vtx.u",
+                   "x": 0, "y": 0, "z": 0, "scale": 1, **glow(c.ink, f"0.9 + 1.2*{A.hit}")})
+    # The way ahead, as far as the longer riff's next turn, faint.
+    fx, fy, fz = at(f"time.beat*4 + vtx.u*{long_}", 0.03)
+    layers.append({"type": "mesh", "shape": "path", "detail": 20, "path": [fx, fy, fz], "radius": 0.006, "x": 0, "y": 0, "z": 0, "scale": 1, **glow(c.dim, 0.7)})
+    for i, p in enumerate(parts):
+        bx, by, bz = at("note.beat*4", 0.035 + 0.03 * i)
+        layers.append(ball(bx, by, bz, f"{0.074 - 0.007 * i:g}*(1 + 1.7*exp(0 - 3*note.age))", 8, notes={"track": p.name, "past": max(8, min(48, cyc / 4))},
+                           **glow(c.col(i), "0.55 + 3*exp(0 - 1.6*note.age)")))
+    lx, ly, lz = at("time.beat*4", 0.07)
+    layers.append(ball(lx, ly, lz, f"0.1 + 0.05*{A.hit} + 0.05*{B.hit}", 12, **glow("#ffffff", 3.2)))
+    if c.variant % 2 == 0:
+        camera = cam("4.9*sin(time.bar/18)", "2.9 + 0.5*sin(time.bar/7)", "0 - 4.9*cos(time.bar/18)", look=(0, -0.6, 0), zoom=1.72)
+    else:           # low, looking along the ring
+        camera = cam("5.4*sin(time.bar/14)", "1.15 + 0.35*sin(time.bar/9)", "0 - 5.4*cos(time.bar/14)", look=(0, -0.1, 0), zoom=1.9)
+    return {"background": "#03040a", "camera": camera, "layers": layers, "filters": [{"type": "aa"}, bloom(c, 0.5, 0.02, 0.55)]}
+
+
 @idiom(needs=2, fam="space", cost=3)
 def kaleidohall(c):
     """Hall of mirrors: a receding 3D colonnade of six angled live-screen mirrors lining
@@ -5617,7 +5675,7 @@ def t_kaleido(c, look):
 STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0, "hyperbolic": 0, "standing": 0, "anamorph": 0, "conformal": 0,
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
          "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0, "woodcut": 1, "riso": 1, "etched": 1, "cathedral": 1,
-         "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2, "scanfold": 2, "duochrono": 2}
+         "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2, "scanfold": 2, "duochrono": 2, "metered": 2}
 
 # Pairs of guises that leave only texture, or flood white (feedback+grow saturates to pale wash).
 STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph", "conformal", "screen") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso", "etched", "dots", "cathedral")}
@@ -5625,7 +5683,8 @@ STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling
              | {("blown", a_) for a_ in ("newsprint", "riso", "etched", "negative")}
              | {("tunnel", "overgrown"), ("overgrown", "tunnel"), ("itself", "carried"), ("carried", "itself"),
                 ("scanfold", "delayed"), ("delayed", "scanfold"), ("duochrono", "delayed"), ("delayed", "duochrono"),
-                ("duochrono", "scanfold"), ("scanfold", "duochrono")})
+                ("duochrono", "scanfold"), ("scanfold", "duochrono"), ("metered", "stop"), ("stop", "metered"),
+                ("metered", "delayed"), ("delayed", "metered"), ("metered", "tracking"), ("tracking", "metered")})
 
 # Pictures that stand to one side, or are a line of things: half of one is not a picture.
 # Pictures that can be drawn twice and joined (flat, and filling the frame or centred, so that
@@ -5687,6 +5746,20 @@ def t_stop(c, look):
     """Stop motion: the picture is retaken only on the riff's notes."""
     p = _lead(c)
     return _pre(look, {"type": "step", "on": f"track.{p.name}", "melt": 0.15})
+
+
+@treat("metered", ok=lambda c, info: info["fam"] not in ("plate", "trace", "sign", "type", "sheet", "count") and len(_cast(c, 4)) >= 2)
+def t_metered(c, look):
+    """Stop motion in parts: the frame is cut in bands (or rings, or wedges) dealt round the
+    parts, and each band is retaken only on its own part's notes. The picture keeps as many
+    times at once as there are parts playing; its bands agree where the parts do."""
+    P = _cast(c, 4)
+    shape = ("bands", "rings", "bands", "wedges", "bands", "grid")[c.seed % 6]
+    count = {"bands": len(P) * (3 if len(P) == 2 else 2), "rings": len(P) * 2, "wedges": len(P) * 3, "grid": 4 * len(P)}[shape]
+    f = {"type": "polystep", "shape": shape, "count": count, "flash": 0.32, "decay": 0.14, "seam": 0.0035, "turn": (0, 0.25, 0.07, -0.07)[c.seed // 6 % 4]}
+    for k, p in zip(("on", "on2", "on3", "on4"), P):
+        f[k] = f"track.{p.name}"
+    return _pre(look, f)
 
 
 @treat("tunnel", ok=lambda c, info: info["fam"] not in ("plate", "room", "body", "travel", "sign") and info["f"].__name__ not in ("crystal",))
