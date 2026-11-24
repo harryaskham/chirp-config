@@ -123,11 +123,11 @@ class Song:
 # in each guise).
 FEATURE = {
     1: ("loom", "remainder", "crystal", "helix", "billiard", "riley", "reels"), 2: ("sympathy", "pendwave", "strings", "cradle", "seesaw", "ink", "strobe"), 3: ("changes", "maypole", "chorus", "stringart", "drill", "vasarely"),
-    4: ("abacus", "tally", "dominoes", "automaton", "odometer", "hanoi", "barcode", "dice"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist", "barber"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling"),
+    4: ("abacus", "tally", "dominoes", "automaton", "odometer", "hanoi", "barcode", "dice"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist", "barber"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling", "ripplebath"),
     7: ("rabbits", "golden", "spiral", "sunflower", "mandala", "star", "kandinsky", "courses"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout", "measure", "reels"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial", "dice"),
-    10: ("balance", "coins", "tape", "galton", "duel", "hourglass", "barcode"), 11: ("doors", "blinds", "press", "hammers", "tesla", "albers"), 12: ("hands", "juggle", "semaphore", "chorus", "fan", "shadowplay", "braille"),
-    13: ("eclipse", "pond", "spiral", "lanterns", "rink", "zen", "braille"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader", "hourglass", "strobe", "dice"), 15: ("slack", "ropes", "wires", "swings", "switchboard", "rothko"),
-    16: ("beats", "moire", "chladni", "eclipse", "lighthouse", "billiard", "candles"), 17: ("hailstone", "railway", "highway", "gates", "constellation", "searchlights", "sundial"),
+    10: ("balance", "coins", "tape", "galton", "duel", "hourglass", "barcode"), 11: ("doors", "blinds", "press", "hammers", "tesla", "albers", "portals"), 12: ("hands", "juggle", "semaphore", "chorus", "fan", "shadowplay", "braille"),
+    13: ("eclipse", "pond", "spiral", "lanterns", "rink", "zen", "braille", "ripplebath"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader", "hourglass", "strobe", "dice"), 15: ("slack", "ropes", "wires", "swings", "switchboard", "rothko"),
+    16: ("beats", "moire", "chladni", "eclipse", "lighthouse", "billiard", "candles", "ripplebath"), 17: ("hailstone", "railway", "highway", "gates", "constellation", "searchlights", "sundial", "phasecorridor"),
 }
 # Each song's house: the guises and the ways of sharing the frame it leans to, so the songs
 # differ from one another as well as from bar to bar. (The first song, the album's argument, has none.)
@@ -157,7 +157,7 @@ TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weav
                "phase", "canon", "rung", "sum", "barber", "halving", "golden", "euclid", "dealt", "owed", "leaf", "negative", "ritard", "haul", "beats", "stairs",
                "displace", "prism", "aperture", "accordion", "pendulum", "gear", "orbit", "chromatic",
                "cube", "shatter", "kaleido", "polar", "fold", "louver",
-               "vortex", "carousel", "ribbon", "shockwave", "facet", "slitcurtain")
+               "vortex", "carousel", "ribbon", "shockwave", "facet", "slitcurtain", "spiralwipe", "mosaicflip")
 # Ways that keep something of the old picture from frame to frame: they take longer (about two seconds).
 CARRIED = ("mosh", "smoke", "overgrow", "echo", "drip", "inkbleed")
 # Ways that count or move mechanically (counted.rs): the dense ones need about two seconds to be read, the rest a second and a half.
@@ -165,7 +165,7 @@ COUNTED = {"rung": 1.9, "sum": 1.9, "euclid": 1.9, "dealt": 1.9, "golden": 1.9, 
            "phase": 1.4, "canon": 1.4, "barber": 1.4, "owed": 1.4, "leaf": 1.4, "negative": 1.4, "haul": 1.4, "beats": 1.4,
            "displace": 1.6, "prism": 1.6, "aperture": 1.6, "accordion": 1.7, "pendulum": 1.4, "gear": 1.7, "orbit": 1.8, "chromatic": 1.5,
            "cube": 1.5, "shatter": 1.6, "kaleido": 1.6, "polar": 1.6, "fold": 1.6, "louver": 1.6,
-           "vortex": 1.6, "carousel": 1.7, "ribbon": 1.6, "shockwave": 1.5, "facet": 1.7, "slitcurtain": 1.6}
+           "vortex": 1.6, "carousel": 1.7, "ribbon": 1.6, "shockwave": 1.5, "facet": 1.7, "slitcurtain": 1.6, "spiralwipe": 1.5, "mosaicflip": 1.7}
 # How each song passes into the next: its own idea, counted out over its last two bars
 # (the wheels going round at their own rates; the row rung; the oblong cut into its squares).
 # After the last song the walk comes up in black.

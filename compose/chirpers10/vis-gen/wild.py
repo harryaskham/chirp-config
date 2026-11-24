@@ -268,11 +268,11 @@ def helix(c):
     for i, p in enumerate(parts):
         th = f"(0.25 - div(note.age*4, {wide}))"
         r = 1.5 + 0.22 * i
-        layers.append(ball(f"{r}*cos({th})", "2.6 - 0.16*note.age", f"{r}*sin({th})", f"{0.085 - 0.012 * i:g}*(1 + 1.5*exp(0 - 4*note.age))", detail=6,
-                           notes={"track": p.name, "past": 34}, **glow(c.col(i), "0.5 + 2.5*exp(0 - 2*note.age)")))
+        layers.append(ball(f"{r}*cos({th})", "2.6 - 0.16*note.age", f"{r}*sin({th})", f"{0.115 - 0.015 * i:g}*(1 + 1.5*exp(0 - 4*note.age))", detail=8,
+                           notes={"track": p.name, "past": 34}, **glow(c.col(i), "0.75 + 2.8*exp(0 - 2*note.age)")))
     # The column's hoops, a bar apart.
-    layers.append({"type": "mesh", "shape": "torus", "detail": 40, "count": 8, "x": 0, "y": "2.6 - 0.64*(inst.i + fract(time.bar))", "z": 0, "scale": 1.75, "tube": 0.004, **glow(c.dim, 0.5)})
-    return {"background": c.bg, "camera": cam("5.6*sin(time.bar/24)", 1.9, "0 - 5.6*cos(time.bar/24)", look=(0, 0.3, 0), zoom=1.25), "layers": layers, "filters": [bloom(c, 0.45, 0.02, 0.5)]}
+    layers.append({"type": "mesh", "shape": "torus", "detail": 40, "count": 8, "x": 0, "y": "2.6 - 0.64*(inst.i + fract(time.bar))", "z": 0, "scale": 1.75, "tube": 0.012, **glow(c.dim, 0.85)})
+    return {"background": c.bg, "camera": cam("5.6*sin(time.bar/24)", 1.9, "0 - 5.6*cos(time.bar/24)", look=(0, 0.3, 0), zoom=1.35), "layers": layers, "filters": [bloom(c, 0.45, 0.02, 0.5)]}
 
 
 @idiom(needs=1, fam="lattice", paper=True)
@@ -5152,6 +5152,30 @@ def phasecorridor(c):
     }
 
 
+@idiom(needs=2, fam="field", cost=2)
+def ripplebath(c):
+    """Live 2D wave-equation interference tank: two orbiting exciters follow the two riffs'
+    cycles and drop real physical waves on every note, reflecting off the tank walls into
+    luminous caustic interference patterns."""
+    A, B = c.riffs[0], c.riffs[1]
+    env = hit_env([A, B], "160ms")
+    x1, y1 = f"0.92*cos({A.turn}/2)", f"0.56*sin({A.turn}/2)"
+    x2, y2 = f"0 - 0.92*cos({B.turn}/2 + 0.15)", f"0.56*sin({B.turn}/2 + 0.15)"
+    layers = [
+        {"type": "wavefield", "size": 108, "on": f"track.{A.name}", "on2": f"track.{B.name}",
+         "x": x1, "y": y1, "x2": x2, "y2": y2, "speed": 0.40, "damping": 0.977,
+         "strength": 0.78, "strength2": 0.78, "radius": 0.048, "gain": 1.35, "steps": 4,
+         "spread": 0.9, "palette": [c.b, "#162d52", c.a, c.ink]},
+        # Subtle glowing drop markers showing where each voice strikes the water.
+        {"type": "shape", "sides": 1, "radius": "0.02 + 0.025*env.h0", "width": 0, "fill": 1,
+         "x": x1, "y": y1, "color": c.a, "opacity": "0.45 + 0.55*env.h0"},
+        {"type": "shape", "sides": 1, "radius": "0.02 + 0.025*env.h1", "width": 0, "fill": 1,
+         "x": x2, "y": y2, "color": c.b, "opacity": "0.45 + 0.55*env.h1"},
+    ]
+    return {"background": "#060b16", "env": env, "layers": layers,
+            "filters": [{"type": "tonemap", "knee": 0.72}, bloom(c, 0.34, 0.016, 0.7)]}
+
+
 @combo("timemap")
 def c_timemap(c, A, B):
     """Spacetime interplay: the second picture's brightness bends time inside the first
@@ -5524,7 +5548,7 @@ def t_plain(c, look):
 KALEIDO_UP = -0.55      # the camera filter's y that puts the picture's middle 0.55 above the frame's
 
 KALEIDO_OK = set("spiral sunflower stringart moire vortex epicycle harmonograph strange eclipse armillary radial cube fireflies pond chladni tiles table strings slack combs tally blinds loom orrery "
-                 "sonar mondrian maypole carousel ferris helix anemone membrane shatter interference hive maze venn tartan colony treerings eye".split())
+                 "sonar mondrian maypole carousel ferris helix anemone membrane shatter interference hive maze venn tartan colony treerings eye moirefield ripplebath".split())
 
 
 @treat("kaleido", ok=lambda c, info: info["f"].__name__ in KALEIDO_OK and c.riffs)
