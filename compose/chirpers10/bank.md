@@ -14,6 +14,8 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `ce-chest` | Close Enough v29 (track chest) | 808 sub bass: sine with a pitch-drop punch, long decay, saturation and mono glide for slides (overlap notes to slide). |
 | `ce-finger-cymbals` | Close Enough v29 (track cymbals) | a kit of 2 pieces. Close Enough's finger cymbals (chirper-two, 19 Nov): the small brass pair that keeps time beside a harmonium. `o` struck and left to ring, `c` struck and held shut. |
 | `ce-great-drum` | Close Enough v29 (track drum) | Close Enough's great drum (chirper-two, 19 Nov): a bass drum that takes a pitch. A sine on the note, starting sharp and settling as the head gives; a damped membrane over it; a soft beater. Nothing above the low-pass: it… |
+| `ce-said-l` | Close Enough v30 (track left-said) | Close Enough answered guitar (cone 37) with a hm2 stompbox blend ahead of its amp (chirper-zero, 24 Nov). |
+| `ce-said-r` | Close Enough v30 (track right-said) | Close Enough answered guitar (cone 41) with a hm2 stompbox blend ahead of its amp (chirper-zero, 24 Nov). |
 | `ce-toms-b1` | Close Enough v29 (track skins-b1) | a kit of 41 pieces. chirper-alpha: the album kit with its three counting toms on B1, Gb2 and B2 |
 | `ce-toms-bb1` | Close Enough v29 (track skins-bb1) | a kit of 41 pieces. chirper-alpha: the album kit with its three counting toms on Bb1, Eb2 and Bb2 |
 | `ce-toms-eb2` | Close Enough v29 (track skins-eb2) | a kit of 41 pieces. chirper-alpha: the album kit with its three counting toms on Eb2, Ab2 and Eb3 |
