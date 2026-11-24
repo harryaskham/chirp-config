@@ -2157,6 +2157,97 @@ def the_bass_stays_under_the_chug(doc):
         doc["loudness"] = float(target)
 
 
+# v40 (chirper-zero; instrument round on Harry's 24 Nov steer for interesting effects, guitar sound and synths /
+# environment sound; no note moves, no track is added). THE RULE RINGS IN EXTREME AND MEAN RATIO.
+# The three quiet sections (the rule sung, 58.25-94.25 ; the bowls and the kettles, 210.75-246.75 ; the rule sung
+# larger, 305-341) were the song's narrowest and the furthest from the records: the side 10 to 11 dB under the mid
+# (the heavy sections 4.7 to 5.9), +3.8 to +8.3 dB over at 250 Hz-1 kHz and 1.1 to 1.7 short at 2-4 kHz. Three things,
+# sound only:
+#   THE PAD (`pad`, ct-glass, 14 chords, only in those sections): an eq (190 Hz -8, 600 Hz -6, 3 kHz +7) and a slow
+#   six-stage phaser (0.14 Hz), its fader 7.5 -> 9 dB (alone, with what it sends: -31.9 -> -31.7 LUFS).
+#   A BUS `ratio`, fed only by the pad and the two singing bowls (`rim`, `mallet`: five notes): a ping-pong echo
+#   463.5 ms long, which is 0.618 of a beat at 80 BPM (the echo is cut in extreme and mean ratio, so its repeats do
+#   not land on the grid), into sympathetic strings (Ab4 B4 C5 Eb5 F5 Gb5: the rule's F minor and the bowls' A flat
+#   minor), a reversed cloud at pitch, a 3.6 s hall, band-passed 1.1-5.2 kHz (nothing is added to the top, which is
+#   over in all three), ducked 5 dB under `sung`, and OPEN ONLY in the three sections (shut by 94.2, 246.6 and 341).
+#   NOTHING ELSE: benched and refused this round: a Muff and an HM-2 ahead of the wall guitars' amp (the four heavy
+#   stretches read 2.167 -> 2.452 and 2.373 on the bench) and a chorus and echo on `lead` (the arco's stretch
+#   0.378 -> 0.541).
+# MEASURED, not heard. The three stretches beside the records (stamp, no voice / voice): the rule sung 3.467 ->
+# 3.322 / 2.644 -> 2.478 ; the bowls and the kettles 3.289 -> 2.978 / 2.689 -> 2.367 ; the rule sung larger 3.544 ->
+# 3.389 / 2.656 -> 2.533 ; the other ten windows the same to the last decimal (20 rows of 20). The bowls' section:
+# the side 11.2 -> 7.7 dB under the mid, the stretch 0.6 dB louder in the finished mix (its mid +0.25) ; the two sung
+# sections: the side +0.04 and +0.52 dB (they stay narrow: the pad is low and little of it is in the bus's band).
+# The bowls, pad and kettles alone -29.5 -> -27.0 LUFS: the space is ADDED to them, they are not matched.
+# COST: the score 98.51 / 98.58 -> 98.23 / 98.28, all of it `variety` (92.8 -> 91.3, 93.1 -> 91.5: the quiet
+# sections' timbre now stands further from the heavy ones'). Kept for the sections, not for the score.
+# Outside the three sections the song is NOT bit-identical. Raw: the stretch after each differs by the pad's last
+# chord ringing into the hall through its new eq, 58 to 68 dB under the mix. Finished (the target -9.608 ->
+# -9.5641, fitted on finished renders): every heavy stretch within 0.005 to 0.009 dB of its level (the harp alone
+# -0.025, the fill -0.013) and the difference 54 to 61 dB under it (the harp alone 51).
+# the pad's fader:its send to `ratio` ; its eq bands ('|' between) ; its phaser rate:depth:stages:feedback:mix ;
+# the bowls' sends rim:mallet ; the echo time:feedback:tone:mix ; the strings notes:decay:mix ; the cloud
+# size:density:position:spray:pitch:reverse:spread:window:seed:mix ; the hall kind:decay:size:low cut:high cut:mix ;
+# the bus's eq bands ; the duck under `sung` ; the three spans open:hold until:shut by:gate (beats) ; the loudness
+# target ('' = unchanged).
+# "" = v39 byte for byte. On only while STAYS is. the_rule_rings_in_extreme_and_mean_ratio(doc) runs last.
+RATIO = os.environ.get("C10T7_RATIO", "9.0dB:10dB;peak cutoff=190 q=0.8 gain=-8dB|peak cutoff=600 q=0.8 gain=-6dB|peak cutoff=3000 q=1 gain=7dB;0.14:0.62:6:0.35:0.48;19dB:19dB;463.5ms:0.46:5000:0.5;Ab4,B4,C5,Eb5,F5,Gb5:2.6s:0.25;140ms:18:165ms:150ms:0:0.42:1:2.8s:7:0.85;hall:3.6s:0.88:900:5000:0.92;hp cutoff=1100|peak cutoff=2600 q=0.7 gain=6dB|lp cutoff=5200;-5dB;58:93.6:94.2:0.97,210:245.8:246.6:1,305:340.4:341:0.97;-9.5641" if STAYS else "")
+
+
+def the_rule_rings_in_extreme_and_mean_ratio(doc):
+    """v40: a slow phaser and an eq on the glass pad, and a bus `ratio` (an echo 0.618 of a beat long, sympathetic
+    strings, a reversed cloud, a hall, band-passed) that only the pad and the two singing bowls feed and that is open
+    only in the three quiet sections ; shut, the song is the published one but for the pad's own eq and phaser."""
+    (pad, pad_eq, phaser, bowls, delay, strings, cloud, hall, bus_eq, duck, spans, target) = RATIO.split(";")
+    num = lambda x: int(float(x)) if float(x) == int(float(x)) else float(x)
+    pad_gain, pad_send = pad.split(":")
+    rate, depth, stages, fb, pmix = (num(x) for x in phaser.split(":"))
+    rim_send, mallet_send = bowls.split(":")
+    d_time, d_fb, d_tone, d_mix = delay.split(":")
+    s_notes, s_decay, s_mix = strings.split(":")
+    c_size, c_dens, c_pos, c_spray, c_pitch, c_rev, c_spread, c_win, c_seed, c_mix = cloud.split(":")
+    h_kind, h_decay, h_size, h_lc, h_hc, h_mix = hall.split(":")
+    pts = [["0b", 0]]
+    for sp in spans.split(","):
+        a, hold, shut, g = (num(x) for x in sp.split(":"))
+        pts += [[f"{a - 0.05:g}b", 0], [f"{a:g}b", g], [f"{hold:g}b", g], [f"{shut:g}b", 0]]
+    assert "ratio" not in doc["buses"]
+    bus = {
+        "fx": [
+            {"type": "delay", "time": d_time, "feedback": num(d_fb), "ping_pong": True, "tone": num(d_tone), "mix": num(d_mix)},
+            {"type": "sympathetic", "notes": s_notes, "decay": s_decay, "mix": num(s_mix), "tune_sounding": True},
+            {"type": "cloud", "size": c_size, "density": num(c_dens), "position": c_pos, "spray": c_spray, "pitch": num(c_pitch),
+             "reverse": num(c_rev), "spread": num(c_spread), "window": c_win, "seed": num(c_seed), "mix": num(c_mix)},
+            {"type": "reverb", "kind": h_kind, "decay": h_decay, "size": num(h_size), "shimmer": 0, "low_cut": num(h_lc),
+             "high_cut": num(h_hc), "width": 1, "mix": num(h_mix)},
+            {"type": "eq", "bands": bus_eq.split("|")},
+            {"type": "duck", "by": "sung", "depth": duck, "attack": "10ms", "release": "240ms"},
+            {"type": "gain", "gain": {"value": "-96dB", "mod": [{"src": "auto.open", "amount": 96}]}},
+        ],
+        "auto": {"open": {"curve": 0, "points": pts}},
+    }
+    doc["buses"] = {**doc["buses"], "ratio": bus}
+    tracks = list(doc["tracks"])
+    seen = set()
+    for i, t in enumerate(tracks):
+        if t["name"] == "pad":
+            assert t["gain"] == "7.5dB" and "fx" not in t and t["sends"] == {"hall": "-9dB"}, t["gain"]
+            tracks[i] = {**t, "gain": pad_gain,
+                         "fx": [{"type": "eq", "bands": pad_eq.split("|")},
+                                {"type": "phaser", "rate": rate, "depth": depth, "stages": stages, "feedback": fb, "mix": pmix}],
+                         "sends": {**t["sends"], "ratio": pad_send}}
+        elif t["name"] in ("rim", "mallet"):
+            assert "sends" not in t and "fx" not in t
+            tracks[i] = {**t, "sends": {"ratio": rim_send if t["name"] == "rim" else mallet_send}}
+        else:
+            continue
+        seen.add(t["name"])
+    assert seen == {"pad", "rim", "mallet"}, seen
+    doc["tracks"] = tracks
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T7_SHOW"):
         sec = 15 / BPM
@@ -2192,4 +2283,6 @@ if __name__ == "__main__":
             the_bass_drum_gets_a_chest(doc)
         if STAYS:
             the_bass_stays_under_the_chug(doc)
+        if RATIO:
+            the_rule_rings_in_extreme_and_mean_ratio(doc)
         open(OUT, "w").write(dump(doc))
