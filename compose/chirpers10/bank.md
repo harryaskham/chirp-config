@@ -89,6 +89,8 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `owing-kept` | Still Owing v35 (track kept) | Still Owing: the bronze key the mallet has just struck, kept sounding with a bow on the edge of the bar. No attack of its own; the damped mallet stroke is its attack. |
 | `owing-key` | Still Owing v35 (track tally) | Still Owing: the reply marker. Its orbit opens in proportion to the sixteenths borrowed in this pair. |
 | `owing-skin` | Still Owing v35 (track pressure) | Tuned pressure drum: a fingertip strike, a lower thud and a ringing head. The wrist moves the head pitch without a second attack. |
+| `ph-harm-l` | Plain Hunt v45 (track hl) | Plain Hunt harmony guitar (cone 18) with a rat stompbox ahead of its Mark amp (chirper-zero, 24 Nov). |
+| `ph-harm-r` | Plain Hunt v45 (track hr) | Plain Hunt harmony guitar (cone 19) with a rat stompbox ahead of its Mark amp (chirper-zero, 24 Nov). |
 | `ph-monks-forte` | Plain Hunt v44 (track chant) | chirper-three: Plain Hunt's ten men (ph-monks) singing out, on Harry's 'chant louder' |
 | `ph-monks-over` | Plain Hunt v44 (track men) | chirper-alpha: Plain Hunt's ten men (ph-monks) singing over the whole band at the landing, an octave up and hard |
 | `rt-block` | Running Total v13 (track knock) | Running Total's woodblock (chirper-zero, v8): the marimba's rosewood bar made short and hard, with a stick's click. |

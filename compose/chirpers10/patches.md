@@ -117,13 +117,13 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `kit.t2.pitch` | 1 | 1 | `m53` in 17 |  |
 | `kit.t3.pitch` | 1 | 1 | `m48.02` in 17 |  |
 
-## `ct-twin`: 16 songs, 76 tracks; never as it comes
+## `ct-twin`: 16 songs, 76 tracks; as it comes in tracks 3
 
 | field | tracks | songs | values (the songs) | |
 |---|---|---|---|---|
-| `fx.2.cone` | 76 | 16 | `32` in 5, 6; `33` in 5, 6; `41` in 5, 12, 16; `37` in 12, 16; `140` in 14; `141` in 14; `142` in 14; `143` in 14; and 37 more values |  |
-| `fx.2.mic` | 71 | 14 | `0.5` in 2, 3, 4, 5, 6, 8, 9, 14, 16; `0.45` in 5, 10, 17; `0.35` in 3, 4, 7, 8, 14; `0.55` in 3, 14; `0.6` in 2, 6; `0.47` in 6, 9; `0.4` in 14; `0.25` in 12; and 1 more values |  |
-| `fx.1.model` | 66 | 15 | `gojira` in 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17; `modern` in 2, 4, 6, 8, 9, 14; `mark` in 3, 5, 6; `5150` in 3, 5; `nolly` in 3; `clean` in 12 |  |
+| `fx.2.cone` | 74 | 16 | `32` in 5, 6; `33` in 5, 6; `41` in 5, 12, 16; `37` in 12, 16; `140` in 14; `141` in 14; `142` in 14; `143` in 14; and 35 more values |  |
+| `fx.2.mic` | 69 | 14 | `0.5` in 2, 3, 4, 5, 6, 8, 9, 14, 16; `0.45` in 5, 10, 17; `0.35` in 3, 4, 7, 8, 14; `0.6` in 2, 6; `0.47` in 6, 9; `0.55` in 14; `0.4` in 14; `0.25` in 12; and 1 more values |  |
+| `fx.1.model` | 64 | 15 | `gojira` in 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17; `modern` in 2, 4, 6, 8, 9, 14; `mark` in 5, 6; `5150` in 3, 5; `nolly` in 3; `clean` in 12 |  |
 | `synth.filters.0.cutoff.mod.0.amount` | 57 | 15 | `-2` in 2, 3, 5, 6, 7, 8, 10, 11, 13, 14, 15, 16, 17; `-3` in 9; `-2.7` in 9; `-3.4` in 12 | AGREED |
 | `synth.layers.0.soft` | 33 | 10 | `expr.pm*0.5` in 2, 3, 5, 8, 10, 14, 15; `expr.pm*0.4` in 9, 11; `expr.pm*0.3` in 13 |  |
 | `fx.1.tight` | 30 | 8 | `150` in 3, 5, 8, 9, 13, 15, 17; `180` in 14 |  |
