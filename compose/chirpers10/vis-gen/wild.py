@@ -2829,7 +2829,7 @@ def _zig(u):
     return f"(1 - 2*abs(2*fract({u}) - 1))"
 
 
-@idiom(needs=2, fam="game", max_cell=48)
+@idiom(needs=2, fam="game", max_cell=32)
 def billiard(c):
     """One ball on a table: across it once for every turn of one riff, along it once for
     every turn of the other. It finds a corner only where the two riffs begin together."""
@@ -2839,8 +2839,12 @@ def billiard(c):
     meet = f"exp(0 - 2.5*fract({A.turn})*{A.cell})*exp(0 - 2.5*fract({B.turn})*{B.cell})"
     felt = "#0f2a22" if c.variant % 2 == 0 else "#1a1830"
     layers = [box(0, 0, 0.3, Wt + 0.25, Ht + 0.25, 0.05, **glow("#2a1c12", 1)), box(0, 0, 0.2, Wt, Ht, 0.05, **glow(felt, 1)),
-              ball(f"(inst.i - 2*floor(inst.i/2) - 0.5)*{2 * Wt}", f"(floor(inst.i/2) - 0.5)*{2 * Ht}", 0, f"0.16 + 0.5*{meet}", 10, count=4, **glow(c.ink, f"0.25 + 6*{meet}")),
-              {"type": "trail", "x": x, "y": y, "z": 0, "length": f"clamp(scene.t + 2.5, 2.5, {min(40.0, (c.b16 - c.a16) * c.six + 2.5):g})", "samples": 1600, "width": 0.016, "taper": 0, "glow": 0.85, "fade": 0.55, "color": c.b},
+              # Rail sights (diamonds along top/bottom) and centre baulk line so the table reads immediately.
+              box(0, 0, 0.15, 0.008, Ht, 0.01, **glow(c.dim, 0.35)),
+              ball(f"(inst.i - 3)*{Wt * 0.31:g}", Ht + 0.12, 0.05, 0.045, 4, count=7, **glow(c.ink, 0.65)),
+              ball(f"(inst.i - 3)*{Wt * 0.31:g}", -(Ht + 0.12), 0.05, 0.045, 4, count=7, **glow(c.ink, 0.65)),
+              ball(f"(inst.i - 2*floor(inst.i/2) - 0.5)*{2 * Wt}", f"(floor(inst.i/2) - 0.5)*{2 * Ht}", 0, f"0.16 + 0.5*{meet}", 10, count=4, **glow(c.ink, f"0.35 + 6*{meet}")),
+              {"type": "trail", "x": x, "y": y, "z": 0, "length": f"clamp(scene.t + 3.0, 3.0, {min(40.0, (c.b16 - c.a16) * c.six + 3.0):g})", "samples": 1600, "width": 0.016, "taper": 0, "glow": 0.85, "fade": 0.55, "color": c.b},
               ball(x, y, -0.05, f"0.13 + 0.06*{A.hit}", 12, **glow(c.a, f"1.8 + 2*{A.hit}"))]
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.35, 0.016, 0.6)]}
 
@@ -5002,20 +5006,18 @@ def c_stencil(c, A, B):
 @idiom(needs=2, fam="space", cost=3)
 def depthstage(c):
     """True depth-interplay stage: two live instruments occupy a shared 3D actor stage where
-    they orbit past one another in depth (passing in front of and behind each other as their
-    riffs drift in and out of phase) while a gentle camera glides and rolls through the space."""
-    n1, look1 = _small(c, 0)
-    n2, look2 = _small(c, 1, skip=[n1])
+    they orbit past one another in depth (passing in front of and behind each other with real
+    occlusion as their riffs drift in and out of phase) while a gentle camera glides through."""
+    # Prefer rich/broad small idioms so both orbiting planes hold strong visual weight.
+    n1, look1 = _small(c, 0, skip=list(THIN))
+    n2, look2 = _small(c, 1, skip=list(THIN) + [n1])
     A, B = c.riffs[0], c.riffs[1]
     per = max(2, math.ceil(6.0 / ((A.cell or 16) * c.six)))
     ph = f"({A.turn}/{per} + 0.125)"
     ph2 = f"({B.turn}/{max(2, math.ceil(6.0 / ((B.cell or 16) * c.six)))})"
-    # Actor A orbits on the primary ellipse; Actor B counter-orbits in depth relative to A,
-    # reading actor.a's live coordinates so their paths stay coupled in 3D space and both are
-    # clearly separated across the frame from the first beat!
     actors = [
         {"use": look1, "name": "a", "mask": "rect", "res": 0.65,
-         "x": f"0.72*sin({ph})", "y": f"0.16*cos({ph})", "z": f"0.85 + 0.52*cos({ph})",
+         "x": f"0.75*sin({ph})", "y": f"0.16*cos({ph})", "z": f"0.85 + 0.52*cos({ph})",
          "scale": f"0.86 + 0.08*{A.hit}", "rotate": f"0.025*sin({ph})"},
         {"use": look2, "name": "b", "mask": "rect", "res": 0.65,
          "x": f"0 - actor.a.x", "y": f"0.18*sin({ph2})", "z": f"1.7 - actor.a.z",
@@ -5025,7 +5027,7 @@ def depthstage(c):
         "background": c.bg,
         "layers": [
             {"type": "stars", "count": 450, "speed": 0.015, "size": 1.1, "light": 0.35, "twinkle": 0.5, "streak": 1.2, "blend": "add"},
-            {"type": "stage",
+            {"type": "stage", "blend": "normal",
              "camera": {"x": "0.14*actor.a.x", "y": "0.06*sin(time.bar/6)", "z": -1.1, "zoom": 1.22, "roll": "0.012*sin(time.bar/8)", "fog": 0.08},
              "actors": actors},
         ],
@@ -5073,17 +5075,17 @@ def c_timemap(c, A, B):
 @combo("stagepass")
 def c_stagepass(c, A, B):
     """Two pictures sharing a 3D stage: they weave past each other in depth on the riff's
-    turn so each takes the foreground in turn while the other recedes behind it."""
+    turn so each occludes the other cleanly in turn as it sweeps into the foreground."""
     p = _lead(c)
     per = max(2, math.ceil(5.5 / ((p.cell or 16) * c.six)))
     u = f"({p.turn}/{per} + 0.125)"
     return {
         "background": "#000000",
         "layers": [{
-            "type": "stage",
+            "type": "stage", "blend": "normal",
             "camera": {"x": 0, "y": 0, "z": -1.1, "zoom": 1.2, "roll": f"0.012*sin({u})", "fog": 0.08},
             "actors": [
-                {"use": A, "name": "a", "mask": "rect", "res": 0.7, "x": f"0.68*sin({u})", "y": f"0.12*cos({u})", "z": f"0.8 + 0.5*cos({u})", "scale": 0.84},
+                {"use": A, "name": "a", "mask": "rect", "res": 0.7, "x": f"0.72*sin({u})", "y": f"0.12*cos({u})", "z": f"0.8 + 0.5*cos({u})", "scale": 0.84},
                 {"use": B, "name": "b", "mask": "rect", "res": 0.7, "x": "0 - actor.a.x", "y": "0 - actor.a.y", "z": "1.6 - actor.a.z", "scale": 0.84},
             ],
         }],
@@ -5803,14 +5805,14 @@ def t_louvers(c, look):
     return _pre(look, {"type": "louver", "count": count, "turn": f"0.11*sin({p.turn}/{per})", "twist": 0.07, "shade": 0.35, "angle": (0.0, 0.04, -0.04, 0.25)[c.seed % 4], "amount": c.arr})
 
 
-@treat("hyperbolic", ok=lambda c, info: info["f"].__name__ in KALEIDO_OK and info["f"].__name__ not in THIN and c.riffs)
+@treat("hyperbolic", ok=lambda c, info: info["f"].__name__ in KALEIDO_OK and info["f"].__name__ in BROAD and c.riffs)
 def t_hyperbolic(c, look):
     """Projected onto a Poincare hyperbolic disc: mirrored copies pack infinitely toward
     the circular horizon, rotating and breathing radially with the riff."""
     p = _lead(c)
     order = p.cell if 4 <= (p.cell or 0) <= 10 else (5, 6, 7, 8)[c.seed % 4]
     per = max(2, math.ceil(6.0 / ((p.cell or 16) * c.six)))
-    return _pre(look, {"type": "hyper", "order": order, "depth": 2.0, "turn": f"{p.turn}/{per * 2}", "zoom": f"0.6*{p.turn}/{per}", "rim": 0.4, "amount": c.arr})
+    return _pre(look, {"type": "hyper", "order": order, "depth": 1.65, "turn": f"{p.turn}/{per * 2}", "zoom": f"0.6*{p.turn}/{per}", "rim": 0.4, "amount": c.arr})
 
 
 @treat("standing", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
