@@ -158,10 +158,10 @@ TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weav
                "displace", "prism", "aperture", "accordion", "pendulum", "gear", "orbit", "chromatic",
                "cube", "shatter", "kaleido", "polar", "fold", "louver",
                "vortex", "carousel", "ribbon", "shockwave", "facet", "slitcurtain", "spiralwipe", "mosaicflip", "helixwipe", "parallax", "rhombus", "gravity", "tube", "nodal",
-               "rewind", "stutter", "flipbook", "timewipe", "timeiris", "notewise", "rainwise", "sandwise", "firewise", "floodwise", "frostwise", "sortwise", "settle")
+               "rewind", "stutter", "flipbook", "timewipe", "timeiris", "notewise", "rainwise", "sandwise", "firewise", "floodwise", "frostwise", "sortwise", "settle", "scorewise", "soundwise")
 # Ways that suit the music coming up over the cut (the next bars fuller than the last: a roll, a blow, a rush in)
 # and ways that suit it falling away (a wind-down, a letting go). A cut where the band neither gains nor loses takes any.
-TR_UP = set("stutter zoom whip shockwave burn shatter aperture tube spin whirl star prism chromatic glitch push rise iris vortex timeiris notewise firewise floodwise sortwise".split())
+TR_UP = set("stutter zoom whip shockwave burn shatter aperture tube spin whirl star prism chromatic glitch push rise iris vortex timeiris notewise firewise floodwise sortwise scorewise soundwise".split())
 TR_DOWN = set("melt fall drip smoke ritard rewind gravity dissolve inkbleed overgrow fold accordion squeeze stretch blinds halving owed leaf rainwise sandwise frostwise settle".split())
 # Ways that keep something of the old picture from frame to frame: they take longer (about two seconds).
 CARRIED = ("mosh", "smoke", "overgrow", "echo", "drip", "inkbleed")
@@ -171,9 +171,9 @@ NEWEST = ("frosted", "sifted", "streaked")        # guises dealt first in their 
 # Ways that record the old picture as the change begins and play the recording (a tape wound back; a roll into the cut).
 # (And the ones the notes make, a tile of the frame or a drop to a note: long enough for a bar's notes to take it.)
 # (And the one that runs the picture together as sand and out again: long enough to see the figure.)
-TAPED = {"rewind": 2.4, "stutter": 1.9, "flipbook": 1.9, "timewipe": 1.9, "timeiris": 1.9, "notewise": 2.4, "rainwise": 2.6, "sandwise": 2.8, "firewise": 2.6, "floodwise": 2.6, "frostwise": 3.0, "sortwise": 3.0}
+TAPED = {"rewind": 2.4, "stutter": 1.9, "flipbook": 1.9, "timewipe": 1.9, "timeiris": 1.9, "notewise": 2.4, "rainwise": 2.6, "sandwise": 2.8, "firewise": 2.6, "floodwise": 2.6, "frostwise": 3.0, "sortwise": 3.0, "scorewise": 2.8}
 # Ways that count or move mechanically (counted.rs): the dense ones need about two seconds to be read, the rest a second and a half.
-COUNTED = {"coprime": 2.4, "settle": 2.4, "rung": 1.9, "sum": 1.9, "euclid": 1.9, "dealt": 1.9, "golden": 1.9, "halving": 1.9, "ritard": 1.9, "stairs": 1.9,
+COUNTED = {"coprime": 2.4, "settle": 2.4, "soundwise": 2.4, "rung": 1.9, "sum": 1.9, "euclid": 1.9, "dealt": 1.9, "golden": 1.9, "halving": 1.9, "ritard": 1.9, "stairs": 1.9,
            "phase": 1.4, "canon": 1.4, "barber": 1.4, "owed": 1.4, "leaf": 1.4, "negative": 1.4, "haul": 1.4, "beats": 1.4,
            "displace": 1.6, "prism": 1.6, "aperture": 1.6, "accordion": 1.7, "pendulum": 1.4, "gear": 1.7, "orbit": 1.8, "chromatic": 1.5,
            "cube": 1.5, "shatter": 1.6, "kaleido": 1.6, "polar": 1.6, "fold": 1.6, "louver": 1.6,

@@ -1501,13 +1501,13 @@ def slack(c):
             names.add(p.name), P.append(p)
     P = P[:6]
     env = {f"s{i}": {"on": f"track.{p.name}", "attack": "0ms", "decay": f"{max(0.25, min(2.0, (p.cell or 8) * c.six * 0.9)):.2f}"} for i, p in enumerate(P)}
-    w = min(2.6, 8.4 / len(P))
+    w = min(3.6 if len(P) < 3 else 2.6, 8.4 / len(P))        # (one cord or two: wider, so they are not lost in the frame)
     layers = []
     for i, p in enumerate(P):
         x = (i - (len(P) - 1) / 2) * w
         sag = f"(0.08 + 3.0*(1 - env.s{i}))"
-        layers.append({"type": "beam", "from": [x - w * 0.42, 2.0, 0], "to": [x + w * 0.42, 2.0, 0], "width": 0.032, "glow": f"0.6 + 1.3*env.s{i}", "sag": sag, "color": c.col(i), "samples": 56})
-        layers.append(box(x, f"2.0 - {sag} - 0.3", 0, 0.17, 0.28, 0.06, **glow(c.col(i), f"0.6 + 1.6*env.s{i}")))
+        layers.append({"type": "beam", "from": [x - w * 0.42, 2.0, 0], "to": [x + w * 0.42, 2.0, 0], "width": 0.055, "glow": f"0.7 + 1.3*env.s{i}", "sag": sag, "color": c.col(i), "samples": 56})
+        layers.append(box(x, f"2.0 - {sag} - 0.36", 0, 0.24, 0.36, 0.06, **glow(c.col(i), f"0.7 + 1.6*env.s{i}")))
         # How far it has run slack is read off a rule behind it.
         layers.append(box(x, 0.35, 0.2, 0.004, 1.75, 0.004, **glow(c.dim, 0.35)))
         layers.append(box(x, "2.0 - 0.38 - 0.5*inst.i", 0.2, 0.05, 0.004, 0.004, count=7, **glow(c.dim, 0.5)))
@@ -4154,7 +4154,7 @@ def ringing(c):
     bells = sorted({k for _, _, row in rows for _, k in row}, reverse=True)
     N = len(bells)
     now = "(time.beat*4)"
-    dx, gap, ynow = min(1.4, 8.2 / N), 0.3, -1.95
+    dx, gap, ynow = min(1.9, 8.2 / N), 0.4, -1.95
     xs = lambda j: (j - (N - 1) / 2) * dx                                     # noqa: E731
     tint = lambda b: "#ffffff" if b == bells[0] else (c.dim if b == bells[-1] else (c.a, c.b, c.c, c.ink)[bells.index(b) % 4])   # noqa: E731
     layers = []
@@ -4163,7 +4163,7 @@ def ringing(c):
         order = [key for _, key in row]
         for j, (on, key) in enumerate(row):
             fresh = f"step({on}, {now})*exp(0 - 0.7*({now} - {on}))"
-            layers.append(ball(xs(j), y, -0.05, f"{0.085 if key == bells[0] else 0.062}*step({on}, {now})*(1 + 0.8*{fresh})", 6, **glow(tint(key), f"0.5 + 2.2*{fresh}")))
+            layers.append(ball(xs(j), y, -0.05, f"{0.11 if key == bells[0] else 0.082}*step({on}, {now})*(1 + 0.8*{fresh})", 6, **glow(tint(key), f"0.5 + 2.2*{fresh}")))
             if k + 1 < len(rows) and rows[k + 1][0] == s0 + L and key in [q for _, q in rows[k + 1][2]]:
                 s1, L1, nxt = rows[k + 1]
                 j1 = [q for _, q in nxt].index(key)
@@ -4171,7 +4171,7 @@ def ringing(c):
                 # The line to its place in the next row is drawn as that row is rung.
                 g = f"clamp(({now} - {s1})/{L1}*1.6, 0, 1)"
                 layers.append({"type": "beam", "from": [xs(j), y, 0], "to": [f"{xs(j):g} + {n(xs(j1) - xs(j))}*{g}", f"{y} + ({y1} - {y})*{g}", 0],
-                               "width": 0.05 if key == bells[0] else 0.02, "samples": 2, "glow": f"(1.3 if 0 else 1)*step({s1}, {now})*{1.3 if key == bells[0] else 0.75}".replace("(1.3 if 0 else 1)*", ""), "fade": 0, "color": tint(key)})
+                               "width": 0.075 if key == bells[0] else 0.034, "samples": 2, "glow": f"(1.3 if 0 else 1)*step({s1}, {now})*{1.3 if key == bells[0] else 0.75}".replace("(1.3 if 0 else 1)*", ""), "fade": 0, "color": tint(key)})
         # The line to its place in the next row is drawn as that row is rung.
         if order == bells and k:
             layers.append(box(0, y, 0.03, xs(N - 1) + 0.45, 0.008, 0.01, **glow("#ffffff", f"0.95*step({s0 + L}, {now})")))
@@ -4243,12 +4243,12 @@ def ledger(c):
         for on, ln, key, second in ns:
             w = max(ln, 0.35) * u / 2
             fresh = f"step({s0 + on:g}, {now})*exp(0 - 0.5*({now} - {s0 + on:g}))"
-            layers.append(box((on - L / 2) * u + w, f"{y} + {k * (0.22 + 0.4 * (key - lo) / max(hi - lo, 1)):g}", 0, w - 0.012, 0.045 * k, 0.01,
+            layers.append(box((on - L / 2) * u + w, f"{y} + {k * (0.22 + 0.4 * (key - lo) / max(hi - lo, 1)):g}", 0, w - 0.012, 0.08 * k, 0.01,
                               **glow(c.b if second else c.a, f"step({s0 + on:g}, {now})*(0.8 + 1.6*{fresh})")))
         # Each half ruled off as long as it was given, drawn as the phrase goes by.
         for x0, x1, col in ((0, B, c.a), (B, L, c.b)):
             g = f"clamp(({now} - {s0 + x0:g})/{max(x1 - x0, 1):g}, 0, 1)"
-            layers.append(box(f"{(x0 - L / 2) * u:g} + {(x1 - x0) * u / 2:g}*{g}", f"{y} + {0.08 * k:g}", 0.01, f"{(x1 - x0) * u / 2 - 0.01:g}*{g}", 0.03 * k, 0.01, **glow(col, f"0.55*{seen}")))
+            layers.append(box(f"{(x0 - L / 2) * u:g} + {(x1 - x0) * u / 2:g}*{g}", f"{y} + {0.08 * k:g}", 0.01, f"{(x1 - x0) * u / 2 - 0.01:g}*{g}", 0.04 * k, 0.01, **glow(col, f"0.6*{seen}")))
         if abs(B - L / 2) >= 0.4:
             # What is owed: between the middle and where the second half begins.
             x0, x1 = sorted((L / 2, B))
@@ -4584,20 +4584,20 @@ def periods(c):
         y = at(key)
         reach = f"clamp(({now} - {on:g})/{w:g}, 0, 1)"
         wave = {"type": "beam", "from": [x0, y, 0], "to": [x1, y, 0], "wave": h, "waves": 2, "speed": 0, "samples": 40, "color": col}
-        layers.append({**wave, "width": 0.018, "glow": 0.34})
-        layers.append({**wave, "width": 0.045, "glow": f"0.9 + 1.6*exp(0 - 0.5*max({now} - {on + w:g}, 0))", "reach": reach})
+        layers.append({**wave, "width": 0.03, "glow": 0.42})
+        layers.append({**wave, "width": 0.075, "glow": f"0.9 + 1.6*exp(0 - 0.5*max({now} - {on + w:g}, 0))", "reach": reach})
         # (where the next note follows at once, a hair line carries the tune over to it)
         if i + 1 < len(rows) and abs(rows[i + 1][0] - (on + w)) < 0.3:
             layers.append({"type": "beam", "from": [x1, y, 0], "to": [x1, at(rows[i + 1][2]), 0], "width": 0.008, "glow": f"0.16 + 0.5*step({on + w:g}, {now})", "color": c.dim})
         # The point that draws it (there only while the note sounds).
         on_ = f"step({on:g}, {now})*step({now}, {on + w:g})"
-        layers.append(ball(f"{n(x0)} + {x1 - x0:g}*{reach}", f"{n(y)} + {h:g}*sin({reach})", -0.05, f"0.1*{on_}", 10, **glow("#ffffff", f"1.6*{on_}")))
+        layers.append(ball(f"{n(x0)} + {x1 - x0:g}*{reach}", f"{n(y)} + {h:g}*sin({reach})", -0.05, f"0.15*{on_}", 10, **glow("#ffffff", f"1.7*{on_}")))
         # Its marks on the ruler: the counts of the song that fall in it, and a taller one where it begins.
         j0 = math.ceil((on - g0) / grid - 0.02)
         m = max(0, math.ceil((on + w - g0) / grid - 0.02) - j0)
         if m and grid * u > 0.03:
             lit = f"step({g0 + j0 * grid:g} + inst.i*{grid:g}, {now})"
-            layers.append(box(f"{n((g0 + j0 * grid - a) * u - wide / 2)} + inst.i*{grid * u:g}", -2.13, 0, min(0.018, grid * u * 0.25), 0.07, 0.01, count=m, **glow(col, f"0.22 + 1.3*{lit}")))
+            layers.append(box(f"{n((g0 + j0 * grid - a) * u - wide / 2)} + inst.i*{grid * u:g}", -2.13, 0, min(0.026, grid * u * 0.3), 0.1, 0.01, count=m, **glow(col, f"0.3 + 1.3*{lit}")))
         layers.append(box(x0, -2.04, -0.01, 0.012, 0.16, 0.01, **glow(col, f"0.3 + 1.4*step({on:g}, {now})")))
     cur = f"clamp(({now} - {a:g})/{max(b - a, 1):g}, 0, 1)*{wide:g} - {wide / 2:g}"
     layers.append(box(cur, -2.0, -0.03, 0.008, 0.26, 0.01, **glow(c.ink, 1.2)))
