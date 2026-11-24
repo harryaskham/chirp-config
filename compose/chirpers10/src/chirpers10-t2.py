@@ -1755,6 +1755,43 @@ def the_boxes_shine_in_the_drift(doc):
         doc["loudness"] = float(target)
 
 
+# v46 (chirper-zero, 24 Nov; instrument round on Harry's 24 Nov steer for instrument design and interesting effects:
+# the two slip clocks, `bl` and `br`, 64 ticks in the four slips and the shake; no note moves, no track is added):
+# THE CLOCKS TICK.
+# In each slip the hat stops and two music boxes keep the time, one on each clock, a tick on one and a tock on three
+# (v22; Harry: "The slip made plain: keep them"). A music box pings; a clock ticks. The library's music box has a
+# mechanical tick in it (a burst of noise, 20 dB under the tooth above 6 kHz, gone in under two milliseconds) and a
+# low-pass at 9 kHz over
+# everything, so each tick here was a note at 1.0 to 1.4 kHz with nothing over it: in its first 30 ms the two clocks
+# stood level with the whole band at 0.8-2 kHz and had nothing the band did not at 8-16 kHz, and the slow slips and
+# the shake read 7 to 10 dB short of the records up there (nothing else plays up there once the hat stops). So on
+# these two tracks only the box's top is opened (the low-pass at 18 kHz) and its mechanism is turned up to where a
+# clock's is: the burst within 1 to 4 dB of the tooth's own peak, four milliseconds long. The tooth is not touched (its level
+# under 3 kHz is the same within 0.02 dB in every stretch; the same notes, the same chance). What it is for: the
+# slip is two clocks pulling apart by a sixteenth, and a click says where a clock is to the millisecond where a
+# ping says it to the note. The opening clock, the drift and the ending (`ml`, `mr`) are as Harry kept them.
+# C10T2_TICK = the tracks ; the words added to their patch. '' = v45 byte for byte. On only while CLOCKWORK is.
+TICK = os.environ.get(
+    "C10T2_TICK",
+    "bl,br;synth.filters.1.cutoff=18k synth.layers.1.level.mod.0.amount=76 synth.env.tick.d=30ms"
+    if CLOCKWORK else "",
+)
+
+
+def the_clocks_tick(doc):
+    """v46: the slip clocks' music box with its top open (low-pass 9 -> 18 kHz) and its mechanical tick up (the noise
+    layer's burst from -30 dB to +6 dB at its peak, falling over 30 ms where it fell over 6)."""
+    names, words = TICK.split(";")
+    names = names.split(",")
+    seen = set()
+    for i, t in enumerate(doc["tracks"]):
+        if t["name"] in names:
+            assert t["patch"] == "music-box", (t["name"], t["patch"])
+            doc["tracks"][i] = {**t, "patch": "music-box " + words}
+            seen.add(t["name"])
+    assert seen == set(names), set(names) - seen
+
+
 if __name__ == "__main__":
     doc = song()
     if PICK:
@@ -1771,4 +1808,6 @@ if __name__ == "__main__":
         the_bass_holds(doc)
     if CLOCKWORK:
         the_boxes_shine_in_the_drift(doc)
+    if TICK:
+        the_clocks_tick(doc)
     open(OUT, "w").write(dump(doc))
