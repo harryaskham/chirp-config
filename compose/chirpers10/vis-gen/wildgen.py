@@ -135,16 +135,16 @@ HOUSE = {
     2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout smoked delayed puzzle warpby timemap standing scanfold prismby spiralcut duochrono metered recoil boomerang receding exposed ringed janus marbled aftershock papered carryby kindled sunk",
     3: "lines engraved hatched typed sheet blueprint leaded strips bands intercut triptych stencil woven sampler knitted itself diagonal woodcut etched cathedral papered",
     4: "typed onebit newsprint dots blocks combed poster board corner card strips tracking puzzle beaded bricks halves louvers riso hexcut papered",
-    5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout infra screen ridged papercut embossed stagepass anamorph spiralcut conformal metered receding papered carryby frosted",
+    5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout infra screen ridged papercut embossed stagepass anamorph spiralcut conformal metered receding papered carryby frosted iced",
     6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass dripping beaded halves warpby hyperbolic anamorph prismby spiralcut conformal cathedral marbled papered carryby sunk",
     7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite glass woven bricks papercut itself diamond hyperbolic anamorph hexcut conformal cathedral papered",
     8: "leaded engraved newsprint poster flood duotone mirror triptych diptych window board infra woven puzzle bricks halves louvers woodcut riso etched cathedral papered",
-    9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout smoked delayed papercut reeded timemap scanfold hexcut duochrono metered looped boomerang filmclock ringed aftershock papered carryby kindled frosted",
+    9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout smoked delayed papercut reeded timemap scanfold hexcut duochrono metered looped boomerang filmclock ringed aftershock papered carryby kindled frosted iced",
     10: "onebit dots torn combed typed poster negative difference card bands corner stencil dripping sampler beaded carried negmask woodcut riso etched recoil looped papered kindled",
-    11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking screen papercut puzzle louvers stagepass prismby hexcut mirrorby metered filmclock aftershock papered carryby",
+    11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking screen papercut puzzle louvers stagepass prismby hexcut mirrorby metered filmclock aftershock papered carryby iced",
     12: "mirror drawn blueprint hatched ball echo water diptych intercut lighten satellite cutout screen papercut diagonal negmask timemap woodcut scanfold etched mirrorby janus papered carryby",
     13: "echo stop slices fringe water overgrown hole double window iris difference glass smoked negative stencil ridged carried embossed timemap scanfold spiralcut duochrono cathedral metered boomerang exposed janus marbled aftershock papered carryby kindled sunk",
-    14: "typed dots lines blocks sheet onebit stop strips board wedges triptych stencil delayed beaded bricks louvers reeded standing scanfold hexcut duochrono metered looped recoil filmclock exposed ringed papered frosted",
+    14: "typed dots lines blocks sheet onebit stop strips board wedges triptych stencil delayed beaded bricks louvers reeded standing scanfold hexcut duochrono metered looped recoil filmclock exposed ringed papered frosted iced",
     15: "warp wound blown torn water combed tunnel sweep bands double satellite dripping woven knitted sampler carried warpby standing spiralcut duochrono exposed papered carryby sunk",
     16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass tracking delayed ridged reeded embossed standing anamorph prismby conformal cathedral metered filmclock marbled papered kindled",
     17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil infra screen puzzle ridged itself diamond hyperbolic stagepass anamorph hexcut conformal metered receding aftershock papered",
@@ -166,7 +166,8 @@ TR_DOWN = set("melt fall drip smoke ritard rewind gravity dissolve inkbleed over
 # Ways that keep something of the old picture from frame to frame: they take longer (about two seconds).
 CARRIED = ("mosh", "smoke", "overgrow", "echo", "drip", "inkbleed")
 # Ways of sharing the frame that few pairs of pictures can take: a pair that can, does.
-RARE = ("carryby",)
+RARE = ("carryby", "iced")
+NEWEST = ("frosted",)        # guises dealt first in their own songs until they have been seen a few times
 # Ways that record the old picture as the change begins and play the recording (a tape wound back; a roll into the cut).
 # (And the ones the notes make, a tile of the frame or a drop to a note: long enough for a bar's notes to take it.)
 # (And the one that runs the picture together as sand and out again: long enough to see the figure.)
@@ -1129,7 +1130,7 @@ class Deal:
             c.__dict__.update(d.__dict__)
             # Its first time it is seen plain; after that, through something it has not been seen through.
             order = sorted((t for t, (_, ok) in W.TREAT.items() if t != "plain" and (name, t) not in self.combos and ok(c, info) and not (name in W.THIN and t in W.SHRINKS)),
-                           key=lambda t: self.treats[t] + 2 * rnd(S.n, k, t) - 6 * (t in HOUSE.get(S.n, ())))
+                           key=lambda t: self.treats[t] + 2 * rnd(S.n, k, t) - 6 * (t in HOUSE.get(S.n, ())) - 4 * (t in NEWEST and t in HOUSE.get(S.n, ())))
             if info["fam"] == "plate":
                 order = []          # the first film's studies come as they were, and once
             if name in W.BOLD or name in W.THIN:
@@ -2675,6 +2676,8 @@ def fits(kind, A, B):
         return (A in W.BROAD and A not in W.WHITE and (W.REG[A]["fam"] in ("art", "field", "grow", "ground", "paper", "mirror", "fill", "place") or A in ("tartan", "hive", "loom", "maze"))
                 and W.REG[B]["fam"] in ("body", "orbit", "engine", "clock", "fair", "flock", "swing", "game", "machine", "swarm")
                 and B not in W.SLOW and B not in W.PLATES and B not in W.WHITE and B not in W.FULL)
+    if kind == "iced":          # each picture is seen only in its own part's ice: both must fill the frame, and neither be ice already
+        return A not in W.THIN and B not in W.THIN and not {A, B} & {"frost", "lanes", "wildfire", "lodestones", "eddies", "coral", "suminagashi"}
     if kind == "stagepass":
         return A not in W.THIN and B not in W.THIN
     if kind in ("lighten", "double"):      # both pictures on the one plate
@@ -2701,6 +2704,26 @@ def odd_turns(S, c):
     base = collections.Counter(pats.values()).most_common(1)[0][0]
     odd = [lo for lo, q in pats.items() if q != base and q]
     return odd if 1 <= len(odd) <= max(1, len(pats) // 5) and len(odd) <= 2 else []
+
+
+def grid_of(c):
+    """Two of the riffs' lengths with no common measure, the longer first (in sixteenths; a length
+    over sixteen that is whole beats, in beats): the columns and rows `coprime` counts the frame
+    through by, so the frame is gone through once in the time the two riffs take to come round
+    together. None where no two riffs are so."""
+    cells = set()
+    for p in c.riffs:
+        n = p.cell or 0
+        if n > 16 and n % 4 == 0:
+            n //= 4
+        if 2 <= n <= 16:
+            cells.add(n)
+    cells = sorted(cells, reverse=True)
+    for i, a in enumerate(cells):
+        for b in cells[i + 1:]:
+            if math.gcd(a, b) == 1 and a * b <= 120:
+                return [a, b]
+    return None
 
 
 def white(look, amount):
@@ -2860,10 +2883,14 @@ def plan(S, deal):
             next_ = S.full[a16 // 16:min(a16 // 16 + 2, S.bars)] or was_
             lift = sum(next_) / len(next_) - sum(was_) / len(was_)
             up, down = (TR_UP, TR_DOWN) if lift > 0.1 else (TR_DOWN, TR_UP) if lift < -0.1 else ((), ())
-            tr = min(TRANSITIONS, key=lambda t_: deal.trans[t_] + 1.5 * rnd(S.n, k, t_) + (-1.2 if t_ in up else 0.6 if t_ in down else 0))
+            two = grid_of(c)
+            tr = min(TRANSITIONS, key=lambda t_: deal.trans[t_] + 1.5 * rnd(S.n, k, t_) + (-1.2 if t_ in up else 0.6 if t_ in down else 0)
+                     + (0 if t_ != "coprime" else -1.5 if two else 1.5))
             deal.trans[tr] += 1
             scene["xfade"] = "1b" if tr in ("push", "strips", "blocks", "split", "weave", "checker", "flip", "turnover", "squeeze", "whip", "fall", "glitch", "pixel", "doors", "scan", "slats", "interlace", "shutter", "pendulum") else "2b"
             scene["transition"] = tr
+            if tr == "coprime" and two:
+                scene["grid"] = two         # the frame counted through by the two riffs' own lengths
             if tr in CARRIED or tr in COUNTED or tr in TAPED:
                 beats = max(2, min(4 if tr in CARRIED else 6, round(COUNTED.get(tr, TAPED.get(tr, 1.9)) / (c.six * 4))))
                 while beats > 2 and beats * 4 * 2.5 > b16 - a16:

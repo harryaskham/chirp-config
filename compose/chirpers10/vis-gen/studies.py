@@ -1344,8 +1344,10 @@ def finish_line(tracks, spot, spot_track=None, subject="runner", bars=2, plain=(
         # (A quick follower, so the body is gone within a frame or two of the wheel stopping:
         # a slow one left it standing on the line for half a second, drawn out as a block.
         # The mark is low enough for the slowest wheel, a riff of 48 at 80 to the minute.)
-        vars_[f"was{i}"] = {"follow": T, "attack": "12ms", "release": "12ms"}
-        fig["opacity"] = f"step(0.5, {C})*step(0.0004, {T} - var.was{i})"
+        # (How fast the wheel turns, in turns a second: the same at any frame rate. The lag of a quick
+        # follower was not: at 12 frames a second it had caught up, and no one ran.)
+        vars_[f"was{i}"] = {"rate": T}
+        fig["opacity"] = f"step(0.5, {C})*step(0.01, var.was{i})"
         fig["emit"] = 1.1
         fig["thick"] = max(SUBJECTS[subject][3], 0.42)
         # Held in one pose while it crosses (so the film takes it clean), a little further

@@ -199,7 +199,14 @@ def remainder(c):
     """A board as wide as one riff and as tall as another. A lamp crosses it on the diagonal,
     a square a sixteenth, going off one edge and coming on at the other: it visits every
     square once before it is back where it began, and that is the long wait."""
-    A, B = c.riffs[0], c.riffs[1]
+    # (The two riffs that make the fullest board, the longer across: a riff of two against one of fourteen was a ribbon.)
+    R_ = [p for p in c.riffs[:4] if p.cell and p.cell >= 4]
+    pairs = [(p, q) for i, p in enumerate(R_) for q in R_[i + 1:] if p.cell != q.cell and math.lcm(p.cell, q.cell) <= 400 and max(p.cell, q.cell) <= 4 * min(p.cell, q.cell)]
+    if not pairs:
+        raise ValueError("no two riffs of lengths to make a board (one four times the other is a ribbon)")
+    A, B = max(pairs, key=lambda pq: (min(pq[0].cell, pq[1].cell), 0 - math.lcm(pq[0].cell, pq[1].cell)))
+    if A.cell < B.cell:
+        A, B = B, A
     a, b = A.cell, B.cell
     L = math.lcm(a, b)
     u = min(7.6 / a, 4.2 / b)
@@ -209,8 +216,10 @@ def remainder(c):
     x = f"(floor(fract((inst.i + 0.5)/{a})*{a}) - {(a - 1) / 2:g})*{u:g}"
     y = f"(floor(fract((inst.i - {off} + {b * 64} + 0.5)/{b})*{b}) - {(b - 1) / 2:g})*{u:g}"
     age = f"fract(({now} - inst.i)/{L})*{L}"       # sixteenths since the lamp was here
-    lit = f"(0.05 + 0.95*exp(0 - 5*{age}/{L}))"
-    layers = [box(x, y, 0, 0.42 * u, 0.42 * u, 0.02, count=L, **glow(c.ink, f"0.9*{lit}"), opacity=1)]
+    lit = f"(0.16 + 0.84*exp(0 - 5*{age}/{L}))"
+    # (The whole board, faintly: where the two lengths share a measure the lamp never comes to some of its squares.)
+    board = [box(f"(floor(fract((inst.i + 0.5)/{a})*{a}) - {(a - 1) / 2:g})*{u:g}", f"(floor((inst.i + 0.5)/{a}) - {(b - 1) / 2:g})*{u:g}", 0.05, 0.45 * u, 0.45 * u, 0.01, count=a * b, **glow(c.dim, 0.55))] if a * b <= 640 else []
+    layers = board + [box(x, y, 0, 0.42 * u, 0.42 * u, 0.02, count=L, **glow(c.ink, f"0.9*{lit}"), opacity=1)]
     # Each riff's own first square, in its colour: a column and a row.
     for P, col in ((A, c.a), (B, c.b)):
         k = L // P.cell
@@ -1514,12 +1523,13 @@ def escalator(c):
     A = (c.riffs + c.drums + c.parts)[0]
     nn = 30
     s = f"(inst.i - 15 + fract(time.beat*2))"
-    layers = [{"type": "sky", "zenith": "#1c2a4a", "horizon": c.b, "ground": "#15151a", "sun": "#fff1d6", "sun_yaw": 0.28, "sun_height": 0.06, "sun_size": 0.04},
-              box(f"{s}*0.42", f"{s}*0.26 - 0.13", 0, 0.21, 0.13, 0.8, count=nn, **solid("#b9b4a8", 0.8), emit=f"0.8*{A.hit}*step(abs({s}), 0.6)"),
+    layers = [{"type": "sky", "zenith": "#22335a", "horizon": c.b, "ground": "#1a1a22", "sun": "#fff1d6", "sun_yaw": 0.28, "sun_height": 0.13, "sun_size": 0.045},
+              lamp(-3, 5, -6, 1.5), lamp(3, 2, -4, 0.7, c.a),
+              box(f"{s}*0.42", f"{s}*0.26 - 0.13", 0, 0.21, 0.13, 0.8, count=nn, **solid("#cfc9bb", 0.8), emit=f"0.05 + 0.8*{A.hit}*step(abs({s}), 0.6)"),
               {"type": "mesh", "shape": "cone", "detail": 5, "x": 5.2, "y": 3.0, "z": 9, "scale": 2.6, "sy": 1.3, **solid("#4a4f63", 0.95)},
               {"type": "mesh", "shape": "cone", "detail": 5, "x": 1.5, "y": 2.2, "z": 12, "scale": 3.4, "sy": 0.9, **solid("#3d4257", 0.95)},
-              {"type": "figure", "rig": "human", "motion": "walk", "x": 0.1, "y": 1.0, "z": 0, "scale": 0.82, "ry": 0.25, **skin(c.a, 0.25)}]
-    look = {"background": "#1c2a4a", "layers": layers,
+              {"type": "figure", "rig": "human", "motion": "walk", "x": 0.1, "y": 1.0, "z": 0, "scale": 0.82, "ry": 0.25, **skin(c.a, 0.45)}]
+    look = {"background": "#22335a", "layers": layers,
             "filters": [{"type": "shadowmap", "amount": 0.6, "soft": 2, "size": 1024}, {"type": "ao", "amount": 0.5, "radius": 0.05}, {"type": "atmos", "amount": 0.6, "density": 0.03, "falloff": 0.3, "shafts": 0.3},
                         {"type": "tonemap", "knee": 0.8}, {"type": "aa"}]}
     return shots(c, look, [cam(-1.2, 1.3, -6.5, look=(0.4, 1.0, 0), zoom=1.5), cam(-3.5, -0.6, -3.2, look=(0.2, 1.1, 0), zoom=1.2), cam(2.8, 3.6, -4.0, look=(0, 0.6, 0), zoom=1.4)], A)
@@ -2560,9 +2570,9 @@ def _letters(c):
 
 @idiom(needs=1, fam="type", paper=True, max_cell=24)
 def teletype(c):
-    """A page typed by the riff: a key struck for every note, the song's name letter by
-    letter with the sixteenths, and a new line each time the riff comes round. The name
-    never falls in the same columns twice."""
+    """A page typed by the riff: the song's name letter by letter with the sixteenths, faint,
+    and a key struck bold for every note; a new line each time the riff comes round. The
+    name never falls in the same columns twice."""
     A = c.riffs[0]
     # (A line is as many turns of the riff as make ten sixteenths or more: a riff of three types four turns to a line.)
     m = max(1, math.ceil(10 / A.cell))
@@ -2572,8 +2582,16 @@ def teletype(c):
     line = f"({A.turn}/{m})"
     at = f"((note.beat*4 - {A.anchor:g} + 0.01)/{nn})"
     row = f"(floor({line}) - floor({at}))"       # lines ago
-    layers = [{"type": "text", "notes": {"track": A.name, "past": rows * nn / 4}, "text": _letters(c), "pick": "floor(note.beat*4 + 0.01)", "size": min(0.3, w / 2.557 * 1.25), "align": "center", "width": 0.18, "skew": 0,
-               "x": f"((floor(fract({at})*{nn} + 0.02) + 0.5 - {nn / 2})*{w / 2.557:g})", "y": f"0 - 0.74 + 0.3*{row} + 0.3*smooth(0, 0.15, fract({line})) - 0.3", "color": c.ink, "opacity": "0.55 + 0.45*exp(0 - 2*note.age)"},
+    size = min(0.3, w / 2.557 * 1.25)
+    # (The page: every sixteenth types its letter faintly, so the name is written out line after line; a note strikes its letter bold.)
+    col_ = f"floor(fract((inst.i + 0.5)/{nn})*{nn})"
+    ago = f"floor((inst.i + 0.5)/{nn})"
+    s16 = f"((floor({line}) - {ago})*{nn} + {col_} + {A.anchor:g})"
+    layers = [{"type": "text", "repeat": nn * (rows + 1), "text": _letters(c), "pick": f"max({s16}, 0)", "size": size, "align": "center", "width": 0.1, "skew": 0,
+               "x": f"(({col_} + 0.5 - {nn / 2})*{w / 2.557:g})", "y": f"0 - 0.74 + 0.3*{ago} + 0.3*smooth(0, 0.15, fract({line})) - 0.3", "color": c.ink,
+               "opacity": f"0.24*step({s16}, time.beat*4 + 0.01)*step(0, {s16})"},
+              {"type": "text", "notes": {"track": A.name, "past": rows * nn / 4}, "text": _letters(c), "pick": "floor(note.beat*4 + 0.01)", "size": f"{size:g}*(1 + 0.3*exp(0 - 7*note.age))", "align": "center", "width": 0.22, "skew": 0,
+               "x": f"((floor(fract({at})*{nn} + 0.02) + 0.5 - {nn / 2})*{w / 2.557:g})", "y": f"0 - 0.74 + 0.3*{row} + 0.3*smooth(0, 0.15, fract({line})) - 0.3", "color": c.ink, "opacity": "0.7 + 0.3*exp(0 - 2*note.age)"},
               box(f"((fract({line})*{nn} + 0.5 - {nn / 2})*{w:g})", -2.3, 0, w * 0.4, 0.02, 0.01, **glow(c.a, 1.5))]
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.25, 0.012, 0.75)]}
 
@@ -2851,13 +2869,21 @@ def fruit(c):
 @idiom(needs=1, fam="game", max_cell=16)
 def tetris(c):
     """A well as wide as the riff is long: every note drops a block into the column of its
-    sixteenth, and each time the riff comes round a new row begins on top of the last."""
-    P = [p for p in c.riffs if p.cell >= 5][:2]
+    sixteenth, and each time the riff comes round a new row begins on top of the last. The
+    well has as many rows as the scene has turns of the riff (blocks taller where they are
+    few), so it is full as the scene ends."""
+    P = [p for p in c.riffs if 5 <= p.cell <= 16][:2]       # (a riff of three bars is no well: its blocks are specks)
     if not P:
-        raise ValueError("no riff long enough to be a well")
+        raise ValueError("no riff of a length to be a well")
     # (The wells side by side fill the frame's width, and as many rows as its height holds.)
     s_ = min(0.4, 6.6 / sum(q.cell for q in P))
     rows = max(8, min(16, int(4.1 / s_)))
+    # (A scene too short to fill so many rows has fewer, taller ones: the well is full as the scene ends.)
+    turns = (c.b16 - c.a16) / max(q.cell for q in P)
+    if turns < 1.5:
+        raise ValueError("too few turns of the riff to fill a well")
+    rows = max(math.ceil(4.4 / (2.5 * s_)), min(rows, math.ceil(turns) + 1))
+    sy_ = 4.4 / rows
     layers = []
     left = -(sum(q.cell for q in P) * s_ + 0.5 * (len(P) - 1)) / 2
     for i, p in enumerate(P):
@@ -2867,11 +2893,11 @@ def tetris(c):
         turn_of = f"floor((note.beat*4 - {p.anchor:g} + 0.01)/{nn})"
         now = f"floor({p.turn})"
         rest = f"({turn_of} - max({now} - {rows - 1}, 0))"                      # the row it comes to rest in (the well scrolls once it is full)
-        y = f"max(-2.1 + {s_:g}*{rest}, 2.3 - 9*note.age)"
+        y = f"max({-2.1 - s_ / 2 + sy_ / 2:g} + {sy_:g}*{rest}, 2.3 - 9*note.age)"
         layers.append(box(x0 + nn * s_ / 2, -2.1 - s_ / 2 - 0.03, 0, nn * s_ / 2 + 0.04, 0.02, 0.02, **glow(c.dim, 1)))
         for sx in (-0.04, nn * s_ + 0.04):
             layers.append(box(x0 + sx, 0.1, 0, 0.02, 2.25, 0.02, **glow(c.dim, 1)))
-        layers.append(box(f"{x0 + s_ / 2:g} + {p.nstep}*{s_:g}", y, 0, s_ * 0.44, s_ * 0.44, 0.05, notes={"track": p.name, "past": rows * nn / 4}, **glow(c.col(i), "0.75 + 2*exp(0 - 4*note.age)"),
+        layers.append(box(f"{x0 + s_ / 2:g} + {p.nstep}*{s_:g}", y, 0, s_ * 0.44, sy_ * 0.44, 0.05, notes={"track": p.name, "past": rows * nn / 4}, **glow(c.col(i), "0.75 + 2*exp(0 - 4*note.age)"),
                           opacity=f"step(0 - 0.5, {rest})"))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.3, 0.014, 0.7)]}
 
@@ -3757,10 +3783,10 @@ def strobe(c):
         flash = f"env.h{other}"
         col = c.col(i)
         n_ = min(p.cell, 48)
-        layers.append({"type": "shape", "repeat": n_, "sides": 1, "radius": 0.015, "width": 0, "fill": 1, "color": c.ink, "x": f"{cx} + {R + 0.07}*cos(inst.i/{n_} + 0.25)", "y": f"{R + 0.07}*sin(inst.i/{n_} + 0.25)", "opacity": 0.55})
-        layers.append({"type": "shape", "repeat": 14, "sides": 1, "radius": "0.016 + 0.014*inst.i/14", "width": 0, "fill": 1, "color": col, "x": f"{cx} + {R}*(inst.i/13)*cos({held})", "y": f"{R}*(inst.i/13)*sin({held})", "opacity": f"0.34 + 0.66*{flash}"})
+        layers.append({"type": "shape", "repeat": n_, "sides": 1, "radius": 0.02, "width": 0, "fill": 1, "color": c.ink, "x": f"{cx} + {R + 0.07}*cos(inst.i/{n_} + 0.25)", "y": f"{R + 0.07}*sin(inst.i/{n_} + 0.25)", "opacity": 0.7})
+        layers.append({"type": "shape", "repeat": 14, "sides": 1, "radius": "0.02 + 0.018*inst.i/14", "width": 0, "fill": 1, "color": col, "x": f"{cx} + {R}*(inst.i/13)*cos({held})", "y": f"{R}*(inst.i/13)*sin({held})", "opacity": f"0.45 + 0.55*{flash}"})
         layers.append({"type": "shape", "sides": 1, "radius": 0.06, "width": 0, "fill": 1, "color": "#ffffff", "x": f"{cx} + {R}*cos({held})", "y": f"{R}*sin({held})", "opacity": f"0.4 + 0.6*{flash}"})
-        layers.append({"type": "shape", "sides": 0, "radius": R + 0.035, "width": 0.009, "fill": 0, "color": col, "x": cx, "y": 0, "opacity": f"0.5 + 0.5*{flash}"})
+        layers.append({"type": "shape", "sides": 0, "radius": R + 0.035, "width": 0.014, "fill": 0, "color": col, "x": cx, "y": 0, "opacity": f"0.6 + 0.4*{flash}"})
     return {"background": "#000000", "env": env, "layers": layers, "filters": [{"type": "feedback", "zoom": 1, "decay": 0.955}, bloom(c, 0.4, 0.018, 0.6)]}
 
 
@@ -4848,7 +4874,7 @@ def ground(c, look, kind):
 # lifted before they are printed in the paper or made of small copies of themselves.
 DIM = set("gallery cinema railway doors cradle ropes highway press golden venn kit globe ferris skyline lanterns candles coins sympathy "
           "puppet storm keys sonar belfry clockshop strobe inset balance contour helix tetris crystal searchlights hands splitflap "
-          "fountain fireworks hammers turtle trampoline pong sunflower fan membrane torusknot".split())
+          "fountain fireworks hammers turtle trampoline pong sunflower fan membrane torusknot henge".split())
 
 # ───────────────────────── pictures of pictures ─────────────────────────
 
@@ -5206,11 +5232,11 @@ def depthstage(c):
     ph2 = f"({B.turn}/{max(2, math.ceil(6.0 / ((B.cell or 16) * c.six)))})"
     actors = [
         {"use": look1, "name": "a", "mask": "rect", "res": 0.65,
-         "x": f"0.75*sin({ph})", "y": f"0.16*cos({ph})", "z": f"0.85 + 0.52*cos({ph})",
-         "scale": f"0.86 + 0.08*{A.hit}", "rotate": f"0.025*sin({ph})"},
+         "x": f"0.75*sin({ph})", "y": f"0.16*cos({ph})", "z": f"0.62 + 0.45*cos({ph})",
+         "scale": f"1.0 + 0.08*{A.hit}", "rotate": f"0.025*sin({ph})"},
         {"use": look2, "name": "b", "mask": "rect", "res": 0.65,
-         "x": f"0 - actor.a.x", "y": f"0.18*sin({ph2})", "z": f"1.7 - actor.a.z",
-         "scale": f"0.84 + 0.08*{B.hit}", "rotate": f"0 - 0.025*sin({ph2})"},
+         "x": f"0 - actor.a.x", "y": f"0.18*sin({ph2})", "z": f"1.24 - actor.a.z",
+         "scale": f"0.98 + 0.08*{B.hit}", "rotate": f"0 - 0.025*sin({ph2})"},
     ]
     return {
         "background": c.bg,
@@ -5821,12 +5847,12 @@ def c_stagepass(c, A, B):
     u = f"({p.turn}/{per} + 0.125)"
     return {
         "background": "#000000",
-        "layers": [{
+        "layers": [{"type": "stars", "count": 350, "speed": 0.012, "size": 1.1, "light": 0.3, "twinkle": 0.5, "streak": 1.2, "blend": "add"}, {
             "type": "stage", "blend": "normal",
             "camera": {"x": 0, "y": 0, "z": -1.1, "zoom": 1.2, "roll": f"0.012*sin({u})", "fog": 0.08},
             "actors": [
-                {"use": A, "name": "a", "mask": "rect", "res": 0.7, "x": f"0.72*sin({u})", "y": f"0.12*cos({u})", "z": f"0.8 + 0.5*cos({u})", "scale": 0.84},
-                {"use": B, "name": "b", "mask": "rect", "res": 0.7, "x": "0 - actor.a.x", "y": "0 - actor.a.y", "z": "1.6 - actor.a.z", "scale": 0.84},
+                {"use": A, "name": "a", "mask": "rect", "res": 0.7, "x": f"0.72*sin({u})", "y": f"0.12*cos({u})", "z": f"0.6 + 0.44*cos({u})", "scale": 1.0},
+                {"use": B, "name": "b", "mask": "rect", "res": 0.7, "x": "0 - actor.a.x", "y": "0 - actor.a.y", "z": "1.2 - actor.a.z", "scale": 1.0},
             ],
         }],
         "filters": [],
@@ -5860,6 +5886,38 @@ def c_carryby(c, A, B):
     first about with it; the first comes back as it is in a beat or two, and the second
     is seen faintly over it."""
     return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "carry", "gain": 2.2, "depth": round(max(0.6, min(1.2, 8 * c.six)), 2)}), _act(B, blend="add", fade=0.16)], "filters": []}
+
+
+@combo("iced")
+def c_iced(c, A, B):
+    """Two pictures share the frame as ice shares a pane. Each of two parts has a hand that
+    goes round a ring once a turn, and every note sows a crystal under the hand; the first
+    part's ice shows the first picture and the second's the second, and the crystals stop
+    where they meet. When a part comes round, its ice goes back the way it came and the
+    other picture's grows into the room: so the frame changes hands at each part's turn,
+    and is shared the same way again only when the two come round together. The ring that
+    has just frozen is white, and where there is no ice both pictures are seen dimly."""
+    p = _lead(c)
+    q = next((r for r in c.riffs if r.name != p.name), None) or _knocker(c)
+
+    def life(r):
+        cell = r.cell or 16
+        g = max(1, math.ceil(16 / cell))
+        return f"max((1 - fract({r.turn}/{g}))*{g * cell / 4:g}, 1)"
+    seeds = {"on": f"track.{p.name}", "x": f"-0.7 + 0.6*cos(0.25 - {p.turn})", "y": f"0.52*sin(0.25 - {p.turn})", "life": life(p)}
+    if q is not None:
+        seeds.update({"on2": f"track.{q.name}", "x2": f"0.7 + 0.6*cos(0.25 + {q.turn})", "y2": f"0.52*sin(0.25 + {q.turn})", "life2": life(q)})
+    else:       # (one part alone: the beat sows the other picture's ice, and it lasts a bar)
+        seeds.update({"on2": "beat", "x2": "0.7 + 0.6*cos(0.25 + time.bar)", "y2": "0.52*sin(0.25 + time.bar)", "life2": "max((1 - fract(time.bar))*4, 1)"})
+
+    def ice(colours, rim, bare):
+        lay = {"type": "frost", "size": 46, "rule": "12", "rate": 8, "melt": 4, "reach": 70, "fill": 1, "rim": rim, "facet": 0, "fade": 0, "ground": 0, "spread": 0.5, "palette": colours, "blend": "normal", **seeds}
+        return {"background": bare, "layers": [lay]}
+
+    def part(P_, k):
+        # (Its own ice is white and the other's black; where there is no ice the stencil is grey, so both pictures are seen there dimly.)
+        return {"background": "#000000", "layers": [_act(P_), _act(ice((["#ffffff", "#000000"], ["#000000", "#ffffff"])[k], 0, "#666666"), **{"as": "stencil", "gain": 1})], "filters": []}
+    return {"background": "#000000", "layers": [_act(part(A, 0)), _act(part(B, 1), blend="add"), _act(ice(["#000000", "#000000"], 0.8, "#000000"), blend="add")], "filters": []}
 
 
 @combo("embossed")
@@ -6078,7 +6136,11 @@ def photofinish(c):
     if not use:
         raise ValueError("no riff short enough to cross the line")
     look = _pool(c, S.finish_line(use, c.a, use[-1], subject=("runner", "horse")[c.variant % 2], meet=bool(c.odd)))
-    look.setdefault("filters", []).insert(0, {"type": "camera", "zoom": 1.4, "y": -0.28})
+    # (A lone lane lies across the middle: it is brought nearer, AFTER the film is made. Pass 17 put a
+    # camera before the slit, which then no longer stood on the line: the strip lost its bar lines and
+    # lamps and held scraps of runners. Two or three lanes fill the frame as they are.)
+    if len(use) == 1:
+        look["filters"].insert(1, {"type": "camera", "zoom": 1.5, "y": 0.04})
     return look
 
 
@@ -6198,7 +6260,8 @@ KEEP_OFF = {
     "solar": {"clockshop"},
     "reeded": {"tetris"},
     "knitted": DIM | {"swings", "escalator"},
-    "typed": DIM | {"leader", "seesaw", "duel", "juggle", "hive", "worldlines", "eddies", "clockfield"},
+    "typed": DIM | {"leader", "seesaw", "duel", "juggle", "hive", "worldlines", "eddies", "clockfield", "lanes", "lodestones", "membrane", "maze"},
+    "kindled": DIM | {"grove", "ripplebath", "mycelium", "eddies", "suminagashi", "coral", "beats", "moons", "frost"},
     "engraved": {"eddies", "thermal"},
     "newsprint": {"thermal", "score"},
     "dots": {"eddies", "hammers", "storm"},
@@ -6218,9 +6281,10 @@ KEEP_OFF = {
     "janus": {"choir"},
     "hyperbolic": {"venn"},
     "roll": {"kaleidohall"},
-    "standing": {"armillary"},
     "water": {"gates"},
     "ridged": {"frost"},
+    "standing": {"armillary", "tetris"},
+    "itself": {"henge"},
 }
 
 
@@ -6282,7 +6346,7 @@ STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall"
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
          "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0, "woodcut": 1, "riso": 1, "etched": 1, "cathedral": 1,
          "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2, "scanfold": 2, "duochrono": 2, "metered": 2,
-         "recoil": 2, "looped": 2, "boomerang": 2, "receding": 2, "filmclock": 2, "exposed": 2, "janus": 2, "marbled": 2, "aftershock": 2, "sunk": 2, "kindled": 2, "frosted": 2}
+         "recoil": 2, "looped": 2, "boomerang": 2, "receding": 2, "filmclock": 2, "exposed": 2, "janus": 2, "marbled": 2, "aftershock": 2, "sunk": 2, "frosted": 2}
 
 # The guises that work on a recording of the picture.
 TIMED = ("recoil", "looped", "boomerang", "receding", "filmclock", "exposed", "janus", "aftershock")
@@ -6290,7 +6354,7 @@ TIMED = ("recoil", "looped", "boomerang", "receding", "filmclock", "exposed", "j
 STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph", "conformal", "screen", "papered") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso", "etched", "dots", "cathedral")}
              | {(a_, "blown") for a_ in ("newsprint", "riso", "etched", "negative")}
              | {("blown", a_) for a_ in ("newsprint", "riso", "etched", "negative")}
-             | {("tunnel", "overgrown"), ("overgrown", "tunnel"), ("itself", "carried"), ("carried", "itself"),
+             | {("tunnel", "overgrown"), ("overgrown", "tunnel"), ("itself", "carried"), ("carried", "itself"), ("itself", "puzzle"), ("puzzle", "itself"), ("knitted", "kindled"), ("kindled", "knitted"),
                 ("scanfold", "delayed"), ("delayed", "scanfold"), ("duochrono", "delayed"), ("delayed", "duochrono"),
                 ("duochrono", "scanfold"), ("scanfold", "duochrono"), ("metered", "stop"), ("stop", "metered"),
                 ("metered", "delayed"), ("delayed", "metered"), ("metered", "tracking"), ("tracking", "metered")}
@@ -6928,7 +6992,7 @@ def t_kindled(c, look):
     that meet put each other out, so the picture is lit in cells whose walls are where
     the two parts' notes met."""
     p, q = _lead(c), _knocker(c)
-    f = {"type": "kindle", "floor": 0.12, "lift": 1.5, "wake": 0.95, "trail": 0.9, "seam": 0.1, "rate": int(min(1900, max(900, 125 / c.six))), "hold": 0.7, "damp": 0.1, "radius": 0.05,
+    f = {"type": "kindle", "floor": 0.2, "lift": 1.5, "wake": 0.95, "trail": 0.9, "seam": 0.1, "rate": int(min(1900, max(900, 125 / c.six))), "hold": 0.7, "damp": 0.1, "radius": 0.05,
          "on": f"track.{p.name}", "x": f"0.5*cos(0.25 - {p.turn})", "y": f"0.3*sin(0.25 - {p.turn})",
          "on2": f"track.{q.name}", "x2": f"1.25*cos(0.25 + {q.turn})", "y2": f"0.7*sin(0.25 + {q.turn})"}
     return _pre(look, f)
