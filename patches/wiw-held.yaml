@@ -1,5 +1,5 @@
 {
- "about": "Where It Was: the ring, held (chirper-alpha, 18 Nov). The song's scanned mallet with a hand on it: `push` holds the ring of masses toward the strike's shape, so a note sings until it is let go instead of dying. The lane `hand` is how firmly: about 0.1 keeps only the broad shape (round), 0.5 the middle ripples (bright). BANKED by tools/patchbank.py (22 Nov 2026) from Where It Was v32 (track held): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`hand`): give the track that plays it `auto: {hand: \u2026}`, as the song does.",
+ "about": "Where It Was: the ring, held (chirper-alpha, 18 Nov). The song's scanned mallet with a hand on it: `push` holds the ring of masses toward the strike's shape, so a note sings until it is let go instead of dying. The lane `hand` is how firmly: about 0.1 keeps only the broad shape (round), 0.5 the middle ripples (bright). BANKED by tools/patchbank.py (24 Nov 2026) from Where It Was v35 (track held): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`hand`): give the track that plays it `auto: {hand: \u2026}`, as the song does.",
  "gain": "-2.3dB",
  "play": {
   "event_stable": true
@@ -12,6 +12,15 @@
   "layers": [
    {
     "decay": "3s",
+    "pan": {
+     "mod": [
+      {
+       "amount": 1.2,
+       "src": "key"
+      }
+     ],
+     "value": -1
+    },
     "scanned": {
      "push": {
       "mod": [

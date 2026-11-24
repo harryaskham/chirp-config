@@ -434,9 +434,11 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 
 | field | tracks | songs | values (the songs) | |
 |---|---|---|---|---|
-| `fx.0.mix` | 2 | 2 | `0.1` in 12; `0.15` in 17 |  |
+| `fx.0.mix` | 2 | 2 | `{value:0,mod:[{src:auto.palme,amount:0.15}]}` in 12; `0.15` in 17 |  |
 | `synth.amp.r` | 1 | 1 | `90ms` in 12 |  |
-| `fx.0.decay` | 1 | 1 | `1.1s` in 12 |  |
+| `fx.0.notes` | 1 | 1 | `F4,Gb4,Ab4,C5` in 12 |  |
+| `fx.0.decay` | 1 | 1 | `4s` in 12 |  |
+| `fx.0.tune_sounding` | 1 | 1 | `true` in 12 |  |
 | `fx.1.mix` | 1 | 1 | `0.04` in 12 |  |
 | `fx.1.decay` | 1 | 1 | `0.8s` in 12 |  |
 | `synth.pitch.mod.0.amount` | 1 | 1 | `0.05` in 17 |  |
