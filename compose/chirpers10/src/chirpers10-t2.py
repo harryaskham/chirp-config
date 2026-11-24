@@ -1690,6 +1690,71 @@ def the_bass_holds(doc):
         doc["loudness"] = float(target)
 
 
+# v45 (chirper-zero, 24 Nov; instrument round, on Harry's 24 Nov steer for interesting effects, guitar sound, and
+# synths/environment sound — no note moves, no track added): THE BOXES SHINE IN THE DRIFT.
+# In the quiet drift (beats 296-392, 2:44.4-3:37.8, covering four stamped stretches: 'let go', 'the two voices',
+# 'the boxes alone' and 'locked, before the band'), the music boxes (`ml`, `mr`) and juno pad (`air`) sat dark above
+# 2 kHz (6 to 13 dB short across 2-16 kHz; 4-window sum 18.722 no voice). Honouring Harry's "Too much: it buries the
+# boxes", ONLY the music boxes (`ml`, `mr`) send (+17 dB) to a new gated ambient bus `clockwork` — never the synth —
+# so the boxes themselves bloom into high clockwork overtone air: 3/8 ping-pong delay -> sympathetic F/Ab/B/C/Db/Eb
+# strings -> octave-up reverse granular cloud -> 4.0 s shimmer hall -> HP 2.3 kHz + 6 kHz +11 dB shelf -> shaped gate
+# lane (`0.91` in 'let go', `1.0` in 'the two voices' & 'the boxes alone', `0.94` in 'locked', shutting to `-96 dB` by
+# beat 391.95 before 'against' hits). Meanwhile `air` (`juno-pad`, playing in beats 296-368 only) gets a gentle slow
+# 6-stage stereo phaser (0.13 Hz, mix 0.30) so the pad breathes subtly beneath the boxes without ever rising over them.
+# C10T2_CLOCKWORK = box_send ; air_phaser rate:depth:stages:fb:mix ; delay time:fb:tone:mix ;
+#   sympathetic notes:decay:mix ; cloud size:density:pos:spray:pitch:rev:spread:win:seed:mix ;
+#   reverb kind:decay:size:shimmer:lc:hc:mix ; eq bands | ; gate_points beat:val,... ; loudness target.
+# '' = v44 byte for byte. On only while HOLDS is.
+CLOCKWORK = os.environ.get(
+    "C10T2_CLOCKWORK",
+    "17dB;0.13:0.55:6:0.3:0.3;3/8:0.44:14000:0.45;F4,Ab4,B4,C5,Db5,Eb5,F5,C6:2.4s:0.22;"
+    "130ms:18:155ms:145ms:12.0:0.38:1.0:2.8s:2:0.85;hall:4.0s:0.9:0.65:2300:15500:0.92;"
+    "hp cutoff=2300|highshelf cutoff=6000 gain=11dB;"
+    "0:0,295.95:0,296:0.91,319:0.91,320:1,383:1,384:0.94,390.8:0.94,391.95:0;-9.832"
+    if HOLDS else "",
+)
+
+
+def the_boxes_shine_in_the_drift(doc):
+    """v45: gated `clockwork` shimmer/cloud bus fed by `ml`/`mr` only + subtle stereo phaser on `air` in the quiet drift."""
+    snd_s, ph_s, dly_s, sym_s, cld_s, rev_s, eq_s, pts_s, target = CLOCKWORK.split(";")
+    assert "clockwork" not in doc["buses"], "clockwork bus already exists"
+    bus_fx = []
+    if dly_s:
+        tm, fb, tn, mx = dly_s.split(":")
+        bus_fx.append({"type": "delay", "time": tm, "feedback": float(fb), "ping_pong": True,
+                       "tone": float(tn), "mix": float(mx)})
+    if sym_s:
+        nts, dec, mx = sym_s.split(":")
+        bus_fx.append({"type": "sympathetic", "notes": nts, "decay": dec, "mix": float(mx), "tune_sounding": True})
+    if cld_s:
+        sz, dn, ps, sp, pt, rv, sr, wn, sd, mx = cld_s.split(":")
+        bus_fx.append({"type": "cloud", "size": sz, "density": float(dn), "position": ps, "spray": sp,
+                       "pitch": float(pt), "reverse": float(rv), "spread": float(sr), "window": wn,
+                       "seed": int(sd), "mix": float(mx)})
+    if rev_s:
+        kd, dec, sz, sh, lc, hc, mx = rev_s.split(":")
+        bus_fx.append({"type": "reverb", "kind": kd, "decay": dec, "size": float(sz), "shimmer": float(sh),
+                       "low_cut": float(lc), "high_cut": float(hc), "width": 1.0, "mix": float(mx)})
+    if eq_s:
+        bus_fx.append({"type": "eq", "bands": eq_s.split("|")})
+    bus_fx.append({"type": "gain", "gain": {"value": "-96dB", "mod": [{"src": "auto.open", "amount": 96}]}})
+    pts = [[f"{b}b", float(v)] for b, v in (pair.split(":") for pair in pts_s.split(","))]
+    doc["buses"] = {**doc["buses"], "clockwork": {"fx": bus_fx, "auto": {"open": {"curve": 0, "points": pts}}}}
+    for i, t in enumerate(doc["tracks"]):
+        nm = t["name"]
+        if nm in ("ml", "mr") and snd_s:
+            t = {**t, "sends": {**(t.get("sends") or {}), "clockwork": snd_s}}
+        elif nm == "air" and ph_s:
+            rt, dep, stg, fb, mx = ph_s.split(":")
+            if float(mx) > 0:
+                t = {**t, "fx": [{"type": "phaser", "rate": rt, "depth": float(dep), "stages": int(stg),
+                                  "feedback": float(fb), "mix": float(mx)}] + list(t.get("fx") or [])}
+        doc["tracks"][i] = t
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if PICK:
@@ -1704,4 +1769,6 @@ if __name__ == "__main__":
         the_drum_makes_room(doc)
     if HOLDS:
         the_bass_holds(doc)
+    if CLOCKWORK:
+        the_boxes_shine_in_the_drift(doc)
     open(OUT, "w").write(dump(doc))
