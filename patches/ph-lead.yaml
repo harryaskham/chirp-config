@@ -1,0 +1,348 @@
+{
+ "about": "Plain Hunt lead: lead-slap with a wah pedal ahead of its 5150, the pedal on the track's `tread` lane (chirper-zero, 24 Nov). BANKED by tools/patchbank.py (24 Nov 2026) from Plain Hunt v46 (tracks lead, lead2): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`tread`): give the track that plays it `auto: {tread: \u2026}`, as the song does.",
+ "fx": [
+  {
+   "mix": 0.06,
+   "notes": "F1,Bb1,Eb2,Ab2,Db3,Gb3,Bb3,Eb4",
+   "type": "sympathetic"
+  },
+  {
+   "env": 0.0,
+   "high": 3200,
+   "low": 500,
+   "pos": {
+    "mod": [
+     {
+      "amount": 1.0,
+      "src": "auto.tread"
+     }
+    ],
+    "value": 0
+   },
+   "type": "wah"
+  },
+  {
+   "bass": 0.48,
+   "bloom": 0.3,
+   "boost": "6dB",
+   "gain": 0.92,
+   "mid": 0.7,
+   "model": "5150",
+   "presence": 0.6,
+   "resonance": 0.55,
+   "sag": 0.25,
+   "tight": 150,
+   "treble": 0.58,
+   "ts": 0.75,
+   "type": "amp"
+  },
+  {
+   "blend": 0.35,
+   "blend_file": "jester/kitten-slayer",
+   "breakup": 0.3,
+   "file": "jester/cookie-monster",
+   "length": "120ms",
+   "level": 1,
+   "mix": 1,
+   "room": 0.12,
+   "type": "ir"
+  },
+  {
+   "bands": [
+    {
+     "cutoff": 900,
+     "gain": "2dB",
+     "kind": "peak",
+     "q": 0.9
+    },
+    {
+     "cutoff": 250,
+     "gain": "-2dB",
+     "kind": "peak",
+     "q": 1.2
+    },
+    {
+     "cutoff": 7500,
+     "gain": "-2dB",
+     "kind": "highshelf"
+    }
+   ],
+   "type": "eq"
+  },
+  {
+   "feedback": 0.08,
+   "mix": 0.22,
+   "time": "95ms",
+   "type": "delay"
+  },
+  {
+   "decay": "0.9s",
+   "kind": "room",
+   "mix": 0.12,
+   "type": "reverb"
+  }
+ ],
+ "gain": "-20dB",
+ "play": {
+  "event_stable": true,
+  "frets": 24,
+  "gate": 0.88,
+  "humanize": {
+   "time": "4ms",
+   "vel": 0.07
+  },
+  "strum": "7ms",
+  "tuning": [
+   "F1",
+   "Bb1",
+   "Eb2",
+   "Ab2",
+   "Db3",
+   "Gb3",
+   "Bb3",
+   "Eb4"
+  ],
+  "vel_sens": 0.35,
+  "voicing": "guitar"
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "r": "90ms"
+  },
+  "env": {
+   "bite": {
+    "a": "0.2ms",
+    "d": "45ms",
+    "s": 0
+   },
+   "pick": {
+    "a": "0.1ms",
+    "d": "6ms",
+    "s": 0
+   }
+  },
+  "filters": [
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": -3.4,
+       "src": "expr.pm"
+      },
+      {
+       "amount": 0.6,
+       "src": "vel"
+      }
+     ],
+     "value": "11k"
+    },
+    "q": 0.6
+   },
+   {
+    "cutoff": "3.2k",
+    "gain": "3dB",
+    "kind": "peak",
+    "q": 1.8
+   },
+   {
+    "cutoff": "7.5k",
+    "q": 0.6
+   }
+  ],
+  "layers": [
+   {
+    "beat": 1.5,
+    "bright": {
+     "mod": [
+      {
+       "amount": -0.42,
+       "src": "expr.pm"
+      },
+      {
+       "amount": 0.2,
+       "src": "vel"
+      },
+      {
+       "amount": -0.05,
+       "src": "expr.up"
+      },
+      {
+       "amount": -0.5,
+       "src": "expr.dead"
+      },
+      {
+       "amount": 0.04,
+       "src": "rand"
+      }
+     ],
+     "value": 0.8
+    },
+    "buzz": {
+     "mod": [
+      {
+       "amount": 0.6,
+       "src": "expr.thump"
+      },
+      {
+       "amount": 0.4,
+       "src": "expr.pop"
+      }
+     ],
+     "value": 0.22
+    },
+    "choke": "55ms",
+    "click": 0.12,
+    "coil": 0.3,
+    "decay": {
+     "mod": [
+      {
+       "amount": -4.15,
+       "src": "expr.pm"
+      },
+      {
+       "amount": 0.3,
+       "src": "vel"
+      },
+      {
+       "amount": -4.44,
+       "src": "expr.dead"
+      }
+     ],
+     "value": "7s"
+    },
+    "fret": 0.3,
+    "grain": {
+     "mod": [
+      {
+       "amount": 0.5,
+       "src": "expr.pm"
+      }
+     ],
+     "value": 0.5
+    },
+    "level": {
+     "mod": [
+      {
+       "amount": -1.2,
+       "src": "expr.up"
+      },
+      {
+       "amount": 3.0,
+       "src": "expr.ph"
+      },
+      {
+       "amount": -5.0,
+       "src": "expr.dead"
+      }
+     ],
+     "value": "0dB"
+    },
+    "name": "string",
+    "node": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.nh"
+      }
+     ],
+     "value": 0
+    },
+    "pick": 0.11,
+    "pick_hard": 0.45,
+    "pickup": 0.09,
+    "pinch": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ph"
+      },
+      {
+       "amount": 1.0,
+       "src": "expr.nh"
+      }
+     ],
+     "value": 0
+    },
+    "planes": 0.3,
+    "polarity": {
+     "mod": [
+      {
+       "amount": -2.0,
+       "src": "expr.up"
+      }
+     ],
+     "value": 1
+    },
+    "scrape": 0.08,
+    "squeak": {
+     "mod": [
+      {
+       "amount": 0.6,
+       "src": "expr.move"
+      }
+     ],
+     "value": 0
+    },
+    "stiff": 0.32,
+    "thump": {
+     "mod": [
+      {
+       "amount": 0.7,
+       "src": "expr.pm"
+      }
+     ],
+     "value": 0
+    },
+    "tune_sounding": true,
+    "type": "pluck"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 44.0,
+       "src": "env.pick"
+      },
+      {
+       "amount": 10.0,
+       "src": "vel"
+      },
+      {
+       "amount": -3.0,
+       "src": "expr.up"
+      }
+     ],
+     "value": "-60dB"
+    },
+    "name": "pick",
+    "type": "noise"
+   }
+  ],
+  "lfo": {
+   "vib": {
+    "delay": "380ms",
+    "fade": "450ms",
+    "rate": "5.3hz",
+    "retrig": true
+   }
+  },
+  "pitch": {
+   "mod": [
+    {
+     "amount": 0.15,
+     "src": "env.bite"
+    },
+    {
+     "amount": 0.05,
+     "src": "rand"
+    },
+    {
+     "amount": 0.2,
+     "src": "lfo.vib"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

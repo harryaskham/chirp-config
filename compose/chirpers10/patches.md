@@ -251,6 +251,7 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `+reverb.kind` | 2 | 1 | `room` in 2 |  |
 | `play.phrase_arc` | 2 | 2 | `0.5` in 8, 15 |  |
 | `synth.layers.0.consonant_level` | 2 | 1 | `6dB` in 14 |  |
+| `synth.layers.0.aspirate` | 1 | 1 | `1` in 15 |  |
 | `synth.layers.0.effort.value` | 1 | 1 | `0.8` in 17 |  |
 | `synth.layers.0.speech` | 1 | 1 | `0.6` in 17 |  |
 
