@@ -5766,10 +5766,10 @@ def t_hole(c, look):
     return look
 
 
-@treat("typed", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+@treat("typed", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in ("moirefield",))
 def t_typed(c, look):
     """Set in type: each part of the picture is the letter as heavy as it is light."""
-    return _pre(look, {"type": "halftone", "mode": "glyphs", "count": 96, "gain": 1.5, "amount": c.arr})
+    return _pre(look, {"type": "halftone", "mode": "glyphs", "count": 96, "gain": 1.65, "amount": c.arr})
 
 
 @treat("wall", ok=lambda c, info: info["fam"] not in ("sign", "plate", "lattice", "sheet"))
@@ -5899,7 +5899,7 @@ def t_woven(c, look):
     return _pre(look, {"type": "weave", "count": min(count, 24), "slip": "1.6*env.weft", "shade": 0.55, "gap": 0.1, "amount": c.arr})
 
 
-@treat("screen", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+@treat("screen", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type", "trace"))
 def t_screen(c, look):
     """On a folding screen with a leaf for each sixteenth of the riff: it folds up and is
     opened flat again once in every turn."""
