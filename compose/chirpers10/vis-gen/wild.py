@@ -2245,8 +2245,8 @@ def globe(c):
     B = c.riffs[1] if len(c.riffs) > 1 else None
     R = 1.9
     layers = [{"type": "stars", "count": 400, "speed": 0, "size": 0.8, "light": 0.4, "twinkle": 0.2, "streak": 0}, lamp(-5, 3, -6, 0.9, "#bcd0ff"),
-              {"type": "mesh", "shape": "sphere", "detail": 18, "mode": "wire", "x": 0, "y": 0, "z": 0, "scale": R, "ry": f"0 - {A.turn}", "color": c.ink, "emit": 1.1, "light": 0, "ambient": 0, "rim": 0, "width": 0.009},
-              ball(0, 0, 0, R * 0.97, 24, **solid("#16233f", 0.8))]
+              ball(0, 0, 0, R * 0.95, 24, **solid("#192a4c", 0.72), emit=0.06),
+              {"type": "mesh", "shape": "sphere", "detail": 18, "mode": "wire", "x": 0, "y": 0, "z": 0, "scale": R, "ry": f"0 - {A.turn}", "color": c.ink, "emit": 0.95, "light": 0, "ambient": 0, "rim": 0, "width": 1.4}]
     for i, (p, rr) in enumerate(((A, R * 1.01), (B, R * 1.22))):
         if not p:
             continue
@@ -5815,7 +5815,7 @@ def t_coiled(c, look):
     return look
 
 
-@treat("ball", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+@treat("ball", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type", "body"))
 def t_ball(c, look):
     """Wrapped round a ball that turns once for every few turns of the riff."""
     p = _lead(c)
