@@ -1623,6 +1623,46 @@ def the_pendulum_swings(doc):
         doc['loudness'] = float(target)
 
 
+# v38 (chirper-zero, 24 Nov; instrument round on Harry's 24 Nov steer for instrument design: the tabla's treble
+# drum, its na and tin, on the song's three tabla tracks, 183 strokes; no note moves, no track is added):
+# THE FINGER TOUCHES THE SKIN.
+# The tabla counts the fives and the sevens BY HAND (v14, v18), and v22 gave the drum its hands: one head one sound,
+# a ring that falls away, a struck front and a finger's click. Read in the mix, the click never arrived: above
+# 2.5 kHz a treble stroke's first 30 ms stood 22 to 31 dB under everything else (2.5-5 kHz), in the fives and in
+# the sevens. The click was 16 dB up on the library's, but it falls 3 dB a millisecond (120 dB over 40 ms), so it
+# was over in three. A dayan has no tone up there (its head is loaded to make five harmonics and no more), so what
+# says a finger struck a skin is the touch itself: a few milliseconds of noise at 2 to 8 kHz. Here the touch is
+# 16 dB higher again on na and on tin and falls a decibel a millisecond, and the stroke's low-pass comes down from
+# 5 and 4 kHz to 2.5 (it tracks the stroke's force; nothing of the drum's tone is above 1.75 kHz), so the touch is
+# a tap at 2 to 8 kHz and not a hiss to 16. The ring, the faders and the bass drum are as v22 left them.
+# C10T9_FINGER = the touch's level on na ; on tin ; the time its 120 dB fall takes ; the strokes' low-pass.
+# '' = v37 byte for byte. On only while PENDULUM is.
+FINGER = os.environ.get("C10T9_FINGER", "-116dB;-118dB;120ms;2.5k" if PENDULUM else "")
+
+
+def the_finger_touches_the_skin(doc):
+    """v38: the treble drum's touch (the noise layer of na and tin) louder, longer and held to 2-8 kHz, on the three
+    tabla tracks' own patch strings."""
+    na, tin, fall, lp = FINGER.split(";")
+    new = {"kit.na.patch.synth.layers.1.level.value": na, "kit.tin.patch.synth.layers.1.level.value": tin,
+           "kit.na.patch.synth.env.c.d": fall, "kit.tin.patch.synth.env.c.d": fall,
+           "kit.na.patch.synth.filters.1.cutoff.value": lp, "kit.tin.patch.synth.filters.1.cutoff.value": lp}
+    seen = 0
+    for i, t in enumerate(doc["tracks"]):
+        if t["name"] in ("tabla", "rupak", "tabla-ab"):
+            words = t["patch"].split(" ")
+            keys = [w.split("=", 1)[0] for w in words]
+            for k, v in new.items():
+                if k in keys:
+                    words[keys.index(k)] = f"{k}={v}"
+                else:
+                    words.append(f"{k}={v}")
+                    keys.append(k)
+            doc["tracks"][i] = {**t, "patch": " ".join(words)}
+            seen += 1
+    assert seen == 3, seen
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T9_SHOW"):
         end = compose()
@@ -1671,4 +1711,6 @@ if __name__ == "__main__":
             the_pair_shows_its_teeth(doc)
         if PENDULUM:
             the_pendulum_swings(doc)
+        if FINGER:
+            the_finger_touches_the_skin(doc)
         open(OUT, "w").write(dump(doc))
