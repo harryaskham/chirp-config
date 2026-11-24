@@ -5616,11 +5616,11 @@ def t_kaleido(c, look):
 # that changes what it is made of, then one that works on it in time.
 STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0, "hyperbolic": 0, "standing": 0, "anamorph": 0, "conformal": 0,
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
-         "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0, "woodcut": 1, "riso": 1, "etched": 1,
+         "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0, "woodcut": 1, "riso": 1, "etched": 1, "cathedral": 1,
          "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2, "scanfold": 2, "duochrono": 2}
 
 # Pairs of guises that leave only texture, or flood white (feedback+grow saturates to pale wash).
-STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph", "conformal", "screen") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso", "etched", "dots")}
+STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph", "conformal", "screen") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso", "etched", "dots", "cathedral")}
              | {(a_, "blown") for a_ in ("newsprint", "riso", "etched", "negative")}
              | {("blown", a_) for a_ in ("newsprint", "riso", "etched", "negative")}
              | {("tunnel", "overgrown"), ("overgrown", "tunnel"), ("itself", "carried"), ("carried", "itself"),
@@ -6064,7 +6064,7 @@ def t_riso(c, look):
     return look
 
 
-@treat("anamorph", ok=lambda c, info: info["f"].__name__ in KALEIDO_OK and info["f"].__name__ in BROAD and c.riffs)
+@treat("anamorph", ok=lambda c, info: info["f"].__name__ in KALEIDO_OK and info["f"].__name__ in BROAD and info["f"].__name__ not in WHITE and not info.get("paper") and c.riffs)
 def t_anamorph(c, look):
     """Cylindrical mirror anamorphosis: a vertical chrome cylinder sits at the centre
     reflecting the picture while the surrounding panorama sweeps round it with the riff."""
@@ -6111,6 +6111,15 @@ def t_duochrono(c, look):
     p = _lead(c)
     delay = max(0.22, min(1.4, (p.cell or 16) * c.six * 0.5))
     return _pre(look, {"type": "duochrono", "delay": round(delay, 3), "gain": 1.15, "shift": f"{p.turn}/4", "amount": c.arr})
+
+
+@treat("cathedral", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE)
+def t_cathedral(c, look):
+    """Cathedral bevelled stained glass: organic jewel-toned Voronoi panes bound in dark
+    lead cames with faceted internal bevel highlights that flare on the riff's hits."""
+    p = _lead(c)
+    count = (14, 18, 22, 16)[c.seed % 4]
+    return _pre(look, {"type": "stained", "count": count, "lead": 0.075, "bevel": f"0.5 + 0.55*{p.hit}", "drift": 0.45, "amount": c.arr})
 
 
 def _stitch(c, look, mode, count, **kw):
@@ -6279,7 +6288,7 @@ def t_negative(c, look):
 
 
 ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief", "poster", "flood", "combed", "blown", "leaded",
-           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried", "reeded", "louvers", "hyperbolic", "standing", "woodcut", "riso", "anamorph", "scanfold", "etched", "conformal", "duochrono")
+           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried", "reeded", "louvers", "hyperbolic", "standing", "woodcut", "riso", "anamorph", "scanfold", "etched", "conformal", "duochrono", "cathedral")
 
 # Idioms drawn in hair lines and points, made bolder so that they read at any size: how far
 # each thing in them is spread (a fraction of the frame's height).
