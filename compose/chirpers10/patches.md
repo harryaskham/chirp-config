@@ -162,14 +162,14 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 
 | field | tracks | songs | values (the songs) | |
 |---|---|---|---|---|
-| `fx.3.mix` | 9 | 8 | `0` in 7, 8, 9, 10, 11, 14, 15, 17 | AGREED |
-| `fx.4.bands.0.gain` | 9 | 8 | `0dB` in 7, 8, 9, 10, 11, 14, 15, 17 | AGREED |
-| `fx.4.bands.1.gain` | 9 | 8 | `0dB` in 7, 8, 9, 10, 11, 14, 15, 17 | AGREED |
-| `fx.4.bands.2.gain` | 9 | 8 | `0dB` in 7, 8, 9, 10, 11, 14, 15, 17 | AGREED |
-| `fx.4.bands.3.gain` | 9 | 8 | `0dB` in 7, 8, 9, 10, 11, 14, 15, 17 | AGREED |
 | `+cab.cone` | 9 | 8 | `144` in 14; `52` in 7; `64` in 8; `74` in 9; `87` in 10; `14` in 11; `94` in 15; `101` in 17 |  |
 | `+cab.mic` | 9 | 8 | `0.4` in 9, 11, 14, 17; `0.5` in 7, 8, 15; `0.55` in 10 |  |
 | `+cab.model` | 9 | 8 | `4x12-modern` in 7, 8, 9, 10, 11, 14, 15, 17 | AGREED |
+| `fx.3.mix` | 7 | 6 | `0` in 7, 9, 10, 14, 15, 17 | AGREED |
+| `fx.4.bands.0.gain` | 7 | 6 | `0dB` in 7, 9, 10, 14, 15, 17 | AGREED |
+| `fx.4.bands.1.gain` | 7 | 6 | `0dB` in 7, 9, 10, 14, 15, 17 | AGREED |
+| `fx.4.bands.2.gain` | 7 | 6 | `0dB` in 7, 9, 10, 14, 15, 17 | AGREED |
+| `fx.4.bands.3.gain` | 7 | 6 | `0dB` in 7, 9, 10, 14, 15, 17 | AGREED |
 | `synth.layers.0.thump.mod.0.amount` | 4 | 4 | `0.2` in 7, 11, 15; `0` in 8 |  |
 | `synth.filters.0.cutoff.mod.0.amount` | 3 | 3 | `-2` in 8, 11, 15 |  |
 | `synth.pitch.mod.2.amount` | 3 | 2 | `0` in 14, 17 |  |
@@ -217,14 +217,14 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 
 | field | tracks | songs | values (the songs) | |
 |---|---|---|---|---|
-| `fx.3.mix` | 8 | 7 | `0` in 7, 8, 9, 11, 14, 15, 17 | AGREED |
-| `fx.4.bands.0.gain` | 8 | 7 | `0dB` in 7, 8, 9, 11, 14, 15, 17 | AGREED |
-| `fx.4.bands.1.gain` | 8 | 7 | `0dB` in 7, 8, 9, 11, 14, 15, 17 | AGREED |
-| `fx.4.bands.2.gain` | 8 | 7 | `0dB` in 7, 8, 9, 11, 14, 15, 17 | AGREED |
-| `fx.4.bands.3.gain` | 8 | 7 | `0dB` in 7, 8, 9, 11, 14, 15, 17 | AGREED |
 | `+cab.cone` | 8 | 7 | `145` in 14; `53` in 7; `65` in 8; `75` in 9; `15` in 11; `95` in 15; `102` in 17 |  |
 | `+cab.mic` | 8 | 7 | `0.4` in 9, 11, 14, 17; `0.5` in 7, 8, 15 | AGREED |
 | `+cab.model` | 8 | 7 | `4x12-modern` in 7, 8, 9, 11, 14, 15, 17 | AGREED |
+| `fx.3.mix` | 6 | 5 | `0` in 7, 9, 14, 15, 17 | AGREED |
+| `fx.4.bands.0.gain` | 6 | 5 | `0dB` in 7, 9, 14, 15, 17 | AGREED |
+| `fx.4.bands.1.gain` | 6 | 5 | `0dB` in 7, 9, 14, 15, 17 | AGREED |
+| `fx.4.bands.2.gain` | 6 | 5 | `0dB` in 7, 9, 14, 15, 17 | AGREED |
+| `fx.4.bands.3.gain` | 6 | 5 | `0dB` in 7, 9, 14, 15, 17 | AGREED |
 | `synth.layers.0.thump.mod.0.amount` | 4 | 4 | `0.2` in 7, 11, 15; `0` in 8 |  |
 | `synth.filters.0.cutoff.mod.0.amount` | 3 | 3 | `-2` in 8, 11, 15 |  |
 | `synth.pitch.mod.2.amount` | 3 | 2 | `0` in 14, 17 |  |
@@ -371,6 +371,10 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `+pump.every` | 1 | 1 | `3/8` in 11 |  |
 | `+pump.hold` | 1 | 1 | `28ms` in 11 |  |
 | `+pump.release` | 1 | 1 | `395ms` in 11 |  |
+| `+rotary.depth` | 1 | 1 | `0.65` in 11 |  |
+| `+rotary.doppler` | 1 | 1 | `0.6` in 11 |  |
+| `+rotary.speed` | 1 | 1 | `0.22` in 11 |  |
+| `+rotary.spread` | 1 | 1 | `0.9` in 11 |  |
 
 ## `juno-pad`: 2 songs, 2 tracks; as it comes in tracks 1, 2
 
