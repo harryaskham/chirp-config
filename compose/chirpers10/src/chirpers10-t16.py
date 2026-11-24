@@ -1387,6 +1387,8 @@ def build():
         the_band_leaves_every_fourth(doc, marks, THREES)                   # v28: last, on the finished document
     if TUNE:
         the_pair_plays_a_tune(doc, marks)                                  # v29: last, on the finished document
+    if HALO:
+        the_answer_gets_hm2_and_halo(doc)
     return doc, marks, end
 
 
@@ -1848,6 +1850,105 @@ def finger_cymbals(doc):
     doc["tracks"].append({"name": "cymbals", "patch": "ce-finger-cymbals", "gain": gain, "pan": float(pan),
                           **({"sends": {"oh": oh}} if oh else {}),
                           "notes": [{**n, "pitch": "o" if n["vel"] == loud else "c"} for n in moved]})
+
+
+# v30 (chirper-zero, 24 Nov; instrument round, on Harry's 24 Nov steer for interesting effects, guitar sound, and
+# synths/environment sound — no note moves, no track added): THE ANSWER GETS AN HM-2, AND THE HALO OPENS.
+# Two sound-only additions on pin 882b35a1 (carrying `pedal`):
+# 1) THE ANSWERED GUITARS (`left-said`, `right-said`, beats 76.3-199.8 in 'five', 'seven', 'three' and 'square again'):
+#    song patches `ce-said-l` and `ce-said-r` (extending `ct-twin` with the same strings/play) insert a 75% Boss HM-2
+#    blend (`pedal kind=hm2 drive=0.45 tone=0.65 bass=0.5 level=3dB volts=0.95 mix=0.75`, amp `ts=0.2`, `boost=2dB`)
+#    ahead of the amp, with fader 0.5 -> -0.3 dB so the answered pair sits at matched loudness alone (~0.0 dB) while
+#    gaining distinct Swedish-chainsaw bite that separates it from `left`/`right` and improves 'five', 'seven' and
+#    'three' (all three move closer to the records; Screamer worsened them).
+# 2) THE OVERTONE HALO (`overtone` bus, gated strictly to 'the opening turn' beats 8-39.95, 0:07.3-0:36.3, AND the
+#    closing 'a half and a quarter' + 'close enough' beats 200-232, 3:01.8-3:30.9): preserves the pure acoustic beating
+#    of `reed`, `hair`, `pan` and `struck` untouched in the centre (zero modulation on any tuned track!) while sending
+#    `pan` (+14 dB), `cymbals` (+10 dB), `pan-out` (+18 dB), `last` (+14 dB) and `struck` (+15 dB) to a gated ambient
+#    chamber tuned to pure integer harmonics of F3 (`349.228hz,523.842hz,698.456hz,1047.685hz,1396.913hz,1746.141hz`):
+#    3/8 ping-pong delay -> harmonic sympathetic strings -> octave-up reverse granular cloud -> 3.8 s shimmer hall ->
+#    bright air eq (HP 2.2 kHz, 3.2 kHz +2.5, 6.2 kHz +11) -> gate lane (1.0 in opening turn, 0 by beat 39.95 so
+#    'square' is bit-identical at -100 dB, 0.94 in 'a half and a quarter', 1.0 in 'an eighth'/'close enough').
+# C10T16_HALO = pedal kind:drive:tone:bass:level:volts:mix ; amp_ts:amp_boost ; said_gain ;
+#   sends pan,cymbals,pan-out,last,struck ; delay time:fb:tone:mix ; sympathetic notes:decay:mix ;
+#   cloud size:density:pos:spray:pitch:rev:spread:win:seed:mix ; reverb kind:decay:size:shimmer:lc:hc:mix ;
+#   eq bands | ; end_lvl ; loudness target. '' = v29 byte for byte. On only while TUNE is.
+HALO = os.environ.get(
+    "C10T16_HALO",
+    "hm2:0.45:0.65:0.5:3dB:0.95:0.75;0.2:2dB;-0.3dB;14dB,10dB,18dB,14dB,15dB;3/8:0.44:13500:0.45;"
+    "349.228hz,523.842hz,698.456hz,1047.685hz,1396.913hz,1746.141hz:2.4s:0.22;"
+    "130ms:18:155ms:145ms:12.0:0.38:1.0:2.8s:16:0.85;hall:3.8s:0.88:0.6:2200:15500:0.92;"
+    "hp cutoff=2200|peak cutoff=3200 q=0.7 gain=2.5dB|highshelf cutoff=6200 gain=11dB;0.94;-10.0982"
+    if TUNE else "",
+)
+
+
+def the_answer_gets_hm2_and_halo(doc):
+    """v30: HM-2 blend on `left-said`/`right-said` + integer-harmonic `overtone` bus in opening turn & closing unwind."""
+    ped_s, amp_s, sg_s, snd_s, dly_s, sym_s, cld_s, rev_s, eq_s, end_s, target = HALO.split(";")
+    if ped_s:
+        kind, drv, tone, bass, lvl, volts, mix = ped_s.split(":")
+        ts_s, bst_s = amp_s.split(":")
+        ped = {"type": "pedal", "kind": kind, "drive": float(drv), "tone": float(tone),
+               "bass": float(bass), "level": lvl, "volts": float(volts), "mix": float(mix)}
+        patches = dict(doc.get("patches") or {})
+        for side, cone in (("l", 37), ("r", 41)):
+            pnm = f"ce-said-{side}"
+            assert pnm not in patches, pnm
+            patches[pnm] = {
+                "extends": "ct-twin",
+                "about": f"Close Enough answered guitar (cone {cone}) with a {kind} stompbox blend ahead of its amp (chirper-zero, 24 Nov).",
+                "fx": [
+                    {"type": "compressor", "attack": "2ms", "makeup": "3dB", "release": "60ms", "threshold": "-20dB"},
+                    dict(ped),
+                    {"type": "amp", "bloom": 0.5, "boost": bst_s, "gain": 0.85, "mid": 0.74,
+                     "nfb": 18.0, "resonance": 0.72, "sag": 0.2, "tight": 220, "triode": True, "ts": float(ts_s)},
+                    {"type": "cab", "model": "4x12-modern", "mic": 0.5, "cone": cone},
+                    {"type": "gate", "attack": "0.3ms", "hold": "5ms", "release": "12ms", "threshold": "-42dB"},
+                ],
+            }
+        doc["patches"] = patches
+        for i, t in enumerate(doc["tracks"]):
+            if t["name"] in ("left-said", "right-said"):
+                side = "l" if t["name"] == "left-said" else "r"
+                doc["tracks"][i] = {
+                    **t,
+                    "patch": f"ce-said-{side} synth.layers.0.mute=expr.pm*0.56 synth.layers.0.mute_width=0.10 "
+                             "synth.layers.0.tune_sounding=true synth.pitch.mod.1.amount=0 synth.filters.0.cutoff.mod.0.amount=-2",
+                    **({"gain": sg_s} if sg_s else {}),
+                }
+    if snd_s:
+        assert "overtone" not in doc["buses"], "overtone bus already exists"
+        bus_fx = []
+        if dly_s:
+            tm, fb, tn, mx = dly_s.split(":")
+            bus_fx.append({"type": "delay", "time": tm, "feedback": float(fb), "ping_pong": True,
+                           "tone": float(tn), "mix": float(mx)})
+        if sym_s:
+            nts, dec, mx = sym_s.split(":")
+            bus_fx.append({"type": "sympathetic", "notes": nts, "decay": dec, "mix": float(mx), "tune_sounding": True})
+        if cld_s:
+            sz, dn, ps, sp, pt, rv, sr, wn, sd, mx = cld_s.split(":")
+            bus_fx.append({"type": "cloud", "size": sz, "density": float(dn), "position": ps, "spray": sp,
+                           "pitch": float(pt), "reverse": float(rv), "spread": float(sr), "window": wn,
+                           "seed": int(sd), "mix": float(mx)})
+        if rev_s:
+            kd, dec, sz, sh, lc, hc, mx = rev_s.split(":")
+            bus_fx.append({"type": "reverb", "kind": kd, "decay": dec, "size": float(sz), "shimmer": float(sh),
+                           "low_cut": float(lc), "high_cut": float(hc), "width": 1.0, "mix": float(mx)})
+        if eq_s:
+            bus_fx.append({"type": "eq", "bands": eq_s.split("|")})
+        bus_fx.append({"type": "gain", "gain": {"value": "-96dB", "mod": [{"src": "auto.open", "amount": 96}]}})
+        el = float(end_s)
+        pts = [["0b", 0], ["7.95b", 0], ["8b", 1], ["39.0b", 1], ["39.95b", 0],
+               ["199.95b", 0], ["200b", el], ["215.95b", el], ["216b", 1.0], ["232b", 1.0]]
+        doc["buses"] = {**doc["buses"], "overtone": {"fx": bus_fx, "auto": {"open": {"curve": 0, "points": pts}}}}
+        smap = dict(zip(("pan", "cymbals", "pan-out", "last", "struck"), snd_s.split(",")))
+        for i, t in enumerate(doc["tracks"]):
+            if t["name"] in smap and smap[t["name"]]:
+                doc["tracks"][i] = {**t, "sends": {**(t.get("sends") or {}), "overtone": smap[t["name"]]}}
+    if target:
+        doc["loudness"] = float(target)
 
 
 def dump(doc):
