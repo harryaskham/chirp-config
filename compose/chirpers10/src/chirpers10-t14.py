@@ -2011,6 +2011,88 @@ def the_valley_keeps_time_on_three_woods(doc):
         doc["loudness"] = float(target)
 
 
+# v30 (chirper-zero, 24 Nov; instrument round, on Harry's steer for interesting effects, guitar sound, and synths/
+# environment sound): THE VALLEY BREATHES AROUND THE COUNT — in 'fourth' (1:41.6-2:11.0), where the clean pair
+# (`clean-l` every nine sixteenths on Bb2/F3/Bb3, `clean-r` every fifteen on Db3/Ab3/Db4) and the lead carry the quiet
+# middle, each clean guitar gets a slow stereo phaser (0.18 and 0.11 Hz, 6 stages, mix 0.35; gain 7.3 -> 8.0 dB so the
+# notch holds its level) and both send (with `tune`) to a new ambient bus `valley`: a 3/16 ping-pong delay (the common
+# pulse of 9/16 and 15/16), sympathetic strings tuned to the section's B flat minor seventh chord, an octave-up granular
+# cloud (35% reverse, full stereo spread), a 3.5 s shimmer hall, high-pass + presence + air eq (1.9 kHz HP, 3.2 kHz +2,
+# 7.5 kHz +8.5), ducked 8 dB by `said` so the ambient halo steps back while the voices count and blooms in the gaps
+# between words. The bus is gated to 'fourth' (0 to 1 at beat 208, fading back to -96 dB over the last 0.8 beat before
+# 'common' at beat 268). No note moves, no track is added; outside 'fourth' only the clean guitars' own 1.6 s hall tail
+# carries the phaser into the first second of 'common' (-30 dB under the band, -94 dB two seconds in).
+# C10T14_HALO = section ; clean phaser rates L,R:depth:stages:fb:mix:gain ; sends clean,tune ;
+#   delay time:fb:tone:mix ; sympathetic notes:decay:mix ; cloud size:density:pos:spray:pitch:rev:spread:win:seed:mix ;
+#   reverb kind:decay:size:shimmer:hp:hi:mix ; eq bands | ; duck by:depth:att:rel ; fade_beats ; loudness target.
+# '' = v29 byte for byte.
+HALO = os.environ.get(
+    "C10T14_HALO",
+    "fourth;0.18,0.11:0.55:6:0.3:0.35:8.0dB;16.5dB,7dB;3/16:0.42:11000:0.45;"
+    "Bb3,Db4,F4,Ab4,Bb4,Db5,F5:2.0s:0.22;125ms:18:150ms:140ms:12.0:0.35:1.0:2.5s:14:0.8;"
+    "hall:3.5s:0.86:0.55:1900:15500:0.9;hp cutoff=1900|peak cutoff=3200 q=0.7 gain=2dB|highshelf cutoff=7500 gain=8.5dB;"
+    "said:-8dB:12ms:200ms;0.8;-11.044"
+    if WOODS else "",
+)
+
+
+def the_valley_breathes_around_the_count(doc):
+    """v30: in 'fourth' the clean guitars get a slow stereo phaser and send with `tune` to a gated ambient bus
+    `valley` (3/16 ping-pong delay, sympathetic Bbm7 resonance, octave-up cloud, shimmer hall, air eq, ducked by `said`)."""
+    sec, ph_s, snd_s, dly_s, sym_s, cld_s, rev_s, eq_s, dck_s, fade_s, target = HALO.split(";")
+    a = AT[sec] / 4
+    z = a + dict(FORM)[sec] / 4
+    assert "valley" not in doc["buses"], "valley bus already exists"
+    bus_fx = []
+    if dly_s:
+        t_s, fb_s, tn_s, mx_s = dly_s.split(":")
+        bus_fx.append({"type": "delay", "time": t_s, "feedback": float(fb_s), "ping_pong": True,
+                       "tone": float(tn_s), "mix": float(mx_s)})
+    if sym_s:
+        nts, dec, mx = sym_s.split(":")
+        bus_fx.append({"type": "sympathetic", "notes": nts, "decay": dec, "mix": float(mx), "tune_sounding": True})
+    if cld_s:
+        sz, dn, ps, sp, pt, rv, sr, wn, sd, mx = cld_s.split(":")
+        bus_fx.append({"type": "cloud", "size": sz, "density": float(dn), "position": ps, "spray": sp,
+                       "pitch": float(pt), "reverse": float(rv), "spread": float(sr), "window": wn,
+                       "seed": int(sd), "mix": float(mx)})
+    if rev_s:
+        kd, dec, sz, sh, lc, hc, mx = rev_s.split(":")
+        bus_fx.append({"type": "reverb", "kind": kd, "decay": dec, "size": float(sz), "shimmer": float(sh),
+                       "low_cut": float(lc), "high_cut": float(hc), "width": 1.0, "mix": float(mx)})
+    if eq_s:
+        bus_fx.append({"type": "eq", "bands": eq_s.split("|")})
+    if dck_s:
+        by, dep, att, rel = dck_s.split(":")
+        bus_fx.append({"type": "duck", "by": by, "depth": dep, "attack": att, "release": rel})
+    fade = float(fade_s)
+    bus_fx.append({"type": "gain", "gain": {"value": "-96dB", "mod": [{"src": "auto.valley", "amount": 96}]}})
+    doc["buses"] = {**doc["buses"], "valley": {
+        "fx": bus_fx,
+        "auto": {"valley": {"curve": 0, "points": [
+            ["0b", 0], [f"{a - 0.02:g}b", 0], [f"{a:g}b", 1],
+            [f"{z - fade:g}b", 1], [f"{z - 0.05:g}b", 0],
+        ]}},
+    }}
+    clean_send, tune_send = snd_s.split(",")
+    rates_s, dep_s, stg_s, fb_s, mx_s, cg_s = ph_s.split(":")
+    rl, rr = rates_s.split(",")
+    for t in doc["tracks"]:
+        if t["name"] in ("clean-l", "clean-r"):
+            t["sends"] = {**(t.get("sends") or {}), "valley": clean_send}
+            if cg_s:
+                t["gain"] = cg_s
+            if float(mx_s) > 0:
+                rate = rl if t["name"] == "clean-l" else rr
+                old_fx = json.loads(json.dumps(t.get("fx") or []))
+                t["fx"] = [{"type": "phaser", "rate": rate, "depth": float(dep_s),
+                            "stages": int(stg_s), "feedback": float(fb_s), "mix": float(mx_s)}] + old_fx
+        elif t["name"] == "tune" and tune_send:
+            t["sends"] = {**(t.get("sends") or {}), "valley": tune_send}
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T14_SHOW"):
         beat = 60 / BPM
@@ -2056,4 +2138,6 @@ if __name__ == "__main__":
             twice_as_fast_is_the_octave_above(doc)
         if WOODS:
             the_valley_keeps_time_on_three_woods(doc)
+        if HALO:
+            the_valley_breathes_around_the_count(doc)
         open(OUT, "w").write(dump(doc))
