@@ -5225,7 +5225,7 @@ def mycelium(c):
     radii = ([0.62], [0.8, 0.4], [0.84, 0.52, 0.22])[len(P) - 1]
     env = hit_env(P, "200ms")
     lay = {"type": "mycelium", "size": 200, "agents": 18000, "rate": 54, "sense": 0.03, "angle": 0.075, "turn": 0.1, "decay": 0.86, "gain": 0.75,
-           "food": 1.4, "linger": round(min(6.0, max(0.9, (P[0].cell or 16) * c.six * 0.95)), 2), "radius": 0.03, "spread": 0.75,
+           "food": 1.4, "linger": round(min(6.0, max(0.9, (P[0].cell or 16) * c.six * 0.95)), 2), "radius": 0.03, "spread": 0.6667,
            "burst": 0.05, "thick": 3.0, "seed": c.seed % 997, "palette": [c.dim, c.a, c.ink]}
     marks = []
     for i, (p, r) in enumerate(zip(P, radii)):
@@ -5235,6 +5235,29 @@ def mycelium(c):
         # Where each riff is in its turn: a point going round its ring.
         marks.append({"type": "shape", "sides": 1, "radius": f"0.014 + 0.03*env.h{i}", "width": 0, "fill": 1, "x": x, "y": y, "color": c.col(i), "opacity": f"0.5 + 0.5*env.h{i}"})
     return {"background": "#05070a", "env": env, "layers": [lay] + marks, "filters": [{"type": "tonemap", "knee": 0.75}, bloom(c, 0.3, 0.014, 0.7)]}
+
+
+@idiom(needs=1, fam="count", cost=1)
+def sandpile(c):
+    """Sand that counts. Every note drops a few grains on its riff's spot; a cell that holds
+    four topples, a grain to each neighbour, and the avalanche runs through the pile. Each
+    pile is as big as its riff has played since the song began (the busier riff's the
+    bigger), in the carpet such piles make, and where two meet they make a border neither
+    would make alone."""
+    P = c.riffs[:3]
+    spots = ([(0, 0)], [(-0.82, 0), (0.82, 0)], [(-1.08, -0.22), (0, 0.3), (1.08, -0.22)])[len(P) - 1]
+    grains, most = 14, (44000, 34000, 20000)[len(P) - 1]
+    env = hit_env(P, "180ms")
+    # (Most cells of a standing pile hold three, then two, then one: the commonest is the calm colour, the rarest the lightest.)
+    lay = {"type": "sandpile", "size": 180, "rate": 700, "grains": grains, "gain": 0.85, "spread": 1.0, "flash": 0.3, "palette": [c.ink, c.col(1), c.col(0)]}
+    marks = []
+    for i, (p, (x, y)) in enumerate(zip(P, spots)):
+        k = "" if i == 0 else str(i + 1)
+        played = p.rate * (c.a16 / 16)          # its notes so far, about
+        lay.update({f"on{k}": f"track.{p.name}", f"x{k}": x, f"y{k}": y, f"warm{k}": int(min(most, max(most * 0.45, grains * 2.2 * played)))})
+        # Where each riff drops its sand: a ring that jumps on its notes.
+        marks.append({"type": "shape", "sides": 1, "radius": f"0.035 + 0.05*env.h{i}", "width": 0.007, "fill": 0, "x": x, "y": y, "color": c.col(i), "opacity": f"0.35 + 0.65*env.h{i}"})
+    return {"background": "#05060a", "env": env, "layers": [lay] + marks, "filters": [{"type": "tonemap", "knee": 0.8}, bloom(c, 0.22, 0.01, 0.75)]}
 
 
 @idiom(needs=2, fam="field", cost=2)
@@ -5858,10 +5881,10 @@ STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall"
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
          "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0, "woodcut": 1, "riso": 1, "etched": 1, "cathedral": 1,
          "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2, "scanfold": 2, "duochrono": 2, "metered": 2,
-         "recoil": 2, "looped": 2, "boomerang": 2, "receding": 2, "filmclock": 2, "exposed": 2}
+         "recoil": 2, "looped": 2, "boomerang": 2, "receding": 2, "filmclock": 2, "exposed": 2, "janus": 2}
 
 # The guises that work on a recording of the picture.
-TIMED = ("recoil", "looped", "boomerang", "receding", "filmclock", "exposed")
+TIMED = ("recoil", "looped", "boomerang", "receding", "filmclock", "exposed", "janus")
 # Pairs of guises that leave only texture, or flood white (feedback+grow saturates to pale wash).
 STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph", "conformal", "screen") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso", "etched", "dots", "cathedral")}
              | {(a_, "blown") for a_ in ("newsprint", "riso", "etched", "negative")}
@@ -5874,6 +5897,8 @@ STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling
              | {(a_, b_) for a_ in TIMED for b_ in ("stop", "metered", "delayed", "scanfold", "duochrono", "echo", "carried") + TIMED if a_ != b_}
              | {(b_, a_) for a_ in TIMED for b_ in ("stop", "metered", "delayed", "scanfold", "duochrono", "echo", "carried")}
              # (Small frames of a picture that is already small frames, or a print of them, is only texture; and a plate exposed over and over fills one that is already full.)
+             # (Two halves of a picture that is already halves, or copies, of itself are no longer two.)
+             | {(a_, "janus") for a_ in ("mirror", "kaleido", "wall", "itself", "tunnel", "hyperbolic", "screen", "nest", "anamorph", "conformal", "coiled", "falling", "wound", "leaded")}
              | {(a_, "filmclock") for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph", "conformal", "screen", "nest", "itself", "typed", "newsprint", "dots")}
              | {(a_, "exposed") for a_ in ("wall", "kaleido", "itself", "screen", "typed", "newsprint", "dots", "flood", "poster", "woodcut", "riso", "etched", "papercut", "cathedral", "onebit", "hatched", "engraved")}
              # (Frames within frames of a picture that is already frames within frames, or a print of them, is only texture.)
@@ -5892,7 +5917,7 @@ HANDS = ("riley", "blinds", "dominoes", "breakout", "kandinsky", "vortex", "moon
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
            "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava clockfield ripplebath".split())
-BROAD = FULL | set("overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery hilbert worldlines mycelium".split())
+BROAD = FULL | set("overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery hilbert worldlines mycelium sandpile".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("breakout searchlights solkattu remainder rain seismo metro epicycle pond tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
@@ -6420,6 +6445,33 @@ def t_boomerang(c, look):
     turn = (p.cell or 16) / 4                       # beats
     u = f"({p.ph}*{turn:g} - {turn / 2:g})"         # beats past the middle of the turn
     return _pre(look, {"type": "replay", "delay": f"2*max({u}, 0)", "hold": round(turn + 0.5, 2), "wear": 0.22})
+
+
+def _janus_turn(c):
+    """The stretch the two faces part and meet over (beats), and how many of them make a
+    turn of the riff: the whole turn, or the half, third … of it short enough to keep on
+    tape twice over."""
+    cell = _lead(c).cell or 16
+    m = 1
+    while 2 * cell * c.six / m > 2.9:
+        m += 1
+    return cell / 4 / m, m
+
+
+@treat("janus", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type", "mirror") and info["f"].__name__ not in MIRROR_BAD and c.riffs
+       and (_lead(c).cell or 16) >= 4 and _janus_turn(c)[0] * 4 * c.six >= 0.6)
+def t_janus(c, look):
+    """Two faces. The left half of the picture and its mirror image on the right; the left
+    goes forward and the right goes back. They are one picture at the top of each turn of
+    the riff (or each half or third of a long one) and part from there, the right half
+    running backwards through what the left has just done, and they snap level again as
+    the turn comes round."""
+    p = _lead(c)
+    win, m = _janus_turn(c)
+    u = p.ph if m == 1 else f"fract({m}*{p.ph})"
+    # (Every other time the faces are above and below: the lower half is the upper's reflection, and goes back.)
+    axis, side = (("x", "right"), ("y", "bottom"))[c.seed % 2]
+    return _pre(look, {"type": "mirror", "axis": axis}, {"type": "replay", "delay": f"{2 * win:g}*{u}", "hold": round(2 * win + 0.5, 2), "side": side, "wear": 0})
 
 
 @treat("receding", ok=lambda c, info: info["f"].__name__ in BROAD and info["f"].__name__ not in WHITE and info["fam"] not in ("sign", "plate", "type") and c.riffs)
