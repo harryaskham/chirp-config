@@ -1199,7 +1199,7 @@ TAPE = os.environ.get("C10T5_TAPE", "1;84:96;-1;0.575;0.41;-24;" if FALLTONE els
 # the pole, and up the run out of it. No other part changes.
 # dB on the tone against its level under the stair ; bars from:to ; the loudness target ('' = unchanged). '' = v29.
 # It is on only while no other C10T5_ switch is set, so every older switch gives exactly what it gave.
-HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM", "C10T5_SNARE", "C10T5_LEAN", "C10T5_ASCENT", "C10T5_SCRAPE", "C10T5_HAND", "C10T5_UNDER") for k in os.environ) else "")
+HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM", "C10T5_SNARE", "C10T5_LEAN", "C10T5_ASCENT", "C10T5_SCRAPE", "C10T5_HAND", "C10T5_UNDER", "C10T5_SPIRAL") for k in os.environ) else "")
 
 # v31 (chirper-two; palette: the song had no voice, and no song on the album had used the engine's speech to song):
 # WE HAVE BEEN HERE BEFORE. A song "all about the illusions" (Harry, 15 Nov) had every illusion of pitch and of speed
@@ -1520,6 +1520,8 @@ def song():
         the_descent_gets_a_hand(doc)
     if UNDER:
         the_chug_under_the_stair_holds(doc)
+    if SPIRAL:
+        the_stair_is_a_spiral(doc)
     return doc
 
 
@@ -2076,6 +2078,84 @@ def the_chug_under_the_stair_holds(doc):
             assert isinstance(t["gain"], dict)
             new["gain"] = {**t["gain"], "value": f"{float(t['gain']['value'][:-2]) + float(trim):g}dB"}
         doc["tracks"][i] = new
+    if target:
+        doc["loudness"] = float(target)
+
+
+# v42: THE STAIR IS A SPIRAL (the Shepard tone under the stair, `stair`; an instrument round on Harry's 24 Nov steer for
+# interesting effects and synths/environment sound; no note moves, no patch changes). The stair is the plain form of
+# the illusion, and Shepard's own picture of why it works is a HELIX: pitch goes round a circle of twelve as it goes
+# up, and a note an octave on stands over where it began. The tone that says the stair (Harry: "It climbed better with
+# the tone under it") stood still in the middle of the stereo. Now it goes round the listener as it climbs, ONE LAP
+# FOR EACH OCTAVE IT TRAVELS, so where it is IS where it is in the octave: the bar's first note straight ahead, half
+# way up behind you, the top of the octave straight ahead again, where it began. A lap a bar in the foot and the
+# stair (bars 0-16), a lap every two bars under the tune (16-30), a lap in three quarters of a bar in the runs (30-32,
+# 82-84) ; down the descent a lap in six bars, then three, then two, then one (48-72: the fall turns faster as it
+# falls faster) ; a lap a bar at the summit (101-105). In the pole (72-82) and on the last chord (105) it stands
+# still, straight ahead: the published tone. (The pole was tried turning, F ahead and B behind: by level it could not
+# be seen in the mix there, 90-180 Hz fell 0.65 dB on F, and the pole's stamped stretches moved away from the records.
+# A metre of air is half a period of the F below middle C: I take it the tone's low partial met the pole's held chord
+# the other way up.)
+#   HOW: the engine's `orbit` (Chowning's moving source: the delay to each ear, the far ear's shadow, the air), a
+#   circle of one metre about the listener's own place, so its distance is steady: no Doppler slide and no swell. An
+#   orbit takes one rate, and its place is the song's clock times that rate, so there is ONE ORBIT FOR EACH LAP LENGTH
+#   in a row on the track, each with its `mix` on a lane of its own that is 1 only in its bars ; at every hand-over
+#   both are straight ahead (a `speed` lane was tried first: under one the engine adds the lap up only while the
+#   track is sounding, so the tone came out of each silence part of a lap round). A lane `on` and one gain put back
+#   the 1.19 dB the two ears' paths take, so the tone alone is as loud as it was (-28.871 -> -28.869 LUFS). An orbit
+#   takes the track in mono: the tone's own small width (its two layers) is the orbit's now.
+#   COSTS: a metre of air is 2.9 ms, so the tone is 2.9 ms late wherever it circles (four metres, tried first, was
+#   11.7 ms) ; each ear hears it at most 1.2 cents sharp or flat as it passes (1.6 in the runs) ; summed to ONE
+#   speaker the tone is 0.9 to 1.2 dB quieter (the foot, where it is nearly alone, 0.7 dB in the mix; elsewhere 0.1).
+#   The engine's orbit turns one way, so the descent turns the same way round as the climb, slower.
+# the track ; dB on a gain after the orbits wherever one is on ; the circle's radius, metres ; from:to:lap for each
+# stretch, in bars (lap = a tempo-synced rate, '2/1' a lap in two bars, '@' a phase 0..1) ; the loudness target (''
+# = unchanged). "" = v41 byte for byte. On only while UNDER is; C10T5_SPIRAL is in HALFWAY's list of names that do
+# not turn it off.
+SPIRAL = os.environ.get("C10T5_SPIRAL", "stair;1.19;1;0:16:1/1,16:30:2/1,30:32:3/4,48:60:6/1,60:66:3/1,66:68:2/1,68:72:1/1,82:84:3/4@0.6667,101:105:1/1;" if UNDER else "")
+
+
+def the_stair_is_a_spiral(doc):
+    """v42: the Shepard tone under the stair goes round the listener as it climbs or falls: one lap for each octave it
+    travels. One `orbit` for each lap length (a circle about the listener's own place: a steady distance, no Doppler),
+    in a row on the tone's track, each with its `mix` on a lane of its own that is 1 only in its bars ; a lane `on`
+    is 1 wherever one of them is, and a gain makes up there what the two ears' delays take from the tone's level.
+    Each orbit's place is the song's clock times its rate, so wherever one hands over to the next both are straight
+    ahead (the last, the run into `both`, by its phase). Outside those bars the track is the published one."""
+    name, makeup, radius, spans, target = SPIRAL.split(";")
+    i, t = next((i, t) for i, t in enumerate(doc["tracks"]) if t["name"] == name)
+    assert not t.get("fx") and not any(k == "on" or k[0] == "o" and k[1:].isdigit() for k in t["auto"]), t.get("fx")
+    spans = [(int(a), int(b), r) for a, b, r in (sp.split(":") for sp in spans.split(","))]
+    kinds = list(dict.fromkeys(r for _, _, r in spans))                # each lap length (and phase) once, in order
+
+    def lane(bars):                                                 # 1 inside the bars, 0 outside, stepped at the bar lines
+        pts, level = [["0b", 1 if any(a == 0 for a, _ in bars) else 0]], None
+        edges = sorted({a for a, _ in bars} | {b for _, b in bars})
+        for e in edges:
+            inside = 1 if any(a <= e < b for a, b in bars) else 0
+            before = 1 if any(a < e <= b for a, b in bars) else 0
+            if e > 0 and inside != before:
+                pts += [[f"{4 * e - 0.01:g}b", before], [f"{4 * e:g}b", inside]]
+        return {"points": pts, "curve": 0}
+    r = float(radius)
+    fx, auto = [], dict(t["auto"])
+    for k, kind in enumerate(kinds, 1):
+        rate, _, phase = kind.partition("@")
+        o = {"type": "orbit", "rate": rate, "radius": r if r % 1 else int(r), "distance": 0}
+        if phase:
+            o["phase"] = float(phase)
+        o["mix"] = {"value": 0, "mod": [{"src": f"auto.o{k}", "amount": 1}]}
+        fx.append(o)
+        auto[f"o{k}"] = lane([(a, b) for a, b, x in spans if x == kind])
+    merged = []
+    for a, b, _ in spans:                                           # the bars any orbit is on, joined where they touch
+        if merged and merged[-1][1] == a:
+            merged[-1] = (merged[-1][0], b)
+        else:
+            merged.append((a, b))
+    auto["on"] = lane(merged)
+    fx.append({"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.on", "amount": float(makeup)}]}})
+    doc["tracks"] = doc["tracks"][:i] + [{**t, "fx": fx, "auto": auto}] + doc["tracks"][i + 1:]
     if target:
         doc["loudness"] = float(target)
 
