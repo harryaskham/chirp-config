@@ -1431,6 +1431,52 @@ def the_wall_gets_a_muff_and_chapel(doc):
         doc['loudness'] = float(target)
 
 
+# v37 (chirper-zero, 24 Nov; palette round taken as instrument design on Harry's 24 Nov steer: the kettledrum, `kettle`,
+# its 36 strokes of the walk, 2:00.6-2:20 and 2:30.6-2:40; no note moves, no track added, no fader touched.)
+# THE KETTLE IS STRUCK WITH WOOD. The kettledrum's whole part is WHEN: it says the heavy riff's three notes on the next
+# broad footfall after each (v2: three different waits, not an echo), and at 2:30 one of its strokes is all the
+# difference between the two walks (v20). It was the library's kettle on felt: a low note swelling in with no moment
+# to it. In the 40 ms round each stroke it stood 24 dB under everything else at 500 Hz-1 kHz and 39 at 1-2 kHz; what
+# it had was under 250 Hz, where the bass and four guitars are. A timpanist given a rhythm to place in a loud band
+# takes wooden sticks. So two layers are added to the kettle's patch on this track, after the library's head, thud
+# and mallet (which are not touched): `skin`, the membrane's higher modes, 3.43 to 8.24 times the note, which a hard
+# stick excites and felt does not; and `stick`, a short burst of noise through the patch's own filter. Both are at
+# nothing (-400 dB: the track is then bit for bit what it was, checked) until a lane `wood` lifts them. The lane
+# comes down again before the song's last note, the kettle's first B flat, alone after the reeds: that one is laid
+# down with felt, as it was.
+# C10T11_WOOD = the track ; the skin's level, dB (its modes' amplitudes are relative to each other: -14 puts them
+# where they would stand in the head with the principal at 1) ; the stick: its level before its envelope, dB : the
+# dB its envelope adds at the stroke : the envelope's decay, ms : the noise's colour ; the modes, ratio:amplitude
+# with commas ; their damping ; the beat from which the kettle is on felt again ('' = never). '' = v36 byte for
+# byte. On only while CHAPEL is.
+WOOD = os.environ.get(
+    'C10T11_WOOD',
+    'kettle;-14;-66:80:60:pink;3.43:0.06,3.91:0.08,4.39:0.12,4.88:0.1,5.36:0.09,5.84:0.08,6.32:0.07,6.8:0.06,7.28:0.05,7.76:0.045,8.24:0.04;0.55;490'
+    if CHAPEL else '',
+)
+
+
+def the_kettle_is_struck_with_wood(doc):
+    """v37: the kettledrum's strokes of the walk get a stick and the membrane's higher modes; the last note stays on felt (see WOOD)."""
+    trk, skin, stick_s, modes_s, damp, felt = WOOD.split(';')
+    stick, env, d, color = stick_s.split(':')
+    t = next(x for x in doc['tracks'] if x['name'] == trk)
+    assert t['patch'].split()[0] == 'timpani', t['patch']             # its head, thud and mallet are layers 0, 1 and 2: these are 3 and 4
+    height = 400.0 + float(stick)                                      # the lane's height: the stick's level is -400 + the lane
+    modes = '[' + ','.join('[' + m.replace(':', ',') + ']' for m in modes_s.split(',')) + ']'
+    t['patch'] += (f' synth.env.stick.a=0.3ms synth.env.stick.d={d}ms synth.env.stick.s=0'
+                   f' synth.layers.3.type=additive synth.layers.3.partials={modes} synth.layers.3.damp={damp}'
+                   f' synth.layers.3.level.value={float(skin) - height:g}dB synth.layers.3.level.mod.0.src=auto.wood synth.layers.3.level.mod.0.amount=1'
+                   f' synth.layers.4.type=noise synth.layers.4.color={color} synth.layers.4.level.value=-400dB'
+                   f' synth.layers.4.level.mod.0.src=env.stick synth.layers.4.level.mod.0.amount={env}'
+                   ' synth.layers.4.level.mod.1.src=auto.wood synth.layers.4.level.mod.1.amount=1')
+    pts = [['0b', height]]
+    if felt:
+        assert any(n['at'] >= float(felt) for n in t['notes']) and not any(float(felt) - 2 < n['at'] + n['len'] and n['at'] < float(felt) for n in t['notes'])
+        pts += [[f'{float(felt):g}b', height], [f'{float(felt) + 0.01:g}b', 0.0]]
+    t['auto'] = dict(t.get('auto') or {}, wood={'points': pts, 'curve': 0})
+
+
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('-o','--out',type=Path,default=Path(os.environ.get('C10T11_OUT',OUT)));p.add_argument('--map',action='store_true'); a=p.parse_args(); doc,marks=make()
     if a.map:
@@ -1440,4 +1486,5 @@ if __name__=='__main__':
         if AIR: the_bellows_draw_breath(doc)
         if BITE: the_riff_pair_bites(doc)
         if CHAPEL: the_wall_gets_a_muff_and_chapel(doc)
+        if WOOD: the_kettle_is_struck_with_wood(doc)
         a.out.write_text(dump(doc))
