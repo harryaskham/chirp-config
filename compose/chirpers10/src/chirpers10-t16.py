@@ -1389,6 +1389,8 @@ def build():
         the_pair_plays_a_tune(doc, marks)                                  # v29: last, on the finished document
     if HALO:
         the_answer_gets_hm2_and_halo(doc)
+    if HOLDS:
+        the_foot_strikes_the_note_and_the_bass_holds_it(doc)
     return doc, marks, end
 
 
@@ -1947,6 +1949,56 @@ def the_answer_gets_hm2_and_halo(doc):
         for i, t in enumerate(doc["tracks"]):
             if t["name"] in smap and smap[t["name"]]:
                 doc["tracks"][i] = {**t, "sends": {**(t.get("sends") or {}), "overtone": smap[t["name"]]}}
+    if target:
+        doc["loudness"] = float(target)
+
+
+# v31 (chirper-zero, 24 Nov; instrument round on Harry's 24 Nov steer for instrument design: the bass, `bass`, its
+# 174 strokes; no note moves, no track is added): THE FOOT STRIKES THE NOTE AND THE BASS HOLDS IT.
+# Since v21 the foot is on the note: each bass-drum stroke is tuned to the bass's note under it, and a chest (a bare
+# sine, a tenth of a second) says the drum's octave. The bass plays 173 of its 174 strokes on one of those, and its
+# patch has a sine under the string that stood at its full level from the stroke's first millisecond. So three low
+# things began together on one note, and they added or took away as their phases fell: at the bass's strokes the
+# mix's 30-120 Hz in the first 40 ms spread 4.9 dB from stroke to stroke (the 10th to the 90th centile; the band
+# without the bass 2.9; in 'three' 8.2 against 4.9), and the bass alone was a thud and then less note (its
+# 60-120 Hz 7.8 dB higher in the first 20 ms than what it then held: the +4.61 of round 40's read of the album's
+# basses on Extreme and Mean, the second worst).
+# Here the sub comes in under the foot: an envelope of the patch's own, `under`, lifts the sine from -60 dB to its
+# level over 45 ms, where it began at its level. The drum strikes the note, the string says its pick, and the sub
+# arrives as the drum's low end leaves and holds what a drum cannot. The thud was also low end the mix counted on
+# (without it 30-60 Hz fell 0.4 to 0.75 dB in three sections and 60-120 Hz 0.3 to 0.4 in five), so it is given back
+# as note: two bells after the bass bus's compressor, following the key as that bus's others do, +1 dB at the
+# bass's note and +0.7 at its octave. Nothing else in the song is touched.
+# C10T16_HOLDS = the swell ; the sub's level where a stroke begins ; its level once it is in ; the two bells after the
+# bass bus's compressor, at the bass's note and its octave ; the loudness target (empty: as it was). '' = v30 byte
+# for byte. On only while HALO is.
+HOLDS = os.environ.get("C10T16_HOLDS", "45ms;-60dB;-9dB;1dB;0.7dB;" if HALO else "")
+
+
+def the_foot_strikes_the_note_and_the_bass_holds_it(doc):
+    """v31: the bass's sub (the sine under its string) comes in under the foot: an envelope of the patch's own,
+    `under`, lifts the sine from its floor to its level over the swell, where it stood at its level from the first
+    millisecond. The low end the thud carried is given back as held note: two key-following bells after the bass
+    bus's compressor."""
+    swell, floor, level, one, two, target = HOLDS.split(";")
+    rise = float(level[:-2]) - float(floor[:-2])
+    lv = json.dumps({"value": floor, "mod": [{"src": "env.under", "amount": int(rise) if rise == int(rise) else rise}]},
+                    separators=(",", ":"))
+    done = 0
+    for i, t in enumerate(doc["tracks"]):
+        if t["name"] == "bass":
+            assert t["patch"] == "ct-bass synth.pitch.mod.1.amount=0", t["patch"]
+            doc["tracks"][i] = {**t, "patch": t["patch"] + f" synth.env.under.a={swell} synth.env.under.s=1 "
+                                                           f"synth.layers.1.level={lv}"}
+            done += 1
+    assert done == 1, done
+    low = doc["buses"]["low"]
+    post = low["fx"][2]
+    assert post["type"] == "eq" and len(post["bands"]) == 1 and low["fx"][0]["bands"][0]["cutoff"]["value"] == 44
+    key = [{"src": "auto.key", "amount": 0.08333}]
+    more = [{"kind": "peak", "cutoff": {"value": hz, "mod": key}, "q": q, "gain": g}
+            for hz, q, g in ((44, 1.5, one), (87.3, 1.6, two)) if g]
+    doc["buses"] = {**doc["buses"], "low": {**low, "fx": low["fx"][:2] + [{**post, "bands": post["bands"] + more}]}}
     if target:
         doc["loudness"] = float(target)
 
