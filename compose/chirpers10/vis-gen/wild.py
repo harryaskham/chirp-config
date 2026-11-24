@@ -1240,8 +1240,8 @@ def tiles(c):
     cols, rows = 32, 18
     ix, iy = f"(inst.i - {cols}*floor(inst.i/{cols}))", f"floor(inst.i/{cols})"
     a = f"(0.25*smooth(-0.3, 0.3, sin({A.turn} - {ix}/{A.cell}) + sin({B.turn} - {iy}/{B.cell})))"
-    layers = [lamp(-3, 4, -7, 0.7), lamp(4, -1, -6, 0.5, c.a),
-              box(f"({ix} - {(cols - 1) / 2})*0.285", f"({iy} - {(rows - 1) / 2})*0.285", 0, 0.13, 0.13, 0.012, count=cols * rows, ry=a, **solid("#8d8a84", 0.4, 0.6))]
+    layers = [lamp(-3, 4, -7, 1.15), lamp(4, -1, -6, 0.85, c.a), lamp(0, 3, -5, 0.45, c.b),
+              box(f"({ix} - {(cols - 1) / 2})*0.285", f"({iy} - {(rows - 1) / 2})*0.285", 0, 0.132, 0.132, 0.014, count=cols * rows, ry=a, **solid("#b4b0a8", 0.35, 0.72), emit=f"0.12 + 0.35*abs(sin({A.turn} - {ix}/{A.cell}) + sin({B.turn} - {iy}/{B.cell}))*0.5")]
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [{"type": "tonemap", "knee": 0.7}, {"type": "aa"}, bloom(c, 0.25, 0.012, 0.85)]}
 
 
@@ -2081,20 +2081,20 @@ def galley(c):
     each side once a turn, and the two sides keep different riffs."""
     A = c.riffs[0]
     B = c.riffs[1] if len(c.riffs) > 1 and c.riffs[1].cell <= 14 else A
-    layers = [lamp(-3, 6, -4, 1.2), lamp(3, 2, 4, 0.4, c.a),
-              {"type": "mesh", "shape": "plane", "detail": 60, "x": 0, "y": 0, "z": 0, "scale": 30, "material": "pbr", "rough": 0.2, "metal": 0.2, "color": "#07141c", "rim": 0, "cull": True,
-               "displace": "0.004*sin(vtx.x*9 + vtx.z*5 + time.t*0.4)"},
-              box(0, 0.16, 0, 3.0, 0.16, 0.42, round=0.5, **solid("#5a3d26", 0.7)), box(0, 0.3, 0, 2.8, 0.03, 0.34, **solid("#2e2016", 0.9))]
+    layers = [lamp(-3, 6, -4, 1.55), lamp(3, 2, 4, 0.75, c.a), lamp(0, 4, -5, 0.45, c.b),
+              {"type": "mesh", "shape": "plane", "detail": 60, "x": 0, "y": 0, "z": 0, "scale": 30, "material": "pbr", "rough": 0.22, "metal": 0.18, "color": "#0d2230", "rim": 0, "cull": True,
+               "displace": "0.005*sin(vtx.x*9 + vtx.z*5 + time.t*0.4)"},
+              box(0, 0.16, 0, 3.0, 0.16, 0.42, round=0.5, **solid("#6e4b30", 0.65)), box(0, 0.3, 0, 2.8, 0.03, 0.34, **solid("#3d2b1e", 0.85))]
     for p, side, col in ((A, -1, c.a), (B, 1, c.b)):
         nn = max(3, min(p.cell, 14))
         ph = f"({p.turn} - inst.i/{nn})"
         sweep = f"(0.06*sin({ph}))"
         dip = f"(0.035 + 0.03*cos({ph}))"
         x = f"((inst.i - {(nn - 1) / 2})*{5.2 / nn:g})"
-        layers.append(box(x, 0.36, side * 1.25, 0.03, 0.03, 0.95, count=nn, ry=f"{side}*{sweep}", rx=f"{side}*{dip}", **solid("#c9b89a", 0.7), emit=f"0.3*exp(0 - 1.2*fract({ph})*{nn})"))
-        layers.append(ball(x, 0.52, side * 0.3, 0.12, 8, count=nn, **solid(col, 0.6), emit=f"0.25 + 0.6*exp(0 - 1.2*fract({ph})*{nn})"))
-    layers.append({"type": "motes", "mode": "drift", "count": 200, "w": 14, "h": 0.02, "d": 8, "y": 0.02, "z": 0, "fall": 0, "wind_x": -1.6, "wobble": 0, "size": 0.02, "stretch": 6, "glow": 0.5, "twinkle": 0, "color": "#9fd0e6"})
-    look = {"background": "#04090d", "layers": layers, "filters": [{"type": "shadowmap", "amount": 0.5, "soft": 2, "size": 1024, "sun": 0, "x": -3, "y": 6, "z": -4}, {"type": "tonemap", "knee": 0.75}, {"type": "aa"}, bloom(c, 0.3, 0.016, 0.8)]}
+        layers.append(box(x, 0.36, side * 1.25, 0.036, 0.036, 0.98, count=nn, ry=f"{side}*{sweep}", rx=f"{side}*{dip}", **solid("#dfd0b4", 0.6), emit=f"0.12 + 0.5*exp(0 - 1.2*fract({ph})*{nn})"))
+        layers.append(ball(x, 0.52, side * 0.3, 0.14, 8, count=nn, **solid(col, 0.55), emit=f"0.35 + 0.8*exp(0 - 1.2*fract({ph})*{nn})"))
+    layers.append({"type": "motes", "mode": "drift", "count": 200, "w": 14, "h": 0.02, "d": 8, "y": 0.02, "z": 0, "fall": 0, "wind_x": -1.6, "wobble": 0, "size": 0.02, "stretch": 6, "glow": 0.55, "twinkle": 0, "color": "#9fd0e6"})
+    look = {"background": "#08121a", "layers": layers, "filters": [{"type": "shadowmap", "amount": 0.5, "soft": 2, "size": 1024, "sun": 0, "x": -3, "y": 6, "z": -4}, {"type": "tonemap", "knee": 0.75}, {"type": "aa"}, bloom(c, 0.3, 0.016, 0.8)]}
     return shots(c, look, [cam(0.01, 8.5, -0.5, look=(0, 0, 0), zoom=1.7), cam(-5.5, 2.4, -4.5, look=(0, 0.3, 0), zoom=1.6), cam(6.5, 1.0, 0.01, look=(0, 0.4, 0), zoom=1.3)], A)
 
 
@@ -5176,6 +5176,50 @@ def ripplebath(c):
             "filters": [{"type": "tonemap", "knee": 0.72}, bloom(c, 0.34, 0.016, 0.7)]}
 
 
+@idiom(needs=2, fam="space", cost=3)
+def kaleidohall(c):
+    """Hall of mirrors: a receding 3D colonnade of six angled live-screen mirrors lining
+    both sides of a glowing catwalk, showing two distinct voice scenes facing across the
+    aisle while the camera glides down the corridor in time with the lead riff."""
+    A, B = c.riffs[0], c.riffs[1]
+    n1, look1 = _small(c, 0)
+    n2, look2 = _small(c, 1, skip=[n1])
+    layers = [
+        lamp(0, 4.5, -2.0, 0.95),
+        lamp(-2.5, 2.0, 2.5, 0.55, c.a, 10),
+        lamp(2.5, 2.0, 2.5, 0.55, c.b, 10),
+        floor(c, 0, "#0e1220", 0.3),
+        # Central illuminated aisle strips counting out the riff.
+        box(0, 0.015, f"(fract(inst.i/12 - {A.turn}/12)*10) - 1.0", 0.65, 0.008, 0.028, count=12,
+            **glow(c.dim, f"0.35 + 0.9*{A.hit}")),
+    ]
+    # Three pairs of angled live-screen mirrors lining left (-x) and right (+x) walls,
+    # each angled toward the aisle and viewer so every live scene reads clearly in perspective.
+    for k in range(3):
+        z = 0.9 + k * 2.6
+        look_l, look_r = (look1, look2) if k % 2 == 0 else (look2, look1)
+        p_l, p_r = (A, B) if k % 2 == 0 else (B, A)
+        ry_l = f"0.115 + 0.015*sin({p_l.turn}/2 + {k * 0.25:g})"
+        ry_r = f"-0.115 - 0.015*sin({p_r.turn}/2 + {k * 0.25:g})"
+        # Left live screen + top/bottom glowing rails (never occludes screen face)
+        layers.append({"type": "screen", "use": look_l, "x": -2.6, "y": 1.55, "z": z, "w": 2.45, "h": 1.48, "ry": ry_l, "glow": 1.5, "res": 160})
+        for dy in (-0.77, 0.77):
+            layers.append(box(-2.6, 1.55 + dy, z, 1.24, 0.024, 0.03, ry=ry_l, **glow(c.col(0), f"0.6 + 0.9*{p_l.hit}")))
+        # Right live screen + top/bottom glowing rails
+        layers.append({"type": "screen", "use": look_r, "x": 2.6, "y": 1.55, "z": z, "w": 2.45, "h": 1.48, "ry": ry_r, "glow": 1.5, "res": 160})
+        for dy in (-0.77, 0.77):
+            layers.append(box(2.6, 1.55 + dy, z, 1.24, 0.024, 0.03, ry=ry_r, **glow(c.col(1), f"0.6 + 0.9*{p_r.hit}")))
+    # Far end portal framed at the vanishing point.
+    layers.append(box(0, 1.75, 8.48, 1.78, 1.02, 0.04, **glow(c.ink, f"0.35 + 0.6*{A.hit}")))
+    layers.append({"type": "screen", "use": look1, "x": 0, "y": 1.75, "z": 8.4, "w": 3.4, "h": 1.9, "glow": 1.45, "res": 180})
+    return {
+        "background": "#04060d",
+        "camera": cam("0.55*sin(time.bar/6)", "1.35 + 0.15*cos(time.bar/8)", f"-2.6 + 1.2*sin({A.turn}/4)", look=("0.3*sin(time.bar/6)", 1.5, 6.0), zoom=1.55),
+        "layers": layers,
+        "filters": [{"type": "reflect", "y": 0, "amount": 0.55}, {"type": "fog", "amount": 0.65, "density": 0.045, "color": "#04060d"}, {"type": "tonemap", "knee": 0.78}, {"type": "aa"}, bloom(c, 0.35, 0.018, 0.72)],
+    }
+
+
 @combo("timemap")
 def c_timemap(c, A, B):
     """Spacetime interplay: the second picture's brightness bends time inside the first
@@ -5239,6 +5283,13 @@ def c_prismby(c, A, B):
     """Dispersive crystal interplay: the second picture acts as cut crystal over the first,
     splitting the first picture's R, G and B along the second picture's moving contours."""
     return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "prism", "bend": 0.14}), _act(B, blend="add", fade=0.12)], "filters": []}
+
+
+@combo("mirrorby")
+def c_mirrorby(c, A, B):
+    """Reflective mask interplay: wherever the second picture lights up on its notes, the
+    first picture flips into its mirror symmetry with silver specular contours."""
+    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "mirror", "gain": 4.0}), _act(B, blend="add", fade=0.1)], "filters": []}
 
 
 @combo("diagonal")
@@ -5563,16 +5614,18 @@ def t_kaleido(c, look):
 
 # Two guises at once (dealt where the music is full): one that moves the picture, then one
 # that changes what it is made of, then one that works on it in time.
-STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0, "hyperbolic": 0, "standing": 0, "anamorph": 0,
+STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0, "hyperbolic": 0, "standing": 0, "anamorph": 0, "conformal": 0,
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
          "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0, "woodcut": 1, "riso": 1, "etched": 1,
-         "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2, "scanfold": 2}
+         "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2, "scanfold": 2, "duochrono": 2}
 
 # Pairs of guises that leave only texture, or flood white (feedback+grow saturates to pale wash).
-STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph", "screen") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso", "etched", "dots")}
+STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph", "conformal", "screen") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso", "etched", "dots")}
              | {(a_, "blown") for a_ in ("newsprint", "riso", "etched", "negative")}
              | {("blown", a_) for a_ in ("newsprint", "riso", "etched", "negative")}
-             | {("tunnel", "overgrown"), ("overgrown", "tunnel"), ("itself", "carried"), ("carried", "itself"), ("scanfold", "delayed"), ("delayed", "scanfold")})
+             | {("tunnel", "overgrown"), ("overgrown", "tunnel"), ("itself", "carried"), ("carried", "itself"),
+                ("scanfold", "delayed"), ("delayed", "scanfold"), ("duochrono", "delayed"), ("delayed", "duochrono"),
+                ("duochrono", "scanfold"), ("scanfold", "duochrono")})
 
 # Pictures that stand to one side, or are a line of things: half of one is not a picture.
 # Pictures that can be drawn twice and joined (flat, and filling the frame or centred, so that
@@ -6041,6 +6094,25 @@ def t_etched(c, look):
     return look
 
 
+@treat("conformal", ok=lambda c, info: info["f"].__name__ in KALEIDO_OK and info["f"].__name__ in BROAD and c.riffs)
+def t_conformal(c, look):
+    """Conformal Möbius sphere map: straight geometry curves into sweeping orthogonal arcs
+    around an orbiting pole locked to the lead riff's cycle."""
+    p = _lead(c)
+    per = max(2, math.ceil(6.5 / ((p.cell or 16) * c.six)))
+    return _pre(look, {"type": "mobius", "pole": f"0.34 + 0.14*{p.hit}", "turn": f"{p.turn}/{per}", "twist": f"0 - {p.turn}/{per * 2}", "zoom": 1.12, "amount": c.arr})
+
+
+@treat("duochrono", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and c.riffs)
+def t_duochrono(c, look):
+    """Complementary temporal parallax: live motion glows warm gold against a delayed echo
+    in cool cyan (half a turn behind), so stillness holds neutral colour while every hit
+    and sweep splits chromatically through time."""
+    p = _lead(c)
+    delay = max(0.22, min(1.4, (p.cell or 16) * c.six * 0.5))
+    return _pre(look, {"type": "duochrono", "delay": round(delay, 3), "gain": 1.15, "shift": f"{p.turn}/4", "amount": c.arr})
+
+
 def _stitch(c, look, mode, count, **kw):
     look = _unbloomed(look)
     look["filters"] += [{"type": "color", "exposure": 1.25, "saturation": 1.2}, {"type": "stitch", "mode": mode, "count": count, "amount": c.arr, **kw}]
@@ -6207,7 +6279,7 @@ def t_negative(c, look):
 
 
 ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief", "poster", "flood", "combed", "blown", "leaded",
-           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried", "reeded", "louvers", "hyperbolic", "standing", "woodcut", "riso", "anamorph", "scanfold", "etched")
+           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried", "reeded", "louvers", "hyperbolic", "standing", "woodcut", "riso", "anamorph", "scanfold", "etched", "conformal", "duochrono")
 
 # Idioms drawn in hair lines and points, made bolder so that they read at any size: how far
 # each thing in them is spread (a fraction of the frame's height).

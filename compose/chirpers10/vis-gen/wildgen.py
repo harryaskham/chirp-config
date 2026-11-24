@@ -132,22 +132,22 @@ FEATURE = {
 # Each song's house: the guises and the ways of sharing the frame it leans to, so the songs
 # differ from one another as well as from bar to bar. (The first song, the album's argument, has none.)
 HOUSE = {
-    2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout smoked delayed puzzle warpby timemap standing scanfold prismby spiralcut",
+    2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout smoked delayed puzzle warpby timemap standing scanfold prismby spiralcut duochrono",
     3: "lines engraved hatched typed sheet blueprint leaded strips bands intercut triptych stencil woven sampler knitted itself diagonal woodcut etched",
     4: "typed onebit newsprint dots blocks combed poster board corner card strips tracking puzzle beaded bricks halves louvers riso hexcut",
-    5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout infra screen ridged papercut embossed stagepass anamorph spiralcut",
-    6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass dripping beaded halves warpby hyperbolic anamorph prismby spiralcut",
-    7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite glass woven bricks papercut itself diamond hyperbolic anamorph hexcut",
+    5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout infra screen ridged papercut embossed stagepass anamorph spiralcut conformal",
+    6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass dripping beaded halves warpby hyperbolic anamorph prismby spiralcut conformal",
+    7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite glass woven bricks papercut itself diamond hyperbolic anamorph hexcut conformal",
     8: "leaded engraved newsprint poster flood duotone mirror triptych diptych window board infra woven puzzle bricks halves louvers woodcut riso etched",
-    9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout smoked delayed papercut reeded timemap scanfold hexcut",
+    9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout smoked delayed papercut reeded timemap scanfold hexcut duochrono",
     10: "onebit dots torn combed typed poster negative difference card bands corner stencil dripping sampler beaded carried negmask woodcut riso etched",
-    11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking screen papercut puzzle louvers stagepass prismby hexcut",
-    12: "mirror drawn blueprint hatched ball echo water diptych intercut lighten satellite cutout screen papercut diagonal negmask timemap woodcut scanfold etched",
-    13: "echo stop slices fringe water overgrown hole double window iris difference glass smoked negative stencil ridged carried embossed timemap scanfold spiralcut",
-    14: "typed dots lines blocks sheet onebit stop strips board wedges triptych stencil delayed beaded bricks louvers reeded standing scanfold hexcut",
-    15: "warp wound blown torn water combed tunnel sweep bands double satellite dripping woven knitted sampler carried warpby standing spiralcut",
-    16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass tracking delayed ridged reeded embossed standing anamorph prismby",
-    17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil infra screen puzzle ridged itself diamond hyperbolic stagepass anamorph hexcut",
+    11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking screen papercut puzzle louvers stagepass prismby hexcut mirrorby",
+    12: "mirror drawn blueprint hatched ball echo water diptych intercut lighten satellite cutout screen papercut diagonal negmask timemap woodcut scanfold etched mirrorby",
+    13: "echo stop slices fringe water overgrown hole double window iris difference glass smoked negative stencil ridged carried embossed timemap scanfold spiralcut duochrono",
+    14: "typed dots lines blocks sheet onebit stop strips board wedges triptych stencil delayed beaded bricks louvers reeded standing scanfold hexcut duochrono",
+    15: "warp wound blown torn water combed tunnel sweep bands double satellite dripping woven knitted sampler carried warpby standing spiralcut duochrono",
+    16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass tracking delayed ridged reeded embossed standing anamorph prismby conformal",
+    17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil infra screen puzzle ridged itself diamond hyperbolic stagepass anamorph hexcut conformal",
 }
 HOUSE = {n_: set(v.split()) for n_, v in HOUSE.items()}
 OPEN = {1: "stringart"}     # the picture a song opens on, where it is not the first of its featured ones (the album's first picture, and the one the landing brings back)
@@ -157,7 +157,7 @@ TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weav
                "phase", "canon", "rung", "sum", "barber", "halving", "golden", "euclid", "dealt", "owed", "leaf", "negative", "ritard", "haul", "beats", "stairs",
                "displace", "prism", "aperture", "accordion", "pendulum", "gear", "orbit", "chromatic",
                "cube", "shatter", "kaleido", "polar", "fold", "louver",
-               "vortex", "carousel", "ribbon", "shockwave", "facet", "slitcurtain", "spiralwipe", "mosaicflip")
+               "vortex", "carousel", "ribbon", "shockwave", "facet", "slitcurtain", "spiralwipe", "mosaicflip", "helixwipe", "parallax")
 # Ways that keep something of the old picture from frame to frame: they take longer (about two seconds).
 CARRIED = ("mosh", "smoke", "overgrow", "echo", "drip", "inkbleed")
 # Ways that count or move mechanically (counted.rs): the dense ones need about two seconds to be read, the rest a second and a half.
@@ -165,7 +165,8 @@ COUNTED = {"rung": 1.9, "sum": 1.9, "euclid": 1.9, "dealt": 1.9, "golden": 1.9, 
            "phase": 1.4, "canon": 1.4, "barber": 1.4, "owed": 1.4, "leaf": 1.4, "negative": 1.4, "haul": 1.4, "beats": 1.4,
            "displace": 1.6, "prism": 1.6, "aperture": 1.6, "accordion": 1.7, "pendulum": 1.4, "gear": 1.7, "orbit": 1.8, "chromatic": 1.5,
            "cube": 1.5, "shatter": 1.6, "kaleido": 1.6, "polar": 1.6, "fold": 1.6, "louver": 1.6,
-           "vortex": 1.6, "carousel": 1.7, "ribbon": 1.6, "shockwave": 1.5, "facet": 1.7, "slitcurtain": 1.6, "spiralwipe": 1.5, "mosaicflip": 1.7}
+           "vortex": 1.6, "carousel": 1.7, "ribbon": 1.6, "shockwave": 1.5, "facet": 1.7, "slitcurtain": 1.6, "spiralwipe": 1.5, "mosaicflip": 1.7,
+           "helixwipe": 1.6, "parallax": 1.5}
 # How each song passes into the next: its own idea, counted out over its last two bars
 # (the wheels going round at their own rates; the row rung; the oblong cut into its squares).
 # After the last song the walk comes up in black.
@@ -2643,7 +2644,7 @@ def fits(kind, A, B):
     several of them, and that needs something to work on and something to work with."""
     if A in W.THIN and B in W.THIN:
         return False            # two pictures that are mostly dark make a dark frame
-    if kind in ("cutout", "negmask"):        # B's lights act as mask/invert over A
+    if kind in ("cutout", "negmask", "mirrorby"):        # B's lights act as mask/invert/mirror over A
         return A in W.BROAD and B not in W.FULL
     if kind == "stencil":       # A shows only through B's lights
         return A in W.BROAD and B in W.BROAD
