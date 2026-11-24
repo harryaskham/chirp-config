@@ -1539,6 +1539,73 @@ def the_weight_gets_hm2_and_vault(song):
         song['loudness'] = float(target)
 
 
+# v37 (chirper-zero, 24 Nov; the two clocks, `rule` and `tally`, the whole song; no note moves, no track is added):
+# THE PEDAL GOES DOWN WHEN THE CLOCKS AGREE.
+#   The song is told by two clocks: a dry piano on the bar's given middle (`rule`) and a struck key where the answer
+#   really begins (`tally`). The distance between them is the debt. They strike on the same sixteenth only when nothing
+#   is owed: nine times before the first loan (0:02-0:36), once when the pocket's count reaches nothing (1:45), five
+#   times in 'square' (2:53-3:10) and on the receipt's last chord (3:15). Until now an agreement sounded like any other
+#   stroke: two short notes. Now the pianist's foot is down for those sixteen strokes and no others: a bus `agree`
+#   hears the two clocks only while both strike (a lane opens it just before each agreement, read from the notes
+#   themselves, and shuts it as the keys come up); its strings, tuned to the notes the clocks play at an agreement,
+#   ring on with what they were given, partly straight and partly through a hall. The straight part is what holds the
+#   note: a ring that came back only through the hall met the piano's own note out of phase and the note fell before
+#   the ring rose. A stroke that is not answered on its own sixteenth stays as short and dry as it was: every stroke
+#   of the debt, and the piano's last, alone, where the answer is due and does not come (3:19).
+#   Where the loud band plays, the bus opens 8 dB less: there the ring cannot be heard (33 dB under the band) and at
+#   full it put 0.2 dB on the mix's 250-500 Hz, which is already over the records there.
+# C10T10_AGREE = sends rule,tally ; the gate: beats open before the stroke : beats past the longer note : beats to
+#   shut : dB less@the beat spans where the loud band plays (a:z,a:z) ; strings notes:decay:mix ;
+#   hall kind:decay:size:predelay:low cut:high cut:mix ; eq bands | ; the bus's gain. '' = v36 byte for byte.
+AGREE = os.environ.get(
+    'C10T10_AGREE',
+    '0dB,0dB;0.03:0.25:0.3:8@24:72,320:362;Bb3 Gb4 E4 D4 Eb4:8s:1.0;hall:2.6s:0.8:0ms:180:9000:0.6;;-32dB'
+    if VAULT else '',
+)
+
+
+def the_pedal_goes_down_when_the_clocks_agree(song):
+    """v37: a bus `agree` that hears `rule` and `tally` only on the sixteenths where both strike: sympathetic strings, then a hall."""
+    snd_s, gate_s, sym_s, rev_s, eq_s, out_s = AGREE.split(';')
+    tr = {t['name']: t for t in song['tracks']}
+    assert 'agree' not in song['buses'], 'an agree bus already exists'
+    assert all('at' not in tr[k] for k in ('rule', 'tally')), 'a clock has an offset: read the notes again'
+    strokes = {k: {round(float(n['at']), 6): float(n['len']) for n in tr[k]['notes']} for k in ('rule', 'tally')}
+    both = sorted(set(strokes['rule']) & set(strokes['tally']))
+    assert len(both) == 16 and both[0] == 4.0 and both[-1] == 364.0, both
+    lead, past, shut, less = gate_s.split(':', 3)
+    lead, past, shut = float(lead), float(past), float(shut)
+    cut, spans = less.split('@') if less else ('0', '')
+    spans = [tuple(float(x) for x in sp.split(':')) for sp in spans.split(',') if sp]
+    assert 0 <= float(cut) < 96
+    pts, last = [['0b', 0]], 0.0
+    for b in both:
+        z = b + max(strokes['rule'][b], strokes['tally'][b]) + past
+        a = b - lead
+        assert a - 0.05 > last, (b, last)
+        # nothing else of either clock may fall while the bus is open
+        for k in ('rule', 'tally'):
+            assert not [x for x in strokes[k] if x != b and a - 0.05 <= x <= z + shut], (k, b)
+        h = round(1 - float(cut) / 96, 6) if any(x <= b < y for x, y in spans) else 1
+        pts += [[f'{a - 0.05:g}b', 0], [f'{a:g}b', h], [f'{z:g}b', h], [f'{z + shut:g}b', 0]]
+        last = z + shut
+    nts, dec, mx = sym_s.split(':')
+    kd, rdec, sz, pre, lc, hc, rmx = rev_s.split(':')
+    fx = [{'type': 'gain', 'gain': {'value': '-96dB', 'mod': [{'src': 'auto.agree', 'amount': 96}]}},
+          {'type': 'sympathetic', 'notes': nts, 'decay': dec, 'mix': float(mx), 'tune_sounding': True},
+          {'type': 'reverb', 'kind': kd, 'decay': rdec, 'size': float(sz), 'predelay': pre, 'low_cut': float(lc),
+           'high_cut': float(hc), 'width': 1.0, 'mix': float(rmx)}]
+    if eq_s:
+        fx.append({'type': 'eq', 'bands': eq_s.split('|')})
+    if out_s:
+        fx.append({'type': 'gain', 'gain': out_s})
+    song['buses'] = {**song['buses'], 'agree': {'fx': fx, 'auto': {'agree': {'curve': 0, 'points': pts}}}}
+    smap = dict(zip(('rule', 'tally'), snd_s.split(',')))
+    for i, t in enumerate(song['tracks']):
+        if t['name'] in smap and smap[t['name']]:
+            song['tracks'][i] = {**t, 'sends': {**(t.get('sends') or {}), 'agree': smap[t['name']]}}
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out',type=Path,default=OUT); parser.add_argument('--form',action='store_true')
@@ -1556,6 +1623,7 @@ if __name__=='__main__':
     if WEIGHT: the_weight_comes_out_of_its_box(song)
     if CHINA: the_china_gives_the_top_back(song)
     if VAULT: the_weight_gets_hm2_and_vault(song)
+    if AGREE: the_pedal_goes_down_when_the_clocks_agree(song)
     if args.form:
         for n,t in marks: print(f'{n:18} {t/BAR+1:5.0f}  {t/SUB*60/BPM:6.2f}s')
     else: args.out.write_text(dump(song))
