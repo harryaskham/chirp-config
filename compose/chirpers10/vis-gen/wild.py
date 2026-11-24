@@ -1841,7 +1841,9 @@ def sonar(c):
 def constellation(c):
     """The tune as a star map: each note a star, as far across as it comes in the phrase and
     as high as its pitch, with a line drawn from each to the next as it is played."""
-    T = (c.tunes + c.riffs + c.parts)[0]
+    T = next((p for p in c.tunes + c.riffs + c.parts if p.hi - p.lo >= 4), None)
+    if T is None:
+        raise ValueError("no part here moves far enough to be a map")
     x = "((fract(note.beat/16) - 0.5)*8.2)"
     xn = "((fract(note.beat/16) + note.gap/16 - 0.5)*8.2)"
     y, yn = T.pitch(-2.0, 2.0), T.pitch(-2.0, 2.0, "(note.next_key*84 + 24)")
@@ -1995,13 +1997,13 @@ def anemone(c):
     e = f"exp(0 - 0.8*{d})"
     pose = {f"t{k}": [f"0.015 + 0.012*sin(time.bar/2 + {k * 0.1:.2f} + inst.i*0.3) + {0.055 if k > 2 else 0.01}*{e}", 0, 0] for k in range(12)}
     th = f"(inst.i/{nn})"
-    layers = [lamp(-2, 5, -4, 1.0, "#bfe6ff"), lamp(2, 0.5, -3, 0.6, c.a), floor(c, 0, "#0a141c", 0.7),
+    layers = [lamp(-2, 5, -4, 1.5, "#bfe6ff"), lamp(2, 0.5, -3, 0.9, c.a), lamp(0, 3.5, 0, f"0.5 + 1.2*{A.hit}", c.b, 9), floor(c, 0, "#16303c", 0.8),
               ball(0, 0.15, 0, 0.75, 20, **solid(c.b, 0.6), sy=0.5, emit=f"0.2*{A.hit}"),
               {"type": "figure", "rig": "tentacle", "motion": "none", "pose": pose, "count": nn, "x": f"0.55*cos({th})", "y": 0.3, "z": f"0.55*sin({th})", "scale": 1.5, "ry": f"0.25 - {th}", "rx": 0.03,
                **skin(c.a, f"0.15 + 0.9*{e}"), "melt": 0.04},
               {"type": "motes", "mode": "drift", "count": 300, "w": 8, "h": 4, "d": 6, "y": 2, "z": 0, "fall": -0.05, "wobble": 0.2, "size": 0.012, "glow": 0.6, "twinkle": 0.5, "color": "#9fd8ff"}]
-    return {"background": "#04121c", "camera": cam("5*sin(time.bar/20)", 2.6, "0 - 5*cos(time.bar/20)", look=(0, 1.2, 0), zoom=1.5), "layers": layers,
-            "filters": [{"type": "fog", "amount": 0.9, "density": 0.08, "color": "#04121c"}, {"type": "ao", "amount": 0.5, "radius": 0.06}, {"type": "tonemap", "knee": 0.75}, {"type": "aa"}, bloom(c, 0.4, 0.02, 0.7)]}
+    return {"background": "#04121c", "camera": cam("3.6*sin(time.bar/20)", 1.9, "0 - 3.6*cos(time.bar/20)", look=(0, 0.85, 0), zoom=1.45), "layers": layers,
+            "filters": [{"type": "fog", "amount": 0.7, "density": 0.06, "color": "#06202e"}, {"type": "ao", "amount": 0.5, "radius": 0.06}, {"type": "tonemap", "knee": 0.75}, {"type": "aa"}, bloom(c, 0.4, 0.02, 0.7)]}
 
 
 @idiom(needs=1, fam="weather", cost=3, max_cell=13)
@@ -4338,8 +4340,8 @@ def pinion(c):
     tau = f"(time.beat*{sub})"
     phi = f"({tau}/{g})"
     beat = f"(1 - step(0.5, fract(inst.i/{sub})*{sub}))"
-    layers = [ball(f"{rr:g}*sin(inst.i/{g})", f"{rr:g}*cos(inst.i/{g})", 0, f"0.055 + 0.05*{beat}", 6, count=g, **glow(c.ink, f"0.6 + 0.8*{beat}")),
-              ball(f"{rr:g}*sin(inst.i/240)", f"{rr:g}*cos(inst.i/240)", 0, 0.016, 4, count=240, **glow(c.dim, 1.1))]
+    layers = [ball(f"{rr:g}*sin(inst.i/{g})", f"{rr:g}*cos(inst.i/{g})", 0, f"0.08 + 0.06*{beat}", 6, count=g, **glow(c.ink, f"0.8 + 0.8*{beat}")),
+              ball(f"{rr:g}*sin(inst.i/240)", f"{rr:g}*cos(inst.i/240)", 0, 0.026, 4, count=240, **glow(c.dim, 1.6))]
     env = {}
     for w, (P, q0, parts, *more) in enumerate(wheels[:3]):
         teeth = more[0] if more else P                     # (a wheel fifteen places round may carry sixteen teeth: a band that counts faster)
@@ -4349,16 +4351,16 @@ def pinion(c):
         hx, hy = f"({d:g}*sin({phi}))", f"({d:g}*cos({phi}))"
         at = lambda ang, r=rp: (f"{hx} + {r:g}*sin({ang})", f"{hy} + {r:g}*cos({ang})")      # noqa: E731
         x, y = at(f"(inst.i/240 + {psi})")
-        layers.append(ball(x, y, 0, 0.018, 4, count=240, **glow(c.col(2 * w), 0.9)))
+        layers.append(ball(x, y, 0, 0.028, 4, count=240, **glow(c.col(2 * w), 1.2)))
         x, y = at(f"(inst.i/{teeth} + {psi})")
-        layers.append(ball(x, y, 0, 0.075, 6, count=teeth, **glow(c.dim, 1.3)))
+        layers.append(ball(x, y, 0, 0.1, 6, count=teeth, **glow(c.dim, 1.7)))
         # the marked tooth's path over the whole cycle, and the tooth on it
         m = g * P
         ti = f"({q0} + inst.i*{m / 600:g})"
-        layers.append(ball(f"{d:g}*sin({ti}/{g}) + {rp * 0.8:g}*sin({ti}/{g} - ({ti} - {q0})/{P})", f"{d:g}*cos({ti}/{g}) + {rp * 0.8:g}*cos({ti}/{g} - ({ti} - {q0})/{P})", 0.02, 0.013, 4, count=600,
-                           **glow(c.col(2 * w), 0.8)))
+        layers.append(ball(f"{d:g}*sin({ti}/{g}) + {rp * 0.8:g}*sin({ti}/{g} - ({ti} - {q0})/{P})", f"{d:g}*cos({ti}/{g}) + {rp * 0.8:g}*cos({ti}/{g} - ({ti} - {q0})/{P})", 0.02, 0.02, 4, count=600,
+                           **glow(c.col(2 * w), 1.0)))
         x, y = at(psi)
-        layers.append({"type": "beam", "from": [hx, hy, 0], "to": [x, y, 0], "width": 0.02, "samples": 8, "color": c.ink, "glow": 0.7})
+        layers.append({"type": "beam", "from": [hx, hy, 0], "to": [x, y, 0], "width": 0.035, "samples": 8, "color": c.ink, "glow": 0.9})
         x, y = at(psi, rp * 0.8)
         layers.append(ball(x, y, -0.02, 0.1, 8, **glow(c.ink, 1.4)))
         layers.append(ball(hx, hy, 0, 0.09, 8, **glow(c.col(2 * w), 1.0)))
@@ -4521,8 +4523,8 @@ def haul(c):
         col = c.a if late else c.b
         come = f"step({start:g}, {now})"
         struck = lambda at: f"exp(0 - 0.5*max({now} - {at:g}, 0))*step({at:g}, {now})"      # noqa: E731
-        rope = {"type": "beam", "from": [x0, y, 0], "to": [x1, y, 0], "sag": sag, "width": 0.04, "samples": 64, "color": col,
-                "glow": f"0.6 + 0.75*{come} + 1.5*{struck(end)}"}
+        rope = {"type": "beam", "from": [x0, y, 0], "to": [x1, y, 0], "sag": sag, "width": 0.065, "samples": 64, "color": col,
+                "glow": f"0.7 + 0.75*{come} + 1.5*{struck(end)}", "wave": 0.03, "waves": 1.5, "speed": 0.8}
         if abs(slack) < 0.5:
             # (a taut rope hums when it is struck, for a bar or two; a slack one cannot)
             rope.update(wave=f"0.2*exp(0 - 0.032*max({now} - {end:g}, 0))*step({end:g}, {now})", waves=3, speed=5, samples=96,
@@ -4531,14 +4533,14 @@ def haul(c):
         m = round(abs(slack))
         if m:
             f_ = f"((inst.i + 1)/{m + 1})"
-            layers.append(ball(f"{n(x0)} + {x1 - x0:g}*{f_}", f"{n(y)} - {sag * 4:g}*{f_}*(1 - {f_})", -0.02, min(0.06, 2.2 / (m + 1)), 8, count=m, **glow(col, f"0.3 + 1.2*{come}")))
+            layers.append(ball(f"{n(x0)} + {x1 - x0:g}*{f_}", f"{n(y)} - {sag * 4:g}*{f_}*(1 - {f_})", -0.02, min(0.095, 3.2 / (m + 1)), 8, count=m, **glow(col, f"0.45 + 1.2*{come}")))
         for x, at in ((x0, pull), (x1, hl)):
-            layers.append(box(x, y, 0, 0.045, 0.2 * gap, 0.02, **glow(c.ink, f"0.5 + 2.4*{struck(at)}")))
+            layers.append(box(x, y, 0, 0.07, 0.27 * gap, 0.02, **glow(c.ink, f"0.6 + 2.4*{struck(at)}")))
         if m:
             t = f"clamp(({now} - {start:g})/{max(end - start, 0.01):g}, 0, 1)"
             u = t if late else f"(1 - {t})"
             on = f"step({start:g}, {now})*step({now}, {end + 1.5:g})"
-            layers.append(ball(f"{n(x0)} + {x1 - x0:g}*{u}", f"{n(y)} - {sag * 4:g}*{u}*(1 - {u})", -0.05, f"0.12*{on}", 10, **glow("#ffffff", f"1.8*{on}")))
+            layers.append(ball(f"{n(x0)} + {x1 - x0:g}*{u}", f"{n(y)} - {sag * 4:g}*{u}*(1 - {u})", -0.05, f"0.17*{on}", 10, **glow("#ffffff", f"1.9*{on}")))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.45, 0.016, 0.7)]}
 
 
@@ -5241,10 +5243,9 @@ def depthstage(c):
     return {
         "background": c.bg,
         "layers": [
-            {"type": "stars", "count": 450, "speed": 0.015, "size": 1.1, "light": 0.35, "twinkle": 0.5, "streak": 1.2, "blend": "add"},
             {"type": "stage", "blend": "normal",
              "camera": {"x": "0.14*actor.a.x", "y": "0.06*sin(time.bar/6)", "z": -1.1, "zoom": 1.22, "roll": "0.012*sin(time.bar/8)", "fog": 0.08},
-             "actors": actors},
+             "actors": [{"use": _backdrop(c), "name": "sky", "mask": "rect", "res": 0.5, "x": 0, "y": 0, "z": 2.6, "scale": 5}] + actors},
         ],
         "filters": [bloom(c, 0.3, 0.014, 0.75)],
     }
@@ -5357,7 +5358,7 @@ def sandpile(c):
     for i, (p, (x, y)) in enumerate(zip(P, spots)):
         k = "" if i == 0 else str(i + 1)
         played = p.rate * (c.a16 / 16)          # its notes so far, about
-        lay.update({f"on{k}": f"track.{p.name}", f"x{k}": x, f"y{k}": y, f"warm{k}": int(min(most, max(most * 0.45, grains * 2.2 * played)))})
+        lay.update({f"on{k}": f"track.{p.name}", f"x{k}": x, f"y{k}": y, f"warm{k}": int(min(most, max(most * 0.7, grains * 2.2 * played)))})
         # Where each riff drops its sand: a ring that jumps on its notes.
         marks.append({"type": "shape", "sides": 1, "radius": f"0.035 + 0.05*env.h{i}", "width": 0.007, "fill": 0, "x": x, "y": y, "color": c.col(i), "opacity": f"0.35 + 0.65*env.h{i}"})
     return {"background": "#05060a", "env": env, "layers": [lay] + marks, "filters": [{"type": "tonemap", "knee": 0.8}, bloom(c, 0.22, 0.01, 0.75)]}
@@ -5420,6 +5421,37 @@ def coral(c):
         # The hand: where the next note will sow.
         marks.append({"type": "shape", "sides": 1, "radius": f"0.018 + 0.022*env.h{i}", "width": 0, "fill": 1, "x": hx, "y": hy, "color": "#ffffff", "opacity": f"0.55 + 0.45*env.h{i}"})
     return {"background": "#05060a", "env": env, "layers": [lay] + marks, "filters": [{"type": "tonemap", "knee": 0.8}, bloom(c, 0.25, 0.01, 0.7)]}
+
+
+@idiom(needs=1, fam="count", max_cell=24)
+def sorting(c):
+    """Rows of bars that the notes put in order. A row to a riff, with as many bars as the
+    riff has sixteenths. Every note of the riff is one step of the sort: the first bar
+    that stands lower than the one on its left is carried to where it belongs, and those
+    it passes move up a place. Every note of the next riff puts a bar of this row out
+    again, and each time the riff has come round often enough to make a bar and a half its
+    row is shuffled. So a row is a contest between two parts: a ramp where its own riff plays
+    more notes, a jumble where the other does. The bars in order are bright and the rest
+    dim, and a note that finds its row in order rings it."""
+    P = [p for p in c.riffs if p.cell and p.cell >= 4][:3]
+    if not P:
+        raise ValueError("no riff long enough to be a row")
+    n = len(P)
+    H = 1.84 / n
+    env, layers = {}, []
+    for i, p in enumerate(P):
+        base = 0.92 - (i + 1) * H + 0.05
+        q = P[(i + 1) % n] if n > 1 else _knocker(c)
+        g = max(1, math.ceil(24 / p.cell))          # (a short row is put right in a few notes: it is shuffled the oftener)
+        env[f"again{i}"] = {"when": f"step(fract({p.turn}/{g}), 0.03)", "attack": "0ms", "decay": "60ms"}
+        lay = {"type": "sorter", "count": min(p.cell, 24), "seed": c.seed % 97 + i + 1, "on": f"track.{p.name}", "on3": f"env.again{i}",
+               "x": 0, "y": round(base, 3), "width": 3.3, "height": round(H - 0.14, 3), "gap": 0.18, "slide": 0.3, "reach": max(2, p.cell // 3),
+               "glow": 0.5, "dim": 0.42, "floor": 0.14, "palette": [c.col(i), c.col(i + 1)], "spread": 1}
+        if q is not None:
+            lay["on2"] = f"track.{q.name}"
+        layers.append(lay)
+        layers.append(box(0, base * 2.557 - 0.035, 0, 3.3 * 2.557 / 2, 0.012, 0.01, **glow(c.dim, 0.9)))        # the line it stands on
+    return {"background": c.bg, "env": env, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.3, 0.014, 0.7)]}
 
 
 @idiom(needs=1, fam="field", cost=2)
@@ -5838,6 +5870,13 @@ def c_timemap(c, A, B):
     return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "chronos", "depth": round(depth, 3), "gain": 3.5, "ground": True}), _act(B, blend="add", fade=0.14)], "filters": []}
 
 
+def _backdrop(c):
+    """What stands behind a stage: a wall lit from below in the song's colours, and stars."""
+    return {"background": c.bg,
+            "layers": [{"type": "gradient", "palette": [c.bg, c.bg, c.a, c.b], "angle": 0.25, "spread": 0.8, "light": 0.8, "res": 0.5},
+                       {"type": "stars", "count": 300, "speed": 0.01, "size": 2.2, "light": 1.0, "twinkle": 0.5, "streak": 1.0, "blend": "add"}]}
+
+
 @combo("stagepass")
 def c_stagepass(c, A, B):
     """Two pictures sharing a 3D stage: they weave past each other in depth on the riff's
@@ -5847,10 +5886,11 @@ def c_stagepass(c, A, B):
     u = f"({p.turn}/{per} + 0.125)"
     return {
         "background": "#000000",
-        "layers": [{"type": "stars", "count": 350, "speed": 0.012, "size": 1.1, "light": 0.3, "twinkle": 0.5, "streak": 1.2, "blend": "add"}, {
+        "layers": [{
             "type": "stage", "blend": "normal",
             "camera": {"x": 0, "y": 0, "z": -1.1, "zoom": 1.2, "roll": f"0.012*sin({u})", "fog": 0.08},
             "actors": [
+                {"use": _backdrop(c), "name": "sky", "mask": "rect", "res": 0.5, "x": 0, "y": 0, "z": 2.6, "scale": 5},
                 {"use": A, "name": "a", "mask": "rect", "res": 0.7, "x": f"0.72*sin({u})", "y": f"0.12*cos({u})", "z": f"0.6 + 0.44*cos({u})", "scale": 1.0},
                 {"use": B, "name": "b", "mask": "rect", "res": 0.7, "x": "0 - actor.a.x", "y": "0 - actor.a.y", "z": "1.2 - actor.a.z", "scale": 1.0},
             ],
@@ -6062,9 +6102,10 @@ def c_stage3(c, A, B, C):
             "type": "stage", "blend": "normal",
             "camera": {"x": f"0.12*sin({u})", "y": f"0.06*cos({u}/2)", "z": -1.15, "zoom": 1.28, "roll": f"0.01*sin({u})", "fog": 0.08},
             "actors": [
-                {"use": A, "name": "a", "mask": "rect", "res": 0.6, "x": f"0.78*sin({u})", "y": f"0.12*sin({P[0].turn}/2)", "z": f"1.0 + 0.52*cos({u})", "scale": f"0.78 + 0.06*{P[0].hit}"},
-                {"use": B, "name": "b", "mask": "rect", "res": 0.6, "x": f"0.78*sin({u} + 0.3333)", "y": f"0.12*sin({P[1].turn}/2)", "z": f"1.0 + 0.52*cos({u} + 0.3333)", "scale": f"0.78 + 0.06*{P[1].hit}"},
-                {"use": C, "name": "c", "mask": "rect", "res": 0.6, "x": f"0.78*sin({u} + 0.6667)", "y": f"0.12*sin({P[2].turn}/2)", "z": f"1.0 + 0.52*cos({u} + 0.6667)", "scale": f"0.78 + 0.06*{P[2].hit}"},
+                {"use": _backdrop(c), "name": "sky", "mask": "rect", "res": 0.5, "x": 0, "y": 0, "z": 2.8, "scale": 5.4},
+                {"use": A, "name": "a", "mask": "rect", "res": 0.6, "x": f"0.78*sin({u})", "y": f"0.12*sin({P[0].turn}/2)", "z": f"0.82 + 0.5*cos({u})", "scale": f"0.9 + 0.06*{P[0].hit}"},
+                {"use": B, "name": "b", "mask": "rect", "res": 0.6, "x": f"0.78*sin({u} + 0.3333)", "y": f"0.12*sin({P[1].turn}/2)", "z": f"0.82 + 0.5*cos({u} + 0.3333)", "scale": f"0.9 + 0.06*{P[1].hit}"},
+                {"use": C, "name": "c", "mask": "rect", "res": 0.6, "x": f"0.78*sin({u} + 0.6667)", "y": f"0.12*sin({P[2].turn}/2)", "z": f"0.82 + 0.5*cos({u} + 0.6667)", "scale": f"0.9 + 0.06*{P[2].hit}"},
             ],
         }],
         "filters": [],
@@ -6384,7 +6425,7 @@ HANDS = ("riley", "blinds", "dominoes", "breakout", "kandinsky", "vortex", "moon
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = {"lanes"} | set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
            "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava clockfield ripplebath".split())
-BROAD = FULL | {"wildfire", "lodestones", "frost"} | set("overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery hilbert worldlines mycelium sandpile eddies coral suminagashi".split())
+BROAD = FULL | {"wildfire", "lodestones", "frost", "sorting"} | set("overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery hilbert worldlines mycelium sandpile eddies coral suminagashi".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("breakout searchlights solkattu remainder rain seismo metro epicycle pond tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
@@ -6406,7 +6447,7 @@ BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky supr
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("rolls zipper loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("frost overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star suminagashi coral mycelium sandpile sandplate".split())
+SLOW = set("sorting frost overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star suminagashi coral mycelium sandpile sandplate".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)
@@ -6457,7 +6498,7 @@ def t_sheet(c, look):
     """The frame as a sheet of as many pictures as the riff has sixteenths, one taken on each."""
     p = c.riffs[0]
     nn = p.cell
-    cols = next(k for k in (4, 3, 5, 2, 6, 7) if k * math.ceil(nn / k) - nn <= 1 and math.ceil(nn / k) <= 4)
+    cols = {2: 2, 3: 3, 4: 2}.get(nn) or next(k for k in (4, 3, 5, 2, 6, 7) if k * math.ceil(nn / k) - nn <= 1 and math.ceil(nn / k) <= 4)
     return _pre(look, {"type": "panels", "cols": cols, "rows": math.ceil(nn / cols), "count": nn, "every": 0.25, "gap": 0.012, "flash": 0.3, "fit": "fill", "border": c.bg})
 
 
@@ -7018,6 +7059,39 @@ def t_frosted(c, look):
          "on": f"track.{p.name}", "x": f"0.55*cos(0.25 - {p.turn})", "y": f"0.34*sin(0.25 - {p.turn})", "life": life(p),
          "on2": f"track.{q.name}", "x2": f"1.3*cos(0.25 + {q.turn})", "y2": f"0.72*sin(0.25 + {q.turn})", "life2": life(q)}
     return _pre(look, f)
+
+
+@treat("sifted", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and bool(c.riffs) and 3 <= (c.riffs[0].cell or 0) <= 16)
+def t_sifted(c, look):
+    """Sifted by the riffs. The frame is in as many shelves, one above another, as the first
+    riff has sixteenths, and the shelf the riff has come to lets its light settle: whatever
+    is lit there falls to the foot of the shelf, the lightest lowest, and stands again when
+    the riff has gone on. So a band of settled light goes down the frame once a turn, a
+    shelf to a sixteenth. A second riff does the same across the frame in its own count,
+    its light going to the right of each of its columns; the two bands cross where both
+    riffs are, and that place walks the frame slantwise, as the riffs slip. A band is a
+    little lighter than the rest, so it is seen on a smooth picture too."""
+    A = c.riffs[0]
+    na = A.cell
+    ya = f"(floor(fract({A.turn})*{na} + 0.001)/{na})"
+    f = [{"type": "pixelsort", "axis": 1, "from": ya, "to": f"({ya} + {1 / na:.5f})", "lift": 0.3, "amount": c.arr}]
+    B = next((q for q in c.riffs[1:] if q.cell and 3 <= q.cell <= 16 and q.cell != na), None)
+    if B is not None:
+        xb = f"(floor(fract({B.turn})*{B.cell} + 0.001)/{B.cell})"
+        f.append({"type": "pixelsort", "axis": 0, "from": xb, "to": f"({xb} + {1 / B.cell:.5f})", "lift": 0.3, "amount": c.arr})
+    look["filters"] = look.get("filters", []) + f
+    return look
+
+
+@treat("streaked", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in THIN and c.riffs and _knocker(c) is not None)
+def t_streaked(c, look):
+    """Every note of another part lets the picture run: whatever is lit comes apart into
+    streaks down the frame, each run of light sorted, the lightest lowest, as long as the
+    note is fresh, and it gathers itself up again before the next."""
+    q = _knocker(c)
+    look.setdefault("env", {})["run"] = {"on": f"track.{q.name}", "attack": "10ms", "decay": "680ms"}
+    look["filters"] = look.get("filters", []) + [{"type": "pixelsort", "axis": 1, "low": 0.12, "span": "0.5*env.run", "flip": c.seed % 2, "amount": c.arr}]
+    return look
 
 
 @treat("looped", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and c.riffs and 6 <= (_lead(c).cell or 16) <= 32)
