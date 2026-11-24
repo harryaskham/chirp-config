@@ -390,6 +390,21 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `+phaser.mix` | 1 | 1 | `0.3` in 2 |  |
 | `+phaser.rate` | 1 | 1 | `0.13` in 2 |  |
 
+## `lead-monster`: 2 songs, 3 tracks; as it comes in tracks 4, 8
+
+| field | tracks | songs | values (the songs) | |
+|---|---|---|---|---|
+| `synth.layers.2.wave` | 1 | 1 | `sine` in 8 |  |
+| `synth.layers.2.ratio` | 1 | 1 | `1` in 8 |  |
+| `synth.layers.2.level.value` | 1 | 1 | `-400dB` in 8 |  |
+| `synth.layers.2.level.mod.0.src` | 1 | 1 | `auto.sing` in 8 |  |
+| `synth.layers.2.level.mod.0.amount` | 1 | 1 | `1` in 8 |  |
+| `synth.layers.3.wave` | 1 | 1 | `sine` in 8 |  |
+| `synth.layers.3.ratio` | 1 | 1 | `2` in 8 |  |
+| `synth.layers.3.level.value` | 1 | 1 | `-397dB` in 8 |  |
+| `synth.layers.3.level.mod.0.src` | 1 | 1 | `auto.sing` in 8 |  |
+| `synth.layers.3.level.mod.0.amount` | 1 | 1 | `1` in 8 |  |
+
 ## `m8-lead-guitar`: 2 songs, 6 tracks; as it comes in tracks 1
 
 | field | tracks | songs | values (the songs) | |
