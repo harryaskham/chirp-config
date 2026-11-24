@@ -850,6 +850,53 @@ def the_horn_beats_the_number_it_holds(doc, wheel):
         doc['loudness'] = PULSE['loudness']
 
 
+# v29 (chirper-zero, 24 Nov; instrument round on Harry's 24 Nov steer for interesting effects and guitar sound: the
+# two guitars `left` and `right` on the wheel, 4:26.7 to 4:38.8; no note moves, no track is added):
+# THE GUITARS TURN WITH THE WHEEL.
+#   The song ends on a wheel: four, two, one, seven sixteenths a turn, fifteen turns, which is what it takes to come
+#   back to a bar line. Everything the song gathered turns it (v19: the horn, the bells, the count), but the two
+#   guitars chugged it in one tone, and the map had flagged it 'static in tone'. Now their tone goes round once a
+#   turn. A phaser last on each guitar, its rate one cycle in 1.75 beats (a turn), off (mix 0, the track untouched)
+#   until the wheel and at full depth on it: it sweeps down through the four, is at the bottom on the two and comes up
+#   through the one, the same every turn, in seven against the kit's four. So the wheel's three numbers have three
+#   colours on the guitars. On the last bar line, where seven against four comes out even, it stops: the last chord
+#   is the first still thing. The fader rises 2.75 dB while it turns, which is what a phaser at full depth takes
+#   from the pair's level. On the wheel the guitars are small (v4: -6.25 dB), so a strong effect stays a colour.
+#   MEASURED (raw, the song's seed): the pair alone by stroke, four / two / one, new less plain: 900 Hz-2 kHz
+#   +0.8 / -3.7 / +1.0 dB, 2-4.5 kHz -0.3 / +1.7 / -6.8, 4.5-9 kHz -0.3 / +3.9 / -1.0 ; the pair as a whole 0.00 ;
+#   the mix 900 Hz-2 kHz +0.4 / -1.8 / +0.3 and 2-4.5 kHz -0.3 / +1.2 / -2.5 ; the wheel's level +0.02 dB, the last
+#   chord's 0.00 ; before the wheel twenty samples of 12.8 million differ, each by one step of the file.
+#   BENCHED AND NOT TAKEN: the last chord turning too ('last' 1.0, 'last makeup' 2.75): bare, its 900 Hz-4.5 kHz rose
+#   and fell 3 to 4 dB every 0.4 s, and the scorer read the sweeps as strokes (96.34 / 96.28 against 96.57 / 96.64).
+# TURN: 'tracks' ; 'mix' the phaser's mix on the wheel (1 = half dry, half wet: full depth) ; 'stages' ; 'feedback' ;
+# 'depth' (its corner sweeps 300 Hz to 300 x 2^(4 x depth)) ; 'turn' its period in beats (1.75 = a turn of the wheel) ;
+# 'makeup' dB on the fader while it is on ; 'ramp' beats over which it comes on ; 'last' the share of 'mix' on the last
+# chord (from the last bar line: 1 as on the wheel, 0 plain) and 'last makeup' its dB ; 'loudness' None = unchanged.
+# --turn '{"mix": 0.8, "makeup": 2.7}' changes fields for a bench ; --without-turn = v28 byte for byte. Inside PULSE's
+# block: 'without_turn' and 'turn' are in the list of names that keep the newer switches on.
+TURN = {'tracks': ('left', 'right'), 'mix': 1.0, 'stages': 4, 'feedback': 0.3, 'depth': 0.7, 'turn': 1.75, 'makeup': 2.75, 'ramp': 0.1, 'last': 0.0, 'last makeup': 0.0, 'loudness': None}
+
+
+def the_guitars_turn_with_the_wheel(doc, wheel, end):
+    """v29: from the wheel (`wheel`, in beats) to the end the two guitars go through a phaser that turns once a turn.
+    Two lanes on each track: `turn` (0 before the wheel, 1 on it, TURN['last'] on the last chord, from `end`) opens the
+    phaser's mix, and `lift` (dB: 0, TURN['makeup'], TURN['last makeup']) is added to the fader. Before the wheel the
+    phaser's mix is 0 and the lift 0: the track is as it was."""
+    w, e, r = wheel, end, TURN['ramp']
+    turn = [['0b', 0], [f"{w - r:g}b", 0], [f"{w:g}b", 1], [f"{e - r:g}b", 1], [f"{e:g}b", TURN['last']]]
+    lift = [['0b', 0], [f"{w - r:g}b", 0], [f"{w:g}b", TURN['makeup']], [f"{e - r:g}b", TURN['makeup']], [f"{e:g}b", TURN['last makeup']]]
+    for i, t in enumerate(doc['tracks']):
+        if t['name'] not in TURN['tracks']:
+            continue
+        assert 'turn' not in t['auto'] and 'lift' not in t['auto'] and isinstance(t['gain'], dict), t['name']
+        fx = {'type': 'phaser', 'rate': f"{TURN['turn']:g}b", 'depth': TURN['depth'], 'stages': TURN['stages'], 'feedback': TURN['feedback'],
+              'mix': {'value': 0, 'mod': [{'src': 'auto.turn', 'amount': TURN['mix']}]}}
+        doc['tracks'][i] = {**t, 'gain': {**t['gain'], 'mod': t['gain']['mod'] + [{'src': 'auto.lift', 'amount': 1}]}, 'fx': t['fx'] + [fx],
+                            'auto': {**t['auto'], 'turn': {'points': turn}, 'lift': {'points': lift}}}
+    if TURN['loudness'] is not None:
+        doc['loudness'] = TURN['loudness']
+
+
 def walk(n):
     out = [n]
     while n != 1:
@@ -1212,6 +1259,8 @@ if __name__ == '__main__':
     ap.add_argument('--touch', help='a bench: TOUCH fields to change, as a JSON object')
     ap.add_argument('--without-fifth', action='store_true', help="regenerate v23: the snare between two of the string's harmonics, a different pitch on every stroke")
     ap.add_argument('--fifth', help="JSON over FIFTH's fields, for a bench")
+    ap.add_argument('--without-turn', action='store_true', help="regenerate v28: the two guitars in one tone on the wheel")
+    ap.add_argument('--turn', help="JSON over TURN's fields, for a bench")
     ap.add_argument('--without-pulse', action='store_true', help="regenerate v27: the horn holds its number at one level")
     ap.add_argument('--pulse', help="JSON over PULSE's fields, for a bench")
     ap.add_argument('--without-ground', action='store_true', help="regenerate v26: the first pair with one eq the whole song through")
@@ -1247,7 +1296,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
-    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_pulse', 'pulse', 'without_ground', 'ground', 'without_fill', 'fill', 'without_register', 'register', 'without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight', 'without_speaker', 'speaker', 'without_fitted', 'fitted', 'without_fifth', 'fifth'))
+    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_turn', 'turn', 'without_pulse', 'pulse', 'without_ground', 'ground', 'without_fill', 'fill', 'without_register', 'register', 'without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight', 'without_speaker', 'speaker', 'without_fitted', 'fitted', 'without_fifth', 'fifth'))
     if not a.without_china and newest:
         metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
         metal['patch'] += ' ' + CHINA['kit']
@@ -1505,6 +1554,10 @@ if __name__ == '__main__':
                             if a.pulse:
                                 PULSE.update(json.loads(a.pulse))
                             the_horn_beats_the_number_it_holds(doc, wheel / SUB)
+                            if not a.without_turn:                 # only on the whole song as v28 has it
+                                if a.turn:
+                                    TURN.update(json.loads(a.turn))
+                                the_guitars_turn_with_the_wheel(doc, wheel / SUB, end / SUB)
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
