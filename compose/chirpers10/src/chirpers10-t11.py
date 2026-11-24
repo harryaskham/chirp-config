@@ -1295,6 +1295,142 @@ def the_riff_pair_bites(doc):
         doc['loudness'] = float(target)
 
 
+# v36 (chirper-zero, 24 Nov; instrument round, on Harry's 24 Nov steer for interesting effects, guitar sound, and
+# synths/environment sound — no note moves, no track added): THE WALL GETS A MUFF, AND THE CHAPEL OPENS.
+# Two sound-only additions on pin 882b35a1 (carrying `pedal`):
+# 1) THE WALL (`wallL`, `wallR`, beats 260-483, 1:48.3-3:21.2 = 'shoulder-alone', 'kettle', 'swing-first', 'swing-last',
+#    'home', 'shut'): song patches `oih-wall-l` and `oih-wall-r` (extending `ct-wall-stop-l/r` with the same strings/play)
+#    insert a Ram's Head Big Muff stompbox (`pedal kind=muff drive=0.35 tone=0.72 level=3dB volts=0.85 mix=0.85`, amp
+#    `ts=0` and `boost=0dB`) ahead of each wall's recto amp; fader -1.9 -> -2.5 dB keeps the wall at matched loudness
+#    alone (-0.01 dB). HM-2, RAT and Screamer all hollowed 120-500 Hz and worsened the mix; Muff fills the 250-500 Hz
+#    hole in 'shoulder-alone' (-1.5 -> +0.2), 'kettle' (-2.1 -> -0.7) and 'swing-first' (-1.6 -> -0.7) while trimming the
+#    2-4 kHz glare (+1.6 -> +0.8).
+# 2) THE CHAPEL (`chapel` bus + lane-gated Leslie rotary on `bellows`, gated strictly to beats 216-264 = 'bellows' +
+#    'the lead-in' 1:30-1:50 and beats 480-501 = 'shut' 3:20-3:29): `bellows` gets a slow rotary (speed 0.22, mix 0.50 on
+#    lane `spin`, 0 everywhere else so 'lean', 'broad' and 'swing-last' are untouched), and `bellows`, `longbow`, `glass`
+#    and `wind` send to `chapel`: 3/8 ping-pong delay (matching bellows' own 3/8 pump), sympathetic Bb minor strings
+#    (Bb3,Db4,F4,Ab4,Bb4,C5,Db5,F5), octave-up reverse granular cloud, 3.8 s shimmer hall, bright air eq (HP 2.1 kHz,
+#    3.4 kHz +3, 7 kHz +10.5), gated to -96 dB outside those two stretches (zero spill into 'shoulder-alone', -90 dB).
+#    Alpha's organ 250-500 Hz note is NOT trimmed.
+# C10T11_CHAPEL = pedal kind:drive:tone:level:volts:mix ; wall_gain ; rotary speed:doppler:depth:spread:mix ;
+#   sends bellows,longbow,glass,wind ; delay time:fb:tone:mix ; sympathetic notes:decay:mix ;
+#   cloud size:density:pos:spray:pitch:rev:spread:win:seed:mix ; reverb kind:decay:size:shimmer:lc:hc:mix ;
+#   eq bands | ; spans a:z,a:z ; loudness target. '' = v35 byte for byte.
+CHAPEL = os.environ.get(
+    'C10T11_CHAPEL',
+    'muff:0.35:0.72:3dB:0.85:0.85;-2.5dB;0.22:0.6:0.65:0.9:0.5;13dB,13dB,11dB,11dB;3/8:0.42:11000:0.45;'
+    'Bb3,Db4,F4,Ab4,Bb4,C5,Db5,F5:2.4s:0.25;135ms:18:160ms:150ms:12.0:0.35:1.0:2.8s:11:0.82;'
+    'hall:3.8s:0.88:0.55:2100:15500:0.9;hp cutoff=2100|peak cutoff=3400 q=0.7 gain=3dB|highshelf cutoff=7000 gain=10.5dB;'
+    '216:263.95,480:501;-9.6566'
+    if BITE else '',
+)
+
+
+def the_wall_gets_a_muff_and_chapel(doc):
+    """v36: Ram's Head Muff on wallL/wallR + lane-gated rotary on bellows + gated 'chapel' ambient bus in bellows/lead-in/shut."""
+    ped_s, w_gain, rot_s, snd_s, dly_s, sym_s, cld_s, rev_s, eq_s, spans_s, target = CHAPEL.split(';')
+    if ped_s:
+        kind, drv, tone, lvl, volts, mix = ped_s.split(':')
+        ped = {'type': 'pedal', 'kind': kind, 'drive': float(drv), 'tone': float(tone),
+               'level': lvl, 'volts': float(volts), 'mix': float(mix)}
+        patches = dict(doc['patches'])
+        for side in ('l', 'r'):
+            is_l = (side == 'l')
+            pnm = f'oih-wall-{side}'
+            assert pnm not in patches, pnm
+            patches[pnm] = {
+                'extends': f'ct-wall-stop-{side}',
+                'about': f"On Its Hinge wall guitar ({side.upper()}) with a {kind} stompbox before its recto amp (chirper-zero, 24 Nov).",
+                'fx': [
+                    {'type': 'sympathetic', 'decay': '1.8s', 'mix': 0},
+                    {'type': 'compressor', 'attack': '8ms', 'makeup': '3dB', 'ratio': 3.0, 'threshold': '-22dB'},
+                    dict(ped),
+                    {'type': 'amp', 'stack': 'recto', 'gain': 0.78 if is_l else 0.76, 'bass': 0.55,
+                     'mid': 0.55 if is_l else 0.6, 'presence': 0.45, 'resonance': 0.75, 'tight': 65,
+                     'ts': 0.0, 'boost': '0dB', 'sag': 0.35, 'bloom': 0.6, 'nfb': 8.0, 'triode': True},
+                    {'type': 'ir', 'file': 'jester/kitten-slayer' if is_l else 'jester/wumbo',
+                     'blend_file': 'jester/kaiju-tamer' if is_l else 'jester/big-bubba',
+                     'blend': 0.4, 'breakup': 0.4, 'length': '160ms', 'level': 1, 'mix': 0, 'room': 0.22},
+                    {'type': 'eq', 'bands': [
+                        {'kind': 'peak', 'cutoff': 120, 'q': 1, 'gain': '0dB'},
+                        {'kind': 'peak', 'cutoff': 300, 'q': 0.9, 'gain': '0dB'},
+                        {'kind': 'peak', 'cutoff': 3300, 'q': 1.2, 'gain': '0dB'},
+                        {'kind': 'highshelf', 'cutoff': 5000, 'gain': '0dB'},
+                    ]},
+                    {'type': 'gate', 'attack': '0.5ms', 'hold': '40ms', 'release': '90ms', 'threshold': '-56dB'},
+                    {'type': 'reverb', 'kind': 'plate', 'decay': '1.4s' if is_l else '1.5s',
+                     'mix': 0.14, 'predelay': '14ms' if is_l else '20ms'},
+                ],
+            }
+        doc['patches'] = patches
+        for t in doc['tracks']:
+            if t['name'] in ('wallL', 'wallR'):
+                side = 'l' if t['name'] == 'wallL' else 'r'
+                t['patch'] = f"oih-wall-{side} synth.layers.0.thump.mod.0.amount=0.2 synth.filters.0.cutoff.mod.0.amount=-2"
+                if w_gain:
+                    t['gain'] = w_gain
+    if snd_s:
+        assert 'chapel' not in doc['buses'], 'chapel bus already exists'
+        bus_fx = []
+        if dly_s:
+            tm, fb, tn, mx = dly_s.split(':')
+            bus_fx.append({'type': 'delay', 'time': tm, 'feedback': float(fb), 'ping_pong': True,
+                           'tone': float(tn), 'mix': float(mx)})
+        if sym_s:
+            nts, dec, mx = sym_s.split(':')
+            bus_fx.append({'type': 'sympathetic', 'notes': nts, 'decay': dec, 'mix': float(mx), 'tune_sounding': True})
+        if cld_s:
+            sz, dn, ps, sp, pt, rv, sr, wn, sd, mx = cld_s.split(':')
+            bus_fx.append({'type': 'cloud', 'size': sz, 'density': float(dn), 'position': ps, 'spray': sp,
+                           'pitch': float(pt), 'reverse': float(rv), 'spread': float(sr), 'window': wn,
+                           'seed': int(sd), 'mix': float(mx)})
+        if rev_s:
+            kd, dec, sz, sh, lc, hc, mx = rev_s.split(':')
+            bus_fx.append({'type': 'reverb', 'kind': kd, 'decay': dec, 'size': float(sz), 'shimmer': float(sh),
+                           'low_cut': float(lc), 'high_cut': float(hc), 'width': 1.0, 'mix': float(mx)})
+        if eq_s:
+            bus_fx.append({'type': 'eq', 'bands': eq_s.split('|')})
+        bus_fx.append({'type': 'gain', 'gain': {'value': '-96dB', 'mod': [{'src': 'auto.open', 'amount': 96}]}})
+        spans = [tuple(float(x) for x in sp.split(':')) for sp in spans_s.split(',')]
+        open_pts = [['0b', 0]]
+        for idx, (a, z) in enumerate(spans):
+            open_pts += [[f'{a - 0.05:g}b', 0], [f'{a:g}b', 1]]
+            if z < 500.5:
+                open_pts += [[f'{z - 0.95:g}b', 1], [f'{z:g}b', 0]]
+            else:
+                open_pts += [[f'{z:g}b', 1]]
+        doc['buses'] = {**doc['buses'], 'chapel': {
+            'fx': bus_fx,
+            'auto': {'open': {'curve': 0, 'points': open_pts}},
+        }}
+        sb, sl, sg, sw = snd_s.split(',')
+        smap = {'bellows': sb, 'longbow': sl, 'glass': sg, 'wind': sw}
+        for i, t in enumerate(doc['tracks']):
+            nm = t['name']
+            if nm in smap and smap[nm]:
+                t = {**t, 'sends': {**(t.get('sends') or {}), 'chapel': smap[nm]}}
+                doc['tracks'][i] = t
+            if nm == 'bellows' and rot_s:
+                spd, dop, dep, spr, mx = (float(x) for x in rot_s.split(':'))
+                if mx > 0:
+                    spin_pts = [['0b', 0]]
+                    for a, z in spans:
+                        spin_pts += [[f'{a - 0.05:g}b', 0], [f'{a:g}b', mx]]
+                        if z < 500.5:
+                            spin_pts += [[f'{z - 0.15:g}b', mx], [f'{z + 0.05:g}b', 0]]
+                        else:
+                            spin_pts += [[f'{z:g}b', mx]]
+                    t = {**t,
+                         'auto': {**(t.get('auto') or {}), 'spin': {'curve': 0, 'points': spin_pts}},
+                         'fx': list(t.get('fx') or []) + [
+                             {'type': 'rotary', 'speed': spd, 'doppler': dop, 'depth': dep, 'spread': spr,
+                              'mix': {'value': 0, 'mod': [{'src': 'auto.spin', 'amount': 1}]}}
+                         ]}
+                    doc['tracks'][i] = t
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('-o','--out',type=Path,default=Path(os.environ.get('C10T11_OUT',OUT)));p.add_argument('--map',action='store_true'); a=p.parse_args(); doc,marks=make()
     if a.map:
@@ -1303,4 +1439,5 @@ if __name__=='__main__':
     else:
         if AIR: the_bellows_draw_breath(doc)
         if BITE: the_riff_pair_bites(doc)
+        if CHAPEL: the_wall_gets_a_muff_and_chapel(doc)
         a.out.write_text(dump(doc))
