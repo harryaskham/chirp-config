@@ -5921,7 +5921,7 @@ def t_dots(c, look):
     return _pre(look, {"type": "halftone", "count": 64, "angle": 0, "gain": 1.6, "amount": c.arr})
 
 
-@treat("newsprint", ok=lambda c, info: info["fam"] not in ("sign", "plate"))
+@treat("newsprint", ok=lambda c, info: info["fam"] not in ("sign", "plate") and info["f"].__name__ not in ("splitflap", "teletype"))
 def t_newsprint(c, look):
     """Printed in the paper: dark dots on a pale ground."""
     look["filters"] = [f for f in look.get("filters", []) if f.get("type") != "bloom"] + ([{"type": "color", "exposure": 1.3, "gamma": 1.8}] if getattr(c, "idiom", None) in DIM and LIFT not in look.get("filters", []) else []) + [     # (a dim room's shadows are lifted first: it printed as an empty page)
@@ -6138,7 +6138,7 @@ def _unbloomed(look):
     return look
 
 
-@treat("papercut", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type"))
+@treat("papercut", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ != "albers")
 def t_papercut(c, look):
     """Cut from sheets of coloured paper laid one on another, each casting a shadow; the
     light goes round once for every few turns of the riff, and the shadows with it."""
@@ -6161,7 +6161,7 @@ def t_ridged(c, look):
     while count < 40:
         count *= 2
     look = _unbloomed(look)
-    look["filters"] += [{"type": "blur", "radius": 0.006}, {"type": "terrain", "count": min(count, 88), "height": "0.11 + 0.07*env.heave", "width": 0.0028, "gain": 1.6, "amount": c.arr}]
+    look["filters"] += [{"type": "blur", "radius": 0.006}, {"type": "color", "brightness": 0.05}, {"type": "terrain", "count": min(count, 88), "height": "0.11 + 0.07*env.heave", "width": 0.0036, "gain": 1.6, "keep": 0.3, "amount": c.arr}]
     return look
 
 
@@ -6224,7 +6224,7 @@ def t_woodcut(c, look):
     return look
 
 
-@treat("riso", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE)
+@treat("riso", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE and info["f"].__name__ not in ("doors", "tartan"))
 def t_riso(c, look):
     """Two-plate risograph print on warm paper: spot-ink plates slip out of register on
     each hit of the riff and snap back into overprint."""
@@ -6234,7 +6234,7 @@ def t_riso(c, look):
     return look
 
 
-@treat("anamorph", ok=lambda c, info: info["f"].__name__ in KALEIDO_OK and info["f"].__name__ in BROAD and info["f"].__name__ not in WHITE and not info.get("paper") and c.riffs)
+@treat("anamorph", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE and not info.get("paper") and c.riffs)
 def t_anamorph(c, look):
     """Cylindrical mirror anamorphosis: a vertical chrome cylinder sits at the centre
     reflecting the picture while the surrounding panorama sweeps round it with the riff."""
@@ -6254,7 +6254,7 @@ def t_scanfold(c, look):
     return _pre(look, {"type": "scanfold", "depth": round(depth, 3), "folds": folds, "phase": f"{p.turn}/2", "angle": angle, "split": 0.22, "amount": c.arr})
 
 
-@treat("etched", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE and info["f"].__name__ not in ("fruit", "dice", "reels"))
+@treat("etched", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE and info["f"].__name__ not in ("fruit", "dice", "reels", "turbines", "venn"))
 def t_etched(c, look):
     """Copperplate cross-hatch engraving on warm ivory stock: three burin hatch angles bite
     progressively deeper into shadows, rotating subtly on each turn of the riff."""
