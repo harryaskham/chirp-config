@@ -1844,6 +1844,74 @@ def the_hat_makes_room_for_the_words(doc):
         doc["loudness"] = float(target)
 
 
+# v38: THE DUTY IS THE NUMBER (the three chips that are the rule: the tune `lead` and its second voices `lead2` and
+# `hair`; an instrument round on Harry's 24 Nov steer for instrument design and synths; no note moves: the chips have
+# no notes, only the rule, and the rule is as it was). The chip said each half bar's number x ONCE, as a pitch, on one
+# timbre for three minutes, the patch's quarter pulse (chirper-alpha, v30: "whether a square-wave tune that can be
+# heard for three minutes is this song's voice or a toy over a metal band"). A pulse wave has a number of its own,
+# its DUTY: the share of each cycle it is up. And a pulse that is up for d of its cycle has the power d (1 - d):
+# the rule's own product, this year's count times the room that is left. So now THE PULSE IS UP FOR x OF ITS CYCLE.
+# The chip is a 2A03 and has four duties, an eighth, a quarter, a half and three quarters, and takes the nearest (three
+# quarters is a quarter upside down and sounds the same): a number near the middle, 0.375 to 0.625, HALF THE ROOM
+# FILLED, is a SQUARE wave, hollow, with no even harmonics, 3 dB more at its fundamental and 1.25 dB more power;
+# every other number is the quarter pulse it was. The thinnest, the eighth (x under 0.1875), is left to the answers in
+# the holes (`echo`, which has been that pulse since it was written): the lane never goes under 0.19.
+#   WHAT IT DOES TO THE TUNE: the square comes round once in each cycle. In two, every second note; in eight, every
+#   fourth; in the lock on five, one note in five; in the three and the six, one in three. Where the rule never
+#   repeats, nor does the timbre. Where the second voice becomes the tune (v28) it has the tune's number, so its wave.
+#   HOW: the_duty_is_the_number(doc) runs last, on the finished document. It walks each chip's `gen` as the engine
+#   does (x <- r x (1 - x), then the note), draws the numbers as a lane `duty` on the track's own clock (a track's
+#   lanes start at its `at`: the first bench drew them on the song's and every number came 64 beats late) and adds
+#   `synth.layers.0.chip.duty=auto.duty` to the patch. Each fader is trimmed so each chip ALONE is as loud as it was.
+#   MEASURED (raw, the song's seed; chirper-alpha's yardstick of v30, lread.py, on this round's renders): each chip
+#   alone within 0.003 LU of v37. The tune's half bars where its best line stands 3 dB or more over everything else
+#   in its third-octave: 42 of 174 -> 59 (two 3 -> 6, four 6 -> 8, eight 4 -> 6, the top 4 -> 6, down-two 3 -> 5) ;
+#   at -4 or lower 14 -> 14. The three chips together 77 of 176 -> 90. The mix: -18.1442 -> -18.1405 LUFS, the
+#   loudness target not moved ; the top's 8-16 kHz 0.1 dB DOWN (a square has less top than a quarter pulse).
+#   BENCHED AND NOT TAKEN: the chip's own thinnest for the low numbers too (the three then has all three timbres):
+#   the eighth is 2.3 dB quieter and 5.3 dB less at its fundamental, and the six, the round of two voices, lost four of
+#   its ten plain half bars by the same yardstick.
+# the chips ; dB on each fader ; the least the duty can be ('' = the chip's own thinnest) ; an eq on each, band|band
+# ('' = none) ; the loudness target ('' = unchanged). '' = v37 byte for byte. On only while WORDS is and no other
+# C10T6_ name is set: a newer switch's name goes in the list below, or it will turn this one off.
+DUTY = os.environ.get("C10T6_DUTY", "lead,lead2,hair;-0.24,-0.28,-0.17;0.19;;" if WORDS and not any(
+    k.startswith("C10T6_") and k not in ("C10T6_OUT", "C10T6_SHOW", "C10T6_DUTY") for k in os.environ) else "")
+
+
+def the_duty_is_the_number(doc):
+    """v38: each chip's pulse is up for x of its cycle, x being the number its note says. Runs last, on the finished
+    document: it walks each chip's `gen` as the engine does (x <- r x (1 - x), then the note), draws the numbers as a
+    lane `duty` on the track's own clock (a track's lanes start at its `at`) and binds the chip's duty to it ; the
+    chip snaps it to its nearest of 1/8, 1/4, 1/2 and 3/4, and `least` keeps it off the thinnest, which is the
+    answers' in the holes (`echo`). Faders trimmed so each chip alone is as loud as it was."""
+    names, trims, least, eq, target = DUTY.split(";")
+    names, least = names.split(","), float(least or 0)
+    trims = [float(v or 0) for v in trims.split(",")] if trims else [0.0] * len(names)
+    assert len(trims) == len(names)
+    for name, trim in zip(names, trims):
+        i, t = next((i, t) for i, t in enumerate(doc["tracks"]) if t["name"] == name)
+        assert t.get("gen") and "duty" not in t.get("auto", {}) and "chip.duty" not in t["patch"], name
+        at, pts, last = 0.0, [], None                              # beats on the track's own clock
+        for g in t["gen"]:
+            assert g["type"] == "logistic" and g["len"].startswith("/"), g
+            step, x = 4 / float(g["len"][1:]), g["x0"]
+            for _ in range(g["n"]):
+                x = g["r"] * x * (1 - x)
+                v = round(max(x, least), 4)
+                pts += [["0b", v]] if last is None else [[f"{round(at - 0.02, 5):g}b", last], [f"{round(at, 5):g}b", v]]
+                last, at = v, at + step
+        new = {**t, "patch": t["patch"] + " synth.layers.0.chip.duty=auto.duty", "auto": {**t.get("auto", {}), "duty": {"points": pts, "curve": 0}}}
+        if trim:
+            assert isinstance(t["gain"], dict), name
+            new["gain"] = {**t["gain"], "value": f"{float(t['gain']['value'][:-2]) + trim:g}dB"}
+        if eq:
+            assert not t.get("fx"), name
+            new["fx"] = [{"type": "eq", "bands": eq.split("|")}]
+        doc["tracks"] = doc["tracks"][:i] + [new] + doc["tracks"][i + 1:]
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T6_SHOW"):
         for name, n, _ in DIAL:
@@ -1867,4 +1935,6 @@ if __name__ == "__main__":
             the_hat_comes_down(doc)
         if WORDS:
             the_hat_makes_room_for_the_words(doc)
+        if DUTY:
+            the_duty_is_the_number(doc)
         open(OUT, "w").write(dump(doc))
