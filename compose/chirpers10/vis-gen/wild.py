@@ -948,11 +948,11 @@ def armillary(c):
     """Rings within rings, each turning on its own axis once a riff: they lie flat in one
     plane together only where the riffs meet."""
     parts = c.riffs[:4]
-    layers = [lamp(-3, 5, -6, 1.6), lamp(4, -2, -5, 0.5, c.a), ball(0, 0, 0, 0.22, 14, **glow(c.b, 2))]
+    layers = [lamp(-3, 5, -6, 1.8), lamp(4, -2, -5, 0.85, c.a), lamp(0, 3, -7, 0.5, c.b), ball(0, 0, 0, 0.28, 14, **glow(c.b, 2.4))]
     for i, p in enumerate(parts):
         ax = ("rx", "rz", "rx", "rz")[i]
-        layers.append({"type": "mesh", "shape": "torus", "detail": 56, "x": 0, "y": 0, "z": 0, "scale": 1.1 + 0.62 * i, "tube": 0.035 - 0.004 * i, ax: p.turn, "ry": 0.07 * i,
-                       **solid(("#c9a45a", "#b9b3a6", "#c98a5a", "#8fa0b0")[i], 0.3, 0.95), "emit": f"0.25*{p.hit}"})
+        layers.append({"type": "mesh", "shape": "torus", "detail": 56, "x": 0, "y": 0, "z": 0, "scale": 1.15 + 0.62 * i, "tube": 0.052 - 0.005 * i, ax: p.turn, "ry": 0.07 * i,
+                       **solid(("#d8b468", "#c8c2b4", "#d89a68", "#9eb2c4")[i], 0.28, 0.88), "emit": f"0.14 + 0.45*{p.hit}"})
     return {"background": c.bg, "camera": cam("5.6*sin(time.bar/20)", 2.2, "0 - 5.6*cos(time.bar/20)", zoom=1.9), "layers": layers, "filters": post3d(-3, 5, -6, shadow=0.4)}
 
 
@@ -1351,10 +1351,10 @@ def contour(c):
     z = "(0.8*sin(note.beat/8))"
     zn = "(0.8*sin((note.beat + note.gap)/8))"
     N = {"track": T.name, "past": 14, "ahead": 1}
-    layers = [floor(c, 0, "#0c0c10", 0.3), lamp(0, 3, -2, 0.8),
-              {"type": "beam", "notes": N, "from": [w, y, z], "to": [wn, yn, zn], "width": 0.02, "glow": "1.2*exp(0 - 0.15*max(note.age, 0))", "color": c.a, "samples": 16},
-              {"type": "beam", "notes": N, "from": [w, 0, z], "to": [w, y, z], "width": 0.008, "glow": 0.35, "color": c.dim, "samples": 8},
-              ball(w, y, z, "0.07*(1 + 1.5*exp(0 - 3*max(note.age, 0)))", 8, notes=N, **glow(c.ink, "1 + 3*exp(0 - 3*max(note.age, 0))"))]
+    layers = [floor(c, 0, "#12151f", 0.35), lamp(0, 3.5, -2.5, 1.15), lamp(-3, 2, -4, 0.5, c.b),
+              {"type": "beam", "notes": N, "from": [w, y, z], "to": [wn, yn, zn], "width": 0.042, "glow": "1.6*exp(0 - 0.13*max(note.age, 0))", "color": c.a, "samples": 16},
+              {"type": "beam", "notes": N, "from": [w, 0, z], "to": [w, y, z], "width": 0.015, "glow": "0.65*exp(0 - 0.12*max(note.age, 0))", "color": c.dim, "samples": 8},
+              ball(w, y, z, "0.095*(1 + 1.5*exp(0 - 3*max(note.age, 0)))", 8, notes=N, **glow(c.ink, "1.3 + 3.0*exp(0 - 3*max(note.age, 0))"))]
     return {"background": c.bg, "camera": cam(2.5, 1.9, -6.5, look=(-1.2, 1.2, 0), zoom=1.4), "layers": layers,
             "filters": [{"type": "reflect", "y": 0, "amount": 0.4}, {"type": "tonemap", "knee": 0.7}, {"type": "aa"}, bloom(c, 0.5, 0.02, 0.55)]}
 
@@ -2407,7 +2407,7 @@ def colony(c):
     that one goes for each that comes."""
     A = c.riffs[0]
     cap = 144
-    born = f"(time.beat*4 - {c.a16:g})*{max(0.5, min(3.0, cap / max((c.b16 - c.a16) * 0.6, 8))):g}"
+    born = f"(28 + (time.beat*4 - {c.a16:g})*{max(0.5, min(3.0, cap / max((c.b16 - c.a16) * 0.6, 8))):g})"
     k = f"(inst.i - {cap}*floor(({born} - inst.i)/{cap}))"         # which life this place is on
     age = f"(({born}) - inst.i - {cap}*floor(max({born} - inst.i, 0)/{cap}))"
     r = "(0.268*sqrt(inst.i + 0.5))"
@@ -3598,7 +3598,7 @@ def strobe(c):
     of the other's notes: where its hand is caught, time after time, is how the two riffs
     lie against one another."""
     A, B = c.riffs[0], c.riffs[1]
-    env = hit_env([A, B], "110ms")
+    env = hit_env([A, B], "180ms")
     layers = []
     for i, p in enumerate((A, B)):
         other = 1 - i
@@ -3607,10 +3607,10 @@ def strobe(c):
         flash = f"env.h{other}"
         col = c.col(i)
         n_ = min(p.cell, 48)
-        layers.append({"type": "shape", "repeat": n_, "sides": 1, "radius": 0.012, "width": 0, "fill": 1, "color": c.dim, "x": f"{cx} + {R + 0.07}*cos(inst.i/{n_} + 0.25)", "y": f"{R + 0.07}*sin(inst.i/{n_} + 0.25)", "opacity": 0.8})
-        layers.append({"type": "shape", "repeat": 14, "sides": 1, "radius": "0.014 + 0.012*inst.i/14", "width": 0, "fill": 1, "color": col, "x": f"{cx} + {R}*(inst.i/13)*cos({held})", "y": f"{R}*(inst.i/13)*sin({held})", "opacity": flash})
-        layers.append({"type": "shape", "sides": 1, "radius": 0.055, "width": 0, "fill": 1, "color": "#ffffff", "x": f"{cx} + {R}*cos({held})", "y": f"{R}*sin({held})", "opacity": flash})
-        layers.append({"type": "shape", "sides": 0, "radius": R + 0.035, "width": 0.004, "fill": 0, "color": col, "x": cx, "y": 0, "opacity": f"0.15 + 0.5*{flash}"})
+        layers.append({"type": "shape", "repeat": n_, "sides": 1, "radius": 0.015, "width": 0, "fill": 1, "color": c.dim, "x": f"{cx} + {R + 0.07}*cos(inst.i/{n_} + 0.25)", "y": f"{R + 0.07}*sin(inst.i/{n_} + 0.25)", "opacity": 0.9})
+        layers.append({"type": "shape", "repeat": 14, "sides": 1, "radius": "0.016 + 0.014*inst.i/14", "width": 0, "fill": 1, "color": col, "x": f"{cx} + {R}*(inst.i/13)*cos({held})", "y": f"{R}*(inst.i/13)*sin({held})", "opacity": f"0.14 + 0.86*{flash}"})
+        layers.append({"type": "shape", "sides": 1, "radius": 0.06, "width": 0, "fill": 1, "color": "#ffffff", "x": f"{cx} + {R}*cos({held})", "y": f"{R}*sin({held})", "opacity": f"0.18 + 0.82*{flash}"})
+        layers.append({"type": "shape", "sides": 0, "radius": R + 0.035, "width": 0.006, "fill": 0, "color": col, "x": cx, "y": 0, "opacity": f"0.26 + 0.55*{flash}"})
     return {"background": "#000000", "env": env, "layers": layers, "filters": [{"type": "feedback", "zoom": 1, "decay": 0.955}, bloom(c, 0.4, 0.018, 0.6)]}
 
 
