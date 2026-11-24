@@ -799,7 +799,7 @@ NEARER = os.environ.get("C10T1_NEARER", "363:383:-6:-3:-10.093" if REBUILD and H
 # bars from the section's first ; the bell's velocity ; the bells' fader ; dB on the strokes of each pair (five and seven,
 # five and eleven, seven and eleven) ; where each pair's bell stands (pan) ; the loudness target ('' = unchanged).
 # "" = v62. It is on only while no older switch of this song is set, so each of those still gives what it gave.
-MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE", "C10T1_FIVE", "C10T1_COUNT", "C10T1_TOMS") for k in os.environ) else "")
+MEET = os.environ.get("C10T1_MEET", "15;0.5;-12dB;0,1.5,0;0,-0.5,0.5;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_MEET", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE", "C10T1_FIVE", "C10T1_COUNT", "C10T1_TOMS", "C10T1_HELD") for k in os.environ) else "")
 # v44: THE ENGINE, EXPOSED (9:19, in the hardest stretch). For twenty-eight bars everything runs at once: four guitars
 # and the bass on seven, the china on every eighth, the bark, and under it all the kick in unbroken sixteenths. The one
 # event inside it is the ground moving up a semitone at 9:20. Now, for the half bar before that, everything stops
@@ -2233,7 +2233,7 @@ def hold_still(doc):
 # well ("" = neither; "2" = the second) ; the flute's velocity when it was recorded ; the deck's wow and flutter in
 # cents and its drift (in units of the wow) ; the loudness target ("" = unchanged) ; settings added to the recorded
 # flute's patch ("" = the library's flute as it comes). "" = v63. On only while no older switch of this song is set.
-TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE", "C10T1_FIVE", "C10T1_COUNT", "C10T1_TOMS") for k in os.environ) else "")
+TAPE = os.environ.get("C10T1_TAPE", "175:210;-12dB;;0.7;4,1,0.5;;" if not any(k.startswith("C10T1_") and k not in ("C10T1_OUT", "C10T1_SHOW", "C10T1_TAPE", "C10T1_FINISH", "C10T1_SKIN", "C10T1_HUM", "C10T1_STROKE", "C10T1_FIVE", "C10T1_COUNT", "C10T1_TOMS", "C10T1_HELD") for k in os.environ) else "")
 
 
 def the_eye_on_tape(doc):
@@ -2613,6 +2613,101 @@ def the_toms_get_through(doc):
         doc["loudness"] = float(target)
 
 
+# v72 (chirper-zero, 24 Nov; instrument round on Harry's 24 Nov steer, its second item: the guitar sound. The bass
+# drum, the bass, the heavy guitars' bus and the wall rig. No note moves, no track added. Round 74's handed-on round.)
+# THE STRINGS HOLD WHAT THE DRUM STRIKES. On the six records themselves (tools/chugmix.py, round 74's yardstick) the
+# low end at a guitar stroke, 100-250 Hz, falls 2.4 to 4.5 dB by 40-80 ms: the bass drum strikes and dies, and the
+# guitar and the bass hold the band level under it (their stems alone: -0.1 and -0.2). Here it fell 5.0 to 8.0 dB in
+# every heavy passage (thirteen passages, 2,648 strokes, v71, raw): the bass drum's knock was the band's front (the
+# drums alone +12.0 to +12.8, the run +8.8; the records' +10.4), and behind it the bass sagged (alone -0.1 to +3.2 in twelve
+# passages, +7.1 on E flat) and the guitars had little there to hold (everything but the bass and the drums +0.5 to
+# +2.9). At a stroke of riff A the band stood 9.4 dB over what it held 60-100 ms later. Round 74 found this in
+# riff C and handed it on as a trade, "the bass drum's knock for the guitars' held low end", to be kept "only where
+# the mix's fall comes toward +4.5 AND the distance does not grow". It is the whole song's.
+# FOUR MOVES, each small, none on a note:
+#   1. THE BASS DRUM, 4 dB less at 170 Hz (q 1.1) on its track's eq: the knock, not the weight (under 120 Hz) and
+#      not the click.
+#   2. THE BASS. Its bus had its own 3 dB cut at 170 Hz (following the key, after the compressor): taken out, so
+#      the cut moves from the bass to the bass drum. And Odd Sympathy v44's lever, fitted here by this song's own
+#      reads: the sine under the string (the patch's layer 1) goes 9 dB lower into the amp (-9 -> -18 dB), because
+#      the amp works on the sine and the string sags behind it; the bus's key-following band at the fundamental
+#      gives the sine back after the amp (-7 -> -3.5 dB) and a shelf on the bass's own track (300 Hz, -3 dB) sets
+#      the string back. The bass alone is 1.1 LU louder for it: that is the held low end, and it is not trimmed.
+#   3. THE HEAVY GUITARS' BUS (26 tracks: the five's, the seven's and the eleven's rigs and their second takes),
+#      2 dB at 150 Hz (q 0.9) after everything else on it: what they hold.
+#   4. THE WALL RIG (wl, wr, dwl, dwr): the palm's thump off (round 74's bench: it acts on the muted strokes only;
+#      alone, riff C +3.7 -> +0.4 and on B flat +3.2 -> +0.4; in the mix it is 0.1 to 0.2 dB of 120-250 Hz).
+# Fitted on the bass and the drums alone (the bass is alone on its bus and the drums on theirs, so a mix can be put
+# together by arithmetic and read before it is rendered), then read on real renders (raw, seed 1): the fall is now
+# 2.2 to 6.1 dB, nine passages of thirteen inside the records' 2.4 to 4.5, on B flat 0.2 under it, and three still
+# over (riff B 5.2, on E flat 5.4, the approach 6.1). At a stroke of riff A the band stands 5.9 dB over what it
+# holds, and what it holds is 2.1 dB more. Beside the eleven records, all 22 stamped windows: the sums
+# 30.600 -> 29.911 against the passages with nobody singing (13 windows nearer, 9 farther) and 34.044 -> 34.200
+# against those with a voice. The raw mix is 0.18 LU louder; the loudness target is not moved.
+# C10T1_HELD = the sine under the bass's string (the patch's layer 1) ; the gain of the bass bus's key-following
+# band at 44 Hz ; of its band at 170 Hz ; bands of an eq on the bass's own track ; bands added to the bass drum's eq ; bands of a new
+# eq at the end of the guitars' bus ; tracks:patch fields (a field already there is replaced) ; the loudness target
+# ('' = unchanged). Bands with | between. '' = v71 byte for byte. On only while TOMS is; in MEET's and TAPE's lists.
+HELD = os.environ.get("C10T1_HELD", "-18dB;-3.5dB;0dB;highshelf cutoff=300 gain=-3dB;peak cutoff=170 q=1.1 gain=-4dB;peak cutoff=150 q=0.9 gain=2dB;wl,wr,dwl,dwr:synth.layers.0.thump.mod.0.amount=0;" if TOMS else "")
+
+
+def the_strings_hold_what_the_drum_strikes(doc):
+    """v72: under a guitar stroke the low end is held by the bass and the guitars, and the bass drum's knock is 4 dB less (see HELD)."""
+    sine, sub, mid, bass_eq, kick_eq, gtr_eq, wall, target = HELD.split(";")
+
+    def over(patch, fields):                                 # fields of a patch string: one already there is replaced
+        toks = patch.split(" ")
+        keys = [x.split("=", 1)[0] for x in toks]
+        for f in fields.split(" "):
+            k = f.split("=", 1)[0]
+            if k in keys:
+                toks[keys.index(k)] = f
+            else:
+                toks.append(f)
+                keys.append(k)
+        return " ".join(toks)
+
+    names, fields = wall.split(":") if wall else ("", "")
+    tracks = []
+    for t in doc["tracks"]:
+        if t["name"] == "bass" and (sine or bass_eq):
+            assert t["patch"].startswith("ct-bass") and not t.get("fx") and t["out"] == "low", t["patch"]
+            t = {k: v for k, v in t.items() if k != "notes"} | ({"patch": over(t["patch"], f"synth.layers.1.level={sine}")} if sine else {}) \
+                | ({"fx": [{"type": "eq", "bands": bass_eq.split("|")}]} if bass_eq else {}) | {"notes": t["notes"]}
+        elif t["name"] == "kick" and kick_eq:
+            fx = t["fx"]
+            assert len(fx) == 1 and fx[0]["type"] == "eq", fx
+            t = {**t, "fx": [{**fx[0], "bands": list(fx[0]["bands"]) + kick_eq.split("|")}]}
+        elif names and t["name"] in names.split(","):
+            assert t["patch"].startswith("ct-wall"), (t["name"], t["patch"])
+            t = {**t, "patch": over(t["patch"], fields)}
+        tracks.append(t)
+    doc["tracks"] = tracks
+    buses = dict(doc["buses"])
+    if sub or mid:
+        low = dict(buses["low"])
+        fx = list(low["fx"])
+        if sub:
+            eq = dict(fx[0])
+            b0 = dict(eq["bands"][0])
+            assert eq["type"] == "eq" and b0["cutoff"]["value"] == 44 and b0["gain"] == "-7dB", b0
+            eq["bands"] = [{**b0, "gain": sub}] + list(eq["bands"][1:])
+            fx[0] = eq
+        if mid:
+            eq = dict(fx[2])
+            b0 = dict(eq["bands"][0])
+            assert eq["type"] == "eq" and len(eq["bands"]) == 1 and b0["cutoff"]["value"] == 170 and b0["gain"] == "-3dB", b0
+            eq["bands"] = [{**b0, "gain": mid}]
+            fx[2] = eq
+        buses["low"] = {**low, "fx": fx}
+    if gtr_eq:
+        g = buses["gtrs"]
+        buses["gtrs"] = {**g, "fx": list(g["fx"]) + [{"type": "eq", "bands": gtr_eq.split("|")}]}
+    doc["buses"] = buses
+    if target:
+        doc["loudness"] = float(target)
+
+
 if __name__ == "__main__":
     doc = song()
     if STILL:
@@ -2633,4 +2728,6 @@ if __name__ == "__main__":
         the_five_keeps_its_own_count(doc)
     if TOMS:
         the_toms_get_through(doc)
+    if HELD:
+        the_strings_hold_what_the_drum_strikes(doc)
     open(OUT, "w").write(dump(doc))
