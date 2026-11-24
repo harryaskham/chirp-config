@@ -279,7 +279,7 @@ LONG = os.environ.get('C10T15_LONG', '15;17;15;0;0;-9.9' if TEETH else '')
 # Benched raw against everything else and against the voices alone (K, whole stretch): see the round note. The
 # box's own weight (its fundamentals, 350-620 Hz) is cut 8 dB at 430 Hz: the choruses already stand 2.4 to 2.9 dB
 # over the records there, and what a concertina is heard by over a band is its reed (1-8 kHz).
-TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW', 'C10T15_PICK', 'C10T15_SNARE', 'C10T15_WAIT', 'C10T15_TOMS', 'C10T15_MUSTER', 'C10T15_SAYS') for k in os.environ)
+TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW', 'C10T15_PICK', 'C10T15_SNARE', 'C10T15_WAIT', 'C10T15_TOMS', 'C10T15_MUSTER', 'C10T15_SAYS', 'C10T15_SWELL') for k in os.environ)
                       else '-4.5dB;0.35;-12dB;-3;hp cutoff=300|peak cutoff=430 q=0.8 gain=-8dB|peak cutoff=2500 q=0.7 gain=3dB;-9.85')
 # the chorus's tune as a concertina plays it, an octave over the crew: their notes where they sing them, a passing
 # note in the breath after 'haul', and two sixteenths up into the next bar. (sixteenth, length, note), a bar a line.
@@ -1290,6 +1290,89 @@ def the_crew_gathers(doc, marks):
 SAYS = os.environ.get('C10T15_SAYS', 'all together,all together again;all to ge ther now;0.6;tune;-9.791' if MUSTER else '')
 
 
+# v24 (chirper-zero, 24 Nov; instrument round, on Harry's 24 Nov steer for interesting effects, guitar sound, and
+# synths/environment sound — no note moves, no track added): THE SQUEEZEBOX BREATHES IN SEA AIR.
+# In 'easy' (beats 216-248, 2:20.9-2:41.7, where the guitars drop out for the two concertinas `squeeze-l`/`squeeze-r`,
+# bass, hat, deck boards and shantyman), the mix sat narrow (S-M -11.7 dB, corr +0.88) and 5.6 to 8.3 dB short from
+# 2 to 16 kHz (distance 4.256 voice). Each concertina (`squeeze-l`, `squeeze-r`, playing in 'easy' only) now moves
+# through a slow 6-stage stereo phaser (0.17 / 0.11 Hz, mix 0.35; gain -13 -> -12.2 dB so the notches hold level),
+# and both send (with `deck`) to a new gated ambient bus `swell`: 3/8 ping-pong delay -> sympathetic F minor strings
+# (F4,Ab4,C5,Eb5,F5,Ab5,C6) -> octave-up reverse granular cloud -> 3.6 s shimmer hall -> bright air eq (HP 1.8 kHz,
+# 3.4 kHz +3.5, 6.5 kHz +10) -> duck -11 dB by `shanty` (10 ms attack, 180 ms release) so the ambient air steps back
+# while the shantyman sings (keeping 250-1k, 1-4k and 4-8k voice clearance positive!) and blooms +6.1 dB in the gaps
+# between lines -> gate lane shutting to -96 dB by beat 247.95 (before verse three).
+# Also benched and refused this round: ProCo RAT, Tube Screamer, Boss HM-2 and Ram's Head Muff on `wl`/`wr` (all four
+# pushed chorus two and the last choruses slightly further from the records because t15's wall already owns 120-250 Hz).
+# C10T15_SWELL = section ; squeeze phaser rates L,R:depth:stages:fb:mix:gain ; sends squeeze,deck ;
+#   delay time:fb:tone:mix ; sympathetic notes:decay:mix ; cloud size:density:pos:spray:pitch:rev:spread:win:seed:mix ;
+#   reverb kind:decay:size:shimmer:hp:hi:mix ; eq bands | ; duck by:depth:att:rel ; fade_beats ; loudness target.
+# '' = v23 byte for byte. On only while SAYS is; 'C10T15_SWELL' is in TUNE's exempt list.
+SWELL = os.environ.get(
+    'C10T15_SWELL',
+    'easy;0.17,0.11:0.55:6:0.3:0.35:-12.2dB;24dB,12dB;3/8:0.44:12000:0.45;'
+    'F4,Ab4,C5,Eb5,F5,Ab5,C6:2.4s:0.25;130ms:18:155ms:145ms:12.0:0.38:1.0:2.8s:15:0.82;'
+    'hall:3.6s:0.88:0.58:1800:15500:0.9;hp cutoff=1800|peak cutoff=3400 q=0.7 gain=3.5dB|highshelf cutoff=6500 gain=10dB;'
+    'shanty:-11dB:10ms:180ms;1.0;-9.7928'
+    if SAYS else '',
+)
+
+
+def the_squeezebox_breathes_in_sea_air(doc, marks):
+    """v24: in 'easy' the two accordions get slow stereo phasers and send with `deck` to a ducked, gated ambient bus `swell`."""
+    sec, ph_s, snd_s, dly_s, sym_s, cld_s, rev_s, eq_s, dck_s, fade_s, target = SWELL.split(';')
+    a = marks[sec] / GRID
+    z = a + dict(FORM)[sec] * BAR / GRID
+    assert 'swell' not in doc['buses'], 'swell bus already exists'
+    bus_fx = []
+    if dly_s:
+        tm, fb, tn, mx = dly_s.split(':')
+        bus_fx.append({'type': 'delay', 'time': tm, 'feedback': float(fb), 'ping_pong': True,
+                       'tone': float(tn), 'mix': float(mx)})
+    if sym_s:
+        nts, dec, mx = sym_s.split(':')
+        bus_fx.append({'type': 'sympathetic', 'notes': nts, 'decay': dec, 'mix': float(mx), 'tune_sounding': True})
+    if cld_s:
+        sz, dn, ps, sp, pt, rv, sr, wn, sd, mx = cld_s.split(':')
+        bus_fx.append({'type': 'cloud', 'size': sz, 'density': float(dn), 'position': ps, 'spray': sp,
+                       'pitch': float(pt), 'reverse': float(rv), 'spread': float(sr), 'window': wn,
+                       'seed': int(sd), 'mix': float(mx)})
+    if rev_s:
+        kd, dec, sz, sh, lc, hc, mx = rev_s.split(':')
+        bus_fx.append({'type': 'reverb', 'kind': kd, 'decay': dec, 'size': float(sz), 'shimmer': float(sh),
+                       'low_cut': float(lc), 'high_cut': float(hc), 'width': 1.0, 'mix': float(mx)})
+    if eq_s:
+        bus_fx.append({'type': 'eq', 'bands': eq_s.split('|')})
+    if dck_s:
+        by, dep, att, rel = dck_s.split(':')
+        bus_fx.append({'type': 'duck', 'by': by, 'depth': dep, 'attack': att, 'release': rel})
+    fade = float(fade_s)
+    bus_fx.append({'type': 'gain', 'gain': {'value': '-96dB', 'mod': [{'src': 'auto.open', 'amount': 96}]}})
+    doc['buses'] = {**doc['buses'], 'swell': {
+        'fx': bus_fx,
+        'auto': {'open': {'curve': 0, 'points': [
+            ['0b', 0], [f'{a - 0.05:g}b', 0], [f'{a:g}b', 1],
+            [f'{z - fade:g}b', 1], [f'{z - 0.05:g}b', 0],
+        ]}},
+    }}
+    sq_snd, dk_snd = snd_s.split(',')
+    rates_s, dep_s, stg_s, fb_s, mx_s, g_s = ph_s.split(':')
+    rl, rr = rates_s.split(',')
+    for i, t in enumerate(doc['tracks']):
+        nm = t['name']
+        if nm in ('squeeze-l', 'squeeze-r'):
+            rt = rl if nm == 'squeeze-l' else rr
+            fx = list(t.get('fx') or [])
+            if float(mx_s) > 0:
+                fx = [{'type': 'phaser', 'rate': rt, 'depth': float(dep_s),
+                       'stages': int(stg_s), 'feedback': float(fb_s), 'mix': float(mx_s)}] + fx
+            doc['tracks'][i] = {**t, **({'gain': g_s} if g_s else {}),
+                                'sends': {**(t.get('sends') or {}), 'swell': sq_snd}, 'fx': fx}
+        elif nm == 'deck' and dk_snd:
+            doc['tracks'][i] = {**t, 'sends': {**(t.get('sends') or {}), 'swell': dk_snd}}
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__ == '__main__':
     doc, marks = build()
     if SUB:
@@ -1310,6 +1393,8 @@ if __name__ == '__main__':
         the_crew_gathers(doc, marks)
     if SAYS and SAYS.split(';')[4]:
         doc['loudness'] = float(SAYS.split(';')[4])
+    if SWELL:
+        the_squeezebox_breathes_in_sea_air(doc, marks)
     if os.environ.get('C10T15_SHOW'):
         for sec, bars in FORM:
             t = marks[sec]
