@@ -1408,6 +1408,137 @@ def the_china_gives_the_top_back(song):
         song['loudness'] = float(target)
 
 
+# v36 (chirper-zero, 24 Nov; instrument round, on Harry's 24 Nov steer for interesting effects, guitar sound, and
+# synths/environment sound — no note moves, no track added): THE WEIGHT GETS AN HM-2, AND THE VAULT OPENS.
+# Two sound-only additions on pin 882b35a1 (carrying `pedal`):
+# 1) THE WEIGHT (`weight`, the 26 centre stabs in 'still owing', 'called in' and 'across the line'): song patch
+#    `so-weight` (extending `ct-wall-stop-l` with the same strings/play) inserts a Boss HM-2 chainsaw stompbox
+#    (`pedal kind=hm2 drive=0.65 tone=0.7 bass=0.5 level=3dB volts=0.95 mix=1.0`, amp internal `ts=0` and `boost=0dB`)
+#    ahead of its recto amp; fader -0.7 -> -0.5 dB keeps the centre stabs at matched loudness alone (-0.04 dB) while
+#    trimming 120-500 Hz mud (-1.7/-2.5 dB) and adding 1-4 kHz chainsaw bite (+1.0/+0.8 dB) right where 'across the
+#    line' sat +2.1 dB over at 120-250 Hz and -1.1 dB short at 2-4 kHz. First HM-2 on the album.
+# 2) THE CLEAN GUITAR, TWELVE-STRING AND QUIET-SPACE ENVIRONMENT (`clean`, `courses`, and gated `vault` bus):
+#    - `clean` (intro 0-12.9s, interlude 1:30-1:47, square 2:51-3:13) gets a slow stereo phaser (0.16 Hz, 6 stages, mix
+#      0.35), moving gently against the spring reverb and cleaning 'square' (0.278 -> 0.219).
+#    - `courses` (the 12-string in 'square' ringing into the coda; Harry: "Keep the ring") gets a 3-voice stereo chorus
+#      (0.35 Hz, depth 0.5, mix 0.38) so its ring opens wide in stereo while keeping its full decay.
+#    - New ambient bus `vault` (gated strictly to interlude 168-199.5b, 1:30-1:47 — zero spill
+#      into 'called in' at -91 dB): 3/16 ping-pong delay -> sympathetic Eb minor strings (Eb4,Gb4,Bb4,Db5,Eb5,F5,Bb5) ->
+#      octave-up reverse granular cloud -> 3.8 s shimmer hall -> bright air eq (HP 1.4 kHz, 3.2 kHz +3, 5.5 kHz +8), fed
+#      by `clean`, `tally`, `rule`, `courses` and `breath`. Opens the narrow interlude (S-M -11.77 -> -9.36 dB,
+#      +2.42 dB wider; 1-16 kHz lifted +3.6 to +13.2 dB) as a unique middle-of-the-song space while intro stays intimate and coda stays on the 12-string's own ring.
+# C10T10_VAULT = pedal kind:drive:tone:bass:level:volts:mix ; weight_gain ; clean_phaser rate:depth:stages:fb:mix ;
+#   courses_chorus rate:depth:voices:stereo:mix ; sends clean,tally,rule,courses,breath ; delay time:fb:tone:mix ;
+#   sympathetic notes:decay:mix ; cloud size:density:pos:spray:pitch:rev:spread:win:seed:mix ;
+#   reverb kind:decay:size:shimmer:lc:hc:mix ; eq bands | ; spans a:z,... ; loudness target. '' = v35 byte for byte.
+VAULT = os.environ.get(
+    'C10T10_VAULT',
+    'hm2:0.65:0.7:0.5:3dB:0.95:1.0;-0.5dB;0.16:0.55:6:0.3:0.35;0.35:0.5:3:1.0:0.38;'
+    '9dB,7dB,5dB,9dB,4dB;3/16:0.44:11500:0.45;Eb4,Gb4,Bb4,Db5,Eb5,F5,Bb5:2.4s:0.24;'
+    '135ms:18:160ms:150ms:12.0:0.38:1.0:2.8s:10:0.78;hall:3.8s:0.88:0.55:1300:15500:0.9;'
+    'hp cutoff=1400|peak cutoff=3200 q=0.7 gain=3dB|highshelf cutoff=5500 gain=8dB;168:199.5;-10.2164'
+    if CHINA else '',
+)
+
+
+def the_weight_gets_hm2_and_vault(song):
+    """v36: HM-2 stompbox on `weight` + phaser on `clean` + 3-voice chorus on `courses` + gated ambient `vault` bus."""
+    ped_s, w_gain, ph_s, ch_s, snd_s, dly_s, sym_s, cld_s, rev_s, eq_s, spans_s, target = VAULT.split(';')
+    if ped_s:
+        kind, drv, tone, bass, lvl, volts, mix = ped_s.split(':')
+        ped = {'type': 'pedal', 'kind': kind, 'drive': float(drv), 'tone': float(tone),
+               'bass': float(bass), 'level': lvl, 'volts': float(volts), 'mix': float(mix)}
+        patches = dict(song['patches'])
+        assert 'so-weight' not in patches
+        patches['so-weight'] = {
+            'extends': 'ct-wall-stop-l',
+            'about': f"Still Owing centre stabs (`weight`) with a {kind} stompbox ahead of its recto amp (chirper-zero, 24 Nov).",
+            'fx': [
+                {'type': 'sympathetic', 'decay': '1.8s', 'mix': 0},
+                {'type': 'compressor', 'attack': '8ms', 'makeup': '3dB', 'ratio': 3.0, 'threshold': '-22dB'},
+                ped,
+                {'type': 'amp', 'stack': 'recto', 'gain': 0.78, 'bass': 0.55, 'mid': 0.55,
+                 'presence': 0.45, 'resonance': 0.75, 'tight': 65, 'ts': 0.0, 'boost': '0dB',
+                 'sag': 0.35, 'bloom': 0.6, 'nfb': 8.0, 'triode': True},
+                {'type': 'ir', 'file': 'jester/kitten-slayer', 'blend_file': 'jester/kaiju-tamer',
+                 'blend': 0.4, 'breakup': 0.4, 'length': '160ms', 'level': 1, 'mix': 0, 'room': 0.22},
+                {'type': 'eq', 'bands': [
+                    {'kind': 'peak', 'cutoff': 120, 'q': 1, 'gain': '0dB'},
+                    {'kind': 'peak', 'cutoff': 300, 'q': 0.9, 'gain': '0dB'},
+                    {'kind': 'peak', 'cutoff': 3300, 'q': 1.2, 'gain': '0dB'},
+                    {'kind': 'highshelf', 'cutoff': 5000, 'gain': '0dB'},
+                ]},
+                {'type': 'gate', 'attack': '0.5ms', 'hold': '40ms', 'release': '90ms', 'threshold': '-56dB'},
+                {'type': 'reverb', 'kind': 'plate', 'decay': '1.4s', 'mix': 0.14, 'predelay': '14ms'},
+            ],
+        }
+        song['patches'] = patches
+        for i, t in enumerate(song['tracks']):
+            if t['name'] == 'weight':
+                song['tracks'][i] = {**t, 'patch': 'so-weight', **({'gain': w_gain} if w_gain else {})}
+    if snd_s:
+        assert 'vault' not in song['buses'], 'vault bus already exists'
+        bus_fx = []
+        if dly_s:
+            tm, fb, tn, mx = dly_s.split(':')
+            bus_fx.append({'type': 'delay', 'time': tm, 'feedback': float(fb), 'ping_pong': True,
+                           'tone': float(tn), 'mix': float(mx)})
+        if sym_s:
+            nts, dec, mx = sym_s.split(':')
+            bus_fx.append({'type': 'sympathetic', 'notes': nts, 'decay': dec, 'mix': float(mx), 'tune_sounding': True})
+        if cld_s:
+            sz, dn, ps, sp, pt, rv, sr, wn, sd, mx = cld_s.split(':')
+            bus_fx.append({'type': 'cloud', 'size': sz, 'density': float(dn), 'position': ps, 'spray': sp,
+                           'pitch': float(pt), 'reverse': float(rv), 'spread': float(sr), 'window': wn,
+                           'seed': int(sd), 'mix': float(mx)})
+        if rev_s:
+            kd, dec, sz, sh, lc, hc, mx = rev_s.split(':')
+            bus_fx.append({'type': 'reverb', 'kind': kd, 'decay': dec, 'size': float(sz), 'shimmer': float(sh),
+                           'low_cut': float(lc), 'high_cut': float(hc), 'width': 1.0, 'mix': float(mx)})
+        if eq_s:
+            bus_fx.append({'type': 'eq', 'bands': eq_s.split('|')})
+        bus_fx.append({'type': 'gain', 'gain': {'value': '-96dB', 'mod': [{'src': 'auto.open', 'amount': 96}]}})
+        spans = [tuple(float(x) for x in sp.split(':')) for sp in spans_s.split(',')]
+        pts = []
+        for idx, (a, z) in enumerate(spans):
+            if idx == 0 and a == 0:
+                pts.append(['0b', 1])
+            else:
+                if idx == 0:
+                    pts.append(['0b', 0])
+                pts += [[f'{a - 0.5 if a > 300 else a - 0.05:g}b', 0], [f'{a:g}b', 1]]
+            if z < 375:
+                pts += [[f'{z - 0.95 if z < 50 else z - 1.0:g}b', 1], [f'{z:g}b', 0]]
+            else:
+                pts.append([f'{z:g}b', 1])
+        song['buses'] = {**song['buses'], 'vault': {
+            'fx': bus_fx,
+            'auto': {'open': {'curve': 0, 'points': pts}},
+        }}
+        smap = dict(zip(('clean', 'tally', 'rule', 'courses', 'breath'), snd_s.split(',')))
+        for i, t in enumerate(song['tracks']):
+            nm = t['name']
+            if nm in smap and smap[nm]:
+                t = {**t, 'sends': {**(t.get('sends') or {}), 'vault': smap[nm]}}
+                song['tracks'][i] = t
+            if nm == 'clean' and ph_s:
+                rt, dep, stg, fb, mx = ph_s.split(':')
+                if float(mx) > 0:
+                    t = {**t, 'fx': [{'type': 'phaser', 'rate': rt, 'depth': float(dep),
+                                      'stages': int(stg), 'feedback': float(fb), 'mix': float(mx)}] + list(t.get('fx') or [])}
+                    song['tracks'][i] = t
+            if nm == 'courses' and ch_s:
+                rt, dep, vc, st, mx = ch_s.split(':')
+                if float(mx) > 0:
+                    t = {**t, 'fx': list(t.get('fx') or []) + [
+                        {'type': 'chorus', 'rate': float(rt), 'depth': float(dep),
+                         'voices': int(vc), 'stereo': float(st), 'mix': float(mx)}
+                    ]}
+                    song['tracks'][i] = t
+    if target:
+        song['loudness'] = float(target)
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out',type=Path,default=OUT); parser.add_argument('--form',action='store_true')
@@ -1424,6 +1555,7 @@ if __name__=='__main__':
     if KICK: the_bass_drum_gets_a_chest(song)
     if WEIGHT: the_weight_comes_out_of_its_box(song)
     if CHINA: the_china_gives_the_top_back(song)
+    if VAULT: the_weight_gets_hm2_and_vault(song)
     if args.form:
         for n,t in marks: print(f'{n:18} {t/BAR+1:5.0f}  {t/SUB*60/BPM:6.2f}s')
     else: args.out.write_text(dump(song))
