@@ -55,17 +55,46 @@ def position(tok, tempo):
     return clock.secs(beats) if clock is not None and beats >= 0 else None
 
 
+def songs_only_as_layers(canon):
+    """True when the plan embeds no songs, or every embedded song is used, and used only, as a synth layer's `song`
+    (a sampler source, which does not move the song's clock). An embedded song placed as a note, named in a score
+    string (`@NAME`) or not referenced at all is False: those are rendered window by window."""
+    names = set(canon.get("songs") or {})
+    if not names:
+        return True
+    used, other = set(), []
+
+    def walk(x, path, key):
+        if isinstance(x, dict):
+            for k, v in x.items():
+                if not (path == "" and k == "songs"):
+                    walk(v, path + "." + k, k)
+        elif isinstance(x, list):
+            for v in x:
+                walk(v, path + "[]", key)
+        elif isinstance(x, str):
+            if key == "song" and x in names and ".synth.layers[]" in path:
+                used.add(x)
+            elif (key == "song" and x in names) or any("@" + n in x for n in names):
+                other.append(path)
+    walk(canon, "", None)
+    return not other and used == names
+
+
 def window_seconds(canon, windows):
     """[(start, end)] in seconds for --windows, or None when they cannot be worked out here (a tempo map with a change
-    of meter or placed in bars or seconds, a meter other than 4/4, embedded songs, a position in another form): then
-    each window is rendered by itself. A tempo map placed in beats is followed (checked against the engine bit for
-    bit across a change of tempo, 20 Nov)."""
+    of meter or placed in bars or seconds, a meter other than 4/4, embedded songs placed other than as a sampler
+    layer's source, a position in another form): then each window is rendered by itself. A tempo map placed in beats
+    is followed (checked against the engine bit for bit across a change of tempo, 20 Nov). Embedded songs that are
+    only a synth layer's `song` (tape samples: Common Time, Still Owing, The Other Hand) leave the song's clock alone
+    and are cut like any other (one whole render cut into windows is bit for bit the window rendered by itself:
+    chirper-zero on Common Time v72, bars 56-71; chirp-eco on The Other Hand v34, bars 30-40 and 100-106, 24 Nov)."""
     if "tracks" not in canon:                  # not a plan (it could not be read): do not guess
         return None
     clock = clock_of(canon.get("tempo", 120.0))    # the plan leaves out a tempo of 120, the engine's default
     if clock is None:
         return None
-    if str(canon.get("meter") or "4/4").replace(" ", "") != "4/4" or canon.get("songs"):
+    if str(canon.get("meter") or "4/4").replace(" ", "") != "4/4" or not songs_only_as_layers(canon):
         return None
     out = []
     for win in windows:

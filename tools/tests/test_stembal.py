@@ -477,6 +477,20 @@ class Stembal(unittest.TestCase):
             self.assertEqual(len(calls), 2, meta)
             self.assertTrue(all("--from" in c for c in calls), meta)
 
+    def test_embedded_songs_only_as_sampler_layers_are_cut(self):
+        layer = {"synth": {"layers": [{"type": "sampler", "song": "tape"}]}}
+        canon = {"tracks": [{"name": "t", "patch": "p"}], "tempo": 120.0, "songs": {"tape": {"tempo": 60.0}},
+                 "patches": {"p": layer}}
+        self.assertEqual(S.window_seconds(canon, ["1-3"]), [(0.0, 4.0)])
+        inline = {"tracks": [{"name": "t", "patch": layer}], "tempo": 120.0, "songs": {"tape": {}}}
+        self.assertEqual(S.window_seconds(inline, ["1-3"]), [(0.0, 4.0)])
+        noted = dict(canon, tracks=[{"name": "t", "notes": [{"song": "tape", "at": 0}]}])
+        self.assertIsNone(S.window_seconds(noted, ["1-3"]))                          # placed as a note
+        scored = dict(canon, tracks=[{"name": "t", "patch": "p", "score": "@tape c4"}])
+        self.assertIsNone(S.window_seconds(scored, ["1-3"]))                         # named in a score
+        unused = dict(canon, songs={"tape": {}, "other": {}})
+        self.assertIsNone(S.window_seconds(unused, ["1-3"]))                         # one not referenced at all
+
     def test_positions_as_the_engine_reads_them(self):
         self.assertAlmostEqual(S.position("41", 126.0), 40 * 4 * 60 / 126.0)       # a bar, 1-indexed, in four
         self.assertAlmostEqual(S.position("12b", 120.0), 6.0)
