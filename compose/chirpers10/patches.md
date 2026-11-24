@@ -9,7 +9,7 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 
 | field | tracks | songs | values (the songs) | |
 |---|---|---|---|---|
-| `synth.layers.1.level` | 9 | 9 | `-12dB` in 5, 11; `-20dB` in 8, 15; `-18dB` in 1; `-24dB` in 2; `-14dB` in 9; `-17dB` in 12; `-13dB` in 13 |  |
+| `synth.layers.1.level` | 10 | 10 | `-12dB` in 5, 11; `-20dB` in 8, 15; `-18dB` in 1; `-24dB` in 2; `-14dB` in 9; `-17dB` in 12; `-13dB` in 13; `{value:-60dB,mod:[{src:env.under,amount:51}]}` in 16 |  |
 | `fx.2.bands.3.cutoff` | 9 | 9 | `1150` in 2, 5, 8, 9, 10, 11, 12, 13, 15 |  |
 | `fx.2.bands.3.q` | 9 | 9 | `1.2` in 2, 5, 8, 9, 11, 12, 15; `1.6` in 10, 13 |  |
 | `fx.2.bands.3.gain` | 9 | 9 | `9dB` in 2, 5, 8, 11; `6dB` in 9, 15; `8dB` in 10; `10dB` in 12; `11dB` in 13 |  |
@@ -26,6 +26,8 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `synth.pitch.mod.2.src` | 1 | 1 | `expr.bend` in 7 |  |
 | `synth.pitch.mod.2.amount` | 1 | 1 | `1` in 7 |  |
 | `fx.2.bands.5.cutoff` | 1 | 1 | `6000` in 12 |  |
+| `synth.env.under.a` | 1 | 1 | `45ms` in 16 |  |
+| `synth.env.under.s` | 1 | 1 | `1` in 16 |  |
 
 ## `ct-kit`: 17 songs, 111 tracks; as it comes in tracks 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
 
@@ -471,14 +473,16 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `kit.gem.choke` | 3 | 1 | `bayan` in 9 |  |
 | `kit.na.patch.synth.amp.d` | 3 | 1 | `250ms` in 9 |  |
 | `kit.tin.patch.synth.amp.d` | 3 | 1 | `300ms` in 9 |  |
-| `kit.na.patch.synth.layers.1.level.value` | 3 | 1 | `-132dB` in 9 |  |
-| `kit.tin.patch.synth.layers.1.level.value` | 3 | 1 | `-134dB` in 9 |  |
-| `kit.na.patch.synth.env.c.d` | 3 | 1 | `40ms` in 9 |  |
-| `kit.tin.patch.synth.env.c.d` | 3 | 1 | `40ms` in 9 |  |
+| `kit.na.patch.synth.layers.1.level.value` | 3 | 1 | `-116dB` in 9 |  |
+| `kit.tin.patch.synth.layers.1.level.value` | 3 | 1 | `-118dB` in 9 |  |
+| `kit.na.patch.synth.env.c.d` | 3 | 1 | `120ms` in 9 |  |
+| `kit.tin.patch.synth.env.c.d` | 3 | 1 | `120ms` in 9 |  |
 | `kit.na.patch.synth.layers.0.partials` | 3 | 1 | `[[2,1],[3,0.8],[4,0.65],[5,0.45],[1,0.12]]` in 9 |  |
 | `kit.tin.patch.synth.layers.0.partials` | 3 | 1 | `[[1,0.75],[2,1],[3,0.65],[4,0.45],[5,0.25]]` in 9 |  |
 | `kit.ge.gain` | 3 | 1 | `-4.5dB` in 9 |  |
 | `kit.gem.gain` | 3 | 1 | `-4.5dB` in 9 |  |
+| `kit.na.patch.synth.filters.1.cutoff.value` | 3 | 1 | `2.5k` in 9 |  |
+| `kit.tin.patch.synth.filters.1.cutoff.value` | 3 | 1 | `2.5k` in 9 |  |
 
 ## `tagelharpa-bass`: 2 songs, 3 tracks; as it comes in tracks 3
 

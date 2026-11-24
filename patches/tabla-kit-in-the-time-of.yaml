@@ -1,5 +1,5 @@
 {
- "about": "Tabla: the tuned dayan treble drum and the wrist-bent bayan bass, with the classic bols as pieces. The dayan is tuned to D4 and its black syahi patch makes the overtones ring in tune; retune with `kit.na.pitch=C#4` etc. Pieces: na (rim, bright ring), tin (ringing open), tun (open centre, deep), te / re (closed slaps), ge (open bass), gem (ge with a wrist slide up), ke (flat bass slap), dha (na+ge), dhin (tin+ge). Teental: `len=/8 dha dhin dhin dha dha dhin dhin dha dha tin tin na na dhin dhin dha`; tirakita: `te/16 re ke te`. BANKED by tools/patchbank.py (22 Nov 2026) from In the Time Of v33 (tracks tabla, rupak): every extends and override resolved, so it stands by itself.",
+ "about": "Tabla: the tuned dayan treble drum and the wrist-bent bayan bass, with the classic bols as pieces. The dayan is tuned to D4 and its black syahi patch makes the overtones ring in tune; retune with `kit.na.pitch=C#4` etc. Pieces: na (rim, bright ring), tin (ringing open), tun (open centre, deep), te / re (closed slaps), ge (open bass), gem (ge with a wrist slide up), ke (flat bass slap), dha (na+ge), dhin (tin+ge). Teental: `len=/8 dha dhin dhin dha dha dhin dhin dha dha tin tin na na dhin dhin dha`; tirakita: `te/16 re ke te`. BANKED by tools/patchbank.py (24 Nov 2026) from In the Time Of v38 (tracks tabla, rupak): every extends and override resolved, so it stands by itself.",
  "fx": [
   {
    "attack": "4ms",
@@ -594,7 +594,7 @@
       "c": {
        "a": "0.1ms",
        "curve": 0.0,
-       "d": "40ms",
+       "d": "120ms",
        "s": 0
       },
       "p": {
@@ -616,7 +616,7 @@
           "src": "vel"
          }
         ],
-        "value": "5k"
+        "value": "2.5k"
        }
       }
      ],
@@ -672,7 +672,7 @@
           "src": "vel"
          }
         ],
-        "value": "-132dB"
+        "value": "-116dB"
        },
        "type": "noise"
       }
@@ -917,7 +917,7 @@
       "c": {
        "a": "0.1ms",
        "curve": 0.0,
-       "d": "40ms",
+       "d": "120ms",
        "s": 0
       },
       "p": {
@@ -939,7 +939,7 @@
           "src": "vel"
          }
         ],
-        "value": "4k"
+        "value": "2.5k"
        }
       }
      ],
@@ -996,7 +996,7 @@
           "src": "vel"
          }
         ],
-        "value": "-134dB"
+        "value": "-118dB"
        },
        "type": "noise"
       }
