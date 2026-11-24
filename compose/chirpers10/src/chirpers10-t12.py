@@ -1381,6 +1381,107 @@ def one_line_stands_forward(doc):
     if ONE_LINE['loudness']: doc['loudness'] = ONE_LINE['loudness']
 
 
+# v34 (chirper-zero, 24 Nov; instrument round, on Harry's 24 Nov steer for interesting effects, guitar sound, and
+# synths/environment sound — no note moves, no track added): THE COPY GETS A SCREAMER, AND THE IMPRINT OPENS.
+# First Tube Screamer stompbox on the album (`pedal` on pin 882b35a1, completing all four pedal types across the
+# record: Muff on t8/t11, HM-2 on t10, RAT on t3, Screamer on t12). Two sound-only additions:
+# 1) THE CARBON COPY (`copy`, beats 156.8-189.0 in 'carbon', 1:27.7-1:49.6): song patch `oh-copy` (extending `ct-twin`)
+#    puts a TS808 Tube Screamer (`pedal kind=screamer drive=0.8 tone=0.85 level=9dB volts=0.8 mix=1.0`, amp `model=clean`,
+#    `gain=0.6`, `ts=0`, `boost=0dB`) ahead of its clean amp, with fader 3.8 -> -1.5 dB (exact matched loudness alone:
+#    +0.06 dB) and track eq `highshelf cutoff=4500 gain=4.5dB`, turning the clean carbon-copy guitar into warm
+#    overdriven crunch that clears 250-1k mud (-2.8/-2.4 dB solo) and lifts 'carbon' closer to the records (1.033 -> 0.968).
+# 2) THE IMPRINT AMBIENT CHAMBER (`imprint` bus + slow stereo phasers on `tines-left`/`tines-right`, beats 190-237.45 =
+#    'thumbprint', 1:49.6-2:17.0): `tines-left` (0.19 Hz) and `tines-right` (0.12 Hz) sweep through complementary
+#    6-stage stereo phasers (mix 0.35), and both (+30 dB) send with `mouth` (+17 dB) to a new gated ambient bus
+#    `imprint`: 3/8 ping-pong delay -> sympathetic Ab/A/B/Eb thumbprint strings (`Ab4,A4,B4,Eb5,Ab5,B5,Eb6`) ->
+#    octave-up reverse granular cloud -> 4.0 s shimmer hall -> high air eq (HP 2.5 kHz, 3.4 kHz +3, 6.2 kHz +14.5) ->
+#    duck -10 dB by `mouth` (10 ms / 180 ms) -> gate lane shutting to -96 dB by beat 237.45 (zero spill into 'raised',
+#    -89 dB). Opens 'thumbprint' from S-M -11.0 -> -7.9 dB (+3.1 dB wider) and cuts its distance to the records from
+#    7.656 to ~4.34.
+# --without-imprint restores v33 byte for byte; --imprint JSON overrides fields for benching.
+IMPRINT = {
+    'pedal': {'type': 'pedal', 'kind': 'screamer', 'drive': 0.8, 'tone': 0.85, 'level': '9dB', 'volts': 0.8, 'mix': 1.0},
+    'copy_gain': '-1.5dB',
+    'copy_eq': ['highshelf cutoff=4500 gain=4.5dB'],
+    'span': (190.0, 237.45),
+    'fade': 1.05,
+    'tines_phaser': {'l': '0.19', 'r': '0.12', 'depth': 0.55, 'stages': 6, 'feedback': 0.3, 'mix': 0.35},
+    'sends': {'tines-left': '30dB', 'tines-right': '30dB', 'mouth': '17dB'},
+    'delay': {'time': '3/8', 'feedback': 0.44, 'ping_pong': True, 'tone': 13500, 'mix': 0.45},
+    'sympathetic': {'notes': 'Ab4,A4,B4,Eb5,Ab5,B5,Eb6', 'decay': '2.4s', 'mix': 0.24, 'tune_sounding': True},
+    'cloud': {'size': '130ms', 'density': 18, 'position': '155ms', 'spray': '145ms',
+              'pitch': 12.0, 'reverse': 0.38, 'spread': 1.0, 'window': '2.8s', 'seed': 12, 'mix': 0.85},
+    'reverb': {'kind': 'hall', 'decay': '4.0s', 'size': 0.9, 'shimmer': 0.65,
+               'low_cut': 2500, 'high_cut': 15500, 'width': 1.0, 'mix': 0.92},
+    'eq': ['hp cutoff=2500', 'peak cutoff=3400 q=0.7 gain=3dB', 'highshelf cutoff=6200 gain=14.5dB'],
+    'duck': {'by': 'mouth', 'depth': '-10dB', 'attack': '10ms', 'release': '180ms'},
+    'loudness': -9.9596,
+}
+
+
+def the_copy_gets_a_screamer_and_imprint(doc):
+    """v34: TS808 Screamer on `copy` in 'carbon' + phasers on `tines-left`/`tines-right` + gated `imprint` bus in 'thumbprint'."""
+    g = IMPRINT
+    if g.get('pedal'):
+        patches = dict(doc.get('patches') or {})
+        assert 'oh-copy' not in patches
+        patches['oh-copy'] = {
+            'extends': 'ct-twin',
+            'about': "The Other Hand: `copy` (the carbon-paper guitar in 'carbon') with a Tube Screamer stompbox ahead of its clean amp (chirper-zero, 24 Nov).",
+            'fx': [
+                {'type': 'compressor', 'attack': '2ms', 'makeup': '3dB', 'release': '60ms', 'threshold': '-20dB'},
+                dict(g['pedal']),
+                {'type': 'amp', 'model': 'clean', 'bloom': 0.5, 'boost': '0dB', 'gain': 0.6, 'mid': 0.74,
+                 'nfb': 18.0, 'resonance': 0.72, 'sag': 0.2, 'tight': 220, 'triode': True, 'ts': 0.0},
+                {'type': 'cab', 'model': '4x12-modern', 'mic': 0.4, 'cone': 37},
+                {'type': 'gate', 'attack': '0.3ms', 'hold': '5ms', 'release': '12ms', 'threshold': '-42dB'},
+            ],
+        }
+        if 'patches' not in doc:
+            new_doc = {}
+            for k, v in doc.items():
+                new_doc[k] = v
+                if k == 'buses':
+                    new_doc['patches'] = patches
+            doc.clear()
+            doc.update(new_doc)
+        else:
+            doc['patches'] = patches
+    a, z = g['span']
+    assert 'imprint' not in doc['buses'], 'imprint bus already exists'
+    bus_fx = [
+        {'type': 'delay', **g['delay']},
+        {'type': 'sympathetic', **g['sympathetic']},
+        {'type': 'cloud', **g['cloud']},
+        {'type': 'reverb', **g['reverb']},
+        {'type': 'eq', 'bands': list(g['eq'])},
+        {'type': 'duck', **g['duck']},
+        {'type': 'gain', 'gain': {'value': '-96dB', 'mod': [{'src': 'auto.open', 'amount': 96}]}},
+    ]
+    doc['buses'] = {**doc['buses'], 'imprint': {
+        'fx': bus_fx,
+        'auto': {'open': {'curve': 0, 'points': [
+            ['0b', 0], [f'{a - 0.05:g}b', 0], [f'{a:g}b', 1], [f'{z - g["fade"]:g}b', 1], [f'{z:g}b', 0],
+        ]}},
+    }}
+    ph = g.get('tines_phaser') or {}
+    for i, t in enumerate(doc['tracks']):
+        nm = t['name']
+        if nm == 'copy' and g.get('pedal'):
+            t = {**t, 'patch': 'oh-copy synth.layers.0.mute=expr.pm*0.56 synth.layers.0.mute_width=0.10',
+                 **({'gain': g['copy_gain']} if g.get('copy_gain') else {}),
+                 **({'fx': [{'type': 'eq', 'bands': list(g['copy_eq'])}]} if g.get('copy_eq') else {})}
+        if nm in g['sends'] and g['sends'][nm]:
+            t = {**t, 'sends': {**(t.get('sends') or {}), 'imprint': g['sends'][nm]}}
+        if nm in ('tines-left', 'tines-right') and ph.get('mix', 0) > 0:
+            rt = ph['l'] if nm == 'tines-left' else ph['r']
+            t = {**t, 'fx': [{'type': 'phaser', 'rate': rt, 'depth': ph['depth'], 'stages': ph['stages'],
+                              'feedback': ph['feedback'], 'mix': ph['mix']}] + list(t.get('fx') or [])}
+        doc['tracks'][i] = t
+    if g.get('loudness') is not None:
+        doc['loudness'] = g['loudness']
+
+
 if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); ap.add_argument('--without-crease',action='store_true',help='regenerate v3')
     ap.add_argument('--without-mirror-bass',action='store_true',help='regenerate v4')
@@ -1422,6 +1523,8 @@ if __name__=='__main__':
     ap.add_argument('--short-feet',help='a bench: SHORT_FEET fields to change, as a JSON object')
     ap.add_argument('--without-one-line',action='store_true',help="regenerate v32: the two hands' cut at 2.6 kHz and their faders the same in every passage")
     ap.add_argument('--one-line',help='a bench: ONE_LINE fields to change, as a JSON object')
+    ap.add_argument('--without-imprint',action='store_true',help="regenerate v33: no Screamer on `copy` and no `imprint` bus in 'thumbprint'")
+    ap.add_argument('--imprint',help='a bench: IMPRINT fields to change, as a JSON object')
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
     doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot,not a.without_blot)
     if not a.without_lean and 'songs' in doc: lean(doc)      # only on the whole song as v22 has it (the tape is there when every older switch is on)
@@ -1445,6 +1548,8 @@ if __name__=='__main__':
     if not a.without_short_feet and not a.without_china and not a.without_bell and not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_feet_are_short(doc)      # only on the whole song as v31 has it
     if a.one_line: ONE_LINE.update(json.loads(a.one_line))
     if not a.without_one_line and not a.without_short_feet and not a.without_china and not a.without_bell and not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: one_line_stands_forward(doc)      # only on the whole song as v32 has it
+    if a.imprint: IMPRINT.update(json.loads(a.imprint))
+    if not a.without_imprint and not a.without_one_line and not a.without_short_feet and not a.without_china and not a.without_bell and not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_copy_gets_a_screamer_and_imprint(doc)
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
