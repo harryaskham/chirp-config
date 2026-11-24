@@ -5,15 +5,15 @@ A field is what a song set on top of the patch: an override (or its own patch's 
 for an effect a track adds after the patch. AGREED: one value on more than half of the patch's tracks, in three
 songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2`. The rest each song chose.
 
-## `ct-bass`: 17 songs, 22 tracks; as it comes in tracks 1, 3, 4, 5, 6, 8, 11, 14
+## `ct-bass`: 17 songs, 22 tracks; as it comes in tracks 3, 4, 5, 6, 8, 11, 14
 
 | field | tracks | songs | values (the songs) | |
 |---|---|---|---|---|
+| `synth.layers.1.level` | 9 | 9 | `-12dB` in 5, 11; `-20dB` in 8, 15; `-18dB` in 1; `-24dB` in 2; `-14dB` in 9; `-17dB` in 12; `-13dB` in 13 |  |
 | `fx.2.bands.3.cutoff` | 9 | 9 | `1150` in 2, 5, 8, 9, 10, 11, 12, 13, 15 |  |
 | `fx.2.bands.3.q` | 9 | 9 | `1.2` in 2, 5, 8, 9, 11, 12, 15; `1.6` in 10, 13 |  |
 | `fx.2.bands.3.gain` | 9 | 9 | `9dB` in 2, 5, 8, 11; `6dB` in 9, 15; `8dB` in 10; `10dB` in 12; `11dB` in 13 |  |
 | `fx.2.bands.1.gain` | 8 | 8 | `6dB` in 2, 5, 8, 9, 12, 15; `4dB` in 7; `11dB` in 11 |  |
-| `synth.layers.1.level` | 8 | 8 | `-12dB` in 5, 11; `-20dB` in 8, 15; `-24dB` in 2; `-14dB` in 9; `-17dB` in 12; `-13dB` in 13 |  |
 | `fx.2.bands.0.gain` | 7 | 7 | `12dB` in 2, 5, 8, 9, 12, 15; `9dB` in 11 |  |
 | `fx.2.bands.2.cutoff` | 7 | 7 | `540` in 2, 5, 8, 9, 12, 15; `600` in 10 |  |
 | `fx.2.bands.2.q` | 7 | 7 | `0.7` in 2, 5, 8, 9, 12, 15; `1` in 10 |  |
@@ -396,9 +396,10 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 |---|---|---|---|---|
 | `fx.4.mix` | 3 | 1 | `0.18` in 14 |  |
 | `fx.5.mix` | 3 | 1 | `0.15` in 14 |  |
+| `synth.pitch.mod.2.amount` | 3 | 1 | `1` in 14; `0` in 14 |  |
 | `synth.layers.0.tune_sounding` | 2 | 1 | `true` in 14 |  |
+| `synth.pitch.mod.2.src` | 2 | 1 | `auto.shake` in 14 |  |
 | `fx.4.time` | 2 | 1 | `343.615ms` in 14 |  |
-| `synth.pitch.mod.2.amount` | 1 | 1 | `0` in 14 |  |
 | `synth.pitch.mod.1.amount` | 1 | 1 | `0` in 14 |  |
 | `synth.pitch.value` | 1 | 1 | `-0.054` in 14 |  |
 
