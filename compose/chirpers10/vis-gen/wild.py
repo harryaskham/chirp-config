@@ -1577,9 +1577,9 @@ def fountain(c):
     layers = [{"type": "gradient", "palette": [c.bg, c.bg, "#0b1220"], "angle": 0.25, "spread": 0.6, "res": 0.5}]
     for i, p in enumerate(P):
         x = (i - (len(P) - 1) / 2) * min(0.5, 3.0 / len(P))
-        layers.append({"type": "particles", "on": f"track.{p.name}", "count": 40, "speed": f"1.7 + 0.9*track.{p.name}.vel", "spread": 0.045, "dir": 0.25, "life": 1.6, "gravity": 2.0, "drag": 0.1, "size": 0.009,
-                       "x": x, "y": -0.8, "jitter": 0.012, "soft": 0.5, "hues": 0.05, "color": c.col(i), "shape": "spark"})
-        layers.append({"type": "shape", "sides": 1, "radius": 0.02, "width": 0, "fill": 1, "color": c.col(i), "x": x, "y": -0.82, "glow": f"1 + 4*track.{p.name}.hit"})
+        layers.append({"type": "particles", "on": f"track.{p.name}", "count": 56, "speed": f"1.85 + 0.9*track.{p.name}.vel", "spread": 0.055, "dir": 0.25, "life": 1.85, "gravity": 1.8, "drag": 0.08, "size": 0.013,
+                       "x": x, "y": -0.8, "jitter": 0.015, "soft": 0.55, "hues": 0.06, "color": c.col(i), "shape": "spark"})
+        layers.append({"type": "shape", "sides": 1, "radius": 0.028, "width": 0, "fill": 1, "color": c.col(i), "x": x, "y": -0.82, "glow": f"1.4 + 4.5*track.{p.name}.hit"})
     layers.append({"type": "shape", "sides": 4, "rotate": 0.125, "radius": 2.6, "width": 0, "fill": 1, "color": "#000000", "blend": "normal", "x": 0, "y": -2.68})
     return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.5, 0.02, 0.5)]}
 
@@ -3051,7 +3051,7 @@ def trampoline(c):
     """Somebody on a trampoline for each riff, coming down as it begins each turn: the longer
     the riff, the higher they go."""
     P = c.riffs[:3]
-    layers = [lamp(-3, 7, -6, 1.5), lamp(2, 1, -4, 0.5, c.b, 9), floor(c, 0, "#1b1b20", 0.8)]
+    layers = [lamp(-3, 7, -6, 1.8), lamp(2, 1.8, -4.5, 0.85, c.b, 12), floor(c, 0, "#242630", 0.7)]
     for i, p in enumerate(P):
         x = (i - (len(P) - 1) / 2) * 2.5
         T = p.cell * c.six
@@ -3059,10 +3059,10 @@ def trampoline(c):
         u = f"fract({p.turn})"
         up = f"(4*{u}*(1 - {u}))"
         land = f"exp(0 - 14*{u}) + exp(0 - 14*(1 - {u}))"
-        layers.append({"type": "mesh", "shape": "cylinder", "detail": 20, "x": x, "y": f"0.42 - 0.07*({land})", "z": 0, "scale": 1, "sx": 0.95, "sy": 0.03, "sz": 0.95, **solid("#22252d", 0.5)})
-        layers.append({"type": "mesh", "shape": "torus", "detail": 20, "tube": 0.05, "x": x, "y": 0.45, "z": 0, "scale": 0.98, **solid(c.col(i), 0.5, 0.3)})
+        layers.append({"type": "mesh", "shape": "cylinder", "detail": 20, "x": x, "y": f"0.42 - 0.07*({land})", "z": 0, "scale": 1, "sx": 0.95, "sy": 0.03, "sz": 0.95, **solid("#323746", 0.45), "emit": 0.08})
+        layers.append({"type": "mesh", "shape": "torus", "detail": 20, "tube": 0.06, "x": x, "y": 0.45, "z": 0, "scale": 0.98, **solid(c.col(i), 0.4, 0.35), "emit": f"0.35 + 0.45*({land})"})
         layers.append({"type": "figure", "rig": "human", "motion": "none", "x": x, "y": f"1.42 + {H:g}*{up} - 0.1*({land})", "z": 0, "scale": 1.0, "rx": f"0 - {(0, 1, 0)[(i + c.variant) % 3]}*smooth(0.15, 0.85, {u})",
-                       **skin(("#e2ddd2", c.col(i), "#cfd6e2")[i], 0.05),
+                       **skin(("#ece7dc", c.col(i), "#d4dce8")[i], 0.16),
                        "pose": {"thigh_l": [f"0.2*{up}", 0, 0], "thigh_r": [f"0.2*{up}", 0, 0], "shin_l": [f"0 - 0.25*{up}", 0, 0], "shin_r": [f"0 - 0.25*{up}", 0, 0],
                                 "arm_l": [f"0.1 + 0.3*{up}", 0, -0.05], "arm_r": [f"0.1 + 0.3*{up}", 0, 0.05], "spine": [f"0.05*{up}", 0, 0]}})
     look = {"background": c.bg, "layers": layers, "filters": post3d(-3, 7, -6)}
@@ -5761,7 +5761,7 @@ def t_papercut(c, look):
     return look
 
 
-@treat("ridged", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type", "trace") and info["f"].__name__ not in THIN)
+@treat("ridged", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type", "trace") and info["f"].__name__ not in (THIN | {"semaphore", "shadowplay", "henge"}))
 def t_ridged(c, look):
     """Drawn as a range of ridges, one line for each sixteenth of the riff (several times
     over), each standing as high as the picture is light and hiding the ones behind; the
