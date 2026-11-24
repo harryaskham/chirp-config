@@ -2814,8 +2814,8 @@ def plan(S, deal):
             since = f"max(time.beat - {a16 / 4:g}, 0)"
             white(look, f"0.6*exp(0 - 2.5*{since})")
         if kind == "hush":
-            # The band has stopped: the picture is drained and dim until it comes back in.
-            look.setdefault("filters", []).append({"type": "color", "saturation": 0.1, "exposure": 0.5})
+            # The band has stopped: drained and hushed, but never crushed into pitch black.
+            look.setdefault("filters", []).append({"type": "color", "saturation": 0.16, "exposure": 0.68})
         if kind == "drop":
             # The band comes in: the picture is struck with light and comes forward, then settles.
             since = f"max(time.beat - {a16 / 4:g}, 0)"

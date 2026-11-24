@@ -73,7 +73,7 @@ def main():
             return name, None, (r.stdout + r.stderr)[:600]
         mp4 = f"{TMP}/{name}.mp4"
         cmd = ["systemd-run", "--user", "--collect", "-q", "--wait", "--pipe", f"--unit=guarded-soft-cv-w-{name}-{os.getpid()}", "-p", "CPUSchedulingPolicy=idle", "-p", "Nice=15",
-               "-p", "AllowedCPUs=4-23", f"--setenv=PATH={os.environ['PATH']}", f"--setenv=HOME={os.environ['HOME']}", "--setenv=RAYON_NUM_THREADS=4", f"--working-directory={G.C.CFG}/songs",
+               "-p", "AllowedCPUs=4-23", f"--setenv=PATH={os.environ['PATH']}", f"--setenv=HOME={os.environ['HOME']}", f"--setenv=RAYON_NUM_THREADS={os.environ.get('THREADS', '3')}", f"--working-directory={G.C.CFG}/songs",
                P, "--json", "video", "--vis", y, "-f", f"{song}.yaml", "--audio", f"/tmp/cv/ct/wav/t{n}.wav", "--from", f"{a * bar_s:.3f}s", "--to", f"{b * bar_s:.3f}s",
                "--size", SIZE, "--fps", FPS, "--preset", "ultrafast", "--warmup", f"{bar_s:.2f}", "--no-safety", "-o", mp4]
         r = subprocess.run(cmd, capture_output=True, text=True)

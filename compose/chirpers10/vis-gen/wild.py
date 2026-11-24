@@ -1456,7 +1456,7 @@ def hands(c):
     P = [p for p in c.riffs if 3 <= p.cell <= 13][:2]
     if not P:
         raise ValueError("no hand")
-    layers = [lamp(-2, 4, -6, 0.55), lamp(3, 1, -5, 0.4, c.a), floor(c, -1.9, "#16161a", 0.5)]
+    layers = [lamp(-2, 4, -6, 0.72), lamp(3, 1, -5, 0.45, c.a), lamp(0, -1, -6, 0.25, c.b), floor(c, -1.9, "#16161a", 0.5)]
     for i, p in enumerate(P):
         nn = p.cell
         bones = [{"name": "wrist", "parent": None, "length": 0.45, "dir": [0, 1, 0], "width": 0.11}, {"name": "palm", "parent": "wrist", "length": 0.38, "dir": [0, 1, 0], "width": 0.15 + 0.012 * nn}]
@@ -1559,9 +1559,9 @@ def lanterns(c):
     x = f"({T.pitch(-3.6, 3.6)} + 0.25*sin(note.age/5 + note.beat/3))"
     layers = [{"type": "stars", "count": 500, "speed": 0, "size": 0.8, "light": 0.5, "twinkle": 0.3, "streak": 0},
               {"type": "mesh", "shape": "plane", "detail": 4, "x": 0, "y": -1.6, "z": 0, "scale": 30, "material": "pbr", "rough": 0.15, "metal": 0.3, "color": "#05080e", "rim": 0, "cull": True},
-              box(x, "0 - 1.45 + 0.34*note.age", "0.2 + 2.2*hash(note.beat)", "0.3*(0.6 + note.vel)", "0.4*(0.6 + note.vel)", 0.3, notes={"track": T.name, "past": 16}, round=0.3,
-                  **glow(c.a, "2.4*exp(0 - 0.07*note.age)*(0.8 + 0.2*noise(time.t*7 + note.beat))")),
-              box(x, "0 - 1.45 + 0.34*note.age - 0.42*(0.6 + note.vel)", "0.2 + 2.2*hash(note.beat)", "0.1*(0.6 + note.vel)", 0.03, 0.1, notes={"track": T.name, "past": 16}, **glow("#fff2c8", "3*exp(0 - 0.07*note.age)"))]
+              box(x, "0 - 1.45 + 0.34*note.age", "0.2 + 2.2*hash(note.beat)", "0.3*(0.6 + note.vel)", "0.4*(0.6 + note.vel)", 0.3, notes={"track": T.name, "past": 32}, round=0.3,
+                  **glow(c.a, "2.6*exp(0 - 0.055*note.age)*(0.8 + 0.2*noise(time.t*7 + note.beat))")),
+              box(x, "0 - 1.45 + 0.34*note.age - 0.42*(0.6 + note.vel)", "0.2 + 2.2*hash(note.beat)", "0.1*(0.6 + note.vel)", 0.03, 0.1, notes={"track": T.name, "past": 32}, **glow("#fff2c8", "3.2*exp(0 - 0.055*note.age)"))]
     return {"background": "#020308", "camera": cam("0.4*sin(time.bar/12)", 0.3, -6, look=(0, 0.6, 1), zoom=1.3), "layers": layers,
             "filters": [{"type": "reflect", "y": -1.6, "amount": 0.6}, {"type": "tonemap", "knee": 0.75}, {"type": "aa"}, bloom(c, 0.6, 0.03, 0.5)]}
 
@@ -2631,8 +2631,8 @@ def skyline(c):
     sixteenths and a floor for each time it comes round. Every note puts a light on."""
     P = c.riffs[:3]
     floors = 9
-    layers = [{"type": "sky", "zenith": "#05060f", "horizon": "#1b2140", "ground": "#05060a", "sun": "#f4f1e6", "sun_yaw": 0.06, "sun_height": 0.2, "sun_size": 0.05, "clouds": 0},
-              {"type": "stars", "count": 300, "size": 0.002, "twinkle": 0.4, "opacity": 0.7}, floor(c, 0, "#08090d", 0.4)]
+    layers = [{"type": "sky", "zenith": "#080b1a", "horizon": "#26315e", "ground": "#080a10", "sun": "#f4f1e6", "sun_yaw": 0.06, "sun_height": 0.2, "sun_size": 0.05, "clouds": 0},
+              {"type": "stars", "count": 300, "size": 0.002, "twinkle": 0.4, "opacity": 0.75}, floor(c, 0, "#0b0d14", 0.45)]
     wide = sum(p.cell for p in P) * 0.3 + (len(P) - 1) * 1.0
     x0 = -wide / 2
     for i, p in enumerate(P):
@@ -5499,9 +5499,9 @@ def t_blocks(c, look):
     return _pre(look, {"type": "pixelate", "size": f"0.003 + {2 * 16 / 9 / 16:g}*pow(1 - fract(time.bar/2), 6)"})
 
 
-@treat("duotone", ok=lambda c, info: info["fam"] not in ("plate",))
+@treat("duotone", ok=lambda c, info: info["fam"] not in ("plate", "type"))
 def t_duotone(c, look):
-    return _pre(look, {"type": "color", "exposure": 1.8}, {"type": "posterize", "levels": 4}, {"type": "remap", "palette": [c.bg, c.b, c.a, c.ink], "amount": c.arr})
+    return _pre(look, {"type": "color", "exposure": 1.45}, {"type": "posterize", "levels": 4}, {"type": "remap", "palette": [c.bg, c.b, c.a, c.ink], "amount": c.arr})
 
 
 @treat("fringe", ok=lambda c, info: True)
@@ -5831,7 +5831,7 @@ def t_woodcut(c, look):
     leaning a notch each turn of the riff."""
     p = _lead(c)
     look = _unbloomed(look)
-    look["filters"] += [{"type": "woodcut", "count": (36, 48, 56, 42)[c.seed % 4], "angle": f"0.05 + floor({p.turn})/24", "bend": f"0.32 + 0.28*{p.hit}", "gain": 1.4, "paper": "#121014", "amount": c.arr}]
+    look["filters"] += [{"type": "woodcut", "count": (34, 42, 48, 38)[c.seed % 4], "angle": f"0.05 + floor({p.turn})/24", "bend": f"0.32 + 0.28*{p.hit}", "gain": 1.12, "paper": "#121014", "amount": c.arr}]
     return look
 
 
@@ -5841,7 +5841,7 @@ def t_riso(c, look):
     each hit of the riff and snap back into overprint."""
     p = _lead(c)
     look = _unbloomed(look)
-    look["filters"] += [{"type": "riso", "misreg": f"0.008 + 0.024*{p.hit}", "angle": f"0.08 + {p.turn}/4", "grain": 0.2, "gain": 1.35, "ink_a": c.a, "ink_b": c.b, "paper": "#eee6d4", "amount": c.arr}]
+    look["filters"] += [{"type": "riso", "misreg": f"0.012 + 0.028*{p.hit}", "angle": f"0.08 + {p.turn}/4", "grain": 0.24, "gain": 1.38, "ink_a": c.a, "ink_b": c.b, "paper": "#eee6d4", "amount": c.arr}]
     return look
 
 
@@ -5863,7 +5863,7 @@ def t_sampler(c, look):
     return _stitch(c, look, "cross", 72, ground=0.05, paper="#141210")
 
 
-@treat("bricks", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type"))
+@treat("bricks", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in ("score", "tape"))
 def t_bricks(c, look):
     """Built of studded bricks, as many across as three bars have sixteenths."""
     return _stitch(c, look, "brick", 48, ground=1.0)
