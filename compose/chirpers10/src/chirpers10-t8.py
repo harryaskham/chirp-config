@@ -1285,6 +1285,8 @@ def song():
         the_rule_is_sung(doc)
     if MUFF:
         the_wall_gets_a_muff(doc)
+    if SING:
+        the_tune_catches_the_amp(doc)
     return doc
 
 
@@ -1735,8 +1737,10 @@ def the_chug_holds(doc):
         doc['loudness'] = float(target)
 
 
-# v36 (chirper-zero; whole-song round: the kit's hands at the four cuts, 0:47-2:01): @@TITLE@@
-# @@WHY@@
+# v36 (chirper-zero; whole-song round: the kit's hands at the four cuts, 0:47-2:01): THE HANDS COUNT WHAT WILL BE LEFT.
+# Each cut leaves 20 sixteenths, then 12, 8 and 4: five beats, three, two, one. For exactly that long before the band
+# stops, the hands leave the cymbal and the backbeat and play one drum for each beat that will be left, from the snare
+# down (snare and four toms at 0:47.2 ; three drums at 1:18.8 ; two at 1:42.0 ; the snare alone at 2:00.8). C10T8_FILLS =
 # the drums from the top, one for each beat of a fill ; the fill's first , last velocity ; the new track's fader ;
 # what is added to the new track's kit (the toms' fit) ; the cuts that get a fill (0 = 0:47, 1 = 1:19, 2 = 1:42,
 # 3 = 2:01) ; the loudness target ("" = unchanged). "" = v35 byte for byte. On only while OVERTURE is.
@@ -2021,6 +2025,61 @@ def the_wall_gets_a_muff(doc):
                 t['sends'] = {**(t.get('sends') or {}), 'afterword': sends_map[t['name']]}
     if target:
         doc['loudness'] = float(target)
+
+
+# v40 (chirper-zero, 24 Nov; instrument round on Harry's 24 Nov steer: instrument design, the guitar sound. The lead
+# guitar of the tune, `tune`, its eight long notes in the first pair, 0:12-0:51; no note moves, no track added, no
+# fader touched.) THE HELD NOTE CATCHES THE AMP.
+# Since v32 each statement of the long riff holds one note of its own head over it, thirteen beats a note. But a
+# plucked string does not last thirteen beats (chirper-alpha read it: the E flat falls from +2.4 over the band at its
+# own pitch to -3.7 by its end), and a guitarist who holds a note that long in front of a loud amp does not let it die:
+# he turns to the cabinet and the note catches, the amp's own sound driving the string, and sings on, with its octave
+# coming up in it. WHEN it catches is the song's: a statement of the long riff is 52 sixteenths, the short riff is 32,
+# and what the algorithm leaves is the last 20 (v7 already divides the last four statements so: a bowed string for the
+# 32, the picked remainder for the 20). So each note is plain for eight beats, the short riff's length, and for what
+# is left of its statement it sings: the subtraction is said in one line, eight times, before the cut makes it.
+# The eighth time the band stops (0:49.1) and the tail is heard alone with the note singing over it.
+# How: two sines added to the lead's patch on this track (after its string and its pick: its third and fourth
+# layers), the note and its octave, both INTO the patch's own amp, cabinet and echo, as a string held by feedback is.
+# They are at nothing (-400 dB: the track is then bit for bit what it was, checked) until a lane `sing` lifts them:
+# from the eighth beat of each statement, growing straight in decibels as feedback grows, over a beat and a half, then
+# held to the note's end. The amp is driven so hard that the dying string is under them from about -80 dB: the lane's
+# -95 to -45 is the takeover, not a loudness. The tune's quick statement in the last pair (2:06.75, under the verse)
+# and the measure's lead and choir are not touched.
+# C10T8_SING = the track ; the pair(s) whose statements sing (`|` between) ; the harmonic : its dB over the note's own
+# sine ; the lane's top : its start : the beats it grows over (dB against the string layer's own level) ; the level
+# at rest. '' = v39 byte for byte. On only while MUFF is.
+SING = os.environ.get('C10T8_SING', 'tune;52 against 32;2:3;-45:-95:1.5;-400' if MUFF else '')
+
+
+def the_tune_catches_the_amp(doc):
+    """v40: for what is left of each statement once the short riff's length is taken from it, the tune's held note is sustained by the amp, with its octave (see SING)."""
+    trk, pairs, harm_s, grow_s, off_s = SING.split(';')
+    harm, rel = (float(v) for v in harm_s.split(':'))
+    top, lo, rise = (float(v) for v in grow_s.split(':'))
+    off = float(off_s)
+    t = next(x for x in doc['tracks'] if x['name'] == trk)
+    assert t['patch'].split()[0] == 'lead-monster', t['patch']        # its string and its pick are layers 0 and 1: the sines are 2 and 3
+    starts = sorted(s0 / 4 for _, s0 in MARKS)
+    pts = [[0.0, 0.0]]
+    for name in pairs.split('|'):
+        a, b = (int(v) for v in name.split(' against '))
+        s = dict(MARKS)[name] / 4
+        end = min(x for x in starts if x > s)
+        for n in t['notes']:
+            if not s <= n['at'] < end:
+                continue
+            k = round((n['at'] - s) // (a / 4))                         # which statement of the long riff the note is held over
+            t0, z = s + k * a / 4 + b / 4, n['at'] + n['len']           # what is left begins when the short riff's length has gone by
+            assert n['at'] <= t0 < z - 0.5 and pts[-1][0] < t0 - 0.01, (name, n, t0)
+            e = min(t0 + rise, z - 0.02)
+            full = (lo - off) + (top - lo) * (e - t0) / rise
+            pts += [[t0 - 0.01, 0.0], [t0, lo - off], [e, full], [z, full], [z + 0.2, 0.0]]
+    t['patch'] += (f' synth.layers.2.wave=sine synth.layers.2.ratio=1 synth.layers.2.level.value={off:g}dB'
+                   ' synth.layers.2.level.mod.0.src=auto.sing synth.layers.2.level.mod.0.amount=1'
+                   f' synth.layers.3.wave=sine synth.layers.3.ratio={harm:g} synth.layers.3.level.value={off + rel:g}dB'
+                   ' synth.layers.3.level.mod.0.src=auto.sing synth.layers.3.level.mod.0.amount=1')
+    t.setdefault('auto', {})['sing'] = {'points': [[f'{round(x, 5):g}b', round(v, 3)] for x, v in pts], 'curve': 0}
 
 
 if __name__ == "__main__":
