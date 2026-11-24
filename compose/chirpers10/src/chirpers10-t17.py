@@ -770,6 +770,86 @@ def name(p):
     return NOTES[p % 12] + str(p // 12 - 1)
 
 
+# v28 (chirper-zero; instrument round on Harry's 24 Nov steer for interesting effects, guitar sound and synths /
+# environment sound; no note moves, no track is added, no patch changes). THE HORN BEATS THE NUMBER IT HOLDS.
+# v18 gave each walk a natural horn in F holding the walk's own number as a PITCH: the Nth open note of its tube,
+# which is the Nth harmonic of the low string. Its author could not know "whether a note held for thirty seconds
+# under a band is a horn or a hum". A harmonic is a rate: the Nth beats N times in one turn of the first. So the
+# horn now beats N times in the hands' bar while it holds N: three to the bar on three, seven on seven (7:4 against
+# the kit), nine, eleven, fourteen, fifteen, and sixteen to the bar on sixteen, which is the song's own sixteenth.
+# Where the number is an octave of the string (4, 8, 16) the beat lies on the hands' grid, as its pitch lies on the
+# keyboard ; where the pitch is off the keyboard (7, 11, 14) the beat is off the grid.
+#   HOW: no tremolo unit (its rate is one number for a whole track): two lanes drawn on the horn's own track and one
+#   gain after its eq. `beat`: 0 at each of N evenly spaced points in the bar (the bar's own grid from beat 0, so
+#   the first of every N is on the downbeat), 1 at 0.7 of the way to the next ; the gain falls 9 dB with it. `held`:
+#   1 while a beating note sounds ; the gain rises 3.75 dB with it, which is what a 9 dB fall takes from the note's
+#   mean power, so a beating note is AS LOUD as the held one was (the horn alone -39.97 -> -39.96 LUFS ; each note
+#   swings +3.7 to -5.2 dB about its old level, mean power 0.00 +- 0.06 dB).
+#   ON THE WHEEL the horn comes to rest (v19) and it rests: every note from the wheel on is held plain, and so are
+#   the low F and its octave. There the horn is the published one (-107 dB, alone).
+#   "True harmonics: keep them" (Harry): no pitch is touched ; a level moving 1.6 to 8.7 times a second is a tremolo.
+# MEASURED, not heard. In the mix, in a band 3% either side of the horn's note, the level moving at N to the bar:
+# seven -41.5 -> -9.6 dB of that band's mean, nine -31.6 -> -9.5, eleven -39.6 -> -11.8, fourteen -37.1 -> -9.9,
+# fifteen -42.7 -> -12.2: it was not there and now it is, about a quarter to a third of that band's level. The raw
+# mix -20.3919 -> -20.3918 LUFS, peak -4.0: the loudness target is NOT moved. Finished: where the horn beats the
+# stretches are within 0.003 dB of their level and differ by the beat, 28 to 33 dB under (sixteen to one -0.065 dB,
+# 22 under) ; twelve and thirteen, where there is no horn, +0.0014 dB and 60 dB under (74 after its tail) ; the
+# wheel +0.0009 dB and 77 under. Beside the records nothing moves: 17 stamp rows of 20 the same and three one step
+# of 0.1 in one band (sums 9.289 -> 9.289 / 9.611 -> 9.622). Scores 96.66 / 96.74 -> 96.66 / 96.77.
+# PULSE: 'depth' the fall in dB ; 'makeup' the rise while a note beats ; 'trough' where between two beats the level
+# is lowest ; 'bar' the bar in beats ; 'least' the smallest number that beats ; 'wheel' True = the wheel beats too
+# (benched without the makeup: its stretch read 0.833 -> 0.927) ; 'loudness' None = unchanged.
+# --pulse '{"depth": 6}' changes fields for a bench ; --without-pulse = v27 byte for byte. Inside GROUND's block:
+# 'without_pulse' and 'pulse' are in the list of names that keep the newer switches on.
+PULSE = {'track': 'horn', 'depth': 9.0, 'makeup': 3.75, 'trough': 0.7, 'bar': 4.0, 'least': 3, 'wheel': False, 'loudness': None}
+
+
+def the_horn_beats_the_number_it_holds(doc, wheel):
+    """v28: the horn holds the Nth open note of its tube for the walk that starts on N ; now it also beats N to the bar.
+    A lane `beat` on its track and one gain after its eq: at each of N evenly spaced points in the hands' bar the horn
+    is at its level plus PULSE['makeup'], and between them it falls PULSE['depth'] dB (lowest PULSE['trough'] of the way
+    to the next). The makeup is what a fall of that depth takes from the note's mean power (9 dB: 3.75), so a beating
+    note is as loud as the held one was ; a second lane `held` keeps the makeup off the notes that do not beat.
+    Notes under PULSE['least'] are held plain, and so is every note from the wheel on (`wheel`, in beats) unless
+    PULSE['wheel']: on the wheel the horn comes to rest (v19), and it rests.
+    No note, pitch or patch changes ; the lane is drawn note by note, on the bar's own grid from beat 0."""
+    i, t = next((i, t) for i, t in enumerate(doc['tracks']) if t['name'] == PULSE['track'])
+    assert 'auto' not in t and isinstance(t['gain'], str), t['gain']
+
+    def number(p):                                                 # which harmonic of the low F a pitch is
+        m = float(p[1:]) if p[0] == 'm' else F1 + 12 * (int(p[1:]) - 1)
+        return round(2 ** ((m - F1) / 12))
+    pts, held = {0.0: 0.0}, {0.0: 0.0}
+    for n in t['notes']:
+        k, a, b = number(n['pitch']), n['at'], n['at'] + n['len']
+        if k < PULSE['least'] or (a >= wheel and not PULSE['wheel']):
+            pts[round(a, 4)] = pts[round(b, 4)] = 0.0
+            if held[max(held)]:                                    # the makeup lets go just before a plain note
+                held[round(max(a - 0.02, max(held)), 4)] = 1.0
+            held[round(a, 4)] = held[round(b, 4)] = 0.0
+            continue
+        step, low = PULSE['bar'] / k, PULSE['trough']              # N beats to the bar: the bar is the hands', from beat 0
+
+        def lane(x):
+            ph = (x / step) % 1.0
+            return ph / low if ph < low else (1.0 - ph) / (1.0 - low)
+        pts[round(a, 4)] = round(lane(a), 4)
+        held[round(a, 4)] = held[round(b, 4)] = 1.0
+        j = int(a // step)
+        while j * step < b:
+            for at, v in ((j * step, 0.0), ((j + low) * step, 1.0)):
+                if a < at < b:
+                    pts[round(at, 4)] = v
+            j += 1
+        pts[round(b, 4)] = round(lane(b), 4)
+    t = {**t, 'fx': list(t.get('fx', [])) + [{'type': 'gain', 'gain': {'value': '0dB', 'mod': [{'src': 'auto.beat', 'amount': -PULSE['depth']}, {'src': 'auto.held', 'amount': PULSE['makeup']}]}}],
+         'auto': {'beat': {'curve': 0, 'points': [[f'{at:g}b', v if v % 1 else int(v)] for at, v in sorted(pts.items())]},
+                  'held': {'curve': 0, 'points': [[f'{at:g}b', int(v)] for at, v in sorted(held.items())]}}}
+    doc['tracks'] = doc['tracks'][:i] + [t] + doc['tracks'][i + 1:]
+    if PULSE['loudness'] is not None:
+        doc['loudness'] = PULSE['loudness']
+
+
 def walk(n):
     out = [n]
     while n != 1:
@@ -1132,6 +1212,8 @@ if __name__ == '__main__':
     ap.add_argument('--touch', help='a bench: TOUCH fields to change, as a JSON object')
     ap.add_argument('--without-fifth', action='store_true', help="regenerate v23: the snare between two of the string's harmonics, a different pitch on every stroke")
     ap.add_argument('--fifth', help="JSON over FIFTH's fields, for a bench")
+    ap.add_argument('--without-pulse', action='store_true', help="regenerate v27: the horn holds its number at one level")
+    ap.add_argument('--pulse', help="JSON over PULSE's fields, for a bench")
     ap.add_argument('--without-ground', action='store_true', help="regenerate v26: the first pair with one eq the whole song through")
     ap.add_argument('--ground', help="JSON over GROUND's fields, for a bench")
     ap.add_argument('--without-fill', action='store_true', help="regenerate v25: a kit with no toms, and no fill anywhere")
@@ -1165,7 +1247,7 @@ if __name__ == '__main__':
     ap.add_argument('--without-low-bus', action='store_true', help="regenerate v2: the bass on its bare track, before it had the album's chain")
     a = ap.parse_args()
     doc, marks, wheel, end = compose(a.lead_gain, not a.without_storeys, not a.without_low_bus, not a.without_kit and not a.without_low_bus and not a.without_storeys, not a.without_size, not a.without_body, not a.equal, not a.without_memory, not a.without_count, not a.without_still, not a.without_one, not a.without_ceiling, not a.without_said, not a.without_clear)
-    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_ground', 'ground', 'without_fill', 'fill', 'without_register', 'register', 'without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight', 'without_speaker', 'speaker', 'without_fitted', 'fitted', 'without_fifth', 'fifth'))
+    newest = not a.equal and not any(v for k, v in vars(a).items() if k.startswith('without_') and k not in ('without_pulse', 'pulse', 'without_ground', 'ground', 'without_fill', 'fill', 'without_register', 'register', 'without_china', 'without_hand', 'without_bell', 'without_string', 'string', 'without_horn', 'horn', 'without_wheel', 'wheel', 'without_touch', 'touch', 'without_weight', 'weight', 'without_speaker', 'speaker', 'without_fitted', 'fitted', 'without_fifth', 'fifth'))
     if not a.without_china and newest:
         metal = next(t for t in doc['tracks'] if t['name'] == 'metal')   # every older switch still gives what it gave
         metal['patch'] += ' ' + CHINA['kit']
@@ -1419,6 +1501,10 @@ if __name__ == '__main__':
                         if a.ground:
                             GROUND.update(json.loads(a.ground))
                         the_guitars_fill_new_ground(doc, marks)
+                        if not a.without_pulse:                    # only on the whole song as v27 has it
+                            if a.pulse:
+                                PULSE.update(json.loads(a.pulse))
+                            the_horn_beats_the_number_it_holds(doc, wheel / SUB)
     if a.form:
         spb = 60 / BPM / SUB
         for k, at in marks:
