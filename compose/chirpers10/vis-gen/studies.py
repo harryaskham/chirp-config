@@ -1278,7 +1278,7 @@ def balls(tracks, spot, spot_track=None, plain=()):
         # the longest riff among them has the full height.
         vars_[f"h{i}"] = {"follow": f"3.5*pow({C}/max({longest}, 4), 2)", "attack": "400ms", "release": "400ms"}
         layers.append({"type": "actor", "use": ball_look(t, col, celled=t not in plain),
-                       "params": {"floor": floor, "height": f"clamp(var.h{i}, 0.4, 3.5)", "across": 4, "lead": round(0.21 * i, 2), "size": 0.07}, "key": 0, "mask": "none"})
+                       "params": {"floor": floor, "height": f"clamp(var.h{i}, 0.4, 3.5)", "across": 4, "lead": round(0.21 * i, 2), "size": 0.085}, "key": 0, "mask": "none"})
     look = {"vars": vars_, "env": {"all": {"when": together(tracks, plain) if n > 1 else "0", "decay": 1.6}},
             "background": BLACK, "camera": CAM, "layers": backdrop() + layers + ruler() + border(spot), "filters": finish(spot)}
     look = waited(look, together(tracks, plain)) if n > 1 else look

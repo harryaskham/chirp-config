@@ -956,6 +956,44 @@ def armillary(c):
     return {"background": c.bg, "camera": cam("5.6*sin(time.bar/20)", 2.2, "0 - 5.6*cos(time.bar/20)", zoom=1.9), "layers": layers, "filters": post3d(-3, 5, -6, shadow=0.4)}
 
 
+@idiom(needs=2, fam="clock", cost=2)
+def clockfield(c):
+    """A wall of small clocks, each with two hands, one for each of two riffs. A hand stands
+    at its riff's place in its turn, and each clock is set a little on from the one before
+    it: along the wall for the first riff, down it for the second (or out from the middle
+    and round it, or along the two diagonals). So each riff is a wave of hands going over
+    the wall, a crossing to a turn, stepping on the sixteenth, and a line of light goes
+    with each where the hands pass twelve. The clocks are set less far apart the nearer
+    the two riffs are to coming round together: when they do, every clock on the wall
+    reads noon."""
+    A, B = c.riffs[0], c.riffs[1]
+    cols, rows = 16, 9
+    dx, dy = 8.4 / cols, 4.6 / rows
+    R = 0.47 * min(dx, dy)
+    ci = f"floor(fract((inst.i + 0.5)/{cols})*{cols})"
+    ri = f"floor(inst.i/{cols})"
+    x0 = f"(({ci} - {(cols - 1) / 2:g})*{dx:g})"
+    y0 = f"(({(rows - 1) / 2:g} - {ri})*{dy:g})"
+    u, v = f"({ci}/{cols})", f"({ri}/{rows})"                      # 0..1 across and down
+    rad = f"(sqrt(pow({ci} - {(cols - 1) / 2:g}, 2) + pow(({ri} - {(rows - 1) / 2:g})*{dy / dx:g}, 2))/{cols / 2:g})"
+    ang = f"(atan2(({ci} - {(cols - 1) / 2:g})*{dx:g} + 0.001, ({(rows - 1) / 2:g} - {ri})*{dy:g}))"
+    offs = ((u, v), (rad, ang), (f"(({u} + {v})/2)", f"(({u} - {v})/2)"), (f"(2*abs({u} - 0.47))", f"(2*abs({v} - 0.44))"))[c.seed % 4]
+    # How far the riffs are from coming round together (0 there, 1 well away).
+    near = lambda p: f"min(fract({p.turn}), 1 - fract({p.turn}))"
+    apart = f"smooth(0, 0.3, max({near(A)}, {near(B)}))"
+    layers = [ball(x0, y0, 0.02, 0.028, 5, count=cols * rows, **glow(c.dim, 1.1))]
+    for k, (p, off) in enumerate(((A, offs[0]), (B, offs[1]))):
+        nn = p.cell or 16
+        st = f"({p.turn}*{nn})"
+        ph = f"((floor({st}) + smooth(0.5, 1, fract({st})))/{nn} + {apart}*{off})"
+        a = f"(0.25 - {ph})"
+        # (Light as the hand passes twelve, and a little on each of the riff's notes.)
+        lit = f"0.5 + 1.9*exp(0 - 7*fract({ph})) + 0.5*{p.hit}"
+        layers.append(box(f"{x0} + {R / 2:g}*cos({a})", f"{y0} + {R / 2:g}*sin({a})", -0.02 * k, R / 2, 0.03, 0.01, count=cols * rows, rz=a,
+                          **glow(c.col(k), lit)))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.014, 0.6)]}
+
+
 @idiom(needs=1, fam="clock", cost=2)
 def clockshop(c):
     """A wall of dials, one for every part that keeps a riff, each with as many hours as its
@@ -2116,10 +2154,11 @@ def cradle(c):
     P = [p for p in c.riffs if p.cell <= 11][:2]
     if not P:
         raise ValueError("too long")
-    top, L, r = 3.0, 2.0, 0.21
+    top, L = 3.0, 2.0
     layers = [lamp(-3, 5, -6, 1.5), lamp(3, 1.5, -5, 0.85, c.a), floor(c, 0, "#1c1d24", 0.3)]
     for i, p in enumerate(P):
         nn = max(3, p.cell)
+        r = min(0.34, 0.21 * (1 + (11 - nn) / 8 * 0.6))      # (a short riff's few balls are bigger)
         z = 1.6 * i
         x0 = (nn - 1) * r
         s = f"sin({p.turn})"
@@ -2747,12 +2786,14 @@ def fruit(c):
 def tetris(c):
     """A well as wide as the riff is long: every note drops a block into the column of its
     sixteenth, and each time the riff comes round a new row begins on top of the last."""
-    P = c.riffs[:2]
+    P = [p for p in c.riffs if p.cell >= 5][:2]
+    if not P:
+        raise ValueError("no riff long enough to be a well")
     rows = 11
     layers = []
     for i, p in enumerate(P):
         nn = p.cell
-        s_ = min(0.34, 3.6 / max(nn, sum(q.cell for q in P) / 1.0) * (1 if len(P) == 1 else 0.9))
+        s_ = min(0.4, 3.6 / max(nn, sum(q.cell for q in P) / 1.0) * (1 if len(P) == 1 else 0.9))
         x0 = (i - (len(P) - 1) / 2) * (4.3 if len(P) > 1 else 0) - nn * s_ / 2
         turn_of = f"floor((note.beat*4 - {p.anchor:g} + 0.01)/{nn})"
         now = f"floor({p.turn})"
@@ -4767,11 +4808,14 @@ def quad(c):
 @idiom(needs=1, fam="sheet", cost=3)
 def inset(c):
     """One picture whole, and in its corner another reading of the same riff."""
-    n1, big = _small(c, 0)
+    try:
+        n1, big = _small(c, 0, skip=[n for n in SMALL if n in THIN])      # (the whole one is a picture that fills its frame)
+    except ValueError:
+        n1, big = _small(c, 0)
     n2, small = _small(c, 1 if len(c.riffs) > 1 else 0, skip=[n1])
-    corner = ((1.16, -0.62), (-1.16, -0.62), (1.16, 0.62), (-1.16, 0.62))[c.seed % 4]
+    corner = ((1.12, -0.6), (-1.12, -0.6), (1.12, 0.6), (-1.12, 0.6))[c.seed % 4]
     layers = [{"type": "actor", "use": big, "x": 0, "y": 0, "scale": 1, "key": 0, "mask": "none"},
-              {"type": "actor", "use": small, "x": corner[0], "y": corner[1], "scale": 0.3, "key": 0, "mask": "rect"}]
+              {"type": "actor", "use": small, "x": corner[0], "y": corner[1], "scale": 0.34, "key": 0, "mask": "rect"}]
     return {"background": "#000000", "layers": layers, "filters": []}
 
 
@@ -5068,7 +5112,7 @@ def c_glass(c, A, B):
 @combo("stencil")
 def c_stencil(c, A, B):
     """One picture shows only through the lights of the other, which is itself seen faintly."""
-    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "stencil", "gain": 5}), _act(B, blend="add", fade=0.22)], "filters": []}
+    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "stencil", "gain": 5, "ground": True}), _act(B, blend="add", fade=0.22)], "filters": []}
 
 
 @idiom(needs=2, fam="space", cost=3)
@@ -5168,6 +5212,29 @@ def phasecorridor(c):
         "layers": layers,
         "filters": [{"type": "fog", "amount": 1.0, "density": 0.085, "color": c.bg}, {"type": "aa"}, bloom(c, 0.45, 0.018, 0.65)],
     }
+
+
+@idiom(needs=1, fam="grow", cost=2)
+def mycelium(c):
+    """A growth fed by the riffs. Every note lays food at its place in its riff's turn round
+    a ring (a ring to a riff, the longest riff's the widest), and a net of threads that
+    follow one another draws itself between them: each riff as the shortest ways between
+    its own notes, and bridges from ring to ring that are redrawn as the riffs slip past
+    one another."""
+    P = sorted(c.riffs[:3], key=lambda p: -(p.cell or 16))
+    radii = ([0.62], [0.8, 0.4], [0.84, 0.52, 0.22])[len(P) - 1]
+    env = hit_env(P, "200ms")
+    lay = {"type": "mycelium", "size": 200, "agents": 18000, "rate": 54, "sense": 0.03, "angle": 0.075, "turn": 0.1, "decay": 0.86, "gain": 0.75,
+           "food": 1.4, "linger": round(min(6.0, max(0.9, (P[0].cell or 16) * c.six * 0.95)), 2), "radius": 0.03, "spread": 0.75,
+           "burst": 0.05, "thick": 3.0, "seed": c.seed % 997, "palette": [c.dim, c.a, c.ink]}
+    marks = []
+    for i, (p, r) in enumerate(zip(P, radii)):
+        x, y = f"{1.5 * r:g}*sin({p.turn})", f"{r:g}*cos({p.turn})"
+        k = "" if i == 0 else str(i + 1)
+        lay.update({f"on{k}": f"track.{p.name}", f"x{k}": x, f"y{k}": y})
+        # Where each riff is in its turn: a point going round its ring.
+        marks.append({"type": "shape", "sides": 1, "radius": f"0.014 + 0.03*env.h{i}", "width": 0, "fill": 1, "x": x, "y": y, "color": c.col(i), "opacity": f"0.5 + 0.5*env.h{i}"})
+    return {"background": "#05070a", "env": env, "layers": [lay] + marks, "filters": [{"type": "tonemap", "knee": 0.75}, bloom(c, 0.3, 0.014, 0.7)]}
 
 
 @idiom(needs=2, fam="field", cost=2)
@@ -5382,7 +5449,7 @@ def c_timemap(c, A, B):
     into its own past (one turn of the riff deep), with a subtle rim of B over it."""
     p = _lead(c)
     depth = max(0.45, min(2.2, (p.cell or 16) * c.six))
-    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "chronos", "depth": round(depth, 3), "gain": 3.5}), _act(B, blend="add", fade=0.14)], "filters": []}
+    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "chronos", "depth": round(depth, 3), "gain": 3.5, "ground": True}), _act(B, blend="add", fade=0.14)], "filters": []}
 
 
 @combo("stagepass")
@@ -5409,14 +5476,14 @@ def c_stagepass(c, A, B):
 @combo("cutout")
 def c_cutout(c, A, B):
     """Whatever is lit in one picture is cut out of the other in black."""
-    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "shadow", "gain": 5}), _act(B, blend="add", fade=0.12)], "filters": []}
+    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "shadow", "gain": 5, "ground": True}), _act(B, blend="add", fade=0.12)], "filters": []}
 
 
 @combo("negmask")
 def c_negmask(c, A, B):
     """Where the second picture is lit, the first turns to its negative: two worlds that
     invert one another on the beat."""
-    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "negative", "gain": 4.5}), _act(B, blend="add", fade=0.14)], "filters": []}
+    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "negative", "gain": 4.5, "ground": True}), _act(B, blend="add", fade=0.14)], "filters": []}
 
 
 @combo("warpby")
@@ -5444,7 +5511,23 @@ def c_prismby(c, A, B):
 def c_mirrorby(c, A, B):
     """Reflective mask interplay: wherever the second picture lights up on its notes, the
     first picture flips into its mirror symmetry with silver specular contours."""
-    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "mirror", "gain": 4.0}), _act(B, blend="add", fade=0.1)], "filters": []}
+    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "mirror", "gain": 4.0, "ground": True}), _act(B, blend="add", fade=0.1)], "filters": []}
+
+
+@combo("ringed")
+def c_ringed(c, A, B):
+    """One picture in the middle, and round it the other's turn in frames: a ring of small
+    frames of the first picture taken one after another, clockwise, a whole number of its
+    riff's turns to the ring, while the second plays in the middle. The first is read as
+    a dial of its own riff; the second is the present it goes round."""
+    p = _lead(c)
+    across, step = _ring(p.cell or 16)
+    gap, edge = 0.1, 0.004
+    ring = {"background": "#000000", "layers": [_act(A)],
+            "filters": [{"type": "filmclock", "across": across, "step": step, "gap": gap, "edge": edge, "glow": 1.3, "flash": 0.6, "color": c.ink}]}
+    # (The second picture covers the hole in the ring and the hole's border, and stops short of the frames.)
+    inner = 1 - 2 / across - (gap * 0.5 / across + edge) * 0.9
+    return {"background": "#000000", "layers": [_act(ring), _act(B, scale=round(inner, 4), mask="rect", blend="normal")], "filters": []}
 
 
 @combo("diagonal")
@@ -5602,7 +5685,7 @@ def _names(c, k, cond=lambda p: True):
 @idiom(needs=2, fam="plate", cost=2)
 def wheels(c):
     S = _old(c, None)
-    use = _names(c, 4)
+    use = _names(c, 3)          # (three: four in a row are too small to read)
     return S.wheels(use, c.a, use[-1])
 
 
@@ -5649,6 +5732,8 @@ def bounce(c):
     S = _old(c, None)
     has = sorted(c.riffs, key=lambda p: p.cell)
     run = max(([p for p in has[i:] if p.cell <= 4 * has[i].cell][:4] for i in range(len(has))), key=len, default=[])
+    if not run or run[-1].cell < 4:
+        raise ValueError("no riff long enough for a bounce to be seen")      # (a riff of a sixteenth or two only skims the floor)
     use = [p.name for p in run]
     return S.balls(use, c.a, use[-1])
 
@@ -5772,8 +5857,11 @@ def t_kaleido(c, look):
 STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0, "hyperbolic": 0, "standing": 0, "anamorph": 0, "conformal": 0,
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
          "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0, "woodcut": 1, "riso": 1, "etched": 1, "cathedral": 1,
-         "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2, "scanfold": 2, "duochrono": 2, "metered": 2}
+         "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2, "scanfold": 2, "duochrono": 2, "metered": 2,
+         "recoil": 2, "looped": 2, "boomerang": 2, "receding": 2, "filmclock": 2, "exposed": 2}
 
+# The guises that work on a recording of the picture.
+TIMED = ("recoil", "looped", "boomerang", "receding", "filmclock", "exposed")
 # Pairs of guises that leave only texture, or flood white (feedback+grow saturates to pale wash).
 STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph", "conformal", "screen") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself", "woodcut", "riso", "etched", "dots", "cathedral")}
              | {(a_, "blown") for a_ in ("newsprint", "riso", "etched", "negative")}
@@ -5781,7 +5869,15 @@ STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling
              | {("tunnel", "overgrown"), ("overgrown", "tunnel"), ("itself", "carried"), ("carried", "itself"),
                 ("scanfold", "delayed"), ("delayed", "scanfold"), ("duochrono", "delayed"), ("delayed", "duochrono"),
                 ("duochrono", "scanfold"), ("scanfold", "duochrono"), ("metered", "stop"), ("stop", "metered"),
-                ("metered", "delayed"), ("delayed", "metered"), ("metered", "tracking"), ("tracking", "metered")})
+                ("metered", "delayed"), ("delayed", "metered"), ("metered", "tracking"), ("tracking", "metered")}
+             # (The ones that play a recording of the picture do not go on one already held or played late.)
+             | {(a_, b_) for a_ in TIMED for b_ in ("stop", "metered", "delayed", "scanfold", "duochrono", "echo", "carried") + TIMED if a_ != b_}
+             | {(b_, a_) for a_ in TIMED for b_ in ("stop", "metered", "delayed", "scanfold", "duochrono", "echo", "carried")}
+             # (Small frames of a picture that is already small frames, or a print of them, is only texture; and a plate exposed over and over fills one that is already full.)
+             | {(a_, "filmclock") for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph", "conformal", "screen", "nest", "itself", "typed", "newsprint", "dots")}
+             | {(a_, "exposed") for a_ in ("wall", "kaleido", "itself", "screen", "typed", "newsprint", "dots", "flood", "poster", "woodcut", "riso", "etched", "papercut", "cathedral", "onebit", "hatched", "engraved")}
+             # (Frames within frames of a picture that is already frames within frames, or a print of them, is only texture.)
+             | {(a_, "receding") for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic", "anamorph", "conformal", "screen", "nest", "itself")})
 
 # Pictures that stand to one side, or are a line of things: half of one is not a picture.
 # Pictures that can be drawn twice and joined (flat, and filling the frame or centred, so that
@@ -5795,8 +5891,8 @@ HANDS = ("riley", "blinds", "dominoes", "breakout", "kandinsky", "vortex", "moon
 # Pictures that fill the frame with light (cutting their lights out of another picture leaves nothing),
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
-           "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava".split())
-BROAD = FULL | set("overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
+           "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava clockfield ripplebath".split())
+BROAD = FULL | set("overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery hilbert worldlines mycelium".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("breakout searchlights solkattu remainder rain seismo metro epicycle pond tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
@@ -6283,6 +6379,106 @@ def t_duochrono(c, look):
     return _pre(look, {"type": "duochrono", "delay": round(delay, 3), "gain": 1.15, "shift": f"{p.turn}/4", "amount": c.arr})
 
 
+def _knocker(c):
+    """The part whose notes knock another's picture: the sparsest other riff or drum that
+    still plays at least once a bar (and not so often that the picture never catches up)."""
+    lead = _lead(c)
+    others = [q for q in list(c.riffs) + list(c.drums) if q.name != lead.name and 1 <= q.rate <= 4.5]
+    return min(others, key=lambda q: (q.rate, q.name)) if others else None
+
+
+@treat("recoil", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and c.riffs and _knocker(c) is not None)
+def t_recoil(c, look):
+    """Knocked back in time: every note of another part throws the picture back most of a
+    beat, and it runs to catch up, as a tape does (the bars showing while it runs). One
+    part's notes are jolts in the other's time."""
+    q = _knocker(c)
+    look.setdefault("env", {})["knock"] = {"on": f"track.{q.name}", "attack": "0ms", "decay": "300ms"}
+    # (Thrown back at once, held there a tenth of a second, and caught up by half a second.)
+    return _pre(look, {"type": "replay", "delay": "0.9*(1 - smooth(0.1, 0.5, env.knock.age))", "hold": 1.5, "wear": 0.5})
+
+
+@treat("looped", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and c.riffs and 6 <= (_lead(c).cell or 16) <= 32)
+def t_looped(c, look):
+    """A beat repeat: the last quarter of each turn of the riff does not come; the piece
+    before it is played four times over in its place (a roll), and the picture is back in
+    time on the turn."""
+    p = _lead(c)
+    turn = (p.cell or 16) / 4                       # beats
+    win = max(0.5, round(turn / 4 * 4) / 4)          # the last quarter of it, on the sixteenth
+    loop = win / 4
+    u = f"({p.ph}*{turn:g} - {turn - win:g})"       # beats into the window (negative before it)
+    return _pre(look, {"type": "replay", "delay": f"step(0, {u})*{loop:g}*(floor(max({u}, 0)/{loop:g}) + 1)", "hold": round(win + 0.75, 2), "wear": 0.3})
+
+
+@treat("boomerang", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and c.riffs and 6 <= (_lead(c).cell or 16) <= 16 and (_lead(c).cell or 16) * c.six <= 2.0)
+def t_boomerang(c, look):
+    """Time there and back: the picture goes forward for the first half of each turn of the
+    riff and backward for the second, so it is at the turn's beginning again as the next
+    begins. The riff is heard once and seen as a palindrome."""
+    p = _lead(c)
+    turn = (p.cell or 16) / 4                       # beats
+    u = f"({p.ph}*{turn:g} - {turn / 2:g})"         # beats past the middle of the turn
+    return _pre(look, {"type": "replay", "delay": f"2*max({u}, 0)", "hold": round(turn + 0.5, 2), "wear": 0.22})
+
+
+@treat("receding", ok=lambda c, info: info["f"].__name__ in BROAD and info["f"].__name__ not in WHITE and info["fam"] not in ("sign", "plate", "type") and c.riffs)
+def t_receding(c, look):
+    """The past goes away down a corridor: inside the picture is the picture as it was a
+    little earlier, in a frame; inside that an earlier one; six deep. The frames are a
+    fifth of a turn of the riff apart (for a long riff, a tenth), so the innermost is a
+    whole turn behind and in step with the outermost: a canon in depth. The corridor
+    leans as the riff goes round, and the frames light on its notes."""
+    p = _lead(c)
+    turn = (p.cell or 16) / 4                       # beats
+    span = turn if turn <= 2.5 else turn / 2
+    return _pre(look, {"type": "timetunnel", "levels": 6, "step": round(span / 5, 4), "ratio": 0.76, "x": f"0.55*sin({p.turn}/2)", "y": f"0.4*cos({p.turn}/2)",
+                       "edge": 0.005, "glow": f"0.35 + 1.1*{p.hit}", "fade": 0.93, "color": c.ink, "amount": c.arr})
+
+
+def _ring(cell):
+    """For a riff of `cell` sixteenths: how many frames across the top of a ring of frames
+    (it has four times that less four), and the beats from one frame to the next, so that
+    the ring is a whole number of the riff's turns and, where it can be, a frame is a
+    sixteenth."""
+    for across in (5, 4, 6, 7, 3):
+        n = 4 * across - 4
+        if n % cell == 0 and n // cell <= 4:
+            return across, 0.25                     # a frame a sixteenth, the ring some turns
+        if cell % n == 0 and cell // n <= 4:
+            return across, 0.25 * (cell // n)       # the ring one turn, a frame some sixteenths
+    turns = 1 if cell >= 13 else 2 if cell >= 7 else 4
+    return 5, round(cell / 4 * turns / 16, 5)        # sixteen frames to that many turns
+
+
+@treat("filmclock", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and c.riffs and (_lead(c).cell or 16) >= 3)
+def t_filmclock(c, look):
+    """The picture's own dial: the picture now in the middle, and round the edge a ring of
+    small frames taken one after another, clockwise, each kept until the taking comes
+    round again. The ring is a whole number of the riff's turns, so a frame always shows
+    the same place in the riff: what changes in it from one round to the next is what the
+    other parts have done meanwhile."""
+    p = _lead(c)
+    across, step = _ring(p.cell or 16)
+    return _pre(look, {"type": "filmclock", "across": across, "step": step, "gap": 0.1, "edge": 0.004, "glow": 1.3, "flash": 0.6, "color": c.ink, "amount": c.arr})
+
+
+@treat("exposed", ok=lambda c, info: info["f"].__name__ not in FULL and info["f"].__name__ not in WHITE and info["fam"] not in ("sign", "plate", "type", "print") and c.riffs
+       and 1.5 <= _lead(c).rate <= 12)
+def t_exposed(c, look):
+    """A plate exposed on every note of the riff (a chronophotograph): the last eight
+    pictures taken lie under the picture now, the older the dimmer and the cooler. What
+    moves leaves a pose to a note, so the riff is seen as spacing: close where its notes
+    come fast, a gap where it rests."""
+    p = _lead(c)
+    q = _knocker(c)
+    if q is not None and c.seed % 2:
+        # (Every other time it is another part that takes the pictures: its notes are the
+        # shutter, the riff is what is photographed.)
+        return _pre(look, {"type": "exposures", "on": f"track.{q.name}", "count": 6, "fade": 0.8, "keep": 0.9, "color": c.dim, "amount": c.arr})
+    return _pre(look, {"type": "exposures", "on": f"track.{p.name}", "count": 8, "fade": 0.84, "keep": 0.9, "color": c.dim, "amount": c.arr})
+
+
 @treat("cathedral", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE)
 def t_cathedral(c, look):
     """Cathedral bevelled stained glass: organic jewel-toned Voronoi panes bound in dark
@@ -6458,14 +6654,14 @@ def t_negative(c, look):
 
 
 ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief", "poster", "flood", "combed", "blown", "leaded",
-           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried", "reeded", "louvers", "hyperbolic", "standing", "woodcut", "riso", "anamorph", "scanfold", "etched", "conformal", "duochrono", "cathedral")
+           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried", "reeded", "louvers", "hyperbolic", "standing", "woodcut", "riso", "anamorph", "scanfold", "etched", "conformal", "duochrono", "cathedral", "receding", "filmclock", "exposed")
 
 # Idioms drawn in hair lines and points, made bolder so that they read at any size: how far
 # each thing in them is spread (a fraction of the frame's height).
 BOLD = {"numerals": 0.004, "orrery": 0.004, "kelvin": 0.004, "galton": 0.004, "sonar": 0.004, "treerings": 0.003, "combs": 0.004, "pond": 0.003, "remainder": 0.004, "constellation": 0.004,
         "tally": 0.003, "bifurcate": 0.003, "clockshop": 0.003, "strange": 0.002, "epicycle": 0.003, "seismo": 0.003, "harmonograph": 0.003, "strings": 0.002, "solkattu": 0.003,
         "teletype": 0.003, "turtle": 0.004, "slack": 0.003, "table": 0.003, "letters": 0.003, "metro": 0.003, "spiral": 0.002, "stringart": 0.002, "kelvin": 0.004, "moons": 0.002, "radial": 0.002,
-        "pong": 0.003, "contour": 0.003, "armillary": 0.003, "changes": 0.002, "loom": 0.002}
+        "pong": 0.003, "contour": 0.003, "armillary": 0.003, "changes": 0.002, "loom": 0.002, "discs": 0.0035, "picket": 0.003}
 
 
 # Guises that add to a picture (copies, echoes, mirrors) rather than print it.
