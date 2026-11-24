@@ -1482,6 +1482,70 @@ def the_copy_gets_a_screamer_and_imprint(doc):
         doc['loudness'] = g['loudness']
 
 
+# v35 (chirper-zero, 24 Nov; instrument round on Harry's 24 Nov steer for instrument design and synth/environment
+# sound: `ribbon`, the ondes Martenot, thirteen notes; no note moves, no track is added): THE INK IS STILL WET.
+# An ondes Martenot is heard through its diffusers, and the one it is known for is the palme: a lyre-shaped cabinet
+# strung with strings that sing along with whatever is played into it and go on after. The library's ondes has one
+# (twelve chromatic strings, 4 s); this song had it at a tenth and 1.1 s, and its strings a few cents flat of the
+# notes, so it measured 28 to 33 dB under the note a quarter of a second after it and nothing at half a second: the
+# ribbon was a bare sine. Everything in the song is named for writing, and the ribbon is its ink (v28: "it signs in
+# ink"; v22: "close a book on wet ink and the other page takes its mirror image"). Pencil is dry. Ink is wet for a
+# moment after it is written. So the palme is strung with the tune's own four notes (F4, G-flat, A-flat, C5), in
+# tune, at the library's 4 s, and what the ribbon writes stays on the page while it writes the next:
+#   'pencil' (0:08)      the four notes it learns from the mouth each ring on under the next; what hangs as the ink
+#                        comes in is G-flat and C ;
+#   'opposite' (0:54.8)  the one long line leaves each note it stood on singing behind it (two thirds of the strings) ;
+#   'signed' (3:44.7)    NO strings: the four chords are cut off by silences and the ribbon "lifts where the chords
+#                        lift" (chirper-one, v7); strings would ring through every silence. It signs as it did ;
+#   the facing page (3:58.8)  the tune read backwards on the same strings: what hangs under the voice is A-flat and F.
+# The strings add to the note they answer, so a lane (`hold`) takes that off the fader: every note with its strings is
+# within 0.63 dB of v34's (the signature within 0.16: +0.55 dB there for what the old strings gave its long notes).
+# --without-palme restores v34 byte for byte; --palme JSON overrides fields for benching.
+PALME = {
+    'notes': 'F4,Gb4,Ab4,C5',       # the strings: the tune's four notes, where the ribbon plays them
+    'decay': '4s',                  # the library ondes's own palme decay (the song had it at 1.1 s)
+    'mix': 0.15,                    # the strings' level at amount 1
+    # how much of the strings, and what comes off the fader (dB) so the note with its strings is as loud as it was
+    'amount': {'pencil': 1.0, 'opposite': 0.667, 'signed': 0, 'facing page': 1.0},
+    'trim':   {'pencil': 2.4, 'opposite': 0.95, 'signed': -0.55, 'facing page': 2.4},
+    'was': 'fx.0.mix=0.1 fx.0.decay=1.1s',
+}
+
+
+def the_ribbon_gets_its_palme(doc):
+    """v35: the ondes's sympathetic strings (its palme diffuser) tuned to the tune, in tune, at the library's decay;
+    lanes `palme` (how much of them) and `hold` (dB off the fader) change between the ribbon's four appearances."""
+    g = PALME
+    i = next(k for k, t in enumerate(doc['tracks']) if t['name'] == 'ribbon')
+    t = doc['tracks'][i]
+    ext = t['patch']['extends']
+    assert ext.count(g['was']) == 1 and 'palme' not in (t.get('auto') or {}) and 'hold' not in (t.get('auto') or {})
+    mix = json.dumps({'value': 0, 'mod': [{'src': 'auto.palme', 'amount': g['mix']}]}, separators=(',', ':'))
+    ext = ext.replace(g['was'], f"fx.0.notes={g['notes']} fx.0.decay={g['decay']} fx.0.tune_sounding=true fx.0.mix={mix}")
+    # the ribbon's appearances: runs of its notes with less than eight beats between them
+    runs = []
+    for n in sorted(t['notes'], key=lambda n: n['at']):
+        if runs and n['at'] - runs[-1][1] < 8:
+            runs[-1][1] = max(runs[-1][1], n['at'] + n['len'])
+        else:
+            runs.append([n['at'], n['at'] + n['len']])
+    assert len(runs) == len(g['amount']) == len(g['trim']), runs
+    amount, trim = list(g['amount'].values()), list(g['trim'].values())
+    def lane(vals):
+        pts = [['0b', vals[0]]]
+        for k in range(1, len(runs)):
+            # change where nothing of the ribbon is left: over the beat that ends a beat before the next appearance
+            b = runs[k][0] - 1.0
+            a = b - 1.0
+            assert runs[k - 1][1] + 8.0 <= a, (runs[k - 1][1], a)
+            if vals[k] != vals[k - 1]:
+                pts += [[f'{round(a, 4):g}b', vals[k - 1]], [f'{round(b, 4):g}b', vals[k]]]
+        return {'points': pts, 'curve': 0}
+    gain = {**t['gain'], 'mod': list(t['gain']['mod']) + [{'src': 'auto.hold', 'amount': -1}]}
+    auto = {**t['auto'], 'palme': lane(amount), 'hold': lane(trim)}
+    doc['tracks'][i] = {**t, 'patch': {**t['patch'], 'extends': ext}, 'gain': gain, 'auto': auto}
+
+
 if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__); ap.add_argument('-o','--out',type=Path,default=OUT); ap.add_argument('--map',action='store_true'); ap.add_argument('--without-drum-hand',action='store_true',help='regenerate v2'); ap.add_argument('--without-crease',action='store_true',help='regenerate v3')
     ap.add_argument('--without-mirror-bass',action='store_true',help='regenerate v4')
@@ -1525,6 +1589,8 @@ if __name__=='__main__':
     ap.add_argument('--one-line',help='a bench: ONE_LINE fields to change, as a JSON object')
     ap.add_argument('--without-imprint',action='store_true',help="regenerate v33: no Screamer on `copy` and no `imprint` bus in 'thumbprint'")
     ap.add_argument('--imprint',help='a bench: IMPRINT fields to change, as a JSON object')
+    ap.add_argument('--without-palme',action='store_true',help="regenerate v34: the ribbon's sympathetic strings as the song had them (chromatic, 1.1 s, a tenth), no lanes")
+    ap.add_argument('--palme',help='a bench: PALME fields to change, as a JSON object')
     ap.add_argument('--stock-rig',action='store_true',help="v15's notes on the two hands' rig as it was up to v14 (not a version)"); a=ap.parse_args()
     doc,sections=build(not a.without_drum_hand,not a.without_crease,not a.without_mirror_bass,not a.without_picking_hand,not a.without_signature,not a.without_ties,not a.without_facing_page,not a.without_palindrome,not a.without_album_kit,not a.without_dominant,not a.without_thumbs,not a.without_carbon_copy,not a.with_steel,not a.without_turned_page,None if a.stock_rig else HANDS_RIG,not a.without_first_reading,not a.without_chest,not a.without_palmas,not a.without_crack,not a.without_other_foot,not a.without_blot)
     if not a.without_lean and 'songs' in doc: lean(doc)      # only on the whole song as v22 has it (the tape is there when every older switch is on)
@@ -1550,6 +1616,9 @@ if __name__=='__main__':
     if not a.without_one_line and not a.without_short_feet and not a.without_china and not a.without_bell and not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: one_line_stands_forward(doc)      # only on the whole song as v32 has it
     if a.imprint: IMPRINT.update(json.loads(a.imprint))
     if not a.without_imprint and not a.without_one_line and not a.without_short_feet and not a.without_china and not a.without_bell and not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_copy_gets_a_screamer_and_imprint(doc)
+    if a.palme:
+        for k, v in json.loads(a.palme).items(): PALME[k].update(v) if isinstance(v, dict) else PALME.__setitem__(k, v)
+    if not a.without_palme and not a.without_imprint and not a.without_one_line and not a.without_short_feet and not a.without_china and not a.without_bell and not a.without_plates and not a.without_pencil and not a.without_snap and not a.without_ruled_page and not a.without_turned_kit and not a.without_counted_copy and not a.without_lean and 'songs' in doc: the_ribbon_gets_its_palme(doc)      # only on the whole song as v34 has it
     if a.map:
         for sec,t,n in sections: print(f'{sec:12s} {t/GRID*60/BPM:6.2f}s — {(t+n*STRIP)/GRID*60/BPM:6.2f}s')
     else: a.out.write_text(dump(doc))
