@@ -200,6 +200,9 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `synth.pitch.mod.1.amount` | 2 | 1 | `0` in 14 |  |
 | `synth.layers.0.tune_sounding` | 2 | 1 | `true` in 14 |  |
 | `strum` | 2 | 1 | `20ms` in 14 |  |
+| `+phaser.depth` | 2 | 1 | `0.55` in 14 |  |
+| `+phaser.mix` | 2 | 1 | `0.35` in 14 |  |
+| `+phaser.rate` | 2 | 1 | `0.18` in 14; `0.11` in 14 |  |
 | `+tremolo.depth` | 1 | 1 | `0.85` in 1 |  |
 | `+tremolo.rate` | 1 | 1 | `1.75b` in 1 |  |
 | `synth.layers.0.pickup` | 1 | 1 | `0.075` in 6 |  |
