@@ -1260,6 +1260,67 @@ def the_edges_bite(doc):
         doc['loudness'] = BITE['loudness']
 
 
+# v34 (chirper-zero, 24 Nov; instrument round, on Harry's 24 Nov steer for interesting effects, guitar sound, and
+# synths/environment sound — no note moves, no track added): THE GLASSHOUSE OPENS UNDER GLASS.
+# In 'under glass' (beats 148-192, 1:32.5-2:00.0, covering five stamped stretches: 'F alone', 'A flat and F',
+# 'C, A flat, F', 'the whole tune' and 'under glass'), the quiet middle sat narrow (S-M -12.8 dB, L/R correlation +0.91)
+# and 5 to 11 dB short across 2-16 kHz. Now `rim` (`pad-glass`, beats 148-177.3 only) moves gently through a slow
+# 6-stage stereo phaser (0.14 Hz, mix 0.45), and `rim` (+25 dB), `ring` (+15 dB) and `fretless` (+11 dB) send to a new
+# gated ambient bus `glasshouse`: 3/8 ping-pong delay -> sympathetic F minor strings (F4,Ab4,C5,Eb5,F5,Ab5,C6) ->
+# octave-up reverse granular cloud -> 3.8 s shimmer hall -> bright glass-air eq (HP 2 kHz, 3.2 kHz +4, 6.5 kHz +13) ->
+# duck -11 dB by `said` (10 ms attack, 180 ms release) so the ambient glass room steps back under every spoken/sung word
+# (keeping voice clearance positive in every band) and blooms +11.8 dB in the gaps between phrases -> gate lane shutting
+# to -96 dB by beat 191.95 (before 'lit through'; zero spill, -87 dB). `fretless` itself is left unmodulated so its
+# 30-120 Hz mono sub stays solid.
+# --v33 restores v33 byte for byte; --glasshouse JSON overrides fields for benching.
+GLASSHOUSE = {
+    'span': (148.0, 191.95),
+    'fade': 0.95,
+    'rim_phaser': {'rate': '0.14', 'depth': 0.6, 'stages': 6, 'feedback': 0.35, 'mix': 0.45},
+    'sends': {'rim': '25dB', 'ring': '15dB', 'fretless': '11dB'},
+    'delay': {'time': '3/8', 'feedback': 0.44, 'ping_pong': True, 'tone': 13000, 'mix': 0.45},
+    'sympathetic': {'notes': 'F4,Ab4,C5,Eb5,F5,Ab5,C6', 'decay': '2.4s', 'mix': 0.25, 'tune_sounding': True},
+    'cloud': {'size': '130ms', 'density': 18, 'position': '155ms', 'spray': '145ms',
+              'pitch': 12.0, 'reverse': 0.38, 'spread': 1.0, 'window': '2.8s', 'seed': 13, 'mix': 0.85},
+    'reverb': {'kind': 'hall', 'decay': '3.8s', 'size': 0.88, 'shimmer': 0.62,
+               'low_cut': 2000, 'high_cut': 15500, 'width': 1.0, 'mix': 0.92},
+    'eq': ['hp cutoff=2000', 'peak cutoff=3200 q=0.7 gain=4dB', 'highshelf cutoff=6500 gain=13dB'],
+    'duck': {'by': 'said', 'depth': '-11dB', 'attack': '10ms', 'release': '180ms'},
+    'loudness': -9.8636,
+}
+
+
+def the_glasshouse_opens(doc):
+    """v34: slow phaser on `rim` + gated, `said`-ducked `glasshouse` ambient bus in 'under glass' (beats 148-192)."""
+    g = GLASSHOUSE
+    a, z = g['span']
+    assert 'glasshouse' not in doc['buses'], 'glasshouse bus already exists'
+    bus_fx = [
+        {'type': 'delay', **g['delay']},
+        {'type': 'sympathetic', **g['sympathetic']},
+        {'type': 'cloud', **g['cloud']},
+        {'type': 'reverb', **g['reverb']},
+        {'type': 'eq', 'bands': list(g['eq'])},
+        {'type': 'duck', **g['duck']},
+        {'type': 'gain', 'gain': {'value': '-96dB', 'mod': [{'src': 'auto.open', 'amount': 96}]}},
+    ]
+    doc['buses'] = {**doc['buses'], 'glasshouse': {
+        'fx': bus_fx,
+        'auto': {'open': {'curve': 0, 'points': [
+            ['0b', 0], [f'{a - 0.05:g}b', 0], [f'{a:g}b', 1], [f'{z - g["fade"]:g}b', 1], [f'{z:g}b', 0],
+        ]}},
+    }}
+    for i, t in enumerate(doc['tracks']):
+        nm = t['name']
+        if nm in g['sends'] and g['sends'][nm]:
+            t = {**t, 'sends': {**(t.get('sends') or {}), 'glasshouse': g['sends'][nm]}}
+        if nm == 'rim' and g.get('rim_phaser') and g['rim_phaser'].get('mix', 0) > 0:
+            t = {**t, 'fx': [{'type': 'phaser', **g['rim_phaser']}] + list(t.get('fx') or [])}
+        doc['tracks'][i] = t
+    if g.get('loudness') is not None:
+        doc['loudness'] = g['loudness']
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, default=OUT)
@@ -1296,10 +1357,12 @@ if __name__ == '__main__':
     previous.add_argument('--v30', action='store_true', help="restore the snare a semitone sharp of the key (written G3, sounding A natural) with its wandering pitch")
     previous.add_argument('--v31', action='store_true', help="restore the library's cajon in 'turn the sheet': one sine for its centre stroke, a sine under its slap")
     previous.add_argument('--v32', action='store_true', help="restore the two guitars' eq as one setting for the whole song (v30's): no lane on its 3 kHz band")
+    previous.add_argument('--v33', action='store_true', help="restore 'under glass' without the rim phaser or the glasshouse ambient bus (v33)")
     parser.add_argument('--guitars', help='a bench: EDGE fields to change, as a JSON object')
     parser.add_argument('--snare', help='a bench: KEYED fields to change, as a JSON object')
     parser.add_argument('--box', help='a bench: BOX fields to change, as a JSON object ({"centre": {...}, "slap": {...}})')
     parser.add_argument('--edges', help='a bench: BITE fields to change, as a JSON object')
+    parser.add_argument('--glasshouse', help='a bench: GLASSHOUSE fields to change, as a JSON object')
     parser.add_argument('--bass', help='a bench: GRIND fields to change, as a JSON object')
     parser.add_argument('--hat', help='a bench: HATBODY fields to change, as a JSON object')
     parser.add_argument('--verso', help='a bench: VERSO fields to change, as a JSON object')
@@ -1326,7 +1389,7 @@ if __name__ == '__main__':
             doc['loudness'] = VERSO['loudness']
     if args.kick:
         KICK.update(json.loads(args.kick))
-    older = any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit() and k not in ('v27', 'v28', 'v29', 'v30', 'v31', 'v32'))
+    older = any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit() and k not in ('v27', 'v28', 'v29', 'v30', 'v31', 'v32', 'v33'))
     if not older and any(t['name'] == 'bars' for t in doc['tracks']):   # only on the whole song as v26 has it
         the_kick_gets_a_chest(doc)
         if not args.v27:
@@ -1354,6 +1417,10 @@ if __name__ == '__main__':
                                 if args.edges:
                                     BITE.update(json.loads(args.edges))
                                 the_edges_bite(doc)
+                                if not args.v33:
+                                    if args.glasshouse:
+                                        GLASSHOUSE.update(json.loads(args.glasshouse))
+                                    the_glasshouse_opens(doc)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
