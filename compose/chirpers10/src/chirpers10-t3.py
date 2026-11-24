@@ -584,7 +584,7 @@ STRUCK = os.environ.get('C10T3_STRUCK', '1.2;3;4s;2s;-9.982' if TREBLE and CHORD
 # was 'highshelf cutoff=7000 gain=-3dB') ; its fader (3.5dB) ; the loudness target ('' = unchanged). '' = v32.
 # It is on only while no other C10T3_ switch is set, so every older switch gives exactly what it gave.
 SNARE = os.environ.get('C10T3_SNARE', '3.5;1.1;peak cutoff=2500 q=0.7 gain=-4dB,peak cutoff=650 q=1 gain=-3dB;1.5dB;-10.067' if STRUCK and not any(
-    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS', 'C10T3_PICK', 'C10T3_COURSE', 'C10T3_INTUNE', 'C10T3_HAT', 'C10T3_HOLDS', 'C10T3_COVER', 'C10T3_BELFRY') for k in os.environ) else '')
+    k.startswith('C10T3_') and k not in ('C10T3_OUT', 'C10T3_SHOW', 'C10T3_SNARE', 'C10T3_RAISE', 'C10T3_SLOWKIT', 'C10T3_OVER', 'C10T3_TENOR', 'C10T3_LEADS', 'C10T3_PICK', 'C10T3_COURSE', 'C10T3_INTUNE', 'C10T3_HAT', 'C10T3_HOLDS', 'C10T3_COVER', 'C10T3_BELFRY', 'C10T3_TREAD') for k in os.environ) else '')
 # v34 (chirper-alpha; whole song: its frame; the change is the band's entrance, 0:08-0:12): THE BAND IS RUNG UP.
 # The song is a ringing performance from end to end, and since v28 the band is LOWERED at the end. But ringers do not
 # start by ringing: a ring is RAISED first, the bells chiming fast and close while they hang low, each stroke taking
@@ -1876,6 +1876,119 @@ def the_sixths_get_a_rat_and_belfry(doc):
         doc['loudness'] = float(target)
 
 
+# v46 (chirper-zero, 24 Nov; instrument round on Harry's 24 Nov steer for interesting effects and the guitar sound:
+# the two lead guitars, `lead` and `lead2`, 496 and 111 strokes; no note moves, no track is added, no fader is
+# touched): THE LEAD TREADS THE RUNGS.
+# The lead is one note picked in sixteenths, a rung at a time: four rungs at 1:56 (B, C, D, F) and the climb's seven
+# from 4:18 to the landing at 5:02 (Harry: "It pulls, and it lands"). Its notes climb and its tone did not: alone,
+# its centroid stayed between 1.6 and 2.6 kHz from the first stroke to the last, with no direction. Now there is a
+# wah pedal ahead of its 5150 (song-local patch `ph-lead`: lead-slap's own chain with the engine's `wah` after the
+# string and before the amp; the pedal is the track's `tread` lane), and the foot works it as a foot works a
+# treadle: on each rung it starts back and goes down, further each rung. The band-pass runs 500 Hz to 3.2 kHz:
+#   the climb   C5 602 -> 764 Hz, D flat 602 -> 970, E flat 602 -> 1232, G flat 764 -> 1564, G 970 -> 1986,
+#               B flat 1232 -> 2520, C6 1564 -> 3200 at the landing ; then, over the long last C (5:02-5:06), the foot
+#               comes back to 1051 Hz, the note's own fundamental: the one tread that closes ;
+#   at 1:56     B 602 -> 759, C 602 -> 957, D 602 -> 1208, F 759 -> 1523 ;
+#   `lead2`     plays what the first lead played two rungs before (v40: it courses it), and its pedal is where the
+#               first lead's was then.
+# C10T3_TREAD = tracks ; wah low:high:q:mix ; the first lead's pedal from:to ; the climb's pedal from:to:where it
+#   comes back to over the long last note ('' = it stays) ; how far the foot comes back at each new rung (a share of
+#   one rung's travel; never behind where it began) ; dB on each fader ('' = none) ; the loudness
+#   target ('' = unchanged). '' = v45 byte for byte. On only while BELFRY is; 'C10T3_TREAD' is in SNARE's exempt list.
+TREAD = os.environ.get(
+    'C10T3_TREAD',
+    'lead,lead2;500:3200:3:1;0.1:0.6;0.1:1.0:0.4;2.0;;'
+    if BELFRY else '',
+)
+
+
+def the_lead_treads_the_rungs(doc):
+    """v46: a wah ahead of the leads' amp; its pedal goes down rung by rung, and the second lead's is two rungs behind."""
+    names_s, wah_s, first_s, climb_s, back_s, gains_s, loud_s = TREAD.split(';')
+    names = names_s.split(',')
+    low, high, q, mix = (float(x) for x in wah_s.split(':'))
+    back = float(back_s)
+    spans = [tuple(float(x) for x in s.split(':')[:2]) for s in (first_s, climb_s)]
+    land = float(climb_s.split(':')[2]) if climb_s.count(':') > 1 else None
+    gains = gains_s.split(',') if gains_s else [''] * len(names)
+    assert 'ph-lead' not in doc['patches'] and len(gains) == len(names)
+    patches = dict(doc['patches'])
+    patches['ph-lead'] = {
+        'extends': 'lead-slap',
+        'about': 'Plain Hunt lead: lead-slap with a wah pedal ahead of its 5150, the pedal on the track\'s `tread` lane '
+                 '(chirper-zero, 24 Nov).',
+        'fx': [
+            {'type': 'sympathetic', 'notes': 'F1,Bb1,Eb2,Ab2,Db3,Gb3,Bb3,Eb4', 'decay': '1.2s', 'mix': 0.06},
+            {'type': 'wah', 'pos': {'value': 0, 'mod': [{'src': 'auto.tread', 'amount': 1}]}, 'env': 0,
+             'low': low, 'high': high, 'q': q, 'mix': mix},
+            {'type': 'amp', 'model': '5150', 'bass': 0.48, 'bloom': 0.3, 'boost': '6dB', 'gain': 0.92, 'mid': 0.7,
+             'presence': 0.6, 'resonance': 0.55, 'sag': 0.25, 'tight': 150, 'treble': 0.58, 'ts': 0.75},
+            {'type': 'ir', 'file': 'jester/cookie-monster', 'blend_file': 'jester/kitten-slayer', 'blend': 0.35,
+             'breakup': 0.3, 'length': '120ms', 'room': 0.12},
+            {'type': 'eq', 'bands': ['peak cutoff=900 q=0.9 gain=2dB', 'peak cutoff=250 q=1.2 gain=-2dB',
+                                     'highshelf cutoff=7500 gain=-2dB']},
+            {'type': 'delay', 'time': '95ms', 'feedback': 0.08, 'mix': 0.22},
+            'reverb kind=room decay=0.9s mix=0.12',
+        ],
+    }
+    doc['patches'] = patches
+    by = {t['name']: i for i, t in enumerate(doc['tracks'])}
+    first = doc['tracks'][by[names[0]]]
+    # the first lead's rungs: a run of strokes on one pitch ; the long last note belongs to the last rung
+    rungs = []
+    for n in first['notes']:
+        if rungs and rungs[-1][2] == n['pitch'] and n['at'] - rungs[-1][1] < 1.0:
+            rungs[-1][1] = n['at'] + n['len']
+        else:
+            rungs.append([n['at'], n['at'] + n['len'], n['pitch']])
+    groups = [[r for r in rungs if r[0] < 300], [r for r in rungs if r[0] >= 300]]
+    pts = [[0.0, spans[0][0]]]
+    for (a, b), g in zip(spans, groups):
+        k_all = len(g)
+        for k, (s, e, _) in enumerate(g):
+            lo_k = a + (b - a) * k / k_all
+            hi_k = a + (b - a) * (k + 1) / k_all
+            # the foot never comes back behind where it began
+            start = lo_k if k == 0 else max(a, lo_k - back * (b - a) / k_all)
+            if k == 0:
+                pts.append([s - 0.5, pts[-1][1]])
+            pts.append([s, start])
+            # the rung's last stroke is where the foot starts back ; the top rung is reached where its long note begins
+            long = e - s > 16.0 and k == k_all - 1
+            top = s + 16.0 if long else e if k == k_all - 1 else e - 0.25
+            pts.append([top, hi_k])
+            if long and land is not None:
+                # the landing: over the long note the foot comes back, the only tread that closes
+                pts.append([e, land])
+    def at(x):
+        """the first lead's pedal at beat x (straight lines between the points)"""
+        for (x0, v0), (x1, v1) in zip(pts, pts[1:]):
+            if x0 <= x <= x1:
+                return v0 + (v1 - v0) * (x - x0) / (x1 - x0) if x1 > x0 else v1
+        return pts[-1][1]
+
+    for nm, g in zip(names, gains):
+        i = by[nm]
+        t = doc['tracks'][i]
+        assert t['patch'].startswith('lead-slap') and 'fx' not in t and 'auto' not in t, nm
+        if nm == names[0]:
+            mine = pts
+        else:
+            # the second lead plays what the first played some rungs before: its pedal is where the first lead's was
+            # then, from its first stroke to the end of its last
+            n0, n1 = t['notes'][0], t['notes'][-1]
+            shift = n0['at'] - next(r[0] for r in groups[1] if r[2] == n0['pitch'])
+            end = n1['at'] + n1['len']
+            mine = ([[0.0, at(n0['at'] - shift)], [n0['at'], at(n0['at'] - shift)]]
+                    + [[x + shift, v] for x, v in pts if n0['at'] < x + shift < end] + [[end, at(end - shift)]])
+        doc['tracks'][i] = {**t, 'patch': t['patch'].replace('lead-slap', 'ph-lead', 1),
+                            **({'gain': g} if g else {}),
+                            'auto': {'tread': {'points': [[f'{round(x, 4):g}b', round(v, 4)] for x, v in mine],
+                                               'curve': 0}}}
+    if loud_s:
+        doc['loudness'] = float(loud_s)
+
+
 if __name__ == "__main__":
     doc = song()
     if TENOR:
@@ -1896,4 +2009,6 @@ if __name__ == "__main__":
         the_inner_pair_holds(doc)
     if BELFRY:
         the_sixths_get_a_rat_and_belfry(doc)
+    if TREAD:
+        the_lead_treads_the_rungs(doc)
     open(OUT, "w").write(dump(doc))
