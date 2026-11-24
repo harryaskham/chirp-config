@@ -190,13 +190,14 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `+reverb.decay` | 5 | 3 | `1.6s` in 9, 14; `0.85s` in 12 |  |
 | `+reverb.mix` | 5 | 3 | `0.12` in 9, 12; `0.1` in 14 |  |
 | `+reverb.predelay` | 5 | 3 | `20ms` in 9, 14; `12ms` in 12 |  |
+| `+phaser.depth` | 5 | 3 | `0.55` in 9, 10, 14 |  |
+| `+phaser.mix` | 5 | 3 | `0.35` in 10, 14; `0.38` in 9 |  |
+| `+phaser.rate` | 5 | 3 | `0.18` in 9, 14; `0.16` in 9, 10; `0.11` in 14 |  |
 | `synth.layers.0.inharm` | 4 | 2 | `0.00008` in 1, 10 |  |
 | `fx.3.mix` | 3 | 2 | `0` in 6, 14 |  |
-| `+phaser.depth` | 3 | 2 | `0.55` in 10, 14 |  |
-| `+phaser.mix` | 3 | 2 | `0.35` in 10, 14 |  |
-| `+phaser.rate` | 3 | 2 | `0.16` in 10; `0.18` in 14; `0.11` in 14 |  |
 | `synth.layers.0.node` | 2 | 2 | `expr.node` in 6; `4` in 13 |  |
 | `synth.layers.0.pinch` | 2 | 2 | `expr.contact` in 6; `1` in 13 |  |
+| `+phaser.feedback` | 2 | 1 | `0.32` in 9 |  |
 | `synth.pitch.mod.0.amount` | 2 | 1 | `0` in 14 |  |
 | `synth.pitch.mod.1.amount` | 2 | 1 | `0` in 14 |  |
 | `synth.layers.0.tune_sounding` | 2 | 1 | `true` in 14 |  |
@@ -257,12 +258,14 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 
 | field | tracks | songs | values (the songs) | |
 |---|---|---|---|---|
+| `+phaser.feedback` | 4 | 3 | `0.32` in 9; `0.6` in 1; `0.35` in 7 |  |
+| `+phaser.rate` | 4 | 3 | `2.75b` in 1; `0.14` in 7; `0.11` in 9; `0.1` in 9 |  |
 | `synth.layers.0.inharm` | 3 | 1 | `0.00008` in 1 |  |
+| `+phaser.depth` | 3 | 2 | `0.55` in 9; `0.62` in 7 |  |
+| `+phaser.mix` | 3 | 2 | `0.38` in 9; `0.48` in 7 |  |
 | `+reverb.decay` | 2 | 1 | `1.6s` in 9 |  |
 | `+reverb.mix` | 2 | 1 | `0.12` in 9 |  |
 | `+reverb.predelay` | 2 | 1 | `20ms` in 9 |  |
-| `+phaser.feedback` | 1 | 1 | `0.6` in 1 |  |
-| `+phaser.rate` | 1 | 1 | `2.75b` in 1 |  |
 
 ## `voice-choir`: 4 songs, 10 tracks; never as it comes
 
@@ -434,6 +437,8 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `synth.layers.3.level.value` | 2 | 1 | `0dB` in 3 |  |
 | `synth.layers.4.level.value` | 2 | 1 | `-8dB` in 3 |  |
 | `fx.0.decay` | 1 | 1 | `1.6s` in 9 |  |
+| `+rotary.mix` | 1 | 1 | `0.55` in 9 |  |
+| `+rotary.speed` | 1 | 1 | `0.35` in 9 |  |
 
 ## `tabla-kit`: 2 songs, 5 tracks; as it comes in tracks 14
 
