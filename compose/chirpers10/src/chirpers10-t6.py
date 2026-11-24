@@ -1875,7 +1875,7 @@ def the_hat_makes_room_for_the_words(doc):
 # ('' = none) ; the loudness target ('' = unchanged). '' = v37 byte for byte. On only while WORDS is and no other
 # C10T6_ name is set: a newer switch's name goes in the list below, or it will turn this one off.
 DUTY = os.environ.get("C10T6_DUTY", "lead,lead2,hair;-0.24,-0.28,-0.17;0.19;;" if WORDS and not any(
-    k.startswith("C10T6_") and k not in ("C10T6_OUT", "C10T6_SHOW", "C10T6_DUTY") for k in os.environ) else "")
+    k.startswith("C10T6_") and k not in ("C10T6_OUT", "C10T6_SHOW", "C10T6_DUTY", "C10T6_RADIO") for k in os.environ) else "")
 
 
 def the_duty_is_the_number(doc):
@@ -1912,6 +1912,46 @@ def the_duty_is_the_number(doc):
         doc["loudness"] = float(target)
 
 
+# v39 (chirper-zero, 24 Nov; instrument round on Harry's 24 Nov steer for interesting effects and environment
+# sound: the drum machine's bus, `drums`, for the song's first three and a half seconds; no note moves, no track
+# is added): THE DIAL FINDS THE STATION.
+#   The song is a dial: r turned up from 1.5 to 4 and back down, and nothing in it sounded like one. For its first
+#   four half bars the population is under one place, so nobody can play, and the machine rolls alone (the hat on
+#   the beats, v35's ticks between). That roll is now heard on a radio being tuned to it: static first, a whistle
+#   that falls as the dial nears, the machine coming up out of it small, mono and with no top (300 Hz to 3.5 kHz),
+#   a faint hiss between its strokes. A moment before the first bass note and the first string the radio is left:
+#   the band is in the room, full range and wide. The engine's `radio` effect, which no song on the record used:
+#   its `tune` is the dial (1 = off the station, static only; 0 = on it) and falls from 1 to 0 over six beats, fast
+#   first, as a hand does; its `mix` is 1 until beat 7.9 and 0 from 7.97 to the end, where the bus is as it was.
+#   MEASURED (raw, the song's seed, K by beat 0 to 7): v38 -31.8 -33.4 -33.5 -33.5 -32.2 -33.9 -34.6 -34.5 ;
+#   now -32.4 -32.3 -34.8 -36.3 -36.3 -36.2 -36.9 -37.0: the static starts as loud as the roll was and the roll on
+#   the radio is 2 to 4 dB quieter than the roll in the room. The whistle falls 2.9 kHz to nothing in two seconds,
+#   8 to 15 dB under the rest. The hiss between the strokes on the station: -54 dBFS (there was silence). From the
+#   first bass note the song is v38: 65 dB under itself for 0.1 s (the bus's compressor letting go), 86, 102, and to
+#   the sample from 5 s.
+# the bus ; the dial at 0b (1 = off the station) ; the beat it is on the station ; the curve of its fall (1 straight,
+# 2 fast first) ; the beat the radio is left ; its band, low ; high ; the static ; the whistle ; how deep the station
+# fades ; the static's seed. '' = v38 byte for byte. On only while DUTY is.
+RADIO = os.environ.get("C10T6_RADIO", "drums;1;6;2;7.9;300;3500;-24dB;-36dB;0.1;1" if DUTY else "")
+
+
+def the_dial_finds_the_station(doc):
+    """v39: the machine's first three and a half seconds through a radio that is being tuned to it. Runs last."""
+    bus, start, on, curve, cut, low, high, hiss, whistle, fade, seed = RADIO.split(";")
+    start, on, curve, cut = float(start), float(on), float(curve), float(cut)
+    assert all(n["at"] >= 8 for t in doc["tracks"] if t.get("out") == bus and t["name"] not in ("hat", "tick")
+               for n in t.get("notes", [])), "something else plays on the bus before the first bass note"
+    fx = {"type": "radio", "tune": {"value": 0, "mod": [{"src": "auto.dial", "amount": 1}]}, "low": low, "high": high,
+          "hiss": hiss, "whistle": whistle, "fade": float(fade), "rate": 0.15, "drive": 0.3, "seed": int(seed),
+          "mix": {"value": 0, "mod": [{"src": "auto.on", "amount": 1}]}}
+    n = 12
+    dial = [[f"{round(on * i / n, 3):g}b", round(start * (1 - i / n) ** curve, 4)] for i in range(n + 1)]
+    old = doc["buses"][bus]
+    assert "auto" not in old, bus
+    doc["buses"] = {k: ({"fx": [fx] + v["fx"], "auto": {"dial": {"points": dial}, "on": {"points": [["0b", 1], [f"{cut:g}b", 1], [f"{cut + 0.07:g}b", 0]]}}} if k == bus else v)
+                    for k, v in doc["buses"].items()}
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T6_SHOW"):
         for name, n, _ in DIAL:
@@ -1937,4 +1977,6 @@ if __name__ == "__main__":
             the_hat_makes_room_for_the_words(doc)
         if DUTY:
             the_duty_is_the_number(doc)
+        if RADIO:
+            the_dial_finds_the_station(doc)
         open(OUT, "w").write(dump(doc))
