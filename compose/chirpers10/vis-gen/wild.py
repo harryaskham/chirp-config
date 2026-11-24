@@ -242,13 +242,13 @@ def crystal(c):
         return f"(floor(fract(({i} - {off} + {n_ * 64} + 0.5)/{n_})*{n_}) - {(n_ - 1) / 2:g})*{u:g}"
     age = f"fract(({now} - inst.i)/{L})*{L}"
     count = min(L, 4000)
-    layers = [ball(co(0), co(1), co(2), f"{0.14 * u:g}*(1 + 2.2*exp(0 - 9*{age}/{L}))", detail=6, count=count, **glow(c.ink, f"0.3 + 2.2*exp(0 - 7*{age}/{L})"))]
+    layers = [ball(co(0), co(1), co(2), f"{0.2 * u:g}*(1 + 2.2*exp(0 - 9*{age}/{L}))", detail=6, count=count, **glow(c.ink, f"0.55 + 2.2*exp(0 - 5*{age}/{L})"))]
     n1, n2, n3 = cells
     if L < n1 * n2 * n3 <= 4096:
         # The lengths share a measure, so the lamp never visits most of the block: show it all, faintly.
         g = [f"(fract((inst.i + 0.5)/{n1})*{n1} - 0.5 - {(n1 - 1) / 2:g})*{u:g}", f"(fract((floor(inst.i/{n1}) + 0.5)/{n2})*{n2} - 0.5 - {(n2 - 1) / 2:g})*{u:g}",
              f"(floor(inst.i/{n1 * n2}) - {(n3 - 1) / 2:g})*{u:g}"]
-        layers.insert(0, ball(g[0], g[1], g[2], 0.07 * u, detail=4, count=n1 * n2 * n3, **glow(c.dim, 0.5)))
+        layers.insert(0, ball(g[0], g[1], g[2], 0.1 * u, detail=4, count=n1 * n2 * n3, **glow(c.dim, 0.9)))
     s = f"floor({now} + 0.001)"
     layers.append(ball(co(0, s), co(1, s), co(2, s), 0.42 * u, detail=10, **glow(c.a, 3)))
     spin = f"time.bar/{max(8, int(c.bars * 2))}"
@@ -3681,10 +3681,10 @@ def strobe(c):
         flash = f"env.h{other}"
         col = c.col(i)
         n_ = min(p.cell, 48)
-        layers.append({"type": "shape", "repeat": n_, "sides": 1, "radius": 0.015, "width": 0, "fill": 1, "color": c.dim, "x": f"{cx} + {R + 0.07}*cos(inst.i/{n_} + 0.25)", "y": f"{R + 0.07}*sin(inst.i/{n_} + 0.25)", "opacity": 0.9})
-        layers.append({"type": "shape", "repeat": 14, "sides": 1, "radius": "0.016 + 0.014*inst.i/14", "width": 0, "fill": 1, "color": col, "x": f"{cx} + {R}*(inst.i/13)*cos({held})", "y": f"{R}*(inst.i/13)*sin({held})", "opacity": f"0.14 + 0.86*{flash}"})
-        layers.append({"type": "shape", "sides": 1, "radius": 0.06, "width": 0, "fill": 1, "color": "#ffffff", "x": f"{cx} + {R}*cos({held})", "y": f"{R}*sin({held})", "opacity": f"0.18 + 0.82*{flash}"})
-        layers.append({"type": "shape", "sides": 0, "radius": R + 0.035, "width": 0.006, "fill": 0, "color": col, "x": cx, "y": 0, "opacity": f"0.26 + 0.55*{flash}"})
+        layers.append({"type": "shape", "repeat": n_, "sides": 1, "radius": 0.015, "width": 0, "fill": 1, "color": c.ink, "x": f"{cx} + {R + 0.07}*cos(inst.i/{n_} + 0.25)", "y": f"{R + 0.07}*sin(inst.i/{n_} + 0.25)", "opacity": 0.55})
+        layers.append({"type": "shape", "repeat": 14, "sides": 1, "radius": "0.016 + 0.014*inst.i/14", "width": 0, "fill": 1, "color": col, "x": f"{cx} + {R}*(inst.i/13)*cos({held})", "y": f"{R}*(inst.i/13)*sin({held})", "opacity": f"0.34 + 0.66*{flash}"})
+        layers.append({"type": "shape", "sides": 1, "radius": 0.06, "width": 0, "fill": 1, "color": "#ffffff", "x": f"{cx} + {R}*cos({held})", "y": f"{R}*sin({held})", "opacity": f"0.4 + 0.6*{flash}"})
+        layers.append({"type": "shape", "sides": 0, "radius": R + 0.035, "width": 0.009, "fill": 0, "color": col, "x": cx, "y": 0, "opacity": f"0.5 + 0.5*{flash}"})
     return {"background": "#000000", "env": env, "layers": layers, "filters": [{"type": "feedback", "zoom": 1, "decay": 0.955}, bloom(c, 0.4, 0.018, 0.6)]}
 
 
@@ -4100,13 +4100,13 @@ def rolls(c):
     rad = f"(0.17 + 0.5*(note.midi - {lo})/{span} + 0.25*clamp(note.age/4, 0, 1))"
     ang = "fract(note.beat + 0.0005)"
     fresh = "exp(0 - 5*max(note.age, 0))"
-    size = "clamp(0.011 + 0.035*min(note.gap, 1), 0.011, 0.046)"
-    layers = [{"type": "shape", "repeat": 4, "sides": 0, "radius": "0.17 + 0.25*inst.i", "width": 0.0025, "fill": 0, "color": c.dim, "opacity": 0.6, "blend": "normal", "x": 0, "y": 0},
+    size = "clamp(0.014 + 0.035*min(note.gap, 1), 0.014, 0.05)"
+    layers = [{"type": "shape", "repeat": 4, "sides": 0, "radius": "0.17 + 0.25*inst.i", "width": 0.0035, "fill": 0, "color": c.dim, "opacity": 0.9, "blend": "normal", "x": 0, "y": 0},
               # One beat round: a mark at the top where the beat falls.
               {"type": "shape", "sides": 4, "rotate": 0.125, "radius": 0.022, "width": 0, "fill": 1, "color": "#ffffff", "x": 0, "y": 0.96, "opacity": "0.5 + 0.5*pow(1 - time.phase, 4)"},
               {"type": "shape", "notes": {"track": part, "past": 4, "ahead": 0}, "count": 4000, "sides": 1, "radius": f"{size}*(1 + 1.1*{fresh})", "width": 0, "fill": 1,
                "palette": [c.a, c.b, c.c], "pos": f"0.999*(note.midi - {lo})/{span}", "x": f"{rad}*sin({ang})", "y": f"{rad}*cos({ang})",
-               "opacity": f"clamp(0.55 + 0.45*{fresh}, 0, 1)*(1 - 0.75*clamp(note.age/4, 0, 1))"},
+               "opacity": f"clamp(0.65 + 0.35*{fresh}, 0, 1)*(1 - 0.6*clamp(note.age/4, 0, 1))"},
               {"type": "shape", "notes": {"track": part, "past": 0.5, "ahead": 0}, "count": 600, "sides": 1, "radius": f"{size}*2*{fresh}", "width": 0, "fill": 1, "color": "#ffffff",
                "x": f"{rad}*sin({ang})", "y": f"{rad}*cos({ang})", "opacity": f"0.8*{fresh}"}]
     return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.5, 0.012, 0.6)]}
@@ -4376,13 +4376,13 @@ def quicken(c):
     l0, l1 = math.log2(g1 / 4), math.log2(g0 / 4)          # (slowest and quickest gaps, in beats)
     u = f"clamp(({l0:g} - {_log2('clamp(note.gap, 0.04, 4)')})/{l0 - l1:g}, 0 - 0.08, 1.08)"
     nx, px, pr = 1.2, 3.05, 1.4
-    lit = "(0.45 + 0.55*exp(0 - 0.35*max(note.age, 0)))*(0.6 + 1.6*note.on)*(0.45 + 0.8*note.vel)"
+    lit = "(0.6 + 0.5*exp(0 - 0.35*max(note.age, 0)))*(0.85 + 1.5*note.on)*(0.6 + 0.7*note.vel)"
     layers = [box(nx, 0, 0, 0.01, 2.35, 0.01, **glow(c.dim, 1.0)),
               ball(f"{px:g} + {pr:g}*sin(inst.i/96)", f"{pr:g}*cos(inst.i/96)", 0, 0.014, 4, count=96, **glow(c.dim, 0.8)),
               box(px, pr + 0.13, 0, 0.014, 0.1, 0.014, **glow(c.ink, 1.2))]
     for i, nm in enumerate(names):
         col = c.col(i)
-        layers.append(box(f"{nx:g} - note.age*{5.7 / 6:g}", f"0 - 1.7 + 3.4*{u}", 0, 0.026, "0.11 + 0.22*note.vel", 0.02, notes={"track": nm, "past": 6, "ahead": 0}, count=96,
+        layers.append(box(f"{nx:g} - note.age*{5.7 / 6:g}", f"0 - 1.7 + 3.4*{u}", 0, 0.034, "0.13 + 0.22*note.vel", 0.02, notes={"track": nm, "past": 6, "ahead": 0}, count=96,
                           **glow(col, lit)))
         on = "step(0, note.age)*(1 - step(note.gap, note.age))"
         rr = f"({pr:g}*(0.22 + 0.78*{u}))"
@@ -4419,19 +4419,19 @@ def haul(c):
         col = c.a if late else c.b
         come = f"step({start:g}, {now})"
         struck = lambda at: f"exp(0 - 0.5*max({now} - {at:g}, 0))*step({at:g}, {now})"      # noqa: E731
-        rope = {"type": "beam", "from": [x0, y, 0], "to": [x1, y, 0], "sag": sag, "width": 0.032, "samples": 64, "color": col,
-                "glow": f"0.38 + 0.85*{come} + 1.5*{struck(end)}"}
+        rope = {"type": "beam", "from": [x0, y, 0], "to": [x1, y, 0], "sag": sag, "width": 0.04, "samples": 64, "color": col,
+                "glow": f"0.6 + 0.75*{come} + 1.5*{struck(end)}"}
         if abs(slack) < 0.5:
             # (a taut rope hums when it is struck, for a bar or two; a slack one cannot)
             rope.update(wave=f"0.2*exp(0 - 0.032*max({now} - {end:g}, 0))*step({end:g}, {now})", waves=3, speed=5, samples=96,
-                        glow=f"0.2 + 0.7*{come} + 1.5*exp(0 - 0.04*max({now} - {end:g}, 0))*step({end:g}, {now})")
+                        glow=f"0.45 + 0.6*{come} + 1.5*exp(0 - 0.04*max({now} - {end:g}, 0))*step({end:g}, {now})")
         layers.append(rope)
         m = round(abs(slack))
         if m:
             f_ = f"((inst.i + 1)/{m + 1})"
             layers.append(ball(f"{n(x0)} + {x1 - x0:g}*{f_}", f"{n(y)} - {sag * 4:g}*{f_}*(1 - {f_})", -0.02, min(0.06, 2.2 / (m + 1)), 8, count=m, **glow(col, f"0.3 + 1.2*{come}")))
         for x, at in ((x0, pull), (x1, hl)):
-            layers.append(box(x, y, 0, 0.045, 0.2 * gap, 0.02, **glow(c.ink, f"0.3 + 2.4*{struck(at)}")))
+            layers.append(box(x, y, 0, 0.045, 0.2 * gap, 0.02, **glow(c.ink, f"0.5 + 2.4*{struck(at)}")))
         if m:
             t = f"clamp(({now} - {start:g})/{max(end - start, 0.01):g}, 0, 1)"
             u = t if late else f"(1 - {t})"
@@ -5712,10 +5712,13 @@ def wheels(c):
     return S.wheels(use, c.a, use[-1])
 
 
-@idiom(needs=1, fam="plate")
+@idiom(needs=1, fam="plate", max_cell=16)
 def photofinish(c):
     S = _old(c, None)
-    use = _names(c, 3)
+    # (A riff longer than a bar is not read as a wheel while it plays: its runner would never cross the line.)
+    use = _names(c, 3, cond=lambda p: p.cell and p.cell <= 16)
+    if not use:
+        raise ValueError("no riff short enough to cross the line")
     return S.finish_line(use, c.a, use[-1], subject=("runner", "horse")[c.variant % 2], meet=bool(c.odd))
 
 
@@ -6036,7 +6039,7 @@ def t_roll(c, look):
     return look
 
 
-@treat("dots", ok=lambda c, info: info["fam"] not in ("sign", "lattice", "plate"))
+@treat("dots", ok=lambda c, info: info["fam"] not in ("sign", "lattice", "plate") and info["f"].__name__ not in ("torusknot",))
 def t_dots(c, look):
     """Printed as a wall of lamps, a bar of sixty-four across."""
     return _pre(look, {"type": "halftone", "count": 64, "angle": 0, "gain": 1.6, "amount": c.arr})
@@ -6345,7 +6348,17 @@ def t_woodcut(c, look):
     return look
 
 
-@treat("riso", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE and info["f"].__name__ not in ("doors", "tartan"))
+def _floored(info):
+    """Whether an idiom stands on a lit floor (it lays one in its own source)."""
+    if "floored" not in info:
+        import inspect
+        info["floored"] = "floor(c" in inspect.getsource(info["f"])
+    return info["floored"]
+
+
+# (A sky or a lit floor is light all over: printed in two inks on paper it is one pale wash.)
+@treat("riso", ok=lambda c, info: info["f"].__name__ in BROAD and info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in WHITE and info["f"].__name__ not in BRIGHT
+       and info["f"].__name__ not in ("doors", "tartan") and not _floored(info))
 def t_riso(c, look):
     """Two-plate risograph print on warm paper: spot-ink plates slip out of register on
     each hit of the riff and snap back into overprint."""
@@ -6639,7 +6652,11 @@ def t_delayed(c, look):
     return look
 
 
-@treat("blown", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+# (Close-packed white lines, blown, are one white mass when the band is loud.)
+BLOWN_BAD = {"ridges"}
+
+
+@treat("blown", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in BLOWN_BAD)
 def t_blown(c, look):
     """In a wind that gusts with the riff's notes: every light has a tail."""
     p = _lead(c)
@@ -6680,11 +6697,22 @@ def _lum(hexcol):
     return 0.2126 * r + 0.7152 * g_ + 0.0722 * b
 
 
+def _has_floor(o):
+    """Whether a look stands on a lit floor (a plane mesh anywhere in it)."""
+    if isinstance(o, dict):
+        return (o.get("type") == "mesh" and o.get("shape") == "plane") or any(_has_floor(v) for v in o.values())
+    return isinstance(o, list) and any(_has_floor(v) for v in o)
+
+
 @treat("poster", ok=lambda c, info: info["fam"] not in ("sign", "plate", "ground", "place") and info["f"].__name__ not in BRIGHT)
 def t_poster(c, look):
     """A two-colour print: the ground is the song's colour, flat, and whatever was light is black on it."""
     # (On a dark ground black would not show: there the lights are printed pale.)
     inks = [c.a, "#141418", "#0c0c10"] if _lum(c.a) > 0.3 else [c.a, "#efe8d6", "#fffaf0"]
+    if _has_floor(look):
+        # (A lit floor is light all over and would print as one black field: there the dark
+        # stays dark, the floor is the song's colour and only the lights are pale.)
+        inks = ["#0c0c10", max((c.a, c.b), key=_lum), "#fffaf0"]
     look["filters"] = [f for f in look.get("filters", []) if f.get("type") != "bloom"] + [{"type": "remap", "gain": 1.8, "palette": inks, "amount": c.arr}]
     return look
 
