@@ -132,34 +132,36 @@ FEATURE = {
 # Each song's house: the guises and the ways of sharing the frame it leans to, so the songs
 # differ from one another as well as from bar to bar. (The first song, the album's argument, has none.)
 HOUSE = {
-    2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout smoked delayed puzzle",
-    3: "lines engraved hatched typed sheet blueprint leaded strips bands intercut triptych stencil woven sampler knitted itself",
-    4: "typed onebit newsprint dots blocks combed poster board corner card strips tracking puzzle beaded bricks halves",
-    5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout infra screen ridged papercut",
-    6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass dripping beaded halves",
-    7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite glass woven bricks papercut itself",
-    8: "leaded engraved newsprint poster flood duotone mirror triptych diptych window board infra woven puzzle bricks halves",
-    9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout smoked delayed papercut",
-    10: "onebit dots torn combed typed poster negative difference card bands corner stencil dripping sampler beaded carried",
-    11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking screen papercut puzzle",
-    12: "mirror drawn blueprint hatched ball echo water diptych intercut lighten satellite cutout screen papercut",
-    13: "echo stop slices fringe water overgrown hole double window iris difference glass smoked negative stencil ridged carried",
-    14: "typed dots lines blocks sheet onebit stop strips board wedges triptych stencil delayed beaded bricks",
-    15: "warp wound blown torn water combed tunnel sweep bands double satellite dripping woven knitted sampler carried",
-    16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass tracking delayed ridged",
-    17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil infra screen puzzle ridged itself",
+    2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout smoked delayed puzzle warpby",
+    3: "lines engraved hatched typed sheet blueprint leaded strips bands intercut triptych stencil woven sampler knitted itself diagonal",
+    4: "typed onebit newsprint dots blocks combed poster board corner card strips tracking puzzle beaded bricks halves louvers",
+    5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout infra screen ridged papercut embossed",
+    6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass dripping beaded halves warpby",
+    7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite glass woven bricks papercut itself diamond",
+    8: "leaded engraved newsprint poster flood duotone mirror triptych diptych window board infra woven puzzle bricks halves louvers",
+    9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout smoked delayed papercut reeded",
+    10: "onebit dots torn combed typed poster negative difference card bands corner stencil dripping sampler beaded carried negmask",
+    11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking screen papercut puzzle louvers",
+    12: "mirror drawn blueprint hatched ball echo water diptych intercut lighten satellite cutout screen papercut diagonal negmask",
+    13: "echo stop slices fringe water overgrown hole double window iris difference glass smoked negative stencil ridged carried embossed",
+    14: "typed dots lines blocks sheet onebit stop strips board wedges triptych stencil delayed beaded bricks louvers reeded",
+    15: "warp wound blown torn water combed tunnel sweep bands double satellite dripping woven knitted sampler carried warpby",
+    16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass tracking delayed ridged reeded embossed",
+    17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil infra screen puzzle ridged itself diamond",
 }
 HOUSE = {n_: set(v.split()) for n_, v in HOUSE.items()}
 OPEN = {1: "stringart"}     # the picture a song opens on, where it is not the first of its featured ones (the album's first picture, and the one the landing brings back)
 TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weave", "spiral", "rings", "checker", "split", "wipe", "iris", "blinds", "clock", "diamond", "rise", "dissolve",
                "flip", "squeeze", "shred", "stretch", "whip", "fall", "whirl", "ripple", "glitch", "pixel", "tiles", "doors", "spin", "scan", "diagonal", "slats", "interlace", "star", "dither", "corners", "wave",
-               "fan", "shutter", "mosh", "smoke", "overgrow",
-               "phase", "canon", "rung", "sum", "barber", "halving", "golden", "euclid", "dealt", "owed", "leaf", "negative", "ritard", "haul", "beats", "stairs")
+               "fan", "shutter", "mosh", "smoke", "overgrow", "echo", "drip",
+               "phase", "canon", "rung", "sum", "barber", "halving", "golden", "euclid", "dealt", "owed", "leaf", "negative", "ritard", "haul", "beats", "stairs",
+               "displace", "prism", "aperture", "accordion", "pendulum", "gear", "orbit", "chromatic")
 # Ways that keep something of the old picture from frame to frame: they take longer (about two seconds).
-CARRIED = ("mosh", "smoke", "overgrow")
-# Ways that count (the engine's counted.rs): the dense ones need about two seconds to be read, the rest a second and a half.
+CARRIED = ("mosh", "smoke", "overgrow", "echo", "drip")
+# Ways that count or move mechanically (counted.rs): the dense ones need about two seconds to be read, the rest a second and a half.
 COUNTED = {"rung": 1.9, "sum": 1.9, "euclid": 1.9, "dealt": 1.9, "golden": 1.9, "halving": 1.9, "ritard": 1.9, "stairs": 1.9,
-           "phase": 1.4, "canon": 1.4, "barber": 1.4, "owed": 1.4, "leaf": 1.4, "negative": 1.4, "haul": 1.4, "beats": 1.4}
+           "phase": 1.4, "canon": 1.4, "barber": 1.4, "owed": 1.4, "leaf": 1.4, "negative": 1.4, "haul": 1.4, "beats": 1.4,
+           "displace": 1.6, "prism": 1.6, "aperture": 1.6, "accordion": 1.7, "pendulum": 1.4, "gear": 1.7, "orbit": 1.8, "chromatic": 1.5}
 # How each song passes into the next: its own idea, counted out over its last two bars
 # (the wheels going round at their own rates; the row rung; the oblong cut into its squares).
 # After the last song the walk comes up in black.
@@ -404,6 +406,10 @@ class Deal:
         self.spires = collections.defaultdict(set)
         self.gears = collections.defaultdict(set)
         self.rules = collections.defaultdict(set)
+        self.overtones = collections.defaultdict(set)
+        self.septs = collections.defaultdict(set)
+        self.recounts = collections.defaultdict(set)
+        self.palins = collections.defaultdict(set)
         self.measured = collections.defaultdict(set)
         self.rung = collections.defaultdict(set)
         self.walked = collections.defaultdict(set)
@@ -583,10 +589,27 @@ class Deal:
                 note(name, tag, f"{name}/canon {how} {far:g}")
                 self.last["canon"] = True
                 return name, "canon", look
-        # The other hand: a right part plays the left's riff backwards. The picture is drawn for
-        # each, the right one's turned round left to right, and the two are joined: it is one
-        # picture where it stands still, and whatever moves in it moves both ways at once.
+        # The other hand: a right part plays the left's riff backwards. First (and once per
+        # section), show the explicit counter-running palindrome tape where mirrored strokes
+        # meet at the central reading head; elsewhere, draw the picture for each and join them.
         pair3 = hands(S, c) if not flash and not prefer and not first and kind != "hush" else None
+        if pair3 and pair3[0].cell >= 12 and (S.n, c.a16 // 16 // 24) not in self.palins[S.n] and "palindrome" not in self.recent[-2:] and (c.b16 - c.a16) * c.six >= 3.5:
+            cd = copy.copy(base)
+            cd.palin = pair3
+            got = make("palindrome", ctx=cd, keep=True)
+            t = next((t for t in PALIN_GUISES if ("palindrome", t) not in self.combos and W.TREAT[t][1](cd, W.REG["palindrome"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = f"{pair3[0].name} forward against {pair3[1].name} reversed, cell {pair3[0].cell}"
+                gk = min((x for x in ("halo", "footlights", "plasma", "smoke", "horizon", "stars") if x not in self.grounds_last[S.n][-2:]), key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
+                self.grounds[gk] += 1
+                self.grounds_last[S.n].append(gk)
+                look = W.TREAT[t][0](c, W.ground(c, got[1], gk) if t in W.GROUND_OK else got[1])
+                self.treats[t] += 1
+                self.palins[S.n].add((S.n, c.a16 // 16 // 24))
+                note("palindrome", t, "palindrome/mirror" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "palindrome", t, look
         if pair3 and rnd(S.n, k, "hands?") < 0.75:
             pl, pr = pair3
             rest = [p for p in c.riffs if p.name not in (pl.name, pr.name)]
@@ -701,6 +724,69 @@ class Deal:
                 self.rules[S.n].add(rkey)
                 note("cobweb", t, "cobweb/rule" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
                 return "cobweb", t, look
+        # Harmonic partials beating together (overtones of a tuned/drifting pulse): resonant
+        # standing waves for each harmonic partial with a combined interference trace below.
+        ov = partials_here(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 4.0 else None
+        ovk = (ov[0], (c.a16 // 16 - ov[0]) // 8) if ov else None
+        if ov and ovk not in self.overtones[S.n] and "overtones" not in self.recent[-2:]:
+            cd = copy.copy(base)
+            cd.partials = ov[2:]
+            got = make("overtones", ctx=cd, keep=True)
+            t = next((t for t in OVERTONE_GUISES if ("overtones", t) not in self.combos and W.TREAT[t][1](cd, W.REG["overtones"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = "partials " + ", ".join(f"{m}x ({nm})" for m, nm, _ in ov[3])
+                gk = min((x for x in ("halo", "footlights", "plasma", "smoke", "horizon", "stars") if x not in self.grounds_last[S.n][-2:]), key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
+                self.grounds[gk] += 1
+                self.grounds_last[S.n].append(gk)
+                look = W.TREAT[t][0](c, W.ground(c, got[1], gk) if t in W.GROUND_OK else got[1])
+                self.treats[t] += 1
+                self.overtones[S.n].add(ovk)
+                note("overtones", t, "overtones/beat" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "overtones", t, look
+        # Seven-to-the-beat lock: where a seven-note riff speeds up to seven notes per beat and
+        # locks onto the quarter note, show the seven-toothed wheel locking against the bar.
+        sp = sept_here(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 3.5 else None
+        spk = (c.a16 // 16 // 7) if sp else None
+        if sp and spk not in self.septs[S.n] and "septlock" not in self.recent[-2:]:
+            cd = copy.copy(base)
+            cd.sept = sp
+            got = make("septlock", ctx=cd, keep=True)
+            t = next((t for t in SEPT_GUISES if ("septlock", t) not in self.combos and W.TREAT[t][1](cd, W.REG["septlock"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = f"{', '.join(sp[:3])} locked at seven to the beat"
+                gk = min((x for x in ("halo", "footlights", "plasma", "smoke", "horizon", "stars") if x not in self.grounds_last[S.n][-2:]), key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
+                self.grounds[gk] += 1
+                self.grounds_last[S.n].append(gk)
+                look = W.TREAT[t][0](c, W.ground(c, got[1], gk) if t in W.GROUND_OK else got[1])
+                self.treats[t] += 1
+                self.septs[S.n].add(spk)
+                note("septlock", t, "septlock/lock" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "septlock", t, look
+        # Grid recount (16:15 without changing tempo): twin dials and vernier ruler showing the
+        # band recounting faster against the old bar line.
+        rc_ = recount_here(S, c) if not flash and not prefer and not first and kind != "hush" and (c.b16 - c.a16) * c.six >= 4.0 else None
+        rck = (c.a16 // 16 // 10) if rc_ else None
+        if rc_ and rck not in self.recounts[S.n] and "recount" not in self.recent[-2:]:
+            cd = copy.copy(base)
+            cd.recount = rc_
+            got = make("recount", ctx=cd, keep=True)
+            t = next((t for t in RECOUNT_GUISES if ("recount", t) not in self.combos and W.TREAT[t][1](cd, W.REG["recount"])), None)
+            if got and t:
+                c.__dict__.update(got[0].__dict__)
+                c.arrive = "1"
+                c.talk = f"recounting at {1 / rc_[1]:.4g}:1 ({', '.join(rc_[2][:3])})"
+                gk = min((x for x in ("halo", "footlights", "plasma", "smoke", "horizon", "stars") if x not in self.grounds_last[S.n][-2:]), key=lambda x: self.grounds[x] + 2 * rnd(S.n, k, "g" + x))
+                self.grounds[gk] += 1
+                self.grounds_last[S.n].append(gk)
+                look = W.TREAT[t][0](c, W.ground(c, got[1], gk) if t in W.GROUND_OK else got[1])
+                self.treats[t] += 1
+                self.recounts[S.n].add(rck)
+                note("recount", t, "recount/shift" + ("" if t == "plain" else f" {t}"), raw=len(json.dumps(got[1])), ending=None)
+                return "recount", t, look
         # A riff a place off the bar: a wheel of its places rolling in the ring of the bar's.
         # Once for every twelve bars, and whenever the wheels change (a second riff, the
         # other way off the bar); never twice running; another guise each time. And riffs
@@ -1841,6 +1927,148 @@ def recounting(S):
     return S._recount
 
 
+def partials(S):
+    """Harmonic partials beating together: passages where 3+ parts lock into integer multiples
+    (1x, 2x, 3x, 4x, 5x...) of a fundamental pulse rate, including at least one odd partial
+    (3x or 5x) and either an off-grid fundamental or 4+ simultaneous harmonics. Excludes songs
+    driven by quickening (t5) so it highlights genuine overtone/beating structures (t16)."""
+    if not hasattr(S, "_partials"):
+        S._partials = None
+    if S._partials is not None:
+        return S._partials
+    if quickening(S):
+        S._partials = []
+        return S._partials
+    cand = [t for t in S.tracks if len(t.notes) >= 24]
+    import bisect
+    bar_rate = {}
+    for t in cand:
+        st = sorted(s for s, _, _ in t.notes)
+        u = [st[0]]
+        for x in st[1:]:
+            if x - u[-1] > 0.025:
+                u.append(x)
+        for b in range(S.bars):
+            lo = bisect.bisect_left(u, b * 4)
+            hi = bisect.bisect_left(u, (b + 2) * 4)
+            if hi - lo < 4:
+                continue
+            xs = u[lo:hi]
+            gaps = [xs[i + 1] - xs[i] for i in range(len(xs) - 1) if xs[i + 1] - xs[i] < 1.3]
+            if len(gaps) < 3:
+                continue
+            med = sorted(gaps)[len(gaps) // 2]
+            if med < 0.09 or med > 1.1:
+                continue
+            steady = sum(1 for g in gaps if abs(g - med) < 0.14 * med or abs(g - 2 * med) < 0.14 * 2 * med)
+            if steady >= 0.65 * len(gaps):
+                bar_rate[(t.name, b)] = 1.0 / med
+    bars = []
+    for b in range(S.bars):
+        here = sorted((r, nm) for (nm, bb), r in bar_rate.items() if bb == b)
+        if len(here) < 3:
+            continue
+        best = None
+        for r0, _ in here:
+            if r0 < 0.7 or r0 > 2.4:
+                continue
+            harms = {}
+            for r, nm in here:
+                k = round(r / r0)
+                if 1 <= k <= 6 and abs(r / r0 - k) < 0.06 * k and k not in harms:
+                    harms[k] = (nm, r)
+            has_odd = any(k in (3, 5) for k in harms)
+            off_grid = abs(r0 - round(r0)) > 0.06
+            if has_odd and (len(harms) >= 4 or (len(harms) >= 3 and off_grid)):
+                score = len(harms) + (1 if off_grid else 0)
+                if best is None or score > best[0]:
+                    best = (score, r0, sorted((k, nm, r) for k, (nm, r) in harms.items()))
+        if best:
+            bars.append((b, best[1], best[2]))
+    runs = []
+    for b, r0, h in bars:
+        if runs and b <= runs[-1][1] + 2:
+            runs[-1][1] = b + 1
+            runs[-1][2].append((b, r0, h))
+        else:
+            runs.append([b, b + 1, [(b, r0, h)]])
+    S._partials = [(a, b, xs[len(xs) // 2][1], xs[len(xs) // 2][2]) for a, b, xs in runs if b - a >= 4]
+    return S._partials
+
+
+def partials_here(S, c):
+    """The harmonic-partials passage the scene lies in (at least half), or None."""
+    for a, b, r0, harms in partials(S):
+        if min(b * 16, c.b16) - max(a * 16, c.a16) >= 0.5 * (c.b16 - c.a16):
+            return a, b, r0, harms
+    return None
+
+
+def sept_here(S, c):
+    """Where a ramping song reaches seven notes to the beat and locks onto the quarter note:
+    returns the non-drum parts running at 7/beat in this scene, or None."""
+    if quickening(S):
+        return None
+    dl = dealing(S, c)
+    if not dl or dl[0] != 7:
+        return None
+    a, b = c.a16 / 4, c.b16 / 4
+    parts = []
+    for t in S.tracks:
+        if t.role == "drum":
+            continue
+        st = sorted(s for s, _, _ in t.notes if a <= s < b)
+        if len(st) < 12:
+            continue
+        # dedup chords within 0.03 beat
+        u = [st[0]]
+        for x in st[1:]:
+            if x - u[-1] > 0.03:
+                u.append(x)
+        gaps = [u[i + 1] - u[i] for i in range(len(u) - 1) if u[i + 1] - u[i] < 0.5]
+        if len(gaps) >= 8:
+            med = sorted(gaps)[len(gaps) // 2]
+            if 0.125 <= med <= 0.165:  # ~1/7 beat
+                parts.append((len(u), t.name))
+    # Keep distinct voices (skip l/r duplicates so 3 rings show gl, dl, wl)
+    out, seen = [], set()
+    for _, nm in sorted(parts, reverse=True):
+        stem = nm[:-1] if nm.endswith(("l", "r")) else nm
+        if stem not in seen:
+            seen.add(stem)
+            out.append(nm)
+    return out[:3] if out else None
+
+
+def recount_here(S, c):
+    """Where a band has switched to recounting on a finer/coarser grid without tempo change
+    (e.g. 16:15 in t14): returns (change_s16, unit, active_parts), or None."""
+    rc = recounting(S)
+    if not rc or c.a16 < rc[0] - 4:
+        return None
+    at16, unit = rc
+    a, b = c.a16 / 4, c.b16 / 4
+    # Find tracks active here whose notes fit the new unit grid better than standard sixteenths.
+    active = []
+    for t in S.tracks:
+        ns = [s * 4 for s, _, _ in t.notes if a <= s < b]
+        if len(ns) < 6:
+            continue
+        err_new = sum(abs(((q - at16) / unit + 0.5) % 1 - 0.5) for q in ns) / len(ns)
+        err_old = sum(abs((q + 0.5) % 1 - 0.5) for q in ns) / len(ns)
+        if err_new < 0.16 and err_new < err_old * 0.85:
+            active.append((t.role == "drum", -len(ns), t.name))
+    if not active:
+        return None
+    out, seen = [], set()
+    for _, _, nm in sorted(active):
+        stem = nm[:-2] if nm.endswith(("-l", "-r")) else (nm[:-4] if nm.endswith(("l-up", "r-up")) else nm)
+        if stem not in seen:
+            seen.add(stem)
+            out.append(nm)
+    return (at16, unit, out[:3]) if out else None
+
+
 def hauling(S):
     """Slack taken up: one part answers another's pull late (or early), by less each time,
     until they fall together. Found from the notes. The pull is a part of few notes that
@@ -2349,8 +2577,12 @@ def summing(S, c):
     return None
 
 
-TOTAL_GUISES = ("plain", "relief", "infra", "papercut", "duotone", "fringe", "solar", "delayed", "echo", "tracking", "blueprint", "onebit", "water")
-DEAL_GUISES = ("plain", "relief", "papercut", "infra", "duotone", "solar", "fringe", "echo", "delayed", "tracking", "water")     # guises that leave the pips to be counted
+TOTAL_GUISES = ("plain", "relief", "infra", "papercut", "duotone", "fringe", "solar", "delayed", "echo", "tracking", "blueprint", "onebit", "water", "reeded")
+DEAL_GUISES = ("plain", "relief", "papercut", "infra", "duotone", "solar", "fringe", "echo", "delayed", "tracking", "water", "reeded")     # guises that leave the pips to be counted
+OVERTONE_GUISES = ("plain", "fringe", "reeded", "relief", "echo", "delayed", "solar", "duotone", "water", "infra")
+SEPT_GUISES = ("plain", "fringe", "echo", "reeded", "relief", "delayed", "solar", "duotone", "tracking")
+RECOUNT_GUISES = ("plain", "fringe", "reeded", "delayed", "echo", "relief", "duotone", "blueprint")
+PALIN_GUISES = ("plain", "fringe", "reeded", "relief", "echo", "delayed", "duotone", "blueprint", "solar")
 
 
 def talkers(S, c):
@@ -2404,15 +2636,15 @@ def talkers(S, c):
 
 def fits(kind, A, B):
     """Whether two pictures can share the frame this way: one picture works on the other in
-    three of them, and that needs something to work on and something to work with."""
+    several of them, and that needs something to work on and something to work with."""
     if A in W.THIN and B in W.THIN:
         return False            # two pictures that are mostly dark make a dark frame
-    if kind == "cutout":        # B's lights are cut out of A
+    if kind in ("cutout", "negmask"):        # B's lights act as mask/invert over A
         return A in W.BROAD and B not in W.FULL
     if kind == "stencil":       # A shows only through B's lights
         return A in W.BROAD and B in W.BROAD
-    if kind == "glass":         # A is seen through B
-        return A in W.BROAD
+    if kind in ("glass", "warpby", "embossed"):         # A is refracted/displaced/shaded by B
+        return A in W.BROAD and (kind != "warpby" or B in W.BROAD)
     if kind in ("lighten", "double"):      # both pictures on the one plate
         return A not in W.WHITE and B not in W.WHITE
     return True
@@ -2535,7 +2767,7 @@ def plan(S, deal):
         scene = {"at": 0 if k == 0 else f"{a16 // 16}bar" if a16 % 16 == 0 else f"{a16 / 4:g}b", "look": look}
         still = any(t in ("roll", "spin", "hole", "sheet", "kaleido", "mirror", "tunnel", "slices", "wall", "planet", "wound") for t in treat.split(",")) or name in W.PLATES or W.REG[name]["fam"] in ("plate", "sheet", "sign")
         # A picture that is there to be read (a sum, a ledger, rows, an oblong cut into squares) is not moved about.
-        still = still or name in ("cobweb", "pinion", "spire", "quicken", "haul", "periods", "sizes", "measure", "ledger", "ringing", "total", "squares", "rolls", "zipper", "dice", "rabbits", "barcode", "braille")
+        still = still or name in ("overtones", "septlock", "recount", "palindrome", "cobweb", "pinion", "spire", "quicken", "haul", "periods", "sizes", "measure", "ledger", "ringing", "total", "squares", "rolls", "zipper", "dice", "rabbits", "barcode", "braille")
         if k and not flash and not still and treat not in ("more", "less", "hinge") and (b16 - a16) * c.six >= 4.5 and rnd(S.n, k, "move?") < 0.5:
             # The camera over the picture does one thing in the scene, each kind in its turn.
             bars_ = S.full[a16 // 16:max(a16 // 16 + 1, b16 // 16)]
@@ -2587,11 +2819,11 @@ def plan(S, deal):
             scene["xfade"], scene["transition"] = "1b", "flip"      # it swings round
         elif k and name in W.PLATES and "+" not in treat:
             scene["lead"] = "2bar" if name == "photofinish" else "1bar"
-        elif k and not kind and not was_flash and treat not in ("more", "less") and rnd(S.n, k, "x") < 0.34:
+        elif k and not kind and not was_flash and treat not in ("more", "less") and rnd(S.n, k, "x") < 0.42:
             # One picture turns into the next: each way in its turn, over a beat or two.
             tr = min(TRANSITIONS, key=lambda t_: deal.trans[t_] + 1.5 * rnd(S.n, k, t_))
             deal.trans[tr] += 1
-            scene["xfade"] = "1b" if tr in ("push", "strips", "blocks", "split", "weave", "checker", "flip", "squeeze", "whip", "fall", "glitch", "pixel", "doors", "scan", "slats", "interlace", "shutter") else "2b"
+            scene["xfade"] = "1b" if tr in ("push", "strips", "blocks", "split", "weave", "checker", "flip", "squeeze", "whip", "fall", "glitch", "pixel", "doors", "scan", "slats", "interlace", "shutter", "pendulum") else "2b"
             scene["transition"] = tr
             if tr in CARRIED or tr in COUNTED:
                 beats = max(2, min(4 if tr in CARRIED else 6, round(COUNTED.get(tr, 1.9) / (c.six * 4))))

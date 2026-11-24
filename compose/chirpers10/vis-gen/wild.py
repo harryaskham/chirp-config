@@ -3265,6 +3265,9 @@ def marbling(c):
     riff and as high as it was sung, and the bath is slowly combed."""
     P = _cast(c, 3)
     layers = []
+    # Seed a few soft ambient base drops so the bath is already swirled from frame 0 even in sparse passages.
+    layers.append({"type": "shape", "repeat": 6, "sides": 1, "radius": "0.14 + 0.05*sin(time.beat*0.4 + inst.i*1.3)", "width": 0, "fill": 1, "blend": "max",
+                   "color": _grey(0.55), "x": "0 - 1.35 + inst.i*0.54 + 0.2*sin(time.beat*0.25 + inst.i)", "y": "0.45*cos(time.beat*0.2 + inst.i*1.7)"})
     for i, p in enumerate(P):
         layers.append({"type": "shape", "notes": {"track": p.name, "past": 1.2}, "sides": 1, "radius": "(0.05 + 0.1*note.vel)*smooth(0 - 0.05, 0.5, note.age)", "width": 0, "fill": 1, "blend": "max",
                        "color": _grey((1.0, 0.72, 0.5)[i]), "x": f"({p.nph} - 0.5)*3.1", "y": p.pitch(-0.78, 0.78)})
@@ -3986,8 +3989,18 @@ def ringing(c):
                 g = f"clamp(({now} - {s1})/{L1}*1.6, 0, 1)"
                 layers.append({"type": "beam", "from": [xs(j), y, 0], "to": [f"{xs(j):g} + {n(xs(j1) - xs(j))}*{g}", f"{y} + ({y1} - {y})*{g}", 0],
                                "width": 0.05 if key == bells[0] else 0.02, "samples": 2, "glow": f"(1.3 if 0 else 1)*step({s1}, {now})*{1.3 if key == bells[0] else 0.75}".replace("(1.3 if 0 else 1)*", ""), "fade": 0, "color": tint(key)})
+        # The line to its place in the next row is drawn as that row is rung.
         if order == bells and k:
-            layers.append(box(0, y, 0.03, xs(N - 1) + 0.45, 0.006, 0.01, **glow("#ffffff", f"0.9*step({s0 + L}, {now})")))
+            layers.append(box(0, y, 0.03, xs(N - 1) + 0.45, 0.008, 0.01, **glow("#ffffff", f"0.95*step({s0 + L}, {now})")))
+    # Extent gauge along the left margin: shows the row length (8 sixteenths in extent 1,
+    # 10 in extent 2) as stacked notches with the live position inside the current row.
+    L0 = rows[0][1]
+    ph_row = f"fract(({now} - {rows[0][0]})/{L0})"
+    here_slot = f"floor({ph_row}*{L0})"
+    for j in range(L0):
+        ym = 2.0 - j * (4.0 / max(L0 - 1, 1))
+        layers.append(box(-4.22, ym, 0, 0.14 if j in (0, L0 - 1) else 0.09, 0.055, 0.01,
+                          **glow(c.a if L0 <= 8 else c.b, f"0.25 + 2.2*(1 - step(0.5, abs({j} - {here_slot})))")))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.014, 0.7)]}
 
 
@@ -4408,6 +4421,221 @@ def periods(c):
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.45, 0.016, 0.7)]}
 
 
+@idiom(needs=0, fam="count")
+def overtones(c):
+    """Harmonic partials beating together: a row of resonant reeds or harmonic bars, one
+    for each overtone partial of the beat (1x, 2x, 3x, 4x, 5x...), plus a live interference
+    locus along the bottom where their waves add up. Each partial's actual notes send bright
+    travelling pulses along its string and ring its resonator; where partials coincide on
+    a beat, the interference trace swells bright."""
+    R = getattr(c, "partials", None)
+    if not R:
+        raise ValueError("no harmonic partials here")
+    r0, harms = R  # r0: fundamental notes/beat; harms: [(mult, track_name, rate), ...]
+    harms = harms[:5]
+    n_ = len(harms)
+    gap = min(0.76, 3.3 / max(n_, 1))
+    top_y = 2.05
+    layers = []
+    # Vertical beat grid lines across the harmonic staff.
+    layers.append(box(f"(inst.i - 4)*1.05", 0.35, 0.06, 0.008, 1.85, 0.01, count=9, **glow(c.dim, "0.28 + 0.35*pow(1 - time.phase, 4)")))
+    sum_terms = []
+    env = {}
+    for i, (mult, nm, rate) in enumerate(harms):
+        y = top_y - (i + 0.5) * gap
+        col = c.col(i)
+        env[f"p{i}"] = {"on": f"track.{nm}", "attack": "4ms", "decay": "180ms"}
+        # Resonant standing-wave string vibrating at `mult` half-waves, driven by its part.
+        layers.append({
+            "type": "beam",
+            "from": [-3.95, y, 0.01],
+            "to": [3.95, y, 0.01],
+            "wave": f"(0.05 + 0.22*env.p{i})",
+            "waves": mult,
+            "speed": f"{rate * 0.5:g}",
+            "width": 0.026,
+            "samples": 72,
+            "color": col,
+            "glow": f"0.55 + 1.8*env.p{i}",
+        })
+        # Actual note attacks gliding across the string from right (now) to left (past 4 beats).
+        tr = {"track": nm, "past": 4.0, "ahead": 0}
+        x_note = "(3.95 - note.age*1.975)"
+        fresh = "exp(0 - 4*max(note.age, 0))"
+        layers.append(ball(x_note, y, -0.02, f"(0.06 + 0.09*{fresh})", 8, notes=tr, count=64,
+                           **glow(col, f"(0.6 + 2.2*{fresh})*(1 - 0.65*clamp(note.age/4, 0, 1))")))
+        # Left resonator bead pulsing on every attack of this partial.
+        layers.append(ball(-4.12, y, -0.03, f"0.08 + 0.09*env.p{i}", 10, **glow(col, f"0.8 + 2.0*env.p{i}")))
+        # Nodes along the harmonic string (mult - 1 interior nodes).
+        if mult >= 2:
+            layers.append(box(f"0 - 3.95 + (inst.i + 1)*{7.9 / mult:g}", y, 0.03, 0.012, 0.09, 0.01, count=mult - 1, **glow(c.ink, 0.75)))
+        sum_terms.append(f"cos((inst.i/95 - 0.5)*{mult * 2:g} - time.beat*{rate:g})")
+    # Combined beating waveform along the foot: constructive interference peaks glow bright.
+    y_bot = -1.78
+    wave_sum = "(" + " + ".join(sum_terms) + f")/{max(n_, 1)}"
+    layers.append(box(0, y_bot, 0.04, 4.0, 0.008, 0.01, **glow(c.dim, 0.65)))
+    layers.append(ball(f"0 - 3.95 + inst.i*{7.9 / 95:g}", f"{n(y_bot)} + 0.48*({wave_sum})", -0.02,
+                       f"0.038 + 0.045*pow(abs({wave_sum}), 2)", 6, count=96,
+                       **glow(c.ink, f"0.55 + 2.4*pow(abs({wave_sum}), 2)")))
+    # Playhead bar on the right edge where new attacks arrive.
+    hit_all = "env.p0"
+    for i in range(1, n_):
+        hit_all = f"max({hit_all}, env.p{i})"
+    layers.append(box(3.95, 0.35, -0.04, 0.014, 1.85, 0.01, **glow("#ffffff", f"0.6 + 1.4*{hit_all}")))
+    return {"background": c.bg, "camera": FLAT, "env": env, "layers": layers, "filters": [bloom(c, 0.45, 0.016, 0.7)]}
+
+
+@idiom(needs=0, fam="count")
+def septlock(c):
+    """Seven notes to the beat locking onto the quarter-note pulse: a seven-toothed wheel
+    turning once a beat, lit by every note of the riff as it strikes each seventh, with a
+    four-beat bar ring outside it and the lock tooth flaring white where the riff closes
+    onto the beat."""
+    R = getattr(c, "sept", None)
+    if not R:
+        raise ValueError("no seven-to-the-beat lock here")
+    parts = R[:3]  # track names playing 7-to-the-beat (e.g. gl, dl, wl)
+    env = {f"s{i}": {"on": f"track.{nm}", "attack": "2ms", "decay": "130ms"} for i, nm in enumerate(parts)}
+    layers = []
+    # Outer 4-beat bar ring: 4 cardinal beat posts and a slow bar hand.
+    bar_r = 2.18
+    layers.append(ball(f"{bar_r:g}*sin(inst.i/120)", f"{bar_r:g}*cos(inst.i/120)", 0.04, 0.015, 4, count=120, **glow(c.dim, 0.9)))
+    layers.append(box(f"{bar_r:g}*sin(inst.i/4)", f"{bar_r:g}*cos(inst.i/4)", 0.02, 0.045, 0.14, 0.01, count=4, rz="0 - inst.i/4",
+                      **glow(c.ink, "0.65 + 1.6*pow(1 - time.phase, 4)")))
+    bar_ph = "fract(time.beat/4)"
+    layers.append({"type": "beam", "from": [0, 0, 0.02], "to": [f"{bar_r:g}*sin({bar_ph})", f"{bar_r:g}*cos({bar_ph})", 0.02],
+                   "width": 0.02, "samples": 12, "color": c.dim, "glow": 0.9})
+    # Concentric 7-toothed rings, one per playing voice, each completing one full turn per beat!
+    radii = (1.62, 1.2, 0.8)
+    for i, nm in enumerate(parts):
+        rr = radii[i]
+        col = c.col(i)
+        # 7 fixed tooth sockets around the beat dial, tooth 0 at 12 o'clock (the beat lock).
+        layers.append(ball(f"{rr:g}*sin(inst.i/7)", f"{rr:g}*cos(inst.i/7)", 0.01, 0.055 if i == 0 else 0.045, 6, count=7,
+                           **glow(c.dim, "0.8 + 0.9*step(inst.i, 0.5)")))
+        # Every actual note sits at its exact fractional position within the beat (fract(note.beat))
+        # and lingers for 2 beats, showing the 7-tooth gear locking onto the 7 sockets!
+        ang = "fract(note.beat + 0.001)"
+        fresh = "exp(0 - 6*max(note.age, 0))"
+        rad_n = f"({rr:g} + 0.18*(note.key - 0.15))"
+        layers.append(ball(f"{rad_n}*sin({ang})", f"{rad_n}*cos({ang})", -0.02 - 0.01 * i,
+                           f"(0.075 + 0.12*{fresh})*(1 - 0.4*clamp(note.age/2, 0, 1))", 8,
+                           notes={"track": nm, "past": 2.0, "ahead": 0}, count=48,
+                           **glow(col, f"(0.65 + 2.4*{fresh})*(1 - 0.7*clamp(note.age/2, 0, 1))")))
+        # Spokes connecting centre to active beat phase.
+        ph = "fract(time.beat)"
+        layers.append({"type": "beam", "from": [0, 0, 0], "to": [f"{rr:g}*sin({ph})", f"{rr:g}*cos({ph})", 0],
+                       "width": 0.028 if i == 0 else 0.018, "samples": 10, "color": col, "glow": f"0.5 + 1.6*env.s{i}"})
+    # The lock anvil at 12 o'clock: flares white each time the 7-note cycle closes on the beat.
+    lock_hit = "exp(0 - 7*time.phase)"
+    layers.append(box(0, 1.92, -0.05, 0.06, 0.24, 0.02, **glow("#ffffff", f"0.5 + 2.8*{lock_hit}")))
+    layers.append(ball(0, 0, -0.05, f"0.14 + 0.12*{lock_hit}", 12, **glow("#ffffff", f"0.7 + 2.2*{lock_hit}")))
+    # Side step strip on left and right edges: 7 vertical notches counting the 7ths of the beat.
+    for side in (-3.65, 3.65):
+        here = "floor(fract(time.beat)*7)"
+        layers.append(box(side, "(3 - inst.i)*0.54", 0, 0.28, 0.18, 0.01, count=7,
+                          **glow(c.a if side < 0 else c.b, f"0.22 + 2.2*(1 - step(0.5, abs(inst.i - {here})))")))
+    return {"background": c.bg, "camera": FLAT, "env": env, "layers": layers, "filters": [bloom(c, 0.45, 0.016, 0.65)]}
+
+
+@idiom(needs=0, fam="count")
+def recount(c):
+    """A band recounting at 16:15 without changing tempo: two concentric dials side by side
+    and a twin-track ruler below. The old sixteen-to-a-bar ruler keeps steady clock time
+    while the band's new sixteen fits into fifteen of the old sixteenths, gaining a whole
+    sixteenth every bar and visibly pulling ahead."""
+    R = getattr(c, "recount", None)
+    if not R:
+        raise ValueError("no grid recount here")
+    at16, unit, parts = R  # at16: sixteenth of change, unit: 0.9375 (15/16), parts: [track names]
+    parts = parts[:3]
+    now = "(time.beat*4)"
+    elapsed = f"max({now} - {at16:g}, 0)"
+    old_ph = f"fract({elapsed}/16)"
+    new_ph = f"fract({elapsed}/{16 * unit:g})"
+    env = {f"r{i}": {"on": f"track.{nm}", "attack": "4ms", "decay": "160ms"} for i, nm in enumerate(parts)}
+    layers = []
+    # Left dial: old 16-count bar; right dial: new 16-in-15 bar (faster hand).
+    for cx, ph, col, label_r in ((-2.15, old_ph, c.ink, 1.35), (2.15, new_ph, c.a, 1.35)):
+        layers.append(ball(f"{n(cx)} + {label_r:g}*sin(inst.i/16)", f"0.45 + {label_r:g}*cos(inst.i/16)", 0,
+                           "0.055 + 0.04*(1 - step(0.5, fract(inst.i/4)*4))", 6, count=16, **glow(col, "0.95 + 0.8*(1 - step(0.5, fract(inst.i/4)*4))")))
+        layers.append(ball(f"{n(cx)} + {label_r:g}*sin(inst.i/96)", f"0.45 + {label_r:g}*cos(inst.i/96)", 0.02, 0.015, 4, count=96, **glow(col, 0.65)))
+        layers.append({"type": "beam", "from": [cx, 0.45, -0.02],
+                       "to": [f"{n(cx)} + {label_r * 0.94:g}*sin({ph})", f"0.45 + {label_r * 0.94:g}*cos({ph})", -0.02],
+                       "width": 0.046, "samples": 12, "color": col, "glow": 1.85})
+        layers.append(ball(cx, 0.45, -0.03, 0.11, 8, **glow(col, 1.6)))
+    # Centre bridge showing the live phase slip between old count and new count.
+    slip = f"fract({elapsed}/{16 * unit:g} - {elapsed}/16)"
+    layers.append({"type": "beam", "from": [-0.65, 0.45, 0], "to": [0.65, 0.45, 0],
+                   "wave": f"0.12 + 0.45*sin({slip})", "waves": 2, "speed": 2, "width": 0.03, "samples": 36, "color": c.b, "glow": 1.4})
+    layers.append(ball(0, f"0.45 + 1.15*({slip} - 0.5)", -0.04, 0.11, 10, **glow("#ffffff", 1.8)))
+    # Twin vernier ruler along the bottom: 16 old sixteenths vs 16 new (15/16) sixteenths,
+    # with live note attacks plotted straight onto the moving new ruler!
+    w = 7.8
+    for idx in range(16):
+        xo = -w / 2 + idx * (w / 16)
+        xn = -w / 2 + idx * (w / 16) * unit
+        layers.append(box(xo, -1.35, 0.01, 0.022, 0.2 if idx % 4 == 0 else 0.11, 0.01, **glow(c.ink, 1.15)))
+        layers.append(box(xn, -1.85, 0.01, 0.024, 0.2 if idx % 4 == 0 else 0.11, 0.01, **glow(c.a, 1.35)))
+    # Travelling needles along both rulers + actual note markers from the recounting parts.
+    layers.append(box(f"0 - {w / 2:g} + {w:g}*{old_ph}", -1.35, -0.02, 0.028, 0.28, 0.01, **glow(c.ink, 1.7)))
+    layers.append(box(f"0 - {w / 2:g} + {w * unit:g}*{new_ph}", -1.85, -0.02, 0.032, 0.28, 0.01, **glow("#ffffff", 2.0)))
+    for i, nm in enumerate(parts):
+        col = c.col(i)
+        nph = f"fract((note.beat*4 - {at16:g})/{16 * unit:g})"
+        fresh = "exp(0 - 4*max(note.age, 0))"
+        layers.append(ball(f"0 - {w / 2:g} + {w * unit:g}*{nph}", -1.85 - 0.22 * i, -0.04,
+                           f"0.065 + 0.08*{fresh}", 8, notes={"track": nm, "past": 3.75, "ahead": 0}, count=48,
+                           **glow(col, f"0.75 + 2.4*{fresh}")))
+    return {"background": c.bg, "camera": FLAT, "env": env, "layers": layers, "filters": [bloom(c, 0.45, 0.016, 0.7)]}
+
+
+@idiom(needs=0, fam="count")
+def palindrome(c):
+    """One strip of attacks read forwards and back simultaneously: two parallel tape tracks
+    sliding opposite ways across a central reading head, one carrying the left hand forward
+    and the other carrying the right hand reversed, with glowing bridge arcs snapping
+    between them whenever mirrored strokes cross the head together."""
+    R = getattr(c, "palin", None)
+    if not R:
+        raise ValueError("no forward/reverse pair here")
+    pl, pr = R
+    cell = pl.cell or 19
+    u = 8.4 / cell
+    env = {"pl": {"on": f"track.{pl.name}", "attack": "3ms", "decay": "180ms"},
+           "pr": {"on": f"track.{pr.name}", "attack": "3ms", "decay": "180ms"}}
+    layers = [
+        # Central mirror axis / reading head.
+        box(0, 0, -0.05, 0.018, 2.35, 0.01, **glow("#ffffff", "0.55 + 1.5*max(env.pl, env.pr)")),
+        # Upper and lower tape rails, notched in sixteenths of the cell.
+        box(0, 0.82, 0.05, 4.3, 0.012, 0.01, **glow(c.dim, 0.7)),
+        box(0, -0.82, 0.05, 4.3, 0.012, 0.01, **glow(c.dim, 0.7)),
+        box(f"(inst.i - {(cell - 1) / 2:g})*{u:g}", 0.82, 0.04, 0.01, 0.08, 0.01, count=cell, **glow(c.dim, 0.75)),
+        box(f"(inst.i - {(cell - 1) / 2:g})*{u:g}", -0.82, 0.04, 0.01, 0.08, 0.01, count=cell, **glow(c.dim, 0.75)),
+    ]
+    # Top tape (left hand): flows right-to-left (past on left, upcoming on right).
+    xl = f"(0 - note.age*4*{u:g})"
+    fl = "exp(0 - 4*abs(note.age))"
+    layers.append(box(xl, "0.82 + 0.55*(note.key - 0.15)", -0.01, max(u * 0.36, 0.05), f"0.16 + 0.35*{fl}", 0.01,
+                      notes={"track": pl.name, "past": cell / 8, "ahead": cell / 8}, count=64,
+                      **glow(c.a, f"(0.5 + 2.2*{fl})*step(abs(note.age), {cell / 8:g})")))
+    # Bottom tape (right hand): flows left-to-right (mirror of time: past on right, upcoming on left).
+    xr = f"(note.age*4*{u:g})"
+    fr = "exp(0 - 4*abs(note.age))"
+    layers.append(box(xr, "-0.82 - 0.55*(note.key - 0.15)", -0.01, max(u * 0.36, 0.05), f"0.16 + 0.35*{fr}", 0.01,
+                      notes={"track": pr.name, "past": cell / 8, "ahead": cell / 8}, count=64,
+                      **glow(c.b, f"(0.5 + 2.2*{fr})*step(abs(note.age), {cell / 8:g})")))
+    # Live bridge beam connecting the two reading heads; glows brightest when both hands strike together.
+    both = "min(env.pl, env.pr)"
+    layers.append({"type": "beam", "from": [0, 0.82, -0.03], "to": [0, -0.82, -0.03],
+                   "wave": f"0.08 + 0.35*{both}", "waves": 3, "speed": 4, "width": f"0.025 + 0.05*{both}",
+                   "samples": 36, "color": c.ink, "glow": f"0.4 + 2.6*{both}"})
+    # Orbiting counter-turning indicator rings showing left's forward turn and right's backward turn.
+    layers.append(ball(f"0 - 3.55 + 0.52*cos({pl.turn})", f"1.75 + 0.52*sin({pl.turn})", 0, 0.08, 8, **glow(c.a, f"0.9 + 1.4*env.pl")))
+    layers.append(ball(f"3.55 + 0.52*cos(0 - {pr.turn})", f"-1.75 + 0.52*sin(0 - {pr.turn})", 0, 0.08, 8, **glow(c.b, f"0.9 + 1.4*env.pr")))
+    return {"background": c.bg, "camera": FLAT, "env": env, "layers": layers, "filters": [bloom(c, 0.45, 0.016, 0.7)]}
+
+
 # ───────────────────────── grounds: the rest of the band, dimly ─────────────────────────
 
 GROUNDS = ("halo", "footlights", "stars", "floor", "plasma", "smoke", "scope", "skyline", "ripples", "horizon")
@@ -4418,7 +4646,7 @@ GROUNDED = set("searchlights solkattu numerals hailstone membrane mobile pong co
                "orrery pendwave sunflower juggle radial clockshop venn switchboard star rain fountain echoes skein coins fan invaders golden fireflies candles".split())
 # Guises a grounded picture may wear (they leave a dim ground a dim ground).
 GROUND_OK = set("solar stop combed blown plain kaleido mirror wall planet tunnel echo slices fringe spin roll wound water torn hole lines warp falling ball tracking screen delayed puzzle smoked dripping "
-                "coiled halves".split())
+                "coiled halves reeded louvers".split())
 
 
 def ground(c, look, kind):
@@ -4597,7 +4825,7 @@ def _two(c, A, B, **cut):
 
 # Ways two readings of one riff are joined (a canon): in step every one of them is one whole
 # picture; out of step the picture breaks along the joins, by as much as the parts are apart.
-JOINS = ("half", "strips", "rings", "bands", "wedges", "board", "blocks", "ribs")
+JOINS = ("half", "strips", "rings", "bands", "wedges", "board", "blocks", "ribs", "diagonal", "diamond")
 
 
 def canon(c, A, B, how):
@@ -4610,7 +4838,9 @@ def canon(c, A, B, how):
            "rings": dict(cut="rings", cut_n=6),
            "wedges": dict(cut="wedges", cut_n=8, cut_at=0.0625),
            "board": dict(cut="checker", cut_n=6),
-           "blocks": dict(cut="checker", cut_n=3)}[how]
+           "blocks": dict(cut="checker", cut_n=3),
+           "diagonal": dict(cut="diagonal", cut_n=8),
+           "diamond": dict(cut="diamond", cut_n=6)}[how]
     return _two(c, A, B, **cut)
 
 
@@ -4771,6 +5001,44 @@ def c_stencil(c, A, B):
 def c_cutout(c, A, B):
     """Whatever is lit in one picture is cut out of the other in black."""
     return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "shadow", "gain": 5}), _act(B, blend="add", fade=0.12)], "filters": []}
+
+
+@combo("negmask")
+def c_negmask(c, A, B):
+    """Where the second picture is lit, the first turns to its negative: two worlds that
+    invert one another on the beat."""
+    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "negative", "gain": 4.5}), _act(B, blend="add", fade=0.14)], "filters": []}
+
+
+@combo("warpby")
+def c_warpby(c, A, B):
+    """The second picture's motion and colour physically displace the first picture beneath it,
+    with a faint ghost of the driver laid over."""
+    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "displace", "bend": 0.16}), _act(B, blend="screen", fade=0.32)], "filters": []}
+
+
+@combo("embossed")
+def c_embossed(c, A, B):
+    """The second picture is pressed into the first as a bas-relief, catching light on its
+    slopes."""
+    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "shade", "gain": 3.5}), _act(B, blend="add", fade=0.15)], "filters": []}
+
+
+@combo("diagonal")
+def c_diagonal(c, A, B):
+    """Slanted stripes across the frame, alternating between the two pictures and sliding a
+    stripe each time the riff comes round."""
+    p = _lead(c)
+    nn = p.cell if p.cell and 4 <= p.cell <= 12 else 7
+    return _two(c, A, B, cut="diagonal", cut_n=nn, cut_at=_step(p))
+
+
+@combo("diamond")
+def c_diamond(c, A, B):
+    """Concentric diamond rings from the centre, alternating between the two pictures and
+    stepping outward with each turn of the riff."""
+    p = _lead(c)
+    return _two(c, A, B, cut="diamond", cut_n=(5, 7, 6, 8)[c.seed % 4], cut_at=_step(p))
 
 
 TRIOS = {}
@@ -4974,7 +5242,7 @@ def flight(c):
     return S.flight(use, c.a, use[0], ranges=rng)
 
 
-PLATES = ("wheels", "photofinish", "picket", "discs", "bounce", "pendulums", "marey", "muybridge", "flight", "ridges", "turtle", "sonar", "harmonograph")       # these hold a plate (or build one up): they are started before they are seen: started a bar early
+PLATES = ("wheels", "photofinish", "picket", "discs", "bounce", "pendulums", "marey", "muybridge", "flight", "ridges", "sonar", "harmonograph")       # these hold a plate (or build one up): they are started before they are seen: started a bar early
 
 
 # ───────────────────────── treatments: what the picture is seen through ─────────────────────────
@@ -5038,10 +5306,12 @@ def t_kaleido(c, look):
 # that changes what it is made of, then one that works on it in time.
 STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0,
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
-         "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2}
+         "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0,
+         "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2}
 
-# Pairs of guises that leave only texture: a picture already made many, then drawn in line or set in type.
-STACK_BAD = {(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself")}
+# Pairs of guises that leave only texture, or flood white (feedback+grow saturates to pale wash).
+STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself")}
+             | {("tunnel", "overgrown"), ("overgrown", "tunnel"), ("itself", "carried"), ("carried", "itself")})
 
 # Pictures that stand to one side, or are a line of things: half of one is not a picture.
 # Pictures that can be drawn twice and joined (flat, and filling the frame or centred, so that
@@ -5056,12 +5326,12 @@ HANDS = ("riley", "blinds", "dominoes", "breakout", "kandinsky", "vortex", "moon
 # and pictures with broad lights (another picture shown only through thin lines would be nearly dark).
 FULL = set("barcode braille courses riley vasarely kandinsky suprematist rothko albers mondrian vortex moire tartan hive tiles testcard thermal aurora marbling ink blots score zen sundial shadowplay "
            "interference maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat seesaw rink lava".split())
-BROAD = FULL | set("cobweb pinion spire quicken haul periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
+BROAD = FULL | set("overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger squares zipper total rabbits beats reels dice chladni specimen numerals eclipse moons eye globe cube crystal blinds doors golden venn colony mandala fruit splitflap leader kit keys musicbox abacus billiard fan cinema gallery".split())
 # Thin pictures (a twentieth of the frame lit, or less, as measured on a proof), and the guises
 # that leave less of a picture than there was: a thin picture does not take those.
 THIN = set("breakout searchlights solkattu remainder rain seismo metro epicycle pond tally crystal candles strange teletype odometer loom inset slack discs hourglass metro flight photofinish bounce strobe picket bifurcate turtle armillary star combs fractal fireworks tetris tesla moons lighthouse lanterns kelvin "
            "searchlights pong constellation sonar treerings strings harmonograph contour letters mobile keys trampoline".split())
-SHRINKS = set("ball woven tracking roll wound screen planet hole mirror water flood poster knitted sampler".split())
+SHRINKS = set("ball woven tracking roll wound screen planet hole mirror water flood poster knitted sampler spin combed ridged".split())
 # Pictures on a white ground: laid over another by its lights, the white would be all there is.
 WHITE = set("braille barcode kandinsky suprematist mondrian score blots marbling ink sundial zen tape riley vasarely testcard thermal courses".split())
 # Where an idiom is at its best: the dealer leans to it there.
@@ -5071,14 +5341,14 @@ WANTS = {"rabbits": lambda c: any(p.cell in (34, 55) for p in c.riffs),
 LONG = set("turtle strange harmonograph tetris hanoi marbling ink rink galton".split())
 # Idioms whose colours are their own (a flame is not magenta): no cast of colour for the riff's length.
 TRUE = set("barcode braille dice candles courses shadowplay zen sundial kandinsky suprematist mondrian testcard thermal hanoi barber".split())
-MIRROR_BAD = set("cobweb pinion spire quicken haul periods sizes ledger ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
+MIRROR_BAD = set("overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger ringing squares zipper total rabbits dice barcode braille trampoline hailstone hanoi breakout duel seesaw rink lifts kit teletype constellation stairs letters turtle escalator crossing press dominoes hammers keys galley musicbox seismo contour splitflap solkattu lanterns rain mobile wires skein flight "
                  "marquee odometer numerals tape score".split())
 # Pictures that are mostly light: a print of their lights is a blank sheet.
 BRIGHT = set("barcode braille marbling ink shadowplay sundial zen kandinsky suprematist rothko riley maypole railway stairs henge turbines tide escalator grove skein swings skyline murmur wheat wires semaphore blots score tape mondrian thermal testcard aurora eclipse storm seesaw lava".split())
 # Pictures that are nothing until notes come: not for a passage where few do.
 FED = set("rolls zipper loom barcode braille marbling ink letters pond lanterns fountain fireworks blots constellation seismo contour teletype rain score storm galton coins snow lava tesla switchboard".split())
 # Pictures that take time to become anything: not for a flash.
-SLOW = set("cobweb pinion spire quicken haul periods sizes ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
+SLOW = set("overtones septlock recount palindrome cobweb pinion spire quicken haul periods sizes ledger ringing squares total rabbits beats dice barcode braille strobe crystal hourglass measure marbling ink hanoi zen sundial drill bifurcate teletype tetris remainder loom combs colony tally automaton galton strange letters fruit turtle harmonograph billiard rink snow lava switchboard star".split())
 
 
 @treat("mirror", ok=lambda c, info: info["fam"] not in ("sign", "mirror") and info["f"].__name__ not in MIRROR_BAD)
@@ -5089,12 +5359,13 @@ def t_mirror(c, look):
 @treat("slices", ok=lambda c, info: info["fam"] not in ("sign", "plate", "lattice"))
 def t_slices(c, look):
     """The frame in strips, each a sixteenth older than the last: a bar across the frame (or
-    a riff, or rings out from the middle)."""
+    a riff, rings, spiral, wave or checker of time)."""
     p = _lead(c)
     nn = (p.cell or 16) if c.seed % 2 else 16
     nn = nn * (2 if nn < 9 else 1)
-    kind = ("across", "round", "across", "clock")[c.seed % 4]
-    return _pre(look, {"type": "timeslice", "depth": f"{nn * c.six:g}", "bands": nn, "turn": (0, 0.5, 0.25, 0)[c.seed % 4], "shape": kind, "amount": c.arr})
+    kind = ("across", "round", "spiral", "clock", "wave", "checker")[c.seed % 6]
+    turn = (0, 0.5, 0.25, 0, 0.125, 0.0)[c.seed % 6]
+    return _pre(look, {"type": "timeslice", "depth": f"{nn * c.six:g}", "bands": nn, "turn": turn, "shape": kind, "amount": c.arr})
 
 
 @treat("stop", ok=lambda c, info: info["fam"] not in ("plate", "trace"))
@@ -5395,7 +5666,7 @@ def t_papercut(c, look):
     return look
 
 
-@treat("ridged", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ not in THIN)
+@treat("ridged", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type", "trace") and info["f"].__name__ not in THIN)
 def t_ridged(c, look):
     """Drawn as a range of ridges, one line for each sixteenth of the riff (several times
     over), each standing as high as the picture is light and hiding the ones behind; the
@@ -5408,6 +5679,34 @@ def t_ridged(c, look):
     look = _unbloomed(look)
     look["filters"] += [{"type": "blur", "radius": 0.006}, {"type": "terrain", "count": min(count, 88), "height": "0.11 + 0.07*env.heave", "width": 0.0028, "gain": 1.6, "amount": c.arr}]
     return look
+
+
+@treat("reeded", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+def t_reeded(c, look):
+    """Seen through fluted/reeded prism glass: parallel cylindrical lenses that refract and
+    disperse the picture into chromatic ribs, gliding with the riff."""
+    p = _lead(c)
+    count = p.cell or 16
+    while count < 10:
+        count *= 2
+    while count > 28:
+        count = math.ceil(count / 2)
+    angle = (0.0, 0.06, -0.06, 0.25)[c.seed % 4]
+    return _pre(look, {"type": "prism", "count": count, "bend": f"(0.045 + 0.045*{p.hit})", "split": 0.45, "angle": angle, "phase": f"{p.turn}", "gloss": 0.24, "amount": c.arr})
+
+
+@treat("louvers", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type") and info["f"].__name__ in BROAD)
+def t_louvers(c, look):
+    """Rotating Venetian slats across the frame: a wave of slats tilts and opens wide
+    again once for every two turns of the riff (staying open enough to read)."""
+    p = _lead(c)
+    count = p.cell or 12
+    while count < 7:
+        count *= 2
+    while count > 18:
+        count = math.ceil(count / 2)
+    per = max(1, math.ceil(3.0 / ((p.cell or 16) * c.six)))
+    return _pre(look, {"type": "louver", "count": count, "turn": f"0.11*sin({p.turn}/{per})", "twist": 0.07, "shade": 0.35, "angle": (0.0, 0.04, -0.04, 0.25)[c.seed % 4], "amount": c.arr})
 
 
 def _stitch(c, look, mode, count, **kw):
@@ -5575,7 +5874,7 @@ def t_negative(c, look):
 
 
 ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief", "poster", "flood", "combed", "blown", "leaded",
-           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried")
+           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried", "reeded", "louvers")
 
 # Idioms drawn in hair lines and points, made bolder so that they read at any size: how far
 # each thing in them is spread (a fraction of the frame's height).
@@ -5586,7 +5885,7 @@ BOLD = {"numerals": 0.004, "orrery": 0.004, "kelvin": 0.004, "galton": 0.004, "s
 
 
 # Guises that add to a picture (copies, echoes, mirrors) rather than print it.
-FILLS = ("kaleido", "mirror", "wall", "planet", "tunnel", "echo", "slices", "fringe", "spin", "roll", "wound", "water", "torn", "hole", "lines", "warp", "solar", "blown", "overgrown", "combed", "falling", "ball", "smoked", "dripping", "tracking", "screen", "delayed", "puzzle")
+FILLS = ("kaleido", "mirror", "wall", "planet", "tunnel", "echo", "slices", "fringe", "spin", "roll", "wound", "water", "torn", "hole", "lines", "warp", "solar", "blown", "overgrown", "combed", "falling", "ball", "smoked", "dripping", "tracking", "screen", "delayed", "puzzle", "reeded")
 
 
 def bolder(name, look):
@@ -5741,8 +6040,11 @@ def master(title, style=0):
                   "blend": "normal", "opacity": f"{gone}*smooth(0.2, 0.9, {bar})"}]
     elif kind == 6:
         # Written and then struck out, letter by letter.
+        w_line = min(2.4, n_ * 0.115)
         label = [veil, {"type": "text", "text": name, "size": 0.15, "x": 0, "y": -0.07, "align": "center", "color": cream, "width": 0.12, "skew": 0.12, "blend": "normal", "opacity": gone, "reveal": f"smooth(0.3, 1.4, {bar})"},
-                 {"type": "shape", "sides": 4, "rotate": 0.125, "radius": 1.0, "width": 0, "fill": 1, "color": cream, "blend": "normal", "x": f"0 - 2.9 + 1.5*smooth(2.0, 2.7, {bar})", "y": -1.41 + 0.005, "opacity": 0}]
+                 {"type": "shape", "repeat": 72, "sides": 4, "rotate": 0.125, "radius": 0.017, "width": 0, "fill": 1, "color": cream, "blend": "normal",
+                  "x": f"0 - {w_line / 2:g} + (inst.i + 0.5)*{w_line / 72:g}", "y": 0.005,
+                  "opacity": f"{gone}*step(inst.i + 1, clamp(({bar} - 1.75)/0.85, 0, 1)*72)"}]
     else:
         # In the corner, small, with a rule that grows a sixteenth at a time across the frame.
         label = [{"type": "text", "text": name, "size": 0.12, "x": -1.62, "y": -0.83, "align": "left", "color": cream, "width": 0.15, "skew": 0, "blend": "normal", "opacity": gone, "reveal": f"smooth(0.2, 1.0, {bar})"},
