@@ -2093,6 +2093,68 @@ def the_valley_breathes_around_the_count(doc):
         doc["loudness"] = float(target)
 
 
+# v31 (chirper-zero, 24 Nov; instrument round on Harry's 24 Nov steer: instrument design, the guitar sound. The lead
+# guitar, `tune` and `tune-up`, all 139 notes of the tune; no note moves, no track added, no fader touched.)
+# THE TUNE SHAKES AT ITS OWN NOTE. The rule already gives each note of the tune its length: it lasts four of its own
+# periods, six octaves down (F3, a pulse every three sixteenths, lasts twelve; C5, every sixteenth, lasts four). Its
+# vibrato was the one thing in it the rule did not choose: the patch's own, 6 Hz on every note, in after 200 ms, so
+# the long low notes shook up to ten times, the F5s (12 notes) less than once and the C6s (16 notes, 186 ms long) not
+# at all. A vibrato is a rate, so by the rule it is a note: now each note shakes at ITS OWN frequency six octaves
+# down, D flat 3 at 2.2 Hz,
+# F4 at 5.5, C6 at 17.5. So every note shakes four times in its length, whatever its length: slow enough to count on
+# the long notes, a flutter on the short ones; an F3 shakes once in three sixteenths, as fast as the guitars chug, a
+# C5 once a sixteenth. The depth is the patch's own, 0.3 semitones each way, on every note (the
+# shake is as wide against its rate at every pitch: the same note at ten speeds, as twice as fast is the octave
+# above); the first of the four grows from nothing, as a hand's does, and the fourth ends as the next note begins
+# (through the note's gap, on the ringing string). Drawn as a lane `shake` on each track, in
+# semitones, put where the patch's vibrato was (the pitch's third modulation): the patch's 6 Hz is no longer heard
+# on these two tracks. The last still note (`tune-still`) is as it was: still.
+# C10T14_SHAKE = the tracks ; semitones each way (at F4's rate) ; cycles over which the shake grows ; points drawn a
+# cycle ; the law (0 = one depth for every note ; 0.5 = wider where slower, by the root of the period). '' = v30 byte
+# for byte. On only while HALO is.
+SHAKE = os.environ.get("C10T14_SHAKE", "tune,tune-up;0.3;1;12;0" if HALO else "")
+# a note's own period six octaves down, in sixteenths, at one octave (the rule: three is F, four C, five A flat, nine
+# B flat, fifteen D flat, seven D and eleven G flat; an octave up is half as long)
+SHAKE_PERIOD = {"F": (3, 3), "C": (2, 4), "Ab": (2.5, 3), "Bb": (2.25, 3), "Db": (3.75, 3), "D": (1.75, 4), "Gb": (2.75, 3)}
+
+
+def the_tune_shakes_at_its_own_note(doc):
+    """v31: each note of the tune shakes at its own frequency six octaves down, four times in its length (see SHAKE)."""
+    names, depth, fade, pts, law = SHAKE.split(";")
+    depth, fade, pts, law = float(depth), float(fade), int(pts), float(law)
+    num, den = (int(x) for x in GEAR.split(";")[1].split("/")) if GEAR else (1, 1)
+    at = lambda b: f"{round(b, 4):.4f}".rstrip("0").rstrip(".") + "b"
+    tracks = []
+    for t in doc["tracks"]:
+        if t["name"] in names.split(","):
+            assert t["patch"].startswith("m8-lead-guitar") and "synth.pitch.mod.2" not in t["patch"] and "shake" not in t["auto"], t["patch"]
+            scale = den / num if t["name"].endswith("-up") else 1.0      # from the change on a sixteenth is 15/16 as long
+            points, last, notes = [["0b", 0]], 0.0, t["notes"]
+            for i, n in enumerate(notes):
+                cls, octave = n["pitch"][:-1], int(n["pitch"][-1])
+                s16, o = SHAKE_PERIOD[cls]
+                per = s16 * 2.0 ** (o - octave) * scale / 4              # beats
+                assert 0.05 < 4 * per - n["len"] < 0.3, (t["name"], n)    # the note lasts four of its periods, less its gap
+                assert n["at"] >= last - 1e-6, (t["name"], n)
+                # the fourth shake ends as the next note begins (through the gap, on the ringing string); a note that
+                # is cut short by the next one stops shaking there
+                end = min(4 * per, notes[i + 1]["at"] - n["at"]) if i + 1 < len(notes) else 4 * per
+                d = depth * (per / 0.375) ** law
+                if n["at"] > last + 1e-6:
+                    points.append([at(n["at"]), 0])
+                k = 1
+                while k * per / pts < end - 1e-6:
+                    x = k * per / pts
+                    points.append([at(n["at"] + x), round(d * min(1.0, x / (fade * per) if fade > 0 else 1.0) * math.sin(2 * math.pi * x / per), 4)])
+                    k += 1
+                last = n["at"] + end
+                points.append([at(last), 0])
+            t = {k: v for k, v in t.items()} | {"patch": t["patch"] + " synth.pitch.mod.2.src=auto.shake synth.pitch.mod.2.amount=1",
+                                                "auto": {**t["auto"], "shake": {"curve": 0, "points": points}}}
+        tracks.append(t)
+    doc["tracks"] = tracks
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T14_SHOW"):
         beat = 60 / BPM
@@ -2140,4 +2202,6 @@ if __name__ == "__main__":
             the_valley_keeps_time_on_three_woods(doc)
         if HALO:
             the_valley_breathes_around_the_count(doc)
+        if SHAKE:
+            the_tune_shakes_at_its_own_note(doc)
         open(OUT, "w").write(dump(doc))
