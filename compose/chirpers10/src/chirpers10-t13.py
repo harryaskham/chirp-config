@@ -1321,6 +1321,69 @@ def the_glasshouse_opens(doc):
         doc['loudness'] = g['loudness']
 
 
+# v35 (chirper-zero, 24 Nov; instrument round on Harry's 24 Nov steer for instrument design and environment sound: the
+# three struck instruments that play the tune, `ring` (the scanned mallet), `held` (the ring with a hand on it) and
+# `bars` (the wooden bars of 'turn the sheet'); no note moves, no track is added): THE FOUR NOTES HAVE PLACES.
+# The song is a tune of four notes that is taken away a note at a time until it is four rests, and its name is where
+# the notes were. Until now every note of it came from one point, a hair right of centre. A row of bars is laid out
+# from left to right and is heard that way, so each note of the tune now has its own place: F on the left (-0.5),
+# A flat (-0.2), C (+0.2), E flat on the right (+0.5), on all three instruments (the engine's layer `pan`, moved by
+# the note itself, `key`: 1.2 of pan an octave). Nothing is chosen after that; the song does the rest:
+#   'chalk' (0:00)           the mallet draws the tune four times, right to left ;
+#   'the handover' (0:37.5)  the guitars give it up a note at a time, E flat first: it fills in from the right ;
+#   'where it was' (1:05)    four empty places (nothing plays them, as before) ;
+#   'under glass' (1:32.5)   it is found again from its last note, an octave down, on the same places (lane `low`):
+#                            F on the left, then A flat, C, E flat: it fills in from the left, the other way ;
+#   'turn the sheet' (2:27.5) the ring falls right to left and the wooden bars answer rising, left to right, through
+#                            the same four places: the sheet turned over (Harry: "Keep it at 2:30") ;
+#   'both sides' (2:55)      the ring refills from F, from the left.
+# A layer with a pan of its own comes out of the track 3.2 dB louder (3.8 on the bars, which stood at 0.2), so each
+# fader is trimmed by that and the three play at v34's level (alone, stretch by stretch, within 0.13 dB).
+# --v34 restores v34 byte for byte; --places JSON overrides fields for benching.
+PLACES = {
+    'tracks': {'ring': 1, 'held': 1, 'bars': 5},   # the track : how many layers its patch sounds with
+    'low': 'F4', 'high': 'Eb5',                    # the tune's lowest and highest note on the mallet
+    'width': 0.5,                                  # the lowest note sits at -width, the highest at +width
+    'pan': 0,                                      # the tracks' own pan (the ring and the held ring were at 0.06, the bars at 0.2)
+    'trim': {'ring': -3.2, 'held': -3.2, 'bars': -3.8},   # dB on each fader: what a panned layer comes out louder by (measured)
+}
+
+
+def the_four_notes_have_places(doc):
+    """v35: each layer of the three mallets is panned by its note (`key`); an octave down, the places hold (lane `low`)."""
+    semis = {'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11}
+    midi = lambda p: 12 * (int(p[-1]) + 1) + semis[p[0]] - (len(p) == 3 and p[1] == 'b') + (len(p) == 3 and p[1] == '#')
+    key = lambda m: (m - 60) / 12                  # the engine's `key`: octaves from C4
+    lo, hi = midi(PLACES['low']), midi(PLACES['high'])
+    amount = 2 * PLACES['width'] / (key(hi) - key(lo))
+    value = -PLACES['width'] - amount * key(lo)
+    seen = set()
+    for i, t in enumerate(doc['tracks']):
+        if t['name'] not in PLACES['tracks']:
+            continue
+        seen.add(t['name'])
+        assert '.pan=' not in t['patch'] and 'low' not in (t.get('auto') or {}), t['name']
+        mods = [{'src': 'key', 'amount': round(amount, 4)}]
+        auto = dict(t.get('auto') or {})
+        low = [n for n in t['notes'] if midi(n['pitch']) < lo]
+        if low:
+            # the tune an octave down ('under glass', where it is found again from its last note): the same places
+            assert all(lo - 12 <= midi(n['pitch']) <= hi - 12 for n in low), t['name']
+            a = round(min(n['at'] for n in low) - 1.0, 4)
+            z = round(max(n['at'] + n['len'] for n in low) + 0.01, 4)
+            assert not any(a - 2 <= n['at'] <= z + 0.04 for n in t['notes'] if midi(n['pitch']) >= lo), t['name']
+            mods.append({'src': 'auto.low', 'amount': round(amount, 4)})
+            auto['low'] = {'points': [['0b', 0], [f'{round(a - 0.05, 4):g}b', 0], [f'{a:g}b', 1], [f'{z:g}b', 1],
+                                      [f'{round(z + 0.04, 4):g}b', 0]], 'curve': 0}
+        assert all(lo <= midi(n['pitch']) <= hi for n in t['notes'] if n not in low), t['name']
+        pan = json.dumps({'value': round(value, 4), 'mod': mods}, separators=(',', ':'))
+        patch = t['patch'] + ''.join(f' synth.layers.{k}.pan={pan}' for k in range(PLACES['tracks'][t['name']]))
+        assert isinstance(t['gain'], str) and t['gain'].endswith('dB'), t['name']
+        gain = f"{round(float(t['gain'][:-2]) + PLACES['trim'][t['name']], 2):g}dB"
+        doc['tracks'][i] = {**t, 'patch': patch, 'gain': gain, 'pan': PLACES['pan'], **({'auto': auto} if auto else {})}
+    assert seen == set(PLACES['tracks']), set(PLACES['tracks']) - seen
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, default=OUT)
@@ -1358,11 +1421,13 @@ if __name__ == '__main__':
     previous.add_argument('--v31', action='store_true', help="restore the library's cajon in 'turn the sheet': one sine for its centre stroke, a sine under its slap")
     previous.add_argument('--v32', action='store_true', help="restore the two guitars' eq as one setting for the whole song (v30's): no lane on its 3 kHz band")
     previous.add_argument('--v33', action='store_true', help="restore 'under glass' without the rim phaser or the glasshouse ambient bus (v33)")
+    previous.add_argument('--v34', action='store_true', help="restore the three mallets each in one place: the ring and the held ring at 0.06, the wooden bars at 0.2 (v34)")
     parser.add_argument('--guitars', help='a bench: EDGE fields to change, as a JSON object')
     parser.add_argument('--snare', help='a bench: KEYED fields to change, as a JSON object')
     parser.add_argument('--box', help='a bench: BOX fields to change, as a JSON object ({"centre": {...}, "slap": {...}})')
     parser.add_argument('--edges', help='a bench: BITE fields to change, as a JSON object')
     parser.add_argument('--glasshouse', help='a bench: GLASSHOUSE fields to change, as a JSON object')
+    parser.add_argument('--places', help='a bench: PLACES fields to change, as a JSON object')
     parser.add_argument('--bass', help='a bench: GRIND fields to change, as a JSON object')
     parser.add_argument('--hat', help='a bench: HATBODY fields to change, as a JSON object')
     parser.add_argument('--verso', help='a bench: VERSO fields to change, as a JSON object')
@@ -1389,7 +1454,7 @@ if __name__ == '__main__':
             doc['loudness'] = VERSO['loudness']
     if args.kick:
         KICK.update(json.loads(args.kick))
-    older = any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit() and k not in ('v27', 'v28', 'v29', 'v30', 'v31', 'v32', 'v33'))
+    older = any(v for k, v in vars(args).items() if k[0] == 'v' and k[1:].isdigit() and k not in ('v27', 'v28', 'v29', 'v30', 'v31', 'v32', 'v33', 'v34'))
     if not older and any(t['name'] == 'bars' for t in doc['tracks']):   # only on the whole song as v26 has it
         the_kick_gets_a_chest(doc)
         if not args.v27:
@@ -1421,6 +1486,10 @@ if __name__ == '__main__':
                                     if args.glasshouse:
                                         GLASSHOUSE.update(json.loads(args.glasshouse))
                                     the_glasshouse_opens(doc)
+                                    if not args.v34:
+                                        if args.places:
+                                            PLACES.update(json.loads(args.places))
+                                        the_four_notes_have_places(doc)
     # Same line-oriented YAML as the other generators: JSON flow values, one track per line.
     args.out.write_text('\n'.join(k+': '+json.dumps(v) if k!='tracks' else
                         'tracks:\n'+'\n'.join('  - '+json.dumps(t) for t in v) for k,v in doc.items())+'\n')
