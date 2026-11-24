@@ -1519,6 +1519,110 @@ def the_pair_shows_its_teeth(doc):
         doc['loudness'] = float(target)
 
 
+# v37 (chirper-zero, 24 Nov; instrument round, on Harry's 24 Nov steer for interesting effects, guitar sound, and
+# synths/environment sound — no note moves, no track added): THE PENDULUM SWINGS THROUGH ONE, FIVE, AND ONE AGAIN.
+# Three sound-only instrument/effect improvements on the song's three clean/ambient/organ landmarks while leaving
+# `'two'`, `'three'`, `'four'`, `'six'`, `'the lock on F'` and `'A flat'` bit-identical (zero change to `pawl`,
+# `gl-six`/`gr-six` or `wl`/`wr` — RAT/Screamer on `gl-six`/`gr-six` worsened `'six'` by +1.0 dB and Muff on
+# `wl`/`wr` worsened the closing trio +0.18 dB, all refused; chorus on `pawl` hurt `'six'` +0.13 dB and was refused):
+# 1) CLEAN/GLASS PAIRS (`gl-one`/`gr-one` in `'one'`, 0-20 s; `gl-five`/`gr-five` in `'five'`, 80-100 s): slow
+#    asymmetrical 6-stage stereo phasers (`0.18/0.11 Hz` in `'one'`, `0.16/0.10 Hz` in `'five'`, depth 0.55, fb 0.32,
+#    mix 0.38) give the clean/glass call-and-response living stereo motion; `gl-five`/`gr-five`'s EQ rebalances the
+#    +4.9/+3.1 dB mid hump and -2.6 dB 2-4 kHz dip (`360 Hz -10 dB`, `700 Hz -5 dB`, `2500 Hz +8 dB`, `4500 Hz -15 dB`,
+#    fader `14.5 -> 16.0 dB` to match loudness; `gl-one`/`gr-one` `14.5 -> 15.6 dB`).
+# 2) PIPE ORGAN (`wind`, `organ-pipe`, beats 224-236 in `'one again'`, 160-180 s): classic Leslie rotary speaker
+#    (`rotary speed=0.35 mix=0.55`) + `330 Hz -4.5 dB` clears `'one again'`'s +2.7 dB lower-mid bloat down to -0.2 dB!
+# 3) GATED AMBIENT CHAMBER (`pendulum` bus): `3/8` ping-pong delay -> sympathetic F/Ab/C/Eb/F5/C6 strings -> octave-up
+#    reverse granular cloud -> 3.6 s shimmer hall -> air EQ (`hp 2400`, `highshelf 6200 +11 dB`) -> gate lane open ONLY
+#    in `'one'` (beats 0-27.95, 0.93), `'five'` (beats 112-139.95, 0.78), and `'one again'` (beats 224-259.5, 1.0),
+#    fed by `gl-one`/`gr-one` (-6 dB), `clock` (+6 dB), `gl-five`/`gr-five` (-4 dB), and `wind` (+20 dB).
+# C10T9_PENDULUM = one_gain:one_snd:clk_snd:one_rates ; five_gain:five_snd:five_eq(|):five_rates ;
+#   wind_rot_spd:wind_rot_mix:wind_eq:wind_snd ; delay time:fb:tone:mix ; sympathetic notes:decay:mix ;
+#   cloud size:density:pos:spray:pitch:rev:spread:win:seed:mix ; reverb kind:decay:size:shimmer:lc:hc:mix ;
+#   bus_eq(|) ; gate_one:gate_five:gate_end ; loudness target. '' = v36 byte for byte. On only while TEETH is.
+PENDULUM = os.environ.get(
+    'C10T9_PENDULUM',
+    '16.2dB:-6dB:6dB:0.18,0.11;'
+    '16.0dB:-4dB:peak cutoff=360 q=0.8 gain=-10dB|peak cutoff=700 q=0.9 gain=-5dB|peak cutoff=2500 q=0.7 gain=8dB|highshelf cutoff=4500 gain=-15dB:0.16,0.10;'
+    '0.35:0.55:peak cutoff=330 q=0.9 gain=-4.5dB:20dB;'
+    '3/8:0.44:13500:0.45;'
+    'F4,Ab4,C5,Eb5,F5,C6:2.4s:0.22;'
+    '130ms:18:155ms:145ms:12.0:0.38:1.0:2.8s:9:0.85;'
+    'hall:3.6s:0.88:0.6:2400:15500:0.92;'
+    'hp cutoff=2400|highshelf cutoff=6200 gain=11dB;'
+    '0.93:0.78:1.0;'
+    '-10.3052'
+    if TEETH else '',
+)
+
+
+def the_pendulum_swings(doc):
+    """v37: stereo phasers on clean/glass pairs, Leslie rotary on `wind`, and gated `pendulum` bus in one/five/one again."""
+    one_s, five_s, wind_s, dly_s, sym_s, cld_s, rev_s, beq_s, gate_s, target = PENDULUM.split(';')
+    assert 'pendulum' not in doc['buses'], 'pendulum bus already exists'
+    bus_fx = []
+    if dly_s:
+        tm, fb, tn, mx = dly_s.split(':')
+        bus_fx.append({'type': 'delay', 'time': tm, 'feedback': float(fb), 'ping_pong': True,
+                       'tone': float(tn), 'mix': float(mx)})
+    if sym_s:
+        nts, dec, mx = sym_s.split(':')
+        bus_fx.append({'type': 'sympathetic', 'notes': nts, 'decay': dec, 'mix': float(mx), 'tune_sounding': True})
+    if cld_s:
+        sz, dn, ps, sp, pt, rv, sr, wn, sd, mx = cld_s.split(':')
+        bus_fx.append({'type': 'cloud', 'size': sz, 'density': float(dn), 'position': ps, 'spray': sp,
+                       'pitch': float(pt), 'reverse': float(rv), 'spread': float(sr), 'window': wn,
+                       'seed': int(sd), 'mix': float(mx)})
+    if rev_s:
+        kd, dec, sz, sh, lc, hc, mx = rev_s.split(':')
+        bus_fx.append({'type': 'reverb', 'kind': kd, 'decay': dec, 'size': float(sz), 'shimmer': float(sh),
+                       'low_cut': float(lc), 'high_cut': float(hc), 'width': 1.0, 'mix': float(mx)})
+    if beq_s:
+        bus_fx.append({'type': 'eq', 'bands': beq_s.split('|')})
+    bus_fx.append({'type': 'gain', 'gain': {'value': '-96dB', 'mod': [{'src': 'auto.open', 'amount': 96}]}})
+    g1, g5, ge = [float(x) for x in gate_s.split(':')]
+    pts = [
+        ['0b', g1], ['27.0b', g1], ['27.95b', 0],
+        ['111.95b', 0], ['112b', g5], ['139.0b', g5], ['139.95b', 0],
+        ['223.95b', 0], ['224b', ge], ['252b', ge], ['259.5b', ge],
+    ]
+    doc['buses'] = {**doc['buses'], 'pendulum': {'fx': bus_fx, 'auto': {'open': {'curve': 0, 'points': pts}}}}
+    og, osnd, csnd, orates = one_s.split(':')
+    or_l, or_r = [float(x) for x in orates.split(',')]
+    fg, fsnd, feq, frates = five_s.split(':')
+    fr_l, fr_r = [float(x) for x in frates.split(',')]
+    wspd, wmix, weq, wsnd = wind_s.split(':')
+    for i, t in enumerate(doc['tracks']):
+        nm = t['name']
+        if nm in ('gl-one', 'gr-one'):
+            rt = or_l if nm == 'gl-one' else or_r
+            doc['tracks'][i] = {
+                **t, 'gain': og,
+                'fx': list(t['fx']) + [{'type': 'phaser', 'rate': rt, 'depth': 0.55, 'stages': 6, 'feedback': 0.32, 'mix': 0.38}],
+                'sends': {**(t.get('sends') or {}), 'pendulum': osnd},
+            }
+        elif nm == 'clock':
+            doc['tracks'][i] = {**t, 'sends': {**(t.get('sends') or {}), 'pendulum': csnd}}
+        elif nm in ('gl-five', 'gr-five'):
+            rt = fr_l if nm == 'gl-five' else fr_r
+            doc['tracks'][i] = {
+                **t, 'gain': fg,
+                'fx': [{'type': 'eq', 'bands': feq.split('|')},
+                       'reverb kind=hall decay=1.6s mix=0.12 predelay=20ms',
+                       {'type': 'phaser', 'rate': rt, 'depth': 0.55, 'stages': 6, 'feedback': 0.32, 'mix': 0.38}],
+                'sends': {**(t.get('sends') or {}), 'pendulum': fsnd},
+            }
+        elif nm == 'wind':
+            doc['tracks'][i] = {
+                **t,
+                'fx': [{'type': 'rotary', 'speed': float(wspd), 'mix': float(wmix)},
+                       {'type': 'eq', 'bands': [weq]}],
+                'sends': {**(t.get('sends') or {}), 'pendulum': wsnd},
+            }
+    if target:
+        doc['loudness'] = float(target)
+
+
 if __name__ == "__main__":
     if os.environ.get("C10T9_SHOW"):
         end = compose()
@@ -1565,4 +1669,6 @@ if __name__ == "__main__":
             the_pick_shows_in_two(doc)
         if TEETH:
             the_pair_shows_its_teeth(doc)
+        if PENDULUM:
+            the_pendulum_swings(doc)
         open(OUT, "w").write(dump(doc))
