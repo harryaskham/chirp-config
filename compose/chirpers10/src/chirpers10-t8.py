@@ -1283,6 +1283,8 @@ def song():
         the_hat_has_its_metal(doc)
     if VERSE:
         the_rule_is_sung(doc)
+    if MUFF:
+        the_wall_gets_a_muff(doc)
     return doc
 
 
@@ -1907,6 +1909,116 @@ def the_rule_is_sung(doc):
         doc['buses'] = {**doc['buses'], 'gtrs': {**bus, 'fx': [{'type': 'eq', 'bands': [band]}] + list(bus.get('fx', [])),
                                                   'auto': {**bus.get('auto', {}), 'cantor': {'curve': 0, 'points': [
                                                       ['0b', 0], [f'{a - 0.02:g}b', 0], [f'{a:g}b', float(db)], [f'{a + 30:g}b', float(db)], [f'{a + 30.5:g}b', 0]]}}}}
+    if target:
+        doc['loudness'] = float(target)
+
+
+# v39 (chirper-zero, 24 Nov; instrument round, on Harry's 24 Nov steer for interesting effects, guitar sound, and
+# synths/environment sound — no note moves, no track added): THE WALL GETS A MUFF, AND THE AFTERWORD OPENS.
+# Two sound-only additions on the new engine pin (c4a323e6, carrying `pedal`):
+# 1) THE WALL (`wl`, `wr`, beats 356-504, 2:13.5-3:09.0 = 'the measure' and 'measured'): song-local patches `cm-wall-l`
+#    and `cm-wall-r` (extending `ct-wall-stop-l/r` with the same strings/play, verified bit-identical to resolved copies)
+#    insert a Ram's Head Muff stompbox (`pedal kind=muff drive=0.45 tone=0.78 level=3dB volts=0.8 mix=1`) in front of
+#    each wall's recto amp (the amp's own `ts` and `boost` off); the wall's track eq 220 Hz +3 -> +1.5 dB and fader
+#    -1.95 -> -2.35 dB keep the wall at equal loudness alone (-0.12 dB) while letting the fuzz give the six-guitar
+#    arrival real low-mid weight and harmonic grit distinct from the gojira/modern riff pairs.
+# 2) THE AFTERWORD ('put back', beats 512-544, 3:12-3:24): `felt`, `breath`, `toll-l` and `toll-r` send to a new
+#    ambient bus `afterword` gated strictly to beats 512-544 (0 until 511.5b): 3/8 ping-pong delay, sympathetic strings
+#    tuned to the song's F-minor/common-measure pitches (F3,Ab3,B3,C4,Eb4,F4,Ab4,C5), octave-up reverse granular cloud,
+#    and a 4.2 s shimmer hall with a 4.5 kHz air shelf, opening the bone-dry mono ending (S-M -15.8 dB, corr +0.95) into
+#    a wide stereo room (S-M -6.3 dB, corr +0.63).
+# C10T8_MUFF = pedal kind:drive:tone:level:volts:mix ; wall_gain:wall_220_db ; afterword sends felt,breath,toll ;
+#   delay time:fb:tone:mix ; sympathetic notes:decay:mix ; cloud size:density:pos:spray:pitch:rev:spread:win:seed:mix ;
+#   reverb kind:decay:size:shimmer:lc:hc:mix ; eq bands | ; gate_beat ; loudness target.
+# '' = v38 byte for byte.
+MUFF = os.environ.get(
+    'C10T8_MUFF',
+    'muff:0.45:0.78:3dB:0.8:1.0;-2.35dB:1.5dB;0dB,2dB,3dB;3/8:0.4:6500:0.42;'
+    'F3,Ab3,B3,C4,Eb4,F4,Ab4,C5:2.6s:0.3;150ms:16:200ms:160ms:12.0:0.4:1.0:3s:8:0.72;'
+    'hall:4.2s:0.9:0.45:350:13000:0.92;hp cutoff=400|highshelf cutoff=4500 gain=6dB;512;-10.1796'
+    if VERSE else '',
+)
+
+
+def the_wall_gets_a_muff(doc):
+    """v39: Ram's Head Muff stompbox in front of wl/wr's recto amp (cm-wall-l/r) + gated 'afterword' ambient bus in 'put back'."""
+    ped_s, w_s, snd_s, dly_s, sym_s, cld_s, rev_s, eq_s, gate_s, target = MUFF.split(';')
+    if ped_s:
+        kind, drv, tone, lvl, volts, mix = ped_s.split(':')
+        ped = {'type': 'pedal', 'kind': kind, 'drive': float(drv), 'tone': float(tone),
+               'level': lvl, 'volts': float(volts), 'mix': float(mix)}
+        w_gain, w_220 = w_s.split(':')
+        patches = dict(doc['patches'])
+        for side in ('l', 'r'):
+            is_l = (side == 'l')
+            pnm = f'cm-wall-{side}'
+            assert pnm not in patches, pnm
+            patches[pnm] = {
+                'extends': f'ct-wall-stop-{side}',
+                'about': f"Common Measure wall guitar ({side.upper()}) with a {kind} stompbox before its recto amp (chirper-zero, 24 Nov).",
+                'fx': [
+                    {'type': 'sympathetic', 'decay': '1.8s', 'mix': 0},
+                    {'type': 'compressor', 'attack': '8ms', 'makeup': '3dB', 'ratio': 3.0, 'threshold': '-22dB'},
+                    dict(ped),
+                    {'type': 'amp', 'stack': 'recto', 'gain': 0.78 if is_l else 0.76, 'bass': 0.55,
+                     'mid': 0.55 if is_l else 0.6, 'presence': 0.45, 'resonance': 0.75, 'tight': 65,
+                     'ts': 0.0, 'boost': '0dB', 'sag': 0.35, 'bloom': 0.6, 'nfb': 8.0, 'triode': True},
+                    {'type': 'ir', 'file': 'jester/kitten-slayer' if is_l else 'jester/wumbo',
+                     'blend_file': 'jester/kaiju-tamer' if is_l else 'jester/big-bubba',
+                     'blend': 0.4, 'breakup': 0.4, 'length': '160ms', 'level': 1, 'mix': 0, 'room': 0.22},
+                    {'type': 'eq', 'bands': [
+                        {'kind': 'peak', 'cutoff': 120, 'q': 1, 'gain': '0dB'},
+                        {'kind': 'peak', 'cutoff': 300, 'q': 0.9, 'gain': '0dB'},
+                        {'kind': 'peak', 'cutoff': 3300, 'q': 1.2, 'gain': '0dB'},
+                        {'kind': 'highshelf', 'cutoff': 5000, 'gain': '0dB'},
+                    ]},
+                    {'type': 'gate', 'attack': '0.5ms', 'hold': '40ms', 'release': '90ms', 'threshold': '-56dB'},
+                    {'type': 'reverb', 'kind': 'plate', 'decay': '1.4s' if is_l else '1.5s',
+                     'mix': 0.14, 'predelay': '14ms' if is_l else '20ms'},
+                ],
+            }
+        doc['patches'] = patches
+        for t in doc['tracks']:
+            if t['name'] in ('wl', 'wr'):
+                side = 'l' if t['name'] == 'wl' else 'r'
+                t['patch'] = f"cm-wall-{side} synth.layers.0.thump.mod.0.amount=0 synth.filters.0.cutoff.mod.0.amount=-2 synth.layers.0.choke=120ms"
+                if w_gain:
+                    t['gain'] = w_gain
+                if w_220:
+                    t['fx'] = json.loads(json.dumps(t['fx']))
+                    t['fx'][1]['bands'] = [f'peak cutoff=220 q=1 gain={w_220}']
+    if snd_s:
+        assert 'afterword' not in doc['buses'], 'afterword bus already exists'
+        bus_fx = []
+        if dly_s:
+            tm, fb, tn, mx = dly_s.split(':')
+            bus_fx.append({'type': 'delay', 'time': tm, 'feedback': float(fb), 'ping_pong': True,
+                           'tone': float(tn), 'mix': float(mx)})
+        if sym_s:
+            nts, dec, mx = sym_s.split(':')
+            bus_fx.append({'type': 'sympathetic', 'notes': nts, 'decay': dec, 'mix': float(mx), 'tune_sounding': True})
+        if cld_s:
+            sz, dn, ps, sp, pt, rv, sr, wn, sd, mx = cld_s.split(':')
+            bus_fx.append({'type': 'cloud', 'size': sz, 'density': float(dn), 'position': ps, 'spray': sp,
+                           'pitch': float(pt), 'reverse': float(rv), 'spread': float(sr), 'window': wn,
+                           'seed': int(sd), 'mix': float(mx)})
+        if rev_s:
+            kd, dec, sz, sh, lc, hc, mx = rev_s.split(':')
+            bus_fx.append({'type': 'reverb', 'kind': kd, 'decay': dec, 'size': float(sz), 'shimmer': float(sh),
+                           'low_cut': float(lc), 'high_cut': float(hc), 'width': 1.0, 'mix': float(mx)})
+        if eq_s:
+            bus_fx.append({'type': 'eq', 'bands': eq_s.split('|')})
+        g = float(gate_s)
+        bus_fx.append({'type': 'gain', 'gain': {'value': '-96dB', 'mod': [{'src': 'auto.after', 'amount': 96}]}})
+        doc['buses'] = {**doc['buses'], 'afterword': {
+            'fx': bus_fx,
+            'auto': {'after': {'curve': 0, 'points': [['0b', 0], [f'{g - 0.5:g}b', 0], [f'{g:g}b', 1], ['544b', 1]]}},
+        }}
+        sf, sb, st = snd_s.split(',')
+        sends_map = {'felt': sf, 'breath': sb, 'toll-l': st, 'toll-r': st}
+        for t in doc['tracks']:
+            if t['name'] in sends_map and sends_map[t['name']]:
+                t['sends'] = {**(t.get('sends') or {}), 'afterword': sends_map[t['name']]}
     if target:
         doc['loudness'] = float(target)
 
