@@ -811,8 +811,8 @@ def marquee(c):
         x = f"(clamp({s}, 0, {2 * W}) - {W} - clamp({s} - {2 * W + 2 * H:g}, 0, {2 * W}))"
         y = f"({H} - clamp({s} - {2 * W}, 0, {2 * H}) + clamp({s} - {4 * W + 2 * H:g}, 0, {2 * H}))"
         d = f"(fract({'0 - ' if i % 2 else ''}{p.turn} - inst.i/{p.cell})*{p.cell})"
-        layers.append(ball(x, y, 0, 0.085, 8, count=nn, **glow(c.col(i % len(c.riffs)), f"0.2 + 2.4*exp(0 - 1.4*{d})")))
-    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.5, 0.025, 0.5)]}
+        layers.append(ball(x, y, 0, f"0.08 + 0.045*exp(0 - 1.5*{d})", 8, count=nn, **glow(c.col(i % len(c.riffs)), f"0.38 + 2.8*exp(0 - 1.3*{d})")))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.55, 0.025, 0.45)]}
 
 
 RULES = {3: 30, 4: 90, 5: 110, 6: 150, 7: 73, 8: 105, 9: 45, 10: 60, 11: 22, 12: 126, 13: 54, 14: 182, 15: 18, 16: 90}
@@ -1176,14 +1176,14 @@ def kelvin(c):
     pen_x, pen_y = xs[-1] + 1.6, f"(0 - 0.9 + 0.75*({total}))"
     layers = []
     for i, p in enumerate(P):
-        layers.append({"type": "mesh", "shape": "torus", "detail": 40, "x": xs[i], "y": 1.3, "z": 0, "scale": (r + 0.14) / 0.8, "tube": 0.07, "rx": 0.25, **glow(c.dim, 1.0)})
-        layers.append(ball(pins[i][0], pins[i][1], -0.05, 0.12, 8, **glow(c.col(i), f"1.2 + 1.5*{p.hit}")))
-        layers.append({"type": "beam", "from": [xs[i], 1.3, 0], "to": [pins[i][0], pins[i][1], 0], "width": 0.01, "glow": 0.5, "color": c.dim})
+        layers.append({"type": "mesh", "shape": "torus", "detail": 40, "x": xs[i], "y": 1.3, "z": 0, "scale": (r + 0.14) / 0.8, "tube": 0.085, "rx": 0.25, **glow(c.dim, 1.35)})
+        layers.append(ball(pins[i][0], pins[i][1], -0.05, 0.14, 8, **glow(c.col(i), f"1.4 + 1.8*{p.hit}")))
+        layers.append({"type": "beam", "from": [xs[i], 1.3, 0], "to": [pins[i][0], pins[i][1], 0], "width": 0.016, "glow": 0.75, "color": c.dim})
     pts = [(f"{xs[0] - 1.3:g}", "1.3")] + pins + [(f"{pen_x:g}", pen_y)]
     for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
-        layers.append({"type": "beam", "from": [x0, y0, -0.02], "to": [x1, y1, -0.02], "width": 0.022, "glow": 0.9, "color": c.ink, "samples": 30})
-    layers.append({"type": "trail", "x": f"{pen_x:g} - 1.1*(var.nowb - time.beat)", "y": pen_y, "z": 0, "length": f"{6 * 0.5 / (c.bpm / 120):g}", "samples": 500, "width": 0.035, "taper": 0, "glow": 1.1, "fade": 0.5, "color": c.a})
-    layers.append(ball(pen_x, pen_y, -0.05, 0.07, 8, **glow(c.a, 2.5)))
+        layers.append({"type": "beam", "from": [x0, y0, -0.02], "to": [x1, y1, -0.02], "width": 0.028, "glow": 1.15, "color": c.ink, "samples": 30})
+    layers.append({"type": "trail", "x": f"{pen_x:g} - 1.1*(var.nowb - time.beat)", "y": pen_y, "z": 0, "length": f"{6 * 0.5 / (c.bpm / 120):g}", "samples": 500, "width": 0.052, "taper": 0, "glow": 1.5, "fade": 0.5, "color": c.a})
+    layers.append(ball(pen_x, pen_y, -0.05, 0.095, 8, **glow(c.a, 2.8)))
     return {"background": c.bg, "vars": {"nowb": {"follow": "time.beat", "attack": "0ms", "release": "0ms"}}, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.35, 0.016, 0.55)]}
 
 
@@ -1216,16 +1216,19 @@ def combs(c):
         k = int(9.4 / (period * u)) + 3
         x = f"((inst.i - {k // 2})*{period * u:g} - fract((time.beat*4 - {anchor:g})/{period})*{period * u:g})"
         near = f"exp(0 - 3*abs({x}))"
-        layers.append(box(x, y, z, 0.03, h, 0.01, count=k, **glow(col, f"{emit} + 2*{near}")))
-    row(1, 0, 0, 0.05, c.dim, 0.5)
-    row(16, 0, 0, 0.22, c.dim, 0.7)
-    row(A.cell, A.anchor, 0.75, 0.6, c.a, 0.6)
-    row(B.cell, B.anchor, -0.75, 0.6, c.b, 0.6)
+        layers.append(box(x, y, z, 0.045, h, 0.01, count=k, **glow(col, f"{emit} + 2.4*{near}")))
+    # Horizontal comb spines tying each row of teeth together.
+    layers.append(box(0, 0.75, 0.05, 4.6, 0.018, 0.01, **glow(c.a, "0.35 + 0.4*audio.low")))
+    layers.append(box(0, -0.75, 0.05, 4.6, 0.018, 0.01, **glow(c.b, "0.35 + 0.4*audio.low")))
+    row(1, 0, 0, 0.06, c.dim, 0.65)
+    row(16, 0, 0, 0.28, c.dim, 0.85)
+    row(A.cell, A.anchor, 0.75, 0.65, c.a, 0.85)
+    row(B.cell, B.anchor, -0.75, 0.65, c.b, 0.85)
     # The round's own tooth: where both began together (or will).
     meet = next((s for s in range(L) if (s - A.anchor) % A.cell == 0 and (s - B.anchor) % B.cell == 0), None)
     if meet is not None:
-        row(L, meet, 0, 1.6, c.ink, 0.9, z=-0.05)
-    layers.append(box(0, 0, 0.1, 0.006, 2.4, 0.01, **glow(c.dim, 0.6)))
+        row(L, meet, 0, 1.75, c.ink, 1.15, z=-0.05)
+    layers.append(box(0, 0, -0.02, 0.012, 2.5, 0.01, **glow(c.ink, f"0.55 + 1.2*max({A.hit}, {B.hit})")))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.35, 0.016, 0.6)]}
 
 
@@ -1319,12 +1322,12 @@ def epicycle(c):
     for i, p in enumerate(P):
         th = f"((time.beat*4 - {p.anchor:g})/{p.cell}*{1 if i % 2 == 0 else -1} + 0.25)"
         nx, ny = f"({x} + {Ls[i]}*cos({th}))", f"({y} + {Ls[i]}*sin({th}))"
-        layers.append({"type": "beam", "from": [x, y, 0], "to": [nx, ny, 0], "width": 0.012, "glow": 0.6, "color": c.dim})
-        layers.append({"type": "mesh", "shape": "torus", "detail": 48, "x": x, "y": y, "z": 0.05, "scale": Ls[i] / 0.8, "tube": 0.012 / Ls[i], "rx": 0.25, **glow(c.dim, 0.25)})
+        layers.append({"type": "beam", "from": [x, y, 0], "to": [nx, ny, 0], "width": 0.022, "glow": 0.95, "color": c.dim})
+        layers.append({"type": "mesh", "shape": "torus", "detail": 48, "x": x, "y": y, "z": 0.05, "scale": Ls[i] / 0.8, "tube": 0.018 / Ls[i], "rx": 0.25, **glow(c.dim, 0.45)})
         x, y = nx, ny
     L = math.lcm(*[p.cell for p in P])
-    layers.append({"type": "trail", "x": x, "y": y, "z": 0, "length": f"{min(L, 200) * 0.125 / (c.bpm / 120):g}", "samples": min(3000, max(300, L * 12)), "width": 0.012, "taper": 0, "glow": 1.0, "fade": 0.55, "color": c.a})
-    layers.append(ball(x, y, -0.05, 0.06, 8, **glow(c.ink, 3)))
+    layers.append({"type": "trail", "x": x, "y": y, "z": 0, "length": f"{min(L, 200) * 0.125 / (c.bpm / 120):g}", "samples": min(3000, max(300, L * 12)), "width": 0.026, "taper": 0, "glow": 1.45, "fade": 0.65, "color": c.a})
+    layers.append(ball(x, y, -0.05, 0.085, 8, **glow(c.ink, 3.2)))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.35, 0.016, 0.55)]}
 
 
@@ -1767,8 +1770,12 @@ def shatter(c):
     layers = [lamp(-3, 5, -6, 1.3), lamp(4, 2, -5, 0.6, c.a), floor(c, -1.3, "#121216", 0.3)]
     for i, p in enumerate(P):
         x = (i - (len(P) - 1) / 2) * 2.1
-        layers.append({"type": "mesh", "shape": "sphere", "detail": 9, "x": x, "y": 0.2, "z": 0, "scale": 0.72, "shatter": f"env.k{i}.age*step(env.k{i}.age, {max(0.2, (p.cell or 8) * c.six * 0.8):.2f}) - 0.001",
-                       "burst": 1.6, "drop": 2.5, "tumble": 1.5, **solid(c.col(i), 0.15, 0.3), "emit": f"0.4*env.k{i}"})
+        # Keep the shatter window wide enough (up to 0.7s) and add a bright inner core
+        # revealed when the outer shell bursts apart on each drum hit.
+        win = max(0.38, min(0.75, (p.cell or 8) * c.six * 0.9))
+        layers.append(ball(x, 0.2, 0, f"0.16 + 0.14*env.k{i}", 10, **glow("#ffffff", f"0.5 + 2.8*env.k{i}")))
+        layers.append({"type": "mesh", "shape": "sphere", "detail": 10, "x": x, "y": 0.2, "z": 0, "scale": 0.74, "shatter": f"env.k{i}.age*step(env.k{i}.age, {win:.2f}) - 0.001",
+                       "burst": 1.85, "drop": 2.1, "tumble": 1.9, **solid(c.col(i), 0.15, 0.3), "emit": f"0.2 + 0.6*env.k{i}"})
     return {"background": c.bg, "env": env, "camera": cam("0.8*sin(time.bar/9)", 0.6, -7, look=(0, 0, 0), zoom=1.5), "layers": layers,
             "filters": [{"type": "reflect", "y": -1.3, "amount": 0.4}, {"type": "tonemap", "knee": 0.75}, {"type": "aa"}, bloom(c, 0.4, 0.02, 0.7)]}
 
@@ -2144,9 +2151,9 @@ def aurora(c):
     vars_ = {"k": {"follow": f"track.{T.name}.key", "attack": "400ms", "release": "900ms"}}
     layers = [{"type": "stars", "count": 600, "speed": 0, "size": 0.8, "light": 0.6, "twinkle": 0.3, "streak": 0}]
     for j, col in enumerate((c.a, c.b)):
-        hgt = f"(1.0 + 1.3*fbm(inst.i*0.05 + {j * 9}, time.t*0.12 + var.k*2, {j}))"
-        layers.append(box(f"(inst.i - 60)*0.2 + 0.8*sin(time.t*0.02 + inst.i*0.004 + {j * 0.3})", f"0.9 + {hgt} + 0.6*sin(inst.i*0.011 + time.t*0.03 + {j * 0.2})", 3.0 + 2 * j, 0.1, hgt, 0.01, count=120,
-                          **glow(col, f"0.25 + 0.3*{hgt} + 0.5*track.{T.name}.level"), opacity=0.5))
+        hgt = f"(1.05 + 1.35*fbm(inst.i*0.05 + {j * 9}, time.t*0.24 + var.k*2.5, {j}))"
+        layers.append(box(f"(inst.i - 60)*0.2 + 1.1*sin(time.t*0.08 + inst.i*0.006 + {j * 0.3})", f"0.9 + {hgt} + 0.6*sin(inst.i*0.012 + time.t*0.1 + {j * 0.2})", 3.0 + 2 * j, 0.11, hgt, 0.01, count=120,
+                          **glow(col, f"0.32 + 0.36*{hgt} + 0.75*track.{T.name}.level"), opacity=0.56))
     layers.append(box(0, -0.25, 0.5, 12, 0.3, 0.1, color="#010102", light=0, ambient=0, rim=0))
     layers.append({"type": "mesh", "shape": "cone", "detail": 4, "x": -2.6, "y": 0.25, "z": 0.4, "scale": 1.4, "sy": 0.5, "color": "#010102", "light": 0, "ambient": 0, "rim": 0})
     layers.append({"type": "mesh", "shape": "cone", "detail": 4, "x": 3.0, "y": 0.2, "z": 0.4, "scale": 1.9, "sy": 0.4, "color": "#010102", "light": 0, "ambient": 0, "rim": 0})
@@ -2385,7 +2392,7 @@ def sympathy(c):
     th = (f"(0.07*sin({A.turn}))", f"(0.07*sin({A.turn} + {off}))")
     shove = f"(0.05*(sin({A.turn}) + sin({A.turn} + {off})))"
     wood = solid("#6b4a2e", 0.7)
-    layers = [lamp(-3, 5, -6, 1.1), lamp(3, 2, -5, 0.5, c.a), floor(c, 0, "#16161a", 0.7), box(shove, 2.62, 0, 2.9, 0.05, 0.08, **wood)]
+    layers = [lamp(-3, 5, -6, 1.55), lamp(3, 2, -5, 0.85, c.a), floor(c, 0, "#1c1c24", 0.7), box(shove, 2.62, 0, 2.9, 0.05, 0.08, **wood)]
     for sx in (-1, 1):                                       # the chairs
         layers.append(box(sx * 2.6, 1.3, 0.25, 0.05, 1.3, 0.05, **wood))
         layers.append(box(sx * 2.6, 0.55, -0.15, 0.05, 0.55, 0.05, **wood))
@@ -2393,11 +2400,11 @@ def sympathy(c):
         layers.append(box(sx * 2.6, 2.2, 0.25, 0.3, 0.25, 0.03, **wood))
     for i, (x, a) in enumerate(zip((-0.8, 0.8), th)):
         X = f"({shove} + {x})"
-        layers.append(box(X, 2.15, 0, 0.3, 0.42, 0.12, **solid("#3a2a22", 0.6)))
-        layers.append({"type": "mesh", "shape": "cylinder", "detail": 24, "x": X, "y": 2.2, "z": -0.13, "scale": 1, "sx": 0.22, "sy": 0.01, "sz": 0.22, "rx": 0.25, **solid("#e8e2d2", 0.5)})
-        layers.append(box(f"{X} + 0.6*sin({a})", f"1.75 - 0.6*cos({a})", -0.05, 0.012, 0.6, 0.012, rz=a, **solid("#b8a468", 0.3, 0.9)))
-        layers.append({"type": "mesh", "shape": "cylinder", "detail": 20, "x": f"{X} + 1.2*sin({a})", "y": f"1.75 - 1.2*cos({a})", "z": -0.06, "scale": 1, "sx": 0.16, "sy": 0.025, "sz": 0.16, "rx": 0.25,
-                       **solid("#b8a468", 0.3, 0.9), "emit": f"0.5*exp(0 - 6*abs(sin({A.turn}{' + ' + off if i else ''})))"})
+        layers.append(box(X, 2.15, 0, 0.3, 0.42, 0.12, **solid("#4a362c", 0.55)))
+        layers.append({"type": "mesh", "shape": "cylinder", "detail": 24, "x": X, "y": 2.2, "z": -0.13, "scale": 1, "sx": 0.22, "sy": 0.01, "sz": 0.22, "rx": 0.25, **solid("#f2ece0", 0.4), "emit": 0.25})
+        layers.append(box(f"{X} + 0.6*sin({a})", f"1.75 - 0.6*cos({a})", -0.05, 0.016, 0.6, 0.016, rz=a, **solid("#d8c07c", 0.28, 0.9)))
+        layers.append({"type": "mesh", "shape": "cylinder", "detail": 20, "x": f"{X} + 1.2*sin({a})", "y": f"1.75 - 1.2*cos({a})", "z": -0.06, "scale": 1, "sx": 0.19, "sy": 0.028, "sz": 0.19, "rx": 0.25,
+                       **solid("#e0c880", 0.28, 0.9), "emit": f"0.22 + 0.85*exp(0 - 5*abs(sin({A.turn}{' + ' + off if i else ''})))"})
     return {"background": c.bg, "camera": cam("0.8*sin(time.bar/10)", 1.6, -7, look=(0, 1.5, 0), zoom=1.8), "layers": layers, "filters": post3d(-3, 5, -6, shadow=0.6)}
 
 
@@ -2591,7 +2598,11 @@ def pong(c):
     layers = [net]
     for x, lag in ((-1.55, 0.004), (1.55, 0.008)):
         layers.append({"type": "shape", "repeat": 5, "sides": 4, "rotate": 0.125, "radius": 0.028, "width": 0, "fill": 1, "color": c.ink, "x": x, "y": f"(0.78*tri({B.turn}/2 + 0.12 - {lag})) + (inst.i - 2)*0.038"})
-    layers.append({"type": "shape", "sides": 4, "rotate": 0.125, "radius": 0.03, "width": 0, "fill": 1, "color": c.a, "x": bx, "y": by, "glow": f"0.4 + 1.2*{A.hit}"})
+    layers.append({"type": "shape", "sides": 4, "rotate": 0.125, "radius": 0.036, "width": 0, "fill": 1, "color": c.a, "x": bx, "y": by, "glow": f"0.7 + 1.5*{A.hit}"})
+    # Luminous trailing ghosts behind the ball so its diagonal path reads across beats.
+    for k_t, lag in enumerate((0.015, 0.03, 0.048), 1):
+        layers.append({"type": "shape", "sides": 4, "rotate": 0.125, "radius": 0.032 - 0.005 * k_t, "width": 0, "fill": 1, "color": c.a,
+                       "x": f"(1.45*tri({A.turn}/2 - {lag}))", "y": f"(0.78*tri({B.turn}/2 + 0.12 - {lag}))", "opacity": 0.55 - 0.14 * k_t})
     for p, x, col in ((A, -0.45, c.a), (B, 0.45, c.b)):
         T = f"floor({p.turn} - {(c.a16 - p.anchor) / p.cell:g} + 0.001)"
         for k, div in enumerate((10, 1)):
@@ -2611,15 +2622,15 @@ def invaders(c):
     march = "(0.35*(tri(time.bar/2)*2 - 1) - fract(0) )" if False else "(0.36*(floor(tri(time.bar/2 + 0.25)*16)/8 - 1))"
     foot = "step(0.5, fract(time.beat*2))"
     X, Y = f"(({col} - {(W - 1) / 2})*0.21 + {march})", f"(0.72 - {row}*0.17 - 0.04*floor(fract(time.bar/8)*8))"
-    layers = [{"type": "shape", "repeat": W * H, "sides": 4, "rotate": 0.125, "radius": 0.06, "width": 0, "fill": 1, "x": X, "y": Y, "palette": [c.a, c.b, c.c], "pos": f"{row}/4"},
-              {"type": "shape", "repeat": W * H, "sides": 4, "rotate": 0.125, "radius": 0.025, "width": 0, "fill": 1, "color": c.bg, "blend": "normal", "x": f"{X} - 0.02 + 0.04*{foot}", "y": f"{Y} + 0.012"},
-              {"type": "shape", "repeat": W * H, "sides": 4, "rotate": 0.125, "radius": 0.02, "width": 0, "fill": 1, "x": f"{X} + (0.045 - 0.09*fract(inst.i/2)*2)*(0.5 + {foot})", "y": f"{Y} - 0.05",
+    layers = [{"type": "shape", "repeat": W * H, "sides": 4, "rotate": 0.125, "radius": 0.068, "width": 0, "fill": 1, "x": X, "y": Y, "palette": [c.a, c.b, c.c], "pos": f"{row}/4"},
+              {"type": "shape", "repeat": W * H, "sides": 4, "rotate": 0.125, "radius": 0.026, "width": 0, "fill": 1, "color": c.bg, "blend": "normal", "x": f"{X} - 0.02 + 0.04*{foot}", "y": f"{Y} + 0.012"},
+              {"type": "shape", "repeat": W * H, "sides": 4, "rotate": 0.125, "radius": 0.022, "width": 0, "fill": 1, "x": f"{X} + (0.045 - 0.09*fract(inst.i/2)*2)*(0.5 + {foot})", "y": f"{Y} - 0.05",
                "palette": [c.a, c.b, c.c], "pos": f"{row}/4"}]
     for i, p in enumerate(P):
         nn = p.cell or 16
-        layers.append({"type": "shape", "notes": {"track": p.name, "past": 3}, "sides": 4, "rotate": 0.125, "radius": 0.016, "width": 0, "fill": 1, "color": c.ink, "x": f"(({p.nstep} + 0.5)/{nn} - 0.5)*2.6",
-                       "y": f"0 - 0.86 + 0.75*note.age", "opacity": "step(note.age, 2.3)", "glow": 0.5})
-        layers.append({"type": "shape", "sides": 4, "rotate": 0.125, "radius": 0.05, "width": 0, "fill": 1, "color": c.col(i), "x": f"((floor(fract({p.turn})*{nn}) + 0.5)/{nn} - 0.5)*2.6", "y": -0.9 - 0.04 * i})
+        layers.append({"type": "shape", "notes": {"track": p.name, "past": 3}, "sides": 4, "rotate": 0.125, "radius": 0.022, "width": 0, "fill": 1, "color": c.ink, "x": f"(({p.nstep} + 0.5)/{nn} - 0.5)*2.6",
+                       "y": f"0 - 0.86 + 0.75*note.age", "opacity": "step(note.age, 2.3)", "glow": 1.1})
+        layers.append({"type": "shape", "sides": 4, "rotate": 0.125, "radius": 0.06, "width": 0, "fill": 1, "color": c.col(i), "x": f"((floor(fract({p.turn})*{nn}) + 0.5)/{nn} - 0.5)*2.6", "y": -0.9 - 0.04 * i, "glow": 0.6})
     return {"background": c.bg, "layers": layers, "filters": [bloom(c, 0.3, 0.014, 0.7)]}
 
 
@@ -2868,9 +2879,9 @@ def star(c):
             kk = f"floor({kk} + 0.01)"
             x1, y1 = pin("inst.i")
             x2, y2 = pin(f"inst.i + {kk}")
-            layers.append({"type": "beam", "repeat": n_, "from": [x1, y1, 0], "to": [x2, y2, 0], "width": 0.022 if not back else 0.014, "glow": 1.0, "samples": 24, "color": c.col(i) if not back else c.dim, "opacity": op})
+            layers.append({"type": "beam", "repeat": n_, "from": [x1, y1, 0], "to": [x2, y2, 0], "width": 0.03 if not back else 0.018, "glow": 1.35, "samples": 24, "color": c.col(i) if not back else c.dim, "opacity": op})
         x, y = pin("inst.i")
-        layers.append(ball(x, y, -0.02, f"0.05 + 0.07*exp(0 - 1.5*fract({p.turn} - inst.i/{n_})*{n_})", 8, count=n_, **glow(c.ink, f"0.6 + 2.5*exp(0 - 1.5*fract({p.turn} - inst.i/{n_})*{n_})")))
+        layers.append(ball(x, y, -0.02, f"0.065 + 0.08*exp(0 - 1.5*fract({p.turn} - inst.i/{n_})*{n_})", 8, count=n_, **glow(c.ink, f"0.85 + 2.8*exp(0 - 1.5*fract({p.turn} - inst.i/{n_})*{n_})")))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.018, 0.55)]}
 
 
@@ -3211,14 +3222,14 @@ def suprematist(c):
     P = _cast(c, 6)
     env = hit_env(P, "300ms")
     paints = ("#16171a", "#d6281a", "#1b4f9c", "#f2c21a", "#16171a", "#e8792b")
-    layers = [box(0, 0, 0.3, 4.6, 2.6, 0.01, **glow("#ece6d6", 1)), box(-1.5 + 3.0 * c.r(40), 0.9 - 1.6 * c.r(41), 0.2, 0.85, 0.85, 0.01, rz=0.03, **glow("#16171a", 1)),
-              ball(2.6 - 5.0 * c.r(42), -1.2 + 2.2 * c.r(43), 0.15, 0.42, 14, **glow("#d6281a", 1))]
+    layers = [box(0, 0, 0.3, 4.6, 2.6, 0.01, **glow("#ece6d6", 1)), box(-1.5 + 3.0 * c.r(40), 0.9 - 1.6 * c.r(41), 0.2, 0.85, 0.85, 0.01, rz=f"0.03 + 0.03*sin(time.bar/6)", **glow("#16171a", 1)),
+              ball(f"{2.6 - 5.0 * c.r(42):.3f} + 0.35*sin(time.bar/4)", f"{-1.2 + 2.2 * c.r(43):.3f} + 0.25*cos(time.bar/5)", 0.15, "0.42 + 0.06*audio.low", 14, **glow("#d6281a", 1))]
     for i, p in enumerate(P):
         tilt = (c.r(i + 50) - 0.5) * 0.3
         long_, wide = 0.6 + 1.6 * c.r(i + 60), 0.06 + 0.22 * c.r(i + 70)
         ox, oy = (i - (len(P) - 1) / 2) * (7.0 / len(P)) + (c.r(i + 80) - 0.5) * 1.2, (c.r(i + 90) - 0.5) * 3.4
-        slide = f"(1.1*sin({p.turn}/2) + 0.25*env.h{i})" if p.cell else f"0.5*env.h{i}"
-        layers.append(box(f"{ox:.3f} + {math.cos(tilt * 6.2832):.4f}*{slide}", f"{oy:.3f} + {math.sin(tilt * 6.2832):.4f}*{slide}", 0.1 - 0.02 * i, long_, wide, 0.01, rz=tilt, **glow(paints[i], 1)))
+        slide = f"(1.45*sin({p.turn}/2) + 0.45*env.h{i})" if p.cell else f"0.65*env.h{i}"
+        layers.append(box(f"{ox:.3f} + {math.cos(tilt * 6.2832):.4f}*{slide}", f"{oy:.3f} + {math.sin(tilt * 6.2832):.4f}*{slide}", 0.1 - 0.02 * i, f"{long_:.3f}*(1 + 0.16*env.h{i})", wide, 0.01, rz=f"{tilt:.3f} + 0.025*env.h{i}", **glow(paints[i], 1)))
     return {"background": "#ece6d6", "env": env, "camera": FLAT, "layers": layers, "filters": [{"type": "grain", "amount": 0.05}]}
 
 
@@ -4345,8 +4356,8 @@ def haul(c):
         col = c.a if late else c.b
         come = f"step({start:g}, {now})"
         struck = lambda at: f"exp(0 - 0.5*max({now} - {at:g}, 0))*step({at:g}, {now})"      # noqa: E731
-        rope = {"type": "beam", "from": [x0, y, 0], "to": [x1, y, 0], "sag": sag, "width": 0.024, "samples": 64, "color": col,
-                "glow": f"0.2 + 0.7*{come} + 1.3*{struck(end)}"}
+        rope = {"type": "beam", "from": [x0, y, 0], "to": [x1, y, 0], "sag": sag, "width": 0.032, "samples": 64, "color": col,
+                "glow": f"0.38 + 0.85*{come} + 1.5*{struck(end)}"}
         if abs(slack) < 0.5:
             # (a taut rope hums when it is struck, for a bar or two; a slack one cannot)
             rope.update(wave=f"0.2*exp(0 - 0.032*max({now} - {end:g}, 0))*step({end:g}, {now})", waves=3, speed=5, samples=96,
@@ -5094,6 +5105,46 @@ def moirefield(c):
                         bloom(c, 0.45, 0.016, 0.65)]}
 
 
+@idiom(needs=2, fam="space", cost=2)
+def phasecorridor(c):
+    """Spacetime corridor: 24 luminous rectangular gates receding into depth along a curved
+    track, each gate twisting by an integrated phase driven by the two riffs' hits so the
+    corridor coils and uncoils dynamically as the phrase builds."""
+    A, B = c.riffs[0], c.riffs[1]
+    env = hit_env([A, B], "220ms")
+    n_ = 24
+    # Integrated phase accumulates twist on every note of A and counter-twist on B.
+    vars_ = {
+        "coil": {"integrate": f"0.12 + 0.55*{A.hit} - 0.35*{B.hit}"},
+        "sway": {"follow": f"env.h0 - env.h1", "attack": "90ms", "release": "420ms"},
+    }
+    depth = "(fract(inst.i/24 - time.bar/8)*14)"
+    x = f"(1.1*sin({depth}/6 + var.coil*0.25) + 0.6*var.sway*(1 - {depth}/14))"
+    y = f"(0.7*cos({depth}/7 + {B.turn}/4))"
+    rz = f"({depth}*0.045 + var.coil*0.18 + {A.turn}/4)"
+    sc = f"(2.25 - 0.04*{depth} + 0.18*env.h0*step({depth}, 3.5))"
+    layers = [
+        {"type": "stars", "count": 400, "speed": 0.2, "size": 0.85, "light": 0.5, "twinkle": 0.3, "streak": 1.6},
+        {"type": "mesh", "shape": "torus", "detail": 4, "count": n_, "x": x, "y": y, "z": depth,
+         "scale": sc, "tube": 0.036, "rx": 0.25, "rz": rz,
+         **glow(c.a, f"(0.45 + 1.4*env.h0)*(1 - {depth}/15)")},
+        {"type": "mesh", "shape": "torus", "detail": 4, "count": n_, "x": f"0 - ({x})*0.5", "y": f"0 - ({y})*0.5", "z": f"({depth}) + 0.3",
+         "scale": f"({sc})*0.64", "tube": 0.024, "rx": 0.25, "rz": f"0 - ({rz})",
+         **glow(c.b, f"(0.4 + 1.3*env.h1)*(1 - {depth}/15)")},
+        # Central rhythmic beacon ahead at the vanishing point.
+        ball("0.5*sin(var.coil*0.3)", "0.35*cos(var.coil*0.25)", 13.5, "0.45 + 0.3*max(env.h0, env.h1)", 14,
+             **glow(c.ink, "1.1 + 2.2*min(env.h0, env.h1)")),
+    ]
+    return {
+        "background": c.bg,
+        "env": env,
+        "vars": vars_,
+        "camera": cam("0.35*var.sway", "0.15*sin(time.bar/6)", -1.6, look=("0.4*sin(var.coil*0.2)", 0, 8), zoom=1.15, roll="0.03*var.sway"),
+        "layers": layers,
+        "filters": [{"type": "fog", "amount": 1.0, "density": 0.085, "color": c.bg}, {"type": "aa"}, bloom(c, 0.45, 0.018, 0.65)],
+    }
+
+
 @combo("timemap")
 def c_timemap(c, A, B):
     """Spacetime interplay: the second picture's brightness bends time inside the first
@@ -5150,6 +5201,13 @@ def c_embossed(c, A, B):
     """The second picture is pressed into the first as a bas-relief, catching light on its
     slopes."""
     return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "shade", "gain": 3.5}), _act(B, blend="add", fade=0.15)], "filters": []}
+
+
+@combo("prismby")
+def c_prismby(c, A, B):
+    """Dispersive crystal interplay: the second picture acts as cut crystal over the first,
+    splitting the first picture's R, G and B along the second picture's moving contours."""
+    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "prism", "bend": 0.14}), _act(B, blend="add", fade=0.12)], "filters": []}
 
 
 @combo("diagonal")

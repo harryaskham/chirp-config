@@ -132,40 +132,40 @@ FEATURE = {
 # Each song's house: the guises and the ways of sharing the frame it leans to, so the songs
 # differ from one another as well as from bar to bar. (The first song, the album's argument, has none.)
 HOUSE = {
-    2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout smoked delayed puzzle warpby timemap standing scanfold",
+    2: "echo water blown mirror stop slices ball double lighten diptych satellite cutout smoked delayed puzzle warpby timemap standing scanfold prismby",
     3: "lines engraved hatched typed sheet blueprint leaded strips bands intercut triptych stencil woven sampler knitted itself diagonal woodcut",
     4: "typed onebit newsprint dots blocks combed poster board corner card strips tracking puzzle beaded bricks halves louvers riso",
     5: "relief planet hole tunnel falling blown duotone sweep window nest bands cutout infra screen ridged papercut embossed stagepass anamorph",
-    6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass dripping beaded halves warpby hyperbolic anamorph",
+    6: "overgrown wound warp solar leaded kaleido flood difference lighten iris rings glass dripping beaded halves warpby hyperbolic anamorph prismby",
     7: "coiled falling kaleido spin wall wound ball nest rings wedges satellite glass woven bricks papercut itself diamond hyperbolic anamorph",
     8: "leaded engraved newsprint poster flood duotone mirror triptych diptych window board infra woven puzzle bricks halves louvers woodcut riso",
     9: "stop slices echo fringe roll relief drawn double iris sweep corner cutout smoked delayed papercut reeded timemap scanfold",
     10: "onebit dots torn combed typed poster negative difference card bands corner stencil dripping sampler beaded carried negmask woodcut riso",
-    11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking screen papercut puzzle louvers stagepass",
+    11: "mirror roll spin sheet blocks torn wall diptych sweep card intercut tracking screen papercut puzzle louvers stagepass prismby",
     12: "mirror drawn blueprint hatched ball echo water diptych intercut lighten satellite cutout screen papercut diagonal negmask timemap woodcut scanfold",
     13: "echo stop slices fringe water overgrown hole double window iris difference glass smoked negative stencil ridged carried embossed timemap scanfold",
     14: "typed dots lines blocks sheet onebit stop strips board wedges triptych stencil delayed beaded bricks louvers reeded standing scanfold",
     15: "warp wound blown torn water combed tunnel sweep bands double satellite dripping woven knitted sampler carried warpby standing",
-    16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass tracking delayed ridged reeded embossed standing anamorph",
+    16: "fringe duotone solar relief falling planet leaded lighten difference nest window glass tracking delayed ridged reeded embossed standing anamorph prismby",
     17: "tunnel falling planet roll blown ball flood wedges rings nest card stencil infra screen puzzle ridged itself diamond hyperbolic stagepass anamorph",
 }
 HOUSE = {n_: set(v.split()) for n_, v in HOUSE.items()}
 OPEN = {1: "stringart"}     # the picture a song opens on, where it is not the first of its featured ones (the album's first picture, and the one the landing brings back)
 TRANSITIONS = ("melt", "luma", "push", "strips", "burn", "blocks", "zoom", "weave", "spiral", "rings", "checker", "split", "wipe", "iris", "blinds", "clock", "diamond", "rise", "dissolve",
                "flip", "squeeze", "shred", "stretch", "whip", "fall", "whirl", "ripple", "glitch", "pixel", "tiles", "doors", "spin", "scan", "diagonal", "slats", "interlace", "star", "dither", "corners", "wave",
-               "fan", "shutter", "mosh", "smoke", "overgrow", "echo", "drip",
+               "fan", "shutter", "mosh", "smoke", "overgrow", "echo", "drip", "inkbleed",
                "phase", "canon", "rung", "sum", "barber", "halving", "golden", "euclid", "dealt", "owed", "leaf", "negative", "ritard", "haul", "beats", "stairs",
                "displace", "prism", "aperture", "accordion", "pendulum", "gear", "orbit", "chromatic",
                "cube", "shatter", "kaleido", "polar", "fold", "louver",
-               "vortex", "carousel", "ribbon", "shockwave")
+               "vortex", "carousel", "ribbon", "shockwave", "facet", "slitcurtain")
 # Ways that keep something of the old picture from frame to frame: they take longer (about two seconds).
-CARRIED = ("mosh", "smoke", "overgrow", "echo", "drip")
+CARRIED = ("mosh", "smoke", "overgrow", "echo", "drip", "inkbleed")
 # Ways that count or move mechanically (counted.rs): the dense ones need about two seconds to be read, the rest a second and a half.
 COUNTED = {"rung": 1.9, "sum": 1.9, "euclid": 1.9, "dealt": 1.9, "golden": 1.9, "halving": 1.9, "ritard": 1.9, "stairs": 1.9,
            "phase": 1.4, "canon": 1.4, "barber": 1.4, "owed": 1.4, "leaf": 1.4, "negative": 1.4, "haul": 1.4, "beats": 1.4,
            "displace": 1.6, "prism": 1.6, "aperture": 1.6, "accordion": 1.7, "pendulum": 1.4, "gear": 1.7, "orbit": 1.8, "chromatic": 1.5,
            "cube": 1.5, "shatter": 1.6, "kaleido": 1.6, "polar": 1.6, "fold": 1.6, "louver": 1.6,
-           "vortex": 1.6, "carousel": 1.7, "ribbon": 1.6, "shockwave": 1.5}
+           "vortex": 1.6, "carousel": 1.7, "ribbon": 1.6, "shockwave": 1.5, "facet": 1.7, "slitcurtain": 1.6}
 # How each song passes into the next: its own idea, counted out over its last two bars
 # (the wheels going round at their own rates; the row rung; the oblong cut into its squares).
 # After the last song the walk comes up in black.
@@ -2649,7 +2649,7 @@ def fits(kind, A, B):
         return A in W.BROAD and B in W.BROAD
     if kind == "timemap":         # B's lightness pulls A back in time; works best when A is broad and B is not thin
         return A in W.BROAD and B not in W.THIN
-    if kind in ("glass", "warpby", "embossed"):         # A is refracted/displaced/shaded by B
+    if kind in ("glass", "warpby", "embossed", "prismby"):         # A is refracted/displaced/shaded/dispersed by B
         return A in W.BROAD and (kind != "warpby" or B in W.BROAD)
     if kind == "stagepass":
         return A not in W.THIN and B not in W.THIN
