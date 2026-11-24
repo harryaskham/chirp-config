@@ -1199,7 +1199,7 @@ TAPE = os.environ.get("C10T5_TAPE", "1;84:96;-1;0.575;0.41;-24;" if FALLTONE els
 # the pole, and up the run out of it. No other part changes.
 # dB on the tone against its level under the stair ; bars from:to ; the loudness target ('' = unchanged). '' = v29.
 # It is on only while no other C10T5_ switch is set, so every older switch gives exactly what it gave.
-HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM", "C10T5_SNARE", "C10T5_LEAN", "C10T5_ASCENT", "C10T5_SCRAPE", "C10T5_HAND", "C10T5_UNDER", "C10T5_SPIRAL") for k in os.environ) else "")
+HALFWAY = os.environ.get("C10T5_HALFWAY", "-1.5;72:82;" if TAPE and not any(k.startswith("C10T5_") and k not in ("C10T5_OUT", "C10T5_SHOW", "C10T5_HALFWAY", "C10T5_SAID", "C10T5_CLIMBS", "C10T5_GROUNDED", "C10T5_EXCHANGE", "C10T5_PALM", "C10T5_SNARE", "C10T5_LEAN", "C10T5_ASCENT", "C10T5_SCRAPE", "C10T5_HAND", "C10T5_UNDER", "C10T5_SPIRAL", "C10T5_ECHO") for k in os.environ) else "")
 
 # v31 (chirper-two; palette: the song had no voice, and no song on the album had used the engine's speech to song):
 # WE HAVE BEEN HERE BEFORE. A song "all about the illusions" (Harry, 15 Nov) had every illusion of pitch and of speed
@@ -1522,6 +1522,8 @@ def song():
         the_chug_under_the_stair_holds(doc)
     if SPIRAL:
         the_stair_is_a_spiral(doc)
+    if ECHO:
+        the_echo_climbs(doc)
     return doc
 
 
@@ -2156,6 +2158,54 @@ def the_stair_is_a_spiral(doc):
     auto["on"] = lane(merged)
     fx.append({"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.on", "amount": float(makeup)}]}})
     doc["tracks"] = doc["tracks"][:i] + [{**t, "fx": fx, "auto": auto}] + doc["tracks"][i + 1:]
+    if target:
+        doc["loudness"] = float(target)
+
+
+# v43 (chirper-zero, 24 Nov; instrument round on Harry's 24 Nov steer for interesting effects and guitar sound: the
+# lead guitar's echo, on the two honest lines, `lead` 0:57.6-1:12 and `ascent` 2:09.6-2:24; no note moves, no track is
+# added, no patch changes): THE ECHO CLIMBS.
+#   The lead is the song's one honest line: over a stair that climbs for ever and is no higher it really comes down
+#   two octaves (v4), and over the fall that is never lower it really climbs back (v38). Its rig has an echo (the
+#   library's lead-tape: a dark tape echo, a quarter note), and the echo was honest too: every repeat at the pitch
+#   that was played. In a song where everything that repeats is climbing it was the one repeat that stayed put. Now
+#   each repeat is AN OCTAVE ABOVE THE LAST. A bus `up` hears the two lead tracks' finished sound a quarter note ago
+#   and its own a quarter note ago, through the engine's `pitch` an octave up (the album's first use) and an eq
+#   that is inside the loop: each trip is an octave higher and passes the eq again, so the echoes rise under a
+#   fixed bell and go out at the top, which is how the stair itself is made. The tape echo stays, on the same
+#   quarter note. No track sends to the bus and none is changed: the notes are still honest, and what the illusion
+#   gets is what the lead lets go of. In the stair the line walks down and its echoes climb away from it; in the
+#   fall the line climbs and its echoes go on ahead, the last still rising at 2:24 where the right-hand guitars
+#   take the climb over (v21). The three leads that play the stair from 2:53 are not on the bus.
+#   MEASURED (raw, the song's seed): one F4 alone, the added sound a quarter note at a time: -35.6, -37.6, -44.3,
+#   -53.2 dBFS (the note -30.6) ; the octave above the note falls about 10 dB a trip while three octaves up rises to
+#   the second trip and holds ; the strongest partial goes F6, F7, F7, F8, F8. In the mix the echo stands 8 dB under
+#   at 2 and 4 kHz ; the mix by octave at 2 / 4 / 8 kHz: +0.56 / +0.60 / +0.29 dB on the lead, +0.76 / +0.69 / +0.22
+#   on the ascent ; the stretches +0.15 and +0.16 dB. Before 0:57.6, from 1:55.2 to 2:09.6 and from 2:52.8 the raw
+#   mix is the same to the sample.
+#   BENCHED AND REFUSED: the mirror, the fall taking the ascent's notes DOWN an octave a trip: +1.17 dB on the mix at
+#   500 Hz, where the descent already stands over the records. Also a dotted eighth (the stair's step: but the tape
+#   echo is on the quarter), a bar (a canon: a part, not a sound), brighter and darker bells.
+# the tracks the bus hears ; a trip round the loop (a note value or seconds) ; semitones each trip ; how loud the
+# tracks come in ; how loud the bus comes back into itself ; the loop's high-pass and low-pass, Hz ; the bus's pan ;
+# the loudness target ('' = unchanged). "" = v42 byte for byte. On only while SPIRAL is; C10T5_ECHO is in HALFWAY's
+# list of names that do not turn it off.
+ECHO = os.environ.get("C10T5_ECHO", "lead,ascent;1/4;12;-3dB;-4dB;300;5000;0.1;" if SPIRAL else "")
+
+
+def the_echo_climbs(doc):
+    """v43: a bus `up` that hears the lead guitar's two tracks a quarter note ago and itself a quarter note ago, through
+    a pitch shifter set an octave up and an eq: so each trip round the loop is an octave higher than the last, and the
+    eq (inside the loop) is the bell the echoes climb out under. No track sends to it and none is changed: a bus's
+    `returns` hear a track's finished output. Before the lead's first note the bus is silent."""
+    who, time, semi, level, back, hp, lp, pan, target = ECHO.split(";")
+    names = [t["name"] for t in doc["tracks"]]
+    assert "up" not in doc["buses"] and all(w in names for w in who.split(",")), who
+    bus = {"fx": [{"type": "pitch", "semitones": float(semi)}, {"type": "eq", "bands": [f"hp cutoff={hp}", f"lp cutoff={lp}"]}],
+           "returns": [{"from": w, "gain": level, "time": time} for w in who.split(",")] + [{"from": "up", "gain": back, "time": time}]}
+    if pan:
+        bus["pan"] = float(pan)
+    doc["buses"] = {**doc["buses"], "up": bus}
     if target:
         doc["loudness"] = float(target)
 
