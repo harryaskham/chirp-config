@@ -123,8 +123,8 @@ class Song:
 # in each guise).
 FEATURE = {
     1: ("loom", "remainder", "crystal", "helix", "billiard", "riley", "reels", "torusknot"), 2: ("sympathy", "pendwave", "strings", "cradle", "seesaw", "ink", "strobe", "worldlines"), 3: ("changes", "maypole", "chorus", "stringart", "drill", "vasarely"),
-    4: ("abacus", "tally", "dominoes", "automaton", "odometer", "hanoi", "barcode", "dice"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist", "barber"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling", "ripplebath"),
-    7: ("rabbits", "golden", "spiral", "sunflower", "mandala", "star", "kandinsky", "courses"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout", "measure", "reels"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial", "dice", "torusknot"),
+    4: ("abacus", "tally", "dominoes", "automaton", "odometer", "hanoi", "barcode", "dice", "hilbert"), 5: ("stairs", "ridges", "escalator", "flight", "lifts", "trampoline", "suprematist", "barber"), 6: ("colony", "bifurcate", "automaton", "anemone", "lava", "marbling", "ripplebath"),
+    7: ("rabbits", "golden", "spiral", "sunflower", "mandala", "star", "kandinsky", "courses"), 8: ("loom", "tartan", "solkattu", "musicbox", "specimen", "breakout", "measure", "reels", "hilbert"), 9: ("henge", "orrery", "moons", "grove", "snow", "sundial", "dice", "torusknot"),
     10: ("balance", "coins", "tape", "galton", "duel", "hourglass", "barcode"), 11: ("doors", "blinds", "press", "hammers", "tesla", "albers", "portals"), 12: ("hands", "juggle", "semaphore", "chorus", "fan", "shadowplay", "braille"),
     13: ("eclipse", "pond", "spiral", "lanterns", "rink", "zen", "braille", "ripplebath", "worldlines"), 14: ("numerals", "tally", "zoetrope", "seismo", "leader", "hourglass", "strobe", "dice"), 15: ("slack", "ropes", "wires", "swings", "switchboard", "rothko"),
     16: ("beats", "moire", "chladni", "eclipse", "lighthouse", "billiard", "candles", "ripplebath"), 17: ("hailstone", "railway", "highway", "gates", "constellation", "searchlights", "sundial", "phasecorridor", "kaleidohall"),

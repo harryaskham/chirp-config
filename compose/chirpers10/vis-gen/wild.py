@@ -5240,6 +5240,52 @@ def torusknot(c):
     return {"background": "#03040a", "camera": camera, "layers": layers, "filters": [{"type": "aa"}, bloom(c, 0.5, 0.02, 0.55)]}
 
 
+@idiom(needs=1, fam="fill", paper=True, cost=2)
+def hilbert(c):
+    """Time laid over a square: a sixteenth is a cell, and the cells are taken along a
+    Hilbert curve, so that what is near in time is near in space. A beat is a block of two
+    by two, a bar a block of four by four, four bars a block of eight. Every note lights
+    the cell it fell in. A riff a bar long prints the same figure in every block; a riff of
+    another length prints one that never sits the same way twice. A square to a part."""
+    P = _cast(c, 2, celled=True)
+    if len(P) < 2:
+        P = (P + [p for p in c.drums + c.every + c.tunes + c.parts if p.name not in {q.name for q in P}])[:2]
+    order = 4 if (c.b16 - c.a16) >= 96 else 3               # sixteen bars to a square, or four
+    side, cells = 2 ** order, 4 ** order
+    S = 4.25                                                # the square's side
+    u = S / side
+    gap = 0.34
+    now = f"(fract((time.beat*4 + 0.001)/{cells})*{cells})"
+    layers = []
+    for i, p in enumerate(P):
+        x0 = (i - (len(P) - 1) / 2) * (S + gap)
+
+        def at(d, x0=x0):
+            return f"{x0:g} + (hilbx({d}, {order}) - {(side - 1) / 2:g})*{u:g}", f"({(side - 1) / 2:g} - hilby({d}, {order}))*{u:g}"
+        col = c.col(i)
+        # The ground, and the blocks of four by four (bars) ruled on it.
+        layers.append(box(x0, 0, 0.3, S / 2 + 0.06, S / 2 + 0.06, 0.02, **glow(c.dim, 0.16)))
+        for ax in (0, 1):
+            n_ = side // 4 + 1
+            xy = (f"{x0:g} + (inst.i - {(n_ - 1) / 2:g})*{4 * u:g}", 0) if ax == 0 else (x0, f"(inst.i - {(n_ - 1) / 2:g})*{4 * u:g}")
+            sz = (0.006, S / 2) if ax == 0 else (S / 2, 0.006)
+            layers.append(box(xy[0], xy[1], 0.25, sz[0], sz[1], 0.005, count=n_, **glow(c.dim, 0.75)))
+        # The curve: a link from each cell to the next, lit as far as now has come this time round.
+        mx, my = at("inst.i + 0.5")
+        # (It runs over the lit cells, so the thread of time is seen going through the notes.)
+        layers.append(box(mx, my, 0.04, f"0.0045 + {u / 2:g}*abs(hilbx(inst.i + 1, {order}) - hilbx(inst.i, {order}))", f"0.0045 + {u / 2:g}*abs(hilby(inst.i + 1, {order}) - hilby(inst.i, {order}))", 0.004,
+                          count=cells - 1, **glow(c.ink, f"0.16 + 0.75*step(inst.i + 1, {now})")))
+        # The notes: each lights its cell, bright as it sounds and settling to a steady lamp.
+        d = f"floor(fract((note.beat*4 + 0.02)/{cells})*{cells})"
+        nx, ny = at(d)
+        layers.append(box(nx, ny, 0.1, f"{0.36 * u:g}*(1 + 0.45*exp(0 - 4*note.age))", f"{0.36 * u:g}*(1 + 0.45*exp(0 - 4*note.age))", 0.02,
+                          notes={"track": p.name, "past": cells / 4 - 0.5}, **glow(col, "0.75 + 2.6*exp(0 - 1.2*note.age)")))
+        # Now.
+        cx_, cy_ = at(now)
+        layers.append(box(cx_, cy_, 0, 0.5 * u, 0.5 * u, 0.02, **glow(c.ink, f"0.55 + 1.2*{p.hit}"), opacity=0.55))
+    return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.4, 0.016, 0.6)]}
+
+
 @idiom(needs=2, fam="spacetime", cost=2)
 def worldlines(c):
     """Space one way and time the other. Each part goes round once in its riff, here and
