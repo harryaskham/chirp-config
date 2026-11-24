@@ -2840,8 +2840,8 @@ def billiard(c):
     felt = "#0f2a22" if c.variant % 2 == 0 else "#1a1830"
     layers = [box(0, 0, 0.3, Wt + 0.25, Ht + 0.25, 0.05, **glow("#2a1c12", 1)), box(0, 0, 0.2, Wt, Ht, 0.05, **glow(felt, 1)),
               ball(f"(inst.i - 2*floor(inst.i/2) - 0.5)*{2 * Wt}", f"(floor(inst.i/2) - 0.5)*{2 * Ht}", 0, f"0.16 + 0.5*{meet}", 10, count=4, **glow(c.ink, f"0.25 + 6*{meet}")),
-              {"type": "trail", "x": x, "y": y, "z": 0, "length": f"clamp(scene.t, 0.05, {min(40.0, (c.b16 - c.a16) * c.six):g})", "samples": 1600, "width": 0.014, "taper": 0, "glow": 0.75, "fade": 0.55, "color": c.b},
-              ball(x, y, -0.05, f"0.11 + 0.05*{A.hit}", 12, **glow(c.a, f"1.6 + 2*{A.hit}"))]
+              {"type": "trail", "x": x, "y": y, "z": 0, "length": f"clamp(scene.t + 2.5, 2.5, {min(40.0, (c.b16 - c.a16) * c.six + 2.5):g})", "samples": 1600, "width": 0.016, "taper": 0, "glow": 0.85, "fade": 0.55, "color": c.b},
+              ball(x, y, -0.05, f"0.13 + 0.06*{A.hit}", 12, **glow(c.a, f"1.8 + 2*{A.hit}"))]
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.35, 0.016, 0.6)]}
 
 
@@ -3410,15 +3410,15 @@ def candles(c):
         gap = min(1.25, 8.3 / n_) * (1 - 0.15 * i)
         k = min(1.0, gap / 0.7) * (1 - 0.15 * i)
         d = f"(fract({p.turn} - inst.i/{n_})*{n_})"
-        burn = f"(0.25 + 0.75*exp(0 - 0.5*{d}))"
+        burn = f"(0.32 + 0.68*exp(0 - 0.42*{d}))"
         y0 = -2.3 + 1.7 * i
         x = f"(inst.i - {(n_ - 1) / 2})*{gap:g}"
-        h = f"(0.7 - 0.4*{d}/{n_})*{k:g}"
-        layers.append(box(x, f"{y0:g} + {h}", 0.1 + 0.1 * i, 0.13 * k, h, 0.02, count=n_, **glow(_grey(0.24), 1)))
-        layers.append(ball(x, f"{y0:g} + 2*{h} + {0.16 * k:g} + {0.1 * k:g}*{burn}", 0.1 * i, f"{0.09 * k:g} + {0.13 * k:g}*{burn}", 10, sy=1.5, count=n_, **glow("#ffffff", f"0.4 + 0.6*{burn}")))
+        h = f"(0.72 - 0.35*{d}/{n_})*{k:g}"
+        layers.append(box(x, f"{y0:g} + {h}", 0.1 + 0.1 * i, 0.14 * k, h, 0.02, count=n_, **glow(_grey(0.32), 1)))
+        layers.append(ball(x, f"{y0:g} + 2*{h} + {0.16 * k:g} + {0.1 * k:g}*{burn}", 0.1 * i, f"{0.11 * k:g} + {0.15 * k:g}*{burn}", 10, sy=1.55, count=n_, **glow("#ffffff", f"0.55 + 0.7*{burn}")))
     return {"background": "#000000", "camera": FLAT, "layers": layers,
-            "filters": [{"type": "flow", "field": "rise", "speed": 0.32, "decay": 0.55}, {"type": "blur", "radius": 0.005},
-                        {"type": "remap", "gain": 1.2, "palette": ["#050308", "#2a0a06", "#8a1f08", "#e0660f", "#f9b62a", "#fff4c8"]}, bloom(c, 0.4, 0.02, 0.7)]}
+            "filters": [{"type": "flow", "field": "rise", "speed": 0.34, "decay": 0.65}, {"type": "blur", "radius": 0.005},
+                        {"type": "remap", "gain": 1.35, "palette": ["#050308", "#350d08", "#a4260a", "#ea7014", "#fbc036", "#fff6d2"]}, bloom(c, 0.45, 0.02, 0.65)]}
 
 
 @idiom(needs=1, fam="light", cost=2, max_cell=32)
@@ -3705,8 +3705,10 @@ def dice(c):
         fx, fy = _face(count, idx)
         px = f"(({beat} - 1.5)*{gap:g} + {fx}*{s * 0.56:g})"
         py = f"({y0:g} + {fy}*{s * 0.56:g})"
-        layers.append(ball(px, py, -0.1, f"{s * 0.17:g}*(1 + 0.7*exp(0 - 7*note.age))", 12, notes={"track": p.name, "past": 4.3}, palette=[c.col(r), "#17151a", "#17151a"], pos="clamp(note.age*1.2, 0, 0.5)",
-                           emit=1, light=0, ambient=1, rim=0, opacity=f"step(floor(time.beat/4), {NBAR})"))
+        # Keep previous bar's pips slightly dimmed until overwritten so beats 2-4 never look blank.
+        same_bar = f"step(floor(time.beat/4), {NBAR})"
+        layers.append(ball(px, py, -0.1, f"{s * 0.17:g}*(1 + 0.7*exp(0 - 7*note.age))", 12, notes={"track": p.name, "past": 4.3}, palette=[c.col(r), "#17151a", "#3a3640"], pos=f"mix(0.85, clamp(note.age*1.2, 0, 0.5), {same_bar})",
+                           emit=1, light=0, ambient=1, rim=0, opacity=f"0.42 + 0.58*{same_bar}"))
     return {"background": c.bg, "camera": FLAT, "layers": layers, "filters": [bloom(c, 0.3, 0.014, 0.85)]}
 
 
@@ -4646,7 +4648,7 @@ GROUNDED = set("searchlights solkattu numerals hailstone membrane mobile pong co
                "orrery pendwave sunflower juggle radial clockshop venn switchboard star rain fountain echoes skein coins fan invaders golden fireflies candles".split())
 # Guises a grounded picture may wear (they leave a dim ground a dim ground).
 GROUND_OK = set("solar stop combed blown plain kaleido mirror wall planet tunnel echo slices fringe spin roll wound water torn hole lines warp falling ball tracking screen delayed puzzle smoked dripping "
-                "coiled halves reeded louvers".split())
+                "coiled halves reeded louvers hyperbolic standing".split())
 
 
 def ground(c, look, kind):
@@ -4758,7 +4760,7 @@ def cinema(c):
     """A picture house: one of the film's own pictures on the screen, the beam overhead, and
     a row of heads."""
     name, look = _small(c, 0)
-    layers = [{"type": "screen", "use": look, "x": 0, "y": 2.3, "z": 5, "w": 6.8, "h": 3.83, "glow": 2.6, "res": 360},
+    layers = [{"type": "screen", "use": look, "x": 0, "y": 2.3, "z": 5, "w": 6.8, "h": 3.83, "glow": 1.55, "res": 360},
               box(0, 2.3, 5.1, 3.6, 2.1, 0.05, **solid("#16161a", 0.9)), lamp(0, 2.3, 3.0, 0.8, c.a, 8),
               {"type": "motes", "mode": "drift", "count": 200, "w": 4, "h": 2, "d": 8, "y": 2.8, "z": 0.5, "fall": 0.02, "wobble": 0.1, "size": 0.008, "glow": 0.4, "twinkle": 0.6, "color": "#cfd8ff"}]
     for row in range(2):
@@ -4995,6 +4997,98 @@ def c_glass(c, A, B):
 def c_stencil(c, A, B):
     """One picture shows only through the lights of the other, which is itself seen faintly."""
     return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "stencil", "gain": 5}), _act(B, blend="add", fade=0.22)], "filters": []}
+
+
+@idiom(needs=2, fam="space", cost=3)
+def depthstage(c):
+    """True depth-interplay stage: two live instruments occupy a shared 3D actor stage where
+    they orbit past one another in depth (passing in front of and behind each other as their
+    riffs drift in and out of phase) while a gentle camera glides and rolls through the space."""
+    n1, look1 = _small(c, 0)
+    n2, look2 = _small(c, 1, skip=[n1])
+    A, B = c.riffs[0], c.riffs[1]
+    per = max(2, math.ceil(6.0 / ((A.cell or 16) * c.six)))
+    ph = f"({A.turn}/{per} + 0.125)"
+    ph2 = f"({B.turn}/{max(2, math.ceil(6.0 / ((B.cell or 16) * c.six)))})"
+    # Actor A orbits on the primary ellipse; Actor B counter-orbits in depth relative to A,
+    # reading actor.a's live coordinates so their paths stay coupled in 3D space and both are
+    # clearly separated across the frame from the first beat!
+    actors = [
+        {"use": look1, "name": "a", "mask": "rect", "res": 0.65,
+         "x": f"0.72*sin({ph})", "y": f"0.16*cos({ph})", "z": f"0.85 + 0.52*cos({ph})",
+         "scale": f"0.86 + 0.08*{A.hit}", "rotate": f"0.025*sin({ph})"},
+        {"use": look2, "name": "b", "mask": "rect", "res": 0.65,
+         "x": f"0 - actor.a.x", "y": f"0.18*sin({ph2})", "z": f"1.7 - actor.a.z",
+         "scale": f"0.84 + 0.08*{B.hit}", "rotate": f"0 - 0.025*sin({ph2})"},
+    ]
+    return {
+        "background": c.bg,
+        "layers": [
+            {"type": "stars", "count": 450, "speed": 0.015, "size": 1.1, "light": 0.35, "twinkle": 0.5, "streak": 1.2, "blend": "add"},
+            {"type": "stage",
+             "camera": {"x": "0.14*actor.a.x", "y": "0.06*sin(time.bar/6)", "z": -1.1, "zoom": 1.22, "roll": "0.012*sin(time.bar/8)", "fog": 0.08},
+             "actors": actors},
+        ],
+        "filters": [bloom(c, 0.3, 0.014, 0.75)],
+    }
+
+
+@idiom(needs=2, fam="field", cost=2)
+def moirefield(c):
+    """Interfering spacetime waves: two grids of luminous bars oriented along the two riffs'
+    angles, pulsing and sliding at each riff's own cadence, creating living interference
+    fringes that lock crisp when the two cycles coincide."""
+    A, B = c.riffs[0], c.riffs[1]
+    env = hit_env([A, B], "160ms")
+    na = max(6, min(A.cell, 24))
+    nb = max(6, min(B.cell, 24))
+    layers = [
+        # First lattice: tilted slightly positive, sliding one bar per turn of A.
+        box(f"(inst.i - {(na - 1) / 2:g})*{8.6 / na:g} + {8.6 / na:g}*(fract({A.turn}) - 0.5)", 0, 0.02,
+            0.032 + 0.015 * (na < 12), 2.8, 0.01, count=na, rz=f"0.04 + 0.06*sin({A.turn}/4)",
+            **glow(c.a, f"0.55 + 1.2*env.h0")),
+        # Second lattice: counter-tilted, sliding at B's turn; interference bands beat at |1/A - 1/B|.
+        box(f"(inst.i - {(nb - 1) / 2:g})*{8.6 / nb:g} - {8.6 / nb:g}*(fract({B.turn}) - 0.5)", 0, 0.0,
+            0.032 + 0.015 * (nb < 12), 2.8, 0.01, count=nb, rz=f"0 - 0.04 - 0.06*sin({B.turn}/4)",
+            **glow(c.b, f"0.55 + 1.2*env.h1")),
+        # Horizontal interference nodes where A and B phases agree.
+        ball(f"3.4*sin({A.turn})", f"1.8*cos({B.turn})", -0.04, f"0.16 + 0.14*min(env.h0, env.h1)", 12,
+             **glow("#ffffff", "0.7 + 2.5*min(env.h0, env.h1)")),
+    ]
+    return {"background": c.bg, "camera": FLAT, "env": env, "layers": layers,
+            "filters": [{"type": "slitwave", "waves": 3, "amp": "0.02 + 0.05*max(env.h0, env.h1)", "phase": f"{A.turn}/2", "angle": 0.125, "split": 0.45},
+                        bloom(c, 0.45, 0.016, 0.65)]}
+
+
+@combo("timemap")
+def c_timemap(c, A, B):
+    """Spacetime interplay: the second picture's brightness bends time inside the first
+    picture — where B is dark, A runs live; where B lights up on its notes, A pulls back
+    into its own past (one turn of the riff deep), with a subtle rim of B over it."""
+    p = _lead(c)
+    depth = max(0.45, min(2.2, (p.cell or 16) * c.six))
+    return {"background": "#000000", "layers": [_act(A), _act(B, **{"as": "chronos", "depth": round(depth, 3), "gain": 3.5}), _act(B, blend="add", fade=0.14)], "filters": []}
+
+
+@combo("stagepass")
+def c_stagepass(c, A, B):
+    """Two pictures sharing a 3D stage: they weave past each other in depth on the riff's
+    turn so each takes the foreground in turn while the other recedes behind it."""
+    p = _lead(c)
+    per = max(2, math.ceil(5.5 / ((p.cell or 16) * c.six)))
+    u = f"({p.turn}/{per} + 0.125)"
+    return {
+        "background": "#000000",
+        "layers": [{
+            "type": "stage",
+            "camera": {"x": 0, "y": 0, "z": -1.1, "zoom": 1.2, "roll": f"0.012*sin({u})", "fog": 0.08},
+            "actors": [
+                {"use": A, "name": "a", "mask": "rect", "res": 0.7, "x": f"0.68*sin({u})", "y": f"0.12*cos({u})", "z": f"0.8 + 0.5*cos({u})", "scale": 0.84},
+                {"use": B, "name": "b", "mask": "rect", "res": 0.7, "x": "0 - actor.a.x", "y": "0 - actor.a.y", "z": "1.6 - actor.a.z", "scale": 0.84},
+            ],
+        }],
+        "filters": [],
+    }
 
 
 @combo("cutout")
@@ -5304,13 +5398,13 @@ def t_kaleido(c, look):
 
 # Two guises at once (dealt where the music is full): one that moves the picture, then one
 # that changes what it is made of, then one that works on it in time.
-STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0,
+STACK = {"falling": 0, "coiled": 0, "ball": 0, "kaleido": 0, "mirror": 0, "wall": 0, "planet": 0, "wound": 0, "tunnel": 0, "hole": 0, "warp": 0, "spin": 0, "roll": 0, "hyperbolic": 0, "standing": 0,
          "dots": 1, "newsprint": 1, "engraved": 1, "hatched": 1, "onebit": 1, "drawn": 1, "blueprint": 1, "typed": 1, "duotone": 1, "poster": 1, "flood": 1, "solar": 1, "relief": 1, "fringe": 1,
          "leaded": 1, "infra": 1, "woven": 1, "screen": 0, "papercut": 1, "ridged": 1, "knitted": 1, "sampler": 1, "bricks": 1, "beaded": 1, "reeded": 1, "louvers": 0,
          "puzzle": 2, "itself": 1, "carried": 2, "delayed": 2, "tracking": 2, "smoked": 2, "dripping": 2, "torn": 2, "water": 2, "echo": 2, "stop": 2, "combed": 2, "blown": 2, "overgrown": 2}
 
 # Pairs of guises that leave only texture, or flood white (feedback+grow saturates to pale wash).
-STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself")}
+STACK_BAD = ({(a_, b_) for a_ in ("tunnel", "wall", "wound", "kaleido", "falling", "coiled", "hyperbolic") for b_ in ("blueprint", "drawn", "typed", "engraved", "hatched", "knitted", "sampler", "beaded", "ridged", "itself")}
              | {("tunnel", "overgrown"), ("overgrown", "tunnel"), ("itself", "carried"), ("carried", "itself")})
 
 # Pictures that stand to one side, or are a line of things: half of one is not a picture.
@@ -5709,6 +5803,27 @@ def t_louvers(c, look):
     return _pre(look, {"type": "louver", "count": count, "turn": f"0.11*sin({p.turn}/{per})", "twist": 0.07, "shade": 0.35, "angle": (0.0, 0.04, -0.04, 0.25)[c.seed % 4], "amount": c.arr})
 
 
+@treat("hyperbolic", ok=lambda c, info: info["f"].__name__ in KALEIDO_OK and info["f"].__name__ not in THIN and c.riffs)
+def t_hyperbolic(c, look):
+    """Projected onto a Poincare hyperbolic disc: mirrored copies pack infinitely toward
+    the circular horizon, rotating and breathing radially with the riff."""
+    p = _lead(c)
+    order = p.cell if 4 <= (p.cell or 0) <= 10 else (5, 6, 7, 8)[c.seed % 4]
+    per = max(2, math.ceil(6.0 / ((p.cell or 16) * c.six)))
+    return _pre(look, {"type": "hyper", "order": order, "depth": 2.0, "turn": f"{p.turn}/{per * 2}", "zoom": f"0.6*{p.turn}/{per}", "rim": 0.4, "amount": c.arr})
+
+
+@treat("standing", ok=lambda c, info: info["fam"] not in ("sign", "plate", "type"))
+def t_standing(c, look):
+    """Standing-wave optical shear: the picture ripples along oriented harmonic waves with
+    chromatic crest splitting, surging on every note of the riff."""
+    p = _lead(c)
+    look.setdefault("env", {})["swv"] = {"on": f"track.{p.name}", "attack": "15ms", "decay": "450ms"}
+    waves = (2.5, 3.5, 4.0, 5.0)[c.seed % 4]
+    angle = (0.0, 0.125, 0.25, -0.125)[c.seed % 4]
+    return _pre(look, {"type": "slitwave", "waves": waves, "amp": "0.025 + 0.075*env.swv", "phase": f"{p.turn}/2", "angle": angle, "split": 0.45, "amount": c.arr})
+
+
 def _stitch(c, look, mode, count, **kw):
     look = _unbloomed(look)
     look["filters"] += [{"type": "color", "exposure": 1.25, "saturation": 1.2}, {"type": "stitch", "mode": mode, "count": count, "amount": c.arr, **kw}]
@@ -5874,7 +5989,7 @@ def t_negative(c, look):
 
 
 ARRIVES = ("dots", "engraved", "hatched", "drawn", "typed", "onebit", "blueprint", "lines", "warp", "slices", "duotone", "wall", "planet", "solar", "relief", "poster", "flood", "combed", "blown", "leaded",
-           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried", "reeded", "louvers")
+           "overgrown", "falling", "coiled", "ball", "smoked", "dripping", "infra", "woven", "screen", "delayed", "papercut", "ridged", "knitted", "sampler", "bricks", "beaded", "itself", "carried", "reeded", "louvers", "hyperbolic", "standing")
 
 # Idioms drawn in hair lines and points, made bolder so that they read at any size: how far
 # each thing in them is spread (a fraction of the frame's height).
@@ -5885,7 +6000,7 @@ BOLD = {"numerals": 0.004, "orrery": 0.004, "kelvin": 0.004, "galton": 0.004, "s
 
 
 # Guises that add to a picture (copies, echoes, mirrors) rather than print it.
-FILLS = ("kaleido", "mirror", "wall", "planet", "tunnel", "echo", "slices", "fringe", "spin", "roll", "wound", "water", "torn", "hole", "lines", "warp", "solar", "blown", "overgrown", "combed", "falling", "ball", "smoked", "dripping", "tracking", "screen", "delayed", "puzzle", "reeded")
+FILLS = ("kaleido", "mirror", "wall", "planet", "tunnel", "echo", "slices", "fringe", "spin", "roll", "wound", "water", "torn", "hole", "lines", "warp", "solar", "blown", "overgrown", "combed", "falling", "ball", "smoked", "dripping", "tracking", "screen", "delayed", "puzzle", "reeded", "hyperbolic", "standing")
 
 
 def bolder(name, look):
