@@ -279,7 +279,7 @@ LONG = os.environ.get('C10T15_LONG', '15;17;15;0;0;-9.9' if TEETH else '')
 # Benched raw against everything else and against the voices alone (K, whole stretch): see the round note. The
 # box's own weight (its fundamentals, 350-620 Hz) is cut 8 dB at 430 Hz: the choruses already stand 2.4 to 2.9 dB
 # over the records there, and what a concertina is heard by over a band is its reed (1-8 kHz).
-TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW', 'C10T15_PICK', 'C10T15_SNARE', 'C10T15_WAIT', 'C10T15_TOMS', 'C10T15_MUSTER', 'C10T15_SAYS', 'C10T15_SWELL') for k in os.environ)
+TUNE = os.environ.get('C10T15_TUNE', '' if any(k.startswith('C10T15_') and k not in ('C10T15_OUT', 'C10T15_SHOW', 'C10T15_TUNE', 'C10T15_SUB', 'C10T15_METAL', 'C10T15_DRAW', 'C10T15_PICK', 'C10T15_SNARE', 'C10T15_WAIT', 'C10T15_TOMS', 'C10T15_MUSTER', 'C10T15_SAYS', 'C10T15_SWELL', 'C10T15_BREATH') for k in os.environ)
                       else '-4.5dB;0.35;-12dB;-3;hp cutoff=300|peak cutoff=430 q=0.8 gain=-8dB|peak cutoff=2500 q=0.7 gain=3dB;-9.85')
 # the chorus's tune as a concertina plays it, an octave over the crew: their notes where they sing them, a passing
 # note in the breath after 'haul', and two sixteenths up into the next bar. (sixteenth, length, note), a bar a line.
@@ -1373,6 +1373,43 @@ def the_squeezebox_breathes_in_sea_air(doc, marks):
         doc['loudness'] = float(target)
 
 
+# v25 (chirper-zero, 24 Nov; instrument round on Harry's 24 Nov steer: the shantyman's voice; no note moves, no word
+# changes, no track is added; a small round): THE SHANTYMAN BREATHES BEFORE HE HAULS.
+# The song's word is "haul", and his sung /h/ was 80 ms of breath through the vowel's own tract, at full level
+# within 40 ms and most of it on the vowel's first formant: an "all" that starts early and noisy (small.en, his part
+# alone, verses one and three: of his six answers it wrote four, each as "All"; with the breath, the same four as
+# "Hall"). The engine's `aspirate` (voice layer,
+# 0..1, landed with bd-43d2e1 and never used on the album) at 1 breathes it out over 160 ms ahead of the beat,
+# high-passed at 1.2 kHz before the tract, with the vowel still on the beat; where his line runs on into the /h/ the
+# breath is taken from the note before (up to 40% of it). His 64 /h/ syllables: haul 40, home 13, her 7, hold 3, who 1.
+# REFUSED, benched at 1 on each: the crew (`crew`, `crew-high`, `muster-*`; small.en reads their "haul" as "home"
+# with it and without, and their "her" in "haul her home" 3 choruses of 3 without and 0 of 3 with: five breaths run
+# the three words together) and the two hands (`man-late`, `man-early`: a shouted /h/ is as loud as its vowel, so the
+# whole shout would start 165 ms before its beat where it starts 82, and how late and how early they are is the song).
+# C10T15_BREATH = track:amount,track:amount,... (`aspirate` on the voice layer of each named track, 0..1).
+#   '' = v24 byte for byte. On only while SWELL is; 'C10T15_BREATH' is in TUNE's exempt list.
+BREATH = os.environ.get(
+    'C10T15_BREATH',
+    'shanty:1'
+    if SWELL else '',
+)
+
+
+def the_shantyman_breathes_before_he_hauls(doc):
+    """v25: `aspirate` on the voice layer (layer 0) of each named track: a sung /h/ is breathed out ahead of the beat."""
+    want = dict(p.split(':') for p in BREATH.split(',') if p)
+    seen = set()
+    for i, t in enumerate(doc['tracks']):
+        if t['name'] in want:
+            a = float(want[t['name']])
+            assert 0 <= a <= 1 and 'aspirate' not in t['patch'] and 'synth.layers.0.diction' in t['patch'], t['name']
+            assert any(' HH ' in f" {n.get('ph', '')} " for n in t['notes']), f"{t['name']} sings no /h/"
+            if a:
+                doc['tracks'][i] = {**t, 'patch': t['patch'] + f' synth.layers.0.aspirate={a:g}'}
+            seen.add(t['name'])
+    assert seen == set(want), set(want) - seen
+
+
 if __name__ == '__main__':
     doc, marks = build()
     if SUB:
@@ -1395,6 +1432,8 @@ if __name__ == '__main__':
         doc['loudness'] = float(SAYS.split(';')[4])
     if SWELL:
         the_squeezebox_breathes_in_sea_air(doc, marks)
+    if BREATH:
+        the_shantyman_breathes_before_he_hauls(doc)
     if os.environ.get('C10T15_SHOW'):
         for sec, bars in FORM:
             t = marks[sec]
