@@ -150,6 +150,8 @@ songs or more: that is what `patchbank.py succeed` puts in the successor `NAME-2
 | `synth.pitch.mod.3.amount` | 2 | 1 | `1` in 7 |  |
 | `synth.layers.0.choke` | 2 | 1 | `120ms` in 8 |  |
 | `fx.1.sag` | 2 | 1 | `0.5` in 12 |  |
+| `+phaser.rate` | 2 | 1 | `1.75b` in 17 |  |
+| `+phaser.stages` | 2 | 1 | `4` in 17 |  |
 | `+filter.q` | 1 | 1 | `0.7` in 2 |  |
 
 ## `808`: 11 songs, 19 tracks; as it comes in tracks 5, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17
