@@ -58,7 +58,32 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True}
+# ---- v8 (26 Nov): PAID IN FULL. Two more switches, each `--without-…` (with them off it is v7 byte for byte).
+#   ZENO   v7's roll pays interest and is shut on the one by a hand: right where the drum is playing, and wrong in
+#          the two bars where there is none (16 and 96: before the drum first comes, and before it comes again).
+#          Alone, a roll that grows ends level with the drum it is there to bring in (1 dB under its first beat),
+#          and the drum does not arrive. There the change is now paid another way: in coins that shrink. After
+#          the seed each gap is three quarters of the one before and each coin that much softer, so eight coins
+#          and all the coins after them fit into the two beats that are left: a debt paid in full in endless
+#          instalments, the last of them on the one, which is the drum. The two coins of the song take turns:
+#          the odd instalments come back a fifth up on the left, the even a fourth down on the right, so the
+#          roll is the next section's first note's fifth, an octave apart, closing on it.
+#   MEET   since v7 the bass plays the other purses' debts where purses share a section, and there the bass
+#          and the hat fall on the same sixteenths for the first time (what one purse cannot pay another can).
+#          Now the hat says so: where it meets a B flat in the bass it is let ring (an open hat, a new sound,
+#          over the shut one). At the peak that is six open hats in a bar of threes and fives or threes and
+#          fours and two in a bar of fives and sevens: bright for two bars and plain for one, a cycle of three
+#          bars over phrases of four. (First tried as the same hat 2 dB harder: 1.1 to 1.4 dB more hat in
+#          every bar, and 0.3 dB between the bars: nothing anyone would hear as a meeting.)
+ZENO = {'share': 0.75, 'coins': 8, 'db': -10, 'pan': 0.6, 'up': 4, 'down': 12}   # each gap, and each coin's level, as a share of the one before; how many are heard (the next is the one); dB on its seed (v6's lone seed); how far to each side; the two buses' faders.
+# Bench (zeno.sh, zenoread.py: the seed and its coins alone by 60 ms): with both faders at 0 the first coin (a fifth up) stood 7 dB under the seed where 2.5 was written and the second (a fourth down) 16 where 5 was: the pitch
+# effect gives a short stroke back 4.5 dB down going up and 11 going down. So 4 and 12 dB on the buses
+MEET = {'gain': '-5dB', 'pan': -0.15, 'len': 0.25}   # the open hat: its fader (the shut hat's is 4 dB), its side (the shut hat is at 0.15), beats it is held.
+# Bench, bars 113 to 116 raw: at -2 dB the open hat alone stood level with the shut one (-44.5 -45.2 -47.2 -44.5 by bar beside -44.8 -44.7 -46.3 -45.0) and put 4.3 to 5.2 dB on the mix above 5 kHz (it rings five times as long): too much of a lift for one sound. So 3 dB less
+OPEN = {'about': "Small Change: the hat let ring, where what one purse can pay is what another owes (v8). The machine's hat, 140 ms, above 5 kHz.",
+        'synth': {'layers': [{'type': 'machine', 'machine': {'part': 'hat', 'decay': '140ms'}}], 'filters': ['hp cutoff=5000'], 'amp': {'a': '0.1ms', 'd': '0s', 's': 1, 'r': '120ms'}},
+        'play': {'event_stable': True, 'vel_sens': 0.8}}
 # ---- v7 (26 Nov): INTEREST. Two more switches, each `--without-…` (with them off it is v6 byte for byte).
 #   GROW   v6's small change before a section could only run out (a purse gives back less than it is given): it
 #          was loudest on its seed, a flurry falling away into the one. Now the roll's purse pays interest: its
@@ -242,7 +267,8 @@ def rolls():
         if not sec[5] and not ON['lone']:
             continue                                             # no drum in this section: the roll would be alone
         out[(i + 1) * SEC - 1] = (ROLL['new' if nxt[1] != sec[1] else 'same'], nxt[4][0])
-    return {b: (GROWN[k], n) for b, (k, n) in out.items()} if ON['grow'] else out
+    out = {b: (GROWN[k], n) for b, (k, n) in out.items()} if ON['grow'] else out
+    return {b: ('z' if ON['zeno'] and not SECTIONS[b // SEC][5] else k, n) for b, (k, n) in out.items()}   # v8: where there is no drum, the purse of shrinking coins
 
 
 def hand():
@@ -254,7 +280,7 @@ def hand():
 
 
 def build():
-    T = {'kick': [], 'bass': [], 'hat': [], **{f'seed-{k}': [] for k in purses()}, **{f'long-{k}': [] for k in purses()}}
+    T = {'kick': [], 'bass': [], 'hat': [], **{f'seed-{k}': [] for k in purses()}, **({'seed-z': []} if ON['zeno'] and ON['roll'] else {}), **({'open': []} if ON['meet'] and ON['owed'] and ON['hat'] else {}), **{f'long-{k}': [] for k in purses()}}
     for i, (name, pairs, every, at16, notes, drum, bass) in enumerate(SECTIONS):
         n = 0
         if ON['flip'] and at16:                                  # off the beat: the purse inside out
@@ -280,7 +306,7 @@ def build():
             waits = ON['wait'] and i + 1 < len(SECTIONS) and SECTIONS[i + 1][0] == 'home' and bar >= (i + 1) * SEC - WAIT
             waits = waits or (ON['leave'] and i + 1 < len(SECTIONS) and drum and SECTIONS[i + 1][5] and SECTIONS[i + 1][3] and not at16 and bar >= (i + 1) * SEC - WAIT)
             if ON['roll'] and bar in rolls():                    # v6: small change before the next section
-                level = (GROW_DB if ON['grow'] else ROLL)['db' if drum else 'alone']
+                level = ZENO['db'] if rolls()[bar][0] == 'z' else (GROW_DB if ON['grow'] else ROLL)['db' if drum else 'alone']
                 T[f'seed-{rolls()[bar][0]}'].append({'at': bar * 4 + ROLL['beat'], 'len': 0.25, 'pitch': rolls()[bar][1], 'vel': 0.9, **({'gain': f"{level}dB"} if level else {})})
             if waits:                                            # the bars before home, or before the turn: only the purse
                 continue
@@ -292,6 +318,7 @@ def build():
                         continue
                     T['kick'].append({'at': bar * 4 + beat, 'len': 0.5, 'pitch': 'G1', 'vel': .95 if beat == 0 else .88})
             pq = purses()[pairs[(bar - i * SEC) % len(pairs)]]  # the purse whose turn this bar is
+            others = []
             if bass and ON['debts']:
                 for s in debts(*pq):
                     if (at16 + s) % 4:                           # never with the drum
@@ -309,6 +336,8 @@ def build():
                 for s, n_coins in coins(*pq).items():
                     if bass or n_coins == 1:                     # before the bass comes, only the two coins themselves
                         T['hat'].append({'at': bar * 4 + (at16 + s) % BAR / 4, 'len': 0.1, 'pitch': 'A#4', 'vel': round(.95 - .13 * (n_coins - 1), 2)})
+                        if 'open' in T and s in others and (at16 + s) % 4:   # v8 MEET: it falls with one of the other purses' debts
+                            T['open'].append({**T['hat'][-1], 'len': MEET['len']})
     return T
 
 
@@ -360,10 +389,20 @@ def song():
                   [{'name': f'seed-{k}', 'patch': 'sc-seed', 'gain': {'value': '-3dB', 'mod': [{'src': 'auto.alone', 'amount': 1}]}, 'auto': {'alone': alone()},
                     'notes': T[f'seed-{k}'], 'fx': ['clip drive=0dB ceiling=-12dB']} for k in purses()],   # the seed's highest sample is its own, not the limiter's
     }
+    if T.get('seed-z'):                                          # v8 ZENO: a seed of its own, and its change in shrinking coins: no loop, one echo a coin, the two pitches taking turns
+        doc['tracks'].append({'name': 'seed-z', 'patch': 'sc-seed', 'gain': {'value': '-3dB', 'mod': [{'src': 'auto.alone', 'amount': 1}]}, 'auto': {'alone': alone()}, 'notes': T['seed-z'], 'fx': ['clip drive=0dB ceiling=-12dB']})
+        r, n = ZENO['share'], ZENO['coins']
+        gap = (4 - ROLL['beat']) * 60000 / BPM * (1 - r) / (1 - r ** (n + 1))        # so that coin n + 1 would fall on the one
+        for name, semi, side, js in (('zu', UP, -1, range(1, n + 1, 2)), ('zd', DOWN, 1, range(2, n + 1, 2))):
+            buses[name] = {'pan': side * ZENO['pan'], 'gain': f"{ZENO['up' if semi == UP else 'down']}dB", 'fx': [{'type': 'pitch', 'semitones': semi, 'mix': 1}, 'hp cutoff=150'],
+                           'returns': [{'from': 'seed-z', 'gain': f'{20 * log10(r) * j:.2f}dB', 'time': f'{gap * (1 - r ** j) / (1 - r) - LAG[semi]:.2f}ms'} for j in js]}
     for k in purses():
         if ON['long'] and T[f'long-{k}']:
             doc['tracks'].append({'name': f'long-{k}', 'patch': 'sc-seed', 'gain': {'value': '-3dB', 'mod': [{'src': 'auto.alone', 'amount': 1}]}, 'auto': {'alone': alone()},
                                   'notes': T[f'long-{k}'], 'fx': ['clip drive=0dB ceiling=-12dB']})
+    if T.get('open'):
+        doc['patches'] = {**doc['patches'], 'sc-open': OPEN}
+        doc['tracks'].append({'name': 'open', 'patch': 'sc-open', 'gain': MEET['gain'], 'pan': MEET['pan'], 'notes': T['open']})
     if ON['hat']:
         doc['patches'] = {**doc['patches'], 'sc-hat': HAT}
         doc['tracks'].append({'name': 'hat', 'patch': 'sc-hat', 'gain': '4dB', 'pan': 0.15, 'notes': T['hat']})
@@ -386,7 +425,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v6, the last six v5, the last seven v4, the last ten v3, the last fourteen v2, all seventeen v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v7, the last four v6, the last eight v5, the last nine v4, the last twelve v3, the last sixteen v2, all nineteen v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -406,7 +445,9 @@ if __name__ == '__main__':
         if ON['smaller']:
             print(f"    the last section's four seeds are paid from {' '.join(LAST)}: coins of 3 and 5 sixteenths, thirty-seconds, sixty-fourths, and periods of B flat 3 ({unit('n'):.2f} ms)")
         if ON['roll']:
-            print('    small change before a section: ' + ', '.join(f"bar {b + 1} ({'thirty-seconds' if k in (ROLL['same'], GROWN[ROLL['same']]) else 'sixty-fourths'}, {n})" for b, (k, n) in rolls().items()) + ('; the drum gives up beat four there' if ON['gap'] else '') + ('; the roll grows and is shut on the one' if ON['grow'] else ''))
+            print('    small change before a section: ' + ', '.join(f"bar {b + 1} ({'shrinking coins' if k == 'z' else 'thirty-seconds' if k in (ROLL['same'], GROWN[ROLL['same']]) else 'sixty-fourths'}, {n})" for b, (k, n) in rolls().items()) + ('; the drum gives up beat four there' if ON['gap'] else '') + ('; the roll grows and is shut on the one' if ON['grow'] else ''))
+        if ON['meet']:
+            print('    the hat is let ring where it meets one of the other purses\' debts in the bass')
         if ON['owed']:
             print(f'    where purses share a section the bass also plays what the others cannot pay, on {OWED}: ' + '; '.join(f"{name}: " + ', '.join(f"{k} {' '.join(str(s) for s in sorted(set(debts(*purses()[k])) | {s for j in pairs for s in debts(*purses()[j])}) if s % 4)}" for k in pairs) for name, pairs, *_ in SECTIONS if len(pairs) > 1))
         T = build()
