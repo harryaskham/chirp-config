@@ -1,0 +1,20 @@
+{
+ "about": "Hearing Things' part of a bell (chirper-zero, 26 Nov, v11): one plain tone with the v6 bells' own shape, and its loudness is its velocity and nothing else. A bell is made of one of these for every octave of its note, so the curve the octaves are under can be somewhere else at every bell. BANKED by tools/patchbank.py (26 Nov 2026) from Hearing Things v11 (track fall): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "4ms",
+   "d": "420ms",
+   "r": "90ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}

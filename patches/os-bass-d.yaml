@@ -1,0 +1,37 @@
+{
+ "about": "Out of Step's second pump (chirper-zero, 26 Nov, v11): two pairs of sines, on D2 and its octave, each pair 3.15 Hz apart (a cycle and a half a beat at 126), both tones of a pair as loud as each other. Struck on the off-beat it swells three times in two beats, where the bass swells twice: three against two. The pair's mean is as sharp as the bass's (18.5 cents). For D2 ONLY: another note needs its own ratios. BANKED by tools/patchbank.py (26 Nov 2026) from Out of Step v11 (track bassd): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "mono": true,
+  "vel_sens": 0.2
+ },
+ "synth": {
+  "amp": {
+   "a": "4ms",
+   "d": "0s",
+   "r": "30ms"
+  },
+  "layers": [
+   {
+    "level": "-3dB",
+    "phase": 0.0,
+    "ratio": 0.989261
+   },
+   {
+    "level": "-3dB",
+    "phase": 0.0,
+    "ratio": 1.032167
+   },
+   {
+    "level": "-9dB",
+    "phase": 0.0,
+    "ratio": 1.999976
+   },
+   {
+    "level": "-9dB",
+    "phase": 0.0,
+    "ratio": 2.042882
+   }
+  ]
+ }
+}

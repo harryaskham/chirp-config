@@ -1,0 +1,23 @@
+{
+ "about": "Least Common: the hat let ring, once every five beats: the first hat after the five's knock (v9). The drum machine's hat with ten times the shut one's ring, held half a beat. BANKED by tools/patchbank.py (26 Nov 2026) from Least Common v9 (track open): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.6
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "60ms"
+  },
+  "layers": [
+   {
+    "machine": {
+     "decay": "450ms",
+     "part": "hat"
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}
