@@ -34,7 +34,7 @@ LAG = {UP: 19.7, DOWN: 23.8}                # ms taken off a coin's time for the
 G = 0.62                                    # what a coin gives back each pass (the loop loses about 4 dB more: bench)
 ALONE = 0                                   # dB the seeds' faders come up where there is no drum. 0: tried at 6, the finished sections came up 1.9 dB and the rest went to the master's limiter
 PAIRS = {'a': (3, 5), 'b': (3, 4), 'c': (5, 7)}
-PAN = {'a': 0.6, 'b': 0.3, 'c': 0.9, 'd': 0.6}
+PAN = {'a': 0.6, 'b': 0.3, 'c': 0.9, 'd': 0.6, 'e': 0.3, 'h': 0.6, 'q': 0.6, 'n': 0.6}
 OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 
 # ---- v2 (26 Nov): THE COINS DO MORE THAN ECHO. Three switches that are on, each `--without-…`, and one that is off,
@@ -58,7 +58,30 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False}
+# ---- v5 (26 Nov): SMALLER CHANGE. One more switch that is on (`--without-smaller`: with it off it is v4 byte for byte) and one that is off (`--with-inside`).
+#   SMALLER the song ended as it began, thinner: four seeds, each with the change the first seed had. Now each of the
+#           last four seeds is paid in smaller coins than the one before: 3 and 5 sixteenths (as ever), 3 and 5
+#           thirty-seconds, 3 and 5 sixty-fourths, and then 3 and 5 of a unit so small that it is a pitch: the
+#           period of B flat 3 (4.29 ms). At that size the coin problem is heard all at once: the amounts that
+#           cannot be made (1, 2, 4, 7) are a rattle nine milliseconds long, and from 8 on every amount can be
+#           made, which is an echo every 4.29 ms, which is B flat: the last seed's change is its own note, held.
+#           The smallest change there is gives you back what you paid.
+#   INSIDE  (OFF) the second purse (3 and 4) had no sound of its own. In the second half of its two sections (bars 57 to
+#           64 and 73 to 80) it is inside out, as the first purse is at the turn: the four lifts a fifth on the
+#           left and the three drops a fourth on the right (a purse `e`: 4 and 3). The amounts are the same, so the
+#           hat and the bass do not change. It does what it says (by solo the quick run falls -5, -10 where it climbed
+#           +7, +14). Off because the scorer reads more of the song as returning with it (0.724 of it for 0.709;
+#           the band stops at 0.70) and takes 1.45 points, and because the same turn at bar 129 (FLIP) is still
+#           waiting for an ear: if that one reads as a turn, put this in.
+SMALL = {'h': ((3, 5), 2, 0.8), 'q': ((3, 5), 4, 0.9)}   # the smaller purses: coins, how many of its units make a sixteenth, what it gives back each pass (its passes come sooner, so it is given back more)
+NOTE = {'n': ((3, 5), 233.08, 0.70, '-19dB')}   # the purse whose unit is a pitch: coins, the pitch (B flat 3), what each loop gives back of itself and of the other, what it takes of the seed.
+# Bench, the last seed raw, level every 250 ms: giving back 0.62 and taking all of the seed, -17 -36 -58 -73 -88: 13 dB over the seed itself (the purse is tuned to the seed's note) and gone in a second.
+# Taking 8 dB less: 0.66 -22 -36 -54 -59 -66 -77; 0.68 -22 -32 -47 -48 -51 -58 -68 -76; 0.70 -21 -28 -40 -36 -36 -40 -48 -54 -53 -54 -58 -64, and by bar -29 -58 -85 -108, which is the slope of
+# the first seed's change in sixteenths (-36 -58 -83 -108): the note takes its four bars to go, and it does go. Then less of the seed again: at -13 dB the finished song's last four bars began at -9 dBFS where the three seeds before stand at -17 or -18 (a held note alone goes to the master's ceiling as a click cannot): at -19 see the round's note
+LAST = 'ahqn'                               # the last section's four seeds are paid from these in turn
+INSIDE = {'e': (4, 3)}                      # the second purse inside out
+INSIDE_IN = ('threes and fours', 'both purses')
 # ---- v4 (26 Nov): THE PURSE INSIDE OUT. The turn (bars 129 to 160, the seed off the beat) is the song's idea and
 # was its quietest moment: half the drum going was all that marked it. Three more switches, each `--without-…`
 # (with them off it is v3 byte for byte).
@@ -144,7 +167,13 @@ PATCHES = {
 
 def purses():
     """The pairs of coins in use: PAIRS, and with FLIP the purse inside out."""
-    return {**PAIRS, **(FLIPPED if ON['flip'] else {})}
+    return {**PAIRS, **(FLIPPED if ON['flip'] else {}), **(INSIDE if ON['inside'] else {}),
+            **({k: v[0] for k, v in {**SMALL, **NOTE}.items()} if ON['smaller'] else {})}
+
+
+def unit(k):
+    """A purse's unit, ms: a sixteenth, or for the smaller purses a part of one, or a pitch's period."""
+    return S16 / SMALL[k][1] if k in SMALL else 1000 / NOTE[k][1] if k in NOTE else S16
 
 
 def frobenius(p, q):
@@ -170,7 +199,12 @@ def build():
         dense = ON['denser'] and not drum and i < len(SECTIONS) - 1
         if dense:
             every = 1
+        whole = pairs
         for bar in range(i * SEC, (i + 1) * SEC):
+            if ON['inside'] and name in INSIDE_IN:               # its second half: the second purse inside out
+                pairs = ''.join('e' if k == 'b' else k for k in whole) if bar - i * SEC >= SEC // 2 else whole
+            if ON['smaller'] and i == len(SECTIONS) - 1:         # the last seeds: each paid in smaller coins
+                pairs = LAST[(bar - i * SEC) // every % len(LAST)]
             if (bar - i * SEC) % every == 0:
                 kept = ON['long'] and not drum and i < len(SECTIONS) - 1          # the opening and the break: into the long purse
                 home = ON['chord'] and name == 'home'
@@ -221,13 +255,19 @@ def song():
     buses = {}
     for k, (p, q) in purses().items():
         gl = G_FILL if ON['fill'] and k == 'c' else G_LONG
+        u, g = unit(k), SMALL[k][2] if k in SMALL else G
         for coin, other, semi, side in ((p, q, UP, -1), (q, p, DOWN, 1)):
             me, you = f'{k}{coin}', f'{k}{other}'
-            t = f'{coin * S16 - LAG[semi]:.2f}ms'
+            if k in NOTE:                                        # coins too small for the pitch effect, and too small to need it: the purse is the pitch
+                t = f'{coin * u:.3f}ms'
+                buses[me] = {'pan': side * PAN[k], 'gain': '0dB', 'fx': ['lp cutoff=6000', 'hp cutoff=40'],   # the high-pass at 150 Hz, as in the other purses, is early in phase at 466 Hz: the note read 13 cents sharp under in-tune harmonics
+                             'returns': [{'from': f'seed-{k}', 'gain': NOTE[k][3], 'time': t}, {'from': me, 'gain': db(NOTE[k][2]), 'time': t}, {'from': you, 'gain': db(NOTE[k][2]), 'time': t}]}
+                continue
+            t = f'{coin * u - LAG[semi]:.2f}ms'
             buses[me] = {'pan': side * PAN[k], 'gain': '0dB',
                          'fx': [{'type': 'pitch', 'semitones': semi, 'mix': 1}, f'lp cutoff={TILL[0]}+lfo.till*{TILL[1]}' if ON['till'] else 'lp cutoff=10000', 'hp cutoff=150'],
-                         **({'lfo': {'till': f'sine rate={1000 / (p * q * S16):.4f}hz'}} if ON['till'] else {}),
-                         'returns': [{'from': f'seed-{k}', 'gain': '0dB', 'time': t}, {'from': me, 'gain': db(G), 'time': t}, {'from': you, 'gain': db(G), 'time': t}]}
+                         **({'lfo': {'till': f'sine rate={1000 / (p * q * u):.4f}hz'}} if ON['till'] else {}),
+                         'returns': [{'from': f'seed-{k}', 'gain': '0dB', 'time': t}, {'from': me, 'gain': db(g), 'time': t}, {'from': you, 'gain': db(g), 'time': t}]}
             if ON['long'] and T[f'long-{k}']:                   # the same two loops again, giving back more
                 buses[me + 'L'] = {**buses[me], 'returns': [{'from': f'long-{k}', 'gain': '0dB', 'time': t}, {'from': me + 'L', 'gain': db(gl), 'time': t}, {'from': you + 'L', 'gain': db(gl), 'time': t}]}
     doc = {
@@ -282,6 +322,10 @@ if __name__ == '__main__':
             every = 1 if ON['denser'] and not drum and i < len(SECTIONS) - 1 else every
             pairs = ''.join('d' if k == 'a' else k for k in pairs) if ON['flip'] and at16 else pairs
             print(f'{i + 1:2d}  bars {b + 1:3d}-{b + SEC:3d}  {int(b * sec) // 60}:{b * sec % 60:05.2f}  {name:20s} coins {pairs:3s} a seed every {every} bar(s) on sixteenth {at16} {"/".join(notes):12s} {"drum " if drum else ""}{"bass" if bass else ""}')
+        if ON['inside']:
+            print(f"    in the second half of {' and '.join(INSIDE_IN)} purse b is inside out (e: 4 and 3)")
+        if ON['smaller']:
+            print(f"    the last section's four seeds are paid from {' '.join(LAST)}: coins of 3 and 5 sixteenths, thirty-seconds, sixty-fourths, and periods of B flat 3 ({unit('n'):.2f} ms)")
         T = build()
         print(f'{BARS} bars, {BARS * sec:.1f} s; written notes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items() if v or not k.startswith('long-')))
     else:
