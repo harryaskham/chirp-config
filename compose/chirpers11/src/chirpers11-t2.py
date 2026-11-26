@@ -99,6 +99,23 @@ every 7. Those meetings, a click with the drum, were the only ones in the song t
          knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
          song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
 
+v10 (26 Nov): EACH OF THE FOUR TAKES A TURN. Since v9 the clap counts with the three on page 7 and the hat with
+the five on page 8; the drum and the bass had not left the four. Three switches (`--without-skip`, `-leap`, `-back`;
+all three off is v9 byte for byte):
+  SKIP   on page 6 (bars 132 to 154) the drum rests on the beat where the three and the five meet: every fifteen
+         beats after the turn (15, 30, 45, 60, 75). Its answer still sounds there (the knock, two notes): the
+         beat is given to the answer. The sixth time (90 beats) is where the four stops for the page turn, as it
+         always did: five single beats missing, and then the drum stays away for fifteen. The break is counted
+         in, in fifteens.
+  LEAP   on page 8 (bars 185 to 204) the bass counts with the seven: the bass note after each of the seven's
+         knocks is played an octave up, twelve times, seven beats apart. So on the last two pages the clap has
+         the three, the hat the five and the bass the seven, and before them the drum has the three and five
+         together.
+  BACK   since v8 the clicks are struck 4 dB harder through the second half and nothing else was: in the
+         finished song its pages read 2 dB more above 1 kHz than the first half's and 0.6 to 0.8 dB less from
+         60 to 130 Hz, where the song already stands 5 to 8 dB under the album. The bass is given 2 dB back
+         from the second half on (the leaping notes with it: they are struck as hard as the notes round them).
+
 v9 (26 Nov): THE CLAP CHANGES SIDES. Everything that counted three, five and seven was a click, a ping or a
 knock; the four's own parts (the drum, the bass, the hat, the clap) never left the four. Three switches
 (`--without-count`, `-sway`, `-open`; all three off is v8 byte for byte):
@@ -182,7 +199,10 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True}
+      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True}
+BACK = 2                                # v10: dB on the bass through the second half
+SKIP = {'page': 5, 'meet': (3, 5)}     # v10: the page (from 0) on which the drum rests where two cycles meet; the two
+LEAP = {'page': 7, 'cycle': 7, 'within': 6, 'db': -2}   # v10: the page on which the bass counts with a cycle; the cycle, beats; sixteenths after its knock within which the bass's next note is looked for; dB on that note, an octave up
 COUNT = {'page': 6, 'cycle': 3, 'beat': 1}   # v9: the page (from 0) on which the clap counts with a cycle; the cycle, beats; the beat of it the clap falls on (from 0: the one after the knock)
 SWAY = {'pan': 0.5, 'db': 2.5}          # v9: how far to each side the clap stands while it counts; dB on it there.
 # Bench (count.sh, countread.py: page 7's first nine bars by beat): at the clap's own fader the claps to the sides read -43 to -45 a beat where the clap in the middle read -41 (what a side costs): so 2.5 dB
@@ -462,7 +482,8 @@ def build():
         if len(heads) >= 2:
             held.append((s, tuple(heads)))
         if s % BEAT == 0 and not broken(s):
-            add('kick', s, 2, 'G1', .95 if s % BAR == 0 else .88)
+            if not (ON['skip'] and r // PAGE == SKIP['page'] - pages and tuple(heads) == SKIP['meet']):   # v10 SKIP: the beat is given to the answer
+                add('kick', s, 2, 'G1', .95 if s % BAR == 0 else .88)
             knock(s)
         elif s % BEAT == 0 and ON['carry']:                  # v7: the answer goes on through the break
             knock(s, CARRY_DB)
@@ -490,6 +511,9 @@ def build():
     marks += [("each click's echo keeps its old cycle: 3, 5 and 7 sixteenths under 3, 5 and 7 beats", HALF)] * ON['ghost'] + [(f'the clicks are struck {FORE} dB harder', HALF)] * ON['fore']
     marks += [(f"the clap counts with the three: every third beat, the beat after the knock" + (', from side to side' if ON['sway'] else ''), COUNT['page'] * PAGE)] * ON['count']
     marks += [("the hat counts with the five: the first hat after each of its knocks is let ring", OPEN['page'] * PAGE)] * ON['open']
+    marks += [(f'the bass is struck {BACK} dB harder', HALF)] * ON['back']
+    marks += [("the drum rests where the three and the five meet: every fifteen beats, five times; the sixth is the break", HALF + (SKIP['page'] - pages) * PAGE)] * ON['skip']
+    marks += [("the bass counts with the seven: the note after each of its knocks is an octave up", HALF + (LEAP['page'] - pages) * PAGE)] * ON['leap']
     marks += [('only the drum is left of the four', HALF + last * SUPER), ('home', TOTAL)]
     if ON['break']:
         marks = sorted(marks + [('the four stops for the page turn', t - BREAK) for t in TURNS], key=lambda m: m[1])
@@ -507,7 +531,7 @@ def build():
         if page >= 1 and not (ON['small'] and page == pages):   # v5 SMALL: the second half's first page has no bass, as the first half's has none
             for off, ln, p in cell:
                 if not broken(s0 + off) and not bare(s0 + off):
-                    add('bass', s0 + off, ln, roots[s0 + off] if ON['roots'] else p, .85)
+                    add('bass', s0 + off, ln, roots[s0 + off] if ON['roots'] else p, .85, **({'gain': f'{BACK}dB'} if ON['back'] and s0 + off >= HALF else {}))
         if page in (2, 3, 6, 7):
             late = 1 if ON['push'] and page % pages == pages - 1 else 0       # v4: the last page of a half, a sixteenth late
             for off in (2, 6, 10, 14):
@@ -527,6 +551,16 @@ def build():
             for off in (4, 12):
                 if not broken(s0 + off) and not bare(s0 + off):
                     add('clap', s0 + off, 1, 'C4', .7)
+    if ON['leap']:                                             # v10 LEAP: the bass note after each of the seven's knocks, an octave up
+        for s7 in range(HALF + (LEAP['page'] - pages) * PAGE, HALF + (LEAP['page'] - pages + 1) * PAGE, LEAP['cycle'] * BEAT):
+            after = [n for n in T['bass'] if s7 < n['at'] * 4 <= s7 + LEAP['within']]
+            if after:
+                n = min(after, key=lambda n: n['at'])
+                n['pitch'] = n['pitch'][:-1] + str(int(n['pitch'][-1]) + 1)
+                if float(n.get('gain', '0dB')[:-2]) + LEAP['db']:
+                    n['gain'] = f"{float(n.get('gain', '0dB')[:-2]) + LEAP['db']:g}dB"
+                else:
+                    n.pop('gain', None)
     return T, marks
 
 
@@ -633,7 +667,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v8, the last five v7, the last eight v6, the last nine v5, the last twelve v4, the last seventeen v3, the last twenty-five v2, all thirty-one v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v9, the last six v8, the last eight v7, the last eleven v6, the last twelve v5, the last fifteen v4, the last twenty v3, the last twenty-eight v2, all thirty-four v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
