@@ -202,6 +202,21 @@ Bars 149 to 152: one clap on every beat, 32 pairs of hands, the back row 17 ms b
 Nothing is random: every person's rate, first clap and moment of halving are taken from the golden ratio.
 A hand is a 9 ms burst of noise with nothing under 1.5 kHz: `compscore --bands` said this song has 6 to 13 dB
 less than the rest of the record from 8 to 15 kHz, and applause is what that is.
+
+v13 (26 Nov): THE CORRIDOR'S OTHER TWO WALLS (C11T3_FLUT=0 takes it out: v12). The corridor has had two walls
+since v1: its ends, a long way off, which send the click back as an echo you can count. It has two more, the
+ones beside you, 2.34 m apart, and a click between two close hard walls does not echo: it RATTLES (a flutter
+echo), going across and back 73 times a second, which is the note D2. Standing in the middle the click comes
+off both walls at once, twice in each crossing: the rattle is an octave up (D3) and in the middle of the head.
+Step toward the left wall and the left wall's click comes first and the right wall's later: the rattle drops an
+octave, leans left (the first arrival wins), and its colour changes with every step, because two clicks
+t apart in every 13.6 ms take out the partials of D2 at odd multiples of 1 / 2t.
+
+ALSO, THE CLICK'S REPAIR (C11T3_TRIM=0 leaves the click as it was): `compscore --bands` said this song has 10 dB
+more than the rest of the record at 880 Hz and 12 dB less at 15 kHz. Each part read alone: the click owns both
+(a third of its power is at its own note, A5; and it is the only part with anything over 10 kHz). It is turned
+down 5 dB at 880 Hz and up 6 dB round 15 kHz, on a lane that is nought in the first four bars and the last
+eight (the seams).
 """
 import json
 import math
@@ -413,6 +428,65 @@ CROWD_PULL = float(os.environ.get("C11T3_CROWD_PULL", "5"))   # the pull toward 
 CROWD_GAIN = os.environ.get("C11T3_CROWD_GAIN", "-14dB")   # every person's fader (a row back is quieter by its distance)
 SOUND = 343.0                                          # m/s
 GOLD = (math.sqrt(5) - 1) / 2
+
+
+FLUT = os.environ.get("C11T3_FLUT", "1") != "0" and CROWD                      # v13: the corridor's other two walls (a flutter echo)
+FLUT_IN = "the corridor"
+FLUT_NOTE, FLUT_HZ = "D2", 73.416                      # the note the two side walls make: they are half a wave of it apart
+FLUT_WIDE = SOUND / (2 * FLUT_HZ)                      # m (2.336): a click goes across and back in 1 / 73.4 s
+FLUT_STILL = 8                                         # bars standing in the middle of the corridor first
+FLUT_TURN = 16                                         # bars to walk to the left wall, back through the middle to the right wall, and back
+FLUT_REACH = 0.375                                     # how far from the middle the walk goes, as a share of the width: to an eighth of it from each wall
+FLUT_RETURNS = 2                                       # the side walls ring when the click goes by, and again each time it comes back down the corridor
+FLUT_BACK = 0.63                                       # ... each time at this much of the time before (-4 dB)
+FLUT_RING = 0.7                                        # s a ring's note is held (the patch's own decay ends it sooner)
+FLUT_GAIN = os.environ.get("C11T3_FLUT_GAIN", "-14dB")                         # at -6 it was 10 dB over the music in the gap after the click and took 0.76 dB off the music under it (measured): 8 dB down
+FLUT_RATE = 48000                                      # samples a second: every start is written on a whole sample (half a sample out moved the notches a third of a line at 8 kHz: measured)
+TRIM = os.environ.get("C11T3_TRIM", "1") != "0" and FLUT                        # v13: the click's own note turned down (it was 10 dB over the rest of the record)
+TRIM_CUTS = tuple(c for c in ((880.0, float(os.environ.get("C11T3_TRIM_1", "-5")), 3), (15000.0, float(os.environ.get("C11T3_TRIM_AIR", "6")), 0.7)) if c[1])   # (Hz, dB, q): A5 down ; the click's top up (it owns the top of the song, which had 12 dB less than the rest of the record at 15 kHz)
+TRIM_IN = (4, 16)                                      # bars over which the cut comes in: the first four bars are the click as it always was (Least Common's end is under them)
+TRIM_OUT = (152, 160)                                  # ... and goes out again: the last eight bars are the click as it was (Ring True comes in under them)
+
+
+def flut_span():
+    """The bars of the corridor, or None."""
+    if not FLUT:
+        return None
+    sec = next((x for x in SECS if x[0] == FLUT_IN), None)
+    return (sec[1], sec[1] + sec[2]) if sec else None
+
+
+def flut_where(bar):
+    """How far from the left wall, as a share of the corridor's width, at a time in bars (0.5 is the middle)."""
+    u = bar - flut_span()[0] - FLUT_STILL
+    return 0.5 if u <= 0 else 0.5 - FLUT_REACH * math.sin(2 * math.pi * u / FLUT_TURN)
+
+
+def flut_rings():
+    """Every time the side walls ring: (beat, velocity, share of the width from the left wall)."""
+    b0, b1 = flut_span()
+    out = []
+    for room, a, b, p0, p1, opn, shut in places():
+        if not b0 <= p0 < b1:
+            continue
+        for bar in range(int(round(p0)), int(round(p1))):
+            for k in range(FLUT_RETURNS + 1):
+                at = bar * BEATS + (CLICK(bar)[0][0] + k * (a + b)) * STEP      # the click, and each time it has been to both ends and back
+                if at < b1 * BEATS:
+                    out.append((at, 0.9 * FLUT_BACK ** (k / 2), flut_where(at / BEATS)))   # the patch's loudness goes as the square of the velocity
+    return out
+
+
+def flut_notes(side):
+    """One ear's two trains of clicks, each a saw on the corridor's note (an edge every crossing and back): the one
+    that came off the near wall first (twice the distance to it), then the one that has been off both (twice the width)."""
+    beat = 60 / BPM
+    out = []
+    for at, vel, w in flut_rings():
+        first = round(at * beat * FLUT_RATE)
+        for way in (2 * (w if side == "l" else 1 - w) * FLUT_WIDE, 2 * FLUT_WIDE):
+            out.append({"at": round((first + round(way / SOUND * FLUT_RATE) + 0.25) / FLUT_RATE / beat, 7), "len": round(FLUT_RING / beat, 4), "pitch": FLUT_NOTE, "vel": round(vel, 3)})
+    return sorted(out, key=lambda n: n["at"])
 
 
 def crowd_times():
@@ -877,6 +951,22 @@ def song():
             doc["tracks"].append({"name": f"crowd-{j}", "patch": f"sr-hand-{'ab'[j % 2]}", "gain": CROWD_GAIN, "pan": pan, "notes": crowd_notes(j)})      # dry: the people are what the room is damped by
         doc["about"] = doc["about"].replace(" Generated by", " From v12 the people clap: applause first, everyone twice a beat at a rate of his own, then one by one they halve it and are pulled to the beat, and when the house is full it is one clap on every beat from 32 pairs of hands, the back row a sixtieth of a second behind the front (how a crowd finds one clap: Neda, 2000). Generated by")
         assert "From v12" in doc["about"]
+    if flut_span():
+        PATCHES["sr-flutter"] = {"about": "Standing Room's flutter echo (chirper-zero, 26 Nov, v13): a click going across a corridor and back: a saw on the corridor's own note with everything under 5 kHz taken off, so that only its edge is left, one every crossing and back, dying over half a second. Two of them a little apart are the two walls.",
+                                 "play": {"vel_sens": 1, "gate": 1},
+                                 "synth": {"layers": ["saw phase=0.5"], "filters": [{"kind": "hp", "cutoff": 5000, "q": 0.7}, "peak cutoff=13000 q=0.7 gain=6dB"], "amp": {"a": "1ms", "d": "600ms", "s": 0, "r": "30ms", "curve": 2}}}
+        for side, pan in (("l", -1), ("r", 1)):
+            doc["tracks"].append({"name": f"flut-{side}", "patch": "sr-flutter", "gain": FLUT_GAIN, "pan": pan, "notes": flut_notes(side)})      # dry: an ear each
+        doc["about"] = doc["about"].replace(" Generated by", " From v13 the corridor has its other two walls: the ones beside you, 2.34 m apart, between which the click rattles 73 times a second (a flutter echo on D2); in the middle of the corridor the rattle is an octave up and in the middle of the head, and walking to a wall it drops, leans to that wall and changes colour. Generated by")
+        assert "From v13" in doc["about"]
+    if TRIM:
+        ck = PATCHES["sr-click"]
+        PATCHES["sr-click-t"] = {"about": ck["about"] + " From v13 with its own note (880 Hz) turned down and its top turned up on the lane `trim` (0 the click as it was, 1 the whole repair): the song had 10 dB more than the rest of the record at 880 Hz and 12 dB less at 15 kHz, and the click owns both.",
+                                 "play": dict(ck["play"]), "synth": {**ck["synth"], "filters": list(ck["synth"]["filters"]) + [{"kind": "peak", "cutoff": f, "q": q, "gain": {"value": "0dB", "mod": [{"src": "auto.trim", "amount": g}]}} for f, g, q in TRIM_CUTS]}}
+        for t in doc["tracks"]:
+            if t["name"] == "click":
+                t["patch"] = "sr-click-t"
+                t["auto"] = {**t.get("auto", {}), "trim": {"points": [[f"{x:g}b", y] for x, y in ((0, 0), (TRIM_IN[0] * BEATS, 0), (TRIM_IN[1] * BEATS, 1), (TRIM_OUT[0] * BEATS, 1), (TRIM_OUT[1] * BEATS, 0), (TOTAL, 0))], "curve": 0}}
     if house_stages():
         doc["about"] = doc["about"].replace(" Generated by", " From v11 standing room fills with people, twice, in its last two rows, and by Sabine's law every person takes the same bite from every echo: a wall takes 3 dB from an echo in the empty room, 6 with half a house, 9 with a full one, and the hall's wash dies in a half and then a third of the time. Generated by")
         assert "From v11" in doc["about"]
@@ -960,6 +1050,12 @@ def echoes(a, b, n=16):
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
         sec = 60 / BPM * BEATS
+        if flut_span():
+            b0, b1 = flut_span(); r = flut_rings(); ms = lambda w: 2000 * w * FLUT_WIDE / SOUND
+            print(f"the corridor's other two walls, bars {b0 + 1}-{b1}: {FLUT_WIDE:.3f} m apart ({FLUT_NOTE}, {FLUT_HZ} Hz: across and back in {1000 / FLUT_HZ:.2f} ms) ; {len(r)} rings ; in the middle for bars {b0 + 1}-{b0 + FLUT_STILL}, then to a wall and back every {FLUT_TURN // 2} bars")
+            print("   bar: metres from the left wall, the left wall's click after ms, the right wall's after ms (at the click): " + " ; ".join(f"{int(at // BEATS) + 1}: {w * FLUT_WIDE:.2f}, {ms(w):.2f}, {ms(1 - w):.2f}" for at, v, w in r[::FLUT_RETURNS + 1]))
+        if TRIM:
+            print("the click's repair: " + ", ".join(f"{g:+g} dB at {f:.0f} Hz (q {q:g})" for f, g, q in TRIM_CUTS) + f" ; coming in over bars {TRIM_IN[0] + 1}-{TRIM_IN[1]}, whole in bars {TRIM_IN[1] + 1}-{TRIM_OUT[0]}, going out over bars {TRIM_OUT[0] + 1}-{TRIM_OUT[1]}")
         for name, b0, n, parts, room, width, air in SECS:
             print(f"{name:14s} bars {b0:3d}-{b0 + n:3d}  {int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int((b0 + n) * sec) // 60}:{(b0 + n) * sec % 60:04.1f}  room {room or '-':10s} width {width}  air {air}  {', '.join(sorted(parts))}")
         for room, a, b, b0, b1, opn, shut in places():
