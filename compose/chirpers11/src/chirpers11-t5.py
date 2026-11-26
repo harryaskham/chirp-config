@@ -65,6 +65,18 @@ clock, and B alone once a beat, half as fast. Then B comes back down, a fifth, a
 somewhere on the way (later than where it left: the ear holds on to what it has) there is one line again and it
 gallops. It is heard twice inside what was already there: in the second row of "the wrong one" (with the bass and
 no drum) and all through "the wrong one again". The song is no longer than it was.
+
+v6 (26 Nov): THE ANSWER THAT AGREES (C11T5_BOTH=0 takes it out: v5). A sixth thing: two notes that go up and
+down at once. A new bell: every note of it is that note in EVERY octave at once, under one fixed curve of
+loudness (loudest round 440 Hz, fading out below and above), so the bell has a note-name and no octave: B is
+B, but which B? Between two such bells the ear takes the shorter way: B to C is up a step, not down a seventh.
+B to F is half an octave: there is no shorter way. Up a tritone and down a tritone are the same two bells, and
+which one is heard depends on the listener, and on what was just heard. So the song says something first.
+"B, C, D" (three bells climbing), and then the answer, B ... F: the ear has just been in the notes between B and
+the F above, and hears the answer go UP. Then "B, A, G" (three bells falling), and the same answer, B ... F,
+note for note the same two strokes: now it goes DOWN. Four times in the third row of "turned around" (the
+bells on the click's own strokes, the drum under them), and again in the last row of "round the click": while
+the drum shows that one click is every part of the beat, the bells show that one answer is both directions.
 """
 import json
 import math
@@ -90,6 +102,15 @@ HELD_ON = tuple(range(0, 16, 2))                      # the sixteenths the chord
 HELD_BAND = (170, 560)                                # Hz: the noise that fills the holes covers the chord's notes and little else
 H = {"chop": (2 * ROW, 3 * ROW), "fence": (2 * ROW, 3 * ROW)} if HELD else {}   # in "all three": its last row only, so the noise can be taken away at "out"
 APART = os.environ.get("C11T5_LINE", "1") != "0" and HELD  # v5: the line comes apart
+BOTH = os.environ.get("C11T5_BOTH", "1") != "0" and APART  # v6: the answer that agrees
+BOTH_PAIR = ("B", "F")                                # the answer: half an octave apart, so neither way is the shorter
+BOTH_UP = ("B", "C", "D")                             # what is said before it on the way up from B to F ...
+BOTH_DOWN = ("B", "A", "G")                           # ... and on the way down from B to F
+BOTH_MID = 440.0                                      # Hz: where the curve every one of these bells is under is loudest
+BOTH_WIDE = 1.1                                       # octaves: how wide it is (the sigma of a bell curve over octaves)
+BOTH_FLOOR = -45                                      # dB: octaves quieter than this under the curve are left out
+BOTH_GAIN = os.environ.get("C11T5_BOTH_GAIN", "-14dB")  # the bells' level
+BOTH_IN = tuple(x for x in os.environ.get("C11T5_BOTH_IN", "turned,round").split(",") if x)   # where it is said
 LINE_A = "A4"                                         # the note that never changes
 LINE_B = ("A4", "C5", "E5", "A5", "A5", "E5", "C5", "A4")   # B's note in each bar of a row: with A, then a third, a fifth, an octave from it, and back
 ROUND = os.environ.get("C11T5_ROUND", "1") != "0"    # v3: the drum goes round the click
@@ -99,12 +120,12 @@ ALL = None
 # name, rows, {part: None (the whole section) or (from bar, to bar) of the section}
 SECTIONS = [
     ("the wrong one",    2, {"tick": ALL, "bass": (8, 16), **({"line": (ROW, 2 * ROW)} if APART else {})}),
-    ("turned around",    3, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": (8, 24)}),
+    ("turned around",    3, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": (8, 24), **({"both": (2 * ROW, 3 * ROW)} if BOTH and "turned" in BOTH_IN else {})}),
     ("never arrives",    5, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": ALL, "ris": ALL, "shep": (16, 40)}),
     ("not there",        3, {"tick": ALL, "bass": ALL, "ris": ALL, "kick": (8, 24), "sub": (8, 16), "clap": (16, 24)}),
 ] + ([("held", 2, {"tick": ALL, "chop": ALL, "fence": (ROW, 2 * ROW)})] if HELD else []) + [
     ("the wrong one again", 1, {"tick": ALL, "bass": ALL, "ris": ALL, "clapx": ALL, **({"line": ALL} if APART else {})}),
-] + ([("round the click", len(ROUND_AT), {"tick": ALL, "bass": ALL,
+] + ([("round the click", len(ROUND_AT), {"tick": ALL, "bass": ALL, **({"both": ((len(ROUND_AT) - 1) * ROW, len(ROUND_AT) * ROW)} if BOTH and "round" in BOTH_IN else {}),
                                           **{f"k{k}": (i * ROW, (i + 1) * ROW - ROUND_REST) for i, k in enumerate(ROUND_AT)},
                                           **{f"c{k}": (i * ROW + ROW // 2, (i + 1) * ROW - ROUND_REST) for i, k in enumerate(ROUND_AT)}})] if ROUND else []) + [
     ("all three",        3, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": ALL, "ris": ALL, "shep": ALL, **H}),
@@ -205,6 +226,30 @@ LINE = [("A1", "A1", "A1", "C2"), ("A1", "A1", "A1", "A1"), ("A1", "A1", "A1", "
 BASS = lambda bar: [(s, p, 1.5, 0.9 if s in (2, 10) else 0.8) for s, p in zip(OFF, LINE[bar % 4])]
 KICK = lambda bar: [(s, "A1", 1, 0.95 if s == 0 else 0.9) for s in (0, 4, 8, 12)]
 CLAP = lambda bar: [(4, "C4", 1, 0.8), (12, "C4", 1, 0.86)]      # two and four
+def hz(p):
+    semi = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}[p[0]] + (-1 if "b" in p[1:] else 1 if "#" in p else 0) + 12 * (int(p[-1]) + 1)
+    return 440.0 * 2 ** ((semi - 69) / 12)
+
+
+def both_octaves(pc):
+    """The octaves of a note-name that sound in its bell: (ratio to the note in octave 3, Hz, dB under the curve)."""
+    out = []
+    for k in range(-4, 7):
+        f = hz(pc + "3") * 2.0 ** k
+        level = -20 * math.log10(math.e) * math.log2(f / BOTH_MID) ** 2 / (2 * BOTH_WIDE ** 2)
+        if level >= BOTH_FLOOR:
+            out.append((2.0 ** k, f, level))
+    return out
+
+
+def BOTH_STEPS(bar):
+    """Two bars a phrase: three bells said on the click's strokes (climbing in the odd phrases, falling in the even), then the answer."""
+    said = BOTH_UP if (bar % ROW) // 2 % 2 == 0 else BOTH_DOWN
+    if bar % 2 == 0:
+        return [(OFF[i], p, 3, 0.72) for i, p in enumerate(said)]
+    return [(OFF[0], BOTH_PAIR[0], 6, 0.85), (OFF[2], BOTH_PAIR[1], 6, 0.85)]
+
+
 def LINE_STEPS(bar):
     """A on every eighth (louder with the click), B on the sixteenth after each click: A B A . from the click."""
     b = LINE_B[bar % ROW]
@@ -297,6 +342,14 @@ def song():
         doc["about"] = doc["about"].replace(" Generated by", " From v2 each layer of the hat has a small tone of its own that climbs an octave a row, so it is faster and higher for ever. Generated by")
     else:
         del PATCHES["ht-shep"]
+    if BOTH:
+        for pc in sorted(set(BOTH_PAIR + BOTH_UP + BOTH_DOWN)):
+            PATCHES[f"ht-both-{pc}"] = {"about": f"Hearing Things' bell with no octave (chirper-zero, 26 Nov, v6), on {pc}: {pc} in every octave at once under one fixed curve (loudest at {BOTH_MID:g} Hz, {BOTH_WIDE:g} octaves wide), so it has a note-name and no height. One patch a note-name: the curve stays where it is and the octaves move under it. Every octave starts at the same instant of its cycle, so two strokes of one bell are the same samples.",
+                                        "play": {"vel_sens": 0.3},
+                                        "synth": {"layers": [f"sine phase=0 ratio={r:g} level={lv:.1f}dB" for r, f, lv in both_octaves(pc)], "amp": {"a": "4ms", "d": "420ms", "s": 0, "r": "90ms", "curve": 3}}}
+            doc["tracks"].append({"name": f"both-{pc}", "patch": f"ht-both-{pc}", "gain": BOTH_GAIN, "pan": 0.0,      # dry and in the middle: a room gives each octave its own colour, and then the bell has a height
+                                  "notes": part("both", lambda bar, pc=pc: [(st, pc + "3", n, v) for st, p, n, v in BOTH_STEPS(bar) if p == pc])})
+        doc["about"] = doc["about"].replace(" Generated by", " From v6 a bell with no octave says B C D and is answered B F, then B A G and the same answer: the same two strokes are heard going up the first time and down the second (the tritone paradox, set by what was just heard). Generated by")
     if APART:
         doc["tracks"].append({"name": "line", "patch": "ht-pip", "gain": "-12dB", "pan": -0.15, "sends": {"room": "-14dB"}, "notes": part("line", LINE_STEPS)})
         doc["about"] = doc["about"].replace(" Generated by", " From v5 a pip plays three strokes and a rest (A B A .) and B moves away from A a third, a fifth, an octave, and back: no stroke moves, and the one galloping line comes apart into two even ones (stream segregation). Generated by")
