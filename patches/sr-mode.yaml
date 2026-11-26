@@ -1,0 +1,18 @@
+{
+ "about": "Standing Room's mode (chirper-zero, 26 Nov, v9): one sine, held: a note whose half-waves fit between the walls. Its loudness is where the ear is (auto.at, dB). BANKED by tools/patchbank.py (26 Nov 2026) from Standing Room v9 (tracks mode-2-l, mode-2-r, mode-3-l, mode-3-r, mode-4-l, mode-4-r, mode-6-l, mode-6-r, mode-8-l, mode-8-r): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "400ms",
+   "d": "0s",
+   "r": "1.5s"
+  },
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}

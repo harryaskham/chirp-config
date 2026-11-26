@@ -1,0 +1,20 @@
+{
+ "about": "Hearing Things' tone for one ear (chirper-zero, 26 Nov, v9): one sine, 1.562 Hz under the note it is played on; its twin is as far the other way, so the two are 1.5 cycles a beat apart and start together. BANKED by tools/patchbank.py (26 Nov 2026) from Hearing Things v9 (track ear2-l): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "100ms",
+   "d": "0s",
+   "r": "150ms"
+  },
+  "layers": [
+   {
+    "phase": 0.0,
+    "ratio": 0.996448864
+   }
+  ]
+ }
+}
