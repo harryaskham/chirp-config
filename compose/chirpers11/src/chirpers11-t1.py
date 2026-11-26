@@ -143,6 +143,25 @@ The turn is in the RECORD's beats, not the grid's: the platter is still being pu
 "both" is on it), so each time round takes as long as the platter takes, and the tock and chord are as sharp
 or flat as they were going to be. Only what the needle reads has changed.
 The pop is its own track and patch (`pop`, `gt-pop`: 16 ms of dull noise): one at every jump.
+
+v11 (26 Nov): THE HAND ON THE RECORD (C11T1_SCRATCH=0 takes it out: v10). Until now the hand has pushed the
+platter and dragged it. Now it takes hold of the record and RUBS it: a scratch. Under the needle is deck B's dub
+chord. The hand goes round like a crank: the record goes forward over the chord's first tenth of a second and
+back again, there and back in a beat, then in half a beat, then in a quarter. TIME GOES FORWARD AND BACKWARD
+UNDER THE NEEDLE, and a record's sound is its speed: its pitch is the speed, and so is its loudness (a
+pickup gives the groove's speed, not its place). So nothing here is a sample: the chord is held, and three
+lanes are the physics. The pitch is the hand's speed (12 log2 of it). The loudness is the hand's speed times
+what the record holds at the place under the needle (the chord, loud at its start and dying). The brightness is
+what the record holds there too (the chord's filter, open at its start and closing).
+So each rub is two sounds. FORWARD: the chord's start goes under the needle on the sixteenth, at exactly the
+record's own speed (the chord at its own pitch), the hand quickens (the chord bends up a tritone: the crank's
+fastest is root two times the record's speed) and slows to a stop inside the chord: silence. BACKWARD: the
+same tenth of a second the other way: quiet and dull first, swelling and brightening up to the chord's START,
+where it is cut off dead: a sound that ends with its own attack. Then the hand turns round in the silence
+before the chord and brings the start under the needle again on the next beat.
+Deck B plays nothing else in that bar: the hand has it. Two bars: the last bar of "take" (bar 48, 1:31, into
+"no ruler") and the bar before the needle sticks (bar 72, 2:17): two rubs a beat long, two of half a beat,
+four of a quarter. Track `hand`, patch `gt-rub` (the dub chord's own saws and filter, held), dry.
 """
 import json
 import math
@@ -406,6 +425,66 @@ def echo_notes(k):
     return out
 
 
+SCRATCH = os.environ.get("C11T1_SCRATCH", "1") != "0" and STICK                   # v11: the hand on the record (a scratch)
+SCR_AT = tuple((x.split("/")[0], int(x.split("/")[1])) for x in os.environ.get("C11T1_SCR_AT", "take/15,both/7").split(",") if x)   # the section, and the bar of it for which the hand has the record
+SCR_PHRASE = ((0, 1.0, 2), (2, 0.5, 2), (3, 0.25, 4))   # (the beat of the bar a run of rubs begins on, the beats one rub takes there and back, how many)
+SCR_PHI = math.pi / 4          # how far round the crank is when the chord's start goes under the needle: a rub sounds for (1 - PHI/pi) of its time
+SCR_PEAK = math.sqrt(2)        # the record's fastest under the hand, in its own speed: with PHI an eighth of a turn the chord's start goes under the needle at exactly the record's speed
+SCR_AMP = (0.15, 0.28 / 3)     # what the record holds: the chord's loudness dies to this share of its start, with this time constant (s of record): gt-stab's d 280ms, s 0.15
+SCR_FLT = (0.08, 0.2 / 3)      # ... and its filter's envelope the same way: gt-stab's d 200ms, s 0.08
+SCR_OFF = -80.0                # dB: the lane where the needle is before the chord, and where the hand is off
+SCR_GAIN = os.environ.get("C11T1_SCR_GAIN", "-26dB")   # the held chord's fader (the dub chord's own is -23: benched alone at that, a rub was 3 to 7 dB over the chord's own stroke and 6 dB over it in peak)
+
+
+def scratch_spans():
+    """The beats at which the hand takes deck B's record, for a bar each."""
+    if not SCRATCH:
+        return []
+    return [(sec[1] + bar) * BEATS for nm, bar in SCR_AT for sec in SECS if sec[0] == nm]
+
+
+def rubs():
+    """(the beat a rub begins on, the beats it takes there and back) of every rub."""
+    return [(s0 + b + i * T, T) for s0 in scratch_spans() for b, T, n in SCR_PHRASE for i in range(n)]
+
+
+def hand_at(t):
+    """(the record's speed under the hand, in its own speed; seconds of record the needle is past the chord's start) at beat t; None where the hand is off."""
+    for t0, T in rubs():
+        if t0 - 1e-9 <= t < t0 + T - 1e-9:
+            th = 2 * math.pi * (t - t0) / T + SCR_PHI                  # the crank
+            a = SCR_PEAK * T * 60 / BPM / (2 * math.pi)                # its arm, in seconds of record
+            return SCR_PEAK * math.sin(th), a * (math.cos(SCR_PHI) - math.cos(th))
+    return None
+
+
+def hand_lanes():
+    """The three lanes of the scratch: the pitch (semitones: the speed), the loudness (dB: the speed times what the record holds there), the brightness (the chord's filter envelope there)."""
+    def val(t):
+        h = hand_at(t)
+        if h is None:
+            return 0.0, SCR_OFF, 0.0
+        v, p = h
+        st = round(12 * math.log2(max(abs(v), 0.03)), 3)
+        if p < -1e-9:
+            return st, SCR_OFF, 0.0                                    # the needle is in the silence before the chord
+        p = max(p, 0.0)
+        amp = SCR_AMP[0] + (1 - SCR_AMP[0]) * math.exp(-p / SCR_AMP[1])
+        return st, round(max(SCR_OFF, 20 * math.log10(max(abs(v) * amp, 1e-6))), 2), round(SCR_FLT[0] + (1 - SCR_FLT[0]) * math.exp(-p / SCR_FLT[1]), 4)
+    ts = set()
+    for s0 in scratch_spans():
+        ts |= {round(s0 + i / 64, 6) for i in range(BEATS * 64 + 1)}
+    for t0, T in rubs():
+        ts |= {round(t0 - 0.002, 6), round(t0 + T * (1 - SCR_PHI / math.pi) + 0.002, 6)}   # the start goes under the needle at once, and the cut is dead
+    lanes = ([["0b", 0.0]], [["0b", SCR_OFF]], [["0b", 0.0]])
+    for t in sorted(ts):
+        for lane, v in zip(lanes, val(t)):
+            lane.append([f"{t:.6f}".rstrip("0").rstrip(".") + "b", v])
+    for lane, v in zip(lanes, (0.0, SCR_OFF, 0.0)):
+        lane.append([f"{TOTAL:g}b", v])
+    return lanes
+
+
 def stick():
     """(the record's beat at which the turn that sticks begins, the turn in beats, the times it is heard), or None."""
     sec = next((x for x in SECS if x[0] == STICK_IN[0]), None) if STICK else None
@@ -527,6 +606,8 @@ def deck_b(part, steps):
                 b = bar * BEATS + s * STEP
                 t = when(b)
                 if sk and sk[0] <= b < sk[0] + sk[1] * sk[2]:               # the needle never reads these: it is stuck in the turn before them
+                    continue
+                if t is not None and any(s0 <= t < s0 + BEATS for s0 in scratch_spans()):   # the hand has the record
                     continue
                 if t is not None and 0 <= t < TOTAL and not (win and win[0] <= t < win[1]) and not (sw and sw[0] <= t < sw[1]) and not (fw and fw[0] <= t < fw[1]):   # the record never gets to what the loop skips
                     end = when(b + n * STEP)
@@ -690,6 +771,22 @@ def song():
                                   "auto": {"spd": {"points": lane}}, "notes": echo_notes(k)})
         doc["about"] = doc["about"].replace(" Generated by", " From v9, in no ruler, the dub chord's echo is on the record and not on the grid: its echoes are a dotted eighth of the record's own beats apart, so they crowd and string out with the hand, and each is as sharp or flat as the record is when it sounds. Generated by")
         assert "From v9" in doc["about"]
+    if scratch_spans():
+        hand, loud, bright = hand_lanes()
+        rub = json.loads(json.dumps(PATCHES["gt-stab"]))
+        rub["about"] = "Give or Take's dub chord under the hand (chirper-zero, 26 Nov, v11): the chord's own saws and filter, HELD: its pitch is the hand's speed (auto.hand, semitones), its filter is opened by what the record holds under the needle (auto.bright), and the track's gain (auto.loud) is the speed times the chord's loudness there."
+        rub["play"] = {**rub.get("play", {}), "gate": 1}
+        rub["synth"].pop("env", None)
+        rub["synth"]["pitch"] = {"value": 0, "mod": [{"src": "auto.hand", "amount": 1}]}
+        rub["synth"]["filters"][0]["cutoff"]["mod"] = [{"src": "auto.bright", "amount": 2.4}, {"src": "vel", "amount": 1}]
+        rub["synth"]["amp"] = {"a": "1ms", "d": "10ms", "s": 1, "r": "10ms"}
+        PATCHES["gt-rub"] = rub
+        doc["tracks"].append({"name": "hand", "patch": "gt-rub", "gain": SCR_GAIN, "pan": 0.1,
+                              "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.loud", "amount": 1}]}}],
+                              "auto": {"hand": {"points": hand, "curve": 0}, "loud": {"points": loud, "curve": 0}, "bright": {"points": bright, "curve": 0}},
+                              "notes": [note(s0, p, BEATS, 0.85) for s0 in scratch_spans() for p in CHORDS[(int(s0 // BEATS) // 2) % len(CHORDS)]]})   # dry
+        doc["about"] = doc["about"].replace(" Generated by", " From v11 the hand takes hold of deck B's record and rubs it, twice, a bar each: the dub chord goes forward under the needle and back, there and back in a beat, half a beat, a quarter; its pitch and its loudness are the hand's speed, and the backward half swells up to the chord's start and is cut off there. Generated by")
+        assert "From v11" in doc["about"]
     if stick():
         PATCHES["gt-pop"] = {"about": "Give or Take's pop (chirper-zero, 26 Nov, v10): the needle jumping a groove wall: 16 ms of dull noise, 150 Hz to 1.8 kHz; deck B.",
                              "play": {"vel_sens": 0.3},
@@ -752,6 +849,12 @@ if __name__ == "__main__":
             n = int(STRETCH_BARS * BEATS / (GRAIN * STEP)); t0, p0 = g[i * n]
             print(f"   the stretch from bar {t0 / BEATS + 1:g}: deck B at 1/{by} of its speed for {STRETCH_BARS} bars; the record goes from {p0:g} to {p0 + n * GRAIN / by:g} sixteenths ; "
                   f"every stroke is heard {by} times, {GRAIN * (1 - 1 / by):g} of a sixteenth apart ({GRAIN * (1 - 1 / by) * STEP * 60000 / BPM:.1f} ms)")
+        if scratch_spans():
+            beat = 60 / BPM
+            print(f"   the hand on the record: " + " ; ".join(f"bar {int(s0 // BEATS) + 1} ({int(s0 * beat) // 60}:{s0 * beat % 60:04.1f}), the chord {' '.join(CHORDS[(int(s0 // BEATS) // 2) % len(CHORDS)])}" for s0 in scratch_spans()) + f" ; {len(rubs()) // len(scratch_spans())} rubs a bar ; the record's fastest {SCR_PEAK:.3f} of its own speed (+{12 * math.log2(SCR_PEAK):.2f} semitones) ; the chord's start goes under the needle at {SCR_PEAK * math.sin(SCR_PHI):.3f} of it ({12 * math.log2(SCR_PEAK * math.sin(SCR_PHI)):+.2f})")
+            for b, T, n in SCR_PHRASE:
+                a = SCR_PEAK * T * beat / (2 * math.pi); far = a * (math.cos(SCR_PHI) + 1)
+                print(f"      from beat {b + 1:g}: {n} rubs of {T:g} of a beat ({1000 * T * beat:.1f} ms): forward {1000 * T * beat * (math.pi - SCR_PHI) / (2 * math.pi):.1f} ms, backward the same, then {1000 * T * beat * SCR_PHI / math.pi:.1f} ms in the silence before the chord ; the needle goes {1000 * far:.1f} ms into the chord, where the chord is {20 * math.log10(SCR_AMP[0] + (1 - SCR_AMP[0]) * math.exp(-far / SCR_AMP[1])):.1f} dB of its start")
         if stick():
             p0, turn, n = stick(); ms = 60000 / BPM
             ts = [when(p0 + j * turn) for j in range(n + 1)]
