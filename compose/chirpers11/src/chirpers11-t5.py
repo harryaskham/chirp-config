@@ -32,6 +32,18 @@ apart (A3, A4, A5, A6) and every one of them climbs an octave through the row (o
 semitones). So a layer ends the row at the speed AND the pitch at which the next began it, the same windows fade
 the top out and the bottom in, and the row repeats note for note: it is a Shepard scale and a Risset rhythm at
 once, getting faster and higher for ever and going nowhere. In "out" it runs backwards: slower and lower, for ever.
+
+v3 (26 Nov): THE DRUM GOES ROUND THE CLICK (C11T5_ROUND=0 takes the section out: v2). The click stands on step 2
+of every beat's four sixteenths, and the first illusion used two of the four places a drum can stand against it:
+nowhere (the click is the beat) and two sixteenths before it (the click is the "and"). A new section, "round the
+click", after "the wrong one again", uses the other three, a row each, the drum one sixteenth later every row:
+  1. THE DRUM JUST BEFORE THE CLICK (kick on steps 1, 5, 9, 13): DUM-ta. The click is the drum's echo, the "e".
+  2. THE DRUM ON THE CLICK (2, 6, 10, 14): the wrong beat, and now the drum says so too. The click is the beat.
+  3. THE DRUM JUST AFTER THE CLICK (3, 7, 11, 15): ta-DUM. The click is a pickup, the "a", and the bar gallops.
+Then "all three" puts the drum a sixteenth later again, which is the true beat (0, 4, 8, 12), and the click is the
+"and". So in four rows the same click has been every sixteenth of the beat, and not one note of it or of the bass
+has moved since the first bar: only the drum has, and with it where the listener stands. The drum rests for the
+last bar of each row (the step is a silence, not a stumble); a clap on its two and four joins it half-way through.
 """
 import json
 import math
@@ -51,6 +63,9 @@ QUIET = 0.04                   # strokes softer than this are left out
 SHEP = os.environ.get("C11T5_SHEP", "1") != "0"      # v2: the layers' own voices, rising
 SHEP_ROOT = ("A3", "A4", "A5", "A6")                  # the note each layer starts every row on
 RISE = 12                                             # semitones every layer climbs in a row
+ROUND = os.environ.get("C11T5_ROUND", "1") != "0"    # v3: the drum goes round the click
+ROUND_AT = (1, 2, 3)                                  # the sixteenth of the beat the drum stands on, a row each ("all three" is 0)
+ROUND_REST = 1                                        # bars at the end of each of those rows with no drum
 ALL = None
 # name, rows, {part: None (the whole section) or (from bar, to bar) of the section}
 SECTIONS = [
@@ -59,6 +74,9 @@ SECTIONS = [
     ("never arrives",    5, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": ALL, "ris": ALL, "shep": (16, 40)}),
     ("not there",        3, {"tick": ALL, "bass": ALL, "ris": ALL, "kick": (8, 24), "sub": (8, 16), "clap": (16, 24)}),
     ("the wrong one again", 1, {"tick": ALL, "bass": ALL, "ris": ALL, "clapx": ALL}),
+] + ([("round the click", len(ROUND_AT), {"tick": ALL, "bass": ALL,
+                                          **{f"k{k}": (i * ROW, (i + 1) * ROW - ROUND_REST) for i, k in enumerate(ROUND_AT)},
+                                          **{f"c{k}": (i * ROW + ROW // 2, (i + 1) * ROW - ROUND_REST) for i, k in enumerate(ROUND_AT)}})] if ROUND else []) + [
     ("all three",        3, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": ALL, "ris": ALL, "shep": ALL}),
     ("out",              3, {"tick": (0, 20), "bass": (0, 16), "kick": (0, 8), "sir": ALL, "pehs": ALL}),
 ]
@@ -159,6 +177,21 @@ KICK = lambda bar: [(s, "A1", 1, 0.95 if s == 0 else 0.9) for s in (0, 4, 8, 12)
 CLAP = lambda bar: [(4, "C4", 1, 0.8), (12, "C4", 1, 0.86)]      # two and four
 CLAPX = lambda bar: [(6, "C4", 1, 0.8), (14, "C4", 1, 0.86)]     # two and four of the wrong beat
 
+
+def kick_on(k):
+    """The bass drum on sixteenth k of every beat (0 is KICK)."""
+    return lambda bar: [(s, "A1", 1, 0.95 if s == k else 0.9) for s in (k, k + 4, k + 8, k + 12)]
+
+
+def clap_on(k):
+    """Two and four of the beat that drum makes."""
+    return lambda bar: [(k + 4, "C4", 1, 0.8), (k + 12, "C4", 1, 0.86)]
+
+
+def moved(name, on):
+    """The strokes of the rows in which the drum stands somewhere else, in time order with the part's own."""
+    return sum((part(f"{name}{k}", on(k)) for k in ROUND_AT), []) if ROUND else []
+
 PATCHES = {
     "ht-kick": {"about": "Hearing Things' bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, on A1: the only thing on the record under 100 Hz but for eight bars.",
                 "play": {"vel_sens": 0.3},
@@ -201,11 +234,11 @@ def song():
         "buses": {"room": {"fx": ["reverb kind=room decay=0.5s mix=1", "hp cutoff=400"]}},
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=30"]}, {"type": "compressor", "threshold": "-18dB", "ratio": 2, "attack": "20ms", "release": "160ms", "makeup": "0dB"}]},
         "tracks": [
-            {"name": "kick", "patch": "ht-kick", "gain": "-8dB", "pan": 0.0, "notes": part("kick", KICK)},
+            {"name": "kick", "patch": "ht-kick", "gain": "-8dB", "pan": 0.0, "notes": sorted(part("kick", KICK) + moved("k", kick_on), key=lambda n: n["at"]) if ROUND else part("kick", KICK)},
             {"name": "tick", "patch": "ht-tick", "gain": "-2dB", "pan": 0.0, "sends": {"room": "-14dB"}, "notes": part("tick", TICK)},
             {"name": "bass", "patch": "ht-bass", "gain": "-11dB", "pan": 0.0, "fx": [pump], "notes": part("bass", BASS)},
             {"name": "sub", "patch": "sub-sine", "gain": "-10dB", "pan": 0.0, "fx": [pump], "notes": part("sub", BASS)},
-            {"name": "clap", "patch": "ht-clap", "gain": "-5dB", "pan": 0.0, "sends": {"room": "-10dB"}, "notes": sorted(part("clap", CLAP) + part("clapx", CLAPX), key=lambda n: n["at"])},
+            {"name": "clap", "patch": "ht-clap", "gain": "-5dB", "pan": 0.0, "sends": {"room": "-10dB"}, "notes": sorted(part("clap", CLAP) + part("clapx", CLAPX) + moved("c", clap_on), key=lambda n: n["at"])},
             {"name": "ris", "patch": "ht-hat", "gain": "6dB", "pan": 0.0, "sends": {"room": "-16dB"}, "notes": sorted(ris_notes("ris") + ris_notes("sir", back=True), key=lambda n: n["at"])},
         ],
     }
@@ -215,6 +248,8 @@ def song():
         doc["about"] = doc["about"].replace(" Generated by", " From v2 each layer of the hat has a small tone of its own that climbs an octave a row, so it is faster and higher for ever. Generated by")
     else:
         del PATCHES["ht-shep"]
+    if ROUND:
+        doc["about"] = doc["about"].replace(" Generated by", " From v3 the drum goes round the click a sixteenth a row (just before it, on it, just after it, then the true beat), so the same click is heard as every sixteenth of the beat and never moves. Generated by")
     return doc
 
 
@@ -240,6 +275,9 @@ if __name__ == "__main__":
             seg = [(t, v) for t, v in row if q * 8 <= t < (q + 1) * 8]
             mean = sum(v * v for t, v in seg) and math.exp(sum(v * v * math.log(C * 2 ** (LAYERS - 1) * math.log(2) / CYCLE * 2 ** (t / CYCLE)) for t, v in seg) / sum(v * v for t, v in seg))
             print(f"   bars {q * 2}-{q * 2 + 2} of the row: {len(seg):3d} strokes, the loud ones (vel > 0.7) at beats " + " ".join(f"{t:.2f}" for t, v in seg if v > 0.7)[:90])
+        if ROUND:
+            names = {0: 'the "and"', 1: 'the "e" (DUM-ta)', 2: "the beat", 3: 'the "a" (ta-DUM)'}
+            print("the click is on sixteenth 2 of every beat; with the drum on sixteenth k it is heard as: " + " ; ".join(f"k = {k}: {names[k]}" for k in ROUND_AT + (0,)))
         print(f"{BARS} bars, {TOTAL} beats, {BARS * sec:.1f} s")
     else:
         open(OUT, "w").write(dump(song()))
