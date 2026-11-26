@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v7 (15:59): bars 1 to 8, the overlap with Standing Room, read -17.8 dBFS for -17.9. The last bar
+  is -11.1 as before; the tail after it, under Hearing Things' first two bars, is 2 dB up (-20 -35 -49 -63
+  by second for -22 -37 -52 -65) and now has the string's own low notes in it (B flat 2, G2, F2) as well as
+  the wood's. Not re-rendered as a seam.
 - Least Common v7 (15:32): both ends are as they were (the first sixteen beats -17.2 dBFS in v6 and v7, the
   last sixteen -16.8 for -16.7). What changed is inside pages 6 to 8: the drum's low answer turns over a
   page at a time and carries on through the three breaks; none of it in the last four bars.
