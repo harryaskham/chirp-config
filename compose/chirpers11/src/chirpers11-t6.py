@@ -58,7 +58,28 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True}
+# ---- v6 (26 Nov): SMALL CHANGE FIRST. The ending (v5) pays its last seeds in smaller and smaller coins, and until
+# then nothing in the song had heard a small coin: the ending's idea arrived from nowhere. And every new section
+# but two simply began. Four more switches, each `--without-…` (with them off it is v5 byte for byte).
+#   ROLL   before a section begins, small change. On beat three of the last bar a seed is struck on the next
+#          section's first note and paid in coins of 3 and 5 thirty-seconds where the purse stays (the drum comes,
+#          the bass comes, the drum again, up a tone) and of 3 and 5 sixty-fourths where the purse is new (threes
+#          and fours, both purses, fives and sevens, three purses): the same lattice at two and four times the
+#          speed: a flurry a beat long before the one. None before the turn or before home (the drum waits
+#          there already) and none before the last section, which lays the small coins out in order and goes
+#          one size further.
+#   LONE   the roll is struck where there is no drum as well (bars 16 and 96: before the drum first comes, and
+#          before it comes again), which makes eight. Alone, any sound goes to the master's ceiling: at -4 dB it
+#          read -15 dBFS on its beat where the opening's seeds read -18 and the drum's first beat -16; at -10
+#          it reads -18, a seed like the others, and the drum still arrives.
+#   GAP    the drum gives the last beat of that bar to the change: it does not play beat four.
+#   TUMBLE 'off the beat, up' (bars 145 to 160) was 'off the beat' again a tone higher. Now the purse turns over at
+#          every seed: inside out, the right way, inside out. The amounts are the same, so the hat and the bass
+#          do not change; the quick coin's run falls in fourths on the right, then climbs in fifths on the left.
+ROLL = {'same': 'h', 'new': 'q', 'beat': 2, 'db': 0, 'alone': -10}   # the purse for a roll where the coins stay and where they change; the beat of the last bar it is struck on (0 is the one); dB on its seed with the drum and without.
+# Bench, by solo, at -4 dB: its seed and then 4 to 6 dB less every half beat (thirty-seconds -30 -38 -41 -45 -49; sixty-fourths -29 -35 -42 -47 -54): a flurry a beat long, not a roll that builds (a purse can only run out).
+# With the drum it stood 4.5 and 6.1 dB under the mix over its two beats, and on the beat the drum gives up it was most of what was left (-42 beside -40): so 0 dB there. Where it is alone (bars 16 and 96) see LONE
 # ---- v5 (26 Nov): SMALLER CHANGE. One more switch that is on (`--without-smaller`: with it off it is v4 byte for byte) and one that is off (`--with-inside`).
 #   SMALLER the song ended as it began, thinner: four seeds, each with the change the first seed had. Now each of the
 #           last four seeds is paid in smaller coins than the one before: 3 and 5 sixteenths (as ever), 3 and 5
@@ -168,7 +189,7 @@ PATCHES = {
 def purses():
     """The pairs of coins in use: PAIRS, and with FLIP the purse inside out."""
     return {**PAIRS, **(FLIPPED if ON['flip'] else {}), **(INSIDE if ON['inside'] else {}),
-            **({k: v[0] for k, v in {**SMALL, **NOTE}.items()} if ON['smaller'] else {})}
+            **({k: v[0] for k, v in {**SMALL, **NOTE}.items()} if ON['smaller'] else {k: v[0] for k, v in SMALL.items()} if ON['roll'] else {})}
 
 
 def unit(k):
@@ -190,12 +211,27 @@ def lattice(p, q, upto):
     return dict(sorted(out.items()))
 
 
+def rolls():
+    """{bar: (purse, note)} for the rolls: the last bar of every section but the last two, where the drum does not already wait."""
+    out = {}
+    for i, sec in enumerate(SECTIONS[:-2]):
+        nxt = SECTIONS[i + 1]
+        if (ON['leave'] and sec[5] and nxt[5] and nxt[3] and not sec[3]) or (ON['wait'] and nxt[0] == 'home'):
+            continue                                             # the drum waits there
+        if not sec[5] and not ON['lone']:
+            continue                                             # no drum in this section: the roll would be alone
+        out[(i + 1) * SEC - 1] = (ROLL['new' if nxt[1] != sec[1] else 'same'], nxt[4][0])
+    return out
+
+
 def build():
     T = {'kick': [], 'bass': [], 'hat': [], **{f'seed-{k}': [] for k in purses()}, **{f'long-{k}': [] for k in purses()}}
     for i, (name, pairs, every, at16, notes, drum, bass) in enumerate(SECTIONS):
         n = 0
         if ON['flip'] and at16:                                  # off the beat: the purse inside out
             pairs = ''.join('d' if k == 'a' else k for k in pairs)
+            if ON['tumble'] and name == 'off the beat, up':      # v6: and the right way, and inside out, seed by seed
+                pairs = ''.join(k + 'a' if k == 'd' else k for k in pairs)
         dense = ON['denser'] and not drum and i < len(SECTIONS) - 1
         if dense:
             every = 1
@@ -214,11 +250,15 @@ def build():
                 n += 1
             waits = ON['wait'] and i + 1 < len(SECTIONS) and SECTIONS[i + 1][0] == 'home' and bar >= (i + 1) * SEC - WAIT
             waits = waits or (ON['leave'] and i + 1 < len(SECTIONS) and drum and SECTIONS[i + 1][5] and SECTIONS[i + 1][3] and not at16 and bar >= (i + 1) * SEC - WAIT)
+            if ON['roll'] and bar in rolls():                    # v6: small change before the next section
+                T[f'seed-{rolls()[bar][0]}'].append({'at': bar * 4 + ROLL['beat'], 'len': 0.25, 'pitch': rolls()[bar][1], 'vel': 0.9, **({'gain': f"{ROLL['db' if drum else 'alone']}dB"} if ROLL['db' if drum else 'alone'] else {})})
             if waits:                                            # the bars before home, or before the turn: only the purse
                 continue
             if drum:
                 for beat in range(4):
                     if ON['turn'] and at16 and beat % 2:         # off the beat: the drum gives up two and four
+                        continue
+                    if ON['gap'] and ON['roll'] and bar in rolls() and beat == 3:   # v6: the last beat is the change's
                         continue
                     T['kick'].append({'at': bar * 4 + beat, 'len': 0.5, 'pitch': 'G1', 'vel': .95 if beat == 0 else .88})
             pq = purses()[pairs[(bar - i * SEC) % len(pairs)]]  # the purse whose turn this bar is
@@ -308,7 +348,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"v2: {'leave out' if on else 'put in'} {k}")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last four off is v5, the last five v4, the last eight v3, the last twelve v2, all fifteen v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -321,11 +361,14 @@ if __name__ == '__main__':
             b = i * SEC
             every = 1 if ON['denser'] and not drum and i < len(SECTIONS) - 1 else every
             pairs = ''.join('d' if k == 'a' else k for k in pairs) if ON['flip'] and at16 else pairs
+            pairs = pairs.replace('d', 'da') if ON['tumble'] and ON['flip'] and name == 'off the beat, up' else pairs
             print(f'{i + 1:2d}  bars {b + 1:3d}-{b + SEC:3d}  {int(b * sec) // 60}:{b * sec % 60:05.2f}  {name:20s} coins {pairs:3s} a seed every {every} bar(s) on sixteenth {at16} {"/".join(notes):12s} {"drum " if drum else ""}{"bass" if bass else ""}')
         if ON['inside']:
             print(f"    in the second half of {' and '.join(INSIDE_IN)} purse b is inside out (e: 4 and 3)")
         if ON['smaller']:
             print(f"    the last section's four seeds are paid from {' '.join(LAST)}: coins of 3 and 5 sixteenths, thirty-seconds, sixty-fourths, and periods of B flat 3 ({unit('n'):.2f} ms)")
+        if ON['roll']:
+            print('    small change before a section: ' + ', '.join(f"bar {b + 1} ({'thirty-seconds' if k == ROLL['same'] else 'sixty-fourths'}, {n})" for b, (k, n) in rolls().items()) + ('; the drum gives up beat four there' if ON['gap'] else ''))
         T = build()
         print(f'{BARS} bars, {BARS * sec:.1f} s; written notes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items() if v or not k.startswith('long-')))
     else:
