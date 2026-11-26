@@ -205,7 +205,7 @@ PASS_TICK = os.environ.get("C11T3_PASS_TICK", "-20dB" if TWICE else "-26dB")   #
 PASS_PAN = 0.9                 # how far to the side it is heard when it is far along its line
 STAND = os.environ.get("C11T3_STAND", "1") != "0" and TWICE                     # v9: standing room (a standing wave, walked across)
 STAND_IN = ("standing room", 0, 24)                    # the section, and the bars of it in which you walk from wall to wall
-STAND_HOLD = 4.5                                       # beats the held notes are written past the far wall: this patch's note begins to let go about 4.6 beats before its written end (measured twice; attack 0.4 s, release 1.5 s)
+STAND_HOLD = 4.5                                       # beats the held notes are written past the far wall: a note sounds for 95% of its written length (the engine's `play.gate`; CORRECTED 26 Nov 15:50: not "lets go 4.6 beats early"), so these let go half a beat before the wall; `play: {gate: 1}` on the patch is the right way, for a next version
 STAND_ROOT = 73.416                                    # Hz: the room's own note (D2): its walls are SOUND / (2 * STAND_ROOT) = 2.34 m apart
 STAND_MODES = ((2, "D3"), (3, "A3"), (4, "D4"), (6, "A4"), (8, "D5"))   # the modes that are sounded: fifths and octaves, no third
 STAND_EAR = 0.17                                       # m from ear to ear, along the walk

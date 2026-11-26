@@ -107,6 +107,30 @@ the mix at -16.2, -15.8 and -17.1 dBFS (20 ms), and what the gain changes is how
 under it are turned down where a rabbit click falls on them: 2.1, 0.9 and 0.45 dB at the worst stroke. -18 dB.
 The rim is not the same samples twice (each stroke differs from the next by 21 dB under itself, in one place as
 between the two); its level, length and note are.
+
+v9 (26 Nov): BETWEEN THE EARS (C11T5_PULSE=0 takes it out: v8). A ninth thing, and the first that needs two ears
+to be an illusion at all. "Not there" already has a bass with no fundamental; now it has a PULSE THAT IS NOT ON
+THE RECORD. Two plain tones are held through its three rows (bars 81 to 104), one a little under A4 and one as
+far over it, three cycles a beat apart (6.25 Hz: 436.88 and 443.13 Hz). First row: both in the middle. Two tones
+that close beat, and that beat is REAL: the sum is one tone on A4 that goes loud and quiet three times a beat,
+a triplet against the song's twos and fours, where the bass drum has stopped. It is on the record: a meter
+reads it.
+Second row: over four bars the two tones go apart, to an ear each (and each is lifted as the other leaves, so
+neither ear gets quieter). Bar by bar the beat in each ear gets shallower, and from bar 93 it is gone: each ear
+has ONE steady tone, and a meter on either channel reads no triplet. With two ears you go on hearing it, slower
+to speak and somewhere inside the head: the brain compares the two ears' phases and reports a beat (a binaural
+beat: Dove, 1839). Third row: the two tones close to a cycle and a half a beat apart (3.125 Hz: 438.44 and
+441.56 Hz): three in the time of two beats, played by nobody and present in neither ear.
+ON ONE SPEAKER the two tones are added in the air and the pulse is simply true all the way: this one does not
+fool a speaker; it shows what the head adds when the speaker is taken away. To test it on headphones: take one
+side off in the second half of "not there" and the pulse stops.
+WHY THREE, AND NOT TWO: the master's compressor ducks everything, these tones too, on the drum and on the click:
+twice a beat. A pulse of two a beat was benched first and each ear's tone then DID have a two-a-beat movement
+on the record (9.8 dB under its mean, to the sum's 3.2): the drum's, not the tones', but a meter cannot tell.
+Odd rates are the ones the drum does not have.
+(The tones are `sine phase=0` and start together, so the sum is loudest on the beat. Neither ear is ever given
+A4: it is the mean of the two, and it is what is heard. The patches say `play: {gate: 1}`: a note otherwise
+sounds for 95% of its written length.)
 """
 import json
 import math
@@ -158,6 +182,13 @@ RAB_WAY = (1, -1, 1)                                  # row by row: left to righ
 RAB_PAN = float(os.environ.get("C11T5_RAB_PAN", "0.8"))   # how far to each side its two places are (at 1 a click is in one ear only)
 RAB_GAIN = os.environ.get("C11T5_RAB_GAIN", "-18dB")   # where the master stops holding it down: at -9 and -14 dB it left the mix no louder (within 1 dB) and turned the click and the bass under it down by up to 2.1 and 0.9 dB; here 0.45
 RAB_NOTE, RAB_VEL = "E6", 0.8                         # the click's own rim an octave up, every stroke as loud as every other
+PULSE = os.environ.get("C11T5_PULSE", "1") != "0" and RABBIT     # v9: between the ears (a pulse that is not on the record)
+PULSE_IN = ("not there", 0, 24)                           # the section, and the bars of it the two tones are held for
+PULSE_NOTE = "A4"                                         # the note the two tones are either side of: neither ear is given it
+PULSE_RATES = ((0, 16, float(os.environ.get("C11T5_PULSE_FIRST", "3"))), (16, 24, float(os.environ.get("C11T5_PULSE_LAST", "1.5"))))   # (from bar, to bar of the section, cycles a beat the two tones are apart): rates the drum does not have (the master ducks everything once and twice a beat)
+PULSE_APART = (8, 12)                                     # bars of the section in which the two tones go from the middle to an ear each
+PULSE_GAIN = float(os.environ.get("C11T5_PULSE_GAIN", "-32"))   # dB: one tone
+PULSE_END = 0.5                                           # beats before the next section the tones are let go, so that "held" begins with nothing hanging over it
 ALL = None
 # name, rows, {part: None (the whole section) or (from bar, to bar) of the section}
 SECTIONS = [
@@ -209,6 +240,37 @@ def rabbit():
             out += [(bar * BEATS + (s + k * e) * STEP, RAB_WAY[i % len(RAB_WAY)] * (-1 if k < RAB_N else 1)) for k in range(2 * RAB_N)]
             s += 2 * RAB_N * e
     return out
+
+
+def pulse_span():
+    """The beats between which the two tones are held, or None."""
+    sec = next((x for x in SECS if x[0] == PULSE_IN[0]), None) if PULSE else None
+    return ((sec[1] + PULSE_IN[1]) * BEATS, (sec[1] + PULSE_IN[2]) * BEATS) if sec else None
+
+
+def pulse_ratio(rate, side):
+    """What the tone in one ear (-1 left, 1 right) is of PULSE_NOTE: the two are `rate` cycles a beat apart and the note is half way between."""
+    return 1 + side * rate * BPM / 60 / 2 / hz(PULSE_NOTE)
+
+
+def pulse_apart(t):
+    """How far apart the two tones are at beat t: 0 both in the middle, 1 an ear each."""
+    lo = pulse_span()[0]
+    a, b = lo + PULSE_APART[0] * BEATS, lo + PULSE_APART[1] * BEATS
+    return min(1.0, max(0.0, (t - a) / (b - a)))
+
+
+def pulse_lift(p):
+    """dB that keep an ear as loud as it was while the other ear's tone leaves it: at p it has 1 + (1 - p)^2 of one tone's power."""
+    return -10 * math.log10((1 + (1 - p) ** 2) / 2)
+
+
+def pulse_lanes():
+    lo = pulse_span()[0]
+    a, b = lo + PULSE_APART[0] * BEATS, lo + PULSE_APART[1] * BEATS
+    ts = [a + i * STEP for i in range(int(round((b - a) / STEP)) + 1)]
+    return ([["0b", 0]] + [[f"{t:g}b", round(pulse_apart(t), 4)] for t in ts] + [[f"{TOTAL:g}b", 1]],
+            [["0b", 0]] + [[f"{t:g}b", round(pulse_lift(pulse_apart(t)), 3)] for t in ts] + [[f"{TOTAL:g}b", round(pulse_lift(1), 3)]])
 
 
 def note(at, pitch, length, vel):
@@ -430,6 +492,20 @@ def song():
                                   "notes": [note(t, RAB_NOTE, STEP / 4, RAB_VEL) for t, sd in rabbit() if sd == side]})
         doc["about"] = doc["about"].replace(" Generated by", " From v8 a click struck four times on the left and four on the right, faster each time, is heard to hop across through places where nothing was struck (saltation: the rabbit), in the bar where the drum rests at the end of each row of round the click. Generated by")
         assert "From v8" in doc["about"]
+    if pulse_span():
+        lo, hi = pulse_span()
+        apart, lift = pulse_lanes()
+        for i, (b0, b1, rate) in enumerate(PULSE_RATES):
+            for nm, side in (("l", -1), ("r", 1)):          # dry: a room would put each ear's tone in the other
+                PATCHES[f"ht-ear-{i + 1}{nm}"] = {"about": f"Hearing Things' tone for one ear (chirper-zero, 26 Nov, v9): one sine, {rate * BPM / 120:.4g} Hz {'under' if side < 0 else 'over'} the note it is played on; its twin is as far the other way, so the two are {rate:g} cycles a beat apart and start together.",
+                                                 "play": {"gate": 1},      # a note sounds for 95% of its written length unless the patch says otherwise (the engine's `play.gate`)
+                                                 "synth": {"layers": [f"sine phase=0 ratio={pulse_ratio(rate, side):.9f}"], "amp": {"a": "100ms", "d": "0s", "s": 1, "r": "150ms"}}}
+                doc["tracks"].append({"name": f"ear{i + 1}-{nm}", "patch": f"ht-ear-{i + 1}{nm}", "gain": f"{PULSE_GAIN:g}dB", "pan": {"value": 0, "mod": [{"src": "auto.apart", "amount": side}]},
+                                      "auto": {"apart": {"points": apart, "curve": 0}, "lift": {"points": lift, "curve": 0}},
+                                      "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.lift", "amount": 1}]}}],
+                                      "notes": [note(lo + b0 * BEATS, PULSE_NOTE, (b1 - b0) * BEATS - (0 if i + 1 < len(PULSE_RATES) else PULSE_END), 0.8)]})
+        doc["about"] = doc["about"].replace(" Generated by", " From v9 there is a pulse in not there that is not on the record: two plain tones either side of A4, three cycles a beat apart, beat in the middle (a real beat, a triplet), then go apart to an ear each, where each is steady and the pulse is heard all the same (a binaural beat); in the last row they are a cycle and a half a beat apart. Generated by")
+        assert "From v9" in doc["about"]
     if APART:
         doc["tracks"].append({"name": "line", "patch": "ht-pip", "gain": "-12dB", "pan": -0.15, "sends": {"room": "-14dB"}, "notes": part("line", LINE_STEPS)})
         doc["about"] = doc["about"].replace(" Generated by", " From v5 a pip plays three strokes and a rest (A B A .) and B moves away from A a third, a fifth, an octave, and back: no stroke moves, and the one galloping line comes apart into two even ones (stream segregation). Generated by")
@@ -483,6 +559,12 @@ if __name__ == "__main__":
                 q = [(t - b * BEATS, sd) for t, sd in r if int(t // BEATS) == b]
                 print(f"the rabbit, bar {b + 1} ({int(b * sec) // 60}:{b * sec % 60:04.1f}): " + " ; ".join(
                     f"from sixteenth {q[j][0] / STEP:g}, {(q[j + 1][0] - q[j][0]) * ms:.0f} ms apart: " + "".join("L" if sd < 0 else "R" for t, sd in q[j:j + 2 * RAB_N]) for j in range(0, len(q), 2 * RAB_N)))
+        if pulse_span():
+            lo, hi = pulse_span()
+            print(f"between the ears, bars {lo // BEATS + 1:g}-{hi // BEATS:g} ({int(lo * 60 / BPM) // 60}:{lo * 60 / BPM % 60:04.1f}-{int(hi * 60 / BPM) // 60}:{hi * 60 / BPM % 60:04.1f}): two tones either side of {PULSE_NOTE} ({hz(PULSE_NOTE):.2f} Hz), {PULSE_GAIN:g} dB each ; in the middle until bar {lo // BEATS + PULSE_APART[0]:g}, an ear each from bar {lo // BEATS + PULSE_APART[1] + 1:g}")
+            for b0, b1, rate in PULSE_RATES:
+                print(f"   bars {lo // BEATS + b0 + 1:g}-{lo // BEATS + b1:g}: {rate:g} cycles a beat apart ({rate * BPM / 60:.3f} Hz): left {hz(PULSE_NOTE) * pulse_ratio(rate, -1):.3f} Hz, right {hz(PULSE_NOTE) * pulse_ratio(rate, 1):.3f} Hz ({1200 * math.log2(pulse_ratio(rate, 1) / pulse_ratio(rate, -1)):.1f} cents apart) ; added together they are loudest every {1 / rate:.3g} of a beat from the bar line")
+            print("   going apart, bar: how far (0 middle, 1 an ear each), the other ear's tone in this ear dB, the lift dB: " + " ; ".join(f"{(lo + PULSE_APART[0] * BEATS + k * BEATS) / BEATS + 1:g}: {pulse_apart(lo + PULSE_APART[0] * BEATS + k * BEATS):.2f} {20 * math.log10(max(1 - pulse_apart(lo + PULSE_APART[0] * BEATS + k * BEATS), 1e-9)):.1f} {pulse_lift(pulse_apart(lo + PULSE_APART[0] * BEATS + k * BEATS)):+.2f}" for k in range(PULSE_APART[1] - PULSE_APART[0] + 1)))
         print(f"{BARS} bars, {TOTAL} beats, {BARS * sec:.1f} s")
     else:
         open(OUT, "w").write(dump(song()))
