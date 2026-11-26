@@ -97,6 +97,22 @@ crawls forward over the same ground, a bar, half a bar, a quarter, an eighth, an
 bar the rewind took the place of. The hand lets go on the first beat of "the nudge" and the record is where it
 would have been. (REWIND_BACK 2, two bars back in one, was tried: the stretch then falls on an odd bar and an
 even one, loses the dub chord that grows from a sliver at its end, and the song scored less: refused.)
+
+v8 (26 Nov): THE OTHER SPEED (C11T1_FAST=0 takes it out: v7). A deck has a switch as well as a hand. Deck B has
+been pushed, dragged, looped, stretched, spun back and stopped, always from the speed it was cut at. For the
+last FAST_BARS bars of "locked" (the two decks have just agreed, for four bars) the switch is flipped to the
+other speed, and deck B plays FOUR BARS FOR EVERY THREE of deck A's. A record's pitch is its speed: four to three
+is a perfect fourth, so everything on deck B is a fourth up: its G minor is C minor, over deck A's G. And its bar
+is three beats long by deck A's clock: its bar lines fall on the grid's beats 1, 4, 3, 2 of four bars running
+and are back on a bar line every third bar: four against three, bar against bar, with nothing written but one
+number. Twelve bars of the grid: the record plays sixteen (its eight-bar round of chords twice), and they meet
+four times. Then the switch goes back as "out" begins, and the hand puts the record where it would have been.
+(A real deck's two speeds are 33 1/3 and 45, twenty-seven to twenty: a fourth and a fifth of a tone, meeting
+every twenty bars. This one's are four to three, so that the two are in tune and meet.)
+BENCHED (seed 0; v7 that day 96.55): six bars of it 96.45, nine 96.30, twelve 96.27. What it costs is the scorer's
+rhythm term, which counts strokes off the sixteenths as loose (66.3 to 63.2), and an edge of its last cut; its
+own polymeter reading, which carries no weight, goes from 30 to 70 at twelve bars and to 40 at six. Twelve is
+kept: four against three needs its four meetings. C11T1_FAST_BARS=6 is the short one.
 """
 import json
 import math
@@ -124,6 +140,9 @@ REWIND = os.environ.get("C11T1_REWIND", "1") != "0" and STRETCH                 
 REWIND_BARS = 1                # the bars before "the stretch" in which deck B is spun back ...
 REWIND_BACK = int(os.environ.get("C11T1_REWIND_BACK", "1"))   # ... and the bars of record it goes back over: it stops on a bar line, and the stretch starts from there
 REWIND_TAU = 2.0               # beats in which its speed falls by e: the hand's pull, then the platter's drag
+FAST = os.environ.get("C11T1_FAST", "1") != "0" and REWIND                      # v8: the other speed
+FAST_BY = 4 / 3                # deck B's speed with its switch at the other speed: four bars for three, and a perfect fourth
+FAST_BARS = int(os.environ.get("C11T1_FAST_BARS", "12"))   # the last bars of "locked" for which the switch is there (threes: they meet every third bar)
 ROLL_AT = 12                   # the bar of "the nudge" at which deck B is put in a loop (it is let go on the first beat of "locked")
 ROLL_WHOLE = 3                 # the first loops (a beat, a half, a quarter) get a bar each
 ROLL_TURNS = 16                # ... and every loop after them this many turns, each half as long as the last: Zeno's bar
@@ -264,21 +283,50 @@ def rewound(part, steps):
     return sorted(out, key=lambda q: q["at"])
 
 
+def fast_window():
+    """The grid beats between which deck B's switch is at the other speed, or None."""
+    sec = next((x for x in SECS if x[0] == "locked"), None)
+    if not FAST or sec is None or FAST_BARS <= 0:
+        return None
+    return (sec[1] + sec[2] - FAST_BARS) * BEATS, (sec[1] + sec[2]) * BEATS
+
+
+def forced(t):
+    """Deck B's speed at grid time t when a hand or the switch has it (the spin back, the other speed), or None."""
+    back = rewind_speed(t)
+    if back is not None:
+        return back
+    fw = fast_window()
+    return FAST_BY if fw and fw[0] <= t < fw[1] else None
+
+
+def sped(steps):
+    """What the record plays with the switch at the other speed: from the bar it is on, FAST_BY bars for every bar of the grid."""
+    t0, t1 = fast_window()
+    b0, out = int(t0 // BEATS), []
+    for i in range(int(math.ceil((t1 - t0) / BEATS * FAST_BY - 1e-9))):
+        for s, p, n, v in steps(b0 + i):
+            x = (i * BEATS + s * STEP) / FAST_BY
+            if x < t1 - t0 - 1e-9:
+                out.append(note(t0 + x, p, min(n * STEP / FAST_BY, t1 - t0 - x), v))
+    return out
+
+
 def spd_lane():
     """Semitones a record on deck B is sharp or flat by, from its speed: one point a sixteenth, only where it moves."""
     pts, last = [["0b", 0]], 0.0
     for i in range(int(TOTAL / STEP) + 1):
         t = i * STEP
-        back = rewind_speed(t)                               # a record's pitch is its speed, whichever way it turns
+        back = forced(t)                                     # a record's pitch is its speed, whichever way it turns, and whatever turns it
         v = round(12 * math.log2(max(speed(t) if back is None else back, 0.03)), 3)   # a stopped record has no pitch: the lane rests five octaves down
         if v != last or (pts and i and pts[-1][1] != v):
             if pts[-1][0] != f"{(i - 1) * STEP:g}b" and i:
                 pts.append([f"{(i - 1) * STEP:g}b", last])
-            edge = rewind_speed(t - STEP) if i else None
+            edge = forced(t - STEP) if i else None
             if back is not None and edge is None and i:          # the hand takes the record on the beat, not over the sixteenth before it
                 pts.append([f"{t - 0.01:g}b", last])
             if back is None and edge is not None:                # ... and lets it go on the beat
-                pts.append([f"{t - 0.01:g}b", round(12 * math.log2(max(rewind_speed(t - 0.01), 0.03)), 3)])
+                pts.append([f"{t - 0.01:g}b", round(12 * math.log2(max(forced(t - 0.01), 0.03)), 3)])
             pts.append([f"{t:g}b", v])
         last = v
     pts.append([f"{TOTAL:g}b", 0])
@@ -371,6 +419,7 @@ def stretched(steps):
 def deck_b(part, steps):
     """The same, on deck B's record: each event sounds when the record gets to it."""
     out, win, sw = [], roll_window(), stretch_window()
+    fw = fast_window()
     rw = rewind()
     if rw:
         sw = (rw[0], sw[1])                                    # the record is not going forward from the spin back to the end of the stretch
@@ -379,7 +428,7 @@ def deck_b(part, steps):
             for s, p, n, v in steps(bar):
                 b = bar * BEATS + s * STEP
                 t = when(b)
-                if t is not None and 0 <= t < TOTAL and not (win and win[0] <= t < win[1]) and not (sw and sw[0] <= t < sw[1]):   # the record never gets to what the loop skips
+                if t is not None and 0 <= t < TOTAL and not (win and win[0] <= t < win[1]) and not (sw and sw[0] <= t < sw[1]) and not (fw and fw[0] <= t < fw[1]):   # the record never gets to what the loop skips
                     end = when(b + n * STEP)
                     out.append(note(t, p, (end if end is not None else t + 4 * n * STEP) - t, v))
     if win and plays(part, int(win[0] // BEATS)):
@@ -393,6 +442,9 @@ def deck_b(part, steps):
         out += rewound(part, steps)
     if sw and plays(part, int(sw[0] // BEATS)):
         out += stretched(steps)
+        out.sort(key=lambda x: x["at"])
+    if fw and plays(part, int(fw[0] // BEATS)):
+        out += sped(steps)
         out.sort(key=lambda x: x["at"])
     return out
 
@@ -522,6 +574,9 @@ def song():
         del PATCHES["gt-roll"]
     if STRETCH:
         doc["about"] = doc["about"].replace(" Generated by", " From v6, in \"the stretch\", deck B goes at a half, a quarter, an eighth and a sixteenth of its speed and its pitch does not move: it is cut into grains a sixteenth long, each played whole, so every stroke is heard two, four, eight, sixteen times. Generated by")
+    if fast_window():
+        doc["about"] = doc["about"].replace(" Generated by", " From v8 deck B's switch is flipped to the other speed for the last twelve bars of locked: it plays four bars for every three of deck A's, a perfect fourth up, and the two meet every third bar. Generated by")
+        assert "From v8" in doc["about"]
     if REWIND:
         doc["about"] = doc["about"].replace(" Generated by", " From v7 the last bar before the stretch is a spin back: deck B goes backwards over the bar just heard, more than twice too fast and slowing, last stroke first, its pitch falling with its speed; the stretch then crawls forward from where it stopped. Generated by")
         assert "From v7" in doc["about"]
@@ -555,6 +610,11 @@ if __name__ == "__main__":
         for t0, loop, turns in roll_stages():
             f = BPM / 60 / loop; semi = 12 * math.log2(f / 440) + 69
             print(f"   the loop from beat {t0:9.4f} (bar {t0 / BEATS + 1:7.3f}): {loop:.6g} of a beat, {loop * 60000 / BPM:8.3f} ms, {turns:2d} turns" + (f" ; {f:7.1f} a second: {'C C# D Eb E F F# G Ab A Bb B'.split()[int(round(semi)) % 12]}{int(round(semi)) // 12 - 1} {100 * (semi - round(semi)):+.0f} cents" if loop < STEP else " ; deck B's own parts"))
+        if fast_window():
+            t0, t1 = fast_window()
+            print(f"   the other speed from bar {t0 / BEATS + 1:g} to bar {t1 / BEATS + 1:g}: deck B at {FAST_BY:.4f} of its speed ({12 * math.log2(FAST_BY):+.2f} semitones, {BPM * FAST_BY:.1f} to the minute) ; the record plays {(t1 - t0) / BEATS * FAST_BY:g} bars in {(t1 - t0) / BEATS:g} ; "
+                  f"its bar lines fall on the grid's bar.beat " + " ".join(f"{int((t0 + k * BEATS / FAST_BY) // BEATS) + 1}.{(k * BEATS / FAST_BY) % BEATS + 1:g}" for k in range(9)) + " ... ; " + ", ".join(
+                  f"{nm} {len(sped(st))}" for nm, st in (("hat", HAT), ("tock", TOCK), ("stab", STAB), ("knock", KNOCK))) + " strokes")
         if rewind():
             t0, T, p0, s0 = rewind(); s1 = s0 * math.exp(-T / REWIND_TAU)
             print(f"   the spin back from bar {t0 / BEATS + 1:g}: deck B backwards at {s0:.2f} times its speed ({12 * math.log2(s0):+.1f} semitones), slowing to {s1:.2f} ({12 * math.log2(s1):+.1f}) ; "
