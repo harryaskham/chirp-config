@@ -35,6 +35,18 @@ does. The stairwell is crossed the other way (4 + 1, 3 + 2, 2 + 3); in the hanga
 (6 + 6: both walls answer at once). IN STANDING ROOM IT STANDS: 3 + 5, forty bars, not a step. Each place is its
 own pair of walls with its own door, so in the bar or two of a step both places are heard: the old echoes dying
 behind, the new ones building.
+
+v3 (26 Nov): THE BASS LEARNS THE ROOM, AND TAKES IT OUT OF THE DOOR (C11T3_LEARN=0 writes v2). Until now nothing
+that is PLAYED has had the room's rhythm: the bass has kept to the off-beats while the walls said three-three-two
+over it. From the second row of standing room the bass plays what the room says, a stroke where the click is and
+one wherever a wall sends it back in the same bar (steps 2, 5, 7, 10, 13, 15), and each wall has a note: D for the
+click and for both walls together, F for the left wall, C for the right (`learnt()`, from the same `echoes()` that
+prints the rooms). Then the walk goes out of the door: the walls are gone, the click is one dry click a bar again,
+and THE BASS STILL PLAYS THE ROOM, walking away (18 dB down over eight bars), until the drum stops. The room is in
+the hands now. The last eight bars are the click alone, as they always were. (CARRY 12, the bass four bars on after
+the drum, was tried: the scorer then reads the whole song as five sections with 5.6 dB between them, 90.3.)
+And the dry click is heard WHERE IT STANDS: its pan is its place between the walls ((a - b) / (a + b), times PAN),
+so as it steps across a room the click itself moves with its first echo, and at 6 + 6 in the hangar it is dead centre.
 """
 import json
 import math
@@ -53,6 +65,13 @@ WALK = {"corridor": [(2, 5), (3, 4), (4, 3), (5, 2)], "stairwell": [(4, 1), (3, 
 if os.environ.get("C11T3_WALK", "1") == "0":
     WALK = {room: [ab] for room, ab in ROOMS.items()}
 assert all(a + b == sum(ROOMS[room]) for room, w in WALK.items() for a, b in w)
+LEARN = os.environ.get("C11T3_LEARN", "1") != "0"   # v3: the bass learns the room; the dry click is where it stands
+LEARN_ROOM = "standing"        # the room the bass learns
+LEARN_AFTER = 1                # rows of that room it listens for first
+WALL_NOTE = {"click": "D2", "both": "D2", "left": "F2", "right": "C2"}   # the bass's note for the click and for each wall's answer
+CARRY = 8                      # bars of "the door" the bass carries the room on for (the drum stops at 8 too)
+AWAY = -18                     # dB the bass has fallen by then: it walks away with the room in its hands
+PAN = 0.7                      # the dry click's pan when it stands AT a wall (it never does: 4 + 1 is 0.6 of the way)
 STEP_OPEN = 1                  # bars the door of the next place takes to open as the click steps
 STEP_SHUT = 2                  # bars the door of the place behind takes to shut
 WALL = "-3dB"                  # what a wall gives back
@@ -66,7 +85,7 @@ SECTIONS = [
     ("the stairwell", 3, {"click", "kick", "tock", "bass"},                  "stairwell", 0.5, -26),
     ("the hangar",    4, {"click", "kick", "tock", "bass", "chord"},         "hangar",    1.2, -8),
     ("standing room", 5, {"click", "kick", "tock", "bass", "chord", "clap"}, "standing",  1.0, -16),
-    ("the door",      2, {"click", "kick", "tock"},                          None,        0.0, None),
+    ("the door",      2, {"click", "kick", "tock"} | ({"bass"} if LEARN else set()), None,   0.0, None),
 ]
 OPEN = 2                       # bars a door takes to open (from AJAR)
 SHUT = 4                       # bars it takes to shut behind the walk
@@ -74,6 +93,8 @@ AJAR = -24                     # dB: where an opening door starts and a shutting
 CLOSED = -90
 ENTER = {"outside": [("kick", 4), ("tock", 8)], "the corridor": [("bass", 2 * ROW)], "the hangar": [("kick", ROW), ("bass", ROW)]}   # the bar of the section from which a part is there
 LEAVE = {"the door": [("tock", 8), ("kick", 8)]}                                                                                      # ... and from which it is gone
+if LEARN:
+    LEAVE["the door"].append(("bass", CARRY))
 
 
 def starts():
@@ -181,7 +202,7 @@ def buses():
 
 
 KICK = lambda bar: [(s, "A1", 1, 0.95 if s == 0 else 0.9) for s in (0, 4, 8, 12)]
-CLICK = lambda bar: [(2, "A5", 1, 0.9)]
+CLICK = lambda bar: [(2, "A5", 1, 0.9)]             # CLICK_STEP
 TOCK = lambda bar: [(11, "D5" if bar % 4 == 1 else "F5", 1, 0.8)] if bar % 2 else []   # outside: every other bar
 TOCK_STEP = 11                 # in a room: from this step of the section's first bar, every 2 * (a + b) sixteenths
 
@@ -203,6 +224,51 @@ def tock_notes():
     return out
 BASS = lambda bar: [(2, "D2", 1.5, 0.9), (6, "D2", 1.5, 0.8), (10, "D2", 1.5, 0.9), (14, ("C2", "D2", "F2", "A1")[(bar // 2) % 4] if bar % 2 else "D2", 1.5, 0.8)]
 CLAP = lambda bar: [(4, "C4", 1, 0.8), (12, "C4", 1, 0.86)]
+CLICK_STEP = 2
+
+
+def learnt():
+    """The bass's bar once it has learnt the room: the click's step, then every step of the same bar on which a wall sends it back."""
+    a, b = WALK[LEARN_ROOM][0]
+    out = [(CLICK_STEP, WALL_NOTE["click"], 1.5, 0.92)]
+    for t, side in echoes(a, b):
+        if CLICK_STEP + t < 16:
+            out.append((CLICK_STEP + t, WALL_NOTE[side], 1.5, round((0.88 if side == "both" else 0.8) * (1.0 if t <= a + b else 0.9), 3)))
+    return out
+
+
+def has_learnt(bar):
+    name, b0, n, parts, room, width, air = section_of(bar)
+    if room == LEARN_ROOM:
+        return bar >= b0 + LEARN_AFTER * ROW
+    return bar >= b0 and room is None and any(s[4] == LEARN_ROOM and s[1] < b0 for s in SECS)
+
+
+def bass_bar(bar):
+    return learnt() if LEARN and has_learnt(bar) else BASS(bar)
+
+
+def away_lane():
+    """dB on the bass: 0 until the walk is out of the door, then falling to AWAY over the CARRY bars it carries the room."""
+    b0 = next(s[1] for s in SECS if s[4] is None and any(t[4] == LEARN_ROOM and t[1] < s[1] for t in SECS))
+    return [pt(0, 0), pt(b0, 0), pt(b0 + CARRY, AWAY), pt(BARS, AWAY)]
+
+
+def stand_lane():
+    """Where the dry click stands between the walls, -1 at the left wall, +1 at the right, 0 outside: (a - b) / (a + b)."""
+    ev = []
+    for name, b0, n, parts, room, width, air in SECS:
+        if room is None:
+            ev.append((b0, 0.0, OPEN))
+    ev += [(b0, (a - b) / (a + b), opn) for room, a, b, b0, b1, opn, shut in places()]
+    ev.sort()
+    pts, last = [pt(0, ev[0][1])], ev[0][1]
+    for b0, v, glide in ev[1:]:
+        if v != last:
+            pts += [pt(b0, last), pt(b0 + glide, v)]
+        last = v
+    pts.append(pt(BARS, last))
+    return pts
 CHORDS = [("D3", "F3", "A3", "C4", "E4"), ("Bb2", "D3", "F3", "A3", "C4")]
 CHORD = lambda bar: [(6, p, 2, 0.85) for p in CHORDS[(bar // 8) % 2]] if bar % 4 == 0 else []
 
@@ -232,7 +298,7 @@ PATCHES = {
 def song():
     pump = {"type": "pump", "on": "kick", "depth": "-5dB", "attack": "2ms", "release": "180ms", "curve": 0.7}
     return {
-        "about": "Chirpers - Escapement, track 3 by chirper-zero: STANDING ROOM. One click a bar between two walls; a wall is a number of sixteenths there and back, so a room is a rhythm: 3 + 4 a room in seven, 2 + 3 in five, 5 + 7 in twelve, and 3 + 5, which is eight and fits the bar, where the echoes stand. A tock keeps each room's time, not the bar's. The click is in every room all the time; the song opens and shuts their doors." + (" From v2 the click walks across each room a step a row (2 + 5, 3 + 4, 4 + 3, 5 + 2 in the corridor), and in standing room it stands." if any(len(w) > 1 for w in WALK.values()) else "") + " Generated by compose/chirpers11/src/chirpers11-t3.py.",
+        "about": "Chirpers - Escapement, track 3 by chirper-zero: STANDING ROOM. One click a bar between two walls; a wall is a number of sixteenths there and back, so a room is a rhythm: 3 + 4 a room in seven, 2 + 3 in five, 5 + 7 in twelve, and 3 + 5, which is eight and fits the bar, where the echoes stand. A tock keeps each room's time, not the bar's. The click is in every room all the time; the song opens and shuts their doors." + (" From v2 the click walks across each room a step a row (2 + 5, 3 + 4, 4 + 3, 5 + 2 in the corridor), and in standing room it stands." if any(len(w) > 1 for w in WALK.values()) else "") + (" From v3 the bass learns the room's three-three-two (a note for the click, one for each wall) and carries it out of the door; the dry click is panned to where it stands." if LEARN else "") + " Generated by compose/chirpers11/src/chirpers11-t3.py.",
         "tempo": BPM,
         "ceiling": "-1dB",
         "loudness": -11.0,
@@ -245,9 +311,9 @@ def song():
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=30"]}, {"type": "compressor", "threshold": "-18dB", "ratio": 2, "attack": "20ms", "release": "160ms", "makeup": "0dB"}]},
         "tracks": [
             {"name": "kick", "patch": "sr-kick", "gain": "-8dB", "pan": 0.0, "notes": part("kick", KICK)},
-            {"name": "click", "patch": "sr-click", "gain": "2dB", "pan": 0.0, "notes": part("click", CLICK)},
+            {"name": "click", "patch": "sr-click", "gain": "2dB", **({"pan": {"value": 0, "mod": [{"src": "auto.stand", "amount": PAN}]}, "auto": {"stand": {"points": stand_lane()}}} if LEARN else {"pan": 0.0}), "notes": part("click", CLICK)},
             {"name": "tock", "patch": "sr-tock", "gain": "-3dB", "pan": 0.0, "notes": tock_notes()},
-            {"name": "bass", "patch": "sub-sine params.grit=0.8", "gain": "-14dB", "pan": 0.0, "fx": [pump], "notes": part("bass", BASS)},
+            {"name": "bass", "patch": "sub-sine params.grit=0.8", "gain": "-14dB", "pan": 0.0, "fx": [pump] + ([{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.away", "amount": 1}]}}] if LEARN else []), **({"auto": {"away": {"points": away_lane()}}} if LEARN else {}), "notes": part("bass", bass_bar)},
             {"name": "clap", "patch": "sr-clap", "gain": "-4dB", "pan": 0.0, "notes": part("clap", CLAP)},
             {"name": "chord", "patch": "sr-chord", "gain": "-22dB", "pan": 0.0, "fx": [pump], "sends": {"dub": "-3dB"}, "notes": part("chord", CHORD)},
         ],
@@ -282,6 +348,9 @@ if __name__ == "__main__":
             print(f"{name:14s} bars {b0:3d}-{b0 + n:3d}  {int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int((b0 + n) * sec) // 60}:{(b0 + n) * sec % 60:04.1f}  room {room or '-':10s} width {width}  air {air}  {', '.join(sorted(parts))}")
         for room, a, b, b0, b1, opn, shut in places():
             print(f"{room:11s} bars {b0:5.1f}-{b1:5.1f}  {a} + {b} = {a + b}: a click on step 2 comes back on steps " + " ".join(f"{(2 + t) % 16}{'' if s == 'both' else s[0]}" for t, s in echoes(a, b, 12)) + f" ; the tock every {2 * (a + b)} sixteenths, round every {math.lcm(2 * (a + b), 16) // 16} bar(s)")
+        if LEARN:
+            print("the bass once it has learnt the room: " + " ".join(f"{st}:{p}" for st, p, n, v in learnt()) + f" ; from bar {next(b for b in range(BARS) if has_learnt(b))} to bar {max(b for b in range(BARS) if has_learnt(b) and plays('bass', b)) + 1}")
+            print("the dry click's pan: " + " ".join(f"{p[0]}={p[1] * PAN:+.2f}" for p in stand_lane()))
         print(f"{BARS} bars, {TOTAL} beats, {BARS * sec:.1f} s")
     else:
         open(OUT, "w").write(dump(song()))
