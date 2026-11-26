@@ -71,6 +71,26 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v6 (26 Nov): WHAT THEY LEARNT THIS AFTERNOON. Three of the seven grew again after v5 quoted them, and the closer
+takes the new thing from each. Three switches on (`--without-strings`, `-paid`, `-knock`; all off is v5 byte for byte) and one off:
+  KNOCK   2 Least Common v6, the drum answers. There the drum answers each click that lands on it. Here nobody
+          plays the cycles, only their meetings sound; so the drum answers each MEETING that lands on it, with
+          the notes of the two cycles that met (G2 for the three, B flat 2 for the five, D3 for the seven):
+          two low notes every 15, 21 and 35 beats, and all three every 105.
+  STRINGS 4 Ring True v6, the strings nobody plays. The click is Ring True's wooden bar, and beside it lie that
+          song's five open strings (F2, G2, B flat 2, C3, D3: each a loop one period long that returns itself
+          and hears only the click). They are stopped for the whole record. The last stroke, on the one, is
+          G4, the fourth harmonic of the G string: as it is struck the strings are let go, and when the stroke
+          has stopped the string goes on at that note by itself. The last sound on the record is a string
+          nobody played.
+  EARLY   (OFF, `--with-early`) the strings let go from the top of the run-down instead, answering each tick as
+          it slows and sinks. By solo they stood 10 to 15 dB under the lone click there, and the scorer took
+          0.4 (99.05 for 99.45): with a new sound through the last 25 seconds its boundary at bar 9, where
+          nothing changed, reads 0.16 for 0.18. Off until an ear asks for it.
+  PAID    6 Small Change v5, the smallest change. The change's very last seed (bar 144, beat three) is paid in
+          coins of 3 and 5 of a unit that is a pitch (B flat 3's period): its change is its own note, held,
+          as the change leaves.
+
 v5 (26 Nov): TWO MORE LEAVINGS. In v3 five of the seven left as themselves; the room only had its door shut, and
 the cell was damped and nothing else. Three switches (`--without-sing`, `-nudge`, `-ease`; all three off is v4
 byte for byte):
@@ -127,7 +147,16 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False}
+KNOCK = {'notes': {3: 'G2', 5: 'Bb2', 7: 'D3'}, 'gain': '-5dB', 'hold': -10}   # v6: Least Common's knock: each cycle's note; its fader and the clip before it.
+# Bench, bars 113 to 128, the 600 ms after each knock: at Least Common's -2 dB two notes at once stood 2.6 dB under this mix from 90 to 123 Hz and level with it from 123 to 200 (this song is thinner there): 3 dB less
+WD_KNOCK = {'about': "Wind Down: the drum's answer when a meeting lands on it (v6, after Least Common's lc-knock): a small kettledrum head let ring 800 ms.",
+            'synth': {'layers': [{'type': 'modal', 'modes': 'kettle', 'decay': '800ms', 'bright': 0.3, 'strike': 0.3}], 'amp': {'a': '0.5ms', 'd': '0s', 's': 1, 'r': '600ms'}},
+            'play': {'event_stable': True, 'vel_sens': 0.4}}
+STRINGS = {'strings': (('F2', 87.307, 0.3), ('G2', 97.999, 0.0), ('Bb2', 116.541, -0.3), ('C3', 130.813, 0.15), ('D3', 146.832, -0.15)),   # v6: Ring True's: note, Hz, side
+           'feed': '-30dB', 'back': 0.985, 'lp': 5000, 'from': -12}   # what they take of the click; what each gives back a period; the low-pass in the loop; the dB their hand starts from
+PAID = {'hz': 233.08, 'coins': (3, 5), 'back': 0.71, 'feed': '-13dB', 'pan': 0.6}   # v6: Small Change's note purse: its unit (B flat 3), its coins, what each loop gives back of itself and the other, what it takes of the seed.
+# Giving back 0.70 as it does in Small Change (where it is alone) the note was 9 dB under this mix for half a bar and 22 under by the next: gone before it was heard as held. Giving back 0.71 and taking 6 dB more it is 5, 11 and 18 under by half bar and still 21 to 26 under two bars on
 SING = {'walls': (('sing-l', 10.2, '-0.8dB', -0.7), ('sing-r', 6.8, '-0.5dB', 0.7)), 'bars': 4, 'from': -6, 'feed': '18dB', 'fx': ['lp cutoff=4500', 'hp cutoff=200']}   # v5: the near walls: (name, ms away: 1 / 98 Hz and 1 / 147 Hz, what each gives back of itself, side); the room's last bars; the dB their door starts at; what they take of the click.
 # The feed is set by solo: a stopped click is so little that at -6 dB the walls stood 33 dB under the mix above 300 Hz in their standing bar; at 14, 10.7; at 18 (and the door from -6, not -12, so that all four bars are heard) see the round's note.
 # First try, the two returning EACH OTHER as the far walls do: it did not sing (33 dB gone in 50 ms): a wall on the left hears a wall on the right through its own pan, 6.4 dB lost a pass. So each returns itself
@@ -252,6 +281,10 @@ def here(thing, bar):
 
 def build():
     T = {k: [] for k in ('kick', 'tick', 'saw', 'ghost', 'cell', 'ping', 'chord', 'seed', 'comp', 'hat', 'held', 'under')}
+    if ON['paid']:
+        T['paid'] = []
+    if ON['knock']:
+        T['knock'] = []
     for bar in range(BARS):
         b = bar * 4
         down = bar >= RUNS_DOWN
@@ -302,11 +335,13 @@ def build():
                     T['ping'].append({'at': s / 4, 'len': 1, 'pitch': PING[meet], 'vel': .75})
                 elif len(meet) == 3:
                     T['chord'].append({'at': s / 4, 'len': 0.5, 'pitch': ','.join(CHORD), 'vel': .8})
+                if ON['knock'] and len(meet) >= 2 and s % 4 == 0:   # v6 KNOCK: a meeting on the drum
+                    T['knock'].append({'at': s / 4, 'len': 0.5, 'pitch': ','.join(KNOCK['notes'][c] for c in meet), 'vel': .8})
         spending = ON['spent'] and here('change', bar) and bar >= GOES['change'] - SPENT
         if here('change', bar) and ((bar - COMES['change']) % 2 == 0 or spending):
             T['seed'].append({'at': b, 'len': 0.25, 'pitch': 'Bb4', 'vel': .9})
             if spending and bar == GOES['change'] - 1:
-                T['seed'].append({'at': b + 2, 'len': 0.25, 'pitch': 'Bb4', 'vel': .9})
+                T['paid' if ON['paid'] else 'seed'].append({'at': b + 2, 'len': 0.25, 'pitch': 'Bb4', 'vel': .9})   # v6 PAID: the very last seed goes to the smallest purse
         if ON['held'] and bar == GOES['meetings']:
             T['held'].append({'at': b, 'len': HELD['len'], 'pitch': ','.join(CHORD), 'vel': HELD['vel']})
     # the final stroke: the click, let go altogether, on the one
@@ -405,6 +440,24 @@ def song():
         for me, ms, back, side in SING['walls']:
             doc['buses'][me] = {'pan': side, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.near', 'amount': 1}]}, 'auto': {'near': near()}, 'fx': SING['fx'],
                                 'returns': [{'from': 'tick', 'gain': SING['feed'], 'time': f'{ms}ms'}, {'from': me, 'gain': back, 'time': f'{ms}ms'}]}
+    if ON['strings']:
+        hand = {'points': ([['0b', -60], [f'{RUNS_DOWN * 4 - 1}b', -60], [f'{RUNS_DOWN * 4}b', STRINGS['from']], [f'{RUNS_DOWN * 4 + 8}b', 0], [f'{BARS * 4 + 16}b', 0]] if ON['early'] else
+                           [['0b', -60], [f'{BARS * 4 - 0.5}b', -60], [f'{BARS * 4}b', 0], [f'{BARS * 4 + 16}b', 0]]), 'curve': 0}
+        for name, hz, side in STRINGS['strings']:
+            me = 'str-' + name.lower()
+            t = f"{1000 / hz - 225.1 / STRINGS['lp']:.3f}ms"         # a period, less the low-pass's own delay, so the loop is in tune
+            doc['buses'][me] = {'pan': side, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.hand', 'amount': 1}]}, 'auto': {'hand': hand}, 'fx': [f"lp cutoff={STRINGS['lp']}"],
+                                'returns': [{'from': 'tick', 'gain': STRINGS['feed'], 'time': t}, {'from': me, 'gain': db(STRINGS['back']), 'time': t}]}
+    if ON['knock'] and T['knock']:
+        doc['patches'] = {**doc['patches'], 'wd-knock': WD_KNOCK}
+        doc['tracks'].append({'name': 'knock', 'patch': 'wd-knock', 'gain': KNOCK['gain'], 'notes': T['knock'], 'fx': [hold(KNOCK['hold'])]})
+    if ON['paid'] and T['paid']:
+        doc['tracks'].append({'name': 'paid', 'patch': 'wd-seed', 'gain': by_name['seed']['gain'], 'notes': T['paid'], 'fx': [hold(-12)]})
+        u, (p, q) = 1000 / PAID['hz'], PAID['coins']
+        for coin, other, side in ((p, q, -1), (q, p, 1)):
+            me, t = f'paid{coin}', f'{coin * u:.3f}ms'
+            doc['buses'][me] = {'pan': side * PAID['pan'], 'gain': '0dB', 'fx': ['lp cutoff=6000', 'hp cutoff=40'],
+                                'returns': [{'from': 'paid', 'gain': PAID['feed'], 'time': t}, {'from': me, 'gain': db(PAID['back']), 'time': t}, {'from': f'paid{other}', 'gain': db(PAID['back']), 'time': t}]}
     if ON['held']:
         doc['patches'] = {**doc['patches'], **({'wd-open': OPEN} if ON['open'] else {'wd-held': V3['wd-held']})}
         doc['tracks'].append({'name': 'held', 'patch': 'wd-open' if ON['open'] else 'wd-held', 'gain': f"{float(HELD['gain'][:-2]) + OPEN_DB:g}dB" if ON['open'] else HELD['gain'], 'pan': -0.1, 'notes': T['held'], 'fx': [under], 'sends': {'hall': '-6dB'}})
@@ -444,11 +497,13 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
-    for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v4, the last six v3, the last twelve v2, all eighteen v1)')
+    for k in [k for k, on in ON.items() if not on]:
+        ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
+    for k in [k for k, on in ON.items() if on]:
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v5, the last six v4, the last nine v3, the last fifteen v2, all twenty-one v1)')
     a = ap.parse_args()
     for k in ON:
-        ON[k] = not getattr(a, f'without_{k}')
+        ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
     if a.form:
         marks = sorted([(COMES[k], f'{k} comes') for k in GATHER] + [(DRUM_IN, 'the drum comes'), (ALL, 'all gathered'), (LET_GO[0], 'the cell is let go')] +
                        [(GOES[k], f'{k} goes' if k != 'grid' else 'the drum goes; the spring runs down') for k in GATHER] + [(BARS, 'the last stroke, on the one')] +
@@ -462,6 +517,9 @@ if __name__ == '__main__':
                        ([(GOES['ghost'] - REAL['bars'], 'the bass is given its fundamental')] if ON['real'] else []) +
                        ([(GOES['pattern'] - LEAVE, 'the pattern slips a sixteenth a bar')] if ON['slip'] else []) +
                        ([(GOES['room'] - SING['bars'], 'the walls come in until they sing')] if ON['sing'] else []) +
+                       ([(RUNS_DOWN if ON['early'] else BARS, "Ring True's strings are let go beside the click")] if ON['strings'] else []) +
+                       ([(COMES['meetings'], 'the drum answers each meeting that lands on it')] if ON['knock'] else []) +
+                       ([(GOES['change'] - 1, "the change's last seed is paid in the smallest coins: a held B flat")] if ON['paid'] else []) +
                        ([(GOES['cell'] - NUDGE['bars'], 'the hand drags the cell a sixteenth late and lets it catch up')] if ON['nudge'] else []))
         for bar, what in marks:
             t = clock(bar)
