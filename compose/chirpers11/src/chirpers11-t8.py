@@ -71,6 +71,24 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v10 (26 Nov): WHAT THE SONGS LEARNT TONIGHT. Small Change (v9) and Least Common (v10) each learnt something after
+the closer last quoted them; it takes one thing from each and nothing of its own. Three switches (`--without-
+exchange`, `-rate`, `-given`; all three off is v9 byte for byte):
+  EXCHANGE  6 Small Change v9: the same change in another currency. While the change spends what is left (bars
+            141 to 144, a seed a bar) the seeds are also paid by a second pair of coins, 3 and 5, of a unit two
+            thirds of a sixteenth (three of its units for two sixteenths): the same fifths up on the left and
+            fourths down on the right, one and a half times as fast, three against two with the first pair. A
+            hand opens it for those four bars and lets it down over the two after, as the first pair's run on.
+  RATE      6 Small Change v9: through the hold the complement has filled the pattern's holes, so that every
+            sixteenth of the bar is struck. In its last four bars the complement's click also counts what the
+            other currency can pay where that falls BETWEEN the sixteenths: 5, 8, 10 and 11 of its units after
+            each seed, softer the more coins. The full grid is given its triplet just before it empties.
+  GIVEN     2 Least Common v10: the drum rests where the three and the five meet on it, and the beat is given
+            to the answer (the knock, which has sounded there since v6). From the bar the first thing leaves to
+            the bar the meetings leave (145 to 160) that is three beats, fifteen beats apart (bar 147 beat two,
+            151 beat one, 154 beat four), and the fourth fifteen is where all three meet on the drum (bar 158:
+            the chord, the triad turning over), with the drum under it: three rests count in the last meeting.
+
 v9 (26 Nov): WITH INTEREST. Three switches (`--without-answer`, `-interest`, `-chest`; all three off is v8 byte for
 byte):
   ANSWER    the hand drops the stick on the cell's last stroke (v8), and the strings nobody plays were shut in
@@ -196,7 +214,11 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True}
+EXCHANGE = {'per': 1.5, 'back': 0.72, 'feed': '3dB', 'pan': 0.3, 'down': 8}   # v10: Small Change's exchange: how many of its units make a sixteenth; what each loop gives back a pass (the first pair's is 0.62 and its passes are half as often again); what it takes of the seed (the first pair takes 0 dB; see the bench below); how far to each side (the first pair is at 0.5); beats over which it is let down.
+# Bench (xc.sh, xcread.py: the song less v9, raw, by unit from the seed of bar 141): taking -2 dB its coins read -33 and -38 on 3 and 5 units where the first pair's read -34 and -32 on 3 and 5 sixteenths, and by bar it stood 1 to 5 dB under the first pair and 18 to 22 under the mix. Taking 0 dB (rendered in full): 3 under to 2 over the first pair, still 16 to 20 under the mix, and in the finished song 0.2 to 0.5 dB on 400 Hz to 3 kHz: these are the fullest bars of the song and the change is a small thing in them. 3 dB more: for four bars the other currency is the one that is heard.
+RATE = {'upto': 12, 'gain': '-9dB', 'pan': -0.2}   # v10: the largest amount the click counts (twelve units is two beats); its fader and side (the complement's are -6 dB and 0.2). Bench: at -6 dB its highest sample was -10.4 dBFS beside the complement's -11.0: a second complement, not a count behind it. 3 dB less
+GIVEN = {'meet': (3, 5), 'bars': 2 * LEAVE}   # v10: the two cycles whose meeting on the drum the drum rests for; the bars before the meetings go in which it does
 ANSWER = {'feed': '-29dB', 'open': 4, 'down': 4}   # v9: what the strings take of the dropped stroke and of its bounces; beats after the cell goes that they are held open; beats over which they are let down.
 # Bench (int.sh, intread.py: the song less the song without the answer, raw, by half beat): at -27 dB the answer read -27 -24 -28 -29 -32 -36 -39 from the stroke through bar 169, 7.6 dB under the mix over that bar, and level with
 # or over what is between the drum's beats there (-26 to -30) for two beats: 2 dB less
@@ -340,6 +362,17 @@ def hand(x):
     return NUDGE['reach'] * sin(pi * x / span) ** 2, NUDGE['reach'] * pi / span * sin(2 * pi * x / span)
 
 
+def coins_for(amount, p, q):
+    """v10: the fewest coins of p and q that make an amount, or None if it cannot be paid."""
+    ways = [i + (amount - i * p) // q for i in range(amount // p + 1) if (amount - i * p) % q == 0]
+    return min(ways) if ways else None
+
+
+def given(beat):
+    """v10 GIVEN: whether the drum gives this beat (counted from the top of the song) to the answer."""
+    return ON['given'] and ON['knock'] and GOES['meetings'] - GIVEN['bars'] <= beat // 4 < GOES['meetings'] and tuple(c for c in CYCLES if beat * 4 % c == 0) == GIVEN['meet']
+
+
 def caught(bar):
     return ON['catch'] and bar in CATCHES
 
@@ -354,6 +387,8 @@ def build():
         T['paid'] = []
     if ON['knock']:
         T['knock'] = []
+    if ON['rate'] and ON['exchange'] and ON['spent'] and ON['comp']:
+        T['rate'] = []
     for bar in range(BARS):
         b = bar * 4
         down = bar >= RUNS_DOWN
@@ -365,6 +400,8 @@ def build():
                 T['tick'][-1]['expr']['sink'] = round(12 * log2(speed((bar - RUNS_DOWN) * 4 + s / 4)), 2)
         if DRUM_IN <= bar < RUNS_DOWN and not caught(bar):
             for beat in range(4):
+                if given(b + beat):                             # v10: the beat is the answer's
+                    continue
                 T['kick'].append({'at': b + beat, 'len': 0.5, 'pitch': 'G1', 'vel': .95 if beat == 0 else .88})
         if here('pattern', bar):
             slip = (bar - (GOES['pattern'] - LEAVE) + 1) % 8 if ON['slip'] and bar >= GOES['pattern'] - LEAVE else 0
@@ -415,6 +452,9 @@ def build():
         spending = ON['spent'] and here('change', bar) and bar >= GOES['change'] - SPENT
         if here('change', bar) and ((bar - COMES['change']) % 2 == 0 or spending):
             T['seed'].append({'at': b, 'len': 0.25, 'pitch': 'Bb4', 'vel': .9})
+            if spending and 'rate' in T:                        # v10 RATE: what the other currency can pay of this seed, between the sixteenths
+                T['rate'] += [{'at': round(b + a / (4 * EXCHANGE['per']), 4), 'len': 0.1, 'pitch': 'G5', 'vel': round(.8 - .13 * (coins_for(a, *COINS) - 1), 2)}
+                              for a in range(1, RATE['upto'] + 1) if coins_for(a, *COINS) and (a / EXCHANGE['per']) % 1]
             if spending and bar == GOES['change'] - 1:
                 T['paid' if ON['paid'] else 'seed'].append({'at': b + 2, 'len': 0.25, 'pitch': 'Bb4', 'vel': .9})   # v6 PAID: the very last seed goes to the smallest purse
         if ON['held'] and bar == GOES['meetings']:
@@ -466,6 +506,14 @@ def song():
         t = f'{n * S16 - LAG[semi]:.2f}ms'
         buses[me] = {'pan': side, 'fx': [{'type': 'pitch', 'semitones': semi, 'mix': 1}, 'lp cutoff=10000', 'hp cutoff=150'],
                      'returns': [{'from': 'seed', 'gain': '0dB', 'time': t}, {'from': me, 'gain': db(GIVE), 'time': t}, {'from': you, 'gain': db(GIVE), 'time': t}]}
+    if ON['exchange'] and ON['spent']:                         # v10: the same seeds in another currency, for the bars the change spends in
+        a, z, u = (GOES['change'] - SPENT) * 4, GOES['change'] * 4, S16 / EXCHANGE['per']
+        hand = {'points': [['0b', -60], [f'{a - 0.05}b', -60], [f'{a}b', 0], [f'{z}b', 0], [f"{z + EXCHANGE['down']}b", -60], [f'{BARS * 4}b', -60]], 'curve': 0}
+        for me, you, n, semi, side in (('xcoin-up', 'xcoin-down', COINS[0], UP, -EXCHANGE['pan']), ('xcoin-down', 'xcoin-up', COINS[1], DOWN, EXCHANGE['pan'])):
+            t = f'{n * u - LAG[semi]:.2f}ms'
+            buses[me] = {'pan': side, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.hand', 'amount': 1}]}, 'auto': {'hand': hand},
+                         'fx': [{'type': 'pitch', 'semitones': semi, 'mix': 1}, 'lp cutoff=10000', 'hp cutoff=150'],
+                         'returns': [{'from': 'seed', 'gain': EXCHANGE['feed'], 'time': t}, {'from': me, 'gain': db(EXCHANGE['back']), 'time': t}, {'from': you, 'gain': db(EXCHANGE['back']), 'time': t}]}
     end = BARS * 4
     doc = {
         'about': "Chirpers, Escapement, track 8: Wind Down, by chirper-one. Generated by compose/chirpers11/src/chirpers11-t8.py (its docstring is the rule). The closer: one thing from each of the other seven songs, gathered a section at a time on one grid in G minor, held, and let go one at a time until the click that opened the record is alone; then the tempo runs down from 124 to 50 and the last stroke, let ring, lands on the one.",
@@ -500,6 +548,8 @@ def song():
     if ON['comp']:
         doc['patches'] = {**doc['patches'], 'wd-comp': NEW['wd-comp']}
         doc['tracks'].append({'name': 'comp', 'patch': 'wd-comp', 'gain': '-6dB', 'pan': 0.2, 'notes': T['comp']})
+        if T.get('rate'):                                      # v10 RATE: the same click on the other side
+            doc['tracks'].append({'name': 'rate', 'patch': 'wd-comp', 'gain': RATE['gain'], 'pan': RATE['pan'], 'notes': T['rate']})
     if ON['sink'] and ON['stop']:
         sunk = json.loads(json.dumps(PATCHES['wd-wood']))
         sunk['about'] = "Wind Down: the click whose note can sink (v3): wd-wood with the whole voice's pitch on the stroke (expr.sink, semitones)."
@@ -597,7 +647,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v8, the last five v7, the last eight v6, the last eleven v5, the last fourteen v4, the last seventeen v3, the last twenty-three v2, all twenty-nine v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v9, the last six v8, the last eight v7, the last eleven v6, the last fourteen v5, the last seventeen v4, the last twenty v3, the last twenty-six v2, all thirty-two v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -609,6 +659,9 @@ if __name__ == '__main__':
                        ([(HAT_BARS[0], 'the hat that slows for ever')] if ON['hat'] else []) +
                        ([(LEARNT_BARS[0], "the bass plays the room's figure"), (LEARNT_BARS[1], 'the bass is itself again')] if ON['learnt'] else []) +
                        ([(GOES['change'] - SPENT, 'the change spends what is left')] if ON['spent'] else []) +
+                       ([(GOES['change'] - SPENT, 'the change is also paid in another currency: coins of 3 and 5 of a unit two thirds of a sixteenth (three for two)')] if ON['exchange'] and ON['spent'] else []) +
+                       ([(GOES['change'] - SPENT, "the complement's click counts what the other currency can pay, between the sixteenths: " + ' '.join(str(a) for a in range(1, RATE['upto'] + 1) if coins_for(a, *COINS) and (a / EXCHANGE['per']) % 1) + ' units after each seed')] if ON['rate'] and ON['exchange'] and ON['spent'] and ON['comp'] else []) +
+                       ([(beat // 4, f'the drum gives beat {beat % 4 + 1} to the answer: the three and the five meet on it') for beat in range(BARS * 4) if given(beat)]) +
                        ([(GOES['meetings'], 'the last chord, held')] if ON['held'] else []) +
                        ([(GOES['cell'] - LEAVE, 'the cell is taken back into the hand')] if ON['taken'] else []) +
                        ([(GOES['cell'] - 1, "the hand lets go of the stick: the cell's last stroke bounces")] if ON['drop'] else []) +
