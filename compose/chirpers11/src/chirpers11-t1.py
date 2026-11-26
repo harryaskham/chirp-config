@@ -49,6 +49,20 @@ three clicks: the meetings without the clicks. All three meet on the first beat 
 once: F, B flat, D, the top of this song's chord), and the tune goes round four times, through "out", and plays
 its last note half a bar before deck B's motor goes off: 26 bars, which is four sixteenths short of one of
 Least Common's pages (420). So the first song ends on the tune the second is made of, a track early.
+
+v5 (26 Nov): THE LOOP, AND ZENO'S BAR (C11T1_ROLL=0 writes v4). The hand's last trick before the decks lock, and
+the oldest one a DJ has for it: the last four bars of "the nudge" deck B is put in a LOOP, and the loop is cut in
+half, and in half again. A bar of its first beat over and over (four times); a bar of its first half beat (eight);
+a bar of its first quarter (sixteen: every sixteenth is now the record's first instant, its drum, its click and its
+tock). Nothing is placed by hand: the record's position is still one function of time, now a sawtooth, and deck A
+plays straight on under it. THE LAST BAR IS ZENO'S: each loop gets sixteen turns and is half as long as the one
+before, so the sixteen take two beats, then one, then a half, a quarter ... and the bar line is reached only in the
+limit. The loop is now shorter than a sixteenth and holds one thing, the first instant of deck B's drum, and
+in the bar's last beat it stops being a rhythm: sixty-six strokes a second is a NOTE. It is the tempo's own note
+(124 to the minute is 2.07 Hz; thirty-two, sixty-four, a hundred and twenty-eight times that ...: a C, 19 cents
+sharp), and it goes up an octave every time the loop is halved, five octaves in that one beat, faster and faster,
+with deck A's drum taken out from under it.
+It never arrives. The loop is let go on the first beat of "locked", and the record is where it would have been.
 """
 import json
 import math
@@ -66,6 +80,13 @@ STOP = os.environ.get("C11T1_STOP", "1") != "0" and bool(KNOCK_ON)              
 MEET = os.environ.get("C11T1_MEET", "1") != "0" and STOP                        # v4: Least Common's meeting tune from "locked" to the stop
 MEET_CYCLES = (3, 5, 7)        # Least Common's three clicks, in sixteenths
 MEET_NOTE = {(3, 5): "D5", (3, 7): "Bb4", (5, 7): "F4"}   # the ping two of them make when they meet (t2's own notes)
+ROLL = os.environ.get("C11T1_ROLL", "1") != "0" and MEET                        # v5: the loop, and Zeno's bar
+ROLL_AT = 12                   # the bar of "the nudge" at which deck B is put in a loop (it is let go on the first beat of "locked")
+ROLL_WHOLE = 3                 # the first loops (a beat, a half, a quarter) get a bar each
+ROLL_TURNS = 16                # ... and every loop after them this many turns, each half as long as the last: Zeno's bar
+ROLL_TOP = 4000                # Hz: the last loop is the last whose turns come slower than this
+ROLL_BARE = 1                  # bars before "locked" in which deck A's bass drum stands back
+ROLL_VEL = 0.9                 # the velocity of every turn in Zeno's bar
 STOP_AT = 10                   # the bar of "out" at which deck B's motor goes off
 STOP_BARS = 2                  # the bars its platter takes to stop
 # name, rows, the parts that play, the hand: (kind, reach in beats, period in bars, bars over which it comes on and off)
@@ -87,6 +108,8 @@ if KNOCK_ON:
     ENTER["take"] = [("knock", ROW)]
 if STOP:
     LEAVE["out"] = [("kick", 8)]                             # deck B is not taken out: it stops
+if ROLL and ROLL_BARE:
+    LEAVE["the nudge"] = [("kick", 2 * ROW - ROLL_BARE)]     # Zeno's bar has no bass drum under it
 SWAP = 1                       # bars before "no ruler" over which deck B's drum gets its bass
 BACK = 2                       # bars after deck A's drum returns over which it loses it again
 KILL = 3.3                     # octaves above 32 Hz at which deck B's drum is cut when its bass is out (315 Hz)
@@ -124,6 +147,8 @@ def d(t):
     if kind == "breathe":
         return reach * env * math.sin(2 * math.pi * u / period)
     if kind == "nudge":
+        if ROLL:                                               # the hand is off by the bar the loop starts
+            env = max(0.0, min(1.0, u / ramp, (ROLL_AT - u) / ramp))
         return reach * env * (1 - math.cos(2 * math.pi * u / period)) / 2
     if kind == "stop":                                         # period = the bar the motor goes off, ramp = the bars the platter takes
         x, w = (u - period) * BEATS, ramp * BEATS              # beats since the motor went off; the platter's time in beats
@@ -209,18 +234,50 @@ def deck_a(part, steps):
     return out
 
 
+def roll_stages():
+    """Every loop of the roll: (the grid beat it starts on, its length in beats, its turns)."""
+    if not ROLL:
+        return []
+    t = (next(s[1] for s in SECS if s[0] == "the nudge") + ROLL_AT) * BEATS
+    out, loop = [], 1.0
+    for i in range(ROLL_WHOLE):
+        out.append((t, loop, int(round(BEATS / loop)))); t += BEATS; loop /= 2
+    while BPM / 60 / loop <= ROLL_TOP:
+        out.append((t, loop, ROLL_TURNS)); t += ROLL_TURNS * loop; loop /= 2
+    return out
+
+
+def roll_window():
+    """The grid beats between which deck B is in a loop, or None."""
+    st = roll_stages()
+    return (st[0][0], next(s[1] for s in SECS if s[0] == "locked") * BEATS) if st else None
+
+
 def deck_b(part, steps):
     """The same, on deck B's record: each event sounds when the record gets to it."""
-    out = []
+    out, win = [], roll_window()
     for bar in range(BARS):
         if plays(part, bar):
             for s, p, n, v in steps(bar):
                 b = bar * BEATS + s * STEP
                 t = when(b)
-                if t is not None and 0 <= t < TOTAL:
+                if t is not None and 0 <= t < TOTAL and not (win and win[0] <= t < win[1]):   # the record never gets to what the loop skips
                     end = when(b + n * STEP)
                     out.append(note(t, p, (end if end is not None else t + 4 * n * STEP) - t, v))
+    if win and plays(part, int(win[0] // BEATS)):
+        # in the loop: what the record holds between the loop's start and its end, once a turn, cut off where the loop ends
+        for t0, loop, turns in roll_stages():
+            if loop >= STEP:
+                out += [note(t0 + r * loop + s * STEP, p, min(n * STEP, loop - s * STEP), v)
+                        for r in range(turns) for s, p, n, v in steps(int(win[0] // BEATS)) if s * STEP < loop]
+        out.sort(key=lambda x: x["at"])
     return out
+
+
+def roll_notes():
+    """Zeno's bar: the loops shorter than a sixteenth hold the first instant of deck B's drum and nothing else."""
+    return [{"at": round(t0 + r * loop, 6), "len": round(loop, 6), "pitch": ROOT + "1", "vel": ROLL_VEL}
+            for t0, loop, turns in roll_stages() if loop < STEP for r in range(turns)]
 
 
 def euclid(k, n, rot=0):
@@ -275,6 +332,10 @@ PATCHES = {
                  "synth": {"layers": [{"type": "machine", "machine": {"part": "kick", "decay": "220ms", "click": 0.8, "drive": 0.3, "punch": 20, "punch_time": "30ms"}}],
                            "pitch": {"value": 0, "mod": [{"src": "auto.spd", "amount": 1}]},
                            "filters": [{"kind": "hp", "cutoff": {"value": 32, "mod": [{"src": "auto.low", "amount": KILL}]}, "q": 0.7}], "amp": {"a": "0.1ms", "d": "0s", "s": 1, "r": "1s"}}},
+    "gt-roll": {"about": f"Give or Take's loop (chirper-zero, 26 Nov, v5): deck B's bass drum as it is in \"the nudge\" (its bass out: a high-pass at {32 * 2 ** KILL:.0f} Hz), let go the instant its note ends, so that a note as long as the loop is the loop: the first instant of the drum, over and over. Zeno's bar.",
+                "play": {"vel_sens": 0.3},
+                "synth": {"layers": [{"type": "machine", "machine": {"part": "kick", "decay": "220ms", "click": 0.8, "drive": 0.3, "punch": 20, "punch_time": "30ms"}}],
+                          "filters": [{"kind": "hp", "cutoff": round(32 * 2 ** KILL), "q": 0.7}], "amp": {"a": "0.1ms", "d": "0s", "s": 1, "r": "1ms"}}},
     "gt-tick": {"about": "Give or Take's grid click (chirper-zero, 26 Nov): the machine's rim, one voice, high and dry; deck A's ruler marks.",
                 "play": {"vel_sens": 0.5},
                 "synth": {"layers": [{"type": "machine", "machine": {"part": "rim", "decay": "35ms"}}], "amp": {"a": "0.1ms", "d": "0s", "s": 1, "r": "300ms"}}},
@@ -331,6 +392,11 @@ def song():
         doc["about"] = doc["about"].replace("Deck B (the sixteenth click, the tocks, the dub chord) has a hand on it", "Deck B (the sixteenth click, the tocks, the dub chord, and from v2 a bass drum of its own with its bass taken out) has a hand on it")
     else:
         del PATCHES["gt-knock"]
+    if ROLL:
+        doc["tracks"].append({"name": "roll", "patch": "gt-roll", "gain": "3dB", "pan": 0.0, "sends": {"room": "-14dB"}, "notes": roll_notes()})
+        doc["about"] = doc["about"].replace(" Generated by", " From v5 the last four bars before the decks lock are a loop of deck B cut in half and in half again, and the last bar is Zeno's: sixteen turns of each loop, each half as long, until the rhythm is a note going up an octave at a time. Generated by")
+    else:
+        del PATCHES["gt-roll"]
     if MEET:
         doc["tracks"].append({"name": "meet", "patch": "gt-meet", "gain": "-14dB", "pan": 0.0, "sends": {"room": "-10dB"}, "notes": meet_notes()})
         doc["about"] = doc["about"].replace(" Generated by", " From v4, when the two decks lock, Least Common's meeting tune (the next song's: pings where cycles of 3, 5 and 7 sixteenths meet) goes round four times and ends half a bar before deck B is switched off. Generated by")
@@ -358,6 +424,9 @@ if __name__ == "__main__":
             fast = max(speed(t / 16) for t in range(b0 * BEATS * 16, (b0 + n) * BEATS * 16)); slow = min(speed(t / 16) for t in range(b0 * BEATS * 16, (b0 + n) * BEATS * 16))
             print(f"{name:10s} bars {b0:3d}-{b0 + n:3d}  {int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int((b0 + n) * sec) // 60}:{(b0 + n) * sec % 60:04.1f}  {kind:8s} furthest {far:.3f} beats ; "
                   f"deck B's tempo {BPM * slow:.1f}-{BPM * fast:.1f} ; {12 * math.log2(max(slow, 0.03)):+.2f} to {12 * math.log2(fast):+.2f} semitones ; {', '.join(sorted(parts))}")
+        for t0, loop, turns in roll_stages():
+            f = BPM / 60 / loop; semi = 12 * math.log2(f / 440) + 69
+            print(f"   the loop from beat {t0:9.4f} (bar {t0 / BEATS + 1:7.3f}): {loop:.6g} of a beat, {loop * 60000 / BPM:8.3f} ms, {turns:2d} turns" + (f" ; {f:7.1f} a second: {'C C# D Eb E F F# G Ab A Bb B'.split()[int(round(semi)) % 12]}{int(round(semi)) // 12 - 1} {100 * (semi - round(semi)):+.0f} cents" if loop < STEP else " ; deck B's own parts"))
         print(f"{BARS} bars, {TOTAL} beats, {BARS * sec:.1f} s ; the five: {FIVE}")
     else:
         open(OUT, "w").write(dump(song()))
