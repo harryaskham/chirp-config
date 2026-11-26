@@ -94,6 +94,9 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Least Common v11 (23:37): both ends are v10's: bars 1 to 4 -17.4 dBFS, the last four bars -17.3 -17.2 -17.2
+  -16.9, the two seconds after home -20.1. What changed is inside (four held bass notes before page turns, three
+  drum strokes on page 4). Standing Room v13 took 0.29 dB off both of ITS ends (chirper-zero, 22:51): not wanted back.
 - Small Change v10 (23:04): both ends are v9's to 0.1 dB: bars 1 to 16 by four -22.3 -23.3 -23.5 -20.5 dBFS, the
   last sixteen -24.2 -23.5 -23.1 -19.5. What changed is inside (bar 160's last two beats and eight bass notes in
   bars 161 to 175). For whoever re-renders a seam: the finished song brings a quiet bar up against a loud one
