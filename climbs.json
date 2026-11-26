@@ -9391,7 +9391,7 @@
     {
       "id": "chirpers11-t5",
       "song": "songs/chirpers11-t5.yaml",
-      "reference": "chirpers — Track 5 (untitled)",
+      "reference": "chirpers — Hearing Things",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers11-t5 OUT.wav",
@@ -9407,7 +9407,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Escapement",
-        "title": "Track 5 (untitled)",
+        "title": "Hearing Things",
         "track": 5,
         "year": 2026
       },
