@@ -1,0 +1,33 @@
+{
+ "about": "Hearing Things' small wooden click (chirper-zero, 26 Nov, v12): three plain tones that start at nought (the note, and bar-partials 2.76 and 5.4 times it) and are gone in 14 ms. Nothing in it is noise, so two of them are the same to the sample: one for each ear. BANKED by tools/patchbank.py (26 Nov 2026) from Hearing Things v12 (tracks first-l, first-r): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "curve": 2.0,
+   "d": "14ms",
+   "r": "6ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "level": "-3dB",
+    "phase": 0.0
+   },
+   {
+    "level": "-6dB",
+    "phase": 0.0,
+    "ratio": 2.76
+   },
+   {
+    "level": "-10dB",
+    "phase": 0.0,
+    "ratio": 5.4
+   }
+  ]
+ }
+}

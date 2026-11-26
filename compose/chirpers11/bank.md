@@ -5,6 +5,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 
 | name | from | what |
 |---|---|---|
+| `gt-bass-b` | Give or Take v13 (track bass-b) | Give or Take's second bass (chirper-zero, 26 Nov, v13): deck B's record's own: a plain tone with a little saw over it, plucked (the filter opens for a moment at each stroke); its pitch follows deck B's speed. |
 | `gt-clap` | Give or Take v1 (track clap) | Give or Take's clap (chirper-zero, 26 Nov): the machine's clap, three bursts, short; deck A. |
 | `gt-hat` | Give or Take v1 (track hat) | Give or Take's sixteenth click (chirper-zero, 26 Nov): a 14 ms burst of white noise between 6 and 12.5 kHz; deck B. |
 | `gt-kick` | Give or Take v1 (track kick) | Give or Take's bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, resting on the song's G; deck A. |
@@ -40,7 +41,9 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `ht-part` | Hearing Things v11 (track fall) | Hearing Things' part of a bell (chirper-zero, 26 Nov, v11): one plain tone with the v6 bells' own shape, and its loudness is its velocity and nothing else. A bell is made of one of these for every octave of its note, so … |
 | `ht-pip` | Hearing Things v5 (track line) | Hearing Things' pip (chirper-zero, 26 Nov, v5): a plain tone with a little of its octave, 90 ms: plain enough that two of them are told apart by pitch and by nothing else. |
 | `ht-shep` | Hearing Things v2 (tracks shep0, shep1, shep2, shep3) | Hearing Things' rising voice (chirper-zero, 26 Nov, v2): a small struck tone (a sine with two bar-like partials, 70 ms), whose loudness is all velocity and whose pitch rides the lane `rise` (semitones): one layer of the … |
+| `ht-snap` | Hearing Things v12 (tracks first-l, first-r) | Hearing Things' small wooden click (chirper-zero, 26 Nov, v12): three plain tones that start at nought (the note, and bar-partials 2.76 and 5.4 times it) and are gone in 14 ms. Nothing in it is noise, so two of them are … |
 | `ht-tick` | Hearing Things v1 (track tick) | Hearing Things' click (chirper-zero, 26 Nov): the machine's rim, 35 ms, on E5; on the off-beats from the first bar to the last. |
+| `ht-tick-t` | Hearing Things v12 (track tick) | Hearing Things' click with its two notes turned down (chirper-zero, 26 Nov, v12): `ht-tick`, and a narrow cut at E5 and at its third partial. The rim's snap is as it was. |
 | `lc-chord` | Least Common v1 (track chord) | Least Common: what three clicks make when they meet. A short filtered chord for a delay to carry. |
 | `lc-clap` | Least Common v1 (track clap) | Least Common: two and four. The drum machine's clap, short. |
 | `lc-hat` | Least Common v1 (track hat) | Least Common: the off beat. The drum machine's hat, closed. |
@@ -53,6 +56,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `lc-three` | Least Common v1 (track three) | Least Common: the click that counts three. Ten milliseconds of noise above 5 kHz: a tick with no note. |
 | `lc-tock` | Least Common v2 (track five) | Least Common: the click that counts five, once it has a tune (v2). The same wooden bar damped twice as fast, so that a note it keeps for twenty strokes is a colour and not a drone. |
 | `lc-tone` | Least Common v1 (track tone) | Least Common: the meetings one size up. A plain held tone, a sine and a little of its octave, that takes a beat to arrive. |
+| `os-air` | Out of Step v12 (tracks air-1, air-2) | Out of Step's small bright click (chirper-zero, 26 Nov, v12): a saw from phase nought with everything under 6.5 kHz taken off and a lift round 14 kHz, gone in 10 ms: no noise in it, so two of them are the same to the sam… |
 | `os-bass` | Out of Step v1 (track bass) | Out of Step's bass (chirper-zero, 26 Nov): three pairs of sines, at G2 and its second and third harmonics, each pair 2.1 Hz apart (one cycle a beat at 126; ratio 1.021429 for G2 ONLY: another note needs its own ratio). T… |
 | `os-bass-b` | Out of Step v5 (track bassb) | Out of Step's second bass (chirper-zero, 26 Nov, v5): the same three pairs of sines built on B flat 2 (116.5409 Hz), each pair 2.1 Hz apart (ratio 1.018019 for B flat 2 only), so it pumps on the beat as the G does. It so… |
 | `os-bass-d` | Out of Step v11 (track bassd) | Out of Step's second pump (chirper-zero, 26 Nov, v11): two pairs of sines, on D2 and its octave, each pair 3.15 Hz apart (a cycle and a half a beat at 126), both tones of a pair as loud as each other. Struck on the off-b… |

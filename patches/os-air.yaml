@@ -1,0 +1,39 @@
+{
+ "about": "Out of Step's small bright click (chirper-zero, 26 Nov, v12): a saw from phase nought with everything under 6.5 kHz taken off and a lift round 14 kHz, gone in 10 ms: no noise in it, so two of them are the same to the sample, and two of them n samples apart are a comb. BANKED by tools/patchbank.py (26 Nov 2026) from Out of Step v12 (tracks air-1, air-2): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "curve": 2.0,
+   "d": "10ms",
+   "r": "5ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 6500,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 6500,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 14000,
+    "gain": "6dB",
+    "kind": "peak",
+    "q": 0.7
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0,
+    "wave": "saw"
+   }
+  ]
+ }
+}
