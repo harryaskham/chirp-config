@@ -63,6 +63,26 @@ in the bar's last beat it stops being a rhythm: sixty-six strokes a second is a 
 sharp), and it goes up an octave every time the loop is halved, five octaves in that one beat, faster and faster,
 with deck A's drum taken out from under it.
 It never arrives. The loop is let go on the first beat of "locked", and the record is where it would have been.
+
+v6 (26 Nov): ZENO'S RECORD (C11T1_STRETCH=0 takes it out: v5). The song has slowed deck B three ways: the hand
+(its pitch sags), the stop (its pitch falls five octaves), and now a fourth thing a hand cannot do: the STRETCH.
+In a new row, "the stretch" (after "both"), deck B's record goes at half speed and ITS PITCH DOES NOT MOVE. It is
+done the way a machine does it: the record is cut into grains a sixteenth long, and each grain is played whole,
+at full speed, but the next grain starts only half a sixteenth further into the record. So everything on the
+record is played twice: every stroke becomes two strokes, half a sixteenth apart, and the second is where the
+stroke would be on a record going at half speed. Two bars on, the record goes at a quarter of its speed: four
+strokes for each, three quarters of a sixteenth apart, a ratchet that runs up to the place and lands on it. Then
+an eighth: eight strokes, seven eighths apart. Then a sixteenth: sixteen strokes, fifteen sixteenths apart, which
+is very nearly deck A's grid: a click that starts a sixteenth late and is 8 ms less late every stroke until it
+is ON the grid, and the dub chord with it, a sliver that grows into a chord.
+The record gets through a bar, then half a bar, then a quarter, then an eighth: in eight bars it has gone a bar
+and seven eighths, and going on like this it would never reach the end of its second bar. That is Zeno's other
+paradox (the runner who must first go half the way). The loop in "the nudge" is where it ends
+up: a record stretched for ever is one grain, repeated. The hand lets go on the first beat of "the nudge" and
+the record is where it would have been.
+Deck A's drum, bass and clap stand back for these eight bars (the song's one breakdown): only its click stays,
+the ruler the stretched record is read against. With deck A's drum under it the stretch was hard to find, and
+the scorer's form stood on one cut at the very end of the song (STRETCH_OVER says what plays under it).
 """
 import json
 import math
@@ -81,6 +101,11 @@ MEET = os.environ.get("C11T1_MEET", "1") != "0" and STOP                        
 MEET_CYCLES = (3, 5, 7)        # Least Common's three clicks, in sixteenths
 MEET_NOTE = {(3, 5): "D5", (3, 7): "Bb4", (5, 7): "F4"}   # the ping two of them make when they meet (t2's own notes)
 ROLL = os.environ.get("C11T1_ROLL", "1") != "0" and MEET                        # v5: the loop, and Zeno's bar
+STRETCH = os.environ.get("C11T1_STRETCH", "1") != "0" and ROLL                   # v6: Zeno's record
+STRETCH_BY = (2, 4, 8, 16)     # how many times slower deck B's record goes in "the stretch" ...
+STRETCH_BARS = 2               # ... for this many bars each
+GRAIN = 1                      # sixteenths: the piece of record that is played whole each time
+STRETCH_OVER = set(os.environ.get("C11T1_STRETCH_OVER", "tick").split(",")) - {""}   # what of deck A plays under it: its click, the ruler, and nothing else
 ROLL_AT = 12                   # the bar of "the nudge" at which deck B is put in a loop (it is let go on the first beat of "locked")
 ROLL_WHOLE = 3                 # the first loops (a beat, a half, a quarter) get a bar each
 ROLL_TURNS = 16                # ... and every loop after them this many turns, each half as long as the last: Zeno's bar
@@ -96,6 +121,10 @@ SECTIONS = [
     ("take",      2, {"kick", "tick", "hat", "tock", "sub", "stab"} | KNOCK_ON,  ("breathe", 0.08, 2, 2)),   # deck B's drum from the second row; the click gone for the last four bars
     ("no ruler",  2, {"hat", "tock", "stab"} | KNOCK_ON,                         ("breathe", 0.5, 4, 4)),
     ("both",      3, {"kick", "tick", "hat", "tock", "sub", "stab", "clap"} | KNOCK_ON,  ("breathe", 0.08, 1.5, 2)),
+]
+if STRETCH:
+    SECTIONS.append(("the stretch", len(STRETCH_BY) * STRETCH_BARS // ROW, STRETCH_OVER | {"hat", "tock", "stab"} | KNOCK_ON, ("stretch", 0.0, 1, 2)))
+SECTIONS += [
     ("the nudge", 2, {"kick", "tick", "hat", "tock", "sub", "stab", "clap"} | KNOCK_ON,  ("nudge", 0.25, 4, 2)),
     ("locked",    2, {"kick", "tick", "hat", "tock", "sub", "stab", "clap"} | KNOCK_ON,  ("none", 0.0, 1, 2)),
     ("out",       2, {"kick", "tick", "hat", "tock"} | ({"stab", "knock"} if STOP else set()), ("stop", 0.0, STOP_AT, STOP_BARS) if STOP else ("none", 0.0, 1, 2)),
@@ -140,7 +169,7 @@ def d(t):
     if t < 0 or t >= TOTAL:
         return 0.0
     name, b0, n, parts, (kind, reach, period, ramp) = section_at(t)
-    if kind == "none":
+    if kind in ("none", "stretch"):                            # a stretched record is slow and not flat: its speed against the grid is not the hand's
         return 0.0
     u = t / BEATS - b0                                         # bars into the section
     env = max(0.0, min(1.0, u / ramp, (n - u) / ramp))          # the hand comes on and comes off
@@ -253,15 +282,43 @@ def roll_window():
     return (st[0][0], next(s[1] for s in SECS if s[0] == "locked") * BEATS) if st else None
 
 
+def grains():
+    """The stretch: (the grid beat a grain starts on, where in the record it starts, in sixteenths from the section's first)."""
+    b0 = next((s[1] for s in SECS if s[0] == "the stretch"), None)
+    if b0 is None:
+        return []
+    out, t, pos = [], b0 * BEATS, 0.0
+    for by in STRETCH_BY:
+        for _ in range(int(STRETCH_BARS * BEATS / (GRAIN * STEP))):
+            out.append((t, pos)); t += GRAIN * STEP; pos += GRAIN / by
+    return out
+
+
+def stretch_window():
+    """The grid beats between which deck B is stretched, or None."""
+    g = grains()
+    return (g[0][0], g[-1][0] + GRAIN * STEP) if g else None
+
+
+def stretched(steps):
+    """What the grains hold: every stroke whose start is inside a grain, where it is in the grain, cut off at the grain's end."""
+    g = grains()
+    b0 = int(g[0][0] // BEATS)
+    far = int(math.ceil((g[-1][1] + GRAIN) / 16))
+    record = [(16 * i + s, p, n, v) for i in range(far) for s, p, n, v in steps(b0 + i)]
+    return [note(t + (s - pos) * STEP, p, min(n, GRAIN - (s - pos)) * STEP, v)
+            for t, pos in g for s, p, n, v in record if -1e-9 <= s - pos < GRAIN - 1e-9]
+
+
 def deck_b(part, steps):
     """The same, on deck B's record: each event sounds when the record gets to it."""
-    out, win = [], roll_window()
+    out, win, sw = [], roll_window(), stretch_window()
     for bar in range(BARS):
         if plays(part, bar):
             for s, p, n, v in steps(bar):
                 b = bar * BEATS + s * STEP
                 t = when(b)
-                if t is not None and 0 <= t < TOTAL and not (win and win[0] <= t < win[1]):   # the record never gets to what the loop skips
+                if t is not None and 0 <= t < TOTAL and not (win and win[0] <= t < win[1]) and not (sw and sw[0] <= t < sw[1]):   # the record never gets to what the loop skips
                     end = when(b + n * STEP)
                     out.append(note(t, p, (end if end is not None else t + 4 * n * STEP) - t, v))
     if win and plays(part, int(win[0] // BEATS)):
@@ -270,6 +327,9 @@ def deck_b(part, steps):
             if loop >= STEP:
                 out += [note(t0 + r * loop + s * STEP, p, min(n * STEP, loop - s * STEP), v)
                         for r in range(turns) for s, p, n, v in steps(int(win[0] // BEATS)) if s * STEP < loop]
+        out.sort(key=lambda x: x["at"])
+    if sw and plays(part, int(sw[0] // BEATS)):
+        out += stretched(steps)
         out.sort(key=lambda x: x["at"])
     return out
 
@@ -397,6 +457,8 @@ def song():
         doc["about"] = doc["about"].replace(" Generated by", " From v5 the last four bars before the decks lock are a loop of deck B cut in half and in half again, and the last bar is Zeno's: sixteen turns of each loop, each half as long, until the rhythm is a note going up an octave at a time. Generated by")
     else:
         del PATCHES["gt-roll"]
+    if STRETCH:
+        doc["about"] = doc["about"].replace(" Generated by", " From v6, in \"the stretch\", deck B goes at a half, a quarter, an eighth and a sixteenth of its speed and its pitch does not move: it is cut into grains a sixteenth long, each played whole, so every stroke is heard two, four, eight, sixteen times. Generated by")
     if MEET:
         doc["tracks"].append({"name": "meet", "patch": "gt-meet", "gain": "-14dB", "pan": 0.0, "sends": {"room": "-10dB"}, "notes": meet_notes()})
         doc["about"] = doc["about"].replace(" Generated by", " From v4, when the two decks lock, Least Common's meeting tune (the next song's: pings where cycles of 3, 5 and 7 sixteenths meet) goes round four times and ends half a bar before deck B is switched off. Generated by")
@@ -427,6 +489,11 @@ if __name__ == "__main__":
         for t0, loop, turns in roll_stages():
             f = BPM / 60 / loop; semi = 12 * math.log2(f / 440) + 69
             print(f"   the loop from beat {t0:9.4f} (bar {t0 / BEATS + 1:7.3f}): {loop:.6g} of a beat, {loop * 60000 / BPM:8.3f} ms, {turns:2d} turns" + (f" ; {f:7.1f} a second: {'C C# D Eb E F F# G Ab A Bb B'.split()[int(round(semi)) % 12]}{int(round(semi)) // 12 - 1} {100 * (semi - round(semi)):+.0f} cents" if loop < STEP else " ; deck B's own parts"))
+        g = grains()
+        for i, by in enumerate(STRETCH_BY if g else ()):
+            n = int(STRETCH_BARS * BEATS / (GRAIN * STEP)); t0, p0 = g[i * n]
+            print(f"   the stretch from bar {t0 / BEATS + 1:g}: deck B at 1/{by} of its speed for {STRETCH_BARS} bars; the record goes from {p0:g} to {p0 + n * GRAIN / by:g} sixteenths ; "
+                  f"every stroke is heard {by} times, {GRAIN * (1 - 1 / by):g} of a sixteenth apart ({GRAIN * (1 - 1 / by) * STEP * 60000 / BPM:.1f} ms)")
         print(f"{BARS} bars, {TOTAL} beats, {BARS * sec:.1f} s ; the five: {FIVE}")
     else:
         open(OUT, "w").write(dump(song()))
