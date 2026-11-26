@@ -146,6 +146,29 @@ it should cancel, and the engine starts a note on a whole sample, 21 millionths 
 is 12 to 16 dB under what should not. And "no bigger" is the peak, which falls 3 dB from the bottom of the
 ladder to the top; the LEVEL rises 6 dB on the way up, because the click's own 500 Hz high-pass takes most of a
 single click's two lowest harmonics away and takes nothing from the higher rungs.)
+
+v10 (26 Nov): A NOTE IS A CLICK IN STEP WITH ITS OWN WAVE (C11T7_ROLL=0 takes it out: v9). The record's click is
+five turns of a wave (a saw on G3, 5.102 ms a turn). Strike it again before it has died and the second stroke
+falls on the first one's tail: in step with it or out, by how far apart they are. A ROLL does that: the click
+on its own track, from sixteenths (8.4 strokes a second), faster by the same ratio every beat (1.69 times: the
+rate is a straight line on a slide rule), for six beats, until the strokes are ONE TURN OF THE WAVE apart: 196 a
+second. There every stroke is in step with the tail of the one before, the tails add, and the row of clicks is
+one unbroken note: G3, the saw the click was cut from. It is held for two beats and stops on the bar line.
+On the way up the rate is heard first as a rhythm, then as a buzz, then as a pitch that climbs four and a half
+octaves; and the strokes go in and out of step with their own tails: in step (bright) when they are a whole
+number of turns apart (49 a second: G1; 65: C2; 98: G2), out (hollow) half way between.
+Once: in the two bars of "slips" where the drum, the clap and the hat rest (bars 81 and 82, 2:32 to 2:36),
+landing on their return. Stockhausen's splice (a note slowed until it is a row of pulses, Kontakte, 1960) the
+other way up, made out of the record's own click.
+(Made also, and REFUSED: the same roll backwards (a note coming apart into the clicks it is made of) in the
+first two bars of the row of "drifts" that has no drum, and up again in that row's last two. With those two
+the score fell 0.6: the scorer's sections of "drifts" came out more alike (timbre spread 5.9 to 5.4). They are
+still written: C11T7_ROLL_AT="slips/56/up,drifts/16/down,drifts/22/up".)
+Each stroke is turned down as the roll quickens, by the square root of the rate, so the roll gives the same
+power a second at every speed: what changes is only how the strokes are spaced. Track `roll`, patch `os-click`,
+in the middle.
+(Made first with the held note as high in peak as one stroke: in the master a held note that high is as loud
+as the music, the master turned the music 3 to 5 dB down under it, and the score fell 0.6. Refused.)
 """
 import json
 import math
@@ -312,6 +335,51 @@ def when(b):
         else:
             hi = mid
     return (lo + hi) / 2
+
+
+ROLL_ON = os.environ.get("C11T7_ROLL", "1") != "0" and SCALE_ON                 # v10: a note is a click in step with its own wave (the roll)
+ROLL_AT = tuple((x.split("/")[0], int(x.split("/")[1]), x.split("/")[2]) for x in os.environ.get("C11T7_ROLL_AT", "slips/56/up").split(",") if x)     # the section, the bar of it at which a roll begins, and which way it goes
+ROLL_GLIDE = 6                                         # beats in which the rate goes from sixteenths to a stroke a turn of the click's wave
+ROLL_HOLD = 2                                          # beats the note is then held (a roll is ROLL_GLIDE + ROLL_HOLD beats: two bars)
+ROLL_FALL = float(os.environ.get("C11T7_ROLL_FALL", "0.5"))    # a stroke is turned down by (the rate / a sixteenth's) to this power: at a half the roll gives the same power a second at every speed
+ROLL_VEL = 0.8
+ROLL_GAIN = float(os.environ.get("C11T7_ROLL_GAIN", "-8"))     # dB: the roll's fader (A's is -2). REFUSED in the master: fall 0.25 at -6 dB (the held note no higher in peak than a stroke): the note was 2.5 dB under the music, the master turned the music 3 to 5 dB down under it and the score fell 0.6
+
+
+def roll_strokes():
+    """One roll going up: (beats after it begins, the rate there in strokes a second) of every stroke."""
+    beat = 60 / BPM
+    r0, r1, tg = 1 / (STEP * beat), WAVE_HZ, ROLL_GLIDE * beat
+    a = math.log(r1 / r0) / tg                                   # the rate is r0 * exp(a t): stroke n is where its integral is n
+    out, n = [], 0
+    while math.log(1 + n * a / r0) / a < tg:
+        t = math.log(1 + n * a / r0) / a
+        out.append((t / beat, r0 * math.exp(a * t)))
+        n += 1
+    t = out[-1][0] * beat
+    while t + 1 / r1 < (ROLL_GLIDE + ROLL_HOLD) * beat - 0.5 / r1:   # then a stroke every turn of the wave, to the bar line
+        t += 1 / r1
+        out.append((t / beat, r1))
+    return out
+
+
+def roll_spans():
+    """(the beat a roll begins at, which way it goes) for every roll."""
+    if not ROLL_ON:
+        return []
+    return [(( next(x for x in SECS if x[0] == nm)[1] + bar) * BEATS, way) for nm, bar, way in ROLL_AT if any(x[0] == nm for x in SECS)]
+
+
+def roll_notes():
+    beat = 60 / BPM
+    out = []
+    for t0, way in roll_spans():
+        for t, r in roll_strokes():
+            at = t0 + (t if way == "up" else ROLL_GLIDE + ROLL_HOLD - t)
+            if way == "down" and t == 0:
+                continue                                       # the mirror of the first stroke is the next bar line: A's
+            out.append({"at": round(at, 6), "len": 0.05, "pitch": NOTE, "vel": round(ROLL_VEL * (r * STEP * beat) ** -ROLL_FALL, 4)})
+    return sorted(out, key=lambda n: n["at"])
 
 
 def scale_span():
@@ -584,6 +652,11 @@ def song():
                                   "sends": {"room": "-16dB"}, "auto": {"open": {"points": open_lane()}}, "notes": scale_notes(k)})
         doc["about"] = doc["about"].replace(" Generated by", " From v9, in the second row of one again, one click plays its wave's own scale: struck n times, a n-th of a turn of its wave apart, it is the click on n times its note and no higher in peak (G3 G4 D5 G5 D6 F6 G6 A6 for n = 1 2 3 4 6 7 8 9), a click a beat, up and down twice. Generated by")
         assert "From v9" in doc["about"]
+    if roll_spans():
+        doc["tracks"].append({"name": "roll", "patch": "os-click", "gain": f"{ROLL_GAIN:g}dB", "pan": 0.0,
+                              "sends": {"room": "-16dB"}, "auto": {"open": {"points": open_lane()}}, "notes": roll_notes()})
+        doc["about"] = doc["about"].replace(" Generated by", " From v10 the click rolls: from sixteenths it quickens by the same ratio every beat until its strokes are one turn of its own wave apart, 196 a second, where every stroke is in step with the last one's tail and the row of clicks is one held note, G3: once, in the two bars of slips where the drum rests, landing on its return. Generated by")
+        assert "From v10" in doc["about"]
     if CANON_ON:
         doc["tracks"].append({"name": "tune2", "patch": "os-tune", "gain": CANON_GAIN, "pan": PAN, "sends": {"room": "-10dB"}, "notes": canon_notes()})
         doc["about"] = doc["about"].replace(" Generated by", " From v6, in the second row of home, the tune has a B of its own: a second pip an octave lower plays the same five notes and slips a sixteenth ahead of the tune every two bars, so the tune is heard in canon with itself at four distances (Piano Phase's way, in the record's chord). Generated by")
@@ -659,6 +732,12 @@ if __name__ == "__main__":
                     print(f"   the pendulum in \"{name}\" (bars {b0 + phase[1]}-{b0 + phase[2]}, {phase[3]}): B's lead at each quarter of a bar, ms (+ the right ear first): " + " ".join(f"{lead_ms((b0 + phase[1]) * BAR + q * 4):+.2f}" for q in range(0, (phase[2] - phase[1]) * 4 + 1)))
         ms = 60 / BPM / 4 * 1000
         print("   the first slip (bars 24-26): the gap between A's stroke and B's, ms: " + " ".join(f"{(n['at'] / STEP - round(n['at'] / STEP + phi(n['at'] / STEP)) + 0) * -ms:.1f}" for n in b_notes() if 24 * BEATS <= n["at"] < 25.5 * BEATS))
+        if roll_spans():
+            st = roll_strokes(); beat = 60 / BPM; ng = sum(1 for t, r in st if r < WAVE_HZ - 1e-9)
+            nt = lambda f: (lambda m: "C C# D Eb E F F# G Ab A Bb B".split()[int(round(m)) % 12] + str(int(round(m)) // 12 - 1) + f"{100 * (m - round(m)):+.0f}c")(69 + 12 * math.log2(f / 440))
+            print(f"   the roll: {len(st)} strokes in {ROLL_GLIDE + ROLL_HOLD} beats: {ng} quickening from {st[0][1]:.2f} a second (sixteenths) by {math.exp(math.log(WAVE_HZ / st[0][1]) / ROLL_GLIDE):.3f} times a beat for {ROLL_GLIDE} beats, then {len(st) - ng} a turn of the wave apart ({1000 / WAVE_HZ:.3f} ms, {WAVE_HZ:.1f} a second: {nt(WAVE_HZ)}) ; the last stroke {1000 * (ROLL_GLIDE + ROLL_HOLD - st[-1][0]) * beat:.2f} ms before the bar line ; a stroke's velocity {ROLL_VEL:g} falling to {ROLL_VEL * (WAVE_HZ * STEP * beat) ** -ROLL_FALL:.3f} ({20 * math.log10((WAVE_HZ * STEP * beat) ** -ROLL_FALL):.1f} dB) ; fader {ROLL_GAIN:g} dB")
+            print("      the rate at each beat: " + " ".join(f"{st[0][1] * (WAVE_HZ / st[0][1]) ** (b / ROLL_GLIDE):.1f}" for b in range(ROLL_GLIDE + 1)) + " ; in step with its own tail (strokes k turns apart) at: " + " ".join(f"k={k}: {WAVE_HZ / k:.1f} a second ({nt(WAVE_HZ / k)}), beat {ROLL_GLIDE * math.log(WAVE_HZ / k / st[0][1]) / math.log(WAVE_HZ / st[0][1]):.2f}" for k in (4, 3, 2, 1)))
+            print("      " + " ; ".join(f"{way} from bar {int(t0 // BEATS) + 1} ({int(t0 * beat) // 60}:{t0 * beat % 60:04.1f}) to the line of bar {int(t0 // BEATS) + 3} ({int((t0 + 8) * beat) // 60}:{(t0 + 8) * beat % 60:04.1f})" for t0, way in roll_spans()))
         if scale_span():
             lo, hi = scale_span()
             names = {1: "G3", 2: "G4", 3: "D5", 4: "G5", 5: "B5", 6: "D6", 7: "F6-", 8: "G6", 9: "A6"}
