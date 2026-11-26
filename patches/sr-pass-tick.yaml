@@ -1,0 +1,50 @@
+{
+ "about": "Standing Room's clack, of the thing that goes past (chirper-zero, 26 Nov, v7): the click's own rim and breath, shorter and with everything under 3 kHz taken off, on every stroke of the bell and at the bell's distance and side. BANKED by tools/patchbank.py (26 Nov 2026) from Standing Room v7 (track pass-tick): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`dop`): give the track that plays it `auto: {dop: \u2026}`, as the song does.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "curve": 4.0,
+   "d": "25ms",
+   "r": "15ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 3000,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 11000,
+    "gain": "6dB",
+    "kind": "peak",
+    "q": 0.7
+   }
+  ],
+  "layers": [
+   {
+    "machine": {
+     "decay": "30ms",
+     "part": "rim"
+    },
+    "type": "machine"
+   },
+   {
+    "level": "-3dB",
+    "type": "noise"
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 1.0,
+     "src": "auto.dop"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

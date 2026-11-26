@@ -1,0 +1,51 @@
+{
+ "about": "Hearing Things' bell with no octave (chirper-zero, 26 Nov, v6), on Ab: Ab in every octave at once under one fixed curve (loudest at 440 Hz, 1.1 octaves wide), so it has a note-name and no height. One patch a note-name: the curve stays where it is and the octaves move under it. Every octave starts at the same instant of its cycle, so two strokes of one bell are the same samples. BANKED by tools/patchbank.py (26 Nov 2026) from Hearing Things v7 (track stair-Ab): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "4ms",
+   "d": "420ms",
+   "r": "90ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "level": "-34.1dB",
+    "phase": 0.0,
+    "ratio": 0.25
+   },
+   {
+    "level": "-15.6dB",
+    "phase": 0.0,
+    "ratio": 0.5
+   },
+   {
+    "level": "-4.2dB",
+    "phase": 0.0
+   },
+   {
+    "level": "-0.0dB",
+    "phase": 0.0,
+    "ratio": 2.0
+   },
+   {
+    "level": "-3.0dB",
+    "phase": 0.0,
+    "ratio": 4.0
+   },
+   {
+    "level": "-13.2dB",
+    "phase": 0.0,
+    "ratio": 8.0
+   },
+   {
+    "level": "-30.5dB",
+    "phase": 0.0,
+    "ratio": 16.0
+   }
+  ]
+ }
+}

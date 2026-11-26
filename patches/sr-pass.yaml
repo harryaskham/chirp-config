@@ -1,0 +1,35 @@
+{
+ "about": "Standing Room's bell on the thing that goes past (chirper-zero, 26 Nov, v7): a small dry bell, a sine with its octave and twelfth, 120 ms, whose pitch is given by how fast the thing is closing (auto.dop, semitones). It is in no room. BANKED by tools/patchbank.py (26 Nov 2026) from Standing Room v7 (track pass): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`dop`): give the track that plays it `auto: {dop: \u2026}`, as the song does.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "0.5ms",
+   "d": "120ms",
+   "r": "40ms",
+   "s": 0
+  },
+  "layers": [
+   {},
+   {
+    "level": "-9dB",
+    "ratio": 2.0
+   },
+   {
+    "level": "-15dB",
+    "ratio": 3.0
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 1.0,
+     "src": "auto.dop"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

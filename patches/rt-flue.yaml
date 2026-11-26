@@ -1,0 +1,76 @@
+{
+ "about": "Ring True: the air, blown (v5). rt-air's puff of noise in a resonator tuned to the note, and behind it a breath: a second noise nearly half a second long whose level the stroke's ring brings up (60 dB from stopped to let go). The resonator's q goes to 40, not 120, so let go it is breath with a note in it and not a ping. BANKED by tools/patchbank.py (26 Nov 2026) from Ring True v5 (tracks air, air-room, air-kept): every extends and override resolved, so it stands by itself.",
+ "gain": "24dB",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "curve": 1.0,
+   "d": "0s",
+   "r": "2.5s"
+  },
+  "env": {
+   "breath": {
+    "a": "30ms",
+    "d": "450ms",
+    "r": "300ms",
+    "s": 0
+   },
+   "burst": {
+    "a": "0.1ms",
+    "d": "3ms",
+    "r": "3ms",
+    "s": 0
+   }
+  },
+  "filters": [
+   {
+    "cutoff": 261.63,
+    "keytrack": 1.0,
+    "kind": "bp",
+    "q": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ring"
+      }
+     ],
+     "value": 0.7
+    }
+   }
+  ],
+  "layers": [
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 70.0,
+       "src": "env.burst"
+      }
+     ],
+     "value": "-70dB"
+    },
+    "type": "noise"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 70.0,
+       "src": "env.breath"
+      },
+      {
+       "amount": 1.527,
+       "src": "expr.ring"
+      }
+     ],
+     "value": "-154dB"
+    },
+    "type": "noise"
+   }
+  ]
+ }
+}
