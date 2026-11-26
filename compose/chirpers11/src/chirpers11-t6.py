@@ -58,7 +58,24 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True}
+# ---- v10 (26 Nov): PAID ABROAD. Three more switches, each `--without-…` (with them off it is v9 byte for byte).
+#   ABROAD    the bass plays what the first purse cannot pay: 1, 2, 4 and 7 sixteenths (4 falls with the drum
+#             and is left to it). But two sixteenths are three of the exchange's units, and three it can pay:
+#             at home, after each chord, that debt is paid abroad and the bass does not play it. The exchange's
+#             first coin sounds alone where the bass's G was (it fell ON that note in v9, and the finished song
+#             read 3 dB lower there for it). 1 and 7 sixteenths are one and a half and ten and a half units:
+#             no currency here pays those, and the bass keeps them.
+#   HERALD    the two bars before home are the wait: no drum, no bass, no hat, only what is left of the last
+#             off-beat seed. On beat three of the second a seed is given to the exchange ALONE (a track only it
+#             hears; the hand opens it a little after, so nothing older gets in): 3, 5, 6, 8, 9, 10, 11 of its
+#             units, and 12 is the one of home. From 8 on every sixth of a beat is paid, so the change before
+#             home is a roll in the other currency, filling in, a fifth up on the left and a fourth down on the
+#             right: the exchange is heard on its own before it is heard against the first purse.
+#   COUNT     the second hat counts that roll: one stroke on each amount the exchange can pay, 3 5 6 8 9 10 11
+#             units after the herald, softer the more coins: seven strokes that close up into sixths.
+HERALD = {'beat': 2, 'pitch': 'Bb4', 'db': -16, 'feed': '4dB', 'open': 0.4, 'count': -3}   # the beat of the bar before home the herald is struck on (0 is the one); its note; dB on it (the other rolls' seeds alone are at -10); what the exchange takes of it (of home's chord it takes -6 dB: here the stroke is 6 dB under what its echoes take of it); beats after it that the exchange's hand opens (its first coin comes at half a beat); dB on the second hat's strokes that count it (alone they read -41 to -46 by unit beside the coins' -37 to -50, and where nothing else plays the finished song lifts a hat's stroke to the ceiling).
+# Bench (hd.sh, hdread.py, raw, by unit from the herald): at -4 dB and a feed of -6 the stroke read -27 and its highest sample -16 dBFS where the wait's is -35 and home's first bar reads -27 whole: one loud note in two quiet bars, with its coins 9 to 21 dB under it (-36 -39 -42 -45 -45 -44 -48). 6 dB off the stroke and 4 dB more to the exchange (rendered in full): the finished song lifts the wait, so the stroke's highest sample stood at -1.8 dBFS, on the ceiling, and it read -14 in its sixth of a beat over a roll at -20 to -24. Another 6 dB off the stroke and 6 more to the exchange: the roll is the event, not the note that starts it
 # ---- v9 (26 Nov): THREE FOR TWO. Three more switches, each `--without-…` (with them off it is v8 byte for byte).
 #   EXCHANGE  every purse in the song counts in sixteenths or in halves and quarters of them: one currency. At home
 #             (bars 161 to 176: the chord, the first purse, nothing new since v2) the same seed is now also paid
@@ -310,8 +327,10 @@ def hand():
 
 def build():
     T = {'kick': [], 'bass': [], 'hat': [], **{f'seed-{k}': [] for k in purses()}, **({'seed-z': []} if ON['zeno'] and ON['roll'] else {}), **({'open': []} if ON['meet'] and ON['owed'] and ON['hat'] else {}), **{f'long-{k}': [] for k in purses()}}
-    if ON['rate'] and ON['exchange'] and ON['hat']:
+    if (ON['rate'] or (ON['count'] and ON['herald'])) and ON['exchange'] and ON['hat']:
         T['hat-x'] = []
+    if ON['herald'] and ON['exchange']:
+        T['seed-x'] = []
     for i, (name, pairs, every, at16, notes, drum, bass) in enumerate(SECTIONS):
         n = 0
         if ON['flip'] and at16:                                  # off the beat: the purse inside out
@@ -333,7 +352,7 @@ def build():
                 for pitch in (HOME if home else [notes[n % len(notes)]]):
                     T[f"{'long' if kept else 'seed'}-{pairs[n % len(pairs)]}"].append({'at': bar * 4 + at16 / 4, 'len': 0.25, 'pitch': pitch, 'vel': 0.9,
                                                                                     **({'gain': f'{SOFT}dB'} if dense else {'gain': f'{HOME_DB}dB'} if home else {'gain': f'{LONG_DB}dB'} if kept and LONG_DB else {})})
-                if 'hat-x' in T and name == EXCHANGE['section']:   # v9 RATE: what the exchange can pay of this seed, in its units
+                if ON['rate'] and 'hat-x' in T and name == EXCHANGE['section']:   # v9 RATE: what the exchange can pay of this seed, in its units
                     for amount in range(1, RATE['upto'] + 1):
                         if coins_for(amount, *EXCHANGE['coins']) and (amount / EXCHANGE['per']) % 1:   # only the sums that fall between the sixteenths
                             T['hat-x'].append({'at': round(bar * 4 + at16 / 4 + amount / (4 * EXCHANGE['per']), 4), 'len': 0.1, 'pitch': 'A#4', 'vel': round(.95 - .13 * (coins_for(amount, *EXCHANGE['coins']) - 1), 2)})
@@ -342,6 +361,11 @@ def build():
                 n += 1
             waits = ON['wait'] and i + 1 < len(SECTIONS) and SECTIONS[i + 1][0] == 'home' and bar >= (i + 1) * SEC - WAIT
             waits = waits or (ON['leave'] and i + 1 < len(SECTIONS) and drum and SECTIONS[i + 1][5] and SECTIONS[i + 1][3] and not at16 and bar >= (i + 1) * SEC - WAIT)
+            if 'seed-x' in T and i + 1 < len(SECTIONS) and SECTIONS[i + 1][0] == EXCHANGE['section'] and bar == (i + 1) * SEC - 1:   # v10 HERALD: the change before home, in the other currency
+                T['seed-x'].append({'at': bar * 4 + HERALD['beat'], 'len': 0.25, 'pitch': HERALD['pitch'], 'vel': 0.9, 'gain': f"{HERALD['db']}dB"})
+                if ON['count'] and 'hat-x' in T:                 # v10 COUNT: the second hat on every amount it can pay, to the one
+                    T['hat-x'] += [{'at': round(bar * 4 + HERALD['beat'] + a / (4 * EXCHANGE['per']), 4), 'len': 0.1, 'pitch': 'A#4', 'vel': round(.95 - .13 * (coins_for(a, *EXCHANGE['coins']) - 1), 2), 'gain': f"{HERALD['count']}dB"}
+                                   for a in range(1, round((4 - HERALD['beat']) * 4 * EXCHANGE['per'])) if coins_for(a, *EXCHANGE['coins'])]
             if ON['roll'] and bar in rolls():                    # v6: small change before the next section
                 level = ZENO['db'] if rolls()[bar][0] == 'z' else (GROW_DB if ON['grow'] else ROLL)['db' if drum else 'alone']
                 T[f'seed-{rolls()[bar][0]}'].append({'at': bar * 4 + ROLL['beat'], 'len': 0.25, 'pitch': rolls()[bar][1], 'vel': 0.9, **({'gain': f"{level}dB"} if level else {})})
@@ -358,6 +382,8 @@ def build():
             others = []
             if bass and ON['debts']:
                 for s in debts(*pq):
+                    if ON['abroad'] and ON['exchange'] and name == EXCHANGE['section'] and (bar - i * SEC) % every == 0 and (s * EXCHANGE['per']) % 1 == 0 and coins_for(round(s * EXCHANGE['per']), *EXCHANGE['coins']):
+                        continue                                 # v10 ABROAD: the exchange pays this one
                     if (at16 + s) % 4:                           # never with the drum
                         T['bass'].append({'at': bar * 4 + (at16 + s) % BAR / 4, 'len': 0.25, 'pitch': 'F2' if s == frobenius(*pq) else 'G2', 'vel': .85})
                 others = sorted({s for k in set(pairs) for s in debts(*purses()[k])} - set(debts(*pq))) if ON['owed'] else []   # v7: what the section's other purses cannot pay
@@ -438,17 +464,21 @@ def song():
     if ON['exchange']:                                           # v9: the same seed in another currency: a purse of the same coins in units two thirds of a sixteenth, open for home only
         i = [sec[0] for sec in SECTIONS].index(EXCHANGE['section'])
         (p, q), u = EXCHANGE['coins'], S16 / EXCHANGE['per']
-        hand_x = {'points': [['0b', -60], [f'{i * SEC * 4 - 0.05}b', -60], [f'{i * SEC * 4}b', 0], [f'{(i + 1) * SEC * 4 - 1}b', 0], [f'{(i + 1) * SEC * 4}b', -60], [f'{BARS * 4 + 16}b', -60]], 'curve': 0}
+        opens = i * SEC * 4 - (4 - HERALD['beat'] - HERALD['open'] if T.get('seed-x') else 0)   # v10: with the herald, a little after it
+        hand_x = {'points': [['0b', -60], [f'{opens - 0.05}b', -60], [f'{opens}b', 0], [f'{(i + 1) * SEC * 4 - 1}b', 0], [f'{(i + 1) * SEC * 4}b', -60], [f'{BARS * 4 + 16}b', -60]], 'curve': 0}
         for coin, other, semi, side in ((p, q, UP, -1), (q, p, DOWN, 1)):
             t = f'{coin * u - LAG[semi]:.2f}ms'
             buses[f'x{coin}'] = {'pan': side * EXCHANGE['pan'], 'gain': {'value': '0dB', 'mod': [{'src': 'auto.rate', 'amount': 1}]}, 'auto': {'rate': hand_x},
                                  'fx': [{'type': 'pitch', 'semitones': semi, 'mix': 1}, f'lp cutoff={TILL[0]}+lfo.till*{TILL[1]}' if ON['till'] else 'lp cutoff=10000', 'hp cutoff=150'],
                                  **({'lfo': {'till': f'sine rate={1000 / (p * q * u):.4f}hz'}} if ON['till'] else {}),
-                                 'returns': [{'from': f"seed-{SECTIONS[i][1][0]}", 'gain': EXCHANGE['feed'], 'time': t}, {'from': f'x{coin}', 'gain': db(EXCHANGE['back']), 'time': t}, {'from': f'x{other}', 'gain': db(EXCHANGE['back']), 'time': t}]}
+                                 'returns': [{'from': f"seed-{SECTIONS[i][1][0]}", 'gain': EXCHANGE['feed'], 'time': t}] + ([{'from': 'seed-x', 'gain': HERALD['feed'], 'time': t}] if T.get('seed-x') else []) +
+                                            [{'from': f'x{coin}', 'gain': db(EXCHANGE['back']), 'time': t}, {'from': f'x{other}', 'gain': db(EXCHANGE['back']), 'time': t}]}
     for k in purses():
         if ON['long'] and T[f'long-{k}']:
             doc['tracks'].append({'name': f'long-{k}', 'patch': 'sc-seed', 'gain': {'value': '-3dB', 'mod': [{'src': 'auto.alone', 'amount': 1}]}, 'auto': {'alone': alone()},
                                   'notes': T[f'long-{k}'], 'fx': ['clip drive=0dB ceiling=-12dB']})
+    if T.get('seed-x') and ON['exchange']:                       # v10 HERALD: a seed only the exchange hears
+        doc['tracks'].append({'name': 'seed-x', 'patch': 'sc-seed', 'gain': '-3dB', 'notes': T['seed-x'], 'fx': ['clip drive=0dB ceiling=-12dB']})
     if T.get('open'):
         doc['patches'] = {**doc['patches'], 'sc-open': OPEN}
         doc['tracks'].append({'name': 'open', 'patch': 'sc-open', 'gain': MEET['gain'], 'pan': MEET['pan'], 'notes': T['open']})
@@ -476,7 +506,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last three off is v8, the last five v7, the last seven v6, the last eleven v5, the last twelve v4, the last fifteen v3, the last nineteen v2, all twenty-two v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last three off is v9, the last six v8, the last eight v7, the last ten v6, the last fourteen v5, the last fifteen v4, the last eighteen v3, the last twenty-two v2, all twenty-five v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -501,6 +531,10 @@ if __name__ == '__main__':
             print(f"    {EXCHANGE['section']} is also paid in another currency: coins of {EXCHANGE['coins'][0]} and {EXCHANGE['coins'][1]} of a unit two thirds of a sixteenth (three for two): amounts " + ' '.join(str(a) for a in range(1, 25) if coins_for(a, *EXCHANGE['coins'])) + '; on the grid where the amount is a multiple of three')
         if ON['rate'] and ON['exchange'] and ON['hat']:
             print(f"    a second hat plays what the exchange can pay, in its units, up to {RATE['upto']}, where it falls between the sixteenths: " + ' '.join(str(a) for a in range(1, RATE['upto'] + 1) if coins_for(a, *EXCHANGE['coins']) and (a / EXCHANGE['per']) % 1))
+        if ON['abroad'] and ON['exchange'] and ON['debts']:
+            print(f"    at {EXCHANGE['section']}, after each chord, the bass leaves the debts the exchange can pay: " + ', '.join(f"{s} sixteenths ({round(s * EXCHANGE['per'])} of its units)" for s in debts(*purses()['a']) if (s * EXCHANGE['per']) % 1 == 0 and coins_for(round(s * EXCHANGE['per']), *EXCHANGE['coins'])))
+        if ON['herald'] and ON['exchange']:
+            print(f"    the change before {EXCHANGE['section']} is in the other currency: a seed for the exchange alone on beat {HERALD['beat'] + 1} of the bar before, {HERALD['pitch']}" + ('; the second hat counts it: ' + ' '.join(str(a) for a in range(1, round((4 - HERALD['beat']) * 4 * EXCHANGE['per'])) if coins_for(a, *EXCHANGE['coins'])) + ' units' if ON['count'] and ON['hat'] else ''))
         if ON['seven'] and ON['exchange'] and ON['debts']:
             print(f"    the bass plays the exchange's largest debt: {frobenius(*EXCHANGE['coins'])} of its units after each chord, on F2")
         if ON['meet']:
