@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Least Common v10 (21:31): the bass is 2 dB harder through the second half, and the loudness stage takes it back
+  from the whole song, so both ends are lower: bars 1 to 4 (under Give or Take's last four) read -17.4 dBFS for
+  -17.2; the last four bars (under Standing Room's first four) -17.3 -17.3 -17.2 -16.9 for -17.0 -17.0 -16.9
+  -16.6; the two seconds after home -20.1 for -19.4. Nothing new sounds at either end. Not re-rendered as a seam.
 - Small Change v9 (21:04): both ends are v8's to 0.1 dB: bars 1 to 16 by four -22.4 -23.3 -23.5 -20.6 dBFS, the
   last sixteen -24.2 -23.5 -23.1 -19.5. What changed is inside (bars 161 to 176).
 - Wind Down v9 (20:31): a bell at 71 Hz on the drum moves the loudness stage, so both ends are a little lower:
