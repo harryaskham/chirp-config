@@ -1,0 +1,36 @@
+{
+ "about": "Standing Room's flutter echo (chirper-zero, 26 Nov, v13): a click going across a corridor and back: a saw on the corridor's own note with everything under 5 kHz taken off, so that only its edge is left, one every crossing and back, dying over half a second. Two of them a little apart are the two walls. BANKED by tools/patchbank.py (26 Nov 2026) from Standing Room v13 (tracks flut-l, flut-r): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "curve": 2.0,
+   "d": "600ms",
+   "r": "30ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 5000,
+    "kind": "hp",
+    "q": 0.7
+   },
+   {
+    "cutoff": 13000,
+    "gain": "6dB",
+    "kind": "peak",
+    "q": 0.7
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.5,
+    "wave": "saw"
+   }
+  ]
+ }
+}
