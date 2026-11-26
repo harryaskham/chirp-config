@@ -99,6 +99,17 @@ every 7. Those meetings, a click with the drum, were the only ones in the song t
          knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
          song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
 
+v8 (26 Nov): THE SECOND HALF REMEMBERS THE FIRST. On page 6 the three clicks stood 20 to 22 dB under the mix: the
+second half was a low-end piece with the clicks far behind it, on an album of clicks. Two switches
+(`--without-ghost`, `-fore`; both off is v7 byte for byte):
+  GHOST  in the first half the clicks count 3, 5 and 7 sixteenths; in the second, 3, 5 and 7 beats. Now in the
+         second half each click has an echo, and the echo keeps its old cycle: the three's comes back every 3
+         sixteenths, the five's every 5, the seven's every 7, each time half as loud, from the other side of
+         the room. Nobody plays the small cycles there, and they are heard all the same, under the big ones:
+         both sizes of the same three numbers at once. In the last stretch, as the small cycles are wound back
+         up and played again, the echoes go.
+  FORE   and the clicks are struck FORE dB harder through the second half, until that last stretch.
+
 v7 (26 Nov): THE TRIAD TURNS OVER. The drum's answer (v6) was the same three notes in the same three cycles for
 four minutes: every page of 105 beats the same low tune. Three switches (`--without-turn`, `-carry`, `-tame`; all
 three off is v6 byte for byte):
@@ -133,7 +144,7 @@ Form as arithmetic: everything below is computed from CYCLES, BAR and BEAT. Noth
 """
 import argparse
 import json
-from math import lcm
+from math import lcm, log10
 from pathlib import Path
 
 BPM = 126
@@ -155,7 +166,12 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True}
+      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True}
+GHOST = {'feed': '-4dB', 'back': 0.5, 'hp': 300, 'side': {'three': 0.5, 'five': -0.5, 'seven': 0.0}}   # v8: what each click's echo takes of it, what it gives back of itself each pass, its high-pass, where it stands (the three walks left and the five right)
+FORE = 4                                # v8: dB on the three clicks through the second half
+# Bench, page 6's first sixteen bars, each click alone, by sixteenth (ghost.sh, ghostread.py). The three (struck on sixteenths 1 3 5 8 10 of twelve) read -36 -58 -38 -59 -36 -57 -65 -40 -63 -40 -61 -72 in v7; with its echo
+# taking -6 dB of it: -36 -53 -38 -44 -36 -46 -52 -39 -53 -40 -47 -61: new strokes on 4, 6 and 11, 8 to 10 dB under the played ones, and a second echo on 7. The five's stood 10 under, the seven's 7 (it is in the middle: a bus
+# to one side loses more). So -4 dB. With the clicks 3 dB harder they stood 20.9, 18.7 and 21.2 dB under the mix (v7 24.4, 22.1, 24.8) and 7.8, 7.3 and 8.8 above 300 Hz (10.1, 9.5, 11.1): so 4
 TURNED = ({3: 'G2', 5: 'Bb2', 7: 'D3'}, {3: 'Bb2', 5: 'D3', 7: 'G3'}, {3: 'D3', 5: 'G3', 7: 'Bb3'})   # v7: the triad's three positions, by how many pages of the second half have turned (the fourth is the first again)
 TURN_DB = (0, -1, -2)                   # v7: on the knock in each position. Bench, by solo: at one level the second inversion stood 2.7 dB under the mix from 200 to 400 Hz (v6's root position 7.5) and the first 4.6 (7.8): the head is the same size and its notes are higher
 CARRY_DB = -6                           # v7: on a knock where the four has stopped. Bench, the break before page 6: with them the break reads -32.1 dB raw for -35.4 (under 250 Hz -34.5 for -43.0) and the groove before it -24.3: still a break, 8 dB down, with a low tune in it
@@ -442,6 +458,7 @@ def build():
     marks += [('the drum answers each click that lands on it: a knock every 3, 5 and 7 beats', KNOCK_FROM)] * ON['knock']
     marks += [('second half: three, five and seven beats', HALF)] + [(f'page {p + 5} (the three meet on beat {p * PAGE // BEAT % 4 + 1})', HALF + p * PAGE) for p in range(1, pages)]
     marks += [(f"the triad turns over: {' '.join(TURNED[p % len(TURNED)][c] for c in CYCLES)}", HALF + p * PAGE) for p in range(1, pages)] * (ON['turn'] and ON['knock'])
+    marks += [("each click's echo keeps its old cycle: 3, 5 and 7 sixteenths under 3, 5 and 7 beats", HALF)] * ON['ghost'] + [(f'the clicks are struck {FORE} dB harder', HALF)] * ON['fore']
     marks += [('only the drum is left of the four', HALF + last * SUPER), ('home', TOTAL)]
     if ON['break']:
         marks = sorted(marks + [('the four stops for the page turn', t - BREAK) for t in TURNS], key=lambda m: m[1])
@@ -536,6 +553,17 @@ def song():
             doc['buses']['gone'] = {**doc['buses']['far'], 'auto': {'door': gone()}}
     if ON['tame']:
         by_name['ping']['fx'] = [{'type': 'eq', 'bands': [TAME]}] + by_name['ping']['fx']
+    span = lambda v: {'points': [['0b', v[0]], [beats(HALF - 1), v[0]], [beats(HALF), v[1]], [beats(TOTAL - SUPER), v[1]], [beats(TOTAL), v[0]], [beats(TOTAL + BAR), v[0]]], 'curve': 0}   # a lane for the second half, going back over its last stretch
+    if ON['fore']:                                            # v8: struck harder through the second half
+        for v in VOICES:
+            g = by_name[v]['gain'] if isinstance(by_name[v]['gain'], dict) else {'value': by_name[v]['gain'], 'mod': []}
+            by_name[v]['gain'] = {'value': g['value'], 'mod': g['mod'] + [{'src': 'auto.fore', 'amount': 1}]}
+            by_name[v].setdefault('auto', {})['fore'] = span((0, FORE))
+    if ON['ghost']:                                           # v8: each click's echo keeps its first-half cycle
+        for c, v in zip(CYCLES, VOICES):
+            t = f'{c * 60000 / BPM / BEAT:.2f}ms'
+            doc['buses'] = {**doc['buses'], f'ghost-{v}': {'pan': GHOST['side'][v], 'gain': {'value': '0dB', 'mod': [{'src': 'auto.ghost', 'amount': 1}]}, 'auto': {'ghost': span((-60, 0))}, 'fx': [f"hp cutoff={GHOST['hp']}"],
+                                                           'returns': [{'from': v, 'gain': GHOST['feed'], 'time': t}, {'from': f'ghost-{v}', 'gain': f"{20 * log10(GHOST['back']):.2f}dB", 'time': t}]}}
     if ON['knock']:
         doc['patches'] = {**doc['patches'], 'lc-knock': LC_KNOCK}
         doc['tracks'].append(track('knock', 'lc-knock', KNOCK_DB, fx=[hold(KNOCK_HOLD)]))
@@ -558,7 +586,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v6, the last four v5, the last seven v4, the last twelve v3, the last twenty v2, all twenty-six v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v7, the last five v6, the last six v5, the last nine v4, the last fourteen v3, the last twenty-two v2, all twenty-eight v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
