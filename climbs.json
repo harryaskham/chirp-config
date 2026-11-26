@@ -9473,7 +9473,7 @@
     {
       "id": "chirpers11-t7",
       "song": "songs/chirpers11-t7.yaml",
-      "reference": "chirpers — Track 7 (untitled)",
+      "reference": "chirpers — Out of Step",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers11-t7 OUT.wav",
@@ -9489,7 +9489,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Escapement",
-        "title": "Track 7 (untitled)",
+        "title": "Out of Step",
         "track": 7,
         "year": 2026
       },
