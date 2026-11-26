@@ -44,6 +44,16 @@ Then "all three" puts the drum a sixteenth later again, which is the true beat (
 "and". So in four rows the same click has been every sixteenth of the beat, and not one note of it or of the bass
 has moved since the first bar: only the drum has, and with it where the listener stands. The drum rests for the
 last bar of each row (the step is a silence, not a stumble); a clap on its two and four joins it half-way through.
+
+v4 (26 Nov): THE CHORD THAT DOES NOT STOP (C11T5_HELD=0 takes it out: v3). A fourth thing that is not on the
+record: half of a chord. The song has had no chord; now there is one (A minor seventh, four plain tones), and it is
+CHOPPED: it sounds for a sixteenth and is silent for a sixteenth, all the way through. In a new section, "held"
+(after "not there"), it is first heard as it is, a chord with holes in it. Eight bars on a burst of noise is put in
+every hole, in the chord's own band and louder than the chord, starting the instant the chord stops and stopping
+the instant it starts. Nothing is done to the chord. The ear, given a noise loud enough to have covered the chord,
+decides the chord went on behind it: it is heard HELD, unbroken, with a noise in front of it (the continuity
+illusion: a fence in front of a landscape). In the last row of "all three" (now four) it is held under everything;
+at "out" the noise is taken away and for eight bars the chord has its holes again: it always had.
 """
 import json
 import math
@@ -63,6 +73,11 @@ QUIET = 0.04                   # strokes softer than this are left out
 SHEP = os.environ.get("C11T5_SHEP", "1") != "0"      # v2: the layers' own voices, rising
 SHEP_ROOT = ("A3", "A4", "A5", "A6")                  # the note each layer starts every row on
 RISE = 12                                             # semitones every layer climbs in a row
+HELD = os.environ.get("C11T5_HELD", "1") != "0"      # v4: the chord that does not stop
+HELD_CHORD = ("A3", "C4", "E4", "G4")                 # four plain tones, 220 to 392 Hz
+HELD_ON = tuple(range(0, 16, 2))                      # the sixteenths the chord sounds on; the others are its holes
+HELD_BAND = (170, 560)                                # Hz: the noise that fills the holes covers the chord's notes and little else
+H = {"chop": (2 * ROW, 3 * ROW), "fence": (2 * ROW, 3 * ROW)} if HELD else {}   # in "all three": its last row only, so the noise can be taken away at "out"
 ROUND = os.environ.get("C11T5_ROUND", "1") != "0"    # v3: the drum goes round the click
 ROUND_AT = (1, 2, 3)                                  # the sixteenth of the beat the drum stands on, a row each ("all three" is 0)
 ROUND_REST = 1                                        # bars at the end of each of those rows with no drum
@@ -73,12 +88,13 @@ SECTIONS = [
     ("turned around",    3, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": (8, 24)}),
     ("never arrives",    5, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": ALL, "ris": ALL, "shep": (16, 40)}),
     ("not there",        3, {"tick": ALL, "bass": ALL, "ris": ALL, "kick": (8, 24), "sub": (8, 16), "clap": (16, 24)}),
+] + ([("held", 2, {"tick": ALL, "chop": ALL, "fence": (ROW, 2 * ROW)})] if HELD else []) + [
     ("the wrong one again", 1, {"tick": ALL, "bass": ALL, "ris": ALL, "clapx": ALL}),
 ] + ([("round the click", len(ROUND_AT), {"tick": ALL, "bass": ALL,
                                           **{f"k{k}": (i * ROW, (i + 1) * ROW - ROUND_REST) for i, k in enumerate(ROUND_AT)},
                                           **{f"c{k}": (i * ROW + ROW // 2, (i + 1) * ROW - ROUND_REST) for i, k in enumerate(ROUND_AT)}})] if ROUND else []) + [
-    ("all three",        3, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": ALL, "ris": ALL, "shep": ALL}),
-    ("out",              3, {"tick": (0, 20), "bass": (0, 16), "kick": (0, 8), "sir": ALL, "pehs": ALL}),
+    ("all three",        3, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": ALL, "ris": ALL, "shep": ALL, **H}),
+    ("out",              3, {"tick": (0, 20), "bass": (0, 16), "kick": (0, 8), "sir": ALL, "pehs": ALL, **({"chop": (0, ROW)} if HELD else {})}),
 ]
 
 
@@ -178,6 +194,10 @@ CLAP = lambda bar: [(4, "C4", 1, 0.8), (12, "C4", 1, 0.86)]      # two and four
 CLAPX = lambda bar: [(6, "C4", 1, 0.8), (14, "C4", 1, 0.86)]     # two and four of the wrong beat
 
 
+CHOP = lambda bar: [(s, p, 1, 0.8) for s in HELD_ON for p in HELD_CHORD]                      # the chord, with its holes
+FENCE = lambda bar: [(s, "A4", 1, 0.8) for s in range(16) if s not in HELD_ON]                # a noise in every hole
+
+
 def kick_on(k):
     """The bass drum on sixteenth k of every beat (0 is KICK)."""
     return lambda bar: [(s, "A1", 1, 0.95 if s == k else 0.9) for s in (k, k + 4, k + 8, k + 12)]
@@ -207,6 +227,12 @@ PATCHES = {
                 "play": {"vel_sens": 1.0},
                 "synth": {"layers": ["sine", "sine ratio=2.76 level=-10dB", "sine ratio=5.4 level=-18dB"], "pitch": {"value": 0, "mod": [{"src": "auto.rise", "amount": 1}]},
                           "amp": {"a": "0.3ms", "d": "70ms", "s": 0, "r": "20ms", "curve": 3}}},
+    "ht-chop": {"about": "Hearing Things' chord (chirper-zero, 26 Nov, v4): a plain sine a note, switched on in a millisecond and off in three, so that a sixteenth of it is a sixteenth and its holes are holes.",
+                "play": {"vel_sens": 0.2},
+                "synth": {"layers": ["sine"], "amp": {"a": "1ms", "d": "0s", "s": 1, "r": "3ms"}}},
+    "ht-fence": {"about": f"Hearing Things' fence (chirper-zero, 26 Nov, v4): white noise between {HELD_BAND[0]} and {HELD_BAND[1]} Hz, switched as the chord is: it fills the chord's holes exactly, in the chord's band, louder than the chord.",
+                 "play": {"vel_sens": 0.2},
+                 "synth": {"layers": ["white"], "filters": [f"hp cutoff={HELD_BAND[0]}", f"hp cutoff={HELD_BAND[0]}", f"lp cutoff={HELD_BAND[1]}", f"lp cutoff={HELD_BAND[1]}"], "amp": {"a": "1ms", "d": "0s", "s": 1, "r": "3ms"}}},
     "ht-clap": {"about": "Hearing Things' clap (chirper-zero, 26 Nov): the machine's clap, three bursts, short, dry.",
                 "play": {"vel_sens": 0.4},
                 "synth": {"layers": [{"type": "machine", "machine": {"part": "clap", "bursts": 3, "decay": "140ms"}}], "amp": {"a": "0.1ms", "d": "0s", "s": 1, "r": "400ms"}}},
@@ -248,6 +274,12 @@ def song():
         doc["about"] = doc["about"].replace(" Generated by", " From v2 each layer of the hat has a small tone of its own that climbs an octave a row, so it is faster and higher for ever. Generated by")
     else:
         del PATCHES["ht-shep"]
+    if HELD:
+        doc["tracks"] += [{"name": "chop", "patch": "ht-chop", "gain": "-38dB", "pan": 0.0, "notes": part("chop", CHOP)},      # dry: a room would fill its holes
+                          {"name": "fence", "patch": "ht-fence", "gain": "-3dB", "pan": 0.0, "notes": part("fence", FENCE)}]
+        doc["about"] = doc["about"].replace(" Generated by", " From v4 there is a chord with a hole in every other sixteenth; when a noise is put in the holes it is heard held, unbroken (the continuity illusion). Generated by")
+    else:
+        del PATCHES["ht-chop"], PATCHES["ht-fence"]
     if ROUND:
         doc["about"] = doc["about"].replace(" Generated by", " From v3 the drum goes round the click a sixteenth a row (just before it, on it, just after it, then the true beat), so the same click is heard as every sixteenth of the beat and never moves. Generated by")
     return doc
