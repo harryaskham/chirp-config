@@ -22,6 +22,25 @@ same tune at two sizes at once.
 The four's own parts (bass, off-beat hat, clap) come in a page at a time and are the only things placed by page. The
 chord is Give or Take's (track 1: G minor seventh) with its ninth on top, so the two songs can be laid over each other.
 
+v2 (26 Nov): WHAT A MEETING DOES. In v1 a meeting was only a note. Six switches, each `--without-…` (all six off
+is v1 byte for byte); every one is driven by the same count, how far it is to the next time all three meet:
+  PLACE   the three and the five walk apart from the centre and back between two meetings of all three (the three
+          to the left, the five to the right, the seven stays), so a chord is also three sounds arriving at one
+          place. One size up in the second half: the walk takes a page.
+  NEAR    the clicks are loudest where the three meet and NEAR dB quieter half way between.
+  DOOR    a far room behind the clicks. Its door is shut when a page turns and opens a step each time the three
+          meet (four steps to a page); the page turn shuts it again. In the last stretch of the first half, where the
+          four stops, it is wide open: the clicks walk to the one alone in a hall. One size up in the second half:
+          a step a page, wide open on the last.
+  MEMORY  a click keeps the note of the last meeting it was in. The five's tock is on G after a chord, D after it
+          meets the three, F after the seven; the seven's knock on G, B flat (the three), F (the five). Two tunes
+          nobody wrote, in place of one note struck 400 times. Both are an octave under the pings.
+  ROOTS   the bass keeps its rhythm and takes its note from the last meeting of any two (G2 after a chord, D2,
+          B flat 2, F2): a bass line that the cycles write.
+  BREAK   what the half does, one size down. Before each page of the first half turns, from the last time the five
+          and the seven meet (35 sixteenths: two bars and three), the four stops, and the clicks walk to the page
+          turn alone, the far room wide open. The page turns on the drum and the door shuts.
+
 Form as arithmetic: everything below is computed from CYCLES, BAR and BEAT. Nothing is typed as a bar number.
 """
 import argparse
@@ -43,6 +62,62 @@ PING = {(3, 5): 'D5', (3, 7): 'Bb4', (5, 7): 'F4'}          # the commonest meet
 TONE = {(3, 5): 'D4', (3, 7): 'Bb3', (5, 7): 'F3'}           # the same three notes an octave down, held
 CHORD = ('G3', 'Bb3', 'D4', 'F4', 'A4')
 OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
+
+# ---- v2: the switches and their numbers. Nothing above is changed by them.
+ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True}
+ALL = tuple(CYCLES)
+WIDE = 0.8                              # how far from the centre a click stands when it is furthest from a meeting of all three
+NEAR = 5                                # dB quieter there
+LIFT = 2                                # dB on the clicks' faders with NEAR on (the ride takes 2.5 dB off on average)
+DOOR = (-60, -12, -6, 0)                # the far room's fader, by how many times the three have met since the page turned
+FAR = '-3dB'                            # each click's send to the far room
+# The notes are the pings' own (D, B flat, F; G for the chord), each click an octave under the pings (the tock on the
+# pings' own octave stacked with them, 13 dB over the envelope at 547 Hz; an octave over them, 12 over at 1.2 kHz).
+MEMORY = {'five': {(3, 5): 'D4', (5, 7): 'F4', ALL: 'G4'}, 'seven': {(3, 7): 'Bb3', (5, 7): 'F3', ALL: 'G3'}}
+ROOT = {(3, 5): 'D2', (3, 7): 'Bb2', (5, 7): 'F2', ALL: 'G2'}
+ROOTS_DB = -3                           # the bass's fader with ROOTS on, beside v1's (this patch is 14 dB louder than the sine it replaces)
+LC_ROOT = {'about': 'Least Common: the bass once the meetings write its line (v2). A sine and its octave, so that a line on 73 to 117 Hz is also heard on 147 to 233.',
+           'synth': {'layers': [{'wave': 'sine'}, {'wave': 'sine', 'semi': 12, 'level': '-6dB'}], 'amp': {'a': '4ms', 'd': '0s', 's': 1, 'r': '60ms'}},
+           'play': {'event_stable': True, 'vel_sens': 0.3}}
+BREAK = lcm(*CYCLES[1:])                # 35: the last meeting of the five and the seven before a page turns
+TURNS = [p * PAGE for p in range(1, HALF // PAGE)]   # the page turns of the first half (the half itself has its own, v1's)
+
+
+def broken(s):
+    """Is sixteenth s in a break (the four stopped before a page turn)?"""
+    return ON['break'] and any(t - BREAK <= s < t for t in TURNS)
+
+TOCK = {'about': 'Least Common: the click that counts five, once it has a tune (v2). The same wooden bar damped twice as fast, so that a note it keeps for twenty strokes is a colour and not a drone.',
+        'synth': {'layers': [{'type': 'modal', 'modes': 'bar', 'decay': '28ms', 'bright': 0.8, 'damp': 0.4, 'strike': 0.4}],
+                  'amp': {'a': '0.2ms', 'd': '45ms', 's': 0, 'r': '20ms'}}, 'play': {'event_stable': True, 'vel_sens': 0.7}}
+TOCK_DB = 0                            # the five's fader with MEMORY on, beside v1's
+
+
+def stretches():
+    """(start, length, which step of four) in sixteenths, for every stretch between two meetings of all three: sixteen
+    of 105 sixteenths in the first half (four to a page), four of 105 beats (a page each) in the second."""
+    return ([(s, SUPER, s % PAGE // SUPER) for s in range(0, HALF, SUPER)] +
+            [(s, PAGE, (s - HALF) // PAGE) for s in range(HALF, TOTAL, PAGE)])
+
+
+def beats(s16):
+    return ('%.4f' % (s16 / BEAT)).rstrip('0').rstrip('.') + 'b'
+
+
+def walk(far):
+    """A lane that is 0 where the three meet and `far` half way to the next meeting, straight lines between."""
+    pts = []
+    for s, n, _ in stretches():
+        pts += [[beats(s), 0], [beats(s + n / 2), far]]
+    return {'points': pts + [[beats(TOTAL), 0]], 'curve': 0}
+
+
+def door():
+    """The far room's fader: DOOR[k] through the k-th stretch since the page turned, stepping within a sixteenth."""
+    pts = []
+    for s, n, k in stretches():
+        pts += [[beats(s), DOOR[k]], [beats(s + n - 1), DOOR[k]]]
+    return {'points': pts + [[beats(TOTAL), DOOR[-1]], [beats(TOTAL + BAR), DOOR[-1]]], 'curve': 0}
 
 PATCHES = {
     'lc-kick': {'about': "Least Common: the four. The drum machine's bass drum resting on G, short enough to leave the sixteenth before the next beat empty.",
@@ -95,6 +170,8 @@ def build():
         T[tr].append({'at': round(s16 / BEAT, 4), 'len': round(len16 / BEAT, 4), 'pitch': pitch, 'vel': round(vel, 3), **more})
 
     pitch = {'three': 'C6', 'five': 'G5', 'seven': 'G4'}
+    mem = dict(pitch)
+    roots = []                                                # the note of the last meeting of any two, at every sixteenth
     # ---- the first half: cycles of 3, 5 and 7 sixteenths. Who is in, by supercycle (the three meet at each one's head).
     supers = HALF // SUPER                                    # 16
     pages = HALF // PAGE                                      # 4
@@ -104,14 +181,20 @@ def build():
     for s in range(0, HALF):
         n = s // SUPER
         here = [c for c, v in zip(CYCLES, VOICES) if s % c == 0 and (n >= enters[v] or s == 0)]
+        if ON['memory'] and len(here) >= 2:                   # a click keeps the note of the last meeting it was in
+            for c, v in zip(CYCLES, VOICES):
+                if c in here and v in MEMORY:
+                    mem[v] = MEMORY[v][tuple(here)]
         for c, v in zip(CYCLES, VOICES):
             if c in here:
-                add(v, s, 1, pitch[v], touch(s))
+                add(v, s, 1, mem[v], touch(s))
+        met = tuple(c for c in CYCLES if s % c == 0)
+        roots.append(ROOT[met] if len(met) >= 2 else roots[-1])
         if len(here) == 2:
             add('ping', s, 4, PING[tuple(here)], .8)
         if len(here) == 3:
             add('chord', s, 2, ','.join(CHORD), .85 if s % BEAT == 0 else .7)
-        if s % BEAT == 0 and n != last:
+        if s % BEAT == 0 and n != last and not broken(s):
             add('kick', s, 2, 'G1', .95 if s % BAR == 0 else .88)
     marks += [('first half: three, five and seven sixteenths', 0)] + [(f'page {p + 1} (the three meet on beat {p * PAGE // BEAT % 4 + 1})', p * PAGE) for p in range(1, pages)]
     marks += [('the four stops', last * SUPER)]
@@ -122,12 +205,17 @@ def build():
     for s in range(HALF, TOTAL):
         r = s - HALF
         heads = [c for c in CYCLES if r % (c * BEAT) == 0]
+        roots.append(ROOT[tuple(heads)] if len(heads) >= 2 else roots[-1])
+        if ON['memory'] and len(heads) >= 2:
+            for c, v in zip(CYCLES, VOICES):
+                if c in heads and v in MEMORY:
+                    mem[v] = MEMORY[v][tuple(heads)]
         for c, v in zip(CYCLES, VOICES):
             if r % (c * BEAT) in fill[c]:
-                add(v, s, 1, pitch[v], touch(s) if r % (c * BEAT) else .95)
+                add(v, s, 1, mem[v], touch(s) if r % (c * BEAT) else .95)
         if len(heads) >= 2:
             held.append((s, tuple(heads)))
-        if s % BEAT == 0:
+        if s % BEAT == 0 and not broken(s):
             add('kick', s, 2, 'G1', .95 if s % BAR == 0 else .88)
     held.append((TOTAL, tuple(CYCLES)))
     for (s, heads), (nxt, _) in zip(held, held[1:]):
@@ -145,9 +233,11 @@ def build():
     add('chord', TOTAL, 8, ','.join(CHORD), .9)
     add('kick', TOTAL, 2, 'G1', .95)
     for v in VOICES:
-        add(v, TOTAL, 1, pitch[v], .95)
+        add(v, TOTAL, 1, MEMORY[v][ALL] if ON['memory'] and v in MEMORY else pitch[v], .95)
     marks += [('second half: three, five and seven beats', HALF)] + [(f'page {p + 5} (the three meet on beat {p * PAGE // BEAT % 4 + 1})', HALF + p * PAGE) for p in range(1, pages)]
     marks += [('only the drum is left of the four', HALF + last * SUPER), ('home', TOTAL)]
+    if ON['break']:
+        marks = sorted(marks + [('the four stops for the page turn', t - BREAK) for t in TURNS], key=lambda m: m[1])
     # ---- the four's own parts: a bass that never plays with the drum, an off-beat hat, a clap on two and four.
     # Pages (from 0): the bass from page 1; the hat on pages 2, 3 and 6, 7; the clap on page 3 and pages 5, 6, 7.
     # In the last supercycle of the first half the four stops (the drum too) and comes back on the one; in the last
@@ -159,13 +249,16 @@ def build():
             continue
         if page >= 1:
             for off, ln, p in cell:
-                add('bass', s0 + off, ln, p, .85)
+                if not broken(s0 + off):
+                    add('bass', s0 + off, ln, roots[s0 + off] if ON['roots'] else p, .85)
         if page in (2, 3, 6, 7):
             for off in (2, 6, 10, 14):
-                add('hat', s0 + off, 1, 'A#4', .7)
+                if not broken(s0 + off):
+                    add('hat', s0 + off, 1, 'A#4', .7)
         if page in (3, 5, 6, 7):
             for off in (4, 12):
-                add('clap', s0 + off, 1, 'C4', .7)
+                if not broken(s0 + off):
+                    add('clap', s0 + off, 1, 'C4', .7)
     return T, marks
 
 
@@ -196,6 +289,27 @@ def song():
             track('hat', 'lc-hat', '6dB', pan=0.2, sends={'room': '-16dB'}),
             track('clap', 'lc-clap', '-6dB', pan=-0.05, sends={'room': '-10dB'}),
         ]}
+    by_name = {t['name']: t for t in doc['tracks']}
+    side = {'three': -1, 'five': 1, 'seven': 0}
+    if ON['roots']:
+        doc['patches'] = {**doc['patches'], 'lc-root': LC_ROOT}
+        by_name['bass'].update(patch='lc-root', gain=f"{float(by_name['bass']['gain'][:-2]) + ROOTS_DB:g}dB")
+    if ON['memory']:
+        doc['patches'] = {**doc['patches'], 'lc-tock': TOCK}
+        by_name['five'].update(patch='lc-tock', gain=f"{float(by_name['five']['gain'][:-2]) + TOCK_DB:g}dB")
+    for v in VOICES:
+        t = by_name[v]
+        if ON['place'] and side[v]:
+            t['pan'] = {'value': 0, 'mod': [{'src': 'auto.place', 'amount': 1}]}
+            t.setdefault('auto', {})['place'] = walk(side[v] * WIDE)
+        if ON['near']:
+            t['gain'] = {'value': f"{float(t['gain'][:-2]) + LIFT:g}dB", 'mod': [{'src': 'auto.near', 'amount': 1}]}
+            t.setdefault('auto', {})['near'] = walk(-NEAR)
+        if ON['door']:
+            t['sends'] = {**t['sends'], 'far': FAR}
+    if ON['door']:
+        doc['buses'] = {**doc['buses'], 'far': {'fx': ['reverb kind=hall decay=2.6s mix=1 predelay=30ms', 'hp cutoff=500', 'lp cutoff=8000'],
+                                                'gain': {'value': '0dB', 'mod': [{'src': 'auto.door', 'amount': 1}]}, 'auto': {'door': door()}}}
     return doc, marks
 
 
@@ -214,7 +328,11 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
+    for k in ON:
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'v2: leave out {k} (all five off is v1)')
     a = ap.parse_args()
+    for k in ON:
+        ON[k] = not getattr(a, f'without_{k}')
     doc, marks = song()
     if a.form:
         sec = 60 / BPM / BEAT
