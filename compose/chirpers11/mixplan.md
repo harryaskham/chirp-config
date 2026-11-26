@@ -75,8 +75,8 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   the front over that stretch (their own sound 9 dB up by the end), so t2 -> t3 now hands Standing Room clicks
   that are arriving, not thinning. Above 5 kHz the stretch reads -34.9 -35.3 -37.1 -33.7 dB by quarter (v3
   -33.7 -35.8 -35.6 -32.2). Not re-rendered.
-- Ring True v4 (09:33): bars 1 to 32 and the last 40 are as they were; the aftertastes are single strokes at
-  bars 135 to 173.
+- Ring True v4 (09:33): bars 1 to 32 and the last 11 (174 to 184) are as they were, so both of its seams
+  stand; between them the only new things after bar 116 are four single ringing strokes (bars 135, 143, 151, 173).
 
 ## Open
 - No `swap` column yet: in every overlap but t1 -> t2 the incoming track has no low end to swap in, so the lows are
