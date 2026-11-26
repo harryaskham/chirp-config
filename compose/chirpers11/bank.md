@@ -71,6 +71,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `wd-ghost` | Wind Down v1 (track ghost) | Wind Down: a bass with no fundamental (after Hearing Things): harmonics two to six of the note and nothing at the note. |
 | `wd-hat` | Wind Down v2 (track hat) | Wind Down: the hat (after Hearing Things): the machine's hat, 28 ms, above 5 kHz, whose loudness is all velocity. |
 | `wd-kick` | Wind Down v1 (track kick) | Wind Down: the drum. The machine's bass drum on G, short. |
+| `wd-knock` | Wind Down v6 (track knock) | Wind Down: the drum's answer when a meeting lands on it (v6, after Least Common's lc-knock): a small kettledrum head let ring 800 ms. |
 | `wd-open` | Wind Down v4 (track held) | Wind Down: the meetings' last chord, opening as it dies (v4): wd-held with its low-pass at 600 Hz while the chord is held and opening two octaves over the first two and a half seconds of a six-second release. |
 | `wd-ping` | Wind Down v1 (track ping) | Wind Down: what two cycles make when they meet (after Least Common): a vibraphone bar with no motor. |
 | `wd-saw` | Wind Down v1 (track saw) | Wind Down: a click that is five cycles of a saw (after Out of Step): on G3 that is 51 ms. |

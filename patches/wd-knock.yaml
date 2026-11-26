@@ -1,0 +1,22 @@
+{
+ "about": "Wind Down: the drum's answer when a meeting lands on it (v6, after Least Common's lc-knock): a small kettledrum head let ring 800 ms. BANKED by tools/patchbank.py (26 Nov 2026) from Wind Down v6 (track knock): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.4
+ },
+ "synth": {
+  "amp": {
+   "a": "0.5ms",
+   "d": "0s",
+   "r": "600ms"
+  },
+  "layers": [
+   {
+    "bright": 0.3,
+    "decay": "800ms",
+    "modes": "kettle",
+    "type": "modal"
+   }
+  ]
+ }
+}
