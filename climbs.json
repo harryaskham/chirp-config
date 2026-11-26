@@ -9354,7 +9354,7 @@
     {
       "id": "chirpers11-t4",
       "song": "songs/chirpers11-t4.yaml",
-      "reference": "chirpers — Track 4 (untitled)",
+      "reference": "chirpers — Ring True",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers11-t4 OUT.wav",
@@ -9370,7 +9370,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Escapement",
-        "title": "Track 4 (untitled)",
+        "title": "Ring True",
         "track": 4,
         "year": 2026
       },
