@@ -32,6 +32,30 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v10 (26 Nov), A HAND ON EACH. Until now a thing was stopped the same way whatever it was: its ring taken to
+nothing over two bars. But a hand laid on a string, a pipe, a drum head and a steel bar does four different things, and
+each of them is heard before the thing is quiet. Four more switches (`--without-touch`, `-cap`, `-press`,
+`-pinch`; with them off it is v9 byte for byte). No stroke is added, moved or taken away; the hand changes what the stroke finds.
+  TOUCH  the string (stopped in bars 137 and 138). A finger laid on the middle of a ringing string stops
+         every partial but those with a node there: what is left is its octave, the harmonic. The string's eight
+         strokes of those two bars sound an octave up, softer: the bass leaves upward, through its own harmonic.
+  CAP    the air (bars 129 and 130). A pipe that is STOPPED is a pipe with its end shut, and it sounds an octave
+         LOWER than the open pipe (a quarter wave where there was a half). The air's four strokes of those bars
+         are an octave down: F4, F4, F4, D4. The string is stopped upward and the pipe downward.
+  PRESS  the skin (bars 129 and 130, with the air). A hand pressed on a drum head tightens it and the note goes
+         UP, as a player bends a kettledrum with the heel of the hand. Each stroke finds the head tighter: a step
+         up the five notes in the first bar (B flat to C, F to G), two in the second (B flat to D, D to G, F to B
+         flat), while its ring goes. Two of the strings nobody plays are C3 and D3, and they hear the skin.
+  PINCH  the metal (bars 145 and 146). A steel bar held at its middle loses its first mode, which moves most
+         there, and keeps its second, which does not move there at all: 2.76 times the note, an octave and a
+         sharp fourth, in nobody's scale. For its last two bars the thing that rang true rings FALSE, as the plate
+         always did: eight strokes at 2.76 times their notes (given in Hz), 6 dB down.
+Bench (hand.sh, handread.py, raw, each thing alone): the pipe reads 350 Hz for 700 and the string 233 for 116;
+the skin 130, 98, 146, 196, 117 Hz for 117, 87, 117, 145, 87. And v9's question, where LONG's extra 450 to 900 Hz
+came from: raw, where everything is let go, there is none (the mix +0.01 dB with the second breath, the air
+alone -0.05, the strings nobody plays -0.19); the raw mix's highest sample is 0.7 dB lower with it (the air's
+fader is 1.4 dB down), so it was the loudness stage giving the whole song more, not the air or the strings.
+
 v9 (26 Nov), THE HAND IS EMPTY. Three more switches (`--without-empty`, `-blow`, `-long`; with them off it is v8
 byte for byte):
   EMPTY  since v8 each struck thing drops its stick on the last stroke of its listening, and the stick bounces to
@@ -203,7 +227,10 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True}
+# v10: what the hand does to each thing in the bars it is stopped: semitones on every stroke of them, or steps up the five notes bar by bar; dB on those strokes.
+HAND = {'string': {'switch': 'touch', 'semis': 12, 'db': -3}, 'air': {'switch': 'cap', 'semis': -12, 'db': 0}, 'skin': {'switch': 'press', 'steps': (1, 2), 'db': 0}, 'metal': {'switch': 'pinch', 'ratio': 2.76, 'db': -6}}
+SCALE = ('Bb', 'C', 'D', 'F', 'G')
 BLOW = {'harmonics': (2, 3, 4), 'db': -4}   # v9: the harmonics of its pipe the air overblows through, a sixteenth each, after the last stroke of its listening; dB on each beside the one before.
 # Bench (blow.sh, blowread.py: the air alone from that stroke by sixteenth): at -2 dB a step the four read -18 -19 -18 -20 (the resonator gives a higher note more: its band is wider) and the bar's last beat stood 2 to 3 dB
 # OVER the one it runs into (-21): a rise that tops what it leads to. So -4 a step
@@ -289,6 +316,32 @@ def up(pitch, semis):
     names = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
     n = names.index(pitch[:-1]) + 12 * int(pitch[-1]) + semis
     return f'{names[n % 12]}{n // 12}'
+
+
+def step(pitch, k):
+    """v10: a note name k steps up the five notes."""
+    names = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
+    scale = sorted(names.index(x) + 12 * o for x in SCALE for o in range(9))
+    n = scale[scale.index(names.index(pitch[:-1]) + 12 * int(pitch[-1])) + k]
+    return f'{names[n % 12]}{n // 12}'
+
+
+def hz(pitch):
+    """v10: a note name's frequency."""
+    names = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
+    return 440 * 2 ** ((names.index(pitch[:-1]) + 12 * (int(pitch[-1]) + 1) - 69) / 12)
+
+
+def stopping(thing):
+    """v10: the bars in which a hand stops the thing: from a point where it rings to a point QUICK bars on, in the same section, where it does not."""
+    pts = SHAPE.get(thing, [])
+    return [TOP[b[0]] + j for a, b in zip(pts, pts[1:]) if len(b) > 2 and b[1] == 0 and a[1] > 0 and a[0] == b[0] for j in range(b[2])]
+
+
+def hand_on(thing, bar):
+    """v10: what the hand does to the thing's strokes in this bar, or None."""
+    h = HAND.get(thing)
+    return h if h and ON[h['switch']] and bar in stopping(thing) else None
 
 
 def blown():
@@ -455,6 +508,11 @@ def build():
                 if s // BAR == bar % 2:
                     r = 1.0 if ((ON['fore'] and bar == foretaste(thing)) or bar == aftertaste(thing)) and s == mine[-1][0] else r_bar
                     n = stroke(thing, bar * 4 + (s % BAR) / 4, pitch, vel, r)
+                    if hand_on(thing, bar):                      # v10: the hand changes what the stroke finds
+                        h = hand_on(thing, bar)
+                        n['pitch'] = step(pitch, h['steps'][stopping(thing).index(bar)]) if 'steps' in h else f"{hz(pitch) * h['ratio']:.1f}hz" if 'ratio' in h else up(pitch, h['semis'])
+                        if h['db']:
+                            n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + h['db'], 2)}dB"
                     if alone and ALONE:
                         down = ANSWER_DB if thing not in alone else ALONE_OF.get(thing, ALONE) if ON['even'] else ALONE
                         n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + down, 2)}dB"
@@ -559,7 +617,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the twenty-four that are on: all off is v1; the last nineteen off is v2; the last fifteen off is v3; the last twelve off is v4; the last nine off is v5; the last eight off is v6; the last five off is v7; the last three off is v8)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the twenty-eight that are on: all off is v1; the last twenty-three off is v2; the last nineteen off is v3; the last sixteen off is v4; the last thirteen off is v5; the last twelve off is v6; the last nine off is v7; the last seven off is v8; the last four off is v9)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -579,6 +637,9 @@ if __name__ == '__main__':
             print(f"    the air overblows: after its stroke in bar {blown()[0] + 1} on sixteenth {blown()[1] + 1}, harmonics {' '.join(str(h) for h in BLOW['harmonics'])} of its pipe, a sixteenth each, to the one")
         if ON['long'] and ON['flue']:
             print("    the air's breath trails off: a second, slower breath behind the first")
+        for k, h in HAND.items():
+            if ON[h['switch']] and stopping(k):
+                print(f"    a hand on the {k}, bars {stopping(k)[0] + 1}-{stopping(k)[-1] + 1}: " + {'touch': 'touched at its middle, its octave is what is left', 'cap': 'the pipe is shut at its end: an octave lower', 'press': 'the head is pressed and tightens: a step up the five notes, then two', 'pinch': 'held at its middle, its second mode is what is left (2.76 times the note)'}[h['switch']] + ': ' + ' '.join(n['pitch'] for n in build()[k] if n['at'] // 4 in stopping(k)))
         print(f'{BARS} bars, {BARS * sec:.1f} s; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in build().items()))
     else:
         a.out.write_text(dump(bench() if a.bench else song(build())))
