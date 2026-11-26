@@ -71,6 +71,21 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v7 (26 Nov): RING TRUE. Two of the seven grew again after v6, and the closer takes the new things from each. Three
+switches (`--without-true`, `-turn`, `-tame`; all off is v6 byte for byte):
+  TAME  2 Least Common v7 again: the pings' commonest note, D5, 3 dB down by an EQ on their track. The strings
+        sing on the cell's notes, 500 Hz to 1 kHz, where this song already stood 6.4 dB over the album's
+        envelope at 547 Hz; with them it stood 6.6.
+  TRUE  4 Ring True v7. There the strings nobody plays are let go while the wood closes, and go quiet by themselves
+        as it is shut. Here the cell is Ring True's wooden bar; so when the room goes (bar 153) the strings are
+        let go beside the cell and are what is left round it: a string answers a note only if it is one of its
+        own. Then the hand takes the cell (bar 161) and drags it late, and a thing dragged late is flat: the
+        strings stop answering at once, bars before the hand has shut the cell. They ring while it rings true.
+        They are stopped when the cell goes, and wait for the last stroke as before.
+  TURN  2 Least Common v7. There the drum's low triad turns over a page at a time. Here the drum answers the
+        meetings that land on it, two notes at a time; now each time all three meet on the drum (every 105
+        beats) the triad turns over: G2 B flat 2 D3, then B flat 2 D3 G3, then D3 G3 B flat 3, and round.
+
 v6 (26 Nov): WHAT THEY LEARNT THIS AFTERNOON. Three of the seven grew again after v5 quoted them, and the closer
 takes the new thing from each. Three switches on (`--without-strings`, `-paid`, `-knock`; all off is v5 byte for byte) and one off:
   KNOCK   2 Least Common v6, the drum answers. There the drum answers each click that lands on it. Here nobody
@@ -147,7 +162,13 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True}
+TAME = 'peak cutoff=587 q=3 gain=-3dB'  # v7: on the pings (Least Common's)
+TRUE = {'feed': '-33dB'}                # v7: what the strings take of the cell.
+# Bench, by difference (the song with them less the song without, raw): at Ring True's -30 dB they stood 9 to 11 dB under the mix in bars 153 to 160 and 6 to 7 above 300 Hz, and put 3.6 dB on the song from 500 Hz to 1 kHz there (547 Hz is 6.4 over the album's envelope already): 3 dB less
+TURNED = ({3: 'G2', 5: 'Bb2', 7: 'D3'}, {3: 'Bb2', 5: 'D3', 7: 'G3'}, {3: 'D3', 5: 'G3', 7: 'Bb3'})   # v7: the triad's three positions (Least Common's)
+TURN_DB = (0, -1, -2)                   # and dB on each (the same head higher stands further forward: Least Common's bench)
+PAGE = 105                              # beats between two meetings of all three on the drum
 KNOCK = {'notes': {3: 'G2', 5: 'Bb2', 7: 'D3'}, 'gain': '-5dB', 'hold': -10}   # v6: Least Common's knock: each cycle's note; its fader and the clip before it.
 # Bench, bars 113 to 128, the 600 ms after each knock: at Least Common's -2 dB two notes at once stood 2.6 dB under this mix from 90 to 123 Hz and level with it from 123 to 200 (this song is thinner there): 3 dB less
 WD_KNOCK = {'about': "Wind Down: the drum's answer when a meeting lands on it (v6, after Least Common's lc-knock): a small kettledrum head let ring 800 ms.",
@@ -336,7 +357,9 @@ def build():
                 elif len(meet) == 3:
                     T['chord'].append({'at': s / 4, 'len': 0.5, 'pitch': ','.join(CHORD), 'vel': .8})
                 if ON['knock'] and len(meet) >= 2 and s % 4 == 0:   # v6 KNOCK: a meeting on the drum
-                    T['knock'].append({'at': s / 4, 'len': 0.5, 'pitch': ','.join(KNOCK['notes'][c] for c in meet), 'vel': .8})
+                    pos = (s // 4 // PAGE - COMES['meetings'] * 4 // PAGE) % len(TURNED) if ON['turn'] else 0   # v7 TURN: how many times all three have met on the drum since the meetings came
+                    T['knock'].append({'at': s / 4, 'len': 0.5, 'pitch': ','.join((TURNED[pos] if ON['turn'] else KNOCK['notes'])[c] for c in meet), 'vel': .8,
+                                       **({'gain': f'{TURN_DB[pos]}dB'} if ON['turn'] and TURN_DB[pos] else {})})
         spending = ON['spent'] and here('change', bar) and bar >= GOES['change'] - SPENT
         if here('change', bar) and ((bar - COMES['change']) % 2 == 0 or spending):
             T['seed'].append({'at': b, 'len': 0.25, 'pitch': 'Bb4', 'vel': .9})
@@ -413,6 +436,8 @@ def song():
         ],
     }
     by_name = {t['name']: t for t in doc['tracks']}
+    if ON['tame']:
+        by_name['ping']['fx'] = [{'type': 'eq', 'bands': [TAME]}] + by_name['ping'].get('fx', [])
     if ON['mid']:
         by_name['tick']['fx'] = by_name['tick']['fx'] + [{'type': 'eq', 'bands': MID['tick']}]
         by_name['saw']['fx'] = [{'type': 'eq', 'bands': MID['saw']}]
@@ -443,11 +468,13 @@ def song():
     if ON['strings']:
         hand = {'points': ([['0b', -60], [f'{RUNS_DOWN * 4 - 1}b', -60], [f'{RUNS_DOWN * 4}b', STRINGS['from']], [f'{RUNS_DOWN * 4 + 8}b', 0], [f'{BARS * 4 + 16}b', 0]] if ON['early'] else
                            [['0b', -60], [f'{BARS * 4 - 0.5}b', -60], [f'{BARS * 4}b', 0], [f'{BARS * 4 + 16}b', 0]]), 'curve': 0}
+        if ON['true']:                                         # v7: let go beside the cell from where the room goes to where the cell goes
+            hand['points'] = hand['points'][:1] + [[f"{GOES['room'] * 4 - 1}b", -60], [f"{GOES['room'] * 4}b", 0], [f"{GOES['cell'] * 4 - 0.5}b", 0], [f"{GOES['cell'] * 4}b", -60]] + hand['points'][1:]
         for name, hz, side in STRINGS['strings']:
             me = 'str-' + name.lower()
             t = f"{1000 / hz - 225.1 / STRINGS['lp']:.3f}ms"         # a period, less the low-pass's own delay, so the loop is in tune
             doc['buses'][me] = {'pan': side, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.hand', 'amount': 1}]}, 'auto': {'hand': hand}, 'fx': [f"lp cutoff={STRINGS['lp']}"],
-                                'returns': [{'from': 'tick', 'gain': STRINGS['feed'], 'time': t}, {'from': me, 'gain': db(STRINGS['back']), 'time': t}]}
+                                'returns': [{'from': 'tick', 'gain': STRINGS['feed'], 'time': t}] + ([{'from': 'cell', 'gain': TRUE['feed'], 'time': t}] if ON['true'] else []) + [{'from': me, 'gain': db(STRINGS['back']), 'time': t}]}
     if ON['knock'] and T['knock']:
         doc['patches'] = {**doc['patches'], 'wd-knock': WD_KNOCK}
         doc['tracks'].append({'name': 'knock', 'patch': 'wd-knock', 'gain': KNOCK['gain'], 'notes': T['knock'], 'fx': [hold(KNOCK['hold'])]})
@@ -500,7 +527,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v5, the last six v4, the last nine v3, the last fifteen v2, all twenty-one v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v6, the last six v5, the last nine v4, the last twelve v3, the last eighteen v2, all twenty-four v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -519,6 +546,8 @@ if __name__ == '__main__':
                        ([(GOES['room'] - SING['bars'], 'the walls come in until they sing')] if ON['sing'] else []) +
                        ([(RUNS_DOWN if ON['early'] else BARS, "Ring True's strings are let go beside the click")] if ON['strings'] else []) +
                        ([(COMES['meetings'], 'the drum answers each meeting that lands on it')] if ON['knock'] else []) +
+                       ([(GOES['room'], "the strings are let go beside the cell, and ring while it rings true")] if ON['true'] and ON['strings'] else []) +
+                       ([(b // 4, f"all three meet on the drum: the triad turns over ({' '.join(TURNED[(b // PAGE - COMES['meetings'] * 4 // PAGE) % len(TURNED)][c] for c in CYCLES)})") for b in range(0, GOES['meetings'] * 4, PAGE) if b >= COMES['meetings'] * 4] if ON['turn'] and ON['knock'] else []) +
                        ([(GOES['change'] - 1, "the change's last seed is paid in the smallest coins: a held B flat")] if ON['paid'] else []) +
                        ([(GOES['cell'] - NUDGE['bars'], 'the hand drags the cell a sixteenth late and lets it catch up')] if ON['nudge'] else []))
         for bar, what in marks:
