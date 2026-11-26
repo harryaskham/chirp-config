@@ -89,6 +89,11 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   together -20.6 for -23.8. Out of Step's pattern now arrives over a silence and then a held note a minor
   third over its G, not over echoes it is out of step with. Its first sixteen bars are as they were. Not
   re-rendered as a seam.
+- Ring True v6 (14:08): its first eight bars are as they were. Its last bar, the one it shares with Hearing
+  Things, is as loud as it was (-11.1 dBFS for -11.2), but what rings after it is new: five sympathetic
+  strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
+  -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
+  held chord dying under them. Not re-rendered as a seam.
 - Wind Down v4 (10:39): its click has 6 dB less of its note (G6) and more of its click, for the whole song.
   Its first eight bars, the lone click that t7 -> t8 is cut on, read -29.8 dB where they read -27.8 (it is at
   the ceiling, so its fader could not give all of it back), and bars 9 to 16 read -14.7 for -16.2 (the drum has
