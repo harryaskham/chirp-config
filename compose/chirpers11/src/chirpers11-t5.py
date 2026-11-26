@@ -25,6 +25,13 @@ THE FORM IS ARITHMETIC: a row is ROW bars; SECTIONS lists each section's rows an
 bars of the section it plays: (from, to)). Every note comes from those.
 
 v1 is the SKELETON (26 Nov): the three illusions, each stated once and then together, with few sounds.
+
+v2 (26 Nov): THE HAT ALSO RISES (C11T5_SHEP=0 takes it out: v1). From the third row of "never arrives" each layer
+of the Risset rhythm has a voice of its own, a small struck tone, on the same strokes; the four are an octave
+apart (A3, A4, A5, A6) and every one of them climbs an octave through the row (one lane, `rise`, 0 to 12
+semitones). So a layer ends the row at the speed AND the pitch at which the next began it, the same windows fade
+the top out and the bottom in, and the row repeats note for note: it is a Shepard scale and a Risset rhythm at
+once, getting faster and higher for ever and going nowhere. In "out" it runs backwards: slower and lower, for ever.
 """
 import json
 import math
@@ -41,16 +48,19 @@ LAYERS = 4
 C = 23                         # the slowest layer's count at the start of a row: its speed there is C * ln 2 / CYCLE strokes a beat
 QUIET = 0.04                   # strokes softer than this are left out
 
+SHEP = os.environ.get("C11T5_SHEP", "1") != "0"      # v2: the layers' own voices, rising
+SHEP_ROOT = ("A3", "A4", "A5", "A6")                  # the note each layer starts every row on
+RISE = 12                                             # semitones every layer climbs in a row
 ALL = None
 # name, rows, {part: None (the whole section) or (from bar, to bar) of the section}
 SECTIONS = [
     ("the wrong one",    2, {"tick": ALL, "bass": (8, 16)}),
     ("turned around",    3, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": (8, 24)}),
-    ("never arrives",    5, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": ALL, "ris": ALL}),
+    ("never arrives",    5, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": ALL, "ris": ALL, "shep": (16, 40)}),
     ("not there",        3, {"tick": ALL, "bass": ALL, "ris": ALL, "kick": (8, 24), "sub": (8, 16), "clap": (16, 24)}),
     ("the wrong one again", 1, {"tick": ALL, "bass": ALL, "ris": ALL, "clapx": ALL}),
-    ("all three",        3, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": ALL, "ris": ALL}),
-    ("out",              3, {"tick": (0, 20), "bass": (0, 16), "kick": (0, 8), "sir": ALL}),
+    ("all three",        3, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": ALL, "ris": ALL, "shep": ALL}),
+    ("out",              3, {"tick": (0, 20), "bass": (0, 16), "kick": (0, 8), "sir": ALL, "pehs": ALL}),
 ]
 
 
@@ -109,6 +119,38 @@ def ris_notes(name, back=False):
     return out
 
 
+def layer(j, back=False):
+    """One row of layer j alone: (beat in the row, velocity). Its own strokes and its own window, nothing summed."""
+    n0, out = C * 2 ** j, []
+    for n in range(n0, 2 * n0):
+        t = CYCLE * math.log2(n / n0)
+        v = math.sin(math.pi * (t / CYCLE + j) / LAYERS) ** 2
+        if v >= QUIET:
+            out.append(((CYCLE - t) % CYCLE if back else t, v))
+    return sorted(out)
+
+
+def shep_notes(j):
+    out = []
+    for name, back in (("shep", False), ("pehs", True)):
+        row = layer(j, back)
+        for r in range(BARS // ROW):
+            if plays(name, r * ROW):
+                out += [note(r * CYCLE + t, SHEP_ROOT[j], 0.2, v) for t, v in row]
+    return sorted(out, key=lambda n: n["at"])
+
+
+def rise_lane():
+    """Semitones every layer's voice is above its root: 0 to RISE through each row it plays (RISE to 0 backwards)."""
+    pts = [["0b", 0]]
+    for r in range(BARS // ROW):
+        for name, lo, hi in (("shep", 0, RISE), ("pehs", RISE, 0)):
+            if plays(name, r * ROW):
+                pts += [[f"{r * CYCLE:g}b", lo], [f"{(r + 1) * CYCLE - 0.01:g}b", hi]]
+    pts.append([f"{TOTAL:g}b", 0])
+    return pts
+
+
 OFF = (2, 6, 10, 14)           # where the click and the bass are from the first bar to the last
 TICK = lambda bar: [(s, "E5", 1, 0.9 if s in (2, 10) else 0.78) for s in OFF]
 LINE = [("A1", "A1", "A1", "C2"), ("A1", "A1", "A1", "A1"), ("A1", "A1", "A1", "D2"), ("A1", "A1", "E2", "G1")]
@@ -128,6 +170,10 @@ PATCHES = {
     "ht-hat": {"about": "Hearing Things' hat (chirper-zero, 26 Nov): the machine's hat, 28 ms, above 5 kHz, whose loudness is all velocity: the Risset rhythm's layers are told apart by nothing else.",
                "play": {"vel_sens": 1.0},
                "synth": {"layers": [{"type": "machine", "machine": {"part": "hat", "decay": "28ms"}}], "filters": ["hp cutoff=5000"], "amp": {"a": "0.1ms", "d": "0s", "s": 1, "r": "120ms"}}},
+    "ht-shep": {"about": "Hearing Things' rising voice (chirper-zero, 26 Nov, v2): a small struck tone (a sine with two bar-like partials, 70 ms), whose loudness is all velocity and whose pitch rides the lane `rise` (semitones): one layer of the Shepard-Risset hat.",
+                "play": {"vel_sens": 1.0},
+                "synth": {"layers": ["sine", "sine ratio=2.76 level=-10dB", "sine ratio=5.4 level=-18dB"], "pitch": {"value": 0, "mod": [{"src": "auto.rise", "amount": 1}]},
+                          "amp": {"a": "0.3ms", "d": "70ms", "s": 0, "r": "20ms", "curve": 3}}},
     "ht-clap": {"about": "Hearing Things' clap (chirper-zero, 26 Nov): the machine's clap, three bursts, short, dry.",
                 "play": {"vel_sens": 0.4},
                 "synth": {"layers": [{"type": "machine", "machine": {"part": "clap", "bursts": 3, "decay": "140ms"}}], "amp": {"a": "0.1ms", "d": "0s", "s": 1, "r": "400ms"}}},
@@ -142,7 +188,7 @@ PATCHES = {
 
 def song():
     pump = {"type": "pump", "on": "kick", "depth": "-4dB", "attack": "2ms", "release": "160ms", "curve": 0.7}
-    return {
+    doc = {
         "about": "Chirpers - Escapement, track 5 by chirper-zero: HEARING THINGS. Three things that are not on the record: a beat that turns around (the click and the bass are on the off-beats from the first bar; the bass drum says so later), a bass with nothing at its own pitch (harmonics two to six), and a hat that speeds up through every row and starts the next where it started the last (a Risset rhythm in four layers). Generated by compose/chirpers11/src/chirpers11-t5.py.",
         "tempo": BPM,
         "ceiling": "-1dB",
@@ -163,6 +209,13 @@ def song():
             {"name": "ris", "patch": "ht-hat", "gain": "6dB", "pan": 0.0, "sends": {"room": "-16dB"}, "notes": sorted(ris_notes("ris") + ris_notes("sir", back=True), key=lambda n: n["at"])},
         ],
     }
+    if SHEP:
+        lane = rise_lane()
+        doc["tracks"] += [{"name": f"shep{j}", "patch": "ht-shep", "gain": "-13dB", "pan": 0.15, "sends": {"room": "-14dB"}, "auto": {"rise": {"points": lane}}, "notes": shep_notes(j)} for j in range(LAYERS)]
+        doc["about"] = doc["about"].replace(" Generated by", " From v2 each layer of the hat has a small tone of its own that climbs an octave a row, so it is faster and higher for ever. Generated by")
+    else:
+        del PATCHES["ht-shep"]
+    return doc
 
 
 def dump(doc):

@@ -9412,14 +9412,15 @@
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers11-t5 OUT.wav",
       "best": {
-        "score": 96.72,
-        "version": "v1",
-        "commit": "see git log songs/chirpers11-t5.yaml"
+        "score": 96.55,
+        "version": "v2",
+        "commit": "see git log songs/chirpers11-t5.yaml",
+        "judged": true
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 1,
+      "rounds": 2,
       "priority": 1.0,
       "genre": "clicky minimal techno",
       "mode": "compose",
@@ -9437,7 +9438,7 @@
         "note": "COMPOSE (song, 300-480 s): ILLUSIONS. A beat that seems to turn around, an endless accelerando that never arrives, a bass that is not there: the listener's ear is the instrument."
       },
       "last": {
-        "at": "2026-11-26T04:10:36Z",
+        "at": "2026-11-26T05:09:51Z",
         "who": "chirper-zero"
       }
     },
