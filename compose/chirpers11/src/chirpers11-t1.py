@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Chirpers 11, track 1 (chirper-zero): GIVE OR TAKE. The opener; the slot's word is TIME.
+"""Escapement (Chirpers 11), track 1 (chirper-zero): GIVE OR TAKE. The opener; the slot's word is TIME.
 
 TWO DECKS. Deck A is the grid and never moves: a bass drum on the four, one click on the off-beats, a bass, later a clap. Deck B is
 everything else (a sixteenth-note noise click, two wooden tocks in a Euclidean five, a dub chord), and a hand is on it:
@@ -22,7 +22,15 @@ its kind, its reach in beats and its period in bars. Every start, every event an
   out           the parts leave; deck A's click is last
 
 v1 is the SKELETON (26 Nov; the brief: "any version at all opens the groove to it; then keep finessing"): the whole
-shape standing, with few sounds. Switch off = nothing yet: this is the first version.
+shape standing, with few sounds.
+
+v2 (26 Nov): DECK B IS A RECORD, AND A RECORD HAS ITS OWN BASS DRUM (C11T1_KNOCK=0 takes it out). From the second
+row of "take" deck B plays a bass drum of its own on its own four, with its bass taken out (a high-pass at 315 Hz
+on the lane `low`: the incoming record with the low EQ killed, as it is mixed), so the two drums are heard against
+each other: one drum when the hand is off, a flam when it leans, a gallop when it pushes. Before "no ruler" the grid
+click stops, and in the last bar the BASS IS SWAPPED: deck B's drum gets its lows as deck A's drum stops. For twelve
+bars the only bass drum on the record is deck B's, and its tempo is the one that moves. Then deck A's drum comes
+back where it always was, the two gallop, and deck B's bass is taken out again over two bars.
 """
 import json
 import math
@@ -35,20 +43,28 @@ ROW = 8                        # bars in a row
 STEP = 0.25                    # a sixteenth, in beats
 ROOT = "G"
 
+KNOCK_ON = {"knock"} if os.environ.get("C11T1_KNOCK", "1") != "0" else set()   # v2: deck B's own bass drum
 # name, rows, the parts that play, the hand: (kind, reach in beats, period in bars, bars over which it comes on and off)
 SECTIONS = [
     ("the grid",  2, {"kick", "tick", "hat"},                         ("none", 0.0, 1, 2)),   # the hat from the second row (ENTER)
     ("give",      2, {"kick", "tick", "hat", "tock", "sub"},          ("breathe", 0.05, 2, 2)),
-    ("take",      2, {"kick", "tick", "hat", "tock", "sub", "stab"},  ("breathe", 0.08, 2, 2)),
-    ("no ruler",  2, {"hat", "tock", "stab"},                         ("breathe", 0.5, 4, 4)),
-    ("both",      3, {"kick", "tick", "hat", "tock", "sub", "stab", "clap"},  ("breathe", 0.08, 1.5, 2)),
-    ("the nudge", 2, {"kick", "tick", "hat", "tock", "sub", "stab", "clap"},  ("nudge", 0.25, 4, 2)),
-    ("locked",    2, {"kick", "tick", "hat", "tock", "sub", "stab", "clap"},  ("none", 0.0, 1, 2)),
+    ("take",      2, {"kick", "tick", "hat", "tock", "sub", "stab"} | KNOCK_ON,  ("breathe", 0.08, 2, 2)),   # deck B's drum from the second row; the click gone for the last four bars
+    ("no ruler",  2, {"hat", "tock", "stab"} | KNOCK_ON,                         ("breathe", 0.5, 4, 4)),
+    ("both",      3, {"kick", "tick", "hat", "tock", "sub", "stab", "clap"} | KNOCK_ON,  ("breathe", 0.08, 1.5, 2)),
+    ("the nudge", 2, {"kick", "tick", "hat", "tock", "sub", "stab", "clap"} | KNOCK_ON,  ("nudge", 0.25, 4, 2)),
+    ("locked",    2, {"kick", "tick", "hat", "tock", "sub", "stab", "clap"} | KNOCK_ON,  ("none", 0.0, 1, 2)),
     ("out",       2, {"kick", "tick", "hat", "tock"},                 ("none", 0.0, 1, 2)),
 ]
 RETURN = 4                     # in "no ruler", the kick alone comes back for the last RETURN bars
-LEAVE = [("kick", 8), ("hat", 12), ("tock", 14)]   # in "out": the bar (of the section) from which each part is gone
-ENTER = [("hat", ROW)]                              # in "the grid": the bar from which each part is there
+LEAVE = {"out": [("kick", 8), ("hat", 12), ("tock", 14)]}   # the bar (of the section) from which each part is gone
+ENTER = {"the grid": [("hat", ROW)]}                         # ... and from which each part is there
+if KNOCK_ON:
+    LEAVE["take"] = [("tick", 12)]                           # the ruler's marks go first, then (at "no ruler") the ruler
+    ENTER["take"] = [("knock", ROW)]
+SWAP = 1                       # bars before "no ruler" over which deck B's drum gets its bass
+BACK = 2                       # bars after deck A's drum returns over which it loses it again
+KILL = 3.3                     # octaves above 32 Hz at which deck B's drum is cut when its bass is out (315 Hz)
+LIFT = 7                       # dB by which what is left of it is turned up while its bass is out (it was 14 dB under the mix without)
 
 
 def starts():
@@ -118,15 +134,23 @@ def plays(part, bar):
     name, b0, n, parts, hand = section_at(bar * BEATS)
     if name == "no ruler" and part == "kick" and bar >= b0 + n - RETURN:
         return True
-    if name == "out":
-        for p, gone in LEAVE:
-            if p == part and bar >= b0 + gone:
-                return False
-    if name == "the grid":
-        for p, there in ENTER:
-            if p == part and bar < b0 + there:
-                return False
+    for p, gone in LEAVE.get(name, []):
+        if p == part and bar >= b0 + gone:
+            return False
+    for p, there in ENTER.get(name, []):
+        if p == part and bar < b0 + there:
+            return False
     return part in parts
+
+
+def low_lane():
+    """How much of deck B's drum's bass is cut (1 all, 0 none): in for "no ruler" until deck A's drum is back."""
+    pts = [["0b", 1]]
+    for name, b0, n, parts, hand in SECS:
+        if name == "no ruler":
+            pts += [[f"{(b0 - SWAP) * BEATS:g}b", 1], [f"{b0 * BEATS:g}b", 0], [f"{(b0 + n - RETURN) * BEATS:g}b", 0], [f"{(b0 + n - RETURN + BACK) * BEATS:g}b", 1]]
+    pts.append([f"{TOTAL:g}b", 1])
+    return pts
 
 
 def note(at, pitch, length, vel):
@@ -167,6 +191,7 @@ FIVE = euclid(5, 16)
 TOCK = lambda bar: [(s, ("G6", "Bb6", "G6", "D7", "Bb6")[i] if bar % 4 != 3 else ("G6", "Bb6", "D7", "F7", "D7")[i], 1, 0.8 if i in (0, 3) else 0.62) for i, s in enumerate(FIVE)]
 SUB = lambda bar: [(2, "G2", 1.6, 0.9), (7, "G2", 1, 0.8), (10, "Bb2" if bar % 2 else "G2", 1.6, 0.9)] + ([(14, "F2", 1.6, 0.85)] if bar % ROW == ROW - 1 else [(14, "D3", 1, 0.75)] if bar % 2 else [])
 CLAP = lambda bar: [(4, "C4", 1, 0.8), (12, "C4", 1, 0.86)]
+KNOCK = lambda bar: [(s, ROOT + "1", 1, 0.92 if s == 0 else 0.86) for s in (0, 4, 8, 12)]   # deck B's four
 CHORDS = [("G3", "Bb3", "D4", "F4"), ("G3", "Bb3", "D4", "F4"), ("G3", "A3", "D4", "F4"), ("Eb3", "G3", "Bb3", "D4")]
 
 
@@ -183,6 +208,11 @@ PATCHES = {
                 "play": {"vel_sens": 0.3},
                 "synth": {"layers": [{"type": "machine", "machine": {"part": "kick", "decay": "280ms", "click": 0.65, "drive": 0.35, "punch": 22, "punch_time": "34ms"}}],
                           "filters": ["hp cutoff=28"], "amp": {"a": "0.1ms", "d": "0s", "s": 1, "r": "1s"}}},
+    "gt-knock": {"about": "Give or Take's second bass drum (chirper-zero, 26 Nov, v2): deck B's own, a little shorter and clickier than deck A's, through a high-pass on the lane `low` (32 Hz to 315 Hz: the low EQ of the incoming record, killed until the bass is swapped); its pitch follows deck B's speed.",
+                 "play": {"vel_sens": 0.3},
+                 "synth": {"layers": [{"type": "machine", "machine": {"part": "kick", "decay": "220ms", "click": 0.8, "drive": 0.3, "punch": 20, "punch_time": "30ms"}}],
+                           "pitch": {"value": 0, "mod": [{"src": "auto.spd", "amount": 1}]},
+                           "filters": [{"kind": "hp", "cutoff": {"value": 32, "mod": [{"src": "auto.low", "amount": KILL}]}, "q": 0.7}], "amp": {"a": "0.1ms", "d": "0s", "s": 1, "r": "1s"}}},
     "gt-tick": {"about": "Give or Take's grid click (chirper-zero, 26 Nov): the machine's rim, one voice, high and dry; deck A's ruler marks.",
                 "play": {"vel_sens": 0.5},
                 "synth": {"layers": [{"type": "machine", "machine": {"part": "rim", "decay": "35ms"}}], "amp": {"a": "0.1ms", "d": "0s", "s": 1, "r": "300ms"}}},
@@ -209,7 +239,7 @@ def song():
     lane = spd_lane()
     pump = {"type": "pump", "on": "kick", "depth": "-5dB", "attack": "2ms", "release": "180ms", "curve": 0.7}
     doc = {
-        "about": "Chirpers - Chirpers 11, track 1 by chirper-zero: GIVE OR TAKE. Two decks. Deck A (the bass drum, one click, the sub) is the grid and never moves. Deck B (the sixteenth click, the tocks, the dub chord) has a hand on it: pushed ahead of the grid and dragged back, and what has a pitch on it goes sharp and flat with its speed, as a record does. Generated by compose/chirpers11/src/chirpers11-t1.py.",
+        "about": "Chirpers - Escapement, track 1 by chirper-zero: GIVE OR TAKE. Two decks. Deck A (the bass drum, one click, the sub) is the grid and never moves. Deck B (the sixteenth click, the tocks, the dub chord) has a hand on it: pushed ahead of the grid and dragged back, and what has a pitch on it goes sharp and flat with its speed, as a record does. Generated by compose/chirpers11/src/chirpers11-t1.py.",
         "tempo": BPM,
         "ceiling": "-1dB",
         "loudness": -10.5,
@@ -233,6 +263,12 @@ def song():
             {"name": "stab", "patch": "gt-stab", "gain": "-23dB", "pan": 0.1, "fx": [pump], "sends": {"dub": "-7dB"}, "auto": {"spd": {"points": lane}}, "notes": deck_b("stab", STAB)},
         ],
     }
+    if KNOCK_ON:
+        doc["tracks"].append({"name": "knock", "patch": "gt-knock", "gain": "-5dB", "pan": 0.0, "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.low", "amount": LIFT}]}}],
+                              "auto": {"spd": {"points": lane}, "low": {"points": low_lane()}}, "notes": deck_b("knock", KNOCK)})
+        doc["about"] = doc["about"].replace("Deck B (the sixteenth click, the tocks, the dub chord) has a hand on it", "Deck B (the sixteenth click, the tocks, the dub chord, and from v2 a bass drum of its own with its bass taken out) has a hand on it")
+    else:
+        del PATCHES["gt-knock"]
     return doc
 
 
