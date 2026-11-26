@@ -127,6 +127,25 @@ BENCHED (seed 0; v7 that day 95.15): the half turn and the whole turn a bar each
 (0,1,2,1,0,1,2,1) scored 94.81 / 94.78: the scorer's cut at the bass drum's entry (31 s) fell from 0.152 to
 0.125 and took 1.8 points of variety. The octave for four bars from the drum's entry, then the whole turn for
 four (1,1,1,1,2,2,2,2): 95.10. As published (0,0,0,0,1,1,2,2): 95.13: the drum's entry is as it was.
+
+v9 (26 Nov): THE WAVE'S OWN SCALE (C11T7_SCALE=0 takes it out: v8). v8 found that B half a turn of the click's
+wave ahead of A is the click an octave up. That is the first step of a ladder. Strike the SAME click n times,
+each a n-th of a turn (5.102 ms / n) after the last, and every harmonic that is not a multiple of n meets n - 1
+copies of itself spread evenly round the circle and is cancelled; the multiples of n all arrive in step. What is
+left is the click on n times its note, AND NO BIGGER (n copies of a saw a n-th of a turn apart ARE a saw n times
+as high, of the same height). So one click, with no other sound, no filter and no change of pitch, has a
+scale: its wave's own harmonics. 1 G3, 2 G4, 3 D5, 4 G5, 6 D6, 7 F6 (the natural seventh, 31 cents under the
+piano's), 8 G6, 9 A6. (5 is a B natural and is left out: the song's tune has B flat.) Every one of the eight
+is a note-name of the song's own tune (G, D, F, A); the wave has no B flat to give.
+It is played in the second row of "one again" (bars 145 to 152, 4:34 to 4:49), where the drum has gone: a click
+on every beat, up the ladder in two bars and down it in two, twice, and the last of them is one click again.
+Its own tracks (`wave-1` ... `wave-9`: the k-th copy of each stroke), in the middle, on the song's click patch
+and through the same low-pass and room: the only thing that differs from A's click is WHEN.
+(Not perfect, and measured: the click dies as it rings (22 ms), so a later copy is a little smaller than the one
+it should cancel, and the engine starts a note on a whole sample, 21 millionths of a second: what should cancel
+is 12 to 16 dB under what should not. And "no bigger" is the peak, which falls 3 dB from the bottom of the
+ladder to the top; the LEVEL rises 6 dB on the way up, because the click's own 500 Hz high-pass takes most of a
+single click's two lowest harmonics away and takes nothing from the higher rungs.)
 """
 import json
 import math
@@ -176,6 +195,12 @@ WAVE_BARS = (16, 24)           # the bars of "one click" in which B is ahead by 
 WAVE_STEPS = tuple(int(x) for x in os.environ.get("C11T7_WAVE_STEPS", "0,0,0,0,1,1,2,2").split(","))   # ... and by how many, a bar each
 WAVE_PAN = float(os.environ.get("C11T7_WAVE_PAN", "0"))   # where A and B stand meanwhile (-WAVE_PAN and +WAVE_PAN): in one place, so that the one can cancel the other in both ears
 WAVE_HZ = 440 * 2 ** ((55 - 69) / 12)                  # the click's note (NOTE, G3): 196.0 Hz, 5.102 ms a turn
+SCALE_ON = os.environ.get("C11T7_SCALE", "1") != "0" and WAVE_ON                 # v9: the wave's own scale
+SCALE_IN = ("one again", 8, 16)                        # the section, and the bars of it in which one click plays its wave's own notes
+SCALE_STEPS = (1, 2, 3, 4, 6, 7, 8, 9)                 # n: the click struck n times, a n-th of a turn apart, is the click on n times its note: G3 G4 D5 G5 D6 F6 G6 A6 (5 is a B natural: the tune has B flat)
+SCALE_EVERY = 4                                        # sixteenths from one stroke to the next: on every beat, up the steps and down them
+SCALE_GAIN = float(os.environ.get("C11T7_SCALE_GAIN", "-6"))   # dB: every copy (A's own fader is -2: at that the top of the ladder stood 9 dB over the click A and B make together; at -6 the bottom is 1 dB under it and the top 5 over)
+SCALE_VEL = 0.9
 PEND_MS = 0.6                  # ms: how far B is ahead of A (and then behind) at the end of a swing; sound crosses a head in about this
 PEND_BARS = 2                  # bars to swing there and back
 PEND_GROW = 2                  # bars it takes to reach its full swing when it is set going ("up")
@@ -287,6 +312,25 @@ def when(b):
         else:
             hi = mid
     return (lo + hi) / 2
+
+
+def scale_span():
+    """The beats between which one click plays its wave's own notes, or None."""
+    sec = next((x for x in SECS if x[0] == SCALE_IN[0]), None) if SCALE_ON else None
+    return ((sec[1] + SCALE_IN[1]) * BEATS, (sec[1] + SCALE_IN[2]) * BEATS) if sec else None
+
+
+def scale_strokes():
+    """(the beat of a stroke, n): on every SCALE_EVERY sixteenths, up SCALE_STEPS and down them."""
+    lo, hi = scale_span()
+    cyc = SCALE_STEPS + SCALE_STEPS[::-1]
+    return [(lo + i * SCALE_EVERY * STEP, cyc[i % len(cyc)]) for i in range(int(round((hi - lo) / (SCALE_EVERY * STEP))))]
+
+
+def scale_notes(k):
+    """The k-th copy (0 is the first) of every stroke that has one: k n-ths of a turn of the click's wave after the stroke."""
+    turn = BPM / 60 / WAVE_HZ                        # beats in one turn of the click's wave
+    return [note(t + k * turn / n, NOTE, STEP, SCALE_VEL) for t, n in scale_strokes() if k < n]
 
 
 def note(at, pitch, length, vel):
@@ -534,6 +578,12 @@ def song():
                                   "sends": {"room": "-16dB"}, "auto": {"open": {"points": open_lane()}}, "notes": mid(notes, True)})
         doc["about"] = doc["about"].replace(" Generated by", " From v8, for the last eight bars of one click, the two clicks stand in one place and B goes half a turn of the click's own wave ahead (2.55 ms), then a whole turn, and back: at half a turn the odd harmonics cancel and the click is heard an octave up; at a whole turn it is itself again. Generated by")
         assert "From v8" in doc["about"]
+    if scale_span():
+        for k in range(max(SCALE_STEPS)):
+            doc["tracks"].append({"name": f"wave-{k + 1}", "patch": "os-click", "gain": f"{SCALE_GAIN:g}dB", "pan": 0.0,
+                                  "sends": {"room": "-16dB"}, "auto": {"open": {"points": open_lane()}}, "notes": scale_notes(k)})
+        doc["about"] = doc["about"].replace(" Generated by", " From v9, in the second row of one again, one click plays its wave's own scale: struck n times, a n-th of a turn of its wave apart, it is the click on n times its note and no higher in peak (G3 G4 D5 G5 D6 F6 G6 A6 for n = 1 2 3 4 6 7 8 9), a click a beat, up and down twice. Generated by")
+        assert "From v9" in doc["about"]
     if CANON_ON:
         doc["tracks"].append({"name": "tune2", "patch": "os-tune", "gain": CANON_GAIN, "pan": PAN, "sends": {"room": "-10dB"}, "notes": canon_notes()})
         doc["about"] = doc["about"].replace(" Generated by", " From v6, in the second row of home, the tune has a B of its own: a second pip an octave lower plays the same five notes and slips a sixteenth ahead of the tune every two bars, so the tune is heard in canon with itself at four distances (Piano Phase's way, in the record's chord). Generated by")
@@ -609,6 +659,11 @@ if __name__ == "__main__":
                     print(f"   the pendulum in \"{name}\" (bars {b0 + phase[1]}-{b0 + phase[2]}, {phase[3]}): B's lead at each quarter of a bar, ms (+ the right ear first): " + " ".join(f"{lead_ms((b0 + phase[1]) * BAR + q * 4):+.2f}" for q in range(0, (phase[2] - phase[1]) * 4 + 1)))
         ms = 60 / BPM / 4 * 1000
         print("   the first slip (bars 24-26): the gap between A's stroke and B's, ms: " + " ".join(f"{(n['at'] / STEP - round(n['at'] / STEP + phi(n['at'] / STEP)) + 0) * -ms:.1f}" for n in b_notes() if 24 * BEATS <= n["at"] < 25.5 * BEATS))
+        if scale_span():
+            lo, hi = scale_span()
+            names = {1: "G3", 2: "G4", 3: "D5", 4: "G5", 5: "B5", 6: "D6", 7: "F6-", 8: "G6", 9: "A6"}
+            print(f"   the wave's own scale, bars {lo // BEATS + 1:g}-{hi // BEATS:g} ({lo * 60 / BPM:.1f}-{hi * 60 / BPM:.1f} s): the click's wave is {1000 / WAVE_HZ:.3f} ms a turn ; a stroke every {SCALE_EVERY} sixteenths, every copy at {SCALE_GAIN:g} dB in the middle ; n (copies, a n-th of a turn apart): its note, Hz, ms from copy to copy: " + " ; ".join(f"{n}: {names.get(n, '?')} {n * WAVE_HZ:.0f} {1000 / WAVE_HZ / n:.3f}" for n in SCALE_STEPS))
+            print("      by beat: " + " ".join(f"{n}" for t, n in scale_strokes()) + f" ; {sum(n for t, n in scale_strokes())} clicks in {len(scale_strokes())} strokes")
         print(f"{BARS} bars, {TOTAL} beats, {BARS * sec:.1f} s; the bass: {F0} and {F0 * R:.4f} Hz")
     else:
         open(OUT, "w").write(dump(song()))
