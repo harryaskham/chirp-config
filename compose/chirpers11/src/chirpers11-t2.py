@@ -99,6 +99,21 @@ every 7. Those meetings, a click with the drum, were the only ones in the song t
          knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
          song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
 
+v7 (26 Nov): THE TRIAD TURNS OVER. The drum's answer (v6) was the same three notes in the same three cycles for
+four minutes: every page of 105 beats the same low tune. Three switches (`--without-turn`, `-carry`, `-tame`; all
+three off is v6 byte for byte):
+  TURN   one size up again. The three notes turn in 3, 5 and 7 beats; now the triad itself turns over once in the
+         second half, an inversion a page. On the one it is as it was (G2 B flat 2 D3: the three's note lowest and
+         commonest); when the page turns the lowest note goes to the top (B flat 2, D3, G3), and again (D3, G3,
+         B flat 3), and on the last page it is home (G2, B flat 2, D3). The note heard every three beats is
+         G, then B flat, then D, then G: the song's chord, a page a note, under a song that never changed chord.
+  CARRY  in the second half the four stops for fifteen beats before each page turns, and the drum's answer
+         stopped with it. Now the answer goes on without the question: the knocks keep their beats through the
+         break, CARRY_DB down, with the slow clicks and the held tone, and the page turns on the whole triad.
+  TAME   the pings' commonest note, D5 (587 Hz), 3 dB down by an EQ on their track: 547 and 641 Hz have stood
+         about 7 dB over the album's envelope since v2, and by solo the pings are half of what the song has from
+         250 Hz to 1 kHz on the first half's pages.
+
 v5 (26 Nov): ONLY THE DRUM. Read by solo, v4's slow run-down was a change of rhythm 14 to 19 dB under the four,
 and the second half's four pages all stood at one level. Three switches (`--without-bare`, `-small`, `-rise`;
 all three off is v4 byte for byte):
@@ -140,7 +155,11 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True, 'knock': True}
+      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True}
+TURNED = ({3: 'G2', 5: 'Bb2', 7: 'D3'}, {3: 'Bb2', 5: 'D3', 7: 'G3'}, {3: 'D3', 5: 'G3', 7: 'Bb3'})   # v7: the triad's three positions, by how many pages of the second half have turned (the fourth is the first again)
+TURN_DB = (0, -1, -2)                   # v7: on the knock in each position. Bench, by solo: at one level the second inversion stood 2.7 dB under the mix from 200 to 400 Hz (v6's root position 7.5) and the first 4.6 (7.8): the head is the same size and its notes are higher
+CARRY_DB = -6                           # v7: on a knock where the four has stopped. Bench, the break before page 6: with them the break reads -32.1 dB raw for -35.4 (under 250 Hz -34.5 for -43.0) and the groove before it -24.3: still a break, 8 dB down, with a low tune in it
+TAME = 'peak cutoff=587 q=3 gain=-3dB'  # v7: on the pings. At q 1.4 it took 2.1 to 3.0 dB off everything from 400 Hz to 1 kHz (2.3 dB off the pings as a whole): a fader, not a note
 KNOCK = {3: 'G2', 5: 'Bb2', 7: 'D3'}    # v6: the drum's answer to each click that lands on it
 KNOCK_FROM = HALF - PAGE                # from the first half's last page
 KNOCK_SEAM = 4 * BAR                    # and not in the last four bars
@@ -333,12 +352,14 @@ def build():
     if ON['knock']:
         T['knock'] = []
 
-    def knock(s):
+    def knock(s, db=0):
         """v6: the drum's answer at sixteenth s, a note for each click whose cycle lands on it (every 3, 5 and 7 beats)."""
         if ON['knock'] and KNOCK_FROM <= s < TOTAL - KNOCK_SEAM:
+            notes = TURNED[(s - HALF) // PAGE % len(TURNED)] if ON['turn'] and s >= HALF else KNOCK
             for c in CYCLES:
                 if s % (c * BEAT) == 0:
-                    add('knock', s, 2, KNOCK[c], .85)
+                    g = db + (TURN_DB[(s - HALF) // PAGE % len(TURNED)] if ON['turn'] and s >= HALF else 0)
+                    add('knock', s, 2, notes[c], .85, **({'gain': f'{g}dB'} if g else {}))
 
     pitch = {'three': 'C6', 'five': 'G5', 'seven': 'G4'}
     mem = dict(pitch)
@@ -398,6 +419,8 @@ def build():
         if s % BEAT == 0 and not broken(s):
             add('kick', s, 2, 'G1', .95 if s % BAR == 0 else .88)
             knock(s)
+        elif s % BEAT == 0 and ON['carry']:                  # v7: the answer goes on through the break
+            knock(s, CARRY_DB)
     held.append((TOTAL, tuple(CYCLES)))
     for (s, heads), (nxt, _) in zip(held, held[1:]):
         if len(heads) == 3:
@@ -418,6 +441,7 @@ def build():
         add(v, TOTAL, 1, MEMORY[v][ALL] if ON['memory'] and v in MEMORY else pitch[v], .95)
     marks += [('the drum answers each click that lands on it: a knock every 3, 5 and 7 beats', KNOCK_FROM)] * ON['knock']
     marks += [('second half: three, five and seven beats', HALF)] + [(f'page {p + 5} (the three meet on beat {p * PAGE // BEAT % 4 + 1})', HALF + p * PAGE) for p in range(1, pages)]
+    marks += [(f"the triad turns over: {' '.join(TURNED[p % len(TURNED)][c] for c in CYCLES)}", HALF + p * PAGE) for p in range(1, pages)] * (ON['turn'] and ON['knock'])
     marks += [('only the drum is left of the four', HALF + last * SUPER), ('home', TOTAL)]
     if ON['break']:
         marks = sorted(marks + [('the four stops for the page turn', t - BREAK) for t in TURNS], key=lambda m: m[1])
@@ -510,6 +534,8 @@ def song():
                                                 'gain': {'value': f"{WIDE_DB if ON['wide'] else 0}dB", 'mod': [{'src': 'auto.door', 'amount': 1}]}, 'auto': {'door': door()}}}
         if ON['away']:                                        # the clicks' own far room: the same room, its fader making up what theirs lose
             doc['buses']['gone'] = {**doc['buses']['far'], 'auto': {'door': gone()}}
+    if ON['tame']:
+        by_name['ping']['fx'] = [{'type': 'eq', 'bands': [TAME]}] + by_name['ping']['fx']
     if ON['knock']:
         doc['patches'] = {**doc['patches'], 'lc-knock': LC_KNOCK}
         doc['tracks'].append(track('knock', 'lc-knock', KNOCK_DB, fx=[hold(KNOCK_HOLD)]))
@@ -532,7 +558,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last one off is v5, the last four v4, the last nine v3, the last seventeen v2, all twenty-three v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v6, the last four v5, the last seven v4, the last twelve v3, the last twenty v2, all twenty-six v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
