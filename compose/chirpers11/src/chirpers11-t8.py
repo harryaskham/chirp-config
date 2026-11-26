@@ -71,6 +71,22 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v8 (26 Nov): WHAT IS LEFT BOUNCING. Two of the seven grew once more after v7, and the closer takes the new thing
+from each. Two switches (`--without-drop`, `-part`; both off is v7 byte for byte):
+  DROP  4 Ring True v8. There the stick is let go too: a thing's stroke is dropped and bounces, each bounce sooner
+        and softer than the last by the same share. Here the hand has taken the cell back (bars 161 to 168); on
+        the cell's last stroke it lets go of the stick, and of the bar: the stroke rings as nothing of the cell's
+        has for eight bars. The cell goes at bar 169 and its stick is still bouncing on a bar still ringing:
+        eight bounces, each gap three quarters of the one before, and the ninth would fall on beat two of the
+        bar the cell is not in. Something coming to rest by itself, which is the song.
+  PART  2 Least Common v8. There the second half remembers the first: each click's echo keeps its old cycle. Here
+        nobody plays the cycles at all; only their meetings are heard, as pings. Now each meeting is heard to
+        part: after a ping the two cycles that met go on their way, the three's click 3 sixteenths later on the
+        left, the five's 5 later on the right, the seven's 7 later in the middle (where Least Common stands
+        them). They are the ping's own echoes with the note taken out (what is left of a vibraphone bar over
+        1.2 kHz is its second mode, two octaves up, and its click), so Least Common's cycles are heard in the
+        closer for one step each, 342 times, and nobody plays them.
+
 v7 (26 Nov): RING TRUE. Two of the seven grew again after v6, and the closer takes the new things from each. Three
 switches (`--without-true`, `-turn`, `-tame`; all off is v6 byte for byte):
   TAME  2 Least Common v7 again: the pings' commonest note, D5, 3 dB down by an EQ on their track. The strings
@@ -162,7 +178,13 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True}
+DROP = {'share': 0.75, 'bounces': 8, 'rest': 7, 'ring': 1.0, 'db': 3}   # v8: each bounce's gap and level as a share of the one before; how many are heard; sixteenths from the stroke to where the next would fall; the dropped stroke's ring (let go) and dB on it.
+# Bench (part.sh, partread.py: the stroke and its bounces alone by 60 ms; the mix with and without). Stopped as the hand had left it (a 28 ms tap) and 6 dB up, the stroke's highest sample was -8.5 dBFS and its bounces moved the mix 1 or 2 dB in two
+# sixths of a second: a loud tap and nothing after it. Let go (it rings a second), the same bounces have a note to ring on
+PART = {'side': {3: -0.45, 5: 0.45, 7: 0.0}, 'hp': {3: 1200, 5: 1200, 7: 1200}, 'gain': '4dB'}   # v8: where each cycle's click stands (Least Common's places), the high-pass that takes the ping's note out of it, the buses' fader.
+# Bench: with the three's high-pass at 5 kHz, the five's at 2 kHz and the seven's at 1.2 kHz and the fader at 0 dB the clicks stood 12.4 dB under the pings and 13 to 16 under the mix from 1 to 5 kHz, and the three's was nearly nothing
+# (25 under the mix from 5 to 10 kHz: a vibraphone bar has little up there). So one high-pass for all three, and 4 dB more
 TAME = 'peak cutoff=587 q=3 gain=-3dB'  # v7: on the pings (Least Common's)
 TRUE = {'feed': '-33dB'}                # v7: what the strings take of the cell.
 # Bench, by difference (the song with them less the song without, raw): at Ring True's -30 dB they stood 9 to 11 dB under the mix in bars 153 to 160 and 6 to 7 above 300 Hz, and put 3.6 dB on the song from 500 Hz to 1 kHz there (547 Hz is 6.4 over the album's envelope already): 3 dB less
@@ -349,6 +371,10 @@ def build():
                         late, rate = hand((bar - (GOES['cell'] - NUDGE['bars'])) * 4 + (s % BAR) / 4)
                         T['cell'][-1]['at'] = round(T['cell'][-1]['at'] + late, 4)
                         T['cell'][-1]['expr']['sink'] = round(-12 * log2(1 + rate), 2)
+            if ON['drop'] and bar == GOES['cell'] - 1:         # v8 DROP: the cell's last stroke goes by a track of its own, so that only it bounces
+                n = T['cell'].pop()
+                let = wood(n['at'], n['pitch'], n['vel'], DROP['ring'], **({'ease': EASE} if ON['ease'] else {}))   # let go, where the hand had it stopped
+                T['cell-drop'] = [{**let, 'expr': {**n['expr'], 'ring': let['expr']['ring']}, 'gain': f"{round(float(let['gain'][:-2]) + DROP['db'], 2)}dB"}]
         if here('meetings', bar):
             for s in range(bar * BAR, (bar + 1) * BAR):          # the cycles are counted from the top of the song; nobody plays them
                 meet = tuple(c for c in CYCLES if s % c == 0)
@@ -475,6 +501,16 @@ def song():
             t = f"{1000 / hz - 225.1 / STRINGS['lp']:.3f}ms"         # a period, less the low-pass's own delay, so the loop is in tune
             doc['buses'][me] = {'pan': side, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.hand', 'amount': 1}]}, 'auto': {'hand': hand}, 'fx': [f"lp cutoff={STRINGS['lp']}"],
                                 'returns': [{'from': 'tick', 'gain': STRINGS['feed'], 'time': t}] + ([{'from': 'cell', 'gain': TRUE['feed'], 'time': t}] if ON['true'] else []) + [{'from': me, 'gain': db(STRINGS['back']), 'time': t}]}
+    if T.get('cell-drop'):                                     # v8 DROP: the same track again for the one stroke, and its bounces: echoes of it, each sooner and softer by the same share
+        doc['tracks'].append({**{x: y for x, y in by_name['cell'].items() if x != 'notes'}, 'name': 'cell-drop', 'notes': T['cell-drop']})
+        gap = DROP['rest'] * 60000 / BPM / 4 * (1 - DROP['share']) / (1 - DROP['share'] ** (DROP['bounces'] + 1))
+        doc['buses']['cell-bounce'] = {'pan': by_name['cell']['pan'], 'returns': [{'from': 'cell-drop', 'gain': f"{20 * log10(DROP['share']) * j:.2f}dB", 'time': f"{gap * (1 - DROP['share'] ** j) / (1 - DROP['share']):.1f}ms"} for j in range(1, DROP['bounces'] + 1)]}
+    if ON['part'] and T['ping']:                               # v8 PART: the pings by pair, a track each (the same track three times), so that each cycle's bus hears only its own meetings
+        base = {x: y for x, y in by_name['ping'].items() if x != 'notes'}
+        doc['tracks'] = [t for t in doc['tracks'] if t['name'] != 'ping'] + [{**base, 'name': f'ping-{a}{b}', 'notes': [n for n in T['ping'] if n['pitch'] == PING[(a, b)]]} for a, b in PING]
+        for c in CYCLES:
+            doc['buses'][f'part-{c}'] = {'pan': PART['side'][c], 'gain': PART['gain'], 'fx': [f"hp cutoff={PART['hp'][c]}"],
+                                         'returns': [{'from': f'ping-{a}{b}', 'gain': '0dB', 'time': f'{c * 60000 / BPM / 4:.2f}ms'} for a, b in PING if c in (a, b)]}
     if ON['knock'] and T['knock']:
         doc['patches'] = {**doc['patches'], 'wd-knock': WD_KNOCK}
         doc['tracks'].append({'name': 'knock', 'patch': 'wd-knock', 'gain': KNOCK['gain'], 'notes': T['knock'], 'fx': [hold(KNOCK['hold'])]})
@@ -527,7 +563,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v6, the last six v5, the last nine v4, the last twelve v3, the last eighteen v2, all twenty-four v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v7, the last five v6, the last eight v5, the last eleven v4, the last fourteen v3, the last twenty v2, all twenty-six v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -541,6 +577,8 @@ if __name__ == '__main__':
                        ([(GOES['change'] - SPENT, 'the change spends what is left')] if ON['spent'] else []) +
                        ([(GOES['meetings'], 'the last chord, held')] if ON['held'] else []) +
                        ([(GOES['cell'] - LEAVE, 'the cell is taken back into the hand')] if ON['taken'] else []) +
+                       ([(GOES['cell'] - 1, "the hand lets go of the stick: the cell's last stroke bounces")] if ON['drop'] else []) +
+                       ([(COMES['meetings'], 'each meeting is heard to part: the two cycles that met click once more, 3, 5 or 7 sixteenths on')] if ON['part'] else []) +
                        ([(GOES['ghost'] - REAL['bars'], 'the bass is given its fundamental')] if ON['real'] else []) +
                        ([(GOES['pattern'] - LEAVE, 'the pattern slips a sixteenth a bar')] if ON['slip'] else []) +
                        ([(GOES['room'] - SING['bars'], 'the walls come in until they sing')] if ON['sing'] else []) +
