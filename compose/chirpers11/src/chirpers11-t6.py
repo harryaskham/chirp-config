@@ -34,7 +34,7 @@ LAG = {UP: 19.7, DOWN: 23.8}                # ms taken off a coin's time for the
 G = 0.62                                    # what a coin gives back each pass (the loop loses about 4 dB more: bench)
 ALONE = 0                                   # dB the seeds' faders come up where there is no drum. 0: tried at 6, the finished sections came up 1.9 dB and the rest went to the master's limiter
 PAIRS = {'a': (3, 5), 'b': (3, 4), 'c': (5, 7)}
-PAN = {'a': 0.6, 'b': 0.3, 'c': 0.9, 'd': 0.6, 'e': 0.3, 'h': 0.6, 'q': 0.6, 'n': 0.6}
+PAN = {'a': 0.6, 'b': 0.3, 'c': 0.9, 'd': 0.6, 'e': 0.3, 'h': 0.6, 'q': 0.6, 'n': 0.6, 'r': 0.6, 's': 0.6}
 OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 
 # ---- v2 (26 Nov): THE COINS DO MORE THAN ECHO. Three switches that are on, each `--without-…`, and one that is off,
@@ -58,7 +58,27 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True}
+# ---- v7 (26 Nov): INTEREST. Two more switches, each `--without-…` (with them off it is v6 byte for byte).
+#   GROW   v6's small change before a section could only run out (a purse gives back less than it is given): it
+#          was loudest on its seed, a flurry falling away into the one. Now the roll's purse pays interest: its
+#          loops give back MORE than they are given, so the change grows, pass on pass, for the two beats it
+#          has; and a hand is on the purse (its fader, which its own echoes go through as well) and shuts it on
+#          the one. A roll that builds and is cut off by the drum. Its seed is struck that much softer.
+#   OWED   the peak was not the loudest section, because the bass plays what this bar's purse cannot pay, and
+#          where three purses take the bars in turn two of them have few debts. Where purses share a section
+#          (both purses, three purses) the bass now also plays what the OTHER purses there cannot pay, a third
+#          higher (B flat). At the peak that is the same nine strokes in every bar (1 2 3 5 6 7 9 11 13), and
+#          which of them are low says whose turn it is. There, for the first time, the bass and the hat meet:
+#          what one purse can pay another cannot.
+GROW = {'r': ((3, 5), 2, 2.0), 's': ((3, 5), 4, 1.6)}   # the purses that pay interest: coins, how many of its units make a sixteenth, what each loop gives back each pass
+# Bench, each roll by solo, level by quarter beat from its seed to the one (grow.sh, growread.py; v6's read -26 -31 -35 -35 -36 -38 -39 -41 in thirty-seconds and -25 -30 -31 -35 -37 -40 -42 -47 in sixty-fourths):
+# thirty-seconds giving back 1.5: -32 -36 -41 -35 -34 -35 -32 -32 (level); 2.0: -32 -36 -40 -32 -30 -30 -25 -23 (the stroke, a breath, and then 17 dB in a beat and a quarter). Sixty-fourths 1.15: still running out; 1.4: -31 -34 -30 -31 -31 -29 -27 -30 (level); 1.6: see the round's note.
+# With its seed at -8 dB the thirty-seconds' last quarter beat stood level with the drum (-23) and its highest sample at -2.6 dBFS where the rest of the mix reaches -8: so -14
+GROWN = {'h': 'r', 'q': 's'}                # the roll's purse with GROW
+GROW_DB = {'db': -14, 'alone': -14}         # dB on the roll's seed with the drum and without
+SHUT = 0.06                                 # beats before the one over which the hand shuts the purse
+OWED = 'Bb2'                                # the other purses' debts
 # ---- v6 (26 Nov): SMALL CHANGE FIRST. The ending (v5) pays its last seeds in smaller and smaller coins, and until
 # then nothing in the song had heard a small coin: the ending's idea arrived from nowhere. And every new section
 # but two simply began. Four more switches, each `--without-…` (with them off it is v5 byte for byte).
@@ -189,12 +209,13 @@ PATCHES = {
 def purses():
     """The pairs of coins in use: PAIRS, and with FLIP the purse inside out."""
     return {**PAIRS, **(FLIPPED if ON['flip'] else {}), **(INSIDE if ON['inside'] else {}),
-            **({k: v[0] for k, v in {**SMALL, **NOTE}.items()} if ON['smaller'] else {k: v[0] for k, v in SMALL.items()} if ON['roll'] else {})}
+            **({k: v[0] for k, v in {**SMALL, **NOTE}.items()} if ON['smaller'] else {k: v[0] for k, v in SMALL.items()} if ON['roll'] else {}),
+            **({k: v[0] for k, v in GROW.items()} if ON['grow'] and ON['roll'] else {})}
 
 
 def unit(k):
     """A purse's unit, ms: a sixteenth, or for the smaller purses a part of one, or a pitch's period."""
-    return S16 / SMALL[k][1] if k in SMALL else 1000 / NOTE[k][1] if k in NOTE else S16
+    return S16 / SMALL[k][1] if k in SMALL else S16 / GROW[k][1] if k in GROW else 1000 / NOTE[k][1] if k in NOTE else S16
 
 
 def frobenius(p, q):
@@ -221,7 +242,15 @@ def rolls():
         if not sec[5] and not ON['lone']:
             continue                                             # no drum in this section: the roll would be alone
         out[(i + 1) * SEC - 1] = (ROLL['new' if nxt[1] != sec[1] else 'same'], nxt[4][0])
-    return out
+    return {b: (GROWN[k], n) for b, (k, n) in out.items()} if ON['grow'] else out
+
+
+def hand():
+    """The hand on a purse that pays interest: shut, open from each roll's seed, and shut again on the one."""
+    pts = [['0b', -60]]
+    for b in sorted(rolls()):
+        pts += [[f"{b * 4 + ROLL['beat'] - 0.05}b", -60], [f"{b * 4 + ROLL['beat']}b", 0], [f'{(b + 1) * 4 - SHUT}b', 0], [f'{(b + 1) * 4}b', -60]]
+    return {'points': pts + [[f'{BARS * 4}b', -60]], 'curve': 0}
 
 
 def build():
@@ -251,7 +280,8 @@ def build():
             waits = ON['wait'] and i + 1 < len(SECTIONS) and SECTIONS[i + 1][0] == 'home' and bar >= (i + 1) * SEC - WAIT
             waits = waits or (ON['leave'] and i + 1 < len(SECTIONS) and drum and SECTIONS[i + 1][5] and SECTIONS[i + 1][3] and not at16 and bar >= (i + 1) * SEC - WAIT)
             if ON['roll'] and bar in rolls():                    # v6: small change before the next section
-                T[f'seed-{rolls()[bar][0]}'].append({'at': bar * 4 + ROLL['beat'], 'len': 0.25, 'pitch': rolls()[bar][1], 'vel': 0.9, **({'gain': f"{ROLL['db' if drum else 'alone']}dB"} if ROLL['db' if drum else 'alone'] else {})})
+                level = (GROW_DB if ON['grow'] else ROLL)['db' if drum else 'alone']
+                T[f'seed-{rolls()[bar][0]}'].append({'at': bar * 4 + ROLL['beat'], 'len': 0.25, 'pitch': rolls()[bar][1], 'vel': 0.9, **({'gain': f"{level}dB"} if level else {})})
             if waits:                                            # the bars before home, or before the turn: only the purse
                 continue
             if drum:
@@ -266,6 +296,12 @@ def build():
                 for s in debts(*pq):
                     if (at16 + s) % 4:                           # never with the drum
                         T['bass'].append({'at': bar * 4 + (at16 + s) % BAR / 4, 'len': 0.25, 'pitch': 'F2' if s == frobenius(*pq) else 'G2', 'vel': .85})
+                others = sorted({s for k in set(pairs) for s in debts(*purses()[k])} - set(debts(*pq))) if ON['owed'] else []   # v7: what the section's other purses cannot pay
+                for s in others:
+                    if (at16 + s) % 4:
+                        T['bass'].append({'at': bar * 4 + (at16 + s) % BAR / 4, 'len': 0.25, 'pitch': OWED, 'vel': .85})
+                if others:
+                    T['bass'][-BAR:] = sorted(T['bass'][-BAR:], key=lambda x: x['at'])
             elif bass:
                 for off, ln, p in ((2, 1.5, 'G2'), (7, 1, 'G2'), (10, 1.5, 'F2' if bar % 4 == 3 else 'G2')):
                     T['bass'].append({'at': bar * 4 + off / 4, 'len': ln / 4, 'pitch': p, 'vel': .85})
@@ -295,7 +331,7 @@ def song():
     buses = {}
     for k, (p, q) in purses().items():
         gl = G_FILL if ON['fill'] and k == 'c' else G_LONG
-        u, g = unit(k), SMALL[k][2] if k in SMALL else G
+        u, g = unit(k), SMALL[k][2] if k in SMALL else GROW[k][2] if k in GROW else G
         for coin, other, semi, side in ((p, q, UP, -1), (q, p, DOWN, 1)):
             me, you = f'{k}{coin}', f'{k}{other}'
             if k in NOTE:                                        # coins too small for the pitch effect, and too small to need it: the purse is the pitch
@@ -308,6 +344,8 @@ def song():
                          'fx': [{'type': 'pitch', 'semitones': semi, 'mix': 1}, f'lp cutoff={TILL[0]}+lfo.till*{TILL[1]}' if ON['till'] else 'lp cutoff=10000', 'hp cutoff=150'],
                          **({'lfo': {'till': f'sine rate={1000 / (p * q * u):.4f}hz'}} if ON['till'] else {}),
                          'returns': [{'from': f'seed-{k}', 'gain': '0dB', 'time': t}, {'from': me, 'gain': db(g), 'time': t}, {'from': you, 'gain': db(g), 'time': t}]}
+            if k in GROW:                                        # v7: the hand on the purse (its own echoes go through the fader too)
+                buses[me] = {**buses[me], 'gain': {'value': '0dB', 'mod': [{'src': 'auto.hand', 'amount': 1}]}, 'auto': {'hand': hand()}}
             if ON['long'] and T[f'long-{k}']:                   # the same two loops again, giving back more
                 buses[me + 'L'] = {**buses[me], 'returns': [{'from': f'long-{k}', 'gain': '0dB', 'time': t}, {'from': me + 'L', 'gain': db(gl), 'time': t}, {'from': you + 'L', 'gain': db(gl), 'time': t}]}
     doc = {
@@ -348,7 +386,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last four off is v5, the last five v4, the last eight v3, the last twelve v2, all fifteen v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v6, the last six v5, the last seven v4, the last ten v3, the last fourteen v2, all seventeen v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -368,7 +406,9 @@ if __name__ == '__main__':
         if ON['smaller']:
             print(f"    the last section's four seeds are paid from {' '.join(LAST)}: coins of 3 and 5 sixteenths, thirty-seconds, sixty-fourths, and periods of B flat 3 ({unit('n'):.2f} ms)")
         if ON['roll']:
-            print('    small change before a section: ' + ', '.join(f"bar {b + 1} ({'thirty-seconds' if k == ROLL['same'] else 'sixty-fourths'}, {n})" for b, (k, n) in rolls().items()) + ('; the drum gives up beat four there' if ON['gap'] else ''))
+            print('    small change before a section: ' + ', '.join(f"bar {b + 1} ({'thirty-seconds' if k in (ROLL['same'], GROWN[ROLL['same']]) else 'sixty-fourths'}, {n})" for b, (k, n) in rolls().items()) + ('; the drum gives up beat four there' if ON['gap'] else '') + ('; the roll grows and is shut on the one' if ON['grow'] else ''))
+        if ON['owed']:
+            print(f'    where purses share a section the bass also plays what the others cannot pay, on {OWED}: ' + '; '.join(f"{name}: " + ', '.join(f"{k} {' '.join(str(s) for s in sorted(set(debts(*purses()[k])) | {s for j in pairs for s in debts(*purses()[j])}) if s % 4)}" for k in pairs) for name, pairs, *_ in SECTIONS if len(pairs) > 1))
         T = build()
         print(f'{BARS} bars, {BARS * sec:.1f} s; written notes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items() if v or not k.startswith('long-')))
     else:
