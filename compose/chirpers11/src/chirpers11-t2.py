@@ -67,6 +67,26 @@ v3 (26 Nov): THE SPRING. The two halves were joined by a stop. Eight switches (`
   SWING    the door swings. It stepped open when the three met; now it opens all the way through each stretch,
            to the next step's place, so the tune moves off steadily and the page turn brings it back at once.
 
+v4 (26 Nov): THE CLICKS GO THROUGH THE DOOR. In three rounds the door never moved the song more than 0.7 dB:
+it was a room getting louder behind clicks that stayed where they were. Five switches (`--without-away`,
+`-home`, `-slow`, `-push`, `-low`; all five off is v3 byte for byte):
+  AWAY   the clicks walk off. As the door opens their own sound falls (AWAY dB by the last step) while what the
+         far room gives back of them stays as it was: they have their own far room (`gone`), whose fader makes up
+         exactly what their faders lose. The same strokes are further off each time the three meet, furthest in
+         the break before the page turns, and the page turn puts them back in front of you at once. One size
+         up in the second half: a step further a page. While the clock runs down they stand in front (they come
+         back on the chord that begins it), so that the slowing is heard at full size.
+  HOME   and they come home. Over the last stretch of the song, as the small cycles are wound back up, the clicks
+         walk back from the far room to where they began, and the pings swell with them. The big cycles' fillings
+         no longer fade as the small strokes come in: they stay whole to the half-way point, where the eighths
+         have taken their place (v3's wind-up was 2 to 4 dB thinner above 5 kHz than what it replaced).
+  SLOW   the clock runs down over two stretches, not one. In the first the four is still playing, so the clicks
+         are heard to go from sixteenths to eighths AGAINST the drum; then the four stops and they go to beats
+         alone. Twenty-five seconds in place of twelve.
+  PUSH   on the last page of each half the off-beat hat is a sixteenth late: on the sixteenth the bass drum was
+         cut short to leave empty, pushing into every beat.
+  LOW    the bass 2 dB up (114 Hz stood 9.3 dB under the album's envelope).
+
 Form as arithmetic: everything below is computed from CYCLES, BAR and BEAT. Nothing is typed as a bar number.
 """
 import argparse
@@ -91,7 +111,11 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
-      'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True}
+      'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
+      'away': True, 'home': True, 'slow': True, 'push': True, 'low': True}
+AWAY = 9                                # v4: dB the clicks' own sound has fallen when the door is wide open (their far room makes it up)
+SWELL = 3                               # v4 HOME: dB the pings have risen by the end of the last stretch
+LOW_DB = 2                              # v4 LOW: on the bass's fader
 FLOOR = -24                             # dB a stroke has fallen to when it goes (RUNDOWN), or comes in at (WINDUP)
 THROUGH = '-6dB'                        # the tune's send to the far room
 THROUGH_DRY = -1.5                      # dB on the pings' own fader with it (547 Hz was 7.8 dB over the envelope already)
@@ -136,9 +160,10 @@ def order(c, s):
 def rundown(c, s):
     """dB on the stroke of cycle c at sixteenth s in the last stretch of the first half (None: not played). The
     strokes of order 0 fall to FLOOR over the first half of the stretch and go; those of order 1 over the second."""
-    if not ON['rundown'] or not HALF - SUPER <= s < HALF or order(c, s) == 2:
+    w = SUPER * (2 if ON['slow'] else 1)                     # v4 SLOW: over two stretches, the first with the four still in
+    if not ON['rundown'] or not HALF - w <= s < HALF or order(c, s) == 2:
         return 0
-    x = (s - (HALF - SUPER)) / SUPER * 2 - (order(c, s) == 1)
+    x = (s - (HALF - w)) / w * 2 - (order(c, s) == 1)
     return None if x >= 1 else round(FLOOR * max(x, 0), 1)
 
 
@@ -176,6 +201,36 @@ def door():
     for s, n, k in stretches():
         pts += [[beats(s), DOOR[k]], [beats(s + n - 1), DOOR[min(k + 1, len(DOOR) - 1) if ON['swing'] else k]]]
     return {'points': pts + [[beats(TOTAL), DOOR[-1]], [beats(TOTAL + BAR), DOOR[-1]]], 'curve': 0}
+
+def away():
+    """v4: dB on the clicks' own sound. 0 when a page turns and -AWAY when the door is wide open, moving as the door
+    moves. With HOME it comes back to 0 over the last stretch of the song."""
+    top, pts = len(DOOR) - 1, []
+    w = SUPER * (2 if ON['slow'] else 1) * ON['rundown']     # while the clock runs down they stand in front
+    for s, n, k in stretches():
+        here = HALF - w <= s < HALF
+        pts += [[beats(s), 0 if here else -AWAY * k / top], [beats(s + n - 1), 0 if here else -AWAY * (min(k + 1, top) if ON['swing'] else k) / top]]
+    end = -AWAY
+    if ON['home']:
+        pts, end = [q for q in pts if float(q[0][:-1]) * BEAT < TOTAL - SUPER] + [[beats(TOTAL - SUPER), -AWAY]], 0
+    return {'points': pts + [[beats(TOTAL), end], [beats(TOTAL + BAR), end]], 'curve': 0}
+
+
+def at(lane, b):
+    """A lane's value at beat b (straight lines between its points)."""
+    pts = [(float(q[0][:-1]), q[1]) for q in lane['points']]
+    for (b0, v0), (b1, v1) in zip(pts, pts[1:]):
+        if b0 <= b <= b1:
+            return v0 if b1 == b0 else v0 + (v1 - v0) * (b - b0) / (b1 - b0)
+    return pts[-1][1] if b > pts[-1][0] else pts[0][1]
+
+
+def gone():
+    """v4: the fader of the clicks' own far room: the door's, plus what the clicks' faders have lost, at every point of either lane."""
+    d, a = door(), away()
+    bs = sorted({float(q[0][:-1]) for q in d['points'] + a['points']})
+    return {'points': [[('%.4f' % b).rstrip('0').rstrip('.') + 'b', round(at(d, b) - at(a, b), 3)] for b in bs], 'curve': 0}
+
 
 PATCHES = {
     'lc-kick': {'about': "Least Common: the four. The drum machine's bass drum resting on G, short enough to leave the sixteenth before the next beat empty.",
@@ -256,7 +311,7 @@ def build():
         if s % BEAT == 0 and n != last and not broken(s):
             add('kick', s, 2, 'G1', .95 if s % BAR == 0 else .88)
     marks += [('first half: three, five and seven sixteenths', 0)] + [(f'page {p + 1} (the three meet on beat {p * PAGE // BEAT % 4 + 1})', p * PAGE) for p in range(1, pages)]
-    marks += [('the four stops', last * SUPER)]
+    marks += [('the clock begins to run down, the four still playing', (last - 1) * SUPER)] * (ON['slow'] and ON['rundown']) + [('the four stops', last * SUPER)]
     # ---- the second half: one size up. Cycles of 3, 5 and 7 beats, each filled with the next one's number.
     fill = {c: euclid(CYCLES[(i + 1) % 3], c * BEAT) for i, c in enumerate(CYCLES)}
     assert [len(fill[c]) for c in CYCLES] == [5, 7, 3]
@@ -274,7 +329,7 @@ def build():
             filled = r % (c * BEAT) in fill[c]
             if ON['windup'] and s >= TOTAL - SUPER and r % (c * BEAT):       # v3: the fillings go, the small cycles come back
                 going = (s - (TOTAL - SUPER)) / SUPER * 2
-                both = [g for g in (round(FLOOR * going, 1) if filled and going < 1 else None, windup(c, s)) if g is not None]
+                both = [g for g in ((0.0 if ON['home'] else round(FLOOR * going, 1)) if filled and going < 1 else None, windup(c, s)) if g is not None]
                 if both:
                     add(v, s, 1, mem[v], touch(s), **({'gain': f'{max(both)}dB'} if max(both) else {}))
             elif filled:
@@ -294,7 +349,8 @@ def build():
     for s in range(HALF + 2 * PAGE, TOTAL):
         small = tuple(c for c in CYCLES if (s - HALF) % c == 0)
         if len(small) == 2:
-            add('ping', s, 4, PING[small], .62)
+            up = round(SWELL * (s - (TOTAL - SUPER)) / SUPER, 1) if ON['home'] and s >= TOTAL - SUPER else 0
+            add('ping', s, 4, PING[small], .62, **({'gain': f'{up}dB'} if up else {}))
     # home: everything meets on the one, and that is the end
     add('chord', TOTAL, 8, ','.join(CHORD), .9)
     add('kick', TOTAL, 2, 'G1', .95)
@@ -320,9 +376,10 @@ def build():
                 if not broken(s0 + off):
                     add('bass', s0 + off, ln, roots[s0 + off] if ON['roots'] else p, .85)
         if page in (2, 3, 6, 7):
+            late = 1 if ON['push'] and page % pages == pages - 1 else 0       # v4: the last page of a half, a sixteenth late
             for off in (2, 6, 10, 14):
-                if not broken(s0 + off):
-                    add('hat', s0 + off, 1, 'A#4', .7)
+                if not broken(s0 + off + late):
+                    add('hat', s0 + off + late, 1, 'A#4', .7)
         if page in (3, 5, 6, 7):
             for off in (4, 12):
                 if not broken(s0 + off):
@@ -362,6 +419,8 @@ def song():
     if ON['roots']:
         doc['patches'] = {**doc['patches'], 'lc-root': LC_ROOT}
         by_name['bass'].update(patch='lc-root', gain=f"{float(by_name['bass']['gain'][:-2]) + ROOTS_DB:g}dB")
+    if ON['low']:
+        by_name['bass']['gain'] = f"{float(by_name['bass']['gain'][:-2]) + LOW_DB:g}dB"
     if ON['memory']:
         doc['patches'] = {**doc['patches'], 'lc-tock': TOCK}
         by_name['five'].update(patch='lc-tock', gain=f"{float(by_name['five']['gain'][:-2]) + TOCK_DB:g}dB")
@@ -380,10 +439,16 @@ def song():
             t['gain'] = {'value': f"{float(t['gain'][:-2]) + LIFT:g}dB", 'mod': [{'src': 'auto.near', 'amount': 1}]}
             t.setdefault('auto', {})['near'] = walk(-NEAR)
         if ON['door']:
-            t['sends'] = {**t['sends'], 'far': FAR}
+            t['sends'] = {**t['sends'], 'gone' if ON['away'] else 'far': FAR}
+        if ON['door'] and ON['away']:
+            g = t['gain'] if isinstance(t['gain'], dict) else {'value': t['gain'], 'mod': []}
+            t['gain'] = {'value': g['value'], 'mod': g['mod'] + [{'src': 'auto.away', 'amount': 1}]}
+            t.setdefault('auto', {})['away'] = away()
     if ON['door']:
         doc['buses'] = {**doc['buses'], 'far': {'fx': ['reverb kind=hall decay=2.6s mix=1 predelay=30ms', f"hp cutoff={WIDE_HP if ON['wide'] else 500}", 'lp cutoff=8000'],
                                                 'gain': {'value': f"{WIDE_DB if ON['wide'] else 0}dB", 'mod': [{'src': 'auto.door', 'amount': 1}]}, 'auto': {'door': door()}}}
+        if ON['away']:                                        # the clicks' own far room: the same room, its fader making up what theirs lose
+            doc['buses']['gone'] = {**doc['buses']['far'], 'auto': {'door': gone()}}
     return doc, marks
 
 
@@ -403,7 +468,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last eight off is v2, all fourteen v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last five off is v3, the last thirteen v2, all nineteen v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
