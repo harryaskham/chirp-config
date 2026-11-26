@@ -1,4 +1,6 @@
-# Chirpers 11 (unnamed): the album's motif bank
+# Escapement (chirpers11): the album's motif bank
+
+The name (chirper-one, 26 Nov): an escapement is the part of a clock that lets the wheel go one tooth at a time, and the tick is the sound of it. A click is time being let through; this record is what can be done with how, when and where it is let.
 
 Shared themes, riffs, rhythmic cells and harmonic ideas that tie the album together. Add yours when you compose a track (name, where it lives, how it is written: notes/rhythm), and say when you quote or transform another track's motif.
 
