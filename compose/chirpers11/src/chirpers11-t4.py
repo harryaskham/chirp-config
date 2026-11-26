@@ -32,6 +32,17 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v7 (26 Nov), three more switches (`--without-own`, `-close`, `-soft`; with them off it is v6 byte for byte):
+  OWN    the strings nobody plays are tuned to the five notes the STRING plays (F2, G2, B flat 2, C3, D3), and
+         they could not hear it: they heard only the wood and the air, two and three octaves over them, and so
+         sang the wood's notes and nothing under 500 Hz. Now they hear the string as well. When it is let go
+         beside them each one sounds its own note, the note that was just plucked, and holds it after the pluck
+         has gone: the string has a sustain pedal.
+  CLOSE  the wood's closing (bars 153 to 168) was the one stopping with no mark. The strings are let go again for
+         it. Nobody stops them: the wood closes, they hear less and less of it, and they go quiet by themselves.
+  SOFT   1.4 kHz has stood 7 dB over the album's envelope since v3: the metal let go is 2 dB lower and its
+         remembered hall 3 dB lower.
+
 v6 (26 Nov), one more switch that is on (`--without-sympathy`; with it off it is v5 byte for byte) and one that is
 off (`--with-wash`):
   SYMPATHY the strings nobody plays. Beside the seven things lie five open strings, tuned to the five notes two
@@ -161,7 +172,10 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True}
+OWN = {'feeds': ('string',), 'feed': '-29dB'}   # v7: what else the strings hear, and how much of it.
+# Bench (the song with it less the song without, bars 117 and 118): at -36 dB what the string wakes stood 18.1 and 19.8 dB under the mix from 60 to 120 and 120 to 250 Hz (B flat 2 strongest, then G2, F2): there, and nothing. 7 dB more
+SOFT = {'ease': {'metal': -2}, 'kept': {'metal': -3}}   # v7: dB on the metal let go, and on its remembered hall
 SYMPATHY = {'strings': (('F2', 87.307, 0.3), ('G2', 97.999, 0.0), ('Bb2', 116.541, -0.3), ('C3', 130.813, 0.15), ('D3', 146.832, -0.15)),   # v6: each string's note, Hz and side (a return cannot be shorter than 6 ms, so F and G are an octave under the others)
             'feeds': ('wood', 'air'), 'feed': '-30dB', 'back': 0.985, 'lp': 5000, 'let': -24}   # what they hear and how much of it; what each gives back of itself a period; the low-pass in the loop; the dB their hand starts from.
 # Bench (the song with them less the song without): hearing the wood and the air at -20 dB they stood 3.7 and 2.5 dB under the whole mix once the wood was let go beside them (a string that gives back 0.985 answers a held note at its own pitch 36 dB up): 10 dB less
@@ -323,7 +337,7 @@ EASE = {'wood': -5, 'metal': -5, 'skin': -3}
 
 def level(thing, r):
     """dB to add to a stroke at ring r so that the thing's highest sample is the same at every ring."""
-    db = (PLATE['ease'] if thing == 'plate' else NOTE['ease'] if thing == 'weight' and ON['boom'] and ON['note'] and NOTE['ease'] else FLUE['ease'] if thing == 'air' and ON['flue'] else EASE.get(thing, 0)) * r
+    db = (PLATE['ease'] if thing == 'plate' else NOTE['ease'] if thing == 'weight' and ON['boom'] and ON['note'] and NOTE['ease'] else FLUE['ease'] if thing == 'air' and ON['flue'] else EASE.get(thing, 0) + (SOFT['ease'].get(thing, 0) if ON['soft'] else 0)) * r
     if thing in CAL:
         cal = CAL_FLUE if thing == 'air' and ON['flue'] else CAL[thing]
         c = [cal[-1] - v for v in cal]
@@ -412,16 +426,17 @@ def song(T, bars=BARS):
         for k in ROOM_THINGS:
             if T.get(k + '-kept'):
                 dry = by_name[k]
-                doc['tracks'].append({'name': k + '-kept', 'patch': dry['patch'], 'gain': f"{float(dry['gain'][:-2]) + KEPT[k]}dB", 'pan': dry['pan'],
+                doc['tracks'].append({'name': k + '-kept', 'patch': dry['patch'], 'gain': f"{float(dry['gain'][:-2]) + KEPT[k] + (SOFT['kept'].get(k, 0) if ON['soft'] else 0)}dB", 'pan': dry['pan'],
                                       'notes': T[k + '-kept'], 'out': 'hall', **({'fx': dry['fx']} if 'fx' in dry else {})})
     if ON['sympathy'] and bars == BARS:
-        hand = {'points': [['0b', -60], [f'{TOP[6] * 4 - 1}b', -60], [f'{TOP[6] * 4}b', SYMPATHY['let']], [f'{TOP[7] * 4}b', 0], [f'{TOP[8] * 4}b', 0], [f'{(TOP[8] + QUICK) * 4}b', -60],
-                           [f'{(BARS - LAST) * 4 - 0.5}b', -60], [f'{(BARS - LAST) * 4}b', 0], [f'{BARS * 4 + 16}b', 0]], 'curve': 0}
+        hand = {'points': [['0b', -60], [f'{TOP[6] * 4 - 1}b', -60], [f'{TOP[6] * 4}b', SYMPATHY['let']], [f'{TOP[7] * 4}b', 0], [f'{TOP[8] * 4}b', 0], [f'{(TOP[8] + QUICK) * 4}b', -60]] +
+                          ([[f'{TOP[11] * 4 - 1}b', -60], [f'{TOP[11] * 4}b', 0], [f'{TOP[12] * 4 - 1}b', 0], [f'{TOP[12] * 4}b', -60]] if ON['close'] else []) +   # v7: let go while the wood closes; shut again for the taps
+                          [[f'{(BARS - LAST) * 4 - 0.5}b', -60], [f'{(BARS - LAST) * 4}b', 0], [f'{BARS * 4 + 16}b', 0]], 'curve': 0}
         for name, hz, side in SYMPATHY['strings']:
             me = 'sym-' + name.lower()
             t = f"{1000 / hz - 225.1 / SYMPATHY['lp']:.3f}ms"         # a period, less the low-pass's own delay (0.2251 / its cutoff), so the loop is in tune
             doc['buses'][me] = {'pan': side, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.hand', 'amount': 1}]}, 'auto': {'hand': hand}, 'fx': [f"lp cutoff={SYMPATHY['lp']}"],
-                                'returns': [{'from': k, 'gain': SYMPATHY['feed'], 'time': t} for k in SYMPATHY['feeds']] + [{'from': me, 'gain': f"{20 * log10(SYMPATHY['back']):.2f}dB", 'time': t}]}
+                                'returns': [{'from': k, 'gain': SYMPATHY['feed'], 'time': t} for k in SYMPATHY['feeds']] + ([{'from': k, 'gain': OWN['feed'], 'time': t} for k in OWN['feeds']] if ON['own'] else []) + [{'from': me, 'gain': f"{20 * log10(SYMPATHY['back']):.2f}dB", 'time': t}]}
     return doc
 
 
@@ -455,7 +470,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the sixteen that are on: all off is v1; the last eleven off is v2; the last seven off is v3; the last four off is v4; the last one off is v5)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the nineteen that are on: all off is v1; the last fourteen off is v2; the last ten off is v3; the last seven off is v4; the last four off is v5; the last three off is v6)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -466,7 +481,7 @@ if __name__ == '__main__':
             print(f'{i + 1:2d}  bars {b + 1:3d}-{e:3d}  {int(b * sec) // 60}:{b * sec % 60:05.2f}  {name:38s} ' +
                   ' '.join(f'{k} {ring_at(k, b):.2f}>{ring_at(k, e - 1):.2f}' for k in list(SHAPE) + (['plate'] if ON['plate'] else []) if e > enters(k) and not any(x <= b < y for x, y in [OUT_OF.get(k, (0, 0))])))
         if ON['sympathy']:
-            print(f"    the strings nobody plays ({' '.join(n for n, _, _ in SYMPATHY['strings'])}): let go across bars {TOP[6] + 1}-{TOP[7]}, open to bar {TOP[8]}, stopped by bar {TOP[8] + QUICK}, let go in bar {BARS}")
+            print(f"    the strings nobody plays ({' '.join(n for n, _, _ in SYMPATHY['strings'])}): let go across bars {TOP[6] + 1}-{TOP[7]}, open to bar {TOP[8]}, stopped by bar {TOP[8] + QUICK}, let go in bar {BARS}" + (f"; let go again while the wood closes, bars {TOP[11] + 1}-{TOP[12]}" if ON['close'] else '') + ('; they hear the string as well as the wood and the air' if ON['own'] else ''))
         print(f'{BARS} bars, {BARS * sec:.1f} s; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in build().items()))
     else:
         a.out.write_text(dump(bench() if a.bench else song(build())))
