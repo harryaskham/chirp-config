@@ -77,6 +77,19 @@ the F above, and hears the answer go UP. Then "B, A, G" (three bells falling), a
 note for note the same two strokes: now it goes DOWN. Four times in the third row of "turned around" (the
 bells on the click's own strokes, the drum under them), and again in the last row of "round the click": while
 the drum shows that one click is every part of the beat, the bells show that one answer is both directions.
+
+v7 (26 Nov): THE STAIRS (C11T5_STAIRS=0 takes it out: v6). A seventh thing, and the plainest of the endless ones:
+stairs that go up and come back to where they began. The bells with no octave again, four of them a minor third
+apart: B, D, F, A flat. From any one to the next the shorter way is UP three semitones (the other way is down
+nine), so every step is heard to rise; and the fourth step, from A flat, is to B: the bell the stairs began
+on, the same samples, and it too is heard as a step up. Four steps and the stairs are back, and have only ever
+climbed (Shepard's scale; Penrose's staircase, with four flights). They are the first two rows of "never
+arrives", before the hat's ramp begins: the song shows the steps first and then the slope. In the first row a
+bell on every one of the click's strokes, so each bar is the four flights once; in the second a bell every
+eighth, twice round a bar: the stairs go twice as fast and get no higher, as the hat goes twice as fast and
+gets no faster. The four bells are the leading-note chord of the song's key (G sharp, B, D, F over the bass's
+A), and the one note the stairs never tread on is A: they step over home every time round. And two of the four
+are the answer of v6, B and F: on the stairs F is two flights above B, and B is two flights above F.
 """
 import json
 import math
@@ -110,6 +123,11 @@ BOTH_MID = 440.0                                      # Hz: where the curve ever
 BOTH_WIDE = 1.1                                       # octaves: how wide it is (the sigma of a bell curve over octaves)
 BOTH_FLOOR = -45                                      # dB: octaves quieter than this under the curve are left out
 BOTH_GAIN = os.environ.get("C11T5_BOTH_GAIN", "-14dB")  # the bells' level
+STAIRS = os.environ.get("C11T5_STAIRS", "1") != "0" and BOTH   # v7: the stairs
+STAIR = ("B", "D", "F", "Ab")                         # four bells, three semitones from each to the next, and from the last to the first
+STAIR_EVERY = (4, 2)                                  # sixteenths from one step to the next, a row of "never arrives" each: a bell a beat, then two
+STAIR_VEL = 0.75                                      # every step as loud as every other: the fifth bell must be the first
+STAIR_GAIN = os.environ.get("C11T5_STAIR_GAIN", "-17dB")   # the stairs' level: their own tracks, on the same bells (at the answer's -14 dB they were 3 dB under everything else, and the spectrum term fell)
 BOTH_IN = tuple(x for x in os.environ.get("C11T5_BOTH_IN", "turned,round").split(",") if x)   # where it is said
 LINE_A = "A4"                                         # the note that never changes
 LINE_B = ("A4", "C5", "E5", "A5", "A5", "E5", "C5", "A4")   # B's note in each bar of a row: with A, then a third, a fifth, an octave from it, and back
@@ -121,7 +139,7 @@ ALL = None
 SECTIONS = [
     ("the wrong one",    2, {"tick": ALL, "bass": (8, 16), **({"line": (ROW, 2 * ROW)} if APART else {})}),
     ("turned around",    3, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": (8, 24), **({"both": (2 * ROW, 3 * ROW)} if BOTH and "turned" in BOTH_IN else {})}),
-    ("never arrives",    5, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": ALL, "ris": ALL, "shep": (16, 40)}),
+    ("never arrives",    5, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": ALL, "ris": ALL, "shep": (16, 40), **({"stair": (0, len(STAIR_EVERY) * ROW)} if STAIRS else {})}),
     ("not there",        3, {"tick": ALL, "bass": ALL, "ris": ALL, "kick": (8, 24), "sub": (8, 16), "clap": (16, 24)}),
 ] + ([("held", 2, {"tick": ALL, "chop": ALL, "fence": (ROW, 2 * ROW)})] if HELD else []) + [
     ("the wrong one again", 1, {"tick": ALL, "bass": ALL, "ris": ALL, "clapx": ALL, **({"line": ALL} if APART else {})}),
@@ -242,6 +260,15 @@ def both_octaves(pc):
     return out
 
 
+def STAIR_STEPS(bar):
+    """The stairs: a bell on the click's first stroke of the row and on every STAIR_EVERY sixteenths after it, round the four."""
+    b0 = next(b for nm, b, n, parts in SECS if "stair" in parts)
+    row, k = divmod(bar - b0, ROW)
+    every = STAIR_EVERY[row]
+    return [(st, STAIR[(q // every) % len(STAIR)], min(every, 3), STAIR_VEL)
+            for st in range(16) for q in [k * 16 + st - OFF[0]] if q >= 0 and q % every == 0]
+
+
 def BOTH_STEPS(bar):
     """Two bars a phrase: three bells said on the click's strokes (climbing in the odd phrases, falling in the even), then the answer."""
     said = BOTH_UP if (bar % ROW) // 2 % 2 == 0 else BOTH_DOWN
@@ -343,12 +370,20 @@ def song():
     else:
         del PATCHES["ht-shep"]
     if BOTH:
-        for pc in sorted(set(BOTH_PAIR + BOTH_UP + BOTH_DOWN)):
+        for pc in sorted(set(BOTH_PAIR + BOTH_UP + BOTH_DOWN)) + ([p for p in STAIR if p not in BOTH_PAIR + BOTH_UP + BOTH_DOWN] if STAIRS else []):
             PATCHES[f"ht-both-{pc}"] = {"about": f"Hearing Things' bell with no octave (chirper-zero, 26 Nov, v6), on {pc}: {pc} in every octave at once under one fixed curve (loudest at {BOTH_MID:g} Hz, {BOTH_WIDE:g} octaves wide), so it has a note-name and no height. One patch a note-name: the curve stays where it is and the octaves move under it. Every octave starts at the same instant of its cycle, so two strokes of one bell are the same samples.",
                                         "play": {"vel_sens": 0.3},
                                         "synth": {"layers": [f"sine phase=0 ratio={r:g} level={lv:.1f}dB" for r, f, lv in both_octaves(pc)], "amp": {"a": "4ms", "d": "420ms", "s": 0, "r": "90ms", "curve": 3}}}
+            if pc not in BOTH_PAIR + BOTH_UP + BOTH_DOWN:
+                continue                                                                                            # a bell only the stairs use: its patch, and no track here
             doc["tracks"].append({"name": f"both-{pc}", "patch": f"ht-both-{pc}", "gain": BOTH_GAIN, "pan": 0.0,      # dry and in the middle: a room gives each octave its own colour, and then the bell has a height
                                   "notes": part("both", lambda bar, pc=pc: [(st, pc + "3", n, v) for st, p, n, v in BOTH_STEPS(bar) if p == pc])})
+        if STAIRS:
+            for pc in STAIR:
+                doc["tracks"].append({"name": f"stair-{pc}", "patch": f"ht-both-{pc}", "gain": STAIR_GAIN, "pan": 0.0,      # dry and in the middle, as the answer's bells are
+                                      "notes": part("stair", lambda bar, pc=pc: [(st, pc + "3", n, v) for st, p, n, v in STAIR_STEPS(bar) if p == pc])})
+            doc["about"] = doc["about"].replace(" Generated by", " From v7 the same bells are stairs, in the first two rows of never arrives: B, D, F, A flat, a minor third from each to the next and from the last to the first, so every step is heard to rise and the fifth bell is the first again (Shepard's scale). Generated by")
+            assert "From v7" in doc["about"]
         doc["about"] = doc["about"].replace(" Generated by", " From v6 a bell with no octave says B C D and is answered B F, then B A G and the same answer: the same two strokes are heard going up the first time and down the second (the tritone paradox, set by what was just heard). Generated by")
     if APART:
         doc["tracks"].append({"name": "line", "patch": "ht-pip", "gain": "-12dB", "pan": -0.15, "sends": {"room": "-14dB"}, "notes": part("line", LINE_STEPS)})
@@ -390,6 +425,12 @@ if __name__ == "__main__":
             print(f"   bars {q * 2}-{q * 2 + 2} of the row: {len(seg):3d} strokes, the loud ones (vel > 0.7) at beats " + " ".join(f"{t:.2f}" for t, v in seg if v > 0.7)[:90])
         if ROUND:
             names = {0: 'the "and"', 1: 'the "e" (DUM-ta)', 2: "the beat", 3: 'the "a" (ta-DUM)'}
+            if STAIRS:
+                b0 = next(b for nm, b, n, parts in SECS if "stair" in parts)
+                for r, every in enumerate(STAIR_EVERY):
+                    bars = [" ".join(f"{st}:{p}" for st, p, n, v in STAIR_STEPS(b0 + r * ROW + k)) for k in (0, 1)]
+                    print(f"the stairs, bars {b0 + r * ROW}-{b0 + (r + 1) * ROW}: a bell every {every} sixteenths ; the row's first bar {bars[0]} ; its second {bars[1]}")
+                print("   every bell under one curve (Hz, dB): " + " ; ".join(f"{pc} " + " ".join(f"{f:.0f}{lv:+.0f}" for r_, f, lv in both_octaves(pc)) for pc in STAIR))
             print("the click is on sixteenth 2 of every beat; with the drum on sixteenth k it is heard as: " + " ; ".join(f"k = {k}: {names[k]}" for k in ROUND_AT + (0,)))
         print(f"{BARS} bars, {TOTAL} beats, {BARS * sec:.1f} s")
     else:
