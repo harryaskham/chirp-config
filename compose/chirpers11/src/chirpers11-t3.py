@@ -163,6 +163,29 @@ how, as said.
 (Benched first: a clap of under a millisecond, which is what an echo this fine wants, came out a different
 size and shape every time: the engine moves its envelopes every 32 samples (0.67 ms). Sixty of them at one
 spacing were only 8 dB clear of noise; sixty 5 ms ticks are 17 dB clear. The ticks overlap, as real echoes do.)
+
+v11 (26 Nov): STANDING ROOM ONLY (C11T3_HOUSE=0 takes it out: v10). The record's name, the other way: the room
+FILLS WITH PEOPLE, and people are the best absorbers a room ever gets. Sabine's law (1898: he measured a hall's
+echo with an organ pipe, a stopwatch and seat cushions): a room's echo lasts T = 0.161 V / A seconds, V its
+volume and A everything in it that swallows sound; every person adds the same amount to A. So a room dies
+(1 + people's share) times as fast when the people are in, and it does not matter where they stand.
+After the standing wave, in the last two rows of "standing room" (bars 137 to 152, 4:19 to 4:49), people come
+in twice: over bars 137 to 140, to half a house (held to bar 144), and over bars 145 to 148 to a full one (held
+to the door). A full house swallows twice what the empty room does. What that does here, to the two things
+the room is made of:
+- THE WALLS. A click comes back off the left wall three sixteenths on, off the right five on, and each echo
+  goes on to the other wall. A bare wall takes 3 dB each time; with half a house 6 dB, with a full one 9 dB:
+  every wall, every time. The echoes' rhythm is the same; the train of them is a third as long.
+- THE AIR (the hall's wash behind them). Its decay goes from 5.5 s to 2.75 s to 1.83 s. It is sent no less:
+  a click's wash begins as loud as it did and dies sooner, so what is left of the clicks before is less.
+Nothing in the engine turns a room's decay while it sounds, so three rooms are built (empty, half, full: the
+walls and the air of each) and the click is in all three at once; a lane on each room's door lets one be heard
+at a time, and two are mixed only while the people are coming in. No track is changed.
+- THE PIPES IN THE WALLS (v6: they sing from bar 137, struck by what reaches each wall). With people in front
+  of a wall less reaches it: each room has its own pair of wall pipes, struck by that room's echoes. The pipe
+  where the click stands is struck by the click itself and is as it was.
+(Made first without that: the walls alone. In the master nothing could be read: where the click's echoes fall
+the pipes sing, and they were as loud as ever. A bench said so before it was published.)
 """
 import json
 import math
@@ -359,6 +382,57 @@ def mode_lane(n, side):
     return [["0b", round(stand_db(n, lo, side), 2)]] + [[f"{lo + i * STEP:g}b", round(stand_db(n, lo + i * STEP, side), 2)] for i in range(k + 1)] + [[f"{TOTAL:g}b", round(stand_db(n, hi, side), 2)]]
 
 
+HOUSE = os.environ.get("C11T3_HOUSE", "1") != "0" and CHIRP                     # v11: standing room only (the house fills: Sabine's law)
+HOUSE_IN = "standing room"
+HOUSE_STEPS = ((24, 28, 0.5), (32, 36, 1.0))           # (from bar, to bar of the section, the share of a full house there is by then): people come in twice
+HOUSE_FULL = float(os.environ.get("C11T3_HOUSE_FULL", "2"))   # what a full house swallows, in what the empty room swallows: the room then dies 1 + HOUSE_FULL times as fast
+AIR_DECAY = 5.5                                        # s: the hall's decay, empty (the air bus's own)
+
+
+def house_stages():
+    """(share of a full house, the beat by which it is in, the beat from which the next people come) of every room that is built: the empty one first. [] with no house."""
+    sec = next((x for x in SECS if x[0] == HOUSE_IN), None) if HOUSE else None
+    if sec is None or sec[4] is None:
+        return []
+    out = [(0.0, 0.0, (sec[1] + HOUSE_STEPS[0][0]) * BEATS)]
+    for i, (b0, b1, n) in enumerate(HOUSE_STEPS):
+        out.append((n, (sec[1] + b1) * BEATS, (sec[1] + HOUSE_STEPS[i + 1][0]) * BEATS if i + 1 < len(HOUSE_STEPS) else BARS * BEATS))
+    return out
+
+
+def house_share(i, t):
+    """How much of what is heard at beat t is room i's (0 to 1): all of it between its people's coming and the next ones', a mix of two rooms while they come in."""
+    st = house_stages()
+    n, t_in, t_out = st[i]
+    if t_in <= t <= t_out:
+        return 1.0
+    if i > 0 and st[i - 1][2] < t < t_in:
+        return (t - st[i - 1][2]) / (t_in - st[i - 1][2])
+    if i + 1 < len(st) and t_out < t < st[i + 1][1]:
+        return 1 - (t - t_out) / (st[i + 1][1] - t_out)
+    return 0.0
+
+
+def lane_at(points, t):
+    """A lane's value at beat t, straight between its points."""
+    xs = [(float(p[0][:-1]), p[1]) for p in points]
+    for (t0, v0), (t1, v1) in zip(xs, xs[1:]):
+        if t0 <= t <= t1:
+            return v0 if t1 == t0 else v0 + (v1 - v0) * (t - t0) / (t1 - t0)
+    return xs[-1][1]
+
+
+def house_lane(points, i, trim=0.0):
+    """A door's or the air's lane (dB) as room i has it: the lane itself while that room is the only one heard, shut while it is not heard, and while people come in the lane less the room's share (a point every half beat)."""
+    st = house_stages()
+    ts = sorted({float(p[0][:-1]) for p in points} | {st[0][2] + k / 2 for k in range(int((st[-1][1] - st[0][2]) * 2) + 1)} | {x for q in st for x in (q[1], q[2])})
+    vals = []
+    for t in ts:
+        w = house_share(i, t)
+        vals.append([f"{t:g}b", CLOSED if w <= 1e-6 else round(max(CLOSED, lane_at(points, t) + trim + 20 * math.log10(w)), 3)])
+    return [p for k, p in enumerate(vals) if k in (0, len(vals) - 1) or not (vals[k - 1][1] == p[1] == vals[k + 1][1])]
+
+
 def chirp_away(bar):
     """Metres from the hands to the foot of the stairs in that bar, or None where there is no clap."""
     sec = next((x for x in SECS if x[0] == CHIRP_IN), None) if CHIRP else None
@@ -494,6 +568,24 @@ def sing_buses():
                                           "returns": [{"from": src, "gain": gain, "time": f"{ms - PIPE_TRIM:.3f}ms"}, {"from": f"sing-{name}-{other}", "gain": back, "time": f"{ms - PIPE_TRIM:.3f}ms"}],
                                           "out": f"sing-{name}-door"}
         out[f"sing-{name}-door"] = {"pan": round(pan, 3), "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.door", "amount": 1}]}}], "auto": {"door": {"points": lane}}}
+    for i, (n, t_in, t_out) in enumerate(house_stages()):          # v11: with people in the room the pipes in its walls are struck by what is left of the echoes
+        more = -float(WALL[:-2]) * HOUSE_FULL * n
+        if i == 0:
+            for name in ("left", "right"):
+                out[f"sing-{name}-door"] = {**out[f"sing-{name}-door"], "auto": {"door": {"points": house_lane(lane, 0)}}}
+            continue
+        for side, own, other in (("l", a, "r"), ("r", b, "l")):
+            out[f"hear{i}-{side}"] = {"fx": [{"type": "eq", "bands": ABSORB}],
+                                      "returns": [{"from": "click", "gain": f"{float(FIRST['click'][:-2]) - more:g}dB", "time": f"{own}/16"}, {"from": f"hear{i}-{other}", "gain": f"{float(WALL[:-2]) - more:g}dB", "time": f"{own}/16"}],
+                                      "out": "hear-shut"}
+        for name, src, pan in (("left", f"hear{i}-l", -SING_PAN), ("right", f"hear{i}-r", SING_PAN)):
+            ms = 1000 / hz(WALL_NOTE[name])
+            back = f"{-60 * ms / 1000 / SING_RING:.2f}dB"
+            for side, other in (("a", "b"), ("b", "a")):
+                out[f"sing{i}-{name}-{side}"] = {"fx": [{"type": "eq", "bands": SING_DAMP}],
+                                                "returns": [{"from": src, "gain": "0dB", "time": f"{ms - PIPE_TRIM:.3f}ms"}, {"from": f"sing{i}-{name}-{other}", "gain": back, "time": f"{ms - PIPE_TRIM:.3f}ms"}],
+                                                "out": f"sing{i}-{name}-door"}
+            out[f"sing{i}-{name}-door"] = {"pan": round(pan, 3), "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.door", "amount": 1}]}}], "auto": {"door": {"points": house_lane(lane, i)}}}
     return out
 
 
@@ -507,6 +599,20 @@ def buses():
                                      "returns": [{"from": p, "gain": g, "time": f"{own}/16"} for p, g in FIRST.items()] + [{"from": f"{room}-{other}", "gain": WALL, "time": f"{own}/16"}],
                                      "out": f"{room}-door-{side}"}
             out[f"{room}-door-{side}"] = {"pan": pan, "fx": [door], "auto": lane, "out": "walls"}
+    for i, (n, t_in, t_out) in enumerate(house_stages()):          # v11: the same room with people in it
+        room = next(x for x in SECS if x[0] == HOUSE_IN)[4]
+        (a, b), = WALK[room]
+        more = -float(WALL[:-2]) * HOUSE_FULL * n                 # dB more that every wall takes from every echo
+        if i == 0:
+            base = out[f"{room}-door-l"]["auto"]["door"]["points"]
+            for side in "lr":
+                out[f"{room}-door-{side}"] = {**out[f"{room}-door-{side}"], "auto": {"door": {"points": house_lane(base, 0)}}}
+            continue
+        for side, own, other, pan in (("l", a, "r", -0.85), ("r", b, "l", 0.85)):
+            out[f"{room}{i}-{side}"] = {"fx": [{"type": "eq", "bands": ABSORB}],
+                                        "returns": [{"from": p, "gain": f"{float(g[:-2]) - more:g}dB", "time": f"{own}/16"} for p, g in FIRST.items()] + [{"from": f"{room}{i}-{other}", "gain": f"{float(WALL[:-2]) - more:g}dB", "time": f"{own}/16"}],
+                                        "out": f"{room}{i}-door-{side}"}
+            out[f"{room}{i}-door-{side}"] = {"pan": pan, "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.door", "amount": 1}]}}], "auto": {"door": {"points": house_lane(base, i)}}, "out": "walls"}
     out.update(pipe_buses())
     if SING:
         out.update(sing_buses())
@@ -515,6 +621,15 @@ def buses():
                          {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.far", "amount": 1}]}}],
                   "returns": [{"from": "click", "gain": "0dB", "time": "6ms"}, {"from": "tock", "gain": "-2dB", "time": "6ms"}],
                   "auto": {"far": {"points": step_lane(6, CLOSED, glide=4)}}}
+    for i, (n, t_in, t_out) in enumerate(house_stages()):
+        far = step_lane(6, CLOSED, glide=4)
+        if i == 0:
+            out["air"] = {**out["air"], "auto": {"far": {"points": house_lane(far, 0)}}}
+        else:                                                      # the hall's wash dies 1 + FULL n times as fast; it is sent no less (a click's wash begins as loud in a full room: only what is left of it later is less)
+            out[f"air{i}"] = {"fx": [f"reverb kind=hall decay={AIR_DECAY / (1 + HOUSE_FULL * n):.3g}s size=1 mix=1 predelay=40ms", "lp cutoff=6000", "hp cutoff=300",
+                                     {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.far", "amount": 1}]}}],
+                              "returns": [{"from": "click", "gain": "0dB", "time": "6ms"}, {"from": "tock", "gain": "-2dB", "time": "6ms"}],
+                              "auto": {"far": {"points": house_lane(far, i)}}}
     out["dub"] = {"fx": [{"type": "delay", "time": "3/16", "feedback": {"value": 0.5, "mod": [{"src": "auto.breath", "amount": 1}]}, "mix": 1, "tone": 2000}, "hp cutoff=300",
                          "reverb kind=hall decay=3s mix=0.3"], "auto": {"breath": {"points": breath_lane()}}}
     return out
@@ -669,6 +784,9 @@ def song():
             doc["tracks"].append({**doc["tracks"][-1], "name": "pass-tick", "patch": "sr-pass-tick", "gain": PASS_TICK})
         doc["about"] = doc["about"].replace(" Generated by", " From v7 something goes past outside, a sixteenth of sound away at a fifth of the speed of sound, striking straight eighths on one note: its strokes are heard five against four and a major third high as it comes, five against six and a minor third low when it has gone (the Doppler effect, of a rhythm and of a pitch at once). Generated by")
         assert "From v7" in doc["about"]
+    if house_stages():
+        doc["about"] = doc["about"].replace(" Generated by", " From v11 standing room fills with people, twice, in its last two rows, and by Sabine's law every person takes the same bite from every echo: a wall takes 3 dB from an echo in the empty room, 6 with half a house, 9 with a full one, and the hall's wash dies in a half and then a third of the time. Generated by")
+        assert "From v11" in doc["about"]
     if CHIRP and chirp_notes()[0]:
         claps, back = chirp_notes()
         PATCHES["sr-step"] = {"about": "Standing Room's tick (chirper-zero, 26 Nov, v10): 5 ms of a sine, started at the same point of its wave every time: a clap, and each step's echo of it. Its loudness is its velocity (vel_sens 0.5 is linear).",
@@ -767,6 +885,12 @@ if __name__ == "__main__":
             a, b = WALK[LEARN_ROOM][0]
             print("   what strikes them in a bar (step: the pipe, dB at the pipe): " + " ".join(
                 [f"{CLICK_STEP}:D {FIRST['click']}"] + [f"{CLICK_STEP + t}:{'F+C' if sd == 'both' else 'F' if sd == 'left' else 'C'} {float(FIRST['click'][:-2]) + float(WALL[:-2]) * (2 * (t // (a + b)) - (1 if sd == 'both' else 0) ):+.0f}" for t, sd in echoes(a, b) if CLICK_STEP + t < 16]))
+        if house_stages():
+            st = house_stages(); room = next(x for x in SECS if x[0] == HOUSE_IN)[4]; (wa, wb), = WALK[room]; bounce = (wa + wb) / 2 * STEP * 60 / BPM
+            print(f"standing room only: people come in " + " and ".join(f"over bars {int(st[i][2] // BEATS) + 1}-{int(st[i + 1][1] // BEATS)} (to {st[i + 1][0]:g} of a house, held from bar {int(st[i + 1][1] // BEATS) + 1})" for i in range(len(st) - 1)) + f" ; a full house swallows {HOUSE_FULL:g} times what the empty room does")
+            for i, (n, t_in, t_out) in enumerate(st):
+                loss = -float(WALL[:-2]) * (1 + HOUSE_FULL * n)
+                print(f"   {n:g} of a house ({'the room as it was' if i == 0 else 'buses ' + room + str(i) + '-l/-r and air' + str(i)}): a wall takes {loss:g} dB from an echo each time: the echoes die 60 dB in {60 / loss * bounce:.2f} s (a wall every {1000 * bounce:.0f} ms on average) ; the first echo {float(FIRST['click'][:-2]) + float(WALL[:-2]) * HOUSE_FULL * n:g} dB ; the air's decay {AIR_DECAY / (1 + HOUSE_FULL * n):.2f} s")
         if CHIRP and chirp_notes()[0]:
             claps, back = chirp_notes(); b0 = next(x for x in SECS if x[0] == CHIRP_IN)[1]
             nt = lambda f: (lambda m: "C C# D Eb E F F# G Ab A Bb B".split()[int(round(m)) % 12] + str(int(round(m)) // 12 - 1) + f"{100 * (m - round(m)):+.0f}c")(69 + 12 * math.log2(f / 440))
