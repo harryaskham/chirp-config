@@ -9518,7 +9518,7 @@
     {
       "id": "chirpers11-t8",
       "song": "songs/chirpers11-t8.yaml",
-      "reference": "chirpers — Track 8 (untitled)",
+      "reference": "chirpers — Wind Down",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers11-t8 OUT.wav",
@@ -9534,7 +9534,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Escapement",
-        "title": "Track 8 (untitled)",
+        "title": "Wind Down",
         "track": 8,
         "year": 2026
       },
