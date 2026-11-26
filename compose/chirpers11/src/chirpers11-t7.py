@@ -107,6 +107,26 @@ BENCHED AND REFUSED: the picture all the way from the first slip to the end of t
 94.94; the same at 0.85 with the room as it was: 94.38 / 94.34 (v6 that day 95.05 / 94.98). In both the scorer's
 cut at 1:48 (0.182 in v6, 0.002 over its top threshold) slid to 0.167 and the form lost a section on two of
 seven cuts; nothing else fell. C11T7_SHAPE_ROWS=8 is the whole of slips.
+
+v8 (26 Nov): HALF A WAVE OUT OF STEP (C11T7_WAVE=0 takes it out: v7). The song is two clicks out of step by
+sixteenths, and what changes is the RHYTHM. The click itself is five turns of a wave (a saw on G3: 5.1 ms a
+turn). Put B ahead of A by HALF A TURN (2.55 ms) and what changes is the NOTE: every odd harmonic of the one
+meets itself upside down in the other and is gone, the even ones are doubled, and what is left is a click on
+the G an octave above. Put B a WHOLE turn ahead (5.1 ms) and the two waves are in step again though the clicks
+are not: the low G is back, a turn longer. It is the song in small: out of step by half the pattern, the
+rhythm turns inside out; by all of it, home. For the last eight bars of "one click" (17 to 24: after the
+pendulum, with the bass drum, before the first slip) the two clicks stand in ONE place (the middle: a click
+and its copy must reach the same ear to cancel) and B goes ahead by WAVE_STEPS half turns: four bars with A
+(as they were), two bars HALF A TURN ahead (bars 21 and 22: the octave), two bars A WHOLE TURN ahead (23 and
+24: the low G again), and then the first slip begins. Nothing is played but the same click twice. It is heard
+on one speaker: it is the one-speaker half of the pendulum (a lead too small to be a rhythm is a PLACE to
+two ears, and a COLOUR or a NOTE to one). The step is made in the pattern's last sixteenth, which is a hole.
+The clicks are on their own tracks for those bars (`a-mid`, `b-mid`), turned down 1.67 dB so that on one
+speaker they are as loud as they were at their usual places.
+BENCHED (seed 0; v7 that day 95.15): the half turn and the whole turn a bar each, alternating, from bar 18
+(0,1,2,1,0,1,2,1) scored 94.81 / 94.78: the scorer's cut at the bass drum's entry (31 s) fell from 0.152 to
+0.125 and took 1.8 points of variety. The octave for four bars from the drum's entry, then the whole turn for
+four (1,1,1,1,2,2,2,2): 95.10. As published (0,0,0,0,1,1,2,2): 95.13: the drum's entry is as it was.
 """
 import json
 import math
@@ -151,6 +171,11 @@ PEND_ON = os.environ.get("C11T7_PEND", "1") != "0"    # v4: the pendulum
 SHAPE_ON = os.environ.get("C11T7_SHAPE", "1") != "0" and CANON_ON and PEND_ON   # v7: the locks have a shape
 SHAPE_ROWS = int(os.environ.get("C11T7_SHAPE_ROWS", "4"))   # the rows of "slips", from its first, through which A has the left ear and B the right (the locks heard bare)
 SHAPE_APART = float(os.environ.get("C11T7_SHAPE_APART", "0.85"))   # how far apart they stand there (1: an ear each)
+WAVE_ON = os.environ.get("C11T7_WAVE", "1") != "0" and SHAPE_ON                 # v8: half a wave out of step
+WAVE_BARS = (16, 24)           # the bars of "one click" in which B is ahead by half turns of the click's own wave ...
+WAVE_STEPS = tuple(int(x) for x in os.environ.get("C11T7_WAVE_STEPS", "0,0,0,0,1,1,2,2").split(","))   # ... and by how many, a bar each
+WAVE_PAN = float(os.environ.get("C11T7_WAVE_PAN", "0"))   # where A and B stand meanwhile (-WAVE_PAN and +WAVE_PAN): in one place, so that the one can cancel the other in both ears
+WAVE_HZ = 440 * 2 ** ((55 - 69) / 12)                  # the click's note (NOTE, G3): 196.0 Hz, 5.102 ms a turn
 PEND_MS = 0.6                  # ms: how far B is ahead of A (and then behind) at the end of a swing; sound crosses a head in about this
 PEND_BARS = 2                  # bars to swing there and back
 PEND_GROW = 2                  # bars it takes to reach its full swing when it is set going ("up")
@@ -200,13 +225,38 @@ def swing(x, kind):
     return -0.5 ** (x / PEND_HALF) * math.sin(2 * math.pi * x / PEND_BARS)   # "rest": B arrives going backwards, overshoots and dies away
 
 
+def wave_span():
+    """The beats between which the two clicks stand in one place and B is half turns of the click's wave ahead, or None."""
+    sec = SECS[0] if WAVE_ON and SECS[0][4][0] == "pend" else None
+    return ((sec[1] + WAVE_BARS[0]) * BEATS, (sec[1] + WAVE_BARS[1]) * BEATS) if sec else None
+
+
+def wave_ms(t):
+    """How many ms B is ahead of A at time t (sixteenths) because it is half turns ahead; the step is made a sixteenth before the bar line, in the pattern's hole."""
+    sp = wave_span()
+    if sp is None or not sp[0] <= (t + 1) * STEP < sp[1]:
+        return 0.0
+    return WAVE_STEPS[int(((t + 1) * STEP - sp[0]) // BEATS) % len(WAVE_STEPS)] * 500 / WAVE_HZ
+
+
+def wave_gain():
+    """dB a click is turned by when it is moved from PAN to WAVE_PAN, so that on one speaker it is as loud as it was."""
+    return 20 * math.log10((2 - PAN) / (2 - WAVE_PAN))
+
+
+def mid(notes, inside):
+    """The notes of a click inside (or outside) the bars in which the two stand in one place."""
+    sp = wave_span()
+    return [n for n in notes if (sp is not None and sp[0] - 0.05 <= n["at"] < sp[1] - 0.05) == inside]
+
+
 def lead_ms(t):
     """How many ms B is ahead of A at time t (sixteenths) because of the pendulum; 0 where there is none."""
     bar = t / BAR
     for name, b0, n, parts, phase in SECS:
         if b0 <= bar < b0 + n and phase[0] == "pend" and phase[1] <= bar - b0 < phase[2]:
             return PEND_MS * swing(bar - b0 - phase[1], phase[3])
-    return 0.0
+    return wave_ms(t)
 
 
 def phi(t, pend=True):
@@ -447,8 +497,8 @@ def song():
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=30"]}, {"type": "compressor", "threshold": "-18dB", "ratio": 2, "attack": "20ms", "release": "160ms", "makeup": "0dB"}]},
         "tracks": [
             {"name": "kick", "patch": "os-kick", "gain": "-8dB", "pan": 0.0, "notes": part("kick", KICK)},
-            {"name": "a", "patch": "os-click", "gain": "-2dB", "pan": click_pan(-1), "sends": {"room": "-16dB"}, **click_fx(), "auto": click_auto(), "notes": eared(a_notes(), False)},
-            {"name": "b", "patch": "os-click", "gain": "-2dB", "pan": click_pan(1), "sends": {"room": "-16dB"}, **click_fx(), "auto": click_auto(), "notes": eared(b_notes(), False)},
+            {"name": "a", "patch": "os-click", "gain": "-2dB", "pan": click_pan(-1), "sends": {"room": "-16dB"}, **click_fx(), "auto": click_auto(), "notes": mid(eared(a_notes(), False), False)},
+            {"name": "b", "patch": "os-click", "gain": "-2dB", "pan": click_pan(1), "sends": {"room": "-16dB"}, **click_fx(), "auto": click_auto(), "notes": mid(eared(b_notes(), False), False)},
             {"name": "bass", "patch": "os-bass", "gain": "-23dB", "pan": 0.0, "notes": part("bass", BASS_G if ROOT_ON else BASS)},
             {"name": "hat", "patch": "os-hat", "gain": "-1dB", "pan": 0.0, "sends": {"room": "-16dB"}, "notes": part("hat", HAT)},
             {"name": "clap", "patch": "os-clap", "gain": "-5dB", "pan": 0.0, "sends": {"room": "-10dB"}, "notes": part("clap", CLAP)},
@@ -478,6 +528,12 @@ def song():
                                   "sends": {"room": "-16dB"}, "auto": {"open": {"points": open_lane()}}, "notes": eared(notes, True)})
         doc["about"] = doc["about"].replace(" Generated by", " From v7, for the first four rows of the slips, A has the left ear and B the right (0.85 of the way): the strokes they share are one click in the middle, each one's own are at its side, and as B slips the middle click leans, then splits (on one speaker the two clicks are as they were). Generated by")
         assert "From v7" in doc["about"]
+    if wave_span():
+        for nm, side, notes in (("a-mid", -1, a_notes()), ("b-mid", 1, b_notes())):
+            doc["tracks"].append({"name": nm, "patch": "os-click", "gain": f"{-2 + wave_gain():.2f}dB", "pan": round(side * WAVE_PAN, 3),
+                                  "sends": {"room": "-16dB"}, "auto": {"open": {"points": open_lane()}}, "notes": mid(notes, True)})
+        doc["about"] = doc["about"].replace(" Generated by", " From v8, for the last eight bars of one click, the two clicks stand in one place and B goes half a turn of the click's own wave ahead (2.55 ms), then a whole turn, and back: at half a turn the odd harmonics cancel and the click is heard an octave up; at a whole turn it is itself again. Generated by")
+        assert "From v8" in doc["about"]
     if CANON_ON:
         doc["tracks"].append({"name": "tune2", "patch": "os-tune", "gain": CANON_GAIN, "pan": PAN, "sends": {"room": "-10dB"}, "notes": canon_notes()})
         doc["about"] = doc["about"].replace(" Generated by", " From v6, in the second row of home, the tune has a B of its own: a second pip an octave lower plays the same five notes and slips a sixteenth ahead of the tune every two bars, so the tune is heard in canon with itself at four distances (Piano Phase's way, in the record's chord). Generated by")
@@ -515,6 +571,10 @@ if __name__ == "__main__":
             print(f"{name:10s} bars {b0:3d}-{b0 + n:3d}  {int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int((b0 + n) * sec) // 60}:{(b0 + n) * sec % 60:04.1f}  phase {phase}  " + ", ".join(p if w is None else p + " " + "+".join(f"{lo}-{hi}" for lo, hi in w) for p, w in parts.items()))
         for k in range(LOOP + 1):
             print(f"   B {k} ahead:  {lock(k)}" + (f"   the tune: {' '.join(TUNE[s] if s in doubles(k) else '.' for s in range(LOOP))}" if TUNE_ON else ""))
+        if wave_span():
+            lo, hi = wave_span()
+            print(f"half a wave out of step, bars {lo // BEATS + 1:g}-{hi // BEATS:g} ({lo * 60 / BPM:.1f}-{hi * 60 / BPM:.1f} s): A and B at {-WAVE_PAN:+.2f} and {WAVE_PAN:+.2f}, both turned {wave_gain():+.2f} dB ; the click's wave is {1000 / WAVE_HZ:.3f} ms a turn ({WAVE_HZ:.1f} Hz) ; B's lead by bar, ms: "
+                  + " ".join(f"{wave_ms((lo / STEP) + k * BAR + 3):.3f}" for k in range(int((hi - lo) // BEATS))) + " ; heard: " + " ".join(("low", "HIGH")[w % 2] for w in WAVE_STEPS[:int((hi - lo) // BEATS)]))
         if shape_span():
             lo, hi = shape_span()
             print(f"the locks' shape, bars {lo // BEATS:g}-{hi // BEATS:g}: A at {-SHAPE_APART:+.2f}, B at {SHAPE_APART:+.2f}, both turned up {shape_gain():.2f} dB ; B k ahead: sixteenths in the middle / on the left / on the right: " + " ; ".join(
