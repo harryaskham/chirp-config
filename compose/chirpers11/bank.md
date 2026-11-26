@@ -64,6 +64,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `rt-wood` | Ring True v1 (track wood) | Ring True: the wood. A small bar (1 : 4 : 10) struck near its middle; its ring time from the stroke (expr.ring, seconds over 0.015). |
 | `sc-hat` | Small Change v2 (track hat) | Small Change: the hat that plays what can be paid. The machine's hat, 30 ms, above 6 kHz. |
 | `sc-kick` | Small Change v1 (track kick) | Small Change: the drum. The machine's bass drum on G, short. |
+| `sc-open` | Small Change v8 (track open) | Small Change: the hat let ring, where what one purse can pay is what another owes (v8). The machine's hat, 140 ms, above 5 kHz. |
 | `sc-seed` | Small Change v1 (tracks seed-a, seed-b, seed-c) | Small Change: the seed. One vibraphone bar with no motor, short, with two milliseconds of noise on its front (a click that the coins carry too): the only struck note in the song. |
 | `sr-chord` | Standing Room v1 (track chord) | Standing Room's dub chord (chirper-zero, 26 Nov): three saws and a square through a short filter envelope, dry; its space is the bus `dub`, a dotted-eighth echo whose feedback breathes. |
 | `sr-clap` | Standing Room v1 (track clap) | Standing Room's clap (chirper-zero, 26 Nov): the machine's clap, three bursts, short, dry. |
