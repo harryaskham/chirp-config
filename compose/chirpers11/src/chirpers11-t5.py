@@ -54,6 +54,17 @@ the instant it starts. Nothing is done to the chord. The ear, given a noise loud
 decides the chord went on behind it: it is heard HELD, unbroken, with a noise in front of it (the continuity
 illusion: a fence in front of a landscape). In the last row of "all three" (now four) it is held under everything;
 at "out" the noise is taken away and for eight bars the chord has its holes again: it always had.
+
+v5 (26 Nov): THE LINE COMES APART (C11T5_LINE=0 takes it out: v4). A fifth thing, and it is a rhythm that changes
+when no stroke moves. A small pip plays three strokes and a rest, over and over, a sixteenth apart: A B A . A B A .
+(the first A on the click, so it is the click's figure: a gallop). A is always the same note. B is the same note
+too, at first: one line, galloping. Then, a bar at a time, B is a third above A, a fifth, an octave. Not one stroke
+is a millisecond earlier or later, but the ear will not keep notes that far apart in one line at this speed: the
+gallop COMES APART into two lines that have nothing to do with each other, A alone on every eighth, even as a
+clock, and B alone once a beat, half as fast. Then B comes back down, a fifth, a third, the same note, and
+somewhere on the way (later than where it left: the ear holds on to what it has) there is one line again and it
+gallops. It is heard twice inside what was already there: in the second row of "the wrong one" (with the bass and
+no drum) and all through "the wrong one again". The song is no longer than it was.
 """
 import json
 import math
@@ -78,18 +89,21 @@ HELD_CHORD = ("A3", "C4", "E4", "G4")                 # four plain tones, 220 to
 HELD_ON = tuple(range(0, 16, 2))                      # the sixteenths the chord sounds on; the others are its holes
 HELD_BAND = (170, 560)                                # Hz: the noise that fills the holes covers the chord's notes and little else
 H = {"chop": (2 * ROW, 3 * ROW), "fence": (2 * ROW, 3 * ROW)} if HELD else {}   # in "all three": its last row only, so the noise can be taken away at "out"
+APART = os.environ.get("C11T5_LINE", "1") != "0" and HELD  # v5: the line comes apart
+LINE_A = "A4"                                         # the note that never changes
+LINE_B = ("A4", "C5", "E5", "A5", "A5", "E5", "C5", "A4")   # B's note in each bar of a row: with A, then a third, a fifth, an octave from it, and back
 ROUND = os.environ.get("C11T5_ROUND", "1") != "0"    # v3: the drum goes round the click
 ROUND_AT = (1, 2, 3)                                  # the sixteenth of the beat the drum stands on, a row each ("all three" is 0)
 ROUND_REST = 1                                        # bars at the end of each of those rows with no drum
 ALL = None
 # name, rows, {part: None (the whole section) or (from bar, to bar) of the section}
 SECTIONS = [
-    ("the wrong one",    2, {"tick": ALL, "bass": (8, 16)}),
+    ("the wrong one",    2, {"tick": ALL, "bass": (8, 16), **({"line": (ROW, 2 * ROW)} if APART else {})}),
     ("turned around",    3, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": (8, 24)}),
     ("never arrives",    5, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": ALL, "ris": ALL, "shep": (16, 40)}),
     ("not there",        3, {"tick": ALL, "bass": ALL, "ris": ALL, "kick": (8, 24), "sub": (8, 16), "clap": (16, 24)}),
 ] + ([("held", 2, {"tick": ALL, "chop": ALL, "fence": (ROW, 2 * ROW)})] if HELD else []) + [
-    ("the wrong one again", 1, {"tick": ALL, "bass": ALL, "ris": ALL, "clapx": ALL}),
+    ("the wrong one again", 1, {"tick": ALL, "bass": ALL, "ris": ALL, "clapx": ALL, **({"line": ALL} if APART else {})}),
 ] + ([("round the click", len(ROUND_AT), {"tick": ALL, "bass": ALL,
                                           **{f"k{k}": (i * ROW, (i + 1) * ROW - ROUND_REST) for i, k in enumerate(ROUND_AT)},
                                           **{f"c{k}": (i * ROW + ROW // 2, (i + 1) * ROW - ROUND_REST) for i, k in enumerate(ROUND_AT)}})] if ROUND else []) + [
@@ -191,6 +205,12 @@ LINE = [("A1", "A1", "A1", "C2"), ("A1", "A1", "A1", "A1"), ("A1", "A1", "A1", "
 BASS = lambda bar: [(s, p, 1.5, 0.9 if s in (2, 10) else 0.8) for s, p in zip(OFF, LINE[bar % 4])]
 KICK = lambda bar: [(s, "A1", 1, 0.95 if s == 0 else 0.9) for s in (0, 4, 8, 12)]
 CLAP = lambda bar: [(4, "C4", 1, 0.8), (12, "C4", 1, 0.86)]      # two and four
+def LINE_STEPS(bar):
+    """A on every eighth (louder with the click), B on the sixteenth after each click: A B A . from the click."""
+    b = LINE_B[bar % ROW]
+    return sorted([(st, LINE_A, 1, 0.8 if st in OFF else 0.66) for st in range(0, 16, 2)] + [(st + 1, b, 1, 0.8) for st in OFF])
+
+
 CLAPX = lambda bar: [(6, "C4", 1, 0.8), (14, "C4", 1, 0.86)]     # two and four of the wrong beat
 
 
@@ -227,6 +247,9 @@ PATCHES = {
                 "play": {"vel_sens": 1.0},
                 "synth": {"layers": ["sine", "sine ratio=2.76 level=-10dB", "sine ratio=5.4 level=-18dB"], "pitch": {"value": 0, "mod": [{"src": "auto.rise", "amount": 1}]},
                           "amp": {"a": "0.3ms", "d": "70ms", "s": 0, "r": "20ms", "curve": 3}}},
+    "ht-pip": {"about": "Hearing Things' pip (chirper-zero, 26 Nov, v5): a plain tone with a little of its octave, 90 ms: plain enough that two of them are told apart by pitch and by nothing else.",
+               "play": {"vel_sens": 0.4},
+               "synth": {"layers": ["sine", "sine ratio=2 level=-20dB"], "amp": {"a": "2ms", "d": "85ms", "s": 0, "r": "25ms", "curve": 3}}},
     "ht-chop": {"about": "Hearing Things' chord (chirper-zero, 26 Nov, v4): a plain sine a note, switched on in a millisecond and off in three, so that a sixteenth of it is a sixteenth and its holes are holes.",
                 "play": {"vel_sens": 0.2},
                 "synth": {"layers": ["sine"], "amp": {"a": "1ms", "d": "0s", "s": 1, "r": "3ms"}}},
@@ -274,6 +297,11 @@ def song():
         doc["about"] = doc["about"].replace(" Generated by", " From v2 each layer of the hat has a small tone of its own that climbs an octave a row, so it is faster and higher for ever. Generated by")
     else:
         del PATCHES["ht-shep"]
+    if APART:
+        doc["tracks"].append({"name": "line", "patch": "ht-pip", "gain": "-12dB", "pan": -0.15, "sends": {"room": "-14dB"}, "notes": part("line", LINE_STEPS)})
+        doc["about"] = doc["about"].replace(" Generated by", " From v5 a pip plays three strokes and a rest (A B A .) and B moves away from A a third, a fifth, an octave, and back: no stroke moves, and the one galloping line comes apart into two even ones (stream segregation). Generated by")
+    else:
+        del PATCHES["ht-pip"]
     if HELD:
         doc["tracks"] += [{"name": "chop", "patch": "ht-chop", "gain": "-38dB", "pan": 0.0, "notes": part("chop", CHOP)},      # dry: a room would fill its holes
                           {"name": "fence", "patch": "ht-fence", "gain": "-3dB", "pan": 0.0, "notes": part("fence", FENCE)}]
