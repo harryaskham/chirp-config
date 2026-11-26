@@ -35,6 +35,17 @@ sounds exactly once: that is what home is, and it is why the wheel was turned ei
 as B lets go, its strokes fall into the holes C is filling: B and C strike together where they never could at home
 (on one, two or all three of C's strokes, by how far ahead B is: all three at four ahead), and the bar goes lumpy;
 when B is home again it is smooth again. Home is the only phase at which B and C never meet.
+
+v3 (26 Nov): THE TUNE THE TWO MAKE (C11T7_TUNE=0 takes it out: v2). Wherever A and B strike on the same sixteenth
+the two clicks are one louder click, and those doubles are a different figure at every lock: two of them at one
+ahead, three at two, four at three ... A small glass pip now plays exactly the doubles, and each stroke of the
+pattern has a note: G, B flat, D, F, A (the record's chord: Give or Take's G minor seventh with Least Common's ninth
+on top). So every lock has its own tune, found in the two clicks and not written: G . . . . F . . at one ahead,
+. Bb . D . . A . at two, G . . D . F A . at three ..., always a piece of the chord. AT HOME EVERY STROKE IS A
+DOUBLE AND THE TUNE IS THE WHOLE CHORD: that is the second thing home is. In "slips" the first four locks are
+heard bare, as before; from the fifth (where the drum stands back) each lock is heard bare for two bars and then
+with its tune. In "drifts" B does not stop, so each tune is heard only for the two bars in which B passes its lock,
+all seven backwards (7, 6, 5 ... 1: four of them for the first time), between bars where there is no tune at all.
 """
 import json
 import math
@@ -59,16 +70,23 @@ DELTA = BPM / 60               # Hz: one cycle a beat
 COMP_ON = os.environ.get("C11T7_COMP", "1") != "0"    # v2: the complement, C
 COMP = tuple(s for s in range(LOOP) if s not in PATTERN)   # the holes: 2, 4, 7
 C = {"c": None} if COMP_ON else {}
+TUNE_ON = os.environ.get("C11T7_TUNE", "1") != "0"    # v3: the tune the two make
+TUNE = {0: "G4", 1: "Bb4", 3: "D5", 5: "F5", 6: "A5"}  # a note for each stroke of the pattern: G minor ninth
+assert set(TUNE) == set(PATTERN)
+TUNE_FROM = 4                  # in "slips": the row from which a lock has its tune (the first four locks are heard bare)
+TUNE_AFTER = 4                 # ... and the bar of the row from which it is heard (2 slipping, 2 bare)
+TUNE_NEAR = 0.26               # sixteenths: a bar plays a lock's tune if B is this near the lock from its first step to its last
+T = {"tune": None} if TUNE_ON else {}
 ALL = None
 # name, rows, {part: None, or the (from bar, to bar) stretches of the section it plays}, the phase: ("lock", k) | ("slips", k0) | ("drift", from, to)
 SECTIONS = [
     ("one click", 3, {"a": ALL, "b": [(8, 24)], "kick": [(16, 24)]},                                                          ("lock", 0)),
     # the bass drum stands back while B slips to its last lock (8, which is home), and for the whole of the fifth row,
     # where the bass is heard pumping with no drum to pump it
-    ("slips",     8, {"a": ALL, "b": ALL, "kick": [(0, 32), (40, 56), (58, 64)], "bass": [(16, 64)], "clap": [(40, 56), (58, 64)], "hat": [(32, 56), (58, 64)]}, ("slips", 0)),
-    ("home",      2, {"a": ALL, "b": ALL, "kick": ALL, "bass": ALL, "clap": ALL, "hat": ALL, **C},                            ("lock", 8)),
-    ("drifts",    4, {"a": ALL, "b": ALL, "kick": [(0, 16), (24, 32)], "bass": ALL, "clap": [(0, 16), (24, 32)], "hat": ALL, **C},  ("drift", 8, 0)),
-    ("one again", 3, {"a": ALL, "b": [(0, 20)], "kick": [(0, 8)], "bass": [(0, 16)], "clap": [(0, 8)], "hat": [(0, 8)], **({"c": [(0, 16)]} if COMP_ON else {})}, ("lock", 0)),
+    ("slips",     8, {"a": ALL, "b": ALL, "kick": [(0, 32), (40, 56), (58, 64)], "bass": [(16, 64)], "clap": [(40, 56), (58, 64)], "hat": [(32, 56), (58, 64)], **({"tune": [(r * ROW + TUNE_AFTER, (r + 1) * ROW) for r in range(TUNE_FROM, 8)]} if TUNE_ON else {})}, ("slips", 0)),
+    ("home",      2, {"a": ALL, "b": ALL, "kick": ALL, "bass": ALL, "clap": ALL, "hat": ALL, **C, **T},                       ("lock", 8)),
+    ("drifts",    4, {"a": ALL, "b": ALL, "kick": [(0, 16), (24, 32)], "bass": ALL, "clap": [(0, 16), (24, 32)], "hat": ALL, **C, **T},  ("drift", 8, 0)),
+    ("one again", 3, {"a": ALL, "b": [(0, 20)], "kick": [(0, 8)], "bass": [(0, 16)], "clap": [(0, 8)], "hat": [(0, 8)], **({"c": [(0, 16)]} if COMP_ON else {}), **({"tune": [(0, 16)]} if TUNE_ON else {})}, ("lock", 0)),
 ]
 
 
@@ -158,6 +176,30 @@ def c_notes():
     return [note(s * STEP, "G5", 0.25 * STEP, 0.85 if s % LOOP == COMP[0] else 0.72) for s in range(BARS * BAR) if s % LOOP in COMP and plays("c", s // BAR)]
 
 
+def doubles(k):
+    """The sixteenths of the half-bar on which A and B strike together when B is k ahead."""
+    return tuple(s for s in PATTERN if (s + k) % LOOP in PATTERN)
+
+
+def tune_lock(bar):
+    """The lock whose tune a bar plays (0 to LOOP), or None: B must be within TUNE_NEAR of it for the whole bar."""
+    if not plays("tune", bar):
+        return None
+    p0, p1 = phi(bar * BAR), phi((bar + 1) * BAR - 0.001)
+    k = round((p0 + p1) / 2)
+    return k if abs(p0 - k) <= TUNE_NEAR and abs(p1 - k) <= TUNE_NEAR else None
+
+
+def tune_notes():
+    out = []
+    for bar in range(BARS):
+        k = tune_lock(bar)
+        if k is not None:
+            d = doubles(k)
+            out += [note((bar * BAR + half + s) * STEP, TUNE[s], 1 * STEP, 0.85 if s == d[0] else 0.72) for half in (0, LOOP) for s in d]
+    return out
+
+
 def b_notes():
     out = []
     for b in range(int(BARS * BAR + 9)):
@@ -181,6 +223,9 @@ PATCHES = {
     "os-comp": {"about": "Out of Step's third click (chirper-zero, 26 Nov, v2): the complement's. Two cycles of a saw on G5 dying in 12 ms, above 3 kHz, lifted 8 dB round 10 kHz: small and bright, so that it is heard as the holes being filled and not as a third pattern.",
                 "play": {"vel_sens": 0.5},
                 "synth": {"layers": ["saw phase=0"], "filters": ["hp cutoff=3000", "peak cutoff=10000 q=0.7 gain=8dB"], "amp": {"a": "0.1ms", "d": "12ms", "s": 0, "r": "8ms", "curve": 3}}},
+    "os-tune": {"about": "Out of Step's pip (chirper-zero, 26 Nov, v3): a small glass tone (a sine with its twelfth, 140 ms), which plays only the sixteenths on which the two clicks strike together, a note for each stroke of the pattern.",
+                "play": {"vel_sens": 0.6},
+                "synth": {"layers": ["sine", "sine ratio=3 level=-14dB"], "amp": {"a": "0.3ms", "d": "140ms", "s": 0, "r": "40ms", "curve": 3}}},
     "os-kick": {"about": "Out of Step's bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, on G1.",
                 "play": {"vel_sens": 0.3},
                 "synth": {"layers": [{"type": "machine", "machine": {"part": "kick", "decay": "260ms", "click": 0.6, "drive": 0.35, "punch": 22, "punch_time": "32ms"}}],
@@ -225,6 +270,11 @@ def song():
         doc["about"] = doc["about"].replace(" Generated by", " From v2 a third click plays the pattern's three holes once the two are home: together they sound every sixteenth exactly once, and apart they collide. Generated by")
     else:
         del PATCHES["os-comp"]
+    if TUNE_ON:
+        doc["tracks"].append({"name": "tune", "patch": "os-tune", "gain": "-18dB", "pan": 0.0, "sends": {"room": "-10dB"}, "notes": tune_notes()})
+        doc["about"] = doc["about"].replace(" Generated by", " From v3 a small pip plays the sixteenths on which the two clicks strike together, a note for each stroke of the pattern (G, B flat, D, F, A): every lock has its own tune, and home is the whole chord. Generated by")
+    else:
+        del PATCHES["os-tune"]
     return doc
 
 
@@ -257,7 +307,17 @@ if __name__ == "__main__":
         for name, b0, n, parts, phase in SECS:
             print(f"{name:10s} bars {b0:3d}-{b0 + n:3d}  {int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int((b0 + n) * sec) // 60}:{(b0 + n) * sec % 60:04.1f}  phase {phase}  " + ", ".join(p if w is None else p + " " + "+".join(f"{lo}-{hi}" for lo, hi in w) for p, w in parts.items()))
         for k in range(LOOP + 1):
-            print(f"   B {k} ahead:  {lock(k)}")
+            print(f"   B {k} ahead:  {lock(k)}" + (f"   the tune: {' '.join(TUNE[s] if s in doubles(k) else '.' for s in range(LOOP))}" if TUNE_ON else ""))
+        if TUNE_ON:
+            runs, last = [], None
+            for bar in range(BARS):
+                k = tune_lock(bar)
+                if k != last or not runs:
+                    runs.append([bar, bar + 1, k])
+                else:
+                    runs[-1][1] = bar + 1
+                last = k
+            print("   the tune by bars: " + " ".join(f"{lo}-{hi}:{k}" for lo, hi, k in runs if k is not None))
         ms = 60 / BPM / 4 * 1000
         print("   the first slip (bars 24-26): the gap between A's stroke and B's, ms: " + " ".join(f"{(n['at'] / STEP - round(n['at'] / STEP + phi(n['at'] / STEP)) + 0) * -ms:.1f}" for n in b_notes() if 24 * BEATS <= n["at"] < 25.5 * BEATS))
         print(f"{BARS} bars, {TOTAL} beats, {BARS * sec:.1f} s; the bass: {F0} and {F0 * R:.4f} Hz")
