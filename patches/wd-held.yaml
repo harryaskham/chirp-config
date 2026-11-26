@@ -1,0 +1,30 @@
+{
+ "about": "Wind Down: the meetings' last chord, held (v3): wd-chord's two saws under a low-pass at 900 Hz that does not open, half a second coming and three seconds going. BANKED by tools/patchbank.py (26 Nov 2026) from Wind Down v3 (track held): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "500ms",
+   "d": "0s",
+   "r": "3s"
+  },
+  "filters": [
+   {
+    "cutoff": 900,
+    "q": 0.8
+   }
+  ],
+  "layers": [
+   {
+    "detune": -7,
+    "wave": "saw"
+   },
+   {
+    "detune": 7,
+    "wave": "saw"
+   }
+  ]
+ }
+}

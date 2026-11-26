@@ -1,0 +1,17 @@
+{
+ "about": "Wind Down: the fundamental the ghost bass never had (v3): a sine at the note. BANKED by tools/patchbank.py (26 Nov 2026) from Wind Down v3 (track under): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "6ms",
+   "d": "0s",
+   "r": "50ms"
+  },
+  "layers": [
+   {}
+  ]
+ }
+}

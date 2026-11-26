@@ -20,6 +20,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `ht-fence` | Hearing Things v4 (track fence) | Hearing Things' fence (chirper-zero, 26 Nov, v4): white noise between 170 and 560 Hz, switched as the chord is: it fills the chord's holes exactly, in the chord's band, louder than the chord. |
 | `ht-hat` | Hearing Things v1 (track ris) | Hearing Things' hat (chirper-zero, 26 Nov): the machine's hat, 28 ms, above 5 kHz, whose loudness is all velocity: the Risset rhythm's layers are told apart by nothing else. |
 | `ht-kick` | Hearing Things v1 (track kick) | Hearing Things' bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, on A1: the only thing on the record under 100 Hz but for eight bars. |
+| `ht-pip` | Hearing Things v5 (track line) | Hearing Things' pip (chirper-zero, 26 Nov, v5): a plain tone with a little of its octave, 90 ms: plain enough that two of them are told apart by pitch and by nothing else. |
 | `ht-shep` | Hearing Things v2 (tracks shep0, shep1, shep2, shep3) | Hearing Things' rising voice (chirper-zero, 26 Nov, v2): a small struck tone (a sine with two bar-like partials, 70 ms), whose loudness is all velocity and whose pitch rides the lane `rise` (semitones): one layer of the … |
 | `ht-tick` | Hearing Things v1 (track tick) | Hearing Things' click (chirper-zero, 26 Nov): the machine's rim, 35 ms, on E5; on the off-beats from the first bar to the last. |
 | `lc-chord` | Least Common v1 (track chord) | Least Common: what three clicks make when they meet. A short filtered chord for a delay to carry. |
@@ -33,6 +34,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `lc-tock` | Least Common v2 (track five) | Least Common: the click that counts five, once it has a tune (v2). The same wooden bar damped twice as fast, so that a note it keeps for twenty strokes is a colour and not a drone. |
 | `lc-tone` | Least Common v1 (track tone) | Least Common: the meetings one size up. A plain held tone, a sine and a little of its octave, that takes a beat to arrive. |
 | `os-bass` | Out of Step v1 (track bass) | Out of Step's bass (chirper-zero, 26 Nov): three pairs of sines, at G2 and its second and third harmonics, each pair 2.1 Hz apart (one cycle a beat at 126; ratio 1.021429 for G2 ONLY: another note needs its own ratio). T… |
+| `os-bass-b` | Out of Step v5 (track bassb) | Out of Step's second bass (chirper-zero, 26 Nov, v5): the same three pairs of sines built on B flat 2 (116.5409 Hz), each pair 2.1 Hz apart (ratio 1.018019 for B flat 2 only), so it pumps on the beat as the G does. It so… |
 | `os-clap` | Out of Step v1 (track clap) | Out of Step's clap (chirper-zero, 26 Nov): the machine's clap, three bursts, short, dry. |
 | `os-click` | Out of Step v1 (tracks a, b) | Out of Step's click (chirper-zero, 26 Nov): five cycles of a saw on G3 dying in 22 ms, lifted 9 dB round 9 kHz, started at the same point of its wave every time, through a low-pass that both clicks share (it opens with t… |
 | `os-comp` | Out of Step v2 (track c) | Out of Step's third click (chirper-zero, 26 Nov, v2): the complement's. Two cycles of a saw on G5 dying in 12 ms, above 3 kHz, lifted 8 dB round 10 kHz: small and bright, so that it is heard as the holes being filled and… |
@@ -51,15 +53,18 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `sc-seed` | Small Change v1 (tracks seed-a, seed-b, seed-c) | Small Change: the seed. One vibraphone bar with no motor, short, with two milliseconds of noise on its front (a click that the coins carry too): the only struck note in the song. |
 | `sr-chord` | Standing Room v1 (track chord) | Standing Room's dub chord (chirper-zero, 26 Nov): three saws and a square through a short filter envelope, dry; its space is the bus `dub`, a dotted-eighth echo whose feedback breathes. |
 | `sr-clap` | Standing Room v1 (track clap) | Standing Room's clap (chirper-zero, 26 Nov): the machine's clap, three bursts, short, dry. |
-| `sr-click` | Standing Room v1 (track click) | Standing Room's click (chirper-zero, 26 Nov): the machine's rim with a breath of white noise, 40 ms, above 500 Hz and lifted 6 dB round 11 kHz: bright enough that a wall can take its top away. |
+| `sr-click` | Standing Room v5 (track click) | Standing Room's click (chirper-zero, 26 Nov): the machine's rim with a breath of white noise, 40 ms, above 500 Hz and lifted 6 dB round 11 kHz: bright enough that a wall can take its top away. |
 | `sr-kick` | Standing Room v1 (track kick) | Standing Room's bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, on A1. It is not in any room. |
 | `sr-tock` | Standing Room v1 (track tock) | Standing Room's tock (chirper-zero, 26 Nov): a wooden bar on the modal layer (after Common Measure's clave), an octave or so under the click. |
 | `wd-chord` | Wind Down v1 (track chord) | Wind Down: what three cycles make when they meet: a short filtered chord. |
 | `wd-comp` | Wind Down v2 (track comp) | Wind Down: the complement's click (after Out of Step v2): two cycles of a saw on G5 dying in 12 ms, above 3 kHz, lifted round 10 kHz. |
 | `wd-ghost` | Wind Down v1 (track ghost) | Wind Down: a bass with no fundamental (after Hearing Things): harmonics two to six of the note and nothing at the note. |
 | `wd-hat` | Wind Down v2 (track hat) | Wind Down: the hat (after Hearing Things): the machine's hat, 28 ms, above 5 kHz, whose loudness is all velocity. |
+| `wd-held` | Wind Down v3 (track held) | Wind Down: the meetings' last chord, held (v3): wd-chord's two saws under a low-pass at 900 Hz that does not open, half a second coming and three seconds going. |
 | `wd-kick` | Wind Down v1 (track kick) | Wind Down: the drum. The machine's bass drum on G, short. |
 | `wd-ping` | Wind Down v1 (track ping) | Wind Down: what two cycles make when they meet (after Least Common): a vibraphone bar with no motor. |
 | `wd-saw` | Wind Down v1 (track saw) | Wind Down: a click that is five cycles of a saw (after Out of Step): on G3 that is 51 ms. |
 | `wd-seed` | Wind Down v1 (track seed) | Wind Down: the seed (after Small Change): a short vibraphone bar with 2 ms of noise on its front. |
+| `wd-sink` | Wind Down v3 (track tick) | Wind Down: the click whose note can sink (v3): wd-wood with the whole voice's pitch on the stroke (expr.sink, semitones). |
+| `wd-under` | Wind Down v3 (track under) | Wind Down: the fundamental the ghost bass never had (v3): a sine at the note. |
 | `wd-wood` | Wind Down v1 (tracks tick, cell) | Wind Down: Ring True's wooden bar (1 : 4 : 10), its ring time given by each stroke (expr.ring, seconds over 0.015), with the stick's click on its front (2 ms of noise). It is the click and the cell. |

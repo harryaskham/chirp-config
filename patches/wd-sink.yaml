@@ -1,0 +1,61 @@
+{
+ "about": "Wind Down: the click whose note can sink (v3): wd-wood with the whole voice's pitch on the stroke (expr.sink, semitones). BANKED by tools/patchbank.py (26 Nov 2026) from Wind Down v3 (track tick): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.6
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "curve": 1.0,
+   "d": "0s",
+   "r": "2.5s"
+  },
+  "env": {
+   "stick": {
+    "a": "0.1ms",
+    "d": "2ms",
+    "r": "2ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {
+    "bright": 0.75,
+    "decay": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ring"
+      }
+     ],
+     "value": 0.015
+    },
+    "modes": "bar",
+    "strike": 0.35,
+    "type": "modal"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 70.0,
+       "src": "env.stick"
+      }
+     ],
+     "value": "-80dB"
+    },
+    "type": "noise"
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 1.0,
+     "src": "expr.sink"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

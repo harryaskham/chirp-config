@@ -1,0 +1,46 @@
+{
+ "about": "Out of Step's second bass (chirper-zero, 26 Nov, v5): the same three pairs of sines built on B flat 2 (116.5409 Hz), each pair 2.1 Hz apart (ratio 1.018019 for B flat 2 only), so it pumps on the beat as the G does. It sounds at the locks whose first shared stroke is the pattern's second. BANKED by tools/patchbank.py (26 Nov 2026) from Out of Step v5 (track bassb): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "mono": true,
+  "vel_sens": 0.2
+ },
+ "synth": {
+  "amp": {
+   "a": "4ms",
+   "d": "0s",
+   "r": "30ms"
+  },
+  "layers": [
+   {
+    "level": "-3dB",
+    "phase": 0.0
+   },
+   {
+    "level": "-4.5dB",
+    "phase": 0.0,
+    "ratio": 1.018019
+   },
+   {
+    "level": "-9dB",
+    "phase": 0.0,
+    "ratio": 2.0
+   },
+   {
+    "level": "-10.5dB",
+    "phase": 0.0,
+    "ratio": 2.018019
+   },
+   {
+    "level": "-15dB",
+    "phase": 0.0,
+    "ratio": 3.0
+   },
+   {
+    "level": "-16.5dB",
+    "phase": 0.0,
+    "ratio": 3.018019
+   }
+  ]
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "about": "Hearing Things' pip (chirper-zero, 26 Nov, v5): a plain tone with a little of its octave, 90 ms: plain enough that two of them are told apart by pitch and by nothing else. BANKED by tools/patchbank.py (26 Nov 2026) from Hearing Things v5 (track line): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.4
+ },
+ "synth": {
+  "amp": {
+   "a": "2ms",
+   "d": "85ms",
+   "r": "25ms",
+   "s": 0
+  },
+  "layers": [
+   {},
+   {
+    "level": "-20dB",
+    "ratio": 2.0
+   }
+  ]
+ }
+}
