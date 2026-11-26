@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v10 (23:04): both ends are v9's to 0.1 dB: bars 1 to 16 by four -22.3 -23.3 -23.5 -20.5 dBFS, the
+  last sixteen -24.2 -23.5 -23.1 -19.5. What changed is inside (bar 160's last two beats and eight bass notes in
+  bars 161 to 175). For whoever re-renders a seam: the finished song brings a quiet bar up against a loud one
+  (this song's wait stands 29 dB under home raw and 20 finished), so a seam's level cannot be read from the raw mix.
 - Wind Down v10 (22:37): both ends are v9's: bars 1 to 8 (under Out of Step's last eight) -29.9 -30.2 -29.9 -30.0
   dBFS by two; the last stroke and after by second -9 -24 -38 -51 -63 -76 -88. What changed is inside (bars 141
   to 146 and three drum strokes in bars 147 to 154).
