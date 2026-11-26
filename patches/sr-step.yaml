@@ -1,0 +1,21 @@
+{
+ "about": "Standing Room's tick (chirper-zero, 26 Nov, v10): 5 ms of a sine, started at the same point of its wave every time: a clap, and each step's echo of it. Its loudness is its velocity (vel_sens 0.5 is linear). BANKED by tools/patchbank.py (26 Nov 2026) from Standing Room v10 (tracks clap-at, stairs): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0ms",
+   "d": "5ms",
+   "r": "2ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}

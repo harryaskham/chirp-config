@@ -1,0 +1,30 @@
+{
+ "about": "Give or Take's pop (chirper-zero, 26 Nov, v10): the needle jumping a groove wall: 16 ms of dull noise, 150 Hz to 1.8 kHz; deck B. BANKED by tools/patchbank.py (26 Nov 2026) from Give or Take v10 (track pop): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "curve": 4.0,
+   "d": "16ms",
+   "r": "5ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 150,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 1800
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}
