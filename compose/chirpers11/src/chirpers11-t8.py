@@ -71,6 +71,24 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v9 (26 Nov): WITH INTEREST. Three switches (`--without-answer`, `-interest`, `-chest`; all three off is v8 byte for
+byte):
+  ANSWER    the hand drops the stick on the cell's last stroke (v8), and the strings nobody plays were shut in
+            that same half beat: the one stroke of the cell's that is let go altogether was the one they did not
+            hear. Now they hear it and its bounces, and are held open through the bar after the cell has gone
+            (bar 169), then let down over the next: the cell's last note is answered by the strings that have
+            its note in them (C3's fourth partial and F2's sixth are C5), and the answer is what is left of the
+            cell when it is not there.
+  INTEREST  Small Change's lesson of v7 (a purse that gives back more than it is given, with a hand on its fader,
+            builds; shut, it is empty at once). The change's last seed (bar 144, beat 3) went to the smallest
+            purse and was a held B flat that ran out. Now the purse pays interest: the note swells for the two
+            beats that are left and is shut on the one of bar 145, where the change goes. A clip inside the loop
+            is the purse's size: it cannot hold more than that, so the swell comes up to a level and stays.
+  CHEST     nothing in this song sounds between 60 and 85 Hz: the drum is on G1 (49 Hz) with its 47 Hz taken
+            down, and the bass has no fundamental (that is its illusion). Beside the album the song stood 9.6 dB
+            short at 71 Hz, the one band the scorer charged it for, and aimed at as such: a bell of 4 dB at 71 Hz
+            on the drum, narrow (its stroke sweeps through there; it has no note there to give the bass).
+
 v8 (26 Nov): WHAT IS LEFT BOUNCING. Two of the seven grew once more after v7, and the closer takes the new thing
 from each. Two switches (`--without-drop`, `-part`; both off is v7 byte for byte):
   DROP  4 Ring True v8. There the stick is let go too: a thing's stroke is dropped and bounces, each bounce sooner
@@ -178,7 +196,15 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True}
+ANSWER = {'feed': '-29dB', 'open': 4, 'down': 4}   # v9: what the strings take of the dropped stroke and of its bounces; beats after the cell goes that they are held open; beats over which they are let down.
+# Bench (int.sh, intread.py: the song less the song without the answer, raw, by half beat): at -27 dB the answer read -27 -24 -28 -29 -32 -36 -39 from the stroke through bar 169, 7.6 dB under the mix over that bar, and level with
+# or over what is between the drum's beats there (-26 to -30) for two beats: 2 dB less
+INTEREST = {'back': 0.737, 'feed': '-27dB', 'size': -24}   # v9: what each loop of the smallest purse gives back (0.71 ran out); what it takes of the seed (it was -13: it starts lower and comes up); the clip in the loop, dBFS.
+# Bench (the seed and its purse alone by quarter beat): taking -19 dB and clipped at -22 it read -27 -30 -28 -27 -26 -26 -26 -26: up 4 dB in half a beat and then flat at its size, 1.6 dB under the whole mix: a held note, louder; not a swell.
+# It comes up 2 dB a quarter beat until it is full: so 8 dB less of the seed, to be full only at the one, and a purse 2 dB smaller
+CHEST = 'peak cutoff=71 q=3 gain=4dB'    # v9: on the drum.
+# Bench (bars 143 to 146, raw): with q 1.5 the bell reached the drum's own note and its octave: the drum's beats read 3 dB more (-16 for -19 by quarter beat), the whole mix 1.8 dB more, and 60 to 85 Hz 3.7: a louder drum, not a chest. So q 3
 DROP = {'share': 0.75, 'bounces': 8, 'rest': 7, 'ring': 1.0, 'db': 3}   # v8: each bounce's gap and level as a share of the one before; how many are heard; sixteenths from the stroke to where the next would fall; the dropped stroke's ring (let go) and dB on it.
 # Bench (part.sh, partread.py: the stroke and its bounces alone by 60 ms; the mix with and without). Stopped as the hand had left it (a 28 ms tap) and 6 dB up, the stroke's highest sample was -8.5 dBFS and its bounces moved the mix 1 or 2 dB in two
 # sixths of a second: a loud tap and nothing after it. Let go (it rings a second), the same bounces have a note to ring on
@@ -451,7 +477,7 @@ def song():
         'patches': PATCHES, 'buses': buses,
         'master': {'fx': [{'type': 'eq', 'bands': ['hp cutoff=28']}]},
         'tracks': [
-            {'name': 'kick', 'patch': 'wd-kick', 'gain': '-9dB', 'notes': T['kick'], 'fx': [{'type': 'eq', 'bands': ['peak cutoff=47 q=1.2 gain=-3dB', 'peak cutoff=130 q=0.9 gain=3dB']}]},
+            {'name': 'kick', 'patch': 'wd-kick', 'gain': '-9dB', 'notes': T['kick'], 'fx': [{'type': 'eq', 'bands': ['peak cutoff=47 q=1.2 gain=-3dB', 'peak cutoff=130 q=0.9 gain=3dB'] + ([CHEST] if ON['chest'] else [])}]},
             {'name': 'ghost', 'patch': 'wd-ghost', 'gain': '-20dB', 'notes': T['ghost'], 'fx': ['lp cutoff=900', under]},
             {'name': 'tick', 'patch': 'wd-wood', 'gain': {'value': '-7dB', 'mod': [{'src': 'auto.alone', 'amount': 1}]}, 'auto': {'alone': alone()}, 'pan': 0, 'notes': T['tick'], 'fx': [hold(-12)], 'sends': {'hall': '-16dB'}},
             {'name': 'saw', 'patch': 'wd-saw', 'gain': '-12dB', 'pan': -0.25, 'notes': T['saw']},
@@ -496,11 +522,14 @@ def song():
                            [['0b', -60], [f'{BARS * 4 - 0.5}b', -60], [f'{BARS * 4}b', 0], [f'{BARS * 4 + 16}b', 0]]), 'curve': 0}
         if ON['true']:                                         # v7: let go beside the cell from where the room goes to where the cell goes
             hand['points'] = hand['points'][:1] + [[f"{GOES['room'] * 4 - 1}b", -60], [f"{GOES['room'] * 4}b", 0], [f"{GOES['cell'] * 4 - 0.5}b", 0], [f"{GOES['cell'] * 4}b", -60]] + hand['points'][1:]
+            if ON['answer'] and T.get('cell-drop'):            # v9: held open through the bar after the cell, then let down
+                hand['points'][3:5] = [[f"{GOES['cell'] * 4 + ANSWER['open']}b", 0], [f"{GOES['cell'] * 4 + ANSWER['open'] + ANSWER['down']}b", -60]]
         for name, hz, side in STRINGS['strings']:
             me = 'str-' + name.lower()
             t = f"{1000 / hz - 225.1 / STRINGS['lp']:.3f}ms"         # a period, less the low-pass's own delay, so the loop is in tune
             doc['buses'][me] = {'pan': side, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.hand', 'amount': 1}]}, 'auto': {'hand': hand}, 'fx': [f"lp cutoff={STRINGS['lp']}"],
-                                'returns': [{'from': 'tick', 'gain': STRINGS['feed'], 'time': t}] + ([{'from': 'cell', 'gain': TRUE['feed'], 'time': t}] if ON['true'] else []) + [{'from': me, 'gain': db(STRINGS['back']), 'time': t}]}
+                                'returns': [{'from': 'tick', 'gain': STRINGS['feed'], 'time': t}] + ([{'from': 'cell', 'gain': TRUE['feed'], 'time': t}] if ON['true'] else []) +
+                                           ([{'from': x, 'gain': ANSWER['feed'], 'time': t} for x in ('cell-drop', 'cell-bounce')] if ON['true'] and ON['answer'] and T.get('cell-drop') else []) + [{'from': me, 'gain': db(STRINGS['back']), 'time': t}]}
     if T.get('cell-drop'):                                     # v8 DROP: the same track again for the one stroke, and its bounces: echoes of it, each sooner and softer by the same share
         doc['tracks'].append({**{x: y for x, y in by_name['cell'].items() if x != 'notes'}, 'name': 'cell-drop', 'notes': T['cell-drop']})
         gap = DROP['rest'] * 60000 / BPM / 4 * (1 - DROP['share']) / (1 - DROP['share'] ** (DROP['bounces'] + 1))
@@ -521,6 +550,11 @@ def song():
             me, t = f'paid{coin}', f'{coin * u:.3f}ms'
             doc['buses'][me] = {'pan': side * PAID['pan'], 'gain': '0dB', 'fx': ['lp cutoff=6000', 'hp cutoff=40'],
                                 'returns': [{'from': 'paid', 'gain': PAID['feed'], 'time': t}, {'from': me, 'gain': db(PAID['back']), 'time': t}, {'from': f'paid{other}', 'gain': db(PAID['back']), 'time': t}]}
+            if ON['interest']:                                 # v9: the purse gives back more than it is given, cannot hold more than its size, and is shut on the one
+                one = GOES['change'] * 4
+                doc['buses'][me] = {'pan': side * PAID['pan'], 'gain': {'value': '0dB', 'mod': [{'src': 'auto.shut', 'amount': 1}]}, 'auto': {'shut': {'points': [['0b', 0], [f'{one - 0.03}b', 0], [f'{one}b', -60], [f'{BARS * 4 + 16}b', -60]], 'curve': 0}},
+                                    'fx': ['lp cutoff=6000', 'hp cutoff=40', hold(INTEREST['size'])],
+                                    'returns': [{'from': 'paid', 'gain': INTEREST['feed'], 'time': t}, {'from': me, 'gain': db(INTEREST['back']), 'time': t}, {'from': f'paid{other}', 'gain': db(INTEREST['back']), 'time': t}]}
     if ON['held']:
         doc['patches'] = {**doc['patches'], **({'wd-open': OPEN} if ON['open'] else {'wd-held': V3['wd-held']})}
         doc['tracks'].append({'name': 'held', 'patch': 'wd-open' if ON['open'] else 'wd-held', 'gain': f"{float(HELD['gain'][:-2]) + OPEN_DB:g}dB" if ON['open'] else HELD['gain'], 'pan': -0.1, 'notes': T['held'], 'fx': [under], 'sends': {'hall': '-6dB'}})
@@ -563,7 +597,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v7, the last five v6, the last eight v5, the last eleven v4, the last fourteen v3, the last twenty v2, all twenty-six v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v8, the last five v7, the last eight v6, the last eleven v5, the last fourteen v4, the last seventeen v3, the last twenty-three v2, all twenty-nine v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -587,6 +621,9 @@ if __name__ == '__main__':
                        ([(GOES['room'], "the strings are let go beside the cell, and ring while it rings true")] if ON['true'] and ON['strings'] else []) +
                        ([(b // 4, f"all three meet on the drum: the triad turns over ({' '.join(TURNED[(b // PAGE - COMES['meetings'] * 4 // PAGE) % len(TURNED)][c] for c in CYCLES)})") for b in range(0, GOES['meetings'] * 4, PAGE) if b >= COMES['meetings'] * 4] if ON['turn'] and ON['knock'] else []) +
                        ([(GOES['change'] - 1, "the change's last seed is paid in the smallest coins: a held B flat")] if ON['paid'] else []) +
+                       ([(GOES['cell'], "the strings answer the dropped stroke: held open through the bar after the cell, then let down")] if ON['answer'] and ON['true'] and ON['strings'] and ON['drop'] else []) +
+                       ([(GOES['change'] - 1, "the last seed is paid with interest: the held B flat swells and is shut on the one")] if ON['interest'] and ON['paid'] else []) +
+                       ([(DRUM_IN, 'the drum has a chest: a bell of 4 dB at 71 Hz')] if ON['chest'] else []) +
                        ([(GOES['cell'] - NUDGE['bars'], 'the hand drags the cell a sixteenth late and lets it catch up')] if ON['nudge'] else []))
         for bar, what in marks:
             t = clock(bar)
