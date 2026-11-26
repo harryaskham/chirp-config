@@ -87,6 +87,21 @@ it was a room getting louder behind clicks that stayed where they were. Five swi
          cut short to leave empty, pushing into every beat.
   LOW    the bass 2 dB up (114 Hz stood 9.3 dB under the album's envelope).
 
+v5 (26 Nov): ONLY THE DRUM. Read by solo, v4's slow run-down was a change of rhythm 14 to 19 dB under the four,
+and the second half's four pages all stood at one level. Three switches (`--without-bare`, `-small`, `-rise`;
+all three off is v4 byte for byte):
+  BARE   as the clock begins to run down only the drum is left of the four (as it is in the last stretch of the
+         song): the bass, the hat and the clap stop a stretch before the drum does, and the clicks stand at full
+         height through the run-down (no ride down between meetings). So the first half of the run-down is three
+         clicks going from sixteenths to eighths against a drum and nothing else.
+  SMALL  the second half begins as the first did. The first half's first page has no bass (three clicks and a
+         drum); one size up, the second half's first page has none either: three slow clicks, the held tones
+         and the drum. The bass comes back with the page turn, and the clap with it.
+  RISE   the wind-up's sixteenths come in from 12 dB down, not 24 (its third quarter stood 3.6 dB under the page
+         before it above 5 kHz).
+A fourth was tried and dropped: the drum's body moved from 130 Hz to 110 (114 Hz stands 8.7 dB under the album's
+envelope). Read on a page where nothing else had changed it moved 105 to 123 Hz by 0.2 dB: the drum has nothing there.
+
 Form as arithmetic: everything below is computed from CYCLES, BAR and BEAT. Nothing is typed as a bar number.
 """
 import argparse
@@ -112,7 +127,9 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
-      'away': True, 'home': True, 'slow': True, 'push': True, 'low': True}
+      'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
+      'bare': True, 'small': True, 'rise': True}
+RISE = -12                              # v5: dB the wind-up's strokes come in at
 AWAY = 9                                # v4: dB the clicks' own sound has fallen when the door is wide open (their far room makes it up)
 SWELL = 3                               # v4 HOME: dB the pings have risen by the end of the last stretch
 LOW_DB = 2                              # v4 LOW: on the bass's fader
@@ -173,7 +190,7 @@ def windup(c, s):
     if not ON['windup'] or not TOTAL - SUPER <= s < TOTAL or s % c:
         return None
     x = (s - (TOTAL - SUPER)) / SUPER * 2 - (order(c, s) == 0)
-    return None if x < 0 else round(FLOOR * (1 - min(x, 1)), 1)
+    return None if x < 0 else round((RISE if ON['rise'] else FLOOR) * (1 - min(x, 1)), 1)
 
 
 def stretches():
@@ -187,11 +204,23 @@ def beats(s16):
     return ('%.4f' % (s16 / BEAT)).rstrip('0').rstrip('.') + 'b'
 
 
-def walk(far):
-    """A lane that is 0 where the three meet and `far` half way to the next meeting, straight lines between."""
+def running_down(s):
+    """Is sixteenth s in the run-down (the last stretch of the first half; with SLOW the last two)?"""
+    return ON['rundown'] and HALF - SUPER * (2 if ON['slow'] else 1) <= s < HALF
+
+
+def bare(s):
+    """v5: do the bass, the hat and the clap rest at sixteenth s? From where the clock begins to run down to the one
+    (the drum goes on for the first of the two stretches; v1 let the bar that straddles its stopping play out)."""
+    return ON['bare'] and ON['slow'] and running_down(s)
+
+
+def walk(far, stand=False):
+    """A lane that is 0 where the three meet and `far` half way to the next meeting, straight lines between. With
+    `stand` (v5 BARE, the clicks' level) it stays at 0 through the run-down."""
     pts = []
     for s, n, _ in stretches():
-        pts += [[beats(s), 0], [beats(s + n / 2), far]]
+        pts += [[beats(s), 0], [beats(s + n / 2), 0 if stand and ON['bare'] and running_down(s) else far]]
     return {'points': pts + [[beats(TOTAL), 0]], 'curve': 0}
 
 
@@ -311,7 +340,7 @@ def build():
         if s % BEAT == 0 and n != last and not broken(s):
             add('kick', s, 2, 'G1', .95 if s % BAR == 0 else .88)
     marks += [('first half: three, five and seven sixteenths', 0)] + [(f'page {p + 1} (the three meet on beat {p * PAGE // BEAT % 4 + 1})', p * PAGE) for p in range(1, pages)]
-    marks += [('the clock begins to run down, the four still playing', (last - 1) * SUPER)] * (ON['slow'] and ON['rundown']) + [('the four stops', last * SUPER)]
+    marks += [('the clock begins to run down, ' + ('only the drum left of the four' if ON['bare'] else 'the four still playing'), (last - 1) * SUPER)] * (ON['slow'] and ON['rundown']) + [('the four stops', last * SUPER)]
     # ---- the second half: one size up. Cycles of 3, 5 and 7 beats, each filled with the next one's number.
     fill = {c: euclid(CYCLES[(i + 1) % 3], c * BEAT) for i, c in enumerate(CYCLES)}
     assert [len(fill[c]) for c in CYCLES] == [5, 7, 3]
@@ -371,18 +400,18 @@ def build():
         page = s0 // PAGE
         if last * SUPER <= s0 < HALF or s0 >= HALF + last * SUPER:
             continue
-        if page >= 1:
+        if page >= 1 and not (ON['small'] and page == pages):   # v5 SMALL: the second half's first page has no bass, as the first half's has none
             for off, ln, p in cell:
-                if not broken(s0 + off):
+                if not broken(s0 + off) and not bare(s0 + off):
                     add('bass', s0 + off, ln, roots[s0 + off] if ON['roots'] else p, .85)
         if page in (2, 3, 6, 7):
             late = 1 if ON['push'] and page % pages == pages - 1 else 0       # v4: the last page of a half, a sixteenth late
             for off in (2, 6, 10, 14):
-                if not broken(s0 + off + late):
+                if not broken(s0 + off + late) and not bare(s0 + off + late):
                     add('hat', s0 + off + late, 1, 'A#4', .7)
         if page in (3, 5, 6, 7):
             for off in (4, 12):
-                if not broken(s0 + off):
+                if not broken(s0 + off) and not bare(s0 + off):
                     add('clap', s0 + off, 1, 'C4', .7)
     return T, marks
 
@@ -437,7 +466,7 @@ def song():
             t.setdefault('auto', {})['place'] = walk(side[v] * WIDE)
         if ON['near']:
             t['gain'] = {'value': f"{float(t['gain'][:-2]) + LIFT:g}dB", 'mod': [{'src': 'auto.near', 'amount': 1}]}
-            t.setdefault('auto', {})['near'] = walk(-NEAR)
+            t.setdefault('auto', {})['near'] = walk(-NEAR, stand=True)
         if ON['door']:
             t['sends'] = {**t['sends'], 'gone' if ON['away'] else 'far': FAR}
         if ON['door'] and ON['away']:
@@ -468,7 +497,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last five off is v3, the last thirteen v2, all nineteen v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v4, the last eight v3, the last sixteen v2, all twenty-two v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')

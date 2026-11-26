@@ -9301,14 +9301,14 @@
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers11-t2 OUT.wav",
       "best": {
-        "score": 93.22,
-        "version": "v4",
+        "score": 93.95,
+        "version": "v5",
         "commit": "see git log songs/chirpers11-t2.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 4,
+      "rounds": 5,
       "priority": 1.0,
       "genre": "clicky minimal techno",
       "mode": "compose",
@@ -9326,7 +9326,7 @@
         "note": "COMPOSE (song, 300-480 s): POLYRHYTHM. Clicks in cycles of different lengths (three, five, seven, Euclidean) against the four to the floor, meeting again only at long intervals; the meeting points are the events."
       },
       "last": {
-        "at": "2026-11-26T10:06:14Z",
+        "at": "2026-11-26T11:36:11Z",
         "who": "chirper-one"
       }
     },
