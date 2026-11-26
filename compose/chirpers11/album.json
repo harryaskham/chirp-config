@@ -1,0 +1,128 @@
+{
+  "id": "chirpers11",
+  "artist": "chirpers",
+  "album": "Chirpers 11 (unnamed)",
+  "named": false,
+  "year": 2026,
+  "genre": "clicky minimal techno",
+  "bleed": false,
+  "brief": "CLICKY MINIMAL TECHNO, EIGHT TRACKS (Harry, 26 Nov about 02:50 GMT, verbatim, typos his: \"can you set up a new clicky minimal techno climb - keep chirpers signature playing with time, space, instruments, mathy effects, polyrthythms etc and illusions, and open an 8 trakc album on teh groove, and wake zero and one to work on it\"; and on the Common Time cut a minute before: \"we could crossfade as needed, dont mind\"). chirp-eco's reading, his to overrule: the genre is the click, the kick and the space between them (microhouse and minimal: few sounds, each one designed, small changes over long stretches, hypnotic rather than dramatic), and the chirpers signature is what is done INSIDE it: time that bends, rooms that move, new instruments, effects driven by numbers, cycles of different lengths against the four, and illusions. The slot briefs below each lean on one of his words so that the album covers them all; any composer may trade or rewrite a slot brief, and say so in motifs.md. Two composers (chirper-zero and chirper-one) share the eight. Seams may crossfade in the release mix (his word), so tempos and keys that sit near each other are a gift, not a rule. Every kept version plays on the groove at its turn.",
+  "palette": "Start from what the library has for techno and house (chirpers4 Phantom Downbeat and chirpers7 The Endless Stair: machine-kit, 909/808 circuits, rumble kick, tight-kit, dusty-kit, acid, sub synths, pump; their kits are banked) and build a CLICK family beside it under new names: short noise bursts, filtered ticks, rimshots and claves from the physical models (modal, membrane, pluck), metallic pings, granular crumbs, vinyl and room tone. Space: rooms, ir, delays (dub chords through feedback with an eq in the loop), width, `radio`, `orbit`. Motion and maths: lanes and vars and expr, `phaser` (a period in beats), `pitch` in a feedback bus, `sympathetic`, `pedal`, gates before effects on lanes written from the notes, polymeter by step length, Euclidean patterns, feel and humanize. Illusions: shepard, risset (the endless accelerando), phantom (virtual bass), stereo and space tricks, speech-to-song. `python3 tools/chirpers.py coverage chirpers11` says what the album has not used yet. Released sounds stay frozen: new sounds go under new names (tools/libguard.py).",
+  "genre_refs": [
+    "pulsewidth",
+    "green-calx",
+    "schottkey-7th-path",
+    "delphium",
+    "hedphelym",
+    "actium",
+    "heliosphan",
+    "i-feel-love",
+    "dance-yrself-clean"
+  ],
+  "genre_refs_note": "chirp-eco, 26 Nov: chirpers4's set (Aphex Twin's ambient techno, I Feel Love, Dance Yrself Clean): the library has no reproduction of a minimal or click record yet (Villalobos, Akufen, Plastikman, Robert Hood, Monolake). Harry may add some; until then this envelope is the nearest techno the scorer can read.",
+  "master": {
+    "rms": [
+      -15.0,
+      -9.0
+    ],
+    "peak_max": 0.0,
+    "crest": [
+      7.0,
+      13.0
+    ]
+  },
+  "weights": {
+    "flow": 0.06,
+    "rhythm": 0.03
+  },
+  "tracks": [
+    {
+      "n": 1,
+      "role": "opener",
+      "length": [
+        240,
+        420
+      ],
+      "owner_suggested": "chirper-zero",
+      "brief": "TIME. Open the record: the kick and one click set the grid, and something about time is not what it seems (a tempo that seems to move while the grid holds, a swing that drifts, a bar that will not divide). Any version at all opens the groove to it; then keep finessing.",
+      "id": "chirpers11-t1"
+    },
+    {
+      "n": 2,
+      "role": "song",
+      "length": [
+        300,
+        480
+      ],
+      "owner_suggested": "chirper-one",
+      "brief": "POLYRHYTHM. Clicks in cycles of different lengths (three, five, seven, Euclidean) against the four to the floor, meeting again only at long intervals; the meeting points are the events.",
+      "id": "chirpers11-t2"
+    },
+    {
+      "n": 3,
+      "role": "song",
+      "length": [
+        300,
+        480
+      ],
+      "owner_suggested": "chirper-zero",
+      "brief": "SPACE. The rooms are the material: a click walking through spaces of different sizes and distances, dub chords in a delay that breathes, width that opens and shuts.",
+      "id": "chirpers11-t3"
+    },
+    {
+      "n": 4,
+      "role": "song",
+      "length": [
+        300,
+        480
+      ],
+      "owner_suggested": "chirper-one",
+      "brief": "INSTRUMENTS. A new percussion family built from physical models and noise; the sound design is the song: the same few strokes, reshaped bar by bar.",
+      "id": "chirpers11-t4"
+    },
+    {
+      "n": 5,
+      "role": "song",
+      "length": [
+        300,
+        480
+      ],
+      "owner_suggested": "chirper-zero",
+      "brief": "ILLUSIONS. A beat that seems to turn around, an endless accelerando that never arrives, a bass that is not there: the listener's ear is the instrument.",
+      "id": "chirpers11-t5"
+    },
+    {
+      "n": 6,
+      "role": "song",
+      "length": [
+        300,
+        480
+      ],
+      "owner_suggested": "chirper-one",
+      "brief": "MATHY EFFECTS. Effects driven by numbers: delay times in ratios, filters on prime-length cycles, a phaser at a polymetric rate, pitch in a feedback loop; say the rule in the note.",
+      "id": "chirpers11-t6"
+    },
+    {
+      "n": 7,
+      "role": "song",
+      "length": [
+        300,
+        480
+      ],
+      "owner_suggested": "chirper-zero",
+      "brief": "PHASE. Two or more loops of nearly the same length drifting apart and back (the long arc of minimal), so the pattern is never the same twice and always the same.",
+      "id": "chirpers11-t7"
+    },
+    {
+      "n": 8,
+      "role": "closer",
+      "length": [
+        300,
+        540
+      ],
+      "owner_suggested": "chirper-one",
+      "brief": "CLOSER. The album's motifs come home: whatever the other seven made (a click, a room, a rule), gathered and let go.",
+      "id": "chirpers11-t8"
+    }
+  ]
+}

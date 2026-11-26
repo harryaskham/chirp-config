@@ -9239,6 +9239,238 @@
         "at": "2026-11-24T23:25:44Z",
         "who": "chirper-zero"
       }
+    },
+    {
+      "id": "chirpers11-t1",
+      "song": "songs/chirpers11-t1.yaml",
+      "reference": "chirpers — Track 1 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers11-t1 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "clicky minimal techno",
+      "mode": "compose",
+      "album": "chirpers11",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Chirpers 11 (unnamed)",
+        "title": "Track 1 (untitled)",
+        "track": 1,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-11-26T03:18:24Z",
+        "note": "COMPOSE (opener, 240-420 s): TIME. Open the record: the kick and one click set the grid, and something about time is not what it seems (a tempo that seems to move while the grid holds, a swing that drifts, a bar that will not divide). Any version at all opens the groove to it; then keep finessing."
+      }
+    },
+    {
+      "id": "chirpers11-t2",
+      "song": "songs/chirpers11-t2.yaml",
+      "reference": "chirpers — Track 2 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers11-t2 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "clicky minimal techno",
+      "mode": "compose",
+      "album": "chirpers11",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Chirpers 11 (unnamed)",
+        "title": "Track 2 (untitled)",
+        "track": 2,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-11-26T03:18:24Z",
+        "note": "COMPOSE (song, 300-480 s): POLYRHYTHM. Clicks in cycles of different lengths (three, five, seven, Euclidean) against the four to the floor, meeting again only at long intervals; the meeting points are the events."
+      }
+    },
+    {
+      "id": "chirpers11-t3",
+      "song": "songs/chirpers11-t3.yaml",
+      "reference": "chirpers — Track 3 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers11-t3 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "clicky minimal techno",
+      "mode": "compose",
+      "album": "chirpers11",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Chirpers 11 (unnamed)",
+        "title": "Track 3 (untitled)",
+        "track": 3,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-11-26T03:18:24Z",
+        "note": "COMPOSE (song, 300-480 s): SPACE. The rooms are the material: a click walking through spaces of different sizes and distances, dub chords in a delay that breathes, width that opens and shuts."
+      }
+    },
+    {
+      "id": "chirpers11-t4",
+      "song": "songs/chirpers11-t4.yaml",
+      "reference": "chirpers — Track 4 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers11-t4 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "clicky minimal techno",
+      "mode": "compose",
+      "album": "chirpers11",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Chirpers 11 (unnamed)",
+        "title": "Track 4 (untitled)",
+        "track": 4,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-11-26T03:18:24Z",
+        "note": "COMPOSE (song, 300-480 s): INSTRUMENTS. A new percussion family built from physical models and noise; the sound design is the song: the same few strokes, reshaped bar by bar."
+      }
+    },
+    {
+      "id": "chirpers11-t5",
+      "song": "songs/chirpers11-t5.yaml",
+      "reference": "chirpers — Track 5 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers11-t5 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "clicky minimal techno",
+      "mode": "compose",
+      "album": "chirpers11",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Chirpers 11 (unnamed)",
+        "title": "Track 5 (untitled)",
+        "track": 5,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-11-26T03:18:24Z",
+        "note": "COMPOSE (song, 300-480 s): ILLUSIONS. A beat that seems to turn around, an endless accelerando that never arrives, a bass that is not there: the listener's ear is the instrument."
+      }
+    },
+    {
+      "id": "chirpers11-t6",
+      "song": "songs/chirpers11-t6.yaml",
+      "reference": "chirpers — Track 6 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers11-t6 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "clicky minimal techno",
+      "mode": "compose",
+      "album": "chirpers11",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Chirpers 11 (unnamed)",
+        "title": "Track 6 (untitled)",
+        "track": 6,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-11-26T03:18:24Z",
+        "note": "COMPOSE (song, 300-480 s): MATHY EFFECTS. Effects driven by numbers: delay times in ratios, filters on prime-length cycles, a phaser at a polymetric rate, pitch in a feedback loop; say the rule in the note."
+      }
+    },
+    {
+      "id": "chirpers11-t7",
+      "song": "songs/chirpers11-t7.yaml",
+      "reference": "chirpers — Track 7 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers11-t7 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "clicky minimal techno",
+      "mode": "compose",
+      "album": "chirpers11",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Chirpers 11 (unnamed)",
+        "title": "Track 7 (untitled)",
+        "track": 7,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-11-26T03:18:24Z",
+        "note": "COMPOSE (song, 300-480 s): PHASE. Two or more loops of nearly the same length drifting apart and back (the long arc of minimal), so the pattern is never the same twice and always the same."
+      }
+    },
+    {
+      "id": "chirpers11-t8",
+      "song": "songs/chirpers11-t8.yaml",
+      "reference": "chirpers — Track 8 (untitled)",
+      "source": null,
+      "owner": null,
+      "metric": "python3 tools/compscore.py chirpers11-t8 OUT.wav",
+      "best": null,
+      "passes": 1,
+      "enabled": false,
+      "status": "requested",
+      "rounds": 0,
+      "priority": 1.0,
+      "genre": "clicky minimal techno",
+      "mode": "compose",
+      "album": "chirpers11",
+      "meta": {
+        "artist": "chirpers",
+        "album": "Chirpers 11 (unnamed)",
+        "title": "Track 8 (untitled)",
+        "track": 8,
+        "year": 2026
+      },
+      "requested": {
+        "by": "chirp-eco",
+        "at": "2026-11-26T03:18:24Z",
+        "note": "COMPOSE (closer, 300-540 s): CLOSER. The album's motifs come home: whatever the other seven made (a click, a room, a rule), gathered and let go."
+      }
     }
   ],
   "focus": "Common Time"
