@@ -65,6 +65,11 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
 - Least Common v3: its last 105 sixteenths (six and a half bars) changed. The big cycles lose their fillings and the
   small ones come back, 2 to 4 dB thinner above 5 kHz; the drum is as it was. The t2 -> t3 line wants reading again.
 - Ring True v3: bars 1 to 32 and the last 56 are as they were (the listening breaks are bars 33 to 116).
+- Small Change v3 (09:08): its opening is no longer two silent bars in every four. One seed now rings four bars
+  (-18 -21 -27 -34 dB a bar where it was -18 -36 -56 -81), so the t5 -> t6 dissolve has no hole before the drum;
+  the bar before the drum is -34. Its last sixteen bars are as they were. Not re-rendered.
+- Wind Down v3 (08:40): its first 140 bars are as they were (t7 -> t8 untouched); the last 26 seconds, the
+  spring running down, now sink in pitch to G4, which is what the loop back to Give or Take is cut against.
 
 ## Open
 - No `swap` column yet: in every overlap but t1 -> t2 the incoming track has no low end to swap in, so the lows are
