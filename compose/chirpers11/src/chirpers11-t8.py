@@ -16,12 +16,33 @@ and an octave down, lands ON the one, where that click has never been.
   from 6 Small Change      one seed every two bars and a pair of coins, 3 and 5, a fifth up and a fourth down
 The click itself is Ring True's wooden bar playing Give or Take's grid: a note stopped too soon, until the end.
 
+v2 (26 Nov): WHAT THE SONGS LEARNT SINCE. The seven grew after v1 quoted them, and chirper-zero offered three of
+his (06:04): the closer takes one more thing from four of them, and one from the album's name. Six switches, each
+`--without-…` (all six off is v1 byte for byte):
+  CATCH   the escapement itself. In the last bar before each thing comes the wheel is caught: everything stops but
+          the click (in its room, once it has one), and on the one it is let go with the new thing in it. Seven
+          catches, the last before all are gathered. Nothing is caught on the way out: that is the winding down.
+  COMP    from 7 Out of Step v2: the complement . . x . x . . x, a small bright click in the pattern's three holes.
+          It fits only when everything is home, so it plays through the hold and no longer: for those 32 bars every
+          sixteenth of the bar is struck.
+  HAT     from 5 Hearing Things: its hat, backwards. From the bar the first thing leaves to the bar the drum goes, a
+          hat that slows down through every eight bars and starts the next where it started the last: the song has
+          been winding down for a minute and a half before the tempo moves.
+  LEARNT  from 3 Standing Room v3: when the room goes, what is left of it is in the bass. For the eight bars after
+          its door shuts the bass plays the room's three-three-two (D F C D F C on sixteenths 2 5 7 10 13 15).
+  STOP    from 1 Give or Take v3: the stop. The spring does not run down in a straight line against the beat (v1): it
+          loses speed in a straight line against the clock, as a platter does when the motor goes off: slowly, then
+          all at once. Speed sqrt(1 - 2x / W) after x beats, W chosen so that a fifth of it is left on the one
+          (v1 kept two fifths): the last ticks are nearly two seconds apart.
+  TUCK    the click 3 dB lower while anything else plays (it stood 14 dB over the envelope at its own note), and as
+          it was while it is alone.
+
 Form as arithmetic: GATHER lists the things in the order they come; each comes STEP bars after the last, all are
 held for HOLD bars, they go in reverse order LEAVE bars apart, and the last WIND bars are the spring running down.
 """
 import argparse
 import json
-from math import log, log10
+from math import log, log10, log2, pi, sin, sqrt
 from pathlib import Path
 
 BPM, SLOW = 124, 50
@@ -52,6 +73,45 @@ COINS, UP, DOWN, GIVE = (3, 5), 7, -5, 0.62
 LAG = {UP: 19.7, DOWN: 23.8}                # ms the pitch effect is late (Small Change's bench)
 WOOD = (0.015, 1.0)                         # the bar's ring time, seconds: stopped, let go
 OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
+
+# ---- v2: the switches and their numbers. Nothing above is changed by them.
+ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True}
+CATCHES = sorted({COMES[k] - 1 for k in GATHER[1:]} | {ALL - 1})   # the bar before each coming, and before all are gathered
+LEFT = 0.2                                                    # the share of its speed the spring has left on the one, with STOP
+COMP = tuple(s for s in range(8) if s not in PATTERN)        # the pattern's holes: 2, 4, 7
+COMP_BARS = (ALL, ALL + HOLD)                                 # home: the hold
+HAT_BARS = (ALL + HOLD, RUNS_DOWN)                            # from the first leaving to the drum's
+ROW, LAYERS, COUNT, QUIET = 8, 4, 23, 0.04                    # Hearing Things' numbers: bars in a row, layers, the slowest layer's count, the softest stroke kept
+LEARNT = ((2, 'D2'), (5, 'F2'), (7, 'C2'), (10, 'D2'), (13, 'F2'), (15, 'C2'))   # Standing Room's bass once it has learnt the room
+LEARNT_BARS = (GOES['room'], GOES['room'] + LEAVE)
+W_STOP = 2 * WIND * 4 / (1 - LEFT ** 2)                       # beats a platter would take to stop if LEFT of its speed is left after WIND bars
+TUCK = 3                                                      # dB
+NEW = {
+    'wd-comp': {'about': "Wind Down: the complement's click (after Out of Step v2): two cycles of a saw on G5 dying in 12 ms, above 3 kHz, lifted round 10 kHz.",
+                'synth': {'layers': ['saw phase=0'], 'filters': ['hp cutoff=3000', 'peak cutoff=10000 q=0.7 gain=8dB'], 'amp': {'a': '0.1ms', 'd': '12ms', 's': 0, 'r': '8ms', 'curve': 3}},
+                'play': {'event_stable': True, 'vel_sens': 0.5}},
+    'wd-hat': {'about': "Wind Down: the hat (after Hearing Things): the machine's hat, 28 ms, above 5 kHz, whose loudness is all velocity.",
+               'synth': {'layers': [{'type': 'machine', 'machine': {'part': 'hat', 'decay': '28ms'}}], 'filters': ['hp cutoff=5000'], 'amp': {'a': '0.1ms', 'd': '0s', 's': 1, 'r': '120ms'}},
+               'play': {'event_stable': True, 'vel_sens': 1.0}},
+}
+
+
+def slowing():
+    """One row of the hat that slows down for ever (Hearing Things' risset, backwards): (beat in the row, velocity).
+    Stroke n of the finest layer falls CYCLE * log2(n / n0) beats before the row's end; it belongs to every layer whose
+    count it divides into, and its loudness is the sum of their windows."""
+    cycle, n0, out = ROW * 4, COUNT * 2 ** (LAYERS - 1), []
+    for n in range(n0, 2 * n0):
+        t = cycle * log2(n / n0)
+        v = sum(sin(pi * (t / cycle + j) / LAYERS) ** 2 for j in range(LAYERS) if n % 2 ** (LAYERS - 1 - j) == 0) / (LAYERS / 2)
+        if v >= QUIET:
+            out.append(((cycle - t) % cycle, v))
+    return sorted(out)
+
+
+def speed(x):
+    """The spring's speed x beats into the wind-down, as a share of full speed."""
+    return sqrt(1 - 2 * x / W_STOP) if ON['stop'] else 1 + (SLOW / BPM - 1) * x / (WIND * 4)
 
 open_amp = {'a': '0.2ms', 'd': '0s', 's': 1, 'r': '2.5s', 'curve': 1}
 PATCHES = {
@@ -94,12 +154,16 @@ def wood(at, pitch, vel, r):
     return {'at': round(at, 4), 'len': 0.25, 'pitch': pitch, 'vel': vel, 'expr': {'ring': round(ring_s(r) - WOOD[0], 5)}, 'gain': f'{round(-5 * max(r, 0), 2)}dB'}
 
 
+def caught(bar):
+    return ON['catch'] and bar in CATCHES
+
+
 def here(thing, bar):
-    return COMES[thing] <= bar < GOES[thing]
+    return COMES[thing] <= bar < GOES[thing] and not caught(bar)
 
 
 def build():
-    T = {k: [] for k in ('kick', 'tick', 'saw', 'ghost', 'cell', 'ping', 'chord', 'seed')}
+    T = {k: [] for k in ('kick', 'tick', 'saw', 'ghost', 'cell', 'ping', 'chord', 'seed', 'comp', 'hat')}
     for bar in range(BARS):
         b = bar * 4
         down = bar >= RUNS_DOWN
@@ -107,16 +171,25 @@ def build():
         r = SHUT + (1 - SHUT) * (bar - RUNS_DOWN + 1) / (WIND + 1) if down else SHUT
         for s in (2, 6, 10, 14):
             T['tick'].append(wood(b + s / 4, TICK, .8 if s in (2, 10) else .7, r))
-        if DRUM_IN <= bar < RUNS_DOWN:
+        if DRUM_IN <= bar < RUNS_DOWN and not caught(bar):
             for beat in range(4):
                 T['kick'].append({'at': b + beat, 'len': 0.5, 'pitch': 'G1', 'vel': .95 if beat == 0 else .88})
         if here('pattern', bar):
             for half in (0, 8):
                 for s in PATTERN:
                     T['saw'].append({'at': b + (half + s) / 4, 'len': 0.2, 'pitch': 'G3', 'vel': .8 if s == 0 else .62})
-        if here('ghost', bar):
+        if here('ghost', bar) and ON['learnt'] and LEARNT_BARS[0] <= bar < LEARNT_BARS[1]:
+            for s, pitch in LEARNT:                          # the room has gone: the bass plays what it learnt of it
+                T['ghost'].append({'at': b + s / 4, 'len': 0.45, 'pitch': pitch, 'vel': .88 if s == 2 else .8})
+        elif here('ghost', bar):
             for i, s in enumerate((2, 6, 10, 14)):
                 T['ghost'].append({'at': b + s / 4, 'len': 0.45, 'pitch': GHOST[bar % 4][i], 'vel': .85})
+        if ON['comp'] and COMP_BARS[0] <= bar < COMP_BARS[1]:
+            for half in (0, 8):
+                for s in COMP:
+                    T['comp'].append({'at': b + (half + s) / 4, 'len': 0.1, 'pitch': 'G5', 'vel': .75})
+        if ON['hat'] and HAT_BARS[0] <= bar < HAT_BARS[1] and (bar - HAT_BARS[0]) % ROW == 0 and bar + ROW <= HAT_BARS[1]:
+            T['hat'] += [{'at': round(b + t, 4), 'len': 0.1, 'pitch': 'A5', 'vel': round(v, 3)} for t, v in slowing()]
         if here('cell', bar):
             lo, hi = LET_GO
             r = STOPPED if bar < lo else 1 if bar >= hi else STOPPED + (1 - STOPPED) * (bar - lo) / (hi - lo)
@@ -147,7 +220,11 @@ def door(thing):
 def alone():
     """The click's fader ride: ALONE dB before the drum comes, 0 while anything else plays, back up over the first bar of the wind-down."""
     a, z = DRUM_IN * 4, RUNS_DOWN * 4
-    return {'points': [['0b', ALONE], [f'{a - 0.5}b', ALONE], [f'{a}b', 0], [f'{z}b', 0], [f'{z + 4}b', ALONE], [f'{BARS * 4 + 4}b', ALONE]], 'curve': 0}
+    up = ALONE + (TUCK if ON['tuck'] else 0)
+    pts = [['0b', up], [f'{a - 0.5}b', up], [f'{a}b', 0]]
+    for bar in (CATCHES if ON['catch'] else []):              # the click is alone in a caught bar too
+        pts += [[f'{bar * 4 - 0.25}b', 0], [f'{bar * 4}b', up], [f'{bar * 4 + 3.5}b', up], [f'{bar * 4 + 4}b', 0]]
+    return {'points': pts + [[f'{z}b', 0], [f'{z + 4}b', up], [f'{BARS * 4 + 4}b', up]], 'curve': 0}
 
 
 def song():
@@ -165,10 +242,12 @@ def song():
         buses[me] = {'pan': side, 'fx': [{'type': 'pitch', 'semitones': semi, 'mix': 1}, 'lp cutoff=10000', 'hp cutoff=150'],
                      'returns': [{'from': 'seed', 'gain': '0dB', 'time': t}, {'from': me, 'gain': db(GIVE), 'time': t}, {'from': you, 'gain': db(GIVE), 'time': t}]}
     end = BARS * 4
-    return {
+    doc = {
         'about': "Chirpers, Escapement, track 8: Wind Down, by chirper-one. Generated by compose/chirpers11/src/chirpers11-t8.py (its docstring is the rule). The closer: one thing from each of the other seven songs, gathered a section at a time on one grid in G minor, held, and let go one at a time until the click that opened the record is alone; then the tempo runs down from 124 to 50 and the last stroke, let ring, lands on the one.",
         'meta': {'artist': 'chirpers', 'album': 'Escapement', 'title': 'Wind Down', 'track': 8, 'year': 2026},
-        'tempo': [{'at': '0b', 'bpm': BPM}, {'at': f'{RUNS_DOWN * 4}b', 'bpm': BPM}, {'at': f'{end}b', 'bpm': SLOW, 'ramp': True}],
+        'tempo': [{'at': '0b', 'bpm': BPM}, {'at': f'{RUNS_DOWN * 4}b', 'bpm': BPM}] +
+                 ([{'at': f'{RUNS_DOWN * 4 + x}b', 'bpm': round(BPM * speed(x), 3), 'ramp': True} for x in range(1, WIND * 4 + 1)] if ON['stop'] else
+                  [{'at': f'{end}b', 'bpm': SLOW, 'ramp': True}]),
         'seed': 1, 'event_stable': True, 'length': f'{end + 4}b', 'tail': '4s', 'ceiling': '-1dB', 'true_peak': True, 'loudness': -12,
         'patches': PATCHES, 'buses': buses,
         'master': {'fx': [{'type': 'eq', 'bands': ['hp cutoff=28']}]},
@@ -183,6 +262,16 @@ def song():
             {'name': 'seed', 'patch': 'wd-seed', 'gain': '-6dB', 'notes': T['seed'], 'fx': [hold(-12)]},
         ],
     }
+    by_name = {t['name']: t for t in doc['tracks']}
+    if ON['tuck']:
+        by_name['tick']['gain']['value'] = f"{float(by_name['tick']['gain']['value'][:-2]) - TUCK:g}dB"
+    if ON['comp']:
+        doc['patches'] = {**doc['patches'], 'wd-comp': NEW['wd-comp']}
+        doc['tracks'].append({'name': 'comp', 'patch': 'wd-comp', 'gain': '-6dB', 'pan': 0.2, 'notes': T['comp']})
+    if ON['hat']:
+        doc['patches'] = {**doc['patches'], 'wd-hat': NEW['wd-hat']}
+        doc['tracks'].append({'name': 'hat', 'patch': 'wd-hat', 'gain': '6dB', 'pan': -0.2, 'notes': T['hat'], 'sends': {'hall': '-18dB'}})
+    return doc
 
 
 def dump(doc):
@@ -201,6 +290,8 @@ def clock(bar):
     t = min(bar, RUNS_DOWN) * 4 * 60 / BPM
     if bar > RUNS_DOWN:
         n, x = WIND * 4, (bar - RUNS_DOWN) * 4
+        if ON['stop']:                                        # a platter's: x beats take W - sqrt(W^2 - 2 W x) beats of full speed
+            return t + 60 / BPM * (W_STOP - sqrt(W_STOP ** 2 - 2 * W_STOP * x))
         k = (SLOW - BPM) / n
         t += 60 / k * log((BPM + k * x) / BPM)
     return t
@@ -210,10 +301,18 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
+    for k in ON:
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'v2: leave out {k} (all five off is v1)')
     a = ap.parse_args()
+    for k in ON:
+        ON[k] = not getattr(a, f'without_{k}')
     if a.form:
         marks = sorted([(COMES[k], f'{k} comes') for k in GATHER] + [(DRUM_IN, 'the drum comes'), (ALL, 'all gathered'), (LET_GO[0], 'the cell is let go')] +
-                       [(GOES[k], f'{k} goes' if k != 'grid' else 'the drum goes; the spring runs down') for k in GATHER] + [(BARS, 'the last stroke, on the one')])
+                       [(GOES[k], f'{k} goes' if k != 'grid' else 'the drum goes; the spring runs down') for k in GATHER] + [(BARS, 'the last stroke, on the one')] +
+                       ([(b, 'caught') for b in CATCHES] if ON['catch'] else []) +
+                       ([(COMP_BARS[0], 'the complement fills the holes'), (COMP_BARS[1], 'the complement goes')] if ON['comp'] else []) +
+                       ([(HAT_BARS[0], 'the hat that slows for ever')] if ON['hat'] else []) +
+                       ([(LEARNT_BARS[0], "the bass plays the room's figure"), (LEARNT_BARS[1], 'the bass is itself again')] if ON['learnt'] else []))
         for bar, what in marks:
             t = clock(bar)
             print(f'bar {bar + 1:3d}  {int(t) // 60}:{t % 60:05.2f}  {what}')
