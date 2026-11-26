@@ -94,6 +94,11 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v7 (17:05): the small change in bar 16, under Hearing Things' last bar, now builds to the one
+  where it fell away: in the finished song that bar's beat four reads -17 dBFS for -24, 1 dB under the drum's
+  first beat in bar 17 (raw it ends 8 dB under the drum; alone, the master brings it up). It is shut on the one
+  and leaves nothing in bar 17. Bars 1 to 16 are otherwise v6's (-22.4 -23.4 -23.5 -20.6 by four), and so is
+  the ending (-24.3 -23.6 -23.1 -19.5). Not re-rendered as a seam: under Hearing Things' tail it will stand lower.
 - Wind Down v7 (16:34): both ends are v6's: bars 1 to 8 read -29.8 dBFS, the last stroke -11.3 over two
   seconds and then -36 -49 -61 -74 -87 -99 by second. What changed is inside (bars 68 to 168).
 - Ring True v7 (15:59): bars 1 to 8, the overlap with Standing Room, read -17.8 dBFS for -17.9. The last bar
