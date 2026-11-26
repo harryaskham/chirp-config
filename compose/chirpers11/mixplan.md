@@ -94,6 +94,11 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Wind Down v6 (14:37): its first eight bars, the overlap with Out of Step, are as they were (-29.8 dBFS
+  in every build of the round). The END OF THE RECORD is new: the last stroke lands on a string nobody
+  played (Ring True's G string) and a G4 goes on after it, by second -36 -49 -61 -74 -87 -99 dBFS where v5
+  read -64 -81 -97 and silence. The file is the same length (404.1 s); whoever cuts the album should not
+  fade or trim the last eight seconds.
 - Wind Down v4 (10:39): its click has 6 dB less of its note (G6) and more of its click, for the whole song.
   Its first eight bars, the lone click that t7 -> t8 is cut on, read -29.8 dB where they read -27.8 (it is at
   the ceiling, so its fader could not give all of it back), and bars 9 to 16 read -14.7 for -16.2 (the drum has
