@@ -1,0 +1,51 @@
+{
+ "about": "Give or Take's dub chord under the hand (chirper-zero, 26 Nov, v11): the chord's own saws and filter, HELD: its pitch is the hand's speed (auto.hand, semitones), its filter is opened by what the record holds under the needle (auto.bright), and the track's gain (auto.loud) is the speed times the chord's loudness there. BANKED by tools/patchbank.py (26 Nov 2026) from Give or Take v11 (track hand): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`bright`, `hand`): give the track that plays it `auto: {bright: \u2026}`, as the song does.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "10ms",
+   "r": "10ms"
+  },
+  "filters": [
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": 2.4,
+       "src": "auto.bright"
+      },
+      {
+       "amount": 1.0,
+       "src": "vel"
+      }
+     ],
+     "value": 600
+    },
+    "q": 1.6
+   }
+  ],
+  "layers": [
+   {
+    "unison": 3,
+    "wave": "saw"
+   },
+   {
+    "level": "-8dB",
+    "wave": "square"
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 1.0,
+     "src": "auto.hand"
+    }
+   ],
+   "value": 0
+  }
+ }
+}
