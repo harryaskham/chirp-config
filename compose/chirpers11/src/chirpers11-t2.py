@@ -99,6 +99,25 @@ every 7. Those meetings, a click with the drum, were the only ones in the song t
          knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
          song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
 
+v11 (26 Nov): THE BASS WALKS TO THE PAGE TURN. Two switches (`--without-hold`, `-lend`; both off is v10 byte
+for byte):
+  HOLD   before a page turns the four stops and the clicks walk to the turn alone, meeting two at a time as they
+         go. Since v2 the bass has played the note of the last meeting; in the break it stopped with the others.
+         Now it comes back EARLY: at the break's last meeting of two (the three and the five, fifteen sixteenths
+         before the turn) it takes that meeting's note, D, and holds it to the turn, with no drum over it, 10 dB
+         under where it plays in the groove; and the turn's own note, G, is the one the drum comes back on. A
+         fifth below the one, held into it: the page turn is led into. Only where the bass is already in (the
+         turns into pages 3, 4, 7 and 8), and not in the run-down (the card on it is not answered).
+         FIRST BUILT WITH EVERY MEETING HELD (F, D, B flat, D; and D, D, B flat, F, D, B flat, D): a slow line
+         under the whole break. Rendered in full it scored 1.1 LOWER (97.03 and 96.88 for 98.16 and 98.09): the
+         scorer's sections fell from 10 and 9 to 7 and 6 at its two highest cuts, because a break with the
+         bass's band filled is less of a break and the page turns stopped reading as boundaries. That is a
+         musical fact too, not only the scorer's. `HOLD['last'] = 0` is that build.
+  LEND   page 6's turn (v10: the drum rests where the three and the five meet on it, and the knock has the
+         beat) is given to the first half as well, one size down: on page 4, where the three and the five
+         SIXTEENTHS meet on the drum, fifteen beats apart, the drum rests three times before the clock begins to
+         run down, and the knock (which comes in on that page) has the beat. The two halves rhyme.
+
 v10 (26 Nov): EACH OF THE FOUR TAKES A TURN. Since v9 the clap counts with the three on page 7 and the hat with
 the five on page 8; the drum and the bass had not left the four. Three switches (`--without-skip`, `-leap`, `-back`;
 all three off is v9 byte for byte):
@@ -199,7 +218,10 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True}
+      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True}
+HOLD = {'db': -13, 'vel': .8, 'pages': (2, 3, 6, 7), 'last': 1}   # v11: dB and touch on the held notes (the bass is not ducked there: no drum); the pages (from 0) whose turn the bass walks into; how many of the break's last meetings it holds (0: all of them).
+# Bench (hold.sh, holdread.py, raw, by beat): at -3 dB the held bass alone read -24.5 dBFS through the first half's break, where everything else reads -36.8 and the groove before it -21.8: the break was 12 dB up and no longer a break (10 dB up and level with the groove in the second half's). 10 dB less: under the clicks, not over them
+LEND = {'page': 3, 'meet': (3, 5)}     # v11: the first half's page (from 0) on which the drum rests where two of the small cycles meet on it; the two
 BACK = 2                                # v10: dB on the bass through the second half
 SKIP = {'page': 5, 'meet': (3, 5)}     # v10: the page (from 0) on which the drum rests where two cycles meet; the two
 LEAP = {'page': 7, 'cycle': 7, 'within': 6, 'db': -2}   # v10: the page on which the bass counts with a cycle; the cycle, beats; sixteenths after its knock within which the bass's next note is looked for; dB on that note, an octave up
@@ -453,7 +475,8 @@ def build():
         if len(here) == 3:
             add('chord', s, 2, ','.join(CHORD), .85 if s % BEAT == 0 else .7)
         if s % BEAT == 0 and n != last and not broken(s):
-            add('kick', s, 2, 'G1', .95 if s % BAR == 0 else .88)
+            if not (ON['lend'] and ON['knock'] and s // PAGE == LEND['page'] and not running_down(s) and met == LEND['meet']):   # v11 LEND: the beat is the answer's
+                add('kick', s, 2, 'G1', .95 if s % BAR == 0 else .88)
             knock(s)
     marks += [('first half: three, five and seven sixteenths', 0)] + [(f'page {p + 1} (the three meet on beat {p * PAGE // BEAT % 4 + 1})', p * PAGE) for p in range(1, pages)]
     marks += [('the clock begins to run down, ' + ('only the drum left of the four' if ON['bare'] else 'the four still playing'), (last - 1) * SUPER)] * (ON['slow'] and ON['rundown']) + [('the four stops', last * SUPER)]
@@ -511,6 +534,8 @@ def build():
     marks += [("each click's echo keeps its old cycle: 3, 5 and 7 sixteenths under 3, 5 and 7 beats", HALF)] * ON['ghost'] + [(f'the clicks are struck {FORE} dB harder', HALF)] * ON['fore']
     marks += [(f"the clap counts with the three: every third beat, the beat after the knock" + (', from side to side' if ON['sway'] else ''), COUNT['page'] * PAGE)] * ON['count']
     marks += [("the hat counts with the five: the first hat after each of its knocks is let ring", OPEN['page'] * PAGE)] * ON['open']
+    marks += [(f'the drum gives beat {s // BEAT % 4 + 1} to the answer: the three and the five sixteenths meet on it', s) for s in range(LEND['page'] * PAGE, (LEND['page'] + 1) * PAGE, BEAT)
+              if ON['lend'] and ON['knock'] and not running_down(s) and not broken(s) and tuple(c for c in CYCLES if s % c == 0) == LEND['meet']]
     marks += [(f'the bass is struck {BACK} dB harder', HALF)] * ON['back']
     marks += [("the drum rests where the three and the five meet: every fifteen beats, five times; the sixth is the break", HALF + (SKIP['page'] - pages) * PAGE)] * ON['skip']
     marks += [("the bass counts with the seven: the note after each of its knocks is an octave up", HALF + (LEAP['page'] - pages) * PAGE)] * ON['leap']
@@ -524,6 +549,15 @@ def build():
     # In the last supercycle of the first half the four stops (the drum too) and comes back on the one; in the last
     # supercycle of the second half only the four is left of its parts (the drum), under the clicks, to the end.
     cell = ((2, 1.5, 'G2'), (7, 1, 'G2'), (10, 1, 'Bb2'), (14, 1.5, 'G2'))
+    if ON['hold'] and ON['roots']:                            # v11 HOLD: through a break the bass holds each meeting's note to the next
+        for t in [x for x in TURNS * ON['break'] + TURNS2 * ON['rest'] if x // PAGE in HOLD['pages']]:
+            lo = t - (BREAK if t < HALF else REST)
+            meets = [s for s in range(lo, t) if len([c for c in CYCLES if (s - (HALF if t > HALF and ON['line'] else 0)) % c == 0]) >= 2]
+            meets = meets[-HOLD['last']:] if HOLD['last'] else meets
+            for s, nxt in zip(meets, meets[1:] + [t]):
+                add('bass', s, nxt - s, roots[s], HOLD['vel'], gain=f"{HOLD['db'] + (BACK if ON['back'] and s >= HALF else 0)}dB")
+            marks.append(((f"the bass comes back early and holds the last meeting's note to the turn: " if HOLD['last'] else "the bass holds each meeting's note to the next: ") + ' '.join(roots[s] for s in meets), meets[0]))
+        marks.sort(key=lambda m: m[1])
     for s0 in range(0, TOTAL, BAR):
         page = s0 // PAGE
         if last * SUPER <= s0 < HALF or s0 >= HALF + last * SUPER:
@@ -667,7 +701,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v9, the last six v8, the last eight v7, the last eleven v6, the last twelve v5, the last fifteen v4, the last twenty v3, the last twenty-eight v2, all thirty-four v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v10, the last five v9, the last eight v8, the last ten v7, the last thirteen v6, the last fourteen v5, the last seventeen v4, the last twenty-two v3, the last thirty v2, all thirty-six v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
