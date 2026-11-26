@@ -94,6 +94,9 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Least Common v7 (15:32): both ends are as they were (the first sixteen beats -17.2 dBFS in v6 and v7, the
+  last sixteen -16.8 for -16.7). What changed is inside pages 6 to 8: the drum's low answer turns over a
+  page at a time and carries on through the three breaks; none of it in the last four bars.
 - Small Change v6 (15:04): its first sixteen bars, the overlap with Hearing Things, have one new sound: a
   flurry on beat three of bar 16 (small change before the drum comes), -18 dBFS on its beat, the level of
   the opening's lone seeds; bars 13 to 16 read -20.8 for -21.5 and bars 1 to 12 are as they were. Its last
