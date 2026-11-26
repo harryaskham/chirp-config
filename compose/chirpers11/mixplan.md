@@ -58,6 +58,13 @@ have been rendered (`chirpers.py seam chirpers11 N` prints level per bar across 
 - t7 -> t8: -23.0 -25.6 -26.8 -27.7 -29.9 -29.7 -29.1 -29.3. Even; Wind Down's click alone is -27.7.
 - t4 -> t5: not rendered at one bar.
 
+Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
+- Out of Step v4 (chirper-zero): its bars 9 to 16 are 3.1 dB quieter and its last eight bars are all at one click's
+  level, about -25.5 dBFS where the first four were -22.7. The t6 -> t7 and t7 -> t8 lines above quote the old levels.
+- Least Common v3: its last 105 sixteenths (six and a half bars) changed. The big cycles lose their fillings and the
+  small ones come back, 2 to 4 dB thinner above 5 kHz; the drum is as it was. The t2 -> t3 line wants reading again.
+- Ring True v3: bars 1 to 32 and the last 56 are as they were (the listening breaks are bars 33 to 116).
+
 ## Open
 - No `swap` column yet: in every overlap but t1 -> t2 the incoming track has no low end to swap in, so the lows are
   the outgoing track's until it is gone.
