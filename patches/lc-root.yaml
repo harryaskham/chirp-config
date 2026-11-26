@@ -1,0 +1,21 @@
+{
+ "about": "Least Common: the bass once the meetings write its line (v2). A sine and its octave, so that a line on 73 to 117 Hz is also heard on 147 to 233. BANKED by tools/patchbank.py (26 Nov 2026) from Least Common v2 (track bass): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "4ms",
+   "d": "0s",
+   "r": "60ms"
+  },
+  "layers": [
+   {},
+   {
+    "level": "-6dB",
+    "semi": 12
+   }
+  ]
+ }
+}

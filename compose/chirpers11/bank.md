@@ -20,23 +20,26 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `ht-tick` | Hearing Things v1 (track tick) | Hearing Things' click (chirper-zero, 26 Nov): the machine's rim, 35 ms, on E5; on the off-beats from the first bar to the last. |
 | `lc-chord` | Least Common v1 (track chord) | Least Common: what three clicks make when they meet. A short filtered chord for a delay to carry. |
 | `lc-clap` | Least Common v1 (track clap) | Least Common: two and four. The drum machine's clap, short. |
-| `lc-five` | Least Common v1 (track five) | Least Common: the click that counts five. A small wooden bar (1 : 4 : 10) struck hard and damped at once: a tock on G. |
 | `lc-hat` | Least Common v1 (track hat) | Least Common: the off beat. The drum machine's hat, closed. |
 | `lc-kick` | Least Common v1 (track kick) | Least Common: the four. The drum machine's bass drum resting on G, short enough to leave the sixteenth before the next beat empty. |
 | `lc-ping` | Least Common v1 (track ping) | Least Common: what two clicks make when they meet. A vibraphone bar with no motor, half a second long. |
+| `lc-root` | Least Common v2 (track bass) | Least Common: the bass once the meetings write its line (v2). A sine and its octave, so that a line on 73 to 117 Hz is also heard on 147 to 233. |
 | `lc-seven` | Least Common v1 (track seven) | Least Common: the click that counts seven. The drum machine's rim, tuned to G: two short pings and a click, a knock. |
 | `lc-three` | Least Common v1 (track three) | Least Common: the click that counts three. Ten milliseconds of noise above 5 kHz: a tick with no note. |
+| `lc-tock` | Least Common v2 (track five) | Least Common: the click that counts five, once it has a tune (v2). The same wooden bar damped twice as fast, so that a note it keeps for twenty strokes is a colour and not a drone. |
 | `lc-tone` | Least Common v1 (track tone) | Least Common: the meetings one size up. A plain held tone, a sine and a little of its octave, that takes a beat to arrive. |
 | `os-bass` | Out of Step v1 (track bass) | Out of Step's bass (chirper-zero, 26 Nov): three pairs of sines, at G2 and its second and third harmonics, each pair 2.1 Hz apart (one cycle a beat at 126; ratio 1.021429 for G2 ONLY: another note needs its own ratio). T… |
 | `os-clap` | Out of Step v1 (track clap) | Out of Step's clap (chirper-zero, 26 Nov): the machine's clap, three bursts, short, dry. |
 | `os-click` | Out of Step v1 (tracks a, b) | Out of Step's click (chirper-zero, 26 Nov): five cycles of a saw on G3 dying in 22 ms, lifted 9 dB round 9 kHz, started at the same point of its wave every time, through a low-pass that both clicks share (it opens with t… |
+| `os-comp` | Out of Step v2 (track c) | Out of Step's third click (chirper-zero, 26 Nov, v2): the complement's. Two cycles of a saw on G5 dying in 12 ms, above 3 kHz, lifted 8 dB round 10 kHz: small and bright, so that it is heard as the holes being filled and… |
 | `os-hat` | Out of Step v1 (track hat) | Out of Step's hat (chirper-zero, 26 Nov): the machine's hat, 45 ms, on the off-beats once the two clicks are home. |
 | `os-kick` | Out of Step v1 (track kick) | Out of Step's bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, on G1. |
 | `rt-air` | Ring True v1 (track air) | Ring True: the air. Three milliseconds of noise into a resonator tuned to the note (a band-pass); how long it sings comes from the stroke (expr.ring, on its q). |
+| `rt-boom` | Ring True v2 (track weight) | Ring True: the weight as a thing that can ring true. The felt beater's thud on a skin (fixed), and under it a kettledrum head on the same note whose ring time comes from the stroke (expr.ring, seconds over 0.04). |
 | `rt-metal` | Ring True v1 (track metal) | Ring True: the metal. A steel bar (1 : 2.76 : 5.40 : 8.93); its ring time from the stroke (expr.ring, seconds over 0.012). |
+| `rt-plate` | Ring True v2 (tracks plate, plate-room) | Ring True: the plate, the thing that rings false. A small thin plate (dense inharmonic modes) struck near its edge; its ring time from the stroke (expr.ring, seconds over 0.010). Stopped, a bright tick; let go, a wash an… |
 | `rt-skin` | Ring True v1 (track skin) | Ring True: the skin. A kettledrum head (the air in the kettle pulls its modes to 1 : 1.5 : 2 : 2.5, so it sings its note); its ring time from the stroke (expr.ring, seconds over 0.03). |
 | `rt-string` | Ring True v1 (track string) | Ring True: the string. A plucked string whose ring time comes from the stroke (expr.ring, seconds over 0.03): a palm on it, lifted. |
-| `rt-weight` | Ring True v1 (track weight) | Ring True: the weight. A bass drum as a thing: a felt beater on a skin, its ring time from the stroke (expr.ring, seconds over 0.25). |
 | `rt-wood` | Ring True v1 (track wood) | Ring True: the wood. A small bar (1 : 4 : 10) struck near its middle; its ring time from the stroke (expr.ring, seconds over 0.015). |
 | `sc-kick` | Small Change v1 (track kick) | Small Change: the drum. The machine's bass drum on G, short. |
 | `sc-seed` | Small Change v1 (tracks seed-a, seed-b, seed-c) | Small Change: the seed. One vibraphone bar with no motor, short, with two milliseconds of noise on its front (a click that the coins carry too): the only struck note in the song. |

@@ -1,0 +1,41 @@
+{
+ "about": "Ring True: the weight as a thing that can ring true. The felt beater's thud on a skin (fixed), and under it a kettledrum head on the same note whose ring time comes from the stroke (expr.ring, seconds over 0.04). BANKED by tools/patchbank.py (26 Nov 2026) from Ring True v2 (track weight): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "curve": 1.0,
+   "d": "0s",
+   "r": "2.5s"
+  },
+  "layers": [
+   {
+    "beater": "felt",
+    "decay": 0.35,
+    "sharp": 60.0,
+    "slap": 0.4,
+    "strike": 0.15,
+    "type": "drum"
+   },
+   {
+    "bright": 0.4,
+    "decay": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ring"
+      }
+     ],
+     "value": 0.04
+    },
+    "level": "-3dB",
+    "modes": "kettle",
+    "strike": 0.2,
+    "type": "modal"
+   }
+  ]
+ }
+}

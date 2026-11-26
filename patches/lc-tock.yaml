@@ -1,0 +1,24 @@
+{
+ "about": "Least Common: the click that counts five, once it has a tune (v2). The same wooden bar damped twice as fast, so that a note it keeps for twenty strokes is a colour and not a drone. BANKED by tools/patchbank.py (26 Nov 2026) from Least Common v2 (track five): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "d": "45ms",
+   "r": "20ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "bright": 0.8,
+    "damp": 0.4,
+    "decay": "28ms",
+    "modes": "bar",
+    "strike": 0.4,
+    "type": "modal"
+   }
+  ]
+ }
+}
