@@ -94,6 +94,11 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v6 (15:04): its first sixteen bars, the overlap with Hearing Things, have one new sound: a
+  flurry on beat three of bar 16 (small change before the drum comes), -18 dBFS on its beat, the level of
+  the opening's lone seeds; bars 13 to 16 read -20.8 for -21.5 and bars 1 to 12 are as they were. Its last
+  sixteen bars, the side Out of Step comes in over, are as they were (-24.1 -23.3 -23.0 -19.2 by four bars
+  for -24.0 -23.3 -22.9 -19.1). Not re-rendered as a seam.
 - Wind Down v6 (14:37): its first eight bars, the overlap with Out of Step, are as they were (-29.8 dBFS
   in every build of the round). The END OF THE RECORD is new: the last stroke lands on a string nobody
   played (Ring True's G string) and a G4 goes on after it, by second -36 -49 -61 -74 -87 -99 dBFS where v5
