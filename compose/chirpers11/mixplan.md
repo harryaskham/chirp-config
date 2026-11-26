@@ -51,7 +51,8 @@ have been rendered (`chirpers.py seam chirpers11 N` prints level per bar across 
 - t3 -> t4: -33.0 -31.2 -27.5 -24.8 -22.7 -20.9 -19.4 -18.2. Ring True (-17.6) comes up over a click at -34.
 - t5 -> t6: -14.9 falling to -20.2 over the first eight bars, then -22.6 -26.8 -28.6 -30.3 -20.1 -29.6 -41.0 -50.1.
   The hole at the end was Small Change v1: a seed every four bars whose echoes are gone in two, so two bars in four
-  were silent. Its v2 strikes every two bars there (the opening alone now reads -18 -35 -19 -37 ...).
+  are silent. Its v2 (07:05) keeps that: filled (`--with-denser`, a seed every bar), the scorer stops hearing its drum
+  arrive, so it is off until an ear says whether the two silent bars before the drum are a pause or a hole.
 - t6 -> t7: -18.9 -35.5 -36.1 -33.5 -23.8 -28.9 -28.1 -26.0. Out of Step's pattern alone is -26; Small Change's last
   two seeds stand 7 dB over it and then leave it.
 - t7 -> t8: -23.0 -25.6 -26.8 -27.7 -29.9 -29.7 -29.1 -29.3. Even; Wind Down's click alone is -27.7.
