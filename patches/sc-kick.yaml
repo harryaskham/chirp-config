@@ -1,0 +1,25 @@
+{
+ "about": "Small Change: the drum. The machine's bass drum on G, short. BANKED by tools/patchbank.py (26 Nov 2026) from Small Change v1 (track kick): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "400ms"
+  },
+  "layers": [
+   {
+    "machine": {
+     "click": 0.5,
+     "decay": "240ms",
+     "drive": 0.2,
+     "punch": 20.0
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}

@@ -1,0 +1,46 @@
+{
+ "about": "Out of Step's bass (chirper-zero, 26 Nov): three pairs of sines, at G2 and its second and third harmonics, each pair 2.1 Hz apart (one cycle a beat at 126; ratio 1.021429 for G2 ONLY: another note needs its own ratio). They start together, so struck on the off-beat they cancel on every beat: a pump with no compressor. BANKED by tools/patchbank.py (26 Nov 2026) from Out of Step v1 (track bass): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "mono": true,
+  "vel_sens": 0.2
+ },
+ "synth": {
+  "amp": {
+   "a": "4ms",
+   "d": "0s",
+   "r": "30ms"
+  },
+  "layers": [
+   {
+    "level": "-3dB",
+    "phase": 0.0
+   },
+   {
+    "level": "-4.5dB",
+    "phase": 0.0,
+    "ratio": 1.021429
+   },
+   {
+    "level": "-9dB",
+    "phase": 0.0,
+    "ratio": 2.0
+   },
+   {
+    "level": "-10.5dB",
+    "phase": 0.0,
+    "ratio": 2.021429
+   },
+   {
+    "level": "-15dB",
+    "phase": 0.0,
+    "ratio": 3.0
+   },
+   {
+    "level": "-16.5dB",
+    "phase": 0.0,
+    "ratio": 3.021429
+   }
+  ]
+ }
+}

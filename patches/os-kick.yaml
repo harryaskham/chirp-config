@@ -1,0 +1,32 @@
+{
+ "about": "Out of Step's bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, on G1. BANKED by tools/patchbank.py (26 Nov 2026) from Out of Step v1 (track kick): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "1s"
+  },
+  "filters": [
+   {
+    "cutoff": 28,
+    "kind": "hp"
+   }
+  ],
+  "layers": [
+   {
+    "machine": {
+     "click": 0.6,
+     "decay": "260ms",
+     "drive": 0.35,
+     "punch": 22.0,
+     "punch_time": "32ms"
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}

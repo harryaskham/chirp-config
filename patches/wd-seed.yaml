@@ -1,0 +1,42 @@
+{
+ "about": "Wind Down: the seed (after Small Change): a short vibraphone bar with 2 ms of noise on its front. BANKED by tools/patchbank.py (26 Nov 2026) from Wind Down v1 (track seed): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.4
+ },
+ "synth": {
+  "amp": {
+   "a": "0.3ms",
+   "d": "250ms",
+   "r": "80ms",
+   "s": 0
+  },
+  "env": {
+   "tick": {
+    "a": "0.1ms",
+    "d": "2ms",
+    "r": "2ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {
+    "decay": "180ms",
+    "modes": "vibes",
+    "type": "modal"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 70.0,
+       "src": "env.tick"
+      }
+     ],
+     "value": "-80dB"
+    },
+    "type": "noise"
+   }
+  ]
+ }
+}

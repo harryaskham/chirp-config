@@ -1,0 +1,23 @@
+{
+ "about": "Wind Down: what two cycles make when they meet (after Least Common): a vibraphone bar with no motor. BANKED by tools/patchbank.py (26 Nov 2026) from Wind Down v1 (track ping): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.3ms",
+   "d": "900ms",
+   "r": "200ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "bright": 0.55,
+    "decay": "650ms",
+    "modes": "vibes",
+    "type": "modal"
+   }
+  ]
+ }
+}

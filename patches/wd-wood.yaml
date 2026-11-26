@@ -1,0 +1,52 @@
+{
+ "about": "Wind Down: Ring True's wooden bar (1 : 4 : 10), its ring time given by each stroke (expr.ring, seconds over 0.015), with the stick's click on its front (2 ms of noise). It is the click and the cell. BANKED by tools/patchbank.py (26 Nov 2026) from Wind Down v1 (tracks tick, cell): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.6
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "curve": 1.0,
+   "d": "0s",
+   "r": "2.5s"
+  },
+  "env": {
+   "stick": {
+    "a": "0.1ms",
+    "d": "2ms",
+    "r": "2ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {
+    "bright": 0.75,
+    "decay": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ring"
+      }
+     ],
+     "value": 0.015
+    },
+    "modes": "bar",
+    "strike": 0.35,
+    "type": "modal"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 70.0,
+       "src": "env.stick"
+      }
+     ],
+     "value": "-80dB"
+    },
+    "type": "noise"
+   }
+  ]
+ }
+}

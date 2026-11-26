@@ -1,0 +1,26 @@
+{
+ "about": "Wind Down: a click that is five cycles of a saw (after Out of Step): on G3 that is 51 ms. BANKED by tools/patchbank.py (26 Nov 2026) from Wind Down v1 (track saw): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "curve": 0.0,
+   "d": "45ms",
+   "r": "6ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 9000
+   }
+  ],
+  "layers": [
+   {
+    "wave": "saw"
+   }
+  ]
+ }
+}

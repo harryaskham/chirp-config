@@ -1,0 +1,42 @@
+{
+ "about": "Small Change: the seed. One vibraphone bar with no motor, short, with two milliseconds of noise on its front (a click that the coins carry too): the only struck note in the song. BANKED by tools/patchbank.py (26 Nov 2026) from Small Change v1 (tracks seed-a, seed-b, seed-c): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.4
+ },
+ "synth": {
+  "amp": {
+   "a": "0.3ms",
+   "d": "250ms",
+   "r": "80ms",
+   "s": 0
+  },
+  "env": {
+   "tick": {
+    "a": "0.1ms",
+    "d": "2ms",
+    "r": "2ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {
+    "decay": "180ms",
+    "modes": "vibes",
+    "type": "modal"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 70.0,
+       "src": "env.tick"
+      }
+     ],
+     "value": "-80dB"
+    },
+    "type": "noise"
+   }
+  ]
+ }
+}

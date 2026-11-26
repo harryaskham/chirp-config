@@ -1,0 +1,41 @@
+{
+ "about": "Wind Down: a bass with no fundamental (after Hearing Things): harmonics two to six of the note and nothing at the note. BANKED by tools/patchbank.py (26 Nov 2026) from Wind Down v1 (track ghost): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "4ms",
+   "d": "0s",
+   "r": "40ms"
+  },
+  "layers": [
+   {
+    "partials": [
+     [
+      2.0,
+      1.0
+     ],
+     [
+      3.0,
+      0.85
+     ],
+     [
+      4.0,
+      0.6
+     ],
+     [
+      5.0,
+      0.42
+     ],
+     [
+      6.0,
+      0.3
+     ]
+    ],
+    "type": "additive"
+   }
+  ]
+ }
+}

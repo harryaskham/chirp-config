@@ -1,0 +1,51 @@
+{
+ "about": "Wind Down: what three cycles make when they meet: a short filtered chord. BANKED by tools/patchbank.py (26 Nov 2026) from Wind Down v1 (track chord): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.4
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "220ms",
+   "r": "90ms",
+   "s": 0
+  },
+  "env": {
+   "f": {
+    "a": "1ms",
+    "d": "140ms",
+    "r": "80ms",
+    "s": 0
+   }
+  },
+  "filters": [
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": 2.6,
+       "src": "env.f"
+      }
+     ],
+     "value": 500
+    },
+    "q": 1.4
+   }
+  ],
+  "layers": [
+   {
+    "detune": -7,
+    "wave": "saw"
+   },
+   {
+    "detune": 7,
+    "wave": "saw"
+   },
+   {
+    "level": "-8dB",
+    "wave": "pulse"
+   }
+  ]
+ }
+}
