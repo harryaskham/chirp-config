@@ -125,6 +125,24 @@ send (`stab-b`); the echoes are `echo-1` to `echo-4`, each at the level and the 
 (fitted on a bench of one chord: within 0.5 dB; the bus's fifth echo is 26 dB under its first and is not made).
 ALSO: the spin back's pitch lane has a point every sixty-fourth of a beat (it had one a sixteenth): the engine
 bows a lane where it falls (chirp-eco's bench), and v7's spun-back tock read up to 64 cents flat.
+
+v10 (26 Nov): THE NEEDLE STICKS (C11T1_STICK=0 takes it out: v9). Every way deck B has left the grid so far has
+been a HAND or a SWITCH: a push, a drag, a stop, a spin, a speed. This one is an accident, and it is the one
+everybody who has owned a record knows. One turn of a platter at 33 is 1.81 seconds, and at this tempo that is
+FIFTEEN sixteenths: a turn of the groove holds a bar less its last sixteenth. In the second row of "both" (bars
+73 to 80, 2:19 to 2:35) the needle does not cross into the next turn: it jumps back and plays the same turn
+again, with a pop, eight times. Deck A does not know. So against the grid the record's bar is a sixteenth short
+and arrives a sixteenth EARLIER every time round: 15 against 16, by accident.
+What that does, with no note changed: the wooden tock's five strokes (0 3 6 9 12 of sixteen) lose their long
+last gap and become dead even, every three sixteenths, for seven and a half bars (three against the beat's
+four); deck B's drum goes round deck A's, a sixteenth earlier a turn: with it, just before it, half way
+between (so the two drums are eighths), just after, with it again, and round once more; the dub chord creeps
+back from the sixth sixteenth to the last of the bar before. Half a bar from the end of the row a hand puts the
+needle on (the eighth pop) and the record is where the grid is.
+The turn is in the RECORD's beats, not the grid's: the platter is still being pushed and dragged (the hand of
+"both" is on it), so each time round takes as long as the platter takes, and the tock and chord are as sharp
+or flat as they were going to be. Only what the needle reads has changed.
+The pop is its own track and patch (`pop`, `gt-pop`: 16 ms of dull noise): one at every jump.
 """
 import json
 import math
@@ -162,6 +180,11 @@ ECHO_GAINS = (-35.6, -40.9, -48.2, -55.6)   # dB: each echo's level, fitted to t
 ECHO_TONES = (4000, 2800, 2000, 1500)       # Hz: ... and its low-pass (the bus's echoes lose a little more top each time round)
 ECHO_HALL = "-7.36dB"          # ... and its share of the hall (the bus's is mix 0.3: 0.3 to 0.7)
 FINE = 16 if ECHO else 1       # lane points to a sixteenth while the record is spun back
+STICK = os.environ.get("C11T1_STICK", "1") != "0" and ECHO                       # v10: the needle sticks
+STICK_IN = ("both", 8)         # the section, and the bar of it on whose first beat the turn that sticks begins
+STICK_TURN = 15                # sixteenths of the record in one turn of the platter: 33 turns a minute is 1.81 s, which at 124 is 3.75 beats
+STICK_TURNS = 8                # times that turn is heard: once as the record plays it, then with a pop each time the needle jumps back; after the last a hand puts the needle on
+STICK_POP = os.environ.get("C11T1_STICK_POP", "4dB")     # the pop's level: alone it is then 6 dB under deck A's click (at -14 dB it was 27 under: dull noise this short has little in it)
 ROLL_AT = 12                   # the bar of "the nudge" at which deck B is put in a loop (it is let go on the first beat of "locked")
 ROLL_WHOLE = 3                 # the first loops (a beat, a half, a quarter) get a bar each
 ROLL_TURNS = 16                # ... and every loop after them this many turns, each half as long as the last: Zeno's bar
@@ -383,6 +406,30 @@ def echo_notes(k):
     return out
 
 
+def stick():
+    """(the record's beat at which the turn that sticks begins, the turn in beats, the times it is heard), or None."""
+    sec = next((x for x in SECS if x[0] == STICK_IN[0]), None) if STICK else None
+    return ((sec[1] + STICK_IN[1]) * BEATS, STICK_TURN * STEP, STICK_TURNS) if sec else None
+
+
+def stuck(steps):
+    """What the needle reads while it is stuck: the same turn of the record, STICK_TURNS times; each stroke sounds when the platter gets it there."""
+    p0, turn, n = stick()
+    out = []
+    for j in range(n):
+        for s, p, ln, v in steps(int(p0 // BEATS)):
+            if s * STEP < turn:
+                q = p0 + j * turn + s * STEP
+                out.append(note(when(q), p, when(q + min(ln * STEP, turn - s * STEP)) - when(q), v))
+    return out
+
+
+def pops():
+    """The pop each time the needle jumps back, and when the hand puts it on."""
+    p0, turn, n = stick()
+    return [note(when(p0 + j * turn), "C4", STEP / 2, 0.9) for j in range(1, n + 1)]
+
+
 def plays(part, bar):
     name, b0, n, parts, hand = section_at(bar * BEATS)
     if name == "no ruler" and part == "kick" and bar >= b0 + n - RETURN:
@@ -470,6 +517,7 @@ def deck_b(part, steps):
     """The same, on deck B's record: each event sounds when the record gets to it."""
     out, win, sw = [], roll_window(), stretch_window()
     fw = fast_window()
+    sk = stick()
     rw = rewind()
     if rw:
         sw = (rw[0], sw[1])                                    # the record is not going forward from the spin back to the end of the stretch
@@ -478,6 +526,8 @@ def deck_b(part, steps):
             for s, p, n, v in steps(bar):
                 b = bar * BEATS + s * STEP
                 t = when(b)
+                if sk and sk[0] <= b < sk[0] + sk[1] * sk[2]:               # the needle never reads these: it is stuck in the turn before them
+                    continue
                 if t is not None and 0 <= t < TOTAL and not (win and win[0] <= t < win[1]) and not (sw and sw[0] <= t < sw[1]) and not (fw and fw[0] <= t < fw[1]):   # the record never gets to what the loop skips
                     end = when(b + n * STEP)
                     out.append(note(t, p, (end if end is not None else t + 4 * n * STEP) - t, v))
@@ -487,6 +537,9 @@ def deck_b(part, steps):
             if loop >= STEP:
                 out += [note(t0 + r * loop + s * STEP, p, min(n * STEP, loop - s * STEP), v)
                         for r in range(turns) for s, p, n, v in steps(int(win[0] // BEATS)) if s * STEP < loop]
+        out.sort(key=lambda x: x["at"])
+    if sk and plays(part, int(sk[0] // BEATS)):
+        out += stuck(steps)
         out.sort(key=lambda x: x["at"])
     if rw and plays(part, int(rw[0] // BEATS)):
         out += rewound(part, steps)
@@ -637,6 +690,13 @@ def song():
                                   "auto": {"spd": {"points": lane}}, "notes": echo_notes(k)})
         doc["about"] = doc["about"].replace(" Generated by", " From v9, in no ruler, the dub chord's echo is on the record and not on the grid: its echoes are a dotted eighth of the record's own beats apart, so they crowd and string out with the hand, and each is as sharp or flat as the record is when it sounds. Generated by")
         assert "From v9" in doc["about"]
+    if stick():
+        PATCHES["gt-pop"] = {"about": "Give or Take's pop (chirper-zero, 26 Nov, v10): the needle jumping a groove wall: 16 ms of dull noise, 150 Hz to 1.8 kHz; deck B.",
+                             "play": {"vel_sens": 0.3},
+                             "synth": {"layers": ["white"], "filters": ["hp cutoff=150", "lp cutoff=1800"], "amp": {"a": "0.1ms", "d": "16ms", "s": 0, "r": "5ms", "curve": 4}}}
+        doc["tracks"].append({"name": "pop", "patch": "gt-pop", "gain": STICK_POP, "pan": 0.1, "notes": pops()})      # dry, where the record's chord is
+        doc["about"] = doc["about"].replace(" Generated by", " From v10, in the second row of both, the needle sticks: one turn of the platter is fifteen sixteenths of the record, and deck B plays that turn eight times with a pop at each jump, so its bar comes a sixteenth earlier each time against deck A (15 against 16): the tock goes dead even, deck B's drum goes round deck A's, and half a bar before the row ends a hand puts the needle on. Generated by")
+        assert "From v10" in doc["about"]
     if fast_window():
         doc["about"] = doc["about"].replace(" Generated by", " From v8 deck B's switch is flipped to the other speed for the last twelve bars of locked: it plays four bars for every three of deck A's, a perfect fourth up, and the two meet every third bar. Generated by")
         assert "From v8" in doc["about"]
@@ -692,6 +752,12 @@ if __name__ == "__main__":
             n = int(STRETCH_BARS * BEATS / (GRAIN * STEP)); t0, p0 = g[i * n]
             print(f"   the stretch from bar {t0 / BEATS + 1:g}: deck B at 1/{by} of its speed for {STRETCH_BARS} bars; the record goes from {p0:g} to {p0 + n * GRAIN / by:g} sixteenths ; "
                   f"every stroke is heard {by} times, {GRAIN * (1 - 1 / by):g} of a sixteenth apart ({GRAIN * (1 - 1 / by) * STEP * 60000 / BPM:.1f} ms)")
+        if stick():
+            p0, turn, n = stick(); ms = 60000 / BPM
+            ts = [when(p0 + j * turn) for j in range(n + 1)]
+            print(f"   the needle sticks from bar {p0 / BEATS + 1:g} ({int(ts[0] * 60 / BPM) // 60}:{ts[0] * 60 / BPM % 60:04.1f}): one turn is {turn / STEP:g} sixteenths of the record ({turn * ms:.0f} ms at the grid's tempo: {60000 / (turn * ms):.2f} turns a minute) ; heard {n} times, {n - 1} jumps and the hand: pops at bar.sixteenth " + " ".join(f"{int(t // BEATS) + 1}.{(t % BEATS) / STEP:.2f}" for t in ts[1:]) + f" ; the turns take {min(b - a for a, b in zip(ts, ts[1:])) * ms:.0f} to {max(b - a for a, b in zip(ts, ts[1:])) * ms:.0f} ms (the platter is still pushed and dragged)")
+            print("      turn: how many sixteenths early the record's bar is against the grid's, and where deck B's drum falls in deck A's beat: " + " ; ".join(f"{j + 1}: {j} {('with it', 'a sixteenth before', 'half way', 'a sixteenth after')[j % 4]}" for j in range(n)))
+            print("      in one turn: " + " ; ".join(f"{nm} " + " ".join(f"{st:g}" for st, p, ln, v in (steps(int(p0 // BEATS))) if st * STEP < turn and (nm != "stab" or p == steps(int(p0 // BEATS))[0][1])) for nm, steps in (("tock", TOCK), ("knock", KNOCK), ("stab", STAB))) + f" ; hat every sixteenth ({sum(1 for st, p, ln, v in HAT(int(p0 // BEATS)) if st * STEP < turn)})")
         print(f"{BARS} bars, {TOTAL} beats, {BARS * sec:.1f} s ; the five: {FIVE}")
     else:
         open(OUT, "w").write(dump(song()))
