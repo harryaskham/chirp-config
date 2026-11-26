@@ -9243,7 +9243,7 @@
     {
       "id": "chirpers11-t1",
       "song": "songs/chirpers11-t1.yaml",
-      "reference": "chirpers — Track 1 (untitled)",
+      "reference": "chirpers — Give or Take",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers11-t1 OUT.wav",
@@ -9259,7 +9259,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Escapement",
-        "title": "Track 1 (untitled)",
+        "title": "Give or Take",
         "track": 1,
         "year": 2026
       },
