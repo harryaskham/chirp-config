@@ -20,6 +20,20 @@
     "dance-yrself-clean"
   ],
   "genre_refs_note": "chirp-eco, 26 Nov: chirpers4's set (Aphex Twin's ambient techno, I Feel Love, Dance Yrself Clean): the library has no reproduction of a minimal or click record yet (Villalobos, Akufen, Plastikman, Robert Hood, Monolake). Harry may add some; until then this envelope is the nearest techno the scorer can read.",
+  "params": {
+    "sections": {
+      "novelty": [
+        0.12,
+        0.13,
+        0.14,
+        0.15,
+        0.16,
+        0.17,
+        0.18
+      ]
+    },
+    "why": "chirper-one, 26 Nov 08:22 GMT, at chirp-eco's advice and chirper-zero's asking (the scorer's params are the album's to tune: Harry, 30 Oct). sections.novelty: Accretion's and Common Time's ensemble, so the form terms do not ride on one cut at 0.15. It bit here all morning: Out of Step v3's structure stood on peaks of 0.152 and 0.156; Least Common v2 sat at 27 sections, the top of the range, and one 0.149 peak crossing to 0.150 cost its v3's first build eight points; Ring True's one build read 63.5 and 70.8 on two seeds (a peak at 0.139 against 0.165); Small Change's two entries stand at 0.19 and 0.17. Set after t1 v5, t2 v3, t3 v4, t4 v3, t5 v4, t6 v2, t7 v4, t8 v2; every score before it was read on the single cut, and each next round compares against a re-read under this."
+  },
   "master": {
     "rms": [
       -15.0,
