@@ -9,11 +9,14 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `gt-hat` | Give or Take v1 (track hat) | Give or Take's sixteenth click (chirper-zero, 26 Nov): a 14 ms burst of white noise between 6 and 12.5 kHz; deck B. |
 | `gt-kick` | Give or Take v1 (track kick) | Give or Take's bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, resting on the song's G; deck A. |
 | `gt-knock` | Give or Take v2 (track knock) | Give or Take's second bass drum (chirper-zero, 26 Nov, v2): deck B's own, a little shorter and clickier than deck A's, through a high-pass on the lane `low` (32 Hz to 315 Hz: the low EQ of the incoming record, killed unt… |
+| `gt-meet` | Give or Take v4 (track meet) | Give or Take's ping (chirper-zero, 26 Nov, v4): Least Common's `lc-ping` (chirper-one) rebuilt here under this song's name: a vibraphone bar with no motor, half a second long. It plays t2's meeting tune once the two deck… |
 | `gt-stab` | Give or Take v1 (track stab) | Give or Take's dub chord (chirper-zero, 26 Nov): three saws and a square through a short filter envelope, dry (the echo is a bus); its pitch follows deck B's speed (auto.spd, semitones), as a chord on a nudged record doe… |
 | `gt-tick` | Give or Take v1 (track tick) | Give or Take's grid click (chirper-zero, 26 Nov): the machine's rim, one voice, high and dry; deck A's ruler marks. |
 | `gt-tock` | Give or Take v1 (track tock) | Give or Take's tock (chirper-zero, 26 Nov): a wooden bar on the modal layer (after Common Measure's clave), whose pitch follows deck B's speed (auto.spd, semitones). |
 | `ht-bass` | Hearing Things v1 (track bass) | Hearing Things' bass (chirper-zero, 26 Nov): the second to sixth harmonics of the note and nothing at the note itself (after the library's phantom-bass): the ear supplies the pitch. |
+| `ht-chop` | Hearing Things v4 (track chop) | Hearing Things' chord (chirper-zero, 26 Nov, v4): a plain sine a note, switched on in a millisecond and off in three, so that a sixteenth of it is a sixteenth and its holes are holes. |
 | `ht-clap` | Hearing Things v1 (track clap) | Hearing Things' clap (chirper-zero, 26 Nov): the machine's clap, three bursts, short, dry. |
+| `ht-fence` | Hearing Things v4 (track fence) | Hearing Things' fence (chirper-zero, 26 Nov, v4): white noise between 170 and 560 Hz, switched as the chord is: it fills the chord's holes exactly, in the chord's band, louder than the chord. |
 | `ht-hat` | Hearing Things v1 (track ris) | Hearing Things' hat (chirper-zero, 26 Nov): the machine's hat, 28 ms, above 5 kHz, whose loudness is all velocity: the Risset rhythm's layers are told apart by nothing else. |
 | `ht-kick` | Hearing Things v1 (track kick) | Hearing Things' bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, on A1: the only thing on the record under 100 Hz but for eight bars. |
 | `ht-shep` | Hearing Things v2 (tracks shep0, shep1, shep2, shep3) | Hearing Things' rising voice (chirper-zero, 26 Nov, v2): a small struck tone (a sine with two bar-like partials, 70 ms), whose loudness is all velocity and whose pitch rides the lane `rise` (semitones): one layer of the … |
@@ -34,6 +37,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `os-comp` | Out of Step v2 (track c) | Out of Step's third click (chirper-zero, 26 Nov, v2): the complement's. Two cycles of a saw on G5 dying in 12 ms, above 3 kHz, lifted 8 dB round 10 kHz: small and bright, so that it is heard as the holes being filled and… |
 | `os-hat` | Out of Step v1 (track hat) | Out of Step's hat (chirper-zero, 26 Nov): the machine's hat, 45 ms, on the off-beats once the two clicks are home. |
 | `os-kick` | Out of Step v1 (track kick) | Out of Step's bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, on G1. |
+| `os-tune` | Out of Step v3 (track tune) | Out of Step's pip (chirper-zero, 26 Nov, v3): a small glass tone (a sine with its twelfth, 140 ms), which plays only the sixteenths on which the two clicks strike together, a note for each stroke of the pattern. |
 | `rt-air` | Ring True v1 (track air) | Ring True: the air. Three milliseconds of noise into a resonator tuned to the note (a band-pass); how long it sings comes from the stroke (expr.ring, on its q). |
 | `rt-boom` | Ring True v2 (track weight) | Ring True: the weight as a thing that can ring true. The felt beater's thud on a skin (fixed), and under it a kettledrum head on the same note whose ring time comes from the stroke (expr.ring, seconds over 0.04). |
 | `rt-metal` | Ring True v1 (track metal) | Ring True: the metal. A steel bar (1 : 2.76 : 5.40 : 8.93); its ring time from the stroke (expr.ring, seconds over 0.012). |
@@ -41,6 +45,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `rt-skin` | Ring True v1 (track skin) | Ring True: the skin. A kettledrum head (the air in the kettle pulls its modes to 1 : 1.5 : 2 : 2.5, so it sings its note); its ring time from the stroke (expr.ring, seconds over 0.03). |
 | `rt-string` | Ring True v1 (track string) | Ring True: the string. A plucked string whose ring time comes from the stroke (expr.ring, seconds over 0.03): a palm on it, lifted. |
 | `rt-wood` | Ring True v1 (track wood) | Ring True: the wood. A small bar (1 : 4 : 10) struck near its middle; its ring time from the stroke (expr.ring, seconds over 0.015). |
+| `sc-hat` | Small Change v2 (track hat) | Small Change: the hat that plays what can be paid. The machine's hat, 30 ms, above 6 kHz. |
 | `sc-kick` | Small Change v1 (track kick) | Small Change: the drum. The machine's bass drum on G, short. |
 | `sc-seed` | Small Change v1 (tracks seed-a, seed-b, seed-c) | Small Change: the seed. One vibraphone bar with no motor, short, with two milliseconds of noise on its front (a click that the coins carry too): the only struck note in the song. |
 | `sr-chord` | Standing Room v1 (track chord) | Standing Room's dub chord (chirper-zero, 26 Nov): three saws and a square through a short filter envelope, dry; its space is the bus `dub`, a dotted-eighth echo whose feedback breathes. |
@@ -49,7 +54,9 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `sr-kick` | Standing Room v1 (track kick) | Standing Room's bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, on A1. It is not in any room. |
 | `sr-tock` | Standing Room v1 (track tock) | Standing Room's tock (chirper-zero, 26 Nov): a wooden bar on the modal layer (after Common Measure's clave), an octave or so under the click. |
 | `wd-chord` | Wind Down v1 (track chord) | Wind Down: what three cycles make when they meet: a short filtered chord. |
+| `wd-comp` | Wind Down v2 (track comp) | Wind Down: the complement's click (after Out of Step v2): two cycles of a saw on G5 dying in 12 ms, above 3 kHz, lifted round 10 kHz. |
 | `wd-ghost` | Wind Down v1 (track ghost) | Wind Down: a bass with no fundamental (after Hearing Things): harmonics two to six of the note and nothing at the note. |
+| `wd-hat` | Wind Down v2 (track hat) | Wind Down: the hat (after Hearing Things): the machine's hat, 28 ms, above 5 kHz, whose loudness is all velocity. |
 | `wd-kick` | Wind Down v1 (track kick) | Wind Down: the drum. The machine's bass drum on G, short. |
 | `wd-ping` | Wind Down v1 (track ping) | Wind Down: what two cycles make when they meet (after Least Common): a vibraphone bar with no motor. |
 | `wd-saw` | Wind Down v1 (track saw) | Wind Down: a click that is five cycles of a saw (after Out of Step): on G3 that is 51 ms. |

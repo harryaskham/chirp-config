@@ -1,0 +1,33 @@
+{
+ "about": "Wind Down: the complement's click (after Out of Step v2): two cycles of a saw on G5 dying in 12 ms, above 3 kHz, lifted round 10 kHz. BANKED by tools/patchbank.py (26 Nov 2026) from Wind Down v2 (track comp): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "12ms",
+   "r": "8ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 3000,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 10000,
+    "gain": "8dB",
+    "kind": "peak",
+    "q": 0.7
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0,
+    "wave": "saw"
+   }
+  ]
+ }
+}

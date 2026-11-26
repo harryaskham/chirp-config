@@ -1,0 +1,17 @@
+{
+ "about": "Hearing Things' chord (chirper-zero, 26 Nov, v4): a plain sine a note, switched on in a millisecond and off in three, so that a sixteenth of it is a sixteenth and its holes are holes. BANKED by tools/patchbank.py (26 Nov 2026) from Hearing Things v4 (track chop): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.2
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "0s",
+   "r": "3ms"
+  },
+  "layers": [
+   {}
+  ]
+ }
+}

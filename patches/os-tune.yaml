@@ -1,0 +1,22 @@
+{
+ "about": "Out of Step's pip (chirper-zero, 26 Nov, v3): a small glass tone (a sine with its twelfth, 140 ms), which plays only the sixteenths on which the two clicks strike together, a note for each stroke of the pattern. BANKED by tools/patchbank.py (26 Nov 2026) from Out of Step v3 (track tune): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.6
+ },
+ "synth": {
+  "amp": {
+   "a": "0.3ms",
+   "d": "140ms",
+   "r": "40ms",
+   "s": 0
+  },
+  "layers": [
+   {},
+   {
+    "level": "-14dB",
+    "ratio": 3.0
+   }
+  ]
+ }
+}

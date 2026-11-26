@@ -1,0 +1,29 @@
+{
+ "about": "Small Change: the hat that plays what can be paid. The machine's hat, 30 ms, above 6 kHz. BANKED by tools/patchbank.py (26 Nov 2026) from Small Change v2 (track hat): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.8
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "100ms"
+  },
+  "filters": [
+   {
+    "cutoff": 6000,
+    "kind": "hp"
+   }
+  ],
+  "layers": [
+   {
+    "machine": {
+     "decay": "30ms",
+     "part": "hat"
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}

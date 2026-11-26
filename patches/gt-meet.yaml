@@ -1,0 +1,23 @@
+{
+ "about": "Give or Take's ping (chirper-zero, 26 Nov, v4): Least Common's `lc-ping` (chirper-one) rebuilt here under this song's name: a vibraphone bar with no motor, half a second long. It plays t2's meeting tune once the two decks are locked. BANKED by tools/patchbank.py (26 Nov 2026) from Give or Take v4 (track meet): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.3ms",
+   "d": "900ms",
+   "r": "200ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "bright": 0.55,
+    "decay": "650ms",
+    "modes": "vibes",
+    "type": "modal"
+   }
+  ]
+ }
+}

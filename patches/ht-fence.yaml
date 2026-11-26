@@ -1,0 +1,35 @@
+{
+ "about": "Hearing Things' fence (chirper-zero, 26 Nov, v4): white noise between 170 and 560 Hz, switched as the chord is: it fills the chord's holes exactly, in the chord's band, louder than the chord. BANKED by tools/patchbank.py (26 Nov 2026) from Hearing Things v4 (track fence): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.2
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "0s",
+   "r": "3ms"
+  },
+  "filters": [
+   {
+    "cutoff": 170,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 170,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 560
+   },
+   {
+    "cutoff": 560
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}
