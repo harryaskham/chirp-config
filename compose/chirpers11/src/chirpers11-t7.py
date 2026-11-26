@@ -46,6 +46,18 @@ DOUBLE AND THE TUNE IS THE WHOLE CHORD: that is the second thing home is. In "sl
 heard bare, as before; from the fifth (where the drum stands back) each lock is heard bare for two bars and then
 with its tune. In "drifts" B does not stop, so each tune is heard only for the two bars in which B passes its lock,
 all seven backwards (7, 6, 5 ... 1: four of them for the first time), between bars where there is no tune at all.
+
+v4 (26 Nov): THE PENDULUM (C11T7_PEND=0 takes it out: v3). A fourth kind of phase, and the smallest: under a
+millisecond. While the two clicks are one click (the opening and the ending) A is given to the left ear alone and B
+to the right, at the same loudness, and B swings ahead of A and behind it by PEND_MS (0.6 ms: the time sound takes
+to cross a head), once there and back every two bars. A lead that small is not heard as two clicks, nor as a
+rhythm: it is heard as a PLACE. The one click swings from ear to ear like the pendulum of the clock this record is
+named after, and nothing is panned: each ear gets its own click at the same level all the way; only which is first
+changes. (The two are turned down 3 dB while they stand apart, so that B joining adds no loudness, only a place.) THE DRUM HOLDS THE PENDULUM: it swings only where there is no bass drum. In "one click" it starts still
+when B joins (bar 9), is at its full width a swing later, and stops dead on the bar the drum comes in. In "one
+again" the drum's last stroke lets it go: it swings its full width at once and comes to rest, half as far every
+three bars, and when it is still B stops. On ONE speaker there are no two ears to compare: the same lead is a comb, a hollow that opens
+and closes in the click twice a swing (the phaser of the slips, a hundred times slower).
 """
 import json
 import math
@@ -77,16 +89,25 @@ TUNE_FROM = 4                  # in "slips": the row from which a lock has its t
 TUNE_AFTER = 4                 # ... and the bar of the row from which it is heard (2 slipping, 2 bare)
 TUNE_NEAR = 0.26               # sixteenths: a bar plays a lock's tune if B is this near the lock from its first step to its last
 T = {"tune": None} if TUNE_ON else {}
+PEND_ON = os.environ.get("C11T7_PEND", "1") != "0"    # v4: the pendulum
+PEND_MS = 0.6                  # ms: how far B is ahead of A (and then behind) at the end of a swing; sound crosses a head in about this
+PEND_BARS = 2                  # bars to swing there and back
+PEND_GROW = 2                  # bars it takes to reach its full swing when it is set going ("up")
+PEND_HALF = 3                  # bars in which the swing halves when it is left to come to rest ("rest")
+PEND_APART = 1.0               # where the two clicks stand while it swings: A at -PEND_APART, B at +PEND_APART (an ear each)
+PAN = 0.35                     # ... and everywhere else
+PEND_GAIN = -3                 # dB: what both clicks are given while they stand apart: two clicks, an ear each, are then as loud as the one click was
+P = (lambda lo, hi, kind: ("pend", lo, hi, kind)) if PEND_ON else (lambda lo, hi, kind: ("lock", 0))
 ALL = None
-# name, rows, {part: None, or the (from bar, to bar) stretches of the section it plays}, the phase: ("lock", k) | ("slips", k0) | ("drift", from, to)
+# name, rows, {part: None, or the (from bar, to bar) stretches of the section it plays}, the phase: ("lock", k) | ("slips", k0) | ("drift", from, to) | ("pend", from bar, to bar, "up" or "rest"): locked at 0, swinging
 SECTIONS = [
-    ("one click", 3, {"a": ALL, "b": [(8, 24)], "kick": [(16, 24)]},                                                          ("lock", 0)),
+    ("one click", 3, {"a": ALL, "b": [(8, 24)], "kick": [(16, 24)]},                                                          P(8, 16, "up")),
     # the bass drum stands back while B slips to its last lock (8, which is home), and for the whole of the fifth row,
     # where the bass is heard pumping with no drum to pump it
     ("slips",     8, {"a": ALL, "b": ALL, "kick": [(0, 32), (40, 56), (58, 64)], "bass": [(16, 64)], "clap": [(40, 56), (58, 64)], "hat": [(32, 56), (58, 64)], **({"tune": [(r * ROW + TUNE_AFTER, (r + 1) * ROW) for r in range(TUNE_FROM, 8)]} if TUNE_ON else {})}, ("slips", 0)),
     ("home",      2, {"a": ALL, "b": ALL, "kick": ALL, "bass": ALL, "clap": ALL, "hat": ALL, **C, **T},                       ("lock", 8)),
     ("drifts",    4, {"a": ALL, "b": ALL, "kick": [(0, 16), (24, 32)], "bass": ALL, "clap": [(0, 16), (24, 32)], "hat": ALL, **C, **T},  ("drift", 8, 0)),
-    ("one again", 3, {"a": ALL, "b": [(0, 20)], "kick": [(0, 8)], "bass": [(0, 16)], "clap": [(0, 8)], "hat": [(0, 8)], **({"c": [(0, 16)]} if COMP_ON else {}), **({"tune": [(0, 16)]} if TUNE_ON else {})}, ("lock", 0)),
+    ("one again", 3, {"a": ALL, "b": [(0, 20)], "kick": [(0, 8)], "bass": [(0, 16)], "clap": [(0, 8)], "hat": [(0, 8)], **({"c": [(0, 16)]} if COMP_ON else {}), **({"tune": [(0, 16)]} if TUNE_ON else {})}, P(8, 20, "rest")),
 ]
 
 
@@ -111,12 +132,30 @@ def plays(part, bar):
     return False
 
 
-def phi(t):
+def swing(x, kind):
+    """The pendulum, x bars after it starts: B's lead as a share of PEND_MS (+ ahead: the right ear first)."""
+    if kind == "up":       # set going from rest: wider for PEND_GROW bars, then steady
+        return min(1.0, x / PEND_GROW) * math.sin(2 * math.pi * x / PEND_BARS)
+    return -0.5 ** (x / PEND_HALF) * math.sin(2 * math.pi * x / PEND_BARS)   # "rest": B arrives going backwards, overshoots and dies away
+
+
+def lead_ms(t):
+    """How many ms B is ahead of A at time t (sixteenths) because of the pendulum; 0 where there is none."""
+    bar = t / BAR
+    for name, b0, n, parts, phase in SECS:
+        if b0 <= bar < b0 + n and phase[0] == "pend" and phase[1] <= bar - b0 < phase[2]:
+            return PEND_MS * swing(bar - b0 - phase[1], phase[3])
+    return 0.0
+
+
+def phi(t, pend=True):
     """B's phase at time t (sixteenths from the start): how many sixteenths it is ahead of A."""
     bar = t / BAR
     for name, b0, n, parts, phase in SECS:
         if b0 <= bar < b0 + n or (name == SECS[-1][0] and bar >= b0):
             u = bar - b0
+            if phase[0] == "pend":
+                return lead_ms(t) / (60000 / BPM / 4) if pend else 0.0
             if phase[0] == "lock":
                 return float(phase[1])
             if phase[0] == "slips":
@@ -158,13 +197,36 @@ def open_lane():
     """How bright both clicks are: the phase itself, as a share of the loop (0 together, 1 a whole loop ahead)."""
     pts, last = [], None
     for h in range(BARS * 2 + 1):
-        v = round(phi(min(h * BAR / 2, BARS * BAR - 0.001)) / LOOP, 4)
+        v = round(phi(min(h * BAR / 2, BARS * BAR - 0.001), pend=False) / LOOP, 4)
         if v != last or h == BARS * 2:
             if last is not None and pts and pts[-1][0] != f"{(h - 1) * 2:g}b":
                 pts.append([f"{(h - 1) * 2:g}b", last])
             pts.append([f"{h * 2:g}b", v])
         last = v
     return pts
+
+
+def apart_lane():
+    """Where the two clicks stand: 0 at their usual PAN, 1 an ear each (while the pendulum swings). They part and
+    come back in the last sixteenth of a bar, which is one of the pattern's holes, with B exactly on A."""
+    pts = [["0b", 0]]
+    for name, b0, n, parts, phase in SECS:
+        if phase[0] == "pend":
+            lo, hi = (b0 + phase[1]) * BEATS, (b0 + phase[2]) * BEATS
+            pts += ([[f"{lo - 0.125:g}b", 0]] if lo > 0 else []) + [[f"{lo:g}b", 1], [f"{hi - 0.125:g}b", 1], [f"{hi:g}b", 0]]
+    return pts + [[f"{TOTAL:g}b", 0]]
+
+
+def click_pan(side):
+    return {"value": side * PAN, "mod": [{"src": "auto.apart", "amount": round(side * (PEND_APART - PAN), 4)}]} if PEND_ON else side * PAN
+
+
+def click_fx():
+    return {"fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.apart", "amount": PEND_GAIN}]}}]} if PEND_ON else {}
+
+
+def click_auto():
+    return {"open": {"points": open_lane()}, **({"apart": {"points": apart_lane()}} if PEND_ON else {})}
 
 
 def a_notes():
@@ -258,13 +320,15 @@ def song():
         "master": {"fx": [{"type": "eq", "bands": ["hp cutoff=30"]}, {"type": "compressor", "threshold": "-18dB", "ratio": 2, "attack": "20ms", "release": "160ms", "makeup": "0dB"}]},
         "tracks": [
             {"name": "kick", "patch": "os-kick", "gain": "-8dB", "pan": 0.0, "notes": part("kick", KICK)},
-            {"name": "a", "patch": "os-click", "gain": "-2dB", "pan": -0.35, "sends": {"room": "-16dB"}, "auto": {"open": {"points": open_lane()}}, "notes": a_notes()},
-            {"name": "b", "patch": "os-click", "gain": "-2dB", "pan": 0.35, "sends": {"room": "-16dB"}, "auto": {"open": {"points": open_lane()}}, "notes": b_notes()},
+            {"name": "a", "patch": "os-click", "gain": "-2dB", "pan": click_pan(-1), "sends": {"room": "-16dB"}, **click_fx(), "auto": click_auto(), "notes": a_notes()},
+            {"name": "b", "patch": "os-click", "gain": "-2dB", "pan": click_pan(1), "sends": {"room": "-16dB"}, **click_fx(), "auto": click_auto(), "notes": b_notes()},
             {"name": "bass", "patch": "os-bass", "gain": "-23dB", "pan": 0.0, "notes": part("bass", BASS)},
             {"name": "hat", "patch": "os-hat", "gain": "-1dB", "pan": 0.0, "sends": {"room": "-16dB"}, "notes": part("hat", HAT)},
             {"name": "clap", "patch": "os-clap", "gain": "-5dB", "pan": 0.0, "sends": {"room": "-10dB"}, "notes": part("clap", CLAP)},
         ],
     }
+    if PEND_ON:
+        doc["about"] = doc["about"].replace(" Generated by", f" From v4, while the two are one click (the opening and the ending) they are given an ear each and one swings {PEND_MS:g} ms ahead of the other and behind it: the click is heard to swing from ear to ear, with nothing panned. Generated by")
     if COMP_ON:
         doc["tracks"].append({"name": "c", "patch": "os-comp", "gain": "-6dB", "pan": 0.0, "sends": {"room": "-16dB"}, "notes": c_notes()})
         doc["about"] = doc["about"].replace(" Generated by", " From v2 a third click plays the pattern's three holes once the two are home: together they sound every sixteenth exactly once, and apart they collide. Generated by")
@@ -318,6 +382,10 @@ if __name__ == "__main__":
                     runs[-1][1] = bar + 1
                 last = k
             print("   the tune by bars: " + " ".join(f"{lo}-{hi}:{k}" for lo, hi, k in runs if k is not None))
+        if PEND_ON:
+            for name, b0, n, parts, phase in SECS:
+                if phase[0] == "pend":
+                    print(f"   the pendulum in \"{name}\" (bars {b0 + phase[1]}-{b0 + phase[2]}, {phase[3]}): B's lead at each quarter of a bar, ms (+ the right ear first): " + " ".join(f"{lead_ms((b0 + phase[1]) * BAR + q * 4):+.2f}" for q in range(0, (phase[2] - phase[1]) * 4 + 1)))
         ms = 60 / BPM / 4 * 1000
         print("   the first slip (bars 24-26): the gap between A's stroke and B's, ms: " + " ".join(f"{(n['at'] / STEP - round(n['at'] / STEP + phi(n['at'] / STEP)) + 0) * -ms:.1f}" for n in b_notes() if 24 * BEATS <= n["at"] < 25.5 * BEATS))
         print(f"{BARS} bars, {TOTAL} beats, {BARS * sec:.1f} s; the bass: {F0} and {F0 * R:.4f} Hz")
