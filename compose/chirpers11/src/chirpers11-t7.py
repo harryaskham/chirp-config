@@ -182,6 +182,21 @@ back under it, for as long as the bass does (to bar 152), 6 dB under the bass. T
 mean of its two tones), so the fourth between them is true.
 WHY D, AND WHY SO LOW: `compscore --bands` says this song has 9.7 dB less than the rest of the record at 61 and
 71 Hz and 7 dB less at 156 Hz. D2 is 73 Hz and its octave 147 Hz.
+
+v12 (26 Nov): TWO CLICKS LESS THAN A WAVE APART (C11T7_COMB=0 takes it out: v11). The song is two clicks going out
+of step by sixteenths. This is the same thing a thousand times smaller. A new, small, bright click (all of it over
+6.5 kHz) plays on the odd sixteenths wherever the hat plays (bars 57 to 144, less two), and it is TWO clicks, the
+same to the sample, in the same place. It follows the song's own form at its own scale. In "slips" and in "drifts",
+where click B goes out of step with click A by sixteenths, the second small click falls behind the first by
+1, 2, 3 ... up to 12 SAMPLES (a quarter of a millisecond) and comes back, every four bars. In "home", where A and B
+lock, the two small clicks are in step to the sample for all sixteen bars: one click, at its brightest. And in
+"one again" they are one again. Nobody can hear two clicks a quarter of a millisecond apart as two, or as late. They are heard
+as a COLOUR: two copies n samples apart cancel wherever n samples is half a wave (and a wave and a half, and two
+and a half): at 24000 / n Hz times 1, 3, 5 ... So the notches walk down the undertones of 24 kHz as the clicks
+part (12 kHz, 8, 6, 4.8, 4 ...) and back up as they close: the sweep of a flanger, with no effect on anything:
+two notes and a subtraction.
+It is also the song's air: `compscore --bands` said first that this song has 14 dB less than the rest of the
+record at 15 kHz and 8 dB less at 12.6 kHz, and every part read alone has next to nothing there.
 """
 import json
 import math
@@ -365,6 +380,40 @@ HEMI_NOTE, HEMI_F0 = "D2", 73.4162                     # a fourth under the bass
 HEMI_RATE = 1.5                                        # cycles a beat between the pair's two tones: it swells three times in two beats (the bass: once a beat)
 HEMI_PARTS = ((1, -3.0), (2, -9.0))                    # (harmonic, dB) of each pair: both tones of a pair as loud as each other, so between swells there is nothing
 HEMI_GAIN = os.environ.get("C11T7_HEMI_GAIN", "-29dB")  # 6 dB under the bass's fader. REFUSED in the master: the bass's own -23 dB for the 16 bars of "drifts" alone: it was as loud as everything else together where the drum rests, the whole song came down 0.2 dB, and a new cut at its end cost 0.5 (structure and variety), more than the 0.75 it gave (spectrum and cohesion)
+
+
+COMB = os.environ.get("C11T7_COMB", "1") != "0" and HEMI_ON              # v12: two clicks less than a wave apart (a comb)
+COMB_WITH = "hat"                                        # it plays in the bars the hat plays in: the hat has the off-beats, this the odd sixteenths
+COMB_APART = ("slips", "drifts")                         # the sections in which the two go apart; in the others ("home", "one again") they are in step to the sample
+COMB_STEPS = ((1, 0.55), (3, 0.9), (5, 0.55), (7, 0.9), (9, 0.55), (11, 0.9), (13, 0.55), (15, 0.9))   # (sixteenth, velocity): the odd sixteenths, the one before each beat the louder
+COMB_STILL = 4                                           # bars at the start of each such section's playing in which the two are exactly in step
+COMB_TURN = 4                                            # bars from in step, to COMB_MAX apart, to in step again
+COMB_MAX = int(os.environ.get("C11T7_COMB_MAX", "12"))   # samples apart at the widest: 12 is a quarter of a millisecond
+COMB_GAIN = os.environ.get("C11T7_COMB_GAIN", "-6dB")    # each click's fader
+RATE = 48000                                             # samples a second: the engine's
+
+
+def comb_span():
+    """The bars in which the two small clicks play, or []."""
+    return [bar for bar in range(BARS) if plays(COMB_WITH, bar)] if COMB else []
+
+
+def comb_apart(x):
+    """Samples by which the second click is behind the first at bar position x (bars from the start of the song)."""
+    sec = next(q for q in SECS if q[1] <= int(x) < q[1] + q[2])
+    if sec[0] not in COMB_APART:
+        return 0
+    u = x - min(b for b in comb_span() if sec[1] <= b < sec[1] + sec[2])       # bars since it began to play in this section
+    return 0 if u < COMB_STILL else int(round(COMB_MAX * (1 - math.cos(2 * math.pi * (u - COMB_STILL) / COMB_TURN)) / 2))
+
+
+def comb_strokes():
+    """(beat, samples the second click is behind, velocity) of every stroke."""
+    return [((bar * 16 + st) * STEP, comb_apart(bar + st / 16), v) for bar in comb_span() for st, v in COMB_STEPS]
+
+
+def comb_notes(second):
+    return [{"at": round(t + (n / RATE * BPM / 60 if second else 0.0), 7), "len": 0.03, "pitch": "G5", "vel": v} for t, n, v in comb_strokes()]
 
 
 def hemi_span():
@@ -709,6 +758,14 @@ def song():
                               "sends": {"room": "-16dB"}, "auto": {"open": {"points": open_lane()}}, "notes": roll_notes()})
         doc["about"] = doc["about"].replace(" Generated by", " From v10 the click rolls: from sixteenths it quickens by the same ratio every beat until its strokes are one turn of its own wave apart, 196 a second, where every stroke is in step with the last one's tail and the row of clicks is one held note, G3: once, in the two bars of slips where the drum rests, landing on its return. Generated by")
         assert "From v10" in doc["about"]
+    if comb_span():
+        PATCHES["os-air"] = {"about": "Out of Step's small bright click (chirper-zero, 26 Nov, v12): a saw from phase nought with everything under 6.5 kHz taken off and a lift round 14 kHz, gone in 10 ms: no noise in it, so two of them are the same to the sample, and two of them n samples apart are a comb.",
+                             "play": {"vel_sens": 0.5, "gate": 1},
+                             "synth": {"layers": ["saw phase=0"], "filters": ["hp cutoff=6500", "hp cutoff=6500", "peak cutoff=14000 q=0.7 gain=6dB"], "amp": {"a": "0.1ms", "d": "10ms", "s": 0, "r": "5ms", "curve": 2}}}
+        for nm, second in (("air-1", False), ("air-2", True)):
+            doc["tracks"].append({"name": nm, "patch": "os-air", "gain": COMB_GAIN, "pan": 0.0, "notes": comb_notes(second)})      # dry, in the same place
+        doc["about"] = doc["about"].replace(" Generated by", " From v12 a small bright click on the odd sixteenths, wherever the hat plays, is two clicks in one place: in slips and drifts the second goes up to twelve samples behind the first and back every four bars (too close to be heard as two, they are heard as a colour: a comb whose notches walk down the undertones of 24 kHz and up again), and in home they are in step to the sample. Generated by")
+        assert "From v12" in doc["about"]
     if hemi_span():
         PATCHES["os-bass-d"] = {"about": f"Out of Step's second pump (chirper-zero, 26 Nov, v11): two pairs of sines, on D2 and its octave, each pair {HEMI_RATE * BPM / 60:g} Hz apart (a cycle and a half a beat at {BPM}), both tones of a pair as loud as each other. Struck on the off-beat it swells three times in two beats, where the bass swells twice: three against two. The pair's mean is as sharp as the bass's ({1200 * math.log2(1 + DELTA / 2 / F0):.1f} cents). For D2 ONLY: another note needs its own ratios.",
                                 "play": {"mono": True, "vel_sens": 0.2},
@@ -791,6 +848,13 @@ if __name__ == "__main__":
                     print(f"   the pendulum in \"{name}\" (bars {b0 + phase[1]}-{b0 + phase[2]}, {phase[3]}): B's lead at each quarter of a bar, ms (+ the right ear first): " + " ".join(f"{lead_ms((b0 + phase[1]) * BAR + q * 4):+.2f}" for q in range(0, (phase[2] - phase[1]) * 4 + 1)))
         ms = 60 / BPM / 4 * 1000
         print("   the first slip (bars 24-26): the gap between A's stroke and B's, ms: " + " ".join(f"{(n['at'] / STEP - round(n['at'] / STEP + phi(n['at'] / STEP)) + 0) * -ms:.1f}" for n in b_notes() if 24 * BEATS <= n["at"] < 25.5 * BEATS))
+        if comb_span():
+            bs = comb_span(); b0 = bs[0]; sec = BEATS * 60 / BPM; st = comb_strokes()
+            runs = [b for b in bs if b - 1 not in bs]; ends = [b + 1 for b in bs if b + 1 not in bs]
+            print(f"   two clicks less than a wave apart, bars " + ", ".join(f"{a + 1}-{b}" for a, b in zip(runs, ends)) + f" ({len(bs)} bars, where the hat plays; from {int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}): {len(st)} strokes on sixteenths {' '.join(str(x) for x, v in COMB_STEPS)} ; apart in {' and '.join(COMB_APART)} (in step for {COMB_STILL} bars, then to {COMB_MAX} samples, {1000 * COMB_MAX / RATE:.2f} ms, and back every {COMB_TURN} bars) ; in step to the sample everywhere else")
+            print("      samples apart at each bar's first stroke: " + " ".join(f"{b + 1}:{comb_apart(b + 1 / 16)}" for b in bs))
+            for b in range(b0 + COMB_STILL, b0 + COMB_STILL + COMB_TURN):
+                print(f"      bar {b + 1}: samples apart " + " ".join(str(n) for t, n, v in st if b * BEATS <= t < (b + 1) * BEATS) + " ; the lowest notch (Hz) " + " ".join(f"{RATE / 2 / n:.0f}" if n else "-" for t, n, v in st if b * BEATS <= t < (b + 1) * BEATS))
         if hemi_span():
             sec = BEATS * 60 / BPM; d, g = hemi_swells()
             print(f"   three against two, bars " + " and ".join(f"{b0 + 1}-{b1} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f})" for b0, b1 in hemi_span()) + f", {HEMI_GAIN}: the second pair on {HEMI_NOTE}: " + " and ".join(f"{lo * HEMI_F0:.2f} + {hi * HEMI_F0:.2f} Hz ({lv:g} dB each)" for lo, hi, lv in hemi_ratios()) + f" ; {HEMI_RATE * BPM / 60:g} Hz apart ({HEMI_RATE:g} cycles a beat) ; its note {1200 * math.log2((hemi_ratios()[0][0] + hemi_ratios()[0][1]) / 2):+.1f} cents from {HEMI_NOTE} (the bass's {1200 * math.log2(1 + DELTA / 2 / F0):+.1f} from G2)")
