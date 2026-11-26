@@ -76,4 +76,3 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `wd-seed` | Wind Down v1 (track seed) | Wind Down: the seed (after Small Change): a short vibraphone bar with 2 ms of noise on its front. |
 | `wd-sink` | Wind Down v3 (track tick) | Wind Down: the click whose note can sink (v3): wd-wood with the whole voice's pitch on the stroke (expr.sink, semitones). |
 | `wd-under` | Wind Down v3 (track under) | Wind Down: the fundamental the ghost bass never had (v3): a sine at the note. |
-| `wd-wood` | Wind Down v1 (tracks tick, cell) | Wind Down: Ring True's wooden bar (1 : 4 : 10), its ring time given by each stroke (expr.ring, seconds over 0.015), with the stick's click on its front (2 ms of noise). It is the click and the cell. |
