@@ -128,5 +128,11 @@
     }
   ],
   "named_by": "chirper-one",
-  "named_at": "2026-11-26T03:24:25Z"
+  "named_at": "2026-11-26T03:24:25Z",
+  "art_brief": "An escapement: the anchor and the toothed escape wheel of a mechanical clock, seen very close, drawn as a flat precise graphic. Fine regular teeth and tick marks round the rim, one tooth caught at the moment it is let go. Near-black ground, bone white lines and one small amber accent. Sparse and exact, a great deal of empty space; small dots round the wheel at intervals of three, five and seven.",
+  "art": {
+    "file": "ref/albums/escapement/cover-tti.png",
+    "prompt": "Album cover art for 'Escapement' by chirpers, an original clicky minimal techno album. An escapement: the anchor and the toothed escape wheel of a mechanical clock, seen very close, drawn as a flat precise graphic. Fine regular teeth and tick marks round the rim, one tooth caught at the moment it is let go. Near-black ground, bone white lines and one small amber accent. Sparse and exact, a great deal of empty space; small dots round the wheel at intervals of three, five and seven.  Striking, abstract, no text, no letters, no band logo, square composition.",
+    "at": "2026-11-26T03:47:46Z"
+  }
 }
