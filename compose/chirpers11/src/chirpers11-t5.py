@@ -188,6 +188,20 @@ more than the rest of the record at 1.9 kHz and 10 dB more at 640 Hz. Each part 
 (the rim's own note, E5, 659 Hz, and its third partial, 1978 Hz). Its two notes are turned down; its snap is not.
 The cut comes in over bars 3 to 8 and goes out over bars 177 to 184: the first two bars and the last sixteen, which
 other songs play over, have the click as it always was.
+
+v13 (26 Nov): THE SECOND ONE SOUNDS LOUDER (C11T5_PAIR=0 takes it out: v12). Two small clicks, two sixteenths
+apart (240 ms), and then a gap three times as long, as loud as each other AT THE EAR: the ear does not hear two
+the same. It hears the second as the loud one (an accent made of time alone: Povel and Okkerman 1981, of two
+equal sounds close together before a silence). They come on the sixteenth after beats one and three and the
+sixteenth before beats two and four, either side of the song's own click, from "turned around" to "all three"
+(not in "held", and not in "round the click", where the drum goes round and would land on them). And the song
+weighs the illusion: section by section the second stroke is really turned DOWN, by 0, 2, 4 and 6 dB, and at
+the end it is the same again. Where the two SOUND equal is what the timing is worth in dB.
+TWO THINGS THE MASTER DOES, both measured and both written into the form: (1) a stroke must not fall WITH the
+bass drum: the master takes 9 dB off whatever does (the first version had the first stroke on the beat);
+(2) written the same to the sample (C11T5_PAIR_LIFT=0), the second stroke reaches the ear 3 to 6 dB under the
+first: it falls a sixteenth after the click and the bass, which the master is still holding down. So the
+second is written that much UP (PAIR_PLAN's third number), and the two are equal where it counts.
 """
 import json
 import math
@@ -474,6 +488,33 @@ TRIM_IN = (2, 8)                                          # bars over which the 
 TRIM_OUT = (176, 184)                                     # ... and goes out again: the last sixteen bars are the click as it was (Small Change comes in under them)
 
 
+PAIR = os.environ.get("C11T5_PAIR", "1") != "0" and TRIM   # v13: the second one sounds louder (an accent made of time alone)
+PAIR_PLAN = (("turned around", 0, 3.1), ("never arrives", 2, 3.2), ("not there", 4, 4.7), ("the wrong one again", 6, 6.2), ("all three", 0, 3.1))   # (section, dB by which the SECOND stroke is really down AT THE EAR, dB the master takes off it there: measured, so it is written that much up) ; not "round the click": the drum goes round there and would land on a stroke
+PAIR_AT = (1, 9)                                          # the sixteenths of a bar on which a pair starts: the one after beats one and three (never ON the drum: the master takes 9 dB off what falls with it)
+PAIR_GAP = 2                                              # sixteenths from a pair's first stroke to its second: 240 ms, which is 360 of the engine's loudness steps exactly, so the two are the same to the sample
+PAIR_NOTE = "A3"
+PAIR_VEL = 0.6                                            # the first stroke's velocity (the second's goes up to 1.43 times it)
+PAIR_LIFT = os.environ.get("C11T5_PAIR_LIFT", "1") != "0"  # 0: the two are written the same to the sample, and the master makes the second 3 to 6 dB less
+PAIR_GAIN = os.environ.get("C11T5_PAIR_GAIN", "-7dB")        # the first stroke 6 dB under the song's own click in the master (over 1.5 kHz, in its first 25 ms). At 4 dB more it was 2.3 dB under it; at 4 dB less the scorer hardly saw it       # at -8 a stroke was 2.3 dB under the song's own click in the master (which holds the click down and lets a small one through): 8 dB down
+
+
+def pair_strokes():
+    """Every stroke: (beat, dB it is written DOWN against the first of its pair, 0 the first or 1 the second)."""
+    plan = {name: down - (lift if PAIR_LIFT else 0) for name, down, lift in PAIR_PLAN} if PAIR else {}
+    out = []
+    for name, b0, n, parts in SECS:
+        if name in plan:
+            for bar in range(b0, b0 + n):
+                for s in PAIR_AT:
+                    out += [(bar * BEATS + s * STEP, 0.0, 0), (bar * BEATS + (s + PAIR_GAP) * STEP, float(plan[name]), 1)]
+    return out
+
+
+def pair_notes():
+    """The patch's loudness goes as the square of the velocity: d dB down is the velocity times 10 ** (-d / 40)."""
+    return [{"at": round(at, 7), "len": round(0.03 * BPM / 60, 4), "pitch": PAIR_NOTE, "vel": round(PAIR_VEL * 10 ** (-down / 40), 4)} for at, down, k in pair_strokes()]
+
+
 def first_span():
     """The bars between which the first one wins, or None."""
     sec = next((x for x in SECS if x[0] == FIRST_IN[0]), None) if FIRST else None
@@ -709,6 +750,13 @@ def song():
             if t["name"] == "tick":
                 t["patch"] = "ht-tick-t"
                 t["auto"] = {"trim": {"points": [[f"{x:g}b", y] for x, y in ((0, 0), (TRIM_IN[0] * BEATS, 0), (TRIM_IN[1] * BEATS, 1), (TRIM_OUT[0] * BEATS, 1), (TRIM_OUT[1] * BEATS, 0), (TOTAL, 0))], "curve": 0}}      # 0 the click as it was, 1 the whole cut
+    if pair_strokes():
+        PATCHES["ht-two"] = {"about": "Hearing Things' pair (chirper-zero, 26 Nov, v13): a small dry wooden click with no noise in it, so that two of them are the same click to the sample: a saw from phase nought with everything under 700 Hz taken off, 16 ms. Its loudness is the square of its velocity and nothing else.",
+                             "play": {"vel_sens": 1},
+                             "synth": {"layers": ["saw phase=0"], "filters": [{"kind": "hp", "cutoff": 700, "q": 0.7}], "amp": {"a": "0.1ms", "d": "16ms", "s": 0, "r": "8ms", "curve": 3}}}
+        doc["tracks"].append({"name": "two", "patch": "ht-two", "gain": PAIR_GAIN, "pan": 0.0, "notes": pair_notes()})      # dry, in the middle
+        doc["about"] = doc["about"].replace(" Generated by", " From v13 two small clicks that are the same click to the sample come two sixteenths apart, either side of the song's click on beats one and three: the second is heard as the loud one (an accent made of time alone), and section by section it is really turned down, 0, 2, 4 and 6 dB, until the two sound equal or the first wins. Generated by")
+        assert "From v13" in doc["about"]
     if fall_span():
         PATCHES["ht-part"] = {"about": "Hearing Things' part of a bell (chirper-zero, 26 Nov, v11): one plain tone with the v6 bells' own shape, and its loudness is its velocity and nothing else. A bell is made of one of these for every octave of its note, so the curve the octaves are under can be somewhere else at every bell.",
                               "play": {"vel_sens": 0.5},
@@ -779,6 +827,13 @@ if __name__ == "__main__":
                 print(f"   bar {b + 1}: " + " ".join(f"{lag:.2f}" for t, lag, db in st if b * BEATS <= t < (b + 1) * BEATS) + (f"   (the late ear {FIRST_LATE_DB:g} dB louder)" if any(db for t, lag, db in st if b * BEATS <= t < (b + 1) * BEATS) else ""))
             if TRIM:
                 print("the click's repair: " + ", ".join(f"{g:g} dB at {f:.0f} Hz" for f, g in TRIM_CUTS) + f" (q {TRIM_Q}) ; coming in over bars {TRIM_IN[0] + 1}-{TRIM_IN[1]}, whole in bars {TRIM_IN[1] + 1}-{TRIM_OUT[0]}, going out over bars {TRIM_OUT[0] + 1}-{TRIM_OUT[1]}")
+        if pair_strokes():
+            st = pair_strokes(); sec = BEATS * 60 / BPM
+            print(f"the second one sounds louder: {len(st) // 2} pairs, strokes on sixteenths " + ", ".join(f"{s} and {s + PAIR_GAP}" for s in PAIR_AT) + f" of the bar ({PAIR_GAP * 60000 / BPM / 4:.0f} ms apart) ; the second really turned down by:")
+            for name, b0, n, parts in SECS:
+                for nm, down, lift in PAIR_PLAN:
+                    if nm == name:
+                        print(f"   {name:20s} bars {b0 + 1}-{b0 + n} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}): {down} dB at the ear ; the master takes {lift} dB off it there, so it is written {lift - down if PAIR_LIFT else -down:+.1f} dB against the first")
         if fall_span():
             b0, b1 = fall_span(); steps, n = fall_steps(); sec = BEATS * 60 / BPM
             print(f"the way down leads up, bars {b0 + 1}-{b1} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f}): {n} steps down, a bell every {FALL_EVERY} sixteenths from bar {b0 + FALL_SAID + 1}, {' '.join(FALL_BELLS)} round and round ({n // len(FALL_BELLS)} times: {3 * n} semitones down by name) ; the curve climbs {FALL_RISE:g} octave(s), {12 * FALL_RISE / n:.2f} of a semitone a step: loudest at {fall_mid(0, n):.0f} Hz at the first bell, {fall_mid(n, n):.0f} Hz at the last ; {len(fall_notes())} notes")
