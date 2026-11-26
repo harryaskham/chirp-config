@@ -94,6 +94,8 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Wind Down v7 (16:34): both ends are v6's: bars 1 to 8 read -29.8 dBFS, the last stroke -11.3 over two
+  seconds and then -36 -49 -61 -74 -87 -99 by second. What changed is inside (bars 68 to 168).
 - Ring True v7 (15:59): bars 1 to 8, the overlap with Standing Room, read -17.8 dBFS for -17.9. The last bar
   is -11.1 as before; the tail after it, under Hearing Things' first two bars, is 2 dB up (-20 -35 -49 -63
   by second for -22 -37 -52 -65) and now has the string's own low notes in it (B flat 2, G2, F2) as well as
