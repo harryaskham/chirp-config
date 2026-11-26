@@ -34,6 +34,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `lc-clap` | Least Common v1 (track clap) | Least Common: two and four. The drum machine's clap, short. |
 | `lc-hat` | Least Common v1 (track hat) | Least Common: the off beat. The drum machine's hat, closed. |
 | `lc-kick` | Least Common v1 (track kick) | Least Common: the four. The drum machine's bass drum resting on G, short enough to leave the sixteenth before the next beat empty. |
+| `lc-knock` | Least Common v6 (track knock) | Least Common: the drum's answer when a click lands on it (v6). A small kettledrum head (modes 1 : 1.5 : 2 : 2.5, so on G2, B flat 2 and D3 everything it has is between 98 and 370 Hz), let ring 800 ms. |
 | `lc-ping` | Least Common v1 (track ping) | Least Common: what two clicks make when they meet. A vibraphone bar with no motor, half a second long. |
 | `lc-root` | Least Common v2 (track bass) | Least Common: the bass once the meetings write its line (v2). A sine and its octave, so that a line on 73 to 117 Hz is also heard on 147 to 233. |
 | `lc-seven` | Least Common v1 (track seven) | Least Common: the click that counts seven. The drum machine's rim, tuned to G: two short pings and a click, a knock. |
