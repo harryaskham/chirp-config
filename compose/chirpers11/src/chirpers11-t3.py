@@ -122,6 +122,24 @@ at 3, a twelfth at 2.)
 ALSO: the three lanes of what goes past (its note, its level, its side) are now drawn STRAIGHT between strokes
 ("curve": 0). The engine bows a lane where it falls (chirp-eco's bench, 26 Nov): v7's bell was up to 19 cents
 flat between strokes where it was closest. And the clack that carries the bell is 6 dB up (-20 dB).
+
+v9 (26 Nov): STANDING ROOM (C11T3_STAND=0 takes it out: v8). The song is named for a room in which there is only
+room to stand, and until now it had every kind of room but the one the name means: a room with a STANDING WAVE
+in it. Between two walls a note whose half-waves fit holds still: loud at the walls, silent at its nodes, and
+how loud it is depends on WHERE YOU STAND and on nothing else. The room is 2.34 m from wall to wall: its own
+note is D2, and what is sounded in it is five of its modes (the second, third, fourth, sixth and eighth: D3,
+A3, D4, A4, D5; the fifths and octaves of the song's key and no third). For the first three rows of "standing
+room" (bars 113 to 136) you walk from the left wall to the right, and mode n is as loud as |cos(n pi x / L)|
+where your EAR is: at the wall the whole chord; a sixth of the way across the A3 is gone; a quarter, the D3 and
+the A4; a third, the As ring over everything; in the middle A3 is gone again and the Ds stand; then the same
+back, mirrored. Nothing is played but five held notes. AND THE TWO EARS ARE NOT IN THE SAME PLACE: they are
+17 cm apart along the walk, which is most of the way from one node of the top mode to the next (29 cm), so the
+D5 is in one ear while it is out of the other, and passes from ear to ear eight times in the crossing; the A4
+six; the low D3 hardly at all (low notes have no side: that is why). The modes are on tracks of their own, an
+ear each (`mode-N-l`, `mode-N-r`), dry: they are the room.
+(Not made: the wave's SIGN. Either side of a node the air moves the opposite way, so two ears with a node
+between them are half a cycle apart; here they differ in loudness only. And the modes are the tempered D and A:
+the room's true third mode is 2 cents above A3.)
 """
 import json
 import math
@@ -185,6 +203,15 @@ AGAIN = {"sec": "the door", "at": 4, "lo": 0, "hi": 8, "way": -1, "v": 1 / 3, "n
 STRAIGHT = os.environ.get("C11T3_STRAIGHT", "1") != "0" and TWICE          # the lanes of what goes past are straight between strokes
 PASS_TICK = os.environ.get("C11T3_PASS_TICK", "-20dB" if TWICE else "-26dB")   # ... and the level of the clack that carries the bell ("" for the bell alone)
 PASS_PAN = 0.9                 # how far to the side it is heard when it is far along its line
+STAND = os.environ.get("C11T3_STAND", "1") != "0" and TWICE                     # v9: standing room (a standing wave, walked across)
+STAND_IN = ("standing room", 0, 24)                    # the section, and the bars of it in which you walk from wall to wall
+STAND_HOLD = 4.5                                       # beats the held notes are written past the far wall: this patch's note begins to let go about 4.6 beats before its written end (measured twice; attack 0.4 s, release 1.5 s)
+STAND_ROOT = 73.416                                    # Hz: the room's own note (D2): its walls are SOUND / (2 * STAND_ROOT) = 2.34 m apart
+STAND_MODES = ((2, "D3"), (3, "A3"), (4, "D4"), (6, "A4"), (8, "D5"))   # the modes that are sounded: fifths and octaves, no third
+STAND_EAR = 0.17                                       # m from ear to ear, along the walk
+STAND_GAIN = float(os.environ.get("C11T3_STAND_GAIN", "-28"))   # dB: a mode at a wall (benched: at -24 the chord was 5 dB under the music and the loudness stage turned the rest of the song down 0.55 dB; it scored more the louder it was)
+STAND_TILT = -3.0                                      # dB an octave: the higher modes are damped more
+STAND_FLOOR = -40.0                                    # dB: how deep a node is let be
 STEP_OPEN = 1                  # bars the door of the next place takes to open as the click steps
 STEP_SHUT = 2                  # bars the door of the place behind takes to shut
 WALL = "-3dB"                  # what a wall gives back
@@ -270,6 +297,31 @@ def dist_lane(per):
             pts += ([pt(bar - 0.01, last)] if last is not None else []) + [pt(bar, v)]
         last = v
     return pts + [pt(BARS, last)]
+
+
+def stand_span():
+    """The beats between which the standing wave is walked across, or None."""
+    sec = next((x for x in SECS if x[0] == STAND_IN[0]), None) if STAND else None
+    return ((sec[1] + STAND_IN[1]) * BEATS, (sec[1] + STAND_IN[2]) * BEATS) if sec else None
+
+
+def stand_at(t, side):
+    """Where an ear (side -1 left, 1 right) is at beat t, as a share of the way from the left wall to the right."""
+    lo, hi = stand_span()
+    L = SOUND / (2 * STAND_ROOT)
+    u = min(1.0, max(0.0, (t - lo) / (hi - lo)))
+    return (STAND_EAR / 2 + (L - STAND_EAR) * u + side * STAND_EAR / 2) / L
+
+
+def stand_db(n, t, side):
+    """dB of mode n at that ear at beat t: |cos(n pi x / L)|, no deeper than STAND_FLOOR."""
+    return max(STAND_FLOOR, 20 * math.log10(max(abs(math.cos(n * math.pi * stand_at(t, side))), 1e-9)))
+
+
+def mode_lane(n, side):
+    lo, hi = stand_span()
+    k = int(round((hi - lo) / STEP))
+    return [["0b", round(stand_db(n, lo, side), 2)]] + [[f"{lo + i * STEP:g}b", round(stand_db(n, lo + i * STEP, side), 2)] for i in range(k + 1)] + [[f"{TOTAL:g}b", round(stand_db(n, hi, side), 2)]]
 
 
 def note(at, pitch, length, vel):
@@ -548,6 +600,18 @@ def song():
             doc["tracks"].append({**doc["tracks"][-1], "name": "pass-tick", "patch": "sr-pass-tick", "gain": PASS_TICK})
         doc["about"] = doc["about"].replace(" Generated by", " From v7 something goes past outside, a sixteenth of sound away at a fifth of the speed of sound, striking straight eighths on one note: its strokes are heard five against four and a major third high as it comes, five against six and a minor third low when it has gone (the Doppler effect, of a rhythm and of a pitch at once). Generated by")
         assert "From v7" in doc["about"]
+    if stand_span():
+        lo, hi = stand_span()
+        PATCHES["sr-mode"] = {"about": "Standing Room's mode (chirper-zero, 26 Nov, v9): one sine, held: a note whose half-waves fit between the walls. Its loudness is where the ear is (auto.at, dB).",
+                              "synth": {"layers": ["sine phase=0"], "amp": {"a": "400ms", "d": "0s", "s": 1, "r": "1.5s"}}}
+        for n, pitch in STAND_MODES:
+            for nm, side in (("l", -1), ("r", 1)):
+                doc["tracks"].append({"name": f"mode-{n}-{nm}", "patch": "sr-mode", "gain": f"{STAND_GAIN + STAND_TILT * math.log2(n / STAND_MODES[0][0]):.2f}dB", "pan": side,
+                                      "auto": {"at": {"points": mode_lane(n, side), "curve": 0}},
+                                      "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.at", "amount": 1}]}}],
+                                      "notes": [note(lo, pitch, hi - lo + STAND_HOLD, 0.8)]})
+        doc["about"] = doc["about"].replace(" Generated by", " From v9 there is a standing wave in standing room: five held notes that fit between its walls, each as loud as it is where the ear is, and for three rows you walk from one wall to the other: the chord changes with where you stand and the top notes pass from ear to ear. Generated by")
+        assert "From v9" in doc["about"]
     if SING:
         doc["about"] = doc["about"].replace(" Generated by", " From v6 there is a pipe in each wall of standing room, tuned to that wall's note, and one where the click stands: the click and its echoes strike them, so the room sings the bass's line (D, F from the left, C from the right) and for one row the bass rests under it. Generated by")
         assert "From v6" in doc["about"]
@@ -625,6 +689,12 @@ if __name__ == "__main__":
             a, b = WALK[LEARN_ROOM][0]
             print("   what strikes them in a bar (step: the pipe, dB at the pipe): " + " ".join(
                 [f"{CLICK_STEP}:D {FIRST['click']}"] + [f"{CLICK_STEP + t}:{'F+C' if sd == 'both' else 'F' if sd == 'left' else 'C'} {float(FIRST['click'][:-2]) + float(WALL[:-2]) * (2 * (t // (a + b)) - (1 if sd == 'both' else 0) ):+.0f}" for t, sd in echoes(a, b) if CLICK_STEP + t < 16]))
+        if stand_span():
+            lo, hi = stand_span(); L = SOUND / (2 * STAND_ROOT)
+            print(f"the standing wave, bars {lo // BEATS + 1:g}-{hi // BEATS:g}: walls {L:.2f} m apart (the room's note {STAND_ROOT:.1f} Hz), ears {STAND_EAR * 100:.0f} cm apart ; modes " + " ".join(f"{n}:{p}" for n, p in STAND_MODES) + " ; a mode at a wall " + " ".join(f"{STAND_GAIN + STAND_TILT * math.log2(n / STAND_MODES[0][0]):.1f}" for n, p in STAND_MODES) + " dB")
+            for q in (0, 1 / 8, 1 / 6, 1 / 4, 1 / 3, 1 / 2, 2 / 3, 3 / 4, 1):
+                t = lo + (hi - lo) * q
+                print(f"   bar {t / BEATS + 1:6.2f}: the head {100 * (stand_at(t, -1) + stand_at(t, 1)) / 2:5.1f}% of the way across ; left ear / right ear dB: " + " ; ".join(f"{p} {stand_db(n, t, -1):+6.1f} / {stand_db(n, t, 1):+6.1f}" for n, p in STAND_MODES))
         if PASS and passes():
             p, ms = passes(), 60000 / BPM / 4
             for name, (at, lo, hi, way), PASS_V, PASS_NOTE in [(nm, v_, PASS_V, PASS_NOTE) for nm, v_ in PASS_IN.items()] + ([(AGAIN["sec"], (AGAIN["at"], AGAIN["lo"], AGAIN["hi"], AGAIN["way"]), AGAIN["v"], AGAIN["note"])] if PASS_AGAIN else []):
