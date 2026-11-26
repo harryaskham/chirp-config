@@ -32,6 +32,19 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v5 (26 Nov), three more switches (`--without-flue`, `-remember`, `-lift`; with them off it is v4 byte for byte):
+  FLUE     the air is blown, not struck. It was three milliseconds of noise in a resonator: let go, the resonator
+           sang, which is a struck thing again and the least like its name of the seven. Now there is breath
+           behind the puff (new patch `rt-flue`): a second noise that lasts nearly half a second and comes up
+           only as the thing is let go, into a resonator a third as sharp. Stopped it is the same puff; let go
+           it is a pipe that is blown: the note lasts as long as the breath does, not as long as the pipe rings.
+  REMEMBER the room remembers. When a thing is stopped by the hand (the skin and the air, then the string and
+           the plate, then the metal) it is a click again, but for the rest of that section the hall it rang in
+           is still open round it: the stopped strokes go on being sent there (tracks `-kept`, each at a level
+           set by solo, since a click is too short to fill a hall at a note's send). At the next stopping it is dry.
+  LIFT     the metal's aftertaste, its one ringing stroke four bars after it is stopped, stood 9.4 dB under the
+           mix: 4 dB up.
+
 v4 (26 Nov), three more switches (`--without-answer`, `-even`, `-after`; with them off it is v3 byte for byte):
   ANSWER the listenings were all alike: four bars, a thing alone. Now the things already let go ANSWER the new one
          in the last two of its four bars, let go altogether as it is and 7 dB behind it: the wood is alone (nobody is before it); the metal is answered by the
@@ -133,7 +146,14 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True}
+FLUE = {'q': 40, 'breath': {'a': '30ms', 'd': '450ms', 's': 0, 'r': '300ms'}, 'top': -24, 'ease': 0}   # v5: the resonator's q let go (it was 120); the breath; the breath's level let go, dB beside the puff's; dB on the stroke at ring 1
+# The breath's level is set under the track's clip. Bench, the stroke let go, level over two seconds and its third harmonic beside its note: top 0 -25.8 (and 10 dB off the stroke took only 1.9 off: it was all clip);
+# -12 -28.2, -26.0; -24 -33.1, -32.4; -36 -41.6, -31.9. At -24 it is clean and climbs with the ring: -51.5 -53.6 -43.3 -43.7 -37.6 -33.1 at rings 0, 0.2 … 1 (rt-air: -47.8 -54.8 -40.8 -42.0 -33.7 -44.1).
+CAL_FLUE = [0, 0, 0, 0, 0, 0]                # v5: nothing is given back: the flue's highest sample is the clip's at every ring
+KEPT = {'air': 7, 'string': 2.5, 'metal': 4, 'skin': 7, 'plate': 11}   # v5: dB over its dry fader at which a stopped thing is still sent to the hall (a track of its own, `-kept`). Set by solo: sent as a let-go stroke is (10 dB under the dry), the halls stood 23 to 38 dB under the mix above 300 Hz, which is nothing; a click is too short to fill a hall.
+# At these each hall stands 2.5 to 4 dB over the click it remembers and 11 to 17 dB under the mix (K-weighted, by parts). At 10 and 17 the skin's and the plate's stood 7 and 10 dB over their own clicks: a hall with a tick in it, not a tick with a hall round it
+LIFT = {'metal': 4}                          # v5: dB on a thing's aftertaste
 ANSWER = 2                                   # v4: the last bars of a listening in which the things already let go answer
 ANSWER_DB = -10                              # dB on the answering things: behind the thing they answer (at -6 the answered bars stood 0.6 to 1.4 dB OVER the groove that came back; at -10 level with it, so the weight's return is still the step)
 AFTER = SEC // 4                             # v4: bars after it is stopped that a thing gives one more stroke let go
@@ -188,7 +208,23 @@ def enters(thing):
     return PLATE['enters'] if thing == 'plate' else ENTERS[thing]
 
 
+def flue_patch():
+    """rt-air with breath behind the puff: a second noise, half a second long, whose level the stroke's ring brings up."""
+    air = PATCHES['rt-air']
+    breath = {'type': 'noise', 'color': 'white', 'level': {'value': f"{-130 + FLUE['top']}dB", 'mod': [{'src': 'env.breath', 'amount': 70}, {'src': 'expr.ring', 'amount': round(60 / (FLUE['q'] - 0.7), 3)}]}}
+    return {'gain': air['gain'], 'about': "Ring True: the air, blown (v5). rt-air's puff of noise in a resonator tuned to the note, and behind it a breath: a second noise nearly half a second long whose level the stroke's ring brings up (60 dB from stopped to let go). The resonator's q goes to 40, not 120, so let go it is breath with a note in it and not a ping.",
+            'synth': {**air['synth'], 'layers': air['synth']['layers'] + [breath], 'env': {**air['synth']['env'], 'breath': FLUE['breath']}}, 'play': air['play']}
+
+
+def remembered(thing, bar):
+    """v5: is the thing, stopped by the hand, still heard in its hall? From the bar it is stopped to the end of that section."""
+    last = (PLATE['shape'] if thing == 'plate' else SHAPE[thing])[-1]
+    return ON['remember'] and len(last) > 2 and last[1] == 0 and TOP[last[0]] + last[2] <= bar < TOP[last[0] + 1]
+
+
 def patch_of(thing):
+    if thing == 'air' and ON['flue']:
+        return 'rt-flue'
     return 'rt-plate' if thing == 'plate' else ('rt-drum' if ON['note'] else 'rt-boom') if thing == 'weight' and ON['boom'] else PATCH[thing]
 
 
@@ -253,8 +289,8 @@ def seconds(thing, r):
 
 
 def air_q(r):
-    """The air's resonator: a band-pass's q from a ring, 0.7 (a puff) to 120 (it sings)."""
-    return 0.7 * (120 / 0.7) ** r
+    """The air's resonator: a band-pass's q from a ring, 0.7 (a puff) to 120 (it sings); with FLUE to 40 (the breath sings, not the pipe)."""
+    return 0.7 * ((FLUE['q'] if ON['flue'] else 120) / 0.7) ** r
 
 
 # What the bench reads (--bench, then bread.py): a thing's highest sample at rings 0, 0.2 … 1. A shut string or a
@@ -267,9 +303,10 @@ EASE = {'wood': -5, 'metal': -5, 'skin': -3}
 
 def level(thing, r):
     """dB to add to a stroke at ring r so that the thing's highest sample is the same at every ring."""
-    db = (PLATE['ease'] if thing == 'plate' else NOTE['ease'] if thing == 'weight' and ON['boom'] and ON['note'] and NOTE['ease'] else EASE.get(thing, 0)) * r
+    db = (PLATE['ease'] if thing == 'plate' else NOTE['ease'] if thing == 'weight' and ON['boom'] and ON['note'] and NOTE['ease'] else FLUE['ease'] if thing == 'air' and ON['flue'] else EASE.get(thing, 0)) * r
     if thing in CAL:
-        c = [CAL[thing][-1] - v for v in CAL[thing]]
+        cal = CAL_FLUE if thing == 'air' and ON['flue'] else CAL[thing]
+        c = [cal[-1] - v for v in cal]
         x = min(r * 5, 4.999)
         i = int(x)
         db += c[i] + (c[i + 1] - c[i]) * (x - i)
@@ -291,6 +328,8 @@ def build():
     T = {k: [] for k in things()}
     if ON['room']:
         T.update({k + '-room': [] for k in ROOM_THINGS if k in T})
+        if ON['remember']:
+            T.update({k + '-kept': [] for k in ROOM_THINGS if k in T and k in KEPT})
     for bar in range(BARS):
         for thing in things():
             if bar < enters(thing) or any(a <= bar < b for a, b in [OUT_OF.get(thing, (0, 0))]):
@@ -307,10 +346,14 @@ def build():
                     if alone and ALONE:
                         down = ANSWER_DB if thing not in alone else ALONE_OF.get(thing, ALONE) if ON['even'] else ALONE
                         n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + down, 2)}dB"
+                    if ON['lift'] and thing in LIFT and bar == aftertaste(thing) and r == 1.0 and not alone:
+                        n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + LIFT[thing], 2)}dB"
                     T[thing].append(n)
                     if thing + '-room' in T and r >= ROOM_FROM:      # the room hears a thing as far as it is let go
                         own = float(n.get('gain', '0dB')[:-2])
                         T[thing + '-room'].append({**n, 'gain': f'{round(own + 20 * log10(r), 2)}dB'})
+                    elif thing + '-kept' in T and remembered(thing, bar):   # v5: stopped, and its hall still open
+                        T[thing + '-kept'].append(dict(n))
     return T
 
 
@@ -333,6 +376,8 @@ def song(T, bars=BARS):
     elif ON['boom']:
         doc['patches'] = {**doc['patches'], 'rt-boom': NEW['rt-boom']}
         by_name['weight']['gain'] = BOOM['gain']
+    if ON['flue']:
+        doc['patches'] = {**doc['patches'], 'rt-flue': flue_patch()}
     if ON['plate'] and 'plate' in T:
         doc['patches'] = {**doc['patches'], 'rt-plate': NEW['rt-plate']}
         doc['tracks'].append(track('plate', PLATE['gain'], pan=PLATE['pan'], sends={'room': '-16dB'}))
@@ -344,6 +389,11 @@ def song(T, bars=BARS):
                 dry = by_name[k]
                 doc['tracks'].append({'name': k + '-room', 'patch': dry['patch'], 'gain': f"{float(dry['gain'][:-2]) + ROOM_DEPTH}dB", 'pan': dry['pan'],
                                       'notes': T[k + '-room'], 'out': 'hall', **({'fx': dry['fx']} if 'fx' in dry else {})})
+        for k in ROOM_THINGS:
+            if T.get(k + '-kept'):
+                dry = by_name[k]
+                doc['tracks'].append({'name': k + '-kept', 'patch': dry['patch'], 'gain': f"{float(dry['gain'][:-2]) + KEPT[k]}dB", 'pan': dry['pan'],
+                                      'notes': T[k + '-kept'], 'out': 'hall', **({'fx': dry['fx']} if 'fx' in dry else {})})
     return doc
 
 
@@ -377,7 +427,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (all twelve off is v1; the last seven off is v2; the last three off is v3)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (all fifteen off is v1; the last ten off is v2; the last six off is v3; the last three off is v4)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
