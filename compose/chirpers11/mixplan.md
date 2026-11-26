@@ -81,6 +81,14 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
 - Ring True v5 (12:11): its first eight bars are as they were (the air is not in yet). Its last bar, the one
   bar it shares with Hearing Things, has everything let go: the air there is now a breath (`rt-flue`), which on
   the bench carries 11 dB more over two seconds than the old air let go. Not re-rendered.
+- Small Change v5 (13:07): ITS LAST EIGHT BARS CHANGED, so the t6 -> t7 line above is out of date. They held two
+  seeds (bars 185 and 189), each with echoes 3 and 5 sixteenths of 122 apart. Now the seed at 185 is paid in
+  sixty-fourths (a flurry gone in half a bar, then two and a half bars of nothing) and the seed at 189 in a
+  purse whose unit is B flat 3's period: one held B flat 4 that takes the four bars to go. Finished song, by
+  bar 185 to 192: -17 -64 -97 -150 -13 -39 -57 -72 (v4 -18 -36 -62 -88 -17 -32 -55 -82); the eight bars
+  together -20.6 for -23.8. Out of Step's pattern now arrives over a silence and then a held note a minor
+  third over its G, not over echoes it is out of step with. Its first sixteen bars are as they were. Not
+  re-rendered as a seam.
 - Wind Down v4 (10:39): its click has 6 dB less of its note (G6) and more of its click, for the whole song.
   Its first eight bars, the lone click that t7 -> t8 is cut on, read -29.8 dB where they read -27.8 (it is at
   the ceiling, so its fader could not give all of it back), and bars 9 to 16 read -14.7 for -16.2 (the drum has
