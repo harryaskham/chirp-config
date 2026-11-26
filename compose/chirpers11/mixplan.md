@@ -94,6 +94,8 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v8 (18:04): both ends are v7's: bars 1 to 8 read -17.8 dBFS, the last bar -11.1, the tail after it
+  -20 -35 -50 -63 by second (1 dB lower in its third second). What changed is inside (bars 36 to 128).
 - Least Common v8 (17:29): bars 1 to 4, under Give or Take's last bars, are v7's (-17.2 dBFS). The last four
   bars, under Standing Room's first, read -16.9 for -16.8 and 0.9 dB more above 2 kHz: the clicks are 2.4 dB
   harder where those bars begin and back to v7's level at home, and their echoes are gone by then. The bar
