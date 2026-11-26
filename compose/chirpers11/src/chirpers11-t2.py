@@ -99,6 +99,22 @@ every 7. Those meetings, a click with the drum, were the only ones in the song t
          knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
          song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
 
+v9 (26 Nov): THE CLAP CHANGES SIDES. Everything that counted three, five and seven was a click, a ping or a
+knock; the four's own parts (the drum, the bass, the hat, the clap) never left the four. Three switches
+(`--without-count`, `-sway`, `-open`; all three off is v8 byte for byte):
+  COUNT  on page 7 (bars 158 to 180, until the four stops for the page turn) the clap leaves the four and
+         counts with the three. The three's cycle is three beats there and the drum answers its first beat with
+         a knock (v6); the clap now falls on its second: knock, clap, nothing, thirty times, a slow three over
+         the drum's four. Two and four are not played for 45 seconds. On page 8 the clap is back on two and
+         four, and the hat is late (v4): the four's parts take their turns at not being where they were.
+  SWAY   while it counts three the clap stands to one side and then the other, turn about (0.5 each way): a
+         cycle of six beats from left to left, over bars of four.
+  OPEN   on page 8 (bars 185 to 204, where the hat is a sixteenth late and the clap is back on two and four) the
+         hat counts with the five: the first hat after each of the five's knocks is let ring (`lc-open`, a new
+         sound: the same hat with ten times the ring, held half a beat) in place of the shut one. Knock, and the hat opens: once
+         every five beats, sixteen times. So the last two pages hand the four's parts to the cycles one at a
+         time, the clap to the three and then the hat to the five, before the clock runs down.
+
 v8 (26 Nov): THE SECOND HALF REMEMBERS THE FIRST. On page 6 the three clicks stood 20 to 22 dB under the mix: the
 second half was a low-end piece with the clicks far behind it, on an album of clicks. Two switches
 (`--without-ghost`, `-fore`; both off is v7 byte for byte):
@@ -166,7 +182,16 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True}
+      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True}
+COUNT = {'page': 6, 'cycle': 3, 'beat': 1}   # v9: the page (from 0) on which the clap counts with a cycle; the cycle, beats; the beat of it the clap falls on (from 0: the one after the knock)
+SWAY = {'pan': 0.5, 'db': 2.5}          # v9: how far to each side the clap stands while it counts; dB on it there.
+# Bench (count.sh, countread.py: page 7's first nine bars by beat): at the clap's own fader the claps to the sides read -43 to -45 a beat where the clap in the middle read -41 (what a side costs): so 2.5 dB
+OPEN = {'page': 7, 'cycle': 5, 'gain': '0dB'}   # v9: the page on which the hat counts with a cycle; the cycle, beats; the open hat's fader (the shut hat's is 6 dB).
+# Bench (open.sh, openread.py: page 8's first ten bars): first with the machine's decay at 150 ms and the fader at 2 dB: by 30 ms -30 -40 -51 -61 -69 -75 where the shut hat reads -32 -52 -60 -66 -74 -80: a hat a
+# little less shut, gone in 90 ms; not an open one. So 450 ms, held half a beat (the next shut hat stops it), 2 dB lower
+LC_OPEN = {'about': "Least Common: the hat let ring, once every five beats: the first hat after the five's knock (v9). The drum machine's hat with ten times the shut one's ring, held half a beat.",
+           'synth': {'layers': [{'type': 'machine', 'machine': {'part': 'hat', 'decay': '450ms'}}],
+                     'amp': {'a': '0.1ms', 'd': '0s', 's': 1, 'r': '60ms'}}, 'play': {'event_stable': True, 'vel_sens': 0.6}}
 GHOST = {'feed': '-4dB', 'back': 0.5, 'hp': 300, 'side': {'three': 0.5, 'five': -0.5, 'seven': 0.0}}   # v8: what each click's echo takes of it, what it gives back of itself each pass, its high-pass, where it stands (the three walks left and the five right)
 FORE = 4                                # v8: dB on the three clicks through the second half
 # Bench, page 6's first sixteen bars, each click alone, by sixteenth (ghost.sh, ghostread.py). The three (struck on sixteenths 1 3 5 8 10 of twelve) read -36 -58 -38 -59 -36 -57 -65 -40 -63 -40 -61 -72 in v7; with its echo
@@ -367,6 +392,10 @@ def build():
 
     if ON['knock']:
         T['knock'] = []
+    if ON['count'] and ON['sway']:
+        T['clap-l'], T['clap-r'] = [], []
+    if ON['open']:
+        T['open'] = []
 
     def knock(s, db=0):
         """v6: the drum's answer at sixteenth s, a note for each click whose cycle lands on it (every 3, 5 and 7 beats)."""
@@ -459,6 +488,8 @@ def build():
     marks += [('second half: three, five and seven beats', HALF)] + [(f'page {p + 5} (the three meet on beat {p * PAGE // BEAT % 4 + 1})', HALF + p * PAGE) for p in range(1, pages)]
     marks += [(f"the triad turns over: {' '.join(TURNED[p % len(TURNED)][c] for c in CYCLES)}", HALF + p * PAGE) for p in range(1, pages)] * (ON['turn'] and ON['knock'])
     marks += [("each click's echo keeps its old cycle: 3, 5 and 7 sixteenths under 3, 5 and 7 beats", HALF)] * ON['ghost'] + [(f'the clicks are struck {FORE} dB harder', HALF)] * ON['fore']
+    marks += [(f"the clap counts with the three: every third beat, the beat after the knock" + (', from side to side' if ON['sway'] else ''), COUNT['page'] * PAGE)] * ON['count']
+    marks += [("the hat counts with the five: the first hat after each of its knocks is let ring", OPEN['page'] * PAGE)] * ON['open']
     marks += [('only the drum is left of the four', HALF + last * SUPER), ('home', TOTAL)]
     if ON['break']:
         marks = sorted(marks + [('the four stops for the page turn', t - BREAK) for t in TURNS], key=lambda m: m[1])
@@ -481,8 +512,18 @@ def build():
             late = 1 if ON['push'] and page % pages == pages - 1 else 0       # v4: the last page of a half, a sixteenth late
             for off in (2, 6, 10, 14):
                 if not broken(s0 + off + late) and not bare(s0 + off + late):
-                    add('hat', s0 + off + late, 1, 'A#4', .7)
-        if page in (3, 5, 6, 7):
+                    if ON['open'] and page == OPEN['page'] and (s0 + off - HALF) % (OPEN['cycle'] * BEAT) == 2:   # v9: the first hat after the five's knock is let ring
+                        add('open', s0 + off + late, 2, 'A#4', .7)
+                    else:
+                        add('hat', s0 + off + late, 1, 'A#4', .7)
+        if ON['count'] and page == COUNT['page']:                # v9: the clap counts with the three
+            for s in range(s0, s0 + BAR):
+                if s >= (COUNT['page'] + 1) * PAGE:               # the bar that straddles the next page turn: from the turn on, two and four again
+                    if (s - s0) in (4, 12) and not broken(s) and not bare(s):
+                        add('clap', s, 1, 'C4', .7)
+                elif (s - HALF) % (COUNT['cycle'] * BEAT) == COUNT['beat'] * BEAT and not broken(s) and not bare(s):
+                    add('clap-' + 'lr'[(s - HALF) // (COUNT['cycle'] * BEAT) % 2] if ON['sway'] else 'clap', s, 1, 'C4', .7)
+        elif page in (3, 5, 6, 7):
             for off in (4, 12):
                 if not broken(s0 + off) and not bare(s0 + off):
                     add('clap', s0 + off, 1, 'C4', .7)
@@ -564,6 +605,12 @@ def song():
             t = f'{c * 60000 / BPM / BEAT:.2f}ms'
             doc['buses'] = {**doc['buses'], f'ghost-{v}': {'pan': GHOST['side'][v], 'gain': {'value': '0dB', 'mod': [{'src': 'auto.ghost', 'amount': 1}]}, 'auto': {'ghost': span((-60, 0))}, 'fx': [f"hp cutoff={GHOST['hp']}"],
                                                            'returns': [{'from': v, 'gain': GHOST['feed'], 'time': t}, {'from': f'ghost-{v}', 'gain': f"{20 * log10(GHOST['back']):.2f}dB", 'time': t}]}}
+    for name, side in (('clap-l', -1), ('clap-r', 1)):         # v9 SWAY: the clap again, to each side
+        if T.get(name):
+            doc['tracks'].append({**{x: y for x, y in by_name['clap'].items() if x != 'notes'}, 'name': name, 'gain': f"{float(by_name['clap']['gain'][:-2]) + SWAY['db']:g}dB", 'pan': side * SWAY['pan'], 'notes': sorted(T[name], key=lambda n: n['at'])})
+    if T.get('open'):                                           # v9 OPEN: the hat let ring, where the shut one stands
+        doc['patches'] = {**doc['patches'], 'lc-open': LC_OPEN}
+        doc['tracks'].append({**{x: y for x, y in by_name['hat'].items() if x != 'notes'}, 'name': 'open', 'patch': 'lc-open', 'gain': OPEN['gain'], 'notes': sorted(T['open'], key=lambda n: n['at'])})
     if ON['knock']:
         doc['patches'] = {**doc['patches'], 'lc-knock': LC_KNOCK}
         doc['tracks'].append(track('knock', 'lc-knock', KNOCK_DB, fx=[hold(KNOCK_HOLD)]))
@@ -586,7 +633,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v7, the last five v6, the last six v5, the last nine v4, the last fourteen v3, the last twenty-two v2, all twenty-eight v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v8, the last five v7, the last eight v6, the last nine v5, the last twelve v4, the last seventeen v3, the last twenty-five v2, all thirty-one v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
