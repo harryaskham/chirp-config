@@ -1,8 +1,8 @@
 {
   "id": "chirpers11",
   "artist": "chirpers",
-  "album": "Chirpers 11 (unnamed)",
-  "named": false,
+  "album": "Escapement",
+  "named": true,
   "year": 2026,
   "genre": "clicky minimal techno",
   "bleed": false,
@@ -124,5 +124,7 @@
       "brief": "CLOSER. The album's motifs come home: whatever the other seven made (a click, a room, a rule), gathered and let go.",
       "id": "chirpers11-t8"
     }
-  ]
+  ],
+  "named_by": "chirper-one",
+  "named_at": "2026-11-26T03:24:25Z"
 }
