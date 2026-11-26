@@ -55,6 +55,22 @@ leaving thing's own song's idea, in its last bars, and the sixth is the end:
           not sink, but by then each tick is being let ring into a note. A quarter of the speed is left on the
           one (v2: a fifth), so the note has sunk exactly two octaves: the last stroke is G4, reached, not jumped to.
 
+v4 (26 Nov): THE BODY OF THE SOUND. v3 read 10 and 11 dB over the album's envelope from 1.4 to 1.6 kHz and 11
+under at 71 Hz: a song with a waist and no hips. Read by parts, the middle is the click's note and the saw's
+eighth harmonic (between them half to nine tenths of 1 to 2 kHz once the cell has gone), and nothing at all lives
+between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches (`--without-mid`, `-body`,
+`-open`; all three off is v3 byte for byte):
+  MID    the click is turned from its note towards its click: 6 dB off round G6 (1568 Hz) and 3 dB on round
+         11 kHz, after its clip. While it is alone it is 4.5 dB up, so the lone click stands where it stood.
+         As the spring runs down and the note sinks it leaves the cut behind, so the note comes out as it falls
+         (and the 4.5 dB is taken off again by the last stroke). The saw's click loses 5 dB round 1.6 kHz.
+  BODY   the drum is given the body between its note and the bass: 5 dB round 72 Hz.
+  OPEN   the last chord opens as it dies. It was held under a low-pass that never moved; now the filter is shut
+         while the chord is held (600 Hz) and opens two octaves in the first two and a half seconds of its
+         going, which now takes six, not three (with both at three seconds the chord was 17 dB under the mix
+         before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
+         quieter, a door opening on something leaving.
+
 Form as arithmetic: GATHER lists the things in the order they come; each comes STEP bars after the last, all are
 held for HOLD bars, they go in reverse order LEAVE bars apart, and the last WIND bars are the spring running down.
 """
@@ -94,7 +110,17 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
-      'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True}
+      'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
+      'mid': True, 'body': True, 'open': True}
+MID = {'tick': ['peak cutoff=1568 q=1 gain=-6dB', 'peak cutoff=11000 q=0.7 gain=3dB'], 'saw': ['peak cutoff=1600 q=0.8 gain=-5dB']}   # v4
+MID_ALONE = 4.5                                               # v4: dB more on the click while it is alone (with its note cut the lone click read 4.6 dB lower: -32.4 for -27.8)
+BODY = 'peak cutoff=72 q=1.4 gain=5dB'                        # v4: on the drum
+OPEN = {'about': "Wind Down: the meetings' last chord, opening as it dies (v4): wd-held with its low-pass at 600 Hz while the chord is held and opening two octaves over the first two and a half seconds of a six-second release.",
+        'synth': {'layers': [{'wave': 'saw', 'detune': -7}, {'wave': 'saw', 'detune': 7}],
+                  'filters': [{'kind': 'lp', 'cutoff': {'value': 2400, 'mod': [{'src': 'env.shut', 'amount': -2}]}, 'q': 0.8}],
+                  'env': {'shut': {'a': '1ms', 'd': '0s', 's': 1, 'r': '2.5s'}},
+                  'amp': {'a': '500ms', 'd': '0s', 's': 1, 'r': '6s'}}, 'play': {'event_stable': True, 'vel_sens': 0.3}}
+OPEN_DB = 2                                                   # on its fader: shut at 600 Hz it stood 2 dB lower while held than wd-held did at 900
 SUNK = 0.25                                                   # v3 SINK: the share of its speed left on the one: two octaves
 SPENT = LEAVE // 2                                            # v3: bars before the change goes in which it spends
 HELD = {'len': 4, 'gain': '-28dB', 'vel': .8}                # the last chord: beats held, its fader (at -16 it was the loudest thing in the mix, 1.5 dB under the whole)
@@ -270,11 +296,13 @@ def door(thing):
 def alone():
     """The click's fader ride: ALONE dB before the drum comes, 0 while anything else plays, back up over the first bar of the wind-down."""
     a, z = DRUM_IN * 4, RUNS_DOWN * 4
-    up = ALONE + (TUCK if ON['tuck'] else 0)
+    low = ALONE + (TUCK if ON['tuck'] else 0)
+    up = low + (MID_ALONE if ON['mid'] else 0)                # v4: the lone click stands where it stood before its note was cut
     pts = [['0b', up], [f'{a - 0.5}b', up], [f'{a}b', 0]]
     for bar in (CATCHES if ON['catch'] else []):              # the click is alone in a caught bar too
         pts += [[f'{bar * 4 - 0.25}b', 0], [f'{bar * 4}b', up], [f'{bar * 4 + 3.5}b', up], [f'{bar * 4 + 4}b', 0]]
-    return {'points': pts + [[f'{z}b', 0], [f'{z + 4}b', up], [f'{BARS * 4 + 4}b', up]], 'curve': 0}
+    # as the spring runs down the note sinks out of the cut, so what was added for it is taken off again by the last stroke
+    return {'points': pts + [[f'{z}b', 0], [f'{z + 4}b', up]] + ([[f'{BARS * 4}b', low]] if up != low else []) + [[f'{BARS * 4 + 4}b', low]], 'curve': 0}
 
 
 def song():
@@ -313,6 +341,11 @@ def song():
         ],
     }
     by_name = {t['name']: t for t in doc['tracks']}
+    if ON['mid']:
+        by_name['tick']['fx'] = by_name['tick']['fx'] + [{'type': 'eq', 'bands': MID['tick']}]
+        by_name['saw']['fx'] = [{'type': 'eq', 'bands': MID['saw']}]
+    if ON['body']:
+        by_name['kick']['fx'] = [{'type': 'eq', 'bands': by_name['kick']['fx'][0]['bands'] + [BODY]}]
     if ON['tuck']:
         by_name['tick']['gain']['value'] = f"{float(by_name['tick']['gain']['value'][:-2]) - TUCK:g}dB"
     if ON['comp']:
@@ -325,8 +358,8 @@ def song():
         doc['patches'] = {**doc['patches'], 'wd-sink': sunk}
         by_name['tick']['patch'] = 'wd-sink'
     if ON['held']:
-        doc['patches'] = {**doc['patches'], 'wd-held': V3['wd-held']}
-        doc['tracks'].append({'name': 'held', 'patch': 'wd-held', 'gain': HELD['gain'], 'pan': -0.1, 'notes': T['held'], 'fx': [under], 'sends': {'hall': '-6dB'}})
+        doc['patches'] = {**doc['patches'], **({'wd-open': OPEN} if ON['open'] else {'wd-held': V3['wd-held']})}
+        doc['tracks'].append({'name': 'held', 'patch': 'wd-open' if ON['open'] else 'wd-held', 'gain': f"{float(HELD['gain'][:-2]) + OPEN_DB:g}dB" if ON['open'] else HELD['gain'], 'pan': -0.1, 'notes': T['held'], 'fx': [under], 'sends': {'hall': '-6dB'}})
     if ON['real']:
         doc['patches'] = {**doc['patches'], 'wd-under': V3['wd-under']}
         doc['tracks'].append({'name': 'under', 'patch': 'wd-under', 'gain': REAL['gain'], 'notes': T['under'], 'fx': [under]})
@@ -364,7 +397,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last six off is v2, all twelve v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v3, the last nine v2, all fifteen v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
