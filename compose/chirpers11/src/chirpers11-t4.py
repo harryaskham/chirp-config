@@ -32,6 +32,21 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v6 (26 Nov), one more switch that is on (`--without-sympathy`; with it off it is v5 byte for byte) and one that is
+off (`--with-wash`):
+  SYMPATHY the strings nobody plays. Beside the seven things lie five open strings, tuned to the five notes two
+           and three octaves under the wood's (F2, G2, B flat 2, C3, D3). Nothing strikes them, so the rule stands: not a
+           stroke is added. They sound only because something near them is ringing at one of their own notes
+           (each is a loop one period long that returns itself, and it is fed the wood and the air). They are
+           things like the others, with a hand on them: let go across the section with no weight, open while the
+           weight is let go, stopped in two bars with the skin and the air, and let go again in the last bar.
+           When the weight is listened to alone (bars 113 to 116) what is heard round it is the strings dying.
+  WASH     (OFF) the weight's listening was the only one nobody answered. The plate, the thing that rings false,
+           answers it in its last two bars: a wash behind the toll. It does what it says (by solo the plate is
+           all there is above 2 kHz in bars 115 and 116, 18 dB under the weight). Off because with it the scorer
+           no longer hears the weight's four bars as something that returns (2 sections of 8 return for 3, under
+           its band) and takes 2.2 points, for a sound that faint.
+
 v5 (26 Nov), three more switches (`--without-flue`, `-remember`, `-lift`; with them off it is v4 byte for byte):
   FLUE     the air is blown, not struck. It was three milliseconds of noise in a resonator: let go, the resonator
            sang, which is a struck thing again and the least like its name of the seven. Now there is breath
@@ -146,7 +161,10 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False}
+SYMPATHY = {'strings': (('F2', 87.307, 0.3), ('G2', 97.999, 0.0), ('Bb2', 116.541, -0.3), ('C3', 130.813, 0.15), ('D3', 146.832, -0.15)),   # v6: each string's note, Hz and side (a return cannot be shorter than 6 ms, so F and G are an octave under the others)
+            'feeds': ('wood', 'air'), 'feed': '-30dB', 'back': 0.985, 'lp': 5000, 'let': -24}   # what they hear and how much of it; what each gives back of itself a period; the low-pass in the loop; the dB their hand starts from.
+# Bench (the song with them less the song without): hearing the wood and the air at -20 dB they stood 3.7 and 2.5 dB under the whole mix once the wood was let go beside them (a string that gives back 0.985 answers a held note at its own pitch 36 dB up): 10 dB less
 FLUE = {'q': 40, 'breath': {'a': '30ms', 'd': '450ms', 's': 0, 'r': '300ms'}, 'top': -24, 'ease': 0}   # v5: the resonator's q let go (it was 120); the breath; the breath's level let go, dB beside the puff's; dB on the stroke at ring 1
 # The breath's level is set under the track's clip. Bench, the stroke let go, level over two seconds and its third harmonic beside its note: top 0 -25.8 (and 10 dB off the stroke took only 1.9 off: it was all clip);
 # -12 -28.2, -26.0; -24 -33.1, -32.4; -36 -41.6, -31.9. At -24 it is clean and climbs with the ring: -51.5 -53.6 -43.3 -43.7 -37.6 -33.1 at rings 0, 0.2 … 1 (rt-air: -47.8 -54.8 -40.8 -42.0 -33.7 -44.1).
@@ -262,6 +280,8 @@ def answering(bar):
     if ON['answer']:
         for k in listened(bar):
             top = TOP[SHAPE[k][0][0]]
+            if k == 'weight' and ON['wash'] and ON['plate'] and bar >= top + LISTEN - ANSWER:
+                out |= {'plate'}                                # v6: the plate answers the toll
             if k != 'weight' and bar >= top + LISTEN - ANSWER:
                 out |= {j for j, pts in SHAPE.items() if j != 'weight' and pts[0][1] == 0 and TOP[pts[0][0]] < top}
     return out
@@ -394,6 +414,14 @@ def song(T, bars=BARS):
                 dry = by_name[k]
                 doc['tracks'].append({'name': k + '-kept', 'patch': dry['patch'], 'gain': f"{float(dry['gain'][:-2]) + KEPT[k]}dB", 'pan': dry['pan'],
                                       'notes': T[k + '-kept'], 'out': 'hall', **({'fx': dry['fx']} if 'fx' in dry else {})})
+    if ON['sympathy'] and bars == BARS:
+        hand = {'points': [['0b', -60], [f'{TOP[6] * 4 - 1}b', -60], [f'{TOP[6] * 4}b', SYMPATHY['let']], [f'{TOP[7] * 4}b', 0], [f'{TOP[8] * 4}b', 0], [f'{(TOP[8] + QUICK) * 4}b', -60],
+                           [f'{(BARS - LAST) * 4 - 0.5}b', -60], [f'{(BARS - LAST) * 4}b', 0], [f'{BARS * 4 + 16}b', 0]], 'curve': 0}
+        for name, hz, side in SYMPATHY['strings']:
+            me = 'sym-' + name.lower()
+            t = f"{1000 / hz - 225.1 / SYMPATHY['lp']:.3f}ms"         # a period, less the low-pass's own delay (0.2251 / its cutoff), so the loop is in tune
+            doc['buses'][me] = {'pan': side, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.hand', 'amount': 1}]}, 'auto': {'hand': hand}, 'fx': [f"lp cutoff={SYMPATHY['lp']}"],
+                                'returns': [{'from': k, 'gain': SYMPATHY['feed'], 'time': t} for k in SYMPATHY['feeds']] + [{'from': me, 'gain': f"{20 * log10(SYMPATHY['back']):.2f}dB", 'time': t}]}
     return doc
 
 
@@ -426,17 +454,19 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
-    for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (all fifteen off is v1; the last ten off is v2; the last six off is v3; the last three off is v4)')
+    for k, on in ON.items():
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the sixteen that are on: all off is v1; the last eleven off is v2; the last seven off is v3; the last four off is v4; the last one off is v5)")
     a = ap.parse_args()
-    for k in ON:
-        ON[k] = not getattr(a, f'without_{k}')
+    for k, on in list(ON.items()):
+        ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
     if a.form:
         sec = 60 / BPM * 4
         for i, name in enumerate(NAMES):
             b, e = TOP[i], TOP[i + 1]
             print(f'{i + 1:2d}  bars {b + 1:3d}-{e:3d}  {int(b * sec) // 60}:{b * sec % 60:05.2f}  {name:38s} ' +
                   ' '.join(f'{k} {ring_at(k, b):.2f}>{ring_at(k, e - 1):.2f}' for k in list(SHAPE) + (['plate'] if ON['plate'] else []) if e > enters(k) and not any(x <= b < y for x, y in [OUT_OF.get(k, (0, 0))])))
+        if ON['sympathy']:
+            print(f"    the strings nobody plays ({' '.join(n for n, _, _ in SYMPATHY['strings'])}): let go across bars {TOP[6] + 1}-{TOP[7]}, open to bar {TOP[8]}, stopped by bar {TOP[8] + QUICK}, let go in bar {BARS}")
         print(f'{BARS} bars, {BARS * sec:.1f} s; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in build().items()))
     else:
         a.out.write_text(dump(bench() if a.bench else song(build())))
