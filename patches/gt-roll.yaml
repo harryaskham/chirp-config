@@ -1,0 +1,33 @@
+{
+ "about": "Give or Take's loop (chirper-zero, 26 Nov, v5): deck B's bass drum as it is in \"the nudge\" (its bass out: a high-pass at 315 Hz), let go the instant its note ends, so that a note as long as the loop is the loop: the first instant of the drum, over and over. Zeno's bar. BANKED by tools/patchbank.py (26 Nov 2026) from Give or Take v5 (track roll): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "1ms"
+  },
+  "filters": [
+   {
+    "cutoff": 315,
+    "kind": "hp",
+    "q": 0.7
+   }
+  ],
+  "layers": [
+   {
+    "machine": {
+     "click": 0.8,
+     "decay": "220ms",
+     "drive": 0.3,
+     "punch": 20.0,
+     "punch_time": "30ms"
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}
