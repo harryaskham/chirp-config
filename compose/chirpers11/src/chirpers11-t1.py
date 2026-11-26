@@ -113,6 +113,18 @@ BENCHED (seed 0; v7 that day 96.55): six bars of it 96.45, nine 96.30, twelve 96
 rhythm term, which counts strokes off the sixteenths as loose (66.3 to 63.2), and an edge of its last cut; its
 own polymeter reading, which carries no weight, goes from 30 to 70 at twelve bars and to 40 at six. Twelve is
 kept: four against three needs its four meetings. C11T1_FAST_BARS=6 is the short one.
+
+v9 (26 Nov): THE ECHO IS ON THE RECORD (C11T1_ECHO=0 takes it out: v8). The dub chord's echo was the one thing
+of deck B's that the hand could not move: it is a delay on a bus, a dotted eighth of the GRID's, so in "no
+ruler", where deck A is gone and the record swings from 100 to 148 to the minute, the chord's echoes went on
+ticking at 124: a ruler. From v9, in "no ruler", the echo is pressed into the record: each chord's four echoes
+are notes on deck B's own clock, a dotted eighth of the RECORD's beats apart, so they crowd together as the
+hand pushes and string out as it drags, and each is as sharp or as flat as the record is when it SOUNDS (the
+bus's echoes kept the pitch the chord was struck at). The chords there are on a track of their own with no
+send (`stab-b`); the echoes are `echo-1` to `echo-4`, each at the level and the dullness the bus's echo had
+(fitted on a bench of one chord: within 0.5 dB; the bus's fifth echo is 26 dB under its first and is not made).
+ALSO: the spin back's pitch lane has a point every sixty-fourth of a beat (it had one a sixteenth): the engine
+bows a lane where it falls (chirp-eco's bench), and v7's spun-back tock read up to 64 cents flat.
 """
 import json
 import math
@@ -143,6 +155,13 @@ REWIND_TAU = 2.0               # beats in which its speed falls by e: the hand's
 FAST = os.environ.get("C11T1_FAST", "1") != "0" and REWIND                      # v8: the other speed
 FAST_BY = 4 / 3                # deck B's speed with its switch at the other speed: four bars for three, and a perfect fourth
 FAST_BARS = int(os.environ.get("C11T1_FAST_BARS", "12"))   # the last bars of "locked" for which the switch is there (threes: they meet every third bar)
+ECHO = os.environ.get("C11T1_ECHO", "1") != "0" and FAST                         # v9: the echo is on the record
+ECHO_IN = os.environ.get("C11T1_ECHO_IN", "no ruler")   # the section in which it is
+ECHO_BEATS = 0.75              # the echo's time: a dotted eighth, of the record's own beats
+ECHO_GAINS = (-35.6, -40.9, -48.2, -55.6)   # dB: each echo's level, fitted to the bus's (send -7 dB after the chord's -23, feedback 0.45): within 0.5 dB on a bench of one chord
+ECHO_TONES = (4000, 2800, 2000, 1500)       # Hz: ... and its low-pass (the bus's echoes lose a little more top each time round)
+ECHO_HALL = "-7.36dB"          # ... and its share of the hall (the bus's is mix 0.3: 0.3 to 0.7)
+FINE = 16 if ECHO else 1       # lane points to a sixteenth while the record is spun back
 ROLL_AT = 12                   # the bar of "the nudge" at which deck B is put in a loop (it is let go on the first beat of "locked")
 ROLL_WHOLE = 3                 # the first loops (a beat, a half, a quarter) get a bar each
 ROLL_TURNS = 16                # ... and every loop after them this many turns, each half as long as the last: Zeno's bar
@@ -312,15 +331,20 @@ def sped(steps):
     return out
 
 
+def speed_st(t):
+    """Semitones deck B is sharp by at grid time t."""
+    return 12 * math.log2(max(speed(t), 0.03))
+
+
 def spd_lane():
     """Semitones a record on deck B is sharp or flat by, from its speed: one point a sixteenth, only where it moves."""
-    pts, last = [["0b", 0]], 0.0
+    pts, last, fine = [["0b", 0]], 0.0, False
     for i in range(int(TOTAL / STEP) + 1):
         t = i * STEP
         back = forced(t)                                     # a record's pitch is its speed, whichever way it turns, and whatever turns it
         v = round(12 * math.log2(max(speed(t) if back is None else back, 0.03)), 3)   # a stopped record has no pitch: the lane rests five octaves down
         if v != last or (pts and i and pts[-1][1] != v):
-            if pts[-1][0] != f"{(i - 1) * STEP:g}b" and i:
+            if pts[-1][0] != f"{(i - 1) * STEP:g}b" and i and not fine:
                 pts.append([f"{(i - 1) * STEP:g}b", last])
             edge = forced(t - STEP) if i else None
             if back is not None and edge is None and i:          # the hand takes the record on the beat, not over the sixteenth before it
@@ -328,9 +352,35 @@ def spd_lane():
             if back is None and edge is not None:                # ... and lets it go on the beat
                 pts.append([f"{t - 0.01:g}b", round(12 * math.log2(max(forced(t - 0.01), 0.03)), 3)])
             pts.append([f"{t:g}b", v])
+        fine = False
+        if FINE > 1 and rewind_speed(t) is not None:             # between sixteenths a falling lane is bowed: give the spin back points enough to be straight
+            for j in range(1, FINE):
+                if rewind_speed(t + j * STEP / FINE) is not None:
+                    pts.append([f"{t + j * STEP / FINE:g}b", round(12 * math.log2(max(rewind_speed(t + j * STEP / FINE), 0.03)), 3)])
+                    fine = True
         last = v
     pts.append([f"{TOTAL:g}b", 0])
     return pts
+
+
+def echo_span():
+    """The grid beats between which the dub chord's echo is on the record, or None."""
+    sec = next((x for x in SECS if x[0] == ECHO_IN), None) if ECHO else None
+    return (sec[1] * BEATS, (sec[1] + sec[2]) * BEATS) if sec else None
+
+
+def echo_notes(k):
+    """The k-th echo of every chord struck in that section: on deck B's clock, k * ECHO_BEATS of the record's beats after the chord."""
+    lo, hi = echo_span()
+    out = []
+    for bar in range(int(lo // BEATS), int(hi // BEATS)):
+        if plays("stab", bar):
+            for s, p, n, v in STAB(bar):
+                b = bar * BEATS + s * STEP + k * ECHO_BEATS
+                t, end = when(b), when(b + n * STEP)
+                if t is not None and t < TOTAL:
+                    out.append(note(t, p, (end if end is not None else t + n * STEP) - t, v))
+    return out
 
 
 def plays(part, bar):
@@ -574,6 +624,19 @@ def song():
         del PATCHES["gt-roll"]
     if STRETCH:
         doc["about"] = doc["about"].replace(" Generated by", " From v6, in \"the stretch\", deck B goes at a half, a quarter, an eighth and a sixteenth of its speed and its pitch does not move: it is cut into grains a sixteenth long, each played whole, so every stroke is heard two, four, eight, sixteen times. Generated by")
+    if echo_span():
+        lo, hi = echo_span()
+        k0 = next(i for i, t in enumerate(doc["tracks"]) if t["name"] == "stab")
+        st = doc["tracks"][k0]
+        inside = [n for n in st["notes"] if lo <= n["at"] < hi]
+        st["notes"] = [n for n in st["notes"] if not lo <= n["at"] < hi]
+        doc["tracks"].append({"name": "stab-b", "patch": "gt-stab", "gain": st["gain"], "pan": st["pan"], "fx": st["fx"], "auto": {"spd": {"points": lane}}, "notes": inside})   # the chord there: no send to the grid's echo
+        doc["buses"]["tape"] = {"fx": ["reverb kind=hall decay=2.4s mix=1"]}
+        for k, (g, f) in enumerate(zip(ECHO_GAINS, ECHO_TONES), 1):
+            doc["tracks"].append({"name": f"echo-{k}", "patch": "gt-stab", "gain": f"{g:g}dB", "pan": st["pan"], "fx": [f"lp cutoff={f:g}", "hp cutoff=350"], "sends": {"tape": ECHO_HALL},
+                                  "auto": {"spd": {"points": lane}}, "notes": echo_notes(k)})
+        doc["about"] = doc["about"].replace(" Generated by", " From v9, in no ruler, the dub chord's echo is on the record and not on the grid: its echoes are a dotted eighth of the record's own beats apart, so they crowd and string out with the hand, and each is as sharp or flat as the record is when it sounds. Generated by")
+        assert "From v9" in doc["about"]
     if fast_window():
         doc["about"] = doc["about"].replace(" Generated by", " From v8 deck B's switch is flipped to the other speed for the last twelve bars of locked: it plays four bars for every three of deck A's, a perfect fourth up, and the two meet every third bar. Generated by")
         assert "From v8" in doc["about"]
@@ -610,6 +673,10 @@ if __name__ == "__main__":
         for t0, loop, turns in roll_stages():
             f = BPM / 60 / loop; semi = 12 * math.log2(f / 440) + 69
             print(f"   the loop from beat {t0:9.4f} (bar {t0 / BEATS + 1:7.3f}): {loop:.6g} of a beat, {loop * 60000 / BPM:8.3f} ms, {turns:2d} turns" + (f" ; {f:7.1f} a second: {'C C# D Eb E F F# G Ab A Bb B'.split()[int(round(semi)) % 12]}{int(round(semi)) // 12 - 1} {100 * (semi - round(semi)):+.0f} cents" if loop < STEP else " ; deck B's own parts"))
+        if echo_span():
+            lo, hi = echo_span(); ms = 60000 / BPM; e1 = echo_notes(1); st = [n for n in deck_b("stab", STAB) if lo <= n["at"] < hi][::4]; gaps = [(q["at"] - c["at"]) for c, q in zip(st, e1[::4])]
+            print(f"   the echo on the record, bars {lo // BEATS + 1:g}-{hi // BEATS:g}: {len(st)} chords, {len(ECHO_GAINS)} echoes each ; chord to first echo {min(gaps) * ms:.0f} to {max(gaps) * ms:.0f} ms ({min(gaps):.3f} to {max(gaps):.3f} grid beats; the bus's is {ECHO_BEATS * ms:.0f} ms) ; "
+                  f"the first echo's pitch against its chord's, semitones: {min(speed_st(q['at']) - speed_st(c['at']) for c, q in zip(st, e1[::4])):+.2f} to {max(speed_st(q['at']) - speed_st(c['at']) for c, q in zip(st, e1[::4])):+.2f}")
         if fast_window():
             t0, t1 = fast_window()
             print(f"   the other speed from bar {t0 / BEATS + 1:g} to bar {t1 / BEATS + 1:g}: deck B at {FAST_BY:.4f} of its speed ({12 * math.log2(FAST_BY):+.2f} semitones, {BPM * FAST_BY:.1f} to the minute) ; the record plays {(t1 - t0) / BEATS * FAST_BY:g} bars in {(t1 - t0) / BEATS:g} ; "

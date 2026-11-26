@@ -102,7 +102,7 @@ THEN THE TUNE NAMES WHAT THE PICTURE SHOWED: from the fifth row the two clicks s
 and the pip, in the middle, plays the strokes they share: the ones that were in the middle.
 ON ONE SPEAKER the two ears are added and the two clicks' sum is what it was.
 The two clicks are on tracks of their own for those bars (`a-ear`, `b-ear`); their room sends are as they were
-(a send is taken before the track's gain: measured).
+(a send is taken AFTER the track's gain and pan: the turn-up and the pan cancel in it. Corrected 26 Nov: I had written before).
 BENCHED AND REFUSED: the picture all the way from the first slip to the end of the drift, an ear each: 94.88 /
 94.94; the same at 0.85 with the room as it was: 94.38 / 94.34 (v6 that day 95.05 / 94.98). In both the scorer's
 cut at 1:48 (0.182 in v6, 0.002 over its top threshold) slid to 0.167 and the form lost a section on two of
