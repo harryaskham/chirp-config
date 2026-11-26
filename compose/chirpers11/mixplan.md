@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Wind Down v9 (20:31): a bell at 71 Hz on the drum moves the loudness stage, so both ends are a little lower:
+  bars 1 to 8 (one click, under Out of Step's last eight) read -30.0 dBFS for -29.8; the last stroke -11.8 over
+  two seconds for -11.3, then -38 -51 -63 -76 -88 -102 by second for -36 -49 -61 -74 -87 -99. Everything above
+  1 kHz is 0.5 to 1.3 dB lower through the song. Not re-rendered as a seam.
 - Ring True v9 (20:09): the air's breath is longer, so the tail after the last bar, under Hearing Things' first
   bar, is 1 to 2 dB up: by second -19 -34 -48 -62 dBFS for v8's -20 -35 -50 -63; the last bar itself -11.1 as
   before. Bars 1 to 8, under Standing Room's last eight, read -17.9 for -17.8. Not re-rendered as a seam.
