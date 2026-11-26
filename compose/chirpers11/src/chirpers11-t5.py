@@ -163,6 +163,31 @@ The v6 bells are one patch a note-name with the curve built in, so the curve can
 parts instead: one plain tone (`ht-part`, loudness straight from velocity) and a note for every octave of every
 bell, each as loud as the curve says where the curve is by then. With the curve where v6 has it, one of these is
 one of those. On one speaker it is all there.
+
+v12 (26 Nov): THE FIRST ONE WINS (C11T5_FIRST=0 takes it out: v11). A twelfth thing, and it is where a sound is.
+A small wooden click is given to BOTH ears, the same click, just as loud in each. In "held" (bars 105 to 120,
+where the drum and the bass have stopped) it plays every three sixteenths, three against the click's four, and
+only one thing about it changes: how much LATER the right ear gets it.
+  bars 105-106: no later. The same signal in both ears is one click, in the middle.
+  bars 107-108: 0 to 0.65 ms later. That is all the difference a head makes: the click walks to the left ear,
+                and nothing got quieter anywhere.
+  bars 109-110: 0.65 to 5 ms. The right ear's click is as loud as the left's and a whole five thousandths of a
+                second apart from it, and it is not heard as a click at all: the ear takes the first to arrive
+                for where the sound is and folds the second into it (the law of the first wavefront: Wallach,
+                Haas, 1949; it is how a voice is found in a room full of its own echoes).
+  bars 111-112: 5 to 60 ms. Somewhere here it comes apart: a second click, on the right, walking away.
+  bars 113-120: the same, backwards, and now the late ear's click is TWICE AS LOUD (+6 dB). Two clicks, one
+                loud on the right; then they fold, and the click is on the LEFT, where it is quieter, because
+                it is first there. Only when the two arrive together (the last two bars) does the louder ear
+                have it: the click jumps across the head to the right.
+On one speaker nothing is hidden: the two clicks add, and a click grows a flam and then an echo, and takes it back.
+The click is three plain tones that start at nought (C5 and two bar-partials over it), so the two ears' clicks
+are the same to the sample.
+ALSO, THE CLICK'S REPAIR (C11T5_TRIM=0 leaves the click as it was): `compscore --bands` said this song has 12 dB
+more than the rest of the record at 1.9 kHz and 10 dB more at 640 Hz. Each part read alone: both are the click
+(the rim's own note, E5, 659 Hz, and its third partial, 1978 Hz). Its two notes are turned down; its snap is not.
+The cut comes in over bars 3 to 8 and goes out over bars 177 to 184: the first two bars and the last sixteen, which
+other songs play over, have the click as it always was.
 """
 import json
 import math
@@ -435,6 +460,52 @@ def STAIR_STEPS(bar):
             for st in range(16) for q in [k * 16 + st - OFF[0]] if q >= 0 and q % every == 0]
 
 
+FIRST = os.environ.get("C11T5_FIRST", "1") != "0" and FALL   # v12: the first one wins (the precedence effect)
+FIRST_IN = ("held", 0, 16)                                # the section, and the bars of it
+FIRST_EVERY = 3                                           # sixteenths between strokes: three against the click's four
+FIRST_LAGS = ((0, 0.0), (2, 0.0), (4, 0.65), (6, 5.0), (8, 60.0))   # (bars into the row, ms the late ear is behind): a straight line up to 0.65 ms (a head), then by ratio
+FIRST_LATE_DB = 6.0                                       # in the second row the late ear's click is this much louder
+FIRST_GAIN = os.environ.get("C11T5_FIRST_GAIN", "-8dB")
+FIRST_VEL = 0.5
+TRIM = os.environ.get("C11T5_TRIM", "1") != "0" and FIRST   # v12: the click's two notes turned down (they were 10 and 12 dB over the rest of the record)
+TRIM_CUTS = ((659.26, float(os.environ.get("C11T5_TRIM_1", "-4"))), (1977.77, float(os.environ.get("C11T5_TRIM_3", "-5"))))   # (Hz, dB): E5 and its third partial
+TRIM_Q = 3
+TRIM_IN = (2, 8)                                          # bars over which the cut comes in: the first two bars are the click as it always was (Ring True's last strings die under them)
+TRIM_OUT = (176, 184)                                     # ... and goes out again: the last sixteen bars are the click as it was (Small Change comes in under them)
+
+
+def first_span():
+    """The bars between which the first one wins, or None."""
+    sec = next((x for x in SECS if x[0] == FIRST_IN[0]), None) if FIRST else None
+    return (sec[1] + FIRST_IN[1], sec[1] + FIRST_IN[2]) if sec else None
+
+
+def first_lag(u):
+    """ms by which the late ear is behind, u bars into a row."""
+    for (u0, l0), (u1, l1) in zip(FIRST_LAGS, FIRST_LAGS[1:]):
+        if u0 <= u <= u1:
+            x = (u - u0) / (u1 - u0)
+            return l0 + (l1 - l0) * x if l0 == 0 else l0 * (l1 / l0) ** x
+    return FIRST_LAGS[-1][1]
+
+
+def first_strokes():
+    """(beat, ms the late ear is behind, dB the late ear is louder) of every stroke: the first row out, the second row back."""
+    b0, b1 = first_span()
+    half = (b1 - b0) / 2
+    out = []
+    for k in range(0, (b1 - b0) * 16, FIRST_EVERY):
+        u = k / 16
+        out.append(((b0 * 16 + k) * STEP, first_lag(u) if u < half else first_lag(2 * half - u), 0.0 if u < half else FIRST_LATE_DB))
+    return out
+
+
+def first_notes(late):
+    """One ear's clicks: the early ear's on the stroke, the late ear's behind it."""
+    return [{"at": round(t + (lag / 1000 * BPM / 60 if late else 0.0), 7), "len": 0.04, "pitch": "C5", "vel": round(FIRST_VEL * (10 ** (db / 20) if late else 1.0), 5)}
+            for t, lag, db in first_strokes()]
+
+
 def fall_span():
     """The bars between which the way down leads up, or None."""
     sec = next((x for x in SECS if x[0] == FALL_IN[0]), None) if FALL else None
@@ -622,6 +693,22 @@ def song():
             doc["tracks"].append({"name": nm, "patch": "ht-pip", "gain": SCALE_GAIN, "pan": side, "notes": scale_notes(side)})
         doc["about"] = doc["about"].replace(" Generated by", " From v10 the scale of A minor goes up and down at once, its notes dealt to the two ears turn about, so each ear is given a jagged tune and neither a scale; two smooth lines are heard, the high in one ear and the low in the other (the scale illusion). Each ear's part is heard alone first. Generated by")
         assert "From v10" in doc["about"]
+    if first_span():
+        PATCHES["ht-snap"] = {"about": "Hearing Things' small wooden click (chirper-zero, 26 Nov, v12): three plain tones that start at nought (the note, and bar-partials 2.76 and 5.4 times it) and are gone in 14 ms. Nothing in it is noise, so two of them are the same to the sample: one for each ear.",
+                              "play": {"vel_sens": 0.5, "gate": 1},
+                              "synth": {"layers": ["sine phase=0 level=-3dB", "sine phase=0 ratio=2.76 level=-6dB", "sine phase=0 ratio=5.4 level=-10dB"], "amp": {"a": "0.1ms", "d": "14ms", "s": 0, "r": "6ms", "curve": 2}}}
+        for nm, pan, late in (("first-l", -1, False), ("first-r", 1, True)):
+            doc["tracks"].append({"name": nm, "patch": "ht-snap", "gain": FIRST_GAIN, "pan": pan, "notes": first_notes(late)})      # dry, an ear each
+        doc["about"] = doc["about"].replace(" Generated by", " From v12 a small wooden click in held is given to both ears, the same click and as loud in each, and the right ear gets it later and later: at 0.65 ms it has walked to the left, up to 5 ms it is still one click there, and then it comes apart into a click and its echo; and back, with the late ear twice as loud (the law of the first wavefront)." + (" The click's own two notes (E5 and its third partial) are turned down 4 and 5 dB from bar 9 to bar 176 (the first two bars and the last sixteen have it as it was)." if TRIM else "") + " Generated by")
+        assert "From v12" in doc["about"]
+    if TRIM:
+        tk = PATCHES["ht-tick"]
+        PATCHES["ht-tick-t"] = {"about": "Hearing Things' click with its two notes turned down (chirper-zero, 26 Nov, v12): `ht-tick`, and a narrow cut at E5 and at its third partial. The rim's snap is as it was.",
+                                "play": dict(tk["play"]), "synth": {**tk["synth"], "filters": list(tk["synth"]["filters"]) + [{"kind": "peak", "cutoff": f, "q": TRIM_Q, "gain": {"value": "0dB", "mod": [{"src": "auto.trim", "amount": g}]}} for f, g in TRIM_CUTS]}}
+        for t in doc["tracks"]:
+            if t["name"] == "tick":
+                t["patch"] = "ht-tick-t"
+                t["auto"] = {"trim": {"points": [[f"{x:g}b", y] for x, y in ((0, 0), (TRIM_IN[0] * BEATS, 0), (TRIM_IN[1] * BEATS, 1), (TRIM_OUT[0] * BEATS, 1), (TRIM_OUT[1] * BEATS, 0), (TOTAL, 0))], "curve": 0}}      # 0 the click as it was, 1 the whole cut
     if fall_span():
         PATCHES["ht-part"] = {"about": "Hearing Things' part of a bell (chirper-zero, 26 Nov, v11): one plain tone with the v6 bells' own shape, and its loudness is its velocity and nothing else. A bell is made of one of these for every octave of its note, so the curve the octaves are under can be somewhere else at every bell.",
                               "play": {"vel_sens": 0.5},
@@ -685,6 +772,13 @@ if __name__ == "__main__":
         if scale_span() and APART:
             b0, b1 = scale_span(); L, R = scale_ear(-1), scale_ear(1); semi = lambda p: round(12 * math.log2(hz(p) / 440))
             hi_ = [max(a, b, key=hz) for a, b in zip(L, R)]; lo_ = [min(a, b, key=hz) for a, b in zip(L, R)]
+        if first_span():
+            b0, b1 = first_span(); sec = BEATS * 60 / BPM; st = first_strokes()
+            print(f"the first one wins, bars {b0 + 1}-{b1} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f}): {len(st)} strokes, one every {FIRST_EVERY} sixteenths, the same click in both ears ; the right ear later by (ms), bar by bar:")
+            for b in range(b0, b1):
+                print(f"   bar {b + 1}: " + " ".join(f"{lag:.2f}" for t, lag, db in st if b * BEATS <= t < (b + 1) * BEATS) + (f"   (the late ear {FIRST_LATE_DB:g} dB louder)" if any(db for t, lag, db in st if b * BEATS <= t < (b + 1) * BEATS) else ""))
+            if TRIM:
+                print("the click's repair: " + ", ".join(f"{g:g} dB at {f:.0f} Hz" for f, g in TRIM_CUTS) + f" (q {TRIM_Q}) ; coming in over bars {TRIM_IN[0] + 1}-{TRIM_IN[1]}, whole in bars {TRIM_IN[1] + 1}-{TRIM_OUT[0]}, going out over bars {TRIM_OUT[0] + 1}-{TRIM_OUT[1]}")
         if fall_span():
             b0, b1 = fall_span(); steps, n = fall_steps(); sec = BEATS * 60 / BPM
             print(f"the way down leads up, bars {b0 + 1}-{b1} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f}): {n} steps down, a bell every {FALL_EVERY} sixteenths from bar {b0 + FALL_SAID + 1}, {' '.join(FALL_BELLS)} round and round ({n // len(FALL_BELLS)} times: {3 * n} semitones down by name) ; the curve climbs {FALL_RISE:g} octave(s), {12 * FALL_RISE / n:.2f} of a semitone a step: loudest at {fall_mid(0, n):.0f} Hz at the first bell, {fall_mid(n, n):.0f} Hz at the last ; {len(fall_notes())} notes")
