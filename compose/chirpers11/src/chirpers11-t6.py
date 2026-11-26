@@ -58,7 +58,30 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True}
+# ---- v9 (26 Nov): THREE FOR TWO. Three more switches, each `--without-…` (with them off it is v8 byte for byte).
+#   EXCHANGE  every purse in the song counts in sixteenths or in halves and quarters of them: one currency. At home
+#             (bars 161 to 176: the chord, the first purse, nothing new since v2) the same seed is now also paid
+#             in another: a purse with the same coins, 3 and 5, of a unit two thirds of a sixteenth (three of its
+#             units for two sixteenths: six to the beat). Its 3 is an eighth, so every amount that is a multiple
+#             of three lands on the song's grid, and every other amount (5, 8, 10, 11, 13 ...) between it, on
+#             the triplet: the same lattice, the same fifths up on the left and fourths down on the right, the
+#             same largest debt (7), at one and a half times the speed and three against two with the first
+#             purse. A hand opens it for home only (its echoes go through the fader, so shut it is empty).
+#   RATE      the hat plays what the first purse can pay, in sixteenths. At home a second hat, on the other
+#             side, plays what the exchange can pay, in its units, where that falls BETWEEN the first hat's
+#             sixteenths: 5, 8, 10 and 11 of them after each chord (inside two beats), softer the more coins
+#             an amount takes, as the first hat is. Two hats counting the same sums in two currencies. (First
+#             with the sums on the grid as well, 3, 6, 9 and 12: in the finished song the bass's note an eighth
+#             after the chord then read 4 dB lower, the master holding down the bass, the exchange's first coin
+#             and the second hat where all three fell together.)
+#   SEVEN     the bass plays what the first purse cannot pay, and its largest debt (7 sixteenths) on F. At home
+#             it plays the exchange's largest debt too: 7 of its units after each chord (a beat and a sixth),
+#             on F: the one bass note in the song that is not on the grid.
+EXCHANGE = {'coins': (3, 5), 'per': 1.5, 'back': 0.72, 'feed': '-6dB', 'pan': 0.35, 'section': 'home'}   # the exchange purse: its coins; how many of its units make a sixteenth; what each loop gives back a pass; what it takes of the seed; how far to each side; where.
+# Bench (ex.sh, exread.py: the song less v8, home's first four bars, raw, by unit): taking -4 dB its coins read -33 and -32 on 3 and 5 units where the first purse's read -33 and -35 on 3 and 5 sixteenths: two lattices level with each other. 2 dB less, so that home's own leads
+RATE = {'upto': 12, 'gain': '2dB', 'pan': -0.3}   # the second hat: the largest amount it plays (twelve units is two beats); its fader (the first hat's is 4 dB); its side (the first hat is at 0.15).
+# Bench: at 0 dB its highest sample was -20.8 dBFS beside the first hat's -14.6: 6 dB under, a ghost. 2 dB more
 # ---- v8 (26 Nov): PAID IN FULL. Two more switches, each `--without-…` (with them off it is v7 byte for byte).
 #   ZENO   v7's roll pays interest and is shut on the one by a hand: right where the drum is playing, and wrong in
 #          the two bars where there is none (16 and 96: before the drum first comes, and before it comes again).
@@ -243,6 +266,12 @@ def unit(k):
     return S16 / SMALL[k][1] if k in SMALL else S16 / GROW[k][1] if k in GROW else 1000 / NOTE[k][1] if k in NOTE else S16
 
 
+def coins_for(amount, p, q):
+    """The fewest coins that make an amount, or None."""
+    ways = [a + (amount - p * a) // q for a in range(amount // p + 1) if (amount - p * a) % q == 0]
+    return min(ways) if ways else None
+
+
 def frobenius(p, q):
     return p * q - p - q
 
@@ -281,6 +310,8 @@ def hand():
 
 def build():
     T = {'kick': [], 'bass': [], 'hat': [], **{f'seed-{k}': [] for k in purses()}, **({'seed-z': []} if ON['zeno'] and ON['roll'] else {}), **({'open': []} if ON['meet'] and ON['owed'] and ON['hat'] else {}), **{f'long-{k}': [] for k in purses()}}
+    if ON['rate'] and ON['exchange'] and ON['hat']:
+        T['hat-x'] = []
     for i, (name, pairs, every, at16, notes, drum, bass) in enumerate(SECTIONS):
         n = 0
         if ON['flip'] and at16:                                  # off the beat: the purse inside out
@@ -302,6 +333,12 @@ def build():
                 for pitch in (HOME if home else [notes[n % len(notes)]]):
                     T[f"{'long' if kept else 'seed'}-{pairs[n % len(pairs)]}"].append({'at': bar * 4 + at16 / 4, 'len': 0.25, 'pitch': pitch, 'vel': 0.9,
                                                                                     **({'gain': f'{SOFT}dB'} if dense else {'gain': f'{HOME_DB}dB'} if home else {'gain': f'{LONG_DB}dB'} if kept and LONG_DB else {})})
+                if 'hat-x' in T and name == EXCHANGE['section']:   # v9 RATE: what the exchange can pay of this seed, in its units
+                    for amount in range(1, RATE['upto'] + 1):
+                        if coins_for(amount, *EXCHANGE['coins']) and (amount / EXCHANGE['per']) % 1:   # only the sums that fall between the sixteenths
+                            T['hat-x'].append({'at': round(bar * 4 + at16 / 4 + amount / (4 * EXCHANGE['per']), 4), 'len': 0.1, 'pitch': 'A#4', 'vel': round(.95 - .13 * (coins_for(amount, *EXCHANGE['coins']) - 1), 2)})
+                if ON['seven'] and ON['exchange'] and ON['debts'] and bass and name == EXCHANGE['section']:   # v9 SEVEN: the exchange's largest debt, in the bass
+                    T['bass'].append({'at': round(bar * 4 + at16 / 4 + frobenius(*EXCHANGE['coins']) / (4 * EXCHANGE['per']), 4), 'len': 0.25, 'pitch': 'F2', 'vel': .85})
                 n += 1
             waits = ON['wait'] and i + 1 < len(SECTIONS) and SECTIONS[i + 1][0] == 'home' and bar >= (i + 1) * SEC - WAIT
             waits = waits or (ON['leave'] and i + 1 < len(SECTIONS) and drum and SECTIONS[i + 1][5] and SECTIONS[i + 1][3] and not at16 and bar >= (i + 1) * SEC - WAIT)
@@ -338,6 +375,8 @@ def build():
                         T['hat'].append({'at': bar * 4 + (at16 + s) % BAR / 4, 'len': 0.1, 'pitch': 'A#4', 'vel': round(.95 - .13 * (n_coins - 1), 2)})
                         if 'open' in T and s in others and (at16 + s) % 4:   # v8 MEET: it falls with one of the other purses' debts
                             T['open'].append({**T['hat'][-1], 'len': MEET['len']})
+    if ON['seven'] and ON['exchange']:
+        T['bass'].sort(key=lambda n: n['at'])
     return T
 
 
@@ -396,6 +435,16 @@ def song():
         for name, semi, side, js in (('zu', UP, -1, range(1, n + 1, 2)), ('zd', DOWN, 1, range(2, n + 1, 2))):
             buses[name] = {'pan': side * ZENO['pan'], 'gain': f"{ZENO['up' if semi == UP else 'down']}dB", 'fx': [{'type': 'pitch', 'semitones': semi, 'mix': 1}, 'hp cutoff=150'],
                            'returns': [{'from': 'seed-z', 'gain': f'{20 * log10(r) * j:.2f}dB', 'time': f'{gap * (1 - r ** j) / (1 - r) - LAG[semi]:.2f}ms'} for j in js]}
+    if ON['exchange']:                                           # v9: the same seed in another currency: a purse of the same coins in units two thirds of a sixteenth, open for home only
+        i = [sec[0] for sec in SECTIONS].index(EXCHANGE['section'])
+        (p, q), u = EXCHANGE['coins'], S16 / EXCHANGE['per']
+        hand_x = {'points': [['0b', -60], [f'{i * SEC * 4 - 0.05}b', -60], [f'{i * SEC * 4}b', 0], [f'{(i + 1) * SEC * 4 - 1}b', 0], [f'{(i + 1) * SEC * 4}b', -60], [f'{BARS * 4 + 16}b', -60]], 'curve': 0}
+        for coin, other, semi, side in ((p, q, UP, -1), (q, p, DOWN, 1)):
+            t = f'{coin * u - LAG[semi]:.2f}ms'
+            buses[f'x{coin}'] = {'pan': side * EXCHANGE['pan'], 'gain': {'value': '0dB', 'mod': [{'src': 'auto.rate', 'amount': 1}]}, 'auto': {'rate': hand_x},
+                                 'fx': [{'type': 'pitch', 'semitones': semi, 'mix': 1}, f'lp cutoff={TILL[0]}+lfo.till*{TILL[1]}' if ON['till'] else 'lp cutoff=10000', 'hp cutoff=150'],
+                                 **({'lfo': {'till': f'sine rate={1000 / (p * q * u):.4f}hz'}} if ON['till'] else {}),
+                                 'returns': [{'from': f"seed-{SECTIONS[i][1][0]}", 'gain': EXCHANGE['feed'], 'time': t}, {'from': f'x{coin}', 'gain': db(EXCHANGE['back']), 'time': t}, {'from': f'x{other}', 'gain': db(EXCHANGE['back']), 'time': t}]}
     for k in purses():
         if ON['long'] and T[f'long-{k}']:
             doc['tracks'].append({'name': f'long-{k}', 'patch': 'sc-seed', 'gain': {'value': '-3dB', 'mod': [{'src': 'auto.alone', 'amount': 1}]}, 'auto': {'alone': alone()},
@@ -406,6 +455,8 @@ def song():
     if ON['hat']:
         doc['patches'] = {**doc['patches'], 'sc-hat': HAT}
         doc['tracks'].append({'name': 'hat', 'patch': 'sc-hat', 'gain': '4dB', 'pan': 0.15, 'notes': T['hat']})
+        if T.get('hat-x'):                                       # v9 RATE: the second hat, on the other side
+            doc['tracks'].append({'name': 'hat-x', 'patch': 'sc-hat', 'gain': RATE['gain'], 'pan': RATE['pan'], 'notes': T['hat-x']})
     return doc
 
 
@@ -425,7 +476,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v7, the last four v6, the last eight v5, the last nine v4, the last twelve v3, the last sixteen v2, all nineteen v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last three off is v8, the last five v7, the last seven v6, the last eleven v5, the last twelve v4, the last fifteen v3, the last nineteen v2, all twenty-two v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -446,6 +497,12 @@ if __name__ == '__main__':
             print(f"    the last section's four seeds are paid from {' '.join(LAST)}: coins of 3 and 5 sixteenths, thirty-seconds, sixty-fourths, and periods of B flat 3 ({unit('n'):.2f} ms)")
         if ON['roll']:
             print('    small change before a section: ' + ', '.join(f"bar {b + 1} ({'shrinking coins' if k == 'z' else 'thirty-seconds' if k in (ROLL['same'], GROWN[ROLL['same']]) else 'sixty-fourths'}, {n})" for b, (k, n) in rolls().items()) + ('; the drum gives up beat four there' if ON['gap'] else '') + ('; the roll grows and is shut on the one' if ON['grow'] else ''))
+        if ON['exchange']:
+            print(f"    {EXCHANGE['section']} is also paid in another currency: coins of {EXCHANGE['coins'][0]} and {EXCHANGE['coins'][1]} of a unit two thirds of a sixteenth (three for two): amounts " + ' '.join(str(a) for a in range(1, 25) if coins_for(a, *EXCHANGE['coins'])) + '; on the grid where the amount is a multiple of three')
+        if ON['rate'] and ON['exchange'] and ON['hat']:
+            print(f"    a second hat plays what the exchange can pay, in its units, up to {RATE['upto']}, where it falls between the sixteenths: " + ' '.join(str(a) for a in range(1, RATE['upto'] + 1) if coins_for(a, *EXCHANGE['coins']) and (a / EXCHANGE['per']) % 1))
+        if ON['seven'] and ON['exchange'] and ON['debts']:
+            print(f"    the bass plays the exchange's largest debt: {frobenius(*EXCHANGE['coins'])} of its units after each chord, on F2")
         if ON['meet']:
             print('    the hat is let ring where it meets one of the other purses\' debts in the bass')
         if ON['owed']:
