@@ -57,7 +57,8 @@
       ],
       "owner_suggested": "chirper-one",
       "brief": "POLYRHYTHM. Clicks in cycles of different lengths (three, five, seven, Euclidean) against the four to the floor, meeting again only at long intervals; the meeting points are the events.",
-      "id": "chirpers11-t2"
+      "id": "chirpers11-t2",
+      "title": "Least Common"
     },
     {
       "n": 3,
