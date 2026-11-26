@@ -9444,7 +9444,7 @@
     {
       "id": "chirpers11-t6",
       "song": "songs/chirpers11-t6.yaml",
-      "reference": "chirpers — Track 6 (untitled)",
+      "reference": "chirpers — Small Change",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers11-t6 OUT.wav",
@@ -9460,7 +9460,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Escapement",
-        "title": "Track 6 (untitled)",
+        "title": "Small Change",
         "track": 6,
         "year": 2026
       },
