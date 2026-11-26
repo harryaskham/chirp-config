@@ -32,6 +32,20 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v8 (26 Nov), two more switches (`--without-drop`, `-skin`; with them off it is v7 byte for byte):
+  DROP   until now a thing was stopped or let go. Now the stick is let go too. In the last bar of its listening
+         (the four bars each thing is heard alone at the top of its turn) a thing's last stroke that is at least a
+         beat before the one is dropped: it bounces. Each bounce comes sooner than the last by the same share
+         (three quarters) and is that much softer, as a dropped stick's do, and the last of them would fall on the
+         one, where the others come back and play it. The cell does not change: the stroke is the one that was
+         always there, and nobody plays the bounces. Five drops: the wood (bar 36), the metal (52), the string
+         (68), the skin (84), and the weight (116), a drum bouncing into the bar where everything is let go.
+         Not the air: it is blown, and a breath has no stick to drop.
+  SKIN   of the five strings nobody plays (v6), C3 and D3 never sounded: the string plays each of those notes
+         once a cell, cut short (v7: 26 and 30 dB under the B flat). The skin is a drum tuned to the strings'
+         notes (B flat 2, F2, D3); now the two top strings hear the skin as well, and only they do: the three low
+         ones are as they were.
+
 v7 (26 Nov), three more switches (`--without-own`, `-close`, `-soft`; with them off it is v6 byte for byte):
   OWN    the strings nobody plays are tuned to the five notes the STRING plays (F2, G2, B flat 2, C3, D3), and
          they could not hear it: they heard only the wood and the air, two and three octaves over them, and so
@@ -172,7 +186,13 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True}
+DROP = {'share': 0.75, 'bounces': 8, 'room': 4, 'not': ('air',)}   # v8: each bounce's gap, and its level, as a share of the one before; how many are heard (the next would be the one); sixteenths before the one that the dropped stroke must leave; what is not struck.
+# Bench (drop.sh, dropread.py: the stroke alone with its bounces, by 60 ms to the one): the wood -27 -32 -34 -36 -37 -36 -40 -36 -34 -35; the weight -22 -29 -26 -31 -29 -32 -33 -34: each bounce is softer and they come faster, so the level holds and it ends as a buzz on the one.
+# The air was dropped too at first, and its stroke by a track of its own read 5 dB under the same stroke on its own track (-23 for -18: the flue's pipe is still sounding from the stroke before, and a second track's pipe is cold): so not the air
+SKIN = {'feeds': ('skin',), 'feed': '-28dB', 'strings': ('C3', 'D3')}   # v8: what else two of the strings hear, and how much of it.
+# Bench (own.sh, ownread.py: the song with it less the song without, bars 117 and 118): with all five hearing the skin at -32 dB it woke B flat 2 most, then F2 (3 dB under), G2 (4), C3 (8), D3 (20): mostly more of the three that
+# sounded already, 15 and 16 dB under the mix from 60 to 250 Hz on top of the 12 and 13 the string wakes. So only the two that did not sound, and 4 dB more of it
 OWN = {'feeds': ('string',), 'feed': '-29dB'}   # v7: what else the strings hear, and how much of it.
 # Bench (the song with it less the song without, bars 117 and 118): at -36 dB what the string wakes stood 18.1 and 19.8 dB under the mix from 60 to 120 and 120 to 250 Hz (B flat 2 strongest, then G2, F2): there, and nothing. 7 dB more
 SOFT = {'ease': {'metal': -2}, 'kept': {'metal': -3}}   # v7: dB on the metal let go, and on its remembered hall
@@ -280,6 +300,16 @@ def ring_at(thing, bar):
     return pts[-1][1]
 
 
+def dropped(thing):
+    """v8: (bar, sixteenth of the bar) of the stroke a thing drops: in the last bar of its listening, its last stroke that leaves DROP['room'] sixteenths before the one. None if it has no listening."""
+    pts = SHAPE.get(thing)
+    if not (ON['drop'] and ON['listen'] and pts and pts[0][1] == 0) or thing in DROP['not']:
+        return None
+    bar = TOP[pts[0][0]] + LISTEN - 1
+    late = [s % BAR for s, _, _ in strokes_of(thing) if s // BAR == bar % 2 and s % BAR <= BAR - DROP['room']]
+    return (bar, late[-1]) if late else None
+
+
 def listened(bar):
     """The things whose turn began within the last LISTEN bars (they are heard alone); empty when nothing is listened to."""
     if not ON['listen']:
@@ -364,6 +394,7 @@ def build():
         T.update({k + '-room': [] for k in ROOM_THINGS if k in T})
         if ON['remember']:
             T.update({k + '-kept': [] for k in ROOM_THINGS if k in T and k in KEPT})
+    T.update({k + '-drop': [] for k in things() if dropped(k)})
     for bar in range(BARS):
         for thing in things():
             if bar < enters(thing) or any(a <= bar < b for a, b in [OUT_OF.get(thing, (0, 0))]):
@@ -382,7 +413,7 @@ def build():
                         n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + down, 2)}dB"
                     if ON['lift'] and thing in LIFT and bar == aftertaste(thing) and r == 1.0 and not alone:
                         n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + LIFT[thing], 2)}dB"
-                    T[thing].append(n)
+                    T[thing + '-drop' if dropped(thing) == (bar, s % BAR) else thing].append(n)   # v8: the dropped stroke goes by a track of its own, so that only it bounces
                     if thing + '-room' in T and r >= ROOM_FROM:      # the room hears a thing as far as it is let go
                         own = float(n.get('gain', '0dB')[:-2])
                         T[thing + '-room'].append({**n, 'gain': f'{round(own + 20 * log10(r), 2)}dB'})
@@ -428,6 +459,11 @@ def song(T, bars=BARS):
                 dry = by_name[k]
                 doc['tracks'].append({'name': k + '-kept', 'patch': dry['patch'], 'gain': f"{float(dry['gain'][:-2]) + KEPT[k] + (SOFT['kept'].get(k, 0) if ON['soft'] else 0)}dB", 'pan': dry['pan'],
                                       'notes': T[k + '-kept'], 'out': 'hall', **({'fx': dry['fx']} if 'fx' in dry else {})})
+    for k in [k for k in by_name if T.get(k + '-drop')]:        # v8 DROP: the same track again for the one stroke, and its bounces: echoes of it, each sooner and softer by the same share
+        doc['tracks'].append({**{x: y for x, y in by_name[k].items() if x != 'notes'}, 'name': k + '-drop', 'notes': T[k + '-drop']})
+        rest = (BAR - dropped(k)[1]) * 60000 / BPM / 4            # ms from the stroke to the one
+        gap = rest * (1 - DROP['share']) / (1 - DROP['share'] ** (DROP['bounces'] + 1))
+        doc['buses'][k + '-bounce'] = {'pan': by_name[k]['pan'], 'returns': [{'from': k + '-drop', 'gain': f"{20 * log10(DROP['share']) * j:.2f}dB", 'time': f"{gap * (1 - DROP['share'] ** j) / (1 - DROP['share']):.1f}ms"} for j in range(1, DROP['bounces'] + 1)]}
     if ON['sympathy'] and bars == BARS:
         hand = {'points': [['0b', -60], [f'{TOP[6] * 4 - 1}b', -60], [f'{TOP[6] * 4}b', SYMPATHY['let']], [f'{TOP[7] * 4}b', 0], [f'{TOP[8] * 4}b', 0], [f'{(TOP[8] + QUICK) * 4}b', -60]] +
                           ([[f'{TOP[11] * 4 - 1}b', -60], [f'{TOP[11] * 4}b', 0], [f'{TOP[12] * 4 - 1}b', 0], [f'{TOP[12] * 4}b', -60]] if ON['close'] else []) +   # v7: let go while the wood closes; shut again for the taps
@@ -436,7 +472,7 @@ def song(T, bars=BARS):
             me = 'sym-' + name.lower()
             t = f"{1000 / hz - 225.1 / SYMPATHY['lp']:.3f}ms"         # a period, less the low-pass's own delay (0.2251 / its cutoff), so the loop is in tune
             doc['buses'][me] = {'pan': side, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.hand', 'amount': 1}]}, 'auto': {'hand': hand}, 'fx': [f"lp cutoff={SYMPATHY['lp']}"],
-                                'returns': [{'from': k, 'gain': SYMPATHY['feed'], 'time': t} for k in SYMPATHY['feeds']] + ([{'from': k, 'gain': OWN['feed'], 'time': t} for k in OWN['feeds']] if ON['own'] else []) + [{'from': me, 'gain': f"{20 * log10(SYMPATHY['back']):.2f}dB", 'time': t}]}
+                                'returns': [{'from': k, 'gain': SYMPATHY['feed'], 'time': t} for k in SYMPATHY['feeds']] + ([{'from': k, 'gain': OWN['feed'], 'time': t} for k in OWN['feeds']] if ON['own'] else []) + ([{'from': k, 'gain': SKIN['feed'], 'time': t} for k in SKIN['feeds']] if ON['skin'] and name in SKIN['strings'] else []) + [{'from': me, 'gain': f"{20 * log10(SYMPATHY['back']):.2f}dB", 'time': t}]}
     return doc
 
 
@@ -470,7 +506,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the nineteen that are on: all off is v1; the last fourteen off is v2; the last ten off is v3; the last seven off is v4; the last four off is v5; the last three off is v6)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the twenty-one that are on: all off is v1; the last sixteen off is v2; the last twelve off is v3; the last nine off is v4; the last six off is v5; the last five off is v6; the last two off is v7)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -481,7 +517,9 @@ if __name__ == '__main__':
             print(f'{i + 1:2d}  bars {b + 1:3d}-{e:3d}  {int(b * sec) // 60}:{b * sec % 60:05.2f}  {name:38s} ' +
                   ' '.join(f'{k} {ring_at(k, b):.2f}>{ring_at(k, e - 1):.2f}' for k in list(SHAPE) + (['plate'] if ON['plate'] else []) if e > enters(k) and not any(x <= b < y for x, y in [OUT_OF.get(k, (0, 0))])))
         if ON['sympathy']:
-            print(f"    the strings nobody plays ({' '.join(n for n, _, _ in SYMPATHY['strings'])}): let go across bars {TOP[6] + 1}-{TOP[7]}, open to bar {TOP[8]}, stopped by bar {TOP[8] + QUICK}, let go in bar {BARS}" + (f"; let go again while the wood closes, bars {TOP[11] + 1}-{TOP[12]}" if ON['close'] else '') + ('; they hear the string as well as the wood and the air' if ON['own'] else ''))
+            print(f"    the strings nobody plays ({' '.join(n for n, _, _ in SYMPATHY['strings'])}): let go across bars {TOP[6] + 1}-{TOP[7]}, open to bar {TOP[8]}, stopped by bar {TOP[8] + QUICK}, let go in bar {BARS}" + (f"; let go again while the wood closes, bars {TOP[11] + 1}-{TOP[12]}" if ON['close'] else '') + ('; they hear the string as well as the wood and the air' if ON['own'] else '') + (f"; {' and '.join(SKIN['strings'])} hear the skin too" if ON['skin'] else ''))
+        if ON['drop']:
+            print('    the stick is let go too: ' + ', '.join(f'the {k} in bar {dropped(k)[0] + 1} on sixteenth {dropped(k)[1] + 1} ({(BAR - dropped(k)[1]) * 60000 / BPM / 4:.0f} ms to the one)' for k in things() if dropped(k)) + f"; {DROP['bounces']} bounces, each {DROP['share']} of the one before")
         print(f'{BARS} bars, {BARS * sec:.1f} s; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in build().items()))
     else:
         a.out.write_text(dump(bench() if a.bench else song(build())))
