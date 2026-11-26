@@ -140,6 +140,29 @@ ear each (`mode-N-l`, `mode-N-r`), dry: they are the room.
 (Not made: the wave's SIGN. Either side of a node the air moves the opposite way, so two ears with a node
 between them are half a cycle apart; here they differ in loudness only. And the modes are the tempered D and A:
 the room's true third mode is 2 cents above A3.)
+
+v10 (26 Nov): A CLAP COMES BACK AS A CHIRP (C11T3_CHIRP=0 takes it out: v9). The stairwell has had walls; now it
+has STAIRS. Clap your hands at the foot of a long flight of steps and what comes back is not a clap: every step
+sends its own small echo, each a little later than the one below it, and a row of echoes evenly spaced is a
+NOTE. But they are not evenly spaced: the low steps are straight ahead (one tread further each: 2 x 29.2 cm of
+path, 1/587 s: D5) and the high ones are up the slope (a tread and a riser further each: 2 x 39 cm, 1/440 s:
+A4), so the note FALLS as the echo goes up the flight: a click comes back as a chirp, a fourth down in an
+eighth of a second. (It is what a handclap does at the foot of the Castillo at Chichen Itza; these treads are
+sized for D minor and the Castillo's are not.) Sixty steps; each echo is the same tick as the clap, smaller
+by its distance: 1200 echoes are written, each a note.
+From the fifth bar of "the stairwell" (bars 53 to 72, 1:39 to 2:17) the hands clap once a bar, on the eleventh
+sixteenth, and you WALK TO THE STAIRS: a sixteenth of sound from them and back (20 m), then half (10 m), a
+quarter (5 m), an eighth (2.5 m). Two things tell you how far they are and neither is loudness: WHEN the chirp
+comes (a sixteenth after the clap, a thirty-second, and then on its heels), and HOW IT FALLS (from far off it
+is still falling as it ends, D5 to B flat 4, and its last echo is 9 dB under its first; close to, it drops
+at once to A4, stays there, and dies 30 dB).
+The clap and its echoes are one patch (`sr-step`: 5 ms of a sine on A5, the note the chirp lands an octave
+under) on two tracks (`clap-at` the hands, `stairs` the sixty echoes), dry. The first echo is given the same
+level at every distance (from 20 m a real one would be 27 dB weaker than from 2.5): what changes is when and
+how, as said.
+(Benched first: a clap of under a millisecond, which is what an echo this fine wants, came out a different
+size and shape every time: the engine moves its envelopes every 32 samples (0.67 ms). Sixty of them at one
+spacing were only 8 dB clear of noise; sixty 5 ms ticks are 17 dB clear. The ticks overlap, as real echoes do.)
 """
 import json
 import math
@@ -228,6 +251,18 @@ SECTIONS = [
     ("standing room", 5, {"click", "kick", "tock", "bass", "chord", "clap"}, "standing",  1.0, -16),
     ("the door",      2, {"click", "kick", "tock"} | ({"bass"} if LEARN else set()), None,   0.0, None),
 ]
+CHIRP = os.environ.get("C11T3_CHIRP", "1") != "0" and STAND                     # v10: a clap comes back as a chirp (the stairs)
+CHIRP_IN = "the stairwell"
+CHIRP_TREAD = SOUND / (2 * 587.33)                     # m (0.292): at the foot each tread is this much further: echoes 1/587 s apart, D5
+CHIRP_RISER = 0.2576                                   # m: far up the flight each step is a tread and a riser further, 0.39 m: echoes 1/440 s apart, A4
+CHIRP_STEPS = 60                                       # steps in the flight (17.5 m along, 15.5 m up)
+CHIRP_AWAY = ((4, 8, 1.0), (8, 12, 0.5), (12, 16, 0.25), (16, 24, 0.125))   # (from bar, to bar of the section, how far off the foot of the stairs is: sixteenths of sound THERE AND BACK; 1 is 20.4 m)
+CHIRP_ON = (10,)                                       # the sixteenths of a bar on which the hands clap (none of the stairwell's own echoes falls there)
+CHIRP_FALL = 1.5                                       # a step's echo is (the foot's distance / its own) to this power of the foot's
+CHIRP_NOTE = "A5"                                      # the tick: 5 ms of a sine on this note (the chirp ends an octave under it)
+CHIRP_LEN = 0.008                                      # beats a tick is held (3.8 ms)
+CHIRP_GAIN = float(os.environ.get("C11T3_CHIRP_GAIN", "-2"))    # dB: the clap (benched alone: at -6 the chirp's first 20 ms were 12 dB under the click; at -2 they are 8 under)
+CHIRP_BACK = float(os.environ.get("C11T3_CHIRP_BACK", "-6"))    # dB: the echo from the foot of the stairs against the clap, at every distance
 OPEN = 2                       # bars a door takes to open (from AJAR)
 SHUT = 4                       # bars it takes to shut behind the walk
 AJAR = -24                     # dB: where an opening door starts and a shutting one ends before it is closed
@@ -322,6 +357,40 @@ def mode_lane(n, side):
     lo, hi = stand_span()
     k = int(round((hi - lo) / STEP))
     return [["0b", round(stand_db(n, lo, side), 2)]] + [[f"{lo + i * STEP:g}b", round(stand_db(n, lo + i * STEP, side), 2)] for i in range(k + 1)] + [[f"{TOTAL:g}b", round(stand_db(n, hi, side), 2)]]
+
+
+def chirp_away(bar):
+    """Metres from the hands to the foot of the stairs in that bar, or None where there is no clap."""
+    sec = next((x for x in SECS if x[0] == CHIRP_IN), None) if CHIRP else None
+    if sec is None:
+        return None
+    for b0, b1, away in CHIRP_AWAY:
+        if sec[1] + b0 <= bar < sec[1] + b1:
+            return away * (60 / BPM / 4) * SOUND / 2
+    return None
+
+
+def stair_echoes(d):
+    """(seconds after the clap, level against the foot's echo) of the echo from each step, the foot d metres off."""
+    out = []
+    for n in range(CHIRP_STEPS):
+        r = math.hypot(d + n * CHIRP_TREAD, n * CHIRP_RISER)
+        out.append((2 * r / SOUND, (d / r) ** CHIRP_FALL))
+    return out
+
+
+def chirp_notes():
+    """The claps, and every step's echo of every clap."""
+    claps, back = [], []
+    for bar in range(BARS):
+        d = chirp_away(bar)
+        if d is None:
+            continue
+        for s in CHIRP_ON:
+            t = bar * BEATS + s * STEP
+            claps.append({"at": round(t, 6), "len": CHIRP_LEN, "pitch": CHIRP_NOTE, "vel": 1.0})
+            back += [{"at": round(t + sec * BPM / 60, 6), "len": CHIRP_LEN, "pitch": CHIRP_NOTE, "vel": round(lv, 4)} for sec, lv in stair_echoes(d)]
+    return claps, back
 
 
 def note(at, pitch, length, vel):
@@ -600,6 +669,15 @@ def song():
             doc["tracks"].append({**doc["tracks"][-1], "name": "pass-tick", "patch": "sr-pass-tick", "gain": PASS_TICK})
         doc["about"] = doc["about"].replace(" Generated by", " From v7 something goes past outside, a sixteenth of sound away at a fifth of the speed of sound, striking straight eighths on one note: its strokes are heard five against four and a major third high as it comes, five against six and a minor third low when it has gone (the Doppler effect, of a rhythm and of a pitch at once). Generated by")
         assert "From v7" in doc["about"]
+    if CHIRP and chirp_notes()[0]:
+        claps, back = chirp_notes()
+        PATCHES["sr-step"] = {"about": "Standing Room's tick (chirper-zero, 26 Nov, v10): 5 ms of a sine, started at the same point of its wave every time: a clap, and each step's echo of it. Its loudness is its velocity (vel_sens 0.5 is linear).",
+                              "play": {"vel_sens": 0.5, "gate": 1},
+                              "synth": {"layers": ["sine phase=0"], "amp": {"a": "0ms", "d": "5ms", "s": 0, "r": "2ms", "curve": 3}}}
+        doc["tracks"].append({"name": "clap-at", "patch": "sr-step", "gain": f"{CHIRP_GAIN:g}dB", "pan": 0.0, "notes": claps})                       # dry: the stairs are the room
+        doc["tracks"].append({"name": "stairs", "patch": "sr-step", "gain": f"{CHIRP_GAIN + CHIRP_BACK:g}dB", "pan": 0.25, "notes": back})          # ahead and a little to the right
+        doc["about"] = doc["about"].replace(" Generated by", " From v10 there are stairs in the stairwell: a clap at their foot comes back as a chirp, because each of sixty steps sends its own echo and the higher ones are further apart in time (D5 falling towards A4 in an eighth of a second); you walk to the stairs, so the chirp comes sooner and falls further. Generated by")
+        assert "From v10" in doc["about"]
     if stand_span():
         lo, hi = stand_span()
         PATCHES["sr-mode"] = {"about": "Standing Room's mode (chirper-zero, 26 Nov, v9): one sine, held: a note whose half-waves fit between the walls. Its loudness is where the ear is (auto.at, dB).",
@@ -689,6 +767,13 @@ if __name__ == "__main__":
             a, b = WALK[LEARN_ROOM][0]
             print("   what strikes them in a bar (step: the pipe, dB at the pipe): " + " ".join(
                 [f"{CLICK_STEP}:D {FIRST['click']}"] + [f"{CLICK_STEP + t}:{'F+C' if sd == 'both' else 'F' if sd == 'left' else 'C'} {float(FIRST['click'][:-2]) + float(WALL[:-2]) * (2 * (t // (a + b)) - (1 if sd == 'both' else 0) ):+.0f}" for t, sd in echoes(a, b) if CLICK_STEP + t < 16]))
+        if CHIRP and chirp_notes()[0]:
+            claps, back = chirp_notes(); b0 = next(x for x in SECS if x[0] == CHIRP_IN)[1]
+            nt = lambda f: (lambda m: "C C# D Eb E F F# G Ab A Bb B".split()[int(round(m)) % 12] + str(int(round(m)) // 12 - 1) + f"{100 * (m - round(m)):+.0f}c")(69 + 12 * math.log2(f / 440))
+            print(f"the stairs, bars {int(claps[0]['at'] // BEATS) + 1}-{int(claps[-1]['at'] // BEATS) + 1}: {CHIRP_STEPS} steps, tread {100 * CHIRP_TREAD:.1f} cm, riser {100 * CHIRP_RISER:.1f} cm ({math.degrees(math.atan2(CHIRP_RISER, CHIRP_TREAD)):.0f} degrees) ; {len(claps)} claps on sixteenth {','.join(str(q) for q in CHIRP_ON)} ; {len(back)} echoes ; at the foot {SOUND / (2 * CHIRP_TREAD):.1f} Hz, far up the slope {SOUND / (2 * math.hypot(CHIRP_TREAD, CHIRP_RISER)):.1f} Hz")
+            for c0, c1, away in CHIRP_AWAY:
+                d = away * (60 / BPM / 4) * SOUND / 2; e = stair_echoes(d); g = [b[0] - a[0] for a, b in zip(e, e[1:])]
+                print(f"   bars {b0 + c0 + 1}-{b0 + c1}: the foot {d:.2f} m off: the chirp begins {1000 * e[0][0]:.1f} ms after the clap ({e[0][0] * BPM / 15:.3f} of a sixteenth) and lasts {1000 * (e[-1][0] - e[0][0]):.1f} ms ; its echoes come {1 / g[0]:.1f} Hz ({nt(1 / g[0])}) at first, {1 / g[len(g) // 2]:.1f} half way ({nt(1 / g[len(g) // 2])}), {1 / g[-1]:.1f} at the last ({nt(1 / g[-1])}): {12 * math.log2(g[-1] / g[0]):.2f} semitones down ; the last echo is {20 * math.log10(e[-1][1]):.1f} dB under the first")
         if stand_span():
             lo, hi = stand_span(); L = SOUND / (2 * STAND_ROOT)
             print(f"the standing wave, bars {lo // BEATS + 1:g}-{hi // BEATS:g}: walls {L:.2f} m apart (the room's note {STAND_ROOT:.1f} Hz), ears {STAND_EAR * 100:.0f} cm apart ; modes " + " ".join(f"{n}:{p}" for n, p in STAND_MODES) + " ; a mode at a wall " + " ".join(f"{STAND_GAIN + STAND_TILT * math.log2(n / STAND_MODES[0][0]):.1f}" for n, p in STAND_MODES) + " dB")
