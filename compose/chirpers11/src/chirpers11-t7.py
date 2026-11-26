@@ -58,6 +58,20 @@ when B joins (bar 9), is at its full width a swing later, and stops dead on the 
 again" the drum's last stroke lets it go: it swings its full width at once and comes to rest, half as far every
 three bars, and when it is still B stops. On ONE speaker there are no two ears to compare: the same lead is a comb, a hollow that opens
 and closes in the click twice a swing (the phaser of the slips, a hundred times slower).
+
+v5 (26 Nov): THE BASS HEARS THE LOCK (C11T7_ROOT=0 takes it out: v4). The bass has held one note, G, for the whole
+record. But every lock has a first stroke that the two clicks share (the first note of its tune), and it is one of
+two: the pattern's first stroke, G, or its second, B flat. In "drifts", where B does not stop and nothing says
+where the locks are, the bass now does: as B passes each lock the bass plays the note the two are agreed on first.
+After sixty-six bars on G it moves: B flat for four bars as B passes the seventh lock, G for eight (the sixth and
+the fifth), B flat for four (the fourth), G for four (the third), B flat for four (the second), and G from there
+home. Nobody wrote the line: G and B flat fall where the pattern's rotations put them, and the bass drum is away
+for two of the changes (bars 121 to 128). Under B flat the tune's notes are a B flat major seventh (B flat, D, F, A); under G
+they are G minor with its ninth: two chords out of one pattern. The B flat is a second bass, tuned like the first:
+pairs of sines one cycle a beat apart from ITS notes, so it pumps on the beat as the G does.
+ROOT_IN says in which kinds of phase the bass follows. It was tried in "slips" as well (the bass changing on the
+bar B catches): on its own that scored a little under this, and both together made thirteen sections that kept
+coming back and cost two points, so "slips" keeps its one note and the bass's first move is an event.
 """
 import json
 import math
@@ -89,6 +103,9 @@ TUNE_FROM = 4                  # in "slips": the row from which a lock has its t
 TUNE_AFTER = 4                 # ... and the bar of the row from which it is heard (2 slipping, 2 bare)
 TUNE_NEAR = 0.26               # sixteenths: a bar plays a lock's tune if B is this near the lock from its first step to its last
 T = {"tune": None} if TUNE_ON else {}
+ROOT_ON = os.environ.get("C11T7_ROOT", "1") != "0" and TUNE_ON   # v5: the bass hears the lock
+F0B = 116.5409                 # B flat 2
+ROOT_IN = tuple(os.environ.get("C11T7_ROOT_IN", "drift").split(","))   # the kinds of phase in which the bass follows the lock ("slips", "drift"); elsewhere it is G
 PEND_ON = os.environ.get("C11T7_PEND", "1") != "0"    # v4: the pendulum
 PEND_MS = 0.6                  # ms: how far B is ahead of A (and then behind) at the end of a swing; sound crosses a head in about this
 PEND_BARS = 2                  # bars to swing there and back
@@ -277,6 +294,24 @@ CLAP = lambda bar: [(4, "C4", 1, 0.8), (12, "C4", 1, 0.86)]
 HAT = lambda bar: [(s, "A#4", 1, 0.8) for s in (2, 6, 10, 14)]
 BASS = lambda bar: [(2, "G2", 15.6, 0.9)]      # struck on the off-beat, held for the bar: its two tones agree on the off-beats
 
+
+def bass_lock(bar):
+    """The lock the bass hears in a bar: the one B is in when the bass strikes (in "drifts", the one B is nearest)."""
+    t = bar * BAR + 2
+    p = phi(t, pend=False) if PEND_ON else phi(t)
+    kind = next(ph[0] for name, b0, n, parts, ph in SECS if b0 <= bar < b0 + n)
+    return int(round(p)) if kind == "drift" else int(math.floor(p + 1e-9))
+
+
+def bass_note(bar):
+    """The first stroke the two clicks share at that lock, two octaves under its note in the tune: G or B flat."""
+    kind = next(ph[0] for name, b0, n, parts, ph in SECS if b0 <= bar < b0 + n)
+    return TUNE[doubles(bass_lock(bar))[0]].replace("4", "2") if ROOT_ON and kind in ROOT_IN else "G2"
+
+
+BASS_G = lambda bar: BASS(bar) if bass_note(bar) == "G2" else []
+BASS_B = lambda bar: [(2, "Bb2", 15.6, 0.9)] if bass_note(bar) == "Bb2" else []
+
 R = 1 + DELTA / F0             # the second tone of each pair, as a ratio of the note
 PATCHES = {
     "os-click": {"about": "Out of Step's click (chirper-zero, 26 Nov): five cycles of a saw on G3 dying in 22 ms, lifted 9 dB round 9 kHz, started at the same point of its wave every time, through a low-pass that both clicks share (it opens with the phase): nothing in it is random, so two of them struck together are one click, and two struck a millisecond apart are a comb. (The machine's rim was tried first: two rims differ by 22 dB under one, and its note stood 16 to 25 dB over the album's envelope.)",
@@ -302,6 +337,10 @@ PATCHES = {
                 "play": {"mono": True, "vel_sens": 0.2},
                 "synth": {"layers": [x for h, lv in ((1, -3), (2, -9), (3, -15)) for x in (f"sine phase=0 ratio={h} level={lv}dB", f"sine phase=0 ratio={h + DELTA / F0:.6f} level={lv - 1.5}dB")],
                           "amp": {"a": "4ms", "d": "0s", "s": 1, "r": "30ms"}}},
+    "os-bass-b": {"about": f"Out of Step's second bass (chirper-zero, 26 Nov, v5): the same three pairs of sines built on B flat 2 ({F0B} Hz), each pair {DELTA:g} Hz apart (ratio {1 + DELTA / F0B:.6f} for B flat 2 only), so it pumps on the beat as the G does. It sounds at the locks whose first shared stroke is the pattern's second.",
+                  "play": {"mono": True, "vel_sens": 0.2},
+                  "synth": {"layers": [x for h, lv in ((1, -3), (2, -9), (3, -15)) for x in (f"sine phase=0 ratio={h} level={lv}dB", f"sine phase=0 ratio={h + DELTA / F0B:.6f} level={lv - 1.5}dB")],
+                            "amp": {"a": "4ms", "d": "0s", "s": 1, "r": "30ms"}}},
 }
 
 
@@ -322,11 +361,17 @@ def song():
             {"name": "kick", "patch": "os-kick", "gain": "-8dB", "pan": 0.0, "notes": part("kick", KICK)},
             {"name": "a", "patch": "os-click", "gain": "-2dB", "pan": click_pan(-1), "sends": {"room": "-16dB"}, **click_fx(), "auto": click_auto(), "notes": a_notes()},
             {"name": "b", "patch": "os-click", "gain": "-2dB", "pan": click_pan(1), "sends": {"room": "-16dB"}, **click_fx(), "auto": click_auto(), "notes": b_notes()},
-            {"name": "bass", "patch": "os-bass", "gain": "-23dB", "pan": 0.0, "notes": part("bass", BASS)},
+            {"name": "bass", "patch": "os-bass", "gain": "-23dB", "pan": 0.0, "notes": part("bass", BASS_G if ROOT_ON else BASS)},
             {"name": "hat", "patch": "os-hat", "gain": "-1dB", "pan": 0.0, "sends": {"room": "-16dB"}, "notes": part("hat", HAT)},
             {"name": "clap", "patch": "os-clap", "gain": "-5dB", "pan": 0.0, "sends": {"room": "-10dB"}, "notes": part("clap", CLAP)},
         ],
     }
+    if ROOT_ON:
+        i = next(k for k, t in enumerate(doc["tracks"]) if t["name"] == "bass")
+        doc["tracks"].insert(i + 1, {"name": "bassb", "patch": "os-bass-b", "gain": "-23dB", "pan": 0.0, "notes": part("bass", BASS_B)})
+        doc["about"] = doc["about"].replace(" Generated by", " From v5, while B drifts home, the bass plays the first stroke the two clicks share at each lock B passes, G or B flat: it moves for the first time, and says where the locks are. Generated by")
+    else:
+        del PATCHES["os-bass-b"]
     if PEND_ON:
         doc["about"] = doc["about"].replace(" Generated by", f" From v4, while the two are one click (the opening and the ending) they are given an ear each and one swings {PEND_MS:g} ms ahead of the other and behind it: the click is heard to swing from ear to ear, with nothing panned. Generated by")
     if COMP_ON:
@@ -382,6 +427,16 @@ if __name__ == "__main__":
                     runs[-1][1] = bar + 1
                 last = k
             print("   the tune by bars: " + " ".join(f"{lo}-{hi}:{k}" for lo, hi, k in runs if k is not None))
+        if ROOT_ON:
+            runs = []
+            for bar in range(BARS):
+                if plays("bass", bar):
+                    k, p = bass_lock(bar), bass_note(bar)
+                    if runs and runs[-1][1] == bar and runs[-1][3] == p:
+                        runs[-1][1] = bar + 1; runs[-1][2].append(k)
+                    else:
+                        runs.append([bar, bar + 1, [k], p])
+            print("   the bass by bars (the locks it hears): " + " ".join(f"{lo}-{hi}:{p}({','.join(str(q) for q in sorted(set(ks), key=ks.index))})" for lo, hi, ks, p in runs))
         if PEND_ON:
             for name, b0, n, parts, phase in SECS:
                 if phase[0] == "pend":
