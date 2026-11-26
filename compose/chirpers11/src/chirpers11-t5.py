@@ -147,6 +147,22 @@ jagged tunes are gone.
 ON ONE SPEAKER there are no sides, and the two scales, which cross in the middle, are still not heard to
 cross: the high line turns back at E5 and the low one at D5 (they bounce). The sorting by pitch is the same.
 Two tracks (`scale-l`, `scale-r`), an ear each and dry, on the song's plain pip (`ht-pip`).
+
+v11 (26 Nov): THE WAY DOWN LEADS UP (C11T5_FALL=0 takes it out: v10). An eleventh thing, and it is the stairs (v7)
+the other way and with a twist: Risset's paradox (1969). The bells go DOWN, three semitones a step, round the four
+(B, Ab, F, D, and B is three under D), a bell an eighth, for six bars: 48 steps, twelve times round, 144 semitones
+down by name. And while they go down, the curve that every bell is under goes UP, one octave over the 48 steps: a
+quarter of a semitone a step, against the three of the step itself, so no step is heard as anything but a step
+down. The 48th bell is B again: the same B in every octave as the first, and it is loudest an octave HIGHER.
+Forty-eight steps down, and it has arrived above where it set out. The curve starts an octave under where the v6
+bells have theirs (loudest at 220 Hz) and ends on it (440 Hz): the last bell is the v6 B.
+It is said plainly at both ends, in the second row of "all three" (bars 161 to 168, 5:07 to 5:23): in the first
+bar the first bell alone, twice; in the last bar the last bell and the first, turn about (last, first, last,
+first), and the first is the lower.
+The v6 bells are one patch a note-name with the curve built in, so the curve cannot move. These are made of their
+parts instead: one plain tone (`ht-part`, loudness straight from velocity) and a note for every octave of every
+bell, each as loud as the curve says where the curve is by then. With the curve where v6 has it, one of these is
+one of those. On one speaker it is all there.
 """
 import json
 import math
@@ -210,6 +226,15 @@ SCALE_IN = ("turned around", 8, 16)                       # the section, and the
 SCALE_NOTES = ("A4", "B4", "C5", "D5", "E5", "F5", "G5", "A5")   # the scale: up it and down it at once, a note an eighth
 SCALE_SOLO = 2                                            # bars the left ear's part is heard alone, then the right's; both for what is left
 SCALE_GAIN = os.environ.get("C11T5_SCALE_GAIN", "-12dB")  # each ear's pips (the line's level)
+FALL = os.environ.get("C11T5_FALL", "1") != "0" and SCALE and STAIRS   # v11: the way down leads up (Risset's paradox)
+FALL_IN = ("all three", 8, 16)                            # the section, and the bars of it in which it is said
+FALL_BELLS = ("B", "Ab", "F", "D")                        # each three semitones under the one before it, and the first three under the last
+FALL_EVERY = 2                                            # sixteenths from one step down to the next
+FALL_SAID = 1                                             # bars at each end in which the first bell (and at the far end the last) is said plainly
+FALL_RISE = float(os.environ.get("C11T5_FALL_RISE", "1"))   # octaves the curve climbs while the bells go down
+FALL_TOP = float(os.environ.get("C11T5_FALL_TOP", "0"))   # octaves over the v6 bells' curve at which it ends: 0, so the last bell is a v6 bell (at half an octave over, the song had still more around 470 Hz, where it has 7 dB more than the album already)
+FALL_GAIN = os.environ.get("C11T5_FALL_GAIN", "-19dB")    # their level: 2 dB under the stairs
+FALL_VEL = STAIR_VEL ** 0.6                               # ... and a stair's loudness (the bells' own patch takes velocity to the power 0.6)
 ALL = None
 # name, rows, {part: None (the whole section) or (from bar, to bar) of the section}
 SECTIONS = [
@@ -410,6 +435,52 @@ def STAIR_STEPS(bar):
             for st in range(16) for q in [k * 16 + st - OFF[0]] if q >= 0 and q % every == 0]
 
 
+def fall_span():
+    """The bars between which the way down leads up, or None."""
+    sec = next((x for x in SECS if x[0] == FALL_IN[0]), None) if FALL else None
+    return (sec[1] + FALL_IN[1], sec[1] + FALL_IN[2]) if sec else None
+
+
+def fall_steps():
+    """(beat, which bell of the way down (0 the first, N the last), sixteenths long): the first bell said twice, the N steps down, the last and the first turn about."""
+    b0, b1 = fall_span()
+    n = (b1 - b0 - 2 * FALL_SAID) * 16 // FALL_EVERY
+    assert n % len(FALL_BELLS) == 0, n                        # the last bell must be the first one's name
+    out = [((b0 * 16 + st) * STEP, 0, 6) for st in (OFF[0], OFF[2])]
+    out += [(((b0 + FALL_SAID) * 16 + OFF[0] + (i - 1) * FALL_EVERY) * STEP, i, FALL_EVERY if i < n else 4) for i in range(1, n + 1)]
+    out += [(((b1 - 1) * 16 + st) * STEP, i, ln) for st, i, ln in ((OFF[1], 0, 4), (OFF[2], n, 4), (OFF[3], 0, 2))]
+    assert out[1 + n][0] == (b1 - 1) * 16 * STEP, out[1 + n]   # the last step down falls on the last bar's first beat
+    return out, n
+
+
+def fall_mid(i, n):
+    """Where the curve is loudest (Hz) at bell i of n."""
+    return BOTH_MID * 2.0 ** ((i / n - 1) * FALL_RISE + FALL_TOP)
+
+
+def fall_octaves(pc, mid):
+    """The octaves of a note-name that sound under the curve when it is loudest at mid: (the note, Hz, dB under the curve)."""
+    out = []
+    for o in range(0, 10):
+        f = hz(pc + str(o))
+        level = -20 * math.log10(math.e) * math.log2(f / mid) ** 2 / (2 * BOTH_WIDE ** 2)
+        if level >= BOTH_FLOOR:
+            out.append((pc + str(o), f, level))
+    return out
+
+
+def fall_height(pc, mid):
+    """Where a bell's weight is, in octaves over 440 Hz: the mean of its octaves' places, each weighed by its power."""
+    w = [(10 ** (lv / 10), math.log2(f / 440.0)) for nm, f, lv in fall_octaves(pc, mid)]
+    return sum(a * x for a, x in w) / sum(a for a, x in w)
+
+
+def fall_notes():
+    steps, n = fall_steps()
+    return [{"at": round(at, 4), "len": round(ln * STEP, 4), "pitch": nm, "vel": round(FALL_VEL * 10 ** (lv / 20), 5)}
+            for at, i, ln in steps for nm, f, lv in fall_octaves(FALL_BELLS[i % len(FALL_BELLS)], fall_mid(i, n))]
+
+
 def BOTH_STEPS(bar):
     """Two bars a phrase: three bells said on the click's strokes (climbing in the odd phrases, falling in the even), then the answer."""
     said = BOTH_UP if (bar % ROW) // 2 % 2 == 0 else BOTH_DOWN
@@ -551,6 +622,13 @@ def song():
             doc["tracks"].append({"name": nm, "patch": "ht-pip", "gain": SCALE_GAIN, "pan": side, "notes": scale_notes(side)})
         doc["about"] = doc["about"].replace(" Generated by", " From v10 the scale of A minor goes up and down at once, its notes dealt to the two ears turn about, so each ear is given a jagged tune and neither a scale; two smooth lines are heard, the high in one ear and the low in the other (the scale illusion). Each ear's part is heard alone first. Generated by")
         assert "From v10" in doc["about"]
+    if fall_span():
+        PATCHES["ht-part"] = {"about": "Hearing Things' part of a bell (chirper-zero, 26 Nov, v11): one plain tone with the v6 bells' own shape, and its loudness is its velocity and nothing else. A bell is made of one of these for every octave of its note, so the curve the octaves are under can be somewhere else at every bell.",
+                              "play": {"vel_sens": 0.5},
+                              "synth": {"layers": ["sine phase=0"], "amp": {"a": "4ms", "d": "420ms", "s": 0, "r": "90ms", "curve": 3}}}
+        doc["tracks"].append({"name": "fall", "patch": "ht-part", "gain": FALL_GAIN, "pan": 0.0, "notes": fall_notes()})      # dry and in the middle, as the stairs are
+        doc["about"] = doc["about"].replace(" Generated by", " From v11 the bells go down for six bars in all three, three semitones a step, while the curve they are under climbs an octave: forty-eight steps down, and the last bell is the first one's name and higher than it (Risset's paradox). The first bell is said before and the two side by side after. Generated by")
+        assert "From v11" in doc["about"]
     if APART:
         doc["tracks"].append({"name": "line", "patch": "ht-pip", "gain": "-12dB", "pan": -0.15, "sends": {"room": "-14dB"}, "notes": part("line", LINE_STEPS)})
         doc["about"] = doc["about"].replace(" Generated by", " From v5 a pip plays three strokes and a rest (A B A .) and B moves away from A a third, a fifth, an octave, and back: no stroke moves, and the one galloping line comes apart into two even ones (stream segregation). Generated by")
@@ -607,6 +685,12 @@ if __name__ == "__main__":
         if scale_span() and APART:
             b0, b1 = scale_span(); L, R = scale_ear(-1), scale_ear(1); semi = lambda p: round(12 * math.log2(hz(p) / 440))
             hi_ = [max(a, b, key=hz) for a, b in zip(L, R)]; lo_ = [min(a, b, key=hz) for a, b in zip(L, R)]
+        if fall_span():
+            b0, b1 = fall_span(); steps, n = fall_steps(); sec = BEATS * 60 / BPM
+            print(f"the way down leads up, bars {b0 + 1}-{b1} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f}): {n} steps down, a bell every {FALL_EVERY} sixteenths from bar {b0 + FALL_SAID + 1}, {' '.join(FALL_BELLS)} round and round ({n // len(FALL_BELLS)} times: {3 * n} semitones down by name) ; the curve climbs {FALL_RISE:g} octave(s), {12 * FALL_RISE / n:.2f} of a semitone a step: loudest at {fall_mid(0, n):.0f} Hz at the first bell, {fall_mid(n, n):.0f} Hz at the last ; {len(fall_notes())} notes")
+            for lab, i in (("the first bell", 0), ("the last bell", n)):
+                pc = FALL_BELLS[i % len(FALL_BELLS)]
+                print(f"   {lab} ({pc}), Hz and dB: " + " ".join(f"{f:.0f}{lv:+.0f}" for nm, f, lv in fall_octaves(pc, fall_mid(i, n))) + f" ; its weight is {fall_height(pc, fall_mid(i, n)):+.2f} octaves from 440 Hz")
             leap = lambda q: max(abs(semi(b) - semi(a)) for a, b in zip(q, q[1:]))
             print(f"two scales neither ear is given, bars {b0 + 1}-{b1} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f}): a pip an eighth ; the left ear alone bars {b0 + 1}-{b0 + SCALE_SOLO}, the right alone {b0 + SCALE_SOLO + 1}-{b0 + 2 * SCALE_SOLO}, both {b0 + 2 * SCALE_SOLO + 1}-{b1}")
             print(f"   the left ear is given  {' '.join(L)}  (its biggest leap {leap(L)} semitones) ; the right  {' '.join(R)}  ({leap(R)})")
