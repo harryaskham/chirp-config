@@ -32,6 +32,21 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v3 (26 Nov), four more switches (`--without-listen`, `-off`, `-fore`, `-note`; with v2's five also off it is v1 byte for byte):
+  LISTEN the others stop to listen. For the first four bars of its turn a thing is heard ALONE and let go altogether:
+         the wood at bar 33, the metal at 49, the string at 65, the skin and the air together at 81, and at 113,
+         after sixteen bars without it, the weight by itself, ringing B flat. Then everything comes back in, and the
+         thing goes on being let go among the others. Until now a thing's turn was a slow change under six others.
+         Alone it is 3 dB down, so that the others coming back is a step up.
+  OFF    the hand comes off. A thing's turn no longer begins stopped and creeps: on the one of its section it is
+         let go half way at once (ring 0.5: the wood goes from a 15 ms click to a 120 ms note in one bar), and the
+         rest of the way over the sixteen bars. Every section now begins with something heard to change.
+  FORE   a foretaste. Eight bars before its turn, each thing gives ONE stroke let go altogether (the last of its
+         bar), in the middle of a section where it is otherwise stopped: one ring of a second among clicks, on a count.
+  NOTE   the weight's note. In v2 the kettle under the thud rang for 1.2 s at most, so it was 17 dB gone by the
+         next beat and 25 dB under its own thud. Let go, it now rings three seconds, the thud gives way (6 dB)
+         and the head comes up (6 dB): each stroke lands on the last one's note, and the drum holds B flat.
+
 Form as arithmetic: the sections are a list of lengths (LENGTHS, bars); each thing has a list of (section, ring)
 points, a point `(n, r)` meaning ring r at the top of section n and `(n, r, QUICK)` ring r QUICK bars into it; its
 ring at any bar is the straight line between them (`ring_at`). A ring r is a ring time `t0 * (t1 / t0) ** r` seconds
@@ -106,7 +121,12 @@ PATCHES = {
 PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
-ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True}
+ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True}
+LISTEN = 4                                   # bars at the top of its turn that a thing is heard alone, let go altogether
+ALONE = -3                                   # dB on its strokes while it is alone (unhushed the wood alone read 2.4 dB OVER the groove it broke off, and the others' return was a step down)
+OFF = 0.5                                    # the share of its ring a thing is given at once, on the one of its turn
+FORE = SEC // 2                              # bars before its turn that a thing gives one stroke let go
+NOTE = {'ring': (0.04, 3.0), 'thud': -2, 'note': 2, 'from': '-6dB', 'ease': -3.5}   # the head's ring time, seconds (v2: to 1.2: 17 dB gone by the next beat); dB a second of ring on the felt layer and on the head; the head's level stopped; dB at ring 1
 PLATE = {'strokes': [(1, 'F7', .6), (5, 'F7', .5), (9, 'F7', .6), (13, 'F7', .5), (17, 'F7', .6), (21, 'F7', .5), (25, 'F7', .6)],
          'ring': (0.010, 1.5), 'enters': ENTERS['air'], 'shape': [(6, 0), (7, 1), (9, 1), (9, 0, Q)], 'ease': -8, 'gain': '-9dB', 'pan': -0.5}
 BOOM = {'ring': (0.04, 1.2), 'gain': '-3dB'}
@@ -131,12 +151,21 @@ def things():
     return list(STROKES) + (['plate'] if ON['plate'] else [])
 
 
+def drum_patch():
+    """rt-boom with the stroke's ring on the two layers' levels as well: the thud gives way to the note."""
+    felt, kettle = (dict(x) for x in NEW['rt-boom']['synth']['layers'])
+    felt['level'] = {'value': '0dB', 'mod': [{'src': 'expr.ring', 'amount': NOTE['thud']}]}
+    kettle['level'] = {'value': NOTE['from'], 'mod': [{'src': 'expr.ring', 'amount': NOTE['note']}]}
+    return {'about': "Ring True: the weight whose thud gives way to its note (v3). rt-boom's two layers, a felt thud and a kettledrum head on the same note; the stroke's ring (expr.ring, seconds) sets the head's ring time and also takes the thud down and brings the head up.",
+            'synth': {'layers': [felt, kettle], 'amp': NEW['rt-boom']['synth']['amp']}, 'play': NEW['rt-boom']['play']}
+
+
 def strokes_of(thing):
     return PLATE['strokes'] if thing == 'plate' else STROKES[thing]
 
 
 def ring_range(thing):
-    return PLATE['ring'] if thing == 'plate' else BOOM['ring'] if thing == 'weight' and ON['boom'] else RING[thing]
+    return PLATE['ring'] if thing == 'plate' else (NOTE['ring'] if ON['note'] else BOOM['ring']) if thing == 'weight' and ON['boom'] else RING[thing]
 
 
 def enters(thing):
@@ -144,7 +173,7 @@ def enters(thing):
 
 
 def patch_of(thing):
-    return 'rt-plate' if thing == 'plate' else 'rt-boom' if thing == 'weight' and ON['boom'] else PATCH[thing]
+    return 'rt-plate' if thing == 'plate' else ('rt-drum' if ON['note'] else 'rt-boom') if thing == 'weight' and ON['boom'] else PATCH[thing]
 
 
 def ring_at(thing, bar):
@@ -156,12 +185,30 @@ def ring_at(thing, bar):
     if thing != 'weight' and ON['hush'] and bar == HUSH:
         return 0.0
     pts = [(TOP[p[0]] + (p[2] if len(p) > 2 else 0), p[1]) for p in (PLATE['shape'] if thing == 'plate' else SHAPE[thing])]
+    if ON['off'] and pts[0][1] == 0 and pts[0][0] <= bar < pts[1][0]:      # its turn: half at once, the rest across the section
+        (b0, _), (b1, r1) = pts[0], pts[1]
+        return r1 * (OFF + (1 - OFF) * (bar - b0) / (b1 - b0))
     if bar <= pts[0][0]:
         return pts[0][1]
     for (b0, r0), (b1, r1) in zip(pts, pts[1:]):
         if b0 <= bar < b1:
             return r0 + (r1 - r0) * (bar - b0) / (b1 - b0)
     return pts[-1][1]
+
+
+def listened(bar):
+    """The things whose turn began within the last LISTEN bars (they are heard alone); empty when nothing is listened to."""
+    if not ON['listen']:
+        return set()
+    return {k for k, pts in SHAPE.items() if pts[0][1] == 0 and TOP[pts[0][0]] <= bar < TOP[pts[0][0]] + LISTEN}
+
+
+def foretaste(thing):
+    """The bar in which a thing gives its one let-go stroke before its turn (None for the weight: it has its tolls)."""
+    if thing == 'weight':
+        return None
+    first = (PLATE['shape'] if thing == 'plate' else SHAPE[thing])[0]
+    return TOP[first[0]] - FORE
 
 
 def seconds(thing, r):
@@ -184,13 +231,13 @@ EASE = {'wood': -5, 'metal': -5, 'skin': -3}
 
 def level(thing, r):
     """dB to add to a stroke at ring r so that the thing's highest sample is the same at every ring."""
-    db = (PLATE['ease'] if thing == 'plate' else EASE.get(thing, 0)) * r
+    db = (PLATE['ease'] if thing == 'plate' else NOTE['ease'] if thing == 'weight' and ON['boom'] and ON['note'] and NOTE['ease'] else EASE.get(thing, 0)) * r
     if thing in CAL:
         c = [CAL[thing][-1] - v for v in CAL[thing]]
         x = min(r * 5, 4.999)
         i = int(x)
         db += c[i] + (c[i + 1] - c[i]) * (x - i)
-    return round(db, 2) if thing in CAL or thing in EASE or thing == 'plate' else None
+    return round(db, 2) if thing in CAL or thing in EASE or thing == 'plate' or (thing == 'weight' and ON['boom'] and ON['note'] and NOTE['ease']) else None
 
 
 def expr(thing, r):
@@ -212,10 +259,17 @@ def build():
         for thing in things():
             if bar < enters(thing) or any(a <= bar < b for a, b in [OUT_OF.get(thing, (0, 0))]):
                 continue
-            r = ring_at(thing, bar)
+            alone = listened(bar)
+            if alone and thing not in alone:
+                continue
+            r_bar = 1.0 if alone else ring_at(thing, bar)
+            mine = [x for x in strokes_of(thing) if x[0] // BAR == bar % 2]
             for s, pitch, vel in strokes_of(thing):
                 if s // BAR == bar % 2:
+                    r = 1.0 if ON['fore'] and bar == foretaste(thing) and s == mine[-1][0] else r_bar
                     n = stroke(thing, bar * 4 + (s % BAR) / 4, pitch, vel, r)
+                    if alone and ALONE:
+                        n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + ALONE, 2)}dB"
                     T[thing].append(n)
                     if thing + '-room' in T and r >= ROOM_FROM:      # the room hears a thing as far as it is let go
                         own = float(n.get('gain', '0dB')[:-2])
@@ -237,7 +291,9 @@ def song(T, bars=BARS):
                    track('skin', '0dB', pan=0.15, fx=[hold(-10)], sends={'room': '-14dB'}), track('string', '-3dB', pan=-0.1), track('air', '2dB', pan=0.05, fx=[hold(-9)], sends={'room': '-12dB'})],
     }
     by_name = {t['name']: t for t in doc['tracks']}
-    if ON['boom']:
+    if ON['boom'] and ON['note']:
+        doc['patches'] = {**doc['patches'], 'rt-drum': drum_patch()}
+    elif ON['boom']:
         doc['patches'] = {**doc['patches'], 'rt-boom': NEW['rt-boom']}
         by_name['weight']['gain'] = BOOM['gain']
     if ON['plate'] and 'plate' in T:
@@ -284,7 +340,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'v2: leave out the {k} (all three off is v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (all nine off is v1; the last four off is v2)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
