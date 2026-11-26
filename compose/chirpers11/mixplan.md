@@ -94,6 +94,8 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v9 (21:04): both ends are v8's to 0.1 dB: bars 1 to 16 by four -22.4 -23.3 -23.5 -20.6 dBFS, the
+  last sixteen -24.2 -23.5 -23.1 -19.5. What changed is inside (bars 161 to 176).
 - Wind Down v9 (20:31): a bell at 71 Hz on the drum moves the loudness stage, so both ends are a little lower:
   bars 1 to 8 (one click, under Out of Step's last eight) read -30.0 dBFS for -29.8; the last stroke -11.8 over
   two seconds for -11.3, then -38 -51 -63 -76 -88 -102 by second for -36 -49 -61 -74 -87 -99. Everything above
