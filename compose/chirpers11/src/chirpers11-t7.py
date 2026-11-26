@@ -27,6 +27,14 @@ THE FORM IS ARITHMETIC: a row is ROW bars; SECTIONS lists each section's rows, i
 bars of the section it plays) and what the phase does. Every note comes from those.
 
 v1 is the SKELETON (26 Nov): the process, stated whole, with few sounds.
+
+v2 (26 Nov): THE MOULD (C11T7_COMP=0 takes it out: v1). The pattern has three holes in its eight sixteenths
+(2, 4 and 7). From "home" a third click, C, small and bright and on the grid, plays the holes and nothing else:
+the pattern's complement. When A and B are together the two patterns interlock and every sixteenth of the bar
+sounds exactly once: that is what home is, and it is why the wheel was turned eight times to get back. In "drifts",
+as B lets go, its strokes fall into the holes C is filling: B and C strike together where they never could at home
+(on one, two or all three of C's strokes, by how far ahead B is: all three at four ahead), and the bar goes lumpy;
+when B is home again it is smooth again. Home is the only phase at which B and C never meet.
 """
 import json
 import math
@@ -48,6 +56,9 @@ DULL = 4000                    # Hz: the clicks' low-pass when B is with A
 OCTAVES = 1.7                  # ... and how far it opens when B is a whole loop ahead
 DELTA = BPM / 60               # Hz: one cycle a beat
 
+COMP_ON = os.environ.get("C11T7_COMP", "1") != "0"    # v2: the complement, C
+COMP = tuple(s for s in range(LOOP) if s not in PATTERN)   # the holes: 2, 4, 7
+C = {"c": None} if COMP_ON else {}
 ALL = None
 # name, rows, {part: None, or the (from bar, to bar) stretches of the section it plays}, the phase: ("lock", k) | ("slips", k0) | ("drift", from, to)
 SECTIONS = [
@@ -55,9 +66,9 @@ SECTIONS = [
     # the bass drum stands back while B slips to its last lock (8, which is home), and for the whole of the fifth row,
     # where the bass is heard pumping with no drum to pump it
     ("slips",     8, {"a": ALL, "b": ALL, "kick": [(0, 32), (40, 56), (58, 64)], "bass": [(16, 64)], "clap": [(40, 56), (58, 64)], "hat": [(32, 56), (58, 64)]}, ("slips", 0)),
-    ("home",      2, {"a": ALL, "b": ALL, "kick": ALL, "bass": ALL, "clap": ALL, "hat": ALL},                                 ("lock", 8)),
-    ("drifts",    4, {"a": ALL, "b": ALL, "kick": [(0, 16), (24, 32)], "bass": ALL, "clap": [(0, 16), (24, 32)], "hat": ALL},  ("drift", 8, 0)),
-    ("one again", 3, {"a": ALL, "b": [(0, 20)], "kick": [(0, 8)], "bass": [(0, 16)], "clap": [(0, 8)], "hat": [(0, 8)]},       ("lock", 0)),
+    ("home",      2, {"a": ALL, "b": ALL, "kick": ALL, "bass": ALL, "clap": ALL, "hat": ALL, **C},                            ("lock", 8)),
+    ("drifts",    4, {"a": ALL, "b": ALL, "kick": [(0, 16), (24, 32)], "bass": ALL, "clap": [(0, 16), (24, 32)], "hat": ALL, **C},  ("drift", 8, 0)),
+    ("one again", 3, {"a": ALL, "b": [(0, 20)], "kick": [(0, 8)], "bass": [(0, 16)], "clap": [(0, 8)], "hat": [(0, 8)], **({"c": [(0, 16)]} if COMP_ON else {})}, ("lock", 0)),
 ]
 
 
@@ -142,6 +153,11 @@ def a_notes():
     return [note(s * STEP, NOTE, 0.5 * STEP, VEL(s)) for s in range(BARS * BAR) if s % LOOP in PATTERN and plays("a", s // BAR)]
 
 
+def c_notes():
+    """The complement: C strikes the pattern's holes, on the grid."""
+    return [note(s * STEP, "G5", 0.25 * STEP, 0.85 if s % LOOP == COMP[0] else 0.72) for s in range(BARS * BAR) if s % LOOP in COMP and plays("c", s // BAR)]
+
+
 def b_notes():
     out = []
     for b in range(int(BARS * BAR + 9)):
@@ -162,6 +178,9 @@ PATCHES = {
     "os-click": {"about": "Out of Step's click (chirper-zero, 26 Nov): five cycles of a saw on G3 dying in 22 ms, lifted 9 dB round 9 kHz, started at the same point of its wave every time, through a low-pass that both clicks share (it opens with the phase): nothing in it is random, so two of them struck together are one click, and two struck a millisecond apart are a comb. (The machine's rim was tried first: two rims differ by 22 dB under one, and its note stood 16 to 25 dB over the album's envelope.)",
                  "play": {"vel_sens": 0.5},
                  "synth": {"layers": ["saw phase=0"], "filters": ["hp cutoff=500", "peak cutoff=9000 q=0.7 gain=9dB", {"kind": "lp", "cutoff": {"value": DULL, "mod": [{"src": "auto.open", "amount": OCTAVES}]}, "q": 0.7}], "amp": {"a": "0.1ms", "d": "22ms", "s": 0, "r": "10ms", "curve": 3}}},
+    "os-comp": {"about": "Out of Step's third click (chirper-zero, 26 Nov, v2): the complement's. Two cycles of a saw on G5 dying in 12 ms, above 3 kHz, lifted 8 dB round 10 kHz: small and bright, so that it is heard as the holes being filled and not as a third pattern.",
+                "play": {"vel_sens": 0.5},
+                "synth": {"layers": ["saw phase=0"], "filters": ["hp cutoff=3000", "peak cutoff=10000 q=0.7 gain=8dB"], "amp": {"a": "0.1ms", "d": "12ms", "s": 0, "r": "8ms", "curve": 3}}},
     "os-kick": {"about": "Out of Step's bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, on G1.",
                 "play": {"vel_sens": 0.3},
                 "synth": {"layers": [{"type": "machine", "machine": {"part": "kick", "decay": "260ms", "click": 0.6, "drive": 0.35, "punch": 22, "punch_time": "32ms"}}],
@@ -180,7 +199,7 @@ PATCHES = {
 
 
 def song():
-    return {
+    doc = {
         "about": "Chirpers - Escapement, track 7 by chirper-zero: OUT OF STEP. Two clicks, the same sound and the same half-bar pattern; one is on the grid, the other slips a sixteenth ahead every eight bars and catches there (eight locks, then home), and later drifts back without stopping. Where they part they make a comb; the bass is two sines one cycle a beat apart that cancel on every beat. Generated by compose/chirpers11/src/chirpers11-t7.py.",
         "tempo": BPM,
         "ceiling": "-1dB",
@@ -201,6 +220,12 @@ def song():
             {"name": "clap", "patch": "os-clap", "gain": "-5dB", "pan": 0.0, "sends": {"room": "-10dB"}, "notes": part("clap", CLAP)},
         ],
     }
+    if COMP_ON:
+        doc["tracks"].append({"name": "c", "patch": "os-comp", "gain": "-6dB", "pan": 0.0, "sends": {"room": "-16dB"}, "notes": c_notes()})
+        doc["about"] = doc["about"].replace(" Generated by", " From v2 a third click plays the pattern's three holes once the two are home: together they sound every sixteenth exactly once, and apart they collide. Generated by")
+    else:
+        del PATCHES["os-comp"]
+    return doc
 
 
 def dump(doc):
@@ -215,9 +240,15 @@ def dump(doc):
 
 
 def lock(k):
-    """What the two make when B is k sixteenths ahead: one half-bar, X both, a or b one of them, . neither."""
+    """What they make when B is k sixteenths ahead: one half-bar, X A and B, a or b one of them, . neither; with C: c C alone, * B and C together."""
     b = {(p - k) % LOOP for p in PATTERN}
-    return " ".join("X" if s in PATTERN and s in b else "a" if s in PATTERN else "b" if s in b else "." for s in range(LOOP))
+    def cell(s):
+        if s in PATTERN:
+            return "X" if s in b else "a"
+        if COMP_ON:
+            return "*" if s in b else "c"
+        return "b" if s in b else "."
+    return " ".join(cell(s) for s in range(LOOP))
 
 
 if __name__ == "__main__":
