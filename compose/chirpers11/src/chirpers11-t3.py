@@ -25,6 +25,16 @@ THE FORM IS ARITHMETIC: a row is ROW bars; SECTIONS lists, for each section, its
 is open, how wide the walls stand apart and how much of the far air is heard. Every lane point comes from those.
 
 v1 is the SKELETON (26 Nov): the rooms standing and the walk through them, with few sounds.
+
+v2 (26 Nov): THE CLICK WALKS ACROSS EACH ROOM (C11T3_WALK=0 stands it still, as in v1). A room's length is its two
+walls added, and that does not change when the click moves: only how the length is shared. In the corridor (seven)
+the click starts two from the left wall and five from the right, and every row takes a step across: 2 + 5, 3 + 4,
+4 + 3, 5 + 2. Every step is a new rhythm (the returns come at a, b, a + b, ...) on the same seven, so the tock,
+which keeps the room's time, never notices, and the first echo crosses from the left ear to the right as the click
+does. The stairwell is crossed the other way (4 + 1, 3 + 2, 2 + 3); in the hangar the click reaches the middle
+(6 + 6: both walls answer at once). IN STANDING ROOM IT STANDS: 3 + 5, forty bars, not a step. Each place is its
+own pair of walls with its own door, so in the bar or two of a step both places are heard: the old echoes dying
+behind, the new ones building.
 """
 import json
 import math
@@ -38,6 +48,13 @@ STEP = 0.25
 
 # a room: the left wall and the right wall, in sixteenths there and back
 ROOMS = {"corridor": (3, 4), "stairwell": (2, 3), "hangar": (5, 7), "standing": (3, 5)}
+# where the click stands in each room, a row or more at each place (left wall, right wall): the room's length stays
+WALK = {"corridor": [(2, 5), (3, 4), (4, 3), (5, 2)], "stairwell": [(4, 1), (3, 2), (2, 3)], "hangar": [(4, 8), (5, 7), (6, 6), (7, 5)], "standing": [(3, 5)]}
+if os.environ.get("C11T3_WALK", "1") == "0":
+    WALK = {room: [ab] for room, ab in ROOMS.items()}
+assert all(a + b == sum(ROOMS[room]) for room, w in WALK.items() for a, b in w)
+STEP_OPEN = 1                  # bars the door of the next place takes to open as the click steps
+STEP_SHUT = 2                  # bars the door of the place behind takes to shut
 WALL = "-3dB"                  # what a wall gives back
 FIRST = {"click": "-4dB", "tock": "-6dB"}   # how loud each part reaches a wall
 ABSORB = ["hp cutoff=250", "lp cutoff=9000"]
@@ -104,13 +121,23 @@ def pt(bar, v):
     return [f"{bar * BEATS:g}b", round(v, 3)]
 
 
-def door_lane(room):
-    """dB on a room's door: open while the walk is in it, opening as it comes in, shutting behind it."""
-    pts = [pt(0, CLOSED)]
-    for name, b0, n, parts, r, width, air in SECS:
-        if r == room:
-            pts += [pt(b0 - 0.01, CLOSED), pt(b0, AJAR), pt(b0 + OPEN, 0), pt(b0 + n, 0), pt(b0 + n + SHUT, AJAR), pt(b0 + n + SHUT + 0.01, CLOSED)]
-    pts.append(pt(BARS, CLOSED))
+def places():
+    """Every place the click stands: (bus name, left wall, right wall, first bar, last bar, bars to open, bars to shut)."""
+    out = []
+    for name, b0, n, parts, room, width, air in SECS:
+        if room is None:
+            continue
+        walk = WALK[room]
+        each = n / len(walk)
+        for i, (a, b) in enumerate(walk):
+            out.append((room if len(walk) == 1 else f"{room}{a}{b}", a, b, b0 + i * each, b0 + (i + 1) * each, OPEN if i == 0 else STEP_OPEN, SHUT if i == len(walk) - 1 else STEP_SHUT))
+    assert len({p[0] for p in out}) == len(out)
+    return out
+
+
+def door_lane(b0, b1, opn, shut):
+    """dB on a place's door: open while the click stands there, opening as it comes, shutting behind it."""
+    pts = [pt(0, CLOSED), pt(b0 - 0.01, CLOSED), pt(b0, AJAR), pt(b0 + opn, 0), pt(b1, 0), pt(b1 + shut, AJAR), pt(b1 + shut + 0.01, CLOSED), pt(BARS, CLOSED)]
     return [p for i, p in enumerate(pts) if i == 0 or p != pts[i - 1]]
 
 
@@ -135,9 +162,9 @@ def breath_lane(depth=0.2, bars=8):
 
 def buses():
     out = {}
-    for room, (a, b) in ROOMS.items():
+    for room, a, b, b0, b1, opn, shut in places():
         door = {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.door", "amount": 1}]}}
-        lane = {"door": {"points": door_lane(room)}}
+        lane = {"door": {"points": door_lane(b0, b1, opn, shut)}}
         for side, own, other, pan in (("l", a, "r", -0.85), ("r", b, "l", 0.85)):
             out[f"{room}-{side}"] = {"fx": [{"type": "eq", "bands": ABSORB}],
                                      "returns": [{"from": p, "gain": g, "time": f"{own}/16"} for p, g in FIRST.items()] + [{"from": f"{room}-{other}", "gain": WALL, "time": f"{own}/16"}],
@@ -205,7 +232,7 @@ PATCHES = {
 def song():
     pump = {"type": "pump", "on": "kick", "depth": "-5dB", "attack": "2ms", "release": "180ms", "curve": 0.7}
     return {
-        "about": "Chirpers - Escapement, track 3 by chirper-zero: STANDING ROOM. One click a bar between two walls; a wall is a number of sixteenths there and back, so a room is a rhythm: 3 + 4 a room in seven, 2 + 3 in five, 5 + 7 in twelve, and 3 + 5, which is eight and fits the bar, where the echoes stand. A tock keeps each room's time, not the bar's. The click is in every room all the time; the song opens and shuts their doors. Generated by compose/chirpers11/src/chirpers11-t3.py.",
+        "about": "Chirpers - Escapement, track 3 by chirper-zero: STANDING ROOM. One click a bar between two walls; a wall is a number of sixteenths there and back, so a room is a rhythm: 3 + 4 a room in seven, 2 + 3 in five, 5 + 7 in twelve, and 3 + 5, which is eight and fits the bar, where the echoes stand. A tock keeps each room's time, not the bar's. The click is in every room all the time; the song opens and shuts their doors." + (" From v2 the click walks across each room a step a row (2 + 5, 3 + 4, 4 + 3, 5 + 2 in the corridor), and in standing room it stands." if any(len(w) > 1 for w in WALK.values()) else "") + " Generated by compose/chirpers11/src/chirpers11-t3.py.",
         "tempo": BPM,
         "ceiling": "-1dB",
         "loudness": -11.0,
@@ -253,8 +280,8 @@ if __name__ == "__main__":
         sec = 60 / BPM * BEATS
         for name, b0, n, parts, room, width, air in SECS:
             print(f"{name:14s} bars {b0:3d}-{b0 + n:3d}  {int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int((b0 + n) * sec) // 60}:{(b0 + n) * sec % 60:04.1f}  room {room or '-':10s} width {width}  air {air}  {', '.join(sorted(parts))}")
-        for room, (a, b) in ROOMS.items():
-            print(f"{room:10s} {a} + {b} = {a + b}: a click on step 2 comes back on steps " + " ".join(f"{(2 + t) % 16}{'' if s == 'both' else s[0]}" for t, s in echoes(a, b, 12)) + f" ; the tock every {2 * (a + b)} sixteenths, round every {math.lcm(2 * (a + b), 16) // 16} bar(s)")
+        for room, a, b, b0, b1, opn, shut in places():
+            print(f"{room:11s} bars {b0:5.1f}-{b1:5.1f}  {a} + {b} = {a + b}: a click on step 2 comes back on steps " + " ".join(f"{(2 + t) % 16}{'' if s == 'both' else s[0]}" for t, s in echoes(a, b, 12)) + f" ; the tock every {2 * (a + b)} sixteenths, round every {math.lcm(2 * (a + b), 16) // 16} bar(s)")
         print(f"{BARS} bars, {TOTAL} beats, {BARS * sec:.1f} s")
     else:
         open(OUT, "w").write(dump(song()))
