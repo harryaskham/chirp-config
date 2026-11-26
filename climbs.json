@@ -9317,7 +9317,7 @@
     {
       "id": "chirpers11-t3",
       "song": "songs/chirpers11-t3.yaml",
-      "reference": "chirpers — Track 3 (untitled)",
+      "reference": "chirpers — Standing Room",
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers11-t3 OUT.wav",
@@ -9333,7 +9333,7 @@
       "meta": {
         "artist": "chirpers",
         "album": "Escapement",
-        "title": "Track 3 (untitled)",
+        "title": "Standing Room",
         "track": 3,
         "year": 2026
       },
