@@ -71,6 +71,22 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v5 (26 Nov): TWO MORE LEAVINGS. In v3 five of the seven left as themselves; the room only had its door shut, and
+the cell was damped and nothing else. Three switches (`--without-sing`, `-nudge`, `-ease`; all three off is v4
+byte for byte):
+  SING   3 Standing Room v6: the walls sing. In the room's last four bars two more walls come in, so near that
+         they cannot be counted: a second pair of buses, each returning the click and itself, one after 10.2 ms
+         and one after 6.8. An echo every 10.2 ms is not an echo, it is 98 Hz: the room, as it goes, is two
+         strings that the click plucks, G on the left and the D above it on the right (the far walls are 3 and
+         5 sixteenths away; the near ones 3 and 2 of something a hundred times smaller). They rise through three
+         bars, stand for one, and the door shuts on them with the room's.
+  NUDGE  1 Give or Take's hand: as the cell is taken back into the hand (TAKEN) the hand is felt. Over its last
+         eight bars the cell is dragged late by up to a sixteenth and let catch up, d(x) = reach sin^2(pi x / T),
+         and its notes go with its speed, flat while it is dragged and sharp while it catches up
+         (-12 log2(1 + d') semitones on each stroke): it is in step again in the bar it leaves.
+  EASE   the cell let go is 2 dB lower (7 dB off at ring 1, not 5): let go it carried 91 to 98% of 500 Hz to
+         1 kHz, and 547 Hz stood 6.7 dB over the album's envelope.
+
 Form as arithmetic: GATHER lists the things in the order they come; each comes STEP bars after the last, all are
 held for HOLD bars, they go in reverse order LEAVE bars apart, and the last WIND bars are the spring running down.
 """
@@ -111,7 +127,12 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True}
+SING = {'walls': (('sing-l', 10.2, '-0.8dB', -0.7), ('sing-r', 6.8, '-0.5dB', 0.7)), 'bars': 4, 'from': -6, 'feed': '18dB', 'fx': ['lp cutoff=4500', 'hp cutoff=200']}   # v5: the near walls: (name, ms away: 1 / 98 Hz and 1 / 147 Hz, what each gives back of itself, side); the room's last bars; the dB their door starts at; what they take of the click.
+# The feed is set by solo: a stopped click is so little that at -6 dB the walls stood 33 dB under the mix above 300 Hz in their standing bar; at 14, 10.7; at 18 (and the door from -6, not -12, so that all four bars are heard) see the round's note.
+# First try, the two returning EACH OTHER as the far walls do: it did not sing (33 dB gone in 50 ms): a wall on the left hears a wall on the right through its own pan, 6.4 dB lost a pass. So each returns itself
+NUDGE = {'reach': 0.25, 'bars': LEAVE}                        # v5: the hand on the cell: beats late at its latest; over its last bars
+EASE = -7                                                     # v5: dB on the cell at ring 1 (it was -5)
 MID = {'tick': ['peak cutoff=1568 q=1 gain=-6dB', 'peak cutoff=11000 q=0.7 gain=3dB'], 'saw': ['peak cutoff=1600 q=0.8 gain=-5dB']}   # v4
 MID_ALONE = 4.5                                               # v4: dB more on the click while it is alone (with its note cut the lone click read 4.6 dB lower: -32.4 for -27.8)
 BODY = 'peak cutoff=72 q=1.4 gain=5dB'                        # v4: on the drum
@@ -210,9 +231,15 @@ def ring_s(r):
     return WOOD[0] * (WOOD[1] / WOOD[0]) ** r
 
 
-def wood(at, pitch, vel, r):
+def wood(at, pitch, vel, r, ease=-5):
     """One stroke on the bar at ring r (0 stopped .. 1 let go): its ring time, and 5 dB off at ring 1 so that letting go is a swell."""
-    return {'at': round(at, 4), 'len': 0.25, 'pitch': pitch, 'vel': vel, 'expr': {'ring': round(ring_s(r) - WOOD[0], 5)}, 'gain': f'{round(-5 * max(r, 0), 2)}dB'}
+    return {'at': round(at, 4), 'len': 0.25, 'pitch': pitch, 'vel': vel, 'expr': {'ring': round(ring_s(r) - WOOD[0], 5)}, 'gain': f'{round(ease * max(r, 0), 2)}dB'}
+
+
+def hand(x):
+    """v5 NUDGE: x beats into the cell's last bars, how late the hand has made it (beats) and how fast that is changing (beats a beat)."""
+    span = NUDGE['bars'] * 4
+    return NUDGE['reach'] * sin(pi * x / span) ** 2, NUDGE['reach'] * pi / span * sin(2 * pi * x / span)
 
 
 def caught(bar):
@@ -263,7 +290,11 @@ def build():
                 r = 1 - (1 - STOPPED) * (bar - (GOES['cell'] - LEAVE) + 1) / LEAVE
             for s, pitch, vel in CELL:
                 if s // BAR == bar % 2:
-                    T['cell'].append(wood(b + (s % BAR) / 4, pitch, vel, r))
+                    T['cell'].append(wood(b + (s % BAR) / 4, pitch, vel, r, **({'ease': EASE} if ON['ease'] else {})))
+                    if ON['nudge'] and bar >= GOES['cell'] - NUDGE['bars']:   # the hand: late, and its note with its speed
+                        late, rate = hand((bar - (GOES['cell'] - NUDGE['bars'])) * 4 + (s % BAR) / 4)
+                        T['cell'][-1]['at'] = round(T['cell'][-1]['at'] + late, 4)
+                        T['cell'][-1]['expr']['sink'] = round(-12 * log2(1 + rate), 2)
         if here('meetings', bar):
             for s in range(bar * BAR, (bar + 1) * BAR):          # the cycles are counted from the top of the song; nobody plays them
                 meet = tuple(c for c in CYCLES if s % c == 0)
@@ -291,6 +322,12 @@ def door(thing):
     """A bus fader that is shut (-60 dB) until its thing comes, open while it is here, and shut again over two bars as it goes."""
     a, z = COMES[thing] * 4, GOES[thing] * 4
     return {'points': [['0b', -60]] + ([[f'{a - 8}b', -60]] if a >= 8 else []) + [[f'{a}b', 0], [f'{z}b', 0], [f'{z + 8}b', -60], [f'{BARS * 4}b', -60]], 'curve': 0}
+
+
+def near():
+    """v5 SING: the near walls' door: shut until the room's last bars, up from SING['from'] dB to 0 by its last bar, and shut with the room's."""
+    a, z = (GOES['room'] - SING['bars']) * 4, GOES['room'] * 4
+    return {'points': [['0b', -60], [f'{a - 1}b', -60], [f'{a}b', SING['from']], [f'{z - 4}b', 0], [f'{z}b', 0], [f'{z + 8}b', -60], [f'{BARS * 4}b', -60]], 'curve': 0}
 
 
 def alone():
@@ -357,6 +394,17 @@ def song():
         sunk['synth']['pitch'] = {'value': 0, 'mod': [{'src': 'expr.sink', 'amount': 1}]}
         doc['patches'] = {**doc['patches'], 'wd-sink': sunk}
         by_name['tick']['patch'] = 'wd-sink'
+    if ON['nudge']:                                           # the cell's notes move with the hand: the same patch as the sinking click
+        if 'wd-sink' not in doc['patches']:
+            sunk = json.loads(json.dumps(PATCHES['wd-wood']))
+            sunk['about'] = "Wind Down: the bar whose note can move (v3): wd-wood with the whole voice's pitch on the stroke (expr.sink, semitones)."
+            sunk['synth']['pitch'] = {'value': 0, 'mod': [{'src': 'expr.sink', 'amount': 1}]}
+            doc['patches'] = {**doc['patches'], 'wd-sink': sunk}
+        by_name['cell']['patch'] = 'wd-sink'
+    if ON['sing']:
+        for me, ms, back, side in SING['walls']:
+            doc['buses'][me] = {'pan': side, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.near', 'amount': 1}]}, 'auto': {'near': near()}, 'fx': SING['fx'],
+                                'returns': [{'from': 'tick', 'gain': SING['feed'], 'time': f'{ms}ms'}, {'from': me, 'gain': back, 'time': f'{ms}ms'}]}
     if ON['held']:
         doc['patches'] = {**doc['patches'], **({'wd-open': OPEN} if ON['open'] else {'wd-held': V3['wd-held']})}
         doc['tracks'].append({'name': 'held', 'patch': 'wd-open' if ON['open'] else 'wd-held', 'gain': f"{float(HELD['gain'][:-2]) + OPEN_DB:g}dB" if ON['open'] else HELD['gain'], 'pan': -0.1, 'notes': T['held'], 'fx': [under], 'sends': {'hall': '-6dB'}})
@@ -397,7 +445,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v3, the last nine v2, all fifteen v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v4, the last six v3, the last twelve v2, all eighteen v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
@@ -412,7 +460,9 @@ if __name__ == '__main__':
                        ([(GOES['meetings'], 'the last chord, held')] if ON['held'] else []) +
                        ([(GOES['cell'] - LEAVE, 'the cell is taken back into the hand')] if ON['taken'] else []) +
                        ([(GOES['ghost'] - REAL['bars'], 'the bass is given its fundamental')] if ON['real'] else []) +
-                       ([(GOES['pattern'] - LEAVE, 'the pattern slips a sixteenth a bar')] if ON['slip'] else []))
+                       ([(GOES['pattern'] - LEAVE, 'the pattern slips a sixteenth a bar')] if ON['slip'] else []) +
+                       ([(GOES['room'] - SING['bars'], 'the walls come in until they sing')] if ON['sing'] else []) +
+                       ([(GOES['cell'] - NUDGE['bars'], 'the hand drags the cell a sixteenth late and lets it catch up')] if ON['nudge'] else []))
         for bar, what in marks:
             t = clock(bar)
             print(f'bar {bar + 1:3d}  {int(t) // 60}:{t % 60:05.2f}  {what}')
