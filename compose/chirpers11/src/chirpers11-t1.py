@@ -39,6 +39,16 @@ sinks, as a platter does with the motor off. One bar of record takes those two b
 The grid click, which never moved, counts four more bars alone.
 (Tried in this round and taken out: letting deck B's drum's bass back in for "locked", so the two strike as one big
 drum. The two drums' lows are not in step: with it the master had 6 dB LESS under 70 Hz in "locked", not more.)
+
+v4 (26 Nov): WHAT THE TWO DECKS MAKE WHEN THEY MEET (C11T1_MEET=0 writes v3). "Locked" has its reward, and it is
+the next song's. Least Common (t2, chirper-one) is three clicks in cycles of 3, 5 and 7 sixteenths, and where two
+of them meet there is a ping: 3 with 5 a D, 3 with 7 a B flat, 5 with 7 an F. Between two meetings of all three
+(105 sixteenths) the pings make a tune of twelve notes, the same forwards and backwards, that nobody wrote. Here,
+from the bar the two decks lock, that tune is heard on Least Common's own vibraphone bar, with nobody playing the
+three clicks: the meetings without the clicks. All three meet on the first beat of "locked" (the three notes at
+once: F, B flat, D, the top of this song's chord), and the tune goes round four times, through "out", and plays
+its last note half a bar before deck B's motor goes off: 26 bars, which is four sixteenths short of one of
+Least Common's pages (420). So the first song ends on the tune the second is made of, a track early.
 """
 import json
 import math
@@ -53,6 +63,9 @@ ROOT = "G"
 
 KNOCK_ON = {"knock"} if os.environ.get("C11T1_KNOCK", "1") != "0" else set()   # v2: deck B's own bass drum
 STOP = os.environ.get("C11T1_STOP", "1") != "0" and bool(KNOCK_ON)               # v3: the record switched off in "out"
+MEET = os.environ.get("C11T1_MEET", "1") != "0" and STOP                        # v4: Least Common's meeting tune from "locked" to the stop
+MEET_CYCLES = (3, 5, 7)        # Least Common's three clicks, in sixteenths
+MEET_NOTE = {(3, 5): "D5", (3, 7): "Bb4", (5, 7): "F4"}   # the ping two of them make when they meet (t2's own notes)
 STOP_AT = 10                   # the bar of "out" at which deck B's motor goes off
 STOP_BARS = 2                  # the bars its platter takes to stop
 # name, rows, the parts that play, the hand: (kind, reach in beats, period in bars, bars over which it comes on and off)
@@ -234,11 +247,29 @@ def STAB(bar):
     return out
 
 
+def meet_notes():
+    """Least Common's meetings, counted from the bar the decks lock to the bar deck B's motor goes off: a ping where
+    two of the three cycles meet, the three notes at once where all three do. Nobody plays the cycles."""
+    b0 = next(s[1] for s in SECS if s[0] == "locked")
+    b1 = next(s[1] for s in SECS if s[0] == "out") + STOP_AT
+    out = []
+    for s in range((b1 - b0) * 16):
+        hit = tuple(c for c in MEET_CYCLES if s % c == 0)
+        if len(hit) == 3:
+            out += [note((b0 * 16 + s) * STEP, p, 2 * STEP, 0.85) for p in ("F4", "Bb4", "D5")]
+        elif len(hit) == 2:
+            out.append(note((b0 * 16 + s) * STEP, MEET_NOTE[hit], 2 * STEP, 0.75))
+    return out
+
+
 PATCHES = {
     "gt-kick": {"about": "Give or Take's bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, resting on the song's G; deck A.",
                 "play": {"vel_sens": 0.3},
                 "synth": {"layers": [{"type": "machine", "machine": {"part": "kick", "decay": "280ms", "click": 0.65, "drive": 0.35, "punch": 22, "punch_time": "34ms"}}],
                           "filters": ["hp cutoff=28"], "amp": {"a": "0.1ms", "d": "0s", "s": 1, "r": "1s"}}},
+    "gt-meet": {"about": "Give or Take's ping (chirper-zero, 26 Nov, v4): Least Common's `lc-ping` (chirper-one) rebuilt here under this song's name: a vibraphone bar with no motor, half a second long. It plays t2's meeting tune once the two decks are locked.",
+                "play": {"event_stable": True, "vel_sens": 0.5},
+                "synth": {"layers": [{"type": "modal", "modes": "vibes", "decay": "650ms", "bright": 0.55, "strike": 0.3}], "amp": {"a": "0.3ms", "d": "900ms", "s": 0, "r": "200ms"}}},
     "gt-knock": {"about": "Give or Take's second bass drum (chirper-zero, 26 Nov, v2): deck B's own, a little shorter and clickier than deck A's, through a high-pass on the lane `low` (32 Hz to 315 Hz: the low EQ of the incoming record, killed until the bass is swapped); its pitch follows deck B's speed.",
                  "play": {"vel_sens": 0.3},
                  "synth": {"layers": [{"type": "machine", "machine": {"part": "kick", "decay": "220ms", "click": 0.8, "drive": 0.3, "punch": 20, "punch_time": "30ms"}}],
@@ -300,6 +331,11 @@ def song():
         doc["about"] = doc["about"].replace("Deck B (the sixteenth click, the tocks, the dub chord) has a hand on it", "Deck B (the sixteenth click, the tocks, the dub chord, and from v2 a bass drum of its own with its bass taken out) has a hand on it")
     else:
         del PATCHES["gt-knock"]
+    if MEET:
+        doc["tracks"].append({"name": "meet", "patch": "gt-meet", "gain": "-14dB", "pan": 0.0, "sends": {"room": "-10dB"}, "notes": meet_notes()})
+        doc["about"] = doc["about"].replace(" Generated by", " From v4, when the two decks lock, Least Common's meeting tune (the next song's: pings where cycles of 3, 5 and 7 sixteenths meet) goes round four times and ends half a bar before deck B is switched off. Generated by")
+    else:
+        del PATCHES["gt-meet"]
     return doc
 
 
