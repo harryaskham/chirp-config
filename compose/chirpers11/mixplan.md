@@ -70,6 +70,13 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   the bar before the drum is -34. Its last sixteen bars are as they were. Not re-rendered.
 - Wind Down v3 (08:40): its first 140 bars are as they were (t7 -> t8 untouched); the last 26 seconds, the
   spring running down, now sink in pitch to G4, which is what the loop back to Give or Take is cut against.
+- Least Common v4 (10:06): its first 26 bars are as they were (t1 -> t2 untouched). Its last six and a half
+  bars changed again: the clicks, which have walked off into the far room over the second half, come back to
+  the front over that stretch (their own sound 9 dB up by the end), so t2 -> t3 now hands Standing Room clicks
+  that are arriving, not thinning. Above 5 kHz the stretch reads -34.9 -35.3 -37.1 -33.7 dB by quarter (v3
+  -33.7 -35.8 -35.6 -32.2). Not re-rendered.
+- Ring True v4 (09:33): bars 1 to 32 and the last 40 are as they were; the aftertastes are single strokes at
+  bars 135 to 173.
 
 ## Open
 - No `swap` column yet: in every overlap but t1 -> t2 the incoming track has no low end to swap in, so the lows are
