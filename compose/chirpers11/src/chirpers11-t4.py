@@ -32,6 +32,17 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v4 (26 Nov), three more switches (`--without-answer`, `-even`, `-after`; with them off it is v3 byte for byte):
+  ANSWER the listenings were all alike: four bars, a thing alone. Now the things already let go ANSWER the new one
+         in the last two of its four bars, let go altogether as it is and 7 dB behind it: the wood is alone (nobody is before it); the metal is answered by the
+         wood; the string by the metal and the wood; the skin and the air by all three. Each break is fuller than
+         the last, and the fifth is the whole family without the weight (bars 97 to 112), which they have been
+         gathering towards. The weight is not answered: it is what the others stand on.
+  AFTER  an aftertaste, the foretaste's mirror. Four bars after it has been stopped, each thing gives ONE more
+         stroke let go altogether (the last of its bar): the ring remembered, among clicks.
+  EVEN   each thing alone at its own level. One number (3 dB down) left the wood alone 1.1 dB OVER the groove
+         that came back after it and the others 1.1 to 2.2 under: the wood is now 5.5 down.
+
 v3 (26 Nov), four more switches (`--without-listen`, `-off`, `-fore`, `-note`; with v2's five also off it is v1 byte for byte):
   LISTEN the others stop to listen. For the first four bars of its turn a thing is heard ALONE and let go altogether:
          the wood at bar 33, the metal at 49, the string at 65, the skin and the air together at 81, and at 113,
@@ -121,7 +132,12 @@ PATCHES = {
 PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
-ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True}
+ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
+      'answer': True, 'even': True, 'after': True}
+ANSWER = 2                                   # v4: the last bars of a listening in which the things already let go answer
+ANSWER_DB = -10                              # dB on the answering things: behind the thing they answer (at -6 the answered bars stood 0.6 to 1.4 dB OVER the groove that came back; at -10 level with it, so the weight's return is still the step)
+AFTER = SEC // 4                             # v4: bars after it is stopped that a thing gives one more stroke let go
+ALONE_OF = {'wood': -5.5}                    # v4 EVEN: dB on a thing alone where ALONE's one number left it over the return
 LISTEN = 4                                   # bars at the top of its turn that a thing is heard alone, let go altogether
 ALONE = -3                                   # dB on its strokes while it is alone (unhushed the wood alone read 2.4 dB OVER the groove it broke off, and the others' return was a step down)
 OFF = 0.5                                    # the share of its ring a thing is given at once, on the one of its turn
@@ -203,6 +219,26 @@ def listened(bar):
     return {k for k, pts in SHAPE.items() if pts[0][1] == 0 and TOP[pts[0][0]] <= bar < TOP[pts[0][0]] + LISTEN}
 
 
+def answering(bar):
+    """v4: the things that answer in this bar: in the last ANSWER bars of a listening (never the weight's), every
+    thing whose own turn began before it. Empty when nobody answers."""
+    out = set()
+    if ON['answer']:
+        for k in listened(bar):
+            top = TOP[SHAPE[k][0][0]]
+            if k != 'weight' and bar >= top + LISTEN - ANSWER:
+                out |= {j for j, pts in SHAPE.items() if j != 'weight' and pts[0][1] == 0 and TOP[pts[0][0]] < top}
+    return out
+
+
+def aftertaste(thing):
+    """v4: the bar in which a thing, stopped, gives one more let-go stroke (None for the weight, and for a thing that is never stopped)."""
+    if thing == 'weight' or not ON['after']:
+        return None
+    last = (PLATE['shape'] if thing == 'plate' else SHAPE[thing])[-1]
+    return TOP[last[0]] + (last[2] if len(last) > 2 else 0) + AFTER if last[1] == 0 else None
+
+
 def foretaste(thing):
     """The bar in which a thing gives its one let-go stroke before its turn (None for the weight: it has its tolls)."""
     if thing == 'weight':
@@ -260,16 +296,17 @@ def build():
             if bar < enters(thing) or any(a <= bar < b for a, b in [OUT_OF.get(thing, (0, 0))]):
                 continue
             alone = listened(bar)
-            if alone and thing not in alone:
+            if alone and thing not in alone and thing not in answering(bar):
                 continue
-            r_bar = 1.0 if alone else ring_at(thing, bar)
+            r_bar = 1.0 if alone else ring_at(thing, bar)        # whatever sounds in a listening is let go altogether
             mine = [x for x in strokes_of(thing) if x[0] // BAR == bar % 2]
             for s, pitch, vel in strokes_of(thing):
                 if s // BAR == bar % 2:
-                    r = 1.0 if ON['fore'] and bar == foretaste(thing) and s == mine[-1][0] else r_bar
+                    r = 1.0 if ((ON['fore'] and bar == foretaste(thing)) or bar == aftertaste(thing)) and s == mine[-1][0] else r_bar
                     n = stroke(thing, bar * 4 + (s % BAR) / 4, pitch, vel, r)
                     if alone and ALONE:
-                        n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + ALONE, 2)}dB"
+                        down = ANSWER_DB if thing not in alone else ALONE_OF.get(thing, ALONE) if ON['even'] else ALONE
+                        n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + down, 2)}dB"
                     T[thing].append(n)
                     if thing + '-room' in T and r >= ROOM_FROM:      # the room hears a thing as far as it is let go
                         own = float(n.get('gain', '0dB')[:-2])
@@ -340,7 +377,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (all nine off is v1; the last four off is v2)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (all twelve off is v1; the last seven off is v2; the last three off is v3)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
