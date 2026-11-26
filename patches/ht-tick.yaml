@@ -1,0 +1,29 @@
+{
+ "about": "Hearing Things' click (chirper-zero, 26 Nov): the machine's rim, 35 ms, on E5; on the off-beats from the first bar to the last. BANKED by tools/patchbank.py (26 Nov 2026) from Hearing Things v1 (track tick): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "200ms"
+  },
+  "filters": [
+   {
+    "cutoff": 400,
+    "kind": "hp"
+   }
+  ],
+  "layers": [
+   {
+    "machine": {
+     "decay": "35ms",
+     "part": "rim"
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}

@@ -1,0 +1,59 @@
+{
+ "about": "Give or Take's dub chord (chirper-zero, 26 Nov): three saws and a square through a short filter envelope, dry (the echo is a bus); its pitch follows deck B's speed (auto.spd, semitones), as a chord on a nudged record does. BANKED by tools/patchbank.py (26 Nov 2026) from Give or Take v1 (track stab): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`spd`): give the track that plays it `auto: {spd: \u2026}`, as the song does.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "280ms",
+   "r": "150ms",
+   "s": 0.15
+  },
+  "env": {
+   "f": {
+    "a": "1ms",
+    "d": "200ms",
+    "r": "100ms",
+    "s": 0.08
+   }
+  },
+  "filters": [
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": 2.4,
+       "src": "env.f"
+      },
+      {
+       "amount": 1.0,
+       "src": "vel"
+      }
+     ],
+     "value": 600
+    },
+    "q": 1.6
+   }
+  ],
+  "layers": [
+   {
+    "unison": 3,
+    "wave": "saw"
+   },
+   {
+    "level": "-8dB",
+    "wave": "square"
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 1.0,
+     "src": "auto.spd"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

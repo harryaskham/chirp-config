@@ -1,0 +1,26 @@
+{
+ "about": "Standing Room's tock (chirper-zero, 26 Nov): a wooden bar on the modal layer (after Common Measure's clave), an octave or so under the click. BANKED by tools/patchbank.py (26 Nov 2026) from Standing Room v1 (track tock): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "d": "240ms",
+   "r": "40ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "bright": 0.9,
+    "damp": 0.25,
+    "decay": "150ms",
+    "modes": "glock",
+    "strike": 0.5,
+    "tilt": 0.0,
+    "type": "modal"
+   }
+  ]
+ }
+}

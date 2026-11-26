@@ -1,0 +1,31 @@
+{
+ "about": "Least Common: the click that counts three. Ten milliseconds of noise above 5 kHz: a tick with no note. BANKED by tools/patchbank.py (26 Nov 2026) from Least Common v1 (track three): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "10ms",
+   "r": "8ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 5000,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 8500,
+    "gain": "8dB",
+    "kind": "peak",
+    "q": 2
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}

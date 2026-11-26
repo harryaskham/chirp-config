@@ -1,0 +1,65 @@
+{
+ "about": "Hearing Things' bass (chirper-zero, 26 Nov): the second to sixth harmonics of the note and nothing at the note itself (after the library's phantom-bass): the ear supplies the pitch. BANKED by tools/patchbank.py (26 Nov 2026) from Hearing Things v1 (track bass): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 0.85,
+  "mono": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "2ms",
+   "d": "320ms",
+   "r": "60ms",
+   "s": 0.55
+  },
+  "env": {
+   "f": {
+    "a": "1ms",
+    "d": "160ms",
+    "s": 0
+   }
+  },
+  "filters": [
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": 1.2,
+       "src": "env.f"
+      }
+     ],
+     "value": 1800
+    },
+    "q": 0.8
+   }
+  ],
+  "layers": [
+   {
+    "partials": [
+     [
+      2.0,
+      1.0
+     ],
+     [
+      3.0,
+      0.85
+     ],
+     [
+      4.0,
+      0.6
+     ],
+     [
+      5.0,
+      0.42
+     ],
+     [
+      6.0,
+      0.3
+     ]
+    ],
+    "type": "additive"
+   }
+  ]
+ }
+}

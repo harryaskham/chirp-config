@@ -1,0 +1,23 @@
+{
+ "about": "Least Common: what two clicks make when they meet. A vibraphone bar with no motor, half a second long. BANKED by tools/patchbank.py (26 Nov 2026) from Least Common v1 (track ping): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.3ms",
+   "d": "900ms",
+   "r": "200ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "bright": 0.55,
+    "decay": "650ms",
+    "modes": "vibes",
+    "type": "modal"
+   }
+  ]
+ }
+}

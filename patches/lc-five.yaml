@@ -1,0 +1,24 @@
+{
+ "about": "Least Common: the click that counts five. A small wooden bar (1 : 4 : 10) struck hard and damped at once: a tock on G. BANKED by tools/patchbank.py (26 Nov 2026) from Least Common v1 (track five): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "d": "80ms",
+   "r": "30ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "bright": 0.8,
+    "damp": 0.4,
+    "decay": "55ms",
+    "modes": "bar",
+    "strike": 0.4,
+    "type": "modal"
+   }
+  ]
+ }
+}

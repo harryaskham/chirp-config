@@ -1,0 +1,41 @@
+{
+ "about": "Standing Room's click (chirper-zero, 26 Nov): the machine's rim with a breath of white noise, 40 ms, above 500 Hz and lifted 6 dB round 11 kHz: bright enough that a wall can take its top away. BANKED by tools/patchbank.py (26 Nov 2026) from Standing Room v1 (track click): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.4
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "curve": 4.0,
+   "d": "40ms",
+   "r": "20ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 500,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 11000,
+    "gain": "6dB",
+    "kind": "peak",
+    "q": 0.7
+   }
+  ],
+  "layers": [
+   {
+    "machine": {
+     "decay": "45ms",
+     "part": "rim"
+    },
+    "type": "machine"
+   },
+   {
+    "level": "-3dB",
+    "type": "noise"
+   }
+  ]
+ }
+}

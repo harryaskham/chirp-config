@@ -1,0 +1,24 @@
+{
+ "about": "Give or Take's clap (chirper-zero, 26 Nov): the machine's clap, three bursts, short; deck A. BANKED by tools/patchbank.py (26 Nov 2026) from Give or Take v1 (track clap): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.4
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "400ms"
+  },
+  "layers": [
+   {
+    "machine": {
+     "bursts": 3,
+     "decay": "140ms",
+     "part": "clap"
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}

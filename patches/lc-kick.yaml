@@ -1,0 +1,25 @@
+{
+ "about": "Least Common: the four. The drum machine's bass drum resting on G, short enough to leave the sixteenth before the next beat empty. BANKED by tools/patchbank.py (26 Nov 2026) from Least Common v1 (track kick): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "400ms"
+  },
+  "layers": [
+   {
+    "machine": {
+     "click": 0.55,
+     "decay": "240ms",
+     "drive": 0.2,
+     "punch": 20.0
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}

@@ -1,0 +1,29 @@
+{
+ "about": "Hearing Things' hat (chirper-zero, 26 Nov): the machine's hat, 28 ms, above 5 kHz, whose loudness is all velocity: the Risset rhythm's layers are told apart by nothing else. BANKED by tools/patchbank.py (26 Nov 2026) from Hearing Things v1 (track ris): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "120ms"
+  },
+  "filters": [
+   {
+    "cutoff": 5000,
+    "kind": "hp"
+   }
+  ],
+  "layers": [
+   {
+    "machine": {
+     "decay": "28ms",
+     "part": "hat"
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}

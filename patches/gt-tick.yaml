@@ -1,0 +1,23 @@
+{
+ "about": "Give or Take's grid click (chirper-zero, 26 Nov): the machine's rim, one voice, high and dry; deck A's ruler marks. BANKED by tools/patchbank.py (26 Nov 2026) from Give or Take v1 (track tick): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "300ms"
+  },
+  "layers": [
+   {
+    "machine": {
+     "decay": "35ms",
+     "part": "rim"
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}

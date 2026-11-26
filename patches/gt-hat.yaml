@@ -1,0 +1,36 @@
+{
+ "about": "Give or Take's sixteenth click (chirper-zero, 26 Nov): a 14 ms burst of white noise between 6 and 12.5 kHz; deck B. BANKED by tools/patchbank.py (26 Nov 2026) from Give or Take v1 (track hat): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "curve": 5.0,
+   "d": "14ms",
+   "r": "8ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 6000,
+    "kind": "hp",
+    "q": 0.8
+   },
+   {
+    "cutoff": 8500,
+    "gain": "4dB",
+    "kind": "peak",
+    "q": 2
+   },
+   {
+    "cutoff": 12500
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}

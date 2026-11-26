@@ -1,0 +1,31 @@
+{
+ "about": "Ring True: the skin. A kettledrum head (the air in the kettle pulls its modes to 1 : 1.5 : 2 : 2.5, so it sings its note); its ring time from the stroke (expr.ring, seconds over 0.03). BANKED by tools/patchbank.py (26 Nov 2026) from Ring True v1 (track skin): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.6
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "curve": 1.0,
+   "d": "0s",
+   "r": "2.5s"
+  },
+  "layers": [
+   {
+    "decay": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ring"
+      }
+     ],
+     "value": 0.03
+    },
+    "modes": "kettle",
+    "strike": 0.4,
+    "type": "modal"
+   }
+  ]
+ }
+}

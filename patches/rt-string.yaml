@@ -1,0 +1,32 @@
+{
+ "about": "Ring True: the string. A plucked string whose ring time comes from the stroke (expr.ring, seconds over 0.03): a palm on it, lifted. BANKED by tools/patchbank.py (26 Nov 2026) from Ring True v1 (track string): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "curve": 1.0,
+   "d": "0s",
+   "r": "2.5s"
+  },
+  "layers": [
+   {
+    "bright": 0.5,
+    "decay": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ring"
+      }
+     ],
+     "value": 0.03
+    },
+    "pick": 0.18,
+    "soft": 0.3,
+    "type": "pluck"
+   }
+  ]
+ }
+}

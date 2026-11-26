@@ -1,0 +1,50 @@
+{
+ "about": "Standing Room's dub chord (chirper-zero, 26 Nov): three saws and a square through a short filter envelope, dry; its space is the bus `dub`, a dotted-eighth echo whose feedback breathes. BANKED by tools/patchbank.py (26 Nov 2026) from Standing Room v1 (track chord): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "300ms",
+   "r": "150ms",
+   "s": 0.15
+  },
+  "env": {
+   "f": {
+    "a": "1ms",
+    "d": "220ms",
+    "r": "100ms",
+    "s": 0.08
+   }
+  },
+  "filters": [
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": 2.4,
+       "src": "env.f"
+      },
+      {
+       "amount": 1.0,
+       "src": "vel"
+      }
+     ],
+     "value": 600
+    },
+    "q": 1.6
+   }
+  ],
+  "layers": [
+   {
+    "unison": 3,
+    "wave": "saw"
+   },
+   {
+    "level": "-8dB",
+    "wave": "square"
+   }
+  ]
+ }
+}

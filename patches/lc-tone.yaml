@@ -1,0 +1,22 @@
+{
+ "about": "Least Common: the meetings one size up. A plain held tone, a sine and a little of its octave, that takes a beat to arrive. BANKED by tools/patchbank.py (26 Nov 2026) from Least Common v1 (track tone): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.2
+ },
+ "synth": {
+  "amp": {
+   "a": "240ms",
+   "d": "0s",
+   "r": "900ms"
+  },
+  "layers": [
+   {},
+   {
+    "level": "-16dB",
+    "semi": 12,
+    "wave": "triangle"
+   }
+  ]
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "about": "Least Common: the click that counts seven. The drum machine's rim, tuned to G: two short pings and a click, a knock. BANKED by tools/patchbank.py (26 Nov 2026) from Least Common v1 (track seven): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "120ms"
+  },
+  "layers": [
+   {
+    "machine": {
+     "decay": "45ms",
+     "part": "rim"
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}

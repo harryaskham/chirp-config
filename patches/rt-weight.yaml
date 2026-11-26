@@ -1,0 +1,33 @@
+{
+ "about": "Ring True: the weight. A bass drum as a thing: a felt beater on a skin, its ring time from the stroke (expr.ring, seconds over 0.25). BANKED by tools/patchbank.py (26 Nov 2026) from Ring True v1 (track weight): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "curve": 1.0,
+   "d": "0s",
+   "r": "2.5s"
+  },
+  "layers": [
+   {
+    "beater": "felt",
+    "decay": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ring"
+      }
+     ],
+     "value": 0.25
+    },
+    "sharp": 60.0,
+    "slap": 0.4,
+    "strike": 0.15,
+    "type": "drum"
+   }
+  ]
+ }
+}
