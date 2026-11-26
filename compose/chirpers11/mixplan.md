@@ -94,6 +94,12 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v8 (18:59): the small change in bar 16, under Hearing Things' last bar, is no longer a roll that
+  grows: it is a seed on beat three and eight coins that come faster and softer to the one (a fifth up on the
+  left, a fourth down on the right, by turns). In the finished song that bar's beat four reads -18 dBFS for
+  v7's -17, and by quarter beat -20 -15 -19 -19 for -17 -16 -17 -16: it falls into the drum's first beat (-16)
+  where it rose. Bars 1 to 16 are otherwise v7's (-22.3 -23.3 -23.5 -20.5 by four) and so is the ending
+  (-24.2 -23.5 -23.1 -19.5). Not re-rendered as a seam.
 - Wind Down v8 (18:29): both ends are v7's: bars 1 to 8 read -29.8 dBFS, the last stroke -11.3 over two
   seconds and then -36 -49 -61 -74 -87 -99 by second. What changed is inside (bars 65 to 169).
 - Ring True v8 (18:04): both ends are v7's: bars 1 to 8 read -17.8 dBFS, the last bar -11.1, the tail after it
