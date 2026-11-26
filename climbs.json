@@ -9448,11 +9448,15 @@
       "source": null,
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers11-t6 OUT.wav",
-      "best": null,
+      "best": {
+        "score": 96.12,
+        "version": "v1",
+        "commit": "see git log songs/chirpers11-t6.yaml"
+      },
       "passes": 1,
-      "enabled": false,
-      "status": "requested",
-      "rounds": 0,
+      "enabled": true,
+      "status": "active",
+      "rounds": 1,
       "priority": 1.0,
       "genre": "clicky minimal techno",
       "mode": "compose",
@@ -9468,6 +9472,10 @@
         "by": "chirp-eco",
         "at": "2026-11-26T03:18:24Z",
         "note": "COMPOSE (song, 300-480 s): MATHY EFFECTS. Effects driven by numbers: delay times in ratios, filters on prime-length cycles, a phaser at a polymetric rate, pitch in a feedback loop; say the rule in the note."
+      },
+      "last": {
+        "at": "2026-11-26T04:40:58Z",
+        "who": "chirper-one"
       }
     },
     {
