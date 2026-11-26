@@ -186,6 +186,22 @@ at a time, and two are mixed only while the people are coming in. No track is ch
   where the click stands is struck by the click itself and is as it was.
 (Made first without that: the walls alone. In the master nothing could be read: where the click's echoes fall
 the pipes sing, and they were as loud as ever. A bench said so before it was published.)
+
+v12 (26 Nov): THE ROOM CLAPS (C11T3_CROWD=0 takes it out: v11). v11 filled the room with people. Now they clap,
+and how a crowd comes to clap as one is a measured thing (Neda and others, 2000, with microphones in concert
+halls): applause is everyone clapping fast, each at a rate of his own, and it is noise; it turns into one clap
+when people HALVE their rate, because slow clapping is far more even from one person to the next, and then each
+is pulled toward what he hears. It is Kuramoto's arithmetic: a phase a person, each with a rate of its own and a
+pull toward the beat, and when the pull is stronger than the spread of the rates they lock.
+Here: 32 people, each with a place (eight across, four rows back: 2, 4, 6 and 8 m away; a row back is half as
+loud again and 6 ms later, which is the speed of sound). The first sixteen are the half house, in by bar 141:
+from then, one after another, they clap twice a beat, each up to a tenth off that rate and nobody with anybody
+(bars 141 to 144: applause). From bar 145, one by one, each halves his rate and is pulled to the beat, and the
+second sixteen, who are coming in, start at the slow rate; the pull grows until the house is full (bar 149).
+Bars 149 to 152: one clap on every beat, 32 pairs of hands, the back row 17 ms behind the front. Then the door.
+Nothing is random: every person's rate, first clap and moment of halving are taken from the golden ratio.
+A hand is a 9 ms burst of noise with nothing under 1.5 kHz: `compscore --bands` said this song has 6 to 13 dB
+less than the rest of the record from 8 to 15 kHz, and applause is what that is.
 """
 import json
 import math
@@ -387,6 +403,74 @@ HOUSE_IN = "standing room"
 HOUSE_STEPS = ((24, 28, 0.5), (32, 36, 1.0))           # (from bar, to bar of the section, the share of a full house there is by then): people come in twice
 HOUSE_FULL = float(os.environ.get("C11T3_HOUSE_FULL", "2"))   # what a full house swallows, in what the empty room swallows: the room then dies 1 + HOUSE_FULL times as fast
 AIR_DECAY = 5.5                                        # s: the hall's decay, empty (the air bus's own)
+
+
+CROWD = os.environ.get("C11T3_CROWD", "1") != "0" and HOUSE                    # v12: the room claps (applause that halves its rate and locks: Neda 2000, Kuramoto)
+CROWD_ROWS = (2.0, 4.0, 6.0, 8.0)                      # m: how far away each row of people is; the first two rows are the half house
+CROWD_PANS = (-0.9, -0.64, -0.39, -0.13, 0.13, 0.39, 0.64, 0.9)   # where the eight in a row stand
+CROWD_SPREAD = 0.10                                    # a person's own rate is up to this share off the beat's when he claps fast, half that when slow
+CROWD_PULL = float(os.environ.get("C11T3_CROWD_PULL", "5"))   # the pull toward the beat when the house is full, in radians a beat for a person a quarter turn out
+CROWD_GAIN = os.environ.get("C11T3_CROWD_GAIN", "-14dB")   # every person's fader (a row back is quieter by its distance)
+SOUND = 343.0                                          # m/s
+GOLD = (math.sqrt(5) - 1) / 2
+
+
+def crowd_times():
+    """(the beat applause begins, the beat the pull begins, the beat the house is full, the beat of the door), or None."""
+    st = house_stages() if CROWD else []
+    if len(st) < 3:
+        return None
+    sec = next(x for x in SECS if x[0] == HOUSE_IN)
+    return st[1][1], st[1][2], st[2][1], (sec[1] + sec[2]) * BEATS
+
+
+_CROWD = {}
+
+
+def crowd_claps():
+    """Every clap: (the beat at which the hands meet, the person). A phase a person; a clap each time it comes round."""
+    if "ev" in _CROWD:
+        return _CROWD["ev"]
+    t_app, t_pull, t_full, t_end = crowd_times()
+    n = len(CROWD_ROWS) * len(CROWD_PANS)
+    fr = lambda x: x - math.floor(x)
+    ev, dt = [], 1 / 96
+    for i in range(n):
+        u1, u2, u3, u4 = fr((i + 1) * GOLD), fr((i + 1) * GOLD * GOLD * 7 + 0.31), fr((i + 1) * 0.754877666), fr((i + 1) * 0.569840291)
+        eps = CROWD_SPREAD * (2 * u1 - 1)
+        first = i < n // 2                                         # the half house, who are in when applause begins; the rest come in while the pull grows
+        t_on = t_app + 0.875 * u2 * (t_pull - t_app) if first else t_pull + (0.0625 + 0.875 * u2) * (t_full - t_pull)
+        t_half = t_pull + 0.8 * u3 * (t_full - t_pull) if first else t_on
+        th, t = 2 * math.pi * u4, t_on
+        while t < t_end - 1e-9:
+            fast = t < t_half
+            w = 2 * math.pi * (2 if fast else 1) * (1 + (eps if fast else eps / 2))
+            k = 0.0 if fast else CROWD_PULL * min(1.0, max(0.0, (t - t_pull) / (t_full - t_pull)))
+            dth = (w + k * math.sin(2 * math.pi * t - th)) * dt
+            if math.floor((th + dth) / (2 * math.pi)) > math.floor(th / (2 * math.pi)) and t < t_end - 0.5:      # the last clap is on the last beat before the door: nobody claps on the door's own first beat
+                ev.append((t + (2 * math.pi * math.ceil(th / (2 * math.pi) - 1e-12) - th) / dth * dt, i))
+            th += dth; t += dt
+    _CROWD["ev"] = sorted(ev)
+    return _CROWD["ev"]
+
+
+def crowd_notes(j):
+    """What is heard of the people in place j of every row: each clap later by its row's distance and quieter by it."""
+    out = []
+    for t, i in crowd_claps():
+        if i % len(CROWD_PANS) == j:
+            r = CROWD_ROWS[i // len(CROWD_PANS)]
+            out.append({"at": round(t + r / SOUND * BPM / 60, 5), "len": 0.05, "pitch": "C5", "vel": round(CROWD_ROWS[0] / r, 3)})
+    return out
+
+
+def crowd_step(bar):
+    """(claps in the bar, how far in step they are (0 nobody, 1 one clap), their spread about the beat in ms)."""
+    e = [t for t, i in crowd_claps() if bar * BEATS <= t < (bar + 1) * BEATS]
+    if not e:
+        return 0, 0.0, 0.0
+    r = abs(sum(complex(math.cos(2 * math.pi * t), math.sin(2 * math.pi * t)) for t in e)) / len(e)
+    return len(e), r, 1000 * 60 / BPM * math.sqrt(sum((((t + 0.5) % 1) - 0.5) ** 2 for t in e) / len(e))
 
 
 def house_stages():
@@ -784,6 +868,15 @@ def song():
             doc["tracks"].append({**doc["tracks"][-1], "name": "pass-tick", "patch": "sr-pass-tick", "gain": PASS_TICK})
         doc["about"] = doc["about"].replace(" Generated by", " From v7 something goes past outside, a sixteenth of sound away at a fifth of the speed of sound, striking straight eighths on one note: its strokes are heard five against four and a major third high as it comes, five against six and a minor third low when it has gone (the Doppler effect, of a rhythm and of a pitch at once). Generated by")
         assert "From v7" in doc["about"]
+    if crowd_times():
+        for q, (lo, pk) in enumerate(((1500, 2200), (2200, 3400))):
+            PATCHES[f"sr-hand-{'ab'[q]}"] = {"about": f"Standing Room's pair of hands (chirper-zero, 26 Nov, v12): one person's clap, a 9 ms burst of noise with nothing under {lo} Hz and most round {pk} Hz, and everything above left in: many of them at once are applause. Its loudness is its velocity (how far away the person is).",
+                                             "play": {"vel_sens": 0.5},
+                                             "synth": {"layers": ["white"], "filters": [{"kind": "hp", "cutoff": lo, "q": 0.7}, f"peak cutoff={pk} q=1.2 gain=5dB"], "amp": {"a": "0.1ms", "d": "9ms", "s": 0, "r": "6ms", "curve": 4}}}
+        for j, pan in enumerate(CROWD_PANS):
+            doc["tracks"].append({"name": f"crowd-{j}", "patch": f"sr-hand-{'ab'[j % 2]}", "gain": CROWD_GAIN, "pan": pan, "notes": crowd_notes(j)})      # dry: the people are what the room is damped by
+        doc["about"] = doc["about"].replace(" Generated by", " From v12 the people clap: applause first, everyone twice a beat at a rate of his own, then one by one they halve it and are pulled to the beat, and when the house is full it is one clap on every beat from 32 pairs of hands, the back row a sixtieth of a second behind the front (how a crowd finds one clap: Neda, 2000). Generated by")
+        assert "From v12" in doc["about"]
     if house_stages():
         doc["about"] = doc["about"].replace(" Generated by", " From v11 standing room fills with people, twice, in its last two rows, and by Sabine's law every person takes the same bite from every echo: a wall takes 3 dB from an echo in the empty room, 6 with half a house, 9 with a full one, and the hall's wash dies in a half and then a third of the time. Generated by")
         assert "From v11" in doc["about"]
@@ -885,6 +978,10 @@ if __name__ == "__main__":
             a, b = WALK[LEARN_ROOM][0]
             print("   what strikes them in a bar (step: the pipe, dB at the pipe): " + " ".join(
                 [f"{CLICK_STEP}:D {FIRST['click']}"] + [f"{CLICK_STEP + t}:{'F+C' if sd == 'both' else 'F' if sd == 'left' else 'C'} {float(FIRST['click'][:-2]) + float(WALL[:-2]) * (2 * (t // (a + b)) - (1 if sd == 'both' else 0) ):+.0f}" for t, sd in echoes(a, b) if CLICK_STEP + t < 16]))
+        if crowd_times():
+            t_app, t_pull, t_full, t_end = crowd_times(); n = len(CROWD_ROWS) * len(CROWD_PANS)
+            print(f"the room claps, bars {int(t_app // BEATS) + 1}-{int(t_end // BEATS)}: {n} people, {len(CROWD_PANS)} across and {len(CROWD_ROWS)} rows back ({', '.join(f'{r:g} m: {1000 * r / SOUND:.0f} ms late, {20 * math.log10(CROWD_ROWS[0] / r):+.0f} dB' for r in CROWD_ROWS)}) ; applause from bar {int(t_app // BEATS) + 1}, the pull from bar {int(t_pull // BEATS) + 1}, full from bar {int(t_full // BEATS) + 1} ; {len(crowd_claps())} claps")
+            print("   bar: claps, in step (0 nobody, 1 one clap), spread about the beat: " + " ; ".join(f"{b + 1}: {c}, {r:.2f}, {sd:.0f} ms" for b in range(int(t_app // BEATS), int(t_end // BEATS)) for c, r, sd in [crowd_step(b)]))
         if house_stages():
             st = house_stages(); room = next(x for x in SECS if x[0] == HOUSE_IN)[4]; (wa, wb), = WALK[room]; bounce = (wa + wb) / 2 * STEP * 60 / BPM
             print(f"standing room only: people come in " + " and ".join(f"over bars {int(st[i][2] // BEATS) + 1}-{int(st[i + 1][1] // BEATS)} (to {st[i + 1][0]:g} of a house, held from bar {int(st[i + 1][1] // BEATS) + 1})" for i in range(len(st) - 1)) + f" ; a full house swallows {HOUSE_FULL:g} times what the empty room does")
