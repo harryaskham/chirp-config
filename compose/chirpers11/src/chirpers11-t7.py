@@ -72,6 +72,18 @@ pairs of sines one cycle a beat apart from ITS notes, so it pumps on the beat as
 ROOT_IN says in which kinds of phase the bass follows. It was tried in "slips" as well (the bass changing on the
 bar B catches): on its own that scored a little under this, and both together made thirteen sections that kept
 coming back and cost two points, so "slips" keeps its one note and the bass's first move is an event.
+
+v6 (26 Nov): THE TUNE OUT OF STEP WITH ITSELF (C11T7_CANON=0 takes it out: v5). At home the tune is the whole
+chord, G B flat . D . F A ., twice a bar, and it has stood still. In home's second row the tune is given a B of
+its own: a second pip, an octave lower, playing the same five notes, which does to the tune what B did to the
+click. It sets off with the tune, as one, and slips ahead: for half a bar it creeps (slowly, then faster), and
+CATCHES a sixteenth ahead, and holds; two bars on it slips again. Four locks in eight bars, and each is a
+different piece of music made of the same five notes twice: at one ahead every sixteenth of the bar sounds and
+the two run up the chord and back in each other's gaps (G+Bb, Bb, D, D, F, F+A, A, G); at two ahead they meet on
+three sixteenths, in thirds by name (Bb+D, D+F) and A over G; at three they meet on four, two fifths (G+D, D+A)
+and two seconds (F+G, A+Bb); at four, half a loop, each plays in the other's half and they meet on B flat and F. Where the click's phase made rhythms, the tune's makes harmony, and every note of
+it is in the record's chord, so nothing it finds is wrong. (This is Piano Phase's own way: the click's phase is
+Clapping Music's.) Then B lets go, "drifts" begins, and the second pip stops.
 """
 import json
 import math
@@ -106,6 +118,12 @@ T = {"tune": None} if TUNE_ON else {}
 ROOT_ON = os.environ.get("C11T7_ROOT", "1") != "0" and TUNE_ON   # v5: the bass hears the lock
 F0B = 116.5409                 # B flat 2
 ROOT_IN = tuple(os.environ.get("C11T7_ROOT_IN", "drift").split(","))   # the kinds of phase in which the bass follows the lock ("slips", "drift"); elsewhere it is G
+CANON_ON = os.environ.get("C11T7_CANON", "1") != "0" and ROOT_ON   # v6: the tune out of step with itself
+CANON_FROM = 8                 # the bar of "home" on which the tune's own B sets off (it stops when "home" does)
+CANON_HOLD = 2                 # bars to each lock: it is a sixteenth further ahead every one of these
+CANON_SLIDE = 0.5              # ... of which it is slipping for this many (u^2, as B slips), and caught for the rest
+CANON_OCT = -1                 # octaves it plays from the tune, so that the two are told apart
+CANON_GAIN = os.environ.get("C11T7_CANON_GAIN", "-17dB")
 PEND_ON = os.environ.get("C11T7_PEND", "1") != "0"    # v4: the pendulum
 PEND_MS = 0.6                  # ms: how far B is ahead of A (and then behind) at the end of a swing; sound crosses a head in about this
 PEND_BARS = 2                  # bars to swing there and back
@@ -122,7 +140,7 @@ SECTIONS = [
     # the bass drum stands back while B slips to its last lock (8, which is home), and for the whole of the fifth row,
     # where the bass is heard pumping with no drum to pump it
     ("slips",     8, {"a": ALL, "b": ALL, "kick": [(0, 32), (40, 56), (58, 64)], "bass": [(16, 64)], "clap": [(40, 56), (58, 64)], "hat": [(32, 56), (58, 64)], **({"tune": [(r * ROW + TUNE_AFTER, (r + 1) * ROW) for r in range(TUNE_FROM, 8)]} if TUNE_ON else {})}, ("slips", 0)),
-    ("home",      2, {"a": ALL, "b": ALL, "kick": ALL, "bass": ALL, "clap": ALL, "hat": ALL, **C, **T},                       ("lock", 8)),
+    ("home",      2, {"a": ALL, "b": ALL, "kick": ALL, "bass": ALL, "clap": ALL, "hat": ALL, **C, **T, **({"tune2": [(CANON_FROM, 2 * ROW)]} if CANON_ON else {})},   ("lock", 8)),
     ("drifts",    4, {"a": ALL, "b": ALL, "kick": [(0, 16), (24, 32)], "bass": ALL, "clap": [(0, 16), (24, 32)], "hat": ALL, **C, **T},  ("drift", 8, 0)),
     ("one again", 3, {"a": ALL, "b": [(0, 20)], "kick": [(0, 8)], "bass": [(0, 16)], "clap": [(0, 8)], "hat": [(0, 8)], **({"c": [(0, 16)]} if COMP_ON else {}), **({"tune": [(0, 16)]} if TUNE_ON else {})}, P(8, 20, "rest")),
 ]
@@ -279,6 +297,33 @@ def tune_notes():
     return out
 
 
+def canon_phase(x):
+    """Sixteenths the tune's second voice is ahead of the tune, x sixteenths after it sets off."""
+    i, r = divmod(x, CANON_HOLD * BAR)
+    u = min(1.0, r / (CANON_SLIDE * BAR))
+    return i + u * u
+
+
+def canon_notes():
+    """The tune's own B: the same five notes on the same loop, each sounding when x + canon_phase(x) reaches it."""
+    b0, n = next((sec[1] + CANON_FROM, sec[2] - CANON_FROM) for sec in SECS if sec[0] == "home")
+    out = []
+    for q in range(n * BAR + 2 * LOOP):
+        if q % LOOP in TUNE:
+            x = float(q)
+            for _ in range(60):
+                x = q - canon_phase(max(x, 0.0))
+            if 0 <= x < n * BAR - 1e-6:
+                p = TUNE[q % LOOP]
+                out.append(note((b0 * BAR + x) * STEP, p[:-1] + str(int(p[-1]) + CANON_OCT), 1 * STEP, 0.85 if q % LOOP == 0 else 0.74))
+    return out
+
+
+def canon_lock(k):
+    """What the two voices play on each sixteenth of the half-bar when the second is k ahead: (the tune's note or None, the second's or None)."""
+    return [(TUNE.get(st), TUNE.get((st + k) % LOOP)) for st in range(LOOP)]
+
+
 def b_notes():
     out = []
     for b in range(int(BARS * BAR + 9)):
@@ -384,6 +429,10 @@ def song():
         doc["about"] = doc["about"].replace(" Generated by", " From v3 a small pip plays the sixteenths on which the two clicks strike together, a note for each stroke of the pattern (G, B flat, D, F, A): every lock has its own tune, and home is the whole chord. Generated by")
     else:
         del PATCHES["os-tune"]
+    if CANON_ON:
+        doc["tracks"].append({"name": "tune2", "patch": "os-tune", "gain": CANON_GAIN, "pan": PAN, "sends": {"room": "-10dB"}, "notes": canon_notes()})
+        doc["about"] = doc["about"].replace(" Generated by", " From v6, in the second row of home, the tune has a B of its own: a second pip an octave lower plays the same five notes and slips a sixteenth ahead of the tune every two bars, so the tune is heard in canon with itself at four distances (Piano Phase's way, in the record's chord). Generated by")
+        assert "From v6" in doc["about"]
     return doc
 
 
@@ -417,6 +466,10 @@ if __name__ == "__main__":
             print(f"{name:10s} bars {b0:3d}-{b0 + n:3d}  {int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int((b0 + n) * sec) // 60}:{(b0 + n) * sec % 60:04.1f}  phase {phase}  " + ", ".join(p if w is None else p + " " + "+".join(f"{lo}-{hi}" for lo, hi in w) for p, w in parts.items()))
         for k in range(LOOP + 1):
             print(f"   B {k} ahead:  {lock(k)}" + (f"   the tune: {' '.join(TUNE[s] if s in doubles(k) else '.' for s in range(LOOP))}" if TUNE_ON else ""))
+        if CANON_ON:
+            b0 = next(sec[1] + CANON_FROM for sec in SECS if sec[0] == "home")
+            for k in range(1, int((2 * ROW - CANON_FROM) / CANON_HOLD) + 1):
+                print(f"   the tune's own B {k} ahead (bars {b0 + (k - 1) * CANON_HOLD + CANON_SLIDE:g}-{b0 + k * CANON_HOLD:g}): " + " ".join(("+".join(q[:-1] for q in (a, b_) if q) or ".") for a, b_ in canon_lock(k)))
         if TUNE_ON:
             runs, last = [], None
             for bar in range(BARS):
