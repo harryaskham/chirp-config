@@ -37,6 +37,24 @@ his (06:04): the closer takes one more thing from four of them, and one from the
   TUCK    the click 3 dB lower while anything else plays (it stood 14 dB over the envelope at its own note), and as
           it was while it is alone.
 
+v3 (26 Nov): EACH LEAVES AS ITSELF. In v2 a thing went by being absent from the next bar, and the scorer heard
+bars 114 to 172 as one section. Six switches, each `--without-…` (all six off is v2 byte for byte); five are the
+leaving thing's own song's idea, in its last bars, and the sixth is the end:
+  SPENT   6 Small Change: the change spends what it has left. In its last four bars a seed every bar, not every
+          two, and in the last of them on beats one and three; the coins run on over the bar line after it.
+  HELD    2 Least Common: the meetings' last word is a chord that is not let go: on the bar they leave, the chord
+          held for a bar and two bars dying. The only held sound in the song.
+  TAKEN   4 Ring True: the cell is taken back into the hand. Over its last eight bars its ring goes from let go
+          to stopped, so it leaves as the click it came as.
+  REAL    5 Hearing Things: the bass with no fundamental is given it. For its last four bars a sine plays the
+          notes the ear had been supplying; then both go.
+  SLIP    7 Out of Step: the pattern slips. In its last eight bars it starts a sixteenth later each bar: eight
+          steps, eight bars, so it has gone all the way round and is in step again in the bar it leaves.
+  SINK    1 Give or Take's stop, its other half (chirper-zero's A RECORD SWITCHED OFF): as the spring runs down
+          each tick's NOTE sinks with the speed, as a record's does when the motor goes off. A clock's tick does
+          not sink, but by then each tick is being let ring into a note. A quarter of the speed is left on the
+          one (v2: a fifth), so the note has sunk exactly two octaves: the last stroke is G4, reached, not jumped to.
+
 Form as arithmetic: GATHER lists the things in the order they come; each comes STEP bars after the last, all are
 held for HOLD bars, they go in reverse order LEAVE bars apart, and the last WIND bars are the spring running down.
 """
@@ -75,7 +93,19 @@ WOOD = (0.015, 1.0)                         # the bar's ring time, seconds: stop
 OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
-ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True}
+ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
+      'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True}
+SUNK = 0.25                                                   # v3 SINK: the share of its speed left on the one: two octaves
+SPENT = LEAVE // 2                                            # v3: bars before the change goes in which it spends
+HELD = {'len': 4, 'gain': '-28dB', 'vel': .8}                # the last chord: beats held, its fader (at -16 it was the loudest thing in the mix, 1.5 dB under the whole)
+REAL = {'bars': LEAVE // 2, 'gain': '-21dB'}                 # the bass's own fundamental: its last bars, its fader (at -13 it was 84% of everything under 60 Hz and the bars 3 dB up)
+V3 = {
+    'wd-held': {'about': "Wind Down: the meetings' last chord, held (v3): wd-chord's two saws under a low-pass at 900 Hz that does not open, half a second coming and three seconds going.",
+                'synth': {'layers': [{'wave': 'saw', 'detune': -7}, {'wave': 'saw', 'detune': 7}], 'filters': [{'kind': 'lp', 'cutoff': 900, 'q': 0.8}],
+                          'amp': {'a': '500ms', 'd': '0s', 's': 1, 'r': '3s'}}, 'play': {'event_stable': True, 'vel_sens': 0.3}},
+    'wd-under': {'about': "Wind Down: the fundamental the ghost bass never had (v3): a sine at the note.",
+                 'synth': {'layers': [{'wave': 'sine'}], 'amp': {'a': '6ms', 'd': '0s', 's': 1, 'r': '50ms'}}, 'play': {'event_stable': True, 'vel_sens': 0.3}},
+}
 CATCHES = sorted({COMES[k] - 1 for k in GATHER[1:]} | {ALL - 1})   # the bar before each coming, and before all are gathered
 LEFT = 0.2                                                    # the share of its speed the spring has left on the one, with STOP
 COMP = tuple(s for s in range(8) if s not in PATTERN)        # the pattern's holes: 2, 4, 7
@@ -109,9 +139,14 @@ def slowing():
     return sorted(out)
 
 
+def w_stop():
+    """W_STOP, or with SINK the same for SUNK of its speed left."""
+    return 2 * WIND * 4 / (1 - SUNK ** 2) if ON['sink'] else W_STOP
+
+
 def speed(x):
     """The spring's speed x beats into the wind-down, as a share of full speed."""
-    return sqrt(1 - 2 * x / W_STOP) if ON['stop'] else 1 + (SLOW / BPM - 1) * x / (WIND * 4)
+    return sqrt(1 - 2 * x / w_stop()) if ON['stop'] else 1 + (SLOW / BPM - 1) * x / (WIND * 4)
 
 open_amp = {'a': '0.2ms', 'd': '0s', 's': 1, 'r': '2.5s', 'curve': 1}
 PATCHES = {
@@ -163,7 +198,7 @@ def here(thing, bar):
 
 
 def build():
-    T = {k: [] for k in ('kick', 'tick', 'saw', 'ghost', 'cell', 'ping', 'chord', 'seed', 'comp', 'hat')}
+    T = {k: [] for k in ('kick', 'tick', 'saw', 'ghost', 'cell', 'ping', 'chord', 'seed', 'comp', 'hat', 'held', 'under')}
     for bar in range(BARS):
         b = bar * 4
         down = bar >= RUNS_DOWN
@@ -171,19 +206,24 @@ def build():
         r = SHUT + (1 - SHUT) * (bar - RUNS_DOWN + 1) / (WIND + 1) if down else SHUT
         for s in (2, 6, 10, 14):
             T['tick'].append(wood(b + s / 4, TICK, .8 if s in (2, 10) else .7, r))
+            if ON['sink'] and ON['stop'] and down:            # the note sinks with the speed
+                T['tick'][-1]['expr']['sink'] = round(12 * log2(speed((bar - RUNS_DOWN) * 4 + s / 4)), 2)
         if DRUM_IN <= bar < RUNS_DOWN and not caught(bar):
             for beat in range(4):
                 T['kick'].append({'at': b + beat, 'len': 0.5, 'pitch': 'G1', 'vel': .95 if beat == 0 else .88})
         if here('pattern', bar):
+            slip = (bar - (GOES['pattern'] - LEAVE) + 1) % 8 if ON['slip'] and bar >= GOES['pattern'] - LEAVE else 0
             for half in (0, 8):
                 for s in PATTERN:
-                    T['saw'].append({'at': b + (half + s) / 4, 'len': 0.2, 'pitch': 'G3', 'vel': .8 if s == 0 else .62})
+                    T['saw'].append({'at': b + (half + (s + slip) % 8) / 4, 'len': 0.2, 'pitch': 'G3', 'vel': .8 if s == 0 else .62})
         if here('ghost', bar) and ON['learnt'] and LEARNT_BARS[0] <= bar < LEARNT_BARS[1]:
             for s, pitch in LEARNT:                          # the room has gone: the bass plays what it learnt of it
                 T['ghost'].append({'at': b + s / 4, 'len': 0.45, 'pitch': pitch, 'vel': .88 if s == 2 else .8})
         elif here('ghost', bar):
             for i, s in enumerate((2, 6, 10, 14)):
                 T['ghost'].append({'at': b + s / 4, 'len': 0.45, 'pitch': GHOST[bar % 4][i], 'vel': .85})
+                if ON['real'] and bar >= GOES['ghost'] - REAL['bars']:
+                    T['under'].append({'at': b + s / 4, 'len': 0.45, 'pitch': GHOST[bar % 4][i], 'vel': .85})
         if ON['comp'] and COMP_BARS[0] <= bar < COMP_BARS[1]:
             for half in (0, 8):
                 for s in COMP:
@@ -193,6 +233,8 @@ def build():
         if here('cell', bar):
             lo, hi = LET_GO
             r = STOPPED if bar < lo else 1 if bar >= hi else STOPPED + (1 - STOPPED) * (bar - lo) / (hi - lo)
+            if ON['taken'] and bar >= GOES['cell'] - LEAVE:    # taken back into the hand: stopped again by its last bar
+                r = 1 - (1 - STOPPED) * (bar - (GOES['cell'] - LEAVE) + 1) / LEAVE
             for s, pitch, vel in CELL:
                 if s // BAR == bar % 2:
                     T['cell'].append(wood(b + (s % BAR) / 4, pitch, vel, r))
@@ -203,11 +245,19 @@ def build():
                     T['ping'].append({'at': s / 4, 'len': 1, 'pitch': PING[meet], 'vel': .75})
                 elif len(meet) == 3:
                     T['chord'].append({'at': s / 4, 'len': 0.5, 'pitch': ','.join(CHORD), 'vel': .8})
-        if here('change', bar) and (bar - COMES['change']) % 2 == 0:
+        spending = ON['spent'] and here('change', bar) and bar >= GOES['change'] - SPENT
+        if here('change', bar) and ((bar - COMES['change']) % 2 == 0 or spending):
             T['seed'].append({'at': b, 'len': 0.25, 'pitch': 'Bb4', 'vel': .9})
+            if spending and bar == GOES['change'] - 1:
+                T['seed'].append({'at': b + 2, 'len': 0.25, 'pitch': 'Bb4', 'vel': .9})
+        if ON['held'] and bar == GOES['meetings']:
+            T['held'].append({'at': b, 'len': HELD['len'], 'pitch': ','.join(CHORD), 'vel': HELD['vel']})
     # the final stroke: the click, let go altogether, on the one
     T['tick'].append(wood(BARS * 4, LAST, .9, 1))
     T['tick'][-1]['gain'] = '0dB'
+    if ON['sink'] and ON['stop']:                             # the last stroke is where the sinking has got to
+        T['tick'][-1].update(pitch=TICK)
+        T['tick'][-1]['expr']['sink'] = round(12 * log2(SUNK), 2)
     return T
 
 
@@ -268,6 +318,18 @@ def song():
     if ON['comp']:
         doc['patches'] = {**doc['patches'], 'wd-comp': NEW['wd-comp']}
         doc['tracks'].append({'name': 'comp', 'patch': 'wd-comp', 'gain': '-6dB', 'pan': 0.2, 'notes': T['comp']})
+    if ON['sink'] and ON['stop']:
+        sunk = json.loads(json.dumps(PATCHES['wd-wood']))
+        sunk['about'] = "Wind Down: the click whose note can sink (v3): wd-wood with the whole voice's pitch on the stroke (expr.sink, semitones)."
+        sunk['synth']['pitch'] = {'value': 0, 'mod': [{'src': 'expr.sink', 'amount': 1}]}
+        doc['patches'] = {**doc['patches'], 'wd-sink': sunk}
+        by_name['tick']['patch'] = 'wd-sink'
+    if ON['held']:
+        doc['patches'] = {**doc['patches'], 'wd-held': V3['wd-held']}
+        doc['tracks'].append({'name': 'held', 'patch': 'wd-held', 'gain': HELD['gain'], 'pan': -0.1, 'notes': T['held'], 'fx': [under], 'sends': {'hall': '-6dB'}})
+    if ON['real']:
+        doc['patches'] = {**doc['patches'], 'wd-under': V3['wd-under']}
+        doc['tracks'].append({'name': 'under', 'patch': 'wd-under', 'gain': REAL['gain'], 'notes': T['under'], 'fx': [under]})
     if ON['hat']:
         doc['patches'] = {**doc['patches'], 'wd-hat': NEW['wd-hat']}
         doc['tracks'].append({'name': 'hat', 'patch': 'wd-hat', 'gain': '6dB', 'pan': -0.2, 'notes': T['hat'], 'sends': {'hall': '-18dB'}})
@@ -291,7 +353,7 @@ def clock(bar):
     if bar > RUNS_DOWN:
         n, x = WIND * 4, (bar - RUNS_DOWN) * 4
         if ON['stop']:                                        # a platter's: x beats take W - sqrt(W^2 - 2 W x) beats of full speed
-            return t + 60 / BPM * (W_STOP - sqrt(W_STOP ** 2 - 2 * W_STOP * x))
+            return t + 60 / BPM * (w_stop() - sqrt(w_stop() ** 2 - 2 * w_stop() * x))
         k = (SLOW - BPM) / n
         t += 60 / k * log((BPM + k * x) / BPM)
     return t
@@ -302,7 +364,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'v2: leave out {k} (all five off is v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last six off is v2, all twelve v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
@@ -312,12 +374,17 @@ if __name__ == '__main__':
                        ([(b, 'caught') for b in CATCHES] if ON['catch'] else []) +
                        ([(COMP_BARS[0], 'the complement fills the holes'), (COMP_BARS[1], 'the complement goes')] if ON['comp'] else []) +
                        ([(HAT_BARS[0], 'the hat that slows for ever')] if ON['hat'] else []) +
-                       ([(LEARNT_BARS[0], "the bass plays the room's figure"), (LEARNT_BARS[1], 'the bass is itself again')] if ON['learnt'] else []))
+                       ([(LEARNT_BARS[0], "the bass plays the room's figure"), (LEARNT_BARS[1], 'the bass is itself again')] if ON['learnt'] else []) +
+                       ([(GOES['change'] - SPENT, 'the change spends what is left')] if ON['spent'] else []) +
+                       ([(GOES['meetings'], 'the last chord, held')] if ON['held'] else []) +
+                       ([(GOES['cell'] - LEAVE, 'the cell is taken back into the hand')] if ON['taken'] else []) +
+                       ([(GOES['ghost'] - REAL['bars'], 'the bass is given its fundamental')] if ON['real'] else []) +
+                       ([(GOES['pattern'] - LEAVE, 'the pattern slips a sixteenth a bar')] if ON['slip'] else []))
         for bar, what in marks:
             t = clock(bar)
             print(f'bar {bar + 1:3d}  {int(t) // 60}:{t % 60:05.2f}  {what}')
         T = build()
-        print(f'{BARS} bars, {clock(BARS):.1f} s to the last stroke; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items()))
+        print(f'{BARS} bars, {clock(BARS):.1f} s to the last stroke; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items() if v or k not in ('held', 'under')))
         ticks = [clock(RUNS_DOWN + (bar * 16 + s) / 16) for bar in range(WIND) for s in (2, 6, 10, 14)] + [clock(BARS)]
         print('the spring: the gap between ticks goes ' + ' '.join(f'{(b - a) * 1000:.0f}' for a, b in zip(ticks, ticks[1:]))[:60] + ' ... ' +
               ' '.join(f'{(b - a) * 1000:.0f}' for a, b in zip(ticks[-5:], ticks[-4:])) + ' ms (the last is the half beat to the one)')
