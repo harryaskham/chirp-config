@@ -57,7 +57,25 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          come). Each is SOFT dB down, so the section is about as loud as it was and has no holes. The last
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
-ON = {'hat': True, 'debts': True, 'till': True, 'denser': False}
+ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True}
+# ---- v3 (26 Nov): WHAT IS GIVEN BACK. Four more switches, each `--without-…` (with them off it is v2 byte for byte).
+#   LONG   the purse that keeps its change. In the opening and the break a seed came every four bars and its echoes
+#          were gone in two (two silent bars in every four; v2 could only fill them with more seeds, and then the
+#          drum's entry stopped being an event). Those seeds now go into a second pair of loops that give back
+#          G_LONG of every pass where the others give back G: one seed, four bars of change.
+#   TURN   where the seed is off the beat (bars 129 to 160) the drum gives up beats two and four. The till is six
+#          sixteenths round from the drum, and now there is room to hear that it is: the seed falls between two
+#          drums, not on top of one. The drum is whole again when the seed comes home.
+#   WAIT   the drum waits for the seed to come home. In the last two bars before home (159 and 160) the drum, the
+#          bass and the hat stop; the last off-beat seed's change is paid out alone; and home lands whole on the one.
+#   CHORD  home is a chord. In the section where the seed comes back onto the one (bars 161 to 176) it is struck as
+#          G minor (G4 B flat 4 D5). Every coin moves a note a fifth, so the purse walks the chord round the
+#          fifths: G minor, D minor, A minor, each quieter. The only chords in the song, and nobody wrote the changes.
+G_LONG = 1.05                               # what the long purse gives back each pass: more than it is given, and it still runs out (every pass also moves the note, until it is out of hearing). Bench, level by bar after one seed: 0.62 -35 -58 -79 -104; 0.9 -35 -46 -56 -68; 1.0 -34 -42 -49 -58; 1.1 -34 -39 -42 -48
+HOME = ('G4', 'Bb4', 'D5')                  # the chord
+LONG_DB = -6                                # on the seeds that go into the long purse. At 0 the master's limiter held the lone seed down 9 dB and its change came up to it: the opening read as loud as the drum (-16 -17 -22 -29 dB a bar against -15) and the drum's entry stopped being an event
+HOME_DB = -6                                # on each of its three notes, so the three together stand where one seed did (at -8 the chord's section read 2 dB under the single seeds': -10.0 against -8.0 beside the mix)
+WAIT = 2                                    # bars the drum waits before home
 SOFT = -6                                   # dB on each seed where DENSER strikes every bar: four times the strokes, the section about as loud as it was
 TILL = (3900, 1.35)                         # the sweep's middle, Hz, and its reach each way, octaves (to v1's 10 kHz at the top)
 HAT = {'about': "Small Change: the hat that plays what can be paid. The machine's hat, 30 ms, above 6 kHz.",
@@ -123,7 +141,7 @@ def lattice(p, q, upto):
 
 
 def build():
-    T = {'kick': [], 'bass': [], 'hat': [], **{f'seed-{k}': [] for k in PAIRS}}
+    T = {'kick': [], 'bass': [], 'hat': [], **{f'seed-{k}': [] for k in PAIRS}, **{f'long-{k}': [] for k in PAIRS}}
     for i, (name, pairs, every, at16, notes, drum, bass) in enumerate(SECTIONS):
         n = 0
         dense = ON['denser'] and not drum and i < len(SECTIONS) - 1
@@ -131,11 +149,19 @@ def build():
             every = 1
         for bar in range(i * SEC, (i + 1) * SEC):
             if (bar - i * SEC) % every == 0:
-                T[f'seed-{pairs[n % len(pairs)]}'].append({'at': bar * 4 + at16 / 4, 'len': 0.25, 'pitch': notes[n % len(notes)], 'vel': 0.9,
-                                                          **({'gain': f'{SOFT}dB'} if dense else {})})
+                kept = ON['long'] and not drum and i < len(SECTIONS) - 1          # the opening and the break: into the long purse
+                home = ON['chord'] and name == 'home'
+                for pitch in (HOME if home else [notes[n % len(notes)]]):
+                    T[f"{'long' if kept else 'seed'}-{pairs[n % len(pairs)]}"].append({'at': bar * 4 + at16 / 4, 'len': 0.25, 'pitch': pitch, 'vel': 0.9,
+                                                                                    **({'gain': f'{SOFT}dB'} if dense else {'gain': f'{HOME_DB}dB'} if home else {'gain': f'{LONG_DB}dB'} if kept and LONG_DB else {})})
                 n += 1
+            waits = ON['wait'] and i + 1 < len(SECTIONS) and SECTIONS[i + 1][0] == 'home' and bar >= (i + 1) * SEC - WAIT
+            if waits:                                            # the bar before home: only the purse
+                continue
             if drum:
                 for beat in range(4):
+                    if ON['turn'] and at16 and beat % 2:         # off the beat: the drum gives up two and four
+                        continue
                     T['kick'].append({'at': bar * 4 + beat, 'len': 0.5, 'pitch': 'G1', 'vel': .95 if beat == 0 else .88})
             pq = PAIRS[pairs[(bar - i * SEC) % len(pairs)]]     # the purse whose turn this bar is
             if bass and ON['debts']:
@@ -177,6 +203,8 @@ def song():
                          'fx': [{'type': 'pitch', 'semitones': semi, 'mix': 1}, f'lp cutoff={TILL[0]}+lfo.till*{TILL[1]}' if ON['till'] else 'lp cutoff=10000', 'hp cutoff=150'],
                          **({'lfo': {'till': f'sine rate={1000 / (p * q * S16):.4f}hz'}} if ON['till'] else {}),
                          'returns': [{'from': f'seed-{k}', 'gain': '0dB', 'time': t}, {'from': me, 'gain': db(G), 'time': t}, {'from': you, 'gain': db(G), 'time': t}]}
+            if ON['long'] and T[f'long-{k}']:                   # the same two loops again, giving back more
+                buses[me + 'L'] = {**buses[me], 'returns': [{'from': f'long-{k}', 'gain': '0dB', 'time': t}, {'from': me + 'L', 'gain': db(G_LONG), 'time': t}, {'from': you + 'L', 'gain': db(G_LONG), 'time': t}]}
     doc = {
         'about': "Chirpers, Escapement, track 6: Small Change, by chirper-one. Generated by compose/chirpers11/src/chirpers11-t6.py (its docstring is the rule). One struck note every bar or two, a bass drum and a bass are all that is written; the rest is change given for it by pairs of coins: two echoes, p and q sixteenths long, feeding themselves and each other, one lifting the sound a fifth each pass and the other dropping it a fourth. An echo lands p*a + q*b sixteenths after its seed, 7*a - 5*b semitones from it.",
         'meta': {'artist': 'chirpers', 'album': 'Escapement', 'title': 'Small Change', 'track': 6, 'year': 2026},
@@ -189,6 +217,10 @@ def song():
                   [{'name': f'seed-{k}', 'patch': 'sc-seed', 'gain': {'value': '-3dB', 'mod': [{'src': 'auto.alone', 'amount': 1}]}, 'auto': {'alone': alone()},
                     'notes': T[f'seed-{k}'], 'fx': ['clip drive=0dB ceiling=-12dB']} for k in PAIRS],   # the seed's highest sample is its own, not the limiter's
     }
+    for k in PAIRS:
+        if ON['long'] and T[f'long-{k}']:
+            doc['tracks'].append({'name': f'long-{k}', 'patch': 'sc-seed', 'gain': {'value': '-3dB', 'mod': [{'src': 'auto.alone', 'amount': 1}]}, 'auto': {'alone': alone()},
+                                  'notes': T[f'long-{k}'], 'fx': ['clip drive=0dB ceiling=-12dB']})
     if ON['hat']:
         doc['patches'] = {**doc['patches'], 'sc-hat': HAT}
         doc['tracks'].append({'name': 'hat', 'patch': 'sc-hat', 'gain': '4dB', 'pan': 0.15, 'notes': T['hat']})
@@ -225,6 +257,6 @@ if __name__ == '__main__':
             every = 1 if ON['denser'] and not drum and i < len(SECTIONS) - 1 else every
             print(f'{i + 1:2d}  bars {b + 1:3d}-{b + SEC:3d}  {int(b * sec) // 60}:{b * sec % 60:05.2f}  {name:20s} coins {pairs:3s} a seed every {every} bar(s) on sixteenth {at16} {"/".join(notes):12s} {"drum " if drum else ""}{"bass" if bass else ""}')
         T = build()
-        print(f'{BARS} bars, {BARS * sec:.1f} s; written notes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items()))
+        print(f'{BARS} bars, {BARS * sec:.1f} s; written notes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items() if v or not k.startswith('long-')))
     else:
         a.out.write_text(dump(song()))
