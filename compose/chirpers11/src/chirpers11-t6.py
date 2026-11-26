@@ -34,7 +34,7 @@ LAG = {UP: 19.7, DOWN: 23.8}                # ms taken off a coin's time for the
 G = 0.62                                    # what a coin gives back each pass (the loop loses about 4 dB more: bench)
 ALONE = 0                                   # dB the seeds' faders come up where there is no drum. 0: tried at 6, the finished sections came up 1.9 dB and the rest went to the master's limiter
 PAIRS = {'a': (3, 5), 'b': (3, 4), 'c': (5, 7)}
-PAN = {'a': 0.6, 'b': 0.3, 'c': 0.9}
+PAN = {'a': 0.6, 'b': 0.3, 'c': 0.9, 'd': 0.6}
 OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 
 # ---- v2 (26 Nov): THE COINS DO MORE THAN ECHO. Three switches that are on, each `--without-…`, and one that is off,
@@ -57,7 +57,23 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          come). Each is SOFT dB down, so the section is about as loud as it was and has no holes. The last
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
-ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True}
+ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
+      'leave': True, 'flip': True, 'fill': True}
+# ---- v4 (26 Nov): THE PURSE INSIDE OUT. The turn (bars 129 to 160, the seed off the beat) is the song's idea and
+# was its quietest moment: half the drum going was all that marked it. Three more switches, each `--without-…`
+# (with them off it is v3 byte for byte).
+#   LEAVE  the drum waits whenever the seed changes its place in the bar: not only for it to come home (v3) but
+#          for it to leave. In the two bars before the turn (127 and 128) the drum, the bass and the hat stop and
+#          the three purses pay out alone; then the seed is off the beat.
+#   FLIP   while the seed is off the beat the purse is inside out: the coins change hands. The five lifts a fifth
+#          on the left and the three drops a fourth on the right (a fourth purse, `d`: 5 and 3). The same amounts
+#          can be made, so the hat and the bass do not change; what changes is which way the quick coin goes: the
+#          three's own run (3, 6, 9 sixteenths) now falls in fourths under the seed where it climbed in fifths
+#          over it, and the slow coin climbs. At home the purse is the right way out again.
+#   FILL   the break's purse (5 and 7) is given back more than the opening's. Its coins are long, so its change
+#          makes fewer notes a bar and every fourth bar of the break was under -52 dB (see G_FILL).
+G_FILL = 1.35                               # what the break's long purse gives back each pass. Bench, the break raw, level by bar after each of its four seeds: 1.05 -40 -48 -63 -80 / -40 -48 -56 -83; 1.2 -39 -43 -57 -71; 1.35 -39 -39 -51 -63 / -39 -40 -43 -68; 1.5 -38 -36 -46 -55 (its second bar louder than its first: too near the edge)
+FLIPPED = {'d': (5, 3)}                     # the purse inside out
 # ---- v3 (26 Nov): WHAT IS GIVEN BACK. Four more switches, each `--without-…` (with them off it is v2 byte for byte).
 #   LONG   the purse that keeps its change. In the opening and the break a seed came every four bars and its echoes
 #          were gone in two (two silent bars in every four; v2 could only fill them with more seeds, and then the
@@ -126,6 +142,11 @@ PATCHES = {
 }
 
 
+def purses():
+    """The pairs of coins in use: PAIRS, and with FLIP the purse inside out."""
+    return {**PAIRS, **(FLIPPED if ON['flip'] else {})}
+
+
 def frobenius(p, q):
     return p * q - p - q
 
@@ -141,9 +162,11 @@ def lattice(p, q, upto):
 
 
 def build():
-    T = {'kick': [], 'bass': [], 'hat': [], **{f'seed-{k}': [] for k in PAIRS}, **{f'long-{k}': [] for k in PAIRS}}
+    T = {'kick': [], 'bass': [], 'hat': [], **{f'seed-{k}': [] for k in purses()}, **{f'long-{k}': [] for k in purses()}}
     for i, (name, pairs, every, at16, notes, drum, bass) in enumerate(SECTIONS):
         n = 0
+        if ON['flip'] and at16:                                  # off the beat: the purse inside out
+            pairs = ''.join('d' if k == 'a' else k for k in pairs)
         dense = ON['denser'] and not drum and i < len(SECTIONS) - 1
         if dense:
             every = 1
@@ -156,14 +179,15 @@ def build():
                                                                                     **({'gain': f'{SOFT}dB'} if dense else {'gain': f'{HOME_DB}dB'} if home else {'gain': f'{LONG_DB}dB'} if kept and LONG_DB else {})})
                 n += 1
             waits = ON['wait'] and i + 1 < len(SECTIONS) and SECTIONS[i + 1][0] == 'home' and bar >= (i + 1) * SEC - WAIT
-            if waits:                                            # the bar before home: only the purse
+            waits = waits or (ON['leave'] and i + 1 < len(SECTIONS) and drum and SECTIONS[i + 1][5] and SECTIONS[i + 1][3] and not at16 and bar >= (i + 1) * SEC - WAIT)
+            if waits:                                            # the bars before home, or before the turn: only the purse
                 continue
             if drum:
                 for beat in range(4):
                     if ON['turn'] and at16 and beat % 2:         # off the beat: the drum gives up two and four
                         continue
                     T['kick'].append({'at': bar * 4 + beat, 'len': 0.5, 'pitch': 'G1', 'vel': .95 if beat == 0 else .88})
-            pq = PAIRS[pairs[(bar - i * SEC) % len(pairs)]]     # the purse whose turn this bar is
+            pq = purses()[pairs[(bar - i * SEC) % len(pairs)]]  # the purse whose turn this bar is
             if bass and ON['debts']:
                 for s in debts(*pq):
                     if (at16 + s) % 4:                           # never with the drum
@@ -195,7 +219,8 @@ def song():
     db = lambda x: f'{20 * log10(x):.2f}dB'
     under = {'type': 'pump', 'on': 'kick', 'depth': '-4dB', 'release': '170ms'}
     buses = {}
-    for k, (p, q) in PAIRS.items():
+    for k, (p, q) in purses().items():
+        gl = G_FILL if ON['fill'] and k == 'c' else G_LONG
         for coin, other, semi, side in ((p, q, UP, -1), (q, p, DOWN, 1)):
             me, you = f'{k}{coin}', f'{k}{other}'
             t = f'{coin * S16 - LAG[semi]:.2f}ms'
@@ -204,7 +229,7 @@ def song():
                          **({'lfo': {'till': f'sine rate={1000 / (p * q * S16):.4f}hz'}} if ON['till'] else {}),
                          'returns': [{'from': f'seed-{k}', 'gain': '0dB', 'time': t}, {'from': me, 'gain': db(G), 'time': t}, {'from': you, 'gain': db(G), 'time': t}]}
             if ON['long'] and T[f'long-{k}']:                   # the same two loops again, giving back more
-                buses[me + 'L'] = {**buses[me], 'returns': [{'from': f'long-{k}', 'gain': '0dB', 'time': t}, {'from': me + 'L', 'gain': db(G_LONG), 'time': t}, {'from': you + 'L', 'gain': db(G_LONG), 'time': t}]}
+                buses[me + 'L'] = {**buses[me], 'returns': [{'from': f'long-{k}', 'gain': '0dB', 'time': t}, {'from': me + 'L', 'gain': db(gl), 'time': t}, {'from': you + 'L', 'gain': db(gl), 'time': t}]}
     doc = {
         'about': "Chirpers, Escapement, track 6: Small Change, by chirper-one. Generated by compose/chirpers11/src/chirpers11-t6.py (its docstring is the rule). One struck note every bar or two, a bass drum and a bass are all that is written; the rest is change given for it by pairs of coins: two echoes, p and q sixteenths long, feeding themselves and each other, one lifting the sound a fifth each pass and the other dropping it a fourth. An echo lands p*a + q*b sixteenths after its seed, 7*a - 5*b semitones from it.",
         'meta': {'artist': 'chirpers', 'album': 'Escapement', 'title': 'Small Change', 'track': 6, 'year': 2026},
@@ -215,9 +240,9 @@ def song():
                     'fx': [{'type': 'eq', 'bands': ['peak cutoff=47 q=1.2 gain=-3dB', 'peak cutoff=130 q=0.9 gain=3dB']}]},
                    {'name': 'bass', 'patch': 'sub-sine', 'gain': '-13dB', 'notes': T['bass'], 'fx': [under]}] +
                   [{'name': f'seed-{k}', 'patch': 'sc-seed', 'gain': {'value': '-3dB', 'mod': [{'src': 'auto.alone', 'amount': 1}]}, 'auto': {'alone': alone()},
-                    'notes': T[f'seed-{k}'], 'fx': ['clip drive=0dB ceiling=-12dB']} for k in PAIRS],   # the seed's highest sample is its own, not the limiter's
+                    'notes': T[f'seed-{k}'], 'fx': ['clip drive=0dB ceiling=-12dB']} for k in purses()],   # the seed's highest sample is its own, not the limiter's
     }
-    for k in PAIRS:
+    for k in purses():
         if ON['long'] and T[f'long-{k}']:
             doc['tracks'].append({'name': f'long-{k}', 'patch': 'sc-seed', 'gain': {'value': '-3dB', 'mod': [{'src': 'auto.alone', 'amount': 1}]}, 'auto': {'alone': alone()},
                                   'notes': T[f'long-{k}'], 'fx': ['clip drive=0dB ceiling=-12dB']})
@@ -249,12 +274,13 @@ if __name__ == '__main__':
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
     if a.form:
         sec = 60 / BPM * 4
-        for k, (p, q) in PAIRS.items():
+        for k, (p, q) in purses().items():
             lat = lattice(p, q, 24)
             print(f'coins {k}: {p} and {q}; largest amount that cannot be made {frobenius(p, q)}; made up to 24: ' + ' '.join(f'{s}:{"/".join(f"{x:+d}" for x in v)}' for s, v in lat.items()))
         for i, (name, pairs, every, at16, notes, drum, bass) in enumerate(SECTIONS):
             b = i * SEC
             every = 1 if ON['denser'] and not drum and i < len(SECTIONS) - 1 else every
+            pairs = ''.join('d' if k == 'a' else k for k in pairs) if ON['flip'] and at16 else pairs
             print(f'{i + 1:2d}  bars {b + 1:3d}-{b + SEC:3d}  {int(b * sec) // 60}:{b * sec % 60:05.2f}  {name:20s} coins {pairs:3s} a seed every {every} bar(s) on sixteenth {at16} {"/".join(notes):12s} {"drum " if drum else ""}{"bass" if bass else ""}')
         T = build()
         print(f'{BARS} bars, {BARS * sec:.1f} s; written notes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items() if v or not k.startswith('long-')))
