@@ -15,6 +15,12 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `gt-tick` | Give or Take v1 (track tick) | Give or Take's grid click (chirper-zero, 26 Nov): the machine's rim, one voice, high and dry; deck A's ruler marks. |
 | `gt-tock` | Give or Take v1 (track tock) | Give or Take's tock (chirper-zero, 26 Nov): a wooden bar on the modal layer (after Common Measure's clave), whose pitch follows deck B's speed (auto.spd, semitones). |
 | `ht-bass` | Hearing Things v1 (track bass) | Hearing Things' bass (chirper-zero, 26 Nov): the second to sixth harmonics of the note and nothing at the note itself (after the library's phantom-bass): the ear supplies the pitch. |
+| `ht-both-A` | Hearing Things v6 (track both-A) | Hearing Things' bell with no octave (chirper-zero, 26 Nov, v6), on A: A in every octave at once under one fixed curve (loudest at 440 Hz, 1.1 octaves wide), so it has a note-name and no height. One patch a note-name: the… |
+| `ht-both-B` | Hearing Things v6 (track both-B) | Hearing Things' bell with no octave (chirper-zero, 26 Nov, v6), on B: B in every octave at once under one fixed curve (loudest at 440 Hz, 1.1 octaves wide), so it has a note-name and no height. One patch a note-name: the… |
+| `ht-both-C` | Hearing Things v6 (track both-C) | Hearing Things' bell with no octave (chirper-zero, 26 Nov, v6), on C: C in every octave at once under one fixed curve (loudest at 440 Hz, 1.1 octaves wide), so it has a note-name and no height. One patch a note-name: the… |
+| `ht-both-D` | Hearing Things v6 (track both-D) | Hearing Things' bell with no octave (chirper-zero, 26 Nov, v6), on D: D in every octave at once under one fixed curve (loudest at 440 Hz, 1.1 octaves wide), so it has a note-name and no height. One patch a note-name: the… |
+| `ht-both-F` | Hearing Things v6 (track both-F) | Hearing Things' bell with no octave (chirper-zero, 26 Nov, v6), on F: F in every octave at once under one fixed curve (loudest at 440 Hz, 1.1 octaves wide), so it has a note-name and no height. One patch a note-name: the… |
+| `ht-both-G` | Hearing Things v6 (track both-G) | Hearing Things' bell with no octave (chirper-zero, 26 Nov, v6), on G: G in every octave at once under one fixed curve (loudest at 440 Hz, 1.1 octaves wide), so it has a note-name and no height. One patch a note-name: the… |
 | `ht-chop` | Hearing Things v4 (track chop) | Hearing Things' chord (chirper-zero, 26 Nov, v4): a plain sine a note, switched on in a millisecond and off in three, so that a sixteenth of it is a sixteenth and its holes are holes. |
 | `ht-clap` | Hearing Things v1 (track clap) | Hearing Things' clap (chirper-zero, 26 Nov): the machine's clap, three bursts, short, dry. |
 | `ht-fence` | Hearing Things v4 (track fence) | Hearing Things' fence (chirper-zero, 26 Nov, v4): white noise between 170 and 560 Hz, switched as the chord is: it fills the chord's holes exactly, in the chord's band, louder than the chord. |
@@ -60,8 +66,8 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `wd-comp` | Wind Down v2 (track comp) | Wind Down: the complement's click (after Out of Step v2): two cycles of a saw on G5 dying in 12 ms, above 3 kHz, lifted round 10 kHz. |
 | `wd-ghost` | Wind Down v1 (track ghost) | Wind Down: a bass with no fundamental (after Hearing Things): harmonics two to six of the note and nothing at the note. |
 | `wd-hat` | Wind Down v2 (track hat) | Wind Down: the hat (after Hearing Things): the machine's hat, 28 ms, above 5 kHz, whose loudness is all velocity. |
-| `wd-held` | Wind Down v3 (track held) | Wind Down: the meetings' last chord, held (v3): wd-chord's two saws under a low-pass at 900 Hz that does not open, half a second coming and three seconds going. |
 | `wd-kick` | Wind Down v1 (track kick) | Wind Down: the drum. The machine's bass drum on G, short. |
+| `wd-open` | Wind Down v4 (track held) | Wind Down: the meetings' last chord, opening as it dies (v4): wd-held with its low-pass at 600 Hz while the chord is held and opening two octaves over the first two and a half seconds of a six-second release. |
 | `wd-ping` | Wind Down v1 (track ping) | Wind Down: what two cycles make when they meet (after Least Common): a vibraphone bar with no motor. |
 | `wd-saw` | Wind Down v1 (track saw) | Wind Down: a click that is five cycles of a saw (after Out of Step): on G3 that is 51 ms. |
 | `wd-seed` | Wind Down v1 (track seed) | Wind Down: the seed (after Small Change): a short vibraphone bar with 2 ms of noise on its front. |

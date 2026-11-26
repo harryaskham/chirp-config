@@ -1,0 +1,45 @@
+{
+ "about": "Wind Down: the meetings' last chord, opening as it dies (v4): wd-held with its low-pass at 600 Hz while the chord is held and opening two octaves over the first two and a half seconds of a six-second release. BANKED by tools/patchbank.py (26 Nov 2026) from Wind Down v4 (track held): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "500ms",
+   "d": "0s",
+   "r": "6s"
+  },
+  "env": {
+   "shut": {
+    "a": "1ms",
+    "d": "0s",
+    "r": "2.5s"
+   }
+  },
+  "filters": [
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": -2.0,
+       "src": "env.shut"
+      }
+     ],
+     "value": 2400
+    },
+    "q": 0.8
+   }
+  ],
+  "layers": [
+   {
+    "detune": -7,
+    "wave": "saw"
+   },
+   {
+    "detune": 7,
+    "wave": "saw"
+   }
+  ]
+ }
+}
