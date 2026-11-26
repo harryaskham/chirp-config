@@ -169,6 +169,19 @@ power a second at every speed: what changes is only how the strokes are spaced. 
 in the middle.
 (Made first with the held note as high in peak as one stroke: in the master a held note that high is as loud
 as the music, the master turned the music 3 to 5 dB down under it, and the score fell 0.6. Refused.)
+
+v11 (26 Nov): THREE AGAINST TWO, FROM FOUR SINES (C11T7_HEMI=0 takes it out: v10). The bass is two tones a cycle
+a beat apart, so it swells once a beat: a pump made of nothing but two tones out of step. Now it has a second
+pair under it, on D2 (a fourth below the G), and these two are A CYCLE AND A HALF a beat apart (3.15 Hz): this
+pair swells three times in two beats. Both pairs are struck on the off-beat, where each agrees with itself, so
+the two pumps agree with each other there once every two beats and nowhere else: the G swells on the "and" of
+every beat, the D on the "and" of one and then two thirds of a beat on and two thirds again. Three against two,
+and nothing is struck to make it: four sines (eight with their octaves) that never change.
+It comes in where the drum rests in "drifts" (bars 121 to 128: nothing else is down there) and stays, the drum
+back under it, for as long as the bass does (to bar 152), 6 dB under the bass. The D pair is as sharp as the G pair is (a pair's note is the
+mean of its two tones), so the fourth between them is true.
+WHY D, AND WHY SO LOW: `compscore --bands` says this song has 9.7 dB less than the rest of the record at 61 and
+71 Hz and 7 dB less at 156 Hz. D2 is 73 Hz and its octave 147 Hz.
 """
 import json
 import math
@@ -344,6 +357,45 @@ ROLL_HOLD = 2                                          # beats the note is then 
 ROLL_FALL = float(os.environ.get("C11T7_ROLL_FALL", "0.5"))    # a stroke is turned down by (the rate / a sixteenth's) to this power: at a half the roll gives the same power a second at every speed
 ROLL_VEL = 0.8
 ROLL_GAIN = float(os.environ.get("C11T7_ROLL_GAIN", "-8"))     # dB: the roll's fader (A's is -2). REFUSED in the master: fall 0.25 at -6 dB (the held note no higher in peak than a stroke): the note was 2.5 dB under the music, the master turned the music 3 to 5 dB down under it and the score fell 0.6
+
+
+HEMI_ON = os.environ.get("C11T7_HEMI", "1") != "0" and ROLL_ON                 # v11: three against two, from four sines (a second pump, out of step with the first)
+HEMI_IN = tuple((x.split("/")[0], int(x.split("/")[1]), int(x.split("/")[2])) for x in os.environ.get("C11T7_HEMI_IN", "drifts/16/32,one again/0/16").split(",") if x)   # (section, from bar, to bar of it) in which the second pair sounds: from where the drum rests in "drifts" until the bass itself stops
+HEMI_NOTE, HEMI_F0 = "D2", 73.4162                     # a fourth under the bass's G
+HEMI_RATE = 1.5                                        # cycles a beat between the pair's two tones: it swells three times in two beats (the bass: once a beat)
+HEMI_PARTS = ((1, -3.0), (2, -9.0))                    # (harmonic, dB) of each pair: both tones of a pair as loud as each other, so between swells there is nothing
+HEMI_GAIN = os.environ.get("C11T7_HEMI_GAIN", "-29dB")  # 6 dB under the bass's fader. REFUSED in the master: the bass's own -23 dB for the 16 bars of "drifts" alone: it was as loud as everything else together where the drum rests, the whole song came down 0.2 dB, and a new cut at its end cost 0.5 (structure and variety), more than the 0.75 it gave (spectrum and cohesion)
+
+
+def hemi_span():
+    """The bars in which the second pump sounds: [(from, to), ...], or []."""
+    if not HEMI_ON:
+        return []
+    out = []
+    for nm, lo, hi in HEMI_IN:
+        sec = next((x for x in SECS if x[0] == nm), None)
+        if sec is not None:
+            out.append((sec[1] + lo, sec[1] + hi))
+    return out
+
+
+def hemi_ratios():
+    """(ratio of the lower tone, ratio of the upper, dB) for each pair: HEMI_RATE cycles a beat apart, about a mean that is as sharp as the bass's own (half of DELTA over G2)."""
+    sharp = 1 + DELTA / 2 / F0
+    half = HEMI_RATE * BPM / 60 / 2 / HEMI_F0
+    return [(k * sharp - half, k * sharp + half, lv) for k, lv in HEMI_PARTS]
+
+
+def hemi_notes():
+    last = max(b1 for b0, b1 in hemi_span()) - 1
+    dies = (math.floor((BEATS - 0.5) * HEMI_RATE - 0.5) + 0.5) / HEMI_RATE / STEP      # sixteenths from the stroke to the last time in the bar that the pair has died of itself
+    return [note(bar * BEATS + s * STEP, p, n * STEP, v) for b0, b1 in hemi_span() for bar in range(b0, b1)
+            for s, p, n, v in [(2, HEMI_NOTE, dies if bar == last else 15.6, 0.9)]]      # the last one is let go where it has just died (half a beat before the line): nothing of it is in the bars after      # struck where the bass is, on the off-beat, and held for the bar
+
+
+def hemi_swells(beats=2.0):
+    """Beats (from a bar line) at which a pair struck on the first off-beat swells: the second pump's, and the bass's."""
+    return [[round(0.5 + n / r, 3) for n in range(int((beats - 0.5) * r + 1e-9) + 1)] for r in (HEMI_RATE, DELTA * 60 / BPM)]
 
 
 def roll_strokes():
@@ -657,6 +709,13 @@ def song():
                               "sends": {"room": "-16dB"}, "auto": {"open": {"points": open_lane()}}, "notes": roll_notes()})
         doc["about"] = doc["about"].replace(" Generated by", " From v10 the click rolls: from sixteenths it quickens by the same ratio every beat until its strokes are one turn of its own wave apart, 196 a second, where every stroke is in step with the last one's tail and the row of clicks is one held note, G3: once, in the two bars of slips where the drum rests, landing on its return. Generated by")
         assert "From v10" in doc["about"]
+    if hemi_span():
+        PATCHES["os-bass-d"] = {"about": f"Out of Step's second pump (chirper-zero, 26 Nov, v11): two pairs of sines, on D2 and its octave, each pair {HEMI_RATE * BPM / 60:g} Hz apart (a cycle and a half a beat at {BPM}), both tones of a pair as loud as each other. Struck on the off-beat it swells three times in two beats, where the bass swells twice: three against two. The pair's mean is as sharp as the bass's ({1200 * math.log2(1 + DELTA / 2 / F0):.1f} cents). For D2 ONLY: another note needs its own ratios.",
+                                "play": {"mono": True, "vel_sens": 0.2},
+                                "synth": {"layers": [x for lo, hi, lv in hemi_ratios() for x in (f"sine phase=0 ratio={lo:.6f} level={lv:g}dB", f"sine phase=0 ratio={hi:.6f} level={lv:g}dB")], "amp": {"a": "4ms", "d": "0s", "s": 1, "r": "30ms"}}}
+        doc["tracks"].append({"name": "bassd", "patch": "os-bass-d", "gain": HEMI_GAIN, "pan": 0.0, "notes": hemi_notes()})      # dry and in the middle, as the bass is
+        doc["about"] = doc["about"].replace(" Generated by", " From v11 the bass has a second pair of tones under it from the middle of drifts until it stops, on D2 and a cycle and a half a beat apart: it swells three times in two beats while the bass swells twice, and the two agree once every two beats: three against two, from four sines. Generated by")
+        assert "From v11" in doc["about"]
     if CANON_ON:
         doc["tracks"].append({"name": "tune2", "patch": "os-tune", "gain": CANON_GAIN, "pan": PAN, "sends": {"room": "-10dB"}, "notes": canon_notes()})
         doc["about"] = doc["about"].replace(" Generated by", " From v6, in the second row of home, the tune has a B of its own: a second pip an octave lower plays the same five notes and slips a sixteenth ahead of the tune every two bars, so the tune is heard in canon with itself at four distances (Piano Phase's way, in the record's chord). Generated by")
@@ -732,6 +791,10 @@ if __name__ == "__main__":
                     print(f"   the pendulum in \"{name}\" (bars {b0 + phase[1]}-{b0 + phase[2]}, {phase[3]}): B's lead at each quarter of a bar, ms (+ the right ear first): " + " ".join(f"{lead_ms((b0 + phase[1]) * BAR + q * 4):+.2f}" for q in range(0, (phase[2] - phase[1]) * 4 + 1)))
         ms = 60 / BPM / 4 * 1000
         print("   the first slip (bars 24-26): the gap between A's stroke and B's, ms: " + " ".join(f"{(n['at'] / STEP - round(n['at'] / STEP + phi(n['at'] / STEP)) + 0) * -ms:.1f}" for n in b_notes() if 24 * BEATS <= n["at"] < 25.5 * BEATS))
+        if hemi_span():
+            sec = BEATS * 60 / BPM; d, g = hemi_swells()
+            print(f"   three against two, bars " + " and ".join(f"{b0 + 1}-{b1} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f})" for b0, b1 in hemi_span()) + f", {HEMI_GAIN}: the second pair on {HEMI_NOTE}: " + " and ".join(f"{lo * HEMI_F0:.2f} + {hi * HEMI_F0:.2f} Hz ({lv:g} dB each)" for lo, hi, lv in hemi_ratios()) + f" ; {HEMI_RATE * BPM / 60:g} Hz apart ({HEMI_RATE:g} cycles a beat) ; its note {1200 * math.log2((hemi_ratios()[0][0] + hemi_ratios()[0][1]) / 2):+.1f} cents from {HEMI_NOTE} (the bass's {1200 * math.log2(1 + DELTA / 2 / F0):+.1f} from G2)")
+            print(f"      in every half bar it swells at beats {' '.join(f'{x:g}' for x in d)} ; the bass at {' '.join(f'{x:g}' for x in g)} ; together at {' '.join(f'{x:g}' for x in d if x in g)}")
         if roll_spans():
             st = roll_strokes(); beat = 60 / BPM; ng = sum(1 for t, r in st if r < WAVE_HZ - 1e-9)
             nt = lambda f: (lambda m: "C C# D Eb E F F# G Ab A Bb B".split()[int(round(m)) % 12] + str(int(round(m)) // 12 - 1) + f"{100 * (m - round(m)):+.0f}c")(69 + 12 * math.log2(f / 440))
