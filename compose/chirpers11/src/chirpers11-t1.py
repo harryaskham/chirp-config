@@ -31,6 +31,14 @@ each other: one drum when the hand is off, a flam when it leans, a gallop when i
 click stops, and in the last bar the BASS IS SWAPPED: deck B's drum gets its lows as deck A's drum stops. For twelve
 bars the only bass drum on the record is deck B's, and its tempo is the one that moves. Then deck A's drum comes
 back where it always was, the two gallop, and deck B's bass is taken out again over two bars.
+
+v3 (26 Nov): THE STOP (C11T1_STOP=0 writes v2). The record ENDS: in "out" deck B plays on (its chord and its
+drum with it), deck A's drum leaves, and at the eleventh bar DECK B IS SWITCHED OFF. Its speed falls in a straight line to nothing over two bars, the same d(t)
+as every push before it (d' = -u), so its strokes come further and further apart and everything with a pitch on it
+sinks, as a platter does with the motor off. One bar of record takes those two bars, and the next never comes.
+The grid click, which never moved, counts four more bars alone.
+(Tried in this round and taken out: letting deck B's drum's bass back in for "locked", so the two strike as one big
+drum. The two drums' lows are not in step: with it the master had 6 dB LESS under 70 Hz in "locked", not more.)
 """
 import json
 import math
@@ -44,6 +52,9 @@ STEP = 0.25                    # a sixteenth, in beats
 ROOT = "G"
 
 KNOCK_ON = {"knock"} if os.environ.get("C11T1_KNOCK", "1") != "0" else set()   # v2: deck B's own bass drum
+STOP = os.environ.get("C11T1_STOP", "1") != "0" and bool(KNOCK_ON)               # v3: the record switched off in "out"
+STOP_AT = 10                   # the bar of "out" at which deck B's motor goes off
+STOP_BARS = 2                  # the bars its platter takes to stop
 # name, rows, the parts that play, the hand: (kind, reach in beats, period in bars, bars over which it comes on and off)
 SECTIONS = [
     ("the grid",  2, {"kick", "tick", "hat"},                         ("none", 0.0, 1, 2)),   # the hat from the second row (ENTER)
@@ -53,7 +64,7 @@ SECTIONS = [
     ("both",      3, {"kick", "tick", "hat", "tock", "sub", "stab", "clap"} | KNOCK_ON,  ("breathe", 0.08, 1.5, 2)),
     ("the nudge", 2, {"kick", "tick", "hat", "tock", "sub", "stab", "clap"} | KNOCK_ON,  ("nudge", 0.25, 4, 2)),
     ("locked",    2, {"kick", "tick", "hat", "tock", "sub", "stab", "clap"} | KNOCK_ON,  ("none", 0.0, 1, 2)),
-    ("out",       2, {"kick", "tick", "hat", "tock"},                 ("none", 0.0, 1, 2)),
+    ("out",       2, {"kick", "tick", "hat", "tock"} | ({"stab", "knock"} if STOP else set()), ("stop", 0.0, STOP_AT, STOP_BARS) if STOP else ("none", 0.0, 1, 2)),
 ]
 RETURN = 4                     # in "no ruler", the kick alone comes back for the last RETURN bars
 LEAVE = {"out": [("kick", 8), ("hat", 12), ("tock", 14)]}   # the bar (of the section) from which each part is gone
@@ -61,6 +72,8 @@ ENTER = {"the grid": [("hat", ROW)]}                         # ... and from whic
 if KNOCK_ON:
     LEAVE["take"] = [("tick", 12)]                           # the ruler's marks go first, then (at "no ruler") the ruler
     ENTER["take"] = [("knock", ROW)]
+if STOP:
+    LEAVE["out"] = [("kick", 8)]                             # deck B is not taken out: it stops
 SWAP = 1                       # bars before "no ruler" over which deck B's drum gets its bass
 BACK = 2                       # bars after deck A's drum returns over which it loses it again
 KILL = 3.3                     # octaves above 32 Hz at which deck B's drum is cut when its bass is out (315 Hz)
@@ -99,11 +112,28 @@ def d(t):
         return reach * env * math.sin(2 * math.pi * u / period)
     if kind == "nudge":
         return reach * env * (1 - math.cos(2 * math.pi * u / period)) / 2
+    if kind == "stop":                                         # period = the bar the motor goes off, ramp = the bars the platter takes
+        x, w = (u - period) * BEATS, ramp * BEATS              # beats since the motor went off; the platter's time in beats
+        return 0.0 if x <= 0 else -x * x / (2 * w) if x < w else -w / 2 - (x - w)
     raise ValueError(kind)
 
 
+def stop_at():
+    """(the beat at which deck B's motor goes off, the platter's time in beats), or None."""
+    for name, b0, n, parts, (kind, reach, period, ramp) in SECS:
+        if kind == "stop":
+            return (b0 + period) * BEATS, ramp * BEATS
+    return None
+
+
 def when(b):
-    """The grid time at which deck B's record reaches its own beat b: t + d(t) = b."""
+    """The grid time at which deck B's record reaches its own beat b: t + d(t) = b. None if it never does."""
+    st = stop_at()
+    if st and b > st[0]:
+        ts, w = st
+        if b - ts >= w / 2:                                    # the record stops w / 2 beats after the motor does
+            return None
+        return ts + w - math.sqrt(w * w - 2 * w * (b - ts))    # x - x^2 / 2w = b - ts
     t = b
     for _ in range(40):
         t = b - d(t)
@@ -120,7 +150,7 @@ def spd_lane():
     pts, last = [["0b", 0]], 0.0
     for i in range(int(TOTAL / STEP) + 1):
         t = i * STEP
-        v = round(12 * math.log2(speed(t)), 3)
+        v = round(12 * math.log2(max(speed(t), 0.03)), 3)   # a stopped record has no pitch: the lane rests five octaves down
         if v != last or (pts and i and pts[-1][1] != v):
             if pts[-1][0] != f"{(i - 1) * STEP:g}b" and i:
                 pts.append([f"{(i - 1) * STEP:g}b", last])
@@ -174,8 +204,9 @@ def deck_b(part, steps):
             for s, p, n, v in steps(bar):
                 b = bar * BEATS + s * STEP
                 t = when(b)
-                if 0 <= t < TOTAL:
-                    out.append(note(t, p, when(b + n * STEP) - t, v))
+                if t is not None and 0 <= t < TOTAL:
+                    end = when(b + n * STEP)
+                    out.append(note(t, p, (end if end is not None else t + 4 * n * STEP) - t, v))
     return out
 
 
@@ -290,7 +321,7 @@ if __name__ == "__main__":
             far = max(abs(d(t / 16)) for t in range(b0 * BEATS * 16, (b0 + n) * BEATS * 16))
             fast = max(speed(t / 16) for t in range(b0 * BEATS * 16, (b0 + n) * BEATS * 16)); slow = min(speed(t / 16) for t in range(b0 * BEATS * 16, (b0 + n) * BEATS * 16))
             print(f"{name:10s} bars {b0:3d}-{b0 + n:3d}  {int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int((b0 + n) * sec) // 60}:{(b0 + n) * sec % 60:04.1f}  {kind:8s} furthest {far:.3f} beats ; "
-                  f"deck B's tempo {BPM * slow:.1f}-{BPM * fast:.1f} ; {12 * math.log2(slow):+.2f} to {12 * math.log2(fast):+.2f} semitones ; {', '.join(sorted(parts))}")
+                  f"deck B's tempo {BPM * slow:.1f}-{BPM * fast:.1f} ; {12 * math.log2(max(slow, 0.03)):+.2f} to {12 * math.log2(fast):+.2f} semitones ; {', '.join(sorted(parts))}")
         print(f"{BARS} bars, {TOTAL} beats, {BARS * sec:.1f} s ; the five: {FIVE}")
     else:
         open(OUT, "w").write(dump(song()))
