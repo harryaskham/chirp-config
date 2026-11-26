@@ -87,6 +87,18 @@ it was a room getting louder behind clicks that stayed where they were. Five swi
          cut short to leave empty, pushing into every beat.
   LOW    the bass 2 dB up (114 Hz stood 9.3 dB under the album's envelope).
 
+v6 (26 Nov): THE DRUM ANSWERS. The second half's cycles of 3, 5 and 7 beats were never new: a click on a cycle of
+3 sixteenths lands on the bass drum every 12 sixteenths, which is every 3 beats; the five every 5 beats; the seven
+every 7. Those meetings, a click with the drum, were the only ones in the song that did nothing. One switch
+(`--without-knock`; off is v5 byte for byte):
+  KNOCK  from the first half's last page on, when a click lands on the drum the drum answers with a low knock (a
+         small kettledrum head, new patch `lc-knock`): G for the three, B flat for the five, D for the seven. So
+         under the last page of sixteenths a slow G minor triad is already turning in 3, 5 and 7 beats, two of its
+         notes together every 15, 21 and 35 beats and all three exactly where the page turns; through the run-down
+         it is what is left with the drum; and on the one the clicks take up those same three cycles, and the
+         knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
+         song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
+
 v5 (26 Nov): ONLY THE DRUM. Read by solo, v4's slow run-down was a change of rhythm 14 to 19 dB under the four,
 and the second half's four pages all stood at one level. Three switches (`--without-bare`, `-small`, `-rise`;
 all three off is v4 byte for byte):
@@ -128,7 +140,14 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True}
+      'bare': True, 'small': True, 'rise': True, 'knock': True}
+KNOCK = {3: 'G2', 5: 'Bb2', 7: 'D3'}    # v6: the drum's answer to each click that lands on it
+KNOCK_FROM = HALF - PAGE                # from the first half's last page
+KNOCK_SEAM = 4 * BAR                    # and not in the last four bars
+KNOCK_DB, KNOCK_HOLD = '-2dB', -10     # its fader, and the clip before it. Bench, alone on page 4: at 180 ms the head was a spike (-9.6 dBFS highest sample, 21 dB gone in 50 ms) carrying 13 dB less from 90 to 400 Hz than the bass or the drum. So it rings longer, the spike is clipped off, and the fader brings up what is left: at -4 dB it read 7 to 9 dB under the mix from 90 to 400 Hz and 4.4 under the bass; at -2 see the round's note
+LC_KNOCK = {'about': "Least Common: the drum's answer when a click lands on it (v6). A small kettledrum head (modes 1 : 1.5 : 2 : 2.5, so on G2, B flat 2 and D3 everything it has is between 98 and 370 Hz), let ring 800 ms.",
+            'synth': {'layers': [{'type': 'modal', 'modes': 'kettle', 'decay': '800ms', 'bright': 0.3, 'strike': 0.3}], 'amp': {'a': '0.5ms', 'd': '0s', 's': 1, 'r': '600ms'}},
+            'play': {'event_stable': True, 'vel_sens': 0.4}}
 RISE = -12                              # v5: dB the wind-up's strokes come in at
 AWAY = 9                                # v4: dB the clicks' own sound has fallen when the door is wide open (their far room makes it up)
 SWELL = 3                               # v4 HOME: dB the pings have risen by the end of the last stretch
@@ -311,6 +330,16 @@ def build():
     def add(tr, s16, len16, pitch, vel, **more):
         T[tr].append({'at': round(s16 / BEAT, 4), 'len': round(len16 / BEAT, 4), 'pitch': pitch, 'vel': round(vel, 3), **more})
 
+    if ON['knock']:
+        T['knock'] = []
+
+    def knock(s):
+        """v6: the drum's answer at sixteenth s, a note for each click whose cycle lands on it (every 3, 5 and 7 beats)."""
+        if ON['knock'] and KNOCK_FROM <= s < TOTAL - KNOCK_SEAM:
+            for c in CYCLES:
+                if s % (c * BEAT) == 0:
+                    add('knock', s, 2, KNOCK[c], .85)
+
     pitch = {'three': 'C6', 'five': 'G5', 'seven': 'G4'}
     mem = dict(pitch)
     roots = []                                                # the note of the last meeting of any two, at every sixteenth
@@ -339,6 +368,7 @@ def build():
             add('chord', s, 2, ','.join(CHORD), .85 if s % BEAT == 0 else .7)
         if s % BEAT == 0 and n != last and not broken(s):
             add('kick', s, 2, 'G1', .95 if s % BAR == 0 else .88)
+            knock(s)
     marks += [('first half: three, five and seven sixteenths', 0)] + [(f'page {p + 1} (the three meet on beat {p * PAGE // BEAT % 4 + 1})', p * PAGE) for p in range(1, pages)]
     marks += [('the clock begins to run down, ' + ('only the drum left of the four' if ON['bare'] else 'the four still playing'), (last - 1) * SUPER)] * (ON['slow'] and ON['rundown']) + [('the four stops', last * SUPER)]
     # ---- the second half: one size up. Cycles of 3, 5 and 7 beats, each filled with the next one's number.
@@ -367,6 +397,7 @@ def build():
             held.append((s, tuple(heads)))
         if s % BEAT == 0 and not broken(s):
             add('kick', s, 2, 'G1', .95 if s % BAR == 0 else .88)
+            knock(s)
     held.append((TOTAL, tuple(CYCLES)))
     for (s, heads), (nxt, _) in zip(held, held[1:]):
         if len(heads) == 3:
@@ -385,6 +416,7 @@ def build():
     add('kick', TOTAL, 2, 'G1', .95)
     for v in VOICES:
         add(v, TOTAL, 1, MEMORY[v][ALL] if ON['memory'] and v in MEMORY else pitch[v], .95)
+    marks += [('the drum answers each click that lands on it: a knock every 3, 5 and 7 beats', KNOCK_FROM)] * ON['knock']
     marks += [('second half: three, five and seven beats', HALF)] + [(f'page {p + 5} (the three meet on beat {p * PAGE // BEAT % 4 + 1})', HALF + p * PAGE) for p in range(1, pages)]
     marks += [('only the drum is left of the four', HALF + last * SUPER), ('home', TOTAL)]
     if ON['break']:
@@ -478,6 +510,9 @@ def song():
                                                 'gain': {'value': f"{WIDE_DB if ON['wide'] else 0}dB", 'mod': [{'src': 'auto.door', 'amount': 1}]}, 'auto': {'door': door()}}}
         if ON['away']:                                        # the clicks' own far room: the same room, its fader making up what theirs lose
             doc['buses']['gone'] = {**doc['buses']['far'], 'auto': {'door': gone()}}
+    if ON['knock']:
+        doc['patches'] = {**doc['patches'], 'lc-knock': LC_KNOCK}
+        doc['tracks'].append(track('knock', 'lc-knock', KNOCK_DB, fx=[hold(KNOCK_HOLD)]))
     return doc, marks
 
 
@@ -497,7 +532,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v4, the last eight v3, the last sixteen v2, all twenty-two v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last one off is v5, the last four v4, the last nine v3, the last seventeen v2, all twenty-three v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
