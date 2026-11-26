@@ -71,6 +71,21 @@ distance, from one sixteenth: 14 dB down at four) and as dull (the air takes 5 d
 at its ceiling, so a click 14 dB down came out as loud as ever. The far click is written LIMIT dB lower still.) Nothing else in the song moves. In "the door" the same walk is taken backwards: the click falls
 behind the drum a quarter of a sixteenth a bar, fainter and duller, and the last click of the song is where the
 first was, 163 m off and four sixteenths late. The song now fades by walking away.
+
+v6 (26 Nov): THE WALLS SING (C11T3_SING=0 takes it out: v5). In v3 the bass learnt the room: it plays a stroke
+where the click is and one wherever a wall sends it back, and each wall has a note (F for the left, C for the
+right, D for the click). In v4 a room too small to count was found to sing. v6 puts the two together: IN EACH
+WALL OF STANDING ROOM THERE IS A PIPE, tuned to that wall's note, and a third where the click stands. A pipe is
+struck by whatever reaches it: the click strikes the D pipe; three sixteenths on its echo comes off the left wall
+and strikes the F pipe in that wall; two sixteenths later the right wall's, C; then both, softer; and so on, each
+return 3 dB down, as the walls have always done it. So the room plays the bass's line, D F C (F and C) F C, in
+the bass's rhythm, the three-three-two, with nobody playing it: F from the left, C from the right, D from where
+the click stands. For the fourth row of standing room THE BASS RESTS and the line is still there, sung by the
+walls with no bass under it (a pipe struck by a click has almost nothing at its own note: the ear puts the note
+there from what is above it). In the fifth row the bass comes back in under its own line, and then, as before,
+takes it out of the door: the pipes are shut with the walls.
+The pipes hear the click's echoes only, not the tock's (the walls as the click alone finds them: `hear-l`,
+`hear-r`, which are not heard themselves), because the bass learnt the click's line.
 """
 import json
 import math
@@ -110,6 +125,13 @@ LIMIT = 20                     # dB the master's limiter already holds the click
                                # the click's own peak is 1 dBFS before it): a click loses this much first, or it is not heard to lose anything
 AIR = 5                        # dB of its top (the lift round 11 kHz) the air takes for each sixteenth of distance
 SOUND = 343                    # metres a second
+SING = os.environ.get("C11T3_SING", "1") != "0" and SQUARE   # v6: the walls sing
+SING_FROM = 3                  # rows of standing room before the pipes in its walls are opened
+SING_ALONE = 1                 # rows from there for which the bass rests
+SING_RING = 0.45               # seconds one of those pipes rings (to -60 dB): a note, not a drone
+SING_LEVEL = float(os.environ.get("C11T3_SING_LEVEL", "-6"))   # dB: their door when it is open
+SING_PAN = 0.6                 # how far to its side a wall's pipe is heard (the click's is where the click stands)
+SING_DAMP = ["hp cutoff=40", "lp cutoff=3000"]   # what a pipe's own wall takes
 STEP_OPEN = 1                  # bars the door of the next place takes to open as the click steps
 STEP_SHUT = 2                  # bars the door of the place behind takes to shut
 WALL = "-3dB"                  # what a wall gives back
@@ -154,8 +176,16 @@ def section_of(bar):
     return SECS[-1]
 
 
+def sing_bars():
+    """(first bar, last bar) in which the pipes in standing room's walls are open, and (first, last) in which the bass rests."""
+    b0, n = next((s[1], s[2]) for s in SECS if s[4] == LEARN_ROOM)
+    return (b0 + SING_FROM * ROW, b0 + n), (b0 + SING_FROM * ROW, b0 + (SING_FROM + SING_ALONE) * ROW)
+
+
 def plays(part, bar):
     name, b0, n, parts, room, width, air = section_of(bar)
+    if SING and part == "bass" and sing_bars()[1][0] <= bar < sing_bars()[1][1]:
+        return False
     for p, there in ENTER.get(name, []):
         if p == part and bar < b0 + there:
             return False
@@ -270,6 +300,29 @@ def pipe_buses():
     return out
 
 
+def sing_buses():
+    """The pipes in standing room's walls: one in each wall, struck by what that wall sends back of the click, and one where the click stands."""
+    a, b = WALK[LEARN_ROOM][0]
+    (b0, b1), rest = sing_bars()
+    out = {}
+    for side, own, other in (("l", a, "r"), ("r", b, "l")):      # the room as the click alone finds it: the pipes hear this, nobody else does
+        out[f"hear-{side}"] = {"fx": [{"type": "eq", "bands": ABSORB}],
+                               "returns": [{"from": "click", "gain": FIRST["click"], "time": f"{own}/16"}, {"from": f"hear-{other}", "gain": WALL, "time": f"{own}/16"}],
+                               "out": "hear-shut"}
+    out["hear-shut"] = {"fx": [{"type": "gain", "gain": f"{CLOSED}dB"}]}
+    lane = [pt(0, CLOSED), pt(b0 - 0.02, CLOSED), pt(b0, SING_LEVEL), pt(b1, SING_LEVEL), pt(b1 + STEP_SHUT, SING_LEVEL + AJAR), pt(b1 + STEP_SHUT + 0.01, CLOSED), pt(BARS, CLOSED)]
+    for name, src, gain, pan in (("click", "click", FIRST["click"], PAN * (a - b) / (a + b)), ("left", "hear-l", "0dB", -SING_PAN), ("right", "hear-r", "0dB", SING_PAN)):
+        ms = 1000 / hz(WALL_NOTE[name])
+        assert ms - PIPE_TRIM >= 6.0, (name, ms)
+        back = f"{-60 * ms / 1000 / SING_RING:.2f}dB"
+        for side, other in (("a", "b"), ("b", "a")):
+            out[f"sing-{name}-{side}"] = {"fx": [{"type": "eq", "bands": SING_DAMP}],
+                                          "returns": [{"from": src, "gain": gain, "time": f"{ms - PIPE_TRIM:.3f}ms"}, {"from": f"sing-{name}-{other}", "gain": back, "time": f"{ms - PIPE_TRIM:.3f}ms"}],
+                                          "out": f"sing-{name}-door"}
+        out[f"sing-{name}-door"] = {"pan": round(pan, 3), "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.door", "amount": 1}]}}], "auto": {"door": {"points": lane}}}
+    return out
+
+
 def buses():
     out = {}
     for room, a, b, b0, b1, opn, shut in places():
@@ -281,6 +334,8 @@ def buses():
                                      "out": f"{room}-door-{side}"}
             out[f"{room}-door-{side}"] = {"pan": pan, "fx": [door], "auto": lane, "out": "walls"}
     out.update(pipe_buses())
+    if SING:
+        out.update(sing_buses())
     out["walls"] = {"fx": [{"type": "width", "width": {"value": 0.0, "mod": [{"src": "auto.apart", "amount": 1}]}}], "auto": {"apart": {"points": step_lane(5, 0.0)}}}
     out["air"] = {"fx": ["reverb kind=hall decay=5.5s size=1 mix=1 predelay=40ms", "lp cutoff=6000", "hp cutoff=300",
                          {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.far", "amount": 1}]}}],
@@ -398,7 +453,7 @@ def song():
         i = next(k for k, x in enumerate(f) if isinstance(x, str) and x.startswith("peak cutoff=11000"))
         f[i] = {"kind": "peak", "cutoff": 11000, "q": 0.7, "gain": {"value": "6dB", "mod": [{"src": "auto.dull", "amount": 1}]}}
     pump = {"type": "pump", "on": "kick", "depth": "-5dB", "attack": "2ms", "release": "180ms", "curve": 0.7}
-    return {
+    doc = {
         "about": "Chirpers - Escapement, track 3 by chirper-zero: STANDING ROOM. One click a bar between two walls; a wall is a number of sixteenths there and back, so a room is a rhythm: 3 + 4 a room in seven, 2 + 3 in five, 5 + 7 in twelve, and 3 + 5, which is eight and fits the bar, where the echoes stand. A tock keeps each room's time, not the bar's. The click is in every room all the time; the song opens and shuts their doors." + (" From v2 the click walks across each room a step a row (2 + 5, 3 + 4, 4 + 3, 5 + 2 in the corridor), and in standing room it stands." if any(len(w) > 1 for w in WALK.values()) else "") + (" From v3 the bass learns the room's three-three-two (a note for the click, one for each wall) and carries it out of the door; the dry click is panned to where it stands." if LEARN else "") + (" From v4 the walls close in between the stairwell and the hangar: eight rooms too small to count, which sing a rising scale." if PIPES_ON else "") + (" From v5 the click begins 163 m off across a square and is as late, as quiet and as dull as it is far; it walks in over the first sixteen bars and away over the last sixteen." if SQUARE else "") + " Generated by compose/chirpers11/src/chirpers11-t3.py.",
         "tempo": BPM,
         "ceiling": "-1dB",
@@ -420,6 +475,10 @@ def song():
             {"name": "chord", "patch": "sr-chord", "gain": "-22dB", "pan": 0.0, "fx": [pump], "sends": {"dub": "-3dB"}, "notes": part("chord", CHORD)},
         ],
     }
+    if SING:
+        doc["about"] = doc["about"].replace(" Generated by", " From v6 there is a pipe in each wall of standing room, tuned to that wall's note, and one where the click stands: the click and its echoes strike them, so the room sings the bass's line (D, F from the left, C from the right) and for one row the bass rests under it. Generated by")
+        assert "From v6" in doc["about"]
+    return doc
 
 
 def dump(doc):
@@ -457,6 +516,13 @@ if __name__ == "__main__":
             for nm, sc in (("coming", SECS[0]), ("going", SECS[-1])):
                 print(f"   across the square, {nm} (bars {sc[1]}-{sc[1] + sc[2]}): bar: sixteenths away (m), heard on sixteenth, dB, top dB: " + " ; ".join(
                     f"{b + 1}: {dist(b):.2f} ({dist(b) * ms / 1000 * SOUND:.0f} m) {2 + dist(b):.2f} {20 * math.log10(NEAR / (NEAR + dist(b))):+.1f} {-AIR * dist(b):+.1f}" for b in range(sc[1], sc[1] + sc[2], 3)))
+        if SING:
+            (b0, b1), (r0, r1) = sing_bars()
+            print(f"the walls sing from bar {b0} to bar {b1} (the bass rests from {r0} to {r1}): " + " ; ".join(
+                f"{nm}: {WALL_NOTE[nm]} {hz(WALL_NOTE[nm]):.1f} Hz, a pipe {1000 / hz(WALL_NOTE[nm]):.2f} ms there and back, giving back {-60 / hz(WALL_NOTE[nm]) / SING_RING:.2f} dB less each time" for nm in ("click", "left", "right")))
+            a, b = WALK[LEARN_ROOM][0]
+            print("   what strikes them in a bar (step: the pipe, dB at the pipe): " + " ".join(
+                [f"{CLICK_STEP}:D {FIRST['click']}"] + [f"{CLICK_STEP + t}:{'F+C' if sd == 'both' else 'F' if sd == 'left' else 'C'} {float(FIRST['click'][:-2]) + float(WALL[:-2]) * (2 * (t // (a + b)) - (1 if sd == 'both' else 0) ):+.0f}" for t, sd in echoes(a, b) if CLICK_STEP + t < 16]))
         if LEARN:
             print("the bass once it has learnt the room: " + " ".join(f"{st}:{p}" for st, p, n, v in learnt()) + f" ; from bar {next(b for b in range(BARS) if has_learnt(b))} to bar {max(b for b in range(BARS) if has_learnt(b) and plays('bass', b)) + 1}")
             print("the dry click's pan: " + " ".join(f"{p[0]}={p[1] * PAN:+.2f}" for p in stand_lane()))
