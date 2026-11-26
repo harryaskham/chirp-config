@@ -75,6 +75,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   the front over that stretch (their own sound 9 dB up by the end), so t2 -> t3 now hands Standing Room clicks
   that are arriving, not thinning. Above 5 kHz the stretch reads -34.9 -35.3 -37.1 -33.7 dB by quarter (v3
   -33.7 -35.8 -35.6 -32.2). Not re-rendered.
+- Wind Down v4 (10:39): its click has 6 dB less of its note (G6) and more of its click, for the whole song.
+  Its first eight bars, the lone click that t7 -> t8 is cut on, read -29.8 dB where they read -27.8 (it is at
+  the ceiling, so its fader could not give all of it back), and bars 9 to 16 read -14.7 for -16.2 (the drum has
+  more body round 72 Hz). The ending still sinks to G4; its last three seconds read -15.5 for -15.0. Not re-rendered.
 - Ring True v4 (09:33): bars 1 to 32 and the last 11 (174 to 184) are as they were, so both of its seams
   stand; between them the only new things after bar 116 are four single ringing strokes (bars 135, 143, 151, 173).
 
