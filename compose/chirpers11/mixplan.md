@@ -75,6 +75,9 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   the front over that stretch (their own sound 9 dB up by the end), so t2 -> t3 now hands Standing Room clicks
   that are arriving, not thinning. Above 5 kHz the stretch reads -34.9 -35.3 -37.1 -33.7 dB by quarter (v3
   -33.7 -35.8 -35.6 -32.2). Not re-rendered.
+- Least Common v5 (11:36): its first 26 bars are as they were (t1 -> t2 untouched). In its last six and a half
+  bars the returning sixteenths now come in from 12 dB down, not 24: above 5 kHz by quarter -34.3 -34.5 -36.1
+  -32.5 (v4 -34.9 -35.3 -37.1 -33.7). Small Change v4 (11:03): both its seams are as they were. Not re-rendered.
 - Wind Down v4 (10:39): its click has 6 dB less of its note (G6) and more of its click, for the whole song.
   Its first eight bars, the lone click that t7 -> t8 is cut on, read -29.8 dB where they read -27.8 (it is at
   the ceiling, so its fader could not give all of it back), and bars 9 to 16 read -14.7 for -16.2 (the drum has
