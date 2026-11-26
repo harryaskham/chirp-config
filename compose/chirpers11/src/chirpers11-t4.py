@@ -32,6 +32,23 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v9 (26 Nov), THE HAND IS EMPTY. Three more switches (`--without-empty`, `-blow`, `-long`; with them off it is v8
+byte for byte):
+  EMPTY  since v8 each struck thing drops its stick on the last stroke of its listening, and the stick bounces to
+         the one. But the hand went on playing: the thing's later strokes of that bar were struck through its own
+         bounces (the wood's sixteenth 14, the metal's 15, the string's 15, the skin's 14 and 16), by a stick that
+         was on the floor. They are left out now: once dropped, nothing more of that thing in the bar, and the
+         bounces are heard to the one alone.
+  BLOW   the air could not be dropped (v8: it is blown, not struck). Its own way of being let go too much: on the
+         last stroke of its listening (bar 84, D5) the breath is not taken off and the pipe overblows up its own
+         harmonics, a sixteenth each, to the one: D5, then D6, A6, D7 (the second, third and fourth), each a
+         little softer. In the same bar the skin's stick is bouncing: the two things let go in that section fall
+         and rise into the one together.
+  LONG   everything else rings a second or more when it is let go; the air's breath was 0.4 s at any ring. A
+         second, slower breath behind the first (it comes up with the ring as the first does, and is nothing
+         while the air is stopped) makes a let-go stroke of the air a breath that trails off over most of a
+         second (new patch `rt-sigh`: `rt-flue` and the second breath). Longer, not louder: 1.4 dB off its fader.
+
 v8 (26 Nov), two more switches (`--without-drop`, `-skin`; with them off it is v7 byte for byte):
   DROP   until now a thing was stopped or let go. Now the stick is let go too. In the last bar of its listening
          (the four bars each thing is heard alone at the top of its turn) a thing's last stroke that is at least a
@@ -118,7 +135,7 @@ ring at any bar is the straight line between them (`ring_at`). A ring r is a rin
 """
 import argparse
 import json
-from math import log10
+from math import log10, log2
 from pathlib import Path
 
 BPM = 125
@@ -186,9 +203,16 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True}
+BLOW = {'harmonics': (2, 3, 4), 'db': -4}   # v9: the harmonics of its pipe the air overblows through, a sixteenth each, after the last stroke of its listening; dB on each beside the one before.
+# Bench (blow.sh, blowread.py: the air alone from that stroke by sixteenth): at -2 dB a step the four read -18 -19 -18 -20 (the resonator gives a higher note more: its band is wider) and the bar's last beat stood 2 to 3 dB
+# OVER the one it runs into (-21): a rise that tops what it leads to. So -4 a step
+LONG = {'env': {'a': '120ms', 'd': '2s', 's': 0, 'r': '3s'}, 'db': -6, 'fader': -1.4}   # v9: the second breath: it is still coming up when the stroke ends (a sixteenth is 120 ms) and trails off after it; dB beside the first breath; dB on the air's fader.
+# Longer, not louder: with the second breath the air alone read 1.4 dB more where everything is let go (bars 121 to 124: -24.0 for -25.4) and put 0.9 dB on the mix from 450 to 900 Hz, where the air is all but the mix (2 dB under it) and
+# the song is already 5 dB over the album. So 1.4 dB off its fader.
+# Bench, one let-go stroke alone by 120 ms: with 900 ms to let go it read -15 -27 -45 -55 where v8 reads -15 -37 -57 -59: a quarter of a second, not a second (the level hangs from the envelope by 70 dB, so its first tenth is 7 dB). So 3 s
 DROP = {'share': 0.75, 'bounces': 8, 'room': 4, 'not': ('air',)}   # v8: each bounce's gap, and its level, as a share of the one before; how many are heard (the next would be the one); sixteenths before the one that the dropped stroke must leave; what is not struck.
-# Bench (drop.sh, dropread.py: the stroke alone with its bounces, by 60 ms to the one): the wood -27 -32 -34 -36 -37 -36 -40 -36 -34 -35; the weight -22 -29 -26 -31 -29 -32 -33 -34: each bounce is softer and they come faster, so the level holds and it ends as a buzz on the one.
+# Bench (drop.sh, dropread.py: the stroke alone with its bounces, by 60 ms to the one): the wood -27 -32 -34 -36 -37 -36 -40 -36 -34 -35; the weight -22 -29 -26 -31 -29 -32 -33 -34: each bounce is softer and they come faster: the wood's buzzes back up towards the one and the others' run out (v8's note said the level holds; it does not).
 # The air was dropped too at first, and its stroke by a track of its own read 5 dB under the same stroke on its own track (-23 for -18: the flue's pipe is still sounding from the stroke before, and a second track's pipe is cold): so not the air
 SKIN = {'feeds': ('skin',), 'feed': '-28dB', 'strings': ('C3', 'D3')}   # v8: what else two of the strings hear, and how much of it.
 # Bench (own.sh, ownread.py: the song with it less the song without, bars 117 and 118): with all five hearing the skin at -32 dB it woke B flat 2 most, then F2 (3 dB under), G2 (4), C3 (8), D3 (20): mostly more of the three that
@@ -260,10 +284,31 @@ def enters(thing):
     return PLATE['enters'] if thing == 'plate' else ENTERS[thing]
 
 
+def up(pitch, semis):
+    """A note name some semitones higher."""
+    names = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
+    n = names.index(pitch[:-1]) + 12 * int(pitch[-1]) + semis
+    return f'{names[n % 12]}{n // 12}'
+
+
+def blown():
+    """v9: (bar, sixteenth of the bar) of the stroke after which the air overblows: its last stroke in the last bar of its listening. None if it has none."""
+    pts = SHAPE['air']
+    if not (ON['blow'] and ON['listen'] and pts[0][1] == 0):
+        return None
+    bar = TOP[pts[0][0]] + LISTEN - 1
+    mine = [s % BAR for s, _, _ in strokes_of('air') if s // BAR == bar % 2 and s % BAR + len(BLOW['harmonics']) < BAR]
+    return (bar, mine[-1]) if mine else None
+
+
 def flue_patch():
     """rt-air with breath behind the puff: a second noise, half a second long, whose level the stroke's ring brings up."""
     air = PATCHES['rt-air']
     breath = {'type': 'noise', 'color': 'white', 'level': {'value': f"{-130 + FLUE['top']}dB", 'mod': [{'src': 'env.breath', 'amount': 70}, {'src': 'expr.ring', 'amount': round(60 / (FLUE['q'] - 0.7), 3)}]}}
+    if ON['long']:                                               # v9: the same breath again, slower: it trails off after the stroke
+        sigh = {'type': 'noise', 'color': 'white', 'level': {'value': f"{-130 + FLUE['top'] + LONG['db']}dB", 'mod': [{'src': 'env.sigh', 'amount': 70}, {'src': 'expr.ring', 'amount': round(60 / (FLUE['q'] - 0.7), 3)}]}}
+        return {'gain': air['gain'], 'about': "Ring True: the air, blown (v5), and its breath trailing off (v9). rt-air's puff of noise in a resonator tuned to the note; behind it a breath nearly half a second long, and behind that a slower one that goes on for a second after the stroke. The stroke's ring brings both up (60 dB from stopped to let go). The resonator's q goes to 40, not 120, so let go it is breath with a note in it and not a ping.",
+                'synth': {**air['synth'], 'layers': air['synth']['layers'] + [breath, sigh], 'env': {**air['synth']['env'], 'breath': FLUE['breath'], 'sigh': LONG['env']}}, 'play': air['play']}
     return {'gain': air['gain'], 'about': "Ring True: the air, blown (v5). rt-air's puff of noise in a resonator tuned to the note, and behind it a breath: a second noise nearly half a second long whose level the stroke's ring brings up (60 dB from stopped to let go). The resonator's q goes to 40, not 120, so let go it is breath with a note in it and not a ping.",
             'synth': {**air['synth'], 'layers': air['synth']['layers'] + [breath], 'env': {**air['synth']['env'], 'breath': FLUE['breath']}}, 'play': air['play']}
 
@@ -276,7 +321,7 @@ def remembered(thing, bar):
 
 def patch_of(thing):
     if thing == 'air' and ON['flue']:
-        return 'rt-flue'
+        return 'rt-sigh' if ON['long'] else 'rt-flue'            # v9: with its second breath it is another sound, under another name
     return 'rt-plate' if thing == 'plate' else ('rt-drum' if ON['note'] else 'rt-boom') if thing == 'weight' and ON['boom'] else PATCH[thing]
 
 
@@ -405,6 +450,8 @@ def build():
             r_bar = 1.0 if alone else ring_at(thing, bar)        # whatever sounds in a listening is let go altogether
             mine = [x for x in strokes_of(thing) if x[0] // BAR == bar % 2]
             for s, pitch, vel in strokes_of(thing):
+                if ON['empty'] and dropped(thing) and bar == dropped(thing)[0] and s // BAR == bar % 2 and s % BAR > dropped(thing)[1]:
+                    continue                                    # v9 EMPTY: its stick is on the floor
                 if s // BAR == bar % 2:
                     r = 1.0 if ((ON['fore'] and bar == foretaste(thing)) or bar == aftertaste(thing)) and s == mine[-1][0] else r_bar
                     n = stroke(thing, bar * 4 + (s % BAR) / 4, pitch, vel, r)
@@ -419,6 +466,12 @@ def build():
                         T[thing + '-room'].append({**n, 'gain': f'{round(own + 20 * log10(r), 2)}dB'})
                     elif thing + '-kept' in T and remembered(thing, bar):   # v5: stopped, and its hall still open
                         T[thing + '-kept'].append(dict(n))
+                    if thing == 'air' and blown() == (bar, s % BAR):        # v9 BLOW: the breath is not taken off: up the pipe's harmonics to the one
+                        for j, h in enumerate(BLOW['harmonics'], 1):
+                            m = {**n, 'at': n['at'] + j / 4, 'pitch': up(pitch, round(12 * log2(h))), 'gain': f"{round(float(n.get('gain', '0dB')[:-2]) + BLOW['db'] * j, 2)}dB"}
+                            T[thing].append(m)
+                            if thing + '-room' in T:
+                                T[thing + '-room'].append(dict(m))
     return T
 
 
@@ -433,7 +486,7 @@ def song(T, bars=BARS):
         'buses': {'room': {'fx': ['reverb kind=room decay=0.4s mix=1 predelay=6ms', 'hp cutoff=300']}},
         'master': {'fx': [{'type': 'eq', 'bands': ['hp cutoff=28']}]},
         'tracks': [track('weight', '-3dB'), track('wood', '-3dB', pan=-0.3, sends={'room': '-14dB'}), track('metal', '-5dB', pan=0.35, sends={'room': '-14dB'}),
-                   track('skin', '0dB', pan=0.15, fx=[hold(-10)], sends={'room': '-14dB'}), track('string', '-3dB', pan=-0.1), track('air', '2dB', pan=0.05, fx=[hold(-9)], sends={'room': '-12dB'})],
+                   track('skin', '0dB', pan=0.15, fx=[hold(-10)], sends={'room': '-14dB'}), track('string', '-3dB', pan=-0.1), track('air', f"{2 + LONG['fader']:g}dB" if ON['long'] and ON['flue'] else '2dB', pan=0.05, fx=[hold(-9)], sends={'room': '-12dB'})],
     }
     by_name = {t['name']: t for t in doc['tracks']}
     if ON['boom'] and ON['note']:
@@ -442,7 +495,7 @@ def song(T, bars=BARS):
         doc['patches'] = {**doc['patches'], 'rt-boom': NEW['rt-boom']}
         by_name['weight']['gain'] = BOOM['gain']
     if ON['flue']:
-        doc['patches'] = {**doc['patches'], 'rt-flue': flue_patch()}
+        doc['patches'] = {**doc['patches'], patch_of('air'): flue_patch()}
     if ON['plate'] and 'plate' in T:
         doc['patches'] = {**doc['patches'], 'rt-plate': NEW['rt-plate']}
         doc['tracks'].append(track('plate', PLATE['gain'], pan=PLATE['pan'], sends={'room': '-16dB'}))
@@ -506,7 +559,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the twenty-one that are on: all off is v1; the last sixteen off is v2; the last twelve off is v3; the last nine off is v4; the last six off is v5; the last five off is v6; the last two off is v7)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the twenty-four that are on: all off is v1; the last nineteen off is v2; the last fifteen off is v3; the last twelve off is v4; the last nine off is v5; the last eight off is v6; the last five off is v7; the last three off is v8)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -520,6 +573,12 @@ if __name__ == '__main__':
             print(f"    the strings nobody plays ({' '.join(n for n, _, _ in SYMPATHY['strings'])}): let go across bars {TOP[6] + 1}-{TOP[7]}, open to bar {TOP[8]}, stopped by bar {TOP[8] + QUICK}, let go in bar {BARS}" + (f"; let go again while the wood closes, bars {TOP[11] + 1}-{TOP[12]}" if ON['close'] else '') + ('; they hear the string as well as the wood and the air' if ON['own'] else '') + (f"; {' and '.join(SKIN['strings'])} hear the skin too" if ON['skin'] else ''))
         if ON['drop']:
             print('    the stick is let go too: ' + ', '.join(f'the {k} in bar {dropped(k)[0] + 1} on sixteenth {dropped(k)[1] + 1} ({(BAR - dropped(k)[1]) * 60000 / BPM / 4:.0f} ms to the one)' for k in things() if dropped(k)) + f"; {DROP['bounces']} bounces, each {DROP['share']} of the one before")
+        if ON['empty'] and ON['drop']:
+            print('    the hand is empty: once its stick is dropped a thing plays nothing more in that bar')
+        if blown():
+            print(f"    the air overblows: after its stroke in bar {blown()[0] + 1} on sixteenth {blown()[1] + 1}, harmonics {' '.join(str(h) for h in BLOW['harmonics'])} of its pipe, a sixteenth each, to the one")
+        if ON['long'] and ON['flue']:
+            print("    the air's breath trails off: a second, slower breath behind the first")
         print(f'{BARS} bars, {BARS * sec:.1f} s; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in build().items()))
     else:
         a.out.write_text(dump(bench() if a.bench else song(build())))
