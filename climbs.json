@@ -8597,7 +8597,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 75,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -8619,7 +8619,8 @@
         "at": "2026-11-24T14:39:26Z",
         "who": "chirper-zero"
       },
-      "chirper-zero": ""
+      "chirper-zero": "",
+      "paused_by": "focus"
     },
     {
       "id": "chirpers10-t2",
@@ -8637,7 +8638,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 47,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -8658,7 +8659,8 @@
       "last": {
         "at": "2026-11-24T20:39:39Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers10-t3",
@@ -8675,7 +8677,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 47,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -8696,7 +8698,8 @@
       "last": {
         "at": "2026-11-24T19:16:15Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers10-t4",
@@ -8752,7 +8755,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 43,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -8773,7 +8776,8 @@
       "last": {
         "at": "2026-11-24T23:48:48Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers10-t6",
@@ -8791,7 +8795,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 43,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -8813,7 +8817,8 @@
         "at": "2026-11-24T22:51:09Z",
         "who": "chirper-zero"
       },
-      "status_note": "chirper-zero, 16 Nov 20:22: on hold for Harry's ear. Seven versions today (v1 to v7), none heard, one card open (cc-machine). I said in v7's note I would not add to it until he has heard it; the draw has offered it three times since (18:21, 19:21, 20:21). Resume on any answer or note of his on it, or if a fault turns up"
+      "status_note": "chirper-zero, 16 Nov 20:22: on hold for Harry's ear. Seven versions today (v1 to v7), none heard, one card open (cc-machine). I said in v7's note I would not add to it until he has heard it; the draw has offered it three times since (18:21, 19:21, 20:21). Resume on any answer or note of his on it, or if a fault turns up",
+      "paused_by": "focus"
     },
     {
       "id": "chirpers10-t7",
@@ -8831,7 +8836,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 42,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -8852,7 +8857,8 @@
       "last": {
         "at": "2026-11-25T00:27:24Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers10-t8",
@@ -8869,7 +8875,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 42,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -8890,7 +8896,8 @@
       "last": {
         "at": "2026-11-24T16:03:03Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers10-t9",
@@ -8908,7 +8915,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 39,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -8929,7 +8936,8 @@
       "last": {
         "at": "2026-11-24T22:15:03Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers10-t10",
@@ -8947,7 +8955,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 38,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -8968,7 +8976,8 @@
       "last": {
         "at": "2026-11-24T17:39:11Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers10-t11",
@@ -8986,7 +8995,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 39,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -9007,7 +9016,8 @@
       "last": {
         "at": "2026-11-24T16:47:49Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers10-t12",
@@ -9025,7 +9035,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 35,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -9046,7 +9056,8 @@
       "last": {
         "at": "2026-11-24T20:09:32Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers10-t13",
@@ -9064,7 +9075,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 37,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -9085,7 +9096,8 @@
       "last": {
         "at": "2026-11-24T19:43:18Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers10-t14",
@@ -9102,7 +9114,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 33,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -9123,7 +9135,8 @@
       "last": {
         "at": "2026-11-24T15:23:07Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers10-t15",
@@ -9140,7 +9153,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 26,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -9161,7 +9174,8 @@
       "last": {
         "at": "2026-11-24T18:32:00Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers10-t16",
@@ -9178,7 +9192,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 33,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -9199,7 +9213,8 @@
       "last": {
         "at": "2026-11-24T21:37:35Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers10-t17",
@@ -9217,7 +9232,7 @@
       },
       "passes": 1,
       "enabled": true,
-      "status": "active",
+      "status": "paused",
       "rounds": 29,
       "priority": 1.0,
       "genre": "polymetric djent",
@@ -9238,7 +9253,8 @@
       "last": {
         "at": "2026-11-24T23:25:44Z",
         "who": "chirper-zero"
-      }
+      },
+      "paused_by": "focus"
     },
     {
       "id": "chirpers11-t1",
@@ -9513,5 +9529,5 @@
       }
     }
   ],
-  "focus": "Common Time"
+  "focus": "Escapement"
 }
