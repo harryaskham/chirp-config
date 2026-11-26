@@ -94,6 +94,8 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Least Common v9 (19:34): both ends are v8's: bars 1 to 4 read -17.2 dBFS, the last four bars -17.0 -17.0
+  -16.9 -16.6 and the two seconds after home -19.4. What changed is inside (bars 158 to 204: the clap and the hat).
 - Small Change v8 (18:59): the small change in bar 16, under Hearing Things' last bar, is no longer a roll that
   grows: it is a seed on beat three and eight coins that come faster and softer to the one (a fifth up on the
   left, a fourth down on the right, by turns). In the finished song that bar's beat four reads -18 dBFS for
