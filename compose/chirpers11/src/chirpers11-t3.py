@@ -86,6 +86,27 @@ there from what is above it). In the fifth row the bass comes back in under its 
 takes it out of the door: the pipes are shut with the walls.
 The pipes hear the click's echoes only, not the tock's (the walls as the click alone finds them: `hear-l`,
 `hear-r`, which are not heard themselves), because the bass learnt the click's line.
+
+v7 (26 Nov): IN TIME ALL ALONG (C11T3_PASS=0 takes it out: v6). Six rounds of rooms: walls, pipes, a square the
+click walks across. Nothing in the song has MOVED PAST. Now, outside, something does: a small bell on a thing that
+goes by on a straight line from the left to the right, a sixteenth of sound (41 m) away at its closest, at one
+fifth of the speed of sound. It strikes straight eighths, at the song's tempo, on one note, F: it is in time
+and in tune all along. That is not what is heard. Each stroke is heard when its sound has crossed the distance,
+and the distance is closing: the strokes pile up. While it is coming, every stroke arrives 4/5 of an eighth
+after the last: FIVE STROKES AGAINST THE BEAT'S FOUR, and its note is heard 5/4 too high: A. When it has gone
+by, the distance is opening: every stroke arrives 6/5 of an eighth after the last, FIVE AGAINST SIX, and its
+note is 5/6 of itself: D. Tempo and pitch are one thing, as they are on a record (Give or Take), and here it is
+distance that turns the platter. So what goes past plays a cadence nobody wrote: A, the fifth of the key, falls
+through F (its own note, heard only at the instant it is closest: the first beat of bar 11, a sixteenth late,
+because it is a sixteenth away) to D, the key note, as the door of the corridor opens. Its loudness is its
+distance (1/r) and its side is its bearing. One speed does all of it: c/5 gives 5:4, 5:6, a major third up, a
+minor third down, and a fifth between.
+(The bell is tuned 15 cents sharp of F so that the A and the D it is heard as are the song's own within 2 cents.)
+With the bell goes a CLACK, the click's own rim with its bottom taken off, on every stroke: what carries the bell.
+BENCHED (seed 0; v6 that day 96.14): the bell alone at -12 dB 95.51 (it was 7.6 dB over everything else at its
+closest, and the scorer heard a new section at 18 s and a duller song); at -20 dB 95.73; twice as far off (82 m)
+95.51; a second pass in "the door", the other way, 95.38; the bell at -20 dB with the clack 95.94. The last is
+what is here: it costs 0.20 on both seeds, and it is kept because the song had nothing that moved.
 """
 import json
 import math
@@ -132,6 +153,19 @@ SING_RING = 0.45               # seconds one of those pipes rings (to -60 dB): a
 SING_LEVEL = float(os.environ.get("C11T3_SING_LEVEL", "-6"))   # dB: their door when it is open
 SING_PAN = 0.6                 # how far to its side a wall's pipe is heard (the click's is where the click stands)
 SING_DAMP = ["hp cutoff=40", "lp cutoff=3000"]   # what a pipe's own wall takes
+PASS = os.environ.get("C11T3_PASS", "1") != "0" and SING   # v7: in time all along (what goes past)
+PASS_V = 1 / 5                 # its speed, as a part of sound's (69 m/s): 5 strokes against 4 as it comes, 5 against 6 as it goes
+PASS_NEAR = float(os.environ.get("C11T3_PASS_NEAR", "1"))   # sixteenths of sound it is away at its closest (41 m)
+PASS_EVERY = 2                 # sixteenths between its strokes, where it is: straight eighths
+PASS_NOTE = "F5"               # its own note: heard 5/4 of it coming (A5, the click's) and 5/6 of it going (D5, the tock's)
+PASS_SHARP = 0.15              # semitones the bell is sharp of that note, so that the two notes it is heard as are in tune
+PASS_IN = dict((nm, tuple(float(q) for q in v.split("/"))) for nm, v in (x.split("=") for x in os.environ.get("C11T3_PASS_IN", "outside=10/4/16/1").split(",")))
+#                                a section: the bar of it on whose first beat the thing is closest / the bars of it between which it is heard / 1 left to right, -1 right to left
+PASS_FADE = 2                  # bars at each end in which it comes out of nothing and goes back into it ...
+PASS_FADE_DB = -30             # ... from this far under its level there
+PASS_GAIN = os.environ.get("C11T3_PASS_GAIN", "-20dB")   # the bell's level when it is closest
+PASS_TICK = os.environ.get("C11T3_PASS_TICK", "-26dB")   # ... and the level of the clack that carries the bell ("" for the bell alone)
+PASS_PAN = 0.9                 # how far to the side it is heard when it is far along its line
 STEP_OPEN = 1                  # bars the door of the next place takes to open as the click steps
 STEP_SHUT = 2                  # bars the door of the place behind takes to shut
 WALL = "-3dB"                  # what a wall gives back
@@ -475,6 +509,23 @@ def song():
             {"name": "chord", "patch": "sr-chord", "gain": "-22dB", "pan": 0.0, "fx": [pump], "sends": {"dub": "-3dB"}, "notes": part("chord", CHORD)},
         ],
     }
+    if PASS and passes():
+        PATCHES["sr-pass"] = {"about": "Standing Room's bell on the thing that goes past (chirper-zero, 26 Nov, v7): a small dry bell, a sine with its octave and twelfth, 120 ms, whose pitch is given by how fast the thing is closing (auto.dop, semitones). It is in no room.",
+                              "play": {"vel_sens": 0.3},
+                              "synth": {"layers": ["sine", "sine ratio=2 level=-9dB", "sine ratio=3 level=-15dB"], "pitch": {"value": 0, "mod": [{"src": "auto.dop", "amount": 1}]},
+                                        "amp": {"a": "0.5ms", "d": "120ms", "s": 0, "r": "40ms", "curve": 3}}}
+        doc["tracks"].append({"name": "pass", "patch": "sr-pass", "gain": PASS_GAIN, "pan": {"value": 0, "mod": [{"src": "auto.side", "amount": PASS_PAN}]},
+                              "auto": {"dop": {"points": pass_lane(2)}, "near": {"points": pass_lane(3)}, "side": {"points": pass_lane(4)}},
+                              "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.near", "amount": 1}]}}],
+                              "notes": [note(t * STEP, PASS_NOTE, 1 * STEP, 0.8) for t, *_ in passes()]})
+        if PASS_TICK:
+            PATCHES["sr-pass-tick"] = {"about": "Standing Room's clack, of the thing that goes past (chirper-zero, 26 Nov, v7): the click's own rim and breath, shorter and with everything under 3 kHz taken off, on every stroke of the bell and at the bell's distance and side.",
+                                       "play": {"vel_sens": 0.3},
+                                       "synth": {"layers": [{"type": "machine", "machine": {"part": "rim", "decay": "30ms"}}, "white level=-3dB"], "filters": ["hp cutoff=3000", "peak cutoff=11000 q=0.7 gain=6dB"],
+                                                 "pitch": {"value": 0, "mod": [{"src": "auto.dop", "amount": 1}]}, "amp": {"a": "0.1ms", "d": "25ms", "s": 0, "r": "15ms", "curve": 4}}}
+            doc["tracks"].append({**doc["tracks"][-1], "name": "pass-tick", "patch": "sr-pass-tick", "gain": PASS_TICK})
+        doc["about"] = doc["about"].replace(" Generated by", " From v7 something goes past outside, a sixteenth of sound away at a fifth of the speed of sound, striking straight eighths on one note: its strokes are heard five against four and a major third high as it comes, five against six and a minor third low when it has gone (the Doppler effect, of a rhythm and of a pitch at once). Generated by")
+        assert "From v7" in doc["about"]
     if SING:
         doc["about"] = doc["about"].replace(" Generated by", " From v6 there is a pipe in each wall of standing room, tuned to that wall's note, and one where the click stands: the click and its echoes strike them, so the room sings the bass's line (D, F from the left, C from the right) and for one row the bass rests under it. Generated by")
         assert "From v6" in doc["about"]
@@ -490,6 +541,32 @@ def dump(doc):
         else:
             lines.append(f"{k}: {json.dumps(v)}")
     return "\n".join(lines) + "\n"
+
+
+def passes():
+    """Every stroke of what goes past, as it is heard: (the sixteenth it is heard on, the sixteenth it was struck on, semitones it is
+    heard sharp by, dB from its level at its closest, its side from -1 to 1)."""
+    out = []
+    for name, (at, lo, hi, way) in PASS_IN.items() if PASS else ():
+        sec = next((x for x in SECS if x[0] == name), None)
+        if sec is None:
+            continue
+        s0, t_lo, t_hi = (sec[1] + at) * 16, (sec[1] + lo) * 16, (sec[1] + hi) * 16
+        for k in range(-600, 600):
+            s = s0 + k * PASS_EVERY
+            x = PASS_V * (s - s0)                # sixteenths of sound along its line from where it is closest
+            r = math.hypot(PASS_NEAR, x)         # ... and from here
+            t = s + r                            # a sixteenth of sound takes a sixteenth
+            if t_lo <= t < t_hi:
+                fade = PASS_FADE_DB * max(0.0, 1 - (t - t_lo) / (PASS_FADE * 16), 1 - (t_hi - t) / (PASS_FADE * 16))
+                out.append((t, s, -12 * math.log2(1 + PASS_V * x / r) + PASS_SHARP, 20 * math.log10(PASS_NEAR / r) + fade, way * x / r))
+    return sorted(out)
+
+
+def pass_lane(i):
+    """A lane through one of those at every stroke: 2 the note, 3 the level, 4 the side. Between strokes it goes straight, as the thing does."""
+    p = passes()
+    return [["0b", round(p[0][i], 3)]] + [[f"{t * STEP:.4f}b", round(q[i], 3)] for q in p for t in [q[0]]] + [[f"{TOTAL:g}b", round(p[-1][i], 3)]]
 
 
 def echoes(a, b, n=16):
@@ -523,6 +600,16 @@ if __name__ == "__main__":
             a, b = WALK[LEARN_ROOM][0]
             print("   what strikes them in a bar (step: the pipe, dB at the pipe): " + " ".join(
                 [f"{CLICK_STEP}:D {FIRST['click']}"] + [f"{CLICK_STEP + t}:{'F+C' if sd == 'both' else 'F' if sd == 'left' else 'C'} {float(FIRST['click'][:-2]) + float(WALL[:-2]) * (2 * (t // (a + b)) - (1 if sd == 'both' else 0) ):+.0f}" for t, sd in echoes(a, b) if CLICK_STEP + t < 16]))
+        if PASS and passes():
+            p, ms = passes(), 60000 / BPM / 4
+            for name, (at, lo, hi, way) in PASS_IN.items():
+                b0 = next(x[1] for x in SECS if x[0] == name)
+                q = [x for x in p if (b0 + lo) * 16 <= x[0] < (b0 + hi) * 16]
+                gap = lambda a, b: (b[0] - a[0]) / PASS_EVERY
+                print(f"what goes past in {name}: {'left to right' if way > 0 else 'right to left'}, at {PASS_V * SOUND:.1f} m/s, {PASS_NEAR * ms / 1000 * SOUND:.0f} m away at its closest, which is on the first beat of bar {b0 + at + 1:g} "
+                      f"and heard on sixteenth {((b0 + at) * 16 + PASS_NEAR) % 16:g} of it ; {len(q)} strokes heard from bar {q[0][0] / 16 + 1:.2f} to bar {q[-1][0] / 16 + 1:.2f}")
+                print(f"   its first two strokes are {gap(q[0], q[1]):.4f} of an eighth apart, heard {q[0][2]:+.2f} semitones from {PASS_NOTE} ({q[0][3]:+.1f} dB, side {q[0][4]:+.2f}) ; "
+                      f"its last two {gap(q[-2], q[-1]):.4f}, {q[-1][2]:+.2f} ({q[-1][3]:+.1f} dB, side {q[-1][4]:+.2f}) ; closest: " + " ".join(f"[{x[0] / 16 + 1:.3f}: {x[2]:+.2f} st {x[3]:+.1f} dB {x[4]:+.2f}]" for x in q if abs(x[1] - (b0 + at) * 16) <= 2 * PASS_EVERY))
         if LEARN:
             print("the bass once it has learnt the room: " + " ".join(f"{st}:{p}" for st, p, n, v in learnt()) + f" ; from bar {next(b for b in range(BARS) if has_learnt(b))} to bar {max(b for b in range(BARS) if has_learnt(b) and plays('bass', b)) + 1}")
             print("the dry click's pan: " + " ".join(f"{p[0]}={p[1] * PAN:+.2f}" for p in stand_lane()))
