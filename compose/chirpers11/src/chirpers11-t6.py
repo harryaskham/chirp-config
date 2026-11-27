@@ -58,7 +58,24 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True}
+# ---- v14 (27 Nov): THE HAT RINGS ON THE LARGEST DEBT. One more switch (`--without-let`; off is v13 byte for byte).
+# Since v8 the hat is 'let ring' where what one purse pays is what another owes (MEET: 84 strokes, in both
+# purses and three purses). v12 found that it never rang: sc-open is a second stroke on the other side, 140 ms
+# long. v12 and v13 gave the song a hat that does ring (sc-rung) and a rule for a second hat (it needs a band or
+# a tail, not a side). Now:
+#   LET      where the debt the hat meets is another purse's LARGEST (the largest amount it cannot make: 5 for
+#            threes and fours, 7 for threes and fives: the number the bass already marks with its low note)
+#            the hat really rings: sc-rung, three sixteenths and stopped. In both purses that is every one of
+#            the sixteen: sixteenth 5 in the first purse's bars, 7 in the second's, bar about. In three
+#            purses it is the same two places: 5 in the first purse's bars, 7 in the second's, and both in
+#            the third's (eighteen of the sixty-eight); the other fifty stay strokes. So the figure learnt
+#            in bars 65 to 80 is the one that comes back at the peak, and the ring is one rule in four
+#            sections: a meeting off the beat (the purse's own two coins in v12; another purse's largest
+#            debt here). The ring starts where the old stroke stood: 6 dB under the rung track's other
+#            strokes (first built without that: the stroke itself came out 6 dB over the open hat it
+#            replaced, which was not the change that was meant).
+LET = {'db': -6}                            # v14: dB on a ring of LET (the rung hat's stroke alone reads 5.6 dB over the open hat's it replaces)
 # ---- v13 (27 Nov): THE OTHER CURRENCY HAS ITS OWN COIN. Two more switches, each `--without-…` (with them off it is
 # v12 byte for byte). Since v9 home is also paid in another currency (three of its units to two sixteenths) and
 # a second hat ticks what that purse can pay where it falls between the sixteenths. It was the first hat's own
@@ -459,7 +476,10 @@ def build():
                     if bass or n_coins == 1:                     # before the bass comes, only the two coins themselves
                         T['hat'].append({'at': bar * 4 + (at16 + s) % BAR / 4, 'len': 0.1, 'pitch': 'A#4', 'vel': round(.95 - .13 * (n_coins - 1), 2)})
                         if 'open' in T and s in others and (at16 + s) % 4:   # v8 MEET: it falls with one of the other purses' debts
-                            T['open'].append({**T['hat'][-1], 'len': MEET['len']})
+                            if ON['let'] and s in {frobenius(*purses()[k]) for k in set(pairs) if purses()[k] != pq}:   # v14 LET: the debt is another purse's largest: it rings
+                                T.setdefault('rung', []).append({**T['hat'][-1], 'len': RUNG['len'], 'gain': f"{LET['db']}dB"})
+                            else:
+                                T['open'].append({**T['hat'][-1], 'len': MEET['len']})
                         elif ON['rings'] and name in RINGS and bar - i * SEC >= SEC // 2 and (bar - i * SEC) % every == 0 and s == sum(pq) and (at16 + s) % 4:   # v12 RINGS: the sum, off the beat
                             T.setdefault('rung', []).append({**T['hat'][-1], 'len': RUNG['len']})
     if ON['seven'] and ON['exchange']:
@@ -580,7 +600,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v12, the last four v11, the last six v10, the last nine v9, the last twelve v8, the last fourteen v7, the last sixteen v6, the last twenty v5, the last twenty-one v4, the last twenty-four v3, the last twenty-eight v2, all thirty-one v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last one off is v13, the last three v12, the last five v11, the last seven v10, the last ten v9, the last thirteen v8, the last fifteen v7, the last seventeen v6, the last twenty-one v5, the last twenty-two v4, the last twenty-five v3, the last twenty-nine v2, all thirty-two v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -626,6 +646,9 @@ if __name__ == '__main__':
                 print(f"    the drum gives beat {(sct[3] + sum(purses()[sct[1][0]])) // 4 + 1} to the purse in the second half of {sct[0]}, where {' and '.join(str(c) for c in purses()[sct[1][0]])} make {sum(purses()[sct[1][0]])}: bars " + ' '.join(str(b + 1) for b in range(k * SEC + SEC // 2, (k + 1) * SEC, sct[2])))
         if ON['meet']:
             print('    the hat is let ring where it meets one of the other purses\' debts in the bass')
+            if ON['let'] and ON['owed'] and ON['hat']:
+                met = [n for n in build().get('rung', []) if not any(i * SEC + SEC // 2 <= n['at'] // 4 < (i + 1) * SEC for i, sec in enumerate(SECTIONS) if sec[0] in RINGS and ON['rings'])]
+                print("    and really rings where that debt is the other purse's largest: " + '; '.join(f"{sec[0]}: {len([n for n in met if i * SEC <= n['at'] // 4 < (i + 1) * SEC])} strokes, sixteenths {' '.join(str(x) for x in sorted({round(n['at'] % 4 * 4) for n in met if i * SEC <= n['at'] // 4 < (i + 1) * SEC}))}" for i, sec in enumerate(SECTIONS) if any(i * SEC <= n['at'] // 4 < (i + 1) * SEC for n in met)))
         if ON['owed']:
             print(f'    where purses share a section the bass also plays what the others cannot pay, on {OWED}: ' + '; '.join(f"{name}: " + ', '.join(f"{k} {' '.join(str(s) for s in sorted(set(debts(*purses()[k])) | {s for j in pairs for s in debts(*purses()[j])}) if s % 4)}" for k in pairs) for name, pairs, *_ in SECTIONS if len(pairs) > 1))
         T = build()
