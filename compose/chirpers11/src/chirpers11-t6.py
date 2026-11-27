@@ -58,7 +58,21 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True}
+# ---- v16 (27 Nov): THE BASS STANDS ON ITS SEED'S KEY NOTE. Two more switches (`--without-root`, `-follow`; both
+# off is v15 byte for byte). The rule at the top of this file says it: the seed and the first four coins spent on it
+# are five notes a fifth apart, and from B flat those are G minor's five. Their key note is three coins on from the
+# seed (B flat, F, C, G). The bass has stood on that G for every seed: but the form's seeds are also E flat and F,
+# whose five notes are C minor's and D minor's, and under them the bass was still on G.
+#   ROOT     where a section has ONE seed the bass stands three coins on from it: 'off the beat' (seed E flat) on
+#            C2, 'off the beat, up' (seed F) on D2, and home (seed B flat) on G2 as ever: the song's last third is
+#            the fourth, the fifth and home (iv, v, i), where it was G for six minutes. The whole line moves:
+#            its largest debt (a tone under) and what the other purses owe (the seed's own note) with it.
+#   FOLLOW   in 'the drum again' (seeds E flat and F by turns, a seed every second bar) the bass follows each seed:
+#            two bars on C2, two on D2, eight times; it ends on D and the peak ('three purses') begins on G.
+# The bass has a fundamental here (sc-debt), so C2 and D2 are 65.4 and 73.4 Hz: between the drum's two partials (49
+# and 98 Hz), where this song has always been short (71 Hz: 6.7 dB under the album: nothing was ever there).
+STANDS = {'home': 'Bb4', 'follow': ('the drum again',)}   # v16: the seed whose key note the bass's written line is on; the sections where the bass follows seeds that change
 # ---- v15 (27 Nov): THE BASS IS HEARD COMING. Two more switches (`--without-bare`, `-octave`; both off is v14 byte
 # for byte). The third section is called 'the bass', and its entrance is the song's weakest boundary (v14: it
 # sits on the scorer's highest cut, and one seed lost it to a change sixty bars away). Two reasons, both read:
@@ -421,6 +435,29 @@ def hand():
     return {'points': pts + [[f'{BARS * 4}b', -60]], 'curve': 0}
 
 
+NAMES = ('C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B')
+
+
+def step_of(pitch):
+    """v16: a note name's semitone above C (sharps read as the flat a step up)."""
+    return NAMES.index(pitch[:-1]) if pitch[:-1] in NAMES else NAMES.index(pitch[0]) + 1
+
+
+def moved(pitch, semis):
+    """v16: a note name moved by semitones (flats for the black keys, as the seeds are written)."""
+    n = step_of(pitch) + 12 * int(pitch[-1]) + semis
+    return f'{NAMES[n % 12]}{n // 12}'
+
+
+def stands(name, notes, every, k):
+    """v16 ROOT, FOLLOW: semitones the bass's line moves in bar k of a section: down to the key note of the seed that
+    bar answers (three coins on from it), from the key note of the seed it was written under."""
+    if not (ON['root'] and len(notes) == 1 or ON['follow'] and name in STANDS['follow']):
+        return 0
+    up = (step_of(notes[k // every % len(notes)]) - step_of(STANDS['home'])) % 12
+    return up - 12 if up else 0
+
+
 def build():
     T = {'kick': [], 'bass': [], 'hat': [], **{f'seed-{k}': [] for k in purses()}, **({'seed-z': []} if ON['zeno'] and ON['roll'] else {}), **({'open': []} if ON['meet'] and ON['owed'] and ON['hat'] else {}), **{f'long-{k}': [] for k in purses()}}
     if (ON['rate'] or (ON['count'] and ON['herald'])) and ON['exchange'] and ON['hat']:
@@ -482,6 +519,7 @@ def build():
                     T['kick'].append({'at': bar * 4 + beat, 'len': 0.5, 'pitch': 'G1', 'vel': .95 if beat == 0 else .88})
             pq = purses()[pairs[(bar - i * SEC) % len(pairs)]]  # the purse whose turn this bar is
             others = []
+            mark = len(T['bass'])
             if bass and ON['debts']:
                 for s in debts(*pq):
                     if ON['abroad'] and ON['exchange'] and name == EXCHANGE['section'] and (bar - i * SEC) % every == 0 and (s * EXCHANGE['per']) % 1 == 0 and coins_for(round(s * EXCHANGE['per']), *EXCHANGE['coins']):
@@ -497,6 +535,9 @@ def build():
             elif bass:
                 for off, ln, p in ((2, 1.5, 'G2'), (7, 1, 'G2'), (10, 1.5, 'F2' if bar % 4 == 3 else 'G2')):
                     T['bass'].append({'at': bar * 4 + off / 4, 'len': ln / 4, 'pitch': p, 'vel': .85})
+            if stands(name, notes, every, bar - i * SEC):       # v16 ROOT, FOLLOW: this bar's bass on its seed's key note
+                for x in T['bass'][mark:]:
+                    x['pitch'] = moved(x['pitch'], stands(name, notes, every, bar - i * SEC))
             if drum and ON['hat']:
                 for s, n_coins in coins(*pq).items():
                     if bass or n_coins == 1:                     # before the bass comes, only the two coins themselves
@@ -628,7 +669,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v14, the last three v13, the last five v12, the last seven v11, the last nine v10, the last twelve v9, the last fifteen v8, the last seventeen v7, the last nineteen v6, the last twenty-three v5, the last twenty-four v4, the last twenty-seven v3, the last thirty-one v2, all thirty-four v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v15, the last four v14, the last five v13, the last seven v12, the last nine v11, the last eleven v10, the last fourteen v9, the last seventeen v8, the last nineteen v7, the last twenty-one v6, the last twenty-five v5, the last twenty-six v4, the last twenty-nine v3, the last thirty-three v2, all thirty-six v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -684,6 +725,10 @@ if __name__ == '__main__':
             print('    the bar before the bass comes, the drum waits: ' + ', '.join(f'bar {(i + 1) * SEC}' for i, sec in enumerate(SECTIONS[:-1]) if SECTIONS[i + 1][6] and not sec[6] and sec[5]))
         if ON['octave']:
             print("    the bass has its octave: sc-debt, the second harmonic 9 dB under the note")
+        if ON['root']:
+            print("    where a section has one seed the bass stands on that seed's key note, three coins on: " + ', '.join(f"{sec[0]} (seed {sec[4][0]}) on {moved('G2', stands(sec[0], sec[4], sec[2], 0))}" for sec in SECTIONS if sec[6] and len(sec[4]) == 1 and not (ON['follow'] and sec[0] in STANDS['follow'])))
+        if ON['follow']:
+            print('    where the seeds change the bass follows each: ' + '; '.join(f"{sec[0]}: " + ', '.join(f"bars {i * SEC + k + 1}-{i * SEC + k + sec[2]} {moved('G2', stands(sec[0], sec[4], sec[2], k))}" for k in range(0, SEC, sec[2])) for i, sec in enumerate(SECTIONS) if sec[6] and sec[0] in STANDS['follow']))
         print(f'{BARS} bars, {BARS * sec:.1f} s; written notes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items() if v or not k.startswith('long-')))
     else:
         a.out.write_text(dump(song()))
