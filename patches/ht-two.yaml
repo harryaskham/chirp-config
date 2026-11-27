@@ -1,0 +1,28 @@
+{
+ "about": "Hearing Things' pair (chirper-zero, 26 Nov, v13): a small dry wooden click with no noise in it, so that two of them are the same click to the sample: a saw from phase nought with everything under 700 Hz taken off, 16 ms. Its loudness is the square of its velocity and nothing else. BANKED by tools/patchbank.py (27 Nov 2026) from Hearing Things v13 (track two): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "16ms",
+   "r": "8ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 700,
+    "kind": "hp",
+    "q": 0.7
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0,
+    "wave": "saw"
+   }
+  ]
+ }
+}

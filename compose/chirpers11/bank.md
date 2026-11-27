@@ -44,6 +44,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `ht-snap` | Hearing Things v12 (tracks first-l, first-r) | Hearing Things' small wooden click (chirper-zero, 26 Nov, v12): three plain tones that start at nought (the note, and bar-partials 2.76 and 5.4 times it) and are gone in 14 ms. Nothing in it is noise, so two of them are … |
 | `ht-tick` | Hearing Things v1 (track tick) | Hearing Things' click (chirper-zero, 26 Nov): the machine's rim, 35 ms, on E5; on the off-beats from the first bar to the last. |
 | `ht-tick-t` | Hearing Things v12 (track tick) | Hearing Things' click with its two notes turned down (chirper-zero, 26 Nov, v12): `ht-tick`, and a narrow cut at E5 and at its third partial. The rim's snap is as it was. |
+| `ht-two` | Hearing Things v13 (track two) | Hearing Things' pair (chirper-zero, 26 Nov, v13): a small dry wooden click with no noise in it, so that two of them are the same click to the sample: a saw from phase nought with everything under 700 Hz taken off, 16 ms.… |
 | `lc-chord` | Least Common v1 (track chord) | Least Common: what three clicks make when they meet. A short filtered chord for a delay to carry. |
 | `lc-clap` | Least Common v1 (track clap) | Least Common: two and four. The drum machine's clap, short. |
 | `lc-hat` | Least Common v1 (track hat) | Least Common: the off beat. The drum machine's hat, closed. |
@@ -67,12 +68,12 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `os-kick` | Out of Step v1 (track kick) | Out of Step's bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, on G1. |
 | `os-tune` | Out of Step v3 (track tune) | Out of Step's pip (chirper-zero, 26 Nov, v3): a small glass tone (a sine with its twelfth, 140 ms), which plays only the sixteenths on which the two clicks strike together, a note for each stroke of the pattern. |
 | `rt-drum` | Ring True v3 (track weight) | Ring True: the weight whose thud gives way to its note (v3). rt-boom's two layers, a felt thud and a kettledrum head on the same note; the stroke's ring (expr.ring, seconds) sets the head's ring time and also takes the t… |
+| `rt-held` | Ring True v11 (tracks wood, wood-room, wood-drop) | Ring True: the wood with a hand on its middle (v11). rt-wood, and a second bar two octaves up (the wood's second mode, 4 times its note); the stroke's expr.hand (0 no hand, 1 held) takes the first down and brings the sec… |
 | `rt-metal` | Ring True v1 (track metal) | Ring True: the metal. A steel bar (1 : 2.76 : 5.40 : 8.93); its ring time from the stroke (expr.ring, seconds over 0.012). |
 | `rt-plate` | Ring True v2 (tracks plate, plate-room) | Ring True: the plate, the thing that rings false. A small thin plate (dense inharmonic modes) struck near its edge; its ring time from the stroke (expr.ring, seconds over 0.010). Stopped, a bright tick; let go, a wash an… |
 | `rt-sigh` | Ring True v9 (tracks air, air-room, air-kept) | Ring True: the air, blown (v5), and its breath trailing off (v9). rt-air's puff of noise in a resonator tuned to the note; behind it a breath nearly half a second long, and behind that a slower one that goes on for a sec… |
 | `rt-skin` | Ring True v1 (track skin) | Ring True: the skin. A kettledrum head (the air in the kettle pulls its modes to 1 : 1.5 : 2 : 2.5, so it sings its note); its ring time from the stroke (expr.ring, seconds over 0.03). |
 | `rt-string` | Ring True v1 (track string) | Ring True: the string. A plucked string whose ring time comes from the stroke (expr.ring, seconds over 0.03): a palm on it, lifted. |
-| `rt-wood` | Ring True v1 (track wood) | Ring True: the wood. A small bar (1 : 4 : 10) struck near its middle; its ring time from the stroke (expr.ring, seconds over 0.015). |
 | `sc-hat` | Small Change v2 (track hat) | Small Change: the hat that plays what can be paid. The machine's hat, 30 ms, above 6 kHz. |
 | `sc-kick` | Small Change v1 (track kick) | Small Change: the drum. The machine's bass drum on G, short. |
 | `sc-open` | Small Change v8 (track open) | Small Change: the hat let ring, where what one purse can pay is what another owes (v8). The machine's hat, 140 ms, above 5 kHz. |
