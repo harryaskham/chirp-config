@@ -94,6 +94,9 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Least Common v19 (15:30): both its ends are v18's to 0.1 dB (bars 1 to 4 -17.6 dBFS; the last four bars by bar
+  -17.4 -17.4 -17.3 -17.0; 2 s after home -20.2; highest sample -1.49). Inside, page 7 only (5:00 to 5:43): the
+  drum alternates two notes (D2, B flat 1) and the hat waits for home. Likeness to Standing Room 0.824.
 - Small Change v18 (14:59): both its ends are v17's to 0.1 dB (bars 1 to 16 by four -22.5 -23.5 -23.6 -20.7 dBFS;
   the last sixteen -24.3 -23.6 -23.2 -19.7; highest sample -1.30). Inside: a spun coin's rattle (clicks from 3 to
   5.5 kHz, quickening, stopping dead) through bars 93 to 96 and 173 to 176; the second stops on the one of bar 177,
