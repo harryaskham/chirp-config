@@ -71,6 +71,30 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v12 (27 Nov): THE CATCH SAYS WHO IS COMING. Two switches (`--without-tell`, `-whole`; both off is v11 byte for
+byte):
+  TELL   seven times the escapement catches: a bar with only the click, and after it something new. Until now
+         all seven were the same bar. Now each says who is coming: the newcomer plays whatever of its OWN
+         figure falls in the caught bar's last beat, as if it had come a beat early (3 dB under its stroke):
+           bar 16   the pattern: its last two strokes (sixteenths 13 and 14)
+           bar 32   the bass with no fundamental: its last note of four bars, F2
+           bar 48   the cell: the last stroke of its two-bar tune, C5, before it begins on D5
+           bar 64   the meetings: three and five meet on beat 4 of this bar, a D5, and are heard to part
+                    over the bar line
+           bar 80   the room: nothing new (its door is already opening through this bar)
+           bar 96   the change: one seed, three sixteenths before the one, so that its first coin (three
+                    sixteenths on) falls ON the one with the first seed proper
+           bar 112  the complement: the pattern's holes that fall in the beat (sixteenths 12 and 15)
+  WHOLE  v11's lead (the bass's D2 through the last beat of five catches) is a bare sine: the bass's
+         fundamental with none of its harmonics, where the bass itself is harmonics with no fundamental. On
+         small speakers it is not there at all. Now, ONCE, the bass's own voice plays the same D2 with it,
+         under it: the first time the bass comes back before the drum (bar 48) it is whole for that beat, so
+         that the four bare fundamentals after it are known for the bass; then it has no fundamental again
+         until bar 173 (Ring True v11's SHOW: shown once before). First built in all five catches the lead plays in:
+         the scorer's boundary after each fell by 0.03 to 0.06 (one of them, where nothing else was new, from
+         0.17 to 0.14) and its sections at the highest cut from 9 to 5: a catch whose last beat has the bass's
+         voice in it is three quarters of a catch (v11's finding with two beats of the lead, again).
+
 v11 (27 Nov): WHAT THE SONGS LEARNT AFTER MIDNIGHT. Ring True (v11) and Least Common (v11) each learnt something
 in the last hour; the closer takes two things from the one and one from the other, and nothing of its own. Three
 switches (`--without-grip`, `-choke`, `-lead`; all three off is v10 byte for byte):
@@ -235,7 +259,9 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True}
+TELL = {'from': 12, 'db': -3}           # v12: the sixteenth of a caught bar from which the newcomer's own figure is played; dB on those strokes
+WHOLE = {'gain': '-6dB', 'bars': (COMES['cell'] - 1,)}   # v12: dB on the bass's own voice (harmonics two to six) under the lead's fundamental; the caught bars (from 0) it is in (first: all five; see the docstring)
 GRIP = {'note': -12, 'semis': 24, 'from': '-40dB', 'patch': 'wd-grip'}   # v11: dB on the cell's note with the hand all the way down; its second mode's place above the note; that layer's level with no hand; the patch
 CHOKE = {'notes': ('Bb1', 'C2')}        # v11: the drum's note in each of its last bars
 LEAD = {'beats': 1, 'pitch': 'D2', 'gain': '-27dB', 'vel': .8}   # v11: beats before the one that the bass's fundamental holds; its note; its fader.
@@ -405,6 +431,24 @@ def caught(bar):
     return ON['catch'] and bar in CATCHES
 
 
+def told(bar):
+    """v12: what the thing that comes after this caught bar plays of its own figure in the bar's last beat: (track, note) pairs, in time order."""
+    b, nxt, last = bar * 4, bar + 1, range(TELL['from'], BAR)
+    if nxt == COMES['pattern']:
+        return [('saw', {'at': b + (8 + s) / 4, 'len': 0.2, 'pitch': 'G3', 'vel': .62}) for s in PATTERN if 8 + s in last]
+    if nxt == COMES['ghost']:
+        return [('ghost', {'at': b + s / 4, 'len': 0.45, 'pitch': GHOST[bar % 4][i], 'vel': .85}) for i, s in enumerate((2, 6, 10, 14)) if s in last]
+    if nxt == COMES['cell']:
+        return [('cell', wood(b + (s % BAR) / 4, pitch, vel, STOPPED, **({'ease': EASE} if ON['ease'] else {}))) for s, pitch, vel in CELL if s // BAR == bar % 2 and s % BAR in last]
+    if nxt == COMES['meetings']:
+        return [('ping', {'at': s / 4, 'len': 1, 'pitch': PING[m], 'vel': .75}) for s in range(bar * BAR + TELL['from'], (bar + 1) * BAR) for m in [tuple(c for c in CYCLES if s % c == 0)] if len(m) == 2]
+    if nxt == COMES['change']:
+        return [('seed', {'at': b + 4 - COINS[0] / 4, 'len': 0.25, 'pitch': 'Bb4', 'vel': .9})]
+    if nxt == ALL and ON['comp']:
+        return [('comp', {'at': b + (8 + s) / 4, 'len': 0.1, 'pitch': 'G5', 'vel': .75}) for s in COMP if 8 + s in last]
+    return []
+
+
 def here(thing, bar):
     return COMES[thing] <= bar < GOES[thing] and not caught(bar)
 
@@ -435,6 +479,10 @@ def build():
                 T['kick'].append({'at': b + beat, 'len': 0.5, 'pitch': CHOKE['notes'][bar - (RUNS_DOWN - len(CHOKE['notes']))] if ON['choke'] and bar >= RUNS_DOWN - len(CHOKE['notes']) else 'G1', 'vel': .95 if beat == 0 else .88})
         if 'lead' in T and caught(bar) and bar > COMES['ghost']:   # v11 LEAD: the bass comes back before the drum
             T['lead'].append({'at': b + 4 - LEAD['beats'], 'len': LEAD['beats'], 'pitch': LEAD['pitch'], 'vel': LEAD['vel']})
+            if ON['whole'] and bar in WHOLE['bars']:            # v12 WHOLE: the bass's own voice with it: whole for a beat
+                T['ghost'].append({'at': b + 4 - LEAD['beats'], 'len': LEAD['beats'], 'pitch': LEAD['pitch'], 'vel': LEAD['vel'], 'gain': WHOLE['gain']})
+        for tr, n in (told(bar) if ON['tell'] and caught(bar) else []):   # v12 TELL: the catch says who is coming
+            T[tr].append({**n, 'gain': f"{round(float(n.get('gain', '0dB')[:-2]) + TELL['db'], 2)}dB"})
         if here('pattern', bar):
             slip = (bar - (GOES['pattern'] - LEAVE) + 1) % 8 if ON['slip'] and bar >= GOES['pattern'] - LEAVE else 0
             for half in (0, 8):
@@ -692,7 +740,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v10, the last six v9, the last nine v8, the last eleven v7, the last fourteen v6, the last seventeen v5, the last twenty v4, the last twenty-three v3, the last twenty-nine v2, all thirty-five v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v11, the last five v10, the last eight v9, the last eleven v8, the last thirteen v7, the last sixteen v6, the last nineteen v5, the last twenty-two v4, the last twenty-five v3, the last thirty-one v2, all thirty-seven v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -712,6 +760,8 @@ if __name__ == '__main__':
                        ([(GOES['cell'] - LEAVE, "the hand is on the bar's middle: bar by bar the cell's note goes and its second mode, two octaves up, is what is left; its dropped stroke has the note again")] if ON['grip'] and ON['taken'] else []) +
                        ([(RUNS_DOWN - len(CHOKE['notes']), 'the beater is held against the drum: its note rises, ' + ' then '.join(CHOKE['notes']))] if ON['choke'] else []) +
                        ([(b, f"the bass comes back before the drum: its fundamental holds {LEAD['pitch']} through the last {'beat' if LEAD['beats'] == 1 else str(LEAD['beats']) + ' beats'}") for b in CATCHES if b > COMES['ghost']] if ON['lead'] and ON['catch'] else []) +
+                       ([(b, 'the catch says who is coming: ' + ', '.join(f"{tr} {n['pitch']} on sixteenth {round((n['at'] - b * 4) * 4)}" for tr, n in told(b))) for b in CATCHES if told(b)] if ON['tell'] and ON['catch'] else []) +
+                       ([(b, f"for that beat the bass is whole: its own voice plays the {LEAD['pitch']} under its fundamental") for b in CATCHES if b > COMES['ghost'] and b in WHOLE['bars']] if ON['whole'] and ON['lead'] and ON['catch'] else []) +
                        ([(GOES['cell'] - 1, "the hand lets go of the stick: the cell's last stroke bounces")] if ON['drop'] else []) +
                        ([(COMES['meetings'], 'each meeting is heard to part: the two cycles that met click once more, 3, 5 or 7 sixteenths on')] if ON['part'] else []) +
                        ([(GOES['ghost'] - REAL['bars'], 'the bass is given its fundamental')] if ON['real'] else []) +
