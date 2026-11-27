@@ -342,6 +342,17 @@ interval slowed down, and the swing is tuned down to the unison. The off stroke 
 eighth, a twelfth, a twentieth of a beat (60.5, 40.3, 24.2 ms) and then by nothing; when it is
 straight the record's tock comes in (bar 17) and the song is about two decks. Nothing is added;
 no stroke on a beat or an off beat moves.
+
+v28 (27 Nov): THE STROBE (C11T1_STROBE=0 takes it out: v27). A turntable has a ring of dots
+round the platter and a lamp beside it that flashes in time. When the record runs true the
+dots stand still; when it gains they creep forward; when it loses they creep back: you read
+the speed with your eye. Here you read it with your ear. In the first row of "take" a lamp
+flashes on every beat of the grid, and the dots are notes: the note under the lamp is how far
+deck B's record is from the grid at that instant, a note of the scale (G Bb C D F) for every
+fiftieth of a beat (9.7 ms). G3 is the dot on its mark. The hand's breath in "take" (a bar
+ahead, a bar behind, 0.08 of a beat at the furthest) is heard as a broken chord: up to F4 and
+back while the record gains, down to Bb2 and back while it loses, and home on every bar line.
+In the next row deck B's own bass drum comes in and the same drift is heard as a flam.
 """
 import json
 import math
@@ -556,6 +567,29 @@ def sped(steps):
 def speed_st(t):
     """Semitones deck B is sharp by at grid time t."""
     return 12 * math.log2(max(speed(t), 0.03))
+
+
+def strobe_row():
+    """The first bar (from 0) of the row with the strobe, or None."""
+    sec = next((x for x in SECS if x[0] == STROBE_IN[0]), None)
+    return sec[1] + ROW * STROBE_IN[1] if STROBE and sec is not None and STROBE_IN[1] * ROW < sec[2] else None
+
+
+def strobe_pitch(dots):
+    """The note of the dot that is `dots` dots ahead of the mark (behind, if negative)."""
+    m = STROBE_HOME + 12 * (dots // len(STROBE_SCALE)) + STROBE_SCALE[dots % len(STROBE_SCALE)]
+    return ("C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B")[m % 12] + str(m // 12 - 1)
+
+
+def strobe_notes():
+    """[(grid beat, dots, note)]: a flash on every beat of the row; the dots are how far deck B's record is ahead of the grid at the flash (d), to the nearest dot."""
+    out = []
+    for j in range(ROW * BEATS):
+        t = strobe_row() * BEATS + j + STROBE_AT
+        dots = int(round(d(t) * STROBE_DOTS))
+        assert abs(d(t) * STROBE_DOTS - dots) < 0.49, (t, d(t) * STROBE_DOTS)       # no flash falls just half way between two dots
+        out.append((t, dots, strobe_pitch(dots)))
+    return out
 
 
 def swing_bar():
@@ -830,6 +864,14 @@ SWING_IN = ("the grid", 1)                             # the section and its row
 SWING_PART = "hat"                                     # the track whose off sixteenths move
 SWING_WALK = ((3, 1), (2, 1), (3, 2), (1, 1))          # long to short, SWING_BARS bars each: the off stroke stands on the last quarter, the last third, the last two fifths and the half of its eighth: late by 1/8, 1/12, 1/20 of a beat and nothing (60.5, 40.3, 24.2 ms at 124)
 SWING_BARS = 2                                         # bars a step
+STROBE = os.environ.get("C11T1_STROBE", "1") != "0" and SWING   # v28: THE STROBE: a turntable has a ring of dots round its platter and a lamp that flashes in time: when the record runs true the dots stand still; when it gains they creep forward, when it loses they creep back. Here the lamp flashes on every beat of the grid and the dots are notes: the note that is under the lamp says how far deck B's record is from the grid at that instant. The dot that is on its mark is STROBE_HOME; a dot is 1 / STROBE_DOTS of a beat
+STROBE_IN = ("take", 0)                                # the section and its row (from 0): bars 33 to 40: the row had nothing of its own, and deck B's own bass drum (which lets you hear the drift as a flam) comes in the row after
+STROBE_DOTS = 50                                       # dots round one beat of the record: a dot is 9.68 ms at 124 to the minute; the hand's reach in "take" (0.08 of a beat) is 4 dots
+STROBE_AT = 0.0                                        # where in each beat of the grid the lamp flashes
+STROBE_SCALE = (0, 3, 5, 7, 10)                        # the dots' notes, semitones over the home note, round and round (an octave every five dots): G Bb C D F
+STROBE_HOME = 55                                       # the dot on its mark: G3 (MIDI 55)
+STROBE_LEN = 0.75                                      # beats a flash's note is held
+STROBE_GAIN = os.environ.get("C11T1_STROBE_GAIN", "-22dB")   # set in the whole song's master BEFORE any score was read. The bench (a note alone at -20 dB): its body (60 to 300 ms) -35.9 dBFS. Read at -28dB in the song: the bodies -33.1 dBFS: the master lifts it 10.8 dB there and not the 18.5 of a part between the drums (the notes are ON the bass drum, which ducks them); the old music at 170 to 370 Hz in the same windows is -27.9 in the middle: meant to stand about level with it, so 6 dB up
 BASSB_MODE = os.environ.get("C11T1_BASSB_MODE", "swap")                        # swap: it is heard where deck A's bass is out ; full: wherever deck B's record plays from "no ruler" on
 BASSB_IN = {"swap": ("no ruler", "the stretch", "out"), "full": ("no ruler", "both", "the stretch", "the nudge", "locked", "out")}[BASSB_MODE]
 BASSB_GAIN = os.environ.get("C11T1_BASSB_GAIN", "-15dB")                       # at -10 it was louder than everything else in "no ruler" put together (measured): 5 dB down
@@ -1559,6 +1601,14 @@ def song():
         assert sw_n == sum(8 * SWING_BARS for a, b in SWING_WALK if a != b)      # eight off sixteenths a bar
         doc["about"] = doc["about"].replace(" Generated by", f" From v27 the grid is found: the hat comes in (bar {swing_bar() + 1}) swung, and is set straight a step at a time: in every pair of its sixteenths the long one stands to the short one as " + ", ".join(f"{a} to {b}" for a, b in SWING_WALK) + f", {SWING_BARS} bars each (a twelfth, an octave, a fifth and a unison, as time): {sw_n} strokes are late by " + ", ".join(f"{(swing_off(a, b) - 0.25) * 60000 / BPM:.1f}" for a, b in SWING_WALK if a != b) + " ms; no stroke on a beat or an off beat moves, and nothing is added. Generated by")
         assert "From v27" in doc["about"]
+    if strobe_row() is not None:
+        sb_ns = strobe_notes()
+        PATCHES["gt-strobe"] = {"about": "Give or Take's strobe (chirper-zero, 27 Nov, v28): the lamp at the platter's edge: a plain tone with a little of its second and third over it, swelling for 15 ms and falling to a third in a quarter of a second; one note a flash.",
+                                "play": {"vel_sens": 0}, "synth": {"layers": ["sine phase=0", "sine phase=0 ratio=2 level=-9dB", "sine phase=0 ratio=3 level=-15dB"], "filters": ["lp cutoff=7000"], "amp": {"a": "15ms", "d": "250ms", "s": 0.3, "r": "60ms"}}}
+        doc["tracks"].append({"name": "strobe", "patch": "gt-strobe", "gain": STROBE_GAIN, "pan": 0.0, "notes": [{"at": round(t, 5), "len": STROBE_LEN, "pitch": p, "vel": 0.8} for t, _, p in sb_ns]})
+        sb_far = max(abs(k) for _, k, _ in sb_ns)
+        doc["about"] = doc["about"].replace(" Generated by", f" From v28 the strobe (bars {strobe_row() + 1} to {strobe_row() + ROW}, the first row of 'take'): a lamp flashes on every beat of the grid and the note under it says how far deck B's record is from the grid: {strobe_pitch(0)} when they are together, a note of the scale higher for every {1000 * 60 / BPM / STROBE_DOTS:.1f} ms the record is ahead, a note lower for every {1000 * 60 / BPM / STROBE_DOTS:.1f} ms behind ({len(sb_ns)} notes, {strobe_pitch(-sb_far)} to {strobe_pitch(sb_far)}). Generated by")
+        assert "From v28" in doc["about"]
     return doc
 
 
@@ -1575,6 +1625,11 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if strobe_row() is not None:
+            sb_ns = strobe_notes(); sb_b = strobe_row()
+            print(f"the strobe ({STROBE_GAIN}), bars {sb_b + 1}-{sb_b + ROW} ({int(sb_b * BEATS * 60 / BPM) // 60}:{sb_b * BEATS * 60 / BPM % 60:04.1f}): a flash on every beat of the grid ; a dot is 1/{STROBE_DOTS} of a beat ({1000 * 60 / BPM / STROBE_DOTS:.2f} ms) ; the dot on its mark is {strobe_pitch(0)} ; {len(sb_ns)} notes, held {STROBE_LEN} of a beat")
+            for sb_k in range(ROW):
+                print(f"   bar {sb_b + sb_k + 1}: " + " ; ".join(f"{p} ({k:+d} dots: the record {1000 * 60 / BPM * d(t):+.1f} ms)" for t, k, p in sb_ns[sb_k * BEATS:(sb_k + 1) * BEATS]))
         if SWING and swing_bar() is not None:
             print(f"the grid is found (the {SWING_PART}'s swing), bars {swing_bar() + 1}-{swing_bar() + len(SWING_WALK) * SWING_BARS} ({int(swing_bar() * BEATS * 60 / BPM) // 60}:{swing_bar() * BEATS * 60 / BPM % 60:04.1f}): long to short, {SWING_BARS} bars each: " + " ; ".join(
                 f"{a}:{b} (bars {swing_bar() + k * SWING_BARS + 1}-{swing_bar() + (k + 1) * SWING_BARS}: the off sixteenth at {swing_off(a, b):.4f} of a beat, {(swing_off(a, b) - 0.25) * 60000 / BPM:.1f} ms late)" for k, (a, b) in enumerate(SWING_WALK)))
