@@ -274,6 +274,16 @@ behind: the swarm's mean phase never left it (the mean of their strokes is withi
 throughout: a slow one's stroke is a little later than a fast one's is early). By the seventh bar the
 twelve are one click again, to a hundredth of a millisecond, on the beat, and stay there until the drum
 comes in.
+
+v19 (27 Nov): A SECOND DRUM CHANGES GEAR (C11T7_GEAR=0 takes it out: v18). The song's clicks slip by
+sixteenths, by samples, by parts of a wave. This is the same thing in whole numbers: a small low drum
+plays against the bass drum at EVERY RATIO BETWEEN ONE AND TWO WHOSE LOWER NUMBER IS FOUR OR LESS, in
+order: 1:1, 5:4, 4:3, 3:2, 5:3, 7:4, 2:1 (the Farey sequence of order four). Each gear is held for whole
+turns, and for a bar's worth of beats at least: four turns of 1:1, one of 5:4, two of 4:3, two of 3:2,
+two of 5:3, one of 7:4, four of 2:1: 4 + 4 + 6 + 4 + 6 + 4 + 4 beats, which is eight bars exactly. The
+two drums strike together at the start of every turn and nowhere else in it, so every change of gear is
+made in step. Up through the gears in the row before the roll (which goes on from there to a note), and
+down through them in the last row the bass drum plays, home to one for one.
 """
 import json
 import math
@@ -524,6 +534,13 @@ FOCUS_PARTS = (21, 35)                                               # the multi
 FOCUS_NOTE = ("G1", 440 * 2 ** ((31 - 69) / 12))                     # the note the held voice is written on and its Hz (it does not sound: every tone is tuned from it)
 FOCUS_OVER = 0.5                                                     # beats the voice is held past the bar line, so that the last thump (on the line, with the drum) is whole
 FOCUS_GAIN = os.environ.get("C11T7_FOCUS_GAIN", "-54dB")              # set in the whole song's master, which lifts a held low part about 20 dB over its fader figure in these rows: at -28 and -36 dB it was louder than the music it lay under
+GEAR = os.environ.get("C11T7_GEAR", "1") != "0" and os.environ.get("C11T7_SWARM", "1") != "0" and FOCUS      # v19: a second drum changes gear
+GEAR_ROWS = tuple((int(x.split(":")[0]), x.split(":")[1]) for x in os.environ.get("C11T7_GEAR_ROWS", "72:up,136:down").split(",") if x)   # (the row's first bar from 0, up or down through the gears): the row before the roll; the last row the bass drum plays
+GEAR_BARS = 8
+GEAR_MOST = 4                                          # the largest lower number: every ratio p:q from 1:1 to 2:1 with q no more than this
+GEAR_NOTE = os.environ.get("C11T7_GEAR_NOTE", "C3")    # 130.8 Hz: the fourth over the bass's G, where this song has least (133 Hz, 7.6 dB under the record)
+GEAR_ACCENT = (1.0, 0.72)                              # velocity of the stroke that falls with the bass drum (the start of a turn), and of the rest. The master undoes it: a stroke with the bass drum is delivered 2 to 6 dB over a render of it alone, a stroke between two of the bass drum's 9 to 20 dB over: the drum marks the turn, the second drum is heard in the gaps
+GEAR_GAIN = os.environ.get("C11T7_GEAR_GAIN", "-19dB")  # set in the whole song's master between two readings: at -16dB its strokes between the bass drum's stood level with all the music from 100 to 320 Hz and peaked -4 dBFS (a second bass drum); at -22dB 3 to 15 dB under it
 SWARM = os.environ.get("C11T7_SWARM", "1") != "0" and FOCUS      # v18: the click comes apart and finds itself (twelve clicks that listen only to each other)
 SWARM_ROWS = tuple(int(x) for x in os.environ.get("C11T7_SWARM_ROWS", "56,120").split(","))    # the first bar (from 0) of each row it plays in: the two breaks in which the bass drum rests and then comes in
 SWARM_BARS = ROW                                                     # how long a row is
@@ -568,6 +585,25 @@ def jet_span():
 def jet_notes():
     lo, hi = jet_span()
     return [{"at": float(lo * BEATS), "len": float((hi - lo) * BEATS), "pitch": NOTE, "vel": 0.8}]
+
+
+def gear_plan():
+    """[(p, q, turns)]: every ratio p:q from 1:1 to 2:1 with q <= GEAR_MOST, in order (a Farey sequence), each held for the fewest whole turns (q beats each) that last a bar at least."""
+    from fractions import Fraction
+    rs = sorted({Fraction(p, q) for q in range(1, GEAR_MOST + 1) for p in range(q, 2 * q + 1)})
+    plan = [(r.numerator, r.denominator, -(-BEATS // r.denominator)) for r in rs]
+    assert sum(q * t for _, q, t in plan) == GEAR_BARS * BEATS, plan
+    return plan
+
+
+def gear_notes():
+    out = []
+    for row, way in GEAR_ROWS:
+        b = row * BEATS
+        for p, q, turns in (gear_plan() if way == "up" else gear_plan()[::-1]):
+            out += [{"at": round(b + j * q / p, 6), "len": 0.25, "pitch": GEAR_NOTE, "vel": GEAR_ACCENT[0 if j % p == 0 else 1]} for j in range(p * turns)]
+            b += q * turns
+    return out
 
 
 def swarm_ticks():
@@ -1075,6 +1111,13 @@ def song():
                                   "notes": [{"at": round(sw_b * BEATS + sw_at, 5), "len": 0.02, "pitch": SWARM_NOTES[sw_i], "vel": 0.8} for sw_b in SWARM_ROWS for sw_at in sw_ticks[sw_i]]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v18, in {'the two breaks' if len(SWARM_ROWS) == 2 else 'the break'} where the bass drum rests, {SWARM_N} small clicks that begin as one come apart (each has its own tempo, up to {SWARM_OFF * 100:g}% off) and then, listening only to each other, find the beat again and are one click when the drum comes in. Generated by")
         assert "From v18" in doc["about"]
+    if GEAR and GEAR_ROWS:
+        PATCHES["os-gear"] = {"about": "Out of Step's second drum (chirper-zero, 27 Nov, v19): a small low drum for counting against the bass drum: three plain tones (the note, its octave -10 dB, its twelfth -18 dB), each begun at the same point of its wave, gone in a tenth of a second. Its loudness is its velocity.",
+                              "play": {"vel_sens": 0.5},
+                              "synth": {"layers": ["sine phase=0", "sine phase=0 ratio=2 level=-10dB", "sine phase=0 ratio=3 level=-18dB"], "amp": {"a": "0.5ms", "d": "110ms", "s": 0, "r": "40ms", "curve": 3}}}
+        doc["tracks"].append({"name": "gear", "patch": "os-gear", "gain": GEAR_GAIN, "pan": 0.0, "notes": gear_notes()})
+        doc["about"] = doc["about"].replace(" Generated by", " From v19 a second small drum changes gear against the bass drum: it plays every ratio between one and two whose lower number is " + str(GEAR_MOST) + " or less, in order (" + ", ".join(f"{p}:{q}" for p, q, _ in gear_plan()) + "), each for whole turns and a bar's worth of beats at least, which is eight bars exactly; the two strike together at the start of every turn, so every change is made in step: up through the gears before the roll, down through them in the last row the bass drum plays. Generated by")
+        assert "From v19" in doc["about"]
     return doc
 
 
@@ -1162,6 +1205,15 @@ if __name__ == "__main__":
         if jet_span():
             sec = BEATS * 60 / BPM; lo, hi = jet_span()
             print(f"   the break through a phaser, bars {lo + 1}-{hi} ({int(lo * sec) // 60}:{lo * sec % 60:04.1f}-{int(hi * sec) // 60}:{hi * sec % 60:04.1f}): the click's note ({NOTE}, {WAVE_HZ:.1f} Hz) held, {JET_GAIN} ; {JET_STAGES} all-pass stages, depth {JET_DEPTH}, feedback {JET_FEEDBACK}, mix {JET_MIX} ; a sweep there and back every {JET_RATE} ({int(JET_RATE[:-1]) * 60 / BPM:.2f} s): {(hi - lo) * BEATS / int(JET_RATE[:-1]):g} sweeps")
+        if GEAR and GEAR_ROWS:
+            ge_beat = 60000 / BPM
+            print(f"   a second drum changes gear ({GEAR_GAIN}, on {GEAR_NOTE}): every ratio from 1:1 to 2:1 with a lower number of {GEAR_MOST} or less ; " + " ; ".join(f"{p}:{q} x{t} ({q * t} beats, {p * t} strokes, {q / p * ge_beat:.1f} ms apart)" for p, q, t in gear_plan()) + f" ; {sum(q * t for _, q, t in gear_plan())} beats, {sum(p * t for p, _, t in gear_plan())} strokes a row")
+            for ge_row, ge_way in GEAR_ROWS:
+                ge_b = 0; ge_out = []
+                for p, q, t in (gear_plan() if ge_way == "up" else gear_plan()[::-1]):
+                    ge_out.append(f"{p}:{q} from bar {ge_row + ge_b // BEATS + 1} beat {ge_b % BEATS + 1}"); ge_b += q * t
+                print(f"      bars {ge_row + 1}-{ge_row + GEAR_BARS} ({int(ge_row * BEATS * 60 / BPM) // 60}:{ge_row * BEATS * 60 / BPM % 60:04.1f}), {ge_way}: " + " ; ".join(ge_out))
+            print("      one turn of each, in beats from its start: " + " ; ".join(f"{p}:{q}: " + " ".join(f"{j * q / p:.3f}" for j in range(p)) for p, q, _ in gear_plan()))
         if SWARM:
             sw_t = swarm_ticks(); sw_ms = 60000 / BPM
             print(f"   the click comes apart and finds itself, bars " + ", ".join(f"{b + 1}-{b + SWARM_BARS}" for b in SWARM_ROWS) + f": {SWARM_N} clicks ({SWARM_GAIN}; {SWARM_NOTES[0]} on the left to {SWARM_NOTES[-1]} on the right), the slowest {SWARM_OFF * 100:g}% under the tempo, the fastest as far over ; deaf for {SWARM_DEAF} beats, then each leans to the rest (to {SWARM_LEAN:g} turns a beat) and changes its tempo (to {SWARM_LEARN:g}) ; strokes each: {sorted(set(len(x) for x in sw_t))}")
