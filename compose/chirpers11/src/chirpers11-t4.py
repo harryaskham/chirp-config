@@ -32,6 +32,22 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v18 (27 Nov), THE RINGS TAKE TURNS. One switch on (`--without-disc`; off is v17 byte for byte) and one built,
+benched and left off (`--with-flutter`). v17 gave the metal a vibraphone's motor: its ring shuts on the beat and
+opens on the off-beat it is struck on. Nothing is added here either: one more ring is turned.
+  DISC     the same disc is under the weight. The weight is struck ON the beat, so its head's ring (up to three
+           seconds, let go) is open on the beat and DISC['db'] * 2 dB down on the off-beat: where the metal is struck
+           and its ring is open. The two rings take turns: the drum's boom on the beat, the bar's ring between; each
+           is out of the other's stroke's way. The felt thud is not turned (only the head's layer), and a stopped
+           stroke is as it was. Patch rt-drum-disc. Bench, one stroke let go, alone: 11 to 12 dB under the old ring
+           240 and 720 ms after the stroke, level with it at 480 and 960 ms; the same highest sample. It costs the
+           low band what the metal's motor cost the metal: the ring is quieter on average.
+  FLUTTER  (off) the air's breath fluttered three to the beat, as a flute player's tongue does it (patch rt-flutter:
+           an LFO a third of a beat long on the level of the breath's two noise layers). It does not flutter: on
+           the bench the breath came out 0.9 dB LOUDER and moved 0.5 dB at 6.25 Hz where 3 was written (at 20
+           written: 9 dB louder, 2 dB moved). The same LFO on the metal's modal layer does exactly what is written.
+           Left off until a breath can be turned some other way.
+
 v17 (27 Nov), THE METAL HAS A MOTOR. One more switch (`--without-motor`; off is v16 byte for byte).
   MOTOR  the steel bar is a vibraphone's now: under it a disc turns in its resonator, once a beat, shut ON the beat
          and open on the off-beat, where the metal is struck. So a stroke is as loud as it was, its ring is MOTOR
@@ -329,7 +345,9 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False}
+DISC = {'patch': 'rt-drum-disc', 'db': 6, 'rate': '1/4', 'phase': 0.25}   # v18: the weight's patch with the disc under its head; half the dip, dB; a turn (a beat); where in its turn a stroke begins (0.25: open)
+FLUTTER = {'patch': 'rt-flutter', 'db': 3, 'rate': '1/12', 'phase': 0.25}   # v18: the air's patch with a fluttered breath; dB up and down; a flutter (a third of a beat); where it begins (0.25: at its top)
 MOTOR = {'patch': 'rt-motor', 'db': 6, 'rate': '1/4', 'phase': 0.25}   # v17: the metal's patch with its motor; half the dip, dB (the ring is twice this down on the beat); a turn of the disc; where in its turn a stroke begins (0.25: open). Bench, one stroke let go, alone: 12 dB down 240 and 720 ms after the stroke, level with the old ring at 0 and 480 ms, the same highest sample; at 9 (18 dB dips) the ring between strokes is 9 dB less on average
 FLOOR = {'who': ('weight', 'string', 'skin'), 'reverb': 'reverb kind=hall decay=1.6s mix=1 predelay=20ms', 'hp': 90, 'lp': 1500, 'db': {'weight': -8, 'string': 0, 'skin': 2}}   # v16: the things the low room hears in the bar their hand goes on; the room; what it keeps, Hz; dB beside each one's dry fader into it. Bench, raw: at 0, 6 and 7 the rooms alone stood 3.8, 9.0 and 9.0 dB OVER the dry things from 90 to 300 Hz over their bars and the big drum's bar came up 3.6 dB whole: a boom
 HEARD = {'who': ('metal', 'plate', 'string', 'air', 'skin'), 'not': ('plate',), 'db': {'string': -6}}   # v15: the things the hall hears while their hand goes on (those with a remembered hall: KEPT's); those whose TURN lift is taken back with it; dB on a thing's strokes into the hall there (the touched string is an octave up, so more of it is over the hall's 300 Hz: at KEPT's level its hall stood 7.7 dB over the bar between strokes and filled the pipe's band the bar before the pipe's)
@@ -536,9 +554,30 @@ def motor_patch(bar):
             'synth': {**bar['synth'], 'layers': [layer] + bar['synth']['layers'][1:], 'lfo': {'motor': {'wave': 'sine', 'rate': MOTOR['rate'], 'phase': MOTOR['phase'], 'retrig': True}}}}
 
 
+def disc_patch(drum):
+    """v18 DISC: the weight's patch (drum) with the metal's disc under its head: the head's layer (the second) is DISC['db'] under and moved DISC['db'] up and down by a sine DISC['rate'] long that starts again with every stroke at its top. The thud (the first layer) is not turned."""
+    thud, head = drum['synth']['layers'][:2]
+    lvl = head['level']
+    head = {**head, 'level': {'value': f"{float(lvl['value'][:-2]) - DISC['db']:g}dB", 'mod': lvl['mod'] + [{'src': 'lfo.motor', 'amount': DISC['db']}]}}
+    return {**drum, 'about': "Ring True: the weight with a disc under its head (v18). rt-drum, and the head's ring is turned once a beat: open on the beat the drum is struck on, " + f"{2 * DISC['db']}" + " dB down on the off-beat. The felt thud is not turned; a stopped stroke is as rt-drum's.",
+            'synth': {**drum['synth'], 'layers': [thud, head] + drum['synth']['layers'][2:], 'lfo': {'motor': {'wave': 'sine', 'rate': DISC['rate'], 'phase': DISC['phase'], 'retrig': True}}}}
+
+
+def flutter_patch(air):
+    """v18 FLUTTER: the air's patch (air) with its two breaths (the second and third layers) moved FLUTTER['db'] up and down by a sine FLUTTER['rate'] long that starts again with every stroke. The puff (the first layer) is not fluttered."""
+    layers = air['synth']['layers']
+    breaths = [{**b, 'level': {**b['level'], 'mod': b['level']['mod'] + [{'src': 'lfo.flutter', 'amount': FLUTTER['db']}]}} for b in layers[1:3]]
+    return {**air, 'about': "Ring True: the air with a fluttered breath (v18). rt-sigh, and its two breaths go " + f"{FLUTTER['db']}" + " dB up and down three times a beat, as a flute player's tongue does it. The puff is not fluttered; a stopped stroke has no breath and is as rt-sigh's.",
+            'synth': {**air['synth'], 'layers': [layers[0]] + breaths + layers[3:], 'lfo': {'flutter': {'wave': 'sine', 'rate': FLUTTER['rate'], 'phase': FLUTTER['phase'], 'retrig': True}}}}
+
+
 def patch_of(thing):
     if thing == 'metal' and ON['motor']:
         return MOTOR['patch']
+    if thing == 'weight' and ON['disc'] and ON['boom'] and ON['note']:
+        return DISC['patch']
+    if thing == 'air' and ON['flutter'] and ON['flue'] and ON['long']:
+        return FLUTTER['patch']
     if thing == 'air' and ON['flue']:
         return 'rt-sigh' if ON['long'] else 'rt-flue'            # v9: with its second breath it is another sound, under another name
     if thing == 'wood' and ON['grip']:
@@ -746,11 +785,13 @@ def song(T, bars=BARS):
                                                                                                      {**bar, 'semi': GRIP['semis'], 'level': {'value': GRIP['from'], 'mod': [{'src': 'expr.mode', 'amount': 1}]}}]}}}
     if ON['boom'] and ON['note']:
         doc['patches'] = {**doc['patches'], 'rt-drum': drum_patch()}
+        if ON['disc']:                                           # v18 DISC: the weight's patch with the disc under its head
+            doc['patches'] = {**doc['patches'], DISC['patch']: disc_patch(drum_patch())}
     elif ON['boom']:
         doc['patches'] = {**doc['patches'], 'rt-boom': NEW['rt-boom']}
         by_name['weight']['gain'] = BOOM['gain']
     if ON['flue']:
-        doc['patches'] = {**doc['patches'], patch_of('air'): flue_patch()}
+        doc['patches'] = {**doc['patches'], patch_of('air'): flutter_patch(flue_patch()) if patch_of('air') == FLUTTER['patch'] else flue_patch()}   # v18 FLUTTER
     if ON['motor']:                                              # v17 MOTOR: the metal's patch with its disc
         doc['patches'] = {**doc['patches'], MOTOR['patch']: motor_patch(doc['patches'][PATCH['metal']])}
     if ON['plate'] and 'plate' in T:
@@ -822,7 +863,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the forty-one that are on: all off is v1; the last thirty-six off is v2; the last thirty-two off is v3; the last twenty-nine off is v4; the last twenty-six off is v5; the last twenty-five off is v6; the last twenty-two off is v7; the last twenty off is v8; the last seventeen off is v9; the last thirteen off is v10; the last nine off is v11; the last seven off is v12; the last five off is v13; the last three off is v14; the last two off is v15; the last one off is v16)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the forty-two that are on: all off is v1; the last thirty-seven off is v2; the last thirty-three off is v3; the last thirty off is v4; the last twenty-seven off is v5; the last twenty-six off is v6; the last twenty-three off is v7; the last twenty-one off is v8; the last eighteen off is v9; the last fourteen off is v10; the last ten off is v11; the last eight off is v12; the last six off is v13; the last four off is v14; the last three off is v15; the last two off is v16; the last one off is v17)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -869,6 +910,10 @@ if __name__ == '__main__':
             print(f"    the shut pipe's last stroke (bar {stopping('air')[-1] + 1}): {FADE['air']} dB")
         if ON['motor']:
             print(f"    the metal has a motor: a disc under the bar turns once a beat, open on the off-beat it is struck on and shut on the beat: its ring is {2 * MOTOR['db']} dB down on every beat and back between; a stopped stroke is as it was")
+        if ON['disc'] and ON['boom'] and ON['note']:
+            print(f"    the same disc is under the weight: struck on the beat, its head's ring is open on the beat and {2 * DISC['db']} dB down on the off-beat, where the metal's is open: the two rings take turns; the thud is not turned")
+        if ON['flutter'] and ON['flue'] and ON['long']:
+            print(f"    the air's breath is fluttered: three to the beat, {FLUTTER['db']} dB up and down: three in the breath against four in the hands; its puff is not")
         print(f'{BARS} bars, {BARS * sec:.1f} s; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in build().items()))
     else:
         a.out.write_text(dump(bench() if a.bench else song(build())))
