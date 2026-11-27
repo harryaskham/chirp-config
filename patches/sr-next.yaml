@@ -1,0 +1,27 @@
+{
+ "about": "Standing Room's building across the square (chirper-zero, 27 Nov, v17): a building's hum heard through its wall: plain held tones at 120 and 180 Hz (2 and 3 times mains of 60), each 6 dB quieter for every octave it is above the lowest. Written on A2, which does not sound. BANKED by tools/patchbank.py (27 Nov 2026) from Standing Room v17 (track next): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "1s",
+   "d": "0s",
+   "r": "60ms"
+  },
+  "layers": [
+   {
+    "level": "-0.00dB",
+    "phase": 0.0,
+    "ratio": 1.090909
+   },
+   {
+    "level": "-3.51dB",
+    "phase": 0.0,
+    "ratio": 1.636364
+   }
+  ]
+ }
+}
