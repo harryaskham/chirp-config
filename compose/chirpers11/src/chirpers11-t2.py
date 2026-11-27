@@ -99,6 +99,19 @@ every 7. Those meetings, a click with the drum, were the only ones in the song t
          knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
          song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
 
+v13 (27 Nov): THE FIVE'S HAT RINGS. Two switches (`--without-ring`, `-once`; both off is v12 byte for byte):
+  RING   since v9 the hat counts with the five on page 8: the first hat after each of its knocks is 'let ring'
+         (lc-open: the machine's hat with a decay of 450 ms, held half a beat). Small Change v12 found what
+         that decay is: the time to fall 60 dB. At 450 ms the hat falls 16 dB by the next sixteenth and is
+         gone under the clicks: a longer stroke, not an open hat, and the count was never heard as one. A new
+         patch name, lc-rung: the same hat with a decay of 1.2 s (6 dB a sixteenth at 126), held three
+         sixteenths (it was two) and then stopped, a sixteenth before the next shut hat. Sixteen strokes,
+         every five beats: now the five has a hat that rings.
+  ONCE   and it is heard before it counts (Ring True v11: shown once before). On page 4 the drum gives three
+         beats to its answer (v11 LEND: bars 83, 87, 91). The first hat after each of those beats now rings
+         too: where the drum is not, the hat is let go. Three strokes; no stroke is added (each was a shut
+         hat). Needs RING (with it off, ONCE does nothing).
+
 v12 (27 Nov): THE LAST TURN. Two switches (`--without-led`, `-walk`; both off is v11 byte for byte):
   LED    since v11 the bass comes back a bar early before four page turns, on D, held into the G the drum
          returns on. The two turns it did not lead were the two where the bass COMES IN (into page 2, its
@@ -230,7 +243,8 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True}
+      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True}
+RING = {'patch': 'lc-rung', 'decay': '1200ms', 'release': '100ms', 'len': 3}   # v13: the hat that rings for the five: its patch; the time it takes to fall 60 dB; how fast it is stopped; sixteenths it is held (it was 2)
 LED = (1, 5)                            # v12: the pages (from 0) on which the bass comes in: the turn into each is led as well
 WALK = 7                                # v12: the page (from 0) whose turn the bass walks into, holding every meeting's note
 HOLD = {'db': -13, 'vel': .8, 'pages': (2, 3, 6, 7), 'last': 1}   # v11: dB and touch on the held notes (the bass is not ducked there: no drum); the pages (from 0) whose turn the bass walks into; how many of the break's last meetings it holds (0: all of them).
@@ -525,6 +539,10 @@ def build():
         elif s % BEAT == 0 and ON['carry']:                  # v7: the answer goes on through the break
             knock(s, CARRY_DB)
     held.append((TOTAL, tuple(CYCLES)))
+    def lent(s):
+        """v13: is sixteenth s a beat the drum gives to its answer on the first half's LEND page?"""
+        return ON['lend'] and ON['knock'] and s % BEAT == 0 and s // PAGE == LEND['page'] and not running_down(s) and not broken(s) and tuple(c for c in CYCLES if s % c == 0) == LEND['meet']
+
     for (s, heads), (nxt, _) in zip(held, held[1:]):
         if len(heads) == 3:
             add('chord', s, 2, ','.join(CHORD), .85)
@@ -553,6 +571,7 @@ def build():
     marks += [(f'the bass is struck {BACK} dB harder', HALF)] * ON['back']
     marks += [("the drum rests where the three and the five meet: every fifteen beats, five times; the sixth is the break", HALF + (SKIP['page'] - pages) * PAGE)] * ON['skip']
     marks += [("the bass counts with the seven: the note after each of its knocks is an octave up", HALF + (LEAP['page'] - pages) * PAGE)] * ON['leap']
+    marks += [('the hat after the beat the drum gave away is let ring', s + 3) for s in range(LEND['page'] * PAGE, (LEND['page'] + 1) * PAGE, BEAT) if lent(s)] * (ON['once'] and ON['ring'] and ON['open'])
     marks += [('only the drum is left of the four', HALF + last * SUPER), ('home', TOTAL)]
     if ON['break']:
         marks = sorted(marks + [('the four stops for the page turn', t - BREAK) for t in TURNS], key=lambda m: m[1])
@@ -586,7 +605,9 @@ def build():
             for off in (2, 6, 10, 14):
                 if not broken(s0 + off + late) and not bare(s0 + off + late):
                     if ON['open'] and page == OPEN['page'] and (s0 + off - HALF) % (OPEN['cycle'] * BEAT) == 2:   # v9: the first hat after the five's knock is let ring
-                        add('open', s0 + off + late, 2, 'A#4', .7)
+                        add('open', s0 + off + late, RING['len'] if ON['ring'] else 2, 'A#4', .7)
+                    elif ON['once'] and ON['ring'] and ON['open'] and any(lent(x) for x in range(s0 + off + late - 3, s0 + off + late)):   # v13 ONCE: the first hat after a beat the drum gave away
+                        add('open', s0 + off + late, RING['len'], 'A#4', .7)
                     else:
                         add('hat', s0 + off + late, 1, 'A#4', .7)
         if ON['count'] and page == COUNT['page']:                # v9: the clap counts with the three
@@ -694,6 +715,13 @@ def song():
     if T.get('open'):                                           # v9 OPEN: the hat let ring, where the shut one stands
         doc['patches'] = {**doc['patches'], 'lc-open': LC_OPEN}
         doc['tracks'].append({**{x: y for x, y in by_name['hat'].items() if x != 'notes'}, 'name': 'open', 'patch': 'lc-open', 'gain': OPEN['gain'], 'notes': sorted(T['open'], key=lambda n: n['at'])})
+        if ON['ring']:                                          # v13 RING: the same hat with a decay it can be heard by
+            rung = json.loads(json.dumps(LC_OPEN))
+            rung['about'] = "Least Common: the hat that rings for the five (v13). lc-open's hat with a decay of 1.2 s (6 dB a sixteenth), held three sixteenths and stopped."
+            rung['synth']['layers'][0]['machine']['decay'] = RING['decay']
+            rung['synth']['amp']['r'] = RING['release']
+            doc['patches'] = {**{k: v for k, v in doc['patches'].items() if k != 'lc-open'}, RING['patch']: rung}
+            doc['tracks'][-1]['patch'] = RING['patch']
     if ON['knock']:
         doc['patches'] = {**doc['patches'], 'lc-knock': LC_KNOCK}
         doc['tracks'].append(track('knock', 'lc-knock', KNOCK_DB, fx=[hold(KNOCK_HOLD)]))
@@ -716,7 +744,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v11, the last four v10, the last seven v9, the last ten v8, the last twelve v7, the last fifteen v6, the last sixteen v5, the last nineteen v4, the last twenty-four v3, the last thirty-two v2, all thirty-eight v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v12, the last four v11, the last six v10, the last nine v9, the last twelve v8, the last fourteen v7, the last seventeen v6, the last eighteen v5, the last twenty-one v4, the last twenty-six v3, the last thirty-four v2, all forty v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
