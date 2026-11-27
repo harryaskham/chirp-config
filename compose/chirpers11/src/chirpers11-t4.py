@@ -32,6 +32,26 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v11 (26 Nov), EVERY THING HAS A HAND, AND THE HANDS ARE SHOWN ONCE BEFORE. v10 gave a hand to four of the seven
+things; the weight and the wood were still stopped the old way, and the hands were first heard at bar 129. Four more
+switches (`--without-choke`, `-grip`, `-show`, `-fade`; all four off is v10 byte for byte):
+  CHOKE  the weight, bars 137-138 (it is stopped over them, with the string): the beater is held against the head,
+         which tightens: a step up the five notes, then two (C2, D2 for B flat 1), as the skin did eight bars
+         before. The big drum does what the small drum did.
+  GRIP   the wood closes over sixteen bars (153-168). It is the last thing let go, and it had no hand: now as it
+         closes the hand comes down on the bar's middle, where its first mode moves most and its second not at
+         all: bar by bar its note goes (12 dB by the end) and its second mode, two octaves up, is what is left
+         (a new patch name, rt-held: the wood and a second bar two octaves up, their levels on the stroke,
+         `expr.hand`), until the taps come back on the note.
+         FIRST BUILT AS THE STICK WALKING TO THE BAR'S END (the modal layer's `strike`, 0.35 to 1, on the stroke):
+         benched, the bar's note did not move at all and its second mode by 1 dB: nothing to hear. Not kept.
+  SHOW   the hush (bar 96: everything but the weight stopped dead for one bar, since v2) shows the hands: for
+         that one bar the string is touched (its octave), the pipe shut (an octave down), the skin pressed (a step
+         up), the metal pinched (its second mode) and the wood gripped (its second mode). Thirty-three bars later each
+         comes back for two bars of its own.
+  FADE   v10's weak point, measured: the shut pipe's last stroke (bar 130, D4) stood 12 dB over v9's in the same
+         place, where the pipe is all but stopped. 6 dB off that stroke.
+
 v10 (26 Nov), A HAND ON EACH. Until now a thing was stopped the same way whatever it was: its ring taken to
 nothing over two bars. But a hand laid on a string, a pipe, a drum head and a steel bar does four different things, and
 each of them is heard before the thing is quiet. Four more switches (`--without-touch`, `-cap`, `-press`,
@@ -227,9 +247,15 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True}
 # v10: what the hand does to each thing in the bars it is stopped: semitones on every stroke of them, or steps up the five notes bar by bar; dB on those strokes.
 HAND = {'string': {'switch': 'touch', 'semis': 12, 'db': -3}, 'air': {'switch': 'cap', 'semis': -12, 'db': 0}, 'skin': {'switch': 'press', 'steps': (1, 2), 'db': 0}, 'metal': {'switch': 'pinch', 'ratio': 2.76, 'db': -6}}
+HAND['weight'] = {'switch': 'choke', 'steps': (1, 2), 'db': 0}   # v11: the big drum's head tightens under the beater as the skin's did under the hand
+GRIP = {'note': -12, 'mode': 40, 'from': '-40dB', 'semis': 24, 'patch': 'rt-held'}   # v11: dB on the wood's own layer with the hand all the way down; dB on its second mode's layer; that layer's level with no hand; its place above the note; the patch.
+# Bench (hand2.sh, hand2read.py: the wood alone, D5, hand 0 to 1 by fifths): at -18 and +34 the stroke read -22.8 -26.4 -29.9 -32.8 -33.2 -28.3 dBFS: 10 dB down in the middle and 5.5 down held, and through its closing the wood alone stood
+# 2.4, 6.7, 10.1 and 8.0 dB under v10's by four bars: the hand was a fader. The note taken less far and the second mode brought to the note's own level: a change of colour
+SHOW = {'string': -3}                   # v11: dB on a thing's strokes in the bar that shows the hands (bench: the touched string's highest sample stood 3.3 dB over the stopped string's there, and the bar's 1.8 dB over)
+FADE = {'air': -6}                      # v11: dB on a stopped thing's last stroke of its stopped bars
 SCALE = ('Bb', 'C', 'D', 'F', 'G')
 BLOW = {'harmonics': (2, 3, 4), 'db': -4}   # v9: the harmonics of its pipe the air overblows through, a sixteenth each, after the last stroke of its listening; dB on each beside the one before.
 # Bench (blow.sh, blowread.py: the air alone from that stroke by sixteenth): at -2 dB a step the four read -18 -19 -18 -20 (the resonator gives a higher note more: its band is wider) and the bar's last beat stood 2 to 3 dB
@@ -341,7 +367,21 @@ def stopping(thing):
 def hand_on(thing, bar):
     """v10: what the hand does to the thing's strokes in this bar, or None."""
     h = HAND.get(thing)
-    return h if h and ON[h['switch']] and bar in stopping(thing) else None
+    return h if h and ON[h['switch']] and (bar in stopping(thing) or (shown(bar) and thing != 'weight')) else None
+
+
+def shown(bar):
+    """v11: is this the bar that shows the hands (the hush)?"""
+    return ON['show'] and ON['hush'] and bar == HUSH
+
+
+def grip(bar):
+    """v11: how far the hand is down on the wood's middle (0..1): bar by bar across its closing, and all the way in the bar that shows the hands."""
+    if not ON['grip']:
+        return 0
+    if shown(bar):
+        return 1
+    return round((bar - TOP[11] + 1) / (TOP[12] - TOP[11]), 4) if TOP[11] <= bar < TOP[12] else 0
 
 
 def blown():
@@ -375,6 +415,8 @@ def remembered(thing, bar):
 def patch_of(thing):
     if thing == 'air' and ON['flue']:
         return 'rt-sigh' if ON['long'] else 'rt-flue'            # v9: with its second breath it is another sound, under another name
+    if thing == 'wood' and ON['grip']:
+        return GRIP['patch']
     return 'rt-plate' if thing == 'plate' else ('rt-drum' if ON['note'] else 'rt-boom') if thing == 'weight' and ON['boom'] else PATCH[thing]
 
 
@@ -510,9 +552,15 @@ def build():
                     n = stroke(thing, bar * 4 + (s % BAR) / 4, pitch, vel, r)
                     if hand_on(thing, bar):                      # v10: the hand changes what the stroke finds
                         h = hand_on(thing, bar)
-                        n['pitch'] = step(pitch, h['steps'][stopping(thing).index(bar)]) if 'steps' in h else f"{hz(pitch) * h['ratio']:.1f}hz" if 'ratio' in h else up(pitch, h['semis'])
+                        n['pitch'] = step(pitch, h['steps'][stopping(thing).index(bar) if bar in stopping(thing) else 0]) if 'steps' in h else f"{hz(pitch) * h['ratio']:.1f}hz" if 'ratio' in h else up(pitch, h['semis'])
                         if h['db']:
                             n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + h['db'], 2)}dB"
+                        if ON['fade'] and thing in FADE and bar == stopping(thing)[-1] and s == mine[-1][0]:   # v11: its last stroke under the hand
+                            n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + FADE[thing], 2)}dB"
+                        if shown(bar) and thing in SHOW:
+                            n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + SHOW[thing], 2)}dB"
+                    if thing == 'wood' and grip(bar):            # v11: the hand on the bar's middle
+                        n['expr'] = {**n['expr'], 'hand': grip(bar)}
                     if alone and ALONE:
                         down = ANSWER_DB if thing not in alone else ALONE_OF.get(thing, ALONE) if ON['even'] else ALONE
                         n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + down, 2)}dB"
@@ -547,6 +595,12 @@ def song(T, bars=BARS):
                    track('skin', '0dB', pan=0.15, fx=[hold(-10)], sends={'room': '-14dB'}), track('string', '-3dB', pan=-0.1), track('air', f"{2 + LONG['fader']:g}dB" if ON['long'] and ON['flue'] else '2dB', pan=0.05, fx=[hold(-9)], sends={'room': '-12dB'})],
     }
     by_name = {t['name']: t for t in doc['tracks']}
+    if ON['grip']:
+        wood = PATCHES['rt-wood']
+        bar = wood['synth']['layers'][0]
+        doc['patches'] = {**doc['patches'], GRIP['patch']: {**wood, 'about': "Ring True: the wood with a hand on its middle (v11). rt-wood, and a second bar two octaves up (the wood's second mode, 4 times its note); the stroke's expr.hand (0 no hand, 1 held) takes the first down and brings the second up, so that held, the second mode is what is left.",
+                                                            'synth': {**wood['synth'], 'layers': [{**bar, 'level': {'value': '0dB', 'mod': [{'src': 'expr.hand', 'amount': GRIP['note']}]}},
+                                                                                                  {**bar, 'semi': GRIP['semis'], 'level': {'value': GRIP['from'], 'mod': [{'src': 'expr.hand', 'amount': GRIP['mode']}]}}]}}}
     if ON['boom'] and ON['note']:
         doc['patches'] = {**doc['patches'], 'rt-drum': drum_patch()}
     elif ON['boom']:
@@ -617,7 +671,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the twenty-eight that are on: all off is v1; the last twenty-three off is v2; the last nineteen off is v3; the last sixteen off is v4; the last thirteen off is v5; the last twelve off is v6; the last nine off is v7; the last seven off is v8; the last four off is v9)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the thirty-two that are on: all off is v1; the last twenty-seven off is v2; the last twenty-three off is v3; the last twenty off is v4; the last seventeen off is v5; the last sixteen off is v6; the last thirteen off is v7; the last eleven off is v8; the last eight off is v9; the last four off is v10)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -639,7 +693,13 @@ if __name__ == '__main__':
             print("    the air's breath trails off: a second, slower breath behind the first")
         for k, h in HAND.items():
             if ON[h['switch']] and stopping(k):
-                print(f"    a hand on the {k}, bars {stopping(k)[0] + 1}-{stopping(k)[-1] + 1}: " + {'touch': 'touched at its middle, its octave is what is left', 'cap': 'the pipe is shut at its end: an octave lower', 'press': 'the head is pressed and tightens: a step up the five notes, then two', 'pinch': 'held at its middle, its second mode is what is left (2.76 times the note)'}[h['switch']] + ': ' + ' '.join(n['pitch'] for n in build()[k] if n['at'] // 4 in stopping(k)))
+                print(f"    a hand on the {k}, bars {stopping(k)[0] + 1}-{stopping(k)[-1] + 1}: " + {'touch': 'touched at its middle, its octave is what is left', 'cap': 'the pipe is shut at its end: an octave lower', 'press': 'the head is pressed and tightens: a step up the five notes, then two', 'pinch': 'held at its middle, its second mode is what is left (2.76 times the note)', 'choke': 'the beater is held against the head, which tightens: a step up the five notes, then two'}[h['switch']] + ': ' + ' '.join(n['pitch'] for n in build()[k] if n['at'] // 4 in stopping(k)))
+        if ON['grip']:
+            print(f"    a hand on the wood as it closes, bars {TOP[11] + 1}-{TOP[12]}: on its middle, bar by bar: its note {GRIP['note'] * grip(TOP[11]):.1f} to {GRIP['note'] * grip(TOP[12] - 1):.0f} dB, its second mode (two octaves up) {float(GRIP['from'][:-2]) + GRIP['mode'] * grip(TOP[11]):.1f} to {float(GRIP['from'][:-2]) + GRIP['mode'] * grip(TOP[12] - 1):.0f} dB")
+        if ON['show'] and ON['hush']:
+            print(f"    the hush shows the hands, bar {HUSH + 1}: " + ', '.join(f"the {k} {' '.join(n['pitch'] for n in build()[k] if n['at'] // 4 == HUSH)}" for k in HAND if hand_on(k, HUSH)) + ("; the wood gripped: its second mode" if grip(HUSH) else ''))
+        if ON['fade'] and ON['cap']:
+            print(f"    the shut pipe's last stroke (bar {stopping('air')[-1] + 1}): {FADE['air']} dB")
         print(f'{BARS} bars, {BARS * sec:.1f} s; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in build().items()))
     else:
         a.out.write_text(dump(bench() if a.bench else song(build())))
