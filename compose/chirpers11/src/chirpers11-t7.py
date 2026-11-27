@@ -246,6 +246,19 @@ the hat) A's own strokes are heard a second time, in the middle, treated so, and
 to the note the tune will give that stroke when it comes at bar 61 (G Bb D F A on steps 0 1 3 5 6 of the half
 bar), an octave down: the click sings its tune twelve bars before the tune is played. Measured alone, what comes
 out has the click's spectrum to 1.4 dB in every octave and its level to 0.2 dB; only the phases are different.
+
+v17 (27 Nov): THE DRUM COMES INTO FOCUS (C11T7_FOCUS=0 takes it out: v16). A drum beat once a beat is, to
+Fourier, a pile of steady tones at the multiples of 2.1 Hz (126 to the minute), all in phase on the beat.
+Take fifteen of them, the 21st to the 35th (44.1 to 73.5 Hz: the bass drum's own band), hold them, and
+nothing is struck: where they agree there is a thump, and they agree once a beat. Now put each one out of
+phase by the square of its place (k from -7 to 7: k squared over 28 of a turn): the same fifteen tones at
+the same strengths are a hum whose pitch slides down through the beat, with no thump in it. And tune each
+one flat by a hair (k squared over 28, over the row's 15.24 seconds: 0.115 Hz at the most) so that they
+come back into phase on a chosen bar line. In two rows where the bass drum rests and then comes in
+(bars 9-16 and 121-128) that is what plays: a hum that draws itself together, beat by beat, from a slide
+a whole beat long to a thump of a twentieth of a second, and is a drum on the line where the drum comes in.
+Nothing changes but phase: its level and its spectrum are the same in the first beat as in the last.
+(The third such row, bars 57-64, was built and taken out: C11T7_FOCUS_ROWS=8,56,120 puts it back.)
 """
 import json
 import math
@@ -489,6 +502,13 @@ def lap_notes():
 
 JET = os.environ.get("C11T7_JET", "1") != "0" and COMB                # v13: the click, held, through a phaser
 JET_IN, JET_WITHOUT = "drifts", "kick"                                # it sounds in the bars of this section in which this part stands back
+FOCUS = os.environ.get("C11T7_FOCUS", "1") != "0" and os.environ.get("C11T7_SING", "1") != "0" and os.environ.get("C11T7_VERN", "1") != "0" and os.environ.get("C11T7_FIVE", "1") != "0" and JET      # v17: the drum comes into focus (fifteen held tones that come into phase)
+FOCUS_ROWS = tuple(int(x) for x in os.environ.get("C11T7_FOCUS_ROWS", "8,120").split(","))    # the first bar (from 0) of each row it plays in: rows where the bass drum rests and plays in the bar after. NOT 56 (bars 57-64): there it took the hat's entry and the drum's return away as sections (8 to 7; the share of returns 0.40 to 0.29)
+FOCUS_BARS = ROW                                                     # ... and how long it takes to come into phase
+FOCUS_PARTS = (21, 35)                                               # the multiples of the beat's own frequency (BPM / 60 = 2.1 Hz) that are held: 44.1 to 73.5 Hz
+FOCUS_NOTE = ("G1", 440 * 2 ** ((31 - 69) / 12))                     # the note the held voice is written on and its Hz (it does not sound: every tone is tuned from it)
+FOCUS_OVER = 0.5                                                     # beats the voice is held past the bar line, so that the last thump (on the line, with the drum) is whole
+FOCUS_GAIN = os.environ.get("C11T7_FOCUS_GAIN", "-54dB")              # set in the whole song's master, which lifts a held low part about 20 dB over its fader figure in these rows: at -28 and -36 dB it was louder than the music it lay under
 SING = os.environ.get("C11T7_SING", "1") != "0" and os.environ.get("C11T7_VERN", "1") != "0" and os.environ.get("C11T7_FIVE", "1") != "0" and JET      # v16: the clicks sing (every phase set to nought)
 SING_IN = ("slips", 24, 32)                                          # the section, and the bars of it: the bare row between the vernier and the hat
 SING_OF = "a-ear"                                                    # whose strokes: A's, as they are in those bars
@@ -520,6 +540,23 @@ def jet_span():
 def jet_notes():
     lo, hi = jet_span()
     return [{"at": float(lo * BEATS), "len": float((hi - lo) * BEATS), "pitch": NOTE, "vel": 0.8}]
+
+
+def focus_tones():
+    """(Hz, turns out of phase at the start, weight) of each held tone: tone k (from the middle) starts k squared times FOCUS_SPREAD of a turn out,
+    which lays the thump out over one whole beat as a falling slide, and is flat by just enough to be back in phase after FOCUS_BARS bars."""
+    lo, hi = FOCUS_PARTS; n = hi - lo + 1; beat_hz = BPM / 60; secs = FOCUS_BARS * BEATS * 60 / BPM
+    spread = 1 / (2 * (n - 1))                                       # turns: with this the slide is exactly one beat long
+    out = []
+    for j in range(n):
+        k = j - (n - 1) / 2
+        out.append(((lo + j) * beat_hz - spread * k * k / secs, (spread * k * k) % 1.0, 0.5 - 0.5 * math.cos(2 * math.pi * (j + 1) / (n + 1))))
+    return out
+
+
+def focus_slide(bar_in_row):
+    """ms the slide lasts at the start of a bar of the row (a whole beat at first, nothing on the last line)."""
+    return 60000 / BPM * (1 - bar_in_row / FOCUS_BARS)
 
 
 def sing_span():
@@ -970,6 +1007,16 @@ def song():
                               "notes": sg_strokes})
         doc["about"] = doc["about"].replace(" Generated by", f" From v16, through bars {sg_b0 + 1} to {sg_b1}, A's strokes are heard a second time in the middle with every phase set to nought (a phase vocoder's robot): the same spectrum, but now each has a note, the one the tune gives its place, an octave down. Generated by")
         assert "From v16" in doc["about"]
+    if FOCUS:
+        for fo_b in FOCUS_ROWS:
+            assert not any(plays("kick", fo_x) for fo_x in range(fo_b, fo_b + FOCUS_BARS)) and plays("kick", fo_b + FOCUS_BARS), f"the drum does not rest through bars {fo_b + 1}-{fo_b + FOCUS_BARS} and come in after"
+        PATCHES["os-focus"] = {"about": f"Out of Step's drum that nobody strikes (chirper-zero, 27 Nov, v17): {FOCUS_PARTS[1] - FOCUS_PARTS[0] + 1} plain held tones at the multiples {FOCUS_PARTS[0]} to {FOCUS_PARTS[1]} of the beat's own frequency ({BPM / 60:g} Hz), each a hair flat and out of phase at the start by the square of its place, so that the hum they make draws together into one thump a beat over {FOCUS_BARS} bars. Written on {FOCUS_NOTE[0]}, which does not sound.",
+                               "play": {"vel_sens": 0, "gate": 1},
+                               "synth": {"layers": [f"sine phase={fo_ph:.6f} ratio={fo_f / FOCUS_NOTE[1]:.8f} level={20 * math.log10(fo_w):.2f}dB" for fo_f, fo_ph, fo_w in focus_tones()], "amp": {"a": "40ms", "d": "0s", "s": 1, "r": "30ms"}}}
+        doc["tracks"].append({"name": "focus", "patch": "os-focus", "gain": FOCUS_GAIN, "pan": 0.0,
+                              "notes": [{"at": fo_b * BEATS, "len": FOCUS_BARS * BEATS + FOCUS_OVER, "pitch": FOCUS_NOTE[0], "vel": 0.8} for fo_b in FOCUS_ROWS]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v17, in {len(FOCUS_ROWS)} rows where the bass drum rests and then comes in, fifteen held low tones ({FOCUS_PARTS[0] * BPM / 60:g} to {FOCUS_PARTS[1] * BPM / 60:g} Hz, the beat's own multiples) come slowly into phase: a hum that draws itself together into a thump a beat, and is a drum on the line where the drum comes in. Generated by")
+        assert "From v17" in doc["about"]
     return doc
 
 
@@ -1057,6 +1104,10 @@ if __name__ == "__main__":
         if jet_span():
             sec = BEATS * 60 / BPM; lo, hi = jet_span()
             print(f"   the break through a phaser, bars {lo + 1}-{hi} ({int(lo * sec) // 60}:{lo * sec % 60:04.1f}-{int(hi * sec) // 60}:{hi * sec % 60:04.1f}): the click's note ({NOTE}, {WAVE_HZ:.1f} Hz) held, {JET_GAIN} ; {JET_STAGES} all-pass stages, depth {JET_DEPTH}, feedback {JET_FEEDBACK}, mix {JET_MIX} ; a sweep there and back every {JET_RATE} ({int(JET_RATE[:-1]) * 60 / BPM:.2f} s): {(hi - lo) * BEATS / int(JET_RATE[:-1]):g} sweeps")
+        if FOCUS:
+            fo_t = focus_tones(); fo_bar = BEATS * 60 / BPM
+            print(f"   the drum comes into focus, bars " + ", ".join(f"{b + 1}-{b + FOCUS_BARS} ({int(b * fo_bar) // 60}:{b * fo_bar % 60:04.1f})" for b in FOCUS_ROWS) + f": {len(fo_t)} held tones ({FOCUS_GAIN}), the multiples {FOCUS_PARTS[0]} to {FOCUS_PARTS[1]} of the beat ({BPM / 60:g} Hz): {fo_t[0][0]:.2f} to {fo_t[-1][0]:.2f} Hz ; at the start tone k is k squared / {2 * (len(fo_t) - 1)} of a turn out (the outermost {fo_t[0][1]:.3f}) and {1000 * ((FOCUS_PARTS[0]) * BPM / 60 - fo_t[0][0]):.1f} mHz flat at the most ; in phase on the line of bars " + ", ".join(str(b + FOCUS_BARS + 1) for b in FOCUS_ROWS))
+            print("      the slide lasts, at the start of each bar of the row, ms: " + " ".join(f"{focus_slide(j):.0f}" for j in range(FOCUS_BARS)) + " ; on the line after: 0 (one thump)")
         if SING:
             sg_b0, sg_b1 = sing_span(); sg_trs = {t["name"]: t for t in song()["tracks"]}; sg_n = sg_trs["sing"]["notes"]; sg_k = sg_trs["singkey"]["notes"]; sg_bar = BEATS * 60 / BPM
             print(f"   the clicks sing, bars {sg_b0 + 1}-{sg_b1} ({int(sg_b0 * sg_bar) // 60}:{sg_b0 * sg_bar % 60:04.1f}-{int(sg_b1 * sg_bar) // 60}:{sg_b1 * sg_bar % 60:04.1f}): {len(sg_n)} of {SING_OF}'s strokes again, in the middle, every phase set to nought ({SING_GAIN}) ; each sings the tune's note for its place, an octave down (the robot's note {SING_PITCH} for a key of C4): step " + " ".join(f"{p}:{TUNE[p]}" for p in sorted(TUNE)) + f" ; the key is set {SING_EARLY:g} of a beat ({SING_EARLY * 60000 / BPM:.0f} ms) before its stroke ; the first bar's keys " + " ".join(x["pitch"] for x in sg_k[:10]))
