@@ -58,7 +58,25 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True}
+# ---- v13 (27 Nov): THE OTHER CURRENCY HAS ITS OWN COIN. Two more switches, each `--without-…` (with them off it is
+# v12 byte for byte). Since v9 home is also paid in another currency (three of its units to two sixteenths) and
+# a second hat ticks what that purse can pay where it falls between the sixteenths. It was the first hat's own
+# patch on the other side, 2 dB under it, for four strokes in the first two beats of every other bar: the same
+# sound in the same band, told from the first only by where it fell.
+#   COIN     the second hat is a patch of its own, sc-coin: the first hat at two thirds, as its unit of time
+#            is two thirds of a sixteenth: two thirds as long (20 ms for 30) and two thirds as high (the
+#            centre of its sound 5.5 kHz for the first hat's 8.3: a band-pass from 3 to 5.5 kHz for a
+#            high-pass at 6). First tried as a NOTE a fifth up (three for two in pitch): on the bench the
+#            machine's hat does not follow its note (its partials stayed where they were, the centre of its
+#            sound 8.30 to 8.35 kHz): a name and not a sound. Then as the same hat above 9 kHz: its centre
+#            moved to 9.2 kHz, a ninth of the way, into the band the first hat is loudest in. Under the
+#            first hat there is room: without the hats the song has -69 dBFS from 4 to 6 kHz at home.
+#   THROUGH  it counts the exchange's change through the whole bar (to 24 of its units, which is the bar) and
+#            not two beats of it: twelve ticks for four, each softer by the coins it took (the same rule the
+#            first hat has), so that for one bar in two the bar is heard cut in twenty-four against the
+#            hat's sixteen: three for two, to the bar line.
+COIN = {'patch': 'sc-coin', 'decay': '20ms', 'filters': ['hp cutoff=3000', 'lp cutoff=5500', 'lp cutoff=5500'], 'gain': '12dB', 'upto': 24}   # v13: the second hat's own patch; its decay and its band (the first hat's are 30 ms and a high-pass at 6 kHz); its fader (set on the bench so that its highest sample alone is 3 dB under the first hat's); the largest amount it counts with THROUGH (a bar)
 # ---- v12 (27 Nov): FIVE AND THREE MAKE EIGHT TOO. Two more switches, each `--without-…` (with them off it is v11
 # byte for byte). v11 put the song's sum into its notes once, the right way round, on a beat. The song also has
 # the purse inside out (since v3) and sums that fall on no beat, and neither was in the notes.
@@ -392,7 +410,7 @@ def build():
                     T[f"{'long' if kept else 'seed'}-{pairs[n % len(pairs)]}"].append({'at': bar * 4 + (at16 + (SPELL[j] if spelt else (0, SPELL[2] - SPELL[1], SPELL[2])[j] if back else 0)) / 4, 'len': 0.25, 'pitch': pitch, 'vel': 0.9,
                                                                                     **({'gain': f'{SOFT}dB'} if dense else {'gain': f'{HOME_DB}dB'} if home else {'gain': f'{LONG_DB}dB'} if kept and LONG_DB else {})})
                 if ON['rate'] and 'hat-x' in T and name == EXCHANGE['section']:   # v9 RATE: what the exchange can pay of this seed, in its units
-                    for amount in range(1, RATE['upto'] + 1):
+                    for amount in range(1, (COIN['upto'] if ON['through'] else RATE['upto']) + 1):
                         if coins_for(amount, *EXCHANGE['coins']) and (amount / EXCHANGE['per']) % 1:   # only the sums that fall between the sixteenths
                             T['hat-x'].append({'at': round(bar * 4 + at16 / 4 + amount / (4 * EXCHANGE['per']), 4), 'len': 0.1, 'pitch': 'A#4', 'vel': round(.95 - .13 * (coins_for(amount, *EXCHANGE['coins']) - 1), 2)})
                 if ON['seven'] and ON['exchange'] and ON['debts'] and bass and name == EXCHANGE['section']:   # v9 SEVEN: the exchange's largest debt, in the bass
@@ -536,7 +554,13 @@ def song():
         doc['patches'] = {**doc['patches'], 'sc-hat': HAT}
         doc['tracks'].append({'name': 'hat', 'patch': 'sc-hat', 'gain': '4dB', 'pan': 0.15, 'notes': T['hat']})
         if T.get('hat-x'):                                       # v9 RATE: the second hat, on the other side
-            doc['tracks'].append({'name': 'hat-x', 'patch': 'sc-hat', 'gain': RATE['gain'], 'pan': RATE['pan'], 'notes': T['hat-x']})
+            if ON['coin']:                                       # v13 COIN: the other currency's own hat
+                coin = json.loads(json.dumps(HAT))
+                coin['about'] = "Small Change: the second hat, that ticks what the other currency can pay (v13). The first hat at two thirds: the machine's hat, 20 ms, from 3 to 5.5 kHz (its centre 5.5 kHz for the first hat's 8.3)."
+                coin['synth']['layers'][0]['machine']['decay'] = COIN['decay']
+                coin['synth']['filters'] = COIN['filters']
+                doc['patches'] = {**doc['patches'], COIN['patch']: coin}
+            doc['tracks'].append({'name': 'hat-x', 'patch': COIN['patch'] if ON['coin'] else 'sc-hat', 'gain': COIN['gain'] if ON['coin'] else RATE['gain'], 'pan': RATE['pan'], 'notes': T['hat-x']})
     return doc
 
 
@@ -556,7 +580,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v11, the last four v10, the last seven v9, the last ten v8, the last twelve v7, the last fourteen v6, the last eighteen v5, the last nineteen v4, the last twenty-two v3, the last twenty-six v2, all twenty-nine v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v12, the last four v11, the last six v10, the last nine v9, the last twelve v8, the last fourteen v7, the last sixteen v6, the last twenty v5, the last twenty-one v4, the last twenty-four v3, the last twenty-eight v2, all thirty-one v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -580,7 +604,10 @@ if __name__ == '__main__':
         if ON['exchange']:
             print(f"    {EXCHANGE['section']} is also paid in another currency: coins of {EXCHANGE['coins'][0]} and {EXCHANGE['coins'][1]} of a unit two thirds of a sixteenth (three for two): amounts " + ' '.join(str(a) for a in range(1, 25) if coins_for(a, *EXCHANGE['coins'])) + '; on the grid where the amount is a multiple of three')
         if ON['rate'] and ON['exchange'] and ON['hat']:
-            print(f"    a second hat plays what the exchange can pay, in its units, up to {RATE['upto']}, where it falls between the sixteenths: " + ' '.join(str(a) for a in range(1, RATE['upto'] + 1) if coins_for(a, *EXCHANGE['coins']) and (a / EXCHANGE['per']) % 1))
+            upto = COIN['upto'] if ON['through'] else RATE['upto']
+            print(f"    a second hat plays what the exchange can pay, in its units, up to {upto}, where it falls between the sixteenths: " + ' '.join(str(a) for a in range(1, upto + 1) if coins_for(a, *EXCHANGE['coins']) and (a / EXCHANGE['per']) % 1))
+            if ON['coin']:
+                print(f"    the second hat is a coin of its own ({COIN['patch']}): the first hat at two thirds, {COIN['decay'][:-2]} ms and from 3 to 5.5 kHz")
         if ON['abroad'] and ON['exchange'] and ON['debts']:
             print(f"    at {EXCHANGE['section']}, after each chord, the bass leaves the debts the exchange can pay: " + ', '.join(f"{s} sixteenths ({round(s * EXCHANGE['per'])} of its units)" for s in debts(*purses()['a']) if (s * EXCHANGE['per']) % 1 == 0 and coins_for(round(s * EXCHANGE['per']), *EXCHANGE['coins'])))
         if ON['herald'] and ON['exchange']:
