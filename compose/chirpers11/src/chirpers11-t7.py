@@ -389,6 +389,14 @@ sound goes: one and one is nothing. Then the second saw is slid late, 1/16, 1/4 
 wave, a bar each: a thin reed opens into a hollow square; and back, 1/4, 1/16, and in the last
 bar in step again: home, and nothing. No note, level or harmonic of either saw changes: only
 the phase between them.
+
+v29 (27 Nov): IN PHASE, OUT OF PHASE (C11T7_FLIP=0 takes it out: v28). A phrase of eight
+notes, two bars long, is played four times in the row of the gears, the same in each ear
+every time. The second and fourth times the right ear's wave is upside down. In phase the
+phrase is in the sum of the two sides: in the middle, with the drum. Out of phase it is in
+their difference, where almost nothing else is: it leaves the middle, is heard at the two
+ears, and comes clear of the drum, though neither ear's level has changed. On one speaker
+the second and fourth times are not there: the two sides add up to nothing.
 """
 import json
 import math
@@ -749,6 +757,13 @@ SAWS_STEPS = (None, 0.0, 1 / 16, 1 / 4, 1 / 2, 1 / 4, 1 / 16, 0.0)   # a bar eac
 SAWS_AT = 0.5                                          # the beat of the bar on which a note begins (with the bass and the two-three-five)
 SAWS_LEN = 3.9                                         # beats it is held
 SAWS_GAIN = os.environ.get("C11T7_SAWS_GAIN", "-36dB")   # every track of the pair. Meant before any reading: the one saw about -26 dBFS in the master (14 dB under the row). The bench (the row alone at -20 dB): the one saw -27.2 dBFS. Read in the whole song's master at -30dB and -36dB (seed 0), BEFORE any score: the one saw -20.4 and -26.1 dBFS (this master lifts it 17 dB), the square -15.8 and -21.4: -36dB is the level meant
+FLIP = os.environ.get("C11T7_FLIP", "1") != "0" and SAWS   # v29: IN PHASE, OUT OF PHASE: the same phrase four times, the same in each ear every time; the second and fourth times the right ear's wave is upside down. In phase it is in the SUM of the two sides, in the middle, where the drum is. Out of phase it is in neither side's sum but in their DIFFERENCE, where almost nothing else is: it leaves the middle, is heard at the two ears, and comes clear of the drum though no level has changed (the ear can take the difference: Hirsh 1948, Durlach 1963). On one speaker the second and fourth are not there at all
+FLIP_IN = ("slips", 6)                                 # the section and its row (from 0): bars 73 to 80, the row of the gears
+FLIP_TUNE = (("G4", 0.75), ("Bb4", 1.75), ("D5", 2.75), ("C5", 3.75), ("Bb4", 4.75), ("G4", 5.75), ("F4", 6.75), ("G4", 7.75))   # the phrase: (note, beat of its two bars): the tune's own notes, a sixteenth before each beat; 349 to 587 Hz, where the song has room (468 Hz) and the ear takes the difference best
+FLIP_TIMES = ("in", "out", "in", "out")                # the four times: in phase, out of phase
+FLIP_LEN = 0.9                                         # beats a note is written
+FLIP_LAST = 0.2                                        # beats the phrase's last note is written: short, so that nothing of it is left when the row ends: the two bars after the row are the drum's rest, and a cut leans on that rest (the first build held it 0.65 of a beat into bar 81: one of the scorer's seven cuts lost its bound at 155 s on both seeds)
+FLIP_GAIN = os.environ.get("C11T7_FLIP_GAIN", "-32dB")   # all three tracks. The bench (the row alone at -20 dB): a note's first 200 ms -33.1 dBFS in each ear. Read in the whole song's master at -28dB and -34dB (seed 0), BEFORE any score: -24.4 and -30.4 dBFS in each ear (the master lifts it 16.7 dB: a sixteenth before the beat in a row with the drum), the same in phase and out. At -28dB the phrase in phase stood 13.7 dB over the old music's sum in its own sixth of an octave: too far forward for the change to matter; at -34dB 7.7. -32dB is meant to bring it to -28.4 dBFS: in the music when in phase
 SING = os.environ.get("C11T7_SING", "1") != "0" and os.environ.get("C11T7_VERN", "1") != "0" and os.environ.get("C11T7_FIVE", "1") != "0" and JET      # v16: the clicks sing (every phase set to nought)
 SING_IN = ("slips", 24, 32)                                          # the section, and the bars of it: the bare row between the vernier and the hat
 SING_OF = "a-ear"                                                    # whose strokes: A's, as they are in those bars
@@ -992,6 +1007,25 @@ def swarm_ticks():
 
 
 _HUM_MEMO = {}
+
+
+def flip_row():
+    """The first bar (from 0) of the row with the phrase in phase and out of phase, or None."""
+    sec = next((x for x in SECS if x[0] == FLIP_IN[0]), None)
+    return sec[1] + ROW * FLIP_IN[1] if FLIP and sec is not None and FLIP_IN[1] * ROW < sec[2] else None
+
+
+def flip_notes():
+    """[(beat, note, 'in' or 'out')]: the phrase once for every one of FLIP_TIMES."""
+    span = ROW * BEATS // len(FLIP_TIMES)
+    assert span * len(FLIP_TIMES) == ROW * BEATS and all(0 <= t < span for _, t in FLIP_TUNE)
+    return [(flip_row() * BEATS + k * span + t, p, how) for k, how in enumerate(FLIP_TIMES) for p, t in FLIP_TUNE]
+
+
+def flip_len(t):
+    """Beats the note at beat t is written: the phrase's last note is short (FLIP_LAST), the others FLIP_LEN."""
+    span = ROW * BEATS // len(FLIP_TIMES)
+    return FLIP_LAST if abs((t - flip_row() * BEATS) % span - FLIP_TUNE[-1][1]) < 1e-9 else FLIP_LEN
 
 
 def saws_row():
@@ -1698,6 +1732,15 @@ def song():
             doc["tracks"].append({"name": f"saw-b{sw_k}", "patch": f"os-saw-b{sw_k}", "gain": SAWS_GAIN, "pan": 0.0, "notes": [{"at": (saws_row() + sw_k) * BEATS + SAWS_AT, "len": SAWS_LEN, "pitch": SAWS_NOTE, "vel": 0.8}]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v28 two saws are out of step (bars {saws_row() + 1} to {saws_row() + ROW}, the second row of home): a sawtooth on {SAWS_NOTE} ({sw_f:.1f} Hz, {SAWS_HARMS} harmonics) is held a bar at a time; from the second bar the same sawtooth sounds with it, upside down: bar by bar the second is " + ", ".join("in step (the two are nothing)" if x == 0 else (f"1/{round(1 / x)}" if abs(1 / x - round(1 / x)) < 1e-9 else f"{x:g}") + " of a wave late" for x in SAWS_STEPS[1:]) + ", and what is left is a pulse as wide as the second is late: at half a wave a square, every even harmonic gone. No note changes: only the second saw's phase. Generated by")
         assert "From v28" in doc["about"]
+    if flip_row() is not None:
+        fl = flip_notes()
+        for fl_name, fl_ph, fl_what in (("os-flip", 0, "the right way up"), ("os-flip-over", 0.5, "upside down: every part of it half a turn on")):
+            PATCHES[fl_name] = {"about": f"Out of Step's phrase in and out of phase (chirper-zero, 27 Nov, v29): a soft struck tone, a sine and its octave, {fl_what}. `os-flip` in one ear and `os-flip-over` in the other are the same sound with one ear's wave turned over: together on one speaker they are nothing.",
+                                "play": {"vel_sens": 0}, "synth": {"layers": [f"sine phase={fl_ph:g}", f"sine phase={fl_ph:g} ratio=2 level=-12dB"], "filters": ["lp cutoff=7000"], "amp": {"a": "3ms", "d": "300ms", "s": 0.3, "r": "80ms"}}}
+        for fl_name, fl_patch, fl_pan, fl_how in (("flip-l", "os-flip", -1.0, ("in", "out")), ("flip-in", "os-flip", 1.0, ("in",)), ("flip-out", "os-flip-over", 1.0, ("out",))):
+            doc["tracks"].append({"name": fl_name, "patch": fl_patch, "gain": FLIP_GAIN, "pan": fl_pan, "notes": [{"at": t, "len": flip_len(t), "pitch": p, "vel": 0.8} for t, p, how in fl if how in fl_how]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v29 a phrase is in phase and out of phase (bars {flip_row() + 1} to {flip_row() + ROW}, the row of the gears in 'slips'): {' '.join(p for p, _ in FLIP_TUNE)}, two bars, {len(FLIP_TIMES)} times, the same in each ear every time; the {' and '.join(('first', 'second', 'third', 'fourth')[k] for k, how in enumerate(FLIP_TIMES) if how == 'out')} time the right ear's wave is upside down: the phrase is then in neither the left nor the right alone but in their difference, where almost nothing else is: it leaves the middle and comes clear of the drum; on one speaker it is not there. Generated by")
+        assert "From v29" in doc["about"]
     return doc
 
 
@@ -1727,6 +1770,9 @@ def lock(k):
 if __name__ == "__main__":
     if os.environ.get("C11T7_SHOW"):
         sec = 60 / BPM * BEATS
+        if flip_row() is not None:
+            fl = flip_notes(); fl_b = flip_row()
+            print(f"in phase, out of phase ({FLIP_GAIN}), bars {fl_b + 1}-{fl_b + ROW} ({int(fl_b * BEATS * 60 / BPM) // 60}:{fl_b * BEATS * 60 / BPM % 60:04.1f}): the phrase {' '.join(f'{p} (beat {t:g})' for p, t in FLIP_TUNE)} ; {len(FLIP_TIMES)} times: {' '.join(FLIP_TIMES)} ; the left ear the same every time (pan -1), the right ear the same wave (in) or the wave upside down (out) (pan 1) ; {len(fl)} notes of {FLIP_LEN:g} beats (the last of each time {FLIP_LAST:g}: over before the bar ends)")
         if saws_row() is not None:
             sw_f = hz(SAWS_NOTE)
             print(f"two saws out of step ({SAWS_GAIN}), bars {saws_row() + 1}-{saws_row() + ROW} ({int(saws_row() * sec) // 60}:{saws_row() * sec % 60:04.1f}): a sawtooth on {SAWS_NOTE} ({sw_f:.2f} Hz), harmonics 1 to {SAWS_HARMS} ({SAWS_HARMS * sw_f:.0f} Hz), a note a bar from beat {SAWS_AT} held {SAWS_LEN} beats")
