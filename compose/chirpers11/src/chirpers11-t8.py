@@ -71,6 +71,27 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v11 (27 Nov): WHAT THE SONGS LEARNT AFTER MIDNIGHT. Ring True (v11) and Least Common (v11) each learnt something
+in the last hour; the closer takes two things from the one and one from the other, and nothing of its own. Three
+switches (`--without-grip`, `-choke`, `-lead`; all three off is v10 byte for byte):
+  GRIP   4 Ring True v11: the wood has a hand. There, as the wood closes, the hand comes down on the bar's
+         middle: its note goes and its second mode, two octaves up, is what is left. Here the cell IS that bar,
+         and the hand takes it back over bars 161 to 168: so bar by bar the cell's tune goes up two octaves as
+         it is stopped (the note 12 dB down by the last bar, the second mode at the note's old level). And on
+         the cell's last stroke the hand lets go of the stick and of the bar (v8): that one stroke has its
+         note again, whole, and bounces on it. A new patch name, wd-grip. Ring True's crossfade was linear in
+         dB and dipped 6 dB in the middle; here each layer has its own level on the stroke (expr.note,
+         expr.mode) and the two are an equal-power pair: a change of colour, not of level.
+  CHOKE  4 Ring True v11: the weight's head tightens under the beater as it is stopped. Here the drum goes at
+         bar 193: in its last two bars the beater is held against it and its note rises, B flat then C for G.
+         The drum does not just stop: it is stopped.
+  LEAD   2 Least Common v11: the bass comes back before the drum. In each caught bar where the bass is already
+         in (bars 48, 64, 80, 96, 112) the bass's own fundamental (the sine it is given at the end, v3) holds
+         D, the fifth below, through the bar's last beat into the one the drum comes back on. Not the whole
+         bar: Least Common found that a break with the bass's band filled is no longer a break. FIRST BUILT
+         WITH THE LAST TWO BEATS HELD, and this song found the same thing at half the size: rendered in full,
+         the scorer's sections fell from 10 to 8 at its highest cut, and came back with the lead out.
+
 v10 (26 Nov): WHAT THE SONGS LEARNT TONIGHT. Small Change (v9) and Least Common (v10) each learnt something after
 the closer last quoted them; it takes one thing from each and nothing of its own. Three switches (`--without-
 exchange`, `-rate`, `-given`; all three off is v9 byte for byte):
@@ -214,7 +235,14 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True}
+GRIP = {'note': -12, 'semis': 24, 'from': '-40dB', 'patch': 'wd-grip'}   # v11: dB on the cell's note with the hand all the way down; its second mode's place above the note; that layer's level with no hand; the patch
+CHOKE = {'notes': ('Bb1', 'C2')}        # v11: the drum's note in each of its last bars
+LEAD = {'beats': 1, 'pitch': 'D2', 'gain': '-27dB', 'vel': .8}   # v11: beats before the one that the bass's fundamental holds; its note; its fader.
+# Bench (g.sh, gread.py, raw, bar 48 by beat): at the fundamental's own fader (-21 dB) the note alone read -31.3 dBFS where the caught bar's click reads -43.2 and the groove either side -22.3: the bar's second half 12 dB over its first.
+# 6 dB less: over the click and 15 under the groove (Least Common's stands 2 dB over its break; a sine at 73 Hz wants more than a click does to be heard at all).
+# RENDERED IN FULL WITH TWO BEATS HELD: the scorer's sections fell from 10 to 8 at its highest cut on both seeds (structure 99.33 for 100), and with the lead out they were 10 again (first/: nl11, ng11): half a caught bar with the bass's
+# band in it is half a catch. One beat: a pickup into the one, and the catch is a catch for three beats of its four
 EXCHANGE = {'per': 1.5, 'back': 0.72, 'feed': '3dB', 'pan': 0.3, 'down': 8}   # v10: Small Change's exchange: how many of its units make a sixteenth; what each loop gives back a pass (the first pair's is 0.62 and its passes are half as often again); what it takes of the seed (the first pair takes 0 dB; see the bench below); how far to each side (the first pair is at 0.5); beats over which it is let down.
 # Bench (xc.sh, xcread.py: the song less v9, raw, by unit from the seed of bar 141): taking -2 dB its coins read -33 and -38 on 3 and 5 units where the first pair's read -34 and -32 on 3 and 5 sixteenths, and by bar it stood 1 to 5 dB under the first pair and 18 to 22 under the mix. Taking 0 dB (rendered in full): 3 under to 2 over the first pair, still 16 to 20 under the mix, and in the finished song 0.2 to 0.5 dB on 400 Hz to 3 kHz: these are the fullest bars of the song and the change is a small thing in them. 3 dB more: for four bars the other currency is the one that is heard.
 RATE = {'upto': 12, 'gain': '-9dB', 'pan': -0.2}   # v10: the largest amount the click counts (twelve units is two beats); its fader and side (the complement's are -6 dB and 0.2). Bench: at -6 dB its highest sample was -10.4 dBFS beside the complement's -11.0: a second complement, not a count behind it. 3 dB less
@@ -389,6 +417,8 @@ def build():
         T['knock'] = []
     if ON['rate'] and ON['exchange'] and ON['spent'] and ON['comp']:
         T['rate'] = []
+    if ON['lead'] and ON['catch']:
+        T['lead'] = []
     for bar in range(BARS):
         b = bar * 4
         down = bar >= RUNS_DOWN
@@ -402,7 +432,9 @@ def build():
             for beat in range(4):
                 if given(b + beat):                             # v10: the beat is the answer's
                     continue
-                T['kick'].append({'at': b + beat, 'len': 0.5, 'pitch': 'G1', 'vel': .95 if beat == 0 else .88})
+                T['kick'].append({'at': b + beat, 'len': 0.5, 'pitch': CHOKE['notes'][bar - (RUNS_DOWN - len(CHOKE['notes']))] if ON['choke'] and bar >= RUNS_DOWN - len(CHOKE['notes']) else 'G1', 'vel': .95 if beat == 0 else .88})
+        if 'lead' in T and caught(bar) and bar > COMES['ghost']:   # v11 LEAD: the bass comes back before the drum
+            T['lead'].append({'at': b + 4 - LEAD['beats'], 'len': LEAD['beats'], 'pitch': LEAD['pitch'], 'vel': LEAD['vel']})
         if here('pattern', bar):
             slip = (bar - (GOES['pattern'] - LEAVE) + 1) % 8 if ON['slip'] and bar >= GOES['pattern'] - LEAVE else 0
             for half in (0, 8):
@@ -430,6 +462,9 @@ def build():
             for s, pitch, vel in CELL:
                 if s // BAR == bar % 2:
                     T['cell'].append(wood(b + (s % BAR) / 4, pitch, vel, r, **({'ease': EASE} if ON['ease'] else {})))
+                    if ON['grip'] and ON['taken'] and bar >= GOES['cell'] - LEAVE:   # v11 GRIP: the hand on the bar's middle: an equal-power pair
+                        x = (bar - (GOES['cell'] - LEAVE) + 1) / LEAVE
+                        T['cell'][-1]['expr'].update(note=round(10 * log10(1 - (1 - 10 ** (GRIP['note'] / 10)) * x), 2), mode=round(-float(GRIP['from'][:-2]) + 10 * log10(x), 2))
                     if ON['nudge'] and bar >= GOES['cell'] - NUDGE['bars']:   # the hand: late, and its note with its speed
                         late, rate = hand((bar - (GOES['cell'] - NUDGE['bars'])) * 4 + (s % BAR) / 4)
                         T['cell'][-1]['at'] = round(T['cell'][-1]['at'] + late, 4)
@@ -437,7 +472,7 @@ def build():
             if ON['drop'] and bar == GOES['cell'] - 1:         # v8 DROP: the cell's last stroke goes by a track of its own, so that only it bounces
                 n = T['cell'].pop()
                 let = wood(n['at'], n['pitch'], n['vel'], DROP['ring'], **({'ease': EASE} if ON['ease'] else {}))   # let go, where the hand had it stopped
-                T['cell-drop'] = [{**let, 'expr': {**n['expr'], 'ring': let['expr']['ring']}, 'gain': f"{round(float(let['gain'][:-2]) + DROP['db'], 2)}dB"}]
+                T['cell-drop'] = [{**let, 'expr': {**{k: v for k, v in n['expr'].items() if k not in ('note', 'mode')}, 'ring': let['expr']['ring']}, 'gain': f"{round(float(let['gain'][:-2]) + DROP['db'], 2)}dB"}]
         if here('meetings', bar):
             for s in range(bar * BAR, (bar + 1) * BAR):          # the cycles are counted from the top of the song; nobody plays them
                 meet = tuple(c for c in CYCLES if s % c == 0)
@@ -563,6 +598,13 @@ def song():
             sunk['synth']['pitch'] = {'value': 0, 'mod': [{'src': 'expr.sink', 'amount': 1}]}
             doc['patches'] = {**doc['patches'], 'wd-sink': sunk}
         by_name['cell']['patch'] = 'wd-sink'
+    if ON['grip'] and ON['taken']:                            # v11: the cell's bar twice, the second two octaves up, each with its own level on the stroke
+        held = json.loads(json.dumps(doc['patches'][by_name['cell']['patch']]))
+        bar_layer = held['synth']['layers'][0]
+        held['about'] = "Wind Down: the bar with a hand on its middle (v11, after Ring True's rt-held): the cell's patch, and its bar a second time two octaves up (a wooden bar's second mode). Each has its level on the stroke: expr.note (dB on the note, 0 with no hand) and expr.mode (dB over -40 on the second mode)."
+        held['synth']['layers'] = [{**bar_layer, 'level': {'value': '0dB', 'mod': [{'src': 'expr.note', 'amount': 1}]}}] + held['synth']['layers'][1:] + [{**bar_layer, 'semi': GRIP['semis'], 'level': {'value': GRIP['from'], 'mod': [{'src': 'expr.mode', 'amount': 1}]}}]
+        doc['patches'] = {**doc['patches'], GRIP['patch']: held}
+        by_name['cell']['patch'] = GRIP['patch']
     if ON['sing']:
         for me, ms, back, side in SING['walls']:
             doc['buses'][me] = {'pan': side, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.near', 'amount': 1}]}, 'auto': {'near': near()}, 'fx': SING['fx'],
@@ -611,6 +653,9 @@ def song():
     if ON['real']:
         doc['patches'] = {**doc['patches'], 'wd-under': V3['wd-under']}
         doc['tracks'].append({'name': 'under', 'patch': 'wd-under', 'gain': REAL['gain'], 'notes': T['under'], 'fx': [under]})
+    if T.get('lead'):
+        doc['patches'] = {**doc['patches'], 'wd-under': V3['wd-under']}
+        doc['tracks'].append({'name': 'lead', 'patch': 'wd-under', 'gain': LEAD['gain'], 'notes': T['lead']})
     if ON['hat']:
         doc['patches'] = {**doc['patches'], 'wd-hat': NEW['wd-hat']}
         doc['tracks'].append({'name': 'hat', 'patch': 'wd-hat', 'gain': '6dB', 'pan': -0.2, 'notes': T['hat'], 'sends': {'hall': '-18dB'}})
@@ -647,7 +692,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v9, the last six v8, the last eight v7, the last eleven v6, the last fourteen v5, the last seventeen v4, the last twenty v3, the last twenty-six v2, all thirty-two v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v10, the last six v9, the last nine v8, the last eleven v7, the last fourteen v6, the last seventeen v5, the last twenty v4, the last twenty-three v3, the last twenty-nine v2, all thirty-five v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -664,6 +709,9 @@ if __name__ == '__main__':
                        ([(beat // 4, f'the drum gives beat {beat % 4 + 1} to the answer: the three and the five meet on it') for beat in range(BARS * 4) if given(beat)]) +
                        ([(GOES['meetings'], 'the last chord, held')] if ON['held'] else []) +
                        ([(GOES['cell'] - LEAVE, 'the cell is taken back into the hand')] if ON['taken'] else []) +
+                       ([(GOES['cell'] - LEAVE, "the hand is on the bar's middle: bar by bar the cell's note goes and its second mode, two octaves up, is what is left; its dropped stroke has the note again")] if ON['grip'] and ON['taken'] else []) +
+                       ([(RUNS_DOWN - len(CHOKE['notes']), 'the beater is held against the drum: its note rises, ' + ' then '.join(CHOKE['notes']))] if ON['choke'] else []) +
+                       ([(b, f"the bass comes back before the drum: its fundamental holds {LEAD['pitch']} through the last {'beat' if LEAD['beats'] == 1 else str(LEAD['beats']) + ' beats'}") for b in CATCHES if b > COMES['ghost']] if ON['lead'] and ON['catch'] else []) +
                        ([(GOES['cell'] - 1, "the hand lets go of the stick: the cell's last stroke bounces")] if ON['drop'] else []) +
                        ([(COMES['meetings'], 'each meeting is heard to part: the two cycles that met click once more, 3, 5 or 7 sixteenths on')] if ON['part'] else []) +
                        ([(GOES['ghost'] - REAL['bars'], 'the bass is given its fundamental')] if ON['real'] else []) +
