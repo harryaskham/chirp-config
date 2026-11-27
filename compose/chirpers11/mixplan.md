@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v19 (16:03): its first eight bars are v18's (by two -17.8 -17.8 -17.8 -17.8 dBFS); bar 184 -11.1
+  (-11.2); the tail by second -18.5 -33.5 -47.9 -61.1 (0.2 dB more on one seed, 0.1 either way on the other);
+  highest sample -1.46. Inside: the pipe is flutter-tongued in bars 97 to 112; the big drum's ring is 3 dB up
+  under its disc (40 to 120 Hz 0.9 to 1.5 dB more in bars 113 to 136). Nearest song 0.683 (Least Common).
 - Least Common v19 (15:30): both its ends are v18's to 0.1 dB (bars 1 to 4 -17.6 dBFS; the last four bars by bar
   -17.4 -17.4 -17.3 -17.0; 2 s after home -20.2; highest sample -1.49). Inside, page 7 only (5:00 to 5:43): the
   drum alternates two notes (D2, B flat 1) and the hat waits for home. Likeness to Standing Room 0.824.
