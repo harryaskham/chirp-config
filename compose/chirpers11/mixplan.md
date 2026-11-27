@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v12 (03:03): both ends within a tenth of v11's and nothing new sounds at either: bars 1 to 16 by
+  four -22.4 -23.3 -23.5 -20.5 dBFS, the last sixteen -24.3 -23.5 -23.1 -19.5. What changed is inside (bars 57 to
+  63, 137 to 143, 165 and 167). Seam 6 (eight bars into Out of Step, whose first eight are 0.12 dB quieter since
+  its v14, and whose last eight, under Wind Down's entry, are 0.21 quieter) was not re-rendered.
 - Wind Down v12 (02:37): both ends are v11's to 0.1 dB: bars 1 to 8 by two -29.9 -30.2 -29.9 -30.0 dBFS; the last
   strokes by second -9 -22 -35 -47 -59 -73 -85 -97. What changed is inside (the last beat of bars 16, 32, 48, 64,
   96 and 112). Seam 7 (eight bars out of Out of Step, now v14) was not re-rendered.
