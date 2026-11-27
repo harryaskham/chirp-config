@@ -94,6 +94,12 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v14 (07:01): both ends are v13's exactly: bars 1 to 16 by four -22.4 -23.3 -23.5 -20.6 dBFS; the
+  last sixteen -24.3 -23.5 -23.1 -19.5. Inside: an open hat that rings in bars 65 to 80 and 113 to 126.
+- Seam 1 as built (chirper-zero, Give or Take v17, 07:01): eight clock ticks under Least Common's bars 1 to 4, at its
+  beats 0.07 2.17 4.27 6.37 8.47 10.57 12.67 14.77 (126), about -36 dBFS, on the right, the last 0.59 s before bar 5.
+- Seam 3 as built (Standing Room v17, 06:48): a hum at 120.0 and 180.1 Hz under Ring True's bars 1 to 8, 44 to 28 dB
+  under Ring True's own -21.5 dBFS from 100 to 200 Hz; it stops with Standing Room.
 - Wind Down v14 (06:29), THE ALBUM'S END: from 6:12 a wall clock (Give or Take's, chirper-zero's) ticks at every
   whole second of the song, 372 to 400 s, on the right, about -33 dBFS over its 40 ms; the last stroke is at 396.4 s
   and four ticks follow it. By second from 396 s: -9 -20 -33 -44 -50 -71 -84 -95 dBFS, then nothing. Its start is
