@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Least Common v23 (23:27): BOTH ENDS 0.1 dB UP with the master (12.5 s of the song are lighter): bars 1 to 4
+  -17.5 dBFS (was -17.6); the last four bars by bar -17.3 -17.3 -17.3 -17.0 (-17.4 -17.4 -17.3 -17.0); 2 s
+  after home -20.1 (-20.3); highest sample -1.49. Inside: 1:15 to 1:27.5 has no drum and no bass line: the
+  clicks over one held D2, 9.3 dB down whole; the drum's return at 1:27.5 is 9.4 dB up in 2 s.
 - Small Change v22 (22:57): both ends as v21's: bars 1 to 16 by four -22.5 -23.4 -23.6 -20.7 dBFS; the last
   sixteen by four -23.0 -23.8 -23.1 -19.7; bars 185 to 192 -21.06; highest sample -1.30. Inside: in bars 129 to
   160 one purse's echoes are rounded (a bit crusher in its loops) and stop dead: those bars are drier between
