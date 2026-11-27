@@ -71,6 +71,23 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v22 (27 Nov): THE NEXT BAR IS HEARD BEFORE IT COMES. Two switches (`--without-preecho`, `-nearer`; both off is
+v21 byte for byte). v20 and v21 made the end a record (a run-out groove, its surface, the needle lifted) and v21's
+surface was faint. A record has one sign that needs no quiet room: PRE-ECHO. A loud groove is cut beside a silent
+one and presses through its wall: in the silence before a loud entry the entry is heard faintly, one turn early.
+  PREECHO  this song has such silences: the caught bars, where everything stops but the click, and the bar after,
+           where everything comes back with one thing more. In caught bars 16, 32, 48 and 112 the first turn of
+           the bar after (1.8 s at 33 1/3: 3.72 beats) is heard a turn early, 30 dB down: every stroke of
+           everything but the click and the clocks, on tracks of their own (`pre-...`: the same patches, places
+           and sends, no fader rides). A turn is not a bar: 1.8 s against 1.935 s: the ghost's beats fall 135 ms
+           after the caught bar's own: a beat of another time, as a real one is. The catch already says who is
+           coming, by a note or two of the new thing; the record says ALL that is coming, and says it too soon.
+           NOT in caught bars 64, 80 and 96: the first build had all seven, and the scorer's cuts at those three
+           (0.20, 0.18, 0.20: the catch's own beginning) fell to 0.16, 0.16, 0.17: structure 100 to 95.3, the
+           total 1.08 down; at 38 dB down there it was still 0.16 down. A silence the scorer leans on is left.
+  NEARER   v21's surface under the last ticks stood 3 dB over the floor. It comes back 9 dB nearer, and the
+           locked groove's hiss 6: the step up at the first joint, 5 dB in v21, is 2.
+
 v21 (27 Nov): THE RECORD COMES UP AS THE SPRING RUNS DOWN. Three switches on (`--without-leadin`, `-reveal`,
 `-inner`; all off is v20 byte for byte) and one written and off (`--with-spiral`). v20 made the end a record: a
 run-out groove, its surface, the needle lifted. But that surface began from nothing at the first joint, 1.1 s after
@@ -455,10 +472,12 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True, 'quarters': True, 'hour': True, 'hammer': True, 'one': True, 'sympathy': True, 'groove': True, 'surface': True, 'lift': True, 'leadin': True, 'reveal': True, 'inner': True, 'spiral': False}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True, 'quarters': True, 'hour': True, 'hammer': True, 'one': True, 'sympathy': True, 'groove': True, 'surface': True, 'lift': True, 'leadin': True, 'reveal': True, 'inner': True, 'spiral': False, 'preecho': True, 'nearer': True}
 GROOVE = {'patch': 'wd-groove', 'turn': 1.8, 'after': 1.1, 'turns': 4, 'dust': ((0, 'G2', 1.0, 0), (3, 'D4', .7, -9), (8, 'A3', .6, -14), (15, 'F4', .8, -6)),   # v20: the run-out groove: seconds a turn (33 1/3 a minute); seconds from the last stroke to the first joint; turns; what is in a turn: (sixteenths of a turn after the joint, the chip noise's note: its step rate, how hard, dB)
           'gain': '-28dB', 'pan': 0, 'ms': 4, 'hp': 180, 'lp': 2600, 'rest': 1.5}   # its fader (bench: at -24 dB the joint's highest sample stood 2 to 6 dB over the wall clock's ticks: 4 dB off) and place; a speck's length, ms; its band; seconds of the song after the last joint (the surface goes in them)
 SPIRAL = {'patch': 'wd-spiral', 'gain': '-51dB', 'hp': 700, 'lp': 6000, 'in': 4, 'to': 8, 'out': 4, 'radius': (146.05, 60.3, 53.2), 'lock': 'wd-inner', 'every': 8, 'walls': 2, 'up': 4, 'down': 70}   # v21: the playing groove's surface: its patch, fader (bench, alone: at the run-out's -58 dB the white hiss stood 10 dB under the locked groove's chip noise: -78 dBFS for -68: so 7 dB up, to meet it at the first joint with INNER's 3.8) and band at the first groove (the run-out's, v20); bars over which it comes in; the bar to which it is held, and bars over which it goes, where it does not stay; an LP's first, last and locked groove, mm from the centre; the run-out surface's name when its band has slid; bars between the points of the slide's line; low-pass filters in a row at the band's top (Out of Step's last bars lie over the first eight: nothing over 10 kHz); REVEAL: bars over which it comes up again from the bar the spring runs down; dB it is down in between
+NEARER = {'up': 9, 'lock': 6}   # v22: dB on the playing groove's surface where it comes back as the spring runs down (the lead-in in bars 1 to 8 is as it was: chirper-zero's seam), and on the locked groove's hiss
+PREECHO = {'at': {15: -30, 31: -30, 47: -30, 111: -30}, 'not': ('tick', 'clock-tick', 'clock-tock', 'chime', 'hour', 'groove', 'surface', 'lift', 'spiral')}   # v22: the caught bars (from 0) whose next bar is heard a turn early, and the dB under itself at which it is (the first build had all seven at -30: the scorer's cuts at bars 64, 80 and 96, the catches' own beginnings, read 0.20 0.18 0.20 before and 0.16 0.16 0.17 with it: two sections lost at its two highest settings, structure 100 to 95.3, the total 1.08 down); the tracks that do not print through (the click and the clocks keep their own time; the run-out is not music)
 SURFACE = {'patch': 'wd-surface', 'gain': '-58dB', 'hp': 700, 'lp': 6000, 'pitch': 'D3', 'vel': 0.8}   # v20: the record's surface: its fader (benched), its band, the chip noise's note (its step rate: slow enough not to come round inside a turn)
 LIFT = {'patch': 'wd-lift', 'after': 0.5, 'rest': 1.0, 'pitch': 'D2', 'gain': '-22dB', 'vel': 0.8, 'ms': 90, 'speck': ('C2', 1.0, 3)}   # v20: the needle is lifted: seconds after the last joint; seconds of nothing after it; the thump's note, fader, touch and decay; the speck with it (the groove's patch: note, touch, dB)
 HAMMER = {'patch': 'wd-chime-struck', 'amount': 96, 'ms': 3}   # v19: the struck bell's name; the hammer's grain of noise: its envelope's amount over -80 dB (benched: see the docstring), and how long
@@ -1062,7 +1081,8 @@ def song():
         doc['length'] = f'{round(beat_at(run_out()), 3)}b'
     if ON['surface'] and ON['stop']:                            # v20 SURFACE: what the needle rides on: the same hiss every turn
         slid = inner() if ON['leadin'] and (ON['spiral'] or ON['reveal']) else 1.0   # v21 INNER: in the locked groove the band has slid with the radius, and the level is held
-        sf = SURFACE if slid == 1.0 else {**SURFACE, 'patch': SPIRAL['lock'], 'hp': round(SURFACE['hp'] * slid), 'lp': round(SURFACE['lp'] * slid), 'gain': f"{float(SURFACE['gain'][:-2]) - 10 * log10(slid):.1f}dB"}
+        lock_up = NEARER['lock'] if ON['nearer'] and ON['leadin'] and ON['reveal'] and not ON['spiral'] else 0   # v22 NEARER
+        sf = SURFACE if slid == 1.0 else {**SURFACE, 'patch': SPIRAL['lock'], 'hp': round(SURFACE['hp'] * slid), 'lp': round(SURFACE['lp'] * slid), 'gain': f"{float(SURFACE['gain'][:-2]) - 10 * log10(slid) + lock_up:.1f}dB"}
         doc['patches'] = {**doc['patches'], sf['patch']: {
             'about': f"Wind Down: the record's surface in its run-out groove (v20): the engine's chip noise with no chip's clock on {sf['pitch']} (the same samples at each note-on, and too slow a step rate to come round inside a turn), {sf['hp']} to {sf['lp']} Hz, one note a turn: the hiss repeats with the record.",
             'play': {'vel_sens': 0.5, 'gate': 1}, 'synth': {'layers': [{'type': 'chip', 'chip': {'kind': 'noise', 'clock': 0}}], 'filters': [f"hp cutoff={sf['hp']}", f"lp cutoff={sf['lp']}"], 'amp': {'a': '5ms', 'd': '0s', 's': 1, 'r': '30ms'}}}}
@@ -1090,15 +1110,26 @@ def song():
             'play': {'gate': 1}, 'synth': {'layers': ['white'], 'amp': {'a': secs(SPIRAL['in']), 'd': '0s', 's': 1, 'r': '30ms'}}}}
         sliding = ON['inner'] and stays
         under, back = SPIRAL['to'] + SPIRAL['out'], RUNS_DOWN + SPIRAL['up']
-        there = lambda b: 0 if whole or b <= SPIRAL['to'] or (stays and b >= back) else -SPIRAL['down'] if b >= under and (not stays or b <= RUNS_DOWN) else None   # dB: bars 1-8, down under the drum, up again with the spring
+        comes_up = NEARER['up'] if ON['nearer'] and stays and not whole else 0   # v22 NEARER: the surface comes back higher than it came in
+        there = lambda b: comes_up if comes_up and b >= back else 0 if whole or b <= SPIRAL['to'] or (stays and b >= back) else -SPIRAL['down'] if b >= under and (not stays or b <= RUNS_DOWN) else None   # dB: bars 1-8, down under the drum, up again with the spring
         bars = sorted(set(range(0, BARS, SPIRAL['every'])) | {SPIRAL['to'], under} | ({RUNS_DOWN, back} if stays else set()))
-        pts = [[f'{b * 4}b', clock(b), there(b)] for b in bars if clock(b) < end and there(b) is not None] + [[f'{round(beat_at(end), 3)}b', end, 0 if stays else -SPIRAL['down']]]
+        pts = [[f'{b * 4}b', clock(b), there(b)] for b in bars if clock(b) < end and there(b) is not None] + [[f'{round(beat_at(end), 3)}b', end, comes_up if stays else -SPIRAL['down']]]
         doc['tracks'].append({'name': 'spiral', 'patch': SPIRAL['patch'], 'pan': 0, 'notes': [{'at': 0, 'len': round(beat_at(end), 5), 'pitch': 'C5', 'vel': 0.8}],
                               'gain': {'value': SPIRAL['gain'], 'mod': [{'src': 'auto.held', 'amount': 1}]},
                               'fx': ([f"hp cutoff={SPIRAL['hp']}+auto.slide*{round(log2(inner(end)), 4)}"] + [f"lp cutoff={SPIRAL['lp']}+auto.slide*{round(log2(inner(end)), 4)}"] * SPIRAL['walls']   # the depth of a lane on a cutoff is in OCTAVES (bench: written in Hz the track was silent)
                                      if sliding else [f"hp cutoff={SPIRAL['hp']}"] + [f"lp cutoff={SPIRAL['lp']}"] * SPIRAL['walls']),
                               'auto': {'held': {'points': [[b, round(db + (-10 * log10(inner(t)) if sliding else 0), 3)] for b, t, db in pts], 'curve': 0},
                                        **({'slide': {'points': [[b, round(log2(inner(t)) / log2(inner(end)), 4)] for b, t, _ in pts], 'curve': 0}} if sliding else {})}})
+    if ON['preecho'] and ON['catch']:                           # v22 PREECHO: in each caught bar the first turn of the bar after it, a turn early
+        turn = GROOVE['turn'] * BPM / 60                        # beats in one turn of the record (the tempo is steady at every catch)
+        for t in list(doc['tracks']):
+            if t['name'] in PREECHO['not'] or t['name'].startswith('pre-'):
+                continue
+            early = sorted(({**n, 'at': round(n['at'] - turn, 5), 'gain': f"{float(n.get('gain', '0dB')[:-2]) + PREECHO['at'][c]:g}dB"}
+                            for c in CATCHES if c in PREECHO['at'] for n in t['notes'] if 4 * (c + 1) <= n['at'] < 4 * (c + 1) + turn), key=lambda n: n['at'])
+            if early:
+                fader = t.get('gain', '0dB')
+                doc['tracks'].append({**{k: v for k, v in t.items() if k != 'notes'}, 'name': 'pre-' + t['name'], 'gain': fader['value'] if isinstance(fader, dict) else fader, 'notes': early})
     return doc
 
 
@@ -1132,7 +1163,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v20, the last six v19, the last nine v18, the last eleven v17, the last thirteen v16, the last fifteen v15, the last seventeen v14, the last nineteen v13, the last twenty-one v12, the last twenty-three v11, the last twenty-six v10, the last twenty-nine v9, the last thirty-two v8, the last thirty-four v7, the last thirty-seven v6, the last forty v5, the last forty-three v4, the last forty-six v3, the last fifty-two v2, all fifty-eight v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v21, the last five v20, the last eight v19, the last eleven v18, the last thirteen v17, the last fifteen v16, the last seventeen v15, the last nineteen v14, the last twenty-one v13, the last twenty-three v12, the last twenty-five v11, the last twenty-eight v10, the last thirty-one v9, the last thirty-four v8, the last thirty-six v7, the last thirty-nine v6, the last forty-two v5, the last forty-five v4, the last forty-eight v3, the last fifty-four v2, all sixty v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -1156,6 +1187,8 @@ if __name__ == '__main__':
                        ([(b, f"for that beat the bass is whole: its own voice plays the {LEAD['pitch']} under its fundamental") for b in CATCHES if b > COMES['ghost'] and b in WHOLE['bars']] if ON['whole'] and ON['lead'] and ON['catch'] else []) +
                        ([(b, 'the bar after says who has left: ' + ', '.join(f"{tr} {n['pitch']} on sixteenth {round((n['at'] - b * 4) * 4)}" for tr, n in left(b))) for b in range(BARS) if left(b)] if ON['left'] else []) +
                        ([(COMES['room'] - 1, "the room's door is open through the caught bar: the click alone is heard in the room")] if ON['ajar'] and ON['catch'] else []) +
+                       ([(RUNS_DOWN, f"the surface comes back nearer than it came in: {NEARER['up']} dB up under the last ticks, and the locked groove's hiss {NEARER['lock']} dB up: the step at the first joint is {5 + NEARER['lock'] - NEARER['up']} dB (5)")] if ON['nearer'] and ON['leadin'] and ON['reveal'] and ON['stop'] and not ON['spiral'] else []) +
+                       ([(CATCHES[0], f"the record's pre-echo: in caught bars {', '.join(str(c + 1) for c in sorted(PREECHO['at']))} the first turn of the bar after ({GROOVE['turn']} s: {GROOVE['turn'] * BPM / 60:.2f} beats) is heard a turn early, {' '.join(str(-PREECHO['at'][c]) for c in sorted(PREECHO['at']))} dB down: all but the click and the clocks; its beats fall {round(1000 * (240 / BPM - GROOVE['turn']))} ms after the caught bar's own")] if ON['preecho'] and ON['catch'] else []) +
                        ([(CATCHES[0], 'the other clock is heard in each caught bar, falling behind the beat it began on (the click is on the half beats): ms after the beat, by catch: ' + '; '.join(' '.join(f'{(s * BPM % 60) * 1000 / BPM:.0f}' for s in caught_seconds() if 240 * b <= s * BPM < 240 * (b + 1)) for b in CATCHES))] if ON['clocks'] and ON['wall'] and ON['stop'] and ON['catch'] else []) +
                        ([(b, 'the hall keeps the goodbye: ' + ', '.join(sorted({tr for tr, _ in left(b) if tr in LINGER['db']}))) for b in range(BARS) if any(tr in LINGER['db'] for tr, _ in left(b))] if ON['linger'] and ON['left'] else []) +
                        ([((ALL + GOES['change']) // 2, 'the bass goes down to the fifth, under the drum: ' + ' | '.join(' '.join(moved(x, FIFTH['semis']) for x in row) for row in GHOST)), (GOES['change'], 'the bass is home on G')] if ON['fifth'] else []) +
