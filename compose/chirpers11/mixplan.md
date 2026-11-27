@@ -94,6 +94,11 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Wind Down v20 (18:32): THE RECORD'S END HAS MOVED: the song is 2.05 s longer (406.19 s for 404.14). Its start is
+  v19's (bars 1 to 8 by two -30.1 -30.3 -30.1 -30.1 dBFS). From the last stroke (396.39 s) by second: -10.4 -21.0
+  -32.7 -42.2 -47.5 -54.1 -48.5 -54.8 -36.1, then digital silence: after the bell and the wall clock (to 400 s)
+  the needle is in the run-out groove (a click every 1.8 s, a faint surface at -55 dBFS) and is lifted at 405.19 s
+  (a low thump, highest sample -15.6). A master's fade-out of the album must not begin before 405.5 s.
 - Ring True v20 (18:01): both its ends are v19's to 0.1 dB (bars 1 to 8 by two -17.8 -17.8 -17.8 -17.8 dBFS; bar
   184 -11.1; the tail by second -18.5 -33.5 -47.8 -61.1; highest sample -1.46). Inside: bars 121 to 128 (the
   things trade cells; the drum's note goes down in bars 126 to 128) and bars 31 and 32; every bar whole within
