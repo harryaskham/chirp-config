@@ -337,6 +337,17 @@ third tone falls); then the same with an ear each, the lower left and the upper 
 headphones no ear has both and THE THIRD TONE IS GONE (on loudspeakers both reach both ears and it
 stays); then an ear each with the upper one falling; then both in the middle again and falling:
 the third tone RISES into the bar where the drum comes in, a riser that nobody wrote.
+
+v25 (27 Nov): TIME-SHRINKING (C11T5_SHRINK=0 takes it out: v24). Three strokes mark two empty
+times. If the second time is the longer one, by up to about a tenth of a second, it is heard
+SHORTER than it is, nearly as short as the first (Nakajima, ten Hoopen and van der Wilk, 1991);
+if it is the shorter one, it is heard as it is. In the third row of "round the click" (from bar
+153), where the two sixteenths before every click are empty, every click gets two small clicks
+before it. For four bars they come 180 ms and 120 ms before the click: 60 ms, then 120 ms: the
+click is late by a whole sixteenth of the pattern's own time and should seem to come on time.
+For the next three bars the middle one is 60 ms later: 120 ms, then 60 ms: the same three
+strokes, the same two times the other way round, and it should sound uneven: long, short. One
+small click moves by 60 ms; nothing else. (The row's last bar is the rabbit's.)
 """
 import json
 import math
@@ -661,6 +672,24 @@ def para_tones(p):
     return out
 
 
+def shrink_row():
+    """The first bar of the row with the two small clicks before every click, or None."""
+    sec = next((x for x in SECS if x[0] == SHRINK_IN[0]), None)
+    return sec[1] + ROW * SHRINK_IN[1] if SHRINK and sec is not None and SHRINK_IN[1] * ROW < sec[2] else None
+
+
+def shrink_clicks():
+    """One tuple a small click: (bar from 0, the beat it is on, which of the two it is (0 first, 1 second), the sixteenth of its beat)."""
+    out, bar = [], shrink_row()
+    for second, bars in SHRINK_SECOND:
+        for _ in range(bars):
+            for beat in range(BEATS):
+                out.append((bar, bar * BEATS + beat + SHRINK_FIRST * STEP, 0, SHRINK_FIRST))      # the beat it is HEARD on: it is written SHRINK_EARLY before
+                out.append((bar, bar * BEATS + beat + second * STEP, 1, second))
+            bar += 1
+    return out
+
+
 def own_row():
     """The first bar of the row with the ear's own tone, or None."""
     sec = next((x for x in SECS if x[0] == OWN_IN[0]), None)
@@ -855,6 +884,15 @@ OWN_GAP = 0.25                                         # beats of rest at the en
 OWN_VEL = 0.8
 OWN_EARS = 0.0                                         # dB on the two an-ear-each tracks, read alone, so that a tone alone in an ear is as loud there as it is in each ear from the middle
 OWN_GAIN = os.environ.get("C11T5_OWN_GAIN", "-37dB")   # each tone: set in the whole song's master, FOUR readings: the first guess (-30) was 13 dB too loud: THE MASTER LIFTS A PLAIN TONE AT 2.3 kHz IN THIS ROW 16 dB (written -28: each tone -17.4 dBFS, the two only 4.7 dB under all the rest of the row together, and the rest pushed 0.7 dB down; -34: 10.2 dB under)
+SHRINK = os.environ.get("C11T5_SHRINK", "1") != "0" and OWN   # v25: time-shrinking (Nakajima, ten Hoopen and van der Wilk, 1991): of two short empty times one after the other, the SECOND is heard shorter than it is when it is the longer by up to about a tenth of a second: 60 ms then 120 ms is heard as nearly even; 120 ms then 60 ms is heard as it is
+SHRINK_IN = ("round the click", 2)                     # the section and the row of it (from 0): its third row, where the drum is on the sixteenth after the click (ta-DUM) and the two sixteenths before the click are empty in every beat
+SHRINK_FIRST = 0.5                                     # the sixteenth of the beat the first small click is on: 180 ms after the drum before it, and 180 ms before the song's click (which is on sixteenth 2): the song's click is the third stroke of the three
+SHRINK_SECOND = ((1.0, 4), (1.5, 3))                   # (the sixteenth of the beat the second small click is on, bars): 60 ms then 120 ms to the click for four bars (said to be heard as nearly even); then 120 ms then 60 ms for three (heard uneven). ONE click moves, by 60 ms. The row's last bar is the rabbit's
+SHRINK_NOTE, SHRINK_VEL = "A3", 0.6                    # the pair's own small wooden click (the same click to the sample every time), as its first stroke is written; here on its own patch, `ht-grace`, which has a top
+SHRINK_PAN = 0.0                                       # where the song's click is: three strokes in one place
+SHRINK_EARLY = 1 / 220.0                               # seconds: the small click is WRITTEN this much early: one turn of its saw (A3), whose first edge comes a whole turn after the note starts. Read in the whole song's master before this was written: the small click's peak 6.1 ms after its written instant, the song's click's start 1.1 to 1.7 ms after its own: the second time was 115 ms for 120, and 55 for 60
+SHRINK_TOP = 7500.0                                    # Hz: the small click's top (two low-passes): the pair's own patch (`ht-two`) was tried first and 56 more of it put 0.1 dB into each of the three bands over 10 kHz (chirper-one has asked for nothing more there); its bottom at 2200 Hz for 700 was tried too and put 0.2 there and mended nothing
+SHRINK_GAIN = os.environ.get("C11T5_SHRINK_GAIN", "-7dB")   # the small click's fader; read in the whole song's master at -13 dB (the first of the two does not stand over the music: +1.4 and -2.9 dB) and at -7 (it stands 7.0 and 2.6 dB over it; the second 15 and 16; both 8 to 9 dB under the song's click): THIS ROW HAS NO HAT AND THE MASTER DELIVERS A SMALL CLICK AS WRITTEN (6 dB for 6)
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1323,6 +1361,15 @@ def song():
                                   "notes": [{"at": ow_at, "len": ow_len, "pitch": OWN_LOW, "vel": OWN_VEL} for _, _, ow_at, ow_len, _, _ in ow_these]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v24 there are two plain high tones in the first row of 'not there' (bars {own_row() + 1} to {own_row() + ROW}): one held on {OWN_LOW} ({hz(OWN_LOW):.0f} Hz) and one sliding over it, from {OWN_RATIO[0]:g} to {OWN_RATIO[1]:g} times it and back. Two tones in one ear make a third IN THAT EAR, at twice the lower less the upper: here from {own_third(12 * math.log2(OWN_RATIO[0])):.0f} Hz to {own_third(12 * math.log2(OWN_RATIO[1])):.0f} Hz: as the upper tone goes up, a tone nobody wrote goes down, half as far again, and the other way about. Nothing in the file is at its frequency. For the two middle phrases the tones are given an ear each: on headphones no ear has both, and the third tone is gone; on loudspeakers it stays. Generated by")
         assert "From v24" in doc["about"]
+    if shrink_row() is not None:
+        assert sum(b for _, b in SHRINK_SECOND) <= ROW
+        sh_ms = STEP * 60 / BPM * 1000
+        PATCHES["ht-grace"] = {"about": "Hearing Things' small click (chirper-zero, 27 Nov, v25): the pair's wooden click (`ht-two`: a saw from phase nought with everything under 700 Hz taken off, 16 ms, no noise in it: the same click to the sample every time) with a top at " + f"{SHRINK_TOP:g}" + " Hz: nothing of it over 10 kHz.",
+                               "play": {"vel_sens": 1}, "synth": {"layers": ["saw phase=0"], "filters": [{"kind": "hp", "cutoff": 700, "q": 0.7}, {"kind": "lp", "cutoff": SHRINK_TOP, "q": 0.7}, {"kind": "lp", "cutoff": SHRINK_TOP, "q": 0.7}], "amp": {"a": "0.1ms", "d": "16ms", "s": 0, "r": "8ms", "curve": 3}}}
+        doc["tracks"].append({"name": "shrink", "patch": "ht-grace", "gain": SHRINK_GAIN, "pan": SHRINK_PAN,
+                              "notes": [{"at": round(at - SHRINK_EARLY * BPM / 60, 5), "len": 0.0625, "pitch": SHRINK_NOTE, "vel": SHRINK_VEL} for _, at, _, _ in shrink_clicks()]})      # dry, as the pair is
+        doc["about"] = doc["about"].replace(" Generated by", f" From v25 every click of the third row of 'round the click' (from bar {shrink_row() + 1}) has two small clicks before it: three strokes, two empty times. For {SHRINK_SECOND[0][1]} bars the times are {(SHRINK_SECOND[0][0] - SHRINK_FIRST) * sh_ms:.0f} ms and then {(2 - SHRINK_SECOND[0][0]) * sh_ms:.0f} ms: the second twice the first, and (time-shrinking) heard as nearly the same: the click seems to come on time. For the next {SHRINK_SECOND[1][1]} the middle click is {(SHRINK_SECOND[1][0] - SHRINK_SECOND[0][0]) * sh_ms:.0f} ms later, the times are {(SHRINK_SECOND[1][0] - SHRINK_FIRST) * sh_ms:.0f} and {(2 - SHRINK_SECOND[1][0]) * sh_ms:.0f} ms, and they are heard as they are: long, short. Generated by")
+        assert "From v25" in doc["about"]
     return doc
 
 
@@ -1340,6 +1387,9 @@ def dump(doc):
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
         sec = 60 / BPM * BEATS
+        if shrink_row() is not None:
+            sh_ms = STEP * 60 / BPM * 1000; sh_b = shrink_row()
+            print(f"time-shrinking ({SHRINK_GAIN}), bars {sh_b + 1}-{sh_b + sum(b for _, b in SHRINK_SECOND)} ({int(sh_b * sec) // 60}:{sh_b * sec % 60:04.1f}): two small clicks before every click (the click is on sixteenth 2 of the beat), the first on sixteenth {SHRINK_FIRST:g} ; " + " ; then ".join(f"{bars} bars with the second on sixteenth {second:g}: {(second - SHRINK_FIRST) * sh_ms:.0f} ms then {(2 - second) * sh_ms:.0f} ms" for second, bars in SHRINK_SECOND) + f" ; {len(shrink_clicks())} small clicks")
         if own_row() is not None:
             print(f"the ear's own tone ({OWN_GAIN} each), bars {own_row() + 1}-{own_row() + ROW} ({int(own_row() * sec) // 60}:{own_row() * sec % 60:04.1f}): the lower tone {OWN_LOW} ({hz(OWN_LOW):.1f} Hz) held ; the upper {OWN_RATIO[0]:g} to {OWN_RATIO[1]:g} times it ({12 * math.log2(OWN_RATIO[0]):.2f} to {12 * math.log2(OWN_RATIO[1]):.2f} semitones over) ; the third tone, twice the lower less the upper: " + " ; ".join(f"bars {int(at // BEATS) + 1}-{int((at + ln) // BEATS) + 1} {'both in the middle' if wh == 'mid' else 'an ear each (lower left, upper right)'}: upper {hz(OWN_LOW) * 2 ** (s0 / 12):.0f} to {hz(OWN_LOW) * 2 ** (s1 / 12):.0f} Hz, the third {own_third(s0):.0f} to {own_third(s1):.0f} Hz ({12 * math.log2(own_third(s1) / own_third(s0)):+.2f} semitones)" for wh, way, at, ln, s0, s1 in own_phrases()))
         if rep_row() is not None:
