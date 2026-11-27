@@ -356,6 +356,20 @@ tone is heard as SEVERAL: itself, and pairs of side tones 33.6 Hz apart whose si
 Bessel's functions of the push: at a quarter of a turn the first pair is 1.6 dB LOUDER than
 the note. Then as often as the drum's note, as the note itself, as its octave: three new
 instruments from one sine. Bars 33 to 40, under the vernier, in the row before the bass.
+
+v26 (27 Nov): THE SWARM HUMS (C11T7_HUM=0 takes it out: v25). A rhythm and a pitch are one
+thing at two speeds. In the first break (bars 57 to 64) twelve clicks come apart and find each
+other (v18). Now each of them holds a low tone that makes 31 waves for every beat of its OWN
+tempo: 65.1 Hz and its octave, where the bass drum that rests here would be. Twelve clicks a
+little out of step are twelve tones a little out of tune: a rumble that gathers itself into a
+soft thump every 4.4 beats (the twelve tones are one again 31 times sooner than the clicks
+would be): a drum nobody strikes, slipping against the bar. As the swarm finds the beat the
+thumps grow longer until they are one held note; and since the tone turns 31 times for a
+click's once, it shows the swarm's last milliseconds of error, which the clicks no longer do.
+The tones come up over the eight beats for which the swarm is deaf, so that the break still
+begins with the bottom gone (C11T7_HUM_IN=0 starts them at once, a thump where the drum would
+be: read and refused). The note is held until the drum comes back and takes its place
+(C11T7_HUM_HELD=7 lets it go a bar sooner: read and refused, see the note).
 """
 import json
 import math
@@ -688,6 +702,17 @@ SWARM_NOTES = ("D8", "D#8", "E8", "F8", "F#8", "G8", "G#8", "A8", "A#8", "B8", "
 SWARM_PAN = 0.8                                                      # the slowest this far left, the fastest this far right
 SWARM_ROOM = "-16dB"
 SWARM_GAIN = os.environ.get("C11T7_SWARM_GAIN", "-20dB")              # read in the whole song's master: a lone tick's highest sample is -7.5 to -10.8 dBFS there (19 dB over a render of it alone); in step, on the beat with the song's click, the twelve come out 6 dB under what they are apart
+HUM = os.environ.get("C11T7_HUM", "1") != "0" and PM and SWARM   # v26: THE SWARM HUMS: each of the swarm's twelve clicks holds a low tone that makes HUM_TIMES waves for every beat of ITS OWN tempo. A rhythm and a pitch are one thing at two speeds: twelve clicks a little out of step are twelve tones a little out of tune, and when the clicks find the beat the tones find one pitch, and one phase
+HUM_ROW = 0                                            # which of the swarm's rows (SWARM_ROWS): the first break only (the second lies on the scorer's short-section line, bars 119 to 124)
+HUM_TIMES = 31                                         # waves to a beat of a click's own: 65.1 Hz at the song's tempo (the kick rests here, and the song is short at 61 and 71 Hz); it is also how many times finer than the clicks the tones show the swarm's last error
+HUM_NOTE = "C2"                                        # the note it is written on: the lane carries the rest (65.1 Hz is 8 cents under it)
+HUM_PARTS = ((1, 0.0), (2, -8.0))                      # the tone and its octave (times, dB): the octave (130.2 Hz) is what a small loudspeaker gives of it
+HUM_HELD = int(os.environ.get("C11T7_HUM_HELD", "8"))   # bars of the row the tones are held: all of it: each click holds its tone for as long as it plays, and the drum takes the note's place. READ AND REFUSED: 7 (let go a bar before the drum comes back, so that it comes back into an empty bottom): my guess for why the scorer's structure term fell; it fell the same either way (see the note)
+HUM_LET = "80ms"                                       # how long the letting go takes
+HUM_IN = float(os.environ.get("C11T7_HUM_IN", str(SWARM_DEAF)))   # beats over which the tones come up: the beats for which nobody listens. So the break still begins with the bottom gone (the drum has just stopped), and the hum rises out of it (0: all twelve at once on the break's first beat, a thump where the drum would be: READ AND REFUSED, see the note)
+HUM_STEP = 16                                          # points of the lane to a beat
+HUM_PAN = 0.4                                          # the slowest this far left, the fastest this far right (the clicks are at 0.8): in step they are one sound in the middle
+HUM_GAIN = os.environ.get("C11T7_HUM_GAIN", "-52dB")   # each tone. Read in the whole song's master at -48dB and -42dB (this master gives a part 17 dB more than a render of it alone): at -42 the held note of bars 62 to 64 was LOUDER than the bass (-12.9 dBFS at 56 to 77 Hz, the bass -16.6 and pushed down 1.5 dB); at -48 it was 2.6 dB under the bass (-18.2) and those bars 0.8 dB up. 4 dB under the quieter reading: the note under the bass, the octave over the music that is there
 SING = os.environ.get("C11T7_SING", "1") != "0" and os.environ.get("C11T7_VERN", "1") != "0" and os.environ.get("C11T7_FIVE", "1") != "0" and JET      # v16: the clicks sing (every phase set to nought)
 SING_IN = ("slips", 24, 32)                                          # the section, and the bars of it: the bare row between the vernier and the hat
 SING_OF = "a-ear"                                                    # whose strokes: A's, as they are in those bars
@@ -928,6 +953,67 @@ def swarm_ticks():
                 if at < beats - 0.01: out[i].append(at)
         lead = new
     return out
+
+
+_HUM_MEMO = {}
+
+
+def hum_note_hz():
+    semis = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8, "A": 9, "A#": 10, "Bb": 10, "B": 11}[HUM_NOTE[:-1]]
+    return 440 * 2 ** ((semis + 12 * (int(HUM_NOTE[-1]) + 1) - 69) / 12)
+
+
+def hum_paths():
+    """For each of the swarm's clicks, how far ahead of the song's beat it is (beats) at every 1 / SWARM_SUB of a beat of the row: swarm_ticks' own arithmetic, step for step (the strokes it gives are checked against swarm_ticks')."""
+    if "paths" in _HUM_MEMO:
+        return _HUM_MEMO["paths"]
+    n, beats = SWARM_N, SWARM_BARS * BEATS; dt = 1 / SWARM_SUB
+    lead = [0.0] * n; rate = [SWARM_OFF * (2 * i - (n - 1)) / (n - 1) for i in range(n)]; out = [[0.0] for _ in range(n)]; ticks = [[0.0] for _ in range(n)]
+    def pull(ld, rt, t):
+        hear = max(0.0, (t - SWARM_DEAF) / (beats - SWARM_DEAF)); them = [sum(math.sin(2 * math.pi * (x - y)) for x in ld) / n for y in ld]
+        return [rt[i] + SWARM_LEAN * hear * them[i] for i in range(n)], [SWARM_LEARN * hear * them[i] for i in range(n)]
+    for k in range(beats * SWARM_SUB):
+        t = k * dt; a1, b1 = pull(lead, rate, t)
+        a2, b2 = pull([lead[i] + 0.5 * dt * a1[i] for i in range(n)], [rate[i] + 0.5 * dt * b1[i] for i in range(n)], t + 0.5 * dt)
+        new = [lead[i] + dt * a2[i] for i in range(n)]; rate = [rate[i] + dt * b2[i] for i in range(n)]
+        for i in range(n):
+            p0, p1 = t + lead[i], t + dt + new[i]
+            if math.floor(p1 + 1e-12) > math.floor(p0 + 1e-12):
+                at = t + dt * (math.floor(p1 + 1e-12) - p0) / (p1 - p0)
+                if at < beats - 0.01: ticks[i].append(at)
+            out[i].append(new[i])
+        lead = new
+    assert ticks == swarm_ticks()
+    _HUM_MEMO["paths"] = out
+    return out
+
+
+def hum_lane(i):
+    """[(beats from the row's start, Hz)], HUM_STEP to the beat: the tone of click i makes HUM_TIMES waves for every beat of ITS OWN: the song's tempo times one and how fast its lead is growing (the lead's difference across the two points either side)."""
+    path = hum_paths()[i]; m = SWARM_SUB // HUM_STEP; top = SWARM_BARS * BEATS * HUM_STEP; out = []
+    for k in range(top + 1):
+        k0, k1 = max(0, k - 1), min(top, k + 1)
+        out.append((k / HUM_STEP, HUM_TIMES * BPM / 60 * (1 + (path[k1 * m] - path[k0 * m]) * HUM_STEP / (k1 - k0))))
+    return out
+
+
+def hum_turns():
+    """For each tone, its phase in turns at every point of its lane: the lane added up as the engine does it (straight lines between the points)."""
+    if "turns" not in _HUM_MEMO:
+        out = []
+        for i in range(SWARM_N):
+            ln = hum_lane(i); th = [0.0]
+            for (t0, f0), (t1, f1) in zip(ln, ln[1:]):
+                th.append(th[-1] + (t1 - t0) * 60 / BPM * (f0 + f1) / 2)
+            out.append(th)
+        _HUM_MEMO["turns"] = out
+    return _HUM_MEMO["turns"]
+
+
+def hum_step(k):
+    """How far in step the tones are at point k of the lane: 1 is one tone, about 1 / root(n) is n strangers: the length of the mean of their phases as arrows."""
+    th = hum_turns()
+    return abs(sum(complex(math.cos(2 * math.pi * x[k]), math.sin(2 * math.pi * x[k])) for x in th)) / len(th)
 
 
 def focus_tones():
@@ -1495,6 +1581,18 @@ def song():
             assert pm_was - len(pm_kick["notes"]) == (PM_BREAK[1] - PM_BREAK[0]) * BEATS, pm_was - len(pm_kick["notes"])
         doc["about"] = doc["about"].replace(" Generated by", f" From v25 one note is out of step with itself (bars {pm_row() + 1} to {pm_row() + len(PM_RATES)}, under the vernier, before the bass comes in): a plain tone on the bass's {PM_NOTE} whose phase an unheard wave pushes {PM_TURN:g} of a turn ahead and {PM_TURN:g} back. A bar each: " + ", ".join(f"{k:g} a beat" if kind == "beat" else f"{k:g} a wave" for kind, k in PM_RATES) + f". Slowly it is a wobble of pitch ({pm_hz() - pm_i * pm_rate(0):.1f} to {pm_hz() + pm_i * pm_rate(0):.1f} Hz at once a beat); faster, the wobble cannot be followed and the one tone is heard as several: the note itself {20 * math.log10(abs(pm_bessel(0, pm_i))):.1f} dB, a pair of side tones {20 * math.log10(abs(pm_bessel(1, pm_i))):.1f} dB as far above and below it as the phase is turned a second, the next pair {20 * math.log10(abs(pm_bessel(2, pm_i))):.1f} dB (Bessel's functions): phase modulation, the way a whole family of synthesizers makes its sounds. Generated by")
         assert "From v25" in doc["about"]
+    if HUM and SWARM_ROWS:
+        hum_b0 = SWARM_ROWS[HUM_ROW] * BEATS; hum_f = HUM_TIMES * BPM / 60
+        assert SWARM_SUB % HUM_STEP == 0
+        PATCHES["os-hum"] = {"about": f"Out of Step's humming swarm (chirper-zero, 27 Nov, v26): a plain held tone and its octave whose pitch follows its track's lane (auto.hum, semitones from {HUM_NOTE}): {HUM_TIMES} waves to every beat of one click of the swarm ({hum_f:.2f} Hz when that click is on the song's tempo). Twelve of them: out of step a rumble that gathers into a soft thump every {(SWARM_N - 1) / (2 * SWARM_OFF * HUM_TIMES):.3f} beats, in step one tone. Nothing over {hum_f * (1 + SWARM_OFF) * HUM_PARTS[-1][0]:.0f} Hz.",
+                             "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": [f"sine phase=0 ratio={r:g} level={d:g}dB" for r, d in HUM_PARTS], "pitch": {"value": 0, "mod": [{"src": "auto.hum", "amount": 1}]}, "amp": {"a": f"{max(8, round(HUM_IN * 60000 / BPM))}ms", "d": "0s", "s": 1, "r": HUM_LET}}}
+        assert 1 <= HUM_HELD <= SWARM_BARS
+        for hum_i in range(SWARM_N):
+            hum_pts = [[f"{round(hum_b0 + t, 5)}b", round(12 * math.log2(f / hum_note_hz()), 5)] for t, f in hum_lane(hum_i)]
+            doc["tracks"].append({"name": f"hum-{hum_i + 1}", "patch": "os-hum", "gain": HUM_GAIN, "pan": round(HUM_PAN * (2 * hum_i - (SWARM_N - 1)) / (SWARM_N - 1), 4), "auto": {"hum": {"points": hum_pts, "curve": 0}},
+                                  "notes": [{"at": hum_b0, "len": HUM_HELD * BEATS - 0.02, "pitch": HUM_NOTE, "vel": 0.8}]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v26 the swarm hums (bars {SWARM_ROWS[HUM_ROW] + 1} to {SWARM_ROWS[HUM_ROW] + SWARM_BARS}, the first break, where the bass drum rests): each of the swarm's {SWARM_N} clicks holds a low tone that makes {HUM_TIMES} waves for every beat of its own tempo ({hum_f:.1f} Hz and its octave). A rhythm and a pitch are one thing at two speeds: while the clicks are out of step the tones are out of tune, a rumble that gathers itself into a soft thump every {(SWARM_N - 1) / (2 * SWARM_OFF * HUM_TIMES):.2f} beats (a drum nobody strikes, slipping against the bar); as the clicks find the beat the thumps grow longer until they are one held note, which shows the swarm's last error {HUM_TIMES} times larger than the clicks do" + (f"; it is let go {SWARM_BARS - HUM_HELD} bar(s) before the drum comes back" if HUM_HELD < SWARM_BARS else "") + ". Generated by")
+        assert "From v26" in doc["about"]
     return doc
 
 
@@ -1524,6 +1622,16 @@ def lock(k):
 if __name__ == "__main__":
     if os.environ.get("C11T7_SHOW"):
         sec = 60 / BPM * BEATS
+        if HUM and SWARM_ROWS:
+            hm_b = SWARM_ROWS[HUM_ROW]; hm_f = HUM_TIMES * BPM / 60; hm_n = SWARM_N; hm_th = hum_turns(); hm_p = hum_paths(); hm_m = SWARM_SUB // HUM_STEP
+            hm_err = max(abs(hm_th[i][k] - HUM_TIMES * (k / HUM_STEP + hm_p[i][k * hm_m])) for i in range(hm_n) for k in range(len(hm_th[i])))
+            hm_again = (hm_n - 1) / (2 * SWARM_OFF * HUM_TIMES)
+            print(f"the swarm hums, bars {hm_b + 1}-{hm_b + SWARM_BARS} ({int(hm_b * sec) // 60}:{hm_b * sec % 60:04.1f}): each of the swarm's {hm_n} clicks holds a tone of {HUM_TIMES} waves to its OWN beat ({hm_f:.2f} Hz at the song's tempo: {HUM_NOTE} {1200 * math.log2(hm_f / hum_note_hz()):+.0f} cents; the slowest {hm_f * (1 - SWARM_OFF):.2f}, the fastest {hm_f * (1 + SWARM_OFF):.2f}) and " + ", ".join(f"{r:g} times it {d:g} dB" for r, d in HUM_PARTS[1:]) + f" ; {HUM_GAIN} each, pan -{HUM_PAN:g} to {HUM_PAN:g} ; while nobody listens the {hm_n} are one tone again every {hm_again:.3f} beats ({hm_again * 60 / BPM:.3f} s) ; the lane against the swarm's arithmetic: {hm_err:.4f} of a turn at most ; coming up over {HUM_IN:g} beats, held for {HUM_HELD} of the row's {SWARM_BARS} bars, let go in {HUM_LET}")
+            for hm_j in range(HUM_HELD):
+                hm_r = [hum_step(k) for k in range(hm_j * BEATS * HUM_STEP, (hm_j + 1) * BEATS * HUM_STEP + 1)]
+                hm_fs = [hum_lane(i)[hm_j * BEATS * HUM_STEP][1] for i in range(hm_n)]
+                hm_top = [k / HUM_STEP for k in range(hm_j * BEATS * HUM_STEP, (hm_j + 1) * BEATS * HUM_STEP) if hum_step(k) > 0.8 and hum_step(k) >= hum_step(max(0, k - 1)) and hum_step(k) > hum_step(k + 1)]
+                print(f"   bar {hm_b + hm_j + 1}: in step {min(hm_r):.2f} to {max(hm_r):.2f} ({20 * math.log10(max(1e-9, (sum(x * x for x in hm_r) / len(hm_r)) ** 0.5)):+.1f} dB against one tone of all {hm_n}) ; the tones at its first beat {min(hm_fs):.2f} to {max(hm_fs):.2f} Hz ; one tone at beat(s) of the row: " + (" ".join(f"{x:g}" for x in hm_top) or "-"))
         if pm_row() is not None:
             pm_i = 2 * math.pi * PM_TURN
             print(f"a note out of step with itself (phase modulation), bars {pm_row() + 1}-{pm_row() + len(PM_RATES)} ({int(pm_row() * sec) // 60}:{pm_row() * sec % 60:04.1f}): {PM_NOTE} ({pm_hz():.2f} Hz), its phase pushed {PM_TURN:g} of a turn each way ({pm_i:.3f} radians) ; {PM_GAIN}, pan {PM_PAN:g} ; the note itself {20 * math.log10(abs(pm_bessel(0, pm_i))):.1f} dB, side tones {' '.join(f'{20 * math.log10(abs(pm_bessel(n, pm_i))):.1f}' for n in (1, 2, 3))} dB")

@@ -9488,15 +9488,14 @@
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers11-t7 OUT.wav",
       "best": {
-        "score": 99.33,
-        "version": "v25",
-        "commit": "see git log songs/chirpers11-t7.yaml",
-        "judged": true
+        "score": 99.473,
+        "version": "v26",
+        "commit": "see git log songs/chirpers11-t7.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 25,
+      "rounds": 26,
       "priority": 1.0,
       "genre": "clicky minimal techno",
       "mode": "compose",
@@ -9514,7 +9513,7 @@
         "note": "COMPOSE (song, 300-480 s): PHASE. Two or more loops of nearly the same length drifting apart and back (the long arc of minimal), so the pattern is never the same twice and always the same."
       },
       "last": {
-        "at": "2026-11-27T18:16:51Z",
+        "at": "2026-11-27T19:41:55Z",
         "who": "chirper-zero"
       }
     },
