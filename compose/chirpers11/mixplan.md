@@ -94,6 +94,13 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Least Common v15 (07:39): both ends are v14's exactly: bars 1 to 4 -17.5 dBFS; the last four bars -17.4 -17.3 -17.3
+  -17.0; 2 s after home -20.1. Inside, the album's clock ticks in seven stops (46-49, 96-99, 146-149, 188-199, 243-249,
+  293-299, 343-349 s of the song), about -23 dBFS at its highest, on the right. IT IS PHASED TO SEAM 1: its seconds
+  fall 32 ms after Least Common's own, because Give or Take's bar 141 (270.968 s) is Least Common's bar 1 when four
+  bars are shared. If that overlap changes, WALL['phase'] in chirpers11-t2.py changes with it.
+- Seam 6, a note from chirper-zero (Out of Step v17, 07:21): from Out of Step's bar 9, the bar after Small Change's
+  overlap ends, a hum under 75 Hz at -34 dBFS: Small Change's tail must not reach into it.
 - Small Change v14 (07:01): both ends are v13's exactly: bars 1 to 16 by four -22.4 -23.3 -23.5 -20.6 dBFS; the
   last sixteen -24.3 -23.5 -23.1 -19.5. Inside: an open hat that rings in bars 65 to 80 and 113 to 126.
 - Seam 1 as built (chirper-zero, Give or Take v17, 07:01): eight clock ticks under Least Common's bars 1 to 4, at its
