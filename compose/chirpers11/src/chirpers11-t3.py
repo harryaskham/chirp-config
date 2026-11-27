@@ -374,6 +374,16 @@ dB more for the longer way; walking up to the corner the way round gets no longe
 way through, and in the last metre the shadow lifts to 5 dB for every partial alike. At bar
 33 the corner is turned. The six tones are the bass's own first six partials as measured
 alone, each with its own shadow written on its fader's lane.
+
+v26 (27 Nov): THE HANGAR'S DOOR SHUTS (C11T3_SLAM=0 takes it out: v25). On the first beat of
+the hangar, where the drum and the bass rest for eight bars, the door shuts behind you, and
+the row that was empty at the bottom is left with the tail. How long a sound lasts in a room
+is Sabine's rule: 0.161 V / A. In a small room A is the walls. In a very big one the air
+itself takes sound, and it takes far more of the high than of the low (0.4 dB a kilometre at
+125 Hz, 29 at 4 kHz): 0.161 V / (S a + 4 m V). So in the hangar (245 by 245 by 20 m) the
+bottom of the slam is still there after eight seconds and the top is gone in two: seven bands
+of noise, each on a straight line in dB to its own time. The tail goes dark as it dies, and
+that is how the size of the place is heard.
 """
 import json
 import math
@@ -680,6 +690,22 @@ BEND_PARTS = (0.0, -14.2, -15.1, -17.6, -27.4, -24.3)  # dB: the bass's own firs
 BEND_TRIM = -5.5                                       # dB: a plain tone at the bass's fader reads this much over the bass's first partial (read alone)
 BEND_LIFT = -2.0                                       # dB: taken off for what this song's master adds to a quiet part in these two rows. Read in the whole song's master without it: the six tones came 0.5 to 1.7 dB over what is written against the bass as it is met, 2.4 over in the last bar and 3.4 on the last two notes (the bass itself is held down by the master where it plays with the drum; these rows are 3 dB quieter and are not)
 BEND_GAIN = os.environ.get("C11T3_BEND_GAIN", "")      # the first partial's fader; nothing: the bass's own fader, BEND_TRIM and BEND_LIFT, so that with no shadow these six tones are the bass AT THE EAR
+SLAM = os.environ.get("C11T3_SLAM", "1") != "0" and BEND   # v26: the hangar's door shuts behind you, and the tail says how big the place is and what its air does: in a very big room the walls set how long the low sound lasts and THE AIR sets how long the high sound lasts (Sabine's rule with the air's own term, 4mV): the tail goes dark as it dies
+SLAM_IN = "the hangar"                                 # the section on whose first beat the door shuts (the drum and the bass rest for its first row)
+SLAM_HALL = (245.0, 245.0, 20.0)                       # metres: as wide and as deep as the hangar's echoes already say, and 20 m high
+SLAM_WALLS = 0.15                                      # what walls, floor and roof take of the sound at every meeting, the same at every pitch
+SLAM_EDGES = (95.0, 177.0, 354.0, 707.0, 1414.0, 2828.0, 5657.0, 7500.0)   # Hz: the tail's seven bands (octaves, but the bottom starts at 95 Hz, over the drum's and the bass's own notes, and the top stops at 7500)
+SLAM_AIR = (0.44, 1.31, 2.73, 4.66, 9.86, 29.4, 70.0)  # dB a kilometre: what the air takes at each band's middle (ISO 9613-1: 20 degrees, half humid; the last read off between its 4 and 8 kHz)
+SLAM_TILT = -3.0                                       # dB an octave from band to band: the door's own sound, heavy at the bottom
+SLAM_AWAY = 10.0                                       # metres from you to the door: sets how far the slam itself stands over the tail it starts
+SLAM_DIRECT = 0.06                                     # seconds of the slam itself, in the middle; then the tail, wide
+SLAM_TURN = 0.02                                       # seconds from the one to the other
+SLAM_FLOOR = -90.0                                     # dB: "gone"
+SLAM_EDGE = (0.5098, 0.6013, 0.9, 2.5629)              # the q of the four filters at each edge of a band: together a wall of 48 dB an octave, 3 dB down at the edge (Butterworth's eighth order): two bands side by side then add up level, and a slow band does not leak far into a quick one
+SLAM_TRIM = (2.4, 0.0, 0.0, 0.0, 0.0, 0.0, 1.1)        # dB on each band's fader, measured alone: the bottom band and the narrow top band came out that much under the door's own slope against the five between
+SLAM_PAN = float(os.environ.get("C11T3_SLAM_PAN", "2.3"))   # dB: what the engine's pan gives a sound in the middle over the same sound SLAM_WIDE out, both ears counted (measured alone): taken off the slam, so that it stands over the tail by what is written and no more
+SLAM_WIDE = 0.8                                        # the tail's two noises (a band has one for each ear) go this far apart
+SLAM_GAIN = os.environ.get("C11T3_SLAM_GAIN", "-6dB")      # the bottom band's fader before its trim; read in the whole song's master at -16, -10 (an earlier build), -12 and -6 dB and set BEFORE the last two's scores were read: at -6 the slam's first 50 ms are -10.2 dBFS (a stroke of the drum is -7 to -8) and the tail's first second -20.1 dBFS, 3 dB under the music that is there (the chord and its echo); at -12 the tail's first second is 9 dB under it and only the slam would be heard
 AIR_PAN = 0.4                                          # the other ear
 RAIL_VEL = 0.8
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
@@ -1009,6 +1035,44 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def slam_bar():
+    """The bar (from 0) on whose first beat the door shuts, or None."""
+    sec = next((x for x in SECS if x[0] == SLAM_IN), None)
+    return sec[1] if SLAM and sec is not None else None
+
+
+def slam_rt(db_km):
+    """Seconds for the sound to fall 60 dB in the hangar where the air takes db_km dB a kilometre: Sabine's 0.161 V / (S a + 4 m V)."""
+    w, d, h = SLAM_HALL
+    vol, surf = w * d * h, 2 * (w * d + w * h + d * h)
+    return 0.161 * vol / (surf * SLAM_WALLS + 4 * (db_km / 1000 / (10 / math.log(10))) * vol)
+
+
+def slam_bands():
+    """One tuple a band: (lower edge Hz, upper edge Hz, seconds to fall 60 dB, dB of its fader against SLAM_GAIN)."""
+    out = []
+    for k, air in enumerate(SLAM_AIR):
+        lo, hi = SLAM_EDGES[k], SLAM_EDGES[k + 1]
+        mid0, mid = math.sqrt(SLAM_EDGES[0] * SLAM_EDGES[1]), math.sqrt(lo * hi)
+        out.append((lo, hi, slam_rt(air), SLAM_TRIM[k] + SLAM_TILT * math.log2(mid / mid0) - 10 * math.log10((hi - lo) / (SLAM_EDGES[1] - SLAM_EDGES[0]))))      # white noise has as much in every hertz: a wider band is turned down by its width
+    return out
+
+
+def slam_direct():
+    """dB by which the slam itself stands over the tail it starts, SLAM_AWAY metres from the door: 20 log of the hall's own distance (0.057 root (V / T), with T the middle band's) over yours."""
+    w, d, h = SLAM_HALL
+    return 20 * math.log10(0.057 * math.sqrt(w * d * h / slam_bands()[len(SLAM_AIR) // 2][2]) / SLAM_AWAY)
+
+
+def slam_db(k, t):
+    """dB written on band k's lane t seconds after the door shuts."""
+    if t < 0:
+        return SLAM_FLOOR
+    if t <= SLAM_DIRECT:
+        return slam_direct()
+    return max(SLAM_FLOOR, -60 * t / slam_bands()[k][2])
 
 
 def bend_way(beat):
@@ -1736,6 +1800,25 @@ def song():
                                   "notes": [{"at": n["at"], "len": n["len"], "pitch": n["pitch"], "vel": n["vel"]} for n in bd_notes]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v25 the bass is heard round a corner before it is met (bars {BEND_BARS[0] + 1} to {BEND_BARS[1]}): it is {BEND_SIDE:g} m down a side passage and the corridor begins {BEND_FROM:g} m short of the corner. Sound bends into a shadow, low notes most (Maekawa): each of the bass's first six partials loses 10 log (3 + 20 N) dB, N the half waves by which the way round is longer than the way through: {-bend_shadow(hz('D2'), BEND_FROM):.1f} dB of its first partial and {-bend_shadow(hz('D2') * 4, BEND_FROM):.1f} of its fourth at the start, {-bend_shadow(hz('D2'), 0):.1f} dB of every one at the corner itself; and the longer way takes {-bend_spread(BEND_FROM):.1f} dB more at the start. At bar {BEND_BARS[1] + 1} the corner is turned. Generated by")
         assert "From v25" in doc["about"]
+    if slam_bar() is not None:
+        sl_at, sl_b = slam_bar() * BEATS, BPM / 60.0             # the beat it is on; beats a second
+        for sl_k, (sl_lo, sl_hi, sl_rt, sl_trim) in enumerate(slam_bands()):
+            sl_name = f"sr-slam-{sl_k + 1}"
+            PATCHES[sl_name] = {"about": f"Standing Room's hangar door, band {sl_k + 1} of {len(SLAM_AIR)} (chirper-zero, 27 Nov, v26): plain noise from {sl_lo:g} to {sl_hi:g} Hz, held; its loudness is its track's `gain` on `auto.tail` (dB) and its place the track's pan on `auto.wide`. In the hangar this band takes {sl_rt:.2f} s to fall 60 dB.",
+                                "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": [{"type": "noise"}], "filters": [{"kind": "hp", "cutoff": sl_lo, "q": sl_q} for sl_q in SLAM_EDGE] + [{"kind": "lp", "cutoff": sl_hi, "q": sl_q} for sl_q in SLAM_EDGE], "amp": {"a": "1ms", "d": "0s", "s": 1, "r": "20ms"}}}
+            sl_end = sl_rt * SLAM_FLOOR / -60                    # seconds until it is gone
+            sl_tail = [["0b", SLAM_FLOOR], [f"{sl_at - 0.01:g}b", SLAM_FLOOR], [f"{sl_at:g}b", round(slam_direct() - SLAM_PAN, 3)], [f"{sl_at + SLAM_DIRECT * sl_b:.5f}b", round(slam_direct() - SLAM_PAN, 3)],
+                       [f"{sl_at + (SLAM_DIRECT + SLAM_TURN) * sl_b:.5f}b", round(-60 * (SLAM_DIRECT + SLAM_TURN) / sl_rt, 3)], [f"{sl_at + sl_end * sl_b:.5f}b", SLAM_FLOOR]]
+            sl_wide = [["0b", 0.0], [f"{sl_at + SLAM_DIRECT * sl_b:.5f}b", 0.0], [f"{sl_at + (SLAM_DIRECT + SLAM_TURN) * sl_b:.5f}b", 1.0]]
+            for sl_ear, sl_side in (("l", -1), ("r", 1)):
+                doc["tracks"].append({"name": f"slam-{sl_k + 1}-{sl_ear}", "patch": sl_name, "gain": f"{float(SLAM_GAIN[:-2]) + sl_trim:.2f}dB",
+                                      "pan": {"value": 0, "mod": [{"src": "auto.wide", "amount": sl_side * SLAM_WIDE}]},
+                                      "auto": {"tail": {"points": sl_tail, "curve": 0}, "wide": {"points": sl_wide, "curve": 0}},
+                                      "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.tail", "amount": 1}]}}],
+                                      "notes": [{"at": sl_at, "len": round(min(sl_end * sl_b, ROW * BEATS - 0.25), 4), "pitch": "A3", "vel": 0.8}]})
+        sl_rts = [b[2] for b in slam_bands()]
+        doc["about"] = doc["about"].replace(" Generated by", f" From v26 the hangar's door shuts behind you on the first beat of bar {slam_bar() + 1}, where the drum and the bass rest, and the tail is left to die in the empty row. The hangar is {SLAM_HALL[0]:g} m by {SLAM_HALL[1]:g} m and {SLAM_HALL[2]:g} m high; its walls take {SLAM_WALLS:g} of the sound at every meeting, at every pitch alike; the air takes more the higher the sound ({SLAM_AIR[0]:g} dB a kilometre in the bottom band, {SLAM_AIR[-1]:g} in the top). By Sabine's rule with the air's term the bottom band ({SLAM_EDGES[0]:g} to {SLAM_EDGES[1]:g} Hz) takes {sl_rts[0]:.1f} s to fall 60 dB and the top ({SLAM_EDGES[-2]:g} to {SLAM_EDGES[-1]:g} Hz) {sl_rts[-1]:.1f} s: the tail goes dark as it dies. The slam itself is in the middle and {slam_direct():.1f} dB over the tail it starts (you are {SLAM_AWAY:g} m from the door); the tail is wide. Generated by")
+        assert "From v26" in doc["about"]
     return doc
 
 
@@ -1792,6 +1875,11 @@ def echoes(a, b, n=16):
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
         sec = 60 / BPM * BEATS
+        if slam_bar() is not None:
+            sl_w, sl_d, sl_h = SLAM_HALL
+            print(f"the hangar's door shuts ({SLAM_GAIN} the bottom band), bar {slam_bar() + 1} ({int(slam_bar() * sec) // 60}:{slam_bar() * sec % 60:04.1f}): the hangar {sl_w:g} x {sl_d:g} x {sl_h:g} m ({sl_w * sl_d * sl_h:.0f} cubic metres, {2 * (sl_w * sl_d + sl_w * sl_h + sl_d * sl_h):.0f} square metres), its walls take {SLAM_WALLS:g} ; the slam {slam_direct():.1f} dB over the tail for {SLAM_DIRECT * 1000:.0f} ms, in the middle ({SLAM_AWAY:g} m from the door) ; the tail {SLAM_WIDE:g} wide ; the door's sound {SLAM_TILT:g} dB an octave")
+            for sl_k, (sl_lo, sl_hi, sl_rt, sl_trim) in enumerate(slam_bands()):
+                print(f"   band {sl_k + 1}: {sl_lo:g} to {sl_hi:g} Hz, the air {SLAM_AIR[sl_k]:g} dB a km: 60 dB down in {sl_rt:.2f} s (bar {slam_bar() + 1 + sl_rt / sec:.1f}), gone in {sl_rt * SLAM_FLOOR / -60:.1f} s ; its fader {sl_trim:+.2f} dB against SLAM_GAIN ; after 1, 2, 4, 8 s: " + " ".join(f"{slam_db(sl_k, t):.1f}" for t in (1, 2, 4, 8)) + " dB")
         if BEND:
             print(f"the bass round the corner, bars {BEND_BARS[0] + 1}-{BEND_BARS[1]} ({int(BEND_BARS[0] * sec) // 60}:{BEND_BARS[0] * sec % 60:04.1f}): {BEND_SIDE:g} m down a side passage ; you start {BEND_FROM:g} m short of the corner ({BEND_FROM / ((BEND_BARS[1] - BEND_BARS[0]) * sec):.2f} m/s) ; the shadow 10 log (3 + 20 N) dB ; the way's law {BEND_LAW:g} ; the bass's partials {' '.join(f'{p:g}' for p in BEND_PARTS)} dB")
             for bd_bar in list(range(BEND_BARS[0], BEND_BARS[1], 4)) + [BEND_BARS[1] - 2, BEND_BARS[1] - 1, BEND_BARS[1] - 0.25, BEND_BARS[1]]:
