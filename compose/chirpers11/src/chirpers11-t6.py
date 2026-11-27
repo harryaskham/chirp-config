@@ -58,7 +58,23 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True, 'spun': True, 'lands': True, 'metal': True, 'damped': True, 'flick': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True, 'spun': True, 'lands': True, 'metal': True, 'damped': True, 'flick': True, 'tally': True}
+# ---- v20 (27 Nov): THE COIN COUNTS THE CHANGE. One more switch (`--without-tally`; off is v19 byte for byte).
+# v19 said "the rest of the song had nothing this round". The break (fives and sevens, bars 81-92) is twelve bars
+# with three written notes: three seeds and what the purse pays back, 5 and 7 sixteenths at a time. The song's
+# whole subject is which amounts can be made of two coins, and in the break nobody says it but the echoes.
+#   TALLY  after each of the break's first three seeds the coin is put down once for every amount the purse can
+#          pay: 5 7 10 12 14 15 17 19 20 21 22, and from 24 on EVERY sixteenth (23 is the largest amount that
+#          cannot be made of fives and sevens): the line begins as scattered clinks and becomes a run of
+#          sixteenths. It counts further each time: to 24, to 30, to 35 (five sevens and seven fives: the first
+#          amount made two ways, and it is struck on both sides). Where it is says how it is made, as the purse's own sides do: fives alone on the
+#          left, sevens alone on the right, both in the middle. Each coin more is TALLY['coin'] dB quieter, so
+#          the run fades as it fills. The fourth seed's coin is not counted: it is flicked and spun (v18, v19).
+#          It is the spun coin's own sound (sc-spun), let ring TALLY['ring'] s: a clink. And once more at the
+#          end, for the last section's first two seeds (bars 177 and 181), in threes and fives: 3 5 6, and from
+#          8 on every one, up to 15: the first in sixteenths, the second in thirty-seconds, the coins that seed
+#          is paid in; nothing in the last eight bars (Out of Step lies over them).
+#
 # ---- v19 (27 Nov): THE COIN IS METAL. Three more switches (`--without-metal`, `-damped`, `-flick`; all off is v18
 # byte for byte). v18's spun coin was the second hat's sound (a 20 ms hiss from 3 to 5.5 kHz): its own note said it
 # might be a hat speeding up and not a coin. A coin on a table is a small free plate struck on its edge at every
@@ -92,6 +108,7 @@ ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, '
 #          hat's sixteenths and runs away from them (the next song is Out of Step), and stops dead on the first seed
 #          of 'the last seed', as the drum and the bass leave.
 SPUN = {'bars': 4, 'rate': 4, 'power': 1 / 3, 'gain': '9dB', 'pans': (-0.45, 0.45), 'vel': (0.5, 0.85), 'close': 2 / 3, 'where': {'spun': 'fives and sevens', 'lands': 'home'}}   # v18: how long the coin spins, bars; its rattles a beat as it begins (the sixteenths); the law's power; the two tracks' fader and sides; the first and last click's stroke; the section each switch's coin ends
+TALLY = {'where': (('fives and sevens', (24, 30, 35), 1), ('the last seed', (15, 15), 2)), 'coin': -2.5, 'ring': 0.05, 'vel': 0.7, 'gain': '-25dB', 'pan': 0.6}   # v20: where the coin counts the change: (section; up to what amount after each of its seeds in turn: it counts further each time; how many times smaller the coins are with each seed: in the last section the second seed is paid in thirty-seconds, and counted in them); dB a coin; a clink's ring, s; its stroke; the three tracks' fader (bench: at -27 dB a one-coin clink's highest sample stood 7 to 10 dB under the spun coin's rattles); how far to each side the one-coin amounts stand
 METAL = {'patch': 'sc-spun', 'modes': 'plate', 'note': 'Bb7', 'ring': 0.06, 'bright': 0.8, 'strike': 0.7, 'click': '-9dB', 'tick': '8ms', 'hp': 2500, 'gain': '-27dB'}   # v19: the spun coin's own patch: its mode set and note; a ring's T60 where it is not damped by the law, s; the modal layer's brightness and where it is struck; the click on its front (the hat machine): level and decay; the patch's high-pass, Hz; the two tracks' fader (benched against the old coin)
 DAMPED = {'gaps': 2}                        # v19: a ring's T60 in gaps to the next rattle
 FLICK = {'ring': 0.4, 'vel': 1.0, 'db': 3, 'len': 1}   # v19: the flick's ring, s; its stroke; dB over the rattles' fader; its length, beats
@@ -650,6 +667,17 @@ def build():
                 T.setdefault(f"spun-{'lr'[k % 2]}", []).append(note)
             if ON['flick'] and ON['metal']:                      # v19 FLICK: the coin is flicked
                 T.setdefault('flick', []).append({'at': clicks[0], 'len': FLICK['len'], 'pitch': METAL['note'], 'vel': FLICK['vel'], 'expr': {'ring': FLICK['ring']}})
+    if ON['tally'] and ON['metal'] and ON['hat']:                # v20 TALLY: the coin is put down for every amount the purse can pay
+        for where, uptos, smaller in TALLY['where']:
+            i = next(j for j, sct in enumerate(SECTIONS) if sct[0] == where)
+            p, q = PAIRS[SECTIONS[i][1][0]]
+            for k, upto in enumerate(uptos):
+                at0 = (i * SEC + k * SECTIONS[i][2]) * 4 + SECTIONS[i][3] / 4
+                for n in range(1, upto + 1):
+                    for a in range(n // p + 1):
+                        if (n - a * p) % q == 0:
+                            b = (n - a * p) // q
+                            T.setdefault('tally-' + ('m' if a and b else 'l' if a else 'r'), []).append({'at': at0 + n / 4 / smaller ** k, 'len': 0.05, 'pitch': METAL['note'], 'vel': TALLY['vel'], 'gain': f"{TALLY['coin'] * (a + b):g}dB", 'expr': {'ring': TALLY['ring']}})
     return T
 
 
@@ -750,7 +778,7 @@ def song():
                 coin['synth']['filters'] = COIN['filters']
                 doc['patches'] = {**doc['patches'], COIN['patch']: coin}
             doc['tracks'].append({'name': 'hat-x', 'patch': COIN['patch'] if ON['coin'] else 'sc-hat', 'gain': COIN['gain'] if ON['coin'] else RATE['gain'], 'pan': RATE['pan'], 'notes': T['hat-x']})
-    metal = bool(ON['metal'] and (T.get('spun-l') or T.get('spun-r')))   # v19 METAL: the spun coin's own patch
+    metal = bool(ON['metal'] and (T.get('spun-l') or T.get('spun-r') or any(T.get('tally-' + x) for x in 'lmr')))   # v19 METAL: the spun coin's own patch (v20: and the counted coin's)
     if metal:
         doc['patches'] = {**doc['patches'], METAL['patch']: metal_patch()}
     for side, key in enumerate(('spun-l', 'spun-r')):            # v18 SPUN, LANDS: the spun coin's two pallets, closing as the coin's tilt does
@@ -764,6 +792,9 @@ def song():
                                   'pan': {'value': SPUN['pans'][side], 'mod': [{'src': 'auto.close', 'amount': -SPUN['pans'][side]}]}, 'auto': {'close': {'points': pts, 'curve': 0}}})
     if metal and T.get('flick'):                                 # v19 FLICK: one stroke of the coin in the middle
         doc['tracks'].append({'name': 'flick', 'patch': METAL['patch'], 'gain': f"{float(METAL['gain'][:-2]) + FLICK['db']:g}dB", 'pan': 0, 'notes': T['flick']})
+    for key, pan in (('tally-l', -TALLY['pan']), ('tally-m', 0), ('tally-r', TALLY['pan'])):   # v20 TALLY: the first coin alone on the left, the second alone on the right, both in the middle
+        if T.get(key):
+            doc['tracks'].append({'name': key, 'patch': METAL['patch'], 'gain': TALLY['gain'], 'pan': pan, 'notes': sorted(T[key], key=lambda n: n['at'])})
     return doc
 
 
@@ -783,7 +814,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last three off is v18, the last five v17, the last nine v16, the last eleven v15, the last thirteen v14, the last fourteen v13, the last sixteen v12, the last eighteen v11, the last twenty v10, the last twenty-three v9, the last twenty-six v8, the last twenty-eight v7, the last thirty v6, the last thirty-four v5, the last thirty-five v4, the last thirty-eight v3, the last forty-two v2, all forty-five v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last one off is v19, the last four v18, the last six v17, the last ten v16, the last twelve v15, the last fourteen v14, the last fifteen v13, the last seventeen v12, the last nineteen v11, the last twenty-one v10, the last twenty-four v9, the last twenty-seven v8, the last twenty-nine v7, the last thirty-one v6, the last thirty-five v5, the last thirty-six v4, the last thirty-nine v3, the last forty-three v2, all forty-six v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -856,6 +887,13 @@ if __name__ == '__main__':
                 print(f"    a coin is spun on the counter through the last {SPUN['bars']} bars of {SPUN['where'][sw]} (bars {(j + 1) * SEC - SPUN['bars'] + 1}-{(j + 1) * SEC}): {len(c) - 1} rattles over {SPUN['bars'] * 16} sixteenths, left and right by turns and closing to the middle as its tilt does, quickening as (t0 - t)^(-1/3): the gap goes " + ' '.join(f'{(b - a) * sec * 250:.0f}' for a, b in zip(c[:4], c[1:5])) + ' ... ' + ' '.join(f'{(b - a) * sec * 250:.0f}' for a, b in zip(c[-5:], c[-4:])) + f' ms; {what}')
         if ON['metal'] and ON['hat'] and (ON['spun'] or ON['lands']):
             print(f"    the coin is metal: a thin plate's modes from 4.2 kHz up (its note is {METAL['note']}, the seed's three octaves up), with a click on its front" + (f"; each rattle rings {DAMPED['gaps']} gaps and no more (T60), so the ring goes " + ' '.join(f'{1000 * DAMPED["gaps"] * (b - a) * 60 / BPM:.0f}' for a, b in list(zip(spun(SEC), spun(SEC)[1:]))[:3]) + ' ... ' + ' '.join(f'{1000 * DAMPED["gaps"] * (b - a) * 60 / BPM:.0f}' for a, b in list(zip(spun(SEC), spun(SEC)[1:] + [SEC * 4]))[-3:]) + ' ms: the table chokes it as it lies down' if ON['damped'] else f"; every rattle rings {1000 * METAL['ring']:.0f} ms") + (f"; and it is flicked: one stroke in the middle on its first instant, let ring {FLICK['ring']} s" if ON['flick'] else ''))
+        if ON['tally'] and ON['metal'] and ON['hat']:
+            for where, uptos, smaller in TALLY['where']:
+                j = next(x for x, sct in enumerate(SECTIONS) if sct[0] == where)
+                pp, qq = PAIRS[SECTIONS[j][1][0]]
+                can = [n for n in range(1, max(uptos) + 1) if any((n - a * pp) % qq == 0 for a in range(n // pp + 1))]
+                run, seeds = frobenius(pp, qq) + 1, len(uptos)
+                print(f"    the coin counts the change in {where}: after {'each of its first ' + str(seeds) + ' seeds' if seeds > 1 else 'its first seed'} (bar{'s' if seeds > 1 else ''} {' '.join(str(j * SEC + k * SECTIONS[j][2] + 1) for k in range(seeds))}) a clink on every amount the purse can pay, in {'sixteenths' if smaller == 1 else 'the coins each seed is paid in (sixteenths, then thirty-seconds)'}: {' '.join(str(n) for n in can if n < run)}, and from {run} every one, to {', then to '.join(str(u) for u in uptos)} ({frobenius(pp, qq)} is the largest that cannot be made of {pp}s and {qq}s" + (f'; {pp * qq} is the first made two ways, and is struck on both sides' if max(uptos) >= pp * qq else '') + f"); {pp}s alone on the left, {qq}s alone on the right, both in the middle; {-TALLY['coin']:g} dB quieter with each coin")
         print(f'{BARS} bars, {BARS * sec:.1f} s; written notes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items() if v or not k.startswith('long-')))
     else:
         a.out.write_text(dump(song()))
