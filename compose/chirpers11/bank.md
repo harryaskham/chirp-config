@@ -6,6 +6,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | name | from | what |
 |---|---|---|
 | `gt-bass-b` | Give or Take v13 (track bass-b) | Give or Take's second bass (chirper-zero, 26 Nov, v13): deck B's record's own: a plain tone with a little saw over it, plucked (the filter opens for a moment at each stroke); its pitch follows deck B's speed. |
+| `gt-chime` | Give or Take v18 (track chime) | Give or Take's clock's bell (chirper-zero, 27 Nov, v18): a small struck bar: plain tones at 1, 2.756, 5.404 times its note, ringing 1200ms: what the clock on the wall strikes the minutes on. |
 | `gt-clap` | Give or Take v1 (track clap) | Give or Take's clap (chirper-zero, 26 Nov): the machine's clap, three bursts, short; deck A. |
 | `gt-clock-tick` | Give or Take v16 (track clock-tick) | Give or Take's wall clock, the tick (chirper-zero, 27 Nov, v16): a 9 ms grain of noise through a narrow band at 3600 Hz: one pallet of an escapement. Three of them make a tick (unlock, impulse, drop). |
 | `gt-clock-tock` | Give or Take v16 (track clock-tock) | Give or Take's wall clock, the tock (chirper-zero, 27 Nov, v16): a 9 ms grain of noise through a narrow band at 3000 Hz: one pallet of an escapement. Three of them make a tick (unlock, impulse, drop). |
@@ -89,6 +90,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `rt-skin` | Ring True v1 (track skin) | Ring True: the skin. A kettledrum head (the air in the kettle pulls its modes to 1 : 1.5 : 2 : 2.5, so it sings its note); its ring time from the stroke (expr.ring, seconds over 0.03). |
 | `rt-string` | Ring True v1 (track string) | Ring True: the string. A plucked string whose ring time comes from the stroke (expr.ring, seconds over 0.03): a palm on it, lifted. |
 | `sc-coin` | Small Change v13 (track hat-x) | Small Change: the second hat, that ticks what the other currency can pay (v13). The first hat at two thirds: the machine's hat, 20 ms, from 3 to 5.5 kHz (its centre 5.5 kHz for the first hat's 8.3). |
+| `sc-debt` | Small Change v15 (track bass) | Small Change: the bass that plays what cannot be paid, with its octave (v15). The library's sub-sine (a sine, mono, a 30 ms glide, a little drive, a low-pass at 500 Hz) with its second harmonic at -30 dB in place of -40 … |
 | `sc-hat` | Small Change v2 (track hat) | Small Change: the hat that plays what can be paid. The machine's hat, 30 ms, above 6 kHz. |
 | `sc-kick` | Small Change v1 (track kick) | Small Change: the drum. The machine's bass drum on G, short. |
 | `sc-open` | Small Change v8 (track open) | Small Change: the hat let ring, where what one purse can pay is what another owes (v8). The machine's hat, 140 ms, above 5 kHz. |

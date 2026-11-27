@@ -1,0 +1,92 @@
+{
+ "about": "Small Change: the bass that plays what cannot be paid, with its octave (v15). The library's sub-sine (a sine, mono, a 30 ms glide, a little drive, a low-pass at 500 Hz) with its second harmonic at -30 dB in place of -40 (9 dB under the note at this song's touch) and one more low-pass, at 300 Hz, so that the drive leaves the note and its octave and little else: a line on 87 to 117 Hz is also heard on 175 to 233. BANKED by tools/patchbank.py (27 Nov 2026) from Small Change v15 (track bass): every extends and override resolved, so it stands by itself.",
+ "gain": "-6dB",
+ "params": {
+  "grit": 0.0
+ },
+ "play": {
+  "event_stable": true,
+  "gate": 0.97,
+  "glide": "30ms",
+  "mono": true,
+  "vel_sens": 0.4
+ },
+ "synth": {
+  "amp": {
+   "a": "6ms",
+   "d": "0ms",
+   "r": "60ms"
+  },
+  "drive": {
+   "mod": [
+    {
+     "amount": 0.6,
+     "src": "param.grit"
+    }
+   ],
+   "value": 0.2
+  },
+  "filters": [
+   {
+    "cutoff": 22,
+    "kind": "hp"
+   },
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": 2.0,
+       "src": "param.grit"
+      }
+     ],
+     "value": 500
+    }
+   },
+   {
+    "cutoff": 300
+   }
+  ],
+  "layers": [
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 6.0,
+       "src": "vel"
+      },
+      {
+       "amount": 3.0,
+       "src": "param.grit"
+      }
+     ],
+     "value": "-16dB"
+    }
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 12.0,
+       "src": "vel"
+      },
+      {
+       "amount": 14.0,
+       "src": "param.grit"
+      }
+     ],
+     "value": "-30dB"
+    },
+    "ratio": 2.0
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 0.04,
+     "src": "rand"
+    }
+   ],
+   "value": 0
+  }
+ }
+}
