@@ -217,6 +217,23 @@ they heard.
 ON ONE SPEAKER the two ears' noises are added and the place where they disagree cancels: the first four bars are
 noise with a narrow notch that moves (15 to 21 dB deep, a tone either side). This one does not fool a speaker.
 To test it on headphones: take one side off in the first four bars and the tune is gone.
+
+v15 (27 Nov): THE WAY UP IS TWO WAYS DOWN (C11T5_WES=0 takes it out: v14). Bars 3 to 8, where there was only
+the click. A pip plays three notes going UP, A C E, a sixteenth each, over and over: A C E A C E. Every other
+pip is played by a second hand. For two bars the two hands have the same sound, and what is heard is what is
+written: one line climbing, again and again. Over the next two bars the second hand's sound is made brighter
+(a filter opened, nothing else: no note moves, no stroke moves, none is louder by the fader). For the last two
+bars the two sounds are far apart, and the ear will no longer hear them as one line: it hears two, one dull and
+one bright, half as fast, and EACH OF THEM GOES DOWN: the dull hand has A E C, A E C and the bright one C A E,
+C A E. Three notes shared out between two hands: each hand gets every other note, and every other note of a
+rising three is a falling three. (David Wessel's illusion, 1979: the ear follows the sound before the tune.)
+It is three against two against four: three notes, two hands, four sixteenths to the beat. The figure comes
+round every beat and a half and meets the bar line every three bars: six bars are 16 turns of it exactly.
+At bar 9 the line (v5) takes the next note, the A the figure would have played, and comes apart its own way,
+by pitch. So the opening comes apart twice: first by sound, then by note.
+MEASURED in the whole song's master: the pips peak 9.3 dB under the click's strokes; alike the two hands' spectra
+centre on 551 and 554 Hz, apart on 566 and 1136 Hz. The bright hand is also 2.1 dB louder (a whole saw carries
+more than its first harmonic): I did not level them, so the two lines are told apart by loudness too.
 """
 import json
 import math
@@ -260,6 +277,13 @@ LINE_A = "A4"                                         # the note that never chan
 LINE_B = ("A4", "C5", "E5", "A5", "A5", "E5", "C5", "A4")   # B's note in each bar of a row: with A, then a third, a fifth, an octave from it, and back
 ROUND = os.environ.get("C11T5_ROUND", "1") != "0"    # v3: the drum goes round the click
 HUG = os.environ.get("C11T5_HUG", "1") != "0" and HELD    # v14: the tune that is in neither ear (Huggins' pitch): a section of its own after "held"
+WES = os.environ.get("C11T5_WES", "1") != "0" and HUG    # v15: the way up is two ways down (Wessel's illusion): the opening's bars 3 to 8
+WES_BARS = (2, 8)                                     # bars (from 0) of the song: after the two bars under Ring True's tail, up to where the line comes in
+WES_NOTES = ("A4", "C5", "E5")                        # going up; the notes the line takes when it comes apart (v5)
+WES_PLAN = (2, 2, 2)                                  # bars: the two hands alike, coming apart, apart
+WES_BASE = 1000.0                                     # Hz: both hands' low-pass filter when they are alike (two stages: a pip that is nearly a plain tone)
+WES_OCT = float(os.environ.get("C11T5_WES_OCT", "3.5"))   # octaves the second hand's filter opens: 1000 Hz to 11.3 kHz, a plain tone to a buzz
+WES_GAIN = os.environ.get("C11T5_WES_GAIN", "-19dB")  # both hands' fader, set in the WHOLE SONG's master: at the line's own -12 dB the pips peaked 2 dB under the click's strokes and carried more than the click did (the bars 5.9 dB louder than they were); 7 dB under that the click leads
 HUG_ROWS = 1                                          # rows of "in the noise"
 HUG_TUNE = LINE_B                                     # the notes the line takes when it comes apart (v5): A C E A, A E C A
 HUG_BEATS = 2                                         # beats to a note: 0.96 s, long enough for the ears to find it
@@ -403,6 +427,21 @@ def scale_notes(side):
 
 def note(at, pitch, length, vel):
     return {"at": round(at, 4), "len": round(length, 4), "pitch": pitch, "vel": round(vel, 3)}
+
+
+def wes_notes(hand):
+    """The figure's notes for one hand (0: the even sixteenths, 1: the odd): WES_NOTES going up, a sixteenth each, shared out turn about."""
+    n0, n1 = int(WES_BARS[0] * BEATS / STEP), int(WES_BARS[1] * BEATS / STEP)
+    return [note(n * STEP, WES_NOTES[(n - n0) % len(WES_NOTES)], 0.8 * STEP, 0.8) for n in range(n0, n1) if (n - n0) % 2 == hand]
+
+
+def wes_lane(hand):
+    """How far apart the hand's sound is from the other's (0 alike, 1 apart), as lane points in beats."""
+    b = [WES_BARS[0] * BEATS]
+    for k in WES_PLAN:
+        b.append(b[-1] + k * BEATS)
+    top = 1.0 if hand else 0.0
+    return {"points": [["0b", 0.0], [f"{b[1]:g}b", 0.0], [f"{b[2]:g}b", top], [f"{b[3]:g}b", top], [f"{b[3] + BEATS:g}b", 0.0]], "curve": 0}
 
 
 def part(name, steps):
@@ -832,6 +871,16 @@ def song():
         doc["tracks"].append({"name": "fall", "patch": "ht-part", "gain": FALL_GAIN, "pan": 0.0, "notes": fall_notes()})      # dry and in the middle, as the stairs are
         doc["about"] = doc["about"].replace(" Generated by", " From v11 the bells go down for six bars in all three, three semitones a step, while the curve they are under climbs an octave: forty-eight steps down, and the last bell is the first one's name and higher than it (Risset's paradox). The first bell is said before and the two side by side after. Generated by")
         assert "From v11" in doc["about"]
+    if WES:
+        assert sum(WES_PLAN) == WES_BARS[1] - WES_BARS[0] and (WES_BARS[1] - WES_BARS[0]) * 16 % (2 * len(WES_NOTES)) == 0
+        PATCHES["ht-wes"] = {"about": "Hearing Things' two hands (chirper-zero, 27 Nov, v15): a short pip, a saw through two low-pass stages that the lane `apart` opens (0: 1000 Hz, nearly a plain tone; 1: 11.3 kHz, a buzz). Two tracks play it turn about; while both lanes are 0 they are one sound.",
+                             "play": {"vel_sens": 0.4},
+                             "synth": {"layers": ["saw"], "filters": [{"kind": "lp", "cutoff": {"value": WES_BASE, "mod": [{"src": "auto.apart", "amount": WES_OCT}]}, "q": 0.7}, {"kind": "lp", "cutoff": {"value": WES_BASE, "mod": [{"src": "auto.apart", "amount": WES_OCT}]}, "q": 0.7}],
+                                       "amp": {"a": "1ms", "d": "60ms", "s": 0, "r": "20ms", "curve": 3}}}
+        for hand, nm in ((0, "wes-a"), (1, "wes-b")):
+            doc["tracks"].append({"name": nm, "patch": "ht-wes", "gain": WES_GAIN, "pan": -0.15, "sends": {"room": "-14dB"}, "auto": {"apart": wes_lane(hand)}, "notes": wes_notes(hand)})      # where the line is, and in its room
+        doc["about"] = doc["about"].replace(" Generated by", " From v15, in bars 3 to 8, a pip climbs three notes (A C E) over and over, a sixteenth each, shared turn about between two hands; when the second hand's sound is made brighter the one climbing line is heard as two lines, each going down (Wessel's illusion). Generated by")
+        assert "From v15" in doc["about"]
     if APART:
         doc["tracks"].append({"name": "line", "patch": "ht-pip", "gain": "-12dB", "pan": -0.15, "sends": {"room": "-14dB"}, "notes": part("line", LINE_STEPS)})
         doc["about"] = doc["about"].replace(" Generated by", " From v5 a pip plays three strokes and a rest (A B A .) and B moves away from A a third, a fifth, an octave, and back: no stroke moves, and the one galloping line comes apart into two even ones (stream segregation). Generated by")
@@ -895,6 +944,13 @@ if __name__ == "__main__":
                 print(f"   bar {b + 1}: " + " ".join(f"{lag:.2f}" for t, lag, db in st if b * BEATS <= t < (b + 1) * BEATS) + (f"   (the late ear {FIRST_LATE_DB:g} dB louder)" if any(db for t, lag, db in st if b * BEATS <= t < (b + 1) * BEATS) else ""))
             if TRIM:
                 print("the click's repair: " + ", ".join(f"{g:g} dB at {f:.0f} Hz" for f, g in TRIM_CUTS) + f" (q {TRIM_Q}) ; coming in over bars {TRIM_IN[0] + 1}-{TRIM_IN[1]}, whole in bars {TRIM_IN[1] + 1}-{TRIM_OUT[0]}, going out over bars {TRIM_OUT[0] + 1}-{TRIM_OUT[1]}")
+        if WES:
+            sec = BEATS * 60 / BPM; b0, b1 = WES_BARS; ha, hb = wes_notes(0), wes_notes(1); pl = [b0]
+            for k in WES_PLAN:
+                pl.append(pl[-1] + k)
+            print(f"the way up is two ways down, bars {b0 + 1}-{b1} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f}): {len(ha) + len(hb)} pips, a sixteenth each, " + " ".join(WES_NOTES) + f" going up ({(len(ha) + len(hb)) // (2 * len(WES_NOTES))} turns of six) ; both hands at {WES_GAIN}")
+            print(f"   the hands alike in bars {pl[0] + 1}-{pl[1]}, coming apart in {pl[1] + 1}-{pl[2]}, apart in {pl[2] + 1}-{pl[3]} (the second hand's filter {WES_BASE:.0f} Hz to {WES_BASE * 2 ** WES_OCT:.0f} Hz)")
+            print("   the first hand is given  " + " ".join(n["pitch"] for n in ha[:9]) + "  ; the second  " + " ".join(n["pitch"] for n in hb[:9]) + "  ; written together  " + " ".join(n["pitch"] for n in sorted(ha + hb, key=lambda n: n["at"])[:12]))
         if hug_span():
             b0, b1 = hug_span(); sec = BEATS * 60 / BPM; tn = hug_tune()
             print(f"the tune that is in neither ear, bars {b0 + 1}-{b1} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f}): one pink noise to an ear each ({HUG_GAIN}), the right ear's through an all-pass filter, Q {HUG_Q} ; {len(tn)} notes of {HUG_BEATS} beats ({HUG_BEATS * 60 / BPM:.2f} s): " + " ".join(f"{n}" for t, n, f in tn))
