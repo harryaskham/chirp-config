@@ -353,6 +353,15 @@ fiftieth of a beat (9.7 ms). G3 is the dot on its mark. The hand's breath in "ta
 ahead, a bar behind, 0.08 of a beat at the furthest) is heard as a broken chord: up to F4 and
 back while the record gains, down to Bb2 and back while it loses, and home on every bar line.
 In the next row deck B's own bass drum comes in and the same drift is heard as a flam.
+
+v29 (27 Nov): GIVE OR TAKE A NOTE (C11T1_GIVE=0 takes it out: v28). A tune of eight notes
+is given a note at a time: its first note; its first two; its first three; until it is
+whole. Then it is taken a note at a time from the front: without its first; without its
+first two; until only its last note is left. That is 36 notes and 28: 64, eight squared:
+one row of eighths, to the note (the second row of "both"). The tune's first note comes
+round later and later (on the triangular numbers: 1, 2, 3 ... 7 eighths apart) and its
+last note sooner and sooner (7, 6, 5 ... 1 apart): time given, and time taken. The
+process is Rzewski's "Les Moutons de Panurge" (1969).
 """
 import json
 import math
@@ -567,6 +576,29 @@ def sped(steps):
 def speed_st(t):
     """Semitones deck B is sharp by at grid time t."""
     return 12 * math.log2(max(speed(t), 0.03))
+
+
+def give_row():
+    """The first bar (from 0) of the row in which a tune is given and taken a note at a time, or None."""
+    sec = next((x for x in SECS if x[0] == GIVE_IN[0]), None)
+    return sec[1] + ROW * GIVE_IN[1] if GIVE and sec is not None and GIVE_IN[1] * ROW < sec[2] else None
+
+
+def give_passes():
+    """The passes, each a list of places in the tune (from 0): first 1 note, then 2, ... then all n (the giving); then all but the first, all but the first two, ... the last alone (the taking)."""
+    n = len(GIVE_TUNE)
+    out = [list(range(k)) for k in range(1, n + 1)] + [list(range(j, n)) for j in range(1, n)]
+    assert sum(len(p) for p in out) == n * n and n * n * GIVE_STEP == ROW * BEATS, (n, GIVE_STEP)
+    return out
+
+
+def give_notes():
+    """[(beat, note, place in the tune, pass, whether the pass is of the giving)], one every GIVE_STEP beats from GIVE_AT of the row."""
+    out, k = [], 0
+    for q, ps in enumerate(give_passes()):
+        for j in ps:
+            out.append((give_row() * BEATS + GIVE_AT + k * GIVE_STEP, GIVE_TUNE[j], j, q, q < len(GIVE_TUNE))); k += 1
+    return out
 
 
 def strobe_row():
@@ -872,6 +904,14 @@ STROBE_SCALE = (0, 3, 5, 7, 10)                        # the dots' notes, semito
 STROBE_HOME = 55                                       # the dot on its mark: G3 (MIDI 55)
 STROBE_LEN = 0.75                                      # beats a flash's note is held
 STROBE_GAIN = os.environ.get("C11T1_STROBE_GAIN", "-22dB")   # set in the whole song's master BEFORE any score was read. The bench (a note alone at -20 dB): its body (60 to 300 ms) -35.9 dBFS. Read at -28dB in the song: the bodies -33.1 dBFS: the master lifts it 10.8 dB there and not the 18.5 of a part between the drums (the notes are ON the bass drum, which ducks them); the old music at 170 to 370 Hz in the same windows is -27.9 in the middle: meant to stand about level with it, so 6 dB up
+GIVE = os.environ.get("C11T1_GIVE", "1") != "0" and STROBE   # v29: GIVE OR TAKE A NOTE (the process of Rzewski's "Les Moutons de Panurge", 1969): a tune is GIVEN a note at a time (1 ; 1 2 ; 1 2 3 ; ... ; all of it) and then TAKEN a note at a time from the front (2 to the end ; 3 to the end ; ... ; the last note alone). A tune of n notes takes n(n+1)/2 notes to give and n(n-1)/2 to take: n squared in all: 8 notes are 64: one row of eighths, to the note. The first note comes round on the triangular numbers, later and later; the last note sooner and sooner
+GIVE_IN = ("both", 1)                                  # the section and its row (from 0): bars 73 to 80: both decks, and the row does both
+GIVE_TUNE = ("G3", "Bb3", "D4", "C4", "F4", "G4", "Bb4", "D5")   # the tune: the song's five notes (G Bb C D F), rising with one turn back so that it is a tune and not a scale; under the clock's chimes (F5 to D6)
+GIVE_STEP = 0.5                                        # beats from note to note: eighths
+GIVE_AT = 0.25                                         # the beat of the row its first note is on: a sixteenth after the drum, and so every note a sixteenth after a stroke (on the eighths themselves the bass drum and the sub have the band: the old music's tops at 180 to 620 Hz are -8 to -12 dBFS there, -13 to -23 a sixteenth after the beat)
+GIVE_LEN = 0.45                                        # beats a note is written
+GIVE_PAN = 0.25                                        # the giving a little to the left, the taking as far to the right
+GIVE_GAIN = os.environ.get("C11T1_GIVE_GAIN", "-24dB")   # both tracks. The bench (the row alone at -20 dB): a note's first 100 ms -35.1 dBFS. Read in the whole song's master at -30dB and -36dB (seed 0), BEFORE any score: -34.5 and -40.5 dBFS (this master lifts it 10.6 dB in this row, no more than a note on the drum: both decks are playing), nine in ten within 1.5 dB, the two places in the beat 0.2 dB apart: no trims. The old music in a sixth of an octave round each note is -37 to -42 dBFS in the middle: at -30dB the tune was level with it. -24dB is meant to bring it to -28.5 dBFS, as loud as the strobe
 BASSB_MODE = os.environ.get("C11T1_BASSB_MODE", "swap")                        # swap: it is heard where deck A's bass is out ; full: wherever deck B's record plays from "no ruler" on
 BASSB_IN = {"swap": ("no ruler", "the stretch", "out"), "full": ("no ruler", "both", "the stretch", "the nudge", "locked", "out")}[BASSB_MODE]
 BASSB_GAIN = os.environ.get("C11T1_BASSB_GAIN", "-15dB")                       # at -10 it was louder than everything else in "no ruler" put together (measured): 5 dB down
@@ -1609,6 +1649,14 @@ def song():
         sb_far = max(abs(k) for _, k, _ in sb_ns)
         doc["about"] = doc["about"].replace(" Generated by", f" From v28 the strobe (bars {strobe_row() + 1} to {strobe_row() + ROW}, the first row of 'take'): a lamp flashes on every beat of the grid and the note under it says how far deck B's record is from the grid: {strobe_pitch(0)} when they are together, a note of the scale higher for every {1000 * 60 / BPM / STROBE_DOTS:.1f} ms the record is ahead, a note lower for every {1000 * 60 / BPM / STROBE_DOTS:.1f} ms behind ({len(sb_ns)} notes, {strobe_pitch(-sb_far)} to {strobe_pitch(sb_far)}). Generated by")
         assert "From v28" in doc["about"]
+    if give_row() is not None:
+        gv = give_notes(); gv_n = len(GIVE_TUNE)
+        PATCHES["gt-give"] = {"about": "Give or Take's counting tune (chirper-zero, 27 Nov, v29): a soft hollow pluck: a plain tone with a little of its third and fifth harmonics, struck and gone in a fifth of a second; every note as loud as every other.",
+                              "play": {"vel_sens": 0}, "synth": {"layers": ["sine phase=0", "sine phase=0 ratio=3 level=-12dB", "sine phase=0 ratio=5 level=-20dB"], "filters": ["lp cutoff=7000"], "amp": {"a": "1ms", "d": "200ms", "s": 0, "r": "60ms", "curve": 3}}}
+        for gv_name, gv_giving, gv_pan in (("give", True, -GIVE_PAN), ("take", False, GIVE_PAN)):
+            doc["tracks"].append({"name": gv_name, "patch": "gt-give", "gain": GIVE_GAIN, "pan": gv_pan, "notes": [{"at": round(t, 5), "len": GIVE_LEN, "pitch": p, "vel": 0.8} for t, p, _, _, g in gv if g == gv_giving]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v29 a tune is given and taken a note at a time (bars {give_row() + 1} to {give_row() + ROW}, the second row of 'both'): {' '.join(GIVE_TUNE)}: first its first note, then its first two, then three, until it is whole ({gv_n * (gv_n + 1) // 2} notes); then without its first note, without its first two, until only the last is left ({gv_n * (gv_n - 1) // 2} notes): {gv_n * gv_n} notes, {gv_n} squared, an eighth each: the row to the note. Generated by")
+        assert "From v29" in doc["about"]
     return doc
 
 
@@ -1625,6 +1673,11 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if give_row() is not None:
+            gv = give_notes(); gv_b = give_row(); gv_n = len(GIVE_TUNE)
+            print(f"give or take a note ({GIVE_GAIN}), bars {gv_b + 1}-{gv_b + ROW} ({int(gv_b * BEATS * 60 / BPM) // 60}:{gv_b * BEATS * 60 / BPM % 60:04.1f}): the tune {' '.join(GIVE_TUNE)} ; given a note at a time ({gv_n * (gv_n + 1) // 2} notes, pan {-GIVE_PAN:g}), then taken a note at a time from the front ({gv_n * (gv_n - 1) // 2} notes, pan {GIVE_PAN:g}): {len(gv)} notes = {gv_n} squared ; one every {GIVE_STEP:g} beat from beat {GIVE_AT:g}")
+            print("   the passes: " + " | ".join(" ".join(GIVE_TUNE[j] for j in ps) for ps in give_passes()))
+            print("   the first note of the tune falls on eighths " + " ".join(str(k) for k, (_, _, j, _, _) in enumerate(gv) if j == 0) + " of the row (apart by " + " ".join(str(b - a) for a, b in zip([k for k, x in enumerate(gv) if x[2] == 0], [k for k, x in enumerate(gv) if x[2] == 0][1:])) + ") ; the last note on eighths " + " ".join(str(k) for k, (_, _, j, _, _) in enumerate(gv) if j == gv_n - 1) + " (apart by " + " ".join(str(b - a) for a, b in zip([k for k, x in enumerate(gv) if x[2] == gv_n - 1], [k for k, x in enumerate(gv) if x[2] == gv_n - 1][1:])) + ")")
         if strobe_row() is not None:
             sb_ns = strobe_notes(); sb_b = strobe_row()
             print(f"the strobe ({STROBE_GAIN}), bars {sb_b + 1}-{sb_b + ROW} ({int(sb_b * BEATS * 60 / BPM) // 60}:{sb_b * BEATS * 60 / BPM % 60:04.1f}): a flash on every beat of the grid ; a dot is 1/{STROBE_DOTS} of a beat ({1000 * 60 / BPM / STROBE_DOTS:.2f} ms) ; the dot on its mark is {strobe_pitch(0)} ; {len(sb_ns)} notes, held {STROBE_LEN} of a beat")
