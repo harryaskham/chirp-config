@@ -71,6 +71,28 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v18 (27 Nov): THE CLOCK CHIMES THE SONG'S QUARTERS, AND AT THE END THE HOUR. Two switches (`--without-quarters`,
+`-hour`; both off is v17 byte for byte). The record's clock (chirper-zero's, in Give or Take) chimes the Westminster
+quarters of every minute and never the hour; Hearing Things quotes its half. This song is the record's last, and its
+form is an hour by its own arithmetic: four quarters of forty-eight bars (the cell comes at bar 49, the change at 97,
+home at 145, the spring runs down from 193). So the clock on the wall (v14: it does not run down) now says so:
+  QUARTERS the clock chimes at the song's three quarters: one change at bar 49, two at bar 97, three at bar 145: the
+           changes taken in order, round and round, as a clock takes them. A note at every whole second (the clock's
+           time: 31 beats to 15 seconds, so each note is 32 ms later against the beat than the one before), beginning
+           at the first whole second of the quarter: the two ticks heard in the caught bar before it are the two
+           seconds before the first note.
+  HOUR     as the spring runs down the clock rings the hour's four changes (the only time on the record), a note a
+           second from the second the drum goes: the song's own tick slows from two a second to one in a second and
+           a half while the chime keeps the seconds. It ends on B flat six seconds before the last stroke, which is
+           its one o'clock.
+The tune is zero's QUART_CHANGES (five changes on four bells, by degree of B flat: 3 2 1 5, 1 3 2 5, 1 2 3 1, 3 1 2 5,
+5 2 3 1): D C B flat F: all four are in this song's G minor. The bells are this song's own (patch wd-chime: six
+partials with no third: the first build used the engine's church bell, whose minor third put A flat over the saw's
+G and D flat beside D, and at -15 dB it took 0.4 to 0.5 off the score: the low hums tilted the whole master), TWO
+OCTAVES under Give or Take's (D4 C4 Bb3 F3 for D6 C6 Bb5 F5): the pitch
+those bells would have on a platter at the quarter speed this song stops at (124 to 31), and the band where this
+song is thin (250 to 350 Hz), under the cell (which plays the same four notes an octave up) and over the bass.
+
 v17 (27 Nov): THE DRUM GOES TO THE FIFTH TOO, AND HOME IS WHOLE. Two switches (`--without-tuned`, `-resolve`; both
 off is v16 byte for byte). Read first: v16 took the bass down to the fifth for sixteen bars (129 to 144) and gave it
 its fundamental there, and its own note said what was weak: the return home (bar 145) is a cadence on paper: the
@@ -360,7 +382,11 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True, 'quarters': True, 'hour': True}
+CHIME = {'patch': 'wd-chime', 'gain': '-19dB', 'hall': '-12dB', 'bells': {3: 'D4', 2: 'C4', 1: 'Bb3', 5: 'F3'},   # v18: the clock's chime: its fader and what the hall is sent; its four bells by degree of B flat (Give or Take's, two octaves down)
+         'changes': ((3, 2, 1, 5), (1, 3, 2, 5), (1, 2, 3, 1), (3, 1, 2, 5), (5, 2, 3, 1)), 'order': {1: (0,), 2: (1, 2), 3: (3, 4, 0), 4: (1, 2, 3, 4)},   # the Westminster quarters (chirper-zero's QUART_CHANGES); the changes rung at each quarter and at the hour
+         'apart': 1, 'change': 5, 'vel': 0.7, 'ring': '2.4s', 'trim': {4: -8},   # seconds from note to note and from change to change; the stroke; the bell's ring; dB by quarter (1 to 4), read in the finished song
+         'partials': [[0.5, 0.35], [1, 1.0], [1.5, 0.3], [2, 0.4], [3, 0.15], [4, 0.08]]}   # the bell's partials, ratio and level: hum, prime, fifth, octave, twelfth, double octave: no third (a church bell's minor third puts A flat on F and D flat on B flat)
 TUNED = {'semis': 7}                      # v17: how far the drum's note moves while the bass is on the fifth (a fifth up: D2)
 RESOLVE = {'bars': 1, 'db': 0}            # v17: how many bars of home the bass's fundamental stays under; dB on those notes
 FIFTH = {'semis': -5}                     # v16: how far the bass's line moves for the second half of 'all gathered' (a fourth down: the fifth of the key, under the drum)
@@ -594,6 +620,18 @@ def moved(pitch, semis):
 def on_the_fifth(bar):
     """v16 FIFTH: is the bass on the fifth in this bar? The second half of 'all gathered': from half way between everything being in and the first thing going, to the first thing going."""
     return ON['fifth'] and (ALL + GOES['change']) // 2 <= bar < GOES['change']
+
+
+def chimes():
+    """v18: the clock's chime, as (quarter, second, degree): quarter q of the song begins at bar q * RUNS_DOWN / 4 (the fourth is the hour, where the spring runs down); its first note is on the first whole second after that bar line, then one every CHIME['apart'] seconds, a change every CHIME['change']."""
+    return [(q, int(clock(q * RUNS_DOWN // 4)) + 1 + i * CHIME['change'] + j * CHIME['apart'], deg)
+            for q in (1, 2, 3, 4) if ON['hour' if q == 4 else 'quarters'] for i, c in enumerate(CHIME['order'][q]) for j, deg in enumerate(CHIME['changes'][c])]
+
+
+def chime_patch():
+    """v18: the clock's bell."""
+    return {'about': "Wind Down: the chime of the clock on the wall (v18). A bell with no third: six partials (hum, prime, fifth, octave, twelfth, double octave), so every partial of every bell is a note of the song's scale; the higher ones die sooner. Four of them ring Give or Take's quarters (chirper-zero's tune) two octaves under that clock's bars: the pitch they would have at the quarter speed this song stops at.",
+            'synth': {'layers': [{'type': 'additive', 'partials': CHIME['partials'], 'tilt': 0, 'damp': 0.5}], 'amp': {'a': '0.5ms', 'd': CHIME['ring'], 's': 0, 'r': CHIME['ring']}}, 'play': {'event_stable': True, 'vel_sens': 0.4}}
 
 
 def left(bar):
@@ -887,6 +925,10 @@ def song():
                 'about': f"Wind Down: the clock on the wall, the {nm} (v14). Give or Take's (chirper-zero's gt-clock-{nm}, v16), under this song's name: a 9 ms grain of noise through a narrow band at {hz} Hz, one pallet of an escapement. Three of them make a tick (unlock, impulse, drop).",
                 'play': {'vel_sens': 0.7}, 'synth': {'layers': ['white'], 'filters': [{'kind': 'bp', 'cutoff': hz, 'q': 5}, 'hp cutoff=1200'], 'amp': {'a': '0.1ms', 'd': '9ms', 's': 0, 'r': '5ms', 'curve': 3}}}}
             doc['tracks'].append({'name': f'clock-{nm}', 'patch': f'wd-clock-{nm}', 'gain': WALL['gain'], 'pan': WALL['pan'], 'notes': notes})
+    if ON['quarters'] or ON['hour']:                            # v18: the clock on the wall chimes the song's quarters, and the hour
+        doc['patches'] = {**doc['patches'], CHIME['patch']: chime_patch()}
+        doc['tracks'].append({'name': 'chime', 'patch': CHIME['patch'], 'gain': CHIME['gain'], 'pan': WALL['pan'], 'sends': {'hall': CHIME['hall']},
+                              'notes': [{'at': round(beat_at(sec), 5), 'len': 1.0, 'pitch': CHIME['bells'][deg], 'vel': CHIME['vel'], **({'gain': f"{CHIME['trim'][q]:g}dB"} if q in CHIME['trim'] else {})} for q, sec, deg in chimes()]})
     return doc
 
 
@@ -920,7 +962,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v16, the last four v15, the last six v14, the last eight v13, the last ten v12, the last twelve v11, the last fifteen v10, the last eighteen v9, the last twenty-one v8, the last twenty-three v7, the last twenty-six v6, the last twenty-nine v5, the last thirty-two v4, the last thirty-five v3, the last forty-one v2, all forty-seven v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v17, the last four v16, the last six v15, the last eight v14, the last ten v13, the last twelve v12, the last fourteen v11, the last seventeen v10, the last twenty v9, the last twenty-three v8, the last twenty-five v7, the last twenty-eight v6, the last thirty-one v5, the last thirty-four v4, the last thirty-seven v3, the last forty-three v2, all forty-nine v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -950,6 +992,8 @@ if __name__ == '__main__':
                        ([((ALL + GOES['change']) // 2, f"the drum goes to the fifth too, the other way: it is tuned up to {moved('G1', TUNED['semis'])} while the bass is down there"), (GOES['change'], 'the drum falls a fifth onto its own note, G1, on the one')] if ON['tuned'] and ON['fifth'] else []) +
                        ([(GOES['change'], 'home is whole for its first bar: the bass keeps its fundamental under it (' + ' '.join(GHOST[GOES['change'] % 4]) + '), and it is taken away on the next one')] if ON['resolve'] and ON['stand'] and ON['real'] and ON['fifth'] else []) +
                        ([((ALL + GOES['change']) // 2, 'on the fifth the bass is whole: its fundamental under every note (D1 is 36.7 Hz), to the one of the bar it comes home')] if ON['stand'] and ON['real'] and ON['fifth'] else []) +
+                       ([(q * RUNS_DOWN // 4, f"the clock chimes the {('quarter', 'half', 'three quarters')[q - 1]}: {('one change', 'two changes', 'three changes')[q - 1]}, a note a second from {min(x for k, x, _ in chimes() if k == q)} s (" + ' | '.join(' '.join(CHIME['bells'][d] for d in CHIME['changes'][c]) for c in CHIME['order'][q]) + f"), {round((beat_at(min(x for k, x, _ in chimes() if k == q)) % 1) * 60000 / BPM)} ms after a beat and 32 ms later with each note") for q in (1, 2, 3)] if ON['quarters'] else []) +
+                       ([(RUNS_DOWN, f"the clock chimes the hour, the only time on the record: four changes, a note a second from {min(x for k, x, _ in chimes() if k == 4)} s to {max(x for k, x, _ in chimes() if k == 4)} s (" + ' | '.join(' '.join(CHIME['bells'][d] for d in CHIME['changes'][c]) for c in CHIME['order'][4]) + f"); the last stroke, {clock(BARS) - max(x for k, x, _ in chimes() if k == 4):.1f} s on, is its one o'clock")] if ON['hour'] else []) +
                        ([(RUNS_DOWN, f"the clock on the wall: a tick at every whole second from {int(clock(RUNS_DOWN)) + 1} s to {int(clock(BARS)) + WALL['after']} s, {WALL['after']} of them after the last stroke")] if ON['wall'] and ON['stop'] else []) +
                        ([(b, 'the drum gives the one to whoever has just left') for b in range(BARS) if ON['left'] and any(tr != 'kick' for tr, _ in left(b))] if ON['cede'] else []) +
                        ([(GOES['cell'] - 1, "the hand lets go of the stick: the cell's last stroke bounces")] if ON['drop'] else []) +
