@@ -310,6 +310,18 @@ by the sine of the angle, quieter the higher it is). It swings wider and slower;
 reaches 176.8 degrees and all but stops there, far off, for more than a bar; it falls back the way it
 came; and at the next push it goes over. After that there is no swinging back: it goes round and
 round, the same way, each turn quicker than the last, till the row ends. The phase that swung now runs.
+
+v22 (27 Nov): ONE NOTE COMES APART INTO EIGHT RHYTHMS (C11T7_RHY=0 takes it out: v21). A note is a
+sum of plain tones, 1, 2, 3 ... times its frequency, and the ear takes them for one thing as long as
+they begin together. Here they are let go. In the first row of "drifts" (bars 105 to 112) the first
+eight harmonics of B flat (the series on B flat is B flat, F and D, the song's chord over the bass's
+G; the seventh is no note of ours and is left as it is) are eight plain tones, and the n-th strikes n
+times a bar: two more come in every bar, and all eight play the row's second half. On every bar line all of them strike at once, from the same
+point of their waves, 20 log10(n) dB apart: the first eight terms of a saw: one note. Inside the bar
+they are 1 against 2 against 3 ... against 8, every small polyrhythm at once, and what strikes at
+p/q of the bar is harmonic q and its multiples, which are the harmonics of a note q times as high:
+the note heard at any moment is the DENOMINATOR of the time. It is Cowell's and Theremin's
+rhythmicon (1931): the same ratios as pitch and as rhythm; phase is what makes them one note or eight.
 """
 import json
 import math
@@ -590,6 +602,16 @@ OVER_VEL = 0.8                                         # the bob's tick at the b
 OVER_NOTE = "B8"                                       # the bob's tick (7.9 kHz: chosen by the scorer's bands: the band of this song with the most room; nothing of it over 10 kHz)
 OVER_TICK = ("B7", 0.9, 4.0)                           # the escapement's tick at every pass through the bottom: its note (an octave under the bob's), velocity, dB over the bob's fader; in the middle. At -16dB (this) a tick was -17 to -24 dBFS in its own 4 ms and 15 to 29 dB over the music from 3 to 5 kHz; at -8dB it was -12 to -16 dBFS, as loud as the song's own clicks
 OVER_GAIN = os.environ.get("C11T7_OVER_GAIN", "-20dB") # the bob's fader, set in the whole song's master between two readings. This song has little from 6.5 to 9.5 kHz, so the bob stands well over what is there at any fader (median 22 dB over at -14dB, 14 dB at -22dB) and the master delivers it as written (8 dB for 8): the question is how much of the row it takes. At -14dB the music under it was 0.11 dB down; at -22dB 0.02
+RHY = os.environ.get("C11T7_RHY", "1") != "0" and OVER    # v22: one note comes apart into eight rhythms (the rhythmicon: Cowell and Theremin, 1931)
+RHY_IN = ("drifts", 0)                                 # the section and the row of it (from 0): the first row of "drifts", which had nothing of its own
+RHY_ROOT = "Bb2"                                       # the note whose harmonics they are: the series on B flat is B flat, F, D (and the seventh, which is no note of ours): over the bass's G the song's own chord
+RHY_N = 8                                              # the harmonics: number n is n times the root's frequency and strikes n times a bar, evenly, from the bar line
+RHY_BUILD = 0.5                                        # bars between one harmonic coming in and the next, taken down to a whole bar: harmonic n from bar int((n - 1) * this) of the row: two more every bar, and all eight for the row's second half (at one a bar the eighth was heard for a single bar)
+RHY_RING = "220ms"                                     # a stroke's ring
+RHY_LEN = 0.2                                          # beats a stroke is held
+RHY_VEL = 0.8
+RHY_PAN = 0.5                                          # the lowest is this far left, the highest this far right, evenly: each rhythm has a place; at the bar line they still strike as one
+RHY_GAIN = os.environ.get("C11T7_RHY_GAIN", "-14dB")   # the first harmonic's fader, set in the whole song's master between two readings, BEFORE their scores were read, FROM THE QUIET END (the eighth harmonic, 18 dB under the first): at -12dB its strokes stood a median 1 dB over the music in their own band (22 of 40 level with it or over) and at -18dB 5 under (13 of 40); 179 and 107 of all 214 strokes were level with the music or over. The harmonics in empty bands (350, 583, 699, 816 Hz) stand 7 to 16 dB clear at -12dB; the first two are in the bass's band (B flat 2 is the bass's own note in bars 107 to 110) and are under it at any fader tried. Harmonic n is 20 log10(n) dB under it (a saw's own law: so that all eight struck together, from phase nought, are the first eight terms of one saw)
 SWARM = os.environ.get("C11T7_SWARM", "1") != "0" and FOCUS      # v18: the click comes apart and finds itself (twelve clicks that listen only to each other)
 SWARM_ROWS = tuple(int(x) for x in os.environ.get("C11T7_SWARM_ROWS", "56,120").split(","))    # the first bar (from 0) of each row it plays in: the two breaks in which the bass drum rests and then comes in
 SWARM_BARS = ROW                                                     # how long a row is
@@ -653,6 +675,29 @@ def gear_notes():
             out += [{"at": round(b + j * q / p, 6), "len": 0.25, "pitch": GEAR_NOTE, "vel": GEAR_ACCENT[0 if j % p == 0 else 1]} for j in range(p * turns)]
             b += q * turns
     return out
+
+
+def rhy_row():
+    """The first bar of the row with the rhythmicon, or None."""
+    sec = next((x for x in SECS if x[0] == RHY_IN[0]), None)
+    return sec[1] + ROW * RHY_IN[1] if RHY and sec is not None and RHY_IN[1] * ROW < sec[2] else None
+
+
+def rhy_strokes(n):
+    """The beats on which harmonic n strikes: n to the bar, evenly, from the bar line, from the bar it comes in."""
+    b0 = rhy_row()
+    return [round((b0 + bar) * BEATS + j * BEATS / n, 5) for bar in range(int((n - 1) * RHY_BUILD), ROW) for j in range(n)]
+
+
+def rhy_together(bar):
+    """What is heard through a bar with the harmonics that are in by then: [(the place in the bar as a fraction in lowest terms (p, q), the harmonics that strike there)]. The harmonics striking at p / q are q, 2q, 3q ...: the multiples of q, which are the harmonics of a note q times the root's: the DENOMINATOR is the note."""
+    from fractions import Fraction
+    there = {}
+    for n in range(1, RHY_N + 1):
+        if bar >= int((n - 1) * RHY_BUILD):
+            for j in range(n):
+                there.setdefault(Fraction(j, n), []).append(n)
+    return [((f.numerator, f.denominator), there[f]) for f in sorted(there)]
 
 
 def over_row():
@@ -1241,6 +1286,15 @@ def song():
                               "notes": [{"at": round(ov0 + t, 5), "len": 0.02, "pitch": OVER_TICK[0], "vel": OVER_TICK[1]} for t, _, _ in ov_ticks]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v21 the pendulum the song began with is pushed until it goes over the top (bars {over_row() + 1} to {over_row() + ROW}, a row of the drifts that had nothing of its own). It is a real pendulum, so a wide swing takes longer than a small one, and the escapement pushes it at every pass through the bottom (its tick, in the middle; {(ov_push - 1) * 100:.1f}% of its speed each time). A small tick {OVER_PER_BEAT} times a beat is where the bob is: it swings from side to side, wider and slower ({' '.join(f'{b - a:.2f}' for (a, _, _), (b, _, _) in zip(ov_ticks[:OVER_PUSHES + 1], ov_ticks[1:OVER_PUSHES + 2]))} beats from tick to tick), all but stops at the top, far off, falls back, and at the next push goes over: after that it only goes round, {abs(over_path()[0][-1]) / (2 * math.pi):.1f} turns by the row's end, each quicker than the last. Generated by")
         assert "From v21" in doc["about"]
+    if rhy_row() is not None:
+        rh_b0 = rhy_row()
+        for rh_n in range(1, RHY_N + 1):
+            PATCHES[f"os-part-{rh_n}"] = {"about": f"Out of Step's rhythmicon, harmonic {rh_n} (chirper-zero, 27 Nov, v22): one plain tone at {rh_n} times the note played, from phase nought, struck and dying in {RHY_RING}. Eight of them ({', '.join(str(k) for k in range(1, RHY_N + 1))}) on one note, each 20 log10(n) dB under the first, struck together are the first eight terms of a saw: one note. Struck n to the bar they are eight rhythms.",
+                                            "play": {"vel_sens": 0.5}, "synth": {"layers": [f"sine phase=0 ratio={rh_n}"], "amp": {"a": "1ms", "d": RHY_RING, "s": 0, "r": "40ms", "curve": 3}}}
+            doc["tracks"].append({"name": f"part-{rh_n}", "patch": f"os-part-{rh_n}", "gain": f"{float(RHY_GAIN[:-2]) - 20 * math.log10(rh_n):.2f}dB", "pan": round(RHY_PAN * (2 * (rh_n - 1) / (RHY_N - 1) - 1), 3),
+                                  "notes": [{"at": rh_t, "len": RHY_LEN, "pitch": RHY_ROOT, "vel": RHY_VEL} for rh_t in rhy_strokes(rh_n)]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v22 one note comes apart into {RHY_N} rhythms (bars {rh_b0 + 1} to {rh_b0 + ROW}): the first {RHY_N} harmonics of {RHY_ROOT}, each a plain tone, the n-th striking n times a bar; two more come in every bar, and all {RHY_N} play the row's second half. On every bar line they strike together from the same point of their waves and are one note, a saw; inside the bar they are 1 against 2 against 3 and so on to {RHY_N}, and what strikes at p/q of the bar is harmonic q with its multiples: the note heard is the denominator (a rhythmicon: Cowell and Theremin, 1931). Generated by")
+        assert "From v22" in doc["about"]
     return doc
 
 
@@ -1270,6 +1324,11 @@ def lock(k):
 if __name__ == "__main__":
     if os.environ.get("C11T7_SHOW"):
         sec = 60 / BPM * BEATS
+        if rhy_row() is not None:
+            rh_b0 = rhy_row(); rh_hz = 440 * 2 ** (({"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}[RHY_ROOT[0]] + (-1 if "b" in RHY_ROOT else 0) + 12 * (int(RHY_ROOT[-1]) + 1) - 69) / 12)
+            print(f"one note comes apart (the rhythmicon), bars {rh_b0 + 1}-{rh_b0 + ROW} ({int(rh_b0 * sec) // 60}:{rh_b0 * sec % 60:04.1f}): harmonics 1 to {RHY_N} of {RHY_ROOT} ({rh_hz:.2f} Hz): " + ", ".join(f"{k}: {k * rh_hz:.0f} Hz {float(RHY_GAIN[:-2]) - 20 * math.log10(k):.1f} dB from bar {rh_b0 + 1 + int((k - 1) * RHY_BUILD)}" for k in range(1, RHY_N + 1)) + f" ; {sum(len(rhy_strokes(k)) for k in range(1, RHY_N + 1))} strokes")
+            for rh_bar in sorted({0, 1, 2, ROW - 1}):
+                print(f"   bar {rh_b0 + rh_bar + 1}: " + " ".join(f"{p}/{q}:{'+'.join(str(k) for k in ks)}" for (p, q), ks in rhy_together(rh_bar)))
         for name, b0, n, parts, phase in SECS:
             print(f"{name:10s} bars {b0:3d}-{b0 + n:3d}  {int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int((b0 + n) * sec) // 60}:{(b0 + n) * sec % 60:04.1f}  phase {phase}  " + ", ".join(p if w is None else p + " " + "+".join(f"{lo}-{hi}" for lo, hi in w) for p, w in parts.items()))
         for k in range(LOOP + 1):
