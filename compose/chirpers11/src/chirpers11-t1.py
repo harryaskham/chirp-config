@@ -248,6 +248,19 @@ pips are not on the beat: they fall 161, 129, 97, 65 and 32 ms BEFORE every othe
 and the long one is on the bar line exactly, with the bell's first stroke. Then the bell's strokes fall
 behind the beat again, 32 ms more each time. The clock and the beat agree once a minute, for an instant,
 and the pips are heard arriving at it. 1000 Hz is a standard and in no key (21 cents over B5).
+
+v20 (27 Nov): A SCRATCH ACROSS DECK B'S RECORD (C11T1_SCAR=0 takes it out: v19). The song has a clock on
+the wall, which ticks once a second whatever the decks do. Now the record has one too: a scratch straight
+across it, from the edge to the label, which the needle meets once in every turn: a small tick every 15
+sixteenths OF THE RECORD. It is written on the record like deck B's other parts, so it goes through
+everything the record goes through and tells it: 15 against deck A's 16 when the hand is off (a sixteenth
+earlier every bar), early and late with the hand, twice over and eight times over in the stretch, once
+more going backwards in the spin back, every 11 1/4 sixteenths at the other speed. Two things it does
+NOT do are as true: while the needle is stuck everything else on the record comes round again and the
+tick alone goes on as it did (it was once a turn already); and in the loop the needle never gets to it.
+The scratch is half a sixteenth after where the needle is on the first beat of "locked": between two of
+deck B's sixteenths, where nothing else on the record is. When the motor is switched off the needle meets it once more, 44 ms late and a little low, and
+never again: the platter stops three and a half sixteenths of the record short of it.
 """
 import json
 import math
@@ -542,6 +555,15 @@ CLOCK_GAIN = os.environ.get("C11T1_CLOCK_GAIN", "-20dB")
 CLOCK_END = os.environ.get("C11T1_CLOCK_END", "1") != "0" and CLOCK     # v17: the clock was running all along (it is heard again in the last bars)
 CHIME = os.environ.get("C11T1_CHIME", "1") != "0" and CLOCK_END     # v18: the clock strikes the minutes
 PIPS = os.environ.get("C11T1_PIPS", "1") != "0" and os.environ.get("C11T1_CHIME", "1") != "0" and CLOCK_END      # v19: the pips
+SCAR = os.environ.get("C11T1_SCAR", "1") != "0" and PIPS  # v20: a scratch across deck B's record (the record's own clock: one tick a turn)
+SCAR_TURN = STICK_TURN                                 # sixteenths of the record from one tick to the next: one turn of the platter (15: the turn that sticks)
+SCAR_ON = "locked"                                     # the scratch is just after where the needle is on the first beat of this section
+SCAR_OFF = 0.5                                         # sixteenths after that: BETWEEN two of deck B's sixteenths, where nothing else on the record is (on a sixteenth every tick fell with deck B's own click and was 2 to 5 dB under the music in its own 8 ms: an accent on the click, not a tick)
+SCAR_WITH = "tock"                                     # it is heard wherever this part of deck B's is (the record in the room)
+SCAR_NOTE = "C6"                                       # the tick: 1047 Hz and 3244 Hz, where this song has room (1 kHz +0.5, 3.1 kHz -2.3; 2.2 kHz is at the edge and is left alone)
+SCAR_VEL = 0.9
+SCAR_PAN = 0.1                                         # where the record's chord and its pop are
+SCAR_GAIN = os.environ.get("C11T1_SCAR_GAIN", "-16dB") # set in the whole song's master, between two readings: here a tick is -20 to -33 dBFS in its own 8 ms (the song's own clicks are -14 to -26) and over what was in its gap by 4 to 15 dB in the middle of each section; at -20dB it was level with its gap
 PIPS_BEFORE = 5                                        # short pips: one on each of the five seconds before the minute
 PIPS_SHORT = 0.1                                       # seconds a short pip lasts
 PIPS_LONG = 0.5                                        # the sixth, which BEGINS on the minute
@@ -889,6 +911,21 @@ def cue_err(u):
     return CUE_OUT * math.cos(math.pi * u / CUE_HALF) * 2 ** (-u / CUE_HALF)
 
 
+def scar_phase():
+    """The sixteenth of the record (from its start) the scratch is first met on: every SCAR_TURN after it, the needle meets it again."""
+    b0 = next((x[1] for x in SECS if x[0] == SCAR_ON), 0)
+    return (b0 * 16) % SCAR_TURN
+
+
+def scar_steps(bar):
+    """Deck B's record, bar by bar, as its other parts are written: the sixteenths of this bar on which the needle meets the scratch."""
+    return [(s + SCAR_OFF, SCAR_NOTE, 0.5 - SCAR_OFF / 2, SCAR_VEL) for s in range(16) if (bar * 16 + s - scar_phase()) % SCAR_TURN == 0]
+
+
+def scar_notes():
+    return deck_b(SCAR_WITH, scar_steps) if SCAR else []
+
+
 def pips_seconds():
     """(the minute, [(the second a pip begins on, how many seconds it lasts)]): five short ones before each minute the clock strikes and a long one on it."""
     return [(k, [(k * CHIME_EVERY - j, PIPS_SHORT) for j in range(PIPS_BEFORE, 0, -1)] + [(k * CHIME_EVERY, PIPS_LONG)]) for k, _ in chime_strikes()]
@@ -1118,6 +1155,13 @@ def song():
         doc["tracks"].append({"name": "pips", "patch": "gt-pip", "gain": PIPS_GAIN, "pan": CLOCK_PAN, "notes": pips_notes()})
         doc["about"] = doc["about"].replace(" Generated by", f" From v19 the clock counts each minute in with the pips: a short pip of {PIPS_HZ:g} Hz on each of the {PIPS_BEFORE} seconds before it and a long one that begins on it; a second is two beats and a fifteenth, so they close on every other beat (161, 129, 97, 65, 32 ms early) and the long one is on the bar line, with the bell. Generated by")
         assert "From v19" in doc["about"]
+    if SCAR and scar_notes():
+        PATCHES["gt-scar"] = {"about": "Give or Take's scratch (chirper-zero, 27 Nov, v20): the tick of a scratch across deck B's record as the needle meets it, once a turn: two plain tones (the note and 3.1 times it) gone in 6 ms; its pitch follows deck B's speed (auto.spd, semitones), so it falls with the platter.",
+                              "play": {"vel_sens": 0.5},
+                              "synth": {"layers": ["sine phase=0", "sine phase=0 ratio=3.1 level=-6dB"], "pitch": {"value": 0, "mod": [{"src": "auto.spd", "amount": 1}]}, "amp": {"a": "0.1ms", "d": "6ms", "s": 0, "r": "4ms", "curve": 3}}}
+        doc["tracks"].append({"name": "scar", "patch": "gt-scar", "gain": SCAR_GAIN, "pan": SCAR_PAN, "auto": {"spd": {"points": lane}}, "notes": scar_notes()})      # dry, as the pop is
+        doc["about"] = doc["about"].replace(" Generated by", f" From v20 there is a scratch across deck B's record, which the needle meets once a turn: a small tick every {SCAR_TURN} sixteenths of the record, so {SCAR_TURN} against sixteen when the hand is off, and through everything the record goes through: early and late with the hand, twice and eight times over in the stretch, once more going backwards in the spin back, closer at the other speed; it alone is not changed when the needle sticks (it was once a turn already); and when the motor is switched off the needle meets it once more, late, and never again. Generated by")
+        assert "From v20" in doc["about"]
     return doc
 
 
@@ -1134,6 +1178,16 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if SCAR and scar_notes():
+            sc = scar_notes(); sc_ms = 60000 / BPM
+            print(f"a scratch across deck B's record: a tick every {SCAR_TURN} sixteenths of the record (from its sixteenth {scar_phase() + SCAR_OFF:g}: {SCAR_OFF:g} of a sixteenth after the first beat of {SCAR_ON}) ; {len(sc)} ticks, bars {int(sc[0]['at'] // BEATS) + 1}-{int(sc[-1]['at'] // BEATS) + 1} ; {SCAR_GAIN}, pan {SCAR_PAN}")
+            for sc_name, sc_b0, sc_n, sc_parts, sc_hand in SECS:
+                sc_in = [q for q in sc if sc_b0 * BEATS <= q["at"] < (sc_b0 + sc_n) * BEATS]
+                if sc_in:
+                    sc_gaps = [(b["at"] - a["at"]) / STEP for a, b in zip(sc_in, sc_in[1:])]
+                    print(f"   {sc_name:12s} {len(sc_in):3d} ticks ; from one to the next, sixteenths of the grid: {min(sc_gaps):.2f} to {max(sc_gaps):.2f}" + f" ; the first five at bar.sixteenth " + " ".join(f"{int(q['at'] // BEATS) + 1}.{(q['at'] % BEATS) / STEP:.2f}" for q in sc_in[:5]))
+            sc_last = sc[-6:]
+            print("   its last six (seconds ; ms since the one before): " + " ; ".join(f"{q['at'] * sc_ms / 1000:.2f} s" + (f" +{(q['at'] - p['at']) * sc_ms:.0f}" if p else "") for p, q in zip([None] + sc_last[:-1], sc_last)))
         sec = 60 / BPM * BEATS
         for name, b0, n, parts, (kind, reach, period, ramp) in SECS:
             far = max(abs(d(t / 16)) for t in range(b0 * BEATS * 16, (b0 + n) * BEATS * 16))
