@@ -71,6 +71,28 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v15 (27 Nov): THE OTHER CLOCK FALLS BEHIND. Two switches (`--without-clocks`, `-linger`; both off is v14 byte
+for byte):
+  CLOCKS  v14's wall clock is heard only at the end, when the spring has run down. But it was there all along,
+          and this song's beat is not a second: 124 to the minute is 2.067 beats a second, so that 31
+          beats take exactly 15 seconds, and against the wall clock the beat gains 32 ms every second
+          beat. Seven times the escapement is caught and the click is alone for a bar (CATCH), on the
+          half beats. Now the wall clock is heard in each of those bars as well, at the whole seconds of
+          the song that fall in it (one or two). In the first catch (second 30) its tick is exactly on
+          the beat, half way between two clicks, where the drum will come in a bar later: it sounds
+          like the song's own. In the second (60, 61) it is on the beat and 32 ms after it; then 32 and
+          65; 65 and 97; 97 and 129; 129 and 161; and in the last (215, 216), before all are gathered,
+          161 and 194 ms after the beat: 81 and 49 ms before the next click. Catch by catch the other
+          clock falls behind the beat it began on: the song is running fast. At the end the click
+          slows, the clock catches it up near 388 s and goes on alone (v14). Same sound, same fader,
+          same side as at the end; tick and tock keep the turns they would have had from second 0.
+  LINGER  Ring True v15: what the master does not own is the time between strokes. v13's goodbyes are
+          single strokes: the pattern's three (bar 185) and the drum's last (bar 193). They also go to
+          the hall now, so each leaves a tail: the pattern's last three strokes hang for a bar and a
+          half over the groove that goes on, and the drum's last stroke rings on as the spring begins
+          to run down and the clock is first left alone with the click. The bass's goodbye (G1) is under
+          the hall's 350 Hz and is not sent: a hall carries nothing under its own high-pass.
+
 v14 (27 Nov): THE CLOCK ON THE WALL DOES NOT RUN DOWN. Two switches (`--without-wall`, `-cede`; both off is v13 byte
 for byte):
   WALL   the album is called Escapement, and its first song has a clock on the wall (chirper-zero, Give or
@@ -296,7 +318,8 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True}
+LINGER = {'db': {'saw': 6, 'kick': 6}}  # v15: the things whose goodbye (LEFT's strokes) also goes to the hall, and dB on those strokes there beside the dry ones
 WALL = {'gain': '-20dB', 'pan': 0.5, 'hz': (3600, 3000), 'parts': ((0.014, 0.35), (0.008, 0.5), (0.0, 1.0)), 'after': 4}   # v14: the clock's fader and side (Give or Take's: -20 dB, 0.5); its two pallets, Hz; a tick's three sounds (seconds before the second, velocity); whole seconds it ticks on after the last stroke
 GONE = {'to': 4, 'db': -3}              # v13: the sixteenth of the bar after a thing has gone up to which its own figure is played once more; dB on those strokes
 AJAR = {'beats': 4, 'over': 0.25}       # v13: beats before the room comes at which its door is open; beats it takes to open (it was shut to open over eight)
@@ -507,7 +530,13 @@ def beat_at(sec):
 def wall():
     """v14: the wall clock's notes, (tick's, tock's): three a tick, at every whole second from the bar the drum goes to WALL['after'] seconds past the last stroke."""
     first, last = int(clock(RUNS_DOWN)) + 1, int(clock(BARS)) + WALL['after']
-    return tuple([{'at': round(beat_at(sec - early), 5), 'len': 0.05, 'pitch': 'C6', 'vel': vel} for sec in range(first, last + 1)[pallet::2] for early, vel in WALL['parts']] for pallet in (0, 1))
+    secs = (caught_seconds() if ON['clocks'] else []) + list(range(first, last + 1))
+    return tuple([{'at': round(beat_at(sec - early), 5), 'len': 0.05, 'pitch': 'C6', 'vel': vel} for sec in secs if (sec - first) % 2 == pallet for early, vel in WALL['parts']] for pallet in (0, 1))
+
+
+def caught_seconds():
+    """v15: the whole seconds of the song that fall in a caught bar (the tempo is whole and steady there: second s is in bar b when 240 b <= s BPM < 240 (b + 1))."""
+    return [s for b in (CATCHES if ON['catch'] else []) for s in range(240 * b // BPM, 240 * (b + 1) // BPM + 1) if 240 * b <= s * BPM < 240 * (b + 1)]
 
 
 def left(bar):
@@ -560,6 +589,8 @@ def build():
             T[tr].append({**n, 'gain': f"{round(float(n.get('gain', '0dB')[:-2]) + TELL['db'], 2)}dB"})
         for tr, n in (left(bar) if ON['left'] else []):          # v13 LEFT: the bar after says who has left
             T[tr].append({**n, 'gain': f"{round(float(n.get('gain', '0dB')[:-2]) + GONE['db'], 2)}dB"})
+            if ON['linger'] and tr in LINGER['db']:              # v15 LINGER: and the hall keeps it
+                T.setdefault(tr + '-gone', []).append({**n, 'gain': f"{round(float(n.get('gain', '0dB')[:-2]) + GONE['db'] + LINGER['db'][tr], 2)}dB"})
         if here('pattern', bar):
             slip = (bar - (GOES['pattern'] - LEAVE) + 1) % 8 if ON['slip'] and bar >= GOES['pattern'] - LEAVE else 0
             for half in (0, 8):
@@ -786,6 +817,9 @@ def song():
     if ON['hat']:
         doc['patches'] = {**doc['patches'], 'wd-hat': NEW['wd-hat']}
         doc['tracks'].append({'name': 'hat', 'patch': 'wd-hat', 'gain': '6dB', 'pan': -0.2, 'notes': T['hat'], 'sends': {'hall': '-18dB'}})
+    for tr in LINGER['db']:                                     # v15 LINGER: a goodbye's strokes again, into the hall alone
+        if T.get(tr + '-gone'):
+            doc['tracks'].append({**{k: v for k, v in by_name[tr].items() if k not in ('notes', 'sends', 'auto')}, 'name': tr + '-gone', 'notes': T[tr + '-gone'], 'out': 'hall'})
     if ON['wall'] and ON['stop']:                               # v14 WALL: the clock on the wall does not run down
         for nm, hz, notes in zip(('tick', 'tock'), WALL['hz'], wall()):
             doc['patches'] = {**doc['patches'], f'wd-clock-{nm}': {
@@ -825,7 +859,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v13, the last four v12, the last six v11, the last nine v10, the last twelve v9, the last fifteen v8, the last seventeen v7, the last twenty v6, the last twenty-three v5, the last twenty-six v4, the last twenty-nine v3, the last thirty-five v2, all forty-one v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v14, the last four v13, the last six v12, the last eight v11, the last eleven v10, the last fourteen v9, the last seventeen v8, the last nineteen v7, the last twenty-two v6, the last twenty-five v5, the last twenty-eight v4, the last thirty-one v3, the last thirty-seven v2, all forty-three v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -849,6 +883,8 @@ if __name__ == '__main__':
                        ([(b, f"for that beat the bass is whole: its own voice plays the {LEAD['pitch']} under its fundamental") for b in CATCHES if b > COMES['ghost'] and b in WHOLE['bars']] if ON['whole'] and ON['lead'] and ON['catch'] else []) +
                        ([(b, 'the bar after says who has left: ' + ', '.join(f"{tr} {n['pitch']} on sixteenth {round((n['at'] - b * 4) * 4)}" for tr, n in left(b))) for b in range(BARS) if left(b)] if ON['left'] else []) +
                        ([(COMES['room'] - 1, "the room's door is open through the caught bar: the click alone is heard in the room")] if ON['ajar'] and ON['catch'] else []) +
+                       ([(CATCHES[0], 'the other clock is heard in each caught bar, falling behind the beat it began on (the click is on the half beats): ms after the beat, by catch: ' + '; '.join(' '.join(f'{(s * BPM % 60) * 1000 / BPM:.0f}' for s in caught_seconds() if 240 * b <= s * BPM < 240 * (b + 1)) for b in CATCHES))] if ON['clocks'] and ON['wall'] and ON['stop'] and ON['catch'] else []) +
+                       ([(b, 'the hall keeps the goodbye: ' + ', '.join(sorted({tr for tr, _ in left(b) if tr in LINGER['db']}))) for b in range(BARS) if any(tr in LINGER['db'] for tr, _ in left(b))] if ON['linger'] and ON['left'] else []) +
                        ([(RUNS_DOWN, f"the clock on the wall: a tick at every whole second from {int(clock(RUNS_DOWN)) + 1} s to {int(clock(BARS)) + WALL['after']} s, {WALL['after']} of them after the last stroke")] if ON['wall'] and ON['stop'] else []) +
                        ([(b, 'the drum gives the one to whoever has just left') for b in range(BARS) if ON['left'] and any(tr != 'kick' for tr, _ in left(b))] if ON['cede'] else []) +
                        ([(GOES['cell'] - 1, "the hand lets go of the stick: the cell's last stroke bounces")] if ON['drop'] else []) +
