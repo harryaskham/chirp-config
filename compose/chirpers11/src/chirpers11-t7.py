@@ -370,6 +370,15 @@ The tones come up over the eight beats for which the swarm is deaf, so that the 
 begins with the bottom gone (C11T7_HUM_IN=0 starts them at once, a thump where the drum would
 be: read and refused). The note is held until the drum comes back and takes its place
 (C11T7_HUM_HELD=7 lets it go a bar sooner: read and refused, see the note).
+
+v27 (27 Nov): AN OCTAVE BY PHASE ALONE (C11T7_ALT=0 takes it out: v26). The ear is said to be
+deaf to phase. It is, while it can hear a note's harmonics one by one. Above about the tenth
+they are too close together for that, and the ear reads the pitch from how often the wave
+pulses. In the first row of home a note sounds on every off beat: harmonics 13 to 26 of the
+bass's G and nothing under them. For two bars every harmonic starts on its sine: one pulse a
+period, and the note is a low buzz on G. Then every second note has its even harmonics a
+quarter turn on: two pulses a period, and it is heard an octave up. The two notes have the
+same harmonics at the same strengths: the off-beat octaves of a house bass, made of one note.
 """
 import json
 import math
@@ -713,6 +722,15 @@ HUM_IN = float(os.environ.get("C11T7_HUM_IN", str(SWARM_DEAF)))   # beats over w
 HUM_STEP = 16                                          # points of the lane to a beat
 HUM_PAN = 0.4                                          # the slowest this far left, the fastest this far right (the clicks are at 0.8): in step they are one sound in the middle
 HUM_GAIN = os.environ.get("C11T7_HUM_GAIN", "-52dB")   # each tone. Read in the whole song's master at -48dB and -42dB (this master gives a part 17 dB more than a render of it alone): at -42 the held note of bars 62 to 64 was LOUDER than the bass (-12.9 dBFS at 56 to 77 Hz, the bass -16.6 and pushed down 1.5 dB); at -48 it was 2.6 dB under the bass (-18.2) and those bars 0.8 dB up. 4 dB under the quieter reading: the note under the bass, the octave over the music that is there
+ALT = os.environ.get("C11T7_ALT", "1") != "0" and HUM   # v27: AN OCTAVE BY PHASE ALONE: one note, the same harmonics at the same strengths, heard an octave apart. The note is harmonics ALT_HARMS of ALT_NOTE and nothing under them: too close together for the ear to hear one by one, so its pitch is read from how often the wave pulses. With every harmonic started on its sine the wave pulses once a period (the low note); with the EVEN ones a quarter turn on (cosines) it pulses twice a period, and is heard an octave up (Patterson 1987; Shackleton and Carlyon 1994). No meter of spectrum can tell the two apart
+ALT_IN = ("home", 0)                                   # the section and its row (from 0): the first row of home, bars 89 to 96, which had nothing of its own
+ALT_NOTE = "G2"                                        # the bass's note, 98 Hz: the pulses are 10.2 ms apart, or 5.1
+ALT_HARMS = (13, 26)                                   # the first and the last harmonic (1274 to 2548 Hz): from about the tenth up at this note the ear no longer hears harmonics one by one
+ALT_EDGE = (-6.0, -2.5)                                # dB on the outermost harmonic at each end, and on the next: a band with soft ends has no edge to be heard as a pitch of its own
+ALT_AT = 0.5                                           # the place in every beat where a note begins: the off beat, with the hat; every note stands alike to the drum, so the master treats the two kinds alike
+ALT_LEN = 0.5                                          # beats a note lasts: to the next beat
+ALT_PLAIN = 2                                          # bars at the row's start in which every note is the low one; after them every second note is the other
+ALT_GAIN = os.environ.get("C11T7_ALT_GAIN", "-52dB")   # both tracks. Read in the whole song's master at -50dB and -56dB (the new less the old at 1100 to 2800 Hz; this master gives the part 18.5 dB more than a render of it alone): a note -29.9 and -35.9 dBFS, where the old music under the notes is -33.4 to -35.8: set between, 2 to 4 dB over the old music, before any score was read
 SING = os.environ.get("C11T7_SING", "1") != "0" and os.environ.get("C11T7_VERN", "1") != "0" and os.environ.get("C11T7_FIVE", "1") != "0" and JET      # v16: the clicks sing (every phase set to nought)
 SING_IN = ("slips", 24, 32)                                          # the section, and the bars of it: the bare row between the vernier and the hat
 SING_OF = "a-ear"                                                    # whose strokes: A's, as they are in those bars
@@ -956,6 +974,33 @@ def swarm_ticks():
 
 
 _HUM_MEMO = {}
+
+
+def alt_row():
+    """The first bar (from 0) of the row with the note that is an octave up by phase alone, or None."""
+    sec = next((x for x in SECS if x[0] == ALT_IN[0]), None)
+    return sec[1] + ROW * ALT_IN[1] if ALT and sec is not None and ALT_IN[1] * ROW < sec[2] else None
+
+
+def hz(note):
+    semis = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8, "A": 9, "A#": 10, "Bb": 10, "B": 11}[note[:-1]]
+    return 440 * 2 ** ((semis + 12 * (int(note[-1]) + 1) - 69) / 12)
+
+
+def alt_notes():
+    """(low, high), each [(beat, beats long)]: a note on every off beat of the row; after ALT_PLAIN bars every second one is the alternating-phase note."""
+    out = ([], [])
+    for j in range(ROW):
+        for k in range(BEATS):
+            out[1 if j >= ALT_PLAIN and k % 2 == 1 else 0].append(((alt_row() + j) * BEATS + k + ALT_AT, ALT_LEN))
+    return out
+
+
+def alt_layers(alternating):
+    """The note's layers: harmonics ALT_HARMS, every one a sine started at nought; or, alternating, the even ones a quarter turn on."""
+    hs = list(range(ALT_HARMS[0], ALT_HARMS[1] + 1))
+    edge = lambda i: ALT_EDGE[min(i, len(hs) - 1 - i)] if min(i, len(hs) - 1 - i) < len(ALT_EDGE) else 0.0
+    return [f"sine phase={0.25 if alternating and h % 2 == 0 else 0:g} ratio={h} level={edge(i):g}dB" for i, h in enumerate(hs)]
 
 
 def hum_note_hz():
@@ -1593,6 +1638,15 @@ def song():
                                   "notes": [{"at": hum_b0, "len": HUM_HELD * BEATS - 0.02, "pitch": HUM_NOTE, "vel": 0.8}]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v26 the swarm hums (bars {SWARM_ROWS[HUM_ROW] + 1} to {SWARM_ROWS[HUM_ROW] + SWARM_BARS}, the first break, where the bass drum rests): each of the swarm's {SWARM_N} clicks holds a low tone that makes {HUM_TIMES} waves for every beat of its own tempo ({hum_f:.1f} Hz and its octave). A rhythm and a pitch are one thing at two speeds: while the clicks are out of step the tones are out of tune, a rumble that gathers itself into a soft thump every {(SWARM_N - 1) / (2 * SWARM_OFF * HUM_TIMES):.2f} beats (a drum nobody strikes, slipping against the bar); as the clicks find the beat the thumps grow longer until they are one held note, which shows the swarm's last error {HUM_TIMES} times larger than the clicks do" + (f"; it is let go {SWARM_BARS - HUM_HELD} bar(s) before the drum comes back" if HUM_HELD < SWARM_BARS else "") + ". Generated by")
         assert "From v26" in doc["about"]
+    if alt_row() is not None:
+        al_lo, al_hi = alt_notes(); al_f = hz(ALT_NOTE)
+        for al_name, al_alt, al_what in (("os-alt-0", False, "every harmonic a sine started at nought: the wave pulses once a period, and the note is heard on its written pitch"), ("os-alt-1", True, "the even harmonics a quarter turn on (cosines): the wave pulses twice a period, and the note is heard an octave over its written pitch, with the same harmonics at the same strengths as `os-alt-0`")):
+            PATCHES[al_name] = {"about": f"Out of Step's octave by phase alone (chirper-zero, 27 Nov, v27): harmonics {ALT_HARMS[0]} to {ALT_HARMS[1]} of the written note and nothing under them ({ALT_HARMS[0] * al_f:.0f} to {ALT_HARMS[1] * al_f:.0f} Hz on {ALT_NOTE}), the two at each end turned down {-ALT_EDGE[0]:g} and {-ALT_EDGE[1]:g} dB; {al_what}.",
+                                "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": alt_layers(al_alt), "filters": ["lp cutoff=7500"], "amp": {"a": "5ms", "d": "0s", "s": 1, "r": "20ms"}}}
+        for al_name, al_patch, al_ns in (("alt-low", "os-alt-0", al_lo), ("alt-high", "os-alt-1", al_hi)):
+            doc["tracks"].append({"name": al_name, "patch": al_patch, "gain": ALT_GAIN, "pan": 0.0, "notes": [{"at": t, "len": ln, "pitch": ALT_NOTE, "vel": 0.8} for t, ln in al_ns]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v27 there is an octave by phase alone (bars {alt_row() + 1} to {alt_row() + ROW}, the first row of home): one note on every off beat, harmonics {ALT_HARMS[0]} to {ALT_HARMS[1]} of the bass's {ALT_NOTE} and nothing under them. For {ALT_PLAIN} bars every harmonic starts on its sine and the wave pulses once a period; after that every second note has its even harmonics a quarter turn on, pulses twice a period, and is heard an octave up: {len(al_lo)} notes and {len(al_hi)}, the same harmonics at the same strengths in both. Generated by")
+        assert "From v27" in doc["about"]
     return doc
 
 
@@ -1622,6 +1676,9 @@ def lock(k):
 if __name__ == "__main__":
     if os.environ.get("C11T7_SHOW"):
         sec = 60 / BPM * BEATS
+        if alt_row() is not None:
+            al_lo, al_hi = alt_notes(); al_f = hz(ALT_NOTE)
+            print(f"an octave by phase alone ({ALT_GAIN}), bars {alt_row() + 1}-{alt_row() + ROW} ({int(alt_row() * sec) // 60}:{alt_row() * sec % 60:04.1f}): harmonics {ALT_HARMS[0]} to {ALT_HARMS[1]} of {ALT_NOTE} ({al_f:.2f} Hz: {ALT_HARMS[0] * al_f:.0f} to {ALT_HARMS[1] * al_f:.0f} Hz), a note on every off beat, {ALT_LEN:g} of a beat long ; {len(al_lo)} with every harmonic a sine (a pulse every {1000 / al_f:.1f} ms: heard on {ALT_NOTE}) ; {len(al_hi)} with the even harmonics a quarter turn on (a pulse every {500 / al_f:.1f} ms: heard an octave up), every second note from bar {alt_row() + ALT_PLAIN + 1}")
         if HUM and SWARM_ROWS:
             hm_b = SWARM_ROWS[HUM_ROW]; hm_f = HUM_TIMES * BPM / 60; hm_n = SWARM_N; hm_th = hum_turns(); hm_p = hum_paths(); hm_m = SWARM_SUB // HUM_STEP
             hm_err = max(abs(hm_th[i][k] - HUM_TIMES * (k / HUM_STEP + hm_p[i][k * hm_m])) for i in range(hm_n) for k in range(len(hm_th[i])))
