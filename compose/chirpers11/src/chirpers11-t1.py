@@ -321,6 +321,17 @@ once for every wave of drift, and the throbs can be counted: the tone is 64 wave
 throbs out and 16 back each time: slow as the push begins, quickest as the record runs fastest,
 and STILL at the top, where the decks are furthest apart and for a moment at one speed. It is
 the song's drift made into something you can count; no click is added.
+
+v26 (27 Nov): GIVE OR TAKE A SECOND (C11T1_LEAP=0 takes it out: v25). The song has a clock on
+the wall that strikes the minutes, chimes the quarters and gives the pips, all in seconds
+against the record's beats. Now and then the world's clocks are given a second, because the
+Earth is not as good a clock as an atom: the last minute of that day has 61 seconds, the clock
+reads 23:59:60, and the time signal has SEVEN pips where it always has six. Here the third
+minute is given a second (seven pips, in "the stretch", where the drum rests and they can be
+counted), and for a minute the clock's strokes and quarters are a second late against the
+record; the fourth minute has a second taken (59 seconds, five pips: the signal that has been
+laid down for it and never yet sent), and the clock is right again for the end. One pip more,
+one pip fewer, and a minute of the clock moved by a second. Nothing else is touched.
 """
 import json
 import math
@@ -785,6 +796,10 @@ BEAT_NOTE = "C3"                                       # the note it is written 
 BEAT_VEL = 0.8
 BEAT_PAN = 0.0                                         # both in the middle: two tones beat in the air only if they come from one place (an ear each and the beat is made in the head: Hearing Things has that)
 BEAT_GAIN = os.environ.get("C11T1_BEAT_GAIN", "-31dB")   # each tone. Set in the whole song's master between two readings, BEFORE their scores were read: at -34dB the swells are 2.1 dB over the rest of the music in the tone's band (its median), at -28dB 8.1 dB over it and the row's other music is pushed 0.17 dB down. At both, all 64 silences are where they are written (3 ms, median)
+LEAP = os.environ.get("C11T1_LEAP", "1") != "0" and BEAT   # v26: GIVE OR TAKE A SECOND: the wall clock is given a leap second and has one taken back. The minute that ends at LEAP_GIVE has 61 seconds: the time signal has SEVEN pips (as it does on the night of a leap second: 23:59:60), and from then the clock's strokes and quarters are a second late against the record. The minute that ends at LEAP_TAKE has 59: FIVE pips (the signal laid down for a second taken out, which has never yet been sent), and the clock is right again
+LEAP_GIVE = 3                                          # the minute given a second: its pips are in "the stretch", where the drum rests
+LEAP_TAKE = 4                                          # the minute that has one taken: so the clock ends the song where it always did (the last four bars are not touched)
+LEAP_TRIM = {"long": -4.5}                             # dB: the long pip of the given minute stands a second later than it did: its velocity there, set in the whole song's master (every other pip keeps the trim of the second of the song it stands on): at -6.5 (the trim it had on 3:00) it arrived at -28.6 dBFS, the quietest of the seven, where the song's other long pips are -25.4 to -26.3: 2 dB up
 BASSB_MODE = os.environ.get("C11T1_BASSB_MODE", "swap")                        # swap: it is heard where deck A's bass is out ; full: wherever deck B's record plays from "no ruler" on
 BASSB_IN = {"swap": ("no ruler", "the stretch", "out"), "full": ("no ruler", "both", "the stretch", "the nudge", "locked", "out")}[BASSB_MODE]
 BASSB_GAIN = os.environ.get("C11T1_BASSB_GAIN", "-15dB")                       # at -10 it was louder than everything else in "no ruler" put together (measured): 5 dB down
@@ -1120,9 +1135,34 @@ def scar_notes():
     return deck_b(SCAR_WITH, scar_steps) if SCAR else []
 
 
+def leap_real(sec):
+    """The second of the SONG on which the wall clock shows second `sec`: between the minute that was given a second and the minute that had one taken the clock is a second late."""
+    return sec + (1 if LEAP and LEAP_GIVE * CHIME_EVERY <= sec < LEAP_TAKE * CHIME_EVERY else 0)
+
+
 def pips_seconds():
-    """(the minute, [(the second a pip begins on, how many seconds it lasts)]): five short ones before each minute the clock strikes and a long one on it."""
-    return [(k, [(k * CHIME_EVERY - j, PIPS_SHORT) for j in range(PIPS_BEFORE, 0, -1)] + [(k * CHIME_EVERY, PIPS_LONG)]) for k, _ in chime_strikes()]
+    """(the minute, [(the second of the song a pip begins on, how many seconds it lasts)]): five short ones before each minute the clock strikes and a long one on it; with the leap second (LEAP) six short ones before the minute that was given a second and four before the one that had one taken."""
+    if not LEAP:
+        return [(k, [(k * CHIME_EVERY - j, PIPS_SHORT) for j in range(PIPS_BEFORE, 0, -1)] + [(k * CHIME_EVERY, PIPS_LONG)]) for k, _ in chime_strikes()]
+    out = []
+    for k, _ in chime_strikes():
+        m = k * CHIME_EVERY
+        shorts = [m - j for j in range(PIPS_BEFORE, 0, -1)]            # the clock's seconds 55 to 59
+        if k == LEAP_TAKE:
+            shorts = shorts[:-1]                                       # that minute has no second 59
+        ps = [(leap_real(c), PIPS_SHORT) for c in shorts]
+        if k == LEAP_GIVE:
+            ps.append((m, PIPS_SHORT))                                 # the leap second itself, 59:60: the song's second on which the minute used to begin
+        out.append((k, ps + [(leap_real(m), PIPS_LONG)]))
+    return out
+
+
+def pips_trim(k, i, sec):
+    """dB on pip i of minute k, which begins on second `sec` of the song: PIPS_TRIM was set pip by pip in the whole song's master, so with the leap second a pip takes the trim of the song's second it stands on."""
+    if not LEAP:
+        return PIPS_TRIM[k][i]
+    was = dict(zip([k * CHIME_EVERY - j for j in range(PIPS_BEFORE, 0, -1)] + [k * CHIME_EVERY], PIPS_TRIM[k]))
+    return was[sec] if sec in was else LEAP_TRIM["long"]
 
 
 def pips_note_hz():
@@ -1131,7 +1171,7 @@ def pips_note_hz():
 
 
 def pips_notes():
-    return [{"at": round(sec * BPM / 60, 5), "len": round(ln * BPM / 60, 5), "pitch": PIPS_NOTE, "vel": round(0.9 * 10 ** (PIPS_TRIM[k][i] / 20), 4)} for k, ps in pips_seconds() for i, (sec, ln) in enumerate(ps)]   # a pip's loudness is its velocity (vel_sens 0.5)
+    return [{"at": round(sec * BPM / 60, 5), "len": round(ln * BPM / 60, 5), "pitch": PIPS_NOTE, "vel": round(0.9 * 10 ** (pips_trim(k, i, sec) / 20), 4)} for k, ps in pips_seconds() for i, (sec, ln) in enumerate(ps)]   # a pip's loudness is its velocity (vel_sens 0.5)
 
 
 def canon_span():
@@ -1192,7 +1232,8 @@ def quart_chimes():
         if k % 4:
             ns = [(k * QUART_EVERY + i * QUART_CHANGE + j * QUART_APART, QUART_BELLS[d], j == len(QUART_CHANGES[c]) - 1) for i, c in enumerate(QUART_ORDER[k % 4]) for j, d in enumerate(QUART_CHANGES[c])]
             if ns[-1][0] + 1.5 < end:
-                out.append((k * QUART_EVERY, k // 4, k % 4, ns))
+                late = leap_real(k * QUART_EVERY) - k * QUART_EVERY          # v26: a second, between the given minute and the taken one
+                out.append((k * QUART_EVERY + late, k // 4, k % 4, [(sec + late, bell, last) for sec, bell, last in ns] if late else ns))
         k += 1
     return out
 
@@ -1204,7 +1245,7 @@ def quart_notes():
 def chime_strikes():
     """(the minute, the seconds of its strokes): at the k-th whole minute of the song the clock strikes k times, CHIME_APART seconds apart."""
     end = BARS * BEATS * 60 / BPM
-    return [(k, [k * CHIME_EVERY + j * CHIME_APART for j in range(k)]) for k in range(1, int(end // CHIME_EVERY) + 1) if k * CHIME_EVERY + (k - 1) * CHIME_APART < end]
+    return [(k, [leap_real(k * CHIME_EVERY) + j * CHIME_APART for j in range(k)]) for k in range(1, int(end // CHIME_EVERY) + 1) if k * CHIME_EVERY + (k - 1) * CHIME_APART < end]
 
 
 def chime_hz():
@@ -1468,6 +1509,12 @@ def song():
         doc["tracks"].append({"name": "beat-b", "patch": "gt-beat", "gain": BEAT_GAIN, "pan": BEAT_PAN, "auto": {"spd": {"points": [[p[0], round(p[1] + bt_off, 4)] for p in lane], "curve": 0}}, "notes": [dict(n) for n in bt_note]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v25 the two records beat (bars {beat_row() + 1} to {beat_row() + ROW}): the same held tone is on both decks, {BEAT_WAVES} waves to the beat ({beat_hz():.2f} Hz), deck A's steady and deck B's turning with its record. Where the decks are a whole number of waves apart the two add; half a wave off they cancel: a throb for every 64th of a beat ({60000 / BPM / BEAT_WAVES:.2f} ms) the hand pushes deck B ahead: {bt_far:.0f} throbs out to a quarter of a beat and {bt_far:.0f} back, quickest when the record is moving fastest against the grid and still when it is furthest away. {len(beat_nulls())} silences in the row. Generated by")
         assert "From v25" in doc["about"]
+    if LEAP and PIPS and CHIME and QUART:
+        lp_pips = dict(pips_seconds())
+        assert len(lp_pips[LEAP_GIVE]) == PIPS_BEFORE + 2 and len(lp_pips[LEAP_TAKE]) == PIPS_BEFORE
+        assert lp_pips[LEAP_TAKE][-1][0] == LEAP_TAKE * CHIME_EVERY       # the clock is right again
+        doc["about"] = doc["about"].replace(" Generated by", f" From v26 the clock is given a second and has one taken (the song's name). The minute that ends at {LEAP_GIVE}:00 has 61 seconds: the time signal has SEVEN pips, six short ones and the long one, which begins on {LEAP_GIVE}:01 of the song (a leap second: the clock reads 59:60). For the next minute the clock's {LEAP_GIVE} strokes and its three quarters are a second late against the record. The minute that ends at {LEAP_TAKE}:00 has 59 seconds: FIVE pips (the signal for a second taken out, which has never yet been sent), and the clock strikes {LEAP_TAKE} on {LEAP_TAKE}:00 of the song as it always did. Generated by")
+        assert "From v26" in doc["about"]
     return doc
 
 
@@ -1484,6 +1531,8 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if LEAP and PIPS and CHIME and QUART:
+            print(f"give or take a second: the minute that ends at {LEAP_GIVE}:00 has 61 seconds, the minute that ends at {LEAP_TAKE}:00 has 59 ; pips (seconds of the song): " + " ; ".join(f"minute {lp_k}: {len(lp_ps)} pips at " + " ".join(f"{lp_s // 60}:{lp_s % 60:02d}" for lp_s, _ in lp_ps) for lp_k, lp_ps in pips_seconds()) + " ; strokes: " + " ; ".join(f"{lp_k}: " + " ".join(f"{lp_s // 60}:{lp_s % 60:02d}" for lp_s in lp_ss) for lp_k, lp_ss in chime_strikes()) + " ; quarters a second late: " + " ".join(f"{int(lp_q[0]) // 60}:{int(lp_q[0]) % 60:02d}" for lp_q in quart_chimes() if lp_q[0] % QUART_EVERY))
         if beat_row() is not None:
             bt_n = beat_nulls(); bt_sec = 60 / BPM
             print(f"the two records beat, bars {beat_row() + 1}-{beat_row() + ROW} ({int(beat_row() * BEATS * bt_sec) // 60}:{beat_row() * BEATS * bt_sec % 60:04.1f}): a tone of {BEAT_WAVES} waves to the beat ({beat_hz():.2f} Hz: {BEAT_NOTE} {beat_off() * 100:+.0f} cents) on both decks, {BEAT_GAIN} each, pan {BEAT_PAN:g} ; a throb is {60000 / BPM / BEAT_WAVES:.2f} ms of drift ; {len(bt_n)} silences")
@@ -1564,7 +1613,7 @@ if __name__ == "__main__":
                 pp_out = []
                 for pp_i, (pp_sec, pp_ln) in enumerate(pp):
                     pp_b = pp_sec * BPM / 60; pp_n = round(pp_b)
-                    pp_out.append(f"{pp_sec // 60}:{pp_sec % 60:02d} bar {pp_n // BEATS + 1} beat {pp_n % BEATS + 1} {(pp_b - pp_n) * 60000 / BPM:+.0f} ms ({PIPS_TRIM[pp_k][pp_i]:+g} dB)")
+                    pp_out.append(f"{pp_sec // 60}:{pp_sec % 60:02d} bar {pp_n // BEATS + 1} beat {pp_n % BEATS + 1} {(pp_b - pp_n) * 60000 / BPM:+.0f} ms ({pips_trim(pp_k, pp_i, pp_sec):+g} dB)")
                 print(f"      the minute {pp_k}: " + " ; ".join(pp_out))
         if CLOCK_END:
             ce_secs = clock_end_seconds(); ce_first = clock_seconds()[0]; ce_bar = BEATS * 60 / BPM; ce_t0 = (BARS - CLOCK_END_BARS) * ce_bar
