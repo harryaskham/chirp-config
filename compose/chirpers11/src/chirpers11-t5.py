@@ -301,6 +301,18 @@ bouncing glides). The third time the rising one flutters (a tremolo twice a sixt
 be told apart, and it is heard to go straight through the other and arrive. The falling tone starts
 where in its wave it must for the two to be in step at the crossing: they touch (3 dB up for 80 ms)
 instead of cancelling.
+
+v22 (27 Nov): A TUNE THROWN ACROSS THE OCTAVES IS NOT A TUNE (C11T5_TUNE=0 takes it out: v21). The
+record's first song has a clock that chimes the quarters: the Westminster tune, which everybody knows.
+Here, in the first row of "all three" (bars 161-168, which had nothing of its own), its half hour is
+played three times on the song's plain pip. The first time every note has the right NAME and the wrong
+octave: C6 E4 D6 G4, C5 D6 E4 C6: the tune's steps of 2 to 7 semitones are leaps of 5 to 22,
+and it is not a tune: nobody knows it. The second time it is played plainly, in one octave
+(C4 E4 D4 G3, C4 D4 E4 C4): the clock. The third time the SAME eight thrown notes as the first: and
+now the tune is in them, because the ear knows what to listen for (Deutsch 1972, the mysterious
+melody: a note's name is not enough to make a tune; its place is; but a tune you already hold can be
+checked against names alone). Nothing written differs between the first time and the third (the
+master delivers the same eight notes up to 2.5 dB apart).
 """
 import json
 import math
@@ -625,6 +637,30 @@ def para_tones(p):
     return out
 
 
+def tune_row():
+    """The first bar of the row with the tune thrown across the octaves, or None."""
+    sec = next((x for x in SECS if x[0] == TUNE_IN[0]), None)
+    return sec[1] + ROW * TUNE_IN[1] if TUNE and sec is not None and TUNE_IN[1] * ROW < sec[2] else None
+
+
+def tune_notes():
+    """[(beat from the row's line, the note, thrown?, which of the eight)]."""
+    out = []
+    for start, thrown in TUNE_PHASES:
+        for c, change in enumerate(TUNE_CHANGES):
+            for j, d in enumerate(change):
+                i = c * len(change) + j
+                octave = TUNE_SCAT[i] if thrown else TUNE_PLAIN - (1 if d == 5 else 0)
+                out.append((start + (c * (len(change) - 1 + TUNE_LAST) + j) * TUNE_STEP / 4, f"{TUNE_NOTES[d]}{octave}", thrown, i))
+    assert all(a != b for a, b in zip(TUNE_SCAT, TUNE_SCAT[1:])), "two neighbours thrown to one octave"
+    assert max(t for t, _, _, _ in out) < ROW * BEATS
+    return out
+
+
+def tune_midi(name):
+    return {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}[name[0]] + 12 * (int(name[-1]) + 1)
+
+
 def cross_spans():
     """[(the beat a crossing begins on, the beat it ends on, are the two told apart?)]; [] without."""
     return [(b * BEATS, (b + CROSS_LEN) * BEATS, told) for b, told in zip(CROSS_BARS, CROSS_TOLD)] if CROSS else []
@@ -731,6 +767,18 @@ CROSS_FLUTTER = ("1/32", 0.8)                          # the flutter: a tremolo 
 CROSS_PHASE = 0.42                                     # turns: where in its wave the falling tone starts (the rising one starts at nought). MEASURED on a bench of eight starts, not worked out: with this the two are in step where they cross and touch (3 dB up for 80 ms); half a turn off they cancel there and leave a hole 40 ms long
 CROSS_LIFT = 3.6                                       # dB: the fluttering tone's fader over the others'. MEASURED: the tremolo takes 3.6 dB off a tone on average, and a line that is quieter than the other is told apart by that too
 CROSS_GAIN = os.environ.get("C11T5_CROSS_GAIN", "-32dB")  # set in the whole song's master between two readings: at -30dB each line stood 3.8 dB (median) over all the music in the third of an octave round it and the music was pushed down 0.18 dB; at -36dB 2.3 dB under it. NOT CHOSEN FOR THE SCORE: the lines pass through four bands in which this song is already over the record (468, 641, 749, 877 Hz) and the spectrum term takes 0.2 to 0.3 for them at any fader; an octave lower they would cost nothing and be lost on a small speaker
+TUNE = os.environ.get("C11T5_TUNE", "1") != "0" and CROSS       # v22: a tune thrown across the octaves is not a tune (Deutsch's mysterious melody)
+TUNE_IN = ("all three", 0)                             # the section and the row of it (from 0): the first row of "all three", which had nothing of its own
+TUNE_NOTES = {1: "C", 2: "D", 3: "E", 5: "G"}          # the tune's four notes by their place in the scale of C (this song's white notes); its 5 is the one BELOW its 1
+TUNE_CHANGES = ((1, 3, 2, 5), (1, 2, 3, 1))            # the half hour of the clock in Give or Take (the record's first song): the Westminster quarters' second and third changes
+TUNE_STEP = 3                                          # sixteenths from note to note
+TUNE_LAST = 3                                          # a change's fourth note is this many times as long, as the clock's is: a change is (3 + TUNE_LAST) * TUNE_STEP sixteenths
+TUNE_PLAIN = 4                                         # the octave the tune is played in when it is played plainly (C4 D4 E4, and G3 under them)
+TUNE_SCAT = (6, 4, 6, 4, 5, 6, 4, 6)                   # the octave each of the eight notes is thrown to: the NAMES of the notes are the tune's, no two neighbours are in one octave, and no E5 or G5 (the scorer's bands of this song at 641 and 749 Hz are over-full: that choice is the scorer's reading)
+TUNE_PHASES = ((0, True), (11, False), (22, True))     # (the beat of the row it begins on, is it thrown about?): thrown, plain, thrown again: the SAME notes before and after
+TUNE_VEL = 0.8
+TUNE_PAN = -0.15                                       # where the song's own line of pips is
+TUNE_GAIN = os.environ.get("C11T5_TUNE_GAIN", "-13dB") # set in the whole song's master between two readings, nearer the louder: a tune needs every note, and the PLAIN one is where the music is fullest (196 to 330 Hz). At -12dB its quietest note stood 5 dB over the music in a band 12% wide round its tone (the thrown ones 8 to 29) and the music under the row was 0.12 dB down; at -18dB three plain notes were level with the music
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1155,6 +1203,15 @@ def song():
                                   "notes": [note(b0, CROSS_LOW, b1 - b0, 0.8) for b0, b1, t in cr if t], "auto": {"glide": {"points": cross_lane(1, True), "curve": 0}}})
         doc["about"] = doc["about"].replace(" Generated by", f" From v21, in the {len(cr)} pairs of bars of never arrives that had nothing of their own, two plain tones in one place set out for each other's notes: one from {CROSS_LOW} straight up to {CROSS_HIGH}, one from {CROSS_HIGH} straight down to {CROSS_LOW}, an octave a bar; they cross on A4 a bar in. Neither turns. But the ear follows what is nearest in pitch, and hears the high one come down, touch and go back up, and the low one go up and come back down: two turns that are not there, and neither line arrives. The last time the rising one flutters, and is heard to go straight through. Generated by")
         assert "From v21" in doc["about"]
+    if tune_row() is not None:
+        if "ht-pip" not in PATCHES:
+            raise SystemExit("the tune is played on the song's pip (ht-pip)")
+        tn0 = tune_row() * BEATS; tn = tune_notes()
+        doc["tracks"].append({"name": "tune", "patch": "ht-pip", "gain": TUNE_GAIN, "pan": TUNE_PAN, "sends": {"room": "-14dB"},
+                              "notes": [note(tn0 + t, name, 0.5, TUNE_VEL) for t, name, _, _ in tn]})
+        tn_th = [name for t, name, thrown, i in tn if thrown][:8]; tn_pl = [name for t, name, thrown, i in tn if not thrown]
+        doc["about"] = doc["about"].replace(" Generated by", f" From v22 a tune everybody knows is played with every note thrown to another octave, and is not known (bars {tune_row() + 1} to {tune_row() + ROW}, the first row of all three, which had nothing of its own): the half hour of the clock in Give or Take, the record's first song. First thrown about ({' '.join(tn_th)}: every NAME is right), then plainly ({' '.join(tn_pl)}), then thrown about again, the same eight notes as before: and now the tune is in them (Deutsch 1972). Generated by")
+        assert "From v22" in doc["about"]
     return doc
 
 
@@ -1240,6 +1297,13 @@ if __name__ == "__main__":
             print(f"two scales neither ear is given, bars {b0 + 1}-{b1} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f}): a pip an eighth ; the left ear alone bars {b0 + 1}-{b0 + SCALE_SOLO}, the right alone {b0 + SCALE_SOLO + 1}-{b0 + 2 * SCALE_SOLO}, both {b0 + 2 * SCALE_SOLO + 1}-{b1}")
             print(f"   the left ear is given  {' '.join(L)}  (its biggest leap {leap(L)} semitones) ; the right  {' '.join(R)}  ({leap(R)})")
             print(f"   the higher of each pair  {' '.join(hi_)}  (biggest step {leap(hi_)}) ; the lower  {' '.join(lo_)}  ({leap(lo_)}) ; the higher note is in the " + " ".join("L" if hz(a) > hz(b) else "R" for a, b in zip(L, R)) + " ear")
+        if tune_row() is not None:
+            tn = tune_notes(); tn_b0 = tune_row(); tn_sec = 60 / BPM
+            print(f"a tune thrown across the octaves ({TUNE_GAIN}), bars {tn_b0 + 1}-{tn_b0 + ROW} ({int(tn_b0 * BEATS * tn_sec) // 60}:{tn_b0 * BEATS * tn_sec % 60:04.1f}): the half hour of Give or Take's clock, {len(tn)} pips, a note every {TUNE_STEP} sixteenths ({TUNE_STEP / 4 * tn_sec * 1000:.0f} ms), a change every {(3 + TUNE_LAST) * TUNE_STEP} sixteenths")
+            for tn_start, tn_thrown in TUNE_PHASES:
+                tn_p = [(t, name) for t, name, thrown, _ in tn if tn_start <= t < tn_start + 2 * (3 + TUNE_LAST) * TUNE_STEP / 4]
+                tn_leaps = [tune_midi(b) - tune_midi(a) for (_, a), (_, b) in zip(tn_p, tn_p[1:])]
+                print(f"   from bar {tn_b0 + 1 + tn_start // BEATS} beat {tn_start % BEATS + 1} ({int((tn_b0 * BEATS + tn_start) * tn_sec) // 60}:{(tn_b0 * BEATS + tn_start) * tn_sec % 60:04.1f}), {'thrown about' if tn_thrown else 'plainly     '}: {' '.join(name for _, name in tn_p)} ; steps in semitones {' '.join(f'{v:+d}' for v in tn_leaps)} (the biggest {max(abs(v) for v in tn_leaps)}) ; on sixteenths of the row {' '.join(f'{t * 4:g}' for t, _ in tn_p)}")
         if cross_spans():
             cr_sec = 60 / BPM
             print(f"two lines cross and are heard to turn back ({CROSS_GAIN}): {CROSS_LOW} up to {CROSS_HIGH} and {CROSS_HIGH} down to {CROSS_LOW} ({hz(CROSS_LOW):.1f} to {hz(CROSS_HIGH):.1f} Hz), plain tones in one place, {CROSS_OCT / (CROSS_LEN * BEATS * cr_sec):.2f} octaves a second ; they cross on {math.sqrt(hz(CROSS_LOW) * hz(CROSS_HIGH)):.1f} Hz ; the falling one starts {CROSS_PHASE:g} of a turn in")
