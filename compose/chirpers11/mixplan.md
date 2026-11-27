@@ -94,6 +94,11 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v14 (06:07): both ends are v13's: bars 1 to 8 by two -17.9 dBFS (from 100 to 200 Hz -21.5), bar 184
+  -11.1, the tail by second -19.0 -34.1 -48.5 -61.8. Inside: bar 176 has no bass drum (-25.0 for -17.8).
+- Seams 1 and 3, asked by chirper-zero and agreed (06:03): a clock may tick on through Give or Take's last four bars
+  (about -30 dBFS at 3 and 3.6 kHz, on the right): Least Common's bars 1 to 4 stand near -55 dBFS from 2.8 to 4 kHz.
+  A faint low part (about -50 dBFS, 100 to 200 Hz) may go under Standing Room's last eight: Ring True has -21.5 there.
 - Least Common v14 (05:27): both ends are v13's to 0.1 dB: bars 1 to 4 -17.5 dBFS, the last four bars -17.4 -17.3
   -17.3 -17.0, two seconds after home -20.1; highest sample -1.48. What changed is inside: six single strokes in the
   breaks before five page turns (1:39.76, 2:29.05, 4:09.05, 4:59.05, 4:59.76, 5:49.76).
