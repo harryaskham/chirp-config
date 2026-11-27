@@ -367,6 +367,15 @@ lasts two sixteenths, up to the click. For four bars it swells and stops on the 
 heard where it arrives, and the click is the beat. For four bars the same notes at the same
 instants are struck and die away: they are heard where they begin, and the click is the off
 beat. No note has moved: one shape is the other played backwards, and the beat turns round.
+
+v28 (27 Nov): THE ACCENT THAT IS NOT THERE (C11T5_ALIKE=0 takes it out: v27). Ticks that are
+all alike are not heard alike: a clock says tick, tick, tick and is heard to say tick, tock
+(Bolton 1894: subjective rhythm). In the last row of "turned around" a small tick sounds on every
+sixteenth. For two bars the ticks are all alike. For two bars every third one is struck twice
+as hard: threes against the drum's fours. Then they are all alike again for four bars: whatever
+accent is heard there (the threes going on for a while, or fours with the drum) is the ear's.
+The ticks are made alike where they are heard: the master takes more from a tick that falls
+with the drum or the click, and each place in the bar is given back what it loses.
 """
 import json
 import math
@@ -691,6 +700,27 @@ def para_tones(p):
     return out
 
 
+def alike_row():
+    """The first bar (from 0) of the row with the ticks that are all alike, or None."""
+    sec = next((x for x in SECS if x[0] == ALIKE_IN[0]), None)
+    return sec[1] + ROW * ALIKE_IN[1] if ALIKE and sec is not None and ALIKE_IN[1] * ROW < sec[2] else None
+
+
+def alike_ticks():
+    """(every tick, the ones struck twice), each [(beat, velocity)]: a tick on every sixteenth of the row; in the bars ALIKE_FORM says, every n-th one (counted from the first tick of those bars) is on the second list too."""
+    assert sum(b for b, _ in ALIKE_FORM) == ROW and len(ALIKE_TRIM) == BEATS * 4
+    every, twice, bar = [], [], alike_row()
+    for bars, n in ALIKE_FORM:
+        for k in range(bars * BEATS * 4):
+            t = bar * BEATS + k * STEP; v = round(ALIKE_VEL * 10 ** (ALIKE_TRIM[k % (BEATS * 4)] / 40), 4)
+            assert 0 < v <= 1
+            every.append((t, v))
+            if n and k % n == 0:
+                twice.append((t, v))
+        bar += bars
+    return every, twice
+
+
 def pcen_row():
     """The first bar (from 0) of the row with the swell, or None."""
     sec = next((x for x in SECS if x[0] == PCEN_IN[0]), None)
@@ -995,6 +1025,13 @@ PCEN_LEN = 0.5                                         # beats a note lasts: fro
 PCEN_FALL = 40.0                                       # dB the level travels over the note, a straight line in dB: up to its top for a swell, down from it for a struck note: one is the other backwards
 PCEN_PARTS = ((1, 0.0), (2, -9.0))                     # the note and its octave (times, dB): on the bass's own note (A1, C2: the fundamental its patch does not have) the octave is what a small loudspeaker gives
 PCEN_GAIN = os.environ.get("C11T5_PCEN_GAIN", "-26dB")  # both tracks. Read in the whole song's master at -38dB and -32dB: at -32 a swell's top was -25.7 dBFS and a struck note's -28.1 at 40 to 95 Hz, some 12 dB under a stroke of the bass drum in the rows that have one. It is this row's drum: 6 dB over the louder reading
+ALIKE = os.environ.get("C11T5_ALIKE", "1") != "0" and PCEN   # v28: THE ACCENT THAT IS NOT THERE (subjective rhythm: Bolton 1894; Brochard and others 2003): a small tick on every sixteenth, every one the same. Ticks that are all alike are not heard alike: the ear groups them and hears an accent on the first of each group. For ALIKE_FORM's first bars they are alike; then every third one is struck twice as hard (6 dB), in threes against the drum's fours; then they are all alike again, and the question is what the ear goes on hearing
+ALIKE_IN = ("turned around", 2)                        # the section and its row (from 0): bars 33 to 40: the drum has shown where the beat is, and nothing else in the row ticks. (The last row of "not there", bars 97 to 104, was tried first and read: the hat that never arrives is a sixteenth stream of its own there, 14 dB over the ticks and changing from bar to bar: a tick at one place in the bar came out up to 10.8 dB apart)
+ALIKE_FORM = ((2, 0), (2, 3), (4, 0))                  # (bars, n): for so many bars every n-th tick is struck twice as hard (0: none is)
+ALIKE_NOTE = "E8"                                      # 5274 Hz: the song's spectrum is short there and nothing else in the row is a small high sine
+ALIKE_VEL = 0.5                                        # the velocity of a tick that needs no trim (the patch's loudness goes as velocity squared): room for +12 dB
+ALIKE_TRIM = tuple(float(x) for x in os.environ.get("C11T5_ALIKE_TRIM", "-0.5,-3.5,5.5,1,2.5,-3,4.5,-1,-1,-4,5,0.5,3.5,-3,4,-1.5").split(","))   # dB by sixteenth of the bar: what the master takes from a tick there, given back, so that the ticks are alike WHERE THEY ARE HEARD. Read in the whole song's master with no trims (C11T5_ALIKE_TRIM=0,0,... at -24dB): the ticks written alike came out 9.1 dB apart (nine in ten of them): a tick with the click (sixteenths 2, 6, 10, 14) 7 to 9 dB under one a sixteenth after the drum (1, 5, 9, 13), the same in every bar to under 1 dB (to 4 where the clap is)
+ALIKE_GAIN = os.environ.get("C11T5_ALIKE_GAIN", "-22dB")   # both tracks. Read in the whole song's master at -24dB (no trims): the middle tick's top -33.9 dBFS at 4 to 7 kHz, where the old music's top at a tick's instant is -33.7 in the middle: set 2 dB over that, before any score was read
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1502,6 +1539,14 @@ def song():
                                   "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.shape", "amount": 1}]}}], "notes": [{"at": t, "len": PCEN_LEN, "pitch": p, "vel": 0.8} for t, p in pc_ns]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v27 a swell is heard late (bars {pcen_row() + 1} to {pcen_row() + sum(PCEN_BARS)}, 'the wrong one again', where there is no drum and the bass has no fundamental): a low note on the bass's own note begins on every true beat and lasts two sixteenths, to the click. For {PCEN_BARS[0]} bars it swells and stops on the click: it is heard where it arrives, with the click, and the click is the beat. For {PCEN_BARS[1]} bars the same notes at the same instants are struck and die away: they are heard where they begin, and the click is the off beat. No note has moved; a sound's moment is not its start (the perceptual centre). Generated by")
         assert "From v27" in doc["about"]
+    if alike_row() is not None:
+        ak_all, ak_two = alike_ticks()
+        PATCHES["ht-alike"] = {"about": f"Hearing Things' ticks that are all alike (chirper-zero, 27 Nov, v28): a plain tone on {ALIKE_NOTE} ({hz(ALIKE_NOTE):.0f} Hz) that dies in 12 ms; its loudness goes as the velocity squared, and the velocity only undoes what the master does to a tick at its place in the bar. The track `alike-twice` strikes the same tick again at the same instant: the two add to one tick 6 dB up.",
+                               "play": {"vel_sens": 1}, "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=7000"], "amp": {"a": "0.1ms", "d": "12ms", "s": 0, "r": "4ms", "curve": 3}}}
+        for ak_name, ak_ns in (("alike", ak_all), ("alike-twice", ak_two)):
+            doc["tracks"].append({"name": ak_name, "patch": "ht-alike", "gain": ALIKE_GAIN, "pan": 0.0, "notes": [{"at": t, "len": 0.1, "pitch": ALIKE_NOTE, "vel": v} for t, v in ak_ns]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v28 there is an accent that is not there (bars {alike_row() + 1} to {alike_row() + ROW}, the last row of 'turned around'): a small tick on every sixteenth, {len(ak_all)} of them, every one the same where it is heard. For " + ", then for ".join(f"{b} bars " + (f"every {('', '', 'second', 'third', 'fourth', 'fifth')[n]} one is struck twice as hard (6 dB)" if n else "they are all alike") for b, n in ALIKE_FORM) + f": {len(ak_two)} ticks are struck twice. Ticks that are all alike are not heard alike: the ear groups them, and hears an accent that is not in the sound. Generated by")
+        assert "From v28" in doc["about"]
     return doc
 
 
@@ -1519,6 +1564,10 @@ def dump(doc):
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
         sec = 60 / BPM * BEATS
+        if alike_row() is not None:
+            ak_all, ak_two = alike_ticks(); ak_b = alike_row()
+            print(f"the accent that is not there ({ALIKE_GAIN}), bars {ak_b + 1}-{ak_b + ROW} ({int(ak_b * sec) // 60}:{ak_b * sec % 60:04.1f}): a tick on every sixteenth ({ALIKE_NOTE}, {hz(ALIKE_NOTE):.0f} Hz), {len(ak_all)} in all ; " + " ; ".join(
+                f"bars {ak_b + sum(b for b, _ in ALIKE_FORM[:i]) + 1}-{ak_b + sum(b for b, _ in ALIKE_FORM[:i + 1])}: " + (f"every {('', '', 'second', 'third', 'fourth', 'fifth')[n]} one struck twice (6 dB)" if n else "all alike") for i, (bars, n) in enumerate(ALIKE_FORM)) + f" ; {len(ak_two)} struck twice ; the trims by sixteenth of the bar (dB): " + " ".join(f"{x:g}" for x in ALIKE_TRIM))
         if pcen_row() is not None:
             pc_b = pcen_row(); pc_sw, pc_st = pcen_notes()
             pc_names = sorted({p for _, p in pc_sw + pc_st}, key=hz)
