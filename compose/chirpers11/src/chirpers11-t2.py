@@ -99,6 +99,30 @@ every 7. Those meetings, a click with the drum, were the only ones in the song t
          knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
          song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
 
+v15 (27 Nov): WHEN THE FOUR STOPS YOU CAN HEAR THE CLOCK. Two switches (`--without-wall`, `-leave`; both off is
+v14 byte for byte):
+  WALL   a page of this song is 105 beats at 126 to the minute: fifty seconds exactly, and the song is eight
+         of them. So a clock that ticks once a second ticks fifty times a page, and every page turns on a
+         tick. The album has such a clock (chirper-zero's, Give or Take v16 and v17: it ticks through that
+         song's last four bars, which are this song's first four). Here it goes on, and is heard whenever
+         the four stops: four ticks in each break before a turn of the first half (46 to 49 s, and so
+         on), seven in each of the second half's (243 to 249 s ...), and twelve where this song's own
+         clock runs down (188 to 199 s): 45 in all, tick and tock by turns, on the right. Against the
+         sixteenths a second is 8.4 of them: the ticks fall on no grid of the song's, ten to every
+         twenty-one beats. It is the album's clock and not a copy: its seconds are Give or Take's, which
+         fall 32 ms after this song's (WALL['phase']), and its tick and tock are the ones that song would
+         have reached. His sound under this song's names (lc-clock-tick, lc-clock-tock).
+  LEAVE  v14 gave each part that comes in the last stroke before its turn. The other half (Wind Down v13:
+         the bar after says who has left), by this song's own rule, that things happen where cycles meet:
+         where the bass, the hat and the clap leave the drum alone (2:55 and 6:27.5) the hat and the clap
+         each come back once, on the first stroke of its own part that falls where two of the clicks
+         meet (where a ping sounds), 3 dB under. The hat on the 21st sixteenth after and the clap on the
+         30th (2:57.5, 2:58.6); at the end the clap (6:30.0) and then the hat (6:34.6). Four strokes, each
+         on its own place in the bar, each with a ping. NOT THE BASS: built first with its return as well
+         (on the 60th sixteenth, the meeting's note): the song then lost two of the scorer's sections,
+         the ones made by the bass's leaving (bars 96 and 209), and 2.3 points. A bass that comes back
+         has not left. LEAVE['who'] has it for an ear to try.
+
 v14 (27 Nov), THE LAST STROKE BEFORE A TURN IS THE NEWCOMER'S. One switch (`--without-tell`; off is v13 byte
 for byte). The bass has said it is coming since v12 (its first note held to the turn). The four's other parts
 came in on the turn with no word. Now each part that comes in on the next page plays, in the break before it,
@@ -256,7 +280,9 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True}
+      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True, 'wall': True, 'leave': True}
+WALL = {'gain': '-26dB', 'pan': 0.5, 'room': '-10dB', 'hz': (3600, 3000), 'parts': ((0.014, 0.35), (0.008, 0.5), (0.0, 1.0)), 'phase': 0.032}   # v15: the clock's fader (Give or Take's and Wind Down's is -20 dB: here that put its ticks 15 to 20 dB over their band and as high as -13 dBFS; at -32 it was lost in the later breaks), side and send (Give or Take's: 0.5, -10 dB); its two pallets, Hz; a tick's three sounds (seconds before the second, velocity); seconds the album's whole seconds fall after this song's
+LEAVE = {'db': -3, 'who': ('hat', 'clap')}  # v15: dB on the one stroke a part plays after it has left; the parts that do (with 'bass' as well the scorer lost two sections, at bars 96 and 209: its return undoes the leaving)
 TELL = {'db': -3, 'hat': (2, 3, 6, 7), 'clap': (3, 5, 6, 7), 'ring': 2}   # v14: dB on a pickup; the pages (from 0) the hat and the clap play on (as build() has them); sixteenths the rung pickup is held (to the turn)
 RING = {'patch': 'lc-rung', 'decay': '1200ms', 'release': '100ms', 'len': 3}   # v13: the hat that rings for the five: its patch; the time it takes to fall 60 dB; how fast it is stopped; sixteenths it is held (it was 2)
 LED = (1, 5)                            # v12: the pages (from 0) on which the bass comes in: the turn into each is led as well
@@ -482,6 +508,33 @@ def told(t):
     return sorted(out, key=lambda o: o[1])
 
 
+def stopped(s):
+    """v15: has the four stopped at sixteenth s (a break before a page turn, or the first half's last stretch)?"""
+    return broken(s) or HALF - SUPER <= s < HALF
+
+
+def wall():
+    """v15: the wall clock's notes, (tick's, tock's): three sounds a tick, at every whole second of the album's clock that falls where the four has stopped. This song's even seconds are Give or Take's odd ones: ticks."""
+    out = ([], [])
+    for sec in range(1, TOTAL * 60 // (BPM * BEAT) + 1):
+        t = sec + WALL['phase']
+        if stopped(int(t * BPM * BEAT / 60)):
+            out[sec % 2].extend({'at': round((t - early) * BPM / 60, 5), 'len': 0.05, 'pitch': 'C6', 'vel': vel} for early, vel in WALL['parts'])
+    return out
+
+
+def leaves(lo, hi):
+    """v15: (track, sixteenth, length) for each of the four's parts that plays on the page of sixteenth lo and has left the drum alone from lo to hi: the first stroke its own part would have played there that falls where exactly two of the clicks meet (where a ping sounds). In the second half the bar that straddles lo is played out, so the search begins at the next bar line."""
+    page, out = lo // PAGE, []
+    late = 1 if ON['push'] and page % (HALF // PAGE) == HALF // PAGE - 1 else 0
+    for tr, lens, here in (('bass', {2: 1.5, 7: 1, 10: 1, 14: 1.5}, page >= 1), ('hat', {o + late: 1 for o in (2, 6, 10, 14)}, page in (2, 3, 6, 7)), ('clap', {4: 1, 12: 1}, page in (3, 5, 6, 7))):
+        own = [(s0 + o, ln) for s0 in range(lo // BAR * BAR, hi, BAR) for o, ln in sorted(lens.items()) if lo <= s0 + o < hi and (s0 >= lo or lo < HALF)]
+        hit = [(x, ln) for x, ln in own if len([c for c in CYCLES if x % c == 0]) == 2]
+        if here and hit and tr in LEAVE['who']:
+            out.append((tr, *hit[0]))
+    return sorted(out, key=lambda o: o[1])
+
+
 def build():
     T = {n: [] for n in ('kick', 'three', 'five', 'seven', 'ping', 'chord', 'tone', 'bass', 'hat', 'clap')}
     marks = []
@@ -669,6 +722,12 @@ def build():
                     n['gain'] = f"{float(n.get('gain', '0dB')[:-2]) + LEAP['db']:g}dB"
                 else:
                     n.pop('gain', None)
+    if ON['leave']:                                            # v15 LEAVE: each of the three that left comes back once, where two clicks meet
+        for lo, hi in ([((last - 1) * SUPER, last * SUPER)] if bare((last - 1) * SUPER) else []) + [(HALF + last * SUPER, TOTAL)]:
+            for tr, x, ln in leaves(lo, hi):
+                add(tr, x, ln, (roots[x] if ON['roots'] else 'G2') if tr == 'bass' else 'A#4' if tr == 'hat' else 'C4', .85 if tr == 'bass' else .7, gain=f"{LEAVE['db'] + (BACK if tr == 'bass' and ON['back'] and x >= HALF else 0)}dB")
+                marks.append((f"the {tr} comes back once: the first stroke of its part that falls where two clicks meet", x))
+        marks.sort(key=lambda m: m[1])
     return T, marks
 
 
@@ -763,6 +822,21 @@ def song():
     if ON['knock']:
         doc['patches'] = {**doc['patches'], 'lc-knock': LC_KNOCK}
         doc['tracks'].append(track('knock', 'lc-knock', KNOCK_DB, fx=[hold(KNOCK_HOLD)]))
+    if ON['wall']:                                              # v15 WALL: when the four stops you can hear the clock
+        for nm, hz, notes in zip(('tick', 'tock'), WALL['hz'], wall()):
+            if notes:
+                doc['patches'] = {**doc['patches'], f'lc-clock-{nm}': {
+                    'about': f"Least Common: the clock on the wall, the {nm} (v15). Give or Take's (chirper-zero's gt-clock-{nm}, v16), under this song's name: a 9 ms grain of noise through a narrow band at {hz} Hz, one pallet of an escapement. Three of them make a tick (unlock, impulse, drop).",
+                    'play': {'vel_sens': 0.7}, 'synth': {'layers': ['white'], 'filters': [{'kind': 'bp', 'cutoff': hz, 'q': 5}, 'hp cutoff=1200'], 'amp': {'a': '0.1ms', 'd': '9ms', 's': 0, 'r': '5ms', 'curve': 3}}}}
+                doc['tracks'].append({'name': f'clock-{nm}', 'patch': f'lc-clock-{nm}', 'gain': WALL['gain'], 'pan': WALL['pan'], 'sends': {'room': WALL['room']}, 'notes': notes})
+        secs = sorted(round(n['at'] * 60 / BPM) for t in doc['tracks'] if t['name'].startswith('clock-') for n in t['notes'][2::3])
+        runs = []
+        for x in secs:
+            if runs and x == runs[-1][-1] + 1:
+                runs[-1].append(x)
+            else:
+                runs.append([x])
+        marks = sorted(marks + [(f"the clock on the wall is heard: {len(r)} ticks, at {r[0]} to {r[-1]} s of the song", int((r[0] + WALL['phase']) * BPM * BEAT / 60)) for r in runs], key=lambda m: m[1])
     return doc, marks
 
 
@@ -782,7 +856,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last one off is v13, the last three v12, the last five v11, the last seven v10, the last ten v9, the last thirteen v8, the last fifteen v7, the last eighteen v6, the last nineteen v5, the last twenty-two v4, the last twenty-seven v3, the last thirty-five v2, all forty-one v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v14, the last three v13, the last five v12, the last seven v11, the last nine v10, the last twelve v9, the last fifteen v8, the last seventeen v7, the last twenty v6, the last twenty-one v5, the last twenty-four v4, the last twenty-nine v3, the last thirty-seven v2, all forty-three v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
