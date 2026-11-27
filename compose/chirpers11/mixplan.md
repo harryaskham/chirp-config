@@ -94,6 +94,9 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Least Common v14 (05:27): both ends are v13's to 0.1 dB: bars 1 to 4 -17.5 dBFS, the last four bars -17.4 -17.3
+  -17.3 -17.0, two seconds after home -20.1; highest sample -1.48. What changed is inside: six single strokes in the
+  breaks before five page turns (1:39.76, 2:29.05, 4:09.05, 4:59.05, 4:59.76, 5:49.76).
 - Small Change v13 (04:59): both ends are v12's to 0.1 dB: bars 1 to 16 by four -22.4 -23.3 -23.5 -20.6 dBFS; the
   last sixteen -24.3 -23.5 -23.1 -19.5. What changed is inside: bar 160 and every other bar of home (161 to 175),
   from 3 to 6 kHz only (a second, duller hat: 3.7 dB over the bars without it in that band, finished).
