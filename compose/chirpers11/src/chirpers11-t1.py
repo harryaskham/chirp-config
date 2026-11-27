@@ -273,6 +273,19 @@ which is seven and three quarter bars and never the same place in a bar twice, t
 in time with the music and never is, and falls a little further behind it with every note. How far
 through a minute the song is can now be told from how many changes are rung, as the minute can from the
 strokes. Nothing is rung in the last four bars: there the clock only ticks.
+
+v22 (27 Nov): TWO DECKS CROSS (C11T1_CANON=0 takes it out: v21). The song has had one record at five
+speeds, each fixed (v12: a canon by proportion). Here the speed itself is what moves. For four bars of
+"both" (82 to 85, the row that had nothing of its own) two more decks have deck B's record. One starts
+at half speed, an octave down, on the left, and is wound up steadily (a straight line in pitch: its
+speed doubles every two bars) to double speed, an octave up, on the right. The other does exactly the
+reverse. So one accelerates as the other slows, one rises as the other falls, one walks right as the
+other walks left; and because the needles are set so, they are on the SAME beat of the record at the
+moment their speeds are the same: the first beat of bar 84, where both are at the record's own speed
+and pitch, in the middle, and on the grid. Before it and after it they are never together: the same
+beat of the record is 46 ms apart on the two decks a beat either side of the crossing, and 204 ms (a
+sixteenth and two thirds) two beats either side. It is Nancarrow's Canon X (Study 21),
+done as a record does it: pitch and tempo are one thing.
 """
 import json
 import math
@@ -586,6 +599,14 @@ QUART_CHANGE = 3.0                                     # seconds from a change's
 QUART_HELD = (1.0, 2.0)                                # beats a note is held: the first three of a change, and its last
 QUART_TRIM = {(1, 3): -3.0}                            # dB by (minute, quarter): set in the whole song's master, chime by chime. Twelve of the thirteen came out within 3 dB of one another untrimmed (their notes' medians -25.0 to -28.5 dBFS at -22dB); the one at 1:45 is in "no ruler", where the kick is out, and was -22.5
 QUART_GAIN = os.environ.get("C11T1_QUART_GAIN", "-25dB")  # set in the whole song's master between two readings: at -22dB every note stood 5 to 43 dB (median 13) over the music in a band 12% wide round its own tone and the music under a chime was 0.05 to 0.12 dB down; at -28dB the median was 7 and two notes of the hundred were level with the music or under it. A tune needs every note. Written 9 dB under the strokes of the minute
+CANON = os.environ.get("C11T1_CANON", "1") != "0" and QUART   # v22: two more decks with deck B's record, one winding up and one running down: they cross (a canon by acceleration: Nancarrow's Canon X)
+CANON_IN = ("both", 2, 1, 5)                           # the section, the row of it (from 0), and the bars of that row (from 0) it runs from and to: the row had nothing of its own, and these four bars are the ones between the clock's half-past and its quarter-to (the bells are where the slow deck's notes are)
+CANON_OCT = 1.0                                        # octaves each deck is from the record's speed at the ends: one starts at half speed and ends at double, the other the reverse; in the middle both are at the record's own speed, at the same place on it, on a bar line
+CANON_PART = "tock"                                    # what is on the record (deck B's tock: TOCK), heard on deck B's own patch for it (its pitch already follows a lane named spd)
+CANON_PAN = 0.8                                        # each deck goes from one side to the other as it goes: they cross in the middle of the room as they cross in speed and in pitch
+CANON_POINTS = 4                                       # points of each lane to a beat
+CANON_ROOM = "-10dB"                                   # the tock's own send to the room
+CANON_GAIN = os.environ.get("C11T1_CANON_GAIN", "-16dB")  # set in the whole song's master between two readings, BEFORE their scores were read: at -14dB a stroke stood 6 under to 31 dB over the music in its own band (median 11 and 13 for the two decks; 39 of 44 level with it or over); at -20dB 12 under to 25 over (median 5 and 7; 31 of 44): a deck that loses a stroke in three is not heard to accelerate. The slower decks of v12 are at -13. THIS MASTER DELIVERS THESE TICKS AS WRITTEN (6 dB of fader was 6 dB of every stroke). At the crossing the two strike as one, 6 dB up: about the tock's own level (-8.5)
 PIPS_BEFORE = 5                                        # short pips: one on each of the five seconds before the minute
 PIPS_SHORT = 0.1                                       # seconds a short pip lasts
 PIPS_LONG = 0.5                                        # the sixth, which BEGINS on the minute
@@ -962,6 +983,56 @@ def pips_notes():
     return [{"at": round(sec * BPM / 60, 5), "len": round(ln * BPM / 60, 5), "pitch": PIPS_NOTE, "vel": round(0.9 * 10 ** (PIPS_TRIM[k][i] / 20), 4)} for k, ps in pips_seconds() for i, (sec, ln) in enumerate(ps)]   # a pip's loudness is its velocity (vel_sens 0.5)
 
 
+def canon_span():
+    """(the beat the two decks start, the beat they cross, the beat they stop), or None."""
+    sec = next((x for x in SECS if x[0] == CANON_IN[0]), None) if CANON else None
+    if sec is None or CANON_IN[1] * ROW >= sec[2]:
+        return None
+    b0 = sec[1] + CANON_IN[1] * ROW
+    t0, t1 = (b0 + CANON_IN[2]) * BEATS, (b0 + CANON_IN[3]) * BEATS
+    return t0, (t0 + t1) / 2, t1
+
+
+def canon_speed(t, up):
+    """The speed of the deck that winds up (or the one that runs down) at grid beat t: 2 ** (octaves from the crossing), a straight line in pitch."""
+    t0, tc, t1 = canon_span()
+    return 2 ** ((1 if up else -1) * CANON_OCT * (t - tc) / (tc - t0))
+
+
+def canon_place(t, up):
+    """The beat of the record under that deck's needle at grid beat t: the speed added up from the crossing, where both are at the record's beat tc."""
+    t0, tc, t1 = canon_span(); k = (tc - t0) / (CANON_OCT * math.log(2))
+    return tc + (1 if up else -1) * k * (canon_speed(t, up) - 1)
+
+
+def canon_when(b, up):
+    """The grid beat at which that deck's needle is at the record's beat b (the other way round), or None if it never is."""
+    t0, tc, t1 = canon_span(); k = (tc - t0) / (CANON_OCT * math.log(2)); x = 1 + (1 if up else -1) * (b - tc) / k
+    return tc + (1 if up else -1) * (tc - t0) / CANON_OCT * math.log2(x) if x > 0 else None
+
+
+def canon_notes(up, steps):
+    """Every stroke the record holds between where that deck starts and where it stops, when its needle gets there."""
+    t0, tc, t1 = canon_span(); out = []
+    p0, p1 = canon_place(t0, up), canon_place(t1, up)
+    for bar in range(int(p0 // BEATS), int(p1 // BEATS) + 1):
+        for st, p, n, v in steps(bar):
+            b = bar * BEATS + st * STEP
+            if p0 <= b < p1:
+                t = canon_when(b, up); end = canon_when(min(b + n * STEP, p1), up)
+                out.append({"at": round(t, 5), "len": round(end - t, 5), "pitch": p, "vel": round(v, 3)})
+    return out
+
+
+def canon_lanes(up):
+    """(the deck's pitch against the record, semitones; where it is, -1 left to 1 right): a point CANON_POINTS times a beat."""
+    t0, tc, t1 = canon_span(); n = int((t1 - t0) * CANON_POINTS); side = 1 if up else -1
+    ts = [t0 + j / CANON_POINTS for j in range(n + 1)]
+    spd = [["0b", round(12 * math.log2(canon_speed(t0, up)), 3)]] + [[f"{t:g}b", round(12 * math.log2(canon_speed(t, up)), 3)] for t in ts]
+    pan = [["0b", round(-side * CANON_PAN, 3)]] + [[f"{t:g}b", round(side * CANON_PAN * (t - tc) / (tc - t0), 3)] for t in ts]
+    return spd, pan
+
+
 def quart_chimes():
     """[(seconds, minute, quarter, [(seconds, bell, is it the change's last note?)])]: a chime at every quarter of a minute but the whole ones, left out if any of it would sound in the last four bars (the seam: the ticking alone)."""
     end = (BARS - 4) * BEATS * 60 / BPM
@@ -1208,6 +1279,14 @@ def song():
         doc["tracks"].append({"name": "quarters", "patch": "gt-chime", "gain": QUART_GAIN, "pan": CLOCK_PAN, "sends": {"room": CLOCK_ROOM}, "notes": quart_notes()})
         doc["about"] = doc["about"].replace(" Generated by", f" From v21 the clock chimes the quarters of every minute, as a clock in a hall does: the Westminster quarters, five changes on four bells ({', '.join(QUART_BELLS[d] for d in (3, 2, 1, 5))}), taken in order: one change at a quarter past the minute, two at the half, three at a quarter to; the minute itself is left to the pips and the strokes. {len(qu)} chimes, {sum(len(c[3]) for c in qu)} notes, {QUART_APART:g} s apart: the clock's own time, which is a beat and a thirtieth of the decks', so the tune is nearly in time with them and never is; and how far through a minute the song is can be told from how many changes are rung. Generated by")
         assert "From v21" in doc["about"]
+    if canon_span() is not None:
+        ca_t0, ca_tc, ca_t1 = canon_span(); ca_steps = {"tock": TOCK}[CANON_PART]
+        for ca_up in (True, False):
+            ca_spd, ca_pan = canon_lanes(ca_up)
+            doc["tracks"].append({"name": "canon-up" if ca_up else "canon-down", "patch": "gt-" + CANON_PART, "gain": CANON_GAIN, "pan": {"value": 0, "mod": [{"src": "auto.walk", "amount": 1}]}, "sends": {"room": CANON_ROOM},
+                                  "auto": {"spd": {"points": ca_spd, "curve": 0}, "walk": {"points": ca_pan, "curve": 0}}, "notes": canon_notes(ca_up, ca_steps)})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v22 two more decks have deck B's record, for four bars of 'both' (bars {int(ca_t0 // BEATS) + 1} to {int(ca_t1 // BEATS)}): one starts at half speed, an octave down, on the left, and winds up to double speed, an octave up, on the right; the other does the reverse. Each is the other backwards in speed, in pitch and in place, and they cross once, on the first beat of bar {int(ca_tc // BEATS) + 1}: for that one stroke both are at the record's own speed, on the same beat of it, in the middle, with the grid (a canon by acceleration: Nancarrow's Canon X, on turntables). Generated by")
+        assert "From v22" in doc["about"]
     return doc
 
 
@@ -1224,6 +1303,14 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if canon_span() is not None:
+            ca_t0, ca_tc, ca_t1 = canon_span(); ca_sec = 60 / BPM
+            print(f"two decks cross (a canon by acceleration), bars {int(ca_t0 // BEATS) + 1}-{int(ca_t1 // BEATS)} ({int(ca_t0 * ca_sec) // 60}:{ca_t0 * ca_sec % 60:04.1f} to {int(ca_t1 * ca_sec) // 60}:{ca_t1 * ca_sec % 60:04.1f}), crossing on bar {int(ca_tc // BEATS) + 1} beat {ca_tc % BEATS + 1:g} ({int(ca_tc * ca_sec) // 60}:{ca_tc * ca_sec % 60:04.1f}): the record's {CANON_PART}, {CANON_OCT:g} octave(s) each way ; {CANON_GAIN}, pan {-CANON_PAN:g} to {CANON_PAN:g}")
+            for ca_up in (True, False):
+                ca_n = canon_notes(ca_up, {"tock": TOCK}[CANON_PART])
+                print(f"   the deck that {'winds up' if ca_up else 'runs down'}: speed {canon_speed(ca_t0, ca_up):.2f} to {canon_speed(ca_t1, ca_up):.2f} ; the record's beats {canon_place(ca_t0, ca_up) - ca_tc:+.2f} to {canon_place(ca_t1, ca_up) - ca_tc:+.2f} from the crossing ; {len(ca_n)} strokes ; by bar: " + " | ".join(" ".join(f"{(x['at'] % BEATS) / STEP:.2f}" for x in ca_n if int(x['at'] // BEATS) == b) for b in range(int(ca_t0 // BEATS), int(ca_t1 // BEATS))))
+            ca_u, ca_d = canon_notes(True, {"tock": TOCK}[CANON_PART]), canon_notes(False, {"tock": TOCK}[CANON_PART])
+            print("   apart (ms) at the strokes nearest the crossing: " + " ".join(f"{(x['at'] - ca_tc) / STEP:+.2f}:{min(abs(x['at'] - y['at']) for y in ca_d) * ca_sec * 1000:.0f}" for x in ca_u if abs(x['at'] - ca_tc) <= 2.5))
         if QUART and quart_chimes():
             qu = quart_chimes()
             print(f"the clock chimes the quarters ({QUART_GAIN}): {len(qu)} chimes, {sum(len(c[3]) for c in qu)} notes on {' '.join(QUART_BELLS[d] for d in (3, 2, 1, 5))}, {QUART_APART:g} s apart ({QUART_APART * BPM / 60:.4f} beats), a change every {QUART_CHANGE:g} s")
