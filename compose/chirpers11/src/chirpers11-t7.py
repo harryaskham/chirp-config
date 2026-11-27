@@ -284,6 +284,20 @@ two of 5:3, one of 7:4, four of 2:1: 4 + 4 + 6 + 4 + 6 + 4 + 4 beats, which is e
 two drums strike together at the start of every turn and nowhere else in it, so every change of gear is
 made in step. Up through the gears in the row before the roll (which goes on from there to a note), and
 down through them in the last row the bass drum plays, home to one for one.
+
+v20 (27 Nov): A CLICK THAT NOBODY STRUCK (C11T7_TURN=0 takes it out: v19). From v10 the roll shows that
+a note is a click repeated in step with itself: the click quickens until its strokes are one turn of its
+wave apart, and is a note. This is the other way round: A CLICK IS A NOTE THAT CHANGES STEP. The note the
+roll arrives at stays, one plain tone, for the six bars up to "home" (which had nothing of their own),
+and every three sixteenths (half-way between two sixteenths, where nobody strikes) it is turned upside
+down. Nothing is struck. The ear does not hear which way
+up a tone is; it hears it change, as a click. And how loud that click is depends only on WHERE IN ITS
+WAVE the tone is caught: at the top the turn is a step of twice its height; at nought there is no step,
+only a corner. The tone has 70 waves and a sixteenth in every turn, so each turn catches it a sixteenth
+of a wave further on, and the clicks swell and die every eight turns (six beats), four times in the six
+bars: an accent nobody plays, three against four, made of phase alone. The track is heard through a
+shelf (12 dB up over 600 Hz, where a plain tone has nothing): the tone is as it was and only the turns
+are brighter; without it the tone had to be the loudest thing in the row to be heard clicking.
 """
 import json
 import math
@@ -541,6 +555,14 @@ GEAR_MOST = 4                                          # the largest lower numbe
 GEAR_NOTE = os.environ.get("C11T7_GEAR_NOTE", "C3")    # 130.8 Hz: the fourth over the bass's G, where this song has least (133 Hz, 7.6 dB under the record)
 GEAR_ACCENT = (1.0, 0.72)                              # velocity of the stroke that falls with the bass drum (the start of a turn), and of the rest. The master undoes it: a stroke with the bass drum is delivered 2 to 6 dB over a render of it alone, a stroke between two of the bass drum's 9 to 20 dB over: the drum marks the turn, the second drum is heard in the gaps
 GEAR_GAIN = os.environ.get("C11T7_GEAR_GAIN", "-19dB")  # set in the whole song's master between two readings: at -16dB its strokes between the bass drum's stood level with all the music from 100 to 320 Hz and peaked -4 dBFS (a second bass drum); at -22dB 3 to 15 dB under it
+TURN = os.environ.get("C11T7_TURN", "1") != "0" and GEAR and ROLL_ON      # v20: a click that nobody struck (a held note turned over)
+TURN_BARS = 6                                          # from the line the roll arrives at to the line of "home": six bars that had nothing of their own
+TURN_EVERY = 0.75                                      # beats: the note is turned over every three sixteenths (three against the beat's four)
+TURN_FIRST = 0.375                                     # beats: the first turn, a sixteenth and a half after the line, so that EVERY turn is half-way between two sixteenths, where nobody strikes. ON the sixteenths (the first form, refused) each turn fell with the song's own clicks and was 6 to 14 dB under them
+TURN_SHELF = (600, "12dB")                             # the track is heard through a shelf: 12 dB up over 600 Hz, where a plain tone has NOTHING: the tone is as it was, and only the turns are brighter. Without it a turn is 12 dB under its own tone (a step falls 6 dB an octave) and the tone had to be the loudest thing in the row to be heard clicking (refused: 11 dB over the music in its band)
+TURN_WAVES = 70 + 1 / 16                               # the note's waves in one turn: the click's note has 70 (196 Hz); a sixteenth of a wave more (1.5 cents) and each turn catches the wave a sixteenth of a turn further on: nought, a third, two thirds, nearly all, all of its height and back, every 8 turns (6 beats)
+TURN_SLOW = 0.0993e-3                                  # seconds: MEASURED, not chosen. This engine's slow oscillators are late: their phase is summed in single precision, and at 1.4 Hz the upper half of the square's cycle lasts 0.245 ms too long and the lower 0.04 too short (the step is 489.3 parts in 2 to the 24 and is rounded to 489 there). The note is tuned to the turn as it is made, not as it is written; by the row's end the turns are 3 ms late
+TURN_GAIN = os.environ.get("C11T7_TURN_GAIN", "-34dB")  # set in the whole song's master between two readings: at -30dB the tone was level with all the music from 150 to 260 Hz, the large turns 9 dB over what was in their gaps (the largest 22) and the highest sample -2.6 dBFS: louder than the song's own clicks; at -36dB the tone was 6.5 dB under, the large turns 5 dB over their gaps and under the song's clicks
 SWARM = os.environ.get("C11T7_SWARM", "1") != "0" and FOCUS      # v18: the click comes apart and finds itself (twelve clicks that listen only to each other)
 SWARM_ROWS = tuple(int(x) for x in os.environ.get("C11T7_SWARM_ROWS", "56,120").split(","))    # the first bar (from 0) of each row it plays in: the two breaks in which the bass drum rests and then comes in
 SWARM_BARS = ROW                                                     # how long a row is
@@ -604,6 +626,23 @@ def gear_notes():
             out += [{"at": round(b + j * q / p, 6), "len": 0.25, "pitch": GEAR_NOTE, "vel": GEAR_ACCENT[0 if j % p == 0 else 1]} for j in range(p * turns)]
             b += q * turns
     return out
+
+
+def turn_span():
+    """(the beat the held note begins on, the beat it ends on): from the line the roll up arrives at, for TURN_BARS bars. None without."""
+    ups = [t0 for t0, way in roll_spans() if way == "up"] if TURN else []
+    return (ups[0] + 2 * BEATS, ups[0] + 2 * BEATS + TURN_BARS * BEATS) if ups else None
+
+
+def turn_hz():
+    """The held note: TURN_WAVES waves in one turn as this engine makes the turn (TURN_SLOW longer than written)."""
+    return TURN_WAVES / (TURN_EVERY * 60 / BPM + TURN_SLOW)
+
+
+def turn_steps():
+    """[(beat, share)]: every turn, and the step it makes as a share of twice the note's height: the sine of where in its wave the note is caught."""
+    t0, t1 = turn_span()
+    return [(t0 + TURN_FIRST + k * TURN_EVERY, abs(math.sin(2 * math.pi * ((TURN_FIRST / TURN_EVERY + k) * TURN_WAVES % 1)))) for k in range(int(round((t1 - t0) / TURN_EVERY)))]
 
 
 def swarm_ticks():
@@ -1118,6 +1157,16 @@ def song():
         doc["tracks"].append({"name": "gear", "patch": "os-gear", "gain": GEAR_GAIN, "pan": 0.0, "notes": gear_notes()})
         doc["about"] = doc["about"].replace(" Generated by", " From v19 a second small drum changes gear against the bass drum: it plays every ratio between one and two whose lower number is " + str(GEAR_MOST) + " or less, in order (" + ", ".join(f"{p}:{q}" for p, q, _ in gear_plan()) + "), each for whole turns and a bar's worth of beats at least, which is eight bars exactly; the two strike together at the start of every turn, so every change is made in step: up through the gears before the roll, down through them in the last row the bass drum plays. Generated by")
         assert "From v19" in doc["about"]
+    if turn_span():
+        tu0, tu1 = turn_span()
+        PATCHES["os-turn"] = {"about": "Out of Step's note turned over (chirper-zero, 27 Nov, v20): one plain tone, held, multiplied by a square that is plus one and minus one by turns and is not heard itself: every time the square changes sides the tone is turned upside down. Nothing is struck. A turn caught at the top of the wave is a step of twice its height, a click; caught at nought it is no step at all.",
+                              "play": {"gate": 1, "vel_sens": 0},
+                              "synth": {"layers": [{"type": "osc", "wave": "square", "phase": round(0.5 - TURN_FIRST / (2 * TURN_EVERY), 6), "audible": False, "name": "turn", "fixed": round(BPM / 60 / (2 * TURN_EVERY), 6)},
+                                                   {"type": "osc", "wave": "sine", "phase": 0, "ratio": round(turn_hz() / WAVE_HZ, 9), "ringmod": "turn"}],
+                                        "amp": {"a": "5ms", "d": "0ms", "s": 1, "r": "60ms"}}}
+        doc["tracks"].append({"name": "turn", "patch": "os-turn", "gain": TURN_GAIN, "pan": 0.0, "fx": [{"type": "eq", "bands": [f"highshelf cutoff={TURN_SHELF[0]} gain={TURN_SHELF[1]}"]}], "notes": [note(tu0, NOTE, tu1 - tu0, 0.8)]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v20 the note the roll arrives at stays for {TURN_BARS} bars, one plain tone, and is turned upside down every three sixteenths, half-way between two sixteenths, where nobody strikes: nothing is struck, and every turn is a click, because the ear does not hear which way up a tone is but hears it change. How loud the click is depends on where in its wave the tone is caught: at its top the step is twice its height, at nought there is none; the tone has a sixteenth of a wave more than a whole number in every turn, so the clicks swell and die away every eight turns, {int(round(TURN_BARS * BEATS / TURN_EVERY / 8))} times in the {TURN_BARS} bars, with nobody playing louder or softer. (The track is heard through a shelf, {TURN_SHELF[1]} up over {TURN_SHELF[0]} Hz, where a plain tone has nothing: only the turns are brighter for it.) Generated by")
+        assert "From v20" in doc["about"]
     return doc
 
 
@@ -1205,6 +1254,11 @@ if __name__ == "__main__":
         if jet_span():
             sec = BEATS * 60 / BPM; lo, hi = jet_span()
             print(f"   the break through a phaser, bars {lo + 1}-{hi} ({int(lo * sec) // 60}:{lo * sec % 60:04.1f}-{int(hi * sec) // 60}:{hi * sec % 60:04.1f}): the click's note ({NOTE}, {WAVE_HZ:.1f} Hz) held, {JET_GAIN} ; {JET_STAGES} all-pass stages, depth {JET_DEPTH}, feedback {JET_FEEDBACK}, mix {JET_MIX} ; a sweep there and back every {JET_RATE} ({int(JET_RATE[:-1]) * 60 / BPM:.2f} s): {(hi - lo) * BEATS / int(JET_RATE[:-1]):g} sweeps")
+        if turn_span():
+            tu0, tu1 = turn_span(); tu_sec = 60 / BPM; tu = turn_steps()
+            print(f"   a click that nobody struck ({TURN_GAIN}): {NOTE} held, one plain tone at {turn_hz():.3f} Hz ({1200 * math.log2(turn_hz() / WAVE_HZ):+.2f} cents), bars {int(tu0 // BEATS) + 1}-{int(tu1 // BEATS)} ({int(tu0 * tu_sec) // 60}:{tu0 * tu_sec % 60:04.1f}-{int(tu1 * tu_sec) // 60}:{tu1 * tu_sec % 60:04.1f}), turned over every {TURN_EVERY:g} beats from {TURN_FIRST:g} after the line ({TURN_EVERY * tu_sec * 1000:.2f} ms written, {TURN_SLOW * 1000:.3f} more as made): {len(tu)} turns, {TURN_WAVES:g} waves in each ; a shelf, {TURN_SHELF[1]} over {TURN_SHELF[0]} Hz")
+            print("      each turn's step as a share of twice the tone's height: " + " ".join(f"{v:.2f}" for _, v in tu))
+            print("      the largest steps (bar.sixteenth): " + " ".join(f"{int(b // BEATS) + 1}.{b % BEATS * 4:g}" for b, v in tu if v > 0.9) + " ; the smallest: " + " ".join(f"{int(b // BEATS) + 1}.{b % BEATS * 4:g}" for b, v in tu if v < 0.3))
         if GEAR and GEAR_ROWS:
             ge_beat = 60000 / BPM
             print(f"   a second drum changes gear ({GEAR_GAIN}, on {GEAR_NOTE}): every ratio from 1:1 to 2:1 with a lower number of {GEAR_MOST} or less ; " + " ; ".join(f"{p}:{q} x{t} ({q * t} beats, {p * t} strokes, {q / p * ge_beat:.1f} ms apart)" for p, q, t in gear_plan()) + f" ; {sum(q * t for _, q, t in gear_plan())} beats, {sum(p * t for p, _, t in gear_plan())} strokes a row")
