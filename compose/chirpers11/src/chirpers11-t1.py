@@ -298,6 +298,18 @@ scratch (v20) comes under the needle: the tick marks the turn. For four bars a t
 bar 117 the switch goes to the other speed, the chord jumps a fourth with everything else on the
 record, and the wow goes four turns for three (1.36 s). The record's strokes are NOT moved in time
 (the wow is 3.6 ms each way there: not written).
+
+v24 (27 Nov): THE RECORD IS STARTED (C11T1_UP=0 takes it out: v23). The song ends with deck B's
+motor switched off and its platter running down for two bars. It now begins the other way: half
+a sixteenth after the first bass drum the motor goes ON, in the headphone (the left ear, where the
+cue is heard from bar 3), and the platter takes the same two bars to come up. Its speed rises in
+a straight line, so the record has turned t squared over 16 beats after t beats, and its
+sixteenth clicks come by at t = 2 times the square root of 1, 2, 3 ... 15: each sooner after the
+last, and the sixteenth is the cue's first stroke. Every click is the same click (the same steps
+of a shift register) played at the speed the platter has at that instant: at a quarter speed two
+octaves down and four times as long, and quieter in proportion (a cartridge's voltage follows the
+groove's speed). The headphone does not slow down: its small speaker passes nothing under
+1.8 kHz at any speed, so the slowest clicks are thin.
 """
 import json
 import math
@@ -514,6 +526,26 @@ def speed_st(t):
     return 12 * math.log2(max(speed(t), 0.03))
 
 
+def up_span():
+    """(the beat deck B's motor goes on, the beats its platter takes to come up), or None: it comes up into the cue's first stroke."""
+    if not UP:
+        return None
+    w = UP_BARS * BEATS
+    on = CUE_BARS[0] * BEATS + cue_err(0.0) - w
+    return (on, w) if on >= 0 else None
+
+
+def up_ticks():
+    """One tuple a click of the record as it comes up: (its number from standstill, the beat it is heard on, the platter's speed then (1 = full), semitones, its length in beats, its velocity).
+    The platter's speed rises in a straight line, as it falls in the stop: after t beats it is t / w and the record has turned t * t / (2 w) beats: its k-th sixteenth comes by at t = sqrt(2 w k / 4)."""
+    on, w = up_span()
+    out = []
+    for k in range(1, int(round(w / 2 / STEP))):                # the last one is the cue's own first stroke
+        t = math.sqrt(2 * w * k * STEP); sp = t / w
+        out.append((k, on + t, sp, 12 * math.log2(sp), UP_LEN / sp, UP_VEL[k % len(UP_VEL)] * sp))
+    return out
+
+
 def wow_row():
     """The first bar of the row in which the hole is off centre, or None."""
     sec = next((x for x in SECS if x[0] == WOW_IN[0]), None)
@@ -694,6 +726,13 @@ CUE_OUT = 0.125                                                                #
 CUE_HALF = 2.0                                                                 # beats in which the hand's error halves and changes side
 CUE_PAN = -1.0                                                                 # one ear
 CUE_GAIN = os.environ.get("C11T1_CUE_GAIN", "-5dB")                             # set in the whole song's master: at -9 dB a stroke read 8 dB under the room's hat in the same ear and only 7 dB over what the music leaves between its strokes (over 1.5 kHz)
+UP = os.environ.get("C11T1_UP", "1") != "0" and CUE and STOP and os.environ.get("C11T1_WOW", "1") != "0"   # v24: the record is started: the stop's mirror. The song ends with deck B's motor switched off; it now begins with it switched on, in the headphone, before the cue
+UP_BARS = STOP_BARS                                    # the bars the platter takes to come up to speed: the bars it takes to stop. The motor goes on this long before the cue's first stroke: at the song's first instant (and half a sixteenth)
+UP_NOTE = "D3"                                         # the note the click's noise is clocked from at full speed: 93 steps of the register to a turn: 13.7 thousand steps a second: a click up to about 7 kHz, as the cue's is
+UP_LEN = 0.0207                                        # beats a click lasts at full speed (10 ms): at speed s it lasts 1/s as long and its register runs s as fast: EVERY CLICK IS THE SAME STEPS OF THE REGISTER, as a record's click slowed down is the same groove
+UP_VEL = (0.55, 0.34, 0.62, 0.4)                       # the record's sixteenths (the hat's and the cue's own accents), times the speed: a cartridge gives a voltage in proportion to the groove's speed under it: 6 dB less at half speed
+UP_TRIM = -16.1                                        # dB on the track so that a click at full speed has the energy of the cue's own click at the same accent. READ ALONE at the cue's fader: the register's click (8.7 ms of full-scale steps) came out 16.1 dB over the cue's (4.4 ms of dying noise) through the same three filters (16.8 without the headphone's top)
+UP_GAIN = os.environ.get("C11T1_UP_GAIN", "")          # the track's fader: the cue's own (with the trim) unless given. READ IN THE WHOLE SONG'S MASTER (left ear, 1.5 to 8 kHz): with the trim the last four clicks come within 3.3 dB of the cue's first four strokes of the same accents (-3.3 +1.8 -2.6 -1.7): the hand-over is level; 6 dB lower they are 4 to 9 dB under and the cue steps up. THE CLICKS WHOSE NUMBER IS A SQUARE (1, 4, 9) FALL HALF A SIXTEENTH AFTER A BASS DRUM (2 times the root of a square is a whole beat) and the master ducks them 8 to 12 dB; 6 and 12 fall within 30 ms of one and go the same way
 BASSB_MODE = os.environ.get("C11T1_BASSB_MODE", "swap")                        # swap: it is heard where deck A's bass is out ; full: wherever deck B's record plays from "no ruler" on
 BASSB_IN = {"swap": ("no ruler", "the stretch", "out"), "full": ("no ruler", "both", "the stretch", "the nudge", "locked", "out")}[BASSB_MODE]
 BASSB_GAIN = os.environ.get("C11T1_BASSB_GAIN", "-15dB")                       # at -10 it was louder than everything else in "no ruler" put together (measured): 5 dB down
@@ -1356,6 +1395,18 @@ def song():
             doc["tracks"].append({"name": "organ", "patch": "gt-organ", "gain": WOW_GAIN, "pan": WOW_PAN, "auto": {"spd": {"points": lane}}, "notes": wow_notes()})      # dry
         doc["about"] = doc["about"].replace(" Generated by", f" From v23 the hole in deck B's record is {WOW_OFF:g} mm off centre, and in the first row of 'locked' (bars {wo_b0 + 1} to {wo_b0 + ROW}) it can be heard: the record's speed goes {100 * wo_e:.2f}% up and down once a turn, so everything on it is {wo_c:.1f} cents sharp and then as flat, fastest when the scratch comes under the needle (its tick)." + (" A chord is held on the record there, an organ, to show it." if WOW_ORGAN else "") + f" A turn is {wo_turn:.2f} s; when the switch goes to the other speed (bar {int(wo_fw[0] // BEATS) + 1}) the chord goes up a fourth and the wow goes {FAST_BY:.3f} times as fast with it ({wo_turn / FAST_BY:.2f} s): it is the record that is going round, not the note that is shaking. Generated by")
         assert "From v23" in doc["about"]
+    if up_span() is not None:
+        up = up_ticks(); up_on, up_w = up_span(); up_pts = [["0b", round(up[0][3], 4)]]
+        for _, up_at, _, up_st, up_ln, _ in up:                 # the lane holds each click's speed from just before it to just after
+            up_pts += [[f"{up_at - 0.03:.5f}b", round(up_st, 4)], [f"{up_at + up_ln + 0.03:.5f}b", round(up_st, 4)]]
+        up_pts.append([f"{TOTAL:g}b", round(up[-1][3], 4)])
+        PATCHES["gt-up"] = {"about": f"Give or Take's record coming up to speed (chirper-zero, 27 Nov, v24): deck B's sixteenth click as the groove holds it, played at whatever speed the platter has: the engine's chip noise with no chip's clock, a shift register begun from the same state at every note and clocked from the note played ({UP_NOTE} at full speed) and the track's lane (auto.spd, semitones): every click is the same steps of the register, slower and longer the slower the platter. Then the headphone: the cue's own small speaker (nothing under 1.8 kHz, a ring at 3.2 kHz, little over 7 kHz), which does not slow down with the record.",
+                            "play": {"vel_sens": 0.5, "gate": 1}, "synth": {"layers": [{"type": "chip", "chip": {"kind": "noise", "clock": 0}}], "pitch": {"value": 0, "mod": [{"src": "auto.spd", "amount": 1}]},
+                            "filters": [{"kind": "hp", "cutoff": 1800, "q": 0.8}, "peak cutoff=3200 q=2 gain=6dB", "lp cutoff=7000"], "amp": {"a": "1ms", "d": "0s", "s": 1, "r": "3ms"}}}      # the cue's three filters: the same headphone. (The first whole-song pair was rendered without its top, lp 7000: the register's steps then put 0.1 dB more into the scorer's 9.2 and 14.8 kHz bands: put back)
+        doc["tracks"].append({"name": "start", "patch": "gt-up", "gain": UP_GAIN or f"{float(CUE_GAIN[:-2]) + UP_TRIM:g}dB", "pan": CUE_PAN, "auto": {"spd": {"points": up_pts, "curve": 0}},
+                              "notes": [{"at": round(at, 5), "len": round(ln, 5), "pitch": UP_NOTE, "vel": round(vel, 4)} for _, at, _, _, ln, vel in up]})      # dry: a headphone
+        doc["about"] = doc["about"].replace(" Generated by", f" From v24 the song begins with deck B's motor switched on, as it ends with it switched off: in the headphone (the left ear), half a sixteenth after the first bass drum, the platter starts to turn, and takes {UP_BARS} bars to come up to speed, the {UP_BARS} bars it takes to stop. The record's sixteenth clicks come by at 2 times the square root of 1, 2, 3 ... beats: {len(up)} clicks, each sooner after the last, each the same click played at the speed the platter has: longer, lower and quieter the slower it is: the first at a quarter speed, two octaves down and four times as long. The sixteenth is the cue's first stroke, on bar {CUE_BARS[0] + 1}. Generated by")
+        assert "From v24" in doc["about"]
     return doc
 
 
@@ -1372,6 +1423,9 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if up_span() is not None:
+            up_on, up_w = up_span()
+            print(f"the record is started (the stop's mirror): the motor goes on at beat {up_on:g} and the platter takes {up_w:g} beats ({up_w * 60 / BPM:.2f} s) ; {len(up_ticks())} clicks in the left ear before the cue's first stroke (beat {up_on + up_w:g}) ; click: beat, speed, semitones, ms long, vel: " + " ; ".join(f"{k}: {at:.3f} {sp:.3f} {st:+.1f} {ln * 60 / BPM * 1000:.0f} {vel:.2f}" for k, at, sp, st, ln, vel in up_ticks()))
         if wow_row() is not None:
             wo_b0 = wow_row(); wo_sec = 60 / BPM; wo_fw = fast_window(); wo_e = WOW_OFF / WOW_RADIUS
             print(f"the hole is off centre (wow), bars {wo_b0 + 1}-{wo_b0 + ROW} ({int(wo_b0 * BEATS * wo_sec) // 60}:{wo_b0 * BEATS * wo_sec % 60:04.1f}): {WOW_OFF:g} mm off at {WOW_RADIUS:g} mm: the speed {100 * wo_e:.2f}% up and down, {1200 * math.log2(1 + wo_e):+.1f} to {1200 * math.log2(1 - wo_e):+.1f} cents, once a turn ; a turn is {SCAR_TURN} sixteenths of the record: {SCAR_TURN * STEP:g} beats ({SCAR_TURN * STEP * wo_sec:.3f} s) until bar {int(wo_fw[0] // BEATS) + 1}, then {SCAR_TURN * STEP / FAST_BY:g} beats ({SCAR_TURN * STEP * wo_sec / FAST_BY:.3f} s) ; {(wow_turns((wo_b0 + ROW) * BEATS) - wow_turns(wo_b0 * BEATS)):.2f} turns in the row ; the organ {'(' + WOW_GAIN + ', pan ' + str(WOW_PAN) + ')' if WOW_ORGAN else 'OFF'}")
