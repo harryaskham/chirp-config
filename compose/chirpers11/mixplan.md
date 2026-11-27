@@ -94,6 +94,11 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Wind Down v19 (16:31): its first eight bars are v18's (by two -30.1 -30.3 -30.1 -30.1 dBFS). THE RECORD'S END
+  CHANGED: the clock strikes one on the last stroke (a B flat 2 bell, let ring 5 s): from the last stroke by second
+  -10.4 -21.0 -32.8 -42.5 -53.7 -71.9 -85.5 -97.4 -119.5, then nothing (v18 -9.0 -23.8 -38.0 -47.2 -63.1 -76.0
+  -88.6 -102.6): the last stroke's second 1.4 dB quieter, the tail 3 to 9 dB louder and a second longer; the file's
+  last second is silent. Highest sample -1.30.
 - Ring True v19 (16:03): its first eight bars are v18's (by two -17.8 -17.8 -17.8 -17.8 dBFS); bar 184 -11.1
   (-11.2); the tail by second -18.5 -33.5 -47.9 -61.1 (0.2 dB more on one seed, 0.1 either way on the other);
   highest sample -1.46. Inside: the pipe is flutter-tongued in bars 97 to 112; the big drum's ring is 3 dB up
