@@ -94,6 +94,9 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v23 (23:55): both ends as v22's to 0.1 dB: bars 1 to 8 by two -17.7 -17.8 -17.8 -17.8 dBFS; bar 184
+  -11.1; the tail by second -18.4 -33.3 -47.6 -60.9; highest sample -1.46. Inside: a few notes only (the metal's
+  second bar slower in bars 137 to 144; the pipe's seventh stroke a third lower in the even bars 118 to 128).
 - Least Common v23 (23:27): BOTH ENDS 0.1 dB UP with the master (12.5 s of the song are lighter): bars 1 to 4
   -17.5 dBFS (was -17.6); the last four bars by bar -17.3 -17.3 -17.3 -17.0 (-17.4 -17.4 -17.3 -17.0); 2 s
   after home -20.1 (-20.3); highest sample -1.49. Inside: 1:15 to 1:27.5 has no drum and no bass line: the
