@@ -344,6 +344,18 @@ whistle from 588 Hz to 6 kHz goes into the chain of 256 filters (it is 107 ms lo
 in every time, and the same click comes out, on A's side, half a sixteenth after A's clicks on 6
 and 14, where nothing in the song strikes: a click where only a whistle was written. The whistle
 itself is heard going in, quietly, on B's side, ending as the click sounds.
+
+v25 (27 Nov): A NOTE OUT OF STEP WITH ITSELF (C11T7_PM=0 takes it out: v24). The song puts one
+click out of step with another. Here one plain low tone is put out of step with ITSELF: an
+unheard second wave pushes its phase a quarter of a turn ahead and holds it a quarter of a turn
+back, over and over. That is all phase modulation is (Chowning, 1973: the DX7's whole method).
+How far the phase is pushed never changes in the row; only how often. Once a beat, the tone's
+pitch is heard to wobble (a vibrato: 94.7 to 101.3 Hz). Twice, four, eight times a beat the
+wobble widens and blurs. Sixteen times a beat (33.6 Hz) it cannot be followed, and the one
+tone is heard as SEVERAL: itself, and pairs of side tones 33.6 Hz apart whose sizes are
+Bessel's functions of the push: at a quarter of a turn the first pair is 1.6 dB LOUDER than
+the note. Then as often as the drum's note, as the note itself, as its octave: three new
+instruments from one sine. Bars 33 to 40, under the vernier, in the row before the bass.
 """
 import json
 import math
@@ -654,6 +666,15 @@ BACK_ON = (6.5, 14.5)                                  # the sixteenths of the b
 BACK_PAN = (0.35, -0.35)                               # the whistle as it goes in is heard on B's side; the click comes out on A's
 BACK_HEARD = os.environ.get("C11T7_BACK_HEARD", "-34dB")   # the whistle as it is heard going in: ONE fader for all four lengths. Read in the whole song's master with the short ones 3 dB up a halving (as they go into the chains): the 107 and 53 ms whistles came level with the music in their ear over their own time (-1.3, +0.8 dB) and the 27 and 13 ms ones 10 dB over it: too much of a zip. At one fader they are about -1, -2, +4 and +1
 BACK_GAIN = os.environ.get("C11T7_BACK_GAIN", "-31dB")     # the whistle into the longest chain (a shorter one 3 dB up for every halving: the same energy in, so the same click out). ALONE at -28dB the click that comes out has A's own click's energy to 0.3 dB and its peak to 0.8, out of every chain. Set in the whole song's master between two readings, BEFORE their scores were read: at -28dB the click is 0 to 3 dB under A's own click beside it by energy, at -34dB 1.5 to 5: THIS MASTER GIVES 2 dB FOR 6 OF FADER ON A CLICK. 16 and 15 of the 16 stand 6 dB or more over the music in their ear
+PM = os.environ.get("C11T7_PM", "1") != "0" and BACK   # v25: a note out of step with ITSELF (phase modulation, Chowning 1973): one plain tone whose phase is pushed ahead and held back by a second, unheard wave, always by the same quarter of a turn; only how OFTEN changes: once a beat it is a wobble of pitch, sixteen times a beat a growl, as often as the note's own wave a new instrument
+PM_IN = ("slips", 1)                                   # the section and the row of it (from 0): the row before the bass comes in
+PM_NOTE = "G2"                                         # the bass's note
+PM_TURN = 0.25                                         # of a turn each way: the index is 2 pi times this (1.571 radians): the first pair of side tones is then 1.6 dB OVER the note itself
+PM_RATES = (("beat", 1), ("beat", 2), ("beat", 4), ("beat", 8), ("beat", 16), ("note", 0.5), ("note", 1), ("note", 2))   # one a bar: how often the phase goes there and back: so many times a beat of the song, then so many times a wave of the note (the drum's note, the note itself, its octave)
+PM_LEN = 3.75                                          # beats each bar's note is held (it is struck again every bar: the unheard wave starts again with it)
+PM_PAN = 0.0
+PM_BREAK = (4, 8) if os.environ.get("C11T7_PM_BREAK", "0") != "0" else None   # OFF. C11T7_PM_BREAK=1 rests the bass drum in these bars of the row (from 0): the four in which the note is several tones. TRIED AND REFUSED (v25): it leaves those bars 5.5 dB quieter and the step into the bass 9 dB for 4, the note 6.5 to 10 dB over everything else there; but it takes four bars of the drum's low end from a song already short of it, changes a part that was not mine to change without an ear, and scored 0.12 and 0.08 LESS than leaving the drum in: I had tried it because the scorer charged the row for being a new section over the same drum, and it did not mend that
+PM_GAIN = os.environ.get("C11T7_PM_GAIN", "-32dB")     # read in the whole song's master at -32dB and -26dB: at -32 the note stands 5.6 to 9.4 dB over everything else at 40 to 400 Hz between the drums and the row is 0.6 dB up (it is the quiet row before the bass comes in, 4 dB under the next); at -26 it is level with the drums and the row is 1.9 dB up. The quiet one, so that the row stays the valley it is. (Both readings' scores had been read by then: the quiet one is also the one that costs less)
 SWARM = os.environ.get("C11T7_SWARM", "1") != "0" and FOCUS      # v18: the click comes apart and finds itself (twelve clicks that listen only to each other)
 SWARM_ROWS = tuple(int(x) for x in os.environ.get("C11T7_SWARM_ROWS", "56,120").split(","))    # the first bar (from 0) of each row it plays in: the two breaks in which the bass drum rests and then comes in
 SWARM_BARS = ROW                                                     # how long a row is
@@ -717,6 +738,28 @@ def gear_notes():
             out += [{"at": round(b + j * q / p, 6), "len": 0.25, "pitch": GEAR_NOTE, "vel": GEAR_ACCENT[0 if j % p == 0 else 1]} for j in range(p * turns)]
             b += q * turns
     return out
+
+
+def pm_row():
+    """The first bar of the row with the note that is out of step with itself, or None."""
+    sec = next((x for x in SECS if x[0] == PM_IN[0]), None)
+    return sec[1] + ROW * PM_IN[1] if PM and sec is not None and PM_IN[1] * ROW < sec[2] else None
+
+
+def pm_hz():
+    semi = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}[PM_NOTE[0]] + (-1 if "b" in PM_NOTE[1:] else 0) + 12 * (int(PM_NOTE[-1]) + 1)
+    return 440.0 * 2 ** ((semi - 69) / 12)
+
+
+def pm_rate(j):
+    """Hz at which bar j's phase goes there and back."""
+    kind, k = PM_RATES[j]
+    return k * BPM / 60 if kind == "beat" else k * pm_hz()
+
+
+def pm_bessel(n, x):
+    """J_n(x): how much of a tone pushed x radians each way is found n side tones from it."""
+    return sum((-1) ** k / (math.factorial(k) * math.factorial(k + n)) * (x / 2) ** (2 * k + n) for k in range(30))
 
 
 def back_row():
@@ -1437,6 +1480,21 @@ def song():
                                   "notes": [{"at": (bk_b0 + bk_j * bk_per) * BEATS - 1, "len": bk_per * BEATS + 1, "pitch": "G1", "vel": 0.5}]})      # the keeper again (v23): the chain must be running before the whistle starts and after it ends
         doc["about"] = doc["about"].replace(" Generated by", f" From v24 the same chains are used the other way (bars {bk_b0 + 1} to {bk_b0 + ROW}): a rising whistle goes in and a click comes out. Each frequency of the whistle, from {BACK_SPAN[0]:g} Hz to {BACK_SPAN[1]:g}, is sounded as long before the instant as the chain will hold it back, so the chain puts them all in step: a radar's pulse, a bat's call. The whistle is {', '.join(f'{1000 * (disp_late(BACK_SPAN[0], k) - disp_late(BACK_SPAN[1], k)):.0f}' for k in BACK_STAGES)} ms long through {', '.join(str(k) for k in BACK_STAGES)} filters, two bars each, 3 dB up for every halving: the same energy goes in, and the same click comes out, half a sixteenth after A's clicks on 6 and 14, where nothing else strikes. The whistle is heard as it goes in, quietly, on B's side; the click comes out on A's. Generated by")
         assert "From v24" in doc["about"]
+    if pm_row() is not None:
+        assert len(PM_RATES) <= ROW
+        pm_i = 2 * math.pi * PM_TURN
+        for pm_j, (pm_kind, pm_k) in enumerate(PM_RATES):
+            pm_wob = {"type": "osc", "wave": "sine", "name": "wob", "phase": 0, "audible": False}
+            pm_wob.update({"fixed": round(pm_rate(pm_j), 4)} if pm_kind == "beat" else {"ratio": pm_k})
+            PATCHES[f"os-pm-{pm_j + 1}"] = {"about": f"Out of Step's note that is out of step with itself (chirper-zero, 27 Nov, v25): a plain tone whose phase an unheard wave pushes {PM_TURN:g} of a turn ahead and back, " + (f"{pm_k:g} times a beat ({pm_rate(pm_j):.2f} Hz)" if pm_kind == "beat" else f"{pm_k:g} times in each of its own waves") + ". Nothing else is done to it.",
+                                              "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": [pm_wob, {"type": "osc", "wave": "sine", "phase": 0, "pm": [{"from": "wob", "depth": round(pm_i, 4)}]}], "amp": {"a": "10ms", "d": "0s", "s": 1, "r": "40ms"}}}
+            doc["tracks"].append({"name": f"pm-{pm_j + 1}", "patch": f"os-pm-{pm_j + 1}", "gain": PM_GAIN, "pan": PM_PAN, "notes": [{"at": (pm_row() + pm_j) * BEATS, "len": PM_LEN, "pitch": PM_NOTE, "vel": 0.8}]})
+        if PM_BREAK:
+            pm_kick = next(t for t in doc["tracks"] if t["name"] == "kick"); pm_was = len(pm_kick["notes"])
+            pm_kick["notes"] = [n for n in pm_kick["notes"] if not (pm_row() + PM_BREAK[0]) * BEATS <= n["at"] < (pm_row() + PM_BREAK[1]) * BEATS]
+            assert pm_was - len(pm_kick["notes"]) == (PM_BREAK[1] - PM_BREAK[0]) * BEATS, pm_was - len(pm_kick["notes"])
+        doc["about"] = doc["about"].replace(" Generated by", f" From v25 one note is out of step with itself (bars {pm_row() + 1} to {pm_row() + len(PM_RATES)}, under the vernier, before the bass comes in): a plain tone on the bass's {PM_NOTE} whose phase an unheard wave pushes {PM_TURN:g} of a turn ahead and {PM_TURN:g} back. A bar each: " + ", ".join(f"{k:g} a beat" if kind == "beat" else f"{k:g} a wave" for kind, k in PM_RATES) + f". Slowly it is a wobble of pitch ({pm_hz() - pm_i * pm_rate(0):.1f} to {pm_hz() + pm_i * pm_rate(0):.1f} Hz at once a beat); faster, the wobble cannot be followed and the one tone is heard as several: the note itself {20 * math.log10(abs(pm_bessel(0, pm_i))):.1f} dB, a pair of side tones {20 * math.log10(abs(pm_bessel(1, pm_i))):.1f} dB as far above and below it as the phase is turned a second, the next pair {20 * math.log10(abs(pm_bessel(2, pm_i))):.1f} dB (Bessel's functions): phase modulation, the way a whole family of synthesizers makes its sounds. Generated by")
+        assert "From v25" in doc["about"]
     return doc
 
 
@@ -1466,6 +1524,12 @@ def lock(k):
 if __name__ == "__main__":
     if os.environ.get("C11T7_SHOW"):
         sec = 60 / BPM * BEATS
+        if pm_row() is not None:
+            pm_i = 2 * math.pi * PM_TURN
+            print(f"a note out of step with itself (phase modulation), bars {pm_row() + 1}-{pm_row() + len(PM_RATES)} ({int(pm_row() * sec) // 60}:{pm_row() * sec % 60:04.1f}): {PM_NOTE} ({pm_hz():.2f} Hz), its phase pushed {PM_TURN:g} of a turn each way ({pm_i:.3f} radians) ; {PM_GAIN}, pan {PM_PAN:g} ; the note itself {20 * math.log10(abs(pm_bessel(0, pm_i))):.1f} dB, side tones {' '.join(f'{20 * math.log10(abs(pm_bessel(n, pm_i))):.1f}' for n in (1, 2, 3))} dB")
+            for pm_j, (pm_kind, pm_k) in enumerate(PM_RATES):
+                pm_f = pm_rate(pm_j)
+                print(f"   bar {pm_row() + pm_j + 1}: {pm_k:g} a {pm_kind} ({pm_f:.2f} Hz): " + (f"a wobble from {pm_hz() - pm_i * pm_f:.1f} to {pm_hz() + pm_i * pm_f:.1f} Hz" if pm_f < 20 else "tones at " + " ".join(f"{abs(pm_hz() + n * pm_f):.0f}" for n in (-3, -2, -1, 0, 1, 2, 3)) + " Hz"))
         if back_row() is not None:
             bk_b0 = back_row(); bk_per = ROW // len(BACK_STAGES)
             print(f"the whistle is put in step (pulse compression), bars {bk_b0 + 1}-{bk_b0 + ROW} ({int(bk_b0 * sec) // 60}:{bk_b0 * sec % 60:04.1f}): a rise from {BACK_SPAN[0]:g} to {BACK_SPAN[1]:g} Hz into the chains of v23 ; a click comes out on sixteenths {', '.join(str(x) for x in BACK_ON)} ; into the longest chain {BACK_GAIN}, 3 dB up a halving ; heard {BACK_HEARD}")
