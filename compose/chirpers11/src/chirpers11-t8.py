@@ -71,6 +71,34 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v21 (27 Nov): THE RECORD COMES UP AS THE SPRING RUNS DOWN. Three switches on (`--without-leadin`, `-reveal`,
+`-inner`; all off is v20 byte for byte) and one written and off (`--with-spiral`). v20 made the end a record: a
+run-out groove, its surface, the needle lifted. But that surface began from nothing at the first joint, 1.1 s after
+the last stroke: a record with no surface until it had finished playing.
+  LEADIN  the record's surface comes in under the click over bars 1 to SPIRAL['in'] (no stroke: it fades in; Out of
+          Step's last eight bars lie over these, and chirper-zero allowed it on three conditions: nothing over
+          10 kHz, in over the bars and not at a stroke, 25 dB or more under his last eight bars), and goes under
+          the drum over bars 9 to 12. It is NOT the run-out's hiss: in the playing groove the needle is on new
+          vinyl at every turn, so this surface never comes round (one held white hiss, new patch wd-spiral);
+          only the locked groove repeats (wd-surface, v20).
+  REVEAL  and it comes up again as the spring runs down (over bars 193 to 196) and stays to the first joint of
+          the run-out, where the locked groove's takes over: the machine stops and what it was written on is
+          heard under it. The run-out's hiss no longer starts from nothing.
+  INNER   the needle has gone in. A groove's dust passes it more slowly the nearer the label: the hiss's whole
+          band slides down with the radius, r(t) / r(0): an LP's first groove is at 146 mm and its last at 60 mm,
+          and the needle crosses that at an even rate (a spiral of even pitch): 700 to 6000 Hz in bar 1 is 290
+          to 2487 Hz at the last stroke; in the locked groove (53 mm) 255 to 2186 Hz (its patch is then
+          wd-inner: another band, another name). The same roughness in a narrower band: its level is held by
+          -10 log10 of the same ratio (3.8 dB at the label).
+  SPIRAL  (off) the hiss under the WHOLE record. Built first, on two seeds: the scorer reads it in every quiet
+          frame (99.676 for 99.854: sections more alike, recurrence 0.47 to 0.51), and measured it is under the
+          song's own tails nearly everywhere (6 dB over the floor in a caught bar, 1 dB in bars 5 to 8): it
+          takes the black out of the silences for a hiss nobody hears under the music. Written, and off.
+          Two engine facts cost a build each: a lane on a filter's cutoff (`cutoff=700+auto.slide*-411`) is
+          not in Hz: the depth is in OCTAVES (cutoff = 700 x 2^(depth x lane)), and in Hz the track was silent
+          with no word from `chirp plan`; and a held note is let go at 95% of its written length unless its
+          patch says `gate: 1` (800 beats of one note lost its last 19 s).
+
 v20 (27 Nov): THE RECORD IS STILL TURNING. Three switches (`--without-groove`, `-surface`, `-lift`; all off is
 v19 byte for byte). The rule's first lines call the click 'the first thing on the record'; Give or Take now begins with
 a record being started (chirper-zero's v24). The closer ended when its clock had struck: the spring run down,
@@ -427,9 +455,10 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True, 'quarters': True, 'hour': True, 'hammer': True, 'one': True, 'sympathy': True, 'groove': True, 'surface': True, 'lift': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True, 'quarters': True, 'hour': True, 'hammer': True, 'one': True, 'sympathy': True, 'groove': True, 'surface': True, 'lift': True, 'leadin': True, 'reveal': True, 'inner': True, 'spiral': False}
 GROOVE = {'patch': 'wd-groove', 'turn': 1.8, 'after': 1.1, 'turns': 4, 'dust': ((0, 'G2', 1.0, 0), (3, 'D4', .7, -9), (8, 'A3', .6, -14), (15, 'F4', .8, -6)),   # v20: the run-out groove: seconds a turn (33 1/3 a minute); seconds from the last stroke to the first joint; turns; what is in a turn: (sixteenths of a turn after the joint, the chip noise's note: its step rate, how hard, dB)
           'gain': '-28dB', 'pan': 0, 'ms': 4, 'hp': 180, 'lp': 2600, 'rest': 1.5}   # its fader (bench: at -24 dB the joint's highest sample stood 2 to 6 dB over the wall clock's ticks: 4 dB off) and place; a speck's length, ms; its band; seconds of the song after the last joint (the surface goes in them)
+SPIRAL = {'patch': 'wd-spiral', 'gain': '-51dB', 'hp': 700, 'lp': 6000, 'in': 4, 'to': 8, 'out': 4, 'radius': (146.05, 60.3, 53.2), 'lock': 'wd-inner', 'every': 8, 'walls': 2, 'up': 4, 'down': 70}   # v21: the playing groove's surface: its patch, fader (bench, alone: at the run-out's -58 dB the white hiss stood 10 dB under the locked groove's chip noise: -78 dBFS for -68: so 7 dB up, to meet it at the first joint with INNER's 3.8) and band at the first groove (the run-out's, v20); bars over which it comes in; the bar to which it is held, and bars over which it goes, where it does not stay; an LP's first, last and locked groove, mm from the centre; the run-out surface's name when its band has slid; bars between the points of the slide's line; low-pass filters in a row at the band's top (Out of Step's last bars lie over the first eight: nothing over 10 kHz); REVEAL: bars over which it comes up again from the bar the spring runs down; dB it is down in between
 SURFACE = {'patch': 'wd-surface', 'gain': '-58dB', 'hp': 700, 'lp': 6000, 'pitch': 'D3', 'vel': 0.8}   # v20: the record's surface: its fader (benched), its band, the chip noise's note (its step rate: slow enough not to come round inside a turn)
 LIFT = {'patch': 'wd-lift', 'after': 0.5, 'rest': 1.0, 'pitch': 'D2', 'gain': '-22dB', 'vel': 0.8, 'ms': 90, 'speck': ('C2', 1.0, 3)}   # v20: the needle is lifted: seconds after the last joint; seconds of nothing after it; the thump's note, fader, touch and decay; the speck with it (the groove's patch: note, touch, dB)
 HAMMER = {'patch': 'wd-chime-struck', 'amount': 96, 'ms': 3}   # v19: the struck bell's name; the hammer's grain of noise: its envelope's amount over -80 dB (benched: see the docstring), and how long
@@ -663,6 +692,14 @@ def groove():
 def lifted():
     """v20 LIFT: the second at which the needle is lifted (None: it is not)."""
     return clock(BARS) + GROOVE['after'] + GROOVE['turns'] * GROOVE['turn'] + LIFT['after'] if ON['lift'] and ON['groove'] and ON['stop'] else None
+
+
+def inner(sec=None):
+    """v21 INNER: the needle's radius over the first groove's at second sec of the record (None: in the locked groove): what the surface's band is multiplied by. The spiral has an even pitch: the radius falls evenly from the first bar to the run-out's first joint."""
+    r0, r1, lock = SPIRAL['radius']
+    if not ON['inner']:
+        return 1.0
+    return lock / r0 if sec is None else (r0 + (r1 - r0) * min(max(sec / (clock(BARS) + GROOVE['after']), 0), 1)) / r0
 
 
 def run_out():
@@ -1024,13 +1061,15 @@ def song():
         doc['tracks'].append({'name': 'groove', 'patch': GROOVE['patch'], 'gain': GROOVE['gain'], 'pan': GROOVE['pan'], 'notes': groove()})
         doc['length'] = f'{round(beat_at(run_out()), 3)}b'
     if ON['surface'] and ON['stop']:                            # v20 SURFACE: what the needle rides on: the same hiss every turn
-        doc['patches'] = {**doc['patches'], SURFACE['patch']: {
-            'about': f"Wind Down: the record's surface in its run-out groove (v20): the engine's chip noise with no chip's clock on {SURFACE['pitch']} (the same samples at each note-on, and too slow a step rate to come round inside a turn), {SURFACE['hp']} to {SURFACE['lp']} Hz, one note a turn: the hiss repeats with the record.",
-            'play': {'vel_sens': 0.5, 'gate': 1}, 'synth': {'layers': [{'type': 'chip', 'chip': {'kind': 'noise', 'clock': 0}}], 'filters': [f"hp cutoff={SURFACE['hp']}", f"lp cutoff={SURFACE['lp']}"], 'amp': {'a': '5ms', 'd': '0s', 's': 1, 'r': '30ms'}}}}
+        slid = inner() if ON['leadin'] and (ON['spiral'] or ON['reveal']) else 1.0   # v21 INNER: in the locked groove the band has slid with the radius, and the level is held
+        sf = SURFACE if slid == 1.0 else {**SURFACE, 'patch': SPIRAL['lock'], 'hp': round(SURFACE['hp'] * slid), 'lp': round(SURFACE['lp'] * slid), 'gain': f"{float(SURFACE['gain'][:-2]) - 10 * log10(slid):.1f}dB"}
+        doc['patches'] = {**doc['patches'], sf['patch']: {
+            'about': f"Wind Down: the record's surface in its run-out groove (v20): the engine's chip noise with no chip's clock on {sf['pitch']} (the same samples at each note-on, and too slow a step rate to come round inside a turn), {sf['hp']} to {sf['lp']} Hz, one note a turn: the hiss repeats with the record.",
+            'play': {'vel_sens': 0.5, 'gate': 1}, 'synth': {'layers': [{'type': 'chip', 'chip': {'kind': 'noise', 'clock': 0}}], 'filters': [f"hp cutoff={sf['hp']}", f"lp cutoff={sf['lp']}"], 'amp': {'a': '5ms', 'd': '0s', 's': 1, 'r': '30ms'}}}}
         t0, stop = clock(BARS) + GROOVE['after'], (lifted() or (run_out() - 0.3 if run_out() else clock(BARS) + 6))
         starts = [t0 + k * GROOVE['turn'] for k in range(GROOVE['turns'] + 2) if t0 + k * GROOVE['turn'] < stop - 0.05]
-        doc['tracks'].append({'name': 'surface', 'patch': SURFACE['patch'], 'gain': SURFACE['gain'], 'pan': 0,
-                              'notes': [{'at': round(beat_at(a), 5), 'len': round(beat_at(min(a + GROOVE['turn'], stop)) - beat_at(a), 5), 'pitch': SURFACE['pitch'], 'vel': SURFACE['vel']} for a in starts]})
+        doc['tracks'].append({'name': 'surface', 'patch': sf['patch'], 'gain': sf['gain'], 'pan': 0,
+                              'notes': [{'at': round(beat_at(a), 5), 'len': round(beat_at(min(a + GROOVE['turn'], stop)) - beat_at(a), 5), 'pitch': sf['pitch'], 'vel': sf['vel']} for a in starts]})
     if lifted():                                                # v20 LIFT: somebody lifts the needle
         doc['patches'] = {**doc['patches'], LIFT['patch']: {
             'about': f"Wind Down: the needle lifted out of the groove (v20): a soft low thump, a sine and its octave, {LIFT['ms']} ms.",
@@ -1041,6 +1080,25 @@ def song():
             if tr['name'] == 'groove':
                 pitch, vel, db = LIFT['speck']
                 tr['notes'] = tr['notes'] + [{'at': round(beat_at(lifted()), 5), 'len': tr['notes'][0]['len'], 'pitch': pitch, 'vel': vel, 'gain': f'{db}dB'}]
+    if ON['leadin']:                                            # v21 LEADIN: the playing groove's surface, in over the first bars; SPIRAL: under the whole record; INNER: its band slides down with the radius
+        whole = ON['spiral'] and ON['stop']
+        stays = whole or (ON['reveal'] and ON['stop'])
+        end = (clock(BARS) + GROOVE['after'] if ON['groove'] and ON['surface'] else clock(BARS)) if stays else clock(SPIRAL['to'] + SPIRAL['out'])
+        secs = lambda bars: f"{bars * 240 / BPM:.2f}s"
+        doc['patches'] = {**doc['patches'], SPIRAL['patch']: {
+            'about': "Wind Down: the record's surface in the playing groove (v21): one held white hiss (new vinyl at every turn: it never comes round, as the run-out's does), coming in over the first bars; its band and its comings and goings are the track's.",
+            'play': {'gate': 1}, 'synth': {'layers': ['white'], 'amp': {'a': secs(SPIRAL['in']), 'd': '0s', 's': 1, 'r': '30ms'}}}}
+        sliding = ON['inner'] and stays
+        under, back = SPIRAL['to'] + SPIRAL['out'], RUNS_DOWN + SPIRAL['up']
+        there = lambda b: 0 if whole or b <= SPIRAL['to'] or (stays and b >= back) else -SPIRAL['down'] if b >= under and (not stays or b <= RUNS_DOWN) else None   # dB: bars 1-8, down under the drum, up again with the spring
+        bars = sorted(set(range(0, BARS, SPIRAL['every'])) | {SPIRAL['to'], under} | ({RUNS_DOWN, back} if stays else set()))
+        pts = [[f'{b * 4}b', clock(b), there(b)] for b in bars if clock(b) < end and there(b) is not None] + [[f'{round(beat_at(end), 3)}b', end, 0 if stays else -SPIRAL['down']]]
+        doc['tracks'].append({'name': 'spiral', 'patch': SPIRAL['patch'], 'pan': 0, 'notes': [{'at': 0, 'len': round(beat_at(end), 5), 'pitch': 'C5', 'vel': 0.8}],
+                              'gain': {'value': SPIRAL['gain'], 'mod': [{'src': 'auto.held', 'amount': 1}]},
+                              'fx': ([f"hp cutoff={SPIRAL['hp']}+auto.slide*{round(log2(inner(end)), 4)}"] + [f"lp cutoff={SPIRAL['lp']}+auto.slide*{round(log2(inner(end)), 4)}"] * SPIRAL['walls']   # the depth of a lane on a cutoff is in OCTAVES (bench: written in Hz the track was silent)
+                                     if sliding else [f"hp cutoff={SPIRAL['hp']}"] + [f"lp cutoff={SPIRAL['lp']}"] * SPIRAL['walls']),
+                              'auto': {'held': {'points': [[b, round(db + (-10 * log10(inner(t)) if sliding else 0), 3)] for b, t, db in pts], 'curve': 0},
+                                       **({'slide': {'points': [[b, round(log2(inner(t)) / log2(inner(end)), 4)] for b, t, _ in pts], 'curve': 0}} if sliding else {})}})
     return doc
 
 
@@ -1074,7 +1132,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v19, the last six v18, the last eight v17, the last ten v16, the last twelve v15, the last fourteen v14, the last sixteen v13, the last eighteen v12, the last twenty v11, the last twenty-three v10, the last twenty-six v9, the last twenty-nine v8, the last thirty-one v7, the last thirty-four v6, the last thirty-seven v5, the last forty v4, the last forty-three v3, the last forty-nine v2, all fifty-five v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v20, the last six v19, the last nine v18, the last eleven v17, the last thirteen v16, the last fifteen v15, the last seventeen v14, the last nineteen v13, the last twenty-one v12, the last twenty-three v11, the last twenty-six v10, the last twenty-nine v9, the last thirty-two v8, the last thirty-four v7, the last thirty-seven v6, the last forty v5, the last forty-three v4, the last forty-six v3, the last fifty-two v2, all fifty-eight v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -1108,6 +1166,9 @@ if __name__ == '__main__':
                        ([(RUNS_DOWN, f"the clock chimes the hour, the only time on the record: four changes, a note a second from {min(x for k, x, _ in chimes() if k == 4)} s to {max(x for k, x, _ in chimes() if k == 4)} s (" + ' | '.join(' '.join(CHIME['bells'][d] for d in CHIME['changes'][c]) for c in CHIME['order'][4]) + f"); the last stroke, {clock(BARS) - max(x for k, x, _ in chimes() if k == 4):.1f} s on, is its one o'clock")] if ON['hour'] else []) +
                        ([(BARS, f"the clock strikes one, on the last stroke: its hour bell ({ONE['bell']}), an octave under the bell its quarters end on, let ring {ONE['ring']}; the {WALL['after']} ticks after it are under its ring")] if ON['one'] and ON['hour'] else []) +
                        ([(BARS, f"the record is still turning: the needle is in the run-out groove: a click where the groove joins itself, once a turn ({GROOVE['turn']} s: 33 1/3 turns a minute), and the same three specks of dust each time round, " + ', '.join('+'.join(str(c) for c in CYCLES[:i + 1]) for i in range(3)) + f" sixteenths of a turn on: {GROOVE['turns']} turns from {clock(BARS) + GROOVE['after']:.1f} s and the joint once more at {clock(BARS) + GROOVE['after'] + GROOVE['turns'] * GROOVE['turn']:.1f} s; the wall clock's last tick is at {int(clock(BARS)) + WALL['after']} s: the loop is heard twice alone")] if ON['groove'] and ON['stop'] else []) +
+                       ([(0, f"the needle is down: the record's surface comes in under the click over bars 1 to {SPIRAL['in']} (no stroke), {SPIRAL['hp']} to {SPIRAL['lp']} Hz" + (": one hiss that never comes round, under the whole record to the run-out's first joint, where the locked groove's takes over" if ON['spiral'] and ON['stop'] else f", and goes under the drum over bars {SPIRAL['to'] + 1} to {SPIRAL['to'] + SPIRAL['out']}"))] if ON['leadin'] else []) +
+                       ([(RUNS_DOWN, f"the record comes up as the spring runs down: its surface again, over bars {RUNS_DOWN + 1} to {RUNS_DOWN + SPIRAL['up']}, and under the last ticks to the run-out's first joint, where the locked groove's takes over")] if ON['leadin'] and ON['reveal'] and ON['stop'] and not ON['spiral'] else []) +
+                       ([(RUNS_DOWN if not ON['spiral'] else 0, f"the needle has gone in: the hiss's band has slid down with the radius ({SPIRAL['radius'][0]:g} mm to {SPIRAL['radius'][1]:g} mm, evenly): {SPIRAL['hp']} to {SPIRAL['lp']} Hz in bar 1, {round(SPIRAL['hp'] * inner(clock(BARS)))} to {round(SPIRAL['lp'] * inner(clock(BARS)))} Hz at the last stroke, {round(SURFACE['hp'] * inner())} to {round(SURFACE['lp'] * inner())} Hz in the locked groove ({SPIRAL['radius'][2]:g} mm); its level held: {-10 * log10(inner(clock(BARS))):.1f} dB more at the last stroke")] if ON['inner'] and ON['leadin'] and (ON['spiral'] or ON['reveal']) and ON['stop'] else []) +
                        ([(BARS, f"the record's surface is heard from the first joint on, the same hiss every turn" + (f", to {lifted():.1f} s" if lifted() else ''))] if ON['surface'] and ON['stop'] else []) +
                        ([(BARS, f"the needle is lifted at {lifted():.1f} s: a soft thump, and the surface is gone at once; {LIFT['rest']:g} s of nothing (Give or Take begins with a record being started)")] if lifted() else []) +
                        ([(BARS, "Ring True's strings hear the hour bell: the B flat 2 string is its note and the F2 string has its fifth: they ring with it")] if ON['sympathy'] and ON['one'] and ON['hour'] and ON['strings'] else []) +
