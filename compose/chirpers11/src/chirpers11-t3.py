@@ -323,6 +323,19 @@ first and those behind you last, from all round: a rattle. With every bar it is 
 strikes, made of twelve, and not one of them was played any louder: the only thing that changed is
 where you stand (the Albert Hall's echo, before the mushrooms were hung in 1969; the whispering place
 under any dome).
+
+v22 (27 Nov): THE HALL'S AIR DUCT (C11T3_DUCT=0 takes it out: v21). Every wall in this song gives a
+click back as a click. A pipe does not. A sound that crosses the pipe while it goes along it (half a
+wave across, or two halves, or three) goes along it more slowly than the speed of sound: by
+sqrt(1 - (own / f) squared), where `own` is the note that just fits across. A high note is hardly
+slowed. A note near the pipe's own is slowed almost to a stop. So a click that goes down a duct and
+back comes back as a note that STARTS HIGH AND FALLS, quickly at first and then more and more slowly,
+towards the duct's own note, and never quite arrives (the note back at time t is own / sqrt(1 -
+(back / t) squared): a culvert whistler, Crawford 1971). The hall's duct is 1.56 m across (its note
+A2, 110 Hz; 220 and 330 with it), to your left, in the row before the dome (bars 121-128), and is 1,
+then 3, then 5 sixteenths there and back: from the short one the note is down in a tenth of a
+second; from the long one it is still coming down when the next click goes in. How far the sound has
+been is how slowly it comes down.
 """
 import json
 import math
@@ -578,6 +591,17 @@ DOME_WALK = (2.0, 5)                                   # sixteenths of sound fro
 DOME_VEL = 0.75                                        # every part's echo, at every bar: nothing gets louder but by arriving together
 DOME_PAN = 0.9                                         # the part straight to your left is this far left
 DOME_GAIN = os.environ.get("C11T3_DOME_GAIN", "-24dB") # the tracks' fader, set in the whole song's master between two readings. THE FADER SETS THE RATTLE, NOT THE FOCUS: this master holds the focused stroke at the click's own level whatever the fader (-18.5 dBFS in its 40 ms at -20dB, -19.5 at -28dB; the click is -19.7). At -20dB the parts of the rattle stood 1 to 10 dB over what was in their gaps (their highest samples -6 dBFS: nearly the focus); at -28dB they were level with their gaps or under
+DUCT = os.environ.get("C11T3_DUCT", "1") != "0" and DOME   # v22: the hall's air duct (what comes back from a pipe is not a click: every note in it takes its own time)
+DUCT_IN = ("standing room", 1)                         # the section and the row of it (from 0): the row before the dome, which had nothing of its own but the ball
+DUCT_NOTE = "A2"                                       # the duct's own lowest note across (110 Hz: half a wave fits across it: SOUND / (2 * 110) = 1.56 m wide). Nothing under it can travel along the duct but straight down the middle. Chosen with the scorer's bands in view (110 Hz is the band this song is shortest in): the scorer's reading, and a duct that size is a real one
+DUCT_MODES = ((1, 0.0), (2, -6.0), (3, -10.0))         # the ways across that are heard: 1, 2, 3 half waves (110, 220, 330 Hz), dB
+DUCT_BACK = (1, 1, 1, 3, 3, 3, 5, 5)                   # sixteenths to the duct's far end and back, bar by bar (and the dome in the next row is 7). The echo begins on step 2 + this: 3, 5, 7
+DUCT_TOP = 8.0                                         # times its own note that each way across is first heard at (the higher a note, the sooner it is back: all of them above this come at once, as the click)
+DUCT_RING = "1600ms"                                   # how long an echo takes to die (60 dB): at 700 ms the long duct's echo was gone before it was within three semitones of its note
+DUCT_POINTS = 48                                       # points of the lane a glide is written with (evenly in the logarithm of time)
+DUCT_VEL = 0.8
+DUCT_PAN = -0.4                                        # the duct's mouth is to your left
+DUCT_GAIN = os.environ.get("C11T3_DUCT_GAIN", "-22dB") # set in the whole song's master between two readings, BEFORE their scores were read. At -20dB the echo's lowest tone began 2 to 13 dB over the music in its own band (median 9) and was level with it 300 ms on; at -28dB it began level and was 8 to 10 dB under at 300 ms: the fall would not be followed. THIS MASTER DUCKS THE ECHO WITH EVERY BASS DRUM (10 dB down at 150 and 600 ms after a start on step 3): it is heard between the drums. The scorer likes it louder (-20dB read 99.646, -28dB 99.633): not the reason
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
 SONIC_MACH = 2.0                                       # its speed, in speeds of sound: at 2 its past is heard at the tempo it happened at
 SONIC_AWAY = 2                                         # sixteenths of sound away at its nearest (81.7 m: as far as the pipes are long)
@@ -905,6 +929,44 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def duct_row():
+    """The first bar of the row with the duct, or None."""
+    sec = next((x for x in SECS if x[0] == DUCT_IN[0]), None)
+    return sec[1] + ROW * DUCT_IN[1] if DUCT and sec is not None and DUCT_IN[1] * ROW < sec[2] else None
+
+
+def duct_hz():
+    semis = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}[DUCT_NOTE[0]] + (-1 if "b" in DUCT_NOTE else 0)
+    return 440 * 2 ** ((semis + 12 * (int(DUCT_NOTE[-1]) + 1) - 69) / 12)
+
+
+def duct_over(since, back):
+    """How many times its own note a way across is, `since` seconds after the straight sound is back from a duct `back` seconds there and back. A wave going across as well as along goes along more slowly, sqrt(1 - (own / f)^2) of the speed of sound: so the note f is back after back / sqrt(1 - (own / f)^2), and the note that is back at the time t is own / sqrt(1 - (back / t)^2): from above, down to the duct's own note, which never arrives."""
+    return 1 / math.sqrt(1 - (back / (back + since)) ** 2)
+
+
+def duct_first(back):
+    """Seconds after the straight sound that a way across is at DUCT_TOP times its note."""
+    return back * (1 / math.sqrt(1 - 1 / DUCT_TOP ** 2) - 1)
+
+
+def duct_echoes():
+    """[(the beat it begins, its length in beats, seconds there and back, [(beat, semitones over the duct's note)])]: an echo for each click of the row."""
+    b0 = duct_row(); sec = 60 / BPM; out = []
+    if b0 is None:
+        return out
+    starts = [(b0 + j) * BEATS + (CLICK_STEP + p) * STEP + duct_first(p * STEP * sec) / sec for j, p in enumerate(DUCT_BACK)]
+    for j, p in enumerate(DUCT_BACK):
+        back = p * STEP * sec; at = starts[j]; first = duct_first(back)
+        length = (starts[j + 1] - at - 0.1) if j + 1 < len(starts) else (b0 + ROW) * BEATS - at - 0.05
+        pts = []
+        for q in range(DUCT_POINTS):
+            since = first * (length * sec / first) ** (q / (DUCT_POINTS - 1))             # from `first` to the note's end, evenly in the logarithm
+            pts.append((at + (since - first) / sec, 12 * math.log2(duct_over(since, back))))
+        out.append((at, length, back, pts))
+    return out
 
 
 def dome_row():
@@ -1488,6 +1550,19 @@ def song():
                                   "fx": [{"type": "eq", "bands": ["hp cutoff=250", "lp cutoff=9000"]}], "notes": do_notes[do_i]})     # the walls' own filter
         doc["about"] = doc["about"].replace(" Generated by", f" From v21 the hall has a dome, the first wall in the song that is not flat, and you walk under it in the row before the people come in (bars {dome_row() + 1} to {dome_row() + ROW}). A dome like this one has a focus: from the click up to any part of it and down to that one place is the same way round, {DOME_PATH} sixteenths. Anywhere else the {DOME_PARTS} parts of it answer one after another, the ones ahead of you first and the ones behind last: a rattle {dome_late(0, 180) - dome_late(0, 0):.1f} sixteenths long in the row's first bar, shorter with every bar as you walk in; on the focus (the last {ROW - DOME_WALK[1]} bars) they arrive together, one stroke on step {CLICK_STEP + DOME_PATH} made of {DOME_PARTS}, and no part of it was played any louder. Generated by")
         assert "From v21" in doc["about"]
+    if duct_row() is not None:
+        du = duct_echoes(); du_top = 12 * math.log2(DUCT_TOP)
+        PATCHES["sr-duct"] = {"about": f"Standing Room's air duct (chirper-zero, 27 Nov, v22): what comes back from a duct {SOUND / (2 * duct_hz()):.2f} m across: plain tones on its {len(DUCT_MODES)} lowest ways across ({', '.join(f'{m * duct_hz():.0f}' for m, _ in DUCT_MODES)} Hz), dying in {DUCT_RING}, whose pitch rides the lane `pew` (semitones over the duct's own note): each echo starts {DUCT_TOP:g} times too high and comes down to its note, quickly from a short duct and slowly from a long one.",
+                              "play": {"vel_sens": 0.5, "gate": 1},
+                              "synth": {"layers": [f"sine phase=0 ratio={m:g} level={lv:g}dB" for m, lv in DUCT_MODES], "pitch": {"value": 0, "mod": [{"src": "auto.pew", "amount": 1}]},
+                                        "amp": {"a": "2ms", "d": DUCT_RING, "s": 0, "r": "30ms", "curve": 3}}}
+        du_pts = [["0b", round(du_top, 3)]]
+        for du_at, du_len, du_back, du_p in du:
+            du_pts += [[f"{round(du_at - 0.03, 5):g}b", round(du_top, 3)]] + [[f"{round(t, 5):g}b", round(v, 3)] for t, v in du_p]
+        doc["tracks"].append({"name": "duct", "patch": "sr-duct", "gain": DUCT_GAIN, "pan": DUCT_PAN, "auto": {"pew": {"points": du_pts, "curve": 0}},
+                              "notes": [{"at": round(du_at, 5), "len": round(du_len, 5), "pitch": DUCT_NOTE, "vel": DUCT_VEL} for du_at, du_len, _, _ in du]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v22 the hall has an air duct, {SOUND / (2 * duct_hz()):.2f} m across, to your left in the row before the dome (bars {duct_row() + 1} to {duct_row() + ROW}). A wall gives a click back as a click. A duct does not: a sound that crosses it as it goes along it goes along more slowly, and the nearer a note is to the duct's own ({duct_hz():.0f} Hz, half a wave across) the later it is back: so each click comes back as a note that starts high and falls to {DUCT_NOTE}, and never quite arrives. The duct is {', '.join(str(p) for p in sorted(set(DUCT_BACK)))} sixteenths there and back: from the short one the fall is quick, from the long one slow: how far it has been is how slowly it comes down. Generated by")
+        assert "From v22" in doc["about"]
     return doc
 
 
@@ -1544,6 +1619,11 @@ def echoes(a, b, n=16):
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
         sec = 60 / BPM * BEATS
+        if duct_row() is not None:
+            du = duct_echoes(); du_b0 = duct_row(); du_sec = 60 / BPM
+            print(f"the hall's air duct, bars {du_b0 + 1}-{du_b0 + ROW} ({int(du_b0 * BEATS * du_sec) // 60}:{du_b0 * BEATS * du_sec % 60:04.1f}): {SOUND / (2 * duct_hz()):.2f} m across, its own note {DUCT_NOTE} ({duct_hz():.1f} Hz) ; the ways across heard: {', '.join(f'{m * duct_hz():.0f} Hz {lv:g} dB' for m, lv in DUCT_MODES)} ; each echo first heard {DUCT_TOP:g} times too high ; {DUCT_GAIN}, pan {DUCT_PAN}")
+            for du_j, (du_at, du_len, du_back, du_p) in enumerate(du):
+                print(f"   bar {du_b0 + du_j + 1}: {DUCT_BACK[du_j]} sixteenths there and back ({du_back * 1000:.0f} ms, {du_back * SOUND / 2:.0f} m long) ; begins on step {(du_at % BEATS) / STEP:.3f} ({duct_first(du_back) * 1000:.1f} ms after the straight sound) ; semitones over its note after 10 30 100 300 1000 ms: " + " ".join(f"{12 * math.log2(duct_over(duct_first(du_back) + ms / 1000, du_back)):.2f}" for ms in (10, 30, 100, 300, 1000)) + f" ; held {du_len * du_sec * 1000:.0f} ms")
         if dome_row() is not None:
             do_six = STEP * 60 / BPM * 1000; do_b0 = dome_row()
             print(f"under the dome, bars {do_b0 + 1}-{do_b0 + ROW} ({int(do_b0 * BEATS * 60 / BPM) // 60}:{do_b0 * BEATS * 60 / BPM % 60:04.1f}): from the click to the dome and down to the focus {DOME_PATH} sixteenths ({DOME_PATH * do_six / 1000 * SOUND:.0f} m) by way of every part ; {DOME_PARTS} parts, {DOME_RISE:g} degrees up, {DOME_UP} sixteenths from the focus ; you start {DOME_WALK[0]:g} sixteenths ({DOME_WALK[0] * do_six / 1000 * SOUND:.0f} m) from it and are on it after {DOME_WALK[1]} bars ; {DOME_GAIN}")
