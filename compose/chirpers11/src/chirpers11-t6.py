@@ -58,7 +58,31 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True}
+# ---- v15 (27 Nov): THE BASS IS HEARD COMING. Two more switches (`--without-bare`, `-octave`; both off is v14 byte
+# for byte). The third section is called 'the bass', and its entrance is the song's weakest boundary (v14: it
+# sits on the scorer's highest cut, and one seed lost it to a change sixty bars away). Two reasons, both read:
+# the drum is already in the bass's band when it comes, and the bass is a sine at 87 to 117 Hz, which a small
+# speaker does not have and which the drum's own 130 Hz stands over.
+#   BARE     the bar before the bass comes, the drum waits (bar 32: no drum at all; the hat's two strokes and
+#            the small change are left). chirper-zero's rule: a quiet part in an empty band takes the arrival
+#            from whoever enters that band next; so leave the band bare, and let the bass and the drum
+#            arrive in it together. (WAIT does this before home, for two bars; GAP gave the change one beat.)
+#   OCTAVE   the bass has its octave (sc-debt: the library's sub-sine with its second harmonic 9 dB under
+#            the note in place of 19, and a low-pass at 300 Hz after it): what cannot be paid is heard from
+#            175 to 233 Hz as well, on any speaker, from its first note to its last (536 notes). The first
+#            build had it 6 dB under and no low-pass: the patch's drive made a third to a seventh harmonic
+#            of the two (260 to 750 Hz came up 1 to 1.6 dB in the finished song, where it is already over
+#            the album), and the master, with more to carry, took 0.6 dB off everything under 130 Hz (the
+#            71 Hz band, the song's worst, went from 6.4 to 7.0 dB short).
+DEBT = {'patch': 'sc-debt', 'octave': '-30dB', 'lp': 300}   # v15: the bass's own patch; its second harmonic's level at no velocity (the library's is -40 dB; with the same 12 dB of velocity, at .85 this is 8.9 dB under the note); the low-pass after the drive, Hz
+SC_DEBT = {'about': "Small Change: the bass that plays what cannot be paid, with its octave (v15). The library's sub-sine (a sine, mono, a 30 ms glide, a little drive, a low-pass at 500 Hz) with its second harmonic at -30 dB in place of -40 (9 dB under the note at this song's touch) and one more low-pass, at 300 Hz, so that the drive leaves the note and its octave and little else: a line on 87 to 117 Hz is also heard on 175 to 233.",
+           'gain': '-6dB', 'params': {'grit': 0}, 'play': {'gate': 0.97, 'glide': '30ms', 'mono': True, 'vel_sens': 0.4},
+           'synth': {'amp': {'a': '6ms', 'd': '0ms', 'r': '60ms', 's': 1}, 'drive': {'mod': [{'amount': 0.6, 'src': 'param.grit'}], 'value': 0.2},
+                     'filters': ['hp cutoff=22', {'cutoff': {'mod': [{'amount': 2, 'src': 'param.grit'}], 'value': 500}, 'kind': 'lp'}, f"lp cutoff={DEBT['lp']}"],
+                     'layers': [{'level': {'mod': [{'amount': 6, 'src': 'vel'}, {'amount': 3, 'src': 'param.grit'}], 'value': '-16dB'}, 'wave': 'sine'},
+                                {'level': {'mod': [{'amount': 12, 'src': 'vel'}, {'amount': 14, 'src': 'param.grit'}], 'value': DEBT['octave']}, 'ratio': 2, 'wave': 'sine'}],
+                     'pitch': {'mod': [{'amount': 0.04, 'src': 'rand'}], 'value': 0}}}
 # ---- v14 (27 Nov): THE HAT RINGS ON THE LARGEST DEBT. One more switch (`--without-let`; off is v13 byte for byte).
 # Since v8 the hat is 'let ring' where what one purse pays is what another owes (MEET: 84 strokes, in both
 # purses and three purses). v12 found that it never rang: sc-open is a second stroke on the other side, 140 ms
@@ -451,6 +475,8 @@ def build():
                         continue
                     if ON['gap'] and ON['roll'] and bar in rolls() and beat == 3:   # v6: the last beat is the change's
                         continue
+                    if ON['bare'] and i + 1 < len(SECTIONS) and SECTIONS[i + 1][6] and not bass and bar == (i + 1) * SEC - 1:   # v15 BARE: the bar before the bass comes, the drum waits
+                        continue
                     if ON['bought'] and name in BOUGHT and bar - i * SEC >= SEC // 2 and (bar - i * SEC) % every == 0 and beat * 4 == at16 + sum(purses()[pairs[(bar - i * SEC) % len(pairs)]]):   # v11 BOUGHT: the beat is the purse's
                         continue
                     T['kick'].append({'at': bar * 4 + beat, 'len': 0.5, 'pitch': 'G1', 'vel': .95 if beat == 0 else .88})
@@ -531,10 +557,12 @@ def song():
         'master': {'fx': [{'type': 'eq', 'bands': ['hp cutoff=28']}]},
         'tracks': [{'name': 'kick', 'patch': 'sc-kick', 'gain': '-9dB', 'notes': T['kick'],
                     'fx': [{'type': 'eq', 'bands': ['peak cutoff=47 q=1.2 gain=-3dB', 'peak cutoff=130 q=0.9 gain=3dB']}]},
-                   {'name': 'bass', 'patch': 'sub-sine', 'gain': '-13dB', 'notes': T['bass'], 'fx': [under]}] +
+                   {'name': 'bass', 'patch': DEBT['patch'] if ON['octave'] else 'sub-sine', 'gain': '-13dB', 'notes': T['bass'], 'fx': [under]}] +
                   [{'name': f'seed-{k}', 'patch': 'sc-seed', 'gain': {'value': '-3dB', 'mod': [{'src': 'auto.alone', 'amount': 1}]}, 'auto': {'alone': alone()},
                     'notes': T[f'seed-{k}'], 'fx': ['clip drive=0dB ceiling=-12dB']} for k in purses()],   # the seed's highest sample is its own, not the limiter's
     }
+    if ON['octave']:                                             # v15 OCTAVE: the bass's own patch
+        doc['patches'] = {**doc['patches'], DEBT['patch']: SC_DEBT}
     if T.get('seed-z'):                                          # v8 ZENO: a seed of its own, and its change in shrinking coins: no loop, one echo a coin, the two pitches taking turns
         doc['tracks'].append({'name': 'seed-z', 'patch': 'sc-seed', 'gain': {'value': '-3dB', 'mod': [{'src': 'auto.alone', 'amount': 1}]}, 'auto': {'alone': alone()}, 'notes': T['seed-z'], 'fx': ['clip drive=0dB ceiling=-12dB']})
         r, n = ZENO['share'], ZENO['coins']
@@ -600,7 +628,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last one off is v13, the last three v12, the last five v11, the last seven v10, the last ten v9, the last thirteen v8, the last fifteen v7, the last seventeen v6, the last twenty-one v5, the last twenty-two v4, the last twenty-five v3, the last twenty-nine v2, all thirty-two v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v14, the last three v13, the last five v12, the last seven v11, the last nine v10, the last twelve v9, the last fifteen v8, the last seventeen v7, the last nineteen v6, the last twenty-three v5, the last twenty-four v4, the last twenty-seven v3, the last thirty-one v2, all thirty-four v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -652,6 +680,10 @@ if __name__ == '__main__':
         if ON['owed']:
             print(f'    where purses share a section the bass also plays what the others cannot pay, on {OWED}: ' + '; '.join(f"{name}: " + ', '.join(f"{k} {' '.join(str(s) for s in sorted(set(debts(*purses()[k])) | {s for j in pairs for s in debts(*purses()[j])}) if s % 4)}" for k in pairs) for name, pairs, *_ in SECTIONS if len(pairs) > 1))
         T = build()
+        if ON['bare']:
+            print('    the bar before the bass comes, the drum waits: ' + ', '.join(f'bar {(i + 1) * SEC}' for i, sec in enumerate(SECTIONS[:-1]) if SECTIONS[i + 1][6] and not sec[6] and sec[5]))
+        if ON['octave']:
+            print("    the bass has its octave: sc-debt, the second harmonic 9 dB under the note")
         print(f'{BARS} bars, {BARS * sec:.1f} s; written notes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items() if v or not k.startswith('long-')))
     else:
         a.out.write_text(dump(song()))
