@@ -94,6 +94,9 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v18 (13:59): both its ends are v17's to 0.2 dB (bars 1 to 8 by two -17.8 -17.8 -17.8 -17.8 dBFS; bar
+  184 -11.2; the tail by second -18.7 -33.7 -48.0 -61.3; highest sample -1.46). Inside: the big drum's ring is
+  turned (down on every off-beat), and the song is 0.6 to 0.8 dB lighter under 100 Hz against the album's shape.
 - Least Common v18 (13:38): both its ends are v17's to 0.1 dB (bars 1 to 4 -17.6 dBFS; the last four bars -17.4
   -17.4 -17.3 -17.0; 2 s after home -20.3; highest sample -1.49). Inside: 7.5 beats without bass, tone or knock
   before the last page (5:44 to 5:49), and the pings on the last page only.
