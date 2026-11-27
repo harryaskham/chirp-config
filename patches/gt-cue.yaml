@@ -1,0 +1,36 @@
+{
+ "about": "Give or Take's cue (chirper-zero, 27 Nov, v14): deck B's sixteenth click as a headphone held to one ear lets it out: the same 14 ms burst of noise, but between 1.8 and 7 kHz with a small speaker's ring at 3.2 kHz; dry, in one ear. BANKED by tools/patchbank.py (27 Nov 2026) from Give or Take v14 (track cue): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "curve": 5.0,
+   "d": "14ms",
+   "r": "8ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 1800,
+    "kind": "hp",
+    "q": 0.8
+   },
+   {
+    "cutoff": 3200,
+    "gain": "6dB",
+    "kind": "peak",
+    "q": 2
+   },
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}

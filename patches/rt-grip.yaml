@@ -1,0 +1,66 @@
+{
+ "about": "Ring True: the wood with a hand on its middle, as an equal-power pair (v12, after Wind Down's wd-grip). rt-wood, and a second bar two octaves up (the wood's second mode); each has its level on the stroke: expr.note (dB on the note, 0 with no hand) and expr.mode (dB over -40 on the second mode). BANKED by tools/patchbank.py (27 Nov 2026) from Ring True v12 (tracks wood, wood-room, wood-drop): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.6
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "curve": 1.0,
+   "d": "0s",
+   "r": "2.5s"
+  },
+  "layers": [
+   {
+    "bright": 0.75,
+    "decay": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ring"
+      }
+     ],
+     "value": 0.015
+    },
+    "level": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.note"
+      }
+     ],
+     "value": "0dB"
+    },
+    "modes": "bar",
+    "strike": 0.35,
+    "type": "modal"
+   },
+   {
+    "bright": 0.75,
+    "decay": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ring"
+      }
+     ],
+     "value": 0.015
+    },
+    "level": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.mode"
+      }
+     ],
+     "value": "-40dB"
+    },
+    "modes": "bar",
+    "semi": 24,
+    "strike": 0.35,
+    "type": "modal"
+   }
+  ]
+ }
+}

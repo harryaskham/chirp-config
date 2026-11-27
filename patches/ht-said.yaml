@@ -1,0 +1,17 @@
+{
+ "about": "Hearing Things' plain tone (chirper-zero, 27 Nov, v14): one sine, for saying aloud the tune that was between the ears. BANKED by tools/patchbank.py (27 Nov 2026) from Hearing Things v14 (track said): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "40ms",
+   "d": "0s",
+   "r": "120ms"
+  },
+  "layers": [
+   {}
+  ]
+ }
+}

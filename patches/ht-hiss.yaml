@@ -1,0 +1,21 @@
+{
+ "about": "Hearing Things' noise (chirper-zero, 27 Nov, v14): pink noise, held. One track of it goes to two buses, an ear each, so both ears have the same samples; the right ear's bus has an all-pass filter on it and nothing else. BANKED by tools/patchbank.py (27 Nov 2026) from Hearing Things v14 (track hiss): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "40ms",
+   "d": "0s",
+   "r": "60ms"
+  },
+  "layers": [
+   {
+    "color": "pink",
+    "type": "noise"
+   }
+  ]
+ }
+}
