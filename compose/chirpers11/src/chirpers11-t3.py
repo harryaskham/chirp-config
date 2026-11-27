@@ -347,6 +347,21 @@ each time (a mark is 20.4 m: what the air crosses in a thirty-second), out to 16
 air's knock (D6, on the right) lands on sixteenths 7 and 15 every time, quieter the further off; the
 steel's ring (D7, in the left ear, which is on the rail) comes before it: 56 ms before from the
 nearest mark, 444 ms before from the furthest, and hardly quieter. The rail has the news first.
+
+v24 (27 Nov): THE WHISPERING GALLERY (C11T3_GAL=0 takes it out: v23). Every wall in the song till now
+sent sound back ACROSS a room. A round wall does something else with a sound made close to it: the
+sound clings to the wall and goes ROUND, and hardly spreads (Rayleigh worked it out for St Paul's;
+in the Gol Gumbaz at Bijapur, 38 m across, a whisper is said to come back seven times). In the
+hall's first row (bars 113 to 120) the hall has such a gallery, 39 m across: 122.5 m round, which
+is three sixteenths at the speed of sound. Every two bars somebody a third of the way round
+whispers at the wall. Straight across (34 m) it is too faint to hear; by the wall it comes from
+the LEFT a sixteenth later (the short way) and from the RIGHT a sixteenth after that (the long
+way), and each comes round again every three sixteenths, seven times: left, right, nothing; left,
+right, nothing: three against the bar's four, and nobody wrote a rhythm: it is where you stand.
+The whisper is made half a sixteenth after the bar line, so every arrival falls between the
+song's own strokes (on them, the master swallowed it: read).
+It is the same 29 ms of hiss every time, sample for sample, falling 3 dB for every doubling of
+the way and 1.5 dB a lap.
 """
 import json
 import math
@@ -629,6 +644,21 @@ AIR_PARTS = ((1, 0), (2.756, -10))
 AIR_RING = "40ms"
 AIR_LAW = 0.5                                          # the air's knock falls as 1 over the distance to this power: 3 dB a doubling (a corridor keeps the sound in; open air would be 1: 6 dB)
 AIR_GAIN = os.environ.get("C11T3_AIR_GAIN", "-20dB")   # the air's knock: set in the whole song's master between two readings, BEFORE their scores were read: at -18dB 15 of the 16 rose 6 dB or more (8 to 40 dB over the music in their band), at -24dB 12 of 16 (2 to 35 over): the ones that did not begin were the far ones, and the far ones are the story. THE THREE THAT FALL WITH THE TOCK (bars 33 and 40 on 7, bar 36 on 15) ARE DELIVERED 13 TO 15 dB UNDER THE SAME KNOCK ELSEWHERE
+GAL = os.environ.get("C11T3_GAL", "1") != "0" and RAIL    # v24: the hall has a whispering gallery: a whisper at a round wall does not cross the room, it goes ROUND it, both ways, and round again (St Paul's; the Gol Gumbaz at Bijapur, 38 m across, where a whisper is said to come back seven times. Rayleigh 1878, Raman 1921)
+GAL_IN = ("standing room", 0)                          # the section and the row of it (from 0): the first row of the hall, which had only the standing wave
+GAL_LAP = 3                                            # sixteenths once round: 122.5 m of wall at 343 m/s: a gallery 39 m across (the Gol Gumbaz is 38)
+GAL_AT = 1 / 3                                         # where you stand: this much of the way round from the one who whispers, by the short way: the whisper comes from the LEFT after a third of a lap and from the RIGHT after two thirds, and again every lap: left, right, nothing; left, right, nothing: three against the bar's four, by geometry
+GAL_TIMES = 7                                          # times round, each way
+GAL_EVERY = 2                                          # bars between whispers
+GAL_ON = 0.5                                           # the sixteenth of the bar somebody whispers on: HALF A SIXTEENTH AFTER THE BAR LINE, so that every arrival falls BETWEEN the song's sixteenths. Read in the whole song's master with the whisper ON the bar line (two readings, -16 and -24dB): the arrivals that fell with the click, its echoes, the tock or the drum came out 10 to 18 dB under what was written (the second arrival 21.7 dB under the first for 3.5) and the ones on empty sixteenths came out as written, 30 to 39 dB over everything in their band: the gallery's pattern was not delivered. The whisper itself is not heard: straight across the room (34 m, as 1 over the distance) it is too faint: that is the gallery's whole trick
+GAL_LAW = 0.5                                          # the wall's wave spreads along the wall only: it falls as 1 over the distance to this power (3 dB a doubling, as the pipes' and the rail's do), where sound in the open falls 6
+GAL_LOSS = 1.5                                         # dB the wall takes a lap
+GAL_NOTE = "B4"                                        # the note the noise's register is clocked from (45.9 thousand steps a second): EVERY ARRIVAL IS THE SAME BURST, sample for sample: it is one whisper, coming round
+GAL_BAND = (3000, 7500)                                # Hz: a whisper is all hiss, and the wall carries the short waves best. Nothing over 10 kHz (asked for by chirper-one)
+GAL_LEN = 0.06                                         # beats a whisper lasts (29 ms), and 20 ms to die
+GAL_VEL = 0.9
+GAL_PAN = 0.8                                          # each way round, out to its side
+GAL_GAIN = os.environ.get("C11T3_GAL_GAIN", "-25dB")   # set in the whole song's master between two readings, BEFORE their scores were read: at -22dB 40 of the 56 arrivals stand 6 dB or more over everything else in their band and ear in their own 50 ms (the first -20.3 dBFS there, 39 dB over), at -28dB 31 (the first -26.3). THE MASTER STILL DOES NOT DELIVER THE FALL AS WRITTEN: against the first, the arrivals after a bass drum come 6 to 7 dB under what is written and the rest 1 to 6 under: the first arrival falls in the emptiest place in the bar
 AIR_PAN = 0.4                                          # the other ear
 RAIL_VEL = 0.8
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
@@ -958,6 +988,24 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def gal_row():
+    """The first bar of the row with the whispering gallery, or None."""
+    sec = next((x for x in SECS if x[0] == GAL_IN[0]), None)
+    return sec[1] + ROW * GAL_IN[1] if GAL and sec is not None and GAL_IN[1] * ROW < sec[2] else None
+
+
+def gal_arrivals():
+    """One tuple an arrival: (the whisper's number, side (-1 left: the short way round; 1 right), times round before it, the beat it is heard on, metres of wall behind it, dB against the first arrival)."""
+    b0, lap_m = gal_row(), GAL_LAP * STEP * 60 / BPM * SOUND
+    out = []
+    for w in range(ROW // GAL_EVERY):
+        at = (b0 + w * GAL_EVERY) * BEATS + GAL_ON * STEP
+        for k in range(GAL_TIMES):
+            for side, frac in ((-1, k + GAL_AT), (1, k + 1 - GAL_AT)):
+                out.append((w, side, k, at + frac * GAL_LAP * STEP, frac * lap_m, -20 * GAL_LAW * math.log10(frac / GAL_AT) - GAL_LOSS * (frac - GAL_AT)))
+    return sorted(out, key=lambda x: x[3])
 
 
 def rail_row():
@@ -1622,6 +1670,16 @@ def song():
                               "notes": [{"at": round(ai, 5), "len": 0.2, "pitch": AIR_NOTE, "vel": round(RAIL_VEL * 10 ** (adb / 20), 4)} for _, _, _, _, ai, _, adb in rl]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v23 the corridor has a handrail and your left ear is on it (bars {rail_row() + 1} to {rail_row() + ROW}). Somebody knocks on the rail further and further down the corridor, {rl[0][1]:.1f} m more each time, out to {max(m for _, m, *_ in rl):.0f} m and back. Every knock is heard twice: first through the steel (its ring, on the left: sound goes {RAIL_SPEED:g} m/s in steel), then through the air (an octave duller, on the right: {SOUND:g} m/s). The air's knocks are on the grid; the rings come {-max(rl_gap):.0f} ms before them from the nearest mark and {-min(rl_gap):.0f} ms before from the furthest: the gap is a ruler, {-max(rl_gap) / rl[0][1]:.2f} ms a metre (Biot measured the speed of sound in iron this way in 1808). Generated by")
         assert "From v23" in doc["about"]
+    if gal_row() is not None:
+        ga = gal_arrivals(); ga_lap = GAL_LAP * STEP * 60 / BPM * SOUND
+        PATCHES["sr-whisper"] = {"about": f"Standing Room's whisper (chirper-zero, 27 Nov, v24): {GAL_LEN * 60 / BPM * 1000:.0f} ms of hiss, {GAL_BAND[0]:g} to {GAL_BAND[1]:g} Hz, from the engine's chip noise with no chip's clock: a shift register begun from the same state at every note, so every arrival of it is THE SAME BURST, sample for sample, on every seed: one whisper, coming round the gallery again.",
+                                 "play": {"vel_sens": 0.5, "gate": 1}, "synth": {"layers": [{"type": "chip", "chip": {"kind": "noise", "clock": 0}}],
+                                 "filters": [f"hp cutoff={GAL_BAND[0]:g}"] + [f"lp cutoff={GAL_BAND[1]:g}"] * 3, "amp": {"a": "2ms", "d": "0s", "s": 1, "r": "20ms"}}}
+        for ga_nm, ga_side in (("gal-l", -1), ("gal-r", 1)):
+            doc["tracks"].append({"name": ga_nm, "patch": "sr-whisper", "gain": GAL_GAIN, "pan": ga_side * GAL_PAN,
+                                  "notes": [{"at": round(at, 5), "len": GAL_LEN, "pitch": GAL_NOTE, "vel": round(GAL_VEL * 10 ** (db / 20), 4)} for _, sd, _, at, _, db in ga if sd == ga_side]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v24 the hall has a whispering gallery (bars {gal_row() + 1} to {gal_row() + ROW}): a round wall {ga_lap / math.pi:.0f} m across, {ga_lap:.1f} m round: {GAL_LAP} sixteenths at the speed of sound. Every {GAL_EVERY} bars somebody a third of the way round whispers at the wall. A whisper at a round wall does not cross the room: it clings to the wall and goes round it, both ways: it reaches you from the left after a third of a lap and from the right after two thirds, and each comes round again every lap, {GAL_TIMES} times: left, right, nothing; left, right, nothing: three against the bar's four. It is the same burst of hiss every time, falling as the square root of the distance and {GAL_LOSS:g} dB a lap: {-min(db for _, _, _, _, _, db in ga):.0f} dB by the last. Generated by")
+        assert "From v24" in doc["about"]
     return doc
 
 
@@ -1678,6 +1736,9 @@ def echoes(a, b, n=16):
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
         sec = 60 / BPM * BEATS
+        if gal_row() is not None:
+            ga = gal_arrivals(); ga_lap = GAL_LAP * STEP * 60 / BPM * SOUND
+            print(f"the whispering gallery, bars {gal_row() + 1}-{gal_row() + ROW} ({int(gal_row() * sec) // 60}:{gal_row() * sec % 60:04.1f}): {ga_lap / math.pi:.1f} m across, {ga_lap:.1f} m round ({GAL_LAP} sixteenths) ; a whisper every {GAL_EVERY} bars on sixteenth {GAL_ON}, {GAL_TIMES} times round each way ; {GAL_BAND[0]:g} to {GAL_BAND[1]:g} Hz, {GAL_GAIN}, pan {GAL_PAN} ; the first whisper is heard on sixteenths (l left, r right; dB): " + " ".join(f"{(at - gal_row() * BEATS) / STEP:g}{'l' if sd < 0 else 'r'}({db:.1f})" for w, sd, _, at, _, db in ga if w == 0))
         if rail_row() is not None:
             rl = rail_knocks(); rl_b0 = rail_row()
             print(f"the corridor's handrail, bars {rl_b0 + 1}-{rl_b0 + ROW} ({int(rl_b0 * sec) // 60}:{rl_b0 * sec % 60:04.1f}): steel {RAIL_SPEED:g} m/s, air {SOUND:g} m/s ; a mark is {rl[0][1]:.2f} m (a thirty-second of air) ; the ring {RAIL_NOTE} ({RAIL_GAIN}, pan {RAIL_PAN}), the air's knock {AIR_NOTE} ({AIR_GAIN}, pan {AIR_PAN}) ; the steel keeps {RAIL_LOSS} dB a mark, the air falls as 1 over the distance to the power {AIR_LAW}")
