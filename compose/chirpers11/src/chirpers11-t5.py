@@ -348,6 +348,16 @@ click is late by a whole sixteenth of the pattern's own time and should seem to 
 For the next three bars the middle one is 60 ms later: 120 ms, then 60 ms: the same three
 strokes, the same two times the other way round, and it should sound uneven: long, short. One
 small click moves by 60 ms; nothing else. (The row's last bar is the rabbit's.)
+
+v26 (27 Nov): THE BASS THAT FALLS FOR EVER (C11T5_GLISS=0 takes it out: v25). The song has
+Shepard's tones as a hat, as stairs and as bells, each a step at a time. This is Risset's
+continuous one, and it is the song's first bass under 100 Hz that is not the drum: four plain
+tones an octave apart (at a bar line 27.5, 55, 110, 220 and 440 Hz: all A), all sliding down
+together, an octave every two bars, under one fixed curve of loudness that is nought at 27.5
+and at 440 Hz and greatest at 110. A tone that reaches the bottom has faded to nothing; a new
+one has come in from nothing at the top. Every tone falls the whole time, 48 semitones in the
+row by name; the curve does not move; and the sound at the end of the row is the sound at its
+beginning. In the second row of "held" (bars 113 to 120), which had no drum and no bass.
 """
 import json
 import math
@@ -672,6 +682,39 @@ def para_tones(p):
     return out
 
 
+def gliss_row():
+    """The first bar of the row with the bass that falls for ever, or None."""
+    sec = next((x for x in SECS if x[0] == GLISS_IN[0]), None)
+    return sec[1] + ROW * GLISS_IN[1] if GLISS and sec is not None and GLISS_IN[1] * ROW < sec[2] else None
+
+
+def gliss_legs(k):
+    """Tone k's legs in the row: (beat of the row it starts, beat it ends, octaves over GLISS_LOW at its start, at its end). It falls an octave every GLISS_PER bars; at the bottom (silent) it starts again from the top (silent)."""
+    per, end, out = GLISS_PER * BEATS, ROW * BEATS, []
+    t, p = 0.0, float(k + 1)
+    while t < end - 1e-9:
+        t1 = min(end, t + p * per)
+        out.append((t, t1, p, p - (t1 - t) / per))
+        t, p = t1, float(GLISS_OCTAVES)
+    return out
+
+
+def gliss_height(k, t):
+    """Octaves over GLISS_LOW of tone k at beat t of the row."""
+    for t0, t1, p0, p1 in gliss_legs(k):
+        if t0 <= t <= t1:
+            return p0 + (p1 - p0) * (t - t0) / (t1 - t0)
+    raise ValueError(t)
+
+
+def gliss_db(p, t):
+    """dB of a tone p octaves up the curve at beat t of the row: the curve (a raised cosine over GLISS_OCTAVES, nought at both ends) and the row's own coming in and going out."""
+    a = 0.5 - 0.5 * math.cos(2 * math.pi * p / GLISS_OCTAVES)
+    end = ROW * BEATS
+    a *= math.sin(math.pi / 2 * min(1.0, t / GLISS_FADE[0])) ** 2 * math.sin(math.pi / 2 * min(1.0, (end - t) / GLISS_FADE[1])) ** 2
+    return max(GLISS_FLOOR, 20 * math.log10(a)) if a > 0 else GLISS_FLOOR
+
+
 def shrink_row():
     """The first bar of the row with the two small clicks before every click, or None."""
     sec = next((x for x in SECS if x[0] == SHRINK_IN[0]), None)
@@ -893,6 +936,17 @@ SHRINK_PAN = 0.0                                       # where the song's click 
 SHRINK_EARLY = 1 / 220.0                               # seconds: the small click is WRITTEN this much early: one turn of its saw (A3), whose first edge comes a whole turn after the note starts. Read in the whole song's master before this was written: the small click's peak 6.1 ms after its written instant, the song's click's start 1.1 to 1.7 ms after its own: the second time was 115 ms for 120, and 55 for 60
 SHRINK_TOP = 7500.0                                    # Hz: the small click's top (two low-passes): the pair's own patch (`ht-two`) was tried first and 56 more of it put 0.1 dB into each of the three bands over 10 kHz (chirper-one has asked for nothing more there); its bottom at 2200 Hz for 700 was tried too and put 0.2 there and mended nothing
 SHRINK_GAIN = os.environ.get("C11T5_SHRINK_GAIN", "-7dB")   # the small click's fader; read in the whole song's master at -13 dB (the first of the two does not stand over the music: +1.4 and -2.9 dB) and at -7 (it stands 7.0 and 2.6 dB over it; the second 15 and 16; both 8 to 9 dB under the song's click): THIS ROW HAS NO HAT AND THE MASTER DELIVERS A SMALL CLICK AS WRITTEN (6 dB for 6)
+GLISS = os.environ.get("C11T5_GLISS", "1") != "0" and SHRINK   # v26: the bass that falls for ever (Shepard, 1964; Risset, 1969): plain tones an octave apart, all sliding down together under one fixed curve of loudness, silent at its two ends: each tone falls and falls, a new one comes in unheard at the top as one goes out unheard at the bottom, and the whole is always falling and never lower
+GLISS_IN = ("held", 1)                                 # the section and the row of it (from 0): a row with no drum and no bass
+GLISS_LOW = "A0"                                       # 27.5 Hz: the bottom of the curve, where a tone is silent
+GLISS_OCTAVES = 4                                      # the curve's width, and the number of tones: its top is 440 Hz, its loudest place two octaves up: A2, 110 Hz
+GLISS_PER = 2                                          # bars in which every tone falls an octave: four octaves in the row
+GLISS_FADE = (2.0, 2.0)                                # beats over which the whole comes in and goes out
+GLISS_STEP = 0.25                                      # beats between two points of a tone's loudness lane
+GLISS_GAP = 0.25                                       # beats before the bottom at which a tone's note is let go (it is 64 dB down by then)
+GLISS_FLOOR = -90.0                                    # dB: "silent"
+GLISS_PAN = 0.0
+GLISS_GAIN = os.environ.get("C11T5_GLISS_GAIN", "-36dB")     # each tone's fader at the curve's top; read in the whole song's master at -36dB and -30dB and set BEFORE either's score was read: at -36 the strongest tone is -24.2 dBFS (the master moves it between -26.4 and -21.5 with the row's clicks), the whole bass 7.5 dB under the row's other music and 12.6 dB over it at 35 to 125 Hz, where there was nothing; the row is 0.7 dB up. At -30 the row is 2.2 dB up and no longer the quiet one between its neighbours. The quiet one
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1370,6 +1424,25 @@ def song():
                               "notes": [{"at": round(at - SHRINK_EARLY * BPM / 60, 5), "len": 0.0625, "pitch": SHRINK_NOTE, "vel": SHRINK_VEL} for _, at, _, _ in shrink_clicks()]})      # dry, as the pair is
         doc["about"] = doc["about"].replace(" Generated by", f" From v25 every click of the third row of 'round the click' (from bar {shrink_row() + 1}) has two small clicks before it: three strokes, two empty times. For {SHRINK_SECOND[0][1]} bars the times are {(SHRINK_SECOND[0][0] - SHRINK_FIRST) * sh_ms:.0f} ms and then {(2 - SHRINK_SECOND[0][0]) * sh_ms:.0f} ms: the second twice the first, and (time-shrinking) heard as nearly the same: the click seems to come on time. For the next {SHRINK_SECOND[1][1]} the middle click is {(SHRINK_SECOND[1][0] - SHRINK_SECOND[0][0]) * sh_ms:.0f} ms later, the times are {(SHRINK_SECOND[1][0] - SHRINK_FIRST) * sh_ms:.0f} and {(2 - SHRINK_SECOND[1][0]) * sh_ms:.0f} ms, and they are heard as they are: long, short. Generated by")
         assert "From v25" in doc["about"]
+    if gliss_row() is not None:
+        gl_at, gl_end, gl_low = gliss_row() * BEATS, ROW * BEATS, hz(GLISS_LOW)
+        assert (GLISS_OCTAVES * GLISS_PER) % ROW == 0 or ROW % GLISS_PER == 0      # the row ends as it began
+        assert PATCHES["ht-kick"]["about"].count("but for eight bars.") == 1
+        PATCHES["ht-kick"] = dict(PATCHES["ht-kick"], about=PATCHES["ht-kick"]["about"].replace("but for eight bars.", f"but for eight bars of a plain bass and, from v26, eight of a bass that falls for ever (bars {gliss_row() + 1} to {gliss_row() + ROW})."))
+        PATCHES["ht-gliss"] = {"about": "Hearing Things' falling tone (chirper-zero, 27 Nov, v26): one plain tone, held; its note is drawn by its track's lane `auto.fall` (semitones over the written note) and its loudness by the track's `gain` on `auto.bell` (dB): one tone of the bass that falls for ever.",
+                               "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": ["sine phase=0"], "pitch": {"value": 0, "mod": [{"src": "auto.fall", "amount": 1}]}, "amp": {"a": "60ms", "d": "0s", "s": 1, "r": "60ms"}}}
+        for gl_k in range(GLISS_OCTAVES):
+            gl_legs = gliss_legs(gl_k)
+            gl_fall = [["0b", round(12 * gl_legs[0][2], 4)]]
+            for gl_t0, gl_t1, gl_p0, gl_p1 in gl_legs:
+                gl_fall += [[f"{gl_at + gl_t0:g}b", round(12 * gl_p0, 4)], [f"{gl_at + gl_t1 - (0.001 if gl_t1 < gl_end else 0):g}b", round(12 * gl_p1, 4)]]
+            gl_bell = [["0b", GLISS_FLOOR]] + [[f"{gl_at + gl_i * GLISS_STEP:g}b", round(gliss_db(gliss_height(gl_k, gl_i * GLISS_STEP), gl_i * GLISS_STEP), 2)] for gl_i in range(int(round(gl_end / GLISS_STEP)) + 1)]
+            doc["tracks"].append({"name": f"gliss-{gl_k + 1}", "patch": "ht-gliss", "gain": GLISS_GAIN, "pan": GLISS_PAN,
+                                  "auto": {"fall": {"points": gl_fall, "curve": 0}, "bell": {"points": gl_bell, "curve": 0}},
+                                  "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.bell", "amount": 1}]}}],
+                                  "notes": [{"at": gl_at + gl_t0, "len": round(gl_t1 - gl_t0 - GLISS_GAP, 5), "pitch": GLISS_LOW, "vel": 0.8} for gl_t0, gl_t1, _, _ in gl_legs]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v26 there is a bass in the second row of 'held' (bars {gliss_row() + 1} to {gliss_row() + ROW}), where there was no drum and no bass: {GLISS_OCTAVES} plain tones an octave apart, all sliding down together, an octave every {GLISS_PER} bars, under one fixed curve of loudness from {gl_low:g} to {gl_low * 2 ** GLISS_OCTAVES:g} Hz, loudest at {gl_low * 2 ** (GLISS_OCTAVES / 2):g} Hz and silent at both ends. Each tone goes out unheard at the bottom as a new one comes in unheard at the top. It is heard to fall the whole row: {12 * ROW // GLISS_PER} semitones by its tones; and at the end it is where it began (Shepard, 1964; Risset, 1969). Generated by")
+        assert "From v26" in doc["about"]
     return doc
 
 
@@ -1387,6 +1460,12 @@ def dump(doc):
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
         sec = 60 / BPM * BEATS
+        if gliss_row() is not None:
+            gl_b, gl_low = gliss_row(), hz(GLISS_LOW)
+            print(f"the bass that falls for ever ({GLISS_GAIN} a tone at the curve's top), bars {gl_b + 1}-{gl_b + ROW} ({int(gl_b * sec) // 60}:{gl_b * sec % 60:04.1f}): {GLISS_OCTAVES} plain tones an octave apart, each falling an octave every {GLISS_PER} bars ({12 / (GLISS_PER * sec):.2f} semitones a second) under one curve: {gl_low:g} to {gl_low * 2 ** GLISS_OCTAVES:g} Hz, loudest at {gl_low * 2 ** (GLISS_OCTAVES / 2):g} Hz, silent at both ends ; {12 * ROW // GLISS_PER} semitones down by its tones, and it ends where it began ; in and out over {GLISS_FADE[0]:g} and {GLISS_FADE[1]:g} beats")
+            for gl_bar in range(0, ROW + 1, max(1, GLISS_PER // 2)):
+                gl_t = min(gl_bar * BEATS, ROW * BEATS - 1e-6)
+                print(f"   bar {gl_b + gl_bar + 1}{' (the row after)' if gl_bar == ROW else ''}: " + " ".join(f"{gl_low * 2 ** gliss_height(k, gl_t):.1f} Hz {gliss_db(gliss_height(k, gl_t), ROW * BEATS / 2):+.1f} dB" for k in range(GLISS_OCTAVES)))
         if shrink_row() is not None:
             sh_ms = STEP * 60 / BPM * 1000; sh_b = shrink_row()
             print(f"time-shrinking ({SHRINK_GAIN}), bars {sh_b + 1}-{sh_b + sum(b for _, b in SHRINK_SECOND)} ({int(sh_b * sec) // 60}:{sh_b * sec % 60:04.1f}): two small clicks before every click (the click is on sixteenth 2 of the beat), the first on sixteenth {SHRINK_FIRST:g} ; " + " ; then ".join(f"{bars} bars with the second on sixteenth {second:g}: {(second - SHRINK_FIRST) * sh_ms:.0f} ms then {(2 - second) * sh_ms:.0f} ms" for second, bars in SHRINK_SECOND) + f" ; {len(shrink_clicks())} small clicks")
