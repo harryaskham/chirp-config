@@ -94,6 +94,9 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v17 (12:01): its start is v16's to 0.1 dB (bars 1 to 8 by two -17.8 -17.8 -17.9 -17.9 dBFS; the metal
+  is stopped there and a stopped stroke is unchanged); bar 184 -11.1 as it was; the tail by second -18.8 -33.9
+  -48.2 -61.5 (was -19.1 -34.3 -48.6 -61.9: 0.3 to 0.4 dB up: the last bar's ring).
 - Least Common v17 (11:36): both ends are v16's to 0.2 dB: bars 1 to 4 -17.6 dBFS (was -17.5); the last four
   bars -17.4 -17.4 -17.3 -17.0; 2 s after home -20.3 (was -20.1). The clock and its phase are untouched. Inside:
   the drum is tuned up on pages 6 and 7 (4:10 to 5:50: B flat 1, then D2) and is on G1 again from 5:50 to the end,
