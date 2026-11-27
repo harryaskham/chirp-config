@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Wind Down v17 (12:26): its first eight bars are 0.1 to 0.2 dB quieter (bars 1 to 8 by two -30.1 -30.3 -30.1
+  -30.1 dBFS, were -29.9 -30.2 -29.9 -30.0: the master's gain); the end within a dB by second (from 396 s -9 -21
+  -33 -44 -50 -71 -84 -96). Inside: in bars 129 to 144 the drum is tuned up a fifth (nothing of it under 66 Hz
+  there; the bass's sine at 36.7 Hz is the only thing below), and bar 145 has four notes of sine at 49 Hz.
 - Ring True v17 (12:01): its start is v16's to 0.1 dB (bars 1 to 8 by two -17.8 -17.8 -17.9 -17.9 dBFS; the metal
   is stopped there and a stopped stroke is unchanged); bar 184 -11.1 as it was; the tail by second -18.8 -33.9
   -48.2 -61.5 (was -19.1 -34.3 -48.6 -61.9: 0.3 to 0.4 dB up: the last bar's ring).
