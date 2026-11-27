@@ -313,6 +313,17 @@ now the tune is in them, because the ear knows what to listen for (Deutsch 1972,
 melody: a note's name is not enough to make a tune; its place is; but a tune you already hold can be
 checked against names alone). Nothing written differs between the first time and the third (the
 master delivers the same eight notes up to 2.5 dB apart).
+
+v23 (27 Nov): A HISS THAT REPEATS (C11T5_REP=0 takes it out: v22). Noise has no rhythm. But take a
+piece of noise and play it over and over and the ear finds things in it (a tick here, a swish
+there) that come round, and hears a pattern: a different one for each listener, and none of it
+written (Guttman and Julesz, 1963: down to once in a second or two). The row with no hat (bars 145
+to 152, where the drum is on the click) is given a hiss between 3 and 7.5 kHz, in the middle, at one
+level (alone: every stage within 0.1 dB of the others, its level moving 0.2 dB). For two bars it is a hiss that never repeats. Then it is a hiss of the same kind, as loud, in
+the same band, that is only 6 sixteenths long (two bars), then 3 (two bars), then one and a half (a
+bar): the engine's shift register, which holds 32767 steps and then begins again, clocked so that it
+comes round on those lengths. Three sixteenths against the beat's four: the master moves every hiss
+with the drum, once a beat, and this pattern is not once a beat. The last bar is left to the rabbit.
 """
 import json
 import math
@@ -637,6 +648,23 @@ def para_tones(p):
     return out
 
 
+def rep_row():
+    """The first bar of the row with the hiss that repeats, or None."""
+    sec = next((x for x in SECS if x[0] == REP_IN[0]), None)
+    return sec[1] + ROW * REP_IN[1] if REP and sec is not None and REP_IN[1] * ROW < sec[2] else None
+
+
+def rep_hz(sixteenths):
+    """The note (Hz) at which the register comes round every `sixteenths`: REP_STEPS steps, 93 to a turn."""
+    return REP_STEPS / (93 * sixteenths * STEP * 60 / BPM)
+
+
+def rep_note(sixteenths):
+    """(the nearest note's name, semitones from it) for rep_hz: the name is the note written, the rest is the patch's pitch."""
+    m = 69 + 12 * math.log2(rep_hz(sixteenths) / 440); k = round(m)
+    return ("C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B")[k % 12] + str(k // 12 - 1), m - k
+
+
 def tune_row():
     """The first bar of the row with the tune thrown across the octaves, or None."""
     sec = next((x for x in SECS if x[0] == TUNE_IN[0]), None)
@@ -779,6 +807,14 @@ TUNE_PHASES = ((0, True), (11, False), (22, True))     # (the beat of the row it
 TUNE_VEL = 0.8
 TUNE_PAN = -0.15                                       # where the song's own line of pips is
 TUNE_GAIN = os.environ.get("C11T5_TUNE_GAIN", "-13dB") # set in the whole song's master between two readings, nearer the louder: a tune needs every note, and the PLAIN one is where the music is fullest (196 to 330 Hz). At -12dB its quietest note stood 5 dB over the music in a band 12% wide round its tone (the thrown ones 8 to 29) and the music under the row was 0.12 dB down; at -18dB three plain notes were level with the music
+REP = os.environ.get("C11T5_REP", "1") != "0" and TUNE     # v23: a hiss that repeats (Guttman and Julesz, 1963): a rhythm heard in noise that has no rhythm in it, only a length
+REP_IN = ("round the click", 1)                        # the section and the row of it (from 0): the row that is bare of bells and has no hat
+REP_STEPS = 32767                                      # the hiss is a 15-bit shift register (the engine's `chip` noise, clock 0): it holds no more than this many steps and then begins again, exactly: 93 steps to a turn of the note it is played on
+REP_STAGES = ((0, 2, None), (2, 4, 6.0), (4, 6, 3.0), (6, 7, 1.5))   # (from bar, to bar of the row, the sixteenths after which the hiss comes round again; None: a hiss that never does (the engine's white noise)). 3 sixteenths against the beat's 4: the master's own pump is on the beat, and this is not. The row's last bar is left to the rabbit
+REP_BAND = (3000, 7500)                                # Hz: every stage through the same filters (nothing under 3 kHz: the click's bands are over-full)
+REP_TOP = 3                                            # low-passes in a row at the band's top. NOTHING NEW OVER 10 kHz (chirper-one's ask): with one low-pass at 9 kHz the scorer's bands at 10.8, 12.6 and 14.8 kHz rose 0.8 to 1.0 dB: a low-pass is a slope, not a wall. Three at 7.5 kHz are 22 dB down at 10.8 kHz
+REP_TRIM = {None: 0.0, 6.0: -4.6, 3.0: -1.7, 1.5: 1.3}  # dB by stage, read alone, so that every stage is as loud as the first in the band (a register clocked faster is spread wider: untrimmed the stages read +4.6, +1.7 and -1.3 dB against the hiss that never repeats)
+REP_GAIN = os.environ.get("C11T5_REP_GAIN", "-27dB")   # set in the whole song's master between two readings, BEFORE their scores were read: THE READINGS WERE TAKEN WITH THE FIRST BAND (3 to 9 kHz, one low-pass), where -28dB put the hiss at -30.3 dBFS (16 dB under the row) and -34dB at -36.3 (22 under), and -31dB was chosen (-33.3 dBFS); the band was then narrowed (REP_TOP), which takes 3.8 dB from the hiss alone, and the fader raised by that: THIS MASTER DELIVERS IT AS WRITTEN (6 dB of fader, 6 dB of hiss) and there is nothing else in its band between the drums (it stands 35 to 54 dB over the music there at either). AND THE MASTER PUMPS IT: every stage, the one that never repeats too, is 9 dB down in the 120 ms after each drum: a swell once a beat is in all of them and is the master's, not the noise's. That is why the loops are 3 sixteenths and not 4
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1212,6 +1248,21 @@ def song():
         tn_th = [name for t, name, thrown, i in tn if thrown][:8]; tn_pl = [name for t, name, thrown, i in tn if not thrown]
         doc["about"] = doc["about"].replace(" Generated by", f" From v22 a tune everybody knows is played with every note thrown to another octave, and is not known (bars {tune_row() + 1} to {tune_row() + ROW}, the first row of all three, which had nothing of its own): the half hour of the clock in Give or Take, the record's first song. First thrown about ({' '.join(tn_th)}: every NAME is right), then plainly ({' '.join(tn_pl)}), then thrown about again, the same eight notes as before: and now the tune is in them (Deutsch 1972). Generated by")
         assert "From v22" in doc["about"]
+    if rep_row() is not None:
+        rp_b0 = rep_row(); rp_off = {round(rep_note(x)[1], 4) for _, _, x in REP_STAGES if x}
+        assert len(rp_off) == 1, rp_off                         # the stages are octaves of one another: one patch serves them all
+        rp_fx = [f"hp cutoff={REP_BAND[0]}"] + [f"lp cutoff={REP_BAND[1]}"] * REP_TOP; rp_amp = {"a": "4ms", "d": "0s", "s": 1, "r": "4ms"}
+        PATCHES["ht-run"] = {"about": f"Hearing Things' hiss that never repeats (chirper-zero, 27 Nov, v23): the engine's white noise, held, {REP_BAND[0]} to {REP_BAND[1]} Hz. The other half of a pair: `ht-rep` is as loud, in the same band, and comes round.",
+                             "play": {"vel_sens": 0.5, "gate": 1}, "synth": {"layers": ["white"], "filters": rp_fx, "amp": rp_amp}}
+        PATCHES["ht-rep"] = {"about": f"Hearing Things' hiss that repeats (chirper-zero, 27 Nov, v23): the engine's chip noise with no chip's clock (`clock: 0`): a 15-bit shift register, {REP_STEPS} steps and then the same steps again, 93 steps to a turn of the note played, tuned {list(rp_off)[0]:+.4f} semitones so that on B5 it comes round every 3 sixteenths at {BPM}, on B4 every 6, on B6 every 1.5. Held, {REP_BAND[0]} to {REP_BAND[1]} Hz. There is no rhythm in it but its length.",
+                             "play": {"vel_sens": 0.5, "gate": 1}, "synth": {"layers": [{"type": "chip", "chip": {"kind": "noise", "clock": 0}}], "pitch": {"value": list(rp_off)[0]}, "filters": rp_fx, "amp": rp_amp}}
+        rp_vel = lambda x: round(0.7 * 10 ** (REP_TRIM[x] / 20), 4)
+        doc["tracks"].append({"name": "run", "patch": "ht-run", "gain": REP_GAIN, "pan": 0.0,
+                              "notes": [{"at": (rp_b0 + a0) * BEATS, "len": (a1 - a0) * BEATS, "pitch": "A4", "vel": rp_vel(x)} for a0, a1, x in REP_STAGES if x is None]})
+        doc["tracks"].append({"name": "rep", "patch": "ht-rep", "gain": REP_GAIN, "pan": 0.0,
+                              "notes": [{"at": (rp_b0 + a0) * BEATS, "len": (a1 - a0) * BEATS, "pitch": rep_note(x)[0], "vel": rp_vel(x)} for a0, a1, x in REP_STAGES if x is not None]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v23 there is a hiss in the row with no hat (bars {rp_b0 + 1} to {rp_b0 + max(a1 for _, a1, _ in REP_STAGES)}): for two bars a hiss that never repeats, then the same kind of hiss, as loud, in the same band, that is only {', '.join(f'{x:g}' for _, _, x in REP_STAGES if x)} sixteenths long and comes round and round. Nothing is struck and its level is not moved: but a noise that repeats is heard to have a pattern in it, each listener's own, and here the pattern is three against the beat's four, then six, then twelve (Guttman and Julesz, 1963). Generated by")
+        assert "From v23" in doc["about"]
     return doc
 
 
@@ -1229,6 +1280,9 @@ def dump(doc):
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
         sec = 60 / BPM * BEATS
+        if rep_row() is not None:
+            rp_b0 = rep_row()
+            print(f"a hiss that repeats ({REP_GAIN}), bars {rp_b0 + 1}-{rp_b0 + max(a1 for _, a1, _ in REP_STAGES)} ({int(rp_b0 * sec) // 60}:{rp_b0 * sec % 60:04.1f}): {REP_BAND[0]} to {REP_BAND[1]} Hz ; " + " ; ".join(f"bars {rp_b0 + a0 + 1}-{rp_b0 + a1}: " + ("never repeats" if x is None else f"comes round every {x:g} sixteenths ({x * STEP * 60 / BPM * 1000:.0f} ms, {(a1 - a0) * 16 / x:.1f} times; the register on {rep_note(x)[0]} {rep_note(x)[1]:+.4f} semitones, {rep_hz(x):.2f} Hz, {93 * rep_hz(x):.0f} steps a second; {REP_TRIM[x]:+.1f} dB)") for a0, a1, x in REP_STAGES))
         for name, b0, n, parts in SECS:
             print(f"{name:20s} bars {b0:3d}-{b0 + n:3d}  {int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int((b0 + n) * sec) // 60}:{(b0 + n) * sec % 60:04.1f}  " + ", ".join(p if w is None else f"{p} {w[0]}-{w[1]}" for p, w in parts.items()))
         row = risset()
