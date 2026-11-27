@@ -94,6 +94,11 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v16 (11:01): the whole song reads 0.2 dB louder (the master's gain: its bass is lower in three
+  sections): bars 1 to 16 by four -22.2 -23.1 -23.3 -20.4 dBFS (v15 -22.4 -23.4 -23.6 -20.6); the last sixteen
+  -24.1 -23.4 -23.0 -19.2 (v15 -24.3 -23.6 -23.1 -19.6); under 75 Hz the last sixteen are v15's (no bass there, so
+  nothing new meets Out of Step's low tones). Inside: the bass is on C2 and D2 (65, 73 Hz) in bars 97 to 112 and
+  129 to 160.
 - Wind Down v16 (10:33): its start is v15's to 0.1 dB (bars 1 to 8 by two -29.9 -30.2 -29.9 -30.0 dBFS) and its end
   within rounding (from 396 s by second -9 -20 -33 -44 -50 -71 -84 -95). Inside: bars 129 to 144 have a sine at
   36.7 Hz and up under the bass (-24 dBFS from 30 to 45 Hz, where the song reads -40 everywhere else): mind it if
