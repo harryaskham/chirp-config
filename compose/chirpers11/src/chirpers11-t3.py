@@ -270,6 +270,21 @@ WHY 60 AND NOT 50 (this country's mains): 100 and 150 Hz fall where the song alr
 fall in the two bands the scorer found short (its rows without a drum are empty there). That choice is the
 scorer's. AND WHY NOT A NOTE: the first build was the next song's note and its fifth (B flat and F), and it
 made this song's chroma like Least Common's (likeness 0.827 to 0.849, the edge is 0.85) at any level.
+
+v18 (27 Nov): THE PIPES WHISTLE (C11T3_WHISTLE=0 takes it out: v17). Clap at the mouth of a long concrete
+pipe under a road and what comes back from the far end is not a clap: it is a whistle that falls, "pyeow",
+and the second echo is a longer one (Crawford's culvert whistlers, 1971). The reason is in this song
+already: the click that goes straight down the pipe and back comes first; the click that glanced once off a
+wall has a little farther to go, twice a little farther still: the k-th comes back after hypot(there and
+back, k widths) / the speed of sound. So the clicks come thick at first and then thinner, and settle to one
+for every width: a note that falls from the top of hearing to the speed of sound over the width, which is
+the octave of the note the pipe already sings across itself. In "the pipes" each pipe is now 81.7 m long as
+well as its width across: the click comes back from the far end on each of the three beats after it, every
+time a slower fall (the n-th echo has n times as far to come), and each pipe's whistles fall towards that
+pipe's note: D3, F3, G3, A3, B flat, C4, D4, E4. Nothing is bent: every whistle is clicks (the stairs' tick,
+5 ms, on G4), each where the arithmetic puts it, on one dry track (`whistle`). You are stood beside the
+pipe's mouth, not in it: each arrival counts as the sine of the angle it comes out at (WHISTLE_SIDE). In the
+mouth the first arrivals, a millisecond apart, add up to a tick 25 dB over the whistle that follows it.
 """
 import json
 import math
@@ -503,6 +518,16 @@ TRIM_OUT = (152, 160)                                  # ... and goes out again:
 
 BALL = os.environ.get("C11T3_BALL", "1") != "0" and TRIM                        # v14: Zeno's ball
 NEXTROOM = os.environ.get("C11T3_NEXT", "1") != "0" and os.environ.get("C11T3_FLY", "1") != "0" and os.environ.get("C11T3_BIRD", "1") != "0" and BALL and SQUARE     # v17: the room next door (heard through its wall as you cross the square)
+WHISTLE = os.environ.get("C11T3_WHISTLE", "1") != "0" and NEXTROOM and PIPES_ON     # v18: the pipes whistle (culvert whistlers)
+WHISTLE_BEATS = 1                                      # beats from the click to the pipe's far end and back: the pipe is 81.7 m long
+WHISTLE_ECHOES = 3                                     # times the far end is heard: on the three beats after the click
+WHISTLE_END = -2.0                                     # dB the far end takes each time
+WHISTLE_WALL = -0.15                                   # dB a glance off the pipe's wall takes (rough concrete: 3 in a hundred)
+WHISTLE_SPREAD = 0.5                                   # what comes back falls as 1 over the distance to this power: a half, because the pipe's floor and roof keep the sound in (in the open it would be 1)
+WHISTLE_SIDE = 1.0                                     # where you stand: 1 beside the pipe's mouth, where what comes out is heard as the sine of the angle it comes out at (the click that came straight back goes straight past; the steep ways come out sideways); 0 in the mouth, where the echo's own tick was 25 dB over its whistle and as loud as the song's click
+WHISTLE_FLOOR = -36.0                                  # dB under the loudest: what comes back quieter is not sounded
+WHISTLE_NOTE = os.environ.get("C11T3_WHISTLE_NOTE", "G4")     # every arrival is the stairs' tick, 5 ms of a sine on this note: low, so that the whistle is heard and not the tick's own note (on E6 the tick rang at 1319 Hz through every whistle; on G4 the pitch read from the sound follows the arithmetic from 20 ms in)
+WHISTLE_GAIN = os.environ.get("C11T3_WHISTLE_GAIN", "-32dB")  # set in the whole song's master, which reads it 16 dB over a render of it alone in these bars and is linear at this level (at -38 dB nothing else moved by 0.001 dB): the first whistle 12 to 14 dB under the row
 NEXTROOM_MAINS = 60.0                                  # the mains, Hz, in the building you are walking to
 NEXTROOM_PARTS = (2, 3)                                # the multiples of the mains that reach you: twice (the transformer's own note) and three times
 NEXTROOM_NOTE = "A2"                                   # the note the held voice is written on (not what sounds: its tones are tuned from it to the mains)
@@ -781,6 +806,46 @@ def chirp_away(bar):
         if sec[1] + b0 <= bar < sec[1] + b1:
             return away * (60 / BPM / 4) * SOUND / 2
     return None
+
+
+def whistle_far():
+    """Metres from the click to the pipe's far end and back."""
+    return WHISTLE_BEATS * 60 / BPM * SOUND
+
+
+def whistle_arrivals(width, n, until):
+    """(seconds after the click, level) of what comes back the n-th time from the far end of a pipe `width` metres across, up to `until`
+    seconds after the click: the echo itself (k = 0), then the click by way of k glances off the walls (two ways for each k), which has farther to come."""
+    far, out, k = whistle_far(), [], 0
+    while True:
+        r = math.hypot(n * far, k * width)
+        if r / SOUND >= until:
+            return out
+        lv = (far / r) ** WHISTLE_SPREAD * 10 ** ((WHISTLE_END * (n - 1) + WHISTLE_WALL * k) / 20) * (0.5 if k == 0 else 1.0) * (k * width / r) ** WHISTLE_SIDE
+        out.append((r / SOUND, lv))
+        k += 1
+
+
+def whistle_heard(width, n, after):
+    """Hz heard `after` seconds into the n-th echo: one click for every width, seen from where the sound has got to."""
+    t0 = n * whistle_far() / SOUND
+    return SOUND / width / math.sqrt(1 - (t0 / (t0 + after)) ** 2)
+
+
+def whistle_pipes():
+    """Every pipe the click stands in: (its note, metres across, the bar)."""
+    return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def whistle_notes():
+    out, wp = [], whistle_pipes()
+    for i, (p, width, b) in enumerate(wp):
+        t = b * BEATS + CLICK_STEP * STEP                    # the click, in beats
+        until = (BEATS if i + 1 < len(wp) else BEATS - CLICK_STEP * STEP) * 60 / BPM    # a pipe is heard until the click is in the next one (the last, until the pipes end)
+        for n in range(1, WHISTLE_ECHOES + 1):
+            out += [(t + sec * BPM / 60, lv) for sec, lv in whistle_arrivals(width, n, until)]
+    top = max(lv for _, lv in out)                           # the loudest arrival of all is written 1; what is WHISTLE_FLOOR under it or quieter is not sounded
+    return [{"at": round(at, 6), "len": CHIRP_LEN, "pitch": WHISTLE_NOTE, "vel": round(lv / top, 4)} for at, lv in sorted(out) if lv / top >= 10 ** (WHISTLE_FLOOR / 20)]
 
 
 def stair_echoes(d):
@@ -1215,6 +1280,10 @@ def song():
                               "notes": [{"at": nx_b0 * BEATS, "len": (nx_b1 - nx_b0) * BEATS, "pitch": NEXTROOM_NOTE, "vel": 0.8}]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v17, as you walk away across the square, the building you are walking to is heard: its hum through its wall, {' and '.join(f'{nx_f:g}' for nx_f in nx_hz)} Hz, in no key, growing as you come ({nx_most:.1f} dB over the sixteen bars). Generated by")
         assert "From v17" in doc["about"]
+    if WHISTLE and whistle_pipes():
+        doc["tracks"].append({"name": "whistle", "patch": "sr-step", "gain": WHISTLE_GAIN, "pan": 0.0, "notes": whistle_notes()})     # dry: the pipe is the room
+        doc["about"] = doc["about"].replace(" Generated by", f" From v18 the pipes are {whistle_far() / 2:.0f} m long as well, and the click comes back from the far end on each of the three beats after it as a falling whistle, a slower fall each time (a culvert whistler: the clicks that glanced off the walls have farther to come), down towards the octave of the note that pipe sings. Generated by")
+        assert "From v18" in doc["about"]
     return doc
 
 
@@ -1271,6 +1340,11 @@ def echoes(a, b, n=16):
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
         sec = 60 / BPM * BEATS
+        if WHISTLE and whistle_pipes():
+            wh_p = whistle_pipes(); wh_bar = BEATS * 60 / BPM; wh_n = whistle_notes(); wh_t = [n_ * whistle_far() / SOUND for n_ in range(1, WHISTLE_ECHOES + 1)]
+            print(f"the pipes whistle, bars {wh_p[0][2] + 1}-{wh_p[-1][2] + 1} ({int(wh_p[0][2] * wh_bar) // 60}:{wh_p[0][2] * wh_bar % 60:04.1f}-{int((wh_p[-1][2] + 1) * wh_bar) // 60}:{(wh_p[-1][2] + 1) * wh_bar % 60:04.1f}): every pipe {whistle_far() / 2:.1f} m long ; the click (sixteenth {CLICK_STEP}) comes back from the far end after " + ", ".join(f"{1000 * x:.0f}" for x in wh_t) + f" ms (the next {WHISTLE_ECHOES} beats), {-WHISTLE_END:g} dB less each time, and as 1 over the distance to the power {WHISTLE_SPREAD:g} ; heard from beside the mouth (the sine of the angle: {WHISTLE_SIDE:g}) ; and by k glances off the walls after hypot(there and back, k widths) / {SOUND:g} ; a glance takes {-WHISTLE_WALL:g} dB ; {len(wh_n)} arrivals, each the stairs' tick on {WHISTLE_NOTE} ({WHISTLE_GAIN})")
+            for wh_note, wh_w, wh_b in wh_p:
+                print(f"   bar {wh_b + 1}: the pipe sings {wh_note} across, {wh_w:.3f} m ; its whistles fall towards {SOUND / wh_w:.1f} Hz ; heard 5 / 20 / 50 / 100 / 200 / 400 ms into the first: " + " ".join(f"{whistle_heard(wh_w, 1, x / 1000):.0f}" for x in (5, 20, 50, 100, 200, 400)) + " Hz ; into the third: " + " ".join(f"{whistle_heard(wh_w, 3, x / 1000):.0f}" for x in (5, 20, 50, 100, 200, 400)) + " ; loudest " + " / ".join((lambda arr: f"{1000 * (max(arr, key=lambda z: z[1])[0] - n_ * whistle_far() / SOUND):.0f} ms in at {whistle_heard(wh_w, n_, max(arr, key=lambda z: z[1])[0] - n_ * whistle_far() / SOUND):.0f} Hz")(whistle_arrivals(wh_w, n_, (BEATS if wh_b != wh_p[-1][2] else BEATS - CLICK_STEP * STEP) * 60 / BPM)[1:]) for n_ in range(1, WHISTLE_ECHOES + 1)))
         if NEXTROOM:
             nx_b0, nx_b1 = nextroom_span(); nx_hz = [NEXTROOM_MAINS * nx_k for nx_k in NEXTROOM_PARTS]; nx_bar = BEATS * 60 / BPM
             print(f"the building across the square hums, bars {nx_b0 + 1}-{nx_b1} ({int(nx_b0 * nx_bar) // 60}:{nx_b0 * nx_bar % 60:04.1f}-{int(nx_b1 * nx_bar) // 60}:{nx_b1 * nx_bar % 60:04.1f}): mains of {NEXTROOM_MAINS:g} to the second, heard through its wall at " + " and ".join(f"{nx_f:g} Hz ({-NEXTROOM_WALL * math.log2(nx_f / nx_hz[0]):+.1f} dB)" for nx_f in nx_hz) + f" (a wall keeps {NEXTROOM_WALL:g} dB an octave) ; one held voice, {NEXTROOM_GAIN} at the nearest ; it grows as 1 over the distance")
