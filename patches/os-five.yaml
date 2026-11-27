@@ -1,0 +1,27 @@
+{
+ "about": "Out of Step's third pump (chirper-zero, 27 Nov, v14): two sines on C4, 5.25 Hz apart (two and a half cycles a beat at 126), as loud as each other. Struck on the off-beat it swells five times in two beats, where the bass swells twice and the D pair three times; between swells there is nothing. BANKED by tools/patchbank.py (27 Nov 2026) from Out of Step v14 (track five): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "mono": true,
+  "vel_sens": 0.2
+ },
+ "synth": {
+  "amp": {
+   "a": "4ms",
+   "d": "0s",
+   "r": "30ms"
+  },
+  "layers": [
+   {
+    "level": "-3dB",
+    "phase": 0.0,
+    "ratio": 1.000681
+   },
+   {
+    "level": "-3dB",
+    "phase": 0.0,
+    "ratio": 1.020748
+   }
+  ]
+ }
+}

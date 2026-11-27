@@ -48,6 +48,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `ht-tick` | Hearing Things v1 (track tick) | Hearing Things' click (chirper-zero, 26 Nov): the machine's rim, 35 ms, on E5; on the off-beats from the first bar to the last. |
 | `ht-tick-t` | Hearing Things v12 (track tick) | Hearing Things' click with its two notes turned down (chirper-zero, 26 Nov, v12): `ht-tick`, and a narrow cut at E5 and at its third partial. The rim's snap is as it was. |
 | `ht-two` | Hearing Things v13 (track two) | Hearing Things' pair (chirper-zero, 26 Nov, v13): a small dry wooden click with no noise in it, so that two of them are the same click to the sample: a saw from phase nought with everything under 700 Hz taken off, 16 ms.… |
+| `ht-wes` | Hearing Things v15 (tracks wes-a, wes-b) | Hearing Things' two hands (chirper-zero, 27 Nov, v15): a short pip, a saw through two low-pass stages that the lane `apart` opens (0: 1000 Hz, nearly a plain tone; 1: 11.3 kHz, a buzz). Two tracks play it turn about; whi… |
 | `lc-chord` | Least Common v1 (track chord) | Least Common: what three clicks make when they meet. A short filtered chord for a delay to carry. |
 | `lc-clap` | Least Common v1 (track clap) | Least Common: two and four. The drum machine's clap, short. |
 | `lc-hat` | Least Common v1 (track hat) | Least Common: the off beat. The drum machine's hat, closed. |
@@ -67,6 +68,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `os-clap` | Out of Step v1 (track clap) | Out of Step's clap (chirper-zero, 26 Nov): the machine's clap, three bursts, short, dry. |
 | `os-click` | Out of Step v1 (tracks a, b) | Out of Step's click (chirper-zero, 26 Nov): five cycles of a saw on G3 dying in 22 ms, lifted 9 dB round 9 kHz, started at the same point of its wave every time, through a low-pass that both clicks share (it opens with t… |
 | `os-comp` | Out of Step v2 (track c) | Out of Step's third click (chirper-zero, 26 Nov, v2): the complement's. Two cycles of a saw on G5 dying in 12 ms, above 3 kHz, lifted 8 dB round 10 kHz: small and bright, so that it is heard as the holes being filled and… |
+| `os-five` | Out of Step v14 (track five) | Out of Step's third pump (chirper-zero, 27 Nov, v14): two sines on C4, 5.25 Hz apart (two and a half cycles a beat at 126), as loud as each other. Struck on the off-beat it swells five times in two beats, where the bass … |
 | `os-hat` | Out of Step v1 (track hat) | Out of Step's hat (chirper-zero, 26 Nov): the machine's hat, 45 ms, on the off-beats once the two clicks are home. |
 | `os-held` | Out of Step v13 (track held) | Out of Step's click, held (chirper-zero, 26 Nov, v13): a saw from phase nought on the click's note with the click's own high-pass (nothing under 500 Hz) and the top rounded at 6 kHz. It is the note the roll arrives at, a… |
 | `os-kick` | Out of Step v1 (track kick) | Out of Step's bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, on G1. |
@@ -81,6 +83,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `sc-hat` | Small Change v2 (track hat) | Small Change: the hat that plays what can be paid. The machine's hat, 30 ms, above 6 kHz. |
 | `sc-kick` | Small Change v1 (track kick) | Small Change: the drum. The machine's bass drum on G, short. |
 | `sc-open` | Small Change v8 (track open) | Small Change: the hat let ring, where what one purse can pay is what another owes (v8). The machine's hat, 140 ms, above 5 kHz. |
+| `sc-rung` | Small Change v12 (track rung) | Small Change: the hat that rings on the purse's sum where it falls off the beat (v12). sc-open's hat with a decay of 1.2 s (6 dB a sixteenth), held three sixteenths and stopped, above 5 kHz. |
 | `sc-seed` | Small Change v1 (tracks seed-a, seed-b, seed-c) | Small Change: the seed. One vibraphone bar with no motor, short, with two milliseconds of noise on its front (a click that the coins carry too): the only struck note in the song. |
 | `sr-ball` | Standing Room v14 (track ball) | Standing Room's ball (chirper-zero, 27 Nov, v14): a small hard ball on a hard floor: a sine on A6 and a breath of noise with everything under 700 Hz taken off, gone in 22 ms. Its loudness goes as the square of the veloci… |
 | `sr-chord` | Standing Room v1 (track chord) | Standing Room's dub chord (chirper-zero, 26 Nov): three saws and a square through a short filter envelope, dry; its space is the bus `dub`, a dotted-eighth echo whose feedback breathes. |
