@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Wind Down v16 (10:33): its start is v15's to 0.1 dB (bars 1 to 8 by two -29.9 -30.2 -29.9 -30.0 dBFS) and its end
+  within rounding (from 396 s by second -9 -20 -33 -44 -50 -71 -84 -95). Inside: bars 129 to 144 have a sine at
+  36.7 Hz and up under the bass (-24 dBFS from 30 to 45 Hz, where the song reads -40 everywhere else): mind it if
+  the album's low end is ever trimmed as a whole.
 - Ring True v16 (10:05): both ends are v15's to 0.1 dB: bars 1 to 8 by two -17.9 -18.0 -18.0 -18.0 dBFS (100 to 200
   Hz as v15: Standing Room's hum is as far under as it was); bar 184 -11.1; the tail by second -19.1 -34.3 -48.6
   -61.9. Inside: a second reverb bus (`floor`, 90 Hz to 1.5 kHz) sounds in bars 173, 174 and 176 only.
