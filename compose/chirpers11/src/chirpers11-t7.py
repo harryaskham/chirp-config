@@ -379,6 +379,16 @@ bass's G and nothing under them. For two bars every harmonic starts on its sine:
 period, and the note is a low buzz on G. Then every second note has its even harmonics a
 quarter turn on: two pulses a period, and it is heard an octave up. The two notes have the
 same harmonics at the same strengths: the off-beat octaves of a house bass, made of one note.
+
+v28 (27 Nov): TWO SAWS OUT OF STEP (C11T7_SAWS=0 takes it out: v27). A pulse wave is two
+sawtooths: one the right way up, one upside down and a little late. In step they are nothing
+at all; the later the second, the wider the pulse; half a wave late it is a square, with every
+even harmonic gone and every odd one doubled. In the second row of "home" a sawtooth on C3 is
+held, a bar at a time. In the second bar the same sawtooth is added to it upside down, and the
+sound goes: one and one is nothing. Then the second saw is slid late, 1/16, 1/4 and 1/2 of a
+wave, a bar each: a thin reed opens into a hollow square; and back, 1/4, 1/16, and in the last
+bar in step again: home, and nothing. No note, level or harmonic of either saw changes: only
+the phase between them.
 """
 import json
 import math
@@ -731,6 +741,14 @@ ALT_AT = 0.5                                           # the place in every beat
 ALT_LEN = 0.5                                          # beats a note lasts: to the next beat
 ALT_PLAIN = 2                                          # bars at the row's start in which every note is the low one; after them every second note is the other
 ALT_GAIN = os.environ.get("C11T7_ALT_GAIN", "-52dB")   # both tracks. Read in the whole song's master at -50dB and -56dB (the new less the old at 1100 to 2800 Hz; this master gives the part 18.5 dB more than a render of it alone): a note -29.9 and -35.9 dBFS, where the old music under the notes is -33.4 to -35.8: set between, 2 to 4 dB over the old music, before any score was read
+SAWS = os.environ.get("C11T7_SAWS", "1") != "0" and ALT   # v28: TWO SAWS OUT OF STEP: a sawtooth and the same sawtooth upside down are nothing at all when they are in step; slide the second a little late and what is left is a pulse, as wide as the slide: a pulse wave IS two sawtooths out of step. Harmonic n of the pair is 2 sin(pi n w) times the one saw's (w the slide in waves): at half a wave every even harmonic is gone and every odd one doubled: a square. The row goes from one saw, to nothing, to a square, and no note changes: only the second saw's phase
+SAWS_IN = ("home", 1)                                  # the section and its row (from 0): the second row of home, bars 97 to 104: in "home" the clicks are in step; so are the saws (and cancel), they go half a wave out of step and come home
+SAWS_NOTE = "C3"                                       # 130.8 Hz: the fourth over the bass's G; the song is short at 133 Hz (its first harmonic) and full from 1200 Hz. (C2 with 16 harmonics was benched first: the same harmonics would have stood 6 dB lower against the note, 20 dB under the row's music at 400 to 1000 Hz, and the pulse's change of colour is in them)
+SAWS_HARMS = 8                                         # harmonics of each saw, each at 1/n: up to 1047 Hz
+SAWS_STEPS = (None, 0.0, 1 / 16, 1 / 4, 1 / 2, 1 / 4, 1 / 16, 0.0)   # a bar each: None: the first saw alone; else the second saw sounds too, upside down and this part of a wave late: out to half a wave (a square) and home again: in the last bar they are in step once more, and gone. (The first form went one way, to the square in the last bar, (None, 0, 1/32, 1/16, 1/8, 1/4, 3/8, 1/2), and was read and scored: the square stopped dead on the first bar of "drifts")
+SAWS_AT = 0.5                                          # the beat of the bar on which a note begins (with the bass and the two-three-five)
+SAWS_LEN = 3.9                                         # beats it is held
+SAWS_GAIN = os.environ.get("C11T7_SAWS_GAIN", "-36dB")   # every track of the pair. Meant before any reading: the one saw about -26 dBFS in the master (14 dB under the row). The bench (the row alone at -20 dB): the one saw -27.2 dBFS. Read in the whole song's master at -30dB and -36dB (seed 0), BEFORE any score: the one saw -20.4 and -26.1 dBFS (this master lifts it 17 dB), the square -15.8 and -21.4: -36dB is the level meant
 SING = os.environ.get("C11T7_SING", "1") != "0" and os.environ.get("C11T7_VERN", "1") != "0" and os.environ.get("C11T7_FIVE", "1") != "0" and JET      # v16: the clicks sing (every phase set to nought)
 SING_IN = ("slips", 24, 32)                                          # the section, and the bars of it: the bare row between the vernier and the hat
 SING_OF = "a-ear"                                                    # whose strokes: A's, as they are in those bars
@@ -974,6 +992,24 @@ def swarm_ticks():
 
 
 _HUM_MEMO = {}
+
+
+def saws_row():
+    """The first bar (from 0) of the row with the two saws, or None."""
+    sec = next((x for x in SECS if x[0] == SAWS_IN[0]), None)
+    return sec[1] + ROW * SAWS_IN[1] if SAWS and sec is not None and SAWS_IN[1] * ROW < sec[2] else None
+
+
+def saws_layers(late):
+    """The sine layers of a sawtooth of SAWS_HARMS harmonics (harmonic n at 1/n). late None: the saw itself; else the same saw upside down and `late` of a wave late: harmonic n half a turn on, less n times `late`."""
+    return [f"sine phase={0 if late is None else (0.5 - n * late) % 1:.6f} ratio={n} level={-20 * math.log10(n):.3f}dB" for n in range(1, SAWS_HARMS + 1)]
+
+
+def saws_model(late):
+    """(harmonic n of the pair against the one saw's, dB, for n = 1..SAWS_HARMS; the pair's level against one saw, dB). A harmonic that is gone is None."""
+    g = [2 * abs(math.sin(math.pi * n * late)) for n in range(1, SAWS_HARMS + 1)]
+    tot = sum((x / n) ** 2 for n, x in enumerate(g, 1)) / sum(1 / n ** 2 for n in range(1, SAWS_HARMS + 1))
+    return [None if x < 1e-9 else 20 * math.log10(x) for x in g], (None if tot < 1e-12 else 10 * math.log10(tot))
 
 
 def alt_row():
@@ -1647,6 +1683,21 @@ def song():
             doc["tracks"].append({"name": al_name, "patch": al_patch, "gain": ALT_GAIN, "pan": 0.0, "notes": [{"at": t, "len": ln, "pitch": ALT_NOTE, "vel": 0.8} for t, ln in al_ns]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v27 there is an octave by phase alone (bars {alt_row() + 1} to {alt_row() + ROW}, the first row of home): one note on every off beat, harmonics {ALT_HARMS[0]} to {ALT_HARMS[1]} of the bass's {ALT_NOTE} and nothing under them. For {ALT_PLAIN} bars every harmonic starts on its sine and the wave pulses once a period; after that every second note has its even harmonics a quarter turn on, pulses twice a period, and is heard an octave up: {len(al_lo)} notes and {len(al_hi)}, the same harmonics at the same strengths in both. Generated by")
         assert "From v27" in doc["about"]
+    if saws_row() is not None:
+        assert len(SAWS_STEPS) == ROW and SAWS_STEPS[0] is None and all(x is not None for x in SAWS_STEPS[1:])
+        sw_f = hz(SAWS_NOTE)
+        sw_amp = {"a": "20ms", "d": "0s", "s": 1, "r": "40ms"}
+        PATCHES["os-saw-a"] = {"about": f"Out of Step's first saw (chirper-zero, 27 Nov, v28): a sawtooth made of its first {SAWS_HARMS} harmonics, each a sine started at nought, harmonic n at 1/n ({sw_f:.1f} to {SAWS_HARMS * sw_f:.0f} Hz on {SAWS_NOTE}); held.",
+                               "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": saws_layers(None), "amp": sw_amp}}
+        doc["tracks"].append({"name": "saw-a", "patch": "os-saw-a", "gain": SAWS_GAIN, "pan": 0.0, "notes": [{"at": (saws_row() + k) * BEATS + SAWS_AT, "len": SAWS_LEN, "pitch": SAWS_NOTE, "vel": 0.8} for k in range(ROW)]})
+        for sw_k, sw_late in enumerate(SAWS_STEPS):
+            if sw_late is None:
+                continue
+            PATCHES[f"os-saw-b{sw_k}"] = {"about": f"Out of Step's second saw, bar {sw_k + 1} of its row (chirper-zero, 27 Nov, v28): the first saw upside down and {sw_late:g} of a wave late ({1000 * sw_late / sw_f:.2f} ms): harmonic n half a turn on, less n times {sw_late:g}. With the first saw it leaves a pulse {100 * sw_late:g}% of the wave wide.",
+                                          "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": saws_layers(sw_late), "amp": sw_amp}}
+            doc["tracks"].append({"name": f"saw-b{sw_k}", "patch": f"os-saw-b{sw_k}", "gain": SAWS_GAIN, "pan": 0.0, "notes": [{"at": (saws_row() + sw_k) * BEATS + SAWS_AT, "len": SAWS_LEN, "pitch": SAWS_NOTE, "vel": 0.8}]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v28 two saws are out of step (bars {saws_row() + 1} to {saws_row() + ROW}, the second row of home): a sawtooth on {SAWS_NOTE} ({sw_f:.1f} Hz, {SAWS_HARMS} harmonics) is held a bar at a time; from the second bar the same sawtooth sounds with it, upside down: bar by bar the second is " + ", ".join("in step (the two are nothing)" if x == 0 else (f"1/{round(1 / x)}" if abs(1 / x - round(1 / x)) < 1e-9 else f"{x:g}") + " of a wave late" for x in SAWS_STEPS[1:]) + ", and what is left is a pulse as wide as the second is late: at half a wave a square, every even harmonic gone. No note changes: only the second saw's phase. Generated by")
+        assert "From v28" in doc["about"]
     return doc
 
 
@@ -1676,6 +1727,14 @@ def lock(k):
 if __name__ == "__main__":
     if os.environ.get("C11T7_SHOW"):
         sec = 60 / BPM * BEATS
+        if saws_row() is not None:
+            sw_f = hz(SAWS_NOTE)
+            print(f"two saws out of step ({SAWS_GAIN}), bars {saws_row() + 1}-{saws_row() + ROW} ({int(saws_row() * sec) // 60}:{saws_row() * sec % 60:04.1f}): a sawtooth on {SAWS_NOTE} ({sw_f:.2f} Hz), harmonics 1 to {SAWS_HARMS} ({SAWS_HARMS * sw_f:.0f} Hz), a note a bar from beat {SAWS_AT} held {SAWS_LEN} beats")
+            for sw_k, sw_late in enumerate(SAWS_STEPS):
+                if sw_late is None:
+                    print(f"   bar {saws_row() + sw_k + 1}: the first saw alone"); continue
+                sw_g, sw_tot = saws_model(sw_late)
+                print(f"   bar {saws_row() + sw_k + 1}: the second saw upside down, {sw_late:g} of a wave late ({1000 * sw_late / sw_f:.2f} ms): " + ("nothing is left" if sw_tot is None else f"a pulse {100 * sw_late:g}% wide, {sw_tot:+.1f} dB against the one saw ; harmonics 1 to 8 against the one saw's, dB: " + " ".join("gone" if x is None else f"{x:+.1f}" for x in sw_g[:8]) + " ; gone: " + (" ".join(str(n) for n, x in enumerate(sw_g, 1) if x is None) or "none")))
         if alt_row() is not None:
             al_lo, al_hi = alt_notes(); al_f = hz(ALT_NOTE)
             print(f"an octave by phase alone ({ALT_GAIN}), bars {alt_row() + 1}-{alt_row() + ROW} ({int(alt_row() * sec) // 60}:{alt_row() * sec % 60:04.1f}): harmonics {ALT_HARMS[0]} to {ALT_HARMS[1]} of {ALT_NOTE} ({al_f:.2f} Hz: {ALT_HARMS[0] * al_f:.0f} to {ALT_HARMS[1] * al_f:.0f} Hz), a note on every off beat, {ALT_LEN:g} of a beat long ; {len(al_lo)} with every harmonic a sine (a pulse every {1000 / al_f:.1f} ms: heard on {ALT_NOTE}) ; {len(al_hi)} with the even harmonics a quarter turn on (a pulse every {500 / al_f:.1f} ms: heard an octave up), every second note from bar {alt_row() + ALT_PLAIN + 1}")
