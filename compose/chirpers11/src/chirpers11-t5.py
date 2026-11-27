@@ -376,6 +376,15 @@ as hard: threes against the drum's fours. Then they are all alike again for four
 accent is heard there (the threes going on for a while, or fours with the drum) is the ear's.
 The ticks are made alike where they are heard: the master takes more from a tick that falls
 with the drum or the click, and each place in the bar is given back what it loses.
+
+v29 (27 Nov): A TUNE OF HOLES (C11T5_HOLE=0 takes it out: v28). The ear gets used to what
+goes on and hears what is new (auditory enhancement). In the last row of "not there" a chord
+of eight plain tones, every tone as loud as every other, sounds sixteen times, the same every
+time. Before each it is heard for a beat with one tone left out; the drum falls; then the
+whole chord. In the whole chord the tone that was left out stands out as a note of its own,
+though it is no louder than the rest. The tones left out are the tune that is in neither ear
+(bars 121 to 128), two octaves up: so a tune is heard in a chord that never changes: the
+third way the song plays it without playing it.
 """
 import json
 import math
@@ -698,6 +707,30 @@ def para_tones(p):
         if level >= PARA_FLOOR:
             out.append((PARA_APART ** k, f, level))
     return out
+
+
+def hole_row():
+    """The first bar (from 0) of the row with the tune of holes, or None."""
+    sec = next((x for x in SECS if x[0] == HOLE_IN[0]), None)
+    return sec[1] + ROW * HOLE_IN[1] if HOLE and sec is not None and HOLE_IN[1] * ROW < sec[2] else None
+
+
+def hole_tune():
+    """The tune's notes, one for every HOLE_BEATS beats of the row: the tune that is in neither ear (HUG_TUNE), HOLE_UP octaves up, round and round."""
+    n = ROW * BEATS // HOLE_BEATS
+    out = [f"{p[:-1]}{int(p[-1]) + HOLE_UP}" for p in (HUG_TUNE[k % len(HUG_TUNE)] for k in range(n))]
+    assert all(p in HOLE_CHORD for p in out), out
+    return out
+
+
+def hole_notes():
+    """(the chords with a hole, the whole chords), each [(beat, length, note)]: for every note of the tune the chord without it, then the whole chord."""
+    pre, full = [], []
+    for k, miss in enumerate(hole_tune()):
+        t = hole_row() * BEATS + k * HOLE_BEATS
+        pre += [(t + HOLE_PRE[0], HOLE_PRE[1], p) for p in HOLE_CHORD if p != miss]
+        full += [(t + HOLE_FULL[0], HOLE_FULL[1], p) for p in HOLE_CHORD]
+    return pre, full
 
 
 def alike_row():
@@ -1032,6 +1065,14 @@ ALIKE_NOTE = "E8"                                      # 5274 Hz: the song's spe
 ALIKE_VEL = 0.5                                        # the velocity of a tick that needs no trim (the patch's loudness goes as velocity squared): room for +12 dB
 ALIKE_TRIM = tuple(float(x) for x in os.environ.get("C11T5_ALIKE_TRIM", "-0.5,-3.5,5.5,1,2.5,-3,4.5,-1,-1,-4,5,0.5,3.5,-3,4,-1.5").split(","))   # dB by sixteenth of the bar: what the master takes from a tick there, given back, so that the ticks are alike WHERE THEY ARE HEARD. Read in the whole song's master with no trims (C11T5_ALIKE_TRIM=0,0,... at -24dB): the ticks written alike came out 9.1 dB apart (nine in ten of them): a tick with the click (sixteenths 2, 6, 10, 14) 7 to 9 dB under one a sixteenth after the drum (1, 5, 9, 13), the same in every bar to under 1 dB (to 4 where the clap is)
 ALIKE_GAIN = os.environ.get("C11T5_ALIKE_GAIN", "-22dB")   # both tracks. Read in the whole song's master at -24dB (no trims): the middle tick's top -33.9 dBFS at 4 to 7 kHz, where the old music's top at a tick's instant is -33.7 in the middle: set 2 dB over that, before any score was read
+HOLE = os.environ.get("C11T5_HOLE", "1") != "0" and ALIKE   # v29: A TUNE OF HOLES (auditory enhancement: Viemeister 1980; Viemeister and Bacon 1982): the same chord of plain tones sounds again and again, every tone as loud as every other; before each, the chord is heard with ONE tone left out. In the whole chord that follows, the tone that was missing stands out as a note of its own, though it is no louder than the rest: the ear has got used to the others. The notes left out are the song's tune (the one that is in neither ear, bars 121 to 128), so the tune is heard in a chord that never changes
+HOLE_IN = ("not there", 2)                             # the section and its row (from 0): bars 97 to 104: the section about what is heard and is not in the sound; its last row had nothing of its own
+HOLE_CHORD = ("E6", "G6", "A6", "C7", "D7", "E7", "G7", "A7")   # the chord: 1319 to 3520 Hz, where the song has room (2631 to 4930 Hz are within 2 dB of the middle) and the row is quiet between its strokes; no two tones nearer than a tone
+HOLE_UP = 2                                            # octaves the tune is taken up to lie in the chord
+HOLE_BEATS = 2                                         # beats to a note of the tune, as in "in the noise"
+HOLE_PRE = (0.0, 1.0)                                  # the chord with the hole: where in the note's beats it starts, and how long (beats): 480 ms, long enough for the ear to get used to it
+HOLE_FULL = (1.25, 0.5)                                # the whole chord: a sixteenth after the second beat (the drum falls in the gap between the two), half a beat long
+HOLE_GAIN = os.environ.get("C11T5_HOLE_GAIN", "-54dB")   # both tracks. Meant before any reading: each tone about -44 dBFS in the master (the row's own music between its strokes is at -47 to -60 dBFS in a sixth of an octave round each). The bench (the row alone at -20 dB): each tone -26.0 dBFS. Read in the whole song's master at -50dB and -56dB (seed 0), BEFORE any score: each tone -39.9 and -45.9 dBFS in the whole chords (this master lifts them 16 dB), the whole chord -32.8 and -38.8, the old music at 1250 to 3700 Hz in the same windows -32.0: -54dB is the level meant
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1547,6 +1588,14 @@ def song():
             doc["tracks"].append({"name": ak_name, "patch": "ht-alike", "gain": ALIKE_GAIN, "pan": 0.0, "notes": [{"at": t, "len": 0.1, "pitch": ALIKE_NOTE, "vel": v} for t, v in ak_ns]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v28 there is an accent that is not there (bars {alike_row() + 1} to {alike_row() + ROW}, the last row of 'turned around'): a small tick on every sixteenth, {len(ak_all)} of them, every one the same where it is heard. For " + ", then for ".join(f"{b} bars " + (f"every {('', '', 'second', 'third', 'fourth', 'fifth')[n]} one is struck twice as hard (6 dB)" if n else "they are all alike") for b, n in ALIKE_FORM) + f": {len(ak_two)} ticks are struck twice. Ticks that are all alike are not heard alike: the ear groups them, and hears an accent that is not in the sound. Generated by")
         assert "From v28" in doc["about"]
+    if hole_row() is not None:
+        ho_pre, ho_full = hole_notes()
+        PATCHES["ht-hole"] = {"about": "Hearing Things' chord of plain tones (chirper-zero, 27 Nov, v29): one sine, held, with 8 ms to come and 15 ms to go; every tone of the chord at the same level whatever its note. Nothing but the notes written.",
+                              "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": ["sine phase=0"], "amp": {"a": "8ms", "d": "0s", "s": 1, "r": "15ms"}}}
+        for ho_name, ho_ns in (("hole", ho_pre), ("whole", ho_full)):
+            doc["tracks"].append({"name": ho_name, "patch": "ht-hole", "gain": HOLE_GAIN, "pan": 0.0, "notes": [{"at": t, "len": ln, "pitch": p, "vel": 0.8} for t, ln, p in ho_ns]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v29 there is a tune of holes (bars {hole_row() + 1} to {hole_row() + ROW}, the last row of 'not there'): a chord of {len(HOLE_CHORD)} plain tones ({' '.join(HOLE_CHORD)}), every tone as loud as every other, sounds {len(hole_tune())} times, the same every time; before each it is heard for {HOLE_PRE[1]:g} of a beat with one tone left out. In the whole chord the tone that was left out stands out, though it is no louder than the rest: the ear has got used to the others. The tones left out are the tune that is in neither ear ({' '.join(hole_tune()[:len(HUG_TUNE)])}). Generated by")
+        assert "From v29" in doc["about"]
     return doc
 
 
@@ -1564,6 +1613,9 @@ def dump(doc):
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
         sec = 60 / BPM * BEATS
+        if hole_row() is not None:
+            ho_pre, ho_full = hole_notes(); ho_b = hole_row()
+            print(f"a tune of holes ({HOLE_GAIN}), bars {ho_b + 1}-{ho_b + ROW} ({int(ho_b * sec) // 60}:{ho_b * sec % 60:04.1f}): the chord {' '.join(HOLE_CHORD)} ({', '.join(f'{hz(p):.0f}' for p in HOLE_CHORD)} Hz) ; every {HOLE_BEATS} beats: the chord with one tone left out from beat {HOLE_PRE[0]:g} for {HOLE_PRE[1]:g} ({1000 * 60 / BPM * HOLE_PRE[1]:.0f} ms), the whole chord from beat {HOLE_FULL[0]:g} for {HOLE_FULL[1]:g} ({1000 * 60 / BPM * HOLE_FULL[1]:.0f} ms) ; {len(ho_pre)} + {len(ho_full)} notes ; left out: {' '.join(hole_tune())}")
         if alike_row() is not None:
             ak_all, ak_two = alike_ticks(); ak_b = alike_row()
             print(f"the accent that is not there ({ALIKE_GAIN}), bars {ak_b + 1}-{ak_b + ROW} ({int(ak_b * sec) // 60}:{ak_b * sec % 60:04.1f}): a tick on every sixteenth ({ALIKE_NOTE}, {hz(ALIKE_NOTE):.0f} Hz), {len(ak_all)} in all ; " + " ; ".join(
