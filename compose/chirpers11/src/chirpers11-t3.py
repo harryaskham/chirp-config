@@ -400,6 +400,16 @@ the tock, and what the stairwell gives back of them (four sixteenths from one wa
 the other), coming up as you come in; Zeno's ball has just come to rest on that bar line.
 You hear the place before you climb. In the fifth bar you clap for the first time, the stairs
 answer with their falling chirp, and the drum comes back with the clap. Nothing is added.
+
+v29 (27 Nov): WHERE IT BEGAN (C11T3_BEGAN=0 takes it out: v28). In a room that rings, a
+plain tone is heard where it began (the Franssen effect). In the hangar's last two rows a
+plain tone sounds every two bars, each tone twice. The first time it starts sharply on the
+left; 50 ms later it has been handed to the right, where all the rest of it sounds, a bar
+long; the two together are one unbroken tone. The second time it is the same without its
+start. The hangar's air rings with both, and while a tone is held the two sides are about
+as loud as each other: the held tone says little of where it is; the start does. So the
+first should be heard on the left, where it began, and the second not: though after their
+first 50 ms the two are the same.
 """
 import json
 import math
@@ -729,6 +739,18 @@ FOOT = os.environ.get("C11T3_FOOT", "1") != "0" and HUSH   # v28: THE FOOT OF TH
 FOOT_IN = "the stairwell"                              # the section on whose first beat they stop
 FOOT_BARS = 4                                          # bars they wait: until the bar of the first clap on the stairs
 FOOT_WAIT = ("kick", "bass")                           # the tracks that wait
+BEGAN = os.environ.get("C11T3_BEGAN", "1") != "0" and FOOT   # v29: WHERE IT BEGAN (the Franssen effect: Franssen 1960; Hartmann and Rakerd 1989): in a room that rings, a plain tone is heard where it BEGAN. Every tone is played twice. The first time it starts sharply on the left; BEGAN_HOLD and BEGAN_HAND later it has been handed to the right, where all the rest of its straight sound is; the two together are one unbroken tone. The second time it is the same without its start: only what came from the right. While either is held the hangar answers (its air), and the two sides are about as loud as each other: a steady plain tone in a ringing room says little of where it is. The start does: so the first should stay on the left, where it began, and the second not
+BEGAN_IN = ("the hangar", 2, 2)                        # the section, the row (from 0) of the first tone, and how many rows: bars 97 to 112, the hangar's last two rows
+BEGAN_EVERY = 2                                        # bars from tone to tone: a bar of tone, a bar of the hangar ringing on
+BEGAN_AT = 0.25                                        # the beat of the bar it starts on: a sixteenth after the drum, the one sixteenth of the bar with nothing at 300 to 480 Hz (the old music's tops there: -37 dBFS, 12 to 23 dB under every other sixteenth)
+BEGAN_LEN = 4.0                                        # beats the tone is held
+BEGAN_HOLD = 0.010                                     # s: the start is whole, and all on its own side, for this long: the first wave is what the ear takes the place from
+BEGAN_HAND = 0.040                                     # s: the start's side falls to nothing, and the other side rises to the whole tone, in this time, in straight lines: the two add up to the whole tone throughout
+BEGAN_FADE = 0.400                                     # s: the tone goes out slowly: an end tells no place
+BEGAN_TUNE = ("A4", "C5", "F4", "E4")                  # the tones, each twice (with its start, then without): plain sines (the trick wants a plain tone), of the hangar's chord, 330 to 523 Hz (over the 300 Hz at which the hangar's air begins; the song is short at 342 and 400 Hz)
+BEGAN_PAN = 1.0                                        # how far to each side: all the way: the start on the left, the rest on the right (on one speaker the two are one plain tone). WHY NOT LEFT AND RIGHT BY TURNS: the first build did that, and read in the whole song's master this hall answered every one of these tones 7 to 13 dB more on the LEFT, whichever side it was fed from: a tone that went on from the right was level (1 to 4 dB to the right), one that went on from the left stood 8 to 13 dB to the left, and A4 from the left was cancelled by its own air (11 dB under the others)
+BEGAN_GAIN = os.environ.get("C11T3_BEGAN_GAIN", "-38dB")   # both tracks: meant: the straight sound -28 dBFS in the master (the old music at these notes is -41 to -46 dBFS in the middle, a sixth of an octave round each; its tops on the start's sixteenth -37)
+BEGAN_AIR = os.environ.get("C11T3_BEGAN_AIR", "12dB")      # what of them goes to the hangar's air: so that the air is about as loud as the straight sound while the tone is held: where you would stand 27 m from each (in a room of 1200500 cubic metres that rings 5.5 s the room is as loud as the straight sound at 0.057 * sqrt(V / T) = 26.6 m). Read in the whole song's master at -6dB and +6dB (the first build: sides by turns, pan 0.8, no hold; seed 0) and at +12dB (sides by turns, pan 1, with the hold), BEFORE any score: the air on its louder side came out about 19, 7 and 1 dB under the straight sound. THIS BUILD at +12dB (seed 0; the song less the same with nothing to the air): the straight sound -28.6 dBFS on the right, the air on the left -0.8 dB against it (-1.8 to +0.9), on the right 11.5 dB under in the middle (F4's is as loud on the right)
 AIR_PAN = 0.4                                          # the other ear
 RAIL_VEL = 0.8
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
@@ -1058,6 +1080,19 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def began_row():
+    """The bar (from 0) of the first tone that stays where it began, or None."""
+    sec = next((x for x in SECS if x[0] == BEGAN_IN[0]), None)
+    return sec[1] + ROW * BEGAN_IN[1] if BEGAN and sec is not None else None
+
+
+def began_tones():
+    """[(beat, note, whether it has its start)]: every tone of BEGAN_TUNE twice, first with its start (on the left), then without."""
+    n = BEGAN_IN[2] * ROW // BEGAN_EVERY
+    assert n == 2 * len(BEGAN_TUNE), (n, len(BEGAN_TUNE))
+    return [((began_row() + k * BEGAN_EVERY) * BEATS + BEGAN_AT, BEGAN_TUNE[k // 2], k % 2 == 0) for k in range(n)]
 
 
 def foot_bar():
@@ -1882,6 +1917,18 @@ def song():
         assert ft_b <= ft_clap < ft_b + BEATS, (ft_clap, ft_b)          # the first clap on the stairs is in the bar the drum comes back
         doc["about"] = doc["about"].replace(" Generated by", f" From v28 you stop at the foot of the stairs: for the stairwell's first {FOOT_BARS} bars (bars {foot_bar() + 1} to {foot_bar() + FOOT_BARS}) " + " and ".join(f"the {k} ({v} notes)" for k, v in ft_gone.items()) + f" wait, and there is the click, the tock and what the stairwell gives back of them: you hear the place before you climb. The drum comes back in bar {foot_bar() + FOOT_BARS + 1}, the bar of the first clap on the stairs. Generated by")
         assert "From v28" in doc["about"]
+    if began_row() is not None:
+        bg = began_tones()
+        PATCHES["sr-began"] = {"about": f"Standing Room's tone, its start (chirper-zero, 27 Nov, v29): a plain sine that starts at once, is whole for {1000 * BEGAN_HOLD:g} ms and falls to nothing in the next {1000 * BEGAN_HAND:g} ms, in a straight line. With `sr-went` on the same note at the same instant it is one unbroken tone.",
+                               "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": ["sine phase=0"], "amp": {"a": "0.5ms", "h": f"{1000 * BEGAN_HOLD:g}ms", "d": f"{1000 * BEGAN_HAND:g}ms", "s": 0, "r": "5ms", "curve": 0}}}
+        PATCHES["sr-went"] = {"about": f"Standing Room's tone, all the rest of it (chirper-zero, 27 Nov, v29): the same sine, silent for the start's first {1000 * BEGAN_HOLD:g} ms, then rising in {1000 * BEGAN_HAND:g} ms in a straight line, held, and going out in {1000 * BEGAN_FADE:g} ms.",
+                              "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": ["sine phase=0"], "amp": {"delay": f"{1000 * BEGAN_HOLD + 0.5:g}ms", "a": f"{1000 * BEGAN_HAND:g}ms", "d": "0s", "s": 1, "r": f"{1000 * BEGAN_FADE:g}ms", "curve": 0}}}
+        doc["tracks"].append({"name": "began-l", "patch": "sr-began", "gain": BEGAN_GAIN, "pan": -BEGAN_PAN, "sends": {"air": BEGAN_AIR},
+                              "notes": [{"at": t, "len": 0.25, "pitch": p, "vel": 0.8} for t, p, st in bg if st]})
+        doc["tracks"].append({"name": "went-r", "patch": "sr-went", "gain": BEGAN_GAIN, "pan": BEGAN_PAN, "sends": {"air": BEGAN_AIR},
+                              "notes": [{"at": t, "len": BEGAN_LEN, "pitch": p, "vel": 0.8} for t, p, st in bg]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v29 a tone stays where it began (bars {began_row() + 1} to {began_row() + BEGAN_IN[2] * ROW}, the hangar's last {BEGAN_IN[2]} rows): every {BEGAN_EVERY} bars a plain tone, a bar long, each of {' '.join(BEGAN_TUNE)} twice. The first time it starts sharply on the left, is all there for {1000 * BEGAN_HOLD:g} ms, and in the next {1000 * BEGAN_HAND:g} ms is handed to the right, where all the rest of it sounds; the two together are one unbroken tone. The second time it is the same without its start. The hangar's air rings with both. In a room that rings a plain tone is heard where it began (Franssen): the first on the left, though after {1000 * (BEGAN_HOLD + BEGAN_HAND):g} ms the two are the same. Generated by")
+        assert "From v29" in doc["about"]
     return doc
 
 
@@ -1937,6 +1984,10 @@ def echoes(a, b, n=16):
 
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
+        if began_row() is not None:
+            bg_sec = BEATS * 60 / BPM
+            print(f"where it began ({BEGAN_GAIN}, {BEGAN_AIR} of it to the air), bars {began_row() + 1}-{began_row() + BEGAN_IN[2] * ROW} ({int(began_row() * bg_sec) // 60}:{began_row() * bg_sec % 60:04.1f}): every {BEGAN_EVERY} bars from beat {BEGAN_AT:g} a plain tone (each twice: with its start, then without), {BEGAN_LEN:g} beats ({BEGAN_LEN * 60 / BPM:.2f} s) and {1000 * BEGAN_FADE:g} ms going out ; its start is whole on the left for {1000 * BEGAN_HOLD:g} ms, then falls to nothing in {1000 * BEGAN_HAND:g} ms while the right rises to the whole tone ; pan {BEGAN_PAN:g}")
+            print("   " + " ; ".join(f"bar {int(t // BEATS) + 1}: {p} ({hz(p):.0f} Hz) {'starts on the left, goes on from the right' if st else 'the same without its start: from the right only'}" for t, p, st in began_tones()))
         if foot_bar() is not None:
             print(f"the foot of the stairs, bars {foot_bar() + 1}-{foot_bar() + FOOT_BARS} ({int(foot_bar() * BEATS * 60 / BPM) // 60}:{foot_bar() * BEATS * 60 / BPM % 60:04.1f}, {FOOT_BARS * BEATS * 60 / BPM:.2f} s): " + " and ".join(f"the {k}" for k in FOOT_WAIT) + f" wait ; the click, the tock and the stairwell's echo of them go on ; the drum comes back in bar {foot_bar() + FOOT_BARS + 1}, with the first clap on the stairs")
         if HUSH and slam_bar() is not None:
