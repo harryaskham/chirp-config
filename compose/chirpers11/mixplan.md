@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v22 (21:59): both ends as v21's: bars 1 to 8 by two -17.7 -17.7 -17.8 -17.7 dBFS; bar 184 -11.1; the
+  tail by second -18.3 -33.3 -47.6 -60.9; highest sample -1.46. (Standing Room's last row under these bars is
+  0.35 dB up at its v28: -43.76: still 26 dB under.) Inside: at the peak the pipe and the plate play each
+  other's cells from bar 117; bars 117 to 128 within 0.5 dB whole.
 - Least Common v22 (21:26): both ends as v21's: bars 1 to 4 -17.6 dBFS; the last four bars by bar -17.4 -17.4
   -17.3 -17.0; 2 s after home -20.3; highest sample -1.49. Inside: on page 2 (1:02.5 to 1:27.5) the three
   clicks strike together at every instant any of them falls and the pings rest; the page's level is as it was.
