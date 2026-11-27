@@ -1,0 +1,34 @@
+{
+ "about": "Hearing Things' filler (chirper-zero, 27 Nov, v16): a 12 ms grain of noise over 2.8 kHz, small and dry: something that happens in a beat and is nothing else. It keeps out of the click's own bands (660 Hz and 2 kHz). BANKED by tools/patchbank.py (27 Nov 2026) from Hearing Things v16 (track fill): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "curve": 2.0,
+   "d": "12ms",
+   "r": "6ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 2800,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 2800,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 11000
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}

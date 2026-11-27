@@ -1,0 +1,35 @@
+{
+ "about": "Small Change: the second hat, that ticks what the other currency can pay (v13). The first hat at two thirds: the machine's hat, 20 ms, from 3 to 5.5 kHz (its centre 5.5 kHz for the first hat's 8.3). BANKED by tools/patchbank.py (27 Nov 2026) from Small Change v13 (track hat-x): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.8
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "100ms"
+  },
+  "filters": [
+   {
+    "cutoff": 3000,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 5500
+   },
+   {
+    "cutoff": 5500
+   }
+  ],
+  "layers": [
+   {
+    "machine": {
+     "decay": "20ms",
+     "part": "hat"
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}
