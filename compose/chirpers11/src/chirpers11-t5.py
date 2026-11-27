@@ -268,6 +268,17 @@ the first eight bars of "turned around" (the section is well named), the row bef
 shown the way they are: the left ear's part alone for two bars (both notes are plainly there), the right's
 alone for two, then both for four. Two tracks (`oct-l`, `oct-r`), an ear each and dry, one plain sine
 (`ht-oct`). In one speaker it is a held octave: nothing cancels, and there is no illusion.
+
+v19 (27 Nov): AN OCTAVE UP IS A SEMITONE DOWN (C11T5_PARA=0 takes it out: v18). Risset's paradox (1986,
+after Schroeder). The song's bells have their tones an octave apart, twice from each to the next, so a
+bell an octave higher is the same bell. Build one with its tones a little MORE than an octave apart, 2.1
+times from each to the next, under one fixed curve as before. Now write it an octave higher: every tone is
+doubled. But a tone doubled lands just UNDER the next tone of the old bell (2 against 2.1: 84.5 cents under),
+and the ear, which follows each tone to its nearest neighbour, hears the whole bell step DOWN by a small
+semitone. In the first row of "round the click" (bars 137-144) the bell is written D1, D2, D3 ... D8, an
+octave up at every click, seven octaves in two bars, and then back down: what is heard is a chime that
+walks down a tritone in seven even steps and up again. Nothing is bent and nothing is hidden: the notes
+are octaves, and the arithmetic is 1200 - 1284.5.
 """
 import json
 import math
@@ -581,6 +592,31 @@ def hz(p):
     return 440.0 * 2 ** ((semi - 69) / 12)
 
 
+def para_tones(p):
+    """The tones of the paradox bell written on note p: (ratio to the written note, Hz, dB under the curve): PARA_APART times from each to the next."""
+    out = []
+    for k in range(-12, 13):
+        f = hz(p) * PARA_APART ** k
+        level = -20 * math.log10(math.e) * math.log2(f / PARA_MID) ** 2 / (2 * PARA_WIDE ** 2)
+        if level >= PARA_FLOOR:
+            out.append((PARA_APART ** k, f, level))
+    return out
+
+
+def para_span():
+    """The bars (from 0) between which the paradox bell plays, or None."""
+    sec = next((x for x in SECS if x[0] == PARA_IN[0]), None) if PARA else None
+    return (sec[1] + PARA_IN[1], sec[1] + PARA_IN[2]) if sec else None
+
+
+def para_strokes():
+    """(beat, index into PARA_NOTES) of every stroke: up the written octaves and back down, a bell at every click."""
+    b0, b1 = para_span(); n = len(PARA_NOTES); out = []
+    for q, (b, st) in enumerate((b, st) for b in range(b0, b1) for st in PARA_STEPS):
+        r = q % (2 * n); out.append((b * BEATS + st * STEP, r if r < n else 2 * n - 1 - r))
+    return out
+
+
 def both_octaves(pc):
     """The octaves of a note-name that sound in its bell: (ratio to the note in octave 3, Hz, dB under the curve)."""
     out = []
@@ -613,6 +649,16 @@ OCT_IN = ("turned around", 0, 8)                          # the section, and the
 OCT_NOTES = ("A4", "A5")                                  # the two notes: the low one and its octave (the ends of the scale that follows)
 OCT_SOLO = 2                                              # bars the left ear's part is heard alone, then the right's; both for what is left
 OCT_GAIN = os.environ.get("C11T5_OCT_GAIN", "-34dB")      # each ear's tone, set in the whole song's master (which reads a held tone 8.7 dB over this figure here): as much sound as the scales' pips that follow. At -26 dB it was 6 dB under ALL the music of the row and took 0.6 dB off it; at -20 it was as loud as the music
+PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
+PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
+PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
+PARA_NOTES = ("D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8")    # what is written: an octave up at every stroke, then back down
+PARA_MID = 2900.0                                         # Hz: where the curve every one of these bells is under is loudest (where this song has room: 2.2 to 6.7 kHz)
+PARA_WIDE = 0.8                                           # octaves: how wide it is (the sigma of a bell curve over octaves)
+PARA_FLOOR = -20                                          # dB: tones quieter than this under the curve are left out: every bell has three tones, and nothing sounds over 10 kHz (at -30 four of the eight had a tone at 10.4 to 12 kHz)
+PARA_STEPS = (2, 6, 10, 14)                               # the sixteenths of the bar it strikes on: the click's
+PARA_VEL = 0.75
+PARA_GAIN = os.environ.get("C11T5_PARA_GAIN", "-24dB")
 FIRST = os.environ.get("C11T5_FIRST", "1") != "0" and FALL   # v12: the first one wins (the precedence effect)
 FIRST_IN = ("held", 0, 16)                                # the section, and the bars of it
 FIRST_EVERY = 3                                           # sixteenths between strokes: three against the click's four
@@ -994,6 +1040,15 @@ def song():
             doc["tracks"].append({"name": ot_nm, "patch": "ht-oct", "gain": OCT_GAIN, "pan": ot_side, "notes": oct_notes(ot_side)})
         doc["about"] = doc["about"].replace(" Generated by", f" From v18, in the first eight bars of turned around, two plain notes an octave apart ({OCT_NOTES[0]} and {OCT_NOTES[1]}) change ears every eighth: each ear is given both, turn about, and never the one the other has; the left ear's part is heard alone, then the right's, then both, and with both most people hear the high note in one ear only and the low note in the other (Deutsch's octave illusion), whichever way round the headphones are. Generated by")
         assert "From v18" in doc["about"]
+    if PARA and para_span():
+        for pr_i, pr_p in enumerate(PARA_NOTES):
+            PATCHES[f"ht-para-{pr_i + 1}"] = {"about": f"Hearing Things' bell whose octave is a step down (chirper-zero, 27 Nov, v19), written on {pr_p}: plain tones {PARA_APART:g} times apart (a little more than an octave) under one fixed curve (loudest at {PARA_MID:g} Hz, {PARA_WIDE:g} octaves wide). One patch a written note: the curve stays where it is; every tone of this bell is twice a tone of the bell written an octave lower, and {1200 * math.log2(PARA_APART / 2):.1f} cents under that bell's next tone.",
+                                              "play": {"vel_sens": 0.3},
+                                              "synth": {"layers": [f"sine phase=0 ratio={r:.6g} level={lv:.1f}dB" for r, f, lv in para_tones(pr_p)], "amp": {"a": "4ms", "d": "420ms", "s": 0, "r": "90ms", "curve": 3}}}
+            doc["tracks"].append({"name": f"para-{pr_i + 1}", "patch": f"ht-para-{pr_i + 1}", "gain": PARA_GAIN, "pan": 0.0,      # dry and in the middle, as the song's other bells are
+                                  "notes": [{"at": at, "len": 0.75, "pitch": pr_p, "vel": PARA_VEL} for at, k in para_strokes() if k == pr_i]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v19, in the first row of round the click, a bell whose tones are {PARA_APART:g} times apart is written an octave higher at every click ({PARA_NOTES[0]} to {PARA_NOTES[-1]}) and back: each octave up is heard as a small semitone down (Risset's paradox). Generated by")
+        assert "From v19" in doc["about"]
     return doc
 
 
@@ -1079,6 +1134,13 @@ if __name__ == "__main__":
             print(f"two scales neither ear is given, bars {b0 + 1}-{b1} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f}): a pip an eighth ; the left ear alone bars {b0 + 1}-{b0 + SCALE_SOLO}, the right alone {b0 + SCALE_SOLO + 1}-{b0 + 2 * SCALE_SOLO}, both {b0 + 2 * SCALE_SOLO + 1}-{b1}")
             print(f"   the left ear is given  {' '.join(L)}  (its biggest leap {leap(L)} semitones) ; the right  {' '.join(R)}  ({leap(R)})")
             print(f"   the higher of each pair  {' '.join(hi_)}  (biggest step {leap(hi_)}) ; the lower  {' '.join(lo_)}  ({leap(lo_)}) ; the higher note is in the " + " ".join("L" if hz(a) > hz(b) else "R" for a, b in zip(L, R)) + " ear")
+        if PARA and para_span():
+            pr_b0, pr_b1 = para_span(); pr_sec = BEATS * 60 / BPM; pr_all = [para_tones(p) for p in PARA_NOTES]
+            print(f"an octave up is a semitone down, bars {pr_b0 + 1}-{pr_b1} ({int(pr_b0 * pr_sec) // 60}:{pr_b0 * pr_sec % 60:04.1f}-{int(pr_b1 * pr_sec) // 60}:{pr_b1 * pr_sec % 60:04.1f}): a bell with its tones {PARA_APART:g} times apart ({1200 * math.log2(PARA_APART):.1f} cents) under one curve (loudest at {PARA_MID:g} Hz, {PARA_WIDE:g} octaves wide), {PARA_GAIN} ; written " + " ".join(PARA_NOTES) + f" and back, a bell at every click ({len(para_strokes())} strokes)")
+            for pr_p, pr_t in zip(PARA_NOTES, pr_all):
+                print(f"   {pr_p} ({hz(pr_p):.1f} Hz): its tones, Hz and dB: " + " ".join(f"{f:.0f}{lv:+.0f}" for r, f, lv in pr_t) + f" ; the loudest {max(pr_t, key=lambda x: x[2])[1]:.1f} Hz")
+            pr_near = [[1200 * math.log2(f / min((g for _, g, _ in a), key=lambda g: abs(math.log2(f / g)))) for _, f, _ in b] for a, b in zip(pr_all, pr_all[1:])]
+            print(f"   every tone against the nearest tone of the bell written an octave lower, cents: " + " ; ".join(" ".join(f"{c:+.1f}" for c in row) for row in pr_near) + f" ; over the {len(PARA_NOTES) - 1} octaves written up it goes {sum(row[0] for row in pr_near):+.1f} cents")
         if OCT and oct_span():
             ot_b0, ot_b1 = oct_span(); ot_sec = BEATS * 60 / BPM; ot_l, ot_r = oct_ear(-1), oct_ear(1)
             print(f"the high note stays in one ear, bars {ot_b0 + 1}-{ot_b1} ({int(ot_b0 * ot_sec) // 60}:{ot_b0 * ot_sec % 60:04.1f}-{int(ot_b1 * ot_sec) // 60}:{ot_b1 * ot_sec % 60:04.1f}): two plain notes an octave apart ({OCT_NOTES[0]} {hz(OCT_NOTES[0]):.0f} Hz, {OCT_NOTES[1]} {hz(OCT_NOTES[1]):.0f} Hz), a note an eighth ({30000 / BPM:.0f} ms) with no gap, {OCT_GAIN} ; the left ear alone bars {ot_b0 + 1}-{ot_b0 + OCT_SOLO}, the right alone {ot_b0 + OCT_SOLO + 1}-{ot_b0 + 2 * OCT_SOLO}, both {ot_b0 + 2 * OCT_SOLO + 1}-{ot_b1}")
