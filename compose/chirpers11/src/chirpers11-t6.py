@@ -58,7 +58,22 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True, 'spun': True, 'lands': True, 'metal': True, 'damped': True, 'flick': True, 'tally': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True, 'spun': True, 'lands': True, 'metal': True, 'damped': True, 'flick': True, 'tally': True, 'reckon': True, 'linger': True}
+# ---- v21 (27 Nov): THE FIRST CHANGE IS COUNTED TOO, AND THE LAST SEED'S PURSE STAYS OPEN. Two switches
+# (`--without-reckon`, `-linger`; both off is v20 byte for byte).
+#   RECKON  v20's coin counted the change in the break and in the last section. The first section (one seed, bars
+#           1 to 16: the rule stated with nothing else in the room) was not counted. Now it is, from its third
+#           seed: after bar 9 a clink on every amount threes and fives can pay up to 16 (one bar), after bar 13
+#           up to 24: 3 5 6, and from 8 every one. A WORN coin: the spun coin through four low-passes at 7 kHz
+#           (Hearing Things' last sixteen bars lie over these; chirper-zero allowed the count from bar 9 with
+#           nothing over 10 kHz; most of the new coin is over 10 kHz), about 7 dB under the break's from 4 to
+#           8 kHz. So the count is heard three times: learnt at the start, in fives and sevens in the break,
+#           in smaller coins at the end.
+#   LINGER  the last section's bars 179-180 and 183-184 were nearly silent (found in v20). Its first seed (bar
+#           177, paid in sixteenths, as the song's first four were) now goes into the long purse, as those four
+#           do: its change rings on through bars 178 to 180 and under the second seed. The seeds after it are
+#           paid as they were, in smaller coins, and the silence before Out of Step (bars 183-184) stays.
+#
 # ---- v20 (27 Nov): THE COIN COUNTS THE CHANGE. One more switch (`--without-tally`; off is v19 byte for byte).
 # v19 said "the rest of the song had nothing this round". The break (fives and sevens, bars 81-92) is twelve bars
 # with three written notes: three seeds and what the purse pays back, 5 and 7 sixteenths at a time. The song's
@@ -109,6 +124,8 @@ ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, '
 #          of 'the last seed', as the drum and the bass leave.
 SPUN = {'bars': 4, 'rate': 4, 'power': 1 / 3, 'gain': '9dB', 'pans': (-0.45, 0.45), 'vel': (0.5, 0.85), 'close': 2 / 3, 'where': {'spun': 'fives and sevens', 'lands': 'home'}}   # v18: how long the coin spins, bars; its rattles a beat as it begins (the sixteenths); the law's power; the two tracks' fader and sides; the first and last click's stroke; the section each switch's coin ends
 TALLY = {'where': (('fives and sevens', (24, 30, 35), 1), ('the last seed', (15, 15), 2)), 'coin': -2.5, 'ring': 0.05, 'vel': 0.7, 'gain': '-25dB', 'pan': 0.6}   # v20: where the coin counts the change: (section; up to what amount after each of its seeds in turn: it counts further each time; how many times smaller the coins are with each seed: in the last section the second seed is paid in thirty-seconds, and counted in them); dB a coin; a clink's ring, s; its stroke; the three tracks' fader (bench: at -27 dB a one-coin clink's highest sample stood 7 to 10 dB under the spun coin's rattles); how far to each side the one-coin amounts stand
+RECKON = {'where': 'one seed', 'seeds': ((2, 16), (3, 24)), 'coin': -2.5, 'ring': 0.05, 'vel': 0.7, 'gain': '-27dB', 'pan': 0.6, 'lp': 7000, 'walls': 4}   # v21: the section whose change is counted too; (which of its seeds, from 0; up to what amount); dB a coin in the amount; a clink's ring, s; its stroke; the fader; how far left and right; the worn coin: low-passes in a row and their cutoff, Hz (nothing over 10 kHz). Bench, the count alone, bar 9, raw: no filter: 4 to 8 kHz -67.2 dBFS, over 10 kHz -65.9 (most of this coin is up there); two filters -70.1 and -91.5; four -72.1 and -105.5: so four, and the fader 2 dB up from the first build's -29
+LINGER = {'seeds': 1}                        # v21: how many of the last section's seeds go into the long purse
 METAL = {'patch': 'sc-spun', 'modes': 'plate', 'note': 'Bb7', 'ring': 0.06, 'bright': 0.8, 'strike': 0.7, 'click': '-9dB', 'tick': '8ms', 'hp': 2500, 'gain': '-27dB'}   # v19: the spun coin's own patch: its mode set and note; a ring's T60 where it is not damped by the law, s; the modal layer's brightness and where it is struck; the click on its front (the hat machine): level and decay; the patch's high-pass, Hz; the two tracks' fader (benched against the old coin)
 DAMPED = {'gaps': 2}                        # v19: a ring's T60 in gaps to the next rattle
 FLICK = {'ring': 0.4, 'vel': 1.0, 'db': 3, 'len': 1}   # v19: the flick's ring, s; its stroke; dB over the rattles' fader; its length, beats
@@ -580,7 +597,7 @@ def build():
             if ON['smaller'] and i == len(SECTIONS) - 1:         # the last seeds: each paid in smaller coins
                 pairs = LAST[(bar - i * SEC) // every % len(LAST)]
             if (bar - i * SEC) % every == 0:
-                kept = ON['long'] and not drum and i < len(SECTIONS) - 1          # the opening and the break: into the long purse
+                kept = ON['long'] and not drum and (i < len(SECTIONS) - 1 or (ON['linger'] and (bar - i * SEC) // every < LINGER['seeds']))   # the opening and the break: into the long purse (v21 LINGER: and the last section's first seed)
                 home = ON['chord'] and name == 'home'
                 spelt = ON['spell'] and home and bar - i * SEC >= SEC // 2    # v11 SPELL: the chord counted out in the purse's coins
                 back = ON['back'] and home and BACK['bars'][0] <= bar - i * SEC < BACK['bars'][1]   # v12 BACK: and the other way: five, then three
@@ -678,6 +695,16 @@ def build():
                         if (n - a * p) % q == 0:
                             b = (n - a * p) // q
                             T.setdefault('tally-' + ('m' if a and b else 'l' if a else 'r'), []).append({'at': at0 + n / 4 / smaller ** k, 'len': 0.05, 'pitch': METAL['note'], 'vel': TALLY['vel'], 'gain': f"{TALLY['coin'] * (a + b):g}dB", 'expr': {'ring': TALLY['ring']}})
+    if ON['reckon'] and ON['tally'] and ON['metal'] and ON['hat']:   # v21 RECKON: the first change is counted too, from its third seed, with a worn coin
+        i = next(j for j, sct in enumerate(SECTIONS) if sct[0] == RECKON['where'])
+        p, q = PAIRS[SECTIONS[i][1][0]]
+        for k, upto in RECKON['seeds']:
+            at0 = (i * SEC + k * SECTIONS[i][2]) * 4 + SECTIONS[i][3] / 4
+            for n in range(1, upto + 1):
+                for a in range(n // p + 1):
+                    if (n - a * p) % q == 0:
+                        b = (n - a * p) // q
+                        T.setdefault('reckon-' + ('m' if a and b else 'l' if a else 'r'), []).append({'at': at0 + n / 4, 'len': 0.05, 'pitch': METAL['note'], 'vel': RECKON['vel'], 'gain': f"{RECKON['coin'] * (a + b):g}dB", 'expr': {'ring': RECKON['ring']}})
     return T
 
 
@@ -795,6 +822,9 @@ def song():
     for key, pan in (('tally-l', -TALLY['pan']), ('tally-m', 0), ('tally-r', TALLY['pan'])):   # v20 TALLY: the first coin alone on the left, the second alone on the right, both in the middle
         if T.get(key):
             doc['tracks'].append({'name': key, 'patch': METAL['patch'], 'gain': TALLY['gain'], 'pan': pan, 'notes': sorted(T[key], key=lambda n: n['at'])})
+    for key, pan in (('reckon-l', -RECKON['pan']), ('reckon-m', 0), ('reckon-r', RECKON['pan'])):   # v21 RECKON: the worn coin: the same patch through low-passes on its tracks
+        if T.get(key):
+            doc['tracks'].append({'name': key, 'patch': METAL['patch'], 'gain': RECKON['gain'], 'pan': pan, 'notes': sorted(T[key], key=lambda n: n['at']), 'fx': [f"lp cutoff={RECKON['lp']}"] * RECKON['walls']})
     return doc
 
 
@@ -814,7 +844,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last one off is v19, the last four v18, the last six v17, the last ten v16, the last twelve v15, the last fourteen v14, the last fifteen v13, the last seventeen v12, the last nineteen v11, the last twenty-one v10, the last twenty-four v9, the last twenty-seven v8, the last twenty-nine v7, the last thirty-one v6, the last thirty-five v5, the last thirty-six v4, the last thirty-nine v3, the last forty-three v2, all forty-six v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v20, the last three v19, the last six v18, the last eight v17, the last twelve v16, the last fourteen v15, the last sixteen v14, the last seventeen v13, the last nineteen v12, the last twenty-one v11, the last twenty-three v10, the last twenty-six v9, the last twenty-nine v8, the last thirty-one v7, the last thirty-three v6, the last thirty-seven v5, the last thirty-eight v4, the last forty-one v3, the last forty-five v2, all forty-eight v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -887,6 +917,12 @@ if __name__ == '__main__':
                 print(f"    a coin is spun on the counter through the last {SPUN['bars']} bars of {SPUN['where'][sw]} (bars {(j + 1) * SEC - SPUN['bars'] + 1}-{(j + 1) * SEC}): {len(c) - 1} rattles over {SPUN['bars'] * 16} sixteenths, left and right by turns and closing to the middle as its tilt does, quickening as (t0 - t)^(-1/3): the gap goes " + ' '.join(f'{(b - a) * sec * 250:.0f}' for a, b in zip(c[:4], c[1:5])) + ' ... ' + ' '.join(f'{(b - a) * sec * 250:.0f}' for a, b in zip(c[-5:], c[-4:])) + f' ms; {what}')
         if ON['metal'] and ON['hat'] and (ON['spun'] or ON['lands']):
             print(f"    the coin is metal: a thin plate's modes from 4.2 kHz up (its note is {METAL['note']}, the seed's three octaves up), with a click on its front" + (f"; each rattle rings {DAMPED['gaps']} gaps and no more (T60), so the ring goes " + ' '.join(f'{1000 * DAMPED["gaps"] * (b - a) * 60 / BPM:.0f}' for a, b in list(zip(spun(SEC), spun(SEC)[1:]))[:3]) + ' ... ' + ' '.join(f'{1000 * DAMPED["gaps"] * (b - a) * 60 / BPM:.0f}' for a, b in list(zip(spun(SEC), spun(SEC)[1:] + [SEC * 4]))[-3:]) + ' ms: the table chokes it as it lies down' if ON['damped'] else f"; every rattle rings {1000 * METAL['ring']:.0f} ms") + (f"; and it is flicked: one stroke in the middle on its first instant, let ring {FLICK['ring']} s" if ON['flick'] else ''))
+        if ON['reckon'] and ON['tally'] and ON['metal'] and ON['hat']:
+            j = next(x for x, sct in enumerate(SECTIONS) if sct[0] == RECKON['where'])
+            pp, qq = PAIRS[SECTIONS[j][1][0]]
+            print(f"    the first change is counted too, with a worn coin (nothing over 10 kHz): in {RECKON['where']}, after its seeds in bars {' '.join(str(j * SEC + k * SECTIONS[j][2] + 1) for k, _ in RECKON['seeds'])} a clink on every amount the purse can pay, in sixteenths: {' '.join(str(n) for n in range(1, frobenius(pp, qq) + 1) if any((n - a * pp) % qq == 0 for a in range(n // pp + 1)))}, and from {frobenius(pp, qq) + 1} every one, to {', then to '.join(str(u) for _, u in RECKON['seeds'])}")
+        if ON['linger'] and ON['long']:
+            print(f"    the last section's first seed (bar {(len(SECTIONS) - 1) * SEC + 1}) goes into the long purse, as the song's first four do: its change rings on through the three bars after it")
         if ON['tally'] and ON['metal'] and ON['hat']:
             for where, uptos, smaller in TALLY['where']:
                 j = next(x for x, sct in enumerate(SECTIONS) if sct[0] == where)
