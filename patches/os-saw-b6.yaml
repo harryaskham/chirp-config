@@ -1,0 +1,56 @@
+{
+ "about": "Out of Step's second saw, bar 7 of its row (chirper-zero, 27 Nov, v28): the first saw upside down and 0.0625 of a wave late (0.48 ms): harmonic n half a turn on, less n times 0.0625. With the first saw it leaves a pulse 6.25% of the wave wide. BANKED by tools/patchbank.py (27 Nov 2026) from Out of Step v28 (track saw-b6): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "20ms",
+   "d": "0s",
+   "r": "40ms"
+  },
+  "layers": [
+   {
+    "level": "-0.000dB",
+    "phase": 0.4375
+   },
+   {
+    "level": "-6.021dB",
+    "phase": 0.375,
+    "ratio": 2.0
+   },
+   {
+    "level": "-9.542dB",
+    "phase": 0.3125,
+    "ratio": 3.0
+   },
+   {
+    "level": "-12.041dB",
+    "phase": 0.25,
+    "ratio": 4.0
+   },
+   {
+    "level": "-13.979dB",
+    "phase": 0.1875,
+    "ratio": 5.0
+   },
+   {
+    "level": "-15.563dB",
+    "phase": 0.125,
+    "ratio": 6.0
+   },
+   {
+    "level": "-16.902dB",
+    "phase": 0.0625,
+    "ratio": 7.0
+   },
+   {
+    "level": "-18.062dB",
+    "phase": 0.0,
+    "ratio": 8.0
+   }
+  ]
+ }
+}

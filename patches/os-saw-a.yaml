@@ -1,0 +1,56 @@
+{
+ "about": "Out of Step's first saw (chirper-zero, 27 Nov, v28): a sawtooth made of its first 8 harmonics, each a sine started at nought, harmonic n at 1/n (130.8 to 1047 Hz on C3); held. BANKED by tools/patchbank.py (27 Nov 2026) from Out of Step v28 (track saw-a): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "20ms",
+   "d": "0s",
+   "r": "40ms"
+  },
+  "layers": [
+   {
+    "level": "-0.000dB",
+    "phase": 0.0
+   },
+   {
+    "level": "-6.021dB",
+    "phase": 0.0,
+    "ratio": 2.0
+   },
+   {
+    "level": "-9.542dB",
+    "phase": 0.0,
+    "ratio": 3.0
+   },
+   {
+    "level": "-12.041dB",
+    "phase": 0.0,
+    "ratio": 4.0
+   },
+   {
+    "level": "-13.979dB",
+    "phase": 0.0,
+    "ratio": 5.0
+   },
+   {
+    "level": "-15.563dB",
+    "phase": 0.0,
+    "ratio": 6.0
+   },
+   {
+    "level": "-16.902dB",
+    "phase": 0.0,
+    "ratio": 7.0
+   },
+   {
+    "level": "-18.062dB",
+    "phase": 0.0,
+    "ratio": 8.0
+   }
+  ]
+ }
+}

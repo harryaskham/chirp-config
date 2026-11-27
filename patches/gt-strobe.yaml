@@ -1,0 +1,35 @@
+{
+ "about": "Give or Take's strobe (chirper-zero, 27 Nov, v28): the lamp at the platter's edge: a plain tone with a little of its second and third over it, swelling for 15 ms and falling to a third in a quarter of a second; one note a flash. BANKED by tools/patchbank.py (27 Nov 2026) from Give or Take v28 (track strobe): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "15ms",
+   "d": "250ms",
+   "r": "60ms",
+   "s": 0.3
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   },
+   {
+    "level": "-9dB",
+    "phase": 0.0,
+    "ratio": 2.0
+   },
+   {
+    "level": "-15dB",
+    "phase": 0.0,
+    "ratio": 3.0
+   }
+  ]
+ }
+}

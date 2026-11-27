@@ -1,0 +1,20 @@
+{
+ "about": "Hearing Things' chord of plain tones (chirper-zero, 27 Nov, v29): one sine, held, with 8 ms to come and 15 ms to go; every tone of the chord at the same level whatever its note. Nothing but the notes written. BANKED by tools/patchbank.py (27 Nov 2026) from Hearing Things v29 (tracks hole, whole): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "8ms",
+   "d": "0s",
+   "r": "15ms"
+  },
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}
