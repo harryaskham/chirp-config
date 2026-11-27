@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v21 (20:57): bars 1 to 16 by four -22.5 -23.4 -23.6 -20.7 dBFS (v20 -22.5 -23.5 -23.6 -20.7): a
+  worn coin counts the change after bars 9 and 13 (nothing of it over 7 kHz to speak of: bars 9 to 16 over
+  10 kHz -73.58 for -73.78); the last sixteen by four -22.9 -23.8 -23.1 -19.7 (-24.5 -23.8 -23.2 -19.7: bars
+  178 to 180 ring now); bars 185 to 192, under Out of Step, -21.06 (-21.09). Highest -1.30.
 - Wind Down v21 (20:37): bars 1 to 8 by two as v20's (-30.1 -30.3 -30.1 -30.1 dBFS): a record's surface is under
   them now (in over bars 1 to 4 with no stroke, about -58.6 dBFS, nothing over 10 kHz: zero's three conditions),
   gone under the drum by bar 13. The end by second from the last stroke (396.39 s): -10.4 -21.0 -32.7 -42.2 -47.1
