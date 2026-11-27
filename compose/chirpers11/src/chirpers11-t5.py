@@ -202,6 +202,21 @@ bass drum: the master takes 9 dB off whatever does (the first version had the fi
 (2) written the same to the sample (C11T5_PAIR_LIFT=0), the second stroke reaches the ear 3 to 6 dB under the
 first: it falls a sixteenth after the click and the bass, which the master is still holding down. So the
 second is written that much UP (PAIR_PLAN's third number), and the two are equal where it counts.
+
+v14 (27 Nov): THE TUNE THAT IS IN NEITHER EAR (C11T5_HUG=0 takes it out: v13). A new section, "in the noise",
+one row after "held". Both ears are given THE SAME noise, sample for sample, except that the right ear's has been
+through an all-pass filter: a filter that changes no loudness at any frequency, only the phase, and that only in
+a narrow place (a whole turn round one frequency, most of it within a tone either side). Each ear alone has plain
+noise, and a meter on either channel reads the same spectrum to a twentieth of a dB. With two ears there is a faint NOTE in the
+noise at that frequency, somewhere in the head: the brain compares the two ears and finds the one place where
+they disagree (Cramer and Huggins, 1958). The place is moved, two beats at a time, through the notes the line
+takes when it comes apart (A C E A, A E C A): a tune that neither ear is given.
+It is said twice. The first four bars it is only between the ears. The last four the same tune is also played,
+quietly (8 dB under the noise), by a plain tone in the middle: so that one speaker has it too, and two ears can check what they thought
+they heard.
+ON ONE SPEAKER the two ears' noises are added and the place where they disagree cancels: the first four bars are
+noise with a narrow notch that moves (15 to 21 dB deep, a tone either side). This one does not fool a speaker.
+To test it on headphones: take one side off in the first four bars and the tune is gone.
 """
 import json
 import math
@@ -244,6 +259,15 @@ BOTH_IN = tuple(x for x in os.environ.get("C11T5_BOTH_IN", "turned,round").split
 LINE_A = "A4"                                         # the note that never changes
 LINE_B = ("A4", "C5", "E5", "A5", "A5", "E5", "C5", "A4")   # B's note in each bar of a row: with A, then a third, a fifth, an octave from it, and back
 ROUND = os.environ.get("C11T5_ROUND", "1") != "0"    # v3: the drum goes round the click
+HUG = os.environ.get("C11T5_HUG", "1") != "0" and HELD    # v14: the tune that is in neither ear (Huggins' pitch): a section of its own after "held"
+HUG_ROWS = 1                                          # rows of "in the noise"
+HUG_TUNE = LINE_B                                     # the notes the line takes when it comes apart (v5): A C E A, A E C A
+HUG_BEATS = 2                                         # beats to a note: 0.96 s, long enough for the ears to find it
+HUG_Q = float(os.environ.get("C11T5_HUG_Q", "8"))     # the all-pass filter's Q: the ears are a quarter turn apart 5% under the note and three quarters 7% over it (at 16 the place is half as wide)
+HUG_BASE = 440.0                                      # Hz: the all-pass filter's own place; the lane moves it by octaves
+HUG_GAIN = os.environ.get("C11T5_HUG_GAIN", "-30dB")  # the noise: set in the WHOLE SONG's master (at -34 dB it read -28 dBFS there, 12 dB under the click's strokes and 11 under the bars before it; a short window of the song read it 9 dB higher: the loudness stage gives a quiet window more)
+HUG_SAID = (4, 8)                                     # the bars of the section in which the tune is also played for real, in the middle
+HUG_SAID_GAIN = os.environ.get("C11T5_HUG_SAID_GAIN", "-40.5dB")   # the plain tone: in the master it reads 8 dB under all the noise it sits in (11 to 15 dB over the noise in its own 29 Hz): soft, and sure on one speaker (13 dB under the noise's fader read 12.4 dB under)
 ROUND_AT = (1, 2, 3)                                  # the sixteenth of the beat the drum stands on, a row each ("all three" is 0)
 ROUND_REST = 1                                        # bars at the end of each of those rows with no drum
 RABBIT = os.environ.get("C11T5_RABBIT", "1") != "0" and STAIRS and ROUND    # v8: the rabbit
@@ -281,7 +305,7 @@ SECTIONS = [
     ("turned around",    3, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": (8, 24), **({"both": (2 * ROW, 3 * ROW)} if BOTH and "turned" in BOTH_IN else {})}),
     ("never arrives",    5, {"tick": ALL, "bass": ALL, "kick": ALL, "clap": ALL, "ris": ALL, "shep": (16, 40), **({"stair": (0, len(STAIR_EVERY) * ROW)} if STAIRS else {})}),
     ("not there",        3, {"tick": ALL, "bass": ALL, "ris": ALL, "kick": (8, 24), "sub": (8, 16), "clap": (16, 24)}),
-] + ([("held", 2, {"tick": ALL, "chop": ALL, "fence": (ROW, 2 * ROW)})] if HELD else []) + [
+] + ([("held", 2, {"tick": ALL, "chop": ALL, "fence": (ROW, 2 * ROW)})] if HELD else []) + ([("in the noise", HUG_ROWS, {"tick": ALL, "hiss": ALL, "said": HUG_SAID})] if HUG else []) + [
     ("the wrong one again", 1, {"tick": ALL, "bass": ALL, "ris": ALL, "clapx": ALL, **({"line": ALL} if APART else {})}),
 ] + ([("round the click", len(ROUND_AT), {"tick": ALL, "bass": ALL, **({"both": ((len(ROUND_AT) - 1) * ROW, len(ROUND_AT) * ROW)} if BOTH and "round" in BOTH_IN else {}),
                                           **{f"k{k}": (i * ROW, (i + 1) * ROW - ROUND_REST) for i, k in enumerate(ROUND_AT)},
@@ -485,7 +509,7 @@ TRIM = os.environ.get("C11T5_TRIM", "1") != "0" and FIRST   # v12: the click's t
 TRIM_CUTS = ((659.26, float(os.environ.get("C11T5_TRIM_1", "-4"))), (1977.77, float(os.environ.get("C11T5_TRIM_3", "-5"))))   # (Hz, dB): E5 and its third partial
 TRIM_Q = 3
 TRIM_IN = (2, 8)                                          # bars over which the cut comes in: the first two bars are the click as it always was (Ring True's last strings die under them)
-TRIM_OUT = (176, 184)                                     # ... and goes out again: the last sixteen bars are the click as it was (Small Change comes in under them)
+TRIM_OUT = (176 + (HUG_ROWS * ROW if HUG else 0), 184 + (HUG_ROWS * ROW if HUG else 0))                                     # ... and goes out again: the last sixteen bars are the click as it was (Small Change comes in under them)
 
 
 PAIR = os.environ.get("C11T5_PAIR", "1") != "0" and TRIM   # v13: the second one sounds louder (an accent made of time alone)
@@ -496,6 +520,36 @@ PAIR_NOTE = "A3"
 PAIR_VEL = 0.6                                            # the first stroke's velocity (the second's goes up to 1.43 times it)
 PAIR_LIFT = os.environ.get("C11T5_PAIR_LIFT", "1") != "0"  # 0: the two are written the same to the sample, and the master makes the second 3 to 6 dB less
 PAIR_GAIN = os.environ.get("C11T5_PAIR_GAIN", "-7dB")        # the first stroke 6 dB under the song's own click in the master (over 1.5 kHz, in its first 25 ms). At 4 dB more it was 2.3 dB under it; at 4 dB less the scorer hardly saw it       # at -8 a stroke was 2.3 dB under the song's own click in the master (which holds the click down and lets a small one through): 8 dB down
+
+
+def hug_span():
+    """(first bar, the bar after the last) of "in the noise", or None."""
+    sec = next((x for x in SECS if x[0] == "in the noise"), None)
+    return (sec[1], sec[1] + sec[2]) if sec else None
+
+
+def hug_hz(name):
+    pc = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}[name[0]] + (1 if "#" in name else -1 if "b" in name[1:] else 0)
+    return 440.0 * 2 ** ((pc - 9) / 12 + int(name[-1]) - 4)
+
+
+def hug_tune():
+    """(beat, note, Hz) of every note of the tune, all through the section: it is said as often as it fits."""
+    b0, b1 = hug_span()
+    return [(b0 * BEATS + i * HUG_BEATS, HUG_TUNE[i % len(HUG_TUNE)], hug_hz(HUG_TUNE[i % len(HUG_TUNE)])) for i in range((b1 - b0) * BEATS // HUG_BEATS)]
+
+
+def hug_lane():
+    """Where the all-pass filter is, in octaves from HUG_BASE: it steps from note to note in a fiftieth of a beat."""
+    pts = [(0.0, math.log2(hug_tune()[0][2] / HUG_BASE))]
+    for t, n, f in hug_tune():
+        pts += [(t, math.log2(f / HUG_BASE)), (t + HUG_BEATS - 0.02, math.log2(f / HUG_BASE))]
+    return [[f"{x:g}b", round(y, 6)] for x, y in pts]
+
+
+def hug_said():
+    b0, b1 = hug_span()
+    return [note(t, n, HUG_BEATS * 0.9, 0.8) for t, n, f in hug_tune() if b0 + HUG_SAID[0] <= t / BEATS < b0 + HUG_SAID[1]]
 
 
 def pair_strokes():
@@ -750,6 +804,20 @@ def song():
             if t["name"] == "tick":
                 t["patch"] = "ht-tick-t"
                 t["auto"] = {"trim": {"points": [[f"{x:g}b", y] for x, y in ((0, 0), (TRIM_IN[0] * BEATS, 0), (TRIM_IN[1] * BEATS, 1), (TRIM_OUT[0] * BEATS, 1), (TRIM_OUT[1] * BEATS, 0), (TOTAL, 0))], "curve": 0}}      # 0 the click as it was, 1 the whole cut
+    if hug_span():
+        b0, b1 = hug_span()
+        PATCHES["ht-hiss"] = {"about": "Hearing Things' noise (chirper-zero, 27 Nov, v14): pink noise, held. One track of it goes to two buses, an ear each, so both ears have the same samples; the right ear's bus has an all-pass filter on it and nothing else.",
+                              "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": ["pink"], "amp": {"a": "40ms", "d": "0s", "s": 1, "r": "60ms"}}}
+        PATCHES["ht-said"] = {"about": "Hearing Things' plain tone (chirper-zero, 27 Nov, v14): one sine, for saying aloud the tune that was between the ears.",
+                              "play": {"vel_sens": 0}, "synth": {"layers": ["sine"], "amp": {"a": "40ms", "d": "0s", "s": 1, "r": "120ms"}}}
+        doc["buses"]["ear-l"] = {"pan": -1}
+        doc["buses"]["ear-r"] = {"pan": 1, "fx": [{"type": "filter", "kind": "allpass", "cutoff": {"value": HUG_BASE, "mod": [{"src": "auto.tune", "amount": 1}]}, "q": HUG_Q}],
+                                 "auto": {"tune": {"points": hug_lane(), "curve": 0}}}
+        doc["tracks"].append({"name": "hiss", "patch": "ht-hiss", "gain": HUG_GAIN, "pan": 0.0, "out": "ear-l", "sends": {"ear-r": "0dB"},
+                              "notes": [{"at": float(b0 * BEATS), "len": float((b1 - b0) * BEATS), "pitch": "A4", "vel": 0.8}]})      # one noise, to an ear each
+        doc["tracks"].append({"name": "said", "patch": "ht-said", "gain": HUG_SAID_GAIN, "pan": 0.0, "notes": hug_said()})                # dry, in the middle
+        doc["about"] = doc["about"].replace(" Generated by", " From v14 there is a section after held, in the noise: both ears are given the same noise, but the right ear's has been through an all-pass filter that turns the phase a whole turn at one frequency and changes no loudness anywhere. Each ear has plain noise; between them there is a faint note at that frequency, and it is moved through a tune (A C E A, A E C A) that neither ear is given. The second time the tune is also played quietly by a plain tone, so that one speaker has it too. Generated by")
+        assert "From v14" in doc["about"]
     if pair_strokes():
         PATCHES["ht-two"] = {"about": "Hearing Things' pair (chirper-zero, 26 Nov, v13): a small dry wooden click with no noise in it, so that two of them are the same click to the sample: a saw from phase nought with everything under 700 Hz taken off, 16 ms. Its loudness is the square of its velocity and nothing else.",
                              "play": {"vel_sens": 1},
@@ -827,6 +895,10 @@ if __name__ == "__main__":
                 print(f"   bar {b + 1}: " + " ".join(f"{lag:.2f}" for t, lag, db in st if b * BEATS <= t < (b + 1) * BEATS) + (f"   (the late ear {FIRST_LATE_DB:g} dB louder)" if any(db for t, lag, db in st if b * BEATS <= t < (b + 1) * BEATS) else ""))
             if TRIM:
                 print("the click's repair: " + ", ".join(f"{g:g} dB at {f:.0f} Hz" for f, g in TRIM_CUTS) + f" (q {TRIM_Q}) ; coming in over bars {TRIM_IN[0] + 1}-{TRIM_IN[1]}, whole in bars {TRIM_IN[1] + 1}-{TRIM_OUT[0]}, going out over bars {TRIM_OUT[0] + 1}-{TRIM_OUT[1]}")
+        if hug_span():
+            b0, b1 = hug_span(); sec = BEATS * 60 / BPM; tn = hug_tune()
+            print(f"the tune that is in neither ear, bars {b0 + 1}-{b1} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f}): one pink noise to an ear each ({HUG_GAIN}), the right ear's through an all-pass filter, Q {HUG_Q} ; {len(tn)} notes of {HUG_BEATS} beats ({HUG_BEATS * 60 / BPM:.2f} s): " + " ".join(f"{n}" for t, n, f in tn))
+            print("   the all-pass filter's place, Hz: " + " ".join(f"{f:.1f}" for t, n, f in tn[:len(HUG_TUNE)]) + f" ; played for real ({HUG_SAID_GAIN}, in the middle) in bars {b0 + HUG_SAID[0] + 1}-{b0 + HUG_SAID[1]}: {len(hug_said())} notes")
         if pair_strokes():
             st = pair_strokes(); sec = BEATS * 60 / BPM
             print(f"the second one sounds louder: {len(st) // 2} pairs, strokes on sixteenths " + ", ".join(f"{s} and {s + PAIR_GAP}" for s in PAIR_AT) + f" of the bar ({PAIR_GAP * 60000 / BPM / 4:.0f} ms apart) ; the second really turned down by:")
