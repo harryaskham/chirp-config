@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v20 (18:01): both its ends are v19's to 0.1 dB (bars 1 to 8 by two -17.8 -17.8 -17.8 -17.8 dBFS; bar
+  184 -11.1; the tail by second -18.5 -33.5 -47.8 -61.1; highest sample -1.46). Inside: bars 121 to 128 (the
+  things trade cells; the drum's note goes down in bars 126 to 128) and bars 31 and 32; every bar whole within
+  0.2 dB of v19's.
 - Least Common v20 (17:33): both its ends are v19's to 0.1 dB (bars 1 to 4 -17.6 dBFS; the last four bars -17.4
   -17.4 -17.3 -17.0; 2 s after home -20.2; highest sample -1.49). Inside, page 3 only (1:40 to 2:17): each pair
   of clicks alone for 12.5 s over a bass pedal, the drum at half time; page 3 whole -14.4 dBFS for -14.1.
