@@ -58,7 +58,33 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True}
+# ---- v17 (27 Nov): THE BASS FOLLOWS EVERY SEED. Four more switches (`--without-comes`, `-both`, `-three`, `-lift`;
+# all four off is v16 byte for byte). v16 found the bass's note in the rule (three coins on from the seed) and used it
+# where a section has one seed, and in one section where the seeds change. In the three other sections where the
+# seeds change the bass was still on G under seeds whose five notes are C minor's and D minor's. No note is added or
+# moved in time by the first three; the bass's whole line (its largest debt, what the other purses owe) moves.
+#   COMES    'the bass' (bars 33-48; seeds B flat and E flat by turns, a seed every second bar): the bass comes in on
+#            G2 for two bars and goes down to C2 for two, four times: the first thing the bass does after coming is move.
+#   BOTH     'both purses' (bars 65-80; seeds B flat and F, a seed a bar): a bar on G2, a bar on D2: with the two
+#            purses the bass has two notes.
+#   THREE    'three purses' (bars 113-128, the peak; seeds B flat, F, E flat, a seed a bar): three purses, three
+#            notes: G2, D2, C2 by the seed, a cycle of three bars against the four the form is counted in. FROM ITS
+#            NINTH BAR (FROM): the peak stands on G for eight bars, as it did, and then turns: C2 G2 D2 C2 G2 D2 C2
+#            G2; it ends on G and 'off the beat' begins on C. THE FIRST BUILD turned from the peak's first bar and
+#            the peak stopped being an arrival: the scorer's curve at its start fell from 0.22 to 0.18, a section
+#            was lost at the highest cut and the song read 99.51 for 100.0 on both seeds. A section that arrives on
+#            the home note has to stand on it before its line moves again.
+#   LIFT     a bass on C2 or D2 is 65 or 73 Hz and its octave (9 dB under) 131 or 147: a small speaker has neither,
+#            where it had the G2 line's 196. So wherever the line is under its written note, a second track plays the
+#            same notes an octave up, LIFT['db'] under the bass (the same patch, under the same pump): its own octave
+#            is at 262 or 294 Hz. MEASURED, finished: from 120 to 160 Hz the low sections have 4.4 to 4.8 dB more; from
+#            240 to 310 Hz 2 dB in one section and nothing in the others; above 200 Hz half a dB in one. So it is
+#            heard by a speaker that reaches 130 Hz and not by one that begins at 200. And the master gives the whole
+#            song 0.3 dB less for it (both ends are 0.3 dB quieter).
+FOLLOWS = {'comes': 'the bass', 'both': 'both purses', 'three': 'three purses'}   # v17: the switch; the section in which the bass then follows its seeds (with v16's follow)
+FROM = {'three purses': 8}                # v17: the bar of its section from which the bass follows (the peak stands on G for its first half: read the note)
+LIFT = {'db': -9}                         # v17: the octave-up copy of the bass's moved notes, dB under the bass's fader
 # ---- v16 (27 Nov): THE BASS STANDS ON ITS SEED'S KEY NOTE. Two more switches (`--without-root`, `-follow`; both
 # off is v15 byte for byte). The rule at the top of this file says it: the seed and the first four coins spent on it
 # are five notes a fifth apart, and from B flat those are G minor's five. Their key note is three coins on from the
@@ -449,10 +475,15 @@ def moved(pitch, semis):
     return f'{NAMES[n % 12]}{n // 12}'
 
 
+def follows(name, k=None):
+    """v17: does the bass follow this section's seeds as they change (v16's 'the drum again'; v17's three, each by its switch), in bar k of the section (None: at all)?"""
+    return ON['follow'] and (name in STANDS['follow'] or any(ON[sw] and name == sec for sw, sec in FOLLOWS.items()) and (k is None or k >= FROM.get(name, 0)))
+
+
 def stands(name, notes, every, k):
     """v16 ROOT, FOLLOW: semitones the bass's line moves in bar k of a section: down to the key note of the seed that
     bar answers (three coins on from it), from the key note of the seed it was written under."""
-    if not (ON['root'] and len(notes) == 1 or ON['follow'] and name in STANDS['follow']):
+    if not (ON['root'] and len(notes) == 1 or follows(name, k)):
         return 0
     up = (step_of(notes[k // every % len(notes)]) - step_of(STANDS['home'])) % 12
     return up - 12 if up else 0
@@ -460,6 +491,7 @@ def stands(name, notes, every, k):
 
 def build():
     T = {'kick': [], 'bass': [], 'hat': [], **{f'seed-{k}': [] for k in purses()}, **({'seed-z': []} if ON['zeno'] and ON['roll'] else {}), **({'open': []} if ON['meet'] and ON['owed'] and ON['hat'] else {}), **{f'long-{k}': [] for k in purses()}}
+    lifted = []                                                  # v17 LIFT: the bass's moved notes, an octave up
     if (ON['rate'] or (ON['count'] and ON['herald'])) and ON['exchange'] and ON['hat']:
         T['hat-x'] = []
     if ON['herald'] and ON['exchange']:
@@ -538,6 +570,8 @@ def build():
             if stands(name, notes, every, bar - i * SEC):       # v16 ROOT, FOLLOW: this bar's bass on its seed's key note
                 for x in T['bass'][mark:]:
                     x['pitch'] = moved(x['pitch'], stands(name, notes, every, bar - i * SEC))
+                    if ON['lift'] and stands(name, notes, every, bar - i * SEC) < 0:   # v17 LIFT: and an octave up, for a small speaker
+                        lifted.append({**x, 'pitch': moved(x['pitch'], 12)})
             if drum and ON['hat']:
                 for s, n_coins in coins(*pq).items():
                     if bass or n_coins == 1:                     # before the bass comes, only the two coins themselves
@@ -551,6 +585,8 @@ def build():
                             T.setdefault('rung', []).append({**T['hat'][-1], 'len': RUNG['len']})
     if ON['seven'] and ON['exchange']:
         T['bass'].sort(key=lambda n: n['at'])
+    if lifted:
+        T['bass-up'] = sorted(lifted, key=lambda n: n['at'])
     return T
 
 
@@ -599,6 +635,7 @@ def song():
         'tracks': [{'name': 'kick', 'patch': 'sc-kick', 'gain': '-9dB', 'notes': T['kick'],
                     'fx': [{'type': 'eq', 'bands': ['peak cutoff=47 q=1.2 gain=-3dB', 'peak cutoff=130 q=0.9 gain=3dB']}]},
                    {'name': 'bass', 'patch': DEBT['patch'] if ON['octave'] else 'sub-sine', 'gain': '-13dB', 'notes': T['bass'], 'fx': [under]}] +
+                  ([{'name': 'bass-up', 'patch': DEBT['patch'] if ON['octave'] else 'sub-sine', 'gain': f"{-13 + LIFT['db']}dB", 'notes': T['bass-up'], 'fx': [under]}] if T.get('bass-up') else []) +   # v17 LIFT
                   [{'name': f'seed-{k}', 'patch': 'sc-seed', 'gain': {'value': '-3dB', 'mod': [{'src': 'auto.alone', 'amount': 1}]}, 'auto': {'alone': alone()},
                     'notes': T[f'seed-{k}'], 'fx': ['clip drive=0dB ceiling=-12dB']} for k in purses()],   # the seed's highest sample is its own, not the limiter's
     }
@@ -669,7 +706,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v15, the last four v14, the last five v13, the last seven v12, the last nine v11, the last eleven v10, the last fourteen v9, the last seventeen v8, the last nineteen v7, the last twenty-one v6, the last twenty-five v5, the last twenty-six v4, the last twenty-nine v3, the last thirty-three v2, all thirty-six v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last four off is v16, the last six v15, the last eight v14, the last nine v13, the last eleven v12, the last thirteen v11, the last fifteen v10, the last eighteen v9, the last twenty-one v8, the last twenty-three v7, the last twenty-five v6, the last twenty-nine v5, the last thirty v4, the last thirty-three v3, the last thirty-seven v2, all forty v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -726,9 +763,15 @@ if __name__ == '__main__':
         if ON['octave']:
             print("    the bass has its octave: sc-debt, the second harmonic 9 dB under the note")
         if ON['root']:
-            print("    where a section has one seed the bass stands on that seed's key note, three coins on: " + ', '.join(f"{sec[0]} (seed {sec[4][0]}) on {moved('G2', stands(sec[0], sec[4], sec[2], 0))}" for sec in SECTIONS if sec[6] and len(sec[4]) == 1 and not (ON['follow'] and sec[0] in STANDS['follow'])))
+            print("    where a section has one seed the bass stands on that seed's key note, three coins on: " + ', '.join(f"{sec[0]} (seed {sec[4][0]}) on {moved('G2', stands(sec[0], sec[4], sec[2], 0))}" for sec in SECTIONS if sec[6] and len(sec[4]) == 1 and not follows(sec[0])))
         if ON['follow']:
             print('    where the seeds change the bass follows each: ' + '; '.join(f"{sec[0]}: " + ', '.join(f"bars {i * SEC + k + 1}-{i * SEC + k + sec[2]} {moved('G2', stands(sec[0], sec[4], sec[2], k))}" for k in range(0, SEC, sec[2])) for i, sec in enumerate(SECTIONS) if sec[6] and sec[0] in STANDS['follow']))
+            for k, name in FOLLOWS.items():
+                if ON[k]:
+                    j, sct = next((j, sct) for j, sct in enumerate(SECTIONS) if sct[0] == name)
+                    print(f"    and in {name} (bars {j * SEC + 1}-{(j + 1) * SEC}), {'a bar' if sct[2] == 1 else f'{sct[2]} bars'} each: " + ' '.join(moved('G2', stands(name, sct[4], sct[2], q)) for q in range(0, SEC, sct[2])))
+        if ON['lift'] and (ON['root'] or ON['follow']):
+            print(f"    wherever the bass is under its written note a second track plays it an octave up, {-LIFT['db']} dB under: " + f"{len(T.get('bass-up', []))} notes")
         print(f'{BARS} bars, {BARS * sec:.1f} s; written notes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items() if v or not k.startswith('long-')))
     else:
         a.out.write_text(dump(song()))
