@@ -289,6 +289,18 @@ each. Tones that waver together are heard as one thing and apart from the ones t
 1984; Chowning's Phone, 1980): a second voice steps out of the note, singing the note those tones are
 the multiples of: A3, D4, A4, D4, A3, D3: a tune that is not written anywhere, sung by a note that never
 changes. When they stop wavering the voice goes back into the note.
+
+v21 (27 Nov): TWO LINES CROSS, AND THE EAR WILL NOT LET THEM (C11T5_CROSS=0 takes it out: v20). In the
+three pairs of bars of "never arrives" that had nothing of their own (57-58, 65-66, 73-74, before each
+climb of the hat), two plain tones in one place set out for each other's notes: one from A3 straight up
+to A5, the other from A5 straight down to A3, an octave a bar. They cross on A4, a bar in. Neither turns:
+each is a straight line. But the ear follows what is NEAREST IN PITCH, not what goes on in a straight
+line, and hears the high one come down, touch, and go back up, and the low one go up and come back
+down: two turns that are not in the sound, and neither line arrives (Tougas and Bregman 1985: the
+bouncing glides). The third time the rising one flutters (a tremolo twice a sixteenth): now the two can
+be told apart, and it is heard to go straight through the other and arrive. The falling tone starts
+where in its wave it must for the two to be in step at the crossing: they touch (3 dB up for 80 ms)
+instead of cancelling.
 """
 import json
 import math
@@ -613,6 +625,20 @@ def para_tones(p):
     return out
 
 
+def cross_spans():
+    """[(the beat a crossing begins on, the beat it ends on, are the two told apart?)]; [] without."""
+    return [(b * BEATS, (b + CROSS_LEN) * BEATS, told) for b, told in zip(CROSS_BARS, CROSS_TOLD)] if CROSS else []
+
+
+def cross_lane(way, told):
+    """The pitch lane of one tone (semitones from its written note; way +1 up, -1 down) over the crossings in which it plays: a straight line from nought to CROSS_OCT octaves, held a beat for the tone to die away."""
+    pts = [["0b", 0]]
+    for b0, b1, t in cross_spans():
+        if told is None or t == told:
+            pts += [[f"{b0:g}b", 0], [f"{b1:g}b", way * 12 * CROSS_OCT], [f"{b1 + 1:g}b", way * 12 * CROSS_OCT]]
+    return pts
+
+
 def vox_span():
     """The bars (from 0) between which the held note sounds, or None."""
     sec = next((x for x in SECS if x[0] == VOX_IN[0]), None) if VOX else None
@@ -696,6 +722,15 @@ VOX_RATE = 5.5                                            # wavers a second
 VOX_DEEP = 0.35                                           # semitones each way (2%)
 VOX_EDGE = 0.5                                            # beats the wavering takes to come in, and to go out
 VOX_GAIN = os.environ.get("C11T5_VOX_GAIN", "-42dB")      # the first tone's fader; tone k is 20 * log10(k) * VOX_ROLL dB under it. Set in the whole song's master, which delivers this held note 19.5 dB over a render of it alone: at -34dB (and 6 dB an octave) the note was as loud as all the rest of the row together and the row 3.2 dB louder; at -46dB the tones that waver in the third bar were 15 dB under to 2 dB over the music in their own bands; here they are 11 under to 6 over and the whole note is 4 dB under the row
+CROSS = os.environ.get("C11T5_CROSS", "1") != "0" and VOX         # v21: two lines cross, and the ear will not let them (the bouncing glides: Tougas and Bregman 1985)
+CROSS_BARS = (56, 64, 72)                              # each crossing's first bar from 0: the three pairs of bars of "never arrives" between the stairs and the hat's three climbs, which had nothing of their own
+CROSS_LEN = 2                                          # bars to a crossing: the two meet a bar in
+CROSS_LOW, CROSS_HIGH, CROSS_OCT = "A3", "A5", 2       # 220 to 880 Hz: they cross on A4 (440 Hz), the song's own note; an octave a bar
+CROSS_TOLD = (False, False, True)                      # the crossings in which the two are told apart (the rising one flutters): the last
+CROSS_FLUTTER = ("1/32", 0.8)                          # the flutter: a tremolo twice a sixteenth, and how deep
+CROSS_PHASE = 0.42                                     # turns: where in its wave the falling tone starts (the rising one starts at nought). MEASURED on a bench of eight starts, not worked out: with this the two are in step where they cross and touch (3 dB up for 80 ms); half a turn off they cancel there and leave a hole 40 ms long
+CROSS_LIFT = 3.6                                       # dB: the fluttering tone's fader over the others'. MEASURED: the tremolo takes 3.6 dB off a tone on average, and a line that is quieter than the other is told apart by that too
+CROSS_GAIN = os.environ.get("C11T5_CROSS_GAIN", "-32dB")  # set in the whole song's master between two readings: at -30dB each line stood 3.8 dB (median) over all the music in the third of an octave round it and the music was pushed down 0.18 dB; at -36dB 2.3 dB under it. NOT CHOSEN FOR THE SCORE: the lines pass through four bands in which this song is already over the record (468, 641, 749, 877 Hz) and the spectrum term takes 0.2 to 0.3 for them at any fader; an octave lower they would cost nothing and be lost on a small speaker
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1106,6 +1141,20 @@ def song():
                                   "notes": [{"at": vx_b0 * BEATS, "len": (vx_b1 - vx_b0) * BEATS, "pitch": VOX_NOTE, "vel": 0.8}], "auto": {"vib": {"points": vox_lane(vx_k)}}})
         doc["about"] = doc["about"].replace(" Generated by", f" From v20 one low note ({VOX_NOTE}: {VOX_PARTS} plain tones, its multiples) is held through the first row of held, and from its third bar some of its tones waver together, every third, fourth, sixth, fourth, third, second, a bar each: nothing is added and nothing gets louder, and the ones that waver are heard as a second voice singing the note they are the multiples of (McAdams 1984): a tune that is written nowhere. Generated by")
         assert "From v20" in doc["about"]
+    if cross_spans():
+        cr_amp = {"a": "30ms", "d": "0ms", "s": 1, "r": "80ms"}; cr_pitch = {"value": 0, "mod": [{"src": "auto.glide", "amount": 1}]}
+        PATCHES["ht-cross"] = {"about": "Hearing Things' line (chirper-zero, 27 Nov, v21): one plain tone, held, whose note is drawn by its track's lane (`auto.glide`, in semitones): a straight line in pitch.",
+                               "play": {"gate": 1, "vel_sens": 0}, "synth": {"layers": ["sine phase=0"], "pitch": cr_pitch, "amp": cr_amp}}
+        PATCHES["ht-cross-d"] = {"about": "Hearing Things' other line (chirper-zero, 27 Nov, v21): `ht-cross` begun " + f"{CROSS_PHASE:g}" + " of a turn into its wave, so that the two are in step at the moment they cross.",
+                                 "play": {"gate": 1, "vel_sens": 0}, "synth": {"layers": [f"sine phase={CROSS_PHASE:g}"], "pitch": cr_pitch, "amp": cr_amp}}
+        cr = cross_spans()
+        doc["tracks"].append({"name": "cross-up", "patch": "ht-cross", "gain": CROSS_GAIN, "pan": 0.0, "notes": [note(b0, CROSS_LOW, b1 - b0, 0.8) for b0, b1, t in cr if not t], "auto": {"glide": {"points": cross_lane(1, False), "curve": 0}}})
+        doc["tracks"].append({"name": "cross-down", "patch": "ht-cross-d", "gain": CROSS_GAIN, "pan": 0.0, "notes": [note(b0, CROSS_HIGH, b1 - b0, 0.8) for b0, b1, t in cr], "auto": {"glide": {"points": cross_lane(-1, None), "curve": 0}}})
+        if any(t for _, _, t in cr):
+            doc["tracks"].append({"name": "cross-told", "patch": "ht-cross", "gain": f"{float(CROSS_GAIN.replace('dB', '')) + CROSS_LIFT:g}dB", "pan": 0.0, "fx": [{"type": "tremolo", "rate": CROSS_FLUTTER[0], "depth": CROSS_FLUTTER[1]}],
+                                  "notes": [note(b0, CROSS_LOW, b1 - b0, 0.8) for b0, b1, t in cr if t], "auto": {"glide": {"points": cross_lane(1, True), "curve": 0}}})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v21, in the {len(cr)} pairs of bars of never arrives that had nothing of their own, two plain tones in one place set out for each other's notes: one from {CROSS_LOW} straight up to {CROSS_HIGH}, one from {CROSS_HIGH} straight down to {CROSS_LOW}, an octave a bar; they cross on A4 a bar in. Neither turns. But the ear follows what is nearest in pitch, and hears the high one come down, touch and go back up, and the low one go up and come back down: two turns that are not there, and neither line arrives. The last time the rising one flutters, and is heard to go straight through. Generated by")
+        assert "From v21" in doc["about"]
     return doc
 
 
@@ -1191,6 +1240,11 @@ if __name__ == "__main__":
             print(f"two scales neither ear is given, bars {b0 + 1}-{b1} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f}): a pip an eighth ; the left ear alone bars {b0 + 1}-{b0 + SCALE_SOLO}, the right alone {b0 + SCALE_SOLO + 1}-{b0 + 2 * SCALE_SOLO}, both {b0 + 2 * SCALE_SOLO + 1}-{b1}")
             print(f"   the left ear is given  {' '.join(L)}  (its biggest leap {leap(L)} semitones) ; the right  {' '.join(R)}  ({leap(R)})")
             print(f"   the higher of each pair  {' '.join(hi_)}  (biggest step {leap(hi_)}) ; the lower  {' '.join(lo_)}  ({leap(lo_)}) ; the higher note is in the " + " ".join("L" if hz(a) > hz(b) else "R" for a, b in zip(L, R)) + " ear")
+        if cross_spans():
+            cr_sec = 60 / BPM
+            print(f"two lines cross and are heard to turn back ({CROSS_GAIN}): {CROSS_LOW} up to {CROSS_HIGH} and {CROSS_HIGH} down to {CROSS_LOW} ({hz(CROSS_LOW):.1f} to {hz(CROSS_HIGH):.1f} Hz), plain tones in one place, {CROSS_OCT / (CROSS_LEN * BEATS * cr_sec):.2f} octaves a second ; they cross on {math.sqrt(hz(CROSS_LOW) * hz(CROSS_HIGH)):.1f} Hz ; the falling one starts {CROSS_PHASE:g} of a turn in")
+            for cr_b0, cr_b1, cr_t in cross_spans():
+                print(f"   bars {int(cr_b0 // BEATS) + 1}-{int(cr_b1 // BEATS)} ({int(cr_b0 * cr_sec) // 60}:{cr_b0 * cr_sec % 60:04.1f}-{int(cr_b1 * cr_sec) // 60}:{cr_b1 * cr_sec % 60:04.1f}), crossing at {int((cr_b0 + cr_b1) / 2 * cr_sec) // 60}:{(cr_b0 + cr_b1) / 2 * cr_sec % 60:05.2f}: " + (f"the rising one flutters ({CROSS_FLUTTER[0]}, depth {CROSS_FLUTTER[1]}, {CROSS_LIFT:g} dB up): told apart" if cr_t else "the two alike"))
         if VOX and vox_span():
             vx_b0, vx_b1 = vox_span(); vx_sec = BEATS * 60 / BPM; vx_f = hz(VOX_NOTE)
             print(f"a voice in the note, bars {vx_b0 + 1}-{vx_b1} ({int(vx_b0 * vx_sec) // 60}:{vx_b0 * vx_sec % 60:04.1f}-{int(vx_b1 * vx_sec) // 60}:{vx_b1 * vx_sec % 60:04.1f}): {VOX_NOTE} held, {VOX_PARTS} plain tones ({vx_f:.1f} to {vx_f * VOX_PARTS:.0f} Hz), tone k at {VOX_GAIN} less {20 * VOX_ROLL:g} log k ; alone for {VOX_ALONE} bars ; then a bar each, the tones that waver ({VOX_DEEP} semitones each way, {VOX_RATE:g} a second, {VOX_RATE * vx_sec:.2f} wavers a bar, in and out over {VOX_EDGE} beats):")
