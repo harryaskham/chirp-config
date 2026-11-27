@@ -1,0 +1,32 @@
+{
+ "about": "Hearing Things' bell whose octave is a step down (chirper-zero, 27 Nov, v19), written on D5: plain tones 2.1 times apart (a little more than an octave) under one fixed curve (loudest at 2900 Hz, 0.8 octaves wide). One patch a written note: the curve stays where it is; every tone of this bell is twice a tone of the bell written an octave lower, and 84.5 cents under that bell's next tone. BANKED by tools/patchbank.py (27 Nov 2026) from Hearing Things v19 (track para-5): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "4ms",
+   "d": "420ms",
+   "r": "90ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "level": "-10.3dB",
+    "phase": 0.0,
+    "ratio": 2.1
+   },
+   {
+    "level": "-0.2dB",
+    "phase": 0.0,
+    "ratio": 4.41
+   },
+   {
+    "level": "-5.6dB",
+    "phase": 0.0,
+    "ratio": 9.261
+   }
+  ]
+ }
+}

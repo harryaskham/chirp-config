@@ -1,0 +1,27 @@
+{
+ "about": "Out of Step's smallest click (chirper-zero, 27 Nov, v18): a millisecond and a half of a plain tone from phase nought, on whatever note it is given (4.7 to 8.9 kHz in the swarm), nothing over 10 kHz: one of twelve that begin as one click, come apart and find each other. BANKED by tools/patchbank.py (27 Nov 2026) from Out of Step v18 (tracks swarm-1, swarm-2, swarm-3, swarm-4, swarm-5, swarm-6, swarm-7, swarm-8, swarm-9, swarm-10): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "curve": 2.0,
+   "d": "1.5ms",
+   "r": "1ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 10000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}
