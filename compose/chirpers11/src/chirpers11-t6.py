@@ -58,7 +58,30 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True}
+# ---- v12 (27 Nov): FIVE AND THREE MAKE EIGHT TOO. Two more switches, each `--without-…` (with them off it is v11
+# byte for byte). v11 put the song's sum into its notes once, the right way round, on a beat. The song also has
+# the purse inside out (since v3) and sums that fall on no beat, and neither was in the notes.
+#   BACK      home's chord is struck whole twice (bars 161, 163), and counted out in its second half: G, B flat, D
+#             on sixteenths 0, 3, 8: three, then five. Between the two (bars 165, 167) it is now counted out the
+#             other way: D, B flat, G on sixteenths 0, 5, 8: five, then three, from the top down. So home is the
+#             chord, the purse inside out, and the purse: the whole song in sixteen bars, and both spellings end
+#             on the same sixteenth because 5 + 3 is 3 + 5.
+#   RINGS     where the purse's two coins first meet ON a beat the drum gives it the beat (v11 BOUGHT). In two
+#             sections they meet off the beat and the drum has nothing to give: threes and fours (3 + 4 = 7:
+#             sixteenth 7) and off the beat (the purse inside out from sixteenth 6: 5 + 3 lands on sixteenth 14).
+#             There, in the section's second half, the hat that falls on the sum is let ring in each bar that
+#             has a seed (bars 57, 59, 61, 63 and 137, 139, 141, 143). On a beat the sum is a rest; off a beat
+#             it is a ring. First built with the open hat the song already has (sc-open, 140 ms): on the bench
+#             it lifted its own sixteenth 3 dB above 5 kHz and the sixteenth after it not at all: a louder
+#             stroke, not a ring. So a new patch name, sc-rung: the same hat with a decay of 1.2 s, held three
+#             sixteenths and then stopped. (The machine's `decay` is the time to fall 60 dB: at 380 ms the hat
+#             alone read -38.6 -57.5 -77.0 dBFS by sixteenth, 19 dB a sixteenth, and its second sixteenth added
+#             nothing over the shut hats; at 1.2 s it falls 6 dB a sixteenth.)
+BACK = {'bars': (4, 8)}                     # v12: the bars of home (from its first, 0) in which the chord is counted out the other way
+RINGS = ('threes and fours', 'off the beat')   # v12: the sections in whose second half the hat rings where the purse's two coins first meet off a beat
+RUNG = {'patch': 'sc-rung', 'decay': '1200ms', 'release': '150ms', 'len': 0.75, 'gain': '-8dB', 'pan': -0.15}   # v12: the hat that rings on the sum: its patch, how long it rings, beats it is held, its fader, and the open hat's side.
+# Its fader: at the open hat's -5 dB the finished song read 8 dB up above 5 kHz over the ring's three sixteenths (-19.8 for -27.9 dBFS), where the open hat puts 3 on its half beat: a splash. 3 dB less
 # ---- v11 (27 Nov): THREE AND FIVE MAKE EIGHT. Two more switches, each `--without-…` (with them off it is v10 byte
 # for byte). The song's sum has been in its echoes since v1 and nowhere in its notes.
 #   SPELL     home's chord (G, B flat, D on the one, every two bars) is counted out in home's second half (bars
@@ -364,8 +387,9 @@ def build():
                 kept = ON['long'] and not drum and i < len(SECTIONS) - 1          # the opening and the break: into the long purse
                 home = ON['chord'] and name == 'home'
                 spelt = ON['spell'] and home and bar - i * SEC >= SEC // 2    # v11 SPELL: the chord counted out in the purse's coins
-                for j, pitch in enumerate(HOME if home else [notes[n % len(notes)]]):
-                    T[f"{'long' if kept else 'seed'}-{pairs[n % len(pairs)]}"].append({'at': bar * 4 + (at16 + (SPELL[j] if spelt else 0)) / 4, 'len': 0.25, 'pitch': pitch, 'vel': 0.9,
+                back = ON['back'] and home and BACK['bars'][0] <= bar - i * SEC < BACK['bars'][1]   # v12 BACK: and the other way: five, then three
+                for j, pitch in enumerate((HOME[::-1] if back else HOME) if home else [notes[n % len(notes)]]):
+                    T[f"{'long' if kept else 'seed'}-{pairs[n % len(pairs)]}"].append({'at': bar * 4 + (at16 + (SPELL[j] if spelt else (0, SPELL[2] - SPELL[1], SPELL[2])[j] if back else 0)) / 4, 'len': 0.25, 'pitch': pitch, 'vel': 0.9,
                                                                                     **({'gain': f'{SOFT}dB'} if dense else {'gain': f'{HOME_DB}dB'} if home else {'gain': f'{LONG_DB}dB'} if kept and LONG_DB else {})})
                 if ON['rate'] and 'hat-x' in T and name == EXCHANGE['section']:   # v9 RATE: what the exchange can pay of this seed, in its units
                     for amount in range(1, RATE['upto'] + 1):
@@ -418,6 +442,8 @@ def build():
                         T['hat'].append({'at': bar * 4 + (at16 + s) % BAR / 4, 'len': 0.1, 'pitch': 'A#4', 'vel': round(.95 - .13 * (n_coins - 1), 2)})
                         if 'open' in T and s in others and (at16 + s) % 4:   # v8 MEET: it falls with one of the other purses' debts
                             T['open'].append({**T['hat'][-1], 'len': MEET['len']})
+                        elif ON['rings'] and name in RINGS and bar - i * SEC >= SEC // 2 and (bar - i * SEC) % every == 0 and s == sum(pq) and (at16 + s) % 4:   # v12 RINGS: the sum, off the beat
+                            T.setdefault('rung', []).append({**T['hat'][-1], 'len': RUNG['len']})
     if ON['seven'] and ON['exchange']:
         T['bass'].sort(key=lambda n: n['at'])
     return T
@@ -499,6 +525,13 @@ def song():
     if T.get('open'):
         doc['patches'] = {**doc['patches'], 'sc-open': OPEN}
         doc['tracks'].append({'name': 'open', 'patch': 'sc-open', 'gain': MEET['gain'], 'pan': MEET['pan'], 'notes': T['open']})
+    if T.get('rung'):                                            # v12 RINGS: the same hat, rung for three sixteenths
+        rung = json.loads(json.dumps(OPEN))
+        rung['about'] = "Small Change: the hat that rings on the purse's sum where it falls off the beat (v12). sc-open's hat with a decay of 1.2 s (6 dB a sixteenth), held three sixteenths and stopped, above 5 kHz."
+        rung['synth']['layers'][0]['machine']['decay'] = RUNG['decay']
+        rung['synth']['amp']['r'] = RUNG['release']
+        doc['patches'] = {**doc['patches'], RUNG['patch']: rung}
+        doc['tracks'].append({'name': 'rung', 'patch': RUNG['patch'], 'gain': RUNG['gain'], 'pan': RUNG['pan'], 'notes': T['rung']})
     if ON['hat']:
         doc['patches'] = {**doc['patches'], 'sc-hat': HAT}
         doc['tracks'].append({'name': 'hat', 'patch': 'sc-hat', 'gain': '4dB', 'pan': 0.15, 'notes': T['hat']})
@@ -523,7 +556,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v10, the last five v9, the last eight v8, the last ten v7, the last twelve v6, the last sixteen v5, the last seventeen v4, the last twenty v3, the last twenty-four v2, all twenty-seven v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v11, the last four v10, the last seven v9, the last ten v8, the last twelve v7, the last fourteen v6, the last eighteen v5, the last nineteen v4, the last twenty-two v3, the last twenty-six v2, all twenty-nine v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -557,6 +590,10 @@ if __name__ == '__main__':
         home_at = [k for k, sec in enumerate(SECTIONS) if sec[0] == 'home']
         if ON['spell'] and ON['chord'] and home_at:
             print(f"    home's chord is counted out in its second half (bars {home_at[0] * SEC + SEC // 2 + 1}-{(home_at[0] + 1) * SEC}): " + ', '.join(f'{p} on sixteenth {x}' for p, x in zip(HOME, SPELL)) + ': three, then five')
+        if ON['back'] and ON['chord'] and home_at:
+            print(f"    and the other way before that (bars {home_at[0] * SEC + BACK['bars'][0] + 1}-{home_at[0] * SEC + BACK['bars'][1]}): " + ', '.join(f'{p} on sixteenth {x}' for p, x in zip(HOME[::-1], (0, SPELL[2] - SPELL[1], SPELL[2]))) + ': five, then three')
+        if ON['rings'] and ON['hat']:
+            print('    the hat rings where the purse\'s two coins first meet off a beat: ' + '; '.join(f"{sct[0]}: sixteenth {(sct[3] + sum(sct_pq)) % BAR} (bars " + ' '.join(str(b + 1) for b in range(k * SEC + SEC // 2, (k + 1) * SEC, sct[2])) + ')' for k, sct in enumerate(SECTIONS) if sct[0] in RINGS for sct_pq in [purses()['d' if ON['flip'] and sct[3] and sct[1][0] == 'a' else sct[1][0]]]))
         for k, sct in enumerate(SECTIONS):
             if ON['bought'] and sct[0] in BOUGHT:
                 print(f"    the drum gives beat {(sct[3] + sum(purses()[sct[1][0]])) // 4 + 1} to the purse in the second half of {sct[0]}, where {' and '.join(str(c) for c in purses()[sct[1][0]])} make {sum(purses()[sct[1][0]])}: bars " + ' '.join(str(b + 1) for b in range(k * SEC + SEC // 2, (k + 1) * SEC, sct[2])))
