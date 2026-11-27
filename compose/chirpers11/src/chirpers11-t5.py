@@ -324,6 +324,19 @@ the same band, that is only 6 sixteenths long (two bars), then 3 (two bars), the
 bar): the engine's shift register, which holds 32767 steps and then begins again, clocked so that it
 comes round on those lengths. Three sixteenths against the beat's four: the master moves every hiss
 with the drum, once a beat, and this pattern is not once a beat. The last bar is left to the rabbit.
+
+v24 (27 Nov): THE EAR'S OWN TONE (C11T5_OWN=0 takes it out: v23). The ear is not a straight line:
+give it two tones close together and it makes others of its own, the loudest at twice the lower
+less the upper (the cubic difference tone). It is made in the ear, by the two tones meeting there:
+there is nothing at its frequency in the air or in the file. In the first row of "not there" (bars
+81 to 88, before the drum) one plain tone is held on D7 (2349 Hz) and another slides over it from
+1.1 to 1.3 times it: up 2.9 semitones in two bars. The third tone goes from 0.9 to 0.7 of the
+lower: DOWN 4.4 semitones, from 2114 Hz to 1645, fading as it goes (the ear makes little of it
+once the two are far apart). Four phrases: both tones in the middle and the upper one rising (the
+third tone falls); then the same with an ear each, the lower left and the upper right: on
+headphones no ear has both and THE THIRD TONE IS GONE (on loudspeakers both reach both ears and it
+stays); then an ear each with the upper one falling; then both in the middle again and falling:
+the third tone RISES into the bar where the drum comes in, a riser that nobody wrote.
 """
 import json
 import math
@@ -648,6 +661,24 @@ def para_tones(p):
     return out
 
 
+def own_row():
+    """The first bar of the row with the ear's own tone, or None."""
+    sec = next((x for x in SECS if x[0] == OWN_IN[0]), None)
+    return sec[1] + ROW * OWN_IN[1] if OWN and sec is not None and OWN_IN[1] * ROW < sec[2] else None
+
+
+def own_phrases():
+    """One tuple a phrase: (where, way, the beat it starts on, its length in beats, the upper tone's semitones over the lower at its start and at its end)."""
+    b0, per = own_row(), ROW // len(OWN_PHRASES)
+    lo, hi = (12 * math.log2(r) for r in OWN_RATIO)
+    return [(where, way, (b0 + j * per) * BEATS, per * BEATS - OWN_GAP, lo if way > 0 else hi, hi if way > 0 else lo) for j, (where, way) in enumerate(OWN_PHRASES)]
+
+
+def own_third(st):
+    """The third tone's frequency (Hz) when the upper tone is st semitones over the lower: twice the lower less the upper."""
+    return hz(OWN_LOW) * (2 - 2 ** (st / 12))
+
+
 def rep_row():
     """The first bar of the row with the hiss that repeats, or None."""
     sec = next((x for x in SECS if x[0] == REP_IN[0]), None)
@@ -815,6 +846,15 @@ REP_BAND = (3000, 7500)                                # Hz: every stage through
 REP_TOP = 3                                            # low-passes in a row at the band's top. NOTHING NEW OVER 10 kHz (chirper-one's ask): with one low-pass at 9 kHz the scorer's bands at 10.8, 12.6 and 14.8 kHz rose 0.8 to 1.0 dB: a low-pass is a slope, not a wall. Three at 7.5 kHz are 22 dB down at 10.8 kHz
 REP_TRIM = {None: 0.0, 6.0: -4.6, 3.0: -1.7, 1.5: 1.3}  # dB by stage, read alone, so that every stage is as loud as the first in the band (a register clocked faster is spread wider: untrimmed the stages read +4.6, +1.7 and -1.3 dB against the hiss that never repeats)
 REP_GAIN = os.environ.get("C11T5_REP_GAIN", "-27dB")   # set in the whole song's master between two readings, BEFORE their scores were read: THE READINGS WERE TAKEN WITH THE FIRST BAND (3 to 9 kHz, one low-pass), where -28dB put the hiss at -30.3 dBFS (16 dB under the row) and -34dB at -36.3 (22 under), and -31dB was chosen (-33.3 dBFS); the band was then narrowed (REP_TOP), which takes 3.8 dB from the hiss alone, and the fader raised by that: THIS MASTER DELIVERS IT AS WRITTEN (6 dB of fader, 6 dB of hiss) and there is nothing else in its band between the drums (it stands 35 to 54 dB over the music there at either). AND THE MASTER PUMPS IT: every stage, the one that never repeats too, is 9 dB down in the 120 ms after each drum: a swell once a beat is in all of them and is the master's, not the noise's. That is why the loops are 3 sixteenths and not 4
+OWN = os.environ.get("C11T5_OWN", "1") != "0" and REP      # v24: the ear's own tone: two plain high tones in one ear make a third in that ear, lower than both, at twice the lower less the upper (the cubic difference tone: Tartini heard its cousin in 1714; Goldstein measured this one in 1967). Nothing in the file is at its frequency
+OWN_IN = ("not there", 0)                              # the section and the row of it (from 0): the first row of "not there", before the drum comes in: only the click, the bass, the hat, the pair and the two soft tones round A4 are in it
+OWN_LOW = "D7"                                         # the lower tone, held (2349 Hz): the upper one is this times the ratio. Not lower: under it is the click's own band (1.9 kHz), the fullest in the song
+OWN_RATIO = (1.10, 1.30)                               # the upper tone over the lower, from and to: the third tone is the lower times (2 - ratio): from 0.90 of it to 0.70: the upper moves 2.9 semitones and the third tone 4.4 THE OTHER WAY. The ear makes most of it under about 1.25 and little by 1.4 (the first two readings went to 1.4: half of each phrase would have had none): it fades as the two draw apart
+OWN_PHRASES = (("mid", 1), ("ears", 1), ("ears", -1), ("mid", -1))   # two bars each: where the two tones are (both in the middle: both in each ear; or an ear each: the lower left, the upper right) and which way the upper one goes. AN EAR EACH IS THE PROOF: on headphones no ear has both and the third tone is gone; on loudspeakers both reach both ears and it stays
+OWN_GAP = 0.25                                         # beats of rest at the end of each phrase
+OWN_VEL = 0.8
+OWN_EARS = 0.0                                         # dB on the two an-ear-each tracks, read alone, so that a tone alone in an ear is as loud there as it is in each ear from the middle
+OWN_GAIN = os.environ.get("C11T5_OWN_GAIN", "-37dB")   # each tone: set in the whole song's master, FOUR readings: the first guess (-30) was 13 dB too loud: THE MASTER LIFTS A PLAIN TONE AT 2.3 kHz IN THIS ROW 16 dB (written -28: each tone -17.4 dBFS, the two only 4.7 dB under all the rest of the row together, and the rest pushed 0.7 dB down; -34: 10.2 dB under)
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1263,6 +1303,26 @@ def song():
                               "notes": [{"at": (rp_b0 + a0) * BEATS, "len": (a1 - a0) * BEATS, "pitch": rep_note(x)[0], "vel": rp_vel(x)} for a0, a1, x in REP_STAGES if x is not None]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v23 there is a hiss in the row with no hat (bars {rp_b0 + 1} to {rp_b0 + max(a1 for _, a1, _ in REP_STAGES)}): for two bars a hiss that never repeats, then the same kind of hiss, as loud, in the same band, that is only {', '.join(f'{x:g}' for _, _, x in REP_STAGES if x)} sixteenths long and comes round and round. Nothing is struck and its level is not moved: but a noise that repeats is heard to have a pattern in it, each listener's own, and here the pattern is three against the beat's four, then six, then twelve (Guttman and Julesz, 1963). Generated by")
         assert "From v23" in doc["about"]
+    if own_row() is not None:
+        assert ROW % len(OWN_PHRASES) == 0
+        ow = own_phrases(); ow_end = BARS * BEATS
+        ow_flat = {"glide": {"points": [["0b", 0], [f"{ow_end:g}b", 0]], "curve": 0}}
+        for ow_where, ow_pans in (("mid", (0.0, 0.0)), ("ears", (-1, 1))):
+            ow_these = [p for p in ow if p[0] == ow_where]
+            if not ow_these:
+                continue
+            ow_pts = [["0b", 0]]
+            for _, _, ow_at, ow_len, ow_s0, ow_s1 in ow_these:
+                ow_pts += [[f"{ow_at - 0.05:g}b", round(ow_s0, 4)], [f"{ow_at + ow_len:g}b", round(ow_s1, 4)]]
+            ow_pts.append([f"{ow_end:g}b", round(ow_these[-1][5], 4)])
+            ow_gain = OWN_GAIN if ow_where == "mid" else f"{float(OWN_GAIN[:-2]) + OWN_EARS:g}dB"
+            ow_tail = "" if ow_where == "mid" else ("-l", "-r")
+            doc["tracks"].append({"name": "own-lo" + (ow_tail and ow_tail[0]), "patch": "ht-cross", "gain": ow_gain, "pan": ow_pans[0], "auto": ow_flat,
+                                  "notes": [{"at": ow_at, "len": ow_len, "pitch": OWN_LOW, "vel": OWN_VEL} for _, _, ow_at, ow_len, _, _ in ow_these]})
+            doc["tracks"].append({"name": "own-hi" + (ow_tail and ow_tail[1]), "patch": "ht-cross", "gain": ow_gain, "pan": ow_pans[1], "auto": {"glide": {"points": ow_pts, "curve": 0}},
+                                  "notes": [{"at": ow_at, "len": ow_len, "pitch": OWN_LOW, "vel": OWN_VEL} for _, _, ow_at, ow_len, _, _ in ow_these]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v24 there are two plain high tones in the first row of 'not there' (bars {own_row() + 1} to {own_row() + ROW}): one held on {OWN_LOW} ({hz(OWN_LOW):.0f} Hz) and one sliding over it, from {OWN_RATIO[0]:g} to {OWN_RATIO[1]:g} times it and back. Two tones in one ear make a third IN THAT EAR, at twice the lower less the upper: here from {own_third(12 * math.log2(OWN_RATIO[0])):.0f} Hz to {own_third(12 * math.log2(OWN_RATIO[1])):.0f} Hz: as the upper tone goes up, a tone nobody wrote goes down, half as far again, and the other way about. Nothing in the file is at its frequency. For the two middle phrases the tones are given an ear each: on headphones no ear has both, and the third tone is gone; on loudspeakers it stays. Generated by")
+        assert "From v24" in doc["about"]
     return doc
 
 
@@ -1280,6 +1340,8 @@ def dump(doc):
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
         sec = 60 / BPM * BEATS
+        if own_row() is not None:
+            print(f"the ear's own tone ({OWN_GAIN} each), bars {own_row() + 1}-{own_row() + ROW} ({int(own_row() * sec) // 60}:{own_row() * sec % 60:04.1f}): the lower tone {OWN_LOW} ({hz(OWN_LOW):.1f} Hz) held ; the upper {OWN_RATIO[0]:g} to {OWN_RATIO[1]:g} times it ({12 * math.log2(OWN_RATIO[0]):.2f} to {12 * math.log2(OWN_RATIO[1]):.2f} semitones over) ; the third tone, twice the lower less the upper: " + " ; ".join(f"bars {int(at // BEATS) + 1}-{int((at + ln) // BEATS) + 1} {'both in the middle' if wh == 'mid' else 'an ear each (lower left, upper right)'}: upper {hz(OWN_LOW) * 2 ** (s0 / 12):.0f} to {hz(OWN_LOW) * 2 ** (s1 / 12):.0f} Hz, the third {own_third(s0):.0f} to {own_third(s1):.0f} Hz ({12 * math.log2(own_third(s1) / own_third(s0)):+.2f} semitones)" for wh, way, at, ln, s0, s1 in own_phrases()))
         if rep_row() is not None:
             rp_b0 = rep_row()
             print(f"a hiss that repeats ({REP_GAIN}), bars {rp_b0 + 1}-{rp_b0 + max(a1 for _, a1, _ in REP_STAGES)} ({int(rp_b0 * sec) // 60}:{rp_b0 * sec % 60:04.1f}): {REP_BAND[0]} to {REP_BAND[1]} Hz ; " + " ; ".join(f"bars {rp_b0 + a0 + 1}-{rp_b0 + a1}: " + ("never repeats" if x is None else f"comes round every {x:g} sixteenths ({x * STEP * 60 / BPM * 1000:.0f} ms, {(a1 - a0) * 16 / x:.1f} times; the register on {rep_note(x)[0]} {rep_note(x)[1]:+.4f} semitones, {rep_hz(x):.2f} Hz, {93 * rep_hz(x):.0f} steps a second; {REP_TRIM[x]:+.1f} dB)") for a0, a1, x in REP_STAGES))
