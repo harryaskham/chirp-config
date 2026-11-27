@@ -286,6 +286,18 @@ and pitch, in the middle, and on the grid. Before it and after it they are never
 beat of the record is 46 ms apart on the two decks a beat either side of the crossing, and 204 ms (a
 sixteenth and two thirds) two beats either side. It is Nancarrow's Canon X (Study 21),
 done as a record does it: pitch and tempo are one thing.
+
+v23 (27 Nov): THE HOLE IS OFF CENTRE (C11T1_WOW=0 takes it out: v22). A record whose hole is not in
+the middle of its grooves goes under the needle faster on one side of every turn and slower on the
+other: its pitch goes up and down once a turn (wow). Deck B's hole is 1 mm off, with the needle
+80 mm out: 1.25% each way, 21.5 cents sharp and then as flat. On the record's ticks and stabs nobody
+would know; so in the first row of "locked" (bars 113 to 120), where no hand is on the record, a
+chord is HELD on it (an organ of plain tones: the stab's chords, a bar of the record each), and the
+record's pitch lane, which every part of deck B follows, is given the wow. It is sharpest when the
+scratch (v20) comes under the needle: the tick marks the turn. For four bars a turn is 1.81 s; at
+bar 117 the switch goes to the other speed, the chord jumps a fourth with everything else on the
+record, and the wow goes four turns for three (1.36 s). The record's strokes are NOT moved in time
+(the wow is 3.6 ms each way there: not written).
 """
 import json
 import math
@@ -502,13 +514,52 @@ def speed_st(t):
     return 12 * math.log2(max(speed(t), 0.03))
 
 
+def wow_row():
+    """The first bar of the row in which the hole is off centre, or None."""
+    sec = next((x for x in SECS if x[0] == WOW_IN[0]), None)
+    return sec[1] + ROW * WOW_IN[1] if WOW and sec is not None and WOW_IN[1] * ROW < sec[2] else None
+
+
+def wow_rec(t):
+    """The sixteenth of deck B's record under the needle at grid time t (beats), in and after 'locked' (the hand is off: the record is with the grid until the switch, then FAST_BY as fast)."""
+    fw = fast_window()
+    return t / STEP if not fw or t < fw[0] else (fw[0] + (min(t, fw[1]) - fw[0]) * FAST_BY + max(0.0, t - fw[1])) / STEP
+
+
+def wow_turns(t):
+    """Turns of the record since the scratch was under the needle (whole numbers: the scratch's tick)."""
+    return (wow_rec(t) - scar_phase() - SCAR_OFF) / SCAR_TURN
+
+
+def wow_st(t):
+    """Semitones the off-centre hole makes the record sharp by at grid time t: 0.0 outside its row."""
+    b0 = wow_row()
+    if b0 is None or not b0 * BEATS <= t < (b0 + ROW) * BEATS:
+        return 0.0
+    return 12 * math.log2(1 + WOW_OFF / WOW_RADIUS * math.cos(2 * math.pi * wow_turns(t)))
+
+
+def wow_notes():
+    """The held chord on deck B's record in the wow's row: each bar OF THE RECORD its chord (the stab's), held for that bar; the record's bars are FAST_BY as short from the switch."""
+    b0, fw, out = wow_row(), fast_window(), []
+    t0, t1 = b0 * BEATS, (b0 + ROW) * BEATS
+    cut = min(fw[0], t1) if fw else t1
+    for bar in range(b0, int(cut // BEATS)):
+        out += [note(bar * BEATS, p, BEATS, WOW_VEL) for p in CHORDS[(bar // 2) % len(CHORDS)]]
+    if fw and fw[0] < t1:
+        for i in range(int(math.ceil((t1 - fw[0]) / BEATS * FAST_BY - 1e-9))):
+            at = fw[0] + i * BEATS / FAST_BY
+            out += [note(at, p, min(BEATS / FAST_BY, t1 - at), WOW_VEL) for p in CHORDS[((int(fw[0] // BEATS) + i) // 2) % len(CHORDS)]]
+    return out
+
+
 def spd_lane():
     """Semitones a record on deck B is sharp or flat by, from its speed: one point a sixteenth, only where it moves."""
     pts, last, fine = [["0b", 0]], 0.0, False
     for i in range(int(TOTAL / STEP) + 1):
         t = i * STEP
         back = forced(t)                                     # a record's pitch is its speed, whichever way it turns, and whatever turns it
-        v = round(12 * math.log2(max(speed(t) if back is None else back, 0.03)), 3)   # a stopped record has no pitch: the lane rests five octaves down
+        v = round(12 * math.log2(max(speed(t) if back is None else back, 0.03)) + wow_st(t), 3)   # a stopped record has no pitch: the lane rests five octaves down (v23: + the wow, 0.0 everywhere but in its row)
         if v != last or (pts and i and pts[-1][1] != v):
             if pts[-1][0] != f"{(i - 1) * STEP:g}b" and i and not fine:
                 pts.append([f"{(i - 1) * STEP:g}b", last])
@@ -607,6 +658,15 @@ CANON_PAN = 0.8                                        # each deck goes from one
 CANON_POINTS = 4                                       # points of each lane to a beat
 CANON_ROOM = "-10dB"                                   # the tock's own send to the room
 CANON_GAIN = os.environ.get("C11T1_CANON_GAIN", "-16dB")  # set in the whole song's master between two readings, BEFORE their scores were read: at -14dB a stroke stood 6 under to 31 dB over the music in its own band (median 11 and 13 for the two decks; 39 of 44 level with it or over); at -20dB 12 under to 25 over (median 5 and 7; 31 of 44): a deck that loses a stroke in three is not heard to accelerate. The slower decks of v12 are at -13. THIS MASTER DELIVERS THESE TICKS AS WRITTEN (6 dB of fader was 6 dB of every stroke). At the crossing the two strike as one, 6 dB up: about the tock's own level (-8.5)
+WOW = os.environ.get("C11T1_WOW", "1") != "0" and CANON and SCAR and FAST   # v23: the hole in deck B's record is off centre: its speed goes up and down once a turn (wow), and a held chord on the record shows it
+WOW_IN = ("locked", 0)                                 # the section and the row of it (from 0): the first row in which nothing else moves deck B's speed (the hand is off; the switch goes to the other speed half way through, and the wow goes with it)
+WOW_OFF = 1.0                                          # mm the hole is off centre
+WOW_RADIUS = 80.0                                      # mm from the centre to the needle: the speed under it goes WOW_OFF / WOW_RADIUS up and down (1.25%: 21.5 cents each way), once a turn, FASTEST WHEN THE SCRATCH (v20) IS UNDER THE NEEDLE
+WOW_ORGAN = os.environ.get("C11T1_WOW_ORGAN", "1") != "0"   # the held chord (off: the wow is on the record's strokes only: the reference the organ is read against)
+WOW_PARTS = ((1, 0), (2, -12))                         # the organ: plain tones (ratio, dB): nothing in it moves but the record
+WOW_VEL = 0.7
+WOW_PAN = 0.1                                          # where the record's chord is
+WOW_GAIN = os.environ.get("C11T1_WOW_GAIN", "-31dB")   # set in the whole song's master between two readings, BEFORE their scores were read (each read against the same song with WOW_ORGAN off, fitted out): at -28dB the organ is -23.8 dBFS, 12.7 dB under the row and LEVEL with the music between 180 and 500 Hz (the stab's own band); at -34dB 6 dB less. Between: a held chord under the stabs, not over them. THE MASTER PUMPS IT 5 dB WITH EVERY BEAT
 PIPS_BEFORE = 5                                        # short pips: one on each of the five seconds before the minute
 PIPS_SHORT = 0.1                                       # seconds a short pip lasts
 PIPS_LONG = 0.5                                        # the sixth, which BEGINS on the minute
@@ -1287,6 +1347,15 @@ def song():
                                   "auto": {"spd": {"points": ca_spd, "curve": 0}, "walk": {"points": ca_pan, "curve": 0}}, "notes": canon_notes(ca_up, ca_steps)})
         doc["about"] = doc["about"].replace(" Generated by", f" From v22 two more decks have deck B's record, for four bars of 'both' (bars {int(ca_t0 // BEATS) + 1} to {int(ca_t1 // BEATS)}): one starts at half speed, an octave down, on the left, and winds up to double speed, an octave up, on the right; the other does the reverse. Each is the other backwards in speed, in pitch and in place, and they cross once, on the first beat of bar {int(ca_tc // BEATS) + 1}: for that one stroke both are at the record's own speed, on the same beat of it, in the middle, with the grid (a canon by acceleration: Nancarrow's Canon X, on turntables). Generated by")
         assert "From v22" in doc["about"]
+    if wow_row() is not None:
+        wo_b0 = wow_row(); wo_e = WOW_OFF / WOW_RADIUS; wo_c = 1200 * math.log2(1 + wo_e); wo_fw = fast_window(); wo_turn = SCAR_TURN * STEP * 60 / BPM
+        if WOW_ORGAN:
+            PATCHES["gt-organ"] = {"about": f"Give or Take's held chord (chirper-zero, 27 Nov, v23): an organ on deck B's record: {len(WOW_PARTS)} plain tones a note, held, so that nothing in it moves but the record. Its pitch follows deck B's speed (auto.spd), and in its row the record's hole is {WOW_OFF:g} mm off centre.",
+                                   "play": {"vel_sens": 0.5, "gate": 1},
+                                   "synth": {"layers": [f"sine phase=0 ratio={r:g} level={lv:g}dB" for r, lv in WOW_PARTS], "pitch": {"value": 0, "mod": [{"src": "auto.spd", "amount": 1}]}, "amp": {"a": "40ms", "d": "0s", "s": 1, "r": "120ms"}}}
+            doc["tracks"].append({"name": "organ", "patch": "gt-organ", "gain": WOW_GAIN, "pan": WOW_PAN, "auto": {"spd": {"points": lane}}, "notes": wow_notes()})      # dry
+        doc["about"] = doc["about"].replace(" Generated by", f" From v23 the hole in deck B's record is {WOW_OFF:g} mm off centre, and in the first row of 'locked' (bars {wo_b0 + 1} to {wo_b0 + ROW}) it can be heard: the record's speed goes {100 * wo_e:.2f}% up and down once a turn, so everything on it is {wo_c:.1f} cents sharp and then as flat, fastest when the scratch comes under the needle (its tick)." + (" A chord is held on the record there, an organ, to show it." if WOW_ORGAN else "") + f" A turn is {wo_turn:.2f} s; when the switch goes to the other speed (bar {int(wo_fw[0] // BEATS) + 1}) the chord goes up a fourth and the wow goes {FAST_BY:.3f} times as fast with it ({wo_turn / FAST_BY:.2f} s): it is the record that is going round, not the note that is shaking. Generated by")
+        assert "From v23" in doc["about"]
     return doc
 
 
@@ -1303,6 +1372,12 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if wow_row() is not None:
+            wo_b0 = wow_row(); wo_sec = 60 / BPM; wo_fw = fast_window(); wo_e = WOW_OFF / WOW_RADIUS
+            print(f"the hole is off centre (wow), bars {wo_b0 + 1}-{wo_b0 + ROW} ({int(wo_b0 * BEATS * wo_sec) // 60}:{wo_b0 * BEATS * wo_sec % 60:04.1f}): {WOW_OFF:g} mm off at {WOW_RADIUS:g} mm: the speed {100 * wo_e:.2f}% up and down, {1200 * math.log2(1 + wo_e):+.1f} to {1200 * math.log2(1 - wo_e):+.1f} cents, once a turn ; a turn is {SCAR_TURN} sixteenths of the record: {SCAR_TURN * STEP:g} beats ({SCAR_TURN * STEP * wo_sec:.3f} s) until bar {int(wo_fw[0] // BEATS) + 1}, then {SCAR_TURN * STEP / FAST_BY:g} beats ({SCAR_TURN * STEP * wo_sec / FAST_BY:.3f} s) ; {(wow_turns((wo_b0 + ROW) * BEATS) - wow_turns(wo_b0 * BEATS)):.2f} turns in the row ; the organ {'(' + WOW_GAIN + ', pan ' + str(WOW_PAN) + ')' if WOW_ORGAN else 'OFF'}")
+            print("   sharpest (the scratch under the needle) at bar:sixteenth " + " ".join(f"{int(t // BEATS) + 1}:{(t % BEATS) / STEP:.2f}" for t in [x / 256 for x in range(wo_b0 * BEATS * 256, (wo_b0 + ROW) * BEATS * 256)] if math.floor(wow_turns(t)) != math.floor(wow_turns(t - 1 / 256))))
+            if WOW_ORGAN:
+                print("   the organ: " + " ; ".join(f"{int(n['at'] // BEATS) + 1}:{(n['at'] % BEATS) / STEP:g} {n['len']:g} beats " + "".join(m['pitch'] + " " for m in wow_notes() if m['at'] == n['at']).strip() for n in wow_notes()[::4]))
         if canon_span() is not None:
             ca_t0, ca_tc, ca_t1 = canon_span(); ca_sec = 60 / BPM
             print(f"two decks cross (a canon by acceleration), bars {int(ca_t0 // BEATS) + 1}-{int(ca_t1 // BEATS)} ({int(ca_t0 * ca_sec) // 60}:{ca_t0 * ca_sec % 60:04.1f} to {int(ca_t1 * ca_sec) // 60}:{ca_t1 * ca_sec % 60:04.1f}), crossing on bar {int(ca_tc // BEATS) + 1} beat {ca_tc % BEATS + 1:g} ({int(ca_tc * ca_sec) // 60}:{ca_tc * ca_sec % 60:04.1f}): the record's {CANON_PART}, {CANON_OCT:g} octave(s) each way ; {CANON_GAIN}, pan {-CANON_PAN:g} to {CANON_PAN:g}")
