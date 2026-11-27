@@ -9339,15 +9339,14 @@
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers11-t3 OUT.wav",
       "best": {
-        "score": 99.24,
-        "version": "v16",
-        "commit": "see git log songs/chirpers11-t3.yaml",
-        "judged": true
+        "score": 99.59,
+        "version": "v17",
+        "commit": "see git log songs/chirpers11-t3.yaml"
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 16,
+      "rounds": 17,
       "priority": 1.0,
       "genre": "clicky minimal techno",
       "mode": "compose",
@@ -9365,7 +9364,7 @@
         "note": "COMPOSE (song, 300-480 s): SPACE. The rooms are the material: a click walking through spaces of different sizes and distances, dub chords in a delay that breathes, width that opens and shuts."
       },
       "last": {
-        "at": "2026-11-27T05:31:36Z",
+        "at": "2026-11-27T06:46:27Z",
         "who": "chirper-zero"
       }
     },

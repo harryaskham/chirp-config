@@ -256,6 +256,20 @@ last, and each comes on the note the one before left on: A7 to E7, E7 to A6, A6 
 click's own note as the drum comes in. None of them sings any of those notes: the third one's own note is E6.
 They pass FLY_DIST metres in front on a line FLY_RADIUS metres out to each side (the engine's orbit, path
 "line"); the speed is raised by the little the ends of that line are short of straight ahead.
+
+v17 (27 Nov): THE BUILDING ACROSS THE SQUARE HUMS (C11T3_NEXT=0 takes it out: v16). Through "the door" you
+walk away across the square and the click you left falls behind (10 m at bar 153, 163 m at bar 168). You are
+walking TOWARDS something: the next building. A building has a sound of its own from outside: its transformers
+and its lights hum at twice the mains and at the multiples of that, and a wall lets the bottom of a sound
+through and keeps the rest (the mass law: 6 dB more loss for every octave up). So what reaches you is two plain
+tones, 120 and 180 Hz (mains at 60 to the second), the upper 3.5 dB under the lower because it is 0.585 of an
+octave higher. It is in no key: 120 Hz is half way between B flat and B, 180 half way between F and F sharp.
+It grows as you come: as 1 over the distance, from 173.5 m at bar 153 to 10.2 m at the end of bar 168 (as near
+to the next door as bar 153 was to this one): 24.6 dB. One held note; the form is the walk.
+WHY 60 AND NOT 50 (this country's mains): 100 and 150 Hz fall where the song already has sound; 120 and 180
+fall in the two bands the scorer found short (its rows without a drum are empty there). That choice is the
+scorer's. AND WHY NOT A NOTE: the first build was the next song's note and its fifth (B flat and F), and it
+made this song's chroma like Least Common's (likeness 0.827 to 0.849, the edge is 0.85) at any level.
 """
 import json
 import math
@@ -488,6 +502,14 @@ TRIM_OUT = (152, 160)                                  # ... and goes out again:
 
 
 BALL = os.environ.get("C11T3_BALL", "1") != "0" and TRIM                        # v14: Zeno's ball
+NEXTROOM = os.environ.get("C11T3_NEXT", "1") != "0" and os.environ.get("C11T3_FLY", "1") != "0" and os.environ.get("C11T3_BIRD", "1") != "0" and BALL and SQUARE     # v17: the room next door (heard through its wall as you cross the square)
+NEXTROOM_MAINS = 60.0                                  # the mains, Hz, in the building you are walking to
+NEXTROOM_PARTS = (2, 3)                                # the multiples of the mains that reach you: twice (the transformer's own note) and three times
+NEXTROOM_NOTE = "A2"                                   # the note the held voice is written on (not what sounds: its tones are tuned from it to the mains)
+NEXTROOM_WALL = 6.0                                    # dB a wall keeps back for every octave up (the mass law)
+NEXTROOM_NEAR = 0.25                                   # sixteenths of sound from the next door at the end of the last bar: as near as the first bar of the walk is to this one
+NEXTROOM_GAIN = os.environ.get("C11T3_NEXT_GAIN", "-62dB")    # at the nearest. Set in the whole song's master, where it reads 12 dB over its fader: -50 dBFS in the last bar. At -40 and -46 dB it was louder than the click it is heard with
+NEXTROOM_RELEASE = "60ms"                              # it stops with the song: nothing of it rings into the tail
 FLY = os.environ.get("C11T3_FLY", "1") != "0" and os.environ.get("C11T3_BIRD", "1") != "0" and BALL     # v16: a fourth, a fifth, an octave go by (Doppler; the engine's orbit on a line)
 FLY_PASSES = ((7, "A7", 86), (5, "E7", 87), (3, "A6", 88))                     # (n: it goes at 1/n of the speed of sound, so comes and goes (n+1)/(n-1) apart; the note it is heard on as it comes; the bar, from 0, on whose first beat it is nearest)
 FLY_RADIUS = 20.0                                                              # metres out to each side (the engine's most)
@@ -530,6 +552,28 @@ def ball_height():
     """Metres it fell: a flight of T after a fall from h is T = 2 e sqrt(2 h / g)."""
     t1 = BALL_BEATS * 60 / BPM * (1 - BALL_E)
     return GRAVITY * (t1 / (2 * BALL_E)) ** 2 / 2
+
+
+def nextroom_span():
+    """(first bar, bar after the last), from 0: the walk away across the square (the last section)."""
+    return SECS[-1][1], SECS[-1][1] + SECS[-1][2]
+
+
+def nextroom_metres(x):
+    """How far off the next room's wall is at bar x (a fraction is a place in the bar): you walk the square, FAR sixteenths of sound, in the section."""
+    b0, b1 = nextroom_span()
+    return (NEXTROOM_NEAR + FAR * (b1 - x) / (b1 - b0)) * STEP * 60 / BPM * SOUND
+
+
+def nextroom_db(x):
+    """dB under its level at the nearest: sound falls as 1 over the distance."""
+    return -20 * math.log10(nextroom_metres(x) / nextroom_metres(nextroom_span()[1]))
+
+
+def nextroom_lane():
+    """0 at the nearest, 1 at the farthest, a point every half bar."""
+    b0, b1 = nextroom_span(); most = -nextroom_db(b0)
+    return [pt(0, 1.0)] + [pt(b0 + k / 2, -nextroom_db(b0 + k / 2) / most) for k in range(2 * (b1 - b0) + 1)]
 
 
 def fly_facts():
@@ -1160,6 +1204,17 @@ def song():
                                   "notes": [{"at": round((tc - T / 2) / beat, 5), "len": round(T / beat, 5), "pitch": heard, "vel": 0.8}]})
         doc["about"] = doc["about"].replace(" Generated by", " From v16 three things go by in the hangar, left to right, on the bar lines 87, 88 and 89, at a seventh, a fifth and a third of the speed of sound: each is heard a fourth, a fifth and an octave higher coming than going (A7 to E7, E7 to A6, A6 to A5), and none of them sings either note. Generated by")
         assert "From v16" in doc["about"]
+    if NEXTROOM:
+        nx_b0, nx_b1 = nextroom_span(); nx_most = -nextroom_db(nx_b0); nx_hz = [NEXTROOM_MAINS * nx_k for nx_k in NEXTROOM_PARTS]; nx_db = [-NEXTROOM_WALL * math.log2(nx_f / nx_hz[0]) for nx_f in nx_hz]
+        PATCHES["sr-next"] = {"about": f"Standing Room's building across the square (chirper-zero, 27 Nov, v17): a building's hum heard through its wall: plain held tones at {' and '.join(f'{nx_f:g}' for nx_f in nx_hz)} Hz ({' and '.join(str(nx_k) for nx_k in NEXTROOM_PARTS)} times mains of {NEXTROOM_MAINS:g}), each {NEXTROOM_WALL:g} dB quieter for every octave it is above the lowest. Written on {NEXTROOM_NOTE}, which does not sound.",
+                              "play": {"vel_sens": 0, "gate": 1},
+                              "synth": {"layers": [f"sine phase=0 ratio={nx_f / hz(NEXTROOM_NOTE):.6f} level={nx_d:.2f}dB" for nx_f, nx_d in zip(nx_hz, nx_db)], "amp": {"a": "1s", "d": "0s", "s": 1, "r": NEXTROOM_RELEASE}}}
+        doc["tracks"].append({"name": "next", "patch": "sr-next", "gain": NEXTROOM_GAIN, "pan": 0.0,
+                              "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.near", "amount": round(-nx_most, 3)}]}}],
+                              "auto": {"near": {"points": nextroom_lane()}},
+                              "notes": [{"at": nx_b0 * BEATS, "len": (nx_b1 - nx_b0) * BEATS, "pitch": NEXTROOM_NOTE, "vel": 0.8}]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v17, as you walk away across the square, the building you are walking to is heard: its hum through its wall, {' and '.join(f'{nx_f:g}' for nx_f in nx_hz)} Hz, in no key, growing as you come ({nx_most:.1f} dB over the sixteen bars). Generated by")
+        assert "From v17" in doc["about"]
     return doc
 
 
@@ -1216,6 +1271,10 @@ def echoes(a, b, n=16):
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
         sec = 60 / BPM * BEATS
+        if NEXTROOM:
+            nx_b0, nx_b1 = nextroom_span(); nx_hz = [NEXTROOM_MAINS * nx_k for nx_k in NEXTROOM_PARTS]; nx_bar = BEATS * 60 / BPM
+            print(f"the building across the square hums, bars {nx_b0 + 1}-{nx_b1} ({int(nx_b0 * nx_bar) // 60}:{nx_b0 * nx_bar % 60:04.1f}-{int(nx_b1 * nx_bar) // 60}:{nx_b1 * nx_bar % 60:04.1f}): mains of {NEXTROOM_MAINS:g} to the second, heard through its wall at " + " and ".join(f"{nx_f:g} Hz ({-NEXTROOM_WALL * math.log2(nx_f / nx_hz[0]):+.1f} dB)" for nx_f in nx_hz) + f" (a wall keeps {NEXTROOM_WALL:g} dB an octave) ; one held voice, {NEXTROOM_GAIN} at the nearest ; it grows as 1 over the distance")
+            print("   bar: metres to the next wall, dB under the nearest: " + " ; ".join(f"{b + 1}: {nextroom_metres(b):.0f} m {nextroom_db(b):+.1f}" for b in range(nx_b0, nx_b1, 2)) + f" ; the end of bar {nx_b1}: {nextroom_metres(nx_b1):.1f} m +0.0")
         if FLY:
             print(f"a fourth, a fifth, an octave go by: left to right, {FLY_DIST:g} m in front at the nearest, {FLY_RADIUS:g} m out to each side ({FLY_GAIN}) ; heard f(1 + v/c) coming and f(1 - v/c) going")
             for (n, heard, bar), (_, v, T, ratio, f0, f_in, f_out, tc, rate, ph) in zip(FLY_PASSES, fly_facts()):
