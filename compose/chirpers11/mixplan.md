@@ -94,6 +94,9 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v13 (04:59): both ends are v12's to 0.1 dB: bars 1 to 16 by four -22.4 -23.3 -23.5 -20.6 dBFS; the
+  last sixteen -24.3 -23.5 -23.1 -19.5. What changed is inside: bar 160 and every other bar of home (161 to 175),
+  from 3 to 6 kHz only (a second, duller hat: 3.7 dB over the bars without it in that band, finished).
 - Wind Down v13 (04:28): both ends are v12's: bars 1 to 8 by two -29.9 -30.2 -29.9 -30.0 dBFS; the last strokes by
   second -9 -22 -35 -47 -59 -73 -85 -97. What changed is inside: bar 80 (the room's door), one bass note in bar 177,
   three strokes in bar 185 and ONE DRUM STROKE on the one of bar 193 (6:11.6), where there was near silence: it
